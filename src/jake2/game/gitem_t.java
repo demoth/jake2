@@ -19,7 +19,7 @@
  */
 
 // Created on 20.11.2003 by RST.
-// $Id: gitem_t.java,v 1.4 2004-09-22 19:22:04 salomo Exp $
+// $Id: gitem_t.java,v 1.5 2005-02-06 19:08:00 salomo Exp $
 package jake2.game;
 
 import jake2.*;
@@ -106,22 +106,6 @@ public class gitem_t {
 
     String precaches; // string of all models, sounds, and images this item will
                       // use
-
-    public static void main(String args[]) {
-        gitem_t xxx = new gitem_t(123);
-        gitem_t i2 = new gitem_t("item_armor_combat", GameAI.Pickup_Armor,
-                null, null, null, "misc/ar1_pkup.wav",
-                "models/items/armor/combat/tris.md2", Defines.EF_ROTATE, null,
-                /* icon */
-                "i_combatarmor",
-                /* pickup */
-                "Combat Armor",
-                /* width */
-                3, 0, null, Defines.IT_ARMOR, 0, GameAI.combatarmor_info,
-                Defines.ARMOR_COMBAT,
-                /* precache */
-                "");
-    }
 
     public int index;
 }
