@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.2 2004-07-13 11:20:28 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.3 2004-09-04 14:25:32 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -62,6 +62,9 @@ public final class JOALSoundImpl implements Sound {
 			initOpenALExtensions();		
 		} catch (OpenALException e) {
 			Com.Printf(e.getMessage() + '\n');
+			return false;
+		} catch (Exception e) {
+			Com.DPrintf(e.getMessage() + '\n');
 			return false;
 		}
 		al.alGenBuffers(MAX_SFX, buffers);
