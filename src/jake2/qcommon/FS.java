@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.10 2004-10-25 21:57:48 cawe Exp $
+ * $Id: FS.java,v 1.11 2004-10-28 21:09:11 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -715,7 +715,7 @@ public final class FS extends Globals {
 
         fs_gamedir = fs_basedir.string + '/' + dir;
 
-        if (!dir.equals(Globals.BASEDIRNAME) || (dir.length() == 0)) {
+        if (dir.equals(Globals.BASEDIRNAME) || (dir.length() == 0)) {
             Cvar.FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
             Cvar.FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
         } else {
@@ -921,7 +921,7 @@ public final class FS extends Globals {
         AddGameDirectory(fs_basedir.string + '/' + Globals.BASEDIRNAME);
 
         // any set gamedirs will be freed up to here
-        fs_base_searchpaths = fs_searchpaths;
+        markBaseSearchPaths();
 
         // check for game override
         fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
@@ -937,6 +937,11 @@ public final class FS extends Globals {
         fs_cddir = Cvar.Get("cddir", "", CVAR_ARCHIVE);
         if (fs_cddir.string.length() > 0)
             AddGameDirectory(fs_cddir.string);
+    }
+    
+    static void markBaseSearchPaths() {
+        // any set gamedirs will be freed up to here
+        fs_base_searchpaths = fs_searchpaths;
     }
 
     //	RAFAEL
