@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.23 2004-02-29 17:23:43 rst Exp $
+// $Id: PlayerClient.java,v 1.24 2004-03-18 10:20:46 hoz Exp $
 
 package jake2.game;
 
@@ -334,7 +334,7 @@ public class PlayerClient extends PlayerHud {
 		//memset(& client.resp, 0, sizeof(client.resp));
 		client.resp.clear(); //  ok.
 		client.resp.enterframe = level.framenum;
-		client.resp.coop_respawn = client.pers.getClone();
+		client.resp.coop_respawn.set(client.pers);
 	}
 
 	/*

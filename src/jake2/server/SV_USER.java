@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.11 2004-02-27 15:50:16 rst Exp $
+// $Id: SV_USER.java,v 1.12 2004-03-18 10:20:46 hoz Exp $
 
 package jake2.server;
 
@@ -308,11 +308,10 @@ public class SV_USER extends SV_SEND {
 			|| allow_download.value == 0 // leading dot is no good
 			|| name.charAt(0) == '.' // leading slash bad as well, must be in subdir
 			|| name.charAt(0) == '/' // next up, skin check
-			|| (strncmp(name, "players/", 6) == 0 && 0 == allow_download_players.value) // now models
-			|| (strncmp(name, "models/", 6) == 0 && 0 == allow_download_models.value) // now sounds
-			|| (strncmp(name, "sound/", 6) == 0
-				&& 0 == allow_download_sounds.value) // now maps (note special case for maps, must not be in pak)
-			|| (strncmp(name, "maps/", 6) == 0 && 0 == allow_download_maps.value) // MUST be in a subdirectory	
+			|| (name.startsWith("players/") && 0 == allow_download_players.value) // now models
+			|| (name.startsWith("models/") && 0 == allow_download_models.value) // now sounds
+			|| (name.startsWith("sound/") && 0 == allow_download_sounds.value) // now maps (note special case for maps, must not be in pak)
+			|| (name.startsWith("maps/") && 0 == allow_download_maps.value) // MUST be in a subdirectory	
 			|| name.indexOf('/') == -1) { // don't allow anything with .. path
 			MSG.WriteByte(sv_client.netchan.message, svc_download);
 			MSG.WriteShort(sv_client.netchan.message, -1);
@@ -332,7 +331,7 @@ public class SV_USER extends SV_SEND {
 
 		if (sv_client.download == null // special check for maps, if it came from a pak file, don't allow
 			// download  ZOID
-			|| (strncmp(name, "maps/", 5) == 0 && FS.file_from_pak != 0)) {
+			|| (name.startsWith("maps/") && FS.file_from_pak != 0)) {
 			Com.DPrintf("Couldn't download " + name + " to " + sv_client.name + "\n");
 			if (sv_client.download != null) {
 				FS.FreeFile(sv_client.download);
