@@ -19,7 +19,7 @@
  */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.8 2004-09-22 19:22:05 salomo Exp $
+// $Id: GameBase.java,v 1.9 2005-02-13 17:02:45 cawe Exp $
 /** Father of all GameObjects. */
 
 package jake2.game;
@@ -82,8 +82,6 @@ public class GameBase {
     public static cvar_t maxentities = new cvar_t();
 
     public static cvar_t g_select_empty = new cvar_t();
-
-    public static cvar_t dedicated = new cvar_t();
 
     public static cvar_t filterban = new cvar_t();
 

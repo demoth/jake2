@@ -19,7 +19,7 @@
  */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.7 2004-09-22 19:22:01 salomo Exp $
+// $Id: GameSave.java,v 1.8 2005-02-13 17:03:43 cawe Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -63,7 +63,7 @@ public class GameSave {
         GameBase.sv_gravity = GameBase.gi.cvar("sv_gravity", "800", 0);
 
         // noset vars
-        GameBase.dedicated = GameBase.gi.cvar("dedicated", "0",
+        Globals.dedicated = GameBase.gi.cvar("dedicated", "0",
                 Defines.CVAR_NOSET);
 
         // latched vars

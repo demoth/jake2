@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.11 2005-02-06 18:53:50 salomo Exp $
+ * $Id: Cmd.java,v 1.12 2005-02-13 17:02:46 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1118,7 +1118,7 @@ public final class Cmd {
             cl.flood_when[cl.flood_whenhead] = GameBase.level.time;
         }
 
-        if (GameBase.dedicated.value != 0)
+        if (Globals.dedicated.value != 0)
             SV_GAME.PF_cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
         for (j = 1; j <= GameBase.game.maxclients; j++) {
