@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.8 2004-01-06 02:06:44 cwei Exp $
+// $Id: model_t.java,v 1.9 2004-01-21 17:08:39 cwei Exp $
 
 package jake2.render;
+
+import java.util.Vector;
 
 import jake2.qcommon.*;
 import jake2.*;
@@ -86,7 +88,7 @@ public class model_t {
 	public int surfedges[];
 
 	public int nummarksurfaces;
-	// was **marksurfaces;
+	// TODO was **marksurfaces;
 	public msurface_t marksurfaces[];
 
 	public qfiles.dvis_t vis;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mleaf_t.java,v 1.5 2004-01-20 18:22:00 cwei Exp $
+// $Id: mleaf_t.java,v 1.6 2004-01-21 17:08:39 cwei Exp $
 
 package jake2.render;
 
@@ -39,7 +39,21 @@ public class mleaf_t extends mnode_t {
 	public int cluster;
 	public int area;
 
-	public msurface_t firstmarksurface;
+	//public msurface_t firstmarksurface;
 	public int nummarksurfaces;
+	
+	// added by cwei
+	int markIndex;
+	msurface_t[] markSurfaces;
+	
+	public void setMarkSurface(int markIndex, msurface_t[] markSurfaces) {
+		this.markIndex = markIndex;
+		this.markSurfaces = markSurfaces;
+	}
+
+	public msurface_t getMarkSurface(int index) {
+		assert (index >= 0 && index < nummarksurfaces) : "mleaf: markSurface bug";
+		return markSurfaces[markIndex + index];
+	}
 
 }

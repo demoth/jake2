@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mnode_t.java,v 1.4 2004-01-20 16:15:41 cwei Exp $
+// $Id: mnode_t.java,v 1.5 2004-01-21 17:08:39 cwei Exp $
 
 package jake2.render;
 
@@ -31,6 +31,7 @@ public class mnode_t {
 	public int visframe; // node needs to be traversed if current
 
 	public float minmaxs[] = new float[6]; // for bounding box culling
+	//public float minmaxs[][] = new float[2][3]; // for bounding box culling
 
 	public mnode_t parent;
 

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.17 2004-01-20 18:22:00 cwei Exp $
+ * $Id: Main.java,v 1.18 2004-01-21 17:08:39 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -72,6 +72,7 @@ public abstract class Main extends Base {
 	boolean qglPointParameterfEXT = false;
 	boolean qglLockArraysEXT = false;
 	boolean qglUnlockArraysEXT = false;
+	boolean qglMTexCoord2fSGIS = false;
 	
 	//	=================
 	//  abstract methods
@@ -924,11 +925,11 @@ public abstract class Main extends Base {
 
 		R_DrawEntitiesOnList();
 
-		R_RenderDlights();
+		// TODO R_RenderDlights();
 
 		R_DrawParticles();
 
-		R_DrawAlphaSurfaces();
+		// TODO R_DrawAlphaSurfaces();
 
 		R_Flash();
 
@@ -1395,6 +1396,7 @@ public abstract class Main extends Base {
 	//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
 	//			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
 	//			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
+				 qglMTexCoord2fSGIS = true;
 				 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
 				 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
 			 }
@@ -1420,6 +1422,7 @@ public abstract class Main extends Base {
 	//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 	//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
 				 qglSelectTextureSGIS = true;
+				 qglMTexCoord2fSGIS = true;
 	//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
 	//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
 			 }

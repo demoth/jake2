@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.10 2004-01-20 18:22:00 cwei Exp $
+ * $Id: Model.java,v 1.11 2004-01-21 17:08:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.render.jogl;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Vector;
 
 import jake2.Defines;
 import jake2.game.cplane_t;
@@ -51,7 +52,7 @@ import jake2.util.Vargs;
  *  
  * @author cwei
  */
-public abstract class Model extends Warp {
+public abstract class Model extends Surf {
 	
 	// models.c -- model loading and caching
 
@@ -66,6 +67,8 @@ public abstract class Model extends Warp {
 
 	// the inline * models from the current map are kept seperate
 	model_t[] mod_inline = new model_t[MAX_MOD_KNOWN];
+	
+	abstract void GL_SubdivideSurface(msurface_t surface); // Warp.java
 
 	/*
 	===============
@@ -310,6 +313,7 @@ public abstract class Model extends Warp {
 			break;
 		}
 
+		this.fileBuffer = null; // free it for garbage collection
 		return mod;
 	}
 
@@ -692,13 +696,12 @@ public abstract class Model extends Warp {
 
 			// create lightmaps and polygons
 			if ((out[surfnum].texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) == 0)
-				GL_CreateSurfaceLightmap (out[surfnum]);
+				GL_CreateSurfaceLightmap(out[surfnum]);
 
 			if ((out[surfnum].texinfo.flags & Defines.SURF_WARP) == 0) 
 				GL_BuildPolygonFromSurface(out[surfnum]);
 
 		}
-
 		GL_EndBuildingLightmaps ();
 	}
 
@@ -793,6 +796,9 @@ public abstract class Model extends Warp {
 
 		loadmodel.leafs = out;
 		loadmodel.numleafs = count;
+		
+		// TODO test cwei
+		System.out.println("numleafs: " + count);
 
 		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
@@ -811,7 +817,9 @@ public abstract class Model extends Warp {
 			out[i].cluster = in.cluster;
 			out[i].area = in.area;
 
-			out[i].firstmarksurface = loadmodel.marksurfaces[in.firstleafface];
+			// out[i].firstmarksurface = loadmodel.marksurfaces[in.firstleafface];
+			
+			out[i].setMarkSurface(in.firstleafface, loadmodel.marksurfaces);
 			out[i].nummarksurfaces = in.numleaffaces;
 		}	
 	}
@@ -965,7 +973,7 @@ public abstract class Model extends Warp {
 		//
 		// set up the submodels
 		//
-		// TODO check this: set up the submodels
+		// TODO check this: set up the submodels (sehr wichtig)
 		model_t	starmod;
 
 		for (i=0 ; i<mod.numsubmodels ; i++)

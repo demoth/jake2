@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.4 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Light.java,v 1.5 2004-01-21 17:08:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -41,7 +41,7 @@ import jake2.util.Math3D;
  *  
  * @author cwei
  */
-public abstract class Light extends Model {
+public abstract class Light extends Warp {
 ////	   r_light.c
 //
 //	#include "gl_local.h"

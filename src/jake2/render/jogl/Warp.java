@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.2 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Warp.java,v 1.3 2004-01-21 17:08:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,14 +25,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.Defines;
+import jake2.render.glpoly_t;
+import jake2.render.image_t;
 import jake2.render.msurface_t;
+import jake2.util.Math3D;
 
 /**
  * Warp
  *  
  * @author cwei
  */
-public abstract class Warp extends Surf {
+public abstract class Warp extends Model {
 	
 	
 	// warpsin.h
@@ -71,141 +75,151 @@ public abstract class Warp extends Surf {
 		 -1.56072f, -1.3677f, -1.17384f, -0.979285f, -0.784137f, -0.588517f, -0.392541f, -0.19633f
 	};
 	
-////	   gl_warp.c -- sky and water polygons
-//
-//	#include "gl_local.h"
-//
-//	extern	model_t	*loadmodel;
-//
-//	char	skyname[MAX_QPATH];
-//	float	skyrotate;
-//	vec3_t	skyaxis;
-//	image_t	*sky_images[6];
-//
-//	msurface_t	*warpface;
-//
-//	#define	SUBDIVIDE_SIZE	64
-////	  #define	SUBDIVIDE_SIZE	1024
-//
-//	void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
-//	{
-//		int		i, j;
-//		float	*v;
-//
-//		mins[0] = mins[1] = mins[2] = 9999;
-//		maxs[0] = maxs[1] = maxs[2] = -9999;
-//		v = verts;
-//		for (i=0 ; i<numverts ; i++)
-//			for (j=0 ; j<3 ; j++, v++)
-//			{
-//				if (*v < mins[j])
-//					mins[j] = *v;
-//				if (*v > maxs[j])
-//					maxs[j] = *v;
-//			}
-//	}
-//
-//	void SubdividePolygon (int numverts, float *verts)
-//	{
-//		int		i, j, k;
-//		vec3_t	mins, maxs;
-//		float	m;
-//		float	*v;
-//		vec3_t	front[64], back[64];
-//		int		f, b;
-//		float	dist[64];
-//		float	frac;
-//		glpoly_t	*poly;
-//		float	s, t;
-//		vec3_t	total;
-//		float	total_s, total_t;
-//
-//		if (numverts > 60)
-//			ri.Sys_Error (ERR_DROP, "numverts = %i", numverts);
-//
-//		BoundPoly (numverts, verts, mins, maxs);
-//
-//		for (i=0 ; i<3 ; i++)
-//		{
-//			m = (mins[i] + maxs[i]) * 0.5;
-//			m = SUBDIVIDE_SIZE * floor (m/SUBDIVIDE_SIZE + 0.5);
-//			if (maxs[i] - m < 8)
-//				continue;
-//			if (m - mins[i] < 8)
-//				continue;
-//
-//			// cut it
-//			v = verts + i;
-//			for (j=0 ; j<numverts ; j++, v+= 3)
-//				dist[j] = *v - m;
-//
-//			// wrap cases
-//			dist[j] = dist[0];
-//			v-=i;
-//			VectorCopy (verts, v);
-//
-//			f = b = 0;
-//			v = verts;
-//			for (j=0 ; j<numverts ; j++, v+= 3)
-//			{
-//				if (dist[j] >= 0)
-//				{
-//					VectorCopy (v, front[f]);
-//					f++;
-//				}
-//				if (dist[j] <= 0)
-//				{
-//					VectorCopy (v, back[b]);
-//					b++;
-//				}
-//				if (dist[j] == 0 || dist[j+1] == 0)
-//					continue;
-//				if ( (dist[j] > 0) != (dist[j+1] > 0) )
-//				{
-//					// clip point
-//					frac = dist[j] / (dist[j] - dist[j+1]);
-//					for (k=0 ; k<3 ; k++)
-//						front[f][k] = back[b][k] = v[k] + frac*(v[3+k] - v[k]);
-//					f++;
-//					b++;
-//				}
-//			}
-//
-//			SubdividePolygon (f, front[0]);
-//			SubdividePolygon (b, back[0]);
-//			return;
-//		}
-//
-//		// add a point in the center to help keep warp valid
-//		poly = Hunk_Alloc (sizeof(glpoly_t) + ((numverts-4)+2) * VERTEXSIZE*sizeof(float));
-//		poly->next = warpface->polys;
-//		warpface->polys = poly;
-//		poly->numverts = numverts+2;
-//		VectorClear (total);
-//		total_s = 0;
-//		total_t = 0;
-//		for (i=0 ; i<numverts ; i++, verts+= 3)
-//		{
-//			VectorCopy (verts, poly->verts[i+1]);
-//			s = DotProduct (verts, warpface->texinfo->vecs[0]);
-//			t = DotProduct (verts, warpface->texinfo->vecs[1]);
-//
-//			total_s += s;
-//			total_t += t;
-//			VectorAdd (total, verts, total);
-//
-//			poly->verts[i+1][3] = s;
-//			poly->verts[i+1][4] = t;
-//		}
-//
-//		VectorScale (total, (1.0/numverts), poly->verts[0]);
-//		poly->verts[0][3] = total_s/numverts;
-//		poly->verts[0][4] = total_t/numverts;
-//
-//		// copy first vertex to last
-//		memcpy (poly->verts[i+1], poly->verts[1], sizeof(poly->verts[0]));
-//	}
-//
+	// gl_warp.c -- sky and water polygons
+	//extern	model_t	*loadmodel; // Model.java
+
+	String skyname;
+	float	skyrotate;
+	float[] skyaxis = {0, 0, 0};
+	image_t[] sky_images = new image_t[6];
+
+	msurface_t	warpface;
+
+	static final int SUBDIVIDE_SIZE = 64;
+
+	void BoundPoly(int numverts, float[][] verts, float[] mins, float[] maxs)
+	{
+		int i, j;
+		float[] v;
+
+		mins[0] = mins[1] = mins[2] = 9999;
+		maxs[0] = maxs[1] = maxs[2] = -9999;
+		for (i=0 ; i<numverts ; i++)
+		{
+			v = verts[i];
+			for (j=0 ; j<3 ; j++)
+			{
+				if (v[j] < mins[j])
+					mins[j] = v[j];
+				if (v[j] > maxs[j])
+					maxs[j] = v[j];
+			}
+		}
+	}
+
+	void SubdividePolygon(int numverts, float[][] verts)
+	{
+		int i, j, k;
+		float[] mins = {0, 0, 0};
+		float[] maxs = {0, 0, 0};
+		float	m;
+		float[] v = {0, 0, 0};
+		float[][] front = new float[64][3];
+		float[][] back = new float[64][3];
+
+		int f, b;
+		float[] dist = new float[64];
+		float	frac;
+		glpoly_t poly;
+		float	s, t;
+		float[] total = {0, 0, 0};
+		float	total_s, total_t;
+
+		if (numverts > 60)
+			ri.Sys_Error(Defines.ERR_DROP, "numverts = " + numverts);
+
+		BoundPoly(numverts, verts, mins, maxs);
+
+		// x,y und z 
+		for (i=0 ; i<3 ; i++)
+		{
+			m = (mins[i] + maxs[i]) * 0.5f;
+			m = SUBDIVIDE_SIZE * (float)Math.floor(m / SUBDIVIDE_SIZE + 0.5f);
+			if (maxs[i] - m < 8)
+				continue;
+			if (m - mins[i] < 8)
+				continue;
+
+			// cut it
+			for (j=0 ; j<numverts ; j++) {
+				dist[j] = verts[j][i] - m;
+			}
+
+			// wrap cases
+			dist[j] = dist[0];
+
+			Math3D.VectorCopy(verts[0], verts[numverts]);
+
+			f = b = 0;
+			for (j=0 ; j<numverts ; j++)
+			{
+				v = verts[j];
+				if (dist[j] >= 0)
+				{
+					Math3D.VectorCopy(v, front[f]);
+					f++;
+				}
+				if (dist[j] <= 0)
+				{
+					Math3D.VectorCopy(v, back[b]);
+					b++;
+				}
+				if (dist[j] == 0 || dist[j+1] == 0) continue;
+				
+				if ( (dist[j] > 0) != (dist[j+1] > 0) )
+				{
+					// clip point
+					frac = dist[j] / (dist[j] - dist[j+1]);
+					for (k=0 ; k<3 ; k++)
+						front[f][k] = back[b][k] = v[k] + frac*(verts[j+1][k] - v[k]);
+						
+					f++;
+					b++;
+				}
+			}
+
+			SubdividePolygon(f, front);
+			SubdividePolygon(b, back);
+			return;
+		}
+
+		// add a point in the center to help keep warp valid
+		
+		// wird im Konstruktor erschlagen
+		// poly = Hunk_Alloc (sizeof(glpoly_t) + ((numverts-4)+2) * VERTEXSIZE*sizeof(float));
+
+		// init polys
+		poly = new glpoly_t(numverts + 2);
+
+		poly.next = warpface.polys;
+		warpface.polys = poly;
+		poly.numverts = numverts + 2;
+		Math3D.VectorClear(total);
+		total_s = 0;
+		total_t = 0;
+		for (i=0 ; i<numverts ; i++)
+		{
+			Math3D.VectorCopy(verts[i], poly.verts[i+1]);
+			s = Math3D.DotProduct(verts[i], warpface.texinfo.vecs[0]);
+			t = Math3D.DotProduct(verts[i], warpface.texinfo.vecs[1]);
+
+			total_s += s;
+			total_t += t;
+			Math3D.VectorAdd(total, verts[i], total);
+
+			poly.verts[i+1][3] = s;
+			poly.verts[i+1][4] = t;
+		}
+
+		Math3D.VectorScale(total, (1.0f/numverts), poly.verts[0]);
+		poly.verts[0][3] = total_s/numverts;
+		poly.verts[0][4] = total_t/numverts;
+
+		// copy first vertex to last
+//		memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
+		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, 3);
+	}
+
 	/*
 	================
 	GL_SubdivideSurface
@@ -215,39 +229,40 @@ public abstract class Warp extends Surf {
 	can be done reasonably.
 	================
 	*/
-	void GL_SubdivideSurface (msurface_t fa)
+	void GL_SubdivideSurface(msurface_t fa)
 	{
-//		vec3_t		verts[64];
-//		int			numverts;
-//		int			i;
-//		int			lindex;
-//		float		*vec;
-//
-//		warpface = fa;
-//
-//		//
-//		// convert edges back to a normal polygon
-//		//
-//		numverts = 0;
-//		for (i=0 ; i<fa->numedges ; i++)
-//		{
-//			lindex = loadmodel->surfedges[fa->firstedge + i];
-//
-//			if (lindex > 0)
-//				vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
-//			else
-//				vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
-//			VectorCopy (vec, verts[numverts]);
-//			numverts++;
-//		}
-//
-//		SubdividePolygon (numverts, verts[0]);
+		float[][] verts = new float[64][3];
+
+		int numverts;
+		int i;
+		int lindex;
+		float[] vec;
+
+		warpface = fa;
+
+		//
+		// convert edges back to a normal polygon
+		//
+		numverts = 0;
+		for (i=0 ; i < fa.numedges ; i++)
+		{
+			lindex = loadmodel.surfedges[fa.firstedge + i];
+
+			if (lindex > 0)
+				vec = loadmodel.vertexes[loadmodel.edges[lindex].v[0]].position;
+			else
+				vec = loadmodel.vertexes[loadmodel.edges[-lindex].v[1]].position;
+			Math3D.VectorCopy(vec, verts[numverts]);
+			numverts++;
+		}
+
+		SubdividePolygon(numverts, verts);
 	}
-//
-////	  =========================================================
-//
-//
-//
+
+//	  =========================================================
+
+
+
 ////	   speed up sin calculations - Ed
 //	float	r_turbsin[] =
 //	{
@@ -255,13 +270,13 @@ public abstract class Warp extends Surf {
 //	};
 //	#define TURBSCALE (256.0 / (2 * M_PI))
 //
-//	/*
-//	=============
-//	EmitWaterPolys
-//
-//	Does a water warp on the pre-fragmented glpoly_t chain
-//	=============
-//	*/
+	/*
+	=============
+	EmitWaterPolys
+
+	Does a water warp on the pre-fragmented glpoly_t chain
+	=============
+	*/
 //	void EmitWaterPolys (msurface_t *fa)
 //	{
 //		glpoly_t	*p, *bp;
@@ -306,56 +321,53 @@ public abstract class Warp extends Surf {
 //			qglEnd ();
 //		}
 //	}
-//
-//
-////	  ===================================================================
-//
-//
-//	vec3_t	skyclip[6] = {
-//		{1,1,0},
-//		{1,-1,0},
-//		{0,-1,1},
-//		{0,1,1},
-//		{1,0,1},
-//		{-1,0,1} 
-//	};
-//	int	c_sky;
-//
-////	   1 = s, 2 = t, 3 = 2048
-//	int	st_to_vec[6][3] =
-//	{
-//		{3,-1,2},
-//		{-3,1,2},
-//
-//		{1,3,2},
-//		{-1,-3,2},
-//
-//		{-2,-1,3},		// 0 degrees yaw, look straight up
-//		{2,-1,-3}		// look straight down
-//
-////		{-1,2,3},
-////		{1,2,-3}
-//	};
-//
-////	   s = [0]/[2], t = [1]/[2]
-//	int	vec_to_st[6][3] =
-//	{
-//		{-2,3,1},
-//		{2,3,-1},
-//
-//		{1,3,2},
-//		{-1,3,-2},
-//
-//		{-2,-1,3},
-//		{-2,1,-3}
-//
-////		{-1,2,3},
-////		{1,2,-3}
-//	};
-//
-//	float	skymins[2][6], skymaxs[2][6];
-//	float	sky_min, sky_max;
-//
+
+
+//	  ===================================================================
+
+
+	float[][] skyclip = {
+		{ 1,  1, 0},
+		{ 1, -1, 0},
+		{ 0, -1, 1},
+		{ 0,  1, 1},
+		{ 1,  0, 1},
+		{-1,  0, 1} 
+	};
+
+	int c_sky;
+
+	// 1 = s, 2 = t, 3 = 2048
+	int[][]	st_to_vec =
+	{
+		{3,-1,2},
+		{-3,1,2},
+
+		{1,3,2},
+		{-1,-3,2},
+
+		{-2,-1,3},		// 0 degrees yaw, look straight up
+		{2,-1,-3}		// look straight down
+
+	};
+
+	int[][]	vec_to_st =
+	{
+		{-2,3,1},
+		{2,3,-1},
+
+		{1,3,2},
+		{-1,3,-2},
+
+		{-2,-1,3},
+		{-2,1,-3}
+
+	};
+
+	float[][] skymins = new float[2][6];
+	float[][] skymaxs = new float[2][6];
+	float	sky_min, sky_max;
+
 //	void DrawSkyPolygon (int nump, vec3_t vecs)
 //	{
 //		int		i,j;
@@ -365,17 +377,7 @@ public abstract class Warp extends Surf {
 //		float	*vp;
 //
 //		c_sky++;
-//	#if 0
-//	glBegin (GL_POLYGON);
-//	for (i=0 ; i<nump ; i++, vecs+=3)
-//	{
-//		VectorAdd(vecs, r_origin, v);
-//		qglVertex3fv (v);
-//	}
-//	glEnd();
-//	return;
-//	#endif
-//		// decide which face it maps to
+		// decide which face it maps to
 //		VectorCopy (vec3_origin, v);
 //		for (i=0, vp=vecs ; i<nump ; i++, vp+=3)
 //		{
@@ -530,14 +532,14 @@ public abstract class Warp extends Surf {
 //		ClipSkyPolygon (newc[0], newv[0][0], stage+1);
 //		ClipSkyPolygon (newc[1], newv[1][0], stage+1);
 //	}
-//
-//	/*
-//	=================
-//	R_AddSkySurface
-//	=================
-//	*/
-//	void R_AddSkySurface (msurface_t *fa)
-//	{
+
+	/*
+	=================
+	R_AddSkySurface
+	=================
+	*/
+	void R_AddSkySurface(msurface_t fa)
+	{
 //		int			i;
 //		vec3_t		verts[MAX_CLIP_VERTS];
 //		glpoly_t	*p;
@@ -551,26 +553,26 @@ public abstract class Warp extends Surf {
 //			}
 //			ClipSkyPolygon (p->numverts, verts[0], 0);
 //		}
-//	}
-//
-//
-//	/*
-//	==============
-//	R_ClearSkyBox
-//	==============
-//	*/
-//	void R_ClearSkyBox (void)
-//	{
-//		int		i;
-//
-//		for (i=0 ; i<6 ; i++)
-//		{
-//			skymins[0][i] = skymins[1][i] = 9999;
-//			skymaxs[0][i] = skymaxs[1][i] = -9999;
-//		}
-//	}
-//
-//
+	}
+
+
+	/*
+	==============
+	R_ClearSkyBox
+	==============
+	*/
+	void R_ClearSkyBox()
+	{
+		int i;
+
+		for (i=0 ; i<6 ; i++)
+		{
+			skymins[0][i] = skymins[1][i] = 9999;
+			skymaxs[0][i] = skymaxs[1][i] = -9999;
+		}
+	}
+
+
 //	void MakeSkyVec (float s, float t, int axis)
 //	{
 //		vec3_t		v, b;
@@ -612,17 +614,11 @@ public abstract class Warp extends Surf {
 	R_DrawSkyBox
 	==============
 	*/
-//	int	skytexorder[6] = {0,2,1,3,4,5};
+	int[] skytexorder = {0,2,1,3,4,5};
 	void R_DrawSkyBox()
 	{
 //		int		i;
 //
-//	#if 0
-//	qglEnable (GL_BLEND);
-//	GL_TexEnv( GL_MODULATE );
-//	qglColor4f (1,1,1,0.5);
-//	qglDisable (GL_DEPTH_TEST);
-//	#endif
 //		if (skyrotate)
 //		{	// check for no sky at all
 //			for (i=0 ; i<6 ; i++)
@@ -661,12 +657,6 @@ public abstract class Warp extends Surf {
 //			qglEnd ();
 //		}
 //	qglPopMatrix ();
-//	#if 0
-//	glDisable (GL_BLEND);
-//	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-//	glColor4f (1,1,1,0.5);
-//	glEnable (GL_DEPTH_TEST);
-//	#endif
 	}
 
 
@@ -675,8 +665,8 @@ public abstract class Warp extends Surf {
 	R_SetSky
 	============
 	*/
-////	   3dstudio environment map names
-//	char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
+	// 3dstudio environment map names
+	String[] suf = {"rt", "bk", "lf", "ft", "up", "dn"};
 	protected void R_SetSky(String name, float rotate, float[] axis)
 	{
 		assert (axis.length == 3) : "vec3_t bug";
