@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.17 2004-10-28 22:52:38 cawe Exp $
+ * $Id: CL_parse.java,v 1.18 2004-10-29 16:35:00 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -219,7 +219,7 @@ public class CL_parse {
 
         // open the file if not opened yet
         if (Globals.cls.download == null) {
-            String name = DownloadFileName(Globals.cls.downloadtempname);
+            String name = DownloadFileName(Globals.cls.downloadtempname).toLowerCase();
 
             FS.CreatePath(name);
 
