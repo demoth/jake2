@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.11 2004-01-30 16:59:41 hoz Exp $
+ * $Id: TestMap.java,v 1.12 2004-02-02 13:12:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -177,7 +177,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.11 2004-01-30 16:59:41 hoz Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.12 2004-02-02 13:12:13 hoz Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -186,21 +186,21 @@ public class TestMap
 		re.Init();
 		
 		// init keyboard
-		Cmd.AddCommand("+forward", forward_down);
-		Cmd.AddCommand("-forward", forward_up);
-		Cbuf.AddText("bind UPARROW +forward");
+		Cmd.AddCommand("+tforward", forward_down);
+		Cmd.AddCommand("-tforward", forward_up);
+		Cbuf.AddText("bind UPARROW +tforward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+backward", backward_down);
-		Cmd.AddCommand("-backward", backward_up);
-		Cbuf.AddText("bind DOWNARROW +backward");
+		Cmd.AddCommand("+tbackward", backward_down);
+		Cmd.AddCommand("-tbackward", backward_up);
+		Cbuf.AddText("bind DOWNARROW +tbackward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+left", left_down);
-		Cmd.AddCommand("-left", left_up);
-		Cbuf.AddText("bind LEFTARROW +left");
+		Cmd.AddCommand("+tleft", left_down);
+		Cmd.AddCommand("-tleft", left_up);
+		Cbuf.AddText("bind LEFTARROW +tleft");
 		Cbuf.Execute();
-		Cmd.AddCommand("+right", right_down);
-		Cmd.AddCommand("-right", right_up);
-		Cbuf.AddText("bind RIGHTARROW +right");
+		Cmd.AddCommand("+tright", right_down);
+		Cmd.AddCommand("-tright", right_up);
+		Cbuf.AddText("bind RIGHTARROW +tright");
 		Cbuf.Execute();
 		Cmd.AddCommand("togglemouse", togglemouse);
 		Cbuf.AddText("bind t togglemouse");
@@ -351,6 +351,7 @@ public class TestMap
 			refdef.width = viddef.width;
 			refdef.height = viddef.height;
 			refdef.fov_x = (Globals.fov == null) ? this.fov_x : Globals.fov.value;
+			refdef.fov_x = this.fov_x;
 			refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 			refdef.vieworg = new float[] {140, -140, 50};
 			refdef.viewangles = new float[] {0, 0, 0};

@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.25 2004-02-01 23:31:37 rst Exp $
+ * $Id: Cvar.java,v 1.26 2004-02-02 13:12:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,11 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-import jake2.*;
-import jake2.client.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
 import jake2.util.Lib;
 
 /**
@@ -367,10 +365,25 @@ public class Cvar {
 		return BitInfo(Defines.CVAR_SERVERINFO);
 	}
 
-	// TODO: implement!
 	public static void GetLatchedVars()
 	{
-		Com.Printf( "SCHEISSE !!!!! GetLatchedVars not implemented!\n");
+		cvar_t  var;
+
+		for (var = Globals.cvar_vars ; var != null ; var = var.next) {
+			if (var.latched_string == null)
+				continue;
+				var.string = var.latched_string;
+				var.latched_string = null;
+				try {
+					var.value = Float.parseFloat(var.string);
+				} catch (NumberFormatException e) {
+					var.value = 0.0f;
+				}
+				if (var.name.equals("game")) {
+					FS.SetGamedir(var.string);
+					FS.ExecAutoexec();
+				}
+		}		
 	}
 	
 	/**

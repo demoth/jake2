@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.9 2004-01-30 16:59:41 hoz Exp $
+ * $Id: KBD.java,v 1.10 2004-02-02 13:12:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -85,6 +85,9 @@ public final class KBD {
 					if (IN.mouse_active) {
 						mx = (((MouseEvent)event.ev).getX() - win_w2) * 2;
 						my = (((MouseEvent)event.ev).getY() - win_h2) * 2;
+					} else {
+						mx = 0;
+						my = 0;
 					}
 					break;
 
