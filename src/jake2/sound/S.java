@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.5 2004-12-16 21:11:56 cawe Exp $
+ * $Id: S.java,v 1.6 2005-01-11 14:25:10 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -204,5 +204,13 @@ public class S {
 	
 	public static String getDriverName() {
 		return impl.getName();
+	}
+	
+	public static String[] getDriverNames() {
+		String[] names = new String[drivers.size()];
+		for (int i = 0; i < names.length; i++) {
+			names[i] = ((Sound)drivers.get(i)).getName();
+		}
+		return names;
 	}
 }

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.13 2004-12-22 15:50:40 hzi Exp $
+ * $Id: Menu.java,v 1.14 2005-01-11 14:24:59 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1312,11 +1312,17 @@ public final class Menu extends Key {
                 .VariableValue("cd_nocd"));
         //s_options_quality_list.curvalue = 1 - ((int)
         // Cvar.VariableValue("s_loadas8bit"));
-        if ("joal".equals(Cvar.VariableString("s_impl"))) {
-            s_options_quality_list.curvalue = 0;
-        } else {
-            s_options_quality_list.curvalue = 1;
+        String s = Cvar.VariableString("s_impl");
+        for (int i = 0; i < s_options_quality_list.itemnames.length; i++) {
+        	if (s.equals(s_options_quality_list.itemnames[i])) {
+        		s_options_quality_list.curvalue = i;
+        	}
         }
+//        if ("joal".equals(Cvar.VariableString("s_impl"))) {
+//            s_options_quality_list.curvalue = 0;
+//        } else {
+//            s_options_quality_list.curvalue = 1;
+//        }
 
         s_options_sensitivity_slider.curvalue = (sensitivity.value) * 2;
 
@@ -1390,17 +1396,19 @@ public final class Menu extends Key {
 
     static void UpdateSoundQualityFunc(Object unused) {
         boolean driverNotChanged = false;
-        if (s_options_quality_list.curvalue != 0) {
-            //			Cvar.SetValue("s_khz", 22);
-            //			Cvar.SetValue("s_loadas8bit", 0);
-            driverNotChanged = S.getDriverName().equals("dummy");
-            Cvar.Set("s_impl", "dummy");
-        } else {
-            //			Cvar.SetValue("s_khz", 11);
-            //			Cvar.SetValue("s_loadas8bit", 1);
-            driverNotChanged = S.getDriverName().equals("joal");
-            Cvar.Set("s_impl", "joal");
-        }
+        String current = s_options_quality_list.itemnames[s_options_quality_list.curvalue];
+        driverNotChanged = S.getDriverName().equals(current);
+//        if (s_options_quality_list.curvalue != 0) {
+//            //			Cvar.SetValue("s_khz", 22);
+//            //			Cvar.SetValue("s_loadas8bit", 0);
+//            driverNotChanged = S.getDriverName().equals("dummy");
+//            Cvar.Set("s_impl", "dummy");
+//        } else {
+//            //			Cvar.SetValue("s_khz", 11);
+//            //			Cvar.SetValue("s_loadas8bit", 1);
+//            driverNotChanged = S.getDriverName().equals("joal");
+//            Cvar.Set("s_impl", "joal");
+//        }
 
         //Cvar.SetValue("s_primary", s_options_compatibility_list.curvalue);
 
@@ -1408,7 +1416,8 @@ public final class Menu extends Key {
             re.EndFrame();
             return;
         } else {
-
+        	Cvar.Set("s_impl", current);
+        	
             DrawTextBox(8, 120 - 48, 36, 3);
             Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
             Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
@@ -1479,7 +1488,7 @@ public final class Menu extends Key {
                 UpdateSoundQualityFunc(o);
             }
         };
-        s_options_quality_list.itemnames = soundstate_items;
+        s_options_quality_list.itemnames = S.getDriverNames();//soundstate_items;
         //s_options_quality_list.curvalue = 1 - (int)
         // Cvar.VariableValue("s_loadas8bit");
 
@@ -4890,8 +4899,8 @@ public final class Menu extends Key {
 
         if (s.curvalue < 0)
             s.curvalue = 0;
-        else if (s.itemnames[s.curvalue] == null)
-            s.curvalue--;
+        else if (s.curvalue >= s.itemnames.length)
+            s.curvalue = s.itemnames.length - 1;
 
         if (s.callback != null)
             s.callback.execute(s);
