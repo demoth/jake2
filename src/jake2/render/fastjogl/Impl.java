@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.3 2004-06-13 01:05:17 cwei Exp $
+ * $Id: Impl.java,v 1.4 2004-06-13 14:23:25 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,9 +57,6 @@ public class Impl extends Misc implements GLEventListener {
 
 	// handles the post initialization with JoglRenderer
 	protected boolean post_init = false;
-
-	// switch to updateScreen callback
-	private boolean switchToCallback = false;
 
 	private final xcommand_t INIT_CALLBACK = new xcommand_t() {
 		public void execute() {
@@ -138,16 +135,12 @@ public class Impl extends Misc implements GLEventListener {
 		// TODO Use debug pipeline
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
-		//canvas.setRenderingThread(Thread.currentThread());
-
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 
 		window.getContentPane().add(canvas);	
 		
 		canvas.setSize(newDim.width, newDim.height);
-		//window.setUndecorated(true);
-		window.setResizable(false);
 
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
@@ -161,12 +154,10 @@ public class Impl extends Misc implements GLEventListener {
 		canvas.addKeyListener(KBD.listener);
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
-		//canvas.requestFocus();
 		
 		/*
 		 * fullscreen handling
 		 */
-		
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		device = env.getDefaultScreenDevice();
 		fullscreen = fullscreen && device.isFullScreenSupported();
@@ -180,19 +171,24 @@ public class Impl extends Misc implements GLEventListener {
 			DisplayMode displayMode = findDisplayMode(newDim, oldDisplayMode.getBitDepth(), oldDisplayMode.getRefreshRate());
 			
 			if (displayMode != null) {
+				newDim.width = displayMode.getWidth();
+				newDim.height = displayMode.getHeight();
 				canvas.setSize(displayMode.getWidth(), displayMode.getWidth());
+				window.setLocation(0, 0);
 				window.setUndecorated(true);
 				window.setSize(displayMode.getWidth(), displayMode.getHeight());
-				window.setLocation(0, 0);
+				window.setResizable(false);
 				device.setFullScreenWindow(window);
 				device.setDisplayMode(displayMode);
+				window.validate();
 			}
 		} else {
 			window.setLocation(window_xpos, window_ypos);
 			window.pack();
+			window.setResizable(false);
+			window.setVisible(true);
 		}
 
-		window.show();
 		canvas.requestFocus();
 		
 		this.canvas = canvas;
@@ -221,9 +217,7 @@ public class Impl extends Misc implements GLEventListener {
 				break;
 			}
 		}
-		
 		if (mode == null) mode = oldDisplayMode;
-		
 		return mode;		
 	}
 	
@@ -265,8 +259,9 @@ public class Impl extends Misc implements GLEventListener {
 	}
 
 	void GLimp_Shutdown() {
-		if (oldDisplayMode != null) {
+		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
 			try {
+				device.setFullScreenWindow(null);
 				device.setDisplayMode(oldDisplayMode);
 			} catch (Exception e) {
 			}
@@ -303,11 +298,6 @@ public class Impl extends Misc implements GLEventListener {
 
 		// this is a hack to run R_init() in gl context
 		post_init = R_Init2();
-
-//		if (gl instanceof WGL) {
-//			// Win32 VSync is off
-//			((WGL)gl).wglSwapIntervalEXT(0);
-//		}
 	}
 
 	/* 
