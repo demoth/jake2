@@ -3,7 +3,7 @@ package jake2.qcommon;
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+ * $Id: SZ.java,v 1.4 2003-12-01 13:20:25 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,16 +27,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /**
  * SZ
  */
-final class SZ {
+public final class SZ {
 
 	/**
 	 * @param buf
 	 * @param data
 	 * @param length
 	 */
-	static void Init(sizebuf_t buf, byte[] data, int length) {
+	public static void Init(sizebuf_t buf, byte[] data, int length) {
 		buf = new sizebuf_t();
 		buf.data = data;
 		buf.maxsize = length;
+	}
+	
+	public static void Print(sizebuf_t buf, byte[] data) {
 	}
 }

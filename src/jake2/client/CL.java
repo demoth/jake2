@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.12 2003-11-30 21:50:08 rst Exp $
+ *$Id: CL.java,v 1.15 2003-12-01 13:16:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,20 +25,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.Defines;
+import jake2.Globals;
+import jake2.game.Cmd;
+import jake2.game.entity_state_t;
+import jake2.qcommon.*;
+import jake2.sys.CDAudio;
+import jake2.sys.IN;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
-import jake2.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
-import jake2.sys.*;
 
 /**
  * CL
  */
-public final class CL extends MSG {
+public final class CL extends Globals {
 
 	/**
 	 * @param msec
@@ -325,17 +326,17 @@ public final class CL extends MSG {
 				//
 				// write out messages to hold the startup information
 				//
-				SZ_Init(buf, buf_data, MAX_MSGLEN);
+				SZ.Init(buf, buf_data, MAX_MSGLEN);
 
 				// send the serverdata
-				MSG_WriteByte(buf, svc_serverdata);
-				MSG_WriteInt(buf, PROTOCOL_VERSION);
-				MSG_WriteInt(buf, 0x10000 + cl.servercount);
-				MSG_WriteByte(buf, 1); // demos are always attract loops
-				MSG_WriteString(buf, cl.gamedir);
-				MSG_WriteShort(buf, cl.playernum);
+				MSG.WriteByte(buf, svc_serverdata);
+				MSG.WriteInt(buf, PROTOCOL_VERSION);
+				MSG.WriteInt(buf, 0x10000 + cl.servercount);
+				MSG.WriteByte(buf, 1); // demos are always attract loops
+				MSG.WriteString(buf, cl.gamedir);
+				MSG.WriteShort(buf, cl.playernum);
 
-				MSG_WriteString(buf, cl.configstrings[CS_NAME]);
+				MSG.WriteString(buf, cl.configstrings[CS_NAME]);
 
 				// configstrings
 				for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
@@ -349,9 +350,9 @@ public final class CL extends MSG {
 							buf.cursize = 0;
 						}
 
-						MSG_WriteByte(buf, svc_configstring);
-						MSG_WriteShort(buf, i);
-						MSG_WriteString(buf, cl.configstrings[i]);
+						MSG.WriteByte(buf, svc_configstring);
+						MSG.WriteShort(buf, i);
+						MSG.WriteString(buf, cl.configstrings[i]);
 					}
 
 				}
@@ -372,12 +373,12 @@ public final class CL extends MSG {
 						buf.cursize = 0;
 					}
 
-					MSG_WriteByte(buf, svc_spawnbaseline);
-					MSG_WriteDeltaEntity(nullstate, cl_entities[i].baseline, buf, true, true);
+					MSG.WriteByte(buf, svc_spawnbaseline);
+					MSG.WriteDeltaEntity(nullstate, cl_entities[i].baseline, buf, true, true);
 				}
 
-				MSG_WriteByte(buf, svc_stufftext);
-				MSG_WriteString(buf, "precache\n");
+				MSG.WriteByte(buf, svc_stufftext);
+				MSG.WriteString(buf, "precache\n");
 
 				// write it to the demo file
 
@@ -414,11 +415,11 @@ public final class CL extends MSG {
 			return;
 		}
 
-		MSG_WriteByte(cls.netchan.message, clc_stringcmd);
-		SZ_Print(cls.netchan.message, cmd);
+		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
+		SZ.Print(cls.netchan.message, cmd.getBytes());
 		if (Cmd.Argc() > 1) {
-			SZ_Print(cls.netchan.message, " ");
-			SZ_Print(cls.netchan.message, Cmd.Args());
+			SZ.Print(cls.netchan.message, " ".getBytes());
+			SZ.Print(cls.netchan.message, Cmd.Args().getBytes());
 		}
 	};
 
@@ -466,8 +467,8 @@ public final class CL extends MSG {
 
 			// don't forward the first argument
 			if (Cmd.Argc() > 1) {
-				MSG_WriteByte(cls.netchan.message, clc_stringcmd);
-				SZ_Print(cls.netchan.message, Cmd.Args());
+				MSG.WriteByte(cls.netchan.message, clc_stringcmd);
+				SZ.Print(cls.netchan.message, Cmd.Args().getBytes());
 			}
 		}
 	};
@@ -870,8 +871,8 @@ public final class CL extends MSG {
 	//		if (cls.state == ca_connected) {
 	//			Com_Printf ("reconnecting...\n");
 	//			cls.state = ca_connected;
-	//			MSG_WriteChar (&cls.netchan.message, clc_stringcmd);
-	//			MSG_WriteString (&cls.netchan.message, "new");		
+	//			MSG.WriteChar (&cls.netchan.message, clc_stringcmd);
+	//			MSG.WriteString (&cls.netchan.message, "new");		
 	//			return;
 	//		}
 	//
@@ -898,7 +899,7 @@ public final class CL extends MSG {
 	//	{
 	//		char	*s;
 	//
-	//		s = MSG_ReadString(&net_message);
+	//		s = MSG.ReadString(&net_message);
 	//
 	//		Com_Printf ("%s\n", s);
 	//		M_AddToServerList (net_from, s);
@@ -993,10 +994,10 @@ public final class CL extends MSG {
 	//		char	*s;
 	//		char	*c;
 	//	
-	//		MSG_BeginReading (&net_message);
-	//		MSG_ReadLong (&net_message);	// skip the -1
+	//		MSG.BeginReading (&net_message);
+	//		MSG.ReadLong (&net_message);	// skip the -1
 	//
-	//		s = MSG_ReadStringLine (&net_message);
+	//		s = MSG.ReadStringLine (&net_message);
 	//
 	//		Cmd.TokenizeString (s, false);
 	//
@@ -1013,8 +1014,8 @@ public final class CL extends MSG {
 	//				return;
 	//			}
 	//			Netchan_Setup (NS_CLIENT, &cls.netchan, net_from, cls.quakePort);
-	//			MSG_WriteChar (&cls.netchan.message, clc_stringcmd);
-	//			MSG_WriteString (&cls.netchan.message, "new");	
+	//			MSG.WriteChar (&cls.netchan.message, clc_stringcmd);
+	//			MSG.WriteString (&cls.netchan.message, "new");	
 	//			cls.state = ca_connected;
 	//			return;
 	//		}
@@ -1035,7 +1036,7 @@ public final class CL extends MSG {
 	//				return;
 	//			}
 	//			Sys_AppActivate ();
-	//			s = MSG_ReadString (&net_message);
+	//			s = MSG.ReadString (&net_message);
 	//			Cbuf_AddText (s);
 	//			Cbuf_AddText ("\n");
 	//			return;
@@ -1043,7 +1044,7 @@ public final class CL extends MSG {
 	//		// print command from somewhere
 	//		if (!strcmp(c, "print"))
 	//		{
-	//			s = MSG_ReadString (&net_message);
+	//			s = MSG.ReadString (&net_message);
 	//			Com_Printf ("%s", s);
 	//			return;
 	//		}
@@ -1475,8 +1476,8 @@ public final class CL extends MSG {
 	//		CL_RegisterSounds ();
 	//		CL_PrepRefresh ();
 	//
-	//		MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
-	//		MSG_WriteString (&cls.netchan.message, va("begin %i\n", precache_spawncount) );
+	//		MSG.WriteByte (&cls.netchan.message, clc_stringcmd);
+	//		MSG.WriteString (&cls.netchan.message, va("begin %i\n", precache_spawncount) );
 	//	}
 	//
 	//	/*
