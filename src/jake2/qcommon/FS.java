@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.14 2003-12-23 13:15:47 cwei Exp $
+ * $Id: FS.java,v 1.15 2003-12-24 00:58:40 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,9 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,120 +49,91 @@ import javax.imageio.stream.FileImageInputStream;
 
 /**
  * FS
- * TODO complete FS interface
+ * TODO complete FS
  */
 public final class FS {
 	
 	private static Logger logger = Logger.getLogger(FS.class.getName());
 
-//	#include "qcommon.h"
-//
-////	   define this to dissalow any data but the demo pak file
-////	  #define	NO_ADDONS
-//
-////	   if a packfile directory differs from this, it is assumed to be hacked
-////	   Full version
-//	#define	PAK0_CHECKSUM	0x40e614e0
-////	   Demo
-////	  #define	PAK0_CHECKSUM	0xb2c6d7ea
-////	   OEM
-////	  #define	PAK0_CHECKSUM	0x78e135c
-//
-//	/*
-//	=============================================================================
-//
-//	QUAKE FILESYSTEM
-//
-//	=============================================================================
-//	*/
-//
-//
-////
-////	   in memory
-////
-//
+/*
+=============================================================================
+
+	QUAKE FILESYSTEM
+
+=============================================================================
+*/
+
 	static class packfile_t {
 		static final int SIZE = 64;
+		static final int NAME_SIZE = 56;
 
 		String name; // char name[56]
 		int filepos, filelen;
+		
 		public String toString() {
 			return name + " [ length: " + filelen + " pos: " + filepos + " ]";
 		}
 	}
-//
+
 	static class pack_t {
 		String filename;
 		RandomAccessFile handle;
 		int numfiles;
-		//packfile_t[] files;
-		Hashtable files;
+		Hashtable files; // with packfile_t entries
 	}
-//
+
 	static String fs_gamedir;
 	static cvar_t	fs_basedir;
 	static cvar_t	fs_cddir;
 	static cvar_t	fs_gamedirvar;
-//
+
 	static class filelink_t {
-		filelink_t next;
 		String from;
 		int fromlength;
 		String to;
 	}
-//
-	static filelink_t fs_links;
-//
+
+	static List fs_links = new LinkedList(); // with filelink_t entries
+
 	static class searchpath_t {
 		String filename;
 		pack_t pack;		// only one of filename / pack will be used
 		searchpath_t next;
 	}
-//
+
 	static searchpath_t fs_searchpaths;
 	static searchpath_t fs_base_searchpaths;	// without gamedirs
-//
-//
-//	/*
-//
-//	All of Quake's data access is through a hierchal file system, but the contents of the file system can be transparently merged from several sources.
-//
-//	The "base directory" is the path to the directory holding the quake.exe and all game directories.  The sys_* files pass this to host_init in quakeparms_t->basedir.  This can be overridden with the "-basedir" command line parm to allow code debugging in a different directory.  The base directory is
-//	only used during filesystem initialization.
-//
-//	The "game directory" is the first tree on the search path and directory that all generated files (savegames, screenshots, demos, config files) will be saved to.  This can be overridden with the "-game" command line parameter.  The game directory can never be changed while quake is executing.  This is a precacution against having a malicious server instruct clients to write files over areas they shouldn't.
-//
-//	*/
-//
-//
-//	/*
-//	================
-//	FS_filelength
-//	================
-//	*/
+
+
+/*
+
+	All of Quake's data access is through a hierchal file system, but the contents of the file system can be transparently merged from several sources.
+
+	The "base directory" is the path to the directory holding the quake.exe and all game directories.  The sys_* files pass this to host_init in quakeparms_t->basedir.  This can be overridden with the "-basedir" command line parm to allow code debugging in a different directory.  The base directory is
+	only used during filesystem initialization.
+
+	The "game directory" is the first tree on the search path and directory that all generated files (savegames, screenshots, demos, config files) will be saved to.  This can be overridden with the "-game" command line parameter.  The game directory can never be changed while quake is executing.  This is a precacution against having a malicious server instruct clients to write files over areas they shouldn't.
+
+*/
+
+
+	/*
+	================
+	FS_filelength
+	================
+	*/
 	static int filelength (File f) {
 		return (int)f.length();
 	}
-//
-//	/*
-//	============
-//	FS_CreatePath
-//
-//	Creates any directories needed to store the given filename
-//	============
-//	*/
+
+	/*
+	============
+	FS_CreatePath
+
+	Creates any directories needed to store the given filename
+	============
+	*/
 	public static void CreatePath (String path) {
-//		char	*ofs;
-//	
-//		for (ofs = path+1 ; *ofs ; ofs++)
-//		{
-//			if (*ofs == '/')
-//			{	// create the directory
-//				*ofs = 0;
-//				Sys_Mkdir (path);
-//				*ofs = '/';
-//			}
-//		}
 		int index = path.lastIndexOf('/');
 		// -1 if not found and 0 means write to root
 		if ( index > 0 ) {
@@ -169,62 +143,20 @@ public final class FS {
 			}	
 		}
 	}
-//
-//
-//	/*
-//	==============
-//	FS_FCloseFile
-//
-//	For some reason, other dll's can't just cal fclose()
-//	on files returned by FS_FOpenFile...
-//	==============
-//	*/
+
+
+	/*
+	==============
+	FS_FCloseFile
+
+	For some reason, other dll's can't just cal fclose()
+	on files returned by FS_FOpenFile...
+	==============
+	*/
 	static void FCloseFile (InputStream in) throws IOException
 	{
-//		fclose (f);
 		in.close();
 	}
-//
-//
-////	   RAFAEL
-//	/*
-//		Developer_searchpath
-//	*/
-//	int	Developer_searchpath (int who)
-//	{
-//	
-//		int		ch;
-//		// PMM - warning removal
-////		char	*start;
-//		searchpath_t	*search;
-//	
-//		if (who == 1) // xatrix
-//			ch = 'x';
-//		else if (who == 2)
-//			ch = 'r';
-//
-//		for (search = fs_searchpaths ; search ; search = search->next)
-//		{
-//			if (strstr (search->filename, "xatrix"))
-//				return 1;
-//
-//			if (strstr (search->filename, "rogue"))
-//				return 2;
-//	/*
-//			start = strchr (search->filename, ch);
-//
-//			if (start == NULL)
-//				continue;
-//
-//			if (strcmp (start ,"xatrix") == 0)
-//				return (1);
-//	*/
-//		}
-//		return (0);
-//
-//	}
-//
-//
 
 	public static int FileLength(String filename) {
 		searchpath_t search;
@@ -236,7 +168,9 @@ public final class FS {
 		file_from_pak = 0;
 
 		// check for links first
-		for (link = fs_links; link != null; link = link.next) {
+		for (Iterator it = fs_links.iterator(); it.hasNext();) {
+			link = (filelink_t)it.next();
+			
 			if (filename.regionMatches(0, link.from, 0, link.fromlength)) {
 				netpath = link.to + filename.substring(link.fromlength);
 				File file = new File(netpath);
@@ -257,19 +191,14 @@ public final class FS {
 				pak = search.pack;
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
-				/*  for (i=0 ; i < pak.numfiles ; i++) */
-
 				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
 					// found it!
 					file_from_pak = 1;
-					Com.DPrintf(
-						"PackFile: " + pak.filename + " : " + filename + '\n');
+					Com.DPrintf("PackFile: " + pak.filename + " : " + filename + '\n');
 					// open a new file on the pakfile
 					File file = new File(pak.filename);
 					if (!file.canRead()) {
-						Com.Error(
-							Globals.ERR_FATAL,
-							"Couldn't reopen " + pak.filename);
+						Com.Error(Globals.ERR_FATAL, "Couldn't reopen " + pak.filename);
 					}
 					return entry.filelen;
 				}
@@ -278,8 +207,7 @@ public final class FS {
 				netpath = search.filename + '/' + filename;
 
 				File file = new File(netpath);
-				if (!file.canRead())
-					continue;
+				if (!file.canRead()) continue;
 
 				Com.DPrintf("FindFile: " + netpath + '\n');
 
@@ -291,18 +219,18 @@ public final class FS {
 	}
 
 
-//	/*
-//	===========
-//	FS_FOpenFile
-//
-//	Finds the file in the search path.
-//	returns filesize and an open FILE *
-//	Used for streaming data out of either a pak file or
-//	a seperate file.
-//	===========
-//	*/
+	/*
+	===========
+	FS_FOpenFile
+
+	Finds the file in the search path.
+	returns filesize and an open FILE *
+	Used for streaming data out of either a pak file or
+	a seperate file.
+	===========
+	*/
 	static int file_from_pak = 0;
-//	#ifndef NO_ADDONS
+
 	static InputStream FOpenFile(String filename) throws IOException
 	{
 		searchpath_t search;
@@ -311,14 +239,13 @@ public final class FS {
 		int i;
 		filelink_t link;
 		File file = null;
-//
+
 		file_from_pak = 0;
 		
-		InputStream stream = null;
-//
-//		// check for links first
-		for (link = fs_links ; link != null ; link=link.next)
-		{
+		// check for links first
+		for (Iterator it = fs_links.iterator(); it.hasNext();) {
+			link = (filelink_t)it.next();
+			
 //			if (!strncmp (filename, link->from, link->fromlength))
 			if (filename.regionMatches(0, link.from, 0, link.fromlength))
 			{
@@ -327,16 +254,15 @@ public final class FS {
 				if (file.canRead())
 				{		
 					//Com.DPrintf ("link file: " + netpath +'\n');
-					stream = new FileInputStream(file);
-					return stream;
+					return new FileInputStream(file);
 				}
 				return null;
 			}
 		}
 
-//
-//	   search through the path, one element at a time
-//
+		//
+		//	   search through the path, one element at a time
+		//
 		for (search = fs_searchpaths; search != null; search = search.next) {
 			// is the element a pak file?
 			if (search.pack != null) {
@@ -344,31 +270,24 @@ public final class FS {
 				pak = search.pack;
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
-				/*  for (i=0 ; i < pak.numfiles ; i++) */
-
 				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
 					// found it!
 					file_from_pak = 1;
 					//Com.DPrintf ("PackFile: " + pak.filename + " : " + filename + '\n');
 					file = new File(pak.filename);
 					if (!file.canRead())
-						Com.Error(
-							Globals.ERR_FATAL,
-							"Couldn't reopen " + pak.filename);
+						Com.Error(Globals.ERR_FATAL, "Couldn't reopen " + pak.filename);
 					if (pak.handle == null || !pak.handle.getFD().valid()) {
 						// hold the pakfile handle open
 						pak.handle = new RandomAccessFile(pak.filename, "r");
 					}
 					// open a new file on the pakfile
+					
 					byte[] buf = new byte[entry.filelen];
 					pak.handle.seek(entry.filepos);
 					pak.handle.readFully(buf);
 
-					ByteArrayInputStream in = new ByteArrayInputStream(buf);
-					return in;
-					//stream = new FileImageInputStream(file);
-					//stream.seek(pak.files[i].filepos);
-					//return stream;
+					return new ByteArrayInputStream(buf);
 				}
 			} else {
 				// check a file in the directory tree
@@ -380,79 +299,68 @@ public final class FS {
 
 				//Com.DPrintf("FindFile: " + netpath +'\n');
 
-				stream = new FileInputStream(file);
-				return stream;
+				return new FileInputStream(file);
 			}
 		}
 		//Com.DPrintf ("FindFile: can't find " + filename + '\n');
 		return null;
 	}
-//
-//
-//	/*
-//	=================
-//	FS_ReadFile
-//
-//	Properly handles partial reads
-//	=================
-//	*/
+
+
+	/*
+	=================
+	FS_ReadFile
+
+	Properly handles partial reads
+	=================
+	*/
 	static final int MAX_READ	= 0x10000; // read in blocks of 64k
 
-	static byte[] Read (int len, InputStream f)
-	{
-		int block, remaining, offset;
-		int read;
-		int tries;
-//
-		byte[] buf = new byte[len];
-//
-//		// read in chunks for progress bar
+	static void Read(byte[] buffer, int len, InputStream f) {
+
+		int block, remaining;
+		int offset = 0;
+		int read = 0;
+		boolean tries = true;
+
+		// read in chunks for progress bar
 		remaining = len;
-		offset = 0;
-		read = 0;
-		tries = 0;
-		
-		while (remaining != 0)
-		{
+
+		while (remaining != 0) {
 			block = Math.min(remaining, MAX_READ);
-//			read = fread (buf, 1, block, f);
 			try {
-				read = f.read(buf, offset, block);
+				read = f.read(buffer, offset, block);
 			} catch (IOException e) {
 				Com.Error(Globals.ERR_FATAL, e.toString());
 			}
 
-			if (read == 0)
-			{
+			if (read == 0) {
 				// we might have been trying to read from a CD
-				if (tries == 0)
-				{
-					tries = 1;
+				if (tries) {
+					tries = false;
 					CDAudio.Stop();
-				}
-				else
+				} else {
 					Com.Error(Globals.ERR_FATAL, "FS_Read: 0 bytes read");
-			}
-//
-			if (read == -1)
+				}
+			} else if (read == -1) {
 				Com.Error(Globals.ERR_FATAL, "FS_Read: -1 bytes read");
-//
-//			// do some progress bar thing here...
-//
+			}
+			//
+			//			do some progress bar thing here...
+			//
 			remaining -= read;
 			offset += read;
 		}
-		return buf;
 	}
-//
-//	/*
-//	============
-//	FS_LoadFile
-//
-//	Filename are reletive to the quake search path
-//	a null buffer will just return the file length without loading
-//	============
-//	*/
+
+	/*
+	============
+	FS_LoadFile
+
+	Filename are reletive to the quake search path
+	a null buffer will just return the file length without loading
+	============
+	*/
 	public static byte[] LoadFile(String path)
 	{
 		InputStream h;
@@ -467,25 +375,25 @@ public final class FS {
 
 		try {
 			h = FOpenFile(path);
-			buf = Read(len, h);
+			Read(buf = new byte[len], len, h);
 			h.close();
 		} catch (IOException e) {
 			Com.Error(Globals.ERR_FATAL, e.toString());
 		}
 		return buf;
 	}
-//
-//
-//	/*
-//	=============
-//	FS_FreeFile
-//	=============
-//	*/
+
+
+	/*
+	=============
+	FS_FreeFile
+	=============
+	*/
 	public static void FreeFile(byte[] buffer)
 	{
 		Z.Free(buffer);
 	}
-//
+
 
 	static final int IDPAKHEADER  =  (('K'<<24)+('C'<<16)+('A'<<8)+'P');
 	
@@ -497,20 +405,19 @@ public final class FS {
 
 	static final int MAX_FILES_IN_PACK = 4096;
 
-//	/*
-//	=================
-//	FS_LoadPackFile
-//
-//	Takes an explicit (not game tree related) path to a pak file.
-//
-//	Loads the header and directory, adding the files at the beginning
-//	of the list so they override previous pack files.
-//	=================
-//	*/
+	/*
+	=================
+	FS_LoadPackFile
+
+	Takes an explicit (not game tree related) path to a pak file.
+
+	Loads the header and directory, adding the files at the beginning
+	of the list so they override previous pack files.
+	=================
+	*/
 	static pack_t LoadPackFile(String packfile) {
 		
 		dpackheader_t header;
-		//packfile_t[] newfiles;
 		Hashtable newfiles;
 		int numpackfiles = 0;
 		pack_t pack = null;
@@ -533,30 +440,23 @@ public final class FS {
 			
 			if (header.ident != IDPAKHEADER)
 				Com.Error(Globals.ERR_FATAL, packfile + " is not a packfile");
-			//
+			
 			numpackfiles = header.dirlen / packfile_t.SIZE;
-			//
+			
 			if (numpackfiles > MAX_FILES_IN_PACK)
-				Com.Error(
-					Globals.ERR_FATAL,
-					packfile + " has " + numpackfiles + " files");
-			//
-			//newfiles = new packfile_t[numpackfiles];
+				Com.Error(Globals.ERR_FATAL, packfile + " has " + numpackfiles + " files");
+			
 			newfiles = new Hashtable(numpackfiles);
 
 			packhandle.seek(header.dirofs);
 
 			// buffer for C-Strings char[56] 
-			byte[] text = new byte[56];
+			byte[] text = new byte[packfile_t.NAME_SIZE];
 			// parse the directory
 			packfile_t entry = null;
 			
 			for (int i = 0; i < numpackfiles; i++) {
 				packhandle.readFully(text);
-//				newfiles[i] = new packfile_t();
-//				newfiles[i].name = new String(text).trim();
-//				newfiles[i].filepos = packhandle.readInt();
-//				newfiles[i].filelen = packhandle.readInt();
 
 				entry = new packfile_t();
 				entry.name = new String(text).trim();
@@ -565,7 +465,6 @@ public final class FS {
 				
 				newfiles.put(entry.name, entry);
 				
-				// TODO FS.LoadPackFile --> remove sysout 
 				logger.log(Level.FINEST, i + ".\t" + entry);
 			}
 
@@ -580,20 +479,20 @@ public final class FS {
 		pack.numfiles = numpackfiles;
 		pack.files = newfiles;
 
-		Com.Printf(
-			"Added packfile " + packfile + " (" + numpackfiles + " files)\n");
+		Com.Printf("Added packfile " + packfile + " (" + numpackfiles + " files)\n");
+
 		return pack;
 	}
-//
-//
-//	/*
-//	================
-//	FS_AddGameDirectory
-//
-//	Sets fs_gamedir, adds the directory to the head of the path,
-//	then loads and adds pak1.pak pak2.pak ... 
-//	================
-//	*/
+
+
+	/*
+	================
+	FS_AddGameDirectory
+
+	Sets fs_gamedir, adds the directory to the head of the path,
+	then loads and adds pak1.pak pak2.pak ... 
+	================
+	*/
 	static void AddGameDirectory(String dir)
 	{
 		int i;
@@ -628,18 +527,18 @@ public final class FS {
 			fs_searchpaths = search;		
 		}
 	}
-//
-//	/*
-//	============
-//	FS_Gamedir
-//
-//	Called to find where to write a file (demos, savegames, etc)
-//	============
-//	*/
+
+	/*
+	============
+	FS_Gamedir
+
+	Called to find where to write a file (demos, savegames, etc)
+	============
+	*/
 	public static String Gamedir()	{
 		return (fs_gamedir != null) ? fs_gamedir : Globals.BASEDIRNAME;
 	}
-//
+
 //	/*
 //	=============
 //	FS_ExecAutoexec
@@ -663,15 +562,15 @@ public final class FS {
 			Cbuf.AddText("exec autoexec.cfg\n");
 //		Sys_FindClose();
 	}
-//
-//
-//	/*
-//	================
-//	FS_SetGamedir
-//
-//	Sets the gamedir and path to a different directory.
-//	================
-//	*/
+
+
+	/*
+	================
+	FS_SetGamedir
+
+	Sets the gamedir and path to a different directory.
+	================
+	*/
 	static void SetGamedir (String dir)
 	{
 		searchpath_t	next;
@@ -699,23 +598,24 @@ public final class FS {
 				} catch (IOException e) {
 					logger.log(Level.WARNING, e.toString());
 				}
-				fs_searchpaths.pack.files = null; // or clear if it is a hashtable
+				// clear the hashtable
+				fs_searchpaths.pack.files.clear();
+				fs_searchpaths.pack.files = null;
 				fs_searchpaths.pack = null;
 			}
 			next = fs_searchpaths.next;
 			fs_searchpaths = null;
 			fs_searchpaths = next;
 		}
-//
-//		//
-//		// flush all data, so it will be forced to reload
-//		//
+
+		//
+		// flush all data, so it will be forced to reload
+		//
 		if ((Globals.dedicated != null) && (Globals.dedicated.value == 0.0f))
 			Cbuf.AddText ("vid_restart\nsnd_restart\n");
-//
-//		Com_sprintf (fs_gamedir, sizeof(fs_gamedir), "%s/%s", fs_basedir->string, dir);
+
 		fs_gamedir = fs_basedir.string + '/' + dir;
-//
+
 		if (!dir.equals(Globals.BASEDIRNAME) || (dir.length() == 0))
 		{
 			Cvar.FullSet ("gamedir", "", Cvar.SERVERINFO | Cvar.NOSET);
@@ -730,53 +630,48 @@ public final class FS {
 			AddGameDirectory (fs_basedir.string + '/' + dir);
 		}
 	}
-//
-//
-//	/*
-//	================
-//	FS_Link_f
-//
-//	Creates a filelink_t
-//	================
-//	*/
-	static void Link_f()
-	{
-//		filelink_t	*l, **prev;
-//
-//		if (Cmd_Argc() != 3)
-//		{
-//			Com_Printf ("USAGE: link <from> <to>\n");
-//			return;
-//		}
-//
-//		// see if the link already exists
-//		prev = &fs_links;
-//		for (l=fs_links ; l ; l=l->next)
-//		{
-//			if (!strcmp (l->from, Cmd_Argv(1)))
-//			{
-//				Z_Free (l->to);
-//				if (!strlen(Cmd_Argv(2)))
-//				{	// delete it
-//					*prev = l->next;
-//					Z_Free (l->from);
-//					Z_Free (l);
-//					return;
-//				}
-//				l->to = CopyString (Cmd_Argv(2));
-//				return;
-//			}
-//			prev = &l->next;
-//		}
-//
-//		// create a new link
-//		l = Z_Malloc(sizeof(*l));
-//		l->next = fs_links;
-//		fs_links = l;
-//		l->from = CopyString(Cmd_Argv(1));
-//		l->fromlength = strlen(l->from);
-//		l->to = CopyString(Cmd_Argv(2));
+
+
+	/*
+	================
+	FS_Link_f
+
+	Creates a filelink_t
+	================
+	*/
+	static void Link_f() {
+		filelink_t entry = null;
+
+		if (Cmd.Argc() != 3) {
+			Com.Printf("USAGE: link <from> <to>\n");
+			return;
+		}
+
+		// see if the link already exists
+		for (Iterator it = fs_links.iterator(); it.hasNext();) {
+			entry = (filelink_t) it.next();
+
+			if (entry.from.equals(Cmd.Argv(1))) {
+				if (Cmd.Argv(2).length() < 1) {
+					// delete it
+					it.remove();
+					return;
+				}
+				entry.to = new String(Cmd.Argv(2));
+				return;
+			}
+		}
+
+		// create a new link if the <to> is not empty
+		if (Cmd.Argv(2).length() > 0) {
+			entry = new filelink_t();
+			entry.from = new String(Cmd.Argv(1));
+			entry.fromlength = entry.from.length();
+			entry.to = new String(Cmd.Argv(2));
+			fs_links.add(entry);
+		}
 	}
+
 //
 //	/*
 //	** FS_ListFiles
@@ -823,6 +718,7 @@ public final class FS {
 //
 		return list;
 	}
+
 //
 //	/*
 //	** FS_Dir_f
@@ -874,18 +770,18 @@ public final class FS {
 			Com.Printf( "\n" );
 		}
 	}
-//
-//	/*
-//	============
-//	FS_Path_f
-//
-//	============
-//	*/
+
+	/*
+	============
+	FS_Path_f
+
+	============
+	*/
 	static void Path_f() {
 
 		searchpath_t	s;
-		filelink_t l;
-//
+		filelink_t link;
+
 		Com.Printf("Current search path:\n");
 		for (s=fs_searchpaths ; s != null ; s=s.next)
 		{
@@ -898,17 +794,20 @@ public final class FS {
 		}
 
 		Com.Printf("\nLinks:\n");
-		for (l=fs_links ; l != null ; l=l.next)
-			Com.Printf(l.from + " : " + l.to + '\n');
+		for (Iterator it = fs_links.iterator(); it.hasNext();) {
+			link = (filelink_t)it.next();
+			Com.Printf(link.from + " : " + link.to + '\n');
+		}
 	}
-//
-//	/*
-//	================
-//	FS_NextPath
-//
-//	Allows enumerating all of the directories in the search path
-//	================
-//	*/
+
+
+	/*
+	================
+	FS_NextPath
+
+	Allows enumerating all of the directories in the search path
+	================
+	*/
 	static String NextPath (String prevpath)
 	{
 		searchpath_t	s;
@@ -928,13 +827,13 @@ public final class FS {
 
 		return null;
 	}
-//
-//
-//	/*
-//	================
-//	FS_InitFilesystem
-//	================
-//	*/
+
+
+	/*
+	================
+	FS_InitFilesystem
+	================
+	*/
 	static void InitFilesystem()
 	{
 		Cmd.AddCommand ("path", new xcommand_t() {
@@ -952,18 +851,18 @@ public final class FS {
 				Dir_f();
 			}
 		});
-//
-//		//
-//		// basedir <path>
-//		// allows the game to run from outside the data tree
-//		//
+
+		//
+		// basedir <path>
+		// allows the game to run from outside the data tree
+		//
 		fs_basedir = Cvar.Get("basedir", ".", Cvar.NOSET);
-//
-//		//
-//		// cddir <path>
-//		// Logically concatenates the cddir after the basedir for 
-//		// allows the game to run from outside the data tree
-//		//
+
+		//
+		// cddir <path>
+		// Logically concatenates the cddir after the basedir for 
+		// allows the game to run from outside the data tree
+		//
 		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
 		fs_cddir = Cvar.Get("cddir", "../..", Cvar.NOSET);
 		if (fs_cddir.string.length() > 0)
@@ -973,13 +872,13 @@ public final class FS {
 		// start up with baseq2 by default
 		//
 		AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
-//
-//		// any set gamedirs will be freed up to here
+
+		// any set gamedirs will be freed up to here
 		fs_base_searchpaths = fs_searchpaths;
-//
-//		// check for game override
+
+		// check for game override
 		fs_gamedirvar = Cvar.Get("game", "", Cvar.LATCH | Cvar.SERVERINFO);
-		if (fs_gamedirvar.string.length() > 0)
-			SetGamedir (fs_gamedirvar.string);
+		
+		if (fs_gamedirvar.string.length() > 0) SetGamedir (fs_gamedirvar.string);
 	}
 }
