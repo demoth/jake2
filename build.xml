@@ -49,7 +49,7 @@
 
 	<!-- compile -->
 	<target name="compile" depends="init">
-		<javac destdir="${build}" optimize="on" debug="off" source="1.4">
+		<javac destdir="${build}" optimize="off" debug="on" source="1.4">
 			<src path="${src}"/>
 			<include name="jake2/**"/>
 			<classpath refid="build.class.path"/>
@@ -233,6 +233,7 @@
 			</fileset>
 			<fileset dir=".">
 				<include name="patch.jar"/>
+				<include name="jake2.jar"/>
 			</fileset>
 		</copy>
 		<jar destfile="webstart/lib/linux/jogl-native.jar" basedir="${dist}/lib/linux">
