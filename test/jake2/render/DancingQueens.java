@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.7 2004-01-28 10:32:10 hoz Exp $
+ * $Id: DancingQueens.java,v 1.8 2004-02-03 10:11:45 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,20 +27,11 @@ package jake2.render;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.VID;
-import jake2.client.entity_t;
-import jake2.client.refdef_t;
-import jake2.client.refexport_t;
-import jake2.client.refimport_t;
-import jake2.client.viddef_t;
+import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.Qcommon;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
+import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
@@ -161,7 +152,7 @@ public class DancingQueens
 		};
 
 
-		Qcommon.Init(new String[] {"DancingQueens"});
+		Qcommon.InitForTestMap(new String[] {"DancingQueens"});
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -175,6 +166,12 @@ public class DancingQueens
 		
 		re.Init();
 		
+		Cmd.AddCommand("togglemouse", togglemouse);
+		Cbuf.AddText("bind t togglemouse");
+		Cbuf.Execute();
+		Globals.cls.key_dest = Defines.key_game;
+		Globals.cls.state = Defines.ca_active;
+						
 		viddef = Globals.viddef;
 		fov_y = Math3D.CalcFov(fov_x, viddef.width, viddef.height);
 	}
@@ -211,6 +208,7 @@ public class DancingQueens
 		{
 			re.updateScreen();
 			KBD.Update();
+			Cbuf.Execute();
 		}
 	}
 	
@@ -221,7 +219,7 @@ public class DancingQueens
 	
 	private final static String[] skinNames = {
 		"players/female/athena",
-		"players/female/doomgal",
+		"players/female/lotus",
 		"players/female/venus",
 		"players/female/voodoo",
 		"players/female/cobalt",
@@ -313,5 +311,10 @@ public class DancingQueens
 	{
 		return (int) (System.currentTimeMillis() - startTime);
 	}
-
+	
+	static xcommand_t togglemouse = new xcommand_t() {
+		public void execute() {
+			IN.toggleMouse();
+		}
+	};
 }
