@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.10 2004-12-06 13:47:02 hzi Exp $
+// $Id: Lib.java,v 1.11 2004-12-16 19:46:49 cawe Exp $
 
 package jake2.util;
 
@@ -29,8 +29,6 @@ import jake2.qcommon.FS;
 
 import java.io.*;
 import java.nio.*;
-
-import net.java.games.jogl.util.BufferUtils;
 
 public class Lib {
 
@@ -279,8 +277,9 @@ public class Lib {
 	 * java.nio.* Buffer util functions
 	 */
 	
-	public static final int SIZEOF_FLOAT = BufferUtils.SIZEOF_FLOAT;
-	public static final int SIZEOF_INT = BufferUtils.SIZEOF_INT;
+	public static final int SIZEOF_FLOAT = 4;
+	public static final int SIZEOF_INT = 4;
+	
 	public static FloatBuffer newFloatBuffer(int numElements) {
 	  ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
 	  return bb.asFloatBuffer();
