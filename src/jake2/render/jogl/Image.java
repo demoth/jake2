@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.21 2004-02-16 13:52:18 cwei Exp $
+ * $Id: Image.java,v 1.22 2004-02-16 15:15:55 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1497,6 +1497,10 @@ public abstract class Image extends Main {
 		
 		// TODO loest das grossschreibungs problem
 		name = name.toLowerCase();
+		// bughack for bad strings (fuck \0)
+		int index = name.indexOf('\0');
+		if (index != -1)
+			name = name.substring(0, index);
 
 		if (name == null || name.length() < 5)
 			return null; //	ri.Sys_Error (ERR_DROP, "GL_FindImage: NULL name");
