@@ -18,6 +18,8 @@ public class LWJGLKBD extends KBD {
 	
 	private char[] lwjglKeycodeMap = null;
 	
+	private boolean mouseHasTwoButtons = false;
+	
 	public void Init()
 	{
 		try
@@ -33,6 +35,8 @@ public class LWJGLKBD extends KBD {
 			win_h2=Display.getDisplayMode().getHeight()/2;
 
 			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
+			
+			mouseHasTwoButtons = (Mouse.getButtonCount() == 2);
 			
 		} catch (Exception e) {;}	
 	}
@@ -86,8 +90,11 @@ public class LWJGLKBD extends KBD {
 		while (Mouse.next())
 		{
 			int button=Mouse.getEventButton();
-			if (button>=0)
+			if (button >= 0)
 			{
+				if (button == 1 && mouseHasTwoButtons) {
+					button = 2; // A three button mouse numbering scheme...
+				}
 				Do_Key_Event(Key.K_MOUSE1 + button, Mouse.getEventButtonState());
 			}
 		}	
