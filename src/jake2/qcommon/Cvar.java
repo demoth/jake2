@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.5 2003-11-29 13:28:29 rst Exp $
+ * $Id: Cvar.java,v 1.6 2003-11-30 21:50:08 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,16 +23,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+// $Id: Cvar.java,v 1.6 2003-11-30 21:50:08 rst Exp $
 package jake2.qcommon;
 
-import jake2.game.cvar_t;
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.render.*;
+import jake2.server.*;
 
 /**
  * Cvar implements console variables. The original code is
  * located in cvar.c
  * TODO complete Cvar interface 
  */
-public final class Cvar {
+public class Cvar extends GamePWeapon {
 
 	public static final int ARCHIVE = 1;
 	// set to cause it to be saved to vars.rc
@@ -95,10 +101,6 @@ public final class Cvar {
 		return var;
 	}
 
-	/**
-	 * @param var_name
-	 * @return
-	 */
 	static boolean InfoValidate(String s) {
 		/*
 		============
@@ -106,22 +108,18 @@ public final class Cvar {
 		============
 		*/
 
-		if (s.indexOf('\\') >= 0)	return false;
-		if (s.indexOf('\"') >= 0) return false;
-		if (s.indexOf(';') >=0 ) return false;
+		if (s.indexOf('\\') >= 0)
+			return false;
+		if (s.indexOf('\"') >= 0)
+			return false;
+		if (s.indexOf(';') >= 0)
+			return false;
 		return true;
 	}
 
-	/**
-	 * 
-	 */
 	static void Init() {
 	}
 
-	/**
-	 * @param string
-	 * @return
-	 */
 	public static String VariableString(String var_name) {
 		cvar_t var;
 		var = FindVar(var_name);
@@ -138,4 +136,166 @@ public final class Cvar {
 
 		return null;
 	}
+
+	static boolean userinfo_modified = false;
+	/*
+	============
+	Cvar_FullSet
+	============
+	*/
+	static cvar_t FullSet(String var_name, String value, int flags) {
+		cvar_t var;
+
+		var = Cvar.FindVar(var_name);
+		if (null == var) { // create it
+			return Cvar.Get(var_name, value, flags);
+		}
+
+		var.modified = true;
+
+		if ((var.flags & CVAR_USERINFO) != 0)
+			userinfo_modified = true; // transmit at next oportunity
+
+		//Z_Free(var.string); // free the old value string
+		//var.string = CopyString(value);
+
+		var.string = value;
+		var.value = atof(var.string);
+		var.flags = flags;
+
+		return var;
+	}
+
+	/*
+	============
+	Cvar_Set
+	============
+	*/
+	static cvar_t Set(String var_name, String value) {
+		return Set2(var_name, value, false);
+	}
+
+	/*
+	============
+	Cvar_Set2
+	============
+	*/
+	static cvar_t Set2(String var_name, String value, boolean force) {
+
+		cvar_t var = Cvar.FindVar(var_name);
+		if (var == null) { // create it
+			return Cvar.Get(var_name, value, 0);
+		}
+
+		if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
+			if (!Cvar.InfoValidate(value)) {
+				Com.Printf("invalid info cvar value\n");
+				return var;
+			}
+		}
+
+		if (!force) {
+			if ((var.flags & CVAR_NOSET) != 0) {
+				Com.Printf(var_name + " is write protected.\n");
+				return var;
+			}
+
+			if ((var.flags & CVAR_LATCH) != 0) {
+				if (var.latched_string != null) {
+					if (strcmp(value, var.latched_string) == 0)
+						return var;
+					//Z_Free (var.latched_string);
+					var.latched_string = null;
+				} else {
+					if (strcmp(value, var.string) == 0)
+						return var;
+				}
+
+				if (Com.ServerState()) {
+					Com.Printf(var_name + " will be changed for next game.\n");
+					//var.latched_string = CopyString(value);
+					var.latched_string = value;
+				} else {
+					//var.string = CopyString(value);
+					var.string = value;
+					var.value = atof(var.string);
+					if (0 == strcmp(var.name, "game")) {
+						FS.SetGamedir(var.string);
+						FS.ExecAutoexec();
+					}
+				}
+				return var;
+			}
+		} else {
+			if (var.latched_string != null) {
+				//Z_Free(var.latched_string);
+				var.latched_string = null;
+			}
+		}
+
+		if (0 == strcmp(value, var.string))
+			return var; // not changed
+
+		var.modified = true;
+
+		if ((var.flags & CVAR_USERINFO) != 0)
+			userinfo_modified = true; // transmit at next oportunity
+
+		//Z_Free(var.string); // free the old value string
+
+		//var.string = CopyString(value);
+		var.string = value;
+		var.value = atof(var.string);
+
+		return var;
+	}
+
+	static xcommand_t Set_f = new xcommand_t() {
+		public void execute() {
+			int c;
+			int flags;
+
+			c = Cmd.Argc();
+			if (c != 3 && c != 4) {
+				Com.Printf("usage: set <variable> <value> [u / s]\n");
+				return;
+			}
+
+			if (c == 4) {
+				if (0 == strcmp(Cmd.Argv(3), "u"))
+					flags = CVAR_USERINFO;
+				else if (0 == strcmp(Cmd.Argv(3), "s"))
+					flags = CVAR_SERVERINFO;
+				else {
+					Com.Printf("flags can only be 'u' or 's'\n");
+					return;
+				}
+				Cvar.FullSet(Cmd.Argv(1), Cmd.Argv(2), flags);
+			} else
+				Cvar.Set(Cmd.Argv(1), Cmd.Argv(2));
+
+		}
+
+	};
+	/*
+	============
+	Cvar_SetValue
+	============
+	*/
+	public static void SetValue(String var_name, float value) {
+		Cvar.Set(var_name, "" + value);
+	}
+
+	/*
+	============
+	Cvar_VariableValue
+	============
+	*/
+	public static float VariableValue(String var_name) {
+		cvar_t var = Cvar.FindVar(var_name);
+		if (var == null)
+			return 0;
+		return atof(var.string);
+	}
+
 }

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.5 2003-11-29 19:26:33 rst Exp $
+ * $Id: Cmd.java,v 1.7 2003-12-01 13:19:33 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,6 +46,7 @@ public final class Cmd {
 			Com.print(i + " commands\n");
 		}
 	};
+	
 	static xcommand_t Exec_f = new xcommand_t() {
 		public void execute() {
 			if (Cmd.Argc() != 2) {
@@ -78,6 +79,7 @@ public final class Cmd {
 			Com.print("'\n");
 		}
 	};
+	
 	static xcommand_t Alias_f = new xcommand_t() {
 		public void execute() {
 			cmdalias_t a = null;

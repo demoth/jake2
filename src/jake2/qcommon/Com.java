@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.10 2003-11-29 13:28:29 rst Exp $
+ * $Id: Com.java,v 1.12 2003-12-01 13:20:25 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,5 +112,11 @@ public final class Com {
 			msg = new PrintfFormat(fmt).sprintf(vargs.toArray());
 		}
 		return msg;
+	}
+
+	
+	public static boolean ServerState() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

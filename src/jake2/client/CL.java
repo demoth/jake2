@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.11 2003-11-29 19:26:33 rst Exp $
+ *$Id: CL.java,v 1.12 2003-11-30 21:50:08 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,12 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
-import jake2.Globals;
 import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
 import jake2.sys.*;
 
 /**
@@ -163,34 +164,35 @@ public final class CL extends MSG {
 		// register our commands
 		//
 		Cmd.AddCommand("cmd", CL_ForwardToServer_f);
-/*
+
 		Cmd.AddCommand("pause", CL_Pause_f);
 		Cmd.AddCommand("pingservers", CL_PingServers_f);
-		Cmd.AddCommand("skins", CL_Skins_f);
-
-		Cmd.AddCommand("userinfo", CL_Userinfo_f);
-		Cmd.AddCommand("snd_restart", CL_Snd_Restart_f);
-
-		Cmd.AddCommand("changing", CL_Changing_f);
-		Cmd.AddCommand("disconnect", CL_Disconnect_f);
+		/*		Cmd.AddCommand("skins", CL_Skins_f);
+		
+				Cmd.AddCommand("userinfo", CL_Userinfo_f);
+				Cmd.AddCommand("snd_restart", CL_Snd_Restart_f);
+		
+				Cmd.AddCommand("changing", CL_Changing_f);
+				Cmd.AddCommand("disconnect", CL_Disconnect_f);
+				*/
 		Cmd.AddCommand("record", CL_Record_f);
 		Cmd.AddCommand("stop", CL_Stop_f);
-
-		Cmd.AddCommand("quit", CL_Quit_f);
-
-		Cmd.AddCommand("connect", CL_Connect_f);
-		Cmd.AddCommand("reconnect", CL_Reconnect_f);
-
-		Cmd.AddCommand("rcon", CL_Rcon_f);
-
-		//      Cmd.AddCommand ("packet", CL_Packet_f); // this is dangerous to leave in
-
-		Cmd.AddCommand("setenv", CL_Setenv_f);
-
-		Cmd.AddCommand("precache", CL_Precache_f);
-
-		Cmd.AddCommand("download", CL_Download_f);
-*/
+		/*
+				Cmd.AddCommand("quit", CL_Quit_f);
+		
+				Cmd.AddCommand("connect", CL_Connect_f);
+				Cmd.AddCommand("reconnect", CL_Reconnect_f);
+		
+				Cmd.AddCommand("rcon", CL_Rcon_f);
+		
+				//      Cmd.AddCommand ("packet", CL_Packet_f); // this is dangerous to leave in
+		
+				Cmd.AddCommand("setenv", CL_Setenv_f);
+		
+				Cmd.AddCommand("precache", CL_Precache_f);
+		
+				Cmd.AddCommand("download", CL_Download_f);
+		*/
 		//
 		// forward to server commands
 		//
@@ -237,220 +239,218 @@ public final class CL extends MSG {
 		cls.demofile.write(net_message.data, 8, swlen);
 		//fwrite (net_message.data+8,	len, 1, cls.demofile);
 	}
-	//	
-	//	/*
-	//	====================
-	//	CL_Stop_f
-	//
-	//	stop recording a demo
-	//	====================
-	//	*/
-	//	static void CL_Stop_f ()
-	//	{
-	//		int		len;
-	//
-	//		if (!cls.demorecording)
-	//		{
-	//			Com_Printf ("Not recording a demo.\n");
-	//			return;
-	//		}
-	//
-	//	//	   finish up
-	//		len = -1;
-	//		fwrite (&len, 4, 1, cls.demofile);
-	//		fclose (cls.demofile);
-	//		cls.demofile = null;
-	//		cls.demorecording = false;
-	//		Com_Printf ("Stopped demo.\n");
-	//	}
-	//	/*
-	//	====================
-	//	CL_Record_f
-	//
-	//	record <demoname>
-	//
-	//	Begins recording a demo from the current position
-	//	====================
-	//	*/
-	//	void CL_Record_f (void)
-	//	{
-	//		char	name[MAX_OSPATH];
-	//		char	buf_data[MAX_MSGLEN];
-	//		sizebuf_t	buf;
-	//		int		i;
-	//		int		len;
-	//		entity_state_t	*ent;
-	//		entity_state_t	nullstate;
-	//
-	//		if (Cmd.Argc() != 2)
-	//		{
-	//			Com_Printf ("record <demoname>\n");
-	//			return;
-	//		}
-	//
-	//		if (cls.demorecording)
-	//		{
-	//			Com_Printf ("Already recording.\n");
-	//			return;
-	//		}
-	//
-	//		if (cls.state != ca_active)
-	//		{
-	//			Com_Printf ("You must be in a level to record.\n");
-	//			return;
-	//		}
-	//
-	//		//
-	//		// open the demo file
-	//		//
-	//		Com_sprintf (name, sizeof(name), "%s/demos/%s.dm2", FS_Gamedir(), Cmd.Argv(1));
-	//
-	//		Com_Printf ("recording to %s.\n", name);
-	//		FS_CreatePath (name);
-	//		cls.demofile = fopen (name, "wb");
-	//		if (!cls.demofile)
-	//		{
-	//			Com_Printf ("ERROR: couldn't open.\n");
-	//			return;
-	//		}
-	//		cls.demorecording = true;
-	//
-	//		// don't start saving messages until a non-delta compressed message is received
-	//		cls.demowaiting = true;
-	//
-	//		//
-	//		// write out messages to hold the startup information
-	//		//
-	//		SZ_Init (&buf, buf_data, sizeof(buf_data));
-	//
-	//		// send the serverdata
-	//		MSG_WriteByte (&buf, svc_serverdata);
-	//		MSG_WriteLong (&buf, PROTOCOL_VERSION);
-	//		MSG_WriteLong (&buf, 0x10000 + cl.servercount);
-	//		MSG_WriteByte (&buf, 1);	// demos are always attract loops
-	//		MSG_WriteString (&buf, cl.gamedir);
-	//		MSG_WriteShort (&buf, cl.playernum);
-	//
-	//		MSG_WriteString (&buf, cl.configstrings[CS_NAME]);
-	//
-	//		// configstrings
-	//		for (i=0 ; i<MAX_CONFIGSTRINGS ; i++)
-	//		{
-	//			if (cl.configstrings[i][0])
-	//			{
-	//				if (buf.cursize + strlen (cl.configstrings[i]) + 32 > buf.maxsize)
-	//				{	// write it out
-	//					len = LittleLong (buf.cursize);
-	//					fwrite (&len, 4, 1, cls.demofile);
-	//					fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//					buf.cursize = 0;
-	//				}
-	//
-	//				MSG_WriteByte (&buf, svc_configstring);
-	//				MSG_WriteShort (&buf, i);
-	//				MSG_WriteString (&buf, cl.configstrings[i]);
-	//			}
-	//
-	//		}
-	//
-	//		// baselines
-	//		memset (&nullstate, 0, sizeof(nullstate));
-	//		for (i=0; i<MAX_EDICTS ; i++)
-	//		{
-	//			ent = &cl_entities[i].baseline;
-	//			if (!ent->modelindex)
-	//				continue;
-	//
-	//			if (buf.cursize + 64 > buf.maxsize)
-	//			{	// write it out
-	//				len = LittleLong (buf.cursize);
-	//				fwrite (&len, 4, 1, cls.demofile);
-	//				fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//				buf.cursize = 0;
-	//			}
-	//
-	//			MSG_WriteByte (&buf, svc_spawnbaseline);		
-	//			MSG_WriteDeltaEntity (&nullstate, &cl_entities[i].baseline, &buf, true, true);
-	//		}
-	//
-	//		MSG_WriteByte (&buf, svc_stufftext);
-	//		MSG_WriteString (&buf, "precache\n");
-	//
-	//		// write it to the demo file
-	//
-	//		len = LittleLong (buf.cursize);
-	//		fwrite (&len, 4, 1, cls.demofile);
-	//		fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//
-	//		// the rest of the demo file will be individual frames
-	//	}
-	//
-	////	  ======================================================================
-	//
-	//	/*
-	//	===================
-	//	Cmd.ForwardToServer
-	//
-	//	adds the current command line as a clc_stringcmd to the client message.
-	//	things like godmode, noclip, etc, are commands directed to the server,
-	//	so when they are typed in at the console, they will need to be forwarded.
-	//	===================
-	//	*/
-	//	void Cmd.ForwardToServer (void)
-	//	{
-	//		char	*cmd;
-	//
-	//		cmd = Cmd.Argv(0);
-	//		if (cls.state <= ca_connected || *cmd == '-' || *cmd == '+')
-	//		{
-	//			Com_Printf ("Unknown command \"%s\"\n", cmd);
-	//			return;
-	//		}
-	//
-	//		MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
-	//		SZ_Print (&cls.netchan.message, cmd);
-	//		if (Cmd.Argc() > 1)
-	//		{
-	//			SZ_Print (&cls.netchan.message, " ");
-	//			SZ_Print (&cls.netchan.message, Cmd.Args());
-	//		}
-	//	}
-	//
-	//	void CL_Setenv_f( void )
-	//	{
-	//		int argc = Cmd.Argc();
-	//
-	//		if ( argc > 2 )
-	//		{
-	//			char buffer[1000];
-	//			int i;
-	//
-	//			strcpy( buffer, Cmd.Argv(1) );
-	//			strcat( buffer, "=" );
-	//
-	//			for ( i = 2; i < argc; i++ )
-	//			{
-	//				strcat( buffer, Cmd.Argv( i ) );
-	//				strcat( buffer, " " );
-	//			}
-	//
-	//			putenv( buffer );
-	//		}
-	//		else if ( argc == 2 )
-	//		{
-	//			char *env = getenv( Cmd.Argv(1) );
-	//
-	//			if ( env )
-	//			{
-	//				Com_Printf( "%s=%s\n", Cmd.Argv(1), env );
-	//			}
-	//			else
-	//			{
-	//				Com_Printf( "%s undefined\n", Cmd.Argv(1), env );
-	//			}
-	//		}
-	//	}
-	//
+
+	/*
+	====================
+	CL_Stop_f
+	
+	stop recording a demo
+	====================
+	*/
+	static xcommand_t CL_Stop_f = new xcommand_t() {
+		public void execute() {
+			try {
+
+				int len;
+
+				if (!cls.demorecording) {
+					Com.Printf("Not recording a demo.\n");
+					return;
+				}
+
+				//	   finish up
+				len = -1;
+				cls.demofile.writeInt(len);
+				cls.demofile.close();
+				cls.demofile = null;
+				cls.demorecording = false;
+				Com.Printf("Stopped demo.\n");
+
+			} catch (IOException e) {
+			}
+		}
+	};
+	/*
+	====================
+	CL_Record_f
+	
+	record <demoname>
+	
+	Begins recording a demo from the current position
+	====================
+	*/
+	static xcommand_t CL_Record_f = new xcommand_t() {
+		public void execute() {
+			try {
+				String name;
+				byte buf_data[] = new byte[MAX_MSGLEN];
+				sizebuf_t buf = new sizebuf_t();
+				int i;
+				int len;
+				entity_state_t ent;
+				entity_state_t nullstate = new entity_state_t();
+
+				if (Cmd.Argc() != 2) {
+					Com.Printf("record <demoname>\n");
+					return;
+				}
+
+				if (cls.demorecording) {
+					Com.Printf("Already recording.\n");
+					return;
+				}
+
+				if (cls.state != ca_active) {
+					Com.Printf("You must be in a level to record.\n");
+					return;
+				}
+
+				//
+				// open the demo file
+				//
+				name = FS.Gamedir() + "/demos/" + Cmd.Argv(1) + ".dm2";
+
+				Com.Printf("recording to " + name + ".\n");
+				FS.CreatePath(name);
+				cls.demofile = new RandomAccessFile(name, "wb");
+				if (cls.demofile == null) {
+					Com.Printf("ERROR: couldn't open.\n");
+					return;
+				}
+				cls.demorecording = true;
+
+				// don't start saving messages until a non-delta compressed message is received
+				cls.demowaiting = true;
+
+				//
+				// write out messages to hold the startup information
+				//
+				SZ_Init(buf, buf_data, MAX_MSGLEN);
+
+				// send the serverdata
+				MSG_WriteByte(buf, svc_serverdata);
+				MSG_WriteInt(buf, PROTOCOL_VERSION);
+				MSG_WriteInt(buf, 0x10000 + cl.servercount);
+				MSG_WriteByte(buf, 1); // demos are always attract loops
+				MSG_WriteString(buf, cl.gamedir);
+				MSG_WriteShort(buf, cl.playernum);
+
+				MSG_WriteString(buf, cl.configstrings[CS_NAME]);
+
+				// configstrings
+				for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+					if (cl.configstrings[i] != "") {
+						if (buf.cursize + strlen(cl.configstrings[i]) + 32 > buf.maxsize) { // write it out
+							//len = LittleLong(buf.cursize);
+							//fwrite(& len, 4, 1, cls.demofile);
+							cls.demofile.writeInt(buf.cursize);
+							//fwrite(buf.data, buf.cursize, 1, cls.demofile);
+							cls.demofile.write(buf.data, 0, buf.cursize);
+							buf.cursize = 0;
+						}
+
+						MSG_WriteByte(buf, svc_configstring);
+						MSG_WriteShort(buf, i);
+						MSG_WriteString(buf, cl.configstrings[i]);
+					}
+
+				}
+
+				// baselines
+				//memset( nullstate, 0, sizeof(nullstate));
+				for (i = 0; i < MAX_EDICTS; i++) {
+					ent = cl_entities[i].baseline;
+					if (ent.modelindex == 0)
+						continue;
+
+					if (buf.cursize + 64 > buf.maxsize) { // write it out
+						//len = LittleLong(buf.cursize);
+						//fwrite(& len, 4, 1, cls.demofile);
+						cls.demofile.writeInt(buf.cursize);
+						//fwrite(buf.data, buf.cursize, 1, cls.demofile);
+						cls.demofile.write(buf.data, 0, buf.cursize);
+						buf.cursize = 0;
+					}
+
+					MSG_WriteByte(buf, svc_spawnbaseline);
+					MSG_WriteDeltaEntity(nullstate, cl_entities[i].baseline, buf, true, true);
+				}
+
+				MSG_WriteByte(buf, svc_stufftext);
+				MSG_WriteString(buf, "precache\n");
+
+				// write it to the demo file
+
+				//len = LittleLong(buf.cursize);
+				//fwrite(& len, 4, 1, cls.demofile);
+				cls.demofile.writeInt(buf.cursize);
+				//fwrite(buf.data, buf.cursize, 1, cls.demofile);
+				cls.demofile.write(buf.data, 0, buf.cursize);
+				// the rest of the demo file will be individual frames
+
+			} catch (IOException e) {
+			}
+		}
+	};
+
+	//	  ======================================================================
+
+	/*
+	===================
+	Cmd.ForwardToServer
+	
+	adds the current command line as a clc_stringcmd to the client message.
+	things like godmode, noclip, etc, are commands directed to the server,
+	so when they are typed in at the console, they will need to be forwarded.
+	===================
+	*/
+
+	static void ForwardToServer() {
+		String cmd;
+
+		cmd = Cmd.Argv(0);
+		if (cls.state <= ca_connected || cmd.charAt(0) == '-' || cmd.charAt(0) == '+') {
+			Com.Printf("Unknown command \"" + cmd + "\"\n");
+			return;
+		}
+
+		MSG_WriteByte(cls.netchan.message, clc_stringcmd);
+		SZ_Print(cls.netchan.message, cmd);
+		if (Cmd.Argc() > 1) {
+			SZ_Print(cls.netchan.message, " ");
+			SZ_Print(cls.netchan.message, Cmd.Args());
+		}
+	};
+
+	static xcommand_t CL_Setenv_f = new xcommand_t() {
+
+		public void execute() {
+			int argc = Cmd.Argc();
+
+			if (argc > 2) {
+				String buffer = "";
+				int i;
+
+				//buffer += Cmd.Argv(1) + " "
+
+				for (i = 2; i < argc; i++) {
+					buffer += Cmd.Argv(i) + " ";
+				}
+				//putenv( buffer );
+				System.setProperty(Cmd.Argv(1), buffer);
+
+			} else if (argc == 2) {
+				String env = System.getProperty(Cmd.Argv(1));
+
+				if (env != null) {
+					Com.Printf(Cmd.Argv(1) + "=" + env + "\n");
+				} else {
+					Com.Printf(Cmd.Argv(1) + " undefined\n");
+				}
+			}
+		}
+	};
+
 	//
 	/*
 	==================
@@ -460,7 +460,7 @@ public final class CL extends MSG {
 	static xcommand_t CL_ForwardToServer_f = new xcommand_t() {
 		public void execute() {
 			if (cls.state != ca_connected && cls.state != ca_active) {
-				Com.Printf("Can't \""+ Cmd.Argv(0) +"\", not connected\n");
+				Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
 				return;
 			}
 
@@ -471,24 +471,24 @@ public final class CL extends MSG {
 			}
 		}
 	};
-	//
-	//
-	//	/*
-	//	==================
-	//	CL_Pause_f
-	//	==================
-	//	*/
-	//	void CL_Pause_f (void)
-	//	{
-	//		// never pause in multiplayer
-	//		if (Cvar_VariableValue ("maxclients") > 1 || !Com_ServerState ())
-	//		{
-	//			Cvar_SetValue ("paused", 0);
-	//			return;
-	//		}
-	//
-	//		Cvar_SetValue ("paused", !cl_paused->value);
-	//	}
+
+	/*
+	==================
+	CL_Pause_f
+	==================
+	*/
+	static xcommand_t CL_Pause_f = new xcommand_t() {
+		public void execute() {
+				// never pause in multiplayer
+
+	if (Cvar.VariableValue("maxclients") > 1 || !Com.ServerState()) {
+				Cvar.SetValue("paused", 0);
+				return;
+			}
+
+			Cvar.SetValue("paused", cl_paused.value);
+		}
+	};
 	//
 	//	/*
 	//	==================
@@ -905,61 +905,58 @@ public final class CL extends MSG {
 	//	}
 	//
 	//
-	//	/*
-	//	=================
-	//	CL_PingServers_f
-	//	=================
-	//	*/
-	//	void CL_PingServers_f (void)
-	//	{
-	//		int			i;
-	//		netadr_t	adr;
-	//		char		name[32];
-	//		char		*adrstring;
-	//		cvar_t		*noudp;
-	//		cvar_t		*noipx;
-	//
-	//		NET_Config (true);		// allow remote
-	//
-	//		// send a broadcast packet
-	//		Com_Printf ("pinging broadcast...\n");
-	//
-	//		noudp = Cvar.Get ("noudp", "0", CVAR_NOSET);
-	//		if (!noudp->value)
-	//		{
-	//			adr.type = NA_BROADCAST;
-	//			adr.port = BigShort(PORT_SERVER);
-	//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-	//		}
-	//
-	//		noipx = Cvar.Get ("noipx", "0", CVAR_NOSET);
-	//		if (!noipx->value)
-	//		{
-	//			adr.type = NA_BROADCAST_IPX;
-	//			adr.port = BigShort(PORT_SERVER);
-	//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-	//		}
-	//
-	//		// send a packet to each address book entry
-	//		for (i=0 ; i<16 ; i++)
-	//		{
-	//			Com_sprintf (name, sizeof(name), "adr%i", i);
-	//			adrstring = Cvar_VariableString (name);
-	//			if (!adrstring || !adrstring[0])
-	//				continue;
-	//
-	//			Com_Printf ("pinging %s...\n", adrstring);
-	//			if (!NET_StringToAdr (adrstring, &adr))
-	//			{
-	//				Com_Printf ("Bad address: %s\n", adrstring);
-	//				continue;
-	//			}
-	//			if (!adr.port)
-	//				adr.port = BigShort(PORT_SERVER);
-	//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-	//		}
-	//	}
-	//
+	/*
+	=================
+	CL_PingServers_f
+	=================
+	*/
+	static xcommand_t CL_PingServers_f = new xcommand_t() {
+		public void execute() {
+				//			int i;
+		//			netadr_t adr;
+		//			String name;
+		//			String adrstring;
+		//			cvar_t noudp;
+		//			cvar_t noipx;
+		//
+		//			NET_Config(true); // allow remote
+		//
+		//			// send a broadcast packet
+		//			Com.Printf("pinging broadcast...\n");
+		//
+		//			noudp = Cvar.Get("noudp", "0", CVAR_NOSET);
+		//			if (!noudp.value) {
+		//				adr.type = NA_BROADCAST;
+		//				adr.port = BigShort(PORT_SERVER);
+		//				Netchan_OutOfBandPrint(NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+		//			}
+		//
+		//			noipx = Cvar.Get("noipx", "0", CVAR_NOSET);
+		//			if (0==noipx.value) {
+		//				adr.type = NA_BROADCAST_IPX;
+		//				adr.port = BigShort(PORT_SERVER);
+		//				Netchan_OutOfBandPrint(NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+		//			}
+		//
+		//			// send a packet to each address book entry
+		//			for (i = 0; i < 16; i++) {
+		//				Com_sprintf(name, sizeof(name), "adr%i", i);
+		//				adrstring = Cvar_VariableString(name);
+		//				if (!adrstring || !adrstring[0])
+		//					continue;
+		//
+		//				Com_Printf("pinging %s...\n", adrstring);
+		//				if (!NET_StringToAdr(adrstring, adr)) {
+		//					Com_Printf("Bad address: %s\n", adrstring);
+		//					continue;
+		//				}
+		//				if (!adr.port)
+		//					adr.port = BigShort(PORT_SERVER);
+		//				Netchan_OutOfBandPrint(NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+		//			}
+	}
+	};
+
 	//
 	//	/*
 	//	=================
@@ -1737,49 +1734,6 @@ public final class CL extends MSG {
 	//		}
 	//	}
 	//
-	//
-	////	  ============================================================================
-	//
-	//	/*
-	//	====================
-	//	CL_Init
-	//	====================
-	//	*/
-	//	void CL_Init (void)
-	//	{
-	//		if (dedicated->value)
-	//			return;		// nothing running on the client
-	//
-	//		// all archived variables will now be loaded
-	//
-	//		Con_Init ();	
-	//	#if defined __linux__ || defined __sgi
-	//		S_Init ();	
-	//		VID_Init ();
-	//	#else
-	//		VID_Init ();
-	//		S_Init ();	// sound must be initialized after window is created
-	//	#endif
-	//	
-	//		V_Init ();
-	//	
-	//		net_message.data = net_message_buffer;
-	//		net_message.maxsize = sizeof(net_message_buffer);
-	//
-	//		M_Init ();	
-	//	
-	//		SCR_Init ();
-	//		cls.disable_screen = true;	// don't draw yet
-	//
-	//		CDAudio_Init ();
-	//		CL_InitLocal ();
-	//		IN_Init ();
-	//
-	////		Cbuf_AddText ("exec autoexec.cfg\n");
-	//		FS_ExecAutoexec ();
-	//		Cbuf_Execute ();
-	//
-	//	}
 	//
 	//
 	//	/*

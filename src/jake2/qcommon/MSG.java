@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.1 2003-11-29 19:26:33 rst Exp $
+// $Id: MSG.java,v 1.2 2003-11-30 21:50:08 rst Exp $
 
 package jake2.qcommon;
 
@@ -53,7 +53,7 @@ public class MSG extends Globals {
 		sb.data[SZ_GetSpace(sb, 1)] = (byte) c;
 	}
 
-	static void MSG_WriteShort(sizebuf_t sb, int c) {
+	public static void MSG_WriteShort(sizebuf_t sb, int c) {
 
 		if (c < ((short) 0x8000) || c > (short) 0x7fff)
 			Com.Error(ERR_FATAL, "MSG_WriteShort: range error");
@@ -63,7 +63,7 @@ public class MSG extends Globals {
 		sb.data[i] = (byte) (c >> 8);
 	}
 
-	static void MSG_WriteInt(sizebuf_t sb, int c) {
+	public static void MSG_WriteInt(sizebuf_t sb, int c) {
 
 		int i = SZ_GetSpace(sb, 4);
 		sb.data[i++] = (byte) ((c & 0xff));
@@ -72,11 +72,11 @@ public class MSG extends Globals {
 		sb.data[i++] = (byte) (c >> 24);
 	}
 
-	static void MSG_WriteFloat(sizebuf_t sb, float f) {
+	public static void MSG_WriteFloat(sizebuf_t sb, float f) {
 		MSG_WriteInt(sb, Float.floatToIntBits(f));
 	}
 
-	static void MSG_WriteString(sizebuf_t sb, String s) {
+	public static void MSG_WriteString(sizebuf_t sb, String s) {
 		String x = s;
 
 		if (s == null)
@@ -85,25 +85,25 @@ public class MSG extends Globals {
 		SZ_Write(sb, x.getBytes());
 	}
 
-	static void MSG_WriteCoord(sizebuf_t sb, float f) {
+	public static void MSG_WriteCoord(sizebuf_t sb, float f) {
 		MSG_WriteShort(sb, (int) (f * 8));
 	}
 
-	static void MSG_WritePos(sizebuf_t sb, float[] pos) {
+	public static void MSG_WritePos(sizebuf_t sb, float[] pos) {
 		MSG_WriteShort(sb, (int) (pos[0] * 8));
 		MSG_WriteShort(sb, (int) (pos[1] * 8));
 		MSG_WriteShort(sb, (int) (pos[2] * 8));
 	}
 
-	static void MSG_WriteAngle(sizebuf_t sb, float f) {
+	public static void MSG_WriteAngle(sizebuf_t sb, float f) {
 		MSG_WriteByte(sb, (int) (f * 256 / 360) & 255);
 	}
 
-	static void MSG_WriteAngle16(sizebuf_t sb, float f) {
+	public static void MSG_WriteAngle16(sizebuf_t sb, float f) {
 		MSG_WriteShort(sb, ANGLE2SHORT(f));
 	}
 
-	static void MSG_WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from, usercmd_t cmd) {
+	public static void MSG_WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from, usercmd_t cmd) {
 		int bits;
 
 		//
@@ -152,7 +152,7 @@ public class MSG extends Globals {
 		MSG_WriteByte(buf, cmd.lightlevel);
 	}
 
-	static void MSG_WriteDir(sizebuf_t sb, float[] dir) {
+	public static void MSG_WriteDir(sizebuf_t sb, float[] dir) {
 		int i, best;
 		float d, bestd;
 
@@ -173,7 +173,7 @@ public class MSG extends Globals {
 		MSG_WriteByte(sb, best);
 	}
 
-	static void MSG_ReadDir(sizebuf_t sb, float[] dir) {
+	public static void MSG_ReadDir(sizebuf_t sb, float[] dir) {
 		int b;
 
 		b = MSG_ReadByte(sb);
@@ -190,7 +190,7 @@ public class MSG extends Globals {
 	Can delta from either a baseline or a previous packet_entity
 	==================
 	*/
-	static void MSG_WriteDeltaEntity(entity_state_t from, entity_state_t to, sizebuf_t msg, boolean force, boolean newentity) {
+	public static void MSG_WriteDeltaEntity(entity_state_t from, entity_state_t to, sizebuf_t msg, boolean force, boolean newentity) {
 		int bits;
 
 		if (0 == to.number)
@@ -383,7 +383,7 @@ public class MSG extends Globals {
 	}
 
 	// returns -1 if no more characters are available
-	static int MSG_ReadChar(sizebuf_t msg_read) {
+	public static int MSG_ReadChar(sizebuf_t msg_read) {
 		int c;
 
 		if (msg_read.readcount + 1 > msg_read.cursize)
@@ -395,7 +395,7 @@ public class MSG extends Globals {
 		return c;
 	}
 
-	static int MSG_ReadByte(sizebuf_t msg_read) {
+	public static int MSG_ReadByte(sizebuf_t msg_read) {
 		int c;
 
 		if (msg_read.readcount + 1 > msg_read.cursize)
@@ -407,7 +407,7 @@ public class MSG extends Globals {
 		return c;
 	}
 
-	static short MSG_ReadShort(sizebuf_t msg_read) {
+	public static short MSG_ReadShort(sizebuf_t msg_read) {
 		int c;
 
 		if (msg_read.readcount + 2 > msg_read.cursize)
@@ -420,7 +420,7 @@ public class MSG extends Globals {
 		return (short) c;
 	}
 
-	static int MSG_ReadLong(sizebuf_t msg_read) {
+	public static int MSG_ReadLong(sizebuf_t msg_read) {
 		int c;
 
 		if (msg_read.readcount + 4 > msg_read.cursize)
@@ -437,16 +437,16 @@ public class MSG extends Globals {
 		return c;
 	}
 
-	static float MSG_ReadFloat(sizebuf_t msg_read) {
+	public static float MSG_ReadFloat(sizebuf_t msg_read) {
 		int n = MSG_ReadLong(msg_read);
 		return Float.intBitsToFloat(n);
 	}
 
 	// 2k read  buffer.
-	static byte readbuf[] = new byte[2048];
+	public static byte readbuf[] = new byte[2048];
 
 	// TODO: check
-	static String MSG_ReadString(sizebuf_t msg_read) {
+	public static String MSG_ReadString(sizebuf_t msg_read) {
 		String string = "";
 
 		byte c;
@@ -464,8 +464,8 @@ public class MSG extends Globals {
 	}
 
 	// 2k read  buffer.
-	static byte readbuf1[] = new byte[2048];
-	static String MSG_ReadStringLine(sizebuf_t msg_read) {
+	public static byte readbuf1[] = new byte[2048];
+	public static String MSG_ReadStringLine(sizebuf_t msg_read) {
 
 		int l;
 		byte c;
@@ -484,25 +484,25 @@ public class MSG extends Globals {
 		return new String(readbuf, 0, l);
 	}
 
-	static float MSG_ReadCoord(sizebuf_t msg_read) {
+	public static float MSG_ReadCoord(sizebuf_t msg_read) {
 		return MSG_ReadShort(msg_read) * (1.0f / 8);
 	}
 
-	static void MSG_ReadPos(sizebuf_t msg_read, float pos[]) {
+	public static void MSG_ReadPos(sizebuf_t msg_read, float pos[]) {
 		pos[0] = MSG_ReadShort(msg_read) * (1.0f / 8);
 		pos[1] = MSG_ReadShort(msg_read) * (1.0f / 8);
 		pos[2] = MSG_ReadShort(msg_read) * (1.0f / 8);
 	}
 
-	static float MSG_ReadAngle(sizebuf_t msg_read) {
+	public static float MSG_ReadAngle(sizebuf_t msg_read) {
 		return MSG_ReadChar(msg_read) * (360.0f / 256);
 	}
 
-	static float MSG_ReadAngle16(sizebuf_t msg_read) {
+	public static float MSG_ReadAngle16(sizebuf_t msg_read) {
 		return SHORT2ANGLE(MSG_ReadShort(msg_read));
 	}
 
-	static void MSG_ReadDeltaUsercmd(sizebuf_t msg_read, usercmd_t from, usercmd_t move) {
+	public static void MSG_ReadDeltaUsercmd(sizebuf_t msg_read, usercmd_t from, usercmd_t move) {
 		int bits;
 
 		//memcpy(move, from, sizeof(* move));
@@ -540,7 +540,7 @@ public class MSG extends Globals {
 		move.lightlevel = (byte) MSG_ReadByte(msg_read);
 	}
 
-	static void MSG_ReadData(sizebuf_t msg_read, byte data[], int len) {
+	public static void MSG_ReadData(sizebuf_t msg_read, byte data[], int len) {
 		int i;
 
 		for (i = 0; i < len; i++)
@@ -549,19 +549,19 @@ public class MSG extends Globals {
 
 	//===========================================================================
 
-	static void SZ_Init(sizebuf_t buf, byte data[], int length) {
+	public static void SZ_Init(sizebuf_t buf, byte data[], int length) {
 		//memset (buf, 0, sizeof(*buf));
 		buf.data = data;
 		buf.maxsize = length;
 	}
 
-	static void SZ_Clear(sizebuf_t buf) {
+	public static void SZ_Clear(sizebuf_t buf) {
 		buf.cursize = 0;
 		buf.overflowed = false;
 	}
 
 	/** Ask for the pointer using sizebuf_t.cursize (RST) */
-	static int SZ_GetSpace(sizebuf_t buf, int length) {
+	public static int SZ_GetSpace(sizebuf_t buf, int length) {
 		int data;
 
 		if (buf.cursize + length > buf.maxsize) {
@@ -582,12 +582,12 @@ public class MSG extends Globals {
 		return data;
 	}
 
-	static void SZ_Write(sizebuf_t buf, byte data[], int length) {
+	public static void SZ_Write(sizebuf_t buf, byte data[], int length) {
 		//memcpy(SZ_GetSpace(buf, length), data, length);
 		System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
 	}
 
-	static void SZ_Write(sizebuf_t buf, byte data[]) {
+	public static void SZ_Write(sizebuf_t buf, byte data[]) {
 		int length = data.length;
 		//memcpy(SZ_GetSpace(buf, length), data, length);
 		System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);

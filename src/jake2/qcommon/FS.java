@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.8 2003-11-29 13:28:29 rst Exp $
+ * $Id: FS.java,v 1.10 2003-12-01 13:20:25 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -131,7 +131,7 @@ public final class FS {
 //	FS_filelength
 //	================
 //	*/
-	static int filelength (File f) {
+	public static int filelength (File f) {
 		return (int)f.length();
 	}
 //
@@ -142,7 +142,7 @@ public final class FS {
 //	Creates any directories needed to store the given filename
 //	============
 //	*/
-	static void CreatePath (String path) {
+	public static void CreatePath (String path) {
 //		char	*ofs;
 //	
 //		for (ofs = path+1 ; *ofs ; ofs++)
@@ -538,7 +538,7 @@ public final class FS {
 //	Called to find where to write a file (demos, savegames, etc)
 //	============
 //	*/
-	static String Gamedir()	{
+	public static String Gamedir()	{
 		return (fs_gamedir != null) ? fs_gamedir : Globals.BASEDIRNAME;
 	}
 //

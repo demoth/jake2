@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.4 2003-11-29 19:26:33 rst Exp $
+// $Id: Defines.java,v 1.5 2003-11-30 21:50:08 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -746,13 +746,7 @@ public class Defines {
 	public final static int AMMO_CELLS = 4;
 	public final static int AMMO_SLUGS = 5;
 
-	//	protocol bytes that can be directly added to messages
-	public final static int svc_muzzleflash = 1;
-	public final static int svc_muzzleflash2 = 2;
-	public final static int svc_temp_entity = 3;
-	public final static int svc_layout = 4;
-	public final static int svc_inventory = 5;
-	public final static int svc_stufftext = 11;
+
 
 	//	view pitching times
 	public final static float DAMAGE_TIME = 0.5f;
@@ -1015,7 +1009,38 @@ public class Defines {
 
 	// Q C O M M O N 
 	////////////////////
+	
+	public final static int svc_bad= 0;	
+
+	// these ops are known to the game dll
+	// protocol bytes that can be directly added to messages
+ 
+	public final static int svc_muzzleflash= 1;	
+	public final static int svc_muzzleflash2= 2;	
+	public final static int svc_temp_entity= 3;	
+	public final static int svc_layout= 4;	
+	public final static int svc_inventory= 5;	
+
+	// the rest are private to the client and server
+	public final static int svc_nop= 6;	
+	public final static int svc_disconnect= 7;	
+	public final static int svc_reconnect= 8;	
+	public final static int svc_sound= 9;	// <see code> 
+	public final static int svc_print= 10;	// [byte] id [string] null terminated string 
+	public final static int svc_stufftext= 11;	// [string] stuffed into client's console buffer, should be \n terminated 
+	public final static int svc_serverdata= 12;	// [long] protocol ... 
+	public final static int svc_configstring= 13;	// [short] [string] 
+	public final static int svc_spawnbaseline= 14;	
+	public final static int svc_centerprint= 15;	// [string] to put in center of the screen 
+	public final static int svc_download= 16;	// [short] size [size bytes] 
+	public final static int svc_playerinfo= 17;	// variable 
+	public final static int svc_packetentities= 18;	// [...] 
+	public final static int svc_deltapacketentities= 19;	// [...] 
+	public final static int svc_frame= 20;	
+	
 	public static final int NUMVERTEXNORMALS = 162;
+	public static final int PROTOCOL_VERSION = 34;
+
 
 	public static final int CM_ANGLE1 = (1 << 0);
 	public static final int CM_ANGLE2 = (1 << 1);
