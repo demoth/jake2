@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.15 2004-05-19 23:17:36 cwei Exp $
+ * $Id: Mesh.java,v 1.16 2004-05-19 23:24:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -218,7 +218,7 @@ public abstract class Mesh extends Light {
 			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
 
 			gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
-			gl.glVertexPointer( 3, GL.GL_FLOAT, 12, vertexArrayBuf );
+			gl.glVertexPointer( 3, GL.GL_FLOAT, 0, vertexArrayBuf );
 
 			// PMM - added double damage shell
 			if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
