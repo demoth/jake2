@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.5 2004-07-16 10:11:36 cawe Exp $
+ * $Id: TestRenderer.java,v 1.6 2004-12-14 01:08:32 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -142,7 +142,7 @@ public class TestRenderer {
 		};
 		while (true) {
 			re.updateScreen(callback);
-			KBD.Update();
+			re.getKeyboardHandler().Update();
 			Cbuf.Execute();
 			try {
 				Thread.sleep(5);
