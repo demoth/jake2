@@ -1,0 +1,16 @@
+***************************************
+* * *   B U G   D A T A B A S E   * * *
+***************************************
+
+found by rst:
+-------------
+Info.Info_ValueForKey: if(!key.equals(...))
+Info.Info_Validate: if (s.indexOf('\\')!=-1)
+
+found by cwei:
+--------------
+GameUtil.DoRespawn: for (count = 0, ent = master; ent != null; ent = ent.chain, count++);
+
+
+found by hoz:
+-------------
