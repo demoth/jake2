@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 24.01.2004 by RST.
-// $Id: TestRotatePointAroundVector.java,v 1.1 2004-01-24 21:44:43 rst Exp $
+// $Id: TestRotatePointAroundVector.java,v 1.2 2004-01-24 23:17:48 cwei Exp $
 
 package jake2.qcommon;
 
@@ -107,7 +107,7 @@ public class TestRotatePointAroundVector
 		
 		Math3D.RotatePointAroundVector(newdst, dir, point, degrees);
 		 
-		System.out.println("" + i + ":" + Lib.vtofs(dst) + ":" + Lib.vtofs(newdst));
+		System.out.println("" + i + ":" + Lib.vtos(dst) + ":" + Lib.vtos(newdst));
 		
 		
 	}
