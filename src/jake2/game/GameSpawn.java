@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.7 2004-09-04 19:08:30 salomo Exp $
+// $Id: GameSpawn.java,v 1.8 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -27,99 +27,7 @@ import jake2.qcommon.Com;
 import jake2.util.Lib;
 
 public class GameSpawn extends GameSave {
-
-//	static EntThinkAdapter SP_func_killbox = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_trigger_always = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_once = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_multiple = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_relay = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_push = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_hurt = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_key = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_counter = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_elevator = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_gravity = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_trigger_monsterjump = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_target_temp_entity = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_speaker = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_explosion = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_changelevel = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_secret = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_goal = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_splash = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_spawner = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_blaster = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_crosslevel_trigger = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_crosslevel_target = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_laser = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_help = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_actor = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_lightramp = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_earthquake = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_character = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_target_string = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	//static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_viewthing = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_light = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_light_mine1 = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_light_mine2 = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_info_null = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_info_notnull = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_path_corner = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_point_combat = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_misc_explobox = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_banner = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_satellite_dish = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_actor = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_gib_arm = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_gib_leg = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_gib_head = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_insane = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_deadsoldier = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_viper = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_viper_bomb = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_bigviper = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_strogg_ship = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_teleporter = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_teleporter_dest = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_blackhole = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_eastertank = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_easterchick = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_misc_easterchick2 = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_monster_berserk = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_gladiator = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_gunner = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_infantry = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_medic = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_flipper = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_chick = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_parasite = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_flyer = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_brain = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_floater = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_hover = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_boss2 = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_jorg = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_monster_boss3_stand = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_monster_commander_body = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//
-//	static EntThinkAdapter SP_turret_breach = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_turret_base = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_turret_driver = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-
+	
 	/*
 	=============
 	ED_NewString
@@ -155,7 +63,6 @@ public class GameSpawn extends GameSave {
 	===============
 	*/
 	static void ED_ParseField(String key, String value, edict_t ent) {
-		field_t f1;
 		byte b;
 		float v;
 		float[] vec = { 0, 0, 0 };

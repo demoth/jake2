@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.5 2004-07-19 19:32:12 hzi Exp $
+// $Id: Math3D.java,v 1.6 2004-09-10 19:02:56 salomo Exp $
 
 package jake2.util;
 
@@ -116,18 +116,7 @@ public class Math3D extends Lib {
 		}
 		return length;
 	}
-//	public static final float VectorNormalize2(float[] v, float[] to) {
-//		float length, ilength;
-//
-//		length = VectorLength(v);
-//		if (length != 0.0f) {
-//			ilength = 1.0f / length;
-//			to[0] = v[0] * ilength;
-//			to[1] = v[1] * ilength;
-//			to[2] = v[2] * ilength;
-//		}
-//		return length;
-//	}
+
 	public static final float VectorLength(float v[]) {
 		return (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}
@@ -199,13 +188,8 @@ public class Math3D extends Lib {
 	private static float im[][] = new float[3][3];
 	private static float tmpmat[][] = new float[3][3];
 	private static float zrot[][] = new float[3][3];
+	
 	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
-					
-		//float m[][] = new float[3][3];
-		//float im[][] = new float[3][3];
-		//float zrot[][] = new float[3][3];
-		//float tmpmat[][] = new float[3][3];
-		//float rot[][] = new float[3][3];
 		
 		float[] vr = { 0.0f, 0.0f, 0.0f };
 		float[] vup = { 0.0f, 0.0f, 0.0f };
@@ -230,8 +214,6 @@ public class Math3D extends Lib {
 		m[1][2] = vf[1];
 		m[2][2] = vf[2];
 
-		//Math3D.MatCopy(m, im); // achtung: src -> dst
-
 		im[0][0] = m[0][0];
 		im[0][1] = m[1][0];
 		im[0][2] = m[2][0];
@@ -249,8 +231,6 @@ public class Math3D extends Lib {
 		zrot[0][0] = zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
 		zrot[0][1] = (float) Math.sin(Math3D.DEG2RAD(degrees));
 		zrot[1][0] = -zrot[0][1];
-		//zrot[1][0] = - (float) Math.sin(Math3D.DEG2RAD(degrees));
-		//zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
 
 		Math3D.R_ConcatRotations(m, zrot, tmpmat);
 		Math3D.R_ConcatRotations(tmpmat, im, zrot);
@@ -484,22 +464,6 @@ public class Math3D extends Lib {
 			}
 		}
 	}
-
-//	public static void MatClear(float m[][]) {
-//		m[0][0] = m[0][1] = m[0][2] = m[1][0] = m[1][1] = m[1][2] = m[2][0] = m[2][1] = m[2][2] = 0.0f;
-//	}
-
-//	private static final void MatCopy(float src[][], float dst[][]) {
-//		dst[0][0]=src[0][0];
-//		dst[0][1]=src[0][1];
-//		dst[0][2]=src[0][2];
-//		dst[1][0]=src[1][0];
-//		dst[1][1]=src[1][1];
-//		dst[1][2]=src[1][2];
-//		dst[2][0]=src[2][0];
-//		dst[2][1]=src[2][1];
-//		dst[2][2]=src[2][2];
-//	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
 		result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];

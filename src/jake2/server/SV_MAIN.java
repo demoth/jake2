@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.6 2004-08-29 21:39:25 hzi Exp $
+// $Id: SV_MAIN.java,v 1.7 2004-09-10 19:02:56 salomo Exp $
 
 package jake2.server;
 
@@ -35,10 +35,10 @@ import java.io.IOException;
 
 public class SV_MAIN extends SV_GAME {
 
-	static netadr_t master_adr[] = new netadr_t[MAX_MASTERS]; // address of group servers
+	static netadr_t master_adr[]= new netadr_t[MAX_MASTERS]; // address of group servers
 	static {
-		for (int i = 0; i < MAX_MASTERS; i++) {
-			master_adr[i] = new netadr_t();
+		for (int i= 0; i < MAX_MASTERS; i++) {
+			master_adr[i]= new netadr_t();
 		}
 	}
 	public static client_t sv_client; // current client
@@ -94,11 +94,11 @@ public class SV_MAIN extends SV_GAME {
 
 		if (drop.download != null) {
 			FS.FreeFile(drop.download);
-			drop.download = null;
+			drop.download= null;
 		}
 
-		drop.state = Defines.cs_zombie; // become free in a few seconds
-		drop.name = "";
+		drop.state= Defines.cs_zombie; // become free in a few seconds
+		drop.name= "";
 	}
 
 	/*
@@ -118,21 +118,21 @@ public class SV_MAIN extends SV_GAME {
 	*/
 	public static String SV_StatusString() {
 		String player;
-		String status = "";
+		String status= "";
 		int i;
 		client_t cl;
 		int statusLength;
 		int playerLength;
 
-		status = Cvar.Serverinfo() + "\n";
+		status= Cvar.Serverinfo() + "\n";
 
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state == Defines.cs_connected || cl.state == Defines.cs_spawned) {
-				player = "" + cl.edict.client.ps.stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
+				player= "" + cl.edict.client.ps.stats[Defines.STAT_FRAGS] + " " + cl.ping + "\"" + cl.name + "\"\n";
 
-				playerLength = player.length();
-				statusLength = status.length();
+				playerLength= player.length();
+				statusLength= status.length();
 
 				if (statusLength + playerLength >= 1024)
 					break; // can't hold any more
@@ -181,17 +181,17 @@ public class SV_MAIN extends SV_GAME {
 		if (maxclients.value == 1)
 			return; // ignore in single player
 
-		version = atoi(Cmd.Argv(1));
+		version= atoi(Cmd.Argv(1));
 
 		if (version != PROTOCOL_VERSION)
-			string = hostname.string + ": wrong version\n";
+			string= hostname.string + ": wrong version\n";
 		else {
-			count = 0;
-			for (i = 0; i < maxclients.value; i++)
+			count= 0;
+			for (i= 0; i < maxclients.value; i++)
 				if (svs.clients[i].state >= cs_connected)
 					count++;
 
-			string = hostname.string + " " + sv.name + " " + count + "/" + (int) maxclients.value + "\n";
+			string= hostname.string + " " + sv.name + " " + count + "/" + (int) maxclients.value + "\n";
 		}
 
 		Netchan.OutOfBandPrint(NS_SERVER, Netchan.net_from, "info\n" + string);
@@ -224,25 +224,25 @@ public class SV_MAIN extends SV_GAME {
 		int oldest;
 		int oldestTime;
 
-		oldest = 0;
-		oldestTime = 0x7fffffff;
+		oldest= 0;
+		oldestTime= 0x7fffffff;
 
 		// see if we already have a challenge for this ip
-		for (i = 0; i < MAX_CHALLENGES; i++) {
+		for (i= 0; i < MAX_CHALLENGES; i++) {
 			if (NET.NET_CompareBaseAdr(Netchan.net_from, svs.challenges[i].adr))
 				break;
 			if (svs.challenges[i].time < oldestTime) {
-				oldestTime = svs.challenges[i].time;
-				oldest = i;
+				oldestTime= svs.challenges[i].time;
+				oldest= i;
 			}
 		}
 
 		if (i == MAX_CHALLENGES) {
 			// overwrite the oldest
-			svs.challenges[oldest].challenge = rand() & 0x7fff;
-			svs.challenges[oldest].adr = Netchan.net_from;
-			svs.challenges[oldest].time = (int) Globals.curtime;
-			i = oldest;
+			svs.challenges[oldest].challenge= rand() & 0x7fff;
+			svs.challenges[oldest].adr= Netchan.net_from;
+			svs.challenges[oldest].time= (int) Globals.curtime;
+			i= oldest;
 		}
 
 		// send it back
@@ -257,36 +257,35 @@ public class SV_MAIN extends SV_GAME {
 	==================
 	*/
 	public static void SVC_DirectConnect() {
-		//char		userinfo[MAX_INFO_STRING];
 		String userinfo;
 		netadr_t adr;
 		int i;
 		client_t cl;
-		
+
 		edict_t ent;
 		int edictnum;
 		int version;
 		int qport;
 
-		adr = Netchan.net_from;
+		adr= Netchan.net_from;
 
 		Com.DPrintf("SVC_DirectConnect ()\n");
 
-		version = atoi(Cmd.Argv(1));
+		version= atoi(Cmd.Argv(1));
 		if (version != PROTOCOL_VERSION) {
 			Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nServer is version " + VERSION + "\n");
 			Com.DPrintf("    rejected connect from version " + version + "\n");
 			return;
 		}
 
-		qport = atoi(Cmd.Argv(2));
-		int challenge = atoi(Cmd.Argv(3));
-		userinfo = Cmd.Argv(4);
+		qport= atoi(Cmd.Argv(2));
+		int challenge= atoi(Cmd.Argv(3));
+		userinfo= Cmd.Argv(4);
 
 		//userinfo[sizeof(userinfo) - 1] = 0;
 
 		// force the IP key/value pair so the game can filter based on ip
-		userinfo = Info.Info_SetValueForKey1(userinfo, "ip", NET.AdrToString(Netchan.net_from));
+		userinfo= Info.Info_SetValueForKey1(userinfo, "ip", NET.AdrToString(Netchan.net_from));
 
 		// attractloop servers are ONLY for local clients
 		if (sv.attractloop) {
@@ -299,7 +298,7 @@ public class SV_MAIN extends SV_GAME {
 
 		// see if the challenge is valid
 		if (!NET.IsLocalAddress(adr)) {
-			for (i = 0; i < MAX_CHALLENGES; i++) {
+			for (i= 0; i < MAX_CHALLENGES; i++) {
 				if (NET.NET_CompareBaseAdr(Netchan.net_from, svs.challenges[i].adr)) {
 					if (challenge == svs.challenges[i].challenge)
 						break; // good
@@ -313,13 +312,9 @@ public class SV_MAIN extends SV_GAME {
 			}
 		}
 
-		//newcl = temp;
-		//memset (newcl, 0, sizeof(client_t));
-		//newcl = new client_t();
-
 		// if there is already a slot for this ip, reuse it
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 
 			if (cl.state == cs_free)
 				continue;
@@ -338,11 +333,11 @@ public class SV_MAIN extends SV_GAME {
 
 		// find a client slot
 		//newcl = null;
-		int index = -1;
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		int index= -1;
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state == cs_free) {
-				index = i;
+				index= i;
 				break;
 			}
 		}
@@ -360,12 +355,12 @@ public class SV_MAIN extends SV_GAME {
 		// this is the only place a client_t is ever initialized
 		//*newcl = temp;
 
-		sv_client = svs.clients[i];
+		sv_client= svs.clients[i];
 		//edictnum = (newcl-svs.clients)+1;
-		int edictnum = i + 1;
-		edict_t ent = GameBase.g_edicts[edictnum];
-		svs.clients[i].edict = ent;
-		svs.clients[i].challenge = challenge; // save challenge for checksumming
+		int edictnum= i + 1;
+		edict_t ent= GameBase.g_edicts[edictnum];
+		svs.clients[i].edict= ent;
+		svs.clients[i].challenge= challenge; // save challenge for checksumming
 
 		// get the game a chance to reject this connection or modify the userinfo
 		if (!(PlayerClient.ClientConnect(ent, userinfo))) {
@@ -381,7 +376,7 @@ public class SV_MAIN extends SV_GAME {
 		}
 
 		// parse some info from the info strings
-		svs.clients[i].userinfo = userinfo;
+		svs.clients[i].userinfo= userinfo;
 		SV_UserinfoChanged(svs.clients[i]);
 
 		// send the connect packet to the client
@@ -389,12 +384,12 @@ public class SV_MAIN extends SV_GAME {
 
 		Netchan.Setup(NS_SERVER, svs.clients[i].netchan, adr, qport);
 
-		svs.clients[i].state = cs_connected;
+		svs.clients[i].state= cs_connected;
 
 		SZ.Init(svs.clients[i].datagram, svs.clients[i].datagram_buf, svs.clients[i].datagram_buf.length);
-		svs.clients[i].datagram.allowoverflow = true;
-		svs.clients[i].lastmessage = svs.realtime; // don't timeout
-		svs.clients[i].lastconnect = svs.realtime;
+		svs.clients[i].datagram.allowoverflow= true;
+		svs.clients[i].lastmessage= svs.realtime; // don't timeout
+		svs.clients[i].lastconnect= svs.realtime;
 		Com.DPrintf("new client added.\n");
 	}
 
@@ -422,9 +417,9 @@ public class SV_MAIN extends SV_GAME {
 		//char		remaining[1024];
 		String remaining;
 
-		i = Rcon_Validate();
+		i= Rcon_Validate();
 
-		String msg = new String(net_message.data, 4, -1);
+		String msg= new String(net_message.data, 4, -1);
 
 		if (i == 0)
 			Com.Printf("Bad rcon from " + NET.AdrToString(Netchan.net_from) + ":\n" + msg + "\n");
@@ -441,9 +436,9 @@ public class SV_MAIN extends SV_GAME {
 			Com.Printf("Bad rcon_password.\n");
 		}
 		else {
-			remaining = "";
+			remaining= "";
 
-			for (i = 2; i < Cmd.Argc(); i++) {
+			for (i= 2; i < Cmd.Argc(); i++) {
 				remaining += Cmd.Argv(i);
 				remaining += " ";
 			}
@@ -471,11 +466,11 @@ public class SV_MAIN extends SV_GAME {
 		MSG.BeginReading(net_message);
 		MSG.ReadLong(net_message); // skip the -1 marker
 
-		s = MSG.ReadStringLine(net_message);
+		s= MSG.ReadStringLine(net_message);
 
 		Cmd.TokenizeString(s.toCharArray(), false);
 
-		c = Cmd.Argv(0);
+		c= Cmd.Argv(0);
 		//Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
 		//Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
@@ -493,8 +488,7 @@ public class SV_MAIN extends SV_GAME {
 			SVC_DirectConnect();
 		else if (0 == strcmp(c, "rcon"))
 			SVC_RemoteCommand();
-		else
-		{
+		else {
 			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + "\n");
 			Com.Printf("[" + s + "]\n");
 			Com.Printf("" + Lib.hexDump(net_message.data, 128, false));
@@ -515,26 +509,26 @@ public class SV_MAIN extends SV_GAME {
 		client_t cl;
 		int total, count;
 
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state != cs_spawned)
 				continue;
 
-			total = 0;
-			count = 0;
-			for (j = 0; j < LATENCY_COUNTS; j++) {
+			total= 0;
+			count= 0;
+			for (j= 0; j < LATENCY_COUNTS; j++) {
 				if (cl.frame_latency[j] > 0) {
 					count++;
 					total += cl.frame_latency[j];
 				}
 			}
 			if (0 == count)
-				cl.ping = 0;
+				cl.ping= 0;
 			else
-				cl.ping = total / count;
+				cl.ping= total / count;
 
 			// let the game dll know about the ping
-			cl.edict.client.ping = cl.ping;
+			cl.edict.client.ping= cl.ping;
 		}
 	}
 
@@ -553,12 +547,12 @@ public class SV_MAIN extends SV_GAME {
 		if ((sv.framenum & 15) != 0)
 			return;
 
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state == cs_free)
 				continue;
 
-			cl.commandMsec = 1800; // 1600 + some slop
+			cl.commandMsec= 1800; // 1600 + some slop
 		}
 	}
 
@@ -570,7 +564,7 @@ public class SV_MAIN extends SV_GAME {
 	public static void SV_ReadPackets() {
 		int i;
 		client_t cl;
-		int qport =0;
+		int qport= 0;
 
 		while (NET.GetPacket(NS_SERVER, Netchan.net_from, net_message)) {
 
@@ -588,11 +582,11 @@ public class SV_MAIN extends SV_GAME {
 			MSG.BeginReading(net_message);
 			MSG.ReadLong(net_message); // sequence number
 			MSG.ReadLong(net_message); // sequence number
-			qport = MSG.ReadShort(net_message) & 0xffff;
+			qport= MSG.ReadShort(net_message) & 0xffff;
 
 			// check for packets from connected clients
-			for (i = 0; i < maxclients.value; i++) {
-				cl = svs.clients[i];
+			for (i= 0; i < maxclients.value; i++) {
+				cl= svs.clients[i];
 				if (cl.state == cs_free)
 					continue;
 				if (!NET.NET_CompareBaseAdr(Netchan.net_from, cl.netchan.remote_address))
@@ -601,12 +595,12 @@ public class SV_MAIN extends SV_GAME {
 					continue;
 				if (cl.netchan.remote_address.port != Netchan.net_from.port) {
 					Com.Printf("SV_ReadPackets: fixing up a translated port\n");
-					cl.netchan.remote_address.port = Netchan.net_from.port;
+					cl.netchan.remote_address.port= Netchan.net_from.port;
 				}
 
 				if (Netchan.Process(cl.netchan, net_message)) { // this is a valid, sequenced packet, so process it
 					if (cl.state != cs_zombie) {
-						cl.lastmessage = svs.realtime; // don't timeout
+						cl.lastmessage= svs.realtime; // don't timeout
 						SV_USER.SV_ExecuteClientMessage(cl);
 					}
 				}
@@ -637,23 +631,23 @@ public class SV_MAIN extends SV_GAME {
 		int droppoint;
 		int zombiepoint;
 
-		droppoint = (int) (svs.realtime - 1000 * timeout.value);
-		zombiepoint = (int) (svs.realtime - 1000 * zombietime.value);
+		droppoint= (int) (svs.realtime - 1000 * timeout.value);
+		zombiepoint= (int) (svs.realtime - 1000 * zombietime.value);
 
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			// message times may be wrong across a changelevel
 			if (cl.lastmessage > svs.realtime)
-				cl.lastmessage = svs.realtime;
+				cl.lastmessage= svs.realtime;
 
 			if (cl.state == cs_zombie && cl.lastmessage < zombiepoint) {
-				cl.state = cs_free; // can now be reused
+				cl.state= cs_free; // can now be reused
 				continue;
 			}
 			if ((cl.state == cs_connected || cl.state == cs_spawned) && cl.lastmessage < droppoint) {
 				SV_SEND.SV_BroadcastPrintf(PRINT_HIGH, cl.name + " timed out\n");
 				SV_DropClient(cl);
-				cl.state = cs_free; // don't bother with zombie state
+				cl.state= cs_free; // don't bother with zombie state
 			}
 		}
 	}
@@ -670,10 +664,10 @@ public class SV_MAIN extends SV_GAME {
 		edict_t ent;
 		int i;
 
-		for (i = 0; i < GameBase.num_edicts; i++) {
-			ent = GameBase.g_edicts[i];
+		for (i= 0; i < GameBase.num_edicts; i++) {
+			ent= GameBase.g_edicts[i];
 			// events only last for a single message
-			ent.s.event = 0;
+			ent.s.event= 0;
 		}
 
 	}
@@ -685,14 +679,14 @@ public class SV_MAIN extends SV_GAME {
 	*/
 	public static void SV_RunGameFrame() {
 		if (host_speeds.value != 0)
-			time_before_game = Sys.Milliseconds();
+			time_before_game= Sys.Milliseconds();
 
 		// we always need to bump framenum, even if we
 		// don't run the world, otherwise the delta
 		// compression can get confused when a client
 		// has the "current" frame
 		sv.framenum++;
-		sv.time = sv.framenum * 100;
+		sv.time= sv.framenum * 100;
 
 		// don't run if paused
 		if (0 == sv_paused.value || maxclients.value > 1) {
@@ -702,12 +696,12 @@ public class SV_MAIN extends SV_GAME {
 			if (sv.time < svs.realtime) {
 				if (sv_showclamp.value != 0)
 					Com.Printf("sv highclamp\n");
-				svs.realtime = sv.time;
+				svs.realtime= sv.time;
 			}
 		}
 
 		if (host_speeds.value != 0)
-			time_after_game = Sys.Milliseconds();
+			time_after_game= Sys.Milliseconds();
 
 	}
 
@@ -718,7 +712,7 @@ public class SV_MAIN extends SV_GAME {
 	==================
 	*/
 	public static void SV_Frame(long msec) {
-		Globals.time_before_game = Globals.time_after_game = 0;
+		Globals.time_before_game= Globals.time_after_game= 0;
 
 		// if server is not active, do nothing
 		if (!svs.initialized)
@@ -734,17 +728,17 @@ public class SV_MAIN extends SV_GAME {
 
 		// get packets from clients
 		SV_ReadPackets();
-		
+
 		//if (Game.g_edicts[1] !=null)
 		//	Com.p("player at:" + Lib.vtofsbeaty(Game.g_edicts[1].s.origin  ));
 
 		// move autonomous things around if enough time has passed
-		if (0== sv_timedemo.value && svs.realtime < sv.time) {
+		if (0 == sv_timedemo.value && svs.realtime < sv.time) {
 			// never let the time get too far off
 			if (sv.time - svs.realtime > 100) {
 				if (sv_showclamp.value != 0)
 					Com.Printf("sv lowclamp\n");
-				svs.realtime = sv.time - 100;
+				svs.realtime= sv.time - 100;
 			}
 			NET.NET_Sleep(sv.time - svs.realtime);
 			return;
@@ -787,7 +781,7 @@ public class SV_MAIN extends SV_GAME {
 	let it know we are alive, and log information
 	================
 	*/
-	public static final int HEARTBEAT_SECONDS = 300;
+	public static final int HEARTBEAT_SECONDS= 300;
 	public static void Master_Heartbeat() {
 		String string;
 		int i;
@@ -802,18 +796,18 @@ public class SV_MAIN extends SV_GAME {
 
 		// check for time wraparound
 		if (svs.last_heartbeat > svs.realtime)
-			svs.last_heartbeat = svs.realtime;
+			svs.last_heartbeat= svs.realtime;
 
 		if (svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
 			return; // not time to send yet
 
-		svs.last_heartbeat = svs.realtime;
+		svs.last_heartbeat= svs.realtime;
 
 		// send the same string that we would give for a status OOB command
-		string = SV_StatusString();
+		string= SV_StatusString();
 
 		// send to group master
-		for (i = 0; i < MAX_MASTERS; i++)
+		for (i= 0; i < MAX_MASTERS; i++)
 			if (master_adr[i].port != 0) {
 				Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
 				Netchan.OutOfBandPrint(NS_SERVER, master_adr[i], "heartbeat\n" + string);
@@ -839,7 +833,7 @@ public class SV_MAIN extends SV_GAME {
 			return; // a private dedicated game
 
 		// send to group master
-		for (i = 0; i < MAX_MASTERS; i++)
+		for (i= 0; i < MAX_MASTERS; i++)
 			if (master_adr[i].port != 0) {
 				if (i > 0)
 					Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
@@ -865,7 +859,7 @@ public class SV_MAIN extends SV_GAME {
 		PlayerClient.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
 		// name for C code
-		cl.name = Info.Info_ValueForKey(cl.userinfo, "name");
+		cl.name= Info.Info_ValueForKey(cl.userinfo, "name");
 
 		// mask off high bit
 		//TODO: masking for german umlaute
@@ -873,22 +867,22 @@ public class SV_MAIN extends SV_GAME {
 		//	cl.name[i] &= 127;
 
 		// rate command
-		val = Info.Info_ValueForKey(cl.userinfo, "rate");
+		val= Info.Info_ValueForKey(cl.userinfo, "rate");
 		if (val.length() > 0) {
-			i = atoi(val);
-			cl.rate = i;
+			i= atoi(val);
+			cl.rate= i;
 			if (cl.rate < 100)
-				cl.rate = 100;
+				cl.rate= 100;
 			if (cl.rate > 15000)
-				cl.rate = 15000;
+				cl.rate= 15000;
 		}
 		else
-			cl.rate = 5000;
+			cl.rate= 5000;
 
 		// msg command
-		val = Info.Info_ValueForKey(cl.userinfo, "msg");
+		val= Info.Info_ValueForKey(cl.userinfo, "msg");
 		if (val.length() > 0) {
-			cl.messagelevel = atoi(val);
+			cl.messagelevel= atoi(val);
 		}
 
 	}
@@ -903,9 +897,9 @@ public class SV_MAIN extends SV_GAME {
 	===============
 	*/
 	public static void SV_Init() {
-		SV_CCMDS.SV_InitOperatorCommands ();		//ok.
+		SV_CCMDS.SV_InitOperatorCommands(); //ok.
 
-		rcon_password = Cvar.Get("rcon_password", "", 0);
+		rcon_password= Cvar.Get("rcon_password", "", 0);
 		Cvar.Get("skill", "1", 0);
 		Cvar.Get("deathmatch", "0", CVAR_LATCH);
 		Cvar.Get("coop", "0", CVAR_LATCH);
@@ -915,27 +909,27 @@ public class SV_MAIN extends SV_GAME {
 		//TODO: set cheats 0
 		Cvar.Get("cheats", "1", CVAR_SERVERINFO | CVAR_LATCH);
 		Cvar.Get("protocol", "" + PROTOCOL_VERSION, CVAR_SERVERINFO | CVAR_NOSET);
-	 
-		SV_MAIN.maxclients = Cvar.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-		hostname = Cvar.Get("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE);
-		timeout = Cvar.Get("timeout", "125", 0);
-		zombietime = Cvar.Get("zombietime", "2", 0);
-		sv_showclamp = Cvar.Get("showclamp", "0", 0);
-		sv_paused = Cvar.Get("paused", "0", 0);
-		sv_timedemo = Cvar.Get("timedemo", "0", 0);
-		sv_enforcetime = Cvar.Get("sv_enforcetime", "0", 0);
-		
-		// TODO: carsten, re-allow downloads per default
-		allow_download = Cvar.Get("allow_download", "0", CVAR_ARCHIVE);
-		allow_download_players = Cvar.Get("allow_download_players", "0", CVAR_ARCHIVE);
-		allow_download_models = Cvar.Get("allow_download_models", "1", CVAR_ARCHIVE);
-		allow_download_sounds = Cvar.Get("allow_download_sounds", "1", CVAR_ARCHIVE);
-		allow_download_maps = Cvar.Get("allow_download_maps", "1", CVAR_ARCHIVE);
 
-		sv_noreload = Cvar.Get("sv_noreload", "0", 0);
-		sv_airaccelerate = Cvar.Get("sv_airaccelerate", "0", CVAR_LATCH);
-		public_server = Cvar.Get("public", "0", 0);
-		sv_reconnect_limit = Cvar.Get("sv_reconnect_limit", "3", CVAR_ARCHIVE);
+		SV_MAIN.maxclients= Cvar.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
+		hostname= Cvar.Get("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE);
+		timeout= Cvar.Get("timeout", "125", 0);
+		zombietime= Cvar.Get("zombietime", "2", 0);
+		sv_showclamp= Cvar.Get("showclamp", "0", 0);
+		sv_paused= Cvar.Get("paused", "0", 0);
+		sv_timedemo= Cvar.Get("timedemo", "0", 0);
+		sv_enforcetime= Cvar.Get("sv_enforcetime", "0", 0);
+
+		// TODO: carsten, re-allow downloads per default
+		allow_download= Cvar.Get("allow_download", "0", CVAR_ARCHIVE);
+		allow_download_players= Cvar.Get("allow_download_players", "0", CVAR_ARCHIVE);
+		allow_download_models= Cvar.Get("allow_download_models", "1", CVAR_ARCHIVE);
+		allow_download_sounds= Cvar.Get("allow_download_sounds", "1", CVAR_ARCHIVE);
+		allow_download_maps= Cvar.Get("allow_download_maps", "1", CVAR_ARCHIVE);
+
+		sv_noreload= Cvar.Get("sv_noreload", "0", 0);
+		sv_airaccelerate= Cvar.Get("sv_airaccelerate", "0", CVAR_LATCH);
+		public_server= Cvar.Get("public", "0", 0);
+		sv_reconnect_limit= Cvar.Get("sv_reconnect_limit", "3", CVAR_ARCHIVE);
 
 		SZ.Init(net_message, net_message_buffer, net_message_buffer.length);
 	}
@@ -967,13 +961,13 @@ public class SV_MAIN extends SV_GAME {
 		// send it twice
 		// stagger the packets to crutch operating system limited buffers
 
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state >= cs_connected)
 				Netchan.Transmit(cl.netchan, net_message.cursize, net_message.data);
 		}
-		for (i = 0; i < maxclients.value; i++) {
-			cl = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			cl= svs.clients[i];
 			if (cl.state >= cs_connected)
 				Netchan.Transmit(cl.netchan, net_message.cursize, net_message.data);
 		}
@@ -992,8 +986,8 @@ public class SV_MAIN extends SV_GAME {
 			SV_FinalMessage(finalmsg, reconnect);
 
 		Master_Shutdown();
-		
-		SV_GAME.SV_ShutdownGameProgs ();
+
+		SV_GAME.SV_ShutdownGameProgs();
 
 		// free current level
 		if (sv.demofile != null)
@@ -1004,16 +998,9 @@ public class SV_MAIN extends SV_GAME {
 				e.printStackTrace();
 			}
 
-		//memset (&sv, 0, sizeof(sv));
-		sv = new server_t();
-		
-		Globals.server_state= sv.state;
+		sv= new server_t();
 
-		// free server static data
-		//if (svs.clients!=null)
-		//	Z_Free (svs.clients);
-		//if (svs.client_entities)
-		//	Z_Free (svs.client_entities);
+		Globals.server_state= sv.state;
 
 		if (svs.demofile != null)
 			try {
@@ -1022,7 +1009,7 @@ public class SV_MAIN extends SV_GAME {
 			catch (IOException e1) {
 				e1.printStackTrace();
 			}
-		//memset (&svs, 0, sizeof(svs));
-		svs = new server_static_t();
+
+		svs= new server_static_t();
 	}
 }

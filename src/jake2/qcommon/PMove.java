@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.3 2004-08-22 14:25:14 salomo Exp $
+// $Id: PMove.java,v 1.4 2004-09-10 19:02:53 salomo Exp $
 
 package jake2.qcommon;
 
@@ -1147,7 +1147,6 @@ public class PMove extends Game
 		pm.waterlevel = 0;
 
 		// clear all pmove local vars
-		//memset(& pml, 0, sizeof(pml));
 		pml = new pml_t();
 
 		// convert origin and velocity to float values

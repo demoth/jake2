@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.5 2004-08-20 21:29:57 salomo Exp $
+// $Id: client_respawn_t.java,v 1.6 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -93,17 +93,5 @@ public class client_respawn_t
 		f.writeFloat(cmd_angles[1]);
 		f.writeFloat(cmd_angles[2]);
 		f.writeInt(spectator?1:0);
-	}
-
-
-
-	/** Prints out a client_respawn_t to the quake console.*/
-	public void dump()
-	{
-		coop_respawn.dump();
-		Com.Println("enterframe: " + enterframe);
-		Com.Println("score: " + score);
-		Lib.printv("cmd_angles", cmd_angles);
-		Com.Println("spectator: " + spectator);
 	}
 }

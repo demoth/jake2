@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.7 2004-07-27 11:58:29 hzi Exp $
+ * $Id: Light.java,v 1.8 2004-09-10 19:02:52 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -759,5 +759,4 @@ public abstract class Light extends Warp {
 			}
 		}
 	}
-
 }

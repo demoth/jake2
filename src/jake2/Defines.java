@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
+// $Id: Defines.java,v 1.4 2004-09-10 19:02:57 salomo Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -138,7 +138,6 @@ public class Defines extends Math3D {
 	public final static int LAST_VISIBLE_CONTENTS = 64;
 
 	// remaining contents are non-visible, and don't eat brushes
-
 	public final static int CONTENTS_AREAPORTAL = 0x8000;
 
 	public final static int CONTENTS_PLAYERCLIP = 0x10000;
@@ -161,7 +160,6 @@ public class Defines extends Math3D {
 	public final static int CONTENTS_LADDER = 0x20000000;
 
 	public final static int SURF_LIGHT = 0x1; // value will hold the light strength 
-
 	public final static int SURF_SLICK = 0x2; // effects game physics 
 
 	public final static int SURF_SKY = 0x4; // don't draw, but add to skybox 
@@ -171,17 +169,7 @@ public class Defines extends Math3D {
 	public final static int SURF_FLOWING = 0x40; // scroll towards angle 
 	public final static int SURF_NODRAW = 0x80; // don't bother referencing the texture 
 
-	// structure offset for asm code
-	public final static int CPLANE_NORMAL_X = 0;
-	public final static int CPLANE_NORMAL_Y = 4;
-	public final static int CPLANE_NORMAL_Z = 8;
-	public final static int CPLANE_DIST = 12;
-	public final static int CPLANE_TYPE = 16;
-	public final static int CPLANE_SIGNBITS = 17;
-	public final static int CPLANE_PAD0 = 18;
-	public final static int CPLANE_PAD1 = 19;
-
-	// pmove->pm_flags
+	// pmove->pm_flags 
 	public final static int PMF_DUCKED = 1;
 	public final static int PMF_JUMP_HELD = 2;
 	public final static int PMF_ON_GROUND = 4;

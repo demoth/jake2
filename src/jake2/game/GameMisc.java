@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameMisc.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: GameMisc.java,v 1.3 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -132,7 +132,7 @@ public class GameMisc extends GameTrigger
 		// it must be TRIGGER_SPAWN
 		if (0 == (self.spawnflags & 1))
 		{
-			//		gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
+			gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
 			self.spawnflags |= 1;
 		}
 
@@ -686,7 +686,6 @@ public class GameMisc extends GameTrigger
 
 		func_clock_reset(self);
 
-		//self.message = gi.TagMalloc(CLOCK_MESSAGE_SIZE, TAG_LEVEL);
 		self.message = new String();
 
 		self.think = GameMiscAdapters.func_clock_think;

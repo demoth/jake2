@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameAIAdapters.java,v 1.3 2004-08-22 15:46:19 salomo Exp $
+// $Id: GameAIAdapters.java,v 1.4 2004-09-10 19:02:53 salomo Exp $
 
 package jake2.game;
 
@@ -166,13 +166,10 @@ public class GameAIAdapters {
 	};
 	public static EntThinkAdapter swimmonster_start= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-
-			{
-				self.flags |= Defines.FL_SWIM;
-				self.think= swimmonster_start_go;
-				Monster.monster_start(self);
-				return true;
-			}
+			self.flags |= Defines.FL_SWIM;
+			self.think= swimmonster_start_go;
+			Monster.monster_start(self);
+			return true;
 		}
 	};
 	/*
@@ -379,7 +376,7 @@ public class GameAIAdapters {
 			if ((self.monsterinfo.search_time != 0) && (GameBase.level.time > (self.monsterinfo.search_time + 20))) {
 				M.M_MoveToGoal(self, dist);
 				self.monsterinfo.search_time= 0;
-				//			dprint("search timeout\n");
+				//dprint("search timeout\n");
 				return;
 			}
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.6 2004-08-29 21:39:24 hzi Exp $
+// $Id: GameBase.java,v 1.7 2004-09-10 19:02:54 salomo Exp $
 
 /** Father of all GameObjects. */
 
@@ -688,28 +688,5 @@ public class GameBase extends Globals {
 				return SV_WORLD.SV_PointContents(o);
 			}
 		};
-
-		//globals.apiversion= GAME_API_VERSION;
-		/*
-		globals.Init = InitGame;
-		globals.Shutdown = ShutdownGame;
-		globals.SpawnEntities = SpawnEntities;
-		
-		globals.WriteGame = WriteGame;
-		globals.ReadGame = ReadGame;
-		globals.WriteLevel = WriteLevel;
-		globals.ReadLevel = ReadLevel;
-		
-		globals.ClientThink = ClientThink;
-		globals.ClientConnect = ClientConnect;
-		globals.ClientUserinfoChanged = ClientUserinfoChanged;
-		globals.ClientDisconnect = ClientDisconnect;
-		globals.ClientBegin = ClientBegin;
-		globals.ClientCommand = ClientCommand;		
-		globals.RunFrame = G_RunFrame;		
-		globals.ServerCommand = ServerCommand;
-		*/
-
-		//return globals;
 	}
 }

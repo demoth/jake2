@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.2 2004-07-08 15:58:43 hzi Exp $
+// $Id: Fire.java,v 1.3 2004-09-10 19:02:53 salomo Exp $
 
 package jake2.game;
 
@@ -310,6 +310,7 @@ public class Fire
 		for (i = 0; i < count; i++)
 			fire_lead(self, start, aimdir, damage, kick, Defines.TE_SHOTGUN, hspread, vspread, mod);
 	}
+	
 	public static void fire_blaster(edict_t self, float[] start, float[] dir, int damage, int speed, int effect, boolean hyper)
 	{
 		edict_t bolt;

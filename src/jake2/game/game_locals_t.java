@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.5 2004-09-04 19:08:29 salomo Exp $
+// $Id: game_locals_t.java,v 1.6 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -106,22 +106,5 @@ public class game_locals_t extends Defines
 		f.writeInt(autosaved?1:0);
 		// rst's checker :-)
 		f.writeInt(1928);
-	}
-
-	/** Prints the game locals.*/
-	public void dump()
-	{
-		Com.Println("String helpmessage1: " + helpmessage1);
-		Com.Println("String helpmessage2: " + helpmessage2);
-
-		Com.Println("spawnpoit: " + spawnpoint);
-		Com.Println("maxclients: " + maxclients);
-		Com.Println("maxentities: " + maxentities);
-		Com.Println("serverflags: " + serverflags);
-		Com.Println("numitems: " + num_items);
-		Com.Println("autosaved: " + autosaved);
-
-		for (int i = 0; i < maxclients; i++)
-			clients[i].dump();
 	}
 }

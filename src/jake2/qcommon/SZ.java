@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.2 2004-07-08 15:58:46 hzi Exp $
+ * $Id: SZ.java,v 1.3 2004-09-10 19:02:53 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,7 +39,6 @@ public final class SZ {
 	//===========================================================================
 	
 	public static void Init(sizebuf_t buf, byte data[], int length) {
-		//memset (buf, 0, sizeof(*buf));
 		buf.data = data;
 		buf.maxsize = length;
 		buf.cursize = 0;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: M_SoldierAdapters.java,v 1.1 2004-07-08 15:58:44 hzi Exp $
+// $Id: M_SoldierAdapters.java,v 1.2 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -627,8 +627,9 @@ public class M_SoldierAdapters
 		}
 	};
 
-	/*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
-	*/
+	/**
+	 * QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
+	 */
 	static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter()
 	{
 		public boolean think(edict_t self)

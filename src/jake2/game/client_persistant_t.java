@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.5 2004-08-20 21:29:58 salomo Exp $
+// $Id: client_persistant_t.java,v 1.6 2004-09-10 19:02:55 salomo Exp $
 
 package jake2.game;
 
@@ -32,36 +32,36 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 public class client_persistant_t {
-	
-	public void set(client_persistant_t from)
-	{
-		userinfo = from.userinfo;
-		netname = from.netname;
-		hand = from.hand;
-		connected = from.connected;
-		health = from.health;
-		max_health = from.max_health;
-		savedFlags = from.savedFlags;
-		selected_item = from.selected_item;
+
+	public void set(client_persistant_t from) {
+		
+		userinfo= from.userinfo;
+		netname= from.netname;
+		hand= from.hand;
+		connected= from.connected;
+		health= from.health;
+		max_health= from.max_health;
+		savedFlags= from.savedFlags;
+		selected_item= from.selected_item;
 		System.arraycopy(from.inventory, 0, inventory, 0, inventory.length);
-		max_bullets = from.max_bullets;
-		max_shells = from.max_shells;
-		max_rockets = from.max_rockets;
-		max_grenades = from.max_grenades;
-		max_cells = from.max_cells;
-		max_slugs = from.max_slugs;
-		weapon = from.weapon;
-		lastweapon = from.lastweapon;
-		power_cubes = from.power_cubes;
-		score = from.score;
-		game_helpchanged = from.game_helpchanged;
-		helpchanged = from.helpchanged;
-		spectator = from.spectator;
+		max_bullets= from.max_bullets;
+		max_shells= from.max_shells;
+		max_rockets= from.max_rockets;
+		max_grenades= from.max_grenades;
+		max_cells= from.max_cells;
+		max_slugs= from.max_slugs;
+		weapon= from.weapon;
+		lastweapon= from.lastweapon;
+		power_cubes= from.power_cubes;
+		score= from.score;
+		game_helpchanged= from.game_helpchanged;
+		helpchanged= from.helpchanged;
+		spectator= from.spectator;
 	}
 
 	//	client data that stays across multiple level loads
-	String userinfo = "";
-	String netname = "";
+	String userinfo= "";
+	String netname= "";
 	int hand;
 
 	boolean connected; // a loadgame will leave valid entities that
@@ -73,7 +73,7 @@ public class client_persistant_t {
 	int savedFlags;
 
 	int selected_item;
-	int inventory[] = new int[Defines.MAX_ITEMS];
+	int inventory[]= new int[Defines.MAX_ITEMS];
 
 	// ammo capacities
 	int max_bullets;
@@ -92,40 +92,39 @@ public class client_persistant_t {
 	int helpchanged;
 	boolean spectator; // client is a spectator
 
-
 	/** Reads a client_persistant structure from a file. */
 	public void read(QuakeFile f) throws IOException {
 
-		userinfo = f.readString();
-		netname = f.readString();
+		userinfo= f.readString();
+		netname= f.readString();
 
-		hand = f.readInt();
+		hand= f.readInt();
 
-		connected = f.readInt() != 0;
-		health = f.readInt();
+		connected= f.readInt() != 0;
+		health= f.readInt();
 
-		max_health = f.readInt();
-		savedFlags = f.readInt();
-		selected_item = f.readInt();
+		max_health= f.readInt();
+		savedFlags= f.readInt();
+		selected_item= f.readInt();
 
-		for (int n = 0; n < Defines.MAX_ITEMS; n++)
-			inventory[n] = f.readInt();
+		for (int n= 0; n < Defines.MAX_ITEMS; n++)
+			inventory[n]= f.readInt();
 
-		max_bullets = f.readInt();
-		max_shells = f.readInt();
-		max_rockets = f.readInt();
-		max_grenades = f.readInt();
-		max_cells = f.readInt();
-		max_slugs = f.readInt();
+		max_bullets= f.readInt();
+		max_shells= f.readInt();
+		max_rockets= f.readInt();
+		max_grenades= f.readInt();
+		max_cells= f.readInt();
+		max_slugs= f.readInt();
 
-		weapon = f.readItem();
-		lastweapon = f.readItem();
-		power_cubes = f.readInt();
-		score = f.readInt();
+		weapon= f.readItem();
+		lastweapon= f.readItem();
+		power_cubes= f.readInt();
+		score= f.readInt();
 
-		game_helpchanged = f.readInt();
-		helpchanged = f.readInt();
-		spectator = f.readInt() != 0;
+		game_helpchanged= f.readInt();
+		helpchanged= f.readInt();
+		spectator= f.readInt() != 0;
 	}
 
 	/** Writes a client_persistant structure to a file. */
@@ -136,14 +135,14 @@ public class client_persistant_t {
 
 		f.writeInt(hand);
 
-		f.writeInt(connected ? 1:0);
+		f.writeInt(connected ? 1 : 0);
 		f.writeInt(health);
 
 		f.writeInt(max_health);
 		f.writeInt(savedFlags);
 		f.writeInt(selected_item);
 
-		for (int n = 0; n < Defines.MAX_ITEMS; n++)
+		for (int n= 0; n < Defines.MAX_ITEMS; n++)
 			f.writeInt(inventory[n]);
 
 		f.writeInt(max_bullets);
@@ -160,41 +159,6 @@ public class client_persistant_t {
 
 		f.writeInt(game_helpchanged);
 		f.writeInt(helpchanged);
-		f.writeInt(spectator?1:0);
-	}
-
-
-	public void dump() {
-		// client persistant_t
-
-		System.out.println("userinfo: " + userinfo);
-		System.out.println("netname: " + netname);
-
-		System.out.println("hand: " + hand);
-
-		System.out.println("connected: " + connected);
-		System.out.println("health: " + health);
-
-		System.out.println("max_health: " + max_health);
-		System.out.println("savedFlags: " + savedFlags);
-		System.out.println("selected_item: " + selected_item);
-
-		for (int n = 0; n < Defines.MAX_ITEMS; n++)
-			System.out.println("inventory[" + n + "]: " + inventory[n]);
-
-		System.out.println("max_bullets: " + max_bullets);
-		System.out.println("max_shells: " + max_shells);
-		System.out.println("max_rockets: " + max_rockets);
-		System.out.println("max_grenades: " + max_grenades);
-		System.out.println("max_cells: " + max_cells);
-		System.out.println("max_slugs: " + max_slugs);
-		System.out.println("weapon: " + weapon);
-		System.out.println("lastweapon: " + lastweapon);
-		System.out.println("powercubes: " + power_cubes);
-		System.out.println("score: " + score);
-
-		System.out.println("gamehelpchanged: " + game_helpchanged);
-		System.out.println("helpchanged: " + helpchanged);
-		System.out.println("spectator: " + spectator);
+		f.writeInt(spectator ? 1 : 0);
 	}
 }

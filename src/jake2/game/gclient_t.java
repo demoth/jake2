@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.3 2004-08-20 21:29:58 salomo Exp $
+// $Id: gclient_t.java,v 1.4 2004-09-10 19:02:56 salomo Exp $
 
 package jake2.game;
 
@@ -393,91 +393,5 @@ public class gclient_t
 		f.writeInt(update_chase?1:0);
 		
 		f.writeInt(8765);
-	}
-	
-	public void dump()
-	{
-
-		Com.Println("ping: " + ping);
-
-		pers.dump();
-		resp.dump();
-
-		old_pmove.dump();
-
-		Com.Println("showscores: " + showscores);
-		Com.Println("showinventury: " + showinventory);
-		Com.Println("showhelp: " + showhelp);
-		Com.Println("showhelpicon: " + showhelpicon);
-		Com.Println("ammoindex: " + ammo_index);
-
-		Com.Println("buttons: " + buttons);
-		Com.Println("oldbuttons: " + oldbuttons);
-		Com.Println("latchedbuttons: " + latched_buttons);
-
-		Com.Println("weaponthunk: " + weapon_thunk);
-
-		Com.Println("newweapon: " + newweapon);
-
-		Com.Println("damage_armor: " + damage_armor);
-		Com.Println("damage_parmor: " + damage_parmor);
-		Com.Println("damage_blood: " + damage_blood);
-		Com.Println("damage_knockback: " + damage_knockback);
-
-		Lib.printv("damage_from", damage_from);
-
-		Com.Println("killer_yaw: " + killer_yaw);
-
-		Com.Println("weaponstate: " + weaponstate);
-
-		Lib.printv("kick_angles", kick_angles);
-		Lib.printv("kick_origin", kick_origin);
-
-		Com.Println("v_dmg_roll: " + v_dmg_roll);
-		Com.Println("v_dmg_pitch: " + v_dmg_pitch);
-		Com.Println("v_dmg_time: " + v_dmg_time);
-
-		Com.Println("fall_time: " + fall_time);
-		Com.Println("fall_value: " + fall_value);
-		Com.Println("damage_alpha: " + damage_alpha);
-		Com.Println("bonus_alpha: " + bonus_alpha);
-
-		Lib.printv("damage_blend", damage_blend);
-
-		Lib.printv("v_angle", v_angle);
-
-		Com.Println("bobtime: " + bobtime);
-
-		Lib.printv("oldviewangles", oldviewangles);
-		Lib.printv("oldvelocity", oldvelocity);
-
-		Com.Println("next_downtime: " + next_drown_time);
-
-		Com.Println("old_waterlevel: " + old_waterlevel);
-		Com.Println("breathersound: " + breather_sound);
-		Com.Println("machinegun_shots: " + machinegun_shots);
-		Com.Println("anim_end: " + anim_end);
-		Com.Println("anim_priority: " + anim_priority);
-		Com.Println("anim_duck: " + anim_duck);
-		Com.Println("anim_run: " + anim_run);
-
-		Com.Println("quad_framenum: " + quad_framenum);
-		Com.Println("invincible_framenum: " + invincible_framenum);
-		Com.Println("breather_framenum: " + breather_framenum);
-		Com.Println("enviro_framenum: " + enviro_framenum);
-
-		Com.Println("grenade_blew_up: " + grenade_blew_up);
-		Com.Println("grenade_time: " + grenade_time);
-		Com.Println("silencer_shots: " + silencer_shots);
-		Com.Println("weapon_sound: " + weapon_sound);
-		Com.Println("pickup_msg_time: " + pickup_msg_time);
-		Com.Println("flood_locktill: " + flood_locktill);
-
-		Lib.printv("flood_when", flood_when);
-
-		Com.Println("flood_whenhead: " + flood_whenhead);
-		Com.Println("respawn_time: " + respawn_time);
-		Com.Println("chase_target: " + chase_target);
-		Com.Println("update_chase: " + update_chase);
 	}
 }

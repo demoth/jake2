@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.4 2004-08-22 14:25:13 salomo Exp $
+// $Id: SV_SEND.java,v 1.5 2004-09-10 19:02:56 salomo Exp $
 
 package jake2.server;
 
@@ -70,15 +70,9 @@ public class SV_SEND extends SV_MAIN {
 	=================
 	*/
 	public static void SV_ClientPrintf(client_t cl, int level, String s) {
-		//	va_list		argptr;
-		//	char		string[1024];
-		//	
+
 		if (level < cl.messagelevel)
 			return;
-
-		//	va_start (argptr,fmt);
-		//	vsprintf (string, fmt,argptr);
-		//	va_end (argptr);
 
 		MSG.WriteByte(cl.netchan.message, svc_print);
 		MSG.WriteByte(cl.netchan.message, level);
@@ -93,26 +87,11 @@ public class SV_SEND extends SV_MAIN {
 	=================
 	*/
 	public static void SV_BroadcastPrintf(int level, String s) {
-		//va_list		argptr;
-		//char		string[2048];
-		client_t cl;
-		//int			i;
 
-		//	va_start (argptr,fmt);
-		//	vsprintf (string, fmt,argptr);
-		//	va_end (argptr);
+		client_t cl;
 
 		// echo to console
 		if (dedicated.value != 0) {
-
-			//char	copy[1024];
-			//int		i;
-
-			// mask off high bits
-			//for (i=0 ; i<1023 && string[i] ; i++)
-			//copy[i] = string[i]&127;
-			//copy[i] = 0;
-			//Com_Printf ("%s", copy);
 
 			Com.Printf(s);
 		}
@@ -137,15 +116,9 @@ public class SV_SEND extends SV_MAIN {
 	=================
 	*/
 	public static void SV_BroadcastCommand(String s) {
-		//	va_list		argptr;
-		//	char		string[1024];
 
 		if (sv.state == 0)
 			return;
-
-		//	va_start (argptr,fmt);
-		//	vsprintf (string, fmt,argptr);
-		//	va_end (argptr);
 
 		MSG.WriteByte(sv.multicast, svc_stufftext);
 		MSG.WriteString(sv.multicast, s);

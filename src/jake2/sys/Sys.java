@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.7 2004-08-29 21:39:26 hzi Exp $
+ * $Id: Sys.java,v 1.8 2004-09-10 19:02:56 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,27 +57,27 @@ public final class Sys extends Defines {
 	//ok!
 	public static File[] FindAll(String path, int musthave, int canthave) {
 
-		int index = path.lastIndexOf('/');
+		int index= path.lastIndexOf('/');
 
 		if (index != -1) {
-			findbase = path.substring(0, index);
-			findpattern = path.substring(index + 1, path.length());
+			findbase= path.substring(0, index);
+			findpattern= path.substring(index + 1, path.length());
 		}
 		else {
-			findbase = path;
-			findpattern = "*";
+			findbase= path;
+			findpattern= "*";
 		}
 
 		if (findpattern.equals("*.*")) {
-			findpattern = "*";
+			findpattern= "*";
 		}
 
-		File fdir = new File(findbase);
+		File fdir= new File(findbase);
 
 		if (!fdir.exists())
 			return null;
 
-		FilenameFilter filter = new FileFilter(findpattern, musthave, canthave);
+		FilenameFilter filter= new FileFilter(findpattern, musthave, canthave);
 
 		return fdir.listFiles(filter);
 	}
@@ -101,9 +101,9 @@ public final class Sys extends Defines {
 		int musthave, canthave;
 
 		FileFilter(String findpattern, int musthave, int canthave) {
-			this.regexpr = convert2regexpr(findpattern);
-			this.musthave = musthave;
-			this.canthave = canthave;
+			this.regexpr= convert2regexpr(findpattern);
+			this.musthave= musthave;
+			this.canthave= canthave;
 
 		}
 
@@ -119,46 +119,46 @@ public final class Sys extends Defines {
 
 		String convert2regexpr(String pattern) {
 
-			StringBuffer sb = new StringBuffer();
+			StringBuffer sb= new StringBuffer();
 
 			char c;
-			boolean escape = false;
+			boolean escape= false;
 
 			String subst;
 
 			// convert pattern
-			for (int i = 0; i < pattern.length(); i++) {
-				c = pattern.charAt(i);
-				subst = null;
+			for (int i= 0; i < pattern.length(); i++) {
+				c= pattern.charAt(i);
+				subst= null;
 				switch (c) {
 					case '*' :
-						subst = (!escape) ? ".*" : "*";
+						subst= (!escape) ? ".*" : "*";
 						break;
 					case '.' :
-						subst = (!escape) ? "\\." : ".";
+						subst= (!escape) ? "\\." : ".";
 						break;
 					case '!' :
-						subst = (!escape) ? "^" : "!";
+						subst= (!escape) ? "^" : "!";
 						break;
 					case '?' :
-						subst = (!escape) ? "." : "?";
+						subst= (!escape) ? "." : "?";
 						break;
 					case '\\' :
-						escape = !escape;
+						escape= !escape;
 						break;
 					default :
-						escape = false;
+						escape= false;
 				}
 				if (subst != null) {
 					sb.append(subst);
-					escape = false;
+					escape= false;
 				}
 				else
 					sb.append(c);
 			}
 
 			// the converted pattern
-			String regexpr = sb.toString();
+			String regexpr= sb.toString();
 
 			//Com.DPrintf("pattern: " + pattern + " regexpr: " + regexpr + '\n');
 			try {
@@ -173,7 +173,7 @@ public final class Sys extends Defines {
 
 		boolean CompareAttributes(File dir, int musthave, int canthave) {
 			// . and .. never match
-			String name = dir.getName();
+			String name= dir.getName();
 
 			if (name.equals(".") || name.equals(".."))
 				return false;
@@ -183,9 +183,9 @@ public final class Sys extends Defines {
 
 	}
 
-	private static long secbase = System.currentTimeMillis();
+	private static long secbase= System.currentTimeMillis();
 	public static int Milliseconds() {
-		return Globals.curtime = (int) (System.currentTimeMillis() - secbase);			 
+		return Globals.curtime= (int) (System.currentTimeMillis() - secbase);
 	}
 
 	//============================================
@@ -203,10 +203,11 @@ public final class Sys extends Defines {
 
 		//	COM_FilePath (path, findbase);
 
-		fdir = FindAll(path, canthave, musthave);
-		fileindex =0;
-		
-		if (fdir == null) return null;
+		fdir= FindAll(path, canthave, musthave);
+		fileindex= 0;
+
+		if (fdir == null)
+			return null;
 
 		return FindNext();
 	}
@@ -220,17 +221,14 @@ public final class Sys extends Defines {
 	}
 
 	public static void FindClose() {
-
-		if (fdir != null)
-			fdir = null;
-
+		fdir= null;
 	}
-	
+
 	public static void SendKeyEvents() {
 		KBD.Update();
- 
+
 		// grab frame time 
-		Globals.sys_frame_time = Sys.Milliseconds();
+		Globals.sys_frame_time= Sys.Milliseconds();
 	}
 
 	public static String GetClipboardData() {
@@ -238,8 +236,7 @@ public final class Sys extends Defines {
 		return null;
 	}
 
-	public static void ConsoleOutput(String msg)
-	{
+	public static void ConsoleOutput(String msg) {
 		if (Globals.nostdout != null && Globals.nostdout.value != 0)
 			return;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.10 2004-09-04 19:08:30 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.11 2004-09-10 19:02:56 salomo Exp $
 
 package jake2.server;
 
@@ -65,7 +65,6 @@ public class SV_CCMDS extends SV_ENTS {
 		Cvar.Set("public", "1");
 
 		for (i= 1; i < MAX_MASTERS; i++)
-			//memset (&master_adr[i], 0, sizeof(master_adr[i]));
 			master_adr[i]= new netadr_t();
 
 		slot= 1; // slot 0 will always contain the id master
@@ -168,8 +167,6 @@ public class SV_CCMDS extends SV_ENTS {
 	=====================
 	*/
 	public static void SV_WipeSavegame(String savename) {
-		//char	name[MAX_OSPATH];
-		//char	*s;
 
 		String name, s;
 
@@ -219,7 +216,6 @@ public class SV_CCMDS extends SV_ENTS {
 			return;
 		}
 		try {
-
 			f2= new RandomAccessFile(dst, "rw");
 		}
 		catch (Exception e) {
@@ -307,10 +303,6 @@ public class SV_CCMDS extends SV_ENTS {
 			CopyFile(name, name2);
 
 			// change sav to sv2
-			//l = strlen(name);
-			//strcpy(name + l - 3, "sv2");
-			//l = strlen(name2);
-			//strcpy(name2 + l - 3, "sv2");
 			name= name.substring(0, name.length() - 3) + "sv2";
 			name2= name2.substring(0, name2.length() - 3) + "sv2";
 
@@ -477,11 +469,9 @@ public class SV_CCMDS extends SV_ENTS {
 			f= new QuakeFile(filename, "r");
 
 			// read the comment field
-
 			comment= f.readString();
 
 			// read the mapcmd
-
 			mapcmd= f.readString();
 
 			// read all CVAR_LATCH cvars
@@ -647,9 +637,6 @@ public class SV_CCMDS extends SV_ENTS {
 	==============
 	*/
 	public static void SV_Loadgame_f() {
-		//char name[MAX_OSPATH];
-		//FILE * f;
-		//char * dir;
 
 		String name;
 		RandomAccessFile f;
@@ -685,7 +672,6 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 
 		SV_CopySaveGame(Cmd.Argv(1), "current");
-
 		SV_ReadServerFile();
 
 		// go to the map
@@ -749,12 +735,10 @@ public class SV_CCMDS extends SV_ENTS {
 
 		// copy it off
 		SV_CopySaveGame("current", dir);
-
 		Com.Printf("Done.\n");
 	}
 
 	//===============================================================
-
 	/*
 	==================
 	SV_Kick_f
@@ -996,7 +980,7 @@ public class SV_CCMDS extends SV_ENTS {
 		//fwrite(buf.data, buf.cursize, 1, svs.demofile);
 		try {
 			svs.demofile.writeInt(len);
-			svs.demofile.write(buf.data);
+			svs.demofile.write(buf.data,0, buf.cursize);
 		}
 		catch (IOException e1) {
 			// TODO: do quake2 error handling!

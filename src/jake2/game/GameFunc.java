@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+// $Id: GameFunc.java,v 1.4 2004-09-10 19:02:53 salomo Exp $
 
 package jake2.game;
 
@@ -374,7 +374,6 @@ public class GameFunc extends PlayerView
 			t = edit.o;
 			if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0)
 			{
-				//Com.p("Setting portalstate to:" + open);
 				gi.SetAreaPortalState(t.style, open);
 			}
 		}

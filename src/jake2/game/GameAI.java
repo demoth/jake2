@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.3 2004-08-28 16:40:12 cawe Exp $
+// $Id: GameAI.java,v 1.4 2004-09-10 19:02:55 salomo Exp $
 
 package jake2.game;
 
@@ -1668,7 +1668,6 @@ public class GameAI extends M_Flash
 
 	public static void InitItems()
 	{
-		//game.num_items = sizeof(itemlist)/sizeof(itemlist[0]) - 1;
 		game.num_items = GameAI.itemlist.length - 1;
 	}
 

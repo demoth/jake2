@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.5 2004-09-04 19:08:30 salomo Exp $
+// $Id: GameSave.java,v 1.6 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -27,22 +27,6 @@ import jake2.qcommon.Com;
 import jake2.util.QuakeFile;
 
 public class GameSave extends GameFunc {
-
-	public static field_t levelfields[]=
-		{
-			new field_t("changemap", F_LSTRING),
-			new field_t("sight_client", F_EDICT),
-			new field_t("sight_entity", F_EDICT),
-			new field_t("sound_entity", F_EDICT),
-			new field_t("sound2_entity", F_EDICT),
-			new field_t(null, F_INT)};
-
-	public static field_t clientfields[]=
-		{
-			new field_t("pers.weapon", F_ITEM),
-			new field_t("pers.lastweapon", F_ITEM),
-			new field_t("newweapon", F_ITEM),
-			new field_t(null, F_INT)};
 
 	public static void CreateEdicts() {
 		g_edicts= new edict_t[game.maxentities];
@@ -129,9 +113,6 @@ public class GameSave extends GameFunc {
 		// initialize all entities for this game
 		game.maxentities= (int) maxentities.value;
 		CreateEdicts();
-
-//		globals.edicts= g_edicts;
-//		globals.max_edicts= game.maxentities;
 
 		// initialize all clients for this game
 		game.maxclients= (int) maxclients.value;

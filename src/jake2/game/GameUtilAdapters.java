@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameUtilAdapters.java,v 1.3 2004-09-08 20:19:12 cawe Exp $
+// $Id: GameUtilAdapters.java,v 1.4 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -66,6 +66,7 @@ public class GameUtilAdapters
 			return false;
 		}
 	};
+	
 	static EntThinkAdapter DoRespawn = new EntThinkAdapter()
 	{
 		public boolean think(edict_t ent)
@@ -428,25 +429,6 @@ public class GameUtilAdapters
 			GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi.soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
 		}
 	};
-	//	======================================================================
-	/*
-	static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter()
-	{
-		public void use(edict_t ent, gitem_t item)
-		{
-	
-			ent.client.pers.inventory[ITEM_INDEX(item)]--;
-			ValidateSelectedItem(ent);
-	
-			if (ent.client.invincible_framenum > level.framenum)
-				ent.client.invincible_framenum += 300;
-			else
-				ent.client.invincible_framenum = level.framenum + 300;
-	
-			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/protect.wav"), 1, ATTN_NORM, 0);
-		}
-	};
-	*/
 
 	//	======================================================================
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: GamePWeapon.java,v 1.3 2004-09-10 19:02:55 salomo Exp $
 
 package jake2.game;
 
@@ -165,7 +165,6 @@ public class GamePWeapon {
 			Fire.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 	
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_GRENADE | GamePWeapon.is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -236,7 +235,7 @@ public class GamePWeapon {
 	
 			// send muzzle flash
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_ROCKET | GamePWeapon.is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -455,7 +454,7 @@ public class GamePWeapon {
 	
 			// send muzzle flash
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_SHOTGUN | GamePWeapon.is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -531,7 +530,7 @@ public class GamePWeapon {
 	
 			// send muzzle flash
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_SSHOTGUN | GamePWeapon.is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -596,7 +595,7 @@ public class GamePWeapon {
 	
 			// send muzzle flash
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_RAILGUN | GamePWeapon.is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -645,7 +644,7 @@ public class GamePWeapon {
 			if (ent.client.ps.gunframe == 9) {
 				// send muzzle flash
 				GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-				//gi.WriteShort(ent - g_edicts);
+	
 				GameBase.gi.WriteShort(ent.index);
 				GameBase.gi.WriteByte(Defines.MZ_BFG | GamePWeapon.is_silenced);
 				GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -881,7 +880,7 @@ public class GamePWeapon {
 				Defines.MOD_MACHINEGUN);
 	
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+			
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -1005,7 +1004,7 @@ public class GamePWeapon {
 	
 			// send muzzle flash
 			GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-			//gi.WriteShort(ent - g_edicts);
+
 			GameBase.gi.WriteShort(ent.index);
 			GameBase.gi.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1) | is_silenced);
 			GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -1065,7 +1064,6 @@ public class GamePWeapon {
 				i= ((ent.client.pers.weapon.weapmodel & 0xff) << 8);
 			else
 				i= 0;
-			//ent.s.skinnum = (ent - g_edicts - 1) | i;
 			ent.s.skinnum= (ent.index - 1) | i;
 		}
 	
@@ -1393,7 +1391,6 @@ public class GamePWeapon {
 	
 		// send muzzle flash
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-		//gi.WriteShort(ent - g_edicts);
 		GameBase.gi.WriteShort(ent.index);
 		if (hyper)
 			GameBase.gi.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: Info.java,v 1.3 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
@@ -54,7 +54,7 @@ public class Info extends PlayerView {
 		return "";
 	}
 
-	/** DANGEROUS, returns the modified userinfo string, was pointer-pointer manipulation first*/
+	/**TODO RST: DANGEROUS port, returns the modified userinfo string, was pointer-pointer manipulation first*/
 	public static String Info_SetValueForKey1(String s, String key, String value) {
 
 		if (value == null || value.length() == 0)
@@ -96,7 +96,7 @@ public class Info extends PlayerView {
 	
 
 	
-	/** DANGEROUS, returns now the modified userinfo string.*/
+	/** TODO RST: DANGEROUS port, returns now the modified userinfo string.*/
 	public static String Info_RemoveKey1(String s, String key) {
 
 		StringBuffer sb = new StringBuffer(512);
