@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.42 2004-06-01 18:09:28 cwei Exp $
+ * $Id: Com.java,v 1.43 2004-06-03 21:32:52 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,7 +38,7 @@ import java.io.*;
 
 /**
  * Com
- * TODO complete Com interface
+ *
  */
 public final class Com
 {
@@ -517,7 +517,7 @@ public final class Com
 
 	public static void StripExtension(String string, String string2)
 	{
-		// TODO implement!
+		// TODO implement StripExtension
 	}
 
 	/**
@@ -1512,13 +1512,6 @@ public final class Com
 		
 		//memcpy(chkb, base, length);
 		System.arraycopy(base, offset , chkb, 0, Math.max(60, length));
-
-		/*
-		chkb[length]= p[0];
-		chkb[length + 1]= p[1];
-		chkb[length + 2]= p[2];
-		chkb[length + 3]= p[3];
-		*/
 		
 		chkb[length]= (byte) chktbl[p_ndx + 0];
 		chkb[length + 1]= (byte) chktbl[p_ndx + 1];
@@ -1531,7 +1524,7 @@ public final class Com
 		crc = CRC.CRC_Block(chkb, length);
 
 		for (x= 0, n= 0; n < length; n++)
-			x += chkb[n] & 0xFF;
+			x += chkb[n];
 
 		crc ^= x;
 

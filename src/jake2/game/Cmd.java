@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.28 2004-02-29 17:23:43 rst Exp $
+ * $Id: Cmd.java,v 1.29 2004-06-03 21:32:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,113 +35,137 @@ import java.util.Arrays;
 /**
  * Cmd
  */
-public final class Cmd extends PlayerView {
+public final class Cmd extends PlayerView
+{
 
-	static xcommand_t List_f = new xcommand_t() {
-		public void execute() {
-			cmd_function_t cmd = Cmd.cmd_functions;
-			int i = 0;
+	static xcommand_t List_f= new xcommand_t()
+	{
+		public void execute()
+		{
+			cmd_function_t cmd= Cmd.cmd_functions;
+			int i= 0;
 
-			while (cmd != null) {
+			while (cmd != null)
+			{
 				Com.Printf(cmd.name + '\n');
 				i++;
-				cmd = cmd.next;
+				cmd= cmd.next;
 			}
 			Com.Printf(i + " commands\n");
 		}
 	};
 
-	static xcommand_t Exec_f = new xcommand_t() {
-		public void execute() {
-			if (Cmd.Argc() != 2) {
+	static xcommand_t Exec_f= new xcommand_t()
+	{
+		public void execute()
+		{
+			if (Cmd.Argc() != 2)
+			{
 				Com.Printf("exec <filename> : execute a script file\n");
 				return;
 			}
 
-			byte[] f = null;
-			f = FS.LoadFile(Cmd.Argv(1));
-			if (f == null) {
+			byte[] f= null;
+			f= FS.LoadFile(Cmd.Argv(1));
+			if (f == null)
+			{
 				Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
 				return;
 			}
-			Com.Printf("execing " + Cmd.Argv(1) + "\n");
+			//Com.Printf("execing " + Cmd.Argv(1) + "\n");
 
 			Cbuf.InsertText(new String(f));
 
 			FS.FreeFile(f);
 		}
 	};
-	static xcommand_t Echo_f = new xcommand_t() {
-		public void execute() {
-			for (int i = 1; i < Cmd.Argc(); i++) {
-				Com.Printf(Cmd.Argv(i) + " ");
+
+	static xcommand_t Echo_f= new xcommand_t()
+	{
+		public void execute()
+		{
+			for (int i= 1; i < Cmd.Argc(); i++)
+			{
+				//Com.Printf(Cmd.Argv(i) + " ");
 			}
-			Com.Printf("'\n");
+			//Com.Printf("'\n");
 		}
 	};
 
-	static xcommand_t Alias_f = new xcommand_t() {
-		public void execute() {
-			cmdalias_t a = null;
-			if (Cmd.Argc() == 1) {
+	static xcommand_t Alias_f= new xcommand_t()
+	{
+		public void execute()
+		{
+			cmdalias_t a= null;
+			if (Cmd.Argc() == 1)
+			{
 				Com.Printf("Current alias commands:\n");
-				for (a = Globals.cmd_alias; a != null; a = a.next) {
+				for (a= Globals.cmd_alias; a != null; a= a.next)
+				{
 					Com.Printf(a.name + " : " + a.value);
 				}
 				return;
 			}
 
-			String s = Cmd.Argv(1);
-			if (s.length() > Globals.MAX_ALIAS_NAME) {
+			String s= Cmd.Argv(1);
+			if (s.length() > Globals.MAX_ALIAS_NAME)
+			{
 				Com.Printf("Alias name is too long\n");
 				return;
 			}
 
 			// if the alias already exists, reuse it
-			for (a = Globals.cmd_alias; a != null; a = a.next) {
-				if (s.equalsIgnoreCase(a.name)) {
-					a.value = null;
+			for (a= Globals.cmd_alias; a != null; a= a.next)
+			{
+				if (s.equalsIgnoreCase(a.name))
+				{
+					a.value= null;
 					break;
 				}
 			}
 
-			if (a == null) {
-				a = new cmdalias_t();
-				a.next = Globals.cmd_alias;
-				Globals.cmd_alias = a;
+			if (a == null)
+			{
+				a= new cmdalias_t();
+				a.next= Globals.cmd_alias;
+				Globals.cmd_alias= a;
 			}
-			a.name = s;
+			a.name= s;
 
 			// copy the rest of the command line
-			String cmd = "";
-			int c = Cmd.Argc();
-			for (int i = 2; i < c; i++) {
-				cmd = cmd + Cmd.Argv(i);
+			String cmd= "";
+			int c= Cmd.Argc();
+			for (int i= 2; i < c; i++)
+			{
+				cmd= cmd + Cmd.Argv(i);
 				if (i != (c - 1))
-					cmd = cmd + " ";
+					cmd= cmd + " ";
 			}
-			cmd = cmd + "\n";
+			cmd= cmd + "\n";
 
-			a.value = cmd;
+			a.value= cmd;
 		}
 	};
 
-	public static xcommand_t Wait_f = new xcommand_t() {
-		public void execute() {
-			Globals.cmd_wait = true;
+	public static xcommand_t Wait_f= new xcommand_t()
+	{
+		public void execute()
+		{
+			Globals.cmd_wait= true;
 		}
 	};
 
-	public static cmd_function_t cmd_functions = null;
+	public static cmd_function_t cmd_functions= null;
 	public static int cmd_argc;
-	public static String[] cmd_argv = new String[Globals.MAX_STRING_TOKENS];
+	public static String[] cmd_argv= new String[Globals.MAX_STRING_TOKENS];
 	public static String cmd_args;
-	public static final int ALIAS_LOOP_COUNT = 16;
+	public static final int ALIAS_LOOP_COUNT= 16;
 
 	/**
 	 * register our commands
 	 */
-	public static void Init() {
+	public static void Init()
+	{
 
 		Cmd.AddCommand("exec", Exec_f);
 		Cmd.AddCommand("echo", Echo_f);
@@ -150,34 +174,37 @@ public final class Cmd extends PlayerView {
 		Cmd.AddCommand("wait", Wait_f);
 	}
 
-	private static char expanded[] = new char[MAX_STRING_CHARS];
-	private static char temporary[] = new char[MAX_STRING_CHARS];
+	private static char expanded[]= new char[MAX_STRING_CHARS];
+	private static char temporary[]= new char[MAX_STRING_CHARS];
 	/*
 	======================
 	Cmd_MacroExpandString
 	======================
 	*/
-	public static char[] MacroExpandString(char text[], int len) {
+	public static char[] MacroExpandString(char text[], int len)
+	{
 		int i, j, count;
 		boolean inquote;
 
 		char scan[];
 
 		String token;
-		inquote = false;
+		inquote= false;
 
-		scan = text;
+		scan= text;
 
-		if (len >= MAX_STRING_CHARS) {
+		if (len >= MAX_STRING_CHARS)
+		{
 			Com.Printf("Line exceeded " + MAX_STRING_CHARS + " chars, discarded.\n");
 			return null;
 		}
 
-		count = 0;
+		count= 0;
 
-		for (i = 0; i < len; i++) {
+		for (i= 0; i < len; i++)
+		{
 			if (scan[i] == '"')
-				inquote = !inquote;
+				inquote= !inquote;
 
 			if (inquote)
 				continue; // don't expand inside quotes
@@ -186,19 +213,20 @@ public final class Cmd extends PlayerView {
 				continue;
 
 			// scan out the complete macro, without $					
-			Com.ParseHelp ph = new Com.ParseHelp(text, i + 1);
-			token = Com.Parse(ph);
+			Com.ParseHelp ph= new Com.ParseHelp(text, i + 1);
+			token= Com.Parse(ph);
 
 			if (ph.data == null)
 				continue;
 
-			token = Cvar.VariableString(token);
+			token= Cvar.VariableString(token);
 
-			j = token.length();
+			j= token.length();
 
 			len += j;
 
-			if (len >= MAX_STRING_CHARS) {
+			if (len >= MAX_STRING_CHARS)
+			{
 				Com.Printf("Expanded line exceeded " + MAX_STRING_CHARS + " chars, discarded.\n");
 				return null;
 			}
@@ -214,16 +242,18 @@ public final class Cmd extends PlayerView {
 
 			//strcpy(expanded, temporary);
 			System.arraycopy(temporary, 0, expanded, 0, 0);
-			scan = expanded;
+			scan= expanded;
 			i--;
 
-			if (++count == 100) {
+			if (++count == 100)
+			{
 				Com.Printf("Macro expansion loop, discarded.\n");
 				return null;
 			}
 		}
 
-		if (inquote) {
+		if (inquote)
+		{
 			Com.Printf("Line has unmatched quote, discarded.\n");
 			return null;
 		}
@@ -239,31 +269,34 @@ public final class Cmd extends PlayerView {
 	$Cvars will be expanded unless they are in a quoted token
 	============
 	*/
-	public static void TokenizeString(char text[], boolean macroExpand) {
+	public static void TokenizeString(char text[], boolean macroExpand)
+	{
 		String com_token;
 
-		cmd_argc = 0;
+		cmd_argc= 0;
 
-		int len = strlen(text);
+		int len= strlen(text);
 
 		// macro expand the text
 		if (macroExpand)
-			text = MacroExpandString(text, len);
+			text= MacroExpandString(text, len);
 
 		if (text == null)
 			return;
 
-		len = strlen(text);
+		len= strlen(text);
 
-		Com.ParseHelp ph = new Com.ParseHelp(text);
+		Com.ParseHelp ph= new Com.ParseHelp(text);
 
-		while (true) {
+		while (true)
+		{
 
 			// skip whitespace up to a /n
-			char c = ph.skipwhitestoeol();
+			char c= ph.skipwhitestoeol();
 
-			if (c == '\n') { // a newline seperates commands in the buffer
-				c = ph.nextchar();
+			if (c == '\n')
+			{ // a newline seperates commands in the buffer
+				c= ph.nextchar();
 				break;
 			}
 
@@ -271,46 +304,52 @@ public final class Cmd extends PlayerView {
 				return;
 
 			// set cmd_args to everything after the first arg
-			if (cmd_argc == 1) {
-				cmd_args = new String(text, ph.index, len - ph.index);
+			if (cmd_argc == 1)
+			{
+				cmd_args= new String(text, ph.index, len - ph.index);
 				cmd_args.trim();
 			}
 
-			com_token = Com.Parse(ph);
+			com_token= Com.Parse(ph);
 
 			if (com_token.length() == 0)
 				return;
 
-			if (cmd_argc < MAX_STRING_TOKENS) {
-				cmd_argv[cmd_argc] = com_token;
+			if (cmd_argc < MAX_STRING_TOKENS)
+			{
+				cmd_argv[cmd_argc]= com_token;
 				cmd_argc++;
 			}
 		}
 	}
 
-	public static void AddCommand(String cmd_name, xcommand_t function) {
+	public static void AddCommand(String cmd_name, xcommand_t function)
+	{
 		cmd_function_t cmd;
 		//Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
 		// fail if the command is a variable name
-		if ((Cvar.VariableString(cmd_name)).length() > 0) {
+		if ((Cvar.VariableString(cmd_name)).length() > 0)
+		{
 			Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
 			return;
 		}
 
 		// fail if the command already exists
-		for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
-			if (cmd_name.equals(cmd.name)) {
+		for (cmd= cmd_functions; cmd != null; cmd= cmd.next)
+		{
+			if (cmd_name.equals(cmd.name))
+			{
 				Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined\n");
 				return;
 			}
 		}
 
-		cmd = new cmd_function_t();
-		cmd.name = cmd_name;
-		
-		cmd.function = function;
-		cmd.next = cmd_functions;
-		cmd_functions = cmd;
+		cmd= new cmd_function_t();
+		cmd.name= cmd_name;
+
+		cmd.function= function;
+		cmd.next= cmd_functions;
+		cmd_functions= cmd;
 	}
 
 	/*
@@ -318,26 +357,30 @@ public final class Cmd extends PlayerView {
 	Cmd_RemoveCommand
 	============
 	*/
-	public static void RemoveCommand(String cmd_name) {
-		cmd_function_t cmd, back = null;
+	public static void RemoveCommand(String cmd_name)
+	{
+		cmd_function_t cmd, back= null;
 
-		back = cmd = cmd_functions;
+		back= cmd= cmd_functions;
 
-		while (true) {
+		while (true)
+		{
 
-			if (cmd == null) {
+			if (cmd == null)
+			{
 				Com.Printf("Cmd_RemoveCommand: " + cmd_name + " not added\n");
 				return;
 			}
-			if (0 == strcmp(cmd_name, cmd.name)) {
+			if (0 == strcmp(cmd_name, cmd.name))
+			{
 				if (cmd == cmd_functions)
-					cmd_functions = cmd.next;
+					cmd_functions= cmd.next;
 				else
-					back.next = cmd.next;
+					back.next= cmd.next;
 				return;
 			}
-			back = cmd;
-			cmd = cmd.next;
+			back= cmd;
+			cmd= cmd.next;
 		}
 	}
 
@@ -346,10 +389,12 @@ public final class Cmd extends PlayerView {
 	Cmd_Exists
 	============
 	*/
-	public static boolean Exists(String cmd_name) {
+	public static boolean Exists(String cmd_name)
+	{
 		cmd_function_t cmd;
 
-		for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
+		for (cmd= cmd_functions; cmd != null; cmd= cmd.next)
+		{
 			if (0 == strcmp(cmd_name, cmd.name))
 				return true;
 		}
@@ -357,17 +402,20 @@ public final class Cmd extends PlayerView {
 		return false;
 	}
 
-	public static int Argc() {
+	public static int Argc()
+	{
 		return cmd_argc;
 	}
 
-	public static String Argv(int i) {
+	public static String Argv(int i)
+	{
 		if (i < 0 || i >= cmd_argc)
 			return "";
 		return cmd_argv[i];
 	}
 
-	public static String Args() {
+	public static String Args()
+	{
 		return new String(cmd_args);
 	}
 
@@ -379,35 +427,41 @@ public final class Cmd extends PlayerView {
 	FIXME: lookupnoadd the token to speed search?
 	============
 	*/
-	public static void ExecuteString(String text) {
+	public static void ExecuteString(String text)
+	{
 
 		cmd_function_t cmd;
 		cmdalias_t a;
 
 		TokenizeString(text.toCharArray(), true);
 
-//		if (Argc() > 0) {
-//			Com.DPrintf("tokenized:");
-//			for (int xxx = 0; xxx < Argc(); xxx++)
-//				Com.DPrintf("[" + Argv(xxx) + "]");
-//
-//			Com.DPrintf("\n");
-//		}
+		//		if (Argc() > 0) {
+		//			Com.DPrintf("tokenized:");
+		//			for (int xxx = 0; xxx < Argc(); xxx++)
+		//				Com.DPrintf("[" + Argv(xxx) + "]");
+		//
+		//			Com.DPrintf("\n");
+		//		}
 		// execute the command line
 		if (Argc() == 0)
 			return; // no tokens
 
 		// check functions
-		for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
-			if (cmd_argv[0].equalsIgnoreCase(cmd.name)) {
-				if (null == cmd.function) { // forward to server command
+		for (cmd= cmd_functions; cmd != null; cmd= cmd.next)
+		{
+			if (cmd_argv[0].equalsIgnoreCase(cmd.name))
+			{
+				if (null == cmd.function)
+				{ // forward to server command
 					Cmd.ExecuteString("cmd " + text);
 				}
 				else
-					try {
+					try
+					{
 						cmd.function.execute();
 					}
-					catch (Exception e) {
+					catch (Exception e)
+					{
 						System.err.println("Exception in executing a command " + cmd.name + ":");
 						e.printStackTrace();
 					}
@@ -416,11 +470,14 @@ public final class Cmd extends PlayerView {
 		}
 
 		// check alias
-		for (a = cmd_alias; a != null; a = a.next) {
+		for (a= cmd_alias; a != null; a= a.next)
+		{
 
-			if (cmd_argv[0].equalsIgnoreCase(a.name)) {
+			if (cmd_argv[0].equalsIgnoreCase(a.name))
+			{
 
-				if (++alias_count == ALIAS_LOOP_COUNT) {
+				if (++alias_count == ALIAS_LOOP_COUNT)
+				{
 					Com.Printf("ALIAS_LOOP_COUNT\n");
 					return;
 				}
@@ -444,7 +501,8 @@ public final class Cmd extends PlayerView {
 	Give items to a client
 	==================
 	*/
-	public static void Give_f(edict_t ent) {
+	public static void Give_f(edict_t ent)
+	{
 		String name;
 		gitem_t it;
 		int index;
@@ -452,30 +510,34 @@ public final class Cmd extends PlayerView {
 		boolean give_all;
 		edict_t it_ent;
 
-		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0) {
+		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
-		name = GameBase.gi.args();
+		name= GameBase.gi.args();
 
 		if (0 == Lib.Q_stricmp(name, "all"))
-			give_all = true;
+			give_all= true;
 		else
-			give_all = false;
+			give_all= false;
 
-		if (give_all || 0 == Lib.Q_stricmp(GameBase.gi.argv(1), "health")) {
+		if (give_all || 0 == Lib.Q_stricmp(GameBase.gi.argv(1), "health"))
+		{
 			if (GameBase.gi.argc() == 3)
-				ent.health = Lib.atoi(GameBase.gi.argv(2));
+				ent.health= Lib.atoi(GameBase.gi.argv(2));
 			else
-				ent.health = ent.max_health;
+				ent.health= ent.max_health;
 			if (!give_all)
 				return;
 		}
 
-		if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-			for (i = 1; i < GameBase.game.num_items; i++) {
-				it = GameAI.itemlist[i];
+		if (give_all || 0 == Lib.Q_stricmp(name, "weapons"))
+		{
+			for (i= 1; i < GameBase.game.num_items; i++)
+			{
+				it= GameAI.itemlist[i];
 				if (null == it.pickup)
 					continue;
 				if (0 == (it.flags & Defines.IT_WEAPON))
@@ -486,9 +548,11 @@ public final class Cmd extends PlayerView {
 				return;
 		}
 
-		if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-			for (i = 1; i < GameBase.game.num_items; i++) {
-				it = GameAI.itemlist[i];
+		if (give_all || 0 == Lib.Q_stricmp(name, "ammo"))
+		{
+			for (i= 1; i < GameBase.game.num_items; i++)
+			{
+				it= GameAI.itemlist[i];
 				if (null == it.pickup)
 					continue;
 				if (0 == (it.flags & Defines.IT_AMMO))
@@ -499,27 +563,29 @@ public final class Cmd extends PlayerView {
 				return;
 		}
 
-		if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
+		if (give_all || Lib.Q_stricmp(name, "armor") == 0)
+		{
 			gitem_armor_t info;
 
-			it = GameUtil.FindItem("Jacket Armor");
-			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = 0;
+			it= GameUtil.FindItem("Jacket Armor");
+			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)]= 0;
 
-			it = GameUtil.FindItem("Combat Armor");
-			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = 0;
+			it= GameUtil.FindItem("Combat Armor");
+			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)]= 0;
 
-			it = GameUtil.FindItem("Body Armor");
-			info = (gitem_armor_t) it.info;
-			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = info.max_count;
+			it= GameUtil.FindItem("Body Armor");
+			info= (gitem_armor_t) it.info;
+			ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)]= info.max_count;
 
 			if (!give_all)
 				return;
 		}
 
-		if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-			it = GameUtil.FindItem("Power Shield");
-			it_ent = GameUtil.G_Spawn();
-			it_ent.classname = it.classname;
+		if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0)
+		{
+			it= GameUtil.FindItem("Power Shield");
+			it_ent= GameUtil.G_Spawn();
+			it_ent.classname= it.classname;
 			GameAI.SpawnItem(it_ent, it);
 			GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
 			if (it_ent.inuse)
@@ -529,44 +595,51 @@ public final class Cmd extends PlayerView {
 				return;
 		}
 
-		if (give_all) {
-			for (i = 1; i < GameBase.game.num_items; i++) {
-				it = GameAI.itemlist[i];
+		if (give_all)
+		{
+			for (i= 1; i < GameBase.game.num_items; i++)
+			{
+				it= GameAI.itemlist[i];
 				if (it.pickup != null)
 					continue;
 				if ((it.flags & (Defines.IT_ARMOR | Defines.IT_WEAPON | Defines.IT_AMMO)) != 0)
 					continue;
-				ent.client.pers.inventory[i] = 1;
+				ent.client.pers.inventory[i]= 1;
 			}
 			return;
 		}
 
-		it = GameUtil.FindItem(name);
-		if (it == null) {
-			name = GameBase.gi.argv(1);
-			it = GameUtil.FindItem(name);
-			if (it == null) {
+		it= GameUtil.FindItem(name);
+		if (it == null)
+		{
+			name= GameBase.gi.argv(1);
+			it= GameUtil.FindItem(name);
+			if (it == null)
+			{
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
 				return;
 			}
 		}
 
-		if (it.pickup == null) {
+		if (it.pickup == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "non-pickup item\n");
 			return;
 		}
 
-		index = GameUtil.ITEM_INDEX(it);
+		index= GameUtil.ITEM_INDEX(it);
 
-		if ((it.flags & Defines.IT_AMMO) != 0) {
+		if ((it.flags & Defines.IT_AMMO) != 0)
+		{
 			if (GameBase.gi.argc() == 3)
-				ent.client.pers.inventory[index] = Lib.atoi(GameBase.gi.argv(2));
+				ent.client.pers.inventory[index]= Lib.atoi(GameBase.gi.argv(2));
 			else
 				ent.client.pers.inventory[index] += it.quantity;
 		}
-		else {
-			it_ent = GameUtil.G_Spawn();
-			it_ent.classname = it.classname;
+		else
+		{
+			it_ent= GameUtil.G_Spawn();
+			it_ent.classname= it.classname;
 			GameAI.SpawnItem(it_ent, it);
 			GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
 			if (it_ent.inuse)
@@ -583,19 +656,21 @@ public final class Cmd extends PlayerView {
 	argv(0) god
 	==================
 	*/
-	public static void God_f(edict_t ent) {
+	public static void God_f(edict_t ent)
+	{
 		String msg;
 
-		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0) {
+		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
 		ent.flags ^= Defines.FL_GODMODE;
 		if (0 == (ent.flags & Defines.FL_GODMODE))
-			msg = "godmode OFF\n";
+			msg= "godmode OFF\n";
 		else
-			msg = "godmode ON\n";
+			msg= "godmode ON\n";
 
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
 	}
@@ -609,19 +684,21 @@ public final class Cmd extends PlayerView {
 	argv(0) notarget
 	==================
 	*/
-	public static void Notarget_f(edict_t ent) {
+	public static void Notarget_f(edict_t ent)
+	{
 		String msg;
 
-		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
 		ent.flags ^= Defines.FL_NOTARGET;
 		if (0 == (ent.flags & Defines.FL_NOTARGET))
-			msg = "notarget OFF\n";
+			msg= "notarget OFF\n";
 		else
-			msg = "notarget ON\n";
+			msg= "notarget ON\n";
 
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
 	}
@@ -633,21 +710,25 @@ public final class Cmd extends PlayerView {
 	argv(0) noclip
 	==================
 	*/
-	public static void Noclip_f(edict_t ent) {
+	public static void Noclip_f(edict_t ent)
+	{
 		String msg;
 
-		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
-		if (ent.movetype == Defines.MOVETYPE_NOCLIP) {
-			ent.movetype = Defines.MOVETYPE_WALK;
-			msg = "noclip OFF\n";
+		if (ent.movetype == Defines.MOVETYPE_NOCLIP)
+		{
+			ent.movetype= Defines.MOVETYPE_WALK;
+			msg= "noclip OFF\n";
 		}
-		else {
-			ent.movetype = Defines.MOVETYPE_NOCLIP;
-			msg = "noclip ON\n";
+		else
+		{
+			ent.movetype= Defines.MOVETYPE_NOCLIP;
+			msg= "noclip ON\n";
 		}
 
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
@@ -660,23 +741,27 @@ public final class Cmd extends PlayerView {
 	Use an inventory item
 	==================
 	*/
-	public static void Use_f(edict_t ent) {
+	public static void Use_f(edict_t ent)
+	{
 		int index;
 		gitem_t it;
 		String s;
 
-		s = GameBase.gi.args();
-		it = GameUtil.FindItem(s);
-		if (it == null) {
+		s= GameBase.gi.args();
+		it= GameUtil.FindItem(s);
+		if (it == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
 			return;
 		}
-		if (it.use == null) {
+		if (it.use == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
 			return;
 		}
-		index = GameUtil.ITEM_INDEX(it);
-		if (0 == ent.client.pers.inventory[index]) {
+		index= GameUtil.ITEM_INDEX(it);
+		if (0 == ent.client.pers.inventory[index])
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
 			return;
 		}
@@ -691,23 +776,27 @@ public final class Cmd extends PlayerView {
 	Drop an inventory item
 	==================
 	*/
-	public static void Drop_f(edict_t ent) {
+	public static void Drop_f(edict_t ent)
+	{
 		int index;
 		gitem_t it;
 		String s;
 
-		s = GameBase.gi.args();
-		it = GameUtil.FindItem(s);
-		if (it == null) {
+		s= GameBase.gi.args();
+		it= GameUtil.FindItem(s);
+		if (it == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
 			return;
 		}
-		if (it.drop == null) {
+		if (it.drop == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
 			return;
 		}
-		index = GameUtil.ITEM_INDEX(it);
-		if (0 == ent.client.pers.inventory[index]) {
+		index= GameUtil.ITEM_INDEX(it);
+		if (0 == ent.client.pers.inventory[index])
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
 			return;
 		}
@@ -720,24 +809,27 @@ public final class Cmd extends PlayerView {
 	Cmd_Inven_f
 	=================
 	*/
-	public static void Inven_f(edict_t ent) {
+	public static void Inven_f(edict_t ent)
+	{
 		int i;
 		gclient_t cl;
 
-		cl = ent.client;
+		cl= ent.client;
 
-		cl.showscores = false;
-		cl.showhelp = false;
+		cl.showscores= false;
+		cl.showhelp= false;
 
-		if (cl.showinventory) {
-			cl.showinventory = false;
+		if (cl.showinventory)
+		{
+			cl.showinventory= false;
 			return;
 		}
 
-		cl.showinventory = true;
+		cl.showinventory= true;
 
 		GameBase.gi.WriteByte(Defines.svc_inventory);
-		for (i = 0; i < Defines.MAX_ITEMS; i++) {
+		for (i= 0; i < Defines.MAX_ITEMS; i++)
+		{
 			GameBase.gi.WriteShort(cl.pers.inventory[i]);
 		}
 		GameBase.gi.unicast(ent, true);
@@ -748,18 +840,21 @@ public final class Cmd extends PlayerView {
 	Cmd_InvUse_f
 	=================
 	*/
-	public static void InvUse_f(edict_t ent) {
+	public static void InvUse_f(edict_t ent)
+	{
 		gitem_t it;
 
 		GameAI.ValidateSelectedItem(ent);
 
-		if (ent.client.pers.selected_item == -1) {
+		if (ent.client.pers.selected_item == -1)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
 			return;
 		}
 
-		it = GameAI.itemlist[ent.client.pers.selected_item];
-		if (it.use == null) {
+		it= GameAI.itemlist[ent.client.pers.selected_item];
+		if (it.use == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
 			return;
 		}
@@ -771,26 +866,28 @@ public final class Cmd extends PlayerView {
 	Cmd_WeapPrev_f
 	=================
 	*/
-	public static void WeapPrev_f(edict_t ent) {
+	public static void WeapPrev_f(edict_t ent)
+	{
 		gclient_t cl;
 		int i, index;
 		gitem_t it;
 		int selected_weapon;
 
-		cl = ent.client;
+		cl= ent.client;
 
 		if (cl.pers.weapon == null)
 			return;
 
-		selected_weapon = GameUtil.ITEM_INDEX(cl.pers.weapon);
+		selected_weapon= GameUtil.ITEM_INDEX(cl.pers.weapon);
 
 		// scan  for the next valid one
-		for (i = 1; i <= Defines.MAX_ITEMS; i++) {
-			index = (selected_weapon + i) % Defines.MAX_ITEMS;
+		for (i= 1; i <= Defines.MAX_ITEMS; i++)
+		{
+			index= (selected_weapon + i) % Defines.MAX_ITEMS;
 			if (0 == cl.pers.inventory[index])
 				continue;
 
-			it = GameAI.itemlist[index];
+			it= GameAI.itemlist[index];
 			if (it.use == null)
 				continue;
 
@@ -807,27 +904,30 @@ public final class Cmd extends PlayerView {
 	Cmd_WeapNext_f
 	=================
 	*/
-	public static void WeapNext_f(edict_t ent) {
+	public static void WeapNext_f(edict_t ent)
+	{
 		gclient_t cl;
 		int i, index;
 		gitem_t it;
 		int selected_weapon;
 
-		cl = ent.client;
+		cl= ent.client;
 
 		if (null == cl.pers.weapon)
 			return;
 
-		selected_weapon = GameUtil.ITEM_INDEX(cl.pers.weapon);
+		selected_weapon= GameUtil.ITEM_INDEX(cl.pers.weapon);
 
 		// scan  for the next valid one
-		for (i = 1; i <= Defines.MAX_ITEMS; i++) {
-			index = (selected_weapon + Defines.MAX_ITEMS - i) % Defines.MAX_ITEMS;
+		for (i= 1; i <= Defines.MAX_ITEMS; i++)
+		{
+			index= (selected_weapon + Defines.MAX_ITEMS - i) % Defines.MAX_ITEMS;
 			//bugfix rst
-			if (index == 0) index++;
+			if (index == 0)
+				index++;
 			if (0 == cl.pers.inventory[index])
 				continue;
-			it = GameAI.itemlist[index];
+			it= GameAI.itemlist[index];
 			if (null == it.use)
 				continue;
 			if (0 == (it.flags & Defines.IT_WEAPON))
@@ -843,20 +943,21 @@ public final class Cmd extends PlayerView {
 	Cmd_WeapLast_f
 	=================
 	*/
-	public static void WeapLast_f(edict_t ent) {
+	public static void WeapLast_f(edict_t ent)
+	{
 		gclient_t cl;
 		int index;
 		gitem_t it;
 
-		cl = ent.client;
+		cl= ent.client;
 
 		if (null == cl.pers.weapon || null == cl.pers.lastweapon)
 			return;
 
-		index = GameUtil.ITEM_INDEX(cl.pers.lastweapon);
+		index= GameUtil.ITEM_INDEX(cl.pers.lastweapon);
 		if (0 == cl.pers.inventory[index])
 			return;
-		it = GameAI.itemlist[index];
+		it= GameAI.itemlist[index];
 		if (null == it.use)
 			return;
 		if (0 == (it.flags & Defines.IT_WEAPON))
@@ -869,18 +970,21 @@ public final class Cmd extends PlayerView {
 	Cmd_InvDrop_f
 	=================
 	*/
-	public static void InvDrop_f(edict_t ent) {
+	public static void InvDrop_f(edict_t ent)
+	{
 		gitem_t it;
 
 		GameAI.ValidateSelectedItem(ent);
 
-		if (ent.client.pers.selected_item == -1) {
+		if (ent.client.pers.selected_item == -1)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
 			return;
 		}
 
-		it = GameAI.itemlist[ent.client.pers.selected_item];
-		if (it.drop == null) {
+		it= GameAI.itemlist[ent.client.pers.selected_item];
+		if (it.drop == null)
+		{
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
 			return;
 		}
@@ -894,19 +998,21 @@ public final class Cmd extends PlayerView {
 	Display the scoreboard
 	==================
 	*/
-	public static void Score_f(edict_t ent) {
-		ent.client.showinventory = false;
-		ent.client.showhelp = false;
+	public static void Score_f(edict_t ent)
+	{
+		ent.client.showinventory= false;
+		ent.client.showhelp= false;
 
 		if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value)
 			return;
 
-		if (ent.client.showscores) {
-			ent.client.showscores = false;
+		if (ent.client.showscores)
+		{
+			ent.client.showscores= false;
 			return;
 		}
 
-		ent.client.showscores = true;
+		ent.client.showscores= true;
 		GameAI.DeathmatchScoreboard(ent);
 	}
 
@@ -917,23 +1023,26 @@ public final class Cmd extends PlayerView {
 	Display the current help message
 	==================
 	*/
-	public static void Help_f(edict_t ent) {
+	public static void Help_f(edict_t ent)
+	{
 		// this is for backwards compatability
-		if (GameBase.deathmatch.value != 0) {
+		if (GameBase.deathmatch.value != 0)
+		{
 			Score_f(ent);
 			return;
 		}
 
-		ent.client.showinventory = false;
-		ent.client.showscores = false;
+		ent.client.showinventory= false;
+		ent.client.showscores= false;
 
-		if (ent.client.showhelp && (ent.client.pers.game_helpchanged == GameBase.game.helpchanged)) {
-			ent.client.showhelp = false;
+		if (ent.client.showhelp && (ent.client.pers.game_helpchanged == GameBase.game.helpchanged))
+		{
+			ent.client.showhelp= false;
 			return;
 		}
 
-		ent.client.showhelp = true;
-		ent.client.pers.helpchanged = 0;
+		ent.client.showhelp= true;
+		ent.client.pers.helpchanged= 0;
 		GameAI.HelpComputer(ent);
 	}
 
@@ -944,12 +1053,13 @@ public final class Cmd extends PlayerView {
 	Cmd_Kill_f
 	=================
 	*/
-	public static void Kill_f(edict_t ent) {
+	public static void Kill_f(edict_t ent)
+	{
 		if ((GameBase.level.time - ent.client.respawn_time) < 5)
 			return;
 		ent.flags &= ~Defines.FL_GODMODE;
-		ent.health = 0;
-		GameBase.meansOfDeath = Defines.MOD_SUICIDE;
+		ent.health= 0;
+		GameBase.meansOfDeath= Defines.MOD_SUICIDE;
 		GameAIAdapters.player_die.die(ent, ent, ent, 100000, GameBase.vec3_origin);
 	}
 
@@ -958,10 +1068,11 @@ public final class Cmd extends PlayerView {
 	Cmd_PutAway_f
 	=================
 	*/
-	public static void PutAway_f(edict_t ent) {
-		ent.client.showscores = false;
-		ent.client.showhelp = false;
-		ent.client.showinventory = false;
+	public static void PutAway_f(edict_t ent)
+	{
+		ent.client.showscores= false;
+		ent.client.showhelp= false;
+		ent.client.showinventory= false;
 
 	}
 
@@ -970,18 +1081,21 @@ public final class Cmd extends PlayerView {
 	Cmd_Players_f
 	=================
 	*/
-	public static void Players_f(edict_t ent) {
+	public static void Players_f(edict_t ent)
+	{
 		int i;
 		int count;
 		String small;
 		String large;
 
-		Integer index[] = new Integer[256];
+		Integer index[]= new Integer[256];
 
-		count = 0;
-		for (i = 0; i < GameBase.maxclients.value; i++) {
-			if (GameBase.game.clients[i].pers.connected) {
-				index[count] = new Integer(i);
+		count= 0;
+		for (i= 0; i < GameBase.maxclients.value; i++)
+		{
+			if (GameBase.game.clients[i].pers.connected)
+			{
+				index[count]= new Integer(i);
 				count++;
 			}
 		}
@@ -992,16 +1106,18 @@ public final class Cmd extends PlayerView {
 		Arrays.sort(index, 0, count - 1, GameAIAdapters.PlayerSort);
 
 		// print information
-		large = "";
+		large= "";
 
-		for (i = 0; i < count; i++) {
-			small =
+		for (i= 0; i < count; i++)
+		{
+			small=
 				GameBase.game.clients[index[i].intValue()].ps.stats[Defines.STAT_FRAGS]
 					+ " "
 					+ GameBase.game.clients[index[i].intValue()].pers.netname
 					+ "\n";
 
-			if (small.length() + large.length() > 1024 - 100) {
+			if (small.length() + large.length() > 1024 - 100)
+			{
 				// can't print all of them in one packet
 				large += "...\n";
 				break;
@@ -1017,10 +1133,11 @@ public final class Cmd extends PlayerView {
 	Cmd_Wave_f
 	=================
 	*/
-	public static void Wave_f(edict_t ent) {
+	public static void Wave_f(edict_t ent)
+	{
 		int i;
 
-		i = Lib.atoi(GameBase.gi.argv(1));
+		i= Lib.atoi(GameBase.gi.argv(1));
 
 		// can't wave when ducked
 		if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
@@ -1029,34 +1146,35 @@ public final class Cmd extends PlayerView {
 		if (ent.client.anim_priority > Defines.ANIM_WAVE)
 			return;
 
-		ent.client.anim_priority = Defines.ANIM_WAVE;
+		ent.client.anim_priority= Defines.ANIM_WAVE;
 
-		switch (i) {
+		switch (i)
+		{
 			case 0 :
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "flipoff\n");
-				ent.s.frame = M_Player.FRAME_flip01 - 1;
-				ent.client.anim_end = M_Player.FRAME_flip12;
+				ent.s.frame= M_Player.FRAME_flip01 - 1;
+				ent.client.anim_end= M_Player.FRAME_flip12;
 				break;
 			case 1 :
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "salute\n");
-				ent.s.frame = M_Player.FRAME_salute01 - 1;
-				ent.client.anim_end = M_Player.FRAME_salute11;
+				ent.s.frame= M_Player.FRAME_salute01 - 1;
+				ent.client.anim_end= M_Player.FRAME_salute11;
 				break;
 			case 2 :
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "taunt\n");
-				ent.s.frame = M_Player.FRAME_taunt01 - 1;
-				ent.client.anim_end = M_Player.FRAME_taunt17;
+				ent.s.frame= M_Player.FRAME_taunt01 - 1;
+				ent.client.anim_end= M_Player.FRAME_taunt17;
 				break;
 			case 3 :
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "wave\n");
-				ent.s.frame = M_Player.FRAME_wave01 - 1;
-				ent.client.anim_end = M_Player.FRAME_wave11;
+				ent.s.frame= M_Player.FRAME_wave01 - 1;
+				ent.client.anim_end= M_Player.FRAME_wave11;
 				break;
 			case 4 :
 			default :
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "point\n");
-				ent.s.frame = M_Player.FRAME_point01 - 1;
-				ent.client.anim_end = M_Player.FRAME_point12;
+				ent.s.frame= M_Player.FRAME_point01 - 1;
+				ent.client.anim_end= M_Player.FRAME_point12;
 				break;
 		}
 	}
@@ -1066,7 +1184,8 @@ public final class Cmd extends PlayerView {
 	Cmd_Say_f
 	==================
 	*/
-	public static void Say_f(edict_t ent, boolean team, boolean arg0) {
+	public static void Say_f(edict_t ent, boolean team, boolean arg0)
+	{
 
 		int i, j;
 		edict_t other;
@@ -1077,19 +1196,21 @@ public final class Cmd extends PlayerView {
 			return;
 
 		if (0 == ((int) (dmflags.value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
-			team = false;
+			team= false;
 
 		if (team)
-			text = "(" + ent.client.pers.netname + "): ";
+			text= "(" + ent.client.pers.netname + "): ";
 		else
-			text = "" + ent.client.pers.netname + ": ";
+			text= "" + ent.client.pers.netname + ": ";
 
-		if (arg0) {
+		if (arg0)
+		{
 			strcat(text, gi.argv(0));
 			strcat(text, " ");
 			strcat(text, gi.args());
 		}
-		else {
+		else
+		{
 			if (gi.args().startsWith("\""))
 				text += gi.args().substring(1, gi.args().length() - 1);
 			else
@@ -1109,41 +1230,46 @@ public final class Cmd extends PlayerView {
 		// don't let text be too long for malicious reasons
 		if (text.length() > 150)
 			//text[150] = 0;
-			text = text.substring(0, 150);
+			text= text.substring(0, 150);
 
 		strcat(text, "\n");
 
-		if (flood_msgs.value != 0) {
-			cl = ent.client;
+		if (flood_msgs.value != 0)
+		{
+			cl= ent.client;
 
-			if (level.time < cl.flood_locktill) {
+			if (level.time < cl.flood_locktill)
+			{
 				gi.cprintf(ent, PRINT_HIGH, "You can't talk for " + (int) (cl.flood_locktill - level.time) + " more seconds\n");
 				return;
 			}
-			i = (int) (cl.flood_whenhead - flood_msgs.value + 1);
+			i= (int) (cl.flood_whenhead - flood_msgs.value + 1);
 			if (i < 0)
 				//i = (sizeof(cl.flood_when) / sizeof(cl.flood_when[0])) + i;
-				i = (10) + i;
-			if (cl.flood_when[i] != 0 && level.time - cl.flood_when[i] < flood_persecond.value) {
-				cl.flood_locktill = level.time + flood_waitdelay.value;
+				i= (10) + i;
+			if (cl.flood_when[i] != 0 && level.time - cl.flood_when[i] < flood_persecond.value)
+			{
+				cl.flood_locktill= level.time + flood_waitdelay.value;
 				gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for " + (int) flood_waitdelay.value + " seconds.\n");
 				return;
 			}
 			//cl.flood_whenhead = (cl.flood_whenhead + 1) % (sizeof(cl.flood_when) / sizeof(cl.flood_when[0]));
-			cl.flood_whenhead = (cl.flood_whenhead + 1) % 10;
-			cl.flood_when[cl.flood_whenhead] = level.time;
+			cl.flood_whenhead= (cl.flood_whenhead + 1) % 10;
+			cl.flood_when[cl.flood_whenhead]= level.time;
 		}
 
 		if (dedicated.value != 0)
 			gi.cprintf(null, PRINT_CHAT, "" + text + "");
 
-		for (j = 1; j <= game.maxclients; j++) {
-			other = g_edicts[j];
+		for (j= 1; j <= game.maxclients; j++)
+		{
+			other= g_edicts[j];
 			if (!other.inuse)
 				continue;
 			if (other.client == null)
 				continue;
-			if (team) {
+			if (team)
+			{
 				if (!OnSameTeam(ent, other))
 					continue;
 			}
@@ -1154,23 +1280,25 @@ public final class Cmd extends PlayerView {
 
 	/**
 	 * Returns the playerlist. 
-	 * TODO: The list is badly formatted at the moment, RST. 
+	 * TODO: The list is badly formatted at the moment. 
 	 */
-	public static void PlayerList_f(edict_t ent) {
+	public static void PlayerList_f(edict_t ent)
+	{
 		int i;
 		String st;
 		String text;
 		edict_t e2;
 
 		// connect time, ping, score, name
-		text = "";
+		text= "";
 
-		for (i = 0; i < GameBase.maxclients.value; i++) {
-			e2 = GameBase.g_edicts[1 + i];
+		for (i= 0; i < GameBase.maxclients.value; i++)
+		{
+			e2= GameBase.g_edicts[1 + i];
 			if (!e2.inuse)
 				continue;
 
-			st =
+			st=
 				""
 					+ (GameBase.level.framenum - e2.client.resp.enterframe) / 600
 					+ ":"
@@ -1185,7 +1313,8 @@ public final class Cmd extends PlayerView {
 					+ (e2.client.resp.spectator ? " (spectator)" : "")
 					+ "\n";
 
-			if (text.length() + st.length() > 1024 - 50) {
+			if (text.length() + st.length() > 1024 - 50)
+			{
 				text += "And more...\n";
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
 				return;
@@ -1196,7 +1325,7 @@ public final class Cmd extends PlayerView {
 	}
 
 	//	  ======================================================================
-	
+
 	/*
 	===================
 	Cmd_ForwardToServer
@@ -1206,18 +1335,21 @@ public final class Cmd extends PlayerView {
 	so when they are typed in at the console, they will need to be forwarded.
 	===================
 	*/
-	public static void ForwardToServer() {
+	public static void ForwardToServer()
+	{
 		String cmd;
-	
-		cmd = Cmd.Argv(0);
-		if (Globals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-' || cmd.charAt(0) == '+') {
+
+		cmd= Cmd.Argv(0);
+		if (Globals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-' || cmd.charAt(0) == '+')
+		{
 			Com.Printf("Unknown command \"" + cmd + "\"\n");
 			return;
 		}
-	
+
 		MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
 		SZ.Print(Globals.cls.netchan.message, cmd);
-		if (Cmd.Argc() > 1) {
+		if (Cmd.Argc() > 1)
+		{
 			SZ.Print(Globals.cls.netchan.message, " ");
 			SZ.Print(Globals.cls.netchan.message, Cmd.Args());
 		}

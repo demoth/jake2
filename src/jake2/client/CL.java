@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.40 2004-06-01 18:07:22 cwei Exp $
+ * $Id: CL.java,v 1.41 2004-06-03 21:32:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -713,7 +713,7 @@ public final class CL extends CL_pred {
 
 		c = Cmd.Argv(0);
 
-		Com.Printf(NET.AdrToString(net_from) + ": " + c + " \n");
+		//Com.Printf(NET.AdrToString(net_from) + ": " + c + " \n");
 
 		// server connection
 		if (c.equals("client_connect")) {
@@ -1542,7 +1542,7 @@ public final class CL extends CL_pred {
 		if (!cl.refresh_prepped && cls.state == ca_active) {
 			CL.PrepRefresh();
 			// TODO force GC after level loading
-			System.gc();
+			//System.gc();
 			System.gc();
 		}
 

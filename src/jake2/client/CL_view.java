@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.12 2004-03-17 16:17:33 cwei Exp $
+ * $Id: CL_view.java,v 1.13 2004-06-03 21:32:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -79,16 +79,16 @@ public class CL_view extends CL_input {
 																		// cut off ".bsp"
 
 		// register models, pics, and skins
-		Com.Printf("Map: " + mapname + "\r"); 
+		//Com.Printf("Map: " + mapname + "\r"); 
 		SCR.UpdateScreen2();
 		re.BeginRegistration(mapname);
-		Com.Printf("                                     \r");
+		//Com.Printf("                                     \r");
 
 		// precache status bar pics
-		Com.Printf("pics\r"); 
+		//Com.Printf("pics\r"); 
 		SCR.UpdateScreen2();
 		SCR.TouchPics();
-		Com.Printf("                                     \r");
+		//Com.Printf("                                     \r");
 
 		CL.RegisterTEntModels();
 
@@ -118,32 +118,32 @@ public class CL_view extends CL_input {
 				else
 					cl.model_clip[i] = null;
 			}
-			if (name.charAt(0) != '*')
-				Com.Printf("                                     \r");
+			//if (name.charAt(0) != '*')
+				//Com.Printf("                                     \r");
 		}
 
-		Com.Printf("images\r"); 
+		//Com.Printf("images\r"); 
 		SCR.UpdateScreen2();
 		for (i=1 ; i<MAX_IMAGES && cl.configstrings[CS_IMAGES+i].length() > 0 ; i++) {
 			cl.image_precache[i] = re.RegisterPic(cl.configstrings[CS_IMAGES+i]);
 			Sys.SendKeyEvents();	// pump message loop
 		}
 
-		Com.Printf("                                     \r");
+		//Com.Printf("                                     \r");
 		for (i=0 ; i<MAX_CLIENTS ; i++) {
 			if (cl.configstrings[CS_PLAYERSKINS+i].length() == 0)
 				continue;
-			Com.Printf("client %i\r", new Vargs(1).add(i)); 
+			//Com.Printf("client %i\r", new Vargs(1).add(i));
 			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
 			CL.ParseClientinfo(i);
-			Com.Printf("                                     \r");
+			//Com.Printf("                                     \r");
 		}
 
 		CL_parse.LoadClientinfo(cl.baseclientinfo, "unnamed\\male/grunt");
 
 		// set sky textures and speed
-		Com.Printf("sky\r"); 
+		//Com.Printf("sky\r"); 
 		SCR.UpdateScreen2();
 		rotate = Float.parseFloat(cl.configstrings[CS_SKYROTATE]);
 		StringTokenizer st = new StringTokenizer(cl.configstrings[CS_SKYAXIS]);
@@ -151,7 +151,7 @@ public class CL_view extends CL_input {
 		axis[1] = Float.parseFloat(st.nextToken());
 		axis[2] = Float.parseFloat(st.nextToken());
 		re.SetSky(cl.configstrings[CS_SKY], rotate, axis);
-		Com.Printf("                                     \r");
+		//Com.Printf("                                     \r");
 
 		// the renderer can now free unneeded stuff
 		re.EndRegistration ();

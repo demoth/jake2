@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.02.2004 by RST.
-// $Id: MD4.java,v 1.3 2004-06-01 15:55:29 rst Exp $
+// $Id: MD4.java,v 1.4 2004-06-03 21:32:52 rst Exp $
 
 package jake2.qcommon;
 
@@ -305,9 +305,7 @@ public class MD4 extends MessageDigest implements Cloneable {
 		MD4 md4 = new MD4();
 
 		md4.engineUpdate(buffer, 0, length);
-		byte data[] = md4.engineDigest();
-		Com.Printf("md4: " + Lib.hexDump(data, 16, false));
-		
+		byte data[] = md4.engineDigest();		
 		ByteBuffer bb = ByteBuffer.wrap(data);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 		val = bb.getInt() ^ bb.getInt() ^ bb.getInt() ^ bb.getInt();

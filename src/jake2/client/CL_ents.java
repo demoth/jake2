@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.15 2004-04-20 17:42:31 cwei Exp $
+ * $Id: CL_ents.java,v 1.16 2004-06-03 21:32:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -53,7 +53,7 @@ public class CL_ents extends CL_inv {
 	=================
 	*/
 	static int bitcounts[] = new int[32]; /// just for protocol profiling
-	public static int ParseEntityBits(CM.intwrap bits) {
+	public static int ParseEntityBits(int bits[]) {
 		int b, total;
 		int i;
 		int number;
@@ -82,7 +82,7 @@ public class CL_ents extends CL_inv {
 		else
 			number = MSG.ReadByte(net_message);
 
-		bits.i = total;
+		bits[0] = total;
 
 		return number;
 	}
@@ -253,9 +253,9 @@ public class CL_ents extends CL_inv {
 		}
 
 		while (true) {
-			CM.intwrap iw = new CM.intwrap(bits);
+			int iw[] = {bits};
 			newnum = ParseEntityBits(iw);
-			bits = iw.i;
+			bits = iw[0];
 
 			if (newnum >= MAX_EDICTS)
 				Com.Error(ERR_DROP, "CL_ParsePacketEntities: bad number:" + newnum);

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.8 2004-02-29 17:23:43 rst Exp $
+// $Id: PlayerHud.java,v 1.9 2004-06-03 21:32:51 rst Exp $
 
 package jake2.game;
 
@@ -100,13 +100,15 @@ public class PlayerHud extends GameTarget {
 		level.intermissiontime = level.time;
 		
 		// TODO: BIG HACK TO IGNORE CINEMATIC
+		
 		String xxx = targ.map;
 		int pos = xxx.indexOf(".cin");
 		if (pos != -1)
 			level.changemap = xxx.substring(pos + 5); // including "+" 
 		else
 			level.changemap = xxx;
-
+		// ------------------------
+		//level.changemap = targ.map;
 		if (level.changemap.indexOf('*') > -1) {
 			if (coop.value != 0) {
 				for (i = 0; i < maxclients.value; i++) {

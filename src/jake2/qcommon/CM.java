@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.35 2004-06-01 18:07:22 cwei Exp $
+// $Id: CM.java,v 1.36 2004-06-03 21:32:52 rst Exp $
 
 package jake2.qcommon;
 
@@ -796,7 +796,6 @@ public class CM extends Game {
 		if (l.filelen > MAX_MAP_VISIBILITY)
 			Com.Error(ERR_DROP, "Map has too large visibility lump");
 
-		//was: memcpy(map_visibility, cmod_base + l.fileofs, l.filelen);
 		System.arraycopy(cmod_base, l.fileofs, map_visibility, 0, l.filelen);
 
 		ByteBuffer bb = ByteBuffer.wrap(map_visibility, 0, l.filelen);
@@ -1074,7 +1073,7 @@ public class CM extends Game {
 		}
 	}
 
-	public static int CM_BoxLeafnums_headnode(float[] mins, float[] maxs, int list[], int listsize, int headnode, intwrap topnode) {
+	public static int CM_BoxLeafnums_headnode(float[] mins, float[] maxs, int list[], int listsize, int headnode, int topnode[]) {
 		leaf_list = list;
 		leaf_count = 0;
 		leaf_maxcount = listsize;
@@ -1086,22 +1085,23 @@ public class CM extends Game {
 		CM_BoxLeafnums_r(headnode);
 
 		if (topnode != null)
-			topnode.i = leaf_topnode;
+			topnode[0] = leaf_topnode;
 
 		return leaf_count;
 	}
 
-	public static int CM_BoxLeafnums(float[] mins, float[] maxs, int list[], int listsize, intwrap topnode) {
+	public static int CM_BoxLeafnums(float[] mins, float[] maxs, int list[], int listsize, int topnode[]) {
 		return CM_BoxLeafnums_headnode(mins, maxs, list, listsize, map_cmodels[0].headnode, topnode);
 	}
 
-	public static class intwrap {
+	/*
+	public static class intwrap1 {
 		public intwrap(int i) {
 			this.i = i;
 		}
 		public int i;
 	}
-
+	*/
 	/*
 	==================
 	CM_PointContents
@@ -1539,10 +1539,10 @@ public class CM extends Game {
 				c2[i] += 1;
 			}
 
-			intwrap tn = new intwrap(topnode);
+			int tn[] = {topnode};
 
 			numleafs = CM_BoxLeafnums_headnode(c1, c2, leafs, 1024, headnode, tn);
-			topnode = tn.i;
+			topnode = tn[0];
 			for (i = 0; i < numleafs; i++) {
 				CM_TestInLeaf(leafs[i]);
 				if (trace_trace.allsolid)

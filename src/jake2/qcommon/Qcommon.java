@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.32 2004-05-04 09:30:16 hoz Exp $
+ * $Id: Qcommon.java,v 1.33 2004-06-03 21:32:52 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -121,7 +121,7 @@ public final class Qcommon extends Globals {
 				SCR.EndLoadingPlaque();
 			}
 
-			Com.Printf("====== Quake2 Initialized ======\n\n");
+			Com.Printf("====== Quake2 Initialized ======\n");
 
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");

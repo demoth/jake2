@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.15 2004-04-20 17:42:31 cwei Exp $
+// $Id: SV_GAME.java,v 1.16 2004-06-03 21:32:52 rst Exp $
 
 package jake2.server;
 
@@ -308,11 +308,11 @@ public class SV_GAME extends SV_INIT {
 	}
 
 	public static void PF_StartSound(edict_t entity, int channel, int sound_num, float volume, float attenuation, float timeofs) {
+		
 		if (null == entity)
 			return;
-			
-		//TODO: impl SV_StartSound
 		SV_SEND.SV_StartSound (null, entity, channel, sound_num, volume, attenuation, timeofs);
+		
 	}
 
 	//==============================================

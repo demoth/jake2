@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.8 2004-04-26 15:58:55 cwei Exp $
+ * $Id: S.java,v 1.9 2004-06-03 21:32:52 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -85,7 +85,7 @@ public class S {
 	
 	public static void Init() {
 		
-		Com.Printf("\n------- sound initialization -------\n");
+		Com.Printf("------- sound initialization -------\n");
 
 		cvar_t cv = Cvar.Get("s_initsound", "1", 0);
 		if (cv.value == 0.0f) {
@@ -105,7 +105,7 @@ public class S {
 			useDriver("dummy");
 		}
 		
-		Com.Printf("\n------- use sound driver \"" + impl.getName() + "\" -------\n");
+		Com.Printf("------- use sound driver \"" + impl.getName() + "\" -------\n");
 		StopAllSounds();
 	}
 	

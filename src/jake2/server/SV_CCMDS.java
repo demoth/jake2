@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.16 2004-02-22 21:45:47 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.17 2004-06-03 21:32:52 rst Exp $
 
 package jake2.server;
 
@@ -228,7 +228,6 @@ public class SV_CCMDS extends SV_ENTS {
 				f1.close();
 			}
 			catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			return;
@@ -627,7 +626,7 @@ public class SV_CCMDS extends SV_ENTS {
 		// copy off the level to the autosave slot
 		if (0 == dedicated.value) {
 
-			//TODO: SV_WriteServerFile!
+			//TODO: SV_WriteServerFile.
 			//SV_WriteServerFile(true);
 
 			//SV_CopySaveGame("current", "save0");
@@ -658,7 +657,7 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 
 		sv.state = ss_dead; // don't save current level when changing
-		//TODO: RST: disabled for debugging
+		//TODO: savegame
 		//SV_WipeSavegame("current");
 		SV_GameMap_f();
 	}

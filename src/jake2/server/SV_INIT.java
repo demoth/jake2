@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.23 2004-06-01 18:08:44 cwei Exp $
+// $Id: SV_INIT.java,v 1.24 2004-06-03 21:32:51 rst Exp $
 
 package jake2.server;
 
@@ -302,7 +302,7 @@ public class SV_INIT extends Globals  {
 		// set serverinfo variable
 		Cvar.FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
 
-		Com.Printf("-------------------------------------\n");
+		//Com.Printf("-------------------------------------\n");
 	}
 
 	/*

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.25 2004-04-15 08:08:26 hoz Exp $
+ * $Id: Menu.java,v 1.26 2004-06-03 21:32:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2945,6 +2945,7 @@ public final class Menu extends Key {
 		s_hostname_field.length = 12;
 		s_hostname_field.visible_length = 12;
 		s_hostname_field.buffer = new StringBuffer(Cvar.VariableString("hostname"));
+		s_hostname_field.cursor = s_hostname_field.buffer.length();
 
 		s_startserver_dmoptions_action.type = MTYPE_ACTION;
 		s_startserver_dmoptions_action.name = " deathmatch flags";
@@ -4464,7 +4465,7 @@ public final class Menu extends Key {
 		}
 
 		Menu_DrawString(f.x + f.parent.x + 24, f.y + f.parent.y, tempbuffer);
-
+		
 		if (Menu_ItemAtCursor(f.parent) == f) {
 			int offset;
 

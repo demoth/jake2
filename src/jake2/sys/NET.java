@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.22 2004-02-16 20:26:38 rst Exp $
+ * $Id: NET.java,v 1.23 2004-06-03 21:32:52 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -686,8 +686,8 @@ public final class NET extends Defines {
 	====================
 	*/
 	public static String NET_ErrorString() {
+		
 		int code;
-
 		//code = errno;
 		//return strerror (code);
 		return "errno can not yet resolved in java";
@@ -700,7 +700,7 @@ public final class NET extends Defines {
 			return; // we're not a server, just run full speed
 		
 		try {
-			//TODO: check for 
+			//TODO: check for timeout
 			Thread.sleep(msec);
 		}
 		catch (InterruptedException e) {

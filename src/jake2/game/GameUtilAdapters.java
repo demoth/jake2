@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameUtilAdapters.java,v 1.3 2004-02-29 02:40:24 rst Exp $
+// $Id: GameUtilAdapters.java,v 1.4 2004-06-03 21:32:51 rst Exp $
 
 package jake2.game;
 
@@ -310,7 +310,7 @@ public class GameUtilAdapters
 
 			if (!taken)
 				return;
-			Com.p("Picked up:" + ent.classname);
+			//Com.p("Picked up:" + ent.classname);
 			
 			if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
 				|| 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM)))
@@ -322,6 +322,7 @@ public class GameUtilAdapters
 			}
 		}
 	};
+	
 	static EntTouchAdapter drop_temp_touch = new EntTouchAdapter()
 	{
 		public void touch(edict_t ent, edict_t other, cplane_t plane, csurface_t surf)
@@ -332,6 +333,7 @@ public class GameUtilAdapters
 			Touch_Item.touch(ent, other, plane, surf);
 		}
 	};
+	
 	static EntThinkAdapter drop_make_touchable = new EntThinkAdapter()
 	{
 		public boolean think(edict_t ent)
@@ -398,7 +400,7 @@ public class GameUtilAdapters
 			ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
 			
 			//TODO: remove this line
-			ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]=0;
+			//ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]=0;
 			
 			GameUtil.ValidateSelectedItem(ent);
 
@@ -407,7 +409,7 @@ public class GameUtilAdapters
 			else
 				ent.client.breather_framenum = GameBase.level.framenum + 300;
 
-			//	  gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
+			GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi.soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
 		}
 	};
 	//	======================================================================
@@ -424,7 +426,7 @@ public class GameUtilAdapters
 			else
 				ent.client.enviro_framenum = GameBase.level.framenum + 300;
 
-			//	  gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
+			GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi.soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
 		}
 	};
 	//	======================================================================
@@ -458,7 +460,7 @@ public class GameUtilAdapters
 			GameUtil.ValidateSelectedItem(ent);
 			ent.client.silencer_shots += 30;
 
-			//	  gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
+			GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi.soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
 		}
 	};
 	//	======================================================================
