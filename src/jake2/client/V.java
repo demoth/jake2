@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.14 2004-02-15 00:58:00 rst Exp $
+ * $Id: V.java,v 1.15 2004-06-06 21:59:11 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,11 +29,15 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.render.jogl.Main;
 import jake2.sys.Sys;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 import java.io.IOException;
+import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 
 /**
  * V
@@ -99,16 +103,20 @@ public final class V extends Globals {
 	=====================
 	*/
 	static void AddParticle(float[] org, int color, float alpha) {
-		particle_t p;
-
 		if (r_numparticles >= MAX_PARTICLES)
 			return;
 
-		p = r_particles[r_numparticles++];
+		int i = r_numparticles++;
 
-		VectorCopy(org, p.origin);
-		p.color = color;
-		p.alpha = alpha;
+		int c = particle_t.colorTable[color];
+		c |= (int)(alpha * 255) << 24;
+		particle_t.colorArray.put(i, c);
+		
+		i *= 3;
+		FloatBuffer vertexBuf = particle_t.vertexArray;
+		vertexBuf.put(i++, org[0]);
+		vertexBuf.put(i++, org[1]);
+		vertexBuf.put(i++, org[2]);
 	}
 
 	/*
@@ -158,26 +166,25 @@ public final class V extends Globals {
 	================
 	*/
 	static void TestParticles() {
-		particle_t p;
 		int i, j;
 		float d, r, u;
 
-		r_numparticles = MAX_PARTICLES;
-		for (i = 0; i < r_numparticles; i++) {
+		float[] origin = {0,0,0};
+
+		r_numparticles = 0;
+		for (i = 0; i < MAX_PARTICLES; i++) {
 			d = i * 0.25f;
 			r = 4 * ((i & 7) - 3.5f);
 			u = 4 * (((i >> 3) & 7) - 3.5f);
-			p = r_particles[i];
 
 			for (j = 0; j < 3; j++)
-				p.origin[j] =
+				origin[j] =
 					cl.refdef.vieworg[j]
 						+ cl.v_forward[j] * d
 						+ cl.v_right[j] * r
 						+ cl.v_up[j] * u;
 
-			p.color = 8;
-			p.alpha = cl_testparticles.value;
+			AddParticle(origin, 8, cl_testparticles.value);
 		}
 	}
 

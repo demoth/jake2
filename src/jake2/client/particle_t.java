@@ -19,12 +19,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: particle_t.java,v 1.3 2004-01-05 23:34:25 cwei Exp $
+// $Id: particle_t.java,v 1.4 2004-06-06 21:59:11 cwei Exp $
 
 package jake2.client;
 
+import jake2.Defines;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import net.java.games.jogl.util.BufferUtils;
+
 public class particle_t {
-	public float origin[] = { 0, 0, 0 };
-	public int color;
-	public float alpha;
+	
+	public static FloatBuffer vertexArray = BufferUtils.newFloatBuffer(Defines.MAX_PARTICLES * 3);
+	public static IntBuffer colorArray = BufferUtils.newIntBuffer(Defines.MAX_PARTICLES);
+	static int[] colorTable = new int[256];
+	
+	public static void setColorPalette(int[] palette) {
+		for (int i=0; i < 256; i++) {
+			colorTable[i] = palette[i] & 0x00FFFFFF;
+		}
+	}
 }
