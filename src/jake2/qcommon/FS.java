@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.5 2004-09-18 12:35:52 hzi Exp $
+ * $Id: FS.java,v 1.6 2004-09-20 20:26:40 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -826,7 +826,7 @@ public final class FS extends Globals {
 	 * set baseq2 directory
 	 */
 	static void setCDDir() {
-		fs_cddir = Cvar.Get("cddir", "../../baseq2", CVAR_ARCHIVE);
+		fs_cddir = Cvar.Get("cddir", "", CVAR_ARCHIVE);
 		if (fs_cddir.string.length() > 0)
 			AddGameDirectory(fs_cddir.string);		
 	}
