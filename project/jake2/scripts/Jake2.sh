@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export LD_LIBRARY_PATH=lib/linux
 CP=lib/jake2.jar:lib/linux/jogl.jar:lib/linux/joal.jar
