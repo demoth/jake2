@@ -24,7 +24,7 @@ public class PCX {
 		char        encoding;
 		char        bits_per_pixel;
 		unsigned short      xmin,ymin,xmax,ymax;
-		unsigned short      width,height;
+		unsigned short      horzRes,vertRes;
 		unsigned char       palette[48];
 		char        reserved;
 		char        color_planes;
@@ -47,7 +47,7 @@ public class PCX {
 		byte encoding;
 		byte bitsPerPixel;
 		int xmin, ymin, xmax, ymax; // unsigned short
-		int width, height; // unsigned short
+		int horzRes, vertRes; // unsigned short
 		byte[] palette; //unsigned byte
 		byte reserved;
 		byte colorPlanes;
@@ -75,8 +75,8 @@ public class PCX {
 			ymin = b.getShort() & 0xffff;
 			xmax = b.getShort() & 0xffff;
 			ymax = b.getShort() & 0xffff;
-			width = b.getShort() & 0xffff;
-			height = b.getShort() & 0xffff;
+			horzRes = b.getShort() & 0xffff;
+			vertRes = b.getShort() & 0xffff;
 			b.get(palette = new byte[PALETTE_SIZE]);
 			reserved = b.get();
 			colorPlanes = b.get();
@@ -139,7 +139,7 @@ public class PCX {
 		 * @return
 		 */
 		public int getHeight() {
-			return height;
+			return ymax - ymin + 1;
 		}
 
 		/**
@@ -181,7 +181,7 @@ public class PCX {
 		 * @return
 		 */
 		public int getWidth() {
-			return width;
+			return  xmax - xmin + 1;
 		}
 
 		/**
@@ -211,5 +211,19 @@ public class PCX {
 		public int getYmin() {
 			return ymin;
 		}
+		/**
+		 * @return
+		 */
+		public int getHorzRes() {
+			return horzRes;
+		}
+
+		/**
+		 * @return
+		 */
+		public int getVertRes() {
+			return vertRes;
+		}
+
 	}
 }

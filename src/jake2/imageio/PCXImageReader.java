@@ -104,13 +104,12 @@ public class PCXImageReader extends ImageReader {
 
 		checkIndex(imageIndex);
 		readHeader();
-		
+
 		int width = header.getWidth();
 		int height = header.getHeight();
 
 		//		Compute initial source region, clip against destination later
-		Rectangle sourceRegion =
-			getSourceRegion(param, width, height);
+		Rectangle sourceRegion = getSourceRegion(param, width, height);
 
 		// Set everything to default values
 		int sourceXSubsampling = 1;
@@ -130,11 +129,7 @@ public class PCXImageReader extends ImageReader {
 
 		//		 Get the specified detination image or create a new one
 		BufferedImage dst =
-			getDestination(
-				param,
-				getImageTypes(0),
-				width,
-				height);
+			getDestination(param, getImageTypes(0), width, height);
 
 		// Enure band settings from param are compatible with images
 		int inputBands = 1;
@@ -172,14 +167,7 @@ public class PCXImageReader extends ImageReader {
 		// Create a child raster exposing only the desired source bands
 		if (sourceBands != null) {
 			rowRas =
-				rowRas.createWritableChild(
-					0,
-					0,
-					width,
-					1,
-					0,
-					0,
-					sourceBands);
+				rowRas.createWritableChild(0, 0, width, 1, 0, 0, sourceBands);
 		}
 
 		// Create a child raster exposing only the desired dest bands
@@ -196,10 +184,29 @@ public class PCXImageReader extends ImageReader {
 
 		}
 
+		int dataByte = 0;
+		int runLength = 0;
+
 		for (int srcY = 0; srcY < height; srcY++) {
 			// Read the row
 			try {
-				decodeRow(rowBuf);
+				/*
+				 * run length decoding for PCX images
+				 */
+				int index = 0;
+
+				while (index < rowBuf.length) {
+					while (runLength-- > 0 && index < rowBuf.length) {
+						rowBuf[index++] = (byte) (dataByte & 0xff);
+					}
+					dataByte = stream.readUnsignedByte();
+					if ((dataByte & 0xc0) == 0xc0) {
+						runLength = dataByte & 0x3f;
+						dataByte = stream.readUnsignedByte();
+					} else {
+						runLength = 1;
+					}
+				}
 			} catch (IOException e) {
 				throw new IIOException("Error reading line " + srcY, e);
 			}
@@ -261,12 +268,8 @@ public class PCXImageReader extends ImageReader {
 		}
 	}
 
-	/**
-	 * run length decoding for PCX images
-	 * @param buffer
-	 * @throws IOException
-	 */
-	private void decodeRow(byte[] buffer) throws IOException {
+// buggy version 
+/*	private void decodeRow(byte[] buffer) throws IOException {
 		int dataByte = 0;
 		int runLength = 0;
 		int index = 0;
@@ -280,15 +283,17 @@ public class PCXImageReader extends ImageReader {
 				runLength = 1;
 			}
 
-			while (runLength-- > 0) {
+			while (runLength-- > 0 && index < buffer.length) {
 				buffer[index++] = (byte) (dataByte & 0xff);
 			}
+			assert(runLength == -1) : "runLength decoding bug: " + runLength;
 		}
 	}
-
+*/
 	private void readHeader() throws IIOException {
-		
-		if (header != null) return;
+
+		if (header != null)
+			return;
 
 		logger.log(Level.FINE, "PCX read header");
 
@@ -306,7 +311,7 @@ public class PCXImageReader extends ImageReader {
 			this.header = new PCX.Header(buffer);
 			logger.log(
 				Level.FINE,
-				"PCX width: "
+				"PCX horzRes: "
 					+ header.getWidth()
 					+ " height: "
 					+ header.getHeight());
