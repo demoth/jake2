@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.21 2004-02-02 19:25:23 hoz Exp $
+ * $Id: Sys.java,v 1.22 2004-02-02 20:27:47 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -179,7 +179,7 @@ public final class Sys extends Defines {
 			// the converted pattern
 			String regexpr = sb.toString();
 
-			System.out.println("pattern: " + pattern + " regexpr: " + regexpr);
+			Com.DPrintf("pattern: " + pattern + " regexpr: " + regexpr + '\n');
 			try {
 				Pattern.compile(regexpr);
 			}
