@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.2 2003-12-27 19:36:22 cwei Exp $
+ * $Id: Draw.java,v 1.3 2003-12-27 21:33:50 rst Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -124,8 +124,9 @@ public class Draw extends Image {
 		
 		data = LoadPCX("pics/conback.pcx", palette, dim);
 		
-		gl.glEnable(GL.GL_SHARED_TEXTURE_PALETTE_EXT);
+		//gl.glEnable(GL.GL_SHARED_TEXTURE_PALETTE_EXT);
 		
+		/*
 		gl.glColorTableEXT(
 			GL.GL_SHARED_TEXTURE_PALETTE_EXT,
 			GL.GL_RGB,
@@ -133,7 +134,7 @@ public class Draw extends Image {
 			GL.GL_RGB,
 			GL.GL_UNSIGNED_BYTE,
 			palette[0]);
-		
+		*/
 		gl.glWindowPos2i((vid.width-dim.width) / 2, (vid.height - dim.height) /2 );
 //		gl.glRasterPos2f(0, 0);
 		

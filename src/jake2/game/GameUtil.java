@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.5 2003-12-27 17:53:03 rst Exp $
+// $Id: GameUtil.java,v 1.6 2003-12-27 21:33:50 rst Exp $
 
 package jake2.game;
 
@@ -29,7 +29,7 @@ import jake2.util.*;
 
 public class GameUtil extends GameBase {
 
-	static EntThinkAdapter Think_Delay= new EntThinkAdapter() {
+	public static EntThinkAdapter Think_Delay= new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
 			G_UseTargets(ent, ent.activator);
 			G_FreeEdict(ent);
@@ -49,7 +49,7 @@ public class GameUtil extends GameBase {
 	match (string)self.target and call their .use function
 	*/
 
-	static void G_UseTargets(edict_t ent, edict_t activator) {
+	public static void G_UseTargets(edict_t ent, edict_t activator) {
 		edict_t t;
 
 		//
@@ -126,7 +126,7 @@ public class GameUtil extends GameBase {
 
 
 
-	static void G_InitEdict(edict_t e, int i) {
+	public static void G_InitEdict(edict_t e, int i) {
 		e.inuse= true;
 		e.classname= "noclass";
 		e.gravity= 1.0f;
@@ -141,7 +141,7 @@ public class GameUtil extends GameBase {
 	 * instead of being removed and recreated, which can cause interpolated
 	 * angles and bad trails.
 	*/
-	static edict_t G_Spawn() {
+	public static edict_t G_Spawn() {
 		int i;
 		edict_t e= null;
 
@@ -163,7 +163,7 @@ public class GameUtil extends GameBase {
 		return e;
 	}
 
-	static EntThinkAdapter G_FreeEdictA= new EntThinkAdapter() {
+	public static EntThinkAdapter G_FreeEdictA= new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
 			G_FreeEdict(ent);
 			return false;
@@ -173,7 +173,7 @@ public class GameUtil extends GameBase {
 	/**
 	 * Marks the edict as free
 	*/
-	static void G_FreeEdict(edict_t ed) {
+	public static void G_FreeEdict(edict_t ed) {
 		gi.unlinkentity(ed); // unlink from world
 
 		//if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
@@ -194,7 +194,7 @@ public class GameUtil extends GameBase {
 	 * to force all entities it covers to immediately touch it.
 	*/
 
-	static void G_TouchSolids(edict_t ent) {
+	public static void G_TouchSolids(edict_t ent) {
 		int i, num;
 		edict_t touch[]= new edict_t[MAX_EDICTS], hit;
 
@@ -218,7 +218,7 @@ public class GameUtil extends GameBase {
 	 * of ent.  Ent should be unlinked before calling this!
 	 */
 
-	static boolean KillBox(edict_t ent) {
+	public static boolean KillBox(edict_t ent) {
 		trace_t tr;
 
 		while (true) {
@@ -247,7 +247,7 @@ public class GameUtil extends GameBase {
 		return true; // all clear
 	}
 
-	static boolean OnSameTeam(edict_t ent1, edict_t ent2) {
+	public static boolean OnSameTeam(edict_t ent1, edict_t ent2) {
 		if (0 == ((int) (dmflags.value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
 			return false;
 
@@ -1005,7 +1005,7 @@ public class GameUtil extends GameBase {
 	Killed
 	============
 	*/
-	static void Killed(
+	public static void Killed(
 		edict_t targ,
 		edict_t inflictor,
 		edict_t attacker,

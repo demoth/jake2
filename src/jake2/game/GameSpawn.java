@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.7 2003-12-27 17:53:03 rst Exp $
+// $Id: GameSpawn.java,v 1.8 2003-12-27 21:33:50 rst Exp $
 
 package jake2.game;
 
@@ -374,7 +374,7 @@ public class GameSpawn extends Game {
 	
 	//		SaveClientData();
 			
-	//		level.clear();
+			//level.clear();
 	//		memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
 	//		strncpy(level.mapname, mapname, sizeof(level.mapname) - 1);
 	//		strncpy(game.spawnpoint, spawnpoint, sizeof(game.spawnpoint) - 1);

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.18 2003-12-27 17:53:03 rst Exp $
+ * $Id: Com.java,v 1.19 2003-12-27 21:33:50 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -337,5 +337,13 @@ public final class Com {
 		System.out.println("OK!");
 		 
 		test=" testrene = \"ein mal eins\"; a=3";
+		
+		ph = new ParseHelp(test);
+		
+		while (!ph.isEof())
+			System.out.println("[" + Parse(ph) + "]");
+			
+		
+		System.out.println("OK!");
 	}
 }

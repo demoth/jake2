@@ -19,13 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.7 2003-12-27 15:41:00 rst Exp $
+// $Id: Defines.java,v 1.8 2003-12-27 21:33:50 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
 package jake2;
 
-public class Defines {
+import jake2.util.*;
+
+public class Defines extends Math3D {
 
 	public final static int WEAPON_READY = 0;
 	public final static int WEAPON_ACTIVATING = 1;

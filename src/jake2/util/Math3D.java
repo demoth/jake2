@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.2 2003-12-27 15:41:00 rst Exp $
+// $Id: Math3D.java,v 1.3 2003-12-27 21:33:50 rst Exp $
 
 package jake2.util;
 
@@ -31,7 +31,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class Math3D {
+public class Math3D extends Lib {
 
 	public static void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0] = a[0] - b[0];

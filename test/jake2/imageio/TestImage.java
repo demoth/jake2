@@ -38,6 +38,7 @@ public class TestImage {
 	}
 
 	public static void main(String[] args) throws Exception {
+		
 
 		if (args == null || args.length == 0) {
 			usage();

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.8 2003-12-27 17:53:03 rst Exp $
+// $Id: GameAI.java,v 1.9 2003-12-27 21:33:50 rst Exp $
 
 package jake2.game;
 
@@ -1239,11 +1239,7 @@ public class GameAI extends GameUtil {
 		}
 	};
 
-	/*
-	public static  gitem_armor_t jacketarmor_info = new gitem_armor_t(25, 50, .30f, .00f, ARMOR_JACKET);
-	public static  gitem_armor_t combatarmor_info = new gitem_armor_t(50, 100, .60f, .30f, ARMOR_COMBAT);
-	public static  gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200, .80f, .60f, ARMOR_BODY);
-	*/
+
 	public static EntInteractAdapter Pickup_Armor= new EntInteractAdapter() {
 		public boolean interact(edict_t ent, edict_t other) {
 			int old_armor_index;
