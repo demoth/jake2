@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.6 2004-02-15 11:27:49 rst Exp $
+// $Id: PlayerHud.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -108,7 +108,7 @@ public class PlayerHud extends GameTarget {
 						continue;
 					// strip players of all keys between units
 					for (n = 0; n < MAX_ITEMS; n++) {
-						if ((itemlist[n].flags & IT_KEY) != 0)
+						if ((GameAI.itemlist[n].flags & IT_KEY) != 0)
 							client.client.pers.inventory[n] = 0;
 					}
 				}
@@ -410,7 +410,7 @@ public class PlayerHud extends GameTarget {
 			ent.client.ps.stats[STAT_AMMO] = 0;
 		}
 		else {
-			item = itemlist[ent.client.ammo_index];
+			item = GameAI.itemlist[ent.client.ammo_index];
 			ent.client.ps.stats[STAT_AMMO_ICON] = (short) gi.imageindex(item.icon);
 			ent.client.ps.stats[STAT_AMMO] = (short) ent.client.pers.inventory[ent.client.ammo_index];
 		}
@@ -483,7 +483,7 @@ public class PlayerHud extends GameTarget {
 		if (ent.client.pers.selected_item <= 0)
 			ent.client.ps.stats[STAT_SELECTED_ICON] = 0;
 		else
-			ent.client.ps.stats[STAT_SELECTED_ICON] = (short) gi.imageindex(itemlist[ent.client.pers.selected_item].icon);
+			ent.client.ps.stats[STAT_SELECTED_ICON] = (short) gi.imageindex(GameAI.itemlist[ent.client.pers.selected_item].icon);
 
 		ent.client.ps.stats[STAT_SELECTED_ITEM] = (short) ent.client.pers.selected_item;
 

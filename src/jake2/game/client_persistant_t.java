@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.10 2004-02-13 11:09:51 rst Exp $
+// $Id: client_persistant_t.java,v 1.11 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -103,8 +103,8 @@ public class client_persistant_t implements Cloneable {
 		max_cells = bb.getInt();
 		max_slugs = bb.getInt();
 
-		weapon = GameTarget.itemlist[bb.getInt()];
-		lastweapon = GameTarget.itemlist[bb.getInt()];
+		weapon = GameAI.itemlist[bb.getInt()];
+		lastweapon = GameAI.itemlist[bb.getInt()];
 		power_cubes = bb.getInt();
 		score = bb.getInt();
 

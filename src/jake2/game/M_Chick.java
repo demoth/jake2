@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Chick.java,v 1.7 2004-02-04 18:10:55 rst Exp $
+// $Id: M_Chick.java,v 1.8 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -347,36 +347,36 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_fidget[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, ChickMoan),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, ChickMoan),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static EntThinkAdapter chick_stand= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			self.monsterinfo.currentmove= chick_move_stand;
@@ -398,36 +398,36 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, chick_fidget),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, chick_fidget),
 			};
 	static mmove_t chick_move_stand=
 		new mmove_t(FRAME_stand101, FRAME_stand130, chick_frames_stand, null);
@@ -451,46 +451,46 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_start_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 1, null),
-			new mframe_t(ai_run, 0, null),
-			new mframe_t(ai_run, 0, null),
-			new mframe_t(ai_run, -1, null),
-			new mframe_t(ai_run, -1, null),
-			new mframe_t(ai_run, 0, null),
-			new mframe_t(ai_run, 1, null),
-			new mframe_t(ai_run, 3, null),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 3, null)};
+			new mframe_t(GameAIAdapters.ai_run, 1, null),
+			new mframe_t(GameAIAdapters.ai_run, 0, null),
+			new mframe_t(GameAIAdapters.ai_run, 0, null),
+			new mframe_t(GameAIAdapters.ai_run, -1, null),
+			new mframe_t(GameAIAdapters.ai_run, -1, null),
+			new mframe_t(GameAIAdapters.ai_run, 0, null),
+			new mframe_t(GameAIAdapters.ai_run, 1, null),
+			new mframe_t(GameAIAdapters.ai_run, 3, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 3, null)};
 	static mmove_t chick_move_start_run=
 		new mmove_t(FRAME_walk01, FRAME_walk10, chick_frames_start_run, chick_run);
 
 	static mframe_t chick_frames_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 13, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 7, null),
-			new mframe_t(ai_run, 4, null),
-			new mframe_t(ai_run, 11, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 9, null),
-			new mframe_t(ai_run, 7, null)};
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 13, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 7, null),
+			new mframe_t(GameAIAdapters.ai_run, 4, null),
+			new mframe_t(GameAIAdapters.ai_run, 11, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 9, null),
+			new mframe_t(GameAIAdapters.ai_run, 7, null)};
 
 	static mmove_t chick_move_run= new mmove_t(FRAME_walk11, FRAME_walk20, chick_frames_run, null);
 
 	static mframe_t chick_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 13, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 11, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 9, null),
-			new mframe_t(ai_walk, 7, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 13, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 11, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 9, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null)};
 
 	static mmove_t chick_move_walk=
 		new mmove_t(FRAME_walk11, FRAME_walk20, chick_frames_walk, null);
@@ -504,47 +504,47 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_pain1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t chick_move_pain1=
 		new mmove_t(FRAME_pain101, FRAME_pain105, chick_frames_pain1, chick_run);
 
 	static mframe_t chick_frames_pain2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t chick_move_pain2=
 		new mmove_t(FRAME_pain201, FRAME_pain205, chick_frames_pain2, chick_run);
 
 	static mframe_t chick_frames_pain3[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 11, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, 5, null),
-			new mframe_t(ai_move, 7, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -8, null),
-			new mframe_t(ai_move, 2, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, 5, null),
+			new mframe_t(GameAIAdapters.ai_move, 7, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -8, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null)};
 
 	static mmove_t chick_move_pain3=
 		new mmove_t(FRAME_pain301, FRAME_pain321, chick_frames_pain3, chick_run);
@@ -596,46 +596,46 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_death2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 10, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 15, null),
-			new mframe_t(ai_move, 14, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 10, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 15, null),
+			new mframe_t(GameAIAdapters.ai_move, 14, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 	static mmove_t chick_move_death2=
 		new mmove_t(FRAME_death201, FRAME_death223, chick_frames_death2, chick_dead);
 
 	static mframe_t chick_frames_death1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 11, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t chick_move_death1=
 		new mmove_t(FRAME_death101, FRAME_death112, chick_frames_death1, chick_dead);
 
@@ -714,13 +714,13 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_duck[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, chick_duck_down),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 4, chick_duck_hold),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -5, chick_duck_up),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, chick_duck_down),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, chick_duck_hold),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, chick_duck_up),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 	static mmove_t chick_move_duck=
 		new mmove_t(FRAME_duck01, FRAME_duck07, chick_frames_duck, chick_run);
 
@@ -810,48 +810,48 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_start_attack1[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, Chick_PreAttack1),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -3, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 5, null),
-			new mframe_t(ai_charge, 7, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, chick_attack1)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, Chick_PreAttack1),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 5, null),
+			new mframe_t(GameAIAdapters.ai_charge, 7, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, chick_attack1)};
 	static mmove_t chick_move_start_attack1=
 		new mmove_t(FRAME_attak101, FRAME_attak113, chick_frames_start_attack1, null);
 
 	static mframe_t chick_frames_attack1[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 19, ChickRocket),
-			new mframe_t(ai_charge, -6, null),
-			new mframe_t(ai_charge, -5, null),
-			new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, -7, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 10, ChickReload),
-			new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 5, null),
-			new mframe_t(ai_charge, 6, null),
-			new mframe_t(ai_charge, 6, null),
-			new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 3, chick_rerocket)};
+			new mframe_t(GameAIAdapters.ai_charge, 19, ChickRocket),
+			new mframe_t(GameAIAdapters.ai_charge, -6, null),
+			new mframe_t(GameAIAdapters.ai_charge, -5, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -7, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 10, ChickReload),
+			new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 5, null),
+			new mframe_t(GameAIAdapters.ai_charge, 6, null),
+			new mframe_t(GameAIAdapters.ai_charge, 6, null),
+			new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, chick_rerocket)};
 	static mmove_t chick_move_attack1=
 		new mmove_t(FRAME_attak114, FRAME_attak127, chick_frames_attack1, null);
 
 	static mframe_t chick_frames_end_attack1[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, -3, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -6, null),
-			new mframe_t(ai_charge, -4, null),
-			new mframe_t(ai_charge, -2, null)};
+			new mframe_t(GameAIAdapters.ai_charge, -3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -6, null),
+			new mframe_t(GameAIAdapters.ai_charge, -4, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null)};
 	static mmove_t chick_move_end_attack1=
 		new mmove_t(FRAME_attak128, FRAME_attak132, chick_frames_end_attack1, chick_run);
 
@@ -874,24 +874,24 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_slash[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 7, ChickSlash),
-			new mframe_t(ai_charge, -7, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, -2, chick_reslash)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 7, ChickSlash),
+			new mframe_t(GameAIAdapters.ai_charge, -7, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, chick_reslash)};
 	static mmove_t chick_move_slash=
 		new mmove_t(FRAME_attak204, FRAME_attak212, chick_frames_slash, null);
 
 	static mframe_t chick_frames_end_slash[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, -6, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, -6, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, -6, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -6, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t chick_move_end_slash=
 		new mmove_t(FRAME_attak213, FRAME_attak216, chick_frames_end_slash, chick_run);
 
@@ -904,9 +904,9 @@ public class M_Chick extends GameWeapon {
 
 	static mframe_t chick_frames_start_slash[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 8, null),
-			new mframe_t(ai_charge, 3, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 8, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null)};
 	static mmove_t chick_move_start_slash=
 		new mmove_t(FRAME_attak201, FRAME_attak203, chick_frames_start_slash, chick_slash);
 
@@ -981,7 +981,7 @@ public class M_Chick extends GameWeapon {
 		self.monsterinfo.currentmove= chick_move_stand;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		walkmonster_start.think(self);
+		GameAIAdapters.walkmonster_start.think(self);
 	}
 
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss32.java,v 1.5 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Boss32.java,v 1.6 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -617,71 +617,71 @@ public class M_Boss32 extends GameWeapon {
 
 	static mframe_t makron_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 10
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 20
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 30
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 40
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 50
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null) // 60
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null) // 60
 	};
 
 	static mmove_t makron_move_stand=
@@ -689,32 +689,32 @@ public class M_Boss32 extends GameWeapon {
 
 	static mframe_t makron_frames_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 3, makron_step_left),
-			new mframe_t(ai_run, 12, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, makron_step_right),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 12, null),
-			new mframe_t(ai_run, 9, null),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 12, null)};
+			new mframe_t(GameAIAdapters.ai_run, 3, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_run, 12, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, makron_step_right),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 12, null),
+			new mframe_t(GameAIAdapters.ai_run, 9, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 12, null)};
 
 	static mmove_t makron_move_run=
 		new mmove_t(FRAME_walk204, FRAME_walk213, makron_frames_run, null);
 
 	static mframe_t makron_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 3, makron_step_left),
-			new mframe_t(ai_walk, 12, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, makron_step_right),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 12, null),
-			new mframe_t(ai_walk, 9, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 12, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 3, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_walk, 12, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, makron_step_right),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 12, null),
+			new mframe_t(GameAIAdapters.ai_walk, 9, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 12, null)};
 
 	static mmove_t makron_move_walk=
 		new mmove_t(FRAME_walk204, FRAME_walk213, makron_frames_run, null);
@@ -753,163 +753,163 @@ public class M_Boss32 extends GameWeapon {
 
 	static mframe_t makron_frames_pain6[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 10
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, makron_popup),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, makron_popup),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 20
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, makron_taunt),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, makron_taunt),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t makron_move_pain6=
 		new mmove_t(FRAME_pain601, FRAME_pain627, makron_frames_pain6, makron_run);
 
 	static mframe_t makron_frames_pain5[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t makron_move_pain5=
 		new mmove_t(FRAME_pain501, FRAME_pain504, makron_frames_pain5, makron_run);
 
 	static mframe_t makron_frames_pain4[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t makron_move_pain4=
 		new mmove_t(FRAME_pain401, FRAME_pain404, makron_frames_pain4, makron_run);
 
 	static mframe_t makron_frames_death2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, -15, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, -12, null),
-			new mframe_t(ai_move, 0, makron_step_left),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -15, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, -12, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 10
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 11, null),
-			new mframe_t(ai_move, 12, null),
-			new mframe_t(ai_move, 11, makron_step_right),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, null),
+			new mframe_t(GameAIAdapters.ai_move, 12, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, makron_step_right),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 20
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 30
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 5, null),
-			new mframe_t(ai_move, 7, null),
-			new mframe_t(ai_move, 6, makron_step_left),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 2, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 5, null),
+			new mframe_t(GameAIAdapters.ai_move, 7, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
 		// 40
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 50
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -6, makron_step_right),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -4, makron_step_left),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, makron_step_right),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 60
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -3, makron_step_right),
-			new mframe_t(ai_move, -8, null),
-			new mframe_t(ai_move, -3, makron_step_left),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -4, makron_step_right),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, makron_step_right),
+			new mframe_t(GameAIAdapters.ai_move, -8, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, makron_step_right),
 		// 70
-		new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, 0, makron_step_left),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, makron_step_left),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 80
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 90
-		new mframe_t(ai_move, 27, makron_hit),
-			new mframe_t(ai_move, 26, null),
-			new mframe_t(ai_move, 0, makron_brainsplorch),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null) // 95
+		new mframe_t(GameAIAdapters.ai_move, 27, makron_hit),
+			new mframe_t(GameAIAdapters.ai_move, 26, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, makron_brainsplorch),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null) // 95
 	};
 
 	static mmove_t makron_move_death2=
@@ -917,44 +917,44 @@ public class M_Boss32 extends GameWeapon {
 
 	static mframe_t makron_frames_death3[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t makron_move_death3=
 		new mmove_t(FRAME_death301, FRAME_death320, makron_frames_death3, null);
 
 	static mframe_t makron_frames_sight[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t makron_move_sight=
 		new mmove_t(FRAME_active01, FRAME_active13, makron_frames_sight, makron_run);
 
@@ -1315,70 +1315,70 @@ public class M_Boss32 extends GameWeapon {
 
 	static mframe_t makron_frames_attack3[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, makronBFG),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, makronBFG),
 		// FIXME: BFG Attack here
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t makron_move_attack3=
 		new mmove_t(FRAME_attak301, FRAME_attak308, makron_frames_attack3, makron_run);
 
 	static mframe_t makron_frames_attack4[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_move, 0, MakronHyperblaster),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster),
 		// fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, MakronHyperblaster), // fire
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, MakronHyperblaster), // fire
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t makron_move_attack4=
 		new mmove_t(FRAME_attak401, FRAME_attak426, makron_frames_attack4, makron_run);
 
 	static mframe_t makron_frames_attack5[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, makron_prerailgun),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, MakronSaveloc),
-			new mframe_t(ai_move, 0, MakronRailgun),
+			new mframe_t(GameAIAdapters.ai_charge, 0, makron_prerailgun),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, MakronSaveloc),
+			new mframe_t(GameAIAdapters.ai_move, 0, MakronRailgun),
 		// Fire railgun
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t makron_move_attack5=
 		new mmove_t(FRAME_attak501, FRAME_attak516, makron_frames_attack5, makron_run);
@@ -1420,7 +1420,7 @@ public class M_Boss32 extends GameWeapon {
 		self.monsterinfo.currentmove= makron_move_sight;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		walkmonster_start.think(self);
+		GameAIAdapters.walkmonster_start.think(self);
 	}
 
 	/*

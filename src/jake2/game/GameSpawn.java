@@ -19,42 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.20 2004-02-22 21:45:47 hoz Exp $
+// $Id: GameSpawn.java,v 1.21 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
+import jake2.Defines;
 import jake2.util.*;
 import jake2.qcommon.*;
-import jake2.game.*;
 
 public class GameSpawn extends GameSave {
 
-	static EntThinkAdapter SP_item_health = new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_item_health(ent);return true;}};
-	
-	static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {public boolean think(edict_t ent){ Game.SP_item_health_small(ent);return true;}};
-	static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_item_health_large(ent); return true;}};
-	static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_item_health_mega(ent); return true;}};
-
-	static EntThinkAdapter SP_info_player_start = new EntThinkAdapter() {public boolean think(edict_t ent){ SP_info_player_start(ent);return true;}};
-	static EntThinkAdapter SP_info_player_deathmatch = new EntThinkAdapter() {public boolean think(edict_t ent){ SP_info_player_deathmatch(ent);return true;}};
-	static EntThinkAdapter SP_info_player_coop = new EntThinkAdapter() {public boolean think(edict_t ent){SP_info_player_coop(ent); return true;}};
-	static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {public boolean think(edict_t ent){SP_info_player_intermission(); return true;}};
-
-	static EntThinkAdapter SP_func_plat = new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_func_plat(ent); return true;}};
-	//static EntThinkAdapter SP_func_rotating = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_button = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_door = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_door_secret = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
- 	static EntThinkAdapter SP_func_water = new EntThinkAdapter() {public boolean think(edict_t ent){SP_func_water(ent); return true;}};
-	static EntThinkAdapter SP_func_train = new EntThinkAdapter() {public boolean think(edict_t ent){SP_func_train(ent); return true;}};
-//	static EntThinkAdapter SP_func_conveyor = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_wall = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_object = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_explosive = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_timer = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
-//	static EntThinkAdapter SP_func_areaportal = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
- 	static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {public boolean think(edict_t ent){SP_func_clock(ent); return true;}};
 //	static EntThinkAdapter SP_func_killbox = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
 //
 //	static EntThinkAdapter SP_trigger_always = new EntThinkAdapter() {public boolean think(edict_t ent){ return true;}};
@@ -291,7 +265,10 @@ public class GameSpawn extends GameSave {
 		}
 	
 		if (!init)
+		{
+			System.out.println("clear!");
 			ent.clear();
+		}
 
 		return;
 	}
@@ -482,197 +459,32 @@ public class GameSpawn extends GameSave {
 	+"if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 " + "stat_string 16 " + "endif ";
 
 
-	/*QUAKED worldspawn (0 0 0) ?
-		
-		Only used for the world.
-		"sky"	environment map name
-		"skyaxis"	vector axis for rotating sky
-		"skyrotate"	speed of rotation in degrees/second
-		"sounds"	music cd track number
-		"gravity"	800 is default gravity
-		"message"	text to print at user logon
-		*/
-
-	static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
-
-		public boolean think(edict_t ent) {
-			ent.movetype = MOVETYPE_PUSH;
-			ent.solid = SOLID_BSP;
-			ent.inuse = true;
-			// since the world doesn't use G_Spawn()
-			ent.s.modelindex = 1;
-			// world model is always index 1
-			//---------------
-			// reserve some spots for dead player bodies for coop / deathmatch
-			InitBodyQue();
-			// set configstrings for items
-			SetItemNames();
-			if (st.nextmap != null)
-				level.nextmap = st.nextmap;
-			// make some data visible to the server
-			if (ent.message != null && ent.message.length() > 0) {
-				gi.configstring(CS_NAME, ent.message);
-				level.level_name = ent.message;
-			}
-			else
-				level.level_name = level.mapname;
-			if (st.sky != null && st.sky.length() > 0)
-				gi.configstring(CS_SKY, st.sky);
-			else
-				gi.configstring(CS_SKY, "unit1_");
-			gi.configstring(CS_SKYROTATE, "" + st.skyrotate);
-			gi.configstring(CS_SKYAXIS, Lib.vtos(st.skyaxis));
-			gi.configstring(CS_CDTRACK, "" + ent.sounds);
-			gi.configstring(CS_MAXCLIENTS, "" + (int) (maxclients.value));
-			// status bar program
-			if (deathmatch.value != 0)
-				gi.configstring(CS_STATUSBAR, "" + dm_statusbar);
-			else
-				gi.configstring(CS_STATUSBAR, "" + single_statusbar);
-			//---------------
-			// help icon for statusbar
-			gi.imageindex("i_help");
-			level.pic_health = gi.imageindex("i_health");
-			gi.imageindex("help");
-			gi.imageindex("field_3");
-			if (st.gravity != null)
-				gi.cvar_set("sv_gravity", "800");
-			else
-				gi.cvar_set("sv_gravity", st.gravity);
-			snd_fry = gi.soundindex("player/fry.wav");
-			// standing in lava / slime
-			PrecacheItem(FindItem("Blaster"));
-			gi.soundindex("player/lava1.wav");
-			gi.soundindex("player/lava2.wav");
-			gi.soundindex("misc/pc_up.wav");
-			gi.soundindex("misc/talk1.wav");
-			gi.soundindex("misc/udeath.wav");
-			// gibs
-			gi.soundindex("items/respawn1.wav");
-			// sexed sounds
-			gi.soundindex("*death1.wav");
-			gi.soundindex("*death2.wav");
-			gi.soundindex("*death3.wav");
-			gi.soundindex("*death4.wav");
-			gi.soundindex("*fall1.wav");
-			gi.soundindex("*fall2.wav");
-			gi.soundindex("*gurp1.wav");
-			// drowning damage
-			gi.soundindex("*gurp2.wav");
-			gi.soundindex("*jump1.wav");
-			// player jump
-			gi.soundindex("*pain25_1.wav");
-			gi.soundindex("*pain25_2.wav");
-			gi.soundindex("*pain50_1.wav");
-			gi.soundindex("*pain50_2.wav");
-			gi.soundindex("*pain75_1.wav");
-			gi.soundindex("*pain75_2.wav");
-			gi.soundindex("*pain100_1.wav");
-			gi.soundindex("*pain100_2.wav");
-			// sexed models
-			// THIS ORDER MUST MATCH THE DEFINES IN g_local.h
-			// you can add more, max 15
-			gi.modelindex("#w_blaster.md2");
-			gi.modelindex("#w_shotgun.md2");
-			gi.modelindex("#w_sshotgun.md2");
-			gi.modelindex("#w_machinegun.md2");
-			gi.modelindex("#w_chaingun.md2");
-			gi.modelindex("#a_grenades.md2");
-			gi.modelindex("#w_glauncher.md2");
-			gi.modelindex("#w_rlauncher.md2");
-			gi.modelindex("#w_hyperblaster.md2");
-			gi.modelindex("#w_railgun.md2");
-			gi.modelindex("#w_bfg.md2");
-			//-------------------
-			gi.soundindex("player/gasp1.wav");
-			// gasping for air
-			gi.soundindex("player/gasp2.wav");
-			// head breaking surface, not gasping
-			gi.soundindex("player/watr_in.wav");
-			// feet hitting water
-			gi.soundindex("player/watr_out.wav");
-			// feet leaving water
-			gi.soundindex("player/watr_un.wav");
-			// head going underwater
-			gi.soundindex("player/u_breath1.wav");
-			gi.soundindex("player/u_breath2.wav");
-			gi.soundindex("items/pkup.wav");
-			// bonus item pickup
-			gi.soundindex("world/land.wav");
-			// landing thud
-			gi.soundindex("misc/h2ohit1.wav");
-			// landing splash
-			gi.soundindex("items/damage.wav");
-			gi.soundindex("items/protect.wav");
-			gi.soundindex("items/protect4.wav");
-			gi.soundindex("weapons/noammo.wav");
-			gi.soundindex("infantry/inflies1.wav");
-			sm_meat_index = gi.modelindex("models/objects/gibs/sm_meat/tris.md2");
-			gi.modelindex("models/objects/gibs/arm/tris.md2");
-			gi.modelindex("models/objects/gibs/bone/tris.md2");
-			gi.modelindex("models/objects/gibs/bone2/tris.md2");
-			gi.modelindex("models/objects/gibs/chest/tris.md2");
-			gi.modelindex("models/objects/gibs/skull/tris.md2");
-			gi.modelindex("models/objects/gibs/head2/tris.md2");
-			//
-			//	   Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-			//
-			// 0 normal
-			gi.configstring(CS_LIGHTS + 0, "m");
-			// 1 FLICKER (first variety)
-			gi.configstring(CS_LIGHTS + 1, "mmnmmommommnonmmonqnmmo");
-			// 2 SLOW STRONG PULSE
-			gi.configstring(CS_LIGHTS + 2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
-			// 3 CANDLE (first variety)
-			gi.configstring(CS_LIGHTS + 3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
-			// 4 FAST STROBE
-			gi.configstring(CS_LIGHTS + 4, "mamamamamama");
-			// 5 GENTLE PULSE 1
-			gi.configstring(CS_LIGHTS + 5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
-			// 6 FLICKER (second variety)
-			gi.configstring(CS_LIGHTS + 6, "nmonqnmomnmomomno");
-			// 7 CANDLE (second variety)
-			gi.configstring(CS_LIGHTS + 7, "mmmaaaabcdefgmmmmaaaammmaamm");
-			// 8 CANDLE (third variety)
-			gi.configstring(CS_LIGHTS + 8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
-			// 9 SLOW STROBE (fourth variety)
-			gi.configstring(CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
-			// 10 FLUORESCENT FLICKER
-			gi.configstring(CS_LIGHTS + 10, "mmamammmmammamamaaamammma");
-			// 11 SLOW PULSE NOT FADE TO BLACK
-			gi.configstring(CS_LIGHTS + 11, "abcdefghijklmnopqrrqponmlkjihgfedcba");
-			// styles 32-62 are assigned by the light program for switchable lights
-			// 63 testing
-			gi.configstring(CS_LIGHTS + 63, "a");
-			return true;
-		}
-	};
 	static spawn_t spawns[] =
 		{
-			new spawn_t("item_health", SP_item_health),
-			new spawn_t("item_health_small", SP_item_health_small),
-			new spawn_t("item_health_large", SP_item_health_large),
-			new spawn_t("item_health_mega", SP_item_health_mega),
-			new spawn_t("info_player_start", SP_info_player_start),
-			new spawn_t("info_player_deathmatch", SP_info_player_deathmatch),
-			new spawn_t("info_player_coop", SP_info_player_coop),
-			new spawn_t("info_player_intermission", SP_info_player_intermission),
-			new spawn_t("func_plat", SP_func_plat),
-			new spawn_t("func_button", SP_func_button),
-			new spawn_t("func_door", SP_func_door),
-			new spawn_t("func_door_secret", SP_func_door_secret),
-			new spawn_t("func_door_rotating", SP_func_door_rotating),
-			new spawn_t("func_rotating", SP_func_rotating),
-			new spawn_t("func_train", SP_func_train),
-			new spawn_t("func_water", SP_func_water),
-			new spawn_t("func_conveyor", SP_func_conveyor),
-			new spawn_t("func_areaportal", SP_func_areaportal),
-			new spawn_t("func_clock", SP_func_clock),
+			new spawn_t("item_health", GameSpawnAdapters.SP_item_health),
+			new spawn_t("item_health_small", GameSpawnAdapters.SP_item_health_small),
+			new spawn_t("item_health_large", GameSpawnAdapters.SP_item_health_large),
+			new spawn_t("item_health_mega", GameSpawnAdapters.SP_item_health_mega),
+			new spawn_t("info_player_start", GameSpawnAdapters.SP_info_player_start),
+			new spawn_t("info_player_deathmatch", GameSpawnAdapters.SP_info_player_deathmatch),
+			new spawn_t("info_player_coop", GameSpawnAdapters.SP_info_player_coop),
+			new spawn_t("info_player_intermission", GameSpawnAdapters.SP_info_player_intermission),
+			new spawn_t("func_plat", GameSpawnAdapters.SP_func_plat),
+			new spawn_t("func_button", GameFuncAdapters.SP_func_button),
+			new spawn_t("func_door", GameFuncAdapters.SP_func_door),
+			new spawn_t("func_door_secret", GameFuncAdapters.SP_func_door_secret),
+			new spawn_t("func_door_rotating", GameFuncAdapters.SP_func_door_rotating),
+			new spawn_t("func_rotating", GameFuncAdapters.SP_func_rotating),
+			new spawn_t("func_train", GameSpawnAdapters.SP_func_train),
+			new spawn_t("func_water", GameSpawnAdapters.SP_func_water),
+			new spawn_t("func_conveyor", GameFuncAdapters.SP_func_conveyor),
+			new spawn_t("func_areaportal", GameMiscAdapters.SP_func_areaportal),
+			new spawn_t("func_clock", GameSpawnAdapters.SP_func_clock),
 			new spawn_t("func_wall",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_func_wall(ent);return true;}}),
 			new spawn_t("func_object",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_func_object(ent);return true;}}),
 			new spawn_t("func_timer",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_func_timer(ent);return true;}}),
 			new spawn_t("func_explosive",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_func_explosive(ent);return true;}}),
-			new spawn_t("func_killbox",   SP_func_killbox),
+			new spawn_t("func_killbox",   GameFuncAdapters.SP_func_killbox),
 			new spawn_t("trigger_always",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_always(ent);return true;}}),
 			new spawn_t("trigger_once",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_once(ent);return true;}}),
 			new spawn_t("trigger_multiple",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_multiple(ent);return true;}}),
@@ -681,7 +493,7 @@ public class GameSpawn extends GameSave {
 			new spawn_t("trigger_hurt",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_hurt(ent);return true;}}),
 			new spawn_t("trigger_key",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_key(ent);return true;}}),
 			new spawn_t("trigger_counter", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_trigger_counter(ent);return true;}}),
-			new spawn_t("trigger_elevator",  SP_trigger_elevator ),
+			new spawn_t("trigger_elevator",  GameFuncAdapters.SP_trigger_elevator ),
 			new spawn_t("trigger_gravity",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_gravity(ent);return true;}}),
 			new spawn_t("trigger_monsterjump",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_trigger_monsterjump(ent);return true;}}),
 			new spawn_t("target_temp_entity",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_target_temp_entity(ent);return true;}}),
@@ -702,7 +514,7 @@ public class GameSpawn extends GameSave {
 			new spawn_t("target_earthquake",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_target_earthquake(ent);return true;}}),
 			new spawn_t("target_character",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_target_character(ent);return true;}}),
 			new spawn_t("target_string", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_target_string(ent);return true;}}),
-			new spawn_t("worldspawn",  SP_worldspawn ),
+			new spawn_t("worldspawn",  GameSpawnAdapters.SP_worldspawn ),
 			new spawn_t("viewthing", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_viewthing(ent);return true;}}),
 			new spawn_t("light",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_light(ent);return true;}}),
 			new spawn_t("light_mine1", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_light_mine1(ent);return true;}}),
@@ -726,7 +538,7 @@ public class GameSpawn extends GameSave {
 			new spawn_t("misc_bigviper",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_misc_bigviper(ent);return true;}}),
 			new spawn_t("misc_strogg_ship",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_misc_strogg_ship(ent);return true;}}),
 			new spawn_t("misc_teleporter", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_misc_teleporter(ent);return true;}}),
-			new spawn_t("misc_teleporter_dest",  SP_misc_teleporter_dest ),
+			new spawn_t("misc_teleporter_dest",  GameMiscAdapters.SP_misc_teleporter_dest ),
 			new spawn_t("misc_blackhole", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_misc_blackhole(ent);return true;}}),
 			new spawn_t("misc_eastertank", new EntThinkAdapter() {public boolean think(edict_t ent){Game. SP_misc_eastertank(ent);return true;}}),
 			new spawn_t("misc_easterchick",  new EntThinkAdapter() {public boolean think(edict_t ent){Game.SP_misc_easterchick(ent);return true;}}),
@@ -735,9 +547,9 @@ public class GameSpawn extends GameSave {
 			new spawn_t("monster_gladiator",   new EntThinkAdapter() {public boolean think(edict_t ent){M_Gladiator.SP_monster_gladiator(ent);return true;}}),
 			new spawn_t("monster_gunner",   new EntThinkAdapter() {public boolean think(edict_t ent){M_Gunner.SP_monster_gunner(ent);return true;}}),
 			new spawn_t("monster_infantry",   new EntThinkAdapter() {public boolean think(edict_t ent){M_Infantry.SP_monster_infantry(ent);return true;}}),
-			new spawn_t("monster_soldier_light",   M_Soldier.SP_monster_soldier_light),
-			new spawn_t("monster_soldier",    M_Soldier.SP_monster_soldier),
-			new spawn_t("monster_soldier_ss",    M_Soldier.SP_monster_soldier_ss),
+			new spawn_t("monster_soldier_light",   M_SoldierAdapters.SP_monster_soldier_light),
+			new spawn_t("monster_soldier",    M_SoldierAdapters.SP_monster_soldier),
+			new spawn_t("monster_soldier_ss",    M_SoldierAdapters.SP_monster_soldier_ss),
 			new spawn_t("monster_tank",   M_Tank.SP_monster_tank),
 			new spawn_t("monster_tank_commander",    M_Tank.SP_monster_tank),
 			new spawn_t("monster_medic",   new EntThinkAdapter() {public boolean think(edict_t ent){M_Medic.SP_monster_medic(ent);return true;}}),
@@ -776,7 +588,7 @@ public class GameSpawn extends GameSave {
 		} // check item spawn functions
 		for (i = 1; i < game.num_items; i++) {
 			
-			item = itemlist[i];
+			item = GameAI.itemlist[i];
 			
 			if (item == null)
 				gi.error("ED_CallSpawn: null item in pos " + i);

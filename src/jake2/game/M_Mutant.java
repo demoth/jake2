@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Mutant.java,v 1.6 2003-12-09 22:12:44 rst Exp $
+// $Id: M_Mutant.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -240,67 +240,67 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_stand[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 10)
 
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 20)
 
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 30)
 
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 40)
 
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// 50)
 
-		new mframe_t(ai_stand, 0, null)};
+		new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static mmove_t mutant_move_stand = new mmove_t(FRAME_stand101, FRAME_stand151, mutant_frames_stand, null);
 
@@ -325,19 +325,19 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_idle[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
 		// scratch loop start
-		new mframe_t(ai_stand, 0, null), new mframe_t(ai_stand, 0, null), new mframe_t(ai_stand, 0, mutant_idle_loop),
+		new mframe_t(GameAIAdapters.ai_stand, 0, null), new mframe_t(GameAIAdapters.ai_stand, 0, null), new mframe_t(GameAIAdapters.ai_stand, 0, mutant_idle_loop),
 		// scratch loop end
-		new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+		new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static mmove_t mutant_move_idle = new mmove_t(FRAME_stand152, FRAME_stand164, mutant_frames_idle, mutant_stand);
 
@@ -355,18 +355,18 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 1, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 10, null),
-			new mframe_t(ai_walk, 13, null),
-			new mframe_t(ai_walk, 10, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 16, null),
-			new mframe_t(ai_walk, 15, null),
-			new mframe_t(ai_walk, 6, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 10, null),
+			new mframe_t(GameAIAdapters.ai_walk, 13, null),
+			new mframe_t(GameAIAdapters.ai_walk, 10, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 16, null),
+			new mframe_t(GameAIAdapters.ai_walk, 15, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null)};
 	static mmove_t mutant_move_walk = new mmove_t(FRAME_walk05, FRAME_walk16, mutant_frames_walk, null);
 
 	static EntThinkAdapter mutant_walk_loop = new EntThinkAdapter() {
@@ -378,10 +378,10 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_start_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, -2, null),
-			new mframe_t(ai_walk, 1, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, -2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1, null)};
 
 	static mmove_t mutant_move_start_walk = new mmove_t(FRAME_walk01, FRAME_walk04, mutant_frames_start_walk, mutant_walk_loop);
 
@@ -399,12 +399,12 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 40, null),
-			new mframe_t(ai_run, 40, mutant_step),
-			new mframe_t(ai_run, 24, null),
-			new mframe_t(ai_run, 5, mutant_step),
-			new mframe_t(ai_run, 17, null),
-			new mframe_t(ai_run, 10, null)};
+			new mframe_t(GameAIAdapters.ai_run, 40, null),
+			new mframe_t(GameAIAdapters.ai_run, 40, mutant_step),
+			new mframe_t(GameAIAdapters.ai_run, 24, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, mutant_step),
+			new mframe_t(GameAIAdapters.ai_run, 17, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null)};
 	static mmove_t mutant_move_run = new mmove_t(FRAME_run03, FRAME_run08, mutant_frames_run, null);
 
 	static EntThinkAdapter mutant_run = new EntThinkAdapter() {
@@ -461,13 +461,13 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_attack[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, mutant_hit_left),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, mutant_hit_right),
-			new mframe_t(ai_charge, 0, mutant_check_refire)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, mutant_hit_left),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, mutant_hit_right),
+			new mframe_t(GameAIAdapters.ai_charge, 0, mutant_check_refire)};
 	static mmove_t mutant_move_attack = new mmove_t(FRAME_attack09, FRAME_attack15, mutant_frames_attack, mutant_run);
 
 	static EntThinkAdapter mutant_melee = new EntThinkAdapter() {
@@ -552,14 +552,14 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_jump[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 17, null),
-			new mframe_t(ai_charge, 15, mutant_jump_takeoff),
-			new mframe_t(ai_charge, 15, null),
-			new mframe_t(ai_charge, 15, mutant_check_landing),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 17, null),
+			new mframe_t(GameAIAdapters.ai_charge, 15, mutant_jump_takeoff),
+			new mframe_t(GameAIAdapters.ai_charge, 15, null),
+			new mframe_t(GameAIAdapters.ai_charge, 15, mutant_check_landing),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t mutant_move_jump = new mmove_t(FRAME_attack01, FRAME_attack08, mutant_frames_jump, mutant_run);
 
 	static EntThinkAdapter mutant_jump = new EntThinkAdapter() {
@@ -637,36 +637,36 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_pain1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -8, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 5, null)};
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -8, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 5, null)};
 	static mmove_t mutant_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain105, mutant_frames_pain1, mutant_run);
 
 	static mframe_t mutant_frames_pain2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -24, null),
-			new mframe_t(ai_move, 11, null),
-			new mframe_t(ai_move, 5, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 4, null)};
+			new mframe_t(GameAIAdapters.ai_move, -24, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, null),
+			new mframe_t(GameAIAdapters.ai_move, 5, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null)};
 	static mmove_t mutant_move_pain2 = new mmove_t(FRAME_pain201, FRAME_pain206, mutant_frames_pain2, mutant_run);
 
 	static mframe_t mutant_frames_pain3[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -22, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, -22, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 	static mmove_t mutant_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain311, mutant_frames_pain3, mutant_run);
 
 	static EntPainAdapter mutant_pain = new EntPainAdapter() {
@@ -716,29 +716,29 @@ public class M_Mutant extends Game {
 
 	static mframe_t mutant_frames_death1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t mutant_move_death1 = new mmove_t(FRAME_death101, FRAME_death109, mutant_frames_death1, mutant_dead);
 
 	static mframe_t mutant_frames_death2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t mutant_move_death2 = new mmove_t(FRAME_death201, FRAME_death210, mutant_frames_death2, mutant_dead);
 
 	static EntDieAdapter mutant_die = new EntDieAdapter() {
@@ -827,7 +827,7 @@ public class M_Mutant extends Game {
 			self.monsterinfo.currentmove = mutant_move_stand;
 
 			self.monsterinfo.scale = MODEL_SCALE;
-			walkmonster_start.think(self);
+			GameAIAdapters.walkmonster_start.think(self);
 			return true;
 		}
 	};

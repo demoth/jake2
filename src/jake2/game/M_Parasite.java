@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Parasite.java,v 1.6 2004-02-25 21:59:51 rst Exp $
+// $Id: M_Parasite.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -279,121 +279,121 @@ public class M_Parasite extends M_Player {
 	};
 	static mframe_t parasite_frames_start_fidget[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t parasite_move_start_fidget =
 		new mmove_t(FRAME_stand18, FRAME_stand21, parasite_frames_start_fidget, parasite_do_fidget);
 
 	static mframe_t parasite_frames_fidget[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, parasite_scratch),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_scratch),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_scratch),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_scratch),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t parasite_move_fidget = new mmove_t(FRAME_stand22, FRAME_stand27, parasite_frames_fidget, parasite_refidget);
 
 	static mframe_t parasite_frames_end_fidget[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, parasite_scratch),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_scratch),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t parasite_move_end_fidget = new mmove_t(FRAME_stand28, FRAME_stand35, parasite_frames_end_fidget, parasite_stand);
 
 
 	static mframe_t parasite_frames_stand[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, parasite_tap)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, parasite_tap)};
 	static mmove_t parasite_move_stand = new mmove_t(FRAME_stand01, FRAME_stand17, parasite_frames_stand, parasite_stand);
 
 	static mframe_t parasite_frames_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 30, null),
-			new mframe_t(ai_run, 30, null),
-			new mframe_t(ai_run, 22, null),
-			new mframe_t(ai_run, 19, null),
-			new mframe_t(ai_run, 24, null),
-			new mframe_t(ai_run, 28, null),
-			new mframe_t(ai_run, 25, null)};
+			new mframe_t(GameAIAdapters.ai_run, 30, null),
+			new mframe_t(GameAIAdapters.ai_run, 30, null),
+			new mframe_t(GameAIAdapters.ai_run, 22, null),
+			new mframe_t(GameAIAdapters.ai_run, 19, null),
+			new mframe_t(GameAIAdapters.ai_run, 24, null),
+			new mframe_t(GameAIAdapters.ai_run, 28, null),
+			new mframe_t(GameAIAdapters.ai_run, 25, null)};
 	static mmove_t parasite_move_run = new mmove_t(FRAME_run03, FRAME_run09, parasite_frames_run, null);
 
-	static mframe_t parasite_frames_start_run[] = new mframe_t[] { new mframe_t(ai_run, 0, null), new mframe_t(ai_run, 30, null), };
+	static mframe_t parasite_frames_start_run[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_run, 0, null), new mframe_t(GameAIAdapters.ai_run, 30, null), };
 	static mmove_t parasite_move_start_run = new mmove_t(FRAME_run01, FRAME_run02, parasite_frames_start_run, parasite_run);
 
 	static mframe_t parasite_frames_stop_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 20, null),
-			new mframe_t(ai_run, 20, null),
-			new mframe_t(ai_run, 12, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 0, null),
-			new mframe_t(ai_run, 0, null)};
+			new mframe_t(GameAIAdapters.ai_run, 20, null),
+			new mframe_t(GameAIAdapters.ai_run, 20, null),
+			new mframe_t(GameAIAdapters.ai_run, 12, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 0, null),
+			new mframe_t(GameAIAdapters.ai_run, 0, null)};
 	static mmove_t parasite_move_stop_run = new mmove_t(FRAME_run10, FRAME_run15, parasite_frames_stop_run, null);
 
 
 
 	static mframe_t parasite_frames_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 30, null),
-			new mframe_t(ai_walk, 30, null),
-			new mframe_t(ai_walk, 22, null),
-			new mframe_t(ai_walk, 19, null),
-			new mframe_t(ai_walk, 24, null),
-			new mframe_t(ai_walk, 28, null),
-			new mframe_t(ai_walk, 25, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 30, null),
+			new mframe_t(GameAIAdapters.ai_walk, 30, null),
+			new mframe_t(GameAIAdapters.ai_walk, 22, null),
+			new mframe_t(GameAIAdapters.ai_walk, 19, null),
+			new mframe_t(GameAIAdapters.ai_walk, 24, null),
+			new mframe_t(GameAIAdapters.ai_walk, 28, null),
+			new mframe_t(GameAIAdapters.ai_walk, 25, null)};
 	static mmove_t parasite_move_walk = new mmove_t(FRAME_run03, FRAME_run09, parasite_frames_walk, parasite_walk);
 
 	static mframe_t parasite_frames_start_walk[] =
-		new mframe_t[] { new mframe_t(ai_walk, 0, null), new mframe_t(ai_walk, 30, parasite_walk)};
+		new mframe_t[] { new mframe_t(GameAIAdapters.ai_walk, 0, null), new mframe_t(GameAIAdapters.ai_walk, 30, parasite_walk)};
 	static mmove_t parasite_move_start_walk = new mmove_t(FRAME_run01, FRAME_run02, parasite_frames_start_walk, null);
 
 	static mframe_t parasite_frames_stop_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 20, null),
-			new mframe_t(ai_walk, 20, null),
-			new mframe_t(ai_walk, 12, null),
-			new mframe_t(ai_walk, 10, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 20, null),
+			new mframe_t(GameAIAdapters.ai_walk, 20, null),
+			new mframe_t(GameAIAdapters.ai_walk, 12, null),
+			new mframe_t(GameAIAdapters.ai_walk, 10, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null)};
 	static mmove_t parasite_move_stop_walk = new mmove_t(FRAME_run10, FRAME_run15, parasite_frames_stop_walk, null);
 
 	static mframe_t parasite_frames_pain1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 16, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 16, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t parasite_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain111, parasite_frames_pain1, parasite_start_run);
 	static EntPainAdapter parasite_pain = new EntPainAdapter() {
 		public void pain(edict_t self, edict_t other, float kick, int damage) {
@@ -484,62 +484,62 @@ public class M_Parasite extends M_Player {
 
 	static mframe_t parasite_frames_drain[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, parasite_launch),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 15, parasite_drain_attack),
+			new mframe_t(GameAIAdapters.ai_charge, 0, parasite_launch),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 15, parasite_drain_attack),
 		// Target hits)
-		new mframe_t(ai_charge, 0, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, 0, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, 0, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, 0, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, -2, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, -2, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, -3, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, -2, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, 0, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, -1, parasite_drain_attack), // drain)
-		new mframe_t(ai_charge, 0, parasite_reel_in), // let go)
-		new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, -3, null),
-			new mframe_t(ai_charge, 0, null)};
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, -2, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, -2, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, -3, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, -2, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, -1, parasite_drain_attack), // drain)
+		new mframe_t(GameAIAdapters.ai_charge, 0, parasite_reel_in), // let go)
+		new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t parasite_move_drain = new mmove_t(FRAME_drain01, FRAME_drain18, parasite_frames_drain, parasite_start_run);
 
 	static mframe_t parasite_frames_break[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -3, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 2, null),
-			new mframe_t(ai_charge, -3, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -18, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 9, null),
-			new mframe_t(ai_charge, 6, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -18, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 8, null),
-			new mframe_t(ai_charge, 9, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -18, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -18, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 9, null),
+			new mframe_t(GameAIAdapters.ai_charge, 6, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -18, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 8, null),
+			new mframe_t(GameAIAdapters.ai_charge, 9, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -18, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 		/* airborne */
-		new mframe_t(ai_charge, 0, null), /* slides */
-		new mframe_t(ai_charge, 0, null), /* slides */
-		new mframe_t(ai_charge, 0, null), /* slides */
-		new mframe_t(ai_charge, 0, null), /* slides */
-		new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 11, null),
-			new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, -5, null),
-			new mframe_t(ai_charge, 1, null)};
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), /* slides */
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), /* slides */
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), /* slides */
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), /* slides */
+		new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 11, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -5, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null)};
 	static mmove_t parasite_move_break = new mmove_t(FRAME_break01, FRAME_break32, parasite_frames_break, parasite_start_run);
 
 	/*
@@ -578,13 +578,13 @@ public class M_Parasite extends M_Player {
 
 	static mframe_t parasite_frames_death[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t parasite_move_death = new mmove_t(FRAME_death101, FRAME_death107, parasite_frames_death, parasite_dead);
 
 	static EntDieAdapter parasite_die = new EntDieAdapter() {
@@ -667,7 +667,7 @@ public class M_Parasite extends M_Player {
 			self.monsterinfo.currentmove = parasite_move_stand;
 			self.monsterinfo.scale = MODEL_SCALE;
 
-			walkmonster_start.think(self);
+			GameAIAdapters.walkmonster_start.think(self);
 
 			return true;
 		}

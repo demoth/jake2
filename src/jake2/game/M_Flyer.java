@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flyer.java,v 1.9 2004-02-25 21:59:51 rst Exp $
+// $Id: M_Flyer.java,v 1.10 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -222,152 +222,152 @@ public class M_Flyer extends M_Player {
 
 	static mframe_t flyer_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t flyer_move_stand=
 		new mmove_t(FRAME_stand01, FRAME_stand45, flyer_frames_stand, null);
 
 	static mframe_t flyer_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null)};
 
 	static mmove_t flyer_move_walk=
 		new mmove_t(FRAME_stand01, FRAME_stand45, flyer_frames_walk, null);
 
 	static mframe_t flyer_frames_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 10, null)};
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null)};
 	static mmove_t flyer_move_run=
 		new mmove_t(FRAME_stand01, FRAME_stand45, flyer_frames_run, null);
 
@@ -407,24 +407,24 @@ public class M_Flyer extends M_Player {
 	};
 	static mframe_t flyer_frames_start[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, flyer_nextmove)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, flyer_nextmove)};
 	static mmove_t flyer_move_start=
 		new mmove_t(FRAME_start01, FRAME_start06, flyer_frames_start, null);
 
 	static mframe_t flyer_frames_stop[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, flyer_nextmove)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, flyer_nextmove)};
 	static mmove_t flyer_move_stop=
 		new mmove_t(FRAME_stop01, FRAME_stop07, flyer_frames_stop, null);
 	static EntThinkAdapter flyer_stop= new EntThinkAdapter() {
@@ -443,97 +443,97 @@ public class M_Flyer extends M_Player {
 
 	static mframe_t flyer_frames_rollright[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_rollright=
 		new mmove_t(FRAME_rollr01, FRAME_rollr09, flyer_frames_rollright, null);
 
 	static mframe_t flyer_frames_rollleft[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_rollleft=
 		new mmove_t(FRAME_rollf01, FRAME_rollf09, flyer_frames_rollleft, null);
 
 	static mframe_t flyer_frames_pain3[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_pain3=
 		new mmove_t(FRAME_pain301, FRAME_pain304, flyer_frames_pain3, flyer_run);
 
 	static mframe_t flyer_frames_pain2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_pain2=
 		new mmove_t(FRAME_pain201, FRAME_pain204, flyer_frames_pain2, flyer_run);
 
 	static mframe_t flyer_frames_pain1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_pain1=
 		new mmove_t(FRAME_pain101, FRAME_pain109, flyer_frames_pain1, flyer_run);
 
 	static mframe_t flyer_frames_defense[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// Hold this frame
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_defense=
 		new mmove_t(FRAME_defens01, FRAME_defens06, flyer_frames_defense, null);
 
 	static mframe_t flyer_frames_bankright[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_bankright=
 		new mmove_t(FRAME_bankr01, FRAME_bankr07, flyer_frames_bankright, null);
 
 	static mframe_t flyer_frames_bankleft[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flyer_move_bankleft=
 		new mmove_t(FRAME_bankl01, FRAME_bankl07, flyer_frames_bankleft, null);
 
@@ -576,24 +576,24 @@ public class M_Flyer extends M_Player {
 
 	static mframe_t flyer_frames_attack2[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -10, flyer_fireleft),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireleft),
 		// left gun
-		new mframe_t(ai_charge, -10, flyer_fireright), // right gun
-		new mframe_t(ai_charge, -10, flyer_fireleft), // left gun
-		new mframe_t(ai_charge, -10, flyer_fireright), // right gun
-		new mframe_t(ai_charge, -10, flyer_fireleft), // left gun
-		new mframe_t(ai_charge, -10, flyer_fireright), // right gun
-		new mframe_t(ai_charge, -10, flyer_fireleft), // left gun
-		new mframe_t(ai_charge, -10, flyer_fireright), // right gun
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireright), // right gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireleft), // left gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireright), // right gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireleft), // left gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireright), // right gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireleft), // left gun
+		new mframe_t(GameAIAdapters.ai_charge, -10, flyer_fireright), // right gun
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t flyer_move_attack2=
 		new mmove_t(FRAME_attak201, FRAME_attak217, flyer_frames_attack2, flyer_run);
 
@@ -630,36 +630,36 @@ public class M_Flyer extends M_Player {
 
 	static mframe_t flyer_frames_start_melee[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, flyer_pop_blades),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, flyer_pop_blades),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t flyer_move_start_melee=
 		new mmove_t(FRAME_attak101, FRAME_attak106, flyer_frames_start_melee, flyer_loop_melee);
 
 	static mframe_t flyer_frames_end_melee[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t flyer_move_end_melee=
 		new mmove_t(FRAME_attak119, FRAME_attak121, flyer_frames_end_melee, flyer_run);
 
 	static mframe_t flyer_frames_loop_melee[]=
-		new mframe_t[] { new mframe_t(ai_charge, 0, null), // Loop Start
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, flyer_slash_left), // Left Wing Strike
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, flyer_slash_right), // Right Wing Strike
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null) // Loop Ends
+		new mframe_t[] { new mframe_t(GameAIAdapters.ai_charge, 0, null), // Loop Start
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, flyer_slash_left), // Left Wing Strike
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, flyer_slash_right), // Right Wing Strike
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null) // Loop Ends
 
 	};
 	
@@ -802,7 +802,7 @@ public class M_Flyer extends M_Player {
 		self.monsterinfo.currentmove= flyer_move_stand;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		flymonster_start.think(self);
+		GameAIAdapters.flymonster_start.think(self);
 	}
 
 }

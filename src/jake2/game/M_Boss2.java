@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss2.java,v 1.5 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Boss2.java,v 1.6 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -587,257 +587,257 @@ public class M_Boss2 extends GameWeapon {
 
 	static mframe_t boss2_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t boss2_move_stand=
 		new mmove_t(FRAME_stand30, FRAME_stand50, boss2_frames_stand, null);
 
 	static mframe_t boss2_frames_fidget[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t boss2_move_fidget=
 		new mmove_t(FRAME_stand1, FRAME_stand30, boss2_frames_fidget, null);
 
 	static mframe_t boss2_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 8, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null)};
 	static mmove_t boss2_move_walk= new mmove_t(FRAME_walk1, FRAME_walk20, boss2_frames_walk, null);
 
 	static mframe_t boss2_frames_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null)};
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null)};
 	static mmove_t boss2_move_run= new mmove_t(FRAME_walk1, FRAME_walk20, boss2_frames_run, null);
 
 	static mframe_t boss2_frames_attack_pre_mg[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, boss2_attack_mg)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, boss2_attack_mg)};
 	static mmove_t boss2_move_attack_pre_mg=
 		new mmove_t(FRAME_attack1, FRAME_attack9, boss2_frames_attack_pre_mg, null);
 
 	//	   Loop this
 	static mframe_t boss2_frames_attack_mg[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, Boss2MachineGun),
-			new mframe_t(ai_charge, 1, Boss2MachineGun),
-			new mframe_t(ai_charge, 1, Boss2MachineGun),
-			new mframe_t(ai_charge, 1, Boss2MachineGun),
-			new mframe_t(ai_charge, 1, Boss2MachineGun),
-			new mframe_t(ai_charge, 1, boss2_reattack_mg)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, Boss2MachineGun),
+			new mframe_t(GameAIAdapters.ai_charge, 1, Boss2MachineGun),
+			new mframe_t(GameAIAdapters.ai_charge, 1, Boss2MachineGun),
+			new mframe_t(GameAIAdapters.ai_charge, 1, Boss2MachineGun),
+			new mframe_t(GameAIAdapters.ai_charge, 1, Boss2MachineGun),
+			new mframe_t(GameAIAdapters.ai_charge, 1, boss2_reattack_mg)};
 	static mmove_t boss2_move_attack_mg=
 		new mmove_t(FRAME_attack10, FRAME_attack15, boss2_frames_attack_mg, null);
 
 	static mframe_t boss2_frames_attack_post_mg[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null)};
 	static mmove_t boss2_move_attack_post_mg=
 		new mmove_t(FRAME_attack16, FRAME_attack19, boss2_frames_attack_post_mg, boss2_run);
 
 	static mframe_t boss2_frames_attack_rocket[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_move, -20, Boss2Rocket),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 1, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, -20, Boss2Rocket),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null)};
 	static mmove_t boss2_move_attack_rocket=
 		new mmove_t(FRAME_attack20, FRAME_attack40, boss2_frames_attack_rocket, boss2_run);
 
 	static mframe_t boss2_frames_pain_heavy[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t boss2_move_pain_heavy=
 		new mmove_t(FRAME_pain2, FRAME_pain19, boss2_frames_pain_heavy, boss2_run);
 
 	static mframe_t boss2_frames_pain_light[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t boss2_move_pain_light=
 		new mmove_t(FRAME_pain20, FRAME_pain23, boss2_frames_pain_light, boss2_run);
 
 	static mframe_t boss2_frames_death[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, BossExplode)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, GameAIAdapters.BossExplode)};
 
 	/*
 	static EntThinkAdapter xxx = new EntThinkAdapter()
@@ -894,6 +894,6 @@ public class M_Boss2 extends GameWeapon {
 		self.monsterinfo.currentmove= boss2_move_stand;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		flymonster_start.think(self);
+		GameAIAdapters.flymonster_start.think(self);
 	}
 }

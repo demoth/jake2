@@ -19,10 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.7 2004-02-25 21:59:50 rst Exp $
+// $Id: M_Soldier.java,v 1.8 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
+import jake2.Defines;
 import jake2.util.*;
 import jake2.util.*;
 
@@ -519,231 +520,153 @@ public class M_Soldier extends M_Player {
 	static int sound_death_ss;
 	static int sound_cock;
 
-	static EntThinkAdapter soldier_idle = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (Lib.random() > 0.8)
-				gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_cock = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.frame == FRAME_stand322)
-				gi.sound(self, CHAN_WEAPON, sound_cock, 1, ATTN_IDLE, 0);
-			else
-				gi.sound(self, CHAN_WEAPON, sound_cock, 1, ATTN_NORM, 0);
-			return true;
-		}
-	};
-	
-		// ATTACK6 (run & shoot)
-	static EntThinkAdapter soldier_fire8 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 7);
-			return true;
-		}
-	};
-
-
-	static EntThinkAdapter soldier_stand = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if ((self.monsterinfo.currentmove == soldier_move_stand3) || (Lib.random() < 0.8))
-				self.monsterinfo.currentmove = soldier_move_stand1;
-			else
-				self.monsterinfo.currentmove = soldier_move_stand3;
-			return true;
-		}
-	};
-
-	//
-	// WALK
-	//
-
-	static EntThinkAdapter soldier_walk1_random = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (Lib.random() > 0.1)
-				self.monsterinfo.nextframe = FRAME_walk101;
-			return true;
-		}
-	};
-
-
-	static EntThinkAdapter soldier_walk = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (Lib.random() < 0.5)
-				self.monsterinfo.currentmove = soldier_move_walk1;
-			else
-				self.monsterinfo.currentmove = soldier_move_walk2;
-			return true;
-		}
-	};
-
 	// STAND
 	static mframe_t soldier_frames_stand1[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, soldier_idle),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
-	static mmove_t soldier_move_stand1 = new mmove_t(FRAME_stand101, FRAME_stand130, soldier_frames_stand1, soldier_stand);
+			new mframe_t(GameAIAdapters.ai_stand, 0, M_SoldierAdapters.soldier_idle),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
+	static mmove_t soldier_move_stand1 = new mmove_t(FRAME_stand101, FRAME_stand130, soldier_frames_stand1, M_SoldierAdapters.soldier_stand);
 
 	static mframe_t soldier_frames_stand3[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, soldier_cock),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, M_SoldierAdapters.soldier_cock),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 			
-	static mmove_t soldier_move_stand3 = new mmove_t(FRAME_stand301, FRAME_stand339, soldier_frames_stand3, soldier_stand);
+	static mmove_t soldier_move_stand3 = new mmove_t(FRAME_stand301, FRAME_stand339, soldier_frames_stand3, M_SoldierAdapters.soldier_stand);
 
 
 	static mframe_t soldier_frames_walk1[] =
 	
 		new mframe_t[] {
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 1, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, -1, soldier_walk1_random),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, -1, M_SoldierAdapters.soldier_walk1_random),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null)};
 	static mmove_t soldier_move_walk1 = new mmove_t(FRAME_walk101, FRAME_walk133, soldier_frames_walk1, null);
 
 	static mframe_t soldier_frames_walk2[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 9, null),
-			new mframe_t(ai_walk, 8, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 1, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 7, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 9, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null)};
 	static mmove_t soldier_move_walk2 = new mmove_t(FRAME_walk209, FRAME_walk218, soldier_frames_walk2, null);
 
-	static EntThinkAdapter soldier_run = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if ((self.monsterinfo.aiflags & AI_STAND_GROUND)!=0) {
-				self.monsterinfo.currentmove = soldier_move_stand1;
-				return true;
-			}
-
-			if (self.monsterinfo.currentmove ==  soldier_move_walk1
-				|| self.monsterinfo.currentmove ==  soldier_move_walk2
-				|| self.monsterinfo.currentmove ==  soldier_move_start_run) {
-				self.monsterinfo.currentmove = soldier_move_run;
-			} else {
-				self.monsterinfo.currentmove = soldier_move_start_run;
-			}
-			return true;
-		}
-	};
-	
 	//
 	// RUN
 	//
 
-	static mframe_t soldier_frames_start_run[] = new mframe_t[] { new mframe_t(ai_run, 7, null), new mframe_t(ai_run, 5, null)};
-	static mmove_t soldier_move_start_run = new mmove_t(FRAME_run01, FRAME_run02, soldier_frames_start_run, soldier_run);
+	static mframe_t soldier_frames_start_run[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_run, 7, null), new mframe_t(GameAIAdapters.ai_run, 5, null)};
+	static mmove_t soldier_move_start_run = new mmove_t(FRAME_run01, FRAME_run02, soldier_frames_start_run, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 11, null),
-			new mframe_t(ai_run, 11, null),
-			new mframe_t(ai_run, 16, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 15, null)};
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 11, null),
+			new mframe_t(GameAIAdapters.ai_run, 11, null),
+			new mframe_t(GameAIAdapters.ai_run, 16, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null)};
 	static mmove_t soldier_move_run = new mmove_t(FRAME_run03, FRAME_run08, soldier_frames_run, null);
 
 
@@ -754,112 +677,66 @@ public class M_Soldier extends M_Player {
 
 	static mframe_t soldier_frames_pain1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain105, soldier_frames_pain1, soldier_run);
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain105, soldier_frames_pain1, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_pain2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -13, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null)};
-	static mmove_t soldier_move_pain2 = new mmove_t(FRAME_pain201, FRAME_pain207, soldier_frames_pain2, soldier_run);
+			new mframe_t(GameAIAdapters.ai_move, -13, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null)};
+	static mmove_t soldier_move_pain2 = new mmove_t(FRAME_pain201, FRAME_pain207, soldier_frames_pain2, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_pain3[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -8, null),
-			new mframe_t(ai_move, 10, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null)};
-	static mmove_t soldier_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain318, soldier_frames_pain3, soldier_run);
+			new mframe_t(GameAIAdapters.ai_move, -8, null),
+			new mframe_t(GameAIAdapters.ai_move, 10, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null)};
+	static mmove_t soldier_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain318, soldier_frames_pain3, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_pain4[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, 8, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 5, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_pain4 = new mmove_t(FRAME_pain401, FRAME_pain417, soldier_frames_pain4, soldier_run);
-
-	static EntPainAdapter soldier_pain = new EntPainAdapter() {
-		public void pain(edict_t self, edict_t other, float kick, int damage) {
-			float r;
-			int n;
-
-			if (self.health < (self.max_health / 2))
-				self.s.skinnum |= 1;
-
-			if (level.time < self.pain_debounce_time) {
-				if ((self.velocity[2] > 100)
-					&& ((self.monsterinfo.currentmove == soldier_move_pain1)
-						|| (self.monsterinfo.currentmove == soldier_move_pain2)
-						|| (self.monsterinfo.currentmove == soldier_move_pain3)))
-					self.monsterinfo.currentmove = soldier_move_pain4;
-				return;
-			}
-
-			self.pain_debounce_time = level.time + 3;
-
-			n = self.s.skinnum | 1;
-			if (n == 1)
-				gi.sound(self, CHAN_VOICE, sound_pain_light, 1, ATTN_NORM, 0);
-			else if (n == 3)
-				gi.sound(self, CHAN_VOICE, sound_pain, 1, ATTN_NORM, 0);
-			else
-				gi.sound(self, CHAN_VOICE, sound_pain_ss, 1, ATTN_NORM, 0);
-
-			if (self.velocity[2] > 100) {
-				self.monsterinfo.currentmove = soldier_move_pain4;
-				return;
-			}
-
-			if (skill.value == 3)
-				return; // no pain anims in nightmare
-
-			r = Lib.random();
-
-			if (r < 0.33)
-				self.monsterinfo.currentmove = soldier_move_pain1;
-			else if (r < 0.66)
-				self.monsterinfo.currentmove = soldier_move_pain2;
-			else
-				self.monsterinfo.currentmove = soldier_move_pain3;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, 8, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 5, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_pain4 = new mmove_t(FRAME_pain401, FRAME_pain417, soldier_frames_pain4, M_SoldierAdapters.soldier_run);
 
 	//
 	// ATTACK
@@ -960,747 +837,322 @@ public class M_Soldier extends M_Player {
 		}
 	}
 
-	// ATTACK1 (blaster/shotgun)
-
-	static EntThinkAdapter soldier_fire1 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 0);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_attack1_refire1 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.skinnum > 1)
-				return true;
-
-			if (self.enemy.health <= 0)
-				return true;
-
-			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
-				self.monsterinfo.nextframe = FRAME_attak102;
-			else
-				self.monsterinfo.nextframe = FRAME_attak110;
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_attack1_refire2 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.skinnum < 2)
-				return true;
-
-			if (self.enemy.health <= 0)
-				return true;
-
-			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
-				self.monsterinfo.nextframe = FRAME_attak102;
-			return true;
-		}
-	};
-
 	static mframe_t soldier_frames_attack1[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_fire1),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_attack1_refire1),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_cock),
-			new mframe_t(ai_charge, 0, soldier_attack1_refire2),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
-	static mmove_t soldier_move_attack1 = new mmove_t(FRAME_attak101, FRAME_attak112, soldier_frames_attack1, soldier_run);
-
-	// ATTACK2 (blaster/shotgun)
-
-	static EntThinkAdapter soldier_fire2 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 1);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_attack2_refire1 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.skinnum > 1)
-				return true;
-
-			if (self.enemy.health <= 0)
-				return true;
-
-			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
-				self.monsterinfo.nextframe = FRAME_attak204;
-			else
-				self.monsterinfo.nextframe = FRAME_attak216;
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_attack2_refire2 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.skinnum < 2)
-				return true;
-
-			if (self.enemy.health <= 0)
-				return true ;
-
-			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
-				self.monsterinfo.nextframe = FRAME_attak204;
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_fire1),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_attack1_refire1),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_cock),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_attack1_refire2),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
+	static mmove_t soldier_move_attack1 = new mmove_t(FRAME_attak101, FRAME_attak112, soldier_frames_attack1, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_attack2[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_fire2),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_attack2_refire1),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_cock),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_attack2_refire2),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
-	static mmove_t soldier_move_attack2 = new mmove_t(FRAME_attak201, FRAME_attak218, soldier_frames_attack2, soldier_run);
-
-	// ATTACK3 (duck and shoot)
-
-	static EntThinkAdapter soldier_duck_down = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if ((self.monsterinfo.aiflags & AI_DUCKED)!=0)
-				return true;
-			self.monsterinfo.aiflags |= AI_DUCKED;
-			self.maxs[2] -= 32;
-			self.takedamage = DAMAGE_YES;
-			self.monsterinfo.pausetime = level.time + 1;
-			gi.linkentity(self);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_duck_up = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			self.monsterinfo.aiflags &= ~AI_DUCKED;
-			self.maxs[2] += 32;
-			self.takedamage = DAMAGE_AIM;
-			gi.linkentity(self);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_fire3 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_duck_down.think(self);
-			soldier_fire(self, 2);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_attack3_refire = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if ((level.time + 0.4) < self.monsterinfo.pausetime)
-				self.monsterinfo.nextframe = FRAME_attak303;
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_fire2),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_attack2_refire1),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_cock),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_attack2_refire2),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
+	static mmove_t soldier_move_attack2 = new mmove_t(FRAME_attak201, FRAME_attak218, soldier_frames_attack2, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_attack3[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_fire3),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_attack3_refire),
-			new mframe_t(ai_charge, 0, soldier_duck_up),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
-	static mmove_t soldier_move_attack3 = new mmove_t(FRAME_attak301, FRAME_attak309, soldier_frames_attack3, soldier_run);
-
-	// ATTACK4 (machinegun)
-
-	static EntThinkAdapter soldier_fire4 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 3);
-			//
-			//	if (self.enemy.health <= 0)
-			//		return;
-			//
-			//	if ( ((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE) )
-			//		self.monsterinfo.nextframe = FRAME_attak402;
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_fire3),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_attack3_refire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_duck_up),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
+	static mmove_t soldier_move_attack3 = new mmove_t(FRAME_attak301, FRAME_attak309, soldier_frames_attack3, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_attack4[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, soldier_fire4),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
-	static mmove_t soldier_move_attack4 = new mmove_t(FRAME_attak401, FRAME_attak406, soldier_frames_attack4, soldier_run);
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, M_SoldierAdapters.soldier_fire4),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
+	static mmove_t soldier_move_attack4 = new mmove_t(FRAME_attak401, FRAME_attak406, soldier_frames_attack4, M_SoldierAdapters.soldier_run);
 
 
-
-	static EntThinkAdapter soldier_attack6_refire = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.enemy.health <= 0)
-				return true;
-
-			if (range(self, self.enemy) < RANGE_MID)
-				return true;
-
-			if (skill.value == 3)
-				self.monsterinfo.nextframe = FRAME_runs03;
-			return true;
-		}
-	};
 
 	static mframe_t soldier_frames_attack6[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 10, null),
-			new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 12, null),
-			new mframe_t(ai_charge, 11, soldier_fire8),
-			new mframe_t(ai_charge, 13, null),
-			new mframe_t(ai_charge, 18, null),
-			new mframe_t(ai_charge, 15, null),
-			new mframe_t(ai_charge, 14, null),
-			new mframe_t(ai_charge, 11, null),
-			new mframe_t(ai_charge, 8, null),
-			new mframe_t(ai_charge, 11, null),
-			new mframe_t(ai_charge, 12, null),
-			new mframe_t(ai_charge, 12, null),
-			new mframe_t(ai_charge, 17, soldier_attack6_refire)};
-	static mmove_t soldier_move_attack6 = new mmove_t(FRAME_runs01, FRAME_runs14, soldier_frames_attack6, soldier_run);
-
-	static EntThinkAdapter soldier_attack = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.s.skinnum < 4) {
-				if (Lib.random() < 0.5)
-					self.monsterinfo.currentmove = soldier_move_attack1;
-				else
-					self.monsterinfo.currentmove = soldier_move_attack2;
-			} else {
-				self.monsterinfo.currentmove = soldier_move_attack4;
-			}
-			return true;
-		}
-	};
-
-	//
-	// SIGHT
-	//
-
-	static EntInteractAdapter soldier_sight = new EntInteractAdapter() {
-		public boolean interact(edict_t self, edict_t other) {
-			if (Lib.random() < 0.5)
-				gi.sound(self, CHAN_VOICE, sound_sight1, 1, ATTN_NORM, 0);
-			else
-				gi.sound(self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
-
-			if ((skill.value > 0) && (range(self, self.enemy) >= RANGE_MID)) {
-				if (Lib.random() > 0.5)
-					self.monsterinfo.currentmove = soldier_move_attack6;
-			}
-			return true;
-		}
-	};
-
-	//
-	// DUCK
-	//
-
-	static EntThinkAdapter soldier_duck_hold = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (level.time >= self.monsterinfo.pausetime)
-				self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
-			else
-				self.monsterinfo.aiflags |= AI_HOLD_FRAME;
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_charge, 10, null),
+			new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 12, null),
+			new mframe_t(GameAIAdapters.ai_charge, 11, M_SoldierAdapters.soldier_fire8),
+			new mframe_t(GameAIAdapters.ai_charge, 13, null),
+			new mframe_t(GameAIAdapters.ai_charge, 18, null),
+			new mframe_t(GameAIAdapters.ai_charge, 15, null),
+			new mframe_t(GameAIAdapters.ai_charge, 14, null),
+			new mframe_t(GameAIAdapters.ai_charge, 11, null),
+			new mframe_t(GameAIAdapters.ai_charge, 8, null),
+			new mframe_t(GameAIAdapters.ai_charge, 11, null),
+			new mframe_t(GameAIAdapters.ai_charge, 12, null),
+			new mframe_t(GameAIAdapters.ai_charge, 12, null),
+			new mframe_t(GameAIAdapters.ai_charge, 17, M_SoldierAdapters.soldier_attack6_refire)};
+	static mmove_t soldier_move_attack6 = new mmove_t(FRAME_runs01, FRAME_runs14, soldier_frames_attack6, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_duck[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 5, soldier_duck_down),
-			new mframe_t(ai_move, -1, soldier_duck_hold),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, soldier_duck_up),
-			new mframe_t(ai_move, 5, null)};
-	static mmove_t soldier_move_duck = new mmove_t(FRAME_duck01, FRAME_duck05, soldier_frames_duck, soldier_run);
-
-	static EntDodgeAdapter soldier_dodge = new EntDodgeAdapter() {
-		public void dodge(edict_t self, edict_t attacker, float eta) {
-			float r;
-
-			r = Lib.random();
-			if (r > 0.25)
-				return;
-
-			if (self.enemy== null)
-				self.enemy = attacker;
-
-			if (skill.value == 0) {
-				self.monsterinfo.currentmove = soldier_move_duck;
-				return;
-			}
-
-			self.monsterinfo.pausetime = level.time + eta + 0.3f;
-			r = Lib.random();
-
-			if (skill.value == 1) {
-				if (r > 0.33)
-					self.monsterinfo.currentmove = soldier_move_duck;
-				else
-					self.monsterinfo.currentmove = soldier_move_attack3;
-				return;
-			}
-
-			if (skill.value >= 2) {
-				if (r > 0.66)
-					self.monsterinfo.currentmove = soldier_move_duck;
-				else
-					self.monsterinfo.currentmove = soldier_move_attack3;
-				return;
-			}
-
-			self.monsterinfo.currentmove = soldier_move_attack3;
-		}
-	};
-
-	//
-	// DEATH
-	//
-
-	static EntThinkAdapter soldier_fire6 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 5);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_fire7 = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			soldier_fire(self, 6);
-			return true;
-		}
-	};
-
-	static EntThinkAdapter soldier_dead = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			Math3D.VectorSet(self.mins, -16, -16, -24);
-			Math3D.VectorSet(self.maxs, 16, 16, -8);
-			self.movetype = MOVETYPE_TOSS;
-			self.svflags |= SVF_DEADMONSTER;
-			self.nextthink = 0;
-			gi.linkentity(self);
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_move, 5, M_SoldierAdapters.soldier_duck_down),
+			new mframe_t(GameAIAdapters.ai_move, -1, M_SoldierAdapters.soldier_duck_hold),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, M_SoldierAdapters.soldier_duck_up),
+			new mframe_t(GameAIAdapters.ai_move, 5, null)};
+	static mmove_t soldier_move_duck = new mmove_t(FRAME_duck01, FRAME_duck05, soldier_frames_duck, M_SoldierAdapters.soldier_run);
 
 	static mframe_t soldier_frames_death1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, soldier_fire6),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, soldier_fire7),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_death1 = new mmove_t(FRAME_death101, FRAME_death136, soldier_frames_death1, soldier_dead);
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, M_SoldierAdapters.soldier_fire6),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, M_SoldierAdapters.soldier_fire7),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_death1 = new mmove_t(FRAME_death101, FRAME_death136, soldier_frames_death1, M_SoldierAdapters.soldier_dead);
 
 	static mframe_t soldier_frames_death2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_death2 = new mmove_t(FRAME_death201, FRAME_death235, soldier_frames_death2, soldier_dead);
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_death2 = new mmove_t(FRAME_death201, FRAME_death235, soldier_frames_death2, M_SoldierAdapters.soldier_dead);
 
 	static mframe_t soldier_frames_death3[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 			};
-	static mmove_t soldier_move_death3 = new mmove_t(FRAME_death301, FRAME_death345, soldier_frames_death3, soldier_dead);
+	static mmove_t soldier_move_death3 = new mmove_t(FRAME_death301, FRAME_death345, soldier_frames_death3, M_SoldierAdapters.soldier_dead);
 
 	static mframe_t soldier_frames_death4[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_death4 = new mmove_t(FRAME_death401, FRAME_death453, soldier_frames_death4, soldier_dead);
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_death4 = new mmove_t(FRAME_death401, FRAME_death453, soldier_frames_death4, M_SoldierAdapters.soldier_dead);
 
 	static mframe_t soldier_frames_death5[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_death5 = new mmove_t(FRAME_death501, FRAME_death524, soldier_frames_death5, soldier_dead);
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_death5 = new mmove_t(FRAME_death501, FRAME_death524, soldier_frames_death5, M_SoldierAdapters.soldier_dead);
 
 	static mframe_t soldier_frames_death6[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
-	static mmove_t soldier_move_death6 = new mmove_t(FRAME_death601, FRAME_death610, soldier_frames_death6, soldier_dead);
-
-	static EntDieAdapter soldier_die = new EntDieAdapter() {
-		public void die(edict_t self, edict_t inflictor, edict_t attacker, int damage, float[] point) {
-			int n;
-
-			// check for gib
-			if (self.health <= self.gib_health) {
-				gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-				for (n = 0; n < 3; n++)
-					ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-				ThrowGib(self, "models/objects/gibs/chest/tris.md2", damage, GIB_ORGANIC);
-				ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-				self.deadflag = DEAD_DEAD;
-				return;
-			}
-
-			if (self.deadflag == DEAD_DEAD)
-				return;
-
-			// regular death
-			self.deadflag = DEAD_DEAD;
-			self.takedamage = DAMAGE_YES;
-			self.s.skinnum |= 1;
-
-			if (self.s.skinnum == 1)
-				gi.sound(self, CHAN_VOICE, sound_death_light, 1, ATTN_NORM, 0);
-			else if (self.s.skinnum == 3)
-				gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-			else // (self.s.skinnum == 5)
-				gi.sound(self, CHAN_VOICE, sound_death_ss, 1, ATTN_NORM, 0);
-
-			if (Math.abs((self.s.origin[2] + self.viewheight) - point[2]) <= 4) {
-				// head shot
-				self.monsterinfo.currentmove = soldier_move_death3;
-				return;
-			}
-
-			n = Lib.rand() % 5;
-			if (n == 0)
-				self.monsterinfo.currentmove = soldier_move_death1;
-			else if (n == 1)
-				self.monsterinfo.currentmove = soldier_move_death2;
-			else if (n == 2)
-				self.monsterinfo.currentmove = soldier_move_death4;
-			else if (n == 3)
-				self.monsterinfo.currentmove = soldier_move_death5;
-			else
-				self.monsterinfo.currentmove = soldier_move_death6;
-		}
-	};
-
-	//
-	// SPAWN
-	//
-
-	static EntThinkAdapter SP_monster_soldier_x = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			self.s.modelindex = gi.modelindex("models/monsters/soldier/tris.md2");
-			self.monsterinfo.scale = MODEL_SCALE;
-			Math3D.VectorSet(self.mins, -16, -16, -24);
-			Math3D.VectorSet(self.maxs, 16, 16, 32);
-			self.movetype = MOVETYPE_STEP;
-			self.solid = SOLID_BBOX;
-
-			sound_idle = gi.soundindex("soldier/solidle1.wav");
-			sound_sight1 = gi.soundindex("soldier/solsght1.wav");
-			sound_sight2 = gi.soundindex("soldier/solsrch1.wav");
-			sound_cock = gi.soundindex("infantry/infatck3.wav");
-
-			self.mass = 100;
-
-			self.pain = soldier_pain;
-			self.die = soldier_die;
-
-			self.monsterinfo.stand = soldier_stand;
-			self.monsterinfo.walk = soldier_walk;
-			self.monsterinfo.run = soldier_run;
-			self.monsterinfo.dodge = soldier_dodge;
-			self.monsterinfo.attack = soldier_attack;
-			self.monsterinfo.melee = null;
-			self.monsterinfo.sight = soldier_sight;
-
-			gi.linkentity(self);
-
-			self.monsterinfo.stand.think(self);
-
-			walkmonster_start.think(self);
-			return true;
-		}
-	};
-
-	/*QUAKED monster_soldier_light (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
-	*/
-	static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (deathmatch.value!=0) {
-				G_FreeEdict(self);
-				return true;
-			}
-
-			SP_monster_soldier_x.think(self);
-
-			sound_pain_light = gi.soundindex("soldier/solpain2.wav");
-			sound_death_light = gi.soundindex("soldier/soldeth2.wav");
-			gi.modelindex("models/objects/laser/tris.md2");
-			gi.soundindex("misc/lasfly.wav");
-			gi.soundindex("soldier/solatck2.wav");
-
-			self.s.skinnum = 0;
-			self.health = 20;
-			self.gib_health = -30;
-			return true;
-		}
-	};
-
-	/*QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
-	*/
-
-	static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (deathmatch.value!=0) {
-				G_FreeEdict(self);
-				return true;
-			}
-
-			SP_monster_soldier_x.think(self);
-
-			sound_pain = gi.soundindex("soldier/solpain1.wav");
-			sound_death = gi.soundindex("soldier/soldeth1.wav");
-			gi.soundindex("soldier/solatck1.wav");
-
-			self.s.skinnum = 2;
-			self.health = 30;
-			self.gib_health = -30;
-			return true;
-		}
-	};
-
-	/*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
-	*/
-	static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (deathmatch.value != 0) {
-				G_FreeEdict(self);
-				return true;
-			}
-
-			SP_monster_soldier_x.think(self);
-
-			sound_pain_ss = gi.soundindex("soldier/solpain3.wav");
-			sound_death_ss = gi.soundindex("soldier/soldeth3.wav");
-			gi.soundindex("soldier/solatck3.wav");
-
-			self.s.skinnum = 4;
-			self.health = 40;
-			self.gib_health = -30;
-			return true;
-		}
-	};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
+	static mmove_t soldier_move_death6 = new mmove_t(FRAME_death601, FRAME_death610, soldier_frames_death6, M_SoldierAdapters.soldier_dead);
 
 }

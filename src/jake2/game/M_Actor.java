@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.6 2004-02-13 22:03:59 rst Exp $
+// $Id: M_Actor.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -544,63 +544,63 @@ public class M_Actor extends GameAI {
 
 	static mframe_t actor_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null),
-			new mframe_t(ai_stand, 0f, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0f, null)};
 
 	static mmove_t actor_move_stand=
 		new mmove_t(FRAME_stand101, FRAME_stand140, actor_frames_stand, null);
 
 	static mframe_t actor_frames_walk[]=
 		{
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 10, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 10, null),
-			new mframe_t(ai_walk, 1, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 0, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 10, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 10, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null)};
 
 	static mmove_t actor_move_walk=
 		new mmove_t(FRAME_walk01, FRAME_walk08, actor_frames_walk, null);
@@ -614,18 +614,18 @@ public class M_Actor extends GameAI {
 
 	static mframe_t actor_frames_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 4, null),
-			new mframe_t(ai_run, 15, null),
-			new mframe_t(ai_run, 15, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 20, null),
-			new mframe_t(ai_run, 15, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 17, null),
-			new mframe_t(ai_run, 12, null),
-			new mframe_t(ai_run, -2, null),
-			new mframe_t(ai_run, -2, null),
-			new mframe_t(ai_run, -1, null)};
+			new mframe_t(GameAIAdapters.ai_run, 4, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 20, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 17, null),
+			new mframe_t(GameAIAdapters.ai_run, 12, null),
+			new mframe_t(GameAIAdapters.ai_run, -2, null),
+			new mframe_t(GameAIAdapters.ai_run, -2, null),
+			new mframe_t(GameAIAdapters.ai_run, -1, null)};
 
 	static mmove_t actor_move_run= new mmove_t(FRAME_run02, FRAME_run07, actor_frames_run, null);
 
@@ -652,68 +652,68 @@ public class M_Actor extends GameAI {
 
 	static mframe_t actor_frames_pain1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 
 	static mmove_t actor_move_pain1=
 		new mmove_t(FRAME_pain101, FRAME_pain103, actor_frames_pain1, actor_run);
 
 	static mframe_t actor_frames_pain2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, 4, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, 4, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t actor_move_pain2=
 		new mmove_t(FRAME_pain201, FRAME_pain203, actor_frames_pain2, actor_run);
 
 	static mframe_t actor_frames_pain3[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t actor_move_pain3=
 		new mmove_t(FRAME_pain301, FRAME_pain303, actor_frames_pain3, actor_run);
 
 	static mframe_t actor_frames_flipoff[]=
 		new mframe_t[] {
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null)};
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null)};
 
 	static mmove_t actor_move_flipoff=
 		new mmove_t(FRAME_flip01, FRAME_flip14, actor_frames_flipoff, actor_run);
 
 	static mframe_t actor_frames_taunt[]=
 		new mframe_t[] {
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null),
-			new mframe_t(ai_turn, 0, null)};
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null),
+			new mframe_t(GameAIAdapters.ai_turn, 0, null)};
 	static mmove_t actor_move_taunt=
 		new mmove_t(FRAME_taunt01, FRAME_taunt17, actor_frames_taunt, actor_run);
 
@@ -814,32 +814,32 @@ public class M_Actor extends GameAI {
 
 	static mframe_t actor_frames_death1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -13, null),
-			new mframe_t(ai_move, 14, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -13, null),
+			new mframe_t(GameAIAdapters.ai_move, 14, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 
 	static mmove_t actor_move_death1=
 		new mmove_t(FRAME_death101, FRAME_death107, actor_frames_death1, actor_dead);
 
 	static mframe_t actor_frames_death2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 7, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -9, null),
-			new mframe_t(ai_move, -13, null),
-			new mframe_t(ai_move, -13, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 7, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -9, null),
+			new mframe_t(GameAIAdapters.ai_move, -13, null),
+			new mframe_t(GameAIAdapters.ai_move, -13, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t actor_move_death2=
 		new mmove_t(FRAME_death201, FRAME_death213, actor_frames_death2, actor_dead);
@@ -896,10 +896,10 @@ public class M_Actor extends GameAI {
 
 	static mframe_t actor_frames_attack[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, -2, actor_fire),
-			new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 2, null)};
+			new mframe_t(GameAIAdapters.ai_charge, -2, actor_fire),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 2, null)};
 
 	static mmove_t actor_move_attack=
 		new mmove_t(FRAME_attak01, FRAME_attak04, actor_frames_attack, actor_run);
@@ -992,7 +992,7 @@ public class M_Actor extends GameAI {
 		self.monsterinfo.currentmove= actor_move_stand;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		walkmonster_start.think(self);
+		GameAIAdapters.walkmonster_start.think(self);
 
 		// actors always start in a dormant state, they *must* be used to get going
 		self.use= actor_use;

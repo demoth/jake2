@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.6 2004-02-16 23:18:11 hoz Exp $
+// $Id: Fire.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -325,9 +325,9 @@ public class Fire {
 		bolt.s.modelindex= GameBase.gi.modelindex("models/objects/laser/tris.md2");
 		bolt.s.sound= GameBase.gi.soundindex("misc/lasfly.wav");
 		bolt.owner= self;
-		bolt.touch= GameWeapon.blaster_touch;
+		bolt.touch= GameWeaponAdapters.blaster_touch;
 		bolt.nextthink= GameBase.level.time + 2;
-		bolt.think= GameUtil.G_FreeEdictA;
+		bolt.think= GameUtilAdapters.G_FreeEdictA;
 		bolt.dmg= damage;
 		bolt.classname= "bolt";
 		if (hyper)
@@ -378,9 +378,9 @@ public class Fire {
 		Math3D.VectorClear(grenade.maxs);
 		grenade.s.modelindex= GameBase.gi.modelindex("models/objects/grenade/tris.md2");
 		grenade.owner= self;
-		grenade.touch= GameWeapon.Grenade_Touch;
+		grenade.touch= GameWeaponAdapters.Grenade_Touch;
 		grenade.nextthink= GameBase.level.time + timer;
-		grenade.think= GameWeapon.Grenade_Explode;
+		grenade.think= GameWeaponAdapters.Grenade_Explode;
 		grenade.dmg= damage;
 		grenade.dmg_radius= damage_radius;
 		grenade.classname= "grenade";
@@ -417,9 +417,9 @@ public class Fire {
 		Math3D.VectorClear(grenade.maxs);
 		grenade.s.modelindex= GameBase.gi.modelindex("models/objects/grenade2/tris.md2");
 		grenade.owner= self;
-		grenade.touch= GameWeapon.Grenade_Touch;
+		grenade.touch= GameWeaponAdapters.Grenade_Touch;
 		grenade.nextthink= GameBase.level.time + timer;
-		grenade.think= GameWeapon.Grenade_Explode;
+		grenade.think= GameWeaponAdapters.Grenade_Explode;
 		grenade.dmg= damage;
 		grenade.dmg_radius= damage_radius;
 		grenade.classname= "hgrenade";
@@ -430,7 +430,7 @@ public class Fire {
 		grenade.s.sound= GameBase.gi.soundindex("weapons/hgrenc1b.wav");
 	
 		if (timer <= 0.0)
-			GameWeapon.Grenade_Explode.think(grenade);
+			GameWeaponAdapters.Grenade_Explode.think(grenade);
 		else {
 			GameBase.gi.sound(self, Defines.CHAN_WEAPON, GameBase.gi.soundindex("weapons/hgrent1a.wav"), 1, Defines.ATTN_NORM, 0);
 			GameBase.gi.linkentity(grenade);
@@ -459,9 +459,9 @@ public class Fire {
 		Math3D.VectorClear(rocket.maxs);
 		rocket.s.modelindex= GameBase.gi.modelindex("models/objects/rocket/tris.md2");
 		rocket.owner= self;
-		rocket.touch= GameWeapon.rocket_touch;
+		rocket.touch= GameWeaponAdapters.rocket_touch;
 		rocket.nextthink= GameBase.level.time + 8000 / speed;
-		rocket.think= GameUtil.G_FreeEdictA;
+		rocket.think= GameUtilAdapters.G_FreeEdictA;
 		rocket.dmg= damage;
 		rocket.radius_dmg= radius_damage;
 		rocket.dmg_radius= damage_radius;
@@ -563,15 +563,15 @@ public class Fire {
 		Math3D.VectorClear(bfg.maxs);
 		bfg.s.modelindex= GameBase.gi.modelindex("sprites/s_bfg1.sp2");
 		bfg.owner= self;
-		bfg.touch= GameWeapon.bfg_touch;
+		bfg.touch= GameWeaponAdapters.bfg_touch;
 		bfg.nextthink= GameBase.level.time + 8000 / speed;
-		bfg.think= GameUtil.G_FreeEdictA;
+		bfg.think= GameUtilAdapters.G_FreeEdictA;
 		bfg.radius_dmg= damage;
 		bfg.dmg_radius= damage_radius;
 		bfg.classname= "bfg blast";
 		bfg.s.sound= GameBase.gi.soundindex("weapons/bfg__l1a.wav");
 	
-		bfg.think= GameWeapon.bfg_think;
+		bfg.think= GameWeaponAdapters.bfg_think;
 		bfg.nextthink= GameBase.level.time + Defines.FRAMETIME;
 		bfg.teammaster= bfg;
 		bfg.teamchain= null;

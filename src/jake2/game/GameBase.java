@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.26 2004-02-22 17:33:50 rst Exp $
+// $Id: GameBase.java,v 1.27 2004-02-26 22:36:31 rst Exp $
 
 /** Father of all Objects. */
 
@@ -366,6 +366,7 @@ public class GameBase extends Globals {
 	============
 	*/
 	public static void G_TouchTriggers(edict_t ent) {
+		//Com.p("G_TouchTriggers:" + ent.classname);
 		int i, num;
 		edict_t touch[] = new edict_t[MAX_EDICTS], hit;
 
@@ -384,7 +385,7 @@ public class GameBase extends Globals {
 
 			if (hit.touch == null)
 				continue;
-
+			//Com.p("G_TouchSolids: touching " + hit.classname);
 			hit.touch.touch(hit, ent, null, null);
 		}
 	}

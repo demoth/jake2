@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST
-// $Id: M_Berserk.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Berserk.java,v 1.6 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -311,11 +311,11 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_stand[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, berserk_fidget),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, berserk_fidget),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static mmove_t berserk_move_stand=
 		new mmove_t(FRAME_stand1, FRAME_stand5, berserk_frames_stand, null);
@@ -329,44 +329,44 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_stand_fidget[]=
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static mmove_t berserk_move_stand_fidget=
 		new mmove_t(FRAME_standb1, FRAME_standb20, berserk_frames_stand_fidget, berserk_stand);
 
 	static mframe_t berserk_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 9.1f, null),
-			new mframe_t(ai_walk, 6.3f, null),
-			new mframe_t(ai_walk, 4.9f, null),
-			new mframe_t(ai_walk, 6.7f, null),
-			new mframe_t(ai_walk, 6.0f, null),
-			new mframe_t(ai_walk, 8.2f, null),
-			new mframe_t(ai_walk, 7.2f, null),
-			new mframe_t(ai_walk, 6.1f, null),
-			new mframe_t(ai_walk, 4.9f, null),
-			new mframe_t(ai_walk, 4.7f, null),
-			new mframe_t(ai_walk, 4.7f, null),
-			new mframe_t(ai_walk, 4.8f, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 9.1f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6.3f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.9f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6.7f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6.0f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 8.2f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7.2f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6.1f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.9f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.7f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.7f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.8f, null)};
 
 	static mmove_t berserk_move_walk=
 		new mmove_t(FRAME_walkc1, FRAME_walkc11, berserk_frames_walk, null);
@@ -404,12 +404,12 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_run1[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 21, null),
-			new mframe_t(ai_run, 11, null),
-			new mframe_t(ai_run, 21, null),
-			new mframe_t(ai_run, 25, null),
-			new mframe_t(ai_run, 18, null),
-			new mframe_t(ai_run, 19, null)};
+			new mframe_t(GameAIAdapters.ai_run, 21, null),
+			new mframe_t(GameAIAdapters.ai_run, 11, null),
+			new mframe_t(GameAIAdapters.ai_run, 21, null),
+			new mframe_t(GameAIAdapters.ai_run, 25, null),
+			new mframe_t(GameAIAdapters.ai_run, 18, null),
+			new mframe_t(GameAIAdapters.ai_run, 19, null)};
 	static mmove_t berserk_move_run1=
 		new mmove_t(FRAME_run1, FRAME_run6, berserk_frames_run1, null);
 
@@ -443,14 +443,14 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_attack_spike[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, berserk_swing),
-			new mframe_t(ai_charge, 0, berserk_attack_spike),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, berserk_swing),
+			new mframe_t(GameAIAdapters.ai_charge, 0, berserk_attack_spike),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 
 	static mmove_t berserk_move_attack_spike=
 		new mmove_t(FRAME_att_c1, FRAME_att_c8, berserk_frames_attack_spike, berserk_run);
@@ -467,18 +467,18 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_attack_club[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, berserk_swing),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, berserk_attack_club),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, berserk_swing),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, berserk_attack_club),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t berserk_move_attack_club=
 		new mmove_t(FRAME_att_c9, FRAME_att_c20, berserk_frames_attack_club, berserk_run);
 
@@ -490,20 +490,20 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_attack_strike[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, berserk_swing),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, berserk_strike),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 9.7f, null),
-			new mframe_t(ai_move, 13.6f, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, berserk_swing),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, berserk_strike),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 9.7f, null),
+			new mframe_t(GameAIAdapters.ai_move, 13.6f, null)};
 
 	static mmove_t berserk_move_attack_strike=
 		new mmove_t(FRAME_att_c21, FRAME_att_c34, berserk_frames_attack_strike, berserk_run);
@@ -541,36 +541,36 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_pain1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t berserk_move_pain1=
 		new mmove_t(FRAME_painc1, FRAME_painc4, berserk_frames_pain1, berserk_run);
 
 	static mframe_t berserk_frames_pain2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t berserk_move_pain2=
 		new mmove_t(FRAME_painb1, FRAME_painb20, berserk_frames_pain2, berserk_run);
@@ -610,33 +610,33 @@ public class M_Berserk extends GameWeapon {
 
 	static mframe_t berserk_frames_death1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 
 	static mmove_t berserk_move_death1=
 		new mmove_t(FRAME_death1, FRAME_death13, berserk_frames_death1, berserk_dead);
 
 	static mframe_t berserk_frames_death2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t berserk_move_death2=
 		new mmove_t(FRAME_deathc1, FRAME_deathc8, berserk_frames_death2, berserk_dead);
 
@@ -718,7 +718,7 @@ public class M_Berserk extends GameWeapon {
 
 		gi.linkentity(self);
 
-		walkmonster_start.think(self);
+		GameAIAdapters.walkmonster_start.think(self);
 	}
 
 }

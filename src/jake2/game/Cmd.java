@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.24 2004-02-26 13:25:35 hoz Exp $
+ * $Id: Cmd.java,v 1.25 2004-02-26 22:36:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -949,7 +949,7 @@ public final class Cmd extends PlayerView {
 		ent.flags &= ~Defines.FL_GODMODE;
 		ent.health = 0;
 		GameBase.meansOfDeath = Defines.MOD_SUICIDE;
-		GameAI.player_die.die(ent, ent, ent, 100000, GameBase.vec3_origin);
+		GameAIAdapters.player_die.die(ent, ent, ent, 100000, GameBase.vec3_origin);
 	}
 
 	/*
@@ -988,7 +988,7 @@ public final class Cmd extends PlayerView {
 		// sort by frags
 		//qsort(index, count, sizeof(index[0]), PlayerSort);
 		//replaced by:
-		Arrays.sort(index, 0, count - 1, GameAI.PlayerSort);
+		Arrays.sort(index, 0, count - 1, GameAIAdapters.PlayerSort);
 
 		// print information
 		large = "";

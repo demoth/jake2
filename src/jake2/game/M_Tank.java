@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Tank.java,v 1.6 2004-02-25 21:59:51 rst Exp $
+// $Id: M_Tank.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -382,36 +382,36 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_stand[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 	static mmove_t tank_move_stand = new mmove_t(FRAME_stand01, FRAME_stand30, tank_frames_stand, null);
 
 	static EntThinkAdapter tank_stand = new EntThinkAdapter() {
@@ -454,39 +454,39 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_start_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 11, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 11, tank_footstep)};
 	static mmove_t tank_move_start_walk = new mmove_t(FRAME_walk01, FRAME_walk04, tank_frames_start_walk, tank_walk);
 
 	static mframe_t tank_frames_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, tank_footstep),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 6, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, tank_footstep)};
 	static mmove_t tank_move_walk = new mmove_t(FRAME_walk05, FRAME_walk20, tank_frames_walk, null);
 
 	static mframe_t tank_frames_stop_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 4, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, tank_footstep)};
 	static mmove_t tank_move_stop_walk = new mmove_t(FRAME_walk21, FRAME_walk25, tank_frames_stop_walk, tank_stand);
 
 	//
@@ -495,39 +495,39 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_start_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 0, null),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 11, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_run, 0, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 11, tank_footstep)};
 	static mmove_t tank_move_start_run = new mmove_t(FRAME_walk01, FRAME_walk04, tank_frames_start_run, tank_run);
 
 	static mframe_t tank_frames_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 4, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 3, null),
-			new mframe_t(ai_run, 2, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 4, null),
-			new mframe_t(ai_run, 4, tank_footstep),
-			new mframe_t(ai_run, 3, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 4, null),
-			new mframe_t(ai_run, 5, null),
-			new mframe_t(ai_run, 7, null),
-			new mframe_t(ai_run, 7, null),
-			new mframe_t(ai_run, 6, null),
-			new mframe_t(ai_run, 6, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_run, 4, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 3, null),
+			new mframe_t(GameAIAdapters.ai_run, 2, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 4, null),
+			new mframe_t(GameAIAdapters.ai_run, 4, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_run, 3, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 4, null),
+			new mframe_t(GameAIAdapters.ai_run, 5, null),
+			new mframe_t(GameAIAdapters.ai_run, 7, null),
+			new mframe_t(GameAIAdapters.ai_run, 7, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, tank_footstep)};
 	static mmove_t tank_move_run = new mmove_t(FRAME_walk05, FRAME_walk20, tank_frames_run, null);
 
 	static mframe_t tank_frames_stop_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 3, null),
-			new mframe_t(ai_run, 3, null),
-			new mframe_t(ai_run, 2, null),
-			new mframe_t(ai_run, 2, null),
-			new mframe_t(ai_run, 4, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_run, 3, null),
+			new mframe_t(GameAIAdapters.ai_run, 3, null),
+			new mframe_t(GameAIAdapters.ai_run, 2, null),
+			new mframe_t(GameAIAdapters.ai_run, 2, null),
+			new mframe_t(GameAIAdapters.ai_run, 4, tank_footstep)};
 	static mmove_t tank_move_stop_run = new mmove_t(FRAME_walk21, FRAME_walk25, tank_frames_stop_run, tank_walk);
 
 	//
@@ -536,39 +536,39 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_pain1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t tank_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain104, tank_frames_pain1, tank_run);
 
 	static mframe_t tank_frames_pain2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t tank_move_pain2 = new mmove_t(FRAME_pain201, FRAME_pain205, tank_frames_pain2, tank_run);
 
 	static mframe_t tank_frames_pain3[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, tank_footstep)};
 	static mmove_t tank_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain316, tank_frames_pain3, tank_run);
 
 	static EntPainAdapter tank_pain = new EntPainAdapter() {
@@ -729,45 +729,45 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_attack_blast[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, -2, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankBlaster),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -2, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankBlaster),
 		// 10
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankBlaster),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankBlaster) // 16
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankBlaster),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankBlaster) // 16
 	};
 	static mmove_t tank_move_attack_blast =
 		new mmove_t(FRAME_attak101, FRAME_attak116, tank_frames_attack_blast, tank_reattack_blaster);
 
 	static mframe_t tank_frames_reattack_blast[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankBlaster),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankBlaster) // 16)
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankBlaster),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankBlaster) // 16)
 	};
 	static mmove_t tank_move_reattack_blast =
 		new mmove_t(FRAME_attak111, FRAME_attak116, tank_frames_reattack_blast, tank_reattack_blaster);
 
-	static mframe_t tank_frames_attack_post_blast[] = new mframe_t[] { new mframe_t(ai_move, 0, null), // 17)
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, -2, tank_footstep) // 22
+	static mframe_t tank_frames_attack_post_blast[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_move, 0, null), // 17)
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, tank_footstep) // 22
 	};
 	static mmove_t tank_move_attack_post_blast = new mmove_t(FRAME_attak117, FRAME_attak122, tank_frames_attack_post_blast, tank_run);
 
@@ -803,123 +803,123 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_attack_strike[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 7, null),
-			new mframe_t(ai_move, 9, tank_footstep),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 2, tank_footstep),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 0, tank_windup),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, TankStrike),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -10, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -2, tank_footstep)};
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 7, null),
+			new mframe_t(GameAIAdapters.ai_move, 9, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, tank_windup),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, TankStrike),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -10, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, tank_footstep)};
 	static mmove_t tank_move_attack_strike = new mmove_t(FRAME_attak201, FRAME_attak238, tank_frames_attack_strike, tank_poststrike);
 
 	static mframe_t tank_frames_attack_pre_rocket[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 		// 10)
 
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 1, null),
-			new mframe_t(ai_charge, 2, null),
-			new mframe_t(ai_charge, 7, null),
-			new mframe_t(ai_charge, 7, null),
-			new mframe_t(ai_charge, 7, tank_footstep),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 2, null),
+			new mframe_t(GameAIAdapters.ai_charge, 7, null),
+			new mframe_t(GameAIAdapters.ai_charge, 7, null),
+			new mframe_t(GameAIAdapters.ai_charge, 7, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 		// 20)
 
-		new mframe_t(ai_charge, -3, null)};
+		new mframe_t(GameAIAdapters.ai_charge, -3, null)};
 	static mmove_t tank_move_attack_pre_rocket =
 		new mmove_t(FRAME_attak301, FRAME_attak321, tank_frames_attack_pre_rocket, tank_doattack_rocket);
 
-	static mframe_t tank_frames_attack_fire_rocket[] = new mframe_t[] { new mframe_t(ai_charge, -3, null), // Loop Start	22 )
-		new mframe_t(ai_charge, 0, null), new mframe_t(ai_charge, 0, TankRocket), // 24)
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, TankRocket),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -1, TankRocket) // 30	Loop End
+	static mframe_t tank_frames_attack_fire_rocket[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_charge, -3, null), // Loop Start	22 )
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), new mframe_t(GameAIAdapters.ai_charge, 0, TankRocket), // 24)
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, TankRocket),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, TankRocket) // 30	Loop End
 	};
 	static mmove_t tank_move_attack_fire_rocket =
 		new mmove_t(FRAME_attak322, FRAME_attak330, tank_frames_attack_fire_rocket, tank_refire_rocket);
 
-	static mframe_t tank_frames_attack_post_rocket[] = new mframe_t[] { new mframe_t(ai_charge, 0, null), // 31)
-		new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 2, null),
-			new mframe_t(ai_charge, 3, null),
-			new mframe_t(ai_charge, 4, null),
-			new mframe_t(ai_charge, 2, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+	static mframe_t tank_frames_attack_post_rocket[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_charge, 0, null), // 31)
+		new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 2, null),
+			new mframe_t(GameAIAdapters.ai_charge, 3, null),
+			new mframe_t(GameAIAdapters.ai_charge, 4, null),
+			new mframe_t(GameAIAdapters.ai_charge, 2, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 		// 40)
 
-		new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, -9, null),
-			new mframe_t(ai_charge, -8, null),
-			new mframe_t(ai_charge, -7, null),
-			new mframe_t(ai_charge, -1, null),
-			new mframe_t(ai_charge, -1, tank_footstep),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+		new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, -9, null),
+			new mframe_t(GameAIAdapters.ai_charge, -8, null),
+			new mframe_t(GameAIAdapters.ai_charge, -7, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, null),
+			new mframe_t(GameAIAdapters.ai_charge, -1, tank_footstep),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 		// 50)
 
-		new mframe_t(ai_charge, 0, null), new mframe_t(ai_charge, 0, null), new mframe_t(ai_charge, 0, null)};
+		new mframe_t(GameAIAdapters.ai_charge, 0, null), new mframe_t(GameAIAdapters.ai_charge, 0, null), new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t tank_move_attack_post_rocket =
 		new mmove_t(FRAME_attak331, FRAME_attak353, tank_frames_attack_post_rocket, tank_run);
 
 	static mframe_t tank_frames_attack_chain[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
 			new mframe_t(null, 0, TankMachineGun),
 			new mframe_t(null, 0, TankMachineGun),
 			new mframe_t(null, 0, TankMachineGun),
@@ -939,11 +939,11 @@ public class M_Tank extends M_Player {
 			new mframe_t(null, 0, TankMachineGun),
 			new mframe_t(null, 0, TankMachineGun),
 			new mframe_t(null, 0, TankMachineGun),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 
 	static mmove_t tank_move_attack_chain = new mmove_t(FRAME_attak401, FRAME_attak429, tank_frames_attack_chain, tank_run);
 
@@ -1004,38 +1004,38 @@ public class M_Tank extends M_Player {
 
 	static mframe_t tank_frames_death1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -6, null),
-			new mframe_t(ai_move, -4, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, -15, tank_thud),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -6, null),
+			new mframe_t(GameAIAdapters.ai_move, -4, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, -15, tank_thud),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t tank_move_death = new mmove_t(FRAME_death101, FRAME_death132, tank_frames_death1, tank_dead);
 
 	static EntDieAdapter tank_die = new EntDieAdapter() {
@@ -1132,7 +1132,7 @@ public class M_Tank extends M_Player {
 			self.monsterinfo.currentmove = tank_move_stand;
 			self.monsterinfo.scale = MODEL_SCALE;
 
-			walkmonster_start.think(self);
+			GameAIAdapters.walkmonster_start.think(self);
 
 			if (Lib.strcmp(self.classname, "monster_tank_commander") == 0)
 				self.s.skinnum = 2;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Gunner.java,v 1.6 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Gunner.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -277,55 +277,55 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_fidget[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, gunner_idlesound),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, gunner_idlesound),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static EntThinkAdapter gunner_stand = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
@@ -347,53 +347,53 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_stand[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, gunner_fidget),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, gunner_fidget),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, gunner_fidget)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, gunner_fidget),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, gunner_fidget),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, gunner_fidget)};
 	static mmove_t gunner_move_stand = new mmove_t(FRAME_stand01, FRAME_stand30, gunner_frames_stand, null);
 
 	static mframe_t gunner_frames_walk[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 0, null),
-			new mframe_t(ai_walk, 3, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 6, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 2, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 5, null),
-			new mframe_t(ai_walk, 7, null),
-			new mframe_t(ai_walk, 4, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 0, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 6, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5, null),
+			new mframe_t(GameAIAdapters.ai_walk, 7, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null)};
 	static mmove_t gunner_move_walk = new mmove_t(FRAME_walk07, FRAME_walk19, gunner_frames_walk, null);
 
 	static EntThinkAdapter gunner_walk = new EntThinkAdapter() {
@@ -405,14 +405,14 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_run[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 26, null),
-			new mframe_t(ai_run, 9, null),
-			new mframe_t(ai_run, 9, null),
-			new mframe_t(ai_run, 9, null),
-			new mframe_t(ai_run, 15, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 13, null),
-			new mframe_t(ai_run, 6, null)};
+			new mframe_t(GameAIAdapters.ai_run, 26, null),
+			new mframe_t(GameAIAdapters.ai_run, 9, null),
+			new mframe_t(GameAIAdapters.ai_run, 9, null),
+			new mframe_t(GameAIAdapters.ai_run, 9, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 13, null),
+			new mframe_t(GameAIAdapters.ai_run, 6, null)};
 
 	static mmove_t gunner_move_run = new mmove_t(FRAME_run01, FRAME_run08, gunner_frames_run, null);
 
@@ -428,12 +428,12 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_runandshoot[] =
 		new mframe_t[] {
-			new mframe_t(ai_run, 32, null),
-			new mframe_t(ai_run, 15, null),
-			new mframe_t(ai_run, 10, null),
-			new mframe_t(ai_run, 18, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 20, null)};
+			new mframe_t(GameAIAdapters.ai_run, 32, null),
+			new mframe_t(GameAIAdapters.ai_run, 15, null),
+			new mframe_t(GameAIAdapters.ai_run, 10, null),
+			new mframe_t(GameAIAdapters.ai_run, 18, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 20, null)};
 
 	static mmove_t gunner_move_runandshoot = new mmove_t(FRAME_runs01, FRAME_runs06, gunner_frames_runandshoot, null);
 
@@ -446,45 +446,45 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_pain3[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 1, null)};
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null)};
 	static mmove_t gunner_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain305, gunner_frames_pain3, gunner_run);
 
 	static mframe_t gunner_frames_pain2[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 11, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -7, null)};
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 11, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null)};
 	static mmove_t gunner_move_pain2 = new mmove_t(FRAME_pain201, FRAME_pain208, gunner_frames_pain2, gunner_run);
 
 	static mframe_t gunner_frames_pain1[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 3, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 2, null),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, -2, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 3, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 2, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, -2, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t gunner_move_pain1 = new mmove_t(FRAME_pain101, FRAME_pain118, gunner_frames_pain1, gunner_run);
 
 	static EntPainAdapter gunner_pain = new EntPainAdapter() {
@@ -529,17 +529,17 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_death[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -7, null),
-			new mframe_t(ai_move, -3, null),
-			new mframe_t(ai_move, -5, null),
-			new mframe_t(ai_move, 8, null),
-			new mframe_t(ai_move, 6, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -7, null),
+			new mframe_t(GameAIAdapters.ai_move, -3, null),
+			new mframe_t(GameAIAdapters.ai_move, -5, null),
+			new mframe_t(GameAIAdapters.ai_move, 8, null),
+			new mframe_t(GameAIAdapters.ai_move, 6, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t gunner_move_death = new mmove_t(FRAME_death01, FRAME_death11, gunner_frames_death, gunner_dead);
 
 	static EntDieAdapter gunner_die = new EntDieAdapter() {
@@ -608,14 +608,14 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_duck[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 1, gunner_duck_down),
-			new mframe_t(ai_move, 1, null),
-			new mframe_t(ai_move, 1, gunner_duck_hold),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, -1, null),
-			new mframe_t(ai_move, 0, gunner_duck_up),
-			new mframe_t(ai_move, -1, null)};
+			new mframe_t(GameAIAdapters.ai_move, 1, gunner_duck_down),
+			new mframe_t(GameAIAdapters.ai_move, 1, null),
+			new mframe_t(GameAIAdapters.ai_move, 1, gunner_duck_hold),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, -1, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, gunner_duck_up),
+			new mframe_t(GameAIAdapters.ai_move, -1, null)};
 	static mmove_t gunner_move_duck = new mmove_t(FRAME_duck01, FRAME_duck08, gunner_frames_duck, gunner_run);
 
 	static EntDodgeAdapter gunner_dodge = new EntDodgeAdapter() {
@@ -713,26 +713,26 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_attack_chain[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, gunner_opengun),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, gunner_opengun),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t gunner_move_attack_chain =
 		new mmove_t(FRAME_attak209, FRAME_attak215, gunner_frames_attack_chain, gunner_fire_chain);
 
 	static mframe_t gunner_frames_fire_chain[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire),
-			new mframe_t(ai_charge, 0, GunnerFire)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerFire)};
 
 	static EntThinkAdapter gunner_refire_chain = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
@@ -751,38 +751,38 @@ public class M_Gunner extends Game {
 
 	static mframe_t gunner_frames_endfire_chain[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t gunner_move_endfire_chain = new mmove_t(FRAME_attak224, FRAME_attak230, gunner_frames_endfire_chain, gunner_run);
 
 	static mframe_t gunner_frames_attack_grenade[] =
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, GunnerGrenade),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, GunnerGrenade),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, GunnerGrenade),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, GunnerGrenade),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerGrenade),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerGrenade),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerGrenade),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, GunnerGrenade),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t gunner_move_attack_grenade = new mmove_t(FRAME_attak101, FRAME_attak121, gunner_frames_attack_grenade, gunner_run);
 
 	/*QUAKED monster_gunner (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -831,7 +831,7 @@ public class M_Gunner extends Game {
 		self.monsterinfo.currentmove = gunner_move_stand;
 		self.monsterinfo.scale = MODEL_SCALE;
 
-		walkmonster_start.think(self);
+		GameAIAdapters.walkmonster_start.think(self);
 	}
 
 }

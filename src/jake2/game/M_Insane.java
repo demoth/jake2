@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Insane.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Insane.java,v 1.6 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -535,238 +535,238 @@ public class M_Insane extends Game {
 
 	static mframe_t insane_frames_stand_normal[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, insane_checkdown)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, insane_checkdown)};
 
 	static mmove_t insane_move_stand_normal = new mmove_t(FRAME_stand60, FRAME_stand65, insane_frames_stand_normal, insane_stand);
 
 	static mframe_t insane_frames_stand_insane[] =
 		new mframe_t[] {
-			new mframe_t(ai_stand, 0, insane_shake),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, null),
-			new mframe_t(ai_stand, 0, insane_checkdown)};
+			new mframe_t(GameAIAdapters.ai_stand, 0, insane_shake),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, null),
+			new mframe_t(GameAIAdapters.ai_stand, 0, insane_checkdown)};
 	static mmove_t insane_move_stand_insane = new mmove_t(FRAME_stand65, FRAME_stand94, insane_frames_stand_insane, insane_stand);
 
 	static mframe_t insane_frames_uptodown[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, insane_moan),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 2.7f, null),
-			new mframe_t(ai_move, 4.1f, null),
-			new mframe_t(ai_move, 6f, null),
-			new mframe_t(ai_move, 7.6f, null),
-			new mframe_t(ai_move, 3.6f, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, insane_fist),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, insane_fist),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_moan),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 2.7f, null),
+			new mframe_t(GameAIAdapters.ai_move, 4.1f, null),
+			new mframe_t(GameAIAdapters.ai_move, 6f, null),
+			new mframe_t(GameAIAdapters.ai_move, 7.6f, null),
+			new mframe_t(GameAIAdapters.ai_move, 3.6f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_fist),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_fist),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_uptodown = new mmove_t(FRAME_stand1, FRAME_stand40, insane_frames_uptodown, insane_onground);
 
-	static mframe_t insane_frames_downtoup[] = new mframe_t[] { new mframe_t(ai_move, -0.7f, null), // 41
-		new mframe_t(ai_move, -1.2f, null), // 42
-		new mframe_t(ai_move, -1.5f, null), // 43
-		new mframe_t(ai_move, -4.5f, null), // 44
-		new mframe_t(ai_move, -3.5f, null), // 45
-		new mframe_t(ai_move, -0.2f, null), // 46
-		new mframe_t(ai_move, 0, null), // 47
-		new mframe_t(ai_move, -1.3f, null), // 48
-		new mframe_t(ai_move, -3, null), // 49
-		new mframe_t(ai_move, -2, null), // 50
-		new mframe_t(ai_move, 0, null), // 51
-		new mframe_t(ai_move, 0, null), // 52
-		new mframe_t(ai_move, 0, null), // 53
-		new mframe_t(ai_move, -3.3f, null), // 54
-		new mframe_t(ai_move, -1.6f, null), // 55
-		new mframe_t(ai_move, -0.3f, null), // 56
-		new mframe_t(ai_move, 0, null), // 57
-		new mframe_t(ai_move, 0, null), // 58
-		new mframe_t(ai_move, 0, null) // 59
+	static mframe_t insane_frames_downtoup[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_move, -0.7f, null), // 41
+		new mframe_t(GameAIAdapters.ai_move, -1.2f, null), // 42
+		new mframe_t(GameAIAdapters.ai_move, -1.5f, null), // 43
+		new mframe_t(GameAIAdapters.ai_move, -4.5f, null), // 44
+		new mframe_t(GameAIAdapters.ai_move, -3.5f, null), // 45
+		new mframe_t(GameAIAdapters.ai_move, -0.2f, null), // 46
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 47
+		new mframe_t(GameAIAdapters.ai_move, -1.3f, null), // 48
+		new mframe_t(GameAIAdapters.ai_move, -3, null), // 49
+		new mframe_t(GameAIAdapters.ai_move, -2, null), // 50
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 51
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 52
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 53
+		new mframe_t(GameAIAdapters.ai_move, -3.3f, null), // 54
+		new mframe_t(GameAIAdapters.ai_move, -1.6f, null), // 55
+		new mframe_t(GameAIAdapters.ai_move, -0.3f, null), // 56
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 57
+		new mframe_t(GameAIAdapters.ai_move, 0, null), // 58
+		new mframe_t(GameAIAdapters.ai_move, 0, null) // 59
 	};
 	static mmove_t insane_move_downtoup = new mmove_t(FRAME_stand41, FRAME_stand59, insane_frames_downtoup, insane_stand);
 
 	static mframe_t insane_frames_jumpdown[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0.2f, null),
-			new mframe_t(ai_move, 11.5f, null),
-			new mframe_t(ai_move, 5.1f, null),
-			new mframe_t(ai_move, 7.1f, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0.2f, null),
+			new mframe_t(GameAIAdapters.ai_move, 11.5f, null),
+			new mframe_t(GameAIAdapters.ai_move, 5.1f, null),
+			new mframe_t(GameAIAdapters.ai_move, 7.1f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_jumpdown = new mmove_t(FRAME_stand96, FRAME_stand100, insane_frames_jumpdown, insane_onground);
 
-	static mframe_t insane_frames_down[] = new mframe_t[] { new mframe_t(ai_move, 0, null), // 100)
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+	static mframe_t insane_frames_down[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_move, 0, null), // 100)
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 110)
-		new mframe_t(ai_move, -1.7f, null),
-			new mframe_t(ai_move, -1.6f, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, insane_fist),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, -1.7f, null),
+			new mframe_t(GameAIAdapters.ai_move, -1.6f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_fist),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 120)
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 130
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, insane_moan),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_moan),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 140
-		new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
+		new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
 		// 150
-		new mframe_t(ai_move, 0.5f, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, -0.2f, insane_scream),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0.2f, null),
-			new mframe_t(ai_move, 0.4f, null),
-			new mframe_t(ai_move, 0.6f, null),
-			new mframe_t(ai_move, 0.8f, null),
-			new mframe_t(ai_move, 0.7f, null),
-			new mframe_t(ai_move, 0, insane_checkup) // 160
+		new mframe_t(GameAIAdapters.ai_move, 0.5f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, -0.2f, insane_scream),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0.2f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0.4f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0.6f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0.8f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0.7f, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_checkup) // 160
 	};
 	static mmove_t insane_move_down = new mmove_t(FRAME_stand100, FRAME_stand160, insane_frames_down, insane_onground);
 
 	static mframe_t insane_frames_walk_normal[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 0, insane_scream),
-			new mframe_t(ai_walk, 2.5f, null),
-			new mframe_t(ai_walk, 3.5f, null),
-			new mframe_t(ai_walk, 1.7f, null),
-			new mframe_t(ai_walk, 2.3f, null),
-			new mframe_t(ai_walk, 2.4f, null),
-			new mframe_t(ai_walk, 2.2f, null),
-			new mframe_t(ai_walk, 4.2f, null),
-			new mframe_t(ai_walk, 5.6f, null),
-			new mframe_t(ai_walk, 3.3f, null),
-			new mframe_t(ai_walk, 2.4f, null),
-			new mframe_t(ai_walk, 0.9f, null),
-			new mframe_t(ai_walk, 0, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 0, insane_scream),
+			new mframe_t(GameAIAdapters.ai_walk, 2.5f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3.5f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 1.7f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.3f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.4f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.2f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4.2f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 5.6f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3.3f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.4f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0.9f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0, null)};
 	static mmove_t insane_move_walk_normal = new mmove_t(FRAME_walk27, FRAME_walk39, insane_frames_walk_normal, insane_walk);
 
 	static mmove_t insane_move_run_normal = new mmove_t(FRAME_walk27, FRAME_walk39, insane_frames_walk_normal, insane_run);
 
-	static mframe_t insane_frames_walk_insane[] = new mframe_t[] { new mframe_t(ai_walk, 0, insane_scream), // walk 1
-		new mframe_t(ai_walk, 3.4f, null), // walk 2
-		new mframe_t(ai_walk, 3.6f, null), // 3
-		new mframe_t(ai_walk, 2.9f, null), // 4
-		new mframe_t(ai_walk, 2.2f, null), // 5
-		new mframe_t(ai_walk, 2.6f, null), // 6
-		new mframe_t(ai_walk, 0, null), // 7
-		new mframe_t(ai_walk, 0.7f, null), // 8
-		new mframe_t(ai_walk, 4.8f, null), // 9
-		new mframe_t(ai_walk, 5.3f, null), // 10
-		new mframe_t(ai_walk, 1.1f, null), // 11
-		new mframe_t(ai_walk, 2, null), // 12
-		new mframe_t(ai_walk, 0.5f, null), // 13
-		new mframe_t(ai_walk, 0, null), // 14
-		new mframe_t(ai_walk, 0, null), // 15
-		new mframe_t(ai_walk, 4.9f, null), // 16
-		new mframe_t(ai_walk, 6.7f, null), // 17
-		new mframe_t(ai_walk, 3.8f, null), // 18
-		new mframe_t(ai_walk, 2, null), // 19
-		new mframe_t(ai_walk, 0.2f, null), // 20
-		new mframe_t(ai_walk, 0, null), // 21
-		new mframe_t(ai_walk, 3.4f, null), // 22
-		new mframe_t(ai_walk, 6.4f, null), // 23
-		new mframe_t(ai_walk, 5, null), // 24
-		new mframe_t(ai_walk, 1.8f, null), // 25
-		new mframe_t(ai_walk, 0, null) // 26
+	static mframe_t insane_frames_walk_insane[] = new mframe_t[] { new mframe_t(GameAIAdapters.ai_walk, 0, insane_scream), // walk 1
+		new mframe_t(GameAIAdapters.ai_walk, 3.4f, null), // walk 2
+		new mframe_t(GameAIAdapters.ai_walk, 3.6f, null), // 3
+		new mframe_t(GameAIAdapters.ai_walk, 2.9f, null), // 4
+		new mframe_t(GameAIAdapters.ai_walk, 2.2f, null), // 5
+		new mframe_t(GameAIAdapters.ai_walk, 2.6f, null), // 6
+		new mframe_t(GameAIAdapters.ai_walk, 0, null), // 7
+		new mframe_t(GameAIAdapters.ai_walk, 0.7f, null), // 8
+		new mframe_t(GameAIAdapters.ai_walk, 4.8f, null), // 9
+		new mframe_t(GameAIAdapters.ai_walk, 5.3f, null), // 10
+		new mframe_t(GameAIAdapters.ai_walk, 1.1f, null), // 11
+		new mframe_t(GameAIAdapters.ai_walk, 2, null), // 12
+		new mframe_t(GameAIAdapters.ai_walk, 0.5f, null), // 13
+		new mframe_t(GameAIAdapters.ai_walk, 0, null), // 14
+		new mframe_t(GameAIAdapters.ai_walk, 0, null), // 15
+		new mframe_t(GameAIAdapters.ai_walk, 4.9f, null), // 16
+		new mframe_t(GameAIAdapters.ai_walk, 6.7f, null), // 17
+		new mframe_t(GameAIAdapters.ai_walk, 3.8f, null), // 18
+		new mframe_t(GameAIAdapters.ai_walk, 2, null), // 19
+		new mframe_t(GameAIAdapters.ai_walk, 0.2f, null), // 20
+		new mframe_t(GameAIAdapters.ai_walk, 0, null), // 21
+		new mframe_t(GameAIAdapters.ai_walk, 3.4f, null), // 22
+		new mframe_t(GameAIAdapters.ai_walk, 6.4f, null), // 23
+		new mframe_t(GameAIAdapters.ai_walk, 5, null), // 24
+		new mframe_t(GameAIAdapters.ai_walk, 1.8f, null), // 25
+		new mframe_t(GameAIAdapters.ai_walk, 0, null) // 26
 	};
 	static mmove_t insane_move_walk_insane = new mmove_t(FRAME_walk1, FRAME_walk26, insane_frames_walk_insane, insane_walk);
 
@@ -774,115 +774,115 @@ public class M_Insane extends Game {
 
 	static mframe_t insane_frames_stand_pain[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_stand_pain = new mmove_t(FRAME_st_pain2, FRAME_st_pain12, insane_frames_stand_pain, insane_run);
 
 	static mframe_t insane_frames_stand_death[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_stand_death = new mmove_t(FRAME_st_death2, FRAME_st_death18, insane_frames_stand_death, insane_dead);
 
 	static mframe_t insane_frames_crawl[] =
 		new mframe_t[] {
-			new mframe_t(ai_walk, 0, insane_scream),
-			new mframe_t(ai_walk, 1.5f, null),
-			new mframe_t(ai_walk, 2.1f, null),
-			new mframe_t(ai_walk, 3.6f, null),
-			new mframe_t(ai_walk, 2f, null),
-			new mframe_t(ai_walk, 0.9f, null),
-			new mframe_t(ai_walk, 3f, null),
-			new mframe_t(ai_walk, 3.4f, null),
-			new mframe_t(ai_walk, 2.4f, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 0, insane_scream),
+			new mframe_t(GameAIAdapters.ai_walk, 1.5f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.1f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3.6f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 0.9f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 3.4f, null),
+			new mframe_t(GameAIAdapters.ai_walk, 2.4f, null)};
 	static mmove_t insane_move_crawl = new mmove_t(FRAME_crawl1, FRAME_crawl9, insane_frames_crawl, null);
 
 	static mmove_t insane_move_runcrawl = new mmove_t(FRAME_crawl1, FRAME_crawl9, insane_frames_crawl, null);
 
 	static mframe_t insane_frames_crawl_pain[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_crawl_pain = new mmove_t(FRAME_cr_pain2, FRAME_cr_pain10, insane_frames_crawl_pain, insane_run);
 
 	static mframe_t insane_frames_crawl_death[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_crawl_death = new mmove_t(FRAME_cr_death10, FRAME_cr_death16, insane_frames_crawl_death, insane_dead);
 
 	static mframe_t insane_frames_cross[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, insane_moan),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_moan),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_cross = new mmove_t(FRAME_cross1, FRAME_cross15, insane_frames_cross, insane_cross);
 
 	static mframe_t insane_frames_struggle_cross[] =
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, insane_scream),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, insane_scream),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t insane_move_struggle_cross = new mmove_t(FRAME_cross16, FRAME_cross30, insane_frames_struggle_cross, insane_cross);
 
 	/*QUAKED misc_insane (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn CRAWL CRUCIFIED STAND_GROUND ALWAYS_STAND
@@ -949,9 +949,9 @@ public class M_Insane extends Game {
 			Math3D.VectorSet(self.mins, -16, 0, 0);
 			Math3D.VectorSet(self.maxs, 16, 8, 32);
 			self.flags |= FL_NO_KNOCKBACK;
-			flymonster_start.think(self);
+			GameAIAdapters.flymonster_start.think(self);
 		} else {
-			walkmonster_start.think(self);
+			GameAIAdapters.walkmonster_start.think(self);
 			self.s.skinnum = Lib.rand() % 3;
 		}
 	}

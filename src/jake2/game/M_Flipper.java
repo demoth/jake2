@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flipper.java,v 1.6 2003-12-09 22:12:44 rst Exp $
+// $Id: M_Flipper.java,v 1.7 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -203,7 +203,7 @@ public class M_Flipper extends Game {
 	static int sound_sight;
 
 	static mframe_t flipper_frames_stand[]=
-		new mframe_t[] { new mframe_t(ai_stand, 0, null)};
+		new mframe_t[] { new mframe_t(GameAIAdapters.ai_stand, 0, null)};
 
 	static mmove_t flipper_move_stand=
 		new mmove_t(FRAME_flphor01, FRAME_flphor01, flipper_frames_stand, null);
@@ -218,34 +218,34 @@ public class M_Flipper extends Game {
 	public final static int FLIPPER_RUN_SPEED= 24;
 
 	static mframe_t flipper_frames_run[]=
-		new mframe_t[] { new mframe_t(ai_run, FLIPPER_RUN_SPEED, null), // 6
-		new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
+		new mframe_t[] { new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null), // 6
+		new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
 		// 10
 
-		new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
+		new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
 		// 20
 
-		new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null),
-			new mframe_t(ai_run, FLIPPER_RUN_SPEED, null) // 29
+		new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null),
+			new mframe_t(GameAIAdapters.ai_run, FLIPPER_RUN_SPEED, null) // 29
 	};
 	static mmove_t flipper_move_run_loop=
 		new mmove_t(FRAME_flpver06, FRAME_flpver29, flipper_frames_run, null);
@@ -259,12 +259,12 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_run_start[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null)};
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null)};
 	static mmove_t flipper_move_run_start=
 		new mmove_t(
 			FRAME_flpver01,
@@ -282,30 +282,30 @@ public class M_Flipper extends Game {
 	/* Standard Swimming */
 	static mframe_t flipper_frames_walk[]=
 		new mframe_t[] {
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null),
-			new mframe_t(ai_walk, 4, null)};
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null),
+			new mframe_t(GameAIAdapters.ai_walk, 4, null)};
 	static mmove_t flipper_move_walk=
 		new mmove_t(FRAME_flphor01, FRAME_flphor24, flipper_frames_walk, null);
 
@@ -318,11 +318,11 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_start_run[]=
 		new mframe_t[] {
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, null),
-			new mframe_t(ai_run, 8, flipper_run)};
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, null),
+			new mframe_t(GameAIAdapters.ai_run, 8, flipper_run)};
 	static mmove_t flipper_move_start_run=
 		new mmove_t(
 			FRAME_flphor01,
@@ -339,11 +339,11 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_pain2[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flipper_move_pain2=
 		new mmove_t(
 			FRAME_flppn101,
@@ -353,11 +353,11 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_pain1[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flipper_move_pain1=
 		new mmove_t(
 			FRAME_flppn201,
@@ -384,26 +384,26 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_attack[]=
 		new mframe_t[] {
-			new mframe_t(ai_charge, 0, flipper_preattack),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, flipper_bite),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, null),
-			new mframe_t(ai_charge, 0, flipper_bite),
-			new mframe_t(ai_charge, 0, null)};
+			new mframe_t(GameAIAdapters.ai_charge, 0, flipper_preattack),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, flipper_bite),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null),
+			new mframe_t(GameAIAdapters.ai_charge, 0, flipper_bite),
+			new mframe_t(GameAIAdapters.ai_charge, 0, null)};
 	static mmove_t flipper_move_attack=
 		new mmove_t(
 			FRAME_flpbit01,
@@ -459,62 +459,62 @@ public class M_Flipper extends Game {
 
 	static mframe_t flipper_frames_death[]=
 		new mframe_t[] {
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null),
-			new mframe_t(ai_move, 0, null)};
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null),
+			new mframe_t(GameAIAdapters.ai_move, 0, null)};
 	static mmove_t flipper_move_death=
 		new mmove_t(
 			FRAME_flpdth01,
@@ -621,7 +621,7 @@ public class M_Flipper extends Game {
 		self.monsterinfo.currentmove= flipper_move_stand;
 		self.monsterinfo.scale= MODEL_SCALE;
 
-		swimmonster_start.think(self);
+		GameAIAdapters.swimmonster_start.think(self);
 	}
 
 }

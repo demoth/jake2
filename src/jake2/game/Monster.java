@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.5 2004-02-16 20:26:38 rst Exp $
+// $Id: Monster.java,v 1.6 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
@@ -178,7 +178,7 @@ public class Monster extends GameAI{
 		self.s.renderfx |= Defines.RF_FRAMELERP;
 		self.takedamage = Defines.DAMAGE_AIM;
 		self.air_finished = GameBase.level.time + 12;
-		self.use = GameUtil.monster_use;
+		self.use = GameUtilAdapters.monster_use;
 		self.max_health = self.health;
 		self.clipmask = Defines.MASK_MONSTERSOLID;
 
@@ -187,7 +187,7 @@ public class Monster extends GameAI{
 		self.svflags &= ~Defines.SVF_DEADMONSTER;
 
 		if (null == self.monsterinfo.checkattack)
-			self.monsterinfo.checkattack = GameUtil.M_CheckAttack;
+			self.monsterinfo.checkattack = GameUtilAdapters.M_CheckAttack;
 		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
 		if (GameBase.st.item != null) {
@@ -304,65 +304,7 @@ public class Monster extends GameAI{
 			self.monsterinfo.stand.think(self);
 		}
 
-		self.think = Monster.monster_think;
+		self.think = MonsterAdapters.monster_think;
 		self.nextthink = GameBase.level.time + Defines.FRAMETIME;
 	}
-	public static EntThinkAdapter monster_think = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			M.M_MoveFrame(self);
-			if (self.linkcount != self.monsterinfo.linkcount) {
-				self.monsterinfo.linkcount = self.linkcount;
-				M.M_CheckGround(self);
-			}
-			M.M_CatagorizePosition(self);
-			M.M_WorldEffects(self);
-			M.M_SetEffects(self);
-			return true;
-		}
-	};
-	public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			self.s.origin[2] += 1;
-			GameUtil.KillBox(self);
-
-			self.solid = Defines.SOLID_BBOX;
-			self.movetype = Defines.MOVETYPE_STEP;
-			self.svflags &= ~Defines.SVF_NOCLIENT;
-			self.air_finished = GameBase.level.time + 12;
-			GameBase.gi.linkentity(self);
-
-			Monster.monster_start_go(self);
-
-			if (self.enemy != null && 0 == (self.spawnflags & 1) && 0 == (self.enemy.flags & Defines.FL_NOTARGET)) {
-				GameUtil.FoundTarget(self);
-			}
-			else {
-				self.enemy = null;
-			}
-			return true;
-		}
-	};
-	//	we have a one frame delay here so we don't telefrag the guy who activated us
-	public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
-
-		public void use(edict_t self, edict_t other, edict_t activator) {
-			self.think = monster_triggered_spawn;
-			self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-			if (activator.client != null)
-				self.enemy = activator;
-			self.use = GameUtil.monster_use;
-		}
-	};
-	public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			self.solid = Defines.SOLID_NOT;
-			self.movetype = Defines.MOVETYPE_NONE;
-			self.svflags |= Defines.SVF_NOCLIENT;
-			self.nextthink = 0;
-			self.use = monster_triggered_spawn_use;
-			return true;
-		}
-	};
 }

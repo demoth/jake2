@@ -19,89 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.19 2004-02-25 21:59:50 rst Exp $
+// $Id: PlayerClient.java,v 1.20 2004-02-26 22:36:31 rst Exp $
 
 package jake2.game;
 
+import jake2.Defines;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+
 public class PlayerClient extends PlayerHud {
-
-	//
-	// Gross, ugly, disgustuing hack section
-	//
-
-	// this function is an ugly as hell hack to fix some map flaws
-	//
-	// the coop spawn spots on some maps are SNAFU.  There are coop spots
-	// with the wrong targetname as well as spots with no name at all
-	//
-	// we use carnal knowledge of the maps to fix the coop spot targetnames to match
-	// that of the nearest named single player spot
-
-	static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			edict_t spot;
-			float[] d = { 0, 0, 0 };
-
-			spot = null;
-			EdictIterator es = null;
-
-			while (true) {
-				es = G_Find(es, findByClass, "info_player_start");
-				spot = es.o;
-				if (spot == null)
-					return true;
-				if (spot.targetname == null)
-					continue;
-				VectorSubtract(self.s.origin, spot.s.origin, d);
-				if (VectorLength(d) < 384) {
-					if ((self.targetname == null) || Q_stricmp(self.targetname, spot.targetname) != 0) {
-						//				gi.dprintf("FixCoopSpots changed %s at %s targetname from %s to %s\n", self.classname, vtos(self.s.origin), self.targetname, spot.targetname);
-						self.targetname = spot.targetname;
-					}
-					return true;
-				}
-			}
-		}
-	};
-
-	// now if that one wasn't ugly enough for you then try this one on for size
-	// some maps don't have any coop spots at all, so we need to create them
-	// where they should have been
-
-	static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			edict_t spot;
-
-			if (Q_stricmp(level.mapname, "security") == 0) {
-				spot = G_Spawn();
-				spot.classname = "info_player_coop";
-				spot.s.origin[0] = 188 - 64;
-				spot.s.origin[1] = -164;
-				spot.s.origin[2] = 80;
-				spot.targetname = "jail3";
-				spot.s.angles[1] = 90;
-
-				spot = G_Spawn();
-				spot.classname = "info_player_coop";
-				spot.s.origin[0] = 188 + 64;
-				spot.s.origin[1] = -164;
-				spot.s.origin[2] = 80;
-				spot.targetname = "jail3";
-				spot.s.angles[1] = 90;
-
-				spot = G_Spawn();
-				spot.classname = "info_player_coop";
-				spot.s.origin[0] = 188 + 128;
-				spot.s.origin[1] = -164;
-				spot.s.origin[2] = 80;
-				spot.targetname = "jail3";
-				spot.s.angles[1] = 90;
-			}
-			return true;
-		}
-	};
 
 	/*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
 	The normal starting point for a level.
@@ -111,7 +37,7 @@ public class PlayerClient extends PlayerHud {
 			return;
 		if (Q_stricmp(level.mapname, "security") == 0) {
 			// invoke one of our gross, ugly, disgusting hacks
-			self.think = SP_CreateCoopSpots;
+			self.think = PlayerClientAdapters.SP_CreateCoopSpots;
 			self.nextthink = level.time + FRAMETIME;
 		}
 	}
@@ -124,7 +50,7 @@ public class PlayerClient extends PlayerHud {
 			G_FreeEdict(self);
 			return;
 		}
-		SP_misc_teleporter_dest.think(self);
+		GameMiscAdapters.SP_misc_teleporter_dest.think(self);
 	}
 
 	/*QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32)
@@ -152,7 +78,7 @@ public class PlayerClient extends PlayerHud {
 			|| (Q_stricmp(level.mapname, "power2") == 0)
 			|| (Q_stricmp(level.mapname, "strike") == 0)) {
 			// invoke one of our gross, ugly, disgusting hacks
-			self.think = SP_FixCoopSpots;
+			self.think = PlayerClientAdapters.SP_FixCoopSpots;
 			self.nextthink = level.time + FRAMETIME;
 		}
 	}
@@ -163,14 +89,6 @@ public class PlayerClient extends PlayerHud {
 	*/
 	public static void SP_info_player_intermission() {
 	}
-
-	//=======================================================================
-
-	static EntPainAdapter player_pain = new EntPainAdapter() {
-		public void pain(edict_t self, edict_t other, float kick, int damage) {
-				// player pain is handled at the end of the frame in P_DamageFeedback
-	}
-	};
 
 	public static void ClientObituary(edict_t self, edict_t inflictor, edict_t attacker) {
 		int mod;
@@ -686,22 +604,6 @@ public class PlayerClient extends PlayerHud {
 		}
 	}
 
-	static EntDieAdapter body_die = new EntDieAdapter() {
-		public void die(edict_t self, edict_t inflictor, edict_t attacker, int damage, float[] point) {
-
-			int n;
-
-			if (self.health < -40) {
-				gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-				for (n = 0; n < 4; n++)
-					ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-				self.s.origin[2] -= 48;
-				ThrowClientHead(self, damage);
-				self.takedamage = DAMAGE_NO;
-			}
-		}
-	};
-
 	public static void CopyToBodyQue(edict_t ent) {
 		edict_t body;
 
@@ -730,7 +632,7 @@ public class PlayerClient extends PlayerHud {
 		body.owner = ent.owner;
 		body.movetype = ent.movetype;
 
-		body.die = body_die;
+		body.die = PlayerClientAdapters.body_die;
 		body.takedamage = DAMAGE_YES;
 
 		gi.linkentity(body);
@@ -938,8 +840,8 @@ public class PlayerClient extends PlayerHud {
 		ent.air_finished = level.time + 12;
 		ent.clipmask = MASK_PLAYERSOLID;
 		ent.model = "players/male/tris.md2";
-		ent.pain = player_pain;
-		ent.die = player_die;
+		ent.pain = PlayerClientAdapters.player_pain;
+		ent.die = GameAIAdapters.player_die;
 		ent.waterlevel = 0;
 		ent.watertype = 0;
 		ent.flags &= ~FL_NO_KNOCKBACK;
@@ -1286,22 +1188,6 @@ public class PlayerClient extends PlayerHud {
 		gi.configstring(CS_PLAYERSKINS + playernum, "");
 	}
 
-	//==============================================================
-
-	static edict_t pm_passent;
-
-	// pmove doesn't need to know about passent and contentmask
-	public static pmove_t.TraceAdapter PM_trace = new pmove_t.TraceAdapter() {
-
-		public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end) {
-			if (pm_passent.health > 0)
-				return gi.trace(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
-			else
-				return gi.trace(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
-		}
-
-	};
-
 	/*
 	static int CheckBlock(, int c) {
 		int v, i;
@@ -1345,7 +1231,7 @@ public class PlayerClient extends PlayerHud {
 			return;
 		}
 
-		pm_passent = ent;
+		PlayerClientAdapters.pm_passent = ent;
 
 		if (ent.client.chase_target != null) {
 
@@ -1385,7 +1271,7 @@ public class PlayerClient extends PlayerHud {
 			// this should be a copy
 			pm.cmd.set(ucmd);
 
-			pm.trace = PM_trace; // adds default parms
+			pm.trace = PlayerClientAdapters.PM_trace; // adds default parms
 			pm.pointcontents = gi.pointcontents;
 
 			// perform a pmove

@@ -26,7 +26,6 @@ import jake2.util.*;
 public class edict_t {
  
 	public edict_t(int i) {
-		
 		s.number = i;
 		index = i;
 	}
