@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.20 2004-02-07 13:02:44 rst Exp $
+// $Id: CM.java,v 1.21 2004-02-08 11:14:14 hoz Exp $
 
 package jake2.qcommon;
 
@@ -650,9 +650,10 @@ public class CM extends Game {
 				Com.Error(ERR_DROP, "Bad brushside texinfo");
 
 			//TODO: RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!
+			// hoz: checked against c version: ok.
 			if (j == -1)
 				//Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!\n");
-				;
+				out.surface = new mapsurface_t(); // just for safety
 			else
 				out.surface = map_surfaces[j];
 		}
