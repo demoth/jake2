@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.28 2004-01-11 14:38:47 cwei Exp $
+ * $Id: Globals.java,v 1.29 2004-01-18 09:41:57 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.28  2004-01-11 14:38:47  cwei
+ * Revision 1.29  2004-01-18 09:41:57  hoz
+ * Key.Message()
+ *
+ * Revision 1.28  2004/01/11 14:38:47  cwei
  * Aenderungen fuer VID impl
  *
  * Revision 1.27  2004/01/09 22:25:09  rst
@@ -354,4 +357,6 @@ public class Globals extends Defines {
 	public static String[] keybindings = new String[256];
 	public static boolean[] keydown = new boolean[256];
 	public static int anykeydown = 0;
+	public static boolean chat_team = false;
+	public static String chat_buffer = "";
 }

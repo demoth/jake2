@@ -2,9 +2,9 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.10 2004-01-11 00:31:58 hoz Exp $
+ * $Id: Key.java,v 1.11 2004-01-18 09:41:57 hoz Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -403,48 +403,42 @@ public final class Key {
 	}
 	
 	public static void Message(int key) {
-//	00368 
-//	00369         if ( key == K_ENTER || key == K_KP_ENTER )
-//	00370         {
-//	00371                 if (chat_team)
-//	00372                         Cbuf_AddText ("say_team \"");
-//	00373                 else
-//	00374                         Cbuf_AddText ("say \"");
-//	00375                 Cbuf_AddText(chat_buffer);
-//	00376                 Cbuf_AddText("\"\n");
-//	00377 
-//	00378                 cls.key_dest = key_game;
-//	00379                 chat_bufferlen = 0;
-//	00380                 chat_buffer[0] = 0;
-//	00381                 return;
-//	00382         }
-//	00383 
-//	00384         if (key == K_ESCAPE)
-//	00385         {
-//	00386                 cls.key_dest = key_game;
-//	00387                 chat_bufferlen = 0;
-//	00388                 chat_buffer[0] = 0;
-//	00389                 return;
-//	00390         }
-//	00391 
-//	00392         if (key < 32 || key > 127)
-//	00393                 return; // non printable
-//	00394 
-//	00395         if (key == K_BACKSPACE)
-//	00396         {
-//	00397                 if (chat_bufferlen)
-//	00398                 {
-//	00399                         chat_bufferlen--;
-//	00400                         chat_buffer[chat_bufferlen] = 0;
-//	00401                 }
-//	00402                 return;
-//	00403         }
-//	00404 
-//	00405         if (chat_bufferlen == sizeof(chat_buffer)-1)
-//	00406                 return; // all full
-//	00407 
-//	00408         chat_buffer[chat_bufferlen++] = key;
-//	00409         chat_buffer[chat_bufferlen] = 0;
+ 
+		if ( key == K_ENTER || key == K_KP_ENTER ) {
+			if (Globals.chat_team)
+				Cbuf.AddText("say_team \"");
+			else
+				Cbuf.AddText("say \"");
+				
+			Cbuf.AddText(Globals.chat_buffer);
+			Cbuf.AddText("\"\n");
+ 
+			Globals.cls.key_dest = Defines.key_game;
+			Globals.chat_buffer = "";
+			return;
+		}
+
+		if (key == K_ESCAPE) {
+			Globals.cls.key_dest = Defines.key_game;
+			Globals.chat_buffer = "";
+			return;
+		}
+
+		if (key < 32 || key > 127)
+			return; // non printable
+
+		if (key == K_BACKSPACE) {
+			if (Globals.chat_buffer.length() > 2) {
+				Globals.chat_buffer = Globals.chat_buffer.substring(0, Globals.chat_buffer.length()-2);
+			}
+			else Globals.chat_buffer = "";
+			return;
+		}
+
+		if (Globals.chat_buffer.length() > Defines.MAXCMDLINE)
+			return; // all full
+ 
+		Globals.chat_buffer += (char)key;
 	}
 
 //	00187 /*

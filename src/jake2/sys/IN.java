@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.11 2004-01-12 21:52:52 hoz Exp $
+ * $Id: IN.java,v 1.12 2004-01-18 09:41:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,12 +39,12 @@ public final class IN {
 	static Component c = null;
 	static Cursor emptyCursor = null;
 	
-	static boolean mouse_avail = false;
+	static boolean mouse_avail = true;
 	static boolean mouse_active = false;
 	static boolean ignorefirst = false;
 	
 	public static void ActivateMouse() {
-		if (!mouse_avail || c == null) return;
+//		if (!mouse_avail || c == null) return;
 		if (!mouse_active) {
 			KBD.mx = KBD.my = 0; // don't spazz
 			install_grabs();
@@ -53,7 +53,7 @@ public final class IN {
 	}
 	
 	public static void DeactivateMouse() {
-		if (!mouse_avail || c == null) return;
+//		if (!mouse_avail || c == null) return;
 		if (mouse_active) {
 			uninstall_grabs();
 			mouse_active = false;
