@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.18 2004-01-28 09:51:54 cwei Exp $
+ * $Id: Model.java,v 1.19 2004-02-16 13:53:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1240,12 +1240,9 @@ public abstract class Model extends Surf {
 				continue;
 			if (mod.registration_sequence != registration_sequence)
 			{	// don't need this model
-				// Mod_Free(mod);
-				// TODO clear model_t or new model_t()
-				mod_known[i] = new model_t();
+				Mod_Free(mod);
 			}
 		}
-
 		GL_FreeUnusedImages();
 	}
 
@@ -1260,10 +1257,7 @@ public abstract class Model extends Surf {
 	*/
 	void Mod_Free (model_t mod)
 	{
-		// Hunk_Free (mod.extradata);
-		// memset (mod, 0, sizeof(*mod));
 		mod.clear();
-		
 	}
 
 	/*
