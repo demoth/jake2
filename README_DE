@@ -44,6 +44,13 @@ Quake2 Leveldaten installieren:
   extrahieren
 - baseq2 ins Jake2 Verzeichnis kopieren
 
+Zum Testen neuer und experimenteller Features kann der aktuelle Jake2 
+Sourcetree per anonymous CVS ausgecheckt werden.
+- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 login"
+- bei der Frage nach dem Passwort gehts mit RETURN weiter
+- "cvs co jake2"
+- dann gehts weiter wie oben für die Sourcedistribution beschrieben
+
 viel Spass!
 
 bytonic Software

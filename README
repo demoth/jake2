@@ -37,9 +37,16 @@ build from source:
 
 installation of Quake2 data:
 - download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
-- extract the directory Install\Data\baseq2 from q2-314-demo-x86.exe with unzip or
-  Winzip
+- extract the directory Install\Data\baseq2 from q2-314-demo-x86.exe with unzip
+  or Winzip
 - copy the baseq2 directory to the Jake2 directory      
+
+If you want to have the latest experimental features you can grab the latest
+Jake2 sources from CVS.
+- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 login"
+- when askesd for password jut hit return
+- "cvs co jake2"
+- procced with the build from source instructions
 
 have fun!
 
