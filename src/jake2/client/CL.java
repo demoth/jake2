@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.5 2003-11-28 22:06:32 hoz Exp $
+ * $Id: CL.java,v 1.6 2003-11-28 22:45:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,9 +27,9 @@ package jake2.client;
 
 import jake2.Enums;
 import jake2.Globals;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.FS;
-import jake2.sys.*;
+import jake2.qcommon.*;
+import jake2.sys.CDAudio;
+import jake2.sys.IN;
 
 /**
  * CL
@@ -80,47 +80,47 @@ public final class CL {
 		
 		InitInput();
 
-//		01412         adr0 = Cvar_Get( "adr0", "", CVAR_ARCHIVE );
-//		01413         adr1 = Cvar_Get( "adr1", "", CVAR_ARCHIVE );
-//		01414         adr2 = Cvar_Get( "adr2", "", CVAR_ARCHIVE );
-//		01415         adr3 = Cvar_Get( "adr3", "", CVAR_ARCHIVE );
-//		01416         adr4 = Cvar_Get( "adr4", "", CVAR_ARCHIVE );
-//		01417         adr5 = Cvar_Get( "adr5", "", CVAR_ARCHIVE );
-//		01418         adr6 = Cvar_Get( "adr6", "", CVAR_ARCHIVE );
-//		01419         adr7 = Cvar_Get( "adr7", "", CVAR_ARCHIVE );
-//		01420         adr8 = Cvar_Get( "adr8", "", CVAR_ARCHIVE );
-//		01421 
-//		01422 //
-//		01423 // register our variables
-//		01424 //
-//		01425         cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "0.4", CVAR_ARCHIVE );
-//		01426         cl_stereo = Cvar_Get( "cl_stereo", "0", 0 );
-//		01427 
-//		01428         cl_add_blend = Cvar_Get ("cl_blend", "1", 0);
-//		01429         cl_add_lights = Cvar_Get ("cl_lights", "1", 0);
-//		01430         cl_add_particles = Cvar_Get ("cl_particles", "1", 0);
-//		01431         cl_add_entities = Cvar_Get ("cl_entities", "1", 0);
-//		01432         cl_gun = Cvar_Get ("cl_gun", "1", 0);
-//		01433         cl_footsteps = Cvar_Get ("cl_footsteps", "1", 0);
-//		01434         cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
-//		01435         cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
-//		01436         cl_predict = Cvar_Get ("cl_predict", "1", 0);
-//		01437 //      cl_minfps = Cvar_Get ("cl_minfps", "5", 0);
-//		01438         cl_maxfps = Cvar_Get ("cl_maxfps", "90", 0);
-//		01439 
-//		01440         cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0);
-//		01441         cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "200", 0);
-//		01442         cl_sidespeed = Cvar_Get ("cl_sidespeed", "200", 0);
-//		01443         cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", 0);
-//		01444         cl_pitchspeed = Cvar_Get ("cl_pitchspeed", "150", 0);
-//		01445         cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", 0);
-//		01446 
-//		01447         cl_run = Cvar_Get ("cl_run", "0", CVAR_ARCHIVE);
-//		01448         freelook = Cvar_Get( "freelook", "0", CVAR_ARCHIVE );
-//		01449         lookspring = Cvar_Get ("lookspring", "0", CVAR_ARCHIVE);
-//		01450         lookstrafe = Cvar_Get ("lookstrafe", "0", CVAR_ARCHIVE);
-//		01451         sensitivity = Cvar_Get ("sensitivity", "3", CVAR_ARCHIVE);
-//		01452 
+		Globals.adr0 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr1 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr2 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr3 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr4 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr5 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr6 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr7 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		Globals.adr8 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+
+		//
+		// register our variables
+		//
+		Globals.cl_stereo_separation = Cvar.Get( "cl_stereo_separation", "0.4", Cvar.ARCHIVE );
+		Globals.cl_stereo = Cvar.Get( "cl_stereo", "0", 0 );
+
+		Globals.cl_add_blend = Cvar.Get ("cl_blend", "1", 0);
+		Globals.cl_add_lights = Cvar.Get ("cl_lights", "1", 0);
+		Globals.cl_add_particles = Cvar.Get ("cl_particles", "1", 0);
+		Globals.cl_add_entities = Cvar.Get ("cl_entities", "1", 0);
+		Globals.cl_gun = Cvar.Get ("cl_gun", "1", 0);
+		Globals.cl_footsteps = Cvar.Get ("cl_footsteps", "1", 0);
+		Globals.cl_noskins = Cvar.Get ("cl_noskins", "0", 0);
+		Globals.cl_autoskins = Cvar.Get ("cl_autoskins", "0", 0);
+		Globals.cl_predict = Cvar.Get ("cl_predict", "1", 0);
+
+		Globals.cl_maxfps = Cvar.Get ("cl_maxfps", "90", 0);
+
+		Globals.cl_upspeed = Cvar.Get ("cl_upspeed", "200", 0);
+		Globals.cl_forwardspeed = Cvar.Get ("cl_forwardspeed", "200", 0);
+		Globals.cl_sidespeed = Cvar.Get ("cl_sidespeed", "200", 0);
+		Globals.cl_yawspeed = Cvar.Get ("cl_yawspeed", "140", 0);
+		Globals.cl_pitchspeed = Cvar.Get ("cl_pitchspeed", "150", 0);
+		Globals.cl_anglespeedkey = Cvar.Get ("cl_anglespeedkey", "1.5", 0);
+
+		Globals.cl_run = Cvar.Get ("cl_run", "0", Cvar.ARCHIVE);
+		Globals.freelook = Cvar.Get( "freelook", "0", Cvar.ARCHIVE );
+		Globals.lookspring = Cvar.Get ("lookspring", "0", Cvar.ARCHIVE);
+		Globals.lookstrafe = Cvar.Get ("lookstrafe", "0", Cvar.ARCHIVE);
+		Globals.sensitivity = Cvar.Get ("sensitivity", "3", Cvar.ARCHIVE);
+
 //		01453         m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE);
 //		01454         m_yaw = Cvar_Get ("m_yaw", "0.022", 0);
 //		01455         m_forward = Cvar_Get ("m_forward", "1", 0);

@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.5 2003-11-28 21:47:54 hoz Exp $
+ * $Id: Globals.java,v 1.6 2003-11-28 22:45:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,13 +68,47 @@ public final class Globals {
 	
 	public static String[] com_argv = new String[MAX_NUM_ARGVS];
 
+	public static cvar_t adr0;
+	public static cvar_t adr1;
+	public static cvar_t adr2;
+	public static cvar_t adr3;
+	public static cvar_t adr4;
+	public static cvar_t adr5;
+	public static cvar_t adr6;
+	public static cvar_t adr7;
+	public static cvar_t adr8;
+	public static cvar_t cl_add_blend;
+	public static cvar_t cl_add_entities;
+	public static cvar_t cl_add_lights;
+	public static cvar_t cl_add_particles;
+	public static cvar_t cl_anglespeedkey;
+	public static cvar_t cl_autoskins;
+	public static cvar_t cl_footsteps;
+	public static cvar_t cl_forwardspeed;
+	public static cvar_t cl_gun;
+	public static cvar_t cl_maxfps;
+	public static cvar_t cl_noskins;
+	public static cvar_t cl_pitchspeed;
+	public static cvar_t cl_predict;
+	public static cvar_t cl_run;
+	public static cvar_t cl_sidespeed;
+	public static cvar_t cl_stereo;
+	public static cvar_t cl_stereo_separation;
+	public static cvar_t cl_timedemo;
+	public static cvar_t cl_timeout;
+	public static cvar_t cl_upspeed;
+	public static cvar_t cl_yawspeed;
 	public static cvar_t dedicated;
 	public static cvar_t developer;
 	public static cvar_t fixedtime;
+	public static cvar_t freelook;	
 	public static cvar_t host_speeds;
 	public static cvar_t log_stats;
 	public static cvar_t logfile_active;
+	public static cvar_t lookspring;
+	public static cvar_t lookstrafe;	
 	public static cvar_t nostdout;
+	public static cvar_t sensitivity;	
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 	
