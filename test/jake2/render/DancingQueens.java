@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.12 2004-05-04 09:30:16 hoz Exp $
+ * $Id: DancingQueens.java,v 1.13 2004-06-09 15:21:59 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -159,7 +159,7 @@ public class DancingQueens
 		String[] names = Renderer.getDriverNames();
 		System.out.println("Registered Drivers: " + Arrays.asList(names));
 
-		this.re = Renderer.getDriver("jogl", ri);
+		this.re = Renderer.getDriver("fastjogl", ri);
 
 		System.out.println("Use driver: " + re);
 		System.out.println();
