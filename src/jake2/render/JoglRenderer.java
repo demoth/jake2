@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.6 2003-11-25 11:17:06 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.7 2003-11-25 14:58:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,14 +64,14 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 	private refimport_t ri = null;
 
-	viddef_t vid;
+	viddef_t vid = new viddef_t();
 
 	model_t r_worldmodel;
 
 	float gldepthmin, gldepthmax;
 
-	glconfig_t gl_config;
-	glstate_t gl_state;
+	glconfig_t gl_config = new glconfig_t();
+	glstate_t gl_state = new glstate_t();
 
 	image_t r_notexture; // use for bad textures
 	image_t r_particletexture; // little dot for particles
@@ -143,7 +143,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 	cvar_t gl_driver;
 	cvar_t gl_lightmap;
 	cvar_t gl_shadows;
-	cvar_t gl_mode;
+	cvar_t gl_mode = new cvar_t();
 	cvar_t gl_dynamic;
 	cvar_t gl_monolightmap;
 	cvar_t gl_modulate;
@@ -168,7 +168,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 	cvar_t gl_3dlabs_broken;
 
-	cvar_t vid_fullscreen;
+	cvar_t vid_fullscreen = new cvar_t();
 	cvar_t vid_gamma;
 	cvar_t vid_ref;
 
