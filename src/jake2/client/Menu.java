@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.11 2004-01-30 14:34:20 cwei Exp $
+ * $Id: Menu.java,v 1.12 2004-01-30 14:51:25 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2100,14 +2100,14 @@ public final class Menu extends Key {
 
 	static int m_game_cursor;
 
-	static menuframework_s s_game_menu;
-	static menuaction_s s_easy_game_action;
-	static menuaction_s s_medium_game_action;
-	static menuaction_s s_hard_game_action;
-	static menuaction_s s_load_game_action;
-	static menuaction_s s_save_game_action;
-	static menuaction_s s_credits_action;
-	static menuseparator_s s_blankline;
+	static menuframework_s s_game_menu = new menuframework_s();
+	static menuaction_s s_easy_game_action = new menuaction_s();
+	static menuaction_s s_medium_game_action = new menuaction_s();
+	static menuaction_s s_hard_game_action = new menuaction_s();
+	static menuaction_s s_load_game_action = new menuaction_s();
+	static menuaction_s s_save_game_action = new menuaction_s();
+	static menuaction_s s_credits_action = new menuaction_s();
+	static menuseparator_s s_blankline = new menuseparator_s();
 
 	static void StartGame() {
 		// disable updates and start the cinematic going
