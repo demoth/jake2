@@ -56,6 +56,12 @@
 			<fileset dir="scripts">
 				<include name="Jake2.*"/>
 			</fileset>
+			<fileset dir=".">
+				<include name="ChangeLog"/>
+				<include name="LICENSE"/>
+				<include name="README"/>
+				<include name="readme.id"/>			
+			</fileset>
 		</copy>
 		<chmod perm="755">
 			<fileset dir="${dist}">
@@ -129,6 +135,10 @@
 				<include name="lib/**"/>
 				<include name="build.xml"/>
 				<include name="build.bat"/>
+				<include name="ChangeLog"/>
+				<include name="LICENSE"/>
+				<include name="README"/>
+				<include name="readme.id"/>
 			</tarfileset>
 		</tar>
 		<zip destfile="jake2-src.zip">
@@ -139,6 +149,10 @@
 				<include name="build.xml"/>
 				<include name="build.sh"/>
 				<include name="build.bat"/>
+				<include name="ChangeLog"/>
+				<include name="LICENSE"/>
+				<include name="README"/>
+				<include name="readme.id"/>				
 			</zipfileset>
 		</zip>
 	</target>
