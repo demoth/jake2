@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.29 2004-03-17 14:26:06 hoz Exp $
+ * $Id: Qcommon.java,v 1.30 2004-03-19 09:03:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -107,8 +107,8 @@ public final class Qcommon extends Globals {
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
-			NET.NET_Init();
-			Netchan.Netchan_Init();
+			//NET.NET_Init();
+			//Netchan.Netchan_Init();
 
 			//SV_MAIN.SV_Init();
 			CL.Init();
@@ -116,7 +116,7 @@ public final class Qcommon extends Globals {
 			// add + commands from command line
 			if (!Cbuf.AddLateCommands()) {
 				// if the user didn't give any commands, run default action
-				Cbuf.AddText("d1\n");
+				//Cbuf.AddText("d1\n");
 				Cbuf.Execute();
 			} else {
 				// the user asked for something explicit

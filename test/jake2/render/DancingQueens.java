@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.10 2004-02-17 13:41:14 cwei Exp $
+ * $Id: DancingQueens.java,v 1.11 2004-03-19 09:03:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -204,9 +204,14 @@ public class DancingQueens
 	void run()
 	{
 		startTime = System.currentTimeMillis();
+		xcommand_t callback = new xcommand_t() {
+			public void execute() {
+				updateScreen();
+			}
+		};
 		while (true)
 		{
-			re.updateScreen(null);
+			re.updateScreen(callback);
 			KBD.Update();
 			Cbuf.Execute();
 		}
