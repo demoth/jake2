@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.21 2003-12-04 21:07:54 rst Exp $
+ * $Id: CL.java,v 1.22 2003-12-04 21:08:20 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.Defines;
+import jake2.*;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.entity_state_t;
