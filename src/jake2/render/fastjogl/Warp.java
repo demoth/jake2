@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Warp.java,v 1.2 2004-06-13 21:42:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -221,7 +221,7 @@ public abstract class Warp extends Model {
 		// memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
 		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, poly.verts[1].length); // :-)
 		
-		poly.preCompile();
+		precompilePolygon(poly);
 	}
 
 	/*

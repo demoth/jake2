@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Surf.java,v 1.2 2004-06-13 21:42:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.render.fastjogl;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.nio.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -1098,12 +1099,12 @@ public abstract class Surf extends Draw {
 		}
 
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-		gl.glVertexPointer(3, GL.GL_FLOAT, 0, glpoly_t.vertexArray);
+		gl.glVertexPointer(3, GL.GL_FLOAT, 0, globalPolygonVertexBuf);
 		gl.glClientActiveTextureARB(GL_TEXTURE0);
-		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, glpoly_t.texCoord0Array);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, globalPolygonTexCoord0Buf);
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 		gl.glClientActiveTextureARB(GL_TEXTURE1);
-		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, glpoly_t.texCoord1Array);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, globalPolygonTexCoord1Buf);
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
 		//
@@ -1427,12 +1428,12 @@ public abstract class Surf extends Draw {
 				GL_TexEnv( GL.GL_MODULATE );
 				
 			gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-			gl.glVertexPointer(3, GL.GL_FLOAT, 0, glpoly_t.vertexArray);
+			gl.glVertexPointer(3, GL.GL_FLOAT, 0, globalPolygonVertexBuf);
 			gl.glClientActiveTextureARB(GL_TEXTURE0);
-			gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, glpoly_t.texCoord0Array);
+			gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, globalPolygonTexCoord0Buf);
 			gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 			gl.glClientActiveTextureARB(GL_TEXTURE1);
-			gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, glpoly_t.texCoord1Array);
+			gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, globalPolygonTexCoord1Buf);
 			gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
 
@@ -1732,7 +1733,7 @@ public abstract class Surf extends Draw {
 
 		poly.numverts = lnumverts;
 		
-		poly.preCompile();
+		precompilePolygon(poly);
 
 	}
 
@@ -1897,6 +1898,40 @@ public abstract class Surf extends Draw {
 		LM_UploadBlock( false );
 		GL_EnableMultitexture( false );
 	}
+	
+	/*
+	 * new functions for vertex array handling
+	 */
+	static final int POLYGON_BUFFER_SIZE = 100000;
+
+	static FloatBuffer globalPolygonVertexBuf = BufferUtils.newFloatBuffer(POLYGON_BUFFER_SIZE * 3);
+	static FloatBuffer globalPolygonTexCoord0Buf = BufferUtils.newFloatBuffer(POLYGON_BUFFER_SIZE * 2);
+	static FloatBuffer globalPolygonTexCoord1Buf = BufferUtils.newFloatBuffer(POLYGON_BUFFER_SIZE * 2);
+	
+	void precompilePolygon(glpoly_t p) {
+		
+		p.pos = globalPolygonVertexBuf.position() / 3;
+		
+		float[] v;
+		
+		for (int i = 0; i < p.verts.length; i++) {
+			v = p.verts[i];
+			globalPolygonVertexBuf.put(v[0]);
+			globalPolygonVertexBuf.put(v[1]);
+			globalPolygonVertexBuf.put(v[2]);
+			globalPolygonTexCoord0Buf.put(v[3]);
+			globalPolygonTexCoord0Buf.put(v[4]);
+			globalPolygonTexCoord1Buf.put(v[5]);
+			globalPolygonTexCoord1Buf.put(v[6]);
+		}
+	}
+	
+	public static void resetPolygonArrays() {
+		globalPolygonVertexBuf.rewind();
+		globalPolygonTexCoord0Buf.rewind();
+		globalPolygonTexCoord1Buf.rewind();
+	}
+
 	
 	
 	//ImageFrame frame;

@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.2 2004-06-09 16:40:55 cwei Exp $
+ * $Id: Model.java,v 1.3 2004-06-13 21:42:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1156,7 +1156,7 @@ public abstract class Model extends Surf {
 	protected void R_BeginRegistration(String model)
 	{
 		resetModelArrays();
-		glpoly_t.resetArrays();
+		resetPolygonArrays();
 		
 		cvar_t flushmap;
 
@@ -1284,7 +1284,7 @@ public abstract class Model extends Surf {
 	static FloatBuffer globalModelTextureCoordBuf = BufferUtils.newFloatBuffer(MODEL_BUFFER_SIZE * 2);
 	static IntBuffer globalModelVertexIndexBuf = BufferUtils.newIntBuffer(MODEL_BUFFER_SIZE);
 	
-	public  void precompileGLCmds(qfiles.dmdl_t model) {
+	void precompileGLCmds(qfiles.dmdl_t model) {
 		model.textureCoordBuf = globalModelTextureCoordBuf.slice();
 		model.vertexIndexBuf = globalModelVertexIndexBuf.slice();
 		Vector tmp = new Vector();
@@ -1339,12 +1339,12 @@ public abstract class Model extends Surf {
 		}
 	}
 		
-	public static void resetModelArrays() {
+	static void resetModelArrays() {
 		globalModelTextureCoordBuf.rewind();
 		globalModelVertexIndexBuf.rewind();
 	}
 		
-	public static void modelMemoryUsage() {
+	static void modelMemoryUsage() {
 		System.out.println("AliasModels: globalVertexBuffer size " + globalModelVertexIndexBuf.position());
 	}
 }
