@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.17 2003-12-11 14:42:06 hoz Exp $
+ * $Id: Globals.java,v 1.18 2003-12-19 14:44:53 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -111,8 +111,8 @@ public class Globals extends Defines {
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 
-	public static sizebuf_t cmd_text;
-	public static sizebuf_t net_message;
+	public static sizebuf_t cmd_text = new sizebuf_t();
+	public static sizebuf_t net_message = new sizebuf_t();
 
 	public static byte[] cmd_text_buf = new byte[8192];
 	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
@@ -151,7 +151,7 @@ public class Globals extends Defines {
 
 	public static cvar_t cl_vwep;
 
-	public static client_static_t cls;
+	public static client_static_t cls = new client_static_t();
 	public static client_state_t cl;
 
 	public static centity_t cl_entities[] = new centity_t[Defines.MAX_EDICTS];
