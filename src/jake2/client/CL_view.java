@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.7 2004-02-11 15:05:16 cwei Exp $
+ * $Id: CL_view.java,v 1.8 2004-02-11 17:01:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -65,7 +65,7 @@ public class CL_view extends CL_input {
 		// let the render dll load the map
 		// TODO bugfix cwei
 		// war ein char zu viel abgeschnitten
-		mapname = cl.configstrings[CS_MODELS+1].substring(5, i - 4);	// skip "maps/"
+		mapname = cl.configstrings[CS_MODELS+1].substring(5, i - 4).toLowerCase();	// skip "maps/"
 																		// cut off ".bsp"
 
 		// register models, pics, and skins
