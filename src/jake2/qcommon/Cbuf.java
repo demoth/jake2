@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.3 2004-07-12 20:47:00 hzi Exp $
+ * $Id: Cbuf.java,v 1.4 2004-09-18 13:07:46 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -73,7 +73,7 @@ public final class Cbuf {
 			String s = Com.Argv(i);
 			if (!s.equals("+set"))
 				continue;
-			Cbuf.AddText("set " + Com.Argv(i + 1) + " " + Com.Argv(i + 2) + "n");
+			Cbuf.AddText("set " + Com.Argv(i + 1) + " " + Com.Argv(i + 2) + "\n");
 			if (clear) {
 				Com.ClearArgv(i);
 				Com.ClearArgv(i + 1);
