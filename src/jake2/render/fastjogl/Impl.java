@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.4 2004-06-13 14:23:25 cwei Exp $
+ * $Id: Impl.java,v 1.5 2004-06-15 16:27:25 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,7 +69,7 @@ public class Impl extends Misc implements GLEventListener {
 			// check the post init process
 			//
 			if (!post_init) {
-				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init FastJOGL renderer");
+				ri.Con_Printf(Defines.PRINT_ALL, "Missing multi-texturing for FastJOGL renderer\n");
 			}
 
 			GLimp_EndFrame();
