@@ -19,7 +19,7 @@
  */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.8 2005-01-14 21:15:34 cawe Exp $
+// $Id: CM.java,v 1.9 2005-01-21 00:46:54 cawe Exp $
 package jake2.qcommon;
 
 import jake2.Defines;
@@ -1400,7 +1400,6 @@ public class CM {
         float frac, frac2;
         float idist;
         int i;
-        float[] mid = { 0, 0, 0 };
         int side;
         float midf;
 
@@ -1469,6 +1468,8 @@ public class CM {
             frac = 1;
 
         midf = p1f + (p2f - p1f) * frac;
+        float[] mid = Vec3Cache.get();
+
         for (i = 0; i < 3; i++)
             mid[i] = p1[i] + frac * (p2[i] - p1[i]);
 
@@ -1485,6 +1486,7 @@ public class CM {
             mid[i] = p1[i] + frac2 * (p2[i] - p1[i]);
 
         CM_RecursiveHullCheck(node.children[side ^ 1], midf, p2f, mid, p2);
+        Vec3Cache.release();
     }
 
     //======================================================================
