@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.6 2003-12-26 01:27:26 cwei Exp $
+ * $Id: TestFS.java,v 1.7 2003-12-26 01:42:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -94,7 +94,7 @@ public class TestFS {
 		for (Iterator it = filenames.iterator(); it.hasNext();) {
 
 			String filename = it.next().toString();
-			if (filename.endsWith(".wal") || !filename.endsWith(".pcx")) continue;
+			if (!filename.endsWith(".wal") && !filename.endsWith(".pcx")) continue;
 
 			buffer = FS.LoadFile(filename);
 
