@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.7 2004-06-16 12:21:59 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.8 2004-06-19 17:05:11 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.sound.sampled.*;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioSystem;
 
 import net.java.games.joal.*;
 
@@ -38,15 +40,11 @@ public final class JOALSoundImpl implements Sound {
 	cvar_t s_volume;
 	
 	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
+	private static final int MAX_CHANNELS = 16;
 	
 	private int[] buffers = new int[MAX_SFX];
-	private int[] sources = new int[MAX_SFX];
-
-
-	private PlayList playlist = new PlayList();
-	
-	private Set activeSources = new TreeSet();
-
+	private int[] sources = new int[MAX_CHANNELS];
+	private Channel[] channels = null;
 
 	private JOALSoundImpl() {
 	}
@@ -58,10 +56,8 @@ public final class JOALSoundImpl implements Sound {
 	public boolean Init() {
 		
 		try {
-			//ALut.alutInit();
-			al = ALFactory.getAL();
-			alc = ALFactory.getALC();
 			initOpenAL();
+			al = ALFactory.getAL();
 			checkError();
 		} catch (OpenALException e) {
 			Com.Printf(e.getMessage() + '\n');
@@ -70,35 +66,34 @@ public final class JOALSoundImpl implements Sound {
 		
 		//al.alGenBuffers(MAX_SFX, buffers);
 		checkError();
-		al.alGenSources(MAX_SFX, sources);
+		al.alGenSources(MAX_CHANNELS, sources);
 		checkError();
+		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
+		initChannels();
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
 //		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);	
-
-		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
-
 		return true;
 	}
 	
 	
-	private void initOpenAL() {
-		String deviceName = "DirectSound3D";
+	private void initOpenAL() throws OpenALException {
+		ALFactory.initialize();
+		alc = ALFactory.getALC();
+		String deviceName = null;
 
-		// Get handle to device.
+		String os = System.getProperty("os.name");
+		if (os.startsWith("Windows")) {
+			deviceName = "DirectSound3D";
+		}
 		ALC.Device device = alc.alcOpenDevice(deviceName);
-
-		// Get the device specifier.
 		String deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
-		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
+//		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
 
-		System.out.println("Using device " + deviceSpecifier + " -- Default is " + defaultSpecifier);
-		
-		// Create audio context.
-		ALC.Context context = alc.alcCreateContext(device, null);
+		System.out.println(os + " using " + deviceName + " --> " + deviceSpecifier); //((deviceName == null) ? defaultSpecifier : deviceName));
 
-		// Set active context.
+
+		ALC.Context context = alc.alcCreateContext(device, new int[] {0});
 		alc.alcMakeContextCurrent(context);
-
 		// Check for an error.
 		if (alc.alcGetError(device) != ALC.ALC_NO_ERROR) {
 			System.err.println("Error with Device");
@@ -106,23 +101,38 @@ public final class JOALSoundImpl implements Sound {
 	}
 	
 	void exitOpenAL() {
-		ALC.Context curContext;
-		ALC.Device curDevice;
-
 		// Get the current context.
-		curContext = alc.alcGetCurrentContext();
-
+		ALC.Context curContext = alc.alcGetCurrentContext();
 		// Get the device used by that context.
-		curDevice = alc.alcGetContextsDevice(curContext);
-
+		ALC.Device curDevice = alc.alcGetContextsDevice(curContext);
 		// Reset the current context to NULL.
 		alc.alcMakeContextCurrent(null);
-
 		// Release the context and the device.
 		alc.alcDestroyContext(curContext);
 		alc.alcCloseDevice(curDevice);
 	}
 	
+	private void initChannels() {
+		
+		// create channels
+		channels = new Channel[MAX_CHANNELS];
+		
+		int sourceId;
+		for (int i = 0; i < MAX_CHANNELS; i++) {
+			sourceId = sources[i];
+			channels[i] = new Channel(sourceId);
+			
+			// set default values for AL sources
+			al.alSourcef (sourceId, AL.AL_GAIN, s_volume.value);
+			al.alSourcef (sourceId, AL.AL_PITCH, 1.0f);
+			al.alSourcei (sourceId, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
+			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR);
+			// channel 0 is the looping channel
+			al.alSourcei (sourceId, AL.AL_LOOPING, AL.AL_FALSE);
+			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.003f);
+			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
+		}
+	}
 	
 	
 	/* (non-Javadoc)
@@ -237,25 +247,55 @@ public final class JOALSoundImpl implements Sound {
 		// for openAL
 		
 		//System.out.println(sfx.name + " fvol: " + fvol + " atten: " + attenuation);
+		
+		Channel ch = pickupChannel(entnum, entchannel, buffers[sfx.id], attenuation);
+		
+		if (ch == null) return;
 
-		al.alSourcei (sources[sfx.id], AL.AL_BUFFER, buffers[sfx.id]);
-		al.alSourcef (sources[sfx.id], AL.AL_GAIN, s_volume.value);
-		al.alSourcef (sources[sfx.id], AL.AL_PITCH, 1.0f);
-		al.alSourcei (sources[sfx.id], AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
-		al.alSourcefv(sources[sfx.id], AL.AL_VELOCITY, NULLVECTOR);
-		al.alSourcei (sources[sfx.id], AL.AL_LOOPING,  AL.AL_FALSE);
-		al.alSourcef (sources[sfx.id], AL.AL_MIN_GAIN, 0.003f);
-		al.alSourcef (sources[sfx.id], AL.AL_MAX_GAIN, 1.0f);
-
-		al.alSourcef (sources[sfx.id], AL.AL_REFERENCE_DISTANCE, 200.0f - attenuation * 50);
-			
 		if (entnum == Globals.cl.playernum + 1) {
-			playlist.addListener(sources[sfx.id]);
+			ch.addListener();
 		} else if (origin != null) {
-			playlist.addFixed(sources[sfx.id], origin);
+			ch.addFixed(origin);
 		} else {
-			playlist.addDynamic(sources[sfx.id], entnum);
+			ch.addDynamic(entnum);
 		}
+	}
+	
+	Channel pickupChannel(int entnum, int entchannel, int bufferId, float attenuation) {
+		
+		Channel ch = null;
+		int state;
+		int i;
+
+		for (i = 0; i < MAX_CHANNELS; i++) {
+			ch = channels[i];
+
+			if (entchannel != 0 && ch.entnum == entnum && ch.entchannel == entchannel) {
+				// always override sound from same entity
+				break;
+			}
+
+			// don't let monster sounds override player sounds
+			if ((ch.entnum == Globals.cl.playernum+1) && (entnum != Globals.cl.playernum+1) && ch.bufferId != -1)
+				continue;
+
+			// looking for a free AL source
+			if (!ch.active) {
+				break;
+			}
+		}
+		
+		if (i == MAX_CHANNELS)
+			return null;
+
+		ch.entnum = entnum;
+		ch.entchannel = entchannel;
+		ch.bufferId = bufferId;
+		ch.attenuation = attenuation;
+		ch.active = true;
+		ch.modified = true;
+		
+		return ch;
 	}
 	
 	private float[] listenerOrigin = {0, 0, 0};
@@ -276,17 +316,64 @@ public final class JOALSoundImpl implements Sound {
 		convertOrientation(forward, up, listenerOrientation);		
 		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation);
 		
-		playlist.play(listenerOrigin);
+		playChannels(listenerOrigin);
 		
 	}
+	
+	void playChannels(float[] listenerOrigin) {
+		
+		float[] sourceOrigin = {0, 0, 0};
+		float[] entityOrigin = {0, 0, 0}; 
+		Channel ch;
+		int sourceId;
+		int state;
+
+		for (int i = 0; i < MAX_CHANNELS; i++) {
+			ch = channels[i];
+			if (ch.active) {
+				sourceId = ch.sourceId;
+				
+				switch (ch.type) {
+					case Channel.LISTENER:
+						Math3D.VectorCopy(listenerOrigin, sourceOrigin);
+						break;
+					case Channel.DYNAMIC:
+						CL.GetEntitySoundOrigin(ch.entity, entityOrigin);
+						convertVector(entityOrigin, sourceOrigin);
+						break;
+					case Channel.FIXED:
+						convertVector(ch.origin, sourceOrigin);
+						break;
+				}
+			
+				if (ch.modified) {
+					al.alSourcei (sourceId, AL.AL_BUFFER, ch.bufferId);
+					al.alSourcef (sourceId, AL.AL_GAIN, s_volume.value);
+					al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 200.0f - ch.attenuation * 50);
+					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
+					al.alSourcePlay(sourceId);
+					ch.modified = false;
+				} else {
+					state = al.alGetSourcei(ch.sourceId, AL.AL_SOURCE_STATE);
+					if (state == AL.AL_PLAYING) {
+						al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
+					} else {
+						ch.clear();
+					}
+				}
+			}
+		}
+	}
+	
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#StopAllSounds()
 	 */
 	public void StopAllSounds() {
-		for (int i = 0; i < sources.length; i++) {
+		for (int i = 0; i < MAX_CHANNELS; i++) {
 			al.alSourceStop(sources[i]);
 			al.alSourcei(sources[i], AL.AL_BUFFER, 0);
+			channels[i].clear();
 		}
 	}
 	
@@ -305,74 +392,6 @@ public final class JOALSoundImpl implements Sound {
 		orientation[5] = -up[1];
 	}
 	
-	static class PlayList {
-		
-		final static int LISTENER = 0;
-		final static int FIXED = 1;
-		final static int DYNAMIC = 2;
-		
-		int[] playlist = new int[MAX_SFX];
-		int[] typelist = new int[MAX_SFX];
-		int[] entitylist = new int[MAX_SFX];
-		float[][] originlist = new float[MAX_SFX][];
-		
-		int size = 0;
-		
-		void addListener(int sourceId) {
-			playlist[size] = sourceId;
-			typelist[size] = LISTENER;
-			size++;
-		}
-		
-		void addFixed(int sourceId, float[] origin) {
-			playlist[size] = sourceId;
-			typelist[size] = FIXED;
-			originlist[size] = origin;
-			size++;
-		}
-
-		void addDynamic(int sourceId, int entity) {
-			playlist[size] = sourceId;
-			typelist[size] = DYNAMIC;
-			entitylist[size] = entity;
-			size++;
-		}
-		
-		void play(float[] listenerOrigin) {
-			
-			if (size == 0) return;
-			
-			int entity;
-			float[] sourceOrigin = {0, 0, 0};
-			float[] entityOrigin = {0, 0, 0}; 
-			
-			for (int i = 0; i < size; i++) {
-				
-				switch (typelist[i]) {
-					case LISTENER:
-						Math3D.VectorCopy(listenerOrigin, sourceOrigin);
-						break;
-					case DYNAMIC:
-						CL.GetEntitySoundOrigin(entitylist[i], entityOrigin);
-						convertVector(entityOrigin, sourceOrigin);
-						break;
-					case FIXED:
-						convertVector(originlist[i], sourceOrigin);
-						break;
-				}
-		
-				al.alSourcefv(playlist[i], AL.AL_POSITION, sourceOrigin);
-				al.alSourceStop(playlist[i]);
-				al.alSourceRewind(playlist[i]);
-			}
-			
-			al.alSourcePlayv(size, playlist);
-			// reset the playlist
-			size = 0;
-		}
-		 
-	}
-
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#getName()
 	 */
@@ -596,6 +615,11 @@ public final class JOALSoundImpl implements Sound {
 	==============
 	*/
 	public sfxcache_t LoadSound(sfx_t s) {
+		
+		
+//		sfxcache_t sc = null;
+		
+		
 		String namebuffer;
 		byte[] data;
 		wavinfo_t info = new wavinfo_t();
@@ -604,6 +628,9 @@ public final class JOALSoundImpl implements Sound {
 		sfxcache_t sc = null;
 		int size;
 		String name;
+
+
+		
 
 		if (s.name.charAt(0) == '*')
 			return null;
@@ -671,6 +698,11 @@ public final class JOALSoundImpl implements Sound {
 		
 		// cache the sample in ALBuffer
 		initBuffer(s);
+
+//		sc = SND_MEM.LoadSound(s);
+//		s.cache = sc;
+//		
+//		initBuffer(s);
 
 		return sc;
 	}
