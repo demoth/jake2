@@ -1,1 +1,1 @@
-@javaw -Xmx128M -Djava.library.path=lib/windows -cp lib/jake2.jar;lib/windows/jogl.jar:lib/windows/joal.jar jake2.Jake2
+@javaw -Xmx128M -Djava.library.path=lib/windows -cp lib/jake2.jar;lib/windows/jogl.jar;lib/windows/joal.jar jake2.Jake2
