@@ -19,8 +19,10 @@
  */
 
 // Created on 27.11.2003 by RST.
-// $Id: netadr_t.java,v 1.3 2004-10-17 20:20:09 cawe Exp $
+// $Id: netadr_t.java,v 1.4 2004-10-17 20:33:18 cawe Exp $
 package jake2.qcommon;
+
+import jake2.Defines;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,16 +33,27 @@ public class netadr_t {
 
     public int port;
 
-    public byte ip[] = { 0, 0, 0, 0 };
-
-    //public byte ipx[] = new byte[10];
+    public byte ip[];
 
     InetAddress ia = null;
 
-    public InetAddress getInetAddress() throws UnknownHostException {
-        if (ia == null)
-            ia = InetAddress.getByAddress(ip);
+    public netadr_t() {
+        this.type = Defines.NA_LOOPBACK;
+        this.port = 0; // any
+        try {
+            this.ip = InetAddress.getByName("localhost").getAddress();
+        } catch (UnknownHostException e) {
+        }
+    }
 
+    public InetAddress getInetAddress() throws UnknownHostException {
+        if (type == Defines.NA_BROADCAST) {
+            ia = InetAddress.getByName("255.255.255.255");
+        } else if (type == Defines.NA_LOOPBACK) {
+            ia = InetAddress.getByName("localhost");
+        } else if (ia == null) {
+            ia = InetAddress.getByAddress(ip);
+        }
         return ia;
     }
 
