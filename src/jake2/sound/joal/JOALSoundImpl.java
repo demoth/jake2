@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.4 2004-04-26 16:39:41 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.5 2004-04-28 12:11:57 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -10,11 +10,8 @@ package jake2.sound.joal;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
-import jake2.game.cvar_t;
-import jake2.game.entity_state_t;
+import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.qcommon.Com;
-import jake2.qcommon.FS;
 import jake2.sound.*;
 import jake2.util.Math3D;
 
@@ -25,7 +22,6 @@ import java.util.TreeSet;
 import javax.sound.sampled.*;
 
 import net.java.games.joal.*;
-import net.java.games.joal.util.ALut;
 
 /**
  * JOALSoundImpl
@@ -62,18 +58,20 @@ public final class JOALSoundImpl implements Sound {
 	public boolean Init() {
 		
 		try {
-			ALut.alutInit();
+			//ALut.alutInit();
 			al = ALFactory.getAL();
 			alc = ALFactory.getALC();
+			initOpenAL();
+			checkError();
 		} catch (OpenALException e) {
 			Com.Printf(e.getMessage() + '\n');
 			return false;
 		}
-		al.alGetError();
 		
-		al.alGenBuffers(MAX_SFX, buffers);
+		//al.alGenBuffers(MAX_SFX, buffers);
+		checkError();
 		al.alGenSources(MAX_SFX, sources);
-
+		checkError();
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
 //		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);	
 
@@ -82,6 +80,48 @@ public final class JOALSoundImpl implements Sound {
 		return true;
 	}
 	
+	
+	private void initOpenAL() {
+		String deviceName = "DirectSound3D";
+
+		// Get handle to device.
+		ALC.Device device = alc.alcOpenDevice(deviceName);
+
+		// Get the device specifier.
+		String deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
+		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
+
+		System.out.println("Using device " + deviceSpecifier + " -- Default is " + defaultSpecifier);
+		
+		// Create audio context.
+		ALC.Context context = alc.alcCreateContext(device, null);
+
+		// Set active context.
+		alc.alcMakeContextCurrent(context);
+
+		// Check for an error.
+		if (alc.alcGetError(device) != ALC.ALC_NO_ERROR) {
+			System.err.println("Error with Device");
+		}
+	}
+	
+	void exitOpenAL() {
+		ALC.Context curContext;
+		ALC.Device curDevice;
+
+		// Get the current context.
+		curContext = alc.alcGetCurrentContext();
+
+		// Get the device used by that context.
+		curDevice = alc.alcGetContextsDevice(curContext);
+
+		// Reset the current context to NULL.
+		alc.alcMakeContextCurrent(null);
+
+		// Release the context and the device.
+		alc.alcDestroyContext(curContext);
+		alc.alcCloseDevice(curDevice);
+	}
 	
 	
 	
@@ -105,12 +145,49 @@ public final class JOALSoundImpl implements Sound {
 			case 9: format = AL.AL_FORMAT_STEREO8; break;
 		}
 		 
-		byte[] data= sfx.cache.data;
-		int freq = sfx.cache.speed;
-		int size = sfx.cache.data.length;
 
-		al.alBufferData( buffers[sfx.id], format, data, size, freq);
+		format = AL.AL_FORMAT_MONO16;
+		byte[] data = sfx.cache.data;
+		int freq = sfx.cache.speed;
+		int size = data.length;
+		
+		if (buffers[sfx.id] != 0)
+			al.alDeleteBuffers(1, new int[] {buffers[sfx.id] });			
+		
+		int[] bid = new int[1];
+		al.alGenBuffers(1, bid);
+		buffers[sfx.id] = bid[0];
+		al.alBufferData( bid[0], format, data, size, freq);
+
+		int error;
+		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
+			String message;
+			switch(error) {
+				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
+				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
+				case AL.AL_INVALID_ENUM: message = "invalid enum"; break;
+				case AL.AL_INVALID_NAME: message = "invalid name"; break;
+				default: message = "" + error;
+			}
+			System.err.println("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message);
+		}
 	}
+
+	private void checkError() {
+		int error;
+		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
+			String message;
+			switch(error) {
+				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
+				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
+				case AL.AL_INVALID_ENUM: message = "invalid enum"; break;
+				case AL.AL_INVALID_NAME: message = "invalid name"; break;
+				default: message = "" + error;
+			}
+			System.err.println("AL Error: " + message);
+		}
+	}
+
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Shutdown()
@@ -119,7 +196,20 @@ public final class JOALSoundImpl implements Sound {
 		StopAllSounds();
 		al.alDeleteSources(sources.length, sources);
 		al.alDeleteBuffers(buffers.length, buffers);
-		ALut.alutExit();
+		exitOpenAL();
+		//ALut.alutExit();	
+		Cmd.RemoveCommand("play");
+		Cmd.RemoveCommand("stopsound");
+		Cmd.RemoveCommand("soundlist");
+		Cmd.RemoveCommand("soundinfo");
+
+		// free all sounds
+		for (int i = 0; i < num_sfx; i++) {
+			if (known_sfx[i].name == null)
+				continue;
+			known_sfx[i].clear();
+		}
+		num_sfx = 0;
 	}
 	
 	private final static float[] NULLVECTOR = {0, 0, 0};
@@ -141,12 +231,8 @@ public final class JOALSoundImpl implements Sound {
 		if (sfx.name.charAt(0) == '*')
 			sfx = RegisterSexedSound(Globals.cl_entities[entnum].current, sfx.name);
 		
-		if (sfx.cache == null) {
-			RegisterSound(sfx.name);
-		
-			if (sfx.cache == null)
-				return;
-		}
+		if (LoadSound(sfx) == null)
+			return; // can't load sound
 
 		// for openAL
 		
@@ -200,6 +286,7 @@ public final class JOALSoundImpl implements Sound {
 	public void StopAllSounds() {
 		for (int i = 0; i < sources.length; i++) {
 			al.alSourceStop(sources[i]);
+			al.alSourcei(sources[i], AL.AL_BUFFER, 0);
 		}
 	}
 	
@@ -335,23 +422,21 @@ public final class JOALSoundImpl implements Sound {
 		sfx_t sfx;
 		int size;
 
+
+		RegisterSound("misc/menu1.wav");
+		RegisterSound("misc/menu2.wav");
+		RegisterSound("misc/menu3.wav");
+		
+
 		// free any sounds not from this registration sequence
 		for (i = 0; i < num_sfx; i++) {
 			sfx = known_sfx[i];
 			if (sfx.name == null)
 				continue;
-			if (sfx.registration_sequence != s_registration_sequence) { // don't need this sound
-				//memset (sfx, 0, sizeof(*sfx));
+			if (sfx.registration_sequence != s_registration_sequence) {
+				// don't need this sound
 				sfx.clear();
-			} else { 
-				// make sure it is paged in
-				//				if (sfx->cache)
-				//				{
-				//					size = sfx->cache->length*sfx->cache->width;
-				//					Com_PageInMemory ((byte *)sfx->cache, size);
-				//				}
 			}
-
 		}
 
 		// load everything in
@@ -457,11 +542,9 @@ public final class JOALSoundImpl implements Sound {
 		}
 
 		sfx = known_sfx[i];
-		//memset (sfx, 0, sizeof(*sfx));
 		sfx.clear();
 		sfx.name = name;
 		sfx.registration_sequence = s_registration_sequence;
-		
 		// cwei
 		sfx.id = i;
 
@@ -499,7 +582,6 @@ public final class JOALSoundImpl implements Sound {
 		sfx.name = new String(aliasname);
 		sfx.registration_sequence = s_registration_sequence;
 		sfx.truename = s;
-		
 		// cwei
 		sfx.id = i;
 
@@ -570,7 +652,6 @@ public final class JOALSoundImpl implements Sound {
 //		info = GetWavinfo(s.name, data, size);
 		if (info.channels != 1) {
 			Com.Printf(s.name + " is a stereo sample\n");
-			FS.FreeFile(data);
 			return null;
 		}
 
@@ -584,9 +665,9 @@ public final class JOALSoundImpl implements Sound {
 		sc.speed = info.rate;
 		sc.width = info.width;
 		sc.stereo = info.channels;
-		System.arraycopy(data, 0, sc.data, 0, len);
-
-		FS.FreeFile(data);
+		//System.arraycopy(data, len - sc.data.length, sc.data, 0, sc.data.length);
+	
+		sc.data = data;
 		
 		// cache the sample in ALBuffer
 		initBuffer(s);
