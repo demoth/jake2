@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.2 2004-07-09 10:22:28 hzi Exp $
+ * $Id: Image.java,v 1.3 2004-07-12 22:08:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -750,7 +750,6 @@ public abstract class Image extends Main {
 		}		
 	}
 	// TODO check this: R_FloodFillSkin( byte[] skin, int skinwidth, int skinheight)
-	// TODO sync with jogl renderer. hoz
 	void R_FloodFillSkin(byte[] skin, int skinwidth, int skinheight) {
 		//		byte				fillcolor = *skin; // assume this is the pixel to fill
 		int fillcolor = skin[0] & 0xff;

@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2004-07-09 10:25:29 hzi Exp $
+ * $Id: Mesh.java,v 1.3 2004-07-12 22:08:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -67,20 +67,20 @@ public abstract class Mesh extends Light {
 
 	float[] shadedots = r_avertexnormal_dots[0];
 
-	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, FloatBuffer lerp, float[] move, float[] frontv, float[] backv )
+	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
 	{
-		int i;
 		int lerpIndex = 0;
 
 		int[] ovv;
 		int[] vv;
+		FloatBuffer lerp = vertexArrayBuf;
 
 		//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
 		{
 			float[] normal;
 			int j = 0;
-			for (i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
+			for (int i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
 			{
 				normal = r_avertexnormals[verts[i].lightnormalindex];
 				ovv = ov[i].v;
@@ -95,7 +95,7 @@ public abstract class Mesh extends Light {
 		else
 		{
 			int j = 0;
-			for (i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
+			for (int i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
 			{
 				ovv = ov[i].v;
 				vv = v[i].v;
@@ -140,7 +140,6 @@ public abstract class Mesh extends Light {
 		float	alpha;
 
 		float[] move = {0, 0, 0}; // vec3_t
-		float[] delta = {0, 0, 0}; // vec3_t
 		
 		float[] frontv = {0, 0, 0}; // vec3_t
 		float[] backv = {0, 0, 0}; // vec3_t
@@ -168,29 +167,25 @@ public abstract class Mesh extends Light {
 		frontlerp = 1.0f - backlerp;
 
 		// move should be the delta back to the previous frame * backlerp
-		Math3D.VectorSubtract (currententity.oldorigin, currententity.origin, delta);
+		Math3D.VectorSubtract (currententity.oldorigin, currententity.origin, frontv);
 		Math3D.AngleVectors (currententity.angles, vectors[0], vectors[1], vectors[2]);
 
-		move[0] = Math3D.DotProduct (delta, vectors[0]);	// forward
-		move[1] = -Math3D.DotProduct (delta, vectors[1]);	// left
-		move[2] = Math3D.DotProduct (delta, vectors[2]);	// up
+		move[0] = Math3D.DotProduct (frontv, vectors[0]);	// forward
+		move[1] = -Math3D.DotProduct (frontv, vectors[1]);	// left
+		move[2] = Math3D.DotProduct (frontv, vectors[2]);	// up
 
 		Math3D.VectorAdd (move, oldframe.translate, move);
 
 		for (i=0 ; i<3 ; i++)
 		{
 			move[i] = backlerp*move[i] + frontlerp*frame.translate[i];
-		}
-
-		for (i=0 ; i<3 ; i++)
-		{
 			frontv[i] = frontlerp*frame.scale[i];
 			backv[i] = backlerp*oldframe.scale[i];
 		}
 		
 		// ab hier wird optimiert
 
-		GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
+		GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, move, frontv, backv );
 		
 		//gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
 		gl.glVertexPointer( 3, GL.GL_FLOAT, 0, vertexArrayBuf );

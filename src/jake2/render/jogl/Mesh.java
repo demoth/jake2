@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.4 2004-07-09 06:50:48 hzi Exp $
+ * $Id: Mesh.java,v 1.5 2004-07-12 22:08:03 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,17 +25,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import java.nio.FloatBuffer;
-
-import net.java.games.gluegen.runtime.BufferFactory;
-import net.java.games.jogl.GL;
-import net.java.games.jogl.util.BufferUtils;
 import jake2.Defines;
-import jake2.Globals;
 import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
 import jake2.render.image_t;
 import jake2.util.Math3D;
+
+import java.nio.FloatBuffer;
+
+import net.java.games.jogl.GL;
+import net.java.games.jogl.util.BufferUtils;
 
 /**
  * Mesh
@@ -100,34 +99,43 @@ public abstract class Mesh extends Light {
 		}
 	}
 
-	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, FloatBuffer lerp, float[] move, float[] frontv, float[] backv )
+	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
 	{
-		int i;
 		int lerpIndex = 0;
+
+		int[] ovv;
+		int[] vv;
+		FloatBuffer lerp = vertexArrayBuf;
 
 		//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
 		{
 			float[] normal;
 			int j = 0;
-			for (i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
+			for (int i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
 			{
 				normal = r_avertexnormals[verts[i].lightnormalindex];
-
-				lerp.put(j++, move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
-				lerp.put(j++, move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
-				lerp.put(j++, move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
+				ovv = ov[i].v;
+				vv = v[i].v;
+				
+				lerp.put(j, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
+				lerp.put(j + 1, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
+				lerp.put(j + 2, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
+				j+=3;
 			}
 		}
 		else
 		{
 			int j = 0;
-			for (i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
+			for (int i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
 			{
+				ovv = ov[i].v;
+				vv = v[i].v;
 				
-				lerp.put(j++, move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0]);
-				lerp.put(j++, move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1]);
-				lerp.put(j++, move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2]);
+				lerp.put(j, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0]);
+				lerp.put(j + 1, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1]);
+				lerp.put(j + 2, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2]);
+				j+=3;
 			}
 		}
 	}
@@ -159,7 +167,6 @@ public abstract class Mesh extends Light {
 		float	alpha;
 
 		float[] move = {0, 0, 0}; // vec3_t
-		float[] delta = {0, 0, 0}; // vec3_t
 		float[][] vectors = {
 			{0, 0, 0}, {0, 0, 0}, {0, 0, 0} // 3 mal vec3_t
 		};
@@ -193,29 +200,25 @@ public abstract class Mesh extends Light {
 		frontlerp = 1.0f - backlerp;
 
 		// move should be the delta back to the previous frame * backlerp
-		Math3D.VectorSubtract (currententity.oldorigin, currententity.origin, delta);
+		Math3D.VectorSubtract (currententity.oldorigin, currententity.origin, frontv);
 		Math3D.AngleVectors (currententity.angles, vectors[0], vectors[1], vectors[2]);
 
-		move[0] = Math3D.DotProduct (delta, vectors[0]);	// forward
-		move[1] = -Math3D.DotProduct (delta, vectors[1]);	// left
-		move[2] = Math3D.DotProduct (delta, vectors[2]);	// up
+		move[0] = Math3D.DotProduct(frontv, vectors[0]);	// forward
+		move[1] = -Math3D.DotProduct(frontv, vectors[1]);	// left
+		move[2] = Math3D.DotProduct(frontv, vectors[2]);	// up
 
 		Math3D.VectorAdd (move, oldframe.translate, move);
 
 		for (i=0 ; i<3 ; i++)
 		{
 			move[i] = backlerp*move[i] + frontlerp*frame.translate[i];
-		}
-
-		for (i=0 ; i<3 ; i++)
-		{
 			frontv[i] = frontlerp*frame.scale[i];
 			backv[i] = backlerp*oldframe.scale[i];
 		}
 
 		if ( gl_vertex_arrays.value != 0.0f )
 		{
-			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
+			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, move, frontv, backv );
 
 			gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
 			gl.glVertexPointer( 3, GL.GL_FLOAT, 0, vertexArrayBuf );

@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Warp.java,v 1.2 2004-07-12 22:08:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,15 +25,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.nio.FloatBuffer;
-
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.GameBase;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.msurface_t;
+import jake2.render.*;
 import jake2.util.Math3D;
+
+import java.nio.FloatBuffer;
+
 import net.java.games.jogl.GL;
 
 /**
@@ -125,7 +123,6 @@ public abstract class Warp extends Model {
 		int f, b;
 		float[] dist = new float[64];
 		float	frac;
-		glpoly_t poly;
 		float	s, t;
 		float[] total = {0, 0, 0};
 		float	total_s, total_t;
@@ -194,7 +191,7 @@ public abstract class Warp extends Model {
 		// poly = Hunk_Alloc (sizeof(glpoly_t) + ((numverts-4)+2) * VERTEXSIZE*sizeof(float));
 
 		// init polys
-		poly = new glpoly_t(numverts + 2);
+		glpoly_t poly = new glpoly_t(numverts + 2);
 
 		poly.next = warpface.polys;
 		warpface.polys = poly;

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.3 2004-07-09 16:44:01 hzi Exp $
+ * $Id: Light.java,v 1.4 2004-07-12 22:08:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -223,44 +223,38 @@ public abstract class Light extends Warp {
 	cplane_t lightplane; // used as shadow plane
 	float[] lightspot = {0, 0, 0}; // vec3_t
 	
-//	TODO sync with jogl renderer. hoz
 	int RecursiveLightPoint (mnode_t node, float[] start, float[] end)
 	{
-		float front, back, frac;
-		boolean side;
-		int sideIndex;
-		cplane_t plane;	
+		if (node.contents != -1)
+			return -1;		// didn't hit anything
+
 		msurface_t surf;
 		int s, t, ds, dt;
 		int i;
 		mtexinfo_t tex;
 		ByteBuffer lightmap;
 		int maps;
-		int r;
 		float[] mid = {0, 0, 0};
-		
-		if (node.contents != -1)
-			return -1;		// didn't hit anything
 	
 		// calculate mid point
 
 		// FIXME: optimize for axial
-		plane = node.plane;
-		front = Math3D.DotProduct (start, plane.normal) - plane.dist;
-		back = Math3D.DotProduct (end, plane.normal) - plane.dist;
-		side = (front < 0);
-		sideIndex = (side) ? 1 : 0;
+		cplane_t plane = node.plane;
+		float front = Math3D.DotProduct (start, plane.normal) - plane.dist;
+		float back = Math3D.DotProduct (end, plane.normal) - plane.dist;
+		boolean side = (front < 0);
+		int sideIndex = (side) ? 1 : 0;
 	
 		if ( (back < 0) == side)
 			return RecursiveLightPoint (node.children[sideIndex], start, end);
 	
-		frac = front / (front-back);
+		float frac = front / (front-back);
 		mid[0] = start[0] + (end[0] - start[0])*frac;
 		mid[1] = start[1] + (end[1] - start[1])*frac;
 		mid[2] = start[2] + (end[2] - start[2])*frac;
 	
 		// go down front side	
-		r = RecursiveLightPoint (node.children[sideIndex], start, mid);
+		int r = RecursiveLightPoint (node.children[sideIndex], start, mid);
 		if (r >= 0)
 			return r;		// hit something
 		
@@ -341,11 +335,7 @@ public abstract class Light extends Warp {
 		assert (color.length == 3) : "rgb bug";
 
 		float[] end = {0, 0, 0};
-		float r;
-		int lnum;
 		dlight_t dl;
-		float light;
-		float[] dist = {0, 0, 0};
 		float add;
 	
 		if (r_worldmodel.lightdata == null)
@@ -358,7 +348,7 @@ public abstract class Light extends Warp {
 		end[1] = p[1];
 		end[2] = p[2] - 2048;
 	
-		r = RecursiveLightPoint(r_worldmodel.nodes[0], p, end);
+		float r = RecursiveLightPoint(r_worldmodel.nodes[0], p, end);
 	
 		if (r == -1)
 		{
@@ -372,13 +362,12 @@ public abstract class Light extends Warp {
 		//
 		// add dynamic lights
 		//
-		light = 0;
-		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
+		for (int lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
 		{
 			dl = r_newrefdef.dlights[lnum];
 			
-			Math3D.VectorSubtract (currententity.origin, dl.origin, dist);
-			add = dl.intensity - Math3D.VectorLength(dist);
+			Math3D.VectorSubtract (currententity.origin, dl.origin, end);
+			add = dl.intensity - Math3D.VectorLength(end);
 			add *= (1.0f/256);
 			if (add > 0)
 			{
@@ -388,7 +377,6 @@ public abstract class Light extends Warp {
 
 		Math3D.VectorScale (color, gl_modulate.value, color);
 	}
-
 
 //	  ===================================================================
 

@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Model.java,v 1.2 2004-07-12 22:08:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -560,18 +560,17 @@ public abstract class Model extends Surf {
 		float[] maxs = {0, 0};
 		float val;
 
-		int i, j, e;
+		int j, e;
 		mvertex_t v;
-		mtexinfo_t tex;
 		int[] bmins = {0, 0};
 		int[] bmaxs = {0, 0};
 
 		mins[0] = mins[1] = 999999;
 		maxs[0] = maxs[1] = -99999;
 
-		tex = s.texinfo;
+		mtexinfo_t tex = s.texinfo;
 	
-		for (i=0 ; i<s.numedges ; i++)
+		for (int i=0 ; i<s.numedges ; i++)
 		{
 			e = loadmodel.surfedges[s.firstedge+i];
 			if (e >= 0)
@@ -592,7 +591,7 @@ public abstract class Model extends Surf {
 			}
 		}
 
-		for (i=0 ; i<2 ; i++)
+		for (int i=0 ; i<2 ; i++)
 		{	
 			bmins[i] = (int)Math.floor(mins[i]/16);
 			bmaxs[i] = (int)Math.ceil(maxs[i]/16);

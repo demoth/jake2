@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.2 2004-07-09 06:50:48 hzi Exp $
+ * $Id: Model.java,v 1.3 2004-07-12 22:08:03 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,27 +25,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.Vector;
-
 import jake2.Defines;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.lump_t;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.texinfo_t;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mmodel_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.render.mvertex_t;
+import jake2.qcommon.*;
+import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
  * Model
@@ -568,18 +558,17 @@ public abstract class Model extends Surf {
 		float[] maxs = {0, 0};
 		float val;
 
-		int i, j, e;
+		int j, e;
 		mvertex_t v;
-		mtexinfo_t tex;
 		int[] bmins = {0, 0};
 		int[] bmaxs = {0, 0};
 
 		mins[0] = mins[1] = 999999;
 		maxs[0] = maxs[1] = -99999;
 
-		tex = s.texinfo;
+		mtexinfo_t tex = s.texinfo;
 	
-		for (i=0 ; i<s.numedges ; i++)
+		for (int i=0 ; i<s.numedges ; i++)
 		{
 			e = loadmodel.surfedges[s.firstedge+i];
 			if (e >= 0)
@@ -600,7 +589,7 @@ public abstract class Model extends Surf {
 			}
 		}
 
-		for (i=0 ; i<2 ; i++)
+		for (int i=0 ; i<2 ; i++)
 		{	
 			bmins[i] = (int)Math.floor(mins[i]/16);
 			bmaxs[i] = (int)Math.ceil(maxs[i]/16);
