@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.10 2003-11-29 13:34:48 rst Exp $
+ * $Id: JoglRenderer.java,v 1.11 2003-12-19 13:31:49 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -220,7 +220,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * @see jake2.client.refexport_t#RegisterPic(java.lang.String)
 	 */
 	public image_t RegisterPic(String name) {
-		return Draw_FindPic(name);
+		return Draw.FindPic(name);
 	}
 
 	/** 
@@ -248,49 +248,49 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * @see jake2.client.refexport_t#DrawGetPicSize(java.awt.Dimension, java.lang.String)
 	 */
 	public void DrawGetPicSize(Dimension dim, String name) {
-		Draw_GetPicSize(dim, name);
+		Draw.GetPicSize(dim, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawPic(int, int, java.lang.String)
 	 */
 	public void DrawPic(int x, int y, String name) {
-		Draw_Pic(x, y, name);
+		Draw.Pic(x, y, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawStretchPic(int, int, int, int, java.lang.String)
 	 */
 	public void DrawStretchPic(int x, int y, int w, int h, String name) {
-		Draw_StretchPic(x, y, w, h, name);
+		Draw.StretchPic(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawChar(int, int, int)
 	 */
 	public void DrawChar(int x, int y, int num) {
-		Draw_Char(x, y, num);
+		Draw.Char(x, y, num);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawTileClear(int, int, int, int, java.lang.String)
 	 */
 	public void DrawTileClear(int x, int y, int w, int h, String name) {
-		Draw_TileClear(x, y, w, h, name);
+		Draw.TileClear(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFill(int, int, int, int, int)
 	 */
 	public void DrawFill(int x, int y, int w, int h, int c) {
-		Draw_Fill(x, y, w, h, c);
+		Draw.Fill(x, y, w, h, c);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFadeScreen()
 	 */
 	public void DrawFadeScreen() {
-		Draw_FadeScreen();
+		Draw.FadeScreen();
 	}
 
 	/** 
@@ -304,7 +304,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		int cols,
 		int rows,
 		byte[] data) {
-		Draw_StretchRaw(x, y, w, h, cols, rows, data);
+		Draw.StretchRaw(x, y, w, h, cols, rows, data);
 	}
 
 	/** 
@@ -380,7 +380,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 			"ref_gl version: " + REF_VERSION + "\n",
 			null);
 		//
-		Draw_GetPalette();
+		Draw.GetPalette();
 		//
 		R_Register();
 		//
@@ -651,7 +651,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		//			GL_InitImages ();
 		//			Mod_Init ();
 		//			R_InitParticleTexture ();
-		//			Draw_InitLocal ();
+		//			Draw.InitLocal ();
 		//
 		//			err = qglGetError();
 		//			if ( err != GL_NO_ERROR )
@@ -825,13 +825,6 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 	}
 
-	/**
-	 * 
-	 */
-	private void Draw_GetPalette() {
-		// TODO Auto-generated method stub
-
-	}
 
 	/**
 	 * 
@@ -883,14 +876,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		return null;
 	}
 
-	/**
-	 * @param name
-	 * @return
-	 */
-	private image_t Draw_FindPic(String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 
 	/**
 	 * @param name
@@ -919,99 +905,6 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 	}
 
-	/**
-	 * @param dim
-	 * @param name
-	 */
-	private void Draw_GetPicSize(Dimension dim, String name) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param name
-	 */
-	private void Draw_Pic(int x, int y, String name) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 * @param name
-	 */
-	private void Draw_StretchPic(int x, int y, int w, int h, String name) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param num
-	 */
-	private void Draw_Char(int x, int y, int num) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 * @param name
-	 */
-	private void Draw_TileClear(int x, int y, int w, int h, String name) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 * @param c
-	 */
-	private void Draw_Fill(int x, int y, int w, int h, int c) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * 
-	 */
-	private void Draw_FadeScreen() {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 * @param cols
-	 * @param rows
-	 * @param data
-	 */
-	private void Draw_StretchRaw(
-		int x,
-		int y,
-		int w,
-		int h,
-		int cols,
-		int rows,
-		byte[] data) {
-		// TODO Auto-generated method stub
-
-	}
 
 	/**
 	 * @param palette
