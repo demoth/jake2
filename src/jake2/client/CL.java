@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: CL.java,v 1.2 2003-11-28 14:40:44 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.Globals;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.FS;
+
 /**
  * CL
  */
@@ -37,8 +41,34 @@ public final class CL {
 	}
 	
 	/**
-	 * 
+	 * initialize client subsystem
 	 */
 	public static void Init() {
+		if (Globals.dedicated.value != 0.0f)
+			return; // nothing running on the client
+			
+		// all archived variables will now be loaded
+		
+		Con.Init();
+			
+// S.Init();
+		VID.Init();		
+		V.Init();
+		
+		         
+//		01797         net_message.data = net_message_buffer;
+//		01798         net_message.maxsize = sizeof(net_message_buffer);
+//		01799 
+//		01800         M_Init ();      
+//		01801         
+//		01802         SCR_Init ();
+//		01803         cls.disable_screen = true;      // don't draw yet
+//		01804 
+//		01805         CDAudio_Init ();
+//		01806         CL_InitLocal ();
+//		01807         IN_Init ();
+
+		FS.ExecAutoexec();
+		Cbuf.Execute();
 	}
 }

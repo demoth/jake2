@@ -1,10 +1,10 @@
 /*
- * Cbuf.java
+ * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.3 2003-11-28 14:40:44 hoz Exp $
+ * $Id: Console.java,v 1.1 2003-11-28 14:40:44 hoz Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -23,51 +23,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
-
-import jake2.Globals;
+package jake2.client;
 
 /**
- * Cbuf
- * TODO complete Cbuf interface
+ * Con
+ * TODO implement Con
  */
-public final class Cbuf {
-
+public final class Con {
+	
 	/**
 	 * 
 	 */
 	public static void Init() {
-		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
 	}
 
-	/**
-	 * @param text
-	 */
-	public static void InsertText(String text) {
-	}
-	
-	/**
-	 * @param clear
-	 */
-	static void AddEarlyCommands(boolean clear) {
-	}
-	
-	/**
-	 * @return
-	 */
-	static boolean addLateCommands() {
-		return true;
-	}
-	
-	/**
-	 * @param text
-	 */
-	static void addText(String text) {
-	}
-	
-	/**
-	 * 
-	 */
-	public static void Execute() {
-	}
 }

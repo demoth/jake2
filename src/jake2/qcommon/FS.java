@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.6 2003-11-26 12:35:49 cwei Exp $
+ * $Id: FS.java,v 1.7 2003-11-28 14:40:44 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -547,7 +547,7 @@ public final class FS {
 //	FS_ExecAutoexec
 //	=============
 //	*/
-	void ExecAutoexec() {
+	public static void ExecAutoexec() {
 		String dir;
 		String name;
 //
