@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.6 2004-08-22 14:25:15 salomo Exp $
+ * $Id: SCR.java,v 1.7 2004-08-27 21:07:01 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -785,9 +785,10 @@ public final class SCR extends Globals {
 		for (int l= 0; l < string.length();) {
 			// scan out one line of text from the string
 			line= new StringBuffer(1024);
-			while (string.charAt(l) != '\n')
+			while (l < string.length() && string.charAt(l) != '\n') {
 				line.append(string.charAt(l));
-			l++;
+				l++;
+			}
 
 			if (centerwidth != 0)
 				x= margin + (centerwidth - line.length() * 8) / 2;
@@ -1169,8 +1170,7 @@ public final class SCR extends Globals {
 
 	static void DrawLayout() {
 		if (cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
-			return;
-		SCR.ExecuteLayoutString(cl.layout);
+			SCR.ExecuteLayoutString(cl.layout);
 	}
 
 	// =======================================================
