@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.2 2003-12-27 16:25:42 cwei Exp $
+ * $Id: TestRenderer.java,v 1.3 2003-12-29 01:58:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -149,10 +149,15 @@ public class TestRenderer {
 		this.re = Renderer.getDriver("jogl", rimp);
 
 		System.out.println("Use driver: " + re);
-		
+		System.out.println();
+				
 		Qcommon.Init(new String[] {"TestRenderer"});
 
 		re.Init();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+		}
 	}
 
 	void updateScreen() {
