@@ -175,6 +175,35 @@
 		</zip>
 	</target>
 	
+	<!-- webstart -->
+	<target name="webstart" depends="dist">
+		<mkdir dir="webstart/lib"/>
+		<copy todir="webstart/lib">
+			<fileset dir="${dist}/lib">
+				<include name="**/*.jar"/>
+			</fileset>
+		</copy>
+		<jar destfile="webstart/lib/linux/jogl-native.jar" basedir="${dist}/lib/linux">
+			<include name="libjogl*.so"/>
+		</jar>
+		<jar destfile="webstart/lib/linux/joal-native.jar" basedir="${dist}/lib/linux">
+			<include name="libjoal.so"/>
+			<include name="libopenal.so"/>
+		</jar>
+		<jar destfile="webstart/lib/windows/jogl-native.jar" basedir="${dist}/lib/windows">
+			<include name="jogl*.dll"/>
+		</jar>
+		<jar destfile="webstart/lib/windows/joal-native.jar" basedir="${dist}/lib/windows">
+			<include name="joal.dll"/>
+			<include name="OpenAL32.dll"/>
+		</jar>
+		<signjar keystore="${user.home}/bytonic" alias="hoz" storepass="">
+			<fileset dir="webstart/lib">
+				<include name="**/*.jar"/>
+			</fileset>
+		</signjar>
+	</target>
+	
 	<!-- clean -->
 	<target name="clean">
 		<delete dir="${build}"/>
@@ -183,6 +212,7 @@
 	<!-- distclean -->
 	<target name="distclean" depends="clean">
 		<delete dir="${dist}"/>
+		<delete dir="webstart/lib"/>
 		<delete>
 			<fileset dir=".">
 				<include name="*.tar.gz"/>
