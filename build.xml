@@ -197,7 +197,7 @@
 			<include name="joal.dll"/>
 			<include name="OpenAL32.dll"/>
 		</jar>
-		<signjar keystore="${user.home}/bytonic" alias="hoz" storepass="">
+		<signjar keystore="${user.home}/bytonic" alias="hoz" storepass="${bytonic.pass}">
 			<fileset dir="webstart/lib">
 				<include name="**/*.jar"/>
 			</fileset>
