@@ -2,7 +2,7 @@
  * LittleEndianHandler.java
  * Copyright (C) 2003
  * 
- * $Id$
+ * $Id: LittleEndianHandler.java,v 1.1 2004-07-07 19:59:07 hzi Exp $
  */
 package jake2.game;
 

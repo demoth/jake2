@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.26 2004-06-28 05:39:17 hoz Exp $
+ * $Id: CL_parse.java,v 1.5 2004-07-09 06:50:50 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

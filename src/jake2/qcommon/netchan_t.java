@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.7 2004-02-06 21:03:30 rst Exp $
+// $Id: netchan_t.java,v 1.1 2004-07-07 19:59:34 hzi Exp $
 
 package jake2.qcommon;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.11.2003 by RST.
-// $Id: gitem_armor_t.java,v 1.3 2004-02-04 20:33:35 rst Exp $
+// $Id: gitem_armor_t.java,v 1.1 2004-07-07 19:59:25 hzi Exp $
 
 package jake2.game;
 

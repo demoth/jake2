@@ -2,7 +2,7 @@
  * sizebuf_t.java
  * Copyright (C) 2003
  * 
- * $Id: sizebuf_t.java,v 1.8 2004-02-13 11:09:51 rst Exp $
+ * $Id: sizebuf_t.java,v 1.1 2004-07-07 19:59:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

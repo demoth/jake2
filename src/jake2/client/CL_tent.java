@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.14 2004-04-15 08:08:26 hoz Exp $
+ * $Id: CL_tent.java,v 1.3 2004-07-08 20:56:50 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

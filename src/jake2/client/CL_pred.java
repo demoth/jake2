@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.17 2004-03-18 09:55:45 hoz Exp $
+ * $Id: CL_pred.java,v 1.3 2004-07-08 20:24:28 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

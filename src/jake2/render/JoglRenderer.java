@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.26 2004-06-28 13:03:30 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.3 2004-07-09 06:50:47 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.20 2004-06-30 21:57:43 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.1 2004-07-09 06:50:52 hzi Exp $
  */
 package jake2.sound.joal;
 

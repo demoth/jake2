@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.8 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Renderer.java,v 1.2 2004-07-09 06:50:47 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Sound.java,v 1.1 2004-04-26 13:43:33 cwei Exp $
+ * $Id: Sound.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

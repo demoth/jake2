@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.6 2004-06-28 12:54:49 cwei Exp $
+ * $Id: Main.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

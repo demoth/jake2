@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-//$Id: clientinfo_t.java,v 1.7 2004-02-16 20:57:39 hoz Exp $
+//$Id: clientinfo_t.java,v 1.1 2004-07-07 19:58:52 hzi Exp $
 
 package jake2.client;
 

@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.7 2004-06-28 13:43:04 cwei Exp $
+ * $Id: Image.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * sfx_t.java
  * Copyright (C) 2004
  * 
- * $Id: sfx_t.java,v 1.2 2004-04-26 11:59:26 cwei Exp $
+ * $Id: sfx_t.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.12 2004-06-03 21:32:51 rst Exp $
+// $Id: game_export_t.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
 
 package jake2.game;
 

@@ -2,7 +2,7 @@
  * refexport_t.java
  * Copyright (C) 2003
  *
- * $Id: refexport_t.java,v 1.6 2004-02-17 11:35:10 cwei Exp $
+ * $Id: refexport_t.java,v 1.1 2004-07-07 19:58:52 hzi Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.9 2004-06-28 13:03:30 cwei Exp $
+ * $Id: Misc.java,v 1.2 2004-07-09 06:50:48 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

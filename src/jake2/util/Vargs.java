@@ -2,7 +2,7 @@
  * Vargs.java
  * Copyright (C) 2003
  *
- * $Id: Vargs.java,v 1.3 2003-11-29 13:28:30 rst Exp $
+ * $Id: Vargs.java,v 1.1 2004-07-07 19:59:56 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

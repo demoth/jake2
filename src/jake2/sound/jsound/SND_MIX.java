@@ -2,7 +2,7 @@
  * SND_MIX.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MIX.java,v 1.4 2004-06-24 14:58:44 cwei Exp $
+ * $Id: SND_MIX.java,v 1.1 2004-07-09 06:50:48 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * InputListener.java
  * Copyright (C) 2004
  * 
- * $Id: InputListener.java,v 1.3 2004-02-17 17:32:41 cwei Exp $
+ * $Id: InputListener.java,v 1.1 2004-07-07 19:59:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

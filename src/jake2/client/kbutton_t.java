@@ -2,7 +2,7 @@
  * kbutton_t.java
  * Copyright (C) 2004
  * 
- * $Id: kbutton_t.java,v 1.2 2004-02-02 21:15:40 hoz Exp $
+ * $Id: kbutton_t.java,v 1.1 2004-07-07 19:58:52 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

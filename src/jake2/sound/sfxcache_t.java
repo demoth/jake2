@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-// $Id: sfxcache_t.java,v 1.1 2004-04-15 08:08:27 hoz Exp $
+// $Id: sfxcache_t.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
 
 package jake2.sound;
 

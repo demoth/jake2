@@ -2,7 +2,7 @@
  * Jake2InputEvent.java
  * Copyright (C) 2004
  * 
- * $Id: Jake2InputEvent.java,v 1.1 2004-01-09 09:48:59 hoz Exp $
+ * $Id: Jake2InputEvent.java,v 1.1 2004-07-07 19:59:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

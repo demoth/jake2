@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.30 2004-06-03 21:32:52 rst Exp $
+ * $Id: FS.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

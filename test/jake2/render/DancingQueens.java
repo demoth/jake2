@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.13 2004-06-09 15:21:59 cwei Exp $
+ * $Id: DancingQueens.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

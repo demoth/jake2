@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.20 2004-07-04 19:40:26 cwei Exp $
+ * $Id: Model.java,v 1.2 2004-07-09 06:50:48 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

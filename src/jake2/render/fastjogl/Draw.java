@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Draw.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

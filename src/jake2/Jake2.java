@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.25 2004-06-28 05:39:17 hoz Exp $
+ * $Id: Jake2.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

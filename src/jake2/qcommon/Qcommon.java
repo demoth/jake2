@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.36 2004-06-09 14:32:37 hoz Exp $
+ * $Id: Qcommon.java,v 1.4 2004-07-09 06:50:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.4 2004-06-25 03:06:32 cwei Exp $
+ * $Id: FastJoglRenderer.java,v 1.1 2004-07-09 06:50:47 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * xcommand_t.java
  * Copyright (C) 2003
  * 
- * $Id: xcommand_t.java,v 1.7 2004-01-27 20:10:29 rst Exp $
+ * $Id: xcommand_t.java,v 1.1 2004-07-07 19:59:34 hzi Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: DummyDriver.java,v 1.2 2004-04-26 15:58:55 cwei Exp $
+ * $Id: DummyDriver.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

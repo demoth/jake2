@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.15 2004-06-29 12:11:48 cwei Exp $
+ * $Id: S.java,v 1.2 2004-07-09 06:50:48 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

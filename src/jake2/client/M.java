@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.17 2004-04-15 08:08:26 hoz Exp $
+ * $Id: M.java,v 1.4 2004-07-08 20:56:50 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.6 2004-06-28 14:15:57 cwei Exp $
+ * $Id: Light.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

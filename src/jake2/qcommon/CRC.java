@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: CRC.java,v 1.2 2004-06-01 14:09:04 rst Exp $
+// $Id: CRC.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
 package jake2.qcommon;
 
 import jake2.util.Vargs;

@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.30 2004-06-28 13:20:14 hoz Exp $
+ * $Id: TestRenderer.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

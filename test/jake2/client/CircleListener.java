@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: CircleListener.java,v 1.1 2004-01-09 10:18:31 rst Exp $
+// $Id: CircleListener.java,v 1.1 2004-07-07 19:59:56 hzi Exp $
 
 package jake2.client;
 

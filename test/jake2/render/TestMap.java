@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.19 2004-06-28 13:20:14 hoz Exp $
+ * $Id: TestMap.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -178,7 +178,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.19 2004-06-28 13:20:14 hoz Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.3 2004-07-09 06:50:51 hzi Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 

@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.12 2004-02-15 01:19:41 hoz Exp $
+ * $Id: KBD.java,v 1.1 2004-07-07 19:59:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * JSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JSoundImpl.java,v 1.3 2004-06-17 12:10:44 hoz Exp $
+ * $Id: JSoundImpl.java,v 1.1 2004-07-09 06:50:48 hzi Exp $
  */
 package jake2.sound.jsound;
 

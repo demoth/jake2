@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.4 2004-06-28 17:56:32 cwei Exp $
+ * $Id: Channel.java,v 1.1 2004-07-09 06:50:52 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

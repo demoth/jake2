@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.6 2004-02-29 00:51:06 rst Exp $
+// $Id: SV_ENTS.java,v 1.2 2004-07-08 15:58:45 hzi Exp $
 
 package jake2.server;
 

@@ -1,1 +1,0 @@
-java5 -cp build;c:\lib\jogl.jar -Xms129M -Xmx200M jake2.Jake2

@@ -2,7 +2,7 @@
  * cmd_function_t.java
  * Copyright (C) 2003
  * 
- * $Id: cmd_function_t.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
+ * $Id: cmd_function_t.java,v 1.1 2004-07-07 19:59:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.16 2004-04-15 08:08:26 hoz Exp $
+ * $Id: CL_fx.java,v 1.4 2004-07-08 20:56:50 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * soundinfo_t.java
  * Copyright (C) 2004
  *
- * $Id: soundinfo_t.java,v 1.1 2004-04-15 10:31:40 hoz Exp $
+ * $Id: soundinfo_t.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
  */
 package jake2.sound;
 

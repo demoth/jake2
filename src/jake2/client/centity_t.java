@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: centity_t.java,v 1.5 2004-04-15 08:08:26 hoz Exp $
+// $Id: centity_t.java,v 1.2 2004-07-08 20:56:50 hzi Exp $
 
 package jake2.client;
 
