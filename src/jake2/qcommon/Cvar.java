@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.2 2003-11-24 19:06:30 cwei Exp $
+ * $Id: Cvar.java,v 1.3 2003-11-25 19:44:42 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,6 +42,8 @@ public final class Cvar {
 	static final int LATCH = 16;	// save changes until server restart
 	
 
+	static cvar_t  cvar_vars;
+
 	/**
 	 * @param var_name
 	 * @param var_value
@@ -57,5 +59,25 @@ public final class Cvar {
 	 * 
 	 */
 	static void Init() {
+	}
+
+	/**
+	 * @param string
+	 * @return
+	 */
+	public static String VariableString(String var_name) {
+		cvar_t var;
+		var = FindVar(var_name);
+		return (var == null) ? "" : var.string;
+	}
+	
+	static cvar_t FindVar(String var_name) {
+		cvar_t  var;
+		
+		for (var=cvar_vars ; var != null ; var=var.next) {
+			if (var_name.equals(var.name)) return var;
+		}
+
+		return null;
 	}
 }

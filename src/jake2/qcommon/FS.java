@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.3 2003-11-25 18:18:58 cwei Exp $
+ * $Id: FS.java,v 1.4 2003-11-25 19:44:42 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,9 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
@@ -412,6 +414,21 @@ public final class FS {
 //		Z_Free (buffer);
 //	}
 //
+
+	static class dpackfile_t {
+		//char    name[56];
+		String name;
+		int filepos, filelen;
+	}
+	
+	static class dpackheader_t {
+		int ident;      // == IDPAKHEADER
+		int dirofs;
+		int dirlen;
+	} 
+
+	static final int MAX_FILES_IN_PACK = 4096;
+
 //	/*
 //	=================
 //	FS_LoadPackFile
@@ -422,20 +439,25 @@ public final class FS {
 //	of the list so they override previous pack files.
 //	=================
 //	*/
-//	pack_t *FS_LoadPackFile (char *packfile)
-//	{
-//		dpackheader_t	header;
-//		int				i;
-//		packfile_t		*newfiles;
-//		int				numpackfiles;
-//		pack_t			*pack;
-//		FILE			*packhandle;
-//		dpackfile_t		info[MAX_FILES_IN_PACK];
+	static pack_t LoadPackFile (String packfile)
+	{
+		dpackheader_t header;
+		int i;
+		packfile_t newfiles;
+		int numpackfiles = 0;
+		pack_t pack = null;
+		InputStream packhandle;
+		dpackfile_t[] info = new dpackfile_t[MAX_FILES_IN_PACK];
 //		unsigned		checksum;
 //
-//		packhandle = fopen(packfile, "rb");
-//		if (!packhandle)
-//			return NULL;
+		try {
+			packhandle = new BufferedInputStream(new FileInputStream(packfile));
+			if (packhandle.available() < 1)
+				return null;
+		} catch (IOException e) {
+			logger.log(Level.WARNING, e.toString());
+			return null;
+		}
 //
 //		fread (&header, 1, sizeof(header), packhandle);
 //		if (LittleLong(header.ident) != IDPAKHEADER)
@@ -453,13 +475,6 @@ public final class FS {
 //		fseek (packhandle, header.dirofs, SEEK_SET);
 //		fread (info, 1, header.dirlen, packhandle);
 //
-////	   crc the directory to check for modifications
-//		checksum = Com_BlockChecksum ((void *)info, header.dirlen);
-//
-//	#ifdef NO_ADDONS
-//		if (checksum != PAK0_CHECKSUM)
-//			return NULL;
-//	#endif
 ////	   parse the directory
 //		for (i=0 ; i<numpackfiles ; i++)
 //		{
@@ -474,9 +489,9 @@ public final class FS {
 //		pack->numfiles = numpackfiles;
 //		pack->files = newfiles;
 //	
-//		Com_Printf ("Added packfile %s (%i files)\n", packfile, numpackfiles);
-//		return pack;
-//	}
+		Com.Printf ("Added packfile " + packfile +" (" + numpackfiles +" files)\n");
+		return pack;
+	}
 //
 //
 //	/*
@@ -487,40 +502,40 @@ public final class FS {
 //	then loads and adds pak1.pak pak2.pak ... 
 //	================
 //	*/
-//	void FS_AddGameDirectory (char *dir)
-//	{
-//		int				i;
-//		searchpath_t	*search;
-//		pack_t			*pak;
-//		char			pakfile[MAX_OSPATH];
+	static void AddGameDirectory (String dir)
+	{
+		int i;
+		searchpath_t	search;
+		pack_t pak;
+		String pakfile;
 //
 //		strcpy (fs_gamedir, dir);
+		fs_gamedir = new String(dir);
 //
 //		//
 //		// add the directory to the search path
 //		//
 //		search = Z_Malloc (sizeof(searchpath_t));
+		search = new searchpath_t();
 //		strcpy (search->filename, dir);
-//		search->next = fs_searchpaths;
-//		fs_searchpaths = search;
+		search.filename = new String(dir);
+		search.next = fs_searchpaths;
+		fs_searchpaths = search;
 //
 //		//
 //		// add any pak files in the format pak0.pak pak1.pak, ...
 //		//
-//		for (i=0; i<10; i++)
-//		{
-//			Com_sprintf (pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
-//			pak = FS_LoadPackFile (pakfile);
-//			if (!pak)
-//				continue;
-//			search = Z_Malloc (sizeof(searchpath_t));
-//			search->pack = pak;
-//			search->next = fs_searchpaths;
-//			fs_searchpaths = search;		
-//		}
-//
-//
-//	}
+		for (i=0; i<10; i++)
+		{
+			pakfile = dir + "/pak" + i +".pak";
+			pak = LoadPackFile(pakfile);
+			if (pak == null) continue;
+			search = new searchpath_t();
+			search.pack = pak;
+			search.next = fs_searchpaths;
+			fs_searchpaths = search;		
+		}
+	}
 //
 //	/*
 //	============
@@ -538,20 +553,22 @@ public final class FS {
 //	FS_ExecAutoexec
 //	=============
 //	*/
-//	void FS_ExecAutoexec (void)
-//	{
-//		char *dir;
-//		char name [MAX_QPATH];
+	void ExecAutoexec() {
+		String dir;
+		String name;
 //
-//		dir = Cvar_VariableString("gamedir");
-//		if (*dir)
-//			Com_sprintf(name, sizeof(name), "%s/%s/autoexec.cfg", fs_basedir->string, dir); 
-//		else
-//			Com_sprintf(name, sizeof(name), "%s/%s/autoexec.cfg", fs_basedir->string, BASEDIRNAME); 
+		dir = Cvar.VariableString("gamedir");
+		if (dir != null && dir.length() > 0)
+			name = fs_basedir.string + '/' + dir + "/autoexec.cfg"; 
+		else
+			name = fs_basedir.string + '/' + Globals.BASEDIRNAME + "/autoexec.cfg"; 
+
 //		if (Sys_FindFirst(name, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
-//			Cbuf_AddText ("exec autoexec.cfg\n");
+		File f = new File(name);
+		if (f.exists())
+			Cbuf.addText("exec autoexec.cfg\n");
 //		Sys_FindClose();
-//	}
+	}
 //
 //
 //	/*
@@ -764,20 +781,20 @@ public final class FS {
 		searchpath_t	s;
 		filelink_t l;
 //
-		Com.Printf ("Current search path:\n");
+		Com.Printf("Current search path:\n");
 		for (s=fs_searchpaths ; s != null ; s=s.next)
 		{
 			if (s == fs_base_searchpaths)
-				Com.Printf ("----------\n");
+				Com.Printf("----------\n");
 			if (s.pack != null)
-				Com.Printf (s.pack.filename + " (" + s.pack.numfiles +" files)\n");
+				Com.Printf(s.pack.filename + " (" + s.pack.numfiles +" files)\n");
 			else
-				Com.Printf (s.filename + '\n');
+				Com.Printf(s.filename + '\n');
 		}
 
-		Com.Printf ("\nLinks:\n");
+		Com.Printf("\nLinks:\n");
 		for (l=fs_links ; l != null ; l=l.next)
-			Com.Printf (l.from + " : " + l.to + '\n');
+			Com.Printf(l.from + " : " + l.to + '\n');
 	}
 //
 //	/*
@@ -828,31 +845,29 @@ public final class FS {
 //		// basedir <path>
 //		// allows the game to run from outside the data tree
 //		//
-//		fs_basedir = Cvar_Get ("basedir", ".", CVAR_NOSET);
+		fs_basedir = Cvar.Get("basedir", ".", Cvar.NOSET);
 //
 //		//
 //		// cddir <path>
 //		// Logically concatenates the cddir after the basedir for 
 //		// allows the game to run from outside the data tree
 //		//
-//		fs_cddir = Cvar_Get ("cddir", "", CVAR_NOSET);
-//		if (fs_cddir->string[0])
-//			FS_AddGameDirectory (va("%s/"BASEDIRNAME, fs_cddir->string) );
+		fs_cddir = Cvar.Get("cddir", "", Cvar.NOSET);
+		if (fs_cddir.string.length() > 0)
+			AddGameDirectory(fs_cddir.string +'/' +Globals.BASEDIRNAME);
 //
 //		//
 //		// start up with baseq2 by default
 //		//
-//		FS_AddGameDirectory (va("%s/"BASEDIRNAME, fs_basedir->string) );
+		AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
 //
 //		// any set gamedirs will be freed up to here
-//		fs_base_searchpaths = fs_searchpaths;
+		fs_base_searchpaths = fs_searchpaths;
 //
 //		// check for game override
-//		fs_gamedirvar = Cvar_Get ("game", "", CVAR_LATCH|CVAR_SERVERINFO);
-//		if (fs_gamedirvar->string[0])
-//			FS_SetGamedir (fs_gamedirvar->string);
+		fs_gamedirvar = Cvar.Get("game", "", Cvar.LATCH | Cvar.SERVERINFO);
+		if (fs_gamedirvar.string.length() > 0)
+			SetGamedir (fs_gamedirvar.string);
 	}
-
-
 
 }
