@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.3 2004-06-13 21:42:27 cwei Exp $
+ * $Id: Model.java,v 1.4 2004-07-04 19:40:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -509,6 +509,9 @@ public abstract class Model extends Surf {
 		count = l.filelen / texinfo_t.SIZE;
 		// out = Hunk_Alloc ( count*sizeof(*out));
 		out = new mtexinfo_t[count];
+		for ( i=0 ; i<count ; i++) {
+			out[i] = new mtexinfo_t();
+		}
 
 		loadmodel.texinfo = out;
 		loadmodel.numtexinfo = count;
@@ -516,13 +519,10 @@ public abstract class Model extends Surf {
 		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 
-		for ( i=0 ; i<count ; i++)
-		{
+		for ( i=0 ; i<count ; i++) {
+			
 			in = new texinfo_t(bb);			
-			out[i] = new mtexinfo_t();
-			//for (j=0 ; j<8 ; j++)
-				out[i].vecs = in.vecs;
-
+			out[i].vecs = in.vecs;
 			out[i].flags = in.flags;
 			next = in.nexttexinfo;
 			if (next > 0)
@@ -533,17 +533,14 @@ public abstract class Model extends Surf {
 			name = "textures/" +  in.texture + ".wal";
 
 			out[i].image = GL_FindImage(name, it_wall);
-			if (out[i].image == null)
-			{
+			if (out[i].image == null) {
 				ri.Con_Printf(Defines.PRINT_ALL, "Couldn't load " + name + '\n');
 				out[i].image = r_notexture;
 			}
 		}
 
 		// count animation frames
-		for (i=0 ; i<count ; i++)
-		{
-			// out = &loadmodel.texinfo[i];
+		for (i=0 ; i<count ; i++) {
 			out[i].numframes = 1;
 			for (step = out[i].next ; (step != null) && (step != out[i]) ; step=step.next)
 				out[i].numframes++;
