@@ -2,7 +2,7 @@
  * Base.java
  * Copyright (C) 2003
  *
- * $Id: Base.java,v 1.1 2004-07-07 19:59:36 hzi Exp $
+ * $Id: Base.java,v 1.2 2004-07-15 14:37:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.render.JoglBase;
 import net.java.games.jogl.GL;
 
 /**
@@ -32,7 +33,7 @@ import net.java.games.jogl.GL;
  *  
  * @author cwei
  */
-public class Base {
+public abstract class Base extends JoglBase {
 	
 	static final int GL_COLOR_INDEX8_EXT = GL.GL_COLOR_INDEX;
 	static final String REF_VERSION = "GL 0.01";
@@ -74,12 +75,6 @@ public class Base {
 	static final int MAX_GLTEXTURES = 1024;
 
 //	  ===================================================================
-
-	// enum rserr_t
-	static final int rserr_ok = 0;
-	static final int rserr_invalid_fullscreen = 1;
-	static final int rserr_invalid_mode = 2;
-	static final int rserr_unknown = 3;
 
 //
 //	#include "gl_model.h"

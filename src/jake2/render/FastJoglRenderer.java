@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.1 2004-07-09 06:50:47 hzi Exp $
+ * $Id: FastJoglRenderer.java,v 1.2 2004-07-15 14:37:35 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,7 @@ package jake2.render;
 import jake2.Defines;
 import jake2.client.*;
 import jake2.qcommon.xcommand_t;
-import jake2.render.fastjogl.Impl;
+import jake2.render.fastjogl.Misc;
 
 import java.awt.Dimension;
 
@@ -37,8 +37,10 @@ import java.awt.Dimension;
  * 
  * @author cwei
  */
-final class FastJoglRenderer extends Impl implements refexport_t, Ref {
-
+final class FastJoglRenderer extends Misc implements refexport_t, Ref {
+	
+	public static final String DRIVER_NAME = "fastjogl";
+	
 	static {
 		Renderer.register(new FastJoglRenderer());
 	};

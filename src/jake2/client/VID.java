@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.5 2004-07-09 06:50:50 hzi Exp $
+ * $Id: VID.java,v 1.6 2004-07-15 14:37:35 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,6 +37,7 @@ import jake2.sys.KBD;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 
 /**
  * VID is a video driver.
@@ -85,12 +86,6 @@ public class VID extends Globals {
 			Com.DPrintf(fmt, vargs);
 	}
 
-	public static void Error(int err_level, String fmt, Vargs vargs)
-	{
-		//static qboolean	inupdate;
-		Com.Error(err_level, fmt, vargs);
-	}
-
 	// ==========================================================================
 
 	/*
@@ -123,15 +118,17 @@ public class VID extends Globals {
 			new vidmode_t("Mode 8: 1280x1024", 1280, 1024, 8),
 			new vidmode_t("Mode 9: 1600x1200", 1600, 1200, 9),
 			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10)};
-
-	static final int NUM_MODES = vid_modes.length;
+	static vidmode_t fs_modes[];
 
 	public static boolean GetModeInfo(Dimension dim, int mode) {
-		if (mode < 0 || mode >= NUM_MODES)
+		vidmode_t[] modes = vid_modes;
+		if (vid_fullscreen.value != 0.0f) modes = fs_modes;
+		
+		if (mode < 0 || mode >= modes.length)
 			return false;
 
-		dim.width = vid_modes[mode].width;
-		dim.height = vid_modes[mode].height;
+		dim.width = modes[mode].width;
+		dim.height = modes[mode].height;
 		return true;
 	}
 
@@ -191,11 +188,11 @@ public class VID extends Globals {
 		Com.Printf( "LoadLibrary(\"" + name +"\")\n" );
 		refimport_t ri = new refimport_t() {
 			public void Sys_Error(int err_level, String str) {
-				VID.Error(err_level, str, null);
+				Com.Error(err_level, str, null);
 			}
 
 			public void Sys_Error(int err_level, String str, Vargs vargs) {
-				VID.Error(err_level, str, vargs);
+				Com.Error(err_level, str, vargs);
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd) {
@@ -279,12 +276,6 @@ public class VID extends Globals {
 			FreeReflib();
 			Com.Error(Defines.ERR_FATAL, name + " has incompatible api_version");
 		}
-
-		/* Init IN (Mouse) */
-//		in_state.IN_CenterView_fp = IN_CenterView;
-//		in_state.Key_Event_fp = Do_Key_Event;
-//		in_state.viewangles = cl.viewangles;
-//		in_state.in_strafe_state = &in_strafe.state;
 
 		IN.Real_IN_Init();
 
@@ -413,19 +404,8 @@ public class VID extends Globals {
 	//
 	// ==========================================================================
 
-//	#define REF_SOFT	0
-//	#define REF_SOFTX11	1
-//	#define REF_MESA3D  2
-//	#define REF_3DFXGL 3
-//	#define REF_OPENGLX	4
 	static final int REF_OPENGL_JOGL = 0;
 	static final int REF_OPENGL_FASTJOGL =1;
-//	#define REF_MESA3DGLX 5
-
-//	extern cvar_t *vid_ref;
-//	extern cvar_t *vid_fullscreen;
-//	extern cvar_t *vid_gamma;
-//	extern cvar_t *scr_viewsize;
 
 	static cvar_t gl_mode;
 	static cvar_t gl_driver;
@@ -632,6 +612,10 @@ public class VID extends Globals {
 		"[2048 1536]",
 		null
 	};
+	static String[] fs_resolutions;
+	static int last_fs;
+	static int last_win;
+	
 	static final String[] refs =
 	{
 		// "[software       ]",
@@ -651,13 +635,37 @@ public class VID extends Globals {
 		null
 	};
 
+	static void initModeList() {
+		DisplayMode[] modes = re.getModeList();
+		fs_resolutions = new String[modes.length + 1];
+		fs_modes = new vidmode_t[modes.length];
+		for (int i = 0; i < modes.length; i++) {
+			DisplayMode m = modes[i];
+			StringBuffer sb = new StringBuffer(18);
+			sb.append('[');
+			sb.append(m.getWidth());
+			sb.append(' ');
+			sb.append(m.getHeight());
+			while (sb.length() < 10) sb.append(' ');
+			sb.append(']');
+			fs_resolutions[i] = sb.toString();
+			sb.setLength(0);
+			sb.append("Mode ");
+			sb.append(i);
+			sb.append(':');
+			sb.append(m.getWidth());
+			sb.append('x');
+			sb.append(m.getHeight());
+			fs_modes[i] = new vidmode_t(sb.toString(), m.getWidth(), m.getHeight(), i);
+		}
+	}
+	
 	/*
 	** VID_MenuInit
 	*/
-	public static void MenuInit()
-	{
-		int i;
-
+	public static void MenuInit() {
+		if (fs_resolutions == null) initModeList();
+		
 		if ( gl_driver == null )
 			gl_driver = Cvar.Get( "gl_driver", "jogl", 0 );
 		if ( gl_picmip == null )
@@ -677,6 +685,19 @@ public class VID extends Globals {
 
 		s_mode_list[SOFTWARE_MENU].curvalue = (int)sw_mode.value;
 		s_mode_list[OPENGL_MENU].curvalue = (int)gl_mode.value;
+		if (vid_fullscreen.value != 0.0f) {
+			s_mode_list[OPENGL_MENU].itemnames = fs_resolutions;
+			if (s_mode_list[OPENGL_MENU].curvalue >= fs_resolutions.length - 1) {
+				s_mode_list[OPENGL_MENU].curvalue = 0;
+			}
+			last_fs = s_mode_list[OPENGL_MENU].curvalue;
+		} else {
+			s_mode_list[OPENGL_MENU].itemnames = resolutions;
+			if (s_mode_list[OPENGL_MENU].curvalue >= resolutions.length - 1) {
+				s_mode_list[OPENGL_MENU].curvalue = 0;
+			}
+			last_win = s_mode_list[OPENGL_MENU].curvalue;
+		}
 
 		if ( SCR.scr_viewsize == null )
 			SCR.scr_viewsize = Cvar.Get ("viewsize", "100", CVAR_ARCHIVE);
@@ -726,7 +747,7 @@ public class VID extends Globals {
 		s_opengl_menu.x = (int)(viddef.width * 0.50f);
 		s_opengl_menu.nitems = 0;
 
-		for ( i = 0; i < 2; i++ )
+		for (int i = 0; i < 2; i++ )
 		{
 			s_ref_list[i].type = MTYPE_SPINCONTROL;
 			s_ref_list[i].name = "driver";
@@ -743,7 +764,6 @@ public class VID extends Globals {
 			s_mode_list[i].name = "video mode";
 			s_mode_list[i].x = 0;
 			s_mode_list[i].y = 10;
-			s_mode_list[i].itemnames = resolutions;
 
 			s_screensize_slider[i].type	= MTYPE_SLIDER;
 			s_screensize_slider[i].x		= 0;
@@ -775,6 +795,18 @@ public class VID extends Globals {
 			s_fs_box[i].name	= "fullscreen";
 			s_fs_box[i].itemnames = yesno_names;
 			s_fs_box[i].curvalue = (int)vid_fullscreen.value;
+			s_fs_box[i].callback = new Menu.mcallback() {
+				public void execute(Object o) {
+					int fs = ((Menu.menulist_s)o).curvalue;
+					if (fs == 0) {
+						s_mode_list[1].itemnames = resolutions;
+						s_mode_list[1].curvalue = last_win;
+					} else {
+						s_mode_list[1].itemnames = fs_resolutions;
+						s_mode_list[1].curvalue = last_fs;						
+					}
+				}
+			};
 
 			s_defaults_action[i].type = MTYPE_ACTION;
 			s_defaults_action[i].name = "reset to default";

@@ -1,8 +1,8 @@
 /*
- * Impl.java
- * Copyright (C) 2003
- *
- * $Id: Impl.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * JoglCommon.java
+ * Copyright (C) 2004
+ * 
+ * $Id: JoglBase.java,v 1.1 2004-07-15 14:37:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,35 +23,53 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.render.fastjogl;
+
+package jake2.render;
 
 import jake2.Defines;
-import jake2.Globals;
-import jake2.qcommon.Com;
+import jake2.client.refimport_t;
+import jake2.client.viddef_t;
+import jake2.game.cvar_t;
 import jake2.qcommon.xcommand_t;
 import jake2.sys.KBD;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.LinkedList;
 
 import javax.swing.JFrame;
 
 import net.java.games.jogl.*;
+import net.java.games.jogl.util.GLUT;
 
 /**
- * Impl
- *  
- * @author cwei
+ * JoglCommon
  */
-public class Impl extends Misc implements GLEventListener {
+public abstract class JoglBase implements GLEventListener {
 
-	public static final String DRIVER_NAME = "fastjogl";
+	// IMPORTED FUNCTIONS
+	protected refimport_t ri = null;
+
+	protected GraphicsDevice device;
+	protected DisplayMode oldDisplayMode; 
+	protected GLCanvas canvas;
+	JFrame window;
+
+	protected GL gl;
+	protected GLU glu;
+	protected GLUT glut = new GLUT();
+
+	// window position on the screen
+	int window_xpos, window_ypos;
+	protected viddef_t vid = new viddef_t();
 
 	// handles the post initialization with JoglRenderer
 	protected boolean post_init = false;
-
-	private final xcommand_t INIT_CALLBACK = new xcommand_t() {
+	protected boolean contextInUse = false;
+	protected abstract boolean R_Init2();
+	
+	protected final xcommand_t INIT_CALLBACK = new xcommand_t() {
 		public void execute() {
 			// only used for the first run (initialization)
 			// clear the screen
@@ -68,27 +86,76 @@ public class Impl extends Misc implements GLEventListener {
 			GLimp_EndFrame();
 		}
 	};
-
-	private xcommand_t callback = INIT_CALLBACK;
-	protected boolean contextInUse = false;
+	protected xcommand_t callback = INIT_CALLBACK;
 	
-	private GraphicsDevice device;
-	private DisplayMode oldDisplayMode; 
+	protected cvar_t vid_fullscreen;
 
-	GLCanvas canvas;
-	JFrame window;
+	// enum rserr_t
+	protected static final int rserr_ok = 0;
+	protected static final int rserr_invalid_fullscreen = 1;
+	protected static final int rserr_invalid_mode = 2;
+	protected static final int rserr_unknown = 3;
 	
-	// window position on the screen
-	int window_xpos, window_ypos;
-
-	/**
-	 * @return true
-	 */
-	boolean GLimp_Init(int xpos, int ypos) {
-		// do nothing
-		window_xpos = xpos;
-		window_ypos = ypos;
-		return true;
+	public DisplayMode[] getModeList() {
+		DisplayMode[] modes = device.getDisplayModes();
+		LinkedList l = new LinkedList();
+		l.add(oldDisplayMode);
+		
+		for (int i = 0; i < modes.length; i++) {
+			DisplayMode m = modes[i];
+			
+			if (m.getBitDepth() != oldDisplayMode.getBitDepth()) continue;
+			if (m.getRefreshRate() > oldDisplayMode.getRefreshRate()) continue;
+			
+			int j = 0;
+			DisplayMode ml = null;
+			for (j = 0; j < l.size(); j++) {
+				ml = (DisplayMode)l.get(j);
+				if (ml.getWidth() >= m.getWidth()) break;
+			}
+			if (j == l.size()) {
+				l.addLast(m);
+			} else if (ml.getWidth() > m.getWidth()) {
+				l.add(j, m);
+			} else if (m.getRefreshRate() > ml.getRefreshRate()){
+				l.remove(j);
+				l.add(j, m);
+			}
+		}
+		DisplayMode[] ma = new DisplayMode[l.size()];
+		l.toArray(ma);
+		return ma;
+	}
+	
+	DisplayMode findDisplayMode(Dimension dim) {
+		DisplayMode mode = null;
+		DisplayMode m = null;
+		DisplayMode[] modes = getModeList();
+		int w = dim.width;
+		int h = dim.height;
+		
+		for (int i = 0; i < modes.length; i++) {
+			m = modes[i];
+			if (m.getWidth() == w) {
+				mode = m;
+				break;
+			}
+		}
+		if (mode == null) mode = oldDisplayMode;
+		return mode;		
+	}
+		
+	String getModeString(DisplayMode m) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(m.getWidth());
+		sb.append('x');
+		sb.append(m.getHeight());
+		sb.append('x');
+		sb.append(m.getBitDepth());
+		sb.append('@');
+		sb.append(m.getRefreshRate());
+		sb.append("Hz");
+		return sb.toString();
 	}
 
 	/**
@@ -97,11 +164,9 @@ public class Impl extends Misc implements GLEventListener {
 	 * @param fullscreen
 	 * @return enum rserr_t
 	 */
-	int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen) {
+	protected int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen) {
 
 		Dimension newDim = new Dimension();
-
-		ri.Cvar_Get("r_fakeFullscreen", "0", Globals.CVAR_ARCHIVE);
 
 		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
@@ -127,9 +192,9 @@ public class Impl extends Misc implements GLEventListener {
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 
-		window.getContentPane().add(canvas);	
+		//window.getContentPane().add(canvas);	
 		
-		canvas.setSize(newDim.width, newDim.height);
+		//canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
@@ -149,39 +214,35 @@ public class Impl extends Misc implements GLEventListener {
 		 */
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		device = env.getDefaultScreenDevice();
-
-		if (fullscreen && !device.isFullScreenSupported()) {
-			ri.Con_Printf(Defines.PRINT_ALL, "...fullscreen not supported\n");
-			vid_fullscreen.value = 0;
-			vid_fullscreen.modified = false;
-		}
-
-		fullscreen = fullscreen && device.isFullScreenSupported();
-        
+       
 		if (oldDisplayMode == null) {
 			oldDisplayMode = device.getDisplayMode();
 		}
 		        
 		if (fullscreen) {
 			
-			DisplayMode displayMode = findDisplayMode(newDim, oldDisplayMode.getBitDepth(), oldDisplayMode.getRefreshRate());
+			DisplayMode displayMode = findDisplayMode(newDim);
 			
-			if (displayMode != null) {
-				newDim.width = displayMode.getWidth();
-				newDim.height = displayMode.getHeight();
-				window.setUndecorated(true);
-				window.setResizable(false);
-				device.setFullScreenWindow(window);
+			newDim.width = displayMode.getWidth();
+			newDim.height = displayMode.getHeight();
+			window.setUndecorated(true);
+			window.setSize(displayMode.getWidth(), displayMode.getHeight());
+			window.setResizable(false);
+			window.getContentPane().add(canvas);
+			
+			device.setFullScreenWindow(window);
+			
+			if (!displayMode.equals(oldDisplayMode))
 				device.setDisplayMode(displayMode);
-				window.setLocation(0, 0);
-				window.setSize(displayMode.getWidth(), displayMode.getHeight());
-				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
-				ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
-			}
+			
+			window.setLocation(0, 0);
+			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
+
 		} else {
 			window.setLocation(window_xpos, window_ypos);
-			window.pack();
+			window.setSize(newDim.width, newDim.height);
 			window.setResizable(false);
+			window.getContentPane().add(canvas);
 			window.setVisible(true);
 		}
 		
@@ -202,67 +263,12 @@ public class Impl extends Misc implements GLEventListener {
 
 		return rserr_ok;
 	}
-	
-	DisplayMode findDisplayMode(Dimension dim, int depth, int rate) {
-		DisplayMode mode = null;
-		DisplayMode m = null;
-		DisplayMode[] modes = device.getDisplayModes();
-		int w = dim.width;
-		int h = dim.height;
-		
-		for (int i = 0; i < modes.length; i++) {
-			m = modes[i];
-			if (m.getWidth() == w && m.getHeight() == h && m.getBitDepth() == depth && m.getRefreshRate() == rate) {
-				mode = m;
-				break;
-			}
-		}
-		if (mode == null) mode = oldDisplayMode;
-		Com.Printf(getModeString(mode) + '\n');
-		return mode;		
-	}
-	
-	String getModeString(DisplayMode m) {
-		StringBuffer sb = new StringBuffer();
-		sb.append(m.getWidth());
-		sb.append('x');
-		sb.append(m.getHeight());
-		sb.append('x');
-		sb.append(m.getBitDepth());
-		sb.append('@');
-		sb.append(m.getRefreshRate());
-		sb.append("Hz");
-		return sb.toString();
-	}
 
-	void GLimp_BeginFrame(float camera_separation) {
-		// do nothing
-	}
-
-	protected void GLimp_EndFrame() {
-		gl.glFlush();
-		// swap buffer
-		// but jogl has no method to swap
-	}
-
-	protected void GLimp_AppActivate(boolean activate) {
-		// do nothing
-	}
-
-	boolean QGL_Init(String dll_name) {
-		// doesn't need libGL.so or .dll loading
-		return true;
-	}
-
-	void QGL_Shutdown() {
-		// doesn't need libGL.so or .dll loading
-		// do nothing
-	}
-
-	void GLimp_Shutdown() {
+	protected void GLimp_Shutdown() {
 		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
 			try {
-				device.setDisplayMode(oldDisplayMode);
+				if (!device.getDisplayMode().equals(oldDisplayMode))
+					device.setDisplayMode(oldDisplayMode);
 				device.setFullScreenWindow(null);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -275,18 +281,51 @@ public class Impl extends Misc implements GLEventListener {
 		callback = INIT_CALLBACK;
 	}
 
-	void GLimp_EnableLogging(boolean enable) {
+	/**
+	 * @return true
+	 */
+	protected boolean GLimp_Init(int xpos, int ypos) {
+		// do nothing
+		window_xpos = xpos;
+		window_ypos = ypos;
+		return true;
+	}
+
+	protected void GLimp_EndFrame() {
+		gl.glFlush();
+		// swap buffer
+		// but jogl has no method to swap
+	}
+	protected void GLimp_BeginFrame(float camera_separation) {
+		// do nothing
+	}
+
+	protected void GLimp_AppActivate(boolean activate) {
+		// do nothing
+	}
+
+	protected void GLimp_EnableLogging(boolean enable) {
 		// doesn't need jogl logging
 		// do nothing
 	}
 
-	void GLimp_LogNewFrame() {
+	protected void GLimp_LogNewFrame() {
 		// doesn't need jogl logging
 		// do nothing
 	}
 
-
-
+	/* 
+	 * @see jake2.client.refexport_t#updateScreen()
+	 */
+	public void updateScreen() {
+		this.callback = INIT_CALLBACK;
+		canvas.display();
+	}
+	
+	public void updateScreen(xcommand_t callback) {
+		this.callback = callback;
+		canvas.display();
+	}	
 	// ============================================================================
 	// GLEventListener interface
 	// ============================================================================
@@ -327,17 +366,5 @@ public class Impl extends Misc implements GLEventListener {
 	public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
 		// do nothing
 	}
-
-	/* 
-	 * @see jake2.client.refexport_t#updateScreen()
-	 */
-	public void updateScreen() {
-		this.callback = INIT_CALLBACK;
-		canvas.display();
-	}
 	
-	public void updateScreen(xcommand_t callback) {
-		this.callback = callback;
-		canvas.display();
-	}
 }

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2004-07-09 06:50:47 hzi Exp $
+ * $Id: Main.java,v 1.4 2004-07-15 14:37:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import jake2.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
@@ -41,9 +40,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import net.java.games.jogl.GL;
-import net.java.games.jogl.GLU;
-import net.java.games.jogl.util.BufferUtils;
-import net.java.games.jogl.util.GLUT;
 
 /**
  * Main
@@ -51,10 +47,6 @@ import net.java.games.jogl.util.GLUT;
  * @author cwei
  */
 public abstract class Main extends Base {
-
-	GL gl;
-	GLU glu;
-	GLUT glut = new GLUT();
 
 	public static int[] d_8to24table = new int[256];
 
@@ -85,15 +77,6 @@ public abstract class Main extends Base {
 
 	abstract void Mod_Modellist_f();
 	abstract mleaf_t Mod_PointInLeaf(float[] point, model_t model);
-
-	abstract boolean QGL_Init(String dll_name);
-	abstract void QGL_Shutdown();
-	abstract boolean GLimp_Init(int xpos, int ypos);
-	abstract void GLimp_BeginFrame(float camera_separation);
-	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
-	abstract void GLimp_Shutdown();
-	abstract void GLimp_EnableLogging(boolean enable);
-	abstract void GLimp_LogNewFrame();
 
 	abstract void GL_SetDefaultState();
 
@@ -128,13 +111,8 @@ public abstract class Main extends Base {
 	====================================================================
 	*/
 
-	// IMPORTED FUNCTIONS
-	protected refimport_t ri = null;
-
 	int GL_TEXTURE0 = GL.GL_TEXTURE0;
 	int GL_TEXTURE1 = GL.GL_TEXTURE1;
-
-	viddef_t vid = new viddef_t();
 
 	model_t r_worldmodel;
 
@@ -238,7 +216,6 @@ public abstract class Main extends Base {
 
 	cvar_t gl_3dlabs_broken;
 
-	cvar_t vid_fullscreen;
 	cvar_t vid_gamma;
 	cvar_t vid_ref;
 
@@ -1113,32 +1090,18 @@ public abstract class Main extends Base {
 
 		R_Register();
 
-		// initialize our QGL dynamic bindings
-		if (!QGL_Init(gl_driver.string)) {
-			QGL_Shutdown();
-			ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not load \"" + gl_driver.string + "\"\n");
-			return false;
-		}
-
-		// initialize OS-specific parts of OpenGL
-		if (!GLimp_Init(vid_xpos, vid_ypos)) {
-			QGL_Shutdown();
-			return false;
-		}
-
 		// set our "safe" modes
 		gl_state.prev_mode = 3;
 
 		// create the window and set up the context
 		if (!R_SetMode()) {
-			QGL_Shutdown();
 			ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
 			return false;
 		}
 		return true;
 	}
 
-	boolean R_Init2() {
+	protected boolean R_Init2() {
 		ri.Vid_MenuInit();
 
 		/*
@@ -1385,11 +1348,6 @@ public abstract class Main extends Base {
 		 * shut down OS specific OpenGL stuff like contexts, etc.
 		 */
 		GLimp_Shutdown();
-
-		/*
-		 * shutdown our QGL subsystem
-		 */
-		QGL_Shutdown();
 	}
 
 	/*

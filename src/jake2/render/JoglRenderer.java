@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.3 2004-07-09 06:50:47 hzi Exp $
+ * $Id: JoglRenderer.java,v 1.4 2004-07-15 14:37:35 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,7 @@ package jake2.render;
 import jake2.Defines;
 import jake2.client.*;
 import jake2.qcommon.xcommand_t;
-import jake2.render.jogl.Impl;
+import jake2.render.jogl.Misc;
 
 import java.awt.Dimension;
 
@@ -37,7 +37,9 @@ import java.awt.Dimension;
  * 
  * @author cwei
  */
-final class JoglRenderer extends Impl implements refexport_t, Ref {
+final class JoglRenderer extends Misc implements refexport_t, Ref {
+
+	public static final String DRIVER_NAME = "jogl";
 
 	static {
 		Renderer.register(new JoglRenderer());
