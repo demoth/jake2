@@ -112,7 +112,7 @@
 			<include name="**"/>
 		</jar>
 		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
-			defaultpackage="" overloadaggressively="off">
+			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
 			<injar name="${dist}/lib/jake.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
 			<libraryjar name="lib/joal/linux/joal.jar"/>
@@ -226,6 +226,7 @@
 			<fileset dir=".">
 				<include name="*.tar.gz"/>
 				<include name="*.zip"/>
+				<include name="*.map"/>
 			</fileset>
 		</delete>
 	</target>
