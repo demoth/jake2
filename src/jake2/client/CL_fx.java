@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.4 2004-07-08 20:56:50 hzi Exp $
+ * $Id: CL_fx.java,v 1.5 2004-07-13 11:09:55 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,11 +45,10 @@ public class CL_fx extends CL_tent {
 		float[] origin = { 0, 0, 0 };
 		float radius;
 		float die; // stop lighting after this time
-		float decay; // drop this each second
+		//float decay; // drop this each second
 		float minlight; // don't add when contributing less
 		void clear() {
-			radius =
-				decay = die = minlight = color[0] = color[1] = color[2] = origin[0] = origin[1] = origin[2] = key = 0;
+			radius = minlight = color[0] = color[1] = color[2] = 0;
 		}
 	}
 
@@ -100,24 +99,23 @@ public class CL_fx extends CL_tent {
 	================
 	*/
 	static void RunLightStyles() {
-		int ofs;
-		int i;
-		clightstyle_t[] ls;
+		clightstyle_t ls;
 
-		ofs = cl.time / 100;
+		int ofs = cl.time / 100;
 		if (ofs == lastofs)
 			return;
 		lastofs = ofs;
-		ls = cl_lightstyle;
-		for (i = 0; i < ls.length; i++) {
-			if (ls[i].length == 0) {
-				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = 1.0f;
+		
+		for (int i = 0; i < cl_lightstyle.length; i++) {
+			ls = cl_lightstyle[i];
+			if (ls.length == 0) {
+				ls.value[0] = ls.value[1] = ls.value[2] = 1.0f;
 				continue;
 			}
 			if (ls.length == 1)
-				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = ls[i].map[0];
+				ls.value[0] = ls.value[1] = ls.value[2] = ls.map[0];
 			else
-				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = ls[i].map[ofs % ls[i].length];
+				ls.value[0] = ls.value[1] = ls.value[2] = ls.map[ofs % ls.length];
 		}
 	}
 
@@ -143,12 +141,12 @@ public class CL_fx extends CL_tent {
 	================
 	*/
 	static void AddLightStyles() {
-		int i;
-		clightstyle_t[] ls;
+		clightstyle_t ls;
 
-		ls = cl_lightstyle;
-		for (i = 0; i < ls.length; i++)
-			V.AddLightStyle(i, ls[i].value[0], ls[i].value[1], ls[i].value[2]);
+		for (int i = 0; i < cl_lightstyle.length; i++) {
+			ls = cl_lightstyle[i];
+			V.AddLightStyle(i, ls.value[0], ls.value[1], ls.value[2]);
+		}
 	}
 
 	/*
@@ -185,37 +183,38 @@ public class CL_fx extends CL_tent {
 	*/
 	static cdlight_t AllocDlight(int key) {
 		int i;
-		cdlight_t[] dl;
+		cdlight_t dl;
 
 		//	   first look for an exact key match
-		if (key != 0) {
-			dl = cl_dlights;
+		if (key != 0) {	
 			for (i = 0; i < MAX_DLIGHTS; i++) {
-				if (dl[i].key == key) {
+				dl = cl_dlights[i];
+				if (dl.key == key) {
 					//memset (dl, 0, sizeof(*dl));
-					dl[i].clear();
-					dl[i].key = key;
-					return dl[i];
+					dl.clear();
+					dl.key = key;
+					return dl;
 				}
 			}
 		}
 
 		//	   then look for anything else
-		dl = cl_dlights;
 		for (i = 0; i < MAX_DLIGHTS; i++) {
-			if (dl[i].die < cl.time) {
+			dl = cl_dlights[i];
+			if (dl.die < cl.time) {
 				//memset (dl, 0, sizeof(*dl));
-				dl[i].clear();
-				dl[i].key = key;
-				return dl[i];
+				dl.clear();
+				dl.key = key;
+				return dl;
 			}
 		}
 
 		//dl = &cl_dlights[0];
 		//memset (dl, 0, sizeof(*dl));
-		dl[0].clear();
-		dl[0].key = key;
-		return dl[0];
+		dl = cl_dlights[0];
+		dl.clear();
+		dl.key = key;
+		return dl;
 	}
 
 	/*
@@ -241,20 +240,20 @@ public class CL_fx extends CL_tent {
 	===============
 	*/
 	static void RunDLights() {
-		cdlight_t[] dl;
+		cdlight_t dl;
 
-		dl = cl_dlights;
 		for (int i = 0; i < MAX_DLIGHTS; i++) {
-			if (dl[i].radius == 0.0f)
+			dl = cl_dlights[i];
+			if (dl.radius == 0.0f)
 				continue;
 
-			if (dl[i].die < cl.time) {
-				dl[i].radius = 0;
+			if (dl.die < cl.time) {
+				dl.radius = 0.0f;
 				return;
 			}
-			dl[i].radius -= cls.frametime * dl[i].decay;
-			if (dl[i].radius < 0)
-				dl[i].radius = 0;
+			//dl[i].radius -= cls.frametime * dl[i].decay;
+			//if (dl[i].radius < 0)
+			//	dl[i].radius = 0;
 		}
 	}
 
@@ -953,31 +952,31 @@ public class CL_fx extends CL_tent {
 	===============
 	*/
 	static void AddDLights() {
-		int i;
-		
-		cdlight_t[] dl = cl_dlights;
+		cdlight_t dl;
 
 		//	  =====
 		//	  PGM
 		if (vidref_val == VIDREF_GL) {
-			for (i = 0; i < MAX_DLIGHTS; i++) {
-				if (dl[i].radius == 0.0f)
+			for (int i = 0; i < MAX_DLIGHTS; i++) {
+				dl = cl_dlights[i];
+				if (dl.radius == 0.0f)
 					continue;
-				V.AddLight(dl[i].origin, dl[i].radius, dl[i].color[0], dl[i].color[1], dl[i].color[2]);
+				V.AddLight(dl.origin, dl.radius, dl.color[0], dl.color[1], dl.color[2]);
 			}
 		} else {
-			for (i = 0; i < MAX_DLIGHTS; i++) {
-				if (dl[i].radius == 0.0f)
+			for (int i = 0; i < MAX_DLIGHTS; i++) {
+				dl = cl_dlights[i];
+				if (dl.radius == 0.0f)
 					continue;
 
 				// negative light in software. only black allowed
-				if ((dl[i].color[0] < 0) || (dl[i].color[1] < 0) || (dl[i].color[2] < 0)) {
-					dl[i].radius = - (dl[i].radius);
-					dl[i].color[0] = 1;
-					dl[i].color[1] = 1;
-					dl[i].color[2] = 1;
+				if ((dl.color[0] < 0) || (dl.color[1] < 0) || (dl.color[2] < 0)) {
+					dl.radius = - (dl.radius);
+					dl.color[0] = 1;
+					dl.color[1] = 1;
+					dl.color[2] = 1;
 				}
-				V.AddLight(dl[i].origin, dl[i].radius, dl[i].color[0], dl[i].color[1], dl[i].color[2]);
+				V.AddLight(dl.origin, dl.radius, dl.color[0], dl.color[1], dl.color[2]);
 			}
 		}
 		//	  PGM
@@ -1507,18 +1506,15 @@ public class CL_fx extends CL_tent {
 	static void DiminishingTrail(float[] start, float[] end, centity_t old, int flags) {
 		float[] move = new float[3];
 		float[] vec = new float[3];
-		float len;
-		int j;
 		cparticle_t p;
-		float dec;
 		float orgscale;
 		float velscale;
 
 		VectorCopy(start, move);
 		VectorSubtract(end, start, vec);
-		len = VectorNormalize(vec);
+		float len = VectorNormalize(vec);
 
-		dec = 0.5f;
+		float dec = 0.5f;
 		VectorScale(vec, dec, vec);
 
 		if (old.trailcount > 900) {
@@ -1552,7 +1548,7 @@ public class CL_fx extends CL_tent {
 					p.alpha = 1.0f;
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.4f);
 					p.color = 0xe8 + (rand() & 7);
-					for (j = 0; j < 3; j++) {
+					for (int j = 0; j < 3; j++) {
 						p.org[j] = move[j] + crand() * orgscale;
 						p.vel[j] = crand() * velscale;
 						p.accel[j] = 0;
@@ -1562,7 +1558,7 @@ public class CL_fx extends CL_tent {
 					p.alpha = 1.0f;
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.4f);
 					p.color = 0xdb + (rand() & 7);
-					for (j = 0; j < 3; j++) {
+					for (int j = 0; j < 3; j++) {
 						p.org[j] = move[j] + crand() * orgscale;
 						p.vel[j] = crand() * velscale;
 						p.accel[j] = 0;
@@ -1572,7 +1568,7 @@ public class CL_fx extends CL_tent {
 					p.alpha = 1.0f;
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.2f);
 					p.color = 4 + (rand() & 7);
-					for (j = 0; j < 3; j++) {
+					for (int j = 0; j < 3; j++) {
 						p.org[j] = move[j] + crand() * orgscale;
 						p.vel[j] = crand() * velscale;
 					}
