@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
+// $Id: PlayerClient.java,v 1.5 2004-09-04 09:01:01 salomo Exp $
 
 package jake2.game;
 
@@ -304,17 +304,18 @@ public class PlayerClient extends PlayerHud {
 	public static void InitClientPersistant(gclient_t client) {
 		gitem_t item;
 
-		//memset(& client.pers, 0, sizeof(client.pers));
 		client.pers = new client_persistant_t();
 
 		item = FindItem("Blaster");
 		client.pers.selected_item = ITEM_INDEX(item);
 		client.pers.inventory[client.pers.selected_item] = 1;
 		
+		/* Give shotgun.
 		item = FindItem("Shotgun");
 		client.pers.selected_item = ITEM_INDEX(item);
 		client.pers.inventory[client.pers.selected_item] = 1;
-
+		*/
+		
 		client.pers.weapon = item;
 
 		client.pers.health = 100;

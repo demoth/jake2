@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.8 2004-08-29 21:39:25 hzi Exp $
+// $Id: SV_CCMDS.java,v 1.9 2004-09-04 09:01:01 salomo Exp $
 
 package jake2.server;
 
@@ -211,8 +211,7 @@ public class SV_CCMDS extends SV_ENTS {
 		int l= -1;
 		byte buffer[]= new byte[65536];
 
-		Com.DPrintf("CopyFile (" + src + ", " + dst + ")\n");
-		System.out.println("CopyFile (" + src + ", " + dst + ")\n");
+		//Com.DPrintf("CopyFile (" + src + ", " + dst + ")\n");
 		try {
 			f1= new RandomAccessFile(src, "r");
 		}
