@@ -1,8 +1,8 @@
 /*
- * sizebuf_t.java
+ * S.java
  * Copyright (C) 2003
  * 
- * $Id: sizebuf_t.java,v 1.2 2003-11-28 21:47:54 hoz Exp $
+ * $Id: S.java,v 1.1 2003-11-28 21:47:54 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,16 +23,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
+package jake2.client;
 
 /**
- * sizebuf_t
+ * S
  */
-public final class sizebuf_t {
-	public boolean allowoverflow = false;
-	public boolean overflowed = false;
-	public byte[] data = null;
-	public int maxsize = 0;
-	public int currsize = 0;
-	public int readcount = 0;
+public class S {
+
+	public static void Init() {
+	}
+	
 }

@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.3 2003-11-28 21:16:43 rst Exp $
+ * $Id: CL.java,v 1.4 2003-11-28 21:47:54 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,8 @@ package jake2.client;
 import jake2.Globals;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.FS;
+import jake2.sys.CDAudio;
+import jake2.sys.IN;
 
 /**
  * CL
@@ -51,24 +53,27 @@ public final class CL {
 		
 		Console.Init();
 			
-// S.Init();
-		VID.Init();		
+		S.Init();
+		VID.Init();
+			
 		V.Init();
-		
-		         
-//		01797         net_message.data = net_message_buffer;
-//		01798         net_message.maxsize = sizeof(net_message_buffer);
-//		01799 
-//		01800         M_Init ();      
-//		01801         
-//		01802         SCR_Init ();
-//		01803         cls.disable_screen = true;      // don't draw yet
-//		01804 
-//		01805         CDAudio_Init ();
-//		01806         CL_InitLocal ();
-//		01807         IN_Init ();
+			         
+		Globals.net_message.data = Globals.net_message_buffer;
+		Globals.net_message.maxsize = Globals.net_message_buffer.length;
+
+		M.Init();      
+
+		SCR.Init();
+		Globals.cls.disable_screen = 1.0f;      // don't draw yet
+
+		CDAudio.Init();
+		InitLocal();
+		IN.Init();
 
 		FS.ExecAutoexec();
 		Cbuf.Execute();
+	}
+	
+	public static void InitLocal() {
 	}
 }
