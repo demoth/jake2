@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.6 2003-12-04 21:07:16 rst Exp $
+ * $Id: SCR.java,v 1.7 2004-01-11 14:38:47 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,12 +27,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
+import jake2.Globals;
+
 /**
  * SCR
  */
 public final class SCR {
 	
 	public static void Init() {
+	}
+	
+	// wird anstelle von der richtigen UpdateScreen benoetigt
+	public static void UpdateScreen() {
+		Globals.re.updateScreen();
+	}
+	
+	// hier muss der code der orig UpdateScreen rein
+	public static void UpdateScreen2() {
+		Globals.re.BeginFrame(0.0f);
+		
+		Globals.re.DrawStretchPic(0, 0 , Globals.viddef.width, Globals.viddef.height, "conback");
+		
+		Globals.re.EndFrame();
 	}
 
 	/**

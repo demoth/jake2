@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.27 2004-01-09 22:25:09 rst Exp $
+ * $Id: Globals.java,v 1.28 2004-01-11 14:38:47 cwei Exp $
  * $Log: Globals.java,v $
- * Revision 1.27  2004-01-09 22:25:09  rst
+ * Revision 1.28  2004-01-11 14:38:47  cwei
+ * Aenderungen fuer VID impl
+ *
+ * Revision 1.27  2004/01/09 22:25:09  rst
  * cosmetic
  *
  * 
@@ -157,7 +160,7 @@ public class Globals extends Defines {
 	public static cvar_t cl_vwep;
 
 	public static client_static_t cls = new client_static_t();
-	public static client_state_t cl;
+	public static client_state_t cl = new client_state_t();
 
 	public static centity_t cl_entities[] = new centity_t[Defines.MAX_EDICTS];
 

@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.17 2004-01-03 03:47:14 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.18 2004-01-11 14:38:47 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import java.awt.Dimension;
+
+import jake2.Defines;
 import jake2.render.jogl.*;
 
 import jake2.client.refdef_t;
@@ -203,6 +205,10 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 	 */
 	public void AppActivate(boolean activate) {
 		GLimp_AppActivate(activate);
+	}
+
+	public int apiVersion() {
+		return Defines.API_VERSION;
 	}
 
 	// ============================================================================

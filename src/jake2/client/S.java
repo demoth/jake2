@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.5 2003-12-01 22:00:22 hoz Exp $
+ * $Id: S.java,v 1.6 2004-01-11 14:38:47 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,5 +34,8 @@ public class S {
 	}
 	
 	public static void Shutdown() {
+	}
+	
+	public static void StopAllSounds() {
 	}
 }
