@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.3 2003-11-18 21:11:29 hoz Exp $
+ * $Id: Com.java,v 1.4 2003-11-18 22:00:25 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.Globals;
+import jake2.game.Cmd;
 
 /**
  * Com
@@ -34,8 +35,8 @@ import jake2.Globals;
 public final class Com {
 	
 	public static xcommand_t Error_f = new xcommand_t() {
-		public void execute() {
-//			TODO Auto-generated method stub
+		public void execute() throws longjmpException {
+			Error(Globals.ERR_FATAL, Cmd.Argv(1));
 		}
 	};
 

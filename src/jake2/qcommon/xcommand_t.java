@@ -2,7 +2,7 @@
  * xcommand_t.java
  * Copyright (C) 2003
  * 
- * $Id: xcommand_t.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
+ * $Id: xcommand_t.java,v 1.3 2003-11-18 22:00:25 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,5 +30,5 @@ package jake2.qcommon;
  */
 public abstract class xcommand_t {
 
-	abstract public void execute();
+	abstract public void execute() throws Exception;
 }

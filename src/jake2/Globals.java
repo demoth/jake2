@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
+ * $Id: Globals.java,v 1.3 2003-11-18 22:00:25 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,8 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
-import jake2.game.EndianHandler;
-import jake2.game.cvar_t;
+import jake2.game.*;
 import jake2.qcommon.sizebuf_t;
 
 import java.io.FileWriter;
@@ -40,6 +39,7 @@ public final class Globals {
 	 * global constants
 	 */
 	public static final int ERR_FATAL = 0;
+	public static final int MAX_ALIAS_NAME = 32;
 	public static final int MAX_NUM_ARGVS = 50;
 	public static final int MAX_TOKEN_CHARS = 128;
 	public static final int MAX_STRING_TOKENS = 80;
@@ -76,6 +76,7 @@ public final class Globals {
 	public static sizebuf_t cmd_text;
 	
 	public static byte[] cmd_text_buf = new byte[8192];
+	public static cmdalias_t cmd_alias;
 
 	public static long time_before_game;
 	public static long time_after_game;

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
+ * $Id: Cmd.java,v 1.3 2003-11-18 22:00:25 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -80,7 +80,46 @@ public final class Cmd {
 	};
 	static xcommand_t Alias_f = new xcommand_t() {
 		public void execute() {
-//			TODO Auto-generated method stub
+			cmdalias_t a = null;
+			if (Cmd.Argc() == 1) {
+				Com.print("Current alias commands:\n");
+				for (a = Globals.cmd_alias; a != null; a = a.next) {
+					Com.print(a.name + " : " + a.value);
+				}
+				return;
+			}
+
+			String s = Cmd.Argv(1);
+			if (s.length() > Globals.MAX_ALIAS_NAME) {
+				Com.print("Alias name is too long\n");
+				return;
+			}
+
+			// if the alias already exists, reuse it
+			for (a = Globals.cmd_alias; a != null; a = a.next) {
+				if (s.equalsIgnoreCase(a.name)) {
+					a.value = null;
+					break;
+				}
+			}
+			
+			if (a == null) {
+				a = new cmdalias_t();
+				a.next = Globals.cmd_alias;
+				Globals.cmd_alias = a;
+			}
+			a.name = s;
+			
+			// copy the rest of the command line
+			String cmd = "";
+			int c = Cmd.Argc();
+			for (int i = 2; i < c; i++) {
+				cmd = cmd + Cmd.Argv(i);
+				if (i != (c-1)) cmd = cmd + " ";
+			}
+			cmd = cmd + "\n";
+			
+			a.value = cmd;
 		}
 	};
 	static xcommand_t Wait_f = new xcommand_t() {
