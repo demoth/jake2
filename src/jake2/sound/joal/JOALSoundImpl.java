@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.10 2004-06-26 19:39:34 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.11 2004-06-26 19:47:44 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -368,7 +368,7 @@ public final class JOALSoundImpl implements Sound {
 				continue;
 
 			// allocate a channel
-			ch = pickupChannel(0, 0, buffers[sfx.id], 1);
+			ch = pickupChannel(0, 0, buffers[sfx.id], 2);
 			if (ch == null)
 				return;
 				
