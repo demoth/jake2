@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.7 2004-04-26 13:43:33 cwei Exp $
+ * $Id: S.java,v 1.8 2004-04-26 15:58:55 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -79,7 +79,7 @@ public class S {
 				return;
 			}
 		}
-		// null if driver not found
+		// if driver not found use dummy
 		impl = (Sound)drivers.get(0);
 	}
 	
@@ -94,16 +94,19 @@ public class S {
 			return;			
 		}
 
-		s_impl = Cvar.Get("s_impl", "dummy", Defines.CVAR_ARCHIVE);
+		s_impl = Cvar.Get("s_impl", "joal", Defines.CVAR_ARCHIVE);
 		useDriver(s_impl.string);
-		if (!impl.Init()) {
+
+		if (impl.Init()) {
+			// driver ok
+			Cvar.Set("s_impl", impl.getName());
+		} else {
 			// fallback
 			useDriver("dummy");
 		}
 		
 		Com.Printf("\n------- use sound driver \"" + impl.getName() + "\" -------\n");
 		StopAllSounds();
-		
 	}
 	
 	public static void Shutdown() {

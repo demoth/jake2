@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: DummyDriver.java,v 1.1 2004-04-26 13:43:33 cwei Exp $
+ * $Id: DummyDriver.java,v 1.2 2004-04-26 15:58:55 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,7 +31,7 @@ package jake2.sound;
  * 
  * @author cwei
  */
-public class DummyDriver implements Sound {
+public final class DummyDriver implements Sound {
 
 	static {
 		S.register(new DummyDriver());
