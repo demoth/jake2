@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.15 2004-06-27 12:27:56 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.16 2004-06-28 17:56:32 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -123,7 +123,8 @@ public final class JOALSoundImpl implements Sound {
 			al.alSourcei (sourceId, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
 			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR);
 			al.alSourcei (sourceId, AL.AL_LOOPING, AL.AL_FALSE);
-			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.001f);
+			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 120.0f);
+			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
 			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
 		}
 	}
@@ -223,6 +224,9 @@ public final class JOALSoundImpl implements Sound {
 		if (LoadSound(sfx) == null)
 			return; // can't load sound
 
+		if (attenuation != Defines.ATTN_STATIC)
+			attenuation *= 0.5f;
+
 		Channel ch = pickChannel(entnum, entchannel, buffers[sfx.id], attenuation);
 		
 		if (ch == null) return;
@@ -236,7 +240,7 @@ public final class JOALSoundImpl implements Sound {
 		}
 	}
 	
-	Channel pickChannel(int entnum, int entchannel, int bufferId, float attenuation) {
+	Channel pickChannel(int entnum, int entchannel, int bufferId, float rolloff) {
 
 		Channel ch = null;
 		int state;
@@ -269,7 +273,7 @@ public final class JOALSoundImpl implements Sound {
 			ch.bufferId = bufferId;
 			ch.bufferChanged = true;			
 		}
-		ch.attenuation = attenuation;
+		ch.rolloff = rolloff;
 		ch.active = true;
 		ch.modified = true;
 		
@@ -416,7 +420,7 @@ public final class JOALSoundImpl implements Sound {
 						al.alSourcei (sourceId, AL.AL_BUFFER, ch.bufferId);
 
 					al.alSourcef (sourceId, AL.AL_GAIN, s_volume.value);
-					al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 160.0f - ch.attenuation * 40);
+					al.alSourcef (sourceId, AL.AL_ROLLOFF_FACTOR, ch.rolloff);
 					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
 					al.alSourcePlay(sourceId);
 					ch.modified = false;
