@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.22 2004-03-18 10:20:46 hoz Exp $
+// $Id: SV_INIT.java,v 1.23 2004-06-01 18:08:44 cwei Exp $
 
 package jake2.server;
 
@@ -250,16 +250,16 @@ public class SV_INIT extends Globals  {
 		sv.name=server;
 		sv.configstrings[CS_NAME] = server;
 		
-		CM.intwrap checksum_iw = new CM.intwrap(checksum);
+		int iw[] = {checksum};
 
 		if (serverstate != ss_game) {
-			sv.models[1] = CM.CM_LoadMap("", false, checksum_iw); // no real map
+			sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
 		}
 		else {
-			sv.configstrings[CS_MODELS + 1] = "maps/" + server + ".bsp";
-			sv.models[1] = CM.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, checksum_iw);
+			sv.configstrings[CS_MODELS + 1] = "maps/" + server + ".bsp"; 
+			sv.models[1] = CM.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, iw);
 		}
-		checksum = checksum_iw.i;
+		checksum = iw[0];
 		sv.configstrings[CS_MAPCHECKSUM] = "" + checksum;
 
 		//
