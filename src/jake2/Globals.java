@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.44 2004-02-08 13:26:13 hoz Exp $
+ * $Id: Globals.java,v 1.45 2004-02-11 05:12:47 cwei Exp $
  * $Log: Globals.java,v $
- * Revision 1.44  2004-02-08 13:26:13  hoz
+ * Revision 1.45  2004-02-11 05:12:47  cwei
+ * scr_rect wird gesetzt
+ *
+ * Revision 1.44  2004/02/08 13:26:13  hoz
  * - aufr?umen
  *
  * Revision 1.43  2004/02/04 11:24:15  hoz
@@ -239,6 +242,13 @@ public class Globals extends Defines {
 	}
 
 	public static entity_state_t cl_parse_entities[] = new entity_state_t[Defines.MAX_PARSE_ENTITIES];
+	
+	static {
+		for (int i = 0; i < cl_parse_entities.length; i++)
+		{
+			cl_parse_entities[i] = new entity_state_t();
+		}
+	}
 
 	public static cvar_t rcon_client_password;
 	public static cvar_t rcon_address;
@@ -439,7 +449,7 @@ public class Globals extends Defines {
 	public static int edit_line;
 
 	public static cvar_t crosshair;
-	public static vrect_t scr_vrect;
+	public static vrect_t scr_vrect = new vrect_t();
 	public static long sys_frame_time;
 	public static int chat_bufferlen = 0;
 	public static int gun_frame;
