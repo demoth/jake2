@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.19 2004-06-29 00:43:24 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.20 2004-06-30 21:57:43 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -62,6 +62,7 @@ public final class JOALSoundImpl implements Sound {
 		}
 		
 		checkError();
+		al.alGenBuffers(MAX_SFX, buffers);
 		al.alGenSources(MAX_CHANNELS, sources);
 		checkError();
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
@@ -173,26 +174,27 @@ public final class JOALSoundImpl implements Sound {
 		int freq = sfx.cache.speed;
 		int size = data.length;
 		
-		if (buffers[sfx.id] != 0)
-			al.alDeleteBuffers(1, new int[] {buffers[sfx.id] });			
-		
-		int[] bid = new int[1];
-		al.alGenBuffers(1, bid);
-		buffers[sfx.id] = bid[0];
-		al.alBufferData( bid[0], format, data, size, freq);
+//		if (buffers[sfx.id] != 0)
+//			al.alDeleteBuffers(1, new int[] {buffers[sfx.id] });			
+//		
+//		int[] bid = new int[1];
+//		al.alBufferData( bid[0], format, data, size, freq);
+//		buffers[sfx.id] = bid[0];
+//		al.alBufferData( bid[0], format, data, size, freq);
 
-		int error;
-		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
-			String message;
-			switch(error) {
-				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
-				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
-				case AL.AL_INVALID_ENUM: message = "invalid enum"; break;
-				case AL.AL_INVALID_NAME: message = "invalid name"; break;
-				default: message = "" + error;
-			}
-			Com.DPrintf("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message + '\n');
-		}
+		al.alBufferData( buffers[sfx.id], format, data, size, freq);
+//		int error;
+//		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
+//			String message;
+//			switch(error) {
+//				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
+//				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
+//				case AL.AL_INVALID_ENUM: message = "invalid enum"; break;
+//				case AL.AL_INVALID_NAME: message = "invalid name"; break;
+//				default: message = "" + error;
+//			}
+//			Com.DPrintf("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message + '\n');
+//		}
 	}
 
 	private void checkError() {
