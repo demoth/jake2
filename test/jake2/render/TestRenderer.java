@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.5 2004-01-03 03:47:14 cwei Exp $
+ * $Id: TestRenderer.java,v 1.6 2004-01-03 20:24:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,10 +28,12 @@ package jake2.render;
 import java.awt.Dimension;
 import java.util.Arrays;
 
+import jake2.Defines;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 /**
@@ -44,6 +46,7 @@ public class TestRenderer {
 	String[] args;
 
 	refexport_t re;
+	refimport_t ri;
 
 	public TestRenderer(String[] args) {
 		this.args = args;
@@ -60,7 +63,7 @@ public class TestRenderer {
 
 		// only for testing
 		// a simple refimport_t implementation
-		refimport_t rimp = new refimport_t() {
+		ri = new refimport_t() {
 			public void Sys_Error(int err_level, String str) {
 				VID.Error(err_level, str, null);
 			}
@@ -146,7 +149,7 @@ public class TestRenderer {
 		String[] names = Renderer.getDriverNames();
 		System.out.println("Registered Drivers: " + Arrays.asList(names));
 
-		this.re = Renderer.getDriver("jogl", rimp);
+		this.re = Renderer.getDriver("jogl", ri);
 
 		System.out.println("Use driver: " + re);
 		System.out.println();
@@ -166,10 +169,13 @@ public class TestRenderer {
 			re.DrawChar(10 + 8 * i, VID.viddef.height/2, (int)text.charAt(i));
 		}
 		
-		re.DrawPic(
-			(int) (Math.random() * VID.viddef.width / 2),
-			(int) (Math.random() * VID.viddef.height / 2),
-			"loading");
+//		re.DrawPic(
+//			(int) (Math.random() * VID.viddef.width / 2),
+//			(int) (Math.random() * VID.viddef.height / 2),
+//			"loading");
+		
+		testWorld();
+		
 		re.EndFrame();
 	}
 
@@ -178,10 +184,111 @@ public class TestRenderer {
 		while (true) {
 			re.updateScreen();
 			try {
-				Thread.sleep(500);
+				Thread.sleep(15);
 			} catch (InterruptedException e) {
 			}
 		}
 	}
+	
+//	===================================================================
+
+	 private int yaw = 0;
+
+	 private void testWorld() {
+	 	
+	 	viddef_t vid = VID.viddef;
+
+		 refdef_t refdef = new refdef_t();
+
+		 refdef.x = vid.width / 2;
+		 refdef.y = vid.height / 2 - 72;
+		 refdef.width = 144;
+		 refdef.height = 168;
+		 refdef.fov_x = 40;
+		 refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		 refdef.time = 1.0f * 0.001f;
+
+		 if (true /* s_pmi[s_player_model_box.curvalue].skindisplaynames */) {
+			int maxframe = 29;
+			entity_t entity = new entity_t();
+			String modelName = "players/female/tris.md2";
+			String modelSkin = "players/female/athena.pcx";
+			String modelImage = "/players/female/athena_i.pcx";
+
+//			 Com_sprintf(
+//				 scratch,
+//				 sizeof(scratch),
+//				 "players/%s/tris.md2",
+//				 s_pmi[s_player_model_box.curvalue].directory);
+			 entity.model = re.RegisterModel(modelName);
+//			 Com_sprintf(
+//				 scratch,
+//				 sizeof(scratch),
+//				 "players/%s/%s.pcx",
+//				 s_pmi[s_player_model_box.curvalue].directory,
+//				 s_pmi[s_player_model_box
+//					 .curvalue]
+//					 .skindisplaynames[s_player_skin_box
+//					 .curvalue]);
+
+			 entity.skin = re.RegisterSkin(modelSkin);
+			 entity.flags = Defines.RF_FULLBRIGHT;
+			 entity.origin[0] = 80;
+			 entity.origin[1] = 0;
+			 entity.origin[2] = 0;
+			 Math3D.VectorCopy(entity.origin, entity.oldorigin);
+			 entity.frame = 0;
+			 entity.oldframe = 0;
+			 entity.backlerp = 0.0f;
+			 entity.angles[1] = yaw++;
+			 if (++yaw > 360)
+				 yaw -= 360;
+//
+			 refdef.areabits = null;
+//			 refdef.num_entities = 1;
+			 refdef.num_entities = 1;
+			 refdef.entities = new entity_t[] { entity };
+			 refdef.lightstyles = null;
+			 refdef.rdflags = Defines.RDF_NOWORLDMODEL;
+//
+//			 Menu_Draw(& s_player_config_menu);
+//
+//			 M_DrawTextBox(
+//				 (refdef.x) * (320.0F / viddef.width) - 8,
+//				 (viddef.height / 2) * (240.0F / viddef.height) - 77,
+//				 refdef.width / 8,
+//				 refdef.height / 8);
+			 refdef.height += 4;
+//
+			 re.RenderFrame(refdef);
+//
+//			 Com_sprintf(
+//				 scratch,
+//				 sizeof(scratch),
+//				 "/players/%s/%s_i.pcx",
+//				 s_pmi[s_player_model_box.curvalue].directory,
+//				 s_pmi[s_player_model_box
+//					 .curvalue]
+//					 .skindisplaynames[s_player_skin_box
+//					 .curvalue]);
+			 re.DrawPic(/*s_player_config_menu.x*/ refdef.x - 40, refdef.y, modelImage);
+		 }
+	 }
+	
+	 private float CalcFov(float fov_x, float width, float height) {
+		 double a;
+		 double x;
+
+		 if (fov_x < 1 || fov_x > 179)
+			 ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
+
+		 x = width / Math.tan(fov_x / 360 * Math.PI);
+
+		 a = Math.atan(height / x);
+
+		 a = a * 360 / Math.PI;
+
+		 return new Double(a).floatValue();
+	 }
 
 }
