@@ -231,6 +231,19 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		status.setText(text);
 	}
 	
+	void testQ2Data() {
+		while (FS.LoadFile("pics/colormap.pcx") == null) {
+			showChooseDialog();
+			
+			try {
+				synchronized(this) {
+					wait();
+				}
+			} catch (InterruptedException e) {}
+		}
+		showStatus();
+	}
+		
 	static class Jake2Canvas extends Canvas {
 		private Image image;
 		Jake2Canvas() {

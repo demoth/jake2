@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.8 2004-09-19 19:53:51 hzi Exp $
+ * $Id: Qcommon.java,v 1.9 2004-09-19 20:53:07 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -86,7 +86,7 @@ public final class Qcommon extends Globals {
 			Cbuf.Execute();
 
 			FS.setCDDir(); // use cddir from config.cfg
-			Q2DataTest.run(); // test for valid baseq2
+			Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
 			reconfigure(); // reload default.cfg and config.cfg
 			
 			//
