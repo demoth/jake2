@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: image_t.java,v 1.3 2003-12-29 01:48:28 cwei Exp $
+// $Id: image_t.java,v 1.4 2003-12-29 03:55:37 cwei Exp $
 
 package jake2.render;
 
 public class image_t {
 	public String name; // game path, including extension
-	//TODO: int should be ok here.
+	// enum imagetype_t
 	public int type;
 	public int width, height; // source image
 	public int upload_width, upload_height; // after power of two and picmip
