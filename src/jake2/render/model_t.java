@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.14 2004-02-21 12:07:01 hoz Exp $
+// $Id: model_t.java,v 1.15 2004-06-06 22:02:11 cwei Exp $
 
 package jake2.render;
 
@@ -119,7 +119,7 @@ public class model_t implements Cloneable {
 		//		
 		Math3D.VectorClear(mins);
 		Math3D.VectorClear(maxs);
-		radius = 0;;
+		radius = 0;
 
 		//
 		// solid volume for clipping 
