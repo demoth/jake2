@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.7 2003-11-25 16:28:52 cwei Exp $
+ * $Id: Com.java,v 1.8 2003-11-25 17:43:49 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -80,6 +80,14 @@ public final class Com {
 		}
 	}
 	
+	public static void DPrintf(String fmt) {
+		DPrintf(fmt, null);
+	}
+
+	public static void Printf(String fmt) {
+		Printf(fmt, null);
+	}
+
 	public static void DPrintf(String fmt, Vargs vargs) {
 		// TODO impl the developer check 
 		Printf(fmt, vargs);
