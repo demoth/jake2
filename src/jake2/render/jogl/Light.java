@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.7 2004-01-27 12:14:36 cwei Exp $
+ * $Id: Light.java,v 1.8 2004-02-15 01:29:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.client.dlight_t;
 import jake2.client.lightstyle_t;
 import jake2.game.GameBase;
@@ -289,7 +290,7 @@ public abstract class Light extends Warp {
 			lightmap = surf.samples.slice();
 
 			int lightmapIndex = 0;
-			Math3D.VectorCopy (GameBase.vec3_origin, pointcolor);
+			Math3D.VectorCopy (Globals.vec3_origin, pointcolor);
 			if (lightmap != null)
 			{
 				float[] scale = {0, 0, 0};

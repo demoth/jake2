@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.8 2004-01-27 12:14:36 cwei Exp $
+ * $Id: Warp.java,v 1.9 2004-02-15 01:29:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.game.GameBase;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
@@ -374,7 +375,7 @@ public abstract class Warp extends Model {
 
 		c_sky++;
 		// decide which face it maps to
-		Math3D.VectorCopy(GameBase.vec3_origin, v);
+		Math3D.VectorCopy(Globals.vec3_origin, v);
 		for (i=0; i<nump ; i++)
 		{
 			Math3D.VectorAdd(vecs[i], v, v);
