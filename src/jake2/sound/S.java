@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.13 2004-06-27 13:11:31 hoz Exp $
+ * $Id: S.java,v 1.14 2004-06-27 15:54:05 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -86,7 +86,7 @@ public class S {
 			return;			
 		}
 
-		s_impl = Cvar.Get("s_impl", "dummy", Defines.CVAR_ARCHIVE);
+		s_impl = Cvar.Get("s_impl", "joal", Defines.CVAR_ARCHIVE);
 		useDriver(s_impl.string);
 
 		if (impl.Init()) {
