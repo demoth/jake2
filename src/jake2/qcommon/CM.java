@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.28 2004-02-17 00:38:50 cwei Exp $
+// $Id: CM.java,v 1.29 2004-02-17 13:39:40 cwei Exp $
 
 package jake2.qcommon;
 
@@ -236,8 +236,7 @@ public class CM extends Game {
 		//
 		// load the file
 		//
-		// TODO bugfix cwei
-		buf = FS.LoadFile(name.toLowerCase());
+		buf = FS.LoadFile(name);
 
 		if (buf == null)
 			Com.Error(ERR_DROP, "Couldn't load " + name);

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.17 2004-02-16 23:18:11 hoz Exp $
+ * $Id: CL_parse.java,v 1.18 2004-02-17 13:39:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -129,9 +129,6 @@ public class CL_parse extends CL_view {
 
 			cls.download = fp;
 			
-			// TODO bugfix cwei
-			cls.downloadname = cls.downloadname.toLowerCase();
-
 			// give the server an offset to start the download
 			Com.Printf("Resuming " + cls.downloadname + "\n");
 			MSG.WriteByte(cls.netchan.message, clc_stringcmd);

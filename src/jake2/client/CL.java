@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.30 2004-02-16 20:57:39 hoz Exp $
+ * $Id: CL.java,v 1.31 2004-02-17 13:39:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1119,11 +1119,9 @@ public final class CL extends CL_pred {
 
 			CM.intwrap iw = new CM.intwrap(map_checksum);
 
-			// TODO bugfix cwei
-
-			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1].toLowerCase(), true, iw);
+			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
 			map_checksum = iw.i;
-
+// TODO MD4 check abgeklemmt 
 //			if ((map_checksum ^ atoi(cl.configstrings[CS_MAPCHECKSUM])) != 0) {
 //				Com.Error(
 //					ERR_DROP,

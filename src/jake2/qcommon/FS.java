@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.26 2004-02-16 15:00:03 cwei Exp $
+ * $Id: FS.java,v 1.27 2004-02-17 13:39:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -172,6 +172,7 @@ public final class FS extends Globals {
 			if (search.pack != null) {
 				// look through all the pak file elements
 				pak = search.pack;
+				filename = filename.toLowerCase();
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
 				if (entry != null) {
@@ -250,6 +251,7 @@ public final class FS extends Globals {
 			if (search.pack != null) {
 				// look through all the pak file elements
 				pak = search.pack;
+				filename = filename.toLowerCase();
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
 				if (entry != null) {
@@ -444,7 +446,7 @@ public final class FS extends Globals {
 				entry.filepos = packhandle.readInt();
 				entry.filelen = packhandle.readInt();
 
-				newfiles.put(entry.name, entry);
+				newfiles.put(entry.name.toLowerCase(), entry);
 
 				logger.log(Level.FINEST, i + ".\t" + entry);
 			}
