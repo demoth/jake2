@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
+ * $Id: FS.java,v 1.5 2004-09-18 12:35:52 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,6 +71,7 @@ public final class FS extends Globals {
 	}
 
 	public static String fs_gamedir;
+	private static String fs_userdir;
 	public static cvar_t fs_basedir;
 	public static cvar_t fs_cddir;
 	public static cvar_t fs_gamedirvar;
@@ -482,11 +483,15 @@ public final class FS extends Globals {
 
 		//
 		// add the directory to the search path
-		//
+		// ensure fs_userdir is first in searchpath
 		search = new searchpath_t();
 		search.filename = new String(dir);
-		search.next = fs_searchpaths;
-		fs_searchpaths = search;
+		if (fs_searchpaths != null) {
+			search.next = fs_searchpaths.next;
+			fs_searchpaths.next = search;
+		} else {
+			fs_searchpaths = search;
+		}
 
 		//
 		// add any pak files in the format pak0.pak pak1.pak, ...
@@ -516,7 +521,7 @@ public final class FS extends Globals {
 	============
 	*/
 	public static String Gamedir() {
-		return (fs_gamedir != null) ? fs_gamedir : Globals.BASEDIRNAME;
+		return (fs_userdir != null) ? fs_userdir : Globals.BASEDIRNAME;
 	}
 
 	/*
@@ -784,6 +789,10 @@ public final class FS extends Globals {
 			}
 		});
 
+		fs_userdir = System.getProperty("user.home") + "/.jake2";
+		FS.CreatePath(fs_userdir + "/");
+		FS.AddGameDirectory(fs_userdir);
+
 		//
 		// basedir <path>
 		// allows the game to run from outside the data tree
@@ -796,10 +805,7 @@ public final class FS extends Globals {
 		// allows the game to run from outside the data tree
 		//
 
-		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
-		fs_cddir = Cvar.Get("cddir", "../..", CVAR_NOSET);
-		if (fs_cddir.string.length() > 0)
-			AddGameDirectory(fs_cddir.string + '/' + Globals.BASEDIRNAME);
+		setCDDir();
 
 		//
 		// start up with baseq2 by default
@@ -816,6 +822,15 @@ public final class FS extends Globals {
 			SetGamedir(fs_gamedirvar.string);
 	}
 
+	/**
+	 * set baseq2 directory
+	 */
+	static void setCDDir() {
+		fs_cddir = Cvar.Get("cddir", "../../baseq2", CVAR_ARCHIVE);
+		if (fs_cddir.string.length() > 0)
+			AddGameDirectory(fs_cddir.string);		
+	}
+	
 	//	RAFAEL
 	/*
 		 Developer_searchpath
