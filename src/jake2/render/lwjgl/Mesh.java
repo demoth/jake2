@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Mesh.java,v 1.3 2005-01-17 17:06:08 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,7 +46,6 @@ import org.lwjgl.opengl.GL11;
 public abstract class Mesh extends Light {
 
 	// g_mesh.c: triangle model functions
-
 	/*
 	=============================================================
 
@@ -68,6 +67,15 @@ public abstract class Mesh extends Light {
 
 	float[] shadedots = r_avertexnormal_dots[0];
 
+	/**
+	 * GL_LerpVerts
+	 * @param nverts
+	 * @param ov
+	 * @param verts
+	 * @param move
+	 * @param frontv
+	 * @param backv
+	 */
 	void GL_LerpVerts(int nverts, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
 	{
 		int[] ovv;
@@ -114,24 +122,18 @@ public abstract class Mesh extends Light {
 		{0, 0, 0}, {0, 0, 0}, {0, 0, 0} // 3 mal vec3_t
 	};
 	
-	/*
-	=============
-	GL_DrawAliasFrameLerp
-
-	interpolates between two frames and origins
-	FIXME: batch lerp all vertexes
-	=============
-	*/
-
+	// stack variable
+	private final float[] move = {0, 0, 0}; // vec3_t		
+	private final float[] frontv = {0, 0, 0}; // vec3_t
+	private final float[] backv = {0, 0, 0}; // vec3_t
+	/**
+	 * GL_DrawAliasFrameLerp
+	 * 
+	 * interpolates between two frames and origins
+	 * FIXME: batch lerp all vertexes
+	 */
 	void GL_DrawAliasFrameLerp(qfiles.dmdl_t paliashdr, float backlerp)
 	{
-		int count;
-		float	alpha;
-
-		float[] move = {0, 0, 0}; // vec3_t		
-		float[] frontv = {0, 0, 0}; // vec3_t
-		float[] backv = {0, 0, 0}; // vec3_t
-
 		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
 
 		qfiles.dtrivertx_t[] verts = frame.verts;
@@ -140,6 +142,7 @@ public abstract class Mesh extends Light {
 
 		qfiles.dtrivertx_t[] ov = oldframe.verts;
 
+		float	alpha;
 		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
 			alpha = currententity.alpha;
 		else
@@ -216,7 +219,7 @@ public abstract class Mesh extends Light {
 		int size = 0;
 		int dstIndex = 0;
 		int srcIndex = 0;
-		
+		int count;
 		for (int j = 0; j < counts.length; j++) {
 
 			// get the vertex count and primitive type
@@ -252,40 +255,26 @@ public abstract class Mesh extends Light {
 			gl.glEnable( GL11.GL_TEXTURE_2D );
 
 		gl.glDisableClientState( GL11.GL_COLOR_ARRAY );
-
 	}
 			
-	/*
-	=============
-	GL_DrawAliasShadow
-	=============
-	*/
+	private final float[] point = {0, 0, 0};
+	/**
+	 * GL_DrawAliasShadow
+	 */
 	void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum)
 	{
-		qfiles.dtrivertx_t[] verts;
-		int[] order;
-		float[] point = {0, 0, 0};
-		float	height, lheight;
-		int count;
-		qfiles.daliasframe_t frame;
-
-		lheight = currententity.origin[2] - lightspot[2];
-
-		frame = paliashdr.aliasFrames[currententity.frame];
-
-		verts = frame.verts;
-
-		height = 0;
-
-		order = paliashdr.glCmds;
-
-		height = -lheight + 1.0f;
+		float lheight = currententity.origin[2] - lightspot[2];
+		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
+		qfiles.dtrivertx_t[] verts = frame.verts;
+		int[] order = paliashdr.glCmds;
+		float height = -lheight + 1.0f;
 		
 		int orderIndex = 0;
 		int index = 0;
 
 		// TODO shadow drawing with vertex arrays
 
+		int count;
 		while (true)
 		{
 			// get the vertex count and primitive type
@@ -320,15 +309,14 @@ public abstract class Mesh extends Light {
 		}	
 	}
 
-
-	/*
-	** R_CullAliasModel
-	*/
 //	TODO sync with jogl renderer. hoz
+	// stack variable
+	private final float[] mins = { 0, 0, 0 };
+	private final float[] maxs = { 0, 0, 0 };
+	/**
+	 * R_CullAliasModel
+	*/
 	boolean R_CullAliasModel(entity_t e) {
-		float[] mins = { 0, 0, 0 };
-		float[] maxs = { 0, 0, 0 };
-
 		qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
 
 		if ((e.frame >= paliashdr.num_frames) || (e.frame < 0)) {
@@ -441,21 +429,12 @@ public abstract class Mesh extends Light {
 		{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}
 	};
 
-	/*
-	=================
-	R_DrawAliasModel
-
-	=================
-	*/
 //	TODO sync with jogl renderer. hoz
+	/**
+	 * R_DrawAliasModel
+	 */
 	void R_DrawAliasModel(entity_t e)
 	{
-		int i;
-		//qfiles.dmdl_t paliashdr;
-		//float		an;
-
-		image_t		skin;
-
 		if ( ( e.flags & Defines.RF_WEAPONMODEL ) == 0)
 		{
 			if ( R_CullAliasModel(e) )
@@ -476,6 +455,7 @@ public abstract class Mesh extends Light {
 		// PMM - rewrote, reordered to handle new shells & mixing
 		// PMM - 3.20 code .. replaced with original way of doing it to keep mod authors happy
 		//
+		int i;
 		if ( (currententity.flags & ( Defines.RF_SHELL_HALF_DAM | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_RED | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE )) != 0 )
 		{
 			Math3D.VectorClear(shadelight);
@@ -620,6 +600,9 @@ public abstract class Mesh extends Light {
 		R_RotateForEntity (e);
 		e.angles[PITCH] = -e.angles[PITCH];	// sigh.
 
+		
+		
+		image_t		skin;
 		// select skin
 		if (currententity.skin != null)
 			skin = currententity.skin;	// custom player skin
@@ -705,5 +688,4 @@ public abstract class Mesh extends Light {
 		}
 		gl.glColor4f (1,1,1,1);
 	}
-	
 }
