@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.4 2004-02-02 12:01:28 hoz Exp $
+// $Id: usercmd_t.java,v 1.5 2004-02-12 00:16:03 hoz Exp $
 
 package jake2.game;
 
@@ -34,5 +34,19 @@ public class usercmd_t {
 	public void reset() {
 		forwardmove = sidemove = upmove = msec = buttons = impulse = lightlevel = 0;
 		angles = new short[3];
+	}
+	
+	public usercmd_t() {};
+	public usercmd_t(usercmd_t from) {
+		msec = from.msec;
+		buttons = from.buttons;
+		angles[0] = from.angles[0];
+		angles[1] = from.angles[1];
+		angles[2] = from.angles[2];
+		forwardmove = from.forwardmove;
+		sidemove = from.sidemove;
+		upmove = from.upmove;
+		impulse = from.impulse;
+		lightlevel = from.lightlevel;
 	}
 }

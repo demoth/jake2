@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.30 2004-02-06 21:45:17 hoz Exp $
+ * $Id: Cvar.java,v 1.31 2004-02-12 00:16:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -402,7 +402,7 @@ public class Cvar extends Globals {
 		}
 		for (var = cvar_vars; var != null; var = var.next) {
 			if ((var.flags & CVAR_ARCHIVE) != 0) {
-				buffer = "set " + var.name + "\"" + var.string + "\"\n";
+				buffer = "set " + var.name + " \"" + var.string + "\"\n";
 				try {
 					f.writeBytes(buffer);
 				}

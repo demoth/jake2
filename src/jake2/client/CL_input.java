@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.11 2004-02-11 19:56:27 cwei Exp $
+ * $Id: CL_input.java,v 1.12 2004-02-12 00:16:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -483,9 +483,9 @@ public class CL_input extends CL_ents {
 		cmd = cl.cmds[i];
 		cl.cmd_time[i] = (int)cls.realtime; // for netgraph ping calculation
 
-		cmd = CL.CreateCmd();
+		cl.cmds[i] = cmd = CL.CreateCmd();
 
-		cl.cmd = cmd;
+		cl.cmd = new usercmd_t(cmd);
 
 		if (cls.state == ca_disconnected || cls.state == ca_connecting)
 			return;
