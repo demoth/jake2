@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.3 2004-01-27 20:10:29 rst Exp $
+ * $Id: CL_main.java,v 1.4 2004-01-28 14:42:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,6 @@ import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.FS;
-import jake2.sys.CDAudio;
 import jake2.sys.IN;
 
 /**
@@ -1968,7 +1967,6 @@ public class CL_main extends CL_parse {
 
 		WriteConfiguration(); 
 		
-		CDAudio.Shutdown();
 		S.Shutdown();
 		IN.Shutdown();
 		VID.Shutdown();
@@ -1998,7 +1996,6 @@ public class CL_main extends CL_parse {
 		SCR.Init();
 		Globals.cls.disable_screen = 1.0f; // don't draw yet
 	
-		CDAudio.Init();
 		CL.InitLocal();
 		IN.Init();
 	

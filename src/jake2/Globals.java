@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.33 2004-01-28 10:03:06 hoz Exp $
+ * $Id: Globals.java,v 1.34 2004-01-28 14:42:58 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.33  2004-01-28 10:03:06  hoz
+ * Revision 1.34  2004-01-28 14:42:58  hoz
+ * - client code
+ *
+ * Revision 1.33  2004/01/28 10:03:06  hoz
  * - client code
  *
  * Revision 1.32  2004/01/27 20:10:29  rst
@@ -400,4 +403,5 @@ public class Globals extends Defines {
 
 	public static cvar_t crosshair;
 	public static vrect_t scr_vrect;
+	public static long sys_frame_time;
 }

@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.1 2004-01-26 14:29:02 hoz Exp $
+ * $Id: CL_tent.java,v 1.2 2004-01-28 14:42:58 hoz Exp $
  */
 package jake2.client;
 
@@ -163,8 +163,7 @@ public class CL_tent extends CL_fx {
 //	CL_RegisterTEntModels
 //	=================
 //	*/
-//	void CL_RegisterTEntModels (void)
-//	{
+	static void RegisterTEntModels() {
 //		cl_mod_explode = re.RegisterModel ("models/objects/explode/tris.md2");
 //		cl_mod_smoke = re.RegisterModel ("models/objects/smoke/tris.md2");
 //		cl_mod_flash = re.RegisterModel ("models/objects/flash/tris.md2");
@@ -197,7 +196,7 @@ public class CL_tent extends CL_fx {
 //		cl_mod_heatbeam = re.RegisterModel ("models/proj/beam/tris.md2");
 //		cl_mod_monster_heatbeam = re.RegisterModel ("models/proj/widowbeam/tris.md2");
 ////	  ROGUE
-//	}	
+	}	
 //
 //	/*
 //	=================

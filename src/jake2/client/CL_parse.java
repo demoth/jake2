@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.2 2004-01-28 10:03:06 hoz Exp $
+ * $Id: CL_parse.java,v 1.3 2004-01-28 14:42:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -392,8 +392,7 @@ public class CL_parse extends CL_view {
 //
 //	================
 //	*/
-//	void CL_LoadClientinfo (clientinfo_t *ci, char *s)
-//	{
+	static void LoadClientinfo(clientinfo_t ci, String s) {
 //		int i;
 //		char		*t;
 //		char		model_name[MAX_QPATH];
@@ -504,7 +503,7 @@ public class CL_parse extends CL_view {
 //			ci->weaponmodel[0] = NULL;
 //			return;
 //		}
-//	}
+	}
 //
 //	/*
 //	================
@@ -513,8 +512,7 @@ public class CL_parse extends CL_view {
 //	Load the skin, icon, and model for a client
 //	================
 //	*/
-//	void CL_ParseClientinfo (int player)
-//	{
+	static void ParseClientinfo(int player) {
 //		char			*s;
 //		clientinfo_t	*ci;
 //
@@ -523,7 +521,7 @@ public class CL_parse extends CL_view {
 //		ci = &cl.clientinfo[player];
 //
 //		CL_LoadClientinfo (ci, s);
-//	}
+	}
 //
 //
 //	/*

@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.22 2004-01-27 20:10:29 rst Exp $
+ * $Id: FS.java,v 1.23 2004-01-28 14:42:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,19 +28,11 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.sys.CDAudio;
 import jake2.sys.Sys;
-import jake2.util.Lib;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteOrder;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -325,14 +317,7 @@ public final class FS {
 			}
 
 			if (read == 0) {
-				// we might have been trying to read from a CD
-				if (tries) {
-					tries = false;
-					CDAudio.Stop();
-				}
-				else {
-					Com.Error(Globals.ERR_FATAL, "FS_Read: 0 bytes read");
-				}
+				Com.Error(Globals.ERR_FATAL, "FS_Read: 0 bytes read");
 			}
 			else if (read == -1) {
 				Com.Error(Globals.ERR_FATAL, "FS_Read: -1 bytes read");

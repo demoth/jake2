@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.5 2004-01-25 21:45:45 rst Exp $
+// $Id: SV_INIT.java,v 1.6 2004-01-28 14:42:58 hoz Exp $
 
 package jake2.server;
 
@@ -268,7 +268,7 @@ public class SV_INIT extends PlayerHud {
 
 		for (i = 1; i < CM.CM_NumInlineModels(); i++) {
 			sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
-			sv.models[i + 1] = CM.CM_InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
+			sv.models[i + 1] = CM.InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
 		}
 
 		//

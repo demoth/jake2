@@ -19,30 +19,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.9 2004-01-28 09:51:16 cwei Exp $
+// $Id: CM.java,v 1.10 2004-01-28 14:42:58 hoz Exp $
 
 package jake2.qcommon;
 
-import java.util.Arrays;
-
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
-
-import jake2.*;
-import jake2.client.*;
+import jake2.Defines;
 import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
+import java.nio.*;
+import java.util.Arrays;
 
 public class CM extends PlayerHud {
 
@@ -747,7 +736,7 @@ public class CM extends PlayerHud {
 	CM_InlineModel
 	==================
 	*/
-	public static cmodel_t CM_InlineModel(String name) {
+	public static cmodel_t InlineModel(String name) {
 		int num;
 
 		if (name == null || name.charAt(0) != '*')
