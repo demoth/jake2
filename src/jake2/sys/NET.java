@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.6 2004-10-20 20:37:31 cawe Exp $
+ * $Id: NET.java,v 1.7 2005-02-20 18:33:16 cawe Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -350,7 +350,7 @@ public final class NET {
             // the socket have to be broadcastable
             newsocket.setBroadcast(true);
         } catch (Exception e) {
-            Com.Println(e.getMessage());
+            Com.Println("Error: " + e.toString());
             newsocket = null;
         }
         return newsocket;
