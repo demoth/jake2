@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.24 2004-02-12 15:07:29 rst Exp $
+// $Id: CM.java,v 1.25 2004-02-12 16:59:59 rst Exp $
 
 package jake2.qcommon;
 
@@ -39,13 +39,13 @@ public class CM extends Game
 
 	public static class cnode_t
 	{
-		cplane_t plane;	// pointer
+		cplane_t plane; // pointer
 		int children[]= { 0, 0 }; // negative numbers are leafs
 	}
 
 	public static class cbrushside_t
 	{
-		cplane_t plane;	// pointer
+		cplane_t plane; // pointer
 		mapsurface_t surface; // pointer !
 	}
 
@@ -342,6 +342,10 @@ public class CM extends Game
 		Com.DPrintf("   numcmodels=" + count + "\n");
 		numcmodels= count;
 
+		if (debugloadmap)
+		{
+			Com.DPrintf("submodles(headnode, <origin>, <mins>, <maxs>)\n");
+		}
 		for (i= 0; i < count; i++)
 		{
 			in=
@@ -359,6 +363,23 @@ public class CM extends Game
 				out.origin[j]= in.origin[j];
 			}
 			out.headnode= in.headnode;
+			if (debugloadmap)
+			{
+				Com.DPrintf(
+					"|%6i|%8.2f|%8.2f|%8.2f|  %8.2f|%8.2f|%8.2f|   %8.2f|%8.2f|%8.2f|\n",
+					new Vargs()
+						.add(out.headnode)
+						.add(out.origin[0])
+						.add(out.origin[1])
+						.add(out.origin[2])
+						.add(out.mins[0])
+						.add(out.mins[1])
+						.add(out.mins[2])
+						.add(out.maxs[0])
+						.add(out.maxs[1])
+						.add(out.maxs[2]));
+			}
+
 		}
 	}
 	static boolean debugloadmap= true;
@@ -454,6 +475,11 @@ public class CM extends Game
 
 		numnodes= count;
 		Com.DPrintf("   numnodes=" + count + "\n");
+		
+		if (debugloadmap)
+		{
+			Com.DPrintf("nodes(planenum, child[0], child[1])\n");
+		}
 
 		for (i= 0; i < count; i++)
 		{
@@ -470,6 +496,13 @@ public class CM extends Game
 			{
 				child= in.children[j];
 				out.children[j]= child;
+			}
+			if (debugloadmap)
+			{
+				Com.DPrintf(
+					"|%6i| %6i| %6i|\n",
+					new Vargs().add(in.planenum).add(out.children[0]).add(
+						out.children[1]));
 			}
 		}
 	}
@@ -514,12 +547,14 @@ public class CM extends Game
 			out.firstbrushside= in.firstside;
 			out.numsides= in.numsides;
 			out.contents= in.contents;
-			
+
 			if (debugloadmap)
 			{
-				Com.DPrintf("| %6i| %6i| %8X|\n", 
-				new Vargs().add(out.firstbrushside).add(out.numsides).add(out.contents));
-			}			
+				Com.DPrintf(
+					"| %6i| %6i| %8X|\n",
+					new Vargs().add(out.firstbrushside).add(out.numsides).add(
+						out.contents));
+			}
 		}
 	}
 
@@ -554,7 +589,8 @@ public class CM extends Game
 		numleafs= count;
 		numclusters= 0;
 		if (debugloadmap)
-			Com.DPrintf("cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
+			Com.DPrintf(
+				"cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
 		for (i= 0; i < count; i++)
 		{
 			in=
@@ -642,9 +678,10 @@ public class CM extends Game
 		numplanes= count;
 		if (debugloadmap)
 		{
-			Com.DPrintf("cplanes(normal[0],normal[1],normal[2], dist, type, signbits)\n");
+			Com.DPrintf(
+				"cplanes(normal[0],normal[1],normal[2], dist, type, signbits)\n");
 		}
-		
+
 		for (i= 0; i < count; i++)
 		{
 			in=
@@ -668,17 +705,18 @@ public class CM extends Game
 			out.dist= in.dist;
 			out.type= (byte) in.type;
 			out.signbits= (byte) bits;
-			
+
 			if (debugloadmap)
 			{
-				Com.DPrintf("|%6.2f|%6.2f|%6.2f| %10.2f|%3i| %1i|\n", 
+				Com.DPrintf(
+					"|%6.2f|%6.2f|%6.2f| %10.2f|%3i| %1i|\n",
 					new Vargs()
 						.add(out.normal[0])
 						.add(out.normal[1])
-				.add(out.normal[2])
-				.add(out.dist)
-				.add(out.type)
-				.add(out.signbits));
+						.add(out.normal[2])
+						.add(out.dist)
+						.add(out.type)
+						.add(out.signbits));
 			}
 		}
 	}
@@ -731,7 +769,7 @@ public class CM extends Game
 			{
 				Com.DPrintf("|%6i|%6i|\n", new Vargs().add(i).add(out[i]));
 			}
-			
+
 		}
 	}
 
@@ -796,10 +834,10 @@ public class CM extends Game
 				out.surface= new mapsurface_t(); // just for safety
 			else
 				out.surface= map_surfaces[j];
-				
-			if ( debugloadmap)
+
+			if (debugloadmap)
 			{
-				Com.DPrintf("|%6i%6i|\n", new Vargs().add(num).add(j));
+				Com.DPrintf("| %6i| %6i|\n", new Vargs().add(num).add(j));
 			}
 		}
 	}
@@ -829,6 +867,11 @@ public class CM extends Game
 		Com.DPrintf("   numareas=" + count + "\n");
 		numareas= count;
 
+		if (debugloadmap)
+		{
+			Com.DPrintf("areas(numportals, firstportal)");
+		}
+
 		for (i= 0; i < count; i++)
 		{
 
@@ -844,6 +887,13 @@ public class CM extends Game
 			out.firstareaportal= in.firstareaportal;
 			out.floodvalid= 0;
 			out.floodnum= 0;
+			if (debugloadmap)
+			{
+				Com.DPrintf(
+					"| %6i| %6i|\n",
+					new Vargs().add(out.numareaportals).add(
+						out.firstareaportal));
+			}
 		}
 	}
 
@@ -870,7 +920,10 @@ public class CM extends Game
 
 		numareaportals= count;
 		Com.DPrintf("   numareaportals=" + count + "\n");
-
+		if (debugloadmap)
+		{
+			Com.DPrintf("areaportals(portalnum, otherarea)\n");
+		}
 		for (i= 0; i < count; i++)
 		{
 			in=
@@ -884,6 +937,11 @@ public class CM extends Game
 
 			out.portalnum= in.portalnum;
 			out.otherarea= in.otherarea;
+			
+			if (debugloadmap)
+			{
+				Com.DPrintf("|%6i|%6i|\n", new Vargs().add(out.portalnum).add(out.otherarea));
+			}
 		}
 	}
 
@@ -1022,22 +1080,24 @@ public class CM extends Game
 		cplane_t p;
 		cbrushside_t s;
 
-		box_headnode= numnodes;
+		box_headnode= numnodes;	// noch platz für 6 brushes
 
 		box_planes=
 			new cplane_t[] {
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t(),
-				new cplane_t()};
+				map_planes[numplanes],
+				map_planes[numplanes+1],
+				map_planes[numplanes+2],
+				map_planes[numplanes+3],
+				map_planes[numplanes+4],
+				map_planes[numplanes+5],
+				map_planes[numplanes+6],
+				map_planes[numplanes+7],
+				map_planes[numplanes+8],
+				map_planes[numplanes+9],
+				map_planes[numplanes+10],
+				map_planes[numplanes+11],
+				map_planes[numplanes+12]
+		};
 
 		if (numnodes + 6 > MAX_MAP_NODES
 			|| numbrushes + 1 > MAX_MAP_BRUSHES
@@ -1180,7 +1240,7 @@ public class CM extends Game
 			{
 				if (leaf_count >= leaf_maxcount)
 				{
-					//				Com_Printf ("CM_BoxLeafnums_r: overflow\n");
+					Com.DPrintf ("CM_BoxLeafnums_r: overflow\n");
 					return;
 				}
 				leaf_list[leaf_count++]= -1 - nodenum;
