@@ -47,7 +47,16 @@
 			<classpath refid="build.class.path"/>
 		</javac>
 	</target>
-		
+	
+	<!-- copy resources -->
+	<target name="copyres" depends="init">
+		<copy todir="${build}">
+			<fileset dir="resources">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+	</target>
+	
 	<!-- copy files -->
 	<target name="copy">
 		<copy todir="${dist}/lib">
@@ -98,9 +107,9 @@
 	</target>
 		
 	<!-- jar -->
-	<target name="jar" depends="compile">
+	<target name="jar" depends="compile,copyres">
 		<jar destfile="${dist}/lib/jake.jar" basedir="${build}">
-			<include name="jake2/**"/>
+			<include name="**"/>
 		</jar>
 		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off">
