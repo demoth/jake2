@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.8 2004-01-04 01:33:30 cwei Exp $
+ * $Id: Draw.java,v 1.9 2004-01-05 14:01:27 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,7 +40,7 @@ import net.java.games.jogl.util.GLUT;
  * 
  * @author cwei
  */
-public abstract class Draw extends Image {
+public abstract class Draw extends Model {
 
 ////	   draw.c
 //

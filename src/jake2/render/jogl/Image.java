@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.7 2004-01-04 17:14:08 cwei Exp $
+ * $Id: Image.java,v 1.8 2004-01-05 14:01:27 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -53,7 +53,7 @@ import net.java.games.jogl.GL;
  * 
  * @author cwei
  */
-public abstract class Image extends Model {
+public abstract class Image extends Main {
 
 
 	image_t	draw_chars;

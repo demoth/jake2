@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.7 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Main.java,v 1.8 2004-01-05 14:01:45 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,6 +40,7 @@ import jake2.client.viddef_t;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cvar;
+import jake2.qcommon.qfiles;
 import jake2.qcommon.xcommand_t;
 import jake2.render.*;
 import jake2.util.Math3D;
@@ -60,6 +61,8 @@ public abstract class Main extends Base {
 
 	int c_visible_lightmaps;
 	int c_visible_textures;
+	
+	int registration_sequence;
 	
 	// TODO check the qglColorTableEXT hack
 	// this a hack for function pointer test
@@ -100,6 +103,8 @@ public abstract class Main extends Base {
 	abstract void Mod_FreeAll();
 
 	abstract void GL_ShutdownImages();
+	abstract void GL_Bind(int texnum);
+	abstract void GL_TexEnv(int mode);
 	abstract void GL_TextureMode(String string);
 	abstract void GL_TextureAlphaMode(String string);
 	abstract void GL_TextureSolidMode(String string);
@@ -274,76 +279,76 @@ public abstract class Main extends Base {
 
 	=================
 	*/
-	void R_DrawSpriteModel (entity_t e)
-	{
-//	 float alpha = 1.0F;
-//	 vec3_t	point;
-//	 dsprframe_t	*frame;
-//	 float		*up, *right;
-//	 dsprite_t		*psprite;
-//
-//	 // don't even bother culling, because it's just a single
-//	 // polygon without a surface cache
-//
-//	 psprite = (dsprite_t *)currentmodel->extradata;
-//
-//	 e->frame %= psprite->numframes;
-//
-//	 frame = &psprite->frames[e->frame];
-//
-//	 {	// normal sprite
-//		 up = vup;
-//		 right = vright;
-//	 }
-//
-//	 if ( e->flags & RF_TRANSLUCENT )
-//		 alpha = e->alpha;
-//
-//	 if ( alpha != 1.0F )
-//		 gl.glEnable( GL.GL_BLEND );
-//
-//	 gl.glColor4f( 1, 1, 1, alpha );
-//
-//	 GL_Bind(currentmodel->skins[e->frame]->texnum);
-//
-//	 GL_TexEnv( GL.GL_MODULATE );
-//
-//	 if ( alpha == 1.0 )
-//		 gl.glEnable (GL.GL_ALPHA_TEST);
-//	 else
-//		 gl.glDisable( GL.GL_ALPHA_TEST );
-//
-//	 gl.glBegin (GL.GL_QUADS);
-//
-//	 gl.glTexCoord2f (0, 1);
-//	 VectorMA (e->origin, -frame->origin_y, up, point);
-//	 VectorMA (point, -frame->origin_x, right, point);
-//	 gl.glVertex3fv (point);
-//
-//	 gl.glTexCoord2f (0, 0);
-//	 VectorMA (e->origin, frame->height - frame->origin_y, up, point);
-//	 VectorMA (point, -frame->origin_x, right, point);
-//	 gl.glVertex3fv (point);
-//
-//	 gl.glTexCoord2f (1, 0);
-//	 VectorMA (e->origin, frame->height - frame->origin_y, up, point);
-//	 VectorMA (point, frame->width - frame->origin_x, right, point);
-//	 gl.glVertex3fv (point);
-//
-//	 gl.glTexCoord2f (1, 1);
-//	 VectorMA (e->origin, -frame->origin_y, up, point);
-//	 VectorMA (point, frame->width - frame->origin_x, right, point);
-//	 gl.glVertex3fv (point);
-//	
-//	 gl.glEnd ();
-//
-//	 gl.glDisable (GL.GL_ALPHA_TEST);
-//	 GL_TexEnv( GL.GL_REPLACE );
-//
-//	 if ( alpha != 1.0F )
-//		 gl.glDisable( GL.GL_BLEND );
-//
-//	 gl.glColor4f( 1, 1, 1, 1 );
+	void R_DrawSpriteModel(entity_t e) {
+		float alpha = 1.0F;
+		float[] point = { 0, 0, 0 };
+
+		qfiles.dsprframe_t frame;
+		//	 float		*up, *right;
+		qfiles.dsprite_t psprite;
+
+		// don't even bother culling, because it's just a single
+		// polygon without a surface cache
+
+		psprite = (qfiles.dsprite_t) currentmodel.extradata;
+
+		e.frame %= psprite.numframes;
+
+		frame = psprite.frames[e.frame];
+
+		//	 {	// normal sprite
+		//		 up = vup;
+		//		 right = vright;
+		//	 }
+		//
+		if ((e.flags & Defines.RF_TRANSLUCENT) != 0)
+			alpha = e.alpha;
+
+		if (alpha != 1.0F)
+			gl.glEnable(GL.GL_BLEND);
+
+		gl.glColor4f(1, 1, 1, alpha);
+
+		GL_Bind(currentmodel.skins[e.frame].texnum);
+
+		GL_TexEnv(GL.GL_MODULATE);
+
+		if (alpha == 1.0)
+			gl.glEnable(GL.GL_ALPHA_TEST);
+		else
+			gl.glDisable(GL.GL_ALPHA_TEST);
+
+		gl.glBegin(GL.GL_QUADS);
+
+		gl.glTexCoord2f(0, 1);
+		Math3D.VectorMA(e.origin, -frame.origin_y, vup, point);
+		Math3D.VectorMA(point, -frame.origin_x, vright, point);
+		gl.glVertex3fv(point);
+
+		gl.glTexCoord2f(0, 0);
+		Math3D.VectorMA(e.origin, frame.height - frame.origin_y, vup, point);
+		Math3D.VectorMA(point, -frame.origin_x, vright, point);
+		gl.glVertex3fv(point);
+
+		gl.glTexCoord2f(1, 0);
+		Math3D.VectorMA(e.origin, frame.height - frame.origin_y, vup, point);
+		Math3D.VectorMA(point, frame.width - frame.origin_x, vright, point);
+		gl.glVertex3fv(point);
+
+		gl.glTexCoord2f(1, 1);
+		Math3D.VectorMA(e.origin, -frame.origin_y, vup, point);
+		Math3D.VectorMA(point, frame.width - frame.origin_x, vright, point);
+		gl.glVertex3fv(point);
+
+		gl.glEnd();
+
+		gl.glDisable(GL.GL_ALPHA_TEST);
+		GL_TexEnv(GL.GL_REPLACE);
+
+		if (alpha != 1.0F)
+			gl.glDisable(GL.GL_BLEND);
+
+		gl.glColor4f(1, 1, 1, 1);
 	}
 
 // ==================================================================================
@@ -438,7 +443,7 @@ public abstract class Main extends Base {
 //				 R_DrawBrushModel (currententity);
 				 break;
 			 case mod_sprite:
-//				 R_DrawSpriteModel (currententity);
+				 R_DrawSpriteModel(currententity);
 				 break;
 			 default:
 				 ri.Sys_Error (Defines.ERR_DROP, "Bad modeltype");

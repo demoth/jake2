@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.10 2004-01-04 17:14:08 cwei Exp $
+ * $Id: TestRenderer.java,v 1.11 2004-01-05 14:01:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -175,11 +175,18 @@ public class TestRenderer {
 		Dimension wal = new Dimension();
 		re.DrawGetPicSize(wal, "/textures/e1u1/basemap.wal");
 
-		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
-		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
+//		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
+//		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
 		
-		testWorld();
 		
+		switch ((framecount / 500) % 2) {
+			case 0 :
+				testSprites();
+				break;
+			case 1 :
+				testModel();
+				break;
+		}
 		re.EndFrame();
 		framecount++;
 	}
@@ -199,14 +206,14 @@ public class TestRenderer {
 
 	private int yaw = 0;
 
-	private void testWorld() {
+	private void testModel() {
 
 		refdef_t refdef = new refdef_t();
 
 		refdef.x = viddef.width/ 2;
 		refdef.y = viddef.height / 2 - 72;
-		refdef.width = 144;
-		refdef.height = 168;
+		refdef.width = 144 * 2;
+		refdef.height = 168 * 2;
 		refdef.fov_x = 40;
 		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
@@ -220,7 +227,8 @@ public class TestRenderer {
 		String modelImage2 = "/players/female/cobalt_i.pcx";
 		String modelImage3 = "/players/female/lotus_i.pcx";
 
-		entity.model = re.RegisterModel(modelName);
+		entity.model = null; //re.RegisterModel(modelName);
+		drawString(refdef.x, refdef.y - 20, (entity.model != null) ? modelName : "DEBUG: NullModel");
 
 		entity.skin = re.RegisterSkin(modelSkin);
 		entity.flags = Defines.RF_FULLBRIGHT;
@@ -258,6 +266,64 @@ public class TestRenderer {
 		re.DrawPic(refdef.x - 80, refdef.y + 141, modelImage3);
 	}
 	
+	
+	private String[] sprites = {
+		"sprites/s_bfg1.sp2",
+		"sprites/s_bfg2.sp2",
+		"sprites/s_bfg3.sp2",
+		"sprites/s_explod.sp2",
+		"sprites/s_explo2.sp2",
+		"sprites/s_explo3.sp2",
+		"sprites/s_flash.sp2",
+		"sprites/s_bubble.sp2",
+	};
+
+	private void testSprites() {
+
+		refdef_t refdef = new refdef_t();
+
+		refdef.x = viddef.width/ 2;
+		refdef.y = viddef.height / 2 - 72;
+		refdef.width = 144 * 2;
+		refdef.height = 168 * 2;
+		refdef.fov_x = 40;
+		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.time = 1.0f * 0.001f;
+
+		int maxframe = 29;
+		entity_t entity = new entity_t();
+
+		String modelName = sprites[(framecount / 30) % sprites.length];
+		drawString(refdef.x, refdef.y - 20, modelName);
+
+		entity.model = re.RegisterModel(modelName);
+
+		entity.flags = Defines.RF_FULLBRIGHT;
+		entity.origin[0] = 80 - (framecount % 200) + 200;
+		entity.origin[1] = 0 + (float)(40 * Math.sin(Math.toRadians(framecount)));
+		entity.origin[2] = 0 + 20;
+		Math3D.VectorCopy(entity.origin, entity.oldorigin);
+		entity.frame = framecount / 2;
+		entity.oldframe = 0;
+		entity.backlerp = 0.0f;
+
+		refdef.areabits = null;
+		refdef.num_entities = 1;
+		refdef.entities = new entity_t[] { entity };
+		refdef.lightstyles = null;
+		refdef.rdflags = Defines.RDF_NOWORLDMODEL;
+
+		M_DrawTextBox(
+			(int) ((refdef.x) * (320.0F / viddef.width) - 8),
+			(int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+			refdef.width / 8,
+			refdef.height / 8);
+		refdef.height += 4;
+
+		re.RenderFrame(refdef);
+		
+	}
+	
 	private float CalcFov(float fov_x, float width, float height) {
 		double a;
 		double x;
@@ -273,6 +339,13 @@ public class TestRenderer {
 
 		return new Double(a).floatValue();
 	}
+
+	private void drawString(int x, int y, String text) {
+		for (int i = 0; i < text.length(); i++) {
+			re.DrawChar(x + 8 * i, y, (int)text.charAt(i));
+		}
+	}
+
 
 	private void M_DrawTextBox(int x, int y, int width, int lines) {
 		int cx, cy;

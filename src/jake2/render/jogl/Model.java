@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.3 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Model.java,v 1.4 2004-01-05 14:01:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,47 +25,52 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
+
+import jake2.Defines;
 import jake2.game.cplane_t;
+import jake2.qcommon.qfiles;
 import jake2.render.mleaf_t;
 import jake2.render.mnode_t;
 import jake2.render.model_t;
+import jake2.util.Vargs;
 
 /**
  * Model
  *  
  * @author cwei
  */
-public abstract class Model extends Main {
+public abstract class Model extends Image {
 	
 ////	   models.c -- model loading and caching
 //
 //	#include "gl_local.h"
 //
-//	model_t	*loadmodel;
-//	int		modfilelen;
+	model_t	loadmodel;
+	int modfilelen;
 //
 //	void Mod_LoadSpriteModel (model_t *mod, void *buffer);
 //	void Mod_LoadBrushModel (model_t *mod, void *buffer);
 //	void Mod_LoadAliasModel (model_t *mod, void *buffer);
 //	model_t *Mod_LoadModel (model_t *mod, qboolean crash);
 //
-//	byte	mod_novis[MAX_MAP_LEAFS/8];
-//
-//	#define	MAX_MOD_KNOWN	512
-//	model_t	mod_known[MAX_MOD_KNOWN];
-//	int		mod_numknown;
-//
-////	   the inline * models from the current map are kept seperate
-//	model_t	mod_inline[MAX_MOD_KNOWN];
-//
-	int registration_sequence;
+	byte[] mod_novis = new byte[Defines.MAX_MAP_LEAFS/8];
+
+	static final int MAX_MOD_KNOWN = 512;
+	model_t[] mod_known = new model_t[MAX_MOD_KNOWN];
+	int mod_numknown;
+
+	// the inline * models from the current map are kept seperate
+	model_t[] mod_inline = new model_t[MAX_MOD_KNOWN];
 
 	/*
 	===============
 	Mod_PointInLeaf
 	===============
 	*/
-	mleaf_t Mod_PointInLeaf (float[] p, model_t model)
+	mleaf_t Mod_PointInLeaf(float[] p, model_t model)
 	{
 		mnode_t node;
 		float	d;
@@ -182,7 +187,12 @@ public abstract class Model extends Main {
 	*/
 	void Mod_Init()
 	{
-//		memset (mod_novis, 0xff, sizeof(mod_novis));
+		// init mod_known
+		for (int i=0; i < MAX_MOD_KNOWN; i++) {
+			mod_known[i] = new model_t();
+			mod_known[i].name = "";
+		}
+		Arrays.fill(mod_novis, (byte)0xff);
 	}
 //
 //
@@ -196,112 +206,124 @@ public abstract class Model extends Main {
 //	*/
 	model_t Mod_ForName(String name, boolean crash)
 	{
-		model_t	mod = null;
-//		unsigned *buf;
-//		int		i;
-//	
-//		if (!name[0])
-//			ri.Sys_Error (ERR_DROP, "Mod_ForName: NULL name");
-//		
-//		//
-//		// inline models are grabbed only from worldmodel
-//		//
-//		if (name[0] == '*')
-//		{
-//			i = atoi(name+1);
-//			if (i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels)
-//				ri.Sys_Error (ERR_DROP, "bad inline model number");
-//			return &mod_inline[i];
-//		}
-//
-//		//
-//		// search the currently loaded models
-//		//
-//		for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
-//		{
-//			if (!mod->name[0])
-//				continue;
-//			if (!strcmp (mod->name, name) )
-//				return mod;
-//		}
-//	
-//		//
-//		// find a free model slot spot
-//		//
-//		for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
-//		{
-//			if (!mod->name[0])
-//				break;	// free spot
-//		}
-//		if (i == mod_numknown)
-//		{
-//			if (mod_numknown == MAX_MOD_KNOWN)
-//				ri.Sys_Error (ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
-//			mod_numknown++;
-//		}
-//		strcpy (mod->name, name);
-//	
-//		//
-//		// load the file
-//		//
-//		modfilelen = ri.FS_LoadFile (mod->name, &buf);
-//		if (!buf)
-//		{
-//			if (crash)
-//				ri.Sys_Error (ERR_DROP, "Mod_NumForName: %s not found", mod->name);
-//			memset (mod->name, 0, sizeof(mod->name));
-//			return NULL;
-//		}
-//	
-//		loadmodel = mod;
-//
-//		//
-//		// fill it in
-//		//
-//
-//
-//		// call the apropriate loader
-//	
-//		switch (LittleLong(*(unsigned *)buf))
-//		{
-//		case IDALIASHEADER:
+		model_t mod = null;
+		int		i;
+	
+		if (name == null || name.length() == 0)
+			ri.Sys_Error(Defines.ERR_DROP, "Mod_ForName: NULL name");
+		
+		//
+		// inline models are grabbed only from worldmodel
+		//
+		if (name.charAt(0) == '*')
+		{
+			i = Integer.parseInt(name.substring(1));
+			if (i < 1 || r_worldmodel == null || i >= r_worldmodel.numsubmodels)
+				ri.Sys_Error (Defines.ERR_DROP, "bad inline model number");
+			return mod_inline[i];
+		}
+
+		//
+		// search the currently loaded models
+		//
+		for (i=0; i<mod_numknown ; i++)
+		{
+			mod = mod_known[i];
+			
+			if (mod.name == "")
+				continue;
+			if (mod.name.equals(name) )
+				return mod;
+		}
+	
+		//
+		// find a free model slot spot
+		//
+		for (i=0; i<mod_numknown ; i++)
+		{
+			mod = mod_known[i];
+
+			if (mod.name == "")
+				break;	// free spot
+		}
+		if (i == mod_numknown)
+		{
+			if (mod_numknown == MAX_MOD_KNOWN)
+				ri.Sys_Error (Defines.ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
+			mod_numknown++;
+			mod = mod_known[i];
+		}
+
+		mod.name = name; 
+	
+		//
+		// load the file
+		//
+		byte[] buf = ri.FS_LoadFile(name);
+
+		if (buf == null)
+		{
+			if (crash)
+				ri.Sys_Error(Defines.ERR_DROP, "Mod_NumForName: " + mod.name + " not found");
+
+			mod.name = "";
+			return null;
+		}
+
+		modfilelen = buf.length;
+	
+		loadmodel = mod;
+
+		//
+		// fill it in
+		//
+		ByteBuffer bb = ByteBuffer.wrap(buf);
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		// call the apropriate loader
+	
+		int ident = bb.getInt();
+		
+		bb.rewind();
+		
+		switch (ident)
+		{
+		case qfiles.IDALIASHEADER:
 //			loadmodel->extradata = Hunk_Begin (0x200000);
-//			Mod_LoadAliasModel (mod, buf);
-//			break;
-//		
-//		case IDSPRITEHEADER:
+			Mod_LoadAliasModel(mod, bb);
+			break;
+		
+		case qfiles.IDSPRITEHEADER:
 //			loadmodel->extradata = Hunk_Begin (0x10000);
-//			Mod_LoadSpriteModel (mod, buf);
-//			break;
-//	
-//		case IDBSPHEADER:
+			Mod_LoadSpriteModel(mod, bb);
+			break;
+	
+		case qfiles.IDBSPHEADER:
 //			loadmodel->extradata = Hunk_Begin (0x1000000);
 //			Mod_LoadBrushModel (mod, buf);
-//			break;
-//
-//		default:
-//			ri.Sys_Error (ERR_DROP,"Mod_NumForName: unknown fileid for %s", mod->name);
-//			break;
-//		}
+			break;
+
+		default:
+			ri.Sys_Error(Defines.ERR_DROP,"Mod_NumForName: unknown fileid for " + mod.name);
+			break;
+		}
 //
 //		loadmodel->extradatasize = Hunk_End ();
-//
-//		ri.FS_FreeFile (buf);
-//
+
 		return mod;
 	}
-//
-//	/*
-//	===============================================================================
-//
-//						BRUSHMODEL LOADING
-//
-//	===============================================================================
-//	*/
-//
+
+	/*
+	===============================================================================
+
+						BRUSHMODEL LOADING
+
+	===============================================================================
+	*/
+
 //	byte	*mod_base;
-//
-//
+
+
 //	/*
 //	=================
 //	Mod_LoadLighting
@@ -765,7 +787,8 @@ public abstract class Model extends Main {
 //	#endif
 //		}	
 //	}
-//
+
+
 //	/*
 //	=================
 //	Mod_LoadMarksurfaces
@@ -794,7 +817,8 @@ public abstract class Model extends Main {
 //			out[i] = loadmodel->surfaces + j;
 //		}
 //	}
-//
+
+
 //	/*
 //	=================
 //	Mod_LoadSurfedges
@@ -821,8 +845,8 @@ public abstract class Model extends Main {
 //		for ( i=0 ; i<count ; i++)
 //			out[i] = LittleLong (in[i]);
 //	}
-//
-//
+
+
 //	/*
 //	=================
 //	Mod_LoadPlanes
@@ -860,14 +884,14 @@ public abstract class Model extends Main {
 //			out->signbits = bits;
 //		}
 //	}
-//
-//	/*
-//	=================
-//	Mod_LoadBrushModel
-//	=================
-//	*/
-//	void Mod_LoadBrushModel (model_t *mod, void *buffer)
-//	{
+
+	/*
+	=================
+	Mod_LoadBrushModel
+	=================
+	*/
+	void Mod_LoadBrushModel (model_t mod, ByteBuffer buffer)
+	{
 //		int			i;
 //		dheader_t	*header;
 //		mmodel_t 	*bm;
@@ -931,22 +955,22 @@ public abstract class Model extends Main {
 //
 //			starmod->numleafs = bm->visleafs;
 //		}
-//	}
-//
-//	/*
-//	==============================================================================
-//
-//	ALIAS MODELS
-//
-//	==============================================================================
-//	*/
-//
+	}
+
+	/*
+	==============================================================================
+
+	ALIAS MODELS
+
+	==============================================================================
+	*/
+
 	/*
 	=================
 	Mod_LoadAliasModel
 	=================
 	*/
-	void Mod_LoadAliasModel (model_t mod, byte[] buffer)
+	void Mod_LoadAliasModel (model_t mod, ByteBuffer buffer)
 	{
 //		int					i, j;
 //		dmdl_t				*pinmodel, *pheader;
@@ -1064,22 +1088,22 @@ public abstract class Model extends Main {
 //		mod->maxs[1] = 32;
 //		mod->maxs[2] = 32;
 	}
-//
-//	/*
-//	==============================================================================
-//
-//	SPRITE MODELS
-//
-//	==============================================================================
-//	*/
-//
-//	/*
-//	=================
-//	Mod_LoadSpriteModel
-//	=================
-//	*/
-//	void Mod_LoadSpriteModel (model_t *mod, void *buffer)
-//	{
+
+	/*
+	==============================================================================
+
+	SPRITE MODELS
+
+	==============================================================================
+	*/
+
+	/*
+	=================
+	Mod_LoadSpriteModel
+	=================
+	*/
+	void Mod_LoadSpriteModel(model_t mod, ByteBuffer buffer)
+	{
 //		dsprite_t	*sprin, *sprout;
 //		int			i;
 //
@@ -1089,32 +1113,34 @@ public abstract class Model extends Main {
 //		sprout->ident = LittleLong (sprin->ident);
 //		sprout->version = LittleLong (sprin->version);
 //		sprout->numframes = LittleLong (sprin->numframes);
-//
-//		if (sprout->version != SPRITE_VERSION)
-//			ri.Sys_Error (ERR_DROP, "%s has wrong version number (%i should be %i)",
-//					 mod->name, sprout->version, SPRITE_VERSION);
-//
-//		if (sprout->numframes > MAX_MD2SKINS)
-//			ri.Sys_Error (ERR_DROP, "%s has too many frames (%i > %i)",
-//					 mod->name, sprout->numframes, MAX_MD2SKINS);
-//
+		
+		qfiles.dsprite_t sprout = new qfiles.dsprite_t(buffer);
+		
+		if (sprout.version != qfiles.SPRITE_VERSION)
+			ri.Sys_Error(Defines.ERR_DROP, "%s has wrong version number (%i should be %i)",
+				new Vargs(3).add(mod.name).add(sprout.version).add(qfiles.SPRITE_VERSION));
+
+		if (sprout.numframes > qfiles.MAX_MD2SKINS)
+			ri.Sys_Error(Defines.ERR_DROP, "%s has too many frames (%i > %i)",
+				new Vargs(3).add(mod.name).add(sprout.numframes).add(qfiles.MAX_MD2SKINS));
+
 //		// byte swap everything
-//		for (i=0 ; i<sprout->numframes ; i++)
-//		{
+		for (int i=0 ; i<sprout.numframes ; i++)
+		{
 //			sprout->frames[i].width = LittleLong (sprin->frames[i].width);
 //			sprout->frames[i].height = LittleLong (sprin->frames[i].height);
 //			sprout->frames[i].origin_x = LittleLong (sprin->frames[i].origin_x);
 //			sprout->frames[i].origin_y = LittleLong (sprin->frames[i].origin_y);
 //			memcpy (sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
-//			mod->skins[i] = GL_FindImage (sprout->frames[i].name,
-//				it_sprite);
-//		}
-//
-//		mod->type = mod_sprite;
-//	}
-//
-////	  =============================================================================
-//
+			mod.skins[i] = GL_FindImage(sprout.frames[i].name,	it_sprite);
+		}
+
+		mod.type = mod_sprite;
+		mod.extradata = sprout;
+	}
+
+//	  =============================================================================
+
 //	/*
 //	@@@@@@@@@@@@@@@@@@@@@
 //	R_BeginRegistration
@@ -1152,37 +1178,38 @@ public abstract class Model extends Main {
 	protected model_t R_RegisterModel (String name)
 	{
 		model_t	mod = null;
-//		int		i;
-//		dsprite_t	*sprout;
-//		dmdl_t		*pheader;
-//
-//		mod = Mod_ForName (name, false);
-//		if (mod)
-//		{
-//			mod->registration_sequence = registration_sequence;
-//
-//			// register any images used by the models
-//			if (mod->type == mod_sprite)
-//			{
-//				sprout = (dsprite_t *)mod->extradata;
-//				for (i=0 ; i<sprout->numframes ; i++)
-//					mod->skins[i] = GL_FindImage (sprout->frames[i].name, it_sprite);
-//			}
-//			else if (mod->type == mod_alias)
-//			{
-//				pheader = (dmdl_t *)mod->extradata;
-//				for (i=0 ; i<pheader->num_skins ; i++)
-//					mod->skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-////	  PGM
-//				mod->numframes = pheader->num_frames;
-////	  PGM
-//			}
-//			else if (mod->type == mod_brush)
-//			{
-//				for (i=0 ; i<mod->numtexinfo ; i++)
-//					mod->texinfo[i].image->registration_sequence = registration_sequence;
-//			}
-//		}
+		int		i;
+		qfiles.dsprite_t sprout;
+		qfiles.dmdl_t pheader;
+
+		mod = Mod_ForName(name, false);
+		if (mod != null)
+		{
+			mod.registration_sequence = registration_sequence;
+
+			// register any images used by the models
+			if (mod.type == mod_sprite)
+			{
+				sprout = (qfiles.dsprite_t)mod.extradata;
+				for (i=0 ; i<sprout.numframes ; i++)
+					mod.skins[i] = GL_FindImage(sprout.frames[i].name, it_sprite);
+			}
+			else if (mod.type == mod_alias)
+			{
+				// TODO  R_RegisterModel implement: mod.type == mod_alias
+//				pheader = (qfiles.dmdl_t)mod.extradata;
+//				for (i=0 ; i<pheader.num_skins ; i++)
+//					mod.skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
+//				// PGM
+//				mod.numframes = pheader.num_frames;
+//				// PGM
+			}
+			else if (mod.type == mod_brush)
+			{
+				for (i=0 ; i<mod.numtexinfo ; i++)
+					mod.texinfo[i].image.registration_sequence = registration_sequence;
+			}
+		}
 		return mod;
 	}
 //
