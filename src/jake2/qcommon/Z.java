@@ -2,7 +2,7 @@
  * Z.java
  * Copyright (C) 2003
  * 
- * $Id: Z.java,v 1.3 2003-11-26 17:02:45 cwei Exp $
+ * $Id: Z.java,v 1.4 2003-11-26 17:22:38 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.qcommon;
+
+import java.nio.ByteBuffer;
 
 
 /**
@@ -75,5 +77,13 @@ public final class Z {
 	 * @param ptr
 	 */
 	public static void Free(byte[] ptr) {
+	}
+
+	/**
+	 * @param ptr
+	 */
+	public static void Free(ByteBuffer buffer) {
+		buffer.clear();
+		buffer.limit(0);
 	}
 }
