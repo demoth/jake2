@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.28 2004-02-22 21:45:47 hoz Exp $
+// $Id: Lib.java,v 1.29 2004-06-22 11:25:38 cwei Exp $
 
 package jake2.util;
 
@@ -28,9 +28,13 @@ import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.StringTokenizer;
+
+import net.java.games.jogl.util.BufferUtils;
 
 public class Lib {
 
@@ -516,4 +520,44 @@ public class Lib {
 
 		return out;
 	}
+
+	/*
+	 * java.nio.* Buffer util functions
+	 */
+	
+	public static final int SIZEOF_FLOAT = BufferUtils.SIZEOF_FLOAT;
+	public static final int SIZEOF_INT = BufferUtils.SIZEOF_INT;
+
+	public static FloatBuffer newFloatBuffer(int numElements) {
+	  ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
+	  return bb.asFloatBuffer();
+	}
+
+	public static FloatBuffer newFloatBuffer(int numElements, ByteOrder order) {
+	  ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT, order);
+	  return bb.asFloatBuffer();
+	}
+
+	public static IntBuffer newIntBuffer(int numElements) {
+	  ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
+	  return bb.asIntBuffer();
+	}
+
+	public static IntBuffer newIntBuffer(int numElements, ByteOrder order) {
+	  ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT, order);
+	  return bb.asIntBuffer();
+	}
+
+	public static ByteBuffer newByteBuffer(int numElements) {
+	  ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
+	  bb.order(ByteOrder.nativeOrder());
+	  return bb;
+	}
+
+	public static ByteBuffer newByteBuffer(int numElements, ByteOrder order) {
+	  ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
+	  bb.order(order);
+	  return bb;
+	}
+	
 }

@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.9 2004-06-21 11:33:38 cwei Exp $
+ * $Id: Surf.java,v 1.10 2004-06-22 11:25:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,8 +29,10 @@ import jake2.Defines;
 import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.render.*;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
+import java.nio.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -76,8 +78,8 @@ public abstract class Surf extends Draw {
 		// the lightmap texture data needs to be kept in
 		// main memory so texsubimage can update properly
 		//byte[] lightmap_buffer = new byte[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-		IntBuffer lightmap_buffer = BufferUtils.newIntBuffer(BLOCK_WIDTH * BLOCK_HEIGHT);
-		
+		IntBuffer lightmap_buffer = Lib.newIntBuffer(BLOCK_WIDTH * BLOCK_HEIGHT, ByteOrder.LITTLE_ENDIAN);
+				
 		public gllightmapstate_t() {
 			for (int i = 0; i < MAX_LIGHTMAPS; i++)
 				lightmap_surfaces[i] = new msurface_t();
@@ -216,7 +218,7 @@ public abstract class Surf extends Draw {
 		gl.glEnable (GL.GL_TEXTURE_2D);
 	}
 
-	private IntBuffer temp2 = BufferUtils.newIntBuffer(34 * 34); 
+	private IntBuffer temp2 = Lib.newIntBuffer(34 * 34, ByteOrder.LITTLE_ENDIAN);
 
 	/*
 	================
@@ -438,8 +440,8 @@ public abstract class Surf extends Draw {
 	}
 
 	// direct buffer
-	private IntBuffer temp = BufferUtils.newIntBuffer(128 * 128);
-
+	private IntBuffer temp = Lib.newIntBuffer(128 * 128, ByteOrder.LITTLE_ENDIAN);
+			
 	void GL_RenderLightmappedPoly( msurface_t surf )
 	{
 		int i, nv = surf.polys.numverts;

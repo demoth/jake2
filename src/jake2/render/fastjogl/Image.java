@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.4 2004-06-21 11:33:38 cwei Exp $
+ * $Id: Image.java,v 1.5 2004-06-22 11:25:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,12 +31,14 @@ import jake2.game.cvar_t;
 import jake2.qcommon.longjmpException;
 import jake2.qcommon.qfiles;
 import jake2.render.image_t;
+import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.nio.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -1043,7 +1045,7 @@ public abstract class Image extends Main {
 	*/
 	int[] scaled = new int[256 * 256];
 	byte[] paletted_texture = new byte[256 * 256];
-	IntBuffer tex = BufferUtils.newIntBuffer(512 * 256);
+	IntBuffer tex = Lib.newIntBuffer(512 * 256, ByteOrder.LITTLE_ENDIAN);
 
 	boolean GL_Upload32(int[] data, int width, int height, boolean mipmap) {
 		int samples;
