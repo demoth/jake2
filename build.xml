@@ -29,10 +29,11 @@
 	<target name="usage">
 		<echo message="command line arguments for build.sh or build.bat"/>
 		<echo message=""/>
-		<echo message="bindist      build only binary distribution"/>
+		<echo message="installer    build installer"/>
+		<echo message="bindist      build .tar.gz and .zip binary distribution"/>
 		<echo message="srcdist      build only source distribution"/>
-		<echo message="all          build source and binary distribution"/>
-		<echo message="clean        delete classfiles keep jake2*.tar.gz and jake2*.zip"/>
+		<echo message="all          build everything"/>
+		<echo message="clean        delete classfiles keep distribution files"/>
 		<echo message="distclean    delete all generated files"/>
 		<echo message="jar          build only dist/lib/jake2.jar"/>
 		<echo message=""/>
@@ -134,7 +135,7 @@
 	</target>
 				
 	<!-- everything -->
-	<target name="all" depends="bindist,srcdist">
+	<target name="all" depends="installer,bindist,srcdist">
 	</target>
 
 	<!-- dist -->
@@ -220,6 +221,9 @@
 			<include name="libjoal.so"/>
 			<include name="libopenal.so"/>
 		</jar>
+		<jar destfile="webstart/lib/osx/joal-native.jar" basedir="${dist}/lib/osx">
+			<include name="libjoal.jnilib"/>
+		</jar>		
 		<jar destfile="webstart/lib/windows/jogl-native.jar" basedir="${dist}/lib/windows">
 			<include name="jogl*.dll"/>
 		</jar>
