@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.01.2004 by RST.
-// $Id: SuperAdapter.java,v 1.6 2005-02-06 19:15:07 salomo Exp $
+// $Id: SuperAdapter.java,v 1.7 2005-02-08 17:58:46 cawe Exp $
 
 package jake2.game;
 
@@ -73,7 +73,7 @@ public class SuperAdapter {
 	public SuperAdapter() {
 		StackTraceElement tr[]= new Throwable().getStackTrace();
 		adapterid= tr[2].getClassName();
-		if (adapterid == "")
+		if (adapterid.length() == 0)
 			new Throwable("error in creating an adapter id!").printStackTrace();
 		else
 			register(this, adapterid);
