@@ -19,11 +19,13 @@
  */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.2 2004-09-22 19:22:04 salomo Exp $
+// $Id: pmove_t.java,v 1.3 2005-01-21 00:54:44 cawe Exp $
 package jake2.game;
 
-import jake2.*;
-import jake2.server.SV_WORLD;
+import jake2.Defines;
+import jake2.util.Math3D;
+
+import java.util.Arrays;
 
 public class pmove_t {
 
@@ -90,19 +92,18 @@ public class pmove_t {
                                                     // grappling hook)
 
     public void clear() {
-
         groundentity = null;
         waterlevel = watertype = 0;
         trace = null;
         pointcontents = null;
-        mins = new float[3];
-        maxs = new float[3];
+        Math3D.VectorClear(mins);
+        Math3D.VectorClear(maxs);
         viewheight = 0;
-        viewangles = new float[3];
-        touchents = new edict_t[Defines.MAXTOUCH];
+        Math3D.VectorClear(viewangles);
+        Arrays.fill(touchents, null);
         numtouch = 0;
         snapinitial = false;
-        cmd = new usercmd_t();
-        s = new pmove_state_t();
+        cmd.reset();
+        s.reset();
     }
 }
