@@ -19,7 +19,7 @@
  */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.7 2005-01-14 16:11:36 cawe Exp $
+// $Id: CM.java,v 1.8 2005-01-14 21:15:34 cawe Exp $
 package jake2.qcommon;
 
 import jake2.Defines;
@@ -1503,7 +1503,7 @@ public class CM {
 
         // fill in a default trace
         //was: memset(& trace_trace, 0, sizeof(trace_trace));
-        trace_trace.clear();
+        trace_trace = new trace_t();
 
         trace_trace.fraction = 1;
         trace_trace.surface = nullsurface.c;
