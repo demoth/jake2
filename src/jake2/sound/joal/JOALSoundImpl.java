@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.6 2004-06-16 12:02:40 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.7 2004-06-16 12:21:59 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -496,7 +496,7 @@ public final class JOALSoundImpl implements Sound {
 			}
 		}
 
-		System.out.println(sfx.name);
+		//System.out.println(sfx.name);
 		return sfx;
 	}
 	
