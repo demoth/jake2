@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gamedefs.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: Defines.java,v 1.1 2003-11-29 13:34:48 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
-package jake2.game;
+package jake2;
 
-public class gamedefs
+public class Defines
 {
 	public final static int WEAPON_READY= 0;	
 	public final static int WEAPON_ACTIVATING= 1;	

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: pmove_t.java,v 1.4 2003-11-29 13:34:48 rst Exp $
 
 package jake2.game;
+
+import jake2.*;
+import jake2.*;
 
 
 public class pmove_t
@@ -35,7 +38,7 @@ public class pmove_t
 
 	// results (out)
 	int numtouch;
-	edict_t touchents[]= new edict_t[gamedefs.MAXTOUCH];
+	edict_t touchents[]= new edict_t[Defines.MAXTOUCH];
 
 	float []  viewangles ={0,0,0}; // clamped
 	float viewheight;

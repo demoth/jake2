@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: client_persistant_t.java,v 1.4 2003-11-29 13:34:48 rst Exp $
 
 package jake2.game;
+
+import jake2.*;
+import jake2.*;
 
 
 
@@ -41,7 +44,7 @@ public class client_persistant_t
 	int savedFlags;
 
 	int selected_item;
-	int inventory[]= new int[gamedefs.MAX_ITEMS];
+	int inventory[]= new int[Defines.MAX_ITEMS];
 
 	// ammo capacities
 	int max_bullets;

@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.5 2003-11-29 13:28:29 rst Exp $
+//$Id: client_state_t.java,v 1.6 2003-11-29 13:34:48 rst Exp $
 
 package jake2.client;
 
+import jake2.Defines;
 import jake2.game.cmodel_t;
-import jake2.game.gamedefs;
 import jake2.game.usercmd_t;
 import jake2.qcommon.qcommondefs;
 import jake2.render.image_t;
@@ -87,7 +87,7 @@ public class client_state_t {
 	//
 	// TODO: check char[1024] to String conversion
 	String layout; // general 2D overlay
-	int inventory[] = new int[gamedefs.MAX_ITEMS];
+	int inventory[] = new int[Defines.MAX_ITEMS];
 
 	//
 	// non-gameserver infornamtion
@@ -106,18 +106,18 @@ public class client_state_t {
 	String gamedir;
 	int playernum;
 
-	String configstrings[] = new String[gamedefs.MAX_CONFIGSTRINGS];
+	String configstrings[] = new String[Defines.MAX_CONFIGSTRINGS];
 
 	//
 	// locally derived information from server state
 	//
-	model_t model_draw[] = new model_t[gamedefs.MAX_MODELS];
-	cmodel_t model_clip[] = new cmodel_t[gamedefs.MAX_MODELS];
+	model_t model_draw[] = new model_t[Defines.MAX_MODELS];
+	cmodel_t model_clip[] = new cmodel_t[Defines.MAX_MODELS];
 
-	sfx_t sound_precache[] = new sfx_t[gamedefs.MAX_SOUNDS];
-	image_t image_precache[] = new image_t[gamedefs.MAX_IMAGES];
+	sfx_t sound_precache[] = new sfx_t[Defines.MAX_SOUNDS];
+	image_t image_precache[] = new image_t[Defines.MAX_IMAGES];
 
-	clientinfo_t clientinfo[] = new clientinfo_t[gamedefs.MAX_CLIENTS];
+	clientinfo_t clientinfo[] = new clientinfo_t[Defines.MAX_CLIENTS];
 	clientinfo_t baseclientinfo;
 
 }

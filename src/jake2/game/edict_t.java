@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.*;
+import jake2.*;
+
 public class edict_t
 {
 	//TODO: implement
@@ -36,7 +39,7 @@ public class edict_t
 	link_t area; // linked to a division node or leaf
 
 	int num_clusters; // if -1, use headnode instead
-	int clusternums[]= new int[gamedefs.MAX_ENT_CLUSTERS];
+	int clusternums[]= new int[Defines.MAX_ENT_CLUSTERS];
 	int headnode; // unused if num_clusters != -1
 	int areanum, areanum2;
 

@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-// $Id: renderdefs.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: renderdefs.java,v 1.4 2003-11-29 13:34:48 rst Exp $
 
 package jake2.render;
 
-public class renderdefs extends jake2.game.gamedefs {
+public class renderdefs extends jake2.Defines {
 	
 	
 	static final int MAX_DLIGHTS = 32;

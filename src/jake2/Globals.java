@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.8 2003-11-29 13:28:29 rst Exp $
+ * $Id: Globals.java,v 1.9 2003-11-29 13:34:48 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
+import jake2.client.*;
 import jake2.client.client_static_t;
 import jake2.game.*;
 import jake2.qcommon.sizebuf_t;
@@ -159,7 +160,7 @@ public class Globals {
 	public static client_static_t cls;
 	public static client_state_t cl;
 
-	public static centity_t cl_entities[] = new centity_t[gamedefs.MAX_EDICTS];
+	public static centity_t cl_entities[] = new centity_t[Defines.MAX_EDICTS];
 
 	public static entity_state_t cl_parse_entities[] = new entity_state_t[clientdefs.MAX_PARSE_ENTITIES];
 

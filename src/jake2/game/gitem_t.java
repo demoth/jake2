@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: gitem_t.java,v 1.4 2003-11-29 13:28:28 rst Exp $
+// $Id: gitem_t.java,v 1.5 2003-11-29 13:34:48 rst Exp $
 
 package jake2.game;
+
+import jake2.*;
+import jake2.*;
 
 public class gitem_t
 {
@@ -122,14 +125,14 @@ public class gitem_t
 			null,
 			"misc/ar1_pkup.wav",
 			"models/items/armor/combat/tris.md2",
-			gamedefs.EF_ROTATE,
+			Defines.EF_ROTATE,
 			null,
 		/* icon */
 		"i_combatarmor",
 		/* pickup */
 		"Combat Armor",
 		/* width */
-		3, 0, null, gamedefs.IT_ARMOR, 0, GameAI.combatarmor_info, gamedefs.ARMOR_COMBAT,
+		3, 0, null, Defines.IT_ARMOR, 0, GameAI.combatarmor_info, Defines.ARMOR_COMBAT,
 		/* precache */
 		"");
 	}
