@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.8 2004-10-07 14:12:59 hzi Exp $
+// $Id: Lib.java,v 1.9 2004-11-07 19:30:12 cawe Exp $
 
 package jake2.util;
 
@@ -261,6 +261,19 @@ public class Lib {
 	
 		return out;
 	}
+	
+	public static String CtoJava(String old) {
+	    int index = old.indexOf('\0');
+	    if (index == 0) return "";
+	    return (index > 0) ? old.substring(0, index) : old; 
+	}
+	
+	public static String CtoJava(byte[] old, int offset, int maxLenght) {
+		int i;
+	    for (i = offset; old[i] != 0 && i < maxLenght; i++);
+		return new String(old, offset, i - offset);
+	}
+	
 	
 	/*
 	 * java.nio.* Buffer util functions
