@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.8 2004-02-04 20:33:35 rst Exp $
+// $Id: client_persistant_t.java,v 1.9 2004-02-06 18:38:20 rst Exp $
 
 package jake2.game;
 
@@ -68,7 +68,7 @@ public class client_persistant_t {
 
 	boolean spectator; // client is a spectator
 
-	//TODO: implement clear !
+	//TODO: implement clear when map can be loaded
 	public void clear() {
 	}
 

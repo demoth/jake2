@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.02.2004 by RST.
-// $Id: GameSVCmds.java,v 1.2 2004-02-05 21:32:40 rst Exp $
+// $Id: GameSVCmds.java,v 1.3 2004-02-06 18:38:20 rst Exp $
 
 package jake2.game;
 
@@ -136,10 +136,12 @@ public class GameSVCmds extends GameSpawn {
 	
 		while (p < from.length() && i < 4) {
 			m[i] = 0;
+			
+			
 			c = from.charAt(p);
-			while (c >= '0' && c <= '9') {
+			while(c >= '0' && c <= '9') {
 				m[i] = m[i] * 10 + (c - '0');
-				p++;
+				c = from.charAt(p++);
 			}
 			if (p == from.length() || c == ':')
 				break;

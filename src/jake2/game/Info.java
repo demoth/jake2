@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.5 2004-01-26 14:29:02 hoz Exp $
+// $Id: Info.java,v 1.6 2004-02-06 18:38:20 rst Exp $
 
 package jake2.game;
 
@@ -47,14 +47,14 @@ public class Info extends PlayerView {
 			}
 			String value1 = tk.nextToken();
 
-			if (!key.equals(key1))
+			if (key.equals(key1))
 				return value1;
 		}
 		
 		return "";
 	}
 
-	/** DANGEROUS, returns now the modified userinfo string.*/
+	/** DANGEROUS, returns the modified userinfo string, was pointer-pointer manipulation first*/
 	public static String Info_SetValueForKey1(String s, String key, String value) {
 
 		if (value == null || value.length() == 0)
@@ -177,8 +177,8 @@ public class Info extends PlayerView {
 	==================
 	*/
 	public static boolean Info_Validate(String s) {
-		if (s.indexOf('\\') != -1)
-			return false;
+		if (s.indexOf('"') != -1)
+			//return false;
 		if (s.indexOf(';') != -1)
 			return false;
 		return true;

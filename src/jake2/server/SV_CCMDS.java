@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.10 2004-02-06 15:11:57 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.11 2004-02-06 18:38:20 rst Exp $
 
 package jake2.server;
 
@@ -627,9 +627,10 @@ public class SV_CCMDS extends SV_ENTS {
 		// copy off the level to the autosave slot
 		if (0 == dedicated.value) {
 
-			SV_WriteServerFile(true);
+			//TODO: SV_WriteServerFile!
+			//SV_WriteServerFile(true);
 
-			SV_CopySaveGame("current", "save0");
+			//SV_CopySaveGame("current", "save0");
 		}
 	}
 

@@ -6,10 +6,13 @@ found by rst:
 -------------
 Info.Info_ValueForKey: if(!key.equals(...))
 Info.Info_Validate: if (s.indexOf('\\')!=-1)
+SV_FilterPackets(): infinite while loop: (c=from.GetChar(p) was missing.
+MSG.WriteString: Null-Terminierung für String schreiben fehlte
 
 found by cwei:
 --------------
 GameUtil.DoRespawn: for (count = 0, ent = master; ent != null; ent = ent.chain, count++);
+
 
 
 found by hoz:

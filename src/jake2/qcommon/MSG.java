@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.15 2004-02-02 21:47:00 rst Exp $
+// $Id: MSG.java,v 1.16 2004-02-06 18:38:20 rst Exp $
 
 package jake2.qcommon;
 
@@ -89,6 +89,7 @@ public class MSG extends GameBase {
 			x = "";
 
 		SZ.Write(sb, x.getBytes());
+		WriteByte(sb, 0);
 	}
 
 	public static void WriteString(sizebuf_t sb, byte s[]) {

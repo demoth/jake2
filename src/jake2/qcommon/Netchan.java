@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.15 2004-02-05 21:32:40 rst Exp $
+ * $Id: Netchan.java,v 1.16 2004-02-06 18:38:20 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -114,7 +114,7 @@ public final class Netchan extends SV_MAIN {
 		// pick a port value that should be nice and random
 		port = Sys.Milliseconds() & 0xffff;
 
-		showpackets = Cvar.Get("showpackets", "0", 0);
+		showpackets = Cvar.Get("showpackets", "1", 0);
 		showdrop = Cvar.Get("showdrop", "0", 0);
 		qport = Cvar.Get("qport", "" + port, Defines.CVAR_NOSET);
 	}
