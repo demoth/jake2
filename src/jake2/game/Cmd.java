@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.9 2005-01-23 19:00:07 cawe Exp $
+ * $Id: Cmd.java,v 1.10 2005-01-23 20:04:02 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -284,7 +284,7 @@ public final class Cmd {
 
             com_token = Com.Parse(ph);
 
-            if (com_token == null)
+            if (ph.data == null)
                 return;
 
             if (cmd_argc < Defines.MAX_STRING_TOKENS) {
