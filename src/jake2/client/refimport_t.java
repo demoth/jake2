@@ -27,12 +27,13 @@ import java.awt.Dimension;
 
 import jake2.game.*;
 import jake2.qcommon.xcommand_t;
+import jake2.util.Vargs;
 
 public interface refimport_t {
 	// ref.h 
 	// these are the functions imported by the refresh module
 	//
-	void Sys_Error(int err_level, String str, Object[] vargs);
+	void Sys_Error(int err_level, String str, Vargs vargs);
 
 	void Cmd_AddCommand(String name, xcommand_t cmd);
 	void Cmd_RemoveCommand(String name);
@@ -40,7 +41,7 @@ public interface refimport_t {
 	String Cmd_Argv(int i);
 	void Cmd_ExecuteText(int exec_when, String text);
 
-	void Con_Printf(int print_level, String str, Object[] vargs);
+	void Con_Printf(int print_level, String str, Vargs vargs);
 
 	// files will be memory mapped read only
 	// the returned buffer may be part of a larger pak file,
