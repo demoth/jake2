@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.13 2004-10-07 14:13:07 hzi Exp $
+// $Id: SV_CCMDS.java,v 1.14 2005-02-19 21:21:19 salomo Exp $
 
 package jake2.server;
 
@@ -465,7 +465,7 @@ public class SV_CCMDS {
 	==============
 	*/
 	public static void SV_ReadServerFile() {
-		String filename, name = "", string, comment, mapcmd;
+		String filename="", name = "", string, comment, mapcmd;
 		try {
 			QuakeFile f;
 
@@ -507,7 +507,7 @@ public class SV_CCMDS {
 			GameSave.ReadGame(filename);
 		}
 		catch (Exception e) {
-			Com.Printf("Couldn't read file " + name + "\n");
+			Com.Printf("Couldn't read file " + filename + "\n");
 			e.printStackTrace();
 		}
 	}

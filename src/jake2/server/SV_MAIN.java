@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.9 2004-10-17 21:31:32 cawe Exp $
+// $Id: SV_MAIN.java,v 1.10 2005-02-19 21:22:34 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -993,13 +993,13 @@ public class SV_MAIN {
         // send it twice
         // stagger the packets to crutch operating system limited buffers
 
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < SV_INIT.svs.clients.length; i++) {
             cl = SV_INIT.svs.clients[i];
             if (cl.state >= Defines.cs_connected)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
                         Globals.net_message.data);
         }
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+        for (i = 0; i < SV_INIT.svs.clients.length; i++) {
             cl = SV_INIT.svs.clients[i];
             if (cl.state >= Defines.cs_connected)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
