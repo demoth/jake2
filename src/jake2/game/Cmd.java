@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.19 2003-12-29 22:31:15 rst Exp $
+ * $Id: Cmd.java,v 1.20 2003-12-29 22:38:01 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -349,8 +349,8 @@ public final class Cmd extends PlayerView {
 	public static boolean Exists(String cmd_name) {
 		cmd_function_t cmd;
 
-		for (cmd = cmd_functions; cmd!=null; cmd = cmd.next) {
-			if (0==strcmp(cmd_name, cmd.name))
+		for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
+			if (0 == strcmp(cmd_name, cmd.name))
 				return true;
 		}
 
@@ -385,12 +385,14 @@ public final class Cmd extends PlayerView {
 		cmdalias_t a;
 
 		TokenizeString(text.toCharArray(), true);
-		
-		Com.DPrintf("tokenized:");
-		for (int xxx=0; xxx < Argc(); xxx++)
-			Com.DPrintf("["  + Argv(xxx) + "]");
-			
-		Com.DPrintf("\n");
+
+		if (Argc() > 0) {
+			Com.DPrintf("tokenized:");
+			for (int xxx = 0; xxx < Argc(); xxx++)
+				Com.DPrintf("[" + Argv(xxx) + "]");
+
+			Com.DPrintf("\n");
+		}
 		//System.out.println("tokenized[" + Argv(0) + "]" + "[" + Argv(1) +  "]");
 		// execute the command line
 		if (Argc() == 0)
@@ -1218,6 +1220,5 @@ public final class Cmd extends PlayerView {
 		}
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, text);
 	}
-
 
 }
