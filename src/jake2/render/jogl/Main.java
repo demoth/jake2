@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.34 2004-05-19 16:23:15 cwei Exp $
+ * $Id: Main.java,v 1.35 2004-06-03 08:07:05 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -66,7 +66,6 @@ public abstract class Main extends Base {
 	boolean qglActiveTextureARB = false;
 	boolean qglPointParameterfEXT = false;
 	boolean qglLockArraysEXT = false;
-	boolean qglUnlockArraysEXT = false;
 	boolean qglMTexCoord2fSGIS = false;
 
 	//	=================
@@ -1241,9 +1240,12 @@ public abstract class Main extends Base {
 			|| gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0) {
 			ri.Con_Printf(Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
 			//		 qglLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
-			qglLockArraysEXT = true;
+			if (gl_ext_compiled_vertex_array.value != 0.0f)
+				qglLockArraysEXT = true;
+			else
+				qglLockArraysEXT = false;
 			//		 qglUnlockArraysEXT = ( void * ) qwglGetProcAddress( "glUnlockArraysEXT" );
-			qglUnlockArraysEXT = true;
+			//qglUnlockArraysEXT = true;
 		}
 		else {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");

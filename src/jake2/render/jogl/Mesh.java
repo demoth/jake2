@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.16 2004-05-19 23:24:48 cwei Exp $
+ * $Id: Mesh.java,v 1.17 2004-06-03 08:07:05 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -298,7 +298,7 @@ public abstract class Mesh extends Light {
 				gl.glEnd ();
 			}
 
-			if ( qglUnlockArraysEXT )
+			if ( qglLockArraysEXT )
 				gl.glUnlockArraysEXT();
 		}
 		else
