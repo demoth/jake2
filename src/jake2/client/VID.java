@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.11 2004-12-14 12:54:25 cawe Exp $
+ * $Id: VID.java,v 1.12 2005-01-11 15:53:56 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -363,69 +363,31 @@ public class VID extends Globals {
 
 	====================================================================
 	*/
-	static final int SOFTWARE_MENU  = 0;
-	static final int OPENGL_MENU  = 1;
 
-	static Menu.menuframework_s  s_software_menu = new Menu.menuframework_s();
 	static Menu.menuframework_s	s_opengl_menu = new Menu.menuframework_s();
 	static Menu.menuframework_s s_current_menu; // referenz
-	static int s_current_menu_index = 1; // default is the openGL menu
 
-	static Menu.menulist_s[] s_mode_list = new Menu.menulist_s[2];
-	static {
-		s_mode_list[0] = new Menu.menulist_s();
-		s_mode_list[1] = new Menu.menulist_s();
-	}
-	static Menu.menulist_s[] s_ref_list = new Menu.menulist_s[2];
-	static {
-		s_ref_list[0] = new Menu.menulist_s();
-		s_ref_list[1] = new Menu.menulist_s();
-	}
+	static Menu.menulist_s s_mode_list = new Menu.menulist_s();
+
+	static Menu.menulist_s s_ref_list = new Menu.menulist_s();
+
 	static Menu.menuslider_s s_tq_slider = new Menu.menuslider_s();
-	static Menu.menuslider_s[] s_screensize_slider = new Menu.menuslider_s[2];
-	static {
-		s_screensize_slider[0] = new Menu.menuslider_s();
-		s_screensize_slider[1] = new Menu.menuslider_s();
-	}
-	static Menu.menuslider_s[] s_brightness_slider = new Menu.menuslider_s[2];
-	static {
-		s_brightness_slider[0] = new Menu.menuslider_s();
-		s_brightness_slider[1] = new Menu.menuslider_s();
-	}
-	static Menu.menulist_s[] s_fs_box = new Menu.menulist_s[2];
-	static {
-		s_fs_box[0] = new Menu.menulist_s();
-		s_fs_box[1] = new Menu.menulist_s();
-	}
+	static Menu.menuslider_s s_screensize_slider = new Menu.menuslider_s();
+
+	static Menu.menuslider_s s_brightness_slider = new Menu.menuslider_s();
+
+	static Menu.menulist_s s_fs_box = new Menu.menulist_s();
+
 	static Menu.menulist_s s_stipple_box = new Menu.menulist_s();
 	static Menu.menulist_s s_paletted_texture_box = new Menu.menulist_s();
 	static Menu.menulist_s s_windowed_mouse = new Menu.menulist_s();
-	static Menu.menuaction_s[] s_apply_action = new Menu.menuaction_s[2];
-	static {
-		s_apply_action[0] = new Menu.menuaction_s();
-		s_apply_action[1] = new Menu.menuaction_s();
-	}
-	static Menu.menuaction_s[] s_defaults_action= new Menu.menuaction_s[2];
-	static {
-		s_defaults_action[0] = new Menu.menuaction_s();
-		s_defaults_action[1] = new Menu.menuaction_s();
-	}
+	static Menu.menuaction_s s_apply_action = new Menu.menuaction_s();
+
+	static Menu.menuaction_s s_defaults_action= new Menu.menuaction_s();
 
 	static void DriverCallback( Object unused )
 	{
-		s_ref_list[1 - s_current_menu_index].curvalue = s_ref_list[s_current_menu_index].curvalue;
-
-		if ( s_ref_list[s_current_menu_index].curvalue < 2 )
-		{
-			// we only use opengl today
-			s_current_menu = s_opengl_menu; // s_software_menu;
-			s_current_menu_index = 1; // 0;
-		}
-		else
-		{
-			s_current_menu = s_opengl_menu;
-			s_current_menu_index = 1;
-		}
+		s_current_menu = s_opengl_menu; // s_software_menu;
 	}
 
 	static void ScreenSizeCallback( Object s )
@@ -438,11 +400,6 @@ public class VID extends Globals {
 	static void BrightnessCallback( Object s )
 	{
 		Menu.menuslider_s slider = (Menu.menuslider_s) s;
-
-		if ( s_current_menu_index == 0)
-			s_brightness_slider[1].curvalue = s_brightness_slider[0].curvalue;
-		else
-			s_brightness_slider[0].curvalue = s_brightness_slider[1].curvalue;
 
 		// if ( stricmp( vid_ref.string, "soft" ) == 0 ||
 		//	stricmp( vid_ref.string, "softx" ) == 0 )
@@ -462,28 +419,21 @@ public class VID extends Globals {
 
 	static void ApplyChanges( Object unused )
 	{
-		/*
-		** make values consistent
-		*/
-		s_fs_box[1 - s_current_menu_index].curvalue = s_fs_box[s_current_menu_index].curvalue;
-		s_brightness_slider[1 - s_current_menu_index].curvalue = s_brightness_slider[s_current_menu_index].curvalue;
-		s_ref_list[1 - s_current_menu_index].curvalue = s_ref_list[s_current_menu_index].curvalue;
 
 		/*
 		** invert sense so greater = brighter, and scale to a range of 0.5 to 1.3
 		*/
-		float gamma = ( 0.8f - ( s_brightness_slider[s_current_menu_index].curvalue/10.0f - 0.5f ) ) + 0.5f;
+		float gamma = ( 0.8f - ( s_brightness_slider.curvalue/10.0f - 0.5f ) ) + 0.5f;
 
 		Cvar.SetValue( "vid_gamma", gamma );
 		Cvar.SetValue( "sw_stipplealpha", s_stipple_box.curvalue );
 		Cvar.SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
-		Cvar.SetValue( "vid_fullscreen", s_fs_box[s_current_menu_index].curvalue );
+		Cvar.SetValue( "vid_fullscreen", s_fs_box.curvalue );
 		Cvar.SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
-		Cvar.SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
-		Cvar.SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
+		Cvar.SetValue( "gl_mode", s_mode_list.curvalue );
 		Cvar.SetValue( "_windowed_mouse", s_windowed_mouse.curvalue);
 
-		switch ( s_ref_list[s_current_menu_index].curvalue )
+		switch ( s_ref_list.curvalue )
 		{
 //		case REF_SOFT:
 //			Cvar_Set( "vid_ref", "soft" );
@@ -628,27 +578,25 @@ public class VID extends Globals {
 		if ( _windowed_mouse == null)
 			_windowed_mouse = Cvar.Get( "_windowed_mouse", "0", CVAR_ARCHIVE );
 
-		s_mode_list[SOFTWARE_MENU].curvalue = (int)sw_mode.value;
-		s_mode_list[OPENGL_MENU].curvalue = (int)gl_mode.value;
+		s_mode_list.curvalue = (int)gl_mode.value;
 		if (vid_fullscreen.value != 0.0f) {
-			s_mode_list[OPENGL_MENU].itemnames = fs_resolutions;
-			if (s_mode_list[OPENGL_MENU].curvalue >= fs_resolutions.length - 1) {
-				s_mode_list[OPENGL_MENU].curvalue = 0;
+			s_mode_list.itemnames = fs_resolutions;
+			if (s_mode_list.curvalue >= fs_resolutions.length - 1) {
+				s_mode_list.curvalue = 0;
 			}
-			mode_x = fs_modes[s_mode_list[OPENGL_MENU].curvalue].width;
+			mode_x = fs_modes[s_mode_list.curvalue].width;
 		} else {
-			s_mode_list[OPENGL_MENU].itemnames = resolutions;
-			if (s_mode_list[OPENGL_MENU].curvalue >= resolutions.length - 1) {
-				s_mode_list[OPENGL_MENU].curvalue = 0;
+			s_mode_list.itemnames = resolutions;
+			if (s_mode_list.curvalue >= resolutions.length - 1) {
+				s_mode_list.curvalue = 0;
 			}
-			mode_x = vid_modes[s_mode_list[OPENGL_MENU].curvalue].width;
+			mode_x = vid_modes[s_mode_list.curvalue].width;
 		}
 
 		if ( SCR.scr_viewsize == null )
 			SCR.scr_viewsize = Cvar.Get ("viewsize", "100", CVAR_ARCHIVE);
 
-		s_screensize_slider[SOFTWARE_MENU].curvalue = (int)(SCR.scr_viewsize.value/10);
-		s_screensize_slider[OPENGL_MENU].curvalue = (int)(SCR.scr_viewsize.value/10);
+		s_screensize_slider.curvalue = (int)(SCR.scr_viewsize.value/10);
 
 //		if ( strcmp( vid_ref->string, "soft" ) == 0)
 //		{
@@ -657,18 +605,15 @@ public class VID extends Globals {
 //		}
 		if ( vid_ref.string.equalsIgnoreCase("jogl"))
 		{
-			s_current_menu_index = OPENGL_MENU;
-			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_JOGL;
+			s_ref_list.curvalue = REF_OPENGL_JOGL;
 		}
 		else if ( vid_ref.string.equalsIgnoreCase("fastjogl"))
 		{
-			s_current_menu_index = OPENGL_MENU;
-			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_FASTJOGL;
+			s_ref_list.curvalue = REF_OPENGL_FASTJOGL;
 		}
 		else if ( vid_ref.string.equalsIgnoreCase("lwjgl"))
 		{
-			s_current_menu_index = OPENGL_MENU;
-			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_LWJGL;
+			s_ref_list.curvalue = REF_OPENGL_LWJGL;
 		}
 //		else if (strcmp( vid_ref->string, "softx" ) == 0 ) 
 //		{
@@ -692,96 +637,92 @@ public class VID extends Globals {
 //				s_ref_list[s_current_menu_index].curvalue = REF_OPENGLX;
 //		}
 //
-		s_software_menu.x = (int)(viddef.width * 0.50f);
-		s_software_menu.nitems = 0;
 		s_opengl_menu.x = (int)(viddef.width * 0.50f);
 		s_opengl_menu.nitems = 0;
+		
+		s_ref_list.type = MTYPE_SPINCONTROL;
+		s_ref_list.name = "driver";
+		s_ref_list.x = 0;
+		s_ref_list.y = 0;
+		s_ref_list.callback = new Menu.mcallback() {
+			public void execute(Object self) {
+				DriverCallback(self);
+			}
+		};
+		s_ref_list.itemnames = refs;
 
-		for (int i = 0; i < 2; i++ )
-		{
-			s_ref_list[i].type = MTYPE_SPINCONTROL;
-			s_ref_list[i].name = "driver";
-			s_ref_list[i].x = 0;
-			s_ref_list[i].y = 0;
-			s_ref_list[i].callback = new Menu.mcallback() {
-				public void execute(Object self) {
-					DriverCallback(self);
-				}
-			};
-			s_ref_list[i].itemnames = refs;
+		s_mode_list.type = MTYPE_SPINCONTROL;
+		s_mode_list.name = "video mode";
+		s_mode_list.x = 0;
+		s_mode_list.y = 10;
 
-			s_mode_list[i].type = MTYPE_SPINCONTROL;
-			s_mode_list[i].name = "video mode";
-			s_mode_list[i].x = 0;
-			s_mode_list[i].y = 10;
+		s_screensize_slider.type	= MTYPE_SLIDER;
+		s_screensize_slider.x		= 0;
+		s_screensize_slider.y		= 20;
+		s_screensize_slider.name	= "screen size";
+		s_screensize_slider.minvalue = 3;
+		s_screensize_slider.maxvalue = 12;
+		s_screensize_slider.callback = new Menu.mcallback() {
+			public void execute(Object self) {
+				ScreenSizeCallback(self);
+			}
+		};
+		s_brightness_slider.type	= MTYPE_SLIDER;
+		s_brightness_slider.x	= 0;
+		s_brightness_slider.y	= 30;
+		s_brightness_slider.name	= "brightness";
+		s_brightness_slider.callback =  new Menu.mcallback() {
+			public void execute(Object self) {
+				BrightnessCallback(self);
+			}
+		};
+		s_brightness_slider.minvalue = 5;
+		s_brightness_slider.maxvalue = 13;
+		s_brightness_slider.curvalue = ( 1.3f - vid_gamma.value + 0.5f ) * 10;
 
-			s_screensize_slider[i].type	= MTYPE_SLIDER;
-			s_screensize_slider[i].x		= 0;
-			s_screensize_slider[i].y		= 20;
-			s_screensize_slider[i].name	= "screen size";
-			s_screensize_slider[i].minvalue = 3;
-			s_screensize_slider[i].maxvalue = 12;
-			s_screensize_slider[i].callback = new Menu.mcallback() {
-				public void execute(Object self) {
-					ScreenSizeCallback(self);
+		s_fs_box.type = MTYPE_SPINCONTROL;
+		s_fs_box.x	= 0;
+		s_fs_box.y	= 40;
+		s_fs_box.name	= "fullscreen";
+		s_fs_box.itemnames = yesno_names;
+		s_fs_box.curvalue = (int)vid_fullscreen.value;
+		s_fs_box.callback = new Menu.mcallback() {
+			public void execute(Object o) {
+				int fs = ((Menu.menulist_s)o).curvalue;
+				if (fs == 0) {
+					s_mode_list.itemnames = resolutions;
+					int i = vid_modes.length - 2;
+					while (i > 0 && vid_modes[i].width > mode_x) i--;
+					s_mode_list.curvalue = i;
+				} else {
+					s_mode_list.itemnames = fs_resolutions;
+					int i = fs_modes.length - 1;
+					while (i > 0 && fs_modes[i].width > mode_x) i--;						
+					s_mode_list.curvalue = i;						
 				}
-			};
-			s_brightness_slider[i].type	= MTYPE_SLIDER;
-			s_brightness_slider[i].x	= 0;
-			s_brightness_slider[i].y	= 30;
-			s_brightness_slider[i].name	= "brightness";
-			s_brightness_slider[i].callback =  new Menu.mcallback() {
-				public void execute(Object self) {
-					BrightnessCallback(self);
-				}
-			};
-			s_brightness_slider[i].minvalue = 5;
-			s_brightness_slider[i].maxvalue = 13;
-			s_brightness_slider[i].curvalue = ( 1.3f - vid_gamma.value + 0.5f ) * 10;
+			}
+		};
 
-			s_fs_box[i].type = MTYPE_SPINCONTROL;
-			s_fs_box[i].x	= 0;
-			s_fs_box[i].y	= 40;
-			s_fs_box[i].name	= "fullscreen";
-			s_fs_box[i].itemnames = yesno_names;
-			s_fs_box[i].curvalue = (int)vid_fullscreen.value;
-			s_fs_box[i].callback = new Menu.mcallback() {
-				public void execute(Object o) {
-					int fs = ((Menu.menulist_s)o).curvalue;
-					if (fs == 0) {
-						s_mode_list[1].itemnames = resolutions;
-						int i = vid_modes.length - 2;
-						while (i > 0 && vid_modes[i].width > mode_x) i--;
-						s_mode_list[1].curvalue = i;
-					} else {
-						s_mode_list[1].itemnames = fs_resolutions;
-						int i = fs_modes.length - 1;
-						while (i > 0 && fs_modes[i].width > mode_x) i--;						
-						s_mode_list[1].curvalue = i;						
-					}
-				}
-			};
+		s_defaults_action.type = MTYPE_ACTION;
+		s_defaults_action.name = "reset to default";
+		s_defaults_action.x    = 0;
+		s_defaults_action.y    = 90;
+		s_defaults_action.callback = new Menu.mcallback() {
+			public void execute(Object self) {
+				ResetDefaults(self);
+			}
+		};
 
-			s_defaults_action[i].type = MTYPE_ACTION;
-			s_defaults_action[i].name = "reset to default";
-			s_defaults_action[i].x    = 0;
-			s_defaults_action[i].y    = 90;
-			s_defaults_action[i].callback = new Menu.mcallback() {
-				public void execute(Object self) {
-					ResetDefaults(self);
-				}
-			};
-
-			s_apply_action[i].type = MTYPE_ACTION;
-			s_apply_action[i].name = "apply";
-			s_apply_action[i].x    = 0;
-			s_apply_action[i].y    = 100;
-			s_apply_action[i].callback = new Menu.mcallback() {
-				public void execute(Object self) {
-					ApplyChanges(self);
-				}
-			};
-		}
+		s_apply_action.type = MTYPE_ACTION;
+		s_apply_action.name = "apply";
+		s_apply_action.x    = 0;
+		s_apply_action.y    = 100;
+		s_apply_action.callback = new Menu.mcallback() {
+			public void execute(Object self) {
+				ApplyChanges(self);
+			}
+		};
+		
 
 		s_stipple_box.type = MTYPE_SPINCONTROL;
 		s_stipple_box.x	= 0;
@@ -812,31 +753,19 @@ public class VID extends Globals {
 		s_paletted_texture_box.itemnames = yesno_names;
 		s_paletted_texture_box.curvalue = (int)gl_ext_palettedtexture.value;
 
-		Menu.Menu_AddItem( s_software_menu, s_ref_list[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_mode_list[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_screensize_slider[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_brightness_slider[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_fs_box[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_stipple_box );
-		Menu.Menu_AddItem( s_software_menu, s_windowed_mouse );
-
-		Menu.Menu_AddItem( s_opengl_menu, s_ref_list[OPENGL_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_mode_list[OPENGL_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_screensize_slider[OPENGL_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_brightness_slider[OPENGL_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_fs_box[OPENGL_MENU] );
+		Menu.Menu_AddItem( s_opengl_menu, s_ref_list );
+		Menu.Menu_AddItem( s_opengl_menu, s_mode_list );
+		Menu.Menu_AddItem( s_opengl_menu, s_screensize_slider );
+		Menu.Menu_AddItem( s_opengl_menu, s_brightness_slider );
+		Menu.Menu_AddItem( s_opengl_menu, s_fs_box );
 		Menu.Menu_AddItem( s_opengl_menu, s_tq_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_paletted_texture_box );
 
-		Menu.Menu_AddItem( s_software_menu, s_defaults_action[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_software_menu, s_apply_action[SOFTWARE_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_defaults_action[OPENGL_MENU] );
-		Menu.Menu_AddItem( s_opengl_menu, s_apply_action[OPENGL_MENU] );
+		Menu.Menu_AddItem( s_opengl_menu, s_defaults_action );
+		Menu.Menu_AddItem( s_opengl_menu, s_apply_action );
 
-		Menu.Menu_Center( s_software_menu );
 		Menu.Menu_Center( s_opengl_menu );
 		s_opengl_menu.x -= 8;
-		s_software_menu.x -= 8;
 	}
 
 	/*
@@ -846,11 +775,7 @@ public class VID extends Globals {
 	*/
 	static void MenuDraw()
 	{
-
-		if ( s_current_menu_index == 0 )
-			s_current_menu = s_software_menu;
-		else
-			s_current_menu = s_opengl_menu;
+		s_current_menu = s_opengl_menu;
 
 		/*
 		** draw the banner
