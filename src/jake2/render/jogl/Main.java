@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.26 2004-02-04 20:33:35 rst Exp $
+ * $Id: Main.java,v 1.27 2004-02-05 00:12:16 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1512,7 +1512,8 @@ public abstract class Main extends Base {
 	*/
 	protected void R_SetPalette(byte[] palette) {
 
-		assert(palette != null && palette.length == 768) : "byte palette[768] bug";
+		//assert(palette != null && palette.length == 768) : "byte palette[768] bug";
+		// es darf auch null sein
 
 		int i;
 		int color = 0;
