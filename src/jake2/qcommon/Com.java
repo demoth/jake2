@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.25 2004-01-25 21:45:45 rst Exp $
+ * $Id: Com.java,v 1.26 2004-01-27 16:43:13 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -199,7 +199,7 @@ public final class Com {
 				if (c == '\"' || c == 0) {
 
 					char xxx = hlp.nextchar();
-					com_token[len] = '§';
+					com_token[len] = '?';
 					return new String(com_token, 0, len);
 				}
 				if (len < Defines.MAX_TOKEN_CHARS) {
@@ -301,7 +301,9 @@ public final class Com {
 	}
 
 	public static void DPrintf(String fmt, Vargs vargs) {
-		// TODO impl the developer check 
+		if (Globals.developer == null || Globals.developer.value == 0)
+			return; // don't confuse non-developers with techie stuff...
+
 		Printf(fmt, vargs);
 	}
 
