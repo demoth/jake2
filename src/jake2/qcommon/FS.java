@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.25 2004-02-04 08:59:37 hoz Exp $
+ * $Id: FS.java,v 1.26 2004-02-16 15:00:03 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -343,6 +343,11 @@ public final class FS extends Globals {
 
 		byte[] buf = null;
 		int len = 0;
+
+		// TODO bughack for bad strings (fuck \0)
+		int index = path.indexOf('\0');
+		if (index != -1)
+			path = path.substring(0, index);
 
 		// look for it in the filesystem or pack files
 		len = FileLength(path);
