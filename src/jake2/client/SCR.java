@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.14 2004-01-28 19:36:33 hoz Exp $
+ * $Id: SCR.java,v 1.15 2004-01-29 17:56:41 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -604,20 +604,6 @@ public final class SCR extends Globals {
 //	SCR_TimeRefresh_f
 //	================
 //	*/
-//	int entitycmpfnc( const entity_t *a, const entity_t *b )
-//	{
-//		/*
-//		** all other models are sorted by model then skin
-//		*/
-//		if ( a->model == b->model )
-//		{
-//			return ( ( int ) a->skin - ( int ) b->skin );
-//		}
-//		else
-//		{
-//			return ( ( int ) a->model - ( int ) b->model );
-//		}
-//	}
 //
 //	void SCR_TimeRefresh_f (void)
 //	{

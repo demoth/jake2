@@ -2,14 +2,14 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.2 2004-01-28 14:42:58 hoz Exp $
+ * $Id: CL_tent.java,v 1.3 2004-01-29 17:56:41 hoz Exp $
  */
 package jake2.client;
 
 /**
  * CL_tent
  */
-public class CL_tent extends CL_fx {
+public class CL_tent extends CL_ents {
 
 ////	   cl_tent.c -- client side temporary entities
 //

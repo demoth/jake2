@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.6 2004-01-28 21:04:10 hoz Exp $
+ * $Id: V.java,v 1.7 2004-01-29 17:56:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,9 +29,10 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.qcommon.Com;
-import jake2.qcommon.xcommand_t;
+import jake2.util.Math3D;
 import jake2.util.Vargs;
+
+import java.io.IOException;
 
 /**
  * V
@@ -43,20 +44,31 @@ public final class V extends Globals {
 	static cvar_t cl_testparticles;
 	static cvar_t cl_testentities;
 	static cvar_t cl_testlights;
-	static cvar_t cl_stats;		
-//	/*
-//	====================
-//	V_ClearScene
-//
-//	Specifies the model that will be used as the world
-//	====================
-//	*/
-//	void V_ClearScene (void)
-//	{
+	static cvar_t cl_stats;
+		
+	static int r_numdlights;
+	static dlight_t[] r_dlights = new dlight_t[MAX_DLIGHTS];
+
+	static int r_numentities;
+	static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
+ 
+	static int r_numparticles;
+	static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
+
+	static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
+			
+	/*
+	====================
+	V_ClearScene
+
+	Specifies the model that will be used as the world
+	====================
+	*/
+	static void ClearScene() {
 //		r_numdlights = 0;
 //		r_numentities = 0;
 //		r_numparticles = 0;
-//	}
+	}
 //
 //
 //	/*
@@ -139,8 +151,7 @@ public final class V extends Globals {
 //	If cl_testparticles is set, create 4096 particles in the view
 //	================
 //	*/
-//	void V_TestParticles (void)
-//	{
+	static void TestParticles() {
 //		particle_t	*p;
 //		int			i, j;
 //		float		d, r, u;
@@ -160,7 +171,7 @@ public final class V extends Globals {
 //			p->color = 8;
 //			p->alpha = cl_testparticles->value;
 //		}
-//	}
+	}
 //	
 //	/*
 //	================
@@ -169,8 +180,7 @@ public final class V extends Globals {
 //	If cl_testentities is set, create 32 player models
 //	================
 //	*/
-//	void V_TestEntities (void)
-//	{
+	static void TestEntities() {
 //		int			i, j;
 //		float		f, r;
 //		entity_t	*ent;
@@ -192,7 +202,7 @@ public final class V extends Globals {
 //			ent->model = cl.baseclientinfo.model;
 //			ent->skin = cl.baseclientinfo.skin;
 //		}
-//	}
+	}
 //	
 //	/*
 //	================
@@ -201,8 +211,7 @@ public final class V extends Globals {
 //	If cl_testlights is set, create 32 lights models
 //	================
 //	*/
-//	void V_TestLights (void)
-//	{
+	static void TestLights() {
 //		int			i, j;
 //		float		f, r;
 //		dlight_t	*dl;
@@ -225,7 +234,7 @@ public final class V extends Globals {
 //			dl->color[2] = (((i%6)+1) & 4)>>2;
 //			dl->intensity = 200;
 //		}
-//	}
+	}
 
 	static xcommand_t Gun_Next_f = new xcommand_t() {
 		public void execute() {
@@ -253,120 +262,136 @@ public final class V extends Globals {
 			gun_model = re.RegisterModel(name);
 		}
 	};
+
+
+/*
+ *  !!! sortieren nach absoluten adressen mach keinen sinn in java !!!
+ */
+//	static Comparator entitycmpfnc = new Comparator() {
+//		public int compare(Object a1, Object b1) {
+//			/*
+//			** all other models are sorted by model then skin
+//			*/
+//			entity_t a = (entity_t)a1;
+//			entity_t b = (entity_t)b1;
+//			if ( a.model == b.model ) {
+//				return ( ( int ) a.skin - ( int ) b.skin );
+//			}
+////			else
+////			{
+////				return ( ( int ) amodel - ( int ) b->model );
+////			}			
+//			return 0;
+//		}
+//	};
 	
-//	/*
-//	==================
-//	V_RenderView
-//
-//	==================
-//	*/
-//	void V_RenderView( float stereo_separation )
-//	{
+	/*
+	==================
+	V_RenderView
+	
+	==================
+	*/
+	static void RenderView(float stereo_separation) {
 //		extern int entitycmpfnc( const entity_t *, const entity_t * );
 //
-//		if (cls.state != ca_active)
-//			return;
-//
-//		if (!cl.refresh_prepped)
-//			return;			// still loading
-//
-//		if (cl_timedemo->value)
-//		{
-//			if (!cl.timedemo_start)
-//				cl.timedemo_start = Sys_Milliseconds ();
-//			cl.timedemo_frames++;
-//		}
-//
-//		// an invalid frame will just use the exact previous refdef
-//		// we can't use the old frame if the video mode has changed, though...
-//		if ( cl.frame.valid && (cl.force_refdef || !cl_paused->value) )
-//		{
-//			cl.force_refdef = false;
-//
-//			V_ClearScene ();
-//
-//			// build a refresh entity list and calc cl.sim*
-//			// this also calls CL_CalcViewValues which loads
-//			// v_forward, etc.
-//			CL_AddEntities ();
-//
-//			if (cl_testparticles->value)
-//				V_TestParticles ();
-//			if (cl_testentities->value)
-//				V_TestEntities ();
-//			if (cl_testlights->value)
-//				V_TestLights ();
-//			if (cl_testblend->value)
-//			{
-//				cl.refdef.blend[0] = 1;
-//				cl.refdef.blend[1] = 0.5;
-//				cl.refdef.blend[2] = 0.25;
-//				cl.refdef.blend[3] = 0.5;
-//			}
-//
-//			// offset vieworg appropriately if we're doing stereo separation
-//			if ( stereo_separation != 0 )
-//			{
-//				vec3_t tmp;
-//
-//				VectorScale( cl.v_right, stereo_separation, tmp );
-//				VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
-//			}
-//
-//			// never let it sit exactly on a node line, because a water plane can
-//			// dissapear when viewed with the eye exactly on it.
-//			// the server protocol only specifies to 1/8 pixel, so add 1/16 in each axis
-//			cl.refdef.vieworg[0] += 1.0/16;
-//			cl.refdef.vieworg[1] += 1.0/16;
-//			cl.refdef.vieworg[2] += 1.0/16;
-//
-//			cl.refdef.x = scr_vrect.x;
-//			cl.refdef.y = scr_vrect.y;
-//			cl.refdef.width = scr_vrect.width;
-//			cl.refdef.height = scr_vrect.height;
-//			cl.refdef.fov_y = CalcFov (cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
-//			cl.refdef.time = cl.time*0.001;
-//
-//			cl.refdef.areabits = cl.frame.areabits;
-//
-//			if (!cl_add_entities->value)
-//				r_numentities = 0;
-//			if (!cl_add_particles->value)
-//				r_numparticles = 0;
-//			if (!cl_add_lights->value)
-//				r_numdlights = 0;
-//			if (!cl_add_blend->value)
-//			{
-//				VectorClear (cl.refdef.blend);
-//			}
-//
-//			cl.refdef.num_entities = r_numentities;
-//			cl.refdef.entities = r_entities;
-//			cl.refdef.num_particles = r_numparticles;
-//			cl.refdef.particles = r_particles;
-//			cl.refdef.num_dlights = r_numdlights;
-//			cl.refdef.dlights = r_dlights;
-//			cl.refdef.lightstyles = r_lightstyles;
-//
-//			cl.refdef.rdflags = cl.frame.playerstate.rdflags;
-//
-//			// sort entities for better cache locality
-//			qsort( cl.refdef.entities, cl.refdef.num_entities, sizeof( cl.refdef.entities[0] ), (int (*)(const void *, const void *))entitycmpfnc );
-//		}
-//
-//		re.RenderFrame (&cl.refdef);
-//		if (cl_stats->value)
-//			Com_Printf ("ent:%i  lt:%i  part:%i\n", r_numentities, r_numdlights, r_numparticles);
-//		if ( log_stats->value && ( log_stats_file != 0 ) )
-//			fprintf( log_stats_file, "%i,%i,%i,",r_numentities, r_numdlights, r_numparticles);
-//
-//
-//		SCR_AddDirtyPoint (scr_vrect.x, scr_vrect.y);
-//		SCR_AddDirtyPoint (scr_vrect.x+scr_vrect.width-1,
-//			scr_vrect.y+scr_vrect.height-1);
-//
-//		SCR_DrawCrosshair ();
-//	}
+		if (cls.state != ca_active) return;
+
+		if (!cl.refresh_prepped) return;			// still loading
+
+		if (cl_timedemo.value != 0.0f) {
+			if (cl.timedemo_start == 0)
+				cl.timedemo_start = System.currentTimeMillis();
+			cl.timedemo_frames++;
+		}
+
+		// an invalid frame will just use the exact previous refdef
+		// we can't use the old frame if the video mode has changed, though...
+		if ( cl.frame.valid && (cl.force_refdef || cl_paused.value == 0.0f) ) {
+			cl.force_refdef = false;
+
+			V.ClearScene();
+
+			// build a refresh entity list and calc cl.sim*
+			// this also calls CL_CalcViewValues which loads
+			// v_forward, etc.
+			CL.AddEntities();
+
+			if (cl_testparticles.value != 0.0f)
+				TestParticles();
+			if (cl_testentities.value != 0.0f)
+				TestEntities();
+			if (cl_testlights.value != 0.0f)
+				TestLights();
+			if (cl_testblend.value != 0.0f) {
+				cl.refdef.blend[0] = 1.0f;
+				cl.refdef.blend[1] = 0.5f;
+				cl.refdef.blend[2] = 0.25f;
+				cl.refdef.blend[3] = 0.5f;
+			}
+
+			// offset vieworg appropriately if we're doing stereo separation
+			if ( stereo_separation != 0 ) {
+				float[] tmp = new float[3];
+
+				Math3D.VectorScale( cl.v_right, stereo_separation, tmp );
+				Math3D.VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
+			}
+
+			// never let it sit exactly on a node line, because a water plane can
+			// dissapear when viewed with the eye exactly on it.
+			// the server protocol only specifies to 1/8 pixel, so add 1/16 in each axis
+			cl.refdef.vieworg[0] += 1.0/16;
+			cl.refdef.vieworg[1] += 1.0/16;
+			cl.refdef.vieworg[2] += 1.0/16;
+
+			cl.refdef.x = scr_vrect.x;
+			cl.refdef.y = scr_vrect.y;
+			cl.refdef.width = scr_vrect.width;
+			cl.refdef.height = scr_vrect.height;
+			cl.refdef.fov_y = Math3D.CalcFov(cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
+			cl.refdef.time = cl.time*0.001f;
+
+			cl.refdef.areabits = cl.frame.areabits;
+
+			if (cl_add_entities.value == 0.0f)
+				r_numentities = 0;
+			if (cl_add_particles.value == 0.0f)
+				r_numparticles = 0;
+			if (cl_add_lights.value == 0.0f)
+				r_numdlights = 0;
+			if (cl_add_blend.value == 0) {
+				Math3D.VectorClear(cl.refdef.blend);
+			}
+
+			cl.refdef.num_entities = r_numentities;
+			cl.refdef.entities = r_entities;
+			cl.refdef.num_particles = r_numparticles;
+			cl.refdef.particles = r_particles;
+			cl.refdef.num_dlights = r_numdlights;
+			cl.refdef.dlights = r_dlights;
+			cl.refdef.lightstyles = r_lightstyles;
+
+			cl.refdef.rdflags = cl.frame.playerstate.rdflags;
+
+			// sort entities for better cache locality
+			// !!! useless !!!
+			//Arrays.sort(cl.refdef.entities, entitycmpfnc);
+		}
+
+		re.RenderFrame(cl.refdef);
+		if (cl_stats.value != 0.0f)
+			Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(r_numentities).add(
+				r_numdlights).add(r_numparticles));
+		if ( log_stats.value != 0.0f && ( log_stats_file != null ) )
+			try {
+				log_stats_file.write(r_numentities + "," + r_numdlights + "," + r_numparticles);
+			} catch (IOException e) {}
+
+		SCR.AddDirtyPoint(scr_vrect.x, scr_vrect.y);
+		SCR.AddDirtyPoint(scr_vrect.x+scr_vrect.width-1, scr_vrect.y+scr_vrect.height-1);
+
+		SCR.DrawCrosshair();
+	}
 	
 	/*
 	=============
