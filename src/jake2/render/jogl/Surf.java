@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.10 2004-01-23 19:24:36 cwei Exp $
+ * $Id: Surf.java,v 1.11 2004-01-24 01:50:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -169,28 +169,27 @@ public abstract class Surf extends Draw {
 	DrawGLFlowingPoly -- version of DrawGLPoly that handles scrolling texture
 	================
 	*/
-//	void DrawGLFlowingPoly (msurface_t *fa)
-	void DrawGLFlowingPoly (msurface_t fa)
+	void DrawGLFlowingPoly(msurface_t fa)
 	{
-//		int		i;
-//		float	*v;
-//		glpoly_t *p;
-//		float	scroll;
-//
-//		p = fa->polys;
-//
-//		scroll = -64 * ( (r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0) );
-//		if(scroll == 0.0)
-//			scroll = -64.0;
-//
-//		qglBegin (GL_POLYGON);
-//		v = p->verts[0];
-//		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-//		{
-//			qglTexCoord2f ((v[3] + scroll), v[4]);
-//			qglVertex3fv (v);
-//		}
-//		qglEnd ();
+		int i;
+		float[] v;
+		glpoly_t p;
+		float scroll;
+
+		p = fa.polys;
+
+		scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
+		if(scroll == 0.0f)
+			scroll = -64.0f;
+
+		gl.glBegin (GL.GL_POLYGON);
+		for (i=0 ; i<p.numverts ; i++)
+		{
+			v = p.verts[i];
+			gl.glTexCoord2f ((v[3] + scroll), v[4]);
+			gl.glVertex3fv( v );
+		}
+		gl.glEnd ();
 	}
 	//	  PGM
 	//	  ============
@@ -365,8 +364,8 @@ public abstract class Surf extends Draw {
 		/*
 		** render dynamic lightmaps
 		*/
-//		if ( gl_dynamic->value )
-//		{
+		if ( gl_dynamic.value != 0 )
+		{
 //			LM_InitBlock();
 //
 //			GL_Bind( gl_state.lightmap_textures+0 );
@@ -425,19 +424,19 @@ public abstract class Surf extends Draw {
 //				}
 //			}
 //
-//			/*
-//			** draw remainder of dynamic lightmaps that haven't been uploaded yet
-//			*/
-//			if ( newdrawsurf )
+			/*
+			** draw remainder of dynamic lightmaps that haven't been uploaded yet
+			*/
+//			if ( newdrawsurf != null )
 //				LM_UploadBlock( true );
 //
-//			for ( surf = newdrawsurf; surf != 0; surf = surf->lightmapchain )
+//			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
 //			{
-//				if ( surf->polys )
+//				if ( surf.polys != null )
 //					DrawGLPolyChain( surf->polys, ( surf->light_s - surf->dlight_s ) * ( 1.0 / 128.0 ), ( surf->light_t - surf->dlight_t ) * ( 1.0 / 128.0 ) );
 //			}
-//		}
-//
+		}
+
 		/*
 		** restore state
 		*/
@@ -1042,7 +1041,7 @@ public abstract class Surf extends Draw {
 		msurface_t surf;
 		msurface_t mark;
 		mleaf_t pleaf;
-		float dot;
+		float dot = 0;
 		image_t image;
 
 		if (node.contents == Defines.CONTENTS_SOLID)
@@ -1051,7 +1050,7 @@ public abstract class Surf extends Draw {
 		if (node.visframe != r_visframecount)
 			return;
 			
-		if (R_CullBox(node.minmaxs))
+		if (R_CullBox(node.mins, node.maxs))
 			return;
 	
 		// if a leaf node, draw stuff
@@ -1066,9 +1065,9 @@ public abstract class Surf extends Draw {
 					return;		// not visible
 			}
 
-			int markp = 1;
+			int markp = 0;
 
-			mark = pleaf.getMarkSurface(0); // first marked surface
+			mark = pleaf.getMarkSurface(markp); // first marked surface
 			c = pleaf.nummarksurfaces;
 
 			if (c != 0)
@@ -1076,7 +1075,7 @@ public abstract class Surf extends Draw {
 				do
 				{
 					mark.visframe = r_framecount;
-					mark = pleaf.getMarkSurface(markp++);
+					mark = pleaf.getMarkSurface(++markp); // next surface
 				} while (--c != 0);
 			}
 
@@ -1104,7 +1103,7 @@ public abstract class Surf extends Draw {
 			break;
 		}
 
-		if (dot >= 0)
+		if (dot >= 0.0f)
 		{
 			side = 0;
 			sidebit = 0;
@@ -1499,9 +1498,9 @@ public abstract class Surf extends Draw {
 	{
 		int smax, tmax;
 		byte[] base;
-//
-//		if (surf.flags & (SURF_DRAWSKY|SURF_DRAWTURB))
-//			return;
+
+		if ( (surf.flags & (Defines.SURF_DRAWSKY | Defines.SURF_DRAWTURB)) != 0)
+			return;
 //
 //		smax = (surf.extents[0]>>4)+1;
 //		tmax = (surf.extents[1]>>4)+1;

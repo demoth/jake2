@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.13 2004-01-23 00:37:23 cwei Exp $
+ * $Id: Model.java,v 1.14 2004-01-24 01:50:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -84,7 +84,7 @@ public abstract class Model extends Surf {
 		if (model == null || model.nodes == null)
 			ri.Sys_Error (Defines.ERR_DROP, "Mod_PointInLeaf: bad model");
 
-		node = model.nodes[0];
+		node = model.nodes[0]; // root node
 		while (true)
 		{
 			if (node.contents != -1)
@@ -753,8 +753,10 @@ public abstract class Model extends Surf {
 			in = new qfiles.dnode_t(bb);
 			for (j=0 ; j<3 ; j++)
 			{
-				out[i].minmaxs[j] = in.mins[j];
-				out[i].minmaxs[3+j] = in.maxs[j];
+////				out[i].minmaxs[j] = in.mins[j];
+////				out[i].minmaxs[3+j] = in.maxs[j];
+				out[i].mins[j] = in.mins[j];
+				out[i].maxs[j] = in.maxs[j];
 			}
 	
 			p = in.planenum;
@@ -810,8 +812,11 @@ public abstract class Model extends Surf {
 			out[i] = new mleaf_t();
 			for (j=0 ; j<3 ; j++)
 			{
-				out[i].minmaxs[j] = in.mins[j];
-				out[i].minmaxs[3+j] = in.maxs[j];
+//				out[i].minmaxs[j] = in.mins[j];
+//				out[i].minmaxs[3+j] = in.maxs[j];
+				out[i].mins[j] = in.mins[j];
+				out[i].maxs[j] = in.maxs[j];
+
 			}
 
 			out[i].contents = in.contents;
@@ -924,7 +929,7 @@ public abstract class Model extends Surf {
 			{
 				out[i].normal[j] = in.normal[j];
 				if (out[i].normal[j] < 0)
-					bits |= 1<<j;
+					bits |= (1<<j);
 			}
 
 			out[i].dist = in.dist;
@@ -993,8 +998,8 @@ public abstract class Model extends Surf {
 			Math3D.VectorCopy(bm.mins, starmod.mins);
 			starmod.radius = bm.radius;
 	
-			if (i == 0)
-				loadmodel = starmod.copy();
+//			if (i == 0)
+//				loadmodel = starmod.copy();
 
 			starmod.numleafs = bm.visleafs;
 		}

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.21 2004-01-23 19:24:36 cwei Exp $
+ * $Id: Main.java,v 1.22 2004-01-24 01:50:00 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -258,7 +258,7 @@ public abstract class Main extends Base {
 	*/
 	final boolean R_CullBox(float[] mins, float[] maxs)
 	{
-		assert(mins.length >= 3 && maxs.length == 3) : "vec3_t bug";
+		assert(mins.length == 3 && maxs.length == 3) : "vec3_t bug";
 
 		if (r_nocull.value != 0)
 			return false;
@@ -270,16 +270,6 @@ public abstract class Main extends Base {
 		}
 		return false;
 	}
-
-	final boolean R_CullBox(float[] minmaxs)
-	{
-		assert(minmaxs.length == 6) : "2 * vec3_t bug";
-		
-		float[] maxs = { minmaxs[3], minmaxs[4], minmaxs[5] };
-		
-		return R_CullBox(minmaxs, maxs);
-	}
-
 
 	final void R_RotateForEntity(entity_t e)
 	{
@@ -669,7 +659,7 @@ public abstract class Main extends Base {
 		int bits = 0;
 		for (int j = 0; j < 3; j++)
 		{
-			if (out.normal[j] < 0)	bits |= 1 << j;
+			if (out.normal[j] < 0)	bits |= (1 << j);
 		}
 		return bits;
 	}
@@ -678,13 +668,13 @@ public abstract class Main extends Base {
 	void R_SetFrustum()
 	{
 		// rotate VPN right by FOV_X/2 degrees
-		Math3D.RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90-r_newrefdef.fov_x / 2 ) );
+		Math3D.RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90f - r_newrefdef.fov_x / 2f ) );
 		// rotate VPN left by FOV_X/2 degrees
-		Math3D.RotatePointAroundVector( frustum[1].normal, vup, vpn, 90-r_newrefdef.fov_x / 2 );
+		Math3D.RotatePointAroundVector( frustum[1].normal, vup, vpn,  90f - r_newrefdef.fov_x / 2f );
 		// rotate VPN up by FOV_X/2 degrees
-		Math3D.RotatePointAroundVector( frustum[2].normal, vright, vpn, 90-r_newrefdef.fov_y / 2 );
+		Math3D.RotatePointAroundVector( frustum[2].normal, vright, vpn,  90f - r_newrefdef.fov_y / 2f );
 		// rotate VPN down by FOV_X/2 degrees
-		Math3D.RotatePointAroundVector( frustum[3].normal, vright, vpn, -( 90 - r_newrefdef.fov_y / 2 ) );
+		Math3D.RotatePointAroundVector( frustum[3].normal, vright, vpn,  -( 90f - r_newrefdef.fov_y / 2f ) );
 
 		for (int i=0 ; i<4 ; i++)
 		{
