@@ -2,10 +2,11 @@
  * JSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JSoundImpl.java,v 1.2 2004-04-26 13:43:33 cwei Exp $
+ * $Id: JSoundImpl.java,v 1.3 2004-06-17 12:10:44 hoz Exp $
  */
 package jake2.sound.jsound;
 
+import jake2.sound.*;
 import jake2.sound.Sound;
 import jake2.sound.sfx_t;
 
@@ -13,9 +14,14 @@ import jake2.sound.sfx_t;
  * JSoundImpl
  */
 public class JSoundImpl  implements Sound {
+	
+	static {
+		S.register(new JSoundImpl());
+	};
 
 	public boolean Init() {
-		SND_MIX.InitScaletable();
+		SND_DMA.Init();
+		if (SND_DMA.sound_started) return true;
 		return false;
 	}
 
@@ -23,80 +29,70 @@ public class JSoundImpl  implements Sound {
 	 * @see jake2.sound.SoundImpl#Shutdown()
 	 */
 	public void Shutdown() {
-		// TODO Auto-generated method stub
-
+		SND_DMA.Shutdown();
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#StartSound(float[], int, int, jake2.sound.sfx_t, float, float, float)
 	 */
 	public void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs) {
-		// TODO Auto-generated method stub
-
+		SND_DMA.StartSound(origin, entnum, entchannel, sfx, fvol, attenuation, timeofs);
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#StopAllSounds()
 	 */
 	public void StopAllSounds() {
-		// TODO Auto-generated method stub
-
+		SND_DMA.StopAllSounds();
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Update(float[], float[], float[], float[])
 	 */
 	public void Update(float[] origin, float[] forward, float[] right, float[] up) {
-		// TODO Auto-generated method stub
-
+		SND_DMA.Update(origin, forward, right, up);
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#getName()
 	 */
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "jsound";
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#BeginRegistration()
 	 */
 	public void BeginRegistration() {
-		// TODO Auto-generated method stub
-		
+		SND_DMA.BeginRegistration();
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#RegisterSound(java.lang.String)
 	 */
 	public sfx_t RegisterSound(String sample) {
-		// TODO Auto-generated method stub
-		return null;
+		return SND_DMA.RegisterSound(sample);
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#EndRegistration()
 	 */
 	public void EndRegistration() {
-		// TODO Auto-generated method stub
-		
+		SND_DMA.EndRegistration();
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#StartLocalSound(java.lang.String)
 	 */
 	public void StartLocalSound(String sound) {
-		// TODO Auto-generated method stub
-		
+		SND_DMA.StartLocalSound(sound);
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
 	 */
 	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
-		// TODO Auto-generated method stub
-		
+		SND_DMA.RawSamples(samples, rate, width, channels, data);
 	}
 
 }

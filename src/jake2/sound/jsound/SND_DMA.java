@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.2 2004-04-15 10:31:40 hoz Exp $
+ * $Id: SND_DMA.java,v 1.3 2004-06-17 12:10:44 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.sound.jsound;
 
+import jake2.Defines;
+import jake2.client.CL;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sound.*;
@@ -61,16 +63,12 @@ public class SND_DMA extends SND_MIX {
 //
 ////	   only begin attenuating sound volumes when outside the FULLVOLUME range
 //	#define		SOUND_FULLVOLUME	80
-//
+	static final int SOUND_FULLVOLUME = 80;
 //	#define		SOUND_LOOPATTENUATE	0.003
-//
+	static final float SOUND_LOOPATTENUATE = 0.003f;
 	static int s_registration_sequence;
 //
-	static channel_t[] channels = new channel_t[MAX_CHANNELS];
-	static {
-		for(int i=0; i < MAX_CHANNELS; i++)
-			channels[i] = new channel_t();
-	}
+
 //
 //	qboolean	snd_initialized = false;
 	static boolean sound_started = false;
@@ -83,7 +81,7 @@ public class SND_DMA extends SND_MIX {
 	static boolean s_registering;
 
 	static int soundtime;		// sample PAIRS
-	static int paintedtime; 	// sample PAIRS
+	
 //
 ////	   during registration it is possible to have more sounds
 ////	   than could actually be referenced during gameplay,
@@ -105,7 +103,6 @@ public class SND_DMA extends SND_MIX {
 		}
 	}
 	static playsound_t s_freeplays = new playsound_t();
-	static playsound_t s_pendingplays = new playsound_t();
 
 	static int s_beginofs;
 	
@@ -286,8 +283,7 @@ public class SND_DMA extends SND_MIX {
 
 		return sfx;
 	}
-//
-//
+
 	/*
 	==================
 	S_AliasName
@@ -298,29 +294,30 @@ public class SND_DMA extends SND_MIX {
 	{
 		sfx_t sfx = null;
 //		char	*s;
-//		int		i;
-//
+		int		i;
+
 //		s = Z_Malloc (MAX_QPATH);
 //		strcpy (s, truename);
-//
-//		// find a free sfx
-//		for (i=0 ; i < num_sfx ; i++)
-//			if (!known_sfx[i].name[0])
-//				break;
-//
-//		if (i == num_sfx)
-//		{
-//			if (num_sfx == MAX_SFX)
-//				Com_Error (ERR_FATAL, "S_FindName: out of sfx_t");
-//			num_sfx++;
-//		}
-//	
-//		sfx = &known_sfx[i];
-//		memset (sfx, 0, sizeof(*sfx));
-//		strcpy (sfx->name, aliasname);
-//		sfx->registration_sequence = s_registration_sequence;
-//		sfx->truename = s;
-//
+
+		// find a free sfx
+		for (i=0 ; i < num_sfx ; i++)
+			if (known_sfx[i].name == null)
+				break;
+
+		if (i == num_sfx)
+		{
+			if (num_sfx == MAX_SFX)
+				Com.Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			num_sfx++;
+		}
+	
+		sfx = known_sfx[i];
+		//memset (sfx, 0, sizeof(*sfx));
+		//strcpy (sfx->name, aliasname);
+		sfx.name = aliasname;
+		sfx.registration_sequence = s_registration_sequence;
+		sfx.truename = truename;
+
 		return sfx;
 	}
 
@@ -398,137 +395,138 @@ public class SND_DMA extends SND_MIX {
 
 		s_registering = false;
 	}
-//
-//
-////	  =============================================================================
-//
-//	/*
-//	=================
-//	S_PickChannel
-//	=================
-//	*/
-//	channel_t *S_PickChannel(int entnum, int entchannel)
-//	{
-//		int			ch_idx;
-//		int			first_to_die;
-//		int			life_left;
-//		channel_t	*ch;
-//
-//		if (entchannel<0)
-//			Com_Error (ERR_DROP, "S_PickChannel: entchannel<0");
-//
-////	   Check for replacement sound, or find the best one to replace
-//		first_to_die = -1;
-//		life_left = 0x7fffffff;
-//		for (ch_idx=0 ; ch_idx < MAX_CHANNELS ; ch_idx++)
-//		{
-//			if (entchannel != 0		// channel 0 never overrides
-//			&& channels[ch_idx].entnum == entnum
-//			&& channels[ch_idx].entchannel == entchannel)
-//			{	// always override sound from same entity
-//				first_to_die = ch_idx;
-//				break;
-//			}
-//
-//			// don't let monster sounds override player sounds
-//			if (channels[ch_idx].entnum == cl.playernum+1 && entnum != cl.playernum+1 && channels[ch_idx].sfx)
-//				continue;
-//
-//			if (channels[ch_idx].end - paintedtime < life_left)
-//			{
-//				life_left = channels[ch_idx].end - paintedtime;
-//				first_to_die = ch_idx;
-//			}
-//	   }
-//
-//		if (first_to_die == -1)
-//			return NULL;
-//
-//		ch = &channels[first_to_die];
-//		memset (ch, 0, sizeof(*ch));
-//
-//		return ch;
-//	}       
-//
-//	/*
-//	=================
-//	S_SpatializeOrigin
-//
-//	Used for spatializing channels and autosounds
-//	=================
-//	*/
-//	void S_SpatializeOrigin (vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol)
-//	{
-//		vec_t		dot;
-//		vec_t		dist;
-//		vec_t		lscale, rscale, scale;
-//		vec3_t		source_vec;
-//
-//		if (cls.state != ca_active)
-//		{
-//			*left_vol = *right_vol = 255;
-//			return;
-//		}
-//
-////	   calculate stereo seperation and distance attenuation
-//		VectorSubtract(origin, listener_origin, source_vec);
-//
-//		dist = VectorNormalize(source_vec);
-//		dist -= SOUND_FULLVOLUME;
-//		if (dist < 0)
-//			dist = 0;			// close enough to be at full volume
-//		dist *= dist_mult;		// different attenuation levels
-//	
-//		dot = DotProduct(listener_right, source_vec);
-//
-//		if (dma.channels == 1 || !dist_mult)
-//		{ // no attenuation = no spatialization
-//			rscale = 1.0;
-//			lscale = 1.0;
-//		}
-//		else
-//		{
-//			rscale = 0.5 * (1.0 + dot);
-//			lscale = 0.5*(1.0 - dot);
-//		}
-//
-//		// add in distance effect
-//		scale = (1.0 - dist) * rscale;
-//		*right_vol = (int) (master_vol * scale);
-//		if (*right_vol < 0)
-//			*right_vol = 0;
-//
-//		scale = (1.0 - dist) * lscale;
-//		*left_vol = (int) (master_vol * scale);
-//		if (*left_vol < 0)
-//			*left_vol = 0;
-//	}
-//
-//	/*
-//	=================
-//	S_Spatialize
-//	=================
-//	*/
+
+
+//	  =============================================================================
+
+	/*
+	=================
+	S_PickChannel
+	=================
+	*/
+	static channel_t PickChannel(int entnum, int entchannel)
+	{
+		int			ch_idx;
+		int			first_to_die;
+		int			life_left;
+		channel_t	ch;
+
+		if (entchannel<0)
+			Com.Error(ERR_DROP, "S_PickChannel: entchannel<0");
+
+		// Check for replacement sound, or find the best one to replace
+		first_to_die = -1;
+		life_left = 0x7fffffff;
+		for (ch_idx=0 ; ch_idx < MAX_CHANNELS ; ch_idx++)
+		{
+			if (entchannel != 0		// channel 0 never overrides
+			&& channels[ch_idx].entnum == entnum
+			&& channels[ch_idx].entchannel == entchannel)
+			{	// always override sound from same entity
+				first_to_die = ch_idx;
+				break;
+			}
+
+			// don't let monster sounds override player sounds
+			if ((channels[ch_idx].entnum == cl.playernum+1) && (entnum != cl.playernum+1) && channels[ch_idx].sfx != null)
+				continue;
+
+			if (channels[ch_idx].end - paintedtime < life_left)
+			{
+				life_left = channels[ch_idx].end - paintedtime;
+				first_to_die = ch_idx;
+			}
+	   }
+
+		if (first_to_die == -1)
+			return null;
+
+		ch = channels[first_to_die];
+		//memset (ch, 0, sizeof(*ch));
+		ch.clear();
+
+		return ch;
+	}       
+
+	/*
+	=================
+	S_SpatializeOrigin
+
+	Used for spatializing channels and autosounds
+	=================
+	*/
+	static void SpatializeOrigin(float[] origin, float master_vol, float dist_mult, channel_t ch)
+	{
+		float		dot;
+		float		dist;
+		float		lscale, rscale, scale;
+		float[]		source_vec = {0, 0, 0};
+
+		if (cls.state != ca_active)
+		{
+			ch.leftvol = ch.rightvol = 255;
+			return;
+		}
+
+//	   calculate stereo seperation and distance attenuation
+		VectorSubtract(origin, listener_origin, source_vec);
+
+		dist = VectorNormalize(source_vec);
+		dist -= SOUND_FULLVOLUME;
+		if (dist < 0)
+			dist = 0;			// close enough to be at full volume
+		dist *= dist_mult;		// different attenuation levels
+	
+		dot = DotProduct(listener_right, source_vec);
+
+		if (dma.channels == 1 || dist_mult == 0.0f)
+		{ // no attenuation = no spatialization
+			rscale = 1.0f;
+			lscale = 1.0f;
+		}
+		else
+		{
+			rscale = 0.5f * (1.0f + dot);
+			lscale = 0.5f * (1.0f - dot);
+		}
+
+		// add in distance effect
+		scale = (1.0f - dist) * rscale;
+		ch.rightvol = (int) (master_vol * scale);
+		if (ch.rightvol < 0)
+			ch.rightvol = 0;
+
+		scale = (1.0f - dist) * lscale;
+		ch.leftvol = (int) (master_vol * scale);
+		if (ch.leftvol < 0)
+			ch.leftvol = 0;
+	}
+
+	/*
+	=================
+	S_Spatialize
+	=================
+	*/
 	static void Spatialize(channel_t ch)
 	{
-//		vec3_t		origin;
-//
-//		// anything coming from the view entity will always be full volume
-//		if (ch->entnum == cl.playernum+1)
-//		{
-//			ch->leftvol = ch->master_vol;
-//			ch->rightvol = ch->master_vol;
-//			return;
-//		}
-//
-//		if (ch->fixed_origin)
-//		{
-//			VectorCopy (ch->origin, origin);
-//		}
-//		else
-//			CL_GetEntitySoundOrigin (ch->entnum, origin);
-//
-//		S_SpatializeOrigin (origin, ch->master_vol, ch->dist_mult, &ch->leftvol, &ch->rightvol);
+		float[]		origin = {0, 0, 0};
+
+		// anything coming from the view entity will always be full volume
+		if (ch.entnum == cl.playernum+1)
+		{
+			ch.leftvol = ch.master_vol;
+			ch.rightvol = ch.master_vol;
+			return;
+		}
+
+		if (ch.fixed_origin)
+		{
+			VectorCopy(ch.origin, origin);
+		}
+		else
+			CL.GetEntitySoundOrigin(ch.entnum, origin);
+
+		SpatializeOrigin(origin, (float)ch.master_vol, ch.dist_mult, ch);
 	}           
 
 	/*
@@ -550,73 +548,71 @@ public class SND_DMA extends SND_MIX {
 	
 		return ps;
 	}
-//
-//
-//	/*
-//	=================
-//	S_FreePlaysound
-//	=================
-//	*/
-//	void S_FreePlaysound (playsound_t *ps)
-//	{
-//		// unlink from channel
-//		ps->prev->next = ps->next;
-//		ps->next->prev = ps->prev;
-//
-//		// add to free list
-//		ps->next = s_freeplays.next;
-//		s_freeplays.next->prev = ps;
-//		ps->prev = &s_freeplays;
-//		s_freeplays.next = ps;
-//	}
-//
-//
-//
-//	/*
-//	===============
-//	S_IssuePlaysound
-//
-//	Take the next playsound and begin it on the channel
-//	This is never called directly by S_Play*, but only
-//	by the update loop.
-//	===============
-//	*/
-//	void S_IssuePlaysound (playsound_t *ps)
-//	{
-//		channel_t	*ch;
-//		sfxcache_t	*sc;
-//
-//		if (s_show->value)
-//			Com_Printf ("Issue %i\n", ps->begin);
-//		// pick a channel to play on
-//		ch = S_PickChannel(ps->entnum, ps->entchannel);
-//		if (!ch)
-//		{
-//			S_FreePlaysound (ps);
-//			return;
-//		}
-//
-//		// spatialize
-//		if (ps->attenuation == ATTN_STATIC)
-//			ch->dist_mult = ps->attenuation * 0.001;
-//		else
-//			ch->dist_mult = ps->attenuation * 0.0005;
-//		ch->master_vol = ps->volume;
-//		ch->entnum = ps->entnum;
-//		ch->entchannel = ps->entchannel;
-//		ch->sfx = ps->sfx;
-//		VectorCopy (ps->origin, ch->origin);
-//		ch->fixed_origin = ps->fixed_origin;
-//
-//		S_Spatialize(ch);
-//
-//		ch->pos = 0;
-//		sc = S_LoadSound (ch->sfx);
-//		ch->end = paintedtime + sc->length;
-//
-//		// free the playsound
-//		S_FreePlaysound (ps);
-//	}
+
+
+	/*
+	=================
+	S_FreePlaysound
+	=================
+	*/
+	static void FreePlaysound(playsound_t ps)
+	{
+		// unlink from channel
+		ps.prev.next = ps.next;
+		ps.next.prev = ps.prev;
+
+		// add to free list
+		ps.next = s_freeplays.next;
+		s_freeplays.next.prev = ps;
+		ps.prev = s_freeplays;
+		s_freeplays.next = ps;
+	}
+
+	/*
+	===============
+	S_IssuePlaysound
+
+	Take the next playsound and begin it on the channel
+	This is never called directly by S_Play*, but only
+	by the update loop.
+	===============
+	*/
+	static void IssuePlaysound (playsound_t ps)
+	{
+		channel_t	ch;
+		sfxcache_t	sc;
+
+		if (s_show.value != 0.0f)
+			Com.Printf("Issue " + ps.begin + "\n");
+		// pick a channel to play on
+		ch = PickChannel(ps.entnum, ps.entchannel);
+		if (ch == null)
+		{
+			FreePlaysound(ps);
+			return;
+		}
+
+		// spatialize
+		if (ps.attenuation == ATTN_STATIC)
+			ch.dist_mult = ps.attenuation * 0.001f;
+		else
+			ch.dist_mult = ps.attenuation * 0.0005f;
+		ch.master_vol = (int)ps.volume;
+		ch.entnum = ps.entnum;
+		ch.entchannel = ps.entchannel;
+		ch.sfx = ps.sfx;
+		VectorCopy (ps.origin, ch.origin);
+		ch.fixed_origin = ps.fixed_origin;
+
+		Spatialize(ch);
+
+		ch.pos = 0;
+		sc = LoadSound(ch.sfx);
+		ch.end = paintedtime + sc.length;
+
+		// free the playsound
+		FreePlaysound(ps);
+	}
 
 	static sfx_t RegisterSexedSound(entity_state_t ent, String base) {
 		sfx_t sfx = null;
@@ -786,7 +782,7 @@ public class SND_DMA extends SND_MIX {
 		SNDDMA_BeginPainting ();
 		if (dma.buffer != null)
 			//memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
-			Arrays.fill(dma.buffer, (byte)clear);
+			//Arrays.fill(dma.buffer, (byte)clear);
 		SNDDMA_Submit ();
 	}
 
@@ -823,7 +819,7 @@ public class SND_DMA extends SND_MIX {
 
 		ClearBuffer();
 	}
-//
+
 	/*
 	==================
 	S_AddLoopSounds
@@ -835,112 +831,114 @@ public class SND_DMA extends SND_MIX {
 	*/
 	static void AddLoopSounds()
 	{
-//		int			i, j;
-//		int			sounds[MAX_EDICTS];
-//		int			left, right, left_total, right_total;
-//		channel_t	*ch;
-//		sfx_t		*sfx;
-//		sfxcache_t	*sc;
-//		int			num;
-//		entity_state_t	*ent;
-//
-//		if (cl_paused->value)
-//			return;
-//
-//		if (cls.state != ca_active)
-//			return;
-//
-//		if (!cl.sound_prepped)
-//			return;
-//
-//		for (i=0 ; i<cl.frame.num_entities ; i++)
-//		{
-//			num = (cl.frame.parse_entities + i)&(MAX_PARSE_ENTITIES-1);
-//			ent = &cl_parse_entities[num];
-//			sounds[i] = ent->sound;
-//		}
-//
-//		for (i=0 ; i<cl.frame.num_entities ; i++)
-//		{
-//			if (!sounds[i])
-//				continue;
-//
-//			sfx = cl.sound_precache[sounds[i]];
-//			if (!sfx)
-//				continue;		// bad sound effect
-//			sc = sfx->cache;
-//			if (!sc)
-//				continue;
-//
-//			num = (cl.frame.parse_entities + i)&(MAX_PARSE_ENTITIES-1);
-//			ent = &cl_parse_entities[num];
-//
-//			// find the total contribution of all sounds of this type
-//			S_SpatializeOrigin (ent->origin, 255.0, SOUND_LOOPATTENUATE,
-//				&left_total, &right_total);
-//			for (j=i+1 ; j<cl.frame.num_entities ; j++)
-//			{
-//				if (sounds[j] != sounds[i])
-//					continue;
-//				sounds[j] = 0;	// don't check this again later
-//
-//				num = (cl.frame.parse_entities + j)&(MAX_PARSE_ENTITIES-1);
-//				ent = &cl_parse_entities[num];
-//
-//				S_SpatializeOrigin (ent->origin, 255.0, SOUND_LOOPATTENUATE, 
-//					&left, &right);
-//				left_total += left;
-//				right_total += right;
-//			}
-//
-//			if (left_total == 0 && right_total == 0)
-//				continue;		// not audible
-//
-//			// allocate a channel
-//			ch = S_PickChannel(0, 0);
-//			if (!ch)
-//				return;
-//
-//			if (left_total > 255)
-//				left_total = 255;
-//			if (right_total > 255)
-//				right_total = 255;
-//			ch->leftvol = left_total;
-//			ch->rightvol = right_total;
-//			ch->autosound = true;	// remove next frame
-//			ch->sfx = sfx;
-//			ch->pos = paintedtime % sc->length;
-//			ch->end = paintedtime + sc->length - ch->pos;
-//		}
+		int			i, j;
+		int[]			sounds = new int[Defines.MAX_EDICTS];
+		int			left, right, left_total, right_total;
+		channel_t	ch;
+		sfx_t		sfx;
+		sfxcache_t	sc;
+		int			num;
+		entity_state_t	ent;
+
+		if (cl_paused.value != 0.0f)
+			return;
+
+		if (cls.state != ca_active)
+			return;
+
+		if (!cl.sound_prepped)
+			return;
+
+		for (i=0 ; i<cl.frame.num_entities ; i++)
+		{
+			num = (cl.frame.parse_entities + i)&(MAX_PARSE_ENTITIES-1);
+			ent = cl_parse_entities[num];
+			sounds[i] = ent.sound;
+		}
+
+		for (i=0 ; i<cl.frame.num_entities ; i++)
+		{
+			if (sounds[i] == 0)
+				continue;
+
+			sfx = cl.sound_precache[sounds[i]];
+			if (sfx == null)
+				continue;		// bad sound effect
+			sc = sfx.cache;
+			if (sc == null)
+				continue;
+
+			num = (cl.frame.parse_entities + i)&(MAX_PARSE_ENTITIES-1);
+			ent = cl_parse_entities[num];
+
+			channel_t tch = new channel_t();
+			// find the total contribution of all sounds of this type
+			SpatializeOrigin(ent.origin, 255.0f, SOUND_LOOPATTENUATE, tch);
+			left_total = tch.leftvol;
+			right_total = tch.rightvol;
+			for (j=i+1 ; j<cl.frame.num_entities ; j++)
+			{
+				if (sounds[j] != sounds[i])
+					continue;
+				sounds[j] = 0;	// don't check this again later
+
+				num = (cl.frame.parse_entities + j)&(MAX_PARSE_ENTITIES-1);
+				ent = cl_parse_entities[num];
+
+				SpatializeOrigin(ent.origin, 255.0f, SOUND_LOOPATTENUATE, tch);
+				left_total += tch.leftvol;
+				right_total += tch.rightvol;
+			}
+
+			if (left_total == 0 && right_total == 0)
+				continue;		// not audible
+
+			// allocate a channel
+			ch = PickChannel(0, 0);
+			if (ch == null)
+				return;
+
+			if (left_total > 255)
+				left_total = 255;
+			if (right_total > 255)
+				right_total = 255;
+			ch.leftvol = left_total;
+			ch.rightvol = right_total;
+			ch.autosound = true;	// remove next frame
+			ch.sfx = sfx;
+			ch.pos = paintedtime % sc.length;
+			ch.end = paintedtime + sc.length - ch.pos;
+		}
 	}
-//
-////	  =============================================================================
-//
-//	/*
-//	============
-//	S_RawSamples
-//
-//	Cinematic streaming and voice over network
-//	============
-//	*/
-//	void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
-//	{
-//		int		i;
-//		int		src, dst;
-//		float	scale;
-//
-//		if (!sound_started)
-//			return;
-//
-//		if (s_rawend < paintedtime)
-//			s_rawend = paintedtime;
-//		scale = (float)rate / dma.speed;
-//
-////	  Com_Printf ("%i < %i < %i\n", soundtime, paintedtime, s_rawend);
-//		if (channels == 2 && width == 2)
-//		{
-//			if (scale == 1.0)
-//			{	// optimized case
+
+//	  =============================================================================
+
+	/*
+	============
+	S_RawSamples
+
+	Cinematic streaming and voice over network
+	============
+	*/
+	static void RawSamples(int samples, int rate, int width, int channels, byte[] data)
+	{
+		//TODO RawSamples
+		int		i;
+		int		src, dst;
+		float	scale;
+
+		if (!sound_started)
+			return;
+
+		if (s_rawend < paintedtime)
+			s_rawend = paintedtime;
+		scale = (float)rate / dma.speed;
+
+//	  Com_Printf ("%i < %i < %i\n", soundtime, paintedtime, s_rawend);
+		if (channels == 2 && width == 2)
+		{
+			if (scale == 1.0)
+			{	// optimized case
 //				for (i=0 ; i<samples ; i++)
 //				{
 //					dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -950,11 +948,11 @@ public class SND_DMA extends SND_MIX {
 //					s_rawsamples[dst].right =
 //						LittleShort(((short *)data)[i*2+1]) << 8;
 //				}
-//			}
-//			else
-//			{
-//				for (i=0 ; ; i++)
-//				{
+			}
+			else
+			{
+				for (i=0 ; ; i++)
+				{
 //					src = i*scale;
 //					if (src >= samples)
 //						break;
@@ -964,13 +962,13 @@ public class SND_DMA extends SND_MIX {
 //						LittleShort(((short *)data)[src*2]) << 8;
 //					s_rawsamples[dst].right =
 //						LittleShort(((short *)data)[src*2+1]) << 8;
-//				}
-//			}
-//		}
-//		else if (channels == 1 && width == 2)
-//		{
-//			for (i=0 ; ; i++)
-//			{
+				}
+			}
+		}
+		else if (channels == 1 && width == 2)
+		{
+			for (i=0 ; ; i++)
+			{
 //				src = i*scale;
 //				if (src >= samples)
 //					break;
@@ -980,12 +978,12 @@ public class SND_DMA extends SND_MIX {
 //					LittleShort(((short *)data)[src]) << 8;
 //				s_rawsamples[dst].right =
 //					LittleShort(((short *)data)[src]) << 8;
-//			}
-//		}
-//		else if (channels == 2 && width == 1)
-//		{
-//			for (i=0 ; ; i++)
-//			{
+			}
+		}
+		else if (channels == 2 && width == 1)
+		{
+			for (i=0 ; ; i++)
+			{
 //				src = i*scale;
 //				if (src >= samples)
 //					break;
@@ -995,12 +993,12 @@ public class SND_DMA extends SND_MIX {
 //					((char *)data)[src*2] << 16;
 //				s_rawsamples[dst].right =
 //					((char *)data)[src*2+1] << 16;
-//			}
-//		}
-//		else if (channels == 1 && width == 1)
-//		{
-//			for (i=0 ; ; i++)
-//			{
+			}
+		}
+		else if (channels == 1 && width == 1)
+		{
+			for (i=0 ; ; i++)
+			{
 //				src = i*scale;
 //				if (src >= samples)
 //					break;
@@ -1009,10 +1007,10 @@ public class SND_DMA extends SND_MIX {
 //				s_rawsamples[dst].left =
 //					(((byte *)data)[src]-128) << 16;
 //				s_rawsamples[dst].right = (((byte *)data)[src]-128) << 16;
-//			}
-//		}
-//	}
-//
+			}
+		}
+	}
+
 ////	  =============================================================================
 
 	/*
@@ -1082,81 +1080,81 @@ public class SND_DMA extends SND_MIX {
 				}
 			}
 
-			Com.Printf("----(" + total + ")---- painted: " + paintedtime + "\n");
+			//Com.Printf("----(" + total + ")---- painted: " + paintedtime + "\n");
 		}
 
 		//	   mix some sound
 		Update_();
 	}
 
-//
-//	void GetSoundtime(void)
-//	{
-//		int		samplepos;
-//		static	int		buffers;
-//		static	int		oldsamplepos;
-//		int		fullsamples;
-//	
-//		fullsamples = dma.samples / dma.channels;
-//
-////	   it is possible to miscount buffers if it has wrapped twice between
-////	   calls to S_Update.  Oh well.
-//		samplepos = SNDDMA_GetDMAPos();
-//
-//		if (samplepos < oldsamplepos)
-//		{
-//			buffers++;					// buffer wrapped
-//		
-//			if (paintedtime > 0x40000000)
-//			{	// time to chop things off to avoid 32 bit limits
-//				buffers = 0;
-//				paintedtime = fullsamples;
-//				S_StopAllSounds ();
-//			}
-//		}
-//		oldsamplepos = samplepos;
-//
-//		soundtime = buffers*fullsamples + samplepos/dma.channels;
-//	}
-//
-//
+	static int buffers = 0;
+	static int oldsamplepos = 0;
+	static void GetSoundtime()
+	{
+		int		samplepos;
+		//static	int		buffers;
+		//static	int		oldsamplepos;
+		int		fullsamples;
+	
+		fullsamples = dma.samples / dma.channels;
+
+//	   it is possible to miscount buffers if it has wrapped twice between
+//	   calls to S_Update.  Oh well.
+		samplepos = SNDDMA_GetDMAPos();
+
+		if (samplepos < oldsamplepos)
+		{
+			buffers++;					// buffer wrapped
+		
+			if (paintedtime > 0x40000000)
+			{	// time to chop things off to avoid 32 bit limits
+				buffers = 0;
+				paintedtime = fullsamples;
+				StopAllSounds();
+			}
+		}
+		oldsamplepos = samplepos;
+
+		soundtime = buffers*fullsamples + samplepos/dma.channels;
+	}
+
 	static void Update_()
 	{
-//		unsigned        endtime;
-//		int				samps;
-//
-//		if (!sound_started)
-//			return;
-//
-//		SNDDMA_BeginPainting ();
-//
-//		if (!dma.buffer)
-//			return;
-//
-////	   Updates DMA time
-//		GetSoundtime();
-//
-////	   check to make sure that we haven't overshot
-//		if (paintedtime < soundtime)
-//		{
-//			Com_DPrintf ("S_Update_ : overflow\n");
-//			paintedtime = soundtime;
-//		}
-//
-////	   mix ahead of current position
-//		endtime = soundtime + s_mixahead->value * dma.speed;
-////	  endtime = (soundtime + 4096) & ~4095;
-//
-//		// mix to an even submission block size
-//		endtime = (endtime + dma.submission_chunk-1)
-//			& ~(dma.submission_chunk-1);
-//		samps = dma.samples >> (dma.channels-1);
-//		if (endtime - soundtime > samps)
-//			endtime = soundtime + samps;
-//
-//		S_PaintChannels (endtime);
-//
-//		SNDDMA_Submit ();
+		int        endtime;
+		int				samps;
+
+		if (!sound_started)
+			return;
+
+		SNDDMA_BeginPainting();
+
+		if (dma.buffer == null)
+			return;
+
+		// Updates DMA time
+		GetSoundtime();
+
+		// check to make sure that we haven't overshot
+		if (paintedtime < soundtime)
+		{
+			Com.DPrintf("S_Update_ : overflow\n");
+			paintedtime = soundtime;
+		}
+
+		// mix ahead of current position
+		endtime = (int)(soundtime + s_mixahead.value * dma.speed);
+		//	  endtime = (soundtime + 4096) & ~4095;
+
+		// mix to an even submission block size
+		endtime = (endtime + dma.submission_chunk-1)
+			& ~(dma.submission_chunk-1);
+		samps = dma.samples >> (dma.channels-1);
+		if (endtime - soundtime > samps)
+			endtime = soundtime + samps;
+
+		PaintChannels(endtime);
+
+		SNDDMA_Submit();
 	}
 
 	/*

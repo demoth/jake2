@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.1 2004-04-15 08:08:26 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.2 2004-06-17 12:10:44 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -70,7 +70,7 @@ public class SND_JAVA extends Globals {
 		if (sndbits == null) {
 			sndbits = Cvar.Get("sndbits", "16", CVAR_ARCHIVE);
 			sndspeed = Cvar.Get("sndspeed", "0", CVAR_ARCHIVE);
-			sndchannels = Cvar.Get("sndchannels", "2", CVAR_ARCHIVE);
+			sndchannels = Cvar.Get("sndchannels", "1", CVAR_ARCHIVE);
 		}
 		
 		byte[] sound = FS.LoadFile("sound/misc/menu1.wav");
@@ -83,6 +83,8 @@ public class SND_JAVA extends Globals {
 			return false;
 		}
 		format = stream.getFormat();
+		AudioFormat.Encoding e = format.getEncoding();
+		System.out.println(e.toString());
 
 		DataLine.Info dinfo = new DataLine.Info(SourceDataLine.class, format);
 		//format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), format.getSampleSizeInBits(), 2, 2*format.getFrameSize(), format.getFrameRate(), format.isBigEndian());
@@ -93,13 +95,13 @@ public class SND_JAVA extends Globals {
 			return false; 
 		}
 		dma.buffer = new byte[65536];
-//		try {
-//			stream.read(dma.buffer);
-//		} catch (IOException e3) {
-//			// TODO Auto-generated catch block
-//			e3.printStackTrace();
-//		}
-		
+		try {
+			stream.read(dma.buffer);
+		} catch (IOException e3) {
+			// TODO Auto-generated catch block
+			e3.printStackTrace();
+		}
+				
 		dma.channels = format.getChannels();
 		dma.samplebits = format.getSampleSizeInBits();
 		dma.samples = dma.buffer.length / format.getFrameSize();
@@ -108,14 +110,14 @@ public class SND_JAVA extends Globals {
 		dma.submission_chunk = 1;
 		
 		try {
-			line.open(format, 4096);
+			line.open(format, 8192);
 		} catch (LineUnavailableException e5) {
 			return false;
 		}
 
 		line.start();
 		runLine();
-		
+	
 		snd_inited = true;
 		return true;
 
@@ -151,7 +153,7 @@ public class SND_JAVA extends Globals {
 	static void runLine() {
 		
 		int p = line.getFramePosition() * format.getFrameSize() % dma.buffer.length;
-		System.out.println("run " + p + " " + pos);	
+//		System.out.println("run " + p + " " + pos);	
 		if (p == 0) {
 			writeLine();	
 		}

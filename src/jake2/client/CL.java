@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.42 2004-06-09 14:32:37 hoz Exp $
+ * $Id: CL.java,v 1.43 2004-06-17 12:10:44 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1530,8 +1530,7 @@ public final class CL extends CL_pred {
 		VID.CheckChanges();
 		if (!cl.refresh_prepped && cls.state == ca_active) {
 			CL.PrepRefresh();
-			// TODO force GC after level loading
-			//System.gc();
+			// force GC after level loading
 			System.gc();
 		}
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.19 2004-04-15 08:08:26 hoz Exp $
+//$Id: client_state_t.java,v 1.20 2004-06-17 12:10:44 hoz Exp $
 
 package jake2.client;
 
@@ -57,7 +57,7 @@ public class client_state_t {
 	int timedemo_start;
 
 	public boolean refresh_prepped; // false if on new level or new ref dll
-	boolean sound_prepped; // ambient sounds can start
+	public boolean sound_prepped; // ambient sounds can start
 	boolean force_refdef; // vid has changed, so we can't use a paused refdef
 
 	int parse_entities; // index (not anded off) into cl_parse_entities[]
@@ -129,7 +129,7 @@ public class client_state_t {
 	model_t model_draw[] = new model_t[Defines.MAX_MODELS];
 	cmodel_t model_clip[] = new cmodel_t[Defines.MAX_MODELS];
 
-	sfx_t sound_precache[] = new sfx_t[Defines.MAX_SOUNDS];
+	public sfx_t sound_precache[] = new sfx_t[Defines.MAX_SOUNDS];
 	image_t image_precache[] = new image_t[Defines.MAX_IMAGES];
 
 	clientinfo_t clientinfo[] = new clientinfo_t[Defines.MAX_CLIENTS];

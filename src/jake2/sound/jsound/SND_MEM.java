@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MEM.java,v 1.1 2004-04-15 08:08:26 hoz Exp $
+ * $Id: SND_MEM.java,v 1.2 2004-06-17 12:10:44 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,10 +25,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sound.jsound;
 
+import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 import jake2.sound.sfx_t;
 import jake2.sound.sfxcache_t;
+import jake2.sys.Sys;
 
 /**
  * SND_MEM
@@ -49,7 +54,7 @@ public class SND_MEM extends SND_JAVA {
 	ResampleSfx
 	================
 	*/
-	static void ResampleSfx (sfx_t sfx, int inrate, int inwidth, byte[] data, int ofs)
+	static void ResampleSfx(sfx_t sfx, int inrate, int inwidth, byte[] data, int ofs)
 	{
 		int		outcount;
 		int		srcsample;
@@ -70,27 +75,27 @@ public class SND_MEM extends SND_JAVA {
 			sc.loopstart = (int)(sc.loopstart / stepscale);
 
 		sc.speed = dma.speed;
-		if (SND_DMA.s_loadas8bit.value != 0.0f)
-			sc.width = 1;
-		else
+//		if (SND_DMA.s_loadas8bit.value != 0.0f)
+//			sc.width = 1;
+//		else
 			sc.width = inwidth;
 		sc.stereo = 0;
 
-//	   resample / decimate to the current source rate
+		// resample / decimate to the current source rate
 
 		if (stepscale == 1 && inwidth == 1 && sc.width == 1)
 		{
-//	   fast special case
+			// fast special case
 			for (i=0 ; i<outcount ; i++)
-				sc.data[i+ofs] = (byte)((data[i+ofs] & 0xFF) - 128);
+				sc.data[i] = (byte)((data[i+ofs] & 0xFF) - 128);
 		}
 		else
 		{
-//	   general case
+			// general case
 			samplefrac = 0;
 			fracstep = (int)(stepscale*256);
-//			for (i=0 ; i<outcount ; i++)
-//			{
+			for (i=0 ; i<sc.length*2 ; i++)
+			{
 //				srcsample = samplefrac >> 8;
 //				samplefrac += fracstep;
 //				if (inwidth == 2)
@@ -101,12 +106,13 @@ public class SND_MEM extends SND_JAVA {
 //					((short *)sc->data)[i] = sample;
 //				else
 //					((signed char *)sc->data)[i] = sample >> 8;
-//			}
+			}
 		}
+		System.arraycopy(data, ofs, sc.data, 0, sc.data.length);
 	}
-//
-////	  =============================================================================
-//
+
+//	  =============================================================================
+
 	/*
 	==============
 	S_LoadSound
@@ -157,6 +163,11 @@ public class SND_MEM extends SND_JAVA {
 			FS.FreeFile(data);
 			return null;
 		}
+		if (info.width != 2) {
+			Com.Printf(s.name + " is a 8bit sample\n");
+			FS.FreeFile(data);
+			return null;
+		}		
 
 		stepscale = ((float)info.rate) / dma.speed;
 		len = (int) (info.samples / stepscale);
@@ -172,23 +183,26 @@ public class SND_MEM extends SND_JAVA {
 		sc.width = info.width;
 		sc.stereo = info.channels;
 
-		ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
+		//ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
+		System.arraycopy(data, info.dataofs, sc.data, 0, info.samples*info.width);
+		
+//System.out.println(s.name + " " + sc.speed + " " + sc.loopstart + " " + sc.width + " " + sc.length);
+//line.write(sc.data, 0, sc.length*sc.width);
+//line.drain();
 
 		FS.FreeFile(data);
 
 		return sc;
 	}
-//
-//
-//
-//	/*
-//	===============================================================================
-//
-//	WAV loading
-//
-//	===============================================================================
-//	*/
-//
+
+	/*
+	===============================================================================
+
+	WAV loading
+
+	===============================================================================
+	*/
+
 	static byte[] data_b;
 	static int data_p;
 	static int iff_end;
@@ -198,23 +212,23 @@ public class SND_MEM extends SND_JAVA {
 
 
 	static short GetLittleShort() {
-		short val = 0;
-		val = data_b[data_p];
+		int val = 0;
+		val = data_b[data_p] & 0xFF;
 		data_p++;
-		val |= (data_b[data_p] << 8);
+		val |= ((data_b[data_p] & 0xFF) << 8);
 		data_p++;
-		return val;
+		return (short)val;
 	}
 
 	static int GetLittleLong() {
 		int val = 0;
-		val = data_b[data_p];
+		val = data_b[data_p] & 0xFF;
 		data_p++;
-		val |= (data_b[data_p] << 8);
+		val |= ((data_b[data_p] & 0xFF) << 8);
 		data_p++;
-		val |= (data_b[data_p] << 16);
+		val |= ((data_b[data_p] & 0xFF) << 16);
 		data_p++;
-		val |= (data_b[data_p] << 24);
+		val |= ((data_b[data_p] & 0xFF) << 24);
 		data_p++;
 		return val;
 	}
@@ -229,13 +243,16 @@ public class SND_MEM extends SND_JAVA {
 			}
 
 			data_p += 4;
+
 			iff_chunk_len = GetLittleLong();
+			
 			if (iff_chunk_len < 0) {
 				data_p = 0;
 				return;
 			}
-			//			if (iff_chunk_len > 1024*1024)
-			//				Sys_Error ("FindNextChunk: %i length is past the 1 meg sanity limit", iff_chunk_len);
+			if (iff_chunk_len > 1024*1024)
+				Sys.Error("FindNextChunk: length is past the 1 meg sanity limit");
+				
 			data_p -= 8;
 			last_chunk = data_p + 8 + ((iff_chunk_len + 1) & ~1);
 			String s = new String(data_b, data_p, 4);
@@ -287,7 +304,7 @@ public class SND_MEM extends SND_JAVA {
 		// find "RIFF" chunk
 		FindChunk("RIFF");
 		String s = new String(data_b, data_p + 8, 4);
-		if (!((data_p != 0) && s.equals("WAVE"))) {
+		if (!s.equals("WAVE")) {
 			Com.Printf("Missing RIFF/WAVE chunks\n");
 			return info;
 		}
