@@ -7,6 +7,9 @@ distributed under the terms of the GPL (see LICENSE).
 The port was done completely in Java. No native libraries are used for the
 game functionality. For graphics rendering we use the jogl Java OpenGL bindings.
 
+Jake2 is still under development. Send bug reports and feedback to
+jake2@bytonic.de.
+
 Currently Jake2 supports Linux and Windows2000/XP.
 
 requirements:
@@ -36,3 +39,5 @@ bytonic Software
 Holger Zickner <hoz@bytonic.de>
 Carsten Weisse <cwei@bytonic.de>
 Rene Stoeckel  <rst@bytonic.de>
+
+Use <jake2@bytonic.de> for bug reports and feedback.
