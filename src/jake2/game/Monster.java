@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.3 2004-02-13 22:03:59 rst Exp $
+// $Id: Monster.java,v 1.4 2004-02-15 00:58:00 rst Exp $
 
 package jake2.game;
 
@@ -203,6 +203,8 @@ public class Monster extends GameAI{
 
 		return true;
 	}
+	
+	
 	public static void monster_start_go(edict_t self) {
 		float[] v = { 0, 0, 0 };
 
@@ -218,7 +220,8 @@ public class Monster extends GameAI{
 			fixup = false;
 
 			EdictIterator edit = null;
-
+			
+			/*
 			if (true) {
 				Com.Printf("all entities:\n");
 
@@ -234,6 +237,8 @@ public class Monster extends GameAI{
 			}
 			
 			sleep(10);
+			*/
+			
 			while ((edit = GameBase.G_Find(edit, GameBase.findByTarget, self.target)) != null) {
 				target = edit.o;
 				if (Lib.strcmp(target.classname, "point_combat") == 0) {

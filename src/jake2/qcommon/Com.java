@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.34 2004-02-14 13:24:02 rst Exp $
+ * $Id: Com.java,v 1.35 2004-02-15 00:58:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -433,8 +433,6 @@ public final class Com {
 			}
 			catch (IOException e)
 			{
-				// TODO: do quake2 error handling!
-				e.printStackTrace();
 			}
 			Globals.logfile = null;
 		}

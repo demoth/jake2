@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.33 2004-02-15 00:07:37 cwei Exp $
+ * $Id: SCR.java,v 1.34 2004-02-15 00:58:00 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -222,6 +222,7 @@ public final class SCR extends Globals {
 		{
 			do {
 				// scan the width of the line
+
 				for (l = 0; l < 40 && (l + s) < str.length(); l++)
 					if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
 						break;
@@ -251,7 +252,7 @@ public final class SCR extends Globals {
 	}
 
 	static void DrawCenterString() {
-		String cs = scr_centerstring;
+		String cs = scr_centerstring +"\0";
 		int start;
 		int l;
 		int j;
@@ -277,6 +278,7 @@ public final class SCR extends Globals {
 		do {
 			// scan the width of the line
 			for (l = 0; l < 40; l++)
+
 				if (start + l == cs.length() - 1 || cs.charAt(start + l) == '\n')
 					break;
 			x = (viddef.width - l * 8) / 2;

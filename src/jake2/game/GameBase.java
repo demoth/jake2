@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.21 2004-02-14 22:21:01 rst Exp $
+// $Id: GameBase.java,v 1.22 2004-02-15 00:58:00 rst Exp $
 
 /** Father of all Objects. */
 
@@ -747,9 +747,18 @@ public class GameBase extends Globals {
 				continue;
 			}
 	
-	
-			//TODO: disabled for debugging
 			//G_RunEntity(ent);
+			/*
+			//TODO: disabled for debugging
+			if (ent.classname.startsWith("trigger") )//|| ent.classname.startsWith("monster"))
+				G_RunEntity(ent);
+				
+			if (ent == g_edicts[1])
+				G_RunEntity(ent);
+				
+			if (ent.classname.startsWith("monster_inf") )//|| ent.classname.startsWith("monster"))
+				G_RunEntity(ent);
+			*/
 		}
 
 		// see if it is time to end a deathmatch

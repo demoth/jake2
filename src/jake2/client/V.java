@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.13 2004-02-14 19:33:51 cwei Exp $
+ * $Id: V.java,v 1.14 2004-02-15 00:58:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -414,5 +414,4 @@ public final class V extends Globals {
 
 		cl_stats = Cvar.Get("cl_stats", "0", 0);		
 	}
-
 }
