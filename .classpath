@@ -4,5 +4,6 @@
     <classpathentry kind="src" path="test"/>
     <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
     <classpathentry kind="lib" path="C:/lib/jogl.jar"/>
+    <classpathentry kind="lib" path="D:/java/jake2/lib/joal/windows/joal.jar"/>
     <classpathentry kind="output" path="build"/>
 </classpath>
