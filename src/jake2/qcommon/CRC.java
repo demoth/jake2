@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: CRC.java,v 1.1 2004-06-01 13:54:08 rst Exp $
+// $Id: CRC.java,v 1.2 2004-06-01 14:09:04 rst Exp $
 package jake2.qcommon;
 
 import jake2.util.Vargs;
@@ -330,7 +330,54 @@ public class CRC
 				System.out.println("crc:" + (CRC_Block(data, 21) & 0xffff));
 				System.out.println("----");
 				for (int n=0; n < 5; n++)
-					System.out.println("seq:" + (Com.BlockSequenceCRCByte( data,0, 21,n) & 0xffff));
+					System.out.println("seq:" + (Com.BlockSequenceCRCByte( data,0, 21,n*10) & 0xff));
 				
 	}
+	
+/* c test:
+ * 
+ * D:\Rene\gamesrc\quake2-3.21\qcommon>crc
+ * crc=-12353
+ * ----
+ * seq:215
+ * seq:252
+ * seq:164
+ * seq:202
+ * seq:201
+ * 
+int main()
+{
+	byte data[21] = 
+	{	
+				  0x71,
+				  0xa9,
+				  0x05,
+				  0xce,
+				  0x8d,
+				  0x75,
+				  0x28,
+				  0xc8,
+				  0xba,
+				  0x97,
+				
+				  0x45,
+				  0xe9,
+				  0x8a,
+				  0xe0,
+				  0x37,
+				  0xbd,
+				  0x6c,
+				  0x6d,
+				  0x67,
+				  0x4a, 0x21 };
+	int n=0;
+
+	printf("crc=%d\n", (short) CRC_Block(&data, 21));
+
+	printf("----\n");
+	for (n=0; n < 5; n++)
+		printf("seq:%d\n", COM_BlockSequenceCRCByte( &data,21, n*10) );
+} 
+ */	
+	
 }
