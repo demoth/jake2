@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.16 2004-01-11 00:31:58 hoz Exp $
+ * $Id: TestRenderer.java,v 1.17 2004-01-11 13:21:40 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -163,12 +163,19 @@ public class TestRenderer {
 		re.Init();
 	}
 
+	float fps = 0.0f;
+	long start = 0;
 	void updateScreen() {
 		re.BeginFrame(0.0f);
 		viddef = Globals.viddef;
 		re.DrawStretchPic(0,0,viddef.width, viddef.height, "conback");
 		
-		String text = "Hallo Jake2 :-)";
+		if (framecount % 500 == 0) {
+			long time = System.currentTimeMillis();
+			fps = 500000.0f / (time - start);
+			start = time;		
+		}
+		String text = fps + " fps";
 		
 		for (int i = 0; i < text.length(); i++) {
 			re.DrawChar(10 + 8 * i, viddef.height/2, (int)text.charAt(i));
@@ -201,10 +208,10 @@ public class TestRenderer {
 		while (true) {
 			re.updateScreen();
 			KBD.Update();
-			try {
-				Thread.sleep(15);
-			} catch (InterruptedException e) {
-			}
+//			try {
+//				Thread.sleep(15);
+//			} catch (InterruptedException e) {
+//			}
 		}
 	}
 	
