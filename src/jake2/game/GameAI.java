@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.7 2003-12-17 10:07:20 rst Exp $
+// $Id: GameAI.java,v 1.8 2003-12-27 17:53:03 rst Exp $
 
 package jake2.game;
 
@@ -2116,7 +2116,7 @@ public class GameAI extends GameUtil {
 		if (null == ent.client)
 			return false;
 
-		info= Info_ValueForKey(ent.client.pers.userinfo, "gender").charAt(0);
+		info= Info.Info_ValueForKey(ent.client.pers.userinfo, "gender").charAt(0);
 		if (info == 'f' || info == 'F')
 			return true;
 		return false;
@@ -2129,7 +2129,7 @@ public class GameAI extends GameUtil {
 		if (ent.client == null)
 			return false;
 
-		info= Info_ValueForKey(ent.client.pers.userinfo, "gender").charAt(0);
+		info= Info.Info_ValueForKey(ent.client.pers.userinfo, "gender").charAt(0);
 
 		if (info != 'f' && info != 'F' && info != 'm' && info != 'M')
 			return true;

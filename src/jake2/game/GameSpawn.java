@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.6 2003-12-27 15:41:00 rst Exp $
+// $Id: GameSpawn.java,v 1.7 2003-12-27 17:53:03 rst Exp $
 
 package jake2.game;
 
-import jake2.util.Lib;
+import jake2.util.*;
+import jake2.qcommon.*;
 
 public class GameSpawn extends Game {
 
@@ -195,6 +196,8 @@ public class GameSpawn extends Game {
 			if (!ent.set(key, value))
 				gi.dprintf(key + " is not a field\n");
 
+
+
 		/** OLD CODE, delegated to ent.set(...) and st.set(...) 
 		
 		for (f = fields; f.name; f++) {
@@ -246,41 +249,55 @@ public class GameSpawn extends Game {
 		ed should be a properly initialized empty edict.
 		====================
 	*/
-	/*
+	 
 	static String ED_ParseEdict(String data, edict_t ent) {
+		
 		boolean init;
 		String keyname;
 		String com_token;
 		init = false;
+		
 		//memset(& st, 0, sizeof(st));
 		//	   go through all the dictionary pairs
+		
+		Com.ParseHelp ph = new Com.ParseHelp(data);
+		
+		
 		while (true) { // parse key
-			com_token = COM_Parse(data);
-			if (com_token[0] == '}')
+			com_token = Com.Parse(ph);
+			if (com_token.charAt(0) == '}')
 				break;
-			if (!data)
+				
+			if (ph.isEof())
 				gi.error("ED_ParseEntity: EOF without closing brace");
-			strncpy(keyname, com_token, sizeof(keyname) - 1);
-			// parse value	
-			com_token = COM_Parse(data);
-			if (!data)
+				
+			
+			//strncpy(keyname, com_token, sizeof(keyname) - 1);
+			keyname = com_token;
+			
+			// parse value				
+			com_token = Com.Parse(ph);
+			
+			if (ph.isEof())
 				gi.error("ED_ParseEntity: EOF without closing brace");
-			if (com_token[0] == '}')
+				
+			if (com_token.charAt(0) == '}')
 				gi.error("ED_ParseEntity: closing brace without data");
+				
 			init = true;
 			// keynames with a leading underscore are used for utility comments,
 			// and are immediately discarded by quake
-			if (keyname[0] == '_')
+			if (keyname.charAt(0) == '_')
 				continue;
 			ED_ParseField(keyname, com_token, ent);
 		}
 	
 		if (!init)
 			ent.clear();
-		//memset(ent, 0, sizeof(* ent));
+
 		return data;
 	}
-	*/
+	
 	/*
 		================
 		G_FindTeams
@@ -291,17 +308,19 @@ public class GameSpawn extends Game {
 		All but the last will have the teamchain field set to the next one
 		================
 	*/
-	/*
+
 	static void G_FindTeams() {
 		edict_t e, e2, chain;
 		int i, j;
 		int c, c2;
 		c = 0;
 		c2 = 0;
-		for (i = 1, e = g_edicts + i; i < globals.num_edicts; i++, e++) {
+		for (i = 1; i < globals.num_edicts; i++) {
+			e = g_edicts[i];
+
 			if (!e.inuse)
 				continue;
-			if (!e.team)
+			if (e.team ==  null)
 				continue;
 			if ((e.flags & FL_TEAMSLAVE) != 0)
 				continue;
@@ -309,7 +328,8 @@ public class GameSpawn extends Game {
 			e.teammaster = e;
 			c++;
 			c2++;
-			for (j = i + 1, e2 = e + 1; j < globals.num_edicts; j++, e2++) {
+			for (j = i + 1; j < globals.num_edicts; j++) {
+				e2 = g_edicts[j];
 				if (!e2.inuse)
 					continue;
 				if (null == e2.team)
@@ -325,10 +345,9 @@ public class GameSpawn extends Game {
 				}
 			}
 		}
-	
+		
 		gi.dprintf("" + c + " teams with " + c2 + " entities\n");
 	}
-	*/
 
 	/*
 			==============
@@ -339,22 +358,22 @@ public class GameSpawn extends Game {
 			==============
 	*/
 
-	//	static void SpawnEntities(String mapname, String entities, String spawnpoint) {
-	//		edict_t ent;
-	//		int inhibit;
-	//		String com_token;
-	//		int i;
-	//		float skill_level;
-	//		skill_level = (float) Math.floor(skill.value);
-	//		if (skill_level < 0)
-	//			skill_level = 0;
-	//		if (skill_level > 3)
-	//			skill_level = 3;
-	//		if (skill.value != skill_level)
-	//			gi.cvar_forceset("skill", "" + skill_level);
-	//
+		static void SpawnEntities(String mapname, String entities, String spawnpoint) {
+			edict_t ent;
+			int inhibit;
+			String com_token;
+			int i;
+			float skill_level;
+			skill_level = (float) Math.floor(skill.value);
+			if (skill_level < 0)
+				skill_level = 0;
+			if (skill_level > 3)
+				skill_level = 3;
+			if (skill.value != skill_level)
+				gi.cvar_forceset("skill", "" + skill_level);
+	
 	//		SaveClientData();
-	//		gi.FreeTags(TAG_LEVEL);
+			
 	//		level.clear();
 	//		memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
 	//		strncpy(level.mapname, mapname, sizeof(level.mapname) - 1);
@@ -416,9 +435,11 @@ public class GameSpawn extends Game {
 	//			i++;
 	//			ent++;
 	//		} //# endif 
-	//		G_FindTeams();
-	//		PlayerTrail.Init();
-	//	}
+			G_FindTeams();
+			PlayerTrail.Init();
+		}
+
+		// E C L I P S E   D R E C K M I S T   F O R M A T T E R !
 
 		static String single_statusbar = "yb	-24 " //	   health
 		+"xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo

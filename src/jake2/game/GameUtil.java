@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: GameUtil.java,v 1.5 2003-12-27 17:53:03 rst Exp $
 
 package jake2.game;
 
@@ -263,7 +263,7 @@ public class GameUtil extends GameBase {
 		if (ent.client == null)
 			return "";
 
-		value= Info_ValueForKey(ent.client.pers.userinfo, "skin");
+		value= Info.Info_ValueForKey(ent.client.pers.userinfo, "skin");
 
 		int p= value.indexOf("/");
 
@@ -275,11 +275,6 @@ public class GameUtil extends GameBase {
 		}
 
 		return value.substring(p + 1, value.length());
-	}
-
-	/** TODO: port it. */
-	static String Info_ValueForKey(String s, String key) {
-		return "";
 	}
 
 	static EntThinkAdapter MegaHealth_think= new EntThinkAdapter() {
