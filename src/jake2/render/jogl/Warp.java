@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.6 2004-01-23 19:24:36 cwei Exp $
+ * $Id: Warp.java,v 1.7 2004-01-25 16:39:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -217,9 +217,8 @@ public abstract class Warp extends Model {
 		poly.verts[0][3] = total_s/numverts;
 		poly.verts[0][4] = total_t/numverts;
 
-		// TODO bug: copy first vertex to last
-//		memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
-		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, poly.verts[1].length);
+		// memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
+		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, poly.verts[1].length); // :-)
 	}
 
 	/*
