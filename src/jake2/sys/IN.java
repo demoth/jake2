@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.14 2004-02-01 11:01:48 hoz Exp $
+ * $Id: IN.java,v 1.15 2004-02-01 12:42:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.sys;
 
 import jake2.Globals;
+import jake2.game.usercmd_t;
 import jake2.qcommon.Cvar;
 
 import java.awt.*;
@@ -123,6 +124,16 @@ public final class IN extends Globals {
 	}
 
 	public static void Activate(boolean active) {
+	}
+//
+//
+	public static void CenterView() {
+//		cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+	}
+	
+	public static void Move(usercmd_t cmd) {
+//	00491         if (RW_IN_Move_fp)
+//	00492                 RW_IN_Move_fp(cmd);
 	}
 
 }
