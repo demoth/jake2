@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.10 2003-12-02 10:07:36 hoz Exp $
+ * $Id: Cmd.java,v 1.11 2003-12-02 13:16:15 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,5 +195,53 @@ public final class Cmd {
 	 */
 	public static String Args() {
 		return cmd_args;
+	}
+	
+	public static void ExecuteString (String text) {       
+//	00813         cmd_function_t  *cmd;
+//	00814         cmdalias_t              *a;
+//	00815 
+//	00816         Cmd_TokenizeString (text, true);
+//	00817                         
+//	00818         // execute the command line
+//	00819         if (!Cmd_Argc())
+//	00820                 return;         // no tokens
+//	00821 
+//	00822         // check functions
+//	00823         for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
+//	00824         {
+//	00825                 if (!Q_strcasecmp (cmd_argv[0],cmd->name))
+//	00826                 {
+//	00827                         if (!cmd->function)
+//	00828                         {       // forward to server command
+//	00829                                 Cmd_ExecuteString (va("cmd %s", text));
+//	00830                         }
+//	00831                         else
+//	00832                                 cmd->function ();
+//	00833                         return;
+//	00834                 }
+//	00835         }
+//	00836 
+//	00837         // check alias
+//	00838         for (a=cmd_alias ; a ; a=a->next)
+//	00839         {
+//	00840                 if (!Q_strcasecmp (cmd_argv[0], a->name))
+//	00841                 {
+//	00842                         if (++alias_count == ALIAS_LOOP_COUNT)
+//	00843                         {
+//	00844                                 Com_Printf ("ALIAS_LOOP_COUNT\n");
+//	00845                                 return;
+//	00846                         }
+//	00847                         Cbuf_InsertText (a->value);
+//	00848                         return;
+//	00849                 }
+//	00850         }
+//	00851         
+//	00852         // check cvars
+//	00853         if (Cvar_Command ())
+//	00854                 return;
+//	00855 
+//	00856         // send it as a server command if we are connected
+//	00857         Cmd_ForwardToServer ();
 	}
 }

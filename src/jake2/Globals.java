@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.15 2003-12-02 10:07:36 hoz Exp $
+ * $Id: Globals.java,v 1.16 2003-12-02 13:16:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -60,6 +60,7 @@ public class Globals extends Defines {
 	public static boolean bigendien = false;
 	public static boolean cmd_wait;
 
+	public static int alias_count;
 	public static int com_argc;
 	public static int c_traces;
 	public static int c_brush_traces;

@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.7 2003-12-02 10:07:36 hoz Exp $
+ * $Id: Cbuf.java,v 1.8 2003-12-02 13:16:15 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.Globals;
+import jake2.game.Cmd;
 
 /**
  * Cbuf
@@ -44,6 +45,25 @@ public final class Cbuf {
 	 * @param text
 	 */
 	public static void InsertText(String text) {
+		byte[] temp = null;
+		int templen = 0;
+
+		// copy off any commands still remaining in the exec buffer
+		templen = Globals.cmd_text.cursize;
+		if (templen != 0) {
+			temp = new byte[templen];
+			System.arraycopy(Globals.cmd_text.data, 0, temp, 0, templen);
+			SZ.Clear(Globals.cmd_text);
+		}
+		                
+		// add the entire text of the file
+		Cbuf.AddText(text);
+         
+		// add the copied off data
+		if (templen != 0) {
+			SZ.Write(Globals.cmd_text, temp, templen);
+			temp = null;
+		}		
 	}
 	
 	/**
@@ -69,7 +89,62 @@ public final class Cbuf {
 	 * @return
 	 */
 	static boolean AddLateCommands() {
-		return true;
+//		00298         int             i, j;
+//		00299         int             s;
+//		00300         char    *text, *build, c;
+//		00301         int             argc;
+		boolean ret = false;
+//		00303 
+//		00304 // build the combined string to parse from
+//		00305         s = 0;
+//		00306         argc = COM_Argc();
+//		00307         for (i=1 ; i<argc ; i++)
+//		00308         {
+//		00309                 s += strlen (COM_Argv(i)) + 1;
+//		00310         }
+//		00311         if (!s)
+//		00312                 return false;
+//		00313                 
+//		00314         text = Z_Malloc (s+1);
+//		00315         text[0] = 0;
+//		00316         for (i=1 ; i<argc ; i++)
+//		00317         {
+//		00318                 strcat (text,COM_Argv(i));
+//		00319                 if (i != argc-1)
+//		00320                         strcat (text, " ");
+//		00321         }
+//		00322         
+//		00323 // pull out the commands
+//		00324         build = Z_Malloc (s+1);
+//		00325         build[0] = 0;
+//		00326         
+//		00327         for (i=0 ; i<s-1 ; i++)
+//		00328         {
+//		00329                 if (text[i] == '+')
+//		00330                 {
+//		00331                         i++;
+//		00332 
+//		00333                         for (j=i ; (text[j] != '+') && (text[j] != '-') && (text[j] != 0) ; j++)
+//		00334                                 ;
+//		00335 
+//		00336                         c = text[j];
+//		00337                         text[j] = 0;
+//		00338                         
+//		00339                         strcat (build, text+i);
+//		00340                         strcat (build, "\n");
+//		00341                         text[j] = c;
+//		00342                         i = j-1;
+//		00343                 }
+//		00344         }
+//		00345 
+//		00346         ret = (build[0] != 0);
+//		00347         if (ret)
+//		00348                 Cbuf_AddText (build);
+//		00349         
+//		00350         Z_Free (text);
+//		00351         Z_Free (build);
+//		00352 
+		return ret;		
 	}
 	
 	/**
@@ -89,5 +164,53 @@ public final class Cbuf {
 	 * 
 	 */
 	public static void Execute() {
+
+		byte[] text = null;
+		byte[] line = new byte[1024];
+ 
+		Globals.alias_count = 0;                // don't allow infinite alias loops
+ 
+		while (Globals.cmd_text.cursize != 0) {
+			// find a \n or ; line break
+			text = Globals.cmd_text.data;
+ 
+			int quotes = 0;
+			int i;
+			for (i=0 ; i < Globals.cmd_text.cursize ; i++) {
+				if (text[i] == '"')
+					quotes++;
+				if ( !(quotes%2 != 0) &&  text[i] == ';')
+					break;  // don't break if inside a quoted string
+				if (text[i] == '\n')
+					break;
+			}
+             
+            System.arraycopy(text, 0, line, 0, i);                                             
+			line[i] = 0;
+                
+			// delete the text from the command buffer and move remaining commands down
+			// this is necessary because commands (exec, alias) can insert data at the
+			// beginning of the text buffer
+
+			if (i == Globals.cmd_text.cursize)
+				Globals.cmd_text.cursize = 0;
+			else {
+				i++;
+				Globals.cmd_text.cursize -= i;
+				byte[] tmp = new byte[Globals.cmd_text.cursize];
+				System.arraycopy(text, 1, tmp, 0, Globals.cmd_text.cursize);
+				System.arraycopy(tmp, 0, text, 0, Globals.cmd_text.cursize);
+			}
+ 
+			// execute the command line
+			Cmd.ExecuteString(new String(line));
+                
+			if (Globals.cmd_wait) {
+				// skip out while text still remains in buffer, leaving it
+				// for next frame
+				Globals.cmd_wait = false;
+				break;
+			}
+		}		
 	}
 }

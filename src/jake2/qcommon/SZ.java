@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.6 2003-12-02 10:07:36 hoz Exp $
+ * $Id: SZ.java,v 1.7 2003-12-02 13:16:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,14 +47,16 @@ public final class SZ {
 	}
 	
 	public static void Write(sizebuf_t buf, byte[] data, int length) {
-		System.arraycopy(data, 0, GetSpace(buf, length), 0, length);
-//	00917         memcpy (SZ_GetSpace(buf,length),data,length);           
+		System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
 	}
 	
-	public static byte[] GetSpace(sizebuf_t buf, int length) {
-
-		byte[] data = null;
-         
+	/**
+	 * @param buf
+	 * @param length
+	 * @return the write position instead of the pointer
+	 */
+	public static int GetSpace(sizebuf_t buf, int length) {
+        
 		if (buf.cursize + length > buf.maxsize) {
 			if (!buf.allowoverflow)
 				Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: overflow without allowoverflow set");
@@ -67,7 +69,7 @@ public final class SZ {
 			buf.overflowed = true;
 		}
  
-		//data = buf.data + buf.cursize;
+		int data = buf.cursize;
 		
 		buf.cursize += length;
        
