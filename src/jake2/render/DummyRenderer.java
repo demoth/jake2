@@ -2,7 +2,7 @@
  * DummyRenderer.java
  * Copyright (C) 2003
  *
- * $Id: DummyRenderer.java,v 1.1 2005-02-07 17:43:23 cawe Exp $
+ * $Id: DummyRenderer.java,v 1.2 2005-02-07 22:37:55 cawe Exp $
  */
  
 package jake2.render;
@@ -156,6 +156,7 @@ public class DummyRenderer implements refexport_t {
 	 * @see jake2.client.refexport_t#updateScreen(jake2.qcommon.xcommand_t)
 	 */
 	public void updateScreen(xcommand_t callback) {
+	    callback.execute();
 	}
 
 	/* (non-Javadoc)
