@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.16 2004-02-03 13:13:01 hoz Exp $
+// $Id: Math3D.java,v 1.17 2004-02-04 18:10:56 rst Exp $
 
 package jake2.util;
 
@@ -527,13 +527,13 @@ public class Math3D extends Lib {
 
 
 	public static float anglemod(float a) {
-		return (float) (360.0 / 65536) * ((int) (a * (65536 / 360.0)) & 65535);
+		return (float) (360.0f / 65536) * ((int) (a * (65536 / 360.0f)) & 65535);
 	}
 
 
 
 	public static int ANGLE2SHORT(float x) {
-		return ((int) ((x) * 65536 / 360) & 65535);
+		return ((int) ((x) * 65536f / 360f) & 65535);
 	}
 
 

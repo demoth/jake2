@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.13 2004-02-02 21:47:00 rst Exp $
+// $Id: GameAI.java,v 1.14 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -29,7 +29,7 @@ import jake2.util.*;
 
 import java.util.*;
 
-public class GameAI extends GameUtil {
+public class GameAI extends M_Flash {
 
 	/*
 	===============
@@ -38,15 +38,12 @@ public class GameAI extends GameUtil {
 	*/
 	public static gitem_t GetItemByIndex(int index) {
 
-		gitem_t xxx = new gitem_t(123);
-
 		if (index == 0 || index >= game.num_items)
 			return null;
 
 		return itemlist[index];
 	}
 
-	public static float[][] monster_flash_offset = null;
 
 	/** Common Boss explode animation.*/
 
@@ -3450,5 +3447,74 @@ public class GameAI extends GameUtil {
 		//game.num_items = sizeof(itemlist)/sizeof(itemlist[0]) - 1;
 		game.num_items = itemlist.length - 1;
 	}
+	
+
+
+	/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	public static void  SP_item_health (edict_t self)
+	{
+		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		{
+			G_FreeEdict (self);
+		}
+
+		self.model = "models/items/healing/medium/tris.md2";
+		self.count = 10;
+		SpawnItem (self, FindItem ("Health"));
+		gi.soundindex ("items/n_health.wav");
+	}
+
+	/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	static void  SP_item_health_small (edict_t  self)
+	{
+		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH)!=0)
+		{
+			G_FreeEdict (self);
+			return;
+		}
+
+		self.model = "models/items/healing/stimpack/tris.md2";
+		self.count = 2;
+		SpawnItem (self, FindItem ("Health"));
+		self.style = HEALTH_IGNORE_MAX;
+		gi.soundindex ("items/s_health.wav");
+	}
+
+	/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	static void SP_item_health_large (edict_t  self)
+	{
+		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		{
+			G_FreeEdict (self);
+			return;
+		}
+
+		self.model = "models/items/healing/large/tris.md2";
+		self.count = 25;
+		SpawnItem (self, FindItem ("Health"));
+		gi.soundindex ("items/l_health.wav");
+	}
+
+	/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	static void SP_item_health_mega (edict_t self)
+	{
+		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		{
+			G_FreeEdict (self);
+			return;
+		}
+
+		self.model = "models/items/mega_h/tris.md2";
+		self.count = 100;
+		SpawnItem (self, FindItem ("Health"));
+		gi.soundindex ("items/m_health.wav");
+		self.style = HEALTH_IGNORE_MAX|HEALTH_TIMED;
+	}
+
+
 
 }

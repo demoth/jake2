@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.4 2003-12-28 19:52:35 rst Exp $
+// $Id: Fire.java,v 1.5 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -236,7 +236,7 @@ public class Fire {
 			Math3D.VectorSubtract(tr.endpos, water_start, dir);
 			Math3D.VectorNormalize(dir);
 			Math3D.VectorMA(tr.endpos, -2, dir, pos);
-			if ((GameBase.gi.pointcontents.pointcontents(pos) & Defines.MASK_WATER) != 0)
+			if ((Game.gi.pointcontents.pointcontents(pos) & Defines.MASK_WATER) != 0)
 				Math3D.VectorCopy(pos, tr.endpos);
 			else
 				tr= GameBase.gi.trace(pos, null, null, water_start, tr.ent, Defines.MASK_WATER);

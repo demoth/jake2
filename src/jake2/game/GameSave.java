@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.9 2004-01-09 18:30:56 rst Exp $
+// $Id: GameSave.java,v 1.10 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -35,7 +35,7 @@ import jake2.render.*;
 import jake2.server.*;
 import jake2.util.*;
 
-public class GameSave extends PlayerView {
+public class GameSave extends GameFunc {
 
 	public static field_t levelfields[] =
 		{

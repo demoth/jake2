@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.7 2004-02-01 23:31:37 rst Exp $
+// $Id: game_export_t.java,v 1.8 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -113,7 +113,8 @@ public class game_export_t {
 	// 
 	// The size will be fixed when ge->Init() is called
 	public edict_t edicts[] = Game.g_edicts;
-	public int edict_size;
+	// DO WE NEED THIS ?
+	//public int edict_size;
 	public int num_edicts; // current number, <= max_edicts
 	public int max_edicts;
 }

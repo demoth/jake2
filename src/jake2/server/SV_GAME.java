@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.8 2004-02-02 19:13:26 rst Exp $
+// $Id: SV_GAME.java,v 1.9 2004-02-04 18:10:56 rst Exp $
 
 package jake2.server;
 
@@ -198,7 +198,7 @@ public class SV_GAME extends SV_INIT
 		ent.s.modelindex = i;
 	
 	// if it is an inline model, get the size information for it
-		if (name.charAt(0) == '*')
+		if (name.startsWith("*"))
 		{
 			mod = CM.InlineModel (name);
 			VectorCopy (mod.mins, ent.mins);
@@ -318,7 +318,7 @@ public class SV_GAME extends SV_INIT
 	{
 		if (null==entity)
 			return;
-		SV_SEND.SV_StartSound (null, entity, channel, sound_num, volume, attenuation, timeofs);
+		//SV_SEND.SV_StartSound (null, entity, channel, sound_num, volume, attenuation, timeofs);
 	}
 	
 	//==============================================

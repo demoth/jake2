@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.01.2004 by RST.
-// $Id: SuperAdapter.java,v 1.1 2004-01-09 18:30:56 rst Exp $
+// $Id: SuperAdapter.java,v 1.2 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -41,7 +41,7 @@ public class SuperAdapter {
 	private static void register(SuperAdapter sa)
 	{
 		adapters.add(sa);
-		Com.Println("registering adapter " + sa.getID() + " (" + sa.getClass().getSuperclass() + ")");
+		//Com.Println("registering adapter " + sa.getID() + " (" + sa.getClass().getSuperclass() + ")");
 	}
 	
 	private static int id=0;	

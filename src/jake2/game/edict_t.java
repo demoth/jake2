@@ -68,14 +68,14 @@ public class edict_t {
 	public int movetype;
 	public int flags;
 
-	public String model = null;
+	public String model = "";
 	public float freetime; // sv.time when the object was freed
 
 	//
 	// only used locally in game, not by server
 	//
-	public String message = null;
-	public String classname = null;
+	public String message = "";
+	public String classname = "";
 	public int spawnflags;
 
 	public float timestamp;
@@ -83,13 +83,13 @@ public class edict_t {
 	// set in qe3, -1 = up, -2 = down
 	public float angle;
 
-	public String target = null;
-	public String targetname = null;
-	public String killtarget = null;
-	public String team = null;
-	public String pathtarget = null;
-	public String deathtarget = null;
-	public String combattarget = null;
+	public String target = "";
+	public String targetname = "";
+	public String killtarget = "";
+	public String team = "";
+	public String pathtarget = "";
+	public String deathtarget = "";
+	public String combattarget = "";
 
 	public edict_t target_ent = null;
 
@@ -455,6 +455,7 @@ public class edict_t {
 		
 		*/
 		if (key.equals("item")) {
+			Game.gi.error("ent.set(\"item\") called.");
 			return true;
 		} // F_ITEM)
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.15 2004-02-03 13:13:01 hoz Exp $
+// $Id: CM.java,v 1.16 2004-02-04 18:10:56 rst Exp $
 
 package jake2.qcommon;
 
@@ -42,7 +42,7 @@ public class CM extends Game {
 
 	public static class cbrushside_t {
 		cplane_t plane;
-		mapsurface_t surface;
+		mapsurface_t surface; // pointer !
 	}
 
 	public static class cleaf_t {
@@ -170,7 +170,7 @@ public class CM extends Game {
 
 	public static int numclusters = 1;
 
-	public static mapsurface_t nullsurface;
+	public static mapsurface_t nullsurface= new mapsurface_t();
 
 	public static int floodvalid;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Chick.java,v 1.6 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Chick.java,v 1.7 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -933,7 +933,7 @@ public class M_Chick extends GameWeapon {
 
 	/*QUAKED monster_chick (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 	*/
-	void SP_monster_chick(edict_t self) {
+	static void SP_monster_chick(edict_t self) {
 		if (deathmatch.value != 0) {
 			G_FreeEdict(self);
 			return;

@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.12 2004-01-25 13:26:06 hoz Exp $
+ * $Id: M.java,v 1.13 2004-02-04 18:10:55 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -233,7 +233,7 @@ public final class M {
 		point[0] = ent.s.origin[0];
 		point[1] = ent.s.origin[1];
 		point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-		cont = GameBase.gi.pointcontents.pointcontents(point);
+		cont = Game.gi.pointcontents.pointcontents(point);
 
 		if (0 == (cont & Defines.MASK_WATER)) {
 			ent.waterlevel = 0;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flyer.java,v 1.7 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Flyer.java,v 1.8 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -753,7 +753,7 @@ public class M_Flyer extends GamePWeapon {
 
 	/*QUAKED monster_flyer (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 	*/
-	public void SP_monster_flyer(edict_t self) {
+	public static void SP_monster_flyer(edict_t self) {
 		if (deathmatch.value != 0) {
 			G_FreeEdict(self);
 			return;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.9 2004-02-02 21:47:00 rst Exp $
+// $Id: GameUtil.java,v 1.10 2004-02-04 18:10:56 rst Exp $
 
 package jake2.game;
 
@@ -105,9 +105,9 @@ public class GameUtil extends GameBase {
 			while ((edit= G_Find(edit, findByTarget, ent.target)) != null) {
 				t= edit.o;
 				// doors fire area portals in a specific way
-				if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0
-					&& (Lib.Q_stricmp(ent.classname, "func_door") == 0
-						|| Lib.Q_stricmp(ent.classname, "func_door_rotating") == 0))
+				if (Lib.Q_stricmp("func_areaportal",t.classname) == 0
+					&& (Lib.Q_stricmp( "func_door", ent.classname) == 0
+						|| Lib.Q_stricmp( "func_door_rotating",ent.classname) == 0))
 					continue;
 
 				if (t == ent) {
@@ -1442,7 +1442,7 @@ public class GameUtil extends GameBase {
 	*/
 	static gitem_t FindItemByClassname(String classname) {
 
-		for (int i= 0; i < game.num_items; i++) {
+		for (int i= 1; i < game.num_items; i++) {
 			gitem_t it= GameAI.itemlist[i];
 
 			if (it.classname == null)

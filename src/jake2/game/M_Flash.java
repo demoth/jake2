@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flash.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Flash.java,v 1.4 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
-public class M_Flash
+public class M_Flash extends GameUtil
 {
 
 	//	   m_flash.c
@@ -31,7 +31,7 @@ public class M_Flash
 	//	   this file is included in both the game dll and quake2,
 	//	   the game needs it to source shot locations, the client
 	//	   needs it to position muzzle flashes
-	float monster_flash_offset[][]= {
+	static float monster_flash_offset[][]= {
 		//		flash 0 is not used
 		{ 0.0f, 0.0f, 0.0f },
 

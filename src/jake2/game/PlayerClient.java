@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.5 2004-02-02 19:13:26 rst Exp $
+// $Id: PlayerClient.java,v 1.6 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
@@ -351,7 +351,14 @@ public class PlayerClient extends PlayerHud {
 				if (message != null) {
 					gi.bprintf(
 						PRINT_MEDIUM,
-						self.client.pers.netname + " " + message + " " + attacker.client.pers.netname + " " + message2 + "\n");
+						self.client.pers.netname
+							+ " "
+							+ message
+							+ " "
+							+ attacker.client.pers.netname
+							+ " "
+							+ message2
+							+ "\n");
 					if (deathmatch.value != 0) {
 						if (ff)
 							attacker.client.resp.score--;
@@ -1517,7 +1524,9 @@ public class PlayerClient extends PlayerHud {
 
 		client = ent.client;
 
-		if (deathmatch.value != 0 && client.pers.spectator != client.resp.spectator && (level.time - client.respawn_time) >= 5) {
+		if (deathmatch.value != 0
+			&& client.pers.spectator != client.resp.spectator
+			&& (level.time - client.respawn_time) >= 5) {
 			spectator_respawn(ent);
 			return;
 		}

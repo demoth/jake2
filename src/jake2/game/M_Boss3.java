@@ -19,10 +19,58 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss3.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Boss3.java,v 1.3 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
-public class M_Boss3 {
+public class M_Boss3 extends M_Boss32 {
 
+	static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
+		public void use(edict_t ent, edict_t other, edict_t activator) {
+			gi.WriteByte(svc_temp_entity);
+			gi.WriteByte(TE_BOSSTPORT);
+			gi.WritePosition(ent.s.origin);
+			gi.multicast(ent.s.origin, MULTICAST_PVS);
+			G_FreeEdict(ent);
+		}
+	};
+
+	static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
+		public boolean think(edict_t ent) {
+			if (ent.s.frame == FRAME_stand260)
+				ent.s.frame = FRAME_stand201;
+			else
+				ent.s.frame++;
+			ent.nextthink = level.time + FRAMETIME;
+			return true;
+		}
+
+	};
+
+	/*QUAKED monster_boss3_stand (1 .5 0) (-32 -32 0) (32 32 90)
+	
+	Just stands and cycles in one place until targeted, then teleports away.
+	*/
+	static void SP_monster_boss3_stand(edict_t self) {
+		if (deathmatch.value != 0) {
+			G_FreeEdict(self);
+			return;
+		}
+
+		self.movetype = MOVETYPE_STEP;
+		self.solid = SOLID_BBOX;
+		self.model = "models/monsters/boss3/rider/tris.md2";
+		self.s.modelindex = gi.modelindex(self.model);
+		self.s.frame = FRAME_stand201;
+
+		gi.soundindex("misc/bigtele.wav");
+
+		VectorSet(self.mins, -32, -32, 0);
+		VectorSet(self.maxs, 32, 32, 90);
+
+		self.use = Use_Boss3;
+		self.think = Think_Boss3Stand;
+		self.nextthink = level.time + FRAMETIME;
+		gi.linkentity(self);
+	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.16 2004-02-02 21:47:00 rst Exp $
+// $Id: GameBase.java,v 1.17 2004-02-04 18:10:55 rst Exp $
 
 /** Father of all Objects. */
 
@@ -474,6 +474,7 @@ public class GameBase extends Globals {
 
 	public static EdictFindFilter findByTarget = new EdictFindFilter() {
 		public boolean matches(edict_t e, String s) {
+			if (e.targetname==null) return false;
 			return e.targetname.equalsIgnoreCase(s);
 		}
 	};
@@ -763,6 +764,14 @@ public class GameBase extends Globals {
 	public static game_export_t GetGameApi(game_import_t imp) {
 		gi = imp;
 
+		gi.pointcontents = new pmove_t.PointContentsAdapter()
+		{
+			public int pointcontents(float []o)
+			{
+				return SV_WORLD.SV_PointContents(o);
+			}
+		};
+		
 		globals.apiversion = GAME_API_VERSION;
 		/*
 		globals.Init = InitGame;
@@ -779,14 +788,13 @@ public class GameBase extends Globals {
 		globals.ClientUserinfoChanged = ClientUserinfoChanged;
 		globals.ClientDisconnect = ClientDisconnect;
 		globals.ClientBegin = ClientBegin;
-		globals.ClientCommand = ClientCommand;
-		
-		globals.RunFrame = G_RunFrame;
-		
+		globals.ClientCommand = ClientCommand;		
+		globals.RunFrame = G_RunFrame;		
 		globals.ServerCommand = ServerCommand;
 		*/
+		
 		//TODO: why do we need this ?
-		globals.edict_size = -1; //sizeof(edict_t);
+		//globals.edict_size = -1; //sizeof(edict_t);
 
 		return globals;
 	}

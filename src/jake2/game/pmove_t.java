@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.7 2004-01-25 21:45:45 rst Exp $
+// $Id: pmove_t.java,v 1.8 2004-02-04 18:10:55 rst Exp $
 
 package jake2.game;
 
 import jake2.*;
+import jake2.server.SV_WORLD;
 
 public class pmove_t {
 
@@ -63,7 +64,7 @@ public class pmove_t {
 
 	public TraceAdapter trace;
 
-	public PointContentsAdapter pointcontents;
+	public PointContentsAdapter pointcontents;	
 
 	public void clear() {
 		// TODO: create the clear() method.
