@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.14 2004-02-07 13:02:44 rst Exp $
+// $Id: SV_INIT.java,v 1.15 2004-02-11 09:37:08 rst Exp $
 
 package jake2.server;
 
@@ -366,9 +366,12 @@ public class SV_INIT extends Globals  {
 		for (int n=0; n < svs.clients.length; n++)
 			svs.clients[n]= new client_t();
 		
-		svs.num_client_entities = ((int) SV_MAIN.maxclients.value) * UPDATE_BACKUP * 64;
+		svs.num_client_entities = ((int) SV_MAIN.maxclients.value) * UPDATE_BACKUP * 64; //ok.
+		
 		//svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
 		svs.client_entities = new entity_state_t[svs.num_client_entities];
+		for (int n=0; n < svs.client_entities.length; n++)
+			svs.client_entities[n] = new entity_state_t();
 
 		// init network stuff
 		NET.Config((SV_MAIN.maxclients.value > 1));
@@ -379,12 +382,12 @@ public class SV_INIT extends Globals  {
 		NET.StringToAdr(idmaster, SV_MAIN.master_adr[0]);
 
 		// init game
-		SV_GAME.SV_InitGameProgs();
+		SV_GAME.SV_InitGameProgs(); // bis hier alles ok!
 		
 		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			ent = SV_GAME.ge.edicts[i + 1];
 			
-			ent.s.number = i + 1;
+			ent.s.number = i + 1;	//dont need this, ent.s.number already set.
 			svs.clients[i].edict = ent;
 			//memset(& svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
 			svs.clients[i].lastcmd = new usercmd_t();
@@ -421,7 +424,7 @@ public class SV_INIT extends Globals  {
 		if (sv.state == ss_dead && !sv.loadgame)
 			SV_InitGame(); // the game is just starting
 
-		level = levelstring;
+		level = levelstring;	// bis hier her ok.
 
 		// if there is a + in the map, set nextserver to the remainder
 
@@ -437,7 +440,7 @@ public class SV_INIT extends Globals  {
 
 		int c = level.indexOf('+');
 		if (c != -1) {
-
+			Cvar.Set("nextserver","gamemap \"" + level.substring(c+1) + "\"");
 		}
 		else {
 			Cvar.Set("nextserver", "");
@@ -451,7 +454,7 @@ public class SV_INIT extends Globals  {
 		int pos = level.indexOf('$');
 		if (pos!=-1) {
 			//* ch = 0;
-			spawnpoint = level.substring(pos + 1, level.length());
+			spawnpoint = level.substring(pos + 1);
 			level = level.substring(0,pos);			
 			
 		}
