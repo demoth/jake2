@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.3 2004-06-22 17:18:56 cwei Exp $
+ * $Id: FastJoglRenderer.java,v 1.4 2004-06-25 03:06:32 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,16 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render;
 
-import java.awt.Dimension;
-
 import jake2.Defines;
-import jake2.qcommon.qfiles;
+import jake2.client.*;
 import jake2.qcommon.xcommand_t;
-import jake2.render.fastjogl.*;
+import jake2.render.fastjogl.Impl;
 
-import jake2.client.refdef_t;
-import jake2.client.refexport_t;
-import jake2.client.refimport_t;
+import java.awt.Dimension;
 
 /**
  * FastJoglRenderer
@@ -80,11 +76,12 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 	 * @see jake2.client.refexport_t#BeginRegistration(java.lang.String)
 	 */
 	public void BeginRegistration(String map) {
-		if (contextInUse)
+		if (contextInUse) {
 			R_BeginRegistration(map);
-		
+			return;
+		}	
 		this.name = map;
-		
+			
 		updateScreen(new xcommand_t() {
 			public void execute() {
 				R_BeginRegistration(FastJoglRenderer.this.name);
@@ -161,8 +158,10 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 	 * @see jake2.client.refexport_t#SetSky(java.lang.String, float, float[])
 	 */
 	public void SetSky(String name, float rotate, float[] axis) {
-		if (contextInUse)
+		if (contextInUse) {
 			R_SetSky(name, rotate, axis);
+			return;
+		}
 
 		this.name = name;
 		this.rotate = rotate;
@@ -180,8 +179,10 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 	 * @see jake2.client.refexport_t#EndRegistration()
 	 */
 	public void EndRegistration() {
-		if (contextInUse)
+		if (contextInUse) {
 			R_EndRegistration();
+			return;
+		}
 
 		updateScreen(new xcommand_t() {
 			public void execute() {
