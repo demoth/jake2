@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.11 2003-12-19 13:31:49 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.12 2003-12-24 01:18:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 
 import net.java.games.jogl.*;
+import net.java.games.jogl.util.GLUT;
 
 import jake2.Defines;
 import jake2.client.entity_t;
@@ -950,7 +951,13 @@ final class JoglRenderer implements Ref, GLEventListener {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
 
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+		/*  select clearing (background) color       */
+			gl.glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
+
+		/*  initialize viewing values  */
+			gl.glMatrixMode(GL.GL_PROJECTION);
+			gl.glLoadIdentity();
+			gl.glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 
 		// TODO opengl init
 	}
@@ -961,10 +968,26 @@ final class JoglRenderer implements Ref, GLEventListener {
 	public void display(GLDrawable drawable) {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
+		GLUT glut = new GLUT();
 		
-
 		// TODO opengl display
+
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+		
+		int font = GLUT.BITMAP_TIMES_ROMAN_24;
+		
+		// draw FPS information
+		String text = "jake2";
+		int length = glut.glutBitmapLength(font, text);
+			
+		gl.glColor3f(0f, 0.8f, 0f);
+		gl.glWindowPos2i(drawable.getSize().width/2 - length/2, drawable.getSize().height/2);
+		glut.glutBitmapString(gl, font, text);
+
+		// end of frame
+		GLimp_EndFrame();
 	}
+	
 	/* 
 	* @see net.java.games.jogl.GLEventListener#displayChanged(net.java.games.jogl.GLDrawable, boolean, boolean)
 	*/
