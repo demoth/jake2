@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.12 2003-12-24 01:18:06 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.13 2003-12-27 16:24:25 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,26 +31,23 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
+
+import jake2.render.jogl.*;
+
 import net.java.games.jogl.*;
-import net.java.games.jogl.util.GLUT;
 
 import jake2.Defines;
-import jake2.client.entity_t;
 import jake2.client.refdef_t;
 import jake2.client.refexport_t;
 import jake2.client.refimport_t;
-import jake2.client.viddef_t;
-import jake2.game.cplane_t;
-import jake2.game.cvar_t;
 import jake2.qcommon.Cvar;
-import jake2.util.Vargs;
 
 /**
  * JoglRenderer
  * 
  * @author cwei
  */
-final class JoglRenderer implements Ref, GLEventListener {
+final class JoglRenderer extends Draw implements Ref, GLEventListener {
 
 	static final String DRIVER_NAME = "jogl";
 
@@ -60,118 +57,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 	GLCanvas canvas;
 	JFrame window;
-	GL gl;
-	GLU glu;
 
-	private refimport_t ri = null;
-
-	viddef_t vid = new viddef_t();
-
-	model_t r_worldmodel;
-
-	float gldepthmin, gldepthmax;
-
-	glconfig_t gl_config = new glconfig_t();
-	glstate_t gl_state = new glstate_t();
-
-	image_t r_notexture; // use for bad textures
-	image_t r_particletexture; // little dot for particles
-
-	entity_t currententity;
-	model_t currentmodel;
-
-	cplane_t frustum[] = new cplane_t[4];
-
-	int r_visframecount; // bumped when going to a new PVS
-	int r_framecount; // used for dlight push checking
-
-	int c_brush_polys, c_alias_polys;
-
-	float v_blend[] = { 0, 0, 0, 0 }; // final blending color
-
-	//
-	//	   view origin
-	//
-	float[] vup = { 0, 0, 0 };
-	float[] vpn = { 0, 0, 0 };
-	float[] vright = { 0, 0, 0 };
-	float[] r_origin = { 0, 0, 0 };
-
-	float r_world_matrix[] = new float[16];
-	float r_base_world_matrix[] = new float[16];
-
-	//
-	//	   screen size info
-	//
-	refdef_t r_newrefdef;
-
-	int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
-
-	cvar_t r_norefresh;
-	cvar_t r_drawentities;
-	cvar_t r_drawworld;
-	cvar_t r_speeds;
-	cvar_t r_fullbright;
-	cvar_t r_novis;
-	cvar_t r_nocull;
-	cvar_t r_lerpmodels;
-	cvar_t r_lefthand;
-
-	cvar_t r_lightlevel;
-	// FIXME: This is a HACK to get the client's light level
-
-	cvar_t gl_nosubimage;
-	cvar_t gl_allow_software;
-
-	cvar_t gl_vertex_arrays;
-
-	cvar_t gl_particle_min_size;
-	cvar_t gl_particle_max_size;
-	cvar_t gl_particle_size;
-	cvar_t gl_particle_att_a;
-	cvar_t gl_particle_att_b;
-	cvar_t gl_particle_att_c;
-
-	cvar_t gl_ext_swapinterval;
-	cvar_t gl_ext_palettedtexture;
-	cvar_t gl_ext_multitexture;
-	cvar_t gl_ext_pointparameters;
-	cvar_t gl_ext_compiled_vertex_array;
-
-	cvar_t gl_log;
-	cvar_t gl_bitdepth;
-	cvar_t gl_drawbuffer;
-	cvar_t gl_driver;
-	cvar_t gl_lightmap;
-	cvar_t gl_shadows;
-	cvar_t gl_mode = new cvar_t();
-	cvar_t gl_dynamic;
-	cvar_t gl_monolightmap;
-	cvar_t gl_modulate;
-	cvar_t gl_nobind;
-	cvar_t gl_round_down;
-	cvar_t gl_picmip;
-	cvar_t gl_skymip;
-	cvar_t gl_showtris;
-	cvar_t gl_ztrick;
-	cvar_t gl_finish;
-	cvar_t gl_clear;
-	cvar_t gl_cull;
-	cvar_t gl_polyblend;
-	cvar_t gl_flashblend;
-	cvar_t gl_playermip;
-	cvar_t gl_saturatelighting;
-	cvar_t gl_swapinterval;
-	cvar_t gl_texturemode;
-	cvar_t gl_texturealphamode;
-	cvar_t gl_texturesolidmode;
-	cvar_t gl_lockpvs;
-
-	cvar_t gl_3dlabs_broken;
-
-	cvar_t vid_fullscreen = new cvar_t();
-	cvar_t vid_gamma;
-	cvar_t vid_ref;
 
 	private JoglRenderer() {
 	}
@@ -186,6 +72,8 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * @see jake2.client.refexport_t#Init()
 	 */
 	public boolean Init() {
+		// TODO remove gl_mode hack
+		gl_mode.value = 3.0f;
 		return R_Init();
 	}
 
@@ -221,7 +109,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * @see jake2.client.refexport_t#RegisterPic(java.lang.String)
 	 */
 	public image_t RegisterPic(String name) {
-		return Draw.FindPic(name);
+		return Draw_FindPic(name);
 	}
 
 	/** 
@@ -249,63 +137,56 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * @see jake2.client.refexport_t#DrawGetPicSize(java.awt.Dimension, java.lang.String)
 	 */
 	public void DrawGetPicSize(Dimension dim, String name) {
-		Draw.GetPicSize(dim, name);
+		Draw_GetPicSize(dim, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawPic(int, int, java.lang.String)
 	 */
 	public void DrawPic(int x, int y, String name) {
-		Draw.Pic(x, y, name);
+		Draw_Pic(x, y, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawStretchPic(int, int, int, int, java.lang.String)
 	 */
 	public void DrawStretchPic(int x, int y, int w, int h, String name) {
-		Draw.StretchPic(x, y, w, h, name);
+		Draw_StretchPic(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawChar(int, int, int)
 	 */
 	public void DrawChar(int x, int y, int num) {
-		Draw.Char(x, y, num);
+		Draw_Char(x, y, num);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawTileClear(int, int, int, int, java.lang.String)
 	 */
 	public void DrawTileClear(int x, int y, int w, int h, String name) {
-		Draw.TileClear(x, y, w, h, name);
+		Draw_TileClear(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFill(int, int, int, int, int)
 	 */
 	public void DrawFill(int x, int y, int w, int h, int c) {
-		Draw.Fill(x, y, w, h, c);
+		Draw_Fill(x, y, w, h, c);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFadeScreen()
 	 */
 	public void DrawFadeScreen() {
-		Draw.FadeScreen();
+		Draw_FadeScreen();
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawStretchRaw(int, int, int, int, int, int, byte[])
 	 */
-	public void DrawStretchRaw(
-		int x,
-		int y,
-		int w,
-		int h,
-		int cols,
-		int rows,
-		byte[] data) {
-		Draw.StretchRaw(x, y, w, h, cols, rows, data);
+	public void DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte[] data) {
+		Draw_StretchRaw(x, y, w, h, cols, rows, data);
 	}
 
 	/** 
@@ -376,12 +257,9 @@ final class JoglRenderer implements Ref, GLEventListener {
 		//				r_turbsin[j] *= 0.5;
 		//			}
 		//
-		ri.Con_Printf(
-			Defines.PRINT_ALL,
-			"ref_gl version: " + REF_VERSION + "\n",
-			null);
+		ri.Con_Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
 		//
-		Draw.GetPalette();
+		Draw_GetPalette();
 		//
 		R_Register();
 		//
@@ -405,10 +283,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		//			// create the window and set up the context
 		if (!R_SetMode()) {
 			QGL_Shutdown();
-			ri.Con_Printf(
-				Defines.PRINT_ALL,
-				"ref_gl::R_Init() - could not R_SetMode()\n",
-				null);
+			ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
 			return false;
 		}
 		//
@@ -674,13 +549,8 @@ final class JoglRenderer implements Ref, GLEventListener {
 		boolean fullscreen;
 
 		if (vid_fullscreen.modified && !gl_config.allow_cds) {
-			ri.Con_Printf(
-				Defines.PRINT_ALL,
-				"R_SetMode() - CDS not allowed with this driver\n",
-				null);
-			ri.Cvar_SetValue(
-				"vid_fullscreen",
-				(vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
+			ri.Con_Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
+			ri.Cvar_SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
 			vid_fullscreen.modified = false;
 		}
 		//
@@ -689,48 +559,27 @@ final class JoglRenderer implements Ref, GLEventListener {
 		vid_fullscreen.modified = false;
 		gl_mode.modified = false;
 		//
-		if ((err =
-			GLimp_SetMode(
-				new Dimension(vid.width, vid.height),
-				(int) gl_mode.value,
-				fullscreen))
-			== rserr.ok) {
-			gl_state.prev_mode = (int) gl_mode.value;
+		
+		Dimension dim = new Dimension(vid.width, vid.height);
+		
+		if ((err = GLimp_SetMode(dim, (int)gl_mode.value, fullscreen)) == rserr.ok) {
+			gl_state.prev_mode = (int)gl_mode.value;
 		} else {
 			if (err == rserr.invalid_fullscreen) {
 				ri.Cvar_SetValue("vid_fullscreen", 0);
 				vid_fullscreen.modified = false;
-				ri.Con_Printf(
-					Defines.PRINT_ALL,
-					"ref_gl::R_SetMode() - fullscreen unavailable in this mode\n",
-					null);
-				if ((err =
-					GLimp_SetMode(
-						new Dimension(vid.width, vid.height),
-						(int) gl_mode.value,
-						false))
-					== rserr.ok)
+				ri.Con_Printf(Defines.PRINT_ALL,	"ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+				if ((err = GLimp_SetMode(dim, (int)gl_mode.value, false)) == rserr.ok)
 					return true;
 			} else if (err == rserr.invalid_mode) {
 				ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
 				gl_mode.modified = false;
-				ri.Con_Printf(
-					Defines.PRINT_ALL,
-					"ref_gl::R_SetMode() - invalid mode\n",
-					null);
+				ri.Con_Printf(Defines.PRINT_ALL,	"ref_gl::R_SetMode() - invalid mode\n");
 			}
 			//
 			//				// try setting it back to something safe
-			if ((err =
-				GLimp_SetMode(
-					new Dimension(vid.width, vid.height),
-					gl_state.prev_mode,
-					false))
-				!= rserr.ok) {
-				ri.Con_Printf(
-					Defines.PRINT_ALL,
-					"ref_gl::R_SetMode() - could not revert to safe mode\n",
-					null);
+			if ((err = GLimp_SetMode(dim, gl_state.prev_mode, false)) != rserr.ok) {
+				ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 				return false;
 			}
 		}
@@ -752,24 +601,16 @@ final class JoglRenderer implements Ref, GLEventListener {
 		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n", null);
 
 		if (fullscreen) {
-			ri.Con_Printf(
-				Defines.PRINT_ALL,
-				"...setting fullscreen mode %d:",
-				new Vargs(1).add(mode));
+			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen mode " + mode + ":");
 		} else
-			ri.Con_Printf(
-				Defines.PRINT_ALL,
-				"...setting mode %d:",
-				new Vargs(1).add(mode));
+			ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
-			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n", null);
+			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n");
 			return rserr.invalid_mode;
 		}
-		ri.Con_Printf(
-			Defines.PRINT_ALL,
-			" %d %d\n",
-			new Vargs(2).add(newDim.width).add(newDim.height));
+		
+		ri.Con_Printf(Defines.PRINT_ALL,	" " + newDim.width + " " + newDim.height + '\n');
 
 		// destroy the existing window
 		GLimp_Shutdown();
@@ -783,11 +624,10 @@ final class JoglRenderer implements Ref, GLEventListener {
 		// Use debug pipeline
 		canvas.setGL(new DebugGL(canvas.getGL()));
 		//canvas.setGL(canvas.getGL());
-		System.err.println(
-			"CANVAS GL IS: " + canvas.getGL().getClass().getName());
-		System.err.println(
-			"CANVAS GLU IS: " + canvas.getGLU().getClass().getName());
 
+		//canvas.setRenderingThread(Thread.currentThread());
+
+		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 		window.getContentPane().add(canvas);
 
@@ -801,11 +641,14 @@ final class JoglRenderer implements Ref, GLEventListener {
 		window.show();
 		this.canvas = canvas;
 
-		dim.width = newDim.width;
-		dim.height = newDim.height;
+		vid.width = newDim.width;
+		vid.height = newDim.height;
 
-		//		let the sound and input subsystems know about the new window
-		ri.Vid_NewWindow(dim.width, dim.height);
+		// let the sound and input subsystems know about the new window
+		ri.Vid_NewWindow(vid.width, vid.height);
+		
+		canvas.display();
+		
 		return rserr.ok;
 	}
 
@@ -920,7 +763,6 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 */
 	private void R_BeginFrame(float camera_separation) {
 		// TODO Auto-generated method stub
-
 	}
 
 	/**
@@ -955,9 +797,11 @@ final class JoglRenderer implements Ref, GLEventListener {
 			gl.glClearColor (0.0f, 0.0f, 0.0f, 0.0f);
 
 		/*  initialize viewing values  */
-			gl.glMatrixMode(GL.GL_PROJECTION);
-			gl.glLoadIdentity();
-			gl.glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+//			gl.glMatrixMode(GL.GL_PROJECTION);
+//			gl.glLoadIdentity();
+//			gl.glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+		   gl.glShadeModel(GL.GL_FLAT);
+		   gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 
 		// TODO opengl init
 	}
@@ -968,24 +812,8 @@ final class JoglRenderer implements Ref, GLEventListener {
 	public void display(GLDrawable drawable) {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
-		GLUT glut = new GLUT();
 		
-		// TODO opengl display
-
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-		
-		int font = GLUT.BITMAP_TIMES_ROMAN_24;
-		
-		// draw FPS information
-		String text = "jake2";
-		int length = glut.glutBitmapLength(font, text);
-			
-		gl.glColor3f(0f, 0.8f, 0f);
-		gl.glWindowPos2i(drawable.getSize().width/2 - length/2, drawable.getSize().height/2);
-		glut.glutBitmapString(gl, font, text);
-
-		// end of frame
-		GLimp_EndFrame();
+		ri.updateScreenCallback();		
 	}
 	
 	/* 
@@ -1008,5 +836,16 @@ final class JoglRenderer implements Ref, GLEventListener {
 		int arg3,
 		int arg4) {
 		// do nothing
+	}
+
+	/* 
+	 * @see jake2.client.refexport_t#updateScreen()
+	 */
+	public void updateScreen() {
+		if (canvas == null) {
+			throw new IllegalStateException(
+					"Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
+		}
+		canvas.display();
 	}
 }
