@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.17 2004-02-07 13:02:44 rst Exp $
+// $Id: SV_MAIN.java,v 1.18 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.server;
 
@@ -923,7 +923,8 @@ public class SV_MAIN extends SV_GAME {
 		sv_paused = Cvar.Get("paused", "0", 0);
 		sv_timedemo = Cvar.Get("timedemo", "0", 0);
 		sv_enforcetime = Cvar.Get("sv_enforcetime", "0", 0);
-		allow_download = Cvar.Get("allow_download", "1", CVAR_ARCHIVE);
+		// TODO allow downloads per default
+		allow_download = Cvar.Get("allow_download", "0", CVAR_ARCHIVE);
 		allow_download_players = Cvar.Get("allow_download_players", "0", CVAR_ARCHIVE);
 		allow_download_models = Cvar.Get("allow_download_models", "1", CVAR_ARCHIVE);
 		allow_download_sounds = Cvar.Get("allow_download_sounds", "1", CVAR_ARCHIVE);

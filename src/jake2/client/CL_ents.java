@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.7 2004-02-05 21:32:40 rst Exp $
+ * $Id: CL_ents.java,v 1.8 2004-02-11 19:56:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -215,10 +215,12 @@ public class CL_ents extends CL_inv {
 			}
 		}
 		else { // shuffle the last state to previous
-			ent.prev = ent.current;
+			// Copy !
+			ent.prev.set(ent.current);
 		}
 
 		ent.serverframe = cl.frame.serverframe;
+		// Copy !
 		ent.current.set(state);
 	}
 
@@ -852,13 +854,16 @@ public class CL_ents extends CL_inv {
 
 			// color shells generate a seperate entity for the main model
 			if ((effects & EF_COLOR_SHELL)!=0) {
-				// PMM - at this point, all of the shells have been handled
-				// if we're in the rogue pack, set up the custom mixing, otherwise just
-				// keep going
-				//				if(Developer_searchpath(2) == 2)
-				//				{
-				// all of the solo colors are fine.  we need to catch any of the combinations that look bad
-				// (double & half) and turn them into the appropriate color, and make double/quad something special
+				/*
+				 PMM - at this point, all of the shells have been handled
+				 if we're in the rogue pack, set up the custom mixing, otherwise just
+				 keep going
+								if(Developer_searchpath(2) == 2)
+								{
+				 all of the solo colors are fine.  we need to catch any of the combinations that look bad
+				 (double & half) and turn them into the appropriate color, and make double/quad something special
+		
+				 */
 				if ((renderfx & RF_SHELL_HALF_DAM)!=0) {
 					if (FS.Developer_searchpath(2) == 2) {
 						// ditch the half damage shell if any of red, blue, or double are on
@@ -1235,12 +1240,15 @@ public class CL_ents extends CL_inv {
 		if (cl_timedemo.value!=0)
 			cl.lerpfrac = 1.0f;
 
-		//		CL_AddPacketEntities (cl.frame);
-		//		CL_AddTEnts ();
-		//		CL_AddParticles ();
-		//		CL_AddDLights ();
-		//		CL_AddLightStyles ();
-
+		 
+		/*
+				CL_AddPacketEntities (cl.frame);
+				CL_AddTEnts ();
+				CL_AddParticles ();
+				CL_AddDLights ();
+				CL_AddLightStyles ();
+		*/
+		
 		CalcViewValues();
 		// PMM - moved this here so the heat beam has the right values for the vieworg, and can lock the beam to the gun
 		AddPacketEntities( cl.frame);

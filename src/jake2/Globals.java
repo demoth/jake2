@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.45 2004-02-11 05:12:47 cwei Exp $
+ * $Id: Globals.java,v 1.46 2004-02-11 19:56:28 cwei Exp $
  * $Log: Globals.java,v $
- * Revision 1.45  2004-02-11 05:12:47  cwei
+ * Revision 1.46  2004-02-11 19:56:28  cwei
+ * monster debug.
+ *
+ * Revision 1.45  2004/02/11 05:12:47  cwei
  * scr_rect wird gesetzt
  *
  * Revision 1.44  2004/02/08 13:26:13  hoz
@@ -246,7 +249,7 @@ public class Globals extends Defines {
 	static {
 		for (int i = 0; i < cl_parse_entities.length; i++)
 		{
-			cl_parse_entities[i] = new entity_state_t();
+			cl_parse_entities[i] = new entity_state_t(null);
 		}
 	}
 

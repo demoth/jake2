@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.22 2004-02-11 15:07:21 cwei Exp $
+// $Id: CM.java,v 1.23 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.qcommon;
 
@@ -1473,12 +1473,15 @@ public class CM extends Game {
 
 		trace_trace = new trace_t();
 		// TODO bugfix cwei
-		trace_trace.ent = new edict_t(0);
+		trace_trace.ent = null;
 		trace_trace.fraction = 1;
 		trace_trace.surface = nullsurface.c;
 
 		if (numnodes == 0) // map not loaded
+		{
+			Com.DPrintf("dummy trace zurueck, da map not loaded!\n");
 			return trace_trace;
+		}
 
 		trace_contents = brushmask;
 		VectorCopy(start, trace_start);

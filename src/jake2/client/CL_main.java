@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.32 2004-02-11 15:01:15 cwei Exp $
+ * $Id: CL_main.java,v 1.33 2004-02-11 19:56:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -116,7 +116,8 @@ public class CL_main extends CL_pred {
 				int i;
 				int len;
 				entity_state_t ent;
-				entity_state_t nullstate = new entity_state_t();
+				//TODO: check ent_state_t creation
+				entity_state_t nullstate = new entity_state_t(null);
 
 				if (Cmd.Argc() != 2) {
 					Com.Printf("record <demoname>\n");
@@ -1270,7 +1271,8 @@ public class CL_main extends CL_pred {
 		m_forward = Cvar.Get("m_forward", "1", 0);
 		m_side = Cvar.Get("m_side", "1", 0);
 
-		cl_shownet = Cvar.Get("cl_shownet", "3", 0);
+		// TODO: shownet variable 
+		cl_shownet = Cvar.Get("cl_shownet", "0", 0);
 		cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
 		cl_showclamp = Cvar.Get("showclamp", "0", 0);
 		cl_timeout = Cvar.Get("cl_timeout", "120", 0);

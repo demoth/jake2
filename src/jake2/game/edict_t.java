@@ -34,7 +34,7 @@ public class edict_t {
 	}
 
 	// integrated entity state
-	public entity_state_t s = new entity_state_t();
+	public entity_state_t s = new entity_state_t(this);
 	public boolean inuse;
 	public int linkcount;
 

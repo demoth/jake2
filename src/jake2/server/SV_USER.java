@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.5 2004-02-11 09:31:32 hoz Exp $
+// $Id: SV_USER.java,v 1.6 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.server;
 
@@ -205,7 +205,7 @@ public class SV_USER extends SV_SEND {
 		start = atoi(Cmd.Argv(2));
 
 		//memset (&nullstate, 0, sizeof(nullstate));
-		nullstate = new entity_state_t();
+		nullstate = new entity_state_t(null);
 
 		// write a packet full of data
 

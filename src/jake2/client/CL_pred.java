@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.6 2004-02-11 15:02:53 cwei Exp $
+ * $Id: CL_pred.java,v 1.7 2004-02-11 19:56:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,24 +31,28 @@ import jake2.game.trace_t;
 import jake2.qcommon.*;
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
+import jake2.server.SV_GAME;
 
 /**
  * CL_pred
  */
-public class CL_pred extends CL_parse {
+public class CL_pred extends CL_parse
+{
 
 	/*
 	===================
 	CL_CheckPredictionError
 	===================
 	*/
-	static void CheckPredictionError() {
+	static void CheckPredictionError()
+	{
 		int frame;
 		int[] delta = new int[3];
 		int i;
 		int len;
 
-		if (cl_predict.value == 0.0f || (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION) != 0)
+		if (cl_predict.value == 0.0f
+			|| (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION) != 0)
 			return;
 
 		// calculate the last usercmd_t we sent that the server has processed
@@ -56,19 +60,31 @@ public class CL_pred extends CL_parse {
 		frame &= (CMD_BACKUP - 1);
 
 		// compare what the server returned with what we had predicted it to be
-		VectorSubtract(cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame], delta);
+		VectorSubtract(
+			cl.frame.playerstate.pmove.origin,
+			cl.predicted_origins[frame],
+			delta);
 
 		// save the prediction error for interpolation
 		len = Math.abs(delta[0]) + Math.abs(delta[1]) + Math.abs(delta[2]);
 		if (len > 640) // 80 world units
-			{ // a teleport or something
+		{ // a teleport or something
 			VectorClear(cl.prediction_error);
-		} else {
-			if (cl_showmiss.value != 0.0f && (delta[0] != 0 || delta[1] != 0 || delta[2] != 0))
+		}
+		else
+		{
+			if (cl_showmiss.value != 0.0f
+				&& (delta[0] != 0 || delta[1] != 0 || delta[2] != 0))
 				Com.Printf(
-					"prediction miss on " + cl.frame.serverframe + ": " + (delta[0] + delta[1] + delta[2]) + "\n");
+					"prediction miss on "
+						+ cl.frame.serverframe
+						+ ": "
+						+ (delta[0] + delta[1] + delta[2])
+						+ "\n");
 
-			VectorCopy(cl.frame.playerstate.pmove.origin, cl.predicted_origins[frame]);
+			VectorCopy(
+				cl.frame.playerstate.pmove.origin,
+				cl.predicted_origins[frame]);
 
 			// save for error itnerpolation
 			for (i = 0; i < 3; i++)
@@ -76,14 +92,19 @@ public class CL_pred extends CL_parse {
 		}
 	}
 
-
 	/*
 	====================
 	CL_ClipMoveToEntities
-
+	
 	====================
 	*/
-	static void ClipMoveToEntities(float[] start, float[] mins, float[] maxs, float[] end, trace_t tr) {
+	static void ClipMoveToEntities(
+		float[] start,
+		float[] mins,
+		float[] maxs,
+		float[] end,
+		trace_t tr)
+	{
 		int i, x, zd, zu;
 		trace_t trace;
 		int headnode;
@@ -94,7 +115,8 @@ public class CL_pred extends CL_parse {
 		float[] bmins = new float[3];
 		float[] bmaxs = new float[3];
 
-		for (i = 0; i < cl.frame.num_entities; i++) {
+		for (i = 0; i < cl.frame.num_entities; i++)
+		{
 			num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 			ent = cl_parse_entities[num];
 
@@ -104,13 +126,16 @@ public class CL_pred extends CL_parse {
 			if (ent.number == cl.playernum + 1)
 				continue;
 
-			if (ent.solid == 31) { // special value for bmodel
+			if (ent.solid == 31)
+			{ // special value for bmodel
 				cmodel = cl.model_clip[ent.modelindex];
 				if (cmodel == null)
 					continue;
 				headnode = cmodel.headnode;
 				angles = ent.angles;
-			} else { // encoded bbox
+			}
+			else
+			{ // encoded bbox
 				x = 8 * (ent.solid & 31);
 				zd = 8 * ((ent.solid >> 5) & 31);
 				zu = 8 * ((ent.solid >> 10) & 63) - 32;
@@ -127,43 +152,71 @@ public class CL_pred extends CL_parse {
 			if (tr.allsolid)
 				return;
 
-			trace = CM.TransformedBoxTrace(start, end, mins, maxs, headnode, MASK_PLAYERSOLID, ent.origin, angles);
+			trace =
+				CM.TransformedBoxTrace(
+					start,
+					end,
+					mins,
+					maxs,
+					headnode,
+					MASK_PLAYERSOLID,
+					ent.origin,
+					angles);
 
-			if (trace.allsolid || trace.startsolid || trace.fraction < tr.fraction) {
+			if (trace.allsolid
+				|| trace.startsolid
+				|| trace.fraction < tr.fraction)
+			{
 				// TODO bugfix cwei
-				if (trace.ent == null) trace.ent = new edict_t(0);
-				trace.ent.s = ent;
-				if (tr.startsolid) {
+				//if (trace.ent == null) trace.ent = new edict_t(0);
+				trace.ent = ent.surrounding_ent;
+				if (tr.startsolid)
+				{
 					tr = trace;
 					tr.startsolid = true;
-				} else
+				}
+				else
 					tr = trace;
-			} else if (trace.startsolid)
+			}
+			else if (trace.startsolid)
 				tr.startsolid = true;
 		}
 	}
-
 
 	/*
 	================
 	CL_PMTrace
 	================
 	*/
-	static trace_t PMTrace(float[] start, float[] mins, float[] maxs, float[] end) {
+	
+	static edict_t DUMMY_ENT = new edict_t(-1);
+	
+	static trace_t PMTrace(
+		float[] start,
+		float[] mins,
+		float[] maxs,
+		float[] end)
+	{
 		trace_t t;
 
 		// check against world
 		t = CM.BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID);
-		if (t.fraction < 1.0f)
-			t.ent.s.number = 1;
 
+		if (t.fraction < 1.0f)
+		{
+			// TODO: N O N S E N S E !!!
+			t.ent = DUMMY_ENT;		
+			//Com.Printf("Player collision ent:" + t.ent + "\n");
+		}
+			
 		// check all other solid models
 		CL.ClipMoveToEntities(start, mins, maxs, end, t);
 
 		return t;
 	}
 
-	static int PMpointcontents(float[] point) {
+	static int PMpointcontents(float[] point)
+	{
 		int i;
 		entity_state_t ent;
 		int num;
@@ -172,7 +225,8 @@ public class CL_pred extends CL_parse {
 
 		contents = CM.PointContents(point, 0);
 
-		for (i = 0; i < cl.frame.num_entities; i++) {
+		for (i = 0; i < cl.frame.num_entities; i++)
+		{
 			num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 			ent = cl_parse_entities[num];
 
@@ -183,21 +237,26 @@ public class CL_pred extends CL_parse {
 			if (cmodel == null)
 				continue;
 
-			contents |= CM.TransformedPointContents(point, cmodel.headnode, ent.origin, ent.angles);
+			contents
+				|= CM.TransformedPointContents(
+					point,
+					cmodel.headnode,
+					ent.origin,
+					ent.angles);
 		}
 
 		return contents;
 	}
 
-
 	/*
 	=================
 	CL_PredictMovement
-
+	
 	Sets cl.predicted_origin and cl.predicted_angles
 	=================
 	*/
-	static void PredictMovement() {
+	static void PredictMovement()
+	{
 		int ack, current;
 		int frame;
 		int oldframe;
@@ -214,9 +273,13 @@ public class CL_pred extends CL_parse {
 			return;
 
 		if (cl_predict.value == 0.0f
-			|| (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION) != 0) { // just set angles
-			for (i = 0; i < 3; i++) {
-				cl.predicted_angles[i] = cl.viewangles[i] + SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[i]);
+			|| (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION) != 0)
+		{ // just set angles
+			for (i = 0; i < 3; i++)
+			{
+				cl.predicted_angles[i] =
+					cl.viewangles[i]
+						+ SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[i]);
 			}
 			return;
 		}
@@ -225,7 +288,8 @@ public class CL_pred extends CL_parse {
 		current = cls.netchan.outgoing_sequence;
 
 		// if we are too far out of date, just freeze
-		if (current - ack >= CMD_BACKUP) {
+		if (current - ack >= CMD_BACKUP)
+		{
 			if (cl_showmiss.value != 0.0f)
 				Com.Printf("exceeded CMD_BACKUP\n");
 			return;
@@ -235,13 +299,21 @@ public class CL_pred extends CL_parse {
 		//memset (pm, 0, sizeof(pm));
 		pm = new pmove_t();
 
-		pm.trace = new pmove_t.TraceAdapter() {
-			public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end) {
+		pm.trace = new pmove_t.TraceAdapter()
+		{
+			public trace_t trace(
+				float[] start,
+				float[] mins,
+				float[] maxs,
+				float[] end)
+			{
 				return CL.PMTrace(start, mins, maxs, end);
 			}
 		};
-		pm.pointcontents = new pmove_t.PointContentsAdapter() {
-			public int pointcontents(float[] point) {
+		pm.pointcontents = new pmove_t.PointContentsAdapter()
+		{
+			public int pointcontents(float[] point)
+			{
 				return CL.PMpointcontents(point);
 			}
 		};
@@ -255,7 +327,8 @@ public class CL_pred extends CL_parse {
 		frame = 0;
 
 		// run frames
-		while (++ack < current) {
+		while (++ack < current)
+		{
 			frame = ack & (CMD_BACKUP - 1);
 			cmd = cl.cmds[frame];
 
@@ -269,7 +342,8 @@ public class CL_pred extends CL_parse {
 		oldframe = (ack - 2) & (CMD_BACKUP - 1);
 		oldz = cl.predicted_origins[oldframe][2];
 		step = pm.s.origin[2] - oldz;
-		if (step > 63 && step < 160 && (pm.s.pm_flags & PMF_ON_GROUND) != 0) {
+		if (step > 63 && step < 160 && (pm.s.pm_flags & PMF_ON_GROUND) != 0)
+		{
 			cl.predicted_step = step * 0.125f;
 			cl.predicted_step_time = (int) (cls.realtime - cls.frametime * 500);
 		}

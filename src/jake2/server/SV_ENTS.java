@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.1 2004-01-18 10:39:34 rst Exp $
+// $Id: SV_ENTS.java,v 1.2 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.server;
 
@@ -546,7 +546,7 @@ public class SV_ENTS extends SV_USER {
 	public static void SV_RecordDemoMessage() {
 		int e;
 		edict_t ent;
-		entity_state_t nostate = new entity_state_t();
+		entity_state_t nostate = new entity_state_t(null);
 		sizebuf_t buf = new sizebuf_t();
 		byte buf_data[] = new byte[32768];
 		int len;

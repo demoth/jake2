@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_t.java,v 1.4 2004-02-04 20:33:35 rst Exp $
+// $Id: server_t.java,v 1.5 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.server;
 
@@ -40,7 +40,7 @@ public class server_t {
 			models[n] = new cmodel_t();
 		
 		for (int n=0; n < Defines.MAX_EDICTS; n++)
-			baselines[n] = new entity_state_t();
+			baselines[n] = new entity_state_t(null);
 		
 		//for (int n=0; n < Defines.MAX_CONFIGSTRINGS; n++)
 			//configstrings[n] = "";

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.15 2004-02-11 09:37:08 rst Exp $
+// $Id: SV_INIT.java,v 1.16 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.server;
 
@@ -371,7 +371,7 @@ public class SV_INIT extends Globals  {
 		//svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
 		svs.client_entities = new entity_state_t[svs.num_client_entities];
 		for (int n=0; n < svs.client_entities.length; n++)
-			svs.client_entities[n] = new entity_state_t();
+			svs.client_entities[n] = new entity_state_t(null);
 
 		// init network stuff
 		NET.Config((SV_MAIN.maxclients.value > 1));

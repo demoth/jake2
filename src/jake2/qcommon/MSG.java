@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.19 2004-02-11 09:31:32 hoz Exp $
+// $Id: MSG.java,v 1.20 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.qcommon;
 
@@ -452,7 +452,11 @@ public class MSG extends GameBase {
 		int c;
 
 		if (msg_read.readcount + 4 > msg_read.cursize)
+		{
+			Com.Printf("buffer underrun in ReadLong!");
 			c = -1;
+		}
+		
 		else
 			c =
 				(msg_read.data[msg_read.readcount] & 0xff)

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.5 2004-02-02 21:47:00 rst Exp $
+// $Id: entity_state_t.java,v 1.6 2004-02-11 19:56:28 cwei Exp $
 
 package jake2.game;
 
@@ -30,8 +30,14 @@ public class entity_state_t {
 	//	in an update message about entities that the client will
 	//	need to render in some way
 
-	public int number = -99999; // edict index
 
+	public entity_state_t(edict_t ent)
+	{
+		this.surrounding_ent =  ent;
+	}
+
+	public int number = -99999; // edict index
+	public edict_t surrounding_ent = null;
 	public float[] origin = { 0, 0, 0 };
 	public float[] angles = { 0, 0, 0 };
 	public float[] old_origin = { 0, 0, 0 }; // for lerping

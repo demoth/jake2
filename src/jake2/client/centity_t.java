@@ -19,16 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: centity_t.java,v 1.3 2004-01-31 16:56:11 rst Exp $
+// $Id: centity_t.java,v 1.4 2004-02-11 19:56:27 cwei Exp $
 
 package jake2.client;
 
 import jake2.game.entity_state_t;
 
 public class centity_t {
-	entity_state_t baseline= new entity_state_t(); // delta from this if not from a previous frame
-	entity_state_t current= new entity_state_t();
-	entity_state_t prev= new entity_state_t(); // will always be valid, but might just be a copy of current
+	entity_state_t baseline= new entity_state_t(null); // delta from this if not from a previous frame
+	entity_state_t current= new entity_state_t(null);
+	entity_state_t prev= new entity_state_t(null); // will always be valid, but might just be a copy of current
 
 	int serverframe; // if not current, this ent isn't in the frame
 
