@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.29 2004-02-11 15:06:20 cwei Exp $
+ * $Id: SCR.java,v 1.30 2004-02-11 17:28:48 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1379,7 +1379,7 @@ public final class SCR extends Globals {
 	
 	// wird anstelle von der richtigen UpdateScreen benoetigt
 	public static void UpdateScreen() {
-		Globals.re.updateScreen();
+		Globals.re.updateScreen(null);
 	}
 		
 	/*

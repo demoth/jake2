@@ -2,7 +2,7 @@
  * refexport_t.java
  * Copyright (C) 2003
  *
- * $Id: refexport_t.java,v 1.4 2004-01-11 14:38:47 cwei Exp $
+ * $Id: refexport_t.java,v 1.5 2004-02-11 17:28:48 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
+import jake2.qcommon.xcommand_t;
 import jake2.render.image_t;
 import jake2.render.model_t;
 
@@ -100,7 +101,7 @@ public interface refexport_t {
 	 * 
 	 *
 	 */
-	void updateScreen();
+	void updateScreen(xcommand_t callback);
 	
 	int apiVersion();
 }

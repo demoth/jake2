@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.27 2004-02-05 00:12:16 cwei Exp $
+ * $Id: Main.java,v 1.28 2004-02-11 17:28:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -562,7 +562,8 @@ public abstract class Main extends Base {
 			gl.glBegin(GL.GL_POINTS);
 			for (int i = 0; i < r_newrefdef.num_particles; i++) {
 				p = r_newrefdef.particles[i];
-				color = d_8to24table[p.color];
+				// TODO bugfix hack cwei
+				color = d_8to24table[p.color & 0xff];
 
 				gl.glColor4ub(
 					(byte) ((color >> 0) & 0xff),

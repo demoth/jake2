@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.12 2004-02-03 09:33:52 hoz Exp $
+ * $Id: Impl.java,v 1.13 2004-02-11 17:28:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.*;
+import jake2.qcommon.xcommand_t;
 import jake2.sys.KBD;
 
 import java.awt.Dimension;
@@ -52,6 +53,7 @@ public class Impl extends Misc implements GLEventListener {
 
 	// switch to updateScreen callback
 	private boolean switchToCallback = false;
+	private xcommand_t callback = null;
 
 	GLCanvas canvas;
 	JFrame window;
@@ -208,7 +210,10 @@ public class Impl extends Misc implements GLEventListener {
 		this.glu = drawable.getGLU();
 
 		if (switchToCallback) {
-			ri.updateScreenCallback();
+			if (callback == null)
+				ri.updateScreenCallback();
+			else
+				callback.execute();
 		}
 		else {
 
@@ -251,10 +256,11 @@ public class Impl extends Misc implements GLEventListener {
 	/* 
 	 * @see jake2.client.refexport_t#updateScreen()
 	 */
-	public void updateScreen() {
+	public void updateScreen(xcommand_t callback) {
 		if (canvas == null) {
 			throw new IllegalStateException("Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
 		}
+		this.callback = callback;
 		canvas.display();
 	}
 

@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.18 2004-01-11 14:38:47 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.19 2004-02-11 17:28:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -62,7 +62,7 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 		// pre init
 		if (!R_Init()) return false;
 		// calls the R_Init2() internally		
-		updateScreen();
+		updateScreen(null);
 		// the result from R_Init2()
 		return post_init;
 	}

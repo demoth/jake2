@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.8 2004-02-11 17:01:34 cwei Exp $
+ * $Id: CL_view.java,v 1.9 2004-02-11 17:28:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
+import jake2.qcommon.xcommand_t;
 import jake2.sys.Sys;
 import jake2.util.Vargs;
 
@@ -49,7 +50,16 @@ public class CL_view extends CL_input {
 	Call before entering a new level, or after changing dlls
 	=================
 	*/
+	
 	static void PrepRefresh() {
+		re.updateScreen(new xcommand_t() {
+			public void execute() {
+				PrepRefresh2();
+			}
+		});
+	}
+	
+	static void PrepRefresh2() {
 		String mapname;
 		int i;
 		String name;
@@ -70,13 +80,13 @@ public class CL_view extends CL_input {
 
 		// register models, pics, and skins
 		Com.Printf("Map: " + mapname + "\r"); 
-		SCR.UpdateScreen();
+		SCR.UpdateScreen2();
 		re.BeginRegistration(mapname);
 		Com.Printf("                                     \r");
 
 		// precache status bar pics
 		Com.Printf("pics\r"); 
-		SCR.UpdateScreen();
+		SCR.UpdateScreen2();
 		SCR.TouchPics();
 		Com.Printf("                                     \r");
 
@@ -91,7 +101,7 @@ public class CL_view extends CL_input {
 
 			if (name.charAt(0) != '*')
 				Com.Printf("name" + "\r"); 
-			SCR.UpdateScreen();
+			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
 			if (name.charAt(0) == '#') {
 				// special player weapon model
@@ -111,7 +121,7 @@ public class CL_view extends CL_input {
 		}
 
 		Com.Printf("images\r"); 
-		SCR.UpdateScreen();
+		SCR.UpdateScreen2();
 		for (i=1 ; i<MAX_IMAGES && cl.configstrings[CS_IMAGES+i].length() > 0 ; i++) {
 			cl.image_precache[i] = re.RegisterPic(cl.configstrings[CS_IMAGES+i]);
 			Sys.SendKeyEvents();	// pump message loop
@@ -122,7 +132,7 @@ public class CL_view extends CL_input {
 			if (cl.configstrings[CS_PLAYERSKINS+i].length() == 0)
 				continue;
 			Com.Printf("client %i\r", new Vargs(1).add(i)); 
-			SCR.UpdateScreen();
+			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
 			CL.ParseClientinfo(i);
 			Com.Printf("                                     \r");
@@ -132,7 +142,7 @@ public class CL_view extends CL_input {
 
 		// set sky textures and speed
 		Com.Printf("sky\r"); 
-		SCR.UpdateScreen();
+		SCR.UpdateScreen2();
 		rotate = Float.parseFloat(cl.configstrings[CS_SKYROTATE]);
 		StringTokenizer st = new StringTokenizer(cl.configstrings[CS_SKYAXIS]);
 		axis[0] = Float.parseFloat(st.nextToken());
@@ -147,7 +157,7 @@ public class CL_view extends CL_input {
 		// clear any lines of console text
 		Console.ClearNotify();
 
-		SCR.UpdateScreen();
+		SCR.UpdateScreen2();
 		cl.refresh_prepped = true;
 		cl.force_refdef = true;	// make sure we have a valid refdef
 	}
