@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: cplane_t.java,v 1.7 2004-03-18 10:05:08 hoz Exp $
+// $Id: cplane_t.java,v 1.8 2004-03-18 12:14:32 hoz Exp $
 
 package jake2.game;
 
@@ -34,18 +34,18 @@ public class cplane_t
 	public byte signbits; // signx + (signy<<1) + (signz<<1)
 	public byte pad[] = { 0, 0 };
 
-	public cplane_t getClone()
-	{
-		cplane_t out = new cplane_t();
-		Math3D.set(out.normal, normal);
-		out.dist = dist;
-		out.type = type;
-		out.signbits = signbits;
-		out.pad[0] = pad[0];
-		out.pad[1] = pad[1];
-
-		return out;
-	}
+//	public cplane_t getClone()
+//	{
+//		cplane_t out = new cplane_t();
+//		Math3D.set(out.normal, normal);
+//		out.dist = dist;
+//		out.type = type;
+//		out.signbits = signbits;
+//		out.pad[0] = pad[0];
+//		out.pad[1] = pad[1];
+//
+//		return out;
+//	}
 
 	public void set(cplane_t c)
 	{

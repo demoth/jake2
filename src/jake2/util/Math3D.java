@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.21 2004-03-15 15:10:17 hoz Exp $
+// $Id: Math3D.java,v 1.22 2004-03-18 12:14:32 hoz Exp $
 
 package jake2.util;
 
@@ -510,7 +510,7 @@ public class Math3D extends Lib {
 
 
 
-	public static float DotProduct(float[] x, float[] y) {
+	public static final float DotProduct(float[] x, float[] y) {
 		return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
 	}
 
