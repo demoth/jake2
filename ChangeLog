@@ -1,9 +1,10 @@
-0.9.3
+0.9.3 2004-09-09
 
 	- savegames
 	- command line completion in console
 	- better fullscreen vidmode selection
 	- memory footprint reduced
+	- improved performance
 	- bugfixes
 	
 0.9.2 2004-06-28
