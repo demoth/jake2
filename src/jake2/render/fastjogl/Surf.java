@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.5 2004-06-14 23:34:08 cwei Exp $
+ * $Id: Surf.java,v 1.6 2004-06-15 11:34:42 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1450,7 +1450,7 @@ public abstract class Surf extends Draw {
 		** theoretically nothing should happen in the next two functions
 		** if multitexture is enabled
 		*/
-//		DrawTextureChains();
+		DrawTextureChains();
 //		R_BlendLightmaps();
 	
 		R_DrawSkyBox();
