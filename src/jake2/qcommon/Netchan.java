@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.4 2004-09-22 19:22:09 salomo Exp $
+ * $Id: Netchan.java,v 1.5 2005-01-17 21:55:45 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -118,6 +118,8 @@ public final class Netchan extends SV_MAIN {
         qport = Cvar.Get("qport", "" + port, Defines.CVAR_NOSET);
     }
 
+    private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
+    private static final sizebuf_t send = new sizebuf_t();
     /*
      * =============== Netchan_OutOfBand
      * 
@@ -126,8 +128,6 @@ public final class Netchan extends SV_MAIN {
     //ok.
     public static void Netchan_OutOfBand(int net_socket, netadr_t adr,
             int length, byte data[]) {
-        sizebuf_t send = new sizebuf_t();
-        byte send_buf[] = new byte[Defines.MAX_MSGLEN];
 
         // write the packet header
         SZ.Init(send, send_buf, Defines.MAX_MSGLEN);
@@ -194,6 +194,8 @@ public final class Netchan extends SV_MAIN {
         return send_reliable;
     }
 
+    // private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
+    // private static final sizebuf_t send = new sizebuf_t();
     /*
      * =============== Netchan_Transmit
      * 
@@ -204,8 +206,6 @@ public final class Netchan extends SV_MAIN {
      * messages. ================
      */
     public static void Transmit(netchan_t chan, int length, byte data[]) {
-        sizebuf_t send = new sizebuf_t();
-        byte send_buf[] = new byte[Defines.MAX_MSGLEN];
         int send_reliable;
         int w1, w2;
 

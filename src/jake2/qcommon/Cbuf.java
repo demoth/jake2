@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.5 2004-09-22 19:22:09 salomo Exp $
+ * $Id: Cbuf.java,v 1.6 2005-01-17 21:54:38 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,6 +35,9 @@ import jake2.util.Lib;
  */
 public final class Cbuf {
 
+    private static final byte[] line = new byte[1024];
+    private static final byte[] tmp = new byte[8192];
+
     /**
      *  
      */
@@ -45,14 +48,12 @@ public final class Cbuf {
 
     public static void InsertText(String text) {
 
-        byte[] temp = null;
         int templen = 0;
 
         // copy off any commands still remaining in the exec buffer
         templen = Globals.cmd_text.cursize;
         if (templen != 0) {
-            temp = new byte[templen];
-            System.arraycopy(Globals.cmd_text.data, 0, temp, 0, templen);
+            System.arraycopy(Globals.cmd_text.data, 0, tmp, 0, templen);
             SZ.Clear(Globals.cmd_text);
         }
 
@@ -61,8 +62,7 @@ public final class Cbuf {
 
         // add the copied off data
         if (templen != 0) {
-            SZ.Write(Globals.cmd_text, temp, templen);
-            temp = null;
+            SZ.Write(Globals.cmd_text, tmp, templen);
         }
     }
 
@@ -156,7 +156,6 @@ public final class Cbuf {
     public static void Execute() {
 
         byte[] text = null;
-        byte[] line = new byte[1024];
 
         Globals.alias_count = 0; // don't allow infinite alias loops
 
@@ -190,7 +189,7 @@ public final class Cbuf {
             else {
                 i++;
                 Globals.cmd_text.cursize -= i;
-                byte[] tmp = new byte[Globals.cmd_text.cursize];
+                //byte[] tmp = new byte[Globals.cmd_text.cursize];
 
                 System.arraycopy(text, i, tmp, 0, Globals.cmd_text.cursize);
                 System.arraycopy(tmp, 0, text, 0, Globals.cmd_text.cursize);
