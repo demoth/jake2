@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.13 2004-05-13 02:49:12 cwei Exp $
+ * $Id: Mesh.java,v 1.14 2004-05-19 16:41:01 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -425,7 +425,7 @@ public abstract class Mesh extends Light {
 				point[0] -= shadevector[0]*(point[2]+lheight);
 				point[1] -= shadevector[1]*(point[2]+lheight);
 				point[2] = height;
-				gl.glVertex3fv (point);
+				gl.glVertex3f(point[0], point[1], point[2]);
 
 				orderIndex += 3;
 

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.10 2004-04-14 15:13:43 cwei Exp $
+ * $Id: Light.java,v 1.11 2004-05-19 16:41:01 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -79,7 +79,7 @@ public abstract class Light extends Warp {
 		gl.glColor3f (light.color[0]*0.2f, light.color[1]*0.2f, light.color[2]*0.2f);
 		for (i=0 ; i<3 ; i++)
 			v[i] = light.origin[i] - vpn[i]*rad;
-		gl.glVertex3fv (v);
+		gl.glVertex3f(v[0], v[1], v[2]);
 		gl.glColor3f (0,0,0);
 		for (i=16 ; i>=0 ; i--)
 		{
@@ -87,7 +87,7 @@ public abstract class Light extends Warp {
 			for (j=0 ; j<3 ; j++)
 				v[j] = (float)(light.origin[j] + vright[j]*Math.cos(a)*rad
 					+ vup[j]*Math.sin(a)*rad);
-			gl.glVertex3fv (v);
+			gl.glVertex3f(v[0], v[1], v[2]);
 		}
 		gl.glEnd ();
 	}

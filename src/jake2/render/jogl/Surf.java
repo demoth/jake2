@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.21 2004-05-04 09:22:11 hoz Exp $
+ * $Id: Surf.java,v 1.22 2004-05-19 16:41:01 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -177,7 +177,7 @@ public abstract class Surf extends Draw {
 		{
 			v = p.verts[i];
 			gl.glTexCoord2f(v[3], v[4]);
-			gl.glVertex3fv(v);
+			gl.glVertex3f(v[0], v[1], v[2]);
 		}
 		gl.glEnd();
 	}
@@ -207,7 +207,7 @@ public abstract class Surf extends Draw {
 		{
 			v = p.verts[i];
 			gl.glTexCoord2f ((v[3] + scroll), v[4]);
-			gl.glVertex3fv( v );
+			gl.glVertex3f(v[0], v[1], v[2]);
 		}
 		gl.glEnd ();
 	}
@@ -272,7 +272,7 @@ public abstract class Surf extends Draw {
 				{
 					v = p.verts[j];
 					gl.glTexCoord2f (v[5], v[6] );
-					gl.glVertex3fv( v );
+					gl.glVertex3f(v[0], v[1], v[2]);
 				}
 				gl.glEnd();
 			}
@@ -289,7 +289,7 @@ public abstract class Surf extends Draw {
 				{
 					v = p.verts[j];
 					gl.glTexCoord2f (v[5] - soffset, v[6] - toffset );
-					gl.glVertex3fv( v );
+					gl.glVertex3f(v[0], v[1], v[2]);
 				}
 				gl.glEnd();
 			}
@@ -824,7 +824,7 @@ public abstract class Surf extends Draw {
 						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3fv(v);
+						gl.glVertex3f(v[0], v[1], v[2]);
 					}
 					gl.glEnd ();
 				}
@@ -842,7 +842,7 @@ public abstract class Surf extends Draw {
 						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3fv(v);
+						gl.glVertex3f(v[0], v[1], v[2]);
 					}
 					gl.glEnd ();
 				}
@@ -878,7 +878,7 @@ public abstract class Surf extends Draw {
 						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE0, (v[3]+scroll), v[4]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3fv(v);
+						gl.glVertex3f(v[0], v[1], v[2]);
 					}
 					gl.glEnd();
 				}
@@ -898,7 +898,7 @@ public abstract class Surf extends Draw {
 						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3fv(v);
+						gl.glVertex3f(v[0], v[1], v[2]);
 					}
 					gl.glEnd ();
 				}
