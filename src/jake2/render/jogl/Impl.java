@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.9 2004-01-08 13:07:50 cwei Exp $
+ * $Id: Impl.java,v 1.10 2004-01-10 15:24:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -224,6 +224,18 @@ public class Impl extends Misc implements GLEventListener {
 		post_init = false;
 		switchToCallback = false;
 	}
+
+	void GLimp_EnableLogging(boolean enable) {
+		// doesn't need jogl logging
+		// do nothing
+	}
+
+	void GLimp_LogNewFrame() {
+		// doesn't need jogl logging
+		// do nothing
+	}
+
+
 
 	// ============================================================================
 	// GLEventListener interface
