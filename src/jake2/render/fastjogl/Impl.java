@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.8 2004-06-28 06:48:20 hoz Exp $
+ * $Id: Impl.java,v 1.9 2004-06-28 12:29:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -110,13 +110,9 @@ public class Impl extends Misc implements GLEventListener {
 
 		ri.Cvar_Get("r_fakeFullscreen", "0", Globals.CVAR_ARCHIVE);
 
-		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n", null);
+		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
-		if (fullscreen) {
-			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen mode " + mode + ":");
-		}
-		else
-			ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
+		ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
 			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n");
@@ -160,6 +156,9 @@ public class Impl extends Misc implements GLEventListener {
 		 */
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		device = env.getDefaultScreenDevice();
+		if (fullscreen && !device.isFullScreenSupported())
+			ri.Con_Printf(Defines.PRINT_ALL, "...fullscreen not supported\n");
+
 		fullscreen = fullscreen && device.isFullScreenSupported();
         
 		if (oldDisplayMode == null) {
@@ -180,6 +179,7 @@ public class Impl extends Misc implements GLEventListener {
 				window.setLocation(0, 0);
 				window.setSize(displayMode.getWidth(), displayMode.getHeight());
 				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
+				ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 			}
 		} else {
 			window.setLocation(window_xpos, window_ypos);
