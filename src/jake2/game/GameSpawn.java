@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: GameSpawn.java,v 1.6 2003-12-27 15:41:00 rst Exp $
 
 package jake2.game;
 
@@ -144,204 +144,207 @@ public class GameSpawn extends Game {
 	static EntThinkAdapter SP_turret_base = null;
 	static EntThinkAdapter SP_turret_driver = null;
 
-	//	/*
-	//	=============
-	//	ED_NewString
-	//	=============
-	//	*/
-	//	String ED_NewString(String string) {
-	//		String newb, new_p;
-	//		int i, l;
-	//
-	//		l = strlen(string) + 1;
-	//
-	//		newb = gi.TagMalloc(l, TAG_LEVEL);
-	//
-	//		new_p = newb;
-	//
-	//		for (i = 0; i < l; i++) {
-	//			if (string[i] == '\\' && i < l - 1) {
-	//				i++;
-	//				if (string[i] == 'n')
-	//					* new_p++ = '\n';
-	//				else
-	//					* new_p++ = '\\';
-	//			} else
-	//				* new_p++ = string[i];
-	//		}
-	//
-	//		return newb;
-	//	}
+	/*
+	=============
+	ED_NewString
+	=============
+	*/
+	static String ED_NewString(String string) {
 
-	//	/*
-	//	===============
-	//	ED_ParseField
-	//	
-	//	Takes a key/value pair and sets the binary values
-	//	in an edict
-	//	===============
-	//	*/
-	//	static void ED_ParseField(String key, String value, edict_t ent) {
-	//		field_t  f;
-	//		byte  b;
-	//		float v;
-	//		float [] vec={0,0,0};
-	//
-	//		for (f = fields; f.name; f++) {
-	//			if (!(f.flags & FFL_NOSPAWN) && !Q_stricmp(f.name, key)) { // found it
-	//				if (f.flags & FFL_SPAWNTEMP)
-	//					b = (byte *) & st;
-	//				else
-	//					b = (byte *) ent;
-	//
-	//				switch (f.type) {
-	//					case F_LSTRING :
-	//						* (String *) (b + f.ofs) = ED_NewString(value);
-	//						break;
-	//					case F_VECTOR :
-	//						sscanf(value, "%f %f %f", & vec[0], & vec[1], & vec[2]);
-	//						((float *) (b + f.ofs))[0] = vec[0];
-	//						((float *) (b + f.ofs))[1] = vec[1];
-	//						((float *) (b + f.ofs))[2] = vec[2];
-	//						break;
-	//					case F_INT :
-	//						* (int *) (b + f.ofs) = atoi(value);
-	//						break;
-	//					case F_FLOAT :
-	//						* (float *) (b + f.ofs) = atof(value);
-	//						break;
-	//					case F_ANGLEHACK :
-	//						v = atof(value);
-	//						((float *) (b + f.ofs))[0] = 0;
-	//						((float *) (b + f.ofs))[1] = v;
-	//						((float *) (b + f.ofs))[2] = 0;
-	//						break;
-	//					case F_IGNORE :
-	//						break;
-	//				}
-	//				return;
-	//			}
-	//		}
-	//		gi.dprintf("%s is not a field\n", key);
-	//	}
+		//String newb, new_p;
+		int i, l;
 
-	//	/*
-	//	====================
-	//	ED_ParseEdict
-	//	
-	//	Parses an edict out of the given string, returning the new position
-	//	ed should be a properly initialized empty edict.
-	//	====================
-	//	*/
-	//	String ED_ParseEdict(String data, edict_t ent) {
-	//		boolean init;
-	//		String keyname;
-	//		String com_token;
-	//
-	//		init = false;
-	//		
-	//		//memset(& st, 0, sizeof(st));
-	//
-	//		//	   go through all the dictionary pairs
-	//		while (true) 
-	//		{
-	//			// parse key
-	//			com_token = COM_Parse(data);
-	//			if (com_token[0] == '}')
-	//				break;
-	//			if (!data)
-	//				gi.error("ED_ParseEntity: EOF without closing brace");
-	//
-	//			strncpy(keyname, com_token, sizeof(keyname) - 1);
-	//
-	//			// parse value	
-	//			com_token = COM_Parse(data);
-	//			if (!data)
-	//				gi.error("ED_ParseEntity: EOF without closing brace");
-	//
-	//			if (com_token[0] == '}')
-	//				gi.error("ED_ParseEntity: closing brace without data");
-	//
-	//			init = true;
-	//
-	//			// keynames with a leading underscore are used for utility comments,
-	//			// and are immediately discarded by quake
-	//			if (keyname[0] == '_')
-	//				continue;
-	//
-	//			ED_ParseField(keyname, com_token, ent);
-	//		}
-	//
-	//		if (!init)
-	//			ent.clear();
-	//			//memset(ent, 0, sizeof(* ent));
-	//
-	//		return data;
-	//	}
+		l = Lib.strlen(string) + 1;
+		//newb = gi.TagMalloc(l, TAG_LEVEL);
 
-	//	/*
-	//	================
-	//	G_FindTeams
-	//	
-	//	Chain together all entities with a matching team field.
-	//	
-	//	All but the first will have the FL_TEAMSLAVE flag set.
-	//	All but the last will have the teamchain field set to the next one
-	//	================
-	//	*/
-	//	static void G_FindTeams() {
-	//		edict_t  e,  e2,  chain;
-	//		int i, j;
-	//		int c, c2;
-	//
-	//		c = 0;
-	//		c2 = 0;
-	//		for (i = 1, e = g_edicts + i; i < globals.num_edicts; i++, e++) {
-	//			if (!e.inuse)
-	//				continue;
-	//			if (!e.team)
-	//				continue;
-	//			if ((e.flags & FL_TEAMSLAVE)!=0)
-	//				continue;
-	//			chain = e;
-	//			e.teammaster = e;
-	//			c++;
-	//			c2++;
-	//			for (j = i + 1, e2 = e + 1; j < globals.num_edicts; j++, e2++) {
-	//				if (!e2.inuse)
-	//					continue;
-	//				if (null==e2.team)
-	//					continue;
-	//				if ((e2.flags & FL_TEAMSLAVE)!=0)
-	//					continue;
-	//				if (0==strcmp(e.team, e2.team)) {
-	//					c2++;
-	//					chain.teamchain = e2;
-	//					e2.teammaster = e;
-	//					chain = e2;
-	//					e2.flags |= FL_TEAMSLAVE;
-	//				}
-	//			}
-	//		}
-	//
-	//		gi.dprintf("" + c +" teams with "+c2+" entities\n");
-	//	}
+		StringBuffer newb = new StringBuffer(l);
 
-	//	/*
-	//	==============
-	//	SpawnEntities
-	//	
-	//	Creates a server's entity / program execution context by
-	//	parsing textual entity definitions out of an ent file.
-	//	==============
-	//	*/
+		for (i = 0; i < l - 1; i++) {
+			char c;
+
+			c = string.charAt(i);
+			if (c == '\\' && i < l - 1) {
+				c = string.charAt(i++);
+				if (c == 'n')
+					newb.append('\n');
+				else
+					newb.append('\\');
+			}
+			else
+				newb.append(c);
+		}
+
+		return newb.toString();
+	}
+
+	/*
+	===============
+	ED_ParseField
+	
+	Takes a key/value pair and sets the binary values
+	in an edict
+	===============
+	*/
+	static void ED_ParseField(String key, String value, edict_t ent) {
+		field_t f;
+		byte b;
+		float v;
+		float[] vec = { 0, 0, 0 };
+
+		if (!st.set(key, value))
+			if (!ent.set(key, value))
+				gi.dprintf(key + " is not a field\n");
+
+		/** OLD CODE, delegated to ent.set(...) and st.set(...) 
+		
+		for (f = fields; f.name; f++) {
+			if (!(f.flags & FFL_NOSPAWN) && !Q_stricmp(f.name, key)) {
+				// found it
+				if (f.flags & FFL_SPAWNTEMP)
+					b = (byte *) & st;
+				else
+					b = (byte *) ent;
+		
+				switch (f.type) {
+					case F_LSTRING :
+						* (String *) (b + f.ofs) = ED_NewString(value);
+						break;
+					case F_VECTOR :
+						sscanf(value, "%f %f %f", & vec[0], & vec[1], & vec[2]);
+						((float *) (b + f.ofs))[0] = vec[0];
+						((float *) (b + f.ofs))[1] = vec[1];
+						((float *) (b + f.ofs))[2] = vec[2];
+						break;
+					case F_INT :
+						* (int *) (b + f.ofs) = atoi(value);
+						break;
+					case F_FLOAT :
+						* (float *) (b + f.ofs) = atof(value);
+						break;
+					case F_ANGLEHACK :
+						v = atof(value);
+						((float *) (b + f.ofs))[0] = 0;
+						((float *) (b + f.ofs))[1] = v;
+						((float *) (b + f.ofs))[2] = 0;
+						break;
+					case F_IGNORE :
+						break;
+				}
+				return;
+			}
+		}
+		gi.dprintf("%s is not a field\n", key);
+		
+		*/
+	}
+
+	/*
+		====================
+		ED_ParseEdict
+		
+		Parses an edict out of the given string, returning the new position
+		ed should be a properly initialized empty edict.
+		====================
+	*/
+	/*
+	static String ED_ParseEdict(String data, edict_t ent) {
+		boolean init;
+		String keyname;
+		String com_token;
+		init = false;
+		//memset(& st, 0, sizeof(st));
+		//	   go through all the dictionary pairs
+		while (true) { // parse key
+			com_token = COM_Parse(data);
+			if (com_token[0] == '}')
+				break;
+			if (!data)
+				gi.error("ED_ParseEntity: EOF without closing brace");
+			strncpy(keyname, com_token, sizeof(keyname) - 1);
+			// parse value	
+			com_token = COM_Parse(data);
+			if (!data)
+				gi.error("ED_ParseEntity: EOF without closing brace");
+			if (com_token[0] == '}')
+				gi.error("ED_ParseEntity: closing brace without data");
+			init = true;
+			// keynames with a leading underscore are used for utility comments,
+			// and are immediately discarded by quake
+			if (keyname[0] == '_')
+				continue;
+			ED_ParseField(keyname, com_token, ent);
+		}
+	
+		if (!init)
+			ent.clear();
+		//memset(ent, 0, sizeof(* ent));
+		return data;
+	}
+	*/
+	/*
+		================
+		G_FindTeams
+		
+		Chain together all entities with a matching team field.
+		
+		All but the first will have the FL_TEAMSLAVE flag set.
+		All but the last will have the teamchain field set to the next one
+		================
+	*/
+	/*
+	static void G_FindTeams() {
+		edict_t e, e2, chain;
+		int i, j;
+		int c, c2;
+		c = 0;
+		c2 = 0;
+		for (i = 1, e = g_edicts + i; i < globals.num_edicts; i++, e++) {
+			if (!e.inuse)
+				continue;
+			if (!e.team)
+				continue;
+			if ((e.flags & FL_TEAMSLAVE) != 0)
+				continue;
+			chain = e;
+			e.teammaster = e;
+			c++;
+			c2++;
+			for (j = i + 1, e2 = e + 1; j < globals.num_edicts; j++, e2++) {
+				if (!e2.inuse)
+					continue;
+				if (null == e2.team)
+					continue;
+				if ((e2.flags & FL_TEAMSLAVE) != 0)
+					continue;
+				if (0 == Lib.strcmp(e.team, e2.team)) {
+					c2++;
+					chain.teamchain = e2;
+					e2.teammaster = e;
+					chain = e2;
+					e2.flags |= FL_TEAMSLAVE;
+				}
+			}
+		}
+	
+		gi.dprintf("" + c + " teams with " + c2 + " entities\n");
+	}
+	*/
+
+	/*
+			==============
+			SpawnEntities
+					
+			Creates a server's entity / program execution context by
+			parsing textual entity definitions out of an ent file.
+			==============
+	*/
+
 	//	static void SpawnEntities(String mapname, String entities, String spawnpoint) {
-	//		edict_t  ent;
+	//		edict_t ent;
 	//		int inhibit;
 	//		String com_token;
 	//		int i;
 	//		float skill_level;
-	//
 	//		skill_level = (float) Math.floor(skill.value);
 	//		if (skill_level < 0)
 	//			skill_level = 0;
@@ -351,41 +354,30 @@ public class GameSpawn extends Game {
 	//			gi.cvar_forceset("skill", "" + skill_level);
 	//
 	//		SaveClientData();
-	//
 	//		gi.FreeTags(TAG_LEVEL);
-	//
 	//		level.clear();
 	//		memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
-	//
 	//		strncpy(level.mapname, mapname, sizeof(level.mapname) - 1);
 	//		strncpy(game.spawnpoint, spawnpoint, sizeof(game.spawnpoint) - 1);
-	//
 	//		// set client fields on player ents
 	//		for (i = 0; i < game.maxclients; i++)
 	//			g_edicts[i + 1].client = game.clients + i;
-	//
 	//		ent = null;
-	//		inhibit = 0;
-	//
-	//		//	   parse ents
-	//		while (1) {
-	//			// parse the opening brace	
+	//		inhibit = 0; //	   parse ents
+	//		while (1) { // parse the opening brace	
 	//			com_token = COM_Parse(entities);
-	//			if (entities==null)
+	//			if (entities == null)
 	//				break;
 	//			if (com_token[0] != '{')
 	//				gi.error("ED_LoadFromFile: found %s when expecting {", com_token);
-	//
 	//			if (!ent)
 	//				ent = g_edicts;
 	//			else
 	//				ent = G_Spawn();
 	//			entities = ED_ParseEdict(entities, ent);
-	//
 	//			// yet another map hack
 	//			if (!Q_stricmp(level.mapname, "command") && !Q_stricmp(ent.classname, "trigger_once") && !Q_stricmp(ent.model, "*27"))
 	//				ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
-	//
 	//			// remove things (except the world) from different skill levels or deathmatch
 	//			if (ent != g_edicts) {
 	//				if (deathmatch.value) {
@@ -394,7 +386,8 @@ public class GameSpawn extends Game {
 	//						inhibit++;
 	//						continue;
 	//					}
-	//				} else {
+	//				}
+	//				else {
 	//					if (/* ((coop.value) && (ent.spawnflags & SPAWNFLAG_NOT_COOP)) || */
 	//						((skill.value == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY))
 	//							|| ((skill.value == 1) && (ent.spawnflags & SPAWNFLAG_NOT_MEDIUM))
@@ -413,7 +406,6 @@ public class GameSpawn extends Game {
 	//		}
 	//
 	//		gi.dprintf(inhibit + " entities inhibited\n");
-	//		
 	//		//TODO: insert a log4j!
 	//		//# ifdef DEBUG 
 	//		i = 1;
@@ -423,74 +415,39 @@ public class GameSpawn extends Game {
 	//				Com_DPrintf("Invalid entity %d\n", i);
 	//			i++;
 	//			ent++;
-	//		}
-	//		//# endif 
+	//		} //# endif 
 	//		G_FindTeams();
-	//
 	//		PlayerTrail.Init();
 	//	}
 
-	//	  ===================================================================
-
-	static String single_statusbar = "yb	-24 "
-
-		//	   health
-	+"xv	0 " + "hnum " + "xv	50 " + "pic 0 "
-
-		//	   ammo
-	+"if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 " + "endif "
-
-		//	   armor
-	+"if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 " + "endif "
-
-		//	   selected item
-	+"if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 "
-
-		//	   picked up item
+		static String single_statusbar = "yb	-24 " //	   health
+		+"xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
+		+"if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 " + "endif " //	   armor
+		+"if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 " + "endif " //	   selected item
+		+"if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked up item
 	+"if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 " + "	stat_string 8 " + "	yb	-50 " + "endif "
-
 		//	   timer
 	+"if 9 " + "	xv	262 " + "	num	2	10 " + "	xv	296 " + "	pic	9 " + "endif "
-
 		//		help / weapon icon 
 	+"if 11 " + "	xv	148 " + "	pic	11 " + "endif ";
 
-	static String dm_statusbar = "yb	-24 "
-
-		//	   health
-	+"xv	0 " + "hnum " + "xv	50 " + "pic 0 "
-
-		//	   ammo
-	+"if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 " + "endif "
-
-		//	   armor
-	+"if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 " + "endif "
-
-		//	   selected item
-	+"if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 "
-
-		//	   picked up item
+		static String dm_statusbar = "yb	-24 " //	   health
+		+"xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
+		+"if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 " + "endif " //	   armor
+		+"if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 " + "endif " //	   selected item
+		+"if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked up item
 	+"if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 " + "	stat_string 8 " + "	yb	-50 " + "endif "
-
 		//	   timer
 	+"if 9 " + "	xv	246 " + "	num	2	10 " + "	xv	296 " + "	pic	9 " + "endif "
-
 		//		help / weapon icon 
-	+"if 11 " + "	xv	148 " + "	pic	11 " + "endif "
-
-		//		frags
-	+"xr	-50 " + "yt 2 " + "num 3 14 "
-
-		//	   spectator
-	+"if 17 " + "xv 0 " + "yb -58 " + "string2 \"SPECTATOR MODE\" " + "endif "
-
-		//	   chase camera
+		+"if 11 " + "	xv	148 " + "	pic	11 " + "endif " //		frags
+		+"xr	-50 " + "yt 2 " + "num 3 14 " //	   spectator
+		+"if 17 " + "xv 0 " + "yb -58 " + "string2 \"SPECTATOR MODE\" " + "endif " //	   chase camera
 	+"if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 " + "stat_string 16 " + "endif ";
 
 	static void InitBodyQue() {
 		int i;
 		edict_t ent;
-
 		level.body_que = 0;
 		for (i = 0; i < BODY_QUEUE_SIZE; i++) {
 			ent = G_Spawn();
@@ -499,89 +456,72 @@ public class GameSpawn extends Game {
 	}
 
 	/*QUAKED worldspawn (0 0 0) ?
-	
-	Only used for the world.
-	"sky"	environment map name
-	"skyaxis"	vector axis for rotating sky
-	"skyrotate"	speed of rotation in degrees/second
-	"sounds"	music cd track number
-	"gravity"	800 is default gravity
-	"message"	text to print at user logon
-	*/
+		
+		Only used for the world.
+		"sky"	environment map name
+		"skyaxis"	vector axis for rotating sky
+		"skyrotate"	speed of rotation in degrees/second
+		"sounds"	music cd track number
+		"gravity"	800 is default gravity
+		"message"	text to print at user logon
+		*/
+
 	static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
 
 		public boolean think(edict_t ent) {
 			ent.movetype = MOVETYPE_PUSH;
 			ent.solid = SOLID_BSP;
-			ent.inuse = true; // since the world doesn't use G_Spawn()
-			ent.s.modelindex = 1; // world model is always index 1
-
+			ent.inuse = true;
+			// since the world doesn't use G_Spawn()
+			ent.s.modelindex = 1;
+			// world model is always index 1
 			//---------------
-
 			// reserve some spots for dead player bodies for coop / deathmatch
 			InitBodyQue();
-
 			// set configstrings for items
 			SetItemNames();
-
 			if (st.nextmap != null)
 				level.nextmap = st.nextmap;
-
 			// make some data visible to the server
-
 			if (ent.message != null && ent.message.length() > 0) {
 				gi.configstring(CS_NAME, ent.message);
 				level.level_name = ent.message;
-			} else
+			}
+			else
 				level.level_name = level.mapname;
-
 			if (st.sky != null && st.sky.length() > 0)
 				gi.configstring(CS_SKY, st.sky);
 			else
 				gi.configstring(CS_SKY, "unit1_");
-
 			gi.configstring(CS_SKYROTATE, "" + st.skyrotate);
-
 			gi.configstring(CS_SKYAXIS, Lib.vtos(st.skyaxis));
-
 			gi.configstring(CS_CDTRACK, "" + ent.sounds);
-
 			gi.configstring(CS_MAXCLIENTS, "" + (int) (maxclients.value));
-
 			// status bar program
 			if (deathmatch.value != 0)
 				gi.configstring(CS_STATUSBAR, "" + dm_statusbar);
 			else
 				gi.configstring(CS_STATUSBAR, "" + single_statusbar);
-
 			//---------------
-
 			// help icon for statusbar
 			gi.imageindex("i_help");
 			level.pic_health = gi.imageindex("i_health");
 			gi.imageindex("help");
 			gi.imageindex("field_3");
-
 			if (st.gravity != null)
 				gi.cvar_set("sv_gravity", "800");
 			else
 				gi.cvar_set("sv_gravity", st.gravity);
-
-			snd_fry = gi.soundindex("player/fry.wav"); // standing in lava / slime
-
+			snd_fry = gi.soundindex("player/fry.wav");
+			// standing in lava / slime
 			PrecacheItem(FindItem("Blaster"));
-
 			gi.soundindex("player/lava1.wav");
 			gi.soundindex("player/lava2.wav");
-
 			gi.soundindex("misc/pc_up.wav");
 			gi.soundindex("misc/talk1.wav");
-
 			gi.soundindex("misc/udeath.wav");
-
 			// gibs
 			gi.soundindex("items/respawn1.wav");
-
 			// sexed sounds
 			gi.soundindex("*death1.wav");
 			gi.soundindex("*death2.wav");
@@ -589,9 +529,11 @@ public class GameSpawn extends Game {
 			gi.soundindex("*death4.wav");
 			gi.soundindex("*fall1.wav");
 			gi.soundindex("*fall2.wav");
-			gi.soundindex("*gurp1.wav"); // drowning damage
+			gi.soundindex("*gurp1.wav");
+			// drowning damage
 			gi.soundindex("*gurp2.wav");
-			gi.soundindex("*jump1.wav"); // player jump
+			gi.soundindex("*jump1.wav");
+			// player jump
 			gi.soundindex("*pain25_1.wav");
 			gi.soundindex("*pain25_2.wav");
 			gi.soundindex("*pain50_1.wav");
@@ -600,7 +542,6 @@ public class GameSpawn extends Game {
 			gi.soundindex("*pain75_2.wav");
 			gi.soundindex("*pain100_1.wav");
 			gi.soundindex("*pain100_2.wav");
-
 			// sexed models
 			// THIS ORDER MUST MATCH THE DEFINES IN g_local.h
 			// you can add more, max 15
@@ -615,31 +556,30 @@ public class GameSpawn extends Game {
 			gi.modelindex("#w_hyperblaster.md2");
 			gi.modelindex("#w_railgun.md2");
 			gi.modelindex("#w_bfg.md2");
-
 			//-------------------
-
-			gi.soundindex("player/gasp1.wav"); // gasping for air
-			gi.soundindex("player/gasp2.wav"); // head breaking surface, not gasping
-
-			gi.soundindex("player/watr_in.wav"); // feet hitting water
-			gi.soundindex("player/watr_out.wav"); // feet leaving water
-
-			gi.soundindex("player/watr_un.wav"); // head going underwater
-
+			gi.soundindex("player/gasp1.wav");
+			// gasping for air
+			gi.soundindex("player/gasp2.wav");
+			// head breaking surface, not gasping
+			gi.soundindex("player/watr_in.wav");
+			// feet hitting water
+			gi.soundindex("player/watr_out.wav");
+			// feet leaving water
+			gi.soundindex("player/watr_un.wav");
+			// head going underwater
 			gi.soundindex("player/u_breath1.wav");
 			gi.soundindex("player/u_breath2.wav");
-
-			gi.soundindex("items/pkup.wav"); // bonus item pickup
-			gi.soundindex("world/land.wav"); // landing thud
-			gi.soundindex("misc/h2ohit1.wav"); // landing splash
-
+			gi.soundindex("items/pkup.wav");
+			// bonus item pickup
+			gi.soundindex("world/land.wav");
+			// landing thud
+			gi.soundindex("misc/h2ohit1.wav");
+			// landing splash
 			gi.soundindex("items/damage.wav");
 			gi.soundindex("items/protect.wav");
 			gi.soundindex("items/protect4.wav");
 			gi.soundindex("weapons/noammo.wav");
-
 			gi.soundindex("infantry/inflies1.wav");
-
 			sm_meat_index = gi.modelindex("models/objects/gibs/sm_meat/tris.md2");
 			gi.modelindex("models/objects/gibs/arm/tris.md2");
 			gi.modelindex("models/objects/gibs/bone/tris.md2");
@@ -647,52 +587,36 @@ public class GameSpawn extends Game {
 			gi.modelindex("models/objects/gibs/chest/tris.md2");
 			gi.modelindex("models/objects/gibs/skull/tris.md2");
 			gi.modelindex("models/objects/gibs/head2/tris.md2");
-
 			//
 			//	   Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
 			//
-
 			// 0 normal
 			gi.configstring(CS_LIGHTS + 0, "m");
-
 			// 1 FLICKER (first variety)
 			gi.configstring(CS_LIGHTS + 1, "mmnmmommommnonmmonqnmmo");
-
 			// 2 SLOW STRONG PULSE
 			gi.configstring(CS_LIGHTS + 2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
-
 			// 3 CANDLE (first variety)
 			gi.configstring(CS_LIGHTS + 3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
-
 			// 4 FAST STROBE
 			gi.configstring(CS_LIGHTS + 4, "mamamamamama");
-
 			// 5 GENTLE PULSE 1
 			gi.configstring(CS_LIGHTS + 5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
-
 			// 6 FLICKER (second variety)
 			gi.configstring(CS_LIGHTS + 6, "nmonqnmomnmomomno");
-
 			// 7 CANDLE (second variety)
 			gi.configstring(CS_LIGHTS + 7, "mmmaaaabcdefgmmmmaaaammmaamm");
-
 			// 8 CANDLE (third variety)
 			gi.configstring(CS_LIGHTS + 8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
-
 			// 9 SLOW STROBE (fourth variety)
 			gi.configstring(CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
-
 			// 10 FLUORESCENT FLICKER
 			gi.configstring(CS_LIGHTS + 10, "mmamammmmammamamaaamammma");
-
 			// 11 SLOW PULSE NOT FADE TO BLACK
 			gi.configstring(CS_LIGHTS + 11, "abcdefghijklmnopqrrqponmlkjihgfedcba");
-
 			// styles 32-62 are assigned by the light program for switchable lights
-
 			// 63 testing
 			gi.configstring(CS_LIGHTS + 63, "a");
-
 			return true;
 		}
 	};
@@ -807,7 +731,6 @@ public class GameSpawn extends Game {
 			new spawn_t("turret_base", SP_turret_base),
 			new spawn_t("turret_driver", SP_turret_driver),
 			new spawn_t(null, null)};
-
 	/*
 	===============
 	ED_CallSpawn
@@ -819,25 +742,19 @@ public class GameSpawn extends Game {
 		spawn_t s;
 		gitem_t item;
 		int i;
-
 		if (null == ent.classname) {
 			gi.dprintf("ED_CallSpawn: null classname\n");
 			return;
-		}
-
-		// check item spawn functions
+		} // check item spawn functions
 		for (i = 0; i < game.num_items; i++) {
 			item = itemlist[i];
 			if (item.classname == null)
 				continue;
-
 			if (0 == Lib.strcmp(item.classname, ent.classname)) { // found it
 				SpawnItem(ent, item);
 				return;
 			}
-		}
-
-		// check normal spawn functions
+		} // check normal spawn functions
 		for (i = 0, s = spawns[i]; s.name != null; i++) {
 			if (0 == Lib.strcmp(s.name, ent.classname)) { // found it
 				s.spawn.think(ent);

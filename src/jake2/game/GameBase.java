@@ -19,17 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.8 2003-12-09 22:12:43 rst Exp $
+// $Id: GameBase.java,v 1.9 2003-12-27 15:41:00 rst Exp $
 
 /** Father of all Objects. */
 
 package jake2.game;
 
 import jake2.*;
-import jake2.*;
-import jake2.client.M;
-import jake2.server.SV;
-import jake2.util.Lib;
+import jake2.client.*;
+import jake2.server.*;
 import jake2.util.*;
 
 public class GameBase extends Globals {
@@ -86,6 +84,96 @@ public class GameBase extends Globals {
 	public static cvar_t sv_maplist;
 
 	public final static float STOP_EPSILON = 0.1f;
+
+	field_t fields_ent[] =
+		new field_t[] {
+			new field_t("classname", F_LSTRING),
+			new field_t("model", F_LSTRING),
+			new field_t("spawnflags", F_INT),
+			new field_t("speed", F_FLOAT),
+			new field_t("accel", F_FLOAT),
+			new field_t("decel", F_FLOAT),
+			new field_t("target", F_LSTRING),
+			new field_t("targetname", F_LSTRING),
+			new field_t("pathtarget", F_LSTRING),
+			new field_t("deathtarget", F_LSTRING),
+			new field_t("killtarget", F_LSTRING),
+			new field_t("combattarget", F_LSTRING),
+			new field_t("message", F_LSTRING),
+			new field_t("team", F_LSTRING),
+			new field_t("wait", F_FLOAT),
+			new field_t("delay", F_FLOAT),
+			new field_t("random", F_FLOAT),
+			new field_t("move_origin", F_VECTOR),
+			new field_t("move_angles", F_VECTOR),
+			new field_t("style", F_INT),
+			new field_t("count", F_INT),
+			new field_t("health", F_INT),
+			new field_t("sounds", F_INT),
+			new field_t("light", F_IGNORE),
+			new field_t("dmg", F_INT),
+			new field_t("mass", F_INT),
+			new field_t("volume", F_FLOAT),
+			new field_t("attenuation", F_FLOAT),
+			new field_t("map", F_LSTRING),
+			new field_t("origin", F_VECTOR),
+			new field_t("angles", F_VECTOR),
+			new field_t("angle", F_ANGLEHACK),
+			new field_t("goalentity", F_EDICT, FFL_NOSPAWN),
+			new field_t("movetarget", F_EDICT, FFL_NOSPAWN),
+			new field_t("enemy", F_EDICT, FFL_NOSPAWN),
+			new field_t("oldenemy", F_EDICT, FFL_NOSPAWN),
+			new field_t("activator", F_EDICT, FFL_NOSPAWN),
+			new field_t("groundentity", F_EDICT, FFL_NOSPAWN),
+			new field_t("teamchain", F_EDICT, FFL_NOSPAWN),
+			new field_t("teammaster", F_EDICT, FFL_NOSPAWN),
+			new field_t("owner", F_EDICT, FFL_NOSPAWN),
+			new field_t("mynoise", F_EDICT, FFL_NOSPAWN),
+			new field_t("mynoise2", F_EDICT, FFL_NOSPAWN),
+			new field_t("target_ent", F_EDICT, FFL_NOSPAWN),
+			new field_t("chain", F_EDICT, FFL_NOSPAWN),
+			new field_t("prethink", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("think", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("blocked", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("touch", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("use", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("pain", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("die", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("stand", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("idle", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("search", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("walk", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("run", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("dodge", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("attack", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("melee", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("sight", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("checkattack", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("currentmove", F_MMOVE, FFL_NOSPAWN),
+			new field_t("endfunc", F_FUNCTION, FFL_NOSPAWN),
+			new field_t("item", F_ITEM)
+		//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
+	};
+
+	// temp spawn vars -- only valid when the spawn function is called
+	field_t fields_st[] =
+		{
+			new field_t("lip", F_INT, FFL_SPAWNTEMP),
+			new field_t("distance", F_INT, FFL_SPAWNTEMP),
+			new field_t("height", F_INT, FFL_SPAWNTEMP),
+			new field_t("noise", F_LSTRING, FFL_SPAWNTEMP),
+			new field_t("pausetime", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("item", F_LSTRING, FFL_SPAWNTEMP),
+			new field_t("gravity", F_LSTRING, FFL_SPAWNTEMP),
+			new field_t("sky", F_LSTRING, FFL_SPAWNTEMP),
+			new field_t("skyrotate", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("skyaxis", F_VECTOR, FFL_SPAWNTEMP),
+			new field_t("minyaw", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("maxyaw", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("minpitch", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("maxpitch", F_FLOAT, FFL_SPAWNTEMP),
+			new field_t("nextmap", F_LSTRING, FFL_SPAWNTEMP),
+			};
 
 	/**
 	 * Slide off of the impacting object
@@ -236,9 +324,11 @@ public class GameBase extends Globals {
 	public static void G_SetMovedir(float[] angles, float[] movedir) {
 		if (Math3D.VectorCompare(angles, VEC_UP) != 0) {
 			Math3D.VectorCopy(MOVEDIR_UP, movedir);
-		} else if (Math3D.VectorCompare(angles, VEC_DOWN) != 0) {
+		}
+		else if (Math3D.VectorCompare(angles, VEC_DOWN) != 0) {
 			Math3D.VectorCopy(MOVEDIR_DOWN, movedir);
-		} else {
+		}
+		else {
 			Math3D.AngleVectors(angles, movedir, null, null);
 		}
 
@@ -347,7 +437,8 @@ public class GameBase extends Globals {
 
 				int a[] = null;
 				int b = a[0];
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				System.err.println("assertion failed!");
 				e.printStackTrace();
 			}

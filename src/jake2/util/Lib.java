@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.1 2003-12-09 22:12:44 rst Exp $
+// $Id: Lib.java,v 1.2 2003-12-27 15:41:00 rst Exp $
 
 package jake2.util;
 
@@ -129,6 +129,23 @@ public class Lib {
 			return 0;
 		}
 	}
+	
+
+	public static float[] atov(String v)
+	{
+		float [] res = {0,0,0};
+		
+		int i1 = v.indexOf(" ");
+		int i2 = v.indexOf(" ",i1+1);
+		
+		res[0] = atof(v.substring(0,i1));
+		res[1] = atof(v.substring(i1+1,i2));
+		res[2] = atof(v.substring(i2+1,v.length()));
+		
+		return res;
+	}
+		
+	
 
 	public static int strlen(String in) {
 		return in.length();
@@ -137,4 +154,21 @@ public class Lib {
 	public static void strcat(String in, String i) {
 		in += i;
 	}
+	
+	
+	public static void main(String args[])
+	{
+		
+		String v = "0.234 1.23423 7.23423";
+		
+		int i1 = v.indexOf(" ");
+		int i2 = v.indexOf(" ",i1+1);
+		
+		System.out.println("parsing...");
+		
+		System.out.println("[" +  v.substring(0,i1) +"]" );
+		System.out.println("[" +  v.substring(i1+1,i2) +"]" );
+		System.out.println("[" +  v.substring(i2+1,v.length()) +"]" );
+	}
+	
 }

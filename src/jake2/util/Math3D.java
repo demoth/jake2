@@ -19,18 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.1 2003-12-09 22:12:44 rst Exp $
+// $Id: Math3D.java,v 1.2 2003-12-27 15:41:00 rst Exp $
 
 package jake2.util;
 
-
- import jake2.*;
- import jake2.client.*;
+import jake2.*;
+import jake2.client.*;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
- import jake2.qcommon.*;
- import jake2.render.*;
- import jake2.server.*;
+import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
 
 public class Math3D {
 
@@ -55,7 +54,7 @@ public class Math3D {
 	public static int VectorCompare(float[] v1, float[] v2) {
 		if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 			return 0;
-	
+
 		return 1;
 	}
 	public static void VectorNegate(float[] a, float[] b) {
@@ -75,10 +74,10 @@ public class Math3D {
 	}
 	public static float VectorNormalize(float[] v) {
 		float length;
-	
+
 		length = VectorLength(v);
 		if (length != 0.0f) {
-	
+
 			v[0] /= length;
 			v[1] /= length;
 			v[2] /= length;
@@ -87,7 +86,7 @@ public class Math3D {
 	}
 	public static float VectorNormalize2(float[] v, float[] out) {
 		float length, ilength;
-	
+
 		length = VectorLength(v);
 		if (length != 0.0f) {
 			out[0] = v[0] / length;
@@ -112,7 +111,7 @@ public class Math3D {
 
 	public static float vectoyaw(float[] vec) {
 		float yaw;
-	
+
 		if (/*vec[YAW] == 0 &&*/
 			vec[Defines.PITCH] == 0) {
 			yaw = 0;
@@ -120,27 +119,29 @@ public class Math3D {
 				yaw = 90;
 			else if (vec[Defines.YAW] < 0)
 				yaw = -90;
-		} else {
-	
+		}
+		else {
+
 			yaw = (int) (Math.atan2(vec[Defines.YAW], vec[Defines.PITCH]) * 180 / Math.PI);
 			if (yaw < 0)
 				yaw += 360;
 		}
-	
+
 		return yaw;
 	}
 
 	public static void vectoangles(float[] value1, float[] angles) {
 		float forward;
 		float yaw, pitch;
-	
+
 		if (value1[1] == 0 && value1[0] == 0) {
 			yaw = 0;
 			if (value1[2] > 0)
 				pitch = 90;
 			else
 				pitch = 270;
-		} else {
+		}
+		else {
 			if (value1[0] != 0)
 				yaw = (int) (Math.atan2(value1[1], value1[0]) * 180 / Math.PI);
 			else if (value1[1] > 0)
@@ -149,13 +150,13 @@ public class Math3D {
 				yaw = -90;
 			if (yaw < 0)
 				yaw += 360;
-	
+
 			forward = (float) Math.sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
 			pitch = (int) (Math.atan2(value1[2], forward) * 180 / Math.PI);
 			if (pitch < 0)
 				pitch += 360;
 		}
-	
+
 		angles[Defines.PITCH] = -pitch;
 		angles[Defines.YAW] = yaw;
 		angles[Defines.ROLL] = 0;
@@ -171,47 +172,47 @@ public class Math3D {
 		float[] vr = { 0.0f, 0.0f, 0.0f };
 		float[] vup = { 0.0f, 0.0f, 0.0f };
 		float[] vf = { 0.0f, 0.0f, 0.0f };
-	
+
 		vf[0] = dir[0];
 		vf[1] = dir[1];
 		vf[2] = dir[2];
-	
+
 		Math3D.PerpendicularVector(vr, dir);
 		Math3D.CrossProduct(vr, vf, vup);
-	
+
 		m[0][0] = vr[0];
 		m[1][0] = vr[1];
 		m[2][0] = vr[2];
-	
+
 		m[0][1] = vup[0];
 		m[1][1] = vup[1];
 		m[2][1] = vup[2];
-	
+
 		m[0][2] = vf[0];
 		m[1][2] = vf[1];
 		m[2][2] = vf[2];
-	
+
 		Math3D.MatCopy(im, m);
-	
+
 		im[0][1] = m[1][0];
 		im[0][2] = m[2][0];
 		im[1][0] = m[0][1];
 		im[1][2] = m[2][1];
 		im[2][0] = m[0][2];
 		im[2][1] = m[1][2];
-	
+
 		Math3D.MatClear(zrot);
-	
+
 		zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
-	
+
 		zrot[0][0] = (float) Math.cos(Math3D.DEG2RAD(degrees));
 		zrot[0][1] = (float) Math.sin(Math3D.DEG2RAD(degrees));
 		zrot[1][0] = - (float) Math.sin(Math3D.DEG2RAD(degrees));
 		zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
-	
+
 		Math3D.R_ConcatRotations(m, zrot, tmpmat);
 		Math3D.R_ConcatRotations(tmpmat, im, rot);
-	
+
 		for (i = 0; i < 3; i++) {
 			dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 		}
@@ -260,15 +261,15 @@ public class Math3D {
 		float d;
 		float[] n = { 0.0f, 0.0f, 0.0f };
 		float inv_denom;
-	
+
 		inv_denom = 1.0F / Math3D.DotProduct(normal, normal);
-	
+
 		d = Math3D.DotProduct(normal, p) * inv_denom;
-	
+
 		n[0] = normal[0] * inv_denom;
 		n[1] = normal[1] * inv_denom;
 		n[2] = normal[2] * inv_denom;
-	
+
 		dst[0] = p[0] - d * n[0];
 		dst[1] = p[1] - d * n[1];
 		dst[2] = p[2] - d * n[2];
@@ -280,7 +281,7 @@ public class Math3D {
 		int i;
 		float minelem = 1.0F;
 		float tempvec[] = { 0.0f, 0.0f, 0.0f };
-	
+
 		// find the smallest magnitude axially aligned vector 
 		for (pos = 0, i = 0; i < 3; i++) {
 			if (Math.abs(src[i]) < minelem) {
@@ -290,10 +291,10 @@ public class Math3D {
 		}
 		tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
 		tempvec[pos] = 1.0F;
-	
+
 		// project the point onto the plane defined by src
 		ProjectPointOnPlane(dst, tempvec, src);
-	
+
 		//normalize the result 
 		Math3D.VectorNormalize(dst);
 	}
@@ -303,11 +304,11 @@ public class Math3D {
 	 stellt fest, auf welcher Seite sich die Kiste befindet, wenn die Ebene 
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
 	 erste Version mit v ec 3_t... */
-	
+
 	public static int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
 		float dist1, dist2;
 		int sides;
-	
+
 		//	   fast axial cases
 		if (p.type < 3) {
 			if (p.dist <= emins[p.type])
@@ -316,7 +317,7 @@ public class Math3D {
 				return 2;
 			return 3;
 		}
-	
+
 		//	   general case
 		switch (p.signbits) {
 			case 0 :
@@ -354,18 +355,18 @@ public class Math3D {
 			default :
 				//TODO: error message.
 				dist1 = dist2 = 0;
-	
+
 				break;
 		}
-	
+
 		sides = 0;
 		if (dist1 >= p.dist)
 			sides = 1;
 		if (dist2 < p.dist)
 			sides |= 2;
-	
+
 		GameBase.assert1(sides != 0);
-	
+
 		return sides;
 	}
 
@@ -375,12 +376,13 @@ public class Math3D {
 		float dist1, dist2;
 		int sides;
 		float corners[][] = new float[3][2];
-	
+
 		for (i = 0; i < 3; i++) {
 			if (p.normal[i] < 0) {
 				corners[0][i] = emins[i];
 				corners[1][i] = emaxs[i];
-			} else {
+			}
+			else {
 				corners[1][i] = emins[i];
 				corners[0][i] = emaxs[i];
 			}
@@ -392,14 +394,14 @@ public class Math3D {
 			sides = 1;
 		if (dist2 < 0)
 			sides |= 2;
-	
+
 		return sides;
 	}
 
 	public static void AngleVectors(float[] angles, float[] forward, float[] right, float[] up) {
 		float angle;
 		float sr, sp, sy, cr, cp, cy;
-	
+
 		angle = (float) (angles[Defines.YAW] * (Math.PI * 2 / 360));
 		sy = (float) Math.sin(angle);
 		cy = (float) Math.cos(angle);
@@ -409,7 +411,7 @@ public class Math3D {
 		angle = (float) (angles[Defines.ROLL] * (Math.PI * 2 / 360));
 		sr = (float) Math.sin(angle);
 		cr = (float) Math.cos(angle);
-	
+
 		if (forward != null) {
 			forward[0] = cp * cy;
 			forward[1] = cp * sy;
@@ -435,11 +437,11 @@ public class Math3D {
 		dst[0][0] = src[0][0];
 		dst[0][1] = src[0][1];
 		dst[0][2] = src[0][2];
-	
+
 		dst[1][0] = src[1][0];
 		dst[1][1] = src[1][1];
 		dst[1][2] = src[1][2];
-	
+
 		dst[2][0] = src[2][0];
 		dst[2][1] = src[2][1];
 		dst[2][2] = src[2][2];
@@ -456,11 +458,11 @@ public class Math3D {
 	//=====================================================================
 	//player
 	//=====================================================================
-	
+
 	// math
 	//=====================================================================
 	// these methods should run without touching. 
-	
+
 	public static float DotProduct(float[] x, float[] y) {
 		return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
 	}

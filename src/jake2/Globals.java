@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.19 2003-12-21 13:50:24 hoz Exp $
+ * $Id: Globals.java,v 1.20 2003-12-27 15:41:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -169,7 +169,7 @@ public class Globals extends Defines {
 
 	// client/anorms.h
 	public static float bytedirs[][] = { /**
-		*/
+						*/
 		{ -0.525731f, 0.000000f, 0.850651f }, {
 			-0.442863f, 0.238856f, 0.864188f }, {
 			-0.295242f, 0.000000f, 0.955423f }, {

@@ -21,13 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.*;
-import jake2.*;
+import jake2.util.*;
 
-public class edict_t
-{
+public class edict_t {
 	//TODO: implement
-	public void clear()
-	{
+	public void clear() {
 	}
 
 	public entity_state_t s;
@@ -39,18 +37,18 @@ public class edict_t
 	public link_t area; // linked to a division node or leaf
 
 	public int num_clusters; // if -1, use headnode instead
-	public int clusternums[]= new int[Defines.MAX_ENT_CLUSTERS];
+	public int clusternums[] = new int[Defines.MAX_ENT_CLUSTERS];
 	public int headnode; // unused if num_clusters != -1
 	public int areanum, areanum2;
 
 	//================================
 
 	public int svflags; // SVF_NOCLIENT, SVF_DEADMONSTER, SVF_MONSTER, etc
-	public float[] mins= new float[3];
-	public float[] maxs= new float[3];
-	public float[] absmin= new float[3];
-	public float[] absmax= new float[3];
-	public float[] size= new float[3];
+	public float[] mins = new float[3];
+	public float[] maxs = new float[3];
+	public float[] absmin = new float[3];
+	public float[] absmax = new float[3];
+	public float[] size = new float[3];
 	public int solid;
 	public int clipmask;
 	public edict_t owner;
@@ -91,13 +89,13 @@ public class edict_t
 	public edict_t target_ent;
 
 	public float speed, accel, decel;
-	public float[] movedir= {0,0,0};
-	
-	public float[] pos1= {0,0,0};
-	public float[] pos2= {0,0,0};
+	public float[] movedir = { 0, 0, 0 };
 
-	public float[] velocity= {0,0,0};
-	public float[] avelocity= {0,0,0};
+	public float[] pos1 = { 0, 0, 0 };
+	public float[] pos2 = { 0, 0, 0 };
+
+	public float[] velocity = { 0, 0, 0 };
+	public float[] avelocity = { 0, 0, 0 };
 	public int mass;
 	public float air_finished;
 	public float gravity; // per entity gravity multiplier (1.0 is normal)
@@ -109,7 +107,6 @@ public class edict_t
 	public float ideal_yaw;
 
 	public float nextthink;
-
 
 	public EntThinkAdapter prethink;
 	public EntThinkAdapter think;
@@ -135,7 +132,7 @@ public class edict_t
 
 	//TODO: 
 	//check char * replacement!
-	public String map;			// target_changelevel
+	public String map; // target_changelevel
 
 	public int viewheight; // height above origin where eyesight is determined
 	public int takedamage;
@@ -172,9 +169,9 @@ public class edict_t
 	public int watertype;
 	public int waterlevel;
 
-	public float[] move_origin= {0,0,0};
-	
-	public float[] move_angles= {0,0,0};
+	public float[] move_origin = { 0, 0, 0 };
+
+	public float[] move_angles = { 0, 0, 0 };
 
 	// move this to clientinfo?
 	public int light_level;
@@ -186,4 +183,275 @@ public class edict_t
 	// common data blocks
 	public moveinfo_t moveinfo;
 	public monsterinfo_t monsterinfo;
+
+	public boolean set(String key, String value) {
+
+		if (key.equals("classname")) {
+			classname = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("model")) {
+			model = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("spawnflags")) {
+			spawnflags = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("speed")) {
+			speed = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("accel")) {
+			accel = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("decel")) {
+			decel = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("target")) {
+			target = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("targetname")) {
+			targetname = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("pathtarget")) {
+			pathtarget = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("deathtarget")) {
+			deathtarget = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+		if (key.equals("killtarget")) {
+			killtarget = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("combattarget")) {
+			combattarget = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("message")) {
+			message = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("team")) {
+			team = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("wait")) {
+			wait = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("delay")) {
+			delay = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("random")) {
+			random = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("move_origin")) {
+			move_origin = Lib.atov(value);
+			return true;
+		} // F_VECTOR),
+
+		if (key.equals("move_angles")) {
+			move_angles = Lib.atov(value);
+			return true;
+		} // F_VECTOR),
+
+		if (key.equals("style")) {
+			style = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("count")) {
+			count = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("health")) {
+			health = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("sounds")) {
+			sounds = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("light")) {
+			return true;
+		} // F_IGNORE),
+
+		if (key.equals("dmg")) {
+			dmg = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("mass")) {
+			mass = Lib.atoi(value);
+			return true;
+		} // F_INT),
+
+		if (key.equals("volume")) {
+			volume = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("attenuation")) {
+			attenuation = Lib.atof(value);
+			return true;
+		} // F_FLOAT),
+
+		if (key.equals("map")) {
+			map = GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("origin")) {
+			s.origin = Lib.atov(value);
+			return true;
+		} // F_VECTOR),
+
+		if (key.equals("angles")) {
+			s.angles = Lib.atov(value);
+			return true;
+		} // F_VECTOR),
+
+		if (key.equals("angle")) {
+			s.angles = new float[] { 0, Lib.atof(value), 0 };
+			return true;
+		} // F_ANGLEHACK),
+
+		/* --- NOSPAWN ---
+		if (key.equals("goalentity")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		
+		if (key.equals("movetarget")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		
+		if (key.equals("enemy")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		
+		if (key.equals("oldenemy")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		
+		if (key.equals("activator")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		
+		if (key.equals("groundentity")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("teamchain")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("teammaster")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("owner")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("mynoise")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("mynoise2")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("target_ent")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("chain")) {
+			return true;
+		} // F_EDICT, FFL_NOSPAWN),
+		if (key.equals("prethink")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("think")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("blocked")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("touch")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("use")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("pain")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("die")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("stand")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("idle")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("search")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("walk")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("run")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("dodge")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("attack")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("melee")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("sight")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("checkattack")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		if (key.equals("currentmove")) {
+			return true;
+		} // F_MMOVE, FFL_NOSPAWN),
+		if (key.equals("endfunc")) {
+			return true;
+		} // F_FUNCTION, FFL_NOSPAWN),
+		
+		*/
+		if (key.equals("item")) {
+			return true;
+		} // F_ITEM)
+
+		return false;
+	}
 }
