@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.4 2003-11-25 13:10:11 cwei Exp $
+ * $Id: Renderer.java,v 1.5 2003-11-25 14:42:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,18 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render;
 
-import java.awt.Dimension;
-import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jake2.client.refexport_t;
 import jake2.client.refimport_t;
-import jake2.qcommon.xcommand_t;
-
-import jake2.game.cvar_t;
-import jake2.util.Vargs;
 
 /**
  * Renderer
@@ -62,6 +56,9 @@ public class Renderer {
 	};
 
 	public static void register(Ref impl) {
+		if (impl == null) {
+			throw new IllegalArgumentException("Ref implementation can't be null");
+		}
 		if (!drivers.contains(impl)) {
 			drivers.add(impl);
 		}
@@ -94,83 +91,5 @@ public class Renderer {
 			names[i] = ((Ref)drivers.get(i)).getName();
 		}
 		return names;
-	}
-	
-	public static void main(String[] args) {
-		
-		// only for testing
-		// a simple refimport_t implementation
-		refimport_t rimp = new refimport_t() {
-			public void Sys_Error(int err_level, String str, Vargs vargs) {
-			}
-
-			public void Cmd_AddCommand(String name, xcommand_t cmd) {
-			}
-
-			public void Cmd_RemoveCommand(String name) {
-			}
-
-			public int Cmd_Argc() {
-				return 0;
-			}
-
-			public String Cmd_Argv(int i) {
-				return null;
-			}
-
-			public void Cmd_ExecuteText(int exec_when, String text) {
-			}
-
-			public void Con_Printf(
-				int print_level,
-				String str,
-				Vargs vargs) {
-			}
-
-			public int FS_LoadFile(String name, byte[] buf) {
-				return 0;
-			}
-
-			public void FS_FreeFile(byte[] buf) {
-			}
-
-			public String FS_Gamedir() {
-				return null;
-			}
-
-			public cvar_t Cvar_Get(String name, String value, int flags) {
-				return null;
-			}
-
-			public cvar_t Cvar_Set(String name, String value) {
-				return null;
-			}
-
-			public void Cvar_SetValue(String name, float value) {
-			}
-
-			public boolean Vid_GetModeInfo(Dimension dim, int mode) {
-				return false;
-			}
-
-			public void Vid_MenuInit() {
-			}
-
-			public void Vid_NewWindow(int width, int height) {
-			}
-		};
-		
-		try {
-			//Class.forName("jake2.render.JoglRenderer");
-			String[] names = Renderer.getDriverNames();
-			System.out.println("Registered Drivers: " + Arrays.asList(names));
-
-			refexport_t re = Renderer.getDriver("jogl", rimp);
-
-			System.out.println("Use driver: " + re);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 }
