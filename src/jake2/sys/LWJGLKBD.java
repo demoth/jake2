@@ -12,9 +12,6 @@ import org.lwjgl.opengl.Display;
  * @author dsanders
  */
 public class LWJGLKBD extends KBD {
-
-	private int win_w2;
-	private int win_h2;
 	
 	private char[] lwjglKeycodeMap = null;
 	
@@ -31,9 +28,6 @@ public class LWJGLKBD extends KBD {
 			if (!Keyboard.isTranslationEnabled()) Keyboard.enableTranslation();
 			if (!Mouse.isBuffered()) Mouse.enableBuffer();
 			
-			win_w2=Display.getDisplayMode().getWidth()/2;
-			win_h2=Display.getDisplayMode().getHeight()/2;
-
 			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
 			
 			mouseHasTwoButtons = (Mouse.getButtonCount() == 2);
@@ -186,13 +180,6 @@ public class LWJGLKBD extends KBD {
 		
 	public void Do_Key_Event(int key, boolean down) {
 		Key.Event(key, down, Sys.Milliseconds());
-	}
-
-	public void centerMouse()
-	{
-		Mouse.setPosition(win_x + win_w2,win_y + win_h2);
-		//Mouse.setGrabbed(true);
-		//Mouse.setTrackingEnabled(true);
 	}
 	
 	public void installGrabs()

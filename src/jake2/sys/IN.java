@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.6 2004-12-14 00:11:01 hzi Exp $
+ * $Id: IN.java,v 1.7 2004-12-16 22:45:55 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,12 +33,6 @@ import jake2.game.usercmd_t;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.xcommand_t;
 import jake2.util.Math3D;
-
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Point;
-
-import javax.swing.ImageIcon;
 
 /**
  * IN
@@ -80,10 +74,7 @@ public final class IN extends Globals {
     }
 
     private static void install_grabs() {
-
 		Globals.re.getKeyboardHandler().installGrabs();
-		Globals.re.getKeyboardHandler().centerMouse();
-
 		ignorefirst = true;
     }
 

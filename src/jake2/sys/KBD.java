@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.6 2004-12-14 00:11:01 hzi Exp $
+ * $Id: KBD.java,v 1.7 2004-12-16 22:45:55 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,6 +47,6 @@ abstract public class KBD {
 
 	abstract public void installGrabs();
 	abstract public void uninstallGrabs();
-	abstract public void centerMouse();
+	//abstract public void centerMouse();
 }
 

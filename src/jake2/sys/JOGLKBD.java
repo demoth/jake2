@@ -212,6 +212,7 @@ final public class JOGLKBD extends KBD
 			emptyCursor = c.getToolkit().createCustomCursor(emptyIcon.getImage(), new Point(0, 0), "emptyCursor");
 		}
 		c.setCursor(emptyCursor);
+		centerMouse();
 	}
 	
 	public void uninstallGrabs()
