@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.23 2004-06-06 23:26:14 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.24 2004-06-22 17:18:56 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -79,7 +79,16 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 	 * @see jake2.client.refexport_t#BeginRegistration(java.lang.String)
 	 */
 	public void BeginRegistration(String map) {
-		R_BeginRegistration(map);
+		if (contextInUse)
+			R_BeginRegistration(map);
+		
+		this.name = map;
+		
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_BeginRegistration(JoglRenderer.this.name);
+			}
+		});
 	}
 
 	
@@ -143,18 +152,39 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 		return image;
 	}
 
+	private float[] axis;
+	private float rotate;
+
 	/** 
 	 * @see jake2.client.refexport_t#SetSky(java.lang.String, float, float[])
 	 */
 	public void SetSky(String name, float rotate, float[] axis) {
-		R_SetSky(name, rotate, axis);
+		if (contextInUse)
+			R_SetSky(name, rotate, axis);
+
+		this.name = name;
+		this.rotate = rotate;
+		this.axis = axis;
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_SetSky(JoglRenderer.this.name, JoglRenderer.this.rotate, JoglRenderer.this.axis);
+			}
+		});
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#EndRegistration()
 	 */
 	public void EndRegistration() {
-		R_EndRegistration();
+		if (contextInUse)
+			R_EndRegistration();
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_EndRegistration();
+			}
+		});
 	}
 
 	/** 

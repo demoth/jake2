@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.2 2004-06-13 00:54:44 cwei Exp $
+ * $Id: FastJoglRenderer.java,v 1.3 2004-06-22 17:18:56 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -80,7 +80,16 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 	 * @see jake2.client.refexport_t#BeginRegistration(java.lang.String)
 	 */
 	public void BeginRegistration(String map) {
-		R_BeginRegistration(map);
+		if (contextInUse)
+			R_BeginRegistration(map);
+		
+		this.name = map;
+		
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_BeginRegistration(FastJoglRenderer.this.name);
+			}
+		});
 	}
 
 	
@@ -144,18 +153,41 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 		return image;
 	}
 
+
+	private float[] axis;
+	private float rotate;
+
 	/** 
 	 * @see jake2.client.refexport_t#SetSky(java.lang.String, float, float[])
 	 */
 	public void SetSky(String name, float rotate, float[] axis) {
-		R_SetSky(name, rotate, axis);
+		if (contextInUse)
+			R_SetSky(name, rotate, axis);
+
+		this.name = name;
+		this.rotate = rotate;
+		this.axis = axis;
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_SetSky(FastJoglRenderer.this.name, FastJoglRenderer.this.rotate, FastJoglRenderer.this.axis);
+			}
+		});
+
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#EndRegistration()
 	 */
 	public void EndRegistration() {
-		R_EndRegistration();
+		if (contextInUse)
+			R_EndRegistration();
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				R_EndRegistration();
+			}
+		});
 	}
 
 	/** 
