@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.6 2004-08-19 20:56:41 hzi Exp $
+ * $Id: Key.java,v 1.7 2004-10-28 18:15:25 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -321,7 +321,7 @@ public class Key extends Globals {
 			shift_down = down;
 
 		// console key is hardcoded, so the user can never unbind it
-		if (key == '#' || key == '~') {
+		if (key == '`' || key == '~') {
 			if (!down)
 				return;
 
