@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.2 2004-04-26 13:43:33 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.3 2004-04-26 15:59:43 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -10,6 +10,7 @@ package jake2.sound.joal;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.game.entity_state_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 import jake2.sound.*;
@@ -27,13 +28,14 @@ import net.java.games.joal.util.ALut;
 /**
  * JOALSoundImpl
  */
-public class JOALSoundImpl implements Sound {
+public final class JOALSoundImpl implements Sound {
 	
 	static {
 		S.register(new JOALSoundImpl());
 	};
 
 	static AL al;
+	static ALC alc;
 	
 	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
 	
@@ -49,21 +51,18 @@ public class JOALSoundImpl implements Sound {
 	private JOALSoundImpl() {
 	}
 
-	boolean initialized = false;
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Init()
 	 */
 	public boolean Init() {
 		
-		if (initialized) return true;
-		
 		try {
 			ALut.alutInit();
 			al = ALFactory.getAL();
+			alc = ALFactory.getALC();
 		} catch (OpenALException e) {
 			Com.Printf(e.getMessage() + '\n');
-			initialized =false;
 			return false;
 		}
 		al.alGetError();
@@ -73,7 +72,6 @@ public class JOALSoundImpl implements Sound {
 
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
 //		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);		
-		initialized = true;
 		return true;
 	}
 	
@@ -83,12 +81,13 @@ public class JOALSoundImpl implements Sound {
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
 	 */
-	public void RegisterSound(sfx_t sfx)
+	private void initBuffer(sfx_t sfx)
 	{
-		if (sfx.cache == null )
+		if (sfx.cache == null ) {
+			System.out.println(sfx.name + " " + sfx.cache.length+ " " + sfx.cache.loopstart + " " + sfx.cache.speed + " " + sfx.cache.stereo + " " + sfx.cache.width);
 			return;
+		}
 		
-		//System.out.println(sfx.name + " " + sfx.cache.length+ " " + sfx.cache.loopstart + " " + sfx.cache.speed + " " + sfx.cache.stereo + " " + sfx.cache.width);
 
 		int tmp = sfx.cache.width; // | sfx.cache.stereo;
 		int format = AL.AL_FORMAT_MONO16;
@@ -113,14 +112,33 @@ public class JOALSoundImpl implements Sound {
 		StopAllSounds();
 		al.alDeleteSources(sources.length, sources);
 		al.alDeleteBuffers(buffers.length, buffers);
-		ALut.alutExit();
-		initialized = false;
 		try {
-			Thread.sleep(1000);
+			exitOpenAL();
 		}
-		catch (InterruptedException e) {
+		catch (Exception e) {
+			Com.Printf(e.getMessage() + '\n');
 		}
 	}
+	
+	private void exitOpenAL() {
+		 ALC.Context curContext;
+		 ALC.Device curDevice;
+
+		 // Get the current context.
+		 curContext = alc.alcGetCurrentContext();
+
+		 // Get the device used by that context.
+		 curDevice = alc.alcGetContextsDevice(curContext);
+
+		 // Reset the current context to NULL.
+		 alc.alcMakeContextCurrent(null);
+
+		 // Release the context and the device.
+		 alc.alcDestroyContext(curContext);
+		 alc.alcCloseDevice(curDevice);
+	 }
+	
+	
 	
 	private final static float[] NULLVECTOR = {0, 0, 0};
 	private float[] entityOrigin = {0, 0, 0};
@@ -138,31 +156,28 @@ public class JOALSoundImpl implements Sound {
 		if (sfx == null)
 			return;
 			
-//		if (sfx.name.charAt(0) == '*')
-//			sfx = S.RegisterSexedSound(Globals.cl_entities[entnum].current, sfx.name);
-//		
+		if (sfx.name.charAt(0) == '*')
+			sfx = RegisterSexedSound(Globals.cl_entities[entnum].current, sfx.name);
+		
 		if (sfx.cache == null) {
-			S.RegisterSound(sfx.name);
+			RegisterSound(sfx.name);
 		
 			if (sfx.cache == null)
 				return;
 		}
-		
-		
+
 		// for openAL
 		
 		//System.out.println(sfx.name + " fvol: " + fvol + " atten: " + attenuation);
 
-		if (!activeSources.contains(new Integer(sfx.id))) {
-			al.alSourcei (sources[sfx.id], AL.AL_BUFFER, buffers[sfx.id]);
-			al.alSourcef (sources[sfx.id], AL.AL_GAIN, 0.7f);
-			al.alSourcef (sources[sfx.id], AL.AL_PITCH, 1.0f);
-			al.alSourcei (sources[sfx.id], AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
-			al.alSourcefv(sources[sfx.id], AL.AL_VELOCITY, NULLVECTOR);
-			al.alSourcei (sources[sfx.id], AL.AL_LOOPING,  AL.AL_FALSE);
-			al.alSourcef (sources[sfx.id], AL.AL_MIN_GAIN, 0.003f);
-			al.alSourcef (sources[sfx.id], AL.AL_MAX_GAIN, 1.0f);
-		}
+		al.alSourcei (sources[sfx.id], AL.AL_BUFFER, buffers[sfx.id]);
+		al.alSourcef (sources[sfx.id], AL.AL_GAIN, 0.7f);
+		al.alSourcef (sources[sfx.id], AL.AL_PITCH, 1.0f);
+		al.alSourcei (sources[sfx.id], AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
+		al.alSourcefv(sources[sfx.id], AL.AL_VELOCITY, NULLVECTOR);
+		al.alSourcei (sources[sfx.id], AL.AL_LOOPING,  AL.AL_FALSE);
+		al.alSourcef (sources[sfx.id], AL.AL_MIN_GAIN, 0.003f);
+		al.alSourcef (sources[sfx.id], AL.AL_MAX_GAIN, 1.0f);
 
 		al.alSourcef (sources[sfx.id], AL.AL_REFERENCE_DISTANCE, 200.0f - attenuation * 50);
 			
@@ -173,8 +188,6 @@ public class JOALSoundImpl implements Sound {
 		} else {
 			playlist.addDynamic(sources[sfx.id], entnum);
 		}
-
-		//activeSources.add(new Integer(sfx.id));
 	}
 	
 	private float[] listenerOrigin = {0, 0, 0};
@@ -197,13 +210,6 @@ public class JOALSoundImpl implements Sound {
 		
 		playlist.play(listenerOrigin);
 		
-//		int id = 0;
-//		for (Iterator it = activeSources.iterator(); it.hasNext();)
-//		{
-//			id = ((Integer)it.next()).intValue();
-//			al.alSourcePlay(sources[id]);
-//		}
-//		activeSources.clear();
 	}
 
 	/* (non-Javadoc)
@@ -286,7 +292,7 @@ public class JOALSoundImpl implements Sound {
 						break;
 				}
 				al.alSourcefv(playlist[i], AL.AL_POSITION, sourceOrigin);
-				//al.alSourceStop(playlist[i]);
+				al.alSourceStop(playlist[i]);
 				al.alSourceRewind(playlist[i]);
 			}
 			
@@ -332,9 +338,6 @@ public class JOALSoundImpl implements Sound {
 		if (!s_registering)
 			LoadSound(sfx);
 			
-		// cwei	
-		RegisterSound(sfx);
-
 		return sfx;
 	}
 
@@ -378,6 +381,57 @@ public class JOALSoundImpl implements Sound {
 
 		s_registering = false;
 	}
+	
+	sfx_t RegisterSexedSound(entity_state_t ent, String base) {
+		sfx_t sfx = null;
+
+		// determine what model the client is using
+		String model = "male";
+		int n = Globals.CS_PLAYERSKINS + ent.number - 1;
+		if (Globals.cl.configstrings[n] != null) {
+			int p = Globals.cl.configstrings[n].indexOf('\\');
+			if (p >= 0) {
+				p++;
+				model = Globals.cl.configstrings[n].substring(p);
+				//strcpy(model, p);
+				p = model.indexOf('/');
+				if (p > 0)
+					model = model.substring(0, p);
+			}
+		}
+		// if we can't figure it out, they're male
+		if (model == null || model.length() == 0)
+			model = "male";
+
+		// see if we already know of the model specific sound
+		String sexedFilename = "#players/" + model + "/" + base.substring(1);
+		//Com_sprintf (sexedFilename, sizeof(sexedFilename), "#players/%s/%s", model, base+1);
+		sfx = FindName(sexedFilename, false);
+
+		if (sfx == null) {
+			// no, so see if it exists
+			RandomAccessFile f = null;
+			try {
+				f = FS.FOpenFile(sexedFilename.substring(1));
+			} catch (IOException e) {}
+			if (f != null) {
+				// yes, close the file and register it
+				try {
+					FS.FCloseFile(f);
+				} catch (IOException e1) {}
+				sfx = RegisterSound(sexedFilename);
+			} else {
+				// no, revert to the male sound in the pak0.pak
+				//Com_sprintf (maleFilename, sizeof(maleFilename), "player/%s/%s", "male", base+1);
+				String maleFilename = "player/male/" + base.substring(1);
+				sfx = AliasName(sexedFilename, maleFilename);
+			}
+		}
+
+		System.out.println(sfx.name);
+		return sfx;
+	}
+	
 
 	static sfx_t[] known_sfx = new sfx_t[MAX_SFX];
 	static {
@@ -430,6 +484,46 @@ public class JOALSoundImpl implements Sound {
 
 		return sfx;
 	}
+
+	/*
+	==================
+	S_AliasName
+
+	==================
+	*/
+	sfx_t AliasName(String aliasname, String truename)
+	{
+		sfx_t sfx = null;
+		String s;
+		int i;
+
+		s = new String(truename);
+
+		// find a free sfx
+		for (i=0 ; i < num_sfx ; i++)
+			if (known_sfx[i].name == null)
+				break;
+
+		if (i == num_sfx)
+		{
+			if (num_sfx == MAX_SFX)
+				Com.Error(Defines.ERR_FATAL, "S_FindName: out of sfx_t");
+			num_sfx++;
+		}
+	
+		sfx = known_sfx[i];
+		sfx.clear();
+		sfx.name = new String(aliasname);
+		sfx.registration_sequence = s_registration_sequence;
+		sfx.truename = s;
+		
+		// cwei
+		sfx.id = i;
+
+		return sfx;
+	}
+
+
 
 	/*
 	==============
@@ -510,6 +604,9 @@ public class JOALSoundImpl implements Sound {
 		System.arraycopy(data, 0, sc.data, 0, len);
 
 		FS.FreeFile(data);
+		
+		// cache the sample in ALBuffer
+		initBuffer(s);
 
 		return sc;
 	}
