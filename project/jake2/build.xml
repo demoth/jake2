@@ -3,6 +3,7 @@
 
 	<!-- properties -->
 	<property name="src" location="src"/>
+	<property name="test" location="test"/>
 	<property name="build" location="build"/>
 	<property name="dist" location="dist"/>
 
@@ -27,9 +28,10 @@
 
 	<!-- compile -->
 	<target name="compile" depends="init">
-		<javac destdir="${build}" optimize="on" debug="off" source="1.4">
+		<javac destdir="${build}" optimize="on" debug="on" source="1.4">
 			<src path="${src}"/>
-			<include name="jake2/Jake2.java"/>
+			<src path="${test}"/>
+			<include name="jake2/**"/>
 			<classpath refid="build.class.path"/>
 		</javac>
 	</target>
