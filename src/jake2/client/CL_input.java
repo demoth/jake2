@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.14 2004-02-14 21:15:00 rst Exp $
+ * $Id: CL_input.java,v 1.15 2004-02-14 21:39:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -326,6 +326,8 @@ public class CL_input extends CL_ents {
 	CL_FinishMove
 	==============
 	*/
+	static int scheisshack =0;
+	
 	static void FinishMove(usercmd_t cmd) {
 		int ms;
 		int i;
@@ -367,6 +369,13 @@ public class CL_input extends CL_ents {
 		// hauptsache der scheissmist zuckelt.
 		cmd.forwardmove += (int) (10 * Math.random() -5);
 		
+		if (scheisshack ++ >5) 
+			scheisshack =0;
+			
+		cmd.forwardmove += scheisshack-2;
+		cmd.angles[0] += scheisshack-2;
+		cmd.angles[1] += scheisshack-2;
+		cmd.angles[2] += scheisshack-2;		
 		
 	}
 
@@ -470,7 +479,7 @@ public class CL_input extends CL_ents {
 			public void execute() {IN_KLookUp();}});
 
 		// TODO: nodelta wegmachen
-		cl_nodelta = Cvar.Get("cl_nodelta", "1", 0);
+		cl_nodelta = Cvar.Get("cl_nodelta", "1",0);
 	}
 
 	/*
@@ -490,10 +499,10 @@ public class CL_input extends CL_ents {
 
 		// save this command off for prediction
 		i = cls.netchan.outgoing_sequence & (CMD_BACKUP - 1);
-		cmd = cl.cmds[i];
+		
 		cl.cmd_time[i] = (int)cls.realtime; // for netgraph ping calculation
 
-		cl.cmds[i] = cmd = CL.CreateCmd();
+		cl.cmds[i] = cmd = new usercmd_t(CL.CreateCmd());
 
 		cl.cmd = new usercmd_t(cmd);
 
