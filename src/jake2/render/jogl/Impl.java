@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.4 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Impl.java,v 1.5 2004-01-03 23:28:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -109,11 +109,14 @@ public class Impl extends Misc implements GLEventListener {
 
 		window.getContentPane().add(canvas);
 		window.setSize(newDim.width, newDim.height);
-		window.setUndecorated(true);
+		//window.setUndecorated(true);
 		window.setResizable(false);
 		
+		// register event listener
 		window.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
+				GLimp_Shutdown();
+				System.out.println("Received event " + e.paramString() +  ", exiting...\n");
 				System.exit(0);
 			}
 		});
