@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.4 2004-04-16 07:27:04 hoz Exp $
+ * $Id: S.java,v 1.5 2004-04-16 09:28:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.sound;
+
+import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import javax.sound.sampled.*;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioSystem;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -217,69 +225,81 @@ public class S {
 	==============
 	*/
 	static sfxcache_t LoadSound(sfx_t s) {
-//		String namebuffer;
-//		byte[] data;
-//		wavinfo_t info;
-//		int len;
+		String namebuffer;
+		byte[] data;
+		wavinfo_t info = new wavinfo_t();
+		int len;
 //		float stepscale;
 		sfxcache_t sc = null;
-//		int size;
-//		String name;
-//
-//		if (s.name.charAt(0) == '*')
-//			return null;
-//
-//		// see if still in memory
-//		sc = s.cache;
-//		if (sc != null)
-//			return sc;
-//
-//		// load it in
-//		if (s.truename != null)
-//			name = s.truename;
-//		else
-//			name = s.name;
-//
-//		if (name.charAt(0) == '#')
-//			namebuffer = name.substring(1);
-//		//strcpy(namebuffer, &name[1]);
-//		else
-//			namebuffer = "sound/" + name;
-//		//Com_sprintf (namebuffer, sizeof(namebuffer), "sound/%s", name);
-//
-//		data = FS.LoadFile(namebuffer);
-//
-//		if (data == null) {
-//			Com.DPrintf("Couldn't load " + namebuffer + "\n");
-//			return null;
-//		}
-//		size = data.length;
+		int size;
+		String name;
+
+		if (s.name.charAt(0) == '*')
+			return null;
+
+		// see if still in memory
+		sc = s.cache;
+		if (sc != null)
+			return sc;
+
+		// load it in
+		if (s.truename != null)
+			name = s.truename;
+		else
+			name = s.name;
+
+		if (name.charAt(0) == '#')
+			namebuffer = name.substring(1);
+		//strcpy(namebuffer, &name[1]);
+		else
+			namebuffer = "sound/" + name;
+		//Com_sprintf (namebuffer, sizeof(namebuffer), "sound/%s", name);
+
+		data = FS.LoadFile(namebuffer);
+
+		if (data == null) {
+			Com.DPrintf("Couldn't load " + namebuffer + "\n");
+			return null;
+		}
+		size = data.length;
+		
+		InputStream is = new ByteArrayInputStream(data);
+		AudioFileFormat f = null;
+		try {
+			f = AudioSystem.getAudioFileFormat(is);
+			is.close();
+		} catch (UnsupportedAudioFileException e) {
+		} catch (IOException e) {
+		}
+		
+		AudioFormat af = f.getFormat();
+		info.channels = af.getChannels();
+		info.rate = (int)af.getSampleRate();
+		info.samples = f.getFrameLength();
+		info.width = af.getSampleSizeInBits();
+		
 //
 //		info = GetWavinfo(s.name, data, size);
-//		if (info.channels != 1) {
-//			Com.Printf(s.name + " is a stereo sample\n");
-//			FS.FreeFile(data);
-//			return null;
-//		}
-//
-//		stepscale = ((float)info.rate) / dma.speed;
-//		len = (int) (info.samples / stepscale);
-//
-//		len = len * info.width * info.channels;
-//
-//		//sc = s.cache = Z_Malloc (len + sizeof(sfxcache_t));
-//		sc = s.cache = new sfxcache_t(len);
-//
-//		sc.length = info.samples;
-//		sc.loopstart = info.loopstart;
-//		sc.speed = info.rate;
-//		sc.width = info.width;
-//		sc.stereo = info.channels;
-//
-//		ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
-//
-//		FS.FreeFile(data);
-//
+		if (info.channels != 1) {
+			Com.Printf(s.name + " is a stereo sample\n");
+			FS.FreeFile(data);
+			return null;
+		}
+
+		len = data.length;
+
+		//sc = s.cache = Z_Malloc (len + sizeof(sfxcache_t));
+		
+		sc = s.cache = new sfxcache_t(len);
+		sc.length = info.samples;
+		sc.loopstart = info.loopstart;
+		sc.speed = info.rate;
+		sc.width = info.width;
+		sc.stereo = info.channels;
+		System.arraycopy(data, 0, sc.data, 0, len);
+
+		FS.FreeFile(data);
+
 		return sc;
 	}
 				
