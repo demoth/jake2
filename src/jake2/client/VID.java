@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.9 2004-01-27 20:10:29 rst Exp $
+ * $Id: VID.java,v 1.10 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,7 +45,7 @@ import java.awt.Dimension;
  * 
  * @author cwei
  */
-public class VID {
+public class VID extends Globals {
 	//	   Main windowed and fullscreen graphics interface module. This module
 	//	   is used for both the software and OpenGL rendering versions of the
 	//	   Quake refresh engine.
@@ -374,11 +374,11 @@ public class VID {
 	public static void Init()
 	{
 		/* Create the video variables so we know how to start the graphics drivers */
-		vid_ref = Cvar.Get("vid_ref", "jogl", Cvar.ARCHIVE);
-		vid_xpos = Cvar.Get("vid_xpos", "3", Cvar.ARCHIVE);
-		vid_ypos = Cvar.Get("vid_ypos", "22", Cvar.ARCHIVE);
-		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", Cvar.ARCHIVE);
-		vid_gamma = Cvar.Get( "vid_gamma", "1", Cvar.ARCHIVE );
+		vid_ref = Cvar.Get("vid_ref", "jogl", CVAR_ARCHIVE);
+		vid_xpos = Cvar.Get("vid_xpos", "3", CVAR_ARCHIVE);
+		vid_ypos = Cvar.Get("vid_ypos", "22", CVAR_ARCHIVE);
+		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+		vid_gamma = Cvar.Get( "vid_gamma", "1", CVAR_ARCHIVE );
 
 		/* Add some console commands that we want to handle */
 		Cmd.AddCommand ("vid_restart", new xcommand_t() {

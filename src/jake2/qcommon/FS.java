@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.23 2004-01-28 14:42:58 hoz Exp $
+ * $Id: FS.java,v 1.24 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,7 +43,7 @@ import javax.imageio.stream.FileImageInputStream;
  * 
  * @author cwei
  */
-public final class FS {
+public final class FS extends Globals {
 
 	private static Logger logger = Logger.getLogger(FS.class.getName());
 
@@ -590,11 +590,11 @@ public final class FS {
 		fs_gamedir = fs_basedir.string + '/' + dir;
 
 		if (!dir.equals(Globals.BASEDIRNAME) || (dir.length() == 0)) {
-			Cvar.FullSet("gamedir", "", Cvar.SERVERINFO | Cvar.NOSET);
-			Cvar.FullSet("game", "", Cvar.LATCH | Cvar.SERVERINFO);
+			Cvar.FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
+			Cvar.FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 		}
 		else {
-			Cvar.FullSet("gamedir", dir, Cvar.SERVERINFO | Cvar.NOSET);
+			Cvar.FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
 			if (fs_cddir.string != null && fs_cddir.string.length() > 0)
 				AddGameDirectory(fs_cddir.string + '/' + dir);
 
@@ -784,7 +784,7 @@ public final class FS {
 		// basedir <path>
 		// allows the game to run from outside the data tree
 		//
-		fs_basedir = Cvar.Get("basedir", ".", Cvar.NOSET);
+		fs_basedir = Cvar.Get("basedir", ".", CVAR_NOSET);
 
 		//
 		// cddir <path>
@@ -793,7 +793,7 @@ public final class FS {
 		//
 
 		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
-		fs_cddir = Cvar.Get("cddir", "../..", Cvar.NOSET);
+		fs_cddir = Cvar.Get("cddir", "../..", CVAR_NOSET);
 		if (fs_cddir.string.length() > 0)
 			AddGameDirectory(fs_cddir.string + '/' + Globals.BASEDIRNAME);
 
@@ -806,7 +806,7 @@ public final class FS {
 		fs_base_searchpaths = fs_searchpaths;
 
 		// check for game override
-		fs_gamedirvar = Cvar.Get("game", "", Cvar.LATCH | Cvar.SERVERINFO);
+		fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 
 		if (fs_gamedirvar.string.length() > 0)
 			SetGamedir(fs_gamedirvar.string);

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.24 2004-01-27 20:10:29 rst Exp $
+ * $Id: Main.java,v 1.25 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,26 +25,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import java.awt.Dimension;
-
-import net.java.games.jogl.GL;
-import net.java.games.jogl.GLU;
-import net.java.games.jogl.util.GLUT;
-import jake2.Defines;
-import jake2.Enum;
-import jake2.client.entity_t;
-import jake2.client.particle_t;
-import jake2.client.refdef_t;
-import jake2.client.refimport_t;
-import jake2.client.viddef_t;
+import jake2.*;
+import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.Cvar;
 import jake2.qcommon.qfiles;
 import jake2.qcommon.xcommand_t;
 import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
+
+import java.awt.Dimension;
+
+import net.java.games.jogl.GL;
+import net.java.games.jogl.GLU;
+import net.java.games.jogl.util.GLUT;
 
 /**
  * Main
@@ -961,7 +956,7 @@ public abstract class Main extends Base {
 	}
 
 	protected void R_Register() {
-		r_lefthand = ri.Cvar_Get("hand", "0", Cvar.USERINFO | Cvar.ARCHIVE);
+		r_lefthand = ri.Cvar_Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
 		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 		r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 		r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
@@ -976,19 +971,19 @@ public abstract class Main extends Base {
 		gl_nosubimage = ri.Cvar_Get("gl_nosubimage", "0", 0);
 		gl_allow_software = ri.Cvar_Get("gl_allow_software", "0", 0);
 
-		gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", Cvar.ARCHIVE);
-		gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", Cvar.ARCHIVE);
-		gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", Cvar.ARCHIVE);
-		gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", Cvar.ARCHIVE);
-		gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", Cvar.ARCHIVE);
-		gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", Cvar.ARCHIVE);
+		gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", Globals.CVAR_ARCHIVE);
+		gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", Globals.CVAR_ARCHIVE);
+		gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", Globals.CVAR_ARCHIVE);
+		gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", Globals.CVAR_ARCHIVE);
+		gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", Globals.CVAR_ARCHIVE);
+		gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", Globals.CVAR_ARCHIVE);
 
-		gl_modulate = ri.Cvar_Get("gl_modulate", "1", Cvar.ARCHIVE);
+		gl_modulate = ri.Cvar_Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
 		gl_log = ri.Cvar_Get("gl_log", "0", 0);
 		gl_bitdepth = ri.Cvar_Get("gl_bitdepth", "0", 0);
-		gl_mode = ri.Cvar_Get("gl_mode", "3", Cvar.ARCHIVE);
+		gl_mode = ri.Cvar_Get("gl_mode", "3", Globals.CVAR_ARCHIVE);
 		gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
-		gl_shadows = ri.Cvar_Get("gl_shadows", "0", Cvar.ARCHIVE);
+		gl_shadows = ri.Cvar_Get("gl_shadows", "0", Globals.CVAR_ARCHIVE);
 		gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
 		gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 		gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
@@ -996,37 +991,37 @@ public abstract class Main extends Base {
 		gl_skymip = ri.Cvar_Get("gl_skymip", "0", 0);
 		gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 		gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
-		gl_finish = ri.Cvar_Get("gl_finish", "0", Cvar.ARCHIVE);
+		gl_finish = ri.Cvar_Get("gl_finish", "0", Globals.CVAR_ARCHIVE);
 		gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
 		gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 		gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 		gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
 		gl_playermip = ri.Cvar_Get("gl_playermip", "0", 0);
 		gl_monolightmap = ri.Cvar_Get("gl_monolightmap", "0", 0);
-		gl_driver = ri.Cvar_Get("gl_driver", "opengl32", Cvar.ARCHIVE);
-		gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Cvar.ARCHIVE);
-		gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", Cvar.ARCHIVE);
-		gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", Cvar.ARCHIVE);
+		gl_driver = ri.Cvar_Get("gl_driver", "opengl32", Globals.CVAR_ARCHIVE);
+		gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Globals.CVAR_ARCHIVE);
+		gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", Globals.CVAR_ARCHIVE);
+		gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", Globals.CVAR_ARCHIVE);
 		gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 
-		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "0", Cvar.ARCHIVE);
+		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "0", Globals.CVAR_ARCHIVE);
 
-		gl_ext_swapinterval = ri.Cvar_Get("gl_ext_swapinterval", "1", Cvar.ARCHIVE);
-		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "1", Cvar.ARCHIVE);
-		gl_ext_multitexture = ri.Cvar_Get("gl_ext_multitexture", "1", Cvar.ARCHIVE);
-		gl_ext_pointparameters = ri.Cvar_Get("gl_ext_pointparameters", "1", Cvar.ARCHIVE);
-		gl_ext_compiled_vertex_array = ri.Cvar_Get("gl_ext_compiled_vertex_array", "1", Cvar.ARCHIVE);
+		gl_ext_swapinterval = ri.Cvar_Get("gl_ext_swapinterval", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_multitexture = ri.Cvar_Get("gl_ext_multitexture", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_pointparameters = ri.Cvar_Get("gl_ext_pointparameters", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_compiled_vertex_array = ri.Cvar_Get("gl_ext_compiled_vertex_array", "1", Globals.CVAR_ARCHIVE);
 
 		gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
-		gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", Cvar.ARCHIVE);
+		gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", Globals.CVAR_ARCHIVE);
 
 		gl_saturatelighting = ri.Cvar_Get("gl_saturatelighting", "0", 0);
 
-		gl_3dlabs_broken = ri.Cvar_Get("gl_3dlabs_broken", "1", Cvar.ARCHIVE);
+		gl_3dlabs_broken = ri.Cvar_Get("gl_3dlabs_broken", "1", Globals.CVAR_ARCHIVE);
 
-		vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", Cvar.ARCHIVE);
-		vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", Cvar.ARCHIVE);
-		vid_ref = ri.Cvar_Get("vid_ref", "jogl", Cvar.ARCHIVE);
+		vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", Globals.CVAR_ARCHIVE);
+		vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", Globals.CVAR_ARCHIVE);
+		vid_ref = ri.Cvar_Get("vid_ref", "jogl", Globals.CVAR_ARCHIVE);
 
 		ri.Cmd_AddCommand("imagelist", new xcommand_t() {
 			public void execute() {

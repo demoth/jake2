@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.26 2004-02-02 13:12:13 hoz Exp $
+ * $Id: Cvar.java,v 1.27 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
@@ -35,15 +38,7 @@ import jake2.util.Lib;
  * Cvar implements console variables. The original code is
  * located in cvar.c
  */
-public class Cvar {
-
-	public static final int ARCHIVE = 1;
-	// set to cause it to be saved to vars.rc
-	public static final int USERINFO = 2; // added to userinfo  when changed
-	public static final int SERVERINFO = 4; // added to serverinfo when changed
-	public static final int NOSET = 8; // don't allow change from console at all,
-	// but can be set from the command line
-	public static final int LATCH = 16; // save changes until server restart
+public class Cvar extends Globals {
 
 	/**
 	 * @param var_name
@@ -54,7 +49,7 @@ public class Cvar {
 	public static cvar_t Get(String var_name, String var_value, int flags) {
 		cvar_t var;
 
-		if ((flags & (USERINFO | SERVERINFO)) != 0) {
+		if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
 			if (!Info.Info_Validate(var_name)) {
 				Com.Printf("invalid info cvar name\n");
 				return null;
@@ -70,8 +65,8 @@ public class Cvar {
 		if (var_value == null)
 			return null;
 
-		if ((flags & (USERINFO | SERVERINFO)) != 0) {
-			if (!Info.Info_Validate(var_value)) {
+		if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
+			if (!InfoValidate(var_value)) {
 				Com.Printf("invalid info cvar value\n");
 				return null;
 			}
@@ -133,11 +128,8 @@ public class Cvar {
 
 		var.modified = true;
 
-		if ((var.flags & USERINFO) != 0)
+		if ((var.flags & CVAR_USERINFO) != 0)
 			Globals.userinfo_modified = true; // transmit at next oportunity
-
-		//Z_Free(var.string); // free the old value string
-		//var.string = CopyString(value);
 
 		var.string = value;
 		var.value = Lib.atof(var.string);
@@ -167,20 +159,20 @@ public class Cvar {
 			return Cvar.Get(var_name, value, 0);
 		}
 
-		if ((var.flags & (USERINFO | SERVERINFO)) != 0) {
-			if (!Info.Info_Validate(value)) {
+		if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
+			if (!InfoValidate(value)) {
 				Com.Printf("invalid info cvar value\n");
 				return var;
 			}
 		}
 
 		if (!force) {
-			if ((var.flags & NOSET) != 0) {
+			if ((var.flags & CVAR_NOSET) != 0) {
 				Com.Printf(var_name + " is write protected.\n");
 				return var;
 			}
 
-			if ((var.flags & LATCH) != 0) {
+			if ((var.flags & CVAR_LATCH) != 0) {
 				if (var.latched_string != null) {
 					if (value.equals(var.latched_string))
 						return var;
@@ -221,7 +213,7 @@ public class Cvar {
 
 		var.modified = true;
 
-		if ((var.flags & USERINFO) != 0)
+		if ((var.flags & CVAR_USERINFO) != 0)
 			Globals.userinfo_modified = true; // transmit at next oportunity
 
 		//Z_Free(var.string); // free the old value string
@@ -246,9 +238,9 @@ public class Cvar {
 
 			if (c == 4) {
 				if (Cmd.Argv(3).equals("u"))
-					flags = USERINFO;
+					flags = CVAR_USERINFO;
 				else if (Cmd.Argv(3).equals("s"))
-					flags = SERVERINFO;
+					flags = CVAR_SERVERINFO;
 				else {
 					Com.Printf("flags can only be 'u' or 's'\n");
 					return;
@@ -269,21 +261,21 @@ public class Cvar {
 
 			i = 0;
 			for (var = Globals.cvar_vars; var != null; var = var.next, i++) {
-				if ((var.flags & ARCHIVE) != 0)
+				if ((var.flags & CVAR_ARCHIVE) != 0)
 					Com.Printf("*");
 				else
 					Com.Printf(" ");
-				if ((var.flags & USERINFO) != 0)
+				if ((var.flags & CVAR_USERINFO) != 0)
 					Com.Printf("U");
 				else
 					Com.Printf(" ");
-				if ((var.flags & SERVERINFO) != 0)
+				if ((var.flags & CVAR_SERVERINFO) != 0)
 					Com.Printf("S");
 				else
 					Com.Printf(" ");
-				if ((var.flags & NOSET) != 0)
+				if ((var.flags & CVAR_NOSET) != 0)
 					Com.Printf("-");
-				else if ((var.flags & LATCH) != 0)
+				else if ((var.flags & CVAR_LATCH) != 0)
 					Com.Printf("L");
 				else
 					Com.Printf(" ");
@@ -390,12 +382,60 @@ public class Cvar {
 	 * returns an info string containing all the CVAR_USERINFO cvars.
 	 */
 	public static String Userinfo() {
-		return BitInfo(USERINFO);
+		return BitInfo(CVAR_USERINFO);
 	}
 
 	public static void WriteVariables(String path) {
-		// TODO: implement !
-		
-	}	
+		cvar_t var;
+		RandomAccessFile f;
+		String buffer;
 
+		f = Lib.fopen(path, "a");
+		for (var = cvar_vars; var != null; var = var.next) {
+			if ((var.flags & CVAR_ARCHIVE) != 0) {
+				buffer = "set " + var.name + "\"" + var.string + "\"\n";
+				try {
+					f.writeChars(buffer);
+				} catch (IOException e) {}
+			}
+		}
+		fclose(f);
+	}
+		
+	/*
+	============
+	Cvar_CompleteVariable
+	============
+	*/
+	static String CompleteVariable(String partial) {
+		cvar_t		cvar;
+		int			len;
+	
+		len = partial.length();
+	
+		if (len == 0)
+			return null;
+		
+		// check match
+		for (cvar=Globals.cvar_vars ; cvar != null ; cvar=cvar.next)
+			if (cvar.name.startsWith(partial))
+				return cvar.name;
+
+		return null;
+	}
+	
+	/*
+	============
+	Cvar_InfoValidate
+	============
+	*/
+	static boolean InfoValidate(String s) {
+		if (s.indexOf("\\") != -1)
+			return false;
+		if (s.indexOf("\"") != -1)
+			return false;	
+		if (s.indexOf(";") != -1)
+			return false;					
+		return true;
+	}
 }

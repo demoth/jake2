@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.11 2004-01-11 00:31:58 hoz Exp $
+ * $Id: Impl.java,v 1.12 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import jake2.Defines;
-import jake2.Enum;
-import jake2.qcommon.Cvar;
+import jake2.*;
 import jake2.sys.KBD;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -76,7 +74,7 @@ public class Impl extends Misc implements GLEventListener {
 
 		Dimension newDim = new Dimension();
 
-		ri.Cvar_Get("r_fakeFullscreen", "0", Cvar.ARCHIVE);
+		ri.Cvar_Get("r_fakeFullscreen", "0", Globals.CVAR_ARCHIVE);
 
 		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n", null);
 

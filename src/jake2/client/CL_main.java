@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.19 2004-02-02 21:46:59 rst Exp $
+ * $Id: CL_main.java,v 1.20 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1306,20 +1306,20 @@ public class CL_main extends CL_pred {
 
 		InitInput();
 
-		adr0 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr1 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr2 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr3 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr4 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr5 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr6 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr7 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
-		adr8 = Cvar.Get("adr0", "", Cvar.ARCHIVE);
+		adr0 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr1 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr2 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr3 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr4 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr5 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr6 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr7 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		adr8 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
 
 		//
 		// register our variables
 		//
-		cl_stereo_separation = Cvar.Get("cl_stereo_separation", "0.4", Cvar.ARCHIVE);
+		cl_stereo_separation = Cvar.Get("cl_stereo_separation", "0.4", CVAR_ARCHIVE);
 		cl_stereo = Cvar.Get("cl_stereo", "0", 0);
 
 		cl_add_blend = Cvar.Get("cl_blend", "1", 0);
@@ -1341,11 +1341,11 @@ public class CL_main extends CL_pred {
 		cl_pitchspeed = Cvar.Get("cl_pitchspeed", "150", 0);
 		cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
 
-		cl_run = Cvar.Get("cl_run", "0", Cvar.ARCHIVE);
-		freelook = Cvar.Get("freelook", "0", Cvar.ARCHIVE);
-		lookspring = Cvar.Get("lookspring", "0", Cvar.ARCHIVE);
-		lookstrafe = Cvar.Get("lookstrafe", "0", Cvar.ARCHIVE);
-		sensitivity = Cvar.Get("sensitivity", "3", Cvar.ARCHIVE);
+		cl_run = Cvar.Get("cl_run", "0", CVAR_ARCHIVE);
+		freelook = Cvar.Get("freelook", "0", CVAR_ARCHIVE);
+		lookspring = Cvar.Get("lookspring", "0", CVAR_ARCHIVE);
+		lookstrafe = Cvar.Get("lookstrafe", "0", CVAR_ARCHIVE);
+		sensitivity = Cvar.Get("sensitivity", "3", CVAR_ARCHIVE);
 
 		m_pitch = Cvar.Get("m_pitch", "0.022", CVAR_ARCHIVE);
 		m_yaw = Cvar.Get("m_yaw", "0.022", 0);

@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.18 2004-02-02 19:25:23 hoz Exp $
+ * $Id: Qcommon.java,v 1.19 2004-02-03 09:33:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -41,7 +41,7 @@ import java.io.IOException;
  * Qcommon contains some  basic routines for the game engine
  * namely initialization, shutdown and frame generation.
  */
-public final class Qcommon {
+public final class Qcommon extends Globals {
 
 	/**
 	 * This function initializes the different subsystems of
@@ -93,7 +93,7 @@ public final class Qcommon {
 			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-			Globals.dedicated= Cvar.Get("dedicated", "0", Cvar.NOSET);
+			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
 
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
@@ -102,7 +102,7 @@ public final class Qcommon {
 						.add(Globals.__DATE__)
 						.add(Globals.BUILDSTRING));
 
-			Cvar.Get("version", s, Cvar.SERVERINFO | Cvar.NOSET);
+			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 			NET.NET_Init();
 			Netchan.Init();
@@ -179,7 +179,7 @@ public final class Qcommon {
 			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-			Globals.dedicated= Cvar.Get("dedicated", "0", Cvar.NOSET);
+			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
 
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
@@ -188,7 +188,7 @@ public final class Qcommon {
 						.add(Globals.__DATE__)
 						.add(Globals.BUILDSTRING));
 
-			Cvar.Get("version", s, Cvar.SERVERINFO | Cvar.NOSET);
+			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 			NET.NET_Init();
 			Netchan.Init();
