@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2004-06-14 11:29:39 cwei Exp $
+ * $Id: Main.java,v 1.4 2004-06-15 12:03:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -953,7 +953,7 @@ public abstract class Main extends Base {
 	protected void R_Register() {
 		r_lefthand = ri.Cvar_Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
 		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
-		r_fullbright = ri.Cvar_Get("r_fullbright", "1", 0);
+		r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 		r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 		r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 		r_novis = ri.Cvar_Get("r_novis", "0", 0);
@@ -976,7 +976,7 @@ public abstract class Main extends Base {
 		gl_modulate = ri.Cvar_Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
 		gl_log = ri.Cvar_Get("gl_log", "0", 0);
 		gl_bitdepth = ri.Cvar_Get("gl_bitdepth", "0", 0);
-		gl_mode = ri.Cvar_Get("gl_mode", "1", Globals.CVAR_ARCHIVE);
+		gl_mode = ri.Cvar_Get("gl_mode", "3", Globals.CVAR_ARCHIVE); // 640x480
 		gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 		gl_shadows = ri.Cvar_Get("gl_shadows", "0", Globals.CVAR_ARCHIVE);
 		gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
@@ -999,7 +999,7 @@ public abstract class Main extends Base {
 		gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", Globals.CVAR_ARCHIVE);
 		gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 
-		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "0", Globals.CVAR_ARCHIVE);
+		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "1", Globals.CVAR_ARCHIVE);
 
 		gl_ext_swapinterval = ri.Cvar_Get("gl_ext_swapinterval", "1", Globals.CVAR_ARCHIVE);
 		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "0", Globals.CVAR_ARCHIVE);
@@ -1016,7 +1016,7 @@ public abstract class Main extends Base {
 
 		vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", Globals.CVAR_ARCHIVE);
 		vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", Globals.CVAR_ARCHIVE);
-		vid_ref = ri.Cvar_Get("vid_ref", "jogl", Globals.CVAR_ARCHIVE);
+		vid_ref = ri.Cvar_Get("vid_ref", "fastjogl", Globals.CVAR_ARCHIVE);
 
 		ri.Cmd_AddCommand("imagelist", new xcommand_t() {
 			public void execute() {
