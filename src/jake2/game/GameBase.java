@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.20 2004-02-14 13:24:02 rst Exp $
+// $Id: GameBase.java,v 1.21 2004-02-14 22:21:01 rst Exp $
 
 /** Father of all Objects. */
 
@@ -758,7 +758,7 @@ public class GameBase extends Globals {
 		// see if needpass needs updated
 		CheckNeedPass();
 
-		// build the playerstate_t structures for all players
+		// build the playerstate_t structures for all players   
 		ClientEndServerFrames();
 	}
 

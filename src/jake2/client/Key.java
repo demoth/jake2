@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.23 2004-02-06 21:45:17 hoz Exp $
+ * $Id: Key.java,v 1.24 2004-02-14 22:21:01 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -302,6 +302,7 @@ public class Key extends Globals {
 
 		// update auto-repeat status
 		if (down) {
+			// TODO: REMOVE NULLPOINTER !!! 
 			key_repeats[key]++;
 			if (key != K_BACKSPACE
 				&& key != K_PAUSE
