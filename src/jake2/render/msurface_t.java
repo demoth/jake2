@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.3 2004-07-09 06:50:47 hzi Exp $
+// $Id: msurface_t.java,v 1.4 2005-01-14 16:13:07 cawe Exp $
 
 package jake2.render;
 
@@ -68,8 +68,7 @@ public class msurface_t
 	
 	public void clear() {
 		visframe = 0;
-		plane = null;
-		plane = new cplane_t();
+		plane.clear();
 		flags = 0;
 
 		firstedge = 0;
