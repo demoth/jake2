@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.30 2004-02-10 20:05:10 cwei Exp $
+ * $Id: CL_main.java,v 1.31 2004-02-11 02:34:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1413,7 +1413,7 @@ public class CL_main extends CL_pred {
 		for (int n = 0; n < cheatvarsinfo.length; n++) {
 			cheatvars[n] = new cheatvar_t();
 			cheatvars[n].name = cheatvarsinfo[n][0];
-			cheatvars[n].name = cheatvarsinfo[n][1];
+			cheatvars[n].value = cheatvarsinfo[n][1];
 		}
 	}
 
