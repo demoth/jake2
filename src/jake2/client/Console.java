@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.5 2004-09-22 19:22:08 salomo Exp $
+ * $Id: Console.java,v 1.6 2004-10-28 23:41:27 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -507,7 +507,6 @@ public final class Console extends Globals {
         int row;
         int lines;
         String version;
-        String dlbar;
 
         lines = (int) (viddef.height * frac);
         if (lines <= 0)
@@ -569,17 +568,18 @@ public final class Console extends Globals {
             x = con.linewidth - ((con.linewidth * 7) / 40);
             y = x - (cls.downloadname.length() - text) - 8;
             i = con.linewidth / 3;
+            StringBuffer dlbar = new StringBuffer(512);
             if (cls.downloadname.length() - text > i) {
                 y = x - i - 11;
                 int end = text + i - 1;
                 ;
-                dlbar = cls.downloadname.substring(text, end);
-                dlbar += "...";
+                dlbar.append(cls.downloadname.substring(text, end));
+                dlbar.append("...");
             } else {
-                dlbar = cls.downloadname.substring(text);
+                dlbar.append(cls.downloadname.substring(text));
             }
-            dlbar += ": ";
-            dlbar += (char) 0x80;
+            dlbar.append(": ");
+            dlbar.append((char) 0x80);
 
             // where's the dot go?
             if (cls.downloadpercent == 0)
@@ -587,20 +587,15 @@ public final class Console extends Globals {
             else
                 n = y * cls.downloadpercent / 100;
 
-            StringBuffer sb = new StringBuffer(dlbar);
-            sb.ensureCapacity(1024);
             for (j = 0; j < y; j++) {
                 if (j == n)
-                    sb.append((char) 0x83);
+                    dlbar.append((char) 0x83);
                 else
-                    sb.append((char) 0x81);
+                    dlbar.append((char) 0x81);
             }
-            sb.append((char) 0x82);
-
-            dlbar = sb.toString();
-            dlbar += Com.sprintf(" %02d%%", new Vargs(1)
-                    .add(cls.downloadpercent));
-
+            dlbar.append((char) 0x82);
+            dlbar.append((cls.downloadpercent < 10) ? " 0" : " ");
+            dlbar.append(cls.downloadpercent).append('%');
             // draw it
             y = con.vislines - 12;
             for (i = 0; i < dlbar.length(); i++)
