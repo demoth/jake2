@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.6 2004-01-11 14:38:47 cwei Exp $
+ * $Id: VID.java,v 1.7 2004-01-12 21:52:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,12 +29,11 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.render.Renderer;
-import jake2.render.TestRenderer;
+import jake2.sys.*;
+import jake2.sys.KBD;
+import jake2.sys.RW;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
@@ -147,21 +146,9 @@ public class VID {
 	static void FreeReflib()
 	{
 		if (Globals.re != null) {
-//			if (KBD_Close_fp)
-//				KBD_Close_fp();
-//			if (RW_IN_Shutdown_fp)
-//				RW_IN_Shutdown_fp();
+			KBD.Close();
+			RW.IN_Shutdown();
 		}
-
-//		KBD_Init_fp = NULL;
-//		KBD_Update_fp = NULL;
-//		KBD_Close_fp = NULL;
-//		RW_IN_Init_fp = NULL;
-//		RW_IN_Shutdown_fp = NULL;
-//		RW_IN_Activate_fp = NULL;
-//		RW_IN_Commands_fp = NULL;
-//		RW_IN_Move_fp = NULL;
-//		RW_IN_Frame_fp = NULL;
 
 		Globals.re = null;
 		reflib_active = false;
@@ -177,12 +164,8 @@ public class VID {
 
 		if ( reflib_active )
 		{
-//			if (KBD_Close_fp)
-//				KBD_Close_fp();
-//			if (RW_IN_Shutdown_fp)
-//				RW_IN_Shutdown_fp();
-//			KBD_Close_fp = NULL;
-//			RW_IN_Shutdown_fp = NULL;
+			KBD.Close();
+			RW.IN_Shutdown();
 
 			Globals.re.Shutdown();
 			FreeReflib();
@@ -307,15 +290,7 @@ public class VID {
 //		in_state.viewangles = cl.viewangles;
 //		in_state.in_strafe_state = &in_strafe.state;
 
-//		if ((RW_IN_Init_fp = dlsym(reflib_library, "RW_IN_Init")) == NULL ||
-//			(RW_IN_Shutdown_fp = dlsym(reflib_library, "RW_IN_Shutdown")) == NULL ||
-//			(RW_IN_Activate_fp = dlsym(reflib_library, "RW_IN_Activate")) == NULL ||
-//			(RW_IN_Commands_fp = dlsym(reflib_library, "RW_IN_Commands")) == NULL ||
-//			(RW_IN_Move_fp = dlsym(reflib_library, "RW_IN_Move")) == NULL ||
-//			(RW_IN_Frame_fp = dlsym(reflib_library, "RW_IN_Frame")) == NULL)
-//			Sys_Error("No RW_IN functions in REF.\n");
-//
-//		Real_IN_Init();
+		IN.Real_IN_Init();
 
 		if ( !Globals.re.Init() )
 		{
@@ -325,11 +300,7 @@ public class VID {
 		}
 
 		/* Init KBD */
-//		if ((KBD_Init_fp = dlsym(reflib_library, "KBD_Init")) == NULL ||
-//			(KBD_Update_fp = dlsym(reflib_library, "KBD_Update")) == NULL ||
-//			(KBD_Close_fp = dlsym(reflib_library, "KBD_Close")) == NULL)
-//			Sys_Error("No KBD functions in REF.\n");
-//		KBD_Init_fp(Do_Key_Event);
+		KBD.Init();
 
 		Com.Printf( "------------------------------------\n");
 		reflib_active = true;
@@ -432,12 +403,9 @@ public class VID {
 	{
 		if ( reflib_active )
 		{
-//			if (KBD_Close_fp)
-//				KBD_Close_fp();
-//			if (RW_IN_Shutdown_fp)
-//				RW_IN_Shutdown_fp();
-//			KBD_Close_fp = NULL;
-//			RW_IN_Shutdown_fp = NULL;
+			KBD.Close();
+			RW.IN_Shutdown();
+
 			Globals.re.Shutdown();
 			FreeReflib();
 		}

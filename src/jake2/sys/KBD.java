@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.6 2004-01-11 00:31:58 hoz Exp $
+ * $Id: KBD.java,v 1.7 2004-01-12 21:52:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,8 +46,6 @@ public final class KBD {
 	
 	static Robot robot;
 	public static InputListener listener = new InputListener();
-	public static ComponentListener windowListener = new ComponentAdapter() {
-	};
 		
 	static {
 		try {
@@ -70,9 +68,6 @@ public final class KBD {
 	
 	static void HandleEvents() {
 		int b;
-		boolean dowarp = false;
-		int mwx = win_w2;
-		int mwy = win_h2;
 
 		Jake2InputEvent event;
 		while ( (event=InputListener.nextEvent()) != null ) {
@@ -83,30 +78,22 @@ public final class KBD {
 					break;
 
 				case Jake2InputEvent.MotionNotify:
-					if (IN.ignorefirst) {
-						IN.ignorefirst = false;
-						break;
-					}
+//					if (IN.ignorefirst) {
+//						IN.ignorefirst = false;
+//						break;
+//					}
 					if (IN.mouse_active) {
-						int x = ((MouseEvent)event.ev).getX();
-						int y = ((MouseEvent)event.ev).getY();
-						mx += (x - mwx) * 2;
-						my += (y - mwy) * 2;
-						mwx = x;
-						mwy = y;
-						dowarp = (mx != 0 || my != 0);
+						mx = (((MouseEvent)event.ev).getX() - win_w2) * 2;
+						my = (((MouseEvent)event.ev).getY() - win_h2) * 2;
 					}
 					break;
 
-
 				case Jake2InputEvent.ButtonPress:
-					b=-1;
 					b=((MouseEvent)event.ev).getButton()-1;
 					Do_Key_Event(Key.K_MOUSE1 + b, true);
 					break;
  
 				case Jake2InputEvent.ButtonRelease:
-					b=-1;
 					b=((MouseEvent)event.ev).getButton()-1;
 					Do_Key_Event(Key.K_MOUSE1 + b, false);
 					break;
@@ -132,7 +119,7 @@ public final class KBD {
 			}
 		}
             
-		if (dowarp) {
+		if (mx != 0 || my != 0) {
 			// move the mouse to the window center again
 			robot.mouseMove(win_x + win_w2, win_y + win_h2);
 //		00542                 XWarpPointer(dpy,None,win,0,0,0,0, vid.width/2,vid.height/2);

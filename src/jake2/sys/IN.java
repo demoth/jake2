@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.10 2004-01-11 00:31:58 hoz Exp $
+ * $Id: IN.java,v 1.11 2004-01-12 21:52:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,12 +39,12 @@ public final class IN {
 	static Component c = null;
 	static Cursor emptyCursor = null;
 	
-	
+	static boolean mouse_avail = false;
 	static boolean mouse_active = false;
 	static boolean ignorefirst = false;
 	
 	public static void ActivateMouse() {
-		if (c == null) return;
+		if (!mouse_avail || c == null) return;
 		if (!mouse_active) {
 			KBD.mx = KBD.my = 0; // don't spazz
 			install_grabs();
@@ -53,6 +53,7 @@ public final class IN {
 	}
 	
 	public static void DeactivateMouse() {
+		if (!mouse_avail || c == null) return;
 		if (mouse_active) {
 			uninstall_grabs();
 			mouse_active = false;
@@ -81,8 +82,43 @@ public final class IN {
 	}
 		
 	public static void Init() {
+//		00468         in_joystick     = Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);		
 	}
 	
 	public static void Shutdown() {
+		RW.IN_Shutdown();	
 	}
+	
+	public static void Real_IN_Init() {
+//	00473         if (RW_IN_Init_fp)
+//	00474                 RW_IN_Init_fp(&in_state);
+	}
+  
+	public static void Commands() {
+//	00485         if (RW_IN_Commands_fp)
+//	00486                 RW_IN_Commands_fp();
+	}
+ 
+//	00489 void IN_Move (usercmd_t *cmd)
+//	00490 {
+//	00491         if (RW_IN_Move_fp)
+//	00492                 RW_IN_Move_fp(cmd);
+//	00493 }
+ 
+	public static void Frame() {
+//	00497         if (RW_IN_Activate_fp) 
+//	00498         {
+//	00499                 if ( !cl.refresh_prepped || cls.key_dest == key_console || cls.key_dest == key_menu)
+//	00500                         RW_IN_Activate_fp(false);
+//	00501                 else
+//	00502                         RW_IN_Activate_fp(true);
+//	00503         }
+//	00504 
+//	00505         if (RW_IN_Frame_fp)
+//	00506                 RW_IN_Frame_fp();
+	}
+ 
+	public static void Activate(boolean active) {
+	} 
+
 }
