@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.37 2004-01-30 13:34:31 hoz Exp $
+ * $Id: Globals.java,v 1.38 2004-01-30 18:44:32 cwei Exp $
  * $Log: Globals.java,v $
- * Revision 1.37  2004-01-30 13:34:31  hoz
+ * Revision 1.38  2004-01-30 18:44:32  cwei
+ * logfile
+ *
+ * Revision 1.37  2004/01/30 13:34:31  hoz
  * - client code
  *
  * Revision 1.36  2004/01/30 09:24:20  hoz
@@ -68,6 +71,7 @@ import jake2.qcommon.sizebuf_t;
 import jake2.render.model_t;
 
 import java.io.FileWriter;
+import java.io.RandomAccessFile;
 
 /**
  * Globals ist the collection of global variables and constants.
@@ -424,4 +428,7 @@ public class Globals extends Defines {
 	public static int gun_frame;
 	public static model_t gun_model;
 	public static netadr_t net_from = new netadr_t();
+	
+	// logfile
+	public static RandomAccessFile logfile = null;
 }

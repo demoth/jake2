@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.14 2004-01-30 13:05:46 cwei Exp $
+ * $Id: Sys.java,v 1.15 2004-01-30 18:44:32 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -303,6 +303,14 @@ public final class Sys extends Defines {
 	public static String GetClipboardData() {
 		// TODO: implement!
 		return null;
+	}
+
+	public static void ConsoleOutput(String msg)
+	{
+		if (Globals.nostdout != null && Globals.nostdout.value != 0)
+			return;
+
+		System.out.print(msg);
 	}
 
 }
