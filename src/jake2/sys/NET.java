@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.4 2004-10-17 20:33:17 cawe Exp $
+ * $Id: NET.java,v 1.5 2004-10-17 21:31:32 cawe Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -82,7 +82,7 @@ public final class NET {
      * 
      * Compares without the port ===================
      */
-    public static boolean NET_CompareBaseAdr(netadr_t a, netadr_t b) {
+    public static boolean CompareBaseAdr(netadr_t a, netadr_t b) {
         if (a.type != b.type)
             return false;
 
@@ -101,7 +101,7 @@ public final class NET {
                 + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff) + ":" + a.port;
     }
 
-    public static String NET_BaseAdrToString(netadr_t a) {
+    public static String BaseAdrToString(netadr_t a) {
         return "" + (a.ip[0] & 0xff) + "." + (a.ip[1] & 0xff) + "."
                 + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff);
     }
@@ -137,7 +137,7 @@ public final class NET {
      * =============================================================================
      */
 
-    public static boolean NET_GetLoopPacket(int sock, netadr_t net_from,
+    public static boolean GetLoopPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
         loopback_t loop;
         loop = loopbacks[sock];
@@ -159,7 +159,7 @@ public final class NET {
         return true;
     }
 
-    public static void NET_SendLoopPacket(int sock, int length, byte[] data,
+    public static void SendLoopPacket(int sock, int length, byte[] data,
             netadr_t to) {
         int i;
         loopback_t loop;
@@ -178,7 +178,7 @@ public final class NET {
     public static boolean GetPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
 
-        if (NET_GetLoopPacket(sock, net_from, net_message)) {
+        if (GetLoopPacket(sock, net_from, net_message)) {
             return true;
         }
 
@@ -221,7 +221,7 @@ public final class NET {
 
     public static void SendPacket(int sock, int length, byte[] data, netadr_t to) {
         if (to.type == Defines.NA_LOOPBACK) {
-            NET_SendLoopPacket(sock, length, data, to);
+            SendLoopPacket(sock, length, data, to);
             return;
         }
 
@@ -249,18 +249,18 @@ public final class NET {
     /*
      * ==================== NET_OpenIP ====================
      */
-    public static void NET_OpenIP() {
+    public static void OpenIP() {
         cvar_t port, ip;
 
         port = Cvar.Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
         ip = Cvar.Get("ip", "localhost", Defines.CVAR_NOSET);
 
         if (ip_sockets[Defines.NS_SERVER] == null)
-            ip_sockets[Defines.NS_SERVER] = NET_Socket(Defines.NS_SERVER,
+            ip_sockets[Defines.NS_SERVER] = Socket(Defines.NS_SERVER,
                     ip.string, (int) port.value);
 
         if (ip_sockets[Defines.NS_CLIENT] == null)
-            ip_sockets[Defines.NS_CLIENT] = NET_Socket(Defines.NS_CLIENT,
+            ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT,
                     ip.string, Defines.PORT_ANY);
     }
 
@@ -280,7 +280,7 @@ public final class NET {
             }
         } else {
             // open sockets
-            NET_OpenIP();
+            OpenIP();
         }
     }
 
@@ -289,14 +289,14 @@ public final class NET {
     /*
      * ==================== NET_Init ====================
      */
-    public static void NET_Init() {
+    public static void Init() {
         //empty
     }
 
     /*
      * ==================== NET_Socket ====================
      */
-    public static DatagramSocket NET_Socket(int sock, String ip, int port) {
+    public static DatagramSocket Socket(int sock, String ip, int port) {
 
         DatagramSocket newsocket = null;
         try {
@@ -331,13 +331,13 @@ public final class NET {
     /*
      * ==================== NET_Shutdown ====================
      */
-    public static void NET_Shutdown() {
+    public static void Shutdown() {
         // close sockets
         Config(false);
     }
 
     // sleeps msec or until net socket is ready
-    public static void NET_Sleep(int msec) {
+    public static void Sleep(int msec) {
         if (ip_sockets[Defines.NS_SERVER] == null
                 || (Globals.dedicated != null && Globals.dedicated.value == 0))
             return; // we're not a server, just run full speed

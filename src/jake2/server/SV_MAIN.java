@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.8 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_MAIN.java,v 1.9 2004-10-17 21:31:32 cawe Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -257,7 +257,7 @@ public class SV_MAIN {
 
         // see if we already have a challenge for this ip
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
-            if (NET.NET_CompareBaseAdr(Globals.net_from,
+            if (NET.CompareBaseAdr(Globals.net_from,
                     SV_INIT.svs.challenges[i].adr))
                 break;
             if (SV_INIT.svs.challenges[i].time < oldestTime) {
@@ -330,7 +330,7 @@ public class SV_MAIN {
         // see if the challenge is valid
         if (!NET.IsLocalAddress(adr)) {
             for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
-                if (NET.NET_CompareBaseAdr(Globals.net_from,
+                if (NET.CompareBaseAdr(Globals.net_from,
                         SV_INIT.svs.challenges[i].adr)) {
                     if (challenge == SV_INIT.svs.challenges[i].challenge)
                         break; // good
@@ -352,7 +352,7 @@ public class SV_MAIN {
 
             if (cl.state == Defines.cs_free)
                 continue;
-            if (NET.NET_CompareBaseAdr(adr, cl.netchan.remote_address)
+            if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
                 if (!NET.IsLocalAddress(adr)
                         && (SV_INIT.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
@@ -627,7 +627,7 @@ public class SV_MAIN {
                 cl = SV_INIT.svs.clients[i];
                 if (cl.state == Defines.cs_free)
                     continue;
-                if (!NET.NET_CompareBaseAdr(Globals.net_from,
+                if (!NET.CompareBaseAdr(Globals.net_from,
                         cl.netchan.remote_address))
                     continue;
                 if (cl.netchan.qport != qport)
@@ -776,7 +776,7 @@ public class SV_MAIN {
                     Com.Printf("sv lowclamp\n");
                 SV_INIT.svs.realtime = SV_INIT.sv.time - 100;
             }
-            NET.NET_Sleep(SV_INIT.sv.time - SV_INIT.svs.realtime);
+            NET.Sleep(SV_INIT.sv.time - SV_INIT.svs.realtime);
             return;
         }
 

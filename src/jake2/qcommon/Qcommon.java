@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.9 2004-09-19 20:53:07 hzi Exp $
+ * $Id: Qcommon.java,v 1.10 2004-10-17 21:31:33 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,7 +112,7 @@ public final class Qcommon extends Globals {
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 			Jake2.Q2Dialog.setStatus("initializing network subsystem...");
-			NET.NET_Init();	//ok
+			NET.Init();	//ok
 			Netchan.Netchan_Init();	//ok
 
 			Jake2.Q2Dialog.setStatus("initializing server subsystem...");
