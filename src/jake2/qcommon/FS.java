@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.24 2004-02-03 09:33:52 hoz Exp $
+ * $Id: FS.java,v 1.25 2004-02-04 08:59:37 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -499,6 +499,7 @@ public final class FS extends Globals {
 
 			search = new searchpath_t();
 			search.pack = pak;
+			search.filename = "";
 			search.next = fs_searchpaths;
 			fs_searchpaths = search;
 		}

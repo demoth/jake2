@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.15 2004-01-31 23:47:04 rst Exp $
+ * $Id: Menu.java,v 1.16 2004-02-04 08:59:37 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1661,6 +1661,11 @@ public final class Menu extends Key {
 			"John Cash",
 			"Brian Hook",
 			"",
+			"+JAVA PORT BY JTEAM",
+			"CWEI",
+			"HOZ",
+			"RST",
+			"",			
 			"+ART",
 			"Adrian Carmack",
 			"Kevin Cloud",
