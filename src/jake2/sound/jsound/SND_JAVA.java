@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.2 2004-06-17 12:10:44 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.3 2004-06-17 14:26:33 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,7 +46,6 @@ public class SND_JAVA extends Globals {
 	static cvar_t sndspeed;
 	static cvar_t sndchannels;
 
-//	static int tryrates[] = { 11025, 22051, 44100, 8000 };
 	static class dma_t {
 		int channels;
 		int samples; // mono samples in buffer
@@ -58,6 +57,27 @@ public class SND_JAVA extends Globals {
 	}
   	static SND_DMA.dma_t dma = new dma_t();
   	
+  	static class SoundThread extends Thread {
+  		byte[] b;
+		SourceDataLine l;
+		int pos = 0;
+		boolean running = false;
+  		public SoundThread(byte[] buffer, SourceDataLine line) {
+  			b = buffer;
+  			l = line;
+  		}
+  		public void run() {
+  			running = true;
+  			while (running) {
+  				line.write(b, pos, 512);
+  				pos = (pos+512) % b.length;
+  			}
+  		}
+  		public synchronized void stopLoop() {
+  			running = false;
+  		}
+  	}
+  	static SoundThread thread;
 	static SourceDataLine line;
 	static AudioFormat format;
 
@@ -73,35 +93,26 @@ public class SND_JAVA extends Globals {
 			sndchannels = Cvar.Get("sndchannels", "1", CVAR_ARCHIVE);
 		}
 		
-		byte[] sound = FS.LoadFile("sound/misc/menu1.wav");
-		AudioInputStream stream;
-		try {
-			stream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(sound));
-		} catch (UnsupportedAudioFileException e) {
-			return false;
-		} catch (IOException e) {
-			return false;
-		}
-		format = stream.getFormat();
-		AudioFormat.Encoding e = format.getEncoding();
-		System.out.println(e.toString());
-
+//		byte[] sound = FS.LoadFile("sound/misc/menu1.wav");
+//		AudioInputStream stream;
+//		try {
+//			stream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(sound));
+//		} catch (UnsupportedAudioFileException e) {
+//			return false;
+//		} catch (IOException e) {
+//			return false;
+//		}
+		//format = stream.getFormat();
+		format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
 		DataLine.Info dinfo = new DataLine.Info(SourceDataLine.class, format);
-		//format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), format.getSampleSizeInBits(), 2, 2*format.getFrameSize(), format.getFrameRate(), format.isBigEndian());
-
+		
 		try {
 			line = (SourceDataLine)AudioSystem.getLine(dinfo);
 		} catch (LineUnavailableException e4) {
 			return false; 
 		}
-		dma.buffer = new byte[65536];
-		try {
-			stream.read(dma.buffer);
-		} catch (IOException e3) {
-			// TODO Auto-generated catch block
-			e3.printStackTrace();
-		}
-				
+		
+		dma.buffer = new byte[65536];				
 		dma.channels = format.getChannels();
 		dma.samplebits = format.getSampleSizeInBits();
 		dma.samples = dma.buffer.length / format.getFrameSize();
@@ -110,14 +121,16 @@ public class SND_JAVA extends Globals {
 		dma.submission_chunk = 1;
 		
 		try {
-			line.open(format, 8192);
+			line.open(format, 4096);
 		} catch (LineUnavailableException e5) {
 			return false;
 		}
 
 		line.start();
-		runLine();
-	
+		thread = new SoundThread(dma.buffer, line);
+		//thread.setPriority(Thread.MAX_PRIORITY);
+		thread.start();
+				
 		snd_inited = true;
 		return true;
 
@@ -129,6 +142,7 @@ public class SND_JAVA extends Globals {
 	}
 
 	static void SNDDMA_Shutdown() {
+		thread.stopLoop();
 		line.stop();
 		line.flush();
 		line.close();
@@ -144,26 +158,25 @@ public class SND_JAVA extends Globals {
 	===============
 	*/
 	public static void SNDDMA_Submit() {
-		runLine();
+//		runLine();
 	}
 
 	static void SNDDMA_BeginPainting() {}
 
-	private static int pos = 0;
-	static void runLine() {
-		
-		int p = line.getFramePosition() * format.getFrameSize() % dma.buffer.length;
-//		System.out.println("run " + p + " " + pos);	
-		if (p == 0) {
-			writeLine();	
-		}
-		else if (pos - p < 2048 ) writeLine();		
-	}
-	
-	static void writeLine() {
-		line.write(dma.buffer, pos, 4096);
-		pos+=4096;
-		if (pos>=dma.buffer.length) pos = 0;		
-	}
+//	private static int pos = 0;
+//	static void runLine() {
+//		
+//		int p = line.getFramePosition() * format.getFrameSize() % dma.buffer.length;
+//		if (p == 0) {
+//			writeLine();	
+//		}
+//		else if (pos - p < 4096 ) writeLine();		
+//	}
+//	
+//	static void writeLine() {
+//		line.write(dma.buffer, pos, 4096);
+//		pos+=4096;
+//		if (pos>=dma.buffer.length) pos = 0;		
+//	}
 
 }
