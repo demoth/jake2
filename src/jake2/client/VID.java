@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.17 2004-04-15 08:08:26 hoz Exp $
+ * $Id: VID.java,v 1.18 2004-06-09 15:24:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -419,6 +419,7 @@ public class VID extends Globals {
 //	#define REF_3DFXGL 3
 //	#define REF_OPENGLX	4
 	static final int REF_OPENGL_JOGL = 0;
+	static final int REF_OPENGL_FASTJOGL =1;
 //	#define REF_MESA3DGLX 5
 
 //	extern cvar_t *vid_ref;
@@ -605,6 +606,12 @@ public class VID extends Globals {
 			if (gl_driver.modified)
 				vid_ref.modified = true;
 			break;
+		case REF_OPENGL_FASTJOGL :
+				Cvar.Set( "vid_ref", "fastjogl" );
+				Cvar.Set( "gl_driver", "fastjogl" );
+				if (gl_driver.modified)
+					vid_ref.modified = true;
+				break;
 		}
 
 		Menu.ForceMenuOff();
@@ -634,6 +641,7 @@ public class VID extends Globals {
 		// "[OpenGL glX     ]",
 		// "[Mesa 3-D glX   ]",
 		"[OpenGL jogl    ]",
+		"[OpenGL fastjogl]",
 		null
 	};
 	static final String[] yesno_names =

@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.15 2004-03-16 12:46:51 cwei Exp $
+ * $Id: qfiles.java,v 1.16 2004-06-09 15:24:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,8 +25,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.nio.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Iterator;
+import java.util.Vector;
+
+import net.java.games.jogl.util.BufferUtils;
 
 import jake2.*;
 import jake2.client.*;
@@ -292,6 +297,81 @@ public class qfiles {
 			ofs_glcmds = b.getInt();
 			ofs_end = b.getInt(); // end of file
 		}
+
+		static final int BUFFER_SIZE = 50000;
+		static FloatBuffer globalTextureCoordBuf = BufferUtils.newFloatBuffer(BUFFER_SIZE * 2);
+		static IntBuffer globalVertexIndexBuf = BufferUtils.newIntBuffer(BUFFER_SIZE);
+		
+		public FloatBuffer textureCoordBuf = null;
+		public IntBuffer vertexIndexBuf = null;
+		public int[] counts = null;
+		public IntBuffer[] indexElements = null;
+		
+		
+		public  void precompileGLCmds() {
+			textureCoordBuf = globalTextureCoordBuf.slice();
+			vertexIndexBuf = globalVertexIndexBuf.slice();
+			Vector tmp = new Vector();
+			
+			int count = 0;
+			int[] order = glCmds;
+			int orderIndex = 0;
+			while (true)
+			{
+				// get the vertex count and primitive type
+				count = order[orderIndex++];
+				if (count == 0)
+					break;		// done
+
+				tmp.addElement(new Integer(count));
+				
+				if (count < 0)
+				{
+					count = -count;
+					//gl.glBegin (GL.GL_TRIANGLE_FAN);
+				}
+				else
+				{
+					//gl.glBegin (GL.GL_TRIANGLE_STRIP);
+				}
+
+				do {
+					// texture coordinates come from the draw list
+					globalTextureCoordBuf.put(Float.intBitsToFloat(order[orderIndex + 0]));
+					globalTextureCoordBuf.put(Float.intBitsToFloat(order[orderIndex + 1]));
+					globalVertexIndexBuf.put(order[orderIndex + 2]);
+
+					orderIndex += 3;
+				} while (--count != 0);
+			}
+			
+			int size = tmp.size();
+			
+			counts = new int[size];
+			indexElements = new IntBuffer[size];
+			
+			count = 0;
+			int pos = 0;
+			for (int i = 0; i < counts.length; i++) {
+				count = ((Integer)tmp.get(i)).intValue();
+				counts[i] = count;
+				
+				count = (count < 0) ? -count : count;
+				vertexIndexBuf.position(pos);
+				indexElements[i] = vertexIndexBuf.slice();
+				pos += count;
+			}
+		}
+		
+		public static void resetArrays() {
+			globalTextureCoordBuf.rewind();
+			globalVertexIndexBuf.rewind();
+		}
+		
+		public static void memoryUsage() {
+			System.out.println("AliasModels: globalVertexBuffer size " + globalVertexIndexBuf.position());
+		}
+		
 	}
 	
 	/*
