@@ -22,11 +22,11 @@
 	
 	<!-- usage -->
 	<target name="usage">
-		<echo message="command line arguments of build.sh or build.bat"/>
+		<echo message="command line arguments for build.sh or build.bat"/>
 		<echo message=""/>
-		<echo message="bindist      build only binary distibution"/>
-		<echo message="srcdist      build only source distibution"/>
-		<echo message="all          build source and binary distibution"/>
+		<echo message="bindist      build only binary distribution"/>
+		<echo message="srcdist      build only source distribution"/>
+		<echo message="all          build source and binary distribution"/>
 		<echo message="clean        delete classfiles keep jake2*.tar.gz and jake2*.zip"/>
 		<echo message="distclean    delete all generated files"/>
 		<echo message="jar          build only dist/lib/jake2.jar"/>
