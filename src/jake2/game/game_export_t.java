@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.4 2003-12-04 21:04:35 rst Exp $
+// $Id: game_export_t.java,v 1.5 2004-01-14 21:23:57 rst Exp $
 
 package jake2.game;
 
@@ -68,7 +68,7 @@ public class game_export_t {
 	}
 	void ClientUserinfoChanged(edict_t ent, String userinfo) {
 	}
-	void ClientDisconnect(edict_t ent) {
+	public void ClientDisconnect(edict_t ent) {
 	}
 	void ClientCommand(edict_t ent) {
 	}

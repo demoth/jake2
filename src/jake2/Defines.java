@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.13 2004-01-11 14:22:55 cwei Exp $
+// $Id: Defines.java,v 1.14 2004-01-14 21:23:57 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1143,7 +1143,6 @@ public class Defines extends Math3D {
 	public static final int NUM_CON_TIMES = 4;
 	public static final int CON_TEXTSIZE = 32768;
 
-
 	public final static int BSPVERSION = 38;
 
 	// Q F I L E S . H 
@@ -1208,21 +1207,28 @@ public class Defines extends Math3D {
 	public final static int LUMP_AREAPORTALS = 18;
 	public final static int HEADER_LUMPS = 19;
 
-	public final static int DTRIVERTX_V0= 0;	
-	public final static int DTRIVERTX_V1= 1;	
-	public final static int DTRIVERTX_V2= 2;	
-	public final static int DTRIVERTX_LNI= 3;	
-	public final static int DTRIVERTX_SIZE= 4;	
+	public final static int DTRIVERTX_V0 = 0;
+	public final static int DTRIVERTX_V1 = 1;
+	public final static int DTRIVERTX_V2 = 2;
+	public final static int DTRIVERTX_LNI = 3;
+	public final static int DTRIVERTX_SIZE = 4;
 
-	public final static int ALIAS_VERSION= 8;	
-	public static final String GAMEVERSION   =  "baseq2";
+	public final static int ALIAS_VERSION = 8;
+	public static final String GAMEVERSION = "baseq2";
 	public static final int API_VERSION = 3; // ref_library (refexport_t)
-	
+
 	// keydest_t
 	public static final int key_game = 0;
 	public static final int key_console = 1;
 	public static final int key_message = 2;
 	public static final int key_menu = 3;
-	
 
+	// server.h
+	public static final int cs_free = 0; // can be reused for a new connection
+	public static final int cs_zombie = 1; // client has been disconnected, but don't reuse
+	// connection for a couple seconds
+	public static final int cs_connected = 2; // has been assigned to a client_t, but not in game yet
+	public static final int cs_spawned = 3;
+
+	public static final int MAX_CHALLENGES	=1024;
 }

@@ -18,22 +18,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 09.12.2003 by RST.
-// $Id: areanode_t.java,v 1.2 2004-01-14 21:23:57 rst Exp $
+// Created on 14.01.2004 by RST.
+// $Id: challenge_t.java,v 1.1 2004-01-14 21:23:57 rst Exp $
 
 package jake2.server;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
-public class areanode_t {
-	int axis; // -1 = leaf node
-	float dist;
-	areanode_t children[] = new areanode_t[2];
-	link_t trigger_edicts = new link_t(this);
-	link_t solid_edicts = new link_t(this);
+// import jake2.*;
+// import jake2.client.*;
+// import jake2.game.*;
+// import jake2.qcommon.*;
+// import jake2.render.*;
+// import jake2.server.*;
+
+public class challenge_t {
+	//netadr_t		adr;
+	int			adr;
+	int			challenge;
+	int			time;
 }

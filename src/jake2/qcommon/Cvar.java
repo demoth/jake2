@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.17 2003-12-29 22:31:15 rst Exp $
+ * $Id: Cvar.java,v 1.18 2004-01-14 21:23:57 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -339,6 +339,15 @@ public class Cvar {
 
 		Cvar.Set(v.name, Cmd.Argv(1));
 		return true;
+	}
+
+
+	/**
+	 * @return
+	 */
+	public static String Cvar_Serverinfo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

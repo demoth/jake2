@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.1 2004-01-13 21:07:01 rst Exp $
+// $Id: client_t.java,v 1.2 2004-01-14 21:23:57 rst Exp $
 
 package jake2.server;
 
@@ -35,7 +35,7 @@ public class client_t {
 public static final int LATENCY_COUNTS	=16;
 public static final int RATE_MESSAGES	=10;
 
-	client_state_t		state = new client_state_t();
+	int				state;
 
 
 	//char				userinfo[MAX_INFO_STRING];		// name, etc
