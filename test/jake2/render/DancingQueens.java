@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.9 2004-02-11 17:29:52 cwei Exp $
+ * $Id: DancingQueens.java,v 1.10 2004-02-17 13:41:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -164,7 +164,7 @@ public class DancingQueens
 		System.out.println("Use driver: " + re);
 		System.out.println();
 		
-		re.Init();
+		re.Init(0, 0);
 		
 		Cmd.AddCommand("togglemouse", togglemouse);
 		Cbuf.AddText("bind t togglemouse");

@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.26 2004-02-11 17:29:52 cwei Exp $
+ * $Id: TestRenderer.java,v 1.27 2004-02-17 13:41:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -168,7 +168,7 @@ public class TestRenderer {
 		System.out.println("Use driver: " + re);
 		System.out.println();
 		
-		re.Init();
+		re.Init(0, 0);
 		
 //		for (int i = 0; i < raw.length; i++) {
 //			raw[i] = (byte)((i % 3) + 1); //((i % 4) + 20);

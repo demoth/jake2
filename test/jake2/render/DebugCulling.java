@@ -2,7 +2,7 @@
  * DebugCulling.java
  * Copyright (C) 2003
  *
- * $Id: DebugCulling.java,v 1.4 2004-02-11 17:29:52 cwei Exp $
+ * $Id: DebugCulling.java,v 1.5 2004-02-17 13:41:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,13 +194,13 @@ public class DebugCulling
 			}
 		};
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.4 2004-02-11 17:29:52 cwei Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.5 2004-02-17 13:41:14 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
 		this.re = Renderer.getDriver("jogl", ri);
 
-		re.Init();
+		re.Init(0, 0);
 
 		viddef = Globals.viddef;
 	}
