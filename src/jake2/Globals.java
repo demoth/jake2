@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.18 2003-12-19 14:44:53 cwei Exp $
+ * $Id: Globals.java,v 1.19 2003-12-21 13:50:24 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -337,5 +337,6 @@ public class Globals extends Defines {
 	public static boolean userinfo_modified = false;
 
 	public static cvar_t cvar_vars;
-
+	public static final console_t con = new console_t();
+	public static cvar_t con_notifytime;
 }
