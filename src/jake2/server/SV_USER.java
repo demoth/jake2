@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.4 2004-02-05 21:32:41 rst Exp $
+// $Id: SV_USER.java,v 1.5 2004-02-11 09:31:32 hoz Exp $
 
 package jake2.server;
 
@@ -158,7 +158,7 @@ public class SV_USER extends SV_SEND {
 		// write a packet full of data
 
 		while (sv_client.netchan.message.cursize < MAX_MSGLEN / 2 && start < MAX_CONFIGSTRINGS) {
-			if (sv.configstrings[start].length() != 0) {
+			if (sv.configstrings[start] != null && sv.configstrings[start].length() != 0) {
 				MSG.WriteByte(sv_client.netchan.message, svc_configstring);
 				MSG.WriteShort(sv_client.netchan.message, start);
 				MSG.WriteString(sv_client.netchan.message, sv.configstrings[start]);
@@ -205,7 +205,7 @@ public class SV_USER extends SV_SEND {
 		start = atoi(Cmd.Argv(2));
 
 		//memset (&nullstate, 0, sizeof(nullstate));
-		nullstate = null;
+		nullstate = new entity_state_t();
 
 		// write a packet full of data
 

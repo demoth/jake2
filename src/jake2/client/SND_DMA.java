@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.7 2004-02-09 23:16:50 hoz Exp $
+ * $Id: SND_DMA.java,v 1.8 2004-02-11 09:31:32 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -340,14 +340,14 @@ S.SoundInfo_f();
 	static sfx_t RegisterSound(String name) {
 		sfx_t sfx = null;
 
-		if (!sound_started)
-			return null;
-
-		sfx = S.FindName(name, true);
-		sfx.registration_sequence = s_registration_sequence;
-
-		if (!s_registering)
-			S.LoadSound(sfx);
+//		if (!sound_started)
+//			return null;
+//
+//		sfx = S.FindName(name, true);
+//		sfx.registration_sequence = s_registration_sequence;
+//
+//		if (!s_registering)
+//			S.LoadSound(sfx);
 
 		return sfx;
 	}
