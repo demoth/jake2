@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.13 2004-01-27 12:14:36 cwei Exp $
+ * $Id: Surf.java,v 1.14 2004-01-28 15:29:13 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -785,8 +785,8 @@ public abstract class Surf extends Draw {
 					{
 						v = p.verts[i];
 						
-						gl.glMultiTexCoord2f(GL_TEXTURE0, (v[3] + scroll), v[4]);
-						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3] + scroll), v[4]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
 						gl.glVertex3fv(v);
@@ -803,8 +803,8 @@ public abstract class Surf extends Draw {
 					{
 						v = p.verts[i];
 						
-						gl.glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
-						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
 						gl.glVertex3fv(v);
@@ -839,8 +839,8 @@ public abstract class Surf extends Draw {
 					{
 						v = p.verts[i];
 						
-						gl.glMultiTexCoord2f(GL_TEXTURE0, (v[3]+scroll), v[4]);
-						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE0, (v[3]+scroll), v[4]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
 						gl.glVertex3fv(v);
@@ -859,8 +859,8 @@ public abstract class Surf extends Draw {
 					{
 						v = p.verts[i];
 
-						gl.glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
-						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
 						gl.glVertex3fv(v);

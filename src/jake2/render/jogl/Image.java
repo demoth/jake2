@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.16 2004-01-25 19:07:17 cwei Exp $
+ * $Id: Image.java,v 1.17 2004-01-28 15:29:13 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -418,7 +418,7 @@ public abstract class Image extends Main {
 		}
 	}
 
-//	   returns a texture number and the position inside it
+	// returns a texture number and the position inside it
 	int Scrap_AllocBlock (int w, int h, pos_t pos)
 	{
 		int		i, j;
@@ -457,7 +457,7 @@ public abstract class Image extends Main {
 		}
 
 		return -1;
-//		Sys_Error ("Scrap_AllocBlock: full");
+		// Sys_Error ("Scrap_AllocBlock: full");
 	}
 
 	int scrap_uploads = 0;
