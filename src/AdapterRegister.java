@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.01.2004 by RST.
-// $Id: AdapterRegister.java,v 1.1 2004-02-02 22:16:05 rst Exp $
+// $Id: AdapterRegister.java,v 1.2 2004-02-02 22:19:17 rst Exp $
 // $Log: AdapterRegister.java,v $
-// Revision 1.1  2004-02-02 22:16:05  rst
+// Revision 1.2  2004-02-02 22:19:17  rst
+// cosmetic
+//
+// Revision 1.1  2004/02/02 22:16:05  rst
 // cosmetic
 //
 // Revision 1.2  2004/01/09 18:30:57  rst
@@ -40,7 +43,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 public class AdapterRegister {
 
-	// concepts adapter indexing for function pointers
+	// concept for adapter indexing for function pointers
 
 
 	// the counter
@@ -70,7 +73,7 @@ public class AdapterRegister {
 	{
 		public String test(int x)
 		{
-			return ("t1, id = " + myid);
+			return ("t2, id = " + myid);
 		}
 	}
 
@@ -79,16 +82,17 @@ public class AdapterRegister {
 	public static void main(String[] args) {
 		
 		// program starts
-		System.out.println("hello, im waked up - i wished i could go without your input");
+		System.out.println("hello world.");
 		
 		t1 t1 = new t1();
 		t2 t2 = new t2();
-		
+		t2 t3 = new t2();
 		System.out.println(t1.test());
 		System.out.println(t2.test());
 		System.out.println(t2.test(5));
+		System.out.println(t3.test(5));
 		
-		System.out.println("hello, this is my death. please run me 24x7.");
+		System.out.println("good bye world.");
 		// program ends
 	}
 }
