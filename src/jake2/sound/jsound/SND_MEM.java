@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MEM.java,v 1.2 2004-06-17 12:10:44 hoz Exp $
+ * $Id: SND_MEM.java,v 1.3 2004-06-24 11:42:02 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,93 +25,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sound.jsound;
 
-import java.nio.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 import jake2.sound.sfx_t;
 import jake2.sound.sfxcache_t;
 import jake2.sys.Sys;
 
+import java.io.ByteArrayInputStream;
+
+import javax.sound.sampled.*;
+
 /**
  * SND_MEM
  */
 public class SND_MEM extends SND_JAVA {
 
-////	   snd_mem.c: sound caching
-//
-//	#include "client.h"
-//	#include "snd_loc.h"
-//
-//	int			cache_full_cycle;
-//
-//	byte *S_Alloc (int size);
-//
-	/*
-	================
-	ResampleSfx
-	================
-	*/
-	static void ResampleSfx(sfx_t sfx, int inrate, int inwidth, byte[] data, int ofs)
-	{
-		int		outcount;
-		int		srcsample;
-		float	stepscale;
-		int		i;
-		int		sample, samplefrac, fracstep;
-		sfxcache_t	sc;
-	
-		sc = sfx.cache;
-		if (sc == null)
-			return;
-
-		stepscale = (float)inrate / dma.speed;	// this is usually 0.5, 1, or 2
-
-		outcount = (int)(sc.length / stepscale);
-		sc.length = outcount;
-		if (sc.loopstart != -1)
-			sc.loopstart = (int)(sc.loopstart / stepscale);
-
-		sc.speed = dma.speed;
-//		if (SND_DMA.s_loadas8bit.value != 0.0f)
-//			sc.width = 1;
-//		else
-			sc.width = inwidth;
-		sc.stereo = 0;
-
-		// resample / decimate to the current source rate
-
-		if (stepscale == 1 && inwidth == 1 && sc.width == 1)
-		{
-			// fast special case
-			for (i=0 ; i<outcount ; i++)
-				sc.data[i] = (byte)((data[i+ofs] & 0xFF) - 128);
-		}
-		else
-		{
-			// general case
-			samplefrac = 0;
-			fracstep = (int)(stepscale*256);
-			for (i=0 ; i<sc.length*2 ; i++)
-			{
-//				srcsample = samplefrac >> 8;
-//				samplefrac += fracstep;
-//				if (inwidth == 2)
-//					sample = LittleShort ( ((short *)data)[srcsample] );
-//				else
-//					sample = (int)( (unsigned char)(data[srcsample]) - 128) << 8;
-//				if (sc->width == 2)
-//					((short *)sc->data)[i] = sample;
-//				else
-//					((signed char *)sc->data)[i] = sample >> 8;
-			}
-		}
-		System.arraycopy(data, ofs, sc.data, 0, sc.data.length);
-	}
-
-//	  =============================================================================
+	private static final AudioFormat sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
 
 	/*
 	==============
@@ -144,10 +73,9 @@ public class SND_MEM extends SND_JAVA {
 
 		if (name.charAt(0) == '#')
 			namebuffer = name.substring(1);
-		//strcpy(namebuffer, &name[1]);
+
 		else
 			namebuffer = "sound/" + name;
-		//Com_sprintf (namebuffer, sizeof(namebuffer), "sound/%s", name);
 
 		data = FS.LoadFile(namebuffer);
 
@@ -158,37 +86,28 @@ public class SND_MEM extends SND_JAVA {
 		size = data.length;
 
 		info = GetWavinfo(s.name, data, size);
-		if (info.channels != 1) {
-			Com.Printf(s.name + " is a stereo sample\n");
-			FS.FreeFile(data);
+		
+		AudioInputStream in = null;
+		AudioInputStream out = null;
+		try {
+			in = AudioSystem.getAudioInputStream(new ByteArrayInputStream(data));
+			out = AudioSystem.getAudioInputStream(sampleFormat, in);
+			int l = (int)out.getFrameLength();
+			sc = s.cache = new sfxcache_t(l*2);
+			sc.length = l;
+			int c = out.read(sc.data, 0, l * 2);
+			out.close();
+			in.close();
+		} catch (Exception e) {
+			Com.Printf("Couldn't load " + namebuffer + "\n");
+			e.printStackTrace();
 			return null;
 		}
-		if (info.width != 2) {
-			Com.Printf(s.name + " is a 8bit sample\n");
-			FS.FreeFile(data);
-			return null;
-		}		
-
-		stepscale = ((float)info.rate) / dma.speed;
-		len = (int) (info.samples / stepscale);
-
-		len = len * info.width * info.channels;
-
-		//sc = s.cache = Z_Malloc (len + sizeof(sfxcache_t));
-		sc = s.cache = new sfxcache_t(len);
-
-		sc.length = info.samples;
-		sc.loopstart = info.loopstart;
-		sc.speed = info.rate;
-		sc.width = info.width;
-		sc.stereo = info.channels;
-
-		//ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
-		System.arraycopy(data, info.dataofs, sc.data, 0, info.samples*info.width);
 		
-//System.out.println(s.name + " " + sc.speed + " " + sc.loopstart + " " + sc.width + " " + sc.length);
-//line.write(sc.data, 0, sc.length*sc.width);
-//line.drain();
+		sc.loopstart = info.loopstart * ((int)sampleFormat.getSampleRate() / info.rate);
+		sc.speed = (int)sampleFormat.getSampleRate();
+		sc.width = sampleFormat.getSampleSizeInBits() / 8;
+		sc.stereo = 0;
 
 		FS.FreeFile(data);
 
@@ -265,24 +184,7 @@ public class SND_MEM extends SND_JAVA {
 		last_chunk = iff_data;
 		FindNextChunk(name);
 	}
-//
-//
-//	void DumpChunks(void)
-//	{
-//		char	str[5];
-//	
-//		str[4] = 0;
-//		data_p=iff_data;
-//		do
-//		{
-//			memcpy (str, data_p, 4);
-//			data_p += 4;
-//			iff_chunk_len = GetLittleLong();
-//			Com_Printf ("0x%x : %s (%d)\n", (int)(data_p - 4), str, iff_chunk_len);
-//			data_p += (iff_chunk_len + 1) & ~1;
-//		} while (data_p < iff_end);
-//	}
-//
+
 	/*
 	============
 	GetWavinfo
