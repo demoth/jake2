@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.21 2004-02-12 00:16:03 hoz Exp $
+// $Id: MSG.java,v 1.22 2004-02-14 14:05:27 cwei Exp $
 
 package jake2.qcommon;
 
@@ -64,8 +64,9 @@ public class MSG extends GameBase {
 
 	public static void WriteShort(sizebuf_t sb, int c) {
 
-		if (c < -32768 || c > 32767)
-			Com.Error(ERR_FATAL, "WriteShort: range error");
+	// TODO brauchen wir nicht (cwei)
+	// if (c < -32768 || c > 32767)
+	//	 Com.Error(ERR_FATAL, "WriteShort: range error");
 
 		int i = SZ.GetSpace(sb, 2);
 		sb.data[i++] = (byte) (c & 0xff);
