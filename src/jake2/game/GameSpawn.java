@@ -19,10 +19,12 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.10 2005-01-12 12:14:17 hzi Exp $
+// $Id: GameSpawn.java,v 1.11 2005-02-06 19:02:34 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
+import jake2.Globals;
+import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 
@@ -507,8 +509,6 @@ public class GameSpawn {
 
         Com.ParseHelp ph = new Com.ParseHelp(entities);
 
-        //Com.DPrintf("* * * die scheiss edict- nummer stimmen nicht ??? * * *
-        // \n");
         while (true) { // parse the opening brace
 
             com_token = Com.Parse(ph);
@@ -523,13 +523,10 @@ public class GameSpawn {
             else
                 ent = GameUtil.G_Spawn();
 
-            Com.DPrintf("===\n");
-
-            Com.DPrintf("allocated new edict:" + ent.index + "\n");
             ED_ParseEdict(ph, ent);
-            Com.DPrintf("ent.classname:" + ent.classname + "\n");
-            Com.DPrintf("ent.spawnflags:" + Integer.toHexString(ent.spawnflags)
-                    + "\n");
+            Com.DPrintf("spawning ent[" + ent.index + "], classname=" + 
+                    ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
+            
             // yet another map hack
             if (0 == Lib.Q_stricmp(GameBase.level.mapname, "command")
                     && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
@@ -541,6 +538,8 @@ public class GameSpawn {
             if (ent != GameBase.g_edicts[0]) {
                 if (GameBase.deathmatch.value != 0) {
                     if ((ent.spawnflags & Defines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
+                        
+                        Com.DPrintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent);
                         inhibit++;
                         continue;
@@ -564,11 +563,11 @@ public class GameSpawn {
                         | Defines.SPAWNFLAG_NOT_HARD
                         | Defines.SPAWNFLAG_NOT_COOP | Defines.SPAWNFLAG_NOT_DEATHMATCH);
             }
-
             ED_CallSpawn(ent);
+            Com.DPrintf("\n");
         }
-        //gi.dprintf("player skill level:" +skill.value + "\n");
-        //gi.dprintf(inhibit + " entities inhibited\n");
+        Com.DPrintf("player skill level:" + GameBase.skill.value + "\n");
+        Com.DPrintf(inhibit + " entities inhibited.\n");
         i = 1;
         G_FindTeams();
         PlayerTrail.Init();
