@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.3 2004-07-19 19:22:57 hzi Exp $
+ * $Id: IN.java,v 1.4 2004-09-08 09:37:39 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,7 +112,7 @@ public final class IN extends Globals {
 		// mouse variables
 		Globals.m_filter = Cvar.Get("m_filter", "0", 0);
 		Globals.in_mouse = Cvar.Get("in_mouse", "1", CVAR_ARCHIVE);
-		Globals.freelook = Cvar.Get("freelook", "0", 0 );
+		Globals.freelook = Cvar.Get("freelook", "1", 0 );
 		Globals.lookstrafe = Cvar.Get("lookstrafe", "0", 0);
 		Globals.sensitivity = Cvar.Get("sensitivity", "3", 0);
 		Globals.m_pitch = Cvar.Get("m_pitch", "0.022", 0);

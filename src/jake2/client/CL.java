@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.9 2004-09-04 19:08:29 salomo Exp $
+ * $Id: CL.java,v 1.10 2004-09-08 09:37:39 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1260,7 +1260,6 @@ public final class CL extends CL_pred {
 		cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
 
 		cl_run = Cvar.Get("cl_run", "0", CVAR_ARCHIVE);
-		freelook = Cvar.Get("freelook", "0", CVAR_ARCHIVE);
 		lookspring = Cvar.Get("lookspring", "0", CVAR_ARCHIVE);
 		lookstrafe = Cvar.Get("lookstrafe", "0", CVAR_ARCHIVE);
 		sensitivity = Cvar.Get("sensitivity", "3", CVAR_ARCHIVE);
