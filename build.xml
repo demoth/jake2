@@ -7,6 +7,10 @@
     	</classpath>
 	</taskdef>
 	
+
+	<taskdef name="izpack" classpath="lib/izpack/standalone-compiler.jar"
+         classname="com.izforge.izpack.ant.IzPackTask"/>
+         
 	<!-- properties -->
 	<property name="version" value="cvs"/> 
 	<property name="src" location="src"/>
@@ -120,6 +124,9 @@
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
 			</keep>
+			<keep access="public" name="jake2.install.Q2DataInstaller">
+				<method name="main(java.lang.String[])"/>
+			</keep>
 		</proguard>
 	</target>
 				
@@ -181,6 +188,15 @@
 				<include name="readme.id"/>				
 			</zipfileset>
 		</zip>
+	</target>
+	
+	<!-- standalone installer -->
+	<target name="installer" depends="dist">
+		<izpack input="${basedir}/install.xml"
+        	output="${basedir}/Jake2-install.jar"
+        	installerType="standard"
+        	basedir="${dist}"
+        	izPackDir="${basedir}/lib/izpack"/>
 	</target>
 	
 	<!-- webstart -->

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+
+
+<installation version="1.0">
+
+    <info>
+        <appname>Jake2</appname>
+        <appversion>cvs</appversion>
+        <authors>
+            <author name="Bytonic Software" email="jake2@bytonic.de"/>
+        </authors>
+        <url>http://www.bytonic.de</url>
+    </info>
+    
+    <guiprefs width="640" height="480" resizable="no"/>
+    
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+    
+    <resources>
+        <res id="LicencePanel.licence" src="LICENSE"/>
+        <res id="InfoPanel.info" src="README"/>
+        <!-- res id="Installer.image" src="../resources/icon.png"/ -->
+    </resources>
+    
+    <panels>
+        <panel classname="HelloPanel"/>
+        <panel classname="InfoPanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="TargetPanel"/> 
+        <panel classname="PacksPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="SimpleFinishPanel"/>
+    </panels>
+    
+    <packs>
+        <pack name="Jake2" required="yes">
+            <description>Jake2 files</description>
+            <fileset dir="." targetdir="$INSTALL_PATH">
+            	<include name="*"/>
+            	<include name="lib/*.jar"/>
+            	<exclude name="*.bat"/>
+            	<exclude name="*.sh"/>
+            </fileset>
+            <executable type="jar" 
+        		targetfile="$INSTALL_PATH/lib/jake2.jar"
+        		class="jake2.install.Q2DataInstaller"
+        		stage="postinstall"
+        		keep="true">
+        		<args>
+        			<arg value="$INSTALL_PATH"/>
+        		</args>
+        	</executable>
+        </pack>
+        <pack name="Linux libraries and scripts" required="yes">
+        	<os name="Linux" arch="i386"/>
+        	<description>jogl and joal libraries for Linux</description>
+        	<file src="lib/linux" targetdir="$INSTALL_PATH/lib"/>
+        	<file src="Jake2.sh" targetdir="$INSTALL_PATH"/>
+        	<executable targetfile="$INSTALL_PATH/Jake2.sh" stage="never"/>
+        </pack>
+            <pack name="Windows libraries and scripts" required="yes">
+        	<os family="windows" arch="i386"/>
+        	<description>jogl and joal libraries for Windows</description>
+        	<file src="lib/windows" targetdir="$INSTALL_PATH/lib"/>
+        	<file src="Jake2.bat" targetdir="$INSTALL_PATH"/>
+        	<executable targetfile="$INSTALL_PATH/Jake2.bat" stage="never"/>
+        </pack>
+    </packs>
+    
+</installation>
