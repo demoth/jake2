@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.3 2004-07-08 20:24:48 hzi Exp $
+// $Id: MSG.java,v 1.4 2004-07-28 11:58:10 hzi Exp $
 
 package jake2.qcommon;
 
@@ -477,12 +477,9 @@ public class MSG extends GameBase {
 			l++;
 		} while (l < 2047);
 
-		//readbuf[l] = 0;
 		return new String(readbuf, 0, l);
 	}
 
-	// 2k read  buffer.
-	public static byte readbuf1[] = new byte[2048];
 	public static String ReadStringLine(sizebuf_t msg_read) {
 
 		int l;
@@ -493,14 +490,11 @@ public class MSG extends GameBase {
 			c = (byte) ReadChar(msg_read);
 			if (c == -1 || c == 0 || c == 0x0a)
 				break;
-			readbuf1[l] = c;
+			readbuf[l] = c;
 			l++;
-		}
-		while (l < 2047);
+		} while (l < 2047);
 
-		readbuf1[l] = 0;
-
-		return new String(readbuf1, 0, l).trim();
+		return new String(readbuf, 0, l).trim();
 	}
 
 	public static float ReadCoord(sizebuf_t msg_read) {
@@ -562,11 +556,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
-		int i;
-
-		for (i = 0; i < len; i++)
+		for (int i = 0; i < len; i++)
 			data[i] = (byte) ReadByte(msg_read);
 	}
-
-	//============================================================================
 }
