@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.2 2004-02-09 23:16:50 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.3 2004-02-09 23:18:33 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -78,7 +78,6 @@ public class SND_JAVA extends Globals {
 		AudioInputStream stream;
 		try {
 			stream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(sound));
-			//stream = AudioSystem.getAudioInputStream(new FileInputStream("/home/holger/Trumpet1.wav"));
 		} catch (UnsupportedAudioFileException e) {
 			return false;
 		} catch (IOException e) {
@@ -95,12 +94,12 @@ public class SND_JAVA extends Globals {
 			return false; 
 		}
 		dma.buffer = new byte[65536];
-		try {
-			stream.read(dma.buffer);
-		} catch (IOException e3) {
-			// TODO Auto-generated catch block
-			e3.printStackTrace();
-		}
+//		try {
+//			stream.read(dma.buffer);
+//		} catch (IOException e3) {
+//			// TODO Auto-generated catch block
+//			e3.printStackTrace();
+//		}
 		
 		dma.channels = format.getChannels();
 		dma.samplebits = format.getSampleSizeInBits();

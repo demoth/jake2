@@ -2,7 +2,7 @@
  * SND_MIX.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MIX.java,v 1.1 2004-02-08 13:26:13 hoz Exp $
+ * $Id: SND_MIX.java,v 1.2 2004-02-09 23:16:50 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,7 @@ package jake2.client;
 /**
  * SND_MIX
  */
-public class SND_MIX extends SND_JAVA {
+public class SND_MIX extends SND_MEM {
 
 ////	   snd_mix.c -- portable code to mix sounds for snd_dma.c
 //
