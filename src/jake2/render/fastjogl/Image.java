@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.2 2004-06-13 11:58:53 cwei Exp $
+ * $Id: Image.java,v 1.3 2004-06-15 17:21:56 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,9 +112,6 @@ public abstract class Image extends Main {
 	}
 
 	void GL_EnableMultitexture(boolean enable) {
-		if (!qglActiveTextureARB && !qglSelectTextureSGIS)
-			return;
-
 		if (enable) {
 			GL_SelectTexture(GL_TEXTURE1);
 			gl.glEnable(GL.GL_TEXTURE_2D);
@@ -132,15 +129,7 @@ public abstract class Image extends Main {
 	void GL_SelectTexture(int texture /* GLenum */) {
 		int tmu;
 
-		if (!qglActiveTextureARB && !qglSelectTextureSGIS)
-			return;
-
-		if (texture == GL_TEXTURE0) {
-			tmu = 0;
-		}
-		else {
-			tmu = 1;
-		}
+		tmu = (texture == GL_TEXTURE0) ? 0 : 1;
 
 		if (tmu == gl_state.currenttmu) {
 			return;
@@ -148,14 +137,8 @@ public abstract class Image extends Main {
 
 		gl_state.currenttmu = tmu;
 
-		if (qglActiveTextureARB) {
-			gl.glActiveTextureARB(texture);
-			gl.glClientActiveTextureARB(texture);
-		}
-		else if (qglSelectTextureSGIS) {
-			// TODO handle this: gl.glSelectTextureSGIS(texture);
-			gl.glActiveTexture(texture);
-		}
+		gl.glActiveTextureARB(texture);
+		gl.glClientActiveTextureARB(texture);
 	}
 
 	int[] lastmodes = { -1, -1 };
@@ -182,8 +165,7 @@ public abstract class Image extends Main {
 		gl.glBindTexture(GL.GL_TEXTURE_2D, texnum);
 	}
 
-	void GL_MBind(int target /* GLenum */
-	, int texnum) {
+	void GL_MBind(int target /* GLenum */, int texnum) {
 		GL_SelectTexture(target);
 		if (target == GL_TEXTURE0) {
 			if (gl_state.currenttextures[0] == texnum)

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.4 2004-06-15 12:03:33 cwei Exp $
+ * $Id: Main.java,v 1.5 2004-06-15 17:21:56 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -65,11 +65,9 @@ public abstract class Main extends Base {
 	// this a hack for function pointer test
 	// default disabled
 	boolean qglColorTableEXT = false;
-	boolean qglSelectTextureSGIS = false;
 	boolean qglActiveTextureARB = false;
 	boolean qglPointParameterfEXT = false;
 	boolean qglLockArraysEXT = false;
-	boolean qglMTexCoord2fSGIS = false;
 	boolean qwglSwapIntervalEXT = false;
 
 	//	=================
@@ -1304,44 +1302,17 @@ public abstract class Main extends Base {
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0) {
-			if (gl_ext_multitexture.value != 0.0f) {
-				ri.Con_Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
-				//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
-				//			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
-				//			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
-				qglActiveTextureARB = true;
-				qglMTexCoord2fSGIS = true;
-				GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
-				GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
-			}
-			else {
-				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_ARB_multitexture\n");
-			}
+			ri.Con_Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
+			qglActiveTextureARB = true;
+			GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
+			GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
 		}
 		else {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
 		}
 
-		if (gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0) {
-			if (qglActiveTextureARB) {
-				ri.Con_Printf(Defines.PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n");
-			}
-			else if (gl_ext_multitexture.value != 0.0f) {
-				ri.Con_Printf(Defines.PRINT_ALL, "...using GL_SGIS_multitexture\n");
-				//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
-				//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
-				qglSelectTextureSGIS = true;
-				qglMTexCoord2fSGIS = true;
-				//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
-				//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
-			}
-			else {
-				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n");
-			}
-		}
-		else {
-			ri.Con_Printf(Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n");
-		}
+		if (!(qglActiveTextureARB))
+			return false;
 
 		GL_SetDefaultState();
 

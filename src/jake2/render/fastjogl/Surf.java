@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.7 2004-06-15 12:03:33 cwei Exp $
+ * $Id: Surf.java,v 1.8 2004-06-15 17:21:56 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -110,15 +110,6 @@ public abstract class Surf extends Draw {
 
 	gllightmapstate_t gl_lms = new gllightmapstate_t();
 
-//
-//	static void		LM_InitBlock( void );
-//	static void		LM_UploadBlock( qboolean dynamic );
-//	static qboolean	LM_AllocBlock (int w, int h, int *x, int *y);
-//
-//	extern void R_SetCacheState( msurface_t *surf );
-//	extern void R_BuildLightMap (msurface_t *surf, byte *dest, int stride);
-//
-
 	// Model.java
 	abstract byte[] Mod_ClusterPVS(int cluster, model_t model);
 	// Warp.java
@@ -170,17 +161,6 @@ public abstract class Surf extends Draw {
 	*/
 	void DrawGLPoly(glpoly_t p)
 	{
-//		int i;
-//		float[] v;
-//
-//		gl.glBegin(GL.GL_POLYGON);
-//		for (i=0 ; i<p.numverts ; i++)
-//		{
-//			v = p.verts[i];
-//			gl.glTexCoord2f(v[3], v[4]);
-//			gl.glVertex3f(v[0], v[1], v[2]);
-//		}
-//		gl.glEnd();
 		gl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
 	}
 
@@ -253,226 +233,6 @@ public abstract class Surf extends Draw {
 		gl.glEnable (GL.GL_TEXTURE_2D);
 	}
 
-	/*
-	** DrawGLPolyChain
-	*/
-	void DrawGLPolyChain( glpoly_t p, float soffset, float toffset )
-	{
-		if ( soffset == 0 && toffset == 0 )
-		{
-			for ( ; p != null; p = p.chain )
-			{
-				float[] v;
-				int j;
-
-				gl.glBegin(GL.GL_POLYGON);
-				for (j=0 ; j<p.numverts ; j++)
-				{
-					v = p.verts[j];
-					gl.glTexCoord2f (v[5], v[6] );
-					gl.glVertex3f(v[0], v[1], v[2]);
-				}
-				gl.glEnd();
-			}
-		}
-		else
-		{
-			for ( ; p != null; p = p.chain )
-			{
-				float[] v;
-				int j;
-
-				gl.glBegin(GL.GL_POLYGON);
-				for (j=0 ; j<p.numverts ; j++)
-				{
-					v = p.verts[j];
-					gl.glTexCoord2f (v[5] - soffset, v[6] - toffset );
-					gl.glVertex3f(v[0], v[1], v[2]);
-				}
-				gl.glEnd();
-			}
-		}
-	}
-
-	/*
-	** R_BlendLightMaps
-	**
-	** This routine takes all the given light mapped surfaces in the world and
-	** blends them into the framebuffer.
-	*/
-	void R_BlendLightmaps()
-	{
-		int i;
-		msurface_t	surf; 
-		msurface_t newdrawsurf = null;
-
-		// don't bother if we're set to fullbright
-		if (r_fullbright.value != 0)
-			return;
-		if (r_worldmodel.lightdata == null)
-			return;
-
-		// don't bother writing Z
-		gl.glDepthMask( false );
-
-		/*
-		** set the appropriate blending mode unless we're only looking at the
-		** lightmaps.
-		*/
-		if (gl_lightmap.value == 0)
-		{
-			gl.glEnable(GL.GL_BLEND);
-
-			if ( gl_saturatelighting.value != 0)
-			{
-				gl.glBlendFunc( GL.GL_ONE, GL.GL_ONE );
-			}
-			else
-			{
-				char format = gl_monolightmap.string.toUpperCase().charAt(0);
-				if ( format != '0' )
-				{
-					switch ( format )
-					{
-					case 'I':
-						gl.glBlendFunc(GL.GL_ZERO, GL.GL_SRC_COLOR );
-						break;
-					case 'L':
-						gl.glBlendFunc(GL.GL_ZERO, GL.GL_SRC_COLOR );
-						break;
-					case 'A':
-					default:
-						gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA );
-						break;
-					}
-				}
-				else
-				{
-					gl.glBlendFunc(GL.GL_ZERO, GL.GL_SRC_COLOR );
-				}
-			}
-		}
-
-		if ( currentmodel == r_worldmodel )
-			c_visible_lightmaps = 0;
-
-		/*
-		** render static lightmaps first
-		*/
-		for ( i = 1; i < MAX_LIGHTMAPS; i++ )
-		{
-			if ( gl_lms.lightmap_surfaces[i] != null )
-			{
-				if (currentmodel == r_worldmodel)
-					c_visible_lightmaps++;
-					
-				GL_Bind( gl_state.lightmap_textures + i);
-
-				for ( surf = gl_lms.lightmap_surfaces[i]; surf != null; surf = surf.lightmapchain )
-				{
-					if ( surf.polys != null )
-						DrawGLPolyChain( surf.polys, 0, 0 );
-				}
-			}
-		}
-
-		
-		// TODO impl: render dynamic lightmaps
-
-		/*
-		** render dynamic lightmaps
-		*/
-		if ( gl_dynamic.value != 0 )
-		{
-			LM_InitBlock();
-
-			GL_Bind( gl_state.lightmap_textures+0 );
-
-			if (currentmodel == r_worldmodel)
-				c_visible_lightmaps++;
-
-			newdrawsurf = gl_lms.lightmap_surfaces[0];
-
-			for ( surf = gl_lms.lightmap_surfaces[0]; surf != null; surf = surf.lightmapchain )
-			{
-				int smax, tmax;
-				ByteBuffer base;
-
-				smax = (surf.extents[0]>>4)+1;
-				tmax = (surf.extents[1]>>4)+1;
-				
-				pos_t lightPos = new pos_t(surf.dlight_s, surf.dlight_t);
-
-				if ( LM_AllocBlock( smax, tmax, lightPos) )
-				{
-					// kopiere die koordinaten zurueck
-					surf.dlight_s = lightPos.x;
-					surf.dlight_t = lightPos.y;
-
-					base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
-					base.position( ( surf.dlight_t * BLOCK_WIDTH + surf.dlight_s ) * LIGHTMAP_BYTES);
-
-					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
-				}
-				else
-				{
-					msurface_t drawsurf;
-
-					// upload what we have so far
-					LM_UploadBlock( true );
-
-					// draw all surfaces that use this lightmap
-					for ( drawsurf = newdrawsurf; drawsurf != surf; drawsurf = drawsurf.lightmapchain )
-					{
-						if ( drawsurf.polys != null )
-							DrawGLPolyChain( drawsurf.polys, 
-											  ( drawsurf.light_s - drawsurf.dlight_s ) * ( 1.0f / 128.0f ), 
-											( drawsurf.light_t - drawsurf.dlight_t ) * ( 1.0f / 128.0f ) );
-					}
-
-					newdrawsurf = drawsurf;
-
-					// clear the block
-					LM_InitBlock();
-
-					// try uploading the block now
-					if ( !LM_AllocBlock( smax, tmax, lightPos) )
-					{
-						ri.Sys_Error( Defines.ERR_FATAL, "Consecutive calls to LM_AllocBlock(" + smax + "," + tmax + ") failed (dynamic)\n");
-					}
-					
-					// kopiere die koordinaten zurueck
-					surf.dlight_s = lightPos.x;
-					surf.dlight_t = lightPos.y;
-
-					base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
-					base.position( ( surf.dlight_t * BLOCK_WIDTH + surf.dlight_s ) * LIGHTMAP_BYTES);
-
-					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
-				}
-			}
-
-			/*
-			** draw remainder of dynamic lightmaps that haven't been uploaded yet
-			*/
-			if ( newdrawsurf != null )
-				LM_UploadBlock( true );
-
-			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
-			{
-				if ( surf.polys != null )
-					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
-			}
-		}
-
-		/*
-		** restore state
-		*/
-		gl.glDisable(GL.GL_BLEND);
-		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glDepthMask( true );
-	}
-	
 	private ByteBuffer temp2 = BufferUtils.newByteBuffer(34 * 34 * 4); 
 
 	/*
@@ -654,63 +414,41 @@ public abstract class Surf extends Draw {
 
 		c_visible_textures = 0;
 
-
-		if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+		for (i = 0; i < numgltextures ; i++)
 		{
-			for (i = 0; i < numgltextures ; i++)
+			image = gltextures[i];
+
+			if (image.registration_sequence == 0)
+				continue;
+			if (image.texturechain == null)
+				continue;
+			c_visible_textures++;
+
+			for ( s = image.texturechain; s != null ; s=s.texturechain)
 			{
-				image = gltextures[i];
-				if (image.registration_sequence == 0)
-					continue;
-				s = image.texturechain;
-				if (s == null)
-					continue;
-				c_visible_textures++;
-
-				for ( ; s != null ; s=s.texturechain)
+				if ( ( s.flags & Defines.SURF_DRAWTURB) == 0 )
 					R_RenderBrushPoly(s);
-
-				image.texturechain = null;
 			}
 		}
-		else
+
+		GL_EnableMultitexture( false );
+		for (i = 0; i < numgltextures ; i++)
 		{
-			for (i = 0; i < numgltextures ; i++)
+			image = gltextures[i];
+
+			if (image.registration_sequence == 0)
+				continue;
+			s = image.texturechain;
+			if (s == null)
+				continue;
+
+			for ( ; s != null ; s=s.texturechain)
 			{
-				image = gltextures[i];
-
-				if (image.registration_sequence == 0)
-					continue;
-				if (image.texturechain == null)
-					continue;
-				c_visible_textures++;
-
-				for ( s = image.texturechain; s != null ; s=s.texturechain)
-				{
-					if ( ( s.flags & Defines.SURF_DRAWTURB) == 0 )
-						R_RenderBrushPoly(s);
-				}
+				if ( (s.flags & Defines.SURF_DRAWTURB) != 0 )
+					R_RenderBrushPoly(s);
 			}
 
-			GL_EnableMultitexture( false );
-			for (i = 0; i < numgltextures ; i++)
-			{
-				image = gltextures[i];
-
-				if (image.registration_sequence == 0)
-					continue;
-				s = image.texturechain;
-				if (s == null)
-					continue;
-
-				for ( ; s != null ; s=s.texturechain)
-				{
-					if ( (s.flags & Defines.SURF_DRAWTURB) != 0 )
-						R_RenderBrushPoly(s);
-				}
-
-				image.texturechain = null;
-			}
+			image.texturechain = null;
 		}
 
 		GL_TexEnv( GL.GL_REPLACE );
@@ -718,198 +456,6 @@ public abstract class Surf extends Draw {
 
 	// direct buffer
 	ByteBuffer temp = BufferUtils.newByteBuffer(128 * 128 * 4);
-
-//	void GL_RenderLightmappedPoly( msurface_t surf )
-//	{
-//		int i, nv = surf.polys.numverts;
-//		int map = 0;
-//		float[] v;
-//		image_t image = R_TextureAnimation( surf.texinfo );
-//		boolean is_dynamic = false;
-//		int lmtex = surf.lightmaptexturenum;
-//		glpoly_t p;
-//
-//		// ersetzt goto
-//		boolean gotoDynamic = false;
-//
-//		for ( map = 0; map < Defines.MAXLIGHTMAPS && (surf.styles[map] != (byte)255); map++ )
-//		{
-//			if ( r_newrefdef.lightstyles[surf.styles[map] & 0xFF].white != surf.cached_light[map] ) {
-//				gotoDynamic = true;
-//				break;
-//			}
-//		}
-//
-//		// this is a hack from cwei
-//		if (map == 4) map--;
-//
-//		// dynamic this frame or dynamic previously
-//		if ( gotoDynamic || ( surf.dlightframe == r_framecount ) )
-//		{
-//			//	label dynamic:
-//			if ( gl_dynamic.value != 0 )
-//			{
-//				if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP )) == 0 )
-//				{
-//					is_dynamic = true;
-//				}
-//			}
-//		}
-//
-//		if ( is_dynamic )
-//		{
-//			// ist raus gezogen worden int[] temp = new int[128*128];
-//			int smax, tmax;
-//
-//			if ( ( (surf.styles[map] & 0xFF) >= 32 || surf.styles[map] == 0 ) && ( surf.dlightframe != r_framecount ) )
-//			{
-//				smax = (surf.extents[0]>>4)+1;
-//				tmax = (surf.extents[1]>>4)+1;
-//
-//				R_BuildLightMap( surf, temp, smax*4 );
-//				R_SetCacheState( surf );
-//
-//				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + surf.lightmaptexturenum );
-//
-//				lmtex = surf.lightmaptexturenum;
-//
-//				gl.glTexSubImage2D( GL.GL_TEXTURE_2D, 0,
-//								  surf.light_s, surf.light_t, 
-//								  smax, tmax, 
-//								  GL_LIGHTMAP_FORMAT, 
-//								  GL.GL_UNSIGNED_BYTE, temp );
-//
-//			}
-//			else
-//			{
-//				smax = (surf.extents[0]>>4)+1;
-//				tmax = (surf.extents[1]>>4)+1;
-//
-//				R_BuildLightMap( surf, temp, smax*4 );
-//
-//				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + 0 );
-//
-//				lmtex = 0;
-//
-//				gl.glTexSubImage2D( GL.GL_TEXTURE_2D, 0,
-//								  surf.light_s, surf.light_t, 
-//								  smax, tmax, 
-//								  GL_LIGHTMAP_FORMAT, 
-//								  GL.GL_UNSIGNED_BYTE, temp );
-//
-//			}
-//
-//			c_brush_polys++;
-//
-//			GL_MBind( GL_TEXTURE0, image.texnum );
-//			GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + lmtex );
-//
-//			// ==========
-//			//	  PGM
-//			if ((surf.texinfo.flags & Defines.SURF_FLOWING) != 0)
-//			{
-//				float scroll;
-//		
-//				scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
-//				if(scroll == 0.0f)
-//					scroll = -64.0f;
-//
-//				for ( p = surf.polys; p != null; p = p.chain )
-//				{
-//					gl.glBegin (GL.GL_POLYGON);
-//					for (i=0 ; i< nv; i++)
-//					{
-//						v = p.verts[i];
-//						
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3] + scroll), v[4]);
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-//						gl.glVertex3f(v[0], v[1], v[2]);
-//					}
-//					gl.glEnd ();
-//				}
-//			}
-//			else
-//			{
-//				for ( p = surf.polys; p != null; p = p.chain )
-//				{
-//					gl.glBegin (GL.GL_POLYGON);
-//					for (i=0 ; i< nv; i++)
-//					{
-//						v = p.verts[i];
-//						
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-//						gl.glVertex3f(v[0], v[1], v[2]);
-//					}
-//					gl.glEnd ();
-//				}
-//			}
-//			// PGM
-//			// ==========
-//		}
-//		else
-//		{
-//			c_brush_polys++;
-//
-//			GL_MBind( GL_TEXTURE0, image.texnum );
-//			GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + lmtex);
-//			
-//			// ==========
-//			//	  PGM
-//			if ((surf.texinfo.flags & Defines.SURF_FLOWING) != 0)
-//			{
-//				float scroll;
-//		
-//				scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
-//				if(scroll == 0.0)
-//					scroll = -64.0f;
-//
-//				for ( p = surf.polys; p != null; p = p.chain )
-//				{
-//					gl.glBegin(GL.GL_POLYGON);
-//					for (i=0 ; i< nv; i++)
-//					{
-//						v = p.verts[i];
-//						
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-//						// qglMTexCoord2fSGIS( GL_TEXTURE0, (v[3]+scroll), v[4]);
-//						// qglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-//						gl.glVertex3f(v[0], v[1], v[2]);
-//					}
-//					gl.glEnd();
-//				}
-//			}
-//			else
-//			{
-//			// PGM
-//			//  ==========
-//				for ( p = surf.polys; p != null; p = p.chain )
-//				{
-//					gl.glBegin (GL.GL_POLYGON);
-//					for (i=0 ; i< nv; i++)
-//					{
-//						v = p.verts[i];
-//
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
-//						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
-//						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-//						gl.glVertex3f(v[0], v[1], v[2]);
-//					}
-//					gl.glEnd ();
-//				}
-//			// ==========
-//			// PGM
-//			}
-//			// PGM
-//			// ==========
-//		}
-//	}
 
 	void GL_RenderLightmappedPoly( msurface_t surf )
 	{
@@ -1074,8 +620,6 @@ public abstract class Surf extends Draw {
 		}
 	}
 
-
-
 	/*
 	=================
 	R_DrawInlineBModel
@@ -1132,7 +676,7 @@ public abstract class Surf extends Draw {
 					psurf.texturechain = r_alpha_surfaces;
 					r_alpha_surfaces = psurf;
 				}
-				else if ( qglMTexCoord2fSGIS && ( psurf.flags & Defines.SURF_DRAWTURB ) == 0 )
+				else if ( (psurf.flags & Defines.SURF_DRAWTURB) == 0 )
 				{
 					GL_RenderLightmappedPoly( psurf );
 				}
@@ -1145,13 +689,7 @@ public abstract class Surf extends Draw {
 			}
 		}
 		
-		if ( (currententity.flags & Defines.RF_TRANSLUCENT) == 0 )
-		{
-			if ( !qglMTexCoord2fSGIS )
-				R_BlendLightmaps();
-		}
-		else
-		{
+		if ( (currententity.flags & Defines.RF_TRANSLUCENT) != 0 ) {
 			gl.glDisable (GL.GL_BLEND);
 			gl.glColor4f (1,1,1,1);
 			GL_TexEnv( GL.GL_REPLACE );
@@ -1237,9 +775,6 @@ public abstract class Surf extends Draw {
 
 		gl.glClientActiveTextureARB(GL_TEXTURE1);
 		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-		//gl.glClientActiveTextureARB(GL_TEXTURE0);
-		//gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-		//gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 
 		GL_EnableMultitexture( false );
 
@@ -1364,7 +899,7 @@ public abstract class Surf extends Draw {
 			}
 			else
 			{
-				if ( qglMTexCoord2fSGIS && ( surf.flags & Defines.SURF_DRAWTURB) == 0 )
+				if (  ( surf.flags & Defines.SURF_DRAWTURB) == 0 )
 				{
 					GL_RenderLightmappedPoly( surf );
 				}
@@ -1418,44 +953,29 @@ public abstract class Surf extends Draw {
 		
 		R_ClearSkyBox();
 
-		if ( qglMTexCoord2fSGIS )
-		{
-			GL_EnableMultitexture( true );
+		GL_EnableMultitexture( true );
 
-			GL_SelectTexture( GL_TEXTURE0);
+		GL_SelectTexture( GL_TEXTURE0);
+		GL_TexEnv( GL.GL_REPLACE );
+		gl.glInterleavedArrays(GL.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
+		GL_SelectTexture( GL_TEXTURE1);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, POLYGON_BYTE_STRIDE, globalPolygonTexCoord1Buf);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+
+		if ( gl_lightmap.value != 0)
 			GL_TexEnv( GL.GL_REPLACE );
-			gl.glInterleavedArrays(GL.GL_T2F_V3F, 7 * 4, globalPolygonInterleavedBuf);
-			GL_SelectTexture( GL_TEXTURE1);
-			gl.glTexCoordPointer(2, GL.GL_FLOAT, 7 * 4, globalPolygonTexCoord1Buf);
-			gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-
-			if ( gl_lightmap.value != 0)
-				GL_TexEnv( GL.GL_REPLACE );
-			else 
-				GL_TexEnv( GL.GL_MODULATE );
+		else 
+			GL_TexEnv( GL.GL_MODULATE );
 				
-			R_RecursiveWorldNode(r_worldmodel.nodes[0]); // root node
+		R_RecursiveWorldNode(r_worldmodel.nodes[0]); // root node
 				
-			gl.glClientActiveTextureARB(GL_TEXTURE1);
-			gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		gl.glClientActiveTextureARB(GL_TEXTURE1);
+		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
-			GL_EnableMultitexture( false );
-		}
-		else
-		{
-			R_RecursiveWorldNode(r_worldmodel.nodes[0]); // root node
-		}
+		GL_EnableMultitexture( false );
 
-		/*
-		** theoretically nothing should happen in the next two functions
-		** if multitexture is enabled
-		*/
-		// wird natuerlich gebraucht
 		DrawTextureChains();
-//		R_BlendLightmaps();
-	
 		R_DrawSkyBox();
-
 		R_DrawTriangleOutlines();
 	}
 
