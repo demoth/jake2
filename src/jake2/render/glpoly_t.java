@@ -19,28 +19,57 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glpoly_t.java,v 1.2 2004-07-09 06:50:47 hzi Exp $
+// $Id: glpoly_t.java,v 1.3 2005-01-09 22:32:10 cawe Exp $
 
 package jake2.render;
 
-public class glpoly_t {
-	public final static int VERTEXSIZE = 7;
+import jake2.util.Lib;
 
+public abstract class glpoly_t {
+	public final static int STRIDE = 7;
+	public final static int BYTE_STRIDE = 7 * Lib.SIZEOF_FLOAT;
+	public final static int MAX_VERTICES = 64;
+	
 	public glpoly_t next;
 	public glpoly_t chain;
 	public int numverts;
 	public int flags; // for SURF_UNDERWATER (not needed anymore?)
-	public float verts[][] = null; // variable sized (xyz s1t1 s2t2)
 	
-	public glpoly_t(int numverts) {
-		this.verts = new float[numverts][VERTEXSIZE];
-	}
-	
-	/*
-	 * vertex array extension
-	 */
-	 
 	// the array position (glDrawArrays) 
 	public int pos = 0;
 	
+	protected glpoly_t() {
+	}
+	
+	public abstract float x(int index);
+	
+	public abstract void x(int index, float value);
+
+	public abstract float y(int index);
+	
+	public abstract void y(int index, float value);
+	
+	public abstract float z(int index);
+	
+	public abstract void z(int index, float value);
+
+	public abstract float s1(int index);
+	
+	public abstract void s1(int index, float value);
+
+	public abstract float t1(int index);
+	
+	public abstract void t1(int index, float value);
+
+	public abstract float s2(int index);
+	
+	public abstract void s2(int index, float value);
+
+	public abstract float t2(int index);
+	
+	public abstract void t2(int index, float value);
+	
+	public abstract void beginScrolling(float s1);
+	
+	public abstract void endScrolling();
 }
