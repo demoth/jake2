@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: particle_t.java,v 1.2 2004-07-09 06:50:50 hzi Exp $
+// $Id: particle_t.java,v 1.3 2004-12-14 12:48:51 cawe Exp $
 
 package jake2.client;
 
@@ -30,13 +30,21 @@ import java.nio.*;
 
 public class particle_t {
 	
+	// lwjgl renderer needs a ByteBuffer
+	private static ByteBuffer colorByteArray = Lib.newByteBuffer(Defines.MAX_PARTICLES * Lib.SIZEOF_INT, ByteOrder.LITTLE_ENDIAN);
+
 	public static FloatBuffer vertexArray = Lib.newFloatBuffer(Defines.MAX_PARTICLES * 3);
-	public static IntBuffer colorArray = Lib.newIntBuffer(Defines.MAX_PARTICLES, ByteOrder.LITTLE_ENDIAN);
 	public static int[] colorTable = new int[256];
+	public static IntBuffer colorArray = colorByteArray.asIntBuffer();  
+	
 	
 	public static void setColorPalette(int[] palette) {
 		for (int i=0; i < 256; i++) {
 			colorTable[i] = palette[i] & 0x00FFFFFF;
 		}
+	}
+	
+	public static ByteBuffer getColorAsByteBuffer() {
+		return colorByteArray;
 	}
 }
