@@ -2,17 +2,8 @@ package jake2.sys;
 
 import jake2.client.Key;
 
-import java.awt.AWTException;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Robot;
-import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 
 import javax.swing.ImageIcon;
 
@@ -80,7 +71,18 @@ final public class JOGLKBD extends KBD
 					b=((MouseEvent)event.ev).getButton()-1;
 					Do_Key_Event(Key.K_MOUSE1 + b, false);
 					break;
- 
+					
+				case Jake2InputEvent.WheelMoved:
+					int dir = ((MouseWheelEvent)event.ev).getWheelRotation();
+					if (dir > 0) {
+						Do_Key_Event(Key.K_MWHEELDOWN, true);
+						Do_Key_Event(Key.K_MWHEELDOWN, false);
+					} else {
+						Do_Key_Event(Key.K_MWHEELUP, true);
+						Do_Key_Event(Key.K_MWHEELUP, false);					    
+					}
+					break;
+					 
 				case Jake2InputEvent.CreateNotify :
 				case Jake2InputEvent.ConfigureNotify :
 					Component c = ((ComponentEvent)event.ev).getComponent();
