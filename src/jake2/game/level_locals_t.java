@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST
-// $Id: level_locals_t.java,v 1.4 2003-12-28 16:53:00 rst Exp $
+// $Id: level_locals_t.java,v 1.5 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -38,7 +38,7 @@ public class level_locals_t {
 	// intermission state
 	public float intermissiontime; // time the intermission was started
 	public String changemap;
-	public int exitintermission;
+	public boolean exitintermission;
 	public float[] intermission_origin= { 0, 0, 0 };
 	public float[] intermission_angle= { 0, 0, 0 };
 

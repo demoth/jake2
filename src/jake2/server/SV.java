@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.7 2003-12-09 22:12:43 rst Exp $
+ * $Id: SV.java,v 1.8 2003-12-28 19:52:35 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -636,7 +636,7 @@ public final class SV {
 	
 		//	   check for water transition
 		wasinwater = (ent.watertype & Defines.MASK_WATER) != 0;
-		ent.watertype = GameBase.gi.pointcontents(ent.s.origin);
+		ent.watertype = GameBase.gi.pointcontents.pointcontents(ent.s.origin);
 		isinwater = (ent.watertype & Defines.MASK_WATER) != 0;
 	
 		if (isinwater)
@@ -864,7 +864,7 @@ public final class SV {
 						test[0] = trace.endpos[0];
 						test[1] = trace.endpos[1];
 						test[2] = trace.endpos[2] + ent.mins[2] + 1;
-						contents = GameBase.gi.pointcontents(test);
+						contents = GameBase.gi.pointcontents.pointcontents(test);
 						if ((contents & Defines.MASK_WATER) != 0)
 							return false;
 					}
@@ -876,7 +876,7 @@ public final class SV {
 						test[0] = trace.endpos[0];
 						test[1] = trace.endpos[1];
 						test[2] = trace.endpos[2] + ent.mins[2] + 1;
-						contents = GameBase.gi.pointcontents(test);
+						contents = GameBase.gi.pointcontents.pointcontents(test);
 						if ((contents & Defines.MASK_WATER) == 0)
 							return false;
 					}
@@ -925,7 +925,7 @@ public final class SV {
 			test[0] = trace.endpos[0];
 			test[1] = trace.endpos[1];
 			test[2] = trace.endpos[2] + ent.mins[2] + 1;
-			contents = GameBase.gi.pointcontents(test);
+			contents = GameBase.gi.pointcontents.pointcontents(test);
 	
 			if ((contents & Defines.MASK_WATER) != 0)
 				return false;
@@ -1118,5 +1118,14 @@ public final class SV {
 				return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @param value
+	 * @return boolean
+	 */
+	public static boolean SV_FilterPacket(String value) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

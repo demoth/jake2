@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.4 2003-12-28 16:53:00 rst Exp $
+// $Id: pmove_state_t.java,v 1.5 2003-12-28 19:52:35 rst Exp $
 package jake2.game;
 
 public class pmove_state_t {
@@ -38,4 +38,29 @@ public class pmove_state_t {
 	public short gravity;
 	public short delta_angles[]= {0,0,0}; // add to command angles to get view direction
 	// changed by spawns, rotating objects, and teleporters
+	
+	public boolean equals(pmove_state_t p2)
+	{
+		if (
+		pm_type == p2.pm_type &&
+		origin[0] == p2.origin[0] &&
+		origin[1] == p2.origin[1] &&
+		origin[2] == p2.origin[2] &&
+		
+		velocity[0] == p2.velocity[0] &&
+		velocity[1] == p2.velocity[1] &&
+		velocity[2] == p2.origin[2] &&
+		
+		pm_flags == p2.pm_flags &&
+		pm_time == p2.pm_time &&
+		gravity == gravity &&
+		
+		
+		delta_angles[0] == p2.delta_angles[0] &&
+		delta_angles[1] == p2.delta_angles[1] &&
+		delta_angles[2] == p2.origin[2]) return true;
+		
+		return false;
+		
+	}
 }

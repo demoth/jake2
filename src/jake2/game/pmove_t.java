@@ -19,16 +19,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.4 2003-11-29 13:34:48 rst Exp $
+// $Id: pmove_t.java,v 1.5 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
 import jake2.*;
-import jake2.*;
 
+public class pmove_t {
 
-public class pmove_t
-{
+	public static class TraceAdapter {
+		// callbacks to test the world
+		public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end) {
+			return null;
+		}
+	}
+
+	public static class PointContentsAdapter {
+		// callbacks to test the world
+		public int pointcontents(float[] point) {
+			return 0;
+		}
+	}
+
 	// state (in / out)
 	pmove_state_t s;
 
@@ -38,24 +50,23 @@ public class pmove_t
 
 	// results (out)
 	int numtouch;
-	edict_t touchents[]= new edict_t[Defines.MAXTOUCH];
+	edict_t touchents[] = new edict_t[Defines.MAXTOUCH];
 
-	float []  viewangles ={0,0,0}; // clamped
+	float[] viewangles = { 0, 0, 0 }; // clamped
 	float viewheight;
 
-	float []  mins ={0,0,0}, maxs ={0,0,0}; // bounding box size
+	float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
 
 	edict_t groundentity;
 	int watertype;
 	int waterlevel;
 
-	// callbacks to test the world
-	trace_t trace(float []  start, float []  mins, float []  maxs, float []  end)
-	{
-		return null;
-	}
-	int pointcontents(float []  point)
-	{
-		return 0;
+	public TraceAdapter trace;
+
+	public PointContentsAdapter pointcontents;
+
+	public void clear() {
+		// TODO Auto-generated method stub
+
 	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.6 2003-12-27 21:33:50 rst Exp $
+// $Id: GameUtil.java,v 1.7 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -436,9 +436,8 @@ public class GameUtil extends GameBase {
 
 	};
 
-	// TODO: port it.
 	static int ITEM_INDEX(gitem_t item) {
-		return 0;
+		return item.index;
 	}
 
 	/*

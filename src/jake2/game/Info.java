@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.1 2003-12-27 17:53:03 rst Exp $
+// $Id: Info.java,v 1.2 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -36,5 +36,20 @@ public class Info {
 	/** TODO: port it. */
 	static String Info_ValueForKey(String s, String key) {
 		return "";
+	}
+	
+	public static boolean Info_Validate(String in)
+	{
+		return true;
+	}
+
+	/**
+	 * @param userinfo
+	 * @param string
+	 * @param string2
+	 */
+	public static void Info_SetValueForKey(String userinfo, String string, String string2) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.15 2003-12-24 01:12:55 cwei Exp $
+ * $Id: Cmd.java,v 1.16 2003-12-28 19:52:35 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -130,9 +130,9 @@ public final class Cmd {
 	};
 	
 	public static cmd_function_t cmd_functions = null;
-	// TODO public nur zum testen :-) cwei
+ 
 	public static int cmd_argc;
-	// TODO public nur zum testen :-) cwei
+ 
 	public static String[] cmd_argv = new String[Globals.MAX_STRING_TOKENS];
 	static String cmd_args;
 
@@ -768,7 +768,7 @@ public final class Cmd {
 		ent.flags &= ~Defines.FL_GODMODE;
 		ent.health= 0;
 		GameBase.meansOfDeath= Defines.MOD_SUICIDE;
-		GameAI.player_die(ent, ent, ent, 100000, GameBase.vec3_origin);
+		GameAI.player_die.die(ent, ent, ent, 100000, GameBase.vec3_origin);
 	}
 
 	/*

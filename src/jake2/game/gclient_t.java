@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
+// $Id: gclient_t.java,v 1.4 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -28,7 +28,7 @@ public class gclient_t {
 	//	except for 'client->pers'
 
 	// known to server
-	public player_state_t ps; // communicated by server to clients
+	public player_state_t ps = new player_state_t(); // communicated by server to clients
 	public int ping;
 
 	// private to game
@@ -107,4 +107,12 @@ public class gclient_t {
 
 	public edict_t chase_target; // player we are chasing
 	public boolean update_chase; // need to update chase info?
+	
+	//TODO: 
+	public int index;
+	
+	public void clear()
+	{
+	}
+	
 }

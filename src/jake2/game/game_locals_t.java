@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: game_locals_t.java,v 1.3 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -30,26 +30,26 @@ public class game_locals_t {
 	//	the server.ssv file for savegames
 	//
 
-	String helpmessage1;
-	String helpmessage2;
-	int helpchanged; // flash F1 icon if non 0, play sound
+	public String helpmessage1;
+	public String helpmessage2;
+	public int helpchanged; // flash F1 icon if non 0, play sound
 	// and increment only if 1, 2, or 3
 
-	gclient_t clients[]; // [maxclients]
+	public gclient_t clients[]; // [maxclients]
 
 	// can't store spawnpoint in level, because
 	// it would get overwritten by the savegame restore
-	char spawnpoint[]= new char[512]; // needed for coop respawns
+	public String spawnpoint=""; // needed for coop respawns
 
 	// store latched cvars here that we want to get at often
-	int maxclients;
-	int maxentities;
+	public int maxclients;
+	public int maxentities;
 
 	// cross level triggers
-	int serverflags;
+	public int serverflags;
 
 	// items
-	int num_items;
+	public int num_items;
 
-	boolean autosaved;
+	public boolean autosaved;
 }

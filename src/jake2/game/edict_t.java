@@ -34,7 +34,7 @@ public class edict_t {
 	public int linkcount;
 
 	// FIXME: move these fields to a server private sv_entity_t
-	public link_t area=new link_t(this); // linked to a division node or leaf
+	public link_t area = new link_t(this); // linked to a division node or leaf
 
 	public int num_clusters; // if -1, use headnode instead
 	public int clusternums[] = new int[Defines.MAX_ENT_CLUSTERS];
@@ -44,11 +44,11 @@ public class edict_t {
 	//================================
 
 	public int svflags; // SVF_NOCLIENT, SVF_DEADMONSTER, SVF_MONSTER, etc
-	public float[] mins = {0,0,0};
-	public float[] maxs = {0,0,0};
-	public float[] absmin = {0,0,0};
-	public float[] absmax = {0,0,0};
-	public float[] size = {0,0,0};
+	public float[] mins = { 0, 0, 0 };
+	public float[] maxs = { 0, 0, 0 };
+	public float[] absmin = { 0, 0, 0 };
+	public float[] absmax = { 0, 0, 0 };
+	public float[] size = { 0, 0, 0 };
 	public int solid;
 	public int clipmask;
 	public edict_t owner = null;
@@ -63,30 +63,30 @@ public class edict_t {
 	public int flags;
 
 	//TODO:
-	public String model =null;
+	public String model = null;
 	public float freetime; // sv.time when the object was freed
 
 	//
 	// only used locally in game, not by server
 	//
-	public String message=null;
-	public String classname=null;
+	public String message = null;
+	public String classname = null;
 	public int spawnflags;
 
 	public float timestamp;
 
 	// set in qe3, -1 = up, -2 = down
 	public float angle;
-	 
-	public String target=null;
-	public String targetname=null;
-	public String killtarget=null;
-	public String team=null;
-	public String pathtarget=null;
-	public String deathtarget=null;
-	public String combattarget=null;
 
-	public edict_t target_ent=null;
+	public String target = null;
+	public String targetname = null;
+	public String killtarget = null;
+	public String team = null;
+	public String pathtarget = null;
+	public String deathtarget = null;
+	public String combattarget = null;
+
+	public edict_t target_ent = null;
 
 	public float speed, accel, decel;
 	public float[] movedir = { 0, 0, 0 };
@@ -101,20 +101,20 @@ public class edict_t {
 	public float gravity; // per entity gravity multiplier (1.0 is normal)
 	// use for lowgrav artifact, flares
 
-	public edict_t goalentity=null;
-	public edict_t movetarget=null;
+	public edict_t goalentity = null;
+	public edict_t movetarget = null;
 	public float yaw_speed;
 	public float ideal_yaw;
 
 	public float nextthink;
 
-	public EntThinkAdapter prethink=null;
-	public EntThinkAdapter think=null;
-	public EntBlockedAdapter blocked=null;
-	public EntTouchAdapter touch=null;
-	public EntUseAdapter use=null;
-	public EntPainAdapter pain=null;
-	public EntDieAdapter die=null;
+	public EntThinkAdapter prethink = null;
+	public EntThinkAdapter think = null;
+	public EntBlockedAdapter blocked = null;
+	public EntTouchAdapter touch = null;
+	public EntUseAdapter use = null;
+	public EntPainAdapter pain = null;
+	public EntDieAdapter die = null;
 
 	public float touch_debounce_time; // are all these legit?  do we need more/less of them?
 	public float pain_debounce_time;
@@ -130,7 +130,8 @@ public class edict_t {
 
 	public float powerarmor_time;
 
-	public String map=null;; // target_changelevel
+	public String map = null;
+	; // target_changelevel
 
 	public int viewheight; // height above origin where eyesight is determined
 	public int takedamage;
@@ -140,17 +141,17 @@ public class edict_t {
 	public int sounds; //make this a spawntemp var?
 	public int count;
 
-	public edict_t chain=null;
-	public edict_t enemy=null;
-	public edict_t oldenemy=null;
-	public edict_t activator=null;
-	public edict_t groundentity=null;
+	public edict_t chain = null;
+	public edict_t enemy = null;
+	public edict_t oldenemy = null;
+	public edict_t activator = null;
+	public edict_t groundentity = null;
 	public int groundentity_linkcount;
-	public edict_t teamchain=null;
-	public edict_t teammaster=null;
+	public edict_t teamchain = null;
+	public edict_t teammaster = null;
 
-	public edict_t mynoise=null; // can go in client only
-	public edict_t mynoise2=null;
+	public edict_t mynoise = null; // can go in client only
+	public edict_t mynoise2 = null;
 
 	public int noise_index;
 	public int noise_index2;
@@ -176,14 +177,14 @@ public class edict_t {
 
 	public int style; // also used as areaportal number
 
-	public gitem_t item=null; // for bonus items
+	public gitem_t item = null; // for bonus items
 
 	// common data blocks
-	public moveinfo_t moveinfo=null;
-	public monsterinfo_t monsterinfo=null;
+	public moveinfo_t moveinfo = null;
+	public monsterinfo_t monsterinfo = null;
 
 	/////////////////////////////////////////////////
-	
+
 	public boolean set(String key, String value) {
 
 		if (key.equals("classname")) {

@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.8 2003-12-27 23:13:31 rst Exp $
+ * $Id: M.java,v 1.9 2003-12-28 19:52:35 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -99,7 +99,7 @@ public final class M {
 			for (y = 0; y <= 1; y++) {
 				start[0] = x != 0 ? maxs[0] : mins[0];
 				start[1] = y != 0 ? maxs[1] : mins[1];
-				if (GameBase.gi.pointcontents(start) != Defines.CONTENTS_SOLID) {
+				if (GameBase.gi.pointcontents.pointcontents(start) != Defines.CONTENTS_SOLID) {
 					GameBase.c_no++;
 					//
 					//	   check it for real...
@@ -238,7 +238,7 @@ public final class M {
 		point[0] = ent.s.origin[0];
 		point[1] = ent.s.origin[1];
 		point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-		cont = GameBase.gi.pointcontents(point);
+		cont = GameBase.gi.pointcontents.pointcontents(point);
 
 		if (0 == (cont & Defines.MASK_WATER)) {
 			ent.waterlevel = 0;
@@ -249,13 +249,13 @@ public final class M {
 		ent.watertype = cont;
 		ent.waterlevel = 1;
 		point[2] += 26;
-		cont = GameBase.gi.pointcontents(point);
+		cont = GameBase.gi.pointcontents.pointcontents(point);
 		if (0 == (cont & Defines.MASK_WATER))
 			return;
 
 		ent.waterlevel = 2;
 		point[2] += 22;
-		cont = GameBase.gi.pointcontents(point);
+		cont = GameBase.gi.pointcontents.pointcontents(point);
 		if (0 != (cont & Defines.MASK_WATER))
 			ent.waterlevel = 3;
 	}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.9 2003-12-28 13:51:10 rst Exp $
+// $Id: GameSpawn.java,v 1.10 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -372,7 +372,7 @@ public class GameSpawn extends Game {
 			if (skill.value != skill_level)
 				gi.cvar_forceset("skill", "" + skill_level);
 	
-	//		SaveClientData();
+			PlayerClient.SaveClientData();
 			
 			//level.clear();
 	//		memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));

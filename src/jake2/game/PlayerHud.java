@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.2 2003-12-28 16:53:00 rst Exp $
+// $Id: PlayerHud.java,v 1.3 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -116,12 +116,12 @@ public class PlayerHud extends GameTarget {
 		}
 		else {
 			if (0 == deathmatch.value) {
-				level.exitintermission = 1; // go immediately to the next level
+				level.exitintermission = true; // go immediately to the next level
 				return;
 			}
 		}
 
-		level.exitintermission = 0;
+		level.exitintermission = false;
 
 		// find an intermission spot
 		ent = G_Find(null, findByClass, "info_player_intermission").o;

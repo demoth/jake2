@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.4 2003-12-28 01:06:22 rst Exp $
+// $Id: game_import_t.java,v 1.5 2003-12-28 19:52:35 rst Exp $
 
 package jake2.game;
 
@@ -39,17 +39,11 @@ public class game_import_t {
 	}
 	public void centerprintf(edict_t ent, String s) {
 	}
-	public void sound(
-		edict_t ent,
-		int channel,
-		int soundindex,
-		float volume,
-		float attenuation,
-		float timeofs) {
+	public void sound(edict_t ent, int channel, int soundindex, float volume, float attenuation, float timeofs) {
 	}
 	public void positioned_sound(
 		float[] origin,
-		edict_t [] ent,
+		edict_t[] ent,
 		int channel,
 		int soundinedex,
 		float volume,
@@ -82,18 +76,11 @@ public class game_import_t {
 	}
 
 	// collision detection
-	public trace_t trace(
-		float[] start,
-		float[] mins,
-		float[] maxs,
-		float[] end,
-		edict_t passent,
-		int contentmask) {
+	public trace_t trace(float[] start, float[] mins, float[] maxs, float[] end, edict_t passent, int contentmask) {
 		return null;
 	}
-	public int pointcontents(float[] point) {
-		return 0;
-	}
+
+	public pmove_t.PointContentsAdapter pointcontents;
 	public boolean inPVS(float[] p1, float[] p2) {
 		return false;
 	}
