@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.15 2004-02-08 11:08:51 hoz Exp $
+ * $Id: NET.java,v 1.16 2004-02-10 15:34:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.qcommon.*;
 import jake2.util.Lib;
 
 import java.net.*;
+import java.util.Arrays;
 
 public final class NET extends Defines {
 
@@ -149,7 +150,7 @@ public final class NET extends Defines {
 		//static	char	s[64];
 		//Com_sprintf (s, sizeof(s), "%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs(a.port));
 
-		return "" + a.ip[0] + "." + a.ip[1] + "." + a.ip[2] + "." + a.ip[3] + ":" + a.port;
+		return "" + (a.ip[0] & 0xff) + "." + (a.ip[1] & 0xff) + "." + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff) + ":" + a.port;
 	}
 
 
@@ -158,7 +159,7 @@ public final class NET extends Defines {
 		//was:
 		//static	char	s[64];
 		//Com_sprintf (s, sizeof(s), "%i.%i.%i.%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3]);
-		return "" + a.ip[0] + "." + a.ip[1] + "." + a.ip[2] + "." + a.ip[3];
+		return "" + (a.ip[0] & 0xff) + "." + (a.ip[1] & 0xff) + "." + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff);
 	}
 	
 	/*
@@ -239,6 +240,17 @@ public final class NET extends Defines {
 	
 	public static boolean StringToAdr( String s, netadr_t a)
 	{
+		
+		// bugfix bzw. hack cwei
+		if (s.equalsIgnoreCase("localhost")) {
+			a.type = Defines.NA_LOOPBACK;
+			Arrays.fill(a.ip, (byte)0);
+			a.port = 0;
+		} else {
+			if (a.type ==  Defines.NA_LOOPBACK)
+				a.type = Defines.NA_IP;
+		}
+		
 		try
 		{
 			InetAddress ia = InetAddress.getByName(s);
@@ -355,14 +367,23 @@ public final class NET extends Defines {
 				Com.Printf ("Oversize packet from " + AdrToString(net_from) + "\n");
 				return false;
 			}
-			System.arraycopy(receivedatagrampacket.getData(), 0, net_message.data, 0 , receivedatagrampacket.getLength());
+			int length = receivedatagrampacket.getLength();
+			System.arraycopy(receivedatagrampacket.getData(), 0, net_message.data, 0, length);
+			
+			// bugfix cwei
+			net_message.cursize = length; // set the size
+			net_message.data[length] = 0; // sentinel
+			
+			
+			Com.DPrintf(Lib.hexDump(net_message.data, Math.max(length, length - (length % 16) + 16), false));
+			Com.DPrintf("\n");
 			
 			return true;
 
 		}
 		catch(Exception e)
 		{
-			Com.Printf ("NET_GetPacket: " + e + " from " + 	AdrToString(net_from) + "\n");
+			Com.DPrintf ("NET_GetPacket: " + e + " from " + 	AdrToString(net_from) + "\n");
 			return false;
 		}
 		
@@ -398,8 +419,10 @@ public final class NET extends Defines {
 	
 	public static void SendPacket (int sock, int length, byte [] data, netadr_t to)
 	{
-		Com.Printf("NET_SendPacket: sock=" + sock  + " len=" + length + "\n");
-		Com.Printf(Lib.hexDump(data, 64, false));
+		//Com.Printf("NET_SendPacket: sock=" + sock  + " len=" + length + "\n");
+		Com.DPrintf(Lib.hexDump(data, Math.max(length, length - (length % 16) + 16), false));
+		Com.DPrintf("\n");
+		
 		int		ret;
 		//struct sockaddr_in	addr;
 		
