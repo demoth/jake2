@@ -1,6 +1,14 @@
 import java.io.*;
 import java.util.StringTokenizer;
 
+
+/** This class converts the #define statements into java 
+ * public static final int statements.
+ *  
+ * Additionally it converts some mframe_t statements, when the filename 
+ * starts with "jake2/game/M_" . 
+ */  
+
 public class ConvertDefines
 {
 	public static String convertDefine(String in)
@@ -51,10 +59,13 @@ public class ConvertDefines
 			if (args.length == 0)
 			{
 				filename= "jake2/game/defs.java";
-				m_doc = false;
 			}
 			else
 				filename= args[0];
+				
+			if (filename.startsWith("jake2/game/M_"))
+				m_doc = true;
+			else m_doc = false;
 
 			FileWriter fw= new FileWriter(filename + ".new");
 			FileReader fr= new FileReader(filename);
@@ -64,7 +75,9 @@ public class ConvertDefines
 			{
 				line= br.readLine();
 				if (line.indexOf("#define") != -1)
-					fw.write(convertDefine(line) + "\n");				
+					fw.write(convertDefine(line) + "\n");		
+					
+							
 				else if (m_doc && line.trim().startsWith("mframe_t ") && line.indexOf("new") == -1)
 				{
 					fw.write(" static " + line + " new mframe_t[] \n");
