@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public class GAME_SPAWN extends GAME {
+public class GameSpawn extends Game {
 
 	static EntThinkAdapter SP_item_health = null;
 	static EntThinkAdapter SP_item_health_small = null;

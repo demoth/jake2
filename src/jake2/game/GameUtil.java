@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 01.11.2003 by RST.
 package jake2.game;
 
-public class GAME_UTIL extends GAME_BASE {
+public class GameUtil extends GameBase {
 
 	static EntThinkAdapter Think_Delay= new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
@@ -618,7 +618,7 @@ public class GAME_UTIL extends GAME_BASE {
 		if (cl.pers.inventory[cl.pers.selected_item] != 0)
 			return; // valid
 
-		GAME_AI.SelectNextItem(ent, -1);
+		GameAI.SelectNextItem(ent, -1);
 	}
 
 	static int quad_drop_timeout_hack= 0;
@@ -1442,7 +1442,7 @@ public class GAME_UTIL extends GAME_BASE {
 	static gitem_t FindItemByClassname(String classname) {
 
 		for (int i= 0; i < game.num_items; i++) {
-			gitem_t it= GAME_AI.itemlist[i];
+			gitem_t it= GameAI.itemlist[i];
 
 			if (it.classname == null)
 				continue;
@@ -1461,7 +1461,7 @@ public class GAME_UTIL extends GAME_BASE {
 	*/
 	static gitem_t FindItem(String pickup_name) {
 		for (int i= 0; i < game.num_items; i++) {
-			gitem_t it= GAME_AI.itemlist[i];
+			gitem_t it= GameAI.itemlist[i];
 
 			if (it.pickup_name == null)
 				continue;
@@ -1515,7 +1515,7 @@ public class GAME_UTIL extends GAME_BASE {
 		if (index != 0)
 			return 0;
 
-		armor= GAME_AI.GetItemByIndex(index);
+		armor= GameAI.GetItemByIndex(index);
 		gitem_armor_t garmor= (gitem_armor_t) armor.info;
 
 		if (0 != (dflags & DAMAGE_ENERGY))

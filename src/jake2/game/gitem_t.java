@@ -113,7 +113,7 @@ public class gitem_t
 		gitem_t i2 = 
 		new gitem_t(
 			"item_armor_combat",
-			GAME_AI.Pickup_Armor,
+			GameAI.Pickup_Armor,
 			null,
 			null,
 			null,
@@ -126,7 +126,7 @@ public class gitem_t
 		/* pickup */
 		"Combat Armor",
 		/* width */
-		3, 0, null, defs.IT_ARMOR, 0, GAME_AI.combatarmor_info, defs.ARMOR_COMBAT,
+		3, 0, null, defs.IT_ARMOR, 0, GameAI.combatarmor_info, defs.ARMOR_COMBAT,
 		/* precache */
 		"");
 	}

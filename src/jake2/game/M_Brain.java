@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public class M_Brain extends GAME_WEAPON {
+public class M_Brain extends GameWeapon {
 
 	public final static int FRAME_walk101= 0;
 	public final static int FRAME_walk102= 1;

@@ -24,6 +24,6 @@ package jake2.game;
 
 // just offers the game namespace. will grow more.
 
-public class GAME extends GAME_PWEAPON {
+public class Game extends GamePWeapon {
 
 }

@@ -24,7 +24,7 @@ package jake2.game;
 
 import java.util.*;
 
-public class GAME_AI extends GAME_UTIL {
+public class GameAI extends GameUtil {
 
 	/*
 	===============
@@ -138,7 +138,7 @@ public class GAME_AI extends GAME_UTIL {
 		int hspread,
 		int vspread,
 		int flashtype) {
-		GAME_WEAPON.fire_bullet(
+		GameWeapon.fire_bullet(
 			self,
 			start,
 			dir,
@@ -165,7 +165,7 @@ public class GAME_AI extends GAME_UTIL {
 		int vspread,
 		int count,
 		int flashtype) {
-		GAME_WEAPON.fire_shotgun(
+		GameWeapon.fire_shotgun(
 			self,
 			start,
 			aimdir,
@@ -191,7 +191,7 @@ public class GAME_AI extends GAME_UTIL {
 		int speed,
 		int flashtype,
 		int effect) {
-		GAME_WEAPON.fire_blaster(
+		GameWeapon.fire_blaster(
 			self,
 			start,
 			dir,
@@ -214,7 +214,7 @@ public class GAME_AI extends GAME_UTIL {
 		int damage,
 		int speed,
 		int flashtype) {
-		GAME_WEAPON.fire_grenade(
+		GameWeapon.fire_grenade(
 			self,
 			start,
 			aimdir,
@@ -237,7 +237,7 @@ public class GAME_AI extends GAME_UTIL {
 		int damage,
 		int speed,
 		int flashtype) {
-		GAME_WEAPON.fire_rocket(
+		GameWeapon.fire_rocket(
 			self,
 			start,
 			dir,
@@ -260,7 +260,7 @@ public class GAME_AI extends GAME_UTIL {
 		int damage,
 		int kick,
 		int flashtype) {
-		GAME_WEAPON.fire_rail(self, start, aimdir, damage, kick);
+		GameWeapon.fire_rail(self, start, aimdir, damage, kick);
 
 		gi.WriteByte(svc_muzzleflash2);
 		gi.WriteShort(self.s.number);
@@ -278,7 +278,7 @@ public class GAME_AI extends GAME_UTIL {
 		int kick,
 		float damage_radius,
 		int flashtype) {
-		GAME_WEAPON.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
+		GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
 		gi.WriteByte(svc_muzzleflash2);
 		gi.WriteShort(self.s.number);
@@ -4361,7 +4361,7 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"item_armor_combat",
-			GAME_AI.Pickup_Armor,
+			GameAI.Pickup_Armor,
 			null,
 			null,
 			null,
@@ -4374,7 +4374,7 @@ public class GAME_AI extends GAME_UTIL {
 		/* pickup */
 		"Combat Armor",
 		/* width */
-		3, 0, null, IT_ARMOR, 0, GAME_AI.combatarmor_info, ARMOR_COMBAT,
+		3, 0, null, IT_ARMOR, 0, GameAI.combatarmor_info, ARMOR_COMBAT,
 		/* precache */
 		""),
 
@@ -4382,7 +4382,7 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"item_armor_jacket",
-			GAME_AI.Pickup_Armor,
+			GameAI.Pickup_Armor,
 			null,
 			null,
 			null,
@@ -4395,7 +4395,7 @@ public class GAME_AI extends GAME_UTIL {
 		/* pickup */
 		"Jacket Armor",
 		/* width */
-		3, 0, null, IT_ARMOR, 0, GAME_AI.jacketarmor_info, ARMOR_JACKET,
+		3, 0, null, IT_ARMOR, 0, GameAI.jacketarmor_info, ARMOR_JACKET,
 		/* precache */
 		""),
 
@@ -4403,7 +4403,7 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"item_armor_shard",
-			GAME_AI.Pickup_Armor,
+			GameAI.Pickup_Armor,
 			null,
 			null,
 			null,
@@ -4424,9 +4424,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"item_power_screen",
-			GAME_AI.Pickup_PowerArmor,
-			GAME_AI.Use_PowerArmor,
-			GAME_AI.Drop_PowerArmor,
+			GameAI.Pickup_PowerArmor,
+			GameAI.Use_PowerArmor,
+			GameAI.Drop_PowerArmor,
 			null,
 			"misc/ar3_pkup.wav",
 			"models/items/armor/screen/tris.md2",
@@ -4472,9 +4472,9 @@ public class GAME_AI extends GAME_UTIL {
 		new gitem_t(
 			"weapon_blaster",
 			null,
-			GAME_PWEAPON.Use_Weapon,
+			GamePWeapon.Use_Weapon,
 			null,
-			GAME_PWEAPON.Weapon_Blaster,
+			GamePWeapon.Weapon_Blaster,
 			"misc/w_pkup.wav",
 			null,
 			0,
@@ -4490,10 +4490,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_shotgun",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_Shotgun,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_Shotgun,
 			"misc/w_pkup.wav",
 			"models/weapons/g_shotg/tris.md2",
 			EF_ROTATE,
@@ -4516,10 +4516,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_supershotgun",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_SuperShotgun,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_SuperShotgun,
 			"misc/w_pkup.wav",
 			"models/weapons/g_shotg2/tris.md2",
 			EF_ROTATE,
@@ -4542,10 +4542,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_machinegun",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_Machinegun,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_Machinegun,
 			"misc/w_pkup.wav",
 			"models/weapons/g_machn/tris.md2",
 			EF_ROTATE,
@@ -4568,10 +4568,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_chaingun",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_Chaingun,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_Chaingun,
 			"misc/w_pkup.wav",
 			"models/weapons/g_chain/tris.md2",
 			EF_ROTATE,
@@ -4595,9 +4595,9 @@ public class GAME_AI extends GAME_UTIL {
 		new gitem_t(
 			"ammo_grenades",
 			Pickup_Ammo,
-			GAME_PWEAPON.Use_Weapon,
+			GamePWeapon.Use_Weapon,
 			Drop_Ammo,
-			GAME_PWEAPON.Weapon_Grenade,
+			GamePWeapon.Weapon_Grenade,
 			"misc/am_pkup.wav",
 			"models/items/ammo/grenades/medium/tris.md2",
 			0,
@@ -4621,10 +4621,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_grenadelauncher",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_GrenadeLauncher,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_GrenadeLauncher,
 			"misc/w_pkup.wav",
 			"models/weapons/g_launch/tris.md2",
 			EF_ROTATE,
@@ -4647,10 +4647,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_rocketlauncher",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_RocketLauncher,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_RocketLauncher,
 			"misc/w_pkup.wav",
 			"models/weapons/g_rocket/tris.md2",
 			EF_ROTATE,
@@ -4673,10 +4673,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_hyperblaster",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_HyperBlaster,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_HyperBlaster,
 			"misc/w_pkup.wav",
 			"models/weapons/g_hyperb/tris.md2",
 			EF_ROTATE,
@@ -4699,10 +4699,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_railgun",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_Railgun,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_Railgun,
 			"misc/w_pkup.wav",
 			"models/weapons/g_rail/tris.md2",
 			EF_ROTATE,
@@ -4725,10 +4725,10 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"weapon_bfg",
-			GAME_PWEAPON.Pickup_Weapon,
-			GAME_PWEAPON.Use_Weapon,
-			GAME_PWEAPON.Drop_Weapon,
-			GAME_PWEAPON.Weapon_BFG,
+			GamePWeapon.Pickup_Weapon,
+			GamePWeapon.Use_Weapon,
+			GamePWeapon.Drop_Weapon,
+			GamePWeapon.Weapon_BFG,
 			"misc/w_pkup.wav",
 			"models/weapons/g_bfg/tris.md2",
 			EF_ROTATE,
@@ -4748,9 +4748,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"ammo_shells",
-			GAME_PWEAPON.Pickup_Ammo,
+			GamePWeapon.Pickup_Ammo,
 			null,
-			GAME_PWEAPON.Drop_Ammo,
+			GamePWeapon.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/shells/medium/tris.md2",
@@ -4769,9 +4769,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"ammo_bullets",
-			GAME_PWEAPON.Pickup_Ammo,
+			GamePWeapon.Pickup_Ammo,
 			null,
-			GAME_PWEAPON.Drop_Ammo,
+			GamePWeapon.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/bullets/medium/tris.md2",
@@ -4790,9 +4790,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"ammo_cells",
-			GAME_PWEAPON.Pickup_Ammo,
+			GamePWeapon.Pickup_Ammo,
 			null,
-			GAME_PWEAPON.Drop_Ammo,
+			GamePWeapon.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/cells/medium/tris.md2",
@@ -4811,9 +4811,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"ammo_rockets",
-			GAME_PWEAPON.Pickup_Ammo,
+			GamePWeapon.Pickup_Ammo,
 			null,
-			GAME_PWEAPON.Drop_Ammo,
+			GamePWeapon.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/rockets/medium/tris.md2",
@@ -4832,9 +4832,9 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"ammo_slugs",
-			GAME_PWEAPON.Pickup_Ammo,
+			GamePWeapon.Pickup_Ammo,
 			null,
-			GAME_PWEAPON.Drop_Ammo,
+			GamePWeapon.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/slugs/medium/tris.md2",
@@ -5026,7 +5026,7 @@ public class GAME_AI extends GAME_UTIL {
 		*/
 		new gitem_t(
 			"item_pack",
-			GAME_PWEAPON.Pickup_Pack,
+			GamePWeapon.Pickup_Pack,
 			null,
 			null,
 			null,

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public class GAME_PWEAPON extends M_Player {
+public class GamePWeapon extends M_Player {
 
 	static boolean is_quad;
 	static byte is_silenced;

@@ -155,7 +155,7 @@ public class GLMain {
 			return false;
 
 		for (i=0 ; i<4 ; i++)
-			if ( GAME_BASE.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2)
+			if ( GameBase.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2)
 				return true;
 		return false;
 	}

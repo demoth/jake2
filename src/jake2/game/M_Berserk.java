@@ -4,7 +4,7 @@
  */
 package jake2.game;
 
-public class M_Berserk extends GAME_WEAPON {
+public class M_Berserk extends GameWeapon {
 
 	public final static int FRAME_stand1= 0;
 	public final static int FRAME_stand2= 1;
