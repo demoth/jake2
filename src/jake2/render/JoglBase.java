@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.10 2004-10-28 00:38:29 cawe Exp $
+ * $Id: JoglBase.java,v 1.11 2004-10-31 19:55:07 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -94,6 +94,8 @@ public abstract class JoglBase implements GLEventListener {
 	protected static final int rserr_invalid_fullscreen = 1;
 	protected static final int rserr_invalid_mode = 2;
 	protected static final int rserr_unknown = 3;
+	
+	private boolean swap = false;
 	
 	public DisplayMode[] getModeList() {
 		DisplayMode[] modes = device.getDisplayModes();
@@ -206,9 +208,12 @@ public abstract class JoglBase implements GLEventListener {
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		canvas.setNoAutoRedrawMode(true);
-// TODO this and a new JOGL-release solves the flickering bug (Loading)
-// change also GLimp_EndFrame()
-//		canvas.setAutoSwapBufferMode(false);
+
+		if (net.java.games.jogl.Version.getVersion().startsWith("1.1")) {
+		    swap=true;
+		    canvas.setAutoSwapBufferMode(false);
+		}
+		
 		canvas.addGLEventListener(this);
 
 		window.getContentPane().add(canvas);	
@@ -307,9 +312,9 @@ public abstract class JoglBase implements GLEventListener {
 
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
+		
 		// swap buffer
-//		TODO this and a new JOGL-release solves the flickering bug (Loading)
-//		canvas.swapBuffers();
+		if (swap) canvas.swapBuffers();		
 	}
 	protected void GLimp_BeginFrame(float camera_separation) {
 		// do nothing
