@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.29 2004-02-13 13:51:43 cwei Exp $
+ * $Id: Main.java,v 1.30 2004-02-14 14:20:01 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -514,8 +514,7 @@ public abstract class Main extends Base {
 			else
 				scale = 1 + scale * 0.004f;
 
-			// TODO bugfix hack cwei
-			color = d_8to24table[p.color & 0xFF];
+			color = d_8to24table[p.color];
 
 			gl.glColor4ub(
 				(byte) ((color >> 0) & 0xff),
@@ -563,8 +562,7 @@ public abstract class Main extends Base {
 			gl.glBegin(GL.GL_POINTS);
 			for (int i = 0; i < r_newrefdef.num_particles; i++) {
 				p = r_newrefdef.particles[i];
-				// TODO bugfix hack cwei
-				color = d_8to24table[p.color & 0xff];
+				color = d_8to24table[p.color];
 
 				gl.glColor4ub(
 					(byte) ((color >> 0) & 0xff),
