@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.9 2004-09-19 20:32:05 cawe Exp $
+ * $Id: JoglBase.java,v 1.10 2004-10-28 00:38:29 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -282,7 +282,13 @@ public abstract class JoglBase implements GLEventListener {
 				e.printStackTrace();
 			}
 		}
-		if (this.window != null) {
+		if (window != null) {
+		    // this is very important to change the GL context
+		    if (canvas != null) {
+		        canvas.setVisible(false);
+		        window.remove(canvas);
+		        canvas = null;
+		    }
 			window.dispose();
 		}
 		post_init = false;
