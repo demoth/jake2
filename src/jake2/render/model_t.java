@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.6 2004-01-04 18:46:08 rst Exp $
+// $Id: model_t.java,v 1.7 2004-01-05 14:00:35 cwei Exp $
 
 package jake2.render;
 
@@ -100,5 +100,5 @@ public class model_t {
 	public int extradatasize;
 
 	// or whatever
-	public byte extradata[];
+	public Object extradata;
 }
