@@ -2,7 +2,7 @@
  * refexport_t.java
  * Copyright (C) 2003
  *
- * $Id: refexport_t.java,v 1.5 2004-02-11 17:28:48 cwei Exp $
+ * $Id: refexport_t.java,v 1.6 2004-02-17 11:35:10 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,7 +47,7 @@ public interface refexport_t {
 	// these are the functions exported by the refresh module
 	//
 	// called when the library is loaded
-	boolean Init();
+	boolean Init(int vid_xpos, int vid_ypos);
 
 	// called before the library is unloaded
 	void Shutdown();

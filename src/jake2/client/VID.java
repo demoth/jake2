@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.13 2004-02-03 16:13:24 cwei Exp $
+ * $Id: VID.java,v 1.14 2004-02-17 11:35:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -292,7 +292,7 @@ public class VID extends Globals {
 
 		IN.Real_IN_Init();
 
-		if ( !Globals.re.Init() )
+		if ( !Globals.re.Init((int)vid_xpos.value, (int)vid_ypos.value) )
 		{
 			Globals.re.Shutdown();
 			FreeReflib();

@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.14 2004-02-16 20:26:38 rst Exp $
+ * $Id: Impl.java,v 1.15 2004-02-17 11:35:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,12 +57,17 @@ public class Impl extends Misc implements GLEventListener {
 
 	GLCanvas canvas;
 	JFrame window;
+	
+	// window position on the screen
+	int window_xpos, window_ypos;
 
 	/**
 	 * @return true
 	 */
-	boolean GLimp_Init() {
+	boolean GLimp_Init(int xpos, int ypos) {
 		// do nothing
+		window_xpos = xpos;
+		window_ypos = ypos;
 		return true;
 	}
 
@@ -102,7 +107,6 @@ public class Impl extends Misc implements GLEventListener {
 
 		// Use debug pipeline
 		canvas.setGL(new DebugGL(canvas.getGL()));
-		//canvas.setGL(canvas.getGL());
 
 		//canvas.setRenderingThread(Thread.currentThread());
 
@@ -111,7 +115,7 @@ public class Impl extends Misc implements GLEventListener {
 
 		window.getContentPane().add(canvas);		
 		
-		window.setLocation(0, 0);
+		window.setLocation(window_xpos, window_ypos);
 		window.setSize(newDim.width, newDim.height);
 		//window.setUndecorated(true);
 		window.setResizable(false);

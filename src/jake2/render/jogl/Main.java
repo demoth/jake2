@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.30 2004-02-14 14:20:01 cwei Exp $
+ * $Id: Main.java,v 1.31 2004-02-17 11:35:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -84,7 +84,7 @@ public abstract class Main extends Base {
 
 	abstract boolean QGL_Init(String dll_name);
 	abstract void QGL_Shutdown();
-	abstract boolean GLimp_Init();
+	abstract boolean GLimp_Init(int xpos, int ypos);
 	abstract void GLimp_BeginFrame(float camera_separation);
 	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
 	abstract void GLimp_Shutdown();
@@ -1102,7 +1102,7 @@ public abstract class Main extends Base {
 	*/
 	float[] r_turbsin = new float[256];
 
-	protected boolean R_Init() {
+	protected boolean R_Init(int vid_xpos, int vid_ypos) {
 
 		assert(Warp.SIN.length == 256) : "warpsin table bug";
 
@@ -1125,7 +1125,7 @@ public abstract class Main extends Base {
 		}
 
 		// initialize OS-specific parts of OpenGL
-		if (!GLimp_Init()) {
+		if (!GLimp_Init(vid_xpos, vid_ypos)) {
 			QGL_Shutdown();
 			return false;
 		}
