@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: spawn_temp_t.java,v 1.5 2003-12-27 15:41:00 rst Exp $
+// $Id: spawn_temp_t.java,v 1.6 2004-01-02 17:43:13 rst Exp $
 
 package jake2.game;
 
@@ -39,7 +39,7 @@ public class spawn_temp_t {
 	
 	public String noise;
 	public float pausetime;
-	//TODO: does String work here ?
+
 	public String item;
 	public String gravity;
 
