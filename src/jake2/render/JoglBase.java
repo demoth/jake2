@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.8 2004-09-19 12:47:49 hzi Exp $
+ * $Id: JoglBase.java,v 1.9 2004-09-19 20:32:05 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,8 +40,6 @@ import java.util.LinkedList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-
-import com.sun.rsasign.t;
 
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.GLUT;
