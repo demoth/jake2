@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.2 2004-02-01 23:31:37 rst Exp $
+// $Id: PMove.java,v 1.3 2004-02-11 05:16:56 cwei Exp $
 
 package jake2.qcommon;
 
@@ -51,7 +51,7 @@ public class PMove extends Game
 		cplane_t groundplane = new cplane_t();
 		int groundcontents;
 
-		float[] previous_origin;
+		float[] previous_origin = { 0, 0, 0 };
 		boolean ladder;
 	}
 
