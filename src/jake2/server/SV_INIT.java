@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.9 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_INIT.java,v 1.10 2004-11-06 20:58:11 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -359,9 +359,10 @@ public class SV_INIT {
         svs.spawncount = Lib.rand();
         //svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
         svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
-        for (int n = 0; n < svs.clients.length; n++)
+        for (int n = 0; n < svs.clients.length; n++) {
             svs.clients[n] = new client_t();
-
+            svs.clients[n].serverindex = n;
+        }
         svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
                 * Defines.UPDATE_BACKUP * 64; //ok.
 
