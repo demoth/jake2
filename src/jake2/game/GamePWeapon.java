@@ -19,11 +19,13 @@
  */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.6 2004-09-22 19:22:03 salomo Exp $
+// $Id: GamePWeapon.java,v 1.7 2005-02-06 19:01:45 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.monsters.M_Player;
+import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -755,6 +757,7 @@ public class GamePWeapon {
 
             if (item.ammo != null && 0 == GameBase.g_select_empty.value
                     && 0 == (item.flags & Defines.IT_AMMO)) {
+                
                 ammo_item = GameUtil.FindItem(item.ammo);
                 ammo_index = GameUtil.ITEM_INDEX(ammo_item);
 
@@ -1072,6 +1075,7 @@ public class GamePWeapon {
 
         if (ent.client.pers.weapon != null
                 && ent.client.pers.weapon.ammo != null)
+            
             ent.client.ammo_index = GameUtil.ITEM_INDEX(GameUtil
                     .FindItem(ent.client.pers.weapon.ammo));
         else
