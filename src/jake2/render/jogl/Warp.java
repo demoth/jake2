@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.5 2004-01-23 00:37:23 cwei Exp $
+ * $Id: Warp.java,v 1.6 2004-01-23 19:24:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.game.GameBase;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.render.msurface_t;
@@ -216,9 +217,9 @@ public abstract class Warp extends Model {
 		poly.verts[0][3] = total_s/numverts;
 		poly.verts[0][4] = total_t/numverts;
 
-		// copy first vertex to last
+		// TODO bug: copy first vertex to last
 //		memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
-		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, 3);
+		System.arraycopy(poly.verts[1], 0, poly.verts[i+1], 0, poly.verts[1].length);
 	}
 
 	/*
@@ -369,170 +370,180 @@ public abstract class Warp extends Model {
 	float[][] skymaxs = new float[2][6];
 	float	sky_min, sky_max;
 
-//	void DrawSkyPolygon (int nump, vec3_t vecs)
-//	{
-//		int		i,j;
-//		vec3_t	v, av;
-//		float	s, t, dv;
-//		int		axis;
-//		float	*vp;
-//
-//		c_sky++;
+	void DrawSkyPolygon (int nump, float[][] vecs)
+	{
+		int i,j;
+		float[] v = {0, 0, 0};
+		float[] av = {0, 0, 0};
+		float	s, t, dv;
+		int axis;
+		float[] vp;
+
+		c_sky++;
 		// decide which face it maps to
-//		VectorCopy (vec3_origin, v);
-//		for (i=0, vp=vecs ; i<nump ; i++, vp+=3)
-//		{
-//			VectorAdd (vp, v, v);
-//		}
-//		av[0] = fabs(v[0]);
-//		av[1] = fabs(v[1]);
-//		av[2] = fabs(v[2]);
-//		if (av[0] > av[1] && av[0] > av[2])
-//		{
-//			if (v[0] < 0)
-//				axis = 1;
-//			else
-//				axis = 0;
-//		}
-//		else if (av[1] > av[2] && av[1] > av[0])
-//		{
-//			if (v[1] < 0)
-//				axis = 3;
-//			else
-//				axis = 2;
-//		}
-//		else
-//		{
-//			if (v[2] < 0)
-//				axis = 5;
-//			else
-//				axis = 4;
-//		}
-//
-//		// project new texture coords
-//		for (i=0 ; i<nump ; i++, vecs+=3)
-//		{
-//			j = vec_to_st[axis][2];
-//			if (j > 0)
-//				dv = vecs[j - 1];
-//			else
-//				dv = -vecs[-j - 1];
-//			if (dv < 0.001)
-//				continue;	// don't divide by zero
-//			j = vec_to_st[axis][0];
-//			if (j < 0)
-//				s = -vecs[-j -1] / dv;
-//			else
-//				s = vecs[j-1] / dv;
-//			j = vec_to_st[axis][1];
-//			if (j < 0)
-//				t = -vecs[-j -1] / dv;
-//			else
-//				t = vecs[j-1] / dv;
-//
-//			if (s < skymins[0][axis])
-//				skymins[0][axis] = s;
-//			if (t < skymins[1][axis])
-//				skymins[1][axis] = t;
-//			if (s > skymaxs[0][axis])
-//				skymaxs[0][axis] = s;
-//			if (t > skymaxs[1][axis])
-//				skymaxs[1][axis] = t;
-//		}
-//	}
-//
-//	#define	ON_EPSILON		0.1			// point on plane side epsilon
-//	#define	MAX_CLIP_VERTS	64
-//	void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
-//	{
-//		float	*norm;
-//		float	*v;
-//		qboolean	front, back;
-//		float	d, e;
-//		float	dists[MAX_CLIP_VERTS];
-//		int		sides[MAX_CLIP_VERTS];
-//		vec3_t	newv[2][MAX_CLIP_VERTS];
-//		int		newc[2];
-//		int		i, j;
-//
-//		if (nump > MAX_CLIP_VERTS-2)
-//			ri.Sys_Error (ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS");
-//		if (stage == 6)
-//		{	// fully clipped, so draw it
-//			DrawSkyPolygon (nump, vecs);
-//			return;
-//		}
-//
-//		front = back = false;
-//		norm = skyclip[stage];
-//		for (i=0, v = vecs ; i<nump ; i++, v+=3)
-//		{
-//			d = DotProduct (v, norm);
-//			if (d > ON_EPSILON)
-//			{
-//				front = true;
-//				sides[i] = SIDE_FRONT;
-//			}
-//			else if (d < -ON_EPSILON)
-//			{
-//				back = true;
-//				sides[i] = SIDE_BACK;
-//			}
-//			else
-//				sides[i] = SIDE_ON;
-//			dists[i] = d;
-//		}
-//
-//		if (!front || !back)
-//		{	// not clipped
-//			ClipSkyPolygon (nump, vecs, stage+1);
-//			return;
-//		}
-//
-//		// clip it
-//		sides[i] = sides[0];
-//		dists[i] = dists[0];
-//		VectorCopy (vecs, (vecs+(i*3)) );
-//		newc[0] = newc[1] = 0;
-//
-//		for (i=0, v = vecs ; i<nump ; i++, v+=3)
-//		{
-//			switch (sides[i])
-//			{
-//			case SIDE_FRONT:
-//				VectorCopy (v, newv[0][newc[0]]);
-//				newc[0]++;
-//				break;
-//			case SIDE_BACK:
-//				VectorCopy (v, newv[1][newc[1]]);
-//				newc[1]++;
-//				break;
-//			case SIDE_ON:
-//				VectorCopy (v, newv[0][newc[0]]);
-//				newc[0]++;
-//				VectorCopy (v, newv[1][newc[1]]);
-//				newc[1]++;
-//				break;
-//			}
-//
-//			if (sides[i] == SIDE_ON || sides[i+1] == SIDE_ON || sides[i+1] == sides[i])
-//				continue;
-//
-//			d = dists[i] / (dists[i] - dists[i+1]);
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				e = v[j] + d*(v[j+3] - v[j]);
-//				newv[0][newc[0]][j] = e;
-//				newv[1][newc[1]][j] = e;
-//			}
-//			newc[0]++;
-//			newc[1]++;
-//		}
-//
-//		// continue
-//		ClipSkyPolygon (newc[0], newv[0][0], stage+1);
-//		ClipSkyPolygon (newc[1], newv[1][0], stage+1);
-//	}
+		Math3D.VectorCopy(GameBase.vec3_origin, v);
+		for (i=0; i<nump ; i++)
+		{
+			Math3D.VectorAdd(vecs[i], v, v);
+		}
+		av[0] = Math.abs(v[0]);
+		av[1] = Math.abs(v[1]);
+		av[2] = Math.abs(v[2]);
+		if (av[0] > av[1] && av[0] > av[2])
+		{
+			if (v[0] < 0)
+				axis = 1;
+			else
+				axis = 0;
+		}
+		else if (av[1] > av[2] && av[1] > av[0])
+		{
+			if (v[1] < 0)
+				axis = 3;
+			else
+				axis = 2;
+		}
+		else
+		{
+			if (v[2] < 0)
+				axis = 5;
+			else
+				axis = 4;
+		}
+
+		// project new texture coords
+		for (i=0 ; i<nump ; i++)
+		{
+			j = vec_to_st[axis][2];
+			if (j > 0)
+				dv = vecs[i][j - 1];
+			else
+				dv = -vecs[i][-j - 1];
+			if (dv < 0.001f)
+				continue;	// don't divide by zero
+			j = vec_to_st[axis][0];
+			if (j < 0)
+				s = -vecs[i][-j -1] / dv;
+			else
+				s = vecs[i][j-1] / dv;
+			j = vec_to_st[axis][1];
+			if (j < 0)
+				t = -vecs[i][-j -1] / dv;
+			else
+				t = vecs[i][j-1] / dv;
+
+			if (s < skymins[0][axis])
+				skymins[0][axis] = s;
+			if (t < skymins[1][axis])
+				skymins[1][axis] = t;
+			if (s > skymaxs[0][axis])
+				skymaxs[0][axis] = s;
+			if (t > skymaxs[1][axis])
+				skymaxs[1][axis] = t;
+		}
+	}
+
+	static final float ON_EPSILON = 0.1f; // point on plane side epsilon
+	static final int MAX_CLIP_VERTS = 64;
+	
+	static final int SIDE_BACK = 1;
+	static final int SIDE_FRONT = 0;
+	static final int SIDE_ON = 2;
+	
+	float[] dists = new float[MAX_CLIP_VERTS];
+	int[] sides = new int[MAX_CLIP_VERTS];
+	float[][][] newv = new float[2][MAX_CLIP_VERTS][3];
+
+	void ClipSkyPolygon(int nump, float[][] vecs, int stage)
+	{
+		float[] norm;
+		float[] v;
+		boolean front, back;
+		float d, e;
+		int[] newc = { 0, 0 };
+		int i, j;
+
+		if (nump > MAX_CLIP_VERTS-2)
+			ri.Sys_Error(Defines.ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS");
+		if (stage == 6)
+		{	// fully clipped, so draw it
+			DrawSkyPolygon(nump, vecs);
+			return;
+		}
+
+		front = back = false;
+		norm = skyclip[stage];
+		for (i=0 ; i<nump ; i++)
+		{
+			d = Math3D.DotProduct(vecs[i], norm);
+			if (d > ON_EPSILON)
+			{
+				front = true;
+				sides[i] = SIDE_FRONT;
+			}
+			else if (d < -ON_EPSILON)
+			{
+				back = true;
+				sides[i] = SIDE_BACK;
+			}
+			else
+				sides[i] = SIDE_ON;
+			dists[i] = d;
+		}
+
+		if (!front || !back)
+		{	// not clipped
+			ClipSkyPolygon (nump, vecs, stage+1);
+			return;
+		}
+
+		// clip it
+		sides[i] = sides[0];
+		dists[i] = dists[0];
+		Math3D.VectorCopy(vecs[0], vecs[i]);
+		newc[0] = newc[1] = 0;
+
+		for (i=0; i<nump ; i++)
+		{
+			v = vecs[i];
+			switch (sides[i])
+			{
+			case SIDE_FRONT:
+				Math3D.VectorCopy(v, newv[0][newc[0]]);
+				newc[0]++;
+				break;
+			case SIDE_BACK:
+				Math3D.VectorCopy(v, newv[1][newc[1]]);
+				newc[1]++;
+				break;
+			case SIDE_ON:
+				Math3D.VectorCopy(v, newv[0][newc[0]]);
+				newc[0]++;
+				Math3D.VectorCopy (v, newv[1][newc[1]]);
+				newc[1]++;
+				break;
+			}
+
+			if (sides[i] == SIDE_ON || sides[i+1] == SIDE_ON || sides[i+1] == sides[i])
+				continue;
+
+			d = dists[i] / (dists[i] - dists[i+1]);
+			for (j=0 ; j<3 ; j++)
+			{
+				e = v[j] + d * (vecs[i + 1][j] - v[j]);
+				newv[0][newc[0]][j] = e;
+				newv[1][newc[1]][j] = e;
+			}
+			newc[0]++;
+			newc[1]++;
+		}
+
+		// continue
+		ClipSkyPolygon(newc[0], newv[0], stage+1);
+		ClipSkyPolygon(newc[1], newv[1], stage+1);
+	}
+
+	float[][] verts = new float[MAX_CLIP_VERTS][3];
 
 	/*
 	=================
@@ -541,19 +552,18 @@ public abstract class Warp extends Model {
 	*/
 	void R_AddSkySurface(msurface_t fa)
 	{
-//		int			i;
-//		vec3_t		verts[MAX_CLIP_VERTS];
-//		glpoly_t	*p;
-//
-//		// calculate vertex values for sky box
-//		for (p=fa->polys ; p ; p=p->next)
-//		{
-//			for (i=0 ; i<p->numverts ; i++)
-//			{
-//				VectorSubtract (p->verts[i], r_origin, verts[i]);
-//			}
-//			ClipSkyPolygon (p->numverts, verts[0], 0);
-//		}
+		int i;
+		glpoly_t	p;
+
+		// calculate vertex values for sky box
+		for (p=fa.polys ; p != null ; p=p.next)
+		{
+			for (i=0 ; i < p.numverts ; i++)
+			{
+				Math3D.VectorSubtract(p.verts[i], r_origin, verts[i]);
+			}
+			ClipSkyPolygon (p.numverts, verts, 0);
+		}
 	}
 
 
@@ -650,7 +660,7 @@ public abstract class Warp extends Model {
 			|| skymins[1][i] >= skymaxs[1][i])
 				continue;
 
-			GL_Bind (sky_images[skytexorder[i]].texnum);
+			GL_Bind(sky_images[skytexorder[i]].texnum);
 
 			gl.glBegin(GL.GL_QUADS);
 			MakeSkyVec(skymins[0][i], skymins[1][i], i);

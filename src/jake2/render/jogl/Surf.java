@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.9 2004-01-22 15:44:40 cwei Exp $
+ * $Id: Surf.java,v 1.10 2004-01-23 19:24:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1051,8 +1051,7 @@ public abstract class Surf extends Draw {
 		if (node.visframe != r_visframecount)
 			return;
 			
-		// TODO this is a hack
-		if (R_CullBox(node.minmaxs, new float[] {node.minmaxs[3], node.minmaxs[4], node.minmaxs[5]} ))
+		if (R_CullBox(node.minmaxs))
 			return;
 	
 		// if a leaf node, draw stuff

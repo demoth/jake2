@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.4 2004-01-23 13:41:50 cwei Exp $
+ * $Id: TestMap.java,v 1.5 2004-01-23 19:24:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -193,7 +193,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.4 2004-01-23 13:41:50 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.5 2004-01-23 19:24:36 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -238,7 +238,7 @@ public class TestMap
 				break;
 			case 1 :
 				// register the map
-				re.SetSky("unit1_", 0, new float[]{ 0, 0, 0 });
+				re.SetSky("space1", 0, new float[]{ 0, 0, 0 });
 				re.BeginRegistration("base1");
 				re.EndRegistration();
 				currentState = 2;
@@ -286,7 +286,7 @@ public class TestMap
 			refdef.vieworg = new float[] {0, 0, 0};
 			refdef.viewangles = new float[] {0, 0, 0};
 
-			refdef.blend =  new float[] { 0.0f, 0.0f, 0.0f, 0.5f };
+			refdef.blend =  new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
 
 			refdef.areabits = null; // draw all
 //			refdef.areabits = new byte[Defines.MAX_MAP_AREAS / 8];

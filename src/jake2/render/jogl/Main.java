@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.20 2004-01-23 00:37:23 cwei Exp $
+ * $Id: Main.java,v 1.21 2004-01-23 19:24:36 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -256,11 +256,11 @@ public abstract class Main extends Base {
 	Returns true if the box is completely outside the frustom
 	=================
 	*/
-	boolean R_CullBox(float[] mins, float[] maxs)
+	final boolean R_CullBox(float[] mins, float[] maxs)
 	{
-		assert(mins.length == 3 && maxs.length == 3) : "vec3_t bug";
+		assert(mins.length >= 3 && maxs.length == 3) : "vec3_t bug";
 
-		if (r_nocull.value > 0.0f)
+		if (r_nocull.value != 0)
 			return false;
 
 		for (int i = 0; i < 4; i++)
@@ -271,7 +271,17 @@ public abstract class Main extends Base {
 		return false;
 	}
 
-	void R_RotateForEntity(entity_t e)
+	final boolean R_CullBox(float[] minmaxs)
+	{
+		assert(minmaxs.length == 6) : "2 * vec3_t bug";
+		
+		float[] maxs = { minmaxs[3], minmaxs[4], minmaxs[5] };
+		
+		return R_CullBox(minmaxs, maxs);
+	}
+
+
+	final void R_RotateForEntity(entity_t e)
 	{
 
 		gl.glTranslatef(e.origin[0], e.origin[1], e.origin[2]);
