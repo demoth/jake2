@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.11 2004-02-01 23:31:37 rst Exp $
+// $Id: SV_MAIN.java,v 1.12 2004-02-01 23:48:39 rst Exp $
 
 package jake2.server;
 
@@ -494,7 +494,7 @@ public class SV_MAIN extends SV_GAME {
 		else if (0 == strcmp(c, "rcon"))
 			SVC_RemoteCommand();
 		else
-			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + ":\n" + s + "\n");
+			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + "\n[" + s + "]\n");
 	}
 
 	//============================================================================
