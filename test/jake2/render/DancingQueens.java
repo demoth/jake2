@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.3 2004-01-19 16:54:22 cwei Exp $
+ * $Id: DancingQueens.java,v 1.4 2004-01-19 23:07:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -250,22 +250,25 @@ public class DancingQueens
 			{
 				m = getModel(skinNames[i % skinNames.length]);
 				m.origin[0] += 30 * i;
-				m.origin[1] += ((i % 4)) * 30 - 30;
+				m.origin[1] += ((i % 4)) * 30 - 20;
 				models[i] = m;
 			}
 		}
 
 
-		yaw += KBD.mx / 2; //time() * 0.1f;
-		if (yaw > 360)
-			yaw -= 360;
-		if (yaw < 0)
-			yaw += 360;
+//		yaw += KBD.mx / 2; //time() * 0.1f;
+//		if (yaw > 360)
+//			yaw -= 360;
+//		if (yaw < 0)
+//			yaw += 360;
 			
 		for (int i = 0; i < models.length; i++)
 		{
 			models[i].frame = (time() / 70) % models[i].model.numframes;
-			models[i].angles[1] = yaw;
+			//models[i].angles[1] = yaw;
+			models[i].origin[0] += KBD.my;
+			models[i].origin[1] += KBD.mx;
+			
 		}
 
 		refdef.areabits = null;
