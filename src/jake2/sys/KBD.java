@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.5 2004-01-09 11:24:22 hoz Exp $
+ * $Id: KBD.java,v 1.6 2004-01-11 00:31:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,11 +28,7 @@ package jake2.sys;
 import jake2.client.Key;
 
 import java.awt.*;
-import java.awt.AWTException;
-import java.awt.Robot;
 import java.awt.event.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 
 /**
  * KBD
@@ -43,13 +39,15 @@ public final class KBD {
 	static int win_y = 0;
 	static int win_w2 = 0;
 	static int win_h2 = 0;
-	
+		
 	// motion values
-	static int mx = 0;
-	static int my = 0;
+	public static int mx = 0;
+	public static int my = 0;
 	
 	static Robot robot;
 	public static InputListener listener = new InputListener();
+	public static ComponentListener windowListener = new ComponentAdapter() {
+	};
 		
 	static {
 		try {
@@ -90,14 +88,13 @@ public final class KBD {
 						break;
 					}
 					if (IN.mouse_active) {
-						int dx = (((MouseEvent)event.ev).getX() - mwx) * 2;
-						int dy = (((MouseEvent)event.ev).getY() - mwy) * 2;
-						mx += dx;
-						my += dy;
-						mwx = ((MouseEvent)event.ev).getX();
-						mwy = ((MouseEvent)event.ev).getY();
-						
-						dowarp = (dx != 0 || dy != 0);
+						int x = ((MouseEvent)event.ev).getX();
+						int y = ((MouseEvent)event.ev).getY();
+						mx += (x - mwx) * 2;
+						my += (y - mwy) * 2;
+						mwx = x;
+						mwy = y;
+						dowarp = (mx != 0 || my != 0);
 					}
 					break;
 
@@ -117,10 +114,20 @@ public final class KBD {
 				case Jake2InputEvent.CreateNotify :
 				case Jake2InputEvent.ConfigureNotify :
 					Component c = ((ComponentEvent)event.ev).getComponent();
-					win_x = c.getX();
-					win_y = c.getY();
+					win_x = 0;
+					win_y = 0;
 					win_w2 = c.getWidth() / 2;
-					win_h2 = c.getHeight() / 2; 
+					win_h2 = c.getHeight() / 2;
+					while (c != null) {
+						if (c instanceof Container) {
+							Insets insets = ((Container)c).getInsets();
+							win_x += insets.left;
+							win_y += insets.top;
+						}
+						win_x += c.getX();
+						win_y += c.getY();
+						c = c.getParent();
+					}
 					break;
 			}
 		}
@@ -218,6 +225,10 @@ public final class KBD {
 		// TODO remove hard wired mouse toggle
 		if (down && key == 't') IN.toggleMouse();
 		Key.Event(key, down, System.currentTimeMillis());
+	}
+	
+	static void centerMouse() {
+		robot.mouseMove(win_x + win_w2, win_y + win_h2);
 	}
 	
 }

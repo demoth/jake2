@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.15 2004-01-09 00:44:43 cwei Exp $
+ * $Id: TestRenderer.java,v 1.16 2004-01-11 00:31:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,6 +34,7 @@ import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.sys.KBD;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
@@ -199,6 +200,7 @@ public class TestRenderer {
 	void run() {
 		while (true) {
 			re.updateScreen();
+			KBD.Update();
 			try {
 				Thread.sleep(15);
 			} catch (InterruptedException e) {
@@ -246,9 +248,14 @@ public class TestRenderer {
 		entity.frame = (framecount / 3) % ((qfiles.dmdl_t)entity.model.extradata).num_frames;
 		entity.oldframe = 0;
 		entity.backlerp = 0.0f;
-		entity.angles[1] = yaw++;
-		if (++yaw > 360)
+		yaw+=KBD.mx;
+		KBD.mx = 0;
+		if (yaw > 360)
 			yaw -= 360;
+		if (yaw < 0)
+			yaw += 360;
+		entity.angles[1] = yaw;
+
 
 		refdef.areabits = null;
 		refdef.num_entities = 1;

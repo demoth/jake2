@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.9 2004-01-09 13:35:15 hoz Exp $
+ * $Id: IN.java,v 1.10 2004-01-11 00:31:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,7 +44,7 @@ public final class IN {
 	static boolean ignorefirst = false;
 	
 	public static void ActivateMouse() {
-		if ( c == null ) return;
+		if (c == null) return;
 		if (!mouse_active) {
 			KBD.mx = KBD.my = 0; // don't spazz
 			install_grabs();
@@ -53,7 +53,6 @@ public final class IN {
 	}
 	
 	public static void DeactivateMouse() {
-		if ( c == null ) return;
 		if (mouse_active) {
 			uninstall_grabs();
 			mouse_active = false;
@@ -67,8 +66,8 @@ public final class IN {
 				emptyIcon.getImage(), new Point(0,0), "emptyCursor");
 		}
 		c.setCursor(emptyCursor);
-		KBD.robot.mouseMove(c.getX() + c.getWidth()/2, c.getY() + c.getHeight()/2);
-
+		KBD.centerMouse();
+		
 		ignorefirst = true;
 	}
 	

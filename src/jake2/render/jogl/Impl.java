@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.10 2004-01-10 15:24:20 cwei Exp $
+ * $Id: Impl.java,v 1.11 2004-01-11 00:31:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,24 +27,16 @@ package jake2.render.jogl;
 
 import jake2.Defines;
 import jake2.Enum;
-import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
+import jake2.sys.KBD;
 
-import java.awt.AWTException;
-import java.awt.Dimension;
-import java.awt.Robot;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
 import net.java.games.jogl.*;
-import net.java.games.jogl.util.GLUT;
 
 /**
  * Impl
@@ -54,7 +46,6 @@ import net.java.games.jogl.util.GLUT;
 public class Impl extends Misc implements GLEventListener {
 
 
-	private static Robot robotto_roboni;
 
 	public static final String DRIVER_NAME = "jogl";
 
@@ -107,14 +98,6 @@ public class Impl extends Misc implements GLEventListener {
 
 		window = new JFrame("Jake2");
 		
-		try {
-			robotto_roboni = new Robot();
-		}
-		catch (AWTException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities());
 
 		// Use debug pipeline
@@ -143,44 +126,11 @@ public class Impl extends Misc implements GLEventListener {
 		});
 		
 		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
+		canvas.addKeyListener(KBD.listener);
+		canvas.addMouseListener(KBD.listener);
+		canvas.addMouseMotionListener(KBD.listener);
+		window.addComponentListener(KBD.listener);
 
-		// TODO Eventlisteners: just some try.		
-/*		canvas.addKeyListener(new KeyAdapter() {
-			public void keyPressed(KeyEvent e) {
-				// store coordinetes ?
-				Com.Printf("Yo amigo on tha your keybord :" + e.getKeyCode() + " (" + e.getWhen() + ")\n");
-				robotto_roboni.mouseMove(300,300);
-			}
-			
-			public void keyReleased(KeyEvent e) {
-				// store coordinetes ?
-				Com.Printf("Yo amigo on tha your keybord :" + e.getKeyCode() + " (" + e.getWhen() + ")\n");
-				robotto_roboni.mouseMove(300,300);
-			}
-
-			
-		});
-		
-		canvas.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				Com.Printf("Your buttons get stressed:" + e.getModifiers() + " (" + e.getWhen() + ")\n");
-				robotto_roboni.mouseMove(300,300);
-			}
-		});
-		
-		canvas.addMouseMotionListener(new MouseMotionAdapter() {
-			public void mouseMoved(MouseEvent e) {
-				// store coordinetes ?
-				// watch out for the titlebar height=22 and borderwidth=3 ???
-				// dirty hack of getting mouse deltas this way.
-				Com.Printf("Yo fuck your dawned mouse at:" + (300-3-e.getX()) + " " + (300-22 - e.getY()) + "\n");
-				
-				// note: the following code also fires an mouse event. 
-				robotto_roboni.mouseMove(300,300);
-			}
-		});
-
-*/		
 		window.show();
 		this.canvas = canvas;
 
