@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.2 2004-07-09 06:50:47 hzi Exp $
+ * $Id: Renderer.java,v 1.3 2004-07-16 10:11:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.render;
 import java.util.Vector;
 
 import jake2.client.refexport_t;
-import jake2.client.refimport_t;
 
 /**
  * Renderer
@@ -65,16 +64,14 @@ public class Renderer {
 	 * Factory method to get the Renderer implementation.
 	 * @return refexport_t (Renderer singleton)
 	 */
-	public static refexport_t getDriver(String driverName, refimport_t rimp) {
-		if (rimp == null)
-			throw new IllegalArgumentException("refimport_t can't be null");
+	public static refexport_t getDriver(String driverName) {
 		// find a driver
 		Ref driver = null;
 		int count = drivers.size();
 		for (int i = 0; i < count; i++) {
 			driver = (Ref) drivers.get(i);
 			if (driver.getName().equals(driverName)) {
-				return driver.GetRefAPI(rimp);
+				return driver.GetRefAPI();
 			}
 		}
 		// null if driver not found

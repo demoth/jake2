@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.2 2004-07-12 18:19:42 hzi Exp $
+ * $Id: Surf.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.render.fastjogl;
 import jake2.Defines;
 import jake2.client.*;
 import jake2.game.cplane_t;
+import jake2.qcommon.Com;
 import jake2.render.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -1105,7 +1106,7 @@ public abstract class Surf extends Draw {
 						   GL.GL_UNSIGNED_BYTE, 
 						   gl_lms.lightmap_buffer );
 			if ( ++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS )
-				ri.Sys_Error( Defines.ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
+				Com.Error( Defines.ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
 				
 				
 			//debugLightmap(gl_lms.lightmap_buffer, 128, 128, 4);
@@ -1258,7 +1259,7 @@ public abstract class Surf extends Draw {
 			lightPos = new pos_t(surf.light_s, surf.light_t);
 			if ( !LM_AllocBlock( smax, tmax, lightPos ) )
 			{
-				ri.Sys_Error( Defines.ERR_FATAL, "Consecutive calls to LM_AllocBlock(" + smax +"," + tmax +") failed\n");
+				Com.Error( Defines.ERR_FATAL, "Consecutive calls to LM_AllocBlock(" + smax +"," + tmax +") failed\n");
 			}
 		}
 		

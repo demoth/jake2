@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.4 2004-07-15 14:37:35 hzi Exp $
+ * $Id: JoglRenderer.java,v 1.5 2004-07-16 10:11:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -298,8 +298,7 @@ final class JoglRenderer extends Misc implements refexport_t, Ref {
 		return DRIVER_NAME;
 	}
 
-	public refexport_t GetRefAPI(refimport_t rimp) {
-		this.ri = rimp;
+	public refexport_t GetRefAPI() {
 		return this;
 	}
 }

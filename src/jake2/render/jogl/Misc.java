@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.2 2004-07-09 06:50:48 hzi Exp $
+ * $Id: Misc.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.client.VID;
 import net.java.games.jogl.GL;
 import net.java.games.jogl.WGL;
 
@@ -145,7 +146,7 @@ public abstract class Misc extends Mesh {
 //		} 
 //		if (i==100) 
 //		{
-//			ri.Con_Printf (PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n"); 
+//			VID.Printf (PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n"); 
 //			return;
 //		}
 //
@@ -175,17 +176,17 @@ public abstract class Misc extends Mesh {
 //		fclose (f);
 //
 //		free (buffer);
-//		ri.Con_Printf (PRINT_ALL, "Wrote %s\n", picname);
+//		VID.Printf (PRINT_ALL, "Wrote %s\n", picname);
 	} 
 
 	/*
 	** GL_Strings_f
 	*/
 	void GL_Strings_f()	{
-		ri.Con_Printf (Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
-		ri.Con_Printf (Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
-		ri.Con_Printf (Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
-		ri.Con_Printf (Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		VID.Printf (Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
+		VID.Printf (Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
+		VID.Printf (Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
+		VID.Printf (Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 	}
 
 	/*

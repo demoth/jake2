@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.7 2004-07-15 16:16:24 hzi Exp $
+ * $Id: VID.java,v 1.8 2004-07-16 10:11:36 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,7 +31,7 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.render.Renderer;
-import jake2.sound.*;
+import jake2.sound.S;
 import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Vargs;
@@ -77,6 +77,10 @@ public class VID extends Globals {
 
 	==========================================================================
 	*/
+
+	public static void Printf(int print_level, String fmt) {
+		Printf(print_level, fmt, null);	
+	}
 
 	public static void Printf(int print_level, String fmt, Vargs vargs) {
 		// static qboolean inupdate;
@@ -188,85 +192,7 @@ public class VID extends Globals {
 		}
 
 		Com.Printf( "LoadLibrary(\"" + name +"\")\n" );
-		refimport_t ri = new refimport_t() {
-			public void Sys_Error(int err_level, String str) {
-				Com.Error(err_level, str, null);
-			}
-
-			public void Sys_Error(int err_level, String str, Vargs vargs) {
-				Com.Error(err_level, str, vargs);
-			}
-
-			public void Cmd_AddCommand(String name, xcommand_t cmd) {
-				Cmd.AddCommand(name, cmd);
-			}
-
-			public void Cmd_RemoveCommand(String name) {
-				Cmd.RemoveCommand(name);
-			}
-
-			public int Cmd_Argc() {
-				return Cmd.Argc();
-			}
-
-			public String Cmd_Argv(int i) {
-				return Cmd.Argv(i);
-			}
-
-			public void Cmd_ExecuteText(int exec_when, String text) {
-				Cbuf.ExecuteText(exec_when, text);
-			}
-
-			public void Con_Printf(int print_level, String str) {
-				VID.Printf(print_level, str, null);
-			}
-
-			public void Con_Printf(int print_level, String str, Vargs vargs) {
-				VID.Printf(print_level, str, vargs);
-			}
-
-			public byte[] FS_LoadFile(String name) {
-				return FS.LoadFile(name);
-			}
-
-			public int FS_FileLength(String name) {
-				return FS.FileLength(name);
-			}
-
-			public void FS_FreeFile(byte[] buf) {
-				FS.FreeFile(buf);
-			}
-
-			public String FS_Gamedir() {
-				return FS.Gamedir();
-			}
-
-			public cvar_t Cvar_Get(String name, String value, int flags) {
-				return Cvar.Get(name, value, flags);
-			}
-
-			public cvar_t Cvar_Set(String name, String value) {
-				return Cvar.Set(name, value);
-			}
-
-			public void Cvar_SetValue(String name, float value) {
-				Cvar.SetValue(name, value);
-			}
-
-			public boolean Vid_GetModeInfo(Dimension dim, int mode) {
-				return VID.GetModeInfo(dim, mode);
-			}
-
-			public void Vid_MenuInit() {
-				VID.MenuInit();
-			}
-
-			public void Vid_NewWindow(int width, int height) {
-				VID.NewWindow(width, height);
-			}
-		};
-
-		Globals.re = Renderer.getDriver( name, ri );
+		Globals.re = Renderer.getDriver(name);
 		
 		if (Globals.re == null)
 		{

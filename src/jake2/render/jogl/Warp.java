@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.5 2004-07-12 22:08:03 hzi Exp $
+ * $Id: Warp.java,v 1.6 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.render.jogl;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.qcommon.Com;
 import jake2.render.*;
 import jake2.util.Math3D;
 import net.java.games.jogl.GL;
@@ -125,7 +126,7 @@ public abstract class Warp extends Model {
 		float	total_s, total_t;
 
 		if (numverts > 60)
-			ri.Sys_Error(Defines.ERR_DROP, "numverts = " + numverts);
+			Com.Error(Defines.ERR_DROP, "numverts = " + numverts);
 
 		BoundPoly(numverts, verts, mins, maxs);
 
@@ -454,7 +455,7 @@ public abstract class Warp extends Model {
 		int i, j;
 
 		if (nump > MAX_CLIP_VERTS-2)
-			ri.Sys_Error(Defines.ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS");
+			Com.Error(Defines.ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS");
 		if (stage == 6)
 		{	// fully clipped, so draw it
 			DrawSkyPolygon(nump, vecs);

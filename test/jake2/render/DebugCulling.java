@@ -2,7 +2,7 @@
  * DebugCulling.java
  * Copyright (C) 2003
  *
- * $Id: DebugCulling.java,v 1.2 2004-07-15 14:38:40 hzi Exp $
+ * $Id: DebugCulling.java,v 1.3 2004-07-16 10:11:36 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -50,7 +50,6 @@ public class DebugCulling
 	String[] args;
 
 	refexport_t re;
-	refimport_t ri;
 	viddef_t viddef;
 	int framecount = 0;
 
@@ -70,116 +69,11 @@ public class DebugCulling
 	void init()
 	{
 
-		// only for testing
-		// a simple refimport_t implementation
-		ri = new refimport_t()
-		{
-			public void Sys_Error(int err_level, String str)
-			{
-				Com.Error(err_level, str, null);
-			}
-
-			public void Sys_Error(int err_level, String str, Vargs vargs)
-			{
-				Com.Error(err_level, str, vargs);
-			}
-
-			public void Cmd_AddCommand(String name, xcommand_t cmd)
-			{
-				Cmd.AddCommand(name, cmd);
-			}
-
-			public void Cmd_RemoveCommand(String name)
-			{
-				Cmd.RemoveCommand(name);
-			}
-
-			public int Cmd_Argc()
-			{
-				return Cmd.Argc();
-			}
-
-			public String Cmd_Argv(int i)
-			{
-				return Cmd.Argv(i);
-			}
-
-			public void Cmd_ExecuteText(int exec_when, String text)
-			{
-				Cbuf.ExecuteText(exec_when, text);
-			}
-
-			public void Con_Printf(int print_level, String str)
-			{
-				VID.Printf(print_level, str, null);
-			}
-
-			public void Con_Printf(int print_level, String str, Vargs vargs)
-			{
-				VID.Printf(print_level, str, vargs);
-			}
-
-			public byte[] FS_LoadFile(String name)
-			{
-				return FS.LoadFile(name);
-			}
-
-			public int FS_FileLength(String name)
-			{
-				return FS.FileLength(name);
-			}
-
-			public void FS_FreeFile(byte[] buf)
-			{
-				FS.FreeFile(buf);
-			}
-
-			public String FS_Gamedir()
-			{
-				return FS.Gamedir();
-			}
-
-			public cvar_t Cvar_Get(String name, String value, int flags)
-			{
-				return Cvar.Get(name, value, flags);
-			}
-
-			public cvar_t Cvar_Set(String name, String value)
-			{
-				return Cvar.Set(name, value);
-			}
-
-			public void Cvar_SetValue(String name, float value)
-			{
-				Cvar.SetValue(name, value);
-			}
-
-			public boolean Vid_GetModeInfo(Dimension dim, int mode)
-			{
-				return VID.GetModeInfo(dim, mode);
-			}
-
-			public void Vid_MenuInit()
-			{
-				VID.MenuInit();
-			}
-
-			public void Vid_NewWindow(int width, int height)
-			{
-				VID.NewWindow(width, height);
-			}
-
-			public void updateScreenCallback()
-			{
-				DebugCulling.this.updateScreen();
-			}
-		};
-
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.2 2004-07-15 14:38:40 hzi Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.3 2004-07-16 10:11:36 cawe Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
-		this.re = Renderer.getDriver("jogl", ri);
+		this.re = Renderer.getDriver("jogl");
 
 		re.Init(0, 0);
 
@@ -317,7 +211,7 @@ public class DebugCulling
 		double x;
 
 		if (fov_x < 1 || fov_x > 179)
-			ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
+			Com.Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
 
 		x = width / Math.tan(fov_x / 360 * Math.PI);
 

@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.4 2004-07-15 14:37:34 hzi Exp $
+ * $Id: Draw.java,v 1.5 2004-07-16 10:11:35 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.client.VID;
+import jake2.qcommon.Com;
 import jake2.render.image_t;
 
 import java.awt.Dimension;
@@ -136,7 +138,7 @@ public abstract class Draw extends Image {
 		image = Draw_FindPic(pic);
 		if (image == null)
 		{
-			ri.Con_Printf (Defines.PRINT_ALL, "Can't find pic: " + pic +'\n');
+			VID.Printf (Defines.PRINT_ALL, "Can't find pic: " + pic +'\n');
 			return;
 		}
 
@@ -175,7 +177,7 @@ public abstract class Draw extends Image {
 		image = Draw_FindPic(pic);
 		if (image == null)
 		{
-			ri.Con_Printf(Defines.PRINT_ALL, "Can't find pic: " +pic + '\n');
+			VID.Printf(Defines.PRINT_ALL, "Can't find pic: " +pic + '\n');
 			return;
 		}
 		if (scrap_dirty)
@@ -215,7 +217,7 @@ public abstract class Draw extends Image {
 		image = Draw_FindPic(pic);
 		if (image == null)
 		{
-			ri.Con_Printf(Defines.PRINT_ALL, "Can't find pic: " + pic + '\n');
+			VID.Printf(Defines.PRINT_ALL, "Can't find pic: " + pic + '\n');
 			return;
 		}
 
@@ -249,7 +251,7 @@ public abstract class Draw extends Image {
 	protected void Draw_Fill(int x, int y, int w, int h, int colorIndex)	{
 
 		if ( colorIndex > 255)
-			ri.Sys_Error(Defines.ERR_FATAL, "Draw_Fill: bad color");
+			Com.Error(Defines.ERR_FATAL, "Draw_Fill: bad color");
 
 		gl.glDisable(GL.GL_TEXTURE_2D);
 

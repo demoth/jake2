@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.2 2004-07-15 14:37:33 hzi Exp $
+ * $Id: Main.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,8 +28,10 @@ package jake2.render.fastjogl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.*;
+import jake2.game.*;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
+import jake2.qcommon.*;
 import jake2.qcommon.qfiles;
 import jake2.qcommon.xcommand_t;
 import jake2.render.*;
@@ -420,7 +422,7 @@ public abstract class Main extends Base {
 						R_DrawSpriteModel(currententity);
 						break;
 					default :
-						ri.Sys_Error(Defines.ERR_DROP, "Bad modeltype");
+						Com.Error(Defines.ERR_DROP, "Bad modeltype");
 						break;
 				}
 			}
@@ -454,7 +456,7 @@ public abstract class Main extends Base {
 						R_DrawSpriteModel(currententity);
 						break;
 					default :
-						ri.Sys_Error(Defines.ERR_DROP, "Bad modeltype");
+						Com.Error(Defines.ERR_DROP, "Bad modeltype");
 						break;
 				}
 			}
@@ -826,11 +828,11 @@ public abstract class Main extends Base {
 
 		// included by cwei
 		if (r_newrefdef == null) {
-			ri.Sys_Error(Defines.ERR_DROP, "R_RenderView: refdef_t fd is null");
+			Com.Error(Defines.ERR_DROP, "R_RenderView: refdef_t fd is null");
 		}
 
 		if (r_worldmodel == null && (r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) == 0)
-			ri.Sys_Error(Defines.ERR_DROP, "R_RenderView: NULL worldmodel");
+			Com.Error(Defines.ERR_DROP, "R_RenderView: NULL worldmodel");
 
 		if (r_speeds.value != 0.0f) {
 			c_brush_polys = 0;
@@ -863,7 +865,7 @@ public abstract class Main extends Base {
 		R_Flash();
 
 		if (r_speeds.value != 0.0f) {
-			ri.Con_Printf(
+			VID.Printf(
 				Defines.PRINT_ALL,
 				"%4i wpoly %4i epoly %i tex %i lmaps\n",
 				new Vargs(4).add(c_brush_polys).add(c_alias_polys).add(c_visible_textures).add(c_visible_lightmaps));
@@ -930,90 +932,90 @@ public abstract class Main extends Base {
 	}
 
 	protected void R_Register() {
-		r_lefthand = ri.Cvar_Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
-		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
-		r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
-		r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
-		r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-		r_novis = ri.Cvar_Get("r_novis", "0", 0);
-		r_nocull = ri.Cvar_Get("r_nocull", "0", 0);
-		r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
-		r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
+		r_lefthand = Cvar.Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
+		r_norefresh = Cvar.Get("r_norefresh", "0", 0);
+		r_fullbright = Cvar.Get("r_fullbright", "0", 0);
+		r_drawentities = Cvar.Get("r_drawentities", "1", 0);
+		r_drawworld = Cvar.Get("r_drawworld", "1", 0);
+		r_novis = Cvar.Get("r_novis", "0", 0);
+		r_nocull = Cvar.Get("r_nocull", "0", 0);
+		r_lerpmodels = Cvar.Get("r_lerpmodels", "1", 0);
+		r_speeds = Cvar.Get("r_speeds", "0", 0);
 
-		r_lightlevel = ri.Cvar_Get("r_lightlevel", "1", 0);
+		r_lightlevel = Cvar.Get("r_lightlevel", "1", 0);
 
-		gl_nosubimage = ri.Cvar_Get("gl_nosubimage", "0", 0);
-		gl_allow_software = ri.Cvar_Get("gl_allow_software", "0", 0);
+		gl_nosubimage = Cvar.Get("gl_nosubimage", "0", 0);
+		gl_allow_software = Cvar.Get("gl_allow_software", "0", 0);
 
-		gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", Globals.CVAR_ARCHIVE);
-		gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", Globals.CVAR_ARCHIVE);
-		gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", Globals.CVAR_ARCHIVE);
-		gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", Globals.CVAR_ARCHIVE);
-		gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", Globals.CVAR_ARCHIVE);
-		gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", Globals.CVAR_ARCHIVE);
+		gl_particle_min_size = Cvar.Get("gl_particle_min_size", "2", Globals.CVAR_ARCHIVE);
+		gl_particle_max_size = Cvar.Get("gl_particle_max_size", "40", Globals.CVAR_ARCHIVE);
+		gl_particle_size = Cvar.Get("gl_particle_size", "40", Globals.CVAR_ARCHIVE);
+		gl_particle_att_a = Cvar.Get("gl_particle_att_a", "0.01", Globals.CVAR_ARCHIVE);
+		gl_particle_att_b = Cvar.Get("gl_particle_att_b", "0.0", Globals.CVAR_ARCHIVE);
+		gl_particle_att_c = Cvar.Get("gl_particle_att_c", "0.01", Globals.CVAR_ARCHIVE);
 
-		gl_modulate = ri.Cvar_Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
-		gl_log = ri.Cvar_Get("gl_log", "0", 0);
-		gl_bitdepth = ri.Cvar_Get("gl_bitdepth", "0", 0);
-		gl_mode = ri.Cvar_Get("gl_mode", "3", Globals.CVAR_ARCHIVE); // 640x480
-		gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
-		gl_shadows = ri.Cvar_Get("gl_shadows", "0", Globals.CVAR_ARCHIVE);
-		gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
-		gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
-		gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
-		gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);
-		gl_skymip = ri.Cvar_Get("gl_skymip", "0", 0);
-		gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
-		gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
-		gl_finish = ri.Cvar_Get("gl_finish", "0", Globals.CVAR_ARCHIVE);
-		gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
-		gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
-		gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
-		gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
-		gl_playermip = ri.Cvar_Get("gl_playermip", "0", 0);
-		gl_monolightmap = ri.Cvar_Get("gl_monolightmap", "0", 0);
-		gl_driver = ri.Cvar_Get("gl_driver", "opengl32", Globals.CVAR_ARCHIVE);
-		gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Globals.CVAR_ARCHIVE);
-		gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", Globals.CVAR_ARCHIVE);
-		gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", Globals.CVAR_ARCHIVE);
-		gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
+		gl_modulate = Cvar.Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
+		gl_log = Cvar.Get("gl_log", "0", 0);
+		gl_bitdepth = Cvar.Get("gl_bitdepth", "0", 0);
+		gl_mode = Cvar.Get("gl_mode", "3", Globals.CVAR_ARCHIVE); // 640x480
+		gl_lightmap = Cvar.Get("gl_lightmap", "0", 0);
+		gl_shadows = Cvar.Get("gl_shadows", "0", Globals.CVAR_ARCHIVE);
+		gl_dynamic = Cvar.Get("gl_dynamic", "1", 0);
+		gl_nobind = Cvar.Get("gl_nobind", "0", 0);
+		gl_round_down = Cvar.Get("gl_round_down", "1", 0);
+		gl_picmip = Cvar.Get("gl_picmip", "0", 0);
+		gl_skymip = Cvar.Get("gl_skymip", "0", 0);
+		gl_showtris = Cvar.Get("gl_showtris", "0", 0);
+		gl_ztrick = Cvar.Get("gl_ztrick", "0", 0);
+		gl_finish = Cvar.Get("gl_finish", "0", Globals.CVAR_ARCHIVE);
+		gl_clear = Cvar.Get("gl_clear", "0", 0);
+		gl_cull = Cvar.Get("gl_cull", "1", 0);
+		gl_polyblend = Cvar.Get("gl_polyblend", "1", 0);
+		gl_flashblend = Cvar.Get("gl_flashblend", "0", 0);
+		gl_playermip = Cvar.Get("gl_playermip", "0", 0);
+		gl_monolightmap = Cvar.Get("gl_monolightmap", "0", 0);
+		gl_driver = Cvar.Get("gl_driver", "opengl32", Globals.CVAR_ARCHIVE);
+		gl_texturemode = Cvar.Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Globals.CVAR_ARCHIVE);
+		gl_texturealphamode = Cvar.Get("gl_texturealphamode", "default", Globals.CVAR_ARCHIVE);
+		gl_texturesolidmode = Cvar.Get("gl_texturesolidmode", "default", Globals.CVAR_ARCHIVE);
+		gl_lockpvs = Cvar.Get("gl_lockpvs", "0", 0);
 
-		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "1", Globals.CVAR_ARCHIVE);
+		gl_vertex_arrays = Cvar.Get("gl_vertex_arrays", "1", Globals.CVAR_ARCHIVE);
 
-		gl_ext_swapinterval = ri.Cvar_Get("gl_ext_swapinterval", "1", Globals.CVAR_ARCHIVE);
-		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "0", Globals.CVAR_ARCHIVE);
-		gl_ext_multitexture = ri.Cvar_Get("gl_ext_multitexture", "1", Globals.CVAR_ARCHIVE);
-		gl_ext_pointparameters = ri.Cvar_Get("gl_ext_pointparameters", "1", Globals.CVAR_ARCHIVE);
-		gl_ext_compiled_vertex_array = ri.Cvar_Get("gl_ext_compiled_vertex_array", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_swapinterval = Cvar.Get("gl_ext_swapinterval", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_palettedtexture = Cvar.Get("gl_ext_palettedtexture", "0", Globals.CVAR_ARCHIVE);
+		gl_ext_multitexture = Cvar.Get("gl_ext_multitexture", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_pointparameters = Cvar.Get("gl_ext_pointparameters", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_compiled_vertex_array = Cvar.Get("gl_ext_compiled_vertex_array", "1", Globals.CVAR_ARCHIVE);
 
-		gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
-		gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "0", Globals.CVAR_ARCHIVE);
+		gl_drawbuffer = Cvar.Get("gl_drawbuffer", "GL_BACK", 0);
+		gl_swapinterval = Cvar.Get("gl_swapinterval", "0", Globals.CVAR_ARCHIVE);
 
-		gl_saturatelighting = ri.Cvar_Get("gl_saturatelighting", "0", 0);
+		gl_saturatelighting = Cvar.Get("gl_saturatelighting", "0", 0);
 
-		gl_3dlabs_broken = ri.Cvar_Get("gl_3dlabs_broken", "1", Globals.CVAR_ARCHIVE);
+		gl_3dlabs_broken = Cvar.Get("gl_3dlabs_broken", "1", Globals.CVAR_ARCHIVE);
 
-		vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", Globals.CVAR_ARCHIVE);
-		vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", Globals.CVAR_ARCHIVE);
-		vid_ref = ri.Cvar_Get("vid_ref", "fastjogl", Globals.CVAR_ARCHIVE);
+		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", Globals.CVAR_ARCHIVE);
+		vid_gamma = Cvar.Get("vid_gamma", "1.0", Globals.CVAR_ARCHIVE);
+		vid_ref = Cvar.Get("vid_ref", "fastjogl", Globals.CVAR_ARCHIVE);
 
-		ri.Cmd_AddCommand("imagelist", new xcommand_t() {
+		Cmd.AddCommand("imagelist", new xcommand_t() {
 			public void execute() {
 				GL_ImageList_f();
 			}
 		});
 
-		ri.Cmd_AddCommand("screenshot", new xcommand_t() {
+		Cmd.AddCommand("screenshot", new xcommand_t() {
 			public void execute() {
 				GL_ScreenShot_f();
 			}
 		});
-		ri.Cmd_AddCommand("modellist", new xcommand_t() {
+		Cmd.AddCommand("modellist", new xcommand_t() {
 			public void execute() {
 				Mod_Modellist_f();
 			}
 		});
-		ri.Cmd_AddCommand("gl_strings", new xcommand_t() {
+		Cmd.AddCommand("gl_strings", new xcommand_t() {
 			public void execute() {
 				GL_Strings_f();
 			}
@@ -1031,8 +1033,8 @@ public abstract class Main extends Base {
 		boolean fullscreen;
 
 //		if (vid_fullscreen.modified && !gl_config.allow_cds) {
-//			ri.Con_Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
-//			ri.Cvar_SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
+//			VID.Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
+//			Cvar.SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
 //			vid_fullscreen.modified = false;
 //		}
 
@@ -1048,21 +1050,21 @@ public abstract class Main extends Base {
 		}
 		else {
 			if (err == rserr_invalid_fullscreen) {
-				ri.Cvar_SetValue("vid_fullscreen", 0);
+				Cvar.SetValue("vid_fullscreen", 0);
 				vid_fullscreen.modified = false;
-				ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 				if ((err = GLimp_SetMode(dim, (int) gl_mode.value, false)) == rserr_ok)
 					return true;
 			}
 			else if (err == rserr_invalid_mode) {
-				ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
+				Cvar.SetValue("gl_mode", gl_state.prev_mode);
 				gl_mode.modified = false;
-				ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 			}
 
 			// try setting it back to something safe
 			if ((err = GLimp_SetMode(dim, gl_state.prev_mode, false)) != rserr_ok) {
-				ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 				return false;
 			}
 		}
@@ -1085,7 +1087,7 @@ public abstract class Main extends Base {
 			r_turbsin[j] = Warp.SIN[j] * 0.5f;
 		}
 
-		ri.Con_Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
+		VID.Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
 
 		Draw_GetPalette();
 
@@ -1096,26 +1098,26 @@ public abstract class Main extends Base {
 
 		// create the window and set up the context
 		if (!R_SetMode()) {
-			ri.Con_Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
+			VID.Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
 			return false;
 		}
 		return true;
 	}
 
 	protected boolean R_Init2() {
-		ri.Vid_MenuInit();
+		VID.MenuInit();
 
 		/*
 		** get our various GL strings
 		*/
 		gl_config.vendor_string = gl.glGetString(GL.GL_VENDOR);
-		ri.Con_Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
+		VID.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
 		gl_config.renderer_string = gl.glGetString(GL.GL_RENDERER);
-		ri.Con_Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
+		VID.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
 		gl_config.version_string = gl.glGetString(GL.GL_VERSION);
-		ri.Con_Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
+		VID.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
 		gl_config.extensions_string = gl.glGetString(GL.GL_EXTENSIONS);
-		ri.Con_Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		VID.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 
 		String renderer_buffer = gl_config.renderer_string.toLowerCase();
 		String vendor_buffer = gl_config.vendor_string.toLowerCase();
@@ -1146,33 +1148,33 @@ public abstract class Main extends Base {
 		String monolightmap = gl_monolightmap.string.toUpperCase();
 		if (monolightmap.length() < 2 || monolightmap.charAt(1) != 'F') {
 			if (gl_config.renderer == GL_RENDERER_PERMEDIA2) {
-				ri.Cvar_Set("gl_monolightmap", "A");
-				ri.Con_Printf(Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n");
+				Cvar.Set("gl_monolightmap", "A");
+				VID.Printf(Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n");
 			}
 			else if ((gl_config.renderer & GL_RENDERER_POWERVR) != 0) {
-				ri.Cvar_Set("gl_monolightmap", "0");
+				Cvar.Set("gl_monolightmap", "0");
 			}
 			else {
-				ri.Cvar_Set("gl_monolightmap", "0");
+				Cvar.Set("gl_monolightmap", "0");
 			}
 		}
 
 		// power vr can't have anything stay in the framebuffer, so
 		// the screen needs to redraw the tiled background every frame
 		if ((gl_config.renderer & GL_RENDERER_POWERVR) != 0) {
-			ri.Cvar_Set("scr_drawall", "1");
+			Cvar.Set("scr_drawall", "1");
 		}
 		else {
-			ri.Cvar_Set("scr_drawall", "0");
+			Cvar.Set("scr_drawall", "0");
 		}
 
 		// #ifdef __linux__
-		ri.Cvar_SetValue("gl_finish", 1);
+		Cvar.SetValue("gl_finish", 1);
 		// #endif
 
 		// MCD has buffering issues
 		if (gl_config.renderer == GL_RENDERER_MCD) {
-			ri.Cvar_SetValue("gl_finish", 1);
+			Cvar.SetValue("gl_finish", 1);
 		}
 
 		if ((gl_config.renderer & GL_RENDERER_3DLABS) != 0) {
@@ -1186,16 +1188,16 @@ public abstract class Main extends Base {
 		}
 
 		if (gl_config.allow_cds)
-			ri.Con_Printf(Defines.PRINT_ALL, "...allowing CDS\n");
+			VID.Printf(Defines.PRINT_ALL, "...allowing CDS\n");
 		else
-			ri.Con_Printf(Defines.PRINT_ALL, "...disabling CDS\n");
+			VID.Printf(Defines.PRINT_ALL, "...disabling CDS\n");
 
 		/*
 		** grab extensions
 		*/
 		if (gl_config.extensions_string.indexOf("GL_EXT_compiled_vertex_array") >= 0
 			|| gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0) {
-			ri.Con_Printf(Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
+			VID.Printf(Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
 			//		 qglLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
 			if (gl_ext_compiled_vertex_array.value != 0.0f)
 				qglLockArraysEXT = true;
@@ -1205,16 +1207,16 @@ public abstract class Main extends Base {
 			//qglUnlockArraysEXT = true;
 		}
 		else {
-			ri.Con_Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
+			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
 			qglLockArraysEXT = false;
 		}
 
 		if (gl_config.extensions_string.indexOf("WGL_EXT_swap_control") >= 0) {
 			qwglSwapIntervalEXT = true;
-			ri.Con_Printf(Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n");
+			VID.Printf(Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n");
 		} else {
 			qwglSwapIntervalEXT = false;
-			ri.Con_Printf(Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n");
+			VID.Printf(Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n");
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0) {
@@ -1222,14 +1224,14 @@ public abstract class Main extends Base {
 				//			 qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
 				qglPointParameterfEXT = true;
 				//			 qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
-				ri.Con_Printf(Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n");
+				VID.Printf(Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n");
 			}
 			else {
-				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n");
+				VID.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n");
 			}
 		}
 		else {
-			ri.Con_Printf(Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n");
+			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n");
 		}
 
 		// #ifdef __linux__
@@ -1237,18 +1239,18 @@ public abstract class Main extends Base {
 		//	 {
 		//		 if ( gl_ext_palettedtexture->value )
 		//		 {
-		//			 ri.Con_Printf( Defines.PRINT_ALL, "...using 3DFX_set_global_palette\n" );
+		//			 VID.Printf( Defines.PRINT_ALL, "...using 3DFX_set_global_palette\n" );
 		//			 qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
 		////			 qglColorTableEXT = Fake_glColorTableEXT;
 		//		 }
 		//		 else
 		//		 {
-		//			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
+		//			 VID.Printf( Defines.PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
 		//		 }
 		//	 }
 		//	 else
 		//	 {
-		//		 ri.Con_Printf( Defines.PRINT_ALL, "...3DFX_set_global_palette not found\n" );
+		//		 VID.Printf( Defines.PRINT_ALL, "...3DFX_set_global_palette not found\n" );
 		//	 }
 		// #endif
 
@@ -1256,26 +1258,26 @@ public abstract class Main extends Base {
 			&& gl_config.extensions_string.indexOf("GL_EXT_paletted_texture") >= 0
 			&& gl_config.extensions_string.indexOf("GL_EXT_shared_texture_palette") >= 0) {
 			if (gl_ext_palettedtexture.value != 0.0f) {
-				ri.Con_Printf(Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
+				VID.Printf(Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
 				qglColorTableEXT = false; // true; TODO jogl bug
 			}
 			else {
-				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
+				VID.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
 				qglColorTableEXT = false;
 			}
 		}
 		else {
-			ri.Con_Printf(Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n");
+			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n");
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0) {
-			ri.Con_Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
+			VID.Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
 			qglActiveTextureARB = true;
 			GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
 			GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
 		}
 		else {
-			ri.Con_Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
+			VID.Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
 		}
 
 		if (!(qglActiveTextureARB))
@@ -1290,7 +1292,7 @@ public abstract class Main extends Base {
 
 		int err = gl.glGetError();
 		if (err != GL.GL_NO_ERROR)
-			ri.Con_Printf(
+			VID.Printf(
 				Defines.PRINT_ALL,
 				"glGetError() = 0x%x\n\t%s\n",
 				new Vargs(2).add(err).add("" + gl.glGetString(err)));
@@ -1304,10 +1306,10 @@ public abstract class Main extends Base {
 	===============
 	*/
 	protected void R_Shutdown() {
-		ri.Cmd_RemoveCommand("modellist");
-		ri.Cmd_RemoveCommand("screenshot");
-		ri.Cmd_RemoveCommand("imagelist");
-		ri.Cmd_RemoveCommand("gl_strings");
+		Cmd.RemoveCommand("modellist");
+		Cmd.RemoveCommand("screenshot");
+		Cmd.RemoveCommand("imagelist");
+		Cmd.RemoveCommand("gl_strings");
 
 		Mod_FreeAll();
 
@@ -1335,7 +1337,7 @@ public abstract class Main extends Base {
 			// FIXME: only restart if CDS is required
 			cvar_t ref;
 
-			ref = ri.Cvar_Get("vid_ref", "fastjogl", 0);
+			ref = Cvar.Get("vid_ref", "fastjogl", 0);
 			ref.modified = true;
 		}
 
@@ -1368,7 +1370,7 @@ public abstract class Main extends Base {
 				Com_sprintf( envbuffer, sizeof(envbuffer), "SST_GAMMA=%f", g );
 				putenv( envbuffer );
 				*/
-				ri.Con_Printf(Defines.PRINT_DEVELOPER, "gamma anpassung fuer VOODOO nicht gesetzt");
+				VID.Printf(Defines.PRINT_DEVELOPER, "gamma anpassung fuer VOODOO nicht gesetzt");
 			}
 		}
 

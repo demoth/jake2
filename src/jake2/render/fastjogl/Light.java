@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.4 2004-07-12 22:08:02 hzi Exp $
+ * $Id: Light.java,v 1.5 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.Globals;
 import jake2.client.dlight_t;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
+import jake2.qcommon.Com;
 import jake2.qcommon.longjmpException;
 import jake2.render.*;
 import jake2.util.Math3D;
@@ -491,13 +492,13 @@ public abstract class Light extends Warp {
 		//lightstyle_t	style;
 		
 		if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) != 0 )
-			ri.Sys_Error(Defines.ERR_DROP, "R_BuildLightMap called for non-lit surface");
+			Com.Error(Defines.ERR_DROP, "R_BuildLightMap called for non-lit surface");
 
 		int smax = (surf.extents[0] >> 4) + 1;
 		int tmax = (surf.extents[1] >> 4) + 1;
 		int size = smax * tmax;
 		if (size > ((s_blocklights.length * Defines.SIZE_OF_FLOAT) >> 4) )
-			ri.Sys_Error(Defines.ERR_DROP, "Bad s_blocklights size");
+			Com.Error(Defines.ERR_DROP, "Bad s_blocklights size");
 
 		try {
 			// set to full bright if no light data

@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.5 2004-07-12 22:08:03 hzi Exp $
+ * $Id: Mesh.java,v 1.6 2004-07-16 10:11:35 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.client.VID;
 import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
 import jake2.render.image_t;
@@ -474,12 +475,12 @@ public abstract class Mesh extends Light {
 
 		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
 		{
-			ri.Con_Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name +": no such frame " + e.frame + '\n');
+			VID.Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name +": no such frame " + e.frame + '\n');
 			e.frame = 0;
 		}
 		if ( ( e.oldframe >= paliashdr.num_frames ) || ( e.oldframe < 0 ) )
 		{
-			ri.Con_Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such oldframe " + e.oldframe + '\n');
+			VID.Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such oldframe " + e.oldframe + '\n');
 			e.oldframe = 0;
 		}
 
@@ -809,7 +810,7 @@ public abstract class Mesh extends Light {
 		if ( (currententity.frame >= paliashdr.num_frames) 
 			|| (currententity.frame < 0) )
 		{
-			ri.Con_Printf (Defines.PRINT_ALL, "R_DrawAliasModel " + currentmodel.name +": no such frame " + currententity.frame + '\n');
+			VID.Printf (Defines.PRINT_ALL, "R_DrawAliasModel " + currentmodel.name +": no such frame " + currententity.frame + '\n');
 			currententity.frame = 0;
 			currententity.oldframe = 0;
 		}
@@ -817,7 +818,7 @@ public abstract class Mesh extends Light {
 		if ( (currententity.oldframe >= paliashdr.num_frames)
 			|| (currententity.oldframe < 0))
 		{
-			ri.Con_Printf (Defines.PRINT_ALL, "R_DrawAliasModel " + currentmodel.name +": no such oldframe " + currententity.oldframe + '\n');
+			VID.Printf (Defines.PRINT_ALL, "R_DrawAliasModel " + currentmodel.name +": no such oldframe " + currententity.oldframe + '\n');
 			currententity.frame = 0;
 			currententity.oldframe = 0;
 		}

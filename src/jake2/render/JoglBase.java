@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.3 2004-07-15 16:33:24 hzi Exp $
+ * $Id: JoglBase.java,v 1.4 2004-07-16 10:11:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,9 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import jake2.Defines;
-import jake2.client.refimport_t;
-import jake2.client.viddef_t;
+import jake2.client.*;
 import jake2.game.cvar_t;
+import jake2.qcommon.Cbuf;
 import jake2.qcommon.xcommand_t;
 import jake2.sys.KBD;
 
@@ -49,8 +49,6 @@ import net.java.games.jogl.util.GLUT;
 public abstract class JoglBase implements GLEventListener {
 
 	// IMPORTED FUNCTIONS
-	protected refimport_t ri = null;
-
 	protected GraphicsDevice device;
 	protected DisplayMode oldDisplayMode; 
 	protected GLCanvas canvas;
@@ -80,7 +78,7 @@ public abstract class JoglBase implements GLEventListener {
 			// check the post init process
 			//
 			if (!post_init) {
-				ri.Con_Printf(Defines.PRINT_ALL, "Missing multi-texturing for FastJOGL renderer\n");
+				VID.Printf(Defines.PRINT_ALL, "Missing multi-texturing for FastJOGL renderer\n");
 			}
 
 			GLimp_EndFrame();
@@ -169,9 +167,9 @@ public abstract class JoglBase implements GLEventListener {
 
 		Dimension newDim = new Dimension();
 
-		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
+		VID.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
-		ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
+		VID.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 		
 		/*
 		 * fullscreen handling
@@ -183,12 +181,12 @@ public abstract class JoglBase implements GLEventListener {
 			oldDisplayMode = device.getDisplayMode();
 		}
 
-		if (!ri.Vid_GetModeInfo(newDim, mode)) {
-			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n");
+		if (!VID.GetModeInfo(newDim, mode)) {
+			VID.Printf(Defines.PRINT_ALL, " invalid mode\n");
 			return rserr_invalid_mode;
 		}
 
-		ri.Con_Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
+		VID.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
 
 		// destroy the existing window
 		GLimp_Shutdown();
@@ -210,7 +208,7 @@ public abstract class JoglBase implements GLEventListener {
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				ri.Cmd_ExecuteText(Defines.EXEC_APPEND, "quit");
+				Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
 			}
 		});
 		
@@ -238,7 +236,7 @@ public abstract class JoglBase implements GLEventListener {
 			window.setSize(displayMode.getWidth(), displayMode.getHeight());
 			canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
 
-			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
+			VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
 			window.setLocation(window_xpos, window_ypos);
@@ -260,7 +258,7 @@ public abstract class JoglBase implements GLEventListener {
 		vid.height = newDim.height;
 
 		// let the sound and input subsystems know about the new window
-		ri.Vid_NewWindow(vid.width, vid.height);
+		VID.NewWindow(vid.width, vid.height);
 
 		return rserr_ok;
 	}
