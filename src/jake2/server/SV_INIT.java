@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.19 2004-02-14 13:24:02 rst Exp $
+// $Id: SV_INIT.java,v 1.20 2004-02-15 00:23:00 cwei Exp $
 
 package jake2.server;
 
@@ -443,6 +443,7 @@ public class SV_INIT extends Globals  {
 		int c = level.indexOf('+');
 		if (c != -1) {
 			Cvar.Set("nextserver","gamemap \"" + level.substring(c+1) + "\"");
+			level = level.substring(0, c);
 		}
 		else {
 			Cvar.Set("nextserver", "");
