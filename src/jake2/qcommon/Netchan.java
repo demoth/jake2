@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.17 2004-02-06 21:03:30 rst Exp $
+ * $Id: Netchan.java,v 1.18 2004-02-08 11:08:52 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -139,7 +139,7 @@ public final class Netchan extends SV_MAIN {
 		SZ.Write(send, data, length);
 
 		// send the datagram
-		NET.NET_SendPacket(net_socket, send.cursize, send.data, adr);
+		NET.SendPacket(net_socket, send.cursize, send.data, adr);
 	}
 	
 	public static void OutOfBandPrint(int net_socket, netadr_t adr, String s) {
@@ -259,7 +259,7 @@ public final class Netchan extends SV_MAIN {
 			Com.Printf("Netchan_Transmit: dumped unreliable\n");
 
 		// send the datagram
-		NET.NET_SendPacket(chan.sock, send.cursize, send.data, chan.remote_address);
+		NET.SendPacket(chan.sock, send.cursize, send.data, chan.remote_address);
 
 		if (showpackets.value != 0) {
 			if (send_reliable != 0)

@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.25 2004-02-06 21:45:17 hoz Exp $
+ * $Id: CL_main.java,v 1.26 2004-02-08 11:08:51 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,7 +36,6 @@ import jake2.util.Vargs;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * CL_main
@@ -223,8 +222,8 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-	static xcommand_t Setenv_f = new xcommand_t() {
-		public void execute() {
+//	static xcommand_t Setenv_f = new xcommand_t() {
+//		public void execute() {
 //			int argc = Cmd_Argc();
 //
 //			if (argc > 2) {
@@ -251,8 +250,8 @@ public class CL_main extends CL_pred {
 //					Com_Printf("%s undefined\n", Cmd_Argv(1), env);
 //				}
 //			}
-		}
-	};
+//		}
+//	};
 
 	/*
 	==================
@@ -560,58 +559,6 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-	//	/*
-	//	====================
-	//	CL_Packet_f
-	//
-	//	packet <destination> <contents>
-	//
-	//	Contents allows \n escape character
-	//	====================
-	//	*/
-	//	void CL_Packet_f (void)
-	//	{
-	//		char	send[2048];
-	//		int		i, l;
-	//		char	*in, *out;
-	//		netadr_t	adr;
-	//
-	//		if (Cmd_Argc() != 3)
-	//		{
-	//			Com_Printf ("packet <destination> <contents>\n");
-	//			return;
-	//		}
-	//
-	//		NET_Config (true);		// allow remote
-	//
-	//		if (!NET_StringToAdr (Cmd_Argv(1), &adr))
-	//		{
-	//			Com_Printf ("Bad address\n");
-	//			return;
-	//		}
-	//		if (!adr.port)
-	//			adr.port = BigShort (PORT_SERVER);
-	//
-	//		in = Cmd_Argv(2);
-	//		out = send+4;
-	//		send[0] = send[1] = send[2] = send[3] = (char)0xff;
-	//
-	//		l = strlen (in);
-	//		for (i=0 ; i<l ; i++)
-	//		{
-	//			if (in[i] == '\\' && in[i+1] == 'n')
-	//			{
-	//				*out++ = '\n';
-	//				i++;
-	//			}
-	//			else
-	//				*out++ = in[i];
-	//		}
-	//		*out = 0;
-	//
-	//		NET_SendPacket (NS_CLIENT, out-send, send, adr);
-	//	}
-
 	/*
 	=================
 	CL_Changing_f
@@ -623,10 +570,10 @@ public class CL_main extends CL_pred {
 	static xcommand_t Changing_f = new xcommand_t() {
 		public void execute() {
 				//ZOID
-		//if we are downloading, we don't change!  
-		// This so we don't suddenly stop downloading a map
+			//if we are downloading, we don't change!  
+			// This so we don't suddenly stop downloading a map
 
-	if (cls.download != null)
+		if (cls.download != null)
 				return;
 
 			SCR.BeginLoadingPlaque();
@@ -635,40 +582,40 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-	//	/*
-	//	=================
-	//	CL_Reconnect_f
-	//
-	//	The server is changing levels
-	//	=================
-	//	*/
+	/*
+	=================
+	CL_Reconnect_f
+
+	The server is changing levels
+	=================
+	*/
 	static xcommand_t Reconnect_f = new xcommand_t() {
 		public void execute() {
-				//		//ZOID
-		//		//if we are downloading, we don't change!  This so we don't suddenly stop downloading a map
-		//		if (cls.download)
-		//			return;
-		//
-		//		S_StopAllSounds ();
-		//		if (cls.state == ca_connected) {
-		//			Com_Printf ("reconnecting...\n");
-		//			cls.state = ca_connected;
-		//			MSG_WriteChar (&cls.netchan.message, clc_stringcmd);
-		//			MSG_WriteString (&cls.netchan.message, "new");		
-		//			return;
-		//		}
-		//
-		//		if (*cls.servername) {
-		//			if (cls.state >= ca_connected) {
-		//				CL_Disconnect();
-		//				cls.connect_time = cls.realtime - 1500;
-		//			} else
-		//				cls.connect_time = -99999; // fire immediately
-		//
-		//			cls.state = ca_connecting;
-		//			Com_Printf ("reconnecting...\n");
-		//		}
-	}
+				//ZOID
+			//if we are downloading, we don't change!  This so we don't suddenly stop downloading a map
+		if (cls.download != null)
+				return;
+
+			S.StopAllSounds();
+			if (cls.state == ca_connected) {
+				Com.Printf("reconnecting...\n");
+				cls.state = ca_connected;
+				MSG.WriteChar(cls.netchan.message, clc_stringcmd);
+				MSG.WriteString(cls.netchan.message, "new");
+				return;
+			}
+
+			if (cls.servername != null) {
+				if (cls.state >= ca_connected) {
+					CL.Disconnect();
+					cls.connect_time = cls.realtime - 1500;
+				} else
+					cls.connect_time = -99999; // fire immediately
+
+				cls.state = ca_connecting;
+				Com.Printf("reconnecting...\n");
+			}
+		}
 	};
 
 	/*
@@ -687,84 +634,84 @@ public class CL_main extends CL_pred {
 		Menu.AddToServerList(net_from, s);
 	}
 
-	//	/*
-	//	=================
-	//	CL_PingServers_f
-	//	=================
-	//	*/
+	/*
+	=================
+	CL_PingServers_f
+	=================
+	*/
 	static xcommand_t PingServers_f = new xcommand_t() {
 		public void execute() {
-				//		int			i;
-		//		netadr_t	adr;
-		//		char		name[32];
-		//		char		*adrstring;
-		//		cvar_t		*noudp;
-		//		cvar_t		*noipx;
-		//
-		//		NET_Config (true);		// allow remote
-		//
-		//		// send a broadcast packet
-		//		Com_Printf ("pinging broadcast...\n");
-		//
-		//		noudp = Cvar.Get ("noudp", "0", CVAR_NOSET);
-		//		if (!noudp.value)
-		//		{
-		//			adr.type = NA_BROADCAST;
-		//			adr.port = BigShort(PORT_SERVER);
-		//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-		//		}
-		//
-		//		noipx = Cvar.Get ("noipx", "0", CVAR_NOSET);
-		//		if (!noipx.value)
-		//		{
-		//			adr.type = NA_BROADCAST_IPX;
-		//			adr.port = BigShort(PORT_SERVER);
-		//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-		//		}
-		//
-		//		// send a packet to each address book entry
-		//		for (i=0 ; i<16 ; i++)
-		//		{
-		//			Com_sprintf (name, sizeof(name), "adr%i", i);
-		//			adrstring = Cvar.VariableString (name);
-		//			if (!adrstring || !adrstring[0])
-		//				continue;
-		//
-		//			Com_Printf ("pinging %s...\n", adrstring);
-		//			if (!NET_StringToAdr (adrstring, &adr))
-		//			{
-		//				Com_Printf ("Bad address: %s\n", adrstring);
-		//				continue;
-		//			}
-		//			if (!adr.port)
-		//				adr.port = BigShort(PORT_SERVER);
-		//			Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-		//		}
-	}
+			int i;
+			netadr_t adr = new netadr_t();
+			//char		name[32];
+			String name;
+			String adrstring;
+			cvar_t noudp;
+			cvar_t noipx;
+
+			NET.Config(true); // allow remote
+
+			// send a broadcast packet
+			Com.Printf("pinging broadcast...\n");
+
+			noudp = Cvar.Get("noudp", "0", CVAR_NOSET);
+			if (noudp.value == 0.0f) {
+				adr.type = NA_BROADCAST;
+				adr.port = PORT_SERVER;
+				//adr.port = BigShort(PORT_SERVER);
+				Netchan.OutOfBandPrint(NS_CLIENT, adr, "info " + PROTOCOL_VERSION);
+			}
+
+			noipx = Cvar.Get("noipx", "0", CVAR_NOSET);
+			if (noipx.value == 0.0f) {
+				adr.type = NA_BROADCAST_IPX;
+				//adr.port = BigShort(PORT_SERVER);
+				adr.port = PORT_SERVER;
+				Netchan.OutOfBandPrint(NS_CLIENT, adr, "info " + PROTOCOL_VERSION);
+			}
+
+			// send a packet to each address book entry
+			for (i = 0; i < 16; i++) {
+				//Com_sprintf (name, sizeof(name), "adr%i", i);
+				name = "adr" + i;
+				adrstring = Cvar.VariableString(name);
+				if (adrstring == null || adrstring.length() == 0)
+					continue;
+
+				Com.Printf("pinging " + adrstring + "...\n");
+				if (!NET.StringToAdr(adrstring, adr)) {
+					Com.Printf("Bad address: " + adrstring + "\n");
+					continue;
+				}
+				if (adr.port == 0)
+					//adr.port = BigShort(PORT_SERVER);
+					adr.port = PORT_SERVER;
+				Netchan.OutOfBandPrint(NS_CLIENT, adr, "info " + PROTOCOL_VERSION);
+			}
+		}
 	};
-	//
-	//
-	//	/*
-	//	=================
-	//	CL_Skins_f
-	//
-	//	Load or download any custom player skins and models
-	//	=================
-	//	*/
+
+
+	/*
+	=================
+	CL_Skins_f
+
+	Load or download any custom player skins and models
+	=================
+	*/
 	static xcommand_t Skins_f = new xcommand_t() {
 		public void execute() {
-				//		int		i;
-		//
-		//		for (i=0 ; i<MAX_CLIENTS ; i++)
-		//		{
-		//			if (!cl.configstrings[CS_PLAYERSKINS+i][0])
-		//				continue;
-		//			Com_Printf ("client %i: %s\n", i, cl.configstrings[CS_PLAYERSKINS+i]); 
-		//			SCR_UpdateScreen ();
-		//			Sys_SendKeyEvents ();	// pump message loop
-		//			CL_ParseClientinfo (i);
-		//		}
-	}
+			int i;
+
+			for (i = 0; i < MAX_CLIENTS; i++) {
+				if (cl.configstrings[CS_PLAYERSKINS + i] == null)
+					continue;
+				Com.Printf("client " + i + ": " + cl.configstrings[CS_PLAYERSKINS + i] + "\n");
+				SCR.UpdateScreen();
+				Sys.SendKeyEvents(); // pump message loop
+				CL.ParseClientinfo(i);
+			}
+		}
 	};
 
 	/*
@@ -872,10 +819,9 @@ public class CL_main extends CL_pred {
 
 			//
 			// remote command packet
-			//
-			ByteBuffer buf = ByteBuffer.wrap(net_message.data);
-			buf.order(ByteOrder.LITTLE_ENDIAN);
-			if (buf.getInt(0) == -1) {
+			//		
+			if (net_message.data[0] == 0xFF && net_message.data[1] == 0xFF
+				&& net_message.data[2] == 0xFF && net_message.data[3] == 0xFF) {
 				//			if (*(int *)net_message.data == -1)
 				CL.ConnectionlessPacket();
 				continue;
@@ -1403,7 +1349,7 @@ public class CL_main extends CL_pred {
 
 		Cmd.AddCommand("rcon", Rcon_f);
 
-		Cmd.AddCommand("setenv", Setenv_f);
+//		Cmd.AddCommand("setenv", Setenv_f);
 
 		Cmd.AddCommand("precache", Precache_f);
 

@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.14 2004-02-06 21:03:30 rst Exp $
+ * $Id: NET.java,v 1.15 2004-02-08 11:08:51 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -396,7 +396,7 @@ public final class NET extends Defines {
 	
 //	=============================================================================
 	
-	public static void NET_SendPacket (int sock, int length, byte [] data, netadr_t to)
+	public static void SendPacket (int sock, int length, byte [] data, netadr_t to)
 	{
 		Com.Printf("NET_SendPacket: sock=" + sock  + " len=" + length + "\n");
 		Com.Printf(Lib.hexDump(data, 64, false));
