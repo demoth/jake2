@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: TestLoadGame.java,v 1.3 2004-01-07 21:57:16 rst Exp $
+// $Id: TestLoadGame.java,v 1.4 2004-01-07 22:51:57 rst Exp $
 
 package jake2.qcommon;
 
@@ -32,6 +32,9 @@ import jake2.server.*;
 
 public class TestLoadGame {
 	public static void main(String args[]) {
+		
+		Qcommon.Init(args);
+		
 		System.out.println("hello!");
 		GameSave.ReadGame("test/data/savegames/game.ssv");
 	}
