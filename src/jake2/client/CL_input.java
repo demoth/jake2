@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.16 2004-02-15 00:58:00 rst Exp $
+ * $Id: CL_input.java,v 1.17 2004-02-15 01:19:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,7 @@ import jake2.sys.IN;
  * CL_input
  */
 public class CL_input extends CL_ents {
-
+	
 	static long frame_msec;
 	static long old_sys_frame_time;
 
@@ -45,27 +45,27 @@ public class CL_input extends CL_ents {
 
 	/*
 	===============================================================================
-	
+
 	KEY BUTTONS
-	
+
 	Continuous button event tracking is complicated by the fact that two different
 	input sources (say, mouse button 1 and the control key) can both press the
 	same button, but the button should only be released when both of the
 	pressing key have been released.
-	
+
 	When a key event issues a button command (+forward, +attack, etc), it appends
 	its key number as a parameter to the command so it can be matched up with
 	the release.
-	
+
 	state bit 0 is the current state of the key
 	state bit 1 is edge triggered on the up to down transition
 	state bit 2 is edge triggered on the down to up transition
-	
-	
+
+
 	Key_Event (int key, qboolean down, unsigned time);
-	
+
 	  +mlook src time
-	
+
 	===============================================================================
 	*/
 
@@ -95,10 +95,10 @@ public class CL_input extends CL_ents {
 		if (c.length() > 0)
 			k = Integer.parseInt(c);
 		else
-			k = -1; // typed manually at the console for continuous down
+			k = -1;		// typed manually at the console for continuous down
 
 		if (k == b.down[0] || k == b.down[1])
-			return; // repeating key
+			return;		// repeating key
 
 		if (b.down[0] == 0)
 			b.down[0] = k;
@@ -110,7 +110,7 @@ public class CL_input extends CL_ents {
 		}
 
 		if ((b.state & 1) != 0)
-			return; // still down
+			return;		// still down
 
 		// save timestamp
 		c = Cmd.Argv(2);
@@ -118,7 +118,7 @@ public class CL_input extends CL_ents {
 		if (b.downtime == 0)
 			b.downtime = sys_frame_time - 100;
 
-		b.state |= 3; // down + impulse down
+		b.state |= 3;	// down + impulse down
 	}
 
 	static void KeyUp(kbutton_t b) {
@@ -132,7 +132,7 @@ public class CL_input extends CL_ents {
 		else {
 			// typed manually at the console, assume for unsticking, so clear all
 			b.down[0] = b.down[1] = 0;
-			b.state = 4; // impulse up
+			b.state = 4;	// impulse up
 			return;
 		}
 
@@ -141,12 +141,12 @@ public class CL_input extends CL_ents {
 		else if (b.down[1] == k)
 			b.down[1] = 0;
 		else
-			return; // key up without coresponding down (menu pass through)
+			return;		// key up without coresponding down (menu pass through)
 		if (b.down[0] != 0 || b.down[1] != 0)
-			return; // some other key is still holding it down
+			return;		// some other key is still holding it down
 
 		if ((b.state & 1) == 0)
-			return; // still up (this should not happen)
+			return;		// still up (this should not happen)
 
 		// save timestamp
 		c = Cmd.Argv(2);
@@ -156,112 +156,50 @@ public class CL_input extends CL_ents {
 		else
 			b.msec += 10;
 
-		b.state &= ~1; // now up
-		b.state |= 4; // impulse up
+		b.state &= ~1;		// now up
+		b.state |= 4; 		// impulse up
 	}
 
-	static void IN_KLookDown() {
-		KeyDown(in_klook);
-	}
-	static void IN_KLookUp() {
-		KeyUp(in_klook);
-	}
-	static void IN_UpDown() {
-		KeyDown(in_up);
-	}
-	static void IN_UpUp() {
-		KeyUp(in_up);
-	}
-	static void IN_DownDown() {
-		KeyDown(in_down);
-	}
-	static void IN_DownUp() {
-		KeyUp(in_down);
-	}
-	static void IN_LeftDown() {
-		KeyDown(in_left);
-	}
-	static void IN_LeftUp() {
-		KeyUp(in_left);
-	}
-	static void IN_RightDown() {
-		KeyDown(in_right);
-	}
-	static void IN_RightUp() {
-		KeyUp(in_right);
-	}
-	static void IN_ForwardDown() {
-		KeyDown(in_forward);
-	}
-	static void IN_ForwardUp() {
-		KeyUp(in_forward);
-	}
-	static void IN_BackDown() {
-		KeyDown(in_back);
-	}
-	static void IN_BackUp() {
-		KeyUp(in_back);
-	}
-	static void IN_LookupDown() {
-		KeyDown(in_lookup);
-	}
-	static void IN_LookupUp() {
-		KeyUp(in_lookup);
-	}
-	static void IN_LookdownDown() {
-		KeyDown(in_lookdown);
-	}
-	static void IN_LookdownUp() {
-		KeyUp(in_lookdown);
-	}
-	static void IN_MoveleftDown() {
-		KeyDown(in_moveleft);
-	}
-	static void IN_MoveleftUp() {
-		KeyUp(in_moveleft);
-	}
-	static void IN_MoverightDown() {
-		KeyDown(in_moveright);
-	}
-	static void IN_MoverightUp() {
-		KeyUp(in_moveright);
-	}
-
-	static void IN_SpeedDown() {
-		KeyDown(in_speed);
-	}
-	static void IN_SpeedUp() {
-		KeyUp(in_speed);
-	}
-	static void IN_StrafeDown() {
-		KeyDown(in_strafe);
-	}
-	static void IN_StrafeUp() {
-		KeyUp(in_strafe);
-	}
-
-	static void IN_AttackDown() {
-		KeyDown(in_attack);
-	}
-	static void IN_AttackUp() {
-		KeyUp(in_attack);
-	}
-
-	static void IN_UseDown() {
-		KeyDown(in_use);
-	}
-	static void IN_UseUp() {
-		KeyUp(in_use);
-	}
-
-	static void IN_Impulse() {
-		in_impulse = Integer.parseInt(Cmd.Argv(1));
-	}
+	static void IN_KLookDown() {KeyDown(in_klook);}
+	static void IN_KLookUp() {KeyUp(in_klook);}
+	static void IN_UpDown() {KeyDown(in_up);}
+	static void IN_UpUp() {KeyUp(in_up);}
+	static void IN_DownDown() {KeyDown(in_down);}
+	static void IN_DownUp() {KeyUp(in_down);}
+	static void IN_LeftDown() {KeyDown(in_left);}
+	static void IN_LeftUp() {KeyUp(in_left);}
+	static void IN_RightDown() {KeyDown(in_right);}
+	static void IN_RightUp() {KeyUp(in_right);}
+	static void IN_ForwardDown() {KeyDown(in_forward);}
+	static void IN_ForwardUp() {KeyUp(in_forward);}
+	static void IN_BackDown() {KeyDown(in_back);}
+	static void IN_BackUp() {KeyUp(in_back);}
+	static void IN_LookupDown() {KeyDown(in_lookup);}
+	static void IN_LookupUp() {KeyUp(in_lookup);}
+	static void IN_LookdownDown() {KeyDown(in_lookdown);}
+	static void IN_LookdownUp() {KeyUp(in_lookdown);}
+	static void IN_MoveleftDown() {KeyDown(in_moveleft);}
+	static void IN_MoveleftUp() {KeyUp(in_moveleft);}
+	static void IN_MoverightDown() {KeyDown(in_moveright);}
+	static void IN_MoverightUp() {KeyUp(in_moveright);}
+	
+	static void IN_SpeedDown() {KeyDown(in_speed);}
+	static void IN_SpeedUp() {KeyUp(in_speed);}
+	static void IN_StrafeDown() {KeyDown(in_strafe);}
+	static void IN_StrafeUp() {KeyUp(in_strafe);}
+	
+	static void IN_AttackDown() {KeyDown(in_attack);}
+	static void IN_AttackUp() {KeyUp(in_attack);}
+	
+	static void IN_UseDown () {KeyDown(in_use);}
+	static void IN_UseUp () {KeyUp(in_use);}
+	
+	static void IN_Impulse () {in_impulse=Integer.parseInt(Cmd.Argv(1));}
 
 	/*
 	===============
 	CL_KeyState
-	
+
 	Returns the fraction of the frame that the key was down
 	===============
 	*/
@@ -269,7 +207,7 @@ public class CL_input extends CL_ents {
 		float val;
 		long msec;
 
-		key.state &= 1; // clear impulses
+		key.state &= 1;		// clear impulses
 
 		msec = key.msec;
 		key.msec = 0;
@@ -280,7 +218,7 @@ public class CL_input extends CL_ents {
 			key.downtime = sys_frame_time;
 		}
 
-		val = (float) msec / frame_msec;
+		val = (float)msec / frame_msec;
 		if (val < 0)
 			val = 0;
 		if (val > 1)
@@ -289,12 +227,12 @@ public class CL_input extends CL_ents {
 		return val;
 	}
 
-	//	  ==========================================================================
+//	  ==========================================================================
 
 	/*
 	================
 	CL_AdjustAngles
-	
+
 	Moves the local angle positions
 	================
 	*/
@@ -326,11 +264,11 @@ public class CL_input extends CL_ents {
 	/*
 	================
 	CL_BaseMove
-	
+
 	Send the intended movement message to the server
 	================
 	*/
-	static void BaseMove(usercmd_t cmd) {
+	static void BaseMove(usercmd_t cmd) {	
 		CL.AdjustAngles();
 
 		//memset (cmd, 0, sizeof(*cmd));
@@ -361,12 +299,12 @@ public class CL_input extends CL_ents {
 			cmd.sidemove *= 2;
 			cmd.upmove *= 2;
 		}
-
+		
 	}
 
 	static void ClampPitch() {
 
-		float pitch;
+		float	pitch;
 
 		pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 		if (pitch > 180)
@@ -388,8 +326,8 @@ public class CL_input extends CL_ents {
 	CL_FinishMove
 	==============
 	*/
-	static int scheisshack = 0;
-
+	static int scheisshack =0;
+	
 	static void FinishMove(usercmd_t cmd) {
 		int ms;
 		int i;
@@ -409,45 +347,36 @@ public class CL_input extends CL_ents {
 			cmd.buttons |= BUTTON_ANY;
 
 		// send milliseconds of time to apply the move
-		ms = (int) (cls.frametime * 1000);
+		ms = (int)(cls.frametime * 1000);
 		if (ms > 250)
 			ms = 100; // time was unreasonable
-		cmd.msec = (byte) ms;
+		cmd.msec = (byte)ms;
 
 		CL.ClampPitch();
 		for (i = 0; i < 3; i++)
-			cmd.angles[i] = (short) ANGLE2SHORT(cl.viewangles[i]);
+			cmd.angles[i] = (short)ANGLE2SHORT(cl.viewangles[i]);
 
-		cmd.impulse = (byte) in_impulse;
+		cmd.impulse = (byte)in_impulse;
 		in_impulse = 0;
 
 		// send the ambient light level at the player's current position
-		cmd.lightlevel = (byte) cl_lightlevel.value;
-
+		cmd.lightlevel = (byte)cl_lightlevel.value;
+		
 		//Com.p("forward =" + cmd.forwardmove);
-
+		
 		//TODO: INPUT BUGFIX that is so unbelievable dreckig.
-
+		
 		// hauptsache der scheissmist zuckelt.
-
-		if (scheisshack++ > 5)
-			scheisshack = 0;
-
-		if (cmd.forwardmove != 0)
-			cmd.forwardmove += scheisshack - 2;
-
-		if (cmd.sidemove != 0)
-			cmd.sidemove += scheisshack - 2;
-
-		if (cmd.angles[0] != 0)
-			cmd.angles[0] += scheisshack - 2;
-
-		if (cmd.angles[1] != 0)
-			cmd.angles[1] += scheisshack - 2;
-
-		if (cmd.angles[2] != 0)
-			cmd.angles[2] += scheisshack - 2;
-
+		cmd.forwardmove += (int) (10 * Math.random() -5);
+		
+		if (scheisshack ++ >5) 
+			scheisshack =0;
+			
+		cmd.forwardmove += scheisshack-2;
+		cmd.angles[0] += scheisshack-2;
+		cmd.angles[1] += scheisshack-2;
+		cmd.angles[2] += scheisshack-2;		
+		
 	}
 
 	/*
@@ -484,169 +413,73 @@ public class CL_input extends CL_ents {
 	*/
 	static void InitInput() {
 		Cmd.AddCommand("centerview", new xcommand_t() {
-			public void execute() {
-				IN.CenterView();
-			}
-		});
+						public void execute() {IN.CenterView();}});
 
 		Cmd.AddCommand("+moveup", new xcommand_t() {
-			public void execute() {
-				IN_UpDown();
-			}
-		});
+			public void execute() {IN_UpDown();}});
 		Cmd.AddCommand("-moveup", new xcommand_t() {
-			public void execute() {
-				IN_UpUp();
-			}
-		});
+			public void execute() {IN_UpUp();}});
 		Cmd.AddCommand("+movedown", new xcommand_t() {
-			public void execute() {
-				IN_DownDown();
-			}
-		});
+			public void execute() {IN_DownDown();}});
 		Cmd.AddCommand("-movedown", new xcommand_t() {
-			public void execute() {
-				IN_DownUp();
-			}
-		});
+			public void execute() {IN_DownUp();}});
 		Cmd.AddCommand("+left", new xcommand_t() {
-			public void execute() {
-				IN_LeftDown();
-			}
-		});
+			public void execute() {IN_LeftDown();}});
 		Cmd.AddCommand("-left", new xcommand_t() {
-			public void execute() {
-				IN_LeftUp();
-			}
-		});
+			public void execute() {IN_LeftUp();}});
 		Cmd.AddCommand("+right", new xcommand_t() {
-			public void execute() {
-				IN_RightDown();
-			}
-		});
+			public void execute() {IN_RightDown();}});
 		Cmd.AddCommand("-right", new xcommand_t() {
-			public void execute() {
-				IN_RightUp();
-			}
-		});
+			public void execute() {IN_RightUp();}});
 		Cmd.AddCommand("+forward", new xcommand_t() {
-			public void execute() {
-				IN_ForwardDown();
-			}
-		});
+			public void execute() {IN_ForwardDown();}});
 		Cmd.AddCommand("-forward", new xcommand_t() {
-			public void execute() {
-				IN_ForwardUp();
-			}
-		});
+			public void execute() {IN_ForwardUp();}});
 		Cmd.AddCommand("+back", new xcommand_t() {
-			public void execute() {
-				IN_BackDown();
-			}
-		});
+			public void execute() {IN_BackDown();}});
 		Cmd.AddCommand("-back", new xcommand_t() {
-			public void execute() {
-				IN_BackUp();
-			}
-		});
+			public void execute() {IN_BackUp();}});
 		Cmd.AddCommand("+lookup", new xcommand_t() {
-			public void execute() {
-				IN_LookupDown();
-			}
-		});
+			public void execute() {IN_LookupDown();}});
 		Cmd.AddCommand("-lookup", new xcommand_t() {
-			public void execute() {
-				IN_LookupUp();
-			}
-		});
+			public void execute() {IN_LookupUp();}});
 		Cmd.AddCommand("+lookdown", new xcommand_t() {
-			public void execute() {
-				IN_LookdownDown();
-			}
-		});
+			public void execute() {IN_LookdownDown();}});
 		Cmd.AddCommand("-lookdown", new xcommand_t() {
-			public void execute() {
-				IN_LookdownUp();
-			}
-		});
+			public void execute() {IN_LookdownUp();}});
 		Cmd.AddCommand("+strafe", new xcommand_t() {
-			public void execute() {
-				IN_StrafeDown();
-			}
-		});
+			public void execute() {IN_StrafeDown();}});
 		Cmd.AddCommand("-strafe", new xcommand_t() {
-			public void execute() {
-				IN_StrafeUp();
-			}
-		});
+			public void execute() {IN_StrafeUp();}});
 		Cmd.AddCommand("+moveleft", new xcommand_t() {
-			public void execute() {
-				IN_MoveleftDown();
-			}
-		});
+			public void execute() {IN_MoveleftDown();}});
 		Cmd.AddCommand("-moveleft", new xcommand_t() {
-			public void execute() {
-				IN_MoveleftUp();
-			}
-		});
+			public void execute() {IN_MoveleftUp();}});
 		Cmd.AddCommand("+moveright", new xcommand_t() {
-			public void execute() {
-				IN_MoverightDown();
-			}
-		});
+			public void execute() {IN_MoverightDown();}});
 		Cmd.AddCommand("-moveright", new xcommand_t() {
-			public void execute() {
-				IN_MoverightUp();
-			}
-		});
+			public void execute() {IN_MoverightUp();}});
 		Cmd.AddCommand("+speed", new xcommand_t() {
-			public void execute() {
-				IN_SpeedDown();
-			}
-		});
+			public void execute() {IN_SpeedDown();}});
 		Cmd.AddCommand("-speed", new xcommand_t() {
-			public void execute() {
-				IN_SpeedUp();
-			}
-		});
+			public void execute() {IN_SpeedUp();}});
 		Cmd.AddCommand("+attack", new xcommand_t() {
-			public void execute() {
-				IN_AttackDown();
-			}
-		});
+			public void execute() {IN_AttackDown();}});
 		Cmd.AddCommand("-attack", new xcommand_t() {
-			public void execute() {
-				IN_AttackUp();
-			}
-		});
+			public void execute() {IN_AttackUp();}});
 		Cmd.AddCommand("+use", new xcommand_t() {
-			public void execute() {
-				IN_UseDown();
-			}
-		});
+			public void execute() {IN_UseDown();}});
 		Cmd.AddCommand("-use", new xcommand_t() {
-			public void execute() {
-				IN_UseUp();
-			}
-		});
+			public void execute() {IN_UseUp();}});
 		Cmd.AddCommand("impulse", new xcommand_t() {
-			public void execute() {
-				IN_Impulse();
-			}
-		});
+			public void execute() {IN_Impulse();}});
 		Cmd.AddCommand("+klook", new xcommand_t() {
-			public void execute() {
-				IN_KLookDown();
-			}
-		});
+			public void execute() {IN_KLookDown();}});
 		Cmd.AddCommand("-klook", new xcommand_t() {
-			public void execute() {
-				IN_KLookUp();
-			}
-		});
+			public void execute() {IN_KLookUp();}});
 
 		// TODO: nodelta wegmachen
-		cl_nodelta = Cvar.Get("cl_nodelta", "1", 0);
+		cl_nodelta = Cvar.Get("cl_nodelta", "1",0);
 	}
 
 	/*
@@ -666,16 +499,16 @@ public class CL_input extends CL_ents {
 
 		// save this command off for prediction
 		i = cls.netchan.outgoing_sequence & (CMD_BACKUP - 1);
+		
+		cl.cmd_time[i] = (int)cls.realtime; // for netgraph ping calculation
 
-		cl.cmd_time[i] = (int) cls.realtime; // for netgraph ping calculation
-
-		cl.cmds[i] = cmd = new usercmd_t(CL.CreateCmd());
+		cl.cmds[i] = cmd = CL.CreateCmd();
 
 		cl.cmd = new usercmd_t(cmd);
 
 		if (cls.state == ca_disconnected || cls.state == ca_connecting)
 			return;
-
+		
 		if (cls.state == ca_connected) {
 			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
 				Netchan.Transmit(cls.netchan, 0, new byte[0]);

@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.17 2004-02-02 21:19:39 hoz Exp $
+ * $Id: IN.java,v 1.18 2004-02-15 01:19:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,8 +45,6 @@ public final class IN extends Globals {
 	static boolean mouse_active = false;
 	static boolean ignorefirst = false;
 	
-	static float[] viewangles = cl.viewangles;
-
 	public static void ActivateMouse() {
 		//		if (!mouse_avail || c == null) return;
 		if (!mouse_active) {
@@ -111,9 +109,6 @@ public final class IN extends Globals {
 			RW.IN_Activate(true);
 
 		RW.IN_Frame();
-	}
-
-	public static void Activate(boolean active) {
 	}
 
 	public static void CenterView() {

@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.11 2004-02-02 21:19:39 hoz Exp $
+ * $Id: KBD.java,v 1.12 2004-02-15 01:19:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,18 +195,15 @@ public final class KBD {
 //	00700                 case XK_KP_Begin: key = K_KP_5; break;
 //	00701
 			case KeyEvent.VK_INSERT: key = Key.K_INS; break;
-
-			case KeyEvent.VK_MULTIPLY: key = '*'; break;
-			case KeyEvent.VK_PLUS: key = Key.K_KP_PLUS; break;
-			case KeyEvent.VK_MINUS: key = Key.K_KP_MINUS; break;
-			case KeyEvent.VK_DIVIDE: key = Key.K_KP_SLASH; break;
  
 			default:
 				key = ev.getKeyChar();
 				if (key >= 'A' && key <= 'Z')
 					key = key - 'A' + 'a';
 			break;
-		} 
+		}
+		if (key > 255) key = 0;
+
 		return key;
 	}	
 		

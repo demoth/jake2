@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.25 2004-02-15 00:58:00 rst Exp $
+ * $Id: Key.java,v 1.26 2004-02-15 01:19:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -302,7 +302,6 @@ public class Key extends Globals {
 
 		// update auto-repeat status
 		if (down) {
-			// TODO: REMOVE NULLPOINTER !!! 
 			key_repeats[key]++;
 			if (key != K_BACKSPACE
 				&& key != K_PAUSE
@@ -317,17 +316,6 @@ public class Key extends Globals {
 				Com.Printf(Key.KeynumToString(key) + " is unbound, hit F4 to set.\n");
 		}
 		else {
-// TODO: 
-//java.lang.ArrayIndexOutOfBoundsException: 65535
-//	at jake2.client.Key.Event(Key.java:320)
-//	at jake2.sys.KBD.Do_Key_Event(KBD.java:214)
-//	at jake2.sys.KBD.HandleEvents(KBD.java:77)
-//	at jake2.sys.KBD.Update(KBD.java:63)
-//	at jake2.sys.Sys.SendKeyEvents(Sys.java:254)
-//	at jake2.client.CL_main.SendCommand(CL_main.java:1461)
-//	at jake2.client.CL_main.Frame(CL_main.java:1522)
-//	at jake2.qcommon.Qcommon.Frame(Qcommon.java:294)
-//	at jake2.Jake2.main(Jake2.java:100)
 			key_repeats[key] = 0;
 		}
 

@@ -2,7 +2,7 @@
  * RW.java
  * Copyright (C) 2004
  * 
- * $Id: RW.java,v 1.3 2004-02-14 20:27:51 rst Exp $
+ * $Id: RW.java,v 1.4 2004-02-15 01:19:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -81,7 +81,7 @@ public final class RW extends Globals {
 	}
 	
 	static void Force_CenterView_f() {
-		IN.viewangles[PITCH] = 0;
+		cl.viewangles[PITCH] = 0;
 	}
 	 
 	public static void IN_Shutdown() {
@@ -132,17 +132,17 @@ public final class RW extends Globals {
 		old_mouse_y = KBD.my;
 
 		KBD.mx = (int)(KBD.mx * sensitivity.value);
-		// bugfix rst
 		KBD.my = (int)(KBD.my * sensitivity.value);
 
 		// add mouse X/Y movement to cmd
-		if ( (CL.in_strafe.state & 1) != 0 || ((lookstrafe.value != 0) && mlooking ))
+		if ( (CL.in_strafe.state & 1) != 0 || ((lookstrafe.value != 0) && mlooking )) {
 			cmd.sidemove += m_side.value * KBD.mx;
-		else
-			IN.viewangles[YAW] -= m_yaw.value * KBD.mx;
+		} else {
+			cl.viewangles[YAW] -= m_yaw.value * KBD.mx;
+		}
 
 		if ( (mlooking || freelook.value != 0.0f) && (CL.in_strafe.state & 1) == 0) {
-			IN.viewangles[PITCH] += m_pitch.value * KBD.my;
+			cl.viewangles[PITCH] += m_pitch.value * KBD.my;
 		} else {
 			cmd.forwardmove -= m_forward.value * KBD.my;
 		}
