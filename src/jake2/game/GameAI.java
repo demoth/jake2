@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.5 2003-12-04 21:04:35 rst Exp $
+// $Id: GameAI.java,v 1.6 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.util.*;
 
 import java.util.*;
 
@@ -56,8 +57,8 @@ public class GameAI extends GameUtil {
 			int n;
 
 			self.think= BossExplode;
-			VectorCopy(self.s.origin, org);
-			org[2] += 24 + (rand() & 15);
+			Math3D.VectorCopy(self.s.origin, org);
+			org[2] += 24 + (Lib.rand() & 15);
 			switch (self.count++) {
 				case 0 :
 					org[0] -= 24;
@@ -294,299 +295,17 @@ public class GameAI extends GameUtil {
 		self.monsterinfo.attack_finished= level.time + time;
 	}
 
-	public static void M_CatagorizePosition(edict_t ent) {
-		float[] point= { 0, 0, 0 };
-		int cont;
-
-		//
-		//	get waterlevel
-		//
-		point[0]= ent.s.origin[0];
-		point[1]= ent.s.origin[1];
-		point[2]= ent.s.origin[2] + ent.mins[2] + 1;
-		cont= gi.pointcontents(point);
-
-		if (0 == (cont & MASK_WATER)) {
-			ent.waterlevel= 0;
-			ent.watertype= 0;
-			return;
-		}
-
-		ent.watertype= cont;
-		ent.waterlevel= 1;
-		point[2] += 26;
-		cont= gi.pointcontents(point);
-		if (0 == (cont & MASK_WATER))
-			return;
-
-		ent.waterlevel= 2;
-		point[2] += 22;
-		cont= gi.pointcontents(point);
-		if (0 != (cont & MASK_WATER))
-			ent.waterlevel= 3;
-	}
-
-	public static void M_WorldEffects(edict_t ent) {
-		int dmg;
-
-		if (ent.health > 0) {
-			if (0 == (ent.flags & FL_SWIM)) {
-				if (ent.waterlevel < 3) {
-					ent.air_finished= level.time + 12;
-				} else if (ent.air_finished < level.time) {
-					// drown!
-					if (ent.pain_debounce_time < level.time) {
-						dmg=
-							(int) (2f
-								+ 2f * Math.floor(level.time - ent.air_finished));
-						if (dmg > 15)
-							dmg= 15;
-						T_Damage(
-							ent,
-							g_edicts[0],
-							g_edicts[0],
-							vec3_origin,
-							ent.s.origin,
-							vec3_origin,
-							dmg,
-							0,
-							DAMAGE_NO_ARMOR,
-							MOD_WATER);
-						ent.pain_debounce_time= level.time + 1;
-					}
-				}
-			} else {
-				if (ent.waterlevel > 0) {
-					ent.air_finished= level.time + 9;
-				} else if (ent.air_finished < level.time) {
-					// suffocate!
-					if (ent.pain_debounce_time < level.time) {
-						dmg=
-							(int) (2
-								+ 2 * Math.floor(level.time - ent.air_finished));
-						if (dmg > 15)
-							dmg= 15;
-						T_Damage(
-							ent,
-							g_edicts[0],
-							g_edicts[0],
-							vec3_origin,
-							ent.s.origin,
-							vec3_origin,
-							dmg,
-							0,
-							DAMAGE_NO_ARMOR,
-							MOD_WATER);
-						ent.pain_debounce_time= level.time + 1;
-					}
-				}
-			}
-		}
-
-		if (ent.waterlevel == 0) {
-			if ((ent.flags & FL_INWATER) != 0) {
-				gi.sound(
-					ent,
-					CHAN_BODY,
-					gi.soundindex("player/watr_out.wav"),
-					1,
-					ATTN_NORM,
-					0);
-				ent.flags &= ~FL_INWATER;
-			}
-			return;
-		}
-
-		if ((ent.watertype & CONTENTS_LAVA) != 0
-			&& 0 == (ent.flags & FL_IMMUNE_LAVA)) {
-			if (ent.damage_debounce_time < level.time) {
-				ent.damage_debounce_time= level.time + 0.2f;
-				T_Damage(
-					ent,
-					g_edicts[0],
-					g_edicts[0],
-					vec3_origin,
-					ent.s.origin,
-					vec3_origin,
-					10 * ent.waterlevel,
-					0,
-					0,
-					MOD_LAVA);
-			}
-		}
-		if ((ent.watertype & CONTENTS_SLIME) != 0
-			&& 0 == (ent.flags & FL_IMMUNE_SLIME)) {
-			if (ent.damage_debounce_time < level.time) {
-				ent.damage_debounce_time= level.time + 1;
-				T_Damage(
-					ent,
-					g_edicts[0],
-					g_edicts[0],
-					vec3_origin,
-					ent.s.origin,
-					vec3_origin,
-					4 * ent.waterlevel,
-					0,
-					0,
-					MOD_SLIME);
-			}
-		}
-
-		if (0 == (ent.flags & FL_INWATER)) {
-			if (0 == (ent.svflags & SVF_DEADMONSTER)) {
-				if ((ent.watertype & CONTENTS_LAVA) != 0)
-					if (random() <= 0.5)
-						gi.sound(
-							ent,
-							CHAN_BODY,
-							gi.soundindex("player/lava1.wav"),
-							1,
-							ATTN_NORM,
-							0);
-					else
-						gi.sound(
-							ent,
-							CHAN_BODY,
-							gi.soundindex("player/lava2.wav"),
-							1,
-							ATTN_NORM,
-							0);
-				else if ((ent.watertype & CONTENTS_SLIME) != 0)
-					gi.sound(
-						ent,
-						CHAN_BODY,
-						gi.soundindex("player/watr_in.wav"),
-						1,
-						ATTN_NORM,
-						0);
-				else if ((ent.watertype & CONTENTS_WATER) != 0)
-					gi.sound(
-						ent,
-						CHAN_BODY,
-						gi.soundindex("player/watr_in.wav"),
-						1,
-						ATTN_NORM,
-						0);
-			}
-
-			ent.flags |= FL_INWATER;
-			ent.damage_debounce_time= 0;
-		}
-	}
-
-	public static void M_droptofloor(edict_t ent) {
-		float[] end= { 0, 0, 0 };
-		trace_t trace;
-
-		ent.s.origin[2] += 1;
-		VectorCopy(ent.s.origin, end);
-		end[2] -= 256;
-
-		trace=
-			gi.trace(
-				ent.s.origin,
-				ent.mins,
-				ent.maxs,
-				end,
-				ent,
-				MASK_MONSTERSOLID);
-
-		if (trace.fraction == 1 || trace.allsolid)
-			return;
-
-		VectorCopy(trace.endpos, ent.s.origin);
-
-		gi.linkentity(ent);
-		M.M_CheckGround(ent);
-		M_CatagorizePosition(ent);
-	}
-
-	public static void M_SetEffects(edict_t ent) {
-		ent.s.effects &= ~(EF_COLOR_SHELL | EF_POWERSCREEN);
-		ent.s.renderfx &= ~(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE);
-
-		if ((ent.monsterinfo.aiflags & AI_RESURRECTING) != 0) {
-			ent.s.effects |= EF_COLOR_SHELL;
-			ent.s.renderfx |= RF_SHELL_RED;
-		}
-
-		if (ent.health <= 0)
-			return;
-
-		if (ent.powerarmor_time > level.time) {
-			if (ent.monsterinfo.power_armor_type == POWER_ARMOR_SCREEN) {
-				ent.s.effects |= EF_POWERSCREEN;
-			} else if (
-				ent.monsterinfo.power_armor_type == POWER_ARMOR_SHIELD) {
-				ent.s.effects |= EF_COLOR_SHELL;
-				ent.s.renderfx |= RF_SHELL_GREEN;
-			}
-		}
-	}
-
-	public static void M_MoveFrame(edict_t self) {
-		mmove_t move;
-		int index;
-
-		move= self.monsterinfo.currentmove;
-		self.nextthink= level.time + FRAMETIME;
-
-		if ((self.monsterinfo.nextframe != 0)
-			&& (self.monsterinfo.nextframe >= move.firstframe)
-			&& (self.monsterinfo.nextframe <= move.lastframe)) {
-			self.s.frame= self.monsterinfo.nextframe;
-			self.monsterinfo.nextframe= 0;
-		} else {
-			if (self.s.frame == move.lastframe) {
-				if (move.endfunc != null) {
-					move.endfunc.think(self);
-
-					// regrab move, endfunc is very likely to change it
-					move= self.monsterinfo.currentmove;
-
-					// check for death
-					if ((self.svflags & SVF_DEADMONSTER) != 0)
-						return;
-				}
-			}
-
-			if (self.s.frame < move.firstframe
-				|| self.s.frame > move.lastframe) {
-				self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
-				self.s.frame= move.firstframe;
-			} else {
-				if (0 == (self.monsterinfo.aiflags & AI_HOLD_FRAME)) {
-					self.s.frame++;
-					if (self.s.frame > move.lastframe)
-						self.s.frame= move.firstframe;
-				}
-			}
-		}
-
-		index= self.s.frame - move.firstframe;
-		if (move.frame[index].ai != null)
-			if (0 == (self.monsterinfo.aiflags & AI_HOLD_FRAME))
-				move.frame[index].ai.ai(
-					self,
-					move.frame[index].dist * self.monsterinfo.scale);
-			else
-				move.frame[index].ai.ai(self, 0);
-
-		if (move.frame[index].think != null)
-			move.frame[index].think.think(self);
-	}
-
 	public static EntThinkAdapter monster_think= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 
-			M_MoveFrame(self);
+			M.M_MoveFrame(self);
 			if (self.linkcount != self.monsterinfo.linkcount) {
 				self.monsterinfo.linkcount= self.linkcount;
 				M.M_CheckGround(self);
 			}
-			M_CatagorizePosition(self);
-			M_WorldEffects(self);
-			M_SetEffects(self);
+			M.M_CatagorizePosition(self);
+			M.M_WorldEffects(self);
+			M.M_SetEffects(self);
 			return true;
 		}
 	};
@@ -688,7 +407,7 @@ public class GameAI extends GameUtil {
 
 		if (null == self.monsterinfo.checkattack)
 			self.monsterinfo.checkattack= M_CheckAttack;
-		VectorCopy(self.s.origin, self.s.old_origin);
+		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
 		if (st.item != null) {
 			self.item= FindItemByClassname(st.item);
@@ -696,7 +415,7 @@ public class GameAI extends GameUtil {
 				gi.dprintf(
 					self.classname
 						+ " at "
-						+ vtos(self.s.origin)
+						+ Lib.vtos(self.s.origin)
 						+ " has bad item: "
 						+ st.item
 						+ "\n");
@@ -706,7 +425,7 @@ public class GameAI extends GameUtil {
 		if (self.monsterinfo.currentmove != null)
 			self.s.frame=
 				self.monsterinfo.currentmove.firstframe
-					+ (rand()
+					+ (Lib.rand()
 						% (self.monsterinfo.currentmove.lastframe
 							- self.monsterinfo.currentmove.firstframe
 							+ 1));
@@ -732,7 +451,7 @@ public class GameAI extends GameUtil {
 
 			while ((edit= G_Find(edit, findByTarget, self.target)) != null) {
 				target= edit.o;
-				if (strcmp(target.classname, "point_combat") == 0) {
+				if (Lib.strcmp(target.classname, "point_combat") == 0) {
 					self.combattarget= self.target;
 					fixup= true;
 				} else {
@@ -743,7 +462,7 @@ public class GameAI extends GameUtil {
 				gi.dprintf(
 					self.classname
 						+ " at "
-						+ vtos(self.s.origin)
+						+ Lib.vtos(self.s.origin)
 						+ " has target with mixed types\n");
 			if (fixup)
 				self.target= null;
@@ -758,17 +477,17 @@ public class GameAI extends GameUtil {
 				!= null) {
 				target= edit.o;
 
-				if (strcmp(target.classname, "point_combat") != 0) {
+				if (Lib.strcmp(target.classname, "point_combat") != 0) {
 					gi.dprintf(
 						self.classname
 							+ " at "
-							+ vtos(self.s.origin)
+							+ Lib.vtos(self.s.origin)
 							+ " has bad combattarget "
 							+ self.combattarget
 							+ " : "
 							+ target.classname
 							+ " at "
-							+ vtos(target.s.origin));
+							+ Lib.vtos(target.s.origin));
 				}
 			}
 		}
@@ -781,14 +500,14 @@ public class GameAI extends GameUtil {
 						+ " can't find target "
 						+ self.target
 						+ " at "
-						+ vtos(self.s.origin)
+						+ Lib.vtos(self.s.origin)
 						+ "\n");
 				self.target= null;
 				self.monsterinfo.pausetime= 100000000;
 				self.monsterinfo.stand.think(self);
-			} else if (strcmp(self.movetarget.classname, "path_corner") == 0) {
-				VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
-				self.ideal_yaw= self.s.angles[YAW]= vectoyaw(v);
+			} else if (Lib.strcmp(self.movetarget.classname, "path_corner") == 0) {
+				Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
+				self.ideal_yaw= self.s.angles[YAW]= Math3D.vectoyaw(v);
 				self.monsterinfo.walk.think(self);
 				self.target= null;
 			} else {
@@ -821,14 +540,14 @@ public class GameAI extends GameUtil {
 		public boolean think(edict_t self) {
 
 			if (0 == (self.spawnflags & 2) && level.time < 1) {
-				M_droptofloor(self);
+				M.M_droptofloor(self);
 
 				if (self.groundentity != null)
 					if (!M.M_walkmove(self, 0, 0))
 						gi.dprintf(
 							self.classname
 								+ " in solid at "
-								+ vtos(self.s.origin)
+								+ Lib.vtos(self.s.origin)
 								+ "\n");
 			}
 
@@ -859,7 +578,7 @@ public class GameAI extends GameUtil {
 				gi.dprintf(
 					self.classname
 						+ " in solid at "
-						+ vtos(self.s.origin)
+						+ Lib.vtos(self.s.origin)
 						+ "\n");
 
 			if (0 == self.yaw_speed)
@@ -962,9 +681,9 @@ public class GameAI extends GameUtil {
 				&& (level.time > self.monsterinfo.idle_time)) {
 				if (self.monsterinfo.idle_time != 0) {
 					self.monsterinfo.search.think(self);
-					self.monsterinfo.idle_time= level.time + 15 + random() * 15;
+					self.monsterinfo.idle_time= level.time + 15 + Lib.random() * 15;
 				} else {
-					self.monsterinfo.idle_time= level.time + random() * 15;
+					self.monsterinfo.idle_time= level.time + Lib.random() * 15;
 				}
 			}
 		}
@@ -988,8 +707,8 @@ public class GameAI extends GameUtil {
 
 			if ((self.monsterinfo.aiflags & AI_STAND_GROUND) != 0) {
 				if (self.enemy != null) {
-					VectorSubtract(self.enemy.s.origin, self.s.origin, v);
-					self.ideal_yaw= vectoyaw(v);
+					Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
+					self.ideal_yaw= Math3D.vectoyaw(v);
 					if (self.s.angles[YAW] != self.ideal_yaw
 						&& 0
 							!= (self.monsterinfo.aiflags
@@ -1018,9 +737,9 @@ public class GameAI extends GameUtil {
 				&& (level.time > self.monsterinfo.idle_time)) {
 				if (self.monsterinfo.idle_time != 0) {
 					self.monsterinfo.idle.think(self);
-					self.monsterinfo.idle_time= level.time + 15 + random() * 15;
+					self.monsterinfo.idle_time= level.time + 15 + Lib.random() * 15;
 				} else {
-					self.monsterinfo.idle_time= level.time + random() * 15;
+					self.monsterinfo.idle_time= level.time + Lib.random() * 15;
 				}
 			}
 		}
@@ -1039,8 +758,8 @@ public class GameAI extends GameUtil {
 		public void ai(edict_t self, float dist) {
 			float[] v= { 0, 0, 0 };
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, v);
-			self.ideal_yaw= vectoyaw(v);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
+			self.ideal_yaw= Math3D.vectoyaw(v);
 			M.M_ChangeYaw(self);
 
 			if (dist != 0)
@@ -1102,7 +821,7 @@ public class GameAI extends GameUtil {
 	public static boolean FacingIdeal(edict_t self) {
 		float delta;
 
-		delta= anglemod(self.s.angles[YAW] - self.ideal_yaw);
+		delta= Math3D.anglemod(self.s.angles[YAW] - self.ideal_yaw);
 		if (delta > 45 && delta < 315)
 			return false;
 		return true;
@@ -1253,7 +972,7 @@ public class GameAI extends GameUtil {
 		enemy_vis= visible(self, self.enemy);
 		if (enemy_vis) {
 			self.monsterinfo.search_time= level.time + 5;
-			VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
+			Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
 		}
 
 		//	   look for other coop players here
@@ -1265,8 +984,8 @@ public class GameAI extends GameUtil {
 
 		enemy_infront= infront(self, self.enemy);
 		enemy_range= range(self, self.enemy);
-		VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-		enemy_yaw= vectoyaw(temp);
+		Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
+		enemy_yaw= Math3D.vectoyaw(temp);
 
 		// JDC self.ideal_yaw = enemy_yaw;
 
@@ -1314,8 +1033,8 @@ public class GameAI extends GameUtil {
 			}
 
 			if ((self.monsterinfo.aiflags & AI_SOUND_TARGET) != 0) {
-				VectorSubtract(self.s.origin, self.enemy.s.origin, v);
-				if (VectorLength(v) < 64) {
+				Math3D.VectorSubtract(self.s.origin, self.enemy.s.origin, v);
+				if (Math3D.VectorLength(v) < 64) {
 					self.monsterinfo.aiflags
 						|= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
 					self.monsterinfo.stand.think(self);
@@ -1341,7 +1060,7 @@ public class GameAI extends GameUtil {
 				//				dprint("regained sight\n");
 				M.M_MoveToGoal(self, dist);
 				self.monsterinfo.aiflags &= ~AI_LOST_SIGHT;
-				VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
+				Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
 				self.monsterinfo.trail_time= level.time;
 				return;
 			}
@@ -1387,7 +1106,7 @@ public class GameAI extends GameUtil {
 					//				dprint("was temp goal; retrying original\n");
 					self.monsterinfo.aiflags &= ~AI_PURSUE_TEMP;
 					marker= null;
-					VectorCopy(
+					Math3D.VectorCopy(
 						self.monsterinfo.saved_goal,
 						self.monsterinfo.last_sighting);
 					new1= true;
@@ -1400,7 +1119,7 @@ public class GameAI extends GameUtil {
 				}
 
 				if (marker != null) {
-					VectorCopy(marker.s.origin, self.monsterinfo.last_sighting);
+					Math3D.VectorCopy(marker.s.origin, self.monsterinfo.last_sighting);
 					self.monsterinfo.trail_time= marker.timestamp;
 					self.s.angles[YAW]= self.ideal_yaw= marker.s.angles[YAW];
 					//				dprint("heading is "); dprint(ftos(self.ideal_yaw)); dprint("\n");
@@ -1410,14 +1129,14 @@ public class GameAI extends GameUtil {
 				}
 			}
 
-			VectorSubtract(self.s.origin, self.monsterinfo.last_sighting, v);
-			d1= VectorLength(v);
+			Math3D.VectorSubtract(self.s.origin, self.monsterinfo.last_sighting, v);
+			d1= Math3D.VectorLength(v);
 			if (d1 <= dist) {
 				self.monsterinfo.aiflags |= AI_PURSUE_NEXT;
 				dist= d1;
 			}
 
-			VectorCopy(
+			Math3D.VectorCopy(
 				self.monsterinfo.last_sighting,
 				self.goalentity.s.origin);
 
@@ -1433,15 +1152,15 @@ public class GameAI extends GameUtil {
 						self,
 						MASK_PLAYERSOLID);
 				if (tr.fraction < 1) {
-					VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
-					d1= VectorLength(v);
+					Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
+					d1= Math3D.VectorLength(v);
 					center= tr.fraction;
 					d2= d1 * ((center + 1) / 2);
-					self.s.angles[YAW]= self.ideal_yaw= vectoyaw(v);
-					AngleVectors(self.s.angles, v_forward, v_right, null);
+					self.s.angles[YAW]= self.ideal_yaw= Math3D.vectoyaw(v);
+					Math3D.AngleVectors(self.s.angles, v_forward, v_right, null);
 
-					VectorSet(v, d2, -16, 0);
-					G_ProjectSource(
+					Math3D.VectorSet(v, d2, -16, 0);
+					Math3D.G_ProjectSource(
 						self.s.origin,
 						v,
 						v_forward,
@@ -1457,8 +1176,8 @@ public class GameAI extends GameUtil {
 							MASK_PLAYERSOLID);
 					left= tr.fraction;
 
-					VectorSet(v, d2, 16, 0);
-					G_ProjectSource(
+					Math3D.VectorSet(v, d2, 16, 0);
+					Math3D.G_ProjectSource(
 						self.s.origin,
 						v,
 						v_forward,
@@ -1477,8 +1196,8 @@ public class GameAI extends GameUtil {
 					center= (d1 * center) / d2;
 					if (left >= center && left > right) {
 						if (left < 1) {
-							VectorSet(v, d2 * left * 0.5f, -16f, 0f);
-							G_ProjectSource(
+							Math3D.VectorSet(v, d2 * left * 0.5f, -16f, 0f);
+							Math3D.G_ProjectSource(
 								self.s.origin,
 								v,
 								v_forward,
@@ -1486,23 +1205,23 @@ public class GameAI extends GameUtil {
 								left_target);
 							//						gi.dprintf("incomplete path, go part way and adjust again\n");
 						}
-						VectorCopy(
+						Math3D.VectorCopy(
 							self.monsterinfo.last_sighting,
 							self.monsterinfo.saved_goal);
 						self.monsterinfo.aiflags |= AI_PURSUE_TEMP;
-						VectorCopy(left_target, self.goalentity.s.origin);
-						VectorCopy(left_target, self.monsterinfo.last_sighting);
-						VectorSubtract(
+						Math3D.VectorCopy(left_target, self.goalentity.s.origin);
+						Math3D.VectorCopy(left_target, self.monsterinfo.last_sighting);
+						Math3D.VectorSubtract(
 							self.goalentity.s.origin,
 							self.s.origin,
 							v);
-						self.s.angles[YAW]= self.ideal_yaw= vectoyaw(v);
+						self.s.angles[YAW]= self.ideal_yaw= Math3D.vectoyaw(v);
 						//					gi.dprintf("adjusted left\n");
 						//					debug_drawline(self.origin, self.last_sighting, 152);
 					} else if (right >= center && right > left) {
 						if (right < 1) {
-							VectorSet(v, d2 * right * 0.5f, 16f, 0f);
-							G_ProjectSource(
+							Math3D.VectorSet(v, d2 * right * 0.5f, 16f, 0f);
+							Math3D.G_ProjectSource(
 								self.s.origin,
 								v,
 								v_forward,
@@ -1510,19 +1229,19 @@ public class GameAI extends GameUtil {
 								right_target);
 							//						gi.dprintf("incomplete path, go part way and adjust again\n");
 						}
-						VectorCopy(
+						Math3D.VectorCopy(
 							self.monsterinfo.last_sighting,
 							self.monsterinfo.saved_goal);
 						self.monsterinfo.aiflags |= AI_PURSUE_TEMP;
-						VectorCopy(right_target, self.goalentity.s.origin);
-						VectorCopy(
+						Math3D.VectorCopy(right_target, self.goalentity.s.origin);
+						Math3D.VectorCopy(
 							right_target,
 							self.monsterinfo.last_sighting);
-						VectorSubtract(
+						Math3D.VectorSubtract(
 							self.goalentity.s.origin,
 							self.s.origin,
 							v);
-						self.s.angles[YAW]= self.ideal_yaw= vectoyaw(v);
+						self.s.angles[YAW]= self.ideal_yaw= Math3D.vectoyaw(v);
 						//					gi.dprintf("adjusted right\n");
 						//					debug_drawline(self.origin, self.last_sighting, 152);
 					}
@@ -1562,17 +1281,17 @@ public class GameAI extends GameUtil {
 
 		targ= ent.client.chase_target;
 
-		VectorCopy(targ.s.origin, ownerv);
-		VectorCopy(ent.s.origin, oldgoal);
+		Math3D.VectorCopy(targ.s.origin, ownerv);
+		Math3D.VectorCopy(ent.s.origin, oldgoal);
 
 		ownerv[2] += targ.viewheight;
 
-		VectorCopy(targ.client.v_angle, angles);
+		Math3D.VectorCopy(targ.client.v_angle, angles);
 		if (angles[PITCH] > 56)
 			angles[PITCH]= 56;
-		AngleVectors(angles, forward, right, null);
-		VectorNormalize(forward);
-		VectorMA(ownerv, -30, forward, o);
+		Math3D.AngleVectors(angles, forward, right, null);
+		Math3D.VectorNormalize(forward);
+		Math3D.VectorMA(ownerv, -30, forward, o);
 
 		if (o[2] < targ.s.origin[2] + 20)
 			o[2]= targ.s.origin[2] + 20;
@@ -1583,24 +1302,24 @@ public class GameAI extends GameUtil {
 
 		trace= gi.trace(ownerv, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 
-		VectorCopy(trace.endpos, goal);
+		Math3D.VectorCopy(trace.endpos, goal);
 
-		VectorMA(goal, 2, forward, goal);
+		Math3D.VectorMA(goal, 2, forward, goal);
 
 		// pad for floors and ceilings
-		VectorCopy(goal, o);
+		Math3D.VectorCopy(goal, o);
 		o[2] += 6;
 		trace= gi.trace(goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 		if (trace.fraction < 1) {
-			VectorCopy(trace.endpos, goal);
+			Math3D.VectorCopy(trace.endpos, goal);
 			goal[2] -= 6;
 		}
 
-		VectorCopy(goal, o);
+		Math3D.VectorCopy(goal, o);
 		o[2] -= 6;
 		trace= gi.trace(goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 		if (trace.fraction < 1) {
-			VectorCopy(trace.endpos, goal);
+			Math3D.VectorCopy(trace.endpos, goal);
 			goal[2] += 6;
 		}
 
@@ -1609,10 +1328,10 @@ public class GameAI extends GameUtil {
 		else
 			ent.client.ps.pmove.pm_type= PM_FREEZE;
 
-		VectorCopy(goal, ent.s.origin);
+		Math3D.VectorCopy(goal, ent.s.origin);
 		for (i= 0; i < 3; i++)
 			ent.client.ps.pmove.delta_angles[i]=
-				(short) ANGLE2SHORT(targ.client.v_angle[i]
+				(short) Math3D.ANGLE2SHORT(targ.client.v_angle[i]
 					- ent.client.resp.cmd_angles[i]);
 
 		if (targ.deadflag != 0) {
@@ -1620,8 +1339,8 @@ public class GameAI extends GameUtil {
 			ent.client.ps.viewangles[PITCH]= -15;
 			ent.client.ps.viewangles[YAW]= targ.client.killer_yaw;
 		} else {
-			VectorCopy(targ.client.v_angle, ent.client.ps.viewangles);
-			VectorCopy(targ.client.v_angle, ent.client.v_angle);
+			Math3D.VectorCopy(targ.client.v_angle, ent.client.ps.viewangles);
+			Math3D.VectorCopy(targ.client.v_angle, ent.client.v_angle);
 		}
 
 		ent.viewheight= 0;
@@ -1784,16 +1503,6 @@ public class GameAI extends GameUtil {
 			return; // valid
 
 		SelectNextItem(ent, -1);
-	}
-
-	//	  =================================================================================
-
-	public static int atoi(String in) {
-		try {
-			return Integer.parseInt(in);
-		} catch (Exception e) {
-			return 0;
-		}
 	}
 
 	//======================================================================
@@ -2186,10 +1895,10 @@ public class GameAI extends GameUtil {
 
 			float v[];
 
-			v= tv(-15, -15, -15);
-			VectorCopy(v, ent.mins);
-			v= tv(15, 15, 15);
-			VectorCopy(v, ent.maxs);
+			v= Lib.tv(-15, -15, -15);
+			Math3D.VectorCopy(v, ent.mins);
+			v= Lib.tv(15, 15, 15);
+			Math3D.VectorCopy(v, ent.maxs);
 
 			if (ent.model != null)
 				gi.setmodel(ent, ent.model);
@@ -2199,8 +1908,8 @@ public class GameAI extends GameUtil {
 			ent.movetype= MOVETYPE_TOSS;
 			ent.touch= Touch_Item;
 
-			v= tv(0, 0, -128);
-			VectorAdd(ent.s.origin, v, dest);
+			v= Lib.tv(0, 0, -128);
+			Math3D.VectorAdd(ent.s.origin, v, dest);
 
 			tr=
 				gi.trace(
@@ -2215,13 +1924,13 @@ public class GameAI extends GameUtil {
 					"droptofloor: "
 						+ ent.classname
 						+ " startsolid at "
-						+ vtos(ent.s.origin)
+						+ Lib.vtos(ent.s.origin)
 						+ "\n");
 				G_FreeEdict(ent);
 				return true;
 			}
 
-			VectorCopy(tr.endpos, ent.s.origin);
+			Math3D.VectorCopy(tr.endpos, ent.s.origin);
 
 			if (ent.team != null) {
 				ent.flags &= ~FL_TEAMSLAVE;
@@ -2268,13 +1977,13 @@ public class GameAI extends GameUtil {
 		PrecacheItem(item);
 
 		if (ent.spawnflags != 0) {
-			if (strcmp(ent.classname, "key_power_cube") != 0) {
+			if (Lib.strcmp(ent.classname, "key_power_cube") != 0) {
 				ent.spawnflags= 0;
 				gi.dprintf(
 					""
 						+ ent.classname
 						+ " at "
-						+ vtos(ent.s.origin)
+						+ Lib.vtos(ent.s.origin)
 						+ " has invalid spawnflags set\n");
 			}
 		}
@@ -2304,7 +2013,7 @@ public class GameAI extends GameUtil {
 			}
 			if (((int) dmflags.value & DF_INFINITE_AMMO) != 0) {
 				if ((item.flags == IT_AMMO)
-					|| (strcmp(ent.classname, "weapon_bfg") == 0)) {
+					|| (Lib.strcmp(ent.classname, "weapon_bfg") == 0)) {
 					G_FreeEdict(ent);
 					return;
 				}
@@ -2312,7 +2021,7 @@ public class GameAI extends GameUtil {
 		}
 
 		if (coop.value != 0
-			&& (strcmp(ent.classname, "key_power_cube") == 0)) {
+			&& (Lib.strcmp(ent.classname, "key_power_cube") == 0)) {
 			ent.spawnflags |= (1 << (8 + level.power_cubes));
 			level.power_cubes++;
 		}
@@ -2446,10 +2155,10 @@ public class GameAI extends GameUtil {
 		edict_t world= g_edicts[0];
 
 		if (attacker != null && attacker != world && attacker != self) {
-			VectorSubtract(attacker.s.origin, self.s.origin, dir);
+			Math3D.VectorSubtract(attacker.s.origin, self.s.origin, dir);
 		} else if (
 			inflictor != null && inflictor != world && inflictor != self) {
-			VectorSubtract(inflictor.s.origin, self.s.origin, dir);
+			Math3D.VectorSubtract(inflictor.s.origin, self.s.origin, dir);
 		} else {
 			self.client.killer_yaw= self.s.angles[YAW];
 			return;
@@ -2482,7 +2191,7 @@ public class GameAI extends GameUtil {
 		item= self.client.pers.weapon;
 		if (0 == self.client.pers.inventory[self.client.ammo_index])
 			item= null;
-		if (item != null && (strcmp(item.pickup_name, "Blaster") == 0))
+		if (item != null && (Lib.strcmp(item.pickup_name, "Blaster") == 0))
 			item= null;
 
 		if (0 == ((int) (dmflags.value) & DF_QUAD_DROP))
@@ -2523,7 +2232,7 @@ public class GameAI extends GameUtil {
 
 			if (self.s.frame == 10) {
 				self.think= G_FreeEdictA;
-				self.nextthink= level.time + 8 + random() * 10;
+				self.nextthink= level.time + 8 + Lib.random() * 10;
 			}
 			return true;
 		}
@@ -2551,9 +2260,9 @@ public class GameAI extends GameUtil {
 					ATTN_NORM,
 					0);
 
-				vectoangles(plane.normal, normal_angles);
-				AngleVectors(normal_angles, null, right, null);
-				vectoangles(right, self.s.angles);
+				Math3D.vectoangles(plane.normal, normal_angles);
+				Math3D.AngleVectors(normal_angles, null, right, null);
+				Math3D.vectoangles(right, self.s.angles);
 
 				if (self.s.modelindex == sm_meat_index) {
 					self.s.frame++;
@@ -2589,11 +2298,11 @@ public class GameAI extends GameUtil {
 
 		gib= G_Spawn();
 
-		VectorScale(self.size, 0.5f, size);
-		VectorAdd(self.absmin, size, origin);
-		gib.s.origin[0]= origin[0] + crandom() * size[0];
-		gib.s.origin[1]= origin[1] + crandom() * size[1];
-		gib.s.origin[2]= origin[2] + crandom() * size[2];
+		Math3D.VectorScale(self.size, 0.5f, size);
+		Math3D.VectorAdd(self.absmin, size, origin);
+		gib.s.origin[0]= origin[0] + Lib.crandom() * size[0];
+		gib.s.origin[1]= origin[1] + Lib.crandom() * size[1];
+		gib.s.origin[2]= origin[2] + Lib.crandom() * size[2];
 
 		gi.setmodel(gib, gibname);
 		gib.solid= SOLID_NOT;
@@ -2612,14 +2321,14 @@ public class GameAI extends GameUtil {
 		}
 
 		VelocityForDamage(damage, vd);
-		VectorMA(self.velocity, vscale, vd, gib.velocity);
+		Math3D.VectorMA(self.velocity, vscale, vd, gib.velocity);
 		ClipGibVelocity(gib);
-		gib.avelocity[0]= random() * 600;
-		gib.avelocity[1]= random() * 600;
-		gib.avelocity[2]= random() * 600;
+		gib.avelocity[0]= Lib.random() * 600;
+		gib.avelocity[1]= Lib.random() * 600;
+		gib.avelocity[2]= Lib.random() * 600;
 
 		gib.think= G_FreeEdictA;
-		gib.nextthink= level.time + 10 + random() * 10;
+		gib.nextthink= level.time + 10 + Lib.random() * 10;
 
 		gi.linkentity(gib);
 	}
@@ -2635,8 +2344,8 @@ public class GameAI extends GameUtil {
 
 		self.s.skinnum= 0;
 		self.s.frame= 0;
-		VectorClear(self.mins);
-		VectorClear(self.maxs);
+		Math3D.VectorClear(self.mins);
+		Math3D.VectorClear(self.maxs);
 
 		self.s.modelindex2= 0;
 		gi.setmodel(self, gibname);
@@ -2659,26 +2368,26 @@ public class GameAI extends GameUtil {
 		}
 
 		VelocityForDamage(damage, vd);
-		VectorMA(self.velocity, vscale, vd, self.velocity);
+		Math3D.VectorMA(self.velocity, vscale, vd, self.velocity);
 		ClipGibVelocity(self);
 
-		self.avelocity[YAW]= crandom() * 600f;
+		self.avelocity[YAW]= Lib.crandom() * 600f;
 
 		self.think= G_FreeEdictA;
-		self.nextthink= level.time + 10 + random() * 10;
+		self.nextthink= level.time + 10 + Lib.random() * 10;
 
 		gi.linkentity(self);
 	}
 
 	public static void VelocityForDamage(int damage, float[] v) {
-		v[0]= 100.0f * crandom();
-		v[1]= 100.0f * crandom();
-		v[2]= 200.0f + 100.0f * random();
+		v[0]= 100.0f * Lib.crandom();
+		v[1]= 100.0f * Lib.crandom();
+		v[2]= 200.0f + 100.0f * Lib.random();
 
 		if (damage < 50)
-			VectorScale(v, 0.7f, v);
+			Math3D.VectorScale(v, 0.7f, v);
 		else
-			VectorScale(v, 1.2f, v);
+			Math3D.VectorScale(v, 1.2f, v);
 	}
 
 	public static void ClipGibVelocity(edict_t ent) {
@@ -2700,7 +2409,7 @@ public class GameAI extends GameUtil {
 		float vd[]= { 0, 0, 0 };
 		String gibname;
 
-		if ((rand() & 1) != 0) {
+		if ((Lib.rand() & 1) != 0) {
 			gibname= "models/objects/gibs/head2/tris.md2";
 			self.s.skinnum= 1; // second skin is player
 		} else {
@@ -2711,8 +2420,8 @@ public class GameAI extends GameUtil {
 		self.s.origin[2] += 32;
 		self.s.frame= 0;
 		gi.setmodel(self, gibname);
-		VectorSet(self.mins, -16, -16, 0);
-		VectorSet(self.maxs, 16, 16, 16);
+		Math3D.VectorSet(self.mins, -16, -16, 0);
+		Math3D.VectorSet(self.maxs, 16, 16, 16);
 
 		self.takedamage= DAMAGE_NO;
 		self.solid= SOLID_NOT;
@@ -2722,7 +2431,7 @@ public class GameAI extends GameUtil {
 
 		self.movetype= MOVETYPE_BOUNCE;
 		VelocityForDamage(damage, vd);
-		VectorAdd(self.velocity, vd, self.velocity);
+		Math3D.VectorAdd(self.velocity, vd, self.velocity);
 
 		if (self.client != null)
 			// bodies in the queue don't have a client anymore
@@ -2763,19 +2472,19 @@ public class GameAI extends GameUtil {
 		float[] v= { 0, 0, 0 };
 
 		chunk= G_Spawn();
-		VectorCopy(origin, chunk.s.origin);
+		Math3D.VectorCopy(origin, chunk.s.origin);
 		gi.setmodel(chunk, modelname);
-		v[0]= 100 * crandom();
-		v[1]= 100 * crandom();
-		v[2]= 100 + 100 * crandom();
-		VectorMA(self.velocity, speed, v, chunk.velocity);
+		v[0]= 100 * Lib.crandom();
+		v[1]= 100 * Lib.crandom();
+		v[2]= 100 + 100 * Lib.crandom();
+		Math3D.VectorMA(self.velocity, speed, v, chunk.velocity);
 		chunk.movetype= MOVETYPE_BOUNCE;
 		chunk.solid= SOLID_NOT;
-		chunk.avelocity[0]= random() * 600;
-		chunk.avelocity[1]= random() * 600;
-		chunk.avelocity[2]= random() * 600;
+		chunk.avelocity[0]= Lib.random() * 600;
+		chunk.avelocity[1]= Lib.random() * 600;
+		chunk.avelocity[2]= Lib.random() * 600;
 		chunk.think= G_FreeEdictA;
-		chunk.nextthink= level.time + 5 + random() * 5;
+		chunk.nextthink= level.time + 5 + Lib.random() * 5;
 		chunk.s.frame= 0;
 		chunk.flags= 0;
 		chunk.classname= "debris";
@@ -3075,7 +2784,7 @@ public class GameAI extends GameUtil {
 		// print level name and exit rules
 		string= "";
 
-		stringlength= strlen(string);
+		stringlength= Lib.strlen(string);
 
 		// add the clients in sorted order
 		if (total > 12)
@@ -3098,7 +2807,7 @@ public class GameAI extends GameUtil {
 				tag= null;
 			if (tag != null) {
 				entry= "xv " + (x + 32) + " yv " + y + " picn " + tag + " ";
-				j= strlen(entry);
+				j= Lib.strlen(entry);
 				if (stringlength + j > 1024)
 					break;
 
@@ -3124,7 +2833,7 @@ public class GameAI extends GameUtil {
 					+ (level.framenum - cl.resp.enterframe) / 600f
 					+ " ";
 
-			j= strlen(entry);
+			j= Lib.strlen(entry);
 
 			if (stringlength + j > 1024)
 				break;
@@ -3212,7 +2921,7 @@ public class GameAI extends GameUtil {
 		float[] point) {
 		int n;
 
-		VectorClear(self.avelocity);
+		Math3D.VectorClear(self.avelocity);
 
 		self.takedamage= DAMAGE_YES;
 		self.movetype= MOVETYPE_TOSS;
@@ -3301,7 +3010,7 @@ public class GameAI extends GameUtil {
 				gi.sound(
 					self,
 					CHAN_VOICE,
-					gi.soundindex("*death" + ((rand() % 4) + 1) + ".wav"),
+					gi.soundindex("*death" + ((Lib.rand() % 4) + 1) + ".wav"),
 					1,
 					ATTN_NORM,
 					0);
@@ -3329,14 +3038,6 @@ public class GameAI extends GameUtil {
 		}
 	};
 
-	public static int strlen(String in) {
-		return in.length();
-	}
-
-	public static void strcat(String in, String i) {
-		in += i;
-	}
-
 	/** 
 	 * Processes the commands the player enters in the quake console. 
 	 * 
@@ -3349,23 +3050,23 @@ public class GameAI extends GameUtil {
 
 		cmd= gi.argv(0);
 
-		if (Q_stricmp(cmd, "players") == 0) {
+		if (Lib.Q_stricmp(cmd, "players") == 0) {
 			Cmd.Players_f(ent);
 			return;
 		}
-		if (Q_stricmp(cmd, "say") == 0) {
+		if (Lib.Q_stricmp(cmd, "say") == 0) {
 			Cmd.Say_f(ent, false, false);
 			return;
 		}
-		if (Q_stricmp(cmd, "say_team") == 0) {
+		if (Lib.Q_stricmp(cmd, "say_team") == 0) {
 			Cmd.Say_f(ent, true, false);
 			return;
 		}
-		if (Q_stricmp(cmd, "score") == 0) {
+		if (Lib.Q_stricmp(cmd, "score") == 0) {
 			Cmd.Score_f(ent);
 			return;
 		}
-		if (Q_stricmp(cmd, "help") == 0) {
+		if (Lib.Q_stricmp(cmd, "help") == 0) {
 			Cmd.Help_f(ent);
 			return;
 		}
@@ -3373,49 +3074,49 @@ public class GameAI extends GameUtil {
 		if (level.intermissiontime != 0)
 			return;
 
-		if (Q_stricmp(cmd, "use") == 0)
+		if (Lib.Q_stricmp(cmd, "use") == 0)
 			Cmd.Use_f(ent);
-		else if (Q_stricmp(cmd, "drop") == 0)
+		else if (Lib.Q_stricmp(cmd, "drop") == 0)
 			Cmd.Drop_f(ent);
-		else if (Q_stricmp(cmd, "give") == 0)
+		else if (Lib.Q_stricmp(cmd, "give") == 0)
 			Cmd.Give_f(ent);
-		else if (Q_stricmp(cmd, "god") == 0)
+		else if (Lib.Q_stricmp(cmd, "god") == 0)
 			Cmd.God_f(ent);
-		else if (Q_stricmp(cmd, "notarget") == 0)
+		else if (Lib.Q_stricmp(cmd, "notarget") == 0)
 			Cmd.Notarget_f(ent);
-		else if (Q_stricmp(cmd, "noclip") == 0)
+		else if (Lib.Q_stricmp(cmd, "noclip") == 0)
 			Cmd.Noclip_f(ent);
-		else if (Q_stricmp(cmd, "inven") == 0)
+		else if (Lib.Q_stricmp(cmd, "inven") == 0)
 			Cmd.Inven_f(ent);
-		else if (Q_stricmp(cmd, "invnext") == 0)
+		else if (Lib.Q_stricmp(cmd, "invnext") == 0)
 			SelectNextItem(ent, -1);
-		else if (Q_stricmp(cmd, "invprev") == 0)
+		else if (Lib.Q_stricmp(cmd, "invprev") == 0)
 			SelectPrevItem(ent, -1);
-		else if (Q_stricmp(cmd, "invnextw") == 0)
+		else if (Lib.Q_stricmp(cmd, "invnextw") == 0)
 			SelectNextItem(ent, IT_WEAPON);
-		else if (Q_stricmp(cmd, "invprevw") == 0)
+		else if (Lib.Q_stricmp(cmd, "invprevw") == 0)
 			SelectPrevItem(ent, IT_WEAPON);
-		else if (Q_stricmp(cmd, "invnextp") == 0)
+		else if (Lib.Q_stricmp(cmd, "invnextp") == 0)
 			SelectNextItem(ent, IT_POWERUP);
-		else if (Q_stricmp(cmd, "invprevp") == 0)
+		else if (Lib.Q_stricmp(cmd, "invprevp") == 0)
 			SelectPrevItem(ent, IT_POWERUP);
-		else if (Q_stricmp(cmd, "invuse") == 0)
+		else if (Lib.Q_stricmp(cmd, "invuse") == 0)
 			Cmd.InvUse_f(ent);
-		else if (Q_stricmp(cmd, "invdrop") == 0)
+		else if (Lib.Q_stricmp(cmd, "invdrop") == 0)
 			Cmd.InvDrop_f(ent);
-		else if (Q_stricmp(cmd, "weapprev") == 0)
+		else if (Lib.Q_stricmp(cmd, "weapprev") == 0)
 			Cmd.WeapPrev_f(ent);
-		else if (Q_stricmp(cmd, "weapnext") == 0)
+		else if (Lib.Q_stricmp(cmd, "weapnext") == 0)
 			Cmd.WeapNext_f(ent);
-		else if (Q_stricmp(cmd, "weaplast") == 0)
+		else if (Lib.Q_stricmp(cmd, "weaplast") == 0)
 			Cmd.WeapLast_f(ent);
-		else if (Q_stricmp(cmd, "kill") == 0)
+		else if (Lib.Q_stricmp(cmd, "kill") == 0)
 			Cmd.Kill_f(ent);
-		else if (Q_stricmp(cmd, "putaway") == 0)
+		else if (Lib.Q_stricmp(cmd, "putaway") == 0)
 			Cmd.PutAway_f(ent);
-		else if (Q_stricmp(cmd, "wave") == 0)
+		else if (Lib.Q_stricmp(cmd, "wave") == 0)
 			Cmd.Wave_f(ent);
-		else if (Q_stricmp(cmd, "playerlist") == 0)
+		else if (Lib.Q_stricmp(cmd, "playerlist") == 0)
 			Cmd.PlayerList_f(ent);
 		else // anything that doesn't match a command will be a chat
 			Cmd.Say_f(ent, false, true);

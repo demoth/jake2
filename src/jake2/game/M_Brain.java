@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Brain.java,v 1.4 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Brain.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Brain extends GameWeapon {
 
@@ -506,7 +509,7 @@ public class M_Brain extends GameWeapon {
 
 	static EntDodgeAdapter brain_dodge= new EntDodgeAdapter() {
 		public boolean brain_dodge(edict_t self, edict_t attacker, float eta) {
-			if (random() > 0.25)
+			if (Lib.random() > 0.25)
 				return true;
 
 			if (self.enemy == null)
@@ -528,8 +531,8 @@ public class M_Brain extends GameWeapon {
 
 	static EntThinkAdapter brain_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -580,8 +583,8 @@ public class M_Brain extends GameWeapon {
 		public boolean think(edict_t self) {
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
-			if (Fire.fire_hit(self, aim, (15 + (rand() % 5)), 40))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
+			if (Fire.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
 				gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 			return true;
 		}
@@ -605,8 +608,8 @@ public class M_Brain extends GameWeapon {
 		public boolean think(edict_t self) {
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
-			if (Fire.fire_hit(self, aim, (15 + (rand() % 5)), 40))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
+			if (Fire.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
 				gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 
 			return true;
@@ -627,8 +630,8 @@ public class M_Brain extends GameWeapon {
 
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, 0, 8);
-			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), -600) && skill.value > 0)
+			Math3D.VectorSet(aim, MELEE_DISTANCE, 0, 8);
+			if (Fire.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600) && skill.value > 0)
 				self.spawnflags |= 65536;
 			gi.sound(self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
 			return true;
@@ -690,7 +693,7 @@ public class M_Brain extends GameWeapon {
 
 	static EntThinkAdapter brain_melee= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() <= 0.5)
+			if (Lib.random() <= 0.5)
 				self.monsterinfo.currentmove= brain_move_attack1;
 			else
 				self.monsterinfo.currentmove= brain_move_attack2;
@@ -824,7 +827,7 @@ public class M_Brain extends GameWeapon {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			r= random();
+			r= Lib.random();
 			if (r < 0.33) {
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 				self.monsterinfo.currentmove= brain_move_pain1;
@@ -870,7 +873,7 @@ public class M_Brain extends GameWeapon {
 			gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 			self.deadflag= DEAD_DEAD;
 			self.takedamage= DAMAGE_YES;
-			if (random() <= 0.5)
+			if (Lib.random() <= 0.5)
 				self.monsterinfo.currentmove= brain_move_death1;
 			else
 				self.monsterinfo.currentmove= brain_move_death2;
@@ -908,8 +911,8 @@ public class M_Brain extends GameWeapon {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/brain/tris.md2");
-		VectorSet(self.mins, -16, -16, -24);
-		VectorSet(self.maxs, 16, 16, 32);
+		Math3D.VectorSet(self.mins, -16, -16, -24);
+		Math3D.VectorSet(self.maxs, 16, 16, 32);
 
 		self.health= 300;
 		self.gib_health= -150;

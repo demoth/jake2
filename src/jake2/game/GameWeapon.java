@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 12.11.2003 by RST.
-// $Id: GameWeapon.java,v 1.3 2003-12-04 20:35:26 rst Exp $
+// $Id: GameWeapon.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
+import jake2.util.*;
 
 public class GameWeapon extends GameAI {
 
@@ -58,16 +59,16 @@ public class GameWeapon extends GameAI {
 		if (who.mynoise == null) {
 			noise= G_Spawn();
 			noise.classname= "player_noise";
-			VectorSet(noise.mins, -8, -8, -8);
-			VectorSet(noise.maxs, 8, 8, 8);
+			Math3D.VectorSet(noise.mins, -8, -8, -8);
+			Math3D.VectorSet(noise.maxs, 8, 8, 8);
 			noise.owner= who;
 			noise.svflags= SVF_NOCLIENT;
 			who.mynoise= noise;
 
 			noise= G_Spawn();
 			noise.classname= "player_noise";
-			VectorSet(noise.mins, -8, -8, -8);
-			VectorSet(noise.maxs, 8, 8, 8);
+			Math3D.VectorSet(noise.mins, -8, -8, -8);
+			Math3D.VectorSet(noise.maxs, 8, 8, 8);
 			noise.owner= who;
 			noise.svflags= SVF_NOCLIENT;
 			who.mynoise2= noise;
@@ -84,9 +85,9 @@ public class GameWeapon extends GameAI {
 			level.sound2_entity_framenum= level.framenum;
 		}
 
-		VectorCopy(where, noise.s.origin);
-		VectorSubtract(where, noise.maxs, noise.absmin);
-		VectorAdd(where, noise.maxs, noise.absmax);
+		Math3D.VectorCopy(where, noise.s.origin);
+		Math3D.VectorSubtract(where, noise.maxs, noise.absmin);
+		Math3D.VectorAdd(where, noise.maxs, noise.absmax);
 		noise.teleport_time= level.time;
 		gi.linkentity(noise);
 	}
@@ -108,18 +109,18 @@ public class GameWeapon extends GameAI {
 
 		// easy mode only ducks one quarter the time
 		if (skill.value == 0) {
-			if (random() > 0.25)
+			if (Lib.random() > 0.25)
 				return;
 		}
-		VectorMA(start, 8192, dir, end);
+		Math3D.VectorMA(start, 8192, dir, end);
 		tr= gi.trace(start, null, null, end, self, MASK_SHOT);
 		if ((tr.ent != null)
 			&& (tr.ent.svflags & SVF_MONSTER) != 0
 			&& (tr.ent.health > 0)
 			&& (null != tr.ent.monsterinfo.dodge)
 			&& infront(tr.ent, self)) {
-			VectorSubtract(tr.endpos, start, v);
-			eta= (VectorLength(v) - tr.ent.maxs[0]) / speed;
+			Math3D.VectorSubtract(tr.endpos, start, v);
+			eta= (Math3D.VectorLength(v) - tr.ent.maxs[0]) / speed;
 			tr.ent.monsterinfo.dodge.dodge(tr.ent, self, eta);
 		}
 	}
@@ -192,11 +193,11 @@ public class GameWeapon extends GameAI {
 				float[] v= { 0, 0, 0 };
 				float[] dir= { 0, 0, 0 };
 
-				VectorAdd(ent.enemy.mins, ent.enemy.maxs, v);
-				VectorMA(ent.enemy.s.origin, 0.5f, v, v);
-				VectorSubtract(ent.s.origin, v, v);
-				points= ent.dmg - 0.5f * VectorLength(v);
-				VectorSubtract(ent.enemy.s.origin, ent.s.origin, dir);
+				Math3D.VectorAdd(ent.enemy.mins, ent.enemy.maxs, v);
+				Math3D.VectorMA(ent.enemy.s.origin, 0.5f, v, v);
+				Math3D.VectorSubtract(ent.s.origin, v, v);
+				points= ent.dmg - 0.5f * Math3D.VectorLength(v);
+				Math3D.VectorSubtract(ent.enemy.s.origin, ent.s.origin, dir);
 				if ((ent.spawnflags & 1) != 0)
 					mod= MOD_HANDGRENADE;
 				else
@@ -222,7 +223,7 @@ public class GameWeapon extends GameAI {
 				mod= MOD_G_SPLASH;
 			T_RadiusDamage(ent, ent.owner, ent.dmg, ent.enemy, ent.dmg_radius, mod);
 
-			VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
+			Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
 			gi.WriteByte(svc_temp_entity);
 			if (ent.waterlevel != 0) {
 				if (ent.groundentity != null)
@@ -255,7 +256,7 @@ public class GameWeapon extends GameAI {
 
 			if (other.takedamage == 0) {
 				if ((ent.spawnflags & 1) != 0) {
-					if (random() > 0.5f)
+					if (Lib.random() > 0.5f)
 						gi.sound(
 							ent,
 							CHAN_VOICE,
@@ -310,7 +311,7 @@ public class GameWeapon extends GameAI {
 				PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
 
 			// calculate position for the explosion entity
-			VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
+			Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
 
 			if (other.takedamage != 0) {
 				T_Damage(
@@ -331,7 +332,7 @@ public class GameWeapon extends GameAI {
 						&& 0
 							== (surf.flags
 								& (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING))) {
-						n= rand() % 5;
+						n= Lib.rand() % 5;
 						while (n-- > 0)
 							ThrowDebris(ent, "models/objects/debris2/tris.md2", 2, ent.s.origin);
 					}
@@ -380,10 +381,10 @@ public class GameWeapon extends GameAI {
 					if (!CanDamage(ent, self.owner))
 						continue;
 
-					VectorAdd(ent.mins, ent.maxs, v);
-					VectorMA(ent.s.origin, 0.5f, v, v);
-					VectorSubtract(self.s.origin, v, v);
-					dist= VectorLength(v);
+					Math3D.VectorAdd(ent.mins, ent.maxs, v);
+					Math3D.VectorMA(ent.s.origin, 0.5f, v, v);
+					Math3D.VectorSubtract(self.s.origin, v, v);
+					dist= Math3D.VectorLength(v);
 					points= (float) (self.radius_dmg * (1.0 - Math.sqrt(dist / self.dmg_radius)));
 					if (ent == self.owner)
 						points= points * 0.5f;
@@ -446,8 +447,8 @@ public class GameWeapon extends GameAI {
 			gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/bfg__x1b.wav"), 1, ATTN_NORM, 0);
 			self.solid= SOLID_NOT;
 			self.touch= null;
-			VectorMA(self.s.origin, -1 * FRAMETIME, self.velocity, self.s.origin);
-			VectorClear(self.velocity);
+			Math3D.VectorMA(self.s.origin, -1 * FRAMETIME, self.velocity, self.s.origin);
+			Math3D.VectorClear(self.velocity);
 			self.s.modelindex= gi.modelindex("sprites/s_bfg3.sp2");
 			self.s.frame= 0;
 			self.s.sound= 0;
@@ -494,17 +495,17 @@ public class GameWeapon extends GameAI {
 
 				if (0 == (ent.svflags & SVF_MONSTER)
 					&& (null == ent.client)
-					&& (strcmp(ent.classname, "misc_explobox") != 0))
+					&& (Lib.strcmp(ent.classname, "misc_explobox") != 0))
 					continue;
 
-				VectorMA(ent.absmin, 0.5f, ent.size, point);
+				Math3D.VectorMA(ent.absmin, 0.5f, ent.size, point);
 
-				VectorSubtract(point, self.s.origin, dir);
-				VectorNormalize(dir);
+				Math3D.VectorSubtract(point, self.s.origin, dir);
+				Math3D.VectorNormalize(dir);
 
 				ignore= self;
-				VectorCopy(self.s.origin, start);
-				VectorMA(start, 2048, dir, end);
+				Math3D.VectorCopy(self.s.origin, start);
+				Math3D.VectorMA(start, 2048, dir, end);
 				while (true) {
 					tr=
 						gi.trace(
@@ -547,7 +548,7 @@ public class GameWeapon extends GameAI {
 					}
 
 					ignore= tr.ent;
-					VectorCopy(tr.endpos, start);
+					Math3D.VectorCopy(tr.endpos, start);
 				}
 
 				gi.WriteByte(svc_temp_entity);

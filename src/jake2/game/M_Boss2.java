@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss2.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Boss2.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Boss2 extends GameWeapon {
 
@@ -246,13 +249,13 @@ public class M_Boss2 extends GameWeapon {
 
 			float range;
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-			range= VectorLength(vec);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+			range= Math3D.VectorLength(vec);
 
 			if (range <= 125) {
 				self.monsterinfo.currentmove= boss2_move_attack_pre_mg;
 			} else {
-				if (random() <= 0.6)
+				if (Lib.random() <= 0.6)
 					self.monsterinfo.currentmove= boss2_move_attack_pre_mg;
 				else
 					self.monsterinfo.currentmove= boss2_move_attack_rocket;
@@ -271,7 +274,7 @@ public class M_Boss2 extends GameWeapon {
 	static EntThinkAdapter boss2_reattack_mg= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			if (infront(self, self.enemy))
-				if (random() <= 0.7)
+				if (Lib.random() <= 0.7)
 					self.monsterinfo.currentmove= boss2_move_attack_mg;
 				else
 					self.monsterinfo.currentmove= boss2_move_attack_post_mg;
@@ -306,8 +309,8 @@ public class M_Boss2 extends GameWeapon {
 
 	static EntThinkAdapter boss2_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -56, -56, 0);
-			VectorSet(self.maxs, 56, 56, 80);
+			Math3D.VectorSet(self.mins, -56, -56, 0);
+			Math3D.VectorSet(self.maxs, 56, 56, 80);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -344,9 +347,9 @@ public class M_Boss2 extends GameWeapon {
 
 			if (self.enemy.health > 0) {
 				// see if any entities are in the way of the shot
-				VectorCopy(self.s.origin, spot1);
+				Math3D.VectorCopy(self.s.origin, spot1);
 				spot1[2] += self.viewheight;
-				VectorCopy(self.enemy.s.origin, spot2);
+				Math3D.VectorCopy(self.enemy.s.origin, spot2);
 				spot2[2] += self.enemy.viewheight;
 
 				tr=
@@ -365,8 +368,8 @@ public class M_Boss2 extends GameWeapon {
 
 			enemy_infront= infront(self, self.enemy);
 			enemy_range= range(self, self.enemy);
-			VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-			enemy_yaw= vectoyaw(temp);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
+			enemy_yaw= Math3D.vectoyaw(temp);
 
 			self.ideal_yaw= enemy_yaw;
 
@@ -401,14 +404,14 @@ public class M_Boss2 extends GameWeapon {
 				return false;
 			}
 
-			if (random() < chance) {
+			if (Lib.random() < chance) {
 				self.monsterinfo.attack_state= AS_MISSILE;
-				self.monsterinfo.attack_finished= level.time + 2 * random();
+				self.monsterinfo.attack_finished= level.time + 2 * Lib.random();
 				return true;
 			}
 
 			if ((self.flags & FL_FLY) != 0) {
-				if (random() < 0.3)
+				if (Lib.random() < 0.3)
 					self.monsterinfo.attack_state= AS_SLIDING;
 				else
 					self.monsterinfo.attack_state= AS_STRAIGHT;
@@ -420,7 +423,7 @@ public class M_Boss2 extends GameWeapon {
 
 	static EntThinkAdapter boss2_search= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NONE, 0);
 			return true;
 		}
@@ -433,58 +436,58 @@ public class M_Boss2 extends GameWeapon {
 			float[] dir= { 0, 0, 0 };
 			float[] vec= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
 
 			//	  1
-			G_ProjectSource(
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_ROCKET_1],
 				forward,
 				right,
 				start);
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_1);
 
 			//	  2
-			G_ProjectSource(
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_ROCKET_2],
 				forward,
 				right,
 				start);
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_2);
 
 			//	  3
-			G_ProjectSource(
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_ROCKET_3],
 				forward,
 				right,
 				start);
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_3);
 
 			//	  4
-			G_ProjectSource(
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_ROCKET_4],
 				forward,
 				right,
 				start);
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_4);
 			return true;
 		}
@@ -495,18 +498,18 @@ public class M_Boss2 extends GameWeapon {
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, target= { 0, 0, 0 };
 			float[] start= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_MACHINEGUN_R1],
 				forward,
 				right,
 				start);
 
-			VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
+			Math3D.VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
 			target[2] += self.enemy.viewheight;
-			VectorSubtract(target, start, forward);
-			VectorNormalize(forward);
+			Math3D.VectorSubtract(target, start, forward);
+			Math3D.VectorNormalize(forward);
 
 			monster_fire_bullet(
 				self,
@@ -527,19 +530,19 @@ public class M_Boss2 extends GameWeapon {
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, target= { 0, 0, 0 };
 			float[] start= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_BOSS2_MACHINEGUN_L1],
 				forward,
 				right,
 				start);
 
-			VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
+			Math3D.VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
 
 			target[2] += self.enemy.viewheight;
-			VectorSubtract(target, start, forward);
-			VectorNormalize(forward);
+			Math3D.VectorSubtract(target, start, forward);
+			Math3D.VectorNormalize(forward);
 
 			monster_fire_bullet(
 				self,
@@ -868,8 +871,8 @@ public class M_Boss2 extends GameWeapon {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/boss2/tris.md2");
-		VectorSet(self.mins, -56, -56, 0);
-		VectorSet(self.maxs, 56, 56, 80);
+		Math3D.VectorSet(self.mins, -56, -56, 0);
+		Math3D.VectorSet(self.maxs, 56, 56, 80);
 
 		self.health= 2000;
 		self.gib_health= -200;

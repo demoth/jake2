@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.13 2003-12-02 10:07:35 hoz Exp $
+ * $Id: Cvar.java,v 1.14 2003-12-09 22:12:44 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.render.*;
 import jake2.server.*;
+import jake2.util.Lib;
 
 /**
  * Cvar implements console variables. The original code is
@@ -151,7 +152,7 @@ public class Cvar {
 		//var.string = CopyString(value);
 
 		var.string = value;
-		var.value = GameBase.atof(var.string);
+		var.value = Lib.atof(var.string);
 		var.flags = flags;
 
 		return var;
@@ -209,7 +210,7 @@ public class Cvar {
 				} else {
 					//var.string = CopyString(value);
 					var.string = value;
-					var.value = GameBase.atof(var.string);
+					var.value = Lib.atof(var.string);
 					if (var.name.equals("game")) {
 						FS.SetGamedir(var.string);
 						FS.ExecAutoexec();
@@ -236,7 +237,7 @@ public class Cvar {
 
 		//var.string = CopyString(value);
 		var.string = value;
-		var.value = GameBase.atof(var.string);
+		var.value = Lib.atof(var.string);
 
 		return var;
 	}
@@ -317,7 +318,7 @@ public class Cvar {
 		cvar_t var = Cvar.FindVar(var_name);
 		if (var == null)
 			return 0;
-		return GameBase.atof(var.string);
+		return Lib.atof(var.string);
 	}
 
 }

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flipper.java,v 1.5 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Flipper.java,v 1.6 2003-12-09 22:12:44 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Flipper extends Game {
 
@@ -365,7 +368,7 @@ public class M_Flipper extends Game {
 		public boolean think(edict_t self) {
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, 0, 0);
+			Math3D.VectorSet(aim, MELEE_DISTANCE, 0, 0);
 			Fire.fire_hit(self, aim, 5, 0);
 			return true;
 		}
@@ -430,7 +433,7 @@ public class M_Flipper extends Game {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			n= (rand() + 1) % 2;
+			n= (Lib.rand() + 1) % 2;
 			if (n == 0) {
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 				self.monsterinfo.currentmove= flipper_move_pain1;
@@ -444,8 +447,8 @@ public class M_Flipper extends Game {
 
 	static EntThinkAdapter flipper_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -597,8 +600,8 @@ public class M_Flipper extends Game {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/flipper/tris.md2");
-		VectorSet(self.mins, -16, -16, 0);
-		VectorSet(self.maxs, 16, 16, 32);
+		Math3D.VectorSet(self.mins, -16, -16, 0);
+		Math3D.VectorSet(self.maxs, 16, 16, 32);
 
 		self.health= 50;
 		self.gib_health= -30;

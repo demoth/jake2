@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.6 2003-12-04 20:06:03 rst Exp $
+// $Id: MSG.java,v 1.7 2003-12-09 22:12:44 rst Exp $
 
 package jake2.qcommon;
 
@@ -30,6 +30,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.render.*;
 import jake2.server.*;
+import jake2.util.*;
 
 public class MSG extends GameBase {
 
@@ -100,7 +101,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void WriteAngle16(sizebuf_t sb, float f) {
-		WriteShort(sb, GameBase.ANGLE2SHORT(f));
+		WriteShort(sb, Math3D.ANGLE2SHORT(f));
 	}
 
 	public static void WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from, usercmd_t cmd) {
@@ -164,7 +165,7 @@ public class MSG extends GameBase {
 		bestd = 0;
 		best = 0;
 		for (i = 0; i < NUMVERTEXNORMALS; i++) {
-			d = GameBase.DotProduct(dir, bytedirs[i]);
+			d = Math3D.DotProduct(dir, bytedirs[i]);
 			if (d > bestd) {
 				bestd = d;
 				best = i;
@@ -179,7 +180,7 @@ public class MSG extends GameBase {
 		b = ReadByte(sb);
 		if (b >= NUMVERTEXNORMALS)
 			Com.Error(ERR_DROP, "MSF_ReadDir: out of range");
-		GameBase.VectorCopy(bytedirs[b], dir);
+		Math3D.VectorCopy(bytedirs[b], dir);
 	}
 
 	/*
@@ -499,7 +500,7 @@ public class MSG extends GameBase {
 	}
 
 	public static float ReadAngle16(sizebuf_t msg_read) {
-		return SHORT2ANGLE(ReadShort(msg_read));
+		return Math3D.SHORT2ANGLE(ReadShort(msg_read));
 	}
 
 	public static void ReadDeltaUsercmd(sizebuf_t msg_read, usercmd_t from, usercmd_t move) {

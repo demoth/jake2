@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Tank.java,v 1.3 2003-11-29 22:23:38 rst Exp $
+// $Id: M_Tank.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Tank extends GamePWeapon {
 	// G:\quake2\baseq2\models/monsters/tank
@@ -580,7 +583,7 @@ public class M_Tank extends GamePWeapon {
 				return;
 
 			if (damage <= 30)
-				if (random() > 0.2)
+				if (Lib.random() > 0.2)
 					return;
 
 			// If hard or nightmare, don't go into pain while attacking
@@ -625,12 +628,12 @@ public class M_Tank extends GamePWeapon {
 			else // (self.s.frame == FRAME_attak116)
 				flash_number = MZ2_TANK_BLASTER_3;
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-			VectorCopy(self.enemy.s.origin, end);
+			Math3D.VectorCopy(self.enemy.s.origin, end);
 			end[2] += self.enemy.viewheight;
-			VectorSubtract(end, start, dir);
+			Math3D.VectorSubtract(end, start, dir);
 
 			monster_fire_blaster(self, start, dir, 30, 800, flash_number, EF_BLASTER);
 
@@ -661,13 +664,13 @@ public class M_Tank extends GamePWeapon {
 			else // (self.s.frame == FRAME_attak330)
 				flash_number = MZ2_TANK_ROCKET_3;
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 
 			monster_fire_rocket(self, start, dir, 50, 550, flash_number);
 			return true;
@@ -685,14 +688,14 @@ public class M_Tank extends GamePWeapon {
 
 			flash_number = MZ2_TANK_MACHINEGUN_1 + (self.s.frame - FRAME_attak406);
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 			if (self.enemy != null) {
-				VectorCopy(self.enemy.s.origin, vec);
+				Math3D.VectorCopy(self.enemy.s.origin, vec);
 				vec[2] += self.enemy.viewheight;
-				VectorSubtract(vec, start, vec);
-				vectoangles(vec, vec);
+				Math3D.VectorSubtract(vec, start, vec);
+				Math3D.vectoangles(vec, vec);
 				dir[0] = vec[0];
 			} else {
 				dir[0] = 0;
@@ -703,7 +706,7 @@ public class M_Tank extends GamePWeapon {
 				dir[1] = self.s.angles[1] + 8 * (self.s.frame - FRAME_attak419);
 			dir[2] = 0;
 
-			AngleVectors(dir, forward, null, null);
+			Math3D.AngleVectors(dir, forward, null, null);
 
 			monster_fire_bullet(self, start, forward, 20, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 
@@ -715,7 +718,7 @@ public class M_Tank extends GamePWeapon {
 			if (skill.value >= 2)
 				if (visible(self, self.enemy))
 					if (self.enemy.health > 0)
-						if (random() <= 0.6) {
+						if (Lib.random() <= 0.6) {
 							self.monsterinfo.currentmove = tank_move_reattack_blast;
 							return true;
 						}
@@ -789,7 +792,7 @@ public class M_Tank extends GamePWeapon {
 	if (skill.value >= 2)
 				if (self.enemy.health > 0)
 					if (visible(self, self.enemy))
-						if (random() <= 0.4) {
+						if (Lib.random() <= 0.4) {
 							self.monsterinfo.currentmove = tank_move_attack_fire_rocket;
 							return true;
 						}
@@ -956,10 +959,10 @@ public class M_Tank extends GamePWeapon {
 				return true;
 			}
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-			range = VectorLength(vec);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+			range = Math3D.VectorLength(vec);
 
-			r = random();
+			r = Lib.random();
 
 			if (range <= 125) {
 				if (r < 0.4)
@@ -989,8 +992,8 @@ public class M_Tank extends GamePWeapon {
 	//
 	static EntThinkAdapter tank_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -16);
-			VectorSet(self.maxs, 16, 16, -0);
+			Math3D.VectorSet(self.mins, -16, -16, -16);
+			Math3D.VectorSet(self.maxs, 16, 16, -0);
 			self.movetype = MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink = 0;
@@ -1081,8 +1084,8 @@ public class M_Tank extends GamePWeapon {
 			}
 
 			self.s.modelindex = gi.modelindex("models/monsters/tank/tris.md2");
-			VectorSet(self.mins, -32, -32, -16);
-			VectorSet(self.maxs, 32, 32, 72);
+			Math3D.VectorSet(self.mins, -32, -32, -16);
+			Math3D.VectorSet(self.maxs, 32, 32, 72);
 			self.movetype = MOVETYPE_STEP;
 			self.solid = SOLID_BBOX;
 
@@ -1103,7 +1106,7 @@ public class M_Tank extends GamePWeapon {
 			gi.soundindex("tank/tnkatk2e.wav");
 			gi.soundindex("tank/tnkatck3.wav");
 
-			if (strcmp(self.classname, "monster_tank_commander") == 0) {
+			if (Lib.strcmp(self.classname, "monster_tank_commander") == 0) {
 				self.health = 1000;
 				self.gib_health = -225;
 			} else {
@@ -1131,7 +1134,7 @@ public class M_Tank extends GamePWeapon {
 
 			walkmonster_start.think(self);
 
-			if (strcmp(self.classname, "monster_tank_commander") == 0)
+			if (Lib.strcmp(self.classname, "monster_tank_commander") == 0)
 				self.s.skinnum = 2;
 			return true;
 		}

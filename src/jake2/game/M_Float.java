@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Float.java,v 1.6 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Float.java,v 1.7 2003-12-09 22:12:44 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Float extends Game {
 
@@ -313,17 +316,17 @@ public class M_Float extends Game {
 				effect= EF_HYPERBLASTER;
 			else
 				effect= 0;
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_FLOAT_BLASTER_1],
 				forward,
 				right,
 				start);
 
-			VectorCopy(self.enemy.s.origin, end);
+			Math3D.VectorCopy(self.enemy.s.origin, end);
 			end[2] += self.enemy.viewheight;
-			VectorSubtract(end, start, dir);
+			Math3D.VectorSubtract(end, start, dir);
 
 			monster_fire_blaster(
 				self,
@@ -462,7 +465,7 @@ public class M_Float extends Game {
 
 	static EntThinkAdapter floater_stand= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() <= 0.5)
+			if (Lib.random() <= 0.5)
 				self.monsterinfo.currentmove= floater_move_stand1;
 			else
 				self.monsterinfo.currentmove= floater_move_stand2;
@@ -553,7 +556,7 @@ public class M_Float extends Game {
 		public boolean think(edict_t self) {
 
 			gi.sound(self, CHAN_WEAPON, sound_attack3, 1, ATTN_NORM, 0);
-			Fire.fire_hit(self, aim, 5 + rand() % 6, -50);
+			Fire.fire_hit(self, aim, 5 + Lib.rand() % 6, -50);
 			return true;
 		}
 	};
@@ -600,12 +603,12 @@ public class M_Float extends Game {
 			float[] dir={0,0,0};
 			float[] offset={0,0,0};
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, dir);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, dir);
 
-			AngleVectors(self.s.angles, forward, right, null);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
 			//FIXME use a flash and replace these two lines with the commented one
-			VectorSet(offset, 18.5f, -0.9f, 10f);
-			G_ProjectSource(self.s.origin, offset, forward, right, origin);
+			Math3D.VectorSet(offset, 18.5f, -0.9f, 10f);
+			Math3D.G_ProjectSource(self.s.origin, offset, forward, right, origin);
 			//		G_ProjectSource (self.s.origin, monster_flash_offset[flash_number], forward, right, origin);
 
 			gi.sound(self, CHAN_WEAPON, sound_attack2, 1, ATTN_NORM, 0);
@@ -626,7 +629,7 @@ public class M_Float extends Game {
 				dir,
 				self.enemy.s.origin,
 				vec3_origin,
-				5 + rand() % 6,
+				5 + Lib.rand() % 6,
 				-10,
 				DAMAGE_ENERGY,
 				MOD_UNKNOWN);
@@ -697,8 +700,8 @@ public class M_Float extends Game {
 
 	static EntThinkAdapter floater_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -900,7 +903,7 @@ public class M_Float extends Game {
 	static EntThinkAdapter floater_melee= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				self.monsterinfo.currentmove= floater_move_attack3;
 			else
 				self.monsterinfo.currentmove= floater_move_attack2;
@@ -922,7 +925,7 @@ public class M_Float extends Game {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			n= (rand() + 1) % 3;
+			n= (Lib.rand() + 1) % 3;
 			if (n == 0) {
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 				self.monsterinfo.currentmove= floater_move_pain1;
@@ -971,8 +974,8 @@ public class M_Float extends Game {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/float/tris.md2");
-		VectorSet(self.mins, -24, -24, -24);
-		VectorSet(self.maxs, 24, 24, 32);
+		Math3D.VectorSet(self.mins, -24, -24, -24);
+		Math3D.VectorSet(self.maxs, 24, 24, 32);
 
 		self.health= 200;
 		self.gib_health= -80;
@@ -992,7 +995,7 @@ public class M_Float extends Game {
 
 		gi.linkentity(self);
 
-		if (random() <= 0.5)
+		if (Lib.random() <= 0.5)
 			self.monsterinfo.currentmove= floater_move_stand1;
 		else
 			self.monsterinfo.currentmove= floater_move_stand2;

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss31.java,v 1.3 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Boss31.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Boss31 extends GameWeapon {
 
@@ -253,7 +256,7 @@ public class M_Boss31 extends GameWeapon {
 		public boolean think(edict_t self) {
 			float r;
 
-			r= random();
+			r= Lib.random();
 
 			if (r <= 0.3)
 				gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
@@ -303,7 +306,7 @@ public class M_Boss31 extends GameWeapon {
 	static EntThinkAdapter jorg_reattack1= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			if (visible(self, self.enemy))
-				if (random() < 0.9)
+				if (Lib.random() < 0.9)
 					self.monsterinfo.currentmove= jorg_move_attack1;
 				else {
 					self.s.sound= 0;
@@ -336,7 +339,7 @@ public class M_Boss31 extends GameWeapon {
 
 			// Lessen the chance of him going into his pain frames if he takes little damage
 			if (damage <= 40)
-				if (random() <= 0.6)
+				if (Lib.random() <= 0.6)
 					return;
 
 			/* 
@@ -345,15 +348,15 @@ public class M_Boss31 extends GameWeapon {
 			*/
 
 			if ((self.s.frame >= FRAME_attak101) && (self.s.frame <= FRAME_attak108))
-				if (random() <= 0.005)
+				if (Lib.random() <= 0.005)
 					return;
 
 			if ((self.s.frame >= FRAME_attak109) && (self.s.frame <= FRAME_attak114))
-				if (random() <= 0.00005)
+				if (Lib.random() <= 0.00005)
 					return;
 
 			if ((self.s.frame >= FRAME_attak201) && (self.s.frame <= FRAME_attak208))
-				if (random() <= 0.005)
+				if (Lib.random() <= 0.005)
 					return;
 
 			self.pain_debounce_time= level.time + 3;
@@ -367,7 +370,7 @@ public class M_Boss31 extends GameWeapon {
 				gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
 				self.monsterinfo.currentmove= jorg_move_pain2;
 			} else {
-				if (random() <= 0.3) {
+				if (Lib.random() <= 0.3) {
 					gi.sound(self, CHAN_VOICE, sound_pain3, 1, ATTN_NORM, 0);
 					self.monsterinfo.currentmove= jorg_move_pain3;
 				}
@@ -384,18 +387,18 @@ public class M_Boss31 extends GameWeapon {
 			float[] dir= { 0, 0, 0 };
 			float[] vec= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_JORG_BFG_1],
 				forward,
 				right,
 				start);
 
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			gi.sound(self, CHAN_VOICE, sound_attack2, 1, ATTN_NORM, 0);
 			/*void monster_fire_bfg (edict_t self, 
 									 float []  start, 
@@ -415,18 +418,18 @@ public class M_Boss31 extends GameWeapon {
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, target= { 0, 0, 0 };
 			float[] start= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_JORG_MACHINEGUN_R1],
 				forward,
 				right,
 				start);
 
-			VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
+			Math3D.VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
 			target[2] += self.enemy.viewheight;
-			VectorSubtract(target, start, forward);
-			VectorNormalize(forward);
+			Math3D.VectorSubtract(target, start, forward);
+			Math3D.VectorNormalize(forward);
 
 			monster_fire_bullet(
 				self,
@@ -452,18 +455,18 @@ public class M_Boss31 extends GameWeapon {
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, target= { 0, 0, 0 };
 			float[] start= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_JORG_MACHINEGUN_L1],
 				forward,
 				right,
 				start);
 
-			VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
+			Math3D.VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
 			target[2] += self.enemy.viewheight;
-			VectorSubtract(target, start, forward);
-			VectorNormalize(forward);
+			Math3D.VectorSubtract(target, start, forward);
+			Math3D.VectorNormalize(forward);
 
 			monster_fire_bullet(
 				self,
@@ -491,10 +494,10 @@ public class M_Boss31 extends GameWeapon {
 			float[] vec= { 0, 0, 0 };
 			float range= 0;
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-			range= VectorLength(vec);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+			range= Math3D.VectorLength(vec);
 
-			if (random() <= 0.75) {
+			if (Lib.random() <= 0.75) {
 				gi.sound(self, CHAN_VOICE, sound_attack1, 1, ATTN_NORM, 0);
 				self.s.sound= gi.soundindex("boss3/w_loop.wav");
 				self.monsterinfo.currentmove= jorg_move_start_attack1;
@@ -569,9 +572,9 @@ public class M_Boss31 extends GameWeapon {
 
 			if (self.enemy.health > 0) {
 				// see if any entities are in the way of the shot
-				VectorCopy(self.s.origin, spot1);
+				Math3D.VectorCopy(self.s.origin, spot1);
 				spot1[2] += self.viewheight;
-				VectorCopy(self.enemy.s.origin, spot2);
+				Math3D.VectorCopy(self.enemy.s.origin, spot2);
 				spot2[2] += self.enemy.viewheight;
 
 				tr=
@@ -590,8 +593,8 @@ public class M_Boss31 extends GameWeapon {
 
 			enemy_infront= infront(self, self.enemy);
 			enemy_range= range(self, self.enemy);
-			VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-			enemy_yaw= vectoyaw(temp);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
+			enemy_yaw= Math3D.vectoyaw(temp);
 
 			self.ideal_yaw= enemy_yaw;
 
@@ -626,14 +629,14 @@ public class M_Boss31 extends GameWeapon {
 				return false;
 			}
 
-			if (random() < chance) {
+			if (Lib.random() < chance) {
 				self.monsterinfo.attack_state= AS_MISSILE;
-				self.monsterinfo.attack_finished= level.time + 2 * random();
+				self.monsterinfo.attack_finished= level.time + 2 * Lib.random();
 				return true;
 			}
 
 			if ((self.flags & FL_FLY) != 0) {
-				if (random() < 0.3)
+				if (Lib.random() < 0.3)
 					self.monsterinfo.attack_state= AS_SLIDING;
 				else
 					self.monsterinfo.attack_state= AS_STRAIGHT;
@@ -980,8 +983,8 @@ public class M_Boss31 extends GameWeapon {
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/boss3/rider/tris.md2");
 		self.s.modelindex2= gi.modelindex("models/monsters/boss3/jorg/tris.md2");
-		VectorSet(self.mins, -80, -80, 0);
-		VectorSet(self.maxs, 80, 80, 140);
+		Math3D.VectorSet(self.mins, -80, -80, 0);
+		Math3D.VectorSet(self.maxs, 80, 80, 140);
 
 		self.health= 3000;
 		self.gib_health= -2000;

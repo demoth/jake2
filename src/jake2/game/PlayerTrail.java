@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: PlayerTrail.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: PlayerTrail.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class PlayerTrail extends Game {
 	
@@ -75,12 +78,12 @@ public class PlayerTrail extends Game {
 		if (!trail_active)
 			return;
 
-		VectorCopy(spot, trail[trail_head].s.origin);
+		Math3D.VectorCopy(spot, trail[trail_head].s.origin);
 
 		trail[trail_head].timestamp= level.time;
 
-		VectorSubtract(spot, trail[PREV(trail_head)].s.origin, temp);
-		trail[trail_head].s.angles[1]= vectoyaw(temp);
+		Math3D.VectorSubtract(spot, trail[PREV(trail_head)].s.origin, temp);
+		trail[trail_head].s.angles[1]= Math3D.vectoyaw(temp);
 
 		trail_head= NEXT(trail_head);
 	}

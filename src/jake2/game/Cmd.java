@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.13 2003-12-04 20:25:10 rst Exp $
+ * $Id: Cmd.java,v 1.14 2003-12-09 22:12:44 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import java.util.Arrays;
 
 import jake2.*;
 import jake2.qcommon.*;
+import jake2.util.Lib;
 
 /**
  * Cmd
@@ -268,21 +269,21 @@ public final class Cmd {
 	
 		name= GameBase.gi.args();
 	
-		if (0 == GameBase.Q_stricmp(name, "all"))
+		if (0 == Lib.Q_stricmp(name, "all"))
 			give_all= true;
 		else
 			give_all= false;
 	
-		if (give_all || 0 == GameBase.Q_stricmp(GameBase.gi.argv(1), "health")) {
+		if (give_all || 0 == Lib.Q_stricmp(GameBase.gi.argv(1), "health")) {
 			if (GameBase.gi.argc() == 3)
-				ent.health= GameAI.atoi(GameBase.gi.argv(2));
+				ent.health= Lib.atoi(GameBase.gi.argv(2));
 			else
 				ent.health= ent.max_health;
 			if (!give_all)
 				return;
 		}
 	
-		if (give_all || 0 == GameBase.Q_stricmp(name, "weapons")) {
+		if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
 			for (i= 0; i < GameBase.game.num_items; i++) {
 				it= GameAI.itemlist[i];
 				if (null == it.pickup)
@@ -295,7 +296,7 @@ public final class Cmd {
 				return;
 		}
 	
-		if (give_all || 0 == GameBase.Q_stricmp(name, "ammo")) {
+		if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
 			for (i= 0; i < GameBase.game.num_items; i++) {
 				it= GameAI.itemlist[i];
 				if (null == it.pickup)
@@ -308,7 +309,7 @@ public final class Cmd {
 				return;
 		}
 	
-		if (give_all || GameBase.Q_stricmp(name, "armor") == 0) {
+		if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
 			gitem_armor_t info;
 	
 			it= GameUtil.FindItem("Jacket Armor");
@@ -325,7 +326,7 @@ public final class Cmd {
 				return;
 		}
 	
-		if (give_all || GameBase.Q_stricmp(name, "Power Shield") == 0) {
+		if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
 			it= GameUtil.FindItem("Power Shield");
 			it_ent= GameUtil.G_Spawn();
 			it_ent.classname= it.classname;
@@ -369,7 +370,7 @@ public final class Cmd {
 	
 		if ((it.flags & Defines.IT_AMMO) != 0) {
 			if (GameBase.gi.argc() == 3)
-				ent.client.pers.inventory[index]= GameAI.atoi(GameBase.gi.argv(2));
+				ent.client.pers.inventory[index]= Lib.atoi(GameBase.gi.argv(2));
 			else
 				ent.client.pers.inventory[index] += it.quantity;
 		} else {
@@ -816,7 +817,7 @@ public final class Cmd {
 					+ GameBase.game.clients[index[i].intValue()].pers.netname
 					+ "\n";
 	
-			if (GameAI.strlen(small) + GameAI.strlen(large) > 1024 - 100) {
+			if (Lib.strlen(small) + Lib.strlen(large) > 1024 - 100) {
 				// can't print all of them in one packet
 				large += "...\n";
 				break;
@@ -835,7 +836,7 @@ public final class Cmd {
 	public static void Wave_f(edict_t ent) {
 		int i;
 	
-		i= GameAI.atoi(GameBase.gi.argv(1));
+		i= Lib.atoi(GameBase.gi.argv(1));
 	
 		// can't wave when ducked
 		if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
@@ -1005,7 +1006,7 @@ public final class Cmd {
 					+ (e2.client.resp.spectator ? " (spectator)" : "")
 					+ "\n";
 	
-			if (GameAI.strlen(text) + GameAI.strlen(st) > 1024 - 50) {
+			if (Lib.strlen(text) + Lib.strlen(st) > 1024 - 50) {
 				text += "And more...\n";
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
 				return;

@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Mutant.java,v 1.5 2003-12-04 21:04:35 rst Exp $
+// $Id: M_Mutant.java,v 1.6 2003-12-09 22:12:44 rst Exp $
 
 package jake2.game;
 
 import jake2.client.M;
+import jake2.util.*;
 
 public class M_Mutant extends Game {
 
@@ -201,7 +202,7 @@ public class M_Mutant extends Game {
 	static EntThinkAdapter mutant_step = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			int n;
-					n = (rand() + 1) % 3;
+					n = (Lib.rand() + 1) % 3;
 					if (n == 0)
 						gi.sound(self, CHAN_VOICE, sound_step1, 1, ATTN_NORM, 0);
 					else if (n == 1)
@@ -316,7 +317,7 @@ public class M_Mutant extends Game {
 
 	static EntThinkAdapter mutant_idle_loop = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.75)
+			if (Lib.random() < 0.75)
 				self.monsterinfo.nextframe = FRAME_stand155;
 			return true;
 		}
@@ -425,8 +426,8 @@ public class M_Mutant extends Game {
 		public boolean think(edict_t self) {
 			float[] aim={0,0,0};
 
-			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
-			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), 100))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
+			if (Fire.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
 				gi.sound(self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
@@ -438,8 +439,8 @@ public class M_Mutant extends Game {
 		public boolean think(edict_t self) {
 			float[] aim={0,0,0};
 
-			VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
-			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), 100))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
+			if (Fire.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
 				gi.sound(self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
@@ -452,7 +453,7 @@ public class M_Mutant extends Game {
 			if (null == self.enemy || !self.enemy.inuse || self.enemy.health <= 0)
 				return true;
 
-			if (((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
+			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
 				self.monsterinfo.nextframe = FRAME_attack09;
 			return true;
 		}
@@ -489,15 +490,15 @@ public class M_Mutant extends Game {
 			}
 
 			if (other.takedamage!=0) {
-				if (VectorLength(self.velocity) > 400) {
+				if (Math3D.VectorLength(self.velocity) > 400) {
 					float[] point={0,0,0};
 					float[] normal={0,0,0};
 					int damage;
 
-					VectorCopy(self.velocity, normal);
-					VectorNormalize(normal);
-					VectorMA(self.s.origin, self.maxs[0], normal, point);
-					damage = (int) (40 + 10 * random());
+					Math3D.VectorCopy(self.velocity, normal);
+					Math3D.VectorNormalize(normal);
+					Math3D.VectorMA(self.s.origin, self.maxs[0], normal, point);
+					damage = (int) (40 + 10 * Lib.random());
 					T_Damage(other, self, self, self.velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
 				}
 			}
@@ -520,9 +521,9 @@ public class M_Mutant extends Game {
 			float[] forward={0,0,0};
 
 			gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
-			AngleVectors(self.s.angles, forward, null, null);
+			Math3D.AngleVectors(self.s.angles, forward, null, null);
 			self.s.origin[2] += 1;
-			VectorScale(forward, 600, self.velocity);
+			Math3D.VectorScale(forward, 600, self.velocity);
 			self.velocity[2] = 250;
 			self.groundentity = null;
 			self.monsterinfo.aiflags |= AI_DUCKED;
@@ -596,12 +597,12 @@ public class M_Mutant extends Game {
 			v[0] = self.s.origin[0] - self.enemy.s.origin[0];
 			v[1] = self.s.origin[1] - self.enemy.s.origin[1];
 			v[2] = 0;
-			distance = VectorLength(v);
+			distance = Math3D.VectorLength(v);
 
 			if (distance < 100)
 				return false;
 			if (distance > 100) {
-				if (random() < 0.9)
+				if (Lib.random() < 0.9)
 					return false;
 			}
 
@@ -683,7 +684,7 @@ public class M_Mutant extends Game {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			r = random();
+			r = Lib.random();
 			if (r < 0.33) {
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 				self.monsterinfo.currentmove = mutant_move_pain1;
@@ -702,8 +703,8 @@ public class M_Mutant extends Game {
 	//
 	static EntThinkAdapter mutant_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype = MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			gi.linkentity(self);
@@ -763,7 +764,7 @@ public class M_Mutant extends Game {
 			self.takedamage = DAMAGE_YES;
 			self.s.skinnum = 1;
 
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				self.monsterinfo.currentmove = mutant_move_death1;
 			else
 				self.monsterinfo.currentmove = mutant_move_death2;
@@ -800,8 +801,8 @@ public class M_Mutant extends Game {
 			self.movetype = MOVETYPE_STEP;
 			self.solid = SOLID_BBOX;
 			self.s.modelindex = gi.modelindex("models/monsters/mutant/tris.md2");
-			VectorSet(self.mins, -32, -32, -24);
-			VectorSet(self.maxs, 32, 32, 48);
+			Math3D.VectorSet(self.mins, -32, -32, -24);
+			Math3D.VectorSet(self.maxs, 32, 32, 48);
 
 			self.health = 300;
 			self.gib_health = -120;

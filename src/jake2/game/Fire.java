@@ -19,17 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.1 2003-12-04 20:35:26 rst Exp $
+// $Id: Fire.java,v 1.2 2003-12-09 22:12:44 rst Exp $
 
 package jake2.game;
 
 
  import jake2.*;
  import jake2.client.*;
- import jake2.game.*;
  import jake2.qcommon.*;
  import jake2.render.*;
  import jake2.server.*;
+import jake2.util.*;
 
 public class Fire {
 
@@ -49,8 +49,8 @@ public class Fire {
 		float[] dir= { 0, 0, 0 };
 	
 		//see if enemy is in range
-		GameBase.VectorSubtract(self.enemy.s.origin, self.s.origin, dir);
-		range= GameBase.VectorLength(dir);
+		Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, dir);
+		range= Math3D.VectorLength(dir);
 		if (range > aim[0])
 			return false;
 	
@@ -65,7 +65,7 @@ public class Fire {
 				aim[1]= self.enemy.maxs[0];
 		}
 	
-		GameBase.VectorMA(self.s.origin, range, dir, point);
+		Math3D.VectorMA(self.s.origin, range, dir, point);
 	
 		tr= GameBase.gi.trace(self.s.origin, null, null, point, self, Defines.MASK_SHOT);
 		if (tr.fraction < 1) {
@@ -76,11 +76,11 @@ public class Fire {
 				tr.ent= self.enemy;
 		}
 	
-		GameBase.AngleVectors(self.s.angles, forward, right, up);
-		GameBase.VectorMA(self.s.origin, range, forward, point);
-		GameBase.VectorMA(point, aim[1], right, point);
-		GameBase.VectorMA(point, aim[2], up, point);
-		GameBase.VectorSubtract(point, self.enemy.s.origin, dir);
+		Math3D.AngleVectors(self.s.angles, forward, right, up);
+		Math3D.VectorMA(self.s.origin, range, forward, point);
+		Math3D.VectorMA(point, aim[1], right, point);
+		Math3D.VectorMA(point, aim[2], up, point);
+		Math3D.VectorSubtract(point, self.enemy.s.origin, dir);
 	
 		// do the damage
 		GameUtil.T_Damage(
@@ -99,10 +99,10 @@ public class Fire {
 			return false;
 	
 		// do our special form of knockback here
-		GameBase.VectorMA(self.enemy.absmin, 0.5f, self.enemy.size, v);
-		GameBase.VectorSubtract(v, point, v);
-		GameBase.VectorNormalize(v);
-		GameBase.VectorMA(self.enemy.velocity, kick, v, self.enemy.velocity);
+		Math3D.VectorMA(self.enemy.absmin, 0.5f, self.enemy.size, v);
+		Math3D.VectorSubtract(v, point, v);
+		Math3D.VectorNormalize(v);
+		Math3D.VectorMA(self.enemy.velocity, kick, v, self.enemy.velocity);
 		if (self.enemy.velocity[2] > 0)
 			self.enemy.groundentity= null;
 		return true;
@@ -136,18 +136,18 @@ public class Fire {
 	
 		tr= GameBase.gi.trace(self.s.origin, null, null, start, self, Defines.MASK_SHOT);
 		if (!(tr.fraction < 1.0)) {
-			GameBase.vectoangles(aimdir, dir);
-			GameBase.AngleVectors(dir, forward, right, up);
+			Math3D.vectoangles(aimdir, dir);
+			Math3D.AngleVectors(dir, forward, right, up);
 	
-			r= GameBase.crandom() * hspread;
-			u= GameBase.crandom() * vspread;
-			GameBase.VectorMA(start, 8192, forward, end);
-			GameBase.VectorMA(end, r, right, end);
-			GameBase.VectorMA(end, u, up, end);
+			r= Lib.crandom() * hspread;
+			u= Lib.crandom() * vspread;
+			Math3D.VectorMA(start, 8192, forward, end);
+			Math3D.VectorMA(end, r, right, end);
+			Math3D.VectorMA(end, u, up, end);
 	
 			if ((GameBase.gi.pointcontents(start) & Defines.MASK_WATER) != 0) {
 				water= true;
-				GameBase.VectorCopy(start, water_start);
+				Math3D.VectorCopy(start, water_start);
 				content_mask &= ~Defines.MASK_WATER;
 			}
 	
@@ -158,11 +158,11 @@ public class Fire {
 				int color;
 	
 				water= true;
-				GameBase.VectorCopy(tr.endpos, water_start);
+				Math3D.VectorCopy(tr.endpos, water_start);
 	
-				if (0 == GameBase.VectorCompare(start, tr.endpos)) {
+				if (0 == Math3D.VectorCompare(start, tr.endpos)) {
 					if ((tr.contents & Defines.CONTENTS_WATER) != 0) {
-						if (GameBase.strcmp(tr.surface.name, "*brwater") == 0)
+						if (Lib.strcmp(tr.surface.name, "*brwater") == 0)
 							color= Defines.SPLASH_BROWN_WATER;
 						else
 							color= Defines.SPLASH_BLUE_WATER;
@@ -184,14 +184,14 @@ public class Fire {
 					}
 	
 					// change bullet's course when it enters water
-					GameBase.VectorSubtract(end, start, dir);
-					GameBase.vectoangles(dir, dir);
-					GameBase.AngleVectors(dir, forward, right, up);
-					r= GameBase.crandom() * hspread * 2;
-					u= GameBase.crandom() * vspread * 2;
-					GameBase.VectorMA(water_start, 8192, forward, end);
-					GameBase.VectorMA(end, r, right, end);
-					GameBase.VectorMA(end, u, up, end);
+					Math3D.VectorSubtract(end, start, dir);
+					Math3D.vectoangles(dir, dir);
+					Math3D.AngleVectors(dir, forward, right, up);
+					r= Lib.crandom() * hspread * 2;
+					u= Lib.crandom() * vspread * 2;
+					Math3D.VectorMA(water_start, 8192, forward, end);
+					Math3D.VectorMA(end, r, right, end);
+					Math3D.VectorMA(end, u, up, end);
 				}
 	
 				// re-trace ignoring water this time
@@ -215,7 +215,7 @@ public class Fire {
 						Defines.DAMAGE_BULLET,
 						mod);
 				} else {
-					if (GameBase.strncmp(tr.surface.name, "sky", 3) != 0) {
+					if (Lib.strncmp(tr.surface.name, "sky", 3) != 0) {
 						GameBase.gi.WriteByte(Defines.svc_temp_entity);
 						GameBase.gi.WriteByte(te_impact);
 						GameBase.gi.WritePosition(tr.endpos);
@@ -233,16 +233,16 @@ public class Fire {
 		if (water) {
 			float[] pos= { 0, 0, 0 };
 	
-			GameBase.VectorSubtract(tr.endpos, water_start, dir);
-			GameBase.VectorNormalize(dir);
-			GameBase.VectorMA(tr.endpos, -2, dir, pos);
+			Math3D.VectorSubtract(tr.endpos, water_start, dir);
+			Math3D.VectorNormalize(dir);
+			Math3D.VectorMA(tr.endpos, -2, dir, pos);
 			if ((GameBase.gi.pointcontents(pos) & Defines.MASK_WATER) != 0)
-				GameBase.VectorCopy(pos, tr.endpos);
+				Math3D.VectorCopy(pos, tr.endpos);
 			else
 				tr= GameBase.gi.trace(pos, null, null, water_start, tr.ent, Defines.MASK_WATER);
 	
-			GameBase.VectorAdd(water_start, tr.endpos, pos);
-			GameBase.VectorScale(pos, 0.5f, pos);
+			Math3D.VectorAdd(water_start, tr.endpos, pos);
+			Math3D.VectorScale(pos, 0.5f, pos);
 	
 			GameBase.gi.WriteByte(Defines.svc_temp_entity);
 			GameBase.gi.WriteByte(Defines.TE_BUBBLETRAIL);
@@ -303,7 +303,7 @@ public class Fire {
 		edict_t bolt;
 		trace_t tr;
 	
-		GameBase.VectorNormalize(dir);
+		Math3D.VectorNormalize(dir);
 	
 		bolt= GameUtil.G_Spawn();
 		bolt.svflags= Defines.SVF_DEADMONSTER;
@@ -312,16 +312,16 @@ public class Fire {
 		// (blaster/hyperblaster shots), the player won't be solid clipped against
 		// the object.  Right now trying to run into a firing hyperblaster
 		// is very jerky since you are predicted 'against' the shots.
-		GameBase.VectorCopy(start, bolt.s.origin);
-		GameBase.VectorCopy(start, bolt.s.old_origin);
-		GameBase.vectoangles(dir, bolt.s.angles);
-		GameBase.VectorScale(dir, speed, bolt.velocity);
+		Math3D.VectorCopy(start, bolt.s.origin);
+		Math3D.VectorCopy(start, bolt.s.old_origin);
+		Math3D.vectoangles(dir, bolt.s.angles);
+		Math3D.VectorScale(dir, speed, bolt.velocity);
 		bolt.movetype= Defines.MOVETYPE_FLYMISSILE;
 		bolt.clipmask= Defines.MASK_SHOT;
 		bolt.solid= Defines.SOLID_BBOX;
 		bolt.s.effects |= effect;
-		GameBase.VectorClear(bolt.mins);
-		GameBase.VectorClear(bolt.maxs);
+		Math3D.VectorClear(bolt.mins);
+		Math3D.VectorClear(bolt.maxs);
 		bolt.s.modelindex= GameBase.gi.modelindex("models/objects/laser/tris.md2");
 		bolt.s.sound= GameBase.gi.soundindex("misc/lasfly.wav");
 		bolt.owner= self;
@@ -339,7 +339,7 @@ public class Fire {
 	
 		tr= GameBase.gi.trace(self.s.origin, null, null, bolt.s.origin, bolt, Defines.MASK_SHOT);
 		if (tr.fraction < 1.0) {
-			GameBase.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
+			Math3D.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
 			bolt.touch.touch(bolt, tr.ent, null, null);
 		}
 	}
@@ -361,21 +361,21 @@ public class Fire {
 		float[] dir= { 0, 0, 0 };
 		float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, up= { 0, 0, 0 };
 	
-		GameBase.vectoangles(aimdir, dir);
-		GameBase.AngleVectors(dir, forward, right, up);
+		Math3D.vectoangles(aimdir, dir);
+		Math3D.AngleVectors(dir, forward, right, up);
 	
 		grenade= GameUtil.G_Spawn();
-		GameBase.VectorCopy(start, grenade.s.origin);
-		GameBase.VectorScale(aimdir, speed, grenade.velocity);
-		GameBase.VectorMA(grenade.velocity, 200f + GameBase.crandom() * 10.0f, up, grenade.velocity);
-		GameBase.VectorMA(grenade.velocity, GameBase.crandom() * 10.0f, right, grenade.velocity);
-		GameBase.VectorSet(grenade.avelocity, 300, 300, 300);
+		Math3D.VectorCopy(start, grenade.s.origin);
+		Math3D.VectorScale(aimdir, speed, grenade.velocity);
+		Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up, grenade.velocity);
+		Math3D.VectorMA(grenade.velocity, Lib.crandom() * 10.0f, right, grenade.velocity);
+		Math3D.VectorSet(grenade.avelocity, 300, 300, 300);
 		grenade.movetype= Defines.MOVETYPE_BOUNCE;
 		grenade.clipmask= Defines.MASK_SHOT;
 		grenade.solid= Defines.SOLID_BBOX;
 		grenade.s.effects |= Defines.EF_GRENADE;
-		GameBase.VectorClear(grenade.mins);
-		GameBase.VectorClear(grenade.maxs);
+		Math3D.VectorClear(grenade.mins);
+		Math3D.VectorClear(grenade.maxs);
 		grenade.s.modelindex= GameBase.gi.modelindex("models/objects/grenade/tris.md2");
 		grenade.owner= self;
 		grenade.touch= GameWeapon.Grenade_Touch;
@@ -400,21 +400,21 @@ public class Fire {
 		float[] dir= { 0, 0, 0 };
 		float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, up= { 0, 0, 0 };
 	
-		GameBase.vectoangles(aimdir, dir);
-		GameBase.AngleVectors(dir, forward, right, up);
+		Math3D.vectoangles(aimdir, dir);
+		Math3D.AngleVectors(dir, forward, right, up);
 	
 		grenade= GameUtil.G_Spawn();
-		GameBase.VectorCopy(start, grenade.s.origin);
-		GameBase.VectorScale(aimdir, speed, grenade.velocity);
-		GameBase.VectorMA(grenade.velocity, 200f + GameBase.crandom() * 10.0f, up, grenade.velocity);
-		GameBase.VectorMA(grenade.velocity, GameBase.crandom() * 10.0f, right, grenade.velocity);
-		GameBase.VectorSet(grenade.avelocity, 300f, 300f, 300f);
+		Math3D.VectorCopy(start, grenade.s.origin);
+		Math3D.VectorScale(aimdir, speed, grenade.velocity);
+		Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up, grenade.velocity);
+		Math3D.VectorMA(grenade.velocity, Lib.crandom() * 10.0f, right, grenade.velocity);
+		Math3D.VectorSet(grenade.avelocity, 300f, 300f, 300f);
 		grenade.movetype= Defines.MOVETYPE_BOUNCE;
 		grenade.clipmask= Defines.MASK_SHOT;
 		grenade.solid= Defines.SOLID_BBOX;
 		grenade.s.effects |= Defines.EF_GRENADE;
-		GameBase.VectorClear(grenade.mins);
-		GameBase.VectorClear(grenade.maxs);
+		Math3D.VectorClear(grenade.mins);
+		Math3D.VectorClear(grenade.maxs);
 		grenade.s.modelindex= GameBase.gi.modelindex("models/objects/grenade2/tris.md2");
 		grenade.owner= self;
 		grenade.touch= GameWeapon.Grenade_Touch;
@@ -447,16 +447,16 @@ public class Fire {
 		edict_t rocket;
 	
 		rocket= GameUtil.G_Spawn();
-		GameBase.VectorCopy(start, rocket.s.origin);
-		GameBase.VectorCopy(dir, rocket.movedir);
-		GameBase.vectoangles(dir, rocket.s.angles);
-		GameBase.VectorScale(dir, speed, rocket.velocity);
+		Math3D.VectorCopy(start, rocket.s.origin);
+		Math3D.VectorCopy(dir, rocket.movedir);
+		Math3D.vectoangles(dir, rocket.s.angles);
+		Math3D.VectorScale(dir, speed, rocket.velocity);
 		rocket.movetype= Defines.MOVETYPE_FLYMISSILE;
 		rocket.clipmask= Defines.MASK_SHOT;
 		rocket.solid= Defines.SOLID_BBOX;
 		rocket.s.effects |= Defines.EF_ROCKET;
-		GameBase.VectorClear(rocket.mins);
-		GameBase.VectorClear(rocket.maxs);
+		Math3D.VectorClear(rocket.mins);
+		Math3D.VectorClear(rocket.maxs);
 		rocket.s.modelindex= GameBase.gi.modelindex("models/objects/rocket/tris.md2");
 		rocket.owner= self;
 		rocket.touch= GameWeapon.rocket_touch;
@@ -486,8 +486,8 @@ public class Fire {
 		int mask;
 		boolean water;
 	
-		GameBase.VectorMA(start, 8192f, aimdir, end);
-		GameBase.VectorCopy(start, from);
+		Math3D.VectorMA(start, 8192f, aimdir, end);
+		Math3D.VectorCopy(start, from);
 		ignore= self;
 		water= false;
 		mask= Defines.MASK_SHOT | Defines.CONTENTS_SLIME | Defines.CONTENTS_LAVA;
@@ -520,7 +520,7 @@ public class Fire {
 						Defines.MOD_RAILGUN);
 			}
 	
-			GameBase.VectorCopy(tr.endpos, from);
+			Math3D.VectorCopy(tr.endpos, from);
 		}
 	
 		// send gun puff / flash
@@ -551,16 +551,16 @@ public class Fire {
 		edict_t bfg;
 	
 		bfg= GameUtil.G_Spawn();
-		GameBase.VectorCopy(start, bfg.s.origin);
-		GameBase.VectorCopy(dir, bfg.movedir);
-		GameBase.vectoangles(dir, bfg.s.angles);
-		GameBase.VectorScale(dir, speed, bfg.velocity);
+		Math3D.VectorCopy(start, bfg.s.origin);
+		Math3D.VectorCopy(dir, bfg.movedir);
+		Math3D.vectoangles(dir, bfg.s.angles);
+		Math3D.VectorScale(dir, speed, bfg.velocity);
 		bfg.movetype= Defines.MOVETYPE_FLYMISSILE;
 		bfg.clipmask= Defines.MASK_SHOT;
 		bfg.solid= Defines.SOLID_BBOX;
 		bfg.s.effects |= Defines.EF_BFG | Defines.EF_ANIM_ALLFAST;
-		GameBase.VectorClear(bfg.mins);
-		GameBase.VectorClear(bfg.maxs);
+		Math3D.VectorClear(bfg.mins);
+		Math3D.VectorClear(bfg.maxs);
 		bfg.s.modelindex= GameBase.gi.modelindex("sprites/s_bfg1.sp2");
 		bfg.owner= self;
 		bfg.touch= GameWeapon.bfg_touch;

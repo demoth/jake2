@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.3 2003-11-29 22:23:38 rst Exp $
+// $Id: M_Soldier.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Soldier extends GamePWeapon {
 
@@ -518,7 +521,7 @@ public class M_Soldier extends GamePWeapon {
 
 	static EntThinkAdapter soldier_idle = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() > 0.8)
+			if (Lib.random() > 0.8)
 				gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 			return true;
 		}
@@ -545,7 +548,7 @@ public class M_Soldier extends GamePWeapon {
 
 	static EntThinkAdapter soldier_stand = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if ((self.monsterinfo.currentmove == soldier_move_stand3) || (random() < 0.8))
+			if ((self.monsterinfo.currentmove == soldier_move_stand3) || (Lib.random() < 0.8))
 				self.monsterinfo.currentmove = soldier_move_stand1;
 			else
 				self.monsterinfo.currentmove = soldier_move_stand3;
@@ -559,7 +562,7 @@ public class M_Soldier extends GamePWeapon {
 
 	static EntThinkAdapter soldier_walk1_random = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() > 0.1)
+			if (Lib.random() > 0.1)
 				self.monsterinfo.nextframe = FRAME_walk101;
 			return true;
 		}
@@ -568,7 +571,7 @@ public class M_Soldier extends GamePWeapon {
 
 	static EntThinkAdapter soldier_walk = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				self.monsterinfo.currentmove = soldier_move_walk1;
 			else
 				self.monsterinfo.currentmove = soldier_move_walk2;
@@ -845,7 +848,7 @@ public class M_Soldier extends GamePWeapon {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			r = random();
+			r = Lib.random();
 
 			if (r < 0.33)
 				self.monsterinfo.currentmove = soldier_move_pain1;
@@ -907,26 +910,26 @@ public class M_Soldier extends GamePWeapon {
 		else
 			flash_index = machinegun_flash[flash_number];
 
-		AngleVectors(self.s.angles, forward, right, null);
-		G_ProjectSource(self.s.origin, monster_flash_offset[flash_index], forward, right, start);
+		Math3D.AngleVectors(self.s.angles, forward, right, null);
+		Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_index], forward, right, start);
 
 		if (flash_number == 5 || flash_number == 6) {
-			VectorCopy(forward, aim);
+			Math3D.VectorCopy(forward, aim);
 		} else {
-			VectorCopy(self.enemy.s.origin, end);
+			Math3D.VectorCopy(self.enemy.s.origin, end);
 			end[2] += self.enemy.viewheight;
-			VectorSubtract(end, start, aim);
-			vectoangles(aim, dir);
-			AngleVectors(dir, forward, right, up);
+			Math3D.VectorSubtract(end, start, aim);
+			Math3D.vectoangles(aim, dir);
+			Math3D.AngleVectors(dir, forward, right, up);
 
-			r = crandom() * 1000;
-			u = crandom() * 500;
-			VectorMA(start, 8192, forward, end);
-			VectorMA(end, r, right, end);
-			VectorMA(end, u, up, end);
+			r = Lib.crandom() * 1000;
+			u = Lib.crandom() * 500;
+			Math3D.VectorMA(start, 8192, forward, end);
+			Math3D.VectorMA(end, r, right, end);
+			Math3D.VectorMA(end, u, up, end);
 
-			VectorSubtract(end, start, aim);
-			VectorNormalize(aim);
+			Math3D.VectorSubtract(end, start, aim);
+			Math3D.VectorNormalize(aim);
 		}
 
 		if (self.s.skinnum <= 1) {
@@ -944,7 +947,7 @@ public class M_Soldier extends GamePWeapon {
 				flash_index);
 		} else {
 			if (0 == (self.monsterinfo.aiflags & AI_HOLD_FRAME))
-				self.monsterinfo.pausetime = level.time + (3 + rand() % 8) * FRAMETIME;
+				self.monsterinfo.pausetime = level.time + (3 + Lib.rand() % 8) * FRAMETIME;
 
 			monster_fire_bullet(self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
 
@@ -972,7 +975,7 @@ public class M_Soldier extends GamePWeapon {
 			if (self.enemy.health <= 0)
 				return true;
 
-			if (((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
+			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
 				self.monsterinfo.nextframe = FRAME_attak102;
 			else
 				self.monsterinfo.nextframe = FRAME_attak110;
@@ -988,7 +991,7 @@ public class M_Soldier extends GamePWeapon {
 			if (self.enemy.health <= 0)
 				return true;
 
-			if (((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
+			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
 				self.monsterinfo.nextframe = FRAME_attak102;
 			return true;
 		}
@@ -1027,7 +1030,7 @@ public class M_Soldier extends GamePWeapon {
 			if (self.enemy.health <= 0)
 				return true;
 
-			if (((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
+			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
 				self.monsterinfo.nextframe = FRAME_attak204;
 			else
 				self.monsterinfo.nextframe = FRAME_attak216;
@@ -1043,7 +1046,7 @@ public class M_Soldier extends GamePWeapon {
 			if (self.enemy.health <= 0)
 				return true ;
 
-			if (((skill.value == 3) && (random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
+			if (((skill.value == 3) && (Lib.random() < 0.5)) || (range(self, self.enemy) == RANGE_MELEE))
 				self.monsterinfo.nextframe = FRAME_attak204;
 			return true;
 		}
@@ -1187,7 +1190,7 @@ public class M_Soldier extends GamePWeapon {
 	static EntThinkAdapter soldier_attack = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			if (self.s.skinnum < 4) {
-				if (random() < 0.5)
+				if (Lib.random() < 0.5)
 					self.monsterinfo.currentmove = soldier_move_attack1;
 				else
 					self.monsterinfo.currentmove = soldier_move_attack2;
@@ -1204,13 +1207,13 @@ public class M_Soldier extends GamePWeapon {
 
 	static EntInteractAdapter soldier_sight = new EntInteractAdapter() {
 		public boolean interact(edict_t self, edict_t other) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_sight1, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
 
 			if ((skill.value > 0) && (range(self, self.enemy) >= RANGE_MID)) {
-				if (random() > 0.5)
+				if (Lib.random() > 0.5)
 					self.monsterinfo.currentmove = soldier_move_attack6;
 			}
 			return true;
@@ -1244,7 +1247,7 @@ public class M_Soldier extends GamePWeapon {
 		public void dodge(edict_t self, edict_t attacker, float eta) {
 			float r;
 
-			r = random();
+			r = Lib.random();
 			if (r > 0.25)
 				return;
 
@@ -1257,7 +1260,7 @@ public class M_Soldier extends GamePWeapon {
 			}
 
 			self.monsterinfo.pausetime = level.time + eta + 0.3f;
-			r = random();
+			r = Lib.random();
 
 			if (skill.value == 1) {
 				if (r > 0.33)
@@ -1300,8 +1303,8 @@ public class M_Soldier extends GamePWeapon {
 	static EntThinkAdapter soldier_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype = MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink = 0;
@@ -1574,7 +1577,7 @@ public class M_Soldier extends GamePWeapon {
 				return;
 			}
 
-			n = rand() % 5;
+			n = Lib.rand() % 5;
 			if (n == 0)
 				self.monsterinfo.currentmove = soldier_move_death1;
 			else if (n == 1)
@@ -1597,8 +1600,8 @@ public class M_Soldier extends GamePWeapon {
 
 			self.s.modelindex = gi.modelindex("models/monsters/soldier/tris.md2");
 			self.monsterinfo.scale = MODEL_SCALE;
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, 32);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, 32);
 			self.movetype = MOVETYPE_STEP;
 			self.solid = SOLID_BBOX;
 

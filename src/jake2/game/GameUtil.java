@@ -19,11 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.3 2003-12-04 21:04:35 rst Exp $
+// $Id: GameUtil.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
 
+import jake2.Defines;
 import jake2.client.M;
+import jake2.util.*;
 
 public class GameUtil extends GameBase {
 
@@ -103,9 +105,9 @@ public class GameUtil extends GameBase {
 			while ((edit= G_Find(edit, findByTarget, ent.target)) != null) {
 				t= edit.o;
 				// doors fire area portals in a specific way
-				if (Q_stricmp(t.classname, "func_areaportal") == 0
-					&& (Q_stricmp(ent.classname, "func_door") == 0
-						|| Q_stricmp(ent.classname, "func_door_rotating") == 0))
+				if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0
+					&& (Lib.Q_stricmp(ent.classname, "func_door") == 0
+						|| Lib.Q_stricmp(ent.classname, "func_door_rotating") == 0))
 					continue;
 
 				if (t == ent) {
@@ -309,7 +311,7 @@ public class GameUtil extends GameBase {
 				// tiefe zählen
 				// count the depth
 				for (count= 0, ent= master; ent != null; ent= ent.chain, count++)
-					choice= rand() % count;
+					choice= Lib.rand() % count;
 
 				for (count= 0, ent= master; count < choice; ent= ent.chain, count++);
 			}
@@ -573,8 +575,8 @@ public class GameUtil extends GameBase {
 		dropped.spawnflags= DROPPED_ITEM;
 		dropped.s.effects= item.world_model_flags;
 		dropped.s.renderfx= RF_GLOW;
-		VectorSet(dropped.mins, -15, -15, -15);
-		VectorSet(dropped.maxs, 15, 15, 15);
+		Math3D.VectorSet(dropped.mins, -15, -15, -15);
+		Math3D.VectorSet(dropped.maxs, 15, 15, 15);
 		gi.setmodel(dropped, dropped.item.world_model);
 		dropped.solid= SOLID_TRIGGER;
 		dropped.movetype= MOVETYPE_TOSS;
@@ -586,9 +588,9 @@ public class GameUtil extends GameBase {
 		if (ent.client != null) {
 			trace_t trace;
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
-			VectorSet(offset, 24, 0, -16);
-			G_ProjectSource(ent.s.origin, offset, forward, right, dropped.s.origin);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.VectorSet(offset, 24, 0, -16);
+			Math3D.G_ProjectSource(ent.s.origin, offset, forward, right, dropped.s.origin);
 			trace=
 				gi.trace(
 					ent.s.origin,
@@ -597,13 +599,13 @@ public class GameUtil extends GameBase {
 					dropped.s.origin,
 					ent,
 					CONTENTS_SOLID);
-			VectorCopy(trace.endpos, dropped.s.origin);
+			Math3D.VectorCopy(trace.endpos, dropped.s.origin);
 		} else {
-			AngleVectors(ent.s.angles, forward, right, null);
-			VectorCopy(ent.s.origin, dropped.s.origin);
+			Math3D.AngleVectors(ent.s.angles, forward, right, null);
+			Math3D.VectorCopy(ent.s.origin, dropped.s.origin);
 		}
 
-		VectorScale(forward, 100, dropped.velocity);
+		Math3D.VectorScale(forward, 100, dropped.velocity);
 		dropped.velocity[2]= 300;
 
 		dropped.think= drop_make_touchable;
@@ -750,7 +752,7 @@ public class GameUtil extends GameBase {
 	static EntInteractAdapter Pickup_Key= new EntInteractAdapter() {
 		public boolean interact(edict_t ent, edict_t other) {
 			if (coop.value != 0) {
-				if (strcmp(ent.classname, "key_power_cube") == 0) {
+				if (Lib.strcmp(ent.classname, "key_power_cube") == 0) {
 					if ((other.client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8))
 						!= 0)
 						return false;
@@ -782,8 +784,8 @@ public class GameUtil extends GameBase {
 
 		// bmodels need special checking because their origin is 0,0,0
 		if (targ.movetype == MOVETYPE_PUSH) {
-			VectorAdd(targ.absmin, targ.absmax, dest);
-			VectorScale(dest, 0.5f, dest);
+			Math3D.VectorAdd(targ.absmin, targ.absmax, dest);
+			Math3D.VectorScale(dest, 0.5f, dest);
 			trace=
 				gi.trace(inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 			if (trace.fraction == 1.0f)
@@ -804,28 +806,28 @@ public class GameUtil extends GameBase {
 		if (trace.fraction == 1.0)
 			return true;
 
-		VectorCopy(targ.s.origin, dest);
+		Math3D.VectorCopy(targ.s.origin, dest);
 		dest[0] += 15.0;
 		dest[1] += 15.0;
 		trace= gi.trace(inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0)
 			return true;
 
-		VectorCopy(targ.s.origin, dest);
+		Math3D.VectorCopy(targ.s.origin, dest);
 		dest[0] += 15.0;
 		dest[1] -= 15.0;
 		trace= gi.trace(inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0)
 			return true;
 
-		VectorCopy(targ.s.origin, dest);
+		Math3D.VectorCopy(targ.s.origin, dest);
 		dest[0] -= 15.0;
 		dest[1] += 15.0;
 		trace= gi.trace(inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0)
 			return true;
 
-		VectorCopy(targ.s.origin, dest);
+		Math3D.VectorCopy(targ.s.origin, dest);
 		dest[0] -= 15.0;
 		dest[1] -= 15.0;
 		trace= gi.trace(inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
@@ -835,7 +837,7 @@ public class GameUtil extends GameBase {
 		return false;
 	}
 
-	static void T_Damage(
+	public static void T_Damage(
 		edict_t targ,
 		edict_t inflictor,
 		edict_t attacker,
@@ -886,7 +888,7 @@ public class GameUtil extends GameBase {
 		else
 			te_sparks= TE_SPARKS;
 
-		VectorNormalize(dir);
+		Math3D.VectorNormalize(dir);
 
 		//	   bonus damage for suprising a monster
 		if (0 == (dflags & DAMAGE_RADIUS)
@@ -915,12 +917,12 @@ public class GameUtil extends GameBase {
 					mass= targ.mass;
 
 				if (targ.client != null && attacker == targ)
-					VectorScale(dir, 1600.0f * (float) knockback / mass, kvel);
+					Math3D.VectorScale(dir, 1600.0f * (float) knockback / mass, kvel);
 				// the rocket jump hack...
 				else
-					VectorScale(dir, 500.0f * (float) knockback / mass, kvel);
+					Math3D.VectorScale(dir, 500.0f * (float) knockback / mass, kvel);
 
-				VectorAdd(targ.velocity, kvel, targ.velocity);
+				Math3D.VectorAdd(targ.velocity, kvel, targ.velocity);
 			}
 		}
 
@@ -976,7 +978,7 @@ public class GameUtil extends GameBase {
 		}
 
 		if ((targ.svflags & SVF_MONSTER) != 0) {
-			M_ReactToDamage(targ, attacker);
+			M.M_ReactToDamage(targ, attacker);
 			if (0 != (targ.monsterinfo.aiflags & AI_DUCKED) && (take != 0)) {
 				targ.pain.pain(targ, attacker, knockback, take);
 				// nightmare mode monsters don't go into pain frames often
@@ -999,7 +1001,7 @@ public class GameUtil extends GameBase {
 			client.damage_armor += asave;
 			client.damage_blood += take;
 			client.damage_knockback += knockback;
-			VectorCopy(point, client.damage_from);
+			Math3D.VectorCopy(point, client.damage_from);
 		}
 	}
 
@@ -1156,10 +1158,10 @@ public class GameUtil extends GameBase {
 			float[] forward= { 0, 0, 0 };
 
 			// only works if damage point is in front
-			AngleVectors(ent.s.angles, forward, null, null);
-			VectorSubtract(point, ent.s.origin, vec);
-			VectorNormalize(vec);
-			dot= DotProduct(vec, forward);
+			Math3D.AngleVectors(ent.s.angles, forward, null, null);
+			Math3D.VectorSubtract(point, ent.s.origin, vec);
+			Math3D.VectorNormalize(vec);
+			dot= Math3D.DotProduct(vec, forward);
 			if (dot <= 0.3)
 				return 0;
 
@@ -1205,9 +1207,9 @@ public class GameUtil extends GameBase {
 		if ((self.monsterinfo.search != null) && (level.time > self.monsterinfo.idle_time)) {
 			if (self.monsterinfo.idle_time != 0) {
 				self.monsterinfo.search.think(self);
-				self.monsterinfo.idle_time= level.time + 15 + random() * 15;
+				self.monsterinfo.idle_time= level.time + 15 + Lib.random() * 15;
 			} else {
-				self.monsterinfo.idle_time= level.time + random() * 15;
+				self.monsterinfo.idle_time= level.time + Lib.random() * 15;
 			}
 		}
 	}
@@ -1252,9 +1254,9 @@ public class GameUtil extends GameBase {
 
 			if (self.enemy.health > 0) {
 				// see if any entities are in the way of the shot
-				VectorCopy(self.s.origin, spot1);
+				Math3D.VectorCopy(self.s.origin, spot1);
 				spot1[2] += self.viewheight;
-				VectorCopy(self.enemy.s.origin, spot2);
+				Math3D.VectorCopy(self.enemy.s.origin, spot2);
 				spot2[2] += self.enemy.viewheight;
 
 				tr=
@@ -1278,7 +1280,7 @@ public class GameUtil extends GameBase {
 			// melee attack
 			if (enemy_range == RANGE_MELEE) {
 				// don't always melee in easy mode
-				if (skill.value == 0 && (rand() & 3) != 0)
+				if (skill.value == 0 && (Lib.rand() & 3) != 0)
 					return false;
 				if (self.monsterinfo.melee != null)
 					self.monsterinfo.attack_state= AS_MELEE;
@@ -1314,14 +1316,14 @@ public class GameUtil extends GameBase {
 			else if (skill.value >= 2)
 				chance *= 2;
 
-			if (random() < chance) {
+			if (Lib.random() < chance) {
 				self.monsterinfo.attack_state= AS_MISSILE;
-				self.monsterinfo.attack_finished= level.time + 2 * random();
+				self.monsterinfo.attack_finished= level.time + 2 * Lib.random();
 				return true;
 			}
 
 			if ((self.flags & FL_FLY) != 0) {
-				if (random() < 0.3f)
+				if (Lib.random() < 0.3f)
 					self.monsterinfo.attack_state= AS_SLIDING;
 				else
 					self.monsterinfo.attack_state= AS_STRAIGHT;
@@ -1384,7 +1386,7 @@ public class GameUtil extends GameBase {
 			//	M_CheckAttack;
 			self.monsterinfo.checkattack= M_CheckAttack;
 
-		VectorCopy(self.s.origin, self.s.old_origin);
+		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
 		if (st.item != null) {
 			self.item= FindItemByClassname(st.item);
@@ -1393,7 +1395,7 @@ public class GameUtil extends GameBase {
 					""
 						+ self.classname
 						+ " at "
-						+ vtos(self.s.origin)
+						+ Lib.vtos(self.s.origin)
 						+ " has bad item: "
 						+ st.item
 						+ "\n");
@@ -1403,7 +1405,7 @@ public class GameUtil extends GameBase {
 		if (self.monsterinfo.currentmove != null)
 			self.s.frame=
 				self.monsterinfo.currentmove.firstframe
-					+ (rand()
+					+ (Lib.rand()
 						% (self.monsterinfo.currentmove.lastframe
 							- self.monsterinfo.currentmove.firstframe
 							+ 1));
@@ -1426,8 +1428,8 @@ public class GameUtil extends GameBase {
 		float[] v= { 0, 0, 0 };
 		float len;
 
-		VectorSubtract(self.s.origin, other.s.origin, v);
-		len= VectorLength(v);
+		Math3D.VectorSubtract(self.s.origin, other.s.origin, v);
+		len= Math3D.VectorLength(v);
 		if (len < MELEE_DISTANCE)
 			return RANGE_MELEE;
 		if (len < 500)
@@ -1560,10 +1562,10 @@ public class GameUtil extends GameBase {
 		float dot;
 		float[] forward= { 0, 0, 0 };
 
-		AngleVectors(self.s.angles, forward, null, null);
-		VectorSubtract(other.s.origin, self.s.origin, vec);
-		VectorNormalize(vec);
-		dot= DotProduct(vec, forward);
+		Math3D.AngleVectors(self.s.angles, forward, null, null);
+		Math3D.VectorSubtract(other.s.origin, self.s.origin, vec);
+		Math3D.VectorNormalize(vec);
+		dot= Math3D.DotProduct(vec, forward);
 
 		if (dot > 0.3)
 			return true;
@@ -1577,14 +1579,14 @@ public class GameUtil extends GameBase {
 	returns 1 if the entity is visible to self, even if not infront ()
 	=============
 	*/
-	static boolean visible(edict_t self, edict_t other) {
+	public static boolean visible(edict_t self, edict_t other) {
 		float[] spot1= { 0, 0, 0 };
 		float[] spot2= { 0, 0, 0 };
 		trace_t trace;
 
-		VectorCopy(self.s.origin, spot1);
+		Math3D.VectorCopy(self.s.origin, spot1);
 		spot1[2] += self.viewheight;
-		VectorCopy(other.s.origin, spot2);
+		Math3D.VectorCopy(other.s.origin, spot2);
 		spot2[2] += other.viewheight;
 		trace= gi.trace(spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
 
@@ -1783,9 +1785,9 @@ public class GameUtil extends GameBase {
 					return false;
 			}
 
-			VectorSubtract(client.s.origin, self.s.origin, temp);
+			Math3D.VectorSubtract(client.s.origin, self.s.origin, temp);
 
-			if (VectorLength(temp) > 1000) // too far to hear
+			if (Math3D.VectorLength(temp) > 1000) // too far to hear
 				{
 				return false;
 			}
@@ -1795,7 +1797,7 @@ public class GameUtil extends GameBase {
 				if (!gi.AreasConnected(self.areanum, client.areanum))
 					return false;
 
-			self.ideal_yaw= vectoyaw(temp);
+			self.ideal_yaw= Math3D.vectoyaw(temp);
 			M.M_ChangeYaw(self);
 
 			// hunt the sound for a bit; hopefully find the real player
@@ -1824,14 +1826,14 @@ public class GameUtil extends GameBase {
 			self.monsterinfo.stand.think(self);
 		else
 			self.monsterinfo.run.think(self);
-		VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-		self.ideal_yaw= vectoyaw(vec);
+		Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+		self.ideal_yaw= Math3D.vectoyaw(vec);
 		// wait a while before first attack
 		if (0 == (self.monsterinfo.aiflags & AI_STAND_GROUND))
 			AttackFinished(self, 1);
 	}
 
-	static void FoundTarget(edict_t self) {
+	public static void FoundTarget(edict_t self) {
 		// let other monsters see this monster for a while
 		if (self.enemy.client != null) {
 			level.sight_entity= self;
@@ -1841,7 +1843,7 @@ public class GameUtil extends GameBase {
 
 		self.show_hostile= (int) level.time + 1; // wake up other monsters
 
-		VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
+		Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
 		self.monsterinfo.trail_time= level.time;
 
 		if (self.combattarget == null) {
@@ -1857,7 +1859,7 @@ public class GameUtil extends GameBase {
 				""
 					+ self.classname
 					+ "at "
-					+ vtos(self.s.origin)
+					+ Lib.vtos(self.s.origin)
 					+ ", combattarget "
 					+ self.combattarget
 					+ " not found\n");
@@ -1877,73 +1879,6 @@ public class GameUtil extends GameBase {
 	}
 
 
-
-	static void M_ReactToDamage(edict_t targ, edict_t attacker) {
-		if ((null != attacker.client) && 0 != (attacker.svflags & SVF_MONSTER))
-			return;
-
-		if (attacker == targ || attacker == targ.enemy)
-			return;
-
-		// if we are a good guy monster and our attacker is a player
-		// or another good guy, do not get mad at them
-		if (0 != (targ.monsterinfo.aiflags & AI_GOOD_GUY)) {
-			if (attacker.client != null || (attacker.monsterinfo.aiflags & AI_GOOD_GUY) != 0)
-				return;
-		}
-
-		// we now know that we are not both good guys
-
-		// if attacker is a client, get mad at them because he's good and we're not
-		if (attacker.client != null) {
-			targ.monsterinfo.aiflags &= ~AI_SOUND_TARGET;
-
-			// this can only happen in coop (both new and old enemies are clients)
-			// only switch if can't see the current enemy
-			if (targ.enemy != null && targ.enemy.client != null) {
-				if (visible(targ, targ.enemy)) {
-					targ.oldenemy= attacker;
-					return;
-				}
-				targ.oldenemy= targ.enemy;
-			}
-			targ.enemy= attacker;
-			if (0 != (targ.monsterinfo.aiflags & AI_DUCKED))
-				FoundTarget(targ);
-			return;
-		}
-
-		// it's the same base (walk/swim/fly) type and a different classname and it's not a tank
-		// (they spray too much), get mad at them
-		if (((targ.flags & (FL_FLY | FL_SWIM)) == (attacker.flags & (FL_FLY | FL_SWIM)))
-			&& (strcmp(targ.classname, attacker.classname) != 0)
-			&& (strcmp(attacker.classname, "monster_tank") != 0)
-			&& (strcmp(attacker.classname, "monster_supertank") != 0)
-			&& (strcmp(attacker.classname, "monster_makron") != 0)
-			&& (strcmp(attacker.classname, "monster_jorg") != 0)) {
-			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker;
-			if (0 == (targ.monsterinfo.aiflags & AI_DUCKED))
-				FoundTarget(targ);
-		}
-		// if they *meant* to shoot us, then shoot back
-		else if (attacker.enemy == targ) {
-			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker;
-			if (0 == (targ.monsterinfo.aiflags & AI_DUCKED))
-				FoundTarget(targ);
-		}
-		// otherwise get mad at whoever they are mad at (help our buddy) unless it is us!
-		else if (attacker.enemy != null && attacker.enemy != targ) {
-			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker.enemy;
-			if (0 == (targ.monsterinfo.aiflags & AI_DUCKED))
-				FoundTarget(targ);
-		}
-	}
 
 	static boolean CheckTeamDamage(edict_t targ, edict_t attacker) {
 		//FIXME make the next line real and uncomment this block
@@ -1977,15 +1912,15 @@ public class GameUtil extends GameBase {
 			if (ent.takedamage == 0)
 				continue;
 
-			VectorAdd(ent.mins, ent.maxs, v);
-			VectorMA(ent.s.origin, 0.5f, v, v);
-			VectorSubtract(inflictor.s.origin, v, v);
-			points= damage - 0.5f * VectorLength(v);
+			Math3D.VectorAdd(ent.mins, ent.maxs, v);
+			Math3D.VectorMA(ent.s.origin, 0.5f, v, v);
+			Math3D.VectorSubtract(inflictor.s.origin, v, v);
+			points= damage - 0.5f * Math3D.VectorLength(v);
 			if (ent == attacker)
 				points= points * 0.5f;
 			if (points > 0) {
 				if (CanDamage(ent, inflictor)) {
-					VectorSubtract(ent.s.origin, inflictor.s.origin, dir);
+					Math3D.VectorSubtract(ent.s.origin, inflictor.s.origin, dir);
 					T_Damage(
 						ent,
 						inflictor,

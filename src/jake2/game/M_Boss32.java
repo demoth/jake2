@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss32.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Boss32.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Boss32 extends GameWeapon {
 
@@ -538,7 +541,7 @@ public class M_Boss32 extends GameWeapon {
 		public boolean think(edict_t self) {
 			float r;
 
-			r= random();
+			r= Lib.random();
 			if (r <= 0.3)
 				gi.sound(self, CHAN_AUTO, sound_taunt1, 1, ATTN_NONE, 0);
 			else if (r <= 0.6)
@@ -721,8 +724,8 @@ public class M_Boss32 extends GameWeapon {
 	//
 	static EntThinkAdapter makron_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -60, -60, 0);
-			VectorSet(self.maxs, 60, 60, 72);
+			Math3D.VectorSet(self.mins, -60, -60, 0);
+			Math3D.VectorSet(self.maxs, 60, 60, 72);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -963,18 +966,18 @@ public class M_Boss32 extends GameWeapon {
 			float[] dir= { 0, 0, 0 };
 			float[] vec= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_MAKRON_BFG],
 				forward,
 				right,
 				start);
 
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 			gi.sound(self, CHAN_VOICE, sound_attack_bfg, 1, ATTN_NORM, 0);
 			monster_fire_bfg(self, start, dir, 50, 300, 100, 300, MZ2_MAKRON_BFG);
 			return true;
@@ -983,7 +986,7 @@ public class M_Boss32 extends GameWeapon {
 
 	static EntThinkAdapter MakronSaveloc= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorCopy(self.enemy.s.origin, self.pos1); //save for aiming the shot
+			Math3D.VectorCopy(self.enemy.s.origin, self.pos1); //save for aiming the shot
 			self.pos1[2] += self.enemy.viewheight;
 			return true;
 		}
@@ -997,8 +1000,8 @@ public class M_Boss32 extends GameWeapon {
 			float[] dir= { 0, 0, 0 };
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_MAKRON_RAILGUN_1],
 				forward,
@@ -1006,8 +1009,8 @@ public class M_Boss32 extends GameWeapon {
 				start);
 
 			// calc direction to where we targted
-			VectorSubtract(self.pos1, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(self.pos1, start, dir);
+			Math3D.VectorNormalize(dir);
 
 			monster_fire_railgun(self, start, dir, 50, 100, MZ2_MAKRON_RAILGUN_1);
 
@@ -1027,8 +1030,8 @@ public class M_Boss32 extends GameWeapon {
 
 			flash_number= MZ2_MAKRON_BLASTER_1 + (self.s.frame - FRAME_attak405);
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[flash_number],
 				forward,
@@ -1036,10 +1039,10 @@ public class M_Boss32 extends GameWeapon {
 				start);
 
 			if (self.enemy != null) {
-				VectorCopy(self.enemy.s.origin, vec);
+				Math3D.VectorCopy(self.enemy.s.origin, vec);
 				vec[2] += self.enemy.viewheight;
-				VectorSubtract(vec, start, vec);
-				vectoangles(vec, vec);
+				Math3D.VectorSubtract(vec, start, vec);
+				Math3D.vectoangles(vec, vec);
 				dir[0]= vec[0];
 			} else {
 				dir[0]= 0;
@@ -1050,7 +1053,7 @@ public class M_Boss32 extends GameWeapon {
 				dir[1]= self.s.angles[1] + 10 * (self.s.frame - FRAME_attak421);
 			dir[2]= 0;
 
-			AngleVectors(dir, forward, null, null);
+			Math3D.AngleVectors(dir, forward, null, null);
 
 			monster_fire_blaster(self, start, forward, 15, 1000, MZ2_MAKRON_BLASTER_1, EF_BLASTER);
 
@@ -1069,7 +1072,7 @@ public class M_Boss32 extends GameWeapon {
 
 			// Lessen the chance of him going into his pain frames
 			if (damage <= 25)
-				if (random() < 0.2)
+				if (Lib.random() < 0.2)
 					return;
 
 			self.pain_debounce_time= level.time + 3;
@@ -1084,10 +1087,10 @@ public class M_Boss32 extends GameWeapon {
 				self.monsterinfo.currentmove= makron_move_pain5;
 			} else {
 				if (damage <= 150)
-					if (random() <= 0.45) {
+					if (Lib.random() <= 0.45) {
 						gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 						self.monsterinfo.currentmove= makron_move_pain6;
-					} else if (random() <= 0.35) {
+					} else if (Lib.random() <= 0.35) {
 						gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 						self.monsterinfo.currentmove= makron_move_pain6;
 					}
@@ -1109,10 +1112,10 @@ public class M_Boss32 extends GameWeapon {
 			float range;
 			float r;
 
-			r= random();
+			r= Lib.random();
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-			range= VectorLength(vec);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+			range= Math3D.VectorLength(vec);
 
 			if (r <= 0.3)
 				self.monsterinfo.currentmove= makron_move_attack3;
@@ -1147,8 +1150,8 @@ public class M_Boss32 extends GameWeapon {
 		public boolean think(edict_t ent) {
 			ent.movetype= MOVETYPE_NONE;
 			ent.solid= SOLID_NOT;
-			VectorSet(ent.mins, -8, -8, 0);
-			VectorSet(ent.maxs, 8, 8, 8);
+			Math3D.VectorSet(ent.mins, -8, -8, 0);
+			Math3D.VectorSet(ent.maxs, 8, 8, 8);
 			ent.s.frame= 346;
 			ent.s.modelindex= gi.modelindex("models/monsters/boss3/rider/tris.md2");
 			ent.think= makron_torso_think;
@@ -1192,8 +1195,8 @@ public class M_Boss32 extends GameWeapon {
 			self.takedamage= DAMAGE_YES;
 
 			tempent= G_Spawn();
-			VectorCopy(self.s.origin, tempent.s.origin);
-			VectorCopy(self.s.angles, tempent.s.angles);
+			Math3D.VectorCopy(self.s.origin, tempent.s.origin);
+			Math3D.VectorCopy(self.s.angles, tempent.s.angles);
 			tempent.s.origin[1] -= 84;
 			makron_torso.think(tempent);
 
@@ -1213,9 +1216,9 @@ public class M_Boss32 extends GameWeapon {
 
 			if (self.enemy.health > 0) {
 				// see if any entities are in the way of the shot
-				VectorCopy(self.s.origin, spot1);
+				Math3D.VectorCopy(self.s.origin, spot1);
 				spot1[2] += self.viewheight;
-				VectorCopy(self.enemy.s.origin, spot2);
+				Math3D.VectorCopy(self.enemy.s.origin, spot2);
 				spot2[2] += self.enemy.viewheight;
 
 				tr=
@@ -1234,8 +1237,8 @@ public class M_Boss32 extends GameWeapon {
 
 			enemy_infront= infront(self, self.enemy);
 			enemy_range= range(self, self.enemy);
-			VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
-			enemy_yaw= vectoyaw(temp);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
+			enemy_yaw= Math3D.vectoyaw(temp);
 
 			self.ideal_yaw= enemy_yaw;
 
@@ -1270,14 +1273,14 @@ public class M_Boss32 extends GameWeapon {
 				return false;
 			}
 
-			if (random() < chance) {
+			if (Lib.random() < chance) {
 				self.monsterinfo.attack_state= AS_MISSILE;
-				self.monsterinfo.attack_finished= level.time + 2 * random();
+				self.monsterinfo.attack_finished= level.time + 2 * Lib.random();
 				return true;
 			}
 
 			if ((self.flags & FL_FLY) != 0) {
-				if (random() < 0.3)
+				if (Lib.random() < 0.3)
 					self.monsterinfo.attack_state= AS_SLIDING;
 				else
 					self.monsterinfo.attack_state= AS_STRAIGHT;
@@ -1393,8 +1396,8 @@ public class M_Boss32 extends GameWeapon {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/boss3/rider/tris.md2");
-		VectorSet(self.mins, -30, -30, 0);
-		VectorSet(self.maxs, 30, 30, 90);
+		Math3D.VectorSet(self.mins, -30, -30, 0);
+		Math3D.VectorSet(self.maxs, 30, 30, 90);
 
 		self.health= 3000;
 		self.gib_health= -2000;
@@ -1439,10 +1442,10 @@ public class M_Boss32 extends GameWeapon {
 			if (player == null)
 				return true;
 
-			VectorSubtract(player.s.origin, self.s.origin, vec);
-			self.s.angles[YAW]= vectoyaw(vec);
-			VectorNormalize(vec);
-			VectorMA(vec3_origin, 400, vec, self.velocity);
+			Math3D.VectorSubtract(player.s.origin, self.s.origin, vec);
+			self.s.angles[YAW]= Math3D.vectoyaw(vec);
+			Math3D.VectorNormalize(vec);
+			Math3D.VectorMA(vec3_origin, 400, vec, self.velocity);
 			self.velocity[2]= 200;
 			self.groundentity= null;
 
@@ -1458,7 +1461,7 @@ public class M_Boss32 extends GameWeapon {
 			ent.nextthink= level.time + 0.8f;
 			ent.think= MakronSpawn;
 			ent.target= self.target;
-			VectorCopy(self.s.origin, ent.s.origin);
+			Math3D.VectorCopy(self.s.origin, ent.s.origin);
 			return true;
 		}
 	};

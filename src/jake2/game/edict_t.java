@@ -131,7 +131,7 @@ public class edict_t
 	public int deadflag;
 	public int show_hostile;
 
-	float powerarmor_time;
+	public float powerarmor_time;
 
 	//TODO: 
 	//check char * replacement!

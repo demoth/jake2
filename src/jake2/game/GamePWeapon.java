@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.3 2003-12-04 20:35:26 rst Exp $
+// $Id: GamePWeapon.java,v 1.4 2003-12-09 22:12:44 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class GamePWeapon extends M_Player {
 
@@ -37,12 +40,12 @@ public class GamePWeapon extends M_Player {
 		float[] result) {
 		float[] _distance= { 0, 0, 0 };
 
-		VectorCopy(distance, _distance);
+		Math3D.VectorCopy(distance, _distance);
 		if (client.pers.hand == LEFT_HANDED)
 			_distance[1] *= -1;
 		else if (client.pers.hand == CENTER_HANDED)
 			_distance[1]= 0;
-		G_ProjectSource(point, _distance, forward, right, result);
+		Math3D.G_ProjectSource(point, _distance, forward, right, result);
 	}
 
 	static EntInteractAdapter Pickup_Weapon= new EntInteractAdapter() {
@@ -394,7 +397,7 @@ public class GamePWeapon extends M_Player {
 				if (pause_frames != null) {
 					for (n= 0; pause_frames[n] != 0; n++) {
 						if (ent.client.ps.gunframe == pause_frames[n]) {
-							if ((rand() & 15) != 0)
+							if ((Lib.rand() & 15) != 0)
 								return;
 						}
 					}
@@ -451,8 +454,8 @@ public class GamePWeapon extends M_Player {
 		if (is_quad)
 			damage *= 4;
 
-		VectorSet(offset, 8, 8, ent.viewheight - 8);
-		AngleVectors(ent.client.v_angle, forward, right, null);
+		Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
+		Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 		P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
 		timer= ent.client.grenade_time - level.time;
@@ -526,7 +529,7 @@ public class GamePWeapon extends M_Player {
 					|| (ent.client.ps.gunframe == 34)
 					|| (ent.client.ps.gunframe == 39)
 					|| (ent.client.ps.gunframe == 48)) {
-					if ((rand() & 15) != 0)
+					if ((Lib.rand() & 15) != 0)
 						return true;
 				}
 
@@ -611,11 +614,11 @@ public class GamePWeapon extends M_Player {
 			if (is_quad)
 				damage *= 4;
 
-			VectorSet(offset, 8, 8, ent.viewheight - 8);
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
-			VectorScale(forward, -2, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -1;
 
 			Fire.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
@@ -675,7 +678,7 @@ public class GamePWeapon extends M_Player {
 			float damage_radius;
 			int radius_damage;
 
-			damage= 100 + (int) (random() * 20.0);
+			damage= 100 + (int) (Lib.random() * 20.0);
 			radius_damage= 120;
 			damage_radius= 120;
 			if (is_quad) {
@@ -683,12 +686,12 @@ public class GamePWeapon extends M_Player {
 				radius_damage *= 4;
 			}
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 
-			VectorScale(forward, -2, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -1;
 
-			VectorSet(offset, 8, 8, ent.viewheight - 8);
+			Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 			Fire.fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
 
@@ -750,12 +753,12 @@ public class GamePWeapon extends M_Player {
 
 		if (is_quad)
 			damage *= 4;
-		AngleVectors(ent.client.v_angle, forward, right, null);
-		VectorSet(offset, 24, 8, ent.viewheight - 8);
-		VectorAdd(offset, g_offset, offset);
+		Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+		Math3D.VectorSet(offset, 24, 8, ent.viewheight - 8);
+		Math3D.VectorAdd(offset, g_offset, offset);
 		P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
-		VectorScale(forward, -2, ent.client.kick_origin);
+		Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 		ent.client.kick_angles[0]= -1;
 
 		Fire.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
@@ -928,10 +931,10 @@ public class GamePWeapon extends M_Player {
 			}
 
 			for (i= 1; i < 3; i++) {
-				ent.client.kick_origin[i]= crandom() * 0.35f;
-				ent.client.kick_angles[i]= crandom() * 0.7f;
+				ent.client.kick_origin[i]= Lib.crandom() * 0.35f;
+				ent.client.kick_angles[i]= Lib.crandom() * 0.7f;
 			}
-			ent.client.kick_origin[0]= crandom() * 0.35f;
+			ent.client.kick_origin[0]= Lib.crandom() * 0.35f;
 			ent.client.kick_angles[0]= ent.client.machinegun_shots * -1.5f;
 
 			// raise the gun as it is firing
@@ -942,9 +945,9 @@ public class GamePWeapon extends M_Player {
 			}
 
 			// get start / end positions
-			VectorAdd(ent.client.v_angle, ent.client.kick_angles, angles);
-			AngleVectors(angles, forward, right, null);
-			VectorSet(offset, 0, 8, ent.viewheight - 8);
+			Math3D.VectorAdd(ent.client.v_angle, ent.client.kick_angles, angles);
+			Math3D.AngleVectors(angles, forward, right, null);
+			Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 			Fire.fire_bullet(
 				ent,
@@ -969,10 +972,10 @@ public class GamePWeapon extends M_Player {
 
 			ent.client.anim_priority= ANIM_ATTACK;
 			if ((ent.client.ps.pmove.pm_flags & PMF_DUCKED) != 0) {
-				ent.s.frame= FRAME_crattak1 - (int) (random() + 0.25);
+				ent.s.frame= FRAME_crattak1 - (int) (Lib.random() + 0.25);
 				ent.client.anim_end= FRAME_crattak9;
 			} else {
-				ent.s.frame= FRAME_attack1 - (int) (random() + 0.25);
+				ent.s.frame= FRAME_attack1 - (int) (Lib.random() + 0.25);
 				ent.client.anim_end= FRAME_attack8;
 			}
 			return true;
@@ -1068,16 +1071,16 @@ public class GamePWeapon extends M_Player {
 			}
 
 			for (i= 0; i < 3; i++) {
-				ent.client.kick_origin[i]= crandom() * 0.35f;
-				ent.client.kick_angles[i]= crandom() * 0.7f;
+				ent.client.kick_origin[i]= Lib.crandom() * 0.35f;
+				ent.client.kick_angles[i]= Lib.crandom() * 0.7f;
 			}
 
 			for (i= 0; i < shots; i++) {
 				// get start / end positions
-				AngleVectors(ent.client.v_angle, forward, right, up);
-				r= 7 + crandom() * 4;
-				u= crandom() * 4;
-				VectorSet(offset, 0, r, u + ent.viewheight - 8);
+				Math3D.AngleVectors(ent.client.v_angle, forward, right, up);
+				r= 7 + Lib.crandom() * 4;
+				u= Lib.crandom() * 4;
+				Math3D.VectorSet(offset, 0, r, u + ent.viewheight - 8);
 				P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
 				Fire.fire_bullet(
@@ -1141,12 +1144,12 @@ public class GamePWeapon extends M_Player {
 				return true;
 			}
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 
-			VectorScale(forward, -2, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -2;
 
-			VectorSet(offset, 0, 8, ent.viewheight - 8);
+			Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
 			if (is_quad) {
@@ -1215,12 +1218,12 @@ public class GamePWeapon extends M_Player {
 			int damage= 6;
 			int kick= 12;
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 
-			VectorScale(forward, -2, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -2;
 
-			VectorSet(offset, 0, 8, ent.viewheight - 8);
+			Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
 			if (is_quad) {
@@ -1231,7 +1234,7 @@ public class GamePWeapon extends M_Player {
 			v[PITCH]= ent.client.v_angle[PITCH];
 			v[YAW]= ent.client.v_angle[YAW] - 5;
 			v[ROLL]= ent.client.v_angle[ROLL];
-			AngleVectors(v, forward, null, null);
+			Math3D.AngleVectors(v, forward, null, null);
 			Fire.fire_shotgun(
 				ent,
 				start,
@@ -1243,7 +1246,7 @@ public class GamePWeapon extends M_Player {
 				DEFAULT_SSHOTGUN_COUNT / 2,
 				MOD_SSHOTGUN);
 			v[YAW]= ent.client.v_angle[YAW] + 5;
-			AngleVectors(v, forward, null, null);
+			Math3D.AngleVectors(v, forward, null, null);
 			Fire.fire_shotgun(
 				ent,
 				start,
@@ -1313,12 +1316,12 @@ public class GamePWeapon extends M_Player {
 				kick *= 4;
 			}
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 
-			VectorScale(forward, -3, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -3, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -3;
 
-			VectorSet(offset, 0, 7, ent.viewheight - 8);
+			Math3D.VectorSet(offset, 0, 7, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 			Fire.fire_rail(ent, start, forward, damage, kick);
 
@@ -1396,16 +1399,16 @@ public class GamePWeapon extends M_Player {
 			if (is_quad)
 				damage *= 4;
 
-			AngleVectors(ent.client.v_angle, forward, right, null);
+			Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
 
-			VectorScale(forward, -2, ent.client.kick_origin);
+			Math3D.VectorScale(forward, -2, ent.client.kick_origin);
 
 			// make a big pitch kick with an inverse fall
 			ent.client.v_dmg_pitch= -40;
-			ent.client.v_dmg_roll= crandom() * 8;
+			ent.client.v_dmg_roll= Lib.crandom() * 8;
 			ent.client.v_dmg_time= level.time + DAMAGE_TIME;
 
-			VectorSet(offset, 8, 8, ent.viewheight - 8);
+			Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 			Fire.fire_bfg(ent, start, forward, damage, 400, damage_radius);
 

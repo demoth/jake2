@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Hover.java,v 1.4 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Hover.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Hover extends Game {
 
@@ -248,7 +251,7 @@ public class M_Hover extends Game {
 		public boolean think(edict_t self) {
 			if (self.enemy.health > 0)
 				if (visible(self, self.enemy))
-					if (random() <= 0.6) {
+					if (Lib.random() <= 0.6) {
 						self.monsterinfo.currentmove = hover_move_attack1;
 						return true;
 					}
@@ -270,12 +273,12 @@ public class M_Hover extends Game {
 			else
 				effect = 0;
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_HOVER_BLASTER_1], forward, right, start);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_HOVER_BLASTER_1], forward, right, start);
 
-			VectorCopy(self.enemy.s.origin, end);
+			Math3D.VectorCopy(self.enemy.s.origin, end);
 			end[2] += self.enemy.viewheight;
-			VectorSubtract(end, start, dir);
+			Math3D.VectorSubtract(end, start, dir);
 
 			monster_fire_blaster(self, start, dir, 1, 1000, MZ2_HOVER_BLASTER_1, effect);
 			return true;
@@ -334,7 +337,7 @@ public class M_Hover extends Game {
 				return; // no pain anims in nightmare
 
 			if (damage <= 25) {
-				if (random() < 0.5) {
+				if (Lib.random() < 0.5) {
 					gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 					self.monsterinfo.currentmove = hover_move_pain3;
 				} else {
@@ -360,8 +363,8 @@ public class M_Hover extends Game {
 
 	static EntThinkAdapter hover_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype = MOVETYPE_TOSS;
 			self.think = hover_deadthink;
 			self.nextthink = level.time + FRAMETIME;
@@ -391,7 +394,7 @@ public class M_Hover extends Game {
 				return;
 
 			//	regular death
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_death2, 1, ATTN_NORM, 0);
@@ -410,7 +413,7 @@ public class M_Hover extends Game {
 
 	static EntThinkAdapter hover_search = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_search2, 1, ATTN_NORM, 0);
@@ -773,8 +776,8 @@ public class M_Hover extends Game {
 		self.movetype = MOVETYPE_STEP;
 		self.solid = SOLID_BBOX;
 		self.s.modelindex = gi.modelindex("models/monsters/hover/tris.md2");
-		VectorSet(self.mins, -24, -24, -24);
-		VectorSet(self.maxs, 24, 24, 32);
+		Math3D.VectorSet(self.mins, -24, -24, -24);
+		Math3D.VectorSet(self.maxs, 24, 24, 32);
 
 		self.health = 240;
 		self.gib_health = -100;

@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.4 2003-11-29 19:26:33 rst Exp $
+// $Id: GameSpawn.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.Lib;
 
 public class GameSpawn extends Game {
 
@@ -540,7 +542,7 @@ public class GameSpawn extends Game {
 
 			gi.configstring(CS_SKYROTATE, "" + st.skyrotate);
 
-			gi.configstring(CS_SKYAXIS, vtos(st.skyaxis));
+			gi.configstring(CS_SKYAXIS, Lib.vtos(st.skyaxis));
 
 			gi.configstring(CS_CDTRACK, "" + ent.sounds);
 
@@ -829,7 +831,7 @@ public class GameSpawn extends Game {
 			if (item.classname == null)
 				continue;
 
-			if (0 == strcmp(item.classname, ent.classname)) { // found it
+			if (0 == Lib.strcmp(item.classname, ent.classname)) { // found it
 				SpawnItem(ent, item);
 				return;
 			}
@@ -837,7 +839,7 @@ public class GameSpawn extends Game {
 
 		// check normal spawn functions
 		for (i = 0, s = spawns[i]; s.name != null; i++) {
-			if (0 == strcmp(s.name, ent.classname)) { // found it
+			if (0 == Lib.strcmp(s.name, ent.classname)) { // found it
 				s.spawn.think(ent);
 				return;
 			}

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Chick.java,v 1.4 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Chick.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Chick extends GameWeapon {
 
@@ -334,7 +337,7 @@ public class M_Chick extends GameWeapon {
 
 	static EntThinkAdapter ChickMoan= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_idle1, 1, ATTN_IDLE, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_idle2, 1, ATTN_IDLE, 0);
@@ -387,7 +390,7 @@ public class M_Chick extends GameWeapon {
 		public boolean think(edict_t self) {
 			if ((self.monsterinfo.aiflags & AI_STAND_GROUND) != 0)
 				return true;
-			if (random() <= 0.3)
+			if (Lib.random() <= 0.3)
 				self.monsterinfo.currentmove= chick_move_fidget;
 			return true;
 		}
@@ -558,7 +561,7 @@ public class M_Chick extends GameWeapon {
 
 			self.pain_debounce_time= level.time + 3;
 
-			r= random();
+			r= Lib.random();
 			if (r < 0.33)
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 			else if (r < 0.66)
@@ -581,8 +584,8 @@ public class M_Chick extends GameWeapon {
 
 	static EntThinkAdapter chick_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, 0);
-			VectorSet(self.maxs, 16, 16, 16);
+			Math3D.VectorSet(self.mins, -16, -16, 0);
+			Math3D.VectorSet(self.maxs, 16, 16, 16);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -665,7 +668,7 @@ public class M_Chick extends GameWeapon {
 			self.deadflag= DEAD_DEAD;
 			self.takedamage= DAMAGE_YES;
 
-			n= rand() % 2;
+			n= Lib.rand() % 2;
 			if (n == 0) {
 				self.monsterinfo.currentmove= chick_move_death1;
 				gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
@@ -723,7 +726,7 @@ public class M_Chick extends GameWeapon {
 
 	static EntDodgeAdapter chick_dodge= new EntDodgeAdapter() {
 		public void dodge(edict_t self, edict_t attacker, float eta) {
-			if (random() > 0.25)
+			if (Lib.random() > 0.25)
 				return;
 
 			if (self.enemy != null)
@@ -738,9 +741,9 @@ public class M_Chick extends GameWeapon {
 		public boolean think(edict_t self) {
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 10);
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.mins[0], 10);
 			gi.sound(self, CHAN_WEAPON, sound_melee_swing, 1, ATTN_NORM, 0);
-			Fire.fire_hit(self, aim, (10 + (rand() % 6)), 100);
+			Fire.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100);
 			return true;
 		}
 	};
@@ -752,18 +755,18 @@ public class M_Chick extends GameWeapon {
 			float[] dir= { 0, 0, 0 };
 			float[] vec= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_CHICK_ROCKET_1],
 				forward,
 				right,
 				start);
 
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 
 			monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
 			return true;
@@ -795,7 +798,7 @@ public class M_Chick extends GameWeapon {
 			if (self.enemy.health > 0) {
 				if (range(self, self.enemy) > RANGE_MELEE)
 					if (visible(self, self.enemy))
-						if (random() <= 0.6) {
+						if (Lib.random() <= 0.6) {
 							self.monsterinfo.currentmove= chick_move_attack1;
 							return true;
 						}
@@ -856,7 +859,7 @@ public class M_Chick extends GameWeapon {
 		public boolean think(edict_t self) {
 			if (self.enemy.health > 0) {
 				if (range(self, self.enemy) == RANGE_MELEE)
-					if (random() <= 0.9) {
+					if (Lib.random() <= 0.9) {
 						self.monsterinfo.currentmove= chick_move_slash;
 						return true;
 					} else {
@@ -955,8 +958,8 @@ public class M_Chick extends GameWeapon {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/bitch/tris.md2");
-		VectorSet(self.mins, -16, -16, 0);
-		VectorSet(self.maxs, 16, 16, 56);
+		Math3D.VectorSet(self.mins, -16, -16, 0);
+		Math3D.VectorSet(self.maxs, 16, 16, 56);
 
 		self.health= 175;
 		self.gib_health= -70;

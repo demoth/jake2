@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST
-// $Id: M_Berserk.java,v 1.4 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Berserk.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Berserk extends GameWeapon {
 
@@ -297,7 +300,7 @@ public class M_Berserk extends GameWeapon {
 			if ((self.monsterinfo.aiflags & AI_STAND_GROUND) != 0)
 				return true;
 
-			if (random() > 0.15f)
+			if (Lib.random() > 0.15f)
 				return true;
 
 			self.monsterinfo.currentmove= berserk_move_stand_fidget;
@@ -424,7 +427,7 @@ public class M_Berserk extends GameWeapon {
 		public boolean think(edict_t self) {
 			float[] aim= { MELEE_DISTANCE, 0f, -24f };
 
-			Fire.fire_hit(self, aim, (15 + (rand() % 6)), 400);
+			Fire.fire_hit(self, aim, (15 + (Lib.rand() % 6)), 400);
 			//	Faster attack -- upwards and backwards
 
 			return true;
@@ -455,8 +458,8 @@ public class M_Berserk extends GameWeapon {
 		public boolean think(edict_t self) {
 			float aim[]= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, self.mins[0], -4);
-			Fire.fire_hit(self, aim, (5 + (rand() % 6)), 400); // Slower attack
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.mins[0], -4);
+			Fire.fire_hit(self, aim, (5 + (Lib.rand() % 6)), 400); // Slower attack
 
 			return true;
 		}
@@ -507,7 +510,7 @@ public class M_Berserk extends GameWeapon {
 
 	static EntThinkAdapter berserk_melee= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if ((rand() % 2) == 0)
+			if ((Lib.rand() % 2) == 0)
 				self.monsterinfo.currentmove= berserk_move_attack_spike;
 			else
 				self.monsterinfo.currentmove= berserk_move_attack_club;
@@ -586,7 +589,7 @@ public class M_Berserk extends GameWeapon {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			if ((damage < 20) || (random() < 0.5))
+			if ((damage < 20) || (Lib.random() < 0.5))
 				self.monsterinfo.currentmove= berserk_move_pain1;
 			else
 				self.monsterinfo.currentmove= berserk_move_pain2;
@@ -595,8 +598,8 @@ public class M_Berserk extends GameWeapon {
 
 	static EntThinkAdapter berserk_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -689,8 +692,8 @@ public class M_Berserk extends GameWeapon {
 		sound_sight= gi.soundindex("berserk/sight.wav");
 
 		self.s.modelindex= gi.modelindex("models/monsters/berserk/tris.md2");
-		VectorSet(self.mins, -16, -16, -24);
-		VectorSet(self.maxs, 16, 16, 32);
+		Math3D.VectorSet(self.mins, -16, -16, -24);
+		Math3D.VectorSet(self.maxs, 16, 16, 32);
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 

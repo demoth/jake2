@@ -18,11 +18,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 29.11.2003 by RST.
-// $Id: Math3.java,v 1.1 2003-11-29 19:26:33 rst Exp $
+// Created on 09.12.2003 by RST.
+// $Id: areanode_t.java,v 1.1 2003-12-09 22:12:43 rst Exp $
 
-package jake2.game;
+package jake2.server;
 
-public class Math3 {
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
 
+public class areanode_t {
+	int axis; // -1 = leaf node
+	float dist;
+	areanode_t children[] = new areanode_t[2];
+	link_t trigger_edicts;
+	link_t solid_edicts;
 }

@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.6 2003-12-04 21:04:35 rst Exp $
+// $Id: M_Infantry.java,v 1.7 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
 
 import jake2.client.M;
+import jake2.util.*;
 
 public class M_Infantry extends Game {
 
@@ -435,7 +436,7 @@ public class M_Infantry extends Game {
 			if (skill.value == 3)
 				return; // no pain anims in nightmare
 
-			n = rand() % 2;
+			n = Lib.rand() % 2;
 			if (n == 0) {
 				self.monsterinfo.currentmove = infantry_move_pain1;
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
@@ -468,25 +469,25 @@ public class M_Infantry extends Game {
 
 			if (self.s.frame == FRAME_attak111) {
 				flash_number = MZ2_INFANTRY_MACHINEGUN_1;
-				AngleVectors(self.s.angles, forward, right, null);
-				G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+				Math3D.AngleVectors(self.s.angles, forward, right, null);
+				Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 				if (self.enemy != null) {
-					VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
+					Math3D.VectorMA(self.enemy.s.origin, -0.2f, self.enemy.velocity, target);
 					target[2] += self.enemy.viewheight;
-					VectorSubtract(target, start, forward);
-					VectorNormalize(forward);
+					Math3D.VectorSubtract(target, start, forward);
+					Math3D.VectorNormalize(forward);
 				} else {
-					AngleVectors(self.s.angles, forward, right, null);
+					Math3D.AngleVectors(self.s.angles, forward, right, null);
 				}
 			} else {
 				flash_number = MZ2_INFANTRY_MACHINEGUN_2 + (self.s.frame - FRAME_death211);
 
-				AngleVectors(self.s.angles, forward, right, null);
-				G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+				Math3D.AngleVectors(self.s.angles, forward, right, null);
+				Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-				VectorSubtract(self.s.angles, aimangles[flash_number - MZ2_INFANTRY_MACHINEGUN_2], vec);
-				AngleVectors(vec, forward, null, null);
+				Math3D.VectorSubtract(self.s.angles, aimangles[flash_number - MZ2_INFANTRY_MACHINEGUN_2], vec);
+				Math3D.AngleVectors(vec, forward, null, null);
 			}
 
 			monster_fire_bullet(self, start, forward, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
@@ -504,8 +505,8 @@ public class M_Infantry extends Game {
 
 	static EntThinkAdapter infantry_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype = MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			gi.linkentity(self);
@@ -606,7 +607,7 @@ public class M_Infantry extends Game {
 			self.deadflag = DEAD_DEAD;
 			self.takedamage = DAMAGE_YES;
 
-			n = rand() % 3;
+			n = Lib.rand() % 3;
 			if (n == 0) {
 				self.monsterinfo.currentmove = infantry_move_death1;
 				gi.sound(self, CHAN_VOICE, sound_die2, 1, ATTN_NORM, 0);
@@ -664,7 +665,7 @@ public class M_Infantry extends Game {
 
 	static EntDodgeAdapter infantry_dodge = new EntDodgeAdapter() {
 		public void dodge(edict_t self, edict_t attacker, float eta) {
-			if (random() > 0.25)
+			if (Lib.random() > 0.25)
 				return;
 
 			if (null == self.enemy)
@@ -679,7 +680,7 @@ public class M_Infantry extends Game {
 			int n;
 
 			gi.sound(self, CHAN_WEAPON, sound_weapon_cock, 1, ATTN_NORM, 0);
-			n = (rand() & 15) + 3 + 7;
+			n = (Lib.rand() & 15) + 3 + 7;
 			self.monsterinfo.pausetime = level.time + n * FRAMETIME;
 			return true;
 		}
@@ -728,8 +729,8 @@ public class M_Infantry extends Game {
 		public boolean think(edict_t self) {
 			float[] aim = { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, 0, 0);
-			if (Fire.fire_hit(self, aim, (5 + (rand() % 5)), 50))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, 0, 0);
+			if (Fire.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50))
 				gi.sound(self, CHAN_WEAPON, sound_punch_hit, 1, ATTN_NORM, 0);
 			return true;
 		}
@@ -783,8 +784,8 @@ public class M_Infantry extends Game {
 		self.movetype = MOVETYPE_STEP;
 		self.solid = SOLID_BBOX;
 		self.s.modelindex = gi.modelindex("models/monsters/infantry/tris.md2");
-		VectorSet(self.mins, -16, -16, -24);
-		VectorSet(self.maxs, 16, 16, 32);
+		Math3D.VectorSet(self.mins, -16, -16, -24);
+		Math3D.VectorSet(self.maxs, 16, 16, 32);
 
 		self.health = 100;
 		self.gib_health = -40;

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Gladiator.java,v 1.5 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Gladiator.java,v 1.6 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Gladiator extends Game {
 
@@ -240,8 +243,8 @@ public class M_Gladiator extends Game {
 
 			float[] aim= { 0, 0, 0 };
 
-			VectorSet(aim, MELEE_DISTANCE, self.mins[0], -4);
-			if (Fire.fire_hit(self, aim, (20 + (rand() % 5)), 300))
+			Math3D.VectorSet(aim, MELEE_DISTANCE, self.mins[0], -4);
+			if (Fire.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
 				gi.sound(self, CHAN_AUTO, sound_cleaver_hit, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_AUTO, sound_cleaver_miss, 1, ATTN_NORM, 0);
@@ -292,8 +295,8 @@ public class M_Gladiator extends Game {
 			float[] dir= { 0, 0, 0 };
 			float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 };
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(
 				self.s.origin,
 				monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1],
 				forward,
@@ -301,8 +304,8 @@ public class M_Gladiator extends Game {
 				start);
 
 			// calc direction to where we targted
-			VectorSubtract(self.pos1, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(self.pos1, start, dir);
+			Math3D.VectorNormalize(dir);
 
 			monster_fire_railgun(
 				self,
@@ -342,14 +345,14 @@ public class M_Gladiator extends Game {
 			
 
 			// a small safe zone
-			VectorSubtract(self.s.origin, self.enemy.s.origin, v);
-			range= VectorLength(v);
+			Math3D.VectorSubtract(self.s.origin, self.enemy.s.origin, v);
+			range= Math3D.VectorLength(v);
 			if (range <= (MELEE_DISTANCE + 32))
 				return true;
 
 			// charge up the railgun
 			gi.sound(self, CHAN_WEAPON, sound_gun, 1, ATTN_NORM, 0);
-			VectorCopy(self.enemy.s.origin, self.pos1);
+			Math3D.VectorCopy(self.enemy.s.origin, self.pos1);
 			//save for aiming the shot
 			self.pos1[2] += self.enemy.viewheight;
 			self.monsterinfo.currentmove= gladiator_move_attack_gun;
@@ -403,7 +406,7 @@ public class M_Gladiator extends Game {
 
 			self.pain_debounce_time= level.time + 3;
 
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
@@ -422,8 +425,8 @@ public class M_Gladiator extends Game {
 	static EntThinkAdapter gladiator_dead= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 
-			VectorSet(self.mins, -16, -16, -24);
-			VectorSet(self.maxs, 16, 16, -8);
+			Math3D.VectorSet(self.mins, -16, -16, -24);
+			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink= 0;
@@ -537,8 +540,8 @@ public class M_Gladiator extends Game {
 		self.movetype= MOVETYPE_STEP;
 		self.solid= SOLID_BBOX;
 		self.s.modelindex= gi.modelindex("models/monsters/gladiatr/tris.md2");
-		VectorSet(self.mins, -32, -32, -24);
-		VectorSet(self.maxs, 32, 32, 64);
+		Math3D.VectorSet(self.mins, -32, -32, -24);
+		Math3D.VectorSet(self.maxs, 32, 32, 64);
 
 		self.health= 400;
 		self.gib_health= -175;

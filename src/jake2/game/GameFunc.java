@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.4 2003-12-04 21:04:35 rst Exp $
+// $Id: GameFunc.java,v 1.5 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class GameFunc extends Game {
 
@@ -80,7 +83,7 @@ public class GameFunc extends Game {
 
 	static EntThinkAdapter Move_Done = new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
-			VectorClear(ent.velocity);
+			Math3D.VectorClear(ent.velocity);
 			ent.moveinfo.endfunc.think(ent);
 			return true;
 		}
@@ -94,7 +97,7 @@ public class GameFunc extends Game {
 				return true;
 			}
 
-			VectorScale(ent.moveinfo.dir, ent.moveinfo.remaining_distance / FRAMETIME, ent.velocity);
+			Math3D.VectorScale(ent.moveinfo.dir, ent.moveinfo.remaining_distance / FRAMETIME, ent.velocity);
 
 			ent.think = Move_Done;
 			ent.nextthink = level.time + FRAMETIME;
@@ -111,7 +114,7 @@ public class GameFunc extends Game {
 				Move_Final.think(ent);
 				return true;
 			}
-			VectorScale(ent.moveinfo.dir, ent.moveinfo.speed, ent.velocity);
+			Math3D.VectorScale(ent.moveinfo.dir, ent.moveinfo.speed, ent.velocity);
 			frames = (float) Math.floor((ent.moveinfo.remaining_distance / ent.moveinfo.speed) / FRAMETIME);
 			ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed * FRAMETIME;
 			ent.nextthink = level.time + (frames * FRAMETIME);
@@ -122,9 +125,9 @@ public class GameFunc extends Game {
 
 
 	static void Move_Calc(edict_t ent, float[] dest, EntThinkAdapter func) {
-		VectorClear(ent.velocity);
-		VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
-		ent.moveinfo.remaining_distance = VectorNormalize(ent.moveinfo.dir);
+		Math3D.VectorClear(ent.velocity);
+		Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
+		ent.moveinfo.remaining_distance = Math3D.VectorNormalize(ent.moveinfo.dir);
 		ent.moveinfo.endfunc = func;
 
 		if (ent.moveinfo.speed == ent.moveinfo.accel && ent.moveinfo.speed == ent.moveinfo.decel) {
@@ -148,7 +151,7 @@ public class GameFunc extends Game {
 
 	static EntThinkAdapter AngleMove_Done = new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
-			VectorClear(ent.avelocity);
+			Math3D.VectorClear(ent.avelocity);
 			ent.moveinfo.endfunc.think(ent);
 			return true;
 		}
@@ -159,16 +162,16 @@ public class GameFunc extends Game {
 			float[] move={0,0,0};
 
 			if (ent.moveinfo.state == STATE_UP)
-				VectorSubtract(ent.moveinfo.end_angles, ent.s.angles, move);
+				Math3D.VectorSubtract(ent.moveinfo.end_angles, ent.s.angles, move);
 			else
-				VectorSubtract(ent.moveinfo.start_angles, ent.s.angles, move);
+				Math3D.VectorSubtract(ent.moveinfo.start_angles, ent.s.angles, move);
 
-			if (VectorCompare(move, vec3_origin) != 0) {
+			if (Math3D.VectorCompare(move, vec3_origin) != 0) {
 				AngleMove_Done.think(ent);
 				return true;
 			}
 
-			VectorScale(move, 1.0f / FRAMETIME, ent.avelocity);
+			Math3D.VectorScale(move, 1.0f / FRAMETIME, ent.avelocity);
 
 			ent.think = AngleMove_Done;
 			ent.nextthink = level.time + FRAMETIME;
@@ -185,12 +188,12 @@ public class GameFunc extends Game {
 
 			// set destdelta to the vector needed to move
 			if (ent.moveinfo.state == STATE_UP)
-				VectorSubtract(ent.moveinfo.end_angles, ent.s.angles, destdelta);
+				Math3D.VectorSubtract(ent.moveinfo.end_angles, ent.s.angles, destdelta);
 			else
-				VectorSubtract(ent.moveinfo.start_angles, ent.s.angles, destdelta);
+				Math3D.VectorSubtract(ent.moveinfo.start_angles, ent.s.angles, destdelta);
 
 			// calculate length of vector
-			len = VectorLength(destdelta);
+			len = Math3D.VectorLength(destdelta);
 
 			// divide by speed to get time to reach dest
 			traveltime = len / ent.moveinfo.speed;
@@ -203,7 +206,7 @@ public class GameFunc extends Game {
 			frames = (float) (Math.floor(traveltime / FRAMETIME));
 
 			// scale the destdelta vector by the time spent traveling to get velocity
-			VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
+			Math3D.VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
 
 			// set nextthink to trigger a think when dest is reached
 			ent.nextthink = level.time + frames * FRAMETIME;
@@ -213,7 +216,7 @@ public class GameFunc extends Game {
 	};
 
 	static void AngleMove_Calc(edict_t ent, EntThinkAdapter func) {
-		VectorClear(ent.avelocity);
+		Math3D.VectorClear(ent.avelocity);
 		ent.moveinfo.endfunc = func;
 		if (level.current_entity == ((ent.flags & FL_TEAMSLAVE) != 0 ? ent.teammaster : ent)) {
 			AngleMove_Begin.think(ent);
@@ -340,7 +343,7 @@ public class GameFunc extends Game {
 				return true;
 			}
 
-			VectorScale(ent.moveinfo.dir, ent.moveinfo.current_speed * 10, ent.velocity);
+			Math3D.VectorScale(ent.moveinfo.dir, ent.moveinfo.current_speed * 10, ent.velocity);
 			ent.nextthink = level.time + FRAMETIME;
 			ent.think = Think_AccelMove;
 			return true;
@@ -478,8 +481,8 @@ public class GameFunc extends Game {
 			tmax[1] = tmin[1] + 1;
 		}
 
-		VectorCopy(tmin, trigger.mins);
-		VectorCopy(tmax, trigger.maxs);
+		Math3D.VectorCopy(tmin, trigger.mins);
+		Math3D.VectorCopy(tmax, trigger.maxs);
 
 		gi.linkentity(trigger);
 	}
@@ -502,7 +505,7 @@ public class GameFunc extends Game {
 	2) chain slow
 	*/
 	void SP_func_plat(edict_t ent) {
-		VectorClear(ent.s.angles);
+		Math3D.VectorClear(ent.s.angles);
 		ent.solid = SOLID_BSP;
 		ent.movetype = MOVETYPE_PUSH;
 
@@ -532,8 +535,8 @@ public class GameFunc extends Game {
 			st.lip = 8;
 
 		// pos1 is the top position, pos2 is the bottom
-		VectorCopy(ent.s.origin, ent.pos1);
-		VectorCopy(ent.s.origin, ent.pos2);
+		Math3D.VectorCopy(ent.s.origin, ent.pos1);
+		Math3D.VectorCopy(ent.s.origin, ent.pos2);
 		if (st.height != 0)
 			ent.pos2[2] -= st.height;
 		else
@@ -546,7 +549,7 @@ public class GameFunc extends Game {
 		if (ent.targetname == null) {
 			ent.moveinfo.state = STATE_UP;
 		} else {
-			VectorCopy(ent.pos2, ent.s.origin);
+			Math3D.VectorCopy(ent.pos2, ent.s.origin);
 			gi.linkentity(ent);
 			ent.moveinfo.state = STATE_BOTTOM;
 		}
@@ -555,10 +558,10 @@ public class GameFunc extends Game {
 		ent.moveinfo.accel = ent.accel;
 		ent.moveinfo.decel = ent.decel;
 		ent.moveinfo.wait = ent.wait;
-		VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-		VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-		VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-		VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
+		Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
+		Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
+		Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
+		Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
 		ent.moveinfo.sound_start = gi.soundindex("plats/pt1_strt.wav");
 		ent.moveinfo.sound_middle = gi.soundindex("plats/pt1_mid.wav");
@@ -594,13 +597,13 @@ public class GameFunc extends Game {
 
 	static EntUseAdapter rotating_use = new EntUseAdapter() {
 		public void use(edict_t self, edict_t other, edict_t activator) {
-			if (0 == VectorCompare(self.avelocity, vec3_origin)) {
+			if (0 == Math3D.VectorCompare(self.avelocity, vec3_origin)) {
 				self.s.sound = 0;
-				VectorClear(self.avelocity);
+				Math3D.VectorClear(self.avelocity);
 				self.touch = null;
 			} else {
 				self.s.sound = self.moveinfo.sound_middle;
-				VectorScale(self.movedir, self.speed, self.avelocity);
+				Math3D.VectorScale(self.movedir, self.speed, self.avelocity);
 				if ((self.spawnflags & 16) != 0)
 					self.touch = rotating_touch;
 			}
@@ -615,7 +618,7 @@ public class GameFunc extends Game {
 				ent.movetype = MOVETYPE_PUSH;
 
 			// set the axis of rotation
-			VectorClear(ent.movedir);
+			Math3D.VectorClear(ent.movedir);
 			if ((ent.spawnflags & 4) != 0)
 				ent.movedir[2] = 1.0f;
 			else if ((ent.spawnflags & 8) != 0)
@@ -625,7 +628,7 @@ public class GameFunc extends Game {
 
 			// check for reverse rotation
 			if ((ent.spawnflags & 2) != 0)
-				VectorNegate(ent.movedir, ent.movedir);
+				Math3D.VectorNegate(ent.movedir, ent.movedir);
 
 			if (0 == ent.speed)
 				ent.speed = 100;
@@ -787,12 +790,12 @@ public class GameFunc extends Game {
 			if (0 == st.lip)
 				st.lip = 4;
 
-			VectorCopy(ent.s.origin, ent.pos1);
+			Math3D.VectorCopy(ent.s.origin, ent.pos1);
 			abs_movedir[0] = (float) Math.abs(ent.movedir[0]);
 			abs_movedir[1] = (float) Math.abs(ent.movedir[1]);
 			abs_movedir[2] = (float) Math.abs(ent.movedir[2]);
 			dist = abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1] + abs_movedir[2] * ent.size[2] - st.lip;
-			VectorMA(ent.pos1, dist, ent.movedir, ent.pos2);
+			Math3D.VectorMA(ent.pos1, dist, ent.movedir, ent.pos2);
 
 			ent.use = button_use;
 			ent.s.effects |= EF_ANIM01;
@@ -810,10 +813,10 @@ public class GameFunc extends Game {
 			ent.moveinfo.accel = ent.accel;
 			ent.moveinfo.decel = ent.decel;
 			ent.moveinfo.wait = ent.wait;
-			VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-			VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-			VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-			VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
+			Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
+			Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
+			Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
+			Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
 			gi.linkentity(ent);
 			return true;
@@ -861,7 +864,7 @@ public class GameFunc extends Game {
 
 		while ((edit = G_Find(edit, findByTarget, self.target)) != null) {
 			t = edit.o;
-			if (Q_stricmp(t.classname, "func_areaportal") == 0) {
+			if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
 				gi.SetAreaPortalState(t.style, open);
 			}
 		}
@@ -911,9 +914,9 @@ public class GameFunc extends Game {
 			}
 
 			self.moveinfo.state = STATE_DOWN;
-			if (strcmp(self.classname, "func_door") == 0)
+			if (Lib.strcmp(self.classname, "func_door") == 0)
 				Move_Calc(self, self.moveinfo.start_origin, door_hit_bottom);
-			else if (strcmp(self.classname, "func_door_rotating") == 0)
+			else if (Lib.strcmp(self.classname, "func_door_rotating") == 0)
 				AngleMove_Calc(self, door_hit_bottom);
 			return true;
 		}
@@ -935,9 +938,9 @@ public class GameFunc extends Game {
 			self.s.sound = self.moveinfo.sound_middle;
 		}
 		self.moveinfo.state = STATE_UP;
-		if (strcmp(self.classname, "func_door") == 0)
+		if (Lib.strcmp(self.classname, "func_door") == 0)
 			Move_Calc(self, self.moveinfo.end_origin, door_hit_top);
-		else if (strcmp(self.classname, "func_door_rotating") == 0)
+		else if (Lib.strcmp(self.classname, "func_door_rotating") == 0)
 			AngleMove_Calc(self, door_hit_top);
 
 		G_UseTargets(self, activator);
@@ -1039,8 +1042,8 @@ public class GameFunc extends Game {
 			if ((ent.flags & FL_TEAMSLAVE) != 0)
 				return true; // only the team leader spawns a trigger
 
-			VectorCopy(ent.absmin, mins);
-			VectorCopy(ent.absmax, maxs);
+			Math3D.VectorCopy(ent.absmin, mins);
+			Math3D.VectorCopy(ent.absmax, maxs);
 
 			for (other = ent.teamchain; other != null; other = other.teamchain) {
 				AddPointToBounds(other.absmin, mins, maxs);
@@ -1054,8 +1057,8 @@ public class GameFunc extends Game {
 			maxs[1] += 60;
 
 			other = G_Spawn();
-			VectorCopy(mins, other.mins);
-			VectorCopy(maxs, other.maxs);
+			Math3D.VectorCopy(mins, other.mins);
+			Math3D.VectorCopy(maxs, other.maxs);
 			other.owner = ent;
 			other.solid = SOLID_TRIGGER;
 			other.movetype = MOVETYPE_NONE;
@@ -1164,19 +1167,19 @@ public class GameFunc extends Game {
 				ent.dmg = 2;
 
 			// calculate second position
-			VectorCopy(ent.s.origin, ent.pos1);
+			Math3D.VectorCopy(ent.s.origin, ent.pos1);
 			abs_movedir[0] = Math.abs(ent.movedir[0]);
 			abs_movedir[1] = Math.abs(ent.movedir[1]);
 			abs_movedir[2] = Math.abs(ent.movedir[2]);
 			ent.moveinfo.distance =
 				abs_movedir[0] * ent.size[0] + abs_movedir[1] * ent.size[1] + abs_movedir[2] * ent.size[2] - st.lip;
-			VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir, ent.pos2);
+			Math3D.VectorMA(ent.pos1, ent.moveinfo.distance, ent.movedir, ent.pos2);
 
 			// if it starts open, switch the positions
 			if ((ent.spawnflags & DOOR_START_OPEN) != 0) {
-				VectorCopy(ent.pos2, ent.s.origin);
-				VectorCopy(ent.pos1, ent.pos2);
-				VectorCopy(ent.s.origin, ent.pos1);
+				Math3D.VectorCopy(ent.pos2, ent.s.origin);
+				Math3D.VectorCopy(ent.pos1, ent.pos2);
+				Math3D.VectorCopy(ent.s.origin, ent.pos1);
 			}
 
 			ent.moveinfo.state = STATE_BOTTOM;
@@ -1194,10 +1197,10 @@ public class GameFunc extends Game {
 			ent.moveinfo.accel = ent.accel;
 			ent.moveinfo.decel = ent.decel;
 			ent.moveinfo.wait = ent.wait;
-			VectorCopy(ent.pos1, ent.moveinfo.start_origin);
-			VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
-			VectorCopy(ent.pos2, ent.moveinfo.end_origin);
-			VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
+			Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_origin);
+			Math3D.VectorCopy(ent.s.angles, ent.moveinfo.start_angles);
+			Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
+			Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
 			if ((ent.spawnflags & 16) != 0)
 				ent.s.effects |= EF_ANIM_ALL;
@@ -1250,10 +1253,10 @@ public class GameFunc extends Game {
 
 	static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter() {
 		public boolean think(edict_t ent) {
-			VectorClear(ent.s.angles);
+			Math3D.VectorClear(ent.s.angles);
 
 			// set the axis of rotation
-			VectorClear(ent.movedir);
+			Math3D.VectorClear(ent.movedir);
 			if ((ent.spawnflags & DOOR_X_AXIS) != 0)
 				ent.movedir[2] = 1.0f;
 			else if ((ent.spawnflags & DOOR_Y_AXIS) != 0)
@@ -1263,15 +1266,15 @@ public class GameFunc extends Game {
 
 			// check for reverse rotation
 			if ((ent.spawnflags & DOOR_REVERSE) != 0)
-				VectorNegate(ent.movedir, ent.movedir);
+				Math3D.VectorNegate(ent.movedir, ent.movedir);
 
 			if (0 == st.distance) {
-				gi.dprintf(ent.classname + " at " + vtos(ent.s.origin) + " with no distance set\n");
+				gi.dprintf(ent.classname + " at " + Lib.vtos(ent.s.origin) + " with no distance set\n");
 				st.distance = 90;
 			}
 
-			VectorCopy(ent.s.angles, ent.pos1);
-			VectorMA(ent.s.angles, st.distance, ent.movedir, ent.pos2);
+			Math3D.VectorCopy(ent.s.angles, ent.pos1);
+			Math3D.VectorMA(ent.s.angles, st.distance, ent.movedir, ent.pos2);
 			ent.moveinfo.distance = st.distance;
 
 			ent.movetype = MOVETYPE_PUSH;
@@ -1301,10 +1304,10 @@ public class GameFunc extends Game {
 
 			// if it starts open, switch the positions
 			if ((ent.spawnflags & DOOR_START_OPEN) != 0) {
-				VectorCopy(ent.pos2, ent.s.angles);
-				VectorCopy(ent.pos1, ent.pos2);
-				VectorCopy(ent.s.angles, ent.pos1);
-				VectorNegate(ent.movedir, ent.movedir);
+				Math3D.VectorCopy(ent.pos2, ent.s.angles);
+				Math3D.VectorCopy(ent.pos1, ent.pos2);
+				Math3D.VectorCopy(ent.s.angles, ent.pos1);
+				Math3D.VectorNegate(ent.movedir, ent.movedir);
 			}
 
 			if (ent.health != 0) {
@@ -1323,10 +1326,10 @@ public class GameFunc extends Game {
 			ent.moveinfo.accel = ent.accel;
 			ent.moveinfo.decel = ent.decel;
 			ent.moveinfo.wait = ent.wait;
-			VectorCopy(ent.s.origin, ent.moveinfo.start_origin);
-			VectorCopy(ent.pos1, ent.moveinfo.start_angles);
-			VectorCopy(ent.s.origin, ent.moveinfo.end_origin);
-			VectorCopy(ent.pos2, ent.moveinfo.end_angles);
+			Math3D.VectorCopy(ent.s.origin, ent.moveinfo.start_origin);
+			Math3D.VectorCopy(ent.pos1, ent.moveinfo.start_angles);
+			Math3D.VectorCopy(ent.s.origin, ent.moveinfo.end_origin);
+			Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_angles);
 
 			if ((ent.spawnflags & 16) != 0)
 				ent.s.effects |= EF_ANIM_ALL;
@@ -1385,25 +1388,25 @@ public class GameFunc extends Game {
 		}
 
 		// calculate second position
-		VectorCopy(self.s.origin, self.pos1);
+		Math3D.VectorCopy(self.s.origin, self.pos1);
 		abs_movedir[0] = Math.abs(self.movedir[0]);
 		abs_movedir[1] = Math.abs(self.movedir[1]);
 		abs_movedir[2] = Math.abs(self.movedir[2]);
 		self.moveinfo.distance =
 			abs_movedir[0] * self.size[0] + abs_movedir[1] * self.size[1] + abs_movedir[2] * self.size[2] - st.lip;
-		VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2);
+		Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2);
 
 		// if it starts open, switch the positions
 		if ((self.spawnflags & DOOR_START_OPEN) != 0) {
-			VectorCopy(self.pos2, self.s.origin);
-			VectorCopy(self.pos1, self.pos2);
-			VectorCopy(self.s.origin, self.pos1);
+			Math3D.VectorCopy(self.pos2, self.s.origin);
+			Math3D.VectorCopy(self.pos1, self.pos2);
+			Math3D.VectorCopy(self.s.origin, self.pos1);
 		}
 
-		VectorCopy(self.pos1, self.moveinfo.start_origin);
-		VectorCopy(self.s.angles, self.moveinfo.start_angles);
-		VectorCopy(self.pos2, self.moveinfo.end_origin);
-		VectorCopy(self.s.angles, self.moveinfo.end_angles);
+		Math3D.VectorCopy(self.pos1, self.moveinfo.start_origin);
+		Math3D.VectorCopy(self.s.angles, self.moveinfo.start_angles);
+		Math3D.VectorCopy(self.pos2, self.moveinfo.end_origin);
+		Math3D.VectorCopy(self.s.angles, self.moveinfo.end_angles);
 
 		self.moveinfo.state = STATE_BOTTOM;
 
@@ -1487,7 +1490,7 @@ public class GameFunc extends Game {
 					{
 					train_next.think(self);
 					self.spawnflags &= ~TRAIN_START_ON;
-					VectorClear(self.velocity);
+					Math3D.VectorClear(self.velocity);
 					self.nextthink = 0;
 				}
 
@@ -1529,12 +1532,12 @@ public class GameFunc extends Game {
 				// check for a teleport path_corner
 				if ((ent.spawnflags & 1) != 0) {
 					if (!first) {
-						gi.dprintf("connected teleport path_corners, see " + ent.classname + " at " + vtos(ent.s.origin) + "\n");
+						gi.dprintf("connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin) + "\n");
 						return true;
 					}
 					first = false;
-					VectorSubtract(ent.s.origin, self.mins, self.s.origin);
-					VectorCopy(self.s.origin, self.s.old_origin);
+					Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin);
+					Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 					self.s.event = EV_OTHER_TELEPORT;
 					gi.linkentity(self);
 					dogoto = true;
@@ -1549,10 +1552,10 @@ public class GameFunc extends Game {
 				self.s.sound = self.moveinfo.sound_middle;
 			}
 
-			VectorSubtract(ent.s.origin, self.mins, dest);
+			Math3D.VectorSubtract(ent.s.origin, self.mins, dest);
 			self.moveinfo.state = STATE_TOP;
-			VectorCopy(self.s.origin, self.moveinfo.start_origin);
-			VectorCopy(dest, self.moveinfo.end_origin);
+			Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
+			Math3D.VectorCopy(dest, self.moveinfo.end_origin);
 			Move_Calc(self, dest, train_wait);
 			self.spawnflags |= TRAIN_START_ON;
 			return true;
@@ -1565,10 +1568,10 @@ public class GameFunc extends Game {
 
 		ent = self.target_ent;
 
-		VectorSubtract(ent.s.origin, self.mins, dest);
+		Math3D.VectorSubtract(ent.s.origin, self.mins, dest);
 		self.moveinfo.state = STATE_TOP;
-		VectorCopy(self.s.origin, self.moveinfo.start_origin);
-		VectorCopy(dest, self.moveinfo.end_origin);
+		Math3D.VectorCopy(self.s.origin, self.moveinfo.start_origin);
+		Math3D.VectorCopy(dest, self.moveinfo.end_origin);
 		Move_Calc(self, dest, train_wait);
 		self.spawnflags |= TRAIN_START_ON;
 
@@ -1589,7 +1592,7 @@ public class GameFunc extends Game {
 			}
 			self.target = ent.target;
 
-			VectorSubtract(ent.s.origin, self.mins, self.s.origin);
+			Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin);
 			gi.linkentity(self);
 
 			// if not triggered, start immediately
@@ -1613,7 +1616,7 @@ public class GameFunc extends Game {
 				if (0 == (self.spawnflags & TRAIN_TOGGLE))
 					return;
 				self.spawnflags &= ~TRAIN_START_ON;
-				VectorClear(self.velocity);
+				Math3D.VectorClear(self.velocity);
 				self.nextthink = 0;
 			} else {
 				if (self.target_ent != null)
@@ -1627,7 +1630,7 @@ public class GameFunc extends Game {
 	void SP_func_train(edict_t self) {
 		self.movetype = MOVETYPE_PUSH;
 
-		VectorClear(self.s.angles);
+		Math3D.VectorClear(self.s.angles);
 		self.blocked = train_blocked;
 		if ((self.spawnflags & TRAIN_BLOCK_STOPS) != 0)
 			self.dmg = 0;
@@ -1657,7 +1660,7 @@ public class GameFunc extends Game {
 			self.nextthink = level.time + FRAMETIME;
 			self.think = func_train_find;
 		} else {
-			gi.dprintf("func_train without a target at " + vtos(self.absmin) + "\n");
+			gi.dprintf("func_train without a target at " + Lib.vtos(self.absmin) + "\n");
 		}
 	}
 
@@ -1700,7 +1703,7 @@ public class GameFunc extends Game {
 				gi.dprintf("trigger_elevator unable to find target " + self.target + "\n");
 				return true;
 			}
-			if (strcmp(self.movetarget.classname, "func_train") != 0) {
+			if (Lib.strcmp(self.movetarget.classname, "func_train") != 0) {
 				gi.dprintf("trigger_elevator target " + self.target + " is not a train\n");
 				return true;
 			}
@@ -1737,7 +1740,7 @@ public class GameFunc extends Game {
 	static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			G_UseTargets(self, self.activator);
-			self.nextthink = level.time + self.wait + crandom() * self.random;
+			self.nextthink = level.time + self.wait + Lib.crandom() * self.random;
 			return true;
 		}
 	};
@@ -1769,11 +1772,11 @@ public class GameFunc extends Game {
 
 		if (self.random >= self.wait) {
 			self.random = self.wait - FRAMETIME;
-			gi.dprintf("func_timer at " + vtos(self.s.origin) + " has random >= wait\n");
+			gi.dprintf("func_timer at " + Lib.vtos(self.s.origin) + " has random >= wait\n");
 		}
 
 		if ((self.spawnflags & 1) != 0) {
-			self.nextthink = level.time + 1.0f + st.pausetime + self.delay + self.wait + crandom() * self.random;
+			self.nextthink = level.time + 1.0f + st.pausetime + self.delay + self.wait + Lib.crandom() * self.random;
 			self.activator = self;
 		}
 
@@ -1842,7 +1845,7 @@ public class GameFunc extends Game {
 
 		public void use(edict_t self, edict_t other, edict_t activator) {
 				// make sure we're not already moving
-	if (0 == VectorCompare(self.s.origin, vec3_origin))
+	if (0 == Math3D.VectorCompare(self.s.origin, vec3_origin))
 				return;
 
 			Move_Calc(self, self.pos1, door_secret_move1);
@@ -1969,19 +1972,19 @@ public class GameFunc extends Game {
 			ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = 50;
 
 			// calculate positions
-			AngleVectors(ent.s.angles, forward, right, up);
-			VectorClear(ent.s.angles);
+			Math3D.AngleVectors(ent.s.angles, forward, right, up);
+			Math3D.VectorClear(ent.s.angles);
 			side = 1.0f - (ent.spawnflags & SECRET_1ST_LEFT);
 			if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
-				width = Math.abs(DotProduct(up, ent.size));
+				width = Math.abs(Math3D.DotProduct(up, ent.size));
 			else
-				width = Math.abs(DotProduct(right, ent.size));
-			length = Math.abs(DotProduct(forward, ent.size));
+				width = Math.abs(Math3D.DotProduct(right, ent.size));
+			length = Math.abs(Math3D.DotProduct(forward, ent.size));
 			if ((ent.spawnflags & SECRET_1ST_DOWN) != 0)
-				VectorMA(ent.s.origin, -1 * width, up, ent.pos1);
+				Math3D.VectorMA(ent.s.origin, -1 * width, up, ent.pos1);
 			else
-				VectorMA(ent.s.origin, side * width, right, ent.pos1);
-			VectorMA(ent.pos1, length, forward, ent.pos2);
+				Math3D.VectorMA(ent.s.origin, side * width, right, ent.pos1);
+			Math3D.VectorMA(ent.pos1, length, forward, ent.pos2);
 
 			if (ent.health != 0) {
 				ent.takedamage = DAMAGE_YES;

@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: GLMain.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: GLMain.java,v 1.4 2003-12-09 22:12:44 rst Exp $
 
 package jake2.render;
 
 import jake2.qcommon.*;
+import jake2.util.*;
 import jake2.client.*;
 import jake2.game.*;
 
@@ -156,7 +157,7 @@ public class GLMain {
 			return false;
 
 		for (i=0 ; i<4 ; i++)
-			if ( GameBase.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2)
+			if ( Math3D.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2)
 				return true;
 		return false;
 	}

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Supertank.java,v 1.3 2003-11-29 22:23:38 rst Exp $
+// $Id: M_Supertank.java,v 1.4 2003-12-09 22:12:43 rst Exp $
 
 package jake2.game;
+
+import jake2.util.*;
+import jake2.util.*;
 
 public class M_Supertank extends GamePWeapon {
 
@@ -302,7 +305,7 @@ public class M_Supertank extends GamePWeapon {
 
 	static EntThinkAdapter supertank_search = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (random() < 0.5)
+			if (Lib.random() < 0.5)
 				gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_VOICE, sound_search2, 1, ATTN_NORM, 0);
@@ -464,8 +467,8 @@ public class M_Supertank extends GamePWeapon {
 	//
 	static EntThinkAdapter supertank_dead = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			VectorSet(self.mins, -60, -60, 0);
-			VectorSet(self.maxs, 60, 60, 72);
+			Math3D.VectorSet(self.mins, -60, -60, 0);
+			Math3D.VectorSet(self.maxs, 60, 60, 72);
 			self.movetype = MOVETYPE_TOSS;
 			self.svflags |= SVF_DEADMONSTER;
 			self.nextthink = 0;
@@ -489,13 +492,13 @@ public class M_Supertank extends GamePWeapon {
 			else // (self.s.frame == FRAME_attak2_14)
 				flash_number = MZ2_SUPERTANK_ROCKET_3;
 
-			AngleVectors(self.s.angles, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+			Math3D.AngleVectors(self.s.angles, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-			VectorCopy(self.enemy.s.origin, vec);
+			Math3D.VectorCopy(self.enemy.s.origin, vec);
 			vec[2] += self.enemy.viewheight;
-			VectorSubtract(vec, start, dir);
-			VectorNormalize(dir);
+			Math3D.VectorSubtract(vec, start, dir);
+			Math3D.VectorNormalize(dir);
 
 			monster_fire_rocket(self, start, dir, 50, 500, flash_number);
 			return true;
@@ -517,15 +520,15 @@ public class M_Supertank extends GamePWeapon {
 			dir[1] = self.s.angles[1];
 			dir[2] = 0;
 
-			AngleVectors(dir, forward, right, null);
-			G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
+			Math3D.AngleVectors(dir, forward, right, null);
+			Math3D.G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 			if (self.enemy != null) {
-				VectorCopy(self.enemy.s.origin, vec);
-				VectorMA(vec, 0, self.enemy.velocity, vec);
+				Math3D.VectorCopy(self.enemy.s.origin, vec);
+				Math3D.VectorMA(vec, 0, self.enemy.velocity, vec);
 				vec[2] += self.enemy.viewheight;
-				VectorSubtract(vec, start, forward);
-				VectorNormalize(forward);
+				Math3D.VectorSubtract(vec, start, forward);
+				Math3D.VectorNormalize(forward);
 			}
 
 			monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
@@ -539,8 +542,8 @@ public class M_Supertank extends GamePWeapon {
 			float range;
 			//float	r;
 
-			VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-			range = VectorLength(vec);
+			Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
+			range = Math3D.VectorLength(vec);
 
 			//r = random();
 
@@ -550,7 +553,7 @@ public class M_Supertank extends GamePWeapon {
 			if (range <= 160) {
 				self.monsterinfo.currentmove = supertank_move_attack1;
 			} else { // fire rockets more often at distance
-				if (random() < 0.3)
+				if (Lib.random() < 0.3)
 					self.monsterinfo.currentmove = supertank_move_attack1;
 				else
 					self.monsterinfo.currentmove = supertank_move_attack2;
@@ -753,7 +756,7 @@ public class M_Supertank extends GamePWeapon {
 	static EntThinkAdapter supertank_reattack1 = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 		if (visible(self, self.enemy))
-			if (random() < 0.9)
+			if (Lib.random() < 0.9)
 				self.monsterinfo.currentmove = supertank_move_attack1;
 			else
 				self.monsterinfo.currentmove = supertank_move_end_attack1;
@@ -805,7 +808,7 @@ public class M_Supertank extends GamePWeapon {
 
 			// Lessen the chance of him going into his pain frames
 			if (damage <= 25)
-				if (random() < 0.2)
+				if (Lib.random() < 0.2)
 					return;
 
 			// Don't go into pain if he's firing his rockets
@@ -838,8 +841,8 @@ public class M_Supertank extends GamePWeapon {
 		int n;
 
 		self.think = BossExplode;
-		VectorCopy(self.s.origin, org);
-		org[2] += 24 + (rand() & 15);
+		Math3D.VectorCopy(self.s.origin, org);
+		org[2] += 24 + (Lib.rand() & 15);
 		switch (self.count++) {
 			case 0 :
 				org[0] -= 24;
@@ -929,8 +932,8 @@ public class M_Supertank extends GamePWeapon {
 			self.movetype = MOVETYPE_STEP;
 			self.solid = SOLID_BBOX;
 			self.s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
-			VectorSet(self.mins, -64, -64, 0);
-			VectorSet(self.maxs, 64, 64, 112);
+			Math3D.VectorSet(self.mins, -64, -64, 0);
+			Math3D.VectorSet(self.maxs, 64, 64, 112);
 
 			self.health = 1500;
 			self.gib_health = -500;
