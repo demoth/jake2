@@ -57,14 +57,12 @@ public class LWJGLKBD extends KBD {
 		{
 			Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
 		}
-		int key;
-		char ch;
-		boolean down;
+
 		while (Keyboard.next())
 		{
-			key = Keyboard.getEventKey();
-			ch = Keyboard.getEventCharacter();
-			down =  Keyboard.getEventKeyState();
+			int key = Keyboard.getEventKey();
+			char ch = Keyboard.getEventCharacter();
+			boolean down =  Keyboard.getEventKeyState();
 			
 			// fill the character translation table
 			// this is needed because the getEventCharacter() returns \0 if a key is released
