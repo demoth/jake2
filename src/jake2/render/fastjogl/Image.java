@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.7 2004-10-20 19:20:14 cawe Exp $
+ * $Id: Image.java,v 1.8 2004-11-10 20:35:36 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -463,7 +463,7 @@ public abstract class Image extends Main {
 
         if (palette != null) {
             palette[0] = new byte[768];
-            raw.position(raw.capacity() - 768);
+            raw.position(raw.limit() - 768);
             raw.get(palette[0]);
         }
 
