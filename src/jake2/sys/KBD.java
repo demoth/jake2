@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.4 2004-11-03 08:53:27 hzi Exp $
+ * $Id: KBD.java,v 1.5 2004-11-03 10:16:42 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -212,7 +212,11 @@ public final class KBD {
 			case KeyEvent.VK_DEAD_CIRCUMFLEX: key = '`'; break;
  
 			default:
-				key = ev.getKeyChar();
+				if ((ev.getModifiers() & (InputEvent.ALT_MASK | InputEvent.CTRL_MASK)) != 0) {
+				    key = ev.getKeyCode();
+				} else {
+				    key = ev.getKeyChar();
+				}
 				if (key >= 'A' && key <= 'Z')
 					key = key - 'A' + 'a';
 			break;
