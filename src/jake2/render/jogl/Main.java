@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.12 2004-01-10 16:01:19 cwei Exp $
+ * $Id: Main.java,v 1.13 2004-01-12 16:57:34 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,7 +69,7 @@ public abstract class Main extends Base {
 	boolean qglColorTableEXT = false;
 	boolean qglSelectTextureSGIS = false;
 	boolean qglActiveTextureARB = true;
-	boolean qglPointParameterfEXT = false;
+	boolean qglPointParameterfEXT = true;
 	
 	//	=================
 	//  abstract methods
@@ -578,8 +578,8 @@ public abstract class Main extends Base {
 			for (int i = 0; i < r_newrefdef.num_particles; i++) {
 				p = r_newrefdef.particles[i];
 				color = d_8to24table[p.color];
-
-				gl.glColor4b(
+				
+				gl.glColor4ub(
 					(byte) ((color >> 0) & 0xff),
 					(byte) ((color >> 8) & 0xff),
 					(byte) ((color >> 16) & 0xff),

@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.18 2004-01-11 14:51:04 cwei Exp $
+ * $Id: TestRenderer.java,v 1.19 2004-01-12 16:57:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,9 @@ package jake2.render;
 
 import java.awt.Dimension;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Vector;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -163,10 +166,16 @@ public class TestRenderer {
 		System.out.println();
 		
 		re.Init();
+		
+//		for (int i = 0; i < raw.length; i++) {
+//			raw[i] = (byte)((i % 3) + 1); //((i % 4) + 20);
+//		} 
+		
 	}
 
 	float fps = 0.0f;
 	long start = 0;
+	
 	void updateScreen() {
 		re.BeginFrame(0.0f);
 		viddef = Globals.viddef;
@@ -186,34 +195,37 @@ public class TestRenderer {
 		Dimension wal = new Dimension();
 		re.DrawGetPicSize(wal, "/textures/e1u1/basemap.wal");
 
-//		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
-//		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
-		
-		
-		switch ((framecount / 500) % 1) {
+		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
+
+		switch ((framecount / 500) % 3) {
 			case 0 :
-				testModel();
+				testParticles();
 				break;
 			case 1 :
-				testBeam();
+				testModel();
 				break;
 			case 2 :
 				testSprites();
 				break;
+			case 3:
+				testBeam();
 		}
 		re.EndFrame();
 		framecount++;
 	}
 
 
+	long startTime;
+
 	void run() {
+		startTime = System.currentTimeMillis();
 		while (true) {
 			re.updateScreen();
 			KBD.Update();
-//			try {
-//				Thread.sleep(15);
-//			} catch (InterruptedException e) {
-//			}
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 	
@@ -416,6 +428,53 @@ public class TestRenderer {
 		re.RenderFrame(refdef);
 	}
 	
+	private Vector particles = new Vector(1024); // = new particle_t[20];
+	private LinkedList active_particles = new LinkedList();
+	
+	private boolean initParticles = true;
+	
+	private void testParticles() {
+		
+		particles.clear();
+		
+		if (active_particles.size() == 0) {
+			Explosion(new float[]{100, (float)Math.random() * 40.0f, (float)Math.random() * 40.0f});
+		}
+		refdef_t refdef = new refdef_t();
+
+		refdef.x = viddef.width/ 2;
+		refdef.y = viddef.height / 2 - 72;
+		refdef.width = 144 * 2;
+		refdef.height = 168 * 2;
+		refdef.fov_x = 90;
+		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.time = 1.0f * 0.001f;
+		
+		animateParticles();
+		
+		particle_t[] tmp = new particle_t[particles.size()];
+		
+		particles.toArray(tmp);
+		
+		refdef.particles = tmp;
+		refdef.num_particles = tmp.length;
+		
+		refdef.areabits = null;
+		refdef.num_entities = 0;
+		refdef.entities = null;
+		refdef.lightstyles = null;
+		refdef.rdflags = Defines.RDF_NOWORLDMODEL;
+
+		M_DrawTextBox(
+			(int) ((refdef.x) * (320.0F / viddef.width) - 8),
+			(int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+			refdef.width / 8,
+			refdef.height / 8);
+		refdef.height += 4;
+
+		re.RenderFrame(refdef);
+	}
+	
 	private float CalcFov(float fov_x, float width, float height) {
 		double a;
 		double x;
@@ -493,5 +552,102 @@ public class TestRenderer {
 			num);
 	}
 
+	long endtime;
+
+	private void Explosion(float[] org) {
+		float[] dir = {0, 0, 0};
+		int i;
+		cparticle_t p;
+
+		for(i=0; i<256; i++)
+		{
+			p = new cparticle_t();
+
+			p.time = time() * 1.0f;
+			p.color = 0xe0 + ((int)(32767 *Math.random()) % 8);
+			for (int j=0 ; j<3 ; j++)
+			{
+				p.org[j] = org[j] + (float)(((32767 * Math.random()) % 32)-16);
+				p.vel[j] = (float)((32767 * Math.random()) % 384) - 192;
+			}
+			
+			p.accel[0] = p.accel[1] = 0;
+			p.accel[2] = -PARTICLE_GRAVITY;
+			p.alpha = 1.0f;
+			p.alphavel = -0.8f / (0.5f + (float)Math.random()*0.3f);
+
+			active_particles.add(p);
+		}
+	}
+	
+	static final float INSTANT_PARTICLE = -10000.0f;
+	static final float PARTICLE_GRAVITY = 40.0f;
+	
+	
+	/*
+	===============
+	CL_AddParticles
+	===============
+	*/
+	private void animateParticles()
+	{
+		cparticle_t p;
+		float alpha;
+		float	time, time2;
+		float[] org = {0, 0, 0};
+		int color;
+		particle_t particle;
+		
+		time = 0.0f;
+
+		for (Iterator it = active_particles.iterator(); it.hasNext();)
+		{
+			p = (cparticle_t) it.next();
+
+			// PMM - added INSTANT_PARTICLE handling for heat beam
+			if (p.alphavel != INSTANT_PARTICLE)
+			{
+				time = (time() - p.time) * 0.001f;
+				alpha = p.alpha + time*p.alphavel;
+				if (alpha <= 0)
+				{	// faded out
+					it.remove();
+					continue;
+				}
+			}
+			else
+			{
+				alpha = p.alpha;
+			}
+
+			if (alpha > 1.0)
+				alpha = 1;
+			color = (int)p.color;
+
+			time2 = time*time;
+
+			org[0] = p.org[0] + p.vel[0]*time + p.accel[0]*time2;
+			org[1] = p.org[1] + p.vel[1]*time + p.accel[1]*time2;
+			org[2] = p.org[2] + p.vel[2]*time + p.accel[2]*time2;
+
+			particle = new particle_t();
+			particle.alpha = alpha;
+			Math3D.VectorCopy(org, particle.origin);
+			particle.color = color;
+			
+			particles.add(particle);
+			 
+			// PMM
+			if (p.alphavel == INSTANT_PARTICLE)
+			{
+				p.alphavel = 0.0f;
+				p.alpha = 0.0f;
+			}
+		}
+	}
+	
+	private int time() {
+		return (int)(System.currentTimeMillis() - startTime);
+	}
 
 }
