@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.3 2005-01-09 22:35:31 cawe Exp $
+ * $Id: Warp.java,v 1.4 2005-01-10 00:05:22 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,14 +28,8 @@ package jake2.render.lwjgl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.msurface_t;
+import jake2.render.*;
 import jake2.util.Math3D;
-
-import java.nio.FloatBuffer;
-
-import net.java.games.jogl.GL;
 
 import org.lwjgl.opengl.GL11;
 
@@ -225,7 +219,6 @@ public abstract class Warp extends Model {
         poly.s1(0, total_s * scale);
         poly.t1(0, total_t * scale);
 
-        // memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
         poly.x(i + 1, poly.x(1));
         poly.y(i + 1, poly.y(1));
         poly.z(i + 1, poly.z(1));
@@ -244,35 +237,28 @@ public abstract class Warp extends Model {
 	can be done reasonably.
 	================
 	*/
-	void GL_SubdivideSurface(msurface_t fa)
-	{
-		float[][] verts = new float[64][3];
+	float[][] tmpVerts = new float[64][3];
 
-		int numverts;
-		int i;
-		int lindex;
-		float[] vec;
+    void GL_SubdivideSurface(msurface_t fa) {
+        float[][] verts = tmpVerts;
+        float[] vec;
+        warpface = fa;
+        //
+        // convert edges back to a normal polygon
+        //
+        int numverts = 0;
+        for (int i = 0; i < fa.numedges; i++) {
+            int lindex = loadmodel.surfedges[fa.firstedge + i];
 
-		warpface = fa;
-
-		//
-		// convert edges back to a normal polygon
-		//
-		numverts = 0;
-		for (i=0 ; i < fa.numedges ; i++)
-		{
-			lindex = loadmodel.surfedges[fa.firstedge + i];
-
-			if (lindex > 0)
-				vec = loadmodel.vertexes[loadmodel.edges[lindex].v[0]].position;
-			else
-				vec = loadmodel.vertexes[loadmodel.edges[-lindex].v[1]].position;
-			Math3D.VectorCopy(vec, verts[numverts]);
-			numverts++;
-		}
-
-		SubdividePolygon(numverts, verts);
-	}
+            if (lindex > 0)
+                vec = loadmodel.vertexes[loadmodel.edges[lindex].v[0]].position;
+            else
+                vec = loadmodel.vertexes[loadmodel.edges[-lindex].v[1]].position;
+            Math3D.VectorCopy(vec, verts[numverts]);
+            numverts++;
+        }
+        SubdividePolygon(numverts, verts);
+    }
 
 //	  =========================================================
 
@@ -559,7 +545,7 @@ public abstract class Warp extends Model {
 	*/
 	void R_AddSkySurface(msurface_t fa)
 	{
-	       // calculate vertex values for sky box
+	    // calculate vertex values for sky box
         for (glpoly_t p = fa.polys; p != null; p = p.next) {
             for (int i = 0; i < p.numverts; i++) {
                 verts[i][0] = p.x(i) - r_origin[0];
@@ -578,9 +564,7 @@ public abstract class Warp extends Model {
 	*/
 	void R_ClearSkyBox()
 	{
-		int i;
-
-		for (i=0 ; i<6 ; i++)
+		for (int i=0 ; i<6 ; i++)
 		{
 			skymins[0][i] = skymins[1][i] = 9999;
 			skymaxs[0][i] = skymaxs[1][i] = -9999;
@@ -729,6 +713,4 @@ public abstract class Warp extends Model {
 			}
 		}
 	}
-
-
 }

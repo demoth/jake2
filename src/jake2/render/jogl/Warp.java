@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.8 2005-01-09 22:34:21 cawe Exp $
+ * $Id: Warp.java,v 1.9 2005-01-10 00:05:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,9 +28,7 @@ package jake2.render.jogl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.msurface_t;
+import jake2.render.*;
 import jake2.util.Math3D;
 import net.java.games.jogl.GL;
 
@@ -205,7 +203,6 @@ public abstract class Warp extends Model {
         total_s = 0;
         total_t = 0;
         for (i = 0; i < numverts; i++) {
-            //Math3D.VectorCopy(verts[i], poly.verts[i + 1]);
             poly.x(i + 1, verts[i][0]);
             poly.y(i + 1, verts[i][1]);
             poly.z(i + 1, verts[i][2]);
@@ -227,9 +224,6 @@ public abstract class Warp extends Model {
         poly.s1(0, total_s * scale);
         poly.t1(0, total_t * scale);
 
-        // memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
-//        System.arraycopy(poly.verts[1], 0, poly.verts[i + 1], 0,
-//                poly.verts[1].length); // :-)
         poly.x(i + 1, poly.x(1));
         poly.y(i + 1, poly.y(1));
         poly.z(i + 1, poly.z(1));
@@ -240,27 +234,23 @@ public abstract class Warp extends Model {
     }
 
     /*
-     * ================ GL_SubdivideSurface
+     * GL_SubdivideSurface
      * 
      * Breaks a polygon up along axial 64 unit boundaries so that turbulent and
-     * sky warps can be done reasonably. ================
+     * sky warps can be done reasonably.
      */
+    float[][] tmpVerts = new float[64][3];
+
     void GL_SubdivideSurface(msurface_t fa) {
-        float[][] verts = new float[64][3];
-
-        int numverts;
-        int i;
-        int lindex;
+        float[][] verts = tmpVerts;
         float[] vec;
-
         warpface = fa;
-
         //
         // convert edges back to a normal polygon
         //
-        numverts = 0;
-        for (i = 0; i < fa.numedges; i++) {
-            lindex = loadmodel.surfedges[fa.firstedge + i];
+        int numverts = 0;
+        for (int i = 0; i < fa.numedges; i++) {
+            int lindex = loadmodel.surfedges[fa.firstedge + i];
 
             if (lindex > 0)
                 vec = loadmodel.vertexes[loadmodel.edges[lindex].v[0]].position;
@@ -269,7 +259,6 @@ public abstract class Warp extends Model {
             Math3D.VectorCopy(vec, verts[numverts]);
             numverts++;
         }
-
         SubdividePolygon(numverts, verts);
     }
 
@@ -519,16 +508,12 @@ public abstract class Warp extends Model {
     float[][] verts = new float[MAX_CLIP_VERTS][3];
 
     /*
-     * ================= R_AddSkySurface =================
+     * R_AddSkySurface
      */
     void R_AddSkySurface(msurface_t fa) {
-        int i;
-        glpoly_t p;
-
         // calculate vertex values for sky box
-        for (p = fa.polys; p != null; p = p.next) {
-            for (i = 0; i < p.numverts; i++) {
-                //Math3D.VectorSubtract(p.verts[i], r_origin, verts[i]);
+        for (glpoly_t p = fa.polys; p != null; p = p.next) {
+            for (int i = 0; i < p.numverts; i++) {
                 verts[i][0] = p.x(i) - r_origin[0];
                 verts[i][1] = p.y(i) - r_origin[1];
                 verts[i][2] = p.z(i) - r_origin[2];

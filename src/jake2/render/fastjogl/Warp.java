@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.5 2005-01-09 22:36:30 cawe Exp $
+ * $Id: Warp.java,v 1.6 2005-01-10 00:05:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,13 +28,8 @@ package jake2.render.fastjogl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.msurface_t;
+import jake2.render.*;
 import jake2.util.Math3D;
-
-import java.nio.FloatBuffer;
-
 import net.java.games.jogl.GL;
 
 /**
@@ -229,7 +224,6 @@ public abstract class Warp extends Model {
         poly.s1(0, total_s * scale);
         poly.t1(0, total_t * scale);
 
-        // memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
         poly.x(i + 1, poly.x(1));
         poly.y(i + 1, poly.y(1));
         poly.z(i + 1, poly.z(1));
@@ -240,27 +234,23 @@ public abstract class Warp extends Model {
     }
 
     /*
-     * ================ GL_SubdivideSurface
+     * GL_SubdivideSurface
      * 
      * Breaks a polygon up along axial 64 unit boundaries so that turbulent and
-     * sky warps can be done reasonably. ================
+     * sky warps can be done reasonably.
      */
+    float[][] tmpVerts = new float[64][3];
+
     void GL_SubdivideSurface(msurface_t fa) {
-        float[][] verts = new float[64][3];
-
-        int numverts;
-        int i;
-        int lindex;
+        float[][] verts = tmpVerts;
         float[] vec;
-
         warpface = fa;
-
         //
         // convert edges back to a normal polygon
         //
-        numverts = 0;
-        for (i = 0; i < fa.numedges; i++) {
-            lindex = loadmodel.surfedges[fa.firstedge + i];
+        int numverts = 0;
+        for (int i = 0; i < fa.numedges; i++) {
+            int lindex = loadmodel.surfedges[fa.firstedge + i];
 
             if (lindex > 0)
                 vec = loadmodel.vertexes[loadmodel.edges[lindex].v[0]].position;
@@ -269,7 +259,6 @@ public abstract class Warp extends Model {
             Math3D.VectorCopy(vec, verts[numverts]);
             numverts++;
         }
-
         SubdividePolygon(numverts, verts);
     }
 
@@ -289,7 +278,6 @@ public abstract class Warp extends Model {
      */
     void EmitWaterPolys(msurface_t fa) {
         glpoly_t p, bp;
-        int i;
         float s = 0;
         float t = 0;
         float os, ot;
@@ -306,7 +294,7 @@ public abstract class Warp extends Model {
             p = bp;
 
             gl.glBegin(GL.GL_TRIANGLE_FAN);
-            for (i = 0; i < p.numverts; i++) {
+            for (int i = 0; i < p.numverts; i++) {
                 os = p.s1(i);
                 ot = p.t1(i);
 
