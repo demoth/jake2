@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.14 2004-01-24 01:50:00 cwei Exp $
+ * $Id: Model.java,v 1.15 2004-01-25 01:40:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -979,7 +979,6 @@ public abstract class Model extends Surf {
 		//
 		// set up the submodels
 		//
-		// TODO check this: set up the submodels (sehr wichtig)
 		model_t	starmod;
 
 		for (i=0 ; i<mod.numsubmodels ; i++)
@@ -998,8 +997,8 @@ public abstract class Model extends Surf {
 			Math3D.VectorCopy(bm.mins, starmod.mins);
 			starmod.radius = bm.radius;
 	
-//			if (i == 0)
-//				loadmodel = starmod.copy();
+			if (i == 0)
+				loadmodel = starmod.copy();
 
 			starmod.numleafs = bm.visleafs;
 		}
