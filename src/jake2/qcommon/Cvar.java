@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Cvar.java,v 1.2 2003-11-24 19:06:30 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +34,7 @@ import jake2.game.cvar_t;
  */
 public final class Cvar {
 	
-	static final int ARCHIVE = 1;	// set to cause it to be saved to vars.rc
+	public static final int ARCHIVE = 1;	// set to cause it to be saved to vars.rc
 	static final int USERINFO = 2;	// added to userinfo  when changed
 	static final int SERVERINFO = 4;// added to serverinfo when changed
 	static final int NOSET = 8;		// don't allow change from console at all,
