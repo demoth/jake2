@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.13 2004-01-18 12:48:39 hoz Exp $
+ * $Id: Key.java,v 1.14 2004-01-18 13:29:07 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,8 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.Cmd;
+import jake2.qcommon.*;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
@@ -221,10 +223,94 @@ public final class Key {
 //	00152 
 //	00153         {NULL,0}	
 	}
+	
 	/**
 	 * 
 	 */
 	public static void Init() {
+//		00620         int             i;
+//		00621 
+//		00622         for (i=0 ; i<32 ; i++)
+//		00623         {
+//		00624                 key_lines[i][0] = ']';
+//		00625                 key_lines[i][1] = 0;
+//		00626         }
+//		00627         key_linepos = 1;
+//		00628         
+//		00629 //
+//		00630 // init ascii characters in console mode
+//		00631 //
+//		00632         for (i=32 ; i<128 ; i++)
+//		00633                 consolekeys[i] = true;
+//		00634         consolekeys[K_ENTER] = true;
+//		00635         consolekeys[K_KP_ENTER] = true;
+//		00636         consolekeys[K_TAB] = true;
+//		00637         consolekeys[K_LEFTARROW] = true;
+//		00638         consolekeys[K_KP_LEFTARROW] = true;
+//		00639         consolekeys[K_RIGHTARROW] = true;
+//		00640         consolekeys[K_KP_RIGHTARROW] = true;
+//		00641         consolekeys[K_UPARROW] = true;
+//		00642         consolekeys[K_KP_UPARROW] = true;
+//		00643         consolekeys[K_DOWNARROW] = true;
+//		00644         consolekeys[K_KP_DOWNARROW] = true;
+//		00645         consolekeys[K_BACKSPACE] = true;
+//		00646         consolekeys[K_HOME] = true;
+//		00647         consolekeys[K_KP_HOME] = true;
+//		00648         consolekeys[K_END] = true;
+//		00649         consolekeys[K_KP_END] = true;
+//		00650         consolekeys[K_PGUP] = true;
+//		00651         consolekeys[K_KP_PGUP] = true;
+//		00652         consolekeys[K_PGDN] = true;
+//		00653         consolekeys[K_KP_PGDN] = true;
+//		00654         consolekeys[K_SHIFT] = true;
+//		00655         consolekeys[K_INS] = true;
+//		00656         consolekeys[K_KP_INS] = true;
+//		00657         consolekeys[K_KP_DEL] = true;
+//		00658         consolekeys[K_KP_SLASH] = true;
+//		00659         consolekeys[K_KP_PLUS] = true;
+//		00660         consolekeys[K_KP_MINUS] = true;
+//		00661         consolekeys[K_KP_5] = true;
+//		00662 
+//		00663         consolekeys['`'] = false;
+//		00664         consolekeys['~'] = false;
+//		00665 
+//		00666         for (i=0 ; i<256 ; i++)
+//		00667                 keyshift[i] = i;
+//		00668         for (i='a' ; i<='z' ; i++)
+//		00669                 keyshift[i] = i - 'a' + 'A';
+//		00670         keyshift['1'] = '!';
+//		00671         keyshift['2'] = '@';
+//		00672         keyshift['3'] = '#';
+//		00673         keyshift['4'] = '$';
+//		00674         keyshift['5'] = '%';
+//		00675         keyshift['6'] = '^';
+//		00676         keyshift['7'] = '&';
+//		00677         keyshift['8'] = '*';
+//		00678         keyshift['9'] = '(';
+//		00679         keyshift['0'] = ')';
+//		00680         keyshift['-'] = '_';
+//		00681         keyshift['='] = '+';
+//		00682         keyshift[','] = '<';
+//		00683         keyshift['.'] = '>';
+//		00684         keyshift['/'] = '?';
+//		00685         keyshift[';'] = ':';
+//		00686         keyshift['\''] = '"';
+//		00687         keyshift['['] = '{';
+//		00688         keyshift[']'] = '}';
+//		00689         keyshift['`'] = '~';
+//		00690         keyshift['\\'] = '|';
+//		00691 
+//		00692         menubound[K_ESCAPE] = true;
+//		00693         for (i=0 ; i<12 ; i++)
+//		00694                 menubound[K_F1+i] = true;
+//		00695 
+//		00696 //
+//		00697 // register our functions
+//		00698 //
+//		00699         Cmd_AddCommand ("bind",Key_Bind_f);
+//		00700         Cmd_AddCommand ("unbind",Key_Unbind_f);
+//		00701         Cmd_AddCommand ("unbindall",Key_Unbindall_f);
+//		00702         Cmd_AddCommand ("bindlist",Key_Bindlist_f);		
 	}
 	
 	public static void ClearTyping() {
@@ -403,6 +489,27 @@ public final class Key {
 
 		return "<UNKNOWN KEYNUM>";
 	}
+	
+	/**
+	 * Returns a key number to be used to index keybindings[] by looking at
+	 * the given string. Single ascii characters return themselves, while
+	 * the K_* names are matched up.
+	 */
+	static int StringToKeynum(String str) {
+//	00426         keyname_t       *kn;
+//	00427         
+//	00428         if (!str || !str[0])
+//	00429                 return -1;
+//	00430         if (!str[1])
+//	00431                 return str[0];
+//	00432 
+//	00433         for (kn=keynames ; kn->name ; kn++)
+//	00434         {
+//	00435                 if (!Q_strcasecmp(str,kn->name))
+//	00436                         return kn->keynum;
+//	00437         }
+		return -1;
+	}	
 	
 	public static void Message(int key) {
  
@@ -612,5 +719,50 @@ public final class Key {
 //	00182                 key_lines[edit_line][key_linepos] = 0;
 //	00183                 return;
 //	00184         }
-	}	
+	}
+	
+	public static xcommand_t Bind_f = new xcommand_t() {
+		public void execute() {
+			Key_Bind_f();
+		}	
+	};
+	static void Key_Bind_f() {   
+		int c = Cmd.Argc();
+ 
+		if (c < 2) {
+			Com.Printf("bind <key> [command] : attach a command to a key\n");
+			return;
+		}
+		int b = StringToKeynum(Cmd.Argv(1));
+		if (b==-1) {
+			Com.Printf("\""+ Cmd.Argv(1) + "\" isn't a valid key\n");
+			return;
+		}
+ 
+		if (c == 2) {
+			if (Globals.keybindings[b] != null)
+				Com.Printf("\"" + Cmd.Argv(1) + "\" = \"" + Globals.keybindings[b] + "\"\n");
+			else
+				Com.Printf("\"" + Cmd.Argv(1) + "\" is not bound\n");
+			return;
+		}
+        
+		// copy the rest of the command line
+		String cmd = "";	// start out with a null string
+		for (int i=2 ; i< c ; i++) {
+			cmd += Cmd.Argv(i);
+			if (i != (c-1)) cmd += " ";
+		}
+
+		SetBinding (b, cmd);
+	}
+	
+	static void SetBinding(int keynum, String binding) {
+		if (keynum == -1) return;
+ 
+		// free old bindings
+		Globals.keybindings[keynum] = null;
+		
+		Globals.keybindings[keynum] = binding; 
+	}			
 }
