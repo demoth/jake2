@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.2 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Jake2.java,v 1.3 2003-11-19 17:49:44 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
+import java.util.logging.*;
+
 import jake2.qcommon.*;
 
 /**
  * Jake2 is the main class of Quake2 for Java.
  */
 public final class Jake2 {
+	
+	private static Logger logger = Logger.getLogger(Jake2.class.getName());
 
 	/**
 	 * main is used to start the game. Quake2 for Java supports the 
@@ -38,6 +42,8 @@ public final class Jake2 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		logger.log(Level.INFO, "Start Jake2 :-)");
 
 		Qcommon.Init(args);
 		
@@ -54,6 +60,12 @@ public final class Jake2 {
 
 			if (time > 0) Qcommon.Frame(time);
 			oldtime = newtime;
+
+			// save cpu resources
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+			}
 		}
 
 	}
