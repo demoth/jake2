@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.15 2003-12-24 00:58:40 cwei Exp $
+ * $Id: FS.java,v 1.16 2003-12-25 18:19:59 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.sys.CDAudio;
+import jake2.sys.Sys;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -539,30 +540,31 @@ public final class FS {
 		return (fs_gamedir != null) ? fs_gamedir : Globals.BASEDIRNAME;
 	}
 
-//	/*
-//	=============
-//	FS_ExecAutoexec
-//	=============
-//	*/
+	/*
+	=============
+	FS_ExecAutoexec
+	=============
+	*/
 
 	public static void ExecAutoexec() {
 
 		String dir;
 		String name;
-//
+
 		dir = Cvar.VariableString("gamedir");
-		if (dir != null && dir.length() > 0)
+
+		if (dir != null && dir.length() > 0) {
 			name = fs_basedir.string + '/' + dir + "/autoexec.cfg"; 
-		else
-			name = fs_basedir.string + '/' + Globals.BASEDIRNAME + "/autoexec.cfg"; 
-
-//		if (Sys_FindFirst(name, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
-		File f = new File(name);
-		if (f.exists())
+		} else {
+			name = fs_basedir.string + '/' + Globals.BASEDIRNAME + "/autoexec.cfg";
+		}
+			
+		int canthave = Globals.SFF_SUBDIR | Globals.SFF_HIDDEN | Globals.SFF_SYSTEM;
+								
+		if (Sys.FindAll(name, 0, canthave) != null) {
 			Cbuf.AddText("exec autoexec.cfg\n");
-//		Sys_FindClose();
+		}
 	}
-
 
 	/*
 	================
@@ -672,101 +674,66 @@ public final class FS {
 		}
 	}
 
-//
-//	/*
-//	** FS_ListFiles
-//	*/
-	public static String[] ListFiles( String findname, int numfiles, int musthave, int canthave )
+
+	/*
+	** FS_ListFiles
+	*/
+	public static String[] ListFiles( String findname, int musthave, int canthave )
 	{
-//		char *s;
-//		int nfiles = 0;
 		String[] list = null;
-//
-//		s = Sys_FindFirst( findname, musthave, canthave );
-//		while ( s )
-//		{
-//			if ( s[strlen(s)-1] != '.' )
-//				nfiles++;
-//			s = Sys_FindNext( musthave, canthave );
-//		}
-//		Sys_FindClose ();
-//
-//		if ( !nfiles )
-//			return NULL;
-//
-//		nfiles++; // add space for a guard
-//		*numfiles = nfiles;
-//
-//		list = malloc( sizeof( char * ) * nfiles );
-//		memset( list, 0, sizeof( char * ) * nfiles );
-//
-//		s = Sys_FindFirst( findname, musthave, canthave );
-//		nfiles = 0;
-//		while ( s )
-//		{
-//			if ( s[strlen(s)-1] != '.' )
-//			{
-//				list[nfiles] = strdup( s );
-//	#ifdef _WIN32
-//				strlwr( list[nfiles] );
-//	#endif
-//				nfiles++;
-//			}
-//			s = Sys_FindNext( musthave, canthave );
-//		}
-//		Sys_FindClose ();
-//
+		
+		File[] files = Sys.FindAll(findname, musthave, canthave);
+		
+		if (files != null) {
+			list = new String[files.length];
+			for (int i = 0; i < files.length; i++) {
+				list[i] = files[i].getPath();
+			}
+		}
+		
 		return list;
 	}
 
-//
-//	/*
-//	** FS_Dir_f
-//	*/
+
+	/*
+	** FS_Dir_f
+	*/
 	static void Dir_f()
 	{
-//		char	*path = NULL;
 		String path = null;
-//		char	findname[1024];
 		String findname = null;
-//		char	wildcard[1024] = "*.*";
 		String wildcard = "*.*";
-//		char	**dirnames;
 		String[] dirnames;
-//		int		ndirs;
-		int ndirs;
-//
+
 		if ( Cmd.Argc() != 1 )
 		{
-			wildcard =  Cmd.Argv(1);
+			wildcard = Cmd.Argv(1);
 		}
-//
+
 		while ( ( path = NextPath( path ) ) != null )
 		{
 			String tmp = findname;
-//
+
 			findname = path + '/' + wildcard;
-//
+
 			if (tmp != null) tmp.replaceAll("\\\\", "/");
 
 			Com.Printf( "Directory of " + findname +'\n' );
 			Com.Printf( "----\n" );
-//
-//			if ( ( dirnames = FS_ListFiles( findname, &ndirs, 0, 0 ) ) != 0 )
-//			{
-//				int i;
-//
-//				for ( i = 0; i < ndirs-1; i++ )
-//				{
-//					if ( strrchr( dirnames[i], '/' ) )
-//						Com_Printf( "%s\n", strrchr( dirnames[i], '/' ) + 1 );
-//					else
-//						Com_Printf( "%s\n", dirnames[i] );
-//
-//					free( dirnames[i] );
-//				}
-//				free( dirnames );
-//			}
+			
+			dirnames = ListFiles(findname, 0, 0);
+			
+			if (dirnames != null) {
+				int index = 0;
+				for (int i = 0; i < dirnames.length; i++) {
+					if ((index = dirnames[i].lastIndexOf('/')) > 0) {
+						Com.Printf(dirnames[i].substring(index + 1, dirnames[i].length()) + '\n');
+					} else {
+						Com.Printf(dirnames[i] + '\n');
+					}
+				}		
+			}
+
 			Com.Printf( "\n" );
 		}
 	}
@@ -863,6 +830,7 @@ public final class FS {
 		// Logically concatenates the cddir after the basedir for 
 		// allows the game to run from outside the data tree
 		//
+		
 		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
 		fs_cddir = Cvar.Get("cddir", "../..", Cvar.NOSET);
 		if (fs_cddir.string.length() > 0)
