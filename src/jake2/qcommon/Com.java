@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.3 2004-07-09 06:50:50 hzi Exp $
+ * $Id: Com.java,v 1.4 2004-07-23 22:38:52 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -350,11 +350,6 @@ public final class Com
 		DPrintf(fmt, null);
 	}
 
-	public static void d(String fmt)
-	{
-		DPrintf(fmt + "\n", null);
-	}
-
 	public static void Printf(String fmt)
 	{
 		Printf(fmt, null);
@@ -515,15 +510,16 @@ public final class Com
 		return MD4.Com_BlockChecksum(buf, length);
 	}
 
-	public static void StripExtension(String string, String string2)
-	{
-		// TODO implement StripExtension
+	public static String StripExtension(String string) {
+		int i = string.lastIndexOf('.');
+		if (i < 0)
+			return string;
+		return string.substring(0, i);
 	}
 
 	/**
 	 * CRC table. 
 	 */
-
 	static int chktbl[]=
 		{
 			0x84,

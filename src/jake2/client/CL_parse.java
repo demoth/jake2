@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.6 2004-07-12 20:47:01 hzi Exp $
+ * $Id: CL_parse.java,v 1.7 2004-07-23 22:38:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -103,7 +103,7 @@ public class CL_parse extends CL_view {
 		// download to a temp name, and only rename
 		// to the real name when done, so if interrupted
 		// a runt file wont be left
-		Com.StripExtension(cls.downloadname, cls.downloadtempname);
+		cls.downloadtempname = Com.StripExtension(cls.downloadname);
 		cls.downloadtempname += ".tmp";
 
 		//	  ZOID
@@ -175,7 +175,7 @@ public class CL_parse extends CL_view {
 			// download to a temp name, and only rename
 			// to the real name when done, so if interrupted
 			// a runt file wont be left
-			Com.StripExtension(cls.downloadname, cls.downloadtempname);
+			cls.downloadtempname = Com.StripExtension(cls.downloadname);
 			cls.downloadtempname += ".tmp";
 
 			MSG.WriteByte(cls.netchan.message, clc_stringcmd);
