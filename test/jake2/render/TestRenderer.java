@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.9 2004-01-04 01:33:30 cwei Exp $
+ * $Id: TestRenderer.java,v 1.10 2004-01-04 17:14:08 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -203,7 +203,7 @@ public class TestRenderer {
 
 		refdef_t refdef = new refdef_t();
 
-		refdef.x = viddef.width / 2;
+		refdef.x = viddef.width/ 2;
 		refdef.y = viddef.height / 2 - 72;
 		refdef.width = 144;
 		refdef.height = 168;
@@ -216,6 +216,9 @@ public class TestRenderer {
 		String modelName = "players/female/tris.md2";
 		String modelSkin = "players/female/athena.pcx";
 		String modelImage = "/players/female/athena_i.pcx";
+		String modelImage1 = "/players/female/brianna_i.pcx";
+		String modelImage2 = "/players/female/cobalt_i.pcx";
+		String modelImage3 = "/players/female/lotus_i.pcx";
 
 		entity.model = re.RegisterModel(modelName);
 
@@ -249,8 +252,10 @@ public class TestRenderer {
 
 		re.RenderFrame(refdef);
 
-		re.DrawPic(/*s_player_config_menu.x*/
-		refdef.x - 80, refdef.y, modelImage);
+		re.DrawPic(refdef.x - 80, refdef.y, modelImage);
+		re.DrawPic(refdef.x - 80, refdef.y + 47, modelImage1);
+		re.DrawPic(refdef.x - 80, refdef.y + 94, modelImage2);
+		re.DrawPic(refdef.x - 80, refdef.y + 141, modelImage3);
 	}
 	
 	private float CalcFov(float fov_x, float width, float height) {

@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.6 2004-01-04 16:39:06 cwei Exp $
+ * $Id: Image.java,v 1.7 2004-01-04 17:14:08 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1370,8 +1370,8 @@ public abstract class Image extends Model {
 
 			image.scrap = false;
 
-			image.texnum = TEXNUM_IMAGES + gltextures.size(); // + image pos
-			// System.out.println(gltextures.values());
+			image.texnum = TEXNUM_IMAGES + gltextures.size() - 1; // + image pos
+			//System.out.println(gltextures.values());
 			GL_Bind(image.texnum);
 			
 			if (bits == 8) {
