@@ -2,7 +2,7 @@
  * sfx_t.java
  * Copyright (C) 2004
  * 
- * $Id: sfx_t.java,v 1.1 2004-04-15 08:08:27 hoz Exp $
+ * $Id: sfx_t.java,v 1.2 2004-04-26 11:59:26 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,9 +35,15 @@ public class sfx_t {
 	public sfxcache_t cache; //ptr
 	public String truename; //ptr
 	
+	// cwei
+	public int id = -1;
+	
 	public void clear() {
 		name = truename = null;
 		cache = null;
 		registration_sequence = 0;
+		
+		// cwei
+		id = -1; 
 	}
 }
