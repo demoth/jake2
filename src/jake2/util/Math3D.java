@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.10 2004-01-24 01:03:22 cwei Exp $
+// $Id: Math3D.java,v 1.11 2004-01-24 23:23:21 rst Exp $
 
 package jake2.util;
 
@@ -47,11 +47,13 @@ public class Math3D extends Lib {
 		c[1] = a[1] - b[1];
 		c[2] = a[2] - b[2];
 	}
+	
 	public static void VectorAdd(float[] a, float[] b, float[] c) {
 		c[0] = a[0] + b[0];
 		c[1] = a[1] + b[1];
 		c[2] = a[2] + b[2];
 	}
+	
 	public static void VectorCopy(float[] a, float[] b) {
 		b[0] = a[0];
 		b[1] = a[1];
@@ -173,6 +175,7 @@ public class Math3D extends Lib {
 	}
 
 	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
+		
 		float m[][] = new float[3][3];
 		float im[][] = new float[3][3];
 		float zrot[][] = new float[3][3];
@@ -461,7 +464,12 @@ public class Math3D extends Lib {
 	}
 
 	public static final void MatCopy(float src[][], float dst[][]) {
-		System.arraycopy(src, 0, dst, 0, dst.length);
+		for (int i=0; i < 3; i++)
+			for (int j=0; j< 3; j++)
+				dst[i][j] = src[i][j];
+		
+		//does not work ???
+		//System.arraycopy(src, 0, dst, 0, dst.length);
 	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
