@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMOVE.java,v 1.1 2004-01-25 21:45:45 rst Exp $
+// $Id: PMove.java,v 1.1 2004-01-31 16:58:45 rst Exp $
 
 package jake2.qcommon;
 
@@ -30,7 +30,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class PMOVE extends PlayerHud
+public class PMove extends PlayerHud
 {
 
 	public final static int STEPSIZE = 18;

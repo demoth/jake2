@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.8 2004-01-25 21:45:45 rst Exp $
+// $Id: game_import_t.java,v 1.9 2004-01-31 16:58:45 rst Exp $
 
 package jake2.game;
 
@@ -29,7 +29,7 @@ import jake2.qcommon.CM;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
-import jake2.qcommon.PMOVE;
+import jake2.qcommon.PMove;
 import jake2.server.SV;
 import jake2.server.SV_GAME;
 import jake2.server.SV_INIT;
@@ -139,7 +139,7 @@ public class game_import_t {
 	}
 	
 	public void Pmove(pmove_t pmove) {
-		PMOVE.Pmove(pmove);
+		PMove.Pmove(pmove);
 	}
 	
 	// player movement code common with client prediction

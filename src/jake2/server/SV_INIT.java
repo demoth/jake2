@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.7 2004-01-30 13:34:31 hoz Exp $
+// $Id: SV_INIT.java,v 1.8 2004-01-31 16:58:45 rst Exp $
 
 package jake2.server;
 
@@ -225,11 +225,11 @@ public class SV_INIT extends PlayerHud {
 		
 		if (Cvar.VariableValue("deathmatch")!=0) {
 			sv.configstrings[CS_AIRACCEL] = ""+SV_MAIN.sv_airaccelerate.value;
-			PMOVE.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
+			PMove.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
 		}
 		else {
 			sv.configstrings[CS_AIRACCEL] = "0";
-			PMOVE.pm_airaccelerate = 0;
+			PMove.pm_airaccelerate = 0;
 		}
 
 		SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
