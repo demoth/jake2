@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.15 2004-10-24 21:02:04 salomo Exp $
+ * $Id: CL.java,v 1.16 2004-11-07 19:38:40 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1048,7 +1048,7 @@ public final class CL {
                         //Com.Printf("critical code section because of endian
                         // mess!\n");
 
-                        String name = new String(CL.precache_model,
+                        String name = Lib.CtoJava(CL.precache_model,
                                 pheader.ofs_skins
                                         + (CL.precache_model_skin - 1)
                                         * Defines.MAX_SKINNAME,
