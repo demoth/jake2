@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Misc.java,v 1.2 2004-06-13 14:26:07 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.fastjogl;
 
 import net.java.games.jogl.GL;
+import net.java.games.jogl.WGL;
 
 import jake2.Defines;
 
@@ -35,10 +36,7 @@ import jake2.Defines;
  * @author cwei
  */
 public abstract class Misc extends Mesh {
-////	   r_misc.c
-//
-//	#include "gl_local.h"
-//
+
 	/*
 	==================
 	R_InitParticleTexture
@@ -249,20 +247,12 @@ public abstract class Misc extends Mesh {
 		if ( gl_swapinterval.modified )
 		{
 			gl_swapinterval.modified = false;
-
 			if ( !gl_state.stereo_enabled ) 
 			{
-//	#ifdef _WIN32
-//				if ( qwglSwapIntervalEXT )
-//					qwglSwapIntervalEXT( gl_swapinterval->value );
-//	#endif
+				if (qwglSwapIntervalEXT) {
+					((WGL)gl).wglSwapIntervalEXT((int)gl_swapinterval.value);
+				}
 			}
 		}
 	}
-	
-
-	// ============================================================================
-	// remove after impl this methods in jake2.render.jogl package
-	// ============================================================================
-
 }
