@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.7 2004-01-29 17:56:41 hoz Exp $
+ * $Id: V.java,v 1.8 2004-01-29 17:59:38 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -65,24 +65,22 @@ public final class V extends Globals {
 	====================
 	*/
 	static void ClearScene() {
-//		r_numdlights = 0;
-//		r_numentities = 0;
-//		r_numparticles = 0;
+		r_numdlights = 0;
+		r_numentities = 0;
+		r_numparticles = 0;
 	}
-//
-//
-//	/*
-//	=====================
-//	V_AddEntity
-//
-//	=====================
-//	*/
-//	void V_AddEntity (entity_t *ent)
-//	{
-//		if (r_numentities >= MAX_ENTITIES)
-//			return;
-//		r_entities[r_numentities++] = *ent;
-//	}
+
+	/*
+	=====================
+	V_AddEntity
+
+	=====================
+	*/
+	static void AddEntity(entity_t ent) {
+		if (r_numentities >= MAX_ENTITIES)
+			return;
+		r_entities[r_numentities++] = ent;
+	}
 //
 //
 //	/*
