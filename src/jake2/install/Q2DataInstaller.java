@@ -2,18 +2,16 @@
  * Q2DataDialog.java
  * Copyright (C)  2003
  * 
- * $Id: Q2DataInstaller.java,v 1.1 2004-10-24 20:40:07 hzi Exp $
+ * $Id: Q2DataInstaller.java,v 1.2 2004-10-31 19:45:28 hzi Exp $
  */
 
 package jake2.install;
 
-import jake2.Globals;
-
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -36,22 +34,9 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 		int x = (mode.getWidth() - getWidth()) / 2;
 		int y = (mode.getHeight() - getHeight()) / 2;
 		setLocation(x, y);
-		dir = home + sep + "jake2" + sep + "baseq2";
-		jTextField1.setText(dir);
-    }
+   }
     
     private void initComponents() {//GEN-BEGIN:initComponents
-        java.awt.GridBagConstraints gridBagConstraints;
-
-        choosePanel = new javax.swing.JPanel();
-        statusPanel = new JPanel();
-        status = new JLabel("initializing Jake2...");
-        jTextField1 = new javax.swing.JTextField();
-        changeButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
-        exitButton = new javax.swing.JButton();
-        okButton = new javax.swing.JButton();
-
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Jake2 - Bytonic Software");
 
@@ -61,114 +46,15 @@ public class Q2DataInstaller extends javax.swing.JDialog {
                 formWindowClosing(evt);
             }
         });
-
-        choosePanel.setLayout(new java.awt.GridBagLayout());
-        choosePanel.setMaximumSize(new java.awt.Dimension(400, 100));
-        choosePanel.setMinimumSize(new java.awt.Dimension(400, 100));
-        choosePanel.setPreferredSize(new java.awt.Dimension(400, 100));
-
-
-		
-        gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.gridwidth = 1;
-		gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-		gridBagConstraints.weightx = 0;
-		gridBagConstraints.anchor = GridBagConstraints.SOUTHWEST;
-		choosePanel.add(new JLabel("baseq2 directory"),gridBagConstraints);
-        
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(5, 2, 5, 2);
-        gridBagConstraints.weightx = 1;
-        choosePanel.add(jTextField1, gridBagConstraints);
-
-        changeButton.setText("...");
-        changeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                changeButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 1;
-		gridBagConstraints.weightx = 0;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.NONE;
-        gridBagConstraints.insets = new java.awt.Insets(5, 2, 5, 5);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        choosePanel.add(changeButton, gridBagConstraints);
-
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 1;
-		gridBagConstraints.gridwidth = 4;
-		gridBagConstraints.weightx = 0;
-		gridBagConstraints.weighty = 1;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-		choosePanel.add(new JPanel(), gridBagConstraints);
-
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-		gridBagConstraints.gridwidth = 4;
-		gridBagConstraints.weighty = 0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
-        choosePanel.add(cancelButton, gridBagConstraints);
-
-        exitButton.setText("Exit");
-        exitButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exitButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-		gridBagConstraints.gridwidth = 1;
-		gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        choosePanel.add(exitButton, gridBagConstraints);
-
-        okButton.setText("OK");
-        okButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                okButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-		gridBagConstraints.gridwidth = 2;
-		gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHEAST;
-		choosePanel.add(okButton, gridBagConstraints);
-
  
 		Jake2Canvas c = new Jake2Canvas();
 		getContentPane().add(c, BorderLayout.CENTER);
-
-		statusPanel.setLayout(new java.awt.GridBagLayout());
-		statusPanel.setMaximumSize(new java.awt.Dimension(400, 100));
-		statusPanel.setMinimumSize(new java.awt.Dimension(400, 100));
-		statusPanel.setPreferredSize(new java.awt.Dimension(400, 100));
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.gridwidth = 1;
-		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-		gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
-		gridBagConstraints.weightx = 1.0;
-		statusPanel.add(status, gridBagConstraints);
-		getContentPane().add(statusPanel, java.awt.BorderLayout.SOUTH);
 		
 		progressPanel = new ProgressPanel(this);
-		installPanel = new InstallPanel(this);
 		notFoundPanel = new NotFoundPanel(this);
-						
+		
+		getContentPane().add(notFoundPanel, java.awt.BorderLayout.SOUTH);
+		
         pack();
     }
 	
@@ -188,94 +74,36 @@ public class Q2DataInstaller extends javax.swing.JDialog {
     	}
     }
 
-    private void changeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_changeButtonActionPerformed
-    	JFileChooser chooser = new JFileChooser();
-    	chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    	chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-    	chooser.setMultiSelectionEnabled(false);
-    	chooser.setDialogTitle("choose a valid baseq2 directory");
-    	chooser.showDialog(this, "OK");
-    	
-    	dir = null;
-    	try {
-			dir = chooser.getSelectedFile().getCanonicalPath();
-		} catch (Exception e) {}
-		if (dir != null) jTextField1.setText(dir);
-		else dir = jTextField1.getText();
-        
-    }//GEN-LAST:event_changeButtonActionPerformed
-
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
     	System.exit(1);
     	dispose();
     }//GEN-LAST:event_formWindowClosing
         
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton changeButton;
-    private javax.swing.JButton exitButton;
-    private javax.swing.JButton cancelButton;
-    private Jake2Canvas canvas;
-    private javax.swing.JPanel choosePanel;
-    private JPanel statusPanel;
+
     private ProgressPanel progressPanel;
-    private InstallPanel installPanel;
     private NotFoundPanel notFoundPanel;
-    private JLabel status;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JButton okButton;
-    // End of variables declaration//GEN-END:variables
-    
-	private String dir;
-	
+    	
 	void showChooseDialog() {
-		getContentPane().remove(statusPanel);
 		getContentPane().remove(progressPanel);
-		getContentPane().remove(installPanel);
 		getContentPane().remove(notFoundPanel);
-		getContentPane().add(choosePanel, BorderLayout.SOUTH);
 		validate();
 		repaint();
 	}
-	
-	void showStatus() {
-		getContentPane().remove(choosePanel);
-		getContentPane().remove(installPanel);
-		getContentPane().add(statusPanel, BorderLayout.SOUTH);
-		validate();
-		repaint();		
-	}
-	
+		
 	void showProgressPanel() {
-		getContentPane().remove(choosePanel);
-		getContentPane().remove(installPanel);
 		getContentPane().remove(notFoundPanel);
 		getContentPane().add(progressPanel, BorderLayout.SOUTH);
 		validate();
 		repaint();
 	}
 	
-	void showInstallPanel() {
-		getContentPane().remove(choosePanel);
-		getContentPane().remove(statusPanel);
-		getContentPane().remove(notFoundPanel);
-		getContentPane().add(installPanel, BorderLayout.SOUTH);
-		validate();
-		repaint();
-	}
-	
 	void showNotFoundPanel() {
-		getContentPane().remove(choosePanel);
-		getContentPane().remove(installPanel);
-		getContentPane().remove(statusPanel);
+		getContentPane().remove(progressPanel);
 		getContentPane().add(notFoundPanel, BorderLayout.SOUTH);
 		validate();
 		repaint();
 	}	
-	
-	void setStatus(String text) {
-		status.setText(text);
-	}
-	
+		
 	void installQ2Data() {
 		showNotFoundPanel();
 		synchronized(this) {
@@ -311,7 +139,8 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 	static class NotFoundPanel extends JPanel {
 		
 		private Q2DataInstaller parent;
-		private JCheckBox install;
+		private JTextField jTextField1;
+		private JButton changeButton;
 		private JButton exit;
 		private JButton ok;
 		private JLabel message;
@@ -329,51 +158,49 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 			setMaximumSize(d);
 			setPreferredSize(d);
 			
-			message = new JLabel(" ");
-			message.setForeground(Color.RED);
+			message = new JLabel("install Quake2 demo data");
+			message.setForeground(Color.BLACK);
 			constraints.gridx = 0;
 			constraints.gridy = 0;
 			constraints.gridwidth = 2;
 			constraints.insets = new Insets(5, 5, 2, 5);
 			constraints.anchor = GridBagConstraints.CENTER;
 			add(message, constraints);
-						
-			constraints.gridx = 1;
-			constraints.gridy = 1;
-			constraints.gridwidth = 2;
-			constraints.weightx = 1;
-			constraints.fill = GridBagConstraints.HORIZONTAL;			
-			constraints.insets = new Insets(0, 2, 0, 5);
-			constraints.anchor = GridBagConstraints.WEST;
-
-			
-			constraints.gridx = 1;
-			constraints.gridy = 2;
-			JLabel label = new JLabel("install Quake2 demo data");
-			label.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent e) {
-					install.setSelected(!install.isSelected());
-				}
-			});
-			add(label, constraints);
-			
-
-			install = new JCheckBox();
-			install.setSelected(true);
 
 			constraints.gridx = 0;
 			constraints.gridy = 1;
 			constraints.gridwidth = 1;
+			constraints.insets = new java.awt.Insets(5, 5, 5, 5);
 			constraints.weightx = 0;
-			constraints.insets = new Insets(0, 5, 0, 2);
-			constraints.fill = GridBagConstraints.NONE;
-			constraints.anchor = GridBagConstraints.EAST;
+			constraints.anchor = GridBagConstraints.SOUTHWEST;
+			add(new JLabel("Quake2 demo"),constraints);
+	        
+			jTextField1 = new JTextField();
+			jTextField1.setText("../Quake2Demo/q2-314-demo-x86.exe");
+	        constraints.gridx = 1;
+	        constraints.gridy = 1;
+	        constraints.gridwidth = 2;
+	        constraints.fill = java.awt.GridBagConstraints.BOTH;
+	        constraints.insets = new java.awt.Insets(5, 2, 5, 2);
+	        constraints.weightx = 1;
+	        add(jTextField1, constraints);
 
-			
-			constraints.gridx = 0;
-			constraints.gridy = 2;
-			add(install, constraints);
-			
+	        changeButton = new JButton();
+	        changeButton.setText("...");
+	        changeButton.addActionListener(new java.awt.event.ActionListener() {
+	            public void actionPerformed(java.awt.event.ActionEvent evt) {
+	                changeButtonActionPerformed();
+	            }
+	        });
+	        constraints.gridx = 3;
+	        constraints.gridy = 1;
+	        constraints.gridwidth = 1;
+			constraints.weightx = 0;
+			constraints.fill = java.awt.GridBagConstraints.NONE;
+	        constraints.insets = new java.awt.Insets(5, 2, 5, 5);
+	        constraints.anchor = java.awt.GridBagConstraints.EAST;
+	        add(changeButton, constraints);
+						
 			constraints.gridx = 0;
 			constraints.gridy = 3;
 			constraints.gridwidth = 2;
@@ -390,7 +217,7 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 			
 			constraints.gridx = 2;
 			constraints.gridy = 3;
-			constraints.gridwidth = 1;
+			constraints.gridwidth = 2;
 			constraints.anchor = GridBagConstraints.SOUTHEAST;	
 			ok = new JButton("OK");
 			ok.addActionListener(new ActionListener() {
@@ -401,180 +228,38 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 		}
 		
 		private void ok() {
-			if (!install.isSelected()) System.exit(0);
 			parent.progressPanel.destDir = parent.destdir;
-			parent.progressPanel.mirror = "q2-314-demo-x86.exe";
-			parent.showProgressPanel();
-			new Thread(parent.progressPanel).start();
-		}
-	}
-	
-	static class InstallPanel extends JPanel {
-		
-		private Vector mirrorNames = new Vector();
-		private Vector mirrorLinks = new Vector();		
-		private Q2DataInstaller parent;
-		private JComboBox mirrorBox;
-		private JTextField destDir;
-		private JButton cancel;
-		private JButton exit;
-		private JButton install;
-		private JButton choose;
-		
-		public InstallPanel(Q2DataInstaller d) {
-			initComponents();
-			String dir = Q2DataInstaller.home + Q2DataInstaller.sep + "jake2";
-			destDir.setText(dir);
-			initMirrors();
-			parent = d;
-		}
-		
-		private void initComponents() {
-			GridBagConstraints constraints = new GridBagConstraints();
-			setLayout(new GridBagLayout());
-			Dimension d = new Dimension(400, 100);
-			setMinimumSize(d);
-			setMaximumSize(d);
-			setPreferredSize(d);
-			
-			constraints.gridx = 0;
-			constraints.gridy = 0;
-			constraints.insets = new Insets(5, 5, 0, 5);
-			constraints.anchor = GridBagConstraints.SOUTHWEST;
-			add(new JLabel("download mirror"), constraints);
-			
-			constraints.gridx = 0;
-			constraints.gridy = 1;
-			constraints.insets = new Insets(5, 5, 5, 5);
-			add(new JLabel("destination directory"), constraints);
-			
-			constraints.gridx = 1;
-			constraints.gridy = 0;
-			constraints.weightx = 1;
-			constraints.gridwidth = 3;
-			constraints.insets = new Insets(5, 5, 0, 5);
-			constraints.fill = GridBagConstraints.HORIZONTAL;
-			mirrorBox = new JComboBox();
-			add(mirrorBox, constraints);
-			
-			constraints.gridx = 1;
-			constraints.gridy = 1;
-			constraints.gridwidth = 2;
-			constraints.fill = GridBagConstraints.BOTH;
-			constraints.insets = new Insets(5, 5, 5, 5);
-			destDir = new JTextField();
-			add(destDir, constraints);
-			
-			constraints.gridx = 3;
-			constraints.gridy = 1;
-			constraints.weightx = 0;
-			constraints.gridwidth = 1;
-			constraints.fill = GridBagConstraints.NONE;
-			choose = new JButton("...");
-			choose.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					choose();
-				}});
-			add(choose, constraints);
-			
-			constraints.gridx = 0;
-			constraints.gridy = 2;
-			constraints.gridwidth = 1;
-			constraints.weighty = 1;
-			constraints.fill = GridBagConstraints.NONE;
-			exit = new JButton("Exit");
-			exit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				exit();
-			}});
-			add(exit, constraints);
-			
-			constraints.gridx = 0;
-			constraints.gridy = 2;
-			constraints.gridwidth = 4;
-			constraints.anchor = GridBagConstraints.SOUTH;
-			cancel = new JButton("Cancel");
-			cancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cancel();
-			}});
-			add(cancel, constraints);						
-
-			constraints.gridx = 2;
-			constraints.gridy = 2;
-			constraints.gridwidth = 2;
-			constraints.anchor = GridBagConstraints.SOUTHEAST;
-			install = new JButton("Install");
-			install.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				install();
-			}});
-			add(install, constraints);			
-		}
-		
-		private void readMirrors() {
-			InputStream in = getClass().getResourceAsStream("/mirrors");
-			BufferedReader r = new BufferedReader(new InputStreamReader(in));
-			try {
-				int i = 0;
-				while (true) {
-					String name = r.readLine();
-					String value = r.readLine();
-					if (name == null || value == null) break;
-					mirrorNames.add(name);
-					mirrorLinks.add(value);
-				}
-			} catch (Exception e) {} 
-			finally {
-				try {
-					r.close();
-				} catch (Exception e1) {}
-				try {
-					in.close();
-				} catch (Exception e1) {}
+			parent.progressPanel.mirror = jTextField1.getText();
+			File f = new File(jTextField1.getText());
+			if (f.canRead()) {
+				parent.showProgressPanel();
+				new Thread(parent.progressPanel).start();
+			} else {
+			    message.setText("could not read " + jTextField1.getText());
 			}
 		}
 		
-		private void initMirrors() {
-			readMirrors();
-			for (int i = 0; i < mirrorNames.size(); i++) {
-				mirrorBox.addItem(mirrorNames.get(i));
-			}
-			int i = Globals.rnd.nextInt(mirrorNames.size());
-			mirrorBox.setSelectedIndex(i);
-		}
-		
-		private void cancel() {
-			parent.showNotFoundPanel();
-		}
-		
-		private void install() {
-			parent.progressPanel.destDir = destDir.getText();
-			parent.progressPanel.mirror = (String)mirrorLinks.get(mirrorBox.getSelectedIndex());
-			parent.showProgressPanel();
-			new Thread(parent.progressPanel).start();
-		}
-		
-		private void exit() {
-			System.exit(0);
-		}
-		
-		private void choose() {
-			JFileChooser chooser = new JFileChooser();
-			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-			chooser.setMultiSelectionEnabled(false);
-			chooser.setDialogTitle("choose destination directory");
-			chooser.showDialog(this, "OK");
-    	
-			String dir = null;
-			try {
-				dir = chooser.getSelectedFile().getCanonicalPath();
-			} catch (Exception e) {}
-			if (dir != null) destDir.setText(dir);			
+		private void changeButtonActionPerformed() {
+	    	JFileChooser chooser = new JFileChooser();
+	    	chooser.setCurrentDirectory(new File("."));
+	    	chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	    	chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
+	    	chooser.setMultiSelectionEnabled(false);
+	    	chooser.setDialogTitle("select Quake2 demo file");
+	    	int ret = chooser.showDialog(this, "OK");
+	    	
+	    	if (ret == JFileChooser.APPROVE_OPTION) {
+                String dir = null;
+                try {
+                    dir = chooser.getSelectedFile().getCanonicalPath();
+                } catch (Exception e) {
+                }
+                if (dir != null)
+                    jTextField1.setText(dir);
+            }
 		}
 	}
-	
+		
 	static class ProgressPanel extends JPanel implements Runnable {
 		
 		static byte[] buf = new byte[8192];
@@ -649,23 +334,23 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 			catch (Exception e) {}
 			try {
 				if (!dir.isDirectory() || !dir.canWrite()) {
-					endInstall("can't write to " + destDir);
+					endInstall(false, "can't write to " + destDir);
 					return;
 				} 
 			}
 			catch (Exception e) {
-				endInstall(e.getMessage());
+				endInstall(false, e.getMessage());
 				return;
 			}
 						
 			try {
 				installData(mirror);
 			} catch (Exception e) {
-				endInstall(e.getMessage());
+				endInstall(false, e.getMessage());
 				return;
 			}
 			
-			endInstall("installation successful");
+			endInstall(true, "installation successful");
 		}
 		
 		
@@ -703,11 +388,14 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 			}
 		}
 		
-		void endInstall(String message) {
-			parent.notFoundPanel.message.setText(message);
-			parent.dir = destDir + "/baseq2";
-			parent.showChooseDialog();
-			parent.okButtonActionPerformed(null);		
+		void endInstall(boolean exit, String text) {
+		    parent.notFoundPanel.message.setText(text);
+		    parent.showNotFoundPanel();
+			
+			if (exit) {
+			    parent.okButtonActionPerformed(null);
+			    System.exit(0);
+			}
 		}
 		
 		void copyStream(InputStream in, OutputStream out) throws Exception {
@@ -743,6 +431,5 @@ public class Q2DataInstaller extends javax.swing.JDialog {
 		installer.setVisible(true);
 		installer.installQ2Data();
 		
-		System.exit(0);
 	}
 }
