@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.32 2004-01-27 20:10:29 rst Exp $
+ * $Id: Globals.java,v 1.33 2004-01-28 10:03:06 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.32  2004-01-27 20:10:29  rst
+ * Revision 1.33  2004-01-28 10:03:06  hoz
+ * - client code
+ *
+ * Revision 1.32  2004/01/27 20:10:29  rst
  * now has a quake menu
  *
  * Revision 1.31  2004/01/18 12:36:02  hoz
@@ -394,4 +397,7 @@ public class Globals extends Defines {
 			key_lines[i] = new byte[Defines.MAXCMDLINE];
 	};
 	public static int edit_line;
+
+	public static cvar_t crosshair;
+	public static vrect_t scr_vrect;
 }

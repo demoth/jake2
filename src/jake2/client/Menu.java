@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.4 2004-01-27 20:10:29 rst Exp $
+ * $Id: Menu.java,v 1.5 2004-01-28 10:03:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1285,8 +1285,8 @@ public final class Menu extends Key {
 		Cvar.SetValue("freelook", ClampCvar(0, 1, freelook.value));
 		s_options_freelook_box.curvalue = (int) freelook.value;
 
-		Cvar.SetValue("crosshair", ClampCvar(0, 3, Cl_View.crosshair.value));
-		s_options_crosshair_box.curvalue = (int) Cl_View.crosshair.value;
+		Cvar.SetValue("crosshair", ClampCvar(0, 3, Globals.crosshair.value));
+		s_options_crosshair_box.curvalue = (int) Globals.crosshair.value;
 
 		Cvar.SetValue("in_joystick", ClampCvar(0, 1, in_joystick.value));
 		s_options_joystick_box.curvalue = (int) in_joystick.value;

@@ -2,7 +2,7 @@
  * vrect_t.java
  * Copyright (C) 2003
  *
- * $Id: vrect_t.java,v 1.1 2004-01-11 13:23:20 cwei Exp $
+ * $Id: vrect_t.java,v 1.2 2004-01-28 10:03:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,4 +35,5 @@ public class vrect_t {
 	public int y;
 	public int width;
 	public int height;
+	vrect_t pnext;
 }

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.1 2004-01-26 14:29:02 hoz Exp $
+ * $Id: CL_parse.java,v 1.2 2004-01-28 10:03:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,7 +30,7 @@ import jake2.qcommon.xcommand_t;
 /**
  * CL_parse
  */
-public class CL_parse extends CL_input {
+public class CL_parse extends CL_view {
 
 ////	   cl_parse.c  -- parse a message received from the server
 //

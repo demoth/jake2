@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.12 2004-01-28 09:03:24 hoz Exp $
+ * $Id: SCR.java,v 1.13 2004-01-28 10:03:06 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,18 +27,73 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
+import java.awt.Dimension;
+
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
+import jake2.util.Vargs;
 
 /**
  * SCR
  */
-public final class SCR {
+public final class SCR extends Globals {
 	
 	static dirty_t scr_dirty = new dirty_t();
+	static String crosshair_pic;
+	static int crosshair_height;
+	static int crosshair_width;
+	static String[][] sb_nums = 
+		{
+			{"num_0", "num_1", "num_2", "num_3", "num_4", "num_5",
+			"num_6", "num_7", "num_8", "num_9", "num_minus"},
+			{"anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5",
+			"anum_6", "anum_7", "anum_8", "anum_9", "anum_minus"}
+		};
 	
 	public static void Init() {
+	}
+	
+	static void TouchPics() {
+		int i, j;
+ 
+		for (i=0 ; i<2 ; i++)
+			for (j=0 ; j<11 ; j++)
+				re.RegisterPic(sb_nums[i][j]);
+ 
+		if (crosshair.value != 0.0f) {
+			if (crosshair.value > 3.0f || crosshair.value < 0.0f)
+				crosshair.value = 3.0f;
+ 
+		crosshair_pic = Com.sprintf ("ch%i", new Vargs(1).add((int)(crosshair.value)));
+		Dimension dim = new Dimension();
+		re.DrawGetPicSize(dim, crosshair_pic);
+		crosshair_width = dim.width;
+		crosshair_height = dim.height;
+		if (crosshair_width == 0)
+			crosshair_pic = "";
+		}
+	}
+	
+	/*
+	=================
+	SCR_DrawCrosshair
+	=================
+	*/
+	static void DrawCrosshair() {
+		if (crosshair.value == 0.0f)
+			return;
+
+		if (crosshair.modified) {
+			crosshair.modified = false;
+			SCR.TouchPics();
+		}
+
+		if (crosshair_pic.length() == 0)
+			return;
+
+		re.DrawPic(scr_vrect.x + ((scr_vrect.width - crosshair_width)>>1),
+			scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1), crosshair_pic);
 	}
 	
 	// wird anstelle von der richtigen UpdateScreen benoetigt
