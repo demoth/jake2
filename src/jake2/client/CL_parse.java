@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.18 2004-10-29 16:35:00 cawe Exp $
+ * $Id: CL_parse.java,v 1.19 2005-01-17 21:49:40 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,6 +34,7 @@ import jake2.render.model_t;
 import jake2.sound.S;
 import jake2.sys.Sys;
 import jake2.util.Lib;
+import jake2.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -506,7 +507,7 @@ public class CL_parse {
 
         ci = Globals.cl.clientinfo[player];
 
-        LoadClientinfo(ci, new String(s));
+        LoadClientinfo(ci, s);
     }
 
     /*
@@ -525,7 +526,7 @@ public class CL_parse {
         s = MSG.ReadString(Globals.net_message);
 
         olds = Globals.cl.configstrings[i];
-        Globals.cl.configstrings[i] = new String(s);
+        Globals.cl.configstrings[i] = s;
 
         // do something apropriate
 
@@ -568,11 +569,11 @@ public class CL_parse {
      * =====================================================================
      */
 
+    private static final float[] pos_v = { 0, 0, 0 };
     /*
      * ================== CL_ParseStartSoundPacket ==================
      */
     public static void ParseStartSoundPacket() {
-        float[] pos_v = { 0, 0, 0 };
         float pos[];
         int channel, ent;
         int sound_num;
@@ -614,7 +615,7 @@ public class CL_parse {
 
         if ((flags & Defines.SND_POS) != 0) { // positioned in space
             MSG.ReadPos(Globals.net_message, pos_v);
-
+            // is ok. sound driver copies
             pos = pos_v;
         } else
             // use entity number
