@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.7 2004-01-08 22:38:16 rst Exp $
+// $Id: Lib.java,v 1.8 2004-01-13 01:48:16 cwei Exp $
 
 package jake2.util;
 
@@ -81,6 +81,13 @@ public class Lib {
 	public static float random() {
 		return (float) Math.random();
 	}
+	public static float crand() {
+		return (float) (Math.random() - 0.5) * 2.0f;
+	}
+	public static float frand() {
+		return (float) Math.random();
+	}
+	
 	//TODO: delete this and clean up quake.
 	public static int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
