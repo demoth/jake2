@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.3 2003-12-27 21:33:50 rst Exp $
+ * $Id: Draw.java,v 1.4 2003-12-27 21:52:41 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.Enum;
 import jake2.Globals;
 import jake2.render.image_t;
 
@@ -76,17 +77,19 @@ public class Draw extends Image {
 	 * @return
 	 */
 	protected image_t Draw_FindPic(String name) {
-		image_t gl = null;
+		image_t image = null;
 		String fullname;
 
 		if (!name.startsWith("/") && !name.startsWith("\\"))
 		{
 			fullname = "pics/" + name + ".pcx";
-			// gl = GL_FindImage(fullname, it.pic);
+			// TODO cwei
+			// image = GL_FindImage(fullname, Enum.it_pic);
 		} else {
-			//gl = GL_FindImage(name.substring(1), it.pic);
+			// TODO cwei
+			// image = GL_FindImage(name.substring(1), Enum.it_pic);
 		}
-		return gl;
+		return image;
 	}
 	
 	/**
