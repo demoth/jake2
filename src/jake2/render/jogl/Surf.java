@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.14 2004-01-28 15:29:13 cwei Exp $
+ * $Id: Surf.java,v 1.15 2004-02-11 05:20:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -440,14 +440,14 @@ public abstract class Surf extends Draw {
 			/*
 			** draw remainder of dynamic lightmaps that haven't been uploaded yet
 			*/
-			if ( newdrawsurf != null )
-				LM_UploadBlock( true );
-
-			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
-			{
-				if ( surf.polys != null )
-					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
-			}
+//			if ( newdrawsurf != null )
+//				LM_UploadBlock( true );
+//
+//			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
+//			{
+//				if ( surf.polys != null )
+//					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
+//			}
 		}
 
 		/*
