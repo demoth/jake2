@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.3 2004-07-08 20:56:50 hzi Exp $
+ * $Id: CL_tent.java,v 1.4 2004-07-09 10:19:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1358,8 +1358,6 @@ public class CL_tent extends Globals {
 	=================
 	*/
 	static void AddPlayerBeams() {
-		int i, j;
-		beam_t[] b;
 		float[] dist = new float[3];
 		float[] org = new float[3];
 		float d;
@@ -1388,11 +1386,12 @@ public class CL_tent extends Globals {
 		//	  PMM
 
 		//	   update beams
-		b = cl_playerbeams;
-		for (i = 0; i < MAX_BEAMS; i++) {
-			float[] f = new float[3];
-			float[] u = new float[3];
-			float[] r = new float[3];
+		beam_t[] b = cl_playerbeams;
+		float[] f = new float[3];
+		float[] u = new float[3];
+		float[] r = new float[3];		
+		for (int i = 0; i < MAX_BEAMS; i++) {
+
 			if (b[i].model == null || b[i].endtime < cl.time)
 				continue;
 
@@ -1404,7 +1403,7 @@ public class CL_tent extends Globals {
 					// set up gun position
 					// code straight out of CL_AddViewWeapon
 					ps = cl.frame.playerstate;
-					j = (cl.frame.serverframe - 1) & UPDATE_MASK;
+					int j = (cl.frame.serverframe - 1) & UPDATE_MASK;
 					oldframe = cl.frames[j];
 					
 					if (oldframe.serverframe != cl.frame.serverframe - 1 || !oldframe.valid)
@@ -1513,7 +1512,9 @@ public class CL_tent extends Globals {
 			d = VectorNormalize(dist);
 
 			//memset (&ent, 0, sizeof(ent));
-			ent = new entity_t();
+			//ent = new entity_t(); 
+			// this is not required. hoz
+			
 			if (b[i].model == cl_mod_heatbeam) {
 				model_length = 32.0f;
 			} else if (b[i].model == cl_mod_lightning) {
@@ -1569,7 +1570,7 @@ public class CL_tent extends Globals {
 				//				Com_Printf("B: %d . %d\n", b[i].entity, b[i].dest_entity);
 				V.AddEntity(ent);
 
-				for (j = 0; j < 3; j++)
+				for (int j = 0; j < 3; j++)
 					org[j] += dist[j] * len;
 				d -= model_length;
 			}

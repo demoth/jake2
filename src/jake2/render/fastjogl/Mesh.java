@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Mesh.java,v 1.2 2004-07-09 10:25:29 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,18 +25,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-import net.java.games.gluegen.runtime.BufferFactory;
-import net.java.games.jogl.GL;
-import net.java.games.jogl.util.BufferUtils;
 import jake2.Defines;
-import jake2.Globals;
 import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
 import jake2.render.image_t;
 import jake2.util.Math3D;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import net.java.games.jogl.GL;
+import net.java.games.jogl.util.BufferUtils;
 
 /**
  * Mesh
@@ -340,22 +339,13 @@ public abstract class Mesh extends Light {
 	/*
 	** R_CullAliasModel
 	*/
-	boolean R_CullAliasModel( float[][] bbox, entity_t e )
+//	TODO sync with jogl renderer. hoz
+	boolean R_CullAliasModel(entity_t e)
 	{
-		int i;
 		float[] mins = {0, 0, 0};
 		float[] maxs = {0, 0, 0};
 		
-		qfiles.dmdl_t paliashdr;
-
-		float[] thismins = {0, 0, 0};
-		float[] oldmins = {0, 0, 0};
-		float[] thismaxs = {0, 0, 0};
-		float[] oldmaxs = {0, 0, 0};
-		qfiles.daliasframe_t pframe, poldframe;
-		float[] angles = {0, 0, 0};
-
-		paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
+		qfiles.dmdl_t paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
 
 		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
 		{
@@ -368,15 +358,15 @@ public abstract class Mesh extends Light {
 			e.oldframe = 0;
 		}
 
-		pframe = paliashdr.aliasFrames[e.frame];
-		poldframe = paliashdr.aliasFrames[e.oldframe];
+		qfiles.daliasframe_t pframe = paliashdr.aliasFrames[e.frame];
+		qfiles.daliasframe_t poldframe = paliashdr.aliasFrames[e.oldframe];
 
 		/*
 		** compute axially aligned mins and maxs
 		*/
 		if ( pframe == poldframe )
 		{
-			for ( i = 0; i < 3; i++ )
+			for ( int i = 0; i < 3; i++ )
 			{
 				mins[i] = pframe.translate[i];
 				maxs[i] = mins[i] + pframe.scale[i]*255;
@@ -384,18 +374,22 @@ public abstract class Mesh extends Light {
 		}
 		else
 		{
-			for ( i = 0; i < 3; i++ )
+			//float[] thismins = {0, 0, 0};
+			//float[] oldmins = {0, 0, 0};
+			float[] thismaxs = {0, 0, 0};
+			float[] oldmaxs = {0, 0, 0};
+			for ( int i = 0; i < 3; i++ )
 			{
-				thismins[i] = pframe.translate[i];
-				thismaxs[i] = thismins[i] + pframe.scale[i]*255;
+				//thismins[i] = pframe.translate[i];
+				thismaxs[i] = pframe.translate[i] + pframe.scale[i]*255;
 
-				oldmins[i]  = poldframe.translate[i];
-				oldmaxs[i]  = oldmins[i] + poldframe.scale[i]*255;
+				//oldmins[i]  = poldframe.translate[i];
+				oldmaxs[i]  = poldframe.translate[i] + poldframe.scale[i]*255;
 
-				if ( thismins[i] < oldmins[i] )
-					mins[i] = thismins[i];
+				if ( pframe.translate[i] < poldframe.translate[i] )
+					mins[i] = pframe.translate[i];
 				else
-					mins[i] = oldmins[i];
+					mins[i] = poldframe.translate[i];
 
 				if ( thismaxs[i] > oldmaxs[i] )
 					maxs[i] = thismaxs[i];
@@ -407,9 +401,9 @@ public abstract class Mesh extends Light {
 		/*
 		** compute a full bounding box
 		*/
-		for ( i = 0; i < 8; i++ )
+		float[] tmp = {0, 0, 0};
+		for ( int i = 0; i < 8; i++ )
 		{
-			float[] tmp = {0, 0, 0};
 
 			if ( (i & 1) != 0 )
 				tmp[0] = mins[0];
@@ -432,13 +426,12 @@ public abstract class Mesh extends Light {
 		/*
 		** rotate the bounding box
 		*/
-		Math3D.VectorCopy( e.angles, angles );
-		angles[YAW] = -angles[YAW];
-		Math3D.AngleVectors( angles, vectors[0], vectors[1], vectors[2] );
+		//float[] angles = {0, 0, 0};		
+		Math3D.VectorCopy( e.angles, tmp );
+		tmp[YAW] = -tmp[YAW];
+		Math3D.AngleVectors( tmp, vectors[0], vectors[1], vectors[2] );
 
-		float[] tmp = {0, 0, 0};
-
-		for ( i = 0; i < 8; i++ )
+		for ( int i = 0; i < 8; i++ )
 		{
 			Math3D.VectorCopy( bbox[i], tmp );
 
@@ -449,34 +442,32 @@ public abstract class Mesh extends Light {
 			Math3D.VectorAdd( e.origin, bbox[i], bbox[i] );
 		}
 
+		int f, mask;
+		int aggregatemask = ~0; // 0xFFFFFFFF
+		
+		for ( int p = 0; p < 8; p++ )
 		{
-			int p, f;
-			int aggregatemask = ~0; // 0xFFFFFFFF
-			
-			for ( p = 0; p < 8; p++ )
-			{
-				int mask = 0;
+			mask = 0;
 
-				for ( f = 0; f < 4; f++ )
+			for ( f = 0; f < 4; f++ )
+			{
+				float dp = Math3D.DotProduct( frustum[f].normal, bbox[p] );
+
+				if ( ( dp - frustum[f].dist ) < 0 )
 				{
-					float dp = Math3D.DotProduct( frustum[f].normal, bbox[p] );
-
-					if ( ( dp - frustum[f].dist ) < 0 )
-					{
-						mask |= ( 1 << f );
-					}
+					mask |= ( 1 << f );
 				}
-
-				aggregatemask &= mask;
 			}
 
-			if ( aggregatemask != 0 )
-			{
-				return true;
-			}
-
-			return false;
+			aggregatemask &= mask;
 		}
+
+		if ( aggregatemask != 0 )
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 
@@ -492,17 +483,18 @@ public abstract class Mesh extends Light {
 
 	=================
 	*/
+//	TODO sync with jogl renderer. hoz
 	void R_DrawAliasModel(entity_t e)
 	{
 		int i;
-		qfiles.dmdl_t paliashdr;
-		float		an;
+		//qfiles.dmdl_t paliashdr;
+		//float		an;
 
 		image_t		skin;
 
 		if ( ( e.flags & Defines.RF_WEAPONMODEL ) == 0)
 		{
-			if ( R_CullAliasModel( bbox, e ) )
+			if ( R_CullAliasModel(e) )
 				return;
 		}
 
@@ -512,7 +504,7 @@ public abstract class Mesh extends Light {
 				return;
 		}
 
-		paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
+		qfiles.dmdl_t paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
 
 		//
 		// get lighting information
@@ -629,7 +621,7 @@ public abstract class Mesh extends Light {
 
 		shadedots = r_avertexnormal_dots[((int)(currententity.angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 	
-		an = (float)(currententity.angles[1]/180*Math.PI);
+		float an = (float)(currententity.angles[1]/180*Math.PI);
 		shadevector[0] = (float)Math.cos(-an);
 		shadevector[1] = (float)Math.sin(-an);
 		shadevector[2] = 1;

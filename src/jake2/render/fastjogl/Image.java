@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Image.java,v 1.2 2004-07-09 10:22:28 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -743,19 +743,25 @@ public abstract class Image extends Main {
 	//		}
 	//		else if (pos[off] != 255) fdc = pos[off];
 	//	}
-
+	static floodfill_t[] fifo = new floodfill_t[FLOODFILL_FIFO_SIZE];
+	static {
+		for (int j = 0; j < fifo.length; j++) {
+			fifo[j] = new floodfill_t();
+		}		
+	}
 	// TODO check this: R_FloodFillSkin( byte[] skin, int skinwidth, int skinheight)
+	// TODO sync with jogl renderer. hoz
 	void R_FloodFillSkin(byte[] skin, int skinwidth, int skinheight) {
 		//		byte				fillcolor = *skin; // assume this is the pixel to fill
 		int fillcolor = skin[0] & 0xff;
-		floodfill_t[] fifo = new floodfill_t[FLOODFILL_FIFO_SIZE];
+//		floodfill_t[] fifo = new floodfill_t[FLOODFILL_FIFO_SIZE];
 		int inpt = 0, outpt = 0;
 		int filledcolor = -1;
 		int i;
 
-		for (int j = 0; j < fifo.length; j++) {
-			fifo[j] = new floodfill_t();
-		}
+//		for (int j = 0; j < fifo.length; j++) {
+//			fifo[j] = new floodfill_t();
+//		}
 
 		if (filledcolor == -1) {
 			filledcolor = 0;

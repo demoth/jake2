@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.1 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Light.java,v 1.2 2004-07-09 10:24:32 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.render.fastjogl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.dlight_t;
-import jake2.client.lightstyle_t;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
 import jake2.qcommon.longjmpException;
@@ -223,14 +222,15 @@ public abstract class Light extends Warp {
 	float[] pointcolor = {0, 0, 0}; // vec3_t
 	cplane_t lightplane; // used as shadow plane
 	float[] lightspot = {0, 0, 0}; // vec3_t
-
+	float[] mid = {0, 0, 0};
+	
+//	TODO sync with jogl renderer. hoz
 	int RecursiveLightPoint (mnode_t node, float[] start, float[] end)
 	{
 		float front, back, frac;
 		boolean side;
 		int sideIndex;
-		cplane_t plane;
-		float[] mid = {0, 0, 0};
+		cplane_t plane;	
 		msurface_t surf;
 		int s, t, ds, dt;
 		int i;
@@ -272,6 +272,7 @@ public abstract class Light extends Warp {
 		lightplane = plane;
 
 		int surfIndex = node.firstsurface;
+		float[] scale = {0, 0, 0};
 		for (i=0 ; i<node.numsurfaces ; i++, surfIndex++)
 		{
 			surf = r_worldmodel.surfaces[surfIndex];
@@ -305,7 +306,7 @@ public abstract class Light extends Warp {
 			Math3D.VectorCopy (Globals.vec3_origin, pointcolor);
 			if (lightmap != null)
 			{
-				float[] scale = {0, 0, 0};
+				//float[] scale = {0, 0, 0};
 				float[] rgb;
 				lightmapIndex += 3 * (dt * ((surf.extents[0] >> 4) + 1) + ds);
 
@@ -398,26 +399,23 @@ public abstract class Light extends Warp {
 	R_AddDynamicLights
 	===============
 	*/
+	// TODO sync with jogl renderer. hoz
 	void R_AddDynamicLights(msurface_t surf)
 	{
-		int lnum;
 		int sd, td;
 		float fdist, frad, fminlight;
 		float[] impact = {0, 0, 0};
 		float[] local = {0, 0, 0};
 		int s, t;
-		int i;
-		int smax, tmax;
-		mtexinfo_t tex;
 		dlight_t dl;
 		float[] pfBL;
 		float fsacc, ftacc;
 
-		smax = (surf.extents[0]>>4)+1;
-		tmax = (surf.extents[1]>>4)+1;
-		tex = surf.texinfo;
+		int smax = (surf.extents[0]>>4)+1;
+		int tmax = (surf.extents[1]>>4)+1;
+		mtexinfo_t tex = surf.texinfo;
 
-		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
+		for (int lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
 		{
 			if ( (surf.dlightbits & (1<<lnum)) == 0 )
 				continue;		// not lit by this light
@@ -434,7 +432,7 @@ public abstract class Light extends Warp {
 				continue;
 			fminlight = frad - fminlight;
 
-			for (i=0 ; i<3 ; i++)
+			for (int i=0 ; i<3 ; i++)
 			{
 				impact[i] = dl.origin[i] -
 						surf.plane.normal[i]*fdist;
@@ -451,7 +449,7 @@ public abstract class Light extends Warp {
 				if ( td < 0 )
 					td = -td;
 
-				for ( s=0, fsacc = 0 ; s<smax ; s++, fsacc += 16, pfBLindex += 3)
+				for (s=0, fsacc = 0 ; s<smax ; s++, fsacc += 16, pfBLindex += 3)
 				{
 					sd = (int)( local[0] - fsacc );
 
@@ -480,10 +478,7 @@ public abstract class Light extends Warp {
 	*/
 	void R_SetCacheState( msurface_t surf )
 	{
-		int maps;
-
-		for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
-			 maps++)
+		for (int maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ; maps++)
 		{
 			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].white;
 		}
@@ -496,24 +491,23 @@ public abstract class Light extends Warp {
 	Combine and scale multiple lightmaps into the floating format in blocklights
 	===============
 	*/
+//	TODO sync with jogl renderer. hoz
 	void R_BuildLightMap(msurface_t surf, IntBuffer dest, int stride)
 	{
-		int smax, tmax;
 		int r, g, b, a, max;
-		int i, j, size;
+		int i, j;
 		ByteBuffer lightmap;
-		float[] scale = {0, 0, 0, 0};
+		float[] scale = {0, 0, 0};
 		int nummaps;
 		float[] bl;
-		lightstyle_t	style;
-		int monolightmap;
+		//lightstyle_t	style;
 		
 		if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) != 0 )
 			ri.Sys_Error(Defines.ERR_DROP, "R_BuildLightMap called for non-lit surface");
 
-		smax = (surf.extents[0] >> 4) + 1;
-		tmax = (surf.extents[1] >> 4) + 1;
-		size = smax * tmax;
+		int smax = (surf.extents[0] >> 4) + 1;
+		int tmax = (surf.extents[1] >> 4) + 1;
+		int size = smax * tmax;
 		if (size > ((s_blocklights.length * Defines.SIZE_OF_FLOAT) >> 4) )
 			ri.Sys_Error(Defines.ERR_DROP, "Bad s_blocklights size");
 
@@ -525,11 +519,13 @@ public abstract class Light extends Warp {
 	
 				for (i=0 ; i<size*3 ; i++)
 					s_blocklights[i] = 255;
-	
-				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
-				{
-					style = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF];
-				}
+
+// TODO useless? hoz	
+//				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
+//				{
+//					style = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF];
+//				}
+
 				// goto store;
 				throw new longjmpException();
 			}
@@ -632,7 +628,7 @@ public abstract class Light extends Warp {
 		bl = s_blocklights;
 		int blp = 0;
 
-		monolightmap = gl_monolightmap.string.charAt(0);
+		int monolightmap = gl_monolightmap.string.charAt(0);
 
 		int destp = 0;
 
@@ -687,7 +683,7 @@ public abstract class Light extends Warp {
 						b = (int)(b*t);
 						a = (int)(a*t);
 					}
-					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					//r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
 					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
@@ -768,7 +764,7 @@ public abstract class Light extends Warp {
 						a = 255 - a;
 						break;
 					}
-					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					//r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
 					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
