@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.20 2004-02-22 21:45:47 hoz Exp $
+ * $Id: CL_parse.java,v 1.21 2004-03-18 09:55:45 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -197,10 +197,9 @@ public class CL_parse extends CL_view {
 	======================
 	*/
 	static void RegisterSounds() {
-		int i;
 		S.BeginRegistration();
 		CL.RegisterTEntSounds();
-		for (i = 1; i < MAX_SOUNDS; i++) {
+		for (int i = 1; i < MAX_SOUNDS; i++) {
 			if (cl.configstrings[CS_SOUNDS + i] == null || cl.configstrings[CS_SOUNDS + i] == "")
 				break;
 			cl.sound_precache[i] = S.RegisterSound(cl.configstrings[CS_SOUNDS + i]);
@@ -217,13 +216,10 @@ public class CL_parse extends CL_view {
 	=====================
 	*/
 	public static void ParseDownload() {
-		int size, percent;
-		String name;
-		int r;
 
 		// read the data
-		size = MSG.ReadShort(net_message);
-		percent = MSG.ReadByte(net_message);
+		int size = MSG.ReadShort(net_message);
+		int percent = MSG.ReadByte(net_message);
 		if (size == -1) {
 			Com.Printf("Server does not have this file.\n");
 			if (cls.download != null) {
@@ -237,7 +233,7 @@ public class CL_parse extends CL_view {
 
 		// open the file if not opened yet
 		if (cls.download == null) {
-			name = DownloadFileName(cls.downloadtempname);
+			String name = DownloadFileName(cls.downloadtempname);
 
 			FS.CreatePath(name);
 
@@ -277,7 +273,7 @@ public class CL_parse extends CL_view {
 			// rename the temp file to it's final name
 			oldn = DownloadFileName(cls.downloadtempname);
 			newn = DownloadFileName(cls.downloadname);
-			r = Lib.rename(oldn, newn);
+			int r = Lib.rename(oldn, newn);
 			if (r != 0)
 				Com.Printf("failed to rename.\n");
 

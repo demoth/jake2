@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.7 2004-02-25 13:20:29 hoz Exp $
+ * $Id: CL_newfx.java,v 1.8 2004-03-18 09:54:34 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Created on 31.01.2004 by RST.
 
 package jake2.client;
+
+import jake2.Globals;
 
 
 /**
@@ -171,7 +173,7 @@ public class CL_newfx extends CL_fx {
 			p.time = cl.time;
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (1 + frand() * 0.5f);
+			p.alphavel = -1.0f / (1 + Globals.rnd.nextFloat() * 0.5f);
 			p.color = colorStart + (rand() % colorRun);
 			for (j = 0; j < 3; j++) {
 				p.org[j] = move[j] + crand() * 3;
@@ -204,7 +206,7 @@ public class CL_newfx extends CL_fx {
 			if (free_particles == null)
 				return;
 
-			if (frand() > 0.3) {
+			if (Globals.rnd.nextFloat() > 0.3) {
 				p = free_particles;
 				free_particles = p.next;
 				p.next = active_particles;
@@ -214,7 +216,7 @@ public class CL_newfx extends CL_fx {
 				p.time = cl.time;
 
 				p.alpha = 1.0f;
-				p.alphavel = -1.0f / (3.0f + frand() * 0.5f);
+				p.alphavel = -1.0f / (3.0f + Globals.rnd.nextFloat() * 0.5f);
 				p.color = color;
 				for (j = 0; j < 3; j++) {
 					p.org[j] = move[j] + crand() * 3;
@@ -319,7 +321,7 @@ public class CL_newfx extends CL_fx {
 			//			VectorCopy (accel, p.accel);
 			p.alpha = 1.0f;
 
-			p.alphavel = -1.0f / (0.5f + frand() * alphavel);
+			p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat() * alphavel);
 			//			p.alphavel = alphavel;
 		}
 	}
@@ -360,7 +362,7 @@ public class CL_newfx extends CL_fx {
 			p.time = cl.time;
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (1+frand()*0.1f);
+			p.alphavel = -1.0f / (1+Globals.rnd.nextFloat()*0.1f);
 			p.color = 4 + (rand()&7);
 			for (j=0 ; j<3 ; j++)
 			{
@@ -510,7 +512,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[2] = -PARTICLE_GRAVITY / 2;
 			p.alpha = 1.0f;
 
-			p.alphavel = -1.0f / (0.5f + frand() * 0.3f);
+			p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat() * 0.3f);
 		}
 	}
 
@@ -555,7 +557,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[2] = -PARTICLE_GRAVITY / 2;
 			p.alpha = 1.0f;
 
-			p.alphavel = -1.0f / (0.5f + frand() * 0.3f);
+			p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat() * 0.3f);
 		}
 		self.nextthink += self.thinkinterval;
 	}
@@ -773,7 +775,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[0] = p.accel[1] = 0;
 			p.alpha = 1.0f;
 
-			p.alphavel = -0.8f / (0.5f + frand() * 0.3f);
+			p.alphavel = -0.8f / (0.5f + Globals.rnd.nextFloat() * 0.3f);
 		}
 
 	}
@@ -846,7 +848,7 @@ public class CL_newfx extends CL_fx {
 			p.time = cl.time;
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (0.8f + frand() * 0.2f);
+			p.alphavel = -1.0f / (0.8f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = color;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = move[j] + crand() * 16;
@@ -887,7 +889,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[2] = -PARTICLE_GRAVITY;
 			p.alpha = 1.0f;
 
-			p.alphavel = -0.4f / (0.6f + frand() * 0.2f);
+			p.alphavel = -0.4f / (0.6f + Globals.rnd.nextFloat() * 0.2f);
 		}
 	}
 
@@ -932,7 +934,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[0] = p.accel[1] = p.accel[2] = 0;
 			p.alpha = 1.0f;
 
-			p.alphavel = -1.0f / (0.5f + frand()*0.3f);
+			p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat()*0.3f);
 		}
 	}
 
@@ -971,7 +973,7 @@ public class CL_newfx extends CL_fx {
 			p.accel[2] = -PARTICLE_GRAVITY;
 			p.alpha = 1.0f;
 
-			p.alphavel = -1.0f / (0.5f + frand() * 0.3f);
+			p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat() * 0.3f);
 		}
 	}
 
@@ -1012,7 +1014,7 @@ public class CL_newfx extends CL_fx {
 			p.time = cl.time;
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (0.3f + frand() * 0.2f);
+			p.alphavel = -1.0f / (0.3f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 0xd0;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = move[j] + crand();

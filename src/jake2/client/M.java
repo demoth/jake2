@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.15 2004-02-29 00:51:06 rst Exp $
+ * $Id: M.java,v 1.16 2004-03-18 09:57:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.Com;
 import jake2.server.SV;
@@ -393,7 +394,7 @@ public final class M
 			if (0 == (ent.svflags & Defines.SVF_DEADMONSTER))
 			{
 				if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
-					if (Lib.random() <= 0.5)
+					if (Globals.rnd.nextFloat() <= 0.5)
 						GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/lava1.wav"), 1, Defines.ATTN_NORM, 0);
 					else
 						GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/lava2.wav"), 1, Defines.ATTN_NORM, 0);
@@ -629,11 +630,11 @@ public final class M
 			if (self.waterlevel != 0)
 				return true;
 
-			if (Lib.random() > 0.5)
+			if (Globals.rnd.nextFloat() > 0.5)
 				return true;
 
 			self.think = M_FliesOn;
-			self.nextthink = GameBase.level.time + 5 + 10 * Lib.random();
+			self.nextthink = GameBase.level.time + 5 + 10 * Globals.rnd.nextFloat();
 			return true;
 		}
 	};
