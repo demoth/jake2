@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.8 2005-02-12 21:43:02 salomo Exp $
+// $Id: PlayerClient.java,v 1.9 2005-02-19 21:20:10 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -449,6 +449,10 @@ public class PlayerClient {
         do {
             es = GameBase.G_Find(es, GameBase.findByClass,
                     "info_player_deathmatch");
+            
+            if (es == null) 
+                break;
+            
             spot = es.o;
             if (spot == spot1 || spot == spot2)
                 selection++;
@@ -489,10 +493,12 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        spot = GameBase.G_Find(null, GameBase.findByClass,
-                "info_player_deathmatch").o;
-
-        return spot;
+        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass,
+                "info_player_deathmatch");
+        if (edit == null)
+            return null;
+        
+        return edit.o;
     }
 
     public static edict_t SelectDeathmatchSpawnPoint() {
@@ -579,17 +585,21 @@ public class PlayerClient {
             }
 
             if (null == spot) {
-                if (GameBase.game.spawnpoint.length() == 0) { // there wasn't a
-                                                              // spawnpoint
-                                                              // without a
-                                                              // target, so use
-                                                              // any
-                    spot = (es = GameBase.G_Find(es, GameBase.findByClass,
-                            "info_player_start")).o;
+                if (GameBase.game.spawnpoint.length() == 0) { 
+                    // there wasn't a spawnpoint without a
+                    // target, so use any
+                    es = GameBase.G_Find(es, GameBase.findByClass,
+                            "info_player_start");
+                    
+                    if (es != null)
+                        spot = es.o;
                 }
                 if (null == spot)
+                {
                     GameBase.gi.error("Couldn't find spawn point "
                             + GameBase.game.spawnpoint + "\n");
+                    return;
+                }
             }
         }
 
