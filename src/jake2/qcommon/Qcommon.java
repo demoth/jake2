@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.6 2004-09-06 20:30:21 hzi Exp $
+ * $Id: Qcommon.java,v 1.7 2004-09-18 12:36:53 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -82,6 +82,10 @@ public final class Qcommon extends Globals {
 			Cbuf.AddEarlyCommands(true);
 			Cbuf.Execute();
 
+			FS.setCDDir(); // use cddir from config.cfg
+			Q2DataTest.run(); // test for valid baseq2
+			reconfigure(); // reload default.cfg and config.cfg
+			
 			//
 			// init commands and vars
 			//
@@ -227,5 +231,13 @@ public final class Qcommon extends Globals {
 		}
 	}
 
+	static void reconfigure() {
+		Cbuf.AddText("exec default.cfg\n");
+		Cbuf.Execute();
+		Cvar.Set("vid_fullscreen", "0");
+		Cbuf.AddText("exec config.cfg\n");
 
+		Cbuf.AddEarlyCommands(true);
+		Cbuf.Execute();		 
+	}
 }
