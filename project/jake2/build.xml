@@ -8,6 +8,7 @@
 	</taskdef>
 	
 	<!-- properties -->
+	<property name="version" value="cvs"/> 
 	<property name="src" location="src"/>
 	<property name="test" location="test"/>
 	<property name="build" location="build"/>
@@ -107,7 +108,7 @@
 		
 	<!-- binary distribution -->
 	<target name="bindist" depends="dist">
-		<tar destfile="jake2.tar.gz" compression="gzip">
+		<tar destfile="jake2-${version}.tar.gz" compression="gzip">
 			<tarfileset dir="${dist}" prefix="Jake2" mode="755">
 				<include name="*.sh"/>
 			</tarfileset>
@@ -116,7 +117,7 @@
 				<exclude name="*.sh"/>
 			</tarfileset>
 		</tar>
-		<zip destfile="jake2.zip">
+		<zip destfile="jake2-${version}.zip">
 			<zipfileset dir="${dist}" prefix="Jake2">
 				<include name="**"/>
 			</zipfileset>
@@ -125,7 +126,7 @@
 	
 	<!-- source distribution -->
 	<target name="srcdist" >
-		<tar destfile="jake2src.tar.gz" compression="gzip">
+		<tar destfile="jake2src-${version}.tar.gz" compression="gzip">
 			<tarfileset dir="." prefix="Jake2" mode="755">
 				<include name="scripts/*.*"/>
 				<include name="build.sh"/>
@@ -141,7 +142,7 @@
 				<include name="readme.id"/>
 			</tarfileset>
 		</tar>
-		<zip destfile="jake2src.zip">
+		<zip destfile="jake2src-${version}.zip">
 			<zipfileset dir="." prefix="Jake2">
 				<include name="src/jake2/**"/>
 				<include name="scripts/*.*"/>
