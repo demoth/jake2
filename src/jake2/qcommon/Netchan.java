@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.19 2004-02-10 20:05:10 cwei Exp $
+ * $Id: Netchan.java,v 1.20 2004-02-11 05:15:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -311,8 +311,9 @@ public final class Netchan extends SV_MAIN {
 		if (chan.sock == NS_SERVER)
 			qport = MSG.ReadShort(msg);
 
-		reliable_message = sequence >> 31;
-		reliable_ack = sequence_ack >> 31;
+		// achtung unsigned int
+		reliable_message = sequence >>> 31;
+		reliable_ack = sequence_ack >>> 31;
 
 		sequence &= ~(1 << 31);
 		sequence_ack &= ~(1 << 31);
