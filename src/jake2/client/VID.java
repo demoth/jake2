@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.18 2004-06-09 15:24:24 cwei Exp $
+ * $Id: VID.java,v 1.19 2004-06-09 19:14:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -693,6 +693,11 @@ public class VID extends Globals {
 		{
 			s_current_menu_index = OPENGL_MENU;
 			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_JOGL;
+		}
+		else if ( vid_ref.string.equalsIgnoreCase("fastjogl"))
+		{
+			s_current_menu_index = OPENGL_MENU;
+			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_FASTJOGL;
 		}
 //		else if (strcmp( vid_ref->string, "softx" ) == 0 ) 
 //		{
