@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.16 2004-06-06 23:24:45 cwei Exp $
+ * $Id: V.java,v 1.17 2004-06-28 05:39:17 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,14 +29,11 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.render.jogl.Main;
 import jake2.sys.Sys;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 import java.io.IOException;
-import java.nio.*;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 /**

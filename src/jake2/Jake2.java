@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.24 2004-06-15 18:30:58 cwei Exp $
+ * $Id: Jake2.java,v 1.25 2004-06-28 05:39:17 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,10 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
-import java.io.IOException;
-
 import jake2.client.SCR;
-import jake2.qcommon.*;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.Qcommon;
 import jake2.sys.Sys;
 
 /**

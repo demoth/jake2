@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.25 2004-06-03 21:32:51 rst Exp $
+ * $Id: CL_parse.java,v 1.26 2004-06-28 05:39:17 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,25 +25,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
 import jake2.Defines;
 import jake2.game.Cmd;
 import jake2.game.entity_state_t;
-import jake2.qcommon.CM;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
-import jake2.qcommon.SZ;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.render.model_t;
-import jake2.sound.*;
-import jake2.sound.jsound.*;
+import jake2.sound.S;
 import jake2.sys.Sys;
 import jake2.util.Lib;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * CL_parse
