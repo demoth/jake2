@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.2 2004-01-06 02:06:44 cwei Exp $
+ * $Id: Surf.java,v 1.3 2004-01-10 15:45:49 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -592,17 +592,17 @@ public abstract class Surf extends Draw {
 //	}
 //
 //
-//	/*
-//	================
-//	R_DrawAlphaSurfaces
-//
-//	Draw water surfaces and windows.
-//	The BSP tree is waled front to back, so unwinding the chain
-//	of alpha_surfaces will draw back to front, giving proper ordering.
-//	================
-//	*/
-//	void R_DrawAlphaSurfaces (void)
-//	{
+	/*
+	================
+	R_DrawAlphaSurfaces
+
+	Draw water surfaces and windows.
+	The BSP tree is waled front to back, so unwinding the chain
+	of alpha_surfaces will draw back to front, giving proper ordering.
+	================
+	*/
+	void R_DrawAlphaSurfaces()
+	{
 //		msurface_t	*s;
 //		float		intens;
 //
@@ -641,7 +641,7 @@ public abstract class Surf extends Draw {
 //		qglDisable (GL_BLEND);
 //
 //		r_alpha_surfaces = NULL;
-//	}
+	}
 //
 //	/*
 //	================
@@ -1035,15 +1035,15 @@ public abstract class Surf extends Draw {
 //
 //		qglPopMatrix ();
 	}
-//
-//	/*
-//	=============================================================
-//
-//		WORLD MODEL
-//
-//	=============================================================
-//	*/
-//
+
+	/*
+	=============================================================
+
+		WORLD MODEL
+
+	=============================================================
+	*/
+
 //	/*
 //	================
 //	R_RecursiveWorldNode
@@ -1204,14 +1204,14 @@ public abstract class Surf extends Draw {
 //	*/
 //	}
 //
-//
-//	/*
-//	=============
-//	R_DrawWorld
-//	=============
-//	*/
-//	void R_DrawWorld (void)
-//	{
+
+	/*
+	=============
+	R_DrawWorld
+	=============
+	*/
+	void R_DrawWorld()
+	{
 //		entity_t	ent;
 //
 //		if (!r_drawworld->value)
@@ -1267,19 +1267,19 @@ public abstract class Surf extends Draw {
 //		R_DrawSkyBox ();
 //
 //		R_DrawTriangleOutlines ();
-//	}
-//
-//
-//	/*
-//	===============
-//	R_MarkLeaves
-//
-//	Mark the leaves and nodes that are in the PVS for the current
-//	cluster
-//	===============
-//	*/
-//	void R_MarkLeaves (void)
-//	{
+	}
+
+
+	/*
+	===============
+	R_MarkLeaves
+
+	Mark the leaves and nodes that are in the PVS for the current
+	cluster
+	===============
+	*/
+	void R_MarkLeaves()
+	{
 //		byte	*vis;
 //		byte	fatvis[MAX_MAP_LEAFS/8];
 //		mnode_t	*node;
@@ -1338,27 +1338,10 @@ public abstract class Surf extends Draw {
 //				} while (node);
 //			}
 //		}
-//
-//	#if 0
-//		for (i=0 ; i<r_worldmodel->vis->numclusters ; i++)
-//		{
-//			if (vis[i>>3] & (1<<(i&7)))
-//			{
-//				node = (mnode_t *)&r_worldmodel->leafs[i];	// FIXME: cluster
-//				do
-//				{
-//					if (node->visframe == r_visframecount)
-//						break;
-//					node->visframe = r_visframecount;
-//					node = node->parent;
-//				} while (node);
-//			}
-//		}
-//	#endif
-//	}
-//
-//
-//
+	}
+
+
+
 //	/*
 //	=============================================================================
 //

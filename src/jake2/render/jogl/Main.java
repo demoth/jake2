@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.10 2004-01-06 02:06:44 cwei Exp $
+ * $Id: Main.java,v 1.11 2004-01-10 15:45:49 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,7 +64,6 @@ public abstract class Main extends Base {
 	
 	int registration_sequence;
 	
-	// TODO check the qglColorTableEXT hack
 	// this a hack for function pointer test
 	// default disabled
 	boolean qglColorTableEXT = false;
@@ -91,6 +90,8 @@ public abstract class Main extends Base {
 	abstract void GLimp_BeginFrame( float camera_separation );
 	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
 	abstract void GLimp_Shutdown();
+	abstract void GLimp_EnableLogging( boolean enable );
+	abstract void GLimp_LogNewFrame();
 	
 	abstract void GL_SetDefaultState();
 
@@ -101,6 +102,11 @@ public abstract class Main extends Base {
 	abstract void R_DrawBrushModel(entity_t e); // Surf.java
 	abstract void Draw_InitLocal();
 	abstract void R_LightPoint(float[] p, float[] color);
+	abstract void R_PushDlights();
+	abstract void R_MarkLeaves();
+	abstract void R_DrawWorld();
+	abstract void R_RenderDlights();
+	abstract void R_DrawAlphaSurfaces();
 	
 	abstract void Mod_FreeAll();
 
@@ -286,7 +292,6 @@ public abstract class Main extends Base {
 		float[] point = { 0, 0, 0 };
 
 		qfiles.dsprframe_t frame;
-		//	 float		*up, *right;
 		qfiles.dsprite_t psprite;
 
 		// don't even bother culling, because it's just a single
@@ -298,11 +303,6 @@ public abstract class Main extends Base {
 
 		frame = psprite.frames[e.frame];
 
-		//	 {	// normal sprite
-		//		 up = vup;
-		//		 right = vright;
-		//	 }
-		//
 		if ((e.flags & Defines.RF_TRANSLUCENT) != 0)
 			alpha = e.alpha;
 
@@ -359,13 +359,14 @@ public abstract class Main extends Base {
 	=============
 	R_DrawNullModel
 	=============
+	cwei :-)
 	*/
 	void R_DrawNullModel()
 	{
 		float[] shadelight = { 0, 0, 0 };
 
 		if ( (currententity.flags & Defines.RF_FULLBRIGHT) != 0 ) {
-			// TODO shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
+			// cwei wollte blau: shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
 			shadelight[0] = shadelight[1] = shadelight[2] = 0.0F;
 			shadelight[2] = 0.8F;
 		} else {
@@ -412,8 +413,6 @@ public abstract class Main extends Base {
 	 int		i;
 
 	 if (r_drawentities.value == 0.0f) {
-	 	// TODO cwei r_drawentities.value == 0.0f
-	 	System.out.println("debug: r_drawentities.value == 0.0f");
 	 	return;
 	 }
 
@@ -442,7 +441,7 @@ public abstract class Main extends Base {
 				 R_DrawAliasModel(currententity);
 				 break;
 			 case mod_brush:
-				 //	TODO R_DrawBrushModel (currententity);
+				 R_DrawBrushModel(currententity);
 				 break;
 			 case mod_sprite:
 				 R_DrawSpriteModel(currententity);
@@ -497,13 +496,14 @@ public abstract class Main extends Base {
 
 	}
 
- /*
- ** GL_DrawParticles
- **
- */
+	/*
+	** GL_DrawParticles
+	**
+	*/
 // void GL_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
 	void GL_DrawParticles( int num_particles, particle_t[] particles, int[] colortable )
  {
+ 	// TODO impl GL_DrawParticles(...)
 //	 const particle_t *p;
 //	 int				i;
 //	 vec3_t			up, right;
@@ -683,8 +683,8 @@ public abstract class Main extends Base {
 	void R_SetupFrame()
 	{
 		int i;
-		mleaf_t	leaf;
-		
+		mleaf_t leaf;
+
 		r_framecount++;
 
 		//	build the transformation matrix for the given view angles
@@ -693,53 +693,52 @@ public abstract class Main extends Base {
 		Math3D.AngleVectors(r_newrefdef.viewangles, vpn, vright, vup);
 
 		//	current viewcluster
-		if ( ( r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL ) == 0)
-		{
+		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) == 0) {
 			r_oldviewcluster = r_viewcluster;
 			r_oldviewcluster2 = r_viewcluster2;
 			leaf = Mod_PointInLeaf(r_origin, r_worldmodel);
 			r_viewcluster = r_viewcluster2 = leaf.cluster;
 
 			// check above and below so crossing solid water doesn't draw wrong
-			if (leaf.contents == 0)
-			{	// look down a bit
+			if (leaf.contents == 0) { // look down a bit
 				float[] temp = { 0, 0, 0 };
 
-			 Math3D.VectorCopy (r_origin, temp);
-			 temp[2] -= 16;
-			 leaf = Mod_PointInLeaf(temp, r_worldmodel);
-//			 if ( !(leaf->contents & CONTENTS_SOLID) &&
-//				 (leaf->cluster != r_viewcluster2) )
-//				 r_viewcluster2 = leaf->cluster;
-			}
-			else
-			{	// look up a bit
-//			 vec3_t	temp;
-//
-//			 VectorCopy (r_origin, temp);
-//			 temp[2] += 16;
-//			 leaf = Mod_PointInLeaf (temp, r_worldmodel);
-//			 if ( !(leaf->contents & CONTENTS_SOLID) &&
-//				 (leaf->cluster != r_viewcluster2) )
-//				 r_viewcluster2 = leaf->cluster;
+				Math3D.VectorCopy(r_origin, temp);
+				temp[2] -= 16;
+				leaf = Mod_PointInLeaf(temp, r_worldmodel);
+				if ((leaf.contents & Defines.CONTENTS_SOLID) == 0
+					&& (leaf.cluster != r_viewcluster2))
+					r_viewcluster2 = leaf.cluster;
+			} else { // look up a bit
+				float[] temp = { 0, 0, 0 };
+
+				Math3D.VectorCopy(r_origin, temp);
+				temp[2] += 16;
+				leaf = Mod_PointInLeaf(temp, r_worldmodel);
+				if ((leaf.contents & Defines.CONTENTS_SOLID) == 0
+					&& (leaf.cluster != r_viewcluster2))
+					r_viewcluster2 = leaf.cluster;
 			}
 		}
 
-	 for (i=0 ; i<4 ; i++)
-		 v_blend[i] = r_newrefdef.blend[i];
+		for (i = 0; i < 4; i++)
+			v_blend[i] = r_newrefdef.blend[i];
 
-	 c_brush_polys = 0;
-	 c_alias_polys = 0;
+		c_brush_polys = 0;
+		c_alias_polys = 0;
 
-	 // clear out the portion of the screen that the NOWORLDMODEL defines
-	 if ( (r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0 )
-	 {
-			gl.glEnable( GL.GL_SCISSOR_TEST );
-			gl.glClearColor( 0.3f, 0.3f, 0.3f, 1.0f );
-			gl.glScissor( r_newrefdef.x, vid.height - r_newrefdef.height - r_newrefdef.y, r_newrefdef.width, r_newrefdef.height );
-			gl.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
-			gl.glClearColor( 1.0f, 0.0f, 0.5f, 0.5f );
-			 gl.glDisable( GL.GL_SCISSOR_TEST );
+		// clear out the portion of the screen that the NOWORLDMODEL defines
+		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0) {
+			gl.glEnable(GL.GL_SCISSOR_TEST);
+			gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+			gl.glScissor(
+				r_newrefdef.x,
+				vid.height - r_newrefdef.height - r_newrefdef.y,
+				r_newrefdef.width,
+				r_newrefdef.height);
+			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+			gl.glClearColor(1.0f, 0.0f, 0.5f, 0.5f);
+			gl.glDisable(GL.GL_SCISSOR_TEST);
 		}
 	}
 
@@ -893,7 +892,7 @@ public abstract class Main extends Base {
 			c_alias_polys = 0;
 		}
 
-		// TODO R_PushDlights();
+		R_PushDlights();
 
 		if (gl_finish.value != 0.0f) gl.glFinish();
 
@@ -903,17 +902,17 @@ public abstract class Main extends Base {
 
 		R_SetupGL ();
 
-		// TODO R_MarkLeaves(); // done here so we know if we're in water
+		R_MarkLeaves(); // done here so we know if we're in water
 
-		// TODO R_DrawWorld();
+		R_DrawWorld();
 
 		R_DrawEntitiesOnList();
 
-		// TODO R_RenderDlights();
+		R_RenderDlights();
 
 		R_DrawParticles();
 
-		// TODO R_DrawAlphaSurfaces();
+		R_DrawAlphaSurfaces();
 
 		R_Flash();
 
@@ -940,83 +939,36 @@ public abstract class Main extends Base {
 		gl.glColor4f(1, 1, 1, 1);
 	}
 
-
-// static void GL_DrawColoredStereoLinePair( float r, float g, float b, float y )
-// {
-//	 gl.glColor3f( r, g, b );
-//	 gl.glVertex2f( 0, y );
-//	 gl.glVertex2f( vid.width, y );
-//	 gl.glColor3f( 0, 0, 0 );
-//	 gl.glVertex2f( 0, y + 1 );
-//	 gl.glVertex2f( vid.width, y + 1 );
-// }
-//
-// static void GL_DrawStereoPattern( void )
-// {
-//	 int i;
-//
-//	 if ( !( gl_config.renderer & GL_RENDERER_INTERGRAPH ) )
-//		 return;
-//
-//	 if ( !gl_state.stereo_enabled )
-//		 return;
-//
-//	 R_SetGL2D();
-//
-//	 gl.glDrawBuffer( GL.GL_BACK_LEFT );
-//
-//	 for ( i = 0; i < 20; i++ )
-//	 {
-//		 gl.glBegin( GL.GL_LINES );
-//			 GL_DrawColoredStereoLinePair( 1, 0, 0, 0 );
-//			 GL_DrawColoredStereoLinePair( 1, 0, 0, 2 );
-//			 GL_DrawColoredStereoLinePair( 1, 0, 0, 4 );
-//			 GL_DrawColoredStereoLinePair( 1, 0, 0, 6 );
-//			 GL_DrawColoredStereoLinePair( 0, 1, 0, 8 );
-//			 GL_DrawColoredStereoLinePair( 1, 1, 0, 10);
-//			 GL_DrawColoredStereoLinePair( 1, 1, 0, 12);
-//			 GL_DrawColoredStereoLinePair( 0, 1, 0, 14);
-//		 gl.glEnd();
-//		
-//		 GLimp_EndFrame();
-//	 }
-// }
-
-
 	/*
 	====================
 	R_SetLightLevel
 
 	====================
 	*/
-	void R_SetLightLevel()
-	{
-//	 vec3_t		shadelight;
-//
-//	 if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-//		 return;
-//
-//	 // save off light value for server to look at (BIG HACK!)
-//
-//	 R_LightPoint (r_newrefdef.vieworg, shadelight);
-//
-//	 // pick the greatest component, which should be the same
-//	 // as the mono value returned by software
-//	 if (shadelight[0] > shadelight[1])
-//	 {
-//		 if (shadelight[0] > shadelight[2])
-//			 r_lightlevel->value = 150*shadelight[0];
-//		 else
-//			 r_lightlevel->value = 150*shadelight[2];
-//	 }
-//	 else
-//	 {
-//		 if (shadelight[1] > shadelight[2])
-//			 r_lightlevel->value = 150*shadelight[1];
-//		 else
-//			 r_lightlevel->value = 150*shadelight[2];
-//	 }
-//
+	void R_SetLightLevel() {
+		float[] shadelight = { 0, 0, 0 };
+
+		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0)
+			return;
+
+		// save off light value for server to look at (BIG HACK!)
+
+		R_LightPoint(r_newrefdef.vieworg, shadelight);
+
+		// pick the greatest component, which should be the same
+		// as the mono value returned by software
+		if (shadelight[0] > shadelight[1]) {
+			if (shadelight[0] > shadelight[2])
+				r_lightlevel.value = 150 * shadelight[0];
+			else
+				r_lightlevel.value = 150 * shadelight[2];
+		} else {
+			if (shadelight[1] > shadelight[2])
+				r_lightlevel.value = 150 * shadelight[1];
+			else
+				r_lightlevel.value = 150 * shadelight[2];
+		}
+
 	}
 
 
@@ -1240,6 +1192,9 @@ public abstract class Main extends Base {
 
 		String renderer_buffer = gl_config.renderer_string.toLowerCase();
 		String vendor_buffer = gl_config.vendor_string.toLowerCase();
+		
+		// TODO R_Init2() komplett fertig stellen
+		
 //	 if ( strstr( renderer_buffer, "voodoo" ) )
 //	 {
 //		 if ( !strstr( renderer_buffer, "rush" ) )
@@ -1491,110 +1446,107 @@ public abstract class Main extends Base {
 	}
 
 
-// /*
-// @@@@@@@@@@@@@@@@@@@@@
-// R_BeginFrame
-// @@@@@@@@@@@@@@@@@@@@@
-// */
-	protected void R_BeginFrame(float camera_separation)
-	{
-//
-//	 gl_state.camera_separation = camera_separation;
-//
-//	 /*
-//	 ** change modes if necessary
-//	 */
-//	 if ( gl_mode->modified || vid_fullscreen->modified )
-//	 {	// FIXME: only restart if CDS is required
-//		 cvar_t	*ref;
-//
-//		 ref = ri.Cvar_Get ("vid_ref", "gl", 0);
-//		 ref->modified = true;
-//	 }
-//
-//	 if ( gl_log->modified )
-//	 {
-//		 GLimp_EnableLogging( gl_log->value );
-//		 gl_log->modified = false;
-//	 }
-//
-//	 if ( gl_log->value )
-//	 {
-//		 GLimp_LogNewFrame();
-//	 }
-//
-//	 /*
-//	 ** update 3Dfx gamma -- it is expected that a user will do a vid_restart
-//	 ** after tweaking this value
-//	 */
-//	 if ( vid_gamma->modified )
-//	 {
-//		 vid_gamma->modified = false;
-//
-//		 if ( gl_config.renderer & ( GL_RENDERER_VOODOO ) )
-//		 {
-//			 char envbuffer[1024];
-//			 float g;
-//
-//			 g = 2.00 * ( 0.8 - ( vid_gamma->value - 0.5 ) ) + 1.0F;
-//			 Com_sprintf( envbuffer, sizeof(envbuffer), "SSTV2_GAMMA=%f", g );
-//			 putenv( envbuffer );
-//			 Com_sprintf( envbuffer, sizeof(envbuffer), "SST_GAMMA=%f", g );
-//			 putenv( envbuffer );
-//		 }
-//	 }
-//
-		GLimp_BeginFrame( camera_separation );
+	/*
+	@@@@@@@@@@@@@@@@@@@@@
+	R_BeginFrame
+	@@@@@@@@@@@@@@@@@@@@@
+	*/
+	protected void R_BeginFrame(float camera_separation) {
+
+		gl_state.camera_separation = camera_separation;
+
+		/*
+		** change modes if necessary
+		*/
+		if (gl_mode.modified
+			|| vid_fullscreen.modified) {
+			// FIXME: only restart if CDS is required
+			cvar_t ref;
+
+			ref = ri.Cvar_Get("vid_ref", "gl", 0);
+			ref.modified = true;
+		}
+
+		if (gl_log.modified) {
+			GLimp_EnableLogging((gl_log.value != 0.0f));
+			gl_log.modified = false;
+		}
+
+		if (gl_log.value != 0.0f) {
+			GLimp_LogNewFrame();
+		}
+
+		/*
+		** update 3Dfx gamma -- it is expected that a user will do a vid_restart
+		** after tweaking this value
+		*/
+		if (vid_gamma.modified) {
+			vid_gamma.modified = false;
+
+			if ((gl_config.renderer & GL_RENDERER_VOODOO) != 0) {
+				// wird erstmal nicht gebraucht
+
+				/* 
+				char envbuffer[1024];
+				float g;
+				
+				g = 2.00 * ( 0.8 - ( vid_gamma->value - 0.5 ) ) + 1.0F;
+				Com_sprintf( envbuffer, sizeof(envbuffer), "SSTV2_GAMMA=%f", g );
+				putenv( envbuffer );
+				Com_sprintf( envbuffer, sizeof(envbuffer), "SST_GAMMA=%f", g );
+				putenv( envbuffer );
+				*/
+				ri.Con_Printf(
+					Defines.PRINT_DEVELOPER, "gamma anpassung fuer VOODOO nicht gesetzt");
+			}
+		}
+
+		GLimp_BeginFrame(camera_separation);
 
 		/*
 		** go into 2D mode
 		*/
-		gl.glViewport (0,0, vid.width, vid.height);
+		gl.glViewport(0, 0, vid.width, vid.height);
 		gl.glMatrixMode(GL.GL_PROJECTION);
-		gl.glLoadIdentity ();
-		gl.glOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glLoadIdentity();
+		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
 		gl.glMatrixMode(GL.GL_MODELVIEW);
-		gl.glLoadIdentity ();
-		gl.glDisable (GL.GL_DEPTH_TEST);
-		gl.glDisable (GL.GL_CULL_FACE);
-		gl.glDisable (GL.GL_BLEND);
-		gl.glEnable (GL.GL_ALPHA_TEST);
-		gl.glColor4f (1,1,1,1);
+		gl.glLoadIdentity();
+		gl.glDisable(GL.GL_DEPTH_TEST);
+		gl.glDisable(GL.GL_CULL_FACE);
+		gl.glDisable(GL.GL_BLEND);
+		gl.glEnable(GL.GL_ALPHA_TEST);
+		gl.glColor4f(1, 1, 1, 1);
 
 		/*
 		** draw buffer stuff
 		*/
-		if ( gl_drawbuffer.modified )
-		{
+		if (gl_drawbuffer.modified) {
 			gl_drawbuffer.modified = false;
 
-			if ( gl_state.camera_separation == 0 || !gl_state.stereo_enabled )
-			{
-				if ( gl_drawbuffer.string.equalsIgnoreCase("GL_FRONT") )
-					gl.glDrawBuffer( GL.GL_FRONT );
+			if (gl_state.camera_separation == 0 || !gl_state.stereo_enabled) {
+				if (gl_drawbuffer.string.equalsIgnoreCase("GL_FRONT"))
+					gl.glDrawBuffer(GL.GL_FRONT);
 				else
-					gl.glDrawBuffer( GL.GL_BACK );
+					gl.glDrawBuffer(GL.GL_BACK);
 			}
 		}
 
 		/*
 		** texturemode stuff
 		*/
-		if ( gl_texturemode.modified )
-		{
-			GL_TextureMode( gl_texturemode.string );
+		if (gl_texturemode.modified) {
+			GL_TextureMode(gl_texturemode.string);
 			gl_texturemode.modified = false;
 		}
 
-		if ( gl_texturealphamode.modified )
-		{
-			GL_TextureAlphaMode( gl_texturealphamode.string );
+		if (gl_texturealphamode.modified) {
+			GL_TextureAlphaMode(gl_texturealphamode.string);
 			gl_texturealphamode.modified = false;
 		}
 
-		if ( gl_texturesolidmode.modified )
-		{
-			GL_TextureSolidMode( gl_texturesolidmode.string );
+		if (gl_texturesolidmode.modified) {
+			GL_TextureSolidMode(gl_texturesolidmode.string);
 			gl_texturesolidmode.modified = false;
 		}
 
@@ -1606,7 +1558,7 @@ public abstract class Main extends Base {
 		//
 		// clear screen if desired
 		//
-		R_Clear ();
+		R_Clear();
 	}
 
 	int[] r_rawpalette = new int[256];
@@ -1723,28 +1675,5 @@ public abstract class Main extends Base {
 		gl.glDisable(GL.GL_BLEND);
 		gl.glDepthMask(true);
 	}
-
-
-
-	 
-//
-// void	R_BeginRegistration (char *map);
-// struct model_s	*R_RegisterModel (char *name);
-// struct image_s	*R_RegisterSkin (char *name);
-// void R_SetSky (char *name, float rotate, vec3_t axis);
-// void	R_EndRegistration (void);
-//
-// void	R_RenderFrame (refdef_t *fd);
-//
-// struct image_s	*Draw_FindPic (char *name);
-//
-// void	Draw_Pic (int x, int y, char *name);
-// void	Draw_Char (int x, int y, int c);
-// void	Draw_TileClear (int x, int y, int w, int h, char *name);
-// void	Draw_Fill (int x, int y, int w, int h, int c);
-// void	Draw_FadeScreen (void);
-//
-//
-
 
 }
