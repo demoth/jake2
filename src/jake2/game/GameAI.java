@@ -19,12 +19,13 @@
  */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.5 2004-09-22 19:22:06 salomo Exp $
+// $Id: GameAI.java,v 1.6 2005-02-06 18:58:51 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.M;
+import jake2.game.monsters.M_Player;
 import jake2.qcommon.Com;
 import jake2.server.SV_WORLD;
 import jake2.util.Lib;
@@ -1356,7 +1357,8 @@ public class GameAI {
         String message2;
         boolean ff;
 
-        if (GameBase.coop.value != 0 && attacker.client != null)
+        // attacker can be null by some mods! bug fix by rene stoeckel        
+        if (GameBase.coop.value != 0 && attacker != null && attacker.client != null)
             GameBase.meansOfDeath |= Defines.MOD_FRIENDLY_FIRE;
 
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
@@ -1542,116 +1544,8 @@ public class GameAI {
             self.client.resp.score--;
     }
 
-    /*
-     * ================== DeathmatchScoreboardMessage
-     * 
-     * ==================
-     */
-    public static void DeathmatchScoreboardMessage(edict_t ent, edict_t killer) {
-        String entry;
-        String string;
-        int stringlength;
-        int i, j, k;
-        int sorted[] = new int[Defines.MAX_CLIENTS];
-        int sortedscores[] = new int[Defines.MAX_CLIENTS];
-        int score, total;
-        int picnum;
-        int x, y;
-        gclient_t cl;
-        edict_t cl_ent;
-        String tag;
-
-        // sort the clients by score
-        total = 0;
-        for (i = 0; i < GameBase.game.maxclients; i++) {
-            cl_ent = GameBase.g_edicts[1 + i];
-            if (!cl_ent.inuse || GameBase.game.clients[i].resp.spectator)
-                continue;
-            score = GameBase.game.clients[i].resp.score;
-            for (j = 0; j < total; j++) {
-                if (score > sortedscores[j])
-                    break;
-            }
-            for (k = total; k > j; k--) {
-                sorted[k] = sorted[k - 1];
-                sortedscores[k] = sortedscores[k - 1];
-            }
-            sorted[j] = i;
-            sortedscores[j] = score;
-            total++;
-        }
-
-        // print level name and exit rules
-        string = "";
-
-        stringlength = string.length();
-
-        // add the clients in sorted order
-        if (total > 12)
-            total = 12;
-
-        for (i = 0; i < total; i++) {
-            cl = GameBase.game.clients[sorted[i]];
-            cl_ent = GameBase.g_edicts[1 + sorted[i]];
-
-            picnum = GameBase.gi.imageindex("i_fixme");
-            x = (i >= 6) ? 160 : 0;
-            y = 32 + 32 * (i % 6);
-
-            // add a dogtag
-            if (cl_ent == ent)
-                tag = "tag1";
-            else if (cl_ent == killer)
-                tag = "tag2";
-            else
-                tag = null;
-            if (tag != null) {
-                entry = "xv " + (x + 32) + " yv " + y + " picn " + tag + " ";
-                j = entry.length();
-                if (stringlength + j > 1024)
-                    break;
-
-                string = string + entry;
-
-                //was: strcpy (string + stringlength, entry);
-                stringlength += j;
-            }
-
-            // send the layout
-            entry = "client " + x + " " + y + " " + sorted[i] + " "
-                    + cl.resp.score + " " + cl.ping + " "
-                    + (GameBase.level.framenum - cl.resp.enterframe) / 600f
-                    + " ";
-
-            j = entry.length();
-
-            if (stringlength + j > 1024)
-                break;
-
-            string += entry;
-            // was: strcpy(string + stringlength, entry);
-            stringlength += j;
-        }
-
-        GameBase.gi.WriteByte(Defines.svc_layout);
-        GameBase.gi.WriteString(string);
-    }
-
-    /*
-     * ================== DeathmatchScoreboard
-     * 
-     * Draw instead of help message. Note that it isn't that hard to overflow
-     * the 1400 byte message limit! ==================
-     */
-    public static void DeathmatchScoreboard(edict_t ent) {
-        DeathmatchScoreboardMessage(ent, ent.enemy);
-        GameBase.gi.unicast(ent, true);
-    }
-
-    /*
-     * ================== HelpComputer
-     * 
-     * Draw help computer. ==================
+    /** 
+     * HelpComputer. Draws the help computer.
      */
     public static void HelpComputer(edict_t ent) {
         StringBuffer sb = new StringBuffer(256);
@@ -3437,5 +3331,4 @@ public class GameAI {
             return 0;
         }
     };
-
 }
