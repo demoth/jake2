@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.30 2004-02-01 00:35:00 rst Exp $
+ * $Id: Com.java,v 1.31 2004-02-02 19:13:26 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.client.CL;
 import jake2.client.Console;
 import jake2.game.Cmd;
 import jake2.server.SV;
+import jake2.server.SV_MAIN;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 import jake2.util.PrintfFormat;
@@ -265,13 +266,13 @@ public final class Com {
 		}
 		else if (code == Defines.ERR_DROP) {
 			Com.Printf("********************\nERROR: " + msg + "\n********************\n");
-			SV.Shutdown("Server crashed: " + msg + "\n", false);
+			SV_MAIN.SV_Shutdown("Server crashed: " + msg + "\n", false);
 			CL.Drop();
 			recursive = false;
 			throw new longjmpException();
 		}
 		else {
-			SV.Shutdown("Server fatal crashed: %s" + msg + "\n", false);
+			SV_MAIN.SV_Shutdown("Server fatal crashed: %s" + msg + "\n", false);
 			CL.Shutdown();
 		}
 
@@ -416,7 +417,7 @@ public final class Com {
 	}
 
 	public static void Quit() {
-		SV.Shutdown("Server quit\n", false);
+		SV_MAIN.SV_Shutdown("Server quit\n", false);
 		CL.Shutdown();
 
 		if (Globals.logfile != null) {

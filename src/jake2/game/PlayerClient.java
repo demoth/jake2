@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.4 2004-02-01 23:31:37 rst Exp $
+// $Id: PlayerClient.java,v 1.5 2004-02-02 19:13:26 rst Exp $
 
 package jake2.game;
 
@@ -1199,7 +1199,7 @@ public class PlayerClient extends PlayerHud {
 
 		// check to see if they are on the banned IP list
 		value = Info.Info_ValueForKey(userinfo, "ip");
-		if (SV.SV_FilterPacket(value)) {
+		if (GameSVCmds.SV_FilterPacket(value)) {
 			userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Banned.");
 			return false;
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.7 2004-02-01 23:31:37 rst Exp $
+// $Id: SV_GAME.java,v 1.8 2004-02-02 19:13:26 rst Exp $
 
 package jake2.server;
 
@@ -54,7 +54,7 @@ public class SV_GAME extends SV_INIT
 
 		//p = NUM_FOR_EDICT(ent);
 		p = ent.s.number;
-		if (p < 1 || p > maxclients.value)
+		if (p < 1 || p > SV_MAIN.maxclients.value)
 			return;
 
 		client = SV_INIT.svs.clients[p - 1];
@@ -108,7 +108,7 @@ public class SV_GAME extends SV_INIT
 			
 			//n = NUM_FOR_EDICT(ent);
 			n = ent.s.number;
-			if (n < 1 || n > maxclients.value)
+			if (n < 1 || n > SV_MAIN.maxclients.value)
 				Com.Error (ERR_DROP, "cprintf to a non-client");
 		}
 	
@@ -139,7 +139,7 @@ public class SV_GAME extends SV_INIT
 		//TODO:  NUM_FOR_EDICT
 		//n = NUM_FOR_EDICT(ent);
 		n = ent.s.number;
-		if (n < 1 || n > maxclients.value)
+		if (n < 1 || n > SV_MAIN.maxclients.value)
 			return;	// Com_Error (ERR_DROP, "centerprintf to a non-client");
 	
 //		va_start (argptr,fmt);

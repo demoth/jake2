@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.15 2004-02-02 12:01:28 hoz Exp $
+ * $Id: CL_main.java,v 1.16 2004-02-02 19:13:26 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -395,7 +395,7 @@ public class CL_main extends CL_pred {
 		
 			if (Com.ServerState() != 0) {
 				// if running a local server, kill it and reissue
-				SV.Shutdown("Server quit\n", false);
+				SV_MAIN.SV_Shutdown("Server quit\n", false);
 			} else {
 				CL.Disconnect();
 			}
@@ -1672,7 +1672,7 @@ public class CL_main extends CL_pred {
 		Menu.Init();
 
 		SCR.Init();
-		Globals.cls.disable_screen = 1.0f; // don't draw yet
+		//Globals.cls.disable_screen = 1.0f; // don't draw yet
 
 		CL.InitLocal();
 		IN.Init();

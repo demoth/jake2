@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.14 2004-02-01 23:31:37 rst Exp $
+// $Id: GameBase.java,v 1.15 2004-02-02 19:13:26 rst Exp $
 
 /** Father of all Objects. */
 
@@ -218,7 +218,7 @@ public class GameBase extends Globals {
 	4 = dead stop
 	*/
 	public final static int MAX_CLIP_PLANES = 5;
-	public static float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
+
 	/*
 	=============
 	G_Find

@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.11 2004-02-01 00:35:00 rst Exp $
+ * $Id: SV.java,v 1.12 2004-02-02 19:13:26 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,15 +35,7 @@ import jake2.game.trace_t;
 /**
  * SV
  */
-public final class SV {
-	
-	/**
-	 * TODO implement SV.init()
-	 */
-
-	
-	public static void Shutdown(String finalmsg, boolean reconnect) {
-	}
+public final class SV {	
 
 	//file_io
 	//=====================================================================
@@ -1111,14 +1103,5 @@ public final class SV {
 				return false;
 		}
 		return true;
-	}
-
-	/**
-	 * @param value
-	 * @return boolean
-	 */
-	public static boolean SV_FilterPacket(String value) {
-		// TODO: do quake2 error handling!
-		return false;
 	}
 }

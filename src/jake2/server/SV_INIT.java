@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.11 2004-02-02 12:01:28 hoz Exp $
+// $Id: SV_INIT.java,v 1.12 2004-02-02 19:13:26 rst Exp $
 
 package jake2.server;
 
@@ -34,7 +34,7 @@ import jake2.render.*;
 import jake2.sys.NET;
 import jake2.util.Lib;
 
-public class SV_INIT extends Game {
+public class SV_INIT extends Globals  {
 
 	public static server_static_t svs = new server_static_t(); // persistant server info
 	public static server_t sv = new server_t(); // local server
@@ -69,7 +69,7 @@ public class SV_INIT extends Game {
 			MSG.WriteChar(sv.multicast, svc_configstring);
 			MSG.WriteShort(sv.multicast, start + i);
 			MSG.WriteString(sv.multicast, name);
-			SV_SEND.SV_Multicast(vec3_origin, MULTICAST_ALL_R);
+			SV_SEND.SV_Multicast(Game.vec3_origin, MULTICAST_ALL_R);
 		}
 
 		return i;
@@ -237,7 +237,7 @@ public class SV_INIT extends Game {
 		sv.name = server;
 
 		// leave slots at start for clients only
-		for (i = 0; i < maxclients.value; i++) {
+		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			// needs to reconnect
 			if (svs.clients[i].state > cs_connected)
 				svs.clients[i].state = cs_connected;
@@ -345,13 +345,13 @@ public class SV_INIT extends Game {
 
 		// init clients
 		if (Cvar.VariableValue("deathmatch")!=0) {
-			if (maxclients.value <= 1)
+			if (SV_MAIN.maxclients.value <= 1)
 				Cvar.FullSet("maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
-			else if (maxclients.value > MAX_CLIENTS)
+			else if (SV_MAIN.maxclients.value > MAX_CLIENTS)
 				Cvar.FullSet("maxclients", "" +  MAX_CLIENTS, CVAR_SERVERINFO | CVAR_LATCH);
 		}
 		else if (Cvar.VariableValue("coop")!=0) {
-			if (maxclients.value <= 1 || maxclients.value > 4)
+			if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
 				Cvar.FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 
 		}
@@ -362,16 +362,16 @@ public class SV_INIT extends Game {
 
 		svs.spawncount = rand();
 		//svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
-		svs.clients = new client_t[Math.max(16, (int) maxclients.value)];
+		svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
 		for (int n=0; n < svs.clients.length; n++)
 			svs.clients[n]= new client_t();
 		
-		svs.num_client_entities = ((int) maxclients.value) * UPDATE_BACKUP * 64;
+		svs.num_client_entities = ((int) SV_MAIN.maxclients.value) * UPDATE_BACKUP * 64;
 		//svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
 		svs.client_entities = new entity_state_t[svs.num_client_entities];
 
 		// init network stuff
-		NET.Config((maxclients.value > 1));
+		NET.Config((SV_MAIN.maxclients.value > 1));
 
 		// heartbeats will always be sent to the id master
 		svs.last_heartbeat = -99999; // send immediately
@@ -381,7 +381,7 @@ public class SV_INIT extends Game {
 		// init game
 		SV_GAME.SV_InitGameProgs();
 		
-		for (i = 0; i < maxclients.value; i++) {
+		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			ent = SV_GAME.ge.edicts[i + 1];
 			
 			ent.s.number = i + 1;

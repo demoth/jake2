@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.38 2004-01-30 18:44:32 cwei Exp $
+ * $Id: Globals.java,v 1.39 2004-02-02 19:13:26 rst Exp $
  * $Log: Globals.java,v $
- * Revision 1.38  2004-01-30 18:44:32  cwei
+ * Revision 1.39  2004-02-02 19:13:26  rst
+ * cosmetic
+ *
+ * Revision 1.38  2004/01/30 18:44:32  cwei
  * logfile
  *
  * Revision 1.37  2004/01/30 13:34:31  hoz
@@ -431,4 +434,6 @@ public class Globals extends Defines {
 	
 	// logfile
 	public static RandomAccessFile logfile = null;
+	
+	public static float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
 }

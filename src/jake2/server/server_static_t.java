@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_static_t.java,v 1.4 2004-02-01 23:31:37 rst Exp $
+// $Id: server_static_t.java,v 1.5 2004-02-02 19:13:26 rst Exp $
 
 package jake2.server;
 
@@ -36,13 +36,6 @@ import java.io.*;
 public class server_static_t {
 	public server_static_t()
 	{
-		int num = Math.max(16, (int) Game.maxclients.value);
-		Com.Printf("creating " + num + " clients in svc.\n");
-		clients =  new client_t[num];
-		for (int n=0; n < clients.length; n++)
-		{
-			clients[n] = new client_t();
-		}
 	}
 	
 	boolean	initialized;				// sv_init has completed
