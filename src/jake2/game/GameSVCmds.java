@@ -19,21 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.02.2004 by RST.
-// $Id: GameSVCmds.java,v 1.3 2004-02-06 18:38:20 rst Exp $
+// $Id: GameSVCmds.java,v 1.4 2004-06-29 13:35:03 cwei Exp $
 
 package jake2.game;
+
+import jake2.qcommon.Com;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.StringTokenizer;
-
-import com.sun.corba.se.internal.ior.ByteBuffer;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
 public class GameSVCmds extends GameSpawn {
 
