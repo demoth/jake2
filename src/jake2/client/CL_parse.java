@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.15 2004-02-11 19:56:27 cwei Exp $
+ * $Id: CL_parse.java,v 1.16 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -235,7 +235,7 @@ public class CL_parse extends CL_view {
 				fclose(cls.download);
 				cls.download = null;
 			}
-			CL_main.RequestNextDownload();
+			CL.RequestNextDownload();
 			return;
 		}
 
@@ -249,7 +249,7 @@ public class CL_parse extends CL_view {
 			if (cls.download == null) {
 				net_message.readcount += size;
 				Com.Printf("Failed to open " + cls.downloadtempname + "\n");
-				CL_main.RequestNextDownload();
+				CL.RequestNextDownload();
 				return;
 			}
 		}
@@ -290,7 +290,7 @@ public class CL_parse extends CL_view {
 
 			// get another file if needed
 
-			CL_main.RequestNextDownload();
+			CL.RequestNextDownload();
 		}
 	}
 
@@ -317,7 +317,7 @@ public class CL_parse extends CL_view {
 		//
 		//	   wipe the client_state_t struct
 		//
-		CL_main.ClearState();
+		CL.ClearState();
 		cls.state = ca_connected;
 
 		//	   parse protocol version number
@@ -800,6 +800,6 @@ public class CL_parse extends CL_view {
 		// after we have parsed the frame
 		//
 		if (cls.demorecording && !cls.demowaiting)
-				CL_main.WriteDemoMessage();
+				CL.WriteDemoMessage();
 	}
 }

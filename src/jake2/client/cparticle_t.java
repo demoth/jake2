@@ -2,7 +2,7 @@
  * cparticle_t.java
  * Copyright (C) 2003
  *
- * $Id: cparticle_t.java,v 1.1 2004-01-12 12:13:32 cwei Exp $
+ * $Id: cparticle_t.java,v 1.2 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,7 +40,7 @@ public class cparticle_t {
 	public float[] accel = {0, 0, 0}; // vec3_t
 
 	public float color;
-	public float colorvel;
+	//public float colorvel;
 	public float alpha;
 	public float alphavel;
 }

@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.11 2004-02-15 20:14:39 hoz Exp $
+ * $Id: CL_fx.java,v 1.12 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1902,7 +1902,7 @@ public class CL_fx extends CL_tent {
 			VectorClear (p.accel);
 
 			p.color = 0;
-			p.colorvel = 0;
+			//p.colorvel = 0;
 
 			p.alpha = 1;
 			p.alphavel = -100;
@@ -1995,7 +1995,7 @@ public class CL_fx extends CL_tent {
 			VectorSubtract(p.org, ent.origin, v);
 			dist = VectorLength(v) / 90.0f;
 			p.color = (float)Math.floor(0xd0 + dist * 7);
-			p.colorvel = 0;
+			//p.colorvel = 0;
 
 			p.alpha = 1.0f - dist;
 			p.alphavel = -100;

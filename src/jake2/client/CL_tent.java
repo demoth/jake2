@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.11 2004-02-14 10:10:42 hoz Exp $
+ * $Id: CL_tent.java,v 1.12 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1407,7 +1407,7 @@ public class CL_tent extends Globals {
 					oldframe = cl.frames[j];
 					
 					if (oldframe.serverframe != cl.frame.serverframe - 1 || !oldframe.valid)
-						oldframe = cl.frame.getClone(); // previous frame was dropped or involid
+						oldframe = cl.frame; // previous frame was dropped or involid
 						
 					ops = oldframe.playerstate;
 					for (j = 0; j < 3; j++) {

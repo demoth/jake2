@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.20 2004-02-15 18:01:27 rst Exp $
+ * $Id: Menu.java,v 1.21 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1364,7 +1364,7 @@ public final class Menu extends Key {
 		// the text box won't show up unless we do a buffer swap
 		re.EndFrame();
 
-		CL_main.Snd_Restart_f.execute();
+		CL.Snd_Restart_f.execute();
 	}
 
 	static String cd_music_items[] = { "disabled", "enabled", null };
@@ -2572,7 +2572,7 @@ public final class Menu extends Key {
 		re.EndFrame();
 
 		// send out info packets
-		CL_main.PingServers_f.execute();
+		CL.PingServers_f.execute();
 	}
 
 	static void SearchLocalGamesFunc(Object self) {

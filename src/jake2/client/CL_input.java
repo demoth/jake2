@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.23 2004-02-16 20:26:38 rst Exp $
+ * $Id: CL_input.java,v 1.24 2004-02-16 20:57:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -460,7 +460,7 @@ public class CL_input extends CL_ents {
 		Cmd.AddCommand("-klook", new xcommand_t() {
 			public void execute() {IN_KLookUp();}});
 
-		// TODO: nodelta wegmachen
+		// TODO nodelta
 		cl_nodelta = Cvar.Get("cl_nodelta", "1",0);
 	}
 

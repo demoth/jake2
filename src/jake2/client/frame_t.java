@@ -19,14 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.10 2004-02-15 21:50:02 cwei Exp $
+// $Id: frame_t.java,v 1.11 2004-02-16 20:57:39 hoz Exp $
 
 package jake2.client;
 
-import java.util.Arrays;
+import jake2.game.player_state_t;
 
-import jake2.game.*;
-import jake2.util.Lib;
+import java.util.Arrays;
 
 public class frame_t implements Cloneable {
 		
@@ -40,18 +39,15 @@ public class frame_t implements Cloneable {
 	public 		player_state_t playerstate = new player_state_t(); // mem
 	int				num_entities;
 	int				parse_entities;	// non-masked index into cl_parse_entities array
-	
-	public frame_t getClone()
-	{
-		frame_t out = null;		
-		try {
-			out = (frame_t) this.clone();
-			out.playerstate = playerstate.getClone();
-			out.areabits = Lib.clone(areabits);
-		}
-		catch (CloneNotSupportedException e) {
-		}
-		return out;
+		
+	public void set(frame_t from) {
+		valid = from.valid;
+		serverframe = from.serverframe;
+		deltaframe = from.deltaframe;
+		num_entities = from.num_entities;
+		parse_entities = from.parse_entities;
+		System.arraycopy(from.areabits, 0, areabits, 0, areabits.length);
+		playerstate.set(from.playerstate);
 	}
 	
 	public void reset()
@@ -59,7 +55,7 @@ public class frame_t implements Cloneable {
 		valid = false;
 		serverframe = servertime = deltaframe = 0;
 		Arrays.fill(areabits, (byte)0);
-		playerstate = new player_state_t();
+		playerstate.clear();
 		num_entities = parse_entities = 0;
 	}	
 }

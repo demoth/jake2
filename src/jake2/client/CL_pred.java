@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.12 2004-02-16 20:26:38 rst Exp $
+ * $Id: CL_pred.java,v 1.13 2004-02-16 20:57:38 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -191,24 +191,16 @@ public class CL_pred extends CL_parse
 	
 	static edict_t DUMMY_ENT = new edict_t(-1);
 	
-	static trace_t PMTrace(
-		float[] start,
-		float[] mins,
-		float[] maxs,
-		float[] end)
-	{
+	static trace_t PMTrace(float[] start, float[] mins, float[] maxs, float[] end) {
 		trace_t t;
 
 		// check against world
 		t = CM.BoxTrace(start, end, mins, maxs, 0, MASK_PLAYERSOLID);
 
-		if (t.fraction < 1.0f)
-		{
-			// TODO: N O N S E N S E !!!
-			t.ent = DUMMY_ENT;		
-			//Com.Printf("Player collision ent:" + t.ent + "\n");
+		if (t.fraction < 1.0f) {
+			t.ent = DUMMY_ENT;
 		}
-			
+
 		// check all other solid models
 		CL.ClipMoveToEntities(start, mins, maxs, end, t);
 
