@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.36 2004-06-06 21:57:31 cwei Exp $
+ * $Id: Main.java,v 1.37 2004-06-06 23:24:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -486,7 +486,7 @@ public abstract class Main extends Base {
 	** GL_DrawParticles
 	**
 	*/
-	void GL_DrawParticles(int num_particles, particle_t[] particles) {
+	void GL_DrawParticles(int num_particles) {
 		float[] up = { 0, 0, 0 };
 		float[] right = { 0, 0, 0 };
 		float scale;
@@ -552,31 +552,6 @@ public abstract class Main extends Base {
 	void R_DrawParticles() {
 
 		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
-//			int color;
-//			particle_t p;
-//			float[] origin; 
-//
-//			gl.glDepthMask(false);
-//			gl.glEnable(GL.GL_BLEND);
-//			gl.glDisable(GL.GL_TEXTURE_2D);
-//
-//			gl.glPointSize(gl_particle_size.value);
-
-//			gl.glBegin(GL.GL_POINTS);
-//			for (int i = 0; i < r_newrefdef.num_particles; i++) {
-//				p = r_newrefdef.particles[i];
-//				color = d_8to24table[p.color];
-//				origin = p.origin;
-//
-//				gl.glColor4ub(
-//					(byte) ((color >> 0) & 0xff),
-//					(byte) ((color >> 8) & 0xff),
-//					(byte) ((color >> 16) & 0xff),
-//					(byte) (p.alpha * 255));
-//
-//				gl.glVertex3f(origin[0], origin[1], origin[2]);
-//			}
-//			gl.glEnd();
 
 			gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 			gl.glVertexPointer(3, GL.GL_FLOAT, 0, particle_t.vertexArray);
@@ -600,7 +575,7 @@ public abstract class Main extends Base {
 
 		}
 		else {
-			GL_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles);
+			GL_DrawParticles(r_newrefdef.num_particles);
 		}
 	}
 

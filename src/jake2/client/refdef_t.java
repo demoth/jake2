@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: refdef_t.java,v 1.3 2003-12-29 18:32:31 cwei Exp $
+// $Id: refdef_t.java,v 1.4 2004-06-06 23:24:45 cwei Exp $
 
 package jake2.client;
 
@@ -43,5 +43,5 @@ public class refdef_t {
 	public dlight_t	dlights[];
 
 	public int		num_particles;
-	public particle_t	particles[];
+	//public particle_t	particles[];
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: particle_t.java,v 1.4 2004-06-06 21:59:11 cwei Exp $
+// $Id: particle_t.java,v 1.5 2004-06-06 23:24:45 cwei Exp $
 
 package jake2.client;
 
@@ -34,7 +34,7 @@ public class particle_t {
 	
 	public static FloatBuffer vertexArray = BufferUtils.newFloatBuffer(Defines.MAX_PARTICLES * 3);
 	public static IntBuffer colorArray = BufferUtils.newIntBuffer(Defines.MAX_PARTICLES);
-	static int[] colorTable = new int[256];
+	public static int[] colorTable = new int[256];
 	
 	public static void setColorPalette(int[] palette) {
 		for (int i=0; i < 256; i++) {

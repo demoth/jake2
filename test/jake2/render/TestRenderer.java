@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.28 2004-03-19 09:22:53 cwei Exp $
+ * $Id: TestRenderer.java,v 1.29 2004-06-06 23:24:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import java.awt.Dimension;
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -441,7 +442,6 @@ public class TestRenderer {
 		re.RenderFrame(refdef);
 	}
 	
-	private Vector particles = new Vector(1024); // = new particle_t[20];
 	private LinkedList active_particles = new LinkedList();
 	private boolean explode = false; 
 	private float[] target; 
@@ -450,7 +450,7 @@ public class TestRenderer {
 	
 	private void testParticles() {
 		
-		particles.clear();
+		r_numparticles = 0;
 		
 		if (active_particles.size() == 0) {
 			if (explode)
@@ -474,14 +474,9 @@ public class TestRenderer {
 		
 		animateParticles();
 		
-		drawString(refdef.x, refdef.y - 20, "active particles: " + particles.size());
+		drawString(refdef.x, refdef.y - 20, "active particles: " + r_numparticles);
 		
-		particle_t[] tmp = new particle_t[particles.size()];
-		
-		particles.toArray(tmp);
-		
-		refdef.particles = tmp;
-		refdef.num_particles = tmp.length;
+		refdef.num_particles = r_numparticles;
 		
 		refdef.areabits = null;
 		refdef.num_entities = 0;
@@ -604,7 +599,6 @@ public class TestRenderer {
 		float	time, time2;
 		float[] org = {0, 0, 0};
 		int color;
-		particle_t particle;
 		
 		time = 0.0f;
 
@@ -637,13 +631,8 @@ public class TestRenderer {
 			org[0] = p.org[0] + p.vel[0]*time + p.accel[0]*time2;
 			org[1] = p.org[1] + p.vel[1]*time + p.accel[1]*time2;
 			org[2] = p.org[2] + p.vel[2]*time + p.accel[2]*time2;
-
-			particle = new particle_t();
-			particle.alpha = alpha;
-			Math3D.VectorCopy(org, particle.origin);
-			particle.color = color;
 			
-			particles.add(particle);
+			AddParticle(org, color, alpha);
 			 
 			// PMM
 			if (p.alphavel == INSTANT_PARTICLE)
@@ -830,5 +819,28 @@ public class TestRenderer {
 			testnr = testnr % 3;
 		}
 	};
+	
+	int r_numparticles = 0;
+	/*
+	=====================
+	V_AddParticle
 
+	=====================
+	*/
+	void AddParticle(float[] org, int color, float alpha) {
+		if (r_numparticles >= Defines.MAX_PARTICLES)
+			return;
+
+		int i = r_numparticles++;
+
+		int c = particle_t.colorTable[color];
+		c |= (int)(alpha * 255) << 24;
+		particle_t.colorArray.put(i, c);
+		
+		i *= 3;
+		FloatBuffer vertexBuf = particle_t.vertexArray;
+		vertexBuf.put(i++, org[0]);
+		vertexBuf.put(i++, org[1]);
+		vertexBuf.put(i++, org[2]);
+	}
 }

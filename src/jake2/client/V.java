@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.15 2004-06-06 21:59:11 cwei Exp $
+ * $Id: V.java,v 1.16 2004-06-06 23:24:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,7 +57,7 @@ public final class V extends Globals {
 	static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
  
 	static int r_numparticles;
-	static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
+	//static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
 	
 	static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
 	static {
@@ -65,8 +65,6 @@ public final class V extends Globals {
 			r_dlights[i] = new dlight_t();
 		for (int i = 0; i < r_entities.length; i++)
 			r_entities[i] = new entity_t();
-		for (int i = 0; i < r_particles.length; i++)
-			r_particles[i] = new particle_t();
 		for (int i = 0; i < r_lightstyles.length; i++)
 			r_lightstyles[i] = new lightstyle_t();						
 	}
@@ -363,7 +361,6 @@ public final class V extends Globals {
 			cl.refdef.num_entities = r_numentities;
 			cl.refdef.entities = r_entities;
 			cl.refdef.num_particles = r_numparticles;
-			cl.refdef.particles = r_particles;
 			cl.refdef.num_dlights = r_numdlights;
 			cl.refdef.dlights = r_dlights;
 			cl.refdef.lightstyles = r_lightstyles;

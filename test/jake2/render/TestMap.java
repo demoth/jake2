@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.17 2004-05-04 09:30:16 hoz Exp $
+ * $Id: TestMap.java,v 1.18 2004-06-06 23:24:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,6 +36,7 @@ import jake2.sys.KBD;
 import jake2.util.*;
 
 import java.awt.Dimension;
+import java.nio.FloatBuffer;
 import java.util.*;
 
 /**
@@ -177,7 +178,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.17 2004-05-04 09:30:16 hoz Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.18 2004-06-06 23:24:45 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -246,8 +247,8 @@ public class TestMap
 				break;
 			case 1 :
 				// register the map
-				re.SetSky("space1", 0, new float[]{ 0, 0, 0 });
 				re.BeginRegistration("base1");
+				re.SetSky("space1", 0, new float[]{ 0, 0, 0 });
 				re.EndRegistration();
 				currentState = 2;
 				//break;
@@ -431,7 +432,7 @@ public class TestMap
 		refdef.time = time() * 0.001f;
 
 		// particle init
-		particles.clear();
+		r_numparticles = 0;
 		
 		// check the enemy distance
 		float[] diff = {0, 0, 0};
@@ -451,11 +452,7 @@ public class TestMap
 				// particles
 				animateParticles();
 
-				particle_t[] tmp = new particle_t[particles.size()];
-				particles.toArray(tmp);
-
-				refdef.particles = tmp;
-				refdef.num_particles = tmp.length;
+				refdef.num_particles = r_numparticles;
 			}
 			else {
 				ent.frame = 0;
@@ -463,10 +460,11 @@ public class TestMap
 			}
 		}
 		
+		refdef.num_dlights = 0;
+		
 		re.RenderFrame(refdef);
 	}
 	
-	private Vector particles = new Vector(1024); // = new particle_t[20];
 	private LinkedList active_particles = new LinkedList();
 	private boolean explode = false; 
 	private float[] target; 
@@ -480,8 +478,7 @@ public class TestMap
 		float	time, time2;
 		float[] org = {0, 0, 0};
 		int color;
-		particle_t particle;
-		
+
 		time = 0.0f;
 
 		for (Iterator it = active_particles.iterator(); it.hasNext();)
@@ -514,13 +511,8 @@ public class TestMap
 			org[1] = p.org[1] + p.vel[1]*time + p.accel[1]*time2;
 			org[2] = p.org[2] + p.vel[2]*time + p.accel[2]*time2;
 
-			particle = new particle_t();
-			particle.alpha = alpha;
-			Math3D.VectorCopy(org, particle.origin);
-			particle.color = color;
-			
-			particles.add(particle);
-			 
+			AddParticle(org, color, alpha);
+
 			// PMM
 			if (p.alphavel == INSTANT_PARTICLE)
 			{
@@ -625,4 +617,28 @@ public class TestMap
 			IN.toggleMouse();
 		}
 	};
+	
+	int r_numparticles = 0;
+	/*
+	=====================
+	V_AddParticle
+
+	=====================
+	*/
+	void AddParticle(float[] org, int color, float alpha) {
+		if (r_numparticles >= Defines.MAX_PARTICLES)
+			return;
+
+		int i = r_numparticles++;
+
+		int c = particle_t.colorTable[color];
+		c |= (int)(alpha * 255) << 24;
+		particle_t.colorArray.put(i, c);
+		
+		i *= 3;
+		FloatBuffer vertexBuf = particle_t.vertexArray;
+		vertexBuf.put(i++, org[0]);
+		vertexBuf.put(i++, org[1]);
+		vertexBuf.put(i++, org[2]);
+	}
 }
