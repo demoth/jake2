@@ -108,12 +108,12 @@
 		
 	<!-- jar -->
 	<target name="jar" depends="compile,copyres">
-		<jar destfile="${dist}/lib/jake.jar" basedir="${build}">
+		<jar destfile="jake2.jar" basedir="${build}">
 			<include name="**"/>
 		</jar>
 		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
-			<injar name="${dist}/lib/jake.jar"/>
+			<injar name="jake2.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
 			<libraryjar name="lib/joal/linux/joal.jar"/>
 			<libraryjar name="${java.home}/lib/rt.jar"/>
@@ -121,7 +121,6 @@
 				<method name="main(java.lang.String[])"/>
 			</keep>
 		</proguard>
-		<delete file="${dist}/lib/jake.jar"/>		
 	</target>
 				
 	<!-- everything -->
@@ -227,6 +226,7 @@
 				<include name="*.tar.gz"/>
 				<include name="*.zip"/>
 				<include name="*.map"/>
+				<include name="*.jar"/>
 			</fileset>
 		</delete>
 	</target>
