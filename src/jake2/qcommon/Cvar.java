@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.29 2004-02-06 15:11:57 hoz Exp $
+ * $Id: Cvar.java,v 1.30 2004-02-06 21:45:17 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -390,15 +390,21 @@ public class Cvar extends Globals {
 		RandomAccessFile f;
 		String buffer;
 
-		f = Lib.fopen(path, "a");
+		f = Lib.fopen(path, "rw");
 		if (f == null)
 			return;
 
+		try {
+			f.seek(f.length());
+		} catch (IOException e1) {
+			fclose(f);
+			return;
+		}
 		for (var = cvar_vars; var != null; var = var.next) {
 			if ((var.flags & CVAR_ARCHIVE) != 0) {
 				buffer = "set " + var.name + "\"" + var.string + "\"\n";
 				try {
-					f.writeChars(buffer);
+					f.writeBytes(buffer);
 				}
 				catch (IOException e) {
 				}

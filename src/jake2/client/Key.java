@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.22 2004-02-01 21:31:20 hoz Exp $
+ * $Id: Key.java,v 1.23 2004-02-06 21:45:17 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -805,7 +805,7 @@ public class Key extends Globals {
 		for (int i = 0; i < 256; i++)
 			if (keybindings[i] != null && keybindings[i].length() > 0)
 				try {
-					f.writeChars("bind " + KeynumToString(i) + " \"" + keybindings[i] + "\"\n");
+					f.writeBytes("bind " + KeynumToString(i) + " \"" + keybindings[i] + "\"\n");
 				} catch (IOException e) {}
 	}
 

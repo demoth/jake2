@@ -1,9 +1,12 @@
 ***************************************
 * * *   B U G   D A T A B A S E   * * *
 ***************************************
-$Id: bugdatabase.txt,v 1.3 2004-02-06 18:43:32 rst Exp $
+$Id: bugdatabase.txt,v 1.4 2004-02-06 21:45:17 hoz Exp $
 $Log: bugdatabase.txt,v $
-Revision 1.3  2004-02-06 18:43:32  rst
+Revision 1.4  2004-02-06 21:45:17  hoz
+- configfiles mit writeBytes() schreiben
+
+Revision 1.3  2004/02/06 18:43:32  rst
 *** empty log message ***
 
 
@@ -22,3 +25,4 @@ GameUtil.DoRespawn: for (count = 0, ent = master; ent != null; ent = ent.chain, 
 
 found by hoz:
 -------------
+writeBytes() benutzen um ascii zu schreiben, writeChars() erzeugt Unicode 
