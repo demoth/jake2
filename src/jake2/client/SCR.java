@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.28 2004-02-11 05:11:54 cwei Exp $
+ * $Id: SCR.java,v 1.29 2004-02-11 15:06:20 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1232,7 +1232,7 @@ public final class SCR extends Globals {
 		int numframes;
 		int i;
 		float[] separation = { 0, 0 };
-
+		
 		// if the screen is disabled (loading plaque is up, or vid mode changing)
 		// do nothing at all
 		if (cls.disable_screen != 0)
@@ -1330,10 +1330,10 @@ public final class SCR extends Globals {
 
 				DrawStats();
 				// TODO impl this
-//				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
-//					DrawLayout();
-//				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
-//					CL.DrawInventory();
+				if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) != 0)
+					DrawLayout();
+				if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) != 0)
+					CL.DrawInventory();
 
 				DrawNet();
 				CheckDrawCenterString();
