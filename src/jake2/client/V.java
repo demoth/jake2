@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.12 2004-02-11 05:14:01 cwei Exp $
+ * $Id: V.java,v 1.13 2004-02-14 19:33:51 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -89,7 +89,7 @@ public final class V extends Globals {
 	static void AddEntity(entity_t ent) {
 		if (r_numentities >= MAX_ENTITIES)
 			return;
-		r_entities[r_numentities++] = ent;
+		r_entities[r_numentities++].set(ent);
 	}
 
 	/*
