@@ -1,8 +1,8 @@
 /*
- * Jake2.java
- * Copyright (C)  2003
+ * Cbuf.java
+ * Copyright (C) 2003
  * 
- * $Id: Jake2.java,v 1.2 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Cbuf.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,38 +23,43 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2;
-
-import jake2.qcommon.*;
+package jake2.qcommon;
 
 /**
- * Jake2 is the main class of Quake2 for Java.
+ * Cbuf
+ * TODO complete Cbuf interface
  */
-public final class Jake2 {
+public final class Cbuf {
 
 	/**
-	 * main is used to start the game. Quake2 for Java supports the 
-     * following command line arguments:
-	 * @param args
+	 * 
 	 */
-	public static void main(String[] args) {
+	public static void Init() {
+//		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
+	}
 
-		Qcommon.Init(args);
-		
-		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
-		
-
-		long oldtime = System.currentTimeMillis() ;
-		long newtime;
-		long time;
-		while(true) {
-			// find time spending rendering last frame
-			newtime = System.currentTimeMillis();
-			time = newtime - oldtime;
-
-			if (time > 0) Qcommon.Frame(time);
-			oldtime = newtime;
-		}
-
+	/**
+	 * @param clear
+	 */
+	static void AddEarlyCommands(boolean clear) {
+	}
+	
+	/**
+	 * @return
+	 */
+	static boolean addLateCommands() {
+		return true;
+	}
+	
+	/**
+	 * @param text
+	 */
+	static void addText(String text) {
+	}
+	
+	/**
+	 * 
+	 */
+	static void Execute() {
 	}
 }
