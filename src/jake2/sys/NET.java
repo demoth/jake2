@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.17 2004-02-10 20:05:10 cwei Exp $
+ * $Id: NET.java,v 1.18 2004-02-13 16:22:07 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -250,15 +250,18 @@ public final class NET extends Defines {
 		}
 		try
 		{
-			InetAddress ia = InetAddress.getByName(s);
+			String[] address = s.split(":");
+			InetAddress ia = InetAddress.getByName(address[0]);
 			a.ip = ia.getAddress();
 			a.type= NA_IP;
+			if (address.length == 2) a.port = Integer.parseInt(address[1]); 
 			return true;
 		}
 		catch
 		(
 			Exception e)
 		{
+			e.printStackTrace();
 			return false;
 		}		
 	}
