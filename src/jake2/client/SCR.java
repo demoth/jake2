@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.17 2004-01-30 11:25:50 cwei Exp $
+ * $Id: SCR.java,v 1.18 2004-01-30 17:00:48 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -488,14 +488,14 @@ public final class SCR extends Globals {
 	*/
 	static void DrawLoading()
 	{
-//		int		w, h;
-//		
-//		if (!scr_draw_loading)
-//			return;
-//
-//		scr_draw_loading = false;
-//		re.DrawGetPicSize (&w, &h, "loading");
-//		re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
+		Dimension dim = new Dimension();
+		
+		if (scr_draw_loading == 0)
+			return;
+
+		scr_draw_loading = 0;
+		re.DrawGetPicSize(dim, "loading");
+		re.DrawPic ((viddef.width - dim.width)/2, (viddef.height - dim.height)/2, "loading");
 	}
 
 // =============================================================================
@@ -509,25 +509,24 @@ public final class SCR extends Globals {
 	*/
 	static void RunConsole() {
 		// decide on the height of the console
-//		if (cls.key_dest == key_console)
-//			scr_conlines = 0.5;		// half screen
-//		else
-//			scr_conlines = 0;				// none visible
-//	
-//		if (scr_conlines < scr_con_current)
-//		{
-//			scr_con_current -= scr_conspeed->value*cls.frametime;
-//			if (scr_conlines > scr_con_current)
-//				scr_con_current = scr_conlines;
-//
-//		}
-//		else if (scr_conlines > scr_con_current)
-//		{
-//			scr_con_current += scr_conspeed->value*cls.frametime;
-//			if (scr_conlines < scr_con_current)
-//				scr_con_current = scr_conlines;
-//		}
-//
+		if (cls.key_dest == key_console)
+			scr_conlines = 0.5f;		// half screen
+		else
+			scr_conlines = 0;				// none visible
+	
+		if (scr_conlines < scr_con_current)
+		{
+			scr_con_current -= scr_conspeed.value*cls.frametime;
+			if (scr_conlines > scr_con_current)
+				scr_con_current = scr_conlines;
+
+		}
+		else if (scr_conlines > scr_con_current)
+		{
+			scr_con_current += scr_conspeed.value*cls.frametime;
+			if (scr_conlines < scr_con_current)
+				scr_con_current = scr_conlines;
+		}
 	}
 
 	/*
@@ -537,30 +536,30 @@ public final class SCR extends Globals {
 	*/
 	static void DrawConsole()
 	{
-//		Con_CheckResize ();
-//	
-//		if (cls.state == ca_disconnected || cls.state == ca_connecting)
-//		{	// forced full screen console
-//			Con_DrawConsole (1.0);
-//			return;
-//		}
-//
-//		if (cls.state != ca_active || !cl.refresh_prepped)
-//		{	// connected, but can't render
-//			Con_DrawConsole (0.5);
-//			re.DrawFill (0, viddef.height/2, viddef.width, viddef.height/2, 0);
-//			return;
-//		}
-//
-//		if (scr_con_current)
-//		{
-//			Con_DrawConsole (scr_con_current);
-//		}
-//		else
-//		{
-//			if (cls.key_dest == key_game || cls.key_dest == key_message)
-//				Con_DrawNotify ();	// only draw notify in game
-//		}
+		Console.CheckResize();
+	
+		if (cls.state == ca_disconnected || cls.state == ca_connecting)
+		{	// forced full screen console
+			Console.DrawConsole(1.0f);
+			return;
+		}
+
+		if (cls.state != ca_active || !cl.refresh_prepped)
+		{	// connected, but can't render
+			Console.DrawConsole(0.5f);
+			re.DrawFill (0, viddef.height/2, viddef.width, viddef.height/2, 0);
+			return;
+		}
+
+		if (scr_con_current != 0)
+		{
+			Console.DrawConsole(scr_con_current);
+		}
+		else
+		{
+			if (cls.key_dest == key_game || cls.key_dest == key_message)
+			Console.DrawNotify();	// only draw notify in game
+		}
 	}
 
 // =============================================================================
