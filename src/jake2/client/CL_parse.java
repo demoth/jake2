@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.7 2004-02-01 11:01:48 hoz Exp $
+ * $Id: CL_parse.java,v 1.8 2004-02-04 14:33:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -561,7 +561,7 @@ public class CL_parse extends CL_view {
 		}
 		else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_MODELS) {
 			if (cl.refresh_prepped)
-				cl.sound_precache[i - CS_SOUNDS] = SND_DMA.S_RegisterSound(cl.configstrings[i]);
+				cl.sound_precache[i - CS_SOUNDS] = SND_DMA.RegisterSound(cl.configstrings[i]);
 		}
 		else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_MODELS) {
 			if (cl.refresh_prepped)
@@ -638,7 +638,7 @@ public class CL_parse extends CL_view {
 		if (null==cl.sound_precache[sound_num])
 			return;
 
-		SND_DMA.S_StartSound(pos, ent, channel, cl.sound_precache[sound_num], volume, attenuation, ofs);
+		SND_DMA.StartSound(pos, ent, channel, cl.sound_precache[sound_num], volume, attenuation, ofs);
 	}
 
 	public static void SHOWNET(String s) {

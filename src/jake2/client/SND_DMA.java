@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.01.2004 by RST.
-// $Id: SND_DMA.java,v 1.3 2004-01-31 16:56:11 rst Exp $
+// $Id: SND_DMA.java,v 1.4 2004-02-04 14:33:57 hoz Exp $
 
 package jake2.client;
 
@@ -1110,12 +1110,12 @@ public class SND_DMA {
 //		S_Update_();
 	}
 
-	public static sfx_t S_RegisterSound(String string) {
+	public static sfx_t RegisterSound(String string) {
 		// TODO:implement!
 		return null;
 	}
 
-	public static void S_StartSound(float[] pos, int ent, int channel, sfx_t sfx_t, float volume, float attenuation, float ofs) {
+	public static void StartSound(float[] pos, int ent, int channel, sfx_t sfx_t, float volume, float attenuation, float ofs) {
 		// TODO:implement!
 		
 	}
