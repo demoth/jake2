@@ -6,16 +6,17 @@
  */
 package jake2.qcommon;
 
+import jake2.Defines;
 /**
  * @author rst
  */
 public class TestMSG extends MSG {
 	public static void main(String[] args) {
 	
-		byte buf_data[] = new byte[MAX_MSGLEN];
+		byte buf_data[] = new byte[Defines.MAX_MSGLEN];
 		sizebuf_t buf = new sizebuf_t();	
 		
-		SZ.Init(buf, buf_data, MAX_MSGLEN);
+		SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 		
 		MSG.WriteInt(buf, 0x80000000);
 		MSG.WriteInt(buf, 0x12345678);
@@ -57,8 +58,7 @@ public class TestMSG extends MSG {
 		
 		System.out.println("Read:" + MSG.ReadShort(buf));
 		System.out.println("Read:" + MSG.ReadShort(buf));
-		System.out.println("Read:" + MSG.ReadShort(buf));
-		
+		System.out.println("Read:" + MSG.ReadShort(buf));		
 
 		System.out.println("Read:" + MSG.ReadFloat(buf));
 	}

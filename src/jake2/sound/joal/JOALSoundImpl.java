@@ -2,13 +2,14 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.4 2004-09-19 09:12:20 hzi Exp $
+ * $Id: JOALSoundImpl.java,v 1.5 2004-09-22 19:22:15 salomo Exp $
  */
 package jake2.sound.joal;
 
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.client.CL_ents;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sound.*;
@@ -357,7 +358,7 @@ public final class JOALSoundImpl implements Sound {
 				changeEnv = true;
 			}
 
-			if ((Game.gi.pointcontents.pointcontents(origin)& Defines.MASK_WATER)!= 0) {
+			if ((GameBase.gi.pointcontents.pointcontents(origin)& Defines.MASK_WATER)!= 0) {
 				changeEnv = currentEnv != EAX.EAX_ENVIRONMENT_UNDERWATER;
 				currentEnv = EAX.EAX_ENVIRONMENT_UNDERWATER;
 			} else {
@@ -483,7 +484,7 @@ public final class JOALSoundImpl implements Sound {
 						Math3D.VectorCopy(listenerOrigin, sourceOrigin);
 						break;
 					case Channel.DYNAMIC:
-						CL.GetEntitySoundOrigin(ch.entity, entityOrigin);
+						CL_ents.GetEntitySoundOrigin(ch.entity, entityOrigin);
 						convertVector(entityOrigin, sourceOrigin);
 						break;
 					case Channel.FIXED:

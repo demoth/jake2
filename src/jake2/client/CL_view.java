@@ -1,174 +1,190 @@
 /*
- * CL_view.java
- * Copyright (C) 2004
+ * CL_view.java Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.3 2004-07-09 06:50:50 hzi Exp $
+ * $Id: CL_view.java,v 1.4 2004-09-22 19:22:07 salomo Exp $
  */
 /*
-Copyright (C) 1997-2001 Id Software, Inc.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+ * Copyright (C) 1997-2001 Id Software, Inc.
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.
+ * 
+ * See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  
+ */
 package jake2.client;
 
+import jake2.Defines;
+import jake2.Globals;
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
 import jake2.sys.Sys;
 
 import java.util.StringTokenizer;
 
-public class CL_view extends CL_input {
-	
-	static int num_cl_weaponmodels;
-	static String[] cl_weaponmodels = new String[MAX_CLIENTWEAPONMODELS];
+public class CL_view {
 
+    static int num_cl_weaponmodels;
 
-	/*
-	=================
-	CL_PrepRefresh
+    static String[] cl_weaponmodels = new String[Defines.MAX_CLIENTWEAPONMODELS];
 
-	Call before entering a new level, or after changing dlls
-	=================
-	*/
-	static void PrepRefresh() {
-		String mapname;
-		int i;
-		String name;
-		float rotate;
-		float[] axis = new float[3];
+    /*
+     * =================
+     * 
+     * CL_PrepRefresh
+     * 
+     * Call before entering a new level, or after changing dlls
+     * =================
+     */
+    static void PrepRefresh() {
+        String mapname;
+        int i;
+        String name;
+        float rotate;
+        float[] axis = new float[3];
 
-		if ((i=cl.configstrings[CS_MODELS+1].length()) == 0)
-			return;		// no map loaded
+        if ((i = Globals.cl.configstrings[Defines.CS_MODELS + 1].length()) == 0)
+            return; // no map loaded
 
-		SCR.AddDirtyPoint(0, 0);
-		SCR.AddDirtyPoint(viddef.width-1, viddef.height-1);
+        SCR.AddDirtyPoint(0, 0);
+        SCR.AddDirtyPoint(Globals.viddef.width - 1, Globals.viddef.height - 1);
 
-		// let the render dll load the map
-		mapname = cl.configstrings[CS_MODELS+1].substring(5, i - 4);	// skip "maps/"
-																		// cut off ".bsp"
+        // let the render dll load the map
+        mapname = Globals.cl.configstrings[Defines.CS_MODELS + 1].substring(5,
+                i - 4); // skip "maps/"
+        // cut off ".bsp"
 
-		// register models, pics, and skins
-		Com.Printf("Map: " + mapname + "\r"); 
-		SCR.UpdateScreen();
-		re.BeginRegistration(mapname);
-		Com.Printf("                                     \r");
+        // register models, pics, and skins
+        Com.Printf("Map: " + mapname + "\r");
+        SCR.UpdateScreen();
+        Globals.re.BeginRegistration(mapname);
+        Com.Printf("                                     \r");
 
-		// precache status bar pics
-		Com.Printf("pics\r"); 
-		SCR.UpdateScreen();
-		SCR.TouchPics();
-		Com.Printf("                                     \r");
+        // precache status bar pics
+        Com.Printf("pics\r");
+        SCR.UpdateScreen();
+        SCR.TouchPics();
+        Com.Printf("                                     \r");
 
-		CL.RegisterTEntModels();
+        CL_tent.RegisterTEntModels();
 
-		num_cl_weaponmodels = 1;
-		cl_weaponmodels[0] = "weapon.md2";
+        num_cl_weaponmodels = 1;
+        cl_weaponmodels[0] = "weapon.md2";
 
-		for (i=1 ; i<MAX_MODELS && cl.configstrings[CS_MODELS+i].length() != 0 ; i++) {
-			name = new String(cl.configstrings[CS_MODELS+i]);
-			if (name.length() > 37) name = name.substring(0, 36);
+        for (i = 1; i < Defines.MAX_MODELS
+                && Globals.cl.configstrings[Defines.CS_MODELS + i].length() != 0; i++) {
+            name = new String(Globals.cl.configstrings[Defines.CS_MODELS + i]);
+            if (name.length() > 37)
+                name = name.substring(0, 36);
 
-			
-			if (name.charAt(0) != '*')
-				Com.Printf(name + "\r");
-				
-			SCR.UpdateScreen();
-			Sys.SendKeyEvents();	// pump message loop
-			if (name.charAt(0) == '#') {
-				// special player weapon model
-				if (num_cl_weaponmodels < MAX_CLIENTWEAPONMODELS) {
-					cl_weaponmodels[num_cl_weaponmodels] = cl.configstrings[CS_MODELS+i].substring(1);
-					num_cl_weaponmodels++;
-				}
-			} else {				
-				cl.model_draw[i] = re.RegisterModel(cl.configstrings[CS_MODELS+i]);
-				if (name.charAt(0) == '*')
-					cl.model_clip[i] = CM.InlineModel(cl.configstrings[CS_MODELS+i]);
-				else
-					cl.model_clip[i] = null;
-			}
-			if (name.charAt(0) != '*')
-				Com.Printf("                                     \r");
-		}
+            if (name.charAt(0) != '*')
+                Com.Printf(name + "\r");
 
-		Com.Printf("images\r"); 
-		SCR.UpdateScreen();
-		for (i=1 ; i<MAX_IMAGES && cl.configstrings[CS_IMAGES+i].length() > 0 ; i++) {
-			cl.image_precache[i] = re.RegisterPic(cl.configstrings[CS_IMAGES+i]);
-			Sys.SendKeyEvents();	// pump message loop
-		}
+            SCR.UpdateScreen();
+            Sys.SendKeyEvents(); // pump message loop
+            if (name.charAt(0) == '#') {
+                // special player weapon model
+                if (num_cl_weaponmodels < Defines.MAX_CLIENTWEAPONMODELS) {
+                    cl_weaponmodels[num_cl_weaponmodels] = Globals.cl.configstrings[Defines.CS_MODELS
+                            + i].substring(1);
+                    num_cl_weaponmodels++;
+                }
+            } else {
+                Globals.cl.model_draw[i] = Globals.re
+                        .RegisterModel(Globals.cl.configstrings[Defines.CS_MODELS
+                                + i]);
+                if (name.charAt(0) == '*')
+                    Globals.cl.model_clip[i] = CM
+                            .InlineModel(Globals.cl.configstrings[Defines.CS_MODELS
+                                    + i]);
+                else
+                    Globals.cl.model_clip[i] = null;
+            }
+            if (name.charAt(0) != '*')
+                Com.Printf("                                     \r");
+        }
 
-		Com.Printf("                                     \r");
-		for (i=0 ; i<MAX_CLIENTS ; i++) {
-			if (cl.configstrings[CS_PLAYERSKINS+i].length() == 0)
-				continue;
-			Com.Printf("client " + i + '\r');
-			SCR.UpdateScreen();
-			Sys.SendKeyEvents();	// pump message loop
-			CL.ParseClientinfo(i);
-			Com.Printf("                                     \r");
-		}
+        Com.Printf("images\r");
+        SCR.UpdateScreen();
+        for (i = 1; i < Defines.MAX_IMAGES
+                && Globals.cl.configstrings[Defines.CS_IMAGES + i].length() > 0; i++) {
+            Globals.cl.image_precache[i] = Globals.re
+                    .RegisterPic(Globals.cl.configstrings[Defines.CS_IMAGES + i]);
+            Sys.SendKeyEvents(); // pump message loop
+        }
 
-		CL_parse.LoadClientinfo(cl.baseclientinfo, "unnamed\\male/grunt");
+        Com.Printf("                                     \r");
+        for (i = 0; i < Defines.MAX_CLIENTS; i++) {
+            if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].length() == 0)
+                continue;
+            Com.Printf("client " + i + '\r');
+            SCR.UpdateScreen();
+            Sys.SendKeyEvents(); // pump message loop
+            CL_parse.ParseClientinfo(i);
+            Com.Printf("                                     \r");
+        }
 
-		// set sky textures and speed
-		Com.Printf("sky\r"); 
-		SCR.UpdateScreen();
-		rotate = Float.parseFloat(cl.configstrings[CS_SKYROTATE]);
-		StringTokenizer st = new StringTokenizer(cl.configstrings[CS_SKYAXIS]);
-		axis[0] = Float.parseFloat(st.nextToken());
-		axis[1] = Float.parseFloat(st.nextToken());
-		axis[2] = Float.parseFloat(st.nextToken());
-		re.SetSky(cl.configstrings[CS_SKY], rotate, axis);
-		Com.Printf("                                     \r");
+        CL_parse.LoadClientinfo(Globals.cl.baseclientinfo,
+                "unnamed\\male/grunt");
 
-		// the renderer can now free unneeded stuff
-		re.EndRegistration ();
+        // set sky textures and speed
+        Com.Printf("sky\r");
+        SCR.UpdateScreen();
+        rotate = Float
+                .parseFloat(Globals.cl.configstrings[Defines.CS_SKYROTATE]);
+        StringTokenizer st = new StringTokenizer(
+                Globals.cl.configstrings[Defines.CS_SKYAXIS]);
+        axis[0] = Float.parseFloat(st.nextToken());
+        axis[1] = Float.parseFloat(st.nextToken());
+        axis[2] = Float.parseFloat(st.nextToken());
+        Globals.re.SetSky(Globals.cl.configstrings[Defines.CS_SKY], rotate,
+                axis);
+        Com.Printf("                                     \r");
 
-		// clear any lines of console text
-		Console.ClearNotify();
+        // the renderer can now free unneeded stuff
+        Globals.re.EndRegistration();
 
-		SCR.UpdateScreen();
-		cl.refresh_prepped = true;
-		cl.force_refdef = true;	// make sure we have a valid refdef
-	}
- 
-	public static void AddNetgraph() {
-		int             i;
-		int             in;
-		int             ping;
+        // clear any lines of console text
+        Console.ClearNotify();
 
-		// if using the debuggraph for something else, don't
-		// add the net lines
-		if (SCR.scr_debuggraph.value == 0.0f || SCR.scr_timegraph.value == 0.0f)
-			return;
+        SCR.UpdateScreen();
+        Globals.cl.refresh_prepped = true;
+        Globals.cl.force_refdef = true; // make sure we have a valid refdef
+    }
 
-		for (i=0 ; i<cls.netchan.dropped ; i++)
-			SCR.DebugGraph(30, 0x40);
+    public static void AddNetgraph() {
+        int i;
+        int in;
+        int ping;
 
-		for (i=0 ; i<cl.surpressCount ; i++)
-			SCR.DebugGraph(30, 0xdf);
+        // if using the debuggraph for something else, don't
+        // add the net lines
+        if (SCR.scr_debuggraph.value == 0.0f || SCR.scr_timegraph.value == 0.0f)
+            return;
 
-		// see what the latency was on this packet
-		in = cls.netchan.incoming_acknowledged & (CMD_BACKUP-1);
-		ping = (int)(cls.realtime - cl.cmd_time[in]);
-		ping /= 30;
-		if (ping > 30)
-			ping = 30;
-		SCR.DebugGraph (ping, 0xd0);
-	}
+        for (i = 0; i < Globals.cls.netchan.dropped; i++)
+            SCR.DebugGraph(30, 0x40);
+
+        for (i = 0; i < Globals.cl.surpressCount; i++)
+            SCR.DebugGraph(30, 0xdf);
+
+        // see what the latency was on this packet
+        in = Globals.cls.netchan.incoming_acknowledged
+                & (Defines.CMD_BACKUP - 1);
+        ping = (int) (Globals.cls.realtime - Globals.cl.cmd_time[in]);
+        ping /= 30;
+        if (ping > 30)
+            ping = 30;
+        SCR.DebugGraph(ping, 0xd0);
+    }
 }

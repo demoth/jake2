@@ -2,27 +2,27 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.2 2004-07-09 06:50:50 hzi Exp $
+ * $Id: V.java,v 1.3 2004-09-22 19:22:08 salomo Exp $
  */
 /*
-Copyright (C) 1997-2001 Id Software, Inc.
+ Copyright (C) 1997-2001 Id Software, Inc.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-See the GNU General Public License for more details.
+ See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 package jake2.client;
 
 import jake2.Globals;
@@ -40,379 +40,373 @@ import java.nio.FloatBuffer;
  * V
  */
 public final class V extends Globals {
-	
-	static cvar_t cl_testblend;
-	static cvar_t cl_testparticles;
-	static cvar_t cl_testentities;
-	static cvar_t cl_testlights;
-	static cvar_t cl_stats;
-		
-	static int r_numdlights;
-	static dlight_t[] r_dlights = new dlight_t[MAX_DLIGHTS];
 
-	static int r_numentities;
-	static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
- 
-	static int r_numparticles;
-	//static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
-	
-	static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
-	static {
-		for (int i = 0; i < r_dlights.length; i++)
-			r_dlights[i] = new dlight_t();
-		for (int i = 0; i < r_entities.length; i++)
-			r_entities[i] = new entity_t();
-		for (int i = 0; i < r_lightstyles.length; i++)
-			r_lightstyles[i] = new lightstyle_t();						
-	}
-			
-	/*
-	====================
-	V_ClearScene
+    static cvar_t cl_testblend;
 
-	Specifies the model that will be used as the world
-	====================
-	*/
-	static void ClearScene() {
-		r_numdlights = 0;
-		r_numentities = 0;
-		r_numparticles = 0;
-	}
+    static cvar_t cl_testparticles;
 
-	/*
-	=====================
-	V_AddEntity
+    static cvar_t cl_testentities;
 
-	=====================
-	*/
-	static void AddEntity(entity_t ent) {
-		if (r_numentities >= MAX_ENTITIES)
-			return;
-		r_entities[r_numentities++].set(ent);
-	}
+    static cvar_t cl_testlights;
 
-	/*
-	=====================
-	V_AddParticle
+    static cvar_t cl_stats;
 
-	=====================
-	*/
-	static void AddParticle(float[] org, int color, float alpha) {
-		if (r_numparticles >= MAX_PARTICLES)
-			return;
+    static int r_numdlights;
 
-		int i = r_numparticles++;
+    static dlight_t[] r_dlights = new dlight_t[MAX_DLIGHTS];
 
-		int c = particle_t.colorTable[color];
-		c |= (int)(alpha * 255) << 24;
-		particle_t.colorArray.put(i, c);
-		
-		i *= 3;
-		FloatBuffer vertexBuf = particle_t.vertexArray;
-		vertexBuf.put(i++, org[0]);
-		vertexBuf.put(i++, org[1]);
-		vertexBuf.put(i++, org[2]);
-	}
+    static int r_numentities;
 
-	/*
-	=====================
-	V_AddLight
+    static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
 
-	=====================
-	*/
-	static void AddLight(float[] org, float intensity, float r, float g, float b) {
-		dlight_t dl;
+    static int r_numparticles;
 
-		if (r_numdlights >= MAX_DLIGHTS)
-			return;
-		dl = r_dlights[r_numdlights++];
-		VectorCopy(org, dl.origin);
-		dl.intensity = intensity;
-		dl.color[0] = r;
-		dl.color[1] = g;
-		dl.color[2] = b;
-	}
+    //static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
 
+    static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
+    static {
+        for (int i = 0; i < r_dlights.length; i++)
+            r_dlights[i] = new dlight_t();
+        for (int i = 0; i < r_entities.length; i++)
+            r_entities[i] = new entity_t();
+        for (int i = 0; i < r_lightstyles.length; i++)
+            r_lightstyles[i] = new lightstyle_t();
+    }
 
-	/*
-	=====================
-	V_AddLightStyle
+    /*
+     * ==================== V_ClearScene
+     * 
+     * Specifies the model that will be used as the world ====================
+     */
+    static void ClearScene() {
+        r_numdlights = 0;
+        r_numentities = 0;
+        r_numparticles = 0;
+    }
 
-	=====================
-	*/
-	static void AddLightStyle(int style, float r, float g, float b) {
-		lightstyle_t ls;
+    /*
+     * ===================== V_AddEntity
+     * 
+     * =====================
+     */
+    static void AddEntity(entity_t ent) {
+        if (r_numentities >= MAX_ENTITIES)
+            return;
+        r_entities[r_numentities++].set(ent);
+    }
 
-		if (style < 0 || style > MAX_LIGHTSTYLES)
-			Com.Error(ERR_DROP, "Bad light style " + style);
-		ls = r_lightstyles[style];
+    /*
+     * ===================== V_AddParticle
+     * 
+     * =====================
+     */
+    static void AddParticle(float[] org, int color, float alpha) {
+        if (r_numparticles >= MAX_PARTICLES)
+            return;
 
-		ls.white = r + g + b;
-		ls.rgb[0] = r;
-		ls.rgb[1] = g;
-		ls.rgb[2] = b;
-	}
+        int i = r_numparticles++;
 
-	/*
-	================
-	V_TestParticles
+        int c = particle_t.colorTable[color];
+        c |= (int) (alpha * 255) << 24;
+        particle_t.colorArray.put(i, c);
 
-	If cl_testparticles is set, create 4096 particles in the view
-	================
-	*/
-	static void TestParticles() {
-		int i, j;
-		float d, r, u;
+        i *= 3;
+        FloatBuffer vertexBuf = particle_t.vertexArray;
+        vertexBuf.put(i++, org[0]);
+        vertexBuf.put(i++, org[1]);
+        vertexBuf.put(i++, org[2]);
+    }
 
-		float[] origin = {0,0,0};
+    /*
+     * ===================== V_AddLight
+     * 
+     * =====================
+     */
+    static void AddLight(float[] org, float intensity, float r, float g, float b) {
+        dlight_t dl;
 
-		r_numparticles = 0;
-		for (i = 0; i < MAX_PARTICLES; i++) {
-			d = i * 0.25f;
-			r = 4 * ((i & 7) - 3.5f);
-			u = 4 * (((i >> 3) & 7) - 3.5f);
+        if (r_numdlights >= MAX_DLIGHTS)
+            return;
+        dl = r_dlights[r_numdlights++];
+        Math3D.VectorCopy(org, dl.origin);
+        dl.intensity = intensity;
+        dl.color[0] = r;
+        dl.color[1] = g;
+        dl.color[2] = b;
+    }
 
-			for (j = 0; j < 3; j++)
-				origin[j] =
-					cl.refdef.vieworg[j]
-						+ cl.v_forward[j] * d
-						+ cl.v_right[j] * r
-						+ cl.v_up[j] * u;
+    /*
+     * ===================== V_AddLightStyle
+     * 
+     * =====================
+     */
+    static void AddLightStyle(int style, float r, float g, float b) {
+        lightstyle_t ls;
 
-			AddParticle(origin, 8, cl_testparticles.value);
-		}
-	}
+        if (style < 0 || style > MAX_LIGHTSTYLES)
+            Com.Error(ERR_DROP, "Bad light style " + style);
+        ls = r_lightstyles[style];
 
-	/*
-	================
-	V_TestEntities
+        ls.white = r + g + b;
+        ls.rgb[0] = r;
+        ls.rgb[1] = g;
+        ls.rgb[2] = b;
+    }
 
-	If cl_testentities is set, create 32 player models
-	================
-	*/
-	static void TestEntities() {
-		int			i, j;
-		float		f, r;
-		entity_t	ent;
+    /*
+     * ================ V_TestParticles
+     * 
+     * If cl_testparticles is set, create 4096 particles in the view
+     * ================
+     */
+    static void TestParticles() {
+        int i, j;
+        float d, r, u;
 
-		r_numentities = 32;
-		//memset (r_entities, 0, sizeof(r_entities));
-		for (i = 0; i < r_entities.length; i++)
-			r_entities[i] = new entity_t();
+        float[] origin = { 0, 0, 0 };
 
-		for (i=0 ; i<r_numentities ; i++)
-		{
-			ent = r_entities[i];
+        r_numparticles = 0;
+        for (i = 0; i < MAX_PARTICLES; i++) {
+            d = i * 0.25f;
+            r = 4 * ((i & 7) - 3.5f);
+            u = 4 * (((i >> 3) & 7) - 3.5f);
 
-			r = 64 * ( (i%4) - 1.5f );
-			f = 64 * (i/4) + 128;
+            for (j = 0; j < 3; j++)
+                origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * d
+                        + cl.v_right[j] * r + cl.v_up[j] * u;
 
-			for (j=0 ; j<3 ; j++)
-				ent.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
-				cl.v_right[j]*r;
+            AddParticle(origin, 8, cl_testparticles.value);
+        }
+    }
 
-			ent.model = cl.baseclientinfo.model;
-			ent.skin = cl.baseclientinfo.skin;
-		}
-	}
-	
-	/*
-	================
-	V_TestLights
+    /*
+     * ================ V_TestEntities
+     * 
+     * If cl_testentities is set, create 32 player models ================
+     */
+    static void TestEntities() {
+        int i, j;
+        float f, r;
+        entity_t ent;
 
-	If cl_testlights is set, create 32 lights models
-	================
-	*/
-	static void TestLights() {
-		int			i, j;
-		float		f, r;
-		dlight_t	dl;
+        r_numentities = 32;
+        //memset (r_entities, 0, sizeof(r_entities));
+        for (i = 0; i < r_entities.length; i++)
+            r_entities[i] = new entity_t();
 
-		r_numdlights = 32;
-		//memset (r_dlights, 0, sizeof(r_dlights));
-		for (i = 0; i < r_dlights.length; i++)
-			r_dlights[i] = new dlight_t();
+        for (i = 0; i < r_numentities; i++) {
+            ent = r_entities[i];
 
-		for (i=0 ; i<r_numdlights ; i++)
-		{
-			dl = r_dlights[i];
+            r = 64 * ((i % 4) - 1.5f);
+            f = 64 * (i / 4) + 128;
 
-			r = 64 * ( (i%4) - 1.5f );
-			f = 64 * (i/4) + 128;
+            for (j = 0; j < 3; j++)
+                ent.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f
+                        + cl.v_right[j] * r;
 
-			for (j=0 ; j<3 ; j++)
-				dl.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
-				cl.v_right[j]*r;
-			dl.color[0] = ((i%6)+1) & 1;
-			dl.color[1] = (((i%6)+1) & 2)>>1;
-			dl.color[2] = (((i%6)+1) & 4)>>2;
-			dl.intensity = 200;
-		}
-	}
+            ent.model = cl.baseclientinfo.model;
+            ent.skin = cl.baseclientinfo.skin;
+        }
+    }
 
-	static xcommand_t Gun_Next_f = new xcommand_t() {
-		public void execute() {
-			gun_frame++;
-			Com.Printf("frame " + gun_frame + "\n");
-		}
-	};
+    /*
+     * ================ V_TestLights
+     * 
+     * If cl_testlights is set, create 32 lights models ================
+     */
+    static void TestLights() {
+        int i, j;
+        float f, r;
+        dlight_t dl;
 
-	static xcommand_t Gun_Prev_f = new xcommand_t() {
-		public void execute() {
-			gun_frame--;
-			if (gun_frame < 0)
-				gun_frame = 0;
-			Com.Printf("frame " + gun_frame + "\n");
-		}
-	};	
+        r_numdlights = 32;
+        //memset (r_dlights, 0, sizeof(r_dlights));
+        for (i = 0; i < r_dlights.length; i++)
+            r_dlights[i] = new dlight_t();
 
-	static xcommand_t Gun_Model_f = new xcommand_t() {
-		public void execute() {
-			if (Cmd.Argc() != 2) {
-				gun_model = null;
-				return;
-			}
-			String name = "models/" + Cmd.Argv(1) + "/tris.md2";
-			gun_model = re.RegisterModel(name);
-		}
-	};
+        for (i = 0; i < r_numdlights; i++) {
+            dl = r_dlights[i];
 
-	/*
-	==================
-	V_RenderView
-	
-	==================
-	*/
-	static void RenderView(float stereo_separation) {
-//		extern int entitycmpfnc( const entity_t *, const entity_t * );
-//
-		if (cls.state != ca_active) return;
+            r = 64 * ((i % 4) - 1.5f);
+            f = 64 * (i / 4) + 128;
 
-		if (!cl.refresh_prepped) return;			// still loading
+            for (j = 0; j < 3; j++)
+                dl.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f
+                        + cl.v_right[j] * r;
+            dl.color[0] = ((i % 6) + 1) & 1;
+            dl.color[1] = (((i % 6) + 1) & 2) >> 1;
+            dl.color[2] = (((i % 6) + 1) & 4) >> 2;
+            dl.intensity = 200;
+        }
+    }
 
-		if (cl_timedemo.value != 0.0f) {
-			if (cl.timedemo_start == 0)
-				cl.timedemo_start = Sys.Milliseconds();
-			cl.timedemo_frames++;
-		}
+    static xcommand_t Gun_Next_f = new xcommand_t() {
+        public void execute() {
+            gun_frame++;
+            Com.Printf("frame " + gun_frame + "\n");
+        }
+    };
 
-		// an invalid frame will just use the exact previous refdef
-		// we can't use the old frame if the video mode has changed, though...
-		if ( cl.frame.valid && (cl.force_refdef || cl_paused.value == 0.0f) ) {
-			cl.force_refdef = false;
+    static xcommand_t Gun_Prev_f = new xcommand_t() {
+        public void execute() {
+            gun_frame--;
+            if (gun_frame < 0)
+                gun_frame = 0;
+            Com.Printf("frame " + gun_frame + "\n");
+        }
+    };
 
-			V.ClearScene();
+    static xcommand_t Gun_Model_f = new xcommand_t() {
+        public void execute() {
+            if (Cmd.Argc() != 2) {
+                gun_model = null;
+                return;
+            }
+            String name = "models/" + Cmd.Argv(1) + "/tris.md2";
+            gun_model = re.RegisterModel(name);
+        }
+    };
 
-			// build a refresh entity list and calc cl.sim*
-			// this also calls CL_CalcViewValues which loads
-			// v_forward, etc.
-			CL.AddEntities();
+    /*
+     * ================== V_RenderView
+     * 
+     * ==================
+     */
+    static void RenderView(float stereo_separation) {
+        //		extern int entitycmpfnc( const entity_t *, const entity_t * );
+        //
+        if (cls.state != ca_active)
+            return;
 
-			if (cl_testparticles.value != 0.0f)
-				TestParticles();
-			if (cl_testentities.value != 0.0f)
-				TestEntities();
-			if (cl_testlights.value != 0.0f)
-				TestLights();
-			if (cl_testblend.value != 0.0f) {
-				cl.refdef.blend[0] = 1.0f;
-				cl.refdef.blend[1] = 0.5f;
-				cl.refdef.blend[2] = 0.25f;
-				cl.refdef.blend[3] = 0.5f;
-			}
+        if (!cl.refresh_prepped)
+            return; // still loading
 
-			// offset vieworg appropriately if we're doing stereo separation
-			if ( stereo_separation != 0 ) {
-				float[] tmp = new float[3];
+        if (cl_timedemo.value != 0.0f) {
+            if (cl.timedemo_start == 0)
+                cl.timedemo_start = Sys.Milliseconds();
+            cl.timedemo_frames++;
+        }
 
-				Math3D.VectorScale( cl.v_right, stereo_separation, tmp );
-				Math3D.VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
-			}
+        // an invalid frame will just use the exact previous refdef
+        // we can't use the old frame if the video mode has changed, though...
+        if (cl.frame.valid && (cl.force_refdef || cl_paused.value == 0.0f)) {
+            cl.force_refdef = false;
 
-			// never let it sit exactly on a node line, because a water plane can
-			// dissapear when viewed with the eye exactly on it.
-			// the server protocol only specifies to 1/8 pixel, so add 1/16 in each axis
-			cl.refdef.vieworg[0] += 1.0/16;
-			cl.refdef.vieworg[1] += 1.0/16;
-			cl.refdef.vieworg[2] += 1.0/16;
+            V.ClearScene();
 
-			cl.refdef.x = scr_vrect.x;
-			cl.refdef.y = scr_vrect.y;
-			cl.refdef.width = scr_vrect.width;
-			cl.refdef.height = scr_vrect.height;
-			cl.refdef.fov_y = Math3D.CalcFov(cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
-			cl.refdef.time = cl.time*0.001f;
+            // build a refresh entity list and calc cl.sim*
+            // this also calls CL_CalcViewValues which loads
+            // v_forward, etc.
+            CL_ents.AddEntities();
 
-			cl.refdef.areabits = cl.frame.areabits;
+            if (cl_testparticles.value != 0.0f)
+                TestParticles();
+            if (cl_testentities.value != 0.0f)
+                TestEntities();
+            if (cl_testlights.value != 0.0f)
+                TestLights();
+            if (cl_testblend.value != 0.0f) {
+                cl.refdef.blend[0] = 1.0f;
+                cl.refdef.blend[1] = 0.5f;
+                cl.refdef.blend[2] = 0.25f;
+                cl.refdef.blend[3] = 0.5f;
+            }
 
-			if (cl_add_entities.value == 0.0f)
-				r_numentities = 0;
-			if (cl_add_particles.value == 0.0f)
-				r_numparticles = 0;
-			if (cl_add_lights.value == 0.0f)
-				r_numdlights = 0;
-			if (cl_add_blend.value == 0) {
-				Math3D.VectorClear(cl.refdef.blend);
-			}
+            // offset vieworg appropriately if we're doing stereo separation
+            if (stereo_separation != 0) {
+                float[] tmp = new float[3];
 
-			cl.refdef.num_entities = r_numentities;
-			cl.refdef.entities = r_entities;
-			cl.refdef.num_particles = r_numparticles;
-			cl.refdef.num_dlights = r_numdlights;
-			cl.refdef.dlights = r_dlights;
-			cl.refdef.lightstyles = r_lightstyles;
+                Math3D.VectorScale(cl.v_right, stereo_separation, tmp);
+                Math3D.VectorAdd(cl.refdef.vieworg, tmp, cl.refdef.vieworg);
+            }
 
-			cl.refdef.rdflags = cl.frame.playerstate.rdflags;
+            // never let it sit exactly on a node line, because a water plane
+            // can
+            // dissapear when viewed with the eye exactly on it.
+            // the server protocol only specifies to 1/8 pixel, so add 1/16 in
+            // each axis
+            cl.refdef.vieworg[0] += 1.0 / 16;
+            cl.refdef.vieworg[1] += 1.0 / 16;
+            cl.refdef.vieworg[2] += 1.0 / 16;
 
-			// sort entities for better cache locality
-			// !!! useless in Java !!!
-			//Arrays.sort(cl.refdef.entities, entitycmpfnc);
-		}
+            cl.refdef.x = scr_vrect.x;
+            cl.refdef.y = scr_vrect.y;
+            cl.refdef.width = scr_vrect.width;
+            cl.refdef.height = scr_vrect.height;
+            cl.refdef.fov_y = Math3D.CalcFov(cl.refdef.fov_x, cl.refdef.width,
+                    cl.refdef.height);
+            cl.refdef.time = cl.time * 0.001f;
 
-		re.RenderFrame(cl.refdef);
-		if (cl_stats.value != 0.0f)
-			Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(r_numentities).add(
-				r_numdlights).add(r_numparticles));
-		if ( log_stats.value != 0.0f && ( log_stats_file != null ) )
-			try {
-				log_stats_file.write(r_numentities + "," + r_numdlights + "," + r_numparticles);
-			} catch (IOException e) {}
+            cl.refdef.areabits = cl.frame.areabits;
 
-		SCR.AddDirtyPoint(scr_vrect.x, scr_vrect.y);
-		SCR.AddDirtyPoint(scr_vrect.x+scr_vrect.width-1, scr_vrect.y+scr_vrect.height-1);
+            if (cl_add_entities.value == 0.0f)
+                r_numentities = 0;
+            if (cl_add_particles.value == 0.0f)
+                r_numparticles = 0;
+            if (cl_add_lights.value == 0.0f)
+                r_numdlights = 0;
+            if (cl_add_blend.value == 0) {
+                Math3D.VectorClear(cl.refdef.blend);
+            }
 
-		SCR.DrawCrosshair();
-	}
-	
-	/*
-	=============
-	V_Viewpos_f
-	=============
-	*/
-	static xcommand_t Viewpos_f = new xcommand_t() {
-		public void execute() {
-			Com.Printf("(%i %i %i) : %i\n",
-				new Vargs(4).add((int)cl.refdef.vieworg[0]).add(
-				(int)cl.refdef.vieworg[1]).add(
-				(int)cl.refdef.vieworg[2]).add(
-				(int)cl.refdef.viewangles[YAW]));
-		}
-	};
-	
-	public static void Init() {
-		Cmd.AddCommand("gun_next", Gun_Next_f);
-		Cmd.AddCommand("gun_prev", Gun_Prev_f);
-		Cmd.AddCommand("gun_model", Gun_Model_f);
+            cl.refdef.num_entities = r_numentities;
+            cl.refdef.entities = r_entities;
+            cl.refdef.num_particles = r_numparticles;
+            cl.refdef.num_dlights = r_numdlights;
+            cl.refdef.dlights = r_dlights;
+            cl.refdef.lightstyles = r_lightstyles;
 
-		Cmd.AddCommand("viewpos", Viewpos_f);
+            cl.refdef.rdflags = cl.frame.playerstate.rdflags;
 
-		crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
+            // sort entities for better cache locality
+            // !!! useless in Java !!!
+            //Arrays.sort(cl.refdef.entities, entitycmpfnc);
+        }
 
-		cl_testblend = Cvar.Get("cl_testblend", "0", 0);
-		cl_testparticles = Cvar.Get("cl_testparticles", "0", 0);
-		cl_testentities = Cvar.Get("cl_testentities", "0", 0);
-		cl_testlights = Cvar.Get("cl_testlights", "0", 0);
+        re.RenderFrame(cl.refdef);
+        if (cl_stats.value != 0.0f)
+            Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(
+                    r_numentities).add(r_numdlights).add(r_numparticles));
+        if (log_stats.value != 0.0f && (log_stats_file != null))
+            try {
+                log_stats_file.write(r_numentities + "," + r_numdlights + ","
+                        + r_numparticles);
+            } catch (IOException e) {
+            }
 
-		cl_stats = Cvar.Get("cl_stats", "0", 0);		
-	}
+        SCR.AddDirtyPoint(scr_vrect.x, scr_vrect.y);
+        SCR.AddDirtyPoint(scr_vrect.x + scr_vrect.width - 1, scr_vrect.y
+                + scr_vrect.height - 1);
+
+        SCR.DrawCrosshair();
+    }
+
+    /*
+     * ============= V_Viewpos_f =============
+     */
+    static xcommand_t Viewpos_f = new xcommand_t() {
+        public void execute() {
+            Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
+                    (int) cl.refdef.vieworg[0]).add((int) cl.refdef.vieworg[1])
+                    .add((int) cl.refdef.vieworg[2]).add(
+                            (int) cl.refdef.viewangles[YAW]));
+        }
+    };
+
+    public static void Init() {
+        Cmd.AddCommand("gun_next", Gun_Next_f);
+        Cmd.AddCommand("gun_prev", Gun_Prev_f);
+        Cmd.AddCommand("gun_model", Gun_Model_f);
+
+        Cmd.AddCommand("viewpos", Viewpos_f);
+
+        crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
+
+        cl_testblend = Cvar.Get("cl_testblend", "0", 0);
+        cl_testparticles = Cvar.Get("cl_testparticles", "0", 0);
+        cl_testentities = Cvar.Get("cl_testentities", "0", 0);
+        cl_testlights = Cvar.Get("cl_testlights", "0", 0);
+
+        cl_stats = Cvar.Get("cl_stats", "0", 0);
+    }
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.6 2004-09-10 19:02:56 salomo Exp $
+// $Id: Math3D.java,v 1.7 2004-09-22 19:22:13 salomo Exp $
 
 package jake2.util;
 
@@ -27,60 +27,50 @@ import jake2.Defines;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 
-public class Math3D extends Lib {
-	
+public class Math3D {
+
 	static final float shortratio = 360.0f / 65536.0f;
-	static final float piratio = (float)(Math.PI / 360.0);
-	
+	static final float piratio = (float) (Math.PI / 360.0);
 	public static void set(float v1[], float v2[]) {
 		v1[0] = v2[0];
 		v1[1] = v2[1];
 		v1[2] = v2[2];
 	}
-		 
-
 	public static void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0] = a[0] - b[0];
 		c[1] = a[1] - b[1];
 		c[2] = a[2] - b[2];
 	}
-	
 	public static void VectorSubtract(short[] a, short[] b, int[] c) {
 		c[0] = a[0] - b[0];
 		c[1] = a[1] - b[1];
 		c[2] = a[2] - b[2];
 	}
-	
 	public static void VectorAdd(float[] a, float[] b, float[] to) {
 		to[0] = a[0] + b[0];
 		to[1] = a[1] + b[1];
 		to[2] = a[2] + b[2];
 	}
-	
 	public static void VectorCopy(float[] from, float[] to) {
 		to[0] = from[0];
 		to[1] = from[1];
 		to[2] = from[2];
 	}
-	
 	public static void VectorCopy(short[] from, short[] to) {
 		to[0] = from[0];
 		to[1] = from[1];
 		to[2] = from[2];
 	}
-		
 	public static void VectorCopy(short[] from, float[] to) {
 		to[0] = from[0];
 		to[1] = from[1];
 		to[2] = from[2];
 	}
-	
 	public static void VectorCopy(float[] from, short[] to) {
 		to[0] = (short) from[0];
 		to[1] = (short) from[1];
 		to[2] = (short) from[2];
 	}
-	
 	public static void VectorClear(float[] a) {
 		a[0] = a[1] = a[2] = 0;
 	}
@@ -116,7 +106,6 @@ public class Math3D extends Lib {
 		}
 		return length;
 	}
-
 	public static final float VectorLength(float v[]) {
 		return (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}
@@ -130,7 +119,6 @@ public class Math3D extends Lib {
 		out[1] = in[1] * scale;
 		out[2] = in[2] * scale;
 	}
-
 	public static float vectoyaw(float[] vec) {
 		float yaw;
 
@@ -151,7 +139,6 @@ public class Math3D extends Lib {
 
 		return yaw;
 	}
-
 	public static void vectoangles(float[] value1, float[] angles) {
 
 		float yaw, pitch;
@@ -183,14 +170,12 @@ public class Math3D extends Lib {
 		angles[Defines.YAW] = yaw;
 		angles[Defines.ROLL] = 0;
 	}
-
 	private static float m[][] = new float[3][3];
 	private static float im[][] = new float[3][3];
 	private static float tmpmat[][] = new float[3][3];
 	private static float zrot[][] = new float[3][3];
-	
 	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
-		
+
 		float[] vr = { 0.0f, 0.0f, 0.0f };
 		float[] vup = { 0.0f, 0.0f, 0.0f };
 		float[] vf = { 0.0f, 0.0f, 0.0f };
@@ -199,8 +184,8 @@ public class Math3D extends Lib {
 		vf[1] = dir[1];
 		vf[2] = dir[2];
 
-		Math3D.PerpendicularVector(vr, dir);
-		Math3D.CrossProduct(vr, vf, vup);
+		PerpendicularVector(vr, dir);
+		CrossProduct(vr, vf, vup);
 
 		m[0][0] = vr[0];
 		m[1][0] = vr[1];
@@ -228,19 +213,17 @@ public class Math3D extends Lib {
 
 		zrot[2][2] = 1.0F;
 
-		zrot[0][0] = zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
-		zrot[0][1] = (float) Math.sin(Math3D.DEG2RAD(degrees));
+		zrot[0][0] = zrot[1][1] = (float) Math.cos(DEG2RAD(degrees));
+		zrot[0][1] = (float) Math.sin(DEG2RAD(degrees));
 		zrot[1][0] = -zrot[0][1];
 
-		Math3D.R_ConcatRotations(m, zrot, tmpmat);
-		Math3D.R_ConcatRotations(tmpmat, im, zrot);
+		R_ConcatRotations(m, zrot, tmpmat);
+		R_ConcatRotations(tmpmat, im, zrot);
 
 		for (int i = 0; i < 3; i++) {
 			dst[i] = zrot[i][0] * point[0] + zrot[i][1] * point[1] + zrot[i][2] * point[2];
 		}
 	}
-	
-	
 	public static void MakeNormalVectors(float[] forward, float[] right, float[] up) {
 		// this rotate and negat guarantees a vector
 		// not colinear with the original
@@ -253,12 +236,9 @@ public class Math3D extends Lib {
 		VectorNormalize(right);
 		CrossProduct(right, forward, up);
 	}
-	
-
 	public static float SHORT2ANGLE(int x) {
 		return (x * shortratio);
 	}
-
 	/*
 	================
 	R_ConcatTransforms
@@ -278,7 +258,6 @@ public class Math3D extends Lib {
 		out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 		out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
-
 	/**
 	 * concatenates 2 matrices each [3][3].
 	 */
@@ -293,12 +272,11 @@ public class Math3D extends Lib {
 		out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] + in1[2][2] * in2[2][1];
 		out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 	}
-
 	public static void ProjectPointOnPlane(float[] dst, float[] p, float[] normal) {
 
-		float inv_denom = 1.0F / Math3D.DotProduct(normal, normal);
+		float inv_denom = 1.0F / DotProduct(normal, normal);
 
-		float d = Math3D.DotProduct(normal, p) * inv_denom;
+		float d = DotProduct(normal, p) * inv_denom;
 
 		dst[0] = normal[0] * inv_denom;
 		dst[1] = normal[1] * inv_denom;
@@ -308,13 +286,11 @@ public class Math3D extends Lib {
 		dst[1] = p[1] - d * dst[1];
 		dst[2] = p[2] - d * dst[2];
 	}
-
 	/** assumes "src" is normalized */
 	public static void PerpendicularVector(float[] dst, float[] src) {
 		int pos;
 		int i;
 		float minelem = 1.0F;
-
 
 		// find the smallest magnitude axially aligned vector 
 		for (pos = 0, i = 0; i < 3; i++) {
@@ -330,18 +306,17 @@ public class Math3D extends Lib {
 		ProjectPointOnPlane(dst, tempvec, src);
 
 		//normalize the result 
-		Math3D.VectorNormalize(dst);
+		VectorNormalize(dst);
 	}
-
 	//=====================================================================	
 	/** 
 	 stellt fest, auf welcher Seite sich die Kiste befindet, wenn die Ebene 
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
 	 erste Version mit vec3_t... */
 	public static final int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
-		
-		assert (emins.length == 3 && emaxs.length == 3) : "vec3_t bug";
-		
+
+		assert(emins.length == 3 && emaxs.length == 3) : "vec3_t bug";
+
 		float dist1, dist2;
 		int sides;
 
@@ -390,7 +365,7 @@ public class Math3D extends Lib {
 				break;
 			default :
 				dist1 = dist2 = 0;
-				assert (false) : "BoxOnPlaneSide bug";
+				assert(false) : "BoxOnPlaneSide bug";
 				break;
 		}
 
@@ -400,15 +375,13 @@ public class Math3D extends Lib {
 		if (dist2 < p.dist)
 			sides |= 2;
 
-		assert (sides != 0) : "BoxOnPlaneSide(): sides == 0 bug";
+		assert(sides != 0) : "BoxOnPlaneSide(): sides == 0 bug";
 
 		return sides;
-	}	
-
+	}
 	//	this is the slow, general version
 	private static float corners[][] = new float[2][3];
 	public static final int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
-		
 
 		for (int i = 0; i < 3; i++) {
 			if (p.normal[i] < 0) {
@@ -420,8 +393,8 @@ public class Math3D extends Lib {
 				corners[0][i] = emaxs[i];
 			}
 		}
-		float dist1 = Math3D.DotProduct(p.normal, corners[0]) - p.dist;
-		float dist2 = Math3D.DotProduct(p.normal, corners[1]) - p.dist;
+		float dist1 = DotProduct(p.normal, corners[0]) - p.dist;
+		float dist2 = DotProduct(p.normal, corners[1]) - p.dist;
 		int sides = 0;
 		if (dist1 >= 0)
 			sides = 1;
@@ -430,7 +403,6 @@ public class Math3D extends Lib {
 
 		return sides;
 	}
-
 	public static void AngleVectors(float[] angles, float[] forward, float[] right, float[] up) {
 
 		float cr = 2.0f * piratio;
@@ -464,56 +436,39 @@ public class Math3D extends Lib {
 			}
 		}
 	}
-
-	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
+	public static void G_ProjectSource(
+		float[] point,
+		float[] distance,
+		float[] forward,
+		float[] right,
+		float[] result) {
 		result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
 		result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
 		result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
 	}
-
-
-
 	public static final float DotProduct(float[] x, float[] y) {
 		return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
 	}
-
-
-
 	public static void CrossProduct(float[] v1, float[] v2, float[] cross) {
 		cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 		cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 		cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 	}
-
-
-
 	public static int Q_log2(int val) {
 		int answer = 0;
 		while ((val >>= 1) > 0)
 			answer++;
 		return answer;
 	}
-
-
-
 	public static float DEG2RAD(float in) {
 		return (in * (float) Math.PI) / 180.0f;
 	}
-
-
-
 	public static float anglemod(float a) {
 		return (float) (shortratio) * ((int) (a / (shortratio)) & 65535);
 	}
-
-
-
 	public static int ANGLE2SHORT(float x) {
 		return ((int) ((x) / shortratio) & 65535);
 	}
-
-
-
 	public static float LerpAngle(float a2, float a1, float frac) {
 		if (a1 - a2 > 180)
 			a1 -= 360;
@@ -521,8 +476,6 @@ public class Math3D extends Lib {
 			a1 += 360;
 		return a2 + frac * (a1 - a2);
 	}
-
-
 	public static float CalcFov(float fov_x, float width, float height) {
 		double a = 0.0f;
 		double x;
@@ -536,6 +489,6 @@ public class Math3D extends Lib {
 
 		a = a / piratio;
 
-		return (float)a;
+		return (float) a;
 	}
 }

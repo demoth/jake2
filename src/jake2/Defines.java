@@ -19,29 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.4 2004-09-10 19:02:57 salomo Exp $
+// $Id: Defines.java,v 1.5 2004-09-22 19:22:14 salomo Exp $
 
 /** Contains the definitions for the game engine. */
 
 package jake2;
 
+import jake2.game.pmove_t;
 import jake2.util.*;
 
-public class Defines extends Math3D {
-
-	// used by filefinders in Sys
-	public final static int FILEISREADABLE = 1;
-	public final static int FILEISWRITABLE = 2;
-	public final static int FILEISFILE = 4;
-	public final static int FILEISDIRECTORY = 8;
-
-	// datentyp konstanten
-	// groesse in bytes
-	public final static int SIZE_OF_SHORT = 2;
-	public final static int SIZE_OF_INT = 4;
-	public final static int SIZE_OF_LONG = 8;
-	public final static int SIZE_OF_FLOAT = 4;
-	public final static int SIZE_OF_DOUBLE = 8;
+public class Defines {
 
 	public final static int WEAPON_READY = 0;
 	public final static int WEAPON_ACTIVATING = 1;
@@ -168,15 +155,6 @@ public class Defines extends Math3D {
 	public final static int SURF_TRANS66 = 0x20;
 	public final static int SURF_FLOWING = 0x40; // scroll towards angle 
 	public final static int SURF_NODRAW = 0x80; // don't bother referencing the texture 
-
-	// pmove->pm_flags 
-	public final static int PMF_DUCKED = 1;
-	public final static int PMF_JUMP_HELD = 2;
-	public final static int PMF_ON_GROUND = 4;
-	public final static int PMF_TIME_WATERJUMP = 8; // pm_time is waterjump 
-	public final static int PMF_TIME_LAND = 16; // pm_time is time before rejump 
-	public final static int PMF_TIME_TELEPORT = 32; // pm_time is non-moving time 
-	public final static int PMF_NO_PREDICTION = 64; // temporarily disables prediction (used for grappling hook) 
 
 	//
 	// button bits
@@ -1355,4 +1333,43 @@ public class Defines extends Math3D {
 	public final static int MAX_LOCAL_SERVERS = 8;
 	public final static String NO_SERVER_STRING = "<no server>";
 	public final static int NUM_ADDRESSBOOK_ENTRIES = 9;
-}
+
+	public final static int STEPSIZE = 18;
+
+
+	public static final float MOVE_STOP_EPSILON = 0.1f;
+
+	/*
+	==================
+	PM_StepSlideMove
+	
+	Each intersection will try to step over the obstruction instead of
+	sliding along it.
+	
+	Returns a new origin, velocity, and contact entity
+	Does not modify any world state?
+	==================
+	*/
+	public final static float MIN_STEP_NORMAL = 0.7f; // can't step up onto very steep slopes
+
+
+	// used by filefinders in Sys
+	public final static int FILEISREADABLE = 1;
+
+	public final static int FILEISWRITABLE = 2;
+
+	public final static int FILEISFILE = 4;
+
+	public final static int FILEISDIRECTORY = 8;
+
+	// datentyp konstanten
+	// groesse in bytes
+	public final static int SIZE_OF_SHORT = 2;
+
+	public final static int SIZE_OF_INT = 4;
+
+	public final static int SIZE_OF_LONG = 8;
+
+	public final static int SIZE_OF_FLOAT = 4;
+
+	public final static int SIZE_OF_DOUBLE = 8;}
