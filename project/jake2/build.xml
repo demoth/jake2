@@ -46,6 +46,11 @@
 				<include name="Jake2.*"/>
 			</fileset>
 		</copy>
+		<chmod perm="755">
+			<fileset dir="${dist}">
+				<include name="*.sh"/>
+			</fileset>
+		</chmod>
 	</target>
 	
 	<!-- copy resources -->
@@ -85,8 +90,12 @@
 	<!-- binary distribution -->
 	<target name="bindist" depends="dist">
 		<tar destfile="jake2.tar.gz" compression="gzip">
+			<tarfileset dir="${dist}" prefix="Jake2" mode="755">
+				<include name="*.sh"/>
+			</tarfileset>
 			<tarfileset dir="${dist}" prefix="Jake2">
 				<include name="**"/>
+				<exclude name="*.sh"/>
 			</tarfileset>
 		</tar>
 		<zip destfile="jake2.zip">
@@ -99,17 +108,23 @@
 	<!-- source distribution -->
 	<target name="srcdist" >
 		<tar destfile="jake2-src.tar.gz" compression="gzip">
+			<tarfileset dir="." prefix="Jake2" mode="755">
+				<include name="scripts/*.*"/>
+				<include name="build.sh"/>
+			</tarfileset>
 			<tarfileset dir="." prefix="Jake2">
-				<include name="src/**"/>
+				<include name="src/jake2/**"/>
 				<include name="lib/**"/>
 				<include name="build.xml"/>
 			</tarfileset>
 		</tar>
 		<zip destfile="jake2-src.zip">
 			<zipfileset dir="." prefix="Jake2">
-				<include name="src/**"/>
+				<include name="src/jake2/**"/>
+				<include name="scripts/*.*"/>
 				<include name="lib/**"/>
 				<include name="build.xml"/>
+				<include name="build.sh"/>
 			</zipfileset>
 		</zip>
 	</target>
