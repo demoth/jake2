@@ -2,7 +2,7 @@
  * SND_MIX.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MIX.java,v 1.2 2004-02-09 23:16:50 hoz Exp $
+ * $Id: SND_MIX.java,v 1.3 2004-03-17 14:13:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,11 +25,62 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.game.cvar_t;
+import jake2.util.Math3D;
+
 /**
  * SND_MIX
  */
 public class SND_MIX extends SND_MEM {
 
+	static final int MAX_CHANNELS = 32;
+	
+	static class playsound_t {
+		playsound_t prev, next;
+		sfx_t sfx;
+		float volume;
+		float attenuation;
+		int entnum;
+		int entchannel;
+		boolean fixed_origin; // use origin field instead of entnum's origin
+		float[] origin = { 0, 0, 0 };
+		long begin; // begin on this sample
+		
+		public void clear() {
+			prev = next = null;
+			sfx = null;
+			volume = attenuation = begin = entnum = entchannel = 0;
+			fixed_origin = false;
+			Math3D.VectorClear(origin);
+		}
+	};
+
+	static class channel_t {
+		sfx_t sfx; // sfx number
+		int leftvol; // 0-255 volume
+		int rightvol; // 0-255 volume
+		int end; // end time in global paintsamples
+		int pos; // sample position in sfx
+		int looping; // where to loop, -1 = no looping OBSOLETE?
+		int entnum; // to allow overriding a specific sound
+		int entchannel; //
+		float[] origin = { 0, 0, 0 }; // only use if fixed_origin is set
+		float[] dist_mult = { 0, 0, 0 }; // distance multiplier (attenuation/clipK)
+		int master_vol; // 0-255 master volume
+		boolean fixed_origin; // use origin instead of fetching entnum's origin
+		boolean autosound; // from an entity->sound, cleared each frame
+		
+		void clear() {
+			sfx = null;
+			leftvol = rightvol = end = pos = looping = entnum = entchannel = master_vol = 0;
+			Math3D.VectorClear(origin);
+			Math3D.VectorClear(dist_mult);
+			fixed_origin = autosound = false;
+		}
+	};
+	
+	static cvar_t s_volume;
+	static int s_rawend;
 ////	   snd_mix.c -- portable code to mix sounds for snd_dma.c
 //
 //	#include "client.h"
@@ -37,7 +88,7 @@ public class SND_MIX extends SND_MEM {
 //
 //	#define	PAINTBUFFER_SIZE	2048
 //	portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
-//	int		snd_scaletable[32][256];
+	static int[][] snd_scaletable = new int[32][256];
 //	int 	*snd_p, snd_linear_count, snd_vol;
 //	short	*snd_out;
 //
@@ -360,18 +411,18 @@ public class SND_MIX extends SND_MEM {
 //		}
 //	}
 //
-	static void InitScaletable()
+	static void InitScaletable ()
 	{
-//		int		i, j;
-//		int		scale;
-//
-//		s_volume->modified = false;
-//		for (i=0 ; i<32 ; i++)
-//		{
-//			scale = i * 8 * 256 * s_volume->value;
-//			for (j=0 ; j<256 ; j++)
-//				snd_scaletable[i][j] = ((signed char)j) * scale;
-//		}
+		int		i, j;
+		int		scale;
+
+		s_volume.modified = false;
+		for (i=0 ; i<32 ; i++)
+		{
+			scale = (int)(i * 8 * 256 * s_volume.value);
+			for (j=0 ; j<256 ; j++)
+				snd_scaletable[i][j] = ((byte)j) * scale;
+		}
 	}
 //
 //
@@ -509,5 +560,6 @@ public class SND_MIX extends SND_MEM {
 //
 //		ch->pos += count;
 //	}
-
+//
+//
 }

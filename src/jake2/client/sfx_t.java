@@ -2,7 +2,13 @@
  * sfx_t.java
  * Copyright (C) 2003
  * 
- * $Id: sfx_t.java,v 1.7 2004-02-25 13:20:28 hoz Exp $
+ * $Id: sfx_t.java,v 1.8 2004-03-17 14:13:03 hoz Exp $
+ */
+/*
+ * sfx_t.java
+ * Copyright (C) 2004
+ * 
+ * $Id: sfx_t.java,v 1.8 2004-03-17 14:13:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,6 +39,7 @@ public class sfx_t {
 	int registration_sequence;
 	sfxcache_t cache; //ptr
 	String truename; //ptr
+	
 	public void clear() {
 		name = truename = null;
 		cache = null;
