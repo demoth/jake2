@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.12 2004-10-24 21:12:43 cawe Exp $
+ * $Id: CL_parse.java,v 1.13 2004-10-24 22:23:41 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -118,9 +118,7 @@ public class CL_parse {
             MSG.WriteString(Globals.cls.netchan.message, "download "
                     + Globals.cls.downloadname + " " + len);
         } else {
-            Globals.cls.downloadname = Globals.cls.downloadname;
-
-            Com.Printf("CheckOrDownloading " + Globals.cls.downloadname + "\n");
+            Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
             MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
             MSG.WriteString(Globals.cls.netchan.message, "download "
                     + Globals.cls.downloadname);
