@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.16 2004-06-28 17:56:32 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.17 2004-06-28 19:22:21 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -123,7 +123,7 @@ public final class JOALSoundImpl implements Sound {
 			al.alSourcei (sourceId, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
 			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR);
 			al.alSourcei (sourceId, AL.AL_LOOPING, AL.AL_FALSE);
-			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 120.0f);
+			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 300.0f);
 			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
 			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
 		}
@@ -273,7 +273,7 @@ public final class JOALSoundImpl implements Sound {
 			ch.bufferId = bufferId;
 			ch.bufferChanged = true;			
 		}
-		ch.rolloff = rolloff;
+		ch.rolloff = rolloff * 2;
 		ch.active = true;
 		ch.modified = true;
 		
@@ -360,7 +360,7 @@ public final class JOALSoundImpl implements Sound {
 				continue;
 
 			// allocate a channel
-			ch = pickChannel(0, 0, buffers[sfx.id], 3);
+			ch = pickChannel(0, 0, buffers[sfx.id], 6);
 			if (ch == null)
 				break;
 				
