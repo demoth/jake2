@@ -22,7 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
-import jake2.ref_gl.*;
+
+import jake2.render.*;
 
 public class entity_t {
 	public				model_t				model;			// opaque type outside refresh
