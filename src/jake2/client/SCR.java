@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.4 2003-12-01 13:18:34 hoz Exp $
+ * $Id: SCR.java,v 1.6 2003-12-04 21:07:16 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

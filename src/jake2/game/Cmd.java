@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.7 2003-12-01 13:19:33 hoz Exp $
+ * $Id: Cmd.java,v 1.8 2003-12-01 13:25:57 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * Format.java
  * Copyright (C) 2003
  * 
- * $Id: Format.java,v 1.3 2003-12-01 13:21:38 hoz Exp $
+ * $Id: Format.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
  */
 package jake2.util;
 

@@ -2,7 +2,7 @@
  * AbstractEndianHandler.java
  * Copyright (C) 2003
  * 
- * $Id: EndianHandler.java,v 1.3 2003-12-01 13:19:33 hoz Exp $
+ * $Id: EndianHandler.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.3 2003-12-01 13:18:34 hoz Exp $
+ * $Id: Key.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

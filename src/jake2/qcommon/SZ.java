@@ -3,7 +3,7 @@ package jake2.qcommon;
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.4 2003-12-01 13:20:25 hoz Exp $
+ * $Id: SZ.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
