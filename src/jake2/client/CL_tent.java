@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.10 2004-02-13 21:04:38 rst Exp $
+ * $Id: CL_tent.java,v 1.11 2004-02-14 10:10:42 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -728,7 +728,7 @@ public class CL_tent extends Globals {
 	CL_ParseTEnt
 	=================
 	*/
-	static byte[] splash_color = {0x00, (byte)0xe0, (byte)0xb0, (byte)0x50, (byte)0xd0, (byte)0xe0, (byte)0xe8};
+	static int[] splash_color = {0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8};
 	static void ParseTEnt() {
 		int type;
 		float[] pos = new float[3];
