@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.14 2004-01-08 13:06:51 cwei Exp $
+ * $Id: TestRenderer.java,v 1.15 2004-01-09 00:44:43 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -180,15 +180,15 @@ public class TestRenderer {
 //		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
 		
 		
-		switch ((framecount / 500) % 3) {
+		switch ((framecount / 500) % 1) {
 			case 0 :
-				testSprites();
+				testModel();
 				break;
 			case 1 :
 				testBeam();
 				break;
 			case 2 :
-				testModel();
+				testSprites();
 				break;
 		}
 		re.EndFrame();
@@ -225,13 +225,16 @@ public class TestRenderer {
 		int maxframe = 29;
 		entity_t entity = new entity_t();
 		String modelName = "players/female/tris.md2";
+
 		String modelSkin = "players/female/athena.pcx";
+
 		String modelImage = "/players/female/athena_i.pcx";
 		String modelImage1 = "/players/female/brianna_i.pcx";
 		String modelImage2 = "/players/female/cobalt_i.pcx";
 		String modelImage3 = "/players/female/lotus_i.pcx";
 
-		entity.model = null; //re.RegisterModel(modelName);
+		entity.model = re.RegisterModel(modelName);
+
 		drawString(refdef.x, refdef.y - 20, (entity.model != null) ? modelName : "DEBUG: NullModel");
 
 		entity.skin = re.RegisterSkin(modelSkin);
@@ -240,7 +243,7 @@ public class TestRenderer {
 		entity.origin[1] = 0;
 		entity.origin[2] = 0;
 		Math3D.VectorCopy(entity.origin, entity.oldorigin);
-		entity.frame = 0;
+		entity.frame = (framecount / 3) % ((qfiles.dmdl_t)entity.model.extradata).num_frames;
 		entity.oldframe = 0;
 		entity.backlerp = 0.0f;
 		entity.angles[1] = yaw++;

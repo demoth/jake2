@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.5 2004-01-06 02:06:44 cwei Exp $
+ * $Id: Model.java,v 1.6 2004-01-09 00:44:43 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -977,9 +977,9 @@ public abstract class Model extends Image {
 		qfiles.dstvert_t[] poutst;
 		qfiles.dtriangle_t[] pouttri;
 		qfiles.daliasframe_t[] poutframe;
-		int poutcmd;
+		int[] poutcmd;
 
-		pheader = new qfiles.dmdl_t(buffer.slice());
+		pheader = new qfiles.dmdl_t(buffer);
 
 		if (pheader.version != qfiles.ALIAS_VERSION)
 			ri.Sys_Error(Defines.ERR_DROP, "%s has wrong version number (%i should be %i)",
@@ -1029,45 +1029,69 @@ public abstract class Model extends Image {
 		//
 		//	   load the frames
 		//
-//		for (i=0 ; i<pheader->num_frames ; i++)
-//		{
+		poutframe = new qfiles.daliasframe_t[pheader.num_frames];
+		buffer.position(pheader.ofs_frames);
+		for (i=0 ; i<pheader.num_frames ; i++)
+		{
 //			pinframe = (daliasframe_t *) ((byte *)pinmodel 
 //				+ pheader->ofs_frames + i * pheader->framesize);
 //			poutframe = (daliasframe_t *) ((byte *)pheader 
 //				+ pheader->ofs_frames + i * pheader->framesize);
 //
+			poutframe[i] = new qfiles.daliasframe_t(buffer);
 //			memcpy (poutframe->name, pinframe->name, sizeof(poutframe->name));
 //			for (j=0 ; j<3 ; j++)
 //			{
 //				poutframe->scale[j] = LittleFloat (pinframe->scale[j]);
 //				poutframe->translate[j] = LittleFloat (pinframe->translate[j]);
 //			}
-//			// verts are all 8 bit, so no swapping needed
+			// verts are all 8 bit, so no swapping needed
+			poutframe[i].verts = new qfiles.dtrivertx_t[pheader.num_xyz];
+			for (int k=0; k < pheader.num_xyz; k++) {
+				poutframe[i].verts[k] = new qfiles.dtrivertx_t(buffer);	
+			}
 //			memcpy (poutframe->verts, pinframe->verts, 
 //				pheader->num_xyz*sizeof(dtrivertx_t));
 //
-//		}
-//
+		}
+
 		mod.type = mod_alias;
 
 		//
 		// load the glcmds
 		//
+		poutcmd = new int[pheader.num_glcmds];
+		buffer.position(pheader.ofs_glcmds);
 //		pincmd = (int *) ((byte *)pinmodel + pheader->ofs_glcmds);
 //		poutcmd = (int *) ((byte *)pheader + pheader->ofs_glcmds);
-//		for (i=0 ; i<pheader->num_glcmds ; i++)
-//			poutcmd[i] = LittleLong (pincmd[i]);
+		for (i=0 ; i<pheader.num_glcmds ; i++)
+			poutcmd[i] = buffer.getInt(); // LittleLong (pincmd[i]);
 //
 //
-//		// register all skins
+		// register all skins
+		String[] skinNames = new String[pheader.num_skins];
+		byte[] nameBuf = new byte[qfiles.MAX_SKINNAME];
+		buffer.position(pheader.ofs_skins);
 //		memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,
 //			pheader->num_skins*MAX_SKINNAME);
-//		for (i=0 ; i<pheader->num_skins ; i++)
-//		{
-//			mod->skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME
-//				, it_skin);
-//		}
-//
+		for (i=0 ; i<pheader.num_skins ; i++)
+		{
+			buffer.get(nameBuf);
+			skinNames[i] = new String(nameBuf).trim();
+			mod.skins[i] = GL_FindImage(skinNames[i], it_skin);
+		}
+		
+		System.out.println(Arrays.asList(skinNames));
+		
+		// set the model arrays
+		pheader.skinNames = skinNames; // skin names
+		pheader.stVerts = poutst; // textur koordinaten
+		pheader.triAngles = pouttri; // dreiecke
+		pheader.glCmds = poutcmd; // STRIP or FAN
+		pheader.aliasFrames = poutframe; // frames mit vertex array
+		
+		mod.extradata = pheader;
+			
 		mod.mins[0] = -32;
 		mod.mins[1] = -32;
 		mod.mins[2] = -32;
@@ -1166,13 +1190,12 @@ public abstract class Model extends Image {
 			}
 			else if (mod.type == mod_alias)
 			{
-				// TODO  R_RegisterModel implement: mod.type == mod_alias
-//				pheader = (qfiles.dmdl_t)mod.extradata;
-//				for (i=0 ; i<pheader.num_skins ; i++)
-//					mod.skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-//				// PGM
-//				mod.numframes = pheader.num_frames;
-//				// PGM
+				pheader = (qfiles.dmdl_t)mod.extradata;
+				for (i=0 ; i<pheader.num_skins ; i++)
+					mod.skins[i] = GL_FindImage(pheader.skinNames[i], it_skin);
+				// PGM
+				mod.numframes = pheader.num_frames;
+				// PGM
 			}
 			else if (mod.type == mod_brush)
 			{
@@ -1234,13 +1257,11 @@ public abstract class Model extends Image {
 	*/
 	void Mod_FreeAll()
 	{
-//		int		i;
-//
-//		for (i=0 ; i<mod_numknown ; i++)
-//		{
-//			if (mod_known[i].extradatasize)
-//				Mod_Free (&mod_known[i]);
-//		}
+		for (int i=0 ; i<mod_numknown ; i++)
+		{
+			if (mod_known[i].extradata != null)
+				Mod_Free(mod_known[i]);
+		}
 	}
 
 
