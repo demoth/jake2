@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.21 2004-02-29 00:51:05 rst Exp $
+// $Id: GameUtil.java,v 1.22 2004-02-29 17:23:43 rst Exp $
 
 package jake2.game;
 
@@ -237,8 +237,7 @@ public class GameUtil extends GameBase
 				continue;
 			if (ent.touch != null)
 			{
-				Com.p("TOUCHING_ENT:" + ent.classname);
-				ent.touch.touch(hit, ent, null, null);
+				ent.touch.touch(hit, ent, GameBase.dummyplane, null);
 			}
 			if (!ent.inuse)
 				break;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameAIAdapters.java,v 1.2 2004-02-29 00:51:04 rst Exp $
+// $Id: GameAIAdapters.java,v 1.3 2004-02-29 17:23:43 rst Exp $
 
 package jake2.game;
 
@@ -203,8 +203,7 @@ public class GameAIAdapters
 	{
 		public void ai(edict_t self, float dist)
 		{
-			if (self.index == 312)
-				self.index = 312;
+
 			if (dist != 0)
 				M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
 

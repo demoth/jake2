@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.28 2004-02-29 00:51:05 rst Exp $
+// $Id: GameBase.java,v 1.29 2004-02-29 17:23:43 rst Exp $
 
 /** Father of all Objects. */
 
@@ -35,6 +35,7 @@ import jake2.util.*;
 
 public class GameBase extends Globals
 {
+	public static cplane_t dummyplane = new cplane_t(); 
 	public static game_locals_t game = new game_locals_t();
 	public static level_locals_t level = new level_locals_t();
 	public static game_import_t gi = new game_import_t();
@@ -404,7 +405,7 @@ public class GameBase extends Globals
 
 			if (hit.touch == null)
 				continue;
-			hit.touch.touch(hit, ent, null, null);
+			hit.touch.touch(hit, ent, GameBase.dummyplane, null);
 		}
 	}
 

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.27 2004-02-29 00:51:05 rst Exp $
+ * $Id: Cmd.java,v 1.28 2004-02-29 17:23:43 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -521,7 +521,7 @@ public final class Cmd extends PlayerView {
 			it_ent = GameUtil.G_Spawn();
 			it_ent.classname = it.classname;
 			GameAI.SpawnItem(it_ent, it);
-			GameAI.Touch_Item(it_ent, ent, null, null);
+			GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
 			if (it_ent.inuse)
 				GameUtil.G_FreeEdict(it_ent);
 
@@ -568,7 +568,7 @@ public final class Cmd extends PlayerView {
 			it_ent = GameUtil.G_Spawn();
 			it_ent.classname = it.classname;
 			GameAI.SpawnItem(it_ent, it);
-			GameAI.Touch_Item(it_ent, ent, null, null);
+			GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
 			if (it_ent.inuse)
 				GameUtil.G_FreeEdict(it_ent);
 		}
