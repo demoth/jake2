@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.1 2003-12-27 16:24:25 cwei Exp $
+ * $Id: Draw.java,v 1.2 2003-12-27 19:36:22 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,6 +112,8 @@ public class Draw extends Image {
 
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		
+		R_SetGL2D();
+		
 		
 		// *** test *** /
 		
@@ -132,7 +134,8 @@ public class Draw extends Image {
 			GL.GL_UNSIGNED_BYTE,
 			palette[0]);
 		
-		gl.glRasterPos2f(-0.2f, -0.2f);
+		gl.glWindowPos2i((vid.width-dim.width) / 2, (vid.height - dim.height) /2 );
+//		gl.glRasterPos2f(0, 0);
 		
 		byte[] tmp = new byte[data.length * 3];
 		int color = 0;
@@ -165,7 +168,7 @@ public class Draw extends Image {
 //		gl.glTexImage2D(
 //			GL.GL_TEXTURE_2D,
 //			0,
-//			GL.GL_RGB, //.GL_COLOR_INDEX8_EXT,
+//			GL.GL_COLOR_INDEX,
 //			dim.width,
 //			dim.height,
 //			0,
@@ -173,8 +176,8 @@ public class Draw extends Image {
 //			GL.GL_UNSIGNED_BYTE,
 //			data);
 //	 
-//	      gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-//	      gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+//	      gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+//	      gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
 //		
 //		
 		

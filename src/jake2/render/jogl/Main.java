@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.1 2003-12-27 16:24:25 cwei Exp $
+ * $Id: Main.java,v 1.2 2003-12-27 19:36:22 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -156,5 +156,22 @@ public class Main {
 	protected cvar_t vid_fullscreen = new cvar_t();
 	cvar_t vid_gamma;
 	protected cvar_t vid_ref;
+
+	
+	protected void R_SetGL2D() {
+		// set 2D virtual screen size
+		gl.glViewport(0, 0, vid.width, vid.height);
+		gl.glMatrixMode(GL.GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glLoadIdentity();
+		gl.glDisable(GL.GL_DEPTH_TEST);
+		gl.glDisable(GL.GL_CULL_FACE);
+		gl.glDisable(GL.GL_BLEND);
+		gl.glEnable(GL.GL_ALPHA_TEST);
+		gl.glColor4f(1, 1, 1, 1);
+	}
+	
 
 }
