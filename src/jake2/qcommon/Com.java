@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.4 2004-07-23 22:38:52 hzi Exp $
+ * $Id: Com.java,v 1.5 2004-07-28 11:54:43 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -86,12 +86,6 @@ public final class Com
 	// helper class to replace the pointer-pointer
 	public static class ParseHelp
 	{
-
-		public ParseHelp(String in, int offset)
-		{
-			this(in.toCharArray(), offset);
-		}
-
 		public ParseHelp(String in)
 		{
 			if (in == null)
@@ -112,10 +106,7 @@ public final class Com
 
 		public ParseHelp(char in[], int offset)
 		{
-			if (in == null || in.length == 0)
-				data= null;
-			else
-				data= in;
+			data= in;
 			index= offset;
 		}
 
@@ -150,6 +141,15 @@ public final class Com
 				// last char
 				return 0;
 			}
+		}
+		
+		public char prevchar() {
+			if (index > 0) 
+			{
+				index--;
+				return data[index];
+			}
+			return 0;					
 		}
 
 		public boolean isEof()
@@ -188,89 +188,64 @@ public final class Com
 	public static char com_token[]= new char[Defines.MAX_TOKEN_CHARS];
 
 	// See GameSpanw.ED_ParseEdict() to see how to use it now.
-	// works perfect !
-	public static String Parse(ParseHelp hlp)
-	{
-
+	public static String Parse(ParseHelp hlp) {
 		int c;
-		int len= 0;
-		len= 0;
+		int len = 0;
 
-		com_token[0]= 0;
-
-		if (hlp.data == null)
-		{
+		if (hlp.data == null) {
 			return "";
 		}
 
-		// skip whitespace
-		hlp.skipwhites();
+		while (true) {
+			//	   skip whitespace
+			hlp.skipwhites();
+			if (hlp.isEof())
+				return "";
 
-		if (hlp.isEof())
-		{
-			return "";
-		}
-
-		// skip // comments
-		if (hlp.getchar() == '/')
-		{
-			if (hlp.nextchar() == '/')
-			{
-				if ((hlp.skiptoeol() == 0) || (hlp.skipwhites() == 0))
-				{
+			//	   skip // comments
+			if (hlp.getchar() == '/') {
+				if (hlp.nextchar() == '/') {
+					hlp.skipwhitestoeol();
 					return "";
+				} else {
+					hlp.prevchar();
+					break;
 				}
-			}
-			else
-			{
-				com_token[len]= '/';
-				len++;
-			}
+			} else
+				break;
 		}
-		// handle quoted strings specially
-		if (hlp.getchar() == '\"')
-		{
-			while (true)
-			{
-				c= hlp.nextchar();
-				if (c == '\"' || c == 0)
-				{
 
-					hlp.nextchar();
-					com_token[len]= '?';
+		//	   handle quoted strings specially
+		if (hlp.getchar() == '\"') {
+			hlp.nextchar();
+			while (true) {
+				c = hlp.getchar();
+				hlp.nextchar();
+				if (c == '\"' || c == 0) {
 					return new String(com_token, 0, len);
 				}
-				if (len < Defines.MAX_TOKEN_CHARS)
-				{
-					com_token[len]= hlp.getchar();
+				if (len < Defines.MAX_TOKEN_CHARS) {
+					com_token[len] = (char) c;
 					len++;
 				}
 			}
 		}
 
-		// parse a regular word
-		do
-		{
-			if (len < Defines.MAX_TOKEN_CHARS)
-			{
-				com_token[len]= hlp.getchar();
+		//	   parse a regular word
+		c = hlp.getchar();
+		do {
+			if (len < Defines.MAX_TOKEN_CHARS) {
+				com_token[len] = (char) c;
 				len++;
 			}
+			c = hlp.nextchar();
+		} while (c > 32);
 
-			c= hlp.nextchar();
-		}
-		while (c > 32);
-
-		if (len == Defines.MAX_TOKEN_CHARS)
-		{
-			Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
-			len= 0;
+		if (len == Defines.MAX_TOKEN_CHARS) {
+			Com.Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
+			len = 0;
 		}
 
-		// trigger the eof
-		hlp.skipwhites();
-
-		com_token[len]= 0;
 		return new String(com_token, 0, len);
 	}
 
