@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.27 2004-03-01 09:30:56 hoz Exp $
+ * $Id: CL_input.java,v 1.28 2004-06-01 18:07:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -549,10 +549,7 @@ public class CL_input extends CL_ents {
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 
 		// calculate a checksum over the move commands
-		buf.data[checksumIndex] = 0;
-		/*COM_BlockSequenceCRCByte(
-					buf.data + checksumIndex + 1, buf.cursize - checksumIndex - 1,
-					cls.netchan.outgoing_sequence);*/
+		buf.data[checksumIndex] = Com.BlockSequenceCRCByte(buf.data, checksumIndex + 1, buf.cursize - checksumIndex - 1, cls.netchan.outgoing_sequence);
 
 		//
 		// deliver the message

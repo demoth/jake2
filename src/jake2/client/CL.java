@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.39 2004-04-15 08:08:26 hoz Exp $
+ * $Id: CL.java,v 1.40 2004-06-01 18:07:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1126,17 +1126,17 @@ public final class CL extends CL_pred {
 		if (precache_check == ENV_CNT) {
 			precache_check = ENV_CNT + 1;
 
-			CM.intwrap iw = new CM.intwrap(map_checksum);
+			int iw[] = {map_checksum};
 
 			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
-			map_checksum = iw.i;
-// TODO MD4 check abgeklemmt 
-//			if ((map_checksum ^ atoi(cl.configstrings[CS_MAPCHECKSUM])) != 0) {
-//				Com.Error(
-//					ERR_DROP,
-//					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
-//				return;
-//			}
+			map_checksum = iw[0];
+ 
+			if ((map_checksum ^ atoi(cl.configstrings[CS_MAPCHECKSUM])) != 0) {
+				Com.Error(
+					ERR_DROP,
+					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
+				return;
+			}
 		}
 
 		if (precache_check > ENV_CNT && precache_check < TEXTURE_CNT) {
@@ -1201,10 +1201,11 @@ public final class CL extends CL_pred {
 			
 			if (Cmd.Argc() < 2) {
 				
-				CM.intwrap iw = new CM.intwrap(0); // for detecting cheater maps
+				int iw[] ={0};// for detecting cheater maps
+				
 
 				CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
-//				int mapchecksum = iw.i ;
+				int mapchecksum = iw[0] ;
 				CL.RegisterSounds();
 				CL.PrepRefresh();
 				return;

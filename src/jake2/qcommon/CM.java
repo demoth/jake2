@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.34 2004-02-29 00:51:06 rst Exp $
+// $Id: CM.java,v 1.35 2004-06-01 18:07:22 cwei Exp $
 
 package jake2.qcommon;
 
@@ -189,7 +189,7 @@ public class CM extends Game {
 	Loads in the map and all submodels
 	==================
 	*/
-	public static cmodel_t CM_LoadMap(String name, boolean clientload, intwrap checksum) {
+	public static cmodel_t CM_LoadMap(String name, boolean clientload, int checksum[]) {
 		Com.DPrintf("CM_LoadMap...\n");
 		byte buf[];
 		int i;
@@ -200,7 +200,7 @@ public class CM extends Game {
 
 		if (0 == strcmp(map_name, name) && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
 
-			checksum.i = last_checksum;
+			checksum[0] = last_checksum;
 
 			if (!clientload) {
 				Arrays.fill(portalopen, false);
@@ -222,7 +222,7 @@ public class CM extends Game {
 			numleafs = 1;
 			numclusters = 1;
 			numareas = 1;
-			checksum.i = 0;
+			checksum[0] = 0;
 			return map_cmodels[0];
 			// cinematic servers won't have anything at all
 		}
@@ -240,7 +240,7 @@ public class CM extends Game {
 		ByteBuffer bbuf = ByteBuffer.wrap(buf);
 
 		last_checksum = MD4.Com_BlockChecksum(buf, length);
-		checksum.i = last_checksum;
+		checksum[0] = last_checksum;
 
 		header = new qfiles.dheader_t(bbuf.slice());
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.13 2004-06-01 13:54:08 rst Exp $
+// $Id: SV_USER.java,v 1.14 2004-06-01 18:07:22 cwei Exp $
 
 package jake2.server;
 
@@ -675,7 +675,7 @@ public class SV_USER extends SV_SEND
 							net_message.readcount - checksumIndex - 1,
 							cl.netchan.incoming_sequence);
 
-					if (calculatedChecksum != checksum)
+					if ((calculatedChecksum  &0xff) != checksum)
 					{
 						Com.DPrintf(
 							"Failed command checksum for "

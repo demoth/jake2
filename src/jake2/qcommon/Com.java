@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.41 2004-06-01 13:54:08 rst Exp $
+ * $Id: Com.java,v 1.42 2004-06-01 18:09:28 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1485,8 +1485,14 @@ public final class Com
 			0x73,
 			0xe5,
 			0xcb,
-			0x32 };
+			0x32, 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+	static byte chkb[] = new byte [60 + 4];
+	
 	/**
 	 * Calculates a crc checksum-sequence over an array.
 	 */
@@ -1494,8 +1500,8 @@ public final class Com
 	{
 		int n;
 		int p_ndx;
-		int x;
-		byte chkb[] = new byte [60 + 4];
+		short x;
+		
 		short crc;
 
 		if (sequence < 0)
@@ -1504,11 +1510,8 @@ public final class Com
 		//p_ndx = (sequence % (sizeof(chktbl) - 4));
 		p_ndx = (sequence % (1024 - 4));
 		
-		if (length > 60)
-			length= 60;
-			
 		//memcpy(chkb, base, length);
-		System.arraycopy(base, offset , chkb, 0, length);
+		System.arraycopy(base, offset , chkb, 0, Math.max(60, length));
 
 		/*
 		chkb[length]= p[0];
@@ -1525,14 +1528,14 @@ public final class Com
 		
 		length += 4;
 
-		crc= CRC.CRC_Block(chkb, length);
+		crc = CRC.CRC_Block(chkb, length);
 
 		for (x= 0, n= 0; n < length; n++)
-			x += chkb[n];
+			x += chkb[n] & 0xFF;
 
-		crc= (byte) ((crc ^ x) & 0xff);
+		crc ^= x;
 
-		return (byte) crc;
+		return (byte)(crc & 0xFF);
 	}
 
 }
