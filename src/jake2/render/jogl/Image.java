@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.25 2004-06-06 21:05:42 cwei Exp $
+ * $Id: Image.java,v 1.26 2004-06-06 21:57:31 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -129,8 +129,7 @@ public abstract class Image extends Main {
 		GL_TexEnv(GL.GL_REPLACE);
 	}
 
-	void GL_SelectTexture(int texture /* GLenum */
-	) {
+	void GL_SelectTexture(int texture /* GLenum */) {
 		int tmu;
 
 		if (!qglSelectTextureSGIS && !qglActiveTextureARB)
@@ -788,9 +787,9 @@ public abstract class Image extends Main {
 			filledcolor = 0;
 			// attempt to find opaque black
 			for (i = 0; i < 256; ++i)
-				if (d_8to24table[i] == (255 << 0)) // alpha 1.0
-					// TODO check this: if ((d_8to24table[i] & 0xFF000000) == 0xFF000000) // alpha 1.0
-					{
+				// TODO check this
+				if (d_8to24table[i]  == 0xFF000000) { // alpha 1.0
+				//if (d_8to24table[i] == (255 << 0)) // alpha 1.0
 					filledcolor = i;
 					break;
 				}

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.35 2004-06-03 08:07:05 hoz Exp $
+ * $Id: Main.java,v 1.36 2004-06-06 21:57:31 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,9 +36,12 @@ import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import net.java.games.jogl.GL;
 import net.java.games.jogl.GLU;
+import net.java.games.jogl.util.BufferUtils;
 import net.java.games.jogl.util.GLUT;
 
 /**
@@ -52,7 +55,7 @@ public abstract class Main extends Base {
 	GLU glu;
 	GLUT glut = new GLUT();
 
-	int[] d_8to24table = new int[256];
+	public static int[] d_8to24table = new int[256];
 
 	int c_visible_lightmaps;
 	int c_visible_textures;
@@ -478,65 +481,63 @@ public abstract class Main extends Base {
 		}
 		gl.glDepthMask(true); // back to writing
 	}
-
+	
 	/*
 	** GL_DrawParticles
 	**
 	*/
 	void GL_DrawParticles(int num_particles, particle_t[] particles) {
-		particle_t p;
-		int i;
 		float[] up = { 0, 0, 0 };
 		float[] right = { 0, 0, 0 };
 		float scale;
 		int color;
-		float[] origin;
 
+		float origin_x, origin_y, origin_z;
+
+		Math3D.VectorScale(vup, 1.5f, up);
+		Math3D.VectorScale(vright, 1.5f, right);
+		
 		GL_Bind(r_particletexture.texnum);
 		gl.glDepthMask(false); // no z buffering
 		gl.glEnable(GL.GL_BLEND);
 		GL_TexEnv(GL.GL_MODULATE);
+		
 		gl.glBegin(GL.GL_TRIANGLES);
 
-		Math3D.VectorScale(vup, 1.5f, up);
-		Math3D.VectorScale(vright, 1.5f, right);
+		FloatBuffer sourceVertices = particle_t.vertexArray;
+		IntBuffer sourceColors = particle_t.colorArray;
+		for (int j = 0, i = 0; i < num_particles; i++) {
+			origin_x = sourceVertices.get(j++);
+			origin_y = sourceVertices.get(j++);
+			origin_z = sourceVertices.get(j++);
 
-		for (i = 0; i < num_particles; i++) {
-			p = particles[i];
-			origin = p.origin;
 			// hack a scale up to keep particles from disapearing
 			scale =
-				(origin[0] - r_origin[0]) * vpn[0]
-					+ (origin[1] - r_origin[1]) * vpn[1]
-					+ (origin[2] - r_origin[2]) * vpn[2];
+				(origin_x - r_origin[0]) * vpn[0]
+					+ (origin_y - r_origin[1]) * vpn[1]
+					+ (origin_z - r_origin[2]) * vpn[2];
 
-			if (scale < 20)
-				scale = 1;
-			else
-				scale = 1 + scale * 0.004f;
+			scale = (scale < 20) ? 1 :  1 + scale * 0.004f;
 
-			color = d_8to24table[p.color];
-
+			color = sourceColors.get(i);
 			gl.glColor4ub(
-				(byte) ((color >> 0) & 0xff),
-				(byte) ((color >> 8) & 0xff),
-				(byte) ((color >> 16) & 0xff),
-				(byte) (p.alpha * 255));
-
+				(byte)((color >> 0) & 0xFF),
+				(byte)((color >> 8) & 0xFF),
+				(byte)((color >> 16) & 0xFF),
+				(byte)((color >> 24) & 0xFF)
+			);
+			// first vertex
 			gl.glTexCoord2f(0.0625f, 0.0625f);
-			gl.glVertex3f(origin[0], origin[1], origin[2]);
-
+			gl.glVertex3f(origin_x, origin_y, origin_z);
+			// second vertex
 			gl.glTexCoord2f(1.0625f, 0.0625f);
-			gl.glVertex3f(p.origin[0] + up[0] * scale, p.origin[1] + up[1] * scale, p.origin[2] + up[2] * scale);
-
+			gl.glVertex3f(origin_x + up[0] * scale, origin_y + up[1] * scale, origin_z + up[2] * scale);
+			// third vertex
 			gl.glTexCoord2f(0.0625f, 1.0625f);
-			gl.glVertex3f(
-				origin[0] + right[0] * scale,
-				origin[1] + right[1] * scale,
-				origin[2] + right[2] * scale);
+			gl.glVertex3f(origin_x + right[0] * scale, origin_y + right[1] * scale, origin_z + right[2] * scale);
 		}
-
 		gl.glEnd();
+		
 		gl.glDisable(GL.GL_BLEND);
 		gl.glColor4f(1, 1, 1, 1);
 		gl.glDepthMask(true); // back to normal Z buffering
@@ -551,31 +552,46 @@ public abstract class Main extends Base {
 	void R_DrawParticles() {
 
 		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
-			int color;
-			particle_t p;
-			float[] origin; 
+//			int color;
+//			particle_t p;
+//			float[] origin; 
+//
+//			gl.glDepthMask(false);
+//			gl.glEnable(GL.GL_BLEND);
+//			gl.glDisable(GL.GL_TEXTURE_2D);
+//
+//			gl.glPointSize(gl_particle_size.value);
 
+//			gl.glBegin(GL.GL_POINTS);
+//			for (int i = 0; i < r_newrefdef.num_particles; i++) {
+//				p = r_newrefdef.particles[i];
+//				color = d_8to24table[p.color];
+//				origin = p.origin;
+//
+//				gl.glColor4ub(
+//					(byte) ((color >> 0) & 0xff),
+//					(byte) ((color >> 8) & 0xff),
+//					(byte) ((color >> 16) & 0xff),
+//					(byte) (p.alpha * 255));
+//
+//				gl.glVertex3f(origin[0], origin[1], origin[2]);
+//			}
+//			gl.glEnd();
+
+			gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+			gl.glVertexPointer(3, GL.GL_FLOAT, 0, particle_t.vertexArray);
+			gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+			gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, particle_t.colorArray);
+			
 			gl.glDepthMask(false);
 			gl.glEnable(GL.GL_BLEND);
 			gl.glDisable(GL.GL_TEXTURE_2D);
-
 			gl.glPointSize(gl_particle_size.value);
-
-			gl.glBegin(GL.GL_POINTS);
-			for (int i = 0; i < r_newrefdef.num_particles; i++) {
-				p = r_newrefdef.particles[i];
-				color = d_8to24table[p.color];
-				origin = p.origin;
-
-				gl.glColor4ub(
-					(byte) ((color >> 0) & 0xff),
-					(byte) ((color >> 8) & 0xff),
-					(byte) ((color >> 16) & 0xff),
-					(byte) (p.alpha * 255));
-
-				gl.glVertex3f(origin[0], origin[1], origin[2]);
-			}
-			gl.glEnd();
+			
+			gl.glDrawArrays(GL.GL_POINTS, 0, r_newrefdef.num_particles);
+			
+			gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+			gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 
 			gl.glDisable(GL.GL_BLEND);
 			gl.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1010,7 +1026,7 @@ public abstract class Main extends Base {
 		gl_vertex_arrays = ri.Cvar_Get("gl_vertex_arrays", "0", Globals.CVAR_ARCHIVE);
 
 		gl_ext_swapinterval = ri.Cvar_Get("gl_ext_swapinterval", "1", Globals.CVAR_ARCHIVE);
-		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "1", Globals.CVAR_ARCHIVE);
+		gl_ext_palettedtexture = ri.Cvar_Get("gl_ext_palettedtexture", "0", Globals.CVAR_ARCHIVE);
 		gl_ext_multitexture = ri.Cvar_Get("gl_ext_multitexture", "1", Globals.CVAR_ARCHIVE);
 		gl_ext_pointparameters = ri.Cvar_Get("gl_ext_pointparameters", "1", Globals.CVAR_ARCHIVE);
 		gl_ext_compiled_vertex_array = ri.Cvar_Get("gl_ext_compiled_vertex_array", "1", Globals.CVAR_ARCHIVE);
@@ -1307,6 +1323,7 @@ public abstract class Main extends Base {
 			}
 			else {
 				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
+				qglColorTableEXT = false;
 			}
 		}
 		else {
@@ -1365,7 +1382,7 @@ public abstract class Main extends Base {
 			ri.Con_Printf(
 				Defines.PRINT_ALL,
 				"glGetError() = 0x%x\n\t%s\n",
-				new Vargs(2).add(err).add(gl.glGetString(err)));
+				new Vargs(2).add(err).add("" + gl.glGetString(err)));
 
 		return true;
 	}
@@ -1517,26 +1534,22 @@ public abstract class Main extends Base {
 	=============
 	*/
 	protected void R_SetPalette(byte[] palette) {
-
-		//assert(palette != null && palette.length == 768) : "byte palette[768] bug";
-		// es darf auch null sein
-
+		// 256 RGB values (768 bytes)
+		// or null
 		int i;
 		int color = 0;
 
 		if (palette != null) {
-
+			int j =0;
 			for (i = 0; i < 256; i++) {
-				color = (palette[i * 3 + 0] << 0) & 0x000000FF;
-				color |= (palette[i * 3 + 1] << 8) & 0x0000FF00;
-				color |= (palette[i * 3 + 2] << 8) & 0x00FF0000;
+				color = (palette[j++] & 0xFF) << 0;
+				color |= (palette[j++] & 0xFF) << 8;
+				color |= (palette[j++] & 0xFF) << 16;
 				color |= 0xFF000000;
 				r_rawpalette[i] = color;
 			}
-
 		}
 		else {
-
 			for (i = 0; i < 256; i++) {
 				r_rawpalette[i] = d_8to24table[i] | 0xff000000;
 			}
@@ -1549,6 +1562,9 @@ public abstract class Main extends Base {
 	}
 
 	static final int NUM_BEAM_SEGS = 6;
+	float[][] start_points = new float[NUM_BEAM_SEGS][3];
+	// array of vec3_t
+	float[][] end_points = new float[NUM_BEAM_SEGS][3]; // array of vec3_t
 
 	/*
 	** R_DrawBeam
@@ -1561,10 +1577,6 @@ public abstract class Main extends Base {
 		float[] perpvec = { 0, 0, 0 }; // vec3_t
 		float[] direction = { 0, 0, 0 }; // vec3_t
 		float[] normalized_direction = { 0, 0, 0 }; // vec3_t
-
-		float[][] start_points = new float[NUM_BEAM_SEGS][3];
-		// array of vec3_t
-		float[][] end_points = new float[NUM_BEAM_SEGS][3]; // array of vec3_t
 
 		float[] oldorigin = { 0, 0, 0 }; // vec3_t
 		float[] origin = { 0, 0, 0 }; // vec3_t
