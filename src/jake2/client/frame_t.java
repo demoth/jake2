@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.6 2004-02-13 15:09:19 cwei Exp $
+// $Id: frame_t.java,v 1.7 2004-02-13 21:04:38 rst Exp $
 
 package jake2.client;
 
 import jake2.game.*;
 
-public class frame_t {
+public class frame_t implements Cloneable {
 		
 	public static final int MAX_MAP_AREAS = 256; 
 		
@@ -34,9 +34,23 @@ public class frame_t {
 	int				servertime;		// server time the message is valid for (in msec)
 	int				deltaframe;
 	byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
-	public player_state_t playerstate = new player_state_t();
+	public 		player_state_t playerstate = new player_state_t();
 	int				num_entities;
 	int				parse_entities;	// non-masked index into cl_parse_entities array
+	
+	public frame_t getClone()
+	{
+		frame_t out = null;
+		
+		try {
+			out = (frame_t) this.clone();
+			out.playerstate = playerstate.getClone();
+		}
+		catch (CloneNotSupportedException e) {
+		}
+		
+		return out;
+	}
 	
 	public void reset()
 	{

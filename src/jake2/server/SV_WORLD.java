@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.6 2004-02-12 17:05:15 rst Exp $
+// $Id: SV_WORLD.java,v 1.7 2004-02-13 21:04:38 rst Exp $
 
 package jake2.server;
 
@@ -115,6 +115,7 @@ public class SV_WORLD extends SV_CCMDS
 			mins2= { 0, 0, 0 },
 			maxs2= { 0, 0, 0 };
 
+		Com.Printf("SV_CreateAreaNode " + depth + "\n");
 		anode= sv_areanodes[sv_numareanodes];
 		sv_numareanodes++;
 

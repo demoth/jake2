@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.8 2004-02-11 19:56:27 cwei Exp $
+ * $Id: CL_ents.java,v 1.9 2004-02-13 21:04:38 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -552,7 +552,7 @@ public class CL_ents extends CL_inv {
 		ParsePacketEntities(old, cl.frame);
 
 		// save the frame off in the backup array for later delta comparisons
-		cl.frames[cl.frame.serverframe & UPDATE_MASK] = cl.frame;
+		cl.frames[cl.frame.serverframe & UPDATE_MASK] = cl.frame.getClone();
 
 		if (cl.frame.valid) {
 			// getting a valid frame message ends the connection process

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.17 2004-02-13 16:15:47 rst Exp $
+// $Id: SV_INIT.java,v 1.18 2004-02-13 21:04:38 rst Exp $
 
 package jake2.server;
 
@@ -268,6 +268,7 @@ public class SV_INIT extends Globals  {
 
 		for (i = 1; i < CM.CM_NumInlineModels(); i++) {
 			sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
+			// copy references
 			sv.models[i + 1] = CM.InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
 		}
 

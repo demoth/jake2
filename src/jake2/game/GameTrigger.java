@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameTrigger.java,v 1.1 2003-12-27 21:33:50 rst Exp $
+// $Id: GameTrigger.java,v 1.2 2004-02-13 21:04:38 rst Exp $
 
 package jake2.game;
 
@@ -133,6 +133,7 @@ public class GameTrigger extends GamePWeapon {
 
 		if (ent.wait == 0)
 			ent.wait = 0.2f;
+			
 		ent.touch = Touch_Multi;
 		ent.movetype = MOVETYPE_NONE;
 		ent.svflags |= SVF_NOCLIENT;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.5 2004-02-04 20:33:35 rst Exp $
+// $Id: client_t.java,v 1.6 2004-02-13 21:04:38 rst Exp $
 
 package jake2.server;
 
@@ -36,7 +36,6 @@ public class client_t {
 		for (int n = 0; n < Defines.UPDATE_BACKUP; n++) {
 			frames[n] = new client_frame_t();
 		}
-
 	}
 
 	public static final int LATENCY_COUNTS = 16;
@@ -60,6 +59,7 @@ public class client_t {
 	int rate;
 	int surpressCount; // number of messages rate supressed
 
+	// pointer
 	edict_t edict; // EDICT_NUM(clientnum+1)
 
 	//char				name[32];			// extracted from userinfo, high bits masked

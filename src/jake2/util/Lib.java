@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.21 2004-02-13 11:09:51 rst Exp $
+// $Id: Lib.java,v 1.22 2004-02-13 21:04:38 rst Exp $
 
 package jake2.util;
 
@@ -75,11 +75,11 @@ public class Lib {
 	=============
 	*/
 	public static String vtos(float[] v) {
-		return  (int) v[0] + " " + (int) v[1] + " " + (int) v[2] ;
+		return (int) v[0] + " " + (int) v[1] + " " + (int) v[2];
 	}
 
 	public static String vtofs(float[] v) {
-		return v[0] + " " + v[1] + " " + v[2] ;
+		return v[0] + " " + v[1] + " " + v[2];
 	}
 	public static short rand() {
 		return (short) (Math.random() * 0x8000);
@@ -438,13 +438,74 @@ public class Lib {
 	public static int getInt(byte b[]) {
 		return (b[0] & 0xff) | ((b[1] & 0xff) << 8) | ((b[2] & 0xff) << 16) | ((b[3] & 0xff) << 24);
 	}
-	
-	public static void sleep(int sec)
-	{
+
+	public static void sleep(int sec) {
 		try {
-			Thread.sleep(sec*1000);
+			Thread.sleep(sec * 1000);
 		}
 		catch (InterruptedException e) {
 		}
+	}
+
+	public static float[] clone(float in[]) {
+		float out[] = new float[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+	public static short[] clone(short in[]) {
+		short out[] = new short[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+
+	public static long[] clone(long in[]) {
+		long out[] = new long[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+
+	public static boolean[] clone(boolean in[]) {
+		boolean out[] = new boolean[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+
+	public static int[] clone(int in[]) {
+		int out[] = new int[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+
+	public static double[] clone(double in[]) {
+		double out[] = new double[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+
+	// this works with Strings also.
+	public static String[] clone(String in[]) {
+		String out[] = new String[in.length];
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
 	}
 }

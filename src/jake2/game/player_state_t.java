@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: player_state_t.java,v 1.10 2004-02-11 05:11:28 cwei Exp $
+// $Id: player_state_t.java,v 1.11 2004-02-13 21:04:38 rst Exp $
 
 package jake2.game;
 
@@ -69,7 +69,12 @@ public class player_state_t {
 		this.set(prototype);
 	}
 	
-	public void set(player_state_t from)
+	public player_state_t getClone()
+	{
+		return new player_state_t().set(this);
+	}
+	
+	public player_state_t set(player_state_t from)
 	{		
 		pmove.set(from.pmove);
 		Math3D.VectorCopy(from.viewangles, viewangles);
@@ -92,6 +97,8 @@ public class player_state_t {
 		
 		stats = new short[Defines.MAX_STATS];
 		System.arraycopy(from.stats, 0, stats,0, Defines.MAX_STATS);
+		
+		return this;
 	}
 
 	public void load(ByteBuffer bb) throws IOException {
