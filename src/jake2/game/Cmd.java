@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.18 2003-12-29 16:56:23 rst Exp $
+ * $Id: Cmd.java,v 1.19 2003-12-29 22:31:15 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -291,7 +291,7 @@ public final class Cmd extends PlayerView {
 
 	public static void AddCommand(String cmd_name, xcommand_t function) {
 		cmd_function_t cmd;
-		Com.Printf("Cmd_AddCommand: " + cmd_name + "\n");
+		Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
 		// fail if the command is a variable name
 		if ((Cvar.VariableString(cmd_name)).length() > 0) {
 			Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
@@ -385,7 +385,12 @@ public final class Cmd extends PlayerView {
 		cmdalias_t a;
 
 		TokenizeString(text.toCharArray(), true);
-		System.out.println("tokenized[" + Argv(0) + "]" + "[" + (cmd_args) + "]");
+		
+		Com.DPrintf("tokenized:");
+		for (int xxx=0; xxx < Argc(); xxx++)
+			Com.DPrintf("["  + Argv(xxx) + "]");
+			
+		Com.DPrintf("\n");
 		//System.out.println("tokenized[" + Argv(0) + "]" + "[" + Argv(1) +  "]");
 		// execute the command line
 		if (Argc() == 0)
@@ -422,7 +427,6 @@ public final class Cmd extends PlayerView {
 				return;
 			}
 		}
-		System.out.println("Command not found:" + text);
 
 		// check cvars
 		if (Cvar.Command())

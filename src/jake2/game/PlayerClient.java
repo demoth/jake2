@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.2 2003-12-28 19:52:35 rst Exp $
+// $Id: PlayerClient.java,v 1.3 2003-12-29 22:31:15 rst Exp $
 
 package jake2.game;
 
@@ -1200,7 +1200,7 @@ public class PlayerClient extends PlayerHud {
 		// check to see if they are on the banned IP list
 		value = Info.Info_ValueForKey(userinfo, "ip");
 		if (SV.SV_FilterPacket(value)) {
-			Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
+			userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Banned.");
 			return false;
 		}
 
@@ -1210,7 +1210,7 @@ public class PlayerClient extends PlayerHud {
 			int i, numspec;
 
 			if (!passwdOK(spectator_password.string, value)) {
-				Info.Info_SetValueForKey(userinfo, "rejmsg", "Spectator password required or incorrect.");
+				userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Spectator password required or incorrect.");
 				return false;
 			}
 
@@ -1220,7 +1220,7 @@ public class PlayerClient extends PlayerHud {
 					numspec++;
 
 			if (numspec >= maxspectators.value) {
-				Info.Info_SetValueForKey(userinfo, "rejmsg", "Server spectator limit is full.");
+				userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Server spectator limit is full.");
 				return false;
 			}
 		}
@@ -1228,7 +1228,7 @@ public class PlayerClient extends PlayerHud {
 			// check for a password
 			value = Info.Info_ValueForKey(userinfo, "password");
 			if (!passwdOK(spectator_password.string, value)) {
-				Info.Info_SetValueForKey(userinfo, "rejmsg", "Password required or incorrect.");
+				userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Password required or incorrect.");
 				return false;
 			}
 		}

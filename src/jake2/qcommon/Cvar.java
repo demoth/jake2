@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.16 2003-12-29 00:01:03 rst Exp $
+ * $Id: Cvar.java,v 1.17 2003-12-29 22:31:15 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,7 +57,7 @@ public class Cvar {
 		cvar_t var;
 
 		if ((flags & (USERINFO | SERVERINFO)) != 0) {
-			if (!Cvar.InfoValidate(var_name)) {
+			if (!Info.Info_Validate(var_name)) {
 				Com.Printf("invalid info cvar name\n");
 				return null;
 			}
@@ -73,7 +73,7 @@ public class Cvar {
 			return null;
 
 		if ((flags & (USERINFO | SERVERINFO)) != 0) {
-			if (!Cvar.InfoValidate(var_value)) {
+			if (!Info.Info_Validate(var_value)) {
 				Com.Printf("invalid info cvar value\n");
 				return null;
 			}
@@ -98,16 +98,6 @@ public class Cvar {
 		return var;
 	}
 
-	static boolean InfoValidate(String s) {
-
-		if (s.indexOf('\\') >= 0)
-			return false;
-		if (s.indexOf('\"') >= 0)
-			return false;
-		if (s.indexOf(';') >= 0)
-			return false;
-		return true;
-	}
 
 	static void Init() {
 		Cmd.AddCommand("set", Set_f);
@@ -181,7 +171,7 @@ public class Cvar {
 		}
 
 		if ((var.flags & (USERINFO | SERVERINFO)) != 0) {
-			if (!Cvar.InfoValidate(value)) {
+			if (!Info.Info_Validate(value)) {
 				Com.Printf("invalid info cvar value\n");
 				return var;
 			}

@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.9 2003-12-04 20:06:03 rst Exp $
+ * $Id: SZ.java,v 1.10 2003-12-29 22:31:15 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,9 +33,7 @@ import jake2.Defines;
 public final class SZ {
 
 	public static void Clear(sizebuf_t buf) {
-		buf = new sizebuf_t();
-		buf.cursize = 0;
-		buf.overflowed = false;
+		buf.clear();
 	}
 
 	//===========================================================================

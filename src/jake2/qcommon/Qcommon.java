@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.8 2003-12-02 10:07:35 hoz Exp $
+ * $Id: Qcommon.java,v 1.9 2003-12-29 22:31:15 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -74,6 +74,7 @@ public final class Qcommon {
 
 			FS.InitFilesystem();
 
+			//TODO: Rst was debugging here
 			Cbuf.AddText("exec default.cfg\n");
 			Cbuf.AddText("exec config.cfg\n");
 

@@ -2,7 +2,7 @@
  * sizebuf_t.java
  * Copyright (C) 2003
  * 
- * $Id: sizebuf_t.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
+ * $Id: sizebuf_t.java,v 1.6 2003-12-29 22:31:15 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,4 +35,10 @@ public final class sizebuf_t {
 	public int maxsize = 0;
 	public int cursize = 0;
 	public int readcount = 0;
+	
+	public void clear()
+	{
+		cursize = 0;
+		overflowed = false;
+	}
 }

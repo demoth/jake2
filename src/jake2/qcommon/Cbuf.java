@@ -2,9 +2,9 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.10 2003-12-29 00:01:03 rst Exp $
+ * $Id: Cbuf.java,v 1.11 2003-12-29 22:31:15 rst Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -41,8 +41,8 @@ public final class Cbuf {
 		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
 	}
 
- 
 	public static void InsertText(String text) {
+		
 		byte[] temp = null;
 		int templen = 0;
 
@@ -53,36 +53,36 @@ public final class Cbuf {
 			System.arraycopy(Globals.cmd_text.data, 0, temp, 0, templen);
 			SZ.Clear(Globals.cmd_text);
 		}
-		                
+
 		// add the entire text of the file
 		Cbuf.AddText(text);
-         
+
 		// add the copied off data
 		if (templen != 0) {
 			SZ.Write(Globals.cmd_text, temp, templen);
 			temp = null;
-		}		
+		}
 	}
-	
+
 	/**
 	 * @param clear
 	 */
 	static void AddEarlyCommands(boolean clear) {
- 
-		for (int i=0 ; i < Com.Argc() ; i++) {
+
+		for (int i = 0; i < Com.Argc(); i++) {
 			String s = Com.Argv(i);
-				if (!s.equals("+set"))
-					continue;
-			Cbuf.AddText("set " + Com.Argv(i+1) + " " + Com.Argv(i+2) +"n");
+			if (!s.equals("+set"))
+				continue;
+			Cbuf.AddText("set " + Com.Argv(i + 1) + " " + Com.Argv(i + 2) + "n");
 			if (clear) {
 				Com.ClearArgv(i);
-				Com.ClearArgv(i+1);
-				Com.ClearArgv(i+2);
+				Com.ClearArgv(i + 1);
+				Com.ClearArgv(i + 2);
 			}
-			i+=2;
+			i += 2;
 		}
 	}
-	
+
 	/**
 	 * @return
 	 */
@@ -94,45 +94,44 @@ public final class Cbuf {
 		// build the combined string to parse from
 		int s = 0;
 		int argc = Com.Argc();
-		for (i=1 ; i<argc ; i++) {
+		for (i = 1; i < argc; i++) {
 			s += Com.Argv(i).length();
 		}
 		if (s == 0)
 			return false;
-                 
-		String text = "";
-		for (i=1 ; i<argc ; i++) {
-			text += Com.Argv(i);
-			if (i != argc-1) text +=" ";
-		}
-         
-		// pull out the commands
-		String build = "";        
-		for (i=0 ; i<text.length() ; i++) {
-			if (text.charAt(i) == '+') {
-			i++;
 
-			for (j=i ; (text.charAt(j) != '+') && (text.charAt(j) != '-') && j < text.length() ; j++)
-				;
- 
+		String text = "";
+		for (i = 1; i < argc; i++) {
+			text += Com.Argv(i);
+			if (i != argc - 1)
+				text += " ";
+		}
+
+		// pull out the commands
+		String build = "";
+		for (i = 0; i < text.length(); i++) {
+			if (text.charAt(i) == '+') {
+				i++;
+
+				for (j = i;(text.charAt(j) != '+') && (text.charAt(j) != '-') && j < text.length(); j++);
 
 				build += text.substring(i, j - 1);
 				build += "\n";
-				
-				i = j - 1;                      
+
+				i = j - 1;
 			}
 		}
 
 		ret = (build.length() != 0);
 		if (ret)
 			Cbuf.AddText(build);
-        
+
 		text = null;
 		build = null;
- 
-		return ret;		
+
+		return ret;
 	}
-	
+
 	/**
 	 * @param text
 	 */
@@ -143,9 +142,9 @@ public final class Cbuf {
 			Com.Printf("Cbuf_AddText: overflow\n");
 			return;
 		}
-		SZ.Write(Globals.cmd_text, text.getBytes(), l);		
+		SZ.Write(Globals.cmd_text, text.getBytes(), l);
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -153,27 +152,28 @@ public final class Cbuf {
 
 		byte[] text = null;
 		byte[] line = new byte[1024];
- 
-		Globals.alias_count = 0;                // don't allow infinite alias loops
- 
+
+		Globals.alias_count = 0; // don't allow infinite alias loops
+
 		while (Globals.cmd_text.cursize != 0) {
 			// find a \n or ; line break
 			text = Globals.cmd_text.data;
- 
+
 			int quotes = 0;
 			int i;
-			for (i=0 ; i < Globals.cmd_text.cursize ; i++) {
+			
+			for (i = 0; i < Globals.cmd_text.cursize; i++) {
 				if (text[i] == '"')
 					quotes++;
-				if ( !(quotes%2 != 0) &&  text[i] == ';')
-					break;  // don't break if inside a quoted string
+				if (!(quotes % 2 != 0) && text[i] == ';')
+					break; // don't break if inside a quoted string
 				if (text[i] == '\n')
 					break;
 			}
-             
-            System.arraycopy(text, 0, line, 0, i);                                             
+
+			System.arraycopy(text, 0, line, 0, i);
 			line[i] = 0;
-                
+
 			// delete the text from the command buffer and move remaining commands down
 			// this is necessary because commands (exec, alias) can insert data at the
 			// beginning of the text buffer
@@ -184,19 +184,28 @@ public final class Cbuf {
 				i++;
 				Globals.cmd_text.cursize -= i;
 				byte[] tmp = new byte[Globals.cmd_text.cursize];
-				System.arraycopy(text, 1, tmp, 0, Globals.cmd_text.cursize);
+				
+				System.arraycopy(text, i, tmp, 0, Globals.cmd_text.cursize);
 				System.arraycopy(tmp, 0, text, 0, Globals.cmd_text.cursize);
+				text[Globals.cmd_text.cursize]='\0';
+				
 			}
- 
+
 			// execute the command line
-			Cmd.ExecuteString(new String(line));
-                
+			int len = jake2.util.Lib.strlen(line);
+			//System.out.println("Cbuf.executelen:" + Globals.cmd_text.cursize + "/" + len);
+			
+			String cmd = new String(line, 0, len);
+			//System.out.println("Cbuf.data   :" + new String(text,0,16).replace('\n','.').replace('\r','.'));
+			//System.out.println("Cbuf.execute:" + xxx.replace('\n','.').replace('\r','.') );
+			Cmd.ExecuteString(cmd);
+
 			if (Globals.cmd_wait) {
 				// skip out while text still remains in buffer, leaving it
 				// for next frame
 				Globals.cmd_wait = false;
 				break;
 			}
-		}		
+		}
 	}
 }

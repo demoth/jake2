@@ -19,23 +19,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: TestINFO.java,v 1.2 2003-12-29 22:31:15 rst Exp $
+// $Id: TestCvar.java,v 1.1 2003-12-29 22:31:15 rst Exp $
 
 package jake2.qcommon;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
-public class TestINFO {
+// import jake2.*;
+// import jake2.client.*;
+// import jake2.game.*;
+// import jake2.qcommon.*;
+// import jake2.render.*;
+// import jake2.server.*;
 
-	public static void main(String args[]) {
-		String test = "\\key1\\value 1\\key 2 \\value2\\key3\\ v a l u e 3\\key4\\val ue 4";
-		Info.Info_Print(test);
-		test = Info.Info_RemoveKey1(test, "key1");
-		Info.Info_Print(test);
+public class TestCvar {
+
+	public static void main(String[] args) {
+		Cvar.Set("rene", "is cool.");
+		
+		Com.Printf("rene:" + Cvar.FindVar("rene").string);
 	}
 }
