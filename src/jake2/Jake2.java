@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.23 2004-06-14 13:48:10 cwei Exp $
+ * $Id: Jake2.java,v 1.24 2004-06-15 18:30:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2;
 
 import java.io.IOException;
 
+import jake2.client.SCR;
 import jake2.qcommon.*;
 import jake2.sys.Sys;
 
@@ -64,7 +65,7 @@ public final class Jake2 {
 			
 			// TODO this is a timer hack for Win2000
 			// System.currentTimeMillis() resolution bug 
-			if (time == 0 && Globals.cl_timedemo.value != 0) {
+			if (time == 0 && (Globals.cl_timedemo.value != 0 || SCR.fps.value != 0)) {
 				time++;
 			} 
 			

@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.44 2004-04-15 08:08:26 hoz Exp $
+ * $Id: SCR.java,v 1.45 2004-06-15 18:30:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -84,7 +84,7 @@ public final class SCR extends Globals
 	static cvar_t scr_graphscale;
 	static cvar_t scr_graphshift;
 	static cvar_t scr_drawall;
-	static cvar_t fps;
+	public static cvar_t fps;
 
 	static dirty_t scr_dirty = new dirty_t();
 	static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t()};
@@ -1452,10 +1452,16 @@ public final class SCR extends Globals
 	private static int lastframes = 0;
 	private static int lasttime = 0;
 	private static String fpsvalue = "";
+	
 	static void DrawFPS()
 	{
 		if (fps.value > 0.0f)
 		{
+			if (fps.modified) {
+				fps.modified = false;
+				Cvar.SetValue("cl_maxfps", 1000);
+			}
+			
 			int diff = cls.realtime - lasttime;
 			if (diff > (int) (fps.value * 1000))
 			{
@@ -1469,6 +1475,9 @@ public final class SCR extends Globals
 				re.DrawChar(x, 2, fpsvalue.charAt(i));
 				x += 8;
 			}
+		} else if (fps.modified){
+				fps.modified = false;
+				Cvar.SetValue("cl_maxfps", 90);
 		}
 	}
 	
