@@ -2179,6 +2179,10 @@ public class GAME_BASE extends defs {
 	static int stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
+	
+	static int Q_stricmp(String in1, String in2) {
+		return in1.compareToIgnoreCase(in2);
+	}
 
 	//TODO: delete this and clean up quake.	
 	static int strncmp(String in1, String in2, int len) {

@@ -120,9 +120,7 @@ public class GAME_UTIL extends GAME_BASE {
 		}
 	}
 
-	static int Q_stricmp(String in1, String in2) {
-		return in1.compareToIgnoreCase(in2);
-	}
+
 
 	static void G_InitEdict(edict_t e, int i) {
 		e.inuse= true;
