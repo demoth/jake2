@@ -2172,13 +2172,12 @@ public class GAME_BASE extends defs {
 	}
 
 	//TODO: delete this and clean up quake.
-	static int strcmp(String i1, String i2) {
-		if (i1 == null)
-			if (i2 == null)
-				return 0;
-			else
-				return -1;
-		return i1.compareTo(i2);
+	static int strcmp(String in1, String in2) {
+		return in1.compareTo(in2);
+	}
+	
+	static int stricmp(String in1, String in2) {
+		return in1.compareToIgnoreCase(in2);
 	}
 
 	//TODO: delete this and clean up quake.	

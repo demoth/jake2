@@ -1876,9 +1876,7 @@ public class GAME_UTIL extends GAME_BASE {
 		self.monsterinfo.run.think(self);
 	}
 
-	static int strcmp(String in1, String in2) {
-		return in1.compareTo(in2);
-	}
+
 
 	static void M_ReactToDamage(edict_t targ, edict_t attacker) {
 		if ((null != attacker.client) && 0 != (attacker.svflags & SVF_MONSTER))
