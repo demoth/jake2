@@ -84,9 +84,6 @@ public class LWJGLKBD extends KBD {
 		while (Mouse.next()) {
 			int button = Mouse.getEventButton();
 			if (button >= 0) {
-				if (button == 1 && mouseHasTwoButtons) {
-					button = 2; // A three button mouse numbering scheme...
-				}
 				Do_Key_Event(Key.K_MOUSE1 + button, Mouse.getEventButtonState());
 			} else {
 				button = Mouse.getEventDWheel();
