@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.1 2004-01-07 13:07:44 hoz Exp $
+ * $Id: KBD.java,v 1.2 2004-01-07 13:44:36 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
+import jake2.Defines;
 import jake2.client.Key;
 
 import java.awt.AWTEvent;
 import java.awt.event.*;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import java.util.LinkedList;
 
 /**
