@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.7 2004-01-03 21:13:01 cwei Exp $
+ * $Id: TestRenderer.java,v 1.8 2004-01-03 21:15:28 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,158 +194,130 @@ public class TestRenderer {
 	
 //	===================================================================
 
-	 private int yaw = 0;
+	private int yaw = 0;
 
-	 private void testWorld() {
-	 	
-		 refdef_t refdef = new refdef_t();
+	private void testWorld() {
 
-		 refdef.x = viddef.width / 2;
-		 refdef.y = viddef.height / 2 - 72;
-		 refdef.width = 144;
-		 refdef.height = 168;
-		 refdef.fov_x = 40;
-		 refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
-		 refdef.time = 1.0f * 0.001f;
+		refdef_t refdef = new refdef_t();
 
-		 if (true /* s_pmi[s_player_model_box.curvalue].skindisplaynames */) {
-			int maxframe = 29;
-			entity_t entity = new entity_t();
-			String modelName = "players/female/tris.md2";
-			String modelSkin = "players/female/athena.pcx";
-			String modelImage = "/players/female/athena_i.pcx";
+		refdef.x = viddef.width / 2;
+		refdef.y = viddef.height / 2 - 72;
+		refdef.width = 144;
+		refdef.height = 168;
+		refdef.fov_x = 40;
+		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.time = 1.0f * 0.001f;
 
-//			 Com_sprintf(
-//				 scratch,
-//				 sizeof(scratch),
-//				 "players/%s/tris.md2",
-//				 s_pmi[s_player_model_box.curvalue].directory);
-			 entity.model = re.RegisterModel(modelName);
-//			 Com_sprintf(
-//				 scratch,
-//				 sizeof(scratch),
-//				 "players/%s/%s.pcx",
-//				 s_pmi[s_player_model_box.curvalue].directory,
-//				 s_pmi[s_player_model_box
-//					 .curvalue]
-//					 .skindisplaynames[s_player_skin_box
-//					 .curvalue]);
+		int maxframe = 29;
+		entity_t entity = new entity_t();
+		String modelName = "players/female/tris.md2";
+		String modelSkin = "players/female/athena.pcx";
+		String modelImage = "/players/female/athena_i.pcx";
 
-			 entity.skin = re.RegisterSkin(modelSkin);
-			 entity.flags = Defines.RF_FULLBRIGHT;
-			 entity.origin[0] = 80;
-			 entity.origin[1] = 0;
-			 entity.origin[2] = 0;
-			 Math3D.VectorCopy(entity.origin, entity.oldorigin);
-			 entity.frame = 0;
-			 entity.oldframe = 0;
-			 entity.backlerp = 0.0f;
-			 entity.angles[1] = yaw++;
-			 if (++yaw > 360)
-				 yaw -= 360;
-//
-			 refdef.areabits = null;
-//			 refdef.num_entities = 1;
-			 refdef.num_entities = 1;
-			 refdef.entities = new entity_t[] { entity };
-			 refdef.lightstyles = null;
-			 refdef.rdflags = Defines.RDF_NOWORLDMODEL;
-//
-//			 Menu_Draw(& s_player_config_menu);
-//
-			 M_DrawTextBox(
-				 (int)((refdef.x) * (320.0F / viddef.width) - 8),
-				 (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
-				 refdef.width / 8,
-				 refdef.height / 8);
-			 refdef.height += 4;
-//
-			 re.RenderFrame(refdef);
-//
-//			 Com_sprintf(
-//				 scratch,
-//				 sizeof(scratch),
-//				 "/players/%s/%s_i.pcx",
-//				 s_pmi[s_player_model_box.curvalue].directory,
-//				 s_pmi[s_player_model_box
-//					 .curvalue]
-//					 .skindisplaynames[s_player_skin_box
-//					 .curvalue]);
-			 re.DrawPic(/*s_player_config_menu.x*/ refdef.x - 80, refdef.y, modelImage);
-		 }
-	 }
+		entity.model = re.RegisterModel(modelName);
+
+		entity.skin = re.RegisterSkin(modelSkin);
+		entity.flags = Defines.RF_FULLBRIGHT;
+		entity.origin[0] = 80;
+		entity.origin[1] = 0;
+		entity.origin[2] = 0;
+		Math3D.VectorCopy(entity.origin, entity.oldorigin);
+		entity.frame = 0;
+		entity.oldframe = 0;
+		entity.backlerp = 0.0f;
+		entity.angles[1] = yaw++;
+		if (++yaw > 360)
+			yaw -= 360;
+
+		refdef.areabits = null;
+		refdef.num_entities = 1;
+		refdef.entities = new entity_t[] { entity };
+		refdef.lightstyles = null;
+		refdef.rdflags = Defines.RDF_NOWORLDMODEL;
+
+		//			 Menu_Draw(& s_player_config_menu);
+
+		M_DrawTextBox(
+			(int) ((refdef.x) * (320.0F / viddef.width) - 8),
+			(int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+			refdef.width / 8,
+			refdef.height / 8);
+		refdef.height += 4;
+
+		re.RenderFrame(refdef);
+
+		re.DrawPic(/*s_player_config_menu.x*/
+		refdef.x - 80, refdef.y, modelImage);
+	}
 	
-	 private float CalcFov(float fov_x, float width, float height) {
-		 double a;
-		 double x;
+	private float CalcFov(float fov_x, float width, float height) {
+		double a;
+		double x;
 
-		 if (fov_x < 1 || fov_x > 179)
-			 ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
+		if (fov_x < 1 || fov_x > 179)
+			ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
 
-		 x = width / Math.tan(fov_x / 360 * Math.PI);
+		x = width / Math.tan(fov_x / 360 * Math.PI);
 
-		 a = Math.atan(height / x);
+		a = Math.atan(height / x);
 
-		 a = a * 360 / Math.PI;
+		a = a * 360 / Math.PI;
 
-		 return new Double(a).floatValue();
-	 }
-	 
-	private void M_DrawTextBox (int x, int y, int width, int lines)
-	{
-		int		cx, cy;
-		int		n;
+		return new Double(a).floatValue();
+	}
+
+	private void M_DrawTextBox(int x, int y, int width, int lines) {
+		int cx, cy;
+		int n;
 
 		// draw left side
 		cx = x;
 		cy = y;
-		M_DrawCharacter (cx, cy, 1);
-		for (n = 0; n < lines; n++)
-		{
+		M_DrawCharacter(cx, cy, 1);
+		for (n = 0; n < lines; n++) {
 			cy += 8;
-			M_DrawCharacter (cx, cy, 4);
+			M_DrawCharacter(cx, cy, 4);
 		}
-		M_DrawCharacter (cx, cy+8, 7);
+		M_DrawCharacter(cx, cy + 8, 7);
 
 		// draw middle
 		cx += 8;
-		while (width > 0)
-		{
+		while (width > 0) {
 			cy = y;
-			M_DrawCharacter (cx, cy, 2);
-			for (n = 0; n < lines; n++)
-			{
+			M_DrawCharacter(cx, cy, 2);
+			for (n = 0; n < lines; n++) {
 				cy += 8;
-				M_DrawCharacter (cx, cy, 5);
+				M_DrawCharacter(cx, cy, 5);
 			}
-			M_DrawCharacter (cx, cy+8, 8);
+			M_DrawCharacter(cx, cy + 8, 8);
 			width -= 1;
 			cx += 8;
 		}
 
 		// draw right side
 		cy = y;
-		M_DrawCharacter (cx, cy, 3);
-		for (n = 0; n < lines; n++)
-		{
+		M_DrawCharacter(cx, cy, 3);
+		for (n = 0; n < lines; n++) {
 			cy += 8;
-			M_DrawCharacter (cx, cy, 6);
+			M_DrawCharacter(cx, cy, 6);
 		}
-		M_DrawCharacter (cx, cy+8, 9);
+		M_DrawCharacter(cx, cy + 8, 9);
 	}
 
 	/*
 	================
 	M_DrawCharacter
-
+	
 	Draws one solid graphics character
 	cx and cy are in 320*240 coordinates, and will be centered on
 	higher res screens.
 	================
 	*/
-	private void M_DrawCharacter (int cx, int cy, int num)
-	{
-		re.DrawChar ( cx + ((viddef.width - 320)>>1), cy + ((viddef.height - 240)>>1), num);
+	private void M_DrawCharacter(int cx, int cy, int num) {
+		re.DrawChar(
+			cx + ((viddef.width - 320) >> 1),
+			cy + ((viddef.height - 240) >> 1),
+			num);
 	}
 
 
