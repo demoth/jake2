@@ -14,8 +14,6 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageReadParam;
@@ -30,9 +28,6 @@ import javax.imageio.stream.ImageInputStream;
  *
  */
 public class PCXImageReader extends ImageReader {
-
-	private static Logger logger =
-		Logger.getLogger(PCXImageReader.class.getName());
 
 	ImageInputStream stream = null;
 	PCX.Header header = null;
@@ -253,11 +248,11 @@ public class PCXImageReader extends ImageReader {
 			}
 		}
 		if ((stream.readUnsignedByte()) == 0x0c) {
-			logger.log(
-				Level.FINE,
-				"PCX has a color palette with "
-					+ (stream.length() - stream.getStreamPosition())
-					+ " Bytes, but use the default palette (quake2)");
+//			logger.log(
+//				Level.FINE,
+//				"PCX has a color palette with "
+//					+ (stream.length() - stream.getStreamPosition())
+//					+ " Bytes, but use the default palette (quake2)");
 		}
 		return dst;
 	}
@@ -295,7 +290,7 @@ public class PCXImageReader extends ImageReader {
 		if (header != null)
 			return;
 
-		logger.log(Level.FINE, "PCX read header");
+		//logger.log(Level.FINE, "PCX read header");
 
 		if (stream == null) {
 			if (this.input == null) {
@@ -309,12 +304,12 @@ public class PCXImageReader extends ImageReader {
 		try {
 			stream.readFully(buffer);
 			this.header = new PCX.Header(buffer);
-			logger.log(
-				Level.FINE,
-				"PCX horzRes: "
-					+ header.getWidth()
-					+ " height: "
-					+ header.getHeight());
+//			logger.log(
+//				Level.FINE,
+//				"PCX horzRes: "
+//					+ header.getWidth()
+//					+ " height: "
+//					+ header.getHeight());
 		} catch (IOException e) {
 			throw new IIOException("Error reading quake2 PCX header", e);
 		}

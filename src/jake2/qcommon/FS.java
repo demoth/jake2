@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.28 2004-02-25 13:20:28 hoz Exp $
+ * $Id: FS.java,v 1.29 2004-05-04 09:12:43 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,8 +33,6 @@ import jake2.sys.Sys;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.stream.FileImageInputStream;
 
@@ -44,8 +42,6 @@ import javax.imageio.stream.FileImageInputStream;
  * @author cwei
  */
 public final class FS extends Globals {
-
-	private static Logger logger = Logger.getLogger(FS.class.getName());
 
 	/*
 	=============================================================================
@@ -120,7 +116,7 @@ public final class FS extends Globals {
 		if (index > 0) {
 			File f = new File(path.substring(0, index));
 			if (!f.mkdirs()) {
-				logger.log(Level.WARNING, "can't create path \"" + path + '"');
+				Com.Printf("can't create path \"" + path + '"');
 			}
 		}
 	}
@@ -448,12 +444,12 @@ public final class FS extends Globals {
 
 				newfiles.put(entry.name.toLowerCase(), entry);
 
-				logger.log(Level.FINEST, i + ".\t" + entry);
+				//logger.log(Level.FINEST, i + ".\t" + entry);
 			}
 
 		}
 		catch (IOException e) {
-			logger.log(Level.WARNING, e.toString());
+			//logger.log(Level.WARNING, e.toString());
 			return null;
 		}
 
@@ -577,7 +573,7 @@ public final class FS extends Globals {
 					fs_searchpaths.pack.handle.close();
 				}
 				catch (IOException e) {
-					logger.log(Level.WARNING, e.toString());
+					//logger.log(Level.WARNING, e.toString());
 				}
 				// clear the hashtable
 				fs_searchpaths.pack.files.clear();

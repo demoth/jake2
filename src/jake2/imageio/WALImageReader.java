@@ -14,8 +14,6 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageReadParam;
@@ -31,8 +29,8 @@ import javax.imageio.stream.ImageInputStream;
  */
 public class WALImageReader extends ImageReader {
 
-	private static Logger logger =
-		Logger.getLogger(WALImageReader.class.getName());
+//	private static Logger logger =
+//		Logger.getLogger(WALImageReader.class.getName());
 
 	ImageInputStream stream = null;
 	WAL.Header header = null;
@@ -246,7 +244,7 @@ public class WALImageReader extends ImageReader {
 
 		if (header != null) return;
 
-		logger.log(Level.FINE, "WAL read header");
+		//logger.log(Level.FINE, "WAL read header");
 
 		if (stream == null) {
 			if (this.input == null) {
@@ -260,12 +258,12 @@ public class WALImageReader extends ImageReader {
 		try {
 			stream.readFully(buffer);
 			this.header = new WAL.Header(buffer);
-			logger.log(
-				Level.FINE,
-				"WAL width: "
-					+ header.getWidth()
-					+ " height: "
-					+ header.getHeight());
+//			logger.log(
+//				Level.FINE,
+//				"WAL width: "
+//					+ header.getWidth()
+//					+ " height: "
+//					+ header.getHeight());
 		} catch (IOException e) {
 			throw new IIOException("Error reading quake2 WAL header", e);
 		}

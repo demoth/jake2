@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.6 2003-11-28 23:42:48 rst Exp $
+ * $Id: Renderer.java,v 1.7 2004-05-04 09:12:43 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import jake2.client.refexport_t;
 import jake2.client.refimport_t;
@@ -39,7 +37,6 @@ import jake2.client.refimport_t;
  */
 public class Renderer {
 
-	private static Logger logger = Logger.getLogger(Renderer.class.getName());
 
 	static Vector drivers = new Vector(3);
 
@@ -50,7 +47,7 @@ public class Renderer {
 		try {
 			Class.forName("jake2.render.JoglRenderer");
 		} catch (ClassNotFoundException e) {
-			logger.log(Level.SEVERE, "can't found " + DEFAULT_CLASS);
+			//logger.log(Level.SEVERE, "can't found " + DEFAULT_CLASS);
 			e.printStackTrace();
 		}
 	};
@@ -80,7 +77,7 @@ public class Renderer {
 				return driver.GetRefAPI(rimp);
 			}
 		}
-		logger.log(Level.INFO, "Refresh driver \"" + driverName + "\"not found");
+		//logger.log(Level.INFO, "Refresh driver \"" + driverName + "\"not found");
 		// null if driver not found
 		return null;
 	}
