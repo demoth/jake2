@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.4 2004-01-22 15:44:40 cwei Exp $
+ * $Id: Warp.java,v 1.5 2004-01-23 00:37:23 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.render.msurface_t;
 import jake2.util.Math3D;
+import net.java.games.jogl.GL;
 
 /**
  * Warp
@@ -573,90 +574,92 @@ public abstract class Warp extends Model {
 	}
 
 
-//	void MakeSkyVec (float s, float t, int axis)
-//	{
-//		vec3_t		v, b;
-//		int			j, k;
-//
-//		b[0] = s*2300;
-//		b[1] = t*2300;
-//		b[2] = 2300;
-//
-//		for (j=0 ; j<3 ; j++)
-//		{
-//			k = st_to_vec[axis][j];
-//			if (k < 0)
-//				v[j] = -b[-k - 1];
-//			else
-//				v[j] = b[k - 1];
-//		}
-//
-//		// avoid bilerp seam
-//		s = (s+1)*0.5;
-//		t = (t+1)*0.5;
-//
-//		if (s < sky_min)
-//			s = sky_min;
-//		else if (s > sky_max)
-//			s = sky_max;
-//		if (t < sky_min)
-//			t = sky_min;
-//		else if (t > sky_max)
-//			t = sky_max;
-//
-//		t = 1.0 - t;
-//		qglTexCoord2f (s, t);
-//		qglVertex3fv (v);
-//	}
-//
+	void MakeSkyVec (float s, float t, int axis)
+	{
+		float[] v = {0, 0, 0};
+		float[] b = {0, 0, 0};
+		int j, k;
+
+		b[0] = s*2300;
+		b[1] = t*2300;
+		b[2] = 2300;
+
+		for (j=0 ; j<3 ; j++)
+		{
+			k = st_to_vec[axis][j];
+			if (k < 0)
+				v[j] = -b[-k - 1];
+			else
+				v[j] = b[k - 1];
+		}
+
+		// avoid bilerp seam
+		s = (s + 1) * 0.5f;
+		t = (t + 1) * 0.5f;
+
+		if (s < sky_min)
+			s = sky_min;
+		else if (s > sky_max)
+			s = sky_max;
+		if (t < sky_min)
+			t = sky_min;
+		else if (t > sky_max)
+			t = sky_max;
+
+		t = 1.0f - t;
+		gl.glTexCoord2f (s, t);
+		gl.glVertex3fv( v );
+	}
+
 	/*
 	==============
 	R_DrawSkyBox
 	==============
 	*/
 	int[] skytexorder = {0,2,1,3,4,5};
+
 	void R_DrawSkyBox()
 	{
-//		int		i;
-//
-//		if (skyrotate)
-//		{	// check for no sky at all
-//			for (i=0 ; i<6 ; i++)
-//				if (skymins[0][i] < skymaxs[0][i]
-//				&& skymins[1][i] < skymaxs[1][i])
-//					break;
-//			if (i == 6)
-//				return;		// nothing visible
-//		}
-//
-//	qglPushMatrix ();
-//	qglTranslatef (r_origin[0], r_origin[1], r_origin[2]);
-//	qglRotatef (r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
-//
-//		for (i=0 ; i<6 ; i++)
-//		{
-//			if (skyrotate)
-//			{	// hack, forces full sky to draw when rotating
-//				skymins[0][i] = -1;
-//				skymins[1][i] = -1;
-//				skymaxs[0][i] = 1;
-//				skymaxs[1][i] = 1;
-//			}
-//
-//			if (skymins[0][i] >= skymaxs[0][i]
-//			|| skymins[1][i] >= skymaxs[1][i])
-//				continue;
-//
-//			GL_Bind (sky_images[skytexorder[i]]->texnum);
-//
-//			qglBegin (GL_QUADS);
-//			MakeSkyVec (skymins[0][i], skymins[1][i], i);
-//			MakeSkyVec (skymins[0][i], skymaxs[1][i], i);
-//			MakeSkyVec (skymaxs[0][i], skymaxs[1][i], i);
-//			MakeSkyVec (skymaxs[0][i], skymins[1][i], i);
-//			qglEnd ();
-//		}
-//	qglPopMatrix ();
+		int i;
+
+		if (skyrotate != 0)
+		{	// check for no sky at all
+			for (i=0 ; i<6 ; i++)
+				if (skymins[0][i] < skymaxs[0][i]
+				&& skymins[1][i] < skymaxs[1][i])
+					break;
+			if (i == 6)
+				return;		// nothing visible
+		}
+
+		gl.glPushMatrix ();
+		gl.glTranslatef (r_origin[0], r_origin[1], r_origin[2]);
+		gl.glRotatef (r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+
+		for (i=0 ; i<6 ; i++)
+		{
+			if (skyrotate != 0)
+			{	// hack, forces full sky to draw when rotating
+				skymins[0][i] = -1;
+				skymins[1][i] = -1;
+				skymaxs[0][i] = 1;
+				skymaxs[1][i] = 1;
+			}
+
+			if (skymins[0][i] >= skymaxs[0][i]
+			|| skymins[1][i] >= skymaxs[1][i])
+				continue;
+
+			GL_Bind (sky_images[skytexorder[i]].texnum);
+
+			gl.glBegin(GL.GL_QUADS);
+			MakeSkyVec(skymins[0][i], skymins[1][i], i);
+			MakeSkyVec(skymins[0][i], skymaxs[1][i], i);
+			MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i);
+			MakeSkyVec(skymaxs[0][i], skymins[1][i], i);
+			gl.glEnd ();
+		}
+		gl.glPopMatrix ();
 	}
 
 
@@ -667,43 +670,51 @@ public abstract class Warp extends Model {
 	*/
 	// 3dstudio environment map names
 	String[] suf = {"rt", "bk", "lf", "ft", "up", "dn"};
+	
 	protected void R_SetSky(String name, float rotate, float[] axis)
 	{
 		assert (axis.length == 3) : "vec3_t bug";
-//		int		i;
-//		char	pathname[MAX_QPATH];
-//
+		int i;
+		String pathname;
+
 //		strncpy (skyname, name, sizeof(skyname)-1);
-//		skyrotate = rotate;
-//		VectorCopy (axis, skyaxis);
-//
-//		for (i=0 ; i<6 ; i++)
-//		{
-//			// chop down rotating skies for less memory
-//			if (gl_skymip->value || skyrotate)
-//				gl_picmip->value++;
-//
-//			if ( qglColorTableEXT && gl_ext_palettedtexture->value )
-//				Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[i]);
-//			else
-//				Com_sprintf (pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
-//
-//			sky_images[i] = GL_FindImage (pathname, it_sky);
-//			if (!sky_images[i])
-//				sky_images[i] = r_notexture;
-//
-//			if (gl_skymip->value || skyrotate)
-//			{	// take less memory
-//				gl_picmip->value--;
-//				sky_min = 1.0/256;
-//				sky_max = 255.0/256;
-//			}
-//			else	
-//			{
-//				sky_min = 1.0/512;
-//				sky_max = 511.0/512;
-//			}
-//		}
+		skyname = name;
+
+		skyrotate = rotate;
+		Math3D.VectorCopy(axis, skyaxis);
+
+		for (i=0 ; i<6 ; i++)
+		{
+			// chop down rotating skies for less memory
+			if (gl_skymip.value != 0 || skyrotate != 0)
+				gl_picmip.value++;
+
+			if ( qglColorTableEXT && gl_ext_palettedtexture.value != 0) {
+				//	Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[i]);
+				pathname = "env/" + skyname + suf[i] + ".pcx";
+			} else {
+				// Com_sprintf (pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
+				// TODO impl: LoadTGA
+				pathname = "env/" + skyname + suf[i] + ".pcx";
+			}
+
+			sky_images[i] = GL_FindImage(pathname, it_sky);
+
+			if (sky_images[i] == null)
+				sky_images[i] = r_notexture;
+
+			if (gl_skymip.value != 0 || skyrotate != 0)
+			{	// take less memory
+				gl_picmip.value--;
+				sky_min = 1.0f / 256;
+				sky_max = 255.0f / 256;
+			}
+			else	
+			{
+				sky_min = 1.0f / 512;
+				sky_max = 511.0f / 512;
+			}
+		}
 	}
 
 

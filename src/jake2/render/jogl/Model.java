@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.12 2004-01-22 00:15:32 cwei Exp $
+ * $Id: Model.java,v 1.13 2004-01-23 00:37:23 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -89,6 +89,7 @@ public abstract class Model extends Surf {
 		{
 			if (node.contents != -1)
 				return (mleaf_t)node;
+				
 			plane = node.plane;
 			d = Math3D.DotProduct(p, plane.normal) - plane.dist;
 			if (d > 0)
@@ -173,22 +174,22 @@ public abstract class Model extends Surf {
 	*/
 	void Mod_Modellist_f()
 	{
-		// TODO impl: Mod_Modellist_f()
-		
-//		int		i;
-//		model_t	*mod;
-//		int		total;
-//
-//		total = 0;
-//		ri.Con_Printf (PRINT_ALL,"Loaded models:\n");
-//		for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
-//		{
-//			if (!mod.name[0])
-//				continue;
-//			ri.Con_Printf (PRINT_ALL, "%8i : %s\n",mod.extradatasize, mod.name);
-//			total += mod.extradatasize;
-//		}
-//		ri.Con_Printf (PRINT_ALL, "Total resident: %i\n", total);
+		int i;
+		model_t	mod;
+		int total;
+
+		total = 0;
+		ri.Con_Printf(Defines.PRINT_ALL,"Loaded models:\n");
+		for (i=0; i < mod_numknown ; i++)
+		{
+			mod = mod_known[i];
+			if (mod.name == "")
+				continue;
+
+			ri.Con_Printf (Defines.PRINT_ALL, "%8i : %s\n", new Vargs(2).add(mod.extradatasize).add(mod.name));
+			total += mod.extradatasize;
+		}
+		ri.Con_Printf (Defines.PRINT_ALL, "Total resident: " + total +'\n');
 	}
 
 	/*

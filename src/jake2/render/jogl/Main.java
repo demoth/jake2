@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.19 2004-01-22 03:23:33 cwei Exp $
+ * $Id: Main.java,v 1.20 2004-01-23 00:37:23 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -822,7 +822,7 @@ public abstract class Main extends Base {
 		//
 		// set drawing parms
 		//
-		if (gl_cull.value > 0.0f)
+		if (gl_cull.value != 0.0f)
 			gl.glEnable(GL.GL_CULL_FACE);
 		else
 			gl.glDisable(GL.GL_CULL_FACE);
@@ -841,10 +841,10 @@ public abstract class Main extends Base {
 
 	void R_Clear()
 	{
-		if (gl_ztrick.value > 0.0f)
+		if (gl_ztrick.value != 0.0f)
 		{
 
-			if (gl_clear.value > 0.0f)
+			if (gl_clear.value != 0.0f)
 			{
 				gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 			}
@@ -865,7 +865,7 @@ public abstract class Main extends Base {
 		}
 		else
 		{
-			if (gl_clear.value > 0.0f)
+			if (gl_clear.value != 0.0f)
 				gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 			else
 				gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
