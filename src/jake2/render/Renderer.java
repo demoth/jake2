@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.2 2003-11-21 23:28:53 cwei Exp $
+ * $Id: Renderer.java,v 1.3 2003-11-24 15:06:28 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,99 +25,151 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render;
 
-import jake2.client.refdef_t;
+import java.awt.Dimension;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import jake2.client.refexport_t;
+import jake2.client.refimport_t;
+import jake2.qcommon.xcommand_t;
+
+import jake2.game.cvar_t;
 
 /**
  * Renderer
  * 
  * @author cwei
  */
-public abstract class Renderer {
+public class Renderer {
+	
+	private static Logger logger = Logger.getLogger(Renderer.class.getName());
 
-	private static Renderer impl = null;
+	static Vector drivers = new Vector(3); 
 
-	Renderer() {
+	public static final String DEFAULT = JoglRenderer.DRIVER_NAME; 
+	private static final String DEFAULT_CLASS = "jake2.render.JoglRenderer"; 
+
+	static {
+		try {
+			Class.forName("jake2.render.JoglRenderer");
+		} catch (ClassNotFoundException e) {
+			logger.log(Level.SEVERE, "can't found " +  DEFAULT_CLASS);
+			e.printStackTrace();
+		}
+	};
+
+	public static void register(Ref impl) {
+		if (!drivers.contains(impl)) {
+			drivers.add(impl);
+		}
 	}
-
+	
 	/**
 	 * Factory method to get the Renderer implementation.
-	 * @return Renderer singleton
+	 * @return refexport_t (Renderer singleton)
 	 */
-	public static Renderer getInstance() {
-		if (impl == null) {
-			impl = new JoglRenderer();
+	public static refexport_t getDriver(String driverName, refimport_t rimp) {
+		if (rimp == null) throw new IllegalArgumentException("refimport_t can't be null");
+		// find a driver
+		Ref driver = null;
+		int count = drivers.size();
+		for (int i=0; i < count && driver == null; i++) {
+			driver = (Ref)drivers.get(i);
+			if (driver.getName().equals(driverName)) {
+				return driver.GetRefAPI(rimp);
+			}
 		}
-		return impl;
+		logger.log(Level.INFO, "Refresh driver \"" + driverName + "\"not found");
+		// null if driver not found
+		return null;
 	}
 
-	// ============================================================================
-	// public interface for Renderer implementations
-	//
-	// ref.h, refexport_t
-	// ============================================================================
-	//
-	// these are the functions exported by the refresh module
-	//
-	// called when the library is loaded
-	public abstract boolean Init();
+	public static String[] getDriverNames() {
+		int count = drivers.size();
+		String[] names = new String[count];
+		for (int i = 0; i < count; i++) {
+			names[i] = ((Ref)drivers.get(i)).getName();
+		}
+		return names;
+	}
+	
+	public static void main(String[] args) {
+		
+		// only for testing
+		// a simple refimport_t implementation
+		refimport_t rimp = new refimport_t() {
+			public void Sys_Error(int err_level, String str, Object[] vargs) {
+			}
 
-	// called before the library is unloaded
-	public abstract void Shutdown();
+			public void Cmd_AddCommand(String name, xcommand_t cmd) {
+			}
 
-	// All data that will be used in a level should be
-	// registered before rendering any frames to prevent disk hits,
-	// but they can still be registered at a later time
-	// if necessary.
-	//
-	// EndRegistration will free any remaining data that wasn't registered.
-	// Any model_s or skin_s pointers from before the BeginRegistration
-	// are no longer valid after EndRegistration.
-	//
-	// Skins and images need to be differentiated, because skins
-	// are flood filled to eliminate mip map edge errors, and pics have
-	// an implicit "pics/" prepended to the name. (a pic name that starts with a
-	// slash will not use the "pics/" prefix or the ".pcx" postfix)
-	public abstract void BeginRegistration(String map);
-	public abstract model_t RegisterModel(String name);
-	public abstract image_t RegisterSkin(String name);
-	public abstract image_t RegisterPic(String name);
-	public abstract void SetSky(String name, float rotate, /* vec3_t */
-	float[] axis);
-	public abstract void EndRegistration();
+			public void Cmd_RemoveCommand(String name) {
+			}
 
-	public abstract void RenderFrame(refdef_t fd);
+			public int Cmd_Argc() {
+				return 0;
+			}
 
-	public abstract void DrawGetPicSize(int[] w, int[] h, String name);
-	// will return 0 0 if not found
-	public abstract void DrawPic(int x, int y, String name);
-	public abstract void DrawStretchPic(
-		int x,
-		int y,
-		int w,
-		int h,
-		String name);
-	public abstract void DrawChar(int x, int y, int c);
-	public abstract void DrawTileClear(int x, int y, int w, int h, String name);
-	public abstract void DrawFill(int x, int y, int w, int h, int c);
-	public abstract void DrawFadeScreen();
+			public String Cmd_Argv(int i) {
+				return null;
+			}
 
-	// Draw images for cinematic rendering (which can have a different palette). Note that calls
-	public abstract void DrawStretchRaw(
-		int x,
-		int y,
-		int w,
-		int h,
-		int cols,
-		int rows,
-		byte[] data);
+			public void Cmd_ExecuteText(int exec_when, String text) {
+			}
 
-	/*
-	** video mode and refresh state management entry points
-	*/
-	/* 256 r,g,b values;	null = game palette */
-	public abstract void CinematicSetPalette(final byte[] palette);
-	public abstract void BeginFrame(float camera_separation);
-	public abstract void EndFrame();
+			public void Con_Printf(
+				int print_level,
+				String str,
+				Object[] vargs) {
+			}
 
-	public abstract void AppActivate(boolean activate);
+			public int FS_LoadFile(String name, byte[] buf) {
+				return 0;
+			}
+
+			public void FS_FreeFile(byte[] buf) {
+			}
+
+			public String FS_Gamedir() {
+				return null;
+			}
+
+			public cvar_t Cvar_Get(String name, String value, int flags) {
+				return null;
+			}
+
+			public cvar_t Cvar_Set(String name, String value) {
+				return null;
+			}
+
+			public void Cvar_SetValue(String name, float value) {
+			}
+
+			public boolean Vid_GetModeInfo(Dimension dim, int mode) {
+				return false;
+			}
+
+			public void Vid_MenuInit() {
+			}
+
+			public void Vid_NewWindow(int width, int height) {
+			}
+		};
+		
+		try {
+			//Class.forName("jake2.render.JoglRenderer");
+			String[] names = Renderer.getDriverNames();
+			System.out.println("Registered Drivers: " + Arrays.asList(names));
+
+			refexport_t re = Renderer.getDriver("jogl", rimp);
+
+			System.out.println("Use driver: " + re);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
