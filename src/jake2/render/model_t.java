@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.11 2004-01-25 19:07:44 cwei Exp $
+// $Id: model_t.java,v 1.12 2004-02-15 20:17:51 cwei Exp $
 
 package jake2.render;
 
 import java.util.Vector;
 
 import jake2.qcommon.*;
+import jake2.util.Lib;
 import jake2.*;
 import jake2.game.*;
 
@@ -111,10 +112,15 @@ public class model_t implements Cloneable {
 	}
 	
 	public model_t copy() {
-		Object theClone = null;
+		model_t theClone = null;
 		try
 		{
-			theClone = super.clone();
+			theClone = (model_t)super.clone();
+			theClone.mins = Lib.clone(this.mins);
+			theClone.maxs = Lib.clone(this.maxs);
+			theClone.clipmins = Lib.clone(this.clipmins);
+			theClone.clipmaxs = Lib.clone(this.clipmaxs);
+			
 		}
 		catch (CloneNotSupportedException e)
 		{
