@@ -14,6 +14,7 @@
 	<!-- properties -->
 	<property name="version" value="cvs"/> 
 	<property name="src" location="src"/>
+	<property name="patch" location="patch"/>
 	<property name="test" location="test"/>
 	<property name="build" location="build"/>
 	<property name="dist" location="dist"/>
@@ -113,7 +114,9 @@
 	<!-- jar -->
 	<target name="jar" depends="compile,copyres">
 		<jar destfile="jake2.jar" basedir="${build}">
-			<include name="**"/>
+			<include name="jake2/**"/>
+			<include name="*.png"/>
+			<include name="mirrors"/>
 		</jar>
 		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
@@ -200,11 +203,14 @@
 	</target>
 	
 	<!-- webstart -->
-	<target name="webstart" depends="dist">
+	<target name="webstart" depends="dist,patch">
 		<mkdir dir="webstart/lib"/>
 		<copy todir="webstart/lib">
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar"/>
+			</fileset>
+			<fileset dir=".">
+				<include name="patch.jar"/>
 			</fileset>
 		</copy>
 		<jar destfile="webstart/lib/linux/jogl-native.jar" basedir="${dist}/lib/linux">
@@ -245,5 +251,17 @@
 				<include name="*.jar"/>
 			</fileset>
 		</delete>
+	</target>
+	
+	<!-- patch -->
+	<target name="patch">
+		<javac destdir="${build}" optimize="on" debug="off" source="1.4">
+			<src path="${patch}"/>
+			<include name="**"/>
+			<classpath refid="build.class.path"/>
+		</javac>
+			<jar destfile="patch.jar" basedir="${build}">
+			<include name="net/**"/>
+		</jar>
 	</target>
 </project>
