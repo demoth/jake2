@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.6 2003-11-30 21:50:08 rst Exp $
+ * $Id: Cvar.java,v 1.7 2003-12-01 12:47:16 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// $Id: Cvar.java,v 1.6 2003-11-30 21:50:08 rst Exp $
 package jake2.qcommon;
 
 import jake2.*;
