@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.9 2004-06-28 12:29:14 cwei Exp $
+ * $Id: Impl.java,v 1.10 2004-06-28 13:03:48 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,16 +27,11 @@ package jake2.render.fastjogl;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.CL;
 import jake2.qcommon.Com;
 import jake2.qcommon.xcommand_t;
-import jake2.server.SV;
 import jake2.sys.KBD;
 
-import java.awt.Dimension;
-import java.awt.DisplayMode;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -50,8 +45,6 @@ import net.java.games.jogl.*;
  * @author cwei
  */
 public class Impl extends Misc implements GLEventListener {
-
-
 
 	public static final String DRIVER_NAME = "fastjogl";
 
@@ -156,8 +149,12 @@ public class Impl extends Misc implements GLEventListener {
 		 */
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		device = env.getDefaultScreenDevice();
-		if (fullscreen && !device.isFullScreenSupported())
+
+		if (fullscreen && !device.isFullScreenSupported()) {
 			ri.Con_Printf(Defines.PRINT_ALL, "...fullscreen not supported\n");
+			vid_fullscreen.value = 0;
+			vid_fullscreen.modified = false;
+		}
 
 		fullscreen = fullscreen && device.isFullScreenSupported();
         
