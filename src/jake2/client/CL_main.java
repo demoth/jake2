@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.27 2004-02-08 13:26:12 hoz Exp $
+ * $Id: CL_main.java,v 1.28 2004-02-08 21:34:49 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -167,7 +167,7 @@ public class CL_main extends CL_pred {
 
 				// configstrings
 				for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
-					if (cl.configstrings[i] != "") {
+					if (cl.configstrings[i].length()>0) {
 						if (buf.cursize + cl.configstrings[i].length() + 32 > buf.maxsize) { // write it out
 							//len = LittleLong(buf.cursize);
 							//fwrite(& len, 4, 1, cls.demofile);
@@ -789,8 +789,8 @@ public class CL_main extends CL_pred {
 			//
 			// remote command packet
 			//		
-			if (net_message.data[0] == 0xFF && net_message.data[1] == 0xFF
-				&& net_message.data[2] == 0xFF && net_message.data[3] == 0xFF) {
+			if (net_message.data[0] == -1 && net_message.data[1] == -1
+				&& net_message.data[2] == -1 && net_message.data[3] == -1) {
 				//			if (*(int *)net_message.data == -1)
 				CL.ConnectionlessPacket();
 				continue;

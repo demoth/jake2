@@ -81,13 +81,13 @@ public class edict_t {
 	// set in qe3, -1 = up, -2 = down
 	public float angle;
 
-	public String target = "";
-	public String targetname = "";
-	public String killtarget = "";
-	public String team = "";
-	public String pathtarget = "";
-	public String deathtarget = "";
-	public String combattarget = "";
+	public String target = null;
+	public String targetname = null;
+	public String killtarget = null;
+	public String team = null;
+	public String pathtarget = null;
+	public String deathtarget = null;
+	public String combattarget = null;
 
 	public edict_t target_ent = null;
 
