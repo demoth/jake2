@@ -1,8 +1,9 @@
 /*
- * SoundImpl.java
- * Copyright (C) 2004
+ * Created on Apr 25, 2004
  * 
- * $Id: SoundImpl.java,v 1.1 2004-04-15 10:31:40 hoz Exp $
+ * Copyright (C) 2003
+ *
+ * $Id: Sound.java,v 1.1 2004-04-26 13:43:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,12 +27,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.sound;
 
 /**
- * SoundImpl
+ * Sound
+ * 
+ * @author cwei
  */
-public abstract class SoundImpl {
-
-	abstract public boolean Init();
-	abstract public void Shutdown();
+public interface Sound {
+	
+	
+	String getName();
+	
+	boolean Init();
+	void Shutdown();
+	
+	/*
+	=====================
+	S_BeginRegistration
+	=====================
+	*/
+	void BeginRegistration();
+	
+	/*
+	=====================
+	S_RegisterSound
+	=====================
+	*/
+	sfx_t RegisterSound(String sample);
+	
+	/*
+	=====================
+	S_EndRegistration
+	=====================
+	*/
+	void EndRegistration();
+	
+	/*
+	==================
+	S_StartLocalSound
+	==================
+	*/
+	void StartLocalSound(String sound);
 	
 	/*
 	====================
@@ -42,7 +76,7 @@ public abstract class SoundImpl {
 	Entchannel 0 will never override a playing sound
 	====================
 	*/
-	abstract public void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs);
+	void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs);
 
 	/*
 	============
@@ -51,13 +85,21 @@ public abstract class SoundImpl {
 	Called once each time through the main loop
 	============
 	*/
-	abstract public void Update(float[] origin, float[] forward, float[] right, float[] up);
+	void Update(float[] origin, float[] forward, float[] right, float[] up);
+	/*
+	============
+	S_RawSamples
+	 
+	Cinematic streaming and voice over network
+	============
+	*/
+	void RawSamples(int samples, int rate, int width, int channels, byte[] data);
 
 	/*
 	==================
 	S_StopAllSounds
 	==================
 	*/
-	abstract public void StopAllSounds();
+	void StopAllSounds();
 
 }
