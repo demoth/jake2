@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.5 2004-01-06 02:05:45 cwei Exp $
+ * $Id: qfiles.java,v 1.6 2004-01-08 13:17:03 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -427,7 +427,13 @@ public class qfiles {
 		public short index_st[] = { 0, 0, 0 };
 		
 		public dtriangle_t(ByteBuffer b) {
-			b.asShortBuffer().get(index_xyz).get(index_st);
+			index_xyz[0] = b.getShort();
+			index_xyz[1] = b.getShort();
+			index_xyz[2] = b.getShort();
+			
+			index_st[0] = b.getShort();
+			index_st[1] = b.getShort();
+			index_st[2] = b.getShort();
 		}
 	}
 
@@ -705,7 +711,9 @@ public class qfiles {
 		public float point[] = { 0, 0, 0 };
 		
 		public dvertex_t(ByteBuffer b) {
-			b.asFloatBuffer().get(point);
+			point[0] = b.getFloat();
+			point[1] = b.getFloat();
+			point[2] = b.getFloat();
 		}
 	}
 
