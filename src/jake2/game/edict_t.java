@@ -28,6 +28,7 @@ public class edict_t {
 	public edict_t(int i) {
 		
 		s.number = i;
+		index = i;
 	}
 
 	public void clear() {
@@ -188,6 +189,8 @@ public class edict_t {
 
 	public gclient_t client;
 	public edict_t owner;
+	
+	int index;	//introduced by rst
 	
 
 	/////////////////////////////////////////////////

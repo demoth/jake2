@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.16 2004-02-11 19:56:28 cwei Exp $
+// $Id: SV_INIT.java,v 1.17 2004-02-13 16:15:47 rst Exp $
 
 package jake2.server;
 
@@ -374,7 +374,7 @@ public class SV_INIT extends Globals  {
 			svs.client_entities[n] = new entity_state_t(null);
 
 		// init network stuff
-		NET.Config((SV_MAIN.maxclients.value > 1));
+		NET.Config((SV_MAIN.maxclients.value > 1)); //ok!
 
 		// heartbeats will always be sent to the id master
 		svs.last_heartbeat = -99999; // send immediately
@@ -387,7 +387,7 @@ public class SV_INIT extends Globals  {
 		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			ent = SV_GAME.ge.edicts[i + 1];
 			
-			ent.s.number = i + 1;	//dont need this, ent.s.number already set.
+			//ent.s.number = i + 1;	//dont need this, ent.s.number already set.
 			svs.clients[i].edict = ent;
 			//memset(& svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
 			svs.clients[i].lastcmd = new usercmd_t();

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.11 2004-02-06 18:38:20 rst Exp $
+// $Id: SV_CCMDS.java,v 1.12 2004-02-13 16:15:47 rst Exp $
 
 package jake2.server;
 
@@ -658,7 +658,8 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 
 		sv.state = ss_dead; // don't save current level when changing
-		SV_WipeSavegame("current");
+		//TODO: disabled for debugging
+		//SV_WipeSavegame("current");
 		SV_GameMap_f();
 	}
 
