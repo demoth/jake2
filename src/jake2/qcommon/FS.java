@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.9 2004-10-19 17:23:20 cawe Exp $
+ * $Id: FS.java,v 1.10 2004-10-25 21:57:48 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -633,9 +633,19 @@ public final class FS extends Globals {
      * Gamedir
      * 
      * Called to find where to write a file (demos, savegames, etc)
+     * this is modified to <user.home>/.jake2 
      */
     public static String Gamedir() {
         return (fs_userdir != null) ? fs_userdir : Globals.BASEDIRNAME;
+    }
+
+    /*
+     * BaseGamedir
+     * 
+     * Called to find where to write a downloaded file
+     */
+    public static String BaseGamedir() {
+        return (fs_gamedir != null) ? fs_gamedir : Globals.BASEDIRNAME;
     }
 
     /*
