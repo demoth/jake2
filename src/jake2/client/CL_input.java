@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.17 2004-02-15 01:19:41 hoz Exp $
+ * $Id: CL_input.java,v 1.18 2004-02-15 10:57:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -367,15 +367,15 @@ public class CL_input extends CL_ents {
 		//TODO: INPUT BUGFIX that is so unbelievable dreckig.
 		
 		// hauptsache der scheissmist zuckelt.
-		cmd.forwardmove += (int) (10 * Math.random() -5);
-		
-		if (scheisshack ++ >5) 
-			scheisshack =0;
-			
-		cmd.forwardmove += scheisshack-2;
-		cmd.angles[0] += scheisshack-2;
-		cmd.angles[1] += scheisshack-2;
-		cmd.angles[2] += scheisshack-2;		
+//		cmd.forwardmove += (int) (10 * Math.random() -5);
+//		
+//		if (scheisshack ++ >5) 
+//			scheisshack =0;
+//			
+//		cmd.forwardmove += scheisshack-2;
+//		cmd.angles[0] += scheisshack-2;
+//		cmd.angles[1] += scheisshack-2;
+//		cmd.angles[2] += scheisshack-2;		
 		
 	}
 
@@ -552,16 +552,19 @@ public class CL_input extends CL_ents {
 		cmd = cl.cmds[i];
 		//memset (nullcmd, 0, sizeof(nullcmd));
 		nullcmd.reset();
+
 		MSG.WriteDeltaUsercmd(buf, nullcmd, cmd);
 		oldcmd = cmd;
 
 		i = (cls.netchan.outgoing_sequence - 1) & (CMD_BACKUP - 1);
 		cmd = cl.cmds[i];
+	
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 		oldcmd = cmd;
 
 		i = (cls.netchan.outgoing_sequence) & (CMD_BACKUP - 1);
 		cmd = cl.cmds[i];
+
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 
 		// calculate a checksum over the move commands

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.24 2004-02-14 22:21:01 rst Exp $
+// $Id: MSG.java,v 1.25 2004-02-15 10:57:57 hoz Exp $
 
 package jake2.qcommon;
 
@@ -34,10 +34,10 @@ public class MSG extends GameBase {
 
 	//ok.
 	public static void WriteChar(sizebuf_t sb, int c) {
-		if (c < -128 || c > 127)
-			Com.Error(ERR_FATAL, "WriteChar: range error");
+//		if (c < -128 || c > 127)
+//			Com.Error(ERR_FATAL, "WriteChar: range error");
 
-		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
+		sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
 	}
 	
 	//ok.
@@ -53,7 +53,7 @@ public class MSG extends GameBase {
 		//if (c < 0 || c > 255)
 			//Com.Error(ERR_FATAL, "WriteByte: range error");
 
-		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
+		sb.data[SZ.GetSpace(sb, 1)] = (byte) (c & 0xFF);
 	}
 
 	//ok.
@@ -70,7 +70,7 @@ public class MSG extends GameBase {
 
 		int i = SZ.GetSpace(sb, 2);
 		sb.data[i++] = (byte) (c & 0xff);
-		sb.data[i] = (byte) (c >>> 8);
+		sb.data[i] = (byte) ((c >>> 8) & 0xFF);
 	}
 
 	//ok.
@@ -418,7 +418,7 @@ public class MSG extends GameBase {
 		if (msg_read.readcount + 1 > msg_read.cursize)
 			c = -1;
 		else
-			c = msg_read.data[msg_read.readcount];
+			c = msg_read.data[msg_read.readcount] & 0xFF;
 		msg_read.readcount++;
 		// kickangles bugfix (rst)
 		return c;
@@ -542,8 +542,8 @@ public class MSG extends GameBase {
 		int bits;
 
 		//memcpy(move, from, sizeof(* move));
-		move.reset();
-
+		// IMPORTANT!! copy without new
+		move.copy(from);
 		bits = ReadByte(msg_read);
 
 		// read current angles
@@ -574,6 +574,7 @@ public class MSG extends GameBase {
 
 		// read the light level
 		move.lightlevel = (byte) ReadByte(msg_read);
+	
 	}
 
 	public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
