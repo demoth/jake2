@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.14 2004-02-17 00:39:22 cwei Exp $
+// $Id: SV_CCMDS.java,v 1.15 2004-02-17 13:09:23 cwei Exp $
 
 package jake2.server;
 
@@ -648,8 +648,7 @@ public class SV_CCMDS extends SV_ENTS {
 		String expanded;
 
 		// if not a pcx, demo, or cinematic, check to make sure the level exists
-		// TODO bugfix cwei
-		map = Cmd.Argv(1).toLowerCase();
+		map = Cmd.Argv(1);
 		if (!strstr(map, ".")) {
 			expanded = "maps/" + map + ".bsp";
 			if (FS.LoadFile(expanded) == null) {
