@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: refimport_t.java,v 1.5 2003-12-27 03:08:09 cwei Exp $
+// $Id: refimport_t.java,v 1.6 2004-03-17 16:17:33 cwei Exp $
 
 
 package jake2.client;
@@ -67,10 +67,4 @@ public interface refimport_t {
 	boolean Vid_GetModeInfo(Dimension dim /* int *w,  *h */, int mode);
 	void Vid_MenuInit();
 	void Vid_NewWindow(int width, int height);
-	
-	/**
-	 * This is the callback for Renderer.
-	 */
-	void updateScreenCallback();
-	
 }

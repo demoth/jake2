@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.20 2004-03-14 12:10:12 hoz Exp $
+ * $Id: Impl.java,v 1.21 2004-03-17 16:17:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -223,12 +223,10 @@ public class Impl extends Misc implements GLEventListener {
 		this.contextInUse = true;
 
 		if (switchToCallback) {
-			if (callback == null)
-				ri.updateScreenCallback();
-			else
-				callback.execute();
+			callback.execute();
 		}
-		else {
+		else
+		{
 
 			// after the first run (initialization) switch to callback
 			switchToCallback = true;
@@ -272,9 +270,9 @@ public class Impl extends Misc implements GLEventListener {
 	 * @see jake2.client.refexport_t#updateScreen()
 	 */
 	public void updateScreen(xcommand_t callback) {
-		if (canvas == null) {
-			throw new IllegalStateException("Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
-		}
+//		if (canvas == null) {
+//			throw new IllegalStateException("Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
+//		}
 		this.callback = callback;
 		canvas.display();
 	}

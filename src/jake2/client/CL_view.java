@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.11 2004-02-17 13:39:40 cwei Exp $
+ * $Id: CL_view.java,v 1.12 2004-03-17 16:17:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -51,12 +51,14 @@ public class CL_view extends CL_input {
 	=================
 	*/
 	
+	private static xcommand_t prepRefreshCallback = new xcommand_t() {
+		public void execute() {
+			PrepRefresh2();
+		}
+	};	 
+	
 	static void PrepRefresh() {
-		re.updateScreen(new xcommand_t() {
-			public void execute() {
-				PrepRefresh2();
-			}
-		});
+		re.updateScreen(prepRefreshCallback);
 	}
 	
 	static void PrepRefresh2() {

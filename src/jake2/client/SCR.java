@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.42 2004-03-17 14:13:03 hoz Exp $
+ * $Id: SCR.java,v 1.43 2004-03-17 16:17:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1419,10 +1419,16 @@ public final class SCR extends Globals
 			crosshair_pic);
 	}
 
+	private static xcommand_t updateScreenCallback = new xcommand_t() {
+		public void execute() {
+			UpdateScreen2();
+		}
+	};	 
+
 	// wird anstelle von der richtigen UpdateScreen benoetigt
 	public static void UpdateScreen()
 	{
-		Globals.re.updateScreen(null);
+		Globals.re.updateScreen(updateScreenCallback);
 	}
 
 	/*

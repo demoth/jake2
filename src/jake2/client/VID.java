@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.15 2004-02-26 13:25:35 hoz Exp $
+ * $Id: VID.java,v 1.16 2004-03-17 16:17:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -263,10 +263,6 @@ public class VID extends Globals {
 
 			public void Vid_NewWindow(int width, int height) {
 				VID.NewWindow(width, height);
-			}
-
-			public void updateScreenCallback() {
-				SCR.UpdateScreen2();
 			}
 		};
 
