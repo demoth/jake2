@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.12 2004-01-18 12:36:02 hoz Exp $
+ * $Id: Key.java,v 1.13 2004-01-18 12:48:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -543,64 +543,53 @@ public final class Key {
 			return;
 		}
  
-//	00299         if ( ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW ) ||
-//	00300                  ( ( key == 'n' ) && keydown[K_CTRL] ) )
-//	00301         {
-//	00302                 if (history_line == edit_line) return;
-//	00303                 do
-//	00304                 {
-//	00305                         history_line = (history_line + 1) & 31;
-//	00306                 }
-//	00307                 while (history_line != edit_line
-//	00308                         && !key_lines[history_line][1]);
-//	00309                 if (history_line == edit_line)
-//	00310                 {
-//	00311                         key_lines[edit_line][0] = ']';
-//	00312                         key_linepos = 1;
-//	00313                 }
-//	00314                 else
-//	00315                 {
-//	00316                         strcpy(key_lines[edit_line], key_lines[history_line]);
-//	00317                         key_linepos = strlen(key_lines[edit_line]);
-//	00318                 }
-//	00319                 return;
-//	00320         }
-//	00321 
+		if ( ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW ) ||
+				( ( key == 'n' ) && Globals.keydown[K_CTRL] ) ) {
+			if (history_line == Globals.edit_line) return;
+			do {
+				history_line = (history_line + 1) & 31;
+			} while (history_line != Globals.edit_line && Globals.key_lines[history_line][1]==0);
+			if (history_line == Globals.edit_line) {
+				Globals.key_lines[Globals.edit_line][0] = ']';
+				Globals.key_linepos = 1;
+			} else {
+				Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+				Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
+			}
+			return;
+		}
+ 
 		if (key == K_PGUP || key == K_KP_PGUP ) {
 			Globals.con.display -= 2;
 			return;
 		}
-//	00327 
-//	00328         if (key == K_PGDN || key == K_KP_PGDN ) 
-//	00329         {
-//	00330                 con.display += 2;
-//	00331                 if (con.display > con.current)
-//	00332                         con.display = con.current;
-//	00333                 return;
-//	00334         }
-//	00335 
-//	00336         if (key == K_HOME || key == K_KP_HOME )
-//	00337         {
-//	00338                 con.display = con.current - con.totallines + 10;
-//	00339                 return;
-//	00340         }
-//	00341 
-//	00342         if (key == K_END || key == K_KP_END )
-//	00343         {
-//	00344                 con.display = con.current;
-//	00345                 return;
-//	00346         }
-//	00347         
-//	00348         if (key < 32 || key > 127)
-//	00349                 return; // non printable
-//	00350                 
-//	00351         if (key_linepos < MAXCMDLINE-1)
-//	00352         {
-//	00353                 key_lines[edit_line][key_linepos] = key;
-//	00354                 key_linepos++;
-//	00355                 key_lines[edit_line][key_linepos] = 0;
-//	00356         }
-//	00357 
+ 
+		if (key == K_PGDN || key == K_KP_PGDN ) {
+			Globals.con.display += 2;
+			if (Globals.con.display > Globals.con.current)
+				Globals.con.display = Globals.con.current;
+			return;
+		}
+ 
+		if (key == K_HOME || key == K_KP_HOME ) {
+			Globals.con.display = Globals.con.current - Globals.con.totallines + 10;
+			return;
+		}
+ 
+		if (key == K_END || key == K_KP_END ) {
+			Globals.con.display = Globals.con.current;
+			return;
+		}
+        
+		if (key < 32 || key > 127)
+			return; // non printable
+                 
+		if (Globals.key_linepos < Defines.MAXCMDLINE-1) {
+			Globals.key_lines[Globals.edit_line][Globals.key_linepos] = (byte)key;
+			Globals.key_linepos++;
+			Globals.key_lines[Globals.edit_line][Globals.key_linepos] = 0;
+		}
+
 	}
 	
 	static void CompleteCommand() {
