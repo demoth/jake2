@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.4 2004-09-10 19:02:56 salomo Exp $
+// $Id: gclient_t.java,v 1.5 2005-02-06 19:06:37 salomo Exp $
 
 package jake2.game;
 
@@ -131,10 +131,19 @@ public class gclient_t
 	public void clear()
 	{
 		player_state_t ps = new player_state_t();
+		ping =0;
+	
 		pers = new client_persistant_t();
 		resp = new client_respawn_t();
 		old_pmove = new pmove_state_t();
+		
+		showscores = false; // set layout stat
+		showinventory = false; // set layout stat
+		showhelp = false;
+		showhelpicon = false;
 
+		ammo_index = 0;
+		
 		buttons = oldbuttons = latched_buttons = 0;
 		weapon_thunk = false;
 		newweapon = null;
@@ -142,8 +151,10 @@ public class gclient_t
 		damage_parmor = 0;
 		damage_blood = 0;
 		damage_knockback = 0;
+		
 		killer_yaw = 0;
 		damage_from = new float[3];
+		weaponstate = 0;
 		kick_angles = new float[3];
 		kick_origin = new float[3];
 		v_dmg_roll = v_dmg_pitch = v_dmg_time = 0;
@@ -161,11 +172,36 @@ public class gclient_t
 		next_drown_time = 0;
 
 		old_waterlevel = 0;
+		
+		breather_sound = 0;
+		machinegun_shots = 0;
+		
 		anim_end = 0;
 		anim_priority = 0;
 		anim_duck = false;
 		anim_run = false;
+		
+		// powerup timers
+		quad_framenum = 0;
+		invincible_framenum = 0;
+		breather_framenum = 0;
+		enviro_framenum = 0;
 
+		grenade_blew_up = false;
+		grenade_time = 0;
+		silencer_shots = 0;
+		weapon_sound = 0;
+
+		pickup_msg_time = 0;
+
+		flood_locktill = 0; // locked from talking
+		flood_when  = new float[10]; // when messages were said
+		flood_whenhead = 0; // head pointer for when said
+
+		respawn_time = 0; // can respawn when time > this
+
+		edict_t chase_target = null; // player we are chasing
+		boolean update_chase = false; // need to update chase info?
 	}
 
 	/** Reads a game client from the file. */
