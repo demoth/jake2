@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.9 2004-03-12 12:03:30 cwei Exp $
+ * $Id: Light.java,v 1.10 2004-04-14 15:13:43 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -146,6 +146,7 @@ public abstract class Light extends Warp {
 		float dist;
 		msurface_t	surf;
 		int i;
+		int sidebit;
 	
 		if (node.contents != -1)
 			return;
@@ -167,7 +168,22 @@ public abstract class Light extends Warp {
 		// mark the polygons
 		for (i=0 ; i<node.numsurfaces ; i++)
 		{
+
 			surf = r_worldmodel.surfaces[node.firstsurface + i];
+
+			/*
+			 * cwei
+			 * bugfix for dlight behind the walls
+			 */			
+			dist = Math3D.DotProduct (light.origin, surf.plane.normal) - surf.plane.dist;
+			sidebit = (dist >= 0) ? 0 : Defines.SURF_PLANEBACK;
+			if ( (surf.flags & Defines.SURF_PLANEBACK) != sidebit )
+				continue;
+			/*
+			 * cwei
+			 * bugfix end
+			 */			
+
 			if (surf.dlightframe != r_dlightframecount)
 			{
 				surf.dlightbits = 0;
