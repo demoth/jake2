@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.18 2003-12-26 01:28:52 cwei Exp $
+ * $Id: FS.java,v 1.19 2003-12-27 22:01:41 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -48,7 +48,8 @@ import javax.imageio.stream.FileImageInputStream;
 
 /**
  * FS
- * TODO complete FS
+ * 
+ * @author cwei
  */
 public final class FS {
 	
