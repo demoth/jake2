@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.6 2005-01-11 14:25:10 hzi Exp $
+ * $Id: S.java,v 1.7 2005-01-11 20:57:50 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,16 +47,17 @@ public class S {
 			// dummy driver (no sound)
 			Class.forName("jake2.sound.DummyDriver");
 			try {
-				Class.forName("net.java.games.joal.AL");
-				Class.forName("jake2.sound.joal.JOALSoundImpl");
-			} catch (ClassNotFoundException e) {
-				// ignore the joal driver if runtime not in classpath
-			}
-			try {
 				Class.forName("org.lwjgl.openal.AL");
 				Class.forName("jake2.sound.lwjgl.LWJGLSoundImpl");
 			} catch (ClassNotFoundException e) {
 				// ignore the lwjgl driver if runtime not in classpath
+			}
+			// prefered driver
+			try {
+				Class.forName("net.java.games.joal.AL");
+				Class.forName("jake2.sound.joal.JOALSoundImpl");
+			} catch (ClassNotFoundException e) {
+				// ignore the joal driver if runtime not in classpath
 			}
 		}
 		catch (Throwable e) {
@@ -97,10 +98,10 @@ public class S {
 			return;			
 		}
 
-		// set the first driver after dummy as default
+		// set the last registered driver as default
 		String defaultDriver = "dummy";
 		if (drivers.size() > 1){
-			defaultDriver = ((Sound)drivers.elementAt(1)).getName();
+			defaultDriver = ((Sound)drivers.lastElement()).getName();
 		}
 		
 		s_impl = Cvar.Get("s_impl", defaultDriver, Defines.CVAR_ARCHIVE);
