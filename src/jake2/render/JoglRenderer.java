@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.22 2004-06-06 23:24:45 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.23 2004-06-06 23:26:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -155,7 +155,6 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 	 */
 	public void EndRegistration() {
 		R_EndRegistration();
-		glpoly_t.resetArrays();
 	}
 
 	/** 
