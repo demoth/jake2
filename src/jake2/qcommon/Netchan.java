@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.18 2004-02-08 11:08:52 hoz Exp $
+ * $Id: Netchan.java,v 1.19 2004-02-10 20:05:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -98,7 +98,7 @@ public final class Netchan extends SV_MAIN {
 	public static cvar_t showdrop;
 	public static cvar_t qport;
 
-	public static netadr_t net_from = new netadr_t();
+	//public static netadr_t net_from = new netadr_t();
 	public static sizebuf_t net_message = new sizebuf_t();
 	public static byte net_message_buffer[] = new byte[Defines.MAX_MSGLEN];
 
@@ -158,7 +158,7 @@ public final class Netchan extends SV_MAIN {
 
 		chan.clear();
 		chan.sock = sock;
-		chan.remote_address = adr;
+		chan.remote_address = adr.copy();
 		chan.qport = qport;
 		chan.last_received = (int) Globals.curtime;
 		chan.incoming_sequence = 0;
@@ -180,7 +180,7 @@ public final class Netchan extends SV_MAIN {
 			return false; // waiting for ack
 		return true;
 	}
-
+	// das ist richtig !!!
 	public static boolean Netchan_NeedReliable(netchan_t chan) {
 		boolean send_reliable;
 

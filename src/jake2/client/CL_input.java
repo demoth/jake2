@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.9 2004-02-04 22:00:04 hoz Exp $
+ * $Id: CL_input.java,v 1.10 2004-02-10 20:05:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -488,12 +488,12 @@ public class CL_input extends CL_ents {
 
 		if (cls.state == ca_disconnected || cls.state == ca_connecting)
 			return;
-
-		if (cls.state == ca_connected) {
-			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
-				Netchan.Transmit(cls.netchan, 0, new byte[0]);
-			return;
-		}
+//TODO: Timeout zum debuggen weggemacht 
+//		if (cls.state == ca_connected) {
+//			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
+//				Netchan.Transmit(cls.netchan, 0, new byte[0]);
+//			return;
+//		}
 
 		// send a userinfo update if needed
 		if (userinfo_modified) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netadr_t.java,v 1.4 2004-02-05 21:32:40 rst Exp $
+// $Id: netadr_t.java,v 1.5 2004-02-10 20:05:10 cwei Exp $
 
 package jake2.qcommon;
 
@@ -28,7 +28,19 @@ import java.net.UnknownHostException;
 
 public class netadr_t {
 	 
-
+	public netadr_t()
+	{}
+	public netadr_t(netadr_t from)
+	{
+		type = from.type;
+		port = from.port;
+		ip= new byte [4];
+		ip[0] = from.ip[0];
+		ip[1] = from.ip[1];
+		ip[2] = from.ip[2];
+		ip[3] = from.ip[3];
+	}
+	
 	public int type;
 	public int port;
 	public byte ip[] = {1,2,3,4};
@@ -42,5 +54,12 @@ public class netadr_t {
 			ia = InetAddress.getByAddress(ip);
 
 		return ia;
+	}
+	 
+	public netadr_t copy()
+	{
+		
+		// TODO Auto-generated method stub
+		return new netadr_t(this);
 	}	
 }

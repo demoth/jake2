@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.29 2004-02-10 15:35:24 cwei Exp $
+ * $Id: CL_main.java,v 1.30 2004-02-10 20:05:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -726,7 +726,7 @@ public class CL_main extends CL_pred {
 		}
 
 		// remote command from gui front end
-		if (c.equals("cmd")) {
+		if (c.equals ("cmd")) {
 			if (!NET.IsLocalAddress(net_from)) {
 				Com.Printf("Command packet from remote host.  Ignored.\n");
 				return;

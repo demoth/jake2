@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.12 2004-02-08 13:26:12 hoz Exp $
+ * $Id: CL_parse.java,v 1.13 2004-02-10 20:05:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -321,7 +321,7 @@ public class CL_parse extends CL_view {
 		// BIG HACK to let demos from release work with the 3.0x patch!!!
 		if (Com.ServerState() != 0 && PROTOCOL_VERSION == 34) {
 		}
-		else if (i == PROTOCOL_VERSION)
+		else if (i != PROTOCOL_VERSION)
 			Com.Error(ERR_DROP, "Server returned version " + i + ", not " + PROTOCOL_VERSION);
 
 		cl.servercount = MSG.ReadLong(net_message);

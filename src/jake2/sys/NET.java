@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.16 2004-02-10 15:34:22 cwei Exp $
+ * $Id: NET.java,v 1.17 2004-02-10 20:05:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -246,15 +246,13 @@ public final class NET extends Defines {
 			a.type = Defines.NA_LOOPBACK;
 			Arrays.fill(a.ip, (byte)0);
 			a.port = 0;
-		} else {
-			if (a.type ==  Defines.NA_LOOPBACK)
-				a.type = Defines.NA_IP;
+			return true;
 		}
-		
 		try
 		{
 			InetAddress ia = InetAddress.getByName(s);
 			a.ip = ia.getAddress();
+			a.type= NA_IP;
 			return true;
 		}
 		catch
@@ -361,6 +359,7 @@ public final class NET extends Defines {
 
 			net_from.ip = receivedatagrampacket.getAddress().getAddress();
 			net_from.port = receivedatagrampacket.getPort();
+			net_from.type = NA_IP;
 
 			if (receivedatagrampacket.getLength() > net_message.maxsize)
 			{
@@ -381,11 +380,17 @@ public final class NET extends Defines {
 			return true;
 
 		}
+		catch (SocketTimeoutException e1)
+		{
+			return false;
+		}
+		
 		catch(Exception e)
 		{
 			Com.DPrintf ("NET_GetPacket: " + e + " from " + 	AdrToString(net_from) + "\n");
 			return false;
 		}
+		
 		
 			//fromlen = sizeof(from);
 			//ret = recvfrom (net_socket, net_message.data, net_message.maxsize
@@ -472,7 +477,16 @@ public final class NET extends Defines {
 		try
 		{	//was:
 			//ret = sendto (net_socket, data, length, 0, (struct sockaddr *)&addr, sizeof(addr) );
-			DatagramPacket dp = new DatagramPacket(data, length, to.getInetAddress(), to.port);
+			
+			DatagramPacket dp;
+			
+			if (to.type == NA_BROADCAST)
+			{
+				dp = new DatagramPacket(data, length, InetAddress.getByAddress(new byte[]{-1,-1,-1,-1}), to.port);
+			}
+			else
+				dp = new DatagramPacket(data, length, to.getInetAddress(), to.port);
+				
 			net_socket.send(dp);
 		}
 		catch(Exception e)
