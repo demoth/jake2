@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.16 2004-01-29 22:44:58 hoz Exp $
+ * $Id: SCR.java,v 1.17 2004-01-30 11:25:50 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.Globals;
+import jake2.game.Cmd;
+import jake2.game.cvar_t;
 import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.xcommand_t;
+import jake2.sys.Sys;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
@@ -37,11 +42,9 @@ import java.awt.Dimension;
  * SCR
  */
 public final class SCR extends Globals {
+
+	//	cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 	
-	static dirty_t scr_dirty = new dirty_t();
-	static String crosshair_pic;
-	static int crosshair_height;
-	static int crosshair_width;
 	static String[][] sb_nums = 
 		{
 			{"num_0", "num_1", "num_2", "num_3", "num_4", "num_5",
@@ -50,74 +53,64 @@ public final class SCR extends Globals {
 			"anum_6", "anum_7", "anum_8", "anum_9", "anum_minus"}
 		};
 
-//	*/
-////	   cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
-//
-//	/*
-//
-//	  full screen console
-//	  put up loading plaque
-//	  blanked background with loading plaque
-//	  blanked background with menu
-//	  cinematics
-//	  full screen image for quit and victory
-//
-//	  end of unit intermissions
-//
-//	  */
-//
-//	#include "client.h"
-//
-//	float		scr_con_current;	// aproaches scr_conlines at scr_conspeed
-//	float		scr_conlines;		// 0.0 to 1.0 lines of console to display
-//
-//	qboolean	scr_initialized;		// ready to draw
-//
-//	int			scr_draw_loading;
-//
-//	vrect_t		scr_vrect;		// position of render window on screen
-//
-//
-//	cvar_t		*scr_viewsize;
-//	cvar_t		*scr_conspeed;
-//	cvar_t		*scr_centertime;
-//	cvar_t		*scr_showturtle;
-//	cvar_t		*scr_showpause;
-//	cvar_t		*scr_printspeed;
-//
-//	cvar_t		*scr_netgraph;
-//	cvar_t		*scr_timegraph;
-//	cvar_t		*scr_debuggraph;
-//	cvar_t		*scr_graphheight;
-//	cvar_t		*scr_graphscale;
-//	cvar_t		*scr_graphshift;
-//	cvar_t		*scr_drawall;
-//
-//	typedef struct
-//	{
-//		int		x1, y1, x2, y2;
-//	} dirty_t;
-//
-//	dirty_t		scr_dirty, scr_old_dirty[2];
-//
-//	char		crosshair_pic[MAX_QPATH];
-//	int			crosshair_width, crosshair_height;
-//
-//	void SCR_TimeRefresh_f (void);
-//	void SCR_Loading_f (void);
-//
-//
-//	/*
-//	===============================================================================
-//
-//	BAR GRAPHS
-//
-//	===============================================================================
-//	*/
-//
+	/*
+	  full screen console
+	  put up loading plaque
+	  blanked background with loading plaque
+	  blanked background with menu
+	  cinematics
+	  full screen image for quit and victory
 
-//
-//
+	  end of unit intermissions
+	*/
+
+	static float scr_con_current;	// aproaches scr_conlines at scr_conspeed
+	static float scr_conlines;		// 0.0 to 1.0 lines of console to display
+
+	static boolean scr_initialized;		// ready to draw
+
+	static int scr_draw_loading;
+
+	static vrect_t scr_vrect = new vrect_t(); // position of render window on screen
+
+	static cvar_t scr_viewsize;
+	static cvar_t scr_conspeed;
+	static cvar_t scr_centertime;
+	static cvar_t scr_showturtle;
+	static cvar_t scr_showpause;
+	static cvar_t scr_printspeed;
+
+	static cvar_t scr_netgraph;
+	static cvar_t scr_timegraph;
+	static cvar_t scr_debuggraph;
+	static cvar_t scr_graphheight;
+	static cvar_t scr_graphscale;
+	static cvar_t scr_graphshift;
+	static cvar_t scr_drawall;
+
+	static dirty_t scr_dirty = new dirty_t();
+	static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t() };
+
+	static String crosshair_pic;
+	static int crosshair_width, crosshair_height;
+
+	static class dirty_t
+	{
+		int x1;
+		int x2;
+		int y1;
+		int y2;
+	}
+
+	/*
+	===============================================================================
+
+	BAR GRAPHS
+
+	===============================================================================
+	*/
+
+
 //	typedef struct
 //	{
 //		float	value;
@@ -126,25 +119,25 @@ public final class SCR extends Globals {
 //
 //	static	int			current;
 //	static	graphsamp_t	values[1024];
-//
-//	/*
-//	==============
-//	SCR_DebugGraph
-//	==============
-//	*/
+
+	/*
+	==============
+	SCR_DebugGraph
+	==============
+	*/
 	public static void DebugGraph(float value, int color) {
 //		values[current&1023].value = value;
 //		values[current&1023].color = color;
 //		current++;
 	}
-//
-//	/*
-//	==============
-//	SCR_DrawDebugGraph
-//	==============
-//	*/
-//	void SCR_DrawDebugGraph (void)
-//	{
+
+	/*
+	==============
+	SCR_DrawDebugGraph
+	==============
+	*/
+	static void DrawDebugGraph()
+	{
 //		int		a, x, y, w, i, h;
 //		float	v;
 //		int		color;
@@ -171,32 +164,32 @@ public final class SCR extends Globals {
 //			h = (int)v % (int)scr_graphheight->value;
 //			re.DrawFill (x+w-1-a, y - h, 1,	h, color);
 //		}
-//	}
-//
-//	/*
-//	===============================================================================
-//
-//	CENTER PRINTING
-//
-//	===============================================================================
-//	*/
-//
+	}
+
+	/*
+	===============================================================================
+
+	CENTER PRINTING
+
+	===============================================================================
+	*/
+
 //	char		scr_centerstring[1024];
 //	float		scr_centertime_start;	// for slow victory printing
 //	float		scr_centertime_off;
 //	int			scr_center_lines;
 //	int			scr_erase_center;
-//
-//	/*
-//	==============
-//	SCR_CenterPrint
-//
-//	Called for important messages that should stay in the center of the screen
-//	for a few moments
-//	==============
-//	*/
-//	void SCR_CenterPrint (char *str)
-//	{
+
+	/*
+	==============
+	SCR_CenterPrint
+
+	Called for important messages that should stay in the center of the screen
+	for a few moments
+	==============
+	*/
+	static void CenterPrint (String str)
+	{
 //		char	*s;
 //		char	line[64];
 //		int		i, j, l;
@@ -247,18 +240,18 @@ public final class SCR extends Globals {
 //		} while (1);
 //		Com_Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 //		Con_ClearNotify ();
-//	}
-//
-//
-//	void SCR_DrawCenterString (void)
-//	{
+	}
+
+
+	static void SCR_DrawCenterString()
+	{
 //		char	*start;
 //		int		l;
 //		int		j;
 //		int		x, y;
 //		int		remaining;
 //
-////	   the finale prints the characters one at a time
+		// the finale prints the characters one at a time
 //		remaining = 9999;
 //
 //		scr_erase_center = 0;
@@ -294,29 +287,29 @@ public final class SCR extends Globals {
 //				break;
 //			start++;		// skip the \n
 //		} while (1);
-//	}
-//
-//	void SCR_CheckDrawCenterString (void)
-//	{
+	}
+
+	static void CheckDrawCenterString()
+	{
 //		scr_centertime_off -= cls.frametime;
 //	
 //		if (scr_centertime_off <= 0)
 //			return;
 //
 //		SCR_DrawCenterString ();
-//	}
-//
-////	  =============================================================================
-//
-//	/*
-//	=================
-//	SCR_CalcVrect
-//
-//	Sets scr_vrect, the coordinates of the rendered window
-//	=================
-//	*/
-//	static void SCR_CalcVrect (void)
-//	{
+	}
+
+// =============================================================================
+
+	/*
+	=================
+	SCR_CalcVrect
+
+	Sets scr_vrect, the coordinates of the rendered window
+	=================
+	*/
+	static void CalcVrect()
+	{
 //		int		size;
 //
 //		// bound viewsize
@@ -335,43 +328,43 @@ public final class SCR extends Globals {
 //
 //		scr_vrect.x = (viddef.width - scr_vrect.width)/2;
 //		scr_vrect.y = (viddef.height - scr_vrect.height)/2;
-//	}
-//
-//
-//	/*
-//	=================
-//	SCR_SizeUp_f
-//
-//	Keybinding command
-//	=================
-//	*/
-//	void SCR_SizeUp_f (void)
-//	{
-//		Cvar_SetValue ("viewsize",scr_viewsize->value+10);
-//	}
-//
-//
-//	/*
-//	=================
-//	SCR_SizeDown_f
-//
-//	Keybinding command
-//	=================
-//	*/
-//	void SCR_SizeDown_f (void)
-//	{
-//		Cvar_SetValue ("viewsize",scr_viewsize->value-10);
-//	}
-//
-//	/*
-//	=================
-//	SCR_Sky_f
-//
-//	Set a specific sky and rotation speed
-//	=================
-//	*/
-//	void SCR_Sky_f (void)
-//	{
+	}
+
+
+	/*
+	=================
+	SCR_SizeUp_f
+
+	Keybinding command
+	=================
+	*/
+	static void SizeUp_f()
+	{
+		Cvar.SetValue("viewsize",scr_viewsize.value+10);
+	}
+
+
+	/*
+	=================
+	SCR_SizeDown_f
+
+	Keybinding command
+	=================
+	*/
+	static void SizeDown_f()
+	{
+		Cvar.SetValue("viewsize",scr_viewsize.value-10);
+	}
+
+	/*
+	=================
+	SCR_Sky_f
+
+	Set a specific sky and rotation speed
+	=================
+	*/
+	static void Sky_f()
+	{
 //		float	rotate;
 //		vec3_t	axis;
 //
@@ -398,64 +391,84 @@ public final class SCR extends Globals {
 //		}
 //
 //		re.SetSky (Cmd_Argv(1), rotate, axis);
-//	}
-//
-////	  ============================================================================
-//
-//	/*
-//	==================
-//	SCR_Init
-//	==================
-//	*/
-	static void Init() {
-//		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
-//		scr_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
-//		scr_showturtle = Cvar_Get ("scr_showturtle", "0", 0);
-//		scr_showpause = Cvar_Get ("scr_showpause", "1", 0);
-//		scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0);
-//		scr_printspeed = Cvar_Get ("scr_printspeed", "8", 0);
-//		scr_netgraph = Cvar_Get ("netgraph", "0", 0);
-//		scr_timegraph = Cvar_Get ("timegraph", "0", 0);
-//		scr_debuggraph = Cvar_Get ("debuggraph", "0", 0);
-//		scr_graphheight = Cvar_Get ("graphheight", "32", 0);
-//		scr_graphscale = Cvar_Get ("graphscale", "1", 0);
-//		scr_graphshift = Cvar_Get ("graphshift", "0", 0);
-//		scr_drawall = Cvar_Get ("scr_drawall", "0", 0);
-//
-////
-////	   register our commands
-////
-//		Cmd_AddCommand ("timerefresh",SCR_TimeRefresh_f);
-//		Cmd_AddCommand ("loading",SCR_Loading_f);
-//		Cmd_AddCommand ("sizeup",SCR_SizeUp_f);
-//		Cmd_AddCommand ("sizedown",SCR_SizeDown_f);
-//		Cmd_AddCommand ("sky",SCR_Sky_f);
-//
-//		scr_initialized = true;
 	}
-//
-//
-//	/*
-//	==============
-//	SCR_DrawNet
-//	==============
-//	*/
-//	void SCR_DrawNet (void)
-//	{
+
+// ============================================================================
+
+	/*
+	==================
+	SCR_Init
+	==================
+	*/
+	static void Init() {
+		scr_viewsize = Cvar.Get("viewsize", "100", CVAR_ARCHIVE);
+		scr_conspeed = Cvar.Get("scr_conspeed", "3", 0);
+		scr_showturtle = Cvar.Get ("scr_showturtle", "0", 0);
+		scr_showpause = Cvar.Get ("scr_showpause", "1", 0);
+		scr_centertime = Cvar.Get ("scr_centertime", "2.5", 0);
+		scr_printspeed = Cvar.Get ("scr_printspeed", "8", 0);
+		scr_netgraph = Cvar.Get ("netgraph", "0", 0);
+		scr_timegraph = Cvar.Get ("timegraph", "0", 0);
+		scr_debuggraph = Cvar.Get ("debuggraph", "0", 0);
+		scr_graphheight = Cvar.Get ("graphheight", "32", 0);
+		scr_graphscale = Cvar.Get ("graphscale", "1", 0);
+		scr_graphshift = Cvar.Get ("graphshift", "0", 0);
+		scr_drawall = Cvar.Get ("scr_drawall", "0", 0);
+
+		//
+		// register our commands
+		//
+		Cmd.AddCommand ("timerefresh", new xcommand_t() {
+			public void execute() {
+				TimeRefresh_f();
+			}
+		});
+		Cmd.AddCommand ("loading", new xcommand_t() {
+			public void execute() {
+				Loading_f();
+			}
+		});
+		Cmd.AddCommand ("sizeup",  new xcommand_t() {
+			public void execute() {
+				SizeUp_f();
+			}
+		});
+		Cmd.AddCommand ("sizedown",  new xcommand_t() {
+			public void execute() {
+				SizeDown_f();
+			}
+		});
+		Cmd.AddCommand ("sky", new xcommand_t() {
+			public void execute() {
+				Sky_f();
+			}
+		});
+
+		scr_initialized = true;
+	}
+
+
+	/*
+	==============
+	SCR_DrawNet
+	==============
+	*/
+	static void DrawNet()
+	{
 //		if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged 
 //			< CMD_BACKUP-1)
 //			return;
 //
 //		re.DrawPic (scr_vrect.x+64, scr_vrect.y, "net");
-//	}
-//
-//	/*
-//	==============
-//	SCR_DrawPause
-//	==============
-//	*/
-//	void SCR_DrawPause (void)
-//	{
+	}
+
+	/*
+	==============
+	SCR_DrawPause
+	==============
+	*/
+	static void DrawPause()
+	{
 //		int		w, h;
 //
 //		if (!scr_showpause->value)		// turn off for screenshots
@@ -466,15 +479,15 @@ public final class SCR extends Globals {
 //
 //		re.DrawGetPicSize (&w, &h, "pause");
 //		re.DrawPic ((viddef.width-w)/2, viddef.height/2 + 8, "pause");
-//	}
-//
-//	/*
-//	==============
-//	SCR_DrawLoading
-//	==============
-//	*/
-//	void SCR_DrawLoading (void)
-//	{
+	}
+
+	/*
+	==============
+	SCR_DrawLoading
+	==============
+	*/
+	static void DrawLoading()
+	{
 //		int		w, h;
 //		
 //		if (!scr_draw_loading)
@@ -483,19 +496,19 @@ public final class SCR extends Globals {
 //		scr_draw_loading = false;
 //		re.DrawGetPicSize (&w, &h, "loading");
 //		re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
-//	}
-//
-////	  =============================================================================
-//
-//	/*
-//	==================
-//	SCR_RunConsole
-//
-//	Scroll it up or down
-//	==================
-//	*/
+	}
+
+// =============================================================================
+
+	/*
+	==================
+	SCR_RunConsole
+
+	Scroll it up or down
+	==================
+	*/
 	static void RunConsole() {
-////	   decide on the height of the console
+		// decide on the height of the console
 //		if (cls.key_dest == key_console)
 //			scr_conlines = 0.5;		// half screen
 //		else
@@ -516,14 +529,14 @@ public final class SCR extends Globals {
 //		}
 //
 	}
-//
-//	/*
-//	==================
-//	SCR_DrawConsole
-//	==================
-//	*/
-//	void SCR_DrawConsole (void)
-//	{
+
+	/*
+	==================
+	SCR_DrawConsole
+	==================
+	*/
+	static void DrawConsole()
+	{
 //		Con_CheckResize ();
 //	
 //		if (cls.state == ca_disconnected || cls.state == ca_connecting)
@@ -548,15 +561,15 @@ public final class SCR extends Globals {
 //			if (cls.key_dest == key_game || cls.key_dest == key_message)
 //				Con_DrawNotify ();	// only draw notify in game
 //		}
-//	}
-//
-////	  =============================================================================
-//
-//	/*
-//	================
-//	SCR_BeginLoadingPlaque
-//	================
-//	*/
+	}
+
+// =============================================================================
+
+	/*
+	================
+	SCR_BeginLoadingPlaque
+	================
+	*/
 	public static void BeginLoadingPlaque() {
 //		S_StopAllSounds ();
 //		cl.sound_prepped = false;		// don't play ambients
@@ -577,35 +590,35 @@ public final class SCR extends Globals {
 //		cls.disable_screen = Sys_Milliseconds ();
 //		cls.disable_servercount = cl.servercount;
 	}
-//
-//	/*
-//	================
-//	SCR_EndLoadingPlaque
-//	================
-//	*/
+
+	/*
+	================
+	SCR_EndLoadingPlaque
+	================
+	*/
 	public static void EndLoadingPlaque() {
 		cls.disable_screen = 0;
 		Console.ClearNotify();
 	}
-//
-//	/*
-//	================
-//	SCR_Loading_f
-//	================
-//	*/
-//	void SCR_Loading_f (void)
-//	{
-//		SCR_BeginLoadingPlaque ();
-//	}
-//
-//	/*
-//	================
-//	SCR_TimeRefresh_f
-//	================
-//	*/
-//
-//	void SCR_TimeRefresh_f (void)
-//	{
+
+	/*
+	================
+	SCR_Loading_f
+	================
+	*/
+	static void Loading_f()
+	{
+		BeginLoadingPlaque();
+	}
+
+	/*
+	================
+	SCR_TimeRefresh_f
+	================
+	*/
+
+	static void TimeRefresh_f()
+	{
 //		int		i;
 //		int		start, stop;
 //		float	time;
@@ -640,24 +653,22 @@ public final class SCR extends Globals {
 //		stop = Sys_Milliseconds ();
 //		time = (stop-start)/1000.0;
 //		Com_Printf ("%f seconds (%f fps)\n", time, 128/time);
-//	}
-//
-
+	}
 
 	static void DirtyScreen() {
 		AddDirtyPoint(0, 0);
 		AddDirtyPoint(viddef.width-1, viddef.height-1);
 	}
-//
-//	/*
-//	==============
-//	SCR_TileClear
-//
-//	Clear any parts of the tiled background that were drawn on last frame
-//	==============
-//	*/
-//	void SCR_TileClear (void)
-//	{
+
+	/*
+	==============
+	SCR_TileClear
+
+	Clear any parts of the tiled background that were drawn on last frame
+	==============
+	*/
+	static void TileClear()
+	{
 //		int		i;
 //		int		top, bottom, left, right;
 //		dirty_t	clear;
@@ -737,12 +748,12 @@ public final class SCR extends Globals {
 //			clear.x2 = right;
 //		}
 //
-//	}
-//
-//
-////	  ===============================================================
-//
-//
+	}
+
+
+// ===============================================================
+
+
 //	#define STAT_MINUS		10	// num frame for '-' stats digit
 
 //
@@ -750,18 +761,16 @@ public final class SCR extends Globals {
 //	#define	ICON_HEIGHT	24
 //	#define	CHAR_WIDTH	16
 //	#define	ICON_SPACE	8
-//
-//
-//
-//	/*
-//	================
-//	SizeHUDString
-//
-//	Allow embedded \n in the string
-//	================
-//	*/
-//	void SizeHUDString (char *string, int *w, int *h)
-//	{
+
+	/*
+	================
+	SizeHUDString
+
+	Allow embedded \n in the string
+	================
+	*/
+	static void SizeHUDString(String string, Dimension dim)
+	{
 //		int		lines, width, current;
 //
 //		lines = 1;
@@ -786,10 +795,10 @@ public final class SCR extends Globals {
 //
 //		*w = width * 8;
 //		*h = lines * 8;
-//	}
-//
-//	void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
-//	{
+	}
+
+	static void DrawHUDString (String string, int x, int y, int centerwidth, int xor)
+	{
 //		int		margin;
 //		char	line[1024];
 //		int		width;
@@ -821,16 +830,16 @@ public final class SCR extends Globals {
 //				y += 8;
 //			}
 //		}
-//	}
-//
-//
-//	/*
-//	==============
-//	SCR_DrawField
-//	==============
-//	*/
-//	void SCR_DrawField (int x, int y, int color, int width, int value)
-//	{
+	}
+
+
+	/*
+	==============
+	SCR_DrawField
+	==============
+	*/
+	static void DrawField(int x, int y, int color, int width, int value)
+	{
 //		char	num[16], *ptr;
 //		int		l;
 //		int		frame;
@@ -864,44 +873,46 @@ public final class SCR extends Globals {
 //			ptr++;
 //			l--;
 //		}
-//	}
-//
-//
-//	/*
-//	===============
-//	SCR_TouchPics
-//
-//	Allows rendering code to cache all needed sbar graphics
-//	===============
-//	*/
-//	void SCR_TouchPics (void)
-//	{
-//		int		i, j;
-//
-//		for (i=0 ; i<2 ; i++)
-//			for (j=0 ; j<11 ; j++)
-//				re.RegisterPic (sb_nums[i][j]);
-//
-//		if (crosshair->value)
-//		{
-//			if (crosshair->value > 3 || crosshair->value < 0)
-//				crosshair->value = 3;
-//
-//			Com_sprintf (crosshair_pic, sizeof(crosshair_pic), "ch%i", (int)(crosshair->value));
-//			re.DrawGetPicSize (&crosshair_width, &crosshair_height, crosshair_pic);
-//			if (!crosshair_width)
-//				crosshair_pic[0] = 0;
-//		}
-//	}
-//
-//	/*
-//	================
-//	SCR_ExecuteLayoutString 
-//
-//	================
-//	*/
-//	void SCR_ExecuteLayoutString (char *s)
-//	{
+	}
+
+
+	/*
+	===============
+	SCR_TouchPics
+
+	Allows rendering code to cache all needed sbar graphics
+	===============
+	*/
+	static void TouchPics() {
+		int i, j;
+ 
+		for (i=0 ; i<2 ; i++)
+			for (j=0 ; j<11 ; j++)
+				re.RegisterPic(sb_nums[i][j]);
+ 
+		if (crosshair.value != 0.0f) {
+			if (crosshair.value > 3.0f || crosshair.value < 0.0f)
+				crosshair.value = 3.0f;
+ 
+		crosshair_pic = "ch" + (int)crosshair.value;
+		Dimension dim = new Dimension();
+		re.DrawGetPicSize(dim, crosshair_pic);
+		crosshair_width = dim.width;
+		crosshair_height = dim.height;
+		if (crosshair_width == 0)
+			crosshair_pic = "";
+		}
+	}
+
+
+	/*
+	================
+	SCR_ExecuteLayoutString 
+
+	================
+	*/
+	static void ExecuteLayoutString(String s)
+	{
 //		int		x, y;
 //		int		value;
 //		char	*token;
@@ -1184,165 +1195,155 @@ public final class SCR extends Globals {
 //
 //
 //		}
-//	}
-//
-//
-//	/*
-//	================
-//	SCR_DrawStats
-//
-//	The status bar is a small layout program that
-//	is based on the stats array
-//	================
-//	*/
-//	void SCR_DrawStats (void)
-//	{
+	}
+
+	/*
+	================
+	SCR_DrawStats
+
+	The status bar is a small layout program that
+	is based on the stats array
+	================
+	*/
+	static void DrawStats()
+	{
 //		SCR_ExecuteLayoutString (cl.configstrings[CS_STATUSBAR]);
-//	}
-//
-//
-//	/*
-//	================
-//	SCR_DrawLayout
-//
-//	================
-//	*/
+	}
+
+	/*
+	================
+	SCR_DrawLayout
+
+	================
+	*/
 //	#define	STAT_LAYOUTS		13
-//
-//	void SCR_DrawLayout (void)
-//	{
+
+	static void SCR_DrawLayout()
+	{
 //		if (!cl.frame.playerstate.stats[STAT_LAYOUTS])
 //			return;
 //		SCR_ExecuteLayoutString (cl.layout);
-//	}
-//
-////	  =======================================================
-//
-//	/*
-//	==================
-//	SCR_UpdateScreen
-//
-//	This is called every frame, and can also be called explicitly to flush
-//	text to the screen.
-//	==================
-//	*/
-//	void SCR_UpdateScreen (void)
-//	{
-//		int numframes;
-//		int i;
-//		float separation[2] = { 0, 0 };
-//
-//		// if the screen is disabled (loading plaque is up, or vid mode changing)
-//		// do nothing at all
-//		if (cls.disable_screen)
-//		{
-//			if (Sys_Milliseconds() - cls.disable_screen > 120000)
-//			{
-//				cls.disable_screen = 0;
-//				Com_Printf ("Loading plaque timed out.\n");
-//			}
-//			return;
-//		}
-//
-//		if (!scr_initialized || !con.initialized)
-//			return;				// not initialized yet
-//
-//		/*
-//		** range check cl_camera_separation so we don't inadvertently fry someone's
-//		** brain
-//		*/
-//		if ( cl_stereo_separation->value > 1.0 )
-//			Cvar_SetValue( "cl_stereo_separation", 1.0 );
-//		else if ( cl_stereo_separation->value < 0 )
-//			Cvar_SetValue( "cl_stereo_separation", 0.0 );
-//
-//		if ( cl_stereo->value )
-//		{
-//			numframes = 2;
-//			separation[0] = -cl_stereo_separation->value / 2;
-//			separation[1] =  cl_stereo_separation->value / 2;
-//		}		
-//		else
-//		{
-//			separation[0] = 0;
-//			separation[1] = 0;
-//			numframes = 1;
-//		}
-//
-//		for ( i = 0; i < numframes; i++ )
-//		{
-//			re.BeginFrame( separation[i] );
-//
-//			if (scr_draw_loading == 2)
-//			{	//  loading plaque over black screen
-//				int		w, h;
-//
-//				re.CinematicSetPalette(NULL);
-//				scr_draw_loading = false;
-//				re.DrawGetPicSize (&w, &h, "loading");
-//				re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
-////				re.EndFrame();
-////				return;
-//			} 
-//			// if a cinematic is supposed to be running, handle menus
-//			// and console specially
-//			else if (cl.cinematictime > 0)
-//			{
-//				if (cls.key_dest == key_menu)
-//				{
-//					if (cl.cinematicpalette_active)
-//					{
-//						re.CinematicSetPalette(NULL);
-//						cl.cinematicpalette_active = false;
-//					}
-//					M_Draw ();
-////					re.EndFrame();
-////					return;
-//				}
-//				else if (cls.key_dest == key_console)
-//				{
-//					if (cl.cinematicpalette_active)
-//					{
-//						re.CinematicSetPalette(NULL);
-//						cl.cinematicpalette_active = false;
-//					}
-//					SCR_DrawConsole ();
-////					re.EndFrame();
-////					return;
-//				}
-//				else
-//				{
-//					SCR_DrawCinematic();
-////					re.EndFrame();
-////					return;
-//				}
-//			}
-//			else 
-//			{
-//
-//				// make sure the game palette is active
-//				if (cl.cinematicpalette_active)
-//				{
-//					re.CinematicSetPalette(NULL);
-//					cl.cinematicpalette_active = false;
-//				}
-//
-//				// do 3D refresh drawing, and then update the screen
-//				SCR_CalcVrect ();
-//
-//				// clear any dirty part of the background
-//				SCR_TileClear ();
-//
-//				V_RenderView ( separation[i] );
-//
-//				SCR_DrawStats ();
+	}
+
+	// =======================================================
+
+	/*
+	==================
+	SCR_UpdateScreen
+
+	This is called every frame, and can also be called explicitly to flush
+	text to the screen.
+	==================
+	*/
+	static void UpdateScreen2()
+	{
+		int numframes;
+		int i;
+		float[] separation = { 0, 0 };
+
+		// if the screen is disabled (loading plaque is up, or vid mode changing)
+		// do nothing at all
+		if (cls.disable_screen != 0)
+		{
+			if (Sys.Milliseconds() - cls.disable_screen > 120000)
+			{
+				cls.disable_screen = 0;
+				Com.Printf("Loading plaque timed out.\n");
+			}
+			return;
+		}
+
+		if (!scr_initialized || !con.initialized)
+			return;				// not initialized yet
+
+		/*
+		** range check cl_camera_separation so we don't inadvertently fry someone's
+		** brain
+		*/
+		if ( cl_stereo_separation.value > 1.0 )
+			Cvar.SetValue( "cl_stereo_separation", 1.0f );
+		else if ( cl_stereo_separation.value < 0 )
+			Cvar.SetValue( "cl_stereo_separation", 0.0f );
+
+		if ( cl_stereo.value != 0 )
+		{
+			numframes = 2;
+			separation[0] = -cl_stereo_separation.value / 2;
+			separation[1] =  cl_stereo_separation.value / 2;
+		}		
+		else
+		{
+			separation[0] = 0;
+			separation[1] = 0;
+			numframes = 1;
+		}
+
+		for ( i = 0; i < numframes; i++ )
+		{
+			re.BeginFrame( separation[i] );
+
+			if (scr_draw_loading == 2)
+			{	//  loading plaque over black screen
+				Dimension dim = new Dimension();
+
+				re.CinematicSetPalette(null);
+				scr_draw_loading = 0; // false
+				re.DrawGetPicSize (dim, "loading");
+				re.DrawPic ((viddef.width-dim.width)/2, (viddef.height-dim.height)/2, "loading");
+			} 
+			// if a cinematic is supposed to be running, handle menus
+			// and console specially
+			else if (cl.cinematictime > 0)
+			{
+				if (cls.key_dest == key_menu)
+				{
+					if (cl.cinematicpalette_active)
+					{
+						re.CinematicSetPalette(null);
+						cl.cinematicpalette_active = false;
+					}
+					Menu.Draw();
+				}
+				else if (cls.key_dest == key_console)
+				{
+					if (cl.cinematicpalette_active)
+					{
+						re.CinematicSetPalette(null);
+						cl.cinematicpalette_active = false;
+					}
+					DrawConsole();
+				}
+				else
+				{
+					// TODO impl: cl_cin.c for cinematics
+					//DrawCinematic();
+				}
+			}
+			else 
+			{
+				// make sure the game palette is active
+				if (cl.cinematicpalette_active)
+				{
+					re.CinematicSetPalette(null);
+					cl.cinematicpalette_active = false;
+				}
+
+				// do 3D refresh drawing, and then update the screen
+				CalcVrect();
+
+				// clear any dirty part of the background
+				TileClear();
+
+				V.RenderView( separation[i] );
+
+				DrawStats();
 //				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
 //					SCR_DrawLayout ();
 //				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
 //					CL_DrawInventory ();
-//
-//				SCR_DrawNet ();
-//				SCR_CheckDrawCenterString ();
+
+				DrawNet();
+				CheckDrawCenterString();
 //
 //				if (scr_timegraph->value)
 //					SCR_DebugGraph (cls.frametime*300, 0);
@@ -1350,39 +1351,18 @@ public final class SCR extends Globals {
 //				if (scr_debuggraph->value || scr_timegraph->value || scr_netgraph->value)
 //					SCR_DrawDebugGraph ();
 //
-//				SCR_DrawPause ();
-//
-//				SCR_DrawConsole ();
-//
-//				M_Draw ();
-//
-//				SCR_DrawLoading ();
-//			}
-//		}
-//		re.EndFrame();
-//	}
+				DrawPause();
 
-	static void TouchPics() {
-		int i, j;
- 
-		for (i=0 ; i<2 ; i++)
-			for (j=0 ; j<11 ; j++)
-				re.RegisterPic(sb_nums[i][j]);
- 
-		if (crosshair.value != 0.0f) {
-			if (crosshair.value > 3.0f || crosshair.value < 0.0f)
-				crosshair.value = 3.0f;
- 
-		crosshair_pic = Com.sprintf ("ch%i", new Vargs(1).add((int)(crosshair.value)));
-		Dimension dim = new Dimension();
-		re.DrawGetPicSize(dim, crosshair_pic);
-		crosshair_width = dim.width;
-		crosshair_height = dim.height;
-		if (crosshair_width == 0)
-			crosshair_pic = "";
+				DrawConsole();
+
+				Menu.Draw ();
+
+				DrawLoading();
+			}
 		}
+		Globals.re.EndFrame();
 	}
-	
+
 	/*
 	=================
 	SCR_DrawCrosshair
@@ -1409,6 +1389,7 @@ public final class SCR extends Globals {
 		Globals.re.updateScreen();
 	}
 		
+	/*
 	// hier muss der code der orig UpdateScreen rein
 	public static void UpdateScreen2() {
 		Globals.re.BeginFrame(0.0f);
@@ -1417,7 +1398,7 @@ public final class SCR extends Globals {
 		
 		Globals.re.EndFrame();
 	}
-
+	*/
 
 	/*
 	=================
@@ -1434,12 +1415,4 @@ public final class SCR extends Globals {
 		if (y > scr_dirty.y2)
 			scr_dirty.y2 = y;
 	}
-}
-
-class dirty_t {
-	int x1;
-	int x2;
-	int y1;
-	int y2;
-
 }
