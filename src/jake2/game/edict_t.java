@@ -24,12 +24,18 @@ import jake2.*;
 import jake2.util.*;
 
 public class edict_t {
-	//TODO: implement
+ 
+	public edict_t(int i) {
+		
+		s.number = i;
+	}
+
 	public void clear() {
 	}
 
+	// integrated entity state
 	public entity_state_t s = new entity_state_t();
-	public gclient_t client = new gclient_t();
+	public gclient_t client;
 	public boolean inuse;
 	public int linkcount;
 
@@ -179,9 +185,9 @@ public class edict_t {
 
 	public gitem_t item = null; // for bonus items
 
-	// common data blocks
-	public moveinfo_t moveinfo = null;
-	public monsterinfo_t monsterinfo = null;
+	// common integrated data blocks
+	public moveinfo_t moveinfo = new moveinfo_t();
+	public monsterinfo_t monsterinfo = new monsterinfo_t();
 
 	/////////////////////////////////////////////////
 

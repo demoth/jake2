@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.6 2003-12-27 23:13:29 rst Exp $
+// $Id: GameFunc.java,v 1.7 2003-12-30 15:57:33 rst Exp $
 
 package jake2.game;
 
@@ -2019,5 +2019,9 @@ public class GameFunc extends Game {
 			return true;
 		}
 	};
+
+
+	
+
 
 }

@@ -19,11 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.4 2003-12-28 19:52:35 rst Exp $
+// $Id: gclient_t.java,v 1.5 2003-12-30 15:57:33 rst Exp $
 
 package jake2.game;
 
 public class gclient_t {
+	
+	public gclient_t(int index)
+	{ 
+		this.index = index;
+	}
 	//	this structure is cleared on each PutClientInServer(),
 	//	except for 'client->pers'
 
