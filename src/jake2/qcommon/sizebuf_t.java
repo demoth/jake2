@@ -1,10 +1,10 @@
 /*
- * Z_Stats_f.java
+ * sizebuf_t.java
  * Copyright (C) 2003
  * 
- * $Id$
+ * $Id: sizebuf_t.java,v 1.1 2003-11-18 21:11:29 hoz Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -26,16 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 /**
- * Z_Stats_f
+ * sizebuf_t
  */
-final class Z_Stats_f implements xcommand_t {
-
-	/* (non-Javadoc)
-	 * @see quake2.xcommand_t#execute()
-	 */
-	public void execute() {
-		// TODO Auto-generated method stub
-
-	}
-
+public final class sizebuf_t {
+	boolean allowoverflow = false;
+	boolean overflowed = false;
+	byte[] data = null;
+	int maxsize = 0;
+	int currsize = 0;
+	int readcount = 0;
 }

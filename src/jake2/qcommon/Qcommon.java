@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.2 2003-11-18 08:48:26 rst Exp $
+ * $Id: Qcommon.java,v 1.3 2003-11-18 21:11:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -83,8 +83,8 @@ public final class Qcommon {
 			//
 			// init commands and vars
 			//
-			Cmd.AddCommand("z_stats", new Z_Stats_f());
-			Cmd.AddCommand("error", new Com_Error_f());
+			Cmd.AddCommand("z_stats", Z.Stats_f);
+			Cmd.AddCommand("error", Com.Error_f);
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);

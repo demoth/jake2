@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Cbuf.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import jake2.Globals;
+
 /**
  * Cbuf
  * TODO complete Cbuf interface
@@ -35,9 +37,15 @@ public final class Cbuf {
 	 * 
 	 */
 	public static void Init() {
-//		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
+		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
 	}
 
+	/**
+	 * @param text
+	 */
+	public static void InsertText(String text) {
+	}
+	
 	/**
 	 * @param clear
 	 */

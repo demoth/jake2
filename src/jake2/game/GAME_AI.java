@@ -24,8 +24,6 @@ package jake2.game;
 
 import java.util.*;
 
-import jake2.game.*;
-
 public class GAME_AI extends GAME_UTIL {
 
 	/*

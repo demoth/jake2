@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: FS.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+
 /**
  * FS
  * TODO complete FS interface
@@ -44,5 +45,11 @@ public final class FS {
 	 */
 	public static int LoadFile(String path, byte[] buffer) {
 		return 0;
+	}
+	
+	/**
+	 * @param buffer
+	 */
+	public static void FreeFile(byte[] buffer) {
 	}
 }

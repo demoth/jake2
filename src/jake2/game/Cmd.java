@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Cmd.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,6 +33,62 @@ import jake2.qcommon.*;
  */
 public final class Cmd {
 	
+	static xcommand_t List_f = new xcommand_t() {
+		public void execute() {
+			cmd_function_t  cmd = Cmd.cmd_functions;
+			int i = 0;
+
+			while (cmd != null) {
+				Com.print(cmd.name + '\n');
+				i++;
+				cmd = cmd.next;
+			}
+			Com.print(i + " commands\n");
+		}
+	};
+	static xcommand_t Exec_f = new xcommand_t() {
+		public void execute() {
+			if (Cmd.Argc() != 2) {
+				Com.print("exec <filename> : execute a script file\n");
+				return;
+			}
+
+			byte[] f = null;
+			int len = FS.LoadFile(Cmd.Argv(1), f);
+			if (f == null) {
+				Com.print("couldn't exec " + Cmd.Argv(1) + "\n");
+				return;
+			}
+			Com.print("execing " + Cmd.Argv(1) + "\n");
+
+			byte[] f2 = Z.Malloc(len);
+			System.arraycopy(f, 0, f2, 0, f.length);
+			
+			Cbuf.InsertText(new String(f2));
+			
+			Z.Free(f2);
+			FS.FreeFile(f);
+		}
+	};
+	static xcommand_t Echo_f = new xcommand_t() {
+		public void execute() {
+			for (int i  = 1;  i < Cmd.Argc(); i++) {
+				Com.print(Cmd.Argv(i) + " ");
+			}
+			Com.print("'\n");
+		}
+	};
+	static xcommand_t Alias_f = new xcommand_t() {
+		public void execute() {
+//			TODO Auto-generated method stub
+		}
+	};
+	static xcommand_t Wait_f = new xcommand_t() {
+		public void execute() {
+			Globals.cmd_wait = true;
+		}
+	};
+	
 	public static cmd_function_t cmd_functions = null;
 	static int cmd_argc;
 	static String[] cmd_argv = new String[Globals.MAX_STRING_TOKENS];
@@ -41,11 +97,11 @@ public final class Cmd {
 	 * register our commands
 	 */
 	public static void Init() {
-    	Cmd.AddCommand ("cmdlist", new Cmd_List_f());
-		Cmd.AddCommand ("exec", new Cmd_Exec_f());
-		Cmd.AddCommand ("echo", new Cmd_Echo_f());
-		Cmd.AddCommand ("alias", new Cmd_Alias_f());
-		Cmd.AddCommand ("wait", new Cmd_Wait_f());
+    	Cmd.AddCommand ("cmdlist", List_f);
+		Cmd.AddCommand ("exec", Exec_f);
+		Cmd.AddCommand ("echo", Echo_f);
+		Cmd.AddCommand ("alias",Alias_f);
+		Cmd.AddCommand ("wait", Wait_f);
 	}
 
 	/**

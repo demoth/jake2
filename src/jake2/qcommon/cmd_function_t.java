@@ -2,7 +2,7 @@
  * cmd_function_t.java
  * Copyright (C) 2003
  * 
- * $Id: cmd_function_t.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: cmd_function_t.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,7 @@ package jake2.qcommon;
  * cmd_function_t
  */
 public final class cmd_function_t {
-	cmd_function_t next = null;
-	String name = null;
-	xcommand_t function;
+	public cmd_function_t next = null;
+	public String name = null;
+	public xcommand_t function;
 }

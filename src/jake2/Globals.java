@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Globals.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
-import jake2.game.*;
+import jake2.game.EndianHandler;
+import jake2.game.cvar_t;
+import jake2.qcommon.sizebuf_t;
 
 import java.io.FileWriter;
 
@@ -71,7 +73,7 @@ public final class Globals {
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 	
-//	static sizebuf_t cmd_text;
+	public static sizebuf_t cmd_text;
 	
 	public static byte[] cmd_text_buf = new byte[8192];
 

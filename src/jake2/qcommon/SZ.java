@@ -1,8 +1,9 @@
+package jake2.qcommon;
 /*
- * Com_Error_f.java
+ * SZ.java
  * Copyright (C) 2003
  * 
- * $Id$
+ * $Id: SZ.java,v 1.1 2003-11-18 21:11:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,19 +24,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
-
 /**
- * Com_Error_f
+ * SZ
  */
-final class Com_Error_f implements xcommand_t {
+final class SZ {
 
-	/* (non-Javadoc)
-	 * @see quake2.xcommand_t#execute()
+	/**
+	 * @param buf
+	 * @param data
+	 * @param length
 	 */
-	public void execute() {
-		// TODO Auto-generated method stub
-
+	static void Init(sizebuf_t buf, byte[] data, int length) {
+		buf = new sizebuf_t();
+		buf.data = data;
+		buf.maxsize = length;
 	}
-
 }

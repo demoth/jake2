@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.2 2003-11-18 08:48:26 rst Exp $
+ * $Id: Com.java,v 1.3 2003-11-18 21:11:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,12 @@ import jake2.Globals;
  * TODO complete Com interface
  */
 public final class Com {
+	
+	public static xcommand_t Error_f = new xcommand_t() {
+		public void execute() {
+//			TODO Auto-generated method stub
+		}
+	};
 
 	/**
 	 * @param code
@@ -48,7 +54,7 @@ public final class Com {
 	}
 	
 	/**
-	 * COM_InitArgv checks the number of command line arguments
+	 * Com_InitArgv checks the number of command line arguments
 	 * and copies all arguments with valid length into com_argv.
 	 * @param args
 	 */	

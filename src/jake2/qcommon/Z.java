@@ -2,7 +2,7 @@
  * Z.java
  * Copyright (C) 2003
  * 
- * $Id: Z.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Z.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,13 +31,19 @@ package jake2.qcommon;
  */
 public final class Z {
 
+	public static xcommand_t Stats_f = new xcommand_t() {
+		public void execute() {
+//			TODO Auto-generated method stub
+		}
+	};
+	
 	static final zhead_t chain = new zhead_t();
 	static final short MAGIC = 0x1d1d;
 	
 	static int count = 0;
 	static int bytes = 0;
 	
-	static byte[] Malloc(int size) {
+	public static byte[] Malloc(int size) {
 		return TagMalloc(size, 0); 
 	}
 	
@@ -63,5 +69,11 @@ public final class Z {
 		01184 
 		01185         return (void *) (z + 1);*/
 		return null;
+	}
+	
+	/**
+	 * @param ptr
+	 */
+	public static void Free(byte[] ptr) {
 	}
 }
