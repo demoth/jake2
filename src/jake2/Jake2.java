@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.5 2004-09-22 19:22:14 salomo Exp $
+ * $Id: Jake2.java,v 1.6 2004-09-25 15:17:44 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,8 +27,6 @@ package jake2;
 
 import jake2.client.SCR;
 import jake2.qcommon.*;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.Qcommon;
 import jake2.sys.Sys;
 
 /**
@@ -36,19 +34,6 @@ import jake2.sys.Sys;
  */
 public final class Jake2 {
 
-    static class MemMonitor implements Runnable {
-        public void run() {
-            while (true) {
-                Com.Printf("Memory:"
-                        + (Runtime.getRuntime().totalMemory() - Runtime
-                                .getRuntime().freeMemory()) + "\n");
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
-            }
-        }
-    }
 
     public static Q2DataDialog Q2Dialog = new Q2DataDialog();
 
@@ -61,9 +46,6 @@ public final class Jake2 {
     public static void main(String[] args) {
 
         Q2Dialog.setVisible(true);
-
-        // uncomment to have a memory debugger (RST).
-        //new Thread(new MemMonitor()).start();
 
         // in C the first arg is the filename
         int argc = (args == null) ? 1 : args.length + 1;

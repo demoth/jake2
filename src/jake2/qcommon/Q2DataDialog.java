@@ -7,6 +7,8 @@
 package jake2.qcommon;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,6 +16,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
@@ -151,6 +154,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		statusPanel.add(status, gridBagConstraints);
 		getContentPane().add(statusPanel, java.awt.BorderLayout.SOUTH);
 		
+		progressPanel = new ProgressPanel(this);
 		installPanel = new InstallPanel(this);
 						
         pack();
@@ -158,14 +162,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 
 	
     private void installButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_installButtonActionPerformed
-		dir = jTextField1.getText();
 		showInstallPanel();
-		installPanel.destDir = dir;
-		
-		dir += "/baseq2";
-		jTextField1.setText(dir);
-		
-		new Thread(installPanel).start();
     }//GEN-LAST:event_installButtonActionPerformed
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -175,9 +172,10 @@ public class Q2DataDialog extends javax.swing.JDialog {
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
     	
-    	dir = jTextField1.getText();
-    	Cvar.Set("cddir", dir);
-    	FS.setCDDir();
+    	if (dir != null) {
+    		Cvar.Set("cddir", dir);
+    		FS.setCDDir();
+    	}
     	
     	synchronized(this) {
     		notifyAll();
@@ -195,8 +193,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
     	dir = null;
     	try {
 			dir = chooser.getSelectedFile().getCanonicalPath();
-		} catch (IOException e) {}
-		jTextField1.setText(dir);
+		} catch (Exception e) {}
+		if (dir != null) jTextField1.setText(dir);
+		else dir = jTextField1.getText();
         
     }//GEN-LAST:event_changeButtonActionPerformed
 
@@ -212,6 +211,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private Jake2Canvas canvas;
     private javax.swing.JPanel choosePanel;
     private JPanel statusPanel;
+    private ProgressPanel progressPanel;
     private InstallPanel installPanel;
     private JLabel status;
     private javax.swing.JTextField jTextField1;
@@ -222,6 +222,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 	
 	void showChooseDialog() {
 		getContentPane().remove(statusPanel);
+		getContentPane().remove(progressPanel);
 		getContentPane().remove(installPanel);
 		getContentPane().add(choosePanel, BorderLayout.SOUTH);
 		validate();
@@ -230,13 +231,23 @@ public class Q2DataDialog extends javax.swing.JDialog {
 	
 	void showStatus() {
 		getContentPane().remove(choosePanel);
+		getContentPane().remove(installPanel);
 		getContentPane().add(statusPanel, BorderLayout.SOUTH);
 		validate();
 		repaint();		
 	}
 	
+	void showProgressPanel() {
+		getContentPane().remove(choosePanel);
+		getContentPane().remove(installPanel);
+		getContentPane().add(progressPanel, BorderLayout.SOUTH);
+		validate();
+		repaint();
+	}
+	
 	void showInstallPanel() {
 		getContentPane().remove(choosePanel);
+		getContentPane().remove(statusPanel);
 		getContentPane().add(installPanel, BorderLayout.SOUTH);
 		validate();
 		repaint();
@@ -264,12 +275,10 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		private Image image;
 		Jake2Canvas() {
 			setSize(400, 200);
-			image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/splash.png"));
-			while (!Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, null)) {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {}
-			} 
+			try {
+				image = ImageIO.read(getClass().getResource("/splash.png"));
+			} catch (Exception e) {}
+
 		}
 		
 		
@@ -282,21 +291,159 @@ public class Q2DataDialog extends javax.swing.JDialog {
 
 	}
 	
-	static class InstallPanel extends JPanel implements Runnable {
+	static class InstallPanel extends JPanel {
 		
-		static final String[] locs = { 
-			"ftp://ftp.fu-berlin.de/pc/msdos/games/idgames/idstuff/quake2/q2-314-demo-x86.exe",
-			"ftp://ftp.demon.co.uk/pub/mirrors/idsoftware/quake2/q2-314-demo-x86.exe",
-			"ftp://ftp.fragzone.se/pub/spel/quake2/q2-314-demo-x86.exe",
-			"ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe"  };
+		private static final String[][] mirrors = {
+		{"LOC gate", "ftp://gate/q2-314-demo-x86.exe"}, // local test @home
+		{"DE ftp.fu-berlin.de", "ftp://ftp.fu-berlin.de/pc/msdos/games/idgames/idstuff/quake2/q2-314-demo-x86.exe"},
+		{"UK ftp.demon.co.uk", "ftp://ftp.demon.co.uk/pub/mirrors/idsoftware/quake2/q2-314-demo-x86.exe"},
+		{"SE ftp.fragzone.se", "ftp://ftp.fragzone.se/pub/spel/quake2/q2-314-demo-x86.exe"},
+		{"US ftp.idsoftware.com", "ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe"}  };		
+		private Q2DataDialog parent;
+		private JComboBox mirrorBox;
+		private JTextField destDir;
+		private JButton cancel;
+		private JButton exit;
+		private JButton install;
+		private JButton choose;
+		
+		public InstallPanel(Q2DataDialog d) {
+			initComponents();
+			initMirrors();
+			parent = d;
+		}
+		
+		private void initComponents() {
+			GridBagConstraints constraints = new GridBagConstraints();
+			setLayout(new GridBagLayout());
+			Dimension d = new Dimension(400, 100);
+			setMinimumSize(d);
+			setMaximumSize(d);
+			setPreferredSize(d);
+			
+			constraints.gridx = 0;
+			constraints.gridy = 0;
+			constraints.insets = new Insets(5, 5, 0, 5);
+			constraints.anchor = GridBagConstraints.SOUTHWEST;
+			add(new JLabel("download mirror"), constraints);
+			
+			constraints.gridx = 0;
+			constraints.gridy = 1;
+			constraints.insets = new Insets(5, 5, 5, 5);
+			add(new JLabel("destination directory"), constraints);
+			
+			constraints.gridx = 1;
+			constraints.gridy = 0;
+			constraints.weightx = 1;
+			constraints.gridwidth = 3;
+			constraints.insets = new Insets(5, 5, 0, 5);
+			constraints.fill = GridBagConstraints.HORIZONTAL;
+			mirrorBox = new JComboBox();
+			add(mirrorBox, constraints);
+			
+			constraints.gridx = 1;
+			constraints.gridy = 1;
+			constraints.gridwidth = 2;
+			constraints.fill = GridBagConstraints.BOTH;
+			constraints.insets = new Insets(5, 5, 5, 5);
+			destDir = new JTextField();
+			add(destDir, constraints);
+			
+			constraints.gridx = 3;
+			constraints.gridy = 1;
+			constraints.weightx = 0;
+			constraints.gridwidth = 1;
+			constraints.fill = GridBagConstraints.NONE;
+			choose = new JButton("...");
+			choose.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					choose();
+				}});
+			add(choose, constraints);
+			
+			constraints.gridx = 0;
+			constraints.gridy = 2;
+			constraints.gridwidth = 1;
+			constraints.weighty = 1;
+			constraints.fill = GridBagConstraints.NONE;
+			cancel = new JButton("Cancel");
+			cancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cancel();
+			}});
+			add(cancel, constraints);
+			
+			constraints.gridx = 0;
+			constraints.gridy = 2;
+			constraints.gridwidth = 4;
+			constraints.anchor = GridBagConstraints.SOUTH;
+			exit = new JButton("Exit");
+			exit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				exit();
+			}});
+			add(exit, constraints);						
+
+			constraints.gridx = 2;
+			constraints.gridy = 2;
+			constraints.gridwidth = 2;
+			constraints.anchor = GridBagConstraints.SOUTHEAST;
+			install = new JButton("Install");
+			install.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				install();
+			}});
+			add(install, constraints);			
+		}
+		
+		private void initMirrors() {
+			for (int i = 0; i < mirrors.length; i++) {
+				mirrorBox.addItem(mirrors[i][0]);
+			}
+		}
+		
+		private void cancel() {
+			parent.showChooseDialog();
+		}
+		
+		private void install() {
+			parent.progressPanel.destDir = destDir.getText();
+			parent.progressPanel.mirror = mirrors[mirrorBox.getSelectedIndex()][1];
+			parent.showProgressPanel();
+			new Thread(parent.progressPanel).start();
+		}
+		
+		private void exit() {
+			System.exit(0);
+		}
+		
+		private void choose() {
+			JFileChooser chooser = new JFileChooser();
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setDialogTitle("choose destination directory");
+			chooser.showDialog(this, "OK");
+    	
+			String dir = null;
+			try {
+				dir = chooser.getSelectedFile().getCanonicalPath();
+			} catch (IOException e) {}
+			destDir.setText(dir);			
+		}
+	}
+	
+	static class ProgressPanel extends JPanel implements Runnable {
+		
 		static byte[] buf = new byte[8192];
 		String destDir;
+		String mirror;
 		
 		JProgressBar progress = new JProgressBar();
 		JLabel label = new JLabel("test");
 		Q2DataDialog parent;
 		
-		public InstallPanel(Q2DataDialog d) {
+		public ProgressPanel(Q2DataDialog d) {
 			initComponents();
 			parent = d;
 		}
@@ -340,44 +487,62 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			}
 			catch (Exception e) {}
 			try {
-				if (!dir.isDirectory() || !dir.canWrite()) return;
+				if (!dir.isDirectory() || !dir.canWrite()) {
+					endInstall();
+					return;
+				} 
 			}
 			catch (Exception e) {
+				endInstall();
 				return;
 			}
 			
-			for (int i = 0; i < locs.length; i++) {
+			try {
+				URL url = new URL(mirror);
+				URLConnection conn = url.openConnection();
+				int length = conn.getContentLength();
+				progress.setMaximum(length / 1024);
+
+				in = conn.getInputStream();
+
+				outFile = File.createTempFile("Jake2Data", ".zip");
+				outFile.deleteOnExit();
+				out = new FileOutputStream(outFile);
+
+				copyStream(in, out);
+			} catch (Exception e) {
+				endInstall();
+				return;
+			} finally {
 				try {
-					URL url = new URL(locs[i]);
-					URLConnection conn = url.openConnection();
-					int length = conn.getContentLength();
-					progress.setMaximum(length / 1024);
-
-					in = conn.getInputStream();
-
-					outFile = File.createTempFile("Jake2Data", ".zip");
-					outFile.deleteOnExit();
-					out = new FileOutputStream(outFile);
-
-					copyStream(in, out);
-					break;
+					in.close();
 				} catch (Exception e) {}
+				try {
+					out.close();
+				} catch (Exception e) {}		
 			}
+			
 			try {
 				installData(outFile.getCanonicalPath());
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				endInstall();
+				return;
+			}
 
 			
 			try {
 				if (outFile != null) outFile.delete();
 			} catch (Exception e) {}
 			
+			parent.dir = destDir + "/baseq2";
 			parent.showChooseDialog();
 			parent.okButtonActionPerformed(null);
 		}
 		
 		
-		void installData(String filename) {
+		void installData(String filename) throws Exception {
+			InputStream in = null;
+			OutputStream out = null;
 			try {
 				ZipFile f = new ZipFile(filename);
 				Enumeration e = f.entries();
@@ -395,16 +560,27 @@ public class Q2DataDialog extends javax.swing.JDialog {
 							progress.setMaximum((int)entry.getSize()/1024);
 							progress.setValue(0); 
 							outFile.getParentFile().mkdirs();
-							OutputStream out = new FileOutputStream(outFile);
-							InputStream in = f.getInputStream(entry);
+							out = new FileOutputStream(outFile);
+							in = f.getInputStream(entry);
 							copyStream(in, out);
 						}
 					}
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				throw new Exception();
+			} finally {
+				try {in.close();} catch (Exception e1) {}
+				try {out.close();} catch (Exception e1) {}				
+			}
 		}
 		
-		void copyStream(InputStream in, OutputStream out) {
+		void endInstall() {
+			parent.dir = destDir + "/baseq2";
+			parent.showChooseDialog();
+			parent.okButtonActionPerformed(null);			
+		}
+		
+		void copyStream(InputStream in, OutputStream out) throws Exception {
 			try {
 				int c = 0;
 				int l;
@@ -413,15 +589,17 @@ public class Q2DataDialog extends javax.swing.JDialog {
 					c += l;
 					progress.setValue(c / 1024);
 				}
-			} catch (Exception e) {}
-			
-			try {
-				in.close();
-			} catch (Exception e) {}
-			try {
-				out.close();
-			} catch (Exception e) {}			
+			} catch (Exception e) {
+				throw new Exception();
+			} finally {
+				try {
+					in.close();
+				} catch (Exception e) {}
+				try {
+					out.close();
+				} catch (Exception e) {}
+			}			
 		}
 	}
-	
+
 }
