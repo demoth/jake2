@@ -1225,119 +1225,6 @@ public class GAME_AI extends GAME_UTIL {
 		return self.monsterinfo.checkattack.think(self);
 	}
 
-	/*
-	==============================================================================
-	
-	PLAYER TRAIL
-	
-	==============================================================================
-	
-	This is a circular list containing the a list of points of where
-	the player has been recently.  It is used by monsters for pursuit.
-	
-	.origin		the spot
-	.owner		forward link
-	.aiment		backward link
-	*/
-
-	static int TRAIL_LENGTH= 8;
-
-	static edict_t trail[]= new edict_t[TRAIL_LENGTH];
-	static int trail_head;
-	static boolean trail_active= false;
-
-	static int NEXT(int n) {
-		return (n + 1) % TRAIL_LENGTH;
-	}
-
-	static int PREV(int n) {
-		return (n + TRAIL_LENGTH - 1) % TRAIL_LENGTH;
-	}
-
-	static void PlayerTrail_Init() {
-
-		// FIXME || coop 
-		if (deathmatch.value != 0)
-			return;
-
-		for (int n= 0; n < TRAIL_LENGTH; n++) {
-			trail[n]= G_Spawn();
-			trail[n].classname= "player_trail";
-		}
-
-		trail_head= 0;
-		trail_active= true;
-	}
-
-	static void PlayerTrail_Add(float[] spot) {
-		float[] temp= { 0, 0, 0 };
-
-		if (!trail_active)
-			return;
-
-		VectorCopy(spot, trail[trail_head].s.origin);
-
-		trail[trail_head].timestamp= level.time;
-
-		VectorSubtract(spot, trail[PREV(trail_head)].s.origin, temp);
-		trail[trail_head].s.angles[1]= vectoyaw(temp);
-
-		trail_head= NEXT(trail_head);
-	}
-
-	static void PlayerTrail_New(float[] spot) {
-		if (!trail_active)
-			return;
-
-		PlayerTrail_Init();
-		PlayerTrail_Add(spot);
-	}
-
-	static edict_t PlayerTrail_PickFirst(edict_t self) {
-
-		if (!trail_active)
-			return null;
-
-		int marker= trail_head;
-
-		for (int n= TRAIL_LENGTH; n > 0; n--) {
-			if (trail[marker].timestamp <= self.monsterinfo.trail_time)
-				marker= NEXT(marker);
-			else
-				break;
-		}
-
-		if (visible(self, trail[marker])) {
-			return trail[marker];
-		}
-
-		if (visible(self, trail[PREV(marker)])) {
-			return trail[PREV(marker)];
-		}
-
-		return trail[marker];
-	}
-
-	static edict_t PlayerTrail_PickNext(edict_t self) {
-		int marker;
-		int n;
-
-		if (!trail_active)
-			return null;
-
-		for (marker= trail_head, n= TRAIL_LENGTH; n > 0; n--) {
-			if (trail[marker].timestamp <= self.monsterinfo.trail_time)
-				marker= NEXT(marker);
-			else
-				break;
-		}
-
-		return trail[marker];
-	}
-
-	static edict_t PlayerTrail_LastSpot() {
-		return trail[PREV(trail_head)];
-	}
 
 	/*
 	=============
@@ -1441,9 +1328,9 @@ public class GAME_AI extends GAME_UTIL {
 					new1= true;
 				} else if ((self.monsterinfo.aiflags & AI_PURSUIT_LAST_SEEN) != 0) {
 					self.monsterinfo.aiflags &= ~AI_PURSUIT_LAST_SEEN;
-					marker= PlayerTrail_PickFirst(self);
+					marker= PlayerTrail.PickFirst(self);
 				} else {
-					marker= PlayerTrail_PickNext(self);
+					marker= PlayerTrail.PickNext(self);
 				}
 
 				if (marker != null) {
