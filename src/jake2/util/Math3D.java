@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.7 2004-09-22 19:22:13 salomo Exp $
+// $Id: Math3D.java,v 1.8 2005-01-16 17:04:50 cawe Exp $
 
 package jake2.util;
 
@@ -174,12 +174,13 @@ public class Math3D {
 	private static float im[][] = new float[3][3];
 	private static float tmpmat[][] = new float[3][3];
 	private static float zrot[][] = new float[3][3];
+	
+	// to reduce garbage
+	private static final float[] vr = {0, 0, 0};
+	private static final float[] vup = {0, 0, 0};
+	private static final float[] vf = {0, 0, 0};
+
 	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
-
-		float[] vr = { 0.0f, 0.0f, 0.0f };
-		float[] vup = { 0.0f, 0.0f, 0.0f };
-		float[] vf = { 0.0f, 0.0f, 0.0f };
-
 		vf[0] = dir[0];
 		vf[1] = dir[1];
 		vf[2] = dir[2];
@@ -224,6 +225,7 @@ public class Math3D {
 			dst[i] = zrot[i][0] * point[0] + zrot[i][1] * point[1] + zrot[i][2] * point[2];
 		}
 	}
+
 	public static void MakeNormalVectors(float[] forward, float[] right, float[] up) {
 		// this rotate and negat guarantees a vector
 		// not colinear with the original
@@ -286,6 +288,9 @@ public class Math3D {
 		dst[1] = p[1] - d * dst[1];
 		dst[2] = p[2] - d * dst[2];
 	}
+	
+	private static final float[][] PLANE_XYZ = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}; 
+	
 	/** assumes "src" is normalized */
 	public static void PerpendicularVector(float[] dst, float[] src) {
 		int pos;
@@ -299,11 +304,8 @@ public class Math3D {
 				minelem = Math.abs(src[i]);
 			}
 		}
-		float tempvec[] = { 0.0f, 0.0f, 0.0f };
-		tempvec[pos] = 1.0F;
-
 		// project the point onto the plane defined by src
-		ProjectPointOnPlane(dst, tempvec, src);
+		ProjectPointOnPlane(dst, PLANE_XYZ[pos], src);
 
 		//normalize the result 
 		VectorNormalize(dst);
