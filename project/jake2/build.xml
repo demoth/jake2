@@ -1,7 +1,11 @@
 <!-- Buildfile -->
 <project name="jake2" default="dist" basedir=".">
 
-	<taskdef name="proguard" classname="proguard.ant.ProGuardTask"/>
+	<taskdef name="proguard" classname="proguard.ant.ProGuardTask">
+		<classpath>
+    		<pathelement location="lib/proguard/proguard.jar"/>
+    	</classpath>
+	</taskdef>
 	
 	<!-- properties -->
 	<property name="src" location="src"/>
