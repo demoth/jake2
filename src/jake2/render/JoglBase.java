@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.5 2004-07-16 12:12:29 cawe Exp $
+ * $Id: JoglBase.java,v 1.6 2004-08-19 20:49:56 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -192,9 +192,11 @@ public abstract class JoglBase implements GLEventListener {
 		GLimp_Shutdown();
 
 		window = new JFrame("Jake2");
-		
 		GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities());
 
+		// we want keypressed events for TAB key
+		canvas.setFocusTraversalKeysEnabled(false);
+		
 		// TODO Use debug pipeline
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
@@ -205,7 +207,6 @@ public abstract class JoglBase implements GLEventListener {
 		canvas.addGLEventListener(this);
 
 		window.getContentPane().add(canvas);	
-		
 		canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
