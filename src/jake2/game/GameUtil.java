@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.18 2004-02-26 22:36:31 rst Exp $
+// $Id: GameUtil.java,v 1.19 2004-02-27 11:03:30 rst Exp $
 
 package jake2.game;
 
@@ -185,7 +185,8 @@ public class GameUtil extends GameBase {
 		}
 
 		//memset(ed, 0, sizeof(* ed));
-		ed.clear();
+		g_edicts[ed.index] =  new edict_t(ed.index);
+		//ed.clear();
 		ed.classname = "freed";
 		ed.freetime = level.time;
 		ed.inuse = false;
@@ -438,7 +439,7 @@ public class GameUtil extends GameBase {
 		int psave;
 		int te_sparks;
 
-		if (targ.takedamage != 0)
+		if (targ.takedamage == 0)
 			return;
 
 		// friendly fire avoidance

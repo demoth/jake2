@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameWeaponAdapters.java,v 1.1 2004-02-26 22:36:31 rst Exp $
+// $Id: GameWeaponAdapters.java,v 1.2 2004-02-27 11:03:30 rst Exp $
 
 package jake2.game;
 
@@ -41,6 +41,7 @@ public class GameWeaponAdapters {
 	static EntTouchAdapter blaster_touch= new EntTouchAdapter() {
 	
 		public void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf) {
+			System.out.println("BLASTER_TOUCH!");
 			int mod;
 	
 			if (other == self.owner)
@@ -59,17 +60,26 @@ public class GameWeaponAdapters {
 					mod= Defines.MOD_HYPERBLASTER;
 				else
 					mod= Defines.MOD_BLASTER;
+				
+				// bugfix null plane rst
+				float [] normal;
+				if (plane ==null)
+					normal = new float[3];
+				else
+					normal = plane.normal;
+					
 				GameUtil.T_Damage(
 					other,
 					self,
 					self.owner,
 					self.velocity,
 					self.s.origin,
-					plane.normal,
+					normal,
 					self.dmg,
 					1,
 					Defines.DAMAGE_ENERGY,
 					mod);
+					
 			} else {
 				GameBase.gi.WriteByte(Defines.svc_temp_entity);
 				GameBase.gi.WriteByte(Defines.TE_BLASTER);
