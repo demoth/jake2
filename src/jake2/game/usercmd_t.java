@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.3 2003-11-29 19:26:33 rst Exp $
+// $Id: usercmd_t.java,v 1.4 2004-02-02 12:01:28 hoz Exp $
 
 package jake2.game;
 
@@ -32,7 +32,7 @@ public class usercmd_t {
 	public byte lightlevel; // light level the player is standing on
 
 	public void reset() {
-		forwardmove = sidemove = upmove = msec = buttons = impulse = lightlevel;
+		forwardmove = sidemove = upmove = msec = buttons = impulse = lightlevel = 0;
 		angles = new short[3];
 	}
 }

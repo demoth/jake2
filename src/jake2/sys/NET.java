@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.10 2004-02-01 23:31:38 rst Exp $
+ * $Id: NET.java,v 1.11 2004-02-02 12:01:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -494,7 +494,7 @@ public final class NET extends Defines {
 	A single player game will only use the loopback code
 	====================
 	*/
-	public static void NET_Config (boolean multiplayer)
+	public static void Config (boolean multiplayer)
 	{
 		int i;
 	
@@ -631,7 +631,7 @@ public final class NET extends Defines {
 	*/
 	public static void NET_Shutdown ()
 	{
-		NET_Config (false);	// close sockets
+		Config (false);	// close sockets
 	}
 	
 	

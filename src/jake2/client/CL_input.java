@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.5 2004-02-01 12:59:58 hoz Exp $
+ * $Id: CL_input.java,v 1.6 2004-02-02 12:01:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -228,152 +228,136 @@ public class CL_input extends CL_tent {
 	}
 
 //	  ==========================================================================
-//
-//	cvar_t	*cl_upspeed;
-//	cvar_t	*cl_forwardspeed;
-//	cvar_t	*cl_sidespeed;
-//
-//	cvar_t	*cl_yawspeed;
-//	cvar_t	*cl_pitchspeed;
-//
-//	cvar_t	*cl_run;
-//
-//	cvar_t	*cl_anglespeedkey;
-//
-//
-//	/*
-//	================
-//	CL_AdjustAngles
-//
-//	Moves the local angle positions
-//	================
-//	*/
+
+	/*
+	================
+	CL_AdjustAngles
+
+	Moves the local angle positions
+	================
+	*/
 	static void AdjustAngles() {
-//		float	speed;
-//		float	up, down;
-//	
-//		if (in_speed.state & 1)
-//			speed = cls.frametime * cl_anglespeedkey->value;
-//		else
-//			speed = cls.frametime;
-//
-//		if (!(in_strafe.state & 1))
-//		{
-//			cl.viewangles[YAW] -= speed*cl_yawspeed->value*CL_KeyState (&in_right);
-//			cl.viewangles[YAW] += speed*cl_yawspeed->value*CL_KeyState (&in_left);
-//		}
-//		if (in_klook.state & 1)
-//		{
-//			cl.viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState (&in_forward);
-//			cl.viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState (&in_back);
-//		}
-//	
-//		up = CL_KeyState (&in_lookup);
-//		down = CL_KeyState(&in_lookdown);
-//	
-//		cl.viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
-//		cl.viewangles[PITCH] += speed*cl_pitchspeed->value * down;
+		float speed;
+		float up, down;
+
+		if ((in_speed.state & 1) != 0)
+			speed = cls.frametime * cl_anglespeedkey.value;
+		else
+			speed = cls.frametime;
+
+		if ((in_strafe.state & 1) == 0) {
+			cl.viewangles[YAW] -= speed * cl_yawspeed.value * CL.KeyState(in_right);
+			cl.viewangles[YAW] += speed * cl_yawspeed.value * CL.KeyState(in_left);
+		}
+		if ((in_klook.state & 1) != 0) {
+			cl.viewangles[PITCH] -= speed * cl_pitchspeed.value * CL.KeyState(in_forward);
+			cl.viewangles[PITCH] += speed * cl_pitchspeed.value * CL.KeyState(in_back);
+		}
+
+		up = CL.KeyState(in_lookup);
+		down = CL.KeyState(in_lookdown);
+
+		cl.viewangles[PITCH] -= speed * cl_pitchspeed.value * up;
+		cl.viewangles[PITCH] += speed * cl_pitchspeed.value * down;
 	}
-//
-//	/*
-//	================
-//	CL_BaseMove
-//
-//	Send the intended movement message to the server
-//	================
-//	*/
+
+	/*
+	================
+	CL_BaseMove
+
+	Send the intended movement message to the server
+	================
+	*/
 	static void BaseMove(usercmd_t cmd) {	
-//		CL_AdjustAngles ();
-//	
-//		memset (cmd, 0, sizeof(*cmd));
-//	
-//		VectorCopy (cl.viewangles, cmd->angles);
-//		if (in_strafe.state & 1)
-//		{
-//			cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_right);
-//			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_left);
-//		}
-//
-//		cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_moveright);
-//		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_moveleft);
-//
-//		cmd->upmove += cl_upspeed->value * CL_KeyState (&in_up);
-//		cmd->upmove -= cl_upspeed->value * CL_KeyState (&in_down);
-//
-//		if (! (in_klook.state & 1) )
-//		{	
-//			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState (&in_forward);
-//			cmd->forwardmove -= cl_forwardspeed->value * CL_KeyState (&in_back);
-//		}	
-//
-////
-////	   adjust for speed key / running
-////
-//		if ( (in_speed.state & 1) ^ (int)(cl_run->value) )
-//		{
-//			cmd->forwardmove *= 2;
-//			cmd->sidemove *= 2;
-//			cmd->upmove *= 2;
-//		}	
+		CL.AdjustAngles();
+
+		//memset (cmd, 0, sizeof(*cmd));
+		cmd.reset();
+
+		VectorCopy(cl.viewangles, cmd.angles);
+		if ((in_strafe.state & 1) != 0) {
+			cmd.sidemove += cl_sidespeed.value * CL.KeyState(in_right);
+			cmd.sidemove -= cl_sidespeed.value * CL.KeyState(in_left);
+		}
+
+		cmd.sidemove += cl_sidespeed.value * CL.KeyState(in_moveright);
+		cmd.sidemove -= cl_sidespeed.value * CL.KeyState(in_moveleft);
+
+		cmd.upmove += cl_upspeed.value * CL.KeyState(in_up);
+		cmd.upmove -= cl_upspeed.value * CL.KeyState(in_down);
+
+		if ((in_klook.state & 1) == 0) {
+			cmd.forwardmove += cl_forwardspeed.value * CL.KeyState(in_forward);
+			cmd.forwardmove -= cl_forwardspeed.value * CL.KeyState(in_back);
+		}
+
+		//
+		//	   adjust for speed key / running
+		//
+		if (((in_speed.state & 1) ^ (int) (cl_run.value)) != 0) {
+			cmd.forwardmove *= 2;
+			cmd.sidemove *= 2;
+			cmd.upmove *= 2;
+		}
 	}
-//
+
 	static void ClampPitch() {
 
-//		float	pitch;
-//
-//		pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
-//		if (pitch > 180)
-//			pitch -= 360;
-//
-//		if (cl.viewangles[PITCH] + pitch < -360)
-//			cl.viewangles[PITCH] += 360; // wrapped
-//		if (cl.viewangles[PITCH] + pitch > 360)
-//			cl.viewangles[PITCH] -= 360; // wrapped
-//
-//		if (cl.viewangles[PITCH] + pitch > 89)
-//			cl.viewangles[PITCH] = 89 - pitch;
-//		if (cl.viewangles[PITCH] + pitch < -89)
-//			cl.viewangles[PITCH] = -89 - pitch;
+		float	pitch;
+
+		pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+		if (pitch > 180)
+			pitch -= 360;
+
+		if (cl.viewangles[PITCH] + pitch < -360)
+			cl.viewangles[PITCH] += 360; // wrapped
+		if (cl.viewangles[PITCH] + pitch > 360)
+			cl.viewangles[PITCH] -= 360; // wrapped
+
+		if (cl.viewangles[PITCH] + pitch > 89)
+			cl.viewangles[PITCH] = 89 - pitch;
+		if (cl.viewangles[PITCH] + pitch < -89)
+			cl.viewangles[PITCH] = -89 - pitch;
 	}
-//
-//	/*
-//	==============
-//	CL_FinishMove
-//	==============
-//	*/
+
+	/*
+	==============
+	CL_FinishMove
+	==============
+	*/
 	static void FinishMove(usercmd_t cmd) {
-//		int		ms;
-//		int		i;
-//
-////
-////	   figure button bits
-////	
-//		if ( in_attack.state & 3 )
-//			cmd->buttons |= BUTTON_ATTACK;
-//		in_attack.state &= ~2;
-//	
-//		if (in_use.state & 3)
-//			cmd->buttons |= BUTTON_USE;
-//		in_use.state &= ~2;
-//
-//		if (anykeydown && cls.key_dest == key_game)
-//			cmd->buttons |= BUTTON_ANY;
-//
-//		// send milliseconds of time to apply the move
-//		ms = cls.frametime * 1000;
-//		if (ms > 250)
-//			ms = 100;		// time was unreasonable
-//		cmd->msec = ms;
-//
-//		CL_ClampPitch ();
-//		for (i=0 ; i<3 ; i++)
-//			cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
-//
-//		cmd->impulse = in_impulse;
-//		in_impulse = 0;
-//
-////	   send the ambient light level at the player's current position
-//		cmd->lightlevel = (byte)cl_lightlevel->value;
+		int ms;
+		int i;
+
+		//
+		//	   figure button bits
+		//	
+		if ((in_attack.state & 3) != 0)
+			cmd.buttons |= BUTTON_ATTACK;
+		in_attack.state &= ~2;
+
+		if ((in_use.state & 3) != 0)
+			cmd.buttons |= BUTTON_USE;
+		in_use.state &= ~2;
+
+		if (anykeydown != 0 && cls.key_dest == key_game)
+			cmd.buttons |= BUTTON_ANY;
+
+		// send milliseconds of time to apply the move
+		ms = (int)cls.frametime * 1000;
+		if (ms > 250)
+			ms = 100; // time was unreasonable
+		cmd.msec = (byte)ms;
+
+		CL.ClampPitch();
+		for (i = 0; i < 3; i++)
+			cmd.angles[i] = (short)ANGLE2SHORT(cl.viewangles[i]);
+
+		cmd.impulse = (byte)in_impulse;
+		in_impulse = 0;
+
+		// send the ambient light level at the player's current position
+		cmd.lightlevel = (byte)cl_lightlevel.value;
 	}
 
 	/*
@@ -484,91 +468,92 @@ public class CL_input extends CL_tent {
 	=================
 	*/
 	static void SendCmd() {
-//		sizebuf_t	buf;
-//		byte		data[128];
-//		int			i;
-//		usercmd_t	*cmd, *oldcmd;
-//		usercmd_t	nullcmd;
-//		int			checksumIndex;
-//
-//		// build a command even if not connected
-//
-//		// save this command off for prediction
-//		i = cls.netchan.outgoing_sequence & (CMD_BACKUP-1);
-//		cmd = &cl.cmds[i];
-//		cl.cmd_time[i] = cls.realtime;	// for netgraph ping calculation
-//
-//		*cmd = CL_CreateCmd ();
-//
-//		cl.cmd = *cmd;
-//
-//		if (cls.state == ca_disconnected || cls.state == ca_connecting)
-//			return;
-//
-//		if ( cls.state == ca_connected)
-//		{
-//			if (cls.netchan.message.cursize	|| curtime - cls.netchan.last_sent > 1000 )
-//				Netchan_Transmit (&cls.netchan, 0, buf.data);	
-//			return;
-//		}
-//
-//		// send a userinfo update if needed
-//		if (userinfo_modified)
-//		{
-//			CL_FixUpGender();
-//			userinfo_modified = false;
-//			MSG_WriteByte (&cls.netchan.message, clc_userinfo);
-//			MSG_WriteString (&cls.netchan.message, Cvar_Userinfo() );
-//		}
-//
-//		SZ_Init (&buf, data, sizeof(data));
-//
-//		if (cmd->buttons && cl.cinematictime > 0 && !cl.attractloop 
-//			&& cls.realtime - cl.cinematictime > 1000)
-//		{	// skip the rest of the cinematic
-//			SCR_FinishCinematic ();
-//		}
-//
-//		// begin a client move command
-//		MSG_WriteByte (&buf, clc_move);
-//
-//		// save the position for a checksum byte
-//		checksumIndex = buf.cursize;
-//		MSG_WriteByte (&buf, 0);
-//
-//		// let the server know what the last frame we
-//		// got was, so the next message can be delta compressed
-//		if (cl_nodelta->value || !cl.frame.valid || cls.demowaiting)
-//			MSG_WriteLong (&buf, -1);	// no compression
-//		else
-//			MSG_WriteLong (&buf, cl.frame.serverframe);
-//
-//		// send this and the previous cmds in the message, so
-//		// if the last packet was dropped, it can be recovered
-//		i = (cls.netchan.outgoing_sequence-2) & (CMD_BACKUP-1);
-//		cmd = &cl.cmds[i];
-//		memset (&nullcmd, 0, sizeof(nullcmd));
-//		MSG_WriteDeltaUsercmd (&buf, &nullcmd, cmd);
-//		oldcmd = cmd;
-//
-//		i = (cls.netchan.outgoing_sequence-1) & (CMD_BACKUP-1);
-//		cmd = &cl.cmds[i];
-//		MSG_WriteDeltaUsercmd (&buf, oldcmd, cmd);
-//		oldcmd = cmd;
-//
-//		i = (cls.netchan.outgoing_sequence) & (CMD_BACKUP-1);
-//		cmd = &cl.cmds[i];
-//		MSG_WriteDeltaUsercmd (&buf, oldcmd, cmd);
-//
-//		// calculate a checksum over the move commands
-//		buf.data[checksumIndex] = COM_BlockSequenceCRCByte(
-//			buf.data + checksumIndex + 1, buf.cursize - checksumIndex - 1,
-//			cls.netchan.outgoing_sequence);
-//
-//		//
-//		// deliver the message
-//		//
-//		Netchan_Transmit (&cls.netchan, buf.cursize, buf.data);	
+		sizebuf_t buf = new sizebuf_t();
+		byte[] data = new byte[128];
+		int i;
+		usercmd_t cmd, oldcmd;
+		usercmd_t nullcmd = new usercmd_t();
+		int checksumIndex;
+
+		// build a command even if not connected
+
+		// save this command off for prediction
+		i = cls.netchan.outgoing_sequence & (CMD_BACKUP - 1);
+		cmd = cl.cmds[i];
+		cl.cmd_time[i] = (int)cls.realtime; // for netgraph ping calculation
+
+		cmd = CL.CreateCmd();
+
+		cl.cmd = cmd;
+
+		if (cls.state == ca_disconnected || cls.state == ca_connecting)
+			return;
+
+		if (cls.state == ca_connected) {
+			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
+				Netchan.Transmit(cls.netchan, 0, buf.data);
+			return;
+		}
+
+		// send a userinfo update if needed
+		if (userinfo_modified) {
+			CL.FixUpGender();
+			userinfo_modified = false;
+			MSG.WriteByte(cls.netchan.message, clc_userinfo);
+			MSG.WriteString(cls.netchan.message, Cvar.Userinfo());
+		}
+
+		SZ.Init(buf, data, data.length);
+
+		if (cmd.buttons != 0
+			&& cl.cinematictime > 0
+			&& !cl.attractloop
+			&& cls.realtime - cl.cinematictime > 1000) { // skip the rest of the cinematic
+			SCR.FinishCinematic();
+		}
+
+		// begin a client move command
+		MSG.WriteByte(buf, clc_move);
+
+		// save the position for a checksum byte
+		checksumIndex = buf.cursize;
+		MSG.WriteByte(buf, 0);
+
+		// let the server know what the last frame we
+		// got was, so the next message can be delta compressed
+		if (cl_nodelta.value != 0.0f || !cl.frame.valid || cls.demowaiting)
+			MSG.WriteLong(buf, -1); // no compression
+		else
+			MSG.WriteLong(buf, cl.frame.serverframe);
+
+		// send this and the previous cmds in the message, so
+		// if the last packet was dropped, it can be recovered
+		i = (cls.netchan.outgoing_sequence - 2) & (CMD_BACKUP - 1);
+		cmd = cl.cmds[i];
+		//memset (nullcmd, 0, sizeof(nullcmd));
+		nullcmd.reset();
+		MSG.WriteDeltaUsercmd(buf, nullcmd, cmd);
+		oldcmd = cmd;
+
+		i = (cls.netchan.outgoing_sequence - 1) & (CMD_BACKUP - 1);
+		cmd = cl.cmds[i];
+		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
+		oldcmd = cmd;
+
+		i = (cls.netchan.outgoing_sequence) & (CMD_BACKUP - 1);
+		cmd = cl.cmds[i];
+		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
+
+		// calculate a checksum over the move commands
+		buf.data[checksumIndex] = 0;
+		/*COM_BlockSequenceCRCByte(
+					buf.data + checksumIndex + 1, buf.cursize - checksumIndex - 1,
+					cls.netchan.outgoing_sequence);*/
+
+		//
+		// deliver the message
+		//
+		Netchan.Transmit(cls.netchan, buf.cursize, buf.data);
 	}
 
 }

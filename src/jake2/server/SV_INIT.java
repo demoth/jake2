@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.10 2004-02-01 23:31:37 rst Exp $
+// $Id: SV_INIT.java,v 1.11 2004-02-02 12:01:28 hoz Exp $
 
 package jake2.server;
 
@@ -371,7 +371,7 @@ public class SV_INIT extends Game {
 		svs.client_entities = new entity_state_t[svs.num_client_entities];
 
 		// init network stuff
-		NET.NET_Config((maxclients.value > 1));
+		NET.Config((maxclients.value > 1));
 
 		// heartbeats will always be sent to the id master
 		svs.last_heartbeat = -99999; // send immediately

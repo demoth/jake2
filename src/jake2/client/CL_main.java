@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.14 2004-02-01 11:01:48 hoz Exp $
+ * $Id: CL_main.java,v 1.15 2004-02-02 12:01:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.server.SV;
 import jake2.server.SV_MAIN;
 import jake2.sys.*;
 import jake2.util.Vargs;
@@ -99,16 +100,15 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-	//	/*
-	//	====================
-	//	CL_Record_f
-	//
-	//	record <demoname>
-	//
-	//	Begins recording a demo from the current position
-	//	====================
-	//	*/
+	/*
+	====================
+	CL_Record_f
 
+	record <demoname>
+
+	Begins recording a demo from the current position
+	====================
+	*/
 	static xcommand_t Record_f = new xcommand_t() {
 		public void execute() {
 			try {
@@ -293,12 +293,11 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-	//	/*
-	//	==================
-	//	CL_Quit_f
-	//	==================
-	//	*/
-
+	/*
+	==================
+	CL_Quit_f
+	==================
+	*/
 	static xcommand_t Quit_f = new xcommand_t() {
 		public void execute() {
 			Disconnect();
@@ -379,53 +378,50 @@ public class CL_main extends CL_pred {
 		Netchan.OutOfBandPrint(NS_CLIENT, adr, "getchallenge\n");
 	}
 
-	//	/*
-	//	================
-	//	CL_Connect_f
-	//
-	//	================
-	//	*/
+	/*
+	================
+	CL_Connect_f
 
+	================
+	*/
 	static xcommand_t Connect_f = new xcommand_t() {
 		public void execute() {
-				//		char	*server;
-		//
-		//		if (Cmd_Argc() != 2)
-		//		{
-		//			Com_Printf ("usage: connect <server>\n");
-		//			return;	
-		//		}
-		//	
-		//		if (Com_ServerState ())
-		//		{	// if running a local server, kill it and reissue
-		//			SV_Shutdown (va("Server quit\n", msg), false);
-		//		}
-		//		else
-		//		{
-		//			CL_Disconnect ();
-		//		}
-		//
-		//		server = Cmd_Argv (1);
-		//
-		//		NET_Config (true);		// allow remote
-		//
-		//		CL_Disconnect ();
-		//
-		//		cls.state = ca_connecting;
-		//		strncpy (cls.servername, server, sizeof(cls.servername)-1);
-		//		cls.connect_time = -99999;	// CL_CheckForResend() will fire immediately
-	}
+			String server;
+		
+			if (Cmd.Argc() != 2) {
+				Com.Printf("usage: connect <server>\n");
+				return;
+			}
+		
+			if (Com.ServerState() != 0) {
+				// if running a local server, kill it and reissue
+				SV.Shutdown("Server quit\n", false);
+			} else {
+				CL.Disconnect();
+			}
+		
+			server = Cmd.Argv(1);
+		
+			NET.Config(true); // allow remote
+		
+			CL.Disconnect();
+		
+			cls.state = ca_connecting;
+			//strncpy (cls.servername, server, sizeof(cls.servername)-1);
+			cls.servername = server;
+			cls.connect_time = -99999;
+			// CL_CheckForResend() will fire immediately
+		}
 	};
-	//
-	//
-	//	/*
-	//	=====================
-	//	CL_Rcon_f
-	//
-	//	  Send the rest of the command line over as
-	//	  an unconnected command.
-	//	=====================
-	//	*/
+
+	/*
+	=====================
+	CL_Rcon_f
+
+	  Send the rest of the command line over as
+	  an unconnected command.
+	=====================
+	*/
 	static xcommand_t Rcon_f = new xcommand_t() {
 		public void execute() {
 				//		char	message[1024];
@@ -924,58 +920,54 @@ public class CL_main extends CL_pred {
 
 	//	  =============================================================================
 
-	//	/*
-	//	==============
-	//	CL_FixUpGender_f
-	//	==============
-	//	*/
-	//	void CL_FixUpGender(void)
-	//	{
-	//		char *p;
-	//		char sk[80];
-	//
-	//		if (gender_auto->value) {
-	//
-	//			if (gender->modified) {
-	//				// was set directly, don't override the user
-	//				gender->modified = false;
-	//				return;
-	//			}
-	//
-	//			strncpy(sk, skin->string, sizeof(sk) - 1);
-	//			if ((p = strchr(sk, '/')) != NULL)
-	//				*p = 0;
-	//			if (Q_stricmp(sk, "male") == 0 || Q_stricmp(sk, "cyborg") == 0)
-	//				Cvar.Set ("gender", "male");
-	//			else if (Q_stricmp(sk, "female") == 0 || Q_stricmp(sk, "crackhor") == 0)
-	//				Cvar.Set ("gender", "female");
-	//			else
-	//				Cvar.Set ("gender", "none");
-	//			gender->modified = false;
-	//		}
-	//	}
-	//
-	//	/*
-	//	==============
-	//	CL_Userinfo_f
-	//	==============
-	//	*/
+	/*
+	==============
+	CL_FixUpGender_f
+	==============
+	*/
+	static void FixUpGender() {
+		
+			String sk;
+	
+			if (gender_auto.value != 0.0f) {
+	
+				if (gender.modified) {
+					// was set directly, don't override the user
+					gender.modified = false;
+					return;
+				}
+	
+				sk = skin.string;
+				if (sk.startsWith("male") || sk.startsWith("cyborg"))
+					Cvar.Set("gender", "male");
+				else if (sk.startsWith("female") || sk.startsWith("crackhor"))
+					Cvar.Set("gender", "female");
+				else
+				Cvar.Set("gender", "none");					
+				gender.modified = false;
+			}
+	}
 
+	/*
+	==============
+	CL_Userinfo_f
+	==============
+	*/
 	static xcommand_t Userinfo_f = new xcommand_t() {
 		public void execute() {
 			Com.Printf("User info settings:\n");
 			Info.Print(Cvar.Userinfo());
 		}
 	};
-	//
-	//	/*
-	//	=================
-	//	CL_Snd_Restart_f
-	//
-	//	Restart the sound subsystem so it can pick up
-	//	new parameters and flush all sounds
-	//	=================
-	//	*/
+
+	/*
+	=================
+	CL_Snd_Restart_f
+
+	Restart the sound subsystem so it can pick up
+	new parameters and flush all sounds
+	=================
+	*/
 	static xcommand_t Snd_Restart_f = new xcommand_t() {
 		public void execute() {
 			S.Shutdown();
@@ -1483,7 +1475,6 @@ public class CL_main extends CL_pred {
 	
 	==================
 	*/
-
 	public static class cheatvar_t {
 		String name;
 		String value;
@@ -1635,14 +1626,14 @@ public class CL_main extends CL_pred {
 
 	//	  ============================================================================
 
-	//	/*
-	//	===============
-	//	CL_Shutdown
-	//
-	//	FIXME: this is a callback from Sys_Quit and Com_Error.  It would be better
-	//	to run quit through here before the final handoff to the sys code.
-	//	===============
-	//	*/
+	/*
+	===============
+	CL_Shutdown
+
+	FIXME: this is a callback from Sys_Quit and Com_Error.  It would be better
+	to run quit through here before the final handoff to the sys code.
+	===============
+	*/
 	static boolean isdown = false;
 	public static void Shutdown() {
 
