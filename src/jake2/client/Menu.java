@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.28 2004-06-28 21:49:33 hoz Exp $
+ * $Id: Menu.java,v 1.29 2004-06-29 12:06:54 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1345,28 +1345,37 @@ public final class Menu extends Key {
 	}
 
 	static void UpdateSoundQualityFunc(Object unused) {
+		boolean driverNotChanged = false;
 		if (s_options_quality_list.curvalue != 0) {
 //			Cvar.SetValue("s_khz", 22);
 //			Cvar.SetValue("s_loadas8bit", 0);
+			driverNotChanged = S.getDriverName().equals("dummy");
 			Cvar.Set("s_impl", "dummy");
 		}
 		else {
 //			Cvar.SetValue("s_khz", 11);
 //			Cvar.SetValue("s_loadas8bit", 1);
+			driverNotChanged = S.getDriverName().equals("joal");
 			Cvar.Set("s_impl", "joal");
 		}
 
 		//Cvar.SetValue("s_primary", s_options_compatibility_list.curvalue);
 
-		DrawTextBox(8, 120 - 48, 36, 3);
-		Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
-		Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-		Print(16 + 16, 120 - 48 + 24, "please be patient.");
+		if (driverNotChanged) {
+			re.EndFrame();
+			return;			
+		} else {
 
-		// the text box won't show up unless we do a buffer swap
-		re.EndFrame();
+			DrawTextBox(8, 120 - 48, 36, 3);
+			Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
+			Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
+			Print(16 + 16, 120 - 48 + 24, "please be patient.");
 
-		CL.Snd_Restart_f.execute();
+			// the text box won't show up unless we do a buffer swap
+			re.EndFrame();
+		
+			CL.Snd_Restart_f.execute();
+		}
 	}
 
 	static String cd_music_items[] = { "disabled", "enabled", null };
