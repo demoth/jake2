@@ -19,24 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: lump_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: lump_t.java,v 1.2 2004-01-20 14:05:42 cwei Exp $
 
 package jake2.qcommon;
 
-
-// import jake2.*;
-// import jake2.client.*;
-// import jake2.game.*;
-// import jake2.qcommon.*;
-// import jake2.render.*;
-// import jake2.server.*;
-
-public class lump_t {
-	public 	lump_t(int o, int len)
+public class lump_t
+{
+	public lump_t(int offset, int len)
 	{
-		this.fileofs = o;
+		this.fileofs = offset;
 		this.filelen = len;
 	}
-	
-	int		fileofs, filelen;
+
+	public int fileofs, filelen;
 }
