@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.8 2004-01-23 18:09:08 cwei Exp $
+// $Id: Math3D.java,v 1.9 2004-01-23 19:44:38 cwei Exp $
 
 package jake2.util;
 
@@ -329,7 +329,7 @@ public class Math3D extends Lib {
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
 	 erste Version mit vec3_t... */
 
-	public static int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
+	public static final int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
 		
 		assert (emins.length == 3 && emaxs.length == 3) : "vec3_t bug";
 		
@@ -380,9 +380,8 @@ public class Math3D extends Lib {
 				dist2 = p.normal[0] * emaxs[0] + p.normal[1] * emaxs[1] + p.normal[2] * emaxs[2];
 				break;
 			default :
-				//TODO: error message.
 				dist1 = dist2 = 0;
-
+				assert (false) : "BoxOnPlaneSide bug";
 				break;
 		}
 
@@ -392,13 +391,13 @@ public class Math3D extends Lib {
 		if (dist2 < p.dist)
 			sides |= 2;
 
-		GameBase.assert1(sides != 0);
+		assert (sides != 0) : "BoxOnPlaneSide(): sides == 0 bug";
 
 		return sides;
 	}
 
 	//	this is the slow, general version
-	public static int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
+	public static final int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
 		int i;
 		float dist1, dist2;
 		int sides;
