@@ -2,7 +2,7 @@
  * Q2DataDialog.java
  * Copyright (C)  2003
  * 
- * $Id: Q2DataDialog.java,v 1.11 2004-09-26 19:58:56 hzi Exp $
+ * $Id: Q2DataDialog.java,v 1.12 2004-09-26 21:12:40 hzi Exp $
  */
 
 package jake2.qcommon;
@@ -10,8 +10,7 @@ package jake2.qcommon;
 import jake2.Globals;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -188,7 +187,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
     		Cvar.Set("cddir", dir);
     		FS.setCDDir();
     	}
-    	
+
     	synchronized(this) {
     		notifyAll();
     	}
@@ -354,11 +353,23 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			constraints.fill = GridBagConstraints.HORIZONTAL;			
 			constraints.insets = new Insets(0, 2, 0, 5);
 			constraints.anchor = GridBagConstraints.WEST;
-			add(new JLabel("select baseq2 directory from existing Quake2 installation"), constraints);
+			JLabel label = new JLabel("select baseq2 directory from existing Quake2 installation");
+			label.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent e) {
+					dir.setSelected(true);
+				}
+			});
+			add(label, constraints);
 			
 			constraints.gridx = 1;
 			constraints.gridy = 2;
-			add(new JLabel("download and install Quake2 demo data (38MB)"), constraints);
+			label = new JLabel("download and install Quake2 demo data (38MB)");
+			label.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent e) {
+					install.setSelected(true);
+				}
+			});
+			add(label, constraints);
 			
 			selection = new ButtonGroup();
 			dir = new JRadioButton();
@@ -661,12 +672,12 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			catch (Exception e) {}
 			try {
 				if (!dir.isDirectory() || !dir.canWrite()) {
-					endInstall();
+					endInstall("can't write to " + destDir);
 					return;
 				} 
 			}
 			catch (Exception e) {
-				endInstall();
+				endInstall(e.getMessage());
 				return;
 			}
 			
@@ -675,7 +686,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
 				URLConnection conn = url.openConnection();
 				int length = conn.getContentLength();
 				progress.setMaximum(length / 1024);
-
+				progress.setMinimum(0);
+				
 				in = conn.getInputStream();
 
 				outFile = File.createTempFile("Jake2Data", ".zip");
@@ -684,7 +696,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 
 				copyStream(in, out);
 			} catch (Exception e) {
-				endInstall();
+				endInstall(e.getMessage());
 				return;
 			} finally {
 				try {
@@ -698,7 +710,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			try {
 				installData(outFile.getCanonicalPath());
 			} catch (Exception e) {
-				endInstall();
+				endInstall(e.getMessage());
 				return;
 			}
 
@@ -707,9 +719,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 				if (outFile != null) outFile.delete();
 			} catch (Exception e) {}
 			
-			parent.dir = destDir + "/baseq2";
-			parent.showChooseDialog();
-			parent.okButtonActionPerformed(null);
+			endInstall("installation successful");
 		}
 		
 		
@@ -740,14 +750,15 @@ public class Q2DataDialog extends javax.swing.JDialog {
 					}
 				}
 			} catch (Exception e) {
-				throw new Exception();
+				throw e;
 			} finally {
 				try {in.close();} catch (Exception e1) {}
 				try {out.close();} catch (Exception e1) {}				
 			}
 		}
 		
-		void endInstall() {
+		void endInstall(String message) {
+			parent.notFoundPanel.message.setText(message);
 			parent.dir = destDir + "/baseq2";
 			parent.showChooseDialog();
 			parent.okButtonActionPerformed(null);			
@@ -761,10 +772,12 @@ public class Q2DataDialog extends javax.swing.JDialog {
 					if (!running) throw new Exception("installation canceled");
 					out.write(buf, 0, l);
 					c += l;
-					progress.setValue(c / 1024);
+					int k = c / 1024;
+					progress.setValue(k);
+					progress.setString(k + "/" + progress.getMaximum() + " KB");
 				}
 			} catch (Exception e) {
-				throw new Exception();
+				throw e;
 			} finally {
 				try {
 					in.close();
