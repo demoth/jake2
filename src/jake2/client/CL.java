@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.19 2005-02-07 22:14:38 cawe Exp $
+ * $Id: CL.java,v 1.20 2005-02-08 21:48:21 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1559,7 +1559,8 @@ public final class CL {
                 && Globals.cls.state == Defines.ca_active) {
             CL_view.PrepRefresh();
             // force GC after level loading
-            System.gc();
+            // but not on playing a cinematic
+            if (Globals.cl.cinematictime == 0) System.gc();
         }
 
         SCR.UpdateScreen();
