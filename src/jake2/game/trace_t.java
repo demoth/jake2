@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: trace_t.java,v 1.6 2004-02-14 13:24:02 rst Exp $
+// $Id: trace_t.java,v 1.7 2004-02-22 19:03:34 rst Exp $
 
 package jake2.game;
 
@@ -39,6 +39,18 @@ public class trace_t implements Cloneable {
 	// pointer
 	public edict_t ent; // not set by CM_*() functions
 
+	public void set(trace_t from)
+	{
+		allsolid = from.allsolid;
+		startsolid = from.allsolid;
+		fraction = from.fraction;
+		endpos = Lib.clone(endpos);
+		plane = from.plane.getClone();
+		surface = from.surface;
+		contents = from.contents;
+		ent = from.ent;
+	}
+	
 	// =============
 	public trace_t getClone() {
 		trace_t out = null;
