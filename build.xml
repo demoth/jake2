@@ -24,12 +24,12 @@
 	<target name="usage">
 		<echo message="command line arguments of build.sh or build.bat"/>
 		<echo message=""/>
-		<echo message="bindist      only binary distibution"/>
-		<echo message="srcdist      only source distibution"/>
-		<echo message="all          source and binary distibution"/>
-		<echo message="clean        keep jake2-cvs.tar.gz and jake2-cvs.zip"/>
-		<echo message="distclean    delete all"/>
-		<echo message="jar          only dist/lib/jake2.jar"/>
+		<echo message="bindist      build only binary distibution"/>
+		<echo message="srcdist      build only source distibution"/>
+		<echo message="all          build source and binary distibution"/>
+		<echo message="clean        delete classfiles keep jake2*.tar.gz and jake2*.zip"/>
+		<echo message="distclean    delete all generated files"/>
+		<echo message="jar          build only dist/lib/jake2.jar"/>
 		<echo message=""/>
 	</target>
 
@@ -178,7 +178,6 @@
 	<!-- clean -->
 	<target name="clean">
 		<delete dir="${build}"/>
-		<delete dir="${gensrc}"/>
 	</target>
 	
 	<!-- distclean -->
