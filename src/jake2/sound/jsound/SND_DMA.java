@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.3 2004-06-17 12:10:44 hoz Exp $
+ * $Id: SND_DMA.java,v 1.4 2004-06-17 17:51:32 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -131,7 +131,7 @@ public class SND_DMA extends SND_MIX {
 
 		Com.Printf("%5d stereo\n", new Vargs(1).add(dma.channels - 1));
 		Com.Printf("%5d samples\n", new Vargs(1).add(dma.samples));
-		Com.Printf("%5d samplepos\n", new Vargs(1).add(dma.samplepos));
+		//Com.Printf("%5d samplepos\n", new Vargs(1).add(dma.samplepos));
 		Com.Printf("%5d samplebits\n", new Vargs(1).add(dma.samplebits));
 		Com.Printf("%5d submission_chunk\n", new Vargs(1).add(dma.submission_chunk));
 		Com.Printf("%5d speed\n", new Vargs(1).add(dma.speed));

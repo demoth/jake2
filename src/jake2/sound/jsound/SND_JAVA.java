@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.3 2004-06-17 14:26:33 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.4 2004-06-17 17:51:32 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,10 +28,6 @@ package jake2.sound.jsound;
 import jake2.Globals;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import javax.sound.sampled.*;
 
@@ -50,7 +46,7 @@ public class SND_JAVA extends Globals {
 		int channels;
 		int samples; // mono samples in buffer
 		int submission_chunk; // don't mix less than this #
-		int samplepos; // in mono samples
+		//int samplepos; // in mono samples
 		int samplebits;
 		int speed;
 		byte[] buffer;
@@ -75,6 +71,9 @@ public class SND_JAVA extends Globals {
   		}
   		public synchronized void stopLoop() {
   			running = false;
+  		}
+  		public int getSamplePos() {
+  			return ((pos + b.length - 1024) % b.length) >> 1;
   		}
   	}
   	static SoundThread thread;
@@ -117,11 +116,11 @@ public class SND_JAVA extends Globals {
 		dma.samplebits = format.getSampleSizeInBits();
 		dma.samples = dma.buffer.length / format.getFrameSize();
 		dma.speed = (int)format.getSampleRate();
-		dma.samplepos = 0;
+		//dma.samplepos = 0;
 		dma.submission_chunk = 1;
 		
 		try {
-			line.open(format, 4096);
+			line.open(format, 2048);
 		} catch (LineUnavailableException e5) {
 			return false;
 		}
@@ -137,8 +136,8 @@ public class SND_JAVA extends Globals {
 	}
 
 	static int SNDDMA_GetDMAPos() {		
-		dma.samplepos = line.getFramePosition() % dma.samples;
-		return dma.samplepos;
+		//dma.samplepos = line.getFramePosition() % dma.samples;
+		return thread.getSamplePos(); //dma.samplepos;
 	}
 
 	static void SNDDMA_Shutdown() {
