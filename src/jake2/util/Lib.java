@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
+// $Id: Lib.java,v 1.5 2004-07-23 10:09:55 hzi Exp $
 
 package jake2.util;
 
@@ -75,10 +75,6 @@ public class Lib {
 		return in1.compareTo(in2);
 	}
 
-	public static int stricmp(String in1, String in2) {
-		return in1.compareToIgnoreCase(in2);
-	}
-
 	public static boolean strstr(String i1, String i2) {
 		return (i1.indexOf(i2) != -1);
 	}
@@ -123,10 +119,6 @@ public class Lib {
 		return res;
 	}
 
-//	public static int strlen(String in) {
-//		return in.length();
-//	}
-
 	public static int strlen(char in[]) {
 		for (int i = 0; i < in.length; i++)
 			if (in[i] == 0)
@@ -139,21 +131,6 @@ public class Lib {
 			if (in[i] == 0)
 				return i;
 		return in.length;
-	}
-
-	public static void strcat(String in, String i) {
-		in += i;
-	}
-
-	public static void strcpy(byte dest[], byte src[]) {
-		for (int i = 0; i < dest.length && i < src.length; i++)
-			if (src[i] == 0) {
-				dest[i] = 0;
-				return;
-			}
-			else
-				dest[i] = src[i];
-
 	}
 
 	static byte[] buffer = new byte[Defines.MAX_INFO_STRING];
@@ -240,14 +217,6 @@ public class Lib {
 		}
 		else
 			f.write(s.getBytes(), 0, len);
-	}
-
-	public static String cut(String in, char c) {
-		int pos = in.indexOf(c);
-
-		if (pos != -1)
-			return in.substring(0, pos);
-		return in;
 	}
 
 	public static RandomAccessFile fopen(String name, String mode) {

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.4 2004-07-09 06:50:50 hzi Exp $
+ * $Id: Menu.java,v 1.5 2004-07-23 10:02:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2531,7 +2531,7 @@ public final class Menu extends Key {
 
 		// ignore if duplicated
 		for (i = 0; i < m_num_servers; i++)
-			if (0 == strcmp(x, local_server_names[i]))
+			if (x.equals(local_server_names[i]))
 				return;
 
 		local_server_netadr[m_num_servers] = adr;
@@ -3924,7 +3924,7 @@ public final class Menu extends Key {
 			// copy the valid skins
 			for (s = 0, k = 0; k < npcxfiles - 1; k++) {
 
-				if (!strstr(pcxnames[k], "_i.pcx")) {
+				if (pcxnames[k].indexOf("_i.pcx") < 0) {
 					if (IconOfSkinExists(pcxnames[k], pcxnames, npcxfiles - 1)) {
 						a = pcxnames[k].lastIndexOf('/');
 						b = pcxnames[k].lastIndexOf('\\');

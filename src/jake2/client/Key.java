@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.4 2004-07-09 06:50:50 hzi Exp $
+ * $Id: Key.java,v 1.5 2004-07-23 10:02:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -615,7 +615,8 @@ public class Key extends Globals {
 			while (history_line != Globals.edit_line && Globals.key_lines[history_line][1] == 0);
 			if (history_line == Globals.edit_line)
 				history_line = (Globals.edit_line + 1) & 31;
-			Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+			//Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+			System.arraycopy(Globals.key_lines[history_line], 0, Globals.key_lines[Globals.edit_line], 0, Globals.key_lines[Globals.edit_line].length);
 			Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
 			return;
 		}
@@ -632,7 +633,8 @@ public class Key extends Globals {
 				Globals.key_linepos = 1;
 			}
 			else {
-				Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+				//Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+				System.arraycopy(Globals.key_lines[history_line], 0, Globals.key_lines[Globals.edit_line], 0, Globals.key_lines[Globals.edit_line].length);
 				Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
 			}
 			return;

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Cmd.java,v 1.4 2004-07-23 10:07:14 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -395,7 +395,7 @@ public final class Cmd extends PlayerView
 
 		for (cmd= cmd_functions; cmd != null; cmd= cmd.next)
 		{
-			if (0 == strcmp(cmd_name, cmd.name))
+			if (cmd.name.equals(cmd_name))
 				return true;
 		}
 
@@ -1197,9 +1197,9 @@ public final class Cmd extends PlayerView
 
 		if (arg0)
 		{
-			strcat(text, gi.argv(0));
-			strcat(text, " ");
-			strcat(text, gi.args());
+			text += gi.argv(0);
+			text += " ";
+			text += gi.args();
 		}
 		else
 		{
@@ -1224,7 +1224,7 @@ public final class Cmd extends PlayerView
 			//text[150] = 0;
 			text= text.substring(0, 150);
 
-		strcat(text, "\n");
+		text += "\n";
 
 		if (flood_msgs.value != 0)
 		{

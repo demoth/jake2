@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+// $Id: SV_MAIN.java,v 1.4 2004-07-23 10:09:01 hzi Exp $
 
 package jake2.server;
 
@@ -444,8 +444,8 @@ public class SV_MAIN extends SV_GAME {
 			remaining = "";
 
 			for (i = 2; i < Cmd.Argc(); i++) {
-				strcat(remaining, Cmd.Argv(i));
-				strcat(remaining, " ");
+				remaining += Cmd.Argv(i);
+				remaining += " ";
 			}
 
 			Cmd.ExecuteString(remaining);

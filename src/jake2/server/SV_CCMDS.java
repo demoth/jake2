@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.4 2004-07-14 15:34:24 cawe Exp $
+// $Id: SV_CCMDS.java,v 1.5 2004-07-23 10:09:01 hzi Exp $
 
 package jake2.server;
 
@@ -652,7 +652,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 		// if not a pcx, demo, or cinematic, check to make sure the level exists
 		map = Cmd.Argv(1);
-		if (!strstr(map, ".")) {
+		if (map.indexOf(".") < 0) {
 			expanded = "maps/" + map + ".bsp";
 			if (FS.LoadFile(expanded) == null) {
 				Com.Printf("Can't find " + expanded + "\n");
