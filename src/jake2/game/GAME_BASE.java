@@ -23,64 +23,64 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 public class GAME_BASE extends defs {
-	static game_locals_t game;
-	static level_locals_t level;
-	static game_import_t gi;
-	static game_export_t globals;
-	static spawn_temp_t st;
+	public static  game_locals_t game;
+	public static  level_locals_t level;
+	public static  game_import_t gi;
+	public static  game_export_t globals;
+	public static  spawn_temp_t st;
 
-	static int sm_meat_index;
-	static int snd_fry;
-	static int meansOfDeath;
+	public static  int sm_meat_index;
+	public static  int snd_fry;
+	public static  int meansOfDeath;
 
-	static edict_t g_edicts[];
+	public static  edict_t g_edicts[];
 
-	static cvar_t deathmatch;
-	static cvar_t coop;
-	static cvar_t dmflags;
-	static cvar_t skill;
-	static cvar_t fraglimit;
-	static cvar_t timelimit;
-	static cvar_t password;
-	static cvar_t spectator_password;
-	static cvar_t needpass;
-	static cvar_t maxclients;
-	static cvar_t maxspectators;
-	static cvar_t maxentities;
-	static cvar_t g_select_empty;
-	static cvar_t dedicated;
+	public static  cvar_t deathmatch;
+	public static  cvar_t coop;
+	public static  cvar_t dmflags;
+	public static  cvar_t skill;
+	public static  cvar_t fraglimit;
+	public static  cvar_t timelimit;
+	public static  cvar_t password;
+	public static  cvar_t spectator_password;
+	public static  cvar_t needpass;
+	public static  cvar_t maxclients;
+	public static  cvar_t maxspectators;
+	public static  cvar_t maxentities;
+	public static  cvar_t g_select_empty;
+	public static  cvar_t dedicated;
 
-	static cvar_t filterban;
+	public static  cvar_t filterban;
 
-	static cvar_t sv_maxvelocity;
-	static cvar_t sv_gravity;
+	public static  cvar_t sv_maxvelocity;
+	public static  cvar_t sv_gravity;
 
-	static cvar_t sv_rollspeed;
-	static cvar_t sv_rollangle;
-	static cvar_t gun_x;
-	static cvar_t gun_y;
-	static cvar_t gun_z;
+	public static  cvar_t sv_rollspeed;
+	public static  cvar_t sv_rollangle;
+	public static  cvar_t gun_x;
+	public static  cvar_t gun_y;
+	public static  cvar_t gun_z;
 
-	static cvar_t run_pitch;
-	static cvar_t run_roll;
-	static cvar_t bob_up;
-	static cvar_t bob_pitch;
-	static cvar_t bob_roll;
+	public static  cvar_t run_pitch;
+	public static  cvar_t run_roll;
+	public static  cvar_t bob_up;
+	public static  cvar_t bob_pitch;
+	public static  cvar_t bob_roll;
 
-	static cvar_t sv_cheats;
+	public static  cvar_t sv_cheats;
 
-	static cvar_t flood_msgs;
-	static cvar_t flood_persecond;
-	static cvar_t flood_waitdelay;
+	public static  cvar_t flood_msgs;
+	public static  cvar_t flood_persecond;
+	public static  cvar_t flood_waitdelay;
 
-	static cvar_t sv_maplist;
+	public static  cvar_t sv_maplist;
 
 	//file_io
 	//=====================================================================
 	//g_phys
 
 	///////////////////////////////////////
-	static edict_t[] SV_TestEntityPosition(edict_t ent) {
+	public static  edict_t[] SV_TestEntityPosition(edict_t ent) {
 		trace_t trace;
 		int mask;
 
@@ -98,7 +98,7 @@ public class GAME_BASE extends defs {
 	}
 
 	///////////////////////////////////////
-	static void SV_CheckVelocity(edict_t ent) {
+	public static  void SV_CheckVelocity(edict_t ent) {
 		int i;
 
 		//
@@ -115,7 +115,7 @@ public class GAME_BASE extends defs {
 	/**
 	 * Runs thinking code for this frame if necessary.
 	 */
-	static boolean SV_RunThink(edict_t ent) {
+	public static  boolean SV_RunThink(edict_t ent) {
 		float thinktime;
 
 		thinktime= ent.nextthink;
@@ -137,7 +137,7 @@ public class GAME_BASE extends defs {
 	/** 
 	 * Two entities have touched, so run their touch functions.
 	 */
-	static void SV_Impact(edict_t e1, trace_t trace) {
+	public static  void SV_Impact(edict_t e1, trace_t trace) {
 		edict_t e2;
 		// cplane_t	backplane;
 
@@ -156,7 +156,7 @@ public class GAME_BASE extends defs {
 	 * Slide off of the impacting object
 	 * returns the blocked flags (1 = floor, 2 = step / wall).
 	 */
-	static int ClipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
+	public static  int ClipVelocity(float[] in, float[] normal, float[] out, float overbounce) {
 		float backoff;
 		float change;
 		int i, blocked;
@@ -189,8 +189,8 @@ public class GAME_BASE extends defs {
 	4 = dead stop
 	*/
 	public final static int MAX_CLIP_PLANES= 5;
-	static float vec3_origin[]= { 0.0f, 0.0f, 0.0f };
-	static int SV_FlyMove(edict_t ent, float time, int mask) {
+	public static  float vec3_origin[]= { 0.0f, 0.0f, 0.0f };
+	public static  int SV_FlyMove(edict_t ent, float time, int mask) {
 		edict_t hit;
 		int bumpcount, numbumps;
 		float[] dir= { 0.0f, 0.0f, 0.0f };
@@ -314,7 +314,7 @@ public class GAME_BASE extends defs {
 	
 	============
 	*/
-	static void SV_AddGravity(edict_t ent) {
+	public static  void SV_AddGravity(edict_t ent) {
 		ent.velocity[2] -= ent.gravity * sv_gravity.value * FRAMETIME;
 	}
 
@@ -336,7 +336,7 @@ public class GAME_BASE extends defs {
 	 * Call with null as from parameter to search from array beginning.
 	 */
 
-	static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff, String s) {
+	public static  EdictIterator G_Find(EdictIterator from, EdictFindFilter eff, String s) {
 		if (from == null)
 			from= new EdictIterator(0);
 		else
@@ -358,7 +358,7 @@ public class GAME_BASE extends defs {
 	 * 
 	 * Returns entities that have origins within a spherical area.
 	*/
-	static EdictIterator findradius(EdictIterator from, float[] org, float rad) {
+	public static  EdictIterator findradius(EdictIterator from, float[] org, float rad) {
 		float[] eorg= { 0, 0, 0 };
 		int j;
 
@@ -394,9 +394,9 @@ public class GAME_BASE extends defs {
 	 *	NULL will be returned if the end of the list is reached.
 	 */
 
-	static int MAXCHOICES= 8;
+	public static  int MAXCHOICES= 8;
 
-	static edict_t G_PickTarget(String targetname) {
+	public static  edict_t G_PickTarget(String targetname) {
 		int num_choices= 0;
 		edict_t choice[]= new edict_t[MAXCHOICES];
 
@@ -429,10 +429,10 @@ public class GAME_BASE extends defs {
 	for making temporary vectors for function calls
 	=============
 	*/
-	static float tv_vecs[][]= new float[8][3];
-	static int tv_index;
+	public static  float tv_vecs[][]= new float[8][3];
+	public static  int tv_index;
 
-	static float[] tv(float x, float y, float z) {
+	public static  float[] tv(float x, float y, float z) {
 
 		float[] v;
 
@@ -456,16 +456,16 @@ public class GAME_BASE extends defs {
 	for printing vectors
 	=============
 	*/
-	static String vtos(float[] v) {
+	public static  String vtos(float[] v) {
 		return "(" + (int) v[0] + " " + (int) v[1] + " " + (int) v[2] + ")";
 	}
 
-	static float[] VEC_UP= { 0, -1, 0 };
-	static float[] MOVEDIR_UP= { 0, 0, 1 };
-	static float[] VEC_DOWN= { 0, -2, 0 };
-	static float[] MOVEDIR_DOWN= { 0, 0, -1 };
+	public static  float[] VEC_UP= { 0, -1, 0 };
+	public static  float[] MOVEDIR_UP= { 0, 0, 1 };
+	public static  float[] VEC_DOWN= { 0, -2, 0 };
+	public static  float[] MOVEDIR_DOWN= { 0, 0, -1 };
 
-	static void G_SetMovedir(float[] angles, float[] movedir) {
+	public static  void G_SetMovedir(float[] angles, float[] movedir) {
 		if (VectorCompare(angles, VEC_UP) != 0) {
 			VectorCopy(MOVEDIR_UP, movedir);
 		} else if (VectorCompare(angles, VEC_DOWN) != 0) {
@@ -477,7 +477,7 @@ public class GAME_BASE extends defs {
 		VectorClear(angles);
 	}
 
-	static float vectoyaw(float[] vec) {
+	public static  float vectoyaw(float[] vec) {
 		float yaw;
 
 		if (/*vec[YAW] == 0 &&*/
@@ -497,7 +497,7 @@ public class GAME_BASE extends defs {
 		return yaw;
 	}
 
-	static void vectoangles(float[] value1, float[] angles) {
+	public static  void vectoangles(float[] value1, float[] angles) {
 		float forward;
 		float yaw, pitch;
 
@@ -528,7 +528,7 @@ public class GAME_BASE extends defs {
 		angles[ROLL]= 0;
 	}
 
-	static String G_CopyString(String in) {
+	public static  String G_CopyString(String in) {
 		return new String(in);
 	}
 
@@ -538,7 +538,7 @@ public class GAME_BASE extends defs {
 	
 	============
 	*/
-	static void G_TouchTriggers(edict_t ent) {
+	public static  void G_TouchTriggers(edict_t ent) {
 		int i, num;
 		edict_t touch[]= new edict_t[MAX_EDICTS], hit;
 
@@ -565,7 +565,7 @@ public class GAME_BASE extends defs {
 	/**
 	 * Does not change the entities velocity at all
 	*/
-	static trace_t SV_PushEntity(edict_t ent, float[] push) {
+	public static  trace_t SV_PushEntity(edict_t ent, float[] push) {
 		trace_t trace;
 		float[] start= { 0, 0, 0 };
 		float[] end= { 0, 0, 0 };
@@ -610,10 +610,10 @@ public class GAME_BASE extends defs {
 		return trace;
 	}
 
-	static pushed_t pushed[]= new pushed_t[MAX_EDICTS];
-	static int pushed_p;
+	public static  pushed_t pushed[]= new pushed_t[MAX_EDICTS];
+	public static  int pushed_p;
 
-	static edict_t obstacle;
+	public static  edict_t obstacle;
 
 	/*
 	============
@@ -623,7 +623,7 @@ public class GAME_BASE extends defs {
 	otherwise riders would continue to slide.
 	============
 	*/
-	static boolean SV_Push(edict_t pusher, float[] move, float[] amove) {
+	public static  boolean SV_Push(edict_t pusher, float[] move, float[] amove) {
 		int i, e;
 		edict_t check, block[];
 		float[] mins= { 0, 0, 0 };
@@ -783,7 +783,7 @@ public class GAME_BASE extends defs {
 	push all box objects
 	================
 	*/
-	static void SV_Physics_Pusher(edict_t ent) {
+	public static  void SV_Physics_Pusher(edict_t ent) {
 		float[] move= { 0, 0, 0 };
 		float[] amove= { 0, 0, 0 };
 		edict_t part, mv;
@@ -841,7 +841,7 @@ public class GAME_BASE extends defs {
 	Non moving objects can only think
 	=============
 	*/
-	static void SV_Physics_None(edict_t ent) {
+	public static  void SV_Physics_None(edict_t ent) {
 		//	   regular thinking
 		SV_RunThink(ent);
 	}
@@ -853,7 +853,7 @@ public class GAME_BASE extends defs {
 	A moving object that doesn't obey physics
 	=============
 	*/
-	static void SV_Physics_Noclip(edict_t ent) {
+	public static  void SV_Physics_Noclip(edict_t ent) {
 		//	   regular thinking
 		if (!SV_RunThink(ent))
 			return;
@@ -879,7 +879,7 @@ public class GAME_BASE extends defs {
 	Toss, bounce, and fly movement.  When onground, do nothing.
 	=============
 	*/
-	static void SV_Physics_Toss(edict_t ent) {
+	public static  void SV_Physics_Toss(edict_t ent) {
 		trace_t trace;
 		float[] move= { 0, 0, 0 };
 		float backoff;
@@ -1005,7 +1005,7 @@ public class GAME_BASE extends defs {
 
 	//	  FIXME: hacked in for E3 demo
 
-	static void SV_AddRotationalFriction(edict_t ent) {
+	public static  void SV_AddRotationalFriction(edict_t ent) {
 		int n;
 		float adjustment;
 
@@ -1024,7 +1024,7 @@ public class GAME_BASE extends defs {
 		}
 	}
 
-	static void M_CheckGround(edict_t ent) {
+	public static  void M_CheckGround(edict_t ent) {
 		float[] point= { 0, 0, 0 };
 		trace_t trace;
 
@@ -1070,11 +1070,11 @@ public class GAME_BASE extends defs {
 	
 	=============
 	*/
-	static int c_yes, c_no;
+	public static  int c_yes, c_no;
 
-	static int STEPSIZE= 18;
+	public static  int STEPSIZE= 18;
 
-	static boolean M_CheckBottom(edict_t ent) {
+	public static  boolean M_CheckBottom(edict_t ent) {
 		float[] mins= { 0, 0, 0 };
 		float[] maxs= { 0, 0, 0 };
 		float[] start= { 0, 0, 0 };
@@ -1142,7 +1142,7 @@ public class GAME_BASE extends defs {
 		return true; // we got out easy
 	}
 
-	static void SV_Physics_Step(edict_t ent) {
+	public static  void SV_Physics_Step(edict_t ent) {
 		boolean wasonground;
 		boolean hitsound= false;
 		float vel[];
@@ -1253,7 +1253,7 @@ public class GAME_BASE extends defs {
 	
 	================
 	*/
-	static void G_RunEntity(edict_t ent) {
+	public static  void G_RunEntity(edict_t ent) {
 		if (ent.prethink != null)
 			ent.prethink.think(ent);
 
@@ -1294,7 +1294,7 @@ public class GAME_BASE extends defs {
 	*/
 	//	  FIXME since we need to test end position contents here, can we avoid doing
 	//	  it again later in catagorize position?
-	static boolean SV_movestep(edict_t ent, float[] move, boolean relink) {
+	public static  boolean SV_movestep(edict_t ent, float[] move, boolean relink) {
 		float dz;
 		float[] oldorg= { 0, 0, 0 };
 		float[] neworg= { 0, 0, 0 };
@@ -1463,7 +1463,7 @@ public class GAME_BASE extends defs {
 	
 	===============
 	*/
-	static void M_ChangeYaw(edict_t ent) {
+	public static  void M_ChangeYaw(edict_t ent) {
 		float ideal;
 		float current;
 		float move;
@@ -1504,7 +1504,7 @@ public class GAME_BASE extends defs {
 	
 	======================
 	*/
-	static boolean SV_StepDirection(edict_t ent, float yaw, float dist) {
+	public static  boolean SV_StepDirection(edict_t ent, float yaw, float dist) {
 		float[] move= { 0, 0, 0 };
 		float[] oldorigin= { 0, 0, 0 };
 		float delta;
@@ -1538,11 +1538,11 @@ public class GAME_BASE extends defs {
 	
 	======================
 	*/
-	static void SV_FixCheckBottom(edict_t ent) {
+	public static  void SV_FixCheckBottom(edict_t ent) {
 		ent.flags |= FL_PARTIALGROUND;
 	}
 
-	static short rand() {
+	public static  short rand() {
 		return (short) (Math.random() * 0x8000);
 	}
 
@@ -1552,8 +1552,8 @@ public class GAME_BASE extends defs {
 	
 	================
 	*/
-	static int DI_NODIR= -1;
-	static void SV_NewChaseDir(edict_t actor, edict_t enemy, float dist) {
+	public static  int DI_NODIR= -1;
+	public static  void SV_NewChaseDir(edict_t actor, edict_t enemy, float dist) {
 		float deltax, deltay;
 		float d[]= { 0, 0, 0 };
 		float tdir, olddir, turnaround;
@@ -1637,7 +1637,7 @@ public class GAME_BASE extends defs {
 	
 	======================
 	*/
-	static boolean SV_CloseEnough(edict_t ent, edict_t goal, float dist) {
+	public static  boolean SV_CloseEnough(edict_t ent, edict_t goal, float dist) {
 		int i;
 
 		for (i= 0; i < 3; i++) {
@@ -1654,7 +1654,7 @@ public class GAME_BASE extends defs {
 	M_MoveToGoal
 	======================
 	*/
-	static void M_MoveToGoal(edict_t ent, float dist) {
+	public static  void M_MoveToGoal(edict_t ent, float dist) {
 		edict_t goal= ent.goalentity;
 
 		if (ent.groundentity == null && (ent.flags & (FL_FLY | FL_SWIM)) == 0)
@@ -1676,7 +1676,7 @@ public class GAME_BASE extends defs {
 	M_walkmove
 	===============
 	*/
-	static boolean M_walkmove(edict_t ent, float yaw, float dist) {
+	public static  boolean M_walkmove(edict_t ent, float yaw, float dist) {
 		float[] move= { 0, 0, 0 };
 
 		if ((ent.groundentity == null) && (ent.flags & (FL_FLY | FL_SWIM)) == 0)
@@ -1701,58 +1701,58 @@ public class GAME_BASE extends defs {
 	//=====================================================================
 	// these methods should run without touching. 
 
-	static float DotProduct(float[] x, float[] y) {
+	public static  float DotProduct(float[] x, float[] y) {
 		return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
 	}
 
-	static void VectorSubtract(float[] a, float[] b, float[] c) {
+	public static  void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0]= a[0] - b[0];
 		c[1]= a[1] - b[1];
 		c[2]= a[2] - b[2];
 	}
 
-	static void VectorAdd(float[] a, float[] b, float[] c) {
+	public static  void VectorAdd(float[] a, float[] b, float[] c) {
 		c[0]= a[0] + b[0];
 		c[1]= a[1] + b[1];
 		c[2]= a[2] + b[2];
 	}
 
-	static void VectorCopy(float[] a, float[] b) {
+	public static  void VectorCopy(float[] a, float[] b) {
 		b[0]= a[0];
 		b[1]= a[1];
 		b[2]= a[2];
 	}
 
-	static void VectorClear(float[] a) {
+	public static  void VectorClear(float[] a) {
 		a[0]= a[1]= a[2]= 0;
 	}
 
-	static int VectorCompare(float[] v1, float[] v2) {
+	public static  int VectorCompare(float[] v1, float[] v2) {
 		if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 			return 0;
 
 		return 1;
 	}
 
-	static void VectorNegate(float[] a, float[] b) {
+	public static  void VectorNegate(float[] a, float[] b) {
 		b[0]= -a[0];
 		b[1]= -a[1];
 		b[2]= -a[2];
 	}
 
-	static void VectorSet(float[] v, float x, float y, float z) {
+	public static  void VectorSet(float[] v, float x, float y, float z) {
 		v[0]= (x);
 		v[1]= (y);
 		v[2]= (z);
 	}
 
-	static void VectorMA(float[] veca, float scale, float[] vecb, float[] vecc) {
+	public static  void VectorMA(float[] veca, float scale, float[] vecb, float[] vecc) {
 		vecc[0]= veca[0] + scale * vecb[0];
 		vecc[1]= veca[1] + scale * vecb[1];
 		vecc[2]= veca[2] + scale * vecb[2];
 	}
 
-	static float VectorNormalize(float[] v) {
+	public static  float VectorNormalize(float[] v) {
 		float length;
 
 		length= VectorLength(v);
@@ -1765,7 +1765,7 @@ public class GAME_BASE extends defs {
 		return length;
 	}
 
-	static float VectorNormalize2(float[] v, float[] out) {
+	public static  float VectorNormalize2(float[] v, float[] out) {
 		float length, ilength;
 
 		length= VectorLength(v);
@@ -1777,40 +1777,40 @@ public class GAME_BASE extends defs {
 		return length;
 	}
 
-	static float VectorLength(float v[]) {
+	public static  float VectorLength(float v[]) {
 		return (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}
 
-	static void VectorInverse(float[] v) {
+	public static  void VectorInverse(float[] v) {
 		v[0]= -v[0];
 		v[1]= -v[1];
 		v[2]= -v[2];
 	}
 
-	static void VectorScale(float[] in, float scale, float[] out) {
+	public static  void VectorScale(float[] in, float scale, float[] out) {
 		out[0]= in[0] * scale;
 		out[1]= in[1] * scale;
 		out[2]= in[2] * scale;
 	}
 
-	static int Q_log2(int val) {
+	public static  int Q_log2(int val) {
 		int answer= 0;
 		while ((val >>= 1) > 0)
 			answer++;
 		return answer;
 	}
 
-	static void CrossProduct(float[] v1, float[] v2, float[] cross) {
+	public static  void CrossProduct(float[] v1, float[] v2, float[] cross) {
 		cross[0]= v1[1] * v2[2] - v1[2] * v2[1];
 		cross[1]= v1[2] * v2[0] - v1[0] * v2[2];
 		cross[2]= v1[0] * v2[1] - v1[1] * v2[0];
 	}
 
-	static void MatClear(float m[][]) {
+	public static  void MatClear(float m[][]) {
 		m[0][0]= m[0][1]= m[0][2]= m[1][0]= m[1][1]= m[1][2]= m[2][0]= m[2][1]= m[2][2]= 0.0f;
 	}
 
-	static void MatCopy(float src[][], float dst[][]) {
+	public static  void MatCopy(float src[][], float dst[][]) {
 		dst[0][0]= src[0][0];
 		dst[0][1]= src[0][1];
 		dst[0][2]= src[0][2];
@@ -1824,7 +1824,7 @@ public class GAME_BASE extends defs {
 		dst[2][2]= src[2][2];
 	}
 
-	static void G_ProjectSource(
+	public static  void G_ProjectSource(
 		float[] point,
 		float[] distance,
 		float[] forward,
@@ -1835,7 +1835,7 @@ public class GAME_BASE extends defs {
 		result[2]= point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
 	}
 
-	static void ProjectPointOnPlane(float[] dst, float[] p, float[] normal) {
+	public static  void ProjectPointOnPlane(float[] dst, float[] p, float[] normal) {
 		float d;
 		float[] n= { 0.0f, 0.0f, 0.0f };
 		float inv_denom;
@@ -1853,16 +1853,16 @@ public class GAME_BASE extends defs {
 		dst[2]= p[2] - d * n[2];
 	}
 
-	static float DEG2RAD(float in) {
+	public static  float DEG2RAD(float in) {
 		return (in * (float) Math.PI) / 180.0f;
 	}
 
-	static float anglemod(float a) {
+	public static  float anglemod(float a) {
 		return (float) (360.0 / 65536) * ((int) (a * (65536 / 360.0)) & 65535);
 	}
 
 	/** assumes "src" is normalized */
-	static void PerpendicularVector(float[] dst, float[] src) {
+	public static  void PerpendicularVector(float[] dst, float[] src) {
 		int pos;
 		int i;
 		float minelem= 1.0F;
@@ -1885,7 +1885,7 @@ public class GAME_BASE extends defs {
 		VectorNormalize(dst);
 	}
 
-	static void AngleVectors(float[] angles, float[] forward, float[] right, float[] up) {
+	public static  void AngleVectors(float[] angles, float[] forward, float[] right, float[] up) {
 		float angle;
 		float sr, sp, sy, cr, cp, cy;
 
@@ -1921,7 +1921,7 @@ public class GAME_BASE extends defs {
 	R_ConcatTransforms
 	================
 	*/
-	static void R_ConcatTransforms(float in1[][], float in2[][], float out[][]) {
+	public static  void R_ConcatTransforms(float in1[][], float in2[][], float out[][]) {
 		out[0][0]= in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
 		out[0][1]= in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2] * in2[2][1];
 		out[0][2]= in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2] * in2[2][2];
@@ -1939,7 +1939,7 @@ public class GAME_BASE extends defs {
 			in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
-	static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
+	public static  void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
 		float m[][]= new float[3][3];
 		float im[][]= new float[3][3];
 		float zrot[][]= new float[3][3];
@@ -1998,7 +1998,7 @@ public class GAME_BASE extends defs {
 	/**
 	 * concatenates 2 matrices each [3][3].
 	 */
-	static void R_ConcatRotations(float in1[][], float in2[][], float out[][]) {
+	public static  void R_ConcatRotations(float in1[][], float in2[][], float out[][]) {
 		out[0][0]= in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
 		out[0][1]= in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2] * in2[2][1];
 		out[0][2]= in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2] * in2[2][2];
@@ -2010,7 +2010,7 @@ public class GAME_BASE extends defs {
 		out[2][2]= in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 	}
 
-	static float LerpAngle(float a2, float a1, float frac) {
+	public static  float LerpAngle(float a2, float a1, float frac) {
 		if (a1 - a2 > 180)
 			a1 -= 360;
 		if (a1 - a2 < -180)
@@ -2018,7 +2018,7 @@ public class GAME_BASE extends defs {
 		return a2 + frac * (a1 - a2);
 	}
 
-	static void assert1(boolean cond) {
+	public static  void assert1(boolean cond) {
 		if (!cond) {
 
 			try {
@@ -2039,7 +2039,7 @@ public class GAME_BASE extends defs {
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
 	 erste Version mit v ec 3_t... */
 
-	static int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
+	public static   int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
 		float dist1, dist2;
 		int sides;
 
@@ -2105,7 +2105,7 @@ public class GAME_BASE extends defs {
 	}
 
 	//	this is the slow, general version
-	static int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
+	public static   int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
 		int i;
 		float dist1, dist2;
 		int sides;
@@ -2131,12 +2131,12 @@ public class GAME_BASE extends defs {
 		return sides;
 	}
 
-	static void ClearBounds(float[] mins, float[] maxs) {
+	public static  void ClearBounds(float[] mins, float[] maxs) {
 		mins[0]= mins[1]= mins[2]= 99999;
 		maxs[0]= maxs[1]= maxs[2]= -99999;
 	}
 
-	static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
+	public static  void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
 		int i;
 		float val;
 
@@ -2149,43 +2149,43 @@ public class GAME_BASE extends defs {
 		}
 	}
 
-	static EdictFindFilter findByTarget= new EdictFindFilter() {
+	public static  EdictFindFilter findByTarget= new EdictFindFilter() {
 		public boolean matches(edict_t e, String s) {
 			return e.targetname.equalsIgnoreCase(s);
 		}
 	};
 
-	static float crandom() {
+	public static  float crandom() {
 		return (float) (Math.random() - 0.5) * 2.0f;
 	}
 
-	static float random() {
+	public static  float random() {
 		return (float) Math.random();
 	}
 
-	static int ANGLE2SHORT(float x) {
+	public static  int ANGLE2SHORT(float x) {
 		return ((int) ((x) * 65536 / 360) & 65535);
 	}
 
-	static float SHORT2ANGLE(int x) {
+	public static  float SHORT2ANGLE(int x) {
 		return ((x) * (360.0f / 65536));
 	}
 
 	//TODO: delete this and clean up quake.
-	static int strcmp(String in1, String in2) {
+	public static  int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
 	}
 	
-	static int stricmp(String in1, String in2) {
+	public static  int stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
 	
-	static int Q_stricmp(String in1, String in2) {
+	public static  int Q_stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
 
 	//TODO: delete this and clean up quake.	
-	static int strncmp(String in1, String in2, int len) {
+	public static  int strncmp(String in1, String in2, int len) {
 		int i1= Math.min(len, in1.length());
 		int i2= Math.min(len, in2.length());
 
