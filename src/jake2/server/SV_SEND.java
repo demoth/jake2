@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.8 2004-02-13 22:04:00 rst Exp $
+// $Id: SV_SEND.java,v 1.9 2004-03-16 21:00:34 cwei Exp $
 
 package jake2.server;
 
@@ -231,6 +231,10 @@ public class SV_SEND extends SV_MAIN {
 				cluster = CM.CM_LeafCluster(leafnum);
 				area2 = CM.CM_LeafArea(leafnum);
 				if (!CM.CM_AreasConnected(area1, area2))
+					continue;
+					
+				// quake2 bugfix
+				if (cluster == -1)
 					continue;
 				if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
 					continue;
