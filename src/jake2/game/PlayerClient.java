@@ -19,10 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.18 2004-02-25 21:30:15 hoz Exp $
+// $Id: PlayerClient.java,v 1.19 2004-02-25 21:59:50 rst Exp $
 
 package jake2.game;
-
 
 public class PlayerClient extends PlayerHud {
 
@@ -1018,7 +1017,7 @@ public class PlayerClient extends PlayerHud {
 
 		// force the current weapon up
 		client.newweapon = client.pers.weapon;
-		ChangeWeapon(ent);
+		GamePWeapon.ChangeWeapon(ent);
 	}
 
 	/*
@@ -1474,7 +1473,7 @@ public class PlayerClient extends PlayerHud {
 			}
 			else if (!client.weapon_thunk) {
 				client.weapon_thunk = true;
-				Think_Weapon(ent);
+				GamePWeapon.Think_Weapon(ent);
 			}
 		}
 
@@ -1526,7 +1525,7 @@ public class PlayerClient extends PlayerHud {
 
 		// run weapon animations if it hasn't been done by a ucmd_t
 		if (!client.weapon_thunk && !client.resp.spectator)
-			Think_Weapon(ent);
+			GamePWeapon.Think_Weapon(ent);
 		else
 			client.weapon_thunk = false;
 

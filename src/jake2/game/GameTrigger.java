@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameTrigger.java,v 1.2 2004-02-13 21:04:38 rst Exp $
+// $Id: GameTrigger.java,v 1.3 2004-02-25 21:59:50 rst Exp $
 
 package jake2.game;
 
@@ -30,7 +30,7 @@ import jake2.render.*;
 import jake2.server.*;
 import jake2.util.Math3D;
 
-public class GameTrigger extends GamePWeapon {
+public class GameTrigger extends M_Player {
 
 	public static void InitTrigger(edict_t self) {
 		if (Math3D.VectorCompare(self.s.angles, vec3_origin) != 0)

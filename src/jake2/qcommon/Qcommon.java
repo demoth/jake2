@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.25 2004-02-25 13:20:28 hoz Exp $
+ * $Id: Qcommon.java,v 1.26 2004-02-25 21:59:50 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,8 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.client.*;
 import jake2.game.Cmd;
+import jake2.game.EntThinkAdapter;
+import jake2.game.GamePWeapon;
 import jake2.game.Swap;
 import jake2.server.SV_MAIN;
 import jake2.sys.NET;
@@ -145,7 +147,9 @@ public final class Qcommon extends Globals {
 
 			Swap.Init();
 			Cbuf.Init();
-
+			//rst bugfix
+			GamePWeapon xxx = new GamePWeapon();
+			
 			Cmd.Init();
 			Cvar.Init();
 

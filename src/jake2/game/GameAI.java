@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.18 2004-02-22 21:45:47 hoz Exp $
+// $Id: GameAI.java,v 1.19 2004-02-25 21:59:51 rst Exp $
 
 package jake2.game;
 
@@ -2917,9 +2917,9 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"ammo_shells",
-			GamePWeapon.Pickup_Ammo,
+			M_Player.Pickup_Ammo,
 			null,
-			GamePWeapon.Drop_Ammo,
+			M_Player.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/shells/medium/tris.md2",
@@ -2938,9 +2938,9 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"ammo_bullets",
-			GamePWeapon.Pickup_Ammo,
+			M_Player.Pickup_Ammo,
 			null,
-			GamePWeapon.Drop_Ammo,
+			M_Player.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/bullets/medium/tris.md2",
@@ -2959,9 +2959,9 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"ammo_cells",
-			GamePWeapon.Pickup_Ammo,
+			M_Player.Pickup_Ammo,
 			null,
-			GamePWeapon.Drop_Ammo,
+			M_Player.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/cells/medium/tris.md2",
@@ -2980,9 +2980,9 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"ammo_rockets",
-			GamePWeapon.Pickup_Ammo,
+			M_Player.Pickup_Ammo,
 			null,
-			GamePWeapon.Drop_Ammo,
+			M_Player.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/rockets/medium/tris.md2",
@@ -3001,9 +3001,9 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"ammo_slugs",
-			GamePWeapon.Pickup_Ammo,
+			M_Player.Pickup_Ammo,
 			null,
-			GamePWeapon.Drop_Ammo,
+			M_Player.Drop_Ammo,
 			null,
 			"misc/am_pkup.wav",
 			"models/items/ammo/slugs/medium/tris.md2",
@@ -3195,7 +3195,7 @@ public class GameAI extends M_Flash {
 		*/
 		new gitem_t(
 			"item_pack",
-			GamePWeapon.Pickup_Pack,
+			M_Player.Pickup_Pack,
 			null,
 			null,
 			null,
