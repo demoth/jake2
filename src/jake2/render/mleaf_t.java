@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mleaf_t.java,v 1.7 2004-01-24 01:50:24 cwei Exp $
+// $Id: mleaf_t.java,v 1.8 2004-01-25 01:46:13 cwei Exp $
 
 package jake2.render;
 
@@ -53,7 +53,8 @@ public class mleaf_t extends mnode_t {
 
 	public msurface_t getMarkSurface(int index) {
 		assert (index >= 0 && index <= nummarksurfaces) : "mleaf: markSurface bug (index = " + index +"; num = " + nummarksurfaces + ")";
-		return markSurfaces[markIndex + index];
+		// TODO code in Surf.R_RecursiveWorldNode aendern (der Pointer wird wie in C zu weit gezaehlt)
+		return (index < nummarksurfaces) ? markSurfaces[markIndex + index] : null;
 	}
 
 }
