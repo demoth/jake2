@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.5 2003-11-24 20:30:29 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.6 2003-11-25 11:17:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,6 +42,7 @@ import jake2.game.cplane_t;
 import jake2.game.cvar_t;
 import jake2.game.defs;
 import jake2.qcommon.Cvar;
+import jake2.util.Vargs;
 
 /**
  * JoglRenderer
@@ -753,12 +754,12 @@ final class JoglRenderer implements Ref, GLEventListener {
 			ri.Con_Printf(
 				defs.PRINT_ALL,
 				"...setting fullscreen mode %d:",
-				new Object[] { new Integer(mode)});
+				new Vargs(1).add(mode));
 		} else
 			ri.Con_Printf(
 				defs.PRINT_ALL,
 				"...setting mode %d:",
-				new Object[] { new Integer(mode)});
+				new Vargs(1).add(mode));
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
 			ri.Con_Printf(defs.PRINT_ALL, " invalid mode\n", null);
@@ -767,9 +768,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		ri.Con_Printf(
 			defs.PRINT_ALL,
 			" %d %d\n",
-			new Object[] {
-				new Integer(newDim.width),
-				new Integer(newDim.height)});
+			new Vargs(2).add(newDim.width).add(newDim.height));
 
 		// destroy the existing window
 		GLimp_Shutdown();
@@ -1034,8 +1033,9 @@ final class JoglRenderer implements Ref, GLEventListener {
 	 * 
 	 */
 	private void GLimp_EndFrame() {
-		// TODO Auto-generated method stub
-
+		gl.glFlush();
+		// swap buffer
+		// but jogl has no method to swap
 	}
 
 	/**
