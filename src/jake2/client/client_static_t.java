@@ -34,7 +34,7 @@ public class client_static_t {
 	int key_dest;
 
 	int framecount;
-	int realtime; // always increasing, no clamping, etc
+	long realtime; // always increasing, no clamping, etc
 	float frametime; // seconds since last frame
 
 	//	   screen rendering information
