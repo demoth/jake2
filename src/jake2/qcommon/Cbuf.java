@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.16 2004-02-27 15:50:16 rst Exp $
+ * $Id: Cbuf.java,v 1.17 2004-03-03 22:32:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -155,7 +155,7 @@ public final class Cbuf {
 		byte[] line = new byte[1024];
 
 		Globals.alias_count = 0; // don't allow infinite alias loops
-
+		
 		while (Globals.cmd_text.cursize != 0) {
 			// find a \n or ; line break
 			text = Globals.cmd_text.data;

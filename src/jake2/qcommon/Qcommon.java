@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.26 2004-02-25 21:59:50 rst Exp $
+ * $Id: Qcommon.java,v 1.27 2004-03-03 22:32:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -148,7 +148,7 @@ public final class Qcommon extends Globals {
 			Swap.Init();
 			Cbuf.Init();
 			//rst bugfix
-			GamePWeapon xxx = new GamePWeapon();
+			//GamePWeapon xxx = new GamePWeapon();
 			
 			Cmd.Init();
 			Cvar.Init();
@@ -183,7 +183,7 @@ public final class Qcommon extends Globals {
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
 			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
-
+			Globals.slomo= Cvar.Get("slomo", "1", 0);
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
 						.add(Globals.VERSION)
@@ -281,7 +281,7 @@ public final class Qcommon extends Globals {
 				Globals.c_pointcontents= 0;
 			}
 
-			Cbuf.Execute ();
+			Cbuf.Execute();
 
 			int time_before= 0;
 			int time_between= 0;

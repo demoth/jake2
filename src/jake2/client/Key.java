@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.30 2004-02-25 13:20:28 hoz Exp $
+ * $Id: Key.java,v 1.31 2004-03-03 22:32:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -587,15 +587,17 @@ public class Key extends Globals {
 				Cbuf.AddText(
 					new String(Globals.key_lines[Globals.edit_line], 1, Lib.strlen(Globals.key_lines[Globals.edit_line]) - 1));
 
+			
 			Cbuf.AddText("\n");
-			Com.Printf(new String(Globals.key_lines[Globals.edit_line], 0, Lib.strlen(Globals.key_lines[Globals.edit_line])));
+		
+			Com.Printf(new String(Globals.key_lines[Globals.edit_line], 0, Lib.strlen(Globals.key_lines[Globals.edit_line])) + "\n");
 			Globals.edit_line = (Globals.edit_line + 1) & 31;
 			history_line = Globals.edit_line;
+		
 			Globals.key_lines[Globals.edit_line][0] = ']';
 			Globals.key_linepos = 1;
 			if (Globals.cls.state == Defines.ca_disconnected)
-				SCR.UpdateScreen(); // force an update, because the command
-			// may take some time
+				SCR.UpdateScreen(); // force an update, because the command may take some time
 			return;
 		}
 

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.32 2004-02-22 21:45:47 hoz Exp $
+ * $Id: Main.java,v 1.33 2004-03-03 22:32:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -958,7 +958,7 @@ public abstract class Main extends Base {
 	protected void R_Register() {
 		r_lefthand = ri.Cvar_Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
 		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
-		r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
+		r_fullbright = ri.Cvar_Get("r_fullbright", "1", 0);
 		r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 		r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 		r_novis = ri.Cvar_Get("r_novis", "0", 0);
@@ -966,7 +966,7 @@ public abstract class Main extends Base {
 		r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
 		r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 
-		r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
+		r_lightlevel = ri.Cvar_Get("r_lightlevel", "1", 0);
 
 		gl_nosubimage = ri.Cvar_Get("gl_nosubimage", "0", 0);
 		gl_allow_software = ri.Cvar_Get("gl_allow_software", "0", 0);

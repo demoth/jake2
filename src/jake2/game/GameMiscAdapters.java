@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameMiscAdapters.java,v 1.2 2004-02-29 00:51:05 rst Exp $
+// $Id: GameMiscAdapters.java,v 1.3 2004-03-03 22:32:31 rst Exp $
 
 package jake2.game;
 
@@ -1003,7 +1003,6 @@ public class GameMiscAdapters
 	{
 		public boolean think(edict_t ent)
 		{
-
 			GameBase.gi.setmodel(ent, "models/objects/dmspot/tris.md2");
 			ent.s.skinnum = 0;
 			ent.solid = Defines.SOLID_BBOX;
