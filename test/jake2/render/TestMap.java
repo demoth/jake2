@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.3 2004-01-23 00:59:03 cwei Exp $
+ * $Id: TestMap.java,v 1.4 2004-01-23 13:41:50 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,8 +28,10 @@ package jake2.render;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.VID;
+import jake2.client.cparticle_t;
 import jake2.client.entity_t;
 import jake2.client.lightstyle_t;
+import jake2.client.particle_t;
 import jake2.client.refdef_t;
 import jake2.client.refexport_t;
 import jake2.client.refimport_t;
@@ -48,6 +50,9 @@ import jake2.util.Vargs;
 
 import java.awt.Dimension;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Vector;
 
 /**
  * TestMap
@@ -56,6 +61,9 @@ import java.util.Arrays;
  */
 public class TestMap
 {
+
+	static final float INSTANT_PARTICLE = -10000.0f;
+	static final float PARTICLE_GRAVITY = 40.0f;
 
 	String[] args;
 
@@ -185,7 +193,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.3 2004-01-23 00:59:03 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.4 2004-01-23 13:41:50 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -261,6 +269,8 @@ public class TestMap
 	
 	private refdef_t refdef;
 	
+	private entity_t ent;
+	
 	private void testMap()
 	{
 
@@ -282,9 +292,23 @@ public class TestMap
 //			refdef.areabits = new byte[Defines.MAX_MAP_AREAS / 8];
 //			Arrays.fill(refdef.areabits, (byte) 0xFF);
 
-			refdef.num_entities = 0;
-			refdef.entities = null;
 
+			// load a monster
+			
+			ent = new entity_t();
+			
+			model_t weapon = re.RegisterModel("models/monsters/soldier/tris.md2");
+			image_t weaponSkin = re.RegisterSkin("models/monsters/soldier/skin.pcx");
+
+			ent.model = weapon;
+			ent.skin = weaponSkin;
+			ent.origin = new float[] { -60, 80, 25 };
+			Math3D.VectorCopy(ent.origin, ent.oldorigin);
+			ent.angles = new float[] { 0, 300, 0 };
+
+			refdef.num_entities = 1;
+			refdef.entities = new entity_t[] {ent};
+			
 			lightstyle_t light = new lightstyle_t();
 			light.rgb = new float[] {1.0f, 1.0f, 1.0f};
 			light.white = 3.0f;
@@ -308,9 +332,171 @@ public class TestMap
 		refdef.vieworg[0] += 1.0f / 16;
 		refdef.vieworg[1] += 1.0f / 16;
 		refdef.vieworg[2] += 1.0f / 16;
+		
+		// monster animation
+		ent.frame = (int)((time() * 0.013f) % 15);
+		
+		// particle init
+		particles.clear();
+		
+		if (active_particles.size() == 0) {
+			target = new float[] {150 + Lib.crand() * 80, Lib.crand() * 40, 40};
+			RailTrail(ent.origin, refdef.vieworg);
+		}
 
+		animateParticles();
+		
+		particle_t[] tmp = new particle_t[particles.size()];
+		
+		particles.toArray(tmp);
+		
+		refdef.particles = tmp;
+		refdef.num_particles = tmp.length;
+		
 		re.RenderFrame(refdef);
 	}
+	
+	private Vector particles = new Vector(1024); // = new particle_t[20];
+	private LinkedList active_particles = new LinkedList();
+	private boolean explode = false; 
+	private float[] target; 
+	
+	private boolean initParticles = true;
+	
+	private void animateParticles()
+	{
+		cparticle_t p;
+		float alpha;
+		float	time, time2;
+		float[] org = {0, 0, 0};
+		int color;
+		particle_t particle;
+		
+		time = 0.0f;
+
+		for (Iterator it = active_particles.iterator(); it.hasNext();)
+		{
+			p = (cparticle_t) it.next();
+
+			// PMM - added INSTANT_PARTICLE handling for heat beam
+			if (p.alphavel != INSTANT_PARTICLE)
+			{
+				time = (time() - p.time) * 0.001f;
+				alpha = p.alpha + time*p.alphavel;
+				if (alpha <= 0)
+				{	// faded out
+					it.remove();
+					continue;
+				}
+			}
+			else
+			{
+				alpha = p.alpha;
+			}
+
+			if (alpha > 1.0)
+				alpha = 1;
+			color = (int)p.color;
+
+			time2 = time*time;
+
+			org[0] = p.org[0] + p.vel[0]*time + p.accel[0]*time2;
+			org[1] = p.org[1] + p.vel[1]*time + p.accel[1]*time2;
+			org[2] = p.org[2] + p.vel[2]*time + p.accel[2]*time2;
+
+			particle = new particle_t();
+			particle.alpha = alpha;
+			Math3D.VectorCopy(org, particle.origin);
+			particle.color = color;
+			
+			particles.add(particle);
+			 
+			// PMM
+			if (p.alphavel == INSTANT_PARTICLE)
+			{
+				p.alphavel = 0.0f;
+				p.alpha = 0.0f;
+			}
+		}
+	}
+	
+	private void RailTrail(float[] start, float[] end)
+	{
+		float[] move = {0, 0, 0};
+		float[] vec = {0, 0, 0};
+		float	len;
+		int j;
+		cparticle_t	p;
+		float	dec;
+		float[] right = {0, 0, 0};
+		float[] up = {0, 0, 0};
+		int i;
+		float	d, c, s;
+		float[] dir = {0, 0, 0};
+
+		Math3D.VectorCopy (start, move);
+		Math3D.VectorSubtract (end, start, vec);
+		len = Math3D.VectorNormalize(vec);
+
+		Math3D.MakeNormalVectors(vec, right, up);
+
+		for (i=0 ; i<len ; i++)
+		{
+
+			p = new cparticle_t();		
+			p.time = time();
+			Math3D.VectorClear (p.accel);
+
+			d = i * 0.1f;
+			c = (float)Math.cos(d);
+			s = (float)Math.sin(d);
+
+			Math3D.VectorScale (right, c, dir);
+			Math3D.VectorMA (dir, s, up, dir);
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1 + Lib.frand() * 0.2f);
+			p.color = 0x74 + (Lib.rand() & 7);
+			for (j=0 ; j<3 ; j++)
+			{
+				p.org[j] = move[j] + dir[j]*3;
+				p.vel[j] = dir[j]*6;
+			}
+
+			Math3D.VectorAdd (move, vec, move);
+
+			active_particles.add(p);	
+		}
+
+		dec = 0.75f;
+		Math3D.VectorScale (vec, dec, vec);
+		Math3D.VectorCopy (start, move);
+
+		while (len > 0)
+		{
+			len -= dec;
+
+			p = new cparticle_t();
+
+			p.time = time();
+			Math3D.VectorClear (p.accel);
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (0.6f + Lib.frand() * 0.2f);
+			p.color = 0x0 + Lib.rand()&15;
+
+			for (j=0 ; j<3 ; j++)
+			{
+				p.org[j] = move[j] + Lib.crand()*3;
+				p.vel[j] = Lib.crand()*3;
+				p.accel[j] = 0;
+			}
+
+			Math3D.VectorAdd (move, vec, move);
+			active_particles.add(p);	
+		}
+	}
+	
 
 	private float CalcFov(float fov_x, float width, float height)
 	{
