@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.9 2004-09-22 19:22:07 salomo Exp $
+ * $Id: Menu.java,v 1.10 2004-09-27 19:47:26 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -2399,8 +2399,9 @@ public final class Menu extends Key {
             if (x.equals(local_server_names[i]))
                 return;
 
-        local_server_netadr[m_num_servers] = adr;
+        local_server_netadr[m_num_servers].set(adr);
         local_server_names[m_num_servers] = x;
+        s_joinserver_server_actions[m_num_servers].name = x;
         m_num_servers++;
     }
 
