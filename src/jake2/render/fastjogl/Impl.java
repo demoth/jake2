@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.6 2004-06-23 10:48:20 cwei Exp $
+ * $Id: Impl.java,v 1.7 2004-06-23 13:37:07 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -162,21 +162,21 @@ public class Impl extends Misc implements GLEventListener {
 		device = env.getDefaultScreenDevice();
 		fullscreen = fullscreen && device.isFullScreenSupported();
         
+		if (oldDisplayMode == null) {
+			oldDisplayMode = device.getDisplayMode();
+		}
+		        
 		if (fullscreen) {
-
-			if (oldDisplayMode == null) {
-				oldDisplayMode = device.getDisplayMode();
-			}
 			
 			DisplayMode displayMode = findDisplayMode(newDim, oldDisplayMode.getBitDepth(), oldDisplayMode.getRefreshRate());
 			
 			if (displayMode != null) {
 				newDim.width = displayMode.getWidth();
 				newDim.height = displayMode.getHeight();
-				canvas.setSize(displayMode.getWidth(), displayMode.getWidth());
 				window.setLocation(0, 0);
 				window.setUndecorated(true);
 				window.setSize(displayMode.getWidth(), displayMode.getHeight());
+				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
 				window.setResizable(false);
 				device.setFullScreenWindow(window);
 				device.setDisplayMode(displayMode);
@@ -188,7 +188,7 @@ public class Impl extends Misc implements GLEventListener {
 			window.setResizable(false);
 			window.setVisible(true);
 		}
-
+		
 		canvas.requestFocus();
 		
 		this.canvas = canvas;
@@ -261,9 +261,10 @@ public class Impl extends Misc implements GLEventListener {
 	void GLimp_Shutdown() {
 		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
 			try {
-				device.setFullScreenWindow(null);
 				device.setDisplayMode(oldDisplayMode);
+				device.setFullScreenWindow(null);
 			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		if (this.window != null) {
