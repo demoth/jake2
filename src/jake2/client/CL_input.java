@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.4 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL_input.java,v 1.5 2005-01-21 01:10:09 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,12 +27,10 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.*;
 import jake2.game.Cmd;
+import jake2.game.cvar_t;
 import jake2.game.usercmd_t;
 import jake2.qcommon.*;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.xcommand_t;
 import jake2.sys.IN;
 import jake2.util.Math3D;
 
@@ -373,7 +371,7 @@ public class CL_input {
 		AdjustAngles();
 
 		//memset (cmd, 0, sizeof(*cmd));
-		cmd.reset();
+		cmd.clear();
 
 		Math3D.VectorCopy(Globals.cl.viewangles, cmd.angles);
 		if ((in_strafe.state & 1) != 0) {
@@ -463,8 +461,8 @@ public class CL_input {
 	/*
 	 * ================= CL_CreateCmd =================
 	 */
-	static usercmd_t CreateCmd() {
-		usercmd_t cmd = new usercmd_t();
+	static void CreateCmd(usercmd_t cmd) {
+		//usercmd_t cmd = new usercmd_t();
 
 		frame_msec = Globals.sys_frame_time - old_sys_frame_time;
 		if (frame_msec < 1)
@@ -482,7 +480,7 @@ public class CL_input {
 
 		old_sys_frame_time = Globals.sys_frame_time;
 
-		return cmd;
+		//return cmd;
 	}
 
 	/*
@@ -654,15 +652,15 @@ public class CL_input {
 		cl_nodelta = Cvar.Get("cl_nodelta", "0", 0);
 	}
 
+	private static final sizebuf_t buf = new sizebuf_t();
+	private static final byte[] data = new byte[128];
+	private static final usercmd_t nullcmd = new usercmd_t();
 	/*
 	 * ================= CL_SendCmd =================
 	 */
 	static void SendCmd() {
-		sizebuf_t buf = new sizebuf_t();
-		byte[] data = new byte[128];
 		int i;
 		usercmd_t cmd, oldcmd;
-		usercmd_t nullcmd = new usercmd_t();
 		int checksumIndex;
 
 		// build a command even if not connected
@@ -673,7 +671,8 @@ public class CL_input {
 		Globals.cl.cmd_time[i] = (int) Globals.cls.realtime; // for netgraph
 															 // ping calculation
 
-		cmd.set(CreateCmd());
+		// fill the cmd
+		CreateCmd(cmd);
 
 		Globals.cl.cmd.set(cmd);
 
@@ -725,7 +724,7 @@ public class CL_input {
 		i = (Globals.cls.netchan.outgoing_sequence - 2) & (Defines.CMD_BACKUP - 1);
 		cmd = Globals.cl.cmds[i];
 		//memset (nullcmd, 0, sizeof(nullcmd));
-		nullcmd.reset();
+		nullcmd.clear();
 
 		MSG.WriteDeltaUsercmd(buf, nullcmd, cmd);
 		oldcmd = cmd;
