@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.16 2003-12-02 13:16:15 hoz Exp $
+ * $Id: Globals.java,v 1.17 2003-12-11 14:42:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,10 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2;
 
 import jake2.client.*;
-import jake2.client.client_static_t;
 import jake2.game.*;
 import jake2.qcommon.sizebuf_t;
-import jake2.client.*;
 
 import java.io.FileWriter;
 

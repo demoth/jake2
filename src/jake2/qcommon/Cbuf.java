@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.8 2003-12-02 13:16:15 hoz Exp $
+ * $Id: Cbuf.java,v 1.9 2003-12-11 14:42:06 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -89,61 +89,49 @@ public final class Cbuf {
 	 * @return
 	 */
 	static boolean AddLateCommands() {
-//		00298         int             i, j;
-//		00299         int             s;
-//		00300         char    *text, *build, c;
-//		00301         int             argc;
+		int i;
+		int j;
 		boolean ret = false;
-//		00303 
-//		00304 // build the combined string to parse from
-//		00305         s = 0;
-//		00306         argc = COM_Argc();
-//		00307         for (i=1 ; i<argc ; i++)
-//		00308         {
-//		00309                 s += strlen (COM_Argv(i)) + 1;
-//		00310         }
-//		00311         if (!s)
-//		00312                 return false;
-//		00313                 
-//		00314         text = Z_Malloc (s+1);
-//		00315         text[0] = 0;
-//		00316         for (i=1 ; i<argc ; i++)
-//		00317         {
-//		00318                 strcat (text,COM_Argv(i));
-//		00319                 if (i != argc-1)
-//		00320                         strcat (text, " ");
-//		00321         }
-//		00322         
-//		00323 // pull out the commands
-//		00324         build = Z_Malloc (s+1);
-//		00325         build[0] = 0;
-//		00326         
-//		00327         for (i=0 ; i<s-1 ; i++)
-//		00328         {
-//		00329                 if (text[i] == '+')
-//		00330                 {
-//		00331                         i++;
-//		00332 
-//		00333                         for (j=i ; (text[j] != '+') && (text[j] != '-') && (text[j] != 0) ; j++)
-//		00334                                 ;
-//		00335 
-//		00336                         c = text[j];
-//		00337                         text[j] = 0;
-//		00338                         
-//		00339                         strcat (build, text+i);
-//		00340                         strcat (build, "\n");
-//		00341                         text[j] = c;
-//		00342                         i = j-1;
-//		00343                 }
-//		00344         }
-//		00345 
-//		00346         ret = (build[0] != 0);
-//		00347         if (ret)
-//		00348                 Cbuf_AddText (build);
-//		00349         
-//		00350         Z_Free (text);
-//		00351         Z_Free (build);
-//		00352 
+
+		// build the combined string to parse from
+		int s = 0;
+		int argc = Com.Argc();
+		for (i=1 ; i<argc ; i++) {
+			s += Com.Argv(i).length();
+		}
+		if (s == 0)
+			return false;
+                 
+		String text = "";
+		for (i=1 ; i<argc ; i++) {
+			text += Com.Argv(i);
+			if (i != argc-1) text +=" ";
+		}
+         
+		// pull out the commands
+		String build = "";        
+		for (i=0 ; i<text.length() ; i++) {
+			if (text.charAt(i) == '+') {
+			i++;
+
+			for (j=i ; (text.charAt(j) != '+') && (text.charAt(j) != '-') && j < text.length() ; j++)
+				;
+ 
+
+				build += text.substring(i, j - 1);
+				build += "\n";
+				
+				i = j - 1;                      
+			}
+		}
+
+		ret = (build.length() != 0);
+		if (ret)
+			Cbuf.AddText(build);
+        
+		text = null;
+		build = null;
+ 
 		return ret;		
 	}
 	

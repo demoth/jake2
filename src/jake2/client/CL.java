@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.25 2003-12-06 18:53:07 rst Exp $
+ * $Id: CL.java,v 1.26 2003-12-11 14:42:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,8 +23,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-
-// $Id: CL.java,v 1.25 2003-12-06 18:53:07 rst Exp $
 
 package jake2.client;
 
