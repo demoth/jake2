@@ -58,14 +58,17 @@ public class ALFactory {
      *             able to intialize
      */
     public static boolean initialize() throws OpenALException {
-        String sep = System.getProperty("file.separator");
-        String openalPath = System.getProperty("user.home") + sep + ".jake2";
         String osProperty = System.getProperty("os.name");
         if (osProperty.startsWith("Win")) {
             isInitialized = init(new String[] { "OpenAL32.dll" });
         } else if (osProperty.startsWith("Linux")) {
-            isInitialized = init(new String[] { "libopenal.so" });
-            if (!isInitialized) {
+            try {
+                // use the system wide lib
+                isInitialized = init(new String[] { "libopenal.so" });
+            } catch (OpenALException e) {
+                // fallback to bytonic's libopenal.so
+                String sep = System.getProperty("file.separator");
+                String openalPath = System.getProperty("user.home") + sep + ".jake2";
                 isInitialized = init(new String[] { openalPath + sep
                         + "libopenal.so" });
             }
