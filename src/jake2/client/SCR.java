@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.8 2004-09-22 19:22:08 salomo Exp $
+ * $Id: SCR.java,v 1.9 2005-01-16 16:55:52 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1175,11 +1175,11 @@ public final class SCR extends Globals {
      * This is called every frame, and can also be called explicitly to flush
      * text to the screen. ==================
      */
+    private static final float[] separation = { 0, 0 };
+    
     static void UpdateScreen2() {
         int numframes;
         int i;
-        float[] separation = { 0, 0 };
-
         // if the screen is disabled (loading plaque is up, or vid mode
         // changing)
         // do nothing at all
