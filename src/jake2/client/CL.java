@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.19 2003-12-02 10:07:36 hoz Exp $
+ *$Id: CL.java,v 1.20 2003-12-04 20:06:03 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -416,10 +416,10 @@ public final class CL extends Globals {
 		}
 
 		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
-		SZ.Print(cls.netchan.message, cmd.getBytes());
+		SZ.Print(cls.netchan.message, cmd);
 		if (Cmd.Argc() > 1) {
-			SZ.Print(cls.netchan.message, " ".getBytes());
-			SZ.Print(cls.netchan.message, Cmd.Args().getBytes());
+			SZ.Print(cls.netchan.message, " ");
+			SZ.Print(cls.netchan.message, Cmd.Args());
 		}
 	};
 
@@ -468,7 +468,7 @@ public final class CL extends Globals {
 			// don't forward the first argument
 			if (Cmd.Argc() > 1) {
 				MSG.WriteByte(cls.netchan.message, clc_stringcmd);
-				SZ.Print(cls.netchan.message, Cmd.Args().getBytes());
+				SZ.Print(cls.netchan.message, Cmd.Args());
 			}
 		}
 	};
