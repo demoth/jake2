@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.7 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Jake2.java,v 1.8 2003-12-23 13:14:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -67,7 +67,14 @@ public final class Jake2 {
 
 		logger.log(Level.INFO, "Start Jake2 :-)");
 
-		Qcommon.Init(args);
+		// in C the first arg is the filename
+		int argc = (args == null) ? 1 : args.length +1;
+		String[] c_args = new String[argc];
+		c_args[0] = "Jake2";
+		if (argc > 1) {
+			System.arraycopy(args, 0, c_args, 1, argc - 1);
+		}
+		Qcommon.Init(c_args);
 
 		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
 
