@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.9 2004-02-14 13:24:02 rst Exp $
+// $Id: game_export_t.java,v 1.10 2004-02-26 01:20:43 cwei Exp $
 
 package jake2.game;
 
@@ -55,7 +55,8 @@ public class game_export_t {
 	// WriteGame is called every time a level is exited.
 	// ReadGame is called on a loadgame.
 	public void WriteGame(String filename, boolean autosave) {
-		Com.Error(Defines.ERR_FATAL, "WriteGame not implemnted!");
+		// TODO WriteGame not implemnted!
+		Com.Println("WriteGame not implemnted!");
 	}
 	
 	public void ReadGame(String filename) {
@@ -65,11 +66,13 @@ public class game_export_t {
 	// ReadLevel is called after the default map information has been
 	// loaded with SpawnEntities
 	public void WriteLevel(String filename) {
-		Com.Error(Defines.ERR_FATAL, "WriteLevel not implemnted!");
+		// TODO WriteLevel not implemnted!
+		Com.Println("WriteLevel not implemnted!");
 	}
 
 	public void ReadLevel(String filename) {
-		Com.Error(Defines.ERR_FATAL, "ReadLevel not implemnted!");
+		// TODO ReadLevel not implemnted!
+		Com.Println("ReadLevel not implemnted!");
 	}
 
 	public boolean ClientConnect(edict_t ent, String userinfo) {
