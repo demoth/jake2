@@ -21,6 +21,7 @@
     <resources>
         <res id="LicencePanel.licence" src="LICENSE"/>
         <res id="InfoPanel.info" src="README"/>
+        <res src="../shortcutSpec.xml" id="shortcutSpec.xml" />
         <!-- res id="Installer.image" src="../resources/icon.png"/ -->
     </resources>
     
@@ -31,6 +32,7 @@
         <panel classname="TargetPanel"/> 
         <panel classname="PacksPanel"/>
         <panel classname="InstallPanel"/>
+        <panel classname="ShortcutPanel"/>
         <panel classname="SimpleFinishPanel"/>
     </panels>
     
@@ -42,6 +44,7 @@
             	<include name="lib/*.jar"/>
             	<exclude name="*.bat"/>
             	<exclude name="*.sh"/>
+            	<exclude name="*.ico"/>
             </fileset>
             <executable type="jar" 
         		targetfile="$INSTALL_PATH/lib/jake2.jar"
@@ -61,12 +64,14 @@
         	<executable targetfile="$INSTALL_PATH/Jake2.sh" stage="never"/>
         </pack>
             <pack name="Windows libraries and scripts" required="yes">
-        	<os family="windows" arch="i386"/>
+        	<os family="windows"/>
         	<description>jogl and joal libraries for Windows</description>
         	<file src="lib/windows" targetdir="$INSTALL_PATH/lib"/>
         	<file src="Jake2.bat" targetdir="$INSTALL_PATH"/>
         	<executable targetfile="$INSTALL_PATH/Jake2.bat" stage="never"/>
         </pack>
     </packs>
+    
+    <native type="izpack" name="ShellLink.dll"/>
     
 </installation>

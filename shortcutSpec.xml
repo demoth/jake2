@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <programGroup defaultName="Jake2" location="applications"/>
+
+ 
+  <shortcut
+     name="Jake2"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="$INSTALL_PATH/Jake2.bat"
+     workingDirectory="$INSTALL_PATH"
+     commandLine=""
+     description="Jake2"
+     initialState="noShow">
+   
+     <createForPack name="Windows libraries and scripts"/>
+     
+   </shortcut>
+   
+   <shortcut
+     name="Uninstaller"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="$INSTALL_PATH/Uninstaller/uninstaller.jar"
+     commandLine=""
+     description="uninstall Jake2">
+     
+     <createForPack name="Windows libraries and scripts"/>
+   </shortcut>
+   
+</shortcuts>
