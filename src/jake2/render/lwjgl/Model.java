@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.6 2005-01-22 22:28:15 cawe Exp $
+ * $Id: Model.java,v 1.7 2005-02-08 17:52:20 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -176,7 +176,7 @@ public abstract class Model extends Surf {
 		for (i=0; i < mod_numknown ; i++)
 		{
 			mod = mod_known[i];
-			if (mod.name == "")
+			if (mod.name.length() == 0)
 				continue;
 
 			VID.Printf (Defines.PRINT_ALL, "%8i : %s\n", new Vargs(2).add(mod.extradatasize).add(mod.name));
@@ -234,7 +234,7 @@ public abstract class Model extends Surf {
 		{
 			mod = mod_known[i];
 			
-			if (mod.name == "")
+			if (mod.name.length() == 0)
 				continue;
 			if (mod.name.equals(name) )
 				return mod;
@@ -247,7 +247,7 @@ public abstract class Model extends Surf {
 		{
 			mod = mod_known[i];
 
-			if (mod.name == "")
+			if (mod.name.length() == 0)
 				break;	// free spot
 		}
 		if (i == mod_numknown)
@@ -1234,7 +1234,7 @@ public abstract class Model extends Surf {
 		for (int i=0; i<mod_numknown ; i++)
 		{
 			mod = mod_known[i];
-			if (mod.name == "")
+			if (mod.name.length() == 0)
 				continue;
 			if (mod.registration_sequence != registration_sequence)
 			{	// don't need this model
