@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.11 2004-01-10 15:45:49 cwei Exp $
+ * $Id: Main.java,v 1.12 2004-01-10 16:01:19 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -67,7 +67,7 @@ public abstract class Main extends Base {
 	// this a hack for function pointer test
 	// default disabled
 	boolean qglColorTableEXT = false;
-	boolean qglSelectTextureSGIS = true;
+	boolean qglSelectTextureSGIS = false;
 	boolean qglActiveTextureARB = true;
 	boolean qglPointParameterfEXT = false;
 	

@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.8 2004-01-05 14:01:27 cwei Exp $
+ * $Id: Image.java,v 1.9 2004-01-10 16:01:19 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -132,38 +132,30 @@ public abstract class Image extends Main {
 	}
 
 
-	void GL_SelectTexture( int texture /* GLenum */ )
-	{
-//		int tmu;
-//
-//		if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
-//			return;
-//
-//		if ( texture == GL.GL_TEXTURE0 )
-//		{
-//			tmu = 0;
-//		}
-//		else
-//		{
-//			tmu = 1;
-//		}
-//
-//		if ( tmu == gl_state.currenttmu )
-//		{
-//			return;
-//		}
-//
-//		gl_state.currenttmu = tmu;
-//
-//		if ( qglSelectTextureSGIS )
-//		{
-//			qglSelectTextureSGIS( texture );
-//		}
-//		else if ( qglActiveTextureARB )
-//		{
-//			gl.glActiveTextureARB( texture );
-//			gl.glClientActiveTextureARB( texture );
-//		}
+	void GL_SelectTexture(int texture /* GLenum */) {
+		int tmu;
+
+		if (!qglSelectTextureSGIS && !qglActiveTextureARB)
+			return;
+
+		if (texture == GL.GL_TEXTURE0) {
+			tmu = 0;
+		} else {
+			tmu = 1;
+		}
+
+		if (tmu == gl_state.currenttmu) {
+			return;
+		}
+
+		gl_state.currenttmu = tmu;
+
+		if (qglSelectTextureSGIS) {
+			// TODO handle this: gl.glSelectTextureSGIS(texture);
+		} else if (qglActiveTextureARB) {
+			gl.glActiveTextureARB(texture);
+			gl.glClientActiveTextureARB(texture);
+		}
 	}
 
 	int[] lastmodes = { -1, -1 };
@@ -581,6 +573,7 @@ public abstract class Image extends Main {
 //	*/
 	byte[] LoadTGA(String name, Dimension dim)
 	{
+		// TODO LoadTGA()
 //		int		columns, rows, numPixels;
 //		byte	*pixbuf;
 //		int		row, column;
@@ -763,24 +756,24 @@ public abstract class Image extends Main {
 //		ri.FS_FreeFile (buffer);
 		return null; // remove this
 	}
-//
-//
-//	/*
-//	====================================================================
-//
-//	IMAGE FLOOD FILLING
-//
-//	====================================================================
-//	*/
-//
-//
-//	/*
-//	=================
-//	Mod_FloodFillSkin
-//
-//	Fill background pixels so mipmapping doesn't have haloes
-//	=================
-//	*/
+
+
+	/*
+	====================================================================
+
+	IMAGE FLOOD FILLING
+
+	====================================================================
+	*/
+
+
+	/*
+	=================
+	Mod_FloodFillSkin
+
+	Fill background pixels so mipmapping doesn't have haloes
+	=================
+	*/
 //
 //	typedef struct
 //	{
@@ -865,7 +858,7 @@ public abstract class Image extends Main {
 //		int[] p2 = new int[1024];
 //		
 		
-		// TODO *** only test ***
+		// *** this source do the same ***
 		BufferedImage image = new BufferedImage(inwidth, inheight, BufferedImage.TYPE_INT_ARGB);
 		
 		image.setRGB(0, 0, inwidth, inheight, in, 0, inwidth);
@@ -876,7 +869,7 @@ public abstract class Image extends Main {
 		tmp.getRGB(0, 0, outwidth, outheight, out, 0, outwidth);
 
 
-		// *** only test ***
+		// *** end ***
 		
 		
 		
@@ -1276,13 +1269,13 @@ public abstract class Image extends Main {
 	}
 
 
-//	/*
-//	================
-//	GL_LoadPic
-//
-//	This is also used as an entry point for the generated r_notexture
-//	================
-//	*/
+	/*
+	================
+	GL_LoadPic
+
+	This is also used as an entry point for the generated r_notexture
+	================
+	*/
 	image_t GL_LoadPic(String name, byte[] pic, int width, int height, int type, int bits)
 	{
 		image_t image = null;

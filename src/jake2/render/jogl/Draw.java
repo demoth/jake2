@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.9 2004-01-05 14:01:27 cwei Exp $
+ * $Id: Draw.java,v 1.10 2004-01-10 16:01:19 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -318,6 +318,7 @@ public abstract class Draw extends Model {
 	*/
 	protected void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte[] data)
 	{
+		// TODO impl: Draw_StretchRaw(..)
 //		unsigned	image32[256*256];
 //		unsigned char image8[256*256];
 //		int			i, j, trows;
