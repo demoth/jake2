@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.5 2004-01-07 22:01:20 rst Exp $
+// $Id: GameSave.java,v 1.6 2004-01-08 17:44:36 rst Exp $
 
 package jake2.game;
 
@@ -682,13 +682,10 @@ public class GameSave extends PlayerView {
 	//	fclose (f);
 	//}
 	//
+	
 	public static void ReadGame(String filename) {
 
 		RandomAccessFile f=null;
-		
-		int i;
-		
-		byte str[] = new byte[16]; 
 		
 		try {
 			
