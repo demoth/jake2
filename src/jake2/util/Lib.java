@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.11 2004-12-16 19:46:49 cawe Exp $
+// $Id: Lib.java,v 1.12 2005-01-09 23:41:53 cawe Exp $
 
 package jake2.util;
 
@@ -210,7 +210,7 @@ public class Lib {
 		byte buffer[] = new byte[len];
 		FS.Read(buffer, len, f);
 	
-		return new String(buffer).trim();
+		return Lib.CtoJava(buffer);
 	}
 	public static String rightFrom(String in, char c) {
 		int pos = in.lastIndexOf(c);
@@ -266,8 +266,13 @@ public class Lib {
 	    return (index > 0) ? old.substring(0, index) : old; 
 	}
 	
+	public static String CtoJava(byte[] old) {
+		return CtoJava(old, 0, old.length);
+	}
+
 	public static String CtoJava(byte[] old, int offset, int maxLenght) {
-		int i;
+		if (old.length == 0 || old[0] == 0) return "";
+	    int i;
 	    for (i = offset; old[i] != 0 && (i - offset) < maxLenght; i++);
 		return new String(old, offset, i - offset);
 	}
