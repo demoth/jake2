@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.4 2004-01-28 14:42:58 hoz Exp $
+ * $Id: CL_main.java,v 1.5 2004-01-28 21:04:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2019,13 +2019,4 @@ public class CL_main extends CL_parse {
 			SCR.EndLoadingPlaque();	// get rid of loading plaque
 	}
 	 
-	public static void Snd_Restart_f() {
-		// TODO: implement
-		
-	}
-
-	public static void Quit_f() {
-		// TODO: implement
-		
-	}
 }

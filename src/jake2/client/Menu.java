@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.6 2004-01-28 10:32:10 hoz Exp $
+ * $Id: Menu.java,v 1.7 2004-01-28 21:04:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1356,7 +1356,7 @@ public final class Menu extends Key {
 		// the text box won't show up unless we do a buffer swap
 		re.EndFrame();
 
-		CL_main.Snd_Restart_f();
+		CL_main.Snd_Restart_f.execute();
 	}
 
 	static String cd_music_items[] = { "disabled", "enabled", null };
@@ -4274,7 +4274,7 @@ public final class Menu extends Key {
 			case 'Y' :
 			case 'y' :
 				cls.key_dest = key_console;
-				CL_main.Quit_f();
+				CL.Quit_f.execute();
 				break;
 
 			default :

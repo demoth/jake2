@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.12 2004-01-26 20:40:17 hoz Exp $
+ * $Id: Console.java,v 1.13 2004-01-28 21:04:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -70,18 +70,7 @@ public final class Console extends Globals {
 			}
 		}
 	};
-	public static xcommand_t ToggleChat_f = new xcommand_t() {
-		public void execute() {
-		}
-	};
-	public static xcommand_t MessageMode_f = new xcommand_t() {
-		public void execute() {
-		}
-	};
-	public static xcommand_t MessageMode2_f = new xcommand_t() {
-		public void execute() {
-		}
-	};
+
 	public static xcommand_t Clear_f = new xcommand_t() {
 		public void execute() {
 			Arrays.fill(Globals.con.text, (byte)' ');
@@ -236,22 +225,6 @@ public final class Console extends Globals {
 			Globals.con.times[i] = 0;
 	}
 	
-
-//	00020 // console.c
-//	00021 
-//	00022 #include "client.h"
-//	00023 
-//	00024 console_t       con;
-//	00025 
-//	00026 cvar_t          *con_notifytime;
-//	00027 
-//	00028 
-//	00029 #define         MAXCMDLINE      256
-//	00030 extern  char    key_lines[32][MAXCMDLINE];
-//	00031 extern  int             edit_line;
-//	00032 extern  int             key_linepos;
-//	00033                 
-//	00034 
 	static void DrawString(int x, int y, String s) {
 		for (int i = 0; i < s.length(); i++) {
 			Globals.re.DrawChar(x, y, s.charAt(i));
@@ -265,140 +238,53 @@ public final class Console extends Globals {
 			x+=8;
 		}		
 	}
-//	00055 
-//	00056 void Key_ClearTyping (void)
-//	00057 {
-//	00058         key_lines[edit_line][1] = 0;    // clear any typing
-//	00059         key_linepos = 1;
-//	00060 }
-//	00061 
 
-//	00101 
-//	00102 /*
-//	00103 ================
-//	00104 Con_ToggleChat_f
-//	00105 ================
-//	00106 */
-//	00107 void Con_ToggleChat_f (void)
-//	00108 {
-//	00109         Key_ClearTyping ();
-//	00110 
-//	00111         if (cls.key_dest == key_console)
-//	00112         {
-//	00113                 if (cls.state == ca_active)
-//	00114                 {
-//	00115                         M_ForceMenuOff ();
-//	00116                         cls.key_dest = key_game;
-//	00117                 }
-//	00118         }
-//	00119         else
-//	00120                 cls.key_dest = key_console;
-//	00121         
-//	00122         Con_ClearNotify ();
-//	00123 }
-//	00124 
 
-//	00201                                                 
-//	00202 /*
-//	00203 ================
-//	00204 Con_ClearNotify
-//	00205 ================
-//	00206 */
-//	00207 void Con_ClearNotify (void)
-//	00208 {
-//	00209         int             i;
-//	00210         
-//	00211         for (i=0 ; i<NUM_CON_TIMES ; i++)
-//	00212                 con.times[i] = 0;
-//	00213 }
-//	00214 
-//	00215                                                 
-//	00216 /*
-//	00217 ================
-//	00218 Con_MessageMode_f
-//	00219 ================
-//	00220 */
-//	00221 void Con_MessageMode_f (void)
-//	00222 {
-//	00223         chat_team = false;
-//	00224         cls.key_dest = key_message;
-//	00225 }
-//	00226 
-//	00227 /*
-//	00228 ================
-//	00229 Con_MessageMode2_f
-//	00230 ================
-//	00231 */
-//	00232 void Con_MessageMode2_f (void)
-//	00233 {
-//	00234         chat_team = true;
-//	00235         cls.key_dest = key_message;
-//	00236 }
-//	00237 
-//	00238 /*
-//	00239 ================
-//	00240 Con_CheckResize
-//	00241 
-//	00242 If the line width has changed, reformat the buffer.
-//	00243 ================
-//	00244 */
-//	00245 void Con_CheckResize (void)
-//	00246 {
-//	00247         int             i, j, width, oldwidth, oldtotallines, numlines, numchars;
-//	00248         char    tbuf[CON_TEXTSIZE];
-//	00249 
-//	00250         width = (viddef.width >> 3) - 2;
-//	00251 
-//	00252         if (width == con.linewidth)
-//	00253                 return;
-//	00254 
-//	00255         if (width < 1)                  // video hasn't been initialized yet
-//	00256         {
-//	00257                 width = 38;
-//	00258                 con.linewidth = width;
-//	00259                 con.totallines = CON_TEXTSIZE / con.linewidth;
-//	00260                 memset (con.text, ' ', CON_TEXTSIZE);
-//	00261         }
-//	00262         else
-//	00263         {
-//	00264                 oldwidth = con.linewidth;
-//	00265                 con.linewidth = width;
-//	00266                 oldtotallines = con.totallines;
-//	00267                 con.totallines = CON_TEXTSIZE / con.linewidth;
-//	00268                 numlines = oldtotallines;
-//	00269 
-//	00270                 if (con.totallines < numlines)
-//	00271                         numlines = con.totallines;
-//	00272 
-//	00273                 numchars = oldwidth;
-//	00274         
-//	00275                 if (con.linewidth < numchars)
-//	00276                         numchars = con.linewidth;
-//	00277 
-//	00278                 memcpy (tbuf, con.text, CON_TEXTSIZE);
-//	00279                 memset (con.text, ' ', CON_TEXTSIZE);
-//	00280 
-//	00281                 for (i=0 ; i<numlines ; i++)
-//	00282                 {
-//	00283                         for (j=0 ; j<numchars ; j++)
-//	00284                         {
-//	00285                                 con.text[(con.totallines - 1 - i) * con.linewidth + j] =
-//	00286                                                 tbuf[((con.current - i + oldtotallines) %
-//	00287                                                           oldtotallines) * oldwidth + j];
-//	00288                         }
-//	00289                 }
-//	00290 
-//	00291                 Con_ClearNotify ();
-//	00292         }
-//	00293 
-//	00294         con.current = con.totallines - 1;
-//	00295         con.display = con.current;
-//	00296 }
-//	00297 
-//	00298 
+	/*
+	================
+	Con_ToggleChat_f
+	================
+	*/
+	static xcommand_t ToggleChat_f = new xcommand_t() {
+		public void execute() {
+			Key.ClearTyping();
+ 
+			if (cls.key_dest == key_console) {
+				if (cls.state == ca_active) {
+					Menu.ForceMenuOff();
+					cls.key_dest = key_game;
+				}
+			} else
+				cls.key_dest = key_console;
+        
+			ClearNotify();
+		}
+	};
+                              
+	/*
+	================
+	Con_MessageMode_f
+	================
+	*/
+	static xcommand_t MessageMode_f = new xcommand_t() {
+		public void execute() {
+			chat_team = false;
+			cls.key_dest = key_message;
+		}
+	};
 
-//	00325 
-//	00326 
+	/*
+	================
+	Con_MessageMode2_f
+	================
+	*/
+	static xcommand_t MessageMode2_f = new xcommand_t() {
+		public void execute() {
+			chat_team = true;
+			cls.key_dest = key_message;
+		}
+	};
+
 	/*
 	===============
 	Con_Linefeed
@@ -564,74 +450,64 @@ public final class Console extends Globals {
 	}
  
  
-//	00493 /*
-//	00494 ================
-//	00495 Con_DrawNotify
-//	00496 
-//	00497 Draws the last few lines of output transparently over the game top
-//	00498 ================
-//	00499 */
-//	00500 void Con_DrawNotify (void)
-//	00501 {
-//	00502         int             x, v;
-//	00503         char    *text;
-//	00504         int             i;
-//	00505         int             time;
-//	00506         char    *s;
-//	00507         int             skip;
-//	00508 
-//	00509         v = 0;
-//	00510         for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)
-//	00511         {
-//	00512                 if (i < 0)
-//	00513                         continue;
-//	00514                 time = con.times[i % NUM_CON_TIMES];
-//	00515                 if (time == 0)
-//	00516                         continue;
-//	00517                 time = cls.realtime - time;
-//	00518                 if (time > con_notifytime->value*1000)
-//	00519                         continue;
-//	00520                 text = con.text + (i % con.totallines)*con.linewidth;
-//	00521                 
-//	00522                 for (x = 0 ; x < con.linewidth ; x++)
-//	00523                         re.DrawChar ( (x+1)<<3, v, text[x]);
-//	00524 
-//	00525                 v += 8;
-//	00526         }
-//	00527 
-//	00528 
-//	00529         if (cls.key_dest == key_message)
-//	00530         {
-//	00531                 if (chat_team)
-//	00532                 {
-//	00533                         DrawString (8, v, "say_team:");
-//	00534                         skip = 11;
-//	00535                 }
-//	00536                 else
-//	00537                 {
-//	00538                         DrawString (8, v, "say:");
-//	00539                         skip = 5;
-//	00540                 }
-//	00541 
-//	00542                 s = chat_buffer;
-//	00543                 if (chat_bufferlen > (viddef.width>>3)-(skip+1))
-//	00544                         s += chat_bufferlen - ((viddef.width>>3)-(skip+1));
-//	00545                 x = 0;
-//	00546                 while(s[x])
-//	00547                 {
-//	00548                         re.DrawChar ( (x+skip)<<3, v, s[x]);
-//	00549                         x++;
-//	00550                 }
-//	00551                 re.DrawChar ( (x+skip)<<3, v, 10+((cls.realtime>>8)&1));
-//	00552                 v += 8;
-//	00553         }
-//	00554         
-//	00555         if (v)
-//	00556         {
-//	00557                 SCR_AddDirtyPoint (0,0);
-//	00558                 SCR_AddDirtyPoint (viddef.width-1, v);
-//	00559         }
-//	00560 }
+	/*
+	================
+	Con_DrawNotify
+	
+	Draws the last few lines of output transparently over the game top
+	================
+	*/
+	static void DrawNotify() {
+		int x, v;
+		int text;
+		int i;
+		int time;
+		String s;
+		int skip;
+ 
+		v = 0;
+		for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++) {
+			if (i < 0) continue;
+			
+			time = (int)con.times[i % NUM_CON_TIMES];
+			if (time == 0) continue;
+			
+			time = (int)(cls.realtime - time);
+			if (time > con_notifytime.value*1000) continue;
+			
+			text = (i % con.totallines)*con.linewidth;
+                 
+			for (x = 0 ; x < con.linewidth ; x++)
+				re.DrawChar( (x+1)<<3, v, con.text[text+x]);
+
+			v += 8;
+		}
+ 
+		if (cls.key_dest == key_message) {
+			if (chat_team) {
+				DrawString(8, v, "say_team:");
+				skip = 11;
+			} else {
+				DrawString (8, v, "say:");
+				skip = 5;
+			}
+ 
+			s = chat_buffer;
+			if (chat_bufferlen > (viddef.width>>3)-(skip+1))
+				s = s.substring(chat_bufferlen - ((viddef.width>>3)-(skip+1)));
+				
+			for (x = 0; x < s.length(); x++) {
+				re.DrawChar( (x+skip)<<3, v, s.charAt(x));
+			}
+			re.DrawChar( (x+skip)<<3, v, (int)(10+((cls.realtime>>8)&1)));
+			v += 8;
+		}
+        
+		if (v != 0) {
+			SCR.AddDirtyPoint(0,0);
+			SCR.AddDirtyPoint(viddef.width-1, v);
+		}
+	}
  
 	/*
 	================

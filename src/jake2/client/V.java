@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.5 2004-01-28 10:03:06 hoz Exp $
+ * $Id: V.java,v 1.6 2004-01-28 21:04:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,11 +25,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.Globals;
+import jake2.game.Cmd;
+import jake2.game.cvar_t;
+import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.xcommand_t;
+import jake2.util.Vargs;
+
 /**
  * V
  * TODO implement V
  */
-public final class V {
+public final class V extends Globals {
+	
+	static cvar_t cl_testblend;
+	static cvar_t cl_testparticles;
+	static cvar_t cl_testentities;
+	static cvar_t cl_testlights;
+	static cvar_t cl_stats;		
 //	/*
 //	====================
 //	V_ClearScene
@@ -211,33 +225,34 @@ public final class V {
 //			dl->color[2] = (((i%6)+1) & 4)>>2;
 //			dl->intensity = 200;
 //		}
-//	}	
-//	void V_Gun_Next_f (void)
-//	{
-//		gun_frame++;
-//		Com_Printf ("frame %i\n", gun_frame);
 //	}
-//
-//	void V_Gun_Prev_f (void)
-//	{
-//		gun_frame--;
-//		if (gun_frame < 0)
-//			gun_frame = 0;
-//		Com_Printf ("frame %i\n", gun_frame);
-//	}	
 
-//	void V_Gun_Model_f (void)
-//	{
-//		char	name[MAX_QPATH];
-//
-//		if (Cmd_Argc() != 2)
-//		{
-//			gun_model = NULL;
-//			return;
-//		}
-//		Com_sprintf (name, sizeof(name), "models/%s/tris.md2", Cmd_Argv(1));
-//		gun_model = re.RegisterModel (name);
-//	}
+	static xcommand_t Gun_Next_f = new xcommand_t() {
+		public void execute() {
+			gun_frame++;
+			Com.Printf("frame " + gun_frame + "\n");
+		}
+	};
+
+	static xcommand_t Gun_Prev_f = new xcommand_t() {
+		public void execute() {
+			gun_frame--;
+			if (gun_frame < 0)
+				gun_frame = 0;
+			Com.Printf("frame " + gun_frame + "\n");
+		}
+	};	
+
+	static xcommand_t Gun_Model_f = new xcommand_t() {
+		public void execute() {
+			if (Cmd.Argc() != 2) {
+				gun_model = null;
+				return;
+			}
+			String name = "models/" + Cmd.Argv(1) + "/tris.md2";
+			gun_model = re.RegisterModel(name);
+		}
+	};
 	
 //	/*
 //	==================
@@ -353,33 +368,36 @@ public final class V {
 //		SCR_DrawCrosshair ();
 //	}
 	
-//	/*
-//	=============
-//	V_Viewpos_f
-//	=============
-//	*/
-//	void V_Viewpos_f (void)
-//	{
-//		Com_Printf ("(%i %i %i) : %i\n", (int)cl.refdef.vieworg[0],
-//			(int)cl.refdef.vieworg[1], (int)cl.refdef.vieworg[2], 
-//			(int)cl.refdef.viewangles[YAW]);
-//	}
+	/*
+	=============
+	V_Viewpos_f
+	=============
+	*/
+	static xcommand_t Viewpos_f = new xcommand_t() {
+		public void execute() {
+			Com.Printf("(%i %i %i) : %i\n",
+				new Vargs(4).add((int)cl.refdef.vieworg[0]).add(
+				(int)cl.refdef.vieworg[1]).add(
+				(int)cl.refdef.vieworg[2]).add(
+				(int)cl.refdef.viewangles[YAW]));
+		}
+	};
 	
 	public static void Init() {
-//		Cmd_AddCommand ("gun_next", V_Gun_Next_f);
-//		Cmd_AddCommand ("gun_prev", V_Gun_Prev_f);
-//		Cmd_AddCommand ("gun_model", V_Gun_Model_f);
-//
-//		Cmd_AddCommand ("viewpos", V_Viewpos_f);
-//
-//		crosshair = Cvar_Get ("crosshair", "0", CVAR_ARCHIVE);
-//
-//		cl_testblend = Cvar_Get ("cl_testblend", "0", 0);
-//		cl_testparticles = Cvar_Get ("cl_testparticles", "0", 0);
-//		cl_testentities = Cvar_Get ("cl_testentities", "0", 0);
-//		cl_testlights = Cvar_Get ("cl_testlights", "0", 0);
-//
-//		cl_stats = Cvar_Get ("cl_stats", "0", 0);		
+		Cmd.AddCommand("gun_next", Gun_Next_f);
+		Cmd.AddCommand("gun_prev", Gun_Prev_f);
+		Cmd.AddCommand("gun_model", Gun_Model_f);
+
+		Cmd.AddCommand("viewpos", Viewpos_f);
+
+		crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
+
+		cl_testblend = Cvar.Get("cl_testblend", "0", 0);
+		cl_testparticles = Cvar.Get("cl_testparticles", "0", 0);
+		cl_testentities = Cvar.Get("cl_testentities", "0", 0);
+		cl_testlights = Cvar.Get("cl_testlights", "0", 0);
+
+		cl_stats = Cvar.Get("cl_stats", "0", 0);		
 	}
 
 }
