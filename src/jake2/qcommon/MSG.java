@@ -19,17 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.7 2003-12-09 22:12:44 rst Exp $
+// $Id: MSG.java,v 1.8 2003-12-19 11:13:58 cwei Exp $
 
 package jake2.qcommon;
 
-import java.io.DataOutputStream;
-
-import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
 import jake2.util.*;
 
 public class MSG extends GameBase {
@@ -91,6 +85,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void WritePos(sizebuf_t sb, float[] pos) {
+		assert (pos.length == 3) : "vec3_t bug";
 		WriteShort(sb, (int) (pos[0] * 8));
 		WriteShort(sb, (int) (pos[1] * 8));
 		WriteShort(sb, (int) (pos[2] * 8));
@@ -490,6 +485,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void ReadPos(sizebuf_t msg_read, float pos[]) {
+		assert (pos.length == 3) : "vec3_t bug";
 		pos[0] = ReadShort(msg_read) * (1.0f / 8);
 		pos[1] = ReadShort(msg_read) * (1.0f / 8);
 		pos[2] = ReadShort(msg_read) * (1.0f / 8);
