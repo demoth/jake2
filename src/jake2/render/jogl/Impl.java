@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.1 2003-12-29 01:57:00 cwei Exp $
+ * $Id: Impl.java,v 1.2 2003-12-29 06:00:49 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -134,14 +134,17 @@ public class Impl extends Misc implements GLEventListener {
 	}
 
 	protected void GLimp_AppActivate(boolean activate) {
-		// TODO impl GLimp_AppActivate(boolean activate)
-
+		// do nothing
+	}
+	
+	boolean QGL_Init(String dll_name) {
+		// doesn't need libGL.so or .dll loading
+		return true;
 	}
 
-	
-	
 	void QGL_Shutdown() {
-		// TODO impl QGL_Shutdown()
+		// doesn't need libGL.so or .dll loading
+		// do nothing
 	}
 	
 	void GLimp_Shutdown() {

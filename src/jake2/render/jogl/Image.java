@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.2 2003-12-29 01:57:00 cwei Exp $
+ * $Id: Image.java,v 1.3 2003-12-29 06:00:49 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,11 +26,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
-import jake2.Globals;
 import jake2.game.cvar_t;
 import jake2.qcommon.qfiles;
+import jake2.render.image_t;
 
 import java.awt.Dimension;
+import java.util.Hashtable;
 
 import net.java.games.jogl.GL;
 
@@ -39,35 +40,37 @@ import net.java.games.jogl.GL;
  * 
  * @author cwei
  */
-public abstract class Image extends Main {
-	
-	
-//
-//	#include "gl_local.h"
-//
-//	image_t		gltextures[Defines.MAX_GLTEXTURES];
-	int			numgltextures;
-	int			base_textureid;		// gltextures[i] = base_textureid+i
-//
-//	static byte			 intensitytable[256];
-//	static unsigned char gammatable[256];
-//
-	cvar_t		intensity;
-//
-	protected int[] d_8to24table = new int[256]; 
+public abstract class Image extends Model {
+
+
+	image_t	draw_chars;
+
+	// image_t[] gltextures = new image_t[MAX_GLTEXTURES];
+	// image_t Hashtable
+	Hashtable gltextures = new Hashtable(MAX_GLTEXTURES); // image_t
+	int numgltextures;
+	int base_textureid;		// gltextures[i] = base_textureid+i
+
+	byte[] intensitytable = new byte[256];
+	byte[] gammatable = new byte[256];
+
+	cvar_t intensity;
+
+	int[] d_8to24table = new int[256]; 
 //
 //	qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 //	qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 //
-//
-	int		gl_solid_format = 3;
-	int		gl_alpha_format = 4;
-//
-	int		gl_tex_solid_format = 3;
-	int		gl_tex_alpha_format = 4;
-//
-	int		gl_filter_min = GL.GL_LINEAR_MIPMAP_NEAREST;
-	int		gl_filter_max = GL.GL_LINEAR;
+
+	int gl_solid_format = 3;
+	int gl_alpha_format = 4;
+
+	int gl_tex_solid_format = 3;
+	int gl_tex_alpha_format = 4;
+
+	int gl_filter_min = GL.GL_LINEAR_MIPMAP_NEAREST;
+	int gl_filter_max = GL.GL_LINEAR;
+
 //
 //	void GL_SetTexturePalette( unsigned palette[256] )
 //	{
@@ -92,8 +95,8 @@ public abstract class Image extends Main {
 //		}
 //	}
 //
-//	void GL_EnableMultitexture( qboolean enable )
-//	{
+	void GL_EnableMultitexture(boolean enable)
+	{
 //		if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
 //			return;
 //
@@ -111,7 +114,7 @@ public abstract class Image extends Main {
 //		}
 //		GL_SelectTexture( GL_TEXTURE0 );
 //		GL_TexEnv( GL_REPLACE );
-//	}
+	}
 //
 //	void GL_SelectTexture( GLenum texture )
 //	{
@@ -158,17 +161,18 @@ public abstract class Image extends Main {
 //		}
 //	}
 //
-//	void GL_Bind (int texnum)
-//	{
-//		extern	image_t	*draw_chars;
-//
-//		if (gl_nobind->value && draw_chars)		// performance evaluation option
-//			texnum = draw_chars->texnum;
-//		if ( gl_state.currenttextures[gl_state.currenttmu] == texnum)
-//			return;
-//		gl_state.currenttextures[gl_state.currenttmu] = texnum;
-//		qglBindTexture (GL_TEXTURE_2D, texnum);
-//	}
+
+	void GL_Bind(int texnum) {
+
+		if ((gl_nobind.value > 0.0f) && (draw_chars != null)) {
+			// performance evaluation option
+			texnum = draw_chars.texnum;
+		}
+		if ( gl_state.currenttextures[gl_state.currenttmu] == texnum) return;
+		
+		gl_state.currenttextures[gl_state.currenttmu] = texnum;
+		gl.glBindTexture(GL.GL_TEXTURE_2D, texnum);
+	}
 //
 //	void GL_MBind( GLenum target, int texnum )
 //	{
@@ -448,11 +452,11 @@ public abstract class Image extends Main {
 	=================================================================
 	*/
 
-  /*
-  ==============
-  LoadPCX
-  ==============
-  */
+	/*
+	==============
+	LoadPCX
+	==============
+	*/
 	byte[] LoadPCX (String filename, byte[][] palette, Dimension dim) {
 		qfiles.pcx_t pcx;
 
@@ -462,7 +466,7 @@ public abstract class Image extends Main {
 	  byte[] raw = ri.FS_LoadFile(filename);
 		
 	  if (raw == null) {
-		  ri.Con_Printf (Globals.PRINT_DEVELOPER, "Bad pcx file " + filename + '\n', null);
+		  ri.Con_Printf (Defines.PRINT_DEVELOPER, "Bad pcx file " + filename + '\n');
 		  return null;
 	  }
 
@@ -520,7 +524,7 @@ public abstract class Image extends Main {
 	  }
 	  return pix;
   }
-//
+
 //	/*
 //	=========================================================
 //
@@ -543,8 +547,8 @@ public abstract class Image extends Main {
 //	LoadTGA
 //	=============
 //	*/
-//	void LoadTGA (char *name, byte **pic, int *width, int *height)
-//	{
+	byte[] LoadTGA (String name, Dimension dim)
+	{
 //		int		columns, rows, numPixels;
 //		byte	*pixbuf;
 //		int		row, column;
@@ -725,7 +729,8 @@ public abstract class Image extends Main {
 //		}
 //
 //		ri.FS_FreeFile (buffer);
-//	}
+		return null; // remove this
+	}
 //
 //
 //	/*
@@ -1237,9 +1242,9 @@ public abstract class Image extends Main {
 //	This is also used as an entry point for the generated r_notexture
 //	================
 //	*/
-//	image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits)
-//	{
-//		image_t		*image;
+	image_t GL_LoadPic(String name, byte[] pic, int width, int height, int type, int bits)
+	{
+		image_t image = null;
 //		int			i;
 //
 //		// find a free image_t
@@ -1313,8 +1318,8 @@ public abstract class Image extends Main {
 //			image->th = 1;
 //		}
 //
-//		return image;
-//	}
+		return image;
+	}
 //
 //
 //	/*
@@ -1353,12 +1358,10 @@ public abstract class Image extends Main {
 //	Finds or loads the given image
 //	===============
 //	*/
-//	image_t	*GL_FindImage (char *name, imagetype_t type)
-//	{
-//		image_t	*image;
+	image_t	GL_FindImage (String name, int type)
+	{
+		image_t	image = null;
 //		int		i, len;
-//		byte	*pic, *palette;
-//		int		width, height;
 //
 //		if (!name)
 //			return NULL;	//	ri.Sys_Error (ERR_DROP, "GL_FindImage: NULL name");
@@ -1366,28 +1369,28 @@ public abstract class Image extends Main {
 //		if (len<5)
 //			return NULL;	//	ri.Sys_Error (ERR_DROP, "GL_FindImage: bad name: %s", name);
 //
-//		// look for it
-//		for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
-//		{
-//			if (!strcmp(name, image->name))
-//			{
-//				image->registration_sequence = registration_sequence;
-//				return image;
-//			}
-//		}
-//
-//		//
-//		// load the pic from disk
-//		//
-//		pic = NULL;
-//		palette = NULL;
-//		if (!strcmp(name+len-4, ".pcx"))
-//		{
-//			LoadPCX (name, &pic, &palette, &width, &height);
-//			if (!pic)
-//				return NULL; // ri.Sys_Error (ERR_DROP, "GL_FindImage: can't load %s", name);
-//			image = GL_LoadPic (name, pic, width, height, type, 8);
-//		}
+		// look for it
+		image = (image_t)gltextures.get(name);
+
+		if (image != null) {
+			// found it
+			image.registration_sequence = registration_sequence;
+			return image;
+		}
+
+		//
+		// load the pic from disk
+		//
+		byte[] pic = null;
+		Dimension dim = new Dimension();
+		
+		if (name.endsWith(".pcx"))
+		{
+			pic = LoadPCX (name, null, dim);
+			
+			if (pic == null) return null;
+			image = GL_LoadPic(name, pic, dim.width, dim.height, type, 8);
+		}
 //		else if (!strcmp(name+len-4, ".wal"))
 //		{
 //			image = GL_LoadWal (name);
@@ -1408,22 +1411,18 @@ public abstract class Image extends Main {
 //		if (palette)
 //			free(palette);
 //
-//		return image;
-//	}
-//
-//
-//
-//	/*
-//	===============
-//	R_RegisterSkin
-//	===============
-//	*/
-//	struct image_s *R_RegisterSkin (char *name)
-//	{
-//		return GL_FindImage (name, it_skin);
-//	}
-//
-//
+		return image;
+	}
+
+	/*
+	===============
+	R_RegisterSkin
+	===============
+	*/
+	protected image_t R_RegisterSkin(String name) {
+		return GL_FindImage(name, it_skin);
+	}
+
 //	/*
 //	================
 //	GL_FreeUnusedImages
@@ -1456,43 +1455,38 @@ public abstract class Image extends Main {
 //	}
 //
 //
-//	/*
-//	===============
-//	Draw_GetPalette
-//	===============
-//	*/
-//	int Draw_GetPalette (void)
-//	{
-//		int		i;
-//		int		r, g, b;
-//		unsigned	v;
-//		byte	*pic, *pal;
-//		int		width, height;
-//
-//		// get the palette
-//
-//		LoadPCX ("pics/colormap.pcx", &pic, &pal, &width, &height);
-//		if (!pal)
-//			ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
-//
-//		for (i=0 ; i<256 ; i++)
-//		{
-//			r = pal[i*3+0];
-//			g = pal[i*3+1];
-//			b = pal[i*3+2];
-//		
-//			v = (255<<24) + (r<<0) + (g<<8) + (b<<16);
-//			d_8to24table[i] = LittleLong(v);
-//		}
-//
-//		d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
-//
-//		free (pic);
-//		free (pal);
-//
-//		return 0;
-//	}
-//
+	/*
+	===============
+	Draw_GetPalette
+	===============
+	*/
+	protected void Draw_GetPalette() {
+		int r, g, b;
+		int v;
+		Dimension dim;
+		byte[] pic; 
+		byte[][] palette = new byte[1][]; //new byte[768];
+
+		// get the palette
+
+		pic = LoadPCX("pics/colormap.pcx", palette, dim = new Dimension());
+
+		if (palette[0] == null || palette[0].length != 768)
+			ri.Sys_Error(Defines.ERR_FATAL, "Couldn't load pics/colormap.pcx");
+
+		byte[] pal = palette[0];
+
+		for (int i = 0; i < 256; i++) {
+			r = pal[i * 3 + 0];
+			g = pal[i * 3 + 1];
+			b = pal[i * 3 + 2];
+
+			d_8to24table[i] = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		}
+
+		d_8to24table[255] &= 0x00ffffff; // 255 is transparent
+	}
+
 //
 //	/*
 //	===============

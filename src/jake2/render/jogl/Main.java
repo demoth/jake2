@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2003-12-29 01:57:00 cwei Exp $
+ * $Id: Main.java,v 1.4 2003-12-29 06:00:49 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,9 +47,7 @@ import jake2.util.Math3D;
  * 
  * @author cwei
  */
-public abstract class Main {
-	
-	static final String REF_VERSION = "GL 0.01";
+public abstract class Main extends Base {
 	
 	GL gl;
 	GLU glu;
@@ -58,15 +56,24 @@ public abstract class Main {
 	//	=================
 	//  abstract methods
 	//	=================
-	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
 	abstract void Draw_GetPalette();
+
+	abstract boolean QGL_Init(String dll_name);
 	abstract void QGL_Shutdown();
+
 	abstract boolean GLimp_Init();
+	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
 	abstract void GLimp_Shutdown();
 
-	//
-	// from gl_rmain.c
-	//
+	/*
+	====================================================================
+
+	from gl_rmain.c
+
+	====================================================================
+	*/
+
+	// IMPORTED FUNCTIONS
 	protected refimport_t ri = null;
 
 	viddef_t vid = new viddef_t();
@@ -1130,33 +1137,30 @@ public abstract class Main {
 // R_Init
 // ===============
 // */
+
+	// TODO fill float[] r_turbsin
+	float[] r_turbsin = new float[256];
+
 	protected boolean R_Init()
 	{	
-//	 char renderer_buffer[1000];
-//	 char vendor_buffer[1000];
-//	 int		err;
-//	 int		j;
-//	 extern float r_turbsin[256];
-//
-//	 for ( j = 0; j < 256; j++ )
-//	 {
-//		 r_turbsin[j] *= 0.5;
-//	 }
-//
+		for (int j = 0; j < 256; j++ ) {
+			r_turbsin[j] *= 0.5;
+		}
+
 		ri.Con_Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
-//
+
 		Draw_GetPalette();
-//
+
 		R_Register();
-//
-//	 // initialize our QGL dynamic bindings
-//	 if ( !QGL_Init( gl_driver->string ) )
-//	 {
-//		 QGL_Shutdown();
-//		 ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not load \"%s\"\n", gl_driver->string );
-//		 return -1;
-//	 }
-//
+
+		// initialize our QGL dynamic bindings
+		if ( !QGL_Init( gl_driver.string ) )
+		{
+			QGL_Shutdown();
+			ri.Con_Printf (Defines.PRINT_ALL, "ref_gl::R_Init() - could not load \"" + gl_driver.string +"\"\n");
+			return false;
+		}
+
 
 		// initialize OS-specific parts of OpenGL
 		if (!GLimp_Init()) {
@@ -1192,13 +1196,9 @@ public abstract class Main {
 		ri.Con_Printf (Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
 		gl_config.extensions_string = gl.glGetString(GL.GL_EXTENSIONS);
 		ri.Con_Printf (Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string +'\n');
-//
-//	 strcpy( renderer_buffer, gl_config.renderer_string );
-//	 strlwr( renderer_buffer );
-//
-//	 strcpy( vendor_buffer, gl_config.vendor_string );
-//	 strlwr( vendor_buffer );
-//
+
+		String renderer_buffer = gl_config.renderer_string.toLowerCase();
+		String vendor_buffer = gl_config.vendor_string.toLowerCase();
 //	 if ( strstr( renderer_buffer, "voodoo" ) )
 //	 {
 //		 if ( !strstr( renderer_buffer, "rush" ) )
