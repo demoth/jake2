@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.21 2004-03-17 16:17:33 cwei Exp $
+ * $Id: Impl.java,v 1.22 2004-04-25 12:01:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,7 +27,10 @@ package jake2.render.jogl;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.client.CL;
+import jake2.qcommon.Com;
 import jake2.qcommon.xcommand_t;
+import jake2.server.SV;
 import jake2.sys.KBD;
 
 import java.awt.Dimension;
@@ -126,9 +129,7 @@ public class Impl extends Misc implements GLEventListener {
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				R_Shutdown();
-				System.out.println("Received event " + e.paramString() + ", exiting...\n");
-				System.exit(0);
+				ri.Cmd_ExecuteText(Defines.EXEC_APPEND, "quit");
 			}
 		});
 		
