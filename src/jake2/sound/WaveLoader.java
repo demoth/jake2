@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.2 2004-10-29 16:38:36 cawe Exp $
+ * $Id: WaveLoader.java,v 1.3 2004-11-03 20:15:02 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,10 +28,10 @@ package jake2.sound;
 import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
-import jake2.sys.Sys;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteOrder;
 
 import javax.sound.sampled.*;
 
@@ -40,7 +40,15 @@ import javax.sound.sampled.*;
  */
 public class WaveLoader {
 
-	private static final AudioFormat sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
+	private static AudioFormat sampleFormat;
+	static {
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+			sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
+		} else {
+			sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, true);
+		}
+		
+	}
 
 	/*
 	==============
