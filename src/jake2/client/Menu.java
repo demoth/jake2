@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.15 2005-01-12 08:36:21 hzi Exp $
+ * $Id: Menu.java,v 1.16 2005-01-12 08:47:42 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1313,16 +1313,11 @@ public final class Menu extends Key {
         //s_options_quality_list.curvalue = 1 - ((int)
         // Cvar.VariableValue("s_loadas8bit"));
         String s = Cvar.VariableString("s_impl");
-        for (int i = 0; i < s_options_quality_list.itemnames.length; i++) {
-        	if (s.equals(s_options_quality_list.itemnames[i])) {
+        for (int i = 0; i < s_drivers.length; i++) {
+        	if (s.equals(s_drivers[i])) {
         		s_options_quality_list.curvalue = i;
         	}
         }
-//        if ("joal".equals(Cvar.VariableString("s_impl"))) {
-//            s_options_quality_list.curvalue = 0;
-//        } else {
-//            s_options_quality_list.curvalue = 1;
-//        }
 
         s_options_sensitivity_slider.curvalue = (sensitivity.value) * 2;
 
@@ -1396,7 +1391,7 @@ public final class Menu extends Key {
 
     static void UpdateSoundQualityFunc(Object unused) {
         boolean driverNotChanged = false;
-        String current = s_options_quality_list.itemnames[s_options_quality_list.curvalue];
+        String current = s_drivers[s_options_quality_list.curvalue];
         driverNotChanged = S.getDriverName().equals(current);
 //        if (s_options_quality_list.curvalue != 0) {
 //            //			Cvar.SetValue("s_khz", 22);
@@ -1439,8 +1434,21 @@ public final class Menu extends Key {
 
     static String crosshair_names[] = { "none", "cross", "dot", "angle" };
 
+    static String[] s_labels;
+    static String[] s_drivers;
+    
     static void Options_MenuInit() {
 
+    	s_drivers = S.getDriverNames();
+    	s_labels = new String[s_drivers.length];
+    	for (int i = 0; i < s_drivers.length; i++) {
+    		if ("dummy".equals(s_drivers[i])) {
+    			s_labels[i] = "off";
+    		} else {
+    			s_labels[i] = s_drivers[i];
+    		}
+    	}
+    	
         win_noalttab = Cvar.Get("win_noalttab", "0", CVAR_ARCHIVE);
 
         /*
@@ -1486,22 +1494,7 @@ public final class Menu extends Key {
                 UpdateSoundQualityFunc(o);
             }
         };
-        s_options_quality_list.itemnames = S.getDriverNames();//soundstate_items;
-        //s_options_quality_list.curvalue = 1 - (int)
-        // Cvar.VariableValue("s_loadas8bit");
-
-        //		s_options_compatibility_list.type = MTYPE_SPINCONTROL;
-        //		s_options_compatibility_list.x = 0;
-        //		s_options_compatibility_list.y = 30;
-        //		s_options_compatibility_list.name = "sound compatibility";
-        //		s_options_compatibility_list.callback = new mcallback() {
-        //			public void execute(Object o) {
-        //				UpdateSoundQualityFunc(o);
-        //			}
-        //		};
-        //		s_options_compatibility_list.itemnames = compatibility_items;
-        //		s_options_compatibility_list.curvalue = (int)
-        // Cvar.VariableValue("s_primary");
+        s_options_quality_list.itemnames = s_labels;
 
         s_options_sensitivity_slider.type = MTYPE_SLIDER;
         s_options_sensitivity_slider.x = 0;
