@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Model.java,v 1.3 2004-12-16 21:55:58 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1261,6 +1261,7 @@ public abstract class Model extends Surf {
 			}
 		}
 		GL_FreeUnusedImages();
+		resetPolygonArrays();
 		
 		//modelMemoryUsage();
 	}
