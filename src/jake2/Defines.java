@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.8 2003-12-27 21:33:50 rst Exp $
+// $Id: Defines.java,v 1.9 2003-12-28 13:53:38 hoz Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1140,4 +1140,5 @@ public class Defines extends Math3D {
 
 	// console.h
 	public static final int NUM_CON_TIMES = 4;
+	public static final int CON_TEXTSIZE = 32768;
 }

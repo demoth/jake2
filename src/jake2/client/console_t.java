@@ -2,7 +2,7 @@
  * console_t.java
  * Copyright (C) 2003
  * 
- * $Id: console_t.java,v 1.1 2003-12-21 13:50:24 hoz Exp $
+ * $Id: console_t.java,v 1.2 2003-12-28 13:53:38 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,7 +32,7 @@ import jake2.Defines;
  */
 public final class console_t {
 	boolean initialized;
-	String text;
+	byte[] text = new byte[Defines.CON_TEXTSIZE];
 	int current;	// line where next message will be printed
 	int x;			// offset in current line for next print
 	int display;	// bottom of console displays this line

@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.20 2003-12-27 15:41:00 rst Exp $
+ * $Id: Globals.java,v 1.21 2003-12-28 13:53:38 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -339,4 +339,5 @@ public class Globals extends Defines {
 	public static cvar_t cvar_vars;
 	public static final console_t con = new console_t();
 	public static cvar_t con_notifytime;
+	public static viddef_t viddef = new viddef_t();
 }

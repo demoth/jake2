@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.7 2003-12-21 13:50:24 hoz Exp $
+ * $Id: Console.java,v 1.8 2003-12-28 13:53:38 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import java.util.Arrays;
+
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.qcommon.*;
@@ -70,54 +73,55 @@ public final class Console {
 	 * If the line width has changed, reformat the buffer.
 	 */
 	public static void CheckResize() {
-//	00247         int             i, j, width, oldwidth, oldtotallines, numlines, numchars;
-//	00248         char    tbuf[CON_TEXTSIZE];
-//	00249 
-//	00250         width = (viddef.width >> 3) - 2;
-//	00251 
-//	00252         if (width == con.linewidth)
-//	00253                 return;
-//	00254 
-//	00255         if (width < 1)                  // video hasn't been initialized yet
-//	00256         {
-//	00257                 width = 38;
-//	00258                 con.linewidth = width;
-//	00259                 con.totallines = CON_TEXTSIZE / con.linewidth;
-//	00260                 memset (con.text, ' ', CON_TEXTSIZE);
-//	00261         }
-//	00262         else
-//	00263         {
-//	00264                 oldwidth = con.linewidth;
-//	00265                 con.linewidth = width;
-//	00266                 oldtotallines = con.totallines;
-//	00267                 con.totallines = CON_TEXTSIZE / con.linewidth;
-//	00268                 numlines = oldtotallines;
-//	00269 
-//	00270                 if (con.totallines < numlines)
-//	00271                         numlines = con.totallines;
-//	00272 
-//	00273                 numchars = oldwidth;
-//	00274         
-//	00275                 if (con.linewidth < numchars)
-//	00276                         numchars = con.linewidth;
-//	00277 
-//	00278                 memcpy (tbuf, con.text, CON_TEXTSIZE);
-//	00279                 memset (con.text, ' ', CON_TEXTSIZE);
-//	00280 
-//	00281                 for (i=0 ; i<numlines ; i++)
-//	00282                 {
-//	00283                         for (j=0 ; j<numchars ; j++)
-//	00284                         {
-//	00285                                 con.text[(con.totallines - 1 - i) * con.linewidth + j] =
-//	00286                                                 tbuf[((con.current - i + oldtotallines) %
-//	00287                                                           oldtotallines) * oldwidth + j];
-//	00288                         }
-//	00289                 }
-//	00290 
-//	00291                 Con_ClearNotify ();
-//	00292         }
-//	00293 
-//	00294         con.current = con.totallines - 1;
-//	00295         con.display = con.current;
+		int i, j, width, oldwidth, oldtotallines, numlines, numchars;
+		byte[] tbuf = new byte[Defines.CON_TEXTSIZE];
+
+		width = (Globals.viddef.width >> 3) - 2;
+ 
+		if (width == Globals.con.linewidth)
+			return;
+
+		if (width < 1) {	// video hasn't been initialized yet
+			width = 38;
+			Globals.con.linewidth = width;
+			Globals.con.totallines = Defines.CON_TEXTSIZE / Globals.con.linewidth;
+			Arrays.fill(Globals.con.text, (byte)' ');
+		} 
+		else {
+			oldwidth = Globals.con.linewidth;
+			Globals.con.linewidth = width;
+			oldtotallines = Globals.con.totallines;
+			Globals.con.totallines = Defines.CON_TEXTSIZE / Globals.con.linewidth;
+			numlines = oldtotallines;
+ 
+			if (Globals.con.totallines < numlines)
+				numlines = Globals.con.totallines;
+
+			numchars = oldwidth;
+      
+			if (Globals.con.linewidth < numchars)
+				numchars = Globals.con.linewidth;
+
+			System.arraycopy(Globals.con.text, 0, tbuf, 0, Defines.CON_TEXTSIZE);
+			Arrays.fill(Globals.con.text, (byte)' ');
+ 
+			for (i=0 ; i<numlines ; i++) {
+				for (j=0 ; j<numchars ; j++) {
+					Globals.con.text[(Globals.con.totallines - 1 - i) * Globals.con.linewidth + j] =
+						tbuf[((Globals.con.current - i + oldtotallines) % oldtotallines) * oldwidth + j];
+				}
+			}
+
+			Console.ClearNotify();
+		}
+ 
+		Globals.con.current = Globals.con.totallines - 1;
+		Globals.con.display = Globals.con.current;
+	}
+	
+	public static void ClearNotify() {
+		int i;
+		for (i=0 ; i<Defines.NUM_CON_TIMES ; i++)
+			Globals.con.times[i] = 0;
 	}
 }
