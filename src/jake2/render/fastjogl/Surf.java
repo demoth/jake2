@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.8 2005-01-16 15:24:50 cawe Exp $
+ * $Id: Surf.java,v 1.9 2005-01-17 23:50:50 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -817,7 +817,7 @@ public abstract class Surf extends Draw {
     /*
      * ============= R_DrawWorld =============
      */
-    entity_t worldEnt = new entity_t();
+    private final entity_t worldEnt = new entity_t();
     
     void R_DrawWorld() {
 
