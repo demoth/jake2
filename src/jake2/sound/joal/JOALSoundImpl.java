@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.5 2004-09-22 19:22:15 salomo Exp $
+ * $Id: JOALSoundImpl.java,v 1.6 2004-10-21 01:51:45 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -607,8 +607,7 @@ public final class JOALSoundImpl implements Sound {
 		sfx_t sfx = null;
 
 		// determine what model the client is using
-		// TODO configstrings for player male and female are wrong 
-		String model = "male";
+		String model = null;
 		int n = Globals.CS_PLAYERSKINS + ent.number - 1;
 		if (Globals.cl.configstrings[n] != null) {
 			int p = Globals.cl.configstrings[n].indexOf('\\');
@@ -632,18 +631,16 @@ public final class JOALSoundImpl implements Sound {
 
 		if (sfx == null) {
 			// no, so see if it exists
-			RandomAccessFile f = null;
-			try {
-				f = FS.FOpenFile(sexedFilename.substring(1));
-			} catch (IOException e) {}
-			if (f != null) {
-				// yes, close the file and register it
-				try {
-					FS.FCloseFile(f);
-				} catch (IOException e1) {}
+			int fileLength = FS.FileLength(sexedFilename.substring(1));
+			if (fileLength > 0) {
+				// yes, register it
 				sfx = RegisterSound(sexedFilename);
-			} else {
-				// no, revert to the male sound in the pak0.pak
+			} else if (model.equalsIgnoreCase("female")) {
+			    // retry it with female pak-file sounds
+				String femaleFilename = "player/female/" + base.substring(1);
+				sfx = AliasName(sexedFilename, femaleFilename);
+			} else {    
+			    // no chance, revert to the male sound in the pak0.pak
 				String maleFilename = "player/male/" + base.substring(1);
 				sfx = AliasName(sexedFilename, maleFilename);
 			}
