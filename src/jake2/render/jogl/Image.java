@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.5 2004-01-04 01:33:30 cwei Exp $
+ * $Id: Image.java,v 1.6 2004-01-04 16:39:06 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -401,7 +401,7 @@ public abstract class Image extends Model {
 
 	  scrap allocation
 
-	  Allocate all the little status bar obejcts into a single texture
+	  Allocate all the little status bar objects into a single texture
 	  to crutch up inefficient hardware / drivers
 
 	=============================================================================
@@ -1319,30 +1319,12 @@ public abstract class Image extends Model {
 			
 			if (texnum == -1) {
 				// replace goto nonscrap
-				int image_id = 0;
-			
-//				image_t item = null;
-//				for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-//					item = (image_t) it.next();
-//					if (item == image) {
-//						 break;
-//					} else {
-//						image_id++;
-//					}
-//					
-//				}
 
 				image.scrap = false;
-				//image.texnum = TEXNUM_IMAGES + image_id; // + image pos
-
-				int[] number = new int[1];
-				gl.glGenTextures(1, number);
-				image.texnum = TEXNUM_IMAGES + number[0]; // + image pos
+				image.texnum = TEXNUM_IMAGES + gltextures.size() - 1; // + image pos
 				//System.out.println(gltextures.values());
-
-
-
 				GL_Bind(image.texnum);
+
 				if (bits == 8) {
 					image.has_alpha = GL_Upload8(pic, width, height, (image.type != it_pic && image.type != it_sky), image.type == it_sky );
 				}
@@ -1386,27 +1368,12 @@ public abstract class Image extends Model {
 		{
 			// this was label nonscrap
 
-			int image_id = 0;
-			
-//			image_t item = null;
-//			for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-//				item = (image_t) it.next();
-//				if (item == image) {
-//					break;
-//				} else {
-//					image_id++;
-//				}
-//			}
-
 			image.scrap = false;
-			//image.texnum = TEXNUM_IMAGES + image_id; // + image pos
 
-			int[] number = new int[1];
-			gl.glGenTextures(1, number);
-			image.texnum = TEXNUM_IMAGES + number[0]; // + image pos
-			//System.out.println(gltextures.values());
-
+			image.texnum = TEXNUM_IMAGES + gltextures.size(); // + image pos
+			// System.out.println(gltextures.values());
 			GL_Bind(image.texnum);
+			
 			if (bits == 8) {
 				image.has_alpha = GL_Upload8(pic, width, height, (image.type != it_pic && image.type != it_sky), image.type == it_sky );
 			}
@@ -1415,7 +1382,6 @@ public abstract class Image extends Model {
 				int[] tmp = new int[pic.length / 4];
 				ByteBuffer.wrap(pic).asIntBuffer().get(tmp);
 				image.has_alpha = GL_Upload32(tmp, width, height, (image.type != it_pic && image.type != it_sky) );
-				
 			}
 			image.upload_width = upload_width;		// after power of 2 and scales
 			image.upload_height = upload_height;
@@ -1543,7 +1509,8 @@ public abstract class Image extends Model {
 			if (image.type == it_pic) continue;
 			
 			// free it
-			gl.glDeleteTextures(1, new int[] {image.texnum});
+			// TODO jogl bug
+			//gl.glDeleteTextures(1, new int[] {image.texnum});
 			it.remove();
 		}
 	}
