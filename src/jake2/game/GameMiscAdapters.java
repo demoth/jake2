@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameMiscAdapters.java,v 1.2 2004-07-08 20:24:29 hzi Exp $
+// $Id: GameMiscAdapters.java,v 1.3 2004-07-14 15:34:24 cawe Exp $
 
 package jake2.game;
 
@@ -29,7 +29,7 @@ import jake2.client.M;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-import java.util.Date;
+import java.util.Calendar;
 
 public class GameMiscAdapters
 {
@@ -878,8 +878,8 @@ public class GameMiscAdapters
 			}
 			else
 			{
-				Date d = new Date();
-				self.message = "" + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+				Calendar c = Calendar.getInstance();
+				self.message = "" + c.get(Calendar.HOUR_OF_DAY) + ":" + c.get(Calendar.MINUTE) + ":" + c.get(Calendar.SECOND);
 
 				/*
 				struct tm * ltime;

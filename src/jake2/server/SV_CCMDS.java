@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+// $Id: SV_CCMDS.java,v 1.4 2004-07-14 15:34:24 cawe Exp $
 
 package jake2.server;
 
@@ -32,7 +32,7 @@ import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.io.*;
-import java.util.Date;
+import java.util.Calendar;
 
 public class SV_CCMDS extends SV_ENTS {
 
@@ -433,11 +433,15 @@ public class SV_CCMDS extends SV_ENTS {
 		if (!autosave) {
 			//time( aclock);
 			//newtime = localtime( aclock);
-			Date newtime = new Date();
+			Calendar c = Calendar.getInstance();
 			comment =
 				Com.sprintf(
 					"%2i:%2i %2i/%2i  ",
-					new Vargs().add(newtime.getHours()).add(newtime.getMinutes()).add(newtime.getMonth() + 1).add(newtime.getDay()));
+					new Vargs()
+						.add(c.get(Calendar.HOUR_OF_DAY))
+						.add(c.get(Calendar.MINUTE))
+						.add(c.get(Calendar.MONTH) + 1)
+						.add(c.get(Calendar.DAY_OF_MONTH)));
 			comment += sv.configstrings[CS_NAME];
 		}
 		else { // autosaved
