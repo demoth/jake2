@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.13 2004-02-16 21:41:10 rst Exp $
+ * $Id: SV.java,v 1.14 2004-02-29 00:51:06 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -119,7 +119,7 @@ public final class SV {
 		float[] dir = { 0.0f, 0.0f, 0.0f };
 		float d;
 		int numplanes;
-		float[][] planes = new float[3][GameBase.MAX_CLIP_PLANES];
+		float[][] planes = new float[GameBase.MAX_CLIP_PLANES][3];
 		float[] primal_velocity = { 0.0f, 0.0f, 0.0f };
 		float[] original_velocity = { 0.0f, 0.0f, 0.0f };
 		float[] new_velocity = { 0.0f, 0.0f, 0.0f };

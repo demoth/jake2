@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-// $Id: cmodel_t.java,v 1.3 2004-01-02 22:29:01 rst Exp $
-
+// $Id: cmodel_t.java,v 1.4 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
-public class cmodel_t {
+public class cmodel_t
+{
 	public float[] mins = { 0, 0, 0 };
 	public float[] maxs = { 0, 0, 0 };
 	public float[] origin = { 0, 0, 0 }; // for sounds or lights

@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.14 2004-02-16 21:41:10 rst Exp $
+ * $Id: M.java,v 1.15 2004-02-29 00:51:06 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.game.*;
+import jake2.qcommon.Com;
 import jake2.server.SV;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -34,16 +35,19 @@ import jake2.util.Math3D;
 /**
  * M
  */
-public final class M {
+public final class M
+{
 
-	public static void M_CheckGround(edict_t ent) {
+	public static void M_CheckGround(edict_t ent)
+	{
 		float[] point = { 0, 0, 0 };
 		trace_t trace;
 
 		if ((ent.flags & (Defines.FL_SWIM | Defines.FL_FLY)) != 0)
 			return;
 
-		if (ent.velocity[2] > 100) {
+		if (ent.velocity[2] > 100)
+		{
 			ent.groundentity = null;
 			return;
 		}
@@ -56,7 +60,8 @@ public final class M {
 		trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, point, ent, Defines.MASK_MONSTERSOLID);
 
 		// check steepness
-		if (trace.plane.normal[2] < 0.7 && !trace.startsolid) {
+		if (trace.plane.normal[2] < 0.7 && !trace.startsolid)
+		{
 			ent.groundentity = null;
 			return;
 		}
@@ -65,7 +70,8 @@ public final class M {
 		//		ent.groundentity_linkcount = trace.ent.linkcount;
 		//		if (!trace.startsolid && !trace.allsolid)
 		//			VectorCopy (trace.endpos, ent.s.origin);
-		if (!trace.startsolid && !trace.allsolid) {
+		if (!trace.startsolid && !trace.allsolid)
+		{
 			Math3D.VectorCopy(trace.endpos, ent.s.origin);
 			ent.groundentity = trace.ent;
 			ent.groundentity_linkcount = trace.ent.linkcount;
@@ -73,7 +79,8 @@ public final class M {
 		}
 	}
 
-	public static boolean M_CheckBottom(edict_t ent) {
+	public static boolean M_CheckBottom(edict_t ent)
+	{
 		float[] mins = { 0, 0, 0 };
 		float[] maxs = { 0, 0, 0 };
 		float[] start = { 0, 0, 0 };
@@ -91,10 +98,12 @@ public final class M {
 		//	   the corners must be within 16 of the midpoint
 		start[2] = mins[2] - 1;
 		for (x = 0; x <= 1; x++)
-			for (y = 0; y <= 1; y++) {
+			for (y = 0; y <= 1; y++)
+			{
 				start[0] = x != 0 ? maxs[0] : mins[0];
 				start[1] = y != 0 ? maxs[1] : mins[1];
-				if (GameBase.gi.pointcontents.pointcontents(start) != Defines.CONTENTS_SOLID) {
+				if (GameBase.gi.pointcontents.pointcontents(start) != Defines.CONTENTS_SOLID)
+				{
 					GameBase.c_no++;
 					//
 					//	   check it for real...
@@ -113,7 +122,8 @@ public final class M {
 
 					//	   the corners must be within 16 of the midpoint	
 					for (x = 0; x <= 1; x++)
-						for (y = 0; y <= 1; y++) {
+						for (y = 0; y <= 1; y++)
+						{
 							start[0] = stop[0] = x != 0 ? maxs[0] : mins[0];
 							start[1] = stop[1] = y != 0 ? maxs[1] : mins[1];
 
@@ -146,8 +156,9 @@ public final class M {
 	M_ChangeYaw
 	
 	===============
-	*///ok
-	public static void M_ChangeYaw(edict_t ent) {
+	*/ //ok
+	public static void M_ChangeYaw(edict_t ent)
+	{
 		float ideal;
 		float current;
 		float move;
@@ -161,19 +172,23 @@ public final class M {
 
 		move = ideal - current;
 		speed = ent.yaw_speed;
-		if (ideal > current) {
+		if (ideal > current)
+		{
 			if (move >= 180)
 				move = move - 360;
 		}
-		else {
+		else
+		{
 			if (move <= -180)
 				move = move + 360;
 		}
-		if (move > 0) {
+		if (move > 0)
+		{
 			if (move > speed)
 				move = speed;
 		}
-		else {
+		else
+		{
 			if (move < -speed)
 				move = -speed;
 		}
@@ -185,8 +200,9 @@ public final class M {
 	======================
 	M_MoveToGoal
 	======================
-	*/
-	public static void M_MoveToGoal(edict_t ent, float dist) {
+	*/ // ok
+	public static void M_MoveToGoal(edict_t ent, float dist)
+	{
 		edict_t goal = ent.goalentity;
 
 		if (ent.groundentity == null && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
@@ -197,7 +213,8 @@ public final class M {
 			return;
 
 		//	   bump around...
-		if ((Lib.rand() & 3) == 1 || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist)) {
+		if ((Lib.rand() & 3) == 1 || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist))
+		{
 			if (ent.inuse)
 				SV.SV_NewChaseDir(ent, goal, dist);
 		}
@@ -208,7 +225,8 @@ public final class M {
 	M_walkmove
 	===============
 	*/
-	public static boolean M_walkmove(edict_t ent, float yaw, float dist) {
+	public static boolean M_walkmove(edict_t ent, float yaw, float dist)
+	{
 		float[] move = { 0, 0, 0 };
 
 		if ((ent.groundentity == null) && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
@@ -223,7 +241,8 @@ public final class M {
 		return SV.SV_movestep(ent, move, true);
 	}
 
-	public static void M_CatagorizePosition(edict_t ent) {
+	public static void M_CatagorizePosition(edict_t ent)
+	{
 		float[] point = { 0, 0, 0 };
 		int cont;
 
@@ -235,7 +254,8 @@ public final class M {
 		point[2] = ent.s.origin[2] + ent.mins[2] + 1;
 		cont = Game.gi.pointcontents.pointcontents(point);
 
-		if (0 == (cont & Defines.MASK_WATER)) {
+		if (0 == (cont & Defines.MASK_WATER))
+		{
 			ent.waterlevel = 0;
 			ent.watertype = 0;
 			return;
@@ -255,17 +275,23 @@ public final class M {
 			ent.waterlevel = 3;
 	}
 
-	public static void M_WorldEffects(edict_t ent) {
+	public static void M_WorldEffects(edict_t ent)
+	{
 		int dmg;
 
-		if (ent.health > 0) {
-			if (0 == (ent.flags & Defines.FL_SWIM)) {
-				if (ent.waterlevel < 3) {
+		if (ent.health > 0)
+		{
+			if (0 == (ent.flags & Defines.FL_SWIM))
+			{
+				if (ent.waterlevel < 3)
+				{
 					ent.air_finished = GameBase.level.time + 12;
 				}
-				else if (ent.air_finished < GameBase.level.time) {
+				else if (ent.air_finished < GameBase.level.time)
+				{
 					// drown!
-					if (ent.pain_debounce_time < GameBase.level.time) {
+					if (ent.pain_debounce_time < GameBase.level.time)
+					{
 						dmg = (int) (2f + 2f * Math.floor(GameBase.level.time - ent.air_finished));
 						if (dmg > 15)
 							dmg = 15;
@@ -284,13 +310,17 @@ public final class M {
 					}
 				}
 			}
-			else {
-				if (ent.waterlevel > 0) {
+			else
+			{
+				if (ent.waterlevel > 0)
+				{
 					ent.air_finished = GameBase.level.time + 9;
 				}
-				else if (ent.air_finished < GameBase.level.time) {
+				else if (ent.air_finished < GameBase.level.time)
+				{
 					// suffocate!
-					if (ent.pain_debounce_time < GameBase.level.time) {
+					if (ent.pain_debounce_time < GameBase.level.time)
+					{
 						dmg = (int) (2 + 2 * Math.floor(GameBase.level.time - ent.air_finished));
 						if (dmg > 15)
 							dmg = 15;
@@ -311,16 +341,20 @@ public final class M {
 			}
 		}
 
-		if (ent.waterlevel == 0) {
-			if ((ent.flags & Defines.FL_INWATER) != 0) {
+		if (ent.waterlevel == 0)
+		{
+			if ((ent.flags & Defines.FL_INWATER) != 0)
+			{
 				GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/watr_out.wav"), 1, Defines.ATTN_NORM, 0);
 				ent.flags &= ~Defines.FL_INWATER;
 			}
 			return;
 		}
 
-		if ((ent.watertype & Defines.CONTENTS_LAVA) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_LAVA)) {
-			if (ent.damage_debounce_time < GameBase.level.time) {
+		if ((ent.watertype & Defines.CONTENTS_LAVA) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_LAVA))
+		{
+			if (ent.damage_debounce_time < GameBase.level.time)
+			{
 				ent.damage_debounce_time = GameBase.level.time + 0.2f;
 				GameUtil.T_Damage(
 					ent,
@@ -335,8 +369,10 @@ public final class M {
 					Defines.MOD_LAVA);
 			}
 		}
-		if ((ent.watertype & Defines.CONTENTS_SLIME) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_SLIME)) {
-			if (ent.damage_debounce_time < GameBase.level.time) {
+		if ((ent.watertype & Defines.CONTENTS_SLIME) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_SLIME))
+		{
+			if (ent.damage_debounce_time < GameBase.level.time)
+			{
 				ent.damage_debounce_time = GameBase.level.time + 1;
 				GameUtil.T_Damage(
 					ent,
@@ -352,8 +388,10 @@ public final class M {
 			}
 		}
 
-		if (0 == (ent.flags & Defines.FL_INWATER)) {
-			if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
+		if (0 == (ent.flags & Defines.FL_INWATER))
+		{
+			if (0 == (ent.svflags & Defines.SVF_DEADMONSTER))
+			{
 				if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
 					if (Lib.random() <= 0.5)
 						GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/lava1.wav"), 1, Defines.ATTN_NORM, 0);
@@ -370,8 +408,10 @@ public final class M {
 		}
 	}
 
-	public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
-		public boolean think(edict_t ent) {
+	public static EntThinkAdapter M_droptofloor = new EntThinkAdapter()
+	{
+		public boolean think(edict_t ent)
+		{
 			float[] end = { 0, 0, 0 };
 			trace_t trace;
 
@@ -393,11 +433,13 @@ public final class M {
 		}
 	};
 
-	public static void M_SetEffects(edict_t ent) {
+	public static void M_SetEffects(edict_t ent)
+	{
 		ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
 		ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
 
-		if ((ent.monsterinfo.aiflags & Defines.AI_RESURRECTING) != 0) {
+		if ((ent.monsterinfo.aiflags & Defines.AI_RESURRECTING) != 0)
+		{
 			ent.s.effects |= Defines.EF_COLOR_SHELL;
 			ent.s.renderfx |= Defines.RF_SHELL_RED;
 		}
@@ -405,19 +447,24 @@ public final class M {
 		if (ent.health <= 0)
 			return;
 
-		if (ent.powerarmor_time > GameBase.level.time) {
-			if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SCREEN) {
+		if (ent.powerarmor_time > GameBase.level.time)
+		{
+			if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SCREEN)
+			{
 				ent.s.effects |= Defines.EF_POWERSCREEN;
 			}
-			else if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SHIELD) {
+			else if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SHIELD)
+			{
 				ent.s.effects |= Defines.EF_COLOR_SHELL;
 				ent.s.renderfx |= Defines.RF_SHELL_GREEN;
 			}
 		}
 	};
 
-	public static void M_MoveFrame(edict_t self) {
-		mmove_t move;
+	//ok
+	public static void M_MoveFrame(edict_t self)
+	{
+		mmove_t move; //ptr
 		int index;
 
 		move = self.monsterinfo.currentmove;
@@ -425,13 +472,17 @@ public final class M {
 
 		if ((self.monsterinfo.nextframe != 0)
 			&& (self.monsterinfo.nextframe >= move.firstframe)
-			&& (self.monsterinfo.nextframe <= move.lastframe)) {
+			&& (self.monsterinfo.nextframe <= move.lastframe))
+		{
 			self.s.frame = self.monsterinfo.nextframe;
 			self.monsterinfo.nextframe = 0;
 		}
-		else {
-			if (self.s.frame == move.lastframe) {
-				if (move.endfunc != null) {
+		else
+		{
+			if (self.s.frame == move.lastframe)
+			{
+				if (move.endfunc != null)
+				{
 					move.endfunc.think(self);
 
 					// regrab move, endfunc is very likely to change it
@@ -443,12 +494,15 @@ public final class M {
 				}
 			}
 
-			if (self.s.frame < move.firstframe || self.s.frame > move.lastframe) {
+			if (self.s.frame < move.firstframe || self.s.frame > move.lastframe)
+			{
 				self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
 				self.s.frame = move.firstframe;
 			}
-			else {
-				if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME)) {
+			else
+			{
+				if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME))
+				{
 					self.s.frame++;
 					if (self.s.frame > move.lastframe)
 						self.s.frame = move.firstframe;
@@ -467,7 +521,8 @@ public final class M {
 			move.frame[index].think.think(self);
 	}
 
-	public static void M_ReactToDamage(edict_t targ, edict_t attacker) {
+	public static void M_ReactToDamage(edict_t targ, edict_t attacker)
+	{
 		if ((null != attacker.client) && 0 != (attacker.svflags & Defines.SVF_MONSTER))
 			return;
 
@@ -476,7 +531,8 @@ public final class M {
 
 		// if we are a good guy monster and our attacker is a player
 		// or another good guy, do not get mad at them
-		if (0 != (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
+		if (0 != (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY))
+		{
 			if (attacker.client != null || (attacker.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0)
 				return;
 		}
@@ -484,20 +540,23 @@ public final class M {
 		// we now know that we are not both good guys
 
 		// if attacker is a client, get mad at them because he's good and we're not
-		if (attacker.client != null) {
+		if (attacker.client != null)
+		{
 			targ.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
 
 			// this can only happen in coop (both new and old enemies are clients)
 			// only switch if can't see the current enemy
-			if (targ.enemy != null && targ.enemy.client != null) {
-				if (GameUtil.visible(targ, targ.enemy)) {
+			if (targ.enemy != null && targ.enemy.client != null)
+			{
+				if (GameUtil.visible(targ, targ.enemy))
+				{
 					targ.oldenemy = attacker;
 					return;
 				}
 				targ.oldenemy = targ.enemy;
 			}
 			targ.enemy = attacker;
-			if (0 != (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
+			if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
 				GameUtil.FoundTarget(targ);
 			return;
 		}
@@ -509,7 +568,8 @@ public final class M {
 			&& (Lib.strcmp(attacker.classname, "monster_tank") != 0)
 			&& (Lib.strcmp(attacker.classname, "monster_supertank") != 0)
 			&& (Lib.strcmp(attacker.classname, "monster_makron") != 0)
-			&& (Lib.strcmp(attacker.classname, "monster_jorg") != 0)) {
+			&& (Lib.strcmp(attacker.classname, "monster_jorg") != 0))
+		{
 			if (targ.enemy != null && targ.enemy.client != null)
 				targ.oldenemy = targ.enemy;
 			targ.enemy = attacker;
@@ -517,7 +577,8 @@ public final class M {
 				GameUtil.FoundTarget(targ);
 		}
 		// if they *meant* to shoot us, then shoot back
-		else if (attacker.enemy == targ) {
+		else if (attacker.enemy == targ)
+		{
 			if (targ.enemy != null && targ.enemy.client != null)
 				targ.oldenemy = targ.enemy;
 			targ.enemy = attacker;
@@ -525,7 +586,8 @@ public final class M {
 				GameUtil.FoundTarget(targ);
 		}
 		// otherwise get mad at whoever they are mad at (help our buddy) unless it is us!
-		else if (attacker.enemy != null && attacker.enemy != targ) {
+		else if (attacker.enemy != null && attacker.enemy != targ)
+		{
 			if (targ.enemy != null && targ.enemy.client != null)
 				targ.oldenemy = targ.enemy;
 			targ.enemy = attacker.enemy;
@@ -534,16 +596,20 @@ public final class M {
 		}
 	}
 	/** Stops the Flies. */
-	public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
+	public static EntThinkAdapter M_FliesOff = new EntThinkAdapter()
+	{
+		public boolean think(edict_t self)
+		{
 			self.s.effects &= ~Defines.EF_FLIES;
 			self.s.sound = 0;
 			return true;
 		}
 	};
 	/** Starts the Flies as setting the animation flag in the entity. */
-	public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
+	public static EntThinkAdapter M_FliesOn = new EntThinkAdapter()
+	{
+		public boolean think(edict_t self)
+		{
 			if (self.waterlevel != 0)
 				return true;
 
@@ -555,8 +621,10 @@ public final class M {
 		}
 	};
 	/** Adds some flies after a random time */
-	public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
-		public boolean think(edict_t self) {
+	public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter()
+	{
+		public boolean think(edict_t self)
+		{
 
 			if (self.waterlevel != 0)
 				return true;
@@ -569,5 +637,4 @@ public final class M {
 			return true;
 		}
 	};
-	
 }

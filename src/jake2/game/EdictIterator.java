@@ -19,18 +19,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.11.2003 by RST.
-// $Id: EdictIterator.java,v 1.3 2003-12-28 16:53:00 rst Exp $
+// $Id: EdictIterator.java,v 1.4 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
 /** Helps for iterating over the gedicts[] array. RST.*/
 
-class EdictIterator {
-	
-	EdictIterator(int i) {
-		this.i= i;
+public class EdictIterator
+{
+	EdictIterator(int i)
+	{
+		this.i = i;
 	}
-	
 	edict_t o;
 	int i;
 }

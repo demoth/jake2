@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST
-// $Id: M_Berserk.java,v 1.6 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Berserk.java,v 1.7 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -283,8 +283,9 @@ public class M_Berserk extends GameWeapon {
 	static int sound_search;
 
 	static EntInteractAdapter berserk_sight= new EntInteractAdapter() {
-		public void interact(edict_t self) {
+		public boolean interact(edict_t self, edict_t other) {
 			gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
+			return true;
 		}
 	};
 
@@ -646,7 +647,7 @@ public class M_Berserk extends GameWeapon {
 			edict_t inflictor,
 			edict_t attacker,
 			int damage,
-			float point) {
+			float point[]) {
 			int n;
 
 			if (self.health <= self.gib_health) {

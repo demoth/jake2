@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.6 2004-02-06 18:38:20 rst Exp $
+// $Id: client_respawn_t.java,v 1.7 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -31,14 +31,24 @@ import java.nio.ByteBuffer;
 public class client_respawn_t
 // client data that stays across deathmatch respawns
 {
-	client_persistant_t coop_respawn= new client_persistant_t(); // what to set client->pers to on a respawn
+	client_persistant_t coop_respawn = new client_persistant_t(); // what to set client->pers to on a respawn
 	int enterframe; // level.framenum the client entered the game
 	int score; // frags, etc
 	float cmd_angles[] = { 0, 0, 0 }; // angles sent over in the last command
 	boolean spectator; // client is a spectator
 
+	public void set(client_respawn_t from)
+	{
+		coop_respawn.set(from.coop_respawn);
+		enterframe = from.enterframe;
+		score = from.score;
+		cmd_angles = Lib.clone(cmd_angles);
+		spectator = from.spectator;
+	}
+
 	//ok
-	public void clear() {
+	public void clear()
+	{
 		coop_respawn = new client_persistant_t();
 		enterframe = 0;
 		score = 0;
@@ -46,25 +56,22 @@ public class client_respawn_t
 		spectator = false;
 	}
 
-	public void load(ByteBuffer bb) throws IOException {
+	public void load(ByteBuffer bb) throws IOException
+	{
 		coop_respawn.load(bb);
-
 		enterframe = bb.getInt();
 		score = bb.getInt();
-
 		cmd_angles[0] = bb.getFloat();
 		cmd_angles[1] = bb.getFloat();
 		cmd_angles[2] = bb.getFloat();
-
 		spectator = bb.getInt() != 0;
 	}
 
-	public void dump() {
+	public void dump()
+	{
 		coop_respawn.dump();
-
 		Com.Println("enterframe: " + enterframe);
 		Com.Println("score: " + score);
-
 		Lib.printv("cmd_angles", cmd_angles);
 		Com.Println("spectator: " + spectator);
 	}

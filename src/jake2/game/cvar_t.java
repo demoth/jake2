@@ -2,9 +2,9 @@
  * cvar_t.java
  * Copyright (C) 2003
  * 
- * $Id: cvar_t.java,v 1.6 2004-02-06 15:11:57 hoz Exp $
+ * $Id: cvar_t.java,v 1.7 2004-02-29 00:51:04 rst Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -26,10 +26,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 /**
- * cvar_t implements the struct cvar_t of the 
- * C version
+ * cvar_t implements the struct cvar_t of the C version
  */
-public final class cvar_t {
+public final class cvar_t
+{
 	public String name;
 	public String string;
 	public String latched_string;

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.26 2004-02-27 15:50:16 rst Exp $
+ * $Id: Cmd.java,v 1.27 2004-02-29 00:51:05 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -823,6 +823,8 @@ public final class Cmd extends PlayerView {
 		// scan  for the next valid one
 		for (i = 1; i <= Defines.MAX_ITEMS; i++) {
 			index = (selected_weapon + Defines.MAX_ITEMS - i) % Defines.MAX_ITEMS;
+			//bugfix rst
+			if (index == 0) index++;
 			if (0 == cl.pers.inventory[index])
 				continue;
 			it = GameAI.itemlist[index];

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss32.java,v 1.6 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Boss32.java,v 1.7 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -1062,7 +1062,7 @@ public class M_Boss32 extends GameWeapon {
 	};
 
 	static EntPainAdapter makron_pain= new EntPainAdapter() {
-		public void makron_pain(edict_t self, edict_t other, float kick, int damage) {
+		public void pain(edict_t self, edict_t other, float kick, int damage) {
 
 			if (self.health < (self.max_health / 2))
 				self.s.skinnum= 1;
@@ -1100,7 +1100,7 @@ public class M_Boss32 extends GameWeapon {
 	};
 
 	static EntInteractAdapter makron_sight= new EntInteractAdapter() {
-		public boolean think(edict_t self) {
+		public boolean interact(edict_t self, edict_t other) {
 			self.monsterinfo.currentmove= makron_move_sight;
 			return true;
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Hover.java,v 1.7 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Hover.java,v 1.8 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
@@ -324,7 +324,7 @@ public class M_Hover extends Game {
 	};
 
 	static EntPainAdapter hover_pain = new EntPainAdapter() {
-		public void hover_pain(edict_t self, edict_t other, float kick, int damage) {
+		public void pain(edict_t self, edict_t other, float kick, int damage) {
 			if (self.health < (self.max_health / 2))
 				self.s.skinnum = 1;
 

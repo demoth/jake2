@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.12 2004-02-14 13:24:02 rst Exp $
+// $Id: SV_GAME.java,v 1.13 2004-02-29 00:51:06 rst Exp $
 
 package jake2.server;
 
@@ -174,7 +174,7 @@ public class SV_GAME extends SV_INIT {
 
 		i = SV_ModelIndex(name);
 
-		//	ent.model = name;
+		//ent.model = name;
 		ent.s.modelindex = i;
 
 		// if it is an inline model, get the size information for it
@@ -262,7 +262,7 @@ public class SV_GAME extends SV_INIT {
 		cluster = CM.CM_LeafCluster(leafnum);
 		area2 = CM.CM_LeafArea(leafnum);
 
-		if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
+		if (mask != null && (0 == (mask[cluster >>> 3] & (1 << (cluster & 7)))))
 			return false;
 
 		if (!CM.CM_AreasConnected(area1, area2))
@@ -293,7 +293,7 @@ public class SV_GAME extends SV_INIT {
 		cluster = CM.CM_LeafCluster(leafnum);
 		area2 = CM.CM_LeafArea(leafnum);
 
-		if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
+		if (mask != null && (0 == (mask[cluster >>> 3] & (1 << (cluster & 7)))))
 			return false; // more than one bounce away
 		if (!CM.CM_AreasConnected(area1, area2))
 			return false; // a door blocks hearing

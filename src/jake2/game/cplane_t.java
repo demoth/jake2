@@ -19,22 +19,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: cplane_t.java,v 1.5 2004-02-14 13:24:02 rst Exp $
+// $Id: cplane_t.java,v 1.6 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-public class cplane_t {
-
+public class cplane_t
+{
 	public float normal[] = new float[3];
 	public float dist;
 	public byte type; // for fast side tests
 	public byte signbits; // signx + (signy<<1) + (signz<<1)
 	public byte pad[] = { 0, 0 };
 
-	public cplane_t getClone() {
+	public cplane_t getClone()
+	{
 		cplane_t out = new cplane_t();
 		out.normal = Lib.clone(normal);
 		out.dist = dist;
@@ -45,7 +46,8 @@ public class cplane_t {
 		return out;
 	}
 
-	public void set(cplane_t c) {
+	public void set(cplane_t c)
+	{
 
 		Math3D.set(normal, c.normal);
 		dist = c.dist;

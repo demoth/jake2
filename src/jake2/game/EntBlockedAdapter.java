@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntBlockedAdapter.java,v 1.4 2004-01-09 18:30:56 rst Exp $
+// $Id: EntBlockedAdapter.java,v 1.5 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
-public class EntBlockedAdapter extends SuperAdapter{
+public abstract class EntBlockedAdapter extends SuperAdapter
+{
 	// move to moveinfo?
-	public void blocked(edict_t self, edict_t other) {
-	}
+	public abstract void blocked(edict_t self, edict_t other);
 }

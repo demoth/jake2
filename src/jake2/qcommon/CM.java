@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.33 2004-02-27 15:50:16 rst Exp $
+// $Id: CM.java,v 1.34 2004-02-29 00:51:06 rst Exp $
 
 package jake2.qcommon;
 
@@ -276,15 +276,15 @@ public class CM extends Game {
 
 		map_name = name;
 
-		// debug (rst)		
+		// debug (rst)
+		/*		
 		Com.p("Testing pointleafes:");
 		for (int n = 0; n < 20; n++) {
 			float pos[] = new float[] {(float) (Math.random() * 1000), (float) (Math.random() * 1000), 0 };
 			int x = CM_PointLeafnum(pos);
-
 			Com.p(Lib.vtofsbeaty(pos) + " ---> leaf=" + x + " area = " +map_leafs[x].area);
 		}
-
+		*/
 		return map_cmodels[0];
 	}
 
@@ -1047,7 +1047,8 @@ public class CM extends Game {
 		while (true) {
 			if (nodenum < 0) {
 				if (leaf_count >= leaf_maxcount) {
-					Com.DPrintf("CM_BoxLeafnums_r: overflow\n");
+					//TODO: here is still an error.
+					//Com.DPrintf("CM_BoxLeafnums_r: overflow\n");
 					return;
 				}
 				leaf_list[leaf_count++] = -1 - nodenum;
@@ -1881,7 +1882,6 @@ public class CM extends Game {
 		ByteBuffer bb = ByteBuffer.wrap(buf);
 		IntBuffer ib = bb.asIntBuffer();
 
-		//TODO: i assume upward counting (rst)
 		for (int n = 0; n < portalopen.length; n++)
 			portalopen[n] = ib.get() != 0;
 

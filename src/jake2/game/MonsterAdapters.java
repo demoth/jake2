@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: MonsterAdapters.java,v 1.1 2004-02-26 22:36:31 rst Exp $
+// $Id: MonsterAdapters.java,v 1.2 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.qcommon.Com;
 
 public class MonsterAdapters {
 
@@ -78,6 +79,8 @@ public class MonsterAdapters {
 	};
 	public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
+			if (self.index ==312)
+				Com.p("monster_triggered_start");
 			self.solid = Defines.SOLID_NOT;
 			self.movetype = Defines.MOVETYPE_NONE;
 			self.svflags |= Defines.SVF_NOCLIENT;

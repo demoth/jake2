@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.22 2004-02-27 15:50:16 rst Exp $
+// $Id: GameSpawn.java,v 1.23 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
@@ -168,6 +168,8 @@ public class GameSpawn extends GameSave {
 		float v;
 		float[] vec = { 0, 0, 0 };
 
+		if (key.equals("nextmap"))
+			Com.p("nextmap: " + value);
 		if (!st.set(key, value))
 			if (!ent.set(key, value))
 				gi.dprintf("??? The key [" + key + "] is not a field\n");
@@ -232,7 +234,8 @@ public class GameSpawn extends GameSave {
 		String keyname;
 		String com_token;
 		init = false;
-				
+		
+		st = new spawn_temp_t();		
 		while (true) { 
 
 			// parse key			
@@ -266,7 +269,7 @@ public class GameSpawn extends GameSave {
 	
 		if (!init)
 		{
-			ent.clear();
+			GameUtil.G_ClearEdict(ent);
 		}
 
 		return;
@@ -320,9 +323,8 @@ public class GameSpawn extends GameSave {
 					
 				}
 			}
-		}
-		
-		gi.dprintf("" + c + " teams with " + c2 + " entities\n");
+		}		
+		//gi.dprintf("" + c + " teams with " + c2 + " entities\n");
 	}
 
 	/*
@@ -353,7 +355,6 @@ public class GameSpawn extends GameSave {
 			PlayerClient.SaveClientData();
 			
 			//level.clear();
-			Com.Printf("game.maxentities=" + game.maxentities + "\n");
 			level = new level_locals_t();
 			for (int n=0; n < game.maxentities; n++)
 			{
@@ -425,7 +426,7 @@ public class GameSpawn extends GameSave {
 	
 				ED_CallSpawn(ent);
 			}
-			gi.dprintf("player skill level:" +skill.value + "\n");
+			//gi.dprintf("player skill level:" +skill.value + "\n");
 			gi.dprintf(inhibit + " entities inhibited\n");
 			i = 1;
 			G_FindTeams();

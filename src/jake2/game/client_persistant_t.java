@@ -19,16 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.11 2004-02-26 22:36:31 rst Exp $
+// $Id: client_persistant_t.java,v 1.12 2004-02-29 00:51:06 rst Exp $
 
 package jake2.game;
 
+import jake2.Defines;
+import jake2.util.Lib;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import jake2.*;
-import jake2.*;
-import jake2.util.Lib;
 
 public class client_persistant_t implements Cloneable {
 
@@ -39,6 +38,32 @@ public class client_persistant_t implements Cloneable {
 		catch (CloneNotSupportedException e) {
 			return null;
 		}
+	}
+	
+	public void set(client_persistant_t from)
+	{
+		userinfo = from.userinfo;
+		netname = from.netname;
+		hand = from.hand;
+		connected = from.connected;
+		health = from.health;
+		max_health = from.max_health;
+		savedFlags = from.savedFlags;
+		selected_item = from.selected_item;
+		inventory = Lib.clone(from.inventory);
+		max_bullets = from.max_bullets;
+		max_shells = from.max_shells;
+		max_rockets = from.max_rockets;
+		max_grenades = from.max_grenades;
+		max_cells = from.max_cells;
+		max_slugs = from.max_slugs;
+		weapon = from.weapon;
+		lastweapon = from.lastweapon;
+		power_cubes = from.power_cubes;
+		score = from.score;
+		game_helpchanged = from.game_helpchanged;
+		helpchanged = from.helpchanged;
+		spectator = from.spectator;
 	}
 
 	//	client data that stays across multiple level loads
@@ -64,18 +89,14 @@ public class client_persistant_t implements Cloneable {
 	int max_grenades;
 	int max_cells;
 	int max_slugs;
-
 	//pointer
 	gitem_t weapon;
 	//pointer
 	gitem_t lastweapon;
-
 	int power_cubes; // used for tracking the cubes in coop games
 	int score; // for calculating total unit score in coop games
-
 	int game_helpchanged;
 	int helpchanged;
-
 	boolean spectator; // client is a spectator
 
 	public void load(ByteBuffer bb) throws IOException {

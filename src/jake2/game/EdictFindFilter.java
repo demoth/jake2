@@ -19,14 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.11.2003 by RST.
-// $Id: EdictFindFilter.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: EdictFindFilter.java,v 1.3 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
 /** Helps for filtering the iteration over the gedicts[] array, see GFind(). RST.*/
 
-public class EdictFindFilter {
-	boolean matches(edict_t e, String s) {
+public class EdictFindFilter
+{
+	boolean matches(edict_t e, String s)
+	{
 		return false;
 	};
 }

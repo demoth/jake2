@@ -19,21 +19,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.7 2004-02-13 22:04:00 rst Exp $
+// $Id: entity_state_t.java,v 1.8 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
 import jake2.util.Math3D;
 
-public class entity_state_t implements Cloneable {
+public class entity_state_t implements Cloneable
+{
 	//	entity_state_t is the information conveyed from the server
 	//	in an update message about entities that the client will
 	//	need to render in some way
 
-
 	public entity_state_t(edict_t ent)
 	{
-		this.surrounding_ent =  ent;
+		this.surrounding_ent = ent;
 	}
 
 	public int number = -99999; // edict index
@@ -63,7 +63,8 @@ public class entity_state_t implements Cloneable {
 		return out;
 	}
 
-	public void set(entity_state_t from) {
+	public void set(entity_state_t from)
+	{
 		number = from.number;
 		Math3D.VectorCopy(from.origin, origin);
 		Math3D.VectorCopy(from.angles, angles);

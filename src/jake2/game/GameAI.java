@@ -19,34 +19,35 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.21 2004-02-27 15:50:16 rst Exp $
+// $Id: GameAI.java,v 1.22 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
-import jake2.qcommon.Com;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
-import java.util.*;
+import java.util.StringTokenizer;
 
-public class GameAI extends M_Flash {
+public class GameAI extends M_Flash
+{
 
 	/*
 	===============
 	GetItemByIndex
 	===============
 	*/
-	public static gitem_t GetItemByIndex(int index) {
-
+	public static gitem_t GetItemByIndex(int index)
+	{
 		if (index == 0 || index >= game.num_items)
 			return null;
 
 		return GameAI.itemlist[index];
 	}
 
-
-	public static void AttackFinished(edict_t self, float time) {
+	public static void AttackFinished(edict_t self, float time)
+	{
 		self.monsterinfo.attack_finished = level.time + time;
 	}
 
@@ -58,7 +59,8 @@ public class GameAI extends M_Flash {
 	Distance is for slight position adjustments needed by the animations
 	=============
 	*/
-	public static void ai_turn(edict_t self, float dist) {
+	public static void ai_turn(edict_t self, float dist)
+	{
 		if (dist != 0)
 			M.M_walkmove(self, self.s.angles[YAW], dist);
 
@@ -101,7 +103,8 @@ public class GameAI extends M_Flash {
 	============
 	*/
 
-	public static boolean FacingIdeal(edict_t self) {
+	public static boolean FacingIdeal(edict_t self)
+	{
 		float delta;
 
 		delta = Math3D.anglemod(self.s.angles[YAW] - self.ideal_yaw);
@@ -117,11 +120,13 @@ public class GameAI extends M_Flash {
 	Turn and close until within an angle to launch a melee attack
 	=============
 	*/
-	public static void ai_run_melee(edict_t self) {
+	public static void ai_run_melee(edict_t self)
+	{
 		self.ideal_yaw = GameUtilAdapters.enemy_yaw;
 		M.M_ChangeYaw(self);
 
-		if (FacingIdeal(self)) {
+		if (FacingIdeal(self))
+		{
 			self.monsterinfo.melee.think(self);
 			self.monsterinfo.attack_state = AS_STRAIGHT;
 		}
@@ -134,11 +139,13 @@ public class GameAI extends M_Flash {
 	Turn in place until within an angle to launch a missile attack
 	=============
 	*/
-	public static void ai_run_missile(edict_t self) {
+	public static void ai_run_missile(edict_t self)
+	{
 		self.ideal_yaw = GameUtilAdapters.enemy_yaw;
 		M.M_ChangeYaw(self);
 
-		if (FacingIdeal(self)) {
+		if (FacingIdeal(self))
+		{
 			self.monsterinfo.attack.think(self);
 			self.monsterinfo.attack_state = AS_STRAIGHT;
 		}
@@ -151,7 +158,8 @@ public class GameAI extends M_Flash {
 	Strafe sideways, but stay at aproximately the same range
 	=============
 	*/
-	public static void ai_run_slide(edict_t self, float distance) {
+	public static void ai_run_slide(edict_t self, float distance)
+	{
 		float ofs;
 
 		self.ideal_yaw = GameUtilAdapters.enemy_yaw;
@@ -177,18 +185,22 @@ public class GameAI extends M_Flash {
 	used by ai_run and ai_stand
 	=============
 	*/
-	public static boolean ai_checkattack(edict_t self, float dist) {
+	public static boolean ai_checkattack(edict_t self, float dist)
+	{
 		float temp[] = { 0, 0, 0 };
 
 		boolean hesDeadJim;
 
 		//	   this causes monsters to run blindly to the combat point w/o firing
-		if (self.goalentity != null) {
+		if (self.goalentity != null)
+		{
 			if ((self.monsterinfo.aiflags & AI_COMBAT_POINT) != 0)
 				return false;
 
-			if ((self.monsterinfo.aiflags & AI_SOUND_TARGET) != 0) {
-				if ((level.time - self.enemy.teleport_time) > 5.0) {
+			if ((self.monsterinfo.aiflags & AI_SOUND_TARGET) != 0)
+			{
+				if ((level.time - self.enemy.teleport_time) > 5.0)
+				{
 					if (self.goalentity == self.enemy)
 						if (self.movetarget != null)
 							self.goalentity = self.movetarget;
@@ -198,7 +210,8 @@ public class GameAI extends M_Flash {
 					if ((self.monsterinfo.aiflags & AI_TEMP_STAND_GROUND) != 0)
 						self.monsterinfo.aiflags &= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
 				}
-				else {
+				else
+				{
 					self.show_hostile = (int) level.time + 1;
 					return false;
 				}
@@ -209,40 +222,51 @@ public class GameAI extends M_Flash {
 
 		//	   see if the enemy is dead
 		hesDeadJim = false;
-		if ((null == self.enemy) || (self.enemy.inuse)) {
+		if ((null == self.enemy) || (!self.enemy.inuse))
+		{
 			hesDeadJim = true;
 		}
-		else if ((self.monsterinfo.aiflags & AI_MEDIC) != 0) {
-			if (self.enemy.health > 0) {
+		else if ((self.monsterinfo.aiflags & AI_MEDIC) != 0)
+		{
+			if (self.enemy.health > 0)
+			{
 				hesDeadJim = true;
 				self.monsterinfo.aiflags &= ~AI_MEDIC;
 			}
 		}
-		else {
-			if ((self.monsterinfo.aiflags & AI_BRUTAL) != 0) {
+		else
+		{
+			if ((self.monsterinfo.aiflags & AI_BRUTAL) != 0)
+			{
 				if (self.enemy.health <= -80)
 					hesDeadJim = true;
 			}
-			else {
+			else
+			{
 				if (self.enemy.health <= 0)
 					hesDeadJim = true;
 			}
 		}
 
-		if (hesDeadJim) {
+		if (hesDeadJim)
+		{
 			self.enemy = null;
 			// FIXME: look all around for other targets
-			if (self.oldenemy != null && self.oldenemy.health > 0) {
+			if (self.oldenemy != null && self.oldenemy.health > 0)
+			{
 				self.enemy = self.oldenemy;
 				self.oldenemy = null;
 				HuntTarget(self);
 			}
-			else {
-				if (self.movetarget != null) {
+			else
+			{
+				if (self.movetarget != null)
+				{
 					self.goalentity = self.movetarget;
 					self.monsterinfo.walk.think(self);
 				}
-				else {
+				else
+				{
 					// we need the pausetime otherwise the stand code
 					// will just revert to walking with no target and
 					// the monsters will wonder around aimlessly trying
@@ -258,7 +282,8 @@ public class GameAI extends M_Flash {
 
 		//	   check knowledge of enemy
 		GameUtilAdapters.enemy_vis = visible(self, self.enemy);
-		if (GameUtilAdapters.enemy_vis) {
+		if (GameUtilAdapters.enemy_vis)
+		{
 			self.monsterinfo.search_time = level.time + 5;
 			Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
 		}
@@ -277,11 +302,13 @@ public class GameAI extends M_Flash {
 
 		// JDC self.ideal_yaw = enemy_yaw;
 
-		if (self.monsterinfo.attack_state == AS_MISSILE) {
+		if (self.monsterinfo.attack_state == AS_MISSILE)
+		{
 			ai_run_missile(self);
 			return true;
 		}
-		if (self.monsterinfo.attack_state == AS_MELEE) {
+		if (self.monsterinfo.attack_state == AS_MELEE)
+		{
 			ai_run_melee(self);
 			return true;
 		}
@@ -293,7 +320,8 @@ public class GameAI extends M_Flash {
 		return self.monsterinfo.checkattack.think(self);
 	}
 
-	public static void UpdateChaseCam(edict_t ent) {
+	public static void UpdateChaseCam(edict_t ent)
+	{
 		float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
 		edict_t targ;
 		float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -303,10 +331,12 @@ public class GameAI extends M_Flash {
 		float[] angles = { 0, 0, 0 };
 
 		// is our chase target gone?
-		if (!ent.client.chase_target.inuse || ent.client.chase_target.client.resp.spectator) {
+		if (!ent.client.chase_target.inuse || ent.client.chase_target.client.resp.spectator)
+		{
 			edict_t old = ent.client.chase_target;
 			ChaseNext(ent);
-			if (ent.client.chase_target == old) {
+			if (ent.client.chase_target == old)
+			{
 				ent.client.chase_target = null;
 				ent.client.ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 				return;
@@ -344,7 +374,8 @@ public class GameAI extends M_Flash {
 		Math3D.VectorCopy(goal, o);
 		o[2] += 6;
 		trace = gi.trace(goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
-		if (trace.fraction < 1) {
+		if (trace.fraction < 1)
+		{
 			Math3D.VectorCopy(trace.endpos, goal);
 			goal[2] -= 6;
 		}
@@ -352,7 +383,8 @@ public class GameAI extends M_Flash {
 		Math3D.VectorCopy(goal, o);
 		o[2] -= 6;
 		trace = gi.trace(goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
-		if (trace.fraction < 1) {
+		if (trace.fraction < 1)
+		{
 			Math3D.VectorCopy(trace.endpos, goal);
 			goal[2] += 6;
 		}
@@ -366,12 +398,14 @@ public class GameAI extends M_Flash {
 		for (i = 0; i < 3; i++)
 			ent.client.ps.pmove.delta_angles[i] = (short) Math3D.ANGLE2SHORT(targ.client.v_angle[i] - ent.client.resp.cmd_angles[i]);
 
-		if (targ.deadflag != 0) {
+		if (targ.deadflag != 0)
+		{
 			ent.client.ps.viewangles[ROLL] = 40;
 			ent.client.ps.viewangles[PITCH] = -15;
 			ent.client.ps.viewangles[YAW] = targ.client.killer_yaw;
 		}
-		else {
+		else
+		{
 			Math3D.VectorCopy(targ.client.v_angle, ent.client.ps.viewangles);
 			Math3D.VectorCopy(targ.client.v_angle, ent.client.v_angle);
 		}
@@ -381,7 +415,8 @@ public class GameAI extends M_Flash {
 		gi.linkentity(ent);
 	}
 
-	public static void ChaseNext(edict_t ent) {
+	public static void ChaseNext(edict_t ent)
+	{
 		int i;
 		edict_t e;
 
@@ -389,7 +424,8 @@ public class GameAI extends M_Flash {
 			return;
 
 		i = ent.client.chase_target.index;
-		do {
+		do
+		{
 			i++;
 			if (i > maxclients.value)
 				i = 1;
@@ -406,7 +442,8 @@ public class GameAI extends M_Flash {
 		ent.client.update_chase = true;
 	}
 
-	public static void ChasePrev(edict_t ent) {
+	public static void ChasePrev(edict_t ent)
+	{
 		int i;
 		edict_t e;
 
@@ -414,7 +451,8 @@ public class GameAI extends M_Flash {
 			return;
 
 		i = ent.client.chase_target.index;
-		do {
+		do
+		{
 			i--;
 			if (i < 1)
 				i = (int) maxclients.value;
@@ -430,13 +468,16 @@ public class GameAI extends M_Flash {
 		ent.client.update_chase = true;
 	}
 
-	public static void GetChaseTarget(edict_t ent) {
+	public static void GetChaseTarget(edict_t ent)
+	{
 		int i;
 		edict_t other;
 
-		for (i = 1; i <= maxclients.value; i++) {
+		for (i = 1; i <= maxclients.value; i++)
+		{
 			other = g_edicts[i];
-			if (other.inuse && !other.client.resp.spectator) {
+			if (other.inuse && !other.client.resp.spectator)
+			{
 				ent.client.chase_target = other;
 				ent.client.update_chase = true;
 				UpdateChaseCam(ent);
@@ -453,11 +494,13 @@ public class GameAI extends M_Flash {
 	Called by worldspawn
 	===============
 	*/
-	public static void SetItemNames() {
+	public static void SetItemNames()
+	{
 		int i;
 		gitem_t it;
 
-		for (i = 1; i < game.num_items; i++) {
+		for (i = 1; i < game.num_items; i++)
+		{
 			it = GameAI.itemlist[i];
 			gi.configstring(CS_ITEMS + i, it.pickup_name);
 		}
@@ -469,20 +512,23 @@ public class GameAI extends M_Flash {
 		GameUtilAdapters.power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
 	}
 
-	public static void SelectNextItem(edict_t ent, int itflags) {
+	public static void SelectNextItem(edict_t ent, int itflags)
+	{
 		gclient_t cl;
 		int i, index;
 		gitem_t it;
 
 		cl = ent.client;
 
-		if (cl.chase_target != null) {
+		if (cl.chase_target != null)
+		{
 			ChaseNext(ent);
 			return;
 		}
 
 		// scan  for the next valid one
-		for (i = 1; i <= MAX_ITEMS; i++) {
+		for (i = 1; i <= MAX_ITEMS; i++)
+		{
 			index = (cl.pers.selected_item + i) % MAX_ITEMS;
 			if (0 == cl.pers.inventory[index])
 				continue;
@@ -499,20 +545,23 @@ public class GameAI extends M_Flash {
 		cl.pers.selected_item = -1;
 	}
 
-	public static void SelectPrevItem(edict_t ent, int itflags) {
+	public static void SelectPrevItem(edict_t ent, int itflags)
+	{
 		gclient_t cl;
 		int i, index;
 		gitem_t it;
 
 		cl = ent.client;
 
-		if (cl.chase_target != null) {
+		if (cl.chase_target != null)
+		{
 			ChasePrev(ent);
 			return;
 		}
 
 		// scan  for the next valid one
-		for (i = 1; i <= MAX_ITEMS; i++) {
+		for (i = 1; i <= MAX_ITEMS; i++)
+		{
 			index = (cl.pers.selected_item + MAX_ITEMS - i) % MAX_ITEMS;
 			if (0 == cl.pers.inventory[index])
 				continue;
@@ -529,7 +578,8 @@ public class GameAI extends M_Flash {
 		cl.pers.selected_item = -1;
 	}
 
-	public static void ValidateSelectedItem(edict_t ent) {
+	public static void ValidateSelectedItem(edict_t ent)
+	{
 		gclient_t cl;
 
 		cl = ent.client;
@@ -542,7 +592,8 @@ public class GameAI extends M_Flash {
 
 	//======================================================================
 
-	public static boolean Add_Ammo(edict_t ent, gitem_t item, int count) {
+	public static boolean Add_Ammo(edict_t ent, gitem_t item, int count)
+	{
 		int index;
 		int max;
 
@@ -586,7 +637,8 @@ public class GameAI extends M_Flash {
 	and for each item in each client's inventory.
 	===============
 	*/
-	public static void PrecacheItem(gitem_t it) {
+	public static void PrecacheItem(gitem_t it)
+	{
 		String s;
 		String data;
 		int len;
@@ -608,7 +660,8 @@ public class GameAI extends M_Flash {
 			gi.imageindex(it.icon);
 
 		// parse everything for its ammo
-		if (it.ammo != null && it.ammo.length() != 0) {
+		if (it.ammo != null && it.ammo.length() != 0)
+		{
 			ammo = FindItem(it.ammo);
 			if (ammo != it)
 				PrecacheItem(ammo);
@@ -621,8 +674,8 @@ public class GameAI extends M_Flash {
 
 		StringTokenizer tk = new StringTokenizer(s);
 
-
-		while (tk.hasMoreTokens()) {
+		while (tk.hasMoreTokens())
+		{
 			data = tk.nextToken();
 
 			len = data.length();
@@ -639,7 +692,7 @@ public class GameAI extends M_Flash {
 				gi.soundindex(data);
 			else if (data.endsWith("pcx"))
 				gi.imageindex(data);
-			else 
+			else
 				gi.error("PrecacheItem: bad precache string: " + data);
 		}
 	}
@@ -654,51 +707,67 @@ public class GameAI extends M_Flash {
 	be on an entity that hasn't spawned yet.
 	============
 	*/
-	public static void SpawnItem(edict_t ent, gitem_t item) {
+	public static void SpawnItem(edict_t ent, gitem_t item)
+	{
 		PrecacheItem(item);
 
-		if (ent.spawnflags != 0) {
-			if (Lib.strcmp(ent.classname, "key_power_cube") != 0) {
+		if (ent.spawnflags != 0)
+		{
+			if (Lib.strcmp(ent.classname, "key_power_cube") != 0)
+			{
 				ent.spawnflags = 0;
 				gi.dprintf("" + ent.classname + " at " + Lib.vtos(ent.s.origin) + " has invalid spawnflags set\n");
 			}
 		}
 
 		// some items will be prevented in deathmatch
-		if (deathmatch.value != 0) {
-			if (((int) dmflags.value & DF_NO_ARMOR) != 0) {
-				if (item.pickup == GameAIAdapters.Pickup_Armor || item.pickup == GameAIAdapters.Pickup_PowerArmor) {
+		if (deathmatch.value != 0)
+		{
+			if (((int) dmflags.value & DF_NO_ARMOR) != 0)
+			{
+				if (item.pickup == GameAIAdapters.Pickup_Armor || item.pickup == GameAIAdapters.Pickup_PowerArmor)
+				{
 					G_FreeEdict(ent);
 					return;
 				}
 			}
-			if (((int) dmflags.value & DF_NO_ITEMS) != 0) {
-				if (item.pickup == GameAIAdapters.Pickup_Powerup) {
+			if (((int) dmflags.value & DF_NO_ITEMS) != 0)
+			{
+				if (item.pickup == GameAIAdapters.Pickup_Powerup)
+				{
 					G_FreeEdict(ent);
 					return;
 				}
 			}
-			if (((int) dmflags.value & DF_NO_HEALTH) != 0) {
-				if (item.pickup == GameUtilAdapters.Pickup_Health || item.pickup == GameAIAdapters.Pickup_Adrenaline || item.pickup == GameAIAdapters.Pickup_AncientHead) {
+			if (((int) dmflags.value & DF_NO_HEALTH) != 0)
+			{
+				if (item.pickup == GameUtilAdapters.Pickup_Health
+					|| item.pickup == GameAIAdapters.Pickup_Adrenaline
+					|| item.pickup == GameAIAdapters.Pickup_AncientHead)
+				{
 					G_FreeEdict(ent);
 					return;
 				}
 			}
-			if (((int) dmflags.value & DF_INFINITE_AMMO) != 0) {
-				if ((item.flags == IT_AMMO) || (Lib.strcmp(ent.classname, "weapon_bfg") == 0)) {
+			if (((int) dmflags.value & DF_INFINITE_AMMO) != 0)
+			{
+				if ((item.flags == IT_AMMO) || (Lib.strcmp(ent.classname, "weapon_bfg") == 0))
+				{
 					G_FreeEdict(ent);
 					return;
 				}
 			}
 		}
 
-		if (coop.value != 0 && (Lib.strcmp(ent.classname, "key_power_cube") == 0)) {
+		if (coop.value != 0 && (Lib.strcmp(ent.classname, "key_power_cube") == 0))
+		{
 			ent.spawnflags |= (1 << (8 + level.power_cubes));
 			level.power_cubes++;
 		}
 
 		// don't let them drop items that stay in a coop game
-		if ((coop.value != 0) && (item.flags & IT_STAY_COOP) != 0) {
+		if ((coop.value != 0) && (item.flags & IT_STAY_COOP) != 0)
+		{
 			item.drop = null;
 		}
 
@@ -718,7 +787,8 @@ public class GameAI extends M_Flash {
 	Touch_Item
 	===============
 	*/
-	public static void Touch_Item(edict_t ent, edict_t other, cplane_t plane, csurface_t surf) {
+	public static void Touch_Item(edict_t ent, edict_t other, cplane_t plane, csurface_t surf)
+	{
 		boolean taken;
 
 		if (other.client == null)
@@ -730,7 +800,8 @@ public class GameAI extends M_Flash {
 
 		taken = ent.item.pickup.interact(ent, other);
 
-		if (taken) {
+		if (taken)
+		{
 			// flash the screen
 			other.client.bonus_alpha = 0.25f;
 
@@ -743,7 +814,8 @@ public class GameAI extends M_Flash {
 			if (ent.item.use != null)
 				other.client.pers.selected_item = other.client.ps.stats[STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
 
-			if (ent.item.pickup == GameUtilAdapters.Pickup_Health) {
+			if (ent.item.pickup == GameUtilAdapters.Pickup_Health)
+			{
 				if (ent.count == 2)
 					gi.sound(other, CHAN_ITEM, gi.soundindex("items/s_health.wav"), 1, ATTN_NORM, 0);
 				else if (ent.count == 10)
@@ -753,12 +825,14 @@ public class GameAI extends M_Flash {
 				else // (ent.count == 100)
 					gi.sound(other, CHAN_ITEM, gi.soundindex("items/m_health.wav"), 1, ATTN_NORM, 0);
 			}
-			else if (ent.item.pickup_sound != null) {
+			else if (ent.item.pickup_sound != null)
+			{
 				gi.sound(other, CHAN_ITEM, gi.soundindex(ent.item.pickup_sound), 1, ATTN_NORM, 0);
 			}
 		}
 
-		if (0 == (ent.spawnflags & ITEM_TARGETS_USED)) {
+		if (0 == (ent.spawnflags & ITEM_TARGETS_USED))
+		{
 			G_UseTargets(ent, other);
 			ent.spawnflags |= ITEM_TARGETS_USED;
 		}
@@ -767,7 +841,8 @@ public class GameAI extends M_Flash {
 			return;
 
 		if (!((coop.value != 0) && (ent.item.flags & IT_STAY_COOP) != 0)
-			|| 0 != (ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM))) {
+			|| 0 != (ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
+		{
 			if ((ent.flags & FL_RESPAWN) != 0)
 				ent.flags &= ~FL_RESPAWN;
 			else
@@ -780,25 +855,30 @@ public class GameAI extends M_Flash {
 	LookAtKiller
 	==================
 	*/
-	public static void LookAtKiller(edict_t self, edict_t inflictor, edict_t attacker) {
+	public static void LookAtKiller(edict_t self, edict_t inflictor, edict_t attacker)
+	{
 		float dir[] = { 0, 0, 0 };
 
 		edict_t world = g_edicts[0];
 
-		if (attacker != null && attacker != world && attacker != self) {
+		if (attacker != null && attacker != world && attacker != self)
+		{
 			Math3D.VectorSubtract(attacker.s.origin, self.s.origin, dir);
 		}
-		else if (inflictor != null && inflictor != world && inflictor != self) {
+		else if (inflictor != null && inflictor != world && inflictor != self)
+		{
 			Math3D.VectorSubtract(inflictor.s.origin, self.s.origin, dir);
 		}
-		else {
+		else
+		{
 			self.client.killer_yaw = self.s.angles[YAW];
 			return;
 		}
 
 		if (dir[0] != 0)
 			self.client.killer_yaw = (float) (180 / Math.PI * Math.atan2(dir[1], dir[0]));
-		else {
+		else
+		{
 			self.client.killer_yaw = 0;
 			if (dir[1] > 0)
 				self.client.killer_yaw = 90;
@@ -810,7 +890,8 @@ public class GameAI extends M_Flash {
 
 	}
 
-	public static void TossClientWeapon(edict_t self) {
+	public static void TossClientWeapon(edict_t self)
+	{
 		gitem_t item;
 		edict_t drop;
 		boolean quad;
@@ -835,14 +916,16 @@ public class GameAI extends M_Flash {
 		else
 			spread = 0.0f;
 
-		if (item != null) {
+		if (item != null)
+		{
 			self.client.v_angle[YAW] -= spread;
 			drop = Drop_Item(self, item);
 			self.client.v_angle[YAW] += spread;
 			drop.spawnflags = DROPPED_PLAYER_ITEM;
 		}
 
-		if (quad) {
+		if (quad)
+		{
 			self.client.v_angle[YAW] += spread;
 			drop = Drop_Item(self, FindItemByClassname("item_quad"));
 			self.client.v_angle[YAW] -= spread;
@@ -854,7 +937,8 @@ public class GameAI extends M_Flash {
 		}
 	}
 
-	public static void ThrowGib(edict_t self, String gibname, int damage, int type) {
+	public static void ThrowGib(edict_t self, String gibname, int damage, int type)
+	{
 		edict_t gib;
 
 		float[] vd = { 0, 0, 0 };
@@ -877,12 +961,14 @@ public class GameAI extends M_Flash {
 		gib.takedamage = DAMAGE_YES;
 		gib.die = GameAIAdapters.gib_die;
 
-		if (type == GIB_ORGANIC) {
+		if (type == GIB_ORGANIC)
+		{
 			gib.movetype = MOVETYPE_TOSS;
 			gib.touch = GameAIAdapters.gib_touch;
 			vscale = 0.5f;
 		}
-		else {
+		else
+		{
 			gib.movetype = MOVETYPE_BOUNCE;
 			vscale = 1.0f;
 		}
@@ -900,7 +986,8 @@ public class GameAI extends M_Flash {
 		gi.linkentity(gib);
 	}
 
-	public static void ThrowHead(edict_t self, String gibname, int damage, int type) {
+	public static void ThrowHead(edict_t self, String gibname, int damage, int type)
+	{
 		float vd[] = { 0, 0, 0 };
 
 		float vscale;
@@ -921,12 +1008,14 @@ public class GameAI extends M_Flash {
 		self.takedamage = DAMAGE_YES;
 		self.die = GameAIAdapters.gib_die;
 
-		if (type == GIB_ORGANIC) {
+		if (type == GIB_ORGANIC)
+		{
 			self.movetype = MOVETYPE_TOSS;
 			self.touch = GameAIAdapters.gib_touch;
 			vscale = 0.5f;
 		}
-		else {
+		else
+		{
 			self.movetype = MOVETYPE_BOUNCE;
 			vscale = 1.0f;
 		}
@@ -943,7 +1032,8 @@ public class GameAI extends M_Flash {
 		gi.linkentity(self);
 	}
 
-	public static void VelocityForDamage(int damage, float[] v) {
+	public static void VelocityForDamage(int damage, float[] v)
+	{
 		v[0] = 100.0f * Lib.crandom();
 		v[1] = 100.0f * Lib.crandom();
 		v[2] = 200.0f + 100.0f * Lib.random();
@@ -954,7 +1044,8 @@ public class GameAI extends M_Flash {
 			Math3D.VectorScale(v, 1.2f, v);
 	}
 
-	public static void ClipGibVelocity(edict_t ent) {
+	public static void ClipGibVelocity(edict_t ent)
+	{
 		if (ent.velocity[0] < -300)
 			ent.velocity[0] = -300;
 		else if (ent.velocity[0] > 300)
@@ -969,15 +1060,18 @@ public class GameAI extends M_Flash {
 			ent.velocity[2] = 500;
 	}
 
-	public static void ThrowClientHead(edict_t self, int damage) {
+	public static void ThrowClientHead(edict_t self, int damage)
+	{
 		float vd[] = { 0, 0, 0 };
 		String gibname;
 
-		if ((Lib.rand() & 1) != 0) {
+		if ((Lib.rand() & 1) != 0)
+		{
 			gibname = "models/objects/gibs/head2/tris.md2";
 			self.s.skinnum = 1; // second skin is player
 		}
-		else {
+		else
+		{
 			gibname = "models/objects/gibs/skull/tris.md2";
 			self.s.skinnum = 0;
 		}
@@ -1000,11 +1094,12 @@ public class GameAI extends M_Flash {
 
 		if (self.client != null)
 			// bodies in the queue don't have a client anymore
-			{
+		{
 			self.client.anim_priority = ANIM_DEATH;
 			self.client.anim_end = self.s.frame;
 		}
-		else {
+		else
+		{
 			self.think = null;
 			self.nextthink = 0;
 		}
@@ -1012,7 +1107,8 @@ public class GameAI extends M_Flash {
 		gi.linkentity(self);
 	}
 
-	public static void ThrowDebris(edict_t self, String modelname, float speed, float[] origin) {
+	public static void ThrowDebris(edict_t self, String modelname, float speed, float[] origin)
+	{
 		edict_t chunk;
 		float[] v = { 0, 0, 0 };
 
@@ -1038,7 +1134,8 @@ public class GameAI extends M_Flash {
 		gi.linkentity(chunk);
 	}
 
-	public static void BecomeExplosion1(edict_t self) {
+	public static void BecomeExplosion1(edict_t self)
+	{
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_EXPLOSION1);
 		gi.WritePosition(self.s.origin);
@@ -1047,7 +1144,8 @@ public class GameAI extends M_Flash {
 		G_FreeEdict(self);
 	}
 
-	public static void BecomeExplosion2(edict_t self) {
+	public static void BecomeExplosion2(edict_t self)
+	{
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_EXPLOSION2);
 		gi.WritePosition(self.s.origin);
@@ -1057,7 +1155,8 @@ public class GameAI extends M_Flash {
 	}
 
 	/** Returns true, if the players gender flag was set to female .*/
-	public static boolean IsFemale(edict_t ent) {
+	public static boolean IsFemale(edict_t ent)
+	{
 		char info;
 
 		if (null == ent.client)
@@ -1070,7 +1169,8 @@ public class GameAI extends M_Flash {
 	}
 
 	/** Returns true, if the players gender flag was neither set to female nor to male.*/
-	public static boolean IsNeutral(edict_t ent) {
+	public static boolean IsNeutral(edict_t ent)
+	{
 		char info;
 
 		if (ent.client == null)
@@ -1084,7 +1184,8 @@ public class GameAI extends M_Flash {
 	}
 
 	/** Some reports about the cause of the players death. */
-	public static void ClientObituary(edict_t self, edict_t inflictor, edict_t attacker) {
+	public static void ClientObituary(edict_t self, edict_t inflictor, edict_t attacker)
+	{
 		int mod;
 		String message;
 		String message2;
@@ -1093,13 +1194,15 @@ public class GameAI extends M_Flash {
 		if (coop.value != 0 && attacker.client != null)
 			meansOfDeath |= MOD_FRIENDLY_FIRE;
 
-		if (deathmatch.value != 0 || coop.value != 0) {
+		if (deathmatch.value != 0 || coop.value != 0)
+		{
 			ff = (meansOfDeath & MOD_FRIENDLY_FIRE) != 0;
 			mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
 			message = null;
 			message2 = "";
 
-			switch (mod) {
+			switch (mod)
+			{
 				case MOD_SUICIDE :
 					message = "suicides";
 					break;
@@ -1137,8 +1240,10 @@ public class GameAI extends M_Flash {
 					message = "was in the wrong place";
 					break;
 			}
-			if (attacker == self) {
-				switch (mod) {
+			if (attacker == self)
+			{
+				switch (mod)
+				{
 					case MOD_HELD_GRENADE :
 						message = "tried to put the pin back in";
 						break;
@@ -1172,7 +1277,8 @@ public class GameAI extends M_Flash {
 						break;
 				}
 			}
-			if (message != null) {
+			if (message != null)
+			{
 				gi.bprintf(PRINT_MEDIUM, "" + self.client.pers.netname + " " + message + ".\n");
 				if (deathmatch.value != 0)
 					self.client.resp.score--;
@@ -1182,8 +1288,10 @@ public class GameAI extends M_Flash {
 
 			self.enemy = attacker;
 
-			if (attacker != null && attacker.client != null) {
-				switch (mod) {
+			if (attacker != null && attacker.client != null)
+			{
+				switch (mod)
+				{
 					case MOD_BLASTER :
 						message = "was blasted by";
 						break;
@@ -1253,11 +1361,13 @@ public class GameAI extends M_Flash {
 						message2 = "'s personal space";
 						break;
 				}
-				if (message != null) {
+				if (message != null)
+				{
 					gi.bprintf(
 						PRINT_MEDIUM,
 						self.client.pers.netname + " " + message + " " + attacker.client.pers.netname + "" + message2);
-					if (deathmatch.value != 0) {
+					if (deathmatch.value != 0)
+					{
 						if (ff)
 							attacker.client.resp.score--;
 						else
@@ -1279,7 +1389,8 @@ public class GameAI extends M_Flash {
 	
 	==================
 	*/
-	public static void DeathmatchScoreboardMessage(edict_t ent, edict_t killer) {
+	public static void DeathmatchScoreboardMessage(edict_t ent, edict_t killer)
+	{
 		String entry;
 		String string;
 		int stringlength;
@@ -1295,16 +1406,19 @@ public class GameAI extends M_Flash {
 
 		// sort the clients by score
 		total = 0;
-		for (i = 0; i < game.maxclients; i++) {
+		for (i = 0; i < game.maxclients; i++)
+		{
 			cl_ent = g_edicts[1 + i];
 			if (!cl_ent.inuse || game.clients[i].resp.spectator)
 				continue;
 			score = game.clients[i].resp.score;
-			for (j = 0; j < total; j++) {
+			for (j = 0; j < total; j++)
+			{
 				if (score > sortedscores[j])
 					break;
 			}
-			for (k = total; k > j; k--) {
+			for (k = total; k > j; k--)
+			{
 				sorted[k] = sorted[k - 1];
 				sortedscores[k] = sortedscores[k - 1];
 			}
@@ -1322,7 +1436,8 @@ public class GameAI extends M_Flash {
 		if (total > 12)
 			total = 12;
 
-		for (i = 0; i < total; i++) {
+		for (i = 0; i < total; i++)
+		{
 			cl = game.clients[sorted[i]];
 			cl_ent = g_edicts[1 + sorted[i]];
 
@@ -1337,7 +1452,8 @@ public class GameAI extends M_Flash {
 				tag = "tag2";
 			else
 				tag = null;
-			if (tag != null) {
+			if (tag != null)
+			{
 				entry = "xv " + (x + 32) + " yv " + y + " picn " + tag + " ";
 				j = entry.length();
 				if (stringlength + j > 1024)
@@ -1387,7 +1503,8 @@ public class GameAI extends M_Flash {
 	Note that it isn't that hard to overflow the 1400 byte message limit!
 	==================
 	*/
-	public static void DeathmatchScoreboard(edict_t ent) {
+	public static void DeathmatchScoreboard(edict_t ent)
+	{
 		DeathmatchScoreboardMessage(ent, ent.enemy);
 		gi.unicast(ent, true);
 	}
@@ -1399,7 +1516,8 @@ public class GameAI extends M_Flash {
 	Draw help computer.
 	==================
 	*/
-	public static void HelpComputer(edict_t ent) {
+	public static void HelpComputer(edict_t ent)
+	{
 		String string;
 		String sk;
 
@@ -1442,7 +1560,8 @@ public class GameAI extends M_Flash {
 	 * Processes the commands the player enters in the quake console. 
 	 * 
 		*/
-	public static void ClientCommand(edict_t ent) {
+	public static void ClientCommand(edict_t ent)
+	{
 		String cmd;
 
 		if (ent.client == null)
@@ -1450,23 +1569,28 @@ public class GameAI extends M_Flash {
 
 		cmd = gi.argv(0);
 
-		if (Lib.Q_stricmp(cmd, "players") == 0) {
+		if (Lib.Q_stricmp(cmd, "players") == 0)
+		{
 			Cmd.Players_f(ent);
 			return;
 		}
-		if (Lib.Q_stricmp(cmd, "say") == 0) {
+		if (Lib.Q_stricmp(cmd, "say") == 0)
+		{
 			Cmd.Say_f(ent, false, false);
 			return;
 		}
-		if (Lib.Q_stricmp(cmd, "say_team") == 0) {
+		if (Lib.Q_stricmp(cmd, "say_team") == 0)
+		{
 			Cmd.Say_f(ent, true, false);
 			return;
 		}
-		if (Lib.Q_stricmp(cmd, "score") == 0) {
+		if (Lib.Q_stricmp(cmd, "score") == 0)
+		{
 			Cmd.Score_f(ent);
 			return;
 		}
-		if (Lib.Q_stricmp(cmd, "help") == 0) {
+		if (Lib.Q_stricmp(cmd, "help") == 0)
+		{
 			Cmd.Help_f(ent);
 			return;
 		}
@@ -1476,7 +1600,7 @@ public class GameAI extends M_Flash {
 
 		if (Lib.Q_stricmp(cmd, "use") == 0)
 			Cmd.Use_f(ent);
-			
+
 		else if (Lib.Q_stricmp(cmd, "drop") == 0)
 			Cmd.Drop_f(ent);
 		else if (Lib.Q_stricmp(cmd, "give") == 0)
@@ -1523,14 +1647,16 @@ public class GameAI extends M_Flash {
 			Cmd.Say_f(ent, false, true);
 	}
 
-	public static boolean Pickup_PowerArmor(edict_t ent, edict_t other) {
+	public static boolean Pickup_PowerArmor(edict_t ent, edict_t other)
+	{
 		int quantity;
 
 		quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
 
 		other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
 
-		if (deathmatch.value != 0) {
+		if (deathmatch.value != 0)
+		{
 			if (0 == (ent.spawnflags & DROPPED_ITEM))
 				SetRespawn(ent, ent.item.quantity);
 			// auto-use for DM only if we didn't already have one
@@ -1541,90 +1667,97 @@ public class GameAI extends M_Flash {
 		return true;
 	}
 
-	public static void InitItems() {
+	public static void InitItems()
+	{
 		//game.num_items = sizeof(itemlist)/sizeof(itemlist[0]) - 1;
 		game.num_items = GameAI.itemlist.length - 1;
 	}
-	
-
 
 	/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
 	*/
-	public static void  SP_item_health (edict_t self)
+	public static void SP_item_health(edict_t self)
 	{
-		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		if (deathmatch.value != 0 && ((int) dmflags.value & DF_NO_HEALTH) != 0)
 		{
-			G_FreeEdict (self);
+			G_FreeEdict(self);
 		}
 
 		self.model = "models/items/healing/medium/tris.md2";
 		self.count = 10;
-		SpawnItem (self, FindItem ("Health"));
-		gi.soundindex ("items/n_health.wav");
+		SpawnItem(self, FindItem("Health"));
+		gi.soundindex("items/n_health.wav");
 	}
 
 	/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
 	*/
-	static void  SP_item_health_small (edict_t  self)
+	static void SP_item_health_small(edict_t self)
 	{
-		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH)!=0)
+		if (deathmatch.value != 0 && ((int) dmflags.value & DF_NO_HEALTH) != 0)
 		{
-			G_FreeEdict (self);
+			G_FreeEdict(self);
 			return;
 		}
 
 		self.model = "models/items/healing/stimpack/tris.md2";
 		self.count = 2;
-		SpawnItem (self, FindItem ("Health"));
+		SpawnItem(self, FindItem("Health"));
 		self.style = HEALTH_IGNORE_MAX;
-		gi.soundindex ("items/s_health.wav");
+		gi.soundindex("items/s_health.wav");
 	}
 
 	/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
 	*/
-	static void SP_item_health_large (edict_t  self)
+	static void SP_item_health_large(edict_t self)
 	{
-		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		if (deathmatch.value != 0 && ((int) dmflags.value & DF_NO_HEALTH) != 0)
 		{
-			G_FreeEdict (self);
+			G_FreeEdict(self);
 			return;
 		}
 
 		self.model = "models/items/healing/large/tris.md2";
 		self.count = 25;
-		SpawnItem (self, FindItem ("Health"));
-		gi.soundindex ("items/l_health.wav");
+		SpawnItem(self, FindItem("Health"));
+		gi.soundindex("items/l_health.wav");
 	}
 
 	/*
 	 * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
 	*/
-	static void SP_item_health_mega (edict_t self)
+	static void SP_item_health_mega(edict_t self)
 	{
-		if ( deathmatch.value!=0 && ((int)dmflags.value & DF_NO_HEALTH) !=0)
+		if (deathmatch.value != 0 && ((int) dmflags.value & DF_NO_HEALTH) != 0)
 		{
-			G_FreeEdict (self);
+			G_FreeEdict(self);
 			return;
 		}
 
 		self.model = "models/items/mega_h/tris.md2";
 		self.count = 100;
-		SpawnItem (self, FindItem ("Health"));
-		gi.soundindex ("items/m_health.wav");
+		SpawnItem(self, FindItem("Health"));
+		gi.soundindex("items/m_health.wav");
 		self.style = HEALTH_IGNORE_MAX | HEALTH_TIMED;
 	}
 	public static gitem_t itemlist[] = {
 		//leave index 0 alone
-		null,
-	
+		new gitem_t(null, null, null, null, null, null, null, 0, null, null, null, 0, 0, null, 0, 0, null, 0, null),
+
 		//
 		// ARMOR
 		//
 		new gitem_t(
 		/*QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
-	
-		"item_armor_body", GameAIAdapters.Pickup_Armor, null, null, null, "misc/ar1_pkup.wav", "models/items/armor/body/tris.md2", Defines.EF_ROTATE, null,
+
+		"item_armor_body",
+			GameAIAdapters.Pickup_Armor,
+			null,
+			null,
+			null,
+			"misc/ar1_pkup.wav",
+			"models/items/armor/body/tris.md2",
+			Defines.EF_ROTATE,
+			null,
 		/* icon */
 		"i_bodyarmor",
 		/* pickup */
@@ -1633,7 +1766,7 @@ public class GameAI extends M_Flash {
 		3, 0, null, Defines.IT_ARMOR, 0, GameAIAdapters.bodyarmor_info, Defines.ARMOR_BODY,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_armor_combat (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1654,7 +1787,7 @@ public class GameAI extends M_Flash {
 		3, 0, null, Defines.IT_ARMOR, 0, GameAIAdapters.combatarmor_info, Defines.ARMOR_COMBAT,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_armor_jacket (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1675,7 +1808,7 @@ public class GameAI extends M_Flash {
 		3, 0, null, Defines.IT_ARMOR, 0, GameAIAdapters.jacketarmor_info, Defines.ARMOR_JACKET,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_armor_shard (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1696,7 +1829,7 @@ public class GameAI extends M_Flash {
 		3, 0, null, Defines.IT_ARMOR, 0, null, Defines.ARMOR_SHARD,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_power_screen (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1717,7 +1850,7 @@ public class GameAI extends M_Flash {
 		0, 60, null, Defines.IT_ARMOR, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_power_shield (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1738,11 +1871,11 @@ public class GameAI extends M_Flash {
 		0, 60, null, Defines.IT_ARMOR, 0, null, 0,
 		/* precache */
 		"misc/power2.wav misc/power1.wav"),
-	
+
 		//
 		// WEAPONS 
 		//
-	
+
 		/* weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 		always owned, never in the world
 		*/
@@ -1762,7 +1895,7 @@ public class GameAI extends M_Flash {
 		"Blaster", 0, 0, null, Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_BLASTER, null, 0,
 		/* precache */
 		"weapons/blastf1a.wav misc/lasfly.wav"),
-	
+
 		/*QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1781,7 +1914,7 @@ public class GameAI extends M_Flash {
 		"Shotgun", 0, 1, "Shells", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_SHOTGUN, null, 0,
 		/* precache */
 		"weapons/shotgf1b.wav weapons/shotgr1b.wav"),
-	
+
 		/*QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1800,7 +1933,7 @@ public class GameAI extends M_Flash {
 		"Super Shotgun", 0, 2, "Shells", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_SUPERSHOTGUN, null, 0,
 		/* precache */
 		"weapons/sshotf1b.wav"),
-	
+
 		/*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1819,7 +1952,7 @@ public class GameAI extends M_Flash {
 		"Machinegun", 0, 1, "Bullets", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_MACHINEGUN, null, 0,
 		/* precache */
 		"weapons/machgf1b.wav weapons/machgf2b.wav weapons/machgf3b.wav weapons/machgf4b.wav weapons/machgf5b.wav"),
-	
+
 		/*QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1838,7 +1971,7 @@ public class GameAI extends M_Flash {
 		"Chaingun", 0, 1, "Bullets", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_CHAINGUN, null, 0,
 		/* precache */
 		"weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav"),
-	
+
 		/*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1859,7 +1992,7 @@ public class GameAI extends M_Flash {
 		3, 5, "grenades", Defines.IT_AMMO | Defines.IT_WEAPON, Defines.WEAP_GRENADES, null, Defines.AMMO_GRENADES,
 		/* precache */
 		"weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav "),
-	
+
 		/*QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1878,7 +2011,7 @@ public class GameAI extends M_Flash {
 		"Grenade Launcher", 0, 1, "Grenades", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_GRENADELAUNCHER, null, 0,
 		/* precache */
 		"models/objects/grenade/tris.md2 weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav"),
-	
+
 		/*QUAKED weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1897,7 +2030,7 @@ public class GameAI extends M_Flash {
 		"Rocket Launcher", 0, 1, "Rockets", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_ROCKETLAUNCHER, null, 0,
 		/* precache */
 		"models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2"),
-	
+
 		/*QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1916,7 +2049,7 @@ public class GameAI extends M_Flash {
 		"HyperBlaster", 0, 1, "Cells", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_HYPERBLASTER, null, 0,
 		/* precache */
 		"weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"),
-	
+
 		/*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1935,7 +2068,7 @@ public class GameAI extends M_Flash {
 		"Railgun", 0, 1, "Slugs", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_RAILGUN, null, 0,
 		/* precache */
 		"weapons/rg_hum.wav"),
-	
+
 		/*QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1954,11 +2087,11 @@ public class GameAI extends M_Flash {
 		"BFG10K", 0, 50, "Cells", Defines.IT_WEAPON | Defines.IT_STAY_COOP, Defines.WEAP_BFG, null, 0,
 		/* precache */
 		"sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"),
-	
+
 		//
 		// AMMO ITEMS
 		//
-	
+
 		/*QUAKED ammo_shells (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -1979,7 +2112,7 @@ public class GameAI extends M_Flash {
 		3, 10, null, Defines.IT_AMMO, 0, null, Defines.AMMO_SHELLS,
 		/* precache */
 		""),
-	
+
 		/*QUAKED ammo_bullets (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2000,7 +2133,7 @@ public class GameAI extends M_Flash {
 		3, 50, null, Defines.IT_AMMO, 0, null, Defines.AMMO_BULLETS,
 		/* precache */
 		""),
-	
+
 		/*QUAKED ammo_cells (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2021,7 +2154,7 @@ public class GameAI extends M_Flash {
 		3, 50, null, Defines.IT_AMMO, 0, null, Defines.AMMO_CELLS,
 		/* precache */
 		""),
-	
+
 		/*QUAKED ammo_rockets (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2042,7 +2175,7 @@ public class GameAI extends M_Flash {
 		3, 5, null, Defines.IT_AMMO, 0, null, Defines.AMMO_ROCKETS,
 		/* precache */
 		""),
-	
+
 		/*QUAKED ammo_slugs (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2063,7 +2196,7 @@ public class GameAI extends M_Flash {
 		3, 10, null, Defines.IT_AMMO, 0, null, Defines.AMMO_SLUGS,
 		/* precache */
 		""),
-	
+
 		//
 		// POWERUP ITEMS
 		//
@@ -2087,7 +2220,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, Defines.IT_POWERUP, 0, null, 0,
 		/* precache */
 		"items/damage.wav items/damage2.wav items/damage3.wav"),
-	
+
 		/*QUAKED item_invulnerability (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2108,7 +2241,7 @@ public class GameAI extends M_Flash {
 		2, 300, null, Defines.IT_POWERUP, 0, null, 0,
 		/* precache */
 		"items/protect.wav items/protect2.wav items/protect4.wav"),
-	
+
 		/*QUAKED item_silencer (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2129,7 +2262,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, Defines.IT_POWERUP, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_breather (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2150,7 +2283,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, Defines.IT_STAY_COOP | Defines.IT_POWERUP, 0, null, 0,
 		/* precache */
 		"items/airout.wav"),
-	
+
 		/*QUAKED item_enviro (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2171,7 +2304,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, Defines.IT_STAY_COOP | Defines.IT_POWERUP, 0, null, 0,
 		/* precache */
 		"items/airout.wav"),
-	
+
 		/*QUAKED item_ancient_head (.3 .3 1) (-16 -16 -16) (16 16 16)
 		Special item that gives +2 to maximum health
 		*/
@@ -2193,7 +2326,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, 0, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16)
 		gives +1 to maximum health
 		*/
@@ -2215,7 +2348,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, 0, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_bandolier (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2236,7 +2369,7 @@ public class GameAI extends M_Flash {
 		2, 60, null, 0, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED item_pack (.3 .3 1) (-16 -16 -16) (16 16 16)
 		*/
 		new gitem_t(
@@ -2257,7 +2390,7 @@ public class GameAI extends M_Flash {
 		2, 180, null, 0, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		//
 		// KEYS
 		//
@@ -2285,7 +2418,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_power_cube (0 .5 .8) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN NO_TOUCH
 		warehouse circuits
 		*/
@@ -2310,7 +2443,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_pyramid (0 .5 .8) (-16 -16 -16) (16 16 16)
 		key for the entrance of jail3
 		*/
@@ -2335,7 +2468,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_data_spinner (0 .5 .8) (-16 -16 -16) (16 16 16)
 		key for the city computer
 		*/
@@ -2360,7 +2493,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_pass (0 .5 .8) (-16 -16 -16) (16 16 16)
 		security pass for the security level
 		*/
@@ -2385,7 +2518,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_blue_key (0 .5 .8) (-16 -16 -16) (16 16 16)
 		normal door key - blue
 		*/
@@ -2410,7 +2543,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_red_key (0 .5 .8) (-16 -16 -16) (16 16 16)
 		normal door key - red
 		*/
@@ -2435,7 +2568,7 @@ public class GameAI extends M_Flash {
 			0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_commander_head (0 .5 .8) (-16 -16 -16) (16 16 16)
 		tank commander's head
 		*/
@@ -2457,7 +2590,7 @@ public class GameAI extends M_Flash {
 		2, 0, null, Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
 		/* precache */
 		""),
-	
+
 		/*QUAKED key_airstrike_target (0 .5 .8) (-16 -16 -16) (16 16 16)
 		tank commander's head
 		*/
@@ -2487,7 +2620,7 @@ public class GameAI extends M_Flash {
 		3, 0, null, 0, 0, null, 0,
 		/* precache */
 		"items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"),
-	
+
 		// end of list marker
 		null };
 }

@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.17 2004-02-15 22:00:15 cwei Exp $
+ * $Id: Jake2.java,v 1.18 2004-02-29 00:51:06 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -102,7 +102,7 @@ public final class Jake2 {
 
 			// save cpu resources
 //			try {
-//				Thread.sleep(5);
+//				Thread.sleep(1);
 //			}
 //			catch (InterruptedException e) {
 //			}

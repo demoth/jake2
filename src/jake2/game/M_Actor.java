@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.7 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Actor.java,v 1.8 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -801,7 +801,7 @@ public class M_Actor extends GameAI {
 	}
 
 	static EntThinkAdapter actor_dead= new EntThinkAdapter() {
-		public boolean actor_dead(edict_t self) {
+		public boolean think(edict_t self) {
 			Math3D.VectorSet(self.mins, -16, -16, -24);
 			Math3D.VectorSet(self.maxs, 16, 16, -8);
 			self.movetype= MOVETYPE_TOSS;

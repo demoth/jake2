@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.5 2004-02-16 20:26:38 rst Exp $
+// $Id: SV_ENTS.java,v 1.6 2004-02-29 00:51:06 rst Exp $
 
 package jake2.server;
 
@@ -129,7 +129,9 @@ public class SV_ENTS extends SV_USER {
 	static void SV_WritePlayerstateToClient(client_frame_t from, client_frame_t to, sizebuf_t msg) {
 		int i;
 		int pflags;
+		// ptr
 		player_state_t ps, ops;
+		// mem
 		player_state_t dummy;
 		int statbits;
 
@@ -301,13 +303,13 @@ public class SV_ENTS extends SV_USER {
 	==================
 	*/
 	public static void SV_WriteFrameToClient(client_t client, sizebuf_t msg) {
+		//ptr
 		client_frame_t frame, oldframe;
 		int lastframe;
 
 		//Com.Printf ("%i . %i\n", new Vargs().add(client.lastframe).add(sv.framenum));
 		// this is the frame we are creating
 		frame = client.frames[sv.framenum & UPDATE_MASK];
-
 		if (client.lastframe <= 0) { // client is asking for a retransmit
 			oldframe = null;
 			lastframe = -1;
@@ -447,7 +449,7 @@ public class SV_ENTS extends SV_USER {
 		frame.areabytes = CM.CM_WriteAreaBits(frame.areabits, clientarea);
 
 		// grab the current player_state_t
-		frame.ps = clent.client.ps;
+		frame.ps.set(clent.client.ps);
 
 		SV_FatPVS(org);
 		clientphs = CM.CM_ClusterPHS(clientcluster);
@@ -529,7 +531,7 @@ public class SV_ENTS extends SV_USER {
 			}
 
 			//*state = ent.s;
-			svs.client_entities[ix] = ent.s;
+			svs.client_entities[ix].set(ent.s);
 
 			// don't mark players missiles as solid
 			if (ent.owner == client.edict)

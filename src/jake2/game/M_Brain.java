@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Brain.java,v 1.6 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Brain.java,v 1.7 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -508,16 +508,16 @@ public class M_Brain extends GameWeapon {
 	};
 
 	static EntDodgeAdapter brain_dodge= new EntDodgeAdapter() {
-		public boolean brain_dodge(edict_t self, edict_t attacker, float eta) {
+		public void dodge(edict_t self, edict_t attacker, float eta) {
 			if (Lib.random() > 0.25)
-				return true;
+				return;
 
 			if (self.enemy == null)
 				self.enemy= attacker;
 
 			self.monsterinfo.pausetime= level.time + eta + 0.5f;
 			self.monsterinfo.currentmove= brain_move_duck;
-			return true;
+			return;
 		}
 	};
 

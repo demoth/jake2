@@ -19,12 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntTouchAdapter.java,v 1.3 2004-01-09 18:30:57 rst Exp $
+// $Id: EntTouchAdapter.java,v 1.4 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
-public class EntTouchAdapter  extends SuperAdapter {
-
-	public void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf) {
-	}
+public abstract class EntTouchAdapter extends SuperAdapter
+{
+	public abstract void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf);
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.11 2004-02-15 18:01:27 rst Exp $
+// $Id: SV_WORLD.java,v 1.12 2004-02-29 00:51:06 rst Exp $
 
 package jake2.server;
 
@@ -33,31 +33,24 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.util.Vargs;
 
-public class SV_WORLD extends SV_CCMDS {
+public class SV_WORLD extends SV_CCMDS
+{
 
 	// world.c -- world query functions
 
 	//
-	///*
+	//
 	//===============================================================================
 	//
 	//ENTITY AREA CHECKING
 	//
 	//FIXME: this use of "area" is different from the bsp file use
 	//===============================================================================
-	//*/
-
-	//// (type *)STRUCT_FROM_LINK(link_t *link, type, member)
-	//// ent = STRUCT_FROM_LINK(link,entity_t,order)
-
-	//// FIXME: remove this mess!
-	//#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (int)&(((t *)0).m)))
-	//
-	//#define	EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l,edict_t,area)
-
 	//
 
-	public static void initNodes() {
+
+	public static void initNodes()
+	{
 		for (int n = 0; n < AREA_NODES; n++)
 			sv_areanodes[n] = new areanode_t();
 	}
@@ -75,16 +68,19 @@ public class SV_WORLD extends SV_CCMDS {
 	public static int area_type;
 
 	// ClearLink is used for new headnodes
-	public static void ClearLink(link_t l) {
+	public static void ClearLink(link_t l)
+	{
 		l.prev = l.next = l;
 	}
 
-	public static void RemoveLink(link_t l) {
+	public static void RemoveLink(link_t l)
+	{
 		l.next.prev = l.prev;
 		l.prev.next = l.next;
 	}
 
-	public static void InsertLinkBefore(link_t l, link_t before) {
+	public static void InsertLinkBefore(link_t l, link_t before)
+	{
 		l.next = before;
 		l.prev = before.prev;
 		l.prev.next = l;
@@ -98,24 +94,25 @@ public class SV_WORLD extends SV_CCMDS {
 	Builds a uniformly subdivided tree for the given world size
 	===============
 	*/
-	public static areanode_t SV_CreateAreaNode(int depth, float[] mins, float[] maxs) {
+	public static areanode_t SV_CreateAreaNode(int depth, float[] mins, float[] maxs)
+	{
 		areanode_t anode;
 		float[] size = { 0, 0, 0 };
 		float[] mins1 = { 0, 0, 0 }, maxs1 = { 0, 0, 0 }, mins2 = { 0, 0, 0 }, maxs2 = { 0, 0, 0 };
 
-		Com.Printf("SV_CreateAreaNode " + depth + "\n");
 		anode = sv_areanodes[sv_numareanodes];
-		
+
 		// just for debugging (rst)
 		VectorCopy(mins, anode.mins_rst);
 		VectorCopy(maxs, anode.maxs_rst);
-		
+
 		sv_numareanodes++;
 
 		ClearLink(anode.trigger_edicts);
 		ClearLink(anode.solid_edicts);
 
-		if (depth == AREA_DEPTH) {
+		if (depth == AREA_DEPTH)
+		{
 			anode.axis = -1;
 			anode.children[0] = anode.children[1] = null;
 			return anode;
@@ -147,12 +144,14 @@ public class SV_WORLD extends SV_CCMDS {
 	
 	===============
 	*/
-	public static void SV_ClearWorld() {
+	public static void SV_ClearWorld()
+	{
 		initNodes();
 		sv_numareanodes = 0;
 		SV_CreateAreaNode(0, sv.models[1].mins, sv.models[1].maxs);
 
-		Com.Println("areanodes:" + sv_numareanodes + " (sollten 32 sein).");
+		/*
+		Com.p("areanodes:" + sv_numareanodes + " (sollten 32 sein).");
 		for (int n = 0; n < sv_numareanodes; n++) {
 			Com.Printf(
 				"|%3i|%2i|%8.2f  |%8.2f|%8.2f|%8.2f|  %8.2f|%8.2f|%8.2f|\n",
@@ -167,15 +166,15 @@ public class SV_WORLD extends SV_CCMDS {
 					.add(sv_areanodes[n].maxs_rst[1])
 					.add(sv_areanodes[n].maxs_rst[2]));
 		}
+		*/
 	}
-
 	/*
 	===============
 	SV_UnlinkEdict
-	
 	===============
 	*/
-	public static void SV_UnlinkEdict(edict_t ent) {
+	public static void SV_UnlinkEdict(edict_t ent)
+	{
 		if (null == ent.area.prev)
 			return; // not linked in anywhere
 		RemoveLink(ent.area);
@@ -185,12 +184,12 @@ public class SV_WORLD extends SV_CCMDS {
 	/*
 	===============
 	SV_LinkEdict
-	
 	===============
 	*/
 	public static final int MAX_TOTAL_ENT_LEAFS = 128;
 
-	public static void SV_LinkEdict(edict_t ent) {
+	public static void SV_LinkEdict(edict_t ent)
+	{
 		areanode_t node;
 		// TODO: make static instead of new
 		int leafs[] = new int[MAX_TOTAL_ENT_LEAFS];
@@ -213,7 +212,8 @@ public class SV_WORLD extends SV_CCMDS {
 		VectorSubtract(ent.maxs, ent.mins, ent.size);
 
 		// encode the size into the entity_state for client prediction
-		if (ent.solid == SOLID_BBOX && 0 == (ent.svflags & SVF_DEADMONSTER)) { // assume that x/y are equal and symetric
+		if (ent.solid == SOLID_BBOX && 0 == (ent.svflags & SVF_DEADMONSTER))
+		{ // assume that x/y are equal and symetric
 			int i = (int) (ent.maxs[0] / 8);
 			if (i < 1)
 				i = 1;
@@ -236,18 +236,21 @@ public class SV_WORLD extends SV_CCMDS {
 
 			ent.s.solid = (k << 10) | (j << 5) | i;
 		}
-		else if (ent.solid == SOLID_BSP) {
+		else if (ent.solid == SOLID_BSP)
+		{
 			ent.s.solid = 31; // a solid_bbox will never create this value
 		}
 		else
 			ent.s.solid = 0;
 
 		// set the abs box
-		if (ent.solid == SOLID_BSP && (ent.s.angles[0] != 0 || ent.s.angles[1] != 0 || ent.s.angles[2] != 0)) { // expand for rotation
+		if (ent.solid == SOLID_BSP && (ent.s.angles[0] != 0 || ent.s.angles[1] != 0 || ent.s.angles[2] != 0))
+		{ // expand for rotation
 			float max, v;
 
 			max = 0;
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++)
+			{
 				v = Math.abs(ent.mins[i]);
 				if (v > max)
 					max = v;
@@ -255,12 +258,14 @@ public class SV_WORLD extends SV_CCMDS {
 				if (v > max)
 					max = v;
 			}
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++)
+			{
 				ent.absmin[i] = ent.s.origin[i] - max;
 				ent.absmax[i] = ent.s.origin[i] + max;
 			}
 		}
-		else { // normal
+		else
+		{ // normal
 			VectorAdd(ent.s.origin, ent.mins, ent.absmin);
 			VectorAdd(ent.s.origin, ent.maxs, ent.absmax);
 		}
@@ -289,12 +294,15 @@ public class SV_WORLD extends SV_CCMDS {
 		topnode = iw.i;
 
 		// set areas
-		for (int i = 0; i < num_leafs; i++) {
+		for (int i = 0; i < num_leafs; i++)
+		{
 			clusters[i] = CM.CM_LeafCluster(leafs[i]);
 			area = CM.CM_LeafArea(leafs[i]);
-			if (area != 0) { // doors may legally straggle two areas,
+			if (area != 0)
+			{ // doors may legally straggle two areas,
 				// but nothing should evern need more than that
-				if (ent.areanum != 0 && ent.areanum != area) {
+				if (ent.areanum != 0 && ent.areanum != area)
+				{
 					if (ent.areanum2 != 0 && ent.areanum2 != area && sv.state == ss_loading)
 						Com.DPrintf("Object touching 3 areas at " + ent.absmin[0] + " " + ent.absmin[1] + " " + ent.absmin[2] + "\n");
 					ent.areanum2 = area;
@@ -304,20 +312,25 @@ public class SV_WORLD extends SV_CCMDS {
 			}
 		}
 
-		if (num_leafs >= MAX_TOTAL_ENT_LEAFS) { // assume we missed some leafs, and mark by headnode
+		if (num_leafs >= MAX_TOTAL_ENT_LEAFS)
+		{ // assume we missed some leafs, and mark by headnode
 			ent.num_clusters = -1;
 			ent.headnode = topnode;
 		}
-		else {
+		else
+		{
 			ent.num_clusters = 0;
-			for (int i = 0; i < num_leafs; i++) {
+			for (int i = 0; i < num_leafs; i++)
+			{
 				if (clusters[i] == -1)
 					continue; // not a visible leaf
 				for (j = 0; j < i; j++)
 					if (clusters[j] == clusters[i])
 						break;
-				if (j == i) {
-					if (ent.num_clusters == MAX_ENT_CLUSTERS) { // assume we missed some leafs, and mark by headnode
+				if (j == i)
+				{
+					if (ent.num_clusters == MAX_ENT_CLUSTERS)
+					{ // assume we missed some leafs, and mark by headnode
 						ent.num_clusters = -1;
 						ent.headnode = topnode;
 						break;
@@ -329,7 +342,8 @@ public class SV_WORLD extends SV_CCMDS {
 		}
 
 		// if first time, make sure old_origin is valid
-		if (0 == ent.linkcount) {
+		if (0 == ent.linkcount)
+		{
 			VectorCopy(ent.s.origin, ent.s.old_origin);
 		}
 		ent.linkcount++;
@@ -340,7 +354,8 @@ public class SV_WORLD extends SV_CCMDS {
 		// find the first node that the ent's box crosses
 		node = sv_areanodes[0];
 
-		while (true) {
+		while (true)
+		{
 			if (node.axis == -1)
 				break;
 			if (ent.absmin[node.axis] > node.dist)
@@ -365,7 +380,8 @@ public class SV_WORLD extends SV_CCMDS {
 	
 	====================
 	*/
-	public static void SV_AreaEdicts_r(areanode_t node) {
+	public static void SV_AreaEdicts_r(areanode_t node)
+	{
 		link_t l, next, start;
 		edict_t check;
 		int count;
@@ -378,7 +394,8 @@ public class SV_WORLD extends SV_CCMDS {
 		else
 			start = node.trigger_edicts;
 
-		for (l = start.next; l != start; l = next) {
+		for (l = start.next; l != start; l = next)
+		{
 			next = l.next;
 				check = //EDICT_FROM_AREA(l);
 	 (edict_t) l.o;
@@ -393,7 +410,8 @@ public class SV_WORLD extends SV_CCMDS {
 				|| check.absmax[2] < area_mins[2])
 				continue; // not touching
 
-			if (area_count == area_maxcount) {
+			if (area_count == area_maxcount)
+			{
 				Com.Printf("SV_AreaEdicts: MAXCOUNT\n");
 				return;
 			}
@@ -418,7 +436,8 @@ public class SV_WORLD extends SV_CCMDS {
 	SV_AreaEdicts
 	================
 	*/
-	public static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[], int maxcount, int areatype) {
+	public static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[], int maxcount, int areatype)
+	{
 		area_mins = mins;
 		area_maxs = maxs;
 		area_list = list;
@@ -427,7 +446,7 @@ public class SV_WORLD extends SV_CCMDS {
 		area_type = areatype;
 
 		SV_AreaEdicts_r(sv_areanodes[0]);
-		
+
 		/*
 		Com.Printf("found edicts in area:" + area_count + "\n");
 		for (int n = 0; n < area_count; n++) {
@@ -444,7 +463,8 @@ public class SV_WORLD extends SV_CCMDS {
 	SV_PointContents
 	=============
 	*/
-	public static int SV_PointContents(float[] p) {
+	public static int SV_PointContents(float[] p)
+	{
 		// TODO: make static instead new
 		edict_t touch[] = new edict_t[MAX_EDICTS], hit;
 		int i, num;
@@ -458,7 +478,8 @@ public class SV_WORLD extends SV_CCMDS {
 		// or in contents from all the other entities
 		num = SV_AreaEdicts(p, p, touch, MAX_EDICTS, AREA_SOLID);
 
-		for (i = 0; i < num; i++) {
+		for (i = 0; i < num; i++)
+		{
 			hit = touch[i];
 
 			// might intersect, so do an exact clip
@@ -485,12 +506,14 @@ public class SV_WORLD extends SV_CCMDS {
 	testing object's origin to get a point to use with the returned hull.
 	================
 	*/
-	public static int SV_HullForEntity(edict_t ent) {
+	public static int SV_HullForEntity(edict_t ent)
+	{
 
 		cmodel_t model;
 
 		// decide which clipping hull to use, based on the size
-		if (ent.solid == SOLID_BSP) { // explicit hulls in the BSP model
+		if (ent.solid == SOLID_BSP)
+		{ // explicit hulls in the BSP model
 			model = sv.models[ent.s.modelindex];
 
 			if (null == model)
@@ -512,7 +535,8 @@ public class SV_WORLD extends SV_CCMDS {
 	
 	====================
 	*/
-	public static void SV_ClipMoveToEntities(moveclip_t clip) {
+	public static void SV_ClipMoveToEntities(moveclip_t clip)
+	{
 		int i, num;
 		// TODO: make static instead of new
 		edict_t touchlist[] = new edict_t[MAX_EDICTS];
@@ -525,7 +549,8 @@ public class SV_WORLD extends SV_CCMDS {
 
 		// be careful, it is possible to have an entity in this
 		// list removed before we get to it (killtriggered)
-		for (i = 0; i < num; i++) {
+		for (i = 0; i < num; i++)
+		{
 			touch = touchlist[i];
 			if (touch.solid == SOLID_NOT)
 				continue;
@@ -533,7 +558,8 @@ public class SV_WORLD extends SV_CCMDS {
 				continue;
 			if (clip.trace.allsolid)
 				return;
-			if (clip.passedict != null) {
+			if (clip.passedict != null)
+			{
 				if (touch.owner == clip.passedict)
 					continue; // don't clip against own missiles
 				if (clip.passedict.owner == touch)
@@ -572,9 +598,11 @@ public class SV_WORLD extends SV_CCMDS {
 						touch.s.origin,
 						angles);
 
-			if (trace.allsolid || trace.startsolid || trace.fraction < clip.trace.fraction) {
+			if (trace.allsolid || trace.startsolid || trace.fraction < clip.trace.fraction)
+			{
 				trace.ent = touch;
-				if (clip.trace.startsolid) {
+				if (clip.trace.startsolid)
+				{
 					clip.trace = trace;
 					clip.trace.startsolid = true;
 				}
@@ -591,15 +619,19 @@ public class SV_WORLD extends SV_CCMDS {
 	SV_TraceBounds
 	==================
 	*/
-	public static void SV_TraceBounds(float[] start, float[] mins, float[] maxs, float[] end, float[] boxmins, float[] boxmaxs) {
+	public static void SV_TraceBounds(float[] start, float[] mins, float[] maxs, float[] end, float[] boxmins, float[] boxmaxs)
+	{
 		int i;
 
-		for (i = 0; i < 3; i++) {
-			if (end[i] > start[i]) {
+		for (i = 0; i < 3; i++)
+		{
+			if (end[i] > start[i])
+			{
 				boxmins[i] = start[i] + mins[i] - 1;
 				boxmaxs[i] = end[i] + maxs[i] + 1;
 			}
-			else {
+			else
+			{
 				boxmins[i] = end[i] + mins[i] - 1;
 				boxmaxs[i] = start[i] + maxs[i] + 1;
 			}
@@ -617,7 +649,8 @@ public class SV_WORLD extends SV_CCMDS {
 	
 	==================
 	*/
-	public static trace_t SV_Trace(float[] start, float[] mins, float[] maxs, float[] end, edict_t passedict, int contentmask) {
+	public static trace_t SV_Trace(float[] start, float[] mins, float[] maxs, float[] end, edict_t passedict, int contentmask)
+	{
 		moveclip_t clip = new moveclip_t();
 
 		if (mins == null)

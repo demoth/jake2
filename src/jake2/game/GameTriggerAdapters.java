@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameTriggerAdapters.java,v 1.1 2004-02-26 22:36:31 rst Exp $
+// $Id: GameTriggerAdapters.java,v 1.2 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
@@ -114,6 +114,7 @@ public class GameTriggerAdapters {
 		public void use(edict_t self, edict_t other, edict_t activator) {
 			int index;
 	
+			Com.p("trigger_key_use!");
 			if (self.item == null)
 				return;
 			if (activator.client == null)

@@ -19,31 +19,44 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.9 2004-02-26 22:36:31 rst Exp $
+// $Id: GameFunc.java,v 1.10 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.qcommon.Com;
 import jake2.util.*;
 import jake2.util.*;
 
-public class GameFunc extends PlayerView {
+public class GameFunc extends PlayerView
+{
 
-	static void Move_Calc(edict_t ent, float[] dest, EntThinkAdapter func) {
+	static void Move_Calc(edict_t ent, float[] dest, EntThinkAdapter func)
+	{
 		Math3D.VectorClear(ent.velocity);
 		Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
 		ent.moveinfo.remaining_distance = Math3D.VectorNormalize(ent.moveinfo.dir);
+		
+		//TODO:  BIG HACK !!!
+		if (ent.moveinfo.remaining_distance == 2) 
+			ent.moveinfo.remaining_distance = 94;
 		ent.moveinfo.endfunc = func;
 
-		if (ent.moveinfo.speed == ent.moveinfo.accel && ent.moveinfo.speed == ent.moveinfo.decel) {
-			if (level.current_entity == ((ent.flags & FL_TEAMSLAVE) != 0 ? ent.teammaster : ent)) {
+		if (ent.moveinfo.speed == ent.moveinfo.accel && ent.moveinfo.speed == ent.moveinfo.decel)
+		{
+			if (level.current_entity == ((ent.flags & FL_TEAMSLAVE) != 0 ? ent.teammaster : ent))
+			{
 				GameFuncAdapters.Move_Begin.think(ent);
-			} else {
+			}
+			else
+			{
 				ent.nextthink = level.time + FRAMETIME;
 				ent.think = GameFuncAdapters.Move_Begin;
 			}
-		} else {
+		}
+		else
+		{
 			// accelerative
 			ent.moveinfo.current_speed = 0;
 			ent.think = GameFuncAdapters.Think_AccelMove;
@@ -51,12 +64,16 @@ public class GameFunc extends PlayerView {
 		}
 	}
 
-	static void AngleMove_Calc(edict_t ent, EntThinkAdapter func) {
+	static void AngleMove_Calc(edict_t ent, EntThinkAdapter func)
+	{
 		Math3D.VectorClear(ent.avelocity);
 		ent.moveinfo.endfunc = func;
-		if (level.current_entity == ((ent.flags & FL_TEAMSLAVE) != 0 ? ent.teammaster : ent)) {
+		if (level.current_entity == ((ent.flags & FL_TEAMSLAVE) != 0 ? ent.teammaster : ent))
+		{
 			GameFuncAdapters.AngleMove_Begin.think(ent);
-		} else {
+		}
+		else
+		{
 			ent.nextthink = level.time + FRAMETIME;
 			ent.think = GameFuncAdapters.AngleMove_Begin;
 		}
@@ -70,17 +87,20 @@ public class GameFunc extends PlayerView {
 	change the speed for the next frame
 	==============
 	*/
-	static float AccelerationDistance(float target, float rate) {
+	static float AccelerationDistance(float target, float rate)
+	{
 		return target * ((target / rate) + 1) / 2;
 	};
 
-	static void plat_CalcAcceleratedMove(moveinfo_t moveinfo) {
+	static void plat_CalcAcceleratedMove(moveinfo_t moveinfo)
+	{
 		float accel_dist;
 		float decel_dist;
 
 		moveinfo.move_speed = moveinfo.speed;
 
-		if (moveinfo.remaining_distance < moveinfo.accel) {
+		if (moveinfo.remaining_distance < moveinfo.accel)
+		{
 			moveinfo.current_speed = moveinfo.remaining_distance;
 			return;
 		}
@@ -88,7 +108,8 @@ public class GameFunc extends PlayerView {
 		accel_dist = AccelerationDistance(moveinfo.speed, moveinfo.accel);
 		decel_dist = AccelerationDistance(moveinfo.speed, moveinfo.decel);
 
-		if ((moveinfo.remaining_distance - accel_dist - decel_dist) < 0) {
+		if ((moveinfo.remaining_distance - accel_dist - decel_dist) < 0)
+		{
 			float f;
 
 			f = (moveinfo.accel + moveinfo.decel) / (moveinfo.accel * moveinfo.decel);
@@ -99,11 +120,15 @@ public class GameFunc extends PlayerView {
 		moveinfo.decel_distance = decel_dist;
 	};
 
-	static void plat_Accelerate(moveinfo_t moveinfo) {
+	static void plat_Accelerate(moveinfo_t moveinfo)
+	{
 		// are we decelerating?
-		if (moveinfo.remaining_distance <= moveinfo.decel_distance) {
-			if (moveinfo.remaining_distance < moveinfo.decel_distance) {
-				if (moveinfo.next_speed != 0) {
+		if (moveinfo.remaining_distance <= moveinfo.decel_distance)
+		{
+			if (moveinfo.remaining_distance < moveinfo.decel_distance)
+			{
+				if (moveinfo.next_speed != 0)
+				{
 					moveinfo.current_speed = moveinfo.next_speed;
 					moveinfo.next_speed = 0;
 					return;
@@ -116,7 +141,8 @@ public class GameFunc extends PlayerView {
 
 		// are we at full speed and need to start decelerating during this move?
 		if (moveinfo.current_speed == moveinfo.move_speed)
-			if ((moveinfo.remaining_distance - moveinfo.current_speed) < moveinfo.decel_distance) {
+			if ((moveinfo.remaining_distance - moveinfo.current_speed) < moveinfo.decel_distance)
+			{
 				float p1_distance;
 				float p2_distance;
 				float distance;
@@ -130,7 +156,8 @@ public class GameFunc extends PlayerView {
 			}
 
 		// are we accelerating?
-		if (moveinfo.current_speed < moveinfo.speed) {
+		if (moveinfo.current_speed < moveinfo.speed)
+		{
 			float old_speed;
 			float p1_distance;
 			float p1_speed;
@@ -164,8 +191,10 @@ public class GameFunc extends PlayerView {
 		return;
 	};
 
-	static void plat_go_up(edict_t ent) {
-		if (0 == (ent.flags & FL_TEAMSLAVE)) {
+	static void plat_go_up(edict_t ent)
+	{
+		if (0 == (ent.flags & FL_TEAMSLAVE))
+		{
 			if (ent.moveinfo.sound_start != 0)
 				gi.sound(ent, CHAN_NO_PHS_ADD + CHAN_VOICE, ent.moveinfo.sound_start, 1, ATTN_STATIC, 0);
 			ent.s.sound = ent.moveinfo.sound_middle;
@@ -174,9 +203,10 @@ public class GameFunc extends PlayerView {
 		Move_Calc(ent, ent.moveinfo.start_origin, GameFuncAdapters.plat_hit_top);
 	}
 
-	static void plat_spawn_inside_trigger(edict_t ent) {
+	static void plat_spawn_inside_trigger(edict_t ent)
+	{
 		edict_t trigger;
-		float[] tmin={0,0,0}, tmax={0,0,0};
+		float[] tmin = { 0, 0, 0 }, tmax = { 0, 0, 0 };
 
 		//
 		//	   middle trigger
@@ -200,11 +230,13 @@ public class GameFunc extends PlayerView {
 		if ((ent.spawnflags & GameFuncAdapters.PLAT_LOW_TRIGGER) != 0)
 			tmax[2] = tmin[2] + 8;
 
-		if (tmax[0] - tmin[0] <= 0) {
+		if (tmax[0] - tmin[0] <= 0)
+		{
 			tmin[0] = (ent.mins[0] + ent.maxs[0]) * 0.5f;
 			tmax[0] = tmin[0] + 1;
 		}
-		if (tmax[1] - tmin[1] <= 0) {
+		if (tmax[1] - tmin[1] <= 0)
+		{
 			tmin[1] = (ent.mins[1] + ent.maxs[1]) * 0.5f;
 			tmax[1] = tmin[1] + 1;
 		}
@@ -232,7 +264,8 @@ public class GameFunc extends PlayerView {
 	1) base fast
 	2) chain slow
 	*/
-	static void SP_func_plat(edict_t ent) {
+	static void SP_func_plat(edict_t ent)
+	{
 		Math3D.VectorClear(ent.s.angles);
 		ent.solid = SOLID_BSP;
 		ent.movetype = MOVETYPE_PUSH;
@@ -274,9 +307,12 @@ public class GameFunc extends PlayerView {
 
 		plat_spawn_inside_trigger(ent); // the "start moving" trigger	
 
-		if (ent.targetname == null) {
+		if (ent.targetname != null)
+		{
 			ent.moveinfo.state = GameFuncAdapters.STATE_UP;
-		} else {
+		}
+		else
+		{
 			Math3D.VectorCopy(ent.pos2, ent.s.origin);
 			gi.linkentity(ent);
 			ent.moveinfo.state = GameFuncAdapters.STATE_BOTTOM;
@@ -327,7 +363,8 @@ public class GameFunc extends PlayerView {
 	4)	heavy
 	*/
 
-	static void door_use_areaportals(edict_t self, boolean open) {
+	static void door_use_areaportals(edict_t self, boolean open)
+	{
 		edict_t t = null;
 
 		if (self.target == null)
@@ -335,25 +372,32 @@ public class GameFunc extends PlayerView {
 
 		EdictIterator edit = null;
 
-		while ((edit = G_Find(edit, findByTarget, self.target)) != null) {
+		while ((edit = G_Find(edit, findByTarget, self.target)) != null)
+		{
 			t = edit.o;
-			if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
+			if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0)
+			{
+				//Com.p("Setting portalstate to:" + open);
 				gi.SetAreaPortalState(t.style, open);
 			}
 		}
 	}
 
-	static void door_go_up(edict_t self, edict_t activator) {
+	static void door_go_up(edict_t self, edict_t activator)
+	{
 		if (self.moveinfo.state == GameFuncAdapters.STATE_UP)
 			return; // already going up
 
-		if (self.moveinfo.state == GameFuncAdapters.STATE_TOP) { // reset top wait time
+		if (self.moveinfo.state == GameFuncAdapters.STATE_TOP)
+		{
+			// reset top wait time
 			if (self.moveinfo.wait >= 0)
 				self.nextthink = level.time + self.moveinfo.wait;
 			return;
 		}
 
-		if (0 == (self.flags & FL_TEAMSLAVE)) {
+		if (0 == (self.flags & FL_TEAMSLAVE))
+		{
 			if (self.moveinfo.sound_start != 0)
 				gi.sound(self, CHAN_NO_PHS_ADD + CHAN_VOICE, self.moveinfo.sound_start, 1, ATTN_STATIC, 0);
 			self.s.sound = self.moveinfo.sound_middle;
@@ -383,15 +427,17 @@ public class GameFunc extends PlayerView {
 	2)	lava
 	*/
 
-	static void SP_func_water(edict_t self) {
-		float[] abs_movedir={0,0,0};
+	static void SP_func_water(edict_t self)
+	{
+		float[] abs_movedir = { 0, 0, 0 };
 
 		G_SetMovedir(self.s.angles, self.movedir);
 		self.movetype = MOVETYPE_PUSH;
 		self.solid = SOLID_BSP;
 		gi.setmodel(self, self.model);
 
-		switch (self.sounds) {
+		switch (self.sounds)
+		{
 			default :
 				break;
 
@@ -416,7 +462,8 @@ public class GameFunc extends PlayerView {
 		Math3D.VectorMA(self.pos1, self.moveinfo.distance, self.movedir, self.pos2);
 
 		// if it starts open, switch the positions
-		if ((self.spawnflags & GameFuncAdapters.DOOR_START_OPEN) != 0) {
+		if ((self.spawnflags & GameFuncAdapters.DOOR_START_OPEN) != 0)
+		{
 			Math3D.VectorCopy(self.pos2, self.s.origin);
 			Math3D.VectorCopy(self.pos1, self.pos2);
 			Math3D.VectorCopy(self.s.origin, self.pos1);
@@ -447,9 +494,10 @@ public class GameFunc extends PlayerView {
 		gi.linkentity(self);
 	}
 
-	static void train_resume(edict_t self) {
+	static void train_resume(edict_t self)
+	{
 		edict_t ent;
-		float[] dest={0,0,0};
+		float[] dest = { 0, 0, 0 };
 
 		ent = self.target_ent;
 
@@ -462,14 +510,16 @@ public class GameFunc extends PlayerView {
 
 	}
 
-	static void SP_func_train(edict_t self) {
+	static void SP_func_train(edict_t self)
+	{
 		self.movetype = MOVETYPE_PUSH;
 
 		Math3D.VectorClear(self.s.angles);
 		self.blocked = GameFuncAdapters.train_blocked;
 		if ((self.spawnflags & GameFuncAdapters.TRAIN_BLOCK_STOPS) != 0)
 			self.dmg = 0;
-		else {
+		else
+		{
 			if (0 == self.dmg)
 				self.dmg = 100;
 		}
@@ -489,29 +539,35 @@ public class GameFunc extends PlayerView {
 
 		gi.linkentity(self);
 
-		if (self.target != null) {
+		if (self.target != null)
+		{
 			// start trains on the second frame, to make sure their targets have had
 			// a chance to spawn
 			self.nextthink = level.time + FRAMETIME;
 			self.think = GameFuncAdapters.func_train_find;
-		} else {
+		}
+		else
+		{
 			gi.dprintf("func_train without a target at " + Lib.vtos(self.absmin) + "\n");
 		}
 	}
 
-	static void SP_func_timer(edict_t self) {
+	static void SP_func_timer(edict_t self)
+	{
 		if (0 == self.wait)
 			self.wait = 1.0f;
 
 		self.use = GameFuncAdapters.func_timer_use;
 		self.think = GameFuncAdapters.func_timer_think;
 
-		if (self.random >= self.wait) {
+		if (self.random >= self.wait)
+		{
 			self.random = self.wait - FRAMETIME;
 			gi.dprintf("func_timer at " + Lib.vtos(self.s.origin) + " has random >= wait\n");
 		}
 
-		if ((self.spawnflags & 1) != 0) {
+		if ((self.spawnflags & 1) != 0)
+		{
 			self.nextthink = level.time + 1.0f + st.pausetime + self.delay + self.wait + Lib.crandom() * self.random;
 			self.activator = self;
 		}

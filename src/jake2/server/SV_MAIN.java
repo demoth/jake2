@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.24 2004-02-27 15:50:16 rst Exp $
+// $Id: SV_MAIN.java,v 1.25 2004-02-29 00:51:06 rst Exp $
 
 package jake2.server;
 
@@ -700,7 +700,7 @@ public class SV_MAIN extends SV_GAME {
 
 			// never get more than one tic behind
 			if (sv.time < svs.realtime) {
-				//if (sv_showclamp.value != 0)
+				if (sv_showclamp.value != 0)
 					Com.Printf("sv highclamp\n");
 				svs.realtime = sv.time;
 			}
@@ -742,7 +742,7 @@ public class SV_MAIN extends SV_GAME {
 		if (0== sv_timedemo.value && svs.realtime < sv.time) {
 			// never let the time get too far off
 			if (sv.time - svs.realtime > 100) {
-				//if (sv_showclamp.value != 0)
+				if (sv_showclamp.value != 0)
 					Com.Printf("sv lowclamp\n");
 				svs.realtime = sv.time - 100;
 			}

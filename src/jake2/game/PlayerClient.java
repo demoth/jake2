@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.21 2004-02-27 15:50:16 rst Exp $
+// $Id: PlayerClient.java,v 1.22 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
@@ -769,7 +769,7 @@ public class PlayerClient extends PlayerHud {
 		float[] spawn_origin = { 0, 0, 0 }, spawn_angles = { 0, 0, 0 };
 		gclient_t client;
 		int i;
-		client_persistant_t saved;
+		client_persistant_t saved = new client_persistant_t();
 		client_respawn_t resp = new client_respawn_t();
 
 		// find a spawn point
@@ -785,7 +785,7 @@ public class PlayerClient extends PlayerHud {
 			String userinfo;
 			//char userinfo[MAX_INFO_STRING];
 
-			resp = client.resp;
+			resp.set(client.resp);
 			userinfo = client.pers.userinfo;
 
 			//memcpy(userinfo, client.pers.userinfo, sizeof(userinfo));
@@ -797,7 +797,7 @@ public class PlayerClient extends PlayerHud {
 			//char userinfo[MAX_INFO_STRING];
 			String userinfo;
 
-			resp = client.resp;
+			resp.set(client.resp);
 			//memcpy(userinfo, client.pers.userinfo, sizeof(userinfo));
 			userinfo = client.pers.userinfo;
 			// this is kind of ugly, but it's how we want to handle keys in coop
@@ -808,7 +808,7 @@ public class PlayerClient extends PlayerHud {
 			//		}
 			resp.coop_respawn.game_helpchanged = client.pers.game_helpchanged;
 			resp.coop_respawn.helpchanged = client.pers.helpchanged;
-			client.pers = resp.coop_respawn;
+			client.pers.set(resp.coop_respawn);
 			userinfo = ClientUserinfoChanged(ent, userinfo);
 			if (resp.score > client.pers.score)
 				client.pers.score = resp.score;
@@ -819,13 +819,14 @@ public class PlayerClient extends PlayerHud {
 		}
 
 		// clear everything but the persistant data
-		saved = client.pers;
+		saved.set(client.pers);
 		//memset(client, 0, sizeof(* client));
 		client.clear();
-		client.pers = saved;
+		client.pers.set(saved);
 		if (client.pers.health <= 0)
 			InitClientPersistant(client);
-		client.resp = resp;
+			
+		client.resp.set(resp);
 
 		// copy some data from the client to the entity
 		FetchClientEntData(ent);

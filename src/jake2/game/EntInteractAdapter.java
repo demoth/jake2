@@ -18,14 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-
 // Created on 08.11.2003 by RST.
-// $Id: EntInteractAdapter.java,v 1.3 2004-01-09 18:30:57 rst Exp $
+// $Id: EntInteractAdapter.java,v 1.4 2004-02-29 00:51:06 rst Exp $
 
 package jake2.game;
 
-public class EntInteractAdapter  extends SuperAdapter {
-	public boolean interact(edict_t self, edict_t other) {
-		return false;
-	}
+public abstract class EntInteractAdapter extends SuperAdapter
+{
+	public abstract boolean interact(edict_t self, edict_t other);
 }

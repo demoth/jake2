@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.7 2004-02-01 00:35:00 rst Exp $
+// $Id: gclient_t.java,v 1.8 2004-02-29 00:51:05 rst Exp $
 
 package jake2.game;
 
@@ -122,6 +122,10 @@ public class gclient_t {
 	public int index;
 
 	public void clear() {
+		player_state_t ps = new player_state_t();
+		pers= new client_persistant_t();
+		resp= new client_respawn_t();
+		old_pmove= new pmove_state_t();
 	}
 
 	public void load(ByteBuffer bb) throws IOException{

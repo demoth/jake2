@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Tank.java,v 1.7 2004-02-26 22:36:31 rst Exp $
+// $Id: M_Tank.java,v 1.8 2004-02-29 00:51:04 rst Exp $
 
 package jake2.game;
 
@@ -342,7 +342,7 @@ public class M_Tank extends M_Player {
 	//
 
 	static EntInteractAdapter tank_sight = new EntInteractAdapter() {
-		public boolean think(edict_t self, edict_t other) {
+		public boolean interact(edict_t self, edict_t other) {
 			gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 			return true;
 		}
