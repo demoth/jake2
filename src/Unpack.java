@@ -133,7 +133,7 @@ class Unpack
 				filepos= intSwap(directory.readInt());
 				filelen= intSwap(directory.readInt());
 
-				nameString= new String(name, 0);
+				nameString= new String(name);
 				// chop to the first 0 byte
 				nameString= nameString.substring(0, nameString.indexOf(0));
 
