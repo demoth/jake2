@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.11 2003-12-28 16:53:00 rst Exp $
+// $Id: GameBase.java,v 1.12 2004-01-08 22:38:16 rst Exp $
 
 /** Father of all Objects. */
 
@@ -31,10 +31,10 @@ import jake2.server.*;
 import jake2.util.*;
 
 public class GameBase extends Globals {
-	public static game_locals_t game;
-	public static level_locals_t level;
-	public static game_import_t gi;
-	public static game_export_t globals;
+	public static game_locals_t game= new game_locals_t();
+	public static level_locals_t level = new level_locals_t();
+	public static game_import_t gi = new game_import_t();
+	public static game_export_t globals = new game_export_t();
 	public static spawn_temp_t st;
 
 	public static int sm_meat_index;
@@ -43,45 +43,45 @@ public class GameBase extends Globals {
 
 	public static edict_t g_edicts[];
 
-	public static cvar_t deathmatch;
-	public static cvar_t coop;
-	public static cvar_t dmflags;
-	public static cvar_t skill;
-	public static cvar_t fraglimit;
-	public static cvar_t timelimit;
-	public static cvar_t password;
-	public static cvar_t spectator_password;
-	public static cvar_t needpass;
-	public static cvar_t maxclients;
-	public static cvar_t maxspectators;
-	public static cvar_t maxentities;
-	public static cvar_t g_select_empty;
-	public static cvar_t dedicated;
+	public static cvar_t deathmatch= new cvar_t();
+	public static cvar_t coop= new cvar_t();
+	public static cvar_t dmflags= new cvar_t();
+	public static cvar_t skill= new cvar_t();
+	public static cvar_t fraglimit= new cvar_t();
+	public static cvar_t timelimit= new cvar_t();
+	public static cvar_t password= new cvar_t();
+	public static cvar_t spectator_password= new cvar_t();
+	public static cvar_t needpass= new cvar_t();
+	public static cvar_t maxclients= new cvar_t();
+	public static cvar_t maxspectators= new cvar_t();
+	public static cvar_t maxentities = new cvar_t();
+	public static cvar_t g_select_empty= new cvar_t();
+	public static cvar_t dedicated= new cvar_t();
 
-	public static cvar_t filterban;
+	public static cvar_t filterban= new cvar_t();
 
-	public static cvar_t sv_maxvelocity;
-	public static cvar_t sv_gravity;
+	public static cvar_t sv_maxvelocity= new cvar_t();
+	public static cvar_t sv_gravity= new cvar_t();
 
-	public static cvar_t sv_rollspeed;
-	public static cvar_t sv_rollangle;
-	public static cvar_t gun_x;
-	public static cvar_t gun_y;
-	public static cvar_t gun_z;
+	public static cvar_t sv_rollspeed= new cvar_t();
+	public static cvar_t sv_rollangle= new cvar_t();
+	public static cvar_t gun_x= new cvar_t();
+	public static cvar_t gun_y= new cvar_t();
+	public static cvar_t gun_z= new cvar_t();
 
-	public static cvar_t run_pitch;
-	public static cvar_t run_roll;
-	public static cvar_t bob_up;
-	public static cvar_t bob_pitch;
-	public static cvar_t bob_roll;
+	public static cvar_t run_pitch= new cvar_t();
+	public static cvar_t run_roll= new cvar_t();
+	public static cvar_t bob_up= new cvar_t();
+	public static cvar_t bob_pitch= new cvar_t();
+	public static cvar_t bob_roll= new cvar_t();
 
-	public static cvar_t sv_cheats;
+	public static cvar_t sv_cheats= new cvar_t();
 
-	public static cvar_t flood_msgs;
-	public static cvar_t flood_persecond;
-	public static cvar_t flood_waitdelay;
+	public static cvar_t flood_msgs= new cvar_t();
+	public static cvar_t flood_persecond= new cvar_t();
+	public static cvar_t flood_waitdelay= new cvar_t();
 
-	public static cvar_t sv_maplist;
+	public static cvar_t sv_maplist= new cvar_t();
 
 	public final static float STOP_EPSILON = 0.1f;
 

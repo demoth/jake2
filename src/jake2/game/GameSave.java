@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.6 2004-01-08 17:44:36 rst Exp $
+// $Id: GameSave.java,v 1.7 2004-01-08 22:38:16 rst Exp $
 
 package jake2.game;
 
@@ -688,13 +688,12 @@ public class GameSave extends PlayerView {
 		RandomAccessFile f=null;
 		
 		try {
-			
-			if (game==null) 
-				game = new game_locals_t();
-			
+						
 			f = new RandomAccessFile(filename, "r");
 
 			byte buf[] = new byte[(int) f.length()];
+			
+			Com.Printf("loading game:" + filename);
 
 			f.readFully(buf);
 
@@ -702,26 +701,13 @@ public class GameSave extends PlayerView {
 
 			bb.order(ByteOrder.LITTLE_ENDIAN);
 
-			String date = Lib.readString(bb, 16);
-			game.helpmessage1 = Lib.readString(bb, 512);
-			String helpmessage2 = Lib.readString(bb, 512);
+			game.load(bb);
+			game.dump();
+			
+			Com.Println("");
+			Com.Println("file length:" + f.length());
+			Com.Println("processed bytes:" + bb.position());
 
-			System.out.println("String date: " + date);
-			System.out.println("String helpmessage1: " + game.helpmessage1);
-			System.out.println("String helpmessage2: " + helpmessage2);
-
-			System.out.println("helpchanged: " + bb.getInt());
-			// gclient_t*
-			bb.getInt();
-			System.out.println("spawnpoit: " + Lib.readString(bb, 512));
-			System.out.println("maxclients: " + bb.getInt());
-			System.out.println("maxentities: " + bb.getInt());
-			System.out.println("serverflags: " + bb.getInt());
-			System.out.println("numitems: " + bb.getInt());
-			System.out.println("autosaved: " + bb.getInt());
-
-			//for (i=0 ; i<game.maxclients ; i++)
-			ReadClient(bb, new gclient_t(0));
 		}
 
 		catch (Exception e) {

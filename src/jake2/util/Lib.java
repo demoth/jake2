@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.6 2004-01-05 22:33:27 rst Exp $
+// $Id: Lib.java,v 1.7 2004-01-08 22:38:16 rst Exp $
 
 package jake2.util;
 
@@ -276,4 +276,12 @@ public class Lib {
 		else
 			return (char)i;
 	}
+
+		public static void printv(String in, float arr[] )
+		{
+			for (int n=0; n < arr.length; n++)
+			{
+				Com.Println(in + "[" + n + "]: " + arr[n]);
+			}
+		}
 }

@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.7 2003-12-25 18:15:54 cwei Exp $
+ * $Id: Sys.java,v 1.8 2004-01-08 22:38:16 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -56,6 +56,16 @@ public final class Sys {
 //		00110         fprintf(stderr, "Error: %s\n", string);
 		System.err.println("Error: " + error);
 //		00111 
+
+		int b = 0;
+		try
+		{
+			throw new Exception("Call Stack:");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 		System.exit(1);
 			
 	}

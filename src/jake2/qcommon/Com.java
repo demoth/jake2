@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.22 2003-12-29 16:56:24 rst Exp $
+ * $Id: Com.java,v 1.23 2004-01-08 22:38:16 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -283,6 +283,11 @@ public final class Com {
 		System.out.print(sprintf(fmt, vargs));
 
 		//logger.log(Level.INFO, msg);
+	}
+	
+	public static void Println(String fmt) {
+		Printf(fmt);
+		Printf("\n");
 	}
 
 	public static String sprintf(String fmt, Vargs vargs) {

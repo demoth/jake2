@@ -19,12 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: player_state_t.java,v 1.7 2004-01-02 22:29:01 rst Exp $
+// $Id: player_state_t.java,v 1.8 2004-01-08 22:38:16 rst Exp $
 
 package jake2.game;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import jake2.*;
 import jake2.*;
+import jake2.qcommon.Com;
+import jake2.util.Lib;
 
 public class player_state_t {
 	//	player_state_t is the information needed in addition to pmove_state_t
@@ -32,7 +37,7 @@ public class player_state_t {
 	//	but the number of pmove_state_t changes will be reletive to client
 	//	frame rates
 
-	public pmove_state_t pmove; // for prediction
+	public pmove_state_t pmove= new pmove_state_t(); // for prediction
 
 	// these fields do not need to be communicated bit-precise
 
@@ -61,4 +66,73 @@ public class player_state_t {
 	public void clear() {
 		// TODO: create the clear() method.	
 	}
+
+
+	public void load(ByteBuffer bb) throws IOException
+	{
+		pmove.load(bb);
+		
+		
+		viewangles[0] = bb.getFloat();
+		viewangles[1] = bb.getFloat();
+		viewangles[2] = bb.getFloat();
+
+		viewoffset[0] = bb.getFloat();
+		viewoffset[1] = bb.getFloat();
+		viewoffset[2] = bb.getFloat();
+
+		kick_angles[0] = bb.getFloat();
+		kick_angles[1] = bb.getFloat();
+		kick_angles[2] = bb.getFloat();
+
+		gunangles[0] = bb.getFloat();
+		gunangles[1] = bb.getFloat();
+		gunangles[2] = bb.getFloat();
+
+		gunoffset[0] = bb.getFloat();
+		gunoffset[1] = bb.getFloat();
+		gunoffset[2] = bb.getFloat();
+
+		 
+
+		gunindex = bb.getInt();
+		gunframe = bb.getInt();
+
+		blend[0] = bb.getFloat();
+		blend[1] = bb.getFloat();
+		blend[2] = bb.getFloat();
+		blend[3] = bb.getFloat();
+
+		fov = bb.getFloat();
+
+		rdflags = bb.getInt();
+
+		for (int n = 0; n < Defines.MAX_STATS; n++)
+			stats[n] = bb.getShort();
+		
+	}
+	
+	public void dump()
+	{
+		pmove.dump();
+		
+		Lib.printv("viewangles", viewangles);
+		Lib.printv("viewoffset", viewoffset);
+		Lib.printv("kick_angles", kick_angles);
+		Lib.printv("gunangles", gunangles);
+		Lib.printv("gunoffset", gunoffset);
+
+		Com.Println("gunindex: " + gunindex);
+		Com.Println("gunframe: " + gunframe);
+
+		Lib.printv("blend", blend);
+
+		Com.Println("fov: " + fov);
+
+		Com.Println("rdflags: " + rdflags);
+
+		for (int n = 0; n < Defines.MAX_STATS; n++)
+			System.out.println("stats[" + n + "]: " + stats[n]);
+		
+	} 
 }

@@ -19,11 +19,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.3 2003-12-28 19:52:35 rst Exp $
+// $Id: game_locals_t.java,v 1.4 2004-01-08 22:38:16 rst Exp $
 
 package jake2.game;
 
-public class game_locals_t {
+import jake2.Defines;
+import jake2.qcommon.Com;
+import jake2.util.Lib;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+public class game_locals_t extends Defines {
 	//
 	//	this structure is left intact through an entire game
 	//	it should be initialized at dll load time, and read/written to
@@ -35,11 +42,11 @@ public class game_locals_t {
 	public int helpchanged; // flash F1 icon if non 0, play sound
 	// and increment only if 1, 2, or 3
 
-	public gclient_t clients[]; // [maxclients]
+	public gclient_t clients[] = new gclient_t[MAX_CLIENTS];
 
 	// can't store spawnpoint in level, because
 	// it would get overwritten by the savegame restore
-	public String spawnpoint=""; // needed for coop respawns
+	public String spawnpoint = ""; // needed for coop respawns
 
 	// store latched cvars here that we want to get at often
 	public int maxclients;
@@ -52,4 +59,42 @@ public class game_locals_t {
 	public int num_items;
 
 	public boolean autosaved;
+
+	public void load(ByteBuffer bb) throws IOException {
+		String date = Lib.readString(bb, 16);
+
+		helpmessage1 = Lib.readString(bb, 512);
+		helpmessage2 = Lib.readString(bb, 512);
+
+		helpchanged = bb.getInt();
+		// gclient_t*
+		bb.getInt();
+		spawnpoint = Lib.readString(bb, 512);
+		maxclients = bb.getInt();
+		maxentities = bb.getInt();
+		serverflags = bb.getInt();
+		num_items = bb.getInt();
+		autosaved = bb.getInt() != 0;
+
+		for (int i = 0; i < maxclients; i++) {
+			clients[i] = new gclient_t(i);
+			clients[i].load(bb);
+		}
+	}
+
+	public void dump() {
+
+		Com.Println("String helpmessage1: " + helpmessage1);
+		Com.Println("String helpmessage2: " + helpmessage2);
+
+		Com.Println("spawnpoit: " + spawnpoint);
+		Com.Println("maxclients: " + maxclients);
+		Com.Println("maxentities: " + maxentities);
+		Com.Println("serverflags: " + serverflags);
+		Com.Println("numitems: " + num_items);
+		Com.Println("autosaved: " + autosaved);
+
+		for (int i = 0; i < maxclients; i++)
+			clients[i].dump();
+	}
 }
