@@ -2,7 +2,7 @@
  * longjmpException.java
  * Copyright (C) 2003
  * 
- * $Id: longjmpException.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
+ * $Id: longjmpException.java,v 1.6 2003-12-29 12:12:52 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,6 @@ package jake2.qcommon;
 /**
  * longjmpException is used to replace the setjmp/longjmp code.
  */
-final class longjmpException extends IllegalStateException {
+public final class longjmpException extends IllegalStateException {
 
 }
