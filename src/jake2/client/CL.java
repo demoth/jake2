@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.15 2003-12-01 13:16:13 hoz Exp $
+ *$Id: CL.java,v 1.16 2003-12-01 13:16:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
