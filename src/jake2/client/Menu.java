@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.10 2004-09-27 19:47:26 salomo Exp $
+ * $Id: Menu.java,v 1.11 2004-10-04 12:50:37 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1909,7 +1909,7 @@ public final class Menu extends Key {
 
         if (b != null) {
             creditsBuffer = new String(b);
-            String line[] = Lib.linesplit(creditsBuffer);
+            String line[] = creditsBuffer.split("\r\n");
 
             for (n = 0; n < line.length; n++) {
                 creditsIndex[n] = line[n];
@@ -2724,7 +2724,7 @@ public final class Menu extends Key {
         }
 
         s = new String(buffer);
-        String lines[] = Lib.linesplit(s);
+        String lines[] = s.split("\r\n");
 
         nummaps = lines.length;
 
@@ -4492,7 +4492,7 @@ public final class Menu extends Key {
 
             if ((cbd = Sys.GetClipboardData()) != null) {
                 //strtok(cbd, "\n\r\b");
-                String lines[] = Lib.linesplit(cbd);
+                String lines[] = cbd.split("\r\n");
                 if (lines.length > 0 && lines[0].length() != 0) {
                     //strncpy(f.buffer, cbd, f.length - 1);
                     f.buffer = new StringBuffer(lines[0]);

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.6 2004-09-22 19:22:13 salomo Exp $
+// $Id: Lib.java,v 1.7 2004-10-04 12:50:38 hzi Exp $
 
 package jake2.util;
 
@@ -30,7 +30,6 @@ import jake2.qcommon.FS;
 
 import java.io.*;
 import java.nio.*;
-import java.util.StringTokenizer;
 
 import net.java.games.jogl.util.BufferUtils;
 
@@ -238,23 +237,7 @@ public class Lib {
 			return in.substring(0, pos);
 		return "";
 	}
-	public static String[] linesplit(String in) {
-	
-		StringTokenizer tk = new StringTokenizer(in, "\r\n");
-	
-		int count = tk.countTokens();
-		if (count == 0)
-			return new String[] {
-		};
-	
-		String result[] = new String[count];
-	
-		for (int i = 0; tk.hasMoreTokens(); i++) {
-			result[i] = tk.nextToken();
-		}
-	
-		return result;
-	}
+
 	public static int rename(String oldn, String newn) {
 		try {
 			File f1 = new File(oldn);

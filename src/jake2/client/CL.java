@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.11 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL.java,v 1.12 2004-10-04 12:50:37 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,13 +29,10 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.qcommon.qfiles.dmdl_t;
 import jake2.server.SV_MAIN;
-import jake2.sound.*;
+import jake2.sound.S;
 import jake2.sys.*;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

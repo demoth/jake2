@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.4 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL_newfx.java,v 1.5 2004-10-04 12:50:37 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,6 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.CL_fx.cdlight_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 

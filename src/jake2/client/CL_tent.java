@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.5 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL_tent.java,v 1.6 2004-10-04 12:50:37 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,12 +27,12 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.cl_sustain_t.ThinkAdapter;
 import jake2.game.player_state_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.MSG;
 import jake2.render.model_t;
-import jake2.sound.*;
+import jake2.sound.S;
+import jake2.sound.sfx_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 

@@ -19,14 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.5 2004-09-22 19:22:14 salomo Exp $
+// $Id: Defines.java,v 1.6 2004-10-04 12:50:38 hzi Exp $
 
 /** Contains the definitions for the game engine. */
 
 package jake2;
 
-import jake2.game.pmove_t;
-import jake2.util.*;
 
 public class Defines {
 
