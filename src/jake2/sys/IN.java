@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.6 2004-01-09 09:48:59 hoz Exp $
+ * $Id: IN.java,v 1.7 2004-01-09 10:13:55 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,7 +30,7 @@ package jake2.sys;
  */
 public final class IN {
 	
-	static boolean mouse_active = false;
+	static boolean mouse_active = true;
 	
 	public static void ActivateMouse() {
 //	00488         if (!mouse_avail || !dpy || !win)
