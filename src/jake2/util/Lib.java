@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.25 2004-02-15 18:01:28 rst Exp $
+// $Id: Lib.java,v 1.26 2004-02-16 23:18:11 hoz Exp $
 
 package jake2.util;
 
@@ -124,7 +124,7 @@ public class Lib {
 
 		for (int n = 0; n < i1; n++) {
 			char c1 = in1.charAt(n);
-			char c2 = in1.charAt(n);
+			char c2 = in2.charAt(n);
 			if (c1 < c2)
 				return -1;
 			if (c1 > c2)

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.21 2004-02-16 20:57:39 hoz Exp $
+ * $Id: Menu.java,v 1.22 2004-02-16 23:18:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -696,43 +696,41 @@ public final class Menu extends Key {
 	static boolean bind_grab;
 
 	static menuframework_s s_keys_menu = new menuframework_s();
-	static menuaction_s s_keys_attack_action;
-	static menuaction_s s_keys_change_weapon_action;
-	static menuaction_s s_keys_walk_forward_action;
-	static menuaction_s s_keys_backpedal_action;
-	static menuaction_s s_keys_turn_left_action;
-	static menuaction_s s_keys_turn_right_action;
-	static menuaction_s s_keys_run_action;
-	static menuaction_s s_keys_step_left_action;
-	static menuaction_s s_keys_step_right_action;
-	static menuaction_s s_keys_sidestep_action;
-	static menuaction_s s_keys_look_up_action;
-	static menuaction_s s_keys_look_down_action;
-	static menuaction_s s_keys_center_view_action;
-	static menuaction_s s_keys_mouse_look_action;
-	static menuaction_s s_keys_keyboard_look_action;
-	static menuaction_s s_keys_move_up_action;
-	static menuaction_s s_keys_move_down_action;
-	static menuaction_s s_keys_inventory_action;
-	static menuaction_s s_keys_inv_use_action;
-	static menuaction_s s_keys_inv_drop_action;
-	static menuaction_s s_keys_inv_prev_action;
-	static menuaction_s s_keys_inv_next_action;
+	static menuaction_s s_keys_attack_action = new menuaction_s();
+	static menuaction_s s_keys_change_weapon_action = new menuaction_s();
+	static menuaction_s s_keys_walk_forward_action = new menuaction_s();
+	static menuaction_s s_keys_backpedal_action = new menuaction_s();
+	static menuaction_s s_keys_turn_left_action = new menuaction_s();
+	static menuaction_s s_keys_turn_right_action = new menuaction_s();
+	static menuaction_s s_keys_run_action = new menuaction_s();
+	static menuaction_s s_keys_step_left_action = new menuaction_s();
+	static menuaction_s s_keys_step_right_action = new menuaction_s();
+	static menuaction_s s_keys_sidestep_action = new menuaction_s();
+	static menuaction_s s_keys_look_up_action = new menuaction_s();
+	static menuaction_s s_keys_look_down_action = new menuaction_s();
+	static menuaction_s s_keys_center_view_action = new menuaction_s();
+	static menuaction_s s_keys_mouse_look_action = new menuaction_s();
+	static menuaction_s s_keys_keyboard_look_action = new menuaction_s();
+	static menuaction_s s_keys_move_up_action = new menuaction_s();
+	static menuaction_s s_keys_move_down_action = new menuaction_s();
+	static menuaction_s s_keys_inventory_action = new menuaction_s();
+	static menuaction_s s_keys_inv_use_action = new menuaction_s();
+	static menuaction_s s_keys_inv_drop_action = new menuaction_s();
+	static menuaction_s s_keys_inv_prev_action = new menuaction_s();
+	static menuaction_s s_keys_inv_next_action = new menuaction_s();
 
-	static menuaction_s s_keys_help_computer_action;
+	static menuaction_s s_keys_help_computer_action = new menuaction_s();
 
 	static void UnbindCommand(String command) {
 		int j;
 		int l;
 		String b;
 
-		l = strlen(command);
-
 		for (j = 0; j < 256; j++) {
 			b = keybindings[j];
 			if (b == null)
 				continue;
-			if (0 == strncmp(b, command, l))
+			if (b.equals(command))
 				Key.SetBinding(j, "");
 		}
 	}
@@ -744,14 +742,14 @@ public final class Menu extends Key {
 		String b;
 
 		twokeys[0] = twokeys[1] = -1;
-		l = strlen(command);
 		count = 0;
 
 		for (j = 0; j < 256; j++) {
 			b = keybindings[j];
 			if (b == null)
 				continue;
-			if (0 == strncmp(b, command, l)) {
+				
+			if (b.equals(command)) {				
 				twokeys[count] = j;
 				count++;
 				if (count == 2)
@@ -1233,7 +1231,7 @@ public final class Menu extends Key {
 	static menulist_s s_options_cdvolume_box = new menulist_s();
 	static menulist_s s_options_quality_list = new menulist_s();
 	static menulist_s s_options_compatibility_list = new menulist_s();
-	static menulist_s s_options_console_action = new menulist_s();
+	static menuaction_s s_options_console_action = new menuaction_s();
 
 	static void CrosshairFunc(Object unused) {
 		Cvar.SetValue("crosshair", s_options_crosshair_box.curvalue);
@@ -1574,16 +1572,13 @@ public final class Menu extends Key {
 		Menu_AddItem(s_options_menu, s_options_alwaysrun_box);
 		Menu_AddItem(s_options_menu, s_options_invertmouse_box);
 		Menu_AddItem(s_options_menu, s_options_lookspring_box);
-		/*
-		 * 
 		Menu_AddItem(s_options_menu, s_options_lookstrafe_box);
 		Menu_AddItem(s_options_menu, s_options_freelook_box);
 		Menu_AddItem(s_options_menu, s_options_crosshair_box);
-		Menu_AddItem(s_options_menu, s_options_joystick_box);
+//		Menu_AddItem(s_options_menu, s_options_joystick_box);
 		Menu_AddItem(s_options_menu, s_options_customize_options_action);
 		Menu_AddItem(s_options_menu, s_options_defaults_action);
 		Menu_AddItem(s_options_menu, s_options_console_action);
-		*/
 	}
 
 	static void Options_MenuDraw() {

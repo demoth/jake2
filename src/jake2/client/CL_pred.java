@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.13 2004-02-16 20:57:38 hoz Exp $
+ * $Id: CL_pred.java,v 1.14 2004-02-16 23:18:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,12 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.game.*;
-import jake2.game.entity_state_t;
-import jake2.game.trace_t;
 import jake2.qcommon.*;
-import jake2.qcommon.CM;
-import jake2.qcommon.Com;
-import jake2.server.SV_GAME;
 
 /**
  * CL_pred

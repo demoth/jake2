@@ -2,7 +2,7 @@
  * Enum.java
  * Copyright (C) 2003
  *
- * $Id: Enum.java,v 1.2 2003-12-29 01:52:21 cwei Exp $
+ * $Id: Enum.java,v 1.3 2004-02-16 23:18:11 hoz Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,19 +31,12 @@ package jake2;
  * @author cwei
  */
 public interface Enum {
-	
-	// imagetype_t 
-	static final int it_skin = 0;
-	static final int it_sprite = 1;
-	static final int it_wall = 2;
-	static final int it_pic = 3;
-	static final int it_sky = 4;
-	
-	// rserr_t
+
+//	// rserr_t
 	static final int rserr_ok = 0;
 	static final int rserr_invalid_fullscreen = 1;
 	static final int rserr_invalid_mode = 2;
 	static final int rserr_unknown = 3;
 
-	// and so on
+//	// and so on
 }

@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.28 2004-02-15 13:19:12 hoz Exp $
+ * $Id: Key.java,v 1.29 2004-02-16 23:18:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -386,13 +386,13 @@ public class Key extends Globals {
 		//
 		if (!down) {
 			kb = Globals.keybindings[key];
-			if (kb != null && kb.charAt(0) == '+') {
+			if (kb != null && kb.length()>0 && kb.charAt(0) == '+') {
 				cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
 				Cbuf.AddText(cmd);
 			}
 			if (keyshift[key] != key) {
 				kb = Globals.keybindings[keyshift[key]];
-				if (kb != null && kb.charAt(0) == '+') {
+				if (kb != null && kb.length()>0 && kb.charAt(0) == '+') {
 					cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
 					Cbuf.AddText(cmd);
 				}
@@ -408,7 +408,7 @@ public class Key extends Globals {
 			|| (Globals.cls.key_dest == Defines.key_game && (Globals.cls.state == Defines.ca_active || !consolekeys[key]))) {
 			kb = Globals.keybindings[key];
 			if (kb != null) {
-				if (kb.charAt(0) == '+') {
+				if (kb.length()>0 && kb.charAt(0) == '+') {
 					// button commands add keynum and time as a parm
 					cmd = kb + " " + key + " " + time + "\n";
 					Cbuf.AddText(cmd);

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.5 2004-02-04 18:10:55 rst Exp $
+// $Id: Fire.java,v 1.6 2004-02-16 23:18:11 hoz Exp $
 
 package jake2.game;
 
@@ -215,7 +215,7 @@ public class Fire {
 						Defines.DAMAGE_BULLET,
 						mod);
 				} else {
-					if (Lib.strncmp(tr.surface.name, "sky", 3) != 0) {
+					if (!"sky".equals(tr.surface.name)) {
 						GameBase.gi.WriteByte(Defines.svc_temp_entity);
 						GameBase.gi.WriteByte(te_impact);
 						GameBase.gi.WritePosition(tr.endpos);

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.16 2004-02-16 20:57:39 hoz Exp $
+ * $Id: CL_parse.java,v 1.17 2004-02-16 23:18:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -77,7 +77,7 @@ public class CL_parse extends CL_view {
 	//	  =============================================================================
 
 	public static String DownloadFileName(String fn) {
-		if (strncmp(fn, "players", 7) == 0)
+		if ("players".equals(fn))
 			return BASEDIRNAME + "/" + fn;
 		else
 			return FS.Gamedir() + "/" + fn;
