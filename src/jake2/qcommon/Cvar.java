@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.14 2003-12-09 22:12:44 rst Exp $
+ * $Id: Cvar.java,v 1.15 2003-12-27 02:13:08 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -163,7 +163,7 @@ public class Cvar {
 	Cvar_Set
 	============
 	*/
-	static cvar_t Set(String var_name, String value) {
+	public static cvar_t Set(String var_name, String value) {
 		return Set2(var_name, value, false);
 	}
 
