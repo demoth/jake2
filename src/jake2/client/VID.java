@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.1 2003-11-21 23:32:06 cwei Exp $
+ * $Id: VID.java,v 1.2 2003-11-25 15:31:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import java.awt.Dimension;
+
 /**
  * VID is a video driver.
  * 
@@ -33,6 +35,22 @@ package jake2.client;
  * @author cwei
  */
 public class VID {
+
+	static final vidmode_t vid_modes[] =
+		{
+			new vidmode_t("Mode 0: 320x240", 320, 240, 0),
+			new vidmode_t("Mode 1: 400x300", 400, 300, 1),
+			new vidmode_t("Mode 2: 512x384", 512, 384, 2),
+			new vidmode_t("Mode 3: 640x480", 640, 480, 3),
+			new vidmode_t("Mode 4: 800x600", 800, 600, 4),
+			new vidmode_t("Mode 5: 960x720", 960, 720, 5),
+			new vidmode_t("Mode 6: 1024x768", 1024, 768, 6),
+			new vidmode_t("Mode 7: 1152x864", 1152, 864, 7),
+			new vidmode_t("Mode 8: 1280x1024", 1280, 1024, 8),
+			new vidmode_t("Mode 9: 1600x1200", 1600, 1200, 9),
+			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10)};
+
+	static final int NUM_MODES = vid_modes.length;
 	// TODO implement VID;
 	// es fehlen noch funktionen aus vid_so.c
 
@@ -69,6 +87,28 @@ public class VID {
 
 	public static String MenuKey(int key) {
 		return null;
+	}
+
+	/**
+	 * @param dim
+	 * @param mode
+	 * @return
+	 */
+	public static boolean GetModeInfo(Dimension dim, int mode) {
+		if ( mode < 0 || mode >= NUM_MODES )  return false;
+		
+		dim.width  = vid_modes[mode].width;
+		dim.height = vid_modes[mode].height;
+		return true;
+	}
+
+	/**
+	 * @param width
+	 * @param height
+	 */
+	public static void NewWindow(int width, int height) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.7 2003-11-25 14:58:39 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.8 2003-11-25 15:31:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1056,6 +1056,9 @@ final class JoglRenderer implements Ref, GLEventListener {
 	public void init(GLDrawable drawable) {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
+
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
 		// TODO opengl init
 	}
 
@@ -1065,6 +1068,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 	public void display(GLDrawable drawable) {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
+		
 
 		// TODO opengl display
 	}
