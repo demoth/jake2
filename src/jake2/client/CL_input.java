@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.18 2004-02-15 10:57:57 hoz Exp $
+ * $Id: CL_input.java,v 1.19 2004-02-15 11:33:43 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -326,8 +326,6 @@ public class CL_input extends CL_ents {
 	CL_FinishMove
 	==============
 	*/
-	static int scheisshack =0;
-	
 	static void FinishMove(usercmd_t cmd) {
 		int ms;
 		int i;
@@ -361,22 +359,6 @@ public class CL_input extends CL_ents {
 
 		// send the ambient light level at the player's current position
 		cmd.lightlevel = (byte)cl_lightlevel.value;
-		
-		//Com.p("forward =" + cmd.forwardmove);
-		
-		//TODO: INPUT BUGFIX that is so unbelievable dreckig.
-		
-		// hauptsache der scheissmist zuckelt.
-//		cmd.forwardmove += (int) (10 * Math.random() -5);
-//		
-//		if (scheisshack ++ >5) 
-//			scheisshack =0;
-//			
-//		cmd.forwardmove += scheisshack-2;
-//		cmd.angles[0] += scheisshack-2;
-//		cmd.angles[1] += scheisshack-2;
-//		cmd.angles[2] += scheisshack-2;		
-		
 	}
 
 	/*
