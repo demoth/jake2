@@ -1,0 +1,38 @@
+Jake2 README
+============
+
+Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
+distributed under the terms of the GPL (see LICENSE).
+
+The port was done completely in Java. No native libraries are used for the
+game functionality. For graphics rendering we use the jogl Java OpenGL bindings.
+
+Currently Jake2 supports Linux and Windows2000/XP.
+
+requirements:
+400 MHz CPU
+Geforce2 MX or better graphics accelerator
+JRE 1.4 or higher
+
+Installation
+------------
+
+from binary distribution:
+- unpack jake2-version.tar.gz or jake2-version.zip
+- copy the baseq2 directory from your full version of Quake2 or from the 
+  demo version to the Jake2 base directory
+- run the game with Jake2.sh or Jake2.bat
+
+build from source:
+- unpack jake2src-version.tar.gz or jake2-version.zip
+- set JAVA_HOME environment variable to Your J2SDK1.4 installation
+- run "build.sh bindist" or "build.bat bindist" to build the binary
+  distribution
+
+have fun!
+
+bytonic Software
+
+Holger Zickner <hoz@bytonic.de>
+Carsten Weisse <cwei@bytonic.de>
+Rene Stoeckel  <rst@bytonic.de>

@@ -1,0 +1,11 @@
+0.9.0 2004-04-28
+
+	- initial release
+	- what works so far:
+		- local single player games
+		- demos (at least we have the coolest Java benchmark out there)
+		- console and menus 90%
+	- todo until 1.0:
+		- sound support
+		- save games / load games
+		- network games
