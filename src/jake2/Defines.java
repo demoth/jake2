@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.12 2004-01-02 17:40:54 rst Exp $
+// $Id: Defines.java,v 1.13 2004-01-11 14:22:55 cwei Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1215,11 +1215,8 @@ public class Defines extends Math3D {
 	public final static int DTRIVERTX_SIZE= 4;	
 
 	public final static int ALIAS_VERSION= 8;	
-
-
-
-	
 	public static final String GAMEVERSION   =  "baseq2";
+	public static final int API_VERSION = 3; // ref_library (refexport_t)
 	
 	// keydest_t
 	public static final int key_game = 0;
