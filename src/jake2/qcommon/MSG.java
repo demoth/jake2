@@ -19,7 +19,7 @@
  */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.5 2004-09-22 19:22:09 salomo Exp $
+// $Id: MSG.java,v 1.6 2005-02-06 18:47:00 salomo Exp $
 package jake2.qcommon;
 
 import jake2.Globals;
@@ -87,6 +87,7 @@ public class MSG extends Globals {
 
         SZ.Write(sb, x.getBytes());
         WriteByte(sb, 0);
+        Com.dprintln("MSG.WriteString:" + s.replace('\0', '@'));
     }
 
     //ok.
@@ -415,6 +416,7 @@ public class MSG extends Globals {
             c = -1;
         else
             c = msg_read.data[msg_read.readcount] & 0xff;
+        
         msg_read.readcount++;
 
         return c;
@@ -472,8 +474,10 @@ public class MSG extends Globals {
             readbuf[l] = c;
             l++;
         } while (l < 2047);
-
-        return new String(readbuf, 0, l);
+        
+        String ret = new String(readbuf, 0, l);
+        Com.dprintln("MSG.ReadString:[" + ret + "]");
+        return ret;
     }
 
     public static String ReadStringLine(sizebuf_t msg_read) {
@@ -489,8 +493,10 @@ public class MSG extends Globals {
             readbuf[l] = c;
             l++;
         } while (l < 2047);
-
-        return new String(readbuf, 0, l).trim();
+        
+        String ret = new String(readbuf, 0, l).trim();
+        Com.dprintln("MSG.ReadStringLine:[" + ret.replace('\0', '@') + "]");
+        return ret;
     }
 
     public static float ReadCoord(sizebuf_t msg_read) {
@@ -555,5 +561,6 @@ public class MSG extends Globals {
     public static void ReadData(sizebuf_t msg_read, byte data[], int len) {
         for (int i = 0; i < len; i++)
             data[i] = (byte) ReadByte(msg_read);
-    }
+    }    
+            
 }
