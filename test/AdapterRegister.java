@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.01.2004 by RST.
-// $Id: AdapterRegister.java,v 1.2 2004-02-02 22:19:17 rst Exp $
+// $Id: AdapterRegister.java,v 1.1 2004-02-25 21:30:15 hoz Exp $
 // $Log: AdapterRegister.java,v $
-// Revision 1.2  2004-02-02 22:19:17  rst
+// Revision 1.1  2004-02-25 21:30:15  hoz
+// *** empty log message ***
+//
+// Revision 1.2  2004/02/02 22:19:17  rst
 // cosmetic
 //
 // Revision 1.1  2004/02/02 22:16:05  rst

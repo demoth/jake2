@@ -19,17 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.31 2004-02-25 13:20:28 hoz Exp $
+// $Id: CM.java,v 1.32 2004-02-25 21:30:15 hoz Exp $
 
 package jake2.qcommon;
 
 import jake2.Defines;
 import jake2.game.*;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
 
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.*;
 import java.util.Arrays;
@@ -1878,12 +1875,9 @@ public class CM extends Game {
 
 		byte buf[] = new byte[len];
 
-		try {
-			FS.Read(buf, len, f);
-		}
-		catch (FileNotFoundException e) {
-			Com.Printf("ERROR:" + e);
-		}
+
+		FS.Read(buf, len, f);
+
 		ByteBuffer bb = ByteBuffer.wrap(buf);
 		IntBuffer ib = bb.asIntBuffer();
 

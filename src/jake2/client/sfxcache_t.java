@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-// $Id: sfxcache_t.java,v 1.3 2004-02-04 20:33:35 rst Exp $
+// $Id: sfxcache_t.java,v 1.4 2004-02-25 21:30:15 hoz Exp $
 
 package jake2.client;
 
@@ -29,6 +29,9 @@ public class sfxcache_t {
 	int 		speed;			// not needed, because converted on load?
 	int 		width;
 	int 		stereo;
-	byte		data[]	= new byte[1];		// variable sized
-
+	byte		data[];		// variable sized
+	
+	public sfxcache_t(int size) {
+		data = new byte[size];
+	}
 }

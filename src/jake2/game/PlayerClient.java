@@ -19,16 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.17 2004-02-22 21:45:47 hoz Exp $
+// $Id: PlayerClient.java,v 1.18 2004-02-25 21:30:15 hoz Exp $
 
 package jake2.game;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
 public class PlayerClient extends PlayerHud {
 
@@ -69,7 +63,6 @@ public class PlayerClient extends PlayerHud {
 					return true;
 				}
 			}
-			return true;
 		}
 	};
 
@@ -634,7 +627,6 @@ public class PlayerClient extends PlayerHud {
 			}
 		}
 
-		return spot;
 	}
 
 	/*
@@ -1297,7 +1289,7 @@ public class PlayerClient extends PlayerHud {
 
 	//==============================================================
 
-	private static edict_t pm_passent;
+	static edict_t pm_passent;
 
 	// pmove doesn't need to know about passent and contentmask
 	public static pmove_t.TraceAdapter PM_trace = new pmove_t.TraceAdapter() {
