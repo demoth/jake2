@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.7 2003-12-26 01:42:33 cwei Exp $
+ * $Id: TestFS.java,v 1.8 2003-12-29 02:19:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,28 +52,18 @@ public class TestFS {
 		init();
 
 		FS.InitFilesystem();
-
-		Cmd.cmd_argc = 3;
-		Cmd.cmd_argv = new String[] { "link", "unknown.pcx", "../../baseq2/space.pcx" };
-		FS.Link_f();
-
-		FS.Path_f();
-
-		Cmd.cmd_argv = new String[] { "link", "unknown1.pcx", "../../baseq2/config.cfg" };
-		FS.Link_f();
+		
+		Cmd.ExecuteString("link unknown.pcx ../../baseq2/space.pcx");
+		Cmd.ExecuteString("link unknown1.pcx ../../baseq2/config.cfg");
 
 		FS.Path_f();
 		
 		// loescht den link
-		Cmd.cmd_argv = new String[] { "link", "unknown1.pcx", "" };
-		FS.Link_f();
+		Cmd.ExecuteString("link unknown1.pcx");
 
 		FS.Path_f();
 
-
-		Cmd.cmd_argc = 2;
-		Cmd.cmd_argv = new String[] { "dir", "players/male/*.[a-zA-Z_0-9]?x" };
-		FS.Dir_f();
+		Cmd.ExecuteString("dir players/male/*.[a-zA-Z_0-9]?x");
 
 		// search for pack_t
 		FS.searchpath_t search;
