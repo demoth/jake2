@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: entity_t.java,v 1.4 2004-02-04 20:33:35 rst Exp $
+// $Id: entity_t.java,v 1.5 2004-02-13 22:04:00 rst Exp $
 
 package jake2.client;
 
 
 import jake2.render.*;
 
+// ok!
 public class entity_t {
 	//reference
 	public				model_t				model;			// opaque type outside refresh

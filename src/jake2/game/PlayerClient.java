@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.10 2004-02-13 11:09:51 rst Exp $
+// $Id: PlayerClient.java,v 1.11 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -722,11 +722,11 @@ public class PlayerClient extends PlayerHud {
 		gi.unlinkentity(ent);
 
 		gi.unlinkentity(body);
-		body.s = ent.s;
+		body.s = ent.s.getClone();
 
 		//TODO: ok ?
 		//body.s.number = body - g_edicts;
-		body.s.number = i;
+		body.s.number = body.index;
 
 		body.svflags = ent.svflags;
 		VectorCopy(ent.mins, body.mins);
@@ -837,7 +837,7 @@ public class PlayerClient extends PlayerHud {
 			// send effect
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 
 			gi.WriteByte(MZ_LOGIN);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
@@ -880,7 +880,7 @@ public class PlayerClient extends PlayerHud {
 		// ranging doesn't count this client
 		SelectSpawnPoint(ent, spawn_origin, spawn_angles);
 
-		index = ent.s.number - 1;
+		index = ent.index - 1;
 		client = ent.client;
 
 		// deathmatch wipes most client data every spawn
@@ -985,7 +985,7 @@ public class PlayerClient extends PlayerHud {
 		ent.s.modelindex2 = 255; // custom gun model
 		// sknum is player num and weapon number
 		// weapon number will be added in changeweapon
-		ent.s.skinnum = ent.s.number - 1;
+		ent.s.skinnum = ent.index - 1;
 
 		ent.s.frame = 0;
 		VectorCopy(spawn_origin, ent.s.origin);
@@ -1038,7 +1038,7 @@ public class PlayerClient extends PlayerHud {
 	=====================
 	*/
 	public static void ClientBeginDeathmatch(edict_t ent) {
-		G_InitEdict(ent, ent.s.number);
+		G_InitEdict(ent, ent.index);
 
 		InitClientResp(ent.client);
 
@@ -1052,7 +1052,7 @@ public class PlayerClient extends PlayerHud {
 			// send effect
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_LOGIN);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 		}
@@ -1075,7 +1075,7 @@ public class PlayerClient extends PlayerHud {
 		int i;
 
 		//ent.client = game.clients + (ent - g_edicts - 1);
-		ent.client = game.clients[ent.s.number - 1];
+		ent.client = game.clients[ent.index - 1];
 
 		if (deathmatch.value != 0) {
 			ClientBeginDeathmatch(ent);
@@ -1096,7 +1096,7 @@ public class PlayerClient extends PlayerHud {
 			// a spawn point will completely reinitialize the entity
 			// except for the persistant data that was initialized at
 			// ClientConnect() time
-			G_InitEdict(ent, ent.s.number);
+			G_InitEdict(ent, ent.index);
 			ent.classname = "player";
 			InitClientResp(ent.client);
 			PutClientInServer(ent);
@@ -1110,7 +1110,7 @@ public class PlayerClient extends PlayerHud {
 			if (game.maxclients > 1) {
 				gi.WriteByte(svc_muzzleflash);
 				//gi.WriteShort(ent - g_edicts);
-				gi.WriteShort(ent.s.number);
+				gi.WriteShort(ent.index);
 				gi.WriteByte(MZ_LOGIN);
 				gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1159,7 +1159,7 @@ public class PlayerClient extends PlayerHud {
 		// set skin
 		s = Info.Info_ValueForKey(userinfo, "skin");
 
-		playernum = ent.s.number - 1;
+		playernum = ent.index - 1;
 
 		// combine name and skin into a configstring
 		gi.configstring(CS_PLAYERSKINS + playernum, ent.client.pers.netname + "\\" + s);
@@ -1241,7 +1241,7 @@ public class PlayerClient extends PlayerHud {
 		}
 
 		// they can connect
-		ent.client = game.clients[ent.s.number - 1];
+		ent.client = game.clients[ent.index - 1];
 
 		// if there is already a body waiting for us (a loadgame), just
 		// take it, otherwise spawn one from scratch
@@ -1280,7 +1280,7 @@ public class PlayerClient extends PlayerHud {
 
 		// send effect
 		gi.WriteByte(svc_muzzleflash);
-		gi.WriteShort(ent.s.number);
+		gi.WriteShort(ent.index);
 		gi.WriteByte(MZ_LOGOUT);
 		gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1291,7 +1291,7 @@ public class PlayerClient extends PlayerHud {
 		ent.classname = "disconnected";
 		ent.client.pers.connected = false;
 
-		playernum = ent.s.number - 1;
+		playernum = ent.index - 1;
 		gi.configstring(CS_PLAYERSKINS + playernum, "");
 	}
 

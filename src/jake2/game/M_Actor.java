@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.5 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Actor.java,v 1.6 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -746,7 +746,7 @@ public class M_Actor extends GameAI {
 					self.monsterinfo.currentmove= actor_move_taunt;
 
 				// FIXME: does the ent-id work out ?
-				name= actor_names[(self.s.number) % MAX_ACTOR_NAMES];
+				name= actor_names[(self.index) % MAX_ACTOR_NAMES];
 
 				gi.cprintf(other, PRINT_CHAT, name + ": " + messages[Lib.rand() % 3] + "!\n");
 				return;
@@ -1036,7 +1036,7 @@ public class M_Actor extends GameAI {
 					gi.cprintf(
 						ent,
 						PRINT_CHAT,
-						actor_names[(other.s.number) % MAX_ACTOR_NAMES]
+						actor_names[(other.index) % MAX_ACTOR_NAMES]
 							+ ": "
 							+ self.message
 							+ "\n");

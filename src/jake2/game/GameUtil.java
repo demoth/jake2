@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.13 2004-02-13 11:09:51 rst Exp $
+// $Id: GameUtil.java,v 1.14 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -129,8 +129,9 @@ public class GameUtil extends GameBase {
 		e.inuse = true;
 		e.classname = "noclass";
 		e.gravity = 1.0f;
-		//e.s.number= e - g_edicts;
-		e.s.number = i;
+		//e.s.number= e - g_edicts;ü
+		e.s.number= i;
+		e.index = i;
 	}
 
 	/** 
@@ -177,7 +178,7 @@ public class GameUtil extends GameBase {
 		gi.unlinkentity(ed); // unlink from world
 
 		//if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
-		if (ed.s.number <= (maxclients.value + BODY_QUEUE_SIZE)) {
+		if (ed.index <= (maxclients.value + BODY_QUEUE_SIZE)) {
 			//			gi.dprintf("tried to free special edict\n");
 			return;
 		}
@@ -1537,7 +1538,7 @@ public class GameUtil extends GameBase {
 		if (level.sight_client == null)
 			start = 1;
 		else
-			start = level.sight_client.s.number;
+			start = level.sight_client.index;
 
 		check = start;
 		while (true) {

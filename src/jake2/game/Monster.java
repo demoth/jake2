@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.2 2004-02-13 11:09:51 rst Exp $
+// $Id: Monster.java,v 1.3 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -49,7 +49,7 @@ public class Monster extends GameAI{
 		Fire.fire_bullet(self, start, dir, damage, kick, hspread, vspread, Defines.MOD_UNKNOWN);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -67,7 +67,7 @@ public class Monster extends GameAI{
 		Fire.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread, count, Defines.MOD_UNKNOWN);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -83,7 +83,7 @@ public class Monster extends GameAI{
 		Fire.fire_blaster(self, start, dir, damage, speed, effect, false);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -92,7 +92,7 @@ public class Monster extends GameAI{
 		Fire.fire_grenade(self, start, aimdir, damage, speed, 2.5f, damage + 40);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -101,7 +101,7 @@ public class Monster extends GameAI{
 		Fire.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -110,7 +110,7 @@ public class Monster extends GameAI{
 		Fire.fire_rail(self, start, aimdir, damage, kick);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
@@ -127,7 +127,7 @@ public class Monster extends GameAI{
 		Fire.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
-		GameBase.gi.WriteShort(self.s.number);
+		GameBase.gi.WriteShort(self.index);
 		GameBase.gi.WriteByte(flashtype);
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}

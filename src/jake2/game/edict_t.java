@@ -190,7 +190,7 @@ public class edict_t {
 	public gclient_t client;
 	public edict_t owner;
 	
-	int index;	//introduced by rst
+	public int index;	//introduced by rst
 	
 
 	/////////////////////////////////////////////////

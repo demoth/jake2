@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.4 2003-12-09 22:12:44 rst Exp $
+// $Id: GamePWeapon.java,v 1.5 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -122,7 +122,7 @@ public class GamePWeapon extends M_Player {
 			else
 				i= 0;
 			//ent.s.skinnum = (ent - g_edicts - 1) | i;
-			ent.s.skinnum= (ent.s.number - 1) | i;
+			ent.s.skinnum= (ent.index - 1) | i;
 		}
 
 		if (ent.client.pers.weapon != null && ent.client.pers.weapon.ammo != null)
@@ -625,7 +625,7 @@ public class GamePWeapon extends M_Player {
 
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_GRENADE | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -698,7 +698,7 @@ public class GamePWeapon extends M_Player {
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_ROCKET | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -766,7 +766,7 @@ public class GamePWeapon extends M_Player {
 		// send muzzle flash
 		gi.WriteByte(svc_muzzleflash);
 		//gi.WriteShort(ent - g_edicts);
-		gi.WriteShort(ent.s.number);
+		gi.WriteShort(ent.index);
 		if (hyper)
 			gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
 		else
@@ -961,7 +961,7 @@ public class GamePWeapon extends M_Player {
 
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_MACHINEGUN | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1097,7 +1097,7 @@ public class GamePWeapon extends M_Player {
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte((MZ_CHAINGUN1 + shots - 1) | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1183,7 +1183,7 @@ public class GamePWeapon extends M_Player {
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_SHOTGUN | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1261,7 +1261,7 @@ public class GamePWeapon extends M_Player {
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_SSHOTGUN | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1328,7 +1328,7 @@ public class GamePWeapon extends M_Player {
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
-			gi.WriteShort(ent.s.number);
+			gi.WriteShort(ent.index);
 			gi.WriteByte(MZ_RAILGUN | is_silenced);
 			gi.multicast(ent.s.origin, MULTICAST_PVS);
 
@@ -1379,7 +1379,7 @@ public class GamePWeapon extends M_Player {
 				// send muzzle flash
 				gi.WriteByte(svc_muzzleflash);
 				//gi.WriteShort(ent - g_edicts);
-				gi.WriteShort(ent.s.number);
+				gi.WriteShort(ent.index);
 				gi.WriteByte(MZ_BFG | is_silenced);
 				gi.multicast(ent.s.origin, MULTICAST_PVS);
 

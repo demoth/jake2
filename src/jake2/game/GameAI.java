@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.15 2004-02-04 20:33:35 rst Exp $
+// $Id: GameAI.java,v 1.16 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -867,7 +867,7 @@ public class GameAI extends M_Flash {
 		if (null == ent.client.chase_target)
 			return;
 
-		i = ent.client.chase_target.s.number;
+		i = ent.client.chase_target.index;
 		do {
 			i++;
 			if (i > maxclients.value)
@@ -892,7 +892,7 @@ public class GameAI extends M_Flash {
 		if (ent.client.chase_target == null)
 			return;
 
-		i = ent.client.chase_target.s.number;
+		i = ent.client.chase_target.index;
 		do {
 			i--;
 			if (i < 1)

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.17 2004-02-08 21:34:49 rst Exp $
+// $Id: GameSpawn.java,v 1.18 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -326,7 +326,7 @@ public class GameSpawn extends GameSave {
 			e.teammaster = e;
 			c++;
 			c2++;
-			Com.Printf("Team:" + e.team+" entity: " + e.s.number + "\n");
+			Com.Printf("Team:" + e.team+" entity: " + e.index + "\n");
 			for (j = i + 1; j < globals.num_edicts; j++) {
 				e2 = g_edicts[j];
 				if (!e2.inuse)
@@ -414,7 +414,7 @@ public class GameSpawn extends GameSave {
 					
 				Com.DPrintf("===\n");	
 				
-				Com.DPrintf("allocated new edict:" + ent.s.number + "\n");
+				Com.DPrintf("allocated new edict:" + ent.index + "\n");
 				ED_ParseEdict(ph, ent);
 				Com.DPrintf("ent.classname:" + ent.classname + "\n");
 				Com.DPrintf("ent.spawnflags:" + Integer.toHexString(ent.spawnflags) + "\n");

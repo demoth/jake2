@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.6 2004-02-11 19:56:28 cwei Exp $
+// $Id: entity_state_t.java,v 1.7 2004-02-13 22:04:00 rst Exp $
 
 package jake2.game;
 
 import jake2.util.Math3D;
 
-public class entity_state_t {
+public class entity_state_t implements Cloneable {
 	//	entity_state_t is the information conveyed from the server
 	//	in an update message about entities that the client will
 	//	need to render in some way
@@ -55,6 +55,13 @@ public class entity_state_t {
 	public int event; // impulse events -- muzzle flashes, footsteps, etc
 	// events only go out for a single frame, they
 	// are automatically cleared each frame
+
+	public entity_state_t getClone()
+	{
+		entity_state_t out = new entity_state_t(this.surrounding_ent);
+		out.set(this);
+		return out;
+	}
 
 	public void set(entity_state_t from) {
 		number = from.number;

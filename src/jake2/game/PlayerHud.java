@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.3 2003-12-28 19:52:35 rst Exp $
+// $Id: PlayerHud.java,v 1.4 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -564,7 +564,7 @@ public class PlayerHud extends GameTarget {
 
 		if (cl.chase_target != null && cl.chase_target.inuse)
 			//cl.ps.stats[STAT_CHASE] = (short) (CS_PLAYERSKINS + (cl.chase_target - g_edicts) - 1);
-			cl.ps.stats[STAT_CHASE] = (short) (CS_PLAYERSKINS + cl.chase_target.s.number - 1);
+			cl.ps.stats[STAT_CHASE] = (short) (CS_PLAYERSKINS + cl.chase_target.index - 1);
 		else
 			cl.ps.stats[STAT_CHASE] = 0;
 	}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Parasite.java,v 1.4 2003-12-09 22:12:44 rst Exp $
+// $Id: M_Parasite.java,v 1.5 2004-02-13 22:03:59 rst Exp $
 
 package jake2.game;
 
@@ -471,7 +471,7 @@ public class M_Parasite extends GamePWeapon {
 			gi.WriteByte(svc_temp_entity);
 			gi.WriteByte(TE_PARASITE_ATTACK);
 			//gi.WriteShort(self - g_edicts);
-			gi.WriteShort(self.s.number);
+			gi.WriteShort(self.index);
 			gi.WritePosition(start);
 			gi.WritePosition(end);
 			gi.multicast(self.s.origin, MULTICAST_PVS);

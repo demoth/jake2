@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.7 2004-02-05 21:32:41 rst Exp $
+// $Id: SV_SEND.java,v 1.8 2004-02-13 22:04:00 rst Exp $
 
 package jake2.server;
 
@@ -300,7 +300,7 @@ public class SV_SEND extends SV_MAIN {
 
 		//ent = NUM_FOR_EDICT(entity);
 		//TODO: somehow risky (dont know if constant correct index)
-		ent = entity.s.number;
+		ent = entity.index;
 
 		if ((channel & 8) != 0) // no PHS flag
 			{
