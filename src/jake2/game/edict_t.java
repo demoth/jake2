@@ -36,7 +36,7 @@ public class edict_t
 	link_t area; // linked to a division node or leaf
 
 	int num_clusters; // if -1, use headnode instead
-	int clusternums[]= new int[defs.MAX_ENT_CLUSTERS];
+	int clusternums[]= new int[gamedefs.MAX_ENT_CLUSTERS];
 	int headnode; // unused if num_clusters != -1
 	int areanum, areanum2;
 

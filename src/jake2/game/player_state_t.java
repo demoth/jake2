@@ -47,5 +47,5 @@ public class player_state_t {
 
 	int rdflags; // refdef flags
 
-	short stats[]= new short[defs.MAX_STATS]; // fast status bar updates
+	short stats[]= new short[gamedefs.MAX_STATS]; // fast status bar updates
 }

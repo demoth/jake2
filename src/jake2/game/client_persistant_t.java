@@ -40,7 +40,7 @@ public class client_persistant_t
 	int savedFlags;
 
 	int selected_item;
-	int inventory[]= new int[defs.MAX_ITEMS];
+	int inventory[]= new int[gamedefs.MAX_ITEMS];
 
 	// ammo capacities
 	int max_bullets;

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public class GameBase extends defs {
+public class GameBase extends gamedefs {
 	public static  game_locals_t game;
 	public static  level_locals_t level;
 	public static  game_import_t gi;

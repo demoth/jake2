@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.render;
 
-public class renderdefs extends jake2.game.defs {
+public class renderdefs extends jake2.game.gamedefs {
 	
 	
 	static final int MAX_DLIGHTS = 32;

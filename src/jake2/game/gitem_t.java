@@ -119,14 +119,14 @@ public class gitem_t
 			null,
 			"misc/ar1_pkup.wav",
 			"models/items/armor/combat/tris.md2",
-			defs.EF_ROTATE,
+			gamedefs.EF_ROTATE,
 			null,
 		/* icon */
 		"i_combatarmor",
 		/* pickup */
 		"Combat Armor",
 		/* width */
-		3, 0, null, defs.IT_ARMOR, 0, GameAI.combatarmor_info, defs.ARMOR_COMBAT,
+		3, 0, null, gamedefs.IT_ARMOR, 0, GameAI.combatarmor_info, gamedefs.ARMOR_COMBAT,
 		/* precache */
 		"");
 	}

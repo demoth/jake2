@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.8 2003-11-25 15:31:38 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.9 2003-11-28 23:12:55 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,7 +40,7 @@ import jake2.client.refimport_t;
 import jake2.client.viddef_t;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.game.defs;
+import jake2.game.gamedefs;
 import jake2.qcommon.Cvar;
 import jake2.util.Vargs;
 
@@ -376,7 +376,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		//			}
 		//
 		ri.Con_Printf(
-			defs.PRINT_ALL,
+			gamedefs.PRINT_ALL,
 			"ref_gl version: " + REF_VERSION + "\n",
 			null);
 		//
@@ -405,7 +405,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 		if (!R_SetMode()) {
 			QGL_Shutdown();
 			ri.Con_Printf(
-				defs.PRINT_ALL,
+				gamedefs.PRINT_ALL,
 				"ref_gl::R_Init() - could not R_SetMode()\n",
 				null);
 			return false;
@@ -674,7 +674,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 		if (vid_fullscreen.modified && !gl_config.allow_cds) {
 			ri.Con_Printf(
-				defs.PRINT_ALL,
+				gamedefs.PRINT_ALL,
 				"R_SetMode() - CDS not allowed with this driver\n",
 				null);
 			ri.Cvar_SetValue(
@@ -700,7 +700,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 				ri.Cvar_SetValue("vid_fullscreen", 0);
 				vid_fullscreen.modified = false;
 				ri.Con_Printf(
-					defs.PRINT_ALL,
+					gamedefs.PRINT_ALL,
 					"ref_gl::R_SetMode() - fullscreen unavailable in this mode\n",
 					null);
 				if ((err =
@@ -714,7 +714,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 				ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
 				gl_mode.modified = false;
 				ri.Con_Printf(
-					defs.PRINT_ALL,
+					gamedefs.PRINT_ALL,
 					"ref_gl::R_SetMode() - invalid mode\n",
 					null);
 			}
@@ -727,7 +727,7 @@ final class JoglRenderer implements Ref, GLEventListener {
 					false))
 				!= rserr.ok) {
 				ri.Con_Printf(
-					defs.PRINT_ALL,
+					gamedefs.PRINT_ALL,
 					"ref_gl::R_SetMode() - could not revert to safe mode\n",
 					null);
 				return false;
@@ -748,25 +748,25 @@ final class JoglRenderer implements Ref, GLEventListener {
 
 		ri.Cvar_Get("r_fakeFullscreen", "0", Cvar.ARCHIVE);
 
-		ri.Con_Printf(defs.PRINT_ALL, "Initializing OpenGL display\n", null);
+		ri.Con_Printf(gamedefs.PRINT_ALL, "Initializing OpenGL display\n", null);
 
 		if (fullscreen) {
 			ri.Con_Printf(
-				defs.PRINT_ALL,
+				gamedefs.PRINT_ALL,
 				"...setting fullscreen mode %d:",
 				new Vargs(1).add(mode));
 		} else
 			ri.Con_Printf(
-				defs.PRINT_ALL,
+				gamedefs.PRINT_ALL,
 				"...setting mode %d:",
 				new Vargs(1).add(mode));
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
-			ri.Con_Printf(defs.PRINT_ALL, " invalid mode\n", null);
+			ri.Con_Printf(gamedefs.PRINT_ALL, " invalid mode\n", null);
 			return rserr.invalid_mode;
 		}
 		ri.Con_Printf(
-			defs.PRINT_ALL,
+			gamedefs.PRINT_ALL,
 			" %d %d\n",
 			new Vargs(2).add(newDim.width).add(newDim.height));
 

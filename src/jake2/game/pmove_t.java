@@ -34,7 +34,7 @@ public class pmove_t
 
 	// results (out)
 	int numtouch;
-	edict_t touchents[]= new edict_t[defs.MAXTOUCH];
+	edict_t touchents[]= new edict_t[gamedefs.MAXTOUCH];
 
 	float []  viewangles ={0,0,0}; // clamped
 	float viewheight;

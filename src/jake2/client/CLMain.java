@@ -95,7 +95,7 @@ public class CLMain {
 	client_static_t	cls;
 	client_state_t	cl;
 
-	centity_t		cl_entities[]= new centity_t[jake2.game.defs.MAX_EDICTS];
+	centity_t		cl_entities[]= new centity_t[jake2.game.gamedefs.MAX_EDICTS];
 
 	entity_state_t	cl_parse_entities[] = new entity_state_t[clientdefs.MAX_PARSE_ENTITIES];
 
