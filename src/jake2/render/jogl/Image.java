@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.18 2004-02-02 21:47:00 rst Exp $
+ * $Id: Image.java,v 1.19 2004-02-13 16:21:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -813,7 +813,6 @@ public abstract class Image extends Main {
 
 		// can't fill to filled color or to transparent color (used as visited marker)
 		if ((fillcolor == filledcolor) || (fillcolor == 255)) {
-			System.out.println("not filling skin from " + fillcolor + " to " + filledcolor + '\n');
 			return;
 		}
 
