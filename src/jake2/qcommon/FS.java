@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.11 2004-10-28 21:09:11 cawe Exp $
+ * $Id: FS.java,v 1.12 2004-11-10 20:41:40 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,6 +71,8 @@ public final class FS extends Globals {
         String filename;
 
         RandomAccessFile handle;
+        
+        ByteBuffer backbuffer;
 
         int numfiles;
 
@@ -449,11 +451,16 @@ public final class FS extends Globals {
                             pak.handle = new RandomAccessFile(pak.filename, "r");
                         }
                         // open a new file on the pakfile
-
-                        channel = pak.handle.getChannel();
-                        buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                                entry.filepos, entry.filelen);
-                        channel.close();
+                        if (pak.backbuffer == null) {
+                            channel = pak.handle.getChannel();
+                            pak.backbuffer = channel.map(
+                                    FileChannel.MapMode.READ_ONLY, 0,
+                                    pak.handle.length());
+                            channel.close();
+                        }
+                        pak.backbuffer.position(entry.filepos);
+                        buffer = pak.backbuffer.slice();
+                        buffer.limit(entry.filelen);
                         return buffer;
                     }
                 } else {
