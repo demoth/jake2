@@ -19,7 +19,7 @@
  */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.6 2005-02-06 18:58:51 salomo Exp $
+// $Id: GameAI.java,v 1.7 2005-02-20 16:38:36 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -2634,7 +2634,7 @@ public class GameAI {
             }
 
             if (0 == self.yaw_speed)
-                self.yaw_speed = 20;
+                self.yaw_speed = 40;
             self.viewheight = 25;
 
             Monster.monster_start_go(self);
@@ -2661,7 +2661,7 @@ public class GameAI {
                         + Lib.vtos(self.s.origin) + "\n");
 
             if (0 == self.yaw_speed)
-                self.yaw_speed = 10;
+                self.yaw_speed = 20;
             self.viewheight = 25;
 
             Monster.monster_start_go(self);
@@ -2684,7 +2684,7 @@ public class GameAI {
     public static EntThinkAdapter swimmonster_start_go = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (0 == self.yaw_speed)
-                self.yaw_speed = 10;
+                self.yaw_speed = 20;
             self.viewheight = 10;
 
             Monster.monster_start_go(self);
@@ -2865,18 +2865,25 @@ public class GameAI {
                 return;
             }
 
+            // rst: monster heard a sound....
             if ((self.monsterinfo.aiflags & Defines.AI_SOUND_TARGET) != 0) {
                 Math3D.VectorSubtract(self.s.origin, self.enemy.s.origin, v);
+                // ...and reached it
                 if (Math3D.VectorLength(v) < 64) {
-                    self.monsterinfo.aiflags |= (Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
+                    //don't move, just stand and listen.
+                    //self.monsterinfo.aiflags |= (Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
                     self.monsterinfo.stand.think(self);
-                    return;
+                    // since now it is aware and does not to be triggered again.
+                    self.spawnflags &= ~1;
+                    self.enemy = null;
                 }
-
-                M.M_MoveToGoal(self, dist);
-
+                else               
+                    M.M_MoveToGoal(self, dist);
+                
+                // look for new targets
                 if (!GameUtil.FindTarget(self))
                     return;
+                                
             }
 
             if (ai_checkattack(self, dist))
@@ -2898,12 +2905,13 @@ public class GameAI {
                 return;
             }
 
-            // coop will change to another enemy if visible
+            // coop will change to another enemy if visible^             
             if (GameBase.coop.value != 0) {
                 // FIXME: insane guys get mad with this, which causes crashes!
                 if (GameUtil.FindTarget(self))
                     return;
             }
+            
 
             if ((self.monsterinfo.search_time != 0)
                     && (GameBase.level.time > (self.monsterinfo.search_time + 20))) {
@@ -3050,11 +3058,11 @@ public class GameAI {
                                 self.s.origin, v);
                         self.s.angles[Defines.YAW] = self.ideal_yaw = Math3D
                                 .vectoyaw(v);
-                        //					gi.dprintf("adjusted right\n");
-                        //					debug_drawline(self.origin, self.last_sighting, 152);
+                        // gi.dprintf("adjusted right\n");
+                        // debug_drawline(self.origin, self.last_sighting, 152);
                     }
                 }
-                //			else gi.dprintf("course was fine\n");
+                // else gi.dprintf("course was fine\n");
             }
 
             M.M_MoveToGoal(self, dist);

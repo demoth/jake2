@@ -19,7 +19,7 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.11 2005-02-19 23:32:01 salomo Exp $
+// $Id: GameUtil.java,v 1.12 2005-02-20 16:38:36 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -1009,13 +1009,15 @@ public class GameUtil {
         boolean heardit;
         int r;
 
-        if ((self.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0) {
+        if ((self.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0) 
+        {
             if (self.goalentity != null && self.goalentity.inuse
-                    && self.goalentity.classname != null) {
+                    && self.goalentity.classname != null) 
+            {
                 if (self.goalentity.classname.equals("target_actor"))
                     return false;
             }
-
+            
             //FIXME look for monsters?
             return false;
         }
@@ -1036,10 +1038,9 @@ public class GameUtil {
         heardit = false;
         if ((GameBase.level.sight_entity_framenum >= (GameBase.level.framenum - 1))
                 && 0 == (self.spawnflags & 1)) {
-            client = GameBase.level.sight_entity;
-            if (client.enemy == self.enemy) {
-                return false;
-            }
+            client = GameBase.level.sight_entity;           
+            if (client.enemy == self.enemy)             
+                return false;            
         } else if (GameBase.level.sound_entity_framenum >= (GameBase.level.framenum - 1)) {
             client = GameBase.level.sound_entity;
             heardit = true;
@@ -1057,9 +1058,6 @@ public class GameUtil {
         // if the entity went away, forget it
         if (!client.inuse)
             return false;
-
-        if (client == self.enemy)
-            return true; // JDC false;
 
         if (client.client != null) {
             if ((client.flags & Defines.FL_NOTARGET) != 0)
@@ -1081,27 +1079,28 @@ public class GameUtil {
             if (r == Defines.RANGE_FAR)
                 return false;
 
-            //	   this is where we would check invisibility
-
+            // this is where we would check invisibility
             // is client in an spot too dark to be seen?
+            
             if (client.light_level <= 5)
                 return false;
 
-            if (!visible(self, client)) {
+            if (!visible(self, client)) 
                 return false;
-            }
+           
 
             if (r == Defines.RANGE_NEAR) {
                 if (client.show_hostile < GameBase.level.time
-                        && !infront(self, client)) {
-                    return false;
-                }
+                        && !infront(self, client))               
+                    return false;                
             } else if (r == Defines.RANGE_MID) {
-                if (!infront(self, client)) {
-                    return false;
-                }
+                if (!infront(self, client)) 
+                    return false;               
             }
 
+            if (client == self.enemy)
+                return true; // JDC false;
+            
             self.enemy = client;
 
             if (!self.enemy.classname.equals("player_noise")) {
@@ -1130,9 +1129,8 @@ public class GameUtil {
             Math3D.VectorSubtract(client.s.origin, self.s.origin, temp);
 
             if (Math3D.VectorLength(temp) > 1000) // too far to hear
-            {
                 return false;
-            }
+
 
             // check area portals - if they are different and not connected then
             // we can't hear it
@@ -1145,7 +1143,11 @@ public class GameUtil {
 
             // hunt the sound for a bit; hopefully find the real player
             self.monsterinfo.aiflags |= Defines.AI_SOUND_TARGET;
-            self.enemy = client;
+            
+            if (client == self.enemy)
+                return true; // JDC false;
+             
+            self.enemy = client;             
         }
 
         //
