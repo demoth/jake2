@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.6 2004-09-22 19:22:02 salomo Exp $
+ * $Id: Cmd.java,v 1.7 2004-10-28 23:50:29 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -215,11 +215,11 @@ public final class Cmd {
             System.arraycopy(scan, 0, temporary, 0, i);
 
             //strcpy(temporary + i, token);
-            System.arraycopy(token, 0, temporary, i, token.length());
+            System.arraycopy(token.toCharArray(), 0, temporary, i, token.length());
 
             //strcpy(temporary + i + j, start);
             System.arraycopy(ph.data, ph.index, temporary, i + j, len
-                    - ph.index);
+                    - ph.index - 1);
 
             //strcpy(expanded, temporary);
             System.arraycopy(temporary, 0, expanded, 0, 0);
