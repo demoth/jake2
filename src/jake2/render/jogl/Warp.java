@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.9 2004-02-15 01:29:20 cwei Exp $
+ * $Id: Warp.java,v 1.10 2004-02-20 13:01:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -446,7 +446,7 @@ public abstract class Warp extends Model {
 	
 	float[] dists = new float[MAX_CLIP_VERTS];
 	int[] sides = new int[MAX_CLIP_VERTS];
-	float[][][] newv = new float[2][MAX_CLIP_VERTS][3];
+	float[][][][] newv = new float[6][2][MAX_CLIP_VERTS][3];
 
 	void ClipSkyPolygon(int nump, float[][] vecs, int stage)
 	{
@@ -503,17 +503,17 @@ public abstract class Warp extends Model {
 			switch (sides[i])
 			{
 			case SIDE_FRONT:
-				Math3D.VectorCopy(v, newv[0][newc[0]]);
+				Math3D.VectorCopy(v, newv[stage][0][newc[0]]);
 				newc[0]++;
 				break;
 			case SIDE_BACK:
-				Math3D.VectorCopy(v, newv[1][newc[1]]);
+				Math3D.VectorCopy(v, newv[stage][1][newc[1]]);
 				newc[1]++;
 				break;
 			case SIDE_ON:
-				Math3D.VectorCopy(v, newv[0][newc[0]]);
+				Math3D.VectorCopy(v, newv[stage][0][newc[0]]);
 				newc[0]++;
-				Math3D.VectorCopy (v, newv[1][newc[1]]);
+				Math3D.VectorCopy (v, newv[stage][1][newc[1]]);
 				newc[1]++;
 				break;
 			}
@@ -525,16 +525,16 @@ public abstract class Warp extends Model {
 			for (j=0 ; j<3 ; j++)
 			{
 				e = v[j] + d * (vecs[i + 1][j] - v[j]);
-				newv[0][newc[0]][j] = e;
-				newv[1][newc[1]][j] = e;
+				newv[stage][0][newc[0]][j] = e;
+				newv[stage][1][newc[1]][j] = e;
 			}
 			newc[0]++;
 			newc[1]++;
 		}
 
 		// continue
-		ClipSkyPolygon(newc[0], newv[0], stage+1);
-		ClipSkyPolygon(newc[1], newv[1], stage+1);
+		ClipSkyPolygon(newc[0], newv[stage][0], stage+1);
+		ClipSkyPolygon(newc[1], newv[stage][1], stage+1);
 	}
 
 	float[][] verts = new float[MAX_CLIP_VERTS][3];
