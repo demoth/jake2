@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.7 2004-08-22 14:25:12 salomo Exp $
+ * $Id: SV.java,v 1.8 2004-08-22 20:39:03 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -107,7 +107,6 @@ public final class SV
 	public static void SV_Impact(edict_t e1, trace_t trace)
 	{
 		edict_t e2;
-		// cplane_t	backplane;
 
 		e2= trace.ent;
 
@@ -115,7 +114,7 @@ public final class SV
 			e1.touch.touch(e1, e2, trace.plane, trace.surface);
 
 		if (e2.touch != null && e2.solid != Defines.SOLID_NOT)
-			e2.touch.touch(e2, e1, null, null);
+			e2.touch.touch(e2, e1, GameBase.dummyplane, null);
 	}
 
 	public static int SV_FlyMove(edict_t ent, float time, int mask)
