@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.7 2004-08-23 20:49:12 hzi Exp $
+ * $Id: JoglBase.java,v 1.8 2004-09-19 12:47:49 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,7 +38,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+
+import com.sun.rsasign.t;
 
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.GLUT;
@@ -193,6 +196,9 @@ public abstract class JoglBase implements GLEventListener {
 		GLimp_Shutdown();
 
 		window = new JFrame("Jake2");
+		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
+		window.setIconImage(icon.getImage());
+		
 		GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities());
 
 		// we want keypressed events for TAB key
