@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.12 2005-01-23 20:04:06 cawe Exp $
+ * $Id: SCR.java,v 1.13 2005-02-07 17:38:57 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -95,7 +95,7 @@ public final class SCR extends Globals {
 
     static cvar_t scr_drawall;
 
-    public static cvar_t fps;
+    public static cvar_t fps = new cvar_t();
 
     static dirty_t scr_dirty = new dirty_t();
 
