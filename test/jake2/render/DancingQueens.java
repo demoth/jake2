@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.2 2004-01-15 01:28:08 cwei Exp $
+ * $Id: DancingQueens.java,v 1.3 2004-01-19 16:54:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -256,15 +256,15 @@ public class DancingQueens
 		}
 
 
-		yaw = time() * 0.1f;
+		yaw += KBD.mx / 2; //time() * 0.1f;
 		if (yaw > 360)
 			yaw -= 360;
 		if (yaw < 0)
 			yaw += 360;
-
+			
 		for (int i = 0; i < models.length; i++)
 		{
-			models[i].frame = (time() / 80) % models[i].model.numframes;
+			models[i].frame = (time() / 70) % models[i].model.numframes;
 			models[i].angles[1] = yaw;
 		}
 
