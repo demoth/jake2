@@ -19,7 +19,7 @@
  */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameTrigger.java,v 1.3 2004-09-22 19:22:06 salomo Exp $
+// $Id: GameTrigger.java,v 1.4 2005-02-20 21:49:46 salomo Exp $
 package jake2.game;
 
 import jake2.*;
@@ -33,7 +33,7 @@ import jake2.util.Math3D;
 public class GameTrigger {
 
     public static void InitTrigger(edict_t self) {
-        if (Math3D.VectorCompare(self.s.angles, Globals.vec3_origin) != 0)
+        if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
             GameBase.G_SetMovedir(self.s.angles, self.movedir);
 
         self.solid = Defines.SOLID_TRIGGER;
@@ -87,7 +87,7 @@ public class GameTrigger {
             ent.use = GameTrigger.Use_Multi;
         }
 
-        if (0 == Math3D.VectorCompare(ent.s.angles, Globals.vec3_origin))
+        if (!Math3D.VectorEquals(ent.s.angles, Globals.vec3_origin))
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
 
         GameBase.gi.setmodel(ent, ent.model);
@@ -267,7 +267,7 @@ public class GameTrigger {
             } else
                 return;
 
-            if (0 == Math3D.VectorCompare(self.movedir, Globals.vec3_origin)) {
+            if (!Math3D.VectorEquals(self.movedir, Globals.vec3_origin)) {
                 float[] forward = { 0, 0, 0 };
 
                 Math3D.AngleVectors(other.s.angles, forward, null, null);
