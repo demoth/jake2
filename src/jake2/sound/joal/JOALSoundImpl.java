@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.3 2004-09-04 14:25:32 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.4 2004-09-19 09:12:20 hzi Exp $
  */
 package jake2.sound.joal;
 
@@ -54,6 +54,14 @@ public final class JOALSoundImpl implements Sound {
 	 * @see jake2.sound.SoundImpl#Init()
 	 */
 	public boolean Init() {
+		
+		// preload OpenAL native library
+		String os = System.getProperty("os.name");
+		if (os.startsWith("Linux")) {
+			System.loadLibrary("openal");	
+		} else if (os.startsWith("Windows")) {
+			System.loadLibrary("OpenAL32");
+		}
 		
 		try {
 			initOpenAL();
