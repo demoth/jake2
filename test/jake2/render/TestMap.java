@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.15 2004-02-17 13:41:14 cwei Exp $
+ * $Id: TestMap.java,v 1.16 2004-03-19 09:22:53 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -177,7 +177,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.InitForTestMap(new String[] { "TestMap $Id: TestMap.java,v 1.15 2004-02-17 13:41:14 cwei Exp $" });
+		Qcommon.InitForTestMap(new String[] { "TestMap $Id: TestMap.java,v 1.16 2004-03-19 09:22:53 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -218,9 +218,14 @@ public class TestMap
 	void run()
 	{
 		startTime = System.currentTimeMillis();
+		xcommand_t callback = new xcommand_t() {
+			public void execute() {
+				updateScreen();
+			}
+		};
 		while (true)
 		{
-			re.updateScreen(null);
+			re.updateScreen(callback);
 			KBD.Update();
 			Cbuf.Execute();
 		}

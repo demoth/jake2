@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.30 2004-03-19 09:03:37 cwei Exp $
+ * $Id: Qcommon.java,v 1.31 2004-03-19 09:22:53 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -107,10 +107,10 @@ public final class Qcommon extends Globals {
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
-			//NET.NET_Init();
-			//Netchan.Netchan_Init();
+			NET.NET_Init();
+			Netchan.Netchan_Init();
 
-			//SV_MAIN.SV_Init();
+			SV_MAIN.SV_Init();
 			CL.Init();
 
 			// add + commands from command line
