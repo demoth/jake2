@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.10 2004-12-14 00:11:10 hzi Exp $
+ * $Id: VID.java,v 1.11 2004-12-14 12:54:25 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -571,7 +571,7 @@ public class VID extends Globals {
 		// "[Mesa 3-D glX   ]",
 		"[OpenGL jogl    ]",
 		"[OpenGL fastjogl]",
-		"[OpenGL lwjgl]",
+		"[OpenGL lwjgl   ]",
 		null
 	};
 	static final String[] yesno_names =
