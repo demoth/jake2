@@ -4,7 +4,6 @@
  */
 package jake2.imageio;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -39,42 +38,57 @@ public class PCX {
 	*/
 	public static class Header {
 
-		// offsets for the header entries
-		static final int MANUFACTURER = 0;
-		static final int VERSION = 1;
-		static final int ENCODING = 2;
-		static final int BITS_PER_PIXEL = 3;
-		static final int XMIN = 4;
-		static final int YMIN = 6;
-		static final int XMAX = 8;
-		static final int YMAX = 10;
-		static final int WIDTH = 12;
-		static final int HEIGHT = 14;
-		static final int PALETTE = 16;
-		static final int RESERVED = 64;
-		static final int COLOR_PLANES = 65;
-		static final int BYTES_PER_LINE = 66;
-		static final int PALETTE_TYPE = 68;
-		static final int FILLER = 70;
-
 		// size of byte arrays
 		static final int PALETTE_SIZE = 48;
 		static final int FILLER_SIZE = 58;
 
-		// buffers the header data
-		ByteBuffer mem = ByteBuffer.allocate(HEADER_SIZE);
+		byte manufacturer;
+		byte version;
+		byte encoding;
+		byte bitsPerPixel;
+		int xmin, ymin, xmax, ymax; // unsigned short
+		int width, height; // unsigned short
+		byte[] palette; //unsigned byte
+		byte reserved;
+		byte colorPlanes;
+		int bytesPerLine; // unsigned short
+		int paletteType; // unsigned short
+		byte[] filler;
+		
 
-		public Header(byte[] headerBytes) throws IOException {
+
+		public Header(byte[] headerBytes) {
 			if (headerBytes == null || headerBytes.length != 128) {
-				throw new IOException("invalid quake2 pcx header");
+				throw new IllegalArgumentException("invalid quake2 pcx header");
 			}
-			mem.put(headerBytes);
-			mem.order(ByteOrder.LITTLE_ENDIAN);
 
+			ByteBuffer b = ByteBuffer.wrap(headerBytes);
+			// is stored as little endian
+			b.order(ByteOrder.LITTLE_ENDIAN);
+			
+			// fill header
+			manufacturer = b.get();
+			version = b.get();
+			encoding = b.get();
+			bitsPerPixel = b.get();
+			xmin = b.getShort() & 0xffff;
+			ymin = b.getShort() & 0xffff;
+			xmax = b.getShort() & 0xffff;
+			ymax = b.getShort() & 0xffff;
+			width = b.getShort() & 0xffff;
+			height = b.getShort() & 0xffff;
+			b.get(palette = new byte[PALETTE_SIZE]);
+			reserved = b.get();
+			colorPlanes = b.get();
+			bytesPerLine = b.getShort() & 0xffff;
+			paletteType = b.getShort() & 0xffff;
+			b.get(filler = new byte[FILLER_SIZE]);
+
+			// check some attributes
 			checkHeader();
 		}
 
-		private void checkHeader() throws IOException {
+		private void checkHeader() {
 
 			if (this.getManufacturer() != 0x0a
 				|| this.getVersion() != 5
@@ -82,125 +96,120 @@ public class PCX {
 				|| this.getBitsPerPixel() != 8
 				|| this.getXmax() >= 640
 				|| this.getYmax() >= 480) {
-				throw new IOException("invalid quake2 pcx header");
+				throw new IllegalArgumentException("invalid quake2 pcx header");
 			}
 		}
-
+		
 		/**
 		 * @return
 		 */
-		public final byte getBitsPerPixel() {
-			return mem.get(BITS_PER_PIXEL);
+		public byte getBitsPerPixel() {
+			return bitsPerPixel;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getBytesPerLine() {
-			return mem.getShort(BYTES_PER_LINE) & 0xffff; // unsigned short
+		public int getBytesPerLine() {
+			return bytesPerLine;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte getColorPlanes() {
-			return mem.get(COLOR_PLANES);
+		public byte getColorPlanes() {
+			return colorPlanes;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte getEncoding() {
-			return mem.get(ENCODING);
+		public byte getEncoding() {
+			return encoding;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte[] getFiller() {
-			byte[] tmp = new byte[FILLER_SIZE];
-			mem.get(tmp, FILLER, FILLER_SIZE);
-			return tmp;
+		public byte[] getFiller() {
+			return filler;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getHeight() {
-			return mem.getShort(HEIGHT) & 0xffff; // unsigned short
+		public int getHeight() {
+			return height;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte getManufacturer() {
-			return mem.get(MANUFACTURER);
+		public byte getManufacturer() {
+			return manufacturer;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte[] getPalette() {
-			byte[] tmp = new byte[PALETTE_SIZE];
-			mem.get(tmp, PALETTE, PALETTE_SIZE);
-			return tmp;
+		public byte[] getPalette() {
+			return palette;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getPaletteType() {
-			return mem.getShort(PALETTE_TYPE) & 0xffff; // unsigned short
+		public int getPaletteType() {
+			return paletteType;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte getReserved() {
-			return mem.get(RESERVED);
+		public byte getReserved() {
+			return reserved;
 		}
 
 		/**
 		 * @return
 		 */
-		public final byte getVersion() {
-			return mem.get(VERSION);
+		public byte getVersion() {
+			return version;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getWidth() {
-			return mem.getShort(WIDTH) & 0xffff; // unsigned short
+		public int getWidth() {
+			return width;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getXmax() {
-			return mem.getShort(XMAX) & 0xffff; // unsigned short
+		public int getXmax() {
+			return xmax;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getXmin() {
-			return mem.getShort(XMIN) & 0xffff; // unsigned short
+		public int getXmin() {
+			return xmin;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getYmax() {
-			return mem.getShort(YMAX) & 0xffff; // unsigned short
+		public int getYmax() {
+			return ymax;
 		}
 
 		/**
 		 * @return
 		 */
-		public final int getYmin() {
-			return mem.getShort(YMIN) & 0xffff; // unsigned short
+		public int getYmin() {
+			return ymin;
 		}
-
 	}
 }

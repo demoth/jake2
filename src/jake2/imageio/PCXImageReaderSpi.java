@@ -15,8 +15,9 @@ import javax.imageio.stream.ImageInputStream;
  * @author cwei
  *	
  * put the own ImageReaderSpi class name in the file (relative to classpath):
- * <code>META-INF/services/javax.imageio.spi.ImageReaderSpi</code>
- *
+ * <code>
+ *   META-INF/services/javax.imageio.spi.ImageReaderSpi
+ * </code>
  */
 public class PCXImageReaderSpi extends ImageReaderSpi {
 
@@ -70,7 +71,18 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 		if (!(source instanceof ImageInputStream)) {
 			return false;
 		}
-		return parseStream((ImageInputStream) source);
+		ImageInputStream stream = (ImageInputStream)source;
+		byte[] buffer = new byte[PCX.HEADER_SIZE];
+		try {
+			stream.mark();
+			stream.readFully(buffer);
+			stream.reset();
+			// buffer will be converted to members and header checked
+			PCX.Header pcx = new PCX.Header(buffer); 
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+		return true;		
 	}
 
 	public ImageReader createReaderInstance(Object extension)
@@ -83,20 +95,5 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 	 */
 	public String getDescription(Locale locale) {
 		return "id-software's Quake2 pcx format";
-	}
-	
-	private boolean parseStream(ImageInputStream stream) {
-		byte[] buffer = new byte[PCX.HEADER_SIZE];
-		try {
-			stream.mark();
-			stream.readFully(buffer);
-			stream.reset();
-			// buffer is copied (readonly) and header checked
-			PCX.Header pcx = new PCX.Header(buffer); 
-		} catch (IOException e) {
-			return false;
-		}
-		
-		return true;
 	}
 }
