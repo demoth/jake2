@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
+// $Id: pmove_state_t.java,v 1.4 2003-12-28 16:53:00 rst Exp $
 package jake2.game;
 
 public class pmove_state_t {
@@ -31,11 +31,11 @@ public class pmove_state_t {
 
 	public int pm_type;
  
-	public short origin[]= new short[3]; // 12.3
-	public short velocity[]= new short[3]; // 12.3
+	public short origin[]= {0,0,0}; // 12.3
+	public short velocity[]= {0,0,0}; // 12.3
 	public byte pm_flags; // ducked, jump_held, etc
 	public byte pm_time; // each unit = 8 ms
 	public short gravity;
-	public short delta_angles[]= new short[3]; // add to command angles to get view direction
+	public short delta_angles[]= {0,0,0}; // add to command angles to get view direction
 	// changed by spawns, rotating objects, and teleporters
 }

@@ -7,13 +7,16 @@
 \                                                /
  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
  
-$Id: Rules.txt,v 1.5 2003-12-27 15:41:00 rst Exp $
+$Id: Rules.txt,v 1.7 2003-12-28 21:41:10 hoz Exp $
 
 Authors:
 --------
 HOZ
 CWEI
 RST
+
+
+memcpy(dest,src);
 
 
 Since there are just a couple of crazy germans in the

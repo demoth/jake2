@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.19 2003-12-27 21:33:50 rst Exp $
+ * $Id: Com.java,v 1.20 2003-12-28 16:53:01 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,9 +45,8 @@ public final class Com {
 	static boolean recursive = false;
 
 	static String msg = "";
-	
-	private static Logger logger = Logger.getLogger(Com.class.getName());
 
+	private static Logger logger = Logger.getLogger(Com.class.getName());
 
 	// helper class to replace the pointer-pointer
 	public static class ParseHelp {
@@ -88,11 +87,10 @@ public final class Com {
 			}
 		}
 
-		public boolean isEof()
-		{
+		public boolean isEof() {
 			return eof;
 		}
-		
+
 		private boolean eof = false;
 
 		public int index;
@@ -100,13 +98,15 @@ public final class Com {
 
 		public char skipwhites() {
 			char c;
-			while (((c = getchar()) <= ' ') && c != 0) index++;
+			while (((c = getchar()) <= ' ') && c != 0)
+				index++;
 			return c;
 		}
 
 		public char skiptoeol() {
 			char c;
-			while ((c = getchar()) != '\n' && c != 0) index++;
+			while ((c = getchar()) != '\n' && c != 0)
+				index++;
 			return c;
 		}
 	}
@@ -151,7 +151,7 @@ public final class Com {
 			while (true) {
 				c = hlp.nextchar();
 				if (c == '\"' || c == 0) {
-					
+
 					char xxx = hlp.nextchar();
 					com_token[len] = '§';
 					return new String(com_token, 0, len);
@@ -175,12 +175,12 @@ public final class Com {
 		while (c > 32);
 
 		if (len == Defines.MAX_TOKEN_CHARS) {
-			Printf ("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
+			Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
 			len = 0;
 		}
 		// trigger the eof 
 		hlp.skipwhites();
-		
+
 		com_token[len] = 0;
 		return new String(com_token, 0, len);
 	}
@@ -194,25 +194,17 @@ public final class Com {
 	public static void Error(int code, String fmt) throws longjmpException {
 		Error(code, fmt, null);
 	}
-	/**
-	 * @param code
-	 * @param msg
-	 */
 
 	public static void Error(int code, String fmt, Vargs vargs) throws longjmpException {
-//		00180         va_list         argptr;
-//		00181         static char             msg[MAXPRINTMSG];
-		
-//		00183 
+		// va_list argptr;
+		// static char msg[MAXPRINTMSG];
 
 		if (recursive) {
 			Sys.Error("recursive error after: " + msg);
 		}
 		recursive = true;
 
-		
 		msg = sprintf(fmt, vargs);
-
 
 		if (code == Defines.ERR_DISCONNECT) {
 			CL.Drop();
@@ -230,20 +222,13 @@ public final class Com {
 			SV.Shutdown("Server fatal crashed: %s" + msg + "\n", false);
 			CL.Shutdown();
 		}
-		//		00211 
-		//		00212         if (logfile)
-		//		00213         {
-		//		00214                 fclose (logfile);
-		//		00215                 logfile = NULL;
-		//		00216         }
-		//		00217 
+
 		Sys.Error(msg);
 	}
 
 	/**
 	 * Com_InitArgv checks the number of command line arguments
 	 * and copies all arguments with valid length into com_argv.
-	 * @param args
 	 */
 	static void InitArgv(String[] args) throws longjmpException {
 
@@ -323,27 +308,23 @@ public final class Com {
 
 		Sys.Quit();
 	}
-	
-	
-	public static void main(String args[])
-	{
-		String test="testrene = \"ein mal eins\"; a=3 ";
+
+	public static void main(String args[]) {
+		String test = "testrene = \"ein mal eins\"; a=3 ";
 		ParseHelp ph = new ParseHelp(test);
-		
+
 		while (!ph.isEof())
 			System.out.println("[" + Parse(ph) + "]");
-			
-		
+
 		System.out.println("OK!");
-		 
-		test=" testrene = \"ein mal eins\"; a=3";
-		
+
+		test = " testrene = \"ein mal eins\"; a=3";
+
 		ph = new ParseHelp(test);
-		
+
 		while (!ph.isEof())
 			System.out.println("[" + Parse(ph) + "]");
-			
-		
+
 		System.out.println("OK!");
 	}
 }

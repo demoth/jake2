@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.10 2003-12-27 23:13:30 rst Exp $
+// $Id: GameBase.java,v 1.11 2003-12-28 16:53:00 rst Exp $
 
 /** Father of all Objects. */
 
@@ -246,7 +246,9 @@ public class GameBase extends Globals {
 			if (eff.matches(from.o, s))
 				return from;
 		}
-		return null;
+		from.o = null;
+		from.i = 0;
+		return from;
 	}
 
 	/**

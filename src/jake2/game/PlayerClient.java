@@ -18,19 +18,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 07.11.2003 by RST.
-// $Id: EdictIterator.java,v 1.3 2003-12-28 16:53:00 rst Exp $
+// Created on 28.12.2003 by RST.
+// $Id: PlayerClient.java,v 1.1 2003-12-28 16:53:00 rst Exp $
 
 package jake2.game;
 
-/** Helps for iterating over the gedicts[] array. RST.*/
 
-class EdictIterator {
+// import jake2.*;
+// import jake2.client.*;
+// import jake2.game.*;
+// import jake2.qcommon.*;
+// import jake2.render.*;
+// import jake2.server.*;
+
+public class PlayerClient extends PlayerHud {
 	
-	EdictIterator(int i) {
-		this.i= i;
+	public static void respawn (edict_t ent)
+	{
 	}
-	
-	edict_t o;
-	int i;
 }
