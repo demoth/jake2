@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.7 2005-02-06 19:10:48 salomo Exp $
+// $Id: PlayerClient.java,v 1.8 2005-02-12 21:43:02 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -535,17 +535,8 @@ public class PlayerClient {
             target = spot.targetname;
             if (target == null)
                 target = "";
-            if (Lib.Q_stricmp(GameBase.game.spawnpoint, target) == 0) { // this
-                                                                        // is a
-                                                                        // coop
-                                                                        // spawn
-                                                                        // point
-                                                                        // for
-                                                                        // one
-                                                                        // of
-                                                                        // the
-                                                                        // clients
-                                                                        // here
+            if (Lib.Q_stricmp(GameBase.game.spawnpoint, target) == 0) { 
+                // this is a coop spawn point for one of the clients here
                 index--;
                 if (0 == index)
                     return spot; // this is it

@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.11 2005-02-06 19:27:24 salomo Exp $
+// $Id: SV_INIT.java,v 1.12 2005-02-12 21:43:48 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -355,10 +355,10 @@ public class SV_INIT {
                     | Defines.CVAR_LATCH);
         }
 
-        svs.spawncount = Lib.rand();
-        //svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
+        svs.spawncount = Lib.rand();        
         svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
         for (int n = 0; n < svs.clients.length; n++) {
+        	// fixed nasty multiplayer bug (rst).
             svs.clients[n] = new client_t();
             svs.clients[n].serverindex = n;
         }
