@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Main.java,v 1.4 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -502,11 +502,12 @@ public abstract class Main extends Base {
 			scale = (scale < 20) ? 1 :  1 + scale * 0.004f;
 
 			color = sourceColors.get(i);
+		
 			gl.glColor4ub(
-				(byte)((color >> 0) & 0xFF),
+				(byte)((color) & 0xFF),
 				(byte)((color >> 8) & 0xFF),
 				(byte)((color >> 16) & 0xFF),
-				(byte)((color >> 24) & 0xFF)
+				(byte)((color >>> 24))
 			);
 			// first vertex
 			gl.glTexCoord2f(0.0625f, 0.0625f);
@@ -718,26 +719,28 @@ public abstract class Main extends Base {
 	=============
 	*/
 	void R_SetupGL() {
-		float screenaspect;
-		int x, x2, y2, y, w, h;
 
 		//
 		// set up viewport
 		//
-		x = (int) Math.floor(r_newrefdef.x * vid.width / vid.width);
-		x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
-		y = (int) Math.floor(vid.height - r_newrefdef.y * vid.height / vid.height);
-		y2 = (int) Math.ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+		//int x = (int) Math.floor(r_newrefdef.x * vid.width / vid.width);
+		int x = r_newrefdef.x;
+		//int x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
+		int x2 = r_newrefdef.x + r_newrefdef.width;
+		//int y = (int) Math.floor(vid.height - r_newrefdef.y * vid.height / vid.height);
+		int y = vid.height - r_newrefdef.y;
+		//int y2 = (int) Math.ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+		int y2 = vid.height - (r_newrefdef.y + r_newrefdef.height);
 
-		w = x2 - x;
-		h = y - y2;
+		int w = x2 - x;
+		int h = y - y2;
 
 		gl.glViewport(x, y2, w, h);
 
 		//
 		// set up projection matrix
 		//
-		screenaspect = (float) r_newrefdef.width / r_newrefdef.height;
+		float screenaspect = (float) r_newrefdef.width / r_newrefdef.height;
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glLoadIdentity();
 		MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096);
@@ -1167,10 +1170,6 @@ public abstract class Main extends Base {
 		else {
 			Cvar.Set("scr_drawall", "0");
 		}
-
-		// #ifdef __linux__
-		Cvar.SetValue("gl_finish", 1);
-		// #endif
 
 		// MCD has buffering issues
 		if (gl_config.renderer == GL_RENDERER_MCD) {

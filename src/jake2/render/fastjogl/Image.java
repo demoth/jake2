@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.4 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Image.java,v 1.5 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1465,13 +1465,13 @@ public abstract class Image extends Main {
 	*/
 	image_t GL_FindImage(String name, int type) {
 		image_t image = null;
-		
-		// TODO loest das grossschreibungs problem
-		name = name.toLowerCase();
-		// bughack for bad strings (fuck \0)
-		int index = name.indexOf('\0');
-		if (index != -1)
-			name = name.substring(0, index);
+
+//		// TODO loest das grossschreibungs problem
+//		name = name.toLowerCase();
+//		// bughack for bad strings (fuck \0)
+//		int index = name.indexOf('\0');
+//		if (index != -1) 
+//			name = name.substring(0, index);
 
 		if (name == null || name.length() < 5)
 			return null; //	Com.Error (ERR_DROP, "GL_FindImage: NULL name");
@@ -1491,6 +1491,7 @@ public abstract class Image extends Main {
 		//
 		// load the pic from disk
 		//
+		image = null;
 		byte[] pic = null;
 		Dimension dim = new Dimension();
 
@@ -1517,8 +1518,6 @@ public abstract class Image extends Main {
 			image = GL_LoadPic(name, pic, dim.width, dim.height, type, 32);
 
 		}
-		else
-			return null;
 
 		return image;
 	}

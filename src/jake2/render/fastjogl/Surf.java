@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Surf.java,v 1.4 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -973,10 +973,10 @@ public abstract class Surf extends Draw {
 	*/
 	void R_MarkLeaves()
 	{
-		byte[] vis;
+		//byte[] vis;
 		//byte[] fatvis = new byte[Defines.MAX_MAP_LEAFS / 8];
 		
-		Arrays.fill(fatvis, (byte)0);
+		//Arrays.fill(fatvis, (byte)0);
 		
 		mnode_t node;
 		int i, c;
@@ -1005,7 +1005,7 @@ public abstract class Surf extends Draw {
 			return;
 		}
 
-		vis = Mod_ClusterPVS(r_viewcluster, r_worldmodel);
+		byte[] vis = Mod_ClusterPVS(r_viewcluster, r_worldmodel);
 		// may have to combine two clusters because of solid water boundaries
 		if (r_viewcluster2 != r_viewcluster)
 		{

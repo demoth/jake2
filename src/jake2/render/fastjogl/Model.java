@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Model.java,v 1.4 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1084,7 +1084,11 @@ public abstract class Model extends Surf {
 		for (i=0 ; i<pheader.num_skins ; i++)
 		{
 			buffer.get(nameBuf);
-			skinNames[i] = new String(nameBuf).trim();
+			skinNames[i] = new String(nameBuf);
+			int n = skinNames[i].indexOf('\0');
+			if (n > -1) {
+				skinNames[i] = skinNames[i].substring(0, n);
+			}	
 			mod.skins[i] = GL_FindImage(skinNames[i], it_skin);
 		}
 		

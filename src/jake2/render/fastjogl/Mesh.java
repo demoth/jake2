@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.4 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Mesh.java,v 1.5 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,10 +68,8 @@ public abstract class Mesh extends Light {
 
 	float[] shadedots = r_avertexnormal_dots[0];
 
-	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
+	void GL_LerpVerts(int nverts, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
 	{
-		int lerpIndex = 0;
-
 		int[] ovv;
 		int[] vv;
 		FloatBuffer lerp = vertexArrayBuf;
@@ -85,12 +83,11 @@ public abstract class Mesh extends Light {
 			{
 				normal = r_avertexnormals[verts[i].lightnormalindex];
 				ovv = ov[i].v;
-				vv = v[i].v;
+				vv = verts[i].v;
 				
-				lerp.put(j, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
-				lerp.put(j + 1, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
-				lerp.put(j + 2, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
-				j+=3;
+				lerp.put(j++, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
+				lerp.put(j++, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
+				lerp.put(j++, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
 			}
 		}
 		else
@@ -99,12 +96,11 @@ public abstract class Mesh extends Light {
 			for (int i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
 			{
 				ovv = ov[i].v;
-				vv = v[i].v;
+				vv = verts[i].v;
 				
-				lerp.put(j, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0]);
-				lerp.put(j + 1, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1]);
-				lerp.put(j + 2, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2]);
-				j+=3;
+				lerp.put(j++, move[0] + ovv[0]*backv[0] + vv[0]*frontv[0]);
+				lerp.put(j++, move[1] + ovv[1]*backv[1] + vv[1]*frontv[1]);
+				lerp.put(j++, move[2] + ovv[2]*backv[2] + vv[2]*frontv[2]);
 			}
 		}
 	}
@@ -129,32 +125,20 @@ public abstract class Mesh extends Light {
 
 	void GL_DrawAliasFrameLerp(qfiles.dmdl_t paliashdr, float backlerp)
 	{
-		float 	l;
-		qfiles.daliasframe_t	frame, oldframe;
-		qfiles.dtrivertx_t[]	v, ov, verts;
-
-		int[] order;
-		int orderIndex = 0;
 		int count;
-
-		float	frontlerp;
 		float	alpha;
 
-		float[] move = {0, 0, 0}; // vec3_t
-		
+		float[] move = {0, 0, 0}; // vec3_t		
 		float[] frontv = {0, 0, 0}; // vec3_t
 		float[] backv = {0, 0, 0}; // vec3_t
 
-		int		i;
-		int		index_xyz;
+		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
 
-		frame = paliashdr.aliasFrames[currententity.frame];
+		qfiles.dtrivertx_t[] verts = frame.verts;
 
-		verts = v = frame.verts;
+		qfiles.daliasframe_t oldframe = paliashdr.aliasFrames[currententity.oldframe];
 
-		oldframe = paliashdr.aliasFrames[currententity.oldframe];
-
-		ov = oldframe.verts;
+		qfiles.dtrivertx_t[] ov = oldframe.verts;
 
 		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
 			alpha = currententity.alpha;
@@ -165,7 +149,7 @@ public abstract class Mesh extends Light {
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
 			gl.glDisable( GL.GL_TEXTURE_2D );
 
-		frontlerp = 1.0f - backlerp;
+		float frontlerp = 1.0f - backlerp;
 
 		// move should be the delta back to the previous frame * backlerp
 		Math3D.VectorSubtract (currententity.oldorigin, currententity.origin, frontv);
@@ -177,7 +161,7 @@ public abstract class Mesh extends Light {
 
 		Math3D.VectorAdd (move, oldframe.translate, move);
 
-		for (i=0 ; i<3 ; i++)
+		for (int i=0 ; i<3 ; i++)
 		{
 			move[i] = backlerp*move[i] + frontlerp*frame.translate[i];
 			frontv[i] = frontlerp*frame.scale[i];
@@ -186,7 +170,7 @@ public abstract class Mesh extends Light {
 		
 		// ab hier wird optimiert
 
-		GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, move, frontv, backv );
+		GL_LerpVerts( paliashdr.num_xyz, ov, verts, move, frontv, backv );
 		
 		//gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
 		gl.glVertexPointer( 3, GL.GL_FLOAT, 0, vertexArrayBuf );
@@ -206,7 +190,8 @@ public abstract class Mesh extends Light {
 			//
 			FloatBuffer color = colorArrayBuf;
 			int j = 0;
-			for ( i = 0; i < paliashdr.num_xyz; i++ )
+			float l;
+			for (int i = 0; i < paliashdr.num_xyz; i++ )
 			{
 				l = shadedots[verts[i].lightnormalindex];
 				color.put(j++,  l * shadelight[0]);
@@ -241,20 +226,21 @@ public abstract class Mesh extends Light {
 				
 			srcIndexBuf = paliashdr.indexElements[j];
 			
-			size = (count < 0) ? -count + pos : count + pos;
+			int mode = GL.GL_TRIANGLE_STRIP;
+			if (count < 0) {
+				mode = GL.GL_TRIANGLE_FAN;
+				count = -count;
+			}
+			size = count + pos;
+			srcIndex = 2 * pos;
 			for (int k = pos; k < size; k++) {
-				srcIndex = 2 * k; 
 				dstIndex = 2 * srcIndexBuf.get(k-pos);
-				dstTextureCoords.put(dstIndex, srcTextureCoords.get(srcIndex));
-				dstTextureCoords.put(dstIndex + 1, srcTextureCoords.get(srcIndex + 1));
+				dstTextureCoords.put(dstIndex++, srcTextureCoords.get(srcIndex++));
+				dstTextureCoords.put(dstIndex, srcTextureCoords.get(srcIndex++));
 			}
 				
-			if (count < 0) {
-				count = -count;
-				gl.glDrawElements(GL.GL_TRIANGLE_FAN, count, GL.GL_UNSIGNED_INT, srcIndexBuf);
-			} else {
-				gl.glDrawElements(GL.GL_TRIANGLE_STRIP, count, GL.GL_UNSIGNED_INT, srcIndexBuf);
-			}
+			gl.glDrawElements(mode, count, GL.GL_UNSIGNED_INT, srcIndexBuf);
+
 			pos += count;
 		}
 
@@ -336,21 +322,18 @@ public abstract class Mesh extends Light {
 	** R_CullAliasModel
 	*/
 //	TODO sync with jogl renderer. hoz
-	boolean R_CullAliasModel(entity_t e)
-	{
-		float[] mins = {0, 0, 0};
-		float[] maxs = {0, 0, 0};
-		
-		qfiles.dmdl_t paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
+	boolean R_CullAliasModel(entity_t e) {
+		float[] mins = { 0, 0, 0 };
+		float[] maxs = { 0, 0, 0 };
 
-		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
-		{
-			VID.Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name +": no such frame " + e.frame + '\n');
+		qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
+
+		if ((e.frame >= paliashdr.num_frames) || (e.frame < 0)) {
+			VID.Printf(Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such frame " + e.frame + '\n');
 			e.frame = 0;
 		}
-		if ( ( e.oldframe >= paliashdr.num_frames ) || ( e.oldframe < 0 ) )
-		{
-			VID.Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such oldframe " + e.oldframe + '\n');
+		if ((e.oldframe >= paliashdr.num_frames) || (e.oldframe < 0)) {
+			VID.Printf(Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such oldframe " + e.oldframe + '\n');
 			e.oldframe = 0;
 		}
 
@@ -360,106 +343,88 @@ public abstract class Mesh extends Light {
 		/*
 		** compute axially aligned mins and maxs
 		*/
-		if ( pframe == poldframe )
-		{
-			for ( int i = 0; i < 3; i++ )
-			{
+		if (pframe == poldframe) {
+			for (int i = 0; i < 3; i++) {
 				mins[i] = pframe.translate[i];
-				maxs[i] = mins[i] + pframe.scale[i]*255;
+				maxs[i] = mins[i] + pframe.scale[i] * 255;
 			}
-		}
-		else
-		{
-			//float[] thismins = {0, 0, 0};
-			//float[] oldmins = {0, 0, 0};
-			float[] thismaxs = {0, 0, 0};
-			float[] oldmaxs = {0, 0, 0};
-			for ( int i = 0; i < 3; i++ )
-			{
-				//thismins[i] = pframe.translate[i];
-				thismaxs[i] = pframe.translate[i] + pframe.scale[i]*255;
+		} else {
+			float thismaxs, oldmaxs;
+			for (int i = 0; i < 3; i++) {
+				thismaxs = pframe.translate[i] + pframe.scale[i] * 255;
 
-				//oldmins[i]  = poldframe.translate[i];
-				oldmaxs[i]  = poldframe.translate[i] + poldframe.scale[i]*255;
+				oldmaxs = poldframe.translate[i] + poldframe.scale[i] * 255;
 
-				if ( pframe.translate[i] < poldframe.translate[i] )
+				if (pframe.translate[i] < poldframe.translate[i])
 					mins[i] = pframe.translate[i];
 				else
 					mins[i] = poldframe.translate[i];
 
-				if ( thismaxs[i] > oldmaxs[i] )
-					maxs[i] = thismaxs[i];
+				if (thismaxs > oldmaxs)
+					maxs[i] = thismaxs;
 				else
-					maxs[i] = oldmaxs[i];
+					maxs[i] = oldmaxs;
 			}
 		}
 
 		/*
 		** compute a full bounding box
 		*/
-		float[] tmp = {0, 0, 0};
-		for ( int i = 0; i < 8; i++ )
-		{
-
-			if ( (i & 1) != 0 )
+		float[] tmp;
+		for (int i = 0; i < 8; i++) {
+			tmp = bbox[i];
+			if ((i & 1) != 0)
 				tmp[0] = mins[0];
 			else
 				tmp[0] = maxs[0];
 
-			if ( (i & 2) != 0)
+			if ((i & 2) != 0)
 				tmp[1] = mins[1];
 			else
 				tmp[1] = maxs[1];
 
-			if ( (i & 4) != 0)
+			if ((i & 4) != 0)
 				tmp[2] = mins[2];
 			else
 				tmp[2] = maxs[2];
-
-			Math3D.VectorCopy( tmp, bbox[i] );
 		}
 
 		/*
 		** rotate the bounding box
 		*/
-		//float[] angles = {0, 0, 0};		
-		Math3D.VectorCopy( e.angles, tmp );
+		tmp = mins;
+		Math3D.VectorCopy(e.angles, tmp);
 		tmp[YAW] = -tmp[YAW];
-		Math3D.AngleVectors( tmp, vectors[0], vectors[1], vectors[2] );
+		Math3D.AngleVectors(tmp, vectors[0], vectors[1], vectors[2]);
 
-		for ( int i = 0; i < 8; i++ )
-		{
-			Math3D.VectorCopy( bbox[i], tmp );
+		for (int i = 0; i < 8; i++) {
+			Math3D.VectorCopy(bbox[i], tmp);
 
-			bbox[i][0] = Math3D.DotProduct( vectors[0], tmp );
-			bbox[i][1] = -Math3D.DotProduct( vectors[1], tmp );
-			bbox[i][2] = Math3D.DotProduct( vectors[2], tmp );
+			bbox[i][0] = Math3D.DotProduct(vectors[0], tmp);
+			bbox[i][1] = -Math3D.DotProduct(vectors[1], tmp);
+			bbox[i][2] = Math3D.DotProduct(vectors[2], tmp);
 
-			Math3D.VectorAdd( e.origin, bbox[i], bbox[i] );
+			Math3D.VectorAdd(e.origin, bbox[i], bbox[i]);
 		}
 
 		int f, mask;
 		int aggregatemask = ~0; // 0xFFFFFFFF
-		
-		for ( int p = 0; p < 8; p++ )
-		{
+
+		for (int p = 0; p < 8; p++) {
 			mask = 0;
 
-			for ( f = 0; f < 4; f++ )
-			{
-				float dp = Math3D.DotProduct( frustum[f].normal, bbox[p] );
+			for (f = 0; f < 4; f++) {
+				float dp = Math3D.DotProduct(frustum[f].normal, bbox[p]);
 
-				if ( ( dp - frustum[f].dist ) < 0 )
-				{
-					mask |= ( 1 << f );
+				if ((dp - frustum[f].dist) < 0) {
+					mask |= (1 << f);
 				}
 			}
 
 			aggregatemask &= mask;
 		}
 
-		if ( aggregatemask != 0 )
-		{
+		if (aggregatemask != 0) {
 			return true;
 		}
 

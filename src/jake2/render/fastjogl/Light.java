@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.5 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Light.java,v 1.6 2004-07-19 19:39:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -570,7 +570,7 @@ public abstract class Light extends Warp {
 	
 	//			memset( s_blocklights, 0, sizeof( s_blocklights[0] ) * size * 3 );
 	
-				Arrays.fill(s_blocklights, 0, size * 3, 0.0f);
+				//Arrays.fill(s_blocklights, 0, size * 3, 0.0f);
 	
 				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
 					 maps++)
