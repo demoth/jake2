@@ -25,7 +25,7 @@
 	<!-- initialize directories -->
 	<target name="init">
 		<mkdir dir="${build}"/>
-		<mkdir dir="${dist}"/>
+		<mkdir dir="${dist}/lib"/>
 	</target>
 
 	<!-- compile -->
@@ -90,21 +90,33 @@
 	<!-- binary distribution -->
 	<target name="bindist" depends="dist">
 		<tar destfile="jake2.tar.gz" compression="gzip">
-			<tarfileset dir=".">
-				<include name="dist/**"/>
+			<tarfileset dir="${dist}" prefix="Jake2">
+				<include name="**"/>
 			</tarfileset>
 		</tar>
+		<zip destfile="jake2.zip">
+			<zipfileset dir="${dist}" prefix="Jake2">
+				<include name="**"/>
+			</zipfileset>
+		</zip>
 	</target>
 	
 	<!-- source distribution -->
 	<target name="srcdist" >
 		<tar destfile="jake2-src.tar.gz" compression="gzip">
-			<tarfileset dir="." prefix="jake2">
+			<tarfileset dir="." prefix="Jake2">
 				<include name="src/**"/>
 				<include name="lib/**"/>
 				<include name="build.xml"/>
 			</tarfileset>
 		</tar>
+		<zip destfile="jake2-src.zip">
+			<zipfileset dir="." prefix="Jake2">
+				<include name="src/**"/>
+				<include name="lib/**"/>
+				<include name="build.xml"/>
+			</zipfileset>
+		</zip>
 	</target>
 	
 	<!-- clean -->
@@ -116,7 +128,11 @@
 	<!-- distclean -->
 	<target name="distclean" depends="clean">
 		<delete dir="${dist}"/>
-		<delete file="jake2.tar.gz"/>
-		<delete file="jake2-src.tar.gz"/>
+		<delete>
+			<fileset dir=".">
+				<include name="*.tar.gz"/>
+				<include name="*.zip"/>
+			</fileset>
+		</delete>
 	</target>
 </project>
