@@ -19,7 +19,7 @@
  */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.6 2005-02-06 18:47:00 salomo Exp $
+// $Id: MSG.java,v 1.7 2005-02-19 21:20:47 salomo Exp $
 package jake2.qcommon;
 
 import jake2.Globals;
@@ -87,7 +87,7 @@ public class MSG extends Globals {
 
         SZ.Write(sb, x.getBytes());
         WriteByte(sb, 0);
-        Com.dprintln("MSG.WriteString:" + s.replace('\0', '@'));
+        //Com.dprintln("MSG.WriteString:" + s.replace('\0', '@'));
     }
 
     //ok.
@@ -476,7 +476,7 @@ public class MSG extends Globals {
         } while (l < 2047);
         
         String ret = new String(readbuf, 0, l);
-        Com.dprintln("MSG.ReadString:[" + ret + "]");
+        // Com.dprintln("MSG.ReadString:[" + ret + "]");
         return ret;
     }
 

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.20 2005-02-06 19:22:13 salomo Exp $
+ * $Id: CL_parse.java,v 1.21 2005-02-19 21:16:03 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -531,7 +531,7 @@ public class CL_parse {
         olds = Globals.cl.configstrings[i];
         Globals.cl.configstrings[i] = s;
         
-        Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
+        //Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
 
         // do something apropriate
 
