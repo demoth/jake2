@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
+ * $Id: Jake2.java,v 1.4 2004-09-19 19:53:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2;
 
 import jake2.client.SCR;
+import jake2.qcommon.*;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.Qcommon;
 import jake2.sys.Sys;
@@ -35,7 +36,8 @@ import jake2.sys.Sys;
  */
 public final class Jake2 {
 
-
+	public static Q2DataDialog Q2Dialog = new Q2DataDialog();
+	
 	/**
 	 * main is used to start the game. Quake2 for Java supports the 
 	 * following command line arguments:
@@ -43,6 +45,8 @@ public final class Jake2 {
 	 */
 	public static void main(String[] args) {
 
+		Q2Dialog.setVisible(true);
+		
 		// in C the first arg is the filename
 		int argc = (args == null) ? 1 : args.length + 1;
 		String[] c_args = new String[argc];

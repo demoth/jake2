@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.7 2004-09-18 12:36:53 hzi Exp $
+ * $Id: Qcommon.java,v 1.8 2004-09-19 19:53:51 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.Globals;
+import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.server.SV_MAIN;
@@ -72,8 +73,10 @@ public final class Qcommon extends Globals {
 			Cbuf.AddEarlyCommands(false);
 			Cbuf.Execute();
 
+			Jake2.Q2Dialog.setStatus("initializing filesystem...");
 			FS.InitFilesystem();
 
+			Jake2.Q2Dialog.setStatus("loading config...");
 			Cbuf.AddText("exec default.cfg\n");
 			Cbuf.Execute();
 			Cvar.Set("vid_fullscreen", "0");
@@ -108,10 +111,13 @@ public final class Qcommon extends Globals {
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
+			Jake2.Q2Dialog.setStatus("initializing network subsystem...");
 			NET.NET_Init();	//ok
 			Netchan.Netchan_Init();	//ok
 
+			Jake2.Q2Dialog.setStatus("initializing server subsystem...");
 			SV_MAIN.SV_Init();	//ok
+			Jake2.Q2Dialog.setStatus("initializing client subsystem...");
 			CL.Init();
 
 			// add + commands from command line
@@ -126,6 +132,7 @@ public final class Qcommon extends Globals {
 			}
 
 			Com.Printf("====== Quake2 Initialized ======\n\n");
+			Jake2.Q2Dialog.dispose();
 
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");

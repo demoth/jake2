@@ -6,13 +6,14 @@
 
 package jake2.qcommon;
 
-import jake2.Globals;
-
+import java.awt.*;
 import java.awt.DisplayMode;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 
+import javax.swing.*;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 
 /**
  *
@@ -21,13 +22,14 @@ import javax.swing.JFileChooser;
 public class Q2DataDialog extends javax.swing.JDialog {
     
     /** Creates new form Q2DataDialog */
-    public Q2DataDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public Q2DataDialog() {
+        super();
         initComponents();
-        DisplayMode mode = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
-        int x = (mode.getWidth() - getWidth()) / 2;
-        int y = (mode.getHeight() - getHeight()) / 2;
-        setLocation(x, y);
+       
+		DisplayMode mode = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode();
+		int x = (mode.getWidth() - getWidth()) / 2;
+		int y = (mode.getHeight() - getHeight()) / 2;
+		setLocation(x, y);
     }
     
     /** This method is called from within the constructor to
@@ -38,8 +40,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
+        choosePanel = new javax.swing.JPanel();
+        statusPanel = new JPanel();
+        status = new JLabel("initializing Jake2...");
         jTextField1 = new javax.swing.JTextField();
         changeButton = new javax.swing.JButton();
         installButton = new javax.swing.JButton();
@@ -47,8 +50,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
         okButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle("Looking for Quake2 level data...");
-        setModal(true);
+        setTitle("Jake2 - Bytonic Software");
+
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -56,18 +59,11 @@ public class Q2DataDialog extends javax.swing.JDialog {
             }
         });
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setDoubleBuffered(false);
-        jPanel1.setMaximumSize(new java.awt.Dimension(400, 200));
-        jPanel1.setMinimumSize(new java.awt.Dimension(400, 200));
-        jPanel1.setPreferredSize(new java.awt.Dimension(400, 200));
-        getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
+        choosePanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jPanel2.setMaximumSize(new java.awt.Dimension(400, 100));
-        jPanel2.setMinimumSize(new java.awt.Dimension(400, 100));
-        jPanel2.setPreferredSize(new java.awt.Dimension(400, 100));
+        choosePanel.setMaximumSize(new java.awt.Dimension(400, 100));
+        choosePanel.setMinimumSize(new java.awt.Dimension(400, 100));
+        choosePanel.setPreferredSize(new java.awt.Dimension(400, 100));
         jTextField1.setPreferredSize(null);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -76,7 +72,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         gridBagConstraints.weightx = 1.0;
-        jPanel2.add(jTextField1, gridBagConstraints);
+        choosePanel.add(jTextField1, gridBagConstraints);
 
         changeButton.setText("change");
         changeButton.addActionListener(new java.awt.event.ActionListener() {
@@ -90,7 +86,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel2.add(changeButton, gridBagConstraints);
+        choosePanel.add(changeButton, gridBagConstraints);
 
         installButton.setText("Install");
         installButton.addActionListener(new java.awt.event.ActionListener() {
@@ -104,7 +100,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(installButton, gridBagConstraints);
+        choosePanel.add(installButton, gridBagConstraints);
 
         exitButton.setText("Exit");
         exitButton.addActionListener(new java.awt.event.ActionListener() {
@@ -117,7 +113,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
-        jPanel2.add(exitButton, gridBagConstraints);
+        choosePanel.add(exitButton, gridBagConstraints);
 
         okButton.setText("OK");
         okButton.addActionListener(new java.awt.event.ActionListener() {
@@ -131,10 +127,27 @@ public class Q2DataDialog extends javax.swing.JDialog {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        jPanel2.add(okButton, gridBagConstraints);
+        choosePanel.add(okButton, gridBagConstraints);
 
-        getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
+        //getContentPane().add(choosePanel, java.awt.BorderLayout.SOUTH);
 
+		Jake2Canvas c = new Jake2Canvas();
+		getContentPane().add(c, BorderLayout.CENTER);
+
+		statusPanel.setLayout(new java.awt.GridBagLayout());
+		statusPanel.setMaximumSize(new java.awt.Dimension(400, 100));
+		statusPanel.setMinimumSize(new java.awt.Dimension(400, 100));
+		statusPanel.setPreferredSize(new java.awt.Dimension(400, 100));
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 0;
+		gridBagConstraints.gridwidth = 1;
+		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
+		gridBagConstraints.weightx = 1.0;
+		statusPanel.add(status, gridBagConstraints);
+		getContentPane().add(statusPanel, java.awt.BorderLayout.SOUTH);
+						
         pack();
     }//GEN-END:initComponents
 
@@ -145,7 +158,6 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
     	System.exit(1);
     	dispose();
-		notifyAll();
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
@@ -153,10 +165,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
     	Cvar.Set("cddir", dir);
     	FS.setCDDir();
     	
-    	synchronized (this) {
-    		notify();
+    	synchronized(this) {
+    		notifyAll();
     	}
-		dispose();
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void changeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_changeButtonActionPerformed
@@ -178,25 +189,67 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
     	System.exit(1);
     	dispose();
-		notifyAll();
     }//GEN-LAST:event_formWindowClosing
     
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new Q2DataDialog(new javax.swing.JFrame(), true).show();
+        new Q2DataDialog().show();
+        System.out.println("Hi");
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton changeButton;
     private javax.swing.JButton exitButton;
     private javax.swing.JButton installButton;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private Jake2Canvas canvas;
+    private javax.swing.JPanel choosePanel;
+    private JPanel statusPanel;
+    private JLabel status;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables
     
 	private String dir;
+	
+	void showChooseDialog() {
+		getContentPane().remove(statusPanel);
+		getContentPane().add(choosePanel, BorderLayout.SOUTH);
+		validate();
+		repaint();
+	}
+	
+	void showStatus() {
+		getContentPane().remove(choosePanel);
+		getContentPane().add(statusPanel, BorderLayout.SOUTH);
+		validate();
+		repaint();		
+	}
+	
+	void setStatus(String text) {
+		status.setText(text);
+	}
+	
+	static class Jake2Canvas extends Canvas {
+		private Image image;
+		Jake2Canvas() {
+			setSize(400, 200);
+			image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/splash.png"));
+			while (!Toolkit.getDefaultToolkit().prepareImage(image, -1, -1, null)) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {}
+			} 
+		}
+		
+		
+		/* (non-Javadoc)
+		 * @see java.awt.Component#paint(java.awt.Graphics)
+		 */
+		public void paint(Graphics g) {
+			g.drawImage(image, 0, 0, null);
+		}
+
+	}
 }
