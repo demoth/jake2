@@ -195,7 +195,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new Q2DataDialog().show();
+        new Q2DataDialog().setVisible(true);
         System.out.println("Hi");
     }
     
