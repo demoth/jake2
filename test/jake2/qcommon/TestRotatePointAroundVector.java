@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 24.01.2004 by RST.
-// $Id: TestRotatePointAroundVector.java,v 1.2 2004-01-24 23:17:48 cwei Exp $
+// $Id: TestRotatePointAroundVector.java,v 1.3 2004-01-24 23:21:11 rst Exp $
 
 package jake2.qcommon;
 
@@ -37,6 +37,39 @@ import java.util.StringTokenizer;
 
 public class TestRotatePointAroundVector
 {
+
+	static String testperp[] =
+		{
+			" 0.009647  0.005551 -0.296153 == -0.006815  0.977844  0.209225",
+			"-0.758731  0.039112  0.214241 ==  0.076493  0.996836 -0.021599",
+			" 0.113768 -0.311733  0.603937 ==  0.939749  0.156803 -0.303783",
+			"-0.466186  0.341352  0.104305 ==  0.393279 -0.287967  0.873159",
+			" 0.775436  0.779995 -0.863782 ==  0.962981 -0.180665  0.200072",
+			" 0.814734  0.288255 -0.669693 == -0.170216  0.975423  0.139913",
+			"-0.667435 -0.429661  0.683953 == -0.260653  0.927747  0.267104",
+			"-0.927300 -0.585577 -0.957522 == -0.128592  0.982768 -0.132783",
+			" 0.242942  0.040065  0.092075 == -0.894528  0.291345 -0.339024",
+			" 0.646724 -0.933291 -0.948063 ==  0.981161  0.135531  0.137676",
+			" 0.232663 -0.959211  0.253123 ==  0.975522  0.212626 -0.056109",
+			"-0.250403  0.458914 -0.208372 == -0.424561  0.778093  0.462945",
+			" 0.194574 -0.775337 -0.556817 ==  0.977607  0.170927  0.122753",
+			" 0.741328  0.476465 -0.972738 == -0.126045  0.978140  0.165391",
+			"-0.163294 -0.275933 -0.592179 ==  0.858983 -0.216251 -0.464095",
+			"-0.847422 -0.768890 -0.681753 == -0.206793 -0.187629  0.960225",
+			"-0.919289  0.581288  0.198026 ==  0.123803 -0.078283  0.989214",
+			"-0.541896 -0.634396  0.228633 ==  0.228399  0.267386  0.936129",
+			" 0.210305  0.928218 -0.243859 ==  0.975105 -0.214467  0.056344",
+			"-0.399813 -0.891607 -0.711955 ==  0.974389 -0.175720 -0.140314",
+			" 0.769699  0.916032  0.251807 == -0.088408 -0.105215  0.990512",
+			" 0.262079 -0.921695 -0.297379 ==  0.965746  0.246954  0.079678",
+			"-0.787958 -0.605119 -0.832105 == -0.186950  0.962327 -0.197425",
+			" 0.891434  0.839237  0.815951 == -0.175581 -0.165300  0.970488",
+			"-0.702145 -0.656422 -0.863553 == -0.186798  0.955158 -0.229739",
+			" 0.473749 -0.795161 -0.679987 ==  0.950461  0.236242  0.202023",
+			"-0.756531 -0.950714  0.524613 ==  0.138574  0.174143  0.974921",
+			"-0.944200  0.293208 -0.783887 ==  0.111872  0.989373  0.092878",
+			"-0.380537 -0.962794  0.770586 ==  0.984444 -0.137174  0.109789",
+			" 0.019079 -0.668430  0.525818 ==  0.999520  0.024358 -0.019161" };
 
 	static String tests[] =
 		{
@@ -71,56 +104,82 @@ public class TestRotatePointAroundVector
 			" 0.666477  0.850753  0.746543 #  0.662075  0.958868  0.487622 #  325.2119 ==  1.531004  1.350724  1.039028 ",
 			" 0.967191  0.333761 -0.005483 # -0.672064  0.660024  0.777897 #   27.7181 == -0.548955  0.246637  1.090340 " };
 
-	public static void test(int i, String line)
+	public static void testRotate(int i, String line)
 	{
 		StringTokenizer tk = new StringTokenizer(line);
-		
-		float dir[] = {0,0,0};
-		
-		float point[] = {0,0,0};
-		
+
+		float dir[] = { 0, 0, 0 };
+		float point[] = { 0, 0, 0 };
+		float dst[] = { 0, 0, 0 };
+		float newdst[] = { 0, 0, 0 };
 		float degrees = 0;
-		
-		float dst[] = {0,0,0};
-		
-		float newdst[] = {0,0,0};
-		
+
 		dir[0] = Float.parseFloat(tk.nextToken());
 		dir[1] = Float.parseFloat(tk.nextToken());
 		dir[2] = Float.parseFloat(tk.nextToken());
-		
+
 		tk.nextToken();
-		
+
 		point[0] = Float.parseFloat(tk.nextToken());
 		point[1] = Float.parseFloat(tk.nextToken());
 		point[2] = Float.parseFloat(tk.nextToken());
-		
+
 		tk.nextToken();
-		
+
 		degrees = Float.parseFloat(tk.nextToken());
-		
+
 		tk.nextToken();
-	
+
 		dst[0] = Float.parseFloat(tk.nextToken());
 		dst[1] = Float.parseFloat(tk.nextToken());
 		dst[2] = Float.parseFloat(tk.nextToken());
-		
+
 		Math3D.RotatePointAroundVector(newdst, dir, point, degrees);
-		 
-		System.out.println("" + i + ":" + Lib.vtos(dst) + ":" + Lib.vtos(newdst));
-		
+
+
+		System.out.println("" + i + ":" + Lib.vtofs(dst)  + "  :  " + Lib.vtofs(newdst));
 		
 	}
+	
+	public static void testPerpend(int i, String line)
+	{
+		StringTokenizer tk = new StringTokenizer(line);
 
+		float dir[] = { 0, 0, 0 };
+
+		float dst[] = { 0, 0, 0 };
+
+		float newdst[] = { 0, 0, 0 };
+
+		dir[0] = Float.parseFloat(tk.nextToken());
+		dir[1] = Float.parseFloat(tk.nextToken());
+		dir[2] = Float.parseFloat(tk.nextToken());
+
+		tk.nextToken();
+
+		dst[0] = Float.parseFloat(tk.nextToken());
+		dst[1] = Float.parseFloat(tk.nextToken());
+		dst[2] = Float.parseFloat(tk.nextToken());
+
+		Math3D.PerpendicularVector(newdst, dir);
+
+		System.out.println("" + i + ":" + Lib.vtofs(dst) + "  :  " + Lib.vtofs(newdst));
+
+	}
 
 	public static void main(String[] args)
 	{
-		System.out.println("Hello, World!");
 		
-		for (int n=0; n < tests.length; n++)
-			test(n, tests[n]);
-			
+		System.out.println("DEG2RAD:" + Math3D.DEG2RAD(205));
 		
+		System.out.println("testperpendicular...");
+		for (int n = 0; n < testperp.length; n++)
+			testPerpend(n, testperp[n]);			
+		
+
+		System.out.println("testrotate...");
+		for (int n = 0; n < tests.length; n++)
+			testRotate(n, tests[n]);
 	}
 
 }
