@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.11 2004-03-29 12:38:18 cwei Exp $
+ * $Id: Mesh.java,v 1.12 2004-05-13 02:39:31 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -104,36 +104,36 @@ public abstract class Mesh extends Light {
 	{
 		int i;
 		int lerpIndex = 0;
-		lerp.position(0);
 
 		//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
 		{
 			float[] normal;
+			int j = 0;
 			for (i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
 			{
 				normal = r_avertexnormals[verts[i].lightnormalindex];
 
-				lerp.put(move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
-				lerp.put(move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
-				lerp.put(move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
-				lerp.get();
+				lerp.put(j++, move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
+				lerp.put(j++, move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
+				lerp.put(j++, move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
 			}
 		}
 		else
 		{
+			int j = 0;
 			for (i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
 			{
-				lerp.put(move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0]);
-				lerp.put(move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1]);
-				lerp.put(move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2]);
-				lerp.get();
+				
+				lerp.put(j++, move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0]);
+				lerp.put(j++, move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1]);
+				lerp.put(j++, move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2]);
 			}
 		}
 	}
 
 	FloatBuffer colorArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 4);
-	FloatBuffer vertexArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 4);
+	FloatBuffer vertexArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 3);
 	boolean isFilled = false;
 	float[] tmpVec = {0, 0, 0};
 			
@@ -218,7 +218,7 @@ public abstract class Mesh extends Light {
 			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
 
 			gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
-			gl.glVertexPointer( 3, GL.GL_FLOAT, 16, vertexArrayBuf );	// padded for SIMD
+			gl.glVertexPointer( 3, GL.GL_FLOAT, 12, vertexArrayBuf );
 
 			// PMM - added double damage shell
 			if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
@@ -233,11 +233,15 @@ public abstract class Mesh extends Light {
 				//
 				// pre light everything
 				//
-				colorArrayBuf.position(0);
+				FloatBuffer color = colorArrayBuf;
+				int j = 0;
 				for ( i = 0; i < paliashdr.num_xyz; i++ )
 				{
 					l = shadedots[verts[i].lightnormalindex];
-					colorArrayBuf.put(l * shadelight[0]).put(l * shadelight[1]).put(l * shadelight[2]).put(alpha);
+					color.put(j++, l * shadelight[0]);
+					color.put(j++, l * shadelight[1]);
+					color.put(j++, l * shadelight[2]);
+					color.put(j++, alpha);
 				}
 			}
 
