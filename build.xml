@@ -230,6 +230,7 @@
 		<copy todir="webstart/lib">
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar"/>
+				<exclude name="jake2.jar"/>
 			</fileset>
 			<fileset dir=".">
 				<include name="patch.jar"/>
