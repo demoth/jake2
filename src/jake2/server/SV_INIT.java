@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.13 2004-02-05 21:32:41 rst Exp $
+// $Id: SV_INIT.java,v 1.14 2004-02-07 13:02:44 rst Exp $
 
 package jake2.server;
 
@@ -64,7 +64,7 @@ public class SV_INIT extends Globals  {
 		//strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
 		sv.configstrings[start + i] = name;
 
-		if (sv.state != Defines.ss_loading) { // send the update to everyone
+		if (sv.state != ss_loading) { // send the update to everyone
 			SZ.Clear(sv.multicast);
 			MSG.WriteChar(sv.multicast, svc_configstring);
 			MSG.WriteShort(sv.multicast, start + i);

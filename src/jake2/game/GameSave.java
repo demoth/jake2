@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.11 2004-02-05 21:32:40 rst Exp $
+// $Id: GameSave.java,v 1.12 2004-02-07 13:02:44 rst Exp $
 
 package jake2.game;
 
@@ -100,7 +100,7 @@ public class GameSave extends GameFunc {
 		maxspectators = gi.cvar("maxspectators", "4", CVAR_SERVERINFO);
 		deathmatch = gi.cvar("deathmatch", "0", CVAR_LATCH);
 		coop = gi.cvar("coop", "0", CVAR_LATCH);
-		skill = gi.cvar("skill", "1", CVAR_LATCH);
+		skill = gi.cvar("skill", "2", CVAR_LATCH);
 		maxentities = gi.cvar("maxentities", "1024", CVAR_LATCH);
 
 		// change anytime vars

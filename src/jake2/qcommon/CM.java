@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.19 2004-02-06 21:03:30 rst Exp $
+// $Id: CM.java,v 1.20 2004-02-07 13:02:44 rst Exp $
 
 package jake2.qcommon;
 
@@ -323,13 +323,12 @@ public class CM extends Game {
 		if (count > MAX_MAP_MODELS)
 			Com.Error(ERR_DROP, "Map has too many models");
 
+		Com.DPrintf("   numcmodels=" + count + "\n");
 		numcmodels = count;
 
 		for (i = 0; i < count; i++) {
 			in = new qfiles.dmodel_t(ByteBuffer.wrap(cmod_base, i * qfiles.dmodel_t.SIZE + l.fileofs, qfiles.dmodel_t.SIZE));
 			out = map_cmodels[i];
-			if (out == null)
-				out = map_cmodels[i] = new cmodel_t();
 
 			for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
 				out.mins[j] = in.mins[j] - 1;
@@ -362,6 +361,7 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "Map has too many surfaces");
 
 		numtexinfo = count;
+		Com.DPrintf("   numtexinfo=" + count + "\n");
 
 		for (i = 0; i < count; i++) {
 			out = map_surfaces[i] = new mapsurface_t();
@@ -406,12 +406,11 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "Map has too many nodes");
 
 		numnodes = count;
+		Com.DPrintf("   numnodes=" + count + "\n");
 
 		for (i = 0; i < count; i++) {
 			in = new qfiles.dnode_t(ByteBuffer.wrap(cmod_base, qfiles.dnode_t.SIZE * i + l.fileofs, qfiles.dnode_t.SIZE));
 			out = map_nodes[i];
-			if (out == null)
-				out = map_nodes[i] = new cnode_t();
 
 			out.plane = map_planes[in.planenum];
 			for (j = 0; j < 2; j++) {
@@ -419,7 +418,6 @@ public class CM extends Game {
 				out.children[j] = child;
 			}
 		}
-
 	}
 
 	/*
@@ -444,19 +442,15 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "Map has too many brushes");
 
 		numbrushes = count;
+		Com.DPrintf("   numbrushes=" + count + "\n");
 
 		for (i = 0; i < count; i++) {
 			in = new qfiles.dbrush_t(ByteBuffer.wrap(cmod_base, i * qfiles.dbrush_t.SIZE + l.fileofs, qfiles.dbrush_t.SIZE));
-
 			out = map_brushes[i];
-			if (out == null)
-				out = map_brushes[i] = new cbrush_t();
-
 			out.firstbrushside = in.firstside;
 			out.numsides = in.numsides;
 			out.contents = in.contents;
 		}
-
 	}
 
 	/*
@@ -484,10 +478,11 @@ public class CM extends Game {
 		if (count > MAX_MAP_PLANES)
 			Com.Error(ERR_DROP, "Map has too many planes");
 
+		Com.DPrintf("   numleafes=" + count + "\n");
+		
 		numleafs = count;
 		numclusters = 0;
 		for (i = 0; i < count; i++) {
-
 			in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE + l.fileofs, qfiles.dleaf_t.SIZE);
 			out = map_leafs[i] = new cleaf_t();
 
@@ -500,7 +495,9 @@ public class CM extends Game {
 			if (out.cluster >= numclusters)
 				numclusters = out.cluster + 1;
 		}
-
+		
+		Com.DPrintf("   numclusters=" + numclusters + "\n");
+		
 		if (map_leafs[0].contents != CONTENTS_SOLID)
 			Com.Error(ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
 
@@ -546,14 +543,14 @@ public class CM extends Game {
 		if (count > MAX_MAP_PLANES)
 			Com.Error(ERR_DROP, "Map has too many planes");
 
+		Com.DPrintf("   numplanes=" + count + "\n");
+		
 		numplanes = count;
 
 		for (i = 0; i < count; i++) {
 			in = new qfiles.dplane_t(ByteBuffer.wrap(cmod_base, i * qfiles.dplane_t.SIZE + l.fileofs, qfiles.dplane_t.SIZE));
 
 			out = map_planes[i];
-			if (out == null)
-				out = map_planes[i] = new cplane_t();
 
 			bits = 0;
 			for (j = 0; j < 3; j++) {
@@ -587,6 +584,8 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
 		count = l.filelen / 2;
+		
+		Com.DPrintf("   numbrushes=" + count + "\n");
 
 		if (count < 1)
 			Com.Error(ERR_DROP, "Map with no planes");
@@ -628,6 +627,8 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "Map has too many planes");
 
 		numbrushsides = count;
+		
+		Com.DPrintf("   numbrushsides=" + count + "\n"); 
 
 		for (i = 0; i < count; i++) {
 
@@ -636,8 +637,6 @@ public class CM extends Game {
 					ByteBuffer.wrap(cmod_base, i * qfiles.dbrushside_t.SIZE + l.fileofs, qfiles.dbrushside_t.SIZE));
 
 			out = map_brushsides[i];
-			if (out == null)
-				out = map_brushsides[i] = new cbrushside_t();
 
 			num = in.planenum;
 			//System.out.println("planenum= " + in.planenum);
@@ -652,7 +651,8 @@ public class CM extends Game {
 
 			//TODO: RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!
 			if (j == -1)
-				Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!\n");
+				//Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!\n");
+				;
 			else
 				out.surface = map_surfaces[j];
 		}
@@ -679,14 +679,13 @@ public class CM extends Game {
 		if (count > MAX_MAP_AREAS)
 			Com.Error(ERR_DROP, "Map has too many areas");
 
+		Com.DPrintf("   numareas=" + count + "\n"); 
 		numareas = count;
 
 		for (i = 0; i < count; i++) {
 
 			in = new qfiles.darea_t(ByteBuffer.wrap(cmod_base, i * qfiles.darea_t.SIZE + l.fileofs, qfiles.darea_t.SIZE));
 			out = map_areas[i];
-			if (out == null)
-				out = map_areas[i] = new carea_t();
 
 			out.numareaportals = in.numareaportals;
 			out.firstareaportal = in.firstareaportal;
@@ -716,15 +715,14 @@ public class CM extends Game {
 			Com.Error(ERR_DROP, "Map has too many areas");
 
 		numareaportals = count;
+		Com.DPrintf("   numareaportals=" + count + "\n"); 
 
 		for (i = 0; i < count; i++) {
 			in =
 				new qfiles.dareaportal_t(
 					ByteBuffer.wrap(cmod_base, i * qfiles.dareaportal_t.SIZE + l.fileofs, qfiles.dareaportal_t.SIZE));
-			// dont loose data. rst
+			
 			out = map_areaportals[i];
-			if (out == null)
-				out = map_areaportals[i] = new qfiles.dareaportal_t();
 
 			out.portalnum = in.portalnum;
 			out.otherarea = in.otherarea;
@@ -741,6 +739,9 @@ public class CM extends Game {
 		int i;
 
 		numvisibility = l.filelen;
+		
+		Com.DPrintf("   numvisibility=" + numvisibility + "\n"); 
+		
 		if (l.filelen > MAX_MAP_VISIBILITY)
 			Com.Error(ERR_DROP, "Map has too large visibility lump");
 
@@ -777,7 +778,7 @@ public class CM extends Game {
 		int x = 0;
 		for (; x < l.filelen && cmod_base[x + l.fileofs] != 0; x++);
 
-		map_entitystring = new String(cmod_base, l.fileofs, x);
+		map_entitystring = new String(cmod_base, l.fileofs, x).trim();
 		//memcpy(map_entitystring, cmod_base + l.fileofs, l.filelen);
 	}
 
@@ -786,6 +787,7 @@ public class CM extends Game {
 	CM_InlineModel
 	==================
 	*/
+	// works fine
 	public static cmodel_t InlineModel(String name) {
 		int num;
 
@@ -854,8 +856,6 @@ public class CM extends Game {
 
 		box_headnode = numnodes;
 
-		// TODO: risky port: need just 12 free planes for the box ?
-		//box_planes =  map_planes[numplanes];
 		box_planes =
 			new cplane_t[] {
 				new cplane_t(),

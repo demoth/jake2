@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.10 2004-02-06 21:03:30 rst Exp $
+ * $Id: CL_parse.java,v 1.11 2004-02-07 13:02:44 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -301,7 +301,7 @@ public class CL_parse extends CL_view {
 	CL_ParseServerData
 	==================
 	*/
-	//ok.
+	//checked once, was ok.
 	public static void ParseServerData() {
 
 		String str;
@@ -348,10 +348,10 @@ public class CL_parse extends CL_view {
 		}
 		else {
 			// seperate the printfs so the server message can have a color
-			Com.Printf(
-				"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
-			Com.Printf('\02' + str + "\n");
-
+//			Com.Printf(
+//				"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
+//			Com.Printf('\02' + str + "\n");
+			Com.Printf("Levelname:" + str + "\n");
 			// need to prep refresh at next oportunity
 			cl.refresh_prepped = false;
 		}

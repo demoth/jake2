@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.17 2004-02-06 21:03:30 rst Exp $
+// $Id: MSG.java,v 1.18 2004-02-07 13:02:44 rst Exp $
 
 package jake2.qcommon;
 
@@ -32,16 +32,21 @@ public class MSG extends GameBase {
 	// writing functions
 	//
 
+	//ok.
 	public static void WriteChar(sizebuf_t sb, int c) {
 		if (c < -128 || c > 127)
 			Com.Error(ERR_FATAL, "WriteChar: range error");
 
 		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
 	}
+	
+	//ok.
 	public static void WriteChar(sizebuf_t sb, float c) {
 
 		WriteChar(sb, (int) c);
 	}
+	
+	//ok.
 	public static void WriteByte(sizebuf_t sb, int c) {
 		byte buf;
 
@@ -51,9 +56,11 @@ public class MSG extends GameBase {
 		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
 	}
 
+	//ok.
 	public static void WriteByte(sizebuf_t sb, float c) {
 		WriteByte(sb, (int) c);
 	}
+
 
 	public static void WriteShort(sizebuf_t sb, int c) {
 
@@ -65,6 +72,7 @@ public class MSG extends GameBase {
 		sb.data[i] = (byte) (c >>> 8);
 	}
 
+	//ok.
 	public static void WriteInt(sizebuf_t sb, int c) {
 
 		int i = SZ.GetSpace(sb, 4);
@@ -74,14 +82,17 @@ public class MSG extends GameBase {
 		sb.data[i++] = (byte) ((c >>> 24) & 0xff);
 	}
 
+	//ok.
 	public static void WriteLong(sizebuf_t sb, int c) {
 		WriteInt(sb, c);
 	}
 
+	//ok.
 	public static void WriteFloat(sizebuf_t sb, float f) {
 		WriteInt(sb, Float.floatToIntBits(f));
 	}
 
+	// had a bug, now its ok.
 	public static void WriteString(sizebuf_t sb, String s) {
 		String x = s;
 
@@ -92,6 +103,7 @@ public class MSG extends GameBase {
 		WriteByte(sb, 0);
 	}
 
+	//ok.
 	public static void WriteString(sizebuf_t sb, byte s[]) {
 		WriteString(sb, new String(s).trim());
 	}

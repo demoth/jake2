@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.21 2004-02-01 11:01:48 hoz Exp $
+ * $Id: Cmd.java,v 1.22 2004-02-07 13:02:43 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -291,7 +291,7 @@ public final class Cmd extends PlayerView {
 
 	public static void AddCommand(String cmd_name, xcommand_t function) {
 		cmd_function_t cmd;
-		Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
+		//Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
 		// fail if the command is a variable name
 		if ((Cvar.VariableString(cmd_name)).length() > 0) {
 			Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
@@ -308,6 +308,7 @@ public final class Cmd extends PlayerView {
 
 		cmd = new cmd_function_t();
 		cmd.name = cmd_name;
+		
 		cmd.function = function;
 		cmd.next = cmd_functions;
 		cmd_functions = cmd;
@@ -386,13 +387,13 @@ public final class Cmd extends PlayerView {
 
 		TokenizeString(text.toCharArray(), true);
 
-		if (Argc() > 0) {
-			Com.DPrintf("tokenized:");
-			for (int xxx = 0; xxx < Argc(); xxx++)
-				Com.DPrintf("[" + Argv(xxx) + "]");
-
-			Com.DPrintf("\n");
-		}
+//		if (Argc() > 0) {
+//			Com.DPrintf("tokenized:");
+//			for (int xxx = 0; xxx < Argc(); xxx++)
+//				Com.DPrintf("[" + Argv(xxx) + "]");
+//
+//			Com.DPrintf("\n");
+//		}
 		//System.out.println("tokenized[" + Argv(0) + "]" + "[" + Argv(1) +  "]");
 		// execute the command line
 		if (Argc() == 0)

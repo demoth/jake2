@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.16 2004-02-06 21:03:30 rst Exp $
+// $Id: SV_MAIN.java,v 1.17 2004-02-07 13:02:44 rst Exp $
 
 package jake2.server;
 
@@ -738,22 +738,25 @@ public class SV_MAIN extends SV_GAME {
 		SV_ReadPackets();
 
 		// move autonomous things around if enough time has passed
-		if (0 == sv_timedemo.value && svs.realtime < sv.time) {
-			// never let the time get too far off
-			if (sv.time - svs.realtime > 100) {
-				if (sv_showclamp.value != 0)
-					Com.Printf("sv lowclamp\n");
-				svs.realtime = sv.time - 100;
-			}
-			NET.NET_Sleep(sv.time - svs.realtime);
-			return;
-		}
+		//TODO:	dont need yet
+//		if (0 == sv_timedemo.value && svs.realtime < sv.time) {
+//			// never let the time get too far off
+//			if (sv.time - svs.realtime > 100) {
+//				if (sv_showclamp.value != 0)
+//					Com.Printf("sv lowclamp\n");
+//				svs.realtime = sv.time - 100;
+//			}
+//			NET.NET_Sleep(sv.time - svs.realtime);
+//			return;
+//		}
 
 		// update ping based on the last known frame from all clients
-		SV_CalcPings();
+		//TODO:	dont need yet
+		//SV_CalcPings();
 
 		// give the clients some timeslices
-		SV_GiveMsec();
+		//TODO:	dont need yet
+		//SV_GiveMsec();
 
 		// let everything in the world think and move
 		SV_RunGameFrame();
@@ -762,10 +765,12 @@ public class SV_MAIN extends SV_GAME {
 		SV_SEND.SV_SendClientMessages();
 
 		// save the entire world state if recording a serverdemo
-		SV_WORLD.SV_RecordDemoMessage();
+		//TODO:	dont need yet
+		//SV_WORLD.SV_RecordDemoMessage();
 
 		// send a heartbeat to the master if needed
-		Master_Heartbeat();
+		//TODO:	dont need yet
+		//Master_Heartbeat();
 
 		// clear teleport flags, etc for next frame
 		SV_PrepWorldFrame();

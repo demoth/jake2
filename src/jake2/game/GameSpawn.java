@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.15 2004-02-06 21:03:30 rst Exp $
+// $Id: GameSpawn.java,v 1.16 2004-02-07 13:02:44 rst Exp $
 
 package jake2.game;
 
@@ -362,7 +362,9 @@ public class GameSpawn extends GameSave {
 			String com_token;
 			int i;
 			float skill_level;
+			skill.value =2.0f;
 			skill_level = (float) Math.floor(skill.value);
+			
 			if (skill_level < 0)
 				skill_level = 0;
 			if (skill_level > 3)
@@ -388,12 +390,13 @@ public class GameSpawn extends GameSave {
 				
 			ent = null;
 			inhibit = 0; //	   parse ents
-			Com.Printf("========================\n");
-			Com.Printf("entities(" + entities.length() + ") = \n" + entities + "\n");
-			Com.Printf("========================\n");
+			//Com.Printf("========================\n");
+			//Com.Printf("entities(" + entities.length() + ") = \n" + entities + "\n");
+			//Com.Printf("========================\n");
 			
 			Com.ParseHelp ph = new Com.ParseHelp(entities);
 			
+			Com.DPrintf("* * *     die scheiss edict- nummer stimmen nicht ???     * * *  \n");
 			while (true) { // parse the opening brace
 					
 				com_token = Com.Parse(ph);
@@ -407,8 +410,12 @@ public class GameSpawn extends GameSave {
 				else
 					ent = G_Spawn();
 					
-				ED_ParseEdict(ph, ent);
+				Com.DPrintf("===\n");	
 				
+				Com.DPrintf("allocated new edict:" + ent.s.number + "\n");
+				ED_ParseEdict(ph, ent);
+				Com.DPrintf("ent.classname:" + ent.classname + "\n");
+				Com.DPrintf("ent.spawnflags:" + Integer.toHexString(ent.spawnflags) + "\n");
 				// yet another map hack
 				if (0==Q_stricmp(level.mapname, "command") && 0==Q_stricmp(ent.classname, "trigger_once") && 
 					0==Q_stricmp(ent.model, "*27"))
@@ -440,7 +447,7 @@ public class GameSpawn extends GameSave {
 	
 				ED_CallSpawn(ent);
 			}
-	
+			gi.dprintf("players skill level:" +skill.value + "\n");
 			gi.dprintf(inhibit + " entities inhibited\n");
 			i = 1;
 			G_FindTeams();
