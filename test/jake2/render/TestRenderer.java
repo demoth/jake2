@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.1 2003-11-25 14:57:20 cwei Exp $
+ * $Id: TestRenderer.java,v 1.2 2003-12-27 16:25:42 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.util.Arrays;
 
 import jake2.client.*;
+import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.util.Vargs;
@@ -40,55 +41,88 @@ import jake2.util.Vargs;
  */
 public class TestRenderer {
 
+	String[] args;
+
+	refexport_t re;
+
+	public TestRenderer(String[] args) {
+		this.args = args;
+	}
+
 	public static void main(String[] args) {
+
+		TestRenderer test = new TestRenderer(args);
+		test.init();
+		test.run();
+	}
+
+	void init() {
+
 		// only for testing
 		// a simple refimport_t implementation
 		refimport_t rimp = new refimport_t() {
+			public void Sys_Error(int err_level, String str) {
+				VID.Error(err_level, str, null);
+			}
+
 			public void Sys_Error(int err_level, String str, Vargs vargs) {
-				Com.Printf(str, vargs);
+				VID.Error(err_level, str, vargs);
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd) {
+				Cmd.AddCommand(name, cmd);
 			}
 
 			public void Cmd_RemoveCommand(String name) {
+				// TODO implement Cmd_RemoveCommand(String name)
 			}
 
 			public int Cmd_Argc() {
-				return 0;
+				return Cmd.Argc();
 			}
 
 			public String Cmd_Argv(int i) {
-				return null;
+				return Cmd.Argv(i);
 			}
 
 			public void Cmd_ExecuteText(int exec_when, String text) {
+				// TODO implement Cbuf_ExecuteText
+			}
+
+			public void Con_Printf(int print_level, String str) {
+				VID.Printf(print_level, str, null);
 			}
 
 			public void Con_Printf(int print_level, String str, Vargs vargs) {
-				Com.Printf(str, vargs);
+				VID.Printf(print_level, str, vargs);
 			}
 
-			public int FS_LoadFile(String name, byte[] buf) {
-				return 0;
+			public byte[] FS_LoadFile(String name) {
+				return FS.LoadFile(name);
 			}
 
+			public int FS_FileLength(String name) {
+				return FS.FileLength(name);
+			}
+			
 			public void FS_FreeFile(byte[] buf) {
+				FS.FreeFile(buf);
 			}
 
 			public String FS_Gamedir() {
-				return "../../unpack2";
+				return FS.Gamedir();
 			}
 
 			public cvar_t Cvar_Get(String name, String value, int flags) {
-				return null;
+				return Cvar.Get(name, value, flags);
 			}
 
 			public cvar_t Cvar_Set(String name, String value) {
-				return null;
+				return Cvar.Set(name, value);
 			}
 
 			public void Cvar_SetValue(String name, float value) {
+				Cvar.SetValue(name, value);
 			}
 
 			public boolean Vid_GetModeInfo(Dimension dim, int mode) {
@@ -102,21 +136,42 @@ public class TestRenderer {
 			public void Vid_NewWindow(int width, int height) {
 				VID.NewWindow(width, height);
 			}
+
+			public void updateScreenCallback() {
+				TestRenderer.this.updateScreen();
+			}
 		};
 
-		try {
-			//Class.forName("jake2.render.JoglRenderer");
-			String[] names = Renderer.getDriverNames();
-			System.out.println("Registered Drivers: " + Arrays.asList(names));
+		//Class.forName("jake2.render.JoglRenderer");
+		String[] names = Renderer.getDriverNames();
+		System.out.println("Registered Drivers: " + Arrays.asList(names));
 
-			refexport_t re = Renderer.getDriver("jogl", rimp);
+		this.re = Renderer.getDriver("jogl", rimp);
 
-			System.out.println("Use driver: " + re);
-			
-			re.Init();
+		System.out.println("Use driver: " + re);
+		
+		Qcommon.Init(new String[] {"TestRenderer"});
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		re.Init();
+	}
+
+	void updateScreen() {
+		re.BeginFrame(0.0f);
+		re.DrawPic(
+			(int) (Math.random() * VID.viddef.width),
+			(int) (Math.random() * VID.viddef.height),
+			"conback");
+		re.EndFrame();
+	}
+
+	void run() {
+		while (true) {
+			re.updateScreen();
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
+
 }
