@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.6 2004-01-03 20:24:48 cwei Exp $
+ * $Id: TestRenderer.java,v 1.7 2004-01-03 21:13:01 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,6 +47,7 @@ public class TestRenderer {
 
 	refexport_t re;
 	refimport_t ri;
+	viddef_t viddef;
 
 	public TestRenderer(String[] args) {
 		this.args = args;
@@ -161,6 +162,7 @@ public class TestRenderer {
 
 	void updateScreen() {
 		re.BeginFrame(0.0f);
+		viddef = VID.viddef;
 		re.DrawStretchPic(0,0,VID.viddef.width, VID.viddef.height, "conback");
 		
 		String text = "Hallo Jake2 :-)";
@@ -196,12 +198,10 @@ public class TestRenderer {
 
 	 private void testWorld() {
 	 	
-	 	viddef_t vid = VID.viddef;
-
 		 refdef_t refdef = new refdef_t();
 
-		 refdef.x = vid.width / 2;
-		 refdef.y = vid.height / 2 - 72;
+		 refdef.x = viddef.width / 2;
+		 refdef.y = viddef.height / 2 - 72;
 		 refdef.width = 144;
 		 refdef.height = 168;
 		 refdef.fov_x = 40;
@@ -253,11 +253,11 @@ public class TestRenderer {
 //
 //			 Menu_Draw(& s_player_config_menu);
 //
-//			 M_DrawTextBox(
-//				 (refdef.x) * (320.0F / viddef.width) - 8,
-//				 (viddef.height / 2) * (240.0F / viddef.height) - 77,
-//				 refdef.width / 8,
-//				 refdef.height / 8);
+			 M_DrawTextBox(
+				 (int)((refdef.x) * (320.0F / viddef.width) - 8),
+				 (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
+				 refdef.width / 8,
+				 refdef.height / 8);
 			 refdef.height += 4;
 //
 			 re.RenderFrame(refdef);
@@ -271,7 +271,7 @@ public class TestRenderer {
 //					 .curvalue]
 //					 .skindisplaynames[s_player_skin_box
 //					 .curvalue]);
-			 re.DrawPic(/*s_player_config_menu.x*/ refdef.x - 40, refdef.y, modelImage);
+			 re.DrawPic(/*s_player_config_menu.x*/ refdef.x - 80, refdef.y, modelImage);
 		 }
 	 }
 	
@@ -290,5 +290,63 @@ public class TestRenderer {
 
 		 return new Double(a).floatValue();
 	 }
+	 
+	private void M_DrawTextBox (int x, int y, int width, int lines)
+	{
+		int		cx, cy;
+		int		n;
+
+		// draw left side
+		cx = x;
+		cy = y;
+		M_DrawCharacter (cx, cy, 1);
+		for (n = 0; n < lines; n++)
+		{
+			cy += 8;
+			M_DrawCharacter (cx, cy, 4);
+		}
+		M_DrawCharacter (cx, cy+8, 7);
+
+		// draw middle
+		cx += 8;
+		while (width > 0)
+		{
+			cy = y;
+			M_DrawCharacter (cx, cy, 2);
+			for (n = 0; n < lines; n++)
+			{
+				cy += 8;
+				M_DrawCharacter (cx, cy, 5);
+			}
+			M_DrawCharacter (cx, cy+8, 8);
+			width -= 1;
+			cx += 8;
+		}
+
+		// draw right side
+		cy = y;
+		M_DrawCharacter (cx, cy, 3);
+		for (n = 0; n < lines; n++)
+		{
+			cy += 8;
+			M_DrawCharacter (cx, cy, 6);
+		}
+		M_DrawCharacter (cx, cy+8, 9);
+	}
+
+	/*
+	================
+	M_DrawCharacter
+
+	Draws one solid graphics character
+	cx and cy are in 320*240 coordinates, and will be centered on
+	higher res screens.
+	================
+	*/
+	private void M_DrawCharacter (int cx, int cy, int num)
+	{
+		re.DrawChar ( cx + ((viddef.width - 320)>>1), cy + ((viddef.height - 240)>>1), num);
+	}
+
 
 }
