@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.5 2004-06-22 11:25:38 cwei Exp $
+ * $Id: Image.java,v 1.6 2004-06-28 13:36:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1214,7 +1214,7 @@ public abstract class Image extends Main {
 			// label done:
 		}
 		catch (longjmpException e) {
-			; // replaces labe done
+			; // replaces label done
 		}
 
 		if (mipmap) {
