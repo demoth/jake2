@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.17 2003-12-26 01:27:26 cwei Exp $
+ * $Id: FS.java,v 1.18 2003-12-26 01:28:52 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,9 +31,7 @@ import jake2.game.cvar_t;
 import jake2.sys.CDAudio;
 import jake2.sys.Sys;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
