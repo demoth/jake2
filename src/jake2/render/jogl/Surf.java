@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.3 2004-07-09 06:50:48 hzi Exp $
+ * $Id: Surf.java,v 1.4 2004-07-12 18:19:42 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1204,7 +1204,10 @@ public abstract class Surf extends Draw {
 	void R_DrawWorld()
 	{
 		entity_t	ent = new entity_t();
-
+		// auto cycle the world frame for texture animation
+		ent.frame = (int)(r_newrefdef.time*2);
+		currententity = ent;
+		
 		if (r_drawworld.value == 0)
 			return;
 
@@ -1214,11 +1217,6 @@ public abstract class Surf extends Draw {
 		currentmodel = r_worldmodel;
 
 		Math3D.VectorCopy(r_newrefdef.vieworg, modelorg);
-
-		// auto cycle the world frame for texture animation
-		// memset (&ent, 0, sizeof(ent));
-		ent.frame = (int)(r_newrefdef.time*2);
-		currententity = ent;
 
 		gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
 
