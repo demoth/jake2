@@ -2,7 +2,7 @@
  * Ref.java
  * Copyright (C) 2003
  *
- * $Id: Ref.java,v 1.1 2003-11-24 15:06:28 cwei Exp $
+ * $Id: Ref.java,v 1.2 2003-11-24 20:27:41 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,6 +34,10 @@ import jake2.client.refimport_t;
  * @author cwei
  */
 public interface Ref extends refexport_t {
+	
+	// ============================================================================
+	// ref.h
+	// ============================================================================
 	static final int MAX_DLIGHTS = 32;
 	static final int MAX_ENTITIES = 128;
 	static final int MAX_PARTICLES = 4096;
@@ -58,6 +62,15 @@ public interface Ref extends refexport_t {
 
 	static final int SHELL_WHITE_COLOR = 0xD7;
 	
+	// ============================================================================
+	// gl_local.h
+	// ============================================================================
+	static final String REF_VERSION = "GL 0.01";
+	
+	
+	// ============================================================================
+	// extensions (cwei) 
+	// ============================================================================
 	refexport_t GetRefAPI(refimport_t rimp);
 	String getName();
 
