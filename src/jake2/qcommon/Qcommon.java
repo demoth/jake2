@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.31 2004-03-19 09:22:53 cwei Exp $
+ * $Id: Qcommon.java,v 1.32 2004-05-04 09:30:16 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,8 +28,6 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.game.EntThinkAdapter;
-import jake2.game.GamePWeapon;
 import jake2.game.Swap;
 import jake2.server.SV_MAIN;
 import jake2.sys.NET;
@@ -47,95 +45,11 @@ public final class Qcommon extends Globals {
 
 	public static final String BUILDSTRING = "Java";
 	public static final String CPUSTRING = "jvm";
-	
-	/**
-	 * This function initializes the different subsystems of
-		 * the game engine. The setjmp/longjmp mechanism of the original
-		 * was replaced with exceptions.
-	 * @param args the original unmodified command line arguments
-	 */
-	public static void InitForTestMap(String[] args) {
-		try {
-
-			// prepare enough of the subsystems to handle
-			// cvar and command buffer management
-			Com.InitArgv(args);
-
-			Swap.Init();
-			Cbuf.Init();
-
-			Cmd.Init();
-			Cvar.Init();
-
-			Key.Init();
-
-			// we need to add the early commands twice, because
-			// a basedir or cddir needs to be set before execing
-			// config files, but we want other parms to override
-			// the settings of the config files
-			Cbuf.AddEarlyCommands(false);
-			Cbuf.Execute();
-
-			FS.InitFilesystem();
-
-			Cbuf.AddText("exec default.cfg\n");
-			Cbuf.AddText("exec config.cfg\n");
-
-			Cbuf.AddEarlyCommands(true);
-			Cbuf.Execute();
-
-			//
-			// init commands and vars
-			//
-			Cmd.AddCommand("error", Com.Error_f);
-
-			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
-			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-			Globals.developer= Cvar.Get("developer", "0", 0);
-			Globals.timescale= Cvar.Get("timescale", "1", 0);
-			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
-			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
-			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
-			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
-
-			String s = Com.sprintf("%4.2f %s %s %s",
-					new Vargs(4)
-						.add(Globals.VERSION)
-						.add(CPUSTRING)
-						.add(Globals.__DATE__)
-						.add(BUILDSTRING));
-
-			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
-
-			NET.NET_Init();
-			Netchan.Netchan_Init();
-
-			SV_MAIN.SV_Init();
-			CL.Init();
-
-			// add + commands from command line
-			if (!Cbuf.AddLateCommands()) {
-				// if the user didn't give any commands, run default action
-				//Cbuf.AddText("d1\n");
-				Cbuf.Execute();
-			} else {
-				// the user asked for something explicit
-				// so drop the loading plaque
-				SCR.EndLoadingPlaque();
-			}
-
-			Com.Printf("====== Quake2 Initialized ======\n\n");
-
-		} catch (longjmpException e) {
-			Sys.Error("Error during initialization");
-		}
-	}
-
 
 	/**
 	 * This function initializes the different subsystems of
-		 * the game engine. The setjmp/longjmp mechanism of the original
-		 * was replaced with exceptions.
+	 * the game engine. The setjmp/longjmp mechanism of the original
+	 * was replaced with exceptions.
 	 * @param args the original unmodified command line arguments
 	 */
 	public static void Init(String[] args) {
@@ -147,8 +61,6 @@ public final class Qcommon extends Globals {
 
 			Swap.Init();
 			Cbuf.Init();
-			//rst bugfix
-			//GamePWeapon xxx = new GamePWeapon();
 			
 			Cmd.Init();
 			Cvar.Init();

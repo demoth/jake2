@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.11 2004-03-19 09:03:37 cwei Exp $
+ * $Id: DancingQueens.java,v 1.12 2004-05-04 09:30:16 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -152,7 +152,7 @@ public class DancingQueens
 		};
 
 
-		Qcommon.InitForTestMap(new String[] {"DancingQueens"});
+		Qcommon.Init(new String[] {"DancingQueens"});
 		// sehr wichtig !!!
 		VID.Shutdown();
 
