@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.10 2004-10-21 01:50:49 cawe Exp $
+ * $Id: CL_parse.java,v 1.11 2004-10-24 21:02:05 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -97,14 +97,18 @@ public class CL_parse {
         name = DownloadFileName(Globals.cls.downloadtempname);
 
         fp = Lib.fopen(name, "r+b");
-        if (fp != null) { // it exists
+        
+        if (fp != null) { 
+            
+            // it exists
             long len = 0;
 
             try {
                 len = fp.length();
-            } catch (IOException e) {
+            } 
+            catch (IOException e) {
             }
-            ;
+            
 
             Globals.cls.download = fp;
 
@@ -116,7 +120,7 @@ public class CL_parse {
         } else {
             Globals.cls.downloadname = Globals.cls.downloadname;
 
-            Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
+            Com.Printf("CheckOrDownloading " + Globals.cls.downloadname + "\n");
             MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
             MSG.WriteString(Globals.cls.netchan.message, "download "
                     + Globals.cls.downloadname);

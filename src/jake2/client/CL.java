@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.14 2004-10-20 20:39:10 cawe Exp $
+ * $Id: CL.java,v 1.15 2004-10-24 21:02:04 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1130,26 +1130,24 @@ public final class CL {
                         continue;
                     }
 
-                    int pos = Globals.cl.configstrings[Defines.CS_PLAYERSKINS
-                            + i].indexOf('\\');
+                    int pos = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\');
+                    
                     if (pos != -1)
                         pos++;
                     else
                         pos = 0;
 
+                    int pos2 = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\', pos);
+                    
+                    if (pos2 == -1)
+                        pos2 = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('/', pos);
+                    
+                    
                     model = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
-                            .substring(pos);
-
-                    pos = model.indexOf('/');
-
-                    if (pos == -1)
-                        pos = model.indexOf('\\');
-
-                    if (pos != -1) {
-                        skin = model.substring(pos + 1);
-                    } else
-                        skin = "";
-
+                            .substring(pos, pos2);
+                                        
+                    skin = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].substring(pos2 + 1);
+                    
                     switch (n) {
                     case 0: // model
                         fn = "players/" + model + "/tris.md2";
