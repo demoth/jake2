@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.23 2004-02-17 15:03:04 cwei Exp $
+ * $Id: Image.java,v 1.24 2004-03-16 12:46:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -549,204 +549,179 @@ public abstract class Image extends Main {
 	//
 	//	=========================================================
 	//	*/
-	//
-	//	typedef struct _TargaHeader {
-	//		unsigned char 	id_length, colormap_type, image_type;
-	//		unsigned short	colormap_index, colormap_length;
-	//		unsigned char	colormap_size;
-	//		unsigned short	x_origin, y_origin, width, height;
-	//		unsigned char	pixel_size, attributes;
-	//	} TargaHeader;
-	//
-	//
 	/*
 	=============
 	LoadTGA
 	=============
 	*/
 	byte[] LoadTGA(String name, Dimension dim) {
-		// TODO LoadTGA()
-		//		int		columns, rows, numPixels;
-		//		byte	*pixbuf;
-		//		int		row, column;
-		//		byte	*buf_p;
-		//		byte	*buffer;
-		//		int		length;
-		//		TargaHeader		targa_header;
-		//		byte			*targa_rgba;
-		//		byte tmp[2];
+		int columns, rows, numPixels;
+		int pixbuf; // index into pic
+		int row, column;
+		byte[] raw;
+		ByteBuffer buf_p;
+		int length;
+		qfiles.tga_t targa_header;
+		byte[] pic = null;
+
 		//
-		//		*pic = NULL;
+		// load the file
 		//
-		//		//
-		//		// load the file
-		//		//
-		//		length = ri.FS_LoadFile (name, (void **)&buffer);
-		//		if (!buffer)
-		//		{
-		//			ri.Con_Printf (PRINT_DEVELOPER, "Bad tga file %s\n", name);
-		//			return;
-		//		}
-		//
-		//		buf_p = buffer;
-		//
-		//		targa_header.id_length = *buf_p++;
-		//		targa_header.colormap_type = *buf_p++;
-		//		targa_header.image_type = *buf_p++;
-		//	
-		//		tmp[0] = buf_p[0];
-		//		tmp[1] = buf_p[1];
-		//		targa_header.colormap_index = LittleShort ( *((short *)tmp) );
-		//		buf_p+=2;
-		//		tmp[0] = buf_p[0];
-		//		tmp[1] = buf_p[1];
-		//		targa_header.colormap_length = LittleShort ( *((short *)tmp) );
-		//		buf_p+=2;
-		//		targa_header.colormap_size = *buf_p++;
-		//		targa_header.x_origin = LittleShort ( *((short *)buf_p) );
-		//		buf_p+=2;
-		//		targa_header.y_origin = LittleShort ( *((short *)buf_p) );
-		//		buf_p+=2;
-		//		targa_header.width = LittleShort ( *((short *)buf_p) );
-		//		buf_p+=2;
-		//		targa_header.height = LittleShort ( *((short *)buf_p) );
-		//		buf_p+=2;
-		//		targa_header.pixel_size = *buf_p++;
-		//		targa_header.attributes = *buf_p++;
-		//
-		//		if (targa_header.image_type!=2 
-		//			&& targa_header.image_type!=10) 
-		//			ri.Sys_Error (ERR_DROP, "LoadTGA: Only type 2 and 10 targa RGB images supported\n");
-		//
-		//		if (targa_header.colormap_type !=0 
-		//			|| (targa_header.pixel_size!=32 && targa_header.pixel_size!=24))
-		//			ri.Sys_Error (ERR_DROP, "LoadTGA: Only 32 or 24 bit images supported (no colormaps)\n");
-		//
-		//		columns = targa_header.width;
-		//		rows = targa_header.height;
-		//		numPixels = columns * rows;
-		//
-		//		if (width)
-		//			*width = columns;
-		//		if (height)
-		//			*height = rows;
-		//
-		//		targa_rgba = malloc (numPixels*4);
-		//		*pic = targa_rgba;
-		//
-		//		if (targa_header.id_length != 0)
-		//			buf_p += targa_header.id_length;  // skip TARGA image comment
-		//	
-		//		if (targa_header.image_type==2) {  // Uncompressed, RGB images
-		//			for(row=rows-1; row>=0; row--) {
-		//				pixbuf = targa_rgba + row*columns*4;
-		//				for(column=0; column<columns; column++) {
-		//					unsigned char red,green,blue,alphabyte;
-		//					switch (targa_header.pixel_size) {
-		//						case 24:
-		//							
-		//								blue = *buf_p++;
-		//								green = *buf_p++;
-		//								red = *buf_p++;
-		//								*pixbuf++ = red;
-		//								*pixbuf++ = green;
-		//								*pixbuf++ = blue;
-		//								*pixbuf++ = 255;
-		//								break;
-		//						case 32:
-		//								blue = *buf_p++;
-		//								green = *buf_p++;
-		//								red = *buf_p++;
-		//								alphabyte = *buf_p++;
-		//								*pixbuf++ = red;
-		//								*pixbuf++ = green;
-		//								*pixbuf++ = blue;
-		//								*pixbuf++ = alphabyte;
-		//								break;
-		//					}
-		//				}
-		//			}
-		//		}
-		//		else if (targa_header.image_type==10) {   // Runlength encoded RGB images
-		//			unsigned char red,green,blue,alphabyte,packetHeader,packetSize,j;
-		//			for(row=rows-1; row>=0; row--) {
-		//				pixbuf = targa_rgba + row*columns*4;
-		//				for(column=0; column<columns; ) {
-		//					packetHeader= *buf_p++;
-		//					packetSize = 1 + (packetHeader & 0x7f);
-		//					if (packetHeader & 0x80) {        // run-length packet
-		//						switch (targa_header.pixel_size) {
-		//							case 24:
-		//									blue = *buf_p++;
-		//									green = *buf_p++;
-		//									red = *buf_p++;
-		//									alphabyte = 255;
-		//									break;
-		//							case 32:
-		//									blue = *buf_p++;
-		//									green = *buf_p++;
-		//									red = *buf_p++;
-		//									alphabyte = *buf_p++;
-		//									break;
-		//						}
-		//	
-		//						for(j=0;j<packetSize;j++) {
-		//							*pixbuf++=red;
-		//							*pixbuf++=green;
-		//							*pixbuf++=blue;
-		//							*pixbuf++=alphabyte;
-		//							column++;
-		//							if (column==columns) { // run spans across rows
-		//								column=0;
-		//								if (row>0)
-		//									row--;
-		//								else
-		//									goto breakOut;
-		//								pixbuf = targa_rgba + row*columns*4;
-		//							}
-		//						}
-		//					}
-		//					else {                            // non run-length packet
-		//						for(j=0;j<packetSize;j++) {
-		//							switch (targa_header.pixel_size) {
-		//								case 24:
-		//										blue = *buf_p++;
-		//										green = *buf_p++;
-		//										red = *buf_p++;
-		//										*pixbuf++ = red;
-		//										*pixbuf++ = green;
-		//										*pixbuf++ = blue;
-		//										*pixbuf++ = 255;
-		//										break;
-		//								case 32:
-		//										blue = *buf_p++;
-		//										green = *buf_p++;
-		//										red = *buf_p++;
-		//										alphabyte = *buf_p++;
-		//										*pixbuf++ = red;
-		//										*pixbuf++ = green;
-		//										*pixbuf++ = blue;
-		//										*pixbuf++ = alphabyte;
-		//										break;
-		//							}
-		//							column++;
-		//							if (column==columns) { // pixel packet run spans across rows
-		//								column=0;
-		//								if (row>0)
-		//									row--;
-		//								else
-		//									goto breakOut;
-		//								pixbuf = targa_rgba + row*columns*4;
-		//							}						
-		//						}
-		//					}
-		//				}
-		//				breakOut:;
-		//			}
-		//		}
-		//
-		//		ri.FS_FreeFile (buffer);
-		return null; // remove this
+		raw = ri.FS_LoadFile (name);
+		
+		if (raw == null)
+		{
+			ri.Con_Printf(Defines.PRINT_DEVELOPER, "Bad tga file "+ name +'\n');
+			return null;
+		}
+		
+		targa_header = new qfiles.tga_t(raw);
+		
+		if (targa_header.image_type != 2 && targa_header.image_type != 10) 
+			ri.Sys_Error(Defines.ERR_DROP, "LoadTGA: Only type 2 and 10 targa RGB images supported\n");
+		
+		if (targa_header.colormap_type != 0 || (targa_header.pixel_size != 32 && targa_header.pixel_size != 24))
+			ri.Sys_Error (Defines.ERR_DROP, "LoadTGA: Only 32 or 24 bit images supported (no colormaps)\n");
+		
+		columns = targa_header.width;
+		rows = targa_header.height;
+		numPixels = columns * rows;
+		
+		if (dim != null) {
+			dim.width = columns;
+			dim.height = rows;
+		}
+		
+		pic = new byte[numPixels * 4]; // targa_rgba;
+		
+		if (targa_header.id_length != 0)
+			targa_header.data.position(targa_header.id_length);  // skip TARGA image comment
+		
+		buf_p = targa_header.data;
+			
+		byte red,green,blue,alphabyte;
+		red = green = blue = alphabyte = 0;
+		int packetHeader, packetSize, j;
+		
+		if (targa_header.image_type==2) {  // Uncompressed, RGB images
+			for(row=rows-1; row>=0; row--) {
+				
+				pixbuf = row * columns * 4;
+				
+				for(column=0; column<columns; column++) {
+					switch (targa_header.pixel_size) {
+						case 24:
+									
+							blue = buf_p.get();
+							green = buf_p.get();
+							red = buf_p.get();
+							pic[pixbuf++] = red;
+							pic[pixbuf++] = green;
+							pic[pixbuf++] = blue;
+							pic[pixbuf++] = (byte)255;
+							break;
+						case 32:
+							blue = buf_p.get();
+							green = buf_p.get();
+							red = buf_p.get();
+							alphabyte = buf_p.get();
+							pic[pixbuf++] = red;
+							pic[pixbuf++] = green;
+							pic[pixbuf++] = blue;
+							pic[pixbuf++] = alphabyte;
+							break;
+					}
+				}
+			}
+		}
+		else if (targa_header.image_type==10) {   // Runlength encoded RGB images
+			for(row=rows-1; row>=0; row--) {
+				
+				pixbuf = row * columns * 4;
+				try {
+
+					for(column=0; column<columns; ) {
+					
+						packetHeader= buf_p.get() & 0xFF;
+						packetSize = 1 + (packetHeader & 0x7f);
+					
+						if ((packetHeader & 0x80) != 0) {        // run-length packet
+							switch (targa_header.pixel_size) {
+								case 24:
+									blue = buf_p.get();
+									green = buf_p.get();
+									red = buf_p.get();
+									alphabyte = (byte)255;
+									break;
+								case 32:
+									blue = buf_p.get();
+									green = buf_p.get();
+									red = buf_p.get();
+									alphabyte = buf_p.get();
+									break;
+							}
+				
+							for(j=0;j<packetSize;j++) {
+								pic[pixbuf++]=red;
+								pic[pixbuf++]=green;
+								pic[pixbuf++]=blue;
+								pic[pixbuf++]=alphabyte;
+								column++;
+								if (column==columns) { // run spans across rows
+									column=0;
+									if (row>0)
+										row--;
+									else
+										// goto label breakOut;
+										throw new longjmpException();
+			
+									pixbuf = row * columns * 4;
+								}
+							}
+						}
+						else { // non run-length packet
+							for(j=0;j<packetSize;j++) {
+								switch (targa_header.pixel_size) {
+									case 24:
+										blue = buf_p.get();
+										green = buf_p.get();
+										red = buf_p.get();
+										pic[pixbuf++] = red;
+										pic[pixbuf++] = green;
+										pic[pixbuf++] = blue;
+										pic[pixbuf++] = (byte)255;
+										break;
+									case 32:
+										blue = buf_p.get();
+										green = buf_p.get();
+										red = buf_p.get();
+										alphabyte = buf_p.get();
+										pic[pixbuf++] = red;
+										pic[pixbuf++] = green;
+										pic[pixbuf++] = blue;
+										pic[pixbuf++] = alphabyte;
+										break;
+								}
+								column++;
+								if (column==columns) { // pixel packet run spans across rows
+									column=0;
+									if (row>0)
+										row--;
+									else
+										// goto label breakOut;
+										throw new longjmpException();
+			
+									pixbuf = row * columns * 4;
+								}						
+							}
+						}
+					}
+				} catch (longjmpException e){
+					// label breakOut:
+				}
+			}
+		}
+		return pic;
 	}
 
 	/*
