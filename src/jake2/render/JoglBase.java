@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.1 2004-07-15 14:37:34 hzi Exp $
+ * $Id: JoglBase.java,v 1.2 2004-07-15 16:16:23 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -171,6 +171,16 @@ public abstract class JoglBase implements GLEventListener {
 		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
 		ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
+		
+		/*
+		 * fullscreen handling
+		 */
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		device = env.getDefaultScreenDevice();
+       
+		if (oldDisplayMode == null) {
+			oldDisplayMode = device.getDisplayMode();
+		}
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
 			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n");
@@ -192,9 +202,9 @@ public abstract class JoglBase implements GLEventListener {
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 
-		//window.getContentPane().add(canvas);	
+		window.getContentPane().add(canvas);	
 		
-		//canvas.setSize(newDim.width, newDim.height);
+		canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
@@ -208,17 +218,7 @@ public abstract class JoglBase implements GLEventListener {
 		canvas.addKeyListener(KBD.listener);
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
-		
-		/*
-		 * fullscreen handling
-		 */
-		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		device = env.getDefaultScreenDevice();
-       
-		if (oldDisplayMode == null) {
-			oldDisplayMode = device.getDisplayMode();
-		}
-		        
+				        
 		if (fullscreen) {
 			
 			DisplayMode displayMode = findDisplayMode(newDim);
@@ -226,23 +226,23 @@ public abstract class JoglBase implements GLEventListener {
 			newDim.width = displayMode.getWidth();
 			newDim.height = displayMode.getHeight();
 			window.setUndecorated(true);
-			window.setSize(displayMode.getWidth(), displayMode.getHeight());
 			window.setResizable(false);
-			window.getContentPane().add(canvas);
 			
 			device.setFullScreenWindow(window);
 			
-			if (!displayMode.equals(oldDisplayMode))
+			if (device.isFullScreenSupported())
 				device.setDisplayMode(displayMode);
 			
 			window.setLocation(0, 0);
+			window.setSize(displayMode.getWidth(), displayMode.getHeight());
+			canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
+
 			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
 			window.setLocation(window_xpos, window_ypos);
-			window.setSize(newDim.width, newDim.height);
+			window.pack();
 			window.setResizable(false);
-			window.getContentPane().add(canvas);
 			window.setVisible(true);
 		}
 		
@@ -267,7 +267,7 @@ public abstract class JoglBase implements GLEventListener {
 	protected void GLimp_Shutdown() {
 		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
 			try {
-				if (!device.getDisplayMode().equals(oldDisplayMode))
+				if (device.isFullScreenSupported())
 					device.setDisplayMode(oldDisplayMode);
 				device.setFullScreenWindow(null);
 			} catch (Exception e) {

@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.6 2004-07-15 14:37:35 hzi Exp $
+ * $Id: VID.java,v 1.7 2004-07-15 16:16:24 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -121,6 +121,8 @@ public class VID extends Globals {
 	static vidmode_t fs_modes[];
 
 	public static boolean GetModeInfo(Dimension dim, int mode) {
+		if (fs_modes == null) initModeList();
+
 		vidmode_t[] modes = vid_modes;
 		if (vid_fullscreen.value != 0.0f) modes = fs_modes;
 		
@@ -664,7 +666,6 @@ public class VID extends Globals {
 	** VID_MenuInit
 	*/
 	public static void MenuInit() {
-		if (fs_resolutions == null) initModeList();
 		
 		if ( gl_driver == null )
 			gl_driver = Cvar.Get( "gl_driver", "jogl", 0 );
