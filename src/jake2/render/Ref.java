@@ -2,7 +2,7 @@
  * Ref.java
  * Copyright (C) 2003
  *
- * $Id: Ref.java,v 1.3 2003-11-28 23:07:38 rst Exp $
+ * $Id: Ref.java,v 1.4 2003-12-29 01:47:22 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,7 +33,7 @@ import jake2.client.refimport_t;
  * 
  * @author cwei
  */
-public interface Ref extends refexport_t {
+public interface Ref {
 	
 	// ============================================================================
 	// ref.h
@@ -43,8 +43,7 @@ public interface Ref extends refexport_t {
 	// ============================================================================
 	// gl_local.h
 	// ============================================================================
-	static final String REF_VERSION = "GL 0.01";
-	
+
 	
 	// ============================================================================
 	// extensions (cwei) 
