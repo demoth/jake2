@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+" 
+	codebase="http://www.bytonic.de/downloads"
+	href="jake2_lwjgl.jnlp">
+	
+	<information>
+		<title>Jake2</title>
+		<vendor>Bytonic Software</vendor>
+		<homepage href="http://www.bytonic.de/html/jake2.html"/>
+		<description>Java port of the Quake2 game engine</description>
+		<icon href="http://jake2.sourceforge.net/icon.gif"/>
+		<offline-allowed/>
+	</information>
+	
+	<security>
+		<all-permissions/>
+	</security>
+	
+	<resources>
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
+		<jar href="http://jake2.sourceforge.net/lib/lwjgl.jar"/>
+		<jar href="http://jake2.sourceforge.net/lib/lwjgl_util.jar"/>
+		<property name="sun.java2d.noddraw" value="true"/>
+	</resources>
+	
+	<resources os="Linux">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<nativelib href="http://jake2.sourceforge.net/lib/linux/lwjgl-native.jar"/>
+	</resources>
+	
+	<resources os="Windows">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<nativelib href="http://jake2.sourceforge.net/lib/windows/lwjgl-native.jar"/>
+	</resources>
+
+	<application-desc main-class="jake2.Jake2">
+		<argument>+set</argument>
+		<argument>vid_ref</argument>
+		<argument>lwjgl</argument>
+		<argument>+set</argument>
+		<argument>+s_impl</argument>
+		<argument>+lwjgl</argument>
+	</application-desc>
+
+</jnlp>

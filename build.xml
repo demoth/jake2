@@ -23,6 +23,8 @@
 	<path id="build.class.path">
 		<pathelement location="lib/jogl/jogl.jar"/>
 		<pathelement location="lib/joal/linux/joal.jar"/>
+		<pathelement location="lib/lwjgl/lwjgl.jar"/>
+		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
 	</path>
 	
 	<!-- usage -->
@@ -68,7 +70,10 @@
 		<copy todir="${dist}/lib">
 			<fileset dir="lib/jogl">
 				<include name="*.jar"/>
-			</fileset>	
+			</fileset>
+			<fileset dir="lib/lwjgl">
+				<include name="*.jar"/>
+			</fileset>
 		</copy>
 		<copy todir="${dist}/lib/linux">
 			<fileset dir="lib/jogl/linux">
@@ -78,11 +83,19 @@
 				<include name="*"/>
 			</fileset>			
 		</copy>
+		<copy todir="${dist}/lib/linux/lwjgl">
+			<fileset dir="lib/lwjgl/linux">
+				<include name="*"/>
+			</fileset>				
+		</copy>
 		<copy todir="${dist}/lib/windows">
 			<fileset dir="lib/jogl/windows">
 				<include name="*"/>
 			</fileset>
 			<fileset dir="lib/joal/windows">
+				<include name="*"/>
+			</fileset>
+			<fileset dir="lib/lwjgl/windows">
 				<include name="*"/>
 			</fileset>			
 		</copy>
@@ -225,6 +238,9 @@
 		<jar destfile="webstart/lib/linux/joal-native.jar" basedir="${dist}/lib/linux">
 			<include name="libjoal.so"/>
 		</jar>
+		<jar destfile="webstart/lib/linux/lwjgl-native.jar" basedir="${dist}/lib/linux/lwjgl">
+			<include name="*.so"/>
+		</jar>
 		<jar destfile="webstart/lib/linux/openal.jar" basedir="${dist}/lib/linux">
 			<include name="libopenal.so"/>
 		</jar>
@@ -237,6 +253,10 @@
 		<jar destfile="webstart/lib/windows/joal-native.jar" basedir="${dist}/lib/windows">
 			<include name="joal.dll"/>
 			<include name="OpenAL32.dll"/>
+		</jar>
+		<jar destfile="webstart/lib/windows/lwjgl-native.jar" basedir="${dist}/lib/windows">
+			<include name="lwjgl.dll"/>
+			<include name="lwjglaudio.dll"/>
 		</jar>
 		<signjar keystore="${user.home}/bytonic" alias="hoz" storepass="${bytonic.pass}">
 			<fileset dir="webstart/lib">

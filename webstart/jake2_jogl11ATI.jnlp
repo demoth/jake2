@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0+" 
 	codebase="http://www.bytonic.de/downloads"
-	href="jake2_jogl11.jnlp">
+	href="jake2_jogl11ATI.jnlp">
 	
 	<information>
 		<title>Jake2</title>
