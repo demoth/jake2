@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.18 2004-06-28 21:07:07 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.19 2004-06-29 00:43:24 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -37,7 +37,7 @@ public final class JOALSoundImpl implements Sound {
 	cvar_t s_volume;
 	
 	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
-	private static final int MAX_CHANNELS = 16;
+	private static final int MAX_CHANNELS = 32;
 	
 	private int[] buffers = new int[MAX_SFX];
 	private int[] sources = new int[MAX_CHANNELS];
