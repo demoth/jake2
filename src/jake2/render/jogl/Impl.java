@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.8 2004-01-07 22:51:57 rst Exp $
+ * $Id: Impl.java,v 1.9 2004-01-08 13:07:50 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -144,8 +144,8 @@ public class Impl extends Misc implements GLEventListener {
 		
 		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
 
-		// just some try.		
-		canvas.addKeyListener(new KeyAdapter() {
+		// TODO Eventlisteners: just some try.		
+/*		canvas.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				// store coordinetes ?
 				Com.Printf("Yo amigo on tha your keybord :" + e.getKeyCode() + " (" + e.getWhen() + ")\n");
@@ -180,7 +180,7 @@ public class Impl extends Misc implements GLEventListener {
 			}
 		});
 
-		
+*/		
 		window.show();
 		this.canvas = canvas;
 
