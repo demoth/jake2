@@ -20,13 +20,13 @@ import javax.imageio.stream.ImageInputStream;
  */
 public class PCXImageReaderSpi extends ImageReaderSpi {
 
-	static final String vendorName = "cwei.in-chemnitz.de";
+	static final String vendorName = "jteam@in-chemnitz.de";
 	static final String version = "1.0_beta";
 	static final String[] names = { "quake2 pcx" };
 	static final String[] suffixes = { "pcx" };
 	static final String[] MIMETypes = { "image/x-quake2-pcx" };
-	static final String readerClassName = "cwei.imageio.PCXImageReader";
-	static final String[] writerSpiNames = null; //		{ "cwei.imageio.PCXImageWriterSpi" };
+	static final String readerClassName = "jake2.imageio.PCXImageReader";
+	static final String[] writerSpiNames = null; //		{ "jake2.imageio.PCXImageWriterSpi" };
 
 	// Metadata formats, more information below
 	static final boolean supportsStandardStreamMetadataFormat = false;
@@ -37,8 +37,8 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 	static final String[] extraStreamMetadataFormatClassNames = null;
 	static final boolean supportsStandardImageMetadataFormat = false;
 	static final String nativeImageMetadataFormatName =
-		"cwei.imageio.PCXMetaData_1.0";
-	static final String nativeImageMetadataFormatClassName = null;	// "cwei.imageio.PCXMetadata";
+		"jake2.imageio.PCXMetaData_1.0";
+	static final String nativeImageMetadataFormatClassName = null;	// "jake2.imageio.PCXMetadata";
 	static final String[] extraImageMetadataFormatNames = null;
 	static final String[] extraImageMetadataFormatClassNames = null;
 
@@ -78,7 +78,7 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 			return new PCXImageReader(this);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see javax.imageio.spi.IIOServiceProvider#getDescription(java.util.Locale)
 	 */
 	public String getDescription(Locale locale) {
@@ -99,6 +99,4 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 		
 		return true;
 	}
-
-
 }
