@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.36 2004-02-21 12:07:01 hoz Exp $
+ * $Id: SCR.java,v 1.37 2004-02-22 15:02:46 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1429,7 +1429,7 @@ public final class SCR extends Globals {
 	static void DrawFPS() {
 		if (fps.value != 0.0f) {
 			int diff = cls.realtime - lasttime;
-			if (diff > 5000) {
+			if (diff > 500) {
 				fpsvalue = (cls.framecount-lastframes)*100000/diff/100.0f + " fps";
 				lastframes = cls.framecount;
 				lasttime = cls.realtime;
