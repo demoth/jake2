@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.5 2003-12-02 10:07:35 hoz Exp $
+ * $Id: Sys.java,v 1.6 2003-12-11 15:20:03 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,6 +52,12 @@ public final class Sys {
 //		00111 
 		System.exit(1);
 			
+	}
+	
+	public static void Quit() {
+		CL.Shutdown();
+//	00093         fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
+		System.exit(0);
 	}
 	
 }

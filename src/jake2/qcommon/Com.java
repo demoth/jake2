@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.15 2003-12-02 10:07:36 hoz Exp $
+ * $Id: Com.java,v 1.16 2003-12-11 15:20:03 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -166,4 +166,16 @@ public final class Com {
 			return;
 		Globals.com_argv[arg] = "";
 	}
+	
+	public static void Quit() {
+		SV.Shutdown("Server quit\n", false);
+		CL.Shutdown();
+
+//		if (logfile) {
+//	00237                 fclose (logfile);
+//	00238                 logfile = NULL;
+//		}
+
+		Sys.Quit();
+	}	
 }

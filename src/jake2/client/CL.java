@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.26 2003-12-11 14:42:06 hoz Exp $
+ * $Id: CL.java,v 1.27 2003-12-11 15:20:03 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -179,10 +179,9 @@ public final class CL extends Globals {
 				*/
 		Cmd.AddCommand("record", Record_f);
 		Cmd.AddCommand("stop", Stop_f);
-		/*
-				Cmd.AddCommand("quit", CL_Quit_f);
+		Cmd.AddCommand("quit", Quit_f);
 		
-				Cmd.AddCommand("connect", CL_Connect_f);
+				/*Cmd.AddCommand("connect", CL_Connect_f);
 				Cmd.AddCommand("reconnect", CL_Reconnect_f);
 		
 				Cmd.AddCommand("rcon", CL_Rcon_f);
@@ -491,36 +490,34 @@ public final class CL extends Globals {
 			Cvar.SetValue("paused", cl_paused.value);
 		}
 	};
-	//
-	//	/*
-	//	==================
-	//	CL_Quit_f
-	//	==================
-	//	*/
-	//	void CL_Quit_f (void)
-	//	{
-	//		CL_Disconnect ();
-	//		Com_Quit ();
-	//	}
-	//
-	//	/*
-	//	================
-	//	CL_Drop
-	//
-	//	Called after an ERR_DROP was thrown
-	//	================
-	//	*/
+
+
+	/*
+	==================
+	CL_Quit_f
+	==================
+	*/
+	static xcommand_t Quit_f = new xcommand_t() {
+		public void execute() {
+			Disconnect();
+			Com.Quit();
+		}
+	};
+	
+	/**
+	 * Called after an ERR_DROP was thrown.
+	 */
 	public static void Drop() {
-	//		if (cls.state == ca_uninitialized)
-	//			return;
-	//		if (cls.state == ca_disconnected)
-	//			return;
-	//
-	//		CL_Disconnect ();
-	//
-	//		// drop loading plaque unless this is the initial game start
-	//		if (cls.disable_servercount != -1)
-	//			SCR_EndLoadingPlaque ();	// get rid of loading plaque
+		if (cls.state == ca_uninitialized)
+			return;
+		if (cls.state == ca_disconnected)
+			return;
+	
+		CL.Disconnect();
+
+		// drop loading plaque unless this is the initial game start
+		if (cls.disable_servercount != -1)
+			SCR.EndLoadingPlaque();	// get rid of loading plaque
 	}
 	//
 	//
@@ -727,8 +724,7 @@ public final class CL extends Globals {
 	//	This is also called on Com_Error, so it shouldn't cause any errors
 	//	=====================
 	//	*/
-	//	void CL_Disconnect (void)
-	//	{
+	public static void Disconnect() {
 	//		byte	final[32];
 	//
 	//		if (cls.state == ca_disconnected)
@@ -772,7 +768,7 @@ public final class CL extends Globals {
 	//		}
 	//
 	//		cls.state = ca_disconnected;
-	//	}
+	}
 	//
 	//	void CL_Disconnect_f (void)
 	//	{
