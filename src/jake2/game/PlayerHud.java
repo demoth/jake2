@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.4 2004-07-20 16:14:37 cawe Exp $
+// $Id: PlayerHud.java,v 1.5 2004-08-27 21:59:23 hzi Exp $
 
 package jake2.game;
 
@@ -307,80 +307,6 @@ public class PlayerHud extends GameTarget {
 
 		ent.client.showscores = true;
 		DeathmatchScoreboard(ent);
-	}
-
-	/*
-	==================
-	HelpComputer
-	
-	Draw help computer.
-	==================
-	*/
-	public static void HelpComputer(edict_t ent) {
-		//char string[1024];
-		String string;
-
-		String sk;
-
-		if (skill.value == 0)
-			sk = "easy";
-		else if (skill.value == 1)
-			sk = "medium";
-		else if (skill.value == 2)
-			sk = "hard";
-		else
-			sk = "hard+";
-
-		// send the layout
-
-			string = Com.sprintf("xv 32 yv 8 picn help " + // background
-		"xv 202 yv 12 string2 \"%s\" " + // skill
-		"xv 0 yv 24 cstring2 \"%s\" " + // level name
-		"xv 0 yv 54 cstring2 \"%s\" " + // help 1
-		"xv 0 yv 110 cstring2 \"%s\" " + // help 2
-	"xv 50 yv 164 string2 \" kills     goals    secrets\" " + "xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ",
-		new Vargs()
-			.add(sk)
-			.add(level.level_name)
-			.add(game.helpmessage1)
-			.add(game.helpmessage2)
-			.add(level.killed_monsters)
-			.add(level.total_monsters)
-			.add(level.found_goals)
-			.add(level.total_goals)
-			.add(level.found_secrets)
-			.add(level.total_secrets));
-
-		gi.WriteByte(svc_layout);
-		gi.WriteString(string);
-		gi.unicast(ent, true);
-	}
-
-	/*
-	==================
-	Cmd_Help_f
-	
-	Display the current help message
-	==================
-	*/
-	public static void Cmd_Help_f(edict_t ent) {
-		// this is for backwards compatability
-		if (deathmatch.value != 0) {
-			Cmd_Score_f(ent);
-			return;
-		}
-
-		ent.client.showinventory = false;
-		ent.client.showscores = false;
-
-		if (ent.client.showhelp && (ent.client.pers.game_helpchanged == game.helpchanged)) {
-			ent.client.showhelp = false;
-			return;
-		}
-
-		ent.client.showhelp = true;
-		ent.client.pers.helpchanged = 0;
-		HelpComputer(ent);
 	}
 
 	//=======================================================================
