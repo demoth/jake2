@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.27 2004-01-30 18:46:04 cwei Exp $
+ * $Id: Com.java,v 1.28 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -449,6 +449,11 @@ public final class Com {
 		Com.Error(Defines.ERR_FATAL, "Com.BlockChecksum not implemented!");
 		System.exit(-1);
 		return 0;
+	}
+
+	public static void StripExtension(String string, String string2) {
+		// TODO implement!
+		
 	}
 
 }

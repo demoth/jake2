@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-//$Id: clientinfo_t.java,v 1.3 2003-11-29 13:48:49 rst Exp $
+//$Id: clientinfo_t.java,v 1.4 2004-01-31 16:56:11 rst Exp $
 
 package jake2.client;
 
@@ -29,9 +29,26 @@ import jake2.render.*;
 public class clientinfo_t {
 	String	name;
 	String	cinfo;
-	image_t skin;
-	image_t icon;
-	String iconname;;
-	model_t model;
-	model_t weaponmodel[] = new model_t[Defines.MAX_CLIENTWEAPONMODELS];
+	image_t skin;	// reference
+	image_t icon;	// reference
+	String iconname;
+	model_t model;	// reference
+	model_t weaponmodel[] = new model_t[Defines.MAX_CLIENTWEAPONMODELS]; // arary of references
+	
+	public void reset()
+	{
+		set(new clientinfo_t());
+	}
+	
+	public void set (clientinfo_t from)
+	{
+		name = from.name;
+		cinfo = from.cinfo;
+		skin = from.skin;
+		icon = from.icon;
+		iconname = from.iconname;
+		model = from.model;
+		System.arraycopy(from.weaponmodel,0, weaponmodel, 0 , Defines.MAX_CLIENTWEAPONMODELS);
+	}
+	
 }

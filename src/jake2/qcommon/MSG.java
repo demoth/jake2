@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.10 2004-01-18 10:39:34 rst Exp $
+// $Id: MSG.java,v 1.11 2004-01-31 16:56:11 rst Exp $
 
 package jake2.qcommon;
 
@@ -57,7 +57,7 @@ public class MSG extends GameBase {
 
 	public static void WriteShort(sizebuf_t sb, int c) {
 
-		if (c < ((short) 0x8000) || c > (short) 0x7fff)
+		if (c < -32768 || c > 32767)
 			Com.Error(ERR_FATAL, "WriteShort: range error");
 
 		int i = SZ.GetSpace(sb, 2);
@@ -71,7 +71,7 @@ public class MSG extends GameBase {
 		sb.data[i++] = (byte) ((c & 0xff));
 		sb.data[i++] = (byte) ((c >>> 8) & 0xff);
 		sb.data[i++] = (byte) ((c >>> 16) & 0xff);
-		sb.data[i++] = (byte) (c >>> 24);
+		sb.data[i++] = (byte) ((c >>> 24) &0xff);
 	}
 
 	public static void WriteLong(sizebuf_t sb, int c) {
@@ -203,7 +203,12 @@ public class MSG extends GameBase {
 	Can delta from either a baseline or a previous packet_entity
 	==================
 	*/
-	public static void WriteDeltaEntity(entity_state_t from, entity_state_t to, sizebuf_t msg, boolean force, boolean newentity) {
+	public static void WriteDeltaEntity(
+		entity_state_t from,
+		entity_state_t to,
+		sizebuf_t msg,
+		boolean force,
+		boolean newentity) {
 		int bits;
 
 		if (0 == to.number)
@@ -428,7 +433,7 @@ public class MSG extends GameBase {
 		if (msg_read.readcount + 2 > msg_read.cursize)
 			c = -1;
 		else
-			c = (short) (msg_read.data[msg_read.readcount] + (msg_read.data[msg_read.readcount + 1] << 8));
+			c = (short) ((msg_read.data[msg_read.readcount] & 0xff) + (msg_read.data[msg_read.readcount + 1] << 8));
 
 		msg_read.readcount += 2;
 
@@ -442,10 +447,10 @@ public class MSG extends GameBase {
 			c = -1;
 		else
 			c =
-				msg_read.data[msg_read.readcount]
-					+ (msg_read.data[msg_read.readcount + 1] << 8)
-					+ (msg_read.data[msg_read.readcount + 2] << 16)
-					+ (msg_read.data[msg_read.readcount + 3] << 24);
+				msg_read.data[msg_read.readcount] &0xff
+					+ ((msg_read.data[msg_read.readcount + 1] & 0xff) << 8)
+					+ ((msg_read.data[msg_read.readcount + 2] & 0xff) << 16)
+					+ ((msg_read.data[msg_read.readcount + 3] & 0xff) << 24);
 
 		msg_read.readcount += 4;
 
@@ -470,12 +475,13 @@ public class MSG extends GameBase {
 			c = (byte) ReadByte(msg_read);
 			if (c == -1 || c == 0)
 				break;
+				
 			readbuf[l] = c;
 			l++;
 		}
 		while (l < 2047);
 
-		readbuf[l] = 0;
+		//readbuf[l] = 0;
 		return new String(readbuf, 0, l);
 	}
 

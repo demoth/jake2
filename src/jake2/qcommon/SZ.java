@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.11 2004-01-18 10:39:34 rst Exp $
+ * $Id: SZ.java,v 1.12 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,7 +47,7 @@ public final class SZ {
 
 	/** Ask for the pointer using sizebuf_t.cursize (RST) */
 	public static int GetSpace(sizebuf_t buf, int length) {
-		int data;
+		int oldsize;
 	
 		if (buf.cursize + length > buf.maxsize) {
 			if (!buf.allowoverflow)
@@ -61,10 +61,10 @@ public final class SZ {
 			buf.overflowed = true;
 		}
 	
-		data = buf.cursize;
+		oldsize = buf.cursize;
 		buf.cursize += length;
 	
-		return data;
+		return oldsize;
 	}
 
 	public static void Write(sizebuf_t buf, byte data[], int length) {
@@ -84,21 +84,24 @@ public final class SZ {
 
 	public static void Print(sizebuf_t buf, String data) {
 	
-		int length = data.length() + 1;
+		int length = data.length();
 		byte str[] = data.getBytes();
 	
 		if (buf.cursize != 0) {
 	
 			if (buf.data[buf.cursize - 1] != 0) {
 				//memcpy( SZ_GetSpace(buf, len), data, len); // no trailing 0
-				System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
+				System.arraycopy(str, 0, buf.data, GetSpace(buf, length+1), length);
 			} else {
-				System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
+				System.arraycopy(str, 0, buf.data, GetSpace(buf, length)-1, length);
 				//memcpy(SZ_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0
 			}
 	
 		} else
-			System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
+			// first print.
+			System.arraycopy(str, 0, buf.data, GetSpace(buf, length), length);
 		//memcpy(SZ_GetSpace(buf, len), data, len);
+		
+		buf.data[buf.cursize - 1]=0;
 	}
 }

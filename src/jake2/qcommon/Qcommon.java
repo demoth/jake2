@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.13 2004-01-30 13:05:46 cwei Exp $
+ * $Id: Qcommon.java,v 1.14 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -193,7 +193,7 @@ public final class Qcommon {
 				Globals.c_pointcontents= 0;
 			}
 
-			//Cbuf.Execute ();
+			Cbuf.Execute ();
 
 			long time_before= 0;
 			long time_between= 0;

@@ -2,9 +2,11 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.3 2004-01-29 17:56:41 hoz Exp $
+ * $Id: CL_tent.java,v 1.4 2004-01-31 16:56:11 rst Exp $
  */
 package jake2.client;
+
+import jake2.render.model_t;
 
 /**
  * CL_tent
@@ -75,40 +77,42 @@ public class CL_tent extends CL_ents {
 ////	   RAFAEL
 //	void CL_BlueBlasterParticles (vec3_t org, vec3_t dir);
 //
-//	struct sfx_s	*cl_sfx_ric1;
-//	struct sfx_s	*cl_sfx_ric2;
-//	struct sfx_s	*cl_sfx_ric3;
-//	struct sfx_s	*cl_sfx_lashit;
-//	struct sfx_s	*cl_sfx_spark5;
-//	struct sfx_s	*cl_sfx_spark6;
-//	struct sfx_s	*cl_sfx_spark7;
-//	struct sfx_s	*cl_sfx_railg;
-//	struct sfx_s	*cl_sfx_rockexp;
-//	struct sfx_s	*cl_sfx_grenexp;
-//	struct sfx_s	*cl_sfx_watrexp;
-////	   RAFAEL
-//	struct sfx_s	*cl_sfx_plasexp;
-//	struct sfx_s	*cl_sfx_footsteps[4];
-//
-//	struct model_s	*cl_mod_explode;
-//	struct model_s	*cl_mod_smoke;
-//	struct model_s	*cl_mod_flash;
-//	struct model_s	*cl_mod_parasite_segment;
-//	struct model_s	*cl_mod_grapple_cable;
-//	struct model_s	*cl_mod_parasite_tip;
-//	struct model_s	*cl_mod_explo4;
-//	struct model_s	*cl_mod_bfg_explo;
-//	struct model_s	*cl_mod_powerscreen;
-////	   RAFAEL
-//	struct model_s	*cl_mod_plasmaexplo;
-//
-////	  ROGUE
-//	struct sfx_s	*cl_sfx_lightning;
-//	struct sfx_s	*cl_sfx_disrexp;
-//	struct model_s	*cl_mod_lightning;
-//	struct model_s	*cl_mod_heatbeam;
-//	struct model_s	*cl_mod_monster_heatbeam;
-//	struct model_s	*cl_mod_explo4_big;
+
+	// all are references;
+	static sfx_t cl_sfx_ric1;
+	static sfx_t cl_sfx_ric2;
+	static sfx_t cl_sfx_ric3;
+	static sfx_t cl_sfx_lashit;
+	static sfx_t cl_sfx_spark5;
+	static sfx_t cl_sfx_spark6;
+	static sfx_t cl_sfx_spark7;
+	static sfx_t cl_sfx_railg;
+	static sfx_t cl_sfx_rockexp;
+	static sfx_t cl_sfx_grenexp;
+	static sfx_t cl_sfx_watrexp;
+	// RAFAEL
+	static sfx_t cl_sfx_plasexp;
+	static sfx_t cl_sfx_footsteps[] = new sfx_t[4];
+
+	static model_t	cl_mod_explode;
+	static model_t	cl_mod_smoke;
+	static model_t	cl_mod_flash;
+	static model_t	cl_mod_parasite_segment;
+	static model_t	cl_mod_grapple_cable;
+	static model_t	l_mod_parasite_tip;
+	static model_t	cl_mod_explo4;
+	static model_t	cl_mod_bfg_explo;
+	static model_t	cl_mod_powerscreen;
+	//	   RAFAEL
+	static model_t	cl_mod_plasmaexplo;
+
+	//	  ROGUE
+	static sfx_t	cl_sfx_lightning;
+	static sfx_t	cl_sfx_disrexp;
+	static model_t	cl_mod_lightning;
+	static model_t	cl_mod_heatbeam;
+	static model_t	cl_mod_monster_heatbeam;
+	static model_t	cl_mod_explo4_big;
 //
 ////	  ROGUE
 //	/*
@@ -278,8 +282,8 @@ public class CL_tent extends CL_ents {
 //	CL_ParseParticles
 //	=================
 //	*/
-//	void CL_ParseParticles (void)
-//	{
+	static void CL_ParseParticles ()
+	{
 //		int		color, count;
 //		vec3_t	pos, dir;
 //
@@ -291,7 +295,7 @@ public class CL_tent extends CL_ents {
 //		count = MSG_ReadByte (&net_message);
 //
 //		CL_ParticleEffect (pos, dir, color, count);
-//	}
+	}
 //
 //	/*
 //	=================
@@ -683,9 +687,9 @@ public class CL_tent extends CL_ents {
 //	*/
 //	static byte splash_color[] = {0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8};
 //
-//	void CL_ParseTEnt (void)
-//	{
-//		int		type;
+	static void CL_ParseTEnt ()
+	{
+		int		type;
 //		vec3_t	pos, pos2, dir;
 //		explosion_t	*ex;
 //		int		cnt;
@@ -1188,7 +1192,10 @@ public class CL_tent extends CL_ents {
 //		default:
 //			Com_Error (ERR_DROP, "CL_ParseTEnt: bad type");
 //		}
-//	}
+	}
+	public static void CL_AddTEnts() {
+		// TODO:implement!		
+	}
 //
 //	/*
 //	=================

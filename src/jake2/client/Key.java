@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.19 2004-01-27 20:10:29 rst Exp $
+ * $Id: Key.java,v 1.20 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.client;
+
+import java.io.RandomAccessFile;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -796,6 +798,10 @@ public class Key extends Globals {
 			keydown[i] = false;
 			key_repeats[i] = 0;
 		}
+	}
+
+	public static void WriteBindings(RandomAccessFile f) {
+		// TODO:implement!
 	}
 
 }

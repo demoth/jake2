@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.5 2004-01-30 13:34:31 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.6 2004-01-31 16:56:11 rst Exp $
 
 package jake2.server;
 
@@ -354,7 +354,7 @@ public class SV_CCMDS extends SV_ENTS {
 		try {
 			//fwrite(sv.configstrings, sizeof(sv.configstrings), 1, f);
 			for (int i = 0; i < sv.configstrings.length; i++)
-				Lib.fwrite(sv.configstrings[i], MAX_QPATH, f);
+				Lib.fwriteString(sv.configstrings[i], MAX_QPATH, f);
 
 			CM.CM_WritePortalState(f);
 			f.close();
@@ -446,10 +446,10 @@ public class SV_CCMDS extends SV_ENTS {
 			comment = "ENTERING " + sv.configstrings[CS_NAME];
 		}
 
-		fwrite(comment, 32, f);
+		fwriteString(comment, 32, f);
 
 		// write the mapcmd
-		fwrite(svs.mapcmd, MAX_TOKEN_CHARS, f);
+		fwriteString(svs.mapcmd, MAX_TOKEN_CHARS, f);
 
 		// write all CVAR_LATCH cvars
 		// these will be things like coop, skill, deathmatch, etc
@@ -464,8 +464,8 @@ public class SV_CCMDS extends SV_ENTS {
 			//memset(string, 0, sizeof(string));
 			name = var.name;
 			string = var.string;
-			fwrite(name, MAX_OSPATH, f);
-			fwrite(string, 128, f);
+			fwriteString(name, MAX_OSPATH, f);
+			fwriteString(string, 128, f);
 		}
 
 		f.close();

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.14 2004-01-28 10:32:10 hoz Exp $
+// $Id: Math3D.java,v 1.15 2004-01-31 16:56:11 rst Exp $
 
 package jake2.util;
 
@@ -42,16 +42,16 @@ public class Math3D extends Lib {
 		c[2] = a[2] - b[2];
 	}
 	
-	public static void VectorAdd(float[] a, float[] b, float[] c) {
-		c[0] = a[0] + b[0];
-		c[1] = a[1] + b[1];
-		c[2] = a[2] + b[2];
+	public static void VectorAdd(float[] a, float[] b, float[] to) {
+		to[0] = a[0] + b[0];
+		to[1] = a[1] + b[1];
+		to[2] = a[2] + b[2];
 	}
 	
-	public static void VectorCopy(float[] a, float[] b) {
-		b[0] = a[0];
-		b[1] = a[1];
-		b[2] = a[2];
+	public static void VectorCopy(float[] from, float[] to) {
+		to[0] = from[0];
+		to[1] = from[1];
+		to[2] = from[2];
 	}
 	
 	public static void VectorCopy(short[] a, short[] b) {

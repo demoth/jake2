@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.3 2004-01-29 22:44:58 hoz Exp $
+ * $Id: CL_fx.java,v 1.4 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,19 +26,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.Globals;
+import jake2.game.entity_state_t;
 
 /**
  * CL_fx
  */
 public class CL_fx extends Globals {
+	
+	public static class cdlight_t
+	{
+		int		key;				// so entities can reuse same entry
+		float [] color={0,0,0};
+		float [] origin = {0,0,0};
+		float	radius;
+		float	die;				// stop lighting after this time
+		float	decay;				// drop this each second
+		float	minlight;			// don't add when contributing less
+	}
+	
+	
 ////	   cl_fx.c -- entity effects parsing and management
 //
-//	#include "client.h"
-//
-//	void CL_LogoutEffect (vec3_t org, int type);
-//	void CL_ItemRespawnParticles (vec3_t org);
-//
-//	static vec3_t avelocities [NUMVERTEXNORMALS];
+//	static float []  avelocities [NUMVERTEXNORMALS];
 //
 //	extern	struct model_s	*cl_mod_smoke;
 //	extern	struct model_s	*cl_mod_flash;
@@ -66,11 +75,11 @@ public class CL_fx extends Globals {
 //	CL_ClearLightStyles
 //	================
 //	*/
-//	void CL_ClearLightStyles (void)
-//	{
+	static void CL_ClearLightStyles ()
+	{
 //		memset (cl_lightstyle, 0, sizeof(cl_lightstyle));
 //		lastofs = -1;
-//	}
+	}
 //
 //	/*
 //	================
@@ -102,8 +111,9 @@ public class CL_fx extends Globals {
 	}
 //
 //
-//	void CL_SetLightstyle (int i)
-//	{
+	public static void CL_SetLightstyle (int i)
+	{ 
+		//TODO: implement!
 //		char	*s;
 //		int		j, k;
 //
@@ -117,21 +127,21 @@ public class CL_fx extends Globals {
 //
 //		for (k=0 ; k<j ; k++)
 //			cl_lightstyle[i].map[k] = (float)(s[k]-'a')/(float)('m'-'a');
-//	}
+	}
 //
 //	/*
 //	================
 //	CL_AddLightStyles
 //	================
 //	*/
-//	void CL_AddLightStyles (void)
-//	{
+	static void CL_AddLightStyles ()
+	{
 //		int		i;
 //		clightstyle_t	*ls;
 //
 //		for (i=0,ls=cl_lightstyle ; i<MAX_LIGHTSTYLES ; i++, ls++)
 //			V_AddLightStyle (i, ls->value[0], ls->value[1], ls->value[2]);
-//	}
+	}
 //
 //	/*
 //	==============================================================
@@ -148,10 +158,10 @@ public class CL_fx extends Globals {
 //	CL_ClearDlights
 //	================
 //	*/
-//	void CL_ClearDlights (void)
-//	{
+	static void CL_ClearDlights ()
+	{
 //		memset (cl_dlights, 0, sizeof(cl_dlights));
-//	}
+	}
 //
 //	/*
 //	===============
@@ -159,8 +169,8 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	cdlight_t *CL_AllocDlight (int key)
-//	{
+	cdlight_t CL_AllocDlight (int key)
+	{
 //		int		i;
 //		cdlight_t	*dl;
 //
@@ -195,15 +205,16 @@ public class CL_fx extends Globals {
 //		memset (dl, 0, sizeof(*dl));
 //		dl->key = key;
 //		return dl;
-//	}
+	return null;
+	}
 //
 //	/*
 //	===============
 //	CL_NewDlight
 //	===============
 //	*/
-//	void CL_NewDlight (int key, float x, float y, float z, float radius, float time)
-//	{
+	void CL_NewDlight (int key, float x, float y, float z, float radius, float time)
+	{
 //		cdlight_t	*dl;
 //
 //		dl = CL_AllocDlight (key);
@@ -212,7 +223,7 @@ public class CL_fx extends Globals {
 //		dl->origin[2] = z;
 //		dl->radius = radius;
 //		dl->die = cl.time + time;
-//	}
+	}
 //
 //
 //	/*
@@ -221,6 +232,7 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
+
 	static void RunDLights() {
 //		int			i;
 //		cdlight_t	*dl;
@@ -247,9 +259,9 @@ public class CL_fx extends Globals {
 //	CL_ParseMuzzleFlash
 //	==============
 //	*/
-//	void CL_ParseMuzzleFlash (void)
-//	{
-//		vec3_t		fv, rv;
+ 	static void CL_ParseMuzzleFlash ()
+	{
+//		float [] 		fv, rv;
 //		cdlight_t	*dl;
 //		int			i, weapon;
 //		centity_t	*pl;
@@ -430,7 +442,7 @@ public class CL_fx extends Globals {
 ////	   PGM
 ////	   ======================
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -438,13 +450,13 @@ public class CL_fx extends Globals {
 //	CL_ParseMuzzleFlash2
 //	==============
 //	*/
-//	void CL_ParseMuzzleFlash2 (void) 
-//	{
+	static void CL_ParseMuzzleFlash2 () 
+	{
 //		int			ent;
-//		vec3_t		origin;
+//		float [] 		origin;
 //		int			flash_number;
 //		cdlight_t	*dl;
-//		vec3_t		forward, right;
+//		float [] 		forward, right;
 //		char		soundname[64];
 //
 //		ent = MSG_ReadShort (&net_message);
@@ -812,7 +824,7 @@ public class CL_fx extends Globals {
 ////	   --- Xian's shit ends ---
 //
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -821,7 +833,7 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_AddDLights (void)
+//	void CL_AddDLights ()
 //	{
 //		int			i;
 //		cdlight_t	*dl;
@@ -881,9 +893,9 @@ public class CL_fx extends Globals {
 //
 //		float		time;
 //
-//		vec3_t		org;
-//		vec3_t		vel;
-//		vec3_t		accel;
+//		float [] 		org;
+//		float [] 		vel;
+//		float [] 		accel;
 //		float		color;
 //		float		colorvel;
 //		float		alpha;
@@ -905,8 +917,8 @@ public class CL_fx extends Globals {
 //	CL_ClearParticles
 //	===============
 //	*/
-//	void CL_ClearParticles (void)
-//	{
+	static void CL_ClearParticles ()
+	{
 //		int		i;
 //	
 //		free_particles = &particles[0];
@@ -915,7 +927,7 @@ public class CL_fx extends Globals {
 //		for (i=0 ;i<cl_numparticles ; i++)
 //			particles[i].next = &particles[i+1];
 //		particles[cl_numparticles-1].next = NULL;
-//	}
+	}
 //
 //
 //	/*
@@ -925,8 +937,8 @@ public class CL_fx extends Globals {
 //	Wall impact puffs
 //	===============
 //	*/
-//	void CL_ParticleEffect (vec3_t org, vec3_t dir, int color, int count)
-//	{
+	static void CL_ParticleEffect (float []  org, float []  dir, int color, int count)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
@@ -956,7 +968,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -964,8 +976,8 @@ public class CL_fx extends Globals {
 //	CL_ParticleEffect2
 //	===============
 //	*/
-//	void CL_ParticleEffect2 (vec3_t org, vec3_t dir, int color, int count)
-//	{
+	static void CL_ParticleEffect2 (float []  org, float []  dir, int color, int count)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
@@ -995,7 +1007,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 ////	   RAFAEL
@@ -1004,8 +1016,8 @@ public class CL_fx extends Globals {
 //	CL_ParticleEffect3
 //	===============
 //	*/
-//	void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count)
-//	{
+	static void CL_ParticleEffect3 (float []  org, float []  dir, int color, int count)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
@@ -1035,15 +1047,15 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //	/*
 //	===============
 //	CL_TeleporterParticles
 //	===============
 //	*/
-//	void CL_TeleporterParticles (entity_state_t *ent)
-//	{
+	static void CL_TeleporterParticles (entity_state_t ent)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //
@@ -1074,7 +1086,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -0.5;
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1083,8 +1095,8 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_LogoutEffect (vec3_t org, int type)
-//	{
+	static void CL_LogoutEffect (float []  org, int type)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //
@@ -1119,7 +1131,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (1.0 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1128,8 +1140,8 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_ItemRespawnParticles (vec3_t org)
-//	{
+	static void CL_ItemRespawnParticles (float []  org)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //
@@ -1159,7 +1171,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (1.0 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1167,8 +1179,8 @@ public class CL_fx extends Globals {
 //	CL_ExplosionParticles
 //	===============
 //	*/
-//	void CL_ExplosionParticles (vec3_t org)
-//	{
+	static void CL_ExplosionParticles (float []  org)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //
@@ -1196,7 +1208,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -0.8 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1204,8 +1216,8 @@ public class CL_fx extends Globals {
 //	CL_BigTeleportParticles
 //	===============
 //	*/
-//	void CL_BigTeleportParticles (vec3_t org)
-//	{
+	static void CL_BigTeleportParticles (float []  org)
+	{
 //		int			i;
 //		cparticle_t	*p;
 //		float		angle, dist;
@@ -1241,7 +1253,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -0.3 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1251,8 +1263,8 @@ public class CL_fx extends Globals {
 //	Wall impact puffs
 //	===============
 //	*/
-//	void CL_BlasterParticles (vec3_t org, vec3_t dir)
-//	{
+	static void CL_BlasterParticles (float []  org, float []  dir)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
@@ -1284,7 +1296,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1293,10 +1305,10 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_BlasterTrail (vec3_t start, vec3_t end)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_BlasterTrail (float []  start, float []  end)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -1336,7 +1348,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //	/*
 //	===============
@@ -1344,10 +1356,10 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_QuadTrail (vec3_t start, vec3_t end)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_QuadTrail (float []  start, float []  end)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -1386,7 +1398,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //	/*
 //	===============
@@ -1394,10 +1406,10 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_FlagTrail (vec3_t start, vec3_t end, float color)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+ 	static void CL_FlagTrail (float []  start, float []  end, float color)
+	{
+		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -1436,7 +1448,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //	/*
 //	===============
@@ -1444,10 +1456,10 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_DiminishingTrail (float []  start, float []  end, centity_t  old, int flags)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -1541,34 +1553,19 @@ public class CL_fx extends Globals {
 //				old->trailcount = 100;
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
-//	void MakeNormalVectors (vec3_t forward, vec3_t right, vec3_t up)
-//	{
-//		float		d;
-//
-//		// this rotate and negat guarantees a vector
-//		// not colinear with the original
-//		right[1] = -forward[0];
-//		right[2] = forward[1];
-//		right[0] = forward[2];
-//
-//		d = DotProduct (right, forward);
-//		VectorMA (right, -d, forward, right);
-//		VectorNormalize (right);
-//		CrossProduct (right, forward, up);
-//	}
-//
+ 
 //	/*
 //	===============
 //	CL_RocketTrail
 //
 //	===============
 //	*/
-//	void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_RocketTrail (float []  start, float []  end, centity_t  old)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -1614,7 +1611,7 @@ public class CL_fx extends Globals {
 //			}
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //	/*
 //	===============
@@ -1622,18 +1619,18 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_RailTrail (vec3_t start, vec3_t end)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_RailTrail (float []  start, float []  end)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
 //		float		dec;
-//		vec3_t		right, up;
+//		float [] 		right, up;
 //		int			i;
 //		float		d, c, s;
-//		vec3_t		dir;
+//		float [] 		dir;
 //		byte		clr = 0x74;
 //
 //		VectorCopy (start, move);
@@ -1705,7 +1702,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 ////	   RAFAEL
 //	/*
@@ -1713,10 +1710,10 @@ public class CL_fx extends Globals {
 //	CL_IonripperTrail
 //	===============
 //	*/
-//	void CL_IonripperTrail (vec3_t start, vec3_t ent)
-//	{
-//		vec3_t	move;
-//		vec3_t	vec;
+	static void CL_IonripperTrail (float []  start, float []  ent)
+	{
+//		float [] 	move;
+//		float [] 	vec;
 //		float	len;
 //		int		j;
 //		cparticle_t *p;
@@ -1768,7 +1765,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1777,10 +1774,10 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_BubbleTrail (vec3_t start, vec3_t end)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
+	static void CL_BubbleTrail (float []  start, float []  end)
+	{
+//		float [] 		move;
+//		float [] 		vec;
 //		float		len;
 //		int			i, j;
 //		cparticle_t	*p;
@@ -1818,7 +1815,7 @@ public class CL_fx extends Globals {
 //
 //			VectorAdd (move, vec, move);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1828,13 +1825,13 @@ public class CL_fx extends Globals {
 //	*/
 //
 //	#define	BEAMLENGTH			16
-//	void CL_FlyParticles (vec3_t origin, int count)
-//	{
+	static  void CL_FlyParticles (float []  origin, int count)
+	{
 //		int			i;
 //		cparticle_t	*p;
 //		float		angle;
 //		float		sr, sp, sy, cr, cp, cy;
-//		vec3_t		forward;
+//		float [] 		forward;
 //		float		dist = 64;
 //		float		ltime;
 //
@@ -1889,10 +1886,10 @@ public class CL_fx extends Globals {
 //			p->alpha = 1;
 //			p->alphavel = -100;
 //		}
-//	}
+	}
 //
-//	void CL_FlyEffect (centity_t *ent, vec3_t origin)
-//	{
+	static void CL_FlyEffect (centity_t  ent, float []  origin)
+ 	{
 //		int		n;
 //		int		count;
 //		int		starttime;
@@ -1920,7 +1917,7 @@ public class CL_fx extends Globals {
 //		}
 //
 //		CL_FlyParticles (origin, count);
-//	}
+	}
 //
 //
 //	/*
@@ -1930,15 +1927,15 @@ public class CL_fx extends Globals {
 //	*/
 //
 //	#define	BEAMLENGTH			16
-//	void CL_BfgParticles (entity_t *ent)
-//	{
+	static  void CL_BfgParticles (entity_t  ent)
+	{
 //		int			i;
 //		cparticle_t	*p;
 //		float		angle;
 //		float		sr, sp, sy, cr, cp, cy;
-//		vec3_t		forward;
+//		float [] 		forward;
 //		float		dist = 64;
-//		vec3_t		v;
+//		float [] 		v;
 //		float		ltime;
 //	
 //		if (!avelocities[0][0])
@@ -1990,7 +1987,7 @@ public class CL_fx extends Globals {
 //			p->alpha = 1.0 - dist;
 //			p->alphavel = -100;
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1999,11 +1996,11 @@ public class CL_fx extends Globals {
 //	===============
 //	*/
 ////	   RAFAEL
-//	void CL_TrapParticles (entity_t *ent)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
-//		vec3_t		start, end;
+	static void CL_TrapParticles (entity_t ent)
+	{
+//		float [] 		move;
+//		float [] 		vec;
+//		float [] 		start, end;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
@@ -2056,8 +2053,8 @@ public class CL_fx extends Globals {
 //		int			i, j, k;
 //		cparticle_t	*p;
 //		float		vel;
-//		vec3_t		dir;
-//		vec3_t		org;
+//		float [] 		dir;
+//		float [] 		org;
 //
 //	
 //		ent->origin[2]+=14;
@@ -2097,7 +2094,7 @@ public class CL_fx extends Globals {
 //					p->accel[2] = -PARTICLE_GRAVITY;
 //				}
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -2106,8 +2103,8 @@ public class CL_fx extends Globals {
 //	===============
 //	*/
 ////	  FIXME combined with CL_ExplosionParticles
-//	void CL_BFGExplosionParticles (vec3_t org)
-//	{
+	static void CL_BFGExplosionParticles (float []  org)
+	{
 //		int			i, j;
 //		cparticle_t	*p;
 //
@@ -2135,7 +2132,7 @@ public class CL_fx extends Globals {
 //
 //			p->alphavel = -0.8 / (0.5 + frand()*0.3);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -2144,12 +2141,12 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_TeleportParticles (vec3_t org)
-//	{
+	static void CL_TeleportParticles (float [] org)
+	{
 //		int			i, j, k;
 //		cparticle_t	*p;
 //		float		vel;
-//		vec3_t		dir;
+//		float [] 		dir;
 //
 //		for (i=-16 ; i<=16 ; i+=4)
 //			for (j=-16 ; j<=16 ; j+=4)
@@ -2183,7 +2180,7 @@ public class CL_fx extends Globals {
 //					p->accel[0] = p->accel[1] = 0;
 //					p->accel[2] = -PARTICLE_GRAVITY;
 //				}
-//	}
+	}
 //
 //
 //	/*
@@ -2191,12 +2188,12 @@ public class CL_fx extends Globals {
 //	CL_AddParticles
 //	===============
 //	*/
-//	void CL_AddParticles (void)
-//	{
+	static void CL_AddParticles ()
+	{
 //		cparticle_t		*p, *next;
 //		float			alpha;
 //		float			time, time2;
-//		vec3_t			org;
+//		float [] 			org;
 //		int				color;
 //		cparticle_t		*active, *tail;
 //
@@ -2253,7 +2250,7 @@ public class CL_fx extends Globals {
 //		}
 //
 //		active_particles = active;
-//	}
+	}
 //
 //
 //	/*
@@ -2267,8 +2264,8 @@ public class CL_fx extends Globals {
 //	*/
 //	extern struct sfx_s	*cl_sfx_footsteps[4];
 //
-//	void CL_EntityEvent (entity_state_t *ent)
-//	{
+	static void CL_EntityEvent (entity_state_t ent)
+	{
 //		switch (ent->event)
 //		{
 //		case EV_ITEM_RESPAWN:
@@ -2293,7 +2290,7 @@ public class CL_fx extends Globals {
 //			S_StartSound (NULL, ent->number, CHAN_AUTO, S_RegisterSound ("*fall1.wav"), 1, ATTN_NORM, 0);
 //			break;
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -2306,6 +2303,11 @@ public class CL_fx extends Globals {
 //		CL_ClearParticles ();
 //		CL_ClearDlights ();
 //		CL_ClearLightStyles ();
+	}
+
+	public static void CL_AddDLights() {
+		// TODO:implement!
+		
 	}
 //
 }

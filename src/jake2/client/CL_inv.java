@@ -18,22 +18,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 27.11.2003 by RST.
-// $Id: centity_t.java,v 1.3 2004-01-31 16:56:11 rst Exp $
+// Created on 31.01.2004 by RST.
+// $Id: CL_inv.java,v 1.1 2004-01-31 16:56:11 rst Exp $
 
 package jake2.client;
 
-import jake2.game.entity_state_t;
 
-public class centity_t {
-	entity_state_t baseline= new entity_state_t(); // delta from this if not from a previous frame
-	entity_state_t current= new entity_state_t();
-	entity_state_t prev= new entity_state_t(); // will always be valid, but might just be a copy of current
+import jake2.*;
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
 
-	int serverframe; // if not current, this ent isn't in the frame
 
-	int trailcount; // for diminishing grenade trails
-	float[] lerp_origin = { 0, 0, 0 }; // for trails (variable hz)
+public class CL_inv {
 
-	int fly_stoptime;
+
+	public static void CL_ParseInventory() {
+		// TODO:implement!
+		
+	}
+
 }

@@ -19,10 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.14 2004-01-27 20:10:29 rst Exp $
+// $Id: Lib.java,v 1.15 2004-01-31 16:56:11 rst Exp $
 
 package jake2.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -350,7 +351,7 @@ public class Lib
 
 	static byte nullfiller[] = new byte[8192];
 
-	public static void fwrite(String s, int len, RandomAccessFile f) throws IOException
+	public static void fwriteString(String s, int len, RandomAccessFile f) throws IOException
 	{
 		int diff = len - s.length();
 		if (diff > 0)
@@ -470,6 +471,21 @@ public class Lib
 		System.out.println("rightfrom[" + rightFrom("abcdefg#hijklm", '#') + "]");
 		System.out.println("leftfrom[" + leftFrom("abcdefghijk#12", '#') + "]");
 		System.out.println("leftfrom[" + leftFrom("abcdefghi", '#') + "]");
+	}
+	 
+	public static int rename(String oldn, String newn) {
+		try
+		{
+			File f1 = new File(oldn);
+			File f2 = new File(newn);
+			f1.renameTo(f2);
+			return 0;			
+		}
+		catch(Exception e)
+		{
+			return 1;
+		}
+		return 0;
 	}
 
 }

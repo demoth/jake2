@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.10 2004-01-28 14:42:58 hoz Exp $
+// $Id: CM.java,v 1.11 2004-01-31 16:56:11 rst Exp $
 
 package jake2.qcommon;
 
@@ -77,8 +77,8 @@ public class CM extends PlayerHud {
 	static int numbrushsides;
 	static cbrushside_t map_brushsides[] = new cbrushside_t[MAX_MAP_BRUSHSIDES];
 
-	static int numtexinfo;
-	static mapsurface_t map_surfaces[] = new mapsurface_t[MAX_MAP_TEXINFO];
+	public static int numtexinfo;
+	public static mapsurface_t map_surfaces[] = new mapsurface_t[MAX_MAP_TEXINFO];
 
 	static int numplanes;
 	static cplane_t map_planes[] = new cplane_t[MAX_MAP_PLANES + 6]; // extra for box hull

@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.1 2004-01-29 22:44:57 hoz Exp $
+ * $Id: CL_pred.java,v 1.2 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,8 +38,8 @@ public class CL_pred extends CL_parse {
 //	CL_CheckPredictionError
 //	===================
 //	*/
-//	void CL_CheckPredictionError (void)
-//	{
+	static void CL_CheckPredictionError ()
+	{
 //		int		frame;
 //		int		delta[3];
 //		int		i;
@@ -73,7 +73,7 @@ public class CL_pred extends CL_parse {
 //			for (i=0 ; i<3 ; i++)
 //				cl.prediction_error[i] = delta[i]*0.125;
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -287,4 +287,5 @@ public class CL_pred extends CL_parse {
 //
 //		VectorCopy (pm.viewangles, cl.predicted_angles);
 	}
+
 }

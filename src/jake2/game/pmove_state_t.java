@@ -19,10 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.6 2004-01-08 22:38:16 rst Exp $
+// $Id: pmove_state_t.java,v 1.7 2004-01-31 16:56:10 rst Exp $
 package jake2.game;
 
 import jake2.qcommon.Com;
+import jake2.util.Math3D;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -44,6 +45,23 @@ public class pmove_state_t {
 	public short delta_angles[] = { 0, 0, 0 }; // add to command angles to get view direction
 	// changed by spawns, rotating objects, and teleporters
 
+	private static pmove_state_t prototype = new pmove_state_t();
+	
+	public void reset()
+	{
+		this.set(prototype);
+	}
+	 
+	public void set(pmove_state_t from) {
+		pm_type = from.pm_type;
+		Math3D.VectorCopy(from.origin, origin);
+		Math3D.VectorCopy(from.velocity, velocity);
+		pm_flags = from.pm_flags;
+		pm_time = from.pm_time;
+		gravity = from.gravity;
+		Math3D.VectorCopy(from.delta_angles, delta_angles);
+	}
+	
 	public boolean equals(pmove_state_t p2) {
 		if (pm_type == p2.pm_type
 			&& origin[0] == p2.origin[0]
@@ -106,4 +124,7 @@ public class pmove_state_t {
 		Com.Println("delta-angle[1]: " + delta_angles[0]);
 		Com.Println("delta-angle[2]: " + delta_angles[0]);
 	}
+
+ 
+
 }

@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.19 2004-01-30 20:31:42 cwei Exp $
+ * $Id: SCR.java,v 1.20 2004-01-31 16:56:11 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1408,5 +1408,10 @@ public final class SCR extends Globals {
 			scr_dirty.y1 = y;
 		if (y > scr_dirty.y2)
 			scr_dirty.y2 = y;
+	}
+
+	
+	public static void PlayCinematic(String str) {
+		// TODO: implement!		
 	}
 }

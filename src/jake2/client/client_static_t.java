@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: client_static_t.java,v 1.6 2004-01-30 16:59:41 hoz Exp $
+// $Id: client_static_t.java,v 1.7 2004-01-31 16:56:11 rst Exp $
 
 
 package jake2.client;
@@ -57,7 +57,7 @@ public class client_static_t {
 
 	public int challenge; // from the server to use for connecting
 
-	public File download; // file transfer from server
+	public RandomAccessFile download; // file transfer from server
 	public String downloadtempname;
 	public String downloadname;
 	public int downloadnumber;

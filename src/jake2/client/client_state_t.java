@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.11 2004-01-30 13:06:28 cwei Exp $
+//$Id: client_state_t.java,v 1.12 2004-01-31 16:56:11 rst Exp $
 
 package jake2.client;
 
@@ -33,7 +33,6 @@ import jake2.render.model_t;
 import java.io.File;
 
 public class client_state_t {
-
 	//
 	//	   the client_state_t structure is wiped completely at every
 	//	   server map change
@@ -119,12 +118,14 @@ public class client_state_t {
 
 	clientinfo_t clientinfo[] = new clientinfo_t[Defines.MAX_CLIENTS];
 	clientinfo_t baseclientinfo;
-	
+
 	public client_state_t() {
-		for (int i = 0; i < frames.length; i++)
-		{
+		for (int i = 0; i < frames.length; i++) {
 			frames[i] = new frame_t();
 		}
+
+		for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
+			configstrings[n] = new String();
 	}
 
 }

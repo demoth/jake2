@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.22 2004-01-26 14:29:02 hoz Exp $
+ * $Id: Cvar.java,v 1.23 2004-01-31 16:56:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -378,6 +378,11 @@ public class Cvar {
 	 */
 	public static String Userinfo() {
 		return BitInfo(USERINFO);
+	}
+
+	public static void WriteVariables(String path) {
+		// TODO: implement !
+		
 	}	
 
 }
