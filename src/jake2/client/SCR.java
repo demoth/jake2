@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.18 2004-01-30 17:00:48 cwei Exp $
+ * $Id: SCR.java,v 1.19 2004-01-30 20:31:42 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -174,11 +175,12 @@ public final class SCR extends Globals {
 	===============================================================================
 	*/
 
-//	char		scr_centerstring[1024];
-//	float		scr_centertime_start;	// for slow victory printing
-//	float		scr_centertime_off;
-//	int			scr_center_lines;
-//	int			scr_erase_center;
+	// char scr_centerstring[1024];
+	static char[] scr_centerstring = new char[1024];
+	static float scr_centertime_start;	// for slow victory printing
+	static float scr_centertime_off;
+	static int scr_center_lines;
+	static int scr_erase_center;
 
 	/*
 	==============
@@ -188,7 +190,7 @@ public final class SCR extends Globals {
 	for a few moments
 	==============
 	*/
-	static void CenterPrint (String str)
+	static void CenterPrint(String str)
 	{
 //		char	*s;
 //		char	line[64];
@@ -243,7 +245,7 @@ public final class SCR extends Globals {
 	}
 
 
-	static void SCR_DrawCenterString()
+	static void DrawCenterString()
 	{
 //		char	*start;
 //		int		l;
@@ -291,12 +293,12 @@ public final class SCR extends Globals {
 
 	static void CheckDrawCenterString()
 	{
-//		scr_centertime_off -= cls.frametime;
-//	
-//		if (scr_centertime_off <= 0)
-//			return;
-//
-//		SCR_DrawCenterString ();
+		scr_centertime_off -= cls.frametime;
+	
+		if (scr_centertime_off <= 0)
+			return;
+
+		DrawCenterString();
 	}
 
 // =============================================================================
@@ -310,24 +312,24 @@ public final class SCR extends Globals {
 	*/
 	static void CalcVrect()
 	{
-//		int		size;
-//
-//		// bound viewsize
-//		if (scr_viewsize->value < 40)
-//			Cvar_Set ("viewsize","40");
-//		if (scr_viewsize->value > 100)
-//			Cvar_Set ("viewsize","100");
-//
-//		size = scr_viewsize->value;
-//
-//		scr_vrect.width = viddef.width*size/100;
-//		scr_vrect.width &= ~7;
-//
-//		scr_vrect.height = viddef.height*size/100;
-//		scr_vrect.height &= ~1;
-//
-//		scr_vrect.x = (viddef.width - scr_vrect.width)/2;
-//		scr_vrect.y = (viddef.height - scr_vrect.height)/2;
+		int size;
+
+		// bound viewsize
+		if (scr_viewsize.value < 40)
+			Cvar.Set ("viewsize","40");
+		if (scr_viewsize.value > 100)
+			Cvar.Set ("viewsize","100");
+
+		size = (int)scr_viewsize.value;
+
+		scr_vrect.width = viddef.width*size/100;
+		scr_vrect.width &= ~7;
+
+		scr_vrect.height = viddef.height*size/100;
+		scr_vrect.height &= ~1;
+
+		scr_vrect.x = (viddef.width - scr_vrect.width)/2;
+		scr_vrect.y = (viddef.height - scr_vrect.height)/2;
 	}
 
 
@@ -455,11 +457,11 @@ public final class SCR extends Globals {
 	*/
 	static void DrawNet()
 	{
-//		if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged 
-//			< CMD_BACKUP-1)
-//			return;
-//
-//		re.DrawPic (scr_vrect.x+64, scr_vrect.y, "net");
+		if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged 
+			< CMD_BACKUP - 1)
+			return;
+
+		re.DrawPic(scr_vrect.x+64, scr_vrect.y, "net");
 	}
 
 	/*
@@ -469,16 +471,16 @@ public final class SCR extends Globals {
 	*/
 	static void DrawPause()
 	{
-//		int		w, h;
-//
-//		if (!scr_showpause->value)		// turn off for screenshots
-//			return;
-//
-//		if (!cl_paused->value)
-//			return;
-//
-//		re.DrawGetPicSize (&w, &h, "pause");
-//		re.DrawPic ((viddef.width-w)/2, viddef.height/2 + 8, "pause");
+		Dimension dim = new Dimension();
+
+		if (scr_showpause.value == 0)	// turn off for screenshots
+			return;
+
+		if (cl_paused.value == 0)
+			return;
+
+		re.DrawGetPicSize (dim, "pause");
+		re.DrawPic ((viddef.width - dim.width) / 2, viddef.height / 2 + 8, "pause");
 	}
 
 	/*
@@ -570,24 +572,24 @@ public final class SCR extends Globals {
 	================
 	*/
 	public static void BeginLoadingPlaque() {
-//		S_StopAllSounds ();
-//		cl.sound_prepped = false;		// don't play ambients
-//		CDAudio_Stop ();
-//		if (cls.disable_screen)
-//			return;
-//		if (developer->value)
-//			return;
-//		if (cls.state == ca_disconnected)
-//			return;	// if at console, don't bring up the plaque
-//		if (cls.key_dest == key_console)
-//			return;
-//		if (cl.cinematictime > 0)
-//			scr_draw_loading = 2;	// clear to balack first
-//		else
-//			scr_draw_loading = 1;
-//		SCR_UpdateScreen ();
-//		cls.disable_screen = Sys_Milliseconds ();
-//		cls.disable_servercount = cl.servercount;
+		S.StopAllSounds ();
+		cl.sound_prepped = false; // don't play ambients
+		// TODO CDAudio.Stop();
+		if (cls.disable_screen != 0)
+			return;
+		if (developer.value != 0)
+			return;
+		if (cls.state == ca_disconnected)
+			return;	// if at console, don't bring up the plaque
+		if (cls.key_dest == key_console)
+			return;
+		if (cl.cinematictime > 0)
+			scr_draw_loading = 2;	// clear to balack first
+		else
+			scr_draw_loading = 1;
+		UpdateScreen();
+		cls.disable_screen = Sys.Milliseconds();
+		cls.disable_servercount = cl.servercount;
 	}
 
 	/*
@@ -668,98 +670,96 @@ public final class SCR extends Globals {
 	*/
 	static void TileClear()
 	{
-//		int		i;
-//		int		top, bottom, left, right;
-//		dirty_t	clear;
-//
-//		if (scr_drawall->value)
-//			SCR_DirtyScreen ();	// for power vr or broken page flippers...
-//
-//		if (scr_con_current == 1.0)
-//			return;		// full screen console
-//		if (scr_viewsize->value == 100)
-//			return;		// full screen rendering
-//		if (cl.cinematictime > 0)
-//			return;		// full screen cinematic
-//
-//		// erase rect will be the union of the past three frames
-//		// so tripple buffering works properly
-//		clear = scr_dirty;
-//		for (i=0 ; i<2 ; i++)
-//		{
-//			if (scr_old_dirty[i].x1 < clear.x1)
-//				clear.x1 = scr_old_dirty[i].x1;
-//			if (scr_old_dirty[i].x2 > clear.x2)
-//				clear.x2 = scr_old_dirty[i].x2;
-//			if (scr_old_dirty[i].y1 < clear.y1)
-//				clear.y1 = scr_old_dirty[i].y1;
-//			if (scr_old_dirty[i].y2 > clear.y2)
-//				clear.y2 = scr_old_dirty[i].y2;
-//		}
-//
-//		scr_old_dirty[1] = scr_old_dirty[0];
-//		scr_old_dirty[0] = scr_dirty;
-//
-//		scr_dirty.x1 = 9999;
-//		scr_dirty.x2 = -9999;
-//		scr_dirty.y1 = 9999;
-//		scr_dirty.y2 = -9999;
-//
-//		// don't bother with anything convered by the console)
-//		top = scr_con_current*viddef.height;
-//		if (top >= clear.y1)
-//			clear.y1 = top;
-//
-//		if (clear.y2 <= clear.y1)
-//			return;		// nothing disturbed
-//
-//		top = scr_vrect.y;
-//		bottom = top + scr_vrect.height-1;
-//		left = scr_vrect.x;
-//		right = left + scr_vrect.width-1;
-//
-//		if (clear.y1 < top)
-//		{	// clear above view screen
-//			i = clear.y2 < top-1 ? clear.y2 : top-1;
-//			re.DrawTileClear (clear.x1 , clear.y1,
-//				clear.x2 - clear.x1 + 1, i - clear.y1+1, "backtile");
-//			clear.y1 = top;
-//		}
-//		if (clear.y2 > bottom)
-//		{	// clear below view screen
-//			i = clear.y1 > bottom+1 ? clear.y1 : bottom+1;
-//			re.DrawTileClear (clear.x1, i,
-//				clear.x2-clear.x1+1, clear.y2-i+1, "backtile");
-//			clear.y2 = bottom;
-//		}
-//		if (clear.x1 < left)
-//		{	// clear left of view screen
-//			i = clear.x2 < left-1 ? clear.x2 : left-1;
-//			re.DrawTileClear (clear.x1, clear.y1,
-//				i-clear.x1+1, clear.y2 - clear.y1 + 1, "backtile");
-//			clear.x1 = left;
-//		}
-//		if (clear.x2 > right)
-//		{	// clear left of view screen
-//			i = clear.x1 > right+1 ? clear.x1 : right+1;
-//			re.DrawTileClear (i, clear.y1,
-//				clear.x2-i+1, clear.y2 - clear.y1 + 1, "backtile");
-//			clear.x2 = right;
-//		}
-//
+		int i;
+		int top, bottom, left, right;
+		dirty_t clear = new dirty_t();
+
+		if (scr_drawall.value != 0)
+			DirtyScreen (); // for power vr or broken page flippers...
+
+		if (scr_con_current == 1.0f)
+			return;		// full screen console
+		if (scr_viewsize.value == 100)
+			return;		// full screen rendering
+		if (cl.cinematictime > 0)
+			return;		// full screen cinematic
+
+		// erase rect will be the union of the past three frames
+		// so tripple buffering works properly
+		clear = scr_dirty;
+		for (i=0 ; i<2 ; i++)
+		{
+			if (scr_old_dirty[i].x1 < clear.x1)
+				clear.x1 = scr_old_dirty[i].x1;
+			if (scr_old_dirty[i].x2 > clear.x2)
+				clear.x2 = scr_old_dirty[i].x2;
+			if (scr_old_dirty[i].y1 < clear.y1)
+				clear.y1 = scr_old_dirty[i].y1;
+			if (scr_old_dirty[i].y2 > clear.y2)
+				clear.y2 = scr_old_dirty[i].y2;
+		}
+
+		scr_old_dirty[1] = scr_old_dirty[0];
+		scr_old_dirty[0] = scr_dirty;
+
+		scr_dirty.x1 = 9999;
+		scr_dirty.x2 = -9999;
+		scr_dirty.y1 = 9999;
+		scr_dirty.y2 = -9999;
+
+		// don't bother with anything convered by the console)
+		top = (int)(scr_con_current * viddef.height);
+		if (top >= clear.y1)
+			clear.y1 = top;
+
+		if (clear.y2 <= clear.y1)
+			return;		// nothing disturbed
+
+		top = scr_vrect.y;
+		bottom = top + scr_vrect.height-1;
+		left = scr_vrect.x;
+		right = left + scr_vrect.width-1;
+
+		if (clear.y1 < top)
+		{	// clear above view screen
+			i = clear.y2 < top-1 ? clear.y2 : top-1;
+			re.DrawTileClear (clear.x1 , clear.y1,
+				clear.x2 - clear.x1 + 1, i - clear.y1+1, "backtile");
+			clear.y1 = top;
+		}
+		if (clear.y2 > bottom)
+		{	// clear below view screen
+			i = clear.y1 > bottom+1 ? clear.y1 : bottom+1;
+			re.DrawTileClear (clear.x1, i,
+				clear.x2-clear.x1+1, clear.y2-i+1, "backtile");
+			clear.y2 = bottom;
+		}
+		if (clear.x1 < left)
+		{	// clear left of view screen
+			i = clear.x2 < left-1 ? clear.x2 : left-1;
+			re.DrawTileClear (clear.x1, clear.y1,
+				i-clear.x1+1, clear.y2 - clear.y1 + 1, "backtile");
+			clear.x1 = left;
+		}
+		if (clear.x2 > right)
+		{	// clear left of view screen
+			i = clear.x1 > right+1 ? clear.x1 : right+1;
+			re.DrawTileClear (i, clear.y1,
+				clear.x2-i+1, clear.y2 - clear.y1 + 1, "backtile");
+			clear.x2 = right;
+		}
+
 	}
 
 
 // ===============================================================
 
+	static final int STAT_MINUS = 10; // num frame for '-' stats digit
 
-//	#define STAT_MINUS		10	// num frame for '-' stats digit
-
-//
-//	#define	ICON_WIDTH	24
-//	#define	ICON_HEIGHT	24
-//	#define	CHAR_WIDTH	16
-//	#define	ICON_SPACE	8
+	static final int ICON_WIDTH	= 24;
+	static final int ICON_HEIGHT = 24;
+	static final int CHAR_WIDTH = 16;
+	static final int ICON_SPACE = 8;
 
 	/*
 	================
@@ -839,41 +839,46 @@ public final class SCR extends Globals {
 	*/
 	static void DrawField(int x, int y, int color, int width, int value)
 	{
-//		char	num[16], *ptr;
-//		int		l;
-//		int		frame;
-//
-//		if (width < 1)
-//			return;
-//
-//		// draw number string
-//		if (width > 5)
-//			width = 5;
-//
-//		SCR_AddDirtyPoint (x, y);
-//		SCR_AddDirtyPoint (x+width*CHAR_WIDTH+2, y+23);
-//
-//		Com_sprintf (num, sizeof(num), "%i", value);
-//		l = strlen(num);
-//		if (l > width)
-//			l = width;
-//		x += 2 + CHAR_WIDTH*(width - l);
-//
-//		ptr = num;
-//		while (*ptr && l)
-//		{
-//			if (*ptr == '-')
-//				frame = STAT_MINUS;
-//			else
-//				frame = *ptr -'0';
-//
-//			re.DrawPic (x,y,sb_nums[color][frame]);
-//			x += CHAR_WIDTH;
-//			ptr++;
-//			l--;
-//		}
-	}
+		// TODO check this: DrawField(int x, int y, int color, int width, int value)
+		//		char	num[16], *ptr;
+		char ptr;
+		int ptrp;
+		String num;
+		int l;
+		int frame;
 
+		if (width < 1)
+			return;
+
+		// draw number string
+		if (width > 5)
+			width = 5;
+
+		AddDirtyPoint(x, y);
+		AddDirtyPoint(x + width * CHAR_WIDTH + 2, y + 23);
+
+		num = "" + value;
+		l = num.length();
+		if (l > width)
+			l = width;
+		x += 2 + CHAR_WIDTH*(width - l);
+
+		ptr = num.charAt(0);
+		ptrp = 0;
+		while (ptr != 0 && l != 0)
+		{
+			if (ptr == '-')
+				frame = STAT_MINUS;
+			else
+				frame = ptr - '0';
+
+			re.DrawPic (x,y,sb_nums[color][frame]);
+			x += CHAR_WIDTH;
+			ptr = num.charAt(++ptrp);
+			
+			l--;
+		}
+	}
 
 	/*
 	===============
@@ -1215,9 +1220,9 @@ public final class SCR extends Globals {
 
 	================
 	*/
-//	#define	STAT_LAYOUTS		13
+	static final int STAT_LAYOUTS = 13;
 
-	static void SCR_DrawLayout()
+	static void DrawLayout()
 	{
 //		if (!cl.frame.playerstate.stats[STAT_LAYOUTS])
 //			return;
@@ -1336,10 +1341,11 @@ public final class SCR extends Globals {
 				V.RenderView( separation[i] );
 
 				DrawStats();
+				// TODO impl this
 //				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
-//					SCR_DrawLayout ();
+//					DrawLayout();
 //				if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
-//					CL_DrawInventory ();
+//					CL.DrawInventory();
 
 				DrawNet();
 				CheckDrawCenterString();
@@ -1388,17 +1394,6 @@ public final class SCR extends Globals {
 		Globals.re.updateScreen();
 	}
 		
-	/*
-	// hier muss der code der orig UpdateScreen rein
-	public static void UpdateScreen2() {
-		Globals.re.BeginFrame(0.0f);
-		
-		Globals.re.DrawStretchPic(0, 0 , Globals.viddef.width, Globals.viddef.height, "conback");
-		
-		Globals.re.EndFrame();
-	}
-	*/
-
 	/*
 	=================
 	SCR_AddDirtyPoint
