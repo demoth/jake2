@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.5 2004-01-14 21:23:57 rst Exp $
+// $Id: game_export_t.java,v 1.6 2004-01-18 10:39:34 rst Exp $
 
 package jake2.game;
 
@@ -30,59 +30,59 @@ package jake2.game;
 
 public class game_export_t {
 
-	int apiversion;
+	public int apiversion;
 
 	// the init function will only be called when a game starts,
 	// not each time a level is loaded.  Persistant data for clients
 	// and the server can be allocated in init
-	void Init() {
+	public void Init() {
 	}
-	void Shutdown() {
+	public void Shutdown() {
 	}
 
 	// each new level entered will cause a call to SpawnEntities
-	void SpawnEntities(String mapname, String entstring, String spawnpoint) {
+	public void SpawnEntities(String mapname, String entstring, String spawnpoint) {
 	}
 
 	// Read/Write Game is for storing persistant cross level information
 	// about the world state and the clients.
 	// WriteGame is called every time a level is exited.
 	// ReadGame is called on a loadgame.
-	void WriteGame(String filename, boolean autosave) {
+	public void WriteGame(String filename, boolean autosave) {
 	}
-	void ReadGame(String filename) {
+	public void ReadGame(String filename) {
 	}
 
 	// ReadLevel is called after the default map information has been
 	// loaded with SpawnEntities
-	void WriteLevel(String filename) {
+	public void WriteLevel(String filename) {
 	}
 
-	void ReadLevel(String filename) {
+	public void ReadLevel(String filename) {
 	}
 
-	boolean ClientConnect(edict_t ent, String userinfo) {
+	public boolean ClientConnect(edict_t ent, String userinfo) {
 		return false;
 	}
-	void ClientBegin(edict_t ent) {
+	public void ClientBegin(edict_t ent) {
 	}
-	void ClientUserinfoChanged(edict_t ent, String userinfo) {
+	public void ClientUserinfoChanged(edict_t ent, String userinfo) {
 	}
 	public void ClientDisconnect(edict_t ent) {
 	}
-	void ClientCommand(edict_t ent) {
+	public void ClientCommand(edict_t ent) {
 	}
-	void ClientThink(edict_t ent, usercmd_t cmd) {
+	public void ClientThink(edict_t ent, usercmd_t cmd) {
 	}
 
-	void RunFrame() {
+	public void RunFrame() {
 	}
 
 	// ServerCommand will be called when an "sv <command>" command is issued on the
 	// server console.
 	// The game can issue gi.argc() / gi.argv() commands to get the rest
 	// of the parameters
-	void ServerCommand() {
+	public void ServerCommand() {
 	}
 
 	//

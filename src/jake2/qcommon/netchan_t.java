@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.3 2003-11-29 19:26:33 rst Exp $
+// $Id: netchan_t.java,v 1.4 2004-01-18 10:39:34 rst Exp $
 
 package jake2.qcommon;
 
@@ -58,6 +58,21 @@ public class netchan_t {
 
 	//	   message is copied to this buffer when it is first transfered
 	int reliable_length;
-	byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unacked reliable message
+	
+	byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unpcked reliable message
 
+	public void clear()
+	{
+		sock=dropped=last_received=last_sent=0;
+		remote_address = new netadr_t();
+		qport = incoming_sequence = incoming_acknowledged = incoming_reliable_acknowledged = incoming_reliable_sequence
+		= outgoing_sequence = reliable_sequence = last_reliable_sequence =0;
+		message = new sizebuf_t();
+		
+		message_buf = new byte[Defines.MAX_MSGLEN - 16];
+		
+		reliable_length =0;
+		reliable_buf =  new byte[Defines.MAX_MSGLEN - 16];
+	}
+		
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_static_t.java,v 1.1 2004-01-14 21:23:57 rst Exp $
+// $Id: server_static_t.java,v 1.2 2004-01-18 10:39:34 rst Exp $
 
 package jake2.server;
 
@@ -53,7 +53,7 @@ public class server_static_t {
 	challenge_t	challenges[]=new challenge_t[Defines.MAX_CHALLENGES];	// to prevent invalid IPs from connecting
 
 	// serverrecord values
-	File		demofile;
+	RandomAccessFile		demofile;
 	sizebuf_t	demo_multicast;
 	byte		demo_multicast_buf[] = new byte[Defines.MAX_MSGLEN];
 }

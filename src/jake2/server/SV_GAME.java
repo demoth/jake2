@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.1 2004-01-14 21:23:57 rst Exp $
+// $Id: SV_GAME.java,v 1.2 2004-01-18 10:39:34 rst Exp $
 
 package jake2.server;
 
@@ -38,7 +38,7 @@ public class SV_GAME
 // sv_game.c -- interface to the game dll
 
 
-public static game_export_t	ge;
+public static game_export_t ge;
 
 
 ///*

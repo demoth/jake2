@@ -2,7 +2,7 @@
  * AbstractEndianHandler.java
  * Copyright (C) 2003
  * 
- * $Id: EndianHandler.java,v 1.5 2004-01-02 17:40:54 rst Exp $
+ * $Id: EndianHandler.java,v 1.6 2004-01-18 10:39:34 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -51,20 +51,17 @@ public abstract class EndianHandler{
 	public static int swapInt(int i) {
 		
 		int a = i & mask;
-		i >>= 8;
-		
-		// DAWN STUPID FUCKING JAVA SHIFTING !!!!!!!!!
-		i &=0xffffff;
+		i >>>= 8;
 		
 		a <<= 24;
 		
 		int b = i & mask;
 		
-		i >>= 8;
+		i >>>= 8;
 		b <<= 16;
 		
 		int c = i & mask;
-		i >>= 8;
+		i >>>= 8;
 		c <<= 8;
 
 		return i | c | b | a;
@@ -73,7 +70,7 @@ public abstract class EndianHandler{
 	public static short swapShort(short s) {
 		int a = s & mask;
 		a <<= 8;
-		int b = (s >> 8) & mask;
+		int b = (s >>> 8) & mask;
 		
 		return (short)(b | a);
 	}

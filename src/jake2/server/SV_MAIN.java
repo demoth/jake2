@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.3 2004-01-17 20:34:46 rst Exp $
+// $Id: SV_MAIN.java,v 1.4 2004-01-18 10:39:34 rst Exp $
 
 package jake2.server;
 
@@ -129,7 +129,7 @@ public String 	SV_StatusString ()
 	int		statusLength;
 	int		playerLength;
 
-	status= Cvar.Cvar_Serverinfo() + "\n";
+	status= Cvar.Serverinfo() + "\n";
 	
 	
 
@@ -908,52 +908,54 @@ public static void SV_Frame (long msec)
 ////============================================================================
 //
 //
-///*
-//=================
-//SV_UserinfoChanged
-//
-//Pull specific info from a newly changed userinfo string
-//into a more C freindly form.
-//=================
-//*/
-//void SV_UserinfoChanged (client_t *cl)
-//{
-//	char	*val;
-//	int		i;
-//
-//	// call prog code to allow overrides
-//	ge.ClientUserinfoChanged (cl.edict, cl.userinfo);
-//	
-//	// name for C code
-//	strncpy (cl.name, Info_ValueForKey (cl.userinfo, "name"), sizeof(cl.name)-1);
-//	// mask off high bit
-//	for (i=0 ; i<sizeof(cl.name) ; i++)
-//		cl.name[i] &= 127;
-//
-//	// rate command
-//	val = Info_ValueForKey (cl.userinfo, "rate");
-//	if (strlen(val))
-//	{
-//		i = atoi(val);
-//		cl.rate = i;
-//		if (cl.rate < 100)
-//			cl.rate = 100;
-//		if (cl.rate > 15000)
-//			cl.rate = 15000;
-//	}
-//	else
-//		cl.rate = 5000;
-//
-//	// msg command
-//	val = Info_ValueForKey (cl.userinfo, "msg");
-//	if (strlen(val))
-//	{
-//		cl.messagelevel = atoi(val);
-//	}
-//
-//}
-//
-//
+/*
+=================
+SV_UserinfoChanged
+
+Pull specific info from a newly changed userinfo string
+into a more C freindly form.
+=================
+*/
+public static void SV_UserinfoChanged (client_t cl)
+{
+	String 		val;
+	int		i;
+
+	// call prog code to allow overrides
+	SV_GAME.ge.ClientUserinfoChanged (cl.edict, cl.userinfo);
+	
+	// name for C code
+	cl.name = Info.Info_ValueForKey (cl.userinfo, "name");
+	
+	// mask off high bit
+	//TODO: masking for german umlaute
+	//for (i=0 ; i<sizeof(cl.name) ; i++)
+	//	cl.name[i] &= 127;
+
+	// rate command
+	val = Info.Info_ValueForKey (cl.userinfo, "rate");
+	if (val.length()>0)
+	{
+		i = atoi(val);
+		cl.rate = i;
+		if (cl.rate < 100)
+			cl.rate = 100;
+		if (cl.rate > 15000)
+			cl.rate = 15000;
+	}
+	else
+		cl.rate = 5000;
+
+	// msg command
+	val = Info.Info_ValueForKey (cl.userinfo, "msg");
+	if (strlen(val)>0)
+	{
+		cl.messagelevel = atoi(val);
+	}
+
+}
+
+
 ////============================================================================
 //
 ///*

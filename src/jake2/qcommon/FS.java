@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.19 2003-12-27 22:01:41 cwei Exp $
+ * $Id: FS.java,v 1.20 2004-01-18 10:39:34 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -223,9 +223,11 @@ public final class FS {
 	a seperate file.
 	===========
 	*/
-	static int file_from_pak = 0;
+	
+	
+	public static int file_from_pak = 0;
 
-	static RandomAccessFile FOpenFile(String filename) throws IOException
+	public static RandomAccessFile FOpenFile(String filename) throws IOException
 	{
 		searchpath_t search;
 		String netpath;

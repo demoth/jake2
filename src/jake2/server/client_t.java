@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.2 2004-01-14 21:23:57 rst Exp $
+// $Id: client_t.java,v 1.3 2004-01-18 10:39:34 rst Exp $
 
 package jake2.server;
 
@@ -78,5 +78,9 @@ public static final int RATE_MESSAGES	=10;
 
 	int				challenge;			// challenge of this user, randomly generated
 
-	netchan_t		netchan;
+	netchan_t			netchan;
+	
+	
+	//TODO: this was introduced by rst, since java cant calculate the index out of the address.
+	int 				serverindex;
 }

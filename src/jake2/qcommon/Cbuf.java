@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.12 2004-01-02 14:08:20 hoz Exp $
+ * $Id: Cbuf.java,v 1.13 2004-01-18 10:39:34 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.qcommon;
 
 import jake2.Globals;
 import jake2.game.Cmd;
+import jake2.util.Lib;
 
 /**
  * Cbuf
@@ -42,7 +43,7 @@ public final class Cbuf {
 	}
 
 	public static void InsertText(String text) {
-		
+
 		byte[] temp = null;
 		int templen = 0;
 
@@ -161,7 +162,7 @@ public final class Cbuf {
 
 			int quotes = 0;
 			int i;
-			
+
 			for (i = 0; i < Globals.cmd_text.cursize; i++) {
 				if (text[i] == '"')
 					quotes++;
@@ -184,17 +185,17 @@ public final class Cbuf {
 				i++;
 				Globals.cmd_text.cursize -= i;
 				byte[] tmp = new byte[Globals.cmd_text.cursize];
-				
+
 				System.arraycopy(text, i, tmp, 0, Globals.cmd_text.cursize);
 				System.arraycopy(tmp, 0, text, 0, Globals.cmd_text.cursize);
-				text[Globals.cmd_text.cursize]='\0';
-				
+				text[Globals.cmd_text.cursize] = '\0';
+
 			}
 
 			// execute the command line
 			int len = jake2.util.Lib.strlen(line);
 			//System.out.println("Cbuf.executelen:" + Globals.cmd_text.cursize + "/" + len);
-			
+
 			String cmd = new String(line, 0, len);
 			//System.out.println("Cbuf.data   :" + new String(text,0,16).replace('\n','.').replace('\r','.'));
 			//System.out.println("Cbuf.execute:" + xxx.replace('\n','.').replace('\r','.') );
@@ -208,4 +209,26 @@ public final class Cbuf {
 			}
 		}
 	}
+
+	/*
+	============
+	Cbuf_CopyToDefer
+	============
+	*/
+	public static void CopyToDefer() {
+		Lib.memcpy(Globals.defer_text_buf, Globals.cmd_text_buf, Globals.cmd_text.cursize);
+		Globals.defer_text_buf[Globals.cmd_text.cursize] = 0;
+		Globals.cmd_text.cursize = 0;
+	}
+
+	/*
+	============
+	Cbuf_InsertFromDefer
+	============
+	*/
+	public static void InsertFromDefer() {
+		InsertText(new String(Globals.defer_text_buf).trim());
+		Globals.defer_text_buf[0] = 0;
+	}
+
 }

@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.8 2003-12-23 13:14:40 cwei Exp $
+ * $Id: Jake2.java,v 1.9 2004-01-18 10:39:34 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,13 +35,22 @@ import jake2.qcommon.*;
  */
 public final class Jake2 {
 
+	// R I S K Y   C O D E   D A T A B A S E
+	// ------------------------------------- 
+	// (mögliche Fehlerursachen für späteres Debuggen)
+	// - sicherstellen, dass svs.clients richtig durchnummeriert wird (client_t.serverindex) 
+	// - sicherstellen, dass SV_GAME.ge.edicts richtig durchnummeriert wird (ent.s.number der richtige index ?)
+	// - CM_DecompressVis() richtig portiert ?
+	// - NET.Net_Socket() sockarr_in.addr richtig ersetzt ? 
+	// 
+
 	/**
- 	 * for all other classes it should be:
- 	 * <code>
- 	 *   private static Logger logger = Logger.getLogger(<CLASSNAME>.class.getName());
- 	 * </code>
- 	 * 
- 	 */
+		 * for all other classes it should be:
+		 * <code>
+		 *   private static Logger logger = Logger.getLogger(<CLASSNAME>.class.getName());
+		 * </code>
+		 * 
+		 */
 	private static Logger logger;
 
 	/**
@@ -53,22 +62,22 @@ public final class Jake2 {
 
 		// init the global LogManager with the logging.properties file
 		try {
-			LogManager.getLogManager().readConfiguration(
-				Jake2.class.getResourceAsStream("/jake2/logging.properties"));
-		} catch (SecurityException secEx) {
+			LogManager.getLogManager().readConfiguration(Jake2.class.getResourceAsStream("/jake2/logging.properties"));
+		}
+		catch (SecurityException secEx) {
 			secEx.printStackTrace();
-		} catch (IOException ioEx) {
-			System.err.println(
-				"FATAL Error: can't load /jake2/logging.properties (classpath)");
+		}
+		catch (IOException ioEx) {
+			System.err.println("FATAL Error: can't load /jake2/logging.properties (classpath)");
 			ioEx.printStackTrace();
 		}
-		
+
 		logger = Logger.getLogger(Jake2.class.getName());
 
 		logger.log(Level.INFO, "Start Jake2 :-)");
 
 		// in C the first arg is the filename
-		int argc = (args == null) ? 1 : args.length +1;
+		int argc = (args == null) ? 1 : args.length + 1;
 		String[] c_args = new String[argc];
 		c_args[0] = "Jake2";
 		if (argc > 1) {
@@ -93,7 +102,8 @@ public final class Jake2 {
 			// save cpu resources
 			try {
 				Thread.sleep(10);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 			}
 		}
 

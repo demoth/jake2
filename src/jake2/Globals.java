@@ -2,9 +2,13 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.29 2004-01-18 09:41:57 hoz Exp $
+ * $Id: Globals.java,v 1.30 2004-01-18 10:39:34 rst Exp $
  * $Log: Globals.java,v $
- * Revision 1.29  2004-01-18 09:41:57  hoz
+ * Revision 1.30  2004-01-18 10:39:34  rst
+ * M O N S T E R - C O M M I T
+ * (network and server code)
+ *
+ * Revision 1.29  2004/01/18 09:41:57  hoz
  * Key.Message()
  *
  * Revision 1.28  2004/01/11 14:38:47  cwei
@@ -66,6 +70,8 @@ public class Globals extends Defines {
 	/*
 	 * global variables
 	 */
+
+	public static long curtime = 0;
 	public static boolean bigendien = false;
 	public static boolean cmd_wait;
 
@@ -122,13 +128,26 @@ public class Globals extends Defines {
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
 
-	public static sizebuf_t cmd_text = new sizebuf_t();
 	public static sizebuf_t net_message = new sizebuf_t();
 
-	public static byte[] cmd_text_buf = new byte[8192];
-	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
+	/*
+	=============================================================================
+	
+							COMMAND BUFFER
+	
+	=============================================================================
+	*/
 
+	public static sizebuf_t cmd_text = new sizebuf_t();
+
+	public static byte defer_text_buf[] = new byte[8192];
+
+	public static byte cmd_text_buf[] = new byte[8192];
 	public static cmdalias_t cmd_alias;
+
+	//=============================================================================
+
+	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
 
 	public static long time_before_game;
 	public static long time_after_game;
@@ -180,7 +199,7 @@ public class Globals extends Defines {
 
 	// client/anorms.h
 	public static final float bytedirs[][] = { /**
-						*/
+								*/
 		{ -0.525731f, 0.000000f, 0.850651f }, {
 			-0.442863f, 0.238856f, 0.864188f }, {
 			-0.295242f, 0.000000f, 0.955423f }, {
@@ -353,7 +372,7 @@ public class Globals extends Defines {
 	public static viddef_t viddef = new viddef_t();
 	// Renderer interface used by VID, SCR, ...
 	public static refexport_t re = null;
-	
+
 	public static String[] keybindings = new String[256];
 	public static boolean[] keydown = new boolean[256];
 	public static int anykeydown = 0;

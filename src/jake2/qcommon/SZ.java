@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.10 2003-12-29 22:31:15 rst Exp $
+ * $Id: SZ.java,v 1.11 2004-01-18 10:39:34 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -70,6 +70,10 @@ public final class SZ {
 	public static void Write(sizebuf_t buf, byte data[], int length) {
 		//memcpy(SZ_GetSpace(buf, length), data, length);
 		System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
+	}
+
+	public static void Write(sizebuf_t buf, byte data[], int offset, int length) {
+		System.arraycopy(data, offset, buf.data, GetSpace(buf, length), length);
 	}
 
 	public static void Write(sizebuf_t buf, byte data[]) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.16 2004-01-18 09:41:57 hoz Exp $
+// $Id: Defines.java,v 1.17 2004-01-18 10:39:34 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1061,6 +1061,27 @@ public class Defines extends Math3D {
 	public final static int PORT_SERVER = 27910;
 	public final static int PORT_ANY = -1;
 
+	public final static int PS_M_TYPE = (1 << 0);
+	public final static int PS_M_ORIGIN = (1 << 1);
+	public final static int PS_M_VELOCITY = (1 << 2);
+	public final static int PS_M_TIME = (1 << 3);
+	public final static int PS_M_FLAGS = (1 << 4);
+	public final static int PS_M_GRAVITY = (1 << 5);
+	public final static int PS_M_DELTA_ANGLES = (1 << 6);
+
+	public final static int UPDATE_BACKUP= 16;	// copies of entity_state_t to keep buffered 
+                                                         // must be power of two
+	public final static int UPDATE_MASK= (UPDATE_BACKUP-1);	
+
+	public final static int PS_VIEWOFFSET = (1 << 7);
+	public final static int PS_VIEWANGLES = (1 << 8);
+	public final static int PS_KICKANGLES = (1 << 9);
+	public final static int PS_BLEND = (1 << 10);
+	public final static int PS_FOV = (1 << 11);
+	public final static int PS_WEAPONINDEX = (1 << 12);
+	public final static int PS_WEAPONFRAME = (1 << 13);
+	public final static int PS_RDFLAGS = (1 << 14);
+
 	public static final int CM_ANGLE1 = (1 << 0);
 	public static final int CM_ANGLE2 = (1 << 1);
 	public static final int CM_ANGLE3 = (1 << 2);
@@ -1116,8 +1137,6 @@ public class Defines extends Math3D {
 	public static final int MAXLIGHTMAPS = 4;
 	public static final int MIPLEVELS = 4;
 
-	public static final int UPDATE_BACKUP = 16;
-
 	public static final int clc_bad = 0;
 	public static final int clc_nop = 1;
 	public static final int clc_move = 2; // [[usercmd_t]
@@ -1133,15 +1152,14 @@ public class Defines extends Math3D {
 	public static final int NA_IPX = 3;
 	public static final int NA_BROADCAST_IPX = 4;
 
-	public final static int SND_VOLUME= (1<<0);	// a byte 
-	public final static int SND_ATTENUATION= (1<<1);	// a byte 
-	public final static int SND_POS= (1<<2);	// three coordinates 
-	public final static int SND_ENT= (1<<3);	// a short 0-2: channel, 3-12: entity 
-	public final static int SND_OFFSET= (1<<4);	// a byte, msec offset from frame start 
+	public final static int SND_VOLUME = (1 << 0); // a byte 
+	public final static int SND_ATTENUATION = (1 << 1); // a byte 
+	public final static int SND_POS = (1 << 2); // three coordinates 
+	public final static int SND_ENT = (1 << 3); // a short 0-2: channel, 3-12: entity 
+	public final static int SND_OFFSET = (1 << 4); // a byte, msec offset from frame start 
 
-	public final static float DEFAULT_SOUND_PACKET_VOLUME= 1.0f;	
-	public final static float DEFAULT_SOUND_PACKET_ATTENUATION= 1.0f;	
-
+	public final static float DEFAULT_SOUND_PACKET_VOLUME = 1.0f;
+	public final static float DEFAULT_SOUND_PACKET_ATTENUATION = 1.0f;
 
 	// --------
 	// client.h
@@ -1272,8 +1290,10 @@ public class Defines extends Math3D {
 	public final static int RD_NONE = 0;
 	public final static int RD_CLIENT = 1;
 	public final static int RD_PACKET = 2;
+
+	public final static int RATE_MESSAGES = 10;
 	
-	public final static int RATE_MESSAGES= 10;	
+	public final static int LATENCY_COUNTS= 16;	
 	
 	public static final int MAXCMDLINE = 256;
 }

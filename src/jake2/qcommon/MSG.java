@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.9 2004-01-17 20:34:46 rst Exp $
+// $Id: MSG.java,v 1.10 2004-01-18 10:39:34 rst Exp $
 
 package jake2.qcommon;
 
@@ -38,7 +38,10 @@ public class MSG extends GameBase {
 
 		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
 	}
+	public static void WriteChar(sizebuf_t sb, float c) {
 
+		WriteChar(sb, (int) c);
+	}
 	public static void WriteByte(sizebuf_t sb, int c) {
 		byte buf;
 
@@ -51,8 +54,7 @@ public class MSG extends GameBase {
 	public static void WriteByte(sizebuf_t sb, float c) {
 		WriteByte(sb, (int) c);
 	}
-	
-	
+
 	public static void WriteShort(sizebuf_t sb, int c) {
 
 		if (c < ((short) 0x8000) || c > (short) 0x7fff)
@@ -72,6 +74,10 @@ public class MSG extends GameBase {
 		sb.data[i++] = (byte) (c >>> 24);
 	}
 
+	public static void WriteLong(sizebuf_t sb, int c) {
+		WriteInt(sb, c);
+	}
+
 	public static void WriteFloat(sizebuf_t sb, float f) {
 		WriteInt(sb, Float.floatToIntBits(f));
 	}
@@ -84,9 +90,10 @@ public class MSG extends GameBase {
 
 		SZ.Write(sb, x.getBytes());
 	}
-	
+
 	public static void WriteString(sizebuf_t sb, byte s[]) {
-		if (s==null) s= new byte[0];		
+		if (s == null)
+			s = new byte[0];
 		SZ.Write(sb, s);
 	}
 
@@ -95,7 +102,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void WritePos(sizebuf_t sb, float[] pos) {
-		assert (pos.length == 3) : "vec3_t bug";
+		assert(pos.length == 3) : "vec3_t bug";
 		WriteShort(sb, (int) (pos[0] * 8));
 		WriteShort(sb, (int) (pos[1] * 8));
 		WriteShort(sb, (int) (pos[2] * 8));
@@ -301,10 +308,12 @@ public class MSG extends GameBase {
 			WriteByte(msg, (bits >>> 8) & 255);
 			WriteByte(msg, (bits >>> 16) & 255);
 			WriteByte(msg, (bits >>> 24) & 255);
-		} else if ((bits & 0x00ff0000) != 0) {
+		}
+		else if ((bits & 0x00ff0000) != 0) {
 			WriteByte(msg, (bits >>> 8) & 255);
 			WriteByte(msg, (bits >>> 16) & 255);
-		} else if ((bits & 0x0000ff00) != 0) {
+		}
+		else if ((bits & 0x0000ff00) != 0) {
 			WriteByte(msg, (bits >>> 8) & 255);
 		}
 
@@ -463,7 +472,8 @@ public class MSG extends GameBase {
 				break;
 			readbuf[l] = c;
 			l++;
-		} while (l < 2047);
+		}
+		while (l < 2047);
 
 		readbuf[l] = 0;
 		return new String(readbuf, 0, l);
@@ -483,7 +493,8 @@ public class MSG extends GameBase {
 				break;
 			readbuf1[l] = c;
 			l++;
-		} while (l < 2047);
+		}
+		while (l < 2047);
 
 		readbuf1[l] = 0;
 
@@ -495,7 +506,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void ReadPos(sizebuf_t msg_read, float pos[]) {
-		assert (pos.length == 3) : "vec3_t bug";
+		assert(pos.length == 3) : "vec3_t bug";
 		pos[0] = ReadShort(msg_read) * (1.0f / 8);
 		pos[1] = ReadShort(msg_read) * (1.0f / 8);
 		pos[2] = ReadShort(msg_read) * (1.0f / 8);

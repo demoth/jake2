@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.18 2004-01-14 21:23:57 rst Exp $
+ * $Id: Cvar.java,v 1.19 2004-01-18 10:39:34 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -97,7 +97,6 @@ public class Cvar {
 
 		return var;
 	}
-
 
 	static void Init() {
 		Cmd.AddCommand("set", Set_f);
@@ -341,12 +340,22 @@ public class Cvar {
 		return true;
 	}
 
+	public static String BitInfo(int bit) {
+		String info;
+		cvar_t var;
 
-	/**
-	 * @return
-	 */
-	public static String Cvar_Serverinfo() {
-		// TODO Auto-generated method stub
+		info = "";
+
+		for (var = Globals.cvar_vars; var != null; var = var.next) {
+			if ((var.flags & bit) != 0)
+				info = Info.Info_SetValueForKey1(info, var.name, var.string);
+		}
+		return info;
+	}
+
+	// returns an info string containing all the CVAR_SERVERINFO cvars
+	public static String Serverinfo() {
+		return BitInfo(Defines.CVAR_SERVERINFO);
 		return null;
 	}
 

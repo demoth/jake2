@@ -2,7 +2,7 @@
  * Z.java
  * Copyright (C) 2003
  * 
- * $Id: Z.java,v 1.7 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Z.java,v 1.8 2004-01-18 10:39:34 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,7 +35,7 @@ public final class Z {
 
 	public static xcommand_t Stats_f = new xcommand_t() {
 		public void execute() {
-//			TODO Auto-generated method stub
+			Com.Printf("abstract xccommand_t not overloaded.");
 		}
 	};
 	
@@ -50,38 +50,12 @@ public final class Z {
 	}
 	
 	static byte [] TagMalloc(int size, int tag) {
-/*		zhead_t z;
-		try {
-			z = new zhead_t();
-			z.buf = new byte[size]
-		} catch (Throwable e) {
-			Com.Error(Globals.ERR_FATAL, "Z_Malloc: failed on allocation of " + size + "bytes");
-		}
-		count++;
-		bytes+=size;
-		z.magic = MAGIC;
-		z.tag = tag;
-		z.size = size;
-
-		01179 
-		01180         z->next = z_chain.next;
-		01181         z->prev = &z_chain;
-		01182         z_chain.next->prev = z;
-		01183         z_chain.next = z;
-		01184 
-		01185         return (void *) (z + 1);*/
 		return new byte[size];
 	}
 	
-	/**
-	 * @param ptr
-	 */
 	public static void Free(byte[] ptr) {
 	}
 
-	/**
-	 * @param ptr
-	 */
 	public static void Free(ByteBuffer buffer) {
 		buffer.clear();
 		buffer.limit(0);

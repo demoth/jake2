@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.9 2004-01-17 20:34:47 rst Exp $
+// $Id: Lib.java,v 1.10 2004-01-18 10:39:34 rst Exp $
 
 package jake2.util;
 
@@ -289,5 +289,9 @@ public class Lib {
 	public static void memset(byte[] dest, int c, int len)
 	{
 		Arrays.fill(dest,0,len,(byte)c);
+	}
+	 
+	public static void memcpy(byte[] bs, byte[] bs2, int i) {
+		System.arraycopy(bs2, 0, bs, 0, i);		
 	}
 }
