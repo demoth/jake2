@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.6 2004-10-21 01:51:45 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.7 2004-10-21 02:45:55 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -629,25 +629,26 @@ public final class JOALSoundImpl implements Sound {
 		//Com_sprintf (sexedFilename, sizeof(sexedFilename), "#players/%s/%s", model, base+1);
 		sfx = FindName(sexedFilename, false);
 
-		if (sfx == null) {
-			// no, so see if it exists
-			int fileLength = FS.FileLength(sexedFilename.substring(1));
-			if (fileLength > 0) {
-				// yes, register it
-				sfx = RegisterSound(sexedFilename);
-			} else if (model.equalsIgnoreCase("female")) {
-			    // retry it with female pak-file sounds
-				String femaleFilename = "player/female/" + base.substring(1);
-				sfx = AliasName(sexedFilename, femaleFilename);
-			} else {    
-			    // no chance, revert to the male sound in the pak0.pak
-				String maleFilename = "player/male/" + base.substring(1);
-				sfx = AliasName(sexedFilename, maleFilename);
-			}
+		if (sfx != null) return sfx;
+		
+		//
+		// fall back strategies
+		//
+		// not found , so see if it exists
+		if (FS.FileLength(sexedFilename.substring(1)) > 0) {
+			// yes, register it
+			return RegisterSound(sexedFilename);
 		}
-		return sfx;
+	    // try it with the female sound in the pak0.pak
+		if (model.equalsIgnoreCase("female")) {
+			String femaleFilename = "player/female/" + base.substring(1);
+			if (FS.FileLength("sound/" + femaleFilename) > 0)
+			    return AliasName(sexedFilename, femaleFilename);
+		}
+		// no chance, revert to the male sound in the pak0.pak
+		String maleFilename = "player/male/" + base.substring(1);
+		return AliasName(sexedFilename, maleFilename);
 	}
-	
 
 	static sfx_t[] known_sfx = new sfx_t[MAX_SFX];
 	static {
