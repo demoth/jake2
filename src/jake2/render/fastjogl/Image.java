@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Image.java,v 1.2 2004-06-13 11:58:53 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,7 +112,7 @@ public abstract class Image extends Main {
 	}
 
 	void GL_EnableMultitexture(boolean enable) {
-		if (!qglSelectTextureSGIS && !qglActiveTextureARB)
+		if (!qglActiveTextureARB && !qglSelectTextureSGIS)
 			return;
 
 		if (enable) {
@@ -132,7 +132,7 @@ public abstract class Image extends Main {
 	void GL_SelectTexture(int texture /* GLenum */) {
 		int tmu;
 
-		if (!qglSelectTextureSGIS && !qglActiveTextureARB)
+		if (!qglActiveTextureARB && !qglSelectTextureSGIS)
 			return;
 
 		if (texture == GL_TEXTURE0) {
@@ -148,13 +148,13 @@ public abstract class Image extends Main {
 
 		gl_state.currenttmu = tmu;
 
-		if (qglSelectTextureSGIS) {
-			// TODO handle this: gl.glSelectTextureSGIS(texture);
-			gl.glActiveTexture(texture);
-		}
-		else if (qglActiveTextureARB) {
+		if (qglActiveTextureARB) {
 			gl.glActiveTextureARB(texture);
 			gl.glClientActiveTextureARB(texture);
+		}
+		else if (qglSelectTextureSGIS) {
+			// TODO handle this: gl.glSelectTextureSGIS(texture);
+			gl.glActiveTexture(texture);
 		}
 	}
 
