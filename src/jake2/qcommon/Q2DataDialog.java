@@ -1,10 +1,13 @@
 /*
  * Q2DataDialog.java
- *
- * Created on 17. September 2004, 20:13
+ * Copyright (C)  2003
+ * 
+ * $Id: Q2DataDialog.java,v 1.11 2004-09-26 19:58:56 hzi Exp $
  */
 
 package jake2.qcommon;
+
+import jake2.Globals;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,17 +16,18 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Enumeration;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-/**
- *
- * @author  hoz
- */
+
 public class Q2DataDialog extends javax.swing.JDialog {
+	
+	static final String home = System.getProperty("user.home");
+	static final String sep = System.getProperty("file.separator");
     
     public Q2DataDialog() {
         super();
@@ -33,7 +37,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		int x = (mode.getWidth() - getWidth()) / 2;
 		int y = (mode.getHeight() - getHeight()) / 2;
 		setLocation(x, y);
-		dir = System.getProperty("user.home") + "/jake2";
+		dir = home + sep + "jake2" + sep + "baseq2";
 		jTextField1.setText(dir);
     }
     
@@ -413,12 +417,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
 	
 	static class InstallPanel extends JPanel {
 		
-		private static final String[][] mirrors = {
-		//{"LOC gate", "ftp://gate/q2-314-demo-x86.exe"}, // local test @home
-		{"DE ftp.fu-berlin.de", "ftp://ftp.fu-berlin.de/pc/msdos/games/idgames/idstuff/quake2/q2-314-demo-x86.exe"},
-		{"UK ftp.demon.co.uk", "ftp://ftp.demon.co.uk/pub/mirrors/idsoftware/quake2/q2-314-demo-x86.exe"},
-		{"SE ftp.fragzone.se", "ftp://ftp.fragzone.se/pub/spel/quake2/q2-314-demo-x86.exe"},
-		{"US ftp.idsoftware.com", "ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe"}  };		
+		private Vector mirrorNames = new Vector();
+		private Vector mirrorLinks = new Vector();		
 		private Q2DataDialog parent;
 		private JComboBox mirrorBox;
 		private JTextField destDir;
@@ -429,6 +429,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		
 		public InstallPanel(Q2DataDialog d) {
 			initComponents();
+			String dir = Q2DataDialog.home + Q2DataDialog.sep + "jake2";
+			destDir.setText(dir);
 			initMirrors();
 			parent = d;
 		}
@@ -517,13 +519,35 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		}
 		
 		private void readMirrors() {
+			InputStream in = getClass().getResourceAsStream("/mirrors");
+			BufferedReader r = new BufferedReader(new InputStreamReader(in));
+			try {
+				int i = 0;
+				while (true) {
+					String name = r.readLine();
+					String value = r.readLine();
+					if (name == null || value == null) break;
+					mirrorNames.add(name);
+					mirrorLinks.add(value);
+				}
+			} catch (Exception e) {} 
+			finally {
+				try {
+					r.close();
+				} catch (Exception e1) {}
+				try {
+					in.close();
+				} catch (Exception e1) {}
+			}
 		}
 		
 		private void initMirrors() {
 			readMirrors();
-			for (int i = 0; i < mirrors.length; i++) {
-				mirrorBox.addItem(mirrors[i][0]);
+			for (int i = 0; i < mirrorNames.size(); i++) {
+				mirrorBox.addItem(mirrorNames.get(i));
 			}
+			int i = Globals.rnd.nextInt(mirrorNames.size());
+			mirrorBox.setSelectedIndex(i);
 		}
 		
 		private void cancel() {
@@ -532,7 +556,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		
 		private void install() {
 			parent.progressPanel.destDir = destDir.getText();
-			parent.progressPanel.mirror = mirrors[mirrorBox.getSelectedIndex()][1];
+			parent.progressPanel.mirror = (String)mirrorLinks.get(mirrorBox.getSelectedIndex());
 			parent.showProgressPanel();
 			new Thread(parent.progressPanel).start();
 		}
@@ -564,8 +588,10 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		String mirror;
 		
 		JProgressBar progress = new JProgressBar();
-		JLabel label = new JLabel("test");
+		JLabel label = new JLabel("");
+		JButton cancel = new JButton("Cancel");
 		Q2DataDialog parent;
+		boolean running;
 		
 		public ProgressPanel(Q2DataDialog d) {
 			initComponents();
@@ -575,29 +601,52 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		void initComponents() {
 			progress.setMinimum(0);
 			progress.setMaximum(100);
+			progress.setStringPainted(true);
 			setLayout(new GridBagLayout());
 			GridBagConstraints gridBagConstraints = new GridBagConstraints();
 
-			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints = new GridBagConstraints();
 			gridBagConstraints.gridx = 0;
 			gridBagConstraints.gridy = 0;
 			gridBagConstraints.gridwidth = 1;
-			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-			gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 10);
+			gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.insets = new Insets(5, 10, 5, 10);
 			gridBagConstraints.weightx = 1.0;
 			gridBagConstraints.anchor = GridBagConstraints.SOUTH;
 			add(label, gridBagConstraints);
+			
 			gridBagConstraints.gridy = 1;
 			gridBagConstraints.anchor = GridBagConstraints.NORTH;
 			add(progress, gridBagConstraints);
+			
+			gridBagConstraints.gridy = 1;
+			gridBagConstraints.anchor = GridBagConstraints.SOUTH;
+			gridBagConstraints.fill = GridBagConstraints.NONE;
+			gridBagConstraints.weighty = 1;
+			gridBagConstraints.weightx = 0;
+			cancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cancel();
+			}});
+			add(cancel, gridBagConstraints);
+			
 			Dimension d = new Dimension(400, 100);
 			setMinimumSize(d);
 			setMaximumSize(d);
 			setPreferredSize(d);
 		}
+		
+		void cancel() {
+			synchronized(this) {
+				running = false;
+			}
+		}
 						
 		public void run() {
-						
+			synchronized(this) {
+				running = true;
+			}
+			
 			InputStream in = null;
 			OutputStream out = null;
 			File outFile = null;
@@ -709,6 +758,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 				int c = 0;
 				int l;
 				while ((l = in.read(buf)) > 0) {
+					if (!running) throw new Exception("installation canceled");
 					out.write(buf, 0, l);
 					c += l;
 					progress.setValue(c / 1024);
