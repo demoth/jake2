@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.17 2004-02-17 15:03:04 cwei Exp $
+ * $Id: Surf.java,v 1.18 2004-03-12 12:03:29 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,6 +36,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import net.java.games.jogl.GL;
+import net.java.games.jogl.util.BufferUtils;
+
 import jake2.Defines;
 import jake2.client.dlight_t;
 import jake2.client.entity_t;
@@ -689,6 +691,8 @@ public abstract class Surf extends Draw {
 		GL_TexEnv( GL.GL_REPLACE );
 	}
 
+	// direct buffer
+	ByteBuffer temp = BufferUtils.newByteBuffer(128 * 128 * 4);
 
 	void GL_RenderLightmappedPoly( msurface_t surf )
 	{
@@ -700,66 +704,74 @@ public abstract class Surf extends Draw {
 		int lmtex = surf.lightmaptexturenum;
 		glpoly_t p;
 
-//		for ( map = 0; map < Defines.MAXLIGHTMAPS && surf.styles[map] != (byte)255; map++ )
-//		{
-//			if ( r_newrefdef.lightstyles[surf.styles[map] & 0xFF].white != surf.cached_light[map] )
-//				goto dynamic;
-//		}
-//
-//		// dynamic this frame or dynamic previously
-//		if ( ( surf.dlightframe == r_framecount ) )
-//		{
-//	dynamic:
-//			if ( gl_dynamic.value )
-//			{
-//				if ( !(surf.texinfo.flags & (SURF_SKY|SURF_TRANS33|SURF_TRANS66|SURF_WARP ) ) )
-//				{
-//					is_dynamic = true;
-//				}
-//			}
-//		}
-//
+		// ersetzt goto
+		boolean gotoDynamic = false;
+
+		for ( map = 0; map < Defines.MAXLIGHTMAPS && (surf.styles[map] != (byte)255); map++ )
+		{
+			if ( r_newrefdef.lightstyles[surf.styles[map] & 0xFF].white != surf.cached_light[map] ) {
+				gotoDynamic = true;
+				break;
+			}
+		}
+
+		// this is a hack from cwei
+		if (map == 4) map--;
+
+		// dynamic this frame or dynamic previously
+		if ( gotoDynamic || ( surf.dlightframe == r_framecount ) )
+		{
+			//	label dynamic:
+			if ( gl_dynamic.value != 0 )
+			{
+				if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP )) == 0 )
+				{
+					is_dynamic = true;
+				}
+			}
+		}
+
 		if ( is_dynamic )
 		{
-//			unsigned	temp[128*128];
-//			int			smax, tmax;
-//
+			// ist raus gezogen worden int[] temp = new int[128*128];
+			int smax, tmax;
+
 			if ( ( (surf.styles[map] & 0xFF) >= 32 || surf.styles[map] == 0 ) && ( surf.dlightframe != r_framecount ) )
 			{
-//				smax = (surf.extents[0]>>4)+1;
-//				tmax = (surf.extents[1]>>4)+1;
-//
-//				R_BuildLightMap( surf, (void *)temp, smax*4 );
-//				R_SetCacheState( surf );
-//
-//				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + surf.lightmaptexturenum );
-//
-//				lmtex = surf.lightmaptexturenum;
-//
-//				gl.glTexSubImage2D( GL_TEXTURE_2D, 0,
-//								  surf.light_s, surf.light_t, 
-//								  smax, tmax, 
-//								  GL_LIGHTMAP_FORMAT, 
-//								  GL_UNSIGNED_BYTE, temp );
-//
+				smax = (surf.extents[0]>>4)+1;
+				tmax = (surf.extents[1]>>4)+1;
+
+				R_BuildLightMap( surf, temp, smax*4 );
+				R_SetCacheState( surf );
+
+				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + surf.lightmaptexturenum );
+
+				lmtex = surf.lightmaptexturenum;
+
+				gl.glTexSubImage2D( GL.GL_TEXTURE_2D, 0,
+								  surf.light_s, surf.light_t, 
+								  smax, tmax, 
+								  GL_LIGHTMAP_FORMAT, 
+								  GL.GL_UNSIGNED_BYTE, temp );
+
 			}
 			else
 			{
-//				smax = (surf.extents[0]>>4)+1;
-//				tmax = (surf.extents[1]>>4)+1;
-//
-//				R_BuildLightMap( surf, (void *)temp, smax*4 );
-//
-//				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + 0 );
-//
-//				lmtex = 0;
-//
-//				gl.glTexSubImage2D( GL_TEXTURE_2D, 0,
-//								  surf.light_s, surf.light_t, 
-//								  smax, tmax, 
-//								  GL_LIGHTMAP_FORMAT, 
-//								  GL_UNSIGNED_BYTE, temp );
-//
+				smax = (surf.extents[0]>>4)+1;
+				tmax = (surf.extents[1]>>4)+1;
+
+				R_BuildLightMap( surf, temp, smax*4 );
+
+				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + 0 );
+
+				lmtex = 0;
+
+				gl.glTexSubImage2D( GL.GL_TEXTURE_2D, 0,
+								  surf.light_s, surf.light_t, 
+								  smax, tmax, 
+								  GL_LIGHTMAP_FORMAT, 
+								  GL.GL_UNSIGNED_BYTE, temp );
+
 			}
 
 			c_brush_polys++;

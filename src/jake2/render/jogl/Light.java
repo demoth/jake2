@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.8 2004-02-15 01:29:20 cwei Exp $
+ * $Id: Light.java,v 1.9 2004-03-12 12:03:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,8 @@ package jake2.render.jogl;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
+
+import net.java.games.jogl.GL;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -64,30 +66,30 @@ public abstract class Light extends Warp {
 
 	void R_RenderDlight (dlight_t light)
 	{
-//		int		i, j;
-//		float	a;
-//		vec3_t	v;
-//		float	rad;
-//
-//		rad = light.intensity * 0.35;
-//
-//		VectorSubtract (light.origin, r_origin, v);
-//
-//		qglBegin (GL_TRIANGLE_FAN);
-//		qglColor3f (light.color[0]*0.2, light.color[1]*0.2, light.color[2]*0.2);
-//		for (i=0 ; i<3 ; i++)
-//			v[i] = light.origin[i] - vpn[i]*rad;
-//		qglVertex3fv (v);
-//		qglColor3f (0,0,0);
-//		for (i=16 ; i>=0 ; i--)
-//		{
-//			a = i/16.0 * M_PI*2;
-//			for (j=0 ; j<3 ; j++)
-//				v[j] = light.origin[j] + vright[j]*cos(a)*rad
-//					+ vup[j]*sin(a)*rad;
-//			qglVertex3fv (v);
-//		}
-//		qglEnd ();
+		int i, j;
+		float	a;
+		float[] v = {0, 0, 0};
+		float	rad;
+
+		rad = light.intensity * 0.35f;
+
+		Math3D.VectorSubtract (light.origin, r_origin, v);
+
+		gl.glBegin (GL.GL_TRIANGLE_FAN);
+		gl.glColor3f (light.color[0]*0.2f, light.color[1]*0.2f, light.color[2]*0.2f);
+		for (i=0 ; i<3 ; i++)
+			v[i] = light.origin[i] - vpn[i]*rad;
+		gl.glVertex3fv (v);
+		gl.glColor3f (0,0,0);
+		for (i=16 ; i>=0 ; i--)
+		{
+			a = (float)(i/16.0f * Math.PI*2);
+			for (j=0 ; j<3 ; j++)
+				v[j] = (float)(light.origin[j] + vright[j]*Math.cos(a)*rad
+					+ vup[j]*Math.sin(a)*rad);
+			gl.glVertex3fv (v);
+		}
+		gl.glEnd ();
 	}
 
 	/*
@@ -97,29 +99,31 @@ public abstract class Light extends Warp {
 	*/
 	void R_RenderDlights()
 	{
-//		int		i;
-//		dlight_t	*l;
-//
-//		if (!gl_flashblend.value)
-//			return;
-//
-//		r_dlightframecount = r_framecount + 1;	// because the count hasn't
-//												//  advanced yet for this frame
-//		qglDepthMask (0);
-//		qglDisable (GL_TEXTURE_2D);
-//		qglShadeModel (GL_SMOOTH);
-//		qglEnable (GL_BLEND);
-//		qglBlendFunc (GL_ONE, GL_ONE);
-//
-//		l = r_newrefdef.dlights;
-//		for (i=0 ; i<r_newrefdef.num_dlights ; i++, l++)
-//			R_RenderDlight (l);
-//
-//		qglColor3f (1,1,1);
-//		qglDisable (GL_BLEND);
-//		qglEnable (GL_TEXTURE_2D);
-//		qglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//		qglDepthMask (1);
+		int i;
+		dlight_t l;
+
+		if (gl_flashblend.value == 0)
+			return;
+
+		r_dlightframecount = r_framecount + 1;	// because the count hasn't
+												//  advanced yet for this frame
+		gl.glDepthMask(false);
+		gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glShadeModel (GL.GL_SMOOTH);
+		gl.glEnable (GL.GL_BLEND);
+		gl.glBlendFunc (GL.GL_ONE, GL.GL_ONE);
+
+		for (i=0 ; i<r_newrefdef.num_dlights ; i++)
+		{
+			l = r_newrefdef.dlights[i];
+			R_RenderDlight (l);
+		}
+
+		gl.glColor3f (1,1,1);
+		gl.glDisable(GL.GL_BLEND);
+		gl.glEnable(GL.GL_TEXTURE_2D);
+		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glDepthMask(true);
 	}
 
 
@@ -390,76 +394,78 @@ public abstract class Light extends Warp {
 	*/
 	void R_AddDynamicLights(msurface_t surf)
 	{
-//		int			lnum;
-//		int			sd, td;
-//		float		fdist, frad, fminlight;
-//		vec3_t		impact, local;
-//		int			s, t;
-//		int			i;
-//		int			smax, tmax;
-//		mtexinfo_t	*tex;
-//		dlight_t	*dl;
-//		float		*pfBL;
-//		float		fsacc, ftacc;
-//
-//		smax = (surf.extents[0]>>4)+1;
-//		tmax = (surf.extents[1]>>4)+1;
-//		tex = surf.texinfo;
-//
-//		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
-//		{
-//			if ( !(surf.dlightbits & (1<<lnum) ) )
-//				continue;		// not lit by this light
-//
-//			dl = &r_newrefdef.dlights[lnum];
-//			frad = dl.intensity;
-//			fdist = DotProduct (dl.origin, surf.plane.normal) -
-//					surf.plane.dist;
-//			frad -= fabs(fdist);
-//			// rad is now the highest intensity on the plane
-//
-//			fminlight = DLIGHT_CUTOFF;	// FIXME: make configurable?
-//			if (frad < fminlight)
-//				continue;
-//			fminlight = frad - fminlight;
-//
-//			for (i=0 ; i<3 ; i++)
-//			{
-//				impact[i] = dl.origin[i] -
-//						surf.plane.normal[i]*fdist;
-//			}
-//
-//			local[0] = DotProduct (impact, tex.vecs[0]) + tex.vecs[0][3] - surf.texturemins[0];
-//			local[1] = DotProduct (impact, tex.vecs[1]) + tex.vecs[1][3] - surf.texturemins[1];
-//
-//			pfBL = s_blocklights;
-//			for (t = 0, ftacc = 0 ; t<tmax ; t++, ftacc += 16)
-//			{
-//				td = local[1] - ftacc;
-//				if ( td < 0 )
-//					td = -td;
-//
-//				for ( s=0, fsacc = 0 ; s<smax ; s++, fsacc += 16, pfBL += 3)
-//				{
-//					sd = Q_ftol( local[0] - fsacc );
-//
-//					if ( sd < 0 )
-//						sd = -sd;
-//
-//					if (sd > td)
-//						fdist = sd + (td>>1);
-//					else
-//						fdist = td + (sd>>1);
-//
-//					if ( fdist < fminlight )
-//					{
-//						pfBL[0] += ( frad - fdist ) * dl.color[0];
-//						pfBL[1] += ( frad - fdist ) * dl.color[1];
-//						pfBL[2] += ( frad - fdist ) * dl.color[2];
-//					}
-//				}
-//			}
-//		}
+		int lnum;
+		int sd, td;
+		float fdist, frad, fminlight;
+		float[] impact = {0, 0, 0};
+		float[] local = {0, 0, 0};
+		int s, t;
+		int i;
+		int smax, tmax;
+		mtexinfo_t tex;
+		dlight_t dl;
+		float[] pfBL;
+		float fsacc, ftacc;
+
+		smax = (surf.extents[0]>>4)+1;
+		tmax = (surf.extents[1]>>4)+1;
+		tex = surf.texinfo;
+
+		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
+		{
+			if ( (surf.dlightbits & (1<<lnum)) == 0 )
+				continue;		// not lit by this light
+
+			dl = r_newrefdef.dlights[lnum];
+			frad = dl.intensity;
+			fdist = Math3D.DotProduct (dl.origin, surf.plane.normal) -
+					surf.plane.dist;
+			frad -= Math.abs(fdist);
+			// rad is now the highest intensity on the plane
+
+			fminlight = DLIGHT_CUTOFF;	// FIXME: make configurable?
+			if (frad < fminlight)
+				continue;
+			fminlight = frad - fminlight;
+
+			for (i=0 ; i<3 ; i++)
+			{
+				impact[i] = dl.origin[i] -
+						surf.plane.normal[i]*fdist;
+			}
+
+			local[0] = Math3D.DotProduct (impact, tex.vecs[0]) + tex.vecs[0][3] - surf.texturemins[0];
+			local[1] = Math3D.DotProduct (impact, tex.vecs[1]) + tex.vecs[1][3] - surf.texturemins[1];
+
+			pfBL = s_blocklights;
+			int pfBLindex = 0;
+			for (t = 0, ftacc = 0 ; t<tmax ; t++, ftacc += 16)
+			{
+				td = (int)(local[1] - ftacc);
+				if ( td < 0 )
+					td = -td;
+
+				for ( s=0, fsacc = 0 ; s<smax ; s++, fsacc += 16, pfBLindex += 3)
+				{
+					sd = (int)( local[0] - fsacc );
+
+					if ( sd < 0 )
+						sd = -sd;
+
+					if (sd > td)
+						fdist = sd + (td>>1);
+					else
+						fdist = td + (sd>>1);
+
+					if ( fdist < fminlight )
+					{
+						pfBL[pfBLindex + 0] += ( frad - fdist ) * dl.color[0];
+						pfBL[pfBLindex + 1] += ( frad - fdist ) * dl.color[1];
+						pfBL[pfBLindex + 2] += ( frad - fdist ) * dl.color[2];
+					}
+				}
+			}
+		}
 	}
 
 
