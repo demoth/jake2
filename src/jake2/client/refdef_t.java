@@ -19,29 +19,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: refdef_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: refdef_t.java,v 1.3 2003-12-29 18:32:31 cwei Exp $
 
 package jake2.client;
 
 public class refdef_t {
-	int		x, y, width, height;// in virtual screen coordinates
-	float		fov_x, fov_y;
-	float		vieworg[] ={0,0,0};
-	float		viewangles[]={0,0,0};
-	float		blend[]={0,0,0,0};			// rgba 0-1 full screen blend
-	float		time;				// time is uesed to auto animate
-	int		rdflags;			// RDF_UNDERWATER, etc
+	public int		x, y, width, height;// in virtual screen coordinates
+	public float		fov_x, fov_y;
+	public float		vieworg[] ={0,0,0};
+	public float		viewangles[]={0,0,0};
+	public float		blend[]={0,0,0,0};			// rgba 0-1 full screen blend
+	public float		time;				// time is uesed to auto animate
+	public int		rdflags;			// RDF_UNDERWATER, etc
 
-	byte		areabits[];			// if not NULL, only areas with set bits will be drawn
+	public byte		areabits[];			// if not NULL, only areas with set bits will be drawn
 
-	lightstyle_t	lightstyles[];	// [MAX_LIGHTSTYLES]
+	public lightstyle_t	lightstyles[];	// [MAX_LIGHTSTYLES]
 
-	int		num_entities;
-	entity_t	entities[];
+	public int		num_entities;
+	public entity_t	entities[];
 
-	int		num_dlights;
-	dlight_t	dlights[];
+	public int		num_dlights;
+	public dlight_t	dlights[];
 
-	int		num_particles;
-	particle_t	particles[];
+	public int		num_particles;
+	public particle_t	particles[];
 }
