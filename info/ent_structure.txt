@@ -1,0 +1,392 @@
+Written by Davo (smithd6@cs.man.ac.uk)
+(parts marked //kami0 supplied by Michael 'kami0' DiGiovanni (kaze@concentric.net))
+
+These are the attributes which all entities have. This is an explanation of the type 
+'edict_t'. Attributes are referenced by the format 'entity_name->attribute'  (eg self->angle)
+
+Many of these will be familiar to QuakeC programers.
+
+NOTE - Not all of these are relevant to all entities (infact there are no entities
+for which all of these are relevant). 
+
+name              type              notes
+
+absmin, absmax    vec3_t            position of min and max points of entity 
+                                    relative to the world's origin
+accel             float             acceleration of platforms
+activator         edict_t *         entity which activated the current entity
+air_finished      float             time when air will run out (when underwater)
+angle             float             entity yaw set by level editor (-1 = up; -2 = down)
+area              link_t            ?
+areanum, areanum2 int               area where you currently are used when 
+                                    checking if monsters can hear sounds
+attenuation       float             attenuation of above sound (set at level edit)
+avelocity         vec3_t            angular velocity (see note for velocity)
+blocked           void              function to call when blocked? (optional)
+chain             editc_t *         used when creating a list of entities
+classname         char *            type of entity (eg 'player','monster_soldier')
+client            struct gclient_s* points to the player controling it, NULL
+                                    if not player controled
+clipmask          int               type of objects the entity will not pass through 
+                                    can be any of MASK_* or CONTENTS_* listed at bottom
+                                    of this document
+clusternums[]     int               ?
+combattarget      char *            name of entity to attack (used once)
+count             int               general purpose 'amount' variable, often set in level editor
+damage_debounce_time    float       time when lava/slime can do more damage to player
+deadflag          int               state of deadness :
+                                    DEAD_NO, DEAD_DYING, DEAD_DEAD, DEAD_RESPAWNABLE
+deathtarget       char *            name of entity to use when current entity dies
+decel             float             deceleration of platforms
+delay             float             time between triggering switch and effect activating
+die               void              function to call when health <= 0 (MUST be present if the 
+                                    entity can take damage)
+dmg               int               damage done by entity
+dmg_radius        float             area to do radius damage
+enemy             edict_t *         entity to attack
+flags             int               various attributes :
+                                    FL_FLY            -flying
+                                    FL_SWIM           -swimming, won't drown
+                                    FL_IMMUNE_LASER   -not hurt by laser
+                                    FL_INWATER        -set when entering water, cleared when
+                                                       leaving
+                                    FL_GODMODE        -god-mode on
+                                    FL_NOTARGET       -will not be targeted by monsters
+                                    FL_IMMUNE_SLIME   -not hurt by slime
+                                    FL_IMMUNE_LAVA    -not hurt by lava
+                                    FL_PARTIAL_GROUND -ground pulled out from under monster
+                                    FL_WATERJUMP      -player jumping from water
+                                    FL_TEAMSLAVE      -not first member of a team
+                                    FL_NO_KNOCKBACK   -entity not thrown back by damage
+                                    FL_POWER_ARMOR    -active power armor
+                                    FL_RESPAWN        -entity waiting before re-spawning
+fly_sound_debounce_time float       used with looping sound when pushing player (in_trigger.c)
+freetime          float             time when entity was freed-up in memory
+gib_health        int               health at which to gib :)
+goalentity        edict_t *         entity currently moving towards
+gravity           float             not used by any entites, but can be used to define reduced/
+                                    increased gravity for individual entities (normal=1.0)
+groundentity      edict_t *         what the entity is standing on 
+groundentity_linkcount  int         used in conjunction with linkcount to see if the current 
+                                    entity is still standing on the groundentity
+headnode          int               ?
+health            int               health of entity, increased and set in many places, but 
+                                    should only be reduced by t_damage()
+ideal_yaw         float             yaw the entity wants to face
+inuse             qboolean          the entity exists in the world
+item              gitem_t *         info about item (see below)
+killtarget        char *            name of entity to remove when current entity triggered
+last_move_time    float             time to play earthquake sound again
+light_level       int               player's light level, used by monsters when checking if
+                                    player can be seen
+linkcount         int               changed by the gi.linkentity function ?
+map               char *            filename of the next map, part of entity target_changelevel
+mass              int               used when pushing entites and calculating knock-back for 
+                                    weapons (eg rocket hits)
+max_health        int               maximum health
+message           char *            message when entity activated (set by level editor)
+mins, maxs        vec3_t            position of min and max points of entity 
+                                    relative to its origin
+model             char *            filename of entitie's model
+monsterinfo       monsterinfo_t     info about the monster (see below)
+move_angles       vec3_t            the angle that the gun turret is facing
+move_origin       vec3_t            the origin of the gun turret
+movedir           vec3_t            direction currently moving in
+moveinfo          moveinfo_t        used by the ships flying overhead
+movetarget        edict_t *         entity to wark towards when not got anything better to do
+                                    (such as killing the player)
+movetype          int               how the entity moves :
+                                    MOVETYPE_NONE     -never moves
+                                    MOVETYPE_NOCLIP   -ignores walls, entities, etc.
+                                    MOVETYPE_PUSH     -ignores walls, pushes entities
+                                    MOVETYPE_STOP     -ignores walls, stops on entities
+                                    MOVETYPE_WALK     -affected by gravity
+                                    MOVETYPE_STEP     -gravity, special edge handling, 
+                                                       used by monsters
+                                    MOVETYPE_FLY      -no gravity, used by flying monsters
+                                    MOVETYPE_TOSS     -gravity, hits ground and stops
+                                    MOVETYPE_FLYMISSILE     -weapons, extra clip size when 
+                                                             hitting monsters
+                                    MOVETYPE_BOUNCE   -bounces (eg grenade)
+mynoise,mynoise2  edict_t *         spawned when player makes a noise, monsters can home in on
+                                    them
+nextthink         float             time at which entity should call function 'ent->think'
+noise_index       int               index of sound to play when entity is triggered
+noise_index2      int               not used anywhere
+num_clusters      int               ?
+oldenemy          edict_t *         player they were attacking before distracted (by anither 
+                                    monster hitting them)
+pain              void              function to call when hurt (optional)
+pain_debounce_time      float       prevent pain sounds/anims playing to often
+pathtarget        char *            name of entity to move towards
+pos1              vec3_t            top position of lift
+pos2              vec3_t            bottom position of lift
+powerarmor_time   float             time to stop showing translucent shield effects
+prethink          void              function to call before each frame (optional)
+owner             edict_t *         usually the entity that spawned this entity (eg 
+                                    bullet is 'owned' by the monster that fired it)
+radius_dmg        int               amount of radius damage done by entity
+random            float             used to add a bit of time variation to func_timer
+s                 entity_state_t    has several subtypes (see below)
+show_hostile      qboolean          any monsters seeing this one will inherit its enemy
+size              vec3_t            size of entity (vector from mins to maxs)
+solid             solid_t           solidity of entity : 
+                                    SOLID_NOT   -no interaction with other objects
+                                    SOLID_TOUCH -touch inside after moving (used for
+                                                 triggers)
+                                    SOLID_BBOX  -touch on side (monsters, etc)
+                                    SOLID_BDP   -bsp clip, touch on edge (for solid
+                                                 walls, blocks, etc)
+sounds            int               type of sounds to play - used by doors, lifts, etc
+spawnflags        int               set by level editor, some values are :SPAWNFLAG_NOT_EASY, 
+                                    SPAWNFLAG_NOT_MEDIUM, SPAWNFLAG_NOT_HARD,
+                                    SPAWNFLAG_NOT_DEATHMATCH, SPAWNFLAG_NOT_COOP
+                                    There are other possible settings, which I have not yet 
+                                    looked at in detail.
+speed             float             speed of misc entities, including moving buttons, the
+                                    gun turret and the fly-by ships
+style             int               type of entities (eg type of health box) also used as 
+                                    areaportal number (something to do with separating areas)
+svflags           int               either : SVF_NOCLIENT - don't send to clients
+                                          SVF_DEADMONSTER - a dead monster
+                                          SVF_MONSTER     - same, a bit earlier
+takedamgage       int               can the entity be damaged? :
+                                    DAMAGE_NO   -will not take damage
+                                    DAMAGE_YES  -will take damage
+                                    DAMAGE_AIM  -will take damage + weapons 'auto-aim' at it
+target            char *            name of entity to trigger or move towards
+target_ent        editc_t *         entity that platform/lift is moving towards
+targetname        char *            name pointed to by target
+team              char *            name of team which entity is part of
+teamchain         edict_t *         the next entity in the team
+teammaster        edict_t *         the master entity in the team
+teleport_time     float             time when monster teleported into level
+think             void              sets the function that should be called at time nextthink
+timestamp         float             used by various functions to mark the spawn time of an
+                                    entity or the start of a change (eg a light ramp)
+touch             void              function to call when it touches another entity/the world
+                                    (optional)
+touch_debounce_time     float       prevent touch function from being called again too quickly
+use               void              function to call when used (optional)
+viewheight        int               height above origin where eyes are found
+velocity          vec3_t            current velocity. I think this is used in the external
+                                    c code to change the entity's position. Can anyone confirm
+                                    whether this is internal or external?
+volume            float             volume when playing above sound (set at level edit)
+wait              float             time to wait before platform moves to the next point on its
+                                    path
+waterlevel        int               height of liquid : 
+                                    0 - not in liquid
+                                    1 - feet in liquid
+                                    2 - on surface of liquid
+                                    3 - surrounded by liquid
+watertype         int               type of water the entity is in (see the CONTENTS_* list
+                                    at bottom of document)
+yaw_speed         float             speed to turn towards ideal yaw
+
+
+gitem_t
+
+referenced by 'entity_name->item.attribute'
+
+Name              Type              Notes
+
+ammo              char *            type of ammo to use
+classname         char *            name when spawning it
+count_width       int               number of digits to display by icon
+drop              void              function called when entity dropped
+flags             int               type of pickup :
+                                    IT_WEAPON, IT_AMMO, IT_ARMOR
+icon              char *            filename of icon
+info              void *            ? unused
+pickup            qboolean          function called when entity picked up
+pickup_name       char *            displayed onscreen when item picked up
+pickup_sound      char *            filename of sound to play when picked up
+precaches         char *            string containing all models, sounds etc. needed by this
+                                    item
+quantity          int               ammo gained by item/ammo used per shot by item
+tag               int               ? unused
+use               void              function called when entity used
+view_model        char *            filename of model when being held
+weaponthink       void              unused function
+world_model       char *            filename of model when item is sitting on level
+world_model_flags int               copied to 'ent->s.effects' (see s.effects for values)
+
+
+monsterinfo_t
+
+referenced by 'entity_name->monsterinfo.attribute'
+
+Name              Type              Notes
+
+aiflags           int               controls how the monster will behave :
+                                    AI_STAND_GROUND         -don't move
+                                    AI_TEMP_STAND_GROUND    -stand ground for a short time
+                                                             (don't get too close to enemy?)
+                                    AI_SOUND_TARGET         -look for source of a sound
+                                    AI_LOST_SIGHT           -just lost sight of player
+                                    AI_PURSUIT_LAST_SEEN    -
+                                    AI_PURSUE_NEXT          -able to get to last sighting point
+                                                             this frame
+                                    AI_PURSUE_TEMP          -continue to persue for a bit
+                                    AI_HOLD_FRAME           -entity will hold the same frame
+                                                             (eg machine gun firing)
+                                    AI_GOOD_GUY             -don't attack you (prisoners)
+                                    AI_BRUTAL               -keep attacking until enemy's 
+                                                             health < -80 (usualy stop at 0)
+                                    AI_NOSTEP               -used by exploding box
+                                    AI_DUKED                -monster's (pathetic) attempts to 
+                                                             evade your shots
+                                    AI_COMBAT_POINT         -ignores everything else until it
+                                                             reaches it's destination
+                                    AI_MEDIC                -healing something (stop when the
+                                                             'enemy's health > 0 )
+                                    AI_RESURRECTING         -it's ALIVE!!! (almost) show 
+                                                             resurection effects
+attack_finished   float             time when attack will be finished (prevents further attacks
+                                    before monster is ready)
+attack_state      int               attack method the monster is using :
+                                    AS_STRAIGHT       -moving forwards to firing position
+                                    AS_SLIDING        -moving sideways to firing position
+                                    AS_MELEE          -close range attack
+                                    AS_MISSILE        -long range attack
+currentmove       mmove_t *         current set of frames cycling between
+idle_time         float             time until which the idle animation should be played
+last_sighting     vec3_t            last point where the player was seen
+lefty             int               if and attack_state is AS_SLIDING, the monster will go left
+                                    otherwise it'll go right. this is swapped each time
+linkcount         int               changed by gi.linkentity?
+nextframe         int               next frame to display
+pausetime         float             time to stop at a particular path_corner
+power_armor_power int               energy the armor has left
+power_armor_type  int               type of power armor:
+                                    POWER_ARMOR_NONE, POWER_ARMOR_SCREEN, POWER_ARMOR_SHIELD          2
+saved_goal        vec3_t            if the monster can't get to where it wants to this frame,
+                                    that position is saved here
+scale             float             adjusts the running speed of the monster
+search_time       float             time to keep looking for player
+trail_time        float             timestamp of last section of player's trail found
+
+The following functions are called when certain conditions are met:
+
+attack            void              ranged attack (optional)
+checkattack       qboolean          function called to see if the monster will attack this frame
+dodge             void              !!INCOMING!! so just duck 'cos they wouldn't aim for your 
+                                    feet, would they? (optional)
+idle              void              animation to 'spice up' the standing around (optional)
+melee             void              close-up attack (optional)
+run               void              has an enemy, getting ready to attack
+search            void              searching for player animation (optional)
+sight             void              just spotted someone (optional)
+stand             void              function to call when just standing around
+walk              void              moving towards movetarget
+
+entity_state_t
+
+attributes here are referenced by 'entity_name->s.attribute'
+
+Name              Type              Notes
+
+angles            vec3_t            angles of the entity :
+                                    ...angles[0] = pitch
+                                    ...angles[1] = yaw
+                                    ...angles[2] = roll (not really used)
+frame             int               current frame
+effects           int               special effects to apply to entity can be one or more of:
+                                    EF_ROTATE         -rotates (bonus items)
+                                    EF_GIB            -leave a blood trail
+                                    EF_BLASTER        -coloured light + trail
+                                    EF_ROCKET         -coloured light + trail
+                                    EF_GRENADE        -smoke trail?
+                                    EF_HYPERBLASTER   -light + trail
+                                    EF_BFG            -light + particles?
+                                    EF_COLOR_SHELL    -coloured glow around the entity
+                                    EF_POWERSCREEN    -green screen
+                                    EF_ANIM01         -automatically cycle between frames 0 and 1 at 2 hz
+                                    EF_ANIM23         -automatically cycle between frames 2 and 3 at 2 hz
+                                    EF_ANIM_ALL       -automatically cycle through all frames at 2hz
+                                    EF_ANIM_ALLFAST   -automatically cycle through all frames at 10hz
+                                    EF_FLIES          -flies effect
+                                    EF_QUAD           -quad damage 'glow'
+                                    EF_PENT           -invincibility 'glow'
+event             int               effects that last one frame :
+                                    EV_NONE           -no effect
+                                    EV_ITEM_RESPAWN   -item respawning
+                                    EV_FOOTSTEP       -footstep noise
+                                    EV_FALLSHORT      -noise from small fall
+                                    EV_MALE_FALL      -noise from male falling
+                                    EV_MALE_FALLFAR   -noise from male falling a long way
+                                    EV_FEMALE_FALL    -noise from female falling 
+                                    EV_FEMALE_FALLFAR -noise from female falling a long way
+                                    EV_PLAYER_TELEPORT-teleportation effects
+modelindex        int               index of precached model
+modelindex2       int               for when one modelindex just isn't enough ;). Used with
+                                    the final 2-stage boss (oops, sorry if that's a spolier)
+                                    and to show separate player weapons
+modelindex3,4     int               not used 
+number            int               entity index number
+old_origin        vec3_t            last position of entity (used in a few odd places)
+origin            vec3_t            origin of the entity
+renderfx          int               various drawing effects :
+                                    RF_MINLIGHT       -can always see the entity
+                                    RF_VIEWERMODEL    -don't let the player see this (himself)
+                                    RF_WEAPONMODEL    -only let the current player see this
+                                    RF_FULLBRIGHT     -entity always fully lit
+                                    RF_DEPTHHACK      -for view weapon Z crunching  (?!)
+                                    RF_TRANSLUCENT    -entity is see through
+                                    RF_FRAMELERP      -? used by monsters and bodies
+                                    RF_BEAM           -laser beam
+                                    RF_CUSTOMSKIN     -skin is an index in image_precache
+                                    RF_GLOW           -pulse lighting for bonus items
+                                    RF_SHELL_RED      -red glow, when monsters are resurrecting
+                                    RF_SHELL_GREEN    -green glow, from power shield
+                                    RF_SHELL_BLUE     -blue glow, not currently used
+skinnum           int               current skin number
+solid             int               set by gi.linkentity, for client-side prediction
+sound             int               to gaurentee shut-off of looping sounds
+
+
+
+
+CONTENTS_SOLID          solid wall (not windows)
+CONTENTS_WINDOW         windows
+CONTENTS_AUX            ?
+CONTENTS_LAVA           err.. lava
+CONTENTS_SLIME          slime
+CONTENTS_WATER          water
+CONTENTS_MIST           !!Unused!! 
+LAST_VISIBLE_CONTENTS   ?
+CONTENTS_AREAPORTAL     portals to conserve memory used in map designing, also dont allow sounds to pass //kami0
+CONTENTS_PLAYERCLIP     brush which player may not pass through //kami0
+CONTENTS_MONSTERCLIP    brush where monsters may not pass through //kami0
+CONTENTS_CURRENT_0      flowing current moving at angle 0 //kami0
+CONTENTS_CURRENT_90     flowing current moving at angle 90 //kami0
+CONTENTS_CURRENT_180    flowing current moving at angle 180 //kami0
+CONTENTS_CURRENT_270    flowing current moving at angle 270 //kami0
+CONTENTS_CURRENT_UP     flowing current moving up //kami0
+CONTENTS_CURRENT_DOWN   flowing current moving down //kami0
+CONTENTS_ORIGIN         used for rotation, invisible //kami0
+CONTENTS_MONSTER        non-solid monster?
+CONTENTS_DEADMONSTER    dead monster
+CONTENTS_DETAIL         brush that is not passed to vis - not in final BSP ?
+CONTENTS_TRANSLUCENT    see through
+CONTENTS_LADDER         ladder
+
+MASK_ALL          -stop on anything
+MASK_SOLID        -walls/windows
+MASK_PLAYERSOLID  -anything you'd expect a player to stop on
+MASK_DEADSOLID    -same as above, can go through monsters
+MASK_MONSTERSOLID -anything you'd expect a monster to stop on
+MASK_WATER        -any liquid
+MASK_OPAQUE       -walls and liquid except water (which is see-through)
+MASK_SHOT         -walls, monsters and dead monsters
+MASK_CURRENT      -flowing brush
+
+Written by Davo (smithd6@cs.man.ac.uk)
+(parts marked //kami0 supplied by Michael 'kami0' DiGiovanni (kaze@concentric.net))
+
+If there are any corrections, bugs etc, please e-mail me.
+
+Please also note that this has been the result of searching through the c files supplied by
+iD, and I don't have reference to any official documents or anything, so don't assume I know 
+what I'm talking about ;).
