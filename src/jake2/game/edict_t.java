@@ -68,7 +68,6 @@ public class edict_t {
 	public int movetype;
 	public int flags;
 
-	//TODO:
 	public String model = null;
 	public float freetime; // sv.time when the object was freed
 

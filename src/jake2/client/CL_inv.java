@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.01.2004 by RST.
-// $Id: CL_inv.java,v 1.1 2004-01-31 16:56:11 rst Exp $
+// $Id: CL_inv.java,v 1.2 2004-02-01 00:35:00 rst Exp $
 
 package jake2.client;
 
@@ -34,7 +34,7 @@ import jake2.server.*;
 public class CL_inv {
 
 
-	public static void CL_ParseInventory() {
+	public static void ParseInventory() {
 		// TODO:implement!
 		
 	}

@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.2 2004-01-31 16:56:11 rst Exp $
+ * $Id: CL_ents.java,v 1.3 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -60,7 +60,7 @@ public class CL_ents extends CL_fx {
 	=================
 	*/
 	static int bitcounts[] = new int[32]; /// just for protocol profiling
-	public static int CL_ParseEntityBits(CM.intwrap bits) {
+	public static int ParseEntityBits(CM.intwrap bits) {
 		int b, total;
 		int i;
 		int number;
@@ -101,7 +101,7 @@ public class CL_ents extends CL_fx {
 	Can go from either a baseline or a previous packet_entity
 	==================
 	*/
-	public static void CL_ParseDelta(entity_state_t from, entity_state_t to, int number, int bits) {
+	public static void ParseDelta(entity_state_t from, entity_state_t to, int number, int bits) {
 		// set everything to the state we are delta'ing from
 		to.set(from);
 
@@ -180,7 +180,7 @@ public class CL_ents extends CL_fx {
 	to the current frame
 	==================
 	*/
-	public static void CL_DeltaEntity(frame_t frame, int newnum, entity_state_t old, int bits) {
+	public static void DeltaEntity(frame_t frame, int newnum, entity_state_t old, int bits) {
 		centity_t ent;
 		entity_state_t state;
 
@@ -190,7 +190,7 @@ public class CL_ents extends CL_fx {
 		cl.parse_entities++;
 		frame.num_entities++;
 
-		CL_ParseDelta(old, state, newnum, bits);
+		ParseDelta(old, state, newnum, bits);
 
 		// some data changes will force no lerping
 		if (state.modelindex != ent.current.modelindex
@@ -234,7 +234,7 @@ public class CL_ents extends CL_fx {
 	rest of the data stream.
 	==================
 	*/
-	public static void CL_ParsePacketEntities(frame_t oldframe, frame_t newframe) {
+	public static void ParsePacketEntities(frame_t oldframe, frame_t newframe) {
 		int newnum;
 		int bits=0;
 		// TODO: could give a nulli
@@ -259,7 +259,7 @@ public class CL_ents extends CL_fx {
 
 		while (true) {
 			CM.intwrap iw = new CM.intwrap(bits);
-			newnum = CL_ParseEntityBits(iw);
+			newnum = ParseEntityBits(iw);
 			bits = iw.i;
 
 			if (newnum >= MAX_EDICTS)
@@ -274,7 +274,7 @@ public class CL_ents extends CL_fx {
 			while (oldnum < newnum) { // one or more entities from the old packet are unchanged
 				if (cl_shownet.value == 3)
 					Com.Printf("   unchanged: " + oldnum + "\n");
-				CL_DeltaEntity(newframe, oldnum, oldstate, 0);
+				DeltaEntity(newframe, oldnum, oldstate, 0);
 
 				oldindex++;
 
@@ -306,7 +306,7 @@ public class CL_ents extends CL_fx {
 			if (oldnum == newnum) { // delta from previous state
 				if (cl_shownet.value == 3)
 					Com.Printf("   delta: " + newnum + "\n");
-				CL_DeltaEntity(newframe, newnum, oldstate, bits);
+				DeltaEntity(newframe, newnum, oldstate, bits);
 
 				oldindex++;
 
@@ -322,7 +322,7 @@ public class CL_ents extends CL_fx {
 			if (oldnum > newnum) { // delta from baseline
 				if (cl_shownet.value == 3)
 					Com.Printf("   baseline: " + newnum + "\n");
-				CL_DeltaEntity(newframe, newnum, cl_entities[newnum].baseline, bits);
+				DeltaEntity(newframe, newnum, cl_entities[newnum].baseline, bits);
 				continue;
 			}
 
@@ -332,7 +332,7 @@ public class CL_ents extends CL_fx {
 		while (oldnum != 99999) { // one or more entities from the old packet are unchanged
 			if (cl_shownet.value == 3)
 				Com.Printf("   unchanged: " + oldnum + "\n");
-			CL_DeltaEntity(newframe, oldnum, oldstate, 0);
+			DeltaEntity(newframe, oldnum, oldstate, 0);
 
 			oldindex++;
 
@@ -350,7 +350,7 @@ public class CL_ents extends CL_fx {
 	CL_ParsePlayerstate
 	===================
 	*/
-	public static void CL_ParsePlayerstate(frame_t oldframe, frame_t newframe) {
+	public static void ParsePlayerstate(frame_t oldframe, frame_t newframe) {
 		int flags;
 		player_state_t state;
 		int i;
@@ -464,7 +464,7 @@ public class CL_ents extends CL_fx {
 	
 	==================
 	*/
-	public static void CL_FireEntityEvents(frame_t frame) {
+	public static void FireEntityEvents(frame_t frame) {
 		entity_state_t s1;
 		int pnum, num;
 
@@ -472,11 +472,11 @@ public class CL_ents extends CL_fx {
 			num = (frame.parse_entities + pnum) & (MAX_PARSE_ENTITIES - 1);
 			s1 = cl_parse_entities[num];
 			if (s1.event!=0)
-				CL_EntityEvent(s1);
+				EntityEvent(s1);
 
 			// EF_TELEPORTER acts like an event, but is not cleared each frame
 			if ((s1.effects & EF_TELEPORTER)!=0)
-				CL_fx.CL_TeleporterParticles(s1);
+				CL_fx.TeleporterParticles(s1);
 		}
 	}
 
@@ -485,7 +485,7 @@ public class CL_ents extends CL_fx {
 	CL_ParseFrame
 	================
 	*/
-	public static void CL_ParseFrame() {
+	public static void ParseFrame() {
 		int cmd;
 		int len;
 		frame_t old;
@@ -544,14 +544,14 @@ public class CL_ents extends CL_fx {
 		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
 		if (cmd != svc_playerinfo)
 			Com.Error(ERR_DROP, "CL_ParseFrame: not playerinfo");
-		CL_ParsePlayerstate(old, cl.frame);
+		ParsePlayerstate(old, cl.frame);
 
 		// read packet entities
 		cmd = MSG.ReadByte(net_message);
 		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
 		if (cmd != svc_packetentities)
 			Com.Error(ERR_DROP, "CL_ParseFrame: not packetentities");
-		CL_ParsePacketEntities(old, cl.frame);
+		ParsePacketEntities(old, cl.frame);
 
 		// save the frame off in the backup array for later delta comparisons
 		cl.frames[cl.frame.serverframe & UPDATE_MASK] = cl.frame;
@@ -571,8 +571,8 @@ public class CL_ents extends CL_fx {
 			cl.sound_prepped = true; // can start mixing ambient sounds
 
 			// fire entity events
-			CL_FireEntityEvents(cl.frame);
-			CL_pred.CL_CheckPredictionError();
+			FireEntityEvents(cl.frame);
+			CL_pred.CheckPredictionError();
 		}
 	}
 
@@ -642,7 +642,7 @@ public class CL_ents extends CL_fx {
 	*/
 	static int bfg_lightramp[] = { 300, 400, 600, 300, 150, 75 };
 	
-	static void CL_AddPacketEntities(frame_t  frame) {
+	static void AddPacketEntities(frame_t  frame) {
 		entity_t ent;
 		entity_state_t s1;
 		float autorotate;
@@ -954,7 +954,7 @@ public class CL_ents extends CL_fx {
 			// add automatic particle trails
 			if ((effects & ~EF_ROTATE)!=0) {
 				if ((effects & EF_ROCKET)!=0) {
-					CL_RocketTrail(cent.lerp_origin, ent.origin, cent);
+					RocketTrail(cent.lerp_origin, ent.origin, cent);
 					CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
 				}
 				// PGM - Do not reorder EF_BLASTER and EF_HYPERBLASTER. 
@@ -964,11 +964,11 @@ public class CL_ents extends CL_fx {
 					//	  PGM
 					if ((effects & EF_TRACKER)!=0) // lame... problematic?
 						{
-						CL_newfx.CL_BlasterTrail2(cent.lerp_origin, ent.origin);
+						CL_newfx.BlasterTrail2(cent.lerp_origin, ent.origin);
 						CL_view.V_AddLight(ent.origin, 200, 0, 1, 0);
 					}
 					else {
-						CL_BlasterTrail(cent.lerp_origin, ent.origin);
+						BlasterTrail(cent.lerp_origin, ent.origin);
 						CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
 					}
 					//	  PGM
@@ -980,19 +980,19 @@ public class CL_ents extends CL_fx {
 						CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
 				}
 				else if ((effects & EF_GIB)!=0) {
-					CL_DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
+					DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
 				}
 				else if ((effects & EF_GRENADE)!=0) {
-					CL_DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
+					DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
 				}
 				else if ((effects & EF_FLIES)!=0) {
-					CL_FlyEffect(cent, ent.origin);
+					FlyEffect(cent, ent.origin);
 				}
 				else if ((effects & EF_BFG)!=0) {
 					
 
 					if ((effects & EF_ANIM_ALLFAST)!=0) {
-						CL_BfgParticles( ent);
+						BfgParticles( ent);
 						i = 200;
 					}
 					else {
@@ -1003,22 +1003,22 @@ public class CL_ents extends CL_fx {
 				// RAFAEL
 				else if ((effects & EF_TRAP)!=0) {
 					ent.origin[2] += 32;
-					CL_TrapParticles( ent);
+					TrapParticles( ent);
 					i = (rand() % 100) + 100;
 					CL_view.V_AddLight(ent.origin, i, 1, 0.8f, 0.1f);
 				}
 				else if ((effects & EF_FLAG1)!=0) {
-					CL_FlagTrail(cent.lerp_origin, ent.origin, 242);
+					FlagTrail(cent.lerp_origin, ent.origin, 242);
 					CL_view.V_AddLight(ent.origin, 225, 1, 0.1f, 0.1f);
 				}
 				else if ((effects & EF_FLAG2)!=0) {
-					CL_FlagTrail(cent.lerp_origin, ent.origin, 115);
+					FlagTrail(cent.lerp_origin, ent.origin, 115);
 					CL_view.V_AddLight(ent.origin, 225, 0.1f, 0.1f, 1);
 				}
 				//	  ======
 				//	  ROGUE
 				else if ((effects & EF_TAGTRAIL)!=0) {
-					CL_newfx.CL_TagTrail(cent.lerp_origin, ent.origin, 220);
+					CL_newfx.TagTrail(cent.lerp_origin, ent.origin, 220);
 					CL_view.V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
 				}
 				else if ((effects & EF_TRACKERTRAIL)!=0) {
@@ -1033,12 +1033,12 @@ public class CL_ents extends CL_fx {
 							CL_view.V_AddLight(ent.origin, -1.0f * intensity, 1.0f, 1.0f, 1.0f);
 					}
 					else {
-						CL_newfx.CL_Tracker_Shell(cent.lerp_origin);
+						CL_newfx.Tracker_Shell(cent.lerp_origin);
 						CL_view.V_AddLight(ent.origin, 155, -1.0f, -1.0f, -1.0f);
 					}
 				}
 				else if ((effects & EF_TRACKER)!=0) {
-					CL_newfx.CL_TrackerTrail(cent.lerp_origin, ent.origin, 0);
+					CL_newfx.TrackerTrail(cent.lerp_origin, ent.origin, 0);
 					// FIXME - check out this effect in rendition
 					if (vidref_val == VIDREF_GL)
 						CL_view.V_AddLight(ent.origin, 200, -1, -1, -1);
@@ -1049,11 +1049,11 @@ public class CL_ents extends CL_fx {
 				//	  ======
 				// RAFAEL
 				else if ((effects & EF_GREENGIB)!=0) {
-					CL_DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
+					DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
 				}
 				// RAFAEL
 				else if ((effects & EF_IONRIPPER)!=0) {
-					CL_IonripperTrail(cent.lerp_origin, ent.origin);
+					IonripperTrail(cent.lerp_origin, ent.origin);
 					CL_view.V_AddLight(ent.origin, 100, 1, 0.5f, 0.5f);
 				}
 				// RAFAEL
@@ -1063,7 +1063,7 @@ public class CL_ents extends CL_fx {
 				// RAFAEL
 				else if ((effects & EF_PLASMA)!=0) {
 					if ((effects & EF_ANIM_ALLFAST)!=0) {
-						CL_BlasterTrail(cent.lerp_origin, ent.origin);
+						BlasterTrail(cent.lerp_origin, ent.origin);
 					}
 					CL_view.V_AddLight(ent.origin, 130, 1, 0.5f, 0.5f);
 				}
@@ -1078,7 +1078,7 @@ public class CL_ents extends CL_fx {
 	CL_AddViewWeapon
 	==============
 	*/
-	static void CL_AddViewWeapon(player_state_t   ps, player_state_t  ops) {
+	static void AddViewWeapon(player_state_t   ps, player_state_t  ops) {
 		entity_t gun; // view model
 		int i;
 
@@ -1132,7 +1132,7 @@ public class CL_ents extends CL_fx {
 	Sets cl.refdef view values
 	===============
 	*/
-	static void CL_CalcViewValues() {
+	static void CalcViewValues() {
 		int i;
 		float lerp, backlerp;
 		centity_t   ent;
@@ -1207,7 +1207,7 @@ public class CL_ents extends CL_fx {
 			cl.refdef.blend[i] = ps.blend[i];
 
 		// add the weapon
-		CL_AddViewWeapon(ps, ops);
+		AddViewWeapon(ps, ops);
 	}
 
 	/*
@@ -1245,14 +1245,14 @@ public class CL_ents extends CL_fx {
 		//		CL_AddDLights ();
 		//		CL_AddLightStyles ();
 
-		CL_CalcViewValues();
+		CalcViewValues();
 		// PMM - moved this here so the heat beam has the right values for the vieworg, and can lock the beam to the gun
-		CL_AddPacketEntities( cl.frame);
+		AddPacketEntities( cl.frame);
 
-		CL_tent.CL_AddTEnts();
-		CL_AddParticles();
-		CL_fx.CL_AddDLights();
-		CL_AddLightStyles();
+		CL_tent.AddTEnts();
+		AddParticles();
+		CL_fx.AddDLights();
+		AddLightStyles();
 	}
 
 	/*

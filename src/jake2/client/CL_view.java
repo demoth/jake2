@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.4 2004-01-31 16:56:11 rst Exp $
+ * $Id: CL_view.java,v 1.5 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -122,11 +122,11 @@ public class CL_view extends CL_input {
 			Com.Printf("client %i\r", new Vargs(1).add(i)); 
 			SCR.UpdateScreen();
 			Sys.SendKeyEvents();	// pump message loop
-			CL.CL_ParseClientinfo(i);
+			CL.ParseClientinfo(i);
 			Com.Printf("                                     \r");
 		}
 
-		CL_parse.CL_LoadClientinfo(cl.baseclientinfo, "unnamed\\male/grunt");
+		CL_parse.LoadClientinfo(cl.baseclientinfo, "unnamed\\male/grunt");
 
 		// set sky textures and speed
 		Com.Printf("sky\r"); 
@@ -150,7 +150,7 @@ public class CL_view extends CL_input {
 		cl.force_refdef = true;	// make sure we have a valid refdef
 	}
  
-	public static void CL_AddNetgraph() {
+	public static void AddNetgraph() {
 		// TODO:implement!
 		
 	}

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.29 2004-01-31 21:54:11 rst Exp $
+ * $Id: Com.java,v 1.30 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -349,7 +349,7 @@ public final class Com {
 					}
 					catch (FileNotFoundException e)
 					{
-						// TODO Auto-generated catch block
+						// TODO: do quake2 error handling!
 						e.printStackTrace();
 					}
 				else
@@ -359,7 +359,7 @@ public final class Com {
 					}
 					catch (FileNotFoundException e1)
 					{
-						// TODO Auto-generated catch block
+						// TODO: do quake2 error handling!
 						e1.printStackTrace();
 					}
 			}
@@ -370,7 +370,7 @@ public final class Com {
 				}
 				catch (IOException e)
 				{
-					// TODO Auto-generated catch block
+					// TODO: do quake2 error handling!
 					e.printStackTrace();
 				}
 			if (Globals.logfile_active.value > 1)
@@ -426,7 +426,7 @@ public final class Com {
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
+				// TODO: do quake2 error handling!
 				e.printStackTrace();
 			}
 			Globals.logfile = null;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.6 2004-01-08 22:38:16 rst Exp $
+// $Id: client_persistant_t.java,v 1.7 2004-02-01 00:35:00 rst Exp $
 
 package jake2.game;
 
@@ -66,7 +66,7 @@ public class client_persistant_t {
 
 	boolean spectator; // client is a spectator
 
-	//TODO: clear
+	//TODO: implement clear !
 	public void clear() {
 	}
 
@@ -94,7 +94,7 @@ public class client_persistant_t {
 		max_grenades = bb.getInt();
 		max_cells = bb.getInt();
 		max_slugs = bb.getInt();
-		//TODO:
+		
 		weapon = GameTarget.itemlist[bb.getInt()];
 		lastweapon = GameTarget.itemlist[bb.getInt()];
 		power_cubes = bb.getInt();

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.5 2004-01-31 16:56:11 rst Exp $
+ * $Id: CL_parse.java,v 1.6 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -75,7 +75,7 @@ public class CL_parse extends CL_view {
 
 	//	  =============================================================================
 
-	public static String CL_DownloadFileName(String fn) {
+	public static String DownloadFileName(String fn) {
 		if (strncmp(fn, "players", 7) == 0)
 			return BASEDIRNAME + "/" + fn;
 		else
@@ -90,7 +90,7 @@ public class CL_parse extends CL_view {
 	to start a download from the server.
 	===============
 	*/
-	public static boolean CL_CheckOrDownloadFile(String filename) {
+	public static boolean CheckOrDownloadFile(String filename) {
 		RandomAccessFile fp;
 		String name;
 
@@ -114,7 +114,7 @@ public class CL_parse extends CL_view {
 		//	  ZOID
 		// check to see if we already have a tmp for this file, if so, try to resume
 		// open the file if not opened yet
-		name = CL_DownloadFileName(cls.downloadtempname);
+		name = DownloadFileName(cls.downloadtempname);
 
 		fp = fopen(name, "r+b");
 		if (fp != null) { // it exists
@@ -214,7 +214,7 @@ public class CL_parse extends CL_view {
 	A download message has been received from the server
 	=====================
 	*/
-	public static void CL_ParseDownload() {
+	public static void ParseDownload() {
 		int size, percent;
 		String name;
 		int r;
@@ -229,13 +229,13 @@ public class CL_parse extends CL_view {
 				fclose(cls.download);
 				cls.download = null;
 			}
-			CL_main.CL_RequestNextDownload();
+			CL_main.RequestNextDownload();
 			return;
 		}
 
 		// open the file if not opened yet
 		if (cls.download == null) {
-			name = CL_DownloadFileName(cls.downloadtempname);
+			name = DownloadFileName(cls.downloadtempname);
 
 			FS.CreatePath(name);
 
@@ -243,7 +243,7 @@ public class CL_parse extends CL_view {
 			if (cls.download == null) {
 				net_message.readcount += size;
 				Com.Printf("Failed to open " + cls.downloadtempname + "\n");
-				CL_main.CL_RequestNextDownload();
+				CL_main.RequestNextDownload();
 				return;
 			}
 		}
@@ -273,8 +273,8 @@ public class CL_parse extends CL_view {
 			fclose(cls.download);
 
 			// rename the temp file to it's final name
-			oldn = CL_DownloadFileName(cls.downloadtempname);
-			newn = CL_DownloadFileName(cls.downloadname);
+			oldn = DownloadFileName(cls.downloadtempname);
+			newn = DownloadFileName(cls.downloadname);
 			r = Lib.rename(oldn, newn);
 			if (r != 0)
 				Com.Printf("failed to rename.\n");
@@ -284,7 +284,7 @@ public class CL_parse extends CL_view {
 
 			// get another file if needed
 
-			CL_main.CL_RequestNextDownload();
+			CL_main.RequestNextDownload();
 		}
 	}
 
@@ -301,7 +301,7 @@ public class CL_parse extends CL_view {
 	CL_ParseServerData
 	==================
 	*/
-	public static void CL_ParseServerData() {
+	public static void ParseServerData() {
 
 		String str;
 		int i;
@@ -361,16 +361,16 @@ public class CL_parse extends CL_view {
 	CL_ParseBaseline
 	==================
 	*/
-	public static void CL_ParseBaseline() {
+	public static void ParseBaseline() {
 		entity_state_t es;
 		int newnum;
 		
 		entity_state_t nullstate = new entity_state_t();
 		//memset(nullstate, 0, sizeof(nullstate));
 		CM.intwrap bits = new CM.intwrap(0);
-		newnum = CL_ents.CL_ParseEntityBits(bits);
+		newnum = CL_ents.ParseEntityBits(bits);
 		es = cl_entities[newnum].baseline;
-		CL_ents.CL_ParseDelta(nullstate, es, newnum, bits.i);
+		CL_ents.ParseDelta(nullstate, es, newnum, bits.i);
 	}
 
 	/*
@@ -379,7 +379,7 @@ public class CL_parse extends CL_view {
 	
 	================
 	*/
-	public static void CL_LoadClientinfo(clientinfo_t ci, String s) {
+	public static void LoadClientinfo(clientinfo_t ci, String s) {
 		int i;
 		int t;
 		
@@ -509,7 +509,7 @@ public class CL_parse extends CL_view {
 	Load the skin, icon, and model for a client
 	================
 	*/
-	static void CL_ParseClientinfo(int player) {
+	static void ParseClientinfo(int player) {
 		String s;
 		clientinfo_t ci;
 
@@ -517,7 +517,7 @@ public class CL_parse extends CL_view {
 
 		ci = cl.clientinfo[player];
 
-		CL_LoadClientinfo(ci, s);
+		LoadClientinfo(ci, s);
 	}
 
 	/*
@@ -525,7 +525,7 @@ public class CL_parse extends CL_view {
 	CL_ParseConfigString
 	================
 	*/
-	public static void CL_ParseConfigString() {
+	public static void ParseConfigString() {
 		int i;
 		String s;
 		String olds;
@@ -544,7 +544,7 @@ public class CL_parse extends CL_view {
 
 		if (i >= CS_LIGHTS && i < CS_LIGHTS + MAX_LIGHTSTYLES)
 		{
-			CL_SetLightstyle(i - CS_LIGHTS);
+			SetLightstyle(i - CS_LIGHTS);
 		}
 		else if (i == CS_CDTRACK) {
 			if (cl.refresh_prepped)
@@ -569,7 +569,7 @@ public class CL_parse extends CL_view {
 		}
 		else if (i >= CS_PLAYERSKINS && i < CS_PLAYERSKINS + MAX_CLIENTS) {
 			if (cl.refresh_prepped && strcmp(olds, s)!=0)
-				CL_ParseClientinfo(i - CS_PLAYERSKINS);
+				ParseClientinfo(i - CS_PLAYERSKINS);
 		}
 	}
 
@@ -586,7 +586,7 @@ public class CL_parse extends CL_view {
 	CL_ParseStartSoundPacket
 	==================
 	*/
-	public static void CL_ParseStartSoundPacket() {
+	public static void ParseStartSoundPacket() {
 		float[] pos_v={0,0,0};
 		float pos[];
 		int channel, ent;
@@ -651,7 +651,7 @@ public class CL_parse extends CL_view {
 	CL_ParseServerMessage
 	=====================
 	*/
-	public static void CL_ParseServerMessage() {
+	public static void ParseServerMessage() {
 		int cmd;
 		String s;
 		int i;
@@ -734,43 +734,43 @@ public class CL_parse extends CL_view {
 
 				case svc_serverdata :
 					Cbuf.Execute(); // make sure any stuffed commands are done
-					CL_ParseServerData();
+					ParseServerData();
 					break;
 
 				case svc_configstring :
-					CL_ParseConfigString();
+					ParseConfigString();
 					break;
 
 				case svc_sound :
-					CL_ParseStartSoundPacket();
+					ParseStartSoundPacket();
 					break;
 
 				case svc_spawnbaseline :
-					CL_ParseBaseline();
+					ParseBaseline();
 					break;
 
 				case svc_temp_entity :
-					CL_ParseTEnt();
+					ParseTEnt();
 					break;
 
 				case svc_muzzleflash :
-					CL_fx.CL_ParseMuzzleFlash();
+					CL_fx.ParseMuzzleFlash();
 					break;
 
 				case svc_muzzleflash2 :
-					CL_ParseMuzzleFlash2();
+					ParseMuzzleFlash2();
 					break;
 
 				case svc_download :
-					CL_ParseDownload();
+					ParseDownload();
 					break;
 
 				case svc_frame :
-					CL_ParseFrame();
+					ParseFrame();
 					break;
 
 				case svc_inventory :
-					CL_inv.CL_ParseInventory();
+					CL_inv.ParseInventory();
 					break;
 
 				case svc_layout :
@@ -786,7 +786,7 @@ public class CL_parse extends CL_view {
 			}
 		}
 
-		CL_view.CL_AddNetgraph();
+		CL_view.AddNetgraph();
 
 		//
 		// we don't know if it is ok to save a demo message until

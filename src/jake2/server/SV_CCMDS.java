@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.6 2004-01-31 16:56:11 rst Exp $
+// $Id: SV_CCMDS.java,v 1.7 2004-02-01 00:35:00 rst Exp $
 
 package jake2.server;
 
@@ -1025,7 +1025,7 @@ public class SV_CCMDS extends SV_ENTS {
 			svs.demofile.write(buf.data);
 		}
 		catch (IOException e1) {
-			// TODO Auto-generated catch block
+			// TODO: do quake2 error handling!
 			e1.printStackTrace();
 		}
 

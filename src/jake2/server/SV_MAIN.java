@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.9 2004-01-30 13:34:31 hoz Exp $
+// $Id: SV_MAIN.java,v 1.10 2004-02-01 00:35:00 rst Exp $
 
 package jake2.server;
 
@@ -892,8 +892,7 @@ public class SV_MAIN extends SV_GAME {
 	===============
 	*/
 	public static void SV_Init() {
-		// TODO: U R G E N T !!!!
-		//SV_InitOperatorCommands	();
+		SV_CCMDS.SV_InitOperatorCommands ();
 
 		rcon_password = Cvar.Get("rcon_password", "", 0);
 		Cvar.Get("skill", "1", 0);

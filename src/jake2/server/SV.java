@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.10 2004-01-25 21:45:45 rst Exp $
+ * $Id: SV.java,v 1.11 2004-02-01 00:35:00 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,8 +40,7 @@ public final class SV {
 	/**
 	 * TODO implement SV.init()
 	 */
-	public static void Init(){
-	}
+
 	
 	public static void Shutdown(String finalmsg, boolean reconnect) {
 	}
@@ -1119,7 +1118,7 @@ public final class SV {
 	 * @return boolean
 	 */
 	public static boolean SV_FilterPacket(String value) {
-		// TODO Auto-generated method stub
+		// TODO: do quake2 error handling!
 		return false;
 	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.12 2004-01-31 16:56:11 rst Exp $
+//$Id: client_state_t.java,v 1.13 2004-02-01 00:35:00 rst Exp $
 
 package jake2.client;
 
@@ -84,8 +84,8 @@ public class client_state_t {
 	//
 	// transient data from server
 	//
-	// TODO: check char[1024] to String conversion
-	String layout; // general 2D overlay
+	
+	String layout=""; // general 2D overlay
 	int inventory[] = new int[Defines.MAX_ITEMS];
 
 	//

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.01.2004 by RST.
-// $Id: CL_newfx.java,v 1.1 2004-01-31 16:56:11 rst Exp $
+// $Id: CL_newfx.java,v 1.2 2004-02-01 00:35:00 rst Exp $
 
 package jake2.client;
 
@@ -34,21 +34,21 @@ import jake2.server.*;
 public class CL_newfx {
 
  
-	public static void CL_BlasterTrail2(float[] fs, float[] fs2) {
+	public static void BlasterTrail2(float[] fs, float[] fs2) {
 		// TODO:implement!
 		
 	}
 
-	public static void CL_TagTrail(float[] fs, float[] fs2, int i) {
+	public static void TagTrail(float[] fs, float[] fs2, int i) {
 		// TODO:implement!
 		
 	}
 
-	public static void CL_Tracker_Shell(float[] fs) {
+	public static void Tracker_Shell(float[] fs) {
 		// TODO:implement!
 		
 	}
-	public static void CL_TrackerTrail(float[] fs, float[] fs2, int i) {
+	public static void TrackerTrail(float[] fs, float[] fs2, int i) {
 		// TODO:implement!
 		
 	}

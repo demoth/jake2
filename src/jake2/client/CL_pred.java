@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.2 2004-01-31 16:56:11 rst Exp $
+ * $Id: CL_pred.java,v 1.3 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,7 +38,7 @@ public class CL_pred extends CL_parse {
 //	CL_CheckPredictionError
 //	===================
 //	*/
-	static void CL_CheckPredictionError ()
+	static void CheckPredictionError ()
 	{
 //		int		frame;
 //		int		delta[3];

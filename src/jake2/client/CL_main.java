@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.12 2004-01-31 21:54:11 rst Exp $
+ * $Id: CL_main.java,v 1.13 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -253,38 +253,33 @@ public class CL_main extends CL_pred {
 
 	static xcommand_t Setenv_f = new xcommand_t() {
 		public void execute() {
-				//		int argc = Cmd_Argc();
-		//
-		//		if ( argc > 2 )
-		//		{
-		//			char buffer[1000];
-		//			int i;
-		//
-		//			strcpy( buffer, Cmd_Argv(1) );
-		//			strcat( buffer, "=" );
-		//
-		//			for ( i = 2; i < argc; i++ )
-		//			{
-		//				strcat( buffer, Cmd_Argv( i ) );
-		//				strcat( buffer, " " );
-		//			}
-		//
-		//			putenv( buffer );
-		//		}
-		//		else if ( argc == 2 )
-		//		{
-		//			char *env = getenv( Cmd_Argv(1) );
-		//
-		//			if ( env )
-		//			{
-		//				Com_Printf( "%s=%s\n", Cmd_Argv(1), env );
-		//			}
-		//			else
-		//			{
-		//				Com_Printf( "%s undefined\n", Cmd_Argv(1), env );
-		//			}
-		//		}
-	}
+//			int argc = Cmd_Argc();
+//
+//			if (argc > 2) {
+//				char buffer[1000];
+//				int i;
+//
+//				strcpy(buffer, Cmd_Argv(1));
+//				strcat(buffer, "=");
+//
+//				for (i = 2; i < argc; i++) {
+//					strcat(buffer, Cmd_Argv(i));
+//					strcat(buffer, " ");
+//				}
+//
+//				putenv(buffer);
+//			}
+//			else if (argc == 2) {
+//				char * env = getenv(Cmd_Argv(1));
+//
+//				if (env) {
+//					Com_Printf("%s=%s\n", Cmd_Argv(1), env);
+//				}
+//				else {
+//					Com_Printf("%s undefined\n", Cmd_Argv(1), env);
+//				}
+//			}
+		}
 	};
 
 	/*
@@ -936,7 +931,7 @@ public class CL_main extends CL_pred {
 			}
 			if (!Netchan.Process(cls.netchan, net_message))
 				continue; // wasn't accepted for some reason
-			CL_ParseServerMessage();
+			ParseServerMessage();
 		}
 
 		//
@@ -1031,7 +1026,7 @@ public class CL_main extends CL_pred {
 
 	static String env_suf[] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
-	public static void CL_RequestNextDownload() {
+	public static void RequestNextDownload() {
 		int map_checksum = 0; // for detecting cheater maps
 		//char fn[MAX_OSPATH];
 		String fn;
@@ -1048,7 +1043,7 @@ public class CL_main extends CL_pred {
 		if (precache_check == CS_MODELS) { // confirm map
 			precache_check = CS_MODELS + 2; // 0 isn't used
 			if (SV_MAIN.allow_download_maps.value != 0)
-				if (!CL_CheckOrDownloadFile(cl.configstrings[CS_MODELS + 1]))
+				if (!CheckOrDownloadFile(cl.configstrings[CS_MODELS + 1]))
 					return; // started a download
 		}
 		if (precache_check >= CS_MODELS && precache_check < CS_MODELS + MAX_MODELS) {
@@ -1059,7 +1054,7 @@ public class CL_main extends CL_pred {
 						continue;
 					}
 					if (precache_model_skin == 0) {
-						if (!CL_CheckOrDownloadFile(cl.configstrings[precache_check])) {
+						if (!CheckOrDownloadFile(cl.configstrings[precache_check])) {
 							precache_model_skin = 1;
 							return; // started a download
 						}
@@ -1107,7 +1102,7 @@ public class CL_main extends CL_pred {
 								Globals.endian.LittleLong(pheader.ofs_skins) + (precache_model_skin - 1) * MAX_SKINNAME,
 								MAX_SKINNAME * num_skins);
 
-						if (!CL_CheckOrDownloadFile(name)) {
+						if (!CheckOrDownloadFile(name)) {
 							precache_model_skin++;
 							return; // started a download
 						}
@@ -1133,7 +1128,7 @@ public class CL_main extends CL_pred {
 						continue;
 					}
 					fn = "sound/" + cl.configstrings[precache_check++];
-					if (!CL_CheckOrDownloadFile(fn))
+					if (!CheckOrDownloadFile(fn))
 						return; // started a download
 				}
 			}
@@ -1145,7 +1140,7 @@ public class CL_main extends CL_pred {
 
 			while (precache_check < CS_IMAGES + MAX_IMAGES && cl.configstrings[precache_check].length() > 0) {
 				fn = "pics/" + cl.configstrings[precache_check++] + ".pcx";
-				if (!CL_CheckOrDownloadFile(fn))
+				if (!CheckOrDownloadFile(fn))
 					return; // started a download
 			}
 			precache_check = CS_PLAYERSKINS;
@@ -1191,7 +1186,7 @@ public class CL_main extends CL_pred {
 					switch (n) {
 						case 0 : // model
 							fn = "players/" + model + "/tris.md2";
-							if (!CL_CheckOrDownloadFile(fn)) {
+							if (!CheckOrDownloadFile(fn)) {
 								precache_check = CS_PLAYERSKINS + i * PLAYER_MULT + 1;
 								return; // started a download
 							}
@@ -1200,7 +1195,7 @@ public class CL_main extends CL_pred {
 
 						case 1 : // weapon model
 							fn = "players/" + model + "/weapon.md2";
-							if (!CL_CheckOrDownloadFile(fn)) {
+							if (!CheckOrDownloadFile(fn)) {
 								precache_check = CS_PLAYERSKINS + i * PLAYER_MULT + 2;
 								return; // started a download
 							}
@@ -1209,7 +1204,7 @@ public class CL_main extends CL_pred {
 
 						case 2 : // weapon skin
 							fn = "players/" + model + "/weapon.pcx";
-							if (!CL_CheckOrDownloadFile(fn)) {
+							if (!CheckOrDownloadFile(fn)) {
 								precache_check = CS_PLAYERSKINS + i * PLAYER_MULT + 3;
 								return; // started a download
 							}
@@ -1218,7 +1213,7 @@ public class CL_main extends CL_pred {
 
 						case 3 : // skin
 							fn = "players/" + model + "/" + skin + ".pcx";
-							if (!CL_CheckOrDownloadFile(fn)) {
+							if (!CheckOrDownloadFile(fn)) {
 								precache_check = CS_PLAYERSKINS + i * PLAYER_MULT + 4;
 								return; // started a download
 							}
@@ -1227,7 +1222,7 @@ public class CL_main extends CL_pred {
 
 						case 4 : // skin_i
 							fn = "players/" + model + "/" + skin + "_i.pcx";
-							if (!CL_CheckOrDownloadFile(fn)) {
+							if (!CheckOrDownloadFile(fn)) {
 								precache_check = CS_PLAYERSKINS + i * PLAYER_MULT + 5;
 								return; // started a download
 							}
@@ -1265,7 +1260,7 @@ public class CL_main extends CL_pred {
 						fn = "env/" + cl.configstrings[CS_SKY] + env_suf[n / 2] + ".pcx";
 					else
 						fn = "env/" + cl.configstrings[CS_SKY] + env_suf[n / 2] + ".tga";
-					if (!CL_CheckOrDownloadFile(fn))
+					if (!CheckOrDownloadFile(fn))
 						return; // started a download
 				}
 			}
@@ -1288,7 +1283,7 @@ public class CL_main extends CL_pred {
 					//char fn[MAX_OSPATH];
 
 					fn = "textures/" + CM.map_surfaces[precache_tex++].rname + ".wal";
-					if (!CL_CheckOrDownloadFile(fn))
+					if (!CheckOrDownloadFile(fn))
 						return; // started a download
 				}
 			}
@@ -1313,24 +1308,27 @@ public class CL_main extends CL_pred {
 	*/
 	static xcommand_t Precache_f = new xcommand_t() {
 		public void execute() {
-				//		//Yet another hack to let old demos work
-		//		//the old precache sequence
-		//		if (Cmd_Argc() < 2) {
-		//			unsigned	map_checksum;		// for detecting cheater maps
-		//
-		//			CM_LoadMap (cl.configstrings[CS_MODELS+1], true, &map_checksum);
-		//			CL_RegisterSounds ();
-		//			CL_PrepRefresh ();
-		//			return;
-		//		}
-		//
-		//		precache_check = CS_MODELS;
-		//		precache_spawncount = atoi(Cmd_Argv(1));
-		//		precache_model = 0;
-		//		precache_model_skin = 0;
-		//
-		//		CL_RequestNextDownload();
-	}
+			/* Yet another hack to let old demos work
+			the old precache sequence */
+			
+			if (Cmd.Argc() < 2) {
+				
+				CM.intwrap iw = new CM.intwrap(0); // for detecting cheater maps
+
+				CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
+				int mapchecksum = iw.i ;
+				CL.RegisterSounds();
+				CL.PrepRefresh();
+				return;
+			}
+
+			precache_check = CS_MODELS;
+			precache_spawncount = atoi(Cmd.Argv(1));
+			precache_model = null;
+			precache_model_skin = 0;
+
+			RequestNextDownload();
+		}
 	};
 
 	/*
@@ -1548,7 +1546,7 @@ public class CL_main extends CL_pred {
 
 	static int numcheatvars;
 
-	public static void CL_FixCvarCheats() {
+	public static void FixCvarCheats() {
 		int i;
 		cheatvar_t var;
 
@@ -1580,7 +1578,7 @@ public class CL_main extends CL_pred {
 	
 	==================
 	*/
-	public static void CL_SendCommand() {
+	public static void SendCommand() {
 		// get new key events
 		Sys.SendKeyEvents();
 
@@ -1591,7 +1589,7 @@ public class CL_main extends CL_pred {
 		Cbuf.Execute();
 
 		// fix any cheating cvars
-		CL_FixCvarCheats();
+		FixCvarCheats();
 
 		// send intentions now
 		SendCmd();
@@ -1641,7 +1639,7 @@ public class CL_main extends CL_pred {
 		CL.ReadPackets();
 
 		// send a new command message to the server
-		CL_SendCommand();
+		SendCommand();
 
 		// predict all unacknowledged movements
 		CL.PredictMovement();

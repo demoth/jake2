@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.11 2004-01-31 16:56:11 rst Exp $
+// $Id: CM.java,v 1.12 2004-02-01 00:35:00 rst Exp $
 
 package jake2.qcommon;
 
@@ -33,7 +33,7 @@ import java.io.RandomAccessFile;
 import java.nio.*;
 import java.util.Arrays;
 
-public class CM extends PlayerHud {
+public class CM extends Game {
 
 	public static class cnode_t {
 		cplane_t plane;

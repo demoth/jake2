@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.16 2004-01-31 23:47:04 rst Exp $
+// $Id: Lib.java,v 1.17 2004-02-01 00:35:00 rst Exp $
 
 package jake2.util;
 
@@ -111,6 +111,7 @@ public class Lib
 	{
 		return in1.compareTo(in2);
 	}
+	
 	public static int stricmp(String in1, String in2)
 	{
 		return in1.compareToIgnoreCase(in2);

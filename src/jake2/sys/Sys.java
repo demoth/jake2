@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.16 2004-01-31 23:47:04 rst Exp $
+ * $Id: Sys.java,v 1.17 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -297,7 +297,7 @@ public final class Sys extends Defines {
 	public static game_export_t GetGameAPI(game_import_t gimport)
 	{
 		//TODO:implement !
-		Com.Error(Defines.ERR_FATAL, "GetGameAPI not implemented!");
+		Com.Printf( "scheisse GetGameAPI not implemented!");
 		return null;
 	}
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.11 2004-01-31 16:56:11 rst Exp $
+// $Id: MSG.java,v 1.12 2004-02-01 00:35:00 rst Exp $
 
 package jake2.qcommon;
 
@@ -465,7 +465,6 @@ public class MSG extends GameBase {
 	// 2k read  buffer.
 	public static byte readbuf[] = new byte[2048];
 
-	// TODO: check
 	public static String ReadString(sizebuf_t msg_read) {
 		String string = "";
 

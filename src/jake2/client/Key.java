@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.20 2004-01-31 16:56:11 rst Exp $
+ * $Id: Key.java,v 1.21 2004-02-01 00:35:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -801,7 +801,7 @@ public class Key extends Globals {
 	}
 
 	public static void WriteBindings(RandomAccessFile f) {
-		// TODO:implement!
+		// TODO:implement! ist diese scheisse nicht schon irgendwo da ? 
 	}
 
 }

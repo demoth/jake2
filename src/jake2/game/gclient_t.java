@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.6 2004-01-08 22:38:16 rst Exp $
+// $Id: gclient_t.java,v 1.7 2004-02-01 00:35:00 rst Exp $
 
 package jake2.game;
 
@@ -119,7 +119,6 @@ public class gclient_t {
 	public edict_t chase_target; // player we are chasing
 	public boolean update_chase; // need to update chase info?
 
-	//TODO: 
 	public int index;
 
 	public void clear() {
@@ -232,7 +231,6 @@ public class gclient_t {
 		flood_when [9]=bb.getFloat();
 		flood_whenhead=bb.getInt();
 		respawn_time=bb.getFloat();
-		// TODO: check
 		chase_target=GameUtil.g_edicts[bb.getInt()];
 		update_chase=bb.getInt()!=0;
 	}

@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.4 2004-01-31 16:56:11 rst Exp $
+ * $Id: CL_tent.java,v 1.5 2004-02-01 00:35:00 rst Exp $
  */
 package jake2.client;
 
@@ -282,7 +282,7 @@ public class CL_tent extends CL_ents {
 //	CL_ParseParticles
 //	=================
 //	*/
-	static void CL_ParseParticles ()
+	static void ParseParticles ()
 	{
 //		int		color, count;
 //		vec3_t	pos, dir;
@@ -687,7 +687,7 @@ public class CL_tent extends CL_ents {
 //	*/
 //	static byte splash_color[] = {0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8};
 //
-	static void CL_ParseTEnt ()
+	static void ParseTEnt ()
 	{
 		int		type;
 //		vec3_t	pos, pos2, dir;
@@ -1193,7 +1193,7 @@ public class CL_tent extends CL_ents {
 //			Com_Error (ERR_DROP, "CL_ParseTEnt: bad type");
 //		}
 	}
-	public static void CL_AddTEnts() {
+	public static void AddTEnts() {
 		// TODO:implement!		
 	}
 //
