@@ -55,7 +55,7 @@ public class TestImage {
 			try {
 				image = ImageIO.read(f);
 				ImageFrame frame = new ImageFrame(image);
-				frame.setName(f.getName());
+				frame.setTitle(f.getName());
 				frame.setVisible(true);
 			} catch (IOException e) {
 				e.printStackTrace();
