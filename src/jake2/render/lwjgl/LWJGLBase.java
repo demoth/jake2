@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LWJGLBase.java,v 1.2 2004-12-14 12:57:14 cawe Exp $
+ * $Id: LWJGLBase.java,v 1.1 2004-12-16 19:53:41 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.render;
+package jake2.render.lwjgl;
 
 import jake2.Defines;
 import jake2.client.VID;

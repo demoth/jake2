@@ -2,7 +2,7 @@
  * Base.java
  * Copyright (C) 2003
  *
- * $Id: Base.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Base.java,v 1.3 2004-12-16 19:53:41 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.lwjgl;
 
-import jake2.render.LWJGLBase;
 
 import org.lwjgl.opengl.GL11;
 
