@@ -6,14 +6,17 @@ hat den Sourcecode der Quake2 Engine unter den Bedingungen der GPL
 veröffentlicht. Dementsprechend wird auch Jake2 unter der GPL (siehe LICENSE)
 lizensiert.
 
-Jake2 ist eine reine Java Anwendung. Als native Library kommt im Moment nur
-jogl für die OpenGL Anbindung zum Einsatz. Die komplette Funktionalität der
-Engine wurde ausschliesslich mit Java realisiert.
+Jake2 ist eine reine Java Anwendung. Als native Library kommen im Moment nur
+jogl für die OpenGL Anbindung und joal für OpenAudio Soundunterstützung zum
+Einsatz. Die komplette Funktionalität der Engine wurde ausschliesslich mit Java
+realisiert.
 
 Jake2 befindet sich noch im Entwicklungsstadium. Die Kontaktaddresse für 
 Bugreports und Rückmeldungen ist jake2@bytonic.de.
 
-Jake2 wird von uns unter Linux und Windows2000/XP getestet.
+Jake2 wird von uns unter Linux und Windows2000/XP getestet. Wir haben Feedback,
+dass Jake2 richtigen plattformspezifischen jogl Bibliotheken auch auf Mac OS X 
+läuft.
 
 Mindestanforderungen:
 400 MHz CPU
@@ -37,17 +40,9 @@ ausgehend von Sourcedistribution:
 Quake2 Leveldaten installieren:
 - ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
   herunterladen
-- Install\Data\baseq2\pak0.pak aus q2-314-demo-x86.exe mit unzip oder Winzip
+- Install\Data\baseq2\ aus q2-314-demo-x86.exe mit unzip oder Winzip
   extrahieren
-- die Installation sollte so aussehen:
-
-    Jake2/
-      baseq2/
-        players/
-        pak0.pak
-      lib/
-      Jake2.bat
-      Jake2.sh
+- baseq2 ins Jake2 Verzeichnis kopieren
 
 viel Spass!
 
