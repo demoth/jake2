@@ -19,13 +19,14 @@
  */
 
 // Created on 04.11.2003 by RST.
-// $Id: edict_t.java,v 1.6 2004-09-22 19:22:01 salomo Exp $
+// $Id: edict_t.java,v 1.7 2005-02-19 21:17:44 salomo Exp $
 package jake2.game;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import jake2.*;
+import jake2.qcommon.Com;
 import jake2.util.*;
 
 public class edict_t {
@@ -280,7 +281,7 @@ public class edict_t {
 
     /////////////////////////////////////////////////
 
-    public boolean set(String key, String value) {
+    public boolean setField(String key, String value) {
 
         if (key.equals("classname")) {
             classname = GameSpawn.ED_NewString(value);
@@ -348,6 +349,7 @@ public class edict_t {
 
         if (key.equals("team")) {
             team = GameSpawn.ED_NewString(value);
+            Com.dprintln("Monster Team:" + team);
             return true;
         } // F_LSTRING),
 

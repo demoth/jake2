@@ -19,7 +19,7 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.11 2005-02-06 19:02:34 salomo Exp $
+// $Id: GameSpawn.java,v 1.12 2005-02-19 21:17:44 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -353,7 +353,7 @@ public class GameSpawn {
         if (key.equals("nextmap"))
             Com.Println("nextmap: " + value);
         if (!GameBase.st.set(key, value))
-            if (!ent.set(key, value))
+            if (!ent.setField(key, value))
                 GameBase.gi.dprintf("??? The key [" + key
                         + "] is not a field\n");
 
@@ -401,7 +401,7 @@ public class GameSpawn {
             if (keyname.charAt(0) == '_')
                 continue;
 
-            ED_ParseField(keyname, com_token, ent);
+            ED_ParseField(keyname.toLowerCase(), com_token, ent);
 
         }
 
@@ -471,6 +471,8 @@ public class GameSpawn {
 
     public static void SpawnEntities(String mapname, String entities,
             String spawnpoint) {
+        
+        Com.dprintln("SpawnEntities(), mapname=" + mapname);
         edict_t ent;
         int inhibit;
         String com_token;
@@ -552,8 +554,11 @@ public class GameSpawn {
                     ((GameBase.skill.value == 0) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_EASY) != 0)
                             || ((GameBase.skill.value == 1) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_MEDIUM) != 0)
                             || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_HARD) != 0)) {
+                        
+                        Com.DPrintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent);
                         inhibit++;
+                        
                         continue;
                     }
                 }
