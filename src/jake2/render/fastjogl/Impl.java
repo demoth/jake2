@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.5 2004-06-15 16:27:25 cwei Exp $
+ * $Id: Impl.java,v 1.6 2004-06-23 10:48:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -323,11 +323,7 @@ public class Impl extends Misc implements GLEventListener {
 	* @see net.java.games.jogl.GLEventListener#reshape(net.java.games.jogl.GLDrawable, int, int, int, int)
 	*/
 	public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
-
-		vid.height = height;
-		vid.width = width;
-
-		ri.Vid_NewWindow(width, height);
+		// do nothing
 	}
 
 	/* 
