@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.14 2004-01-18 13:29:07 hoz Exp $
+ * $Id: Key.java,v 1.15 2004-01-19 20:26:45 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -136,18 +136,20 @@ public final class Key {
 		keynames[K_ALT] = "ALT";
 		keynames[K_CTRL] = "CTRL";
 		keynames[K_SHIFT] = "SHIFT";
-//	00068         {"F1", K_F1},
-//	00069         {"F2", K_F2},
-//	00070         {"F3", K_F3},
-//	00071         {"F4", K_F4},
-//	00072         {"F5", K_F5},
-//	00073         {"F6", K_F6},
-//	00074         {"F7", K_F7},
-//	00075         {"F8", K_F8},
-//	00076         {"F9", K_F9},
-//	00077         {"F10", K_F10},
-//	00078         {"F11", K_F11},
-//	00079         {"F12", K_F12},
+
+		keynames[K_F1] = "F1";
+		keynames[K_F2] = "F2";
+		keynames[K_F3] = "F3";
+		keynames[K_F4] = "F4";
+		keynames[K_F5] = "F5";
+		keynames[K_F6] = "F6";
+		keynames[K_F7] = "F7";
+		keynames[K_F8] = "F8";
+		keynames[K_F9] = "F9";
+		keynames[K_F10] = "F10";
+		keynames[K_F11] = "F11";
+		keynames[K_F12] = "F12";
+
 //	00080 
 //	00081         {"INS", K_INS},
 //	00082         {"DEL", K_DEL},
@@ -228,94 +230,91 @@ public final class Key {
 	 * 
 	 */
 	public static void Init() {
-//		00620         int             i;
-//		00621 
-//		00622         for (i=0 ; i<32 ; i++)
-//		00623         {
-//		00624                 key_lines[i][0] = ']';
-//		00625                 key_lines[i][1] = 0;
-//		00626         }
-//		00627         key_linepos = 1;
-//		00628         
-//		00629 //
-//		00630 // init ascii characters in console mode
-//		00631 //
-//		00632         for (i=32 ; i<128 ; i++)
-//		00633                 consolekeys[i] = true;
-//		00634         consolekeys[K_ENTER] = true;
-//		00635         consolekeys[K_KP_ENTER] = true;
-//		00636         consolekeys[K_TAB] = true;
-//		00637         consolekeys[K_LEFTARROW] = true;
-//		00638         consolekeys[K_KP_LEFTARROW] = true;
-//		00639         consolekeys[K_RIGHTARROW] = true;
-//		00640         consolekeys[K_KP_RIGHTARROW] = true;
-//		00641         consolekeys[K_UPARROW] = true;
-//		00642         consolekeys[K_KP_UPARROW] = true;
-//		00643         consolekeys[K_DOWNARROW] = true;
-//		00644         consolekeys[K_KP_DOWNARROW] = true;
-//		00645         consolekeys[K_BACKSPACE] = true;
-//		00646         consolekeys[K_HOME] = true;
-//		00647         consolekeys[K_KP_HOME] = true;
-//		00648         consolekeys[K_END] = true;
-//		00649         consolekeys[K_KP_END] = true;
-//		00650         consolekeys[K_PGUP] = true;
-//		00651         consolekeys[K_KP_PGUP] = true;
-//		00652         consolekeys[K_PGDN] = true;
-//		00653         consolekeys[K_KP_PGDN] = true;
-//		00654         consolekeys[K_SHIFT] = true;
-//		00655         consolekeys[K_INS] = true;
-//		00656         consolekeys[K_KP_INS] = true;
-//		00657         consolekeys[K_KP_DEL] = true;
-//		00658         consolekeys[K_KP_SLASH] = true;
-//		00659         consolekeys[K_KP_PLUS] = true;
-//		00660         consolekeys[K_KP_MINUS] = true;
-//		00661         consolekeys[K_KP_5] = true;
-//		00662 
-//		00663         consolekeys['`'] = false;
-//		00664         consolekeys['~'] = false;
-//		00665 
-//		00666         for (i=0 ; i<256 ; i++)
-//		00667                 keyshift[i] = i;
-//		00668         for (i='a' ; i<='z' ; i++)
-//		00669                 keyshift[i] = i - 'a' + 'A';
-//		00670         keyshift['1'] = '!';
-//		00671         keyshift['2'] = '@';
-//		00672         keyshift['3'] = '#';
-//		00673         keyshift['4'] = '$';
-//		00674         keyshift['5'] = '%';
-//		00675         keyshift['6'] = '^';
-//		00676         keyshift['7'] = '&';
-//		00677         keyshift['8'] = '*';
-//		00678         keyshift['9'] = '(';
-//		00679         keyshift['0'] = ')';
-//		00680         keyshift['-'] = '_';
-//		00681         keyshift['='] = '+';
-//		00682         keyshift[','] = '<';
-//		00683         keyshift['.'] = '>';
-//		00684         keyshift['/'] = '?';
-//		00685         keyshift[';'] = ':';
-//		00686         keyshift['\''] = '"';
-//		00687         keyshift['['] = '{';
-//		00688         keyshift[']'] = '}';
-//		00689         keyshift['`'] = '~';
-//		00690         keyshift['\\'] = '|';
-//		00691 
-//		00692         menubound[K_ESCAPE] = true;
-//		00693         for (i=0 ; i<12 ; i++)
-//		00694                 menubound[K_F1+i] = true;
-//		00695 
-//		00696 //
-//		00697 // register our functions
-//		00698 //
-//		00699         Cmd_AddCommand ("bind",Key_Bind_f);
-//		00700         Cmd_AddCommand ("unbind",Key_Unbind_f);
-//		00701         Cmd_AddCommand ("unbindall",Key_Unbindall_f);
-//		00702         Cmd_AddCommand ("bindlist",Key_Bindlist_f);		
+		for (int i=0 ; i<32 ; i++) {
+			Globals.key_lines[i][0] = ']';
+			Globals.key_lines[i][1] = 0;
+		}
+		Globals.key_linepos = 1;
+        
+		//
+		// init ascii characters in console mode
+		//
+		for (int i=32 ; i<128 ; i++)
+			consolekeys[i] = true;
+		consolekeys[K_ENTER] = true;
+		consolekeys[K_KP_ENTER] = true;
+		consolekeys[K_TAB] = true;
+		consolekeys[K_LEFTARROW] = true;
+		consolekeys[K_KP_LEFTARROW] = true;
+		consolekeys[K_RIGHTARROW] = true;
+		consolekeys[K_KP_RIGHTARROW] = true;
+		consolekeys[K_UPARROW] = true;
+		consolekeys[K_KP_UPARROW] = true;
+		consolekeys[K_DOWNARROW] = true;
+		consolekeys[K_KP_DOWNARROW] = true;
+		consolekeys[K_BACKSPACE] = true;
+		consolekeys[K_HOME] = true;
+		consolekeys[K_KP_HOME] = true;
+		consolekeys[K_END] = true;
+		consolekeys[K_KP_END] = true;
+		consolekeys[K_PGUP] = true;
+		consolekeys[K_KP_PGUP] = true;
+		consolekeys[K_PGDN] = true;
+		consolekeys[K_KP_PGDN] = true;
+		consolekeys[K_SHIFT] = true;
+		consolekeys[K_INS] = true;
+		consolekeys[K_KP_INS] = true;
+		consolekeys[K_KP_DEL] = true;
+		consolekeys[K_KP_SLASH] = true;
+		consolekeys[K_KP_PLUS] = true;
+		consolekeys[K_KP_MINUS] = true;
+		consolekeys[K_KP_5] = true;
+ 
+		consolekeys['`'] = false;
+		consolekeys['~'] = false;
+ 
+		for (int i=0 ; i<256 ; i++)
+			keyshift[i] = i;
+		for (int i='a' ; i<='z' ; i++)
+			keyshift[i] = i - 'a' + 'A';
+		keyshift['1'] = '!';
+		keyshift['2'] = '@';
+		keyshift['3'] = '#';
+		keyshift['4'] = '$';
+		keyshift['5'] = '%';
+		keyshift['6'] = '^';
+		keyshift['7'] = '&';
+		keyshift['8'] = '*';
+		keyshift['9'] = '(';
+		keyshift['0'] = ')';
+		keyshift['-'] = '_';
+		keyshift['='] = '+';
+		keyshift[','] = '<';
+		keyshift['.'] = '>';
+		keyshift['/'] = '?';
+		keyshift[';'] = ':';
+		keyshift['\''] = '"';
+		keyshift['['] = '{';
+		keyshift[']'] = '}';
+		keyshift['`'] = '~';
+		keyshift['\\'] = '|';
+ 
+		menubound[K_ESCAPE] = true;
+		for (int i=0 ; i<12 ; i++)
+			menubound[K_F1+i] = true;
+ 
+		//
+		// register our functions
+		//
+		Cmd.AddCommand("bind",Key.Bind_f);
+		Cmd.AddCommand("unbind",Key.Unbind_f);
+		Cmd.AddCommand("unbindall",Key.Unbindall_f);
+		Cmd.AddCommand("bindlist",Key.Bindlist_f);		
 	}
 	
 	public static void ClearTyping() {
-//	00058         key_lines[edit_line][1] = 0;    // clear any typing
-//	00059         key_linepos = 1;
+		Globals.key_lines[Globals.edit_line][1] = 0;    // clear any typing
+		Globals.key_linepos = 1;
 	}
 
 	/**
@@ -323,7 +322,7 @@ public final class Key {
 	 */
 	public static void Event(int key, boolean down, long time) {
 		//System.out.println(key +  " " + down);
-		return;
+		//return;
 		String kb;
 		String cmd;
  
@@ -496,18 +495,16 @@ public final class Key {
 	 * the K_* names are matched up.
 	 */
 	static int StringToKeynum(String str) {
-//	00426         keyname_t       *kn;
-//	00427         
-//	00428         if (!str || !str[0])
-//	00429                 return -1;
-//	00430         if (!str[1])
-//	00431                 return str[0];
-//	00432 
-//	00433         for (kn=keynames ; kn->name ; kn++)
-//	00434         {
-//	00435                 if (!Q_strcasecmp(str,kn->name))
-//	00436                         return kn->keynum;
-//	00437         }
+       
+		if (str == null) return -1;
+		
+		if (str.length() == 1)
+			return str.charAt(0);
+
+		for (int i = 0; i < keynames.length; i++) {
+			if (str.equalsIgnoreCase(keynames[i])) return i;
+		}
+
 		return -1;
 	}	
 	
@@ -764,5 +761,47 @@ public final class Key {
 		Globals.keybindings[keynum] = null;
 		
 		Globals.keybindings[keynum] = binding; 
-	}			
+	}
+	
+	static xcommand_t Unbind_f = new xcommand_t() {
+		public void execute() {
+			Key_Unbind_f();
+		}
+	};
+	static void Key_Unbind_f() {
+
+		if (Cmd.Argc() != 2) {
+			Com.Printf("unbind <key> : remove commands from a key\n");
+			return;
+		}
+
+		int b = Key.StringToKeynum(Cmd.Argv(1));
+		if (b==-1) {
+			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
+			return;
+		}
+
+		Key.SetBinding (b, null);
+	}
+	
+	static xcommand_t Unbindall_f = new xcommand_t() {
+		public void execute() {
+			Key_Unbindall_f();
+		}
+	};	
+	static void Key_Unbindall_f() {
+		for (int i=0 ; i<256 ; i++)
+			Key.SetBinding(i, null);
+	}
+	
+	static xcommand_t Bindlist_f = new xcommand_t() {
+		public void execute() {
+			Key_Bindlist_f();
+		}
+	};
+	static void Key_Bindlist_f() {
+		for (int i=0 ; i<256 ; i++)
+			if (Globals.keybindings[i] != null && Globals.keybindings[i].length() != 0)
+				Com.Printf(Key.KeynumToString(i) + " \"" + Globals.keybindings[i] + "\"\n");
+	}					
 }
