@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.31 2004-02-17 13:39:40 cwei Exp $
+ * $Id: CL.java,v 1.32 2004-02-17 17:32:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1367,6 +1367,13 @@ public final class CL extends CL_pred {
 
 		path = FS.Gamedir() + "/config.cfg";
 		f = fopen(path, "rw");
+		try
+		{
+			f.seek(0);
+			f.setLength(0);
+		}
+		catch (IOException e1)
+		{}
 		if (f == null) {
 			Com.Printf("Couldn't write config.cfg.\n");
 			return;
