@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.10 2004-02-02 21:47:00 rst Exp $
+// $Id: game_import_t.java,v 1.11 2004-02-02 22:13:02 rst Exp $
 
 package jake2.game;
 
@@ -76,7 +76,8 @@ public class game_import_t {
 	// All of the current configstrings are sent to clients when
 	// they connect, and changes are sent to all connected clients.
 	public void configstring(int num, String string) {
-		Com.Error(Defines.ERR_FATAL,"method is not implemented!");
+		//Com.Error(Defines.ERR_FATAL,"method is not implemented!");
+		SV_GAME.PF_Configstring(num, string);
 	}
 	public void error(String err) {
 		Com.Error(Defines.ERR_FATAL, err);

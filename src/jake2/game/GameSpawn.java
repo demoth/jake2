@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.12 2004-02-02 21:47:00 rst Exp $
+// $Id: GameSpawn.java,v 1.13 2004-02-02 22:13:02 rst Exp $
 
 package jake2.game;
 
@@ -250,47 +250,24 @@ public class GameSpawn extends GameSave {
 		====================
 	*/
 	 
-	static String ED_ParseEdict(String data, edict_t ent) {
+	static void ED_ParseEdict(Com.ParseHelp ph, edict_t ent) {
 		
 		boolean init;
 		String keyname;
 		String com_token;
 		init = false;
-		
-		//memset(& st, 0, sizeof(st));
-		//	   go through all the dictionary pairs
-		
-		Com.ParseHelp ph = new Com.ParseHelp(data);
-		
-		boolean closed = true;
-		
+				
 		while (true) { 
 
 			// parse key			
 			com_token = Com.Parse(ph);
-			keyname = com_token;
-			
-			if (keyname.equals("{"))
-			{
-				if (closed) {
-				closed = false;
-				continue;
-				}
-				else
-					gi.error("ED_ParseEntity: closing brace expected, opening brace found."); 
-			}
-			
-			if (keyname.equals("}"))
-			{
-				if (!closed) {
-				closed = true;
+			if (com_token.equals("}"))
 				break;
-				}
-				else
-					gi.error("ED_ParseEntity: opening brace expected, closing brace found."); 
-			}
+			
 			if (ph.isEof())
 				gi.error("ED_ParseEntity: EOF without closing brace");
+				
+			keyname = com_token;
 			
 			// parse value
 			com_token = Com.Parse(ph);
@@ -298,6 +275,9 @@ public class GameSpawn extends GameSave {
 			if (ph.isEof())
 				gi.error("ED_ParseEntity: EOF without closing brace");
 
+			if (com_token.equals("}"))
+				gi.error("ED_ParseEntity: closing brace without data");
+				
 			init = true;
 			// keynames with a leading underscore are used for utility comments,
 			// and are immediately discarded by quake
@@ -311,7 +291,7 @@ public class GameSpawn extends GameSave {
 		if (!init)
 			ent.clear();
 
-		return data;
+		return;
 	}
 	
 	/*
@@ -425,7 +405,7 @@ public class GameSpawn extends GameSave {
 				else
 					ent = G_Spawn();
 					
-				entities = ED_ParseEdict(entities, ent);
+				ED_ParseEdict(ph, ent);
 				
 				// yet another map hack
 				if (0==Q_stricmp(level.mapname, "command") && 0==Q_stricmp(ent.classname, "trigger_once") && 
@@ -798,8 +778,11 @@ public class GameSpawn extends GameSave {
 			}
 		} // check normal spawn functions
 		
-		for (i=0; (s = spawns[i]) !=null && s.name != null; i++) {
+		for (i=1; (s = spawns[i]) !=null && s.name != null; i++) {
 			if (0 == Lib.strcmp(s.name, ent.classname)) { // found it
+				
+				if (s.spawn == null)
+					gi.error("ED_CallSpawn: null-spawn on index=" + i);
 				s.spawn.think(ent);
 				return;
 			}
