@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.19 2004-03-12 19:32:10 cwei Exp $
+ * $Id: Surf.java,v 1.20 2004-03-19 23:37:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -102,7 +102,8 @@ public abstract class Surf extends Draw {
 		
 		public void clearLightmapSurfaces() {
 			for (int i = 0; i < MAX_LIGHTMAPS; i++)
-				lightmap_surfaces[i].clear();
+				// TODO lightmap_surfaces[i].clear();
+				lightmap_surfaces[i] = new msurface_t();
 		}
 		
 	} 
