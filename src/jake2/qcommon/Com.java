@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.16 2003-12-11 15:20:03 hoz Exp $
+ * $Id: Com.java,v 1.17 2003-12-27 03:05:41 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 public final class Com {
 	
 	static boolean recursive = false;
+	static String msg = "";
 	
 	private static Logger logger = Logger.getLogger(Com.class.getName());
 	
@@ -52,11 +53,14 @@ public final class Com {
 		}
 	};
 
+	public static void Error(int code, String fmt) throws longjmpException {
+		Error(code, fmt, null);
+	}
 	/**
 	 * @param code
 	 * @param msg
 	 */
-	static void Error(int code, String msg) throws longjmpException {
+	public static void Error(int code, String fmt, Vargs vargs) throws longjmpException {
 //		00180         va_list         argptr;
 //		00181         static char             msg[MAXPRINTMSG];
 		
@@ -65,11 +69,9 @@ public final class Com {
 			Sys.Error("recursive error after: " + msg);
 		}
 		recursive = true;
-//		00187 
-//		00188         va_start (argptr,fmt);
-//		00189         vsprintf (msg,fmt,argptr);
-//		00190         va_end (argptr);
-//		00191         
+		
+		msg = sprintf(fmt, vargs);
+
 		if (code == Defines.ERR_DISCONNECT) {
 			CL.Drop ();
 			recursive = false;
