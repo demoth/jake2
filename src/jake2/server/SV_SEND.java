@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.6 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_SEND.java,v 1.7 2005-01-17 22:00:09 cawe Exp $
 
 package jake2.server;
 
@@ -217,6 +217,8 @@ public class SV_SEND {
 
 		SZ.Clear(SV_INIT.sv.multicast);
 	}
+
+	private static final float[] origin_v = { 0, 0, 0 };
 	/*  
 	==================
 	SV_StartSound
@@ -255,7 +257,6 @@ public class SV_SEND {
 		int flags;
 		int i;
 		int ent;
-		float[] origin_v = { 0, 0, 0 };
 		boolean use_phs;
 
 		if (volume < 0 || volume > 1.0)
@@ -360,12 +361,12 @@ public class SV_SEND {
 	=======================
 	*/
 	public static boolean SV_SendClientDatagram(client_t client) {
-		byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
+		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
 		sizebuf_t msg = new sizebuf_t();
 
 		SV_ENTS.SV_BuildClientFrame(client);
 
-		SZ.Init(msg, msg_buf, msg_buf.length);
+		SZ.Init(msg, msgbuf, msgbuf.length);
 		msg.allowoverflow = true;
 
 		// send over all the relevant entity_state_t
@@ -442,6 +443,8 @@ public class SV_SEND {
 
 		return false;
 	}
+
+	private static final byte msgbuf[] = new byte[Defines.MAX_MSGLEN];
 	/*
 	=======================
 	SV_SendClientMessages
@@ -451,7 +454,6 @@ public class SV_SEND {
 		int i;
 		client_t c;
 		int msglen;
-		byte msgbuf[] = new byte[Defines.MAX_MSGLEN];
 		int r;
 
 		msglen = 0;
