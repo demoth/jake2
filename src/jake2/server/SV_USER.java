@@ -19,18 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.9 2004-02-15 18:01:27 rst Exp $
+// $Id: SV_USER.java,v 1.10 2004-02-15 19:27:29 hoz Exp $
 
 package jake2.server;
 
-import java.io.IOException;
-
-import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
 import jake2.util.Lib;
+
+import java.io.IOException;
 
 public class SV_USER extends SV_SEND {
 
@@ -646,7 +643,7 @@ public class SV_USER extends SV_SEND {
 					}
 
 					// copy.
-					cl.lastcmd = newcmd.getClone();
+					cl.lastcmd.set(newcmd);
 					break;
 
 				case clc_stringcmd :

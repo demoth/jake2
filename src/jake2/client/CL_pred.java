@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.10 2004-02-15 18:01:27 rst Exp $
+ * $Id: CL_pred.java,v 1.11 2004-02-15 19:27:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -333,7 +333,7 @@ public class CL_pred extends CL_parse
 			frame = ack & (CMD_BACKUP - 1);
 			cmd = cl.cmds[frame];
 			
-			pm.cmd = new usercmd_t(cmd);
+			pm.cmd.set(cmd);
 			
 			PMove.Pmove(pm);
 

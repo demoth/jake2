@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.27 2004-02-15 18:01:28 rst Exp $
+// $Id: MSG.java,v 1.28 2004-02-15 19:27:29 hoz Exp $
 
 package jake2.qcommon;
 
@@ -543,7 +543,7 @@ public class MSG extends GameBase {
 
 		//memcpy(move, from, sizeof(* move));
 		// IMPORTANT!! copy without new
-		move.copy(from);
+		move.set(from);
 		bits = ReadByte(msg_read);
 
 		// read current angles

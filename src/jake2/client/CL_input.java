@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.20 2004-02-15 18:01:27 rst Exp $
+ * $Id: CL_input.java,v 1.21 2004-02-15 19:27:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -481,12 +481,12 @@ public class CL_input extends CL_ents {
 
 		// save this command off for prediction
 		i = cls.netchan.outgoing_sequence & (CMD_BACKUP - 1);
-		
+		cmd = cl.cmds[i];
 		cl.cmd_time[i] = (int)cls.realtime; // for netgraph ping calculation
 
-		cl.cmds[i] = cmd = CL.CreateCmd();
+		cmd.set(CL.CreateCmd());
 
-		cl.cmd = new usercmd_t(cmd);
+		cl.cmd.set(cmd);
 
 		if (cls.state == ca_disconnected || cls.state == ca_connecting)
 			return;
@@ -560,4 +560,5 @@ public class CL_input extends CL_ents {
 		//
 		Netchan.Transmit(cls.netchan, buf.cursize, buf.data);
 	}
+
 }
