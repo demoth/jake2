@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.20 2003-12-28 16:53:01 rst Exp $
+ * $Id: Com.java,v 1.21 2003-12-29 00:01:03 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -50,14 +50,27 @@ public final class Com {
 
 	// helper class to replace the pointer-pointer
 	public static class ParseHelp {
+		
+		public ParseHelp(String in, int offset) {
+			this(in.toCharArray(),offset);
+		}
 
-		public ParseHelp(String in) {
-			eof = false;
-			if (in == null || in.length() == 0)
+		public ParseHelp(String in)
+		{
+			this(in.toCharArray(),0);
+		}
+				
+		public ParseHelp(char in[])
+		{
+			this(in,0);
+		}
+
+		public ParseHelp(char in[], int offset) {
+			if (in == null || in.length == 0)
 				data = null;
 			else
-				data = in.toCharArray();
-			index = 0;
+				data = in;
+			index = offset;
 		}
 
 		public char getchar() {
@@ -66,7 +79,7 @@ public final class Com {
 				return data[index];
 			}
 			catch (Exception e) {
-				eof = true;
+				data = null;
 				// last char
 				return 0;
 			}
@@ -79,7 +92,7 @@ public final class Com {
 				return data[index];
 			}
 			catch (Exception e) {
-				eof = true;
+				data = null;
 				// avoid int wraps;
 				index--;
 				// last char
@@ -88,10 +101,8 @@ public final class Com {
 		}
 
 		public boolean isEof() {
-			return eof;
+			return data==null;
 		}
-
-		private boolean eof = false;
 
 		public int index;
 		public char data[];
@@ -103,6 +114,13 @@ public final class Com {
 			return c;
 		}
 
+		public char skipwhitestoeol() {
+			char c;
+			while (((c = getchar()) <= ' ') && c != '\n' && c != 0)
+				index++;
+			return c;
+		}
+		
 		public char skiptoeol() {
 			char c;
 			while ((c = getchar()) != '\n' && c != 0)
@@ -127,9 +145,9 @@ public final class Com {
 		}
 
 		// skip whitespace
-
-		if ((hlp.skipwhites()) == 0) {
-			hlp.data = null;
+		hlp.skipwhites();
+		
+		if (hlp.isEof()) {
 			return "";
 		}
 
@@ -178,8 +196,8 @@ public final class Com {
 			Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
 			len = 0;
 		}
-		// trigger the eof 
-		hlp.skipwhites();
+		// trigger the eof
+		//hlp.skipwhites();
 
 		com_token[len] = 0;
 		return new String(com_token, 0, len);

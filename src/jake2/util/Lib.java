@@ -19,17 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.2 2003-12-27 15:41:00 rst Exp $
+// $Id: Lib.java,v 1.3 2003-12-29 00:01:03 rst Exp $
 
 package jake2.util;
 
-
- import jake2.*;
- import jake2.client.*;
- import jake2.game.*;
- import jake2.qcommon.*;
- import jake2.render.*;
- import jake2.server.*;
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
 
 public class Lib {
 
@@ -44,18 +43,18 @@ public class Lib {
 	public static float tv_vecs[][] = new float[8][3];
 	public static int tv_index;
 	public static float[] tv(float x, float y, float z) {
-	
+
 		float[] v;
-	
+
 		// use an array so that multiple tempvectors won't collide
 		// for a while
 		v = tv_vecs[tv_index];
 		tv_index = (tv_index++) & 7;
-	
+
 		v[0] = x;
 		v[1] = y;
 		v[2] = z;
-	
+
 		return v;
 	}
 	/*
@@ -89,12 +88,12 @@ public class Lib {
 	public static int strncmp(String in1, String in2, int len) {
 		int i1 = Math.min(len, in1.length());
 		int i2 = Math.min(len, in2.length());
-	
+
 		if (i1 < i2)
 			return -1;
 		if (i1 > i2)
 			return 1;
-	
+
 		for (int n = 0; n < i1; n++) {
 			char c1 = in1.charAt(n);
 			char c2 = in1.charAt(n);
@@ -107,12 +106,13 @@ public class Lib {
 	}
 	public static float atof(String in) {
 		float res = 0;
-	
+
 		try {
 			res = Float.parseFloat(in);
-		} catch (Exception e) {
 		}
-	
+		catch (Exception e) {
+		}
+
 		return res;
 	}
 
@@ -121,54 +121,67 @@ public class Lib {
 	}
 
 	//	  =================================================================================
-	
+
 	public static int atoi(String in) {
 		try {
 			return Integer.parseInt(in);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			return 0;
 		}
 	}
-	
 
-	public static float[] atov(String v)
-	{
-		float [] res = {0,0,0};
-		
+	public static float[] atov(String v) {
+		float[] res = { 0, 0, 0 };
+
 		int i1 = v.indexOf(" ");
-		int i2 = v.indexOf(" ",i1+1);
-		
-		res[0] = atof(v.substring(0,i1));
-		res[1] = atof(v.substring(i1+1,i2));
-		res[2] = atof(v.substring(i2+1,v.length()));
-		
+		int i2 = v.indexOf(" ", i1 + 1);
+
+		res[0] = atof(v.substring(0, i1));
+		res[1] = atof(v.substring(i1 + 1, i2));
+		res[2] = atof(v.substring(i2 + 1, v.length()));
+
 		return res;
 	}
-		
-	
 
 	public static int strlen(String in) {
 		return in.length();
 	}
 
+	public static int strlen(char in[]) {
+		for (int i = 0; i < in.length; i++)
+			if (in[i] == 0)
+				return i;
+		return in.length;
+	}
+
 	public static void strcat(String in, String i) {
 		in += i;
 	}
-	
-	
-	public static void main(String args[])
-	{
-		
-		String v = "0.234 1.23423 7.23423";
-		
-		int i1 = v.indexOf(" ");
-		int i2 = v.indexOf(" ",i1+1);
-		
-		System.out.println("parsing...");
-		
-		System.out.println("[" +  v.substring(0,i1) +"]" );
-		System.out.println("[" +  v.substring(i1+1,i2) +"]" );
-		System.out.println("[" +  v.substring(i2+1,v.length()) +"]" );
+
+	public static void strcpy(char dest[], char src[]) {
+		for (int i = 0; i < dest.length&& i < src.length; i++)
+			if (src[i] == 0) {
+				dest[i] = 0;
+				return;
+			}
+			else
+				dest[i] = src[i];
+
 	}
-	
+
+	public static void main(String args[]) {
+
+		String v = "0.234 1.23423 7.23423";
+
+		int i1 = v.indexOf(" ");
+		int i2 = v.indexOf(" ", i1 + 1);
+
+		System.out.println("parsing...");
+
+		System.out.println("[" + v.substring(0, i1) + "]");
+		System.out.println("[" + v.substring(i1 + 1, i2) + "]");
+		System.out.println("[" + v.substring(i2 + 1, v.length()) + "]");
+	}
+
 }

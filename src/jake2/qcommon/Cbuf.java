@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.9 2003-12-11 14:42:06 hoz Exp $
+ * $Id: Cbuf.java,v 1.10 2003-12-29 00:01:03 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -41,9 +41,7 @@ public final class Cbuf {
 		SZ.Init(Globals.cmd_text, Globals.cmd_text_buf, Globals.cmd_text_buf.length);
 	}
 
-	/**
-	 * @param text
-	 */
+ 
 	public static void InsertText(String text) {
 		byte[] temp = null;
 		int templen = 0;

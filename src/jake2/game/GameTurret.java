@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.1 2003-12-28 01:06:22 rst Exp $
+// $Id: GameTurret.java,v 1.2 2003-12-29 00:01:03 rst Exp $
 
 package jake2.game;
 
@@ -294,7 +294,7 @@ public class GameTurret extends GameMisc {
 			self.target_ent.owner = null;
 			self.target_ent.teammaster.owner = null;
 
-			//TODO: null inserted, was unclean. rst
+			//TODO: null appended as last missing argument, was unclean. rst
 			M_Infantry.infantry_die.die(self, inflictor, attacker, damage, null);
 		}
 	};

@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.15 2003-12-27 02:13:08 cwei Exp $
+ * $Id: Cvar.java,v 1.16 2003-12-29 00:01:03 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -85,7 +85,8 @@ public class Cvar {
 		// handles atof(var.string)
 		try {
 			var.value = Float.parseFloat(var.string);
-		} catch (NumberFormatException e) {
+		}
+		catch (NumberFormatException e) {
 			var.value = 0.0f;
 		}
 		// link the variable in
@@ -109,8 +110,8 @@ public class Cvar {
 	}
 
 	static void Init() {
-		Cmd.AddCommand ("set", Set_f);
-		Cmd.AddCommand ("cvarlist", List_f);
+		Cmd.AddCommand("set", Set_f);
+		Cmd.AddCommand("cvarlist", List_f);
 	}
 
 	public static String VariableString(String var_name) {
@@ -198,7 +199,8 @@ public class Cvar {
 						return var;
 					//Z_Free (var.latched_string);
 					var.latched_string = null;
-				} else {
+				}
+				else {
 					if (value.equals(var.string))
 						return var;
 				}
@@ -207,7 +209,8 @@ public class Cvar {
 					Com.Printf(var_name + " will be changed for next game.\n");
 					//var.latched_string = CopyString(value);
 					var.latched_string = value;
-				} else {
+				}
+				else {
 					//var.string = CopyString(value);
 					var.string = value;
 					var.value = Lib.atof(var.string);
@@ -218,7 +221,8 @@ public class Cvar {
 				}
 				return var;
 			}
-		} else {
+		}
+		else {
 			if (var.latched_string != null) {
 				//Z_Free(var.latched_string);
 				var.latched_string = null;
@@ -263,20 +267,21 @@ public class Cvar {
 					return;
 				}
 				Cvar.FullSet(Cmd.Argv(1), Cmd.Argv(2), flags);
-			} else
+			}
+			else
 				Cvar.Set(Cmd.Argv(1), Cmd.Argv(2));
 
 		}
 
 	};
-	
+
 	static xcommand_t List_f = new xcommand_t() {
 		public void execute() {
-			cvar_t  var;
+			cvar_t var;
 			int i;
 
 			i = 0;
-			for (var = Globals.cvar_vars ; var != null ; var = var.next, i++) {
+			for (var = Globals.cvar_vars; var != null; var = var.next, i++) {
 				if ((var.flags & ARCHIVE) != 0)
 					Com.Printf("*");
 				else
@@ -295,7 +300,7 @@ public class Cvar {
 					Com.Printf("L");
 				else
 					Com.Printf(" ");
-				Com.Printf(" " + var.name + " \"" + var.string + "\"\n"); 
+				Com.Printf(" " + var.name + " \"" + var.string + "\"\n");
 			}
 			Com.Printf(i + " cvars\n");
 		}
@@ -319,6 +324,31 @@ public class Cvar {
 		if (var == null)
 			return 0;
 		return Lib.atof(var.string);
+	}
+
+	/*
+	============
+	Cvar_Command
+	
+	Handles variable inspection and changing from the console
+	============
+	*/
+	public static boolean Command() {
+		cvar_t v;
+
+		// check variables
+		v = Cvar.FindVar(Cmd.Argv(0));
+		if (v == null)
+			return false;
+
+		// perform a variable print or set
+		if (Cmd.Argc() == 1) {
+			Com.Printf("\"" + v.name + "\" is \"" + v.string + "\"\n");
+			return true;
+		}
+
+		Cvar.Set(v.name, Cmd.Argv(1));
+		return true;
 	}
 
 }
