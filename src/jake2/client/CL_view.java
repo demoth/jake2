@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.1 2004-01-28 10:03:06 hoz Exp $
+ * $Id: CL_view.java,v 1.2 2004-01-28 10:32:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.client;
+
+import jake2.Defines;
+import jake2.qcommon.Com;
+import jake2.util.Math3D;
 
 
 
@@ -224,44 +228,6 @@ public class CL_view extends CL_input {
 //		// start the cd track
 //		CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
 	}
-//
-//	/*
-//	====================
-//	CalcFov
-//	====================
-//	*/
-//	float CalcFov (float fov_x, float width, float height)
-//	{
-//		float	a;
-//		float	x;
-//
-//		if (fov_x < 1 || fov_x > 179)
-//			Com_Error (ERR_DROP, "Bad fov: %f", fov_x);
-//
-//		x = width/tan(fov_x/360*M_PI);
-//
-//		a = atan (height/x);
-//
-//		a = a*360/M_PI;
-//
-//		return a;
-//	}
-//
-////	  ============================================================================
-//
-////	   gun frame debugging functions
-
-//
-
-//
-////	  ============================================================================
-//
-//
-
-//
-
-//
-//
 
 
 }

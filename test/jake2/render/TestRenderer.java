@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.24 2004-01-27 20:10:29 rst Exp $
+ * $Id: TestRenderer.java,v 1.25 2004-01-28 10:32:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -250,7 +250,7 @@ public class TestRenderer {
 		refdef.width = 144 * 2;
 		refdef.height = 168 * 2;
 		refdef.fov_x = 40;
-		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
 
 		int maxframe = 29;
@@ -346,7 +346,7 @@ public class TestRenderer {
 		refdef.width = 144 * 2;
 		refdef.height = 168 * 2;
 		refdef.fov_x = 40;
-		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
 
 		int maxframe = 29;
@@ -392,7 +392,7 @@ public class TestRenderer {
 		refdef.width = 144 * 2;
 		refdef.height = 168 * 2;
 		refdef.fov_x = 40;
-		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
 
 		int maxframe = 29;
@@ -464,7 +464,7 @@ public class TestRenderer {
 		refdef.width = 400;
 		refdef.height = 400;
 		refdef.fov_x = 50;
-		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
 		
 		animateParticles();
@@ -494,22 +494,6 @@ public class TestRenderer {
 		re.RenderFrame(refdef);
 	}
 	
-	public static float CalcFov(float fov_x, float width, float height) {
-		double a;
-		double x;
-
-		if (fov_x < 1 || fov_x > 179)
-			Com.Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
-
-		x = width / Math.tan(fov_x / 360 * Math.PI);
-
-		a = Math.atan(height / x);
-
-		a = a * 360 / Math.PI;
-
-		return (float) a; //new Double(a).floatValue();
-	}
-
 	private void drawString(int x, int y, String text) {
 		for (int i = 0; i < text.length(); i++) {
 			re.DrawChar(x + 8 * i, y, (int)text.charAt(i));

@@ -19,19 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.13 2004-01-25 21:45:45 rst Exp $
+// $Id: Math3D.java,v 1.14 2004-01-28 10:32:10 hoz Exp $
 
 package jake2.util;
 
-import java.util.Arrays;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.GameBase;
+import jake2.Defines;
 import jake2.game.cplane_t;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.qcommon.Com;
 
 public class Math3D extends Lib {
 	
@@ -544,5 +538,22 @@ public class Math3D extends Lib {
 		if (a1 - a2 < -180)
 			a1 += 360;
 		return a2 + frac * (a1 - a2);
+	}
+
+
+	public static float CalcFov(float fov_x, float width, float height) {
+		double a = 0.0f;
+		double x;
+
+		if (fov_x < 1.0f || fov_x > 179.0f)
+			Com.Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
+
+		x = width / Math.tan(fov_x / 360.0 * Math.PI);
+
+		a = Math.atan(height / x);
+
+		a = a * 360 / Math.PI;
+
+		return (float)a;
 	}
 }

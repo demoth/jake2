@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.5 2004-01-28 10:03:06 hoz Exp $
+ * $Id: Menu.java,v 1.6 2004-01-28 10:32:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,20 +25,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.Globals;
+import jake2.game.Cmd;
+import jake2.game.cvar_t;
+import jake2.qcommon.*;
+import jake2.sys.NET;
+import jake2.sys.Sys;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+
 import java.awt.Dimension;
 import java.io.RandomAccessFile;
-import java.nio.Buffer;
-import java.text.BreakIterator;
 import java.util.Arrays;
 import java.util.Comparator;
-
-import jake2.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
-import jake2.sys.*;
-import jake2.util.*;
 
 /**
  * Menu
@@ -1181,7 +1180,6 @@ public final class Menu extends Key {
 			default :
 				return Default_MenuKey(s_keys_menu, key);
 		}
-		return null;
 	}
 
 	static xcommand_t Menu_Keys = new xcommand_t() {
@@ -3690,7 +3688,6 @@ public final class Menu extends Key {
 			}
 		}
 		return Default_MenuKey(s_addressbook_menu, key);
-		return null;
 	}
 
 	static xcommand_t AddressBook_MenuDraw = new xcommand_t() {
@@ -4145,7 +4142,7 @@ public final class Menu extends Key {
 		refdef.width = 144;
 		refdef.height = 168;
 		refdef.fov_x = 40;
-		refdef.fov_y = TestRenderer.CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = cls.realtime * 0.001f;
 
 		if (s_pmi[s_player_model_box.curvalue].skindisplaynames != null) {

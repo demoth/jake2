@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.6 2004-01-25 16:34:58 cwei Exp $
+ * $Id: DancingQueens.java,v 1.7 2004-01-28 10:32:10 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -176,7 +176,7 @@ public class DancingQueens
 		re.Init();
 		
 		viddef = Globals.viddef;
-		fov_y = CalcFov(fov_x, viddef.width, viddef.height);
+		fov_y = Math3D.CalcFov(fov_x, viddef.width, viddef.height);
 	}
 
 	float fps = 0.0f;
@@ -301,23 +301,6 @@ public class DancingQueens
 	}
 	
 	
-	private float CalcFov(float fov_x, float width, float height)
-	{
-		double a;
-		double x;
-
-		if (fov_x < 1 || fov_x > 179)
-			ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
-
-		x = width / Math.tan(fov_x / 360 * Math.PI);
-
-		a = Math.atan(height / x);
-
-		a = a * 360 / Math.PI;
-
-		return (float) a;
-	}
-
 	private void drawString(int x, int y, String text)
 	{
 		for (int i = 0; i < text.length(); i++)
