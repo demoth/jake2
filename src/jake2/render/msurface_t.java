@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.8 2004-03-12 20:09:34 cwei Exp $
+// $Id: msurface_t.java,v 1.9 2004-05-19 16:28:51 cwei Exp $
 
 package jake2.render;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import jake2.game.*;
 import jake2.qcommon.texinfo_t;
@@ -67,23 +68,25 @@ public class msurface_t
 	
 	public void clear() {
 		visframe = 0;
-		//plane = null;
+		plane = null;
+		plane = new cplane_t();
 		flags = 0;
 
 		firstedge = 0;
 		numedges = 0;
 
-		texturemins[0] = texturemins[1] = 0;
+		texturemins[0] = texturemins[1] = -1;
 		extents[0] = extents[1] = 0;
 
 		light_s = light_t = 0;
 		dlight_s = dlight_t = 0;
 
-		//polys = null;
+		polys = null;
 		texturechain = null;
 		lightmapchain = null;
 
-		//texinfo = null;
+		//texinfo = new mtexinfo_t();
+		texinfo.clear();
 
 		dlightframe = 0;
 		dlightbits = 0;
@@ -98,6 +101,6 @@ public class msurface_t
 		{
 			cached_light[i] = 0;
 		}
-		//samples = null;
+		if (samples != null) samples.clear();
 	}
 }
