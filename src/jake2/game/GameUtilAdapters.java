@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameUtilAdapters.java,v 1.2 2004-02-29 00:51:05 rst Exp $
+// $Id: GameUtilAdapters.java,v 1.3 2004-02-29 02:40:24 rst Exp $
 
 package jake2.game;
 
@@ -237,7 +237,7 @@ public class GameUtilAdapters
 			if (ent.item.pickup == null)
 				return; // not a grabbable item?
 
-			Com.p("Picked up:" + ent.classname);
+			
 			taken = ent.item.pickup.interact(ent, other);
 
 			if (taken)
@@ -310,7 +310,8 @@ public class GameUtilAdapters
 
 			if (!taken)
 				return;
-	
+			Com.p("Picked up:" + ent.classname);
+			
 			if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
 				|| 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM)))
 			{
