@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.2 2004-07-08 15:58:46 hzi Exp $
+ * $Id: IN.java,v 1.3 2004-07-19 19:22:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -90,7 +90,7 @@ public final class IN extends Globals {
 	}
 
 	public static void toggleMouse() {
-		if (mouse_active) {
+		if (mouse_avail) {
 			mouse_avail=false;
 			DeactivateMouse();
 		} else {

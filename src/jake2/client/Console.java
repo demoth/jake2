@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.2 2004-07-08 15:58:42 hzi Exp $
+ * $Id: Console.java,v 1.3 2004-07-19 19:20:22 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -167,10 +167,8 @@ public final class Console extends Globals {
 	 * If the line width has changed, reformat the buffer.
 	 */
 	public static void CheckResize() {
-		int i, j, width, oldwidth, oldtotallines, numlines, numchars;
-		byte[] tbuf = new byte[Defines.CON_TEXTSIZE];
-
-		width = (Globals.viddef.width >> 3) - 2;
+	
+		int width = (Globals.viddef.width >> 3) - 2;
  
 		if (width == Globals.con.linewidth)
 			return;
@@ -182,25 +180,26 @@ public final class Console extends Globals {
 			Arrays.fill(Globals.con.text, (byte)' ');
 		} 
 		else {
-			oldwidth = Globals.con.linewidth;
+			int oldwidth = Globals.con.linewidth;
 			Globals.con.linewidth = width;
-			oldtotallines = Globals.con.totallines;
+			int oldtotallines = Globals.con.totallines;
 			Globals.con.totallines = Defines.CON_TEXTSIZE / Globals.con.linewidth;
-			numlines = oldtotallines;
+			int numlines = oldtotallines;
  
 			if (Globals.con.totallines < numlines)
 				numlines = Globals.con.totallines;
 
-			numchars = oldwidth;
+			int numchars = oldwidth;
       
 			if (Globals.con.linewidth < numchars)
 				numchars = Globals.con.linewidth;
-
+				
+			byte[] tbuf = new byte[Defines.CON_TEXTSIZE];
 			System.arraycopy(Globals.con.text, 0, tbuf, 0, Defines.CON_TEXTSIZE);
 			Arrays.fill(Globals.con.text, (byte)' ');
  
-			for (i=0 ; i<numlines ; i++) {
-				for (j=0 ; j<numchars ; j++) {
+			for (int i=0 ; i<numlines ; i++) {
+				for (int j=0 ; j<numchars ; j++) {
 					Globals.con.text[(Globals.con.totallines - 1 - i) * Globals.con.linewidth + j] =
 						tbuf[((Globals.con.current - i + oldtotallines) % oldtotallines) * oldwidth + j];
 				}

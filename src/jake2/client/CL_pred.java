@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.3 2004-07-08 20:24:28 hzi Exp $
+ * $Id: CL_pred.java,v 1.4 2004-07-19 19:20:22 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -243,7 +243,11 @@ public class CL_pred extends CL_parse {
 			}
 		};
 
-		PMove.pm_airaccelerate = atof(cl.configstrings[CS_AIRACCEL]);
+		try {
+			PMove.pm_airaccelerate = Float.parseFloat(cl.configstrings[CS_AIRACCEL]);
+		} catch (Exception e) {
+			PMove.pm_airaccelerate = 0;
+		}
 
 		// bugfix (rst) yeah !!!!!!!!  found the solution to the B E W E G U N G S P R O B L E M.
 		pm.s.set(cl.frame.playerstate.pmove);

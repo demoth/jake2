@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.4 2004-07-09 06:50:47 hzi Exp $
+ * $Id: Sys.java,v 1.5 2004-07-19 19:22:57 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,19 +25,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
+import jake2.Defines;
+import jake2.Globals;
+import jake2.client.CL;
+import jake2.qcommon.Com;
+import jake2.util.Lib;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import jake2.Defines;
-import jake2.Globals;
-import jake2.client.CL;
-import jake2.game.Game;
-import jake2.game.game_export_t;
-import jake2.game.game_import_t;
-import jake2.qcommon.Com;
-import jake2.util.Lib;
 
 /**
  * Sys
@@ -187,15 +184,9 @@ public final class Sys extends Defines {
 
 	}
 
-	private static long secbase = 0;
+	private static long secbase = System.currentTimeMillis();
 	public static int Milliseconds() {
-		if (secbase == 0) {
-			secbase = System.currentTimeMillis();
-			return 0;
-		}
-		
-		return Globals.curtime = (int) (System.currentTimeMillis() - secbase);
-			 
+		return Globals.curtime = (int) (System.currentTimeMillis() - secbase);			 
 	}
 
 	//============================================
