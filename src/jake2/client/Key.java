@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.31 2004-03-03 22:32:31 rst Exp $
+ * $Id: Key.java,v 1.32 2004-03-18 09:57:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -288,9 +288,7 @@ public class Key extends Globals {
 	/**
 	 * Called by the system between frames for both key up and key down events.
 	 */
-	public static void Event(int key, boolean down, long time) {
-		//System.out.println(key +  " " + down);
-		//return;
+	public static void Event(int key, boolean down, long time) {		
 		String kb;
 		String cmd;
 
@@ -324,14 +322,11 @@ public class Key extends Globals {
 			shift_down = down;
 
 		// console key is hardcoded, so the user can never unbind it
-		if (key == '`' || key == '~') {
+		if (key == '#' || key == '~') {
 			if (!down)
 				return;
-			try {
-				Console.ToggleConsole_f.execute();
-			}
-			catch (Exception e) {
-			}
+
+			Console.ToggleConsole_f.execute();
 			return;
 		}
 
