@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.24 2003-12-04 21:09:38 rst Exp $
+ * $Id: CL.java,v 1.25 2003-12-06 18:53:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// $Id: CL.java,v 1.24 2003-12-04 21:09:38 rst Exp $
+// $Id: CL.java,v 1.25 2003-12-06 18:53:07 rst Exp $
 
 package jake2.client;
 
@@ -167,10 +167,10 @@ public final class CL extends Globals {
 		//
 		// register our commands
 		//
-		Cmd.AddCommand("cmd", CL_ForwardToServer_f);
+		Cmd.AddCommand("cmd", ForwardToServer_f);
 
-		Cmd.AddCommand("pause", CL_Pause_f);
-		Cmd.AddCommand("pingservers", CL_PingServers_f);
+		Cmd.AddCommand("pause", Pause_f);
+		Cmd.AddCommand("pingservers", PingServers_f);
 		/*		Cmd.AddCommand("skins", CL_Skins_f);
 		
 				Cmd.AddCommand("userinfo", CL_Userinfo_f);
@@ -179,8 +179,8 @@ public final class CL extends Globals {
 				Cmd.AddCommand("changing", CL_Changing_f);
 				Cmd.AddCommand("disconnect", CL_Disconnect_f);
 				*/
-		Cmd.AddCommand("record", CL_Record_f);
-		Cmd.AddCommand("stop", CL_Stop_f);
+		Cmd.AddCommand("record", Record_f);
+		Cmd.AddCommand("stop", Stop_f);
 		/*
 				Cmd.AddCommand("quit", CL_Quit_f);
 		
@@ -251,7 +251,7 @@ public final class CL extends Globals {
 	stop recording a demo
 	====================
 	*/
-	static xcommand_t CL_Stop_f = new xcommand_t() {
+	static xcommand_t Stop_f = new xcommand_t() {
 		public void execute() {
 			try {
 
@@ -283,7 +283,7 @@ public final class CL extends Globals {
 	Begins recording a demo from the current position
 	====================
 	*/
-	static xcommand_t CL_Record_f = new xcommand_t() {
+	static xcommand_t Record_f = new xcommand_t() {
 		public void execute() {
 			try {
 				String name;
@@ -426,7 +426,7 @@ public final class CL extends Globals {
 		}
 	};
 
-	static xcommand_t CL_Setenv_f = new xcommand_t() {
+	static xcommand_t Setenv_f = new xcommand_t() {
 
 		public void execute() {
 			int argc = Cmd.Argc();
@@ -461,7 +461,7 @@ public final class CL extends Globals {
 	CL_ForwardToServer_f
 	==================
 	*/
-	static xcommand_t CL_ForwardToServer_f = new xcommand_t() {
+	static xcommand_t ForwardToServer_f = new xcommand_t() {
 		public void execute() {
 			if (cls.state != ca_connected && cls.state != ca_active) {
 				Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
@@ -481,7 +481,7 @@ public final class CL extends Globals {
 	CL_Pause_f
 	==================
 	*/
-	static xcommand_t CL_Pause_f = new xcommand_t() {
+	static xcommand_t Pause_f = new xcommand_t() {
 		public void execute() {
 				// never pause in multiplayer
 
@@ -913,7 +913,7 @@ public final class CL extends Globals {
 	CL_PingServers_f
 	=================
 	*/
-	static xcommand_t CL_PingServers_f = new xcommand_t() {
+	static xcommand_t PingServers_f = new xcommand_t() {
 		public void execute() {
 				//			int i;
 		//			netadr_t adr;
