@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.11 2004-01-02 14:08:20 hoz Exp $
+// $Id: Defines.java,v 1.12 2004-01-02 17:40:54 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1111,6 +1111,7 @@ public class Defines extends Math3D {
 	public static final int MAX_SKINNAME = 64;
 
 	public static final int MAXLIGHTMAPS = 4;
+	public static final int MIPLEVELS = 4;
 
 	public static final int UPDATE_BACKUP = 16;
 
@@ -1120,7 +1121,7 @@ public class Defines extends Math3D {
 	public static final int clc_userinfo = 3; // [[userinfo string]
 	public static final int clc_stringcmd = 4; // [string] message
 
-	// C L I E N T 
+	// C L I E N T . H
 	//////////////////////
 	public static final int MAX_PARSE_ENTITIES = 1024;
 	public static final int MAX_CLIENTWEAPONMODELS = 20;
@@ -1138,9 +1139,85 @@ public class Defines extends Math3D {
 
 	public static final int MAX_MSGLEN = 1400;
 
-	// console.h
+	// C O N S O L E . H
 	public static final int NUM_CON_TIMES = 4;
 	public static final int CON_TEXTSIZE = 32768;
+
+
+	public final static int BSPVERSION = 38;
+
+	// Q F I L E S . H 
+
+	// upper design bounds
+	// leaffaces, leafbrushes, planes, and verts are still bounded by
+	// 16 bit short limits
+	public final static int MAX_MAP_MODELS = 1024;
+	public final static int MAX_MAP_BRUSHES = 8192;
+	public final static int MAX_MAP_ENTITIES = 2048;
+	public final static int MAX_MAP_ENTSTRING = 0x40000;
+	public final static int MAX_MAP_TEXINFO = 8192;
+
+	public final static int MAX_MAP_AREAS = 256;
+	public final static int MAX_MAP_AREAPORTALS = 1024;
+	public final static int MAX_MAP_PLANES = 65536;
+	public final static int MAX_MAP_NODES = 65536;
+	public final static int MAX_MAP_BRUSHSIDES = 65536;
+	public final static int MAX_MAP_LEAFS = 65536;
+	public final static int MAX_MAP_VERTS = 65536;
+	public final static int MAX_MAP_FACES = 65536;
+	public final static int MAX_MAP_LEAFFACES = 65536;
+	public final static int MAX_MAP_LEAFBRUSHES = 65536;
+	public final static int MAX_MAP_PORTALS = 65536;
+	public final static int MAX_MAP_EDGES = 128000;
+	public final static int MAX_MAP_SURFEDGES = 256000;
+	public final static int MAX_MAP_LIGHTING = 0x200000;
+	public final static int MAX_MAP_VISIBILITY = 0x100000;
+
+	// key / value pair sizes
+	public final static int MAX_KEY = 32;
+	public final static int MAX_VALUE = 1024;
+
+	// 0-2 are axial planes
+	public final static int PLANE_X = 0;
+	public final static int PLANE_Y = 1;
+	public final static int PLANE_Z = 2;
+
+	// 3-5 are non-axial planes snapped to the nearest
+	public final static int PLANE_ANYX = 3;
+	public final static int PLANE_ANYY = 4;
+	public final static int PLANE_ANYZ = 5;
+
+	public final static int LUMP_ENTITIES = 0;
+	public final static int LUMP_PLANES = 1;
+	public final static int LUMP_VERTEXES = 2;
+	public final static int LUMP_VISIBILITY = 3;
+	public final static int LUMP_NODES = 4;
+	public final static int LUMP_TEXINFO = 5;
+	public final static int LUMP_FACES = 6;
+	public final static int LUMP_LIGHTING = 7;
+	public final static int LUMP_LEAFS = 8;
+	public final static int LUMP_LEAFFACES = 9;
+	public final static int LUMP_LEAFBRUSHES = 10;
+	public final static int LUMP_EDGES = 11;
+	public final static int LUMP_SURFEDGES = 12;
+	public final static int LUMP_MODELS = 13;
+	public final static int LUMP_BRUSHES = 14;
+	public final static int LUMP_BRUSHSIDES = 15;
+	public final static int LUMP_POP = 16;
+	public final static int LUMP_AREAS = 17;
+	public final static int LUMP_AREAPORTALS = 18;
+	public final static int HEADER_LUMPS = 19;
+
+	public final static int DTRIVERTX_V0= 0;	
+	public final static int DTRIVERTX_V1= 1;	
+	public final static int DTRIVERTX_V2= 2;	
+	public final static int DTRIVERTX_LNI= 3;	
+	public final static int DTRIVERTX_SIZE= 4;	
+
+	public final static int ALIAS_VERSION= 8;	
+
+
+
 	
 	public static final String GAMEVERSION   =  "baseq2";
 	
@@ -1150,4 +1227,5 @@ public class Defines extends Math3D {
 	public static final int key_message = 2;
 	public static final int key_menu = 3;
 	
+
 }

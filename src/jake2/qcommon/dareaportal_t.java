@@ -18,13 +18,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 31.10.2003 by RST.
-// $Id: csurface_t.java,v 1.3 2004-01-02 17:40:54 rst Exp $
+// Created on 02.01.2004 by RST.
+// $Id: dareaportal_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
 
-package jake2.game;
-public class csurface_t
-{
-	public String name;
-	public int flags;
-	public int value;
+package jake2.qcommon;
+
+
+// import jake2.*;
+// import jake2.client.*;
+// import jake2.game.*;
+// import jake2.qcommon.*;
+// import jake2.render.*;
+// import jake2.server.*;
+
+
+
+// each area has a list of portals that lead into other areas
+// when portals are closed, other areas may not be visible or
+// hearable even if the vis info says that it should be
+
+public class dareaportal_t {
+	
+	int		portalnum;
+	int		otherarea;
 }

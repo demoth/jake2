@@ -18,13 +18,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 31.10.2003 by RST.
-// $Id: csurface_t.java,v 1.3 2004-01-02 17:40:54 rst Exp $
+// Created on 02.01.2004 by RST.
+// $Id: dnode_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
 
-package jake2.game;
-public class csurface_t
-{
-	public String name;
-	public int flags;
-	public int value;
+package jake2.qcommon;
+
+
+// import jake2.*;
+// import jake2.client.*;
+// import jake2.game.*;
+// import jake2.qcommon.*;
+// import jake2.render.*;
+// import jake2.server.*;
+
+public class dnode_t {
+	int		planenum;
+	int		children[]= {0,0};	// negative numbers are -(leafs+1), not nodes
+	short		mins[]= {0,0,0};		// for frustom culling
+	short		maxs[]= {0,0,0};
+	
+	/*
+	unsigned short	firstface;
+	unsigned short	numfaces;	// counting both sides
+	*/
+
+	int		firstface;
+	int		numfaces;	// counting both sides
 }

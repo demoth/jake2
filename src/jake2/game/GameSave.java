@@ -19,18 +19,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.2 2003-12-30 15:57:33 rst Exp $
+// $Id: GameSave.java,v 1.3 2004-01-02 17:40:54 rst Exp $
 
 package jake2.game;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 import jake2.*;
 import jake2.client.*;
 import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
+import jake2.util.*;
 
 public class GameSave extends PlayerView {
 
@@ -50,23 +53,18 @@ public class GameSave extends PlayerView {
 			new field_t("newweapon", F_ITEM),
 			new field_t(null, F_INT)};
 
-
-	public static void CreateEdicts()
-	{
+	public static void CreateEdicts() {
 		g_edicts = new edict_t[game.maxentities];
 		for (int i = 0; i < game.maxentities; i++)
 			g_edicts[i] = new edict_t(i);
 	}
 
-
-	public static void CreateClients()
-	{
+	public static void CreateClients() {
 		game.clients = new gclient_t[game.maxclients];
 		for (int i = 0; i < game.maxclients; i++)
 			game.clients[i] = new gclient_t(i);
 
 	}
-
 
 	/*
 	============
@@ -141,19 +139,19 @@ public class GameSave extends PlayerView {
 
 		// initialize all entities for this game
 		game.maxentities = (int) maxentities.value;
-		
+
 		//g_edicts = gi.TagMalloc(game.maxentities * sizeof(g_edicts[0]), TAG_GAME);
 		CreateEdicts();
-		
+
 		globals.edicts = g_edicts;
 		globals.max_edicts = game.maxentities;
 
 		// initialize all clients for this game
-		game.maxclients = (int)  maxclients.value;
-		
+		game.maxclients = (int) maxclients.value;
+
 		//game.clients = gi.TagMalloc(game.maxclients * sizeof(game.clients[0]), TAG_GAME);
 		CreateClients();
-		
+
 		globals.num_edicts = game.maxclients + 1;
 	}
 
@@ -360,26 +358,101 @@ public class GameSave extends PlayerView {
 	//	}
 	//}
 	//
-	///*
-	//==============
-	//ReadClient
-	//
-	//All pointer variables (except function pointers) must be handled specially.
-	//==============
-	//*/
-	//void ReadClient (FILE *f, gclient_t *client)
-	//{
-	//	field_t		*field;
-	//
-	//	fread (client, sizeof(*client), 1, f);
-	//
-	//	for (field=clientfields ; field.name ; field++)
-	//	{
-	//		ReadField (f, field, (byte *)client);
-	//	}
-	//}
-	//
-	///*
+	/*
+	==============
+	ReadClient
+	
+	All pointer variables (except function pointers) must be handled specially.
+	==============
+	*/
+	public static void ReadClient(RandomAccessFile f, gclient_t client) throws IOException {
+		//System.out.println(hexdumpfile(f, 256));
+
+		System.out.println("pmtype: " + EndianHandler.swapShort(f.readShort()));
+
+		System.out.println("origin[0]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("origin[1]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("origin[2]: " + EndianHandler.swapShort(f.readShort()));
+
+		System.out.println("velocity[0]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("velocity[1]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("velocity[2]: " + EndianHandler.swapShort(f.readShort()));
+
+		System.out.println("pmflags: " + f.read());
+		System.out.println("pmtime: " + f.read());
+		System.out.println("gravity: " + EndianHandler.swapShort(f.readShort()));
+		// no idea why !!! 
+		f.readShort();
+
+		System.out.println("delta-angle[0]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("delta-angle[1]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("delta-angle[2]: " + EndianHandler.swapShort(f.readShort()));
+
+		//--------------
+		System.out.println("viewangles[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewangles[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewangles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("viewoffset[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewoffset[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewoffset[2]: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("kick_angles[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("kick_angles[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("kick_angles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("gunangles[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunangles[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunangles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("gunoffset[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunoffset[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunoffset[2]: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("gunindex: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("gunframe: " + EndianHandler.swapInt(f.readInt()));
+
+		System.out.println("blend[0]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("blend[1]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("blend[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("blend[3]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("fov: " + EndianHandler.swapFloat(f.readFloat()));
+
+		System.out.println("rdflags: " + EndianHandler.swapInt(f.readInt()));
+		for (int n = 0; n < MAX_STATS; n++)
+			
+			System.out.println("stats[" + n + "]: " + EndianHandler.swapShort(f.readShort()));
+			
+		System.out.println("ping: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("userinfo: " + Lib.readString(f, Defines.MAX_INFO_STRING));
+		
+		System.out.println("\n" + Lib.hexdumpfile(f, 1024));
+		
+		System.out.println("netname: " + Lib.readString(f, 16));
+		System.out.println("???: " + Lib.readString(f, 16));
+		
+		System.out.println("hand: " + EndianHandler.swapInt(f.readInt()));
+		
+		System.out.println("connected: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("health: " + EndianHandler.swapInt(f.readInt()));
+		
+		System.out.println("max_health: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("saved flags: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("selected Item: " + EndianHandler.swapInt(f.readInt()));
+		 
+		for (int n = 0; n < MAX_ITEMS; n++)
+				 System.out.println("inventory[" + n + "]: " + EndianHandler.swapInt(f.readInt()));
+				 
+		//System.out.println("\n" + Lib.hexdumpfile(f, 1024));
+		 
+		//field_t		*field;
+		//fread (client, sizeof(*client), 1, f);
+		/*for (field=clientfields ; field.name ; field++)
+		{
+			ReadField (f, field, (byte *)client);
+		}
+		*/
+	} ///*
 	//============
 	//WriteGame
 	//
@@ -420,48 +493,60 @@ public class GameSave extends PlayerView {
 	//	fclose (f);
 	//}
 	//
-	
-	public static void ReadGame (String filename)
-	{
-		RandomAccessFile f;
-		
-		int	i;
-		byte	str[]= new byte[16];
-	
-		//gi.FreeTags (TAG_GAME);
-	
+	public static void ReadGame(String filename) {
+
+		RandomAccessFile f = null;
+		int i;
+		byte str[] = new byte[16]; //gi.FreeTags (TAG_GAME);
 		//f = fopen (filename, "rb");
-		
 		try {
-			f = new RandomAccessFile(filename, "rb");
+			f = new RandomAccessFile(filename, "r");
+			String date = Lib.readString(f, 16);
+			String helpmessage1 = Lib.readString(f, 512);
+			String helpmessage2 = Lib.readString(f, 512);
+			System.out.println("String date: " + date);
+			System.out.println("String helpmessage1: " + helpmessage1);
+			System.out.println("String helpmessage2: " + helpmessage2);
+			System.out.println("helpchanged: " + EndianHandler.swapInt(f.readInt()));
+			// gclient_t*
+			f.readInt();
+			System.out.println("spawnpoit: " + Lib.readString(f, 512));
+			System.out.println("maxclients: " + EndianHandler.swapInt(f.readInt()));
+			System.out.println("maxentities: " + EndianHandler.swapInt(f.readInt()));
+			System.out.println("serverflags: " + EndianHandler.swapInt(f.readInt()));
+			System.out.println("numitems: " + EndianHandler.swapInt(f.readInt()));
+			System.out.println("autosaved: " + EndianHandler.swapShort(f.readShort()));
+			ReadClient(f, new gclient_t(0));
 		}
-		catch (FileNotFoundException e) {
-			
-			gi.error ("Couldn't open "+ filename);
-		}
-		
-		//if (!f)
+		catch (Exception e) {
+			e.printStackTrace();
+			//gi.error ("File problems in "+ filename);
+		} //if (!f)
 		//	gi.error ("Couldn't open %s", filename);
-//	
-//		fread (str, sizeof(str), 1, f);
-//		if (strcmp (str, __DATE__))
-//		{
-//			fclose (f);
-//			gi.error ("Savegame from an older version.\n");
-//		}
-//	
-//		CreateEdicts();
-//	
-//		fread (game, sizeof(game), 1, f);
-//		
-//		CreateClients();
-//		
-//		for (i=0 ; i<game.maxclients ; i++)
-//			ReadClient (f, game.clients[i]);
-//	
-//		fclose (f);
-	}
-	//
+		//	
+		//		fread (str, sizeof(str), 1, f);
+		//		if (strcmp (str, __DATE__))
+		//		{
+		//			fclose (f);
+		//			gi.error ("Savegame from an older version.\n");
+		//		}
+		//	
+		//		CreateEdicts();
+		//	
+		//		fread (game, sizeof(game), 1, f);
+		//		
+		//		CreateClients();
+		//		
+		//		for (i=0 ; i<game.maxclients ; i++)
+		//			ReadClient (f, game.clients[i]);
+		//	
+		//		fclose (f);
+		try {
+			f.close();
+		}
+		catch (IOException e) { //nothingh
+		}
+	} //
 	////==========================================================
 	//
 	//
@@ -715,5 +800,6 @@ public class GameSave extends PlayerView {
 	//				ent.nextthink = level.time + ent.delay;
 	//	}
 	//}
+
 
 }
