@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.9 2003-11-29 13:28:29 rst Exp $
+ *$Id: CL.java,v 1.10 2003-11-29 13:48:49 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import jake2.Globals;
 import jake2.qcommon.*;
+import jake2.*;
 import jake2.sys.CDAudio;
 import jake2.sys.IN;
 
@@ -77,7 +78,7 @@ public final class CL extends Globals {
 	}
 	
 	public static void InitLocal() {
-		cls.state = clientdefs.ca_disconnected;
+		cls.state = Defines.ca_disconnected;
 		cls.realtime = System.currentTimeMillis();
 		
 		InitInput();

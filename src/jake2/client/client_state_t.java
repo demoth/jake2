@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.6 2003-11-29 13:34:48 rst Exp $
+//$Id: client_state_t.java,v 1.7 2003-11-29 13:48:49 rst Exp $
 
 package jake2.client;
 
@@ -50,9 +50,9 @@ public class client_state_t {
 	int parse_entities; // index (not anded off) into cl_parse_entities[]
 
 	usercmd_t cmd = new usercmd_t();
-	usercmd_t cmds[] = new usercmd_t[clientdefs.CMD_BACKUP]; // each mesage will send several old cmds
-	int cmd_time[] = new int[clientdefs.CMD_BACKUP]; // time sent, for calculating pings
-	short predicted_origins[][] = new short[clientdefs.CMD_BACKUP][3]; // for debug comparing against server
+	usercmd_t cmds[] = new usercmd_t[Defines.CMD_BACKUP]; // each mesage will send several old cmds
+	int cmd_time[] = new int[Defines.CMD_BACKUP]; // time sent, for calculating pings
+	short predicted_origins[][] = new short[Defines.CMD_BACKUP][3]; // for debug comparing against server
 
 	float predicted_step; // for stair up smoothing
 	int predicted_step_time;
@@ -63,7 +63,7 @@ public class client_state_t {
 
 	frame_t frame; // received from server
 	int surpressCount; // number of messages rate supressed
-	frame_t frames[] = new frame_t[qcommondefs.UPDATE_BACKUP];
+	frame_t frames[] = new frame_t[Defines.UPDATE_BACKUP];
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame.  It is cleared to 0 upon entering each level.

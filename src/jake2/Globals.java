@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.9 2003-11-29 13:34:48 rst Exp $
+ * $Id: Globals.java,v 1.10 2003-11-29 13:48:49 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -162,6 +162,6 @@ public class Globals {
 
 	public static centity_t cl_entities[] = new centity_t[Defines.MAX_EDICTS];
 
-	public static entity_state_t cl_parse_entities[] = new entity_state_t[clientdefs.MAX_PARSE_ENTITIES];
+	public static entity_state_t cl_parse_entities[] = new entity_state_t[Defines.MAX_PARSE_ENTITIES];
 
 }

@@ -19,20 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: qcommondefs.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: qcommondefs.java,v 1.3 2003-11-29 13:48:49 rst Exp $
 
 package jake2.qcommon;
 
 public class qcommondefs {
 	
 	
-	public static final int	MAX_TRIANGLES	=4096;
-	public static final int MAX_VERTS		=2048;
-	public static final int MAX_FRAMES		=512;
-	public static final int MAX_MD2SKINS	=32;
-	public static final int	MAX_SKINNAME	=64;
-	
-	public static final int MAXLIGHTMAPS	=4;
-	
-	public static final int  UPDATE_BACKUP = 16;
+
 }

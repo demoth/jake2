@@ -19,10 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.11.2003 by RST.
-//$Id: clientinfo_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+//$Id: clientinfo_t.java,v 1.3 2003-11-29 13:48:49 rst Exp $
 
 package jake2.client;
 
+import jake2.*;
 import jake2.render.*;
 
 public class clientinfo_t {
@@ -32,5 +33,5 @@ public class clientinfo_t {
 	image_t icon;
 	String iconname;;
 	model_t model;
-	model_t weaponmodel[] = new model_t[clientdefs.MAX_CLIENTWEAPONMODELS];
+	model_t weaponmodel[] = new model_t[Defines.MAX_CLIENTWEAPONMODELS];
 }

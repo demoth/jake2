@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: msurface_t.java,v 1.4 2003-11-29 13:48:49 rst Exp $
 
 package jake2.render;
 
 import jake2.game.*;
-import jake2.qcommon.*;
+import jake2.*;
 public class msurface_t {
 
 	int		visframe;		// should be drawn when node is crossed
@@ -52,8 +52,8 @@ public class msurface_t {
 	int			dlightbits;
 
 	int			lightmaptexturenum;
-	byte		styles[]=new byte[qcommondefs.MAXLIGHTMAPS];
-	float		cached_light[]= new float[qcommondefs.MAXLIGHTMAPS];	// values currently used in lightmap
+	byte		styles[]=new byte[Defines.MAXLIGHTMAPS];
+	float		cached_light[]= new float[Defines.MAXLIGHTMAPS];	// values currently used in lightmap
 	byte		samples[];		// [numstyles*surfsize]
 
 }

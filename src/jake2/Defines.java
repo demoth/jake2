@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.2 2003-11-29 13:42:01 rst Exp $
+// $Id: Defines.java,v 1.3 2003-11-29 13:48:49 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -996,12 +996,10 @@ public class Defines
 	
 	
 	// R E N D E R E R 
-		
+	////////////////////
 	static final int MAX_DLIGHTS = 32;
 	static final int MAX_ENTITIES = 128;
 	static final int MAX_PARTICLES = 4096;
-	//static final int MAX_LIGHTSTYLES = 256;
-	//static final int MAX_CLIENTS=5;
 
 
 	static final float POWERSUIT_SCALE = 4.0f;
@@ -1011,15 +1009,43 @@ public class Defines
 	static final int SHELL_BLUE_COLOR = 0xF3;
 
 	static final int SHELL_RG_COLOR = 0xDC;
-//	  static final int SHELL_RB_COLOR = 0x86;
-	static final int SHELL_RB_COLOR = 0x68;
+
+	static final int SHELL_RB_COLOR = 0x68; //0x86
 	static final int SHELL_BG_COLOR = 0x78;
 
-//	  ROGUE
+	/* ROGUE */
 	static final int SHELL_DOUBLE_COLOR = 0xDF; // 223
 	static final int SHELL_HALF_DAM_COLOR	= 0x90;
 	static final int SHELL_CYAN_COLOR = 0x72;
-//	  ROGUE
 
+
+	// Q C O M M O N 
+	////////////////////
 	static final int SHELL_WHITE_COLOR = 0xD7;
+	
+	
+		public static final int	MAX_TRIANGLES	=4096;
+	public static final int MAX_VERTS		=2048;
+	public static final int MAX_FRAMES		=512;
+	public static final int MAX_MD2SKINS	=32;
+	public static final int	MAX_SKINNAME	=64;
+	
+	public static final int MAXLIGHTMAPS	=4;
+	
+	public static final int  UPDATE_BACKUP = 16;
+	
+	
+	// C L I E N T 
+	//////////////////////
+	public static final int MAX_PARSE_ENTITIES = 1024; 
+	public static final int MAX_CLIENTWEAPONMODELS	= 20;
+
+	public static int CMD_BACKUP = 64; // allow a lot of command backups for very fast systems	
+	
+
+	public static final int ca_uninitialized = 0; 	
+	public static final int ca_disconnected = 1;
+	public static final int ca_connecting = 2;	
+	public static final int ca_connected = 3; 	
+	public static final int ca_active = 4; 
 }
