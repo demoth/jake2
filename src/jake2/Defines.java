@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.1 2003-11-29 13:34:48 rst Exp $
+// $Id: Defines.java,v 1.2 2003-11-29 13:42:01 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -27,6 +27,7 @@ package jake2;
 
 public class Defines
 {
+	
 	public final static int WEAPON_READY= 0;	
 	public final static int WEAPON_ACTIVATING= 1;	
 	public final static int WEAPON_DROPPING= 2;	
@@ -992,4 +993,33 @@ public class Defines
 	public final static int DOOR_TOGGLE= 32;
 	public final static int DOOR_X_AXIS= 64;
 	public final static int DOOR_Y_AXIS= 128;
+	
+	
+	// R E N D E R E R 
+		
+	static final int MAX_DLIGHTS = 32;
+	static final int MAX_ENTITIES = 128;
+	static final int MAX_PARTICLES = 4096;
+	//static final int MAX_LIGHTSTYLES = 256;
+	//static final int MAX_CLIENTS=5;
+
+
+	static final float POWERSUIT_SCALE = 4.0f;
+
+	static final int SHELL_RED_COLOR =	0xF2;
+	static final int SHELL_GREEN_COLOR = 0xD0;
+	static final int SHELL_BLUE_COLOR = 0xF3;
+
+	static final int SHELL_RG_COLOR = 0xDC;
+//	  static final int SHELL_RB_COLOR = 0x86;
+	static final int SHELL_RB_COLOR = 0x68;
+	static final int SHELL_BG_COLOR = 0x78;
+
+//	  ROGUE
+	static final int SHELL_DOUBLE_COLOR = 0xDF; // 223
+	static final int SHELL_HALF_DAM_COLOR	= 0x90;
+	static final int SHELL_CYAN_COLOR = 0x72;
+//	  ROGUE
+
+	static final int SHELL_WHITE_COLOR = 0xD7;
 }
