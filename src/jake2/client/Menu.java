@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.12 2004-01-30 14:51:25 cwei Exp $
+ * $Id: Menu.java,v 1.13 2004-01-30 19:07:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1213,23 +1213,23 @@ public final class Menu extends Key {
 	*/
 	static cvar_t win_noalttab;
 
-	static menuframework_s s_options_menu;
-	static menuaction_s s_options_defaults_action;
-	static menuaction_s s_options_customize_options_action;
-	static menuslider_s s_options_sensitivity_slider;
-	static menulist_s s_options_freelook_box;
-	static menulist_s s_options_noalttab_box;
-	static menulist_s s_options_alwaysrun_box;
-	static menulist_s s_options_invertmouse_box;
-	static menulist_s s_options_lookspring_box;
-	static menulist_s s_options_lookstrafe_box;
-	static menulist_s s_options_crosshair_box;
-	static menuslider_s s_options_sfxvolume_slider;
-	static menulist_s s_options_joystick_box;
-	static menulist_s s_options_cdvolume_box;
-	static menulist_s s_options_quality_list;
-	static menulist_s s_options_compatibility_list;
-	static menulist_s s_options_console_action;
+	static menuframework_s s_options_menu = new menuframework_s();
+	static menuaction_s s_options_defaults_action = new menuaction_s();
+	static menuaction_s s_options_customize_options_action = new menuaction_s();
+	static menuslider_s s_options_sensitivity_slider = new menuslider_s();
+	static menulist_s s_options_freelook_box = new menulist_s();
+	static menulist_s s_options_noalttab_box = new menulist_s();
+	static menulist_s s_options_alwaysrun_box = new menulist_s();
+	static menulist_s s_options_invertmouse_box = new menulist_s();
+	static menulist_s s_options_lookspring_box = new menulist_s();
+	static menulist_s s_options_lookstrafe_box = new menulist_s();
+	static menulist_s s_options_crosshair_box = new menulist_s();
+	static menuslider_s s_options_sfxvolume_slider = new menuslider_s();
+	static menulist_s s_options_joystick_box = new menulist_s();
+	static menulist_s s_options_cdvolume_box = new menulist_s();
+	static menulist_s s_options_quality_list = new menulist_s();
+	static menulist_s s_options_compatibility_list = new menulist_s();
+	static menulist_s s_options_console_action = new menulist_s();
 
 	static void CrosshairFunc(Object unused) {
 		Cvar.SetValue("crosshair", s_options_crosshair_box.curvalue);
