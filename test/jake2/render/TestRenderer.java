@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.12 2004-01-05 18:08:00 cwei Exp $
+ * $Id: TestRenderer.java,v 1.13 2004-01-05 21:46:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -179,15 +179,15 @@ public class TestRenderer {
 //		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
 		
 		
-		switch ((framecount / 500) % 2) {
+		switch ((framecount / 500) % 3) {
 			case 0 :
 				testSprites();
 				break;
 			case 1 :
-				testModel();
+				testBeam();
 				break;
 			case 2 :
-				testBeam(); // not activ
+				testModel();
 				break;
 		}
 		re.EndFrame();
@@ -361,20 +361,23 @@ public class TestRenderer {
 		drawString(refdef.x, refdef.y - 20, "Beam Test");
 
 		entity.flags = Defines.RF_BEAM;
-		entity.origin[0] = 80 - (framecount % 200) + 200;
-		entity.origin[1] = 0 + (float)(40 * Math.sin(Math.toRadians(framecount)));
-		entity.origin[2] = 0 + 20;
+		entity.origin[0] = 200;
+		entity.origin[1] = 0 + (float)(80 * Math.sin(4 * Math.toRadians(framecount)));
+		entity.origin[2] = 20 + (float)(40 * Math.cos(4 * Math.toRadians(framecount)));
 		
-		entity.oldorigin[0] = 10;// - (framecount % 200) + 200;
-		entity.oldorigin[1] = 30; // + (float)(40 * Math.sin(Math.toRadians(framecount)));
-		entity.oldorigin[2] = 0; // + 20;
+		entity.oldorigin[0] = 20;
+		entity.oldorigin[1] = 0; // + (float)(40 * Math.sin(Math.toRadians(framecount)));
+		entity.oldorigin[2] = -20; // + 20;
 		
-		entity.frame = 10;
+		entity.frame = 3;
 		entity.oldframe = 0;
 		entity.backlerp = 0.0f;
 		// the four beam colors are encoded in 32 bits of skinnum (hack)
-		entity.alpha = 1.0f;
-		entity.skinnum = 0x21410097; //framecount & 0xff;
+		entity.alpha = 0.6f;
+		
+		int[] color = { 0xd0, 0xd1, 0xe0, 0xb0 };
+		
+		entity.skinnum = color[framecount / 2 % 4];
 		entity.model = null;
 
 		refdef.areabits = null;
