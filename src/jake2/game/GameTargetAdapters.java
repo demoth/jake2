@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameTargetAdapters.java,v 1.1 2004-07-08 15:58:43 hzi Exp $
+// $Id: GameTargetAdapters.java,v 1.2 2004-08-27 21:57:48 hzi Exp $
 
 package jake2.game;
 
@@ -91,10 +91,10 @@ public class GameTargetAdapters {
 	
 			if ((ent.spawnflags & 1) != 0)
 				//strncpy(game.helpmessage1, ent.message, sizeof(game.helpmessage2) - 1);
-				ent.message = GameBase.game.helpmessage1;
+				GameBase.game.helpmessage1 = ent.message;
 			else
 				//strncpy(game.helpmessage2, ent.message, sizeof(game.helpmessage1) - 1);
-				ent.message = GameBase.game.helpmessage2;
+				GameBase.game.helpmessage2 = ent.message;
 	
 			GameBase.game.helpchanged++;
 		}
