@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.19 2005-01-17 21:49:40 cawe Exp $
+ * $Id: CL_parse.java,v 1.20 2005-02-06 19:22:13 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -294,7 +294,7 @@ public class CL_parse {
         String str;
         int i;
 
-        Com.DPrintf("Serverdata packet received.\n");
+        Com.DPrintf("ParseServerData():Serverdata packet received.\n");
         //
         //	   wipe the client_state_t struct
         //
@@ -317,6 +317,7 @@ public class CL_parse {
         // game directory
         str = MSG.ReadString(Globals.net_message);
         Globals.cl.gamedir = str;
+        Com.dprintln("gamedir=" + str);
 
         // set gamedir
         if (str.length() > 0
@@ -329,9 +330,10 @@ public class CL_parse {
 
         // parse player entity number
         Globals.cl.playernum = MSG.ReadShort(Globals.net_message);
-
+        Com.dprintln("numplayers=" + Globals.cl.playernum);
         // get the full level name
         str = MSG.ReadString(Globals.net_message);
+        Com.dprintln("levelname=" + str);
 
         if (Globals.cl.playernum == -1) { // playing a cinematic or showing a
             // pic, not a level
@@ -408,6 +410,7 @@ public class CL_parse {
             ci.weaponmodel[0] = Globals.re.RegisterModel(weapon_filename);
             ci.skin = Globals.re.RegisterSkin(skin_filename);
             ci.icon = Globals.re.RegisterPic(ci.iconname);
+            
         } else {
             // isolate the model name
 
@@ -527,14 +530,17 @@ public class CL_parse {
 
         olds = Globals.cl.configstrings[i];
         Globals.cl.configstrings[i] = s;
+        
+        Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
 
         // do something apropriate
 
         if (i >= Defines.CS_LIGHTS
                 && i < Defines.CS_LIGHTS + Defines.MAX_LIGHTSTYLES) {
+            
             CL_fx.SetLightstyle(i - Defines.CS_LIGHTS);
-        } else if (i >= Defines.CS_MODELS
-                && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
+            
+        } else if (i >= Defines.CS_MODELS && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
             if (Globals.cl.refresh_prepped) {
                 Globals.cl.model_draw[i - Defines.CS_MODELS] = Globals.re
                         .RegisterModel(Globals.cl.configstrings[i]);
