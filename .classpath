@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-    <classpathentry kind="src" path="src"/>
-    <classpathentry kind="src" path="test"/>
-    <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-    <classpathentry kind="lib" path="lib/joal/linux/joal.jar"/>
-    <classpathentry kind="lib" path="lib/joal/windows/joal.jar"/>
-    <classpathentry kind="lib" path="lib/jogl/jogl.jar"/>
-    <classpathentry kind="lib" path="resources"/>
-    <classpathentry kind="output" path="build"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="patch"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/joal/linux/joal.jar"/>
+	<classpathentry kind="lib" path="lib/joal/windows/joal.jar"/>
+	<classpathentry kind="lib" path="lib/jogl/jogl.jar"/>
+	<classpathentry kind="lib" path="resources"/>
+	<classpathentry kind="output" path="build"/>
 </classpath>
