@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.2 2003-12-09 22:12:44 rst Exp $
+// $Id: Fire.java,v 1.3 2003-12-28 13:51:10 rst Exp $
 
 package jake2.game;
 
@@ -40,7 +40,7 @@ public class Fire {
 	Used for all impact (hit/punch/slash) attacks
 	=================
 	*/
-	static boolean fire_hit(edict_t self, float[] aim, int damage, int kick) {
+	public static  boolean fire_hit(edict_t self, float[] aim, int damage, int kick) {
 		trace_t tr;
 		float[] forward= { 0, 0, 0 }, right= { 0, 0, 0 }, up= { 0, 0, 0 };
 		float[] v= { 0, 0, 0 };
@@ -114,7 +114,7 @@ public class Fire {
 	This is an internal support routine used for bullet/pellet based weapons.
 	=================
 	*/
-	static void fire_lead(
+	public static  void fire_lead(
 		edict_t self,
 		float[] start,
 		float[] aimdir,
@@ -259,7 +259,7 @@ public class Fire {
 	pistols, rifles, etc....
 	=================
 	*/
-	static void fire_bullet(
+	public static  void fire_bullet(
 		edict_t self,
 		float[] start,
 		float[] aimdir,
@@ -277,7 +277,7 @@ public class Fire {
 	Shoots shotgun pellets.  Used by shotgun and super shotgun.
 	=================
 	*/
-	static void fire_shotgun(
+	public static  void fire_shotgun(
 		edict_t self,
 		float[] start,
 		float[] aimdir,
@@ -292,7 +292,7 @@ public class Fire {
 		for (i= 0; i < count; i++)
 			fire_lead(self, start, aimdir, damage, kick, Defines.TE_SHOTGUN, hspread, vspread, mod);
 	}
-	static void fire_blaster(
+	public static  void fire_blaster(
 		edict_t self,
 		float[] start,
 		float[] dir,
@@ -349,7 +349,7 @@ public class Fire {
 	=================
 	*/
 	
-	static void fire_grenade(
+	public static  void fire_grenade(
 		edict_t self,
 		float[] start,
 		float[] aimdir,
@@ -387,7 +387,7 @@ public class Fire {
 	
 		GameBase.gi.linkentity(grenade);
 	}
-	static void fire_grenade2(
+	public static  void fire_grenade2(
 		edict_t self,
 		float[] start,
 		float[] aimdir,
@@ -436,7 +436,7 @@ public class Fire {
 			GameBase.gi.linkentity(grenade);
 		}
 	}
-	static void fire_rocket(
+	public static  void fire_rocket(
 		edict_t self,
 		float[] start,
 		float[] dir,
@@ -478,7 +478,7 @@ public class Fire {
 	fire_rail
 	=================
 	*/
-	static void fire_rail(edict_t self, float[] start, float[] aimdir, int damage, int kick) {
+	public static  void fire_rail(edict_t self, float[] start, float[] aimdir, int damage, int kick) {
 		float[] from= { 0, 0, 0 };
 		float[] end= { 0, 0, 0 };
 		trace_t tr= null;
@@ -541,7 +541,7 @@ public class Fire {
 		if (self.client != null)
 			GameWeapon.PlayerNoise(self, tr.endpos, Defines.PNOISE_IMPACT);
 	}
-	static void fire_bfg(
+	public static  void fire_bfg(
 		edict_t self,
 		float[] start,
 		float[] dir,

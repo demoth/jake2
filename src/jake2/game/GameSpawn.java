@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.8 2003-12-27 21:33:50 rst Exp $
+// $Id: GameSpawn.java,v 1.9 2003-12-28 13:51:10 rst Exp $
 
 package jake2.game;
 
@@ -759,7 +759,7 @@ public class GameSpawn extends Game {
 	Finds the spawn function for the entity and calls it
 	===============
 	*/
-	static void ED_CallSpawn(edict_t ent) {
+	public static void ED_CallSpawn(edict_t ent) {
 		spawn_t s;
 		gitem_t item;
 		int i;
