@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.12 2004-02-02 19:25:23 hoz Exp $
+ * $Id: Jake2.java,v 1.13 2004-02-02 21:47:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -101,11 +101,12 @@ public final class Jake2 {
 			oldtime = newtime;
 
 			// save cpu resources
-//			try {
-//				Thread.sleep(10);
-//			}
-//			catch (InterruptedException e) {
-//			}
+			try {
+				Thread.sleep(10);
+			}
+			catch (InterruptedException e) {
+			}
+			Com.Printf(".");
 		}
 
 	}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.15 2004-02-02 19:13:26 rst Exp $
+// $Id: GameBase.java,v 1.16 2004-02-02 21:47:00 rst Exp $
 
 /** Father of all Objects. */
 
@@ -37,7 +37,7 @@ public class GameBase extends Globals {
 	public static level_locals_t level = new level_locals_t();
 	public static game_import_t gi = new game_import_t();
 	public static game_export_t globals = new game_export_t();
-	public static spawn_temp_t st;
+	public static spawn_temp_t st = new spawn_temp_t();
 
 	public static int sm_meat_index;
 	public static int snd_fry;

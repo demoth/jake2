@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.12 2003-12-30 15:57:33 rst Exp $
+// $Id: GameAI.java,v 1.13 2004-02-02 21:47:00 rst Exp $
 
 package jake2.game;
 
@@ -939,7 +939,7 @@ public class GameAI extends GameUtil {
 		int i;
 		gitem_t it;
 
-		for (i = 0; i < game.num_items; i++) {
+		for (i = 1; i < game.num_items; i++) {
 			it = itemlist[i];
 			gi.configstring(CS_ITEMS + i, it.pickup_name);
 		}
@@ -3448,7 +3448,7 @@ public class GameAI extends GameUtil {
 
 	public static void InitItems() {
 		//game.num_items = sizeof(itemlist)/sizeof(itemlist[0]) - 1;
-		game.num_items = itemlist.length;
+		game.num_items = itemlist.length - 1;
 	}
 
 }

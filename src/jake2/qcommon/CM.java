@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.13 2004-02-01 23:31:37 rst Exp $
+// $Id: CM.java,v 1.14 2004-02-02 21:47:00 rst Exp $
 
 package jake2.qcommon;
 
@@ -249,7 +249,7 @@ public class CM extends Game {
 		length = buf.length;
 
 		ByteBuffer bbuf = ByteBuffer.wrap(buf);
-		bbuf.order(ByteOrder.LITTLE_ENDIAN);
+		//bbuf.order(ByteOrder.LITTLE_ENDIAN);
 
 		//last_checksum = LittleLong(Com.BlockChecksum(buf, length));
 		last_checksum = MD4.Com_BlockChecksum(buf, length);
@@ -642,8 +642,8 @@ public class CM extends Game {
 				out = map_brushsides[i] = new cbrushside_t();
 
 			num = in.planenum;
-			System.out.println("planenum= " + in.planenum);
-			System.out.println("texinfo= " + in.texinfo);
+			//System.out.println("planenum= " + in.planenum);
+			//System.out.println("texinfo= " + in.texinfo);
 
 			out.plane = map_planes[num];
 
@@ -794,7 +794,7 @@ public class CM extends Game {
 		if (name == null || name.charAt(0) != '*')
 			Com.Error(ERR_DROP, "CM_InlineModel: bad name");
 
-		num = atoi(name + 1);
+		num = atoi(name.substring(1));
 
 		if (num < 1 || num >= numcmodels)
 			Com.Error(ERR_DROP, "CM_InlineModel: bad number");

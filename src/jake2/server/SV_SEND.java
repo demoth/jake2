@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.5 2004-01-30 13:34:31 hoz Exp $
+// $Id: SV_SEND.java,v 1.6 2004-02-02 21:47:00 rst Exp $
 
 package jake2.server;
 
@@ -555,9 +555,8 @@ public class SV_SEND extends SV_MAIN {
 			else {
 				// just update reliable	if needed
 				if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-					Netchan.Transmit(c.netchan, 0, null);
+					Netchan.Transmit(c.netchan, 0, new byte[0]);
 			}
 		}
 	}
-
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.11 2004-02-01 23:31:37 rst Exp $
+// $Id: GameSpawn.java,v 1.12 2004-02-02 21:47:00 rst Exp $
 
 package jake2.game;
 
@@ -194,7 +194,7 @@ public class GameSpawn extends GameSave {
 
 		if (!st.set(key, value))
 			if (!ent.set(key, value))
-				gi.dprintf(key + " is not a field\n");
+				gi.dprintf("??? The key [" + key + "] is not a field\n");
 
 
 
@@ -262,34 +262,50 @@ public class GameSpawn extends GameSave {
 		
 		Com.ParseHelp ph = new Com.ParseHelp(data);
 		
+		boolean closed = true;
 		
-		while (true) { // parse key
+		while (true) { 
+
+			// parse key			
 			com_token = Com.Parse(ph);
-			if (com_token.charAt(0) == '}')
-				break;
-				
-			if (ph.isEof())
-				gi.error("ED_ParseEntity: EOF without closing brace");
-				
-			
-			//strncpy(keyname, com_token, sizeof(keyname) - 1);
 			keyname = com_token;
 			
-			// parse value				
-			com_token = Com.Parse(ph);
+			if (keyname.equals("{"))
+			{
+				if (closed) {
+				closed = false;
+				continue;
+				}
+				else
+					gi.error("ED_ParseEntity: closing brace expected, opening brace found."); 
+			}
 			
+			if (keyname.equals("}"))
+			{
+				if (!closed) {
+				closed = true;
+				break;
+				}
+				else
+					gi.error("ED_ParseEntity: opening brace expected, closing brace found."); 
+			}
 			if (ph.isEof())
 				gi.error("ED_ParseEntity: EOF without closing brace");
+			
+			// parse value
+			com_token = Com.Parse(ph);
 				
-			if (com_token.charAt(0) == '}')
-				gi.error("ED_ParseEntity: closing brace without data");
-				
+			if (ph.isEof())
+				gi.error("ED_ParseEntity: EOF without closing brace");
+
 			init = true;
 			// keynames with a leading underscore are used for utility comments,
 			// and are immediately discarded by quake
 			if (keyname.charAt(0) == '_')
 				continue;
+				
 			ED_ParseField(keyname, com_token, ent);
+			
 		}
 	
 		if (!init)
@@ -375,71 +391,79 @@ public class GameSpawn extends GameSave {
 			PlayerClient.SaveClientData();
 			
 			//level.clear();
-	//		memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
-	//		strncpy(level.mapname, mapname, sizeof(level.mapname) - 1);
-	//		strncpy(game.spawnpoint, spawnpoint, sizeof(game.spawnpoint) - 1);
-	//		// set client fields on player ents
-	//		for (i = 0; i < game.maxclients; i++)
-	//			g_edicts[i + 1].client = game.clients + i;
-	//		ent = null;
-	//		inhibit = 0; //	   parse ents
-	//		while (1) { // parse the opening brace	
-	//			com_token = COM_Parse(entities);
-	//			if (entities == null)
-	//				break;
-	//			if (com_token[0] != '{')
-	//				gi.error("ED_LoadFromFile: found %s when expecting {", com_token);
-	//			if (!ent)
-	//				ent = g_edicts;
-	//			else
-	//				ent = G_Spawn();
-	//			entities = ED_ParseEdict(entities, ent);
-	//			// yet another map hack
-	//			if (!Q_stricmp(level.mapname, "command") && !Q_stricmp(ent.classname, "trigger_once") && !Q_stricmp(ent.model, "*27"))
-	//				ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
-	//			// remove things (except the world) from different skill levels or deathmatch
-	//			if (ent != g_edicts) {
-	//				if (deathmatch.value) {
-	//					if (ent.spawnflags & SPAWNFLAG_NOT_DEATHMATCH) {
-	//						G_FreeEdict(ent);
-	//						inhibit++;
-	//						continue;
-	//					}
-	//				}
-	//				else {
-	//					if (/* ((coop.value) && (ent.spawnflags & SPAWNFLAG_NOT_COOP)) || */
-	//						((skill.value == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY))
-	//							|| ((skill.value == 1) && (ent.spawnflags & SPAWNFLAG_NOT_MEDIUM))
-	//							|| (((skill.value == 2) || (skill.value == 3)) && (ent.spawnflags & SPAWNFLAG_NOT_HARD))) {
-	//						G_FreeEdict(ent);
-	//						inhibit++;
-	//						continue;
-	//					}
-	//				}
-	//
-	//				ent.spawnflags
-	//					&= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
-	//			}
-	//
-	//			ED_CallSpawn(ent);
-	//		}
-	//
-	//		gi.dprintf(inhibit + " entities inhibited\n");
-	//		//TODO: insert a log4j!
-	//		//# ifdef DEBUG 
-	//		i = 1;
-	//		ent = EDICT_NUM(i);
-	//		while (i < globals.num_edicts) {
-	//			if (ent.inuse != 0 || ent.inuse != 1)
-	//				Com_DPrintf("Invalid entity %d\n", i);
-	//			i++;
-	//			ent++;
-	//		} //# endif 
+			Com.Printf("game.maxentities=" + game.maxentities + "\n");
+			level = new level_locals_t();
+			for (int n=0; n < game.maxentities; n++)
+			{
+				g_edicts[n] = new edict_t(n);
+			}
+			//memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
+			level.mapname = mapname;
+			game.spawnpoint = spawnpoint;
+			// set client fields on player ents
+			for (i = 0; i < game.maxclients; i++)
+				g_edicts[i + 1].client = game.clients[i];
+				
+			ent = null;
+			inhibit = 0; //	   parse ents
+			Com.Printf("========================\n");
+			Com.Printf("entities(" + entities.length() + ") = \n" + entities + "\n");
+			Com.Printf("========================\n");
+			
+			Com.ParseHelp ph = new Com.ParseHelp(entities);
+			
+			while (true) { // parse the opening brace
+					
+				com_token = Com.Parse(ph);
+				if (ph.isEof())
+					break;
+				if (!com_token.startsWith("{"))
+					gi.error("ED_LoadFromFile: found "+com_token+" when expecting {");
+					
+				if (ent==null)
+					ent = g_edicts[0];
+				else
+					ent = G_Spawn();
+					
+				entities = ED_ParseEdict(entities, ent);
+				
+				// yet another map hack
+				if (0==Q_stricmp(level.mapname, "command") && 0==Q_stricmp(ent.classname, "trigger_once") && 
+					0==Q_stricmp(ent.model, "*27"))
+					ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
+					
+				// remove things (except the world) from different skill levels or deathmatch
+				if (ent != g_edicts[0]) {
+					if (deathmatch.value!=0) {
+						if ((ent.spawnflags & SPAWNFLAG_NOT_DEATHMATCH)!=0) {
+							G_FreeEdict(ent);
+							inhibit++;
+							continue;
+						}
+					}
+					else {
+						if (/* ((coop.value) && (ent.spawnflags & SPAWNFLAG_NOT_COOP)) || */
+							((skill.value == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY)!=0)
+								|| ((skill.value == 1) && (ent.spawnflags & SPAWNFLAG_NOT_MEDIUM)!=0)
+								|| (((skill.value == 2) || (skill.value == 3)) && (ent.spawnflags & SPAWNFLAG_NOT_HARD)!=0)) {
+							G_FreeEdict(ent);
+							inhibit++;
+							continue;
+						}
+					}
+	
+					ent.spawnflags
+						&= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
+				}
+	
+				ED_CallSpawn(ent);
+			}
+	
+			gi.dprintf(inhibit + " entities inhibited\n");
+			i = 1;
 			G_FindTeams();
 			PlayerTrail.Init();
 		}
-
-		// E C L I P S E   D R E C K M I S T   F O R M A T T E R !
 
 		static String single_statusbar = "yb	-24 " //	   health
 		+"xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
@@ -751,6 +775,7 @@ public class GameSpawn extends GameSave {
 	===============
 	*/
 	public static void ED_CallSpawn(edict_t ent) {
+		
 		spawn_t s;
 		gitem_t item;
 		int i;
@@ -758,8 +783,13 @@ public class GameSpawn extends GameSave {
 			gi.dprintf("ED_CallSpawn: null classname\n");
 			return;
 		} // check item spawn functions
-		for (i = 0; i < game.num_items; i++) {
+		for (i = 1; i < game.num_items; i++) {
+			
 			item = itemlist[i];
+			
+			if (item == null)
+				gi.error("ED_CallSpawn: null item in pos " + i);
+				
 			if (item.classname == null)
 				continue;
 			if (0 == Lib.strcmp(item.classname, ent.classname)) { // found it
@@ -767,7 +797,8 @@ public class GameSpawn extends GameSave {
 				return;
 			}
 		} // check normal spawn functions
-		for (i = 0, s = spawns[i]; s.name != null; i++) {
+		
+		for (i=0; (s = spawns[i]) !=null && s.name != null; i++) {
 			if (0 == Lib.strcmp(s.name, ent.classname)) { // found it
 				s.spawn.think(ent);
 				return;

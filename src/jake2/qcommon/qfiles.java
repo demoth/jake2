@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.11 2004-01-28 15:00:19 cwei Exp $
+ * $Id: qfiles.java,v 1.12 2004-02-02 21:47:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -439,7 +439,7 @@ public class qfiles {
 	public static class dheader_t {
 
 		public dheader_t(ByteBuffer bb) {
-
+			bb.order(ByteOrder.LITTLE_ENDIAN);
 			this.ident = bb.getInt();
 			this.version = bb.getInt();
 

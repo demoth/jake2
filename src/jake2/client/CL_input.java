@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.7 2004-02-02 21:15:40 hoz Exp $
+ * $Id: CL_input.java,v 1.8 2004-02-02 21:47:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -491,7 +491,7 @@ public class CL_input extends CL_tent {
 
 		if (cls.state == ca_connected) {
 			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
-				Netchan.Transmit(cls.netchan, 0, buf.data);
+				Netchan.Transmit(cls.netchan, 0, new byte[0]);
 			return;
 		}
 

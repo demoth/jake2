@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.8 2004-02-01 23:31:37 rst Exp $
+// $Id: GameUtil.java,v 1.9 2004-02-02 21:47:00 rst Exp $
 
 package jake2.game;
 
@@ -1461,7 +1461,7 @@ public class GameUtil extends GameBase {
 	===============
 	*/
 	static gitem_t FindItem(String pickup_name) {
-		for (int i= 0; i < game.num_items; i++) {
+		for (int i= 1; i < game.num_items; i++) {
 			gitem_t it= GameAI.itemlist[i];
 
 			if (it.pickup_name == null)

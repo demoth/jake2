@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.3 2004-01-18 10:39:34 rst Exp $
+// $Id: client_t.java,v 1.4 2004-02-02 21:47:00 rst Exp $
 
 package jake2.server;
 
@@ -32,6 +32,16 @@ import jake2.render.*;
 import jake2.server.*;
 
 public class client_t {
+	
+	public client_t()
+	{
+		for (int n=0; n < Defines.UPDATE_BACKUP; n++)
+		{
+			frames[n] = new client_frame_t();
+		}
+		
+	}
+	
 public static final int LATENCY_COUNTS	=16;
 public static final int RATE_MESSAGES	=10;
 
@@ -43,7 +53,7 @@ public static final int RATE_MESSAGES	=10;
 
 
 	int				lastframe;			// for delta compression
-	usercmd_t			lastcmd;			// for filling in big drops
+	usercmd_t		lastcmd= new usercmd_t();			// for filling in big drops
 
 	int				commandMsec;		// every seconds this is reset, if user
 										// commands exhaust it, assume time cheating
@@ -64,7 +74,7 @@ public static final int RATE_MESSAGES	=10;
 
 	// The datagram is written to by sound calls, prints, temp ents, etc.
 	// It can be harmlessly overflowed.
-	sizebuf_t			datagram;
+	sizebuf_t			datagram	= new sizebuf_t();
 	byte				datagram_buf[] = new byte[Defines.MAX_MSGLEN];
 
 	client_frame_t		frames[] = new client_frame_t[Defines.UPDATE_BACKUP];	// updates can be delta'd from here
@@ -78,7 +88,7 @@ public static final int RATE_MESSAGES	=10;
 
 	int				challenge;			// challenge of this user, randomly generated
 
-	netchan_t			netchan;
+	netchan_t			netchan = new netchan_t();
 	
 	
 	//TODO: this was introduced by rst, since java cant calculate the index out of the address.

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.9 2004-01-31 16:58:45 rst Exp $
+// $Id: game_import_t.java,v 1.10 2004-02-02 21:47:00 rst Exp $
 
 package jake2.game;
 
@@ -79,7 +79,7 @@ public class game_import_t {
 		Com.Error(Defines.ERR_FATAL,"method is not implemented!");
 	}
 	public void error(String err) {
-		Com.Error(Defines.ERR_FATAL,"method is not implemented!");
+		Com.Error(Defines.ERR_FATAL, err);
 	}
 	public void error(int level, String err) {
 		SV_GAME.PF_error(level,err);

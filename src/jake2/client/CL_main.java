@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.18 2004-02-02 21:15:40 hoz Exp $
+ * $Id: CL_main.java,v 1.19 2004-02-02 21:46:59 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1574,8 +1574,8 @@ public class CL_main extends CL_pred {
 		if (cl_timedemo.value == 0.0f) {
 			if (cls.state == ca_connected && extratime < 100)
 				return; // don't flood packets out while connecting
-			if (extratime < 1000 / cl_maxfps.value)
-				return; // framerate is too high
+			//if (extratime < 1000 / cl_maxfps.value)
+				//return; // framerate is too high
 		}
 
 		// let the mouse activate or deactivate

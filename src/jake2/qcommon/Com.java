@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.31 2004-02-02 19:13:26 rst Exp $
+ * $Id: Com.java,v 1.32 2004-02-02 21:47:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -269,7 +269,7 @@ public final class Com {
 			SV_MAIN.SV_Shutdown("Server crashed: " + msg + "\n", false);
 			CL.Drop();
 			recursive = false;
-			throw new longjmpException();
+			//throw new longjmpException();
 		}
 		else {
 			SV_MAIN.SV_Shutdown("Server fatal crashed: %s" + msg + "\n", false);

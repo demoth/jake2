@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.13 2004-02-02 19:13:26 rst Exp $
+// $Id: SV_MAIN.java,v 1.14 2004-02-02 21:47:00 rst Exp $
 
 package jake2.server;
 
@@ -364,7 +364,7 @@ public class SV_MAIN extends SV_GAME {
 
 		sv_client = svs.clients[i];
 		//edictnum = (newcl-svs.clients)+1;
-		int edictnum = i;
+		int edictnum = i + 1;
 		edict_t ent = ge.edicts[edictnum];
 		svs.clients[i].edict = ent;
 		svs.clients[i].challenge = challenge; // save challenge for checksumming
@@ -477,7 +477,7 @@ public class SV_MAIN extends SV_GAME {
 		Cmd.TokenizeString(s.toCharArray(), false);
 
 		c = Cmd.Argv(0);
-		Com.DPrintf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
+		Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
 
 		if (0 == strcmp(c, "ping"))
 			SVC_Ping();
@@ -494,7 +494,11 @@ public class SV_MAIN extends SV_GAME {
 		else if (0 == strcmp(c, "rcon"))
 			SVC_RemoteCommand();
 		else
-			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + "\n[" + s + "]\n");
+		{
+			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + "\n");
+			Com.Printf("[" + s + "]\n");
+			Com.Printf("" + Lib.hexDump(net_message.data, 128, false));
+		}
 	}
 
 	//============================================================================
