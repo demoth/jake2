@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.4 2004-01-05 22:33:27 rst Exp $
+// $Id: GameSave.java,v 1.5 2004-01-07 22:01:20 rst Exp $
 
 package jake2.game;
 
@@ -684,11 +684,17 @@ public class GameSave extends PlayerView {
 	//
 	public static void ReadGame(String filename) {
 
-		RandomAccessFile f = null;
+		RandomAccessFile f=null;
+		
 		int i;
-		byte str[] = new byte[16]; //gi.FreeTags (TAG_GAME);
-		//f = fopen (filename, "rb");
+		
+		byte str[] = new byte[16]; 
+		
 		try {
+			
+			if (game==null) 
+				game = new game_locals_t();
+			
 			f = new RandomAccessFile(filename, "r");
 
 			byte buf[] = new byte[(int) f.length()];
@@ -700,11 +706,11 @@ public class GameSave extends PlayerView {
 			bb.order(ByteOrder.LITTLE_ENDIAN);
 
 			String date = Lib.readString(bb, 16);
-			String helpmessage1 = Lib.readString(bb, 512);
+			game.helpmessage1 = Lib.readString(bb, 512);
 			String helpmessage2 = Lib.readString(bb, 512);
 
 			System.out.println("String date: " + date);
-			System.out.println("String helpmessage1: " + helpmessage1);
+			System.out.println("String helpmessage1: " + game.helpmessage1);
 			System.out.println("String helpmessage2: " + helpmessage2);
 
 			System.out.println("helpchanged: " + bb.getInt());
