@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.17 2005-01-23 19:08:57 cawe Exp $
+ * $Id: CL.java,v 1.18 2005-02-06 19:24:31 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -107,7 +107,7 @@ public final class CL {
 
                 //	   finish up
                 len = -1;
-                Globals.cls.demofile.writeInt(len);
+                Globals.cls.demofile.writeInt(EndianHandler.swapInt(len));
                 Globals.cls.demofile.close();
                 Globals.cls.demofile = null;
                 Globals.cls.demorecording = false;
@@ -187,11 +187,9 @@ public final class CL {
                 for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
                     if (Globals.cl.configstrings[i].length() > 0) {
                         if (buf.cursize + Globals.cl.configstrings[i].length()
-                                + 32 > buf.maxsize) { // write it out
-                            //len = LittleLong(buf.cursize);
-                            //fwrite(& len, 4, 1, cls.demofile);
-                            Globals.cls.demofile.writeInt(buf.cursize);
-                            //fwrite(buf.data, buf.cursize, 1, cls.demofile);
+                                + 32 > buf.maxsize) { 
+                            // write it out
+                            Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
                             Globals.cls.demofile
                                     .write(buf.data, 0, buf.cursize);
                             buf.cursize = 0;
@@ -205,7 +203,6 @@ public final class CL {
                 }
 
                 // baselines
-                //memset( nullstate, 0, sizeof(nullstate));
                 nullstate.clear();
                 for (i = 0; i < Defines.MAX_EDICTS; i++) {
                     ent = Globals.cl_entities[i].baseline;
@@ -213,10 +210,7 @@ public final class CL {
                         continue;
 
                     if (buf.cursize + 64 > buf.maxsize) { // write it out
-                        //len = LittleLong(buf.cursize);
-                        //fwrite(& len, 4, 1, cls.demofile);
-                        Globals.cls.demofile.writeInt(buf.cursize);
-                        //fwrite(buf.data, buf.cursize, 1, cls.demofile);
+                        Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
                         Globals.cls.demofile.write(buf.data, 0, buf.cursize);
                         buf.cursize = 0;
                     }
@@ -230,11 +224,7 @@ public final class CL {
                 MSG.WriteString(buf, "precache\n");
 
                 // write it to the demo file
-
-                //len = LittleLong(buf.cursize);
-                //fwrite(& len, 4, 1, cls.demofile);
-                Globals.cls.demofile.writeInt(buf.cursize);
-                //fwrite(buf.data, buf.cursize, 1, cls.demofile);
+                Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
                 Globals.cls.demofile.write(buf.data, 0, buf.cursize);
                 // the rest of the demo file will be individual frames
 
@@ -626,10 +616,8 @@ public final class CL {
         swlen = Globals.net_message.cursize - 8;
 
         try {
-            Globals.cls.demofile.writeInt(swlen);
-            //fwrite (&swlen, 4, 1, cls.demofile);
+            Globals.cls.demofile.writeInt(EndianHandler.swapInt(swlen));
             Globals.cls.demofile.write(Globals.net_message.data, 8, swlen);
-            //fwrite (net_message.data+8, len, 1, cls.demofile);
         } catch (IOException e) {
         }
 
