@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.6 2004-09-22 19:22:07 salomo Exp $
+ * $Id: CL_ents.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,13 +27,8 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.entity_state_t;
-import jake2.game.player_state_t;
-import jake2.game.pmove_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
-import jake2.render.model_t;
+import jake2.game.*;
+import jake2.qcommon.*;
 import jake2.util.Math3D;
 
 /**
@@ -588,58 +583,9 @@ public class CL_ents {
 	 * ==========================================================================
 	 */
 
-	public static model_t S_RegisterSexedModel(entity_state_t ent, String base) {
-		int n;
-		model_t mdl;
-		String model;
-		String buffer;
-
-		// determine what model the client is using
-		model = "";
-
-		n = Defines.CS_PLAYERSKINS + ent.number - 1;
-
-		if (Globals.cl.configstrings[n].length() > 0) {
-
-			int pos = Globals.cl.configstrings[n].indexOf('\\');
-			if (pos != -1) {
-				pos++;
-				model = Globals.cl.configstrings[n].substring(pos);
-				pos = model.indexOf('/');
-				if (pos != -1)
-					model = model.substring(0, pos);
-			}
-		}
-		// if we can't figure it out, they're male
-		if (model.length() == 0)
-			model = "male";
-
-		buffer = "players/" + model + "/" + base + 1;
-		mdl = Globals.re.RegisterModel(buffer);
-		if (mdl == null) {
-			// not found, try default weapon model
-			buffer = "players/" + model + "/weapon.md2";
-			mdl = Globals.re.RegisterModel(buffer);
-			if (mdl == null) {
-				// no, revert to the male model
-				buffer = "players/male/" + base + 1;
-				mdl = Globals.re.RegisterModel(buffer);
-				if (mdl == null) {
-					// last try, default male weapon.md2
-					buffer = "players/male/weapon.md2";
-					mdl = Globals.re.RegisterModel(buffer);
-				}
-			}
-		}
-
-		return mdl;
-	}
-
-	//	   PMM - used in shell code
-
 	/*
-	 * =============== CL_AddPacketEntities
-	 * 
+	 * =============== 
+	 * CL_AddPacketEntities
 	 * ===============
 	 */
 	static void AddPacketEntities(frame_t frame) {

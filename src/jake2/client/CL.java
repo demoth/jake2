@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.12 2004-10-04 12:50:37 hzi Exp $
+ * $Id: CL.java,v 1.13 2004-10-11 14:04:16 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -877,18 +877,6 @@ public final class CL {
         Com.Printf("Unknown command.\n");
     }
 
-    /*
-     * ================= CL_DumpPackets
-     * 
-     * A vain attempt to help bad TCP stacks that cause problems when they
-     * overflow =================
-     */
-    static void DumpPackets() {
-        while (NET.GetPacket(Defines.NS_CLIENT, Globals.net_from,
-                Globals.net_message)) {
-            Com.Printf("dumping a packet\n");
-        }
-    }
 
     /*
      * ================= CL_ReadPackets =================

@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.5 2004-10-04 12:50:37 hzi Exp $
+ * $Id: CL_newfx.java,v 1.6 2004-10-11 14:04:16 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -133,50 +133,6 @@ public class CL_newfx {
 
     }
 
-    /*
-     * =============== CL_SmokeTrail ===============
-     */
-    static void SmokeTrail(float[] start, float[] end, int colorStart,
-            int colorRun, int spacing) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
-        float len;
-        int j;
-        cparticle_t p;
-
-        Math3D.VectorCopy(start, move);
-        Math3D.VectorSubtract(end, start, vec);
-        len = Math3D.VectorNormalize(vec);
-
-        Math3D.VectorScale(vec, spacing, vec);
-
-        // FIXME: this is a really silly way to have a loop
-        while (len > 0) {
-            len -= spacing;
-
-            if (CL_fx.free_particles == null)
-                return;
-            p = CL_fx.free_particles;
-            CL_fx.free_particles = p.next;
-            p.next = CL_fx.active_particles;
-            CL_fx.active_particles = p;
-            Math3D.VectorClear(p.accel);
-
-            p.time = Globals.cl.time;
-
-            p.alpha = 1.0f;
-            p.alphavel = -1.0f / (1 + Globals.rnd.nextFloat() * 0.5f);
-            p.color = colorStart + (Lib.rand() % colorRun);
-            for (j = 0; j < 3; j++) {
-                p.org[j] = move[j] + Lib.crand() * 3;
-                p.accel[j] = 0;
-            }
-            p.vel[2] = 20 + Lib.crand() * 5;
-
-            Math3D.VectorAdd(move, vec, move);
-        }
-    }
-
     static void ForceWall(float[] start, float[] end, int color) {
         float[] move = new float[3];
         float[] vec = new float[3];
@@ -220,99 +176,6 @@ public class CL_newfx {
             }
 
             Math3D.VectorAdd(move, vec, move);
-        }
-    }
-
-    //	static void FlameEffects(centity_t ent, float[] origin) {
-    //		int n, count;
-    //		int j;
-    //		cparticle_t p;
-    //
-    //		count = rand() & 0xF;
-    //
-    //		for (n = 0; n < count; n++) {
-    //			if (free_particles == null)
-    //				return;
-    //
-    //			p = free_particles;
-    //			free_particles = p.next;
-    //			p.next = active_particles;
-    //			active_particles = p;
-    //
-    //			VectorClear(p.accel);
-    //			p.time = cl.time;
-    //
-    //			p.alpha = 1.0f;
-    //			p.alphavel = -1.0f / (1 + frand() * 0.2f);
-    //			p.color = 226 + (rand() % 4);
-    //			for (j = 0; j < 3; j++) {
-    //				p.org[j] = origin[j] + crand() * 5;
-    //				p.vel[j] = crand() * 5;
-    //			}
-    //			p.vel[2] = crand() * -10;
-    //			p.accel[2] = -PARTICLE_GRAVITY;
-    //		}
-    //
-    //		count = rand() & 0x7;
-    //
-    //		for (n = 0; n < count; n++) {
-    //			if (free_particles == null)
-    //				return;
-    //			p = free_particles;
-    //			free_particles = p.next;
-    //			p.next = active_particles;
-    //			active_particles = p;
-    //			VectorClear(p.accel);
-    //
-    //			p.time = cl.time;
-    //
-    //			p.alpha = 1.0f;
-    //			p.alphavel = -1.0f / (1 + frand() * 0.5f);
-    //			p.color = 0 + (rand() % 4);
-    //			for (j = 0; j < 3; j++) {
-    //				p.org[j] = origin[j] + crand() * 3;
-    //			}
-    //			p.vel[2] = 20 + crand() * 5;
-    //		}
-    //
-    //	}
-
-    /*
-     * =============== CL_GenericParticleEffect ===============
-     */
-    static void GenericParticleEffect(float[] org, float[] dir, int color,
-            int count, int numcolors, int dirspread, float alphavel) {
-        int i, j;
-        cparticle_t p;
-        float d;
-
-        for (i = 0; i < count; i++) {
-            if (CL_fx.free_particles == null)
-                return;
-            p = CL_fx.free_particles;
-            CL_fx.free_particles = p.next;
-            p.next = CL_fx.active_particles;
-            CL_fx.active_particles = p;
-
-            p.time = Globals.cl.time;
-            if (numcolors > 1)
-                p.color = color + (Lib.rand() & numcolors);
-            else
-                p.color = color;
-
-            d = Lib.rand() & dirspread;
-            for (j = 0; j < 3; j++) {
-                p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-                p.vel[j] = Lib.crand() * 20;
-            }
-
-            p.accel[0] = p.accel[1] = 0;
-            p.accel[2] = -CL_fx.PARTICLE_GRAVITY;
-            //			VectorCopy (accel, p.accel);
-            p.alpha = 1.0f;
-
-            p.alphavel = -1.0f / (0.5f + Globals.rnd.nextFloat() * alphavel);
-            //			p.alphavel = alphavel;
         }
     }
 
@@ -772,42 +635,9 @@ public class CL_newfx {
 
     }
 
-    static void Tracker_Explode(float[] origin) {
-        float[] dir = new float[3];
-        float[] backdir = new float[3];
-        int i;
-        cparticle_t p;
-
-        for (i = 0; i < 300; i++) {
-            if (CL_fx.free_particles == null)
-                return;
-            p = CL_fx.free_particles;
-            CL_fx.free_particles = p.next;
-            p.next = CL_fx.active_particles;
-            CL_fx.active_particles = p;
-            Math3D.VectorClear(p.accel);
-
-            p.time = Globals.cl.time;
-
-            p.alpha = 1.0f;
-            p.alphavel = -1.0f;
-            p.color = 0;
-
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
-            Math3D.VectorNormalize(dir);
-            Math3D.VectorScale(dir, -1, backdir);
-
-            Math3D.VectorMA(origin, 64, dir, p.org);
-            Math3D.VectorScale(backdir, 64, p.vel);
-        }
-
-    }
-
     /*
-     * =============== CL_TagTrail
-     * 
+     * ===============
+     *  CL_TagTrail
      * ===============
      */
     static void TagTrail(float[] start, float[] end, float color) {

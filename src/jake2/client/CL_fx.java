@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.6 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL_fx.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -51,7 +51,6 @@ public class CL_fx {
 
 		float die; // stop lighting after this time
 
-		//float decay; // drop this each second
 		float minlight; // don't add when contributing less
 
 		void clear() {
@@ -230,23 +229,10 @@ public class CL_fx {
 		return dl;
 	}
 
-	/*
-	 * =============== CL_NewDlight ===============
-	 */
-	static void NewDlight(int key, float x, float y, float z, float radius, float time) {
-		cdlight_t dl;
-
-		dl = AllocDlight(key);
-		dl.origin[0] = x;
-		dl.origin[1] = y;
-		dl.origin[2] = z;
-		dl.radius = radius;
-		dl.die = Globals.cl.time + time;
-	}
 
 	/*
-	 * =============== CL_RunDLights
-	 * 
+	 * =============== 
+	 * CL_RunDLights
 	 * ===============
 	 */
 	static void RunDLights() {
@@ -261,14 +247,13 @@ public class CL_fx {
 				dl.radius = 0.0f;
 				return;
 			}
-			//dl[i].radius -= cls.frametime * dl[i].decay;
-			//if (dl[i].radius < 0)
-			//	dl[i].radius = 0;
 		}
 	}
 
 	/*
-	 * ============== CL_ParseMuzzleFlash ==============
+	 * ==============
+	 *  CL_ParseMuzzleFlash
+	 * ==============
 	 */
 	static void ParseMuzzleFlash() {
 		float[] fv = new float[3];
@@ -1369,55 +1354,10 @@ public class CL_fx {
 		}
 	}
 
+
 	/*
-	 * =============== CL_QuadTrail
-	 * 
 	 * ===============
-	 */
-	static void QuadTrail(float[] start, float[] end) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
-		float len;
-		int j;
-		cparticle_t p;
-		int dec;
-
-		Math3D.VectorCopy(start, move);
-		Math3D.VectorSubtract(end, start, vec);
-		len = Math3D.VectorNormalize(vec);
-
-		dec = 5;
-		Math3D.VectorScale(vec, 5, vec);
-
-		while (len > 0) {
-			len -= dec;
-
-			if (free_particles == null)
-				return;
-			p = free_particles;
-			free_particles = p.next;
-			p.next = active_particles;
-			active_particles = p;
-			Math3D.VectorClear(p.accel);
-
-			p.time = Globals.cl.time;
-
-			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (0.8f + Globals.rnd.nextFloat() * 0.2f);
-			p.color = 115;
-			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand() * 16;
-				p.vel[j] = Lib.crand() * 5;
-				p.accel[j] = 0;
-			}
-
-			Math3D.VectorAdd(move, vec, move);
-		}
-	}
-
-	/*
-	 * =============== CL_FlagTrail
-	 * 
+	 *  CL_FlagTrail
 	 * ===============
 	 */
 	static void FlagTrail(float[] start, float[] end, float color) {

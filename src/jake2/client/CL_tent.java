@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.6 2004-10-04 12:50:37 hzi Exp $
+ * $Id: CL_tent.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -385,25 +385,9 @@ public class CL_tent {
     }
 
     /*
-     * ================= CL_ParseParticles =================
-     */
-    static void ParseParticles() {
-        int color, count;
-        float[] pos = new float[3];
-        float[] dir = new float[3];
-
-        MSG.ReadPos(Globals.net_message, pos);
-        MSG.ReadDir(Globals.net_message, dir);
-
-        color = MSG.ReadByte(Globals.net_message);
-
-        count = MSG.ReadByte(Globals.net_message);
-
-        CL_fx.ParticleEffect(pos, dir, color, count);
-    }
-
-    /*
-     * ================= CL_ParseBeam =================
+     * =================
+     * CL_ParseBeam
+     * =================
      */
     static int ParseBeam(model_t model) {
         int ent;
@@ -1280,7 +1264,6 @@ public class CL_tent {
             MSG.ReadPos(Globals.net_message, pos);
             CL_newfx.ColorFlash(pos, 0, 150, -1, -1, -1);
             CL_newfx.ColorExplosionParticles(pos, 0, 1);
-            //			CL_Tracker_Explode (pos);
             S.StartSound(pos, 0, 0, cl_sfx_disrexp, 1, Defines.ATTN_NORM, 0);
             break;
 
