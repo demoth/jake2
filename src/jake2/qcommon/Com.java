@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.6 2003-11-25 15:46:23 cwei Exp $
+ * $Id: Com.java,v 1.7 2003-11-25 16:28:52 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -80,18 +80,26 @@ public final class Com {
 		}
 	}
 	
+	public static void DPrintf(String fmt, Vargs vargs) {
+		// TODO impl the developer check 
+		Printf(fmt, vargs);
+	}
+
 	public static void Printf(String fmt, Vargs vargs) {
+		// TODO Com.Printf ist nur zum testen
+		// hier ist System.out mal erlaubt
+		System.out.print( sprintf(fmt, vargs) );
+		
+		//logger.log(Level.INFO, msg);
+	}
+	
+	public static String sprintf (String fmt, Vargs vargs) {
 		String msg = "";
 		if (vargs == null || vargs.size() == 0) {
 			msg = fmt; 
 		} else {
 			msg = new PrintfFormat(fmt).sprintf(vargs.toArray());
 		}
-		
-		// TODO Com.Printf is only a hack
-		// hier ist System.out mal erlaubt
-		System.out.print(msg);
-		//logger.log(Level.INFO, msg);
+		return msg;
 	}
-
 }
