@@ -19,14 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: GameAI.java,v 1.3 2004-08-28 16:40:12 cawe Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+import jake2.util.Vargs;
 
 import java.util.StringTokenizer;
 
@@ -1518,7 +1520,7 @@ public class GameAI extends M_Flash
 	*/
 	public static void HelpComputer(edict_t ent)
 	{
-		String string;
+		StringBuffer sb = new StringBuffer(256);
 		String sk;
 
 		if (skill.value == 0)
@@ -1531,28 +1533,25 @@ public class GameAI extends M_Flash
 			sk = "hard+";
 
 		// send the layout
-			string = "xv 32 yv 8 picn help " + // background
-		"xv 202 yv 12 string2 \"" + sk + "\" " + // skill
-		"xv 0 yv 24 cstring2 \"" + level.level_name + "\" " + // level name
-		"xv 0 yv 54 cstring2 \"" + game.helpmessage1 + "\" " + // help 1
-		"xv 0 yv 110 cstring2 \"" + game.helpmessage2 + "\" " + // help 2
-	"xv 50 yv 164 string2 \" kills     goals    secrets\" "
-		+ "xv 50 yv 172 string2 \""
-		+ level.killed_monsters
-		+ "/"
-		+ level.total_monsters
-		+ "       "
-		+ level.found_goals
-		+ "/"
-		+ level.total_goals
-		+ "       "
-		+ level.found_secrets
-		+ "/"
-		+ level.total_secrets
-		+ "\" ";
+		sb.append("xv 32 yv 8 picn help "); // background
+		sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
+		sb.append("xv 0 yv 24 cstring2 \"").append(level.level_name).append("\" "); // level name
+		sb.append("xv 0 yv 54 cstring2 \"").append(game.helpmessage1).append("\" "); // help 1
+		sb.append("xv 0 yv 110 cstring2 \"").append(game.helpmessage2).append("\" "); // help 2
+		sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
+		sb.append("xv 50 yv 172 string2 \"");
+		sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", 
+			new Vargs(6).add(level.killed_monsters)
+				.add(level.total_monsters)
+				.add(level.found_goals)
+				.add(level.total_goals)
+				.add(level.found_secrets)
+				.add(level.total_secrets)
+			)
+		);
 
 		gi.WriteByte(svc_layout);
-		gi.WriteString(string);
+		gi.WriteString(sb.toString());
 		gi.unicast(ent, true);
 	}
 
