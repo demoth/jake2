@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.4 2004-01-05 13:59:17 cwei Exp $
+ * $Id: qfiles.java,v 1.5 2004-01-06 02:05:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -201,28 +201,6 @@ public class qfiles {
 		int numleafbrushes;
 	}
 
-	public static class dmdl_t {
-		int ident;
-		int version;
-
-		int skinwidth;
-		int skinheight;
-		int framesize; // byte size of each frame
-
-		int num_skins;
-		int num_xyz;
-		int num_st; // greater than num_xyz for seams
-		int num_tris;
-		int num_glcmds; // dwords in strip/fan command list
-		int num_frames;
-
-		int ofs_skins; // each skin is a MAX_SKINNAME string
-		int ofs_st; // byte offset from start for stverts
-		int ofs_tris; // offset for dtriangles
-		int ofs_frames; // offset for first frame
-		int ofs_glcmds;
-		int ofs_end; // end of file
-	}
 
 	public static class dmodel_t {
 
@@ -310,25 +288,6 @@ public class qfiles {
 		int type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 
 		public static int SIZE = 3 * 4 + 4 + 4;
-	}
-
-	public static class dstvert_t {
-		short s;
-		short t;
-	}
-
-	public static class dtriangle_t {
-		short index_xyz[] = { 0, 0, 0 };
-		short index_st[] = { 0, 0, 0 };
-	}
-
-	public static class dtrivertx_t {
-		byte v[] = { 0, 0, 0 }; // scaled byte to fit in frame mins/maxs
-		byte lightnormalindex;
-	}
-
-	public static class dvertex_t {
-		float point[] = { 0, 0, 0 };
 	}
 
 	public static class dvis_t {
@@ -446,79 +405,116 @@ public class qfiles {
 	
 	public static final int IDALIASHEADER =	(('2'<<24)+('P'<<16)+('D'<<8)+'I');
 	public static final int ALIAS_VERSION = 8;
-	//
+	
 	public static final int MAX_TRIANGLES = 4096;
 	public static final int MAX_VERTS = 2048;
 	public static final int MAX_FRAMES = 512;
 	public static final int MAX_MD2SKINS = 32;
 	public static final int MAX_SKINNAME = 64;
-	//
-	//	typedef struct
-	//	{
-	//		short	s;
-	//		short	t;
-	//	} dstvert_t;
-	//
-	//	typedef struct 
-	//	{
-	//		short	index_xyz[3];
-	//		short	index_st[3];
-	//	} dtriangle_t;
-	//
-	//	typedef struct
-	//	{
-	//		byte	v[3];			// scaled byte to fit in frame mins/maxs
-	//		byte	lightnormalindex;
-	//	} dtrivertx_t;
-	//
-	//	#define DTRIVERTX_V0   0
-	//	#define DTRIVERTX_V1   1
-	//	#define DTRIVERTX_V2   2
-	//	#define DTRIVERTX_LNI  3
-	//	#define DTRIVERTX_SIZE 4
-	//
-	//	typedef struct
-	//	{
-	//		float		scale[3];	// multiply byte verts by this
-	//		float		translate[3];	// then add this
-	//		char		name[16];	// frame name from grabbing
-	//		dtrivertx_t	verts[1];	// variable sized
-	//	} daliasframe_t;
-	//
-	//
-	////	   the glcmd format:
-	////	   a positive integer starts a tristrip command, followed by that many
-	////	   vertex structures.
-	////	   a negative integer starts a trifan command, followed by -x vertexes
-	////	   a zero indicates the end of the command list.
-	////	   a vertex consists of a floating point s, a floating point t,
-	////	   and an integer vertex index.
-	//
-	//
-	//	typedef struct
-	//	{
-	//		int			ident;
-	//		int			version;
-	//
-	//		int			skinwidth;
-	//		int			skinheight;
-	//		int			framesize;		// byte size of each frame
-	//
-	//		int			num_skins;
-	//		int			num_xyz;
-	//		int			num_st;			// greater than num_xyz for seams
-	//		int			num_tris;
-	//		int			num_glcmds;		// dwords in strip/fan command list
-	//		int			num_frames;
-	//
-	//		int			ofs_skins;		// each skin is a MAX_SKINNAME string
-	//		int			ofs_st;			// byte offset from start for stverts
-	//		int			ofs_tris;		// offset for dtriangles
-	//		int			ofs_frames;		// offset for first frame
-	//		int			ofs_glcmds;	
-	//		int			ofs_end;		// end of file
-	//
-	//	} dmdl_t;
+	
+	public static class dstvert_t {
+		public short s;
+		public short t;
+		
+		public dstvert_t(ByteBuffer b) {
+			s = b.getShort();
+			t = b.getShort();
+		}
+	}
+
+	public static class dtriangle_t {
+		public short index_xyz[] = { 0, 0, 0 };
+		public short index_st[] = { 0, 0, 0 };
+		
+		public dtriangle_t(ByteBuffer b) {
+			b.asShortBuffer().get(index_xyz).get(index_st);
+		}
+	}
+
+	public static class dtrivertx_t {
+		public byte v[] = { 0, 0, 0 }; // scaled byte to fit in frame mins/maxs
+		public byte lightnormalindex;
+		
+		public dtrivertx_t(ByteBuffer b) {
+			b.get(v);
+			lightnormalindex = b.get();
+		}
+	}
+
+	public static final int DTRIVERTX_V0 =  0;
+	public static final int DTRIVERTX_V1 = 1;
+	public static final int DTRIVERTX_V2 = 2;
+	public static final int DTRIVERTX_LNI = 3;
+	public static final int DTRIVERTX_SIZE = 4;
+	
+	public static class  daliasframe_t {
+		public float[] scale = {0, 0, 0}; // multiply byte verts by this
+		public float[] translate = {0, 0, 0};	// then add this
+		public String name; // frame name from grabbing (size 16)
+		public dtrivertx_t[] verts;	// variable sized
+		
+		public daliasframe_t(ByteBuffer b) {
+			scale[0] = b.getFloat();	scale[1] = b.getFloat();	scale[2] = b.getFloat();
+			translate[0] = b.getFloat(); translate[1] = b.getFloat(); translate[2] = b.getFloat();
+			byte[] nameBuf = new byte[16];
+			b.get(nameBuf);
+			name = new String(nameBuf).trim();
+		}
+	}
+	
+	//	   the glcmd format:
+	//	   a positive integer starts a tristrip command, followed by that many
+	//	   vertex structures.
+	//	   a negative integer starts a trifan command, followed by -x vertexes
+	//	   a zero indicates the end of the command list.
+	//	   a vertex consists of a floating point s, a floating point t,
+	//	   and an integer vertex index.
+	
+	public static class dmdl_t {
+		public int ident;
+		public int version;
+
+		public int skinwidth;
+		public int skinheight;
+		public int framesize; // byte size of each frame
+
+		public int num_skins;
+		public int num_xyz;
+		public int num_st; // greater than num_xyz for seams
+		public int num_tris;
+		public int num_glcmds; // dwords in strip/fan command list
+		public int num_frames;
+
+		public int ofs_skins; // each skin is a MAX_SKINNAME string
+		public int ofs_st; // byte offset from start for stverts
+		public int ofs_tris; // offset for dtriangles
+		public int ofs_frames; // offset for first frame
+		public int ofs_glcmds;
+		public int ofs_end; // end of file
+		
+		public dmdl_t(ByteBuffer b) {
+			ident = b.getInt();
+			version = b.getInt();
+
+			skinwidth = b.getInt();
+			skinheight = b.getInt();
+			framesize = b.getInt(); // byte size of each frame
+
+			num_skins = b.getInt();
+			num_xyz = b.getInt();
+			num_st = b.getInt(); // greater than num_xyz for seams
+			num_tris = b.getInt();
+			num_glcmds = b.getInt(); // dwords in strip/fan command list
+			num_frames = b.getInt();
+
+			ofs_skins = b.getInt(); // each skin is a MAX_SKINNAME string
+			ofs_st = b.getInt(); // byte offset from start for stverts
+			ofs_tris = b.getInt(); // offset for dtriangles
+			ofs_frames = b.getInt(); // offset for first frame
+			ofs_glcmds = b.getInt();
+			ofs_end = b.getInt(); // end of file
+		}
+	}
 	
 	/*
 	========================================================================
@@ -530,26 +526,11 @@ public class qfiles {
 	// little-endian "IDS2"
 	public static final int IDSPRITEHEADER = (('2'<<24)+('S'<<16)+('D'<<8)+'I');
 	public static final int SPRITE_VERSION = 2;
-	//
-	//	typedef struct
-	//	{
-	//		int		width, height;
-	//		int		origin_x, origin_y;		// raster coordinates inside pic
-	//		char	name[MAX_SKINNAME];		// name of pcx file
-	//	} dsprframe_t;
-	//
-	//	typedef struct {
-	//		int			ident;
-	//		int			version;
-	//		int			numframes;
-	//		dsprframe_t	frames[1];			// variable sized
-	//	} dsprite_t;
-	//
+
 	public static class dsprframe_t {
 		public int width, height;
 		public int origin_x, origin_y; // raster coordinates inside pic
-		//char	name[MAX_SKINNAME];			// name of pcx file
-		public String name; // name of pcx file
+		public String name; // name of pcx file (MAX_SKINNAME)
 		
 		public dsprframe_t(ByteBuffer b) {
 			width = b.getInt();
@@ -580,8 +561,6 @@ public class qfiles {
 			}
 		}
 	}
-
-
 	
 	/*
 	==============================================================================
@@ -590,7 +569,6 @@ public class qfiles {
 	
 	==============================================================================
 	*/
-
 	public static class miptex_t {
 
 		static final int MIPLEVELS = 4;
@@ -631,9 +609,9 @@ public class qfiles {
 		}
 
 	}
-	//
-	//
-	//
+	
+	
+	
 	//	/*
 	//	==============================================================================
 	//
@@ -722,12 +700,16 @@ public class qfiles {
 	//											// without walking the bsp tree
 	//	} dmodel_t;
 	//
-	//
-	//	typedef struct
-	//	{
-	//		float	point[3];
-	//	} dvertex_t;
-	//
+	
+	public static class dvertex_t {
+		public float point[] = { 0, 0, 0 };
+		
+		public dvertex_t(ByteBuffer b) {
+			b.asFloatBuffer().get(point);
+		}
+	}
+
+
 	//
 	////	   0-2 are axial planes
 	//	#define	PLANE_X			0
