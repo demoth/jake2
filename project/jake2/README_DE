@@ -1,0 +1,60 @@
+Jake2 README
+============
+
+Jake2 ist eine Java Portierung der Quake2 Engine von id Software. Id Software
+hat den Sourcecode der Quake2 Engine unter den Bedingungen der GPL
+veröffentlicht. Dementsprechend wird auch Jake2 unter der GPL (siehe LICENSE)
+lizensiert.
+
+Jake2 ist eine reine Java Anwendung. Als native Library kommt im Moment nur
+jogl für die OpenGL Anbindung zum Einsatz. Die komplette Funktionalität der
+Engine wurde ausschliesslich mit Java realisiert.
+
+Jake2 befindet sich noch im Entwicklungsstadium. Die Kontaktaddresse für 
+Bugreports und Rückmeldungen ist jake2@bytonic.de.
+
+Jake2 wird von uns unter Linux und Windows2000/XP getestet.
+
+Mindestanforderungen:
+400 MHz CPU
+Geforce2 MX oder bessere Grafikkarte
+JRE 1.4.2
+
+Installation
+------------
+
+ausgehend von der Binärdistribution:
+- jake2-version.tar.gz oder jake2-version.zip entpacken
+- baseq2 Verzeichnis des Quake2 Originals oder der Demoversion in das Jake2
+  Verzeichnis kopieren
+- mit Jake2.sh oder Jake2.bat starten
+
+ausgehend von Sourcedistribution:
+- jake2src-version.tar.gz oder jake2src-version.zip entpacken
+- JAVA_HOME Umgebungsvariable auf J2SDK1.4 Installationsverzeichnis setzen
+- "build.sh bindist" oder "build.bat bindist" erzeugt die Binärdistribution
+
+Quake2 Leveldaten installieren:
+- ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
+  herunterladen
+- Install\Data\baseq2\pak0.pak aus q2-314-demo-x86.exe mit unzip oder Winzip
+  extrahieren
+- die Installation sollte so aussehen:
+
+    Jake2/
+      baseq2/
+        players/
+        pak0.pak
+      lib/
+      Jake2.bat
+      Jake2.sh
+
+viel Spass!
+
+bytonic Software
+
+Holger Zickner <hoz@bytonic.de>
+Carsten Weisse <cwei@bytonic.de>
+Rene Stoeckel  <rst@bytonic.de>
+
+<jake2@bytonic.de> für Bugreports und Rückmeldungen.

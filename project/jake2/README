@@ -33,6 +33,19 @@ build from source:
 - run "build.sh bindist" or "build.bat bindist" to build the binary
   distribution
 
+installation of Quake2 data:
+- download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
+- extract Install\Data\baseq2\pak0.pak from q2-314-demo-x86.exe with unzip or
+  Winzip
+- the Jake2 installation should look like this:
+
+    Jake2/
+      baseq2/
+        pak0.pak
+      lib/
+      Jake2.bat
+      Jake2.sh
+      
 have fun!
 
 bytonic Software
