@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.18 2004-06-06 23:24:45 cwei Exp $
+ * $Id: TestMap.java,v 1.19 2004-06-28 13:20:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -178,7 +178,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.18 2004-06-06 23:24:45 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.19 2004-06-28 13:20:14 hoz Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -557,7 +557,7 @@ public class TestMap
 			Math3D.VectorMA (dir, s, up, dir);
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (1 + Lib.frand() * 0.2f);
+			p.alphavel = -1.0f / (1 + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 0x74 + (Lib.rand() & 7);
 			for (j=0 ; j<3 ; j++)
 			{
@@ -584,7 +584,7 @@ public class TestMap
 			Math3D.VectorClear (p.accel);
 
 			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (0.6f + Lib.frand() * 0.2f);
+			p.alphavel = -1.0f / (0.6f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 0x0 + Lib.rand()&15;
 
 			for (j=0 ; j<3 ; j++)

@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.26 2004-03-17 14:26:06 hoz Exp $
+ * $Id: Sys.java,v 1.27 2004-06-28 13:20:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,14 +43,6 @@ import jake2.util.Lib;
  * Sys
  */
 public final class Sys extends Defines {
-
-	public static void StackTrace() {
-
-		StackTraceElement trace[] = new Throwable().getStackTrace();
-		Com.Println("StackTrace:");
-		for (int i = 0; i < trace.length; i++)
-			Com.Println("" + trace[i]);
-	}
 
 	public static void Error(String error) {
 
@@ -257,11 +249,6 @@ public final class Sys extends Defines {
  
 		// grab frame time 
 		Globals.sys_frame_time = Sys.Milliseconds();
-	}
-
-	public static game_export_t GetGameAPI(game_import_t gimport)
-	{
-		return Game.GetGameApi(gimport);
 	}
 
 	public static String GetClipboardData() {

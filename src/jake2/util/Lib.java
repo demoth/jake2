@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.29 2004-06-22 11:25:38 cwei Exp $
+// $Id: Lib.java,v 1.30 2004-06-28 13:20:14 hoz Exp $
 
 package jake2.util;
 
@@ -38,31 +38,7 @@ import net.java.games.jogl.util.BufferUtils;
 
 public class Lib {
 
-	/*
-	=============
-	TempVector
-	
-	This is just a convenience function
-	for making temporary vectors for function calls
-	=============
-	*/
-	public static float tv_vecs[][] = new float[8][3];
-	public static int tv_index;
-	public static float[] tv(float x, float y, float z) {
 
-		float[] v;
-
-		// use an array so that multiple tempvectors won't collide
-		// for a while
-		v = tv_vecs[tv_index];
-		tv_index = (tv_index++) & 7;
-
-		v[0] = x;
-		v[1] = y;
-		v[2] = z;
-
-		return v;
-	}
 	/*
 	=============
 	VectorToString
@@ -96,9 +72,6 @@ public class Lib {
 	public static float crand() {
 		return (Globals.rnd.nextFloat() - 0.5f) * 2.0f;
 	}
-	public static float frand() {
-		return Globals.rnd.nextFloat();
-	}
 
 	public static int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
@@ -112,25 +85,6 @@ public class Lib {
 		return (i1.indexOf(i2) != -1);
 	}
 
-	public static int strncmp(String in1, String in2, int len) {
-		int i1 = Math.min(len, in1.length());
-		int i2 = Math.min(len, in2.length());
-
-		if (i1 < i2)
-			return -1;
-		if (i1 > i2)
-			return 1;
-
-		for (int n = 0; n < i1; n++) {
-			char c1 = in1.charAt(n);
-			char c2 = in2.charAt(n);
-			if (c1 < c2)
-				return -1;
-			if (c1 > c2)
-				return 1;
-		}
-		return 0;
-	}
 	public static float atof(String in) {
 		float res = 0;
 
@@ -191,17 +145,6 @@ public class Lib {
 
 	public static void strcat(String in, String i) {
 		in += i;
-	}
-
-	public static void strcpy(char dest[], char src[]) {
-		for (int i = 0; i < dest.length && i < src.length; i++)
-			if (src[i] == 0) {
-				dest[i] = 0;
-				return;
-			}
-			else
-				dest[i] = src[i];
-
 	}
 
 	public static void strcpy(byte dest[], byte src[]) {
@@ -389,33 +332,6 @@ public class Lib {
 		return result;
 	}
 
-	public static void main(String[] args) {
-		System.out.println("testing Lib...");
-
-		String linetest = "line 1\r\n line zwo\nline drei\n\r line4\n.line5";
-
-		String line[] = linesplit(linetest);
-
-		for (int n = 0; n < line.length; n++) {
-			System.out.println("[" + line[n] + "]");
-		}
-
-		String v = "0.234 1.23423 7.23423";
-
-		int i1 = v.indexOf(" ");
-		int i2 = v.indexOf(" ", i1 + 1);
-
-		System.out.println("testing substring...");
-
-		System.out.println("[" + v.substring(0, i1) + "]");
-		System.out.println("[" + v.substring(i1 + 1, i2) + "]");
-		System.out.println("[" + v.substring(i2 + 1, v.length()) + "]");
-
-		System.out.println("rightfrom[" + rightFrom("abcdefg#hijklm", '#') + "]");
-		System.out.println("leftfrom[" + leftFrom("abcdefghijk#12", '#') + "]");
-		System.out.println("leftfrom[" + leftFrom("abcdefghi", '#') + "]");
-	}
-
 	public static int rename(String oldn, String newn) {
 		try {
 			File f1 = new File(oldn);
@@ -440,35 +356,9 @@ public class Lib {
 	public static int getInt(byte b[]) {
 		return (b[0] & 0xff) | ((b[1] & 0xff) << 8) | ((b[2] & 0xff) << 16) | ((b[3] & 0xff) << 24);
 	}
-
-	public static void sleep(int sec) {
-		try {
-			Thread.sleep(sec * 1000);
-		}
-		catch (InterruptedException e) {
-		}
-	}
-
-	public static byte[] clone(byte in[]) {
-		byte out[] = new byte[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
 	
 	public static float[] clone(float in[]) {
 		float out[] = new float[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	public static short[] clone(short in[]) {
-		short out[] = new short[in.length];
 
 		if (in.length != 0)
 			System.arraycopy(in, 0, out, 0, in.length);
