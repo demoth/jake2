@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Model.java,v 1.2 2004-06-09 16:40:55 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,28 +25,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.Vector;
-
 import jake2.Defines;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.lump_t;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.texinfo_t;
+import jake2.qcommon.*;
 import jake2.render.*;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mmodel_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.render.mvertex_t;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
+
+import java.nio.*;
+import java.util.Arrays;
+import java.util.Vector;
+
+import net.java.games.jogl.util.BufferUtils;
 
 /**
  * Model
@@ -1116,7 +1107,7 @@ public abstract class Model extends Surf {
 		mod.maxs[1] = 32;
 		mod.maxs[2] = 32;
 		
-		pheader.precompileGLCmds();
+		precompileGLCmds(pheader);
 	}
 
 	/*
@@ -1164,7 +1155,7 @@ public abstract class Model extends Surf {
 	*/
 	protected void R_BeginRegistration(String model)
 	{
-		qfiles.dmdl_t.resetArrays();
+		resetModelArrays();
 		glpoly_t.resetArrays();
 		
 		cvar_t flushmap;
@@ -1250,12 +1241,12 @@ public abstract class Model extends Surf {
 			} else {
 				// precompile AliasModels
 				if (mod.type == mod_alias)
-					((qfiles.dmdl_t)mod.extradata).precompileGLCmds();
+					precompileGLCmds((qfiles.dmdl_t)mod.extradata);
 			}
 		}
 		GL_FreeUnusedImages();
 		
-		//qfiles.dmdl_t.memoryUsage();
+		//modelMemoryUsage();
 	}
 
 
@@ -1286,5 +1277,74 @@ public abstract class Model extends Surf {
 		}
 	}
 
+	/*
+	 * new functions for vertex array handling
+	 */
+	static final int MODEL_BUFFER_SIZE = 50000;
+	static FloatBuffer globalModelTextureCoordBuf = BufferUtils.newFloatBuffer(MODEL_BUFFER_SIZE * 2);
+	static IntBuffer globalModelVertexIndexBuf = BufferUtils.newIntBuffer(MODEL_BUFFER_SIZE);
+	
+	public  void precompileGLCmds(qfiles.dmdl_t model) {
+		model.textureCoordBuf = globalModelTextureCoordBuf.slice();
+		model.vertexIndexBuf = globalModelVertexIndexBuf.slice();
+		Vector tmp = new Vector();
+			
+		int count = 0;
+		int[] order = model.glCmds;
+		int orderIndex = 0;
+		while (true)
+		{
+			// get the vertex count and primitive type
+			count = order[orderIndex++];
+			if (count == 0)
+				break;		// done
 
+			tmp.addElement(new Integer(count));
+				
+			if (count < 0)
+			{
+				count = -count;
+				//gl.glBegin (GL.GL_TRIANGLE_FAN);
+			}
+			else
+			{
+				//gl.glBegin (GL.GL_TRIANGLE_STRIP);
+			}
+
+			do {
+				// texture coordinates come from the draw list
+				globalModelTextureCoordBuf.put(Float.intBitsToFloat(order[orderIndex + 0]));
+				globalModelTextureCoordBuf.put(Float.intBitsToFloat(order[orderIndex + 1]));
+				globalModelVertexIndexBuf.put(order[orderIndex + 2]);
+
+				orderIndex += 3;
+			} while (--count != 0);
+		}
+			
+		int size = tmp.size();
+			
+		model.counts = new int[size];
+		model.indexElements = new IntBuffer[size];
+			
+		count = 0;
+		int pos = 0;
+		for (int i = 0; i < model.counts.length; i++) {
+			count = ((Integer)tmp.get(i)).intValue();
+			model.counts[i] = count;
+				
+			count = (count < 0) ? -count : count;
+			model.vertexIndexBuf.position(pos);
+			model.indexElements[i] = model.vertexIndexBuf.slice();
+			pos += count;
+		}
+	}
+		
+	public static void resetModelArrays() {
+		globalModelTextureCoordBuf.rewind();
+		globalModelVertexIndexBuf.rewind();
+	}
+		
+	public static void modelMemoryUsage() {
+		System.out.println("AliasModels: globalVertexBuffer size " + globalModelVertexIndexBuf.position());
+	}
 }
