@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.11 2004-01-21 17:08:39 cwei Exp $
+ * $Id: Model.java,v 1.12 2004-01-22 00:15:32 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -980,7 +980,8 @@ public abstract class Model extends Surf {
 		{
 
 			bm = mod.submodels[i];
-			starmod = mod_inline[i] = loadmodel;
+			starmod = mod_inline[i] = loadmodel.copy();
+
 			starmod.firstmodelsurface = bm.firstface;
 			starmod.nummodelsurfaces = bm.numfaces;
 			starmod.firstnode = bm.headnode;
@@ -992,7 +993,7 @@ public abstract class Model extends Surf {
 			starmod.radius = bm.radius;
 	
 			if (i == 0)
-				loadmodel = starmod;
+				loadmodel = starmod.copy();
 
 			starmod.numleafs = bm.visleafs;
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.9 2004-01-21 17:08:39 cwei Exp $
+// $Id: model_t.java,v 1.10 2004-01-22 00:15:32 cwei Exp $
 
 package jake2.render;
 
@@ -29,7 +29,7 @@ import jake2.qcommon.*;
 import jake2.*;
 import jake2.game.*;
 
-public class model_t {
+public class model_t implements Cloneable {
 	
 	public String name = "";
 
@@ -109,5 +109,17 @@ public class model_t {
 		extradata = null;
 		registration_sequence = 0;
 		// TODO and so on
+	}
+	
+	public model_t copy() {
+		Object theClone = null;
+		try
+		{
+			theClone = super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+		}
+		return (model_t)theClone;
 	}
 }
