@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.4 2004-07-19 19:39:57 hzi Exp $
+ * $Id: Main.java,v 1.5 2004-12-08 09:58:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,6 +43,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import net.java.games.jogl.GL;
+import net.java.games.jogl.Version;
 
 /**
  * Main
@@ -1113,6 +1114,7 @@ public abstract class Main extends Base {
 		/*
 		** get our various GL strings
 		*/
+		VID.Printf(Defines.PRINT_ALL, "JOGL_VERSION: " + Version.getVersion() + '\n');
 		gl_config.vendor_string = gl.glGetString(GL.GL_VENDOR);
 		VID.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
 		gl_config.renderer_string = gl.glGetString(GL.GL_RENDERER);
