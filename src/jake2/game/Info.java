@@ -19,7 +19,7 @@
  */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.4 2004-09-22 19:22:03 salomo Exp $
+// $Id: Info.java,v 1.5 2004-10-21 03:32:53 cawe Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -147,11 +147,7 @@ public class Info {
      * server's parsing ==================
      */
     public static boolean Info_Validate(String s) {
-        if (s.indexOf('"') != -1)
-            //return false;
-            if (s.indexOf(';') != -1)
-                return false;
-        return true;
+        return !((s.indexOf('"') != -1) || (s.indexOf(';') != -1));
     }
 
     private static String fillspaces = "                     ";
