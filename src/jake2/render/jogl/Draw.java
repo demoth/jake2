@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.7 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Draw.java,v 1.8 2004-01-04 01:33:30 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -223,7 +223,7 @@ public abstract class Draw extends Image {
 	protected void Draw_TileClear(int x, int y, int w, int h, String pic) {
 		image_t	image;
 
-		image = Draw_FindPic (pic);
+		image = Draw_FindPic(pic);
 		if (image == null)
 		{
 			ri.Con_Printf(Defines.PRINT_ALL, "Can't find pic: " + pic + '\n');
@@ -412,53 +412,5 @@ public abstract class Draw extends Image {
 //		if ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( gl_config.renderer & GL_RENDERER_RENDITION ) ) 
 //			gl.glEnable (GL_ALPHA_TEST);
 	}
-
-
-
-
-	
-//	/**
-//	 * @param x
-//	 * @param y
-//	 * @param name
-//	 */
-//	protected void Draw_Pic(int x, int y, String name) {
-//		// TODO impl Draw_Pic(int x, int y, String name)
-//		
-//		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-//		
-//		R_SetGL2D();
-//
-//		// *** test *** /
-//		
-//		Dimension dim = new Dimension();
-//		byte[][] palette = new byte[1][];
-//		
-//		byte[] data;
-//		
-//		data = LoadPCX("pics/conback.pcx", palette, dim);
-//		
-//		gl.glWindowPos2i((vid.width-dim.width) / 2, (vid.height - dim.height) /2 );
-//		
-//		byte[] tmp = new byte[data.length * 3];
-//		int color = 0;
-//		for (int i=0; i < data.length; i++) {
-//			color =  d_8to24table[data[i] & 0xff];
-//			tmp[3*i + 0] = (byte) ((color >> 0)  & 0xff);
-//			tmp[3*i + 1] = (byte) ((color >> 8) & 0xff);
-//			tmp[3*i + 2] = (byte) ((color >> 16) & 0xff);
-//		}
-//		
-//		gl.glDrawPixels(dim.width, dim.height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, tmp);
-//
-//		int font = GLUT.BITMAP_TIMES_ROMAN_24;
-//		
-//		String text = (name == null) ? "jake2" : name;
-//		int length = glut.glutBitmapLength(font, text);
-//			
-//		gl.glColor3f(0f, 0.8f, 0f);
-//		gl.glWindowPos2i(x, y);
-//		glut.glutBitmapString(gl, font, text);
-//	}
 
 }

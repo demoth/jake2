@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.8 2004-01-03 21:15:28 cwei Exp $
+ * $Id: TestRenderer.java,v 1.9 2004-01-04 01:33:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -48,6 +48,7 @@ public class TestRenderer {
 	refexport_t re;
 	refimport_t ri;
 	viddef_t viddef;
+	int framecount = 0;
 
 	public TestRenderer(String[] args) {
 		this.args = args;
@@ -171,14 +172,16 @@ public class TestRenderer {
 			re.DrawChar(10 + 8 * i, VID.viddef.height/2, (int)text.charAt(i));
 		}
 		
-//		re.DrawPic(
-//			(int) (Math.random() * VID.viddef.width / 2),
-//			(int) (Math.random() * VID.viddef.height / 2),
-//			"loading");
+		Dimension wal = new Dimension();
+		re.DrawGetPicSize(wal, "/textures/e1u1/basemap.wal");
+
+		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
+		re.DrawPic(0, 0, "/sprites/s_explo2_" + (framecount / 2  % 13) + ".pcx");
 		
 		testWorld();
 		
 		re.EndFrame();
+		framecount++;
 	}
 
 

@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.4 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Image.java,v 1.5 2004-01-04 01:33:30 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1117,7 +1117,8 @@ public abstract class Image extends Model {
 					throw new longjmpException();
 				}
 				//memcpy (scaled, data, width*height*4);
-				IntBuffer.wrap(data).get(scaled, 0, width*height*4);
+				// TODO check this: IntBuffer.wrap(data).get(scaled, 0, width*height*4);
+				IntBuffer.wrap(data).get(scaled, 0, width*height);
 			
 			}
 			else
@@ -1320,16 +1321,16 @@ public abstract class Image extends Model {
 				// replace goto nonscrap
 				int image_id = 0;
 			
-				image_t item = null;
-				for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-					item = (image_t) it.next();
-					if (item == image) {
-						 break;
-					} else {
-						image_id++;
-					}
-					
-				}
+//				image_t item = null;
+//				for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
+//					item = (image_t) it.next();
+//					if (item == image) {
+//						 break;
+//					} else {
+//						image_id++;
+//					}
+//					
+//				}
 
 				image.scrap = false;
 				//image.texnum = TEXNUM_IMAGES + image_id; // + image pos
@@ -1337,7 +1338,7 @@ public abstract class Image extends Model {
 				int[] number = new int[1];
 				gl.glGenTextures(1, number);
 				image.texnum = TEXNUM_IMAGES + number[0]; // + image pos
-				System.out.println(gltextures.values());
+				//System.out.println(gltextures.values());
 
 
 
@@ -1387,15 +1388,15 @@ public abstract class Image extends Model {
 
 			int image_id = 0;
 			
-			image_t item = null;
-			for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-				item = (image_t) it.next();
-				if (item == image) {
-					break;
-				} else {
-					image_id++;
-				}
-			}
+//			image_t item = null;
+//			for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
+//				item = (image_t) it.next();
+//				if (item == image) {
+//					break;
+//				} else {
+//					image_id++;
+//				}
+//			}
 
 			image.scrap = false;
 			//image.texnum = TEXNUM_IMAGES + image_id; // + image pos
@@ -1403,7 +1404,7 @@ public abstract class Image extends Model {
 			int[] number = new int[1];
 			gl.glGenTextures(1, number);
 			image.texnum = TEXNUM_IMAGES + number[0]; // + image pos
-			System.out.println(gltextures.values());
+			//System.out.println(gltextures.values());
 
 			GL_Bind(image.texnum);
 			if (bits == 8) {
@@ -1427,32 +1428,28 @@ public abstract class Image extends Model {
 		return image;
 	}
 
-//	/*
-//	================
-//	GL_LoadWal
-//	================
-//	*/
-	image_t GL_LoadWal (String name)
-	{
-//		miptex_t	*mt;
-//		int			width, height, ofs;
-		image_t		image = null;
-//
-//		ri.FS_LoadFile (name, (void **)&mt);
-//		if (!mt)
-//		{
-//			ri.Con_Printf (PRINT_ALL, "GL_FindImage: can't load %s\n", name);
-//			return r_notexture;
-//		}
-//
-//		width = LittleLong (mt->width);
-//		height = LittleLong (mt->height);
-//		ofs = LittleLong (mt->offsets[0]);
-//
-//		image = GL_LoadPic (name, (byte *)mt + ofs, width, height, it_wall, 8);
-//
-//		ri.FS_FreeFile ((void *)mt);
-//
+	/*
+	================
+	GL_LoadWal
+	================
+	*/
+	image_t GL_LoadWal(String name) {
+		
+		image_t image = null;
+
+		byte[] raw = ri.FS_LoadFile(name);
+		if (raw == null) {
+			ri.Con_Printf(Defines.PRINT_ALL, "GL_FindImage: can't load " + name + '\n');
+			return r_notexture;
+		}
+
+		qfiles.miptex_t mt = new qfiles.miptex_t(raw);
+
+		byte[] pix = new byte[mt.width * mt.height];
+		System.arraycopy(raw, mt.offsets[0], pix, 0, pix.length);
+
+		image = GL_LoadPic(name, pix, mt.width, mt.height, it_wall, 8);
+
 		return image;
 	}
 
@@ -1463,7 +1460,7 @@ public abstract class Image extends Model {
 	Finds or loads the given image
 	===============
 	*/
-	image_t	GL_FindImage (String name, int type)
+	image_t	GL_FindImage(String name, int type)
 	{
 		image_t	image = null;
 
@@ -1649,11 +1646,9 @@ public abstract class Image extends Model {
 		
 		for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
 			image = (image_t) it.next();
-
-			if (image.registration_sequence == 0) continue; // free image_t slot
-			
 			// free it
-			gl.glDeleteTextures(1, new int[] {image.texnum});
+			// TODO jogl bug
+			//gl.glDeleteTextures(1, new int[] {image.texnum});
 			it.remove();
 		}
 	}
