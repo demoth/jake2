@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.4 2004-06-14 11:29:39 cwei Exp $
+ * $Id: Surf.java,v 1.5 2004-06-14 23:34:08 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -170,17 +170,18 @@ public abstract class Surf extends Draw {
 	*/
 	void DrawGLPoly(glpoly_t p)
 	{
-		int i;
-		float[] v;
-
-		gl.glBegin(GL.GL_POLYGON);
-		for (i=0 ; i<p.numverts ; i++)
-		{
-			v = p.verts[i];
-			gl.glTexCoord2f(v[3], v[4]);
-			gl.glVertex3f(v[0], v[1], v[2]);
-		}
-		gl.glEnd();
+//		int i;
+//		float[] v;
+//
+//		gl.glBegin(GL.GL_POLYGON);
+//		for (i=0 ; i<p.numverts ; i++)
+//		{
+//			v = p.verts[i];
+//			gl.glTexCoord2f(v[3], v[4]);
+//			gl.glVertex3f(v[0], v[1], v[2]);
+//		}
+//		gl.glEnd();
+		gl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
 	}
 
 	//	  ============
@@ -190,27 +191,23 @@ public abstract class Surf extends Draw {
 	DrawGLFlowingPoly -- version of DrawGLPoly that handles scrolling texture
 	================
 	*/
-	void DrawGLFlowingPoly(msurface_t fa)
+	void DrawGLFlowingPoly(glpoly_t p)
 	{
 		int i;
-		float[] v;
-		glpoly_t p;
 		float scroll;
-
-		p = fa.polys;
 
 		scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
 		if(scroll == 0.0f)
 			scroll = -64.0f;
 
-		gl.glBegin (GL.GL_POLYGON);
-		for (i=0 ; i<p.numverts ; i++)
-		{
-			v = p.verts[i];
-			gl.glTexCoord2f ((v[3] + scroll), v[4]);
-			gl.glVertex3f(v[0], v[1], v[2]);
+		FloatBuffer texCoord = globalPolygonInterleavedBuf;
+		float[][] v = p.verts;
+		int index = p.pos * POLYGON_STRIDE;
+		for (i=0 ; i<p.numverts ; i++) {
+			texCoord.put(index, v[i][3] + scroll);
+			index += POLYGON_STRIDE;
 		}
-		gl.glEnd ();
+		gl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
 	}
 	//	  PGM
 	//	  ============
@@ -517,7 +514,7 @@ public abstract class Surf extends Draw {
 		//	  ======
 		//	  PGM
 		if((fa.texinfo.flags & Defines.SURF_FLOWING) != 0)
-			DrawGLFlowingPoly(fa);
+			DrawGLFlowingPoly(fa.polys);
 		else
 			DrawGLPoly (fa.polys);
 		//	  PGM
@@ -611,10 +608,13 @@ public abstract class Surf extends Draw {
 
 		gl.glEnable (GL.GL_BLEND);
 		GL_TexEnv(GL.GL_MODULATE );
+		
 
 		// the textures are prescaled up for a better lighting range,
 		// so scale it back down
 		intens = gl_state.inverse_intensity;
+
+		gl.glInterleavedArrays(GL.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
 
 		for (s=r_alpha_surfaces ; s != null ; s=s.texturechain)
 		{
@@ -629,7 +629,7 @@ public abstract class Surf extends Draw {
 			if ((s.flags & Defines.SURF_DRAWTURB) != 0)
 				EmitWaterPolys(s);
 			else if((s.texinfo.flags & Defines.SURF_FLOWING) != 0)			// PGM	9/16/98
-				DrawGLFlowingPoly(s);							// PGM
+				DrawGLFlowingPoly(s.polys);							// PGM
 			else
 				DrawGLPoly(s.polys);
 		}
@@ -915,7 +915,9 @@ public abstract class Surf extends Draw {
 	{
 		int i, nv = surf.polys.numverts;
 		int map = 0;
-		float[] v;
+		int index;
+		float[][] v;
+		FloatBuffer texCoord = globalPolygonInterleavedBuf;
 		image_t image = R_TextureAnimation( surf.texinfo );
 		boolean is_dynamic = false;
 		int lmtex = surf.lightmaptexturenum;
@@ -1008,7 +1010,12 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					// TODO scrolling in die texture einbauen
+					v = p.verts;
+					index = p.pos * POLYGON_STRIDE;
+					for (i=0 ; i<p.numverts ; i++) {
+						texCoord.put(index, v[i][3] + scroll);
+						index += POLYGON_STRIDE;
+					}
 					gl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
 				}
 			}
@@ -1041,7 +1048,12 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					// TODO scrolling in die texture einbauen
+					v = p.verts;
+					index = p.pos * POLYGON_STRIDE;
+					for (i=0 ; i<p.numverts ; i++) {
+						texCoord.put(index, v[i][3] + scroll);
+						index += POLYGON_STRIDE;
+					}
 					gl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
 				}
 			}
@@ -1215,10 +1227,10 @@ public abstract class Surf extends Draw {
 		GL_EnableMultitexture( true );
 		GL_SelectTexture(GL_TEXTURE0);
 		GL_TexEnv( GL.GL_REPLACE );
-		gl.glInterleavedArrays(GL.GL_T2F_V3F, POLYGON_STRIDE, globalPolygonInterleavedBuf);
+		gl.glInterleavedArrays(GL.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
 		GL_SelectTexture(GL_TEXTURE1);
 		GL_TexEnv( GL.GL_MODULATE );
-		gl.glTexCoordPointer(2, GL.GL_FLOAT, POLYGON_STRIDE, globalPolygonTexCoord1Buf);
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, POLYGON_BYTE_STRIDE, globalPolygonTexCoord1Buf);
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
 		R_DrawInlineBModel();
@@ -1885,20 +1897,21 @@ public abstract class Surf extends Draw {
 	 * new functions for vertex array handling
 	 */
 	static final int POLYGON_BUFFER_SIZE = 100000;
-	static final int POLYGON_STRIDE = 7 * BufferUtils.SIZEOF_FLOAT;
+	static final int POLYGON_STRIDE = 7;
+	static final int POLYGON_BYTE_STRIDE = POLYGON_STRIDE * BufferUtils.SIZEOF_FLOAT;
 
 	static FloatBuffer globalPolygonInterleavedBuf = BufferUtils.newFloatBuffer(POLYGON_BUFFER_SIZE * 7);
 	static FloatBuffer globalPolygonTexCoord1Buf = null;
 
 	static {
-	 	globalPolygonInterleavedBuf.position(5);
+	 	globalPolygonInterleavedBuf.position(POLYGON_STRIDE - 2);
 	 	globalPolygonTexCoord1Buf = globalPolygonInterleavedBuf.slice();
 		globalPolygonInterleavedBuf.position(0);
 	 };
 
 	void precompilePolygon(glpoly_t p) {
 		
-		p.pos = globalPolygonInterleavedBuf.position() / 7;
+		p.pos = globalPolygonInterleavedBuf.position() / POLYGON_STRIDE;
 		
 		float[] v;
 		FloatBuffer buffer = globalPolygonInterleavedBuf;
