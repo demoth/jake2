@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.1 2003-12-28 13:51:10 rst Exp $
+// $Id: GameTarget.java,v 1.2 2004-01-25 21:45:45 rst Exp $
 
 package jake2.game;
 
@@ -84,9 +84,7 @@ public class GameTarget extends GameTurret {
 					chan = CHAN_VOICE;
 				// use a positioned_sound, because this entity won't normally be
 				// sent to any clients because it is invisible
-				//gi.positioned_sound(ent.s.origin, ent, chan, ent.noise_index, ent.volume, ent.attenuation, 0);
-				//TODO: replace g_edict with ent 
-				gi.positioned_sound(ent.s.origin, g_edicts, chan, ent.noise_index, ent.volume, ent.attenuation, 0);
+				gi.positioned_sound(ent.s.origin, ent, chan, ent.noise_index, ent.volume, ent.attenuation, 0);
 			}
 
 		}
@@ -775,9 +773,7 @@ public class GameTarget extends GameTurret {
 			edict_t e;
 
 			if (self.last_move_time < level.time) {
-				//gi.positioned_sound(self.s.origin, self, CHAN_AUTO, self.noise_index, 1.0, ATTN_NONE, 0);
-				//TODO self<->g_edicts
-				gi.positioned_sound(self.s.origin, g_edicts, CHAN_AUTO, self.noise_index, 1.0f, ATTN_NONE, 0);
+				gi.positioned_sound(self.s.origin, self, CHAN_AUTO, self.noise_index, 1.0f, ATTN_NONE, 0);
 				self.last_move_time = level.time + 0.5f;
 			}
 

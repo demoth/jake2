@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.3 2004-01-20 22:25:06 rst Exp $
+// $Id: SV_SEND.java,v 1.4 2004-01-25 21:45:45 rst Exp $
 
 package jake2.server;
 
@@ -103,17 +103,20 @@ public class SV_SEND extends SV_MAIN {
 		//	va_end (argptr);
 
 		// echo to console
-		//	if (dedicated.value!=0)
-		//	{
-		//		char	copy[1024];
-		//		int		i;
-		//		
-		//		// mask off high bits
-		//		for (i=0 ; i<1023 && string[i] ; i++)
-		//			copy[i] = string[i]&127;
-		//		copy[i] = 0;
-		//		Com_Printf ("%s", copy);
-		//	}
+			if (dedicated.value!=0)
+			{
+				
+				//char	copy[1024];
+				//int		i;
+				
+				// mask off high bits
+				//for (i=0 ; i<1023 && string[i] ; i++)
+					//copy[i] = string[i]&127;
+				//copy[i] = 0;
+				//Com_Printf ("%s", copy);
+				
+				Com.Printf(s);
+			}
 
 		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
 			cl = SV_MAIN.svs.clients[i];

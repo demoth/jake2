@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.10 2004-01-20 22:25:07 rst Exp $
+ * $Id: Sys.java,v 1.11 2004-01-25 21:45:45 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,6 +33,8 @@ import java.util.regex.PatternSyntaxException;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.game.game_export_t;
+import jake2.game.game_import_t;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 
@@ -274,6 +276,22 @@ public final class Sys extends Defines {
 		if (fdir != null)
 			fdir = null;
 
+	}
+
+
+	public static void UnloadGame()
+	{
+		//TODO:implement !
+		Com.Error(Defines.ERR_FATAL, "UnloadGame not implemented!");
+		
+	}
+
+
+	public static game_export_t GetGameAPI(game_import_t gimport)
+	{
+		//TODO:implement !
+		Com.Error(Defines.ERR_FATAL, "GetGameAPI not implemented!");
+		return null;
 	}
 
 }

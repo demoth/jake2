@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.2 2003-12-29 00:01:03 rst Exp $
+// $Id: GameTurret.java,v 1.3 2004-01-25 21:45:45 rst Exp $
 
 package jake2.game;
 
@@ -97,9 +97,7 @@ public class GameTurret extends GameMisc {
 		damage = (int) (100 + random() * 50);
 		speed = (int) (550 + 50 * skill.value);
 		Fire.fire_rocket(self.teammaster.owner, start, f, damage, speed, 150, damage);
-		//TODO why the self ??? rst
-		//gi.positioned_sound (start, self, CHAN_WEAPON, gi.soundindex("weapons/rocklf1a.wav"), 1, ATTN_NORM, 0);
-		gi.positioned_sound(start, g_edicts, CHAN_WEAPON, gi.soundindex("weapons/rocklf1a.wav"), 1, ATTN_NORM, 0);
+		gi.positioned_sound(start, self, CHAN_WEAPON, gi.soundindex("weapons/rocklf1a.wav"), 1, ATTN_NORM, 0);
 	}
 
 	static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {

@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.9 2004-01-13 21:07:01 rst Exp $
+ * $Id: SV.java,v 1.10 2004-01-25 21:45:45 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -639,9 +639,9 @@ public final class SV {
 			ent.waterlevel = 0;
 	
 		if (!wasinwater && isinwater)
-			GameBase.gi.positioned_sound(old_origin, GameBase.g_edicts, Defines.CHAN_AUTO, GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+			GameBase.gi.positioned_sound(old_origin, ent, Defines.CHAN_AUTO, GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
 		else if (wasinwater && !isinwater)
-			GameBase.gi.positioned_sound(ent.s.origin, GameBase.g_edicts, Defines.CHAN_AUTO, GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+			GameBase.gi.positioned_sound(ent.s.origin, ent, Defines.CHAN_AUTO, GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
 	
 		//	   move teamslaves
 		for (slave = ent.teamchain; slave != null; slave = slave.teamchain) {

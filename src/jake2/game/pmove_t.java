@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.6 2004-01-02 22:29:01 rst Exp $
+// $Id: pmove_t.java,v 1.7 2004-01-25 21:45:45 rst Exp $
 
 package jake2.game;
 
@@ -42,24 +42,24 @@ public class pmove_t {
 	}
 
 	// state (in / out)
-	pmove_state_t s;
+	public pmove_state_t s;
 
 	// command (in)
-	usercmd_t cmd;
-	boolean snapinitial; // if s has been changed outside pmove
+	public usercmd_t cmd;
+	public boolean snapinitial; // if s has been changed outside pmove
 
 	// results (out)
-	int numtouch;
-	edict_t touchents[] = new edict_t[Defines.MAXTOUCH];
+	public int numtouch;
+	public edict_t touchents[] = new edict_t[Defines.MAXTOUCH];
 
-	float[] viewangles = { 0, 0, 0 }; // clamped
-	float viewheight;
+	public float[] viewangles = { 0, 0, 0 }; // clamped
+	public float   viewheight;
 
-	float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
+	public float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 }; // bounding box size
 
-	edict_t groundentity;
-	int watertype;
-	int waterlevel;
+	public edict_t groundentity;
+	public int watertype;
+	public int waterlevel;
 
 	public TraceAdapter trace;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: TestLoadMap.java,v 1.2 2004-01-02 22:29:01 rst Exp $
+// $Id: TestLoadMap.java,v 1.3 2004-01-25 21:45:45 rst Exp $
 
 package jake2.qcommon;
 
@@ -37,8 +37,6 @@ public class TestLoadMap {
 
 		FS.InitFilesystem();
 
-		CM.CM_LoadMap("maps/base1.bsp", true);
-
+		CM.CM_LoadMap("maps/base1.bsp", true, new CM.intwrap(0));
 	}
-
 }

@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.20 2004-01-20 22:25:07 rst Exp $
+ * $Id: Cvar.java,v 1.21 2004-01-25 21:45:45 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -125,7 +125,7 @@ public class Cvar {
 	Cvar_FullSet
 	============
 	*/
-	static cvar_t FullSet(String var_name, String value, int flags) {
+	public static cvar_t FullSet(String var_name, String value, int flags) {
 		cvar_t var;
 
 		var = Cvar.FindVar(var_name);
@@ -365,6 +365,12 @@ public class Cvar {
 	// returns an info string containing all the CVAR_SERVERINFO cvars
 	public static String Serverinfo() {
 		return BitInfo(Defines.CVAR_SERVERINFO);
+	}
+
+	// TODO: implement!
+	public static void GetLatchedVars()
+	{
+		Com.Error(Defines.ERR_FATAL, "GetLatchedVars not implemented!");
 	}
 
 }

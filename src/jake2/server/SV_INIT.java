@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.4 2004-01-25 17:24:24 rst Exp $
+// $Id: SV_INIT.java,v 1.5 2004-01-25 21:45:45 rst Exp $
 
 package jake2.server;
 
@@ -31,6 +31,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.render.*;
+import jake2.sys.NET;
 import jake2.util.Lib;
 
 public class SV_INIT extends PlayerHud {
@@ -174,128 +175,134 @@ public class SV_INIT extends PlayerHud {
 		}
 	}
 
-//	/*
-//	================
-//	SV_SpawnServer
-//	
-//	Change the server to a new map, taking all connected
-//	clients along with it.
-//	
-//	================
-//	*/
-//	public static void SV_SpawnServer(
-//		String server,
-//		String spawnpoint,
-//		server_state_t serverstate,
-//		boolean attractloop,
-//		boolean loadgame) {
-//		int i;
-//		int checksum;
-//
-//		if (attractloop)
-//			Cvar.Set("paused", "0");
-//
-//		Com.Printf("------- Server Initialization -------\n");
-//
-//		Com.DPrintf("SpawnServer: " + server + "\n");
-//		if (sv.demofile != null)
-//			try {
-//				sv.demofile.close();
-//			}
-//			catch (Exception e) {
-//			}
-//
-//		svs.spawncount++; // any partially connected client will be
-//		// restarted
-//		sv.state = ss_dead;
-//		Com.SetServerState(sv.state);
-//
-//		// wipe the entire per-level structure
-//		memset(sv, 0, sizeof(sv));
-//		
-//		svs.realtime = 0;
-//		sv.loadgame = loadgame;
-//		sv.attractloop = attractloop;
-//
-//		// save name for levels that don't set message
-//		strcpy(sv.configstrings[CS_NAME], server);
-//		if (Cvar_VariableValue("deathmatch")) {
-//			sprintf(sv.configstrings[CS_AIRACCEL], "%g", sv_airaccelerate.value);
-//			pm_airaccelerate = sv_airaccelerate.value;
-//		}
-//		else {
-//			strcpy(sv.configstrings[CS_AIRACCEL], "0");
-//			pm_airaccelerate = 0;
-//		}
-//
-//		SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
-//
-//		sv.name = server;
-//
-//		// leave slots at start for clients only
-//		for (i = 0; i < maxclients.value; i++) {
-//			// needs to reconnect
-//			if (svs.clients[i].state > cs_connected)
-//				svs.clients[i].state = cs_connected;
-//			svs.clients[i].lastframe = -1;
-//		}
-//
-//		sv.time = 1000;
-//
-//		strcpy(sv.name, server);
-//		strcpy(sv.configstrings[CS_NAME], server);
-//
-//		if (serverstate != ss_game) {
-//			sv.models[1] = CM.CM_LoadMap("", false, checksum); // no real map
-//		}
-//		else {
-//			sv.configstrings[CS_MODELS + 1] = "maps/" + server + ".bsp";
-//			sv.models[1] = CM.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, checksum);
-//		}
-//		sv.configstrings[CS_MAPCHECKSUM] = checksum;
-//
-//		//
-//		// clear physics interaction links
-//		//
-//		SV_WORLD.SV_ClearWorld();
-//
-//		for (i = 1; i < CM.CM_NumInlineModels(); i++) {
-//			sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
-//			sv.models[i + 1] = CM.CM_InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
-//		}
-//
-//		//
-//		// spawn the rest of the entities on the map
-//		//	
-//
-//		// precache and static commands can be issued during
-//		// map initialization
-//		sv.state = ss_loading;
-//		Com_SetServerState(sv.state);
-//
-//		// load and spawn all other entities
-//		ge.SpawnEntities(sv.name, CM_EntityString(), spawnpoint);
-//
-//		// run two frames to allow everything to settle
-//		ge.RunFrame();
-//		ge.RunFrame();
-//
-//		// all precaches are complete
-//		sv.state = serverstate;
-//		Com_SetServerState(sv.state);
-//
-//		// create a baseline for more efficient communications
-//		SV_CreateBaseline();
-//
-//		// check for a savegame
-//		SV_CheckForSavegame();
-//
-//		// set serverinfo variable
-//		Cvar_FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
-//
-//		Com_Printf("-------------------------------------\n");
-//	}
-//TODO: U R G EN T !!!
+	/*
+	================
+	SV_SpawnServer
+	
+	Change the server to a new map, taking all connected
+	clients along with it.
+	
+	================
+	*/
+	public static void SV_SpawnServer(
+		String server,
+		String spawnpoint,
+		int serverstate,
+		boolean attractloop,
+		boolean loadgame) {
+		int i;
+		int checksum = 0;
+
+		if (attractloop)
+			Cvar.Set("paused", "0");
+
+		Com.Printf("------- Server Initialization -------\n");
+
+		Com.DPrintf("SpawnServer: " + server + "\n");
+		if (sv.demofile != null)
+			try {
+				sv.demofile.close();
+			}
+			catch (Exception e) {
+			}
+
+		svs.spawncount++; // any partially connected client will be
+		// restarted
+		sv.state = ss_dead;
+		
+		Com.SetServerState(sv.state);
+
+		// wipe the entire per-level structure
+		//memset(sv, 0, sizeof(sv));
+		sv = new server_t();
+		
+		svs.realtime = 0;
+		sv.loadgame = loadgame;
+		sv.attractloop = attractloop;
+
+		// save name for levels that don't set message
+		sv.configstrings[CS_NAME]= server;
+		
+		if (Cvar.VariableValue("deathmatch")!=0) {
+			sv.configstrings[CS_AIRACCEL] = ""+SV_MAIN.sv_airaccelerate.value;
+			PMOVE.pm_airaccelerate = SV_MAIN.sv_airaccelerate.value;
+		}
+		else {
+			sv.configstrings[CS_AIRACCEL] = "0";
+			PMOVE.pm_airaccelerate = 0;
+		}
+
+		SZ.Init(sv.multicast, sv.multicast_buf, sv.multicast_buf.length);
+
+		sv.name = server;
+
+		// leave slots at start for clients only
+		for (i = 0; i < maxclients.value; i++) {
+			// needs to reconnect
+			if (svs.clients[i].state > cs_connected)
+				svs.clients[i].state = cs_connected;
+			svs.clients[i].lastframe = -1;
+		}
+
+		sv.time = 1000;
+
+		sv.name=server;
+		sv.configstrings[CS_NAME] = server;
+		
+		CM.intwrap checksum_iw = new CM.intwrap(checksum);
+
+		if (serverstate != ss_game) {
+			sv.models[1] = CM.CM_LoadMap("", false, checksum_iw); // no real map
+		}
+		else {
+			sv.configstrings[CS_MODELS + 1] = "maps/" + server + ".bsp";
+			sv.models[1] = CM.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, checksum_iw);
+		}
+		checksum = checksum_iw.i;
+		sv.configstrings[CS_MAPCHECKSUM] = "" + checksum;
+
+		//
+		// clear physics interaction links
+		//
+		SV_WORLD.SV_ClearWorld();
+
+		for (i = 1; i < CM.CM_NumInlineModels(); i++) {
+			sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
+			sv.models[i + 1] = CM.CM_InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
+		}
+
+		//
+		// spawn the rest of the entities on the map
+		//	
+
+		// precache and static commands can be issued during
+		// map initialization
+		sv.state = ss_loading;
+		Com.SetServerState(sv.state);
+
+		// load and spawn all other entities
+		SV_GAME.ge.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+
+		// run two frames to allow everything to settle
+		SV_GAME.ge.RunFrame();
+		SV_GAME.ge.RunFrame();
+
+		// all precaches are complete
+		sv.state = serverstate;
+		Com.SetServerState(sv.state);
+
+		// create a baseline for more efficient communications
+		SV_CreateBaseline();
+
+		// check for a savegame
+		SV_CheckForSavegame();
+
+		// set serverinfo variable
+		Cvar.FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+
+		Com.Printf("-------------------------------------\n");
+	}
+
 	/*
 	==============
 	SV_InitGame
@@ -304,75 +311,82 @@ public class SV_INIT extends PlayerHud {
 	==============
 	*/
 	public static void SV_InitGame() {
-//		int i;
-//		edict_t * ent;
-//		char idmaster[32];
-//
-//		if (svs.initialized) {
-//			// cause any connected clients to reconnect
-//			SV_Shutdown("Server restarted\n", true);
-//		}
-//		else {
-//			// make sure the client is down
-//			CL_Drop();
-//			SCR_BeginLoadingPlaque();
-//		}
-//
-//		// get any latched variable changes (maxclients, etc)
-//		Cvar_GetLatchedVars();
-//
-//		svs.initialized = true;
-//
-//		if (Cvar_VariableValue("coop") && Cvar_VariableValue("deathmatch")) {
-//			Com_Printf("Deathmatch and Coop both set, disabling Coop\n");
-//			Cvar_FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
-//		}
-//
-//		// dedicated servers are can't be single player and are usually DM
-//		// so unless they explicity set coop, force it to deathmatch
-//		if (dedicated.value) {
-//			if (!Cvar_VariableValue("coop"))
-//				Cvar_FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
-//		}
-//
-//		// init clients
-//		if (Cvar_VariableValue("deathmatch")) {
-//			if (maxclients.value <= 1)
-//				Cvar_FullSet("maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
-//			else if (maxclients.value > MAX_CLIENTS)
-//				Cvar_FullSet("maxclients", va("%i", MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
-//		}
-//		else if (Cvar_VariableValue("coop")) {
-//			if (maxclients.value <= 1 || maxclients.value > 4)
-//				Cvar_FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
-//
-//		}
-//		else // non-deathmatch, non-coop is one player
-//			{
-//			Cvar_FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-//		}
-//
-//		svs.spawncount = rand();
-//		svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
-//		svs.num_client_entities = maxclients.value * UPDATE_BACKUP * 64;
-//		svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
-//
-//		// init network stuff
-//		NET_Config((maxclients.value > 1));
-//
-//		// heartbeats will always be sent to the id master
-//		svs.last_heartbeat = -99999; // send immediately
-//		Com_sprintf(idmaster, sizeof(idmaster), "192.246.40.37:%i", PORT_MASTER);
-//		NET_StringToAdr(idmaster, & master_adr[0]);
-//
-//		// init game
-//		SV_InitGameProgs();
-//		for (i = 0; i < maxclients.value; i++) {
-//			ent = EDICT_NUM(i + 1);
-//			ent.s.number = i + 1;
-//			svs.clients[i].edict = ent;
-//			memset(& svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
-//		}
+		int i;
+		edict_t  ent;
+		//char idmaster[32];
+		String idmaster;
+
+		if (svs.initialized) {
+			// cause any connected clients to reconnect
+			SV_MAIN.SV_Shutdown("Server restarted\n", true);
+		}
+		else {
+			// make sure the client is down
+			CL.Drop();
+			SCR.BeginLoadingPlaque();
+		}
+
+		// get any latched variable changes (maxclients, etc)
+		Cvar.GetLatchedVars();
+
+		svs.initialized = true;
+
+		if (Cvar.VariableValue("coop")!=0 && Cvar.VariableValue("deathmatch")!=0) {
+			Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
+			Cvar.FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
+		}
+
+		// dedicated servers are can't be single player and are usually DM
+		// so unless they explicity set coop, force it to deathmatch
+		if (dedicated.value!=0) {
+			if (0==Cvar.VariableValue("coop"))
+				Cvar.FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
+		}
+
+		// init clients
+		if (Cvar.VariableValue("deathmatch")!=0) {
+			if (maxclients.value <= 1)
+				Cvar.FullSet("maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
+			else if (maxclients.value > MAX_CLIENTS)
+				Cvar.FullSet("maxclients", "" +  MAX_CLIENTS, CVAR_SERVERINFO | CVAR_LATCH);
+		}
+		else if (Cvar.VariableValue("coop")!=0) {
+			if (maxclients.value <= 1 || maxclients.value > 4)
+				Cvar.FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
+
+		}
+		else // non-deathmatch, non-coop is one player
+			{
+			Cvar.FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
+		}
+
+		svs.spawncount = rand();
+		//svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
+		svs.clients = new client_t[(int) maxclients.value];
+		
+		svs.num_client_entities = ((int) maxclients.value) * UPDATE_BACKUP * 64;
+		//svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);
+		svs.client_entities = new entity_state_t[svs.num_client_entities];
+
+		// init network stuff
+		NET.NET_Config((maxclients.value > 1));
+
+		// heartbeats will always be sent to the id master
+		svs.last_heartbeat = -99999; // send immediately
+		idmaster =  "192.246.40.37:" +  PORT_MASTER;
+		NET.NET_StringToAdr(idmaster, SV_MAIN.master_adr[0]);
+
+		// init game
+		SV_GAME.SV_InitGameProgs();
+		
+		for (i = 0; i < maxclients.value; i++) {
+			ent = SV_GAME.ge.edicts[i + 1];
+			
+			ent.s.number = i + 1;
+			svs.clients[i].edict = ent;
+			//memset(& svs.clients[i].lastcmd, 0, sizeof(svs.clients[i].lastcmd));
+			svs.clients[i].lastcmd = new usercmd_t();
+		}
 	}
 
 	/*
@@ -392,82 +406,85 @@ public class SV_INIT extends PlayerHud {
 	======================
 	*/
 	public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
-//		//char	level[MAX_QPATH];
-//		//char	*ch;
-//		int l;
-//		//char	spawnpoint[MAX_QPATH];
-//
-//		String level, ch, spawnpoint;
-//
-//		sv.loadgame = loadgame;
-//		sv.attractloop = attractloop;
-//
-//		if (sv.state == ss_dead && !sv.loadgame)
-//			SV_InitGame(); // the game is just starting
-//
-//		level = levelstring;
-//
-//		// if there is a + in the map, set nextserver to the remainder
-//
-//		//was:
-//		//	ch = strstr(level, "+");
-//		//	if (ch)
-//		//	{
-//		//		*ch = 0;
-//		//			Cvar_Set ("nextserver", va("gamemap \"%s\"", ch+1));
-//		//	}
-//		//	else
-//		//		Cvar_Set ("nextserver", "");
-//
-//		int c = level.indexOf('+');
-//		if (c != -1) {
-//
-//		}
-//		else {
-//			Cvar.Set("nextserver", "");
-//		}
-//
-//		//ZOID special hack for end game screen in coop mode
-//		if (Cvar_VariableValue("coop") && !Q_stricmp(level, "victory.pcx"))
-//			Cvar_Set("nextserver", "gamemap \"*base1\"");
-//
-//		// if there is a $, use the remainder as a spawnpoint
-//		ch = strstr(level, "$");
-//		if (ch) {
-//			* ch = 0;
-//			strcpy(spawnpoint, ch + 1);
-//		}
-//		else
-//			spawnpoint[0] = 0;
-//
-//		// skip the end-of-unit flag if necessary
-//		if (level[0] == '*')
-//			strcpy(level, level + 1);
-//
-//		l = strlen(level);
-//		if (l > 4 && !strcmp(level + l - 4, ".cin")) {
-//			SCR_BeginLoadingPlaque(); // for local system
-//			SV_BroadcastCommand("changing\n");
-//			SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame);
-//		}
-//		else if (l > 4 && !strcmp(level + l - 4, ".dm2")) {
-//			SCR_BeginLoadingPlaque(); // for local system
-//			SV_BroadcastCommand("changing\n");
-//			SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame);
-//		}
-//		else if (l > 4 && !strcmp(level + l - 4, ".pcx")) {
-//			SCR_BeginLoadingPlaque(); // for local system
-//			SV_BroadcastCommand("changing\n");
-//			SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame);
-//		}
-//		else {
-//			SCR_BeginLoadingPlaque(); // for local system
-//			SV_BroadcastCommand("changing\n");
-//			SV_SendClientMessages();
-//			SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame);
-//			Cbuf_CopyToDefer();
-//		}
-//
-//		SV_BroadcastCommand("reconnect\n");
+		//char	level[MAX_QPATH];
+		//char	*ch;
+		int l;
+		//char	spawnpoint[MAX_QPATH];
+
+		String level, ch, spawnpoint;
+
+		sv.loadgame = loadgame;
+		sv.attractloop = attractloop;
+
+		if (sv.state == ss_dead && !sv.loadgame)
+			SV_InitGame(); // the game is just starting
+
+		level = levelstring;
+
+		// if there is a + in the map, set nextserver to the remainder
+
+		//was:
+		//	ch = strstr(level, "+");
+		//	if (ch)
+		//	{
+		//		*ch = 0;
+		//			Cvar_Set ("nextserver", va("gamemap \"%s\"", ch+1));
+		//	}
+		//	else
+		//		Cvar_Set ("nextserver", "");
+
+		int c = level.indexOf('+');
+		if (c != -1) {
+
+		}
+		else {
+			Cvar.Set("nextserver", "");
+		}
+
+		//ZOID special hack for end game screen in coop mode
+		if (Cvar.VariableValue("coop")!=0 && !level.equals( "victory.pcx"))
+			Cvar.Set("nextserver", "gamemap \"*base1\"");
+
+		// if there is a $, use the remainder as a spawnpoint
+		int pos = level.indexOf('$');
+		if (pos!=-1) {
+			//* ch = 0;
+			spawnpoint = level.substring(pos + 1, level.length());
+			level = level.substring(0,pos);			
+			
+		}
+		else
+			//spawnpoint[0] = 0;
+			spawnpoint = "";
+
+		// skip the end-of-unit flag if necessary
+		if (level.charAt(0) == '*')
+			level = level.substring(1);
+
+		l = strlen(level);
+		if (l > 4 && !level.endsWith(".cin")) {
+			SCR.BeginLoadingPlaque(); // for local system
+			SV_SEND.SV_BroadcastCommand("changing\n");
+			SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame);
+		}
+		else if (l > 4 && !level.endsWith(".dm2")) {
+			SCR.BeginLoadingPlaque(); // for local system
+			SV_SEND.SV_BroadcastCommand("changing\n");
+			SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame);
+		}
+		else if (l > 4 && !level.endsWith(".pcx")) {
+			SCR.BeginLoadingPlaque(); // for local system
+			SV_SEND.SV_BroadcastCommand("changing\n");
+			SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame);
+		}
+		else {
+			SCR.BeginLoadingPlaque(); // for local system
+			SV_SEND.SV_BroadcastCommand("changing\n");
+			SV_SEND.SV_SendClientMessages();
+			SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame);
+			Cbuf.CopyToDefer();
+		}
+
+		SV_SEND.SV_BroadcastCommand("reconnect\n");
 	}
 }

@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.7 2004-01-11 14:38:47 cwei Exp $
+ * $Id: SCR.java,v 1.8 2004-01-25 21:45:45 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,7 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
+import jake2.Defines;
 import jake2.Globals;
+import jake2.qcommon.Com;
 
 /**
  * SCR
@@ -51,9 +53,20 @@ public final class SCR {
 		Globals.re.EndFrame();
 	}
 
-	/**
-	 * 
-	 */
 	public static void EndLoadingPlaque() {
+		//TODO: implement!
+		Com.Error(Defines.ERR_FATAL, "BeginLoadingPlaque not implemented!");
+	}
+
+	public static void BeginLoadingPlaque()
+	{
+		//TODO: implement!
+		Com.Error(Defines.ERR_FATAL, "BeginLoadingPlaque not implemented!");		
+	}
+
+	public static void DebugGraph(float value, int color)
+	{
+		//TODO:
+		Com.Error(Defines.ERR_FATAL, "method not implemented.");
 	}
 }

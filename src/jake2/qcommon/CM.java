@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.7 2004-01-20 22:25:07 rst Exp $
+// $Id: CM.java,v 1.8 2004-01-25 21:45:45 rst Exp $
 
 package jake2.qcommon;
 
@@ -150,7 +150,7 @@ public class CM extends PlayerHud {
 
 	public static byte cmod_base[];
 
-	public static int checksum;
+	//public static int checksum;
 	public static int last_checksum;
 	/*
 	==================
@@ -159,7 +159,7 @@ public class CM extends PlayerHud {
 	Loads in the map and all submodels
 	==================
 	*/
-	public static cmodel_t CM_LoadMap(String name, boolean clientload) {
+	public static cmodel_t CM_LoadMap(String name, boolean clientload, intwrap checksum) {
 		Com.DPrintf("CM_LoadMap...\n");
 		byte buf[];
 		int i;
@@ -169,7 +169,7 @@ public class CM extends PlayerHud {
 		map_noareas = Cvar.Get("map_noareas", "0", 0);
 
 		if (0 == strcmp(map_name, name) && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
-			checksum = last_checksum;
+			checksum.i = last_checksum;
 			if (!clientload) {
 				//memset(portalopen, 0, sizeof(portalopen));
 				Arrays.fill(portalopen, false);
@@ -193,7 +193,7 @@ public class CM extends PlayerHud {
 			numleafs = 1;
 			numclusters = 1;
 			numareas = 1;
-			checksum = 0;
+			checksum.i = 0;
 			return map_cmodels[0]; // cinematic servers won't have anything at all
 		}
 
@@ -211,7 +211,8 @@ public class CM extends PlayerHud {
 		bbuf.order(ByteOrder.LITTLE_ENDIAN);
 
 		//last_checksum = LittleLong(Com.BlockChecksum(buf, length));
-		checksum = last_checksum;
+		last_checksum = Com.BlockChecksum(buf, length);
+		checksum.i = last_checksum;
 
 		header = new qfiles.dheader_t(bbuf.slice());
 
@@ -244,8 +245,8 @@ public class CM extends PlayerHud {
 
 		FS.FreeFile(buf);
 
-		//TODO:port next
-		//CM_InitBoxHull();
+		
+		CM_InitBoxHull();
 
 		//memset(portalopen, 0, sizeof(portalopen));
 		Arrays.fill(portalopen, false);

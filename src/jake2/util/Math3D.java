@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.12 2004-01-24 23:30:12 cwei Exp $
+// $Id: Math3D.java,v 1.13 2004-01-25 21:45:45 rst Exp $
 
 package jake2.util;
 
@@ -59,6 +59,25 @@ public class Math3D extends Lib {
 		b[1] = a[1];
 		b[2] = a[2];
 	}
+	
+	public static void VectorCopy(short[] a, short[] b) {
+		b[0] = a[0];
+		b[1] = a[1];
+		b[2] = a[2];
+	}
+		
+	public static void VectorCopy(short[] a, float[] b) {
+		b[0] = a[0];
+		b[1] = a[1];
+		b[2] = a[2];
+	}
+	
+	public static void VectorCopy(float[] a, short[] b) {
+		b[0] = (short) a[0];
+		b[1] = (short) a[1];
+		b[2] = (short) a[2];
+	}
+	
 	public static void VectorClear(float[] a) {
 		a[0] = a[1] = a[2] = 0;
 	}

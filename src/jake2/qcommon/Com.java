@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.24 2004-01-20 22:25:07 rst Exp $
+ * $Id: Com.java,v 1.25 2004-01-25 21:45:45 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -359,6 +359,20 @@ public final class Com {
 		//		}
 
 		Sys.Quit();
+	}
+
+ 
+	public static void SetServerState(int i)
+	{
+		 Globals.server_state = i;		
+	}
+
+	 
+	public static int BlockChecksum(byte[] buf, int length)
+	{
+		Com.Error(Defines.ERR_FATAL, "Com.BlockChecksum not implemented!");
+		System.exit(-1);
+		return 0;
 	}
 
 }
