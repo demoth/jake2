@@ -19,7 +19,8 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.6 2004-09-22 19:22:03 salomo Exp $
+// $Id: PlayerHud.java,v 1.7 2005-02-06 19:13:01 salomo Exp $
+
 package jake2.game;
 
 import jake2.*;
@@ -109,9 +110,11 @@ public class PlayerHud {
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (n = 1; n < Defines.MAX_ITEMS; n++) {
-                        if ((GameAI.itemlist[n].flags & Defines.IT_KEY) != 0)
-                            client.client.pers.inventory[n] = 0;
+                    for (n = 1; n < GameAI.itemlist.length; n++) {
+                        // null pointer exception fixed. (RST) 
+                        if (GameAI.itemlist[n] != null)
+                            if ((GameAI.itemlist[n].flags & Defines.IT_KEY) != 0)
+                                client.client.pers.inventory[n] = 0;
                     }
                 }
             }
@@ -146,7 +149,6 @@ public class PlayerHud {
                 if (es == null) // wrap around the list
                     continue;
                 ent = es.o;
-
             }
         }
 
@@ -202,13 +204,11 @@ public class PlayerHud {
         }
 
         // print level name and exit rules
-        //string[0] = 0;
-        //stringlength = strlen(string);
 
         // add the clients in sorted order
         if (total > 12)
             total = 12;
-
+        
         for (i = 0; i < total; i++) {
             cl = GameBase.game.clients[sorted[i]];
             cl_ent = GameBase.g_edicts[1 + sorted[i]];
@@ -228,17 +228,11 @@ public class PlayerHud {
             if (tag != null) {
                 string.append("xv ").append(x + 32).append(" yv ").append(y)
                         .append(" picn ").append(tag);
-                /*
-                 * //Com_sprintf(entry, sizeof(entry), "xv %i yv %i picn %s ", x +
-                 * 32, y, tag); j = strlen(entry); if (stringlength + j > 1024)
-                 * break; strcpy(string + stringlength, entry); stringlength +=
-                 * j;
-                 */
             }
 
             // send the layout
             string
-                    .append("client ")
+                    .append(" client ")
                     .append(x)
                     .append(" ")
                     .append(y)
@@ -250,16 +244,7 @@ public class PlayerHud {
                     .append(cl.ping)
                     .append(" ")
                     .append(
-                            (GameBase.level.framenum - cl.resp.enterframe) / 600);
-
-            /*
-             * Com_sprintf( entry, sizeof(entry), "client %i %i %i %i %i %i ",
-             * x, y, sorted[i], cl.resp.score, cl.ping, (level.framenum -
-             * cl.resp.enterframe) / 600); j = strlen(entry); if (stringlength +
-             * j > 1024) break; strcpy(string + stringlength, entry);
-             * stringlength += j;
-             */
-
+                            (GameBase.level.framenum - cl.resp.enterframe) / 600);           
         }
 
         GameBase.gi.WriteByte(Defines.svc_layout);
