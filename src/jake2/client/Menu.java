@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.12 2004-10-07 14:13:00 hzi Exp $
+ * $Id: Menu.java,v 1.13 2004-12-22 15:50:40 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -198,11 +198,10 @@ public final class Menu extends Key {
             if (m_menudepth >= MAX_MENU_DEPTH)
                 Com.Error(ERR_FATAL, "PushMenu: MAX_MENU_DEPTH");
 
-            m_layers[m_menudepth].draw = m_drawfunc;
-            m_layers[m_menudepth].key = m_keyfunc;
-            m_menudepth++;
+            m_layers[m_menudepth].draw = draw;//m_drawfunc;
+            m_layers[m_menudepth].key = key;//m_keyfunc;     
         }
-
+        m_menudepth++;
         m_drawfunc = draw;
         m_keyfunc = key;
 
@@ -222,15 +221,19 @@ public final class Menu extends Key {
 
     static void PopMenu() {
         S.StartLocalSound(menu_out_sound);
-        if (m_menudepth < 1)
-            Com.Error(ERR_FATAL, "PopMenu: depth < 1");
         m_menudepth--;
+        if (m_menudepth < 0)
+            Com.Error(ERR_FATAL, "PopMenu: depth < 1");
 
-        m_drawfunc = m_layers[m_menudepth].draw;
-        m_keyfunc = m_layers[m_menudepth].key;
+        if (0 < m_menudepth){
+	        m_drawfunc = m_layers[m_menudepth-1].draw;
+	        m_keyfunc = m_layers[m_menudepth-1].key;
+        }
 
         if (0 == m_menudepth)
             ForceMenuOff();
+        
+        
     }
 
     static String Default_MenuKey(menuframework_s m, int key) {
@@ -2905,17 +2908,19 @@ public final class Menu extends Key {
         }
     };
 
+    static xcommand_t startServer_MenuDraw = new xcommand_t() {
+        public void execute() {
+            StartServer_MenuDraw();
+        }
+    };
+    static keyfunc_t startServer_MenuKey = new keyfunc_t() {
+        public String execute(int key) {
+            return StartServer_MenuKey(key);
+        }        
+    };
     static void Menu_StartServer_f() {
         StartServer_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                StartServer_MenuDraw();
-            }
-        }, new keyfunc_t() {
-            public String execute(int key) {
-                return StartServer_MenuKey(key);
-            }
-        });
+        PushMenu(startServer_MenuDraw, startServer_MenuKey);
     }
 
     /*
