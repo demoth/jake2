@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.2 2004-06-25 03:22:30 cwei Exp $
+ * $Id: Channel.java,v 1.3 2004-06-26 23:30:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,6 +45,7 @@ public class Channel {
 	int sourceId;
 	boolean active = false;
 	boolean modified = false;
+	boolean bufferChanged = false;
 	
 	// sound attributes
 	int type;
@@ -74,6 +75,7 @@ public class Channel {
 		entnum = -1;
 		entchannel = -1;
 		bufferId = -1;
+		bufferChanged = false;
 		attenuation = 0;
 		autosound = false;
 		active = false;

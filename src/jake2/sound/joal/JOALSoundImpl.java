@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.11 2004-06-26 19:47:44 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.12 2004-06-26 23:30:00 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -38,7 +38,7 @@ public final class JOALSoundImpl implements Sound {
 	cvar_t s_volume;
 	
 	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
-	private static final int MAX_CHANNELS = 32;
+	private static final int MAX_CHANNELS = 16;
 	
 	private int[] buffers = new int[MAX_SFX];
 	private int[] sources = new int[MAX_CHANNELS];
@@ -216,10 +216,6 @@ public final class JOALSoundImpl implements Sound {
 	 */
 	public void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs) {
 
-		sfxcache_t sc;
-		
-		// from quake2
-		
 		if (sfx == null)
 			return;
 			
@@ -229,11 +225,7 @@ public final class JOALSoundImpl implements Sound {
 		if (LoadSound(sfx) == null)
 			return; // can't load sound
 
-		// for openAL
-		
-		//System.out.println(sfx.name + " fvol: " + fvol + " atten: " + attenuation);
-		
-		Channel ch = pickupChannel(entnum, entchannel, buffers[sfx.id], attenuation);
+		Channel ch = pickChannel(entnum, entchannel, buffers[sfx.id], attenuation);
 		
 		if (ch == null) return;
 
@@ -246,8 +238,8 @@ public final class JOALSoundImpl implements Sound {
 		}
 	}
 	
-	Channel pickupChannel(int entnum, int entchannel, int bufferId, float attenuation) {
-		
+	Channel pickChannel(int entnum, int entchannel, int bufferId, float attenuation) {
+
 		Channel ch = null;
 		int state;
 		int i;
@@ -275,7 +267,10 @@ public final class JOALSoundImpl implements Sound {
 
 		ch.entnum = entnum;
 		ch.entchannel = entchannel;
-		ch.bufferId = bufferId;
+		if (ch.bufferId != bufferId) {
+			ch.bufferId = bufferId;
+			ch.bufferChanged = true;			
+		}
 		ch.attenuation = attenuation;
 		ch.active = true;
 		ch.modified = true;
@@ -292,24 +287,16 @@ public final class JOALSoundImpl implements Sound {
 	public void Update(float[] origin, float[] forward, float[] right, float[] up) {
 		
 		convertVector(origin, listenerOrigin);		
-			
 		al.alListenerfv(AL.AL_POSITION, listenerOrigin);
-		al.alListenerfv(AL.AL_VELOCITY, NULLVECTOR);
-
-		//System.out.println("player " + Lib.vtofs(origin));
 
 		convertOrientation(forward, up, listenerOrientation);		
 		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation);
 		
 		AddLoopSounds(origin);
-		
 		playChannels(listenerOrigin);
-		
 	}
 	
-	
-	Hashtable looptable = new Hashtable(Defines.MAX_EDICTS);
-	int[]	sounds = new int[Defines.MAX_EDICTS];
+	Hashtable looptable = new Hashtable(MAX_CHANNELS);
 	
 	/*
 	==================
@@ -320,15 +307,8 @@ public final class JOALSoundImpl implements Sound {
 	as the entities are sent to the client
 	==================
 	*/
-	void AddLoopSounds(float[] listener)
-	{
-		int			i, j;
-		Channel ch;
-		sfx_t		sfx;
-		sfxcache_t	sc;
-		int			num;
-		entity_state_t	ent;
-
+	void AddLoopSounds(float[] listener)	{
+		
 		if (Globals.cl_paused.value != 0.0f)
 			return;
 
@@ -338,28 +318,32 @@ public final class JOALSoundImpl implements Sound {
 		if (!Globals.cl.sound_prepped)
 			return;
 
+		Channel ch;
+		sfx_t	sfx;
+		sfxcache_t sc;
+		int num;
+		entity_state_t ent;
 		Object key;
+		int sound = 0;
 
-		for (i=0 ; i<Globals.cl.frame.num_entities ; i++)
-		{
+		for (int i=0 ; i<Globals.cl.frame.num_entities ; i++) {
 			num = (Globals.cl.frame.parse_entities + i)&(Defines.MAX_PARSE_ENTITIES-1);
 			ent = Globals.cl_parse_entities[num];
-			sounds[i] = ent.sound;
+			sound = ent.sound;
 
-			if (sounds[i] == 0) continue;
+			if (sound == 0) continue;
 
 			key = new Integer(ent.number);
 			ch = (Channel)looptable.get(key);
 
-			float[] v = {0, 0, 0}; 
-
 			if (ch != null) {
+				// keep on looping
 				ch.autosound = true;
 				ch.origin = ent.origin;
 				continue;
 			}
 
-			sfx = Globals.cl.sound_precache[sounds[i]];
+			sfx = Globals.cl.sound_precache[sound];
 			if (sfx == null)
 				continue;		// bad sound effect
 
@@ -368,9 +352,9 @@ public final class JOALSoundImpl implements Sound {
 				continue;
 
 			// allocate a channel
-			ch = pickupChannel(0, 0, buffers[sfx.id], 2);
+			ch = pickChannel(0, 0, buffers[sfx.id], 2);
 			if (ch == null)
-				return;
+				break;
 				
 			ch.addFixed(ent.origin);
 			ch.autosound = true;
@@ -379,6 +363,7 @@ public final class JOALSoundImpl implements Sound {
 			al.alSourcei(ch.sourceId, AL.AL_LOOPING, AL.AL_TRUE);
 		}
 
+		// stop unused loopsounds
 		for (Iterator iter = looptable.values().iterator(); iter.hasNext();) {
 			ch = (Channel)iter.next();
 			if (!ch.autosound) {
@@ -388,8 +373,6 @@ public final class JOALSoundImpl implements Sound {
 				ch.clear();
 			}
 		}
-		
-		//System.err.println(looptable.size());
 	}
 
 	void playChannels(float[] listenerOrigin) {
@@ -419,7 +402,8 @@ public final class JOALSoundImpl implements Sound {
 				}
 			
 				if (ch.modified) {
-					al.alSourcei (sourceId, AL.AL_BUFFER, ch.bufferId);
+					if (ch.bufferChanged)
+						al.alSourcei (sourceId, AL.AL_BUFFER, ch.bufferId);
 					al.alSourcef (sourceId, AL.AL_GAIN, s_volume.value);
 					al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 200.0f - ch.attenuation * 50);
 					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
