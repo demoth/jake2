@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.2 2004-08-20 21:29:58 salomo Exp $
+// $Id: pmove_state_t.java,v 1.3 2005-01-21 01:08:48 cawe Exp $
 package jake2.game;
 
 import jake2.qcommon.Com;
@@ -51,7 +51,7 @@ public class pmove_state_t {
 	
 	private static pmove_state_t prototype = new pmove_state_t();
 	
-	public void reset()
+	public void clear()
 	{
 		this.set(prototype);
 	}

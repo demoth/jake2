@@ -19,7 +19,7 @@
  */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.3 2005-01-21 00:54:44 cawe Exp $
+// $Id: pmove_t.java,v 1.4 2005-01-21 01:08:48 cawe Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -103,7 +103,7 @@ public class pmove_t {
         Arrays.fill(touchents, null);
         numtouch = 0;
         snapinitial = false;
-        cmd.reset();
-        s.reset();
+        cmd.clear();
+        s.clear();
     }
 }

@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.3 2004-09-12 18:25:49 salomo Exp $
+// $Id: usercmd_t.java,v 1.4 2005-01-21 01:08:48 cawe Exp $
 
 package jake2.game;
 
 import java.util.Arrays;
 
 import jake2.util.Lib;
+import jake2.util.Math3D;
 
 public class usercmd_t implements Cloneable {
 	public byte msec;
@@ -35,9 +36,9 @@ public class usercmd_t implements Cloneable {
 	public byte impulse; // remove?
 	public byte lightlevel; // light level the player is standing on
 
-	public void reset() {
+	public void clear() {
 		forwardmove= sidemove= upmove= msec= buttons= impulse= lightlevel= 0;
-		Arrays.fill(angles, (short) 0);
+		angles[0] = angles[1] = angles[2] = 0;
 	}
 
 	public usercmd_t() {
