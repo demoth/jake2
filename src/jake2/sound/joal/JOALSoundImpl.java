@@ -2,10 +2,9 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.1 2004-07-09 06:50:52 hzi Exp $
+ * $Id: JOALSoundImpl.java,v 1.2 2004-07-13 11:20:28 cawe Exp $
  */
 package jake2.sound.joal;
-
 
 import jake2.Defines;
 import jake2.Globals;
@@ -13,14 +12,16 @@ import jake2.client.CL;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sound.*;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.IntBuffer;
 import java.util.*;
 
 import net.java.games.joal.*;
+import net.java.games.joal.eax.EAX;
+import net.java.games.joal.eax.EAXFactory;
 
 /**
  * JOALSoundImpl
@@ -33,6 +34,7 @@ public final class JOALSoundImpl implements Sound {
 
 	static AL al;
 	static ALC alc;
+	static EAX eax;
 	
 	cvar_t s_volume;
 	
@@ -42,10 +44,11 @@ public final class JOALSoundImpl implements Sound {
 	private int[] buffers = new int[MAX_SFX];
 	private int[] sources = new int[MAX_CHANNELS];
 	private Channel[] channels = null;
+	private int num_channels = 0; 
 
+	// singleton 
 	private JOALSoundImpl() {
 	}
-
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Init()
@@ -56,19 +59,15 @@ public final class JOALSoundImpl implements Sound {
 			initOpenAL();
 			al = ALFactory.getAL();
 			checkError();
+			initOpenALExtensions();		
 		} catch (OpenALException e) {
 			Com.Printf(e.getMessage() + '\n');
 			return false;
 		}
-		
-		checkError();
 		al.alGenBuffers(MAX_SFX, buffers);
-		al.alGenSources(MAX_CHANNELS, sources);
-		checkError();
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 		initChannels();
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
-//		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);
 		Cmd.AddCommand("play", new xcommand_t() {
 			public void execute() {
 				Play();
@@ -124,6 +123,17 @@ public final class JOALSoundImpl implements Sound {
 		}
 	}
 	
+	private void initOpenALExtensions() throws OpenALException {
+		if (al.alIsExtensionPresent("EAX2.0")) {
+			Com.Printf("... using EAX2.0\n");
+			eax = EAXFactory.getEAX();
+		} else {
+			Com.Printf("... EAX2.0 not found\n");
+			eax = null;
+		}
+	}
+	
+	
 	void exitOpenAL() {
 		// Get the current context.
 		ALC.Context curContext = alc.alcGetCurrentContext();
@@ -142,9 +152,20 @@ public final class JOALSoundImpl implements Sound {
 		channels = new Channel[MAX_CHANNELS];
 		
 		int sourceId;
+		int[] tmp = {0};
+		int error;
 		for (int i = 0; i < MAX_CHANNELS; i++) {
-			sourceId = sources[i];
+			
+			al.alGenSources(1, tmp);
+			sourceId = tmp[0];
+			
+			//if ((error = al.alGetError()) != AL.AL_NO_ERROR) break;
+			if (sourceId <= 0) break;
+			
+			sources[i] = sourceId;
+
 			channels[i] = new Channel(sourceId);
+			num_channels++;
 			
 			// set default values for AL sources
 			al.alSourcef (sourceId, AL.AL_GAIN, s_volume.value);
@@ -156,14 +177,14 @@ public final class JOALSoundImpl implements Sound {
 			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
 			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
 		}
+		Com.Printf("... using " + num_channels + " channels\n");
 	}
 	
 	
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
 	 */
-	private void initBuffer(sfx_t sfx)
-	{
+	private void initBuffer(sfx_t sfx) {
 		if (sfx.cache == null ) {
 			//System.out.println(sfx.name + " " + sfx.cache.length+ " " + sfx.cache.loopstart + " " + sfx.cache.speed + " " + sfx.cache.stereo + " " + sfx.cache.width);
 			return;
@@ -174,33 +195,17 @@ public final class JOALSoundImpl implements Sound {
 		int freq = sfx.cache.speed;
 		int size = data.length;
 		
-//		if (buffers[sfx.id] != 0)
-//			al.alDeleteBuffers(1, new int[] {buffers[sfx.id] });			
-//		
-//		int[] bid = new int[1];
-//		al.alBufferData( bid[0], format, data, size, freq);
-//		buffers[sfx.id] = bid[0];
-//		al.alBufferData( bid[0], format, data, size, freq);
-
-		al.alBufferData( buffers[sfx.id], format, data, size, freq);
-//		int error;
-//		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
-//			String message;
-//			switch(error) {
-//				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
-//				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
-//				case AL.AL_INVALID_ENUM: message = "invalid enum"; break;
-//				case AL.AL_INVALID_NAME: message = "invalid name"; break;
-//				default: message = "" + error;
-//			}
-//			Com.DPrintf("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message + '\n');
-//		}
+		al.alBufferData( buffers[sfx.bufferId], format, data, size, freq);
 	}
 
 	private void checkError() {
+		Com.DPrintf("AL Error: " + alErrorString() +'\n');
+	}
+	
+	private String alErrorString(){
 		int error;
+		String message = "";
 		if ((error = al.alGetError()) != AL.AL_NO_ERROR) {
-			String message;
 			switch(error) {
 				case AL.AL_INVALID_OPERATION: message = "invalid operation"; break;
 				case AL.AL_INVALID_VALUE: message = "invalid value"; break;
@@ -208,10 +213,9 @@ public final class JOALSoundImpl implements Sound {
 				case AL.AL_INVALID_NAME: message = "invalid name"; break;
 				default: message = "" + error;
 			}
-			Com.DPrintf("AL Error: " + message +'\n');
 		}
+		return message; 
 	}
-
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Shutdown()
@@ -221,7 +225,7 @@ public final class JOALSoundImpl implements Sound {
 		al.alDeleteSources(sources.length, sources);
 		al.alDeleteBuffers(buffers.length, buffers);
 		exitOpenAL();
-		//ALut.alutExit();	
+
 		Cmd.RemoveCommand("play");
 		Cmd.RemoveCommand("stopsound");
 		Cmd.RemoveCommand("soundlist");
@@ -234,6 +238,7 @@ public final class JOALSoundImpl implements Sound {
 			known_sfx[i].clear();
 		}
 		num_sfx = 0;
+		num_channels = 0;
 	}
 	
 	private final static float[] NULLVECTOR = {0, 0, 0};
@@ -257,7 +262,7 @@ public final class JOALSoundImpl implements Sound {
 		if (attenuation != Defines.ATTN_STATIC)
 			attenuation *= 0.5f;
 
-		Channel ch = pickChannel(entnum, entchannel, buffers[sfx.id], attenuation);
+		Channel ch = pickChannel(entnum, entchannel, buffers[sfx.bufferId], attenuation);
 		
 		if (ch == null) return;
 
@@ -276,7 +281,7 @@ public final class JOALSoundImpl implements Sound {
 		int state;
 		int i;
 
-		for (i = 0; i < MAX_CHANNELS; i++) {
+		for (i = 0; i < num_channels; i++) {
 			ch = channels[i];
 
 			if (entchannel != 0 && ch.entnum == entnum && ch.entchannel == entchannel) {
@@ -294,7 +299,7 @@ public final class JOALSoundImpl implements Sound {
 			}
 		}
 		
-		if (i == MAX_CHANNELS)
+		if (i == num_channels)
 			return null;
 
 		ch.entnum = entnum;
@@ -312,6 +317,15 @@ public final class JOALSoundImpl implements Sound {
 	
 	private float[] listenerOrigin = {0, 0, 0};
 	private float[] listenerOrientation = {0, 0, 0, 0, 0, 0};
+	private IntBuffer eaxEnv = Lib.newIntBuffer(1);
+	private int currentEnv = -1;
+	private boolean changeEnv = true;
+	
+	// TODO workaround for JOAL-bug
+	// should be EAX.LISTENER
+	private final static int EAX_LISTENER = 0;
+	// should be EAX.SOURCE
+	private final static int EAX_SOURCE = 1;
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Update(float[], float[], float[], float[])
@@ -324,11 +338,32 @@ public final class JOALSoundImpl implements Sound {
 		convertOrientation(forward, up, listenerOrientation);		
 		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation);
 		
+		if (eax != null) {
+			// workaround for environment initialisation
+			if (currentEnv == -1) {
+				eaxEnv.put(0, EAX.EAX_ENVIRONMENT_UNDERWATER);
+				eax.EAXSet(EAX_LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
+				changeEnv = true;
+			}
+
+			if ((Game.gi.pointcontents.pointcontents(origin)& Defines.MASK_WATER)!= 0) {
+				changeEnv = currentEnv != EAX.EAX_ENVIRONMENT_UNDERWATER;
+				currentEnv = EAX.EAX_ENVIRONMENT_UNDERWATER;
+			} else {
+				changeEnv = currentEnv != EAX.EAX_ENVIRONMENT_GENERIC;
+				currentEnv = EAX.EAX_ENVIRONMENT_GENERIC;
+			}
+			if (changeEnv) {
+				eaxEnv.put(0, currentEnv);
+				eax.EAXSet(EAX_LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
+			}
+		}
+		
 		AddLoopSounds(origin);
 		playChannels(listenerOrigin);
 	}
 	
-	Map looptable = new Hashtable(2 * MAX_CHANNELS);
+	Map looptable = new Hashtable(MAX_CHANNELS);
 	
 	/*
 	==================
@@ -390,7 +425,7 @@ public final class JOALSoundImpl implements Sound {
 				continue;
 
 			// allocate a channel
-			ch = pickChannel(0, 0, buffers[sfx.id], 6);
+			ch = pickChannel(0, 0, buffers[sfx.bufferId], 6);
 			if (ch == null)
 				break;
 				
@@ -427,7 +462,7 @@ public final class JOALSoundImpl implements Sound {
 		int sourceId;
 		int state;
 
-		for (int i = 0; i < MAX_CHANNELS; i++) {
+		for (int i = 0; i < num_channels; i++) {
 			ch = channels[i];
 			if (ch.active) {
 				sourceId = ch.sourceId;
@@ -466,13 +501,12 @@ public final class JOALSoundImpl implements Sound {
 			}
 		}
 	}
-	
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#StopAllSounds()
 	 */
 	public void StopAllSounds() {
-		for (int i = 0; i < MAX_CHANNELS; i++) {
+		for (int i = 0; i < num_channels; i++) {
 			al.alSourceStop(sources[i]);
 			al.alSourcei(sources[i], AL.AL_BUFFER, 0);
 			channels[i].clear();
@@ -561,6 +595,7 @@ public final class JOALSoundImpl implements Sound {
 		sfx_t sfx = null;
 
 		// determine what model the client is using
+		// TODO configstrings for player male and female are wrong 
 		String model = "male";
 		int n = Globals.CS_PLAYERSKINS + ent.number - 1;
 		if (Globals.cl.configstrings[n] != null) {
@@ -597,13 +632,10 @@ public final class JOALSoundImpl implements Sound {
 				sfx = RegisterSound(sexedFilename);
 			} else {
 				// no, revert to the male sound in the pak0.pak
-				//Com_sprintf (maleFilename, sizeof(maleFilename), "player/%s/%s", "male", base+1);
 				String maleFilename = "player/male/" + base.substring(1);
 				sfx = AliasName(sexedFilename, maleFilename);
 			}
 		}
-
-		//System.out.println(sfx.name);
 		return sfx;
 	}
 	
@@ -652,8 +684,7 @@ public final class JOALSoundImpl implements Sound {
 		sfx.clear();
 		sfx.name = name;
 		sfx.registration_sequence = s_registration_sequence;
-		// cwei
-		sfx.id = i;
+		sfx.bufferId = i;
 
 		return sfx;
 	}
@@ -689,8 +720,8 @@ public final class JOALSoundImpl implements Sound {
 		sfx.name = new String(aliasname);
 		sfx.registration_sequence = s_registration_sequence;
 		sfx.truename = s;
-		// cwei
-		sfx.id = i;
+		// set the AL bufferId
+		sfx.bufferId = i;
 
 		return sfx;
 	}

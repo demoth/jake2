@@ -2,7 +2,7 @@
  * sfx_t.java
  * Copyright (C) 2004
  * 
- * $Id: sfx_t.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
+ * $Id: sfx_t.java,v 1.2 2004-07-13 11:20:27 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,22 +28,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.sound;
 
-
 public class sfx_t {
-	public String name; //mem
+	public String name;
 	public int registration_sequence;
-	public sfxcache_t cache; //ptr
-	public String truename; //ptr
+	public sfxcache_t cache;
+	public String truename;
 	
-	// cwei
-	public int id = -1;
+	// is used for AL buffers
+	public int bufferId = -1;
 	
 	public void clear() {
 		name = truename = null;
 		cache = null;
 		registration_sequence = 0;
-		
-		// cwei
-		id = -1; 
+		bufferId = -1; 
 	}
 }
