@@ -92,7 +92,7 @@ public class model_t {
 
 	// for alias models and skins
 	// was image_t *skins[]; (array of pointers)
-	image_t		skins[]= new image_t[constants.MAX_MD2SKINS];
+	image_t		skins[]= new image_t[qcommondefs.MAX_MD2SKINS];
 
 	int		extradatasize;
 	

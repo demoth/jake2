@@ -52,8 +52,8 @@ public class msurface_t {
 	int			dlightbits;
 
 	int			lightmaptexturenum;
-	byte		styles[]=new byte[constants.MAXLIGHTMAPS];
-	float		cached_light[]= new float[constants.MAXLIGHTMAPS];	// values currently used in lightmap
+	byte		styles[]=new byte[qcommondefs.MAXLIGHTMAPS];
+	float		cached_light[]= new float[qcommondefs.MAXLIGHTMAPS];	// values currently used in lightmap
 	byte		samples[];		// [numstyles*surfsize]
 
 }

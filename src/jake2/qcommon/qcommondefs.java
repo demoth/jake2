@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
-public class constants {
+public class qcommondefs {
 	
 	
 	public static final int	MAX_TRIANGLES	=4096;

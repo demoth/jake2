@@ -25,7 +25,7 @@ package jake2.client;
 import jake2.game.cmodel_t;
 import jake2.game.gamedefs;
 import jake2.game.usercmd_t;
-import jake2.qcommon.constants;
+import jake2.qcommon.qcommondefs;
 import jake2.render.image_t;
 import jake2.render.model_t;
 
@@ -62,7 +62,7 @@ public class client_state_t {
 
 	frame_t frame; // received from server
 	int surpressCount; // number of messages rate supressed
-	frame_t frames[] = new frame_t[constants.UPDATE_BACKUP];
+	frame_t frames[] = new frame_t[qcommondefs.UPDATE_BACKUP];
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame.  It is cleared to 0 upon entering each level.
