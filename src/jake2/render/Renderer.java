@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.3 2004-07-16 10:11:34 cawe Exp $
+ * $Id: Renderer.java,v 1.4 2004-12-14 12:58:05 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,6 +46,7 @@ public class Renderer {
 		try {
 			Class.forName("jake2.render.JoglRenderer");
 			Class.forName("jake2.render.FastJoglRenderer");
+			Class.forName("jake2.render.LWJGLRenderer");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
