@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.5 2004-04-28 12:11:57 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.6 2004-06-16 12:02:40 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -169,7 +169,7 @@ public final class JOALSoundImpl implements Sound {
 				case AL.AL_INVALID_NAME: message = "invalid name"; break;
 				default: message = "" + error;
 			}
-			System.err.println("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message);
+			Com.DPrintf("Error Buffer " + sfx.id + ": " + sfx.name + " (" + size + ") --> " + message + '\n');
 		}
 	}
 
@@ -184,7 +184,7 @@ public final class JOALSoundImpl implements Sound {
 				case AL.AL_INVALID_NAME: message = "invalid name"; break;
 				default: message = "" + error;
 			}
-			System.err.println("AL Error: " + message);
+			Com.DPrintf("AL Error: " + message +'\n');
 		}
 	}
 
