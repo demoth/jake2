@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.19 2004-06-09 19:14:37 cwei Exp $
+ * $Id: VID.java,v 1.20 2004-06-15 16:26:50 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -370,7 +370,7 @@ public class VID extends Globals {
 	public static void Init()
 	{
 		/* Create the video variables so we know how to start the graphics drivers */
-		vid_ref = Cvar.Get("vid_ref", "jogl", CVAR_ARCHIVE);
+		vid_ref = Cvar.Get("vid_ref", "fastjogl", CVAR_ARCHIVE);
 		vid_xpos = Cvar.Get("vid_xpos", "3", CVAR_ARCHIVE);
 		vid_ypos = Cvar.Get("vid_ypos", "22", CVAR_ARCHIVE);
 		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", CVAR_ARCHIVE);
