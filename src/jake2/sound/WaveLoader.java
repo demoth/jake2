@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.1 2004-07-09 06:50:48 hzi Exp $
+ * $Id: WaveLoader.java,v 1.2 2004-10-29 16:38:36 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -186,9 +186,9 @@ public class WaveLoader {
 				data_p = 0;
 				return;
 			}
-			if (iff_chunk_len > 1024*1024)
-				Sys.Error("FindNextChunk: length is past the 1 meg sanity limit");
-				
+			if (iff_chunk_len > 1024*1024) {
+				Com.Println(" Warning: FindNextChunk: length is past the 1 meg sanity limit");
+			}
 			data_p -= 8;
 			last_chunk = data_p + 8 + ((iff_chunk_len + 1) & ~1);
 			String s = new String(data_b, data_p, 4);
