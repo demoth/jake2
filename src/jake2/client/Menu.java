@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.17 2004-02-04 11:24:15 hoz Exp $
+ * $Id: Menu.java,v 1.18 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2316,7 +2316,7 @@ public final class Menu extends Key {
 
 		for (i = 0; i < MAX_SAVEGAMES; i++) {
 			name = FS.Gamedir() + "/save/save" + i + "/server.ssv";
-			f = fopen(name, "rb");
+			f = fopen(name, "r");
 			if (f == null) {
 				m_savestrings[i] = "<EMPTY>";
 				m_savevalid[i] = false;
@@ -2812,9 +2812,8 @@ public final class Menu extends Key {
 
 		//	  =======
 		//	  PGM
-
-		//	  PGM
 		//	  =======
+		
 		byte[] buffer = null;
 		//char mapsname[1024];
 		String mapsname;
@@ -2828,7 +2827,7 @@ public final class Menu extends Key {
 		*/
 		mapsname = FS.Gamedir() + "/maps.lst";
 
-		if ((fp = fopen(mapsname, "rb")) == null) {
+		if ((fp = fopen(mapsname, "r")) == null) {
 			buffer = FS.LoadFile("maps.lst");
 			if (buffer == null)
 				//if ((length = FS_LoadFile("maps.lst", (Object *) & buffer)) == -1)

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.6 2004-02-02 21:47:00 rst Exp $
+// $Id: SV_SEND.java,v 1.7 2004-02-05 21:32:41 rst Exp $
 
 package jake2.server;
 
@@ -190,7 +190,7 @@ public class SV_SEND extends SV_MAIN {
 
 		switch (to) {
 			case MULTICAST_ALL_R :
-				reliable = true; // intentional fallthrough
+				reliable = true; // intentional fallthrough, no break here
 			case MULTICAST_ALL :
 				leafnum = 0;
 				mask = null;

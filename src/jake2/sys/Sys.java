@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.22 2004-02-02 20:27:47 cwei Exp $
+ * $Id: Sys.java,v 1.23 2004-02-05 21:32:41 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,25 +47,17 @@ public final class Sys extends Defines {
 	public static void StackTrace() {
 
 		StackTraceElement trace[] = new Throwable().getStackTrace();
-
 		Com.Println("StackTrace:");
-
 		for (int i = 0; i < trace.length; i++)
 			Com.Println("" + trace[i]);
 	}
 
-	/**
-	 * @param error
-	 */
 	public static void Error(String error) {
 
 		CL.Shutdown();
-		//System.err.println("Error: " + error);
-
 		//StackTrace();
 		new Exception(error).printStackTrace();
 		System.exit(1);
-
 	}
 
 	public static void Quit() {
@@ -74,6 +66,7 @@ public final class Sys extends Defines {
 		System.exit(0);
 	}
 
+	//ok!
 	public static File[] FindAll(String path, int musthave, int canthave) {
 
 		int index = path.lastIndexOf('/');
@@ -198,20 +191,6 @@ public final class Sys extends Defines {
 				return false;
 
 			return true;
-
-			//was commented out, but you can implement file-attrib searching. rst.
-			//use the flags FILE_ISREADABLE, FILE_ISWRITABLE ... 
-			//
-			//	if (stat(fn, &st) == -1)
-			//		return false; // shouldn't happen
-			//
-			//	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
-			//		return false;
-			//
-			//	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
-			//		return false;
-			//
-			//	return true;
 		}
 
 	}
@@ -232,6 +211,7 @@ public final class Sys extends Defines {
 	static String findbase;
 	static String findpattern;
 
+	// ok.
 	public static File FindFirst(String path, int musthave, int canthave) {
 
 		if (fdir != null)
@@ -245,31 +225,6 @@ public final class Sys extends Defines {
 		if (fdir == null) return null;
 
 		return FindNext();
-
-		//strcpy(findbase, path);
-		//
-		//	if ((p = strrchr(findbase, '/')) != NULL) {
-		//		*p = 0;
-		//		strcpy(findpattern, p + 1);
-		//	} else
-		//		strcpy(findpattern, "*");
-		//
-		//	if (strcmp(findpattern, "*.*") == 0)
-		//		strcpy(findpattern, "*");
-
-		//		if ((fdir = opendir(findbase)) == NULL)
-		//			return NULL;
-		//		while ((d = readdir(fdir)) != NULL) {
-		//			if (!* findpattern || glob_match(findpattern, d - > d_name)) {
-		//				//			if (*findpattern)
-		//				//				printf("%s matched %s\n", findpattern, d->d_name);
-		//				if (CompareAttributes(findbase, d - > d_name, musthave, canhave)) {
-		//					sprintf(findpath, "%s/%s", findbase, d - > d_name);
-		//					return findpath;
-		//				}
-		//			}
-		//		}
-		//		return null;
 	}
 
 	public static File FindNext() {
@@ -290,7 +245,7 @@ public final class Sys extends Defines {
 
 	public static void UnloadGame()
 	{
-		//TODO:implement !
+		//TODO:implement UnloadGame
 		//Com.Error(Defines.ERR_FATAL, "UnloadGame not implemented!");
 		
 	}
@@ -304,13 +259,11 @@ public final class Sys extends Defines {
 
 	public static game_export_t GetGameAPI(game_import_t gimport)
 	{
-		//TODO:implement !
-		Com.Printf( "scheisse GetGameAPI not implemented!");
 		return Game.GetGameApi(gimport);
 	}
 
 	public static String GetClipboardData() {
-		// TODO: implement!
+		// TODO: implement GetClipboardData
 		return null;
 	}
 

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.32 2004-02-02 21:47:00 rst Exp $
+ * $Id: Com.java,v 1.33 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -356,7 +356,7 @@ public final class Com {
 				else
 					try
 					{
-						Globals.logfile = new RandomAccessFile(name, "w");
+						Globals.logfile = new RandomAccessFile(name, "rw");
 					}
 					catch (FileNotFoundException e1)
 					{
@@ -445,9 +445,7 @@ public final class Com {
 	 
 	public static int BlockChecksum(byte[] buf, int length)
 	{
-		Com.Error(Defines.ERR_FATAL, "Com.BlockChecksum not implemented!");
-		System.exit(-1);
-		return 0;
+		return MD4.Com_BlockChecksum(buf, length);
 	}
 
 	public static void StripExtension(String string, String string2) {

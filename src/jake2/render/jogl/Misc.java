@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.7 2004-01-25 16:45:59 cwei Exp $
+ * $Id: Misc.java,v 1.8 2004-02-05 21:32:41 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -138,7 +138,7 @@ public abstract class Misc extends Mesh {
 //			picname[5] = i/10 + '0'; 
 //			picname[6] = i%10 + '0'; 
 //			Com_sprintf (checkname, sizeof(checkname), "%s/scrnshot/%s", ri.FS_Gamedir(), picname);
-//			f = fopen (checkname, "rb");
+//			f = fopen (checkname, "r");
 //			if (!f)
 //				break;	// file doesn't exist
 //			fclose (f);
@@ -170,7 +170,7 @@ public abstract class Misc extends Mesh {
 //			buffer[i+2] = temp;
 //		}
 //
-//		f = fopen (checkname, "wb");
+//		f = fopen (checkname, "rw");
 //		fwrite (buffer, 1, c, f);
 //		fclose (f);
 //

@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.27 2004-02-03 09:33:52 hoz Exp $
+ * $Id: Cvar.java,v 1.28 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -357,27 +357,27 @@ public class Cvar extends Globals {
 		return BitInfo(Defines.CVAR_SERVERINFO);
 	}
 
-	public static void GetLatchedVars()
-	{
-		cvar_t  var;
+	public static void GetLatchedVars() {
+		cvar_t var;
 
-		for (var = Globals.cvar_vars ; var != null ; var = var.next) {
+		for (var = Globals.cvar_vars; var != null; var = var.next) {
 			if (var.latched_string == null)
 				continue;
-				var.string = var.latched_string;
-				var.latched_string = null;
-				try {
-					var.value = Float.parseFloat(var.string);
-				} catch (NumberFormatException e) {
-					var.value = 0.0f;
-				}
-				if (var.name.equals("game")) {
-					FS.SetGamedir(var.string);
-					FS.ExecAutoexec();
-				}
-		}		
+			var.string = var.latched_string;
+			var.latched_string = null;
+			try {
+				var.value = Float.parseFloat(var.string);
+			}
+			catch (NumberFormatException e) {
+				var.value = 0.0f;
+			}
+			if (var.name.equals("game")) {
+				FS.SetGamedir(var.string);
+				FS.ExecAutoexec();
+			}
+		}
 	}
-	
+
 	/**
 	 * returns an info string containing all the CVAR_USERINFO cvars.
 	 */
@@ -391,39 +391,44 @@ public class Cvar extends Globals {
 		String buffer;
 
 		f = Lib.fopen(path, "a");
+		if (f == null)
+			return;
+
 		for (var = cvar_vars; var != null; var = var.next) {
 			if ((var.flags & CVAR_ARCHIVE) != 0) {
 				buffer = "set " + var.name + "\"" + var.string + "\"\n";
 				try {
 					f.writeChars(buffer);
-				} catch (IOException e) {}
+				}
+				catch (IOException e) {
+				}
 			}
 		}
 		fclose(f);
 	}
-		
+
 	/*
 	============
 	Cvar_CompleteVariable
 	============
 	*/
 	static String CompleteVariable(String partial) {
-		cvar_t		cvar;
-		int			len;
-	
+		cvar_t cvar;
+		int len;
+
 		len = partial.length();
-	
+
 		if (len == 0)
 			return null;
-		
+
 		// check match
-		for (cvar=Globals.cvar_vars ; cvar != null ; cvar=cvar.next)
+		for (cvar = Globals.cvar_vars; cvar != null; cvar = cvar.next)
 			if (cvar.name.startsWith(partial))
 				return cvar.name;
 
 		return null;
 	}
-	
+
 	/*
 	============
 	Cvar_InfoValidate
@@ -433,9 +438,9 @@ public class Cvar extends Globals {
 		if (s.indexOf("\\") != -1)
 			return false;
 		if (s.indexOf("\"") != -1)
-			return false;	
+			return false;
 		if (s.indexOf(";") != -1)
-			return false;					
+			return false;
 		return true;
 	}
 }

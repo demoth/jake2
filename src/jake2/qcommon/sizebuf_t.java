@@ -2,7 +2,7 @@
  * sizebuf_t.java
  * Copyright (C) 2003
  * 
- * $Id: sizebuf_t.java,v 1.6 2003-12-29 22:31:15 rst Exp $
+ * $Id: sizebuf_t.java,v 1.7 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.util.Arrays;
+
 /**
  * sizebuf_t
  */
@@ -38,6 +40,8 @@ public final class sizebuf_t {
 	
 	public void clear()
 	{
+		// TODO: for debugging.
+		Arrays.fill(data,(byte)0);
 		cursize = 0;
 		overflowed = false;
 	}

@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.24 2004-02-05 10:35:16 hoz Exp $
+ * $Id: SCR.java,v 1.25 2004-02-05 21:32:40 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1404,7 +1404,7 @@ public final class SCR extends Globals {
 
 	
 	public static void PlayCinematic(String str) {
-		// TODO: implement!		
+		// TODO: implement PlayCinematic		
 	}
 	
 	static void FinishCinematic() {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.02.2004 by RST.
-// $Id: GameSVCmds.java,v 1.1 2004-02-01 23:31:37 rst Exp $
+// $Id: GameSVCmds.java,v 1.2 2004-02-05 21:32:40 rst Exp $
 
 package jake2.game;
 
@@ -252,7 +252,7 @@ public class GameSVCmds extends GameSpawn {
 
 		gi.cprintf(null, PRINT_HIGH, "Writing " + name + ".\n");
 
-		f = fopen(name, "wb");
+		f = fopen(name, "rw");
 		if (f == null) {
 			gi.cprintf(null, PRINT_HIGH, "Couldn't open " + name + "\n");
 			return;

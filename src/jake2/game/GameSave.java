@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.10 2004-02-04 18:10:55 rst Exp $
+// $Id: GameSave.java,v 1.11 2004-02-05 21:32:40 rst Exp $
 
 package jake2.game;
 
@@ -391,7 +391,7 @@ public class GameSave extends GameFunc {
 	//	if (!autosave)
 	//		SaveClientData ();
 	//
-	//	f = fopen (filename, "wb");
+	//	f = fopen (filename, "rw");
 	//	if (!f)
 	//		gi.error ("Couldn't open %s", filename);
 	//
@@ -594,7 +594,7 @@ public class GameSave extends GameFunc {
 	//	FILE	*f;
 	//	void	*base;
 	//
-	//	f = fopen (filename, "wb");
+	//	f = fopen (filename, "rw");
 	//	if (!f)
 	//		gi.error ("Couldn't open %s", filename);
 	//
@@ -649,7 +649,7 @@ public class GameSave extends GameFunc {
 	//	void	*base;
 	//	edict_t	*ent;
 	//
-	//	f = fopen (filename, "rb");
+	//	f = fopen (filename, "r");
 	//	if (!f)
 	//		gi.error ("Couldn't open %s", filename);
 	//

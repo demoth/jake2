@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.17 2004-02-04 20:33:35 rst Exp $
+// $Id: CM.java,v 1.18 2004-02-05 21:32:40 rst Exp $
 
 package jake2.qcommon;
 
@@ -270,7 +270,7 @@ public class CM extends Game {
 		cmod_base = buf;
 
 		// load into heap
-		CMod_LoadSurfaces(header.lumps[LUMP_TEXINFO]);
+		CMod_LoadSurfaces(header.lumps[LUMP_TEXINFO]);	// ok.
 		CMod_LoadLeafs(header.lumps[LUMP_LEAFS]);
 		CMod_LoadLeafBrushes(header.lumps[LUMP_LEAFBRUSHES]);
 		CMod_LoadPlanes(header.lumps[LUMP_PLANES]);
@@ -364,7 +364,6 @@ public class CM extends Game {
 		numtexinfo = count;
 
 		for (i = 0; i < count; i++) {
-
 			out = map_surfaces[i] = new mapsurface_t();
 			in = new texinfo_t(cmod_base, l.fileofs + i * texinfo_t.SIZE, texinfo_t.SIZE);
 
@@ -487,7 +486,6 @@ public class CM extends Game {
 
 		numleafs = count;
 		numclusters = 0;
-
 		for (i = 0; i < count; i++) {
 
 			in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE + l.fileofs, qfiles.dleaf_t.SIZE);

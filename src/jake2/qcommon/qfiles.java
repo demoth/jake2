@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.12 2004-02-02 21:47:00 rst Exp $
+ * $Id: qfiles.java,v 1.13 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,26 +52,6 @@ public class qfiles {
 	
 	========================================================================
 	*/
-
-	//	#define IDPAKHEADER		(('K'<<24)+('C'<<16)+('A'<<8)+'P')
-
-	// gibts schon in FS
-	/*
-		typedef struct
-		{
-			char	name[56];
-			int		filepos, filelen;
-		} dpackfile_t;
-	
-		typedef struct
-		{
-			int		ident;		// == IDPAKHEADER
-			int		dirofs;
-			int		dirlen;
-		} dpackheader_t;
-	*/
-
-	//	#define	MAX_FILES_IN_PACK	4096
 
 	/*
 	========================================================================
@@ -371,70 +351,8 @@ public class qfiles {
 	*/
 
 	public static final int IDBSPHEADER = (('P'<<24)+('S'<<16)+('B'<<8)+'I');
-	// little-endian "IBSP"
-
-	//	#define BSPVERSION	38
-
-	// upper design bounds
-	// leaffaces, leafbrushes, planes, and verts are still bounded by
-	// 16 bit short limits
-	//	#define	MAX_MAP_MODELS		1024
-	//	#define	MAX_MAP_BRUSHES		8192
-	//	#define	MAX_MAP_ENTITIES	2048
-	//	#define	MAX_MAP_ENTSTRING	0x40000
-	//	#define	MAX_MAP_TEXINFO		8192
-
-	//	#define	MAX_MAP_AREAS		256
-	//	#define	MAX_MAP_AREAPORTALS	1024
-	//	#define	MAX_MAP_PLANES		65536
-	//	#define	MAX_MAP_NODES		65536
-	//	#define	MAX_MAP_BRUSHSIDES	65536
-	//	#define	MAX_MAP_LEAFS		65536
-	//	#define	MAX_MAP_VERTS		65536
-	//	#define	MAX_MAP_FACES		65536
-	//	#define	MAX_MAP_LEAFFACES	65536
-	//	#define	MAX_MAP_LEAFBRUSHES 65536
-	//	#define	MAX_MAP_PORTALS		65536
-	//	#define	MAX_MAP_EDGES		128000
-	//	#define	MAX_MAP_SURFEDGES	256000
-	//	#define	MAX_MAP_LIGHTING	0x200000
-	//	#define	MAX_MAP_VISIBILITY	0x100000
-
-	// key / value pair sizes
-
-	//	#define	MAX_KEY		32
-	//	#define	MAX_VALUE	1024
 
 	// =============================================================================
-
-	// gibts schon in qcommon
-	/*
-		typedef struct
-		{
-			int		fileofs, filelen;
-		} lump_t;
-	*/
-
-	//	#define	LUMP_ENTITIES		0
-	//	#define	LUMP_PLANES			1
-	//	#define	LUMP_VERTEXES		2
-	//	#define	LUMP_VISIBILITY		3
-	//	#define	LUMP_NODES			4
-	//	#define	LUMP_TEXINFO		5
-	//	#define	LUMP_FACES			6
-	//	#define	LUMP_LIGHTING		7
-	//	#define	LUMP_LEAFS			8
-	//	#define	LUMP_LEAFFACES		9
-	//	#define	LUMP_LEAFBRUSHES	10
-	//	#define	LUMP_EDGES			11
-	//	#define	LUMP_SURFEDGES		12
-	//	#define	LUMP_MODELS			13
-	//	#define	LUMP_BRUSHES		14
-	//	#define	LUMP_BRUSHSIDES		15
-	//	#define	LUMP_POP			16
-	//	#define	LUMP_AREAS			17
-	//	#define	LUMP_AREAPORTALS	18
-	//	#define	HEADER_LUMPS		19
 
 	public static class dheader_t {
 
@@ -494,21 +412,9 @@ public class qfiles {
 		}
 	}
 
-	// 0-2 are axial planes
-	//	#define	PLANE_X			0
-	//	#define	PLANE_Y			1
-	//	#define	PLANE_Z			2
-
-	// 3-5 are non-axial planes snapped to the nearest
-	// #define	PLANE_ANYX		3
-	// #define	PLANE_ANYY		4
-	// #define	PLANE_ANYZ		5
 
 	// planes (x&~1) and (x&~1)+1 are always opposites
-
 	public static class dplane_t {
-
-		// planes (x&~1) and (x&~1)+1 are always opposites
 
 		public dplane_t(ByteBuffer bb) {
 			bb.order(ByteOrder.LITTLE_ENDIAN);
@@ -527,57 +433,6 @@ public class qfiles {
 
 		public static final int SIZE = 3 * 4 + 4 + 4;
 	}
-
-	//
-	// contents flags are seperate bits
-	// a given brush can contribute multiple content bits
-	// multiple brushes can be in a single leaf
-	//
-	// these definitions also need to be in q_shared.h!
-	//
-	// lower bits are stronger, and will eat weaker brushes completely
-	//	#define	CONTENTS_SOLID			1		// an eye is never valid in a solid
-	//	#define	CONTENTS_WINDOW			2		// translucent, but not watery
-	//	#define	CONTENTS_AUX			4
-	//	#define	CONTENTS_LAVA			8
-	//	#define	CONTENTS_SLIME			16
-	//	#define	CONTENTS_WATER			32
-	//	#define	CONTENTS_MIST			64
-	//	#define	LAST_VISIBLE_CONTENTS	64
-	//
-	// remaining contents are non-visible, and don't eat brushes
-	//
-	//	#define	CONTENTS_AREAPORTAL		0x8000
-	//
-	//	#define	CONTENTS_PLAYERCLIP		0x10000
-	//	#define	CONTENTS_MONSTERCLIP	0x20000
-	//
-	// currents can be added to any other contents, and may be mixed
-	//	#define	CONTENTS_CURRENT_0		0x40000
-	//	#define	CONTENTS_CURRENT_90		0x80000
-	//	#define	CONTENTS_CURRENT_180	0x100000
-	//	#define	CONTENTS_CURRENT_270	0x200000
-	//	#define	CONTENTS_CURRENT_UP		0x400000
-	//	#define	CONTENTS_CURRENT_DOWN	0x800000
-	//
-	//	#define	CONTENTS_ORIGIN			0x1000000	// removed before bsping an entity
-	//
-	//	#define	CONTENTS_MONSTER		0x2000000	// should never be on a brush, only in game
-	//	#define	CONTENTS_DEADMONSTER	0x4000000
-	//	#define	CONTENTS_DETAIL			0x8000000	// brushes to be added after vis leafs
-	//	#define	CONTENTS_TRANSLUCENT	0x10000000	// auto set if any surface has trans
-	//	#define	CONTENTS_LADDER			0x20000000
-	//
-	//	#define	SURF_LIGHT		0x1		// value will hold the light strength
-	//
-	//	#define	SURF_SLICK		0x2		// effects game physics
-	//
-	//	#define	SURF_SKY		0x4		// don't draw, but add to skybox
-	//	#define	SURF_WARP		0x8		// turbulent water warp
-	//	#define	SURF_TRANS33	0x10
-	//	#define	SURF_TRANS66	0x20
-	//	#define	SURF_FLOWING	0x40	// scroll towards angle
-	//	#define	SURF_NODRAW		0x80	// don't bother referencing the texture
 
 	public static class dnode_t {
 
@@ -617,18 +472,7 @@ public class qfiles {
 		public static int SIZE = 4 + 8 + 6 + 6 + 2 + 2; // counting both sides
 	}
 	
-	// gibts schon in qcommon
-	/*
-	 	public static class texinfo_t
-		{
-			public float[][] vecs = new float[2][4]; // [s/t][xyz offset]
-			public int flags; // miptex flags + overrides
-			public int value; // light emission, etc
-			public String texture;
-			// char texture[32];	// texture name (textures/*.wal)
-			public int nexttexinfo; // for animations, -1 = end of chain
-		}
-	*/
+
 
 	// note that edge 0 is never used, because negative edge nums are used for
 	// counterclockwise use of the edge in a face
@@ -637,8 +481,6 @@ public class qfiles {
 		// unsigned short v[2];
 		int v[] = { 0, 0 };
 	}
-
-	//	#define	MAXLIGHTMAPS	4
 	
 	public static class dface_t {
 		

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.8 2004-02-02 12:01:28 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.9 2004-02-05 21:32:41 rst Exp $
 
 package jake2.server;
 
@@ -219,14 +219,14 @@ public class SV_CCMDS extends SV_ENTS {
 		Com.DPrintf("CopyFile (" + src + ", " + dst + ")\n");
 
 		try {
-			f1 = new RandomAccessFile(src, "rb");
+			f1 = new RandomAccessFile(src, "r");
 		}
 		catch (Exception e) {
 			return;
 		}
 		try {
 
-			f2 = new RandomAccessFile(dst, "wb");
+			f2 = new RandomAccessFile(dst, "rw");
 		}
 		catch (Exception e) {
 			try {
@@ -345,7 +345,7 @@ public class SV_CCMDS extends SV_ENTS {
 		name = FS.Gamedir() + "/save/current/" + sv.name + ".sv2";
 
 		try {
-			f = new RandomAccessFile(name, "wb");
+			f = new RandomAccessFile(name, "rw");
 		}
 		catch (Exception e) {
 			Com.Printf("Failed to open " + name + "\n");
@@ -383,7 +383,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 		name = FS.Gamedir() + "/save/current/" + sv.name + ".sv2";
 		try {
-			f = new RandomAccessFile(name, "rb");
+			f = new RandomAccessFile(name, "r");
 		}
 		catch (Exception e) {
 			Com.Printf("Failed to open " + name + "\n");
@@ -424,7 +424,7 @@ public class SV_CCMDS extends SV_ENTS {
 		Com.DPrintf("SV_WriteServerFile(" + (autosave ? "true" : "false") + ")\n");
 
 		name = FS.Gamedir() + "/save/current/server.ssv";
-		f = new RandomAccessFile(name, "wb");
+		f = new RandomAccessFile(name, "rw");
 		if (f == null) {
 			Com.Printf("Couldn't write " + name + "\n");
 			return;
@@ -493,7 +493,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 		name = FS.Gamedir() + "/save/current/server.ssv";
 		try {
-			f = new RandomAccessFile(name, "rb");
+			f = new RandomAccessFile(name, "r");
 		}
 		catch (FileNotFoundException e1) {
 			Com.Printf("Couldn't read " + name + "\n");
@@ -696,7 +696,7 @@ public class SV_CCMDS extends SV_ENTS {
 		// make sure the server.ssv file exists
 		name = FS.Gamedir() + "/save/" + Cmd.Argv(1) + "/server.ssv";
 		try {
-			f = new RandomAccessFile(name, "rb");
+			f = new RandomAccessFile(name, "r");
 		}
 		catch (FileNotFoundException e) {
 			Com.Printf("No such savegame: " + name + "\n");
@@ -978,7 +978,7 @@ public class SV_CCMDS extends SV_ENTS {
 		Com.Printf("recording to " + name + ".\n");
 		FS.CreatePath(name);
 		try {
-			svs.demofile = new RandomAccessFile(name, "wb");
+			svs.demofile = new RandomAccessFile(name, "rw");
 		}
 		catch (Exception e) {
 			Com.Printf("ERROR: couldn't open.\n");

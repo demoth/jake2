@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netadr_t.java,v 1.3 2004-01-17 20:34:46 rst Exp $
+// $Id: netadr_t.java,v 1.4 2004-02-05 21:32:40 rst Exp $
 
 package jake2.qcommon;
 
@@ -31,7 +31,7 @@ public class netadr_t {
 
 	public int type;
 	public int port;
-	public byte ip[] = new byte[4];
+	public byte ip[] = {1,2,3,4};
 	//public byte ipx[] = new byte[10];
 	
 	InetAddress ia = null;

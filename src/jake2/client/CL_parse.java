@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.8 2004-02-04 14:33:57 hoz Exp $
+ * $Id: CL_parse.java,v 1.9 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,7 +195,7 @@ public class CL_parse extends CL_view {
 	*/
 	static void RegisterSounds() {
 		int i;
-		//TODO: implement!
+		//TODO:implement RegisterSound !
 		//		S_BeginRegistration();
 		//		CL_RegisterTEntSounds();
 		//		for (i = 1; i < MAX_SOUNDS; i++) {
@@ -239,7 +239,7 @@ public class CL_parse extends CL_view {
 
 			FS.CreatePath(name);
 
-			cls.download = fopen(name, "wb");
+			cls.download = fopen(name, "rw");
 			if (cls.download == null) {
 				net_message.readcount += size;
 				Com.Printf("Failed to open " + cls.downloadtempname + "\n");
@@ -669,7 +669,7 @@ public class CL_parse extends CL_view {
 		//
 		while (true) {
 			if (net_message.readcount > net_message.cursize) {
-				Com.Error(ERR_DROP, "CL_ParseServerMessage: Bad server message");
+				Com.Error(ERR_FATAL, "CL_ParseServerMessage: Bad server message:");
 				break;
 			}
 

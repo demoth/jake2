@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.12 2004-02-02 19:13:26 rst Exp $
+// $Id: SV_INIT.java,v 1.13 2004-02-05 21:32:41 rst Exp $
 
 package jake2.server;
 
@@ -139,7 +139,7 @@ public class SV_INIT extends Globals  {
 
 		name = FS.Gamedir() + "/save/current/" + sv.name + ".sav";
 		try {
-			f = new RandomAccessFile(name, "rb");
+			f = new RandomAccessFile(name, "r");
 		}
 
 		catch (Exception e) {

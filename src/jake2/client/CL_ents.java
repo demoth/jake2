@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.6 2004-02-01 22:05:30 hoz Exp $
+ * $Id: CL_ents.java,v 1.7 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -233,7 +233,7 @@ public class CL_ents extends CL_inv {
 	public static void ParsePacketEntities(frame_t oldframe, frame_t newframe) {
 		int newnum;
 		int bits=0;
-		// TODO: could give a nulli
+
 		entity_state_t oldstate=null;
 		int oldindex, oldnum;
 

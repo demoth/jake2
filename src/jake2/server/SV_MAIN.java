@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.14 2004-02-02 21:47:00 rst Exp $
+// $Id: SV_MAIN.java,v 1.15 2004-02-05 21:32:41 rst Exp $
 
 package jake2.server;
 
@@ -261,10 +261,10 @@ public class SV_MAIN extends SV_GAME {
 	public static void SVC_DirectConnect() {
 		//char		userinfo[MAX_INFO_STRING];
 		String userinfo;
-		netadr_t adr = new netadr_t();
+		netadr_t adr;
 		int i;
-		client_t cl; //, newcl;
-		//client_t	temp= new client_t();
+		client_t cl;
+		
 		edict_t ent;
 		int edictnum;
 		int version;
@@ -397,6 +397,7 @@ public class SV_MAIN extends SV_GAME {
 		svs.clients[i].datagram.allowoverflow = true;
 		svs.clients[i].lastmessage = svs.realtime; // don't timeout
 		svs.clients[i].lastconnect = svs.realtime;
+		Com.DPrintf("new client added.");
 	}
 
 	public static int Rcon_Validate() {
@@ -478,6 +479,7 @@ public class SV_MAIN extends SV_GAME {
 
 		c = Cmd.Argv(0);
 		Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
+		Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
 		if (0 == strcmp(c, "ping"))
 			SVC_Ping();
@@ -896,7 +898,7 @@ public class SV_MAIN extends SV_GAME {
 	===============
 	*/
 	public static void SV_Init() {
-		SV_CCMDS.SV_InitOperatorCommands ();
+		SV_CCMDS.SV_InitOperatorCommands ();		//ok.
 
 		rcon_password = Cvar.Get("rcon_password", "", 0);
 		Cvar.Get("skill", "1", 0);
@@ -1016,5 +1018,4 @@ public class SV_MAIN extends SV_GAME {
 		//memset (&svs, 0, sizeof(svs));
 		svs = new server_static_t();
 	}
-
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.02.2004 by RST.
-// $Id: TestMD4.java,v 1.1 2004-02-02 19:13:26 rst Exp $
+// $Id: TestMD4.java,v 1.2 2004-02-05 21:32:41 rst Exp $
 
 package jake2.qcommon;
 
@@ -1021,7 +1021,7 @@ import jake2.util.Lib;
 //  int len;
 //  unsigned char buffer[1024], digest[16];
 //
-//  if ((file = fopen (filename, "rb")) == NULL)
+//  if ((file = fopen (filename, "r")) == NULL)
 //    printf ("%s can't be opened\n", filename);
 //
 //  else {

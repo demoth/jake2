@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.18 2004-02-01 23:31:38 rst Exp $
+// $Id: Lib.java,v 1.19 2004-02-05 21:32:41 rst Exp $
 
 package jake2.util;
 
@@ -330,6 +330,7 @@ public class Lib {
 			return new RandomAccessFile(name, mode);
 		}
 		catch (Exception e) {
+			Com.DPrintf("Could not open file:" + name);
 			return null;
 		}
 	}

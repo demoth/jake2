@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.17 2004-01-30 18:43:58 cwei Exp $
+ * $Id: Console.java,v 1.18 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -102,7 +102,7 @@ public final class Console extends Globals {
 //			00158 
 //			00159         Com_Printf ("Dumped console text to %s.\n", name);
 //			00160         FS_CreatePath (name);
-//			00161         f = fopen (name, "w");
+//			00161         f = fopen (name, "rw");
 //			00162         if (!f)
 //			00163         {
 //			00164                 Com_Printf ("ERROR: couldn't open.\n");

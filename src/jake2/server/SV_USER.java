@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.3 2004-02-02 21:47:00 rst Exp $
+// $Id: SV_USER.java,v 1.4 2004-02-05 21:32:41 rst Exp $
 
 package jake2.server;
 
@@ -660,5 +660,4 @@ public class SV_USER extends SV_SEND {
 			}
 		}
 	}
-
 }

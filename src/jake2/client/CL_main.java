@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.20 2004-02-03 09:33:52 hoz Exp $
+ * $Id: CL_main.java,v 1.21 2004-02-05 21:32:39 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -141,7 +141,7 @@ public class CL_main extends CL_pred {
 
 				Com.Printf("recording to " + name + ".\n");
 				FS.CreatePath(name);
-				cls.demofile = new RandomAccessFile(name, "wb");
+				cls.demofile = new RandomAccessFile(name, "rw");
 				if (cls.demofile == null) {
 					Com.Printf("ERROR: couldn't open.\n");
 					return;
@@ -524,7 +524,7 @@ public class CL_main extends CL_pred {
 		}
 
 		VectorClear(cl.refdef.blend);
-		re.CinematicSetPalette(null);
+		//re.CinematicSetPalette(null);
 
 		Menu.ForceMenuOff();
 
@@ -545,6 +545,7 @@ public class CL_main extends CL_pred {
 
 		// stop download
 		if (cls.download != null) {
+			fclose(cls.download);
 			cls.download = null;
 			//			fclose(cls.download);
 			//			cls.download = NULL;
@@ -1453,7 +1454,7 @@ public class CL_main extends CL_pred {
 			return;
 
 		path = FS.Gamedir() + "/config.cfg";
-		f = fopen(path, "w");
+		f = fopen(path, "rw");
 		if (f == null) {
 			Com.Printf("Couldn't write config.cfg.\n");
 			return;
@@ -1658,9 +1659,9 @@ public class CL_main extends CL_pred {
 
 		// all archived variables will now be loaded
 
-		Console.Init();
+		Console.Init();	//ok
 
-		S.Init();
+		S.Init();	//empty
 		VID.Init();
 
 		V.Init();

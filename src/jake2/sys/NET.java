@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.11 2004-02-02 12:01:28 hoz Exp $
+ * $Id: NET.java,v 1.12 2004-02-05 21:32:41 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.util.Lib;
 
 import java.net.*;
 
@@ -329,9 +330,12 @@ public final class NET extends Defines {
 //		int			protocol;
 //		int			err;
 	
+		
 		if (NET_GetLoopPacket (sock, net_from, net_message))
+		{
+			Com.DPrintf("reading packet on sock=" + sock + " ok! len=" + net_message.cursize);
 			return true;
-	
+		}
 		net_socket = ip_sockets[sock];
 			
 		if (net_socket == null)
@@ -394,6 +398,7 @@ public final class NET extends Defines {
 	
 	public static void NET_SendPacket (int sock, int length, byte [] data, netadr_t to)
 	{
+		Com.DPrintf("NET_SendPacket: sock=" + sock  + " len=" + length + "data=" + Lib.hexDump(data, 32, false));
 		int		ret;
 		//struct sockaddr_in	addr;
 		
@@ -533,8 +538,8 @@ public final class NET extends Defines {
 	*/
 	public static void NET_Init ()
 	{
-	}
-	
+		//empty
+	}	
 	
 	// TODO: check this, im not a network socket expert.
 	/*

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.6 2004-02-04 18:10:55 rst Exp $
+// $Id: PlayerClient.java,v 1.7 2004-02-05 21:32:41 rst Exp $
 
 package jake2.game;
 
@@ -724,7 +724,7 @@ public class PlayerClient extends PlayerHud {
 		gi.unlinkentity(body);
 		body.s = ent.s;
 
-		//TODO: well done ?
+		//TODO: ok ?
 		//body.s.number = body - g_edicts;
 		body.s.number = i;
 

@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.4 2004-01-08 22:38:16 rst Exp $
+// $Id: client_respawn_t.java,v 1.5 2004-02-05 21:32:40 rst Exp $
 
 package jake2.game;
 
@@ -35,11 +35,10 @@ public class client_respawn_t
 	int enterframe; // level.framenum the client entered the game
 	int score; // frags, etc
 	float cmd_angles[] = { 0, 0, 0 }; // angles sent over in the last command
-
 	boolean spectator; // client is a spectator
 
 	public void clear() {
-		coop_respawn = null;
+		coop_respawn = new client_persistant_t();
 		enterframe = 0;
 		score = 0;
 		cmd_angles = new float[3];

@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.20 2004-02-04 11:24:15 hoz Exp $
+ * $Id: Qcommon.java,v 1.21 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -88,7 +88,7 @@ public final class Qcommon extends Globals {
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-			Globals.developer= Cvar.Get("developer", "0", 0);
+			Globals.developer= Cvar.Get("developer", "1", 0);
 			Globals.timescale= Cvar.Get("timescale", "1", 0);
 			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
@@ -105,7 +105,7 @@ public final class Qcommon extends Globals {
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 			NET.NET_Init();
-			Netchan.Init();
+			Netchan.Netchan_Init();
 
 			//SV_MAIN.SV_Init();
 			CL.Init();
@@ -137,7 +137,6 @@ public final class Qcommon extends Globals {
 	 */
 	public static void Init(String[] args) {
 		try {
-			Z.chain.next= Z.chain.prev= Z.chain;
 
 			// prepare enough of the subsystems to handle
 			// cvar and command buffer management
@@ -174,7 +173,7 @@ public final class Qcommon extends Globals {
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-			Globals.developer= Cvar.Get("developer", "0", 0);
+			Globals.developer= Cvar.Get("developer", "1", 0);
 			Globals.timescale= Cvar.Get("timescale", "1", 0);
 			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
@@ -190,10 +189,10 @@ public final class Qcommon extends Globals {
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
-			NET.NET_Init();
-			Netchan.Init();
+			NET.NET_Init();	//ok
+			Netchan.Netchan_Init();	//ok
 
-			SV_MAIN.SV_Init();
+			SV_MAIN.SV_Init();	//ok
 			CL.Init();
 
 			// add + commands from command line

@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.12 2004-01-31 16:56:11 rst Exp $
+ * $Id: SZ.java,v 1.13 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.util.Arrays;
+
 import jake2.Defines;
 
 /**
@@ -40,6 +42,8 @@ public final class SZ {
 	
 	public static void Init(sizebuf_t buf, byte data[], int length) {
 		//memset (buf, 0, sizeof(*buf));
+		//TODO: slow but save;
+		Arrays.fill(data,(byte)0);
 		buf.data = data;
 		buf.maxsize = length;
 	}
@@ -82,8 +86,8 @@ public final class SZ {
 		System.arraycopy(data, 0, buf.data, GetSpace(buf, length), length);
 	}
 
+	// 
 	public static void Print(sizebuf_t buf, String data) {
-	
 		int length = data.length();
 		byte str[] = data.getBytes();
 	
@@ -96,7 +100,6 @@ public final class SZ {
 				System.arraycopy(str, 0, buf.data, GetSpace(buf, length)-1, length);
 				//memcpy(SZ_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0
 			}
-	
 		} else
 			// first print.
 			System.arraycopy(str, 0, buf.data, GetSpace(buf, length), length);

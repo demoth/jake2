@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.17 2004-02-04 18:10:55 rst Exp $
+// $Id: GameBase.java,v 1.18 2004-02-05 21:32:41 rst Exp $
 
 /** Father of all Objects. */
 
@@ -738,8 +738,10 @@ public class GameBase extends Globals {
 				Game.ClientBeginServerFrame(ent);
 				continue;
 			}
-
-			G_RunEntity(ent);
+	
+	
+			//TODO: for debugging
+			//G_RunEntity(ent);
 		}
 
 		// see if it is time to end a deathmatch

@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.14 2004-02-04 11:24:15 hoz Exp $
+ * $Id: Netchan.java,v 1.15 2004-02-05 21:32:40 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,26 +40,12 @@ import jake2.util.Lib;
  */
 public final class Netchan extends SV_MAIN {
 
-	/**
-	 * TODO implement Netchan.Init()
-	 */
-	public static void Init() {
-		int port;
-
-		// pick a port value that should be nice and random
-		port = Sys.Milliseconds() & 0xffff;
-
-		showpackets = Cvar.Get("showpackets", "0", 0);
-		showdrop = Cvar.Get("showdrop", "0", 0);
-		qport = Cvar.Get("qport", "" + port, Defines.CVAR_NOSET);
-	}
-
 	/*
 	
 	packet header
 	-------------
 	31	sequence
-	1	does this message contain a reliable payload
+	1	does this message contains a reliable payload
 	31	acknowledge sequence
 	1	acknowledge receipt of even/odd message
 	16	qport
