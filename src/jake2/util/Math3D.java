@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.7 2004-01-17 20:34:47 rst Exp $
+// $Id: Math3D.java,v 1.8 2004-01-23 18:09:08 cwei Exp $
 
 package jake2.util;
 
@@ -402,7 +402,7 @@ public class Math3D extends Lib {
 		int i;
 		float dist1, dist2;
 		int sides;
-		float corners[][] = new float[3][2];
+		float corners[][] = new float[2][3];
 
 		for (i = 0; i < 3; i++) {
 			if (p.normal[i] < 0) {
