@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.3 2003-11-18 22:00:25 hoz Exp $
+ * $Id: Globals.java,v 1.4 2003-11-25 18:18:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -49,6 +49,9 @@ public final class Globals {
 	public static final String __DATE__ = "2003";
 
 	public static final float VERSION = 3.21f;
+
+	public static final String BASEDIRNAME = "baseq2";
+
 	
 	/*
 	 * global variables
