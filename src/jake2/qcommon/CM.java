@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.21 2004-02-08 11:14:14 hoz Exp $
+// $Id: CM.java,v 1.22 2004-02-11 15:07:21 cwei Exp $
 
 package jake2.qcommon;
 
@@ -1472,6 +1472,8 @@ public class CM extends Game {
 		//memset(& trace_trace, 0, sizeof(trace_trace));
 
 		trace_trace = new trace_t();
+		// TODO bugfix cwei
+		trace_trace.ent = new edict_t(0);
 		trace_trace.fraction = 1;
 		trace_trace.surface = nullsurface.c;
 
