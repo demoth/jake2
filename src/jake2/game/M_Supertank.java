@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Supertank.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Supertank.java,v 1.5 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -500,7 +500,7 @@ public class M_Supertank extends GamePWeapon {
 			Math3D.VectorSubtract(vec, start, dir);
 			Math3D.VectorNormalize(dir);
 
-			monster_fire_rocket(self, start, dir, 50, 500, flash_number);
+			Monster.monster_fire_rocket(self, start, dir, 50, 500, flash_number);
 			return true;
 		}
 	};
@@ -531,7 +531,7 @@ public class M_Supertank extends GamePWeapon {
 				Math3D.VectorNormalize(forward);
 			}
 
-			monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
+			Monster.monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 			return true;
 		}
 	};

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss31.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Boss31.java,v 1.5 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -408,7 +408,7 @@ public class M_Boss31 extends GameWeapon {
 									 int kick, 
 									 float damage_radius, 
 									 int flashtype)*/
-			monster_fire_bfg(self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
+			Monster.monster_fire_bfg(self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
 			return true;
 		}
 	};
@@ -431,7 +431,7 @@ public class M_Boss31 extends GameWeapon {
 			Math3D.VectorSubtract(target, start, forward);
 			Math3D.VectorNormalize(forward);
 
-			monster_fire_bullet(
+			Monster.monster_fire_bullet(
 				self,
 				start,
 				forward,
@@ -468,7 +468,7 @@ public class M_Boss31 extends GameWeapon {
 			Math3D.VectorSubtract(target, start, forward);
 			Math3D.VectorNormalize(forward);
 
-			monster_fire_bullet(
+			Monster.monster_fire_bullet(
 				self,
 				start,
 				forward,

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.6 2003-12-09 22:12:43 rst Exp $
+// $Id: GameAI.java,v 1.7 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -130,411 +130,9 @@ public class GameAI extends GameUtil {
 		}
 	};
 
-	// FIXME mosnters should call these with a totally accurate direction
-	//	and we can mess it up based on skill.  Spread should be for normal
-	//	and we can tighten or loosen based on skill.  We could muck with
-	//	the damages too, but I'm not sure that's such a good idea.
-	public static void monster_fire_bullet(
-		edict_t self,
-		float[] start,
-		float[] dir,
-		int damage,
-		int kick,
-		int hspread,
-		int vspread,
-		int flashtype) {
-		Fire.fire_bullet(
-			self,
-			start,
-			dir,
-			damage,
-			kick,
-			hspread,
-			vspread,
-			MOD_UNKNOWN);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the shotgun. */
-	public static void monster_fire_shotgun(
-		edict_t self,
-		float[] start,
-		float[] aimdir,
-		int damage,
-		int kick,
-		int hspread,
-		int vspread,
-		int count,
-		int flashtype) {
-		Fire.fire_shotgun(
-			self,
-			start,
-			aimdir,
-			damage,
-			kick,
-			hspread,
-			vspread,
-			count,
-			MOD_UNKNOWN);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the blaster. */
-	public static void monster_fire_blaster(
-		edict_t self,
-		float[] start,
-		float[] dir,
-		int damage,
-		int speed,
-		int flashtype,
-		int effect) {
-		Fire.fire_blaster(
-			self,
-			start,
-			dir,
-			damage,
-			speed,
-			effect,
-			false);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the grenade. */
-	public static void monster_fire_grenade(
-		edict_t self,
-		float[] start,
-		float[] aimdir,
-		int damage,
-		int speed,
-		int flashtype) {
-		Fire.fire_grenade(
-			self,
-			start,
-			aimdir,
-			damage,
-			speed,
-			2.5f,
-			damage + 40);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the rocket. */
-	public static void monster_fire_rocket(
-		edict_t self,
-		float[] start,
-		float[] dir,
-		int damage,
-		int speed,
-		int flashtype) {
-		Fire.fire_rocket(
-			self,
-			start,
-			dir,
-			damage,
-			speed,
-			damage + 20,
-			damage);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the railgun. */
-	public static void monster_fire_railgun(
-		edict_t self,
-		float[] start,
-		float[] aimdir,
-		int damage,
-		int kick,
-		int flashtype) {
-		Fire.fire_rail(self, start, aimdir, damage, kick);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
-	/** The Moster fires the bfg. */
-	public static void monster_fire_bfg(
-		edict_t self,
-		float[] start,
-		float[] aimdir,
-		int damage,
-		int speed,
-		int kick,
-		float damage_radius,
-		int flashtype) {
-		Fire.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
-
-		gi.WriteByte(svc_muzzleflash2);
-		gi.WriteShort(self.s.number);
-		gi.WriteByte(flashtype);
-		gi.multicast(start, MULTICAST_PVS);
-	}
-
 	public static void AttackFinished(edict_t self, float time) {
 		self.monsterinfo.attack_finished= level.time + time;
 	}
-
-	public static EntThinkAdapter monster_think= new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			M.M_MoveFrame(self);
-			if (self.linkcount != self.monsterinfo.linkcount) {
-				self.monsterinfo.linkcount= self.linkcount;
-				M.M_CheckGround(self);
-			}
-			M.M_CatagorizePosition(self);
-			M.M_WorldEffects(self);
-			M.M_SetEffects(self);
-			return true;
-		}
-	};
-
-	public static EntThinkAdapter monster_triggered_spawn=
-		new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			self.s.origin[2] += 1;
-			KillBox(self);
-
-			self.solid= SOLID_BBOX;
-			self.movetype= MOVETYPE_STEP;
-			self.svflags &= ~SVF_NOCLIENT;
-			self.air_finished= level.time + 12;
-			gi.linkentity(self);
-
-			monster_start_go(self);
-
-			if (self.enemy != null
-				&& 0 == (self.spawnflags & 1)
-				&& 0 == (self.enemy.flags & FL_NOTARGET)) {
-				FoundTarget(self);
-			} else {
-				self.enemy= null;
-			}
-			return true;
-		}
-	};
-
-	//	we have a one frame delay here so we don't telefrag the guy who activated us
-	public static EntUseAdapter monster_triggered_spawn_use=
-		new EntUseAdapter() {
-
-		public void use(edict_t self, edict_t other, edict_t activator) {
-			self.think= monster_triggered_spawn;
-			self.nextthink= level.time + FRAMETIME;
-			if (activator.client != null)
-				self.enemy= activator;
-			self.use= monster_use;
-		}
-	};
-
-	/*
-	================
-	monster_death_use
-	
-	When a monster dies, it fires all of its targets with the current
-	enemy as activator.
-	================
-	*/
-	public static void monster_death_use(edict_t self) {
-		self.flags &= ~(FL_FLY | FL_SWIM);
-		self.monsterinfo.aiflags &= AI_GOOD_GUY;
-
-		if (self.item != null) {
-			Drop_Item(self, self.item);
-			self.item= null;
-		}
-
-		if (self.deathtarget != null)
-			self.target= self.deathtarget;
-
-		if (self.target == null)
-			return;
-
-		G_UseTargets(self, self.enemy);
-	}
-
-	// ============================================================================
-	public static boolean monster_start(edict_t self) {
-		if (deathmatch.value != 0) {
-			G_FreeEdict(self);
-			return false;
-		}
-
-		if ((self.spawnflags & 4) != 0
-			&& 0 == (self.monsterinfo.aiflags & AI_GOOD_GUY)) {
-			self.spawnflags &= ~4;
-			self.spawnflags |= 1;
-			//		 gi.dprintf("fixed spawnflags on %s at %s\n", self.classname, vtos(self.s.origin));
-		}
-
-		if (0 == (self.monsterinfo.aiflags & AI_GOOD_GUY))
-			level.total_monsters++;
-
-		self.nextthink= level.time + FRAMETIME;
-		self.svflags |= SVF_MONSTER;
-		self.s.renderfx |= RF_FRAMELERP;
-		self.takedamage= DAMAGE_AIM;
-		self.air_finished= level.time + 12;
-		self.use= monster_use;
-		self.max_health= self.health;
-		self.clipmask= MASK_MONSTERSOLID;
-
-		self.s.skinnum= 0;
-		self.deadflag= DEAD_NO;
-		self.svflags &= ~SVF_DEADMONSTER;
-
-		if (null == self.monsterinfo.checkattack)
-			self.monsterinfo.checkattack= M_CheckAttack;
-		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
-
-		if (st.item != null) {
-			self.item= FindItemByClassname(st.item);
-			if (self.item != null)
-				gi.dprintf(
-					self.classname
-						+ " at "
-						+ Lib.vtos(self.s.origin)
-						+ " has bad item: "
-						+ st.item
-						+ "\n");
-		}
-
-		// randomize what frame they start on
-		if (self.monsterinfo.currentmove != null)
-			self.s.frame=
-				self.monsterinfo.currentmove.firstframe
-					+ (Lib.rand()
-						% (self.monsterinfo.currentmove.lastframe
-							- self.monsterinfo.currentmove.firstframe
-							+ 1));
-
-		return true;
-	}
-
-	public static void monster_start_go(edict_t self) {
-		float[] v= { 0, 0, 0 };
-
-		if (self.health <= 0)
-			return;
-
-		// check for target to combat_point and change to combattarget
-		if (self.target != null) {
-			boolean notcombat;
-			boolean fixup;
-			edict_t target= null;
-			notcombat= false;
-			fixup= false;
-
-			EdictIterator edit= null;
-
-			while ((edit= G_Find(edit, findByTarget, self.target)) != null) {
-				target= edit.o;
-				if (Lib.strcmp(target.classname, "point_combat") == 0) {
-					self.combattarget= self.target;
-					fixup= true;
-				} else {
-					notcombat= true;
-				}
-			}
-			if (notcombat && self.combattarget != null)
-				gi.dprintf(
-					self.classname
-						+ " at "
-						+ Lib.vtos(self.s.origin)
-						+ " has target with mixed types\n");
-			if (fixup)
-				self.target= null;
-		}
-
-		// validate combattarget
-		if (self.combattarget != null) {
-			edict_t target= null;
-
-			EdictIterator edit= null;
-			while ((edit= G_Find(edit, findByTarget, self.combattarget))
-				!= null) {
-				target= edit.o;
-
-				if (Lib.strcmp(target.classname, "point_combat") != 0) {
-					gi.dprintf(
-						self.classname
-							+ " at "
-							+ Lib.vtos(self.s.origin)
-							+ " has bad combattarget "
-							+ self.combattarget
-							+ " : "
-							+ target.classname
-							+ " at "
-							+ Lib.vtos(target.s.origin));
-				}
-			}
-		}
-
-		if (self.target != null) {
-			self.goalentity= self.movetarget= G_PickTarget(self.target);
-			if (null == self.movetarget) {
-				gi.dprintf(
-					self.classname
-						+ " can't find target "
-						+ self.target
-						+ " at "
-						+ Lib.vtos(self.s.origin)
-						+ "\n");
-				self.target= null;
-				self.monsterinfo.pausetime= 100000000;
-				self.monsterinfo.stand.think(self);
-			} else if (Lib.strcmp(self.movetarget.classname, "path_corner") == 0) {
-				Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
-				self.ideal_yaw= self.s.angles[YAW]= Math3D.vectoyaw(v);
-				self.monsterinfo.walk.think(self);
-				self.target= null;
-			} else {
-				self.goalentity= self.movetarget= null;
-				self.monsterinfo.pausetime= 100000000;
-				self.monsterinfo.stand.think(self);
-			}
-		} else {
-			self.monsterinfo.pausetime= 100000000;
-			self.monsterinfo.stand.think(self);
-		}
-
-		self.think= monster_think;
-		self.nextthink= level.time + FRAMETIME;
-	}
-
-	public static EntThinkAdapter monster_triggered_start=
-		new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			self.solid= SOLID_NOT;
-			self.movetype= MOVETYPE_NONE;
-			self.svflags |= SVF_NOCLIENT;
-			self.nextthink= 0;
-			self.use= monster_triggered_spawn_use;
-			return true;
-		}
-	};
 
 	public static EntThinkAdapter walkmonster_start_go= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
@@ -555,10 +153,10 @@ public class GameAI extends GameUtil {
 				self.yaw_speed= 20;
 			self.viewheight= 25;
 
-			monster_start_go(self);
+			Monster.monster_start_go(self);
 
 			if ((self.spawnflags & 2) != 0)
-				monster_triggered_start.think(self);
+				Monster.monster_triggered_start.think(self);
 			return true;
 		}
 	};
@@ -567,7 +165,7 @@ public class GameAI extends GameUtil {
 		public boolean think(edict_t self) {
 
 			self.think= walkmonster_start_go;
-			monster_start(self);
+			Monster.monster_start(self);
 			return true;
 		}
 	};
@@ -585,10 +183,10 @@ public class GameAI extends GameUtil {
 				self.yaw_speed= 10;
 			self.viewheight= 25;
 
-			monster_start_go(self);
+			Monster.monster_start_go(self);
 
 			if ((self.spawnflags & 2) != 0)
-				monster_triggered_start.think(self);
+				Monster.monster_triggered_start.think(self);
 			return true;
 		}
 	};
@@ -597,7 +195,7 @@ public class GameAI extends GameUtil {
 		public boolean think(edict_t self) {
 			self.flags |= FL_FLY;
 			self.think= flymonster_start_go;
-			monster_start(self);
+			Monster.monster_start(self);
 			return true;
 		}
 	};
@@ -608,10 +206,10 @@ public class GameAI extends GameUtil {
 				self.yaw_speed= 10;
 			self.viewheight= 10;
 
-			monster_start_go(self);
+			Monster.monster_start_go(self);
 
 			if ((self.spawnflags & 2) != 0)
-				monster_triggered_start.think(self);
+				Monster.monster_triggered_start.think(self);
 			return true;
 		}
 	};
@@ -622,7 +220,7 @@ public class GameAI extends GameUtil {
 			{
 				self.flags |= FL_SWIM;
 				self.think= swimmonster_start_go;
-				monster_start(self);
+				Monster.monster_start(self);
 				return true;
 			}
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Soldier.java,v 1.5 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -933,9 +933,9 @@ public class M_Soldier extends GamePWeapon {
 		}
 
 		if (self.s.skinnum <= 1) {
-			monster_fire_blaster(self, start, aim, 5, 600, flash_index, EF_BLASTER);
+			Monster.monster_fire_blaster(self, start, aim, 5, 600, flash_index, EF_BLASTER);
 		} else if (self.s.skinnum <= 3) {
-			monster_fire_shotgun(
+			Monster.monster_fire_shotgun(
 				self,
 				start,
 				aim,
@@ -949,7 +949,7 @@ public class M_Soldier extends GamePWeapon {
 			if (0 == (self.monsterinfo.aiflags & AI_HOLD_FRAME))
 				self.monsterinfo.pausetime = level.time + (3 + Lib.rand() % 8) * FRAMETIME;
 
-			monster_fire_bullet(self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
+			Monster.monster_fire_bullet(self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
 
 			if (level.time >= self.monsterinfo.pausetime)
 				self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;

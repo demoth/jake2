@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss32.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Boss32.java,v 1.5 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -979,7 +979,7 @@ public class M_Boss32 extends GameWeapon {
 			Math3D.VectorSubtract(vec, start, dir);
 			Math3D.VectorNormalize(dir);
 			gi.sound(self, CHAN_VOICE, sound_attack_bfg, 1, ATTN_NORM, 0);
-			monster_fire_bfg(self, start, dir, 50, 300, 100, 300, MZ2_MAKRON_BFG);
+			Monster.monster_fire_bfg(self, start, dir, 50, 300, 100, 300, MZ2_MAKRON_BFG);
 			return true;
 		}
 	};
@@ -1012,7 +1012,7 @@ public class M_Boss32 extends GameWeapon {
 			Math3D.VectorSubtract(self.pos1, start, dir);
 			Math3D.VectorNormalize(dir);
 
-			monster_fire_railgun(self, start, dir, 50, 100, MZ2_MAKRON_RAILGUN_1);
+			Monster.monster_fire_railgun(self, start, dir, 50, 100, MZ2_MAKRON_RAILGUN_1);
 
 			return true;
 		}
@@ -1055,7 +1055,7 @@ public class M_Boss32 extends GameWeapon {
 
 			Math3D.AngleVectors(dir, forward, null, null);
 
-			monster_fire_blaster(self, start, forward, 15, 1000, MZ2_MAKRON_BLASTER_1, EF_BLASTER);
+			Monster.monster_fire_blaster(self, start, forward, 15, 1000, MZ2_MAKRON_BLASTER_1, EF_BLASTER);
 
 			return true;
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Chick.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Chick.java,v 1.6 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -768,7 +768,7 @@ public class M_Chick extends GameWeapon {
 			Math3D.VectorSubtract(vec, start, dir);
 			Math3D.VectorNormalize(dir);
 
-			monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
+			Monster.monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
 			return true;
 		}
 	};

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.7 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Infantry.java,v 1.8 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -490,7 +490,7 @@ public class M_Infantry extends Game {
 				Math3D.AngleVectors(vec, forward, null, null);
 			}
 
-			monster_fire_bullet(self, start, forward, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
+			Monster.monster_fire_bullet(self, start, forward, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 			return true;
 		}
 	};

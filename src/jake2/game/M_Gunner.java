@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Gunner.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Gunner.java,v 1.6 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -657,7 +657,7 @@ public class M_Gunner extends Game {
 
 			Math3D.VectorSubtract(target, start, aim);
 			Math3D.VectorNormalize(aim);
-			monster_fire_bullet(self, start, aim, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
+			Monster.monster_fire_bullet(self, start, aim, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 
 			return true;
 		}
@@ -685,7 +685,7 @@ public class M_Gunner extends Game {
 			//FIXME : do a spread -225 -75 75 225 degrees around forward
 			Math3D.VectorCopy(forward, aim);
 
-			monster_fire_grenade(self, start, aim, 50, 600, flash_number);
+			Monster.monster_fire_grenade(self, start, aim, 50, 600, flash_number);
 			return true;
 		}
 	};

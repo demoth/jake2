@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Actor.java,v 1.5 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -789,7 +789,7 @@ public class M_Actor extends GameAI {
 		} else {
 			Math3D.AngleVectors(self.s.angles, forward, null, null);
 		}
-		monster_fire_bullet(
+		Monster.monster_fire_bullet(
 			self,
 			start,
 			forward,

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Medic.java,v 1.6 2003-12-09 22:12:43 rst Exp $
+// $Id: M_Medic.java,v 1.7 2003-12-17 10:07:20 rst Exp $
 
 package jake2.game;
 
@@ -596,7 +596,7 @@ public class M_Medic extends Game {
 			end[2] += self.enemy.viewheight;
 			Math3D.VectorSubtract(end, start, dir);
 
-			monster_fire_blaster(self, start, dir, 2, 1000, MZ2_MEDIC_BLASTER_1, effect);
+			Monster.monster_fire_blaster(self, start, dir, 2, 1000, MZ2_MEDIC_BLASTER_1, effect);
 			return true;
 		}
 	};
