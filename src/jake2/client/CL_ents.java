@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.9 2005-01-20 23:15:22 cawe Exp $
+ * $Id: CL_ents.java,v 1.10 2005-02-06 19:17:03 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -60,14 +60,17 @@ public class CL_ents {
 
 		total = MSG.ReadByte(Globals.net_message);
 		if ((total & Defines.U_MOREBITS1) != 0) {
+		    
 			b = MSG.ReadByte(Globals.net_message);
 			total |= b << 8;
 		}
 		if ((total & Defines.U_MOREBITS2) != 0) {
+		    
 			b = MSG.ReadByte(Globals.net_message);
 			total |= b << 16;
 		}
 		if ((total & Defines.U_MOREBITS3) != 0) {
+		    
 			b = MSG.ReadByte(Globals.net_message);
 			total |= b << 24;
 		}
