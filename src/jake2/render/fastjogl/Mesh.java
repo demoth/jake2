@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.4 2004-06-14 11:29:39 cwei Exp $
+ * $Id: Mesh.java,v 1.5 2004-06-16 10:52:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -298,6 +298,7 @@ public abstract class Mesh extends Light {
 		height = -lheight + 1.0f;
 		
 		int orderIndex = 0;
+		int index = 0;
 
 		// TODO shadow drawing with vertex arrays
 
@@ -317,15 +318,10 @@ public abstract class Mesh extends Light {
 
 			do
 			{
-				// normals and vertexes come from the frame list
-				/*
-				point[0] = verts[order[2]].v[0] * frame.scale[0] + frame.translate[0];
-				point[1] = verts[order[2]].v[1] * frame.scale[1] + frame.translate[1];
-				point[2] = verts[order[2]].v[2] * frame.scale[2] + frame.translate[2];
-				*/
-
-				vertexArrayBuf.position(order[orderIndex + 2] * 3);
-				vertexArrayBuf.get(point);
+				index = order[orderIndex + 2] * 3;
+				point[0] = vertexArrayBuf.get(index);
+				point[1] = vertexArrayBuf.get(index + 1);
+				point[2] = vertexArrayBuf.get(index + 2);
 					
 				point[0] -= shadevector[0]*(point[2]+lheight);
 				point[1] -= shadevector[1]*(point[2]+lheight);

@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.17 2004-06-03 08:07:05 hoz Exp $
+ * $Id: Mesh.java,v 1.18 2004-06-16 10:52:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -392,6 +392,7 @@ public abstract class Mesh extends Light {
 		height = -lheight + 1.0f;
 		
 		int orderIndex = 0;
+		int index = 0;
 
 		while (true)
 		{
@@ -418,12 +419,14 @@ public abstract class Mesh extends Light {
 
 				if ( gl_vertex_arrays.value != 0.0f )
 				{
-					vertexArrayBuf.position(order[orderIndex + 2] * 3);
-					vertexArrayBuf.get(point);
+					index = order[orderIndex + 2] * 3;
+					point[0] = vertexArrayBuf.get(index);
+					point[1] = vertexArrayBuf.get(index + 1);
+					point[2] = vertexArrayBuf.get(index + 2);
 				}
 				else
 				{
-					System.arraycopy(s_lerped[order[orderIndex + 2]], 0, point, 0, 3);
+					Math3D.VectorCopy(s_lerped[order[orderIndex + 2]], point);
 				}
 					
 				point[0] -= shadevector[0]*(point[2]+lheight);
