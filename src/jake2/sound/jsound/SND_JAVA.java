@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.4 2004-06-17 17:51:32 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.5 2004-06-18 10:12:44 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -73,7 +73,7 @@ public class SND_JAVA extends Globals {
   			running = false;
   		}
   		public int getSamplePos() {
-  			return ((pos + b.length - 1024) % b.length) >> 1;
+  			return pos >> 1;
   		}
   	}
   	static SoundThread thread;
@@ -120,7 +120,7 @@ public class SND_JAVA extends Globals {
 		dma.submission_chunk = 1;
 		
 		try {
-			line.open(format, 2048);
+			line.open(format, 4096);
 		} catch (LineUnavailableException e5) {
 			return false;
 		}
