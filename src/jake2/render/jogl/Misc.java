@@ -1,10 +1,10 @@
 /*
- * rserr.java
+ * Misc.java
  * Copyright (C) 2003
  *
- * $Id: rserr.java,v 1.1 2003-11-24 18:25:11 cwei Exp $
- */ 
- /*
+ * $Id: Misc.java,v 1.1 2003-12-29 01:57:00 cwei Exp $
+ */
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -23,18 +23,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.render;
+package jake2.render.jogl;
 
 /**
- * rserr
- * Definition at line 110 of file gl_local.h.
- * Referenced by R_SetMode(), and SWimp_SetMode().
- * 
+ * Misc
+ *  
  * @author cwei
  */
-public interface rserr {
-	static final int ok = 0;
-	static final int invalid_fullscreen = 1;
-	static final int invalid_mode = 2;
-	static final int unknown = 3;
+public abstract class Misc extends Draw {
+
 }
