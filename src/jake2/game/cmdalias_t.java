@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created by HOZ.
-// $Id: cmdalias_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: cmdalias_t.java,v 1.3 2003-12-01 13:19:33 hoz Exp $
 
 package jake2.game;
 

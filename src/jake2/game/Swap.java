@@ -2,7 +2,7 @@
  * Swap.java
  * Copyright (C) 2003
  * 
- * $Id: Swap.java,v 1.3 2003-11-29 13:28:28 rst Exp $
+ * $Id: Swap.java,v 1.4 2003-12-01 13:19:33 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

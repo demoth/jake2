@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.2 2003-11-29 13:28:30 rst Exp $
+ * $Id: SV.java,v 1.3 2003-12-01 13:20:55 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

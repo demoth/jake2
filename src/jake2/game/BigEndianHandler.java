@@ -2,7 +2,7 @@
  * BigEndianHandler.java
  * Copyright (C) 2003
  * 
- * $Id: BigEndianHandler.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+ * $Id: BigEndianHandler.java,v 1.3 2003-12-01 13:19:33 hoz Exp $
  */
 package jake2.game;
 
