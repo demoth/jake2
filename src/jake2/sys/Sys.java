@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.15 2004-01-30 18:44:32 cwei Exp $
+ * $Id: Sys.java,v 1.16 2004-01-31 23:47:04 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -234,6 +234,7 @@ public final class Sys extends Defines {
 		//	COM_FilePath (path, findbase);
 
 		fdir = FindAll(path, canthave, musthave);
+		fileindex =0;
 
 		return FindNext();
 

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.14 2004-01-31 21:54:11 rst Exp $
+ * $Id: Menu.java,v 1.15 2004-01-31 23:47:04 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -315,8 +315,6 @@ public final class Menu extends Key {
 		return sound;
 	}
 
-	//	  =============================================================================
-
 	/*
 	================
 	DrawCharacter
@@ -469,7 +467,7 @@ public final class Menu extends Key {
 			if (i != m_main_cursor)
 				Globals.re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
 		}
-		
+
 		//strcat(litname, "_sel");
 		litname = names[m_main_cursor] + "_sel";
 		Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
@@ -3909,7 +3907,7 @@ public final class Menu extends Key {
 			if (nskins == 0)
 				continue;
 
-			skinnames = new String[nskins]; //malloc(sizeof(String) * (nskins + 1));
+			skinnames = new String[nskins + 1]; //malloc(sizeof(String) * (nskins + 1));
 			//memset(skinnames, 0, sizeof(String) * (nskins + 1));
 
 			// copy the valid skins
@@ -3952,9 +3950,9 @@ public final class Menu extends Key {
 			else
 				c = b;
 
-			s_pmi[s_numplayermodels].displayname = dirnames[i].substring(c + 1, dirnames[i].length());
-			s_pmi[s_numplayermodels].directory = dirnames[i].substring(0, c + 1);		
-			
+			s_pmi[s_numplayermodels].displayname = dirnames[i].substring(c + 1);
+			s_pmi[s_numplayermodels].directory = dirnames[i].substring(c + 1);
+
 			s_numplayermodels++;
 		}
 
@@ -4012,11 +4010,11 @@ public final class Menu extends Key {
 
 		currentdirectory = skin.string;
 
-		if (currentdirectory.indexOf('/') != -1) {
+		if (currentdirectory.lastIndexOf('/') != -1) {
 			currentskin = rightFrom(currentdirectory, '/');
 			currentdirectory = leftFrom(currentdirectory, '/');
 		}
-		if (currentdirectory.indexOf('\\') != -1) {
+		else if (currentdirectory.lastIndexOf('\\') != -1) {
 			currentskin = rightFrom(currentdirectory, '\\');
 			currentdirectory = leftFrom(currentdirectory, '\\');
 		}
@@ -4033,6 +4031,8 @@ public final class Menu extends Key {
 		});
 
 		//memset(s_pmnames, 0, sizeof(s_pmnames));
+		s_pmnames = new String[MAX_PLAYERMODELS];
+
 		for (i = 0; i < s_numplayermodels; i++) {
 			s_pmnames[i] = s_pmi[i].displayname;
 			if (Q_stricmp(s_pmi[i].directory, currentdirectory) == 0) {
@@ -4189,10 +4189,6 @@ public final class Menu extends Key {
 
 			scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory + "/tris.md2";
 
-			System.out.println("XXX:" + s_pmi[s_player_model_box.curvalue].directory);
-			// TODO die directory eintraege sind falsch
-			scratch = "players/female/tris.md2";
-
 			entity.model = re.RegisterModel(scratch);
 
 			scratch =
@@ -4201,9 +4197,6 @@ public final class Menu extends Key {
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
 					+ ".pcx";
-
-			// TODO die directory eintraege sind falsch
-			scratch = "players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + ".pcx";
 
 			entity.skin = re.RegisterSkin(scratch);
 			entity.flags = RF_FULLBRIGHT;
@@ -4243,7 +4236,7 @@ public final class Menu extends Key {
 					+ "_i.pcx";
 
 			// TODO die directory eintraege sind falsch
-			scratch = "/players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + "_i.pcx";
+			//scratch = "/players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + "_i.pcx";
 
 			re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
 		}
@@ -4967,7 +4960,6 @@ public final class Menu extends Key {
 			Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y + s.parent.y, s.name);
 		}
 
-		System.out.println("-->" + s.itemnames[s.curvalue]);
 		if (s.itemnames[s.curvalue].indexOf('\n') == -1) {
 			Menu_DrawString(RCOLUMN_OFFSET + s.x + s.parent.x, s.y + s.parent.y, s.itemnames[s.curvalue]);
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.15 2004-01-31 16:56:11 rst Exp $
+// $Id: Lib.java,v 1.16 2004-01-31 23:47:04 rst Exp $
 
 package jake2.util;
 
@@ -406,7 +406,7 @@ public class Lib
 
 	public static String rightFrom(String in, char c)
 	{
-		int pos = in.indexOf(c);
+		int pos = in.lastIndexOf(c);
 		if (pos == -1)
 			return "";
 		else if (pos < in.length())
@@ -416,7 +416,7 @@ public class Lib
 	
 	public static String leftFrom(String in, char c)
 	{
-		int pos = in.indexOf(c);
+		int pos = in.lastIndexOf(c);
 		if (pos == -1)
 			return "";
 		else if (pos < in.length())
