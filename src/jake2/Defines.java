@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.18 2004-01-19 12:34:13 cwei Exp $
+// $Id: Defines.java,v 1.19 2004-01-20 12:47:04 cwei Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -28,6 +28,15 @@ package jake2;
 import jake2.util.*;
 
 public class Defines extends Math3D {
+	
+	// datentyp konstanten
+	// groesse in bytes
+	public final static int SIZE_OF_SHORT = 2;
+	public final static int SIZE_OF_INT = 4;
+	public final static int SIZE_OF_LONG = 8;
+	public final static int SIZE_OF_FLOAT = 4;
+	public final static int SIZE_OF_DOUBLE = 8;
+	
 
 	public final static int WEAPON_READY = 0;
 	public final static int WEAPON_ACTIVATING = 1;
