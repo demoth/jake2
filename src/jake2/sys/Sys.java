@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.5 2004-07-19 19:22:57 hzi Exp $
+ * $Id: Sys.java,v 1.6 2004-07-28 11:59:32 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -176,7 +176,7 @@ public final class Sys extends Defines {
 			// . and .. never match
 			String name = dir.getName();
 
-			if (Lib.strcmp(name, ".") == 0 || Lib.strcmp(name, "..") == 0)
+			if (name.equals(".") || name.equals(".."))
 				return false;
 
 			return true;

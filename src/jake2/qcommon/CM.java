@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.4 2004-07-12 20:47:00 hzi Exp $
+// $Id: CM.java,v 1.5 2004-07-28 12:01:27 hzi Exp $
 
 package jake2.qcommon;
 
@@ -198,7 +198,7 @@ public class CM extends Game {
 
 		map_noareas = Cvar.Get("map_noareas", "0", 0);
 
-		if (0 == strcmp(map_name, name) && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
+		if (map_name.equals(name) && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
 
 			checksum[0] = last_checksum;
 
