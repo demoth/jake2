@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.30 2004-02-11 17:28:48 cwei Exp $
+ * $Id: SCR.java,v 1.31 2004-02-13 13:22:08 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -829,8 +829,6 @@ public final class SCR extends Globals {
 	*/
 	static void DrawField(int x, int y, int color, int width, int value)
 	{
-		// TODO check this: DrawField(int x, int y, int color, int width, int value)
-		//		char	num[16], *ptr;
 		char ptr;
 		int ptrp;
 		String num;
@@ -855,8 +853,9 @@ public final class SCR extends Globals {
 
 		ptr = num.charAt(0);
 		ptrp = 0;
-		while (ptr != 0 && l != 0)
+		for (int i = 0; i < l; i++)
 		{
+			ptr = num.charAt(i);
 			if (ptr == '-')
 				frame = STAT_MINUS;
 			else
@@ -864,9 +863,6 @@ public final class SCR extends Globals {
 
 			re.DrawPic (x,y,sb_nums[color][frame]);
 			x += CHAR_WIDTH;
-			ptr = num.charAt(++ptrp);
-			
-			l--;
 		}
 	}
 
@@ -907,288 +903,294 @@ public final class SCR extends Globals {
 	*/
 	static void ExecuteLayoutString(String s)
 	{
-//		int		x, y;
-//		int		value;
-//		char	*token;
-//		int		width;
-//		int		index;
-//		clientinfo_t	*ci;
-//
-//		if (cls.state != ca_active || !cl.refresh_prepped)
-//			return;
-//
+		int		x, y;
+		int		value;
+		String token;
+		int		width;
+		int		index;
+		clientinfo_t	ci;
+
+		if (cls.state != ca_active || !cl.refresh_prepped)
+			return;
+
 //		if (!s[0])
-//			return;
-//
-//		x = 0;
-//		y = 0;
-//		width = 3;
-//
-//		while (s)
-//		{
-//			token = COM_Parse (&s);
-//			if (!strcmp(token, "xl"))
-//			{
-//				token = COM_Parse (&s);
-//				x = atoi(token);
-//				continue;
-//			}
-//			if (!strcmp(token, "xr"))
-//			{
-//				token = COM_Parse (&s);
-//				x = viddef.width + atoi(token);
-//				continue;
-//			}
-//			if (!strcmp(token, "xv"))
-//			{
-//				token = COM_Parse (&s);
-//				x = viddef.width/2 - 160 + atoi(token);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "yt"))
-//			{
-//				token = COM_Parse (&s);
-//				y = atoi(token);
-//				continue;
-//			}
-//			if (!strcmp(token, "yb"))
-//			{
-//				token = COM_Parse (&s);
-//				y = viddef.height + atoi(token);
-//				continue;
-//			}
-//			if (!strcmp(token, "yv"))
-//			{
-//				token = COM_Parse (&s);
-//				y = viddef.height/2 - 120 + atoi(token);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "pic"))
-//			{	// draw a pic from a stat number
-//				token = COM_Parse (&s);
-//				value = cl.frame.playerstate.stats[atoi(token)];
-//				if (value >= MAX_IMAGES)
-//					Com_Error (ERR_DROP, "Pic >= MAX_IMAGES");
-//				if (cl.configstrings[CS_IMAGES+value])
-//				{
-//					SCR_AddDirtyPoint (x, y);
-//					SCR_AddDirtyPoint (x+23, y+23);
-//					re.DrawPic (x, y, cl.configstrings[CS_IMAGES+value]);
-//				}
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "client"))
-//			{	// draw a deathmatch client block
-//				int		score, ping, time;
-//
-//				token = COM_Parse (&s);
-//				x = viddef.width/2 - 160 + atoi(token);
-//				token = COM_Parse (&s);
-//				y = viddef.height/2 - 120 + atoi(token);
-//				SCR_AddDirtyPoint (x, y);
-//				SCR_AddDirtyPoint (x+159, y+31);
-//
-//				token = COM_Parse (&s);
-//				value = atoi(token);
-//				if (value >= MAX_CLIENTS || value < 0)
-//					Com_Error (ERR_DROP, "client >= MAX_CLIENTS");
-//				ci = &cl.clientinfo[value];
-//
-//				token = COM_Parse (&s);
-//				score = atoi(token);
-//
-//				token = COM_Parse (&s);
-//				ping = atoi(token);
-//
-//				token = COM_Parse (&s);
-//				time = atoi(token);
-//
-//				DrawAltString (x+32, y, ci->name);
-//				DrawString (x+32, y+8,  "Score: ");
-//				DrawAltString (x+32+7*8, y+8,  va("%i", score));
-//				DrawString (x+32, y+16, va("Ping:  %i", ping));
-//				DrawString (x+32, y+24, va("Time:  %i", time));
-//
-//				if (!ci->icon)
-//					ci = &cl.baseclientinfo;
-//				re.DrawPic (x, y, ci->iconname);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "ctf"))
-//			{	// draw a ctf client block
-//				int		score, ping;
-//				char	block[80];
-//
-//				token = COM_Parse (&s);
-//				x = viddef.width/2 - 160 + atoi(token);
-//				token = COM_Parse (&s);
-//				y = viddef.height/2 - 120 + atoi(token);
-//				SCR_AddDirtyPoint (x, y);
-//				SCR_AddDirtyPoint (x+159, y+31);
-//
-//				token = COM_Parse (&s);
-//				value = atoi(token);
-//				if (value >= MAX_CLIENTS || value < 0)
-//					Com_Error (ERR_DROP, "client >= MAX_CLIENTS");
-//				ci = &cl.clientinfo[value];
-//
-//				token = COM_Parse (&s);
-//				score = atoi(token);
-//
-//				token = COM_Parse (&s);
-//				ping = atoi(token);
-//				if (ping > 999)
-//					ping = 999;
-//
-//				sprintf(block, "%3d %3d %-12.12s", score, ping, ci->name);
-//
-//				if (value == cl.playernum)
-//					DrawAltString (x, y, block);
-//				else
-//					DrawString (x, y, block);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "picn"))
-//			{	// draw a pic from a name
-//				token = COM_Parse (&s);
-//				SCR_AddDirtyPoint (x, y);
-//				SCR_AddDirtyPoint (x+23, y+23);
-//				re.DrawPic (x, y, token);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "num"))
-//			{	// draw a number
-//				token = COM_Parse (&s);
-//				width = atoi(token);
-//				token = COM_Parse (&s);
-//				value = cl.frame.playerstate.stats[atoi(token)];
-//				SCR_DrawField (x, y, 0, width, value);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "hnum"))
-//			{	// health number
-//				int		color;
-//
-//				width = 3;
-//				value = cl.frame.playerstate.stats[STAT_HEALTH];
-//				if (value > 25)
-//					color = 0;	// green
-//				else if (value > 0)
-//					color = (cl.frame.serverframe>>2) & 1;		// flash
-//				else
-//					color = 1;
-//
-//				if (cl.frame.playerstate.stats[STAT_FLASHES] & 1)
-//					re.DrawPic (x, y, "field_3");
-//
-//				SCR_DrawField (x, y, color, width, value);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "anum"))
-//			{	// ammo number
-//				int		color;
-//
-//				width = 3;
-//				value = cl.frame.playerstate.stats[STAT_AMMO];
-//				if (value > 5)
-//					color = 0;	// green
-//				else if (value >= 0)
-//					color = (cl.frame.serverframe>>2) & 1;		// flash
-//				else
-//					continue;	// negative number = don't show
-//
-//				if (cl.frame.playerstate.stats[STAT_FLASHES] & 4)
-//					re.DrawPic (x, y, "field_3");
-//
-//				SCR_DrawField (x, y, color, width, value);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "rnum"))
-//			{	// armor number
-//				int		color;
-//
-//				width = 3;
-//				value = cl.frame.playerstate.stats[STAT_ARMOR];
-//				if (value < 1)
-//					continue;
-//
-//				color = 0;	// green
-//
-//				if (cl.frame.playerstate.stats[STAT_FLASHES] & 2)
-//					re.DrawPic (x, y, "field_3");
-//
-//				SCR_DrawField (x, y, color, width, value);
-//				continue;
-//			}
-//
-//
-//			if (!strcmp(token, "stat_string"))
-//			{
-//				token = COM_Parse (&s);
-//				index = atoi(token);
-//				if (index < 0 || index >= MAX_CONFIGSTRINGS)
-//					Com_Error (ERR_DROP, "Bad stat_string index");
-//				index = cl.frame.playerstate.stats[index];
-//				if (index < 0 || index >= MAX_CONFIGSTRINGS)
-//					Com_Error (ERR_DROP, "Bad stat_string index");
-//				DrawString (x, y, cl.configstrings[index]);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "cstring"))
-//			{
-//				token = COM_Parse (&s);
-//				DrawHUDString (token, x, y, 320, 0);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "string"))
-//			{
-//				token = COM_Parse (&s);
-//				DrawString (x, y, token);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "cstring2"))
-//			{
-//				token = COM_Parse (&s);
-//				DrawHUDString (token, x, y, 320,0x80);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "string2"))
-//			{
-//				token = COM_Parse (&s);
-//				DrawAltString (x, y, token);
-//				continue;
-//			}
-//
-//			if (!strcmp(token, "if"))
-//			{	// draw a number
-//				token = COM_Parse (&s);
-//				value = cl.frame.playerstate.stats[atoi(token)];
-//				if (!value)
-//				{	// skip to endif
+		if (s == null || s.length() == 0)
+			return;
+
+		x = 0;
+		y = 0;
+		width = 3;
+		
+		Com.ParseHelp ph = new Com.ParseHelp(s);
+
+		while (!ph.isEof())
+		{
+			token = Com.Parse(ph);
+			if (token.equals("xl"))
+			{
+				token = Com.Parse(ph);
+				x = atoi(token);
+				continue;
+			}
+			if (token.equals("xr"))
+			{
+				token = Com.Parse(ph);
+				x = viddef.width + atoi(token);
+				continue;
+			}
+			if (token.equals("xv"))
+			{
+				token = Com.Parse(ph);
+				x = viddef.width/2 - 160 + atoi(token);
+				continue;
+			}
+
+			if (token.equals("yt"))
+			{
+				token = Com.Parse(ph);
+				y = atoi(token);
+				continue;
+			}
+			if (token.equals("yb"))
+			{
+				token = Com.Parse(ph);
+				y = viddef.height + atoi(token);
+				continue;
+			}
+			if (token.equals("yv"))
+			{
+				token = Com.Parse(ph);
+				y = viddef.height/2 - 120 + atoi(token);
+				continue;
+			}
+
+			if (token.equals("pic"))
+			{	// draw a pic from a stat number
+				token = Com.Parse(ph);
+				value = cl.frame.playerstate.stats[atoi(token)];
+				if (value >= MAX_IMAGES)
+					Com.Error (ERR_DROP, "Pic >= MAX_IMAGES");
+				if (cl.configstrings[CS_IMAGES+value] != null)
+				{
+					AddDirtyPoint (x, y);
+					AddDirtyPoint (x+23, y+23);
+					re.DrawPic (x, y, cl.configstrings[CS_IMAGES+value]);
+				}
+				continue;
+			}
+
+			if (token.equals("client"))
+			{	// draw a deathmatch client block
+				int		score, ping, time;
+
+				token = Com.Parse(ph);
+				x = viddef.width/2 - 160 + atoi(token);
+				token = Com.Parse(ph);
+				y = viddef.height/2 - 120 + atoi(token);
+				AddDirtyPoint (x, y);
+				AddDirtyPoint (x+159, y+31);
+
+				token = Com.Parse(ph);
+				value = atoi(token);
+				if (value >= MAX_CLIENTS || value < 0)
+					Com.Error (ERR_DROP, "client >= MAX_CLIENTS");
+				ci = cl.clientinfo[value];
+
+				token = Com.Parse(ph);
+				score = atoi(token);
+
+				token = Com.Parse(ph);
+				ping = atoi(token);
+
+				token = Com.Parse(ph);
+				time = atoi(token);
+
+				Console.DrawAltString (x+32, y, ci.name);
+				Console.DrawString (x+32, y+8,  "Score: ");
+				Console.DrawAltString (x+32+7*8, y+8,  "" + score);
+				Console.DrawString (x+32, y+16, "Ping:  " + ping);
+				Console.DrawString (x+32, y+24, "Time:  " + time);
+
+				if (ci.icon == null)
+					ci = cl.baseclientinfo;
+				re.DrawPic (x, y, ci.iconname);
+				continue;
+			}
+
+			if (token.equals("ctf"))
+			{	// draw a ctf client block
+				int		score, ping;
+
+				token = Com.Parse(ph);
+				x = viddef.width/2 - 160 + atoi(token);
+				token = Com.Parse(ph);
+				y = viddef.height/2 - 120 + atoi(token);
+				AddDirtyPoint (x, y);
+				AddDirtyPoint (x+159, y+31);
+
+				token = Com.Parse(ph);
+				value = atoi(token);
+				if (value >= MAX_CLIENTS || value < 0)
+					Com.Error (ERR_DROP, "client >= MAX_CLIENTS");
+				ci = cl.clientinfo[value];
+
+				token = Com.Parse(ph);
+				score = atoi(token);
+
+				token = Com.Parse(ph);
+				ping = atoi(token);
+				if (ping > 999)
+					ping = 999;
+
+				// sprintf(block, "%3d %3d %-12.12s", score, ping, ci->name);
+				String block = Com.sprintf("%3d %3d %-12.12s", new Vargs(3).add(score).add(ping).add(ci.name));
+
+				if (value == cl.playernum)
+					Console.DrawAltString (x, y, block);
+				else
+					Console.DrawString (x, y, block);
+				continue;
+			}
+
+			if (token.equals("picn"))
+			{	// draw a pic from a name
+				token = Com.Parse(ph);
+				AddDirtyPoint (x, y);
+				AddDirtyPoint (x+23, y+23);
+				re.DrawPic (x, y, token);
+				continue;
+			}
+
+			if (token.equals("num"))
+			{	// draw a number
+				token = Com.Parse(ph);
+				width = atoi(token);
+				token = Com.Parse(ph);
+				value = cl.frame.playerstate.stats[atoi(token)];
+				DrawField (x, y, 0, width, value);
+				continue;
+			}
+
+			if (token.equals("hnum"))
+			{	// health number
+				int		color;
+
+				width = 3;
+				value = cl.frame.playerstate.stats[STAT_HEALTH];
+				if (value > 25)
+					color = 0;	// green
+				else if (value > 0)
+					color = (cl.frame.serverframe>>2) & 1;		// flash
+				else
+					color = 1;
+
+				if ((cl.frame.playerstate.stats[STAT_FLASHES] & 1) != 0)
+					re.DrawPic (x, y, "field_3");
+
+				DrawField (x, y, color, width, value);
+				continue;
+			}
+
+			if (token.equals("anum"))
+			{	// ammo number
+				int		color;
+
+				width = 3;
+				value = cl.frame.playerstate.stats[STAT_AMMO];
+				if (value > 5)
+					color = 0;	// green
+				else if (value >= 0)
+					color = (cl.frame.serverframe>>2) & 1;		// flash
+				else
+					continue;	// negative number = don't show
+
+				if ((cl.frame.playerstate.stats[STAT_FLASHES] & 4) != 0)
+					re.DrawPic (x, y, "field_3");
+
+				DrawField (x, y, color, width, value);
+				continue;
+			}
+
+			if (token.equals("rnum"))
+			{	// armor number
+				int		color;
+
+				width = 3;
+				value = cl.frame.playerstate.stats[STAT_ARMOR];
+				if (value < 1)
+					continue;
+
+				color = 0;	// green
+
+				if ((cl.frame.playerstate.stats[STAT_FLASHES] & 2) != 0)
+					re.DrawPic (x, y, "field_3");
+
+				DrawField (x, y, color, width, value);
+				continue;
+			}
+
+
+			if (token.equals("stat_string"))
+			{
+				token = Com.Parse(ph);
+				index = atoi(token);
+				if (index < 0 || index >= MAX_CONFIGSTRINGS)
+					Com.Error (ERR_DROP, "Bad stat_string index");
+				index = cl.frame.playerstate.stats[index];
+				if (index < 0 || index >= MAX_CONFIGSTRINGS)
+					Com.Error (ERR_DROP, "Bad stat_string index");
+				Console.DrawString (x, y, cl.configstrings[index]);
+				continue;
+			}
+
+			if (token.equals("cstring"))
+			{
+				token = Com.Parse(ph);
+				DrawHUDString (token, x, y, 320, 0);
+				continue;
+			}
+
+			if (token.equals("string"))
+			{
+				token = Com.Parse(ph);
+				Console.DrawString (x, y, token);
+				continue;
+			}
+
+			if (token.equals("cstring2"))
+			{
+				token = Com.Parse(ph);
+				DrawHUDString (token, x, y, 320,0x80);
+				continue;
+			}
+
+			if (token.equals("string2"))
+			{
+				token = Com.Parse(ph);
+				Console.DrawAltString (x, y, token);
+				continue;
+			}
+
+			if (token.equals("if"))
+			{	// draw a number
+				token = Com.Parse(ph);
+				value = cl.frame.playerstate.stats[atoi(token)];
+				if (value == 0)
+				{	// skip to endif
 //					while (s && strcmp(token, "endif") )
 //					{
-//						token = COM_Parse (&s);
+//						token = Com.Parse(ph);
 //					}
-//				}
-//
-//				continue;
-//			}
-//
-//
-//		}
+					
+					while (!ph.isEof() && !(token = Com.Parse(ph)).equals("endif"));
+
+				}
+
+				continue;
+			}
+
+
+		}
 	}
 
 	/*
