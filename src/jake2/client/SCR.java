@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.26 2004-02-06 21:03:30 rst Exp $
+ * $Id: SCR.java,v 1.27 2004-02-08 13:26:12 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -766,67 +766,58 @@ public final class SCR extends Globals {
 	Allow embedded \n in the string
 	================
 	*/
-	static void SizeHUDString(String string, Dimension dim)
-	{
-//		int		lines, width, current;
-//
-//		lines = 1;
-//		width = 0;
-//
-//		current = 0;
-//		while (*string)
-//		{
-//			if (*string == '\n')
-//			{
-//				lines++;
-//				current = 0;
-//			}
-//			else
-//			{
-//				current++;
-//				if (current > width)
-//					width = current;
-//			}
-//			string++;
-//		}
-//
-//		*w = width * 8;
-//		*h = lines * 8;
+	static void SizeHUDString(String string, Dimension dim) {
+		int lines, width, current;
+
+		lines = 1;
+		width = 0;
+
+		current = 0;
+		for (int i = 0; i < string.length(); i++) {
+			if (string.charAt(i) == '\n') {
+				lines++;
+				current = 0;
+			} else {
+				current++;
+				if (current > width)
+					width = current;
+			}
+
+		}
+
+		dim.width = width * 8;
+		dim.height = lines * 8;
 	}
 
-	static void DrawHUDString (String string, int x, int y, int centerwidth, int xor)
-	{
-//		int		margin;
-//		char	line[1024];
-//		int		width;
-//		int		i;
-//
-//		margin = x;
-//
-//		while (*string)
-//		{
-//			// scan out one line of text from the string
-//			width = 0;
-//			while (*string && *string != '\n')
-//				line[width++] = *string++;
-//			line[width] = 0;
-//
-//			if (centerwidth)
-//				x = margin + (centerwidth - width*8)/2;
-//			else
-//				x = margin;
-//			for (i=0 ; i<width ; i++)
-//			{
-//				re.DrawChar (x, y, line[i]^xor);
-//				x += 8;
-//			}
-//			if (*string)
-//			{
-//				string++;	// skip the \n
-//				x = margin;
-//				y += 8;
-//			}
-//		}
+	static void DrawHUDString(String string, int x, int y, int centerwidth, int xor) {
+		int margin;
+		//char	line[1024];
+		StringBuffer line = new StringBuffer(1024);
+		int i;
+
+		margin = x;
+
+		for (int l = 0; l < string.length();) {
+			// scan out one line of text from the string
+			line = new StringBuffer(1024);
+			while (string.charAt(l) != '\n')
+				line.append(string.charAt(l));
+			l++;
+
+			if (centerwidth != 0)
+				x = margin + (centerwidth - line.length() * 8) / 2;
+			else
+				x = margin;
+			for (i = 0; i < line.length(); i++) {
+				re.DrawChar(x, y, line.charAt(i) ^ xor);
+				x += 8;
+			}
+			if (l < string.length()) {
+				l++; // skip the \n
+				x = margin;
+				y += 8;
+			}
+		}
 	}
 
 
@@ -1219,11 +1210,10 @@ public final class SCR extends Globals {
 	*/
 	static final int STAT_LAYOUTS = 13;
 
-	static void DrawLayout()
-	{
-//		if (!cl.frame.playerstate.stats[STAT_LAYOUTS])
-//			return;
-//		SCR_ExecuteLayoutString (cl.layout);
+	static void DrawLayout() {
+		if (cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
+			return;
+		SCR.ExecuteLayoutString(cl.layout);
 	}
 
 	// =======================================================

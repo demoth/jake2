@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.11 2004-02-07 13:02:44 rst Exp $
+ * $Id: CL_parse.java,v 1.12 2004-02-08 13:26:12 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,6 +40,7 @@ import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.xcommand_t;
 import jake2.render.model_t;
+import jake2.sys.Sys;
 import jake2.util.Lib;
 
 /**
@@ -195,16 +196,15 @@ public class CL_parse extends CL_view {
 	*/
 	static void RegisterSounds() {
 		int i;
-		//TODO:implement RegisterSound !
-		//		S_BeginRegistration();
-		//		CL_RegisterTEntSounds();
-		//		for (i = 1; i < MAX_SOUNDS; i++) {
-		//			if (!cl.configstrings[CS_SOUNDS + i][0])
-		//				break;
-		//			cl.sound_precache[i] = S_RegisterSound(cl.configstrings[CS_SOUNDS + i]);
-		//			Sys_SendKeyEvents(); // pump message loop
-		//		}
-		//		S_EndRegistration();
+		S.BeginRegistration();
+		CL.RegisterTEntSounds();
+		for (i = 1; i < MAX_SOUNDS; i++) {
+			if (cl.configstrings[CS_SOUNDS + i] == null || cl.configstrings[CS_SOUNDS + i] == "")
+				break;
+			cl.sound_precache[i] = S.RegisterSound(cl.configstrings[CS_SOUNDS + i]);
+			Sys.SendKeyEvents(); // pump message loop
+		}
+		S.EndRegistration();
 	}
 
 	/*

@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.26 2004-02-08 11:08:51 hoz Exp $
+ * $Id: CL_main.java,v 1.27 2004-02-08 13:26:12 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -222,37 +222,6 @@ public class CL_main extends CL_pred {
 		}
 	};
 
-//	static xcommand_t Setenv_f = new xcommand_t() {
-//		public void execute() {
-//			int argc = Cmd_Argc();
-//
-//			if (argc > 2) {
-//				char buffer[1000];
-//				int i;
-//
-//				strcpy(buffer, Cmd_Argv(1));
-//				strcat(buffer, "=");
-//
-//				for (i = 2; i < argc; i++) {
-//					strcat(buffer, Cmd_Argv(i));
-//					strcat(buffer, " ");
-//				}
-//
-//				putenv(buffer);
-//			}
-//			else if (argc == 2) {
-//				char * env = getenv(Cmd_Argv(1));
-//
-//				if (env) {
-//					Com_Printf("%s=%s\n", Cmd_Argv(1), env);
-//				}
-//				else {
-//					Com_Printf("%s undefined\n", Cmd_Argv(1), env);
-//				}
-//			}
-//		}
-//	};
-
 	/*
 	==================
 	CL_ForwardToServer_f
@@ -422,55 +391,55 @@ public class CL_main extends CL_pred {
 	*/
 	static xcommand_t Rcon_f = new xcommand_t() {
 		public void execute() {
-				//		char	message[1024];
-		//		int		i;
-		//		netadr_t	to;
-		//
-		//		if (!rcon_client_password.string)
-		//		{
-		//			Com_Printf ("You must set 'rcon_password' before\n"
-		//						"issuing an rcon command.\n");
-		//			return;
-		//		}
-		//
-		//		message[0] = (char)255;
-		//		message[1] = (char)255;
-		//		message[2] = (char)255;
-		//		message[3] = (char)255;
-		//		message[4] = 0;
-		//
-		//		NET_Config (true);		// allow remote
-		//
-		//		strcat (message, "rcon ");
-		//
-		//		strcat (message, rcon_client_password.string);
-		//		strcat (message, " ");
-		//
-		//		for (i=1 ; i<Cmd_Argc() ; i++)
-		//		{
-		//			strcat (message, Cmd_Argv(i));
-		//			strcat (message, " ");
-		//		}
-		//
-		//		if (cls.state >= ca_connected)
-		//			to = cls.netchan.remote_address;
-		//		else
-		//		{
-		//			if (!strlen(rcon_address.string))
-		//			{
-		//				Com_Printf ("You must either be connected,\n"
-		//							"or set the 'rcon_address' cvar\n"
-		//							"to issue rcon commands\n");
-		//
-		//				return;
-		//			}
-		//			NET_StringToAdr (rcon_address.string, &to);
-		//			if (to.port == 0)
-		//				to.port = BigShort (PORT_SERVER);
-		//		}
-		//	
-		//		NET_SendPacket (NS_CLIENT, strlen(message)+1, message, to);
-	}
+			StringBuffer message = new StringBuffer(1024);
+			int i;
+			netadr_t to = new netadr_t();
+
+			if (rcon_client_password.string == null) {
+				Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
+				return;
+			}
+
+			message.append((char)255);
+			message.append((char)255);
+			message.append((char)255);
+			message.append((char)255);
+
+			NET.Config(true); // allow remote
+
+			//strcat (message, "rcon ");
+			message.append("rcon ");
+
+			//strcat (message, rcon_client_password.string);
+			message.append(rcon_client_password.string);
+			//strcat (message, " ");
+			message.append(" ");
+
+			for (i = 1; i < Cmd.Argc(); i++) {
+				//strcat (message, Cmd.Argv(i));
+				message.append(Cmd.Argv(i));
+				//strcat (message, " ");
+				message.append(" ");
+			}
+
+			if (cls.state >= ca_connected)
+				to = cls.netchan.remote_address;
+			else {
+				if (strlen(rcon_address.string) == 0) {
+					Com.Printf(
+						"You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
+
+					return;
+				}
+				NET.StringToAdr(rcon_address.string, to);
+				if (to.port == 0)
+					//to.port = BigShort (PORT_SERVER);
+					to.port = PORT_SERVER;
+			}
+			message.append('\0');
+			String b = message.toString();
+			NET.SendPacket(NS_CLIENT, b.length(), b.getBytes(), to);
+		}
 	};
 
 	/*
@@ -1348,8 +1317,6 @@ public class CL_main extends CL_pred {
 		Cmd.AddCommand("reconnect", Reconnect_f);
 
 		Cmd.AddCommand("rcon", Rcon_f);
-
-//		Cmd.AddCommand("setenv", Setenv_f);
 
 		Cmd.AddCommand("precache", Precache_f);
 

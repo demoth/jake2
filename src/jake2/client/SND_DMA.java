@@ -1,4 +1,10 @@
 /*
+ * S_DMA.java
+ * Copyright (C) 2004
+ * 
+ * $Id: SND_DMA.java,v 1.6 2004-02-08 13:26:13 hoz Exp $
+ */
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -8,7 +14,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -19,37 +25,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.01.2004 by RST.
-// $Id: SND_DMA.java,v 1.5 2004-02-05 21:32:40 rst Exp $
 
 package jake2.client;
 
-
-import jake2.*;
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
-public class SND_DMA {
-//	/*
-//	Copyright (C) 1997-2001 Id Software, Inc.
-//
-//	This program is free software; you can redistribute it and/or
-//	modify it under the terms of the GNU General Public License
-//	as published by the Free Software Foundation; either version 2
-//	of the License, or (at your option) any later version.
-//
-//	This program is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-//
-//	See the GNU General Public License for more details.
-//
-//	You should have received a copy of the GNU General Public License
-//	along with this program; if not, write to the Free Software
-//	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-//	*/
+
+
+/**
+ * SND_DMA
+ * TODO implement sound system
+ */
+public class SND_DMA extends SND_MIX {
 ////	   snd_dma.c -- main control for any streaming sound output device
 //
 //	#include "client.h"
@@ -75,9 +64,20 @@ public class SND_DMA {
 //	channel_t   channels[MAX_CHANNELS];
 //
 //	qboolean	snd_initialized = false;
-//	int			sound_started=0;
+	static boolean sound_started = false;
 //
-//	dma_t		dma;
+	static class dma_t {
+		int channels;
+		int samples; // mono samples in buffer
+		int submission_chunk; // don't mix less than this #
+		int samplepos; // in mono samples
+		int samplebits;
+		int speed;
+		byte[] buffer;
+	}
+
+
+	static dma_t dma;
 //
 //	vec3_t		listener_origin;
 //	vec3_t		listener_forward;
@@ -86,8 +86,8 @@ public class SND_DMA {
 //
 //	qboolean	s_registering;
 //
-//	int			soundtime;		// sample PAIRS
-//	int   		paintedtime; 	// sample PAIRS
+	static int soundtime;		// sample PAIRS
+	static int paintedtime; 	// sample PAIRS
 //
 ////	   during registration it is possible to have more sounds
 ////	   than could actually be referenced during gameplay,
@@ -95,7 +95,7 @@ public class SND_DMA {
 ////	   sure we won't need it.
 //	#define		MAX_SFX		(MAX_SOUNDS*2)
 //	sfx_t		known_sfx[MAX_SFX];
-//	int			num_sfx;
+	static int num_sfx;
 //
 //	#define		MAX_PLAYSOUNDS	128
 //	playsound_t	s_playsounds[MAX_PLAYSOUNDS];
@@ -104,13 +104,13 @@ public class SND_DMA {
 //
 //	int			s_beginofs;
 //
-//	cvar_t		*s_volume;
-//	cvar_t		*s_testsound;
-//	cvar_t		*s_loadas8bit;
-//	cvar_t		*s_khz;
-//	cvar_t		*s_show;
-//	cvar_t		*s_mixahead;
-//	cvar_t		*s_primary;
+	static cvar_t s_volume;
+	static cvar_t s_testsound;
+	static cvar_t s_loadas8bit;
+	static cvar_t s_khz;
+	static cvar_t s_show;
+	static cvar_t s_mixahead;
+	static cvar_t s_primary;
 //
 //
 //	int		s_rawend;
@@ -122,8 +122,8 @@ public class SND_DMA {
 ////	   ====================================================================
 //
 //
-//	void S_SoundInfo_f(void)
-//	{
+	static void SoundInfo_f()
+	{
 //		if (!sound_started)
 //		{
 //			Com_Printf ("sound system not started\n");
@@ -137,65 +137,81 @@ public class SND_DMA {
 //		Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
 //		Com_Printf("%5d speed\n", dma.speed);
 //		Com_Printf("0x%x dma buffer\n", dma.buffer);
-//	}
+	}
 //
 //
 //
-//	/*
-//	================
-//	S_Init
-//	================
-//	*/
-//	void S_Init (void)
-//	{
-//		cvar_t	*cv;
-//
-//		Com_Printf("\n------- sound initialization -------\n");
-//
-//		cv = Cvar_Get ("s_initsound", "1", 0);
-//		if (!cv->value)
-//			Com_Printf ("not initializing.\n");
-//		else
-//		{
-//			s_volume = Cvar_Get ("s_volume", "0.7", CVAR_ARCHIVE);
-//			s_khz = Cvar_Get ("s_khz", "11", CVAR_ARCHIVE);
-//			s_loadas8bit = Cvar_Get ("s_loadas8bit", "1", CVAR_ARCHIVE);
-//			s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
-//			s_show = Cvar_Get ("s_show", "0", 0);
-//			s_testsound = Cvar_Get ("s_testsound", "0", 0);
-//			s_primary = Cvar_Get ("s_primary", "0", CVAR_ARCHIVE);	// win32 specific
-//
-//			Cmd_AddCommand("play", S_Play);
-//			Cmd_AddCommand("stopsound", S_StopAllSounds);
-//			Cmd_AddCommand("soundlist", S_SoundList);
-//			Cmd_AddCommand("soundinfo", S_SoundInfo_f);
-//
-//			if (!SNDDMA_Init())
-//				return;
-//
-//			S_InitScaletable ();
-//
-//			sound_started = 1;
-//			num_sfx = 0;
-//
-//			soundtime = 0;
-//			paintedtime = 0;
-//
-//			Com_Printf ("sound sampling rate: %i\n", dma.speed);
-//
-//			S_StopAllSounds ();
-//		}
-//
-//		Com_Printf("------------------------------------\n");
-//	}
-//
-//
-////	   =======================================================================
-////	   Shutdown sound engine
-////	   =======================================================================
-//
-//	void S_Shutdown(void)
-//	{
+	/*
+	================
+	S_Init
+	================
+	*/
+	static void Init()
+	{
+		cvar_t	cv;
+
+		Com.Printf("\n------- sound initialization -------\n");
+
+		cv = Cvar.Get ("s_initsound", "1", 0);
+		if (cv.value == 0.0f)
+			Com.Printf ("not initializing.\n");
+		else
+		{
+			s_volume = Cvar.Get ("s_volume", "0.7", CVAR_ARCHIVE);
+			s_khz = Cvar.Get ("s_khz", "11", CVAR_ARCHIVE);
+			s_loadas8bit = Cvar.Get ("s_loadas8bit", "1", CVAR_ARCHIVE);
+			s_mixahead = Cvar.Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
+			s_show = Cvar.Get ("s_show", "0", 0);
+			s_testsound = Cvar.Get ("s_testsound", "0", 0);
+			s_primary = Cvar.Get ("s_primary", "0", CVAR_ARCHIVE);	// win32 specific
+
+			Cmd.AddCommand("play", new xcommand_t() {
+				public void execute() {
+					S.Play();
+				}
+			});
+			Cmd.AddCommand("stopsound", new xcommand_t() {
+				public void execute() {
+					S.StopAllSounds();
+				}
+			});					
+			Cmd.AddCommand("soundlist", new xcommand_t() {
+				public void execute() {
+					S.SoundList();
+				}
+			});	
+			Cmd.AddCommand("soundinfo",  new xcommand_t() {
+				public void execute() {
+					S.SoundInfo_f();
+				}
+			});						
+
+			if (!SNDDMA_Init())
+				return;
+
+			S.InitScaletable ();
+
+			sound_started = true;
+			num_sfx = 0;
+
+			soundtime = 0;
+			paintedtime = 0;
+
+			//Com.Printf ("sound sampling rate: " + dma.speed + "\n");
+
+			S.StopAllSounds ();
+		}
+
+		Com.Printf("------------------------------------\n");
+	}
+
+
+//	   =======================================================================
+//	   Shutdown sound engine
+//	   =======================================================================
+
+	static void Shutdown()
+	{
 //		int		i;
 //		sfx_t	*sfx;
 //
@@ -222,7 +238,7 @@ public class SND_DMA {
 //		}
 //
 //		num_sfx = 0;
-//	}
+	}
 //
 //
 ////	   =======================================================================
@@ -317,27 +333,27 @@ public class SND_DMA {
 //	}
 //
 //
-//	/*
-//	=====================
-//	S_BeginRegistration
-//
-//	=====================
-//	*/
-//	void S_BeginRegistration (void)
-//	{
+	/*
+	=====================
+	S_BeginRegistration
+
+	=====================
+	*/
+	static void BeginRegistration ()
+	{
 //		s_registration_sequence++;
 //		s_registering = true;
-//	}
-//
-//	/*
-//	==================
-//	S_RegisterSound
-//
-//	==================
-//	*/
-//	sfx_t *S_RegisterSound (char *name)
-//	{
-//		sfx_t	*sfx;
+	}
+
+	/*
+	==================
+	S_RegisterSound
+
+	==================
+	*/
+	static sfx_t RegisterSound (String name)
+	{
+		sfx_t	sfx = null;
 //
 //		if (!sound_started)
 //			return NULL;
@@ -348,8 +364,8 @@ public class SND_DMA {
 //		if (!s_registering)
 //			S_LoadSound (sfx);
 //
-//		return sfx;
-//	}
+		return sfx;
+	}
 //
 //
 //	/*
@@ -358,8 +374,8 @@ public class SND_DMA {
 //
 //	=====================
 //	*/
-//	void S_EndRegistration (void)
-//	{
+	static void EndRegistration ()
+	{
 //		int		i;
 //		sfx_t	*sfx;
 //		int		size;
@@ -395,7 +411,7 @@ public class SND_DMA {
 //		}
 //
 //		s_registering = false;
-//	}
+	}
 //
 //
 ////	  =============================================================================
@@ -676,17 +692,17 @@ public class SND_DMA {
 ////	   Start a sound effect
 ////	   =======================================================================
 //
-//	/*
-//	====================
-//	S_StartSound
-//
-//	Validates the parms and ques the sound up
-//	if pos is NULL, the sound will be dynamically sourced from the entity
-//	Entchannel 0 will never override a playing sound
-//	====================
-//	*/
-//	void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol, float attenuation, float timeofs)
-//	{
+	/*
+	====================
+	S_StartSound
+
+	Validates the parms and ques the sound up
+	if pos is NULL, the sound will be dynamically sourced from the entity
+	Entchannel 0 will never override a playing sound
+	====================
+	*/
+	static void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs)
+	{
 //		sfxcache_t	*sc;
 //		int			vol;
 //		playsound_t	*ps, *sort;
@@ -760,8 +776,8 @@ public class SND_DMA {
 //
 //		ps->next->prev = ps;
 //		ps->prev->next = ps;
-//	}
-//
+	}
+
 //
 //	/*
 //	==================
@@ -809,13 +825,13 @@ public class SND_DMA {
 //		SNDDMA_Submit ();
 //	}
 //
-//	/*
-//	==================
-//	S_StopAllSounds
-//	==================
-//	*/
-//	void S_StopAllSounds(void)
-//	{
+	/*
+	==================
+	S_StopAllSounds
+	==================
+	*/
+	static void StopAllSounds()
+	{
 //		int		i;
 //
 //		if (!sound_started)
@@ -838,7 +854,7 @@ public class SND_DMA {
 //		memset(channels, 0, sizeof(channels));
 //
 //		S_ClearBuffer ();
-//	}
+	}
 //
 //	/*
 //	==================
@@ -1110,15 +1126,6 @@ public class SND_DMA {
 //		S_Update_();
 	}
 
-	public static sfx_t RegisterSound(String string) {
-		// TODO:implement RegisterSound
-		return null;
-	}
-
-	public static void StartSound(float[] pos, int ent, int channel, sfx_t sfx_t, float volume, float attenuation, float ofs) {
-		// TODO:implement StartSound
-		
-	}
 //
 //	void GetSoundtime(void)
 //	{
@@ -1189,16 +1196,16 @@ public class SND_DMA {
 //		SNDDMA_Submit ();
 //	}
 //
-//	/*
-//	===============================================================================
-//
-//	console functions
-//
-//	===============================================================================
-//	*/
-//
-//	void S_Play(void)
-//	{
+	/*
+	===============================================================================
+
+	console functions
+
+	===============================================================================
+	*/
+
+	static void Play()
+	{
 //		int 	i;
 //		char name[256];
 //		sfx_t	*sfx;
@@ -1217,10 +1224,9 @@ public class SND_DMA {
 //			S_StartSound(NULL, cl.playernum+1, 0, sfx, 1.0, 1.0, 0);
 //			i++;
 //		}
-//	}
+	}
 //
-//	void S_SoundList(void)
-//	{
+	static void SoundList() {
 //		int		i;
 //		sfx_t	*sfx;
 //		sfxcache_t	*sc;
@@ -1251,10 +1257,6 @@ public class SND_DMA {
 //			}
 //		}
 //		Com_Printf ("Total resident: %i\n", total);
-//	}
-//
-//
-// 
+	}
 
-//
 }

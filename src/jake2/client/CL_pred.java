@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.4 2004-02-03 13:13:01 hoz Exp $
+ * $Id: CL_pred.java,v 1.5 2004-02-08 13:26:12 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,10 +36,7 @@ import jake2.qcommon.Com;
  * CL_pred
  */
 public class CL_pred extends CL_parse {
-//
-//	#include "client.h"
-//
-//
+
 	/*
 	===================
 	CL_CheckPredictionError

@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.7 2004-01-29 22:44:58 hoz Exp $
+ * $Id: S.java,v 1.8 2004-02-08 13:26:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,12 +30,4 @@ package jake2.client;
  */
 public class S extends SND_DMA {
 
-	public static void Init() {
-	}
-	
-	public static void Shutdown() {
-	}
-	
-	public static void StopAllSounds() {
-	}
 }

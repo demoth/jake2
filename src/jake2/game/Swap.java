@@ -2,7 +2,7 @@
  * Swap.java
  * Copyright (C) 2003
  * 
- * $Id: Swap.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Swap.java,v 1.6 2004-02-08 13:26:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.game;
 
+import java.nio.ByteOrder;
+
 import jake2.Globals;
 
 /**
@@ -34,8 +36,7 @@ public final class Swap {
 
 	public static void Init() {
 		// set the byte swapping variables in a portable manner
-		// TODO test endianess 
-		if (Globals.bigendien) {
+		if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) {
 			Globals.endian= new BigEndianHandler();
 		} else {
 			Globals.endian= new LittleEndianHandler();

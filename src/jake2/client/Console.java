@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.18 2004-02-05 21:32:40 rst Exp $
+ * $Id: Console.java,v 1.19 2004-02-08 13:26:13 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 import jake2.Defines;
@@ -77,70 +79,63 @@ public final class Console extends Globals {
 	};
 	public static xcommand_t Dump_f = new xcommand_t() {
 		public void execute() {
-//			00136 /*
-//			00137 ================
-//			00138 Con_Dump_f
-//			00139 
-//			00140 Save the console contents out to a file
-//			00141 ================
-//			00142 */
-//			00143 void Con_Dump_f (void)
-//			00144 {
-//			00145         int             l, x;
-//			00146         char    *line;
-//			00147         FILE    *f;
-//			00148         char    buffer[1024];
-//			00149         char    name[MAX_OSPATH];
-//			00150 
-//			00151         if (Cmd_Argc() != 2)
-//			00152         {
-//			00153                 Com_Printf ("usage: condump <filename>\n");
-//			00154                 return;
-//			00155         }
-//			00156 
-//			00157         Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(), Cmd_Argv(1));
-//			00158 
-//			00159         Com_Printf ("Dumped console text to %s.\n", name);
-//			00160         FS_CreatePath (name);
-//			00161         f = fopen (name, "rw");
-//			00162         if (!f)
-//			00163         {
-//			00164                 Com_Printf ("ERROR: couldn't open.\n");
-//			00165                 return;
-//			00166         }
-//			00167 
-//			00168         // skip empty lines
-//			00169         for (l = con.current - con.totallines + 1 ; l <= con.current ; l++)
-//			00170         {
-//			00171                 line = con.text + (l%con.totallines)*con.linewidth;
-//			00172                 for (x=0 ; x<con.linewidth ; x++)
-//			00173                         if (line[x] != ' ')
-//			00174                                 break;
-//			00175                 if (x != con.linewidth)
-//			00176                         break;
-//			00177         }
-//			00178 
-//			00179         // write the remaining lines
-//			00180         buffer[con.linewidth] = 0;
-//			00181         for ( ; l <= con.current ; l++)
-//			00182         {
-//			00183                 line = con.text + (l%con.totallines)*con.linewidth;
-//			00184                 strncpy (buffer, line, con.linewidth);
-//			00185                 for (x=con.linewidth-1 ; x>=0 ; x--)
-//			00186                 {
-//			00187                         if (buffer[x] == ' ')
-//			00188                                 buffer[x] = 0;
-//			00189                         else
-//			00190                                 break;
-//			00191                 }
-//			00192                 for (x=0; buffer[x]; x++)
-//			00193                         buffer[x] &= 0x7f;
-//			00194 
-//			00195                 fprintf (f, "%s\n", buffer);
-//			00196         }
-//			00197 
-//			00198         fclose (f);
-//			00199 }			
+
+			int l, x;
+			int line;
+			RandomAccessFile f;
+			byte[] buffer = new byte[1024];
+			String name;
+
+			if (Cmd.Argc() != 2) {
+				Com.Printf("usage: condump <filename>\n");
+				return;
+			}
+
+			//Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(), Cmd_Argv(1));
+			name = FS.Gamedir() + "/" + Cmd.Argv(1) + ".txt";
+
+			Com.Printf("Dumped console text to " + name + ".\n");
+			FS.CreatePath(name);
+			f = fopen(name, "rw");
+			if (f == null) {
+				Com.Printf("ERROR: couldn't open.\n");
+				return;
+			}
+
+			// skip empty lines
+			for (l = con.current - con.totallines + 1; l <= con.current; l++) {
+				line = (l % con.totallines) * con.linewidth;
+				for (x = 0; x < con.linewidth; x++)
+					if (con.text[line + x] != ' ')
+						break;
+				if (x != con.linewidth)
+					break;
+			}
+
+			// write the remaining lines
+			buffer[con.linewidth] = 0;
+			for (; l <= con.current; l++) {
+				line = (l % con.totallines) * con.linewidth;
+				//strncpy (buffer, line, con.linewidth);
+				System.arraycopy(con.text, line, buffer, 0, con.linewidth);
+				for (x = con.linewidth - 1; x >= 0; x--) {
+					if (buffer[x] == ' ')
+						buffer[x] = 0;
+					else
+						break;
+				}
+				for (x = 0; buffer[x] != 0; x++)
+					buffer[x] &= 0x7f;
+				
+				buffer[x] = '\n';
+				// fprintf (f, "%s\n", buffer);
+				try {
+					f.write(buffer, 0, x+1);
+				} catch (IOException e) {}
+			}
+		
+			fclose(f);
+
 		}
 	};
 	

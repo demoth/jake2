@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.43 2004-02-04 11:24:15 hoz Exp $
+ * $Id: Globals.java,v 1.44 2004-02-08 13:26:13 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.43  2004-02-04 11:24:15  hoz
+ * Revision 1.44  2004-02-08 13:26:13  hoz
+ * - aufr?umen
+ *
+ * Revision 1.43  2004/02/04 11:24:15  hoz
  * - some fx functions
  * - long -> int for time variables
  *
@@ -113,9 +116,7 @@ public class Globals extends Defines {
 	/*
 	 * global variables
 	 */
-
 	public static int curtime = 0;
-	public static boolean bigendien = false;
 	public static boolean cmd_wait;
 
 	public static int alias_count;
