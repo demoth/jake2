@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.6 2004-12-14 01:08:32 cawe Exp $
+ * $Id: DancingQueens.java,v 1.7 2005-02-09 09:21:10 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,21 +64,25 @@ public class DancingQueens
 		test.run();
 	}
 
+	KBD kbd;
+
 	void init() {
 
-		Qcommon.Init(new String[] {"DancingQueens"});
+		Qcommon.Init(new String[] {"DancingQueens", "+set", "s_initsound", "0", "+set", "vid_ref", "lwjgl"});
 		// sehr wichtig !!!
 		VID.Shutdown();
 
 		String[] names = Renderer.getDriverNames();
 		System.out.println("Registered Drivers: " + Arrays.asList(names));
 
-		this.re = Renderer.getDriver("fastjogl");
+		this.re = Renderer.getDriver("lwjgl");
 
 		System.out.println("Use driver: " + re);
 		System.out.println();
 		
 		re.Init(0, 0);
+		kbd = re.getKeyboardHandler();
+		kbd.Init();
 		
 		Cmd.AddCommand("togglemouse", togglemouse);
 		Cbuf.AddText("bind t togglemouse");
@@ -126,7 +130,7 @@ public class DancingQueens
 		while (true)
 		{
 			re.updateScreen(callback);
-			re.getKeyboardHandler().Update();
+			kbd.Update();
 			Cbuf.Execute();
 		}
 	}
