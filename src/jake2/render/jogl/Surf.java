@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.5 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Surf.java,v 1.6 2004-01-20 18:22:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import java.util.Arrays;
+
+import net.java.games.jogl.GL;
+import jake2.Defines;
 import jake2.client.entity_t;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
@@ -32,6 +36,7 @@ import jake2.render.mnode_t;
 import jake2.render.model_t;
 import jake2.render.msurface_t;
 import jake2.render.mtexinfo_t;
+import jake2.util.Math3D;
 
 /**
  * Surf
@@ -40,46 +45,42 @@ import jake2.render.mtexinfo_t;
  */
 public abstract class Surf extends Draw {
 
-////	   GL_RSURF.C: surface-related refresh code
-//	#include <assert.h>
-//
-//	#include "gl_local.h"
-//
-//	static vec3_t	modelorg;		// relative to viewpoint
-//
-//	msurface_t	*r_alpha_surfaces;
-//
-//	#define DYNAMIC_LIGHT_WIDTH  128
-//	#define DYNAMIC_LIGHT_HEIGHT 128
-//
-//	#define LIGHTMAP_BYTES 4
-//
-//	#define	BLOCK_WIDTH		128
-//	#define	BLOCK_HEIGHT	128
-//
-//	#define	MAX_LIGHTMAPS	128
-//
-//	int		c_visible_lightmaps;
-//	int		c_visible_textures;
-//
-//	#define GL_LIGHTMAP_FORMAT GL_RGBA
-//
-//	typedef struct
-//	{
-//		int internal_format;
-//		int	current_lightmap_texture;
-//
-//		msurface_t	*lightmap_surfaces[MAX_LIGHTMAPS];
-//
-//		int			allocated[BLOCK_WIDTH];
-//
-//		// the lightmap texture data needs to be kept in
-//		// main memory so texsubimage can update properly
-//		byte		lightmap_buffer[4*BLOCK_WIDTH*BLOCK_HEIGHT];
-//	} gllightmapstate_t;
-//
-//	static gllightmapstate_t gl_lms;
-//
+	// GL_RSURF.C: surface-related refresh code
+	float[] modelorg = {0, 0, 0};		// relative to viewpoint
+
+	msurface_t	r_alpha_surfaces;
+
+	static final int DYNAMIC_LIGHT_WIDTH = 128;
+	static final int DYNAMIC_LIGHT_HEIGHT = 128;
+
+	static final int LIGHTMAP_BYTES = 4;
+
+	static final int BLOCK_WIDTH = 128;
+	static final int BLOCK_HEIGHT = 128;
+
+	static final int MAX_LIGHTMAPS = 128;
+
+	int c_visible_lightmaps;
+	int c_visible_textures;
+
+	static final int GL_LIGHTMAP_FORMAT = GL.GL_RGBA;
+
+	static class gllightmapstate_t 
+	{
+		int internal_format;
+		int current_lightmap_texture;
+
+		msurface_t[] lightmap_surfaces = new msurface_t[Defines.MAXLIGHTMAPS];
+
+		int[] allocated = new int[BLOCK_WIDTH];
+
+		// the lightmap texture data needs to be kept in
+		// main memory so texsubimage can update properly
+		byte[] lightmap_buffer = new byte[4*BLOCK_WIDTH*BLOCK_HEIGHT];
+	} 
+
+	gllightmapstate_t gl_lms = new gllightmapstate_t();
+
 //
 //	static void		LM_InitBlock( void );
 //	static void		LM_UploadBlock( qboolean dynamic );
@@ -125,20 +126,19 @@ public abstract class Surf extends Draw {
 	DrawGLPoly
 	================
 	*/
-//	void DrawGLPoly (glpoly_t *p)
 	void DrawGLPoly(glpoly_t p)
 	{
-//		int		i;
-//		float	*v;
-//
-//		qglBegin (GL_POLYGON);
-//		v = p->verts[0];
-//		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-//		{
-//			qglTexCoord2f (v[3], v[4]);
-//			qglVertex3fv (v);
-//		}
-//		qglEnd ();
+		int i;
+		float[] v;
+
+		gl.glBegin(GL.GL_POLYGON);
+		for (i=0 ; i<p.numverts ; i++)
+		{
+			v = p.verts[i];
+			gl.glTexCoord2f(v[3], v[4]);
+			gl.glVertex3fv(v);
+		}
+		gl.glEnd();
 	}
 
 	//	  ============
@@ -906,68 +906,77 @@ public abstract class Surf extends Draw {
 	*/
 	void R_DrawBrushModel(entity_t e)
 	{
-//		vec3_t		mins, maxs;
-//		int			i;
-//		qboolean	rotated;
-//
-//		if (currentmodel->nummodelsurfaces == 0)
-//			return;
-//
-//		currententity = e;
-//		gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
-//
-//		if (e->angles[0] || e->angles[1] || e->angles[2])
-//		{
-//			rotated = true;
-//			for (i=0 ; i<3 ; i++)
-//			{
-//				mins[i] = e->origin[i] - currentmodel->radius;
-//				maxs[i] = e->origin[i] + currentmodel->radius;
-//			}
-//		}
-//		else
-//		{
-//			rotated = false;
-//			VectorAdd (e->origin, currentmodel->mins, mins);
-//			VectorAdd (e->origin, currentmodel->maxs, maxs);
-//		}
-//
-//		if (R_CullBox (mins, maxs))
-//			return;
-//
-//		qglColor3f (1,1,1);
-//		memset (gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
-//
-//		VectorSubtract (r_newrefdef.vieworg, e->origin, modelorg);
-//		if (rotated)
-//		{
-//			vec3_t	temp;
-//			vec3_t	forward, right, up;
-//
-//			VectorCopy (modelorg, temp);
-//			AngleVectors (e->angles, forward, right, up);
-//			modelorg[0] = DotProduct (temp, forward);
-//			modelorg[1] = -DotProduct (temp, right);
-//			modelorg[2] = DotProduct (temp, up);
-//		}
-//
-//		qglPushMatrix ();
-//	e->angles[0] = -e->angles[0];	// stupid quake bug
-//	e->angles[2] = -e->angles[2];	// stupid quake bug
-//		R_RotateForEntity (e);
-//	e->angles[0] = -e->angles[0];	// stupid quake bug
-//	e->angles[2] = -e->angles[2];	// stupid quake bug
-//
-//		GL_EnableMultitexture( true );
-//		GL_SelectTexture( GL_TEXTURE0);
-//		GL_TexEnv( GL_REPLACE );
-//		GL_SelectTexture( GL_TEXTURE1);
-//		GL_TexEnv( GL_MODULATE );
-//
-//		R_DrawInlineBModel ();
-//		GL_EnableMultitexture( false );
-//
-//		qglPopMatrix ();
+		float[] mins = {0, 0, 0};
+		float[] maxs = {0, 0, 0};
+		int i;
+		boolean rotated;
+
+		if (currentmodel.nummodelsurfaces == 0)
+			return;
+
+		currententity = e;
+		gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
+
+		if (e.angles[0] != 0 || e.angles[1] != 0 || e.angles[2] != 0)
+		{
+			rotated = true;
+			for (i=0 ; i<3 ; i++)
+			{
+				mins[i] = e.origin[i] - currentmodel.radius;
+				maxs[i] = e.origin[i] + currentmodel.radius;
+			}
+		}
+		else
+		{
+			rotated = false;
+			Math3D.VectorAdd(e.origin, currentmodel.mins, mins);
+			Math3D.VectorAdd(e.origin, currentmodel.maxs, maxs);
+		}
+
+		if (R_CullBox(mins, maxs))
+			return;
+
+		gl.glColor3f (1,1,1);
+		
+		// TODO check this: memset (gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
+		for(i=0; i < gl_lms.lightmap_surfaces.length; i++)
+		{
+			gl_lms.lightmap_surfaces[i] = new msurface_t();
+		}
+
+		Math3D.VectorSubtract (r_newrefdef.vieworg, e.origin, modelorg);
+		if (rotated)
+		{
+			float[] temp = {0, 0, 0};
+			float[] forward = {0, 0, 0};
+			float[] right = {0, 0, 0};
+			float[] up = {0, 0, 0};
+
+			Math3D.VectorCopy (modelorg, temp);
+			Math3D.AngleVectors (e.angles, forward, right, up);
+			modelorg[0] = Math3D.DotProduct (temp, forward);
+			modelorg[1] = -Math3D.DotProduct (temp, right);
+			modelorg[2] = Math3D.DotProduct (temp, up);
+		}
+
+		gl.glPushMatrix();
+		
+		e.angles[0] = -e.angles[0];	// stupid quake bug
+		e.angles[2] = -e.angles[2];	// stupid quake bug
+		R_RotateForEntity(e);
+		e.angles[0] = -e.angles[0];	// stupid quake bug
+		e.angles[2] = -e.angles[2];	// stupid quake bug
+
+		GL_EnableMultitexture( true );
+		GL_SelectTexture( GL_TEXTURE0);
+		GL_TexEnv( GL.GL_REPLACE );
+		GL_SelectTexture( GL_TEXTURE1);
+		GL_TexEnv( GL.GL_MODULATE );
+
+		R_DrawInlineBModel();
+		GL_EnableMultitexture( false );
+
+		gl.glPopMatrix();
 	}
 
 	/*

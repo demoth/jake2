@@ -19,19 +19,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mleaf_t.java,v 1.4 2004-01-14 21:30:00 cwei Exp $
+// $Id: mleaf_t.java,v 1.5 2004-01-20 18:22:00 cwei Exp $
 
 package jake2.render;
 
 public class mleaf_t extends mnode_t {
 
 	//	common with node
+	/*
 	public int contents; // wil be a negative contents number
 	public int visframe; // node needs to be traversed if current
 
 	public float minmaxs[] = new float[6]; // for bounding box culling
 
 	public mnode_t parent;
+	*/
 
 	//	leaf specific
 	public int cluster;

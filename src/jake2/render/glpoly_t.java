@@ -19,16 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glpoly_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: glpoly_t.java,v 1.3 2004-01-20 18:21:59 cwei Exp $
 
 package jake2.render;
 
 public class glpoly_t {
 	public final static int VERTEXSIZE = 7;
 
-	glpoly_t next;
-	glpoly_t chain;
-	int numverts;
-	int flags; // for SURF_UNDERWATER (not needed anymore?)
-	float verts[][] = new float[4][VERTEXSIZE]; // variable sized (xyz s1t1 s2t2)
+	public glpoly_t next;
+	public glpoly_t chain;
+	public int numverts;
+	public int flags; // for SURF_UNDERWATER (not needed anymore?)
+	public float verts[][] = new float[4][VERTEXSIZE]; // variable sized (xyz s1t1 s2t2)
 }

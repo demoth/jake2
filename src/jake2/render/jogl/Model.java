@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.9 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Model.java,v 1.10 2004-01-20 18:22:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -523,8 +523,8 @@ public abstract class Model extends Warp {
 		{
 			in = new texinfo_t(bb);			
 			out[i] = new mtexinfo_t();
-			for (j=0 ; j<8 ; j++)
-				out[i].vecs[0][j] = in.vecs[0][j];
+			//for (j=0 ; j<8 ; j++)
+				out[i].vecs = in.vecs;
 
 			out[i].flags = in.flags;
 			next = in.nexttexinfo;
@@ -562,48 +562,51 @@ public abstract class Model extends Warp {
 	*/
 	void CalcSurfaceExtents(msurface_t s)
 	{
-		// TODO impl: CalcSurfaceExtents(msurface_t s)
-//		float	mins[2], maxs[2], val;
-//		int		i,j, e;
-//		mvertex_t	*v;
-//		mtexinfo_t	*tex;
-//		int		bmins[2], bmaxs[2];
-//
-//		mins[0] = mins[1] = 999999;
-//		maxs[0] = maxs[1] = -99999;
-//
-//		tex = s.texinfo;
-//	
-//		for (i=0 ; i<s.numedges ; i++)
-//		{
-//			e = loadmodel.surfedges[s.firstedge+i];
-//			if (e >= 0)
-//				v = &loadmodel.vertexes[loadmodel.edges[e].v[0]];
-//			else
-//				v = &loadmodel.vertexes[loadmodel.edges[-e].v[1]];
-//		
-//			for (j=0 ; j<2 ; j++)
-//			{
-//				val = v.position[0] * tex.vecs[j][0] + 
-//					v.position[1] * tex.vecs[j][1] +
-//					v.position[2] * tex.vecs[j][2] +
-//					tex.vecs[j][3];
-//				if (val < mins[j])
-//					mins[j] = val;
-//				if (val > maxs[j])
-//					maxs[j] = val;
-//			}
-//		}
-//
-//		for (i=0 ; i<2 ; i++)
-//		{	
-//			bmins[i] = floor(mins[i]/16);
-//			bmaxs[i] = ceil(maxs[i]/16);
-//
-//			s.texturemins[i] = bmins[i] * 16;
-//			s.extents[i] = (bmaxs[i] - bmins[i]) * 16;
-//
-//		}
+		float[] mins = {0, 0};
+		float[] maxs = {0, 0};
+		float val;
+
+		int i, j, e;
+		mvertex_t v;
+		mtexinfo_t tex;
+		int[] bmins = {0, 0};
+		int[] bmaxs = {0, 0};
+
+		mins[0] = mins[1] = 999999;
+		maxs[0] = maxs[1] = -99999;
+
+		tex = s.texinfo;
+	
+		for (i=0 ; i<s.numedges ; i++)
+		{
+			e = loadmodel.surfedges[s.firstedge+i];
+			if (e >= 0)
+				v = loadmodel.vertexes[loadmodel.edges[e].v[0]];
+			else
+				v = loadmodel.vertexes[loadmodel.edges[-e].v[1]];
+		
+			for (j=0 ; j<2 ; j++)
+			{
+				val = v.position[0] * tex.vecs[j][0] + 
+					v.position[1] * tex.vecs[j][1] +
+					v.position[2] * tex.vecs[j][2] +
+					tex.vecs[j][3];
+				if (val < mins[j])
+					mins[j] = val;
+				if (val > maxs[j])
+					maxs[j] = val;
+			}
+		}
+
+		for (i=0 ; i<2 ; i++)
+		{	
+			bmins[i] = (int)Math.floor(mins[i]/16);
+			bmaxs[i] = (int)Math.ceil(maxs[i]/16);
+
+			s.texturemins[i] = (short)(bmins[i] * 16);
+			s.extents[i] = (short)((bmaxs[i] - bmins[i]) * 16);
+
+		}
 	}
 
 	/*
@@ -639,6 +642,7 @@ public abstract class Model extends Warp {
 		for ( surfnum=0 ; surfnum<count ; surfnum++)
 		{
 			in = new qfiles.dface_t(bb);
+			out[surfnum] = new msurface_t();
 			out[surfnum].firstedge = in.firstedge;
 			out[surfnum].numedges = in.numedges;		
 			out[surfnum].flags = 0;
@@ -707,8 +711,7 @@ public abstract class Model extends Warp {
 	void Mod_SetParent(mnode_t node, mnode_t parent)
 	{
 		node.parent = parent;
-		if (node.contents != -1)
-			return;
+		if (node.contents != -1) return;
 		Mod_SetParent(node.children[0], node);
 		Mod_SetParent(node.children[1], node);
 	}
@@ -736,11 +739,14 @@ public abstract class Model extends Warp {
 		
 		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		// initialize the tree array
+		for ( i=0 ; i<count ; i++) out[i] = new mnode_t(); // do first before linking 
 
+		// fill and link the nodes
 		for ( i=0 ; i<count ; i++)
 		{
 			in = new qfiles.dnode_t(bb);
-			out[i] = new mnode_t();
 			for (j=0 ; j<3 ; j++)
 			{
 				out[i].minmaxs[j] = in.mins[j];
@@ -956,34 +962,31 @@ public abstract class Model extends Warp {
 		Mod_LoadSubmodels(header.lumps[Defines.LUMP_MODELS]);
 		mod.numframes = 2;		// regular and alternate animation
 	
-		// TODO impl: set up the submodels
-		
 		//
 		// set up the submodels
 		//
+		// TODO check this: set up the submodels
+		model_t	starmod;
+
 		for (i=0 ; i<mod.numsubmodels ; i++)
 		{
-//			model_t	*starmod;
-//
-//			bm = &mod.submodels[i];
-//			starmod = &mod_inline[i];
-//
-//			*starmod = *loadmodel;
-//		
-//			starmod.firstmodelsurface = bm.firstface;
-//			starmod.nummodelsurfaces = bm.numfaces;
-//			starmod.firstnode = bm.headnode;
-//			if (starmod.firstnode >= loadmodel.numnodes)
-//				ri.Sys_Error (ERR_DROP, "Inline model %i has bad firstnode", i);
-//
-//			VectorCopy (bm.maxs, starmod.maxs);
-//			VectorCopy (bm.mins, starmod.mins);
-//			starmod.radius = bm.radius;
-//	
-//			if (i == 0)
-//				*loadmodel = *starmod;
-//
-//			starmod.numleafs = bm.visleafs;
+
+			bm = mod.submodels[i];
+			starmod = mod_inline[i] = loadmodel;
+			starmod.firstmodelsurface = bm.firstface;
+			starmod.nummodelsurfaces = bm.numfaces;
+			starmod.firstnode = bm.headnode;
+			if (starmod.firstnode >= loadmodel.numnodes)
+				ri.Sys_Error(Defines.ERR_DROP, "Inline model " + i + " has bad firstnode");
+
+			Math3D.VectorCopy(bm.maxs, starmod.maxs);
+			Math3D.VectorCopy(bm.mins, starmod.mins);
+			starmod.radius = bm.radius;
+	
+			if (i == 0)
+				loadmodel = starmod;
+
+			starmod.numleafs = bm.visleafs;
 		}
 	}
 

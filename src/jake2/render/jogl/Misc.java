@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.5 2004-01-13 15:00:05 cwei Exp $
+ * $Id: Misc.java,v 1.6 2004-01-20 18:22:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -262,7 +262,7 @@ public abstract class Misc extends Mesh {
 	
 
 	// ============================================================================
-	// TODO remove after impl this methods in jake2.render.jogl package
+	// remove after impl this methods in jake2.render.jogl package
 	// ============================================================================
 
 }

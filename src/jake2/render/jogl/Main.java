@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.16 2004-01-19 12:59:06 cwei Exp $
+ * $Id: Main.java,v 1.17 2004-01-20 18:22:00 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1203,7 +1203,6 @@ public abstract class Main extends Base {
 
 	boolean R_Init2()
 	{	
-
 		ri.Vid_MenuInit();
 
 		/*
@@ -1221,220 +1220,218 @@ public abstract class Main extends Base {
 		String renderer_buffer = gl_config.renderer_string.toLowerCase();
 		String vendor_buffer = gl_config.vendor_string.toLowerCase();
 		
-		// TODO R_Init2() komplett fertig stellen
-		
-	 if ( renderer_buffer.indexOf("voodoo") >= 0)
-	 {
-		 if ( renderer_buffer.indexOf("rush") < 0 )
-			 gl_config.renderer = GL_RENDERER_VOODOO;
+		 if ( renderer_buffer.indexOf("voodoo") >= 0)
+		 {
+			 if ( renderer_buffer.indexOf("rush") < 0 )
+				 gl_config.renderer = GL_RENDERER_VOODOO;
+			 else
+				 gl_config.renderer = GL_RENDERER_VOODOO_RUSH;
+		 }
+		 else if ( vendor_buffer.indexOf("sgi") >=0 )
+			 gl_config.renderer = GL_RENDERER_SGI;
+		 else if ( renderer_buffer.indexOf("permedia") >= 0 )
+			 gl_config.renderer = GL_RENDERER_PERMEDIA2;
+		 else if ( renderer_buffer.indexOf("glint") >= 0 )
+			 gl_config.renderer = GL_RENDERER_GLINT_MX;
+		 else if ( renderer_buffer.indexOf("glzicd") >= 0 )
+			 gl_config.renderer = GL_RENDERER_REALIZM;
+		 else if ( renderer_buffer.indexOf("gdi") >= 0 )
+			 gl_config.renderer = GL_RENDERER_MCD;
+		 else if ( renderer_buffer.indexOf("pcx2") >= 0 )
+			 gl_config.renderer = GL_RENDERER_PCX2;
+		 else if ( renderer_buffer.indexOf("verite") >= 0 )
+			 gl_config.renderer = GL_RENDERER_RENDITION;
 		 else
-			 gl_config.renderer = GL_RENDERER_VOODOO_RUSH;
-	 }
-	 else if ( vendor_buffer.indexOf("sgi") >=0 )
-		 gl_config.renderer = GL_RENDERER_SGI;
-	 else if ( renderer_buffer.indexOf("permedia") >= 0 )
-		 gl_config.renderer = GL_RENDERER_PERMEDIA2;
-	 else if ( renderer_buffer.indexOf("glint") >= 0 )
-		 gl_config.renderer = GL_RENDERER_GLINT_MX;
-	 else if ( renderer_buffer.indexOf("glzicd") >= 0 )
-		 gl_config.renderer = GL_RENDERER_REALIZM;
-	 else if ( renderer_buffer.indexOf("gdi") >= 0 )
-		 gl_config.renderer = GL_RENDERER_MCD;
-	 else if ( renderer_buffer.indexOf("pcx2") >= 0 )
-		 gl_config.renderer = GL_RENDERER_PCX2;
-	 else if ( renderer_buffer.indexOf("verite") >= 0 )
-		 gl_config.renderer = GL_RENDERER_RENDITION;
-	 else
-		 gl_config.renderer = GL_RENDERER_OTHER;
-
-	String monolightmap = gl_monolightmap.string.toUpperCase();
-	 if ( monolightmap.length() < 2 || monolightmap.charAt(1) != 'F' )
-	 {
-		 if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 )
+			 gl_config.renderer = GL_RENDERER_OTHER;
+	
+		String monolightmap = gl_monolightmap.string.toUpperCase();
+		 if ( monolightmap.length() < 2 || monolightmap.charAt(1) != 'F' )
 		 {
-			 ri.Cvar_Set( "gl_monolightmap", "A" );
-			 ri.Con_Printf( Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n" );
+			 if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 )
+			 {
+				 ri.Cvar_Set( "gl_monolightmap", "A" );
+				 ri.Con_Printf( Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n" );
+			 }
+			 else if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
+			 {
+				 ri.Cvar_Set( "gl_monolightmap", "0" );
+			 }
+			 else
+			 {
+				 ri.Cvar_Set( "gl_monolightmap", "0" );
+			 }
 		 }
-		 else if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
+	
+		 // power vr can't have anything stay in the framebuffer, so
+		 // the screen needs to redraw the tiled background every frame
+		 if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
 		 {
-			 ri.Cvar_Set( "gl_monolightmap", "0" );
+			 ri.Cvar_Set( "scr_drawall", "1" );
 		 }
 		 else
 		 {
-			 ri.Cvar_Set( "gl_monolightmap", "0" );
+			 ri.Cvar_Set( "scr_drawall", "0" );
 		 }
-	 }
-
-	 // power vr can't have anything stay in the framebuffer, so
-	 // the screen needs to redraw the tiled background every frame
-	 if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
-	 {
-		 ri.Cvar_Set( "scr_drawall", "1" );
-	 }
-	 else
-	 {
-		 ri.Cvar_Set( "scr_drawall", "0" );
-	 }
-
-// #ifdef __linux__
-	 ri.Cvar_SetValue( "gl_finish", 1 );
-// #endif
-//
-	 // MCD has buffering issues
-	 if ( gl_config.renderer == GL_RENDERER_MCD )
-	 {
+	
+		// #ifdef __linux__
 		 ri.Cvar_SetValue( "gl_finish", 1 );
-	 }
-
-	 if ( (gl_config.renderer & GL_RENDERER_3DLABS) != 0 )
-	 {
-		 if ( gl_3dlabs_broken.value != 0.0f )
-			 gl_config.allow_cds = false;
+		// #endif
+	
+		 // MCD has buffering issues
+		 if ( gl_config.renderer == GL_RENDERER_MCD )
+		 {
+			 ri.Cvar_SetValue( "gl_finish", 1 );
+		 }
+	
+		 if ( (gl_config.renderer & GL_RENDERER_3DLABS) != 0 )
+		 {
+			 if ( gl_3dlabs_broken.value != 0.0f )
+				 gl_config.allow_cds = false;
+			 else
+				 gl_config.allow_cds = true;
+		 }
 		 else
+		 {
 			 gl_config.allow_cds = true;
-	 }
-	 else
-	 {
-		 gl_config.allow_cds = true;
-	 }
-
-	 if ( gl_config.allow_cds )
-		 ri.Con_Printf( Defines.PRINT_ALL, "...allowing CDS\n" );
-	 else
-		 ri.Con_Printf( Defines.PRINT_ALL, "...disabling CDS\n" );
-
-	 /*
-	 ** grab extensions
-	 */
-	 if ( gl_config.extensions_string.indexOf("GL_EXT_compiled_vertex_array") >= 0 || 
-		  gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0 )
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n" );
-//		 qglLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
-		 qglLockArraysEXT = true;
-//		 qglUnlockArraysEXT = ( void * ) qwglGetProcAddress( "glUnlockArraysEXT" );
-		 qglUnlockArraysEXT = true;
-	 }
-	 else
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
-	 }
-
-// #ifdef _WIN32
-//	 if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
-//	 {
-//		 qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
-//		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
-//	 }
-// #endif
-
-	 if ( gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0 )
-	 {
-		 if ( gl_ext_pointparameters.value != 0.0f )
+		 }
+	
+		 if ( gl_config.allow_cds )
+			 ri.Con_Printf( Defines.PRINT_ALL, "...allowing CDS\n" );
+		 else
+			 ri.Con_Printf( Defines.PRINT_ALL, "...disabling CDS\n" );
+	
+		 /*
+		 ** grab extensions
+		 */
+		 if ( gl_config.extensions_string.indexOf("GL_EXT_compiled_vertex_array") >= 0 || 
+			  gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0 )
 		 {
-//			 qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
-			 qglPointParameterfEXT = true;
-//			 qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
-			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n" );
+	//		 qglLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
+			 qglLockArraysEXT = true;
+	//		 qglUnlockArraysEXT = ( void * ) qwglGetProcAddress( "glUnlockArraysEXT" );
+			 qglUnlockArraysEXT = true;
 		 }
 		 else
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
 		 }
-	 }
-	 else
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
-	 }
-
-// #ifdef __linux__
-//	 if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" ))
-//	 {
-//		 if ( gl_ext_palettedtexture->value )
-//		 {
-//			 ri.Con_Printf( Defines.PRINT_ALL, "...using 3DFX_set_global_palette\n" );
-//			 qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
-////			 qglColorTableEXT = Fake_glColorTableEXT;
-//		 }
-//		 else
-//		 {
-//			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
-//		 }
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( Defines.PRINT_ALL, "...3DFX_set_global_palette not found\n" );
-//	 }
-// #endif
-
-	 if ( !qglColorTableEXT &&
-		 gl_config.extensions_string.indexOf("GL_EXT_paletted_texture") >= 0 && 
-		 gl_config.extensions_string.indexOf("GL_EXT_shared_texture_palette") >= 0 )
-	 {
-		 if ( gl_ext_palettedtexture.value != 0.0f )
+	
+	// #ifdef _WIN32
+	//	 if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
+	//	 {
+	//		 qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
+	//		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
+	//	 }
+	//	 else
+	//	 {
+	//		 ri.Con_Printf( Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
+	//	 }
+	// #endif
+	
+		 if ( gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0 )
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
-			 qglColorTableEXT = false; // true; TODO jogl bug
+			 if ( gl_ext_pointparameters.value != 0.0f )
+			 {
+	//			 qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
+				 qglPointParameterfEXT = true;
+	//			 qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
+				 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n" );
+			 }
+			 else
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+			 }
 		 }
 		 else
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
 		 }
-	 }
-	 else
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
-	 }
-
-	 if ( gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0 )
-	 {
-		 if ( gl_ext_multitexture.value != 0.0f )
+	
+	// #ifdef __linux__
+	//	 if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" ))
+	//	 {
+	//		 if ( gl_ext_palettedtexture->value )
+	//		 {
+	//			 ri.Con_Printf( Defines.PRINT_ALL, "...using 3DFX_set_global_palette\n" );
+	//			 qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
+	////			 qglColorTableEXT = Fake_glColorTableEXT;
+	//		 }
+	//		 else
+	//		 {
+	//			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
+	//		 }
+	//	 }
+	//	 else
+	//	 {
+	//		 ri.Con_Printf( Defines.PRINT_ALL, "...3DFX_set_global_palette not found\n" );
+	//	 }
+	// #endif
+	
+		 if ( !qglColorTableEXT &&
+			 gl_config.extensions_string.indexOf("GL_EXT_paletted_texture") >= 0 && 
+			 gl_config.extensions_string.indexOf("GL_EXT_shared_texture_palette") >= 0 )
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_ARB_multitexture\n" );
-//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
-//			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
-//			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
-			 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
-			 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
+			 if ( gl_ext_palettedtexture.value != 0.0f )
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
+				 qglColorTableEXT = false; // true; TODO jogl bug
+			 }
+			 else
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n" );
+			 }
 		 }
 		 else
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
 		 }
-	 }
-	 else
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n" );
-	 }
-
-	 if ( gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0 )
-	 {
-		 if ( qglActiveTextureARB )
+	
+		 if ( gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0 )
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
-		 }
-		 else if ( gl_ext_multitexture.value != 0.0f)
-		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_SGIS_multitexture\n" );
-//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
-//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
-			 qglSelectTextureSGIS = true;
-//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
-//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
+			 if ( gl_ext_multitexture.value != 0.0f )
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_ARB_multitexture\n" );
+	//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
+	//			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
+	//			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
+				 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
+				 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
+			 }
+			 else
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+			 }
 		 }
 		 else
 		 {
-			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n" );
 		 }
-	 }
-	 else
-	 {
-		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
-	 }
+	
+		 if ( gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0 )
+		 {
+			 if ( qglActiveTextureARB )
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
+			 }
+			 else if ( gl_ext_multitexture.value != 0.0f)
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_SGIS_multitexture\n" );
+	//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
+	//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
+				 qglSelectTextureSGIS = true;
+	//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
+	//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
+			 }
+			 else
+			 {
+				 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n" );
+			 }
+		 }
+		 else
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
+		 }
 
 		GL_SetDefaultState();
 
