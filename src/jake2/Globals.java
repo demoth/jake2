@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.4 2004-08-18 20:27:36 hzi Exp $
+ * $Id: Globals.java,v 1.5 2005-02-07 17:49:26 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.netadr_t;
 import jake2.qcommon.sizebuf_t;
+import jake2.render.DummyRenderer;
 import jake2.render.model_t;
 
 import java.io.FileWriter;
@@ -79,7 +80,7 @@ public class Globals extends Defines {
 	public static cvar_t cl_sidespeed;
 	public static cvar_t cl_stereo;
 	public static cvar_t cl_stereo_separation;
-	public static cvar_t cl_timedemo;
+	public static cvar_t cl_timedemo = new cvar_t();
 	public static cvar_t cl_timeout;
 	public static cvar_t cl_upspeed;
 	public static cvar_t cl_yawspeed;
@@ -353,7 +354,7 @@ public class Globals extends Defines {
 	public static cvar_t con_notifytime;
 	public static viddef_t viddef = new viddef_t();
 	// Renderer interface used by VID, SCR, ...
-	public static refexport_t re = null;
+	public static refexport_t re = new DummyRenderer();
 
 	public static String[] keybindings = new String[256];
 	public static boolean[] keydown = new boolean[256];
