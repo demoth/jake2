@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.5 2004-07-09 06:50:49 hzi Exp $
+// $Id: SV_GAME.java,v 1.6 2004-08-22 14:25:12 salomo Exp $
 
 package jake2.server;
 
@@ -31,8 +31,6 @@ import jake2.render.*;
 import jake2.sys.Sys;
 
 public class SV_GAME extends SV_INIT {
-
-	// sv_game.c -- interface to the game dll
 
 	public static game_export_t ge;
 
@@ -50,7 +48,6 @@ public class SV_GAME extends SV_INIT {
 		if (ent == null)
 			return;
 
-		//p = NUM_FOR_EDICT(ent);
 		p = ent.index;
 		if (p < 1 || p > SV_MAIN.maxclients.value)
 			return;
@@ -73,16 +70,6 @@ public class SV_GAME extends SV_INIT {
 	===============
 	*/
 	public static void PF_dprintf(String fmt) {
-		/*
-		char		msg[1024];
-		va_list		argptr;
-		
-		va_start (argptr,fmt);
-		vsprintf (msg, fmt, argptr);
-		va_end (argptr);
-		
-		*/
-
 		Com.Printf(fmt);
 	}
 
@@ -94,21 +81,14 @@ public class SV_GAME extends SV_INIT {
 	===============
 	*/
 	public static void PF_cprintf(edict_t ent, int level, String fmt) {
-		//char		msg[1024];
-		//va_list		argptr;
+
 		int n = 0;
 
 		if (ent != null) {
-
-			//n = NUM_FOR_EDICT(ent);
 			n = ent.index;
 			if (n < 1 || n > SV_MAIN.maxclients.value)
 				Com.Error(ERR_DROP, "cprintf to a non-client");
 		}
-
-		//		va_start (argptr,fmt);
-		//		vsprintf (msg, fmt, argptr);
-		//		va_end (argptr);
 
 		if (ent != null)
 			SV_SEND.SV_ClientPrintf(svs.clients[n - 1], level, fmt);
@@ -124,19 +104,11 @@ public class SV_GAME extends SV_INIT {
 	===============
 	*/
 	public static void PF_centerprintf(edict_t ent, String fmt) {
-		//char		msg[1024];
-		//va_list		argptr;
 		int n;
 
-		//TODO:  NUM_FOR_EDICT
-		//n = NUM_FOR_EDICT(ent);
 		n = ent.index;
 		if (n < 1 || n > SV_MAIN.maxclients.value)
 			return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
-
-		//		va_start (argptr,fmt);
-		//		vsprintf (msg, fmt, argptr);
-		//		va_end (argptr);
 
 		MSG.WriteByte(sv.multicast, svc_centerprint);
 		MSG.WriteString(sv.multicast, fmt);
@@ -174,7 +146,6 @@ public class SV_GAME extends SV_INIT {
 
 		i = SV_ModelIndex(name);
 
-		//ent.model = name;
 		ent.s.modelindex = i;
 
 		// if it is an inline model, get the size information for it

@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.6 2004-08-20 21:29:57 salomo Exp $
+ * $Id: SV.java,v 1.7 2004-08-22 14:25:12 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -849,7 +849,7 @@ public final class SV
 						GameBase.gi.sound(ent, 0, GameBase.gi.soundindex("world/land.wav"), 1, 1, 0);
 		}
 
-		//	   regular thinking
+		// regular thinking
 		SV_RunThink(ent);
 	}
 

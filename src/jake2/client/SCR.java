@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.5 2004-07-09 06:50:50 hzi Exp $
+ * $Id: SCR.java,v 1.6 2004-08-22 14:25:15 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,12 +39,11 @@ import java.awt.Dimension;
 /**
  * SCR
  */
-public final class SCR extends Globals
-{
+public final class SCR extends Globals {
 
 	//	cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 
-	static String[][] sb_nums =
+	static String[][] sb_nums=
 		{ { "num_0", "num_1", "num_2", "num_3", "num_4", "num_5", "num_6", "num_7", "num_8", "num_9", "num_minus" }, {
 			"anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5", "anum_6", "anum_7", "anum_8", "anum_9", "anum_minus" }
 	};
@@ -86,28 +85,27 @@ public final class SCR extends Globals
 	static cvar_t scr_drawall;
 	public static cvar_t fps;
 
-	static dirty_t scr_dirty = new dirty_t();
-	static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t()};
+	static dirty_t scr_dirty= new dirty_t();
+	static dirty_t[] scr_old_dirty= { new dirty_t(), new dirty_t()};
 
 	static String crosshair_pic;
 	static int crosshair_width, crosshair_height;
 
-	static class dirty_t
-	{
+	static class dirty_t {
 		int x1;
 		int x2;
 		int y1;
 		int y2;
-		
+
 		void set(dirty_t src) {
-			x1 = src.x1;
-			x2 = src.x2;
-			y1 = src.y1;
-			y2 = src.y2;
+			x1= src.x1;
+			x2= src.x2;
+			y1= src.y1;
+			y2= src.y2;
 		}
-		
+
 		void clear() {
-			x1 = x2 = y1 = y2 = 0;
+			x1= x2= y1= y2= 0;
 		}
 	}
 
@@ -124,17 +122,16 @@ public final class SCR extends Globals
 	//		float	value;
 	//		int		color;
 	//	} graphsamp_t;
-	static class graphsamp_t
-	{
+	static class graphsamp_t {
 		float value;
 		int color;
 	}
 	static int current;
-	static graphsamp_t[] values = new graphsamp_t[1024];
+	static graphsamp_t[] values= new graphsamp_t[1024];
 
 	static {
-		for (int n = 0; n < 1024; n++)
-			values[n] = new graphsamp_t();
+		for (int n= 0; n < 1024; n++)
+			values[n]= new graphsamp_t();
 	}
 
 	/*
@@ -142,10 +139,9 @@ public final class SCR extends Globals
 	SCR_DebugGraph
 	==============
 	*/
-	public static void DebugGraph(float value, int color)
-	{
-		values[current & 1023].value = value;
-		values[current & 1023].color = color;
+	public static void DebugGraph(float value, int color) {
+		values[current & 1023].value= value;
+		values[current & 1023].color= color;
 		current++;
 	}
 
@@ -154,30 +150,28 @@ public final class SCR extends Globals
 	SCR_DrawDebugGraph
 	==============
 	*/
-	static void DrawDebugGraph()
-	{
+	static void DrawDebugGraph() {
 		int a, x, y, w, i, h;
 		float v;
 		int color;
 
 		// draw the graph
 
-		w = scr_vrect.width;
+		w= scr_vrect.width;
 
-		x = scr_vrect.x;
-		y = scr_vrect.y + scr_vrect.height;
+		x= scr_vrect.x;
+		y= scr_vrect.y + scr_vrect.height;
 		re.DrawFill(x, (int) (y - scr_graphheight.value), w, (int) scr_graphheight.value, 8);
 
-		for (a = 0; a < w; a++)
-		{
-			i = (current - 1 - a + 1024) & 1023;
-			v = values[i].value;
-			color = values[i].color;
-			v = v * scr_graphscale.value + scr_graphshift.value;
+		for (a= 0; a < w; a++) {
+			i= (current - 1 - a + 1024) & 1023;
+			v= values[i].value;
+			color= values[i].color;
+			v= v * scr_graphscale.value + scr_graphshift.value;
 
 			if (v < 0)
 				v += scr_graphheight.value * (1 + (int) (-v / scr_graphheight.value));
-			h = (int) v % (int) scr_graphheight.value;
+			h= (int) v % (int) scr_graphheight.value;
 			re.DrawFill(x + w - 1 - a, y - h, 1, h, color);
 		}
 	}
@@ -205,23 +199,21 @@ public final class SCR extends Globals
 	for a few moments
 	==============
 	*/
-	static void CenterPrint(String str)
-	{
+	static void CenterPrint(String str) {
 		//char	*s;
 		int s;
-		StringBuffer line = new StringBuffer(64);
+		StringBuffer line= new StringBuffer(64);
 		int i, j, l;
 
 		//strncpy (scr_centerstring, str, sizeof(scr_centerstring)-1);
-		scr_centerstring = str;
-		scr_centertime_off = scr_centertime.value;
-		scr_centertime_start = cl.time;
+		scr_centerstring= str;
+		scr_centertime_off= scr_centertime.value;
+		scr_centertime_start= cl.time;
 
 		// count the number of lines for centering
-		scr_center_lines = 1;
-		s = 0;
-		while (s < str.length())
-		{
+		scr_center_lines= 1;
+		s= 0;
+		while (s < str.length()) {
 			if (str.charAt(s) == '\n')
 				scr_center_lines++;
 			s++;
@@ -231,22 +223,19 @@ public final class SCR extends Globals
 		Com.Printf(
 			"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 
-		s = 0;
+		s= 0;
 
-		if (str.length() != 0)
-		{
-			do
-			{
+		if (str.length() != 0) {
+			do {
 				// scan the width of the line
 
-				for (l = 0; l < 40 && (l + s) < str.length(); l++)
+				for (l= 0; l < 40 && (l + s) < str.length(); l++)
 					if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
 						break;
-				for (i = 0; i < (40 - l) / 2; i++)
+				for (i= 0; i < (40 - l) / 2; i++)
 					line.append(' ');
 
-				for (j = 0; j < l; j++)
-				{
+				for (j= 0; j < l; j++) {
 					line.append(str.charAt(s + j));
 				}
 
@@ -268,9 +257,8 @@ public final class SCR extends Globals
 		Console.ClearNotify();
 	}
 
-	static void DrawCenterString()
-	{
-		String cs = scr_centerstring + "\0";
+	static void DrawCenterString() {
+		String cs= scr_centerstring + "\0";
 		int start;
 		int l;
 		int j;
@@ -283,26 +271,24 @@ public final class SCR extends Globals
 			return;
 
 		// the finale prints the characters one at a time
-		remaining = 9999;
+		remaining= 9999;
 
-		scr_erase_center = 0;
-		start = 0;
+		scr_erase_center= 0;
+		start= 0;
 
 		if (scr_center_lines <= 4)
-			y = (int) (viddef.height * 0.35);
+			y= (int) (viddef.height * 0.35);
 		else
-			y = 48;
+			y= 48;
 
-		do
-		{
+		do {
 			// scan the width of the line
-			for (l = 0; l < 40; l++)
+			for (l= 0; l < 40; l++)
 				if (start + l == cs.length() - 1 || cs.charAt(start + l) == '\n')
 					break;
-			x = (viddef.width - l * 8) / 2;
+			x= (viddef.width - l * 8) / 2;
 			SCR.AddDirtyPoint(x, y);
-			for (j = 0; j < l; j++, x += 8)
-			{
+			for (j= 0; j < l; j++, x += 8) {
 				re.DrawChar(x, y, cs.charAt(start + j));
 				if (remaining == 0)
 					return;
@@ -322,8 +308,7 @@ public final class SCR extends Globals
 		while (true);
 	}
 
-	static void CheckDrawCenterString()
-	{
+	static void CheckDrawCenterString() {
 		scr_centertime_off -= cls.frametime;
 
 		if (scr_centertime_off <= 0)
@@ -341,8 +326,7 @@ public final class SCR extends Globals
 	Sets scr_vrect, the coordinates of the rendered window
 	=================
 	*/
-	static void CalcVrect()
-	{
+	static void CalcVrect() {
 		int size;
 
 		// bound viewsize
@@ -351,16 +335,16 @@ public final class SCR extends Globals
 		if (scr_viewsize.value > 100)
 			Cvar.Set("viewsize", "100");
 
-		size = (int) scr_viewsize.value;
+		size= (int) scr_viewsize.value;
 
-		scr_vrect.width = viddef.width * size / 100;
+		scr_vrect.width= viddef.width * size / 100;
 		scr_vrect.width &= ~7;
 
-		scr_vrect.height = viddef.height * size / 100;
+		scr_vrect.height= viddef.height * size / 100;
 		scr_vrect.height &= ~1;
 
-		scr_vrect.x = (viddef.width - scr_vrect.width) / 2;
-		scr_vrect.y = (viddef.height - scr_vrect.height) / 2;
+		scr_vrect.x= (viddef.width - scr_vrect.width) / 2;
+		scr_vrect.y= (viddef.height - scr_vrect.height) / 2;
 	}
 
 	/*
@@ -370,8 +354,7 @@ public final class SCR extends Globals
 	Keybinding command
 	=================
 	*/
-	static void SizeUp_f()
-	{
+	static void SizeUp_f() {
 		Cvar.SetValue("viewsize", scr_viewsize.value + 10);
 	}
 
@@ -382,8 +365,7 @@ public final class SCR extends Globals
 	Keybinding command
 	=================
 	*/
-	static void SizeDown_f()
-	{
+	static void SizeDown_f() {
 		Cvar.SetValue("viewsize", scr_viewsize.value - 10);
 	}
 
@@ -394,31 +376,27 @@ public final class SCR extends Globals
 	Set a specific sky and rotation speed
 	=================
 	*/
-	static void Sky_f()
-	{
+	static void Sky_f() {
 		float rotate;
-		float[] axis = { 0, 0, 0 };
+		float[] axis= { 0, 0, 0 };
 
-		if (Cmd.Argc() < 2)
-		{
+		if (Cmd.Argc() < 2) {
 			Com.Printf("Usage: sky <basename> <rotate> <axis x y z>\n");
 			return;
 		}
 		if (Cmd.Argc() > 2)
-			rotate = Float.parseFloat(Cmd.Argv(2));
+			rotate= Float.parseFloat(Cmd.Argv(2));
 		else
-			rotate = 0;
-		if (Cmd.Argc() == 6)
-		{
-			axis[0] = Float.parseFloat(Cmd.Argv(3));
-			axis[1] = Float.parseFloat(Cmd.Argv(4));
-			axis[2] = Float.parseFloat(Cmd.Argv(5));
+			rotate= 0;
+		if (Cmd.Argc() == 6) {
+			axis[0]= Float.parseFloat(Cmd.Argv(3));
+			axis[1]= Float.parseFloat(Cmd.Argv(4));
+			axis[2]= Float.parseFloat(Cmd.Argv(5));
 		}
-		else
-		{
-			axis[0] = 0;
-			axis[1] = 0;
-			axis[2] = 1;
+		else {
+			axis[0]= 0;
+			axis[1]= 0;
+			axis[2]= 1;
 		}
 
 		re.SetSky(Cmd.Argv(1), rotate, axis);
@@ -431,63 +409,52 @@ public final class SCR extends Globals
 	SCR_Init
 	==================
 	*/
-	static void Init()
-	{
-		scr_viewsize = Cvar.Get("viewsize", "100", CVAR_ARCHIVE);
-		scr_conspeed = Cvar.Get("scr_conspeed", "3", 0);
-		scr_showturtle = Cvar.Get("scr_showturtle", "0", 0);
-		scr_showpause = Cvar.Get("scr_showpause", "1", 0);
-		scr_centertime = Cvar.Get("scr_centertime", "2.5", 0);
-		scr_printspeed = Cvar.Get("scr_printspeed", "8", 0);
-		scr_netgraph = Cvar.Get("netgraph", "1", 0);
-		scr_timegraph = Cvar.Get("timegraph", "1", 0);
-		scr_debuggraph = Cvar.Get("debuggraph", "1", 0);
-		scr_graphheight = Cvar.Get("graphheight", "32", 0);
-		scr_graphscale = Cvar.Get("graphscale", "1", 0);
-		scr_graphshift = Cvar.Get("graphshift", "0", 0);
-		scr_drawall = Cvar.Get("scr_drawall", "1", 0);
-		fps = Cvar.Get("fps", "0", 0);
+	static void Init() {
+		scr_viewsize= Cvar.Get("viewsize", "100", CVAR_ARCHIVE);
+		scr_conspeed= Cvar.Get("scr_conspeed", "3", 0);
+		scr_showturtle= Cvar.Get("scr_showturtle", "0", 0);
+		scr_showpause= Cvar.Get("scr_showpause", "1", 0);
+		scr_centertime= Cvar.Get("scr_centertime", "2.5", 0);
+		scr_printspeed= Cvar.Get("scr_printspeed", "8", 0);
+		scr_netgraph= Cvar.Get("netgraph", "1", 0);
+		scr_timegraph= Cvar.Get("timegraph", "1", 0);
+		scr_debuggraph= Cvar.Get("debuggraph", "1", 0);
+		scr_graphheight= Cvar.Get("graphheight", "32", 0);
+		scr_graphscale= Cvar.Get("graphscale", "1", 0);
+		scr_graphshift= Cvar.Get("graphshift", "0", 0);
+		scr_drawall= Cvar.Get("scr_drawall", "1", 0);
+		fps= Cvar.Get("fps", "0", 0);
 
 		//
 		// register our commands
 		//
-		Cmd.AddCommand("timerefresh", new xcommand_t()
-		{
-			public void execute()
-			{
+		Cmd.AddCommand("timerefresh", new xcommand_t() {
+			public void execute() {
 				TimeRefresh_f();
 			}
 		});
-		Cmd.AddCommand("loading", new xcommand_t()
-		{
-			public void execute()
-			{
+		Cmd.AddCommand("loading", new xcommand_t() {
+			public void execute() {
 				Loading_f();
 			}
 		});
-		Cmd.AddCommand("sizeup", new xcommand_t()
-		{
-			public void execute()
-			{
+		Cmd.AddCommand("sizeup", new xcommand_t() {
+			public void execute() {
 				SizeUp_f();
 			}
 		});
-		Cmd.AddCommand("sizedown", new xcommand_t()
-		{
-			public void execute()
-			{
+		Cmd.AddCommand("sizedown", new xcommand_t() {
+			public void execute() {
 				SizeDown_f();
 			}
 		});
-		Cmd.AddCommand("sky", new xcommand_t()
-		{
-			public void execute()
-			{
+		Cmd.AddCommand("sky", new xcommand_t() {
+			public void execute() {
 				Sky_f();
 			}
 		});
 
-		scr_initialized = true;
+		scr_initialized= true;
 	}
 
 	/*
@@ -495,8 +462,7 @@ public final class SCR extends Globals
 	SCR_DrawNet
 	==============
 	*/
-	static void DrawNet()
-	{
+	static void DrawNet() {
 		if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
 			return;
 
@@ -508,9 +474,8 @@ public final class SCR extends Globals
 	SCR_DrawPause
 	==============
 	*/
-	static void DrawPause()
-	{
-		Dimension dim = new Dimension();
+	static void DrawPause() {
+		Dimension dim= new Dimension();
 
 		if (scr_showpause.value == 0) // turn off for screenshots
 			return;
@@ -527,14 +492,13 @@ public final class SCR extends Globals
 	SCR_DrawLoading
 	==============
 	*/
-	static void DrawLoading()
-	{
-		Dimension dim = new Dimension();
+	static void DrawLoading() {
+		Dimension dim= new Dimension();
 
 		if (scr_draw_loading == 0)
 			return;
 
-		scr_draw_loading = 0;
+		scr_draw_loading= 0;
 		re.DrawGetPicSize(dim, "loading");
 		re.DrawPic((viddef.width - dim.width) / 2, (viddef.height - dim.height) / 2, "loading");
 	}
@@ -548,26 +512,23 @@ public final class SCR extends Globals
 	Scroll it up or down
 	==================
 	*/
-	static void RunConsole()
-	{
+	static void RunConsole() {
 		// decide on the height of the console
 		if (cls.key_dest == key_console)
-			scr_conlines = 0.5f; // half screen
+			scr_conlines= 0.5f; // half screen
 		else
-			scr_conlines = 0; // none visible
+			scr_conlines= 0; // none visible
 
-		if (scr_conlines < scr_con_current)
-		{
+		if (scr_conlines < scr_con_current) {
 			scr_con_current -= scr_conspeed.value * cls.frametime;
 			if (scr_conlines > scr_con_current)
-				scr_con_current = scr_conlines;
+				scr_con_current= scr_conlines;
 
 		}
-		else if (scr_conlines > scr_con_current)
-		{
+		else if (scr_conlines > scr_con_current) {
 			scr_con_current += scr_conspeed.value * cls.frametime;
 			if (scr_conlines < scr_con_current)
-				scr_con_current = scr_conlines;
+				scr_con_current= scr_conlines;
 		}
 	}
 
@@ -576,29 +537,24 @@ public final class SCR extends Globals
 	SCR_DrawConsole
 	==================
 	*/
-	static void DrawConsole()
-	{
+	static void DrawConsole() {
 		Console.CheckResize();
 
-		if (cls.state == ca_disconnected || cls.state == ca_connecting)
-		{ // forced full screen console
+		if (cls.state == ca_disconnected || cls.state == ca_connecting) { // forced full screen console
 			Console.DrawConsole(1.0f);
 			return;
 		}
 
-		if (cls.state != ca_active || !cl.refresh_prepped)
-		{ // connected, but can't render
+		if (cls.state != ca_active || !cl.refresh_prepped) { // connected, but can't render
 			Console.DrawConsole(0.5f);
 			re.DrawFill(0, viddef.height / 2, viddef.width, viddef.height / 2, 0);
 			return;
 		}
 
-		if (scr_con_current != 0)
-		{
+		if (scr_con_current != 0) {
 			Console.DrawConsole(scr_con_current);
 		}
-		else
-		{
+		else {
 			if (cls.key_dest == key_game || cls.key_dest == key_message)
 				Console.DrawNotify(); // only draw notify in game
 		}
@@ -611,10 +567,9 @@ public final class SCR extends Globals
 	SCR_BeginLoadingPlaque
 	================
 	*/
-	public static void BeginLoadingPlaque()
-	{
+	public static void BeginLoadingPlaque() {
 		S.StopAllSounds();
-		cl.sound_prepped = false; // don't play ambients
+		cl.sound_prepped= false; // don't play ambients
 
 		if (cls.disable_screen != 0)
 			return;
@@ -625,13 +580,13 @@ public final class SCR extends Globals
 		if (cls.key_dest == key_console)
 			return;
 		if (cl.cinematictime > 0)
-			scr_draw_loading = 2; // clear to balack first
+			scr_draw_loading= 2; // clear to balack first
 		else
-			scr_draw_loading = 1;
+			scr_draw_loading= 1;
 
 		UpdateScreen();
-		cls.disable_screen = Sys.Milliseconds();
-		cls.disable_servercount = cl.servercount;
+		cls.disable_screen= Sys.Milliseconds();
+		cls.disable_servercount= cl.servercount;
 	}
 
 	/*
@@ -639,9 +594,8 @@ public final class SCR extends Globals
 	SCR_EndLoadingPlaque
 	================
 	*/
-	public static void EndLoadingPlaque()
-	{
-		cls.disable_screen = 0;
+	public static void EndLoadingPlaque() {
+		cls.disable_screen= 0;
 		Console.ClearNotify();
 	}
 
@@ -650,8 +604,7 @@ public final class SCR extends Globals
 	SCR_Loading_f
 	================
 	*/
-	static void Loading_f()
-	{
+	static void Loading_f() {
 		BeginLoadingPlaque();
 	}
 
@@ -660,8 +613,7 @@ public final class SCR extends Globals
 	SCR_TimeRefresh_f
 	================
 	*/
-	static void TimeRefresh_f()
-	{
+	static void TimeRefresh_f() {
 		int i;
 		int start, stop;
 		float time;
@@ -669,23 +621,19 @@ public final class SCR extends Globals
 		if (cls.state != ca_active)
 			return;
 
-		start = Sys.Milliseconds();
+		start= Sys.Milliseconds();
 
-		if (Cmd.Argc() == 2)
-		{ // run without page flipping
+		if (Cmd.Argc() == 2) { // run without page flipping
 			re.BeginFrame(0);
-			for (i = 0; i < 128; i++)
-			{
-				cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+			for (i= 0; i < 128; i++) {
+				cl.refdef.viewangles[1]= i / 128.0f * 360.0f;
 				re.RenderFrame(cl.refdef);
 			}
 			re.EndFrame();
 		}
-		else
-		{
-			for (i = 0; i < 128; i++)
-			{
-				cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+		else {
+			for (i= 0; i < 128; i++) {
+				cl.refdef.viewangles[1]= i / 128.0f * 360.0f;
 
 				re.BeginFrame(0);
 				re.RenderFrame(cl.refdef);
@@ -693,13 +641,12 @@ public final class SCR extends Globals
 			}
 		}
 
-		stop = Sys.Milliseconds();
-		time = (stop - start) / 1000.0f;
+		stop= Sys.Milliseconds();
+		time= (stop - start) / 1000.0f;
 		Com.Printf("%f seconds (%f fps)\n", new Vargs(2).add(time).add(128.0f / time));
 	}
 
-	static void DirtyScreen()
-	{
+	static void DirtyScreen() {
 		AddDirtyPoint(0, 0);
 		AddDirtyPoint(viddef.width - 1, viddef.height - 1);
 	}
@@ -712,10 +659,9 @@ public final class SCR extends Globals
 	==============
 	*/
 
-	static dirty_t clear = new dirty_t();
+	static dirty_t clear= new dirty_t();
 
-	static void TileClear()
-	{
+	static void TileClear() {
 		int i;
 		int top, bottom, left, right;
 		clear.clear();
@@ -733,74 +679,69 @@ public final class SCR extends Globals
 		// erase rect will be the union of the past three frames
 		// so tripple buffering works properly
 		clear.set(scr_dirty);
-		for (i = 0; i < 2; i++)
-		{
+		for (i= 0; i < 2; i++) {
 			if (scr_old_dirty[i].x1 < clear.x1)
-				clear.x1 = scr_old_dirty[i].x1;
+				clear.x1= scr_old_dirty[i].x1;
 			if (scr_old_dirty[i].x2 > clear.x2)
-				clear.x2 = scr_old_dirty[i].x2;
+				clear.x2= scr_old_dirty[i].x2;
 			if (scr_old_dirty[i].y1 < clear.y1)
-				clear.y1 = scr_old_dirty[i].y1;
+				clear.y1= scr_old_dirty[i].y1;
 			if (scr_old_dirty[i].y2 > clear.y2)
-				clear.y2 = scr_old_dirty[i].y2;
+				clear.y2= scr_old_dirty[i].y2;
 		}
 
 		scr_old_dirty[1].set(scr_old_dirty[0]);
 		scr_old_dirty[0].set(scr_dirty);
 
-		scr_dirty.x1 = 9999;
-		scr_dirty.x2 = -9999;
-		scr_dirty.y1 = 9999;
-		scr_dirty.y2 = -9999;
+		scr_dirty.x1= 9999;
+		scr_dirty.x2= -9999;
+		scr_dirty.y1= 9999;
+		scr_dirty.y2= -9999;
 
 		// don't bother with anything convered by the console)
-		top = (int) (scr_con_current * viddef.height);
+		top= (int) (scr_con_current * viddef.height);
 		if (top >= clear.y1)
-			clear.y1 = top;
+			clear.y1= top;
 
 		if (clear.y2 <= clear.y1)
 			return; // nothing disturbed
 
-		top = scr_vrect.y;
-		bottom = top + scr_vrect.height - 1;
-		left = scr_vrect.x;
-		right = left + scr_vrect.width - 1;
+		top= scr_vrect.y;
+		bottom= top + scr_vrect.height - 1;
+		left= scr_vrect.x;
+		right= left + scr_vrect.width - 1;
 
-		if (clear.y1 < top)
-		{ // clear above view screen
-			i = clear.y2 < top - 1 ? clear.y2 : top - 1;
+		if (clear.y1 < top) { // clear above view screen
+			i= clear.y2 < top - 1 ? clear.y2 : top - 1;
 			re.DrawTileClear(clear.x1, clear.y1, clear.x2 - clear.x1 + 1, i - clear.y1 + 1, "backtile");
-			clear.y1 = top;
+			clear.y1= top;
 		}
-		if (clear.y2 > bottom)
-		{ // clear below view screen
-			i = clear.y1 > bottom + 1 ? clear.y1 : bottom + 1;
+		if (clear.y2 > bottom) { // clear below view screen
+			i= clear.y1 > bottom + 1 ? clear.y1 : bottom + 1;
 			re.DrawTileClear(clear.x1, i, clear.x2 - clear.x1 + 1, clear.y2 - i + 1, "backtile");
-			clear.y2 = bottom;
+			clear.y2= bottom;
 		}
-		if (clear.x1 < left)
-		{ // clear left of view screen
-			i = clear.x2 < left - 1 ? clear.x2 : left - 1;
+		if (clear.x1 < left) { // clear left of view screen
+			i= clear.x2 < left - 1 ? clear.x2 : left - 1;
 			re.DrawTileClear(clear.x1, clear.y1, i - clear.x1 + 1, clear.y2 - clear.y1 + 1, "backtile");
-			clear.x1 = left;
+			clear.x1= left;
 		}
-		if (clear.x2 > right)
-		{ // clear left of view screen
-			i = clear.x1 > right + 1 ? clear.x1 : right + 1;
+		if (clear.x2 > right) { // clear left of view screen
+			i= clear.x1 > right + 1 ? clear.x1 : right + 1;
 			re.DrawTileClear(i, clear.y1, clear.x2 - i + 1, clear.y2 - clear.y1 + 1, "backtile");
-			clear.x2 = right;
+			clear.x2= right;
 		}
 
 	}
 
 	// ===============================================================
 
-	static final int STAT_MINUS = 10; // num frame for '-' stats digit
+	static final int STAT_MINUS= 10; // num frame for '-' stats digit
 
-	static final int ICON_WIDTH = 24;
-	static final int ICON_HEIGHT = 24;
-	static final int CHAR_WIDTH = 16;
-	static final int ICON_SPACE = 8;
+	static final int ICON_WIDTH= 24;
+	static final int ICON_HEIGHT= 24;
+	static final int CHAR_WIDTH= 16;
+	static final int ICON_SPACE= 8;
 
 	/*
 	================
@@ -809,64 +750,56 @@ public final class SCR extends Globals
 	Allow embedded \n in the string
 	================
 	*/
-	static void SizeHUDString(String string, Dimension dim)
-	{
+	static void SizeHUDString(String string, Dimension dim) {
 		int lines, width, current;
 
-		lines = 1;
-		width = 0;
+		lines= 1;
+		width= 0;
 
-		current = 0;
-		for (int i = 0; i < string.length(); i++)
-		{
-			if (string.charAt(i) == '\n')
-			{
+		current= 0;
+		for (int i= 0; i < string.length(); i++) {
+			if (string.charAt(i) == '\n') {
 				lines++;
-				current = 0;
+				current= 0;
 			}
-			else
-			{
+			else {
 				current++;
 				if (current > width)
-					width = current;
+					width= current;
 			}
 
 		}
 
-		dim.width = width * 8;
-		dim.height = lines * 8;
+		dim.width= width * 8;
+		dim.height= lines * 8;
 	}
 
-	static void DrawHUDString(String string, int x, int y, int centerwidth, int xor)
-	{
+	static void DrawHUDString(String string, int x, int y, int centerwidth, int xor) {
 		int margin;
 		//char	line[1024];
-		StringBuffer line = new StringBuffer(1024);
+		StringBuffer line= new StringBuffer(1024);
 		int i;
 
-		margin = x;
+		margin= x;
 
-		for (int l = 0; l < string.length();)
-		{
+		for (int l= 0; l < string.length();) {
 			// scan out one line of text from the string
-			line = new StringBuffer(1024);
+			line= new StringBuffer(1024);
 			while (string.charAt(l) != '\n')
 				line.append(string.charAt(l));
 			l++;
 
 			if (centerwidth != 0)
-				x = margin + (centerwidth - line.length() * 8) / 2;
+				x= margin + (centerwidth - line.length() * 8) / 2;
 			else
-				x = margin;
-			for (i = 0; i < line.length(); i++)
-			{
+				x= margin;
+			for (i= 0; i < line.length(); i++) {
 				re.DrawChar(x, y, line.charAt(i) ^ xor);
 				x += 8;
 			}
-			if (l < string.length())
-			{
+			if (l < string.length()) {
 				l++; // skip the \n
-				x = margin;
+				x= margin;
 				y += 8;
 			}
 		}
@@ -877,8 +810,7 @@ public final class SCR extends Globals
 	SCR_DrawField
 	==============
 	*/
-	static void DrawField(int x, int y, int color, int width, int value)
-	{
+	static void DrawField(int x, int y, int color, int width, int value) {
 		char ptr;
 		String num;
 		int l;
@@ -889,26 +821,25 @@ public final class SCR extends Globals
 
 		// draw number string
 		if (width > 5)
-			width = 5;
+			width= 5;
 
 		AddDirtyPoint(x, y);
 		AddDirtyPoint(x + width * CHAR_WIDTH + 2, y + 23);
 
-		num = "" + value;
-		l = num.length();
+		num= "" + value;
+		l= num.length();
 		if (l > width)
-			l = width;
+			l= width;
 		x += 2 + CHAR_WIDTH * (width - l);
 
-		ptr = num.charAt(0);
+		ptr= num.charAt(0);
 
-		for (int i = 0; i < l; i++)
-		{
-			ptr = num.charAt(i);
+		for (int i= 0; i < l; i++) {
+			ptr= num.charAt(i);
 			if (ptr == '-')
-				frame = STAT_MINUS;
+				frame= STAT_MINUS;
 			else
-				frame = ptr - '0';
+				frame= ptr - '0';
 
 			re.DrawPic(x, y, sb_nums[color][frame]);
 			x += CHAR_WIDTH;
@@ -922,26 +853,24 @@ public final class SCR extends Globals
 	Allows rendering code to cache all needed sbar graphics
 	===============
 	*/
-	static void TouchPics()
-	{
+	static void TouchPics() {
 		int i, j;
 
-		for (i = 0; i < 2; i++)
-			for (j = 0; j < 11; j++)
+		for (i= 0; i < 2; i++)
+			for (j= 0; j < 11; j++)
 				re.RegisterPic(sb_nums[i][j]);
 
-		if (crosshair.value != 0.0f)
-		{
+		if (crosshair.value != 0.0f) {
 			if (crosshair.value > 3.0f || crosshair.value < 0.0f)
-				crosshair.value = 3.0f;
+				crosshair.value= 3.0f;
 
-			crosshair_pic = "ch" + (int) crosshair.value;
-			Dimension dim = new Dimension();
+			crosshair_pic= "ch" + (int) crosshair.value;
+			Dimension dim= new Dimension();
 			re.DrawGetPicSize(dim, crosshair_pic);
-			crosshair_width = dim.width;
-			crosshair_height = dim.height;
+			crosshair_width= dim.width;
+			crosshair_height= dim.height;
 			if (crosshair_width == 0)
-				crosshair_pic = "";
+				crosshair_pic= "";
 		}
 	}
 
@@ -951,8 +880,7 @@ public final class SCR extends Globals
 	
 	================
 	*/
-	static void ExecuteLayoutString(String s)
-	{
+	static void ExecuteLayoutString(String s) {
 		int x, y;
 		int value;
 		String token;
@@ -967,61 +895,52 @@ public final class SCR extends Globals
 		if (s == null || s.length() == 0)
 			return;
 
-		x = 0;
-		y = 0;
-		width = 3;
+		x= 0;
+		y= 0;
+		width= 3;
 
-		Com.ParseHelp ph = new Com.ParseHelp(s);
+		Com.ParseHelp ph= new Com.ParseHelp(s);
 
-		while (!ph.isEof())
-		{
-			token = Com.Parse(ph);
-			if (token.equals("xl"))
-			{
-				token = Com.Parse(ph);
-				x = atoi(token);
+		while (!ph.isEof()) {
+			token= Com.Parse(ph);
+			if (token.equals("xl")) {
+				token= Com.Parse(ph);
+				x= atoi(token);
 				continue;
 			}
-			if (token.equals("xr"))
-			{
-				token = Com.Parse(ph);
-				x = viddef.width + atoi(token);
+			if (token.equals("xr")) {
+				token= Com.Parse(ph);
+				x= viddef.width + atoi(token);
 				continue;
 			}
-			if (token.equals("xv"))
-			{
-				token = Com.Parse(ph);
-				x = viddef.width / 2 - 160 + atoi(token);
+			if (token.equals("xv")) {
+				token= Com.Parse(ph);
+				x= viddef.width / 2 - 160 + atoi(token);
 				continue;
 			}
 
-			if (token.equals("yt"))
-			{
-				token = Com.Parse(ph);
-				y = atoi(token);
+			if (token.equals("yt")) {
+				token= Com.Parse(ph);
+				y= atoi(token);
 				continue;
 			}
-			if (token.equals("yb"))
-			{
-				token = Com.Parse(ph);
-				y = viddef.height + atoi(token);
+			if (token.equals("yb")) {
+				token= Com.Parse(ph);
+				y= viddef.height + atoi(token);
 				continue;
 			}
-			if (token.equals("yv"))
-			{
-				token = Com.Parse(ph);
-				y = viddef.height / 2 - 120 + atoi(token);
+			if (token.equals("yv")) {
+				token= Com.Parse(ph);
+				y= viddef.height / 2 - 120 + atoi(token);
 				continue;
 			}
 
-			if (token.equals("pic"))
-			{ // draw a pic from a stat number
-				token = Com.Parse(ph);
-				value = cl.frame.playerstate.stats[atoi(token)];
+			if (token.equals("pic")) { // draw a pic from a stat number
+				token= Com.Parse(ph);
+				value= cl.frame.playerstate.stats[atoi(token)];
 				if (value >= MAX_IMAGES)
 					Com.Error(ERR_DROP, "Pic >= MAX_IMAGES");
-				if (cl.configstrings[CS_IMAGES + value] != null)
-				{
+				if (cl.configstrings[CS_IMAGES + value] != null) {
 					AddDirtyPoint(x, y);
 					AddDirtyPoint(x + 23, y + 23);
 					re.DrawPic(x, y, cl.configstrings[CS_IMAGES + value]);
@@ -1029,31 +948,30 @@ public final class SCR extends Globals
 				continue;
 			}
 
-			if (token.equals("client"))
-			{ // draw a deathmatch client block
+			if (token.equals("client")) { // draw a deathmatch client block
 				int score, ping, time;
 
-				token = Com.Parse(ph);
-				x = viddef.width / 2 - 160 + atoi(token);
-				token = Com.Parse(ph);
-				y = viddef.height / 2 - 120 + atoi(token);
+				token= Com.Parse(ph);
+				x= viddef.width / 2 - 160 + atoi(token);
+				token= Com.Parse(ph);
+				y= viddef.height / 2 - 120 + atoi(token);
 				AddDirtyPoint(x, y);
 				AddDirtyPoint(x + 159, y + 31);
 
-				token = Com.Parse(ph);
-				value = atoi(token);
+				token= Com.Parse(ph);
+				value= atoi(token);
 				if (value >= MAX_CLIENTS || value < 0)
 					Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-				ci = cl.clientinfo[value];
+				ci= cl.clientinfo[value];
 
-				token = Com.Parse(ph);
-				score = atoi(token);
+				token= Com.Parse(ph);
+				score= atoi(token);
 
-				token = Com.Parse(ph);
-				ping = atoi(token);
+				token= Com.Parse(ph);
+				ping= atoi(token);
 
-				token = Com.Parse(ph);
-				time = atoi(token);
+				token= Com.Parse(ph);
+				time= atoi(token);
 
 				Console.DrawAltString(x + 32, y, ci.name);
 				Console.DrawString(x + 32, y + 8, "Score: ");
@@ -1062,38 +980,37 @@ public final class SCR extends Globals
 				Console.DrawString(x + 32, y + 24, "Time:  " + time);
 
 				if (ci.icon == null)
-					ci = cl.baseclientinfo;
+					ci= cl.baseclientinfo;
 				re.DrawPic(x, y, ci.iconname);
 				continue;
 			}
 
-			if (token.equals("ctf"))
-			{ // draw a ctf client block
+			if (token.equals("ctf")) { // draw a ctf client block
 				int score, ping;
 
-				token = Com.Parse(ph);
-				x = viddef.width / 2 - 160 + atoi(token);
-				token = Com.Parse(ph);
-				y = viddef.height / 2 - 120 + atoi(token);
+				token= Com.Parse(ph);
+				x= viddef.width / 2 - 160 + atoi(token);
+				token= Com.Parse(ph);
+				y= viddef.height / 2 - 120 + atoi(token);
 				AddDirtyPoint(x, y);
 				AddDirtyPoint(x + 159, y + 31);
 
-				token = Com.Parse(ph);
-				value = atoi(token);
+				token= Com.Parse(ph);
+				value= atoi(token);
 				if (value >= MAX_CLIENTS || value < 0)
 					Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-				ci = cl.clientinfo[value];
+				ci= cl.clientinfo[value];
 
-				token = Com.Parse(ph);
-				score = atoi(token);
+				token= Com.Parse(ph);
+				score= atoi(token);
 
-				token = Com.Parse(ph);
-				ping = atoi(token);
+				token= Com.Parse(ph);
+				ping= atoi(token);
 				if (ping > 999)
-					ping = 999;
+					ping= 999;
 
 				// sprintf(block, "%3d %3d %-12.12s", score, ping, ci->name);
-				String block = Com.sprintf("%3d %3d %-12.12s", new Vargs(3).add(score).add(ping).add(ci.name));
+				String block= Com.sprintf("%3d %3d %-12.12s", new Vargs(3).add(score).add(ping).add(ci.name));
 
 				if (value == cl.playernum)
 					Console.DrawAltString(x, y, block);
@@ -1102,37 +1019,34 @@ public final class SCR extends Globals
 				continue;
 			}
 
-			if (token.equals("picn"))
-			{ // draw a pic from a name
-				token = Com.Parse(ph);
+			if (token.equals("picn")) { // draw a pic from a name
+				token= Com.Parse(ph);
 				AddDirtyPoint(x, y);
 				AddDirtyPoint(x + 23, y + 23);
 				re.DrawPic(x, y, token);
 				continue;
 			}
 
-			if (token.equals("num"))
-			{ // draw a number
-				token = Com.Parse(ph);
-				width = atoi(token);
-				token = Com.Parse(ph);
-				value = cl.frame.playerstate.stats[atoi(token)];
+			if (token.equals("num")) { // draw a number
+				token= Com.Parse(ph);
+				width= atoi(token);
+				token= Com.Parse(ph);
+				value= cl.frame.playerstate.stats[atoi(token)];
 				DrawField(x, y, 0, width, value);
 				continue;
 			}
 
-			if (token.equals("hnum"))
-			{ // health number
+			if (token.equals("hnum")) { // health number
 				int color;
 
-				width = 3;
-				value = cl.frame.playerstate.stats[STAT_HEALTH];
+				width= 3;
+				value= cl.frame.playerstate.stats[STAT_HEALTH];
 				if (value > 25)
-					color = 0; // green
+					color= 0; // green
 				else if (value > 0)
-					color = (cl.frame.serverframe >> 2) & 1; // flash
+					color= (cl.frame.serverframe >> 2) & 1; // flash
 				else
-					color = 1;
+					color= 1;
 
 				if ((cl.frame.playerstate.stats[STAT_FLASHES] & 1) != 0)
 					re.DrawPic(x, y, "field_3");
@@ -1141,16 +1055,15 @@ public final class SCR extends Globals
 				continue;
 			}
 
-			if (token.equals("anum"))
-			{ // ammo number
+			if (token.equals("anum")) { // ammo number
 				int color;
 
-				width = 3;
-				value = cl.frame.playerstate.stats[STAT_AMMO];
+				width= 3;
+				value= cl.frame.playerstate.stats[STAT_AMMO];
 				if (value > 5)
-					color = 0; // green
+					color= 0; // green
 				else if (value >= 0)
-					color = (cl.frame.serverframe >> 2) & 1; // flash
+					color= (cl.frame.serverframe >> 2) & 1; // flash
 				else
 					continue; // negative number = don't show
 
@@ -1161,16 +1074,15 @@ public final class SCR extends Globals
 				continue;
 			}
 
-			if (token.equals("rnum"))
-			{ // armor number
+			if (token.equals("rnum")) { // armor number
 				int color;
 
-				width = 3;
-				value = cl.frame.playerstate.stats[STAT_ARMOR];
+				width= 3;
+				value= cl.frame.playerstate.stats[STAT_ARMOR];
 				if (value < 1)
 					continue;
 
-				color = 0; // green
+				color= 0; // green
 
 				if ((cl.frame.playerstate.stats[STAT_FLASHES] & 2) != 0)
 					re.DrawPic(x, y, "field_3");
@@ -1179,59 +1091,52 @@ public final class SCR extends Globals
 				continue;
 			}
 
-			if (token.equals("stat_string"))
-			{
-				token = Com.Parse(ph);
-				index = atoi(token);
+			if (token.equals("stat_string")) {
+				token= Com.Parse(ph);
+				index= atoi(token);
 				if (index < 0 || index >= MAX_CONFIGSTRINGS)
 					Com.Error(ERR_DROP, "Bad stat_string index");
-				index = cl.frame.playerstate.stats[index];
+				index= cl.frame.playerstate.stats[index];
 				if (index < 0 || index >= MAX_CONFIGSTRINGS)
 					Com.Error(ERR_DROP, "Bad stat_string index");
 				Console.DrawString(x, y, cl.configstrings[index]);
 				continue;
 			}
 
-			if (token.equals("cstring"))
-			{
-				token = Com.Parse(ph);
+			if (token.equals("cstring")) {
+				token= Com.Parse(ph);
 				DrawHUDString(token, x, y, 320, 0);
 				continue;
 			}
 
-			if (token.equals("string"))
-			{
-				token = Com.Parse(ph);
+			if (token.equals("string")) {
+				token= Com.Parse(ph);
 				Console.DrawString(x, y, token);
 				continue;
 			}
 
-			if (token.equals("cstring2"))
-			{
-				token = Com.Parse(ph);
+			if (token.equals("cstring2")) {
+				token= Com.Parse(ph);
 				DrawHUDString(token, x, y, 320, 0x80);
 				continue;
 			}
 
-			if (token.equals("string2"))
-			{
-				token = Com.Parse(ph);
+			if (token.equals("string2")) {
+				token= Com.Parse(ph);
 				Console.DrawAltString(x, y, token);
 				continue;
 			}
 
-			if (token.equals("if"))
-			{ // draw a number
-				token = Com.Parse(ph);
-				value = cl.frame.playerstate.stats[atoi(token)];
-				if (value == 0)
-				{ // skip to endif
+			if (token.equals("if")) { // draw a number
+				token= Com.Parse(ph);
+				value= cl.frame.playerstate.stats[atoi(token)];
+				if (value == 0) { // skip to endif
 					//					while (s && strcmp(token, "endif") )
 					//					{
 					//						token = Com.Parse(ph);
 					//					}
 
-					while (!ph.isEof() && !(token = Com.Parse(ph)).equals("endif"));
+					while (!ph.isEof() && !(token= Com.Parse(ph)).equals("endif"));
 
 				}
 
@@ -1249,8 +1154,7 @@ public final class SCR extends Globals
 	is based on the stats array
 	================
 	*/
-	static void DrawStats()
-	{
+	static void DrawStats() {
 		//TODO:
 		SCR.ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
 	}
@@ -1261,10 +1165,9 @@ public final class SCR extends Globals
 	
 	================
 	*/
-	static final int STAT_LAYOUTS = 13;
+	static final int STAT_LAYOUTS= 13;
 
-	static void DrawLayout()
-	{
+	static void DrawLayout() {
 		if (cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
 			return;
 		SCR.ExecuteLayoutString(cl.layout);
@@ -1280,19 +1183,16 @@ public final class SCR extends Globals
 	text to the screen.
 	==================
 	*/
-	static void UpdateScreen2()
-	{
+	static void UpdateScreen2() {
 		int numframes;
 		int i;
-		float[] separation = { 0, 0 };
+		float[] separation= { 0, 0 };
 
 		// if the screen is disabled (loading plaque is up, or vid mode changing)
 		// do nothing at all
-		if (cls.disable_screen != 0)
-		{
-			if (Sys.Milliseconds() - cls.disable_screen > 120000)
-			{
-				cls.disable_screen = 0;
+		if (cls.disable_screen != 0) {
+			if (Sys.Milliseconds() - cls.disable_screen > 120000) {
+				cls.disable_screen= 0;
 				Com.Printf("Loading plaque timed out.\n");
 			}
 			return;
@@ -1310,67 +1210,55 @@ public final class SCR extends Globals
 		else if (cl_stereo_separation.value < 0)
 			Cvar.SetValue("cl_stereo_separation", 0.0f);
 
-		if (cl_stereo.value != 0)
-		{
-			numframes = 2;
-			separation[0] = -cl_stereo_separation.value / 2;
-			separation[1] = cl_stereo_separation.value / 2;
+		if (cl_stereo.value != 0) {
+			numframes= 2;
+			separation[0]= -cl_stereo_separation.value / 2;
+			separation[1]= cl_stereo_separation.value / 2;
 		}
-		else
-		{
-			separation[0] = 0;
-			separation[1] = 0;
-			numframes = 1;
+		else {
+			separation[0]= 0;
+			separation[1]= 0;
+			numframes= 1;
 		}
 
-		for (i = 0; i < numframes; i++)
-		{
+		for (i= 0; i < numframes; i++) {
 			re.BeginFrame(separation[i]);
 
-			if (scr_draw_loading == 2)
-			{ //  loading plaque over black screen
-				Dimension dim = new Dimension();
+			if (scr_draw_loading == 2) { //  loading plaque over black screen
+				Dimension dim= new Dimension();
 
 				re.CinematicSetPalette(null);
-				scr_draw_loading = 0; // false
+				scr_draw_loading= 0; // false
 				re.DrawGetPicSize(dim, "loading");
 				re.DrawPic((viddef.width - dim.width) / 2, (viddef.height - dim.height) / 2, "loading");
 			}
 			// if a cinematic is supposed to be running, handle menus
 			// and console specially
-			else if (cl.cinematictime > 0)
-			{
-				if (cls.key_dest == key_menu)
-				{
-					if (cl.cinematicpalette_active)
-					{
+			else if (cl.cinematictime > 0) {
+				if (cls.key_dest == key_menu) {
+					if (cl.cinematicpalette_active) {
 						re.CinematicSetPalette(null);
-						cl.cinematicpalette_active = false;
+						cl.cinematicpalette_active= false;
 					}
 					Menu.Draw();
 				}
-				else if (cls.key_dest == key_console)
-				{
-					if (cl.cinematicpalette_active)
-					{
+				else if (cls.key_dest == key_console) {
+					if (cl.cinematicpalette_active) {
 						re.CinematicSetPalette(null);
-						cl.cinematicpalette_active = false;
+						cl.cinematicpalette_active= false;
 					}
 					DrawConsole();
 				}
-				else
-				{
+				else {
 					// TODO impl: cl_cin.c for cinematics
 					DrawCinematic();
 				}
 			}
-			else
-			{
+			else {
 				// make sure the game palette is active
-				if (cl.cinematicpalette_active)
-				{
+				if (cl.cinematicpalette_active) {
 					re.CinematicSetPalette(null);
-					cl.cinematicpalette_active = false;
+					cl.cinematicpalette_active= false;
 				}
 
 				// do 3D refresh drawing, and then update the screen
@@ -1382,7 +1270,7 @@ public final class SCR extends Globals
 				V.RenderView(separation[i]);
 
 				DrawStats();
-				// TODO impl this
+
 				if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) != 0)
 					DrawLayout();
 				if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) != 0)
@@ -1414,14 +1302,12 @@ public final class SCR extends Globals
 	SCR_DrawCrosshair
 	=================
 	*/
-	static void DrawCrosshair()
-	{
+	static void DrawCrosshair() {
 		if (crosshair.value == 0.0f)
 			return;
 
-		if (crosshair.modified)
-		{
-			crosshair.modified = false;
+		if (crosshair.modified) {
+			crosshair.modified= false;
 			SCR.TouchPics();
 		}
 
@@ -1434,15 +1320,14 @@ public final class SCR extends Globals
 			crosshair_pic);
 	}
 
-	private static xcommand_t updateScreenCallback = new xcommand_t() {
+	private static xcommand_t updateScreenCallback= new xcommand_t() {
 		public void execute() {
 			UpdateScreen2();
 		}
-	};	 
+	};
 
 	// wird anstelle von der richtigen UpdateScreen benoetigt
-	public static void UpdateScreen()
-	{
+	public static void UpdateScreen() {
 		Globals.re.updateScreen(updateScreenCallback);
 	}
 
@@ -1451,53 +1336,49 @@ public final class SCR extends Globals
 	SCR_AddDirtyPoint
 	=================
 	*/
-	static void AddDirtyPoint(int x, int y)
-	{
+	static void AddDirtyPoint(int x, int y) {
 		if (x < scr_dirty.x1)
-			scr_dirty.x1 = x;
+			scr_dirty.x1= x;
 		if (x > scr_dirty.x2)
-			scr_dirty.x2 = x;
+			scr_dirty.x2= x;
 		if (y < scr_dirty.y1)
-			scr_dirty.y1 = y;
+			scr_dirty.y1= y;
 		if (y > scr_dirty.y2)
-			scr_dirty.y2 = y;
+			scr_dirty.y2= y;
 	}
 
-	private static int lastframes = 0;
-	private static int lasttime = 0;
-	private static String fpsvalue = "";
-	
-	static void DrawFPS()
-	{
-		if (fps.value > 0.0f)
-		{
+	private static int lastframes= 0;
+	private static int lasttime= 0;
+	private static String fpsvalue= "";
+
+	static void DrawFPS() {
+		if (fps.value > 0.0f) {
 			if (fps.modified) {
-				fps.modified = false;
+				fps.modified= false;
 				Cvar.SetValue("cl_maxfps", 1000);
 			}
-			
-			int diff = cls.realtime - lasttime;
-			if (diff > (int) (fps.value * 1000))
-			{
-				fpsvalue = (cls.framecount - lastframes) * 100000 / diff / 100.0f + " fps";
-				lastframes = cls.framecount;
-				lasttime = cls.realtime;
+
+			int diff= cls.realtime - lasttime;
+			if (diff > (int) (fps.value * 1000)) {
+				fpsvalue= (cls.framecount - lastframes) * 100000 / diff / 100.0f + " fps";
+				lastframes= cls.framecount;
+				lasttime= cls.realtime;
 			}
-			int x = viddef.width - 8 * fpsvalue.length() - 2;
-			for (int i = 0; i < fpsvalue.length(); i++)
-			{
+			int x= viddef.width - 8 * fpsvalue.length() - 2;
+			for (int i= 0; i < fpsvalue.length(); i++) {
 				re.DrawChar(x, 2, fpsvalue.charAt(i));
 				x += 8;
 			}
-		} else if (fps.modified){
-				fps.modified = false;
-				Cvar.SetValue("cl_maxfps", 90);
+		}
+		else if (fps.modified) {
+			fps.modified= false;
+			Cvar.SetValue("cl_maxfps", 90);
 		}
 	}
-	
+
 	/*
 	=================================================================
-
+	
 	cl_cin.c
 	
 	Play Cinematics
@@ -1505,130 +1386,130 @@ public final class SCR extends Globals
 	=================================================================
 	*/
 
-//	typedef struct
-//	{
-//		byte	*data;
-//		int		count;
-//	} cblock_t;
-//
-//	typedef struct
-//	{
-//		qboolean	restart_sound;
-//		int		s_rate;
-//		int		s_width;
-//		int		s_channels;
-//
-//		int		width;
-//		int		height;
-//		byte	*pic;
-//		byte	*pic_pending;
-//
-//		// order 1 huffman stuff
-//		int		*hnodes1;	// [256][256][2];
-//		int		numhnodes1[256];
-//
-//		int		h_used[512];
-//		int		h_count[512];
-//	} cinematics_t;
-//
-//	cinematics_t	cin;
-//
-//	/*
-//	=================================================================
-//
-//	PCX LOADING
-//
-//	=================================================================
-//	*/
-//
-//
-//	/*
-//	==============
-//	SCR_LoadPCX
-//	==============
-//	*/
-//	void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
-//	{
-//		byte	*raw;
-//		pcx_t	*pcx;
-//		int		x, y;
-//		int		len;
-//		int		dataByte, runLength;
-//		byte	*out, *pix;
-//
-//		*pic = NULL;
-//
-//		//
-//		// load the file
-//		//
-//		len = FS_LoadFile (filename, (void **)&raw);
-//		if (!raw)
-//			return;	// Com_Printf ("Bad pcx file %s\n", filename);
-//
-//		//
-//		// parse the PCX file
-//		//
-//		pcx = (pcx_t *)raw;
-//		raw = &pcx->data;
-//
-//		if (pcx->manufacturer != 0x0a
-//			|| pcx->version != 5
-//			|| pcx->encoding != 1
-//			|| pcx->bits_per_pixel != 8
-//			|| pcx->xmax >= 640
-//			|| pcx->ymax >= 480)
-//		{
-//			Com_Printf ("Bad pcx file %s\n", filename);
-//			return;
-//		}
-//
-//		out = Z_Malloc ( (pcx->ymax+1) * (pcx->xmax+1) );
-//
-//		*pic = out;
-//
-//		pix = out;
-//
-//		if (palette)
-//		{
-//			*palette = Z_Malloc(768);
-//			memcpy (*palette, (byte *)pcx + len - 768, 768);
-//		}
-//
-//		if (width)
-//			*width = pcx->xmax+1;
-//		if (height)
-//			*height = pcx->ymax+1;
-//
-//		for (y=0 ; y<=pcx->ymax ; y++, pix += pcx->xmax+1)
-//		{
-//			for (x=0 ; x<=pcx->xmax ; )
-//			{
-//				dataByte = *raw++;
-//
-//				if((dataByte & 0xC0) == 0xC0)
-//				{
-//					runLength = dataByte & 0x3F;
-//					dataByte = *raw++;
-//				}
-//				else
-//					runLength = 1;
-//
-//				while(runLength-- > 0)
-//					pix[x++] = dataByte;
-//			}
-//
-//		}
-//
-//		if ( raw - (byte *)pcx > len)
-//		{
-//			Com_Printf ("PCX file %s was malformed", filename);
-//			Z_Free (*pic);
-//			*pic = NULL;
-//		}
-//
-//		FS_FreeFile (pcx);
-//	}
-//
+	//	typedef struct
+	//	{
+	//		byte	*data;
+	//		int		count;
+	//	} cblock_t;
+	//
+	//	typedef struct
+	//	{
+	//		qboolean	restart_sound;
+	//		int		s_rate;
+	//		int		s_width;
+	//		int		s_channels;
+	//
+	//		int		width;
+	//		int		height;
+	//		byte	*pic;
+	//		byte	*pic_pending;
+	//
+	//		// order 1 huffman stuff
+	//		int		*hnodes1;	// [256][256][2];
+	//		int		numhnodes1[256];
+	//
+	//		int		h_used[512];
+	//		int		h_count[512];
+	//	} cinematics_t;
+	//
+	//	cinematics_t	cin;
+	//
+	//	/*
+	//	=================================================================
+	//
+	//	PCX LOADING
+	//
+	//	=================================================================
+	//	*/
+	//
+	//
+	//	/*
+	//	==============
+	//	SCR_LoadPCX
+	//	==============
+	//	*/
+	//	void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height)
+	//	{
+	//		byte	*raw;
+	//		pcx_t	*pcx;
+	//		int		x, y;
+	//		int		len;
+	//		int		dataByte, runLength;
+	//		byte	*out, *pix;
+	//
+	//		*pic = NULL;
+	//
+	//		//
+	//		// load the file
+	//		//
+	//		len = FS_LoadFile (filename, (void **)&raw);
+	//		if (!raw)
+	//			return;	// Com_Printf ("Bad pcx file %s\n", filename);
+	//
+	//		//
+	//		// parse the PCX file
+	//		//
+	//		pcx = (pcx_t *)raw;
+	//		raw = &pcx->data;
+	//
+	//		if (pcx->manufacturer != 0x0a
+	//			|| pcx->version != 5
+	//			|| pcx->encoding != 1
+	//			|| pcx->bits_per_pixel != 8
+	//			|| pcx->xmax >= 640
+	//			|| pcx->ymax >= 480)
+	//		{
+	//			Com_Printf ("Bad pcx file %s\n", filename);
+	//			return;
+	//		}
+	//
+	//		out = Z_Malloc ( (pcx->ymax+1) * (pcx->xmax+1) );
+	//
+	//		*pic = out;
+	//
+	//		pix = out;
+	//
+	//		if (palette)
+	//		{
+	//			*palette = Z_Malloc(768);
+	//			memcpy (*palette, (byte *)pcx + len - 768, 768);
+	//		}
+	//
+	//		if (width)
+	//			*width = pcx->xmax+1;
+	//		if (height)
+	//			*height = pcx->ymax+1;
+	//
+	//		for (y=0 ; y<=pcx->ymax ; y++, pix += pcx->xmax+1)
+	//		{
+	//			for (x=0 ; x<=pcx->xmax ; )
+	//			{
+	//				dataByte = *raw++;
+	//
+	//				if((dataByte & 0xC0) == 0xC0)
+	//				{
+	//					runLength = dataByte & 0x3F;
+	//					dataByte = *raw++;
+	//				}
+	//				else
+	//					runLength = 1;
+	//
+	//				while(runLength-- > 0)
+	//					pix[x++] = dataByte;
+	//			}
+	//
+	//		}
+	//
+	//		if ( raw - (byte *)pcx > len)
+	//		{
+	//			Com_Printf ("PCX file %s was malformed", filename);
+	//			Z_Free (*pic);
+	//			*pic = NULL;
+	//		}
+	//
+	//		FS_FreeFile (pcx);
+	//	}
+	//
 	// =============================================================
 
 	/*
@@ -1636,53 +1517,50 @@ public final class SCR extends Globals
 	SCR_StopCinematic
 	==================
 	*/
-	static void StopCinematic()
-	{
-		cl.cinematictime = 0;	// done
-//		if (cin.pic)
-//		{
-//			Z_Free (cin.pic);
-//			cin.pic = NULL;
-//		}
-//		if (cin.pic_pending)
-//		{
-//			Z_Free (cin.pic_pending);
-//			cin.pic_pending = NULL;
-//		}
-		if (cl.cinematicpalette_active)
-		{
+	static void StopCinematic() {
+		cl.cinematictime= 0; // done
+		//		if (cin.pic)
+		//		{
+		//			Z_Free (cin.pic);
+		//			cin.pic = NULL;
+		//		}
+		//		if (cin.pic_pending)
+		//		{
+		//			Z_Free (cin.pic_pending);
+		//			cin.pic_pending = NULL;
+		//		}
+		if (cl.cinematicpalette_active) {
 			re.CinematicSetPalette(null);
-			cl.cinematicpalette_active = false;
+			cl.cinematicpalette_active= false;
 		}
-//		if (cl.cinematic_file)
-//		{
-//			fclose (cl.cinematic_file);
-//			cl.cinematic_file = NULL;
-//		}
-//		if (cin.hnodes1)
-//		{
-//			Z_Free (cin.hnodes1);
-//			cin.hnodes1 = NULL;
-//		}
-//
-//		// switch back down to 11 khz sound if necessary
-//		if (cin.restart_sound)
-//		{
-//			cin.restart_sound = false;
-//			CL_Snd_Restart_f ();
-//		}
-//
+		//		if (cl.cinematic_file)
+		//		{
+		//			fclose (cl.cinematic_file);
+		//			cl.cinematic_file = NULL;
+		//		}
+		//		if (cin.hnodes1)
+		//		{
+		//			Z_Free (cin.hnodes1);
+		//			cin.hnodes1 = NULL;
+		//		}
+		//
+		//		// switch back down to 11 khz sound if necessary
+		//		if (cin.restart_sound)
+		//		{
+		//			cin.restart_sound = false;
+		//			CL_Snd_Restart_f ();
+		//		}
+		//
 	}
 
 	/*
 	====================
 	SCR_FinishCinematic
-
+	
 	Called when either the cinematic completes, or it is aborted
 	====================
 	*/
-	static void FinishCinematic()
-	{
+	static void FinishCinematic() {
 		// tell the server to advance to the next map / cinematic
 		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
 		SZ.Print(cls.netchan.message, "nextserver " + cl.servercount + '\n');
@@ -1690,449 +1568,444 @@ public final class SCR extends Globals
 
 	// ==========================================================================
 
-//	/*
-//	==================
-//	SmallestNode1
-//	==================
-//	*/
-//	int	SmallestNode1 (int numhnodes)
-//	{
-//		int		i;
-//		int		best, bestnode;
-//
-//		best = 99999999;
-//		bestnode = -1;
-//		for (i=0 ; i<numhnodes ; i++)
-//		{
-//			if (cin.h_used[i])
-//				continue;
-//			if (!cin.h_count[i])
-//				continue;
-//			if (cin.h_count[i] < best)
-//			{
-//				best = cin.h_count[i];
-//				bestnode = i;
-//			}
-//		}
-//
-//		if (bestnode == -1)
-//			return -1;
-//
-//		cin.h_used[bestnode] = true;
-//		return bestnode;
-//	}
-//
-//
-//	/*
-//	==================
-//	Huff1TableInit
-//
-//	Reads the 64k counts table and initializes the node trees
-//	==================
-//	*/
-//	void Huff1TableInit (void)
-//	{
-//		int		prev;
-//		int		j;
-//		int		*node, *nodebase;
-//		byte	counts[256];
-//		int		numhnodes;
-//
-//		cin.hnodes1 = Z_Malloc (256*256*2*4);
-//		memset (cin.hnodes1, 0, 256*256*2*4);
-//
-//		for (prev=0 ; prev<256 ; prev++)
-//		{
-//			memset (cin.h_count,0,sizeof(cin.h_count));
-//			memset (cin.h_used,0,sizeof(cin.h_used));
-//
-//			// read a row of counts
-//			FS_Read (counts, sizeof(counts), cl.cinematic_file);
-//			for (j=0 ; j<256 ; j++)
-//				cin.h_count[j] = counts[j];
-//
-//			// build the nodes
-//			numhnodes = 256;
-//			nodebase = cin.hnodes1 + prev*256*2;
-//
-//			while (numhnodes != 511)
-//			{
-//				node = nodebase + (numhnodes-256)*2;
-//
-//				// pick two lowest counts
-//				node[0] = SmallestNode1 (numhnodes);
-//				if (node[0] == -1)
-//					break;	// no more
-//
-//				node[1] = SmallestNode1 (numhnodes);
-//				if (node[1] == -1)
-//					break;
-//
-//				cin.h_count[numhnodes] = cin.h_count[node[0]] + cin.h_count[node[1]];
-//				numhnodes++;
-//			}
-//
-//			cin.numhnodes1[prev] = numhnodes-1;
-//		}
-//	}
-//
-//	/*
-//	==================
-//	Huff1Decompress
-//	==================
-//	*/
-//	cblock_t Huff1Decompress (cblock_t in)
-//	{
-//		byte		*input;
-//		byte		*out_p;
-//		int			nodenum;
-//		int			count;
-//		cblock_t	out;
-//		int			inbyte;
-//		int			*hnodes, *hnodesbase;
-////	  int		i;
-//
-//		// get decompressed count
-//		count = in.data[0] + (in.data[1]<<8) + (in.data[2]<<16) + (in.data[3]<<24);
-//		input = in.data + 4;
-//		out_p = out.data = Z_Malloc (count);
-//
-//		// read bits
-//
-//		hnodesbase = cin.hnodes1 - 256*2;	// nodes 0-255 aren't stored
-//
-//		hnodes = hnodesbase;
-//		nodenum = cin.numhnodes1[0];
-//		while (count)
-//		{
-//			inbyte = *input++;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//			//-----------
-//			if (nodenum < 256)
-//			{
-//				hnodes = hnodesbase + (nodenum<<9);
-//				*out_p++ = nodenum;
-//				if (!--count)
-//					break;
-//				nodenum = cin.numhnodes1[nodenum];
-//			}
-//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-//			inbyte >>=1;
-//		}
-//
-//		if (input - in.data != in.count && input - in.data != in.count+1)
-//		{
-//			Com_Printf ("Decompression overread by %i", (input - in.data) - in.count);
-//		}
-//		out.count = out_p - out.data;
-//
-//		return out;
-//	}
-//
-//	/*
-//	==================
-//	SCR_ReadNextFrame
-//	==================
-//	*/
-//	byte *SCR_ReadNextFrame (void)
-//	{
-//		int		r;
-//		int		command;
-//		byte	samples[22050/14*4];
-//		byte	compressed[0x20000];
-//		int		size;
-//		byte	*pic;
-//		cblock_t	in, huf1;
-//		int		start, end, count;
-//
-//		// read the next frame
-//		r = fread (&command, 4, 1, cl.cinematic_file);
-//		if (r == 0)		// we'll give it one more chance
-//			r = fread (&command, 4, 1, cl.cinematic_file);
-//
-//		if (r != 1)
-//			return NULL;
-//		command = LittleLong(command);
-//		if (command == 2)
-//			return NULL;	// last frame marker
-//
-//		if (command == 1)
-//		{	// read palette
-//			FS_Read (cl.cinematicpalette, sizeof(cl.cinematicpalette), cl.cinematic_file);
-//			cl.cinematicpalette_active=0;	// dubious....  exposes an edge case
-//		}
-//
-//		// decompress the next frame
-//		FS_Read (&size, 4, cl.cinematic_file);
-//		size = LittleLong(size);
-//		if (size > sizeof(compressed) || size < 1)
-//			Com_Error (ERR_DROP, "Bad compressed frame size");
-//		FS_Read (compressed, size, cl.cinematic_file);
-//
-//		// read sound
-//		start = cl.cinematicframe*cin.s_rate/14;
-//		end = (cl.cinematicframe+1)*cin.s_rate/14;
-//		count = end - start;
-//
-//		FS_Read (samples, count*cin.s_width*cin.s_channels, cl.cinematic_file);
-//
-//		S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels, samples);
-//
-//		in.data = compressed;
-//		in.count = size;
-//
-//		huf1 = Huff1Decompress (in);
-//
-//		pic = huf1.data;
-//
-//		cl.cinematicframe++;
-//
-//		return pic;
-//	}
-//
-//
+	//	/*
+	//	==================
+	//	SmallestNode1
+	//	==================
+	//	*/
+	//	int	SmallestNode1 (int numhnodes)
+	//	{
+	//		int		i;
+	//		int		best, bestnode;
+	//
+	//		best = 99999999;
+	//		bestnode = -1;
+	//		for (i=0 ; i<numhnodes ; i++)
+	//		{
+	//			if (cin.h_used[i])
+	//				continue;
+	//			if (!cin.h_count[i])
+	//				continue;
+	//			if (cin.h_count[i] < best)
+	//			{
+	//				best = cin.h_count[i];
+	//				bestnode = i;
+	//			}
+	//		}
+	//
+	//		if (bestnode == -1)
+	//			return -1;
+	//
+	//		cin.h_used[bestnode] = true;
+	//		return bestnode;
+	//	}
+	//
+	//
+	//	/*
+	//	==================
+	//	Huff1TableInit
+	//
+	//	Reads the 64k counts table and initializes the node trees
+	//	==================
+	//	*/
+	//	void Huff1TableInit (void)
+	//	{
+	//		int		prev;
+	//		int		j;
+	//		int		*node, *nodebase;
+	//		byte	counts[256];
+	//		int		numhnodes;
+	//
+	//		cin.hnodes1 = Z_Malloc (256*256*2*4);
+	//		memset (cin.hnodes1, 0, 256*256*2*4);
+	//
+	//		for (prev=0 ; prev<256 ; prev++)
+	//		{
+	//			memset (cin.h_count,0,sizeof(cin.h_count));
+	//			memset (cin.h_used,0,sizeof(cin.h_used));
+	//
+	//			// read a row of counts
+	//			FS_Read (counts, sizeof(counts), cl.cinematic_file);
+	//			for (j=0 ; j<256 ; j++)
+	//				cin.h_count[j] = counts[j];
+	//
+	//			// build the nodes
+	//			numhnodes = 256;
+	//			nodebase = cin.hnodes1 + prev*256*2;
+	//
+	//			while (numhnodes != 511)
+	//			{
+	//				node = nodebase + (numhnodes-256)*2;
+	//
+	//				// pick two lowest counts
+	//				node[0] = SmallestNode1 (numhnodes);
+	//				if (node[0] == -1)
+	//					break;	// no more
+	//
+	//				node[1] = SmallestNode1 (numhnodes);
+	//				if (node[1] == -1)
+	//					break;
+	//
+	//				cin.h_count[numhnodes] = cin.h_count[node[0]] + cin.h_count[node[1]];
+	//				numhnodes++;
+	//			}
+	//
+	//			cin.numhnodes1[prev] = numhnodes-1;
+	//		}
+	//	}
+	//
+	//	/*
+	//	==================
+	//	Huff1Decompress
+	//	==================
+	//	*/
+	//	cblock_t Huff1Decompress (cblock_t in)
+	//	{
+	//		byte		*input;
+	//		byte		*out_p;
+	//		int			nodenum;
+	//		int			count;
+	//		cblock_t	out;
+	//		int			inbyte;
+	//		int			*hnodes, *hnodesbase;
+	////	  int		i;
+	//
+	//		// get decompressed count
+	//		count = in.data[0] + (in.data[1]<<8) + (in.data[2]<<16) + (in.data[3]<<24);
+	//		input = in.data + 4;
+	//		out_p = out.data = Z_Malloc (count);
+	//
+	//		// read bits
+	//
+	//		hnodesbase = cin.hnodes1 - 256*2;	// nodes 0-255 aren't stored
+	//
+	//		hnodes = hnodesbase;
+	//		nodenum = cin.numhnodes1[0];
+	//		while (count)
+	//		{
+	//			inbyte = *input++;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//			//-----------
+	//			if (nodenum < 256)
+	//			{
+	//				hnodes = hnodesbase + (nodenum<<9);
+	//				*out_p++ = nodenum;
+	//				if (!--count)
+	//					break;
+	//				nodenum = cin.numhnodes1[nodenum];
+	//			}
+	//			nodenum = hnodes[nodenum*2 + (inbyte&1)];
+	//			inbyte >>=1;
+	//		}
+	//
+	//		if (input - in.data != in.count && input - in.data != in.count+1)
+	//		{
+	//			Com_Printf ("Decompression overread by %i", (input - in.data) - in.count);
+	//		}
+	//		out.count = out_p - out.data;
+	//
+	//		return out;
+	//	}
+	//
+	//	/*
+	//	==================
+	//	SCR_ReadNextFrame
+	//	==================
+	//	*/
+	//	byte *SCR_ReadNextFrame (void)
+	//	{
+	//		int		r;
+	//		int		command;
+	//		byte	samples[22050/14*4];
+	//		byte	compressed[0x20000];
+	//		int		size;
+	//		byte	*pic;
+	//		cblock_t	in, huf1;
+	//		int		start, end, count;
+	//
+	//		// read the next frame
+	//		r = fread (&command, 4, 1, cl.cinematic_file);
+	//		if (r == 0)		// we'll give it one more chance
+	//			r = fread (&command, 4, 1, cl.cinematic_file);
+	//
+	//		if (r != 1)
+	//			return NULL;
+	//		command = LittleLong(command);
+	//		if (command == 2)
+	//			return NULL;	// last frame marker
+	//
+	//		if (command == 1)
+	//		{	// read palette
+	//			FS_Read (cl.cinematicpalette, sizeof(cl.cinematicpalette), cl.cinematic_file);
+	//			cl.cinematicpalette_active=0;	// dubious....  exposes an edge case
+	//		}
+	//
+	//		// decompress the next frame
+	//		FS_Read (&size, 4, cl.cinematic_file);
+	//		size = LittleLong(size);
+	//		if (size > sizeof(compressed) || size < 1)
+	//			Com_Error (ERR_DROP, "Bad compressed frame size");
+	//		FS_Read (compressed, size, cl.cinematic_file);
+	//
+	//		// read sound
+	//		start = cl.cinematicframe*cin.s_rate/14;
+	//		end = (cl.cinematicframe+1)*cin.s_rate/14;
+	//		count = end - start;
+	//
+	//		FS_Read (samples, count*cin.s_width*cin.s_channels, cl.cinematic_file);
+	//
+	//		S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels, samples);
+	//
+	//		in.data = compressed;
+	//		in.count = size;
+	//
+	//		huf1 = Huff1Decompress (in);
+	//
+	//		pic = huf1.data;
+	//
+	//		cl.cinematicframe++;
+	//
+	//		return pic;
+	//	}
+	//
+	//
 	/*
 	==================
 	SCR_RunCinematic
-
+	
 	==================
 	*/
-	static void RunCinematic()
-	{
-		int		frame;
+	static void RunCinematic() {
+		int frame;
 
-		if (cl.cinematictime <= 0)
-		{
+		if (cl.cinematictime <= 0) {
 			StopCinematic();
 			return;
 		}
 
-//		if (cl.cinematicframe == -1)
-//			return;		// static image
-//
-//		if (cls.key_dest != key_game)
-//		{	// pause if menu or console is up
-//			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
-//			return;
-//		}
-//
-//		frame = (cls.realtime - cl.cinematictime)*14.0/1000;
-//		if (frame <= cl.cinematicframe)
-//			return;
-//		if (frame > cl.cinematicframe+1)
-//		{
-//			Com_Printf ("Dropped frame: %i > %i\n", frame, cl.cinematicframe+1);
-//			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
-//		}
-//		if (cin.pic)
-//			Z_Free (cin.pic);
-//		cin.pic = cin.pic_pending;
-//		cin.pic_pending = NULL;
-//		cin.pic_pending = SCR_ReadNextFrame ();
-//		if (!cin.pic_pending)
-//		{
-//			SCR_StopCinematic ();
-//			SCR_FinishCinematic ();
-//			cl.cinematictime = 1;	// hack to get the black screen behind loading
-//			SCR_BeginLoadingPlaque ();
-//			cl.cinematictime = 0;
-//			return;
-//		}
+		//		if (cl.cinematicframe == -1)
+		//			return;		// static image
+		//
+		//		if (cls.key_dest != key_game)
+		//		{	// pause if menu or console is up
+		//			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+		//			return;
+		//		}
+		//
+		//		frame = (cls.realtime - cl.cinematictime)*14.0/1000;
+		//		if (frame <= cl.cinematicframe)
+		//			return;
+		//		if (frame > cl.cinematicframe+1)
+		//		{
+		//			Com_Printf ("Dropped frame: %i > %i\n", frame, cl.cinematicframe+1);
+		//			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+		//		}
+		//		if (cin.pic)
+		//			Z_Free (cin.pic);
+		//		cin.pic = cin.pic_pending;
+		//		cin.pic_pending = NULL;
+		//		cin.pic_pending = SCR_ReadNextFrame ();
+		//		if (!cin.pic_pending)
+		//		{
+		//			SCR_StopCinematic ();
+		//			SCR_FinishCinematic ();
+		//			cl.cinematictime = 1;	// hack to get the black screen behind loading
+		//			SCR_BeginLoadingPlaque ();
+		//			cl.cinematictime = 0;
+		//			return;
+		//		}
 	}
 
 	/*
 	==================
 	SCR_DrawCinematic
-
+	
 	Returns true if a cinematic is active, meaning the view rendering
 	should be skipped
 	==================
 	*/
-	static boolean DrawCinematic()
-	{
-//		if (cl.cinematictime <= 0)
-//		{
-			return false;
-//		}
-//
-//		if (cls.key_dest == key_menu)
-//		{	// blank screen and pause if menu is up
-//			re.CinematicSetPalette(NULL);
-//			cl.cinematicpalette_active = false;
-//			return true;
-//		}
-//
-//		if (!cl.cinematicpalette_active)
-//		{
-//			re.CinematicSetPalette(cl.cinematicpalette);
-//			cl.cinematicpalette_active = true;
-//		}
-//
-//		if (!cin.pic)
-//			return true;
-//
-//		re.DrawStretchRaw (0, 0, viddef.width, viddef.height,
-//			cin.width, cin.height, cin.pic);
-//
-//		return true;
+	static boolean DrawCinematic() {
+		//		if (cl.cinematictime <= 0)
+		//		{
+		return false;
+		//		}
+		//
+		//		if (cls.key_dest == key_menu)
+		//		{	// blank screen and pause if menu is up
+		//			re.CinematicSetPalette(NULL);
+		//			cl.cinematicpalette_active = false;
+		//			return true;
+		//		}
+		//
+		//		if (!cl.cinematicpalette_active)
+		//		{
+		//			re.CinematicSetPalette(cl.cinematicpalette);
+		//			cl.cinematicpalette_active = true;
+		//		}
+		//
+		//		if (!cin.pic)
+		//			return true;
+		//
+		//		re.DrawStretchRaw (0, 0, viddef.width, viddef.height,
+		//			cin.width, cin.height, cin.pic);
+		//
+		//		return true;
 	}
 
 	/*
 	==================
 	SCR_PlayCinematic
-
+	
 	==================
 	*/
-	static void PlayCinematic(String arg)
-	{
-//		int		width, height;
-//		byte	*palette;
-//		char	name[MAX_OSPATH], *dot;
-//		int		old_khz;
-//
-//		// make sure CD isn't playing music
+	static void PlayCinematic(String arg) {
+		//		int		width, height;
+		//		byte	*palette;
+		//		char	name[MAX_OSPATH], *dot;
+		//		int		old_khz;
+		//
+		//		// make sure CD isn't playing music
 		//CDAudio.Stop();
 
-		cl.cinematicframe = 0;
-//		dot = strstr (arg, ".");
-//		if (dot && !strcmp (dot, ".pcx"))
-//		{	// static pcx image
-//			Com_sprintf (name, sizeof(name), "pics/%s", arg);
-//			SCR_LoadPCX (name, &cin.pic, &palette, &cin.width, &cin.height);
-//			cl.cinematicframe = -1;
-//			cl.cinematictime = 1;
-//			SCR_EndLoadingPlaque ();
-//			cls.state = ca_active;
-//			if (!cin.pic)
-//			{
-//				Com_Printf ("%s not found.\n", name);
-//				cl.cinematictime = 0;
-//			}
-//			else
-//			{
-//				memcpy (cl.cinematicpalette, palette, sizeof(cl.cinematicpalette));
-//				Z_Free (palette);
-//			}
-//			return;
-//		}
-//
-//		Com_sprintf (name, sizeof(name), "video/%s", arg);
-//		FS_FOpenFile (name, &cl.cinematic_file);
-//		if (!cl.cinematic_file)
-//		{
-			// Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
-			FinishCinematic();
-			cl.cinematictime = 0;	// done
-			return;
-//		}
-//
-//		SCR_EndLoadingPlaque ();
-//
-//		cls.state = ca_active;
-//
-//		FS_Read (&width, 4, cl.cinematic_file);
-//		FS_Read (&height, 4, cl.cinematic_file);
-//		cin.width = LittleLong(width);
-//		cin.height = LittleLong(height);
-//
-//		FS_Read (&cin.s_rate, 4, cl.cinematic_file);
-//		cin.s_rate = LittleLong(cin.s_rate);
-//		FS_Read (&cin.s_width, 4, cl.cinematic_file);
-//		cin.s_width = LittleLong(cin.s_width);
-//		FS_Read (&cin.s_channels, 4, cl.cinematic_file);
-//		cin.s_channels = LittleLong(cin.s_channels);
-//
-//		Huff1TableInit ();
-//
-//		// switch up to 22 khz sound if necessary
-//		old_khz = Cvar_VariableValue ("s_khz");
-//		if (old_khz != cin.s_rate/1000)
-//		{
-//			cin.restart_sound = true;
-//			Cvar_SetValue ("s_khz", cin.s_rate/1000);
-//			CL_Snd_Restart_f ();
-//			Cvar_SetValue ("s_khz", old_khz);
-//		}
-//
-//		cl.cinematicframe = 0;
-//		cin.pic = SCR_ReadNextFrame ();
-//		cl.cinematictime = Sys_Milliseconds ();
+		cl.cinematicframe= 0;
+		//		dot = strstr (arg, ".");
+		//		if (dot && !strcmp (dot, ".pcx"))
+		//		{	// static pcx image
+		//			Com_sprintf (name, sizeof(name), "pics/%s", arg);
+		//			SCR_LoadPCX (name, &cin.pic, &palette, &cin.width, &cin.height);
+		//			cl.cinematicframe = -1;
+		//			cl.cinematictime = 1;
+		//			SCR_EndLoadingPlaque ();
+		//			cls.state = ca_active;
+		//			if (!cin.pic)
+		//			{
+		//				Com_Printf ("%s not found.\n", name);
+		//				cl.cinematictime = 0;
+		//			}
+		//			else
+		//			{
+		//				memcpy (cl.cinematicpalette, palette, sizeof(cl.cinematicpalette));
+		//				Z_Free (palette);
+		//			}
+		//			return;
+		//		}
+		//
+		//		Com_sprintf (name, sizeof(name), "video/%s", arg);
+		//		FS_FOpenFile (name, &cl.cinematic_file);
+		//		if (!cl.cinematic_file)
+		//		{
+		// Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
+		FinishCinematic();
+		cl.cinematictime= 0; // done
+		return;
+		//		}
+		//
+		//		SCR_EndLoadingPlaque ();
+		//
+		//		cls.state = ca_active;
+		//
+		//		FS_Read (&width, 4, cl.cinematic_file);
+		//		FS_Read (&height, 4, cl.cinematic_file);
+		//		cin.width = LittleLong(width);
+		//		cin.height = LittleLong(height);
+		//
+		//		FS_Read (&cin.s_rate, 4, cl.cinematic_file);
+		//		cin.s_rate = LittleLong(cin.s_rate);
+		//		FS_Read (&cin.s_width, 4, cl.cinematic_file);
+		//		cin.s_width = LittleLong(cin.s_width);
+		//		FS_Read (&cin.s_channels, 4, cl.cinematic_file);
+		//		cin.s_channels = LittleLong(cin.s_channels);
+		//
+		//		Huff1TableInit ();
+		//
+		//		// switch up to 22 khz sound if necessary
+		//		old_khz = Cvar_VariableValue ("s_khz");
+		//		if (old_khz != cin.s_rate/1000)
+		//		{
+		//			cin.restart_sound = true;
+		//			Cvar_SetValue ("s_khz", cin.s_rate/1000);
+		//			CL_Snd_Restart_f ();
+		//			Cvar_SetValue ("s_khz", old_khz);
+		//		}
+		//
+		//		cl.cinematicframe = 0;
+		//		cin.pic = SCR_ReadNextFrame ();
+		//		cl.cinematictime = Sys_Milliseconds ();
 	}
-
 }

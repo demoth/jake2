@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.11.2003 by RST.
-// $Id: edict_t.java,v 1.3 2004-08-20 21:29:57 salomo Exp $
+// $Id: edict_t.java,v 1.4 2004-08-22 14:25:12 salomo Exp $
 
 package jake2.game;
 
@@ -29,19 +29,16 @@ import java.io.RandomAccessFile;
 import jake2.*;
 import jake2.util.*;
 
-public class edict_t
-{
+public class edict_t {
 
 	/** Constructor. */
-	public edict_t(int i)
-	{
+	public edict_t(int i) {
 		s.number= i;
 		index= i;
 	}
 
 	/** Used during level loading. */
-	public void cleararealinks()
-	{
+	public void cleararealinks() {
 		area= new link_t(this);
 	}
 
@@ -219,201 +216,167 @@ public class edict_t
 
 	/////////////////////////////////////////////////
 
-	public boolean set(String key, String value)
-	{
+	public boolean set(String key, String value) {
 
-		if (key.equals("classname"))
-		{
+		if (key.equals("classname")) {
 			classname= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("model"))
-		{
+		if (key.equals("model")) {
 			model= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("spawnflags"))
-		{
+		if (key.equals("spawnflags")) {
 			spawnflags= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("speed"))
-		{
+		if (key.equals("speed")) {
 			speed= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("accel"))
-		{
+		if (key.equals("accel")) {
 			accel= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("decel"))
-		{
+		if (key.equals("decel")) {
 			decel= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("target"))
-		{
+		if (key.equals("target")) {
 			target= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("targetname"))
-		{
+		if (key.equals("targetname")) {
 			targetname= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("pathtarget"))
-		{
+		if (key.equals("pathtarget")) {
 			pathtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("deathtarget"))
-		{
+		if (key.equals("deathtarget")) {
 			deathtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
-		if (key.equals("killtarget"))
-		{
+		if (key.equals("killtarget")) {
 			killtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("combattarget"))
-		{
+		if (key.equals("combattarget")) {
 			combattarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("message"))
-		{
+		if (key.equals("message")) {
 			message= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("team"))
-		{
+		if (key.equals("team")) {
 			team= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("wait"))
-		{
+		if (key.equals("wait")) {
 			wait= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("delay"))
-		{
+		if (key.equals("delay")) {
 			delay= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("random"))
-		{
+		if (key.equals("random")) {
 			random= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("move_origin"))
-		{
+		if (key.equals("move_origin")) {
 			move_origin= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("move_angles"))
-		{
+		if (key.equals("move_angles")) {
 			move_angles= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("style"))
-		{
+		if (key.equals("style")) {
 			style= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("count"))
-		{
+		if (key.equals("count")) {
 			count= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("health"))
-		{
+		if (key.equals("health")) {
 			health= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("sounds"))
-		{
+		if (key.equals("sounds")) {
 			sounds= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("light"))
-		{
+		if (key.equals("light")) {
 			return true;
 		} // F_IGNORE),
 
-		if (key.equals("dmg"))
-		{
+		if (key.equals("dmg")) {
 			dmg= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("mass"))
-		{
+		if (key.equals("mass")) {
 			mass= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("volume"))
-		{
+		if (key.equals("volume")) {
 			volume= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("attenuation"))
-		{
+		if (key.equals("attenuation")) {
 			attenuation= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("map"))
-		{
+		if (key.equals("map")) {
 			map= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("origin"))
-		{
+		if (key.equals("origin")) {
 			s.origin= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("angles"))
-		{
+		if (key.equals("angles")) {
 			s.angles= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("angle"))
-		{
+		if (key.equals("angle")) {
 			s.angles= new float[] { 0, Lib.atof(value), 0 };
 			return true;
 		} // F_ANGLEHACK),
 
-		if (key.equals("item"))
-		{
+		if (key.equals("item")) {
 			Game.gi.error("ent.set(\"item\") called.");
 			return true;
 		} // F_ITEM)
@@ -422,8 +385,7 @@ public class edict_t
 	}
 
 	/** Writes the entity to the file. */
-	public void write(QuakeFile f) throws IOException
-	{
+	public void write(QuakeFile f) throws IOException {
 
 		s.write(f);
 		f.writeBoolean(inuse);
@@ -434,8 +396,7 @@ public class edict_t
 
 		if (clusternums == null)
 			f.writeInt(-1);
-		else
-		{
+		else {
 			f.writeInt(Defines.MAX_ENT_CLUSTERS);
 			for (int n= 0; n < Defines.MAX_ENT_CLUSTERS; n++)
 				f.writeInt(clusternums[n]);
@@ -467,6 +428,7 @@ public class edict_t
 
 		f.writeString(target);
 		f.writeString(targetname);
+		f.writeString(killtarget);
 		f.writeString(team);
 		f.writeString(pathtarget);
 		f.writeString(deathtarget);
@@ -582,8 +544,7 @@ public class edict_t
 	}
 
 	/** Reads the entity from the file.*/
-	public void read(QuakeFile f) throws IOException
-	{
+	public void read(QuakeFile f) throws IOException {
 		s.read(f);
 		inuse= f.readBoolean();
 		linkcount= f.readInt();
@@ -596,8 +557,7 @@ public class edict_t
 
 		if (len == -1)
 			clusternums= null;
-		else
-		{
+		else {
 			clusternums= new int[Defines.MAX_ENT_CLUSTERS];
 			for (int n= 0; n < Defines.MAX_ENT_CLUSTERS; n++)
 				clusternums[n]= f.readInt();
@@ -629,6 +589,7 @@ public class edict_t
 
 		target= f.readString();
 		targetname= f.readString();
+		killtarget= f.readString();
 		team= f.readString();
 		pathtarget= f.readString();
 		deathtarget= f.readString();

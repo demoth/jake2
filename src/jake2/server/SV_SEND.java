@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.3 2004-07-08 20:56:54 hzi Exp $
+// $Id: SV_SEND.java,v 1.4 2004-08-22 14:25:13 salomo Exp $
 
 package jake2.server;
 
@@ -40,11 +40,11 @@ public class SV_SEND extends SV_MAIN {
 	=============================================================================
 	*/
 
-	public static byte sv_outputbuf[] = new byte[SV_OUTPUTBUF_LENGTH];
+	public static byte sv_outputbuf[]= new byte[SV_OUTPUTBUF_LENGTH];
 
 	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
 		if (sv_redirected == RD_PACKET) {
-			String s = ("print\n" + outputbuf);
+			String s= ("print\n" + outputbuf);
 			Netchan.Netchan_OutOfBand(NS_SERVER, Netchan.net_from, s.length(), s.getBytes());
 		}
 		else if (sv_redirected == RD_CLIENT) {
@@ -103,23 +103,22 @@ public class SV_SEND extends SV_MAIN {
 		//	va_end (argptr);
 
 		// echo to console
-			if (dedicated.value!=0)
-			{
-				
-				//char	copy[1024];
-				//int		i;
-				
-				// mask off high bits
-				//for (i=0 ; i<1023 && string[i] ; i++)
-					//copy[i] = string[i]&127;
-				//copy[i] = 0;
-				//Com_Printf ("%s", copy);
-				
-				Com.Printf(s);
-			}
+		if (dedicated.value != 0) {
 
-		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-			cl = SV_MAIN.svs.clients[i];
+			//char	copy[1024];
+			//int		i;
+
+			// mask off high bits
+			//for (i=0 ; i<1023 && string[i] ; i++)
+			//copy[i] = string[i]&127;
+			//copy[i] = 0;
+			//Com_Printf ("%s", copy);
+
+			Com.Printf(s);
+		}
+
+		for (int i= 0; i < SV_MAIN.maxclients.value; i++) {
+			cl= SV_MAIN.svs.clients[i];
 			if (level < cl.messagelevel)
 				continue;
 			if (cl.state != cs_spawned)
@@ -173,15 +172,15 @@ public class SV_SEND extends SV_MAIN {
 		boolean reliable;
 		int area1, area2;
 
-		reliable = false;
+		reliable= false;
 
 		if (to != MULTICAST_ALL_R && to != MULTICAST_ALL) {
-			leafnum = CM.CM_PointLeafnum(origin);
-			area1 = CM.CM_LeafArea(leafnum);
+			leafnum= CM.CM_PointLeafnum(origin);
+			area1= CM.CM_LeafArea(leafnum);
 		}
 		else {
-			leafnum = 0; // just to avoid compiler warnings
-			area1 = 0;
+			leafnum= 0; // just to avoid compiler warnings
+			area1= 0;
 		}
 
 		// if doing a serverrecord, store everything
@@ -190,36 +189,36 @@ public class SV_SEND extends SV_MAIN {
 
 		switch (to) {
 			case MULTICAST_ALL_R :
-				reliable = true; // intentional fallthrough, no break here
+				reliable= true; // intentional fallthrough, no break here
 			case MULTICAST_ALL :
-				leafnum = 0;
-				mask = null;
+				leafnum= 0;
+				mask= null;
 				break;
 
 			case MULTICAST_PHS_R :
-				reliable = true; // intentional fallthrough
+				reliable= true; // intentional fallthrough
 			case MULTICAST_PHS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPHS(cluster);
+				leafnum= CM.CM_PointLeafnum(origin);
+				cluster= CM.CM_LeafCluster(leafnum);
+				mask= CM.CM_ClusterPHS(cluster);
 				break;
 
 			case MULTICAST_PVS_R :
-				reliable = true; // intentional fallthrough
+				reliable= true; // intentional fallthrough
 			case MULTICAST_PVS :
-				leafnum = CM.CM_PointLeafnum(origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				mask = CM.CM_ClusterPVS(cluster);
+				leafnum= CM.CM_PointLeafnum(origin);
+				cluster= CM.CM_LeafCluster(leafnum);
+				mask= CM.CM_ClusterPVS(cluster);
 				break;
 
 			default :
-				mask = null;
+				mask= null;
 				Com.Error(ERR_FATAL, "SV_Multicast: bad to:" + to + "\n");
 		}
 
 		// send the data to all relevent clients
-		for (j = 0; j < maxclients.value; j++) {
-			client = svs.clients[j];
+		for (j= 0; j < maxclients.value; j++) {
+			client= svs.clients[j];
 
 			if (client.state == cs_free || client.state == cs_zombie)
 				continue;
@@ -227,12 +226,12 @@ public class SV_SEND extends SV_MAIN {
 				continue;
 
 			if (mask != null) {
-				leafnum = CM.CM_PointLeafnum(client.edict.s.origin);
-				cluster = CM.CM_LeafCluster(leafnum);
-				area2 = CM.CM_LeafArea(leafnum);
+				leafnum= CM.CM_PointLeafnum(client.edict.s.origin);
+				cluster= CM.CM_LeafCluster(leafnum);
+				area2= CM.CM_LeafArea(leafnum);
 				if (!CM.CM_AreasConnected(area1, area2))
 					continue;
-					
+
 				// quake2 bugfix
 				if (cluster == -1)
 					continue;
@@ -287,7 +286,7 @@ public class SV_SEND extends SV_MAIN {
 		int flags;
 		int i;
 		int ent;
-		float[] origin_v = {0,0,0};
+		float[] origin_v= { 0, 0, 0 };
 		boolean use_phs;
 
 		if (volume < 0 || volume > 1.0)
@@ -302,21 +301,19 @@ public class SV_SEND extends SV_MAIN {
 		if (timeofs < 0 || timeofs > 0.255)
 			Com.Error(ERR_FATAL, "SV_StartSound: timeofs = " + timeofs);
 
-		//ent = NUM_FOR_EDICT(entity);
-		//TODO: somehow risky (dont know if constant correct index)
-		ent = entity.index;
+		ent= entity.index;
 
-		if ((channel & 8) != 0) // no PHS flag
-			{
-			use_phs = false;
+		// no PHS flag
+		if ((channel & 8) != 0) {
+			use_phs= false;
 			channel &= 7;
 		}
 		else
-			use_phs = true;
+			use_phs= true;
 
-		sendchan = (ent << 3) | (channel & 7);
+		sendchan= (ent << 3) | (channel & 7);
 
-		flags = 0;
+		flags= 0;
 		if (volume != Defines.DEFAULT_SOUND_PACKET_VOLUME)
 			flags |= SND_VOLUME;
 		if (attenuation != DEFAULT_SOUND_PACKET_ATTENUATION)
@@ -335,10 +332,10 @@ public class SV_SEND extends SV_MAIN {
 
 		// use the entity origin unless it is a bmodel or explicitly specified
 		if (origin == null) {
-			origin = origin_v;
+			origin= origin_v;
 			if (entity.solid == SOLID_BSP) {
-				for (i = 0; i < 3; i++)
-					origin_v[i] = entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
+				for (i= 0; i < 3; i++)
+					origin_v[i]= entity.s.origin[i] + 0.5f * (entity.mins[i] + entity.maxs[i]);
 			}
 			else {
 				VectorCopy(entity.s.origin, origin_v);
@@ -365,7 +362,7 @@ public class SV_SEND extends SV_MAIN {
 		// if the sound doesn't attenuate,send it to everyone
 		// (global radio chatter, voiceovers, etc)
 		if (attenuation == ATTN_NONE)
-			use_phs = false;
+			use_phs= false;
 
 		if ((channel & CHAN_RELIABLE) != 0) {
 			if (use_phs)
@@ -395,17 +392,17 @@ public class SV_SEND extends SV_MAIN {
 	=======================
 	*/
 	public static boolean SV_SendClientDatagram(client_t client) {
-		byte msg_buf[] = new byte[MAX_MSGLEN];
-		sizebuf_t msg = new sizebuf_t();
+		byte msg_buf[]= new byte[MAX_MSGLEN];
+		sizebuf_t msg= new sizebuf_t();
 
 		SV_ENTS.SV_BuildClientFrame(client);
 
 		SZ.Init(msg, msg_buf, msg_buf.length);
-		msg.allowoverflow = true;
+		msg.allowoverflow= true;
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		SV_CCMDS.SV_WriteFrameToClient (client, msg);
+		SV_CCMDS.SV_WriteFrameToClient(client, msg);
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message
@@ -426,7 +423,7 @@ public class SV_SEND extends SV_MAIN {
 		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
 
 		// record the size for rate estimation
-		client.message_size[sv.framenum % RATE_MESSAGES] = msg.cursize;
+		client.message_size[sv.framenum % RATE_MESSAGES]= msg.cursize;
 
 		return true;
 	}
@@ -444,7 +441,7 @@ public class SV_SEND extends SV_MAIN {
 			catch (IOException e) {
 				Com.Printf("IOError closing d9emo fiele:" + e);
 			}
-			sv.demofile = null;
+			sv.demofile= null;
 		}
 		SV_ENTS.SV_Nextserver();
 	}
@@ -465,15 +462,15 @@ public class SV_SEND extends SV_MAIN {
 		if (c.netchan.remote_address.type == NA_LOOPBACK)
 			return false;
 
-		total = 0;
+		total= 0;
 
-		for (i = 0; i < RATE_MESSAGES; i++) {
+		for (i= 0; i < RATE_MESSAGES; i++) {
 			total += c.message_size[i];
 		}
 
 		if (total > c.rate) {
 			c.surpressCount++;
-			c.message_size[sv.framenum % RATE_MESSAGES] = 0;
+			c.message_size[sv.framenum % RATE_MESSAGES]= 0;
 			return true;
 		}
 
@@ -489,20 +486,20 @@ public class SV_SEND extends SV_MAIN {
 		int i;
 		client_t c;
 		int msglen;
-		byte msgbuf[] = new byte[MAX_MSGLEN];
+		byte msgbuf[]= new byte[MAX_MSGLEN];
 		int r;
 
-		msglen = 0;
+		msglen= 0;
 
 		// read the next demo message if needed
 		if (sv.state == ss_demo && sv.demofile != null) {
 			if (sv_paused.value != 0)
-				msglen = 0;
+				msglen= 0;
 			else {
 				// get the next message
 				//r = fread (&msglen, 4, 1, sv.demofile);
 				try {
-					msglen = EndianHandler.swapInt(sv.demofile.readInt());
+					msglen= EndianHandler.swapInt(sv.demofile.readInt());
 				}
 				catch (Exception e) {
 					SV_DemoCompleted();
@@ -518,9 +515,9 @@ public class SV_SEND extends SV_MAIN {
 					Com.Error(ERR_DROP, "SV_SendClientMessages: msglen > MAX_MSGLEN");
 
 				//r = fread (msgbuf, msglen, 1, sv.demofile);
-				r = 0;
+				r= 0;
 				try {
-					r = sv.demofile.read(msgbuf, 0, msglen);
+					r= sv.demofile.read(msgbuf, 0, msglen);
 				}
 				catch (IOException e1) {
 					Com.Printf("IOError: reading demo file, " + e1);
@@ -533,8 +530,8 @@ public class SV_SEND extends SV_MAIN {
 		}
 
 		// send a message to each connected client
-		for (i = 0; i < maxclients.value; i++) {
-			c = svs.clients[i];
+		for (i= 0; i < maxclients.value; i++) {
+			c= svs.clients[i];
 
 			if (c.state == 0)
 				continue;

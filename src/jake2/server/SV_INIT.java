@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.6 2004-08-20 21:29:57 salomo Exp $
+// $Id: SV_INIT.java,v 1.7 2004-08-22 14:25:13 salomo Exp $
 
 package jake2.server;
 
@@ -33,8 +33,7 @@ import jake2.sys.NET;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class SV_INIT extends Globals
-{
+public class SV_INIT extends Globals {
 
 	public static server_static_t svs= new server_static_t(); // persistant server info
 	public static server_t sv= new server_t(); // local server
@@ -45,8 +44,7 @@ public class SV_INIT extends Globals
 	
 	================
 	*/
-	public static int SV_FindIndex(String name, int start, int max, boolean create)
-	{
+	public static int SV_FindIndex(String name, int start, int max, boolean create) {
 		int i;
 
 		if (name == null || name.length() == 0)
@@ -65,8 +63,7 @@ public class SV_INIT extends Globals
 		//strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
 		sv.configstrings[start + i]= name;
 
-		if (sv.state != ss_loading)
-		{ // send the update to everyone
+		if (sv.state != ss_loading) { // send the update to everyone
 			SZ.Clear(sv.multicast);
 			MSG.WriteChar(sv.multicast, svc_configstring);
 			MSG.WriteShort(sv.multicast, start + i);
@@ -77,18 +74,15 @@ public class SV_INIT extends Globals
 		return i;
 	}
 
-	public static int SV_ModelIndex(String name)
-	{
+	public static int SV_ModelIndex(String name) {
 		return SV_FindIndex(name, CS_MODELS, MAX_MODELS, true);
 	}
 
-	public static int SV_SoundIndex(String name)
-	{
+	public static int SV_SoundIndex(String name) {
 		return SV_FindIndex(name, CS_SOUNDS, MAX_SOUNDS, true);
 	}
 
-	public static int SV_ImageIndex(String name)
-	{
+	public static int SV_ImageIndex(String name) {
 		return SV_FindIndex(name, CS_IMAGES, MAX_IMAGES, true);
 	}
 
@@ -101,13 +95,11 @@ public class SV_INIT extends Globals
 	baseline will be transmitted
 	================
 	*/
-	public static void SV_CreateBaseline()
-	{
+	public static void SV_CreateBaseline() {
 		edict_t svent;
 		int entnum;
 
-		for (entnum= 1; entnum < SV_GAME.ge.num_edicts; entnum++)
-		{
+		for (entnum= 1; entnum < SV_GAME.ge.num_edicts; entnum++) {
 			//svent = EDICT_NUM(entnum);
 			svent= SV_GAME.ge.edicts[entnum];
 
@@ -131,11 +123,9 @@ public class SV_INIT extends Globals
 	SV_CheckForSavegame
 	=================
 	*/
-	public static void SV_CheckForSavegame()
-	{
-		//char		name[MAX_OSPATH];
+	public static void SV_CheckForSavegame() {
+
 		String name;
-		//FILE		*f;
 		RandomAccessFile f;
 
 		int i;
@@ -147,22 +137,18 @@ public class SV_INIT extends Globals
 			return;
 
 		name= FS.Gamedir() + "/save/current/" + sv.name + ".sav";
-		try
-		{
+		try {
 			f= new RandomAccessFile(name, "r");
 		}
 
-		catch (Exception e)
-		{
-			return; // no savegame
+		catch (Exception e) {
+			return;
 		}
 
-		try
-		{
+		try {
 			f.close();
 		}
-		catch (IOException e1)
-		{
+		catch (IOException e1) {
 			e1.printStackTrace();
 		}
 
@@ -171,8 +157,7 @@ public class SV_INIT extends Globals
 		// get configstrings and areaportals
 		SV_CCMDS.SV_ReadLevelFile();
 
-		if (!sv.loadgame)
-		{ // coming back to a level after being in a different
+		if (!sv.loadgame) { // coming back to a level after being in a different
 			// level, so run it for ten seconds
 
 			// rlava2 was sending too many lightstyles, and overflowing the
@@ -198,8 +183,7 @@ public class SV_INIT extends Globals
 	
 	================
 	*/
-	public static void SV_SpawnServer(String server, String spawnpoint, int serverstate, boolean attractloop, boolean loadgame)
-	{
+	public static void SV_SpawnServer(String server, String spawnpoint, int serverstate, boolean attractloop, boolean loadgame) {
 		int i;
 		int checksum= 0;
 
@@ -210,21 +194,18 @@ public class SV_INIT extends Globals
 
 		Com.DPrintf("SpawnServer: " + server + "\n");
 		if (sv.demofile != null)
-			try
-			{
+			try {
 				sv.demofile.close();
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 			}
 
 		svs.spawncount++; // any partially connected client will be
 		// restarted
 
-		sv.state = ss_dead;
-		
-		Globals.server_state= sv.state;
+		sv.state= ss_dead;
 
+		Globals.server_state= sv.state;
 
 		// wipe the entire per-level structure
 		//memset(sv, 0, sizeof(sv));
@@ -237,13 +218,11 @@ public class SV_INIT extends Globals
 		// save name for levels that don't set message
 		sv.configstrings[CS_NAME]= server;
 
-		if (Cvar.VariableValue("deathmatch") != 0)
-		{
+		if (Cvar.VariableValue("deathmatch") != 0) {
 			sv.configstrings[CS_AIRACCEL]= "" + SV_MAIN.sv_airaccelerate.value;
 			PMove.pm_airaccelerate= SV_MAIN.sv_airaccelerate.value;
 		}
-		else
-		{
+		else {
 			sv.configstrings[CS_AIRACCEL]= "0";
 			PMove.pm_airaccelerate= 0;
 		}
@@ -253,8 +232,7 @@ public class SV_INIT extends Globals
 		sv.name= server;
 
 		// leave slots at start for clients only
-		for (i= 0; i < SV_MAIN.maxclients.value; i++)
-		{
+		for (i= 0; i < SV_MAIN.maxclients.value; i++) {
 			// needs to reconnect
 			if (svs.clients[i].state > cs_connected)
 				svs.clients[i].state= cs_connected;
@@ -268,12 +246,10 @@ public class SV_INIT extends Globals
 
 		int iw[]= { checksum };
 
-		if (serverstate != ss_game)
-		{
+		if (serverstate != ss_game) {
 			sv.models[1]= CM.CM_LoadMap("", false, iw); // no real map
 		}
-		else
-		{
+		else {
 			sv.configstrings[CS_MODELS + 1]= "maps/" + server + ".bsp";
 			sv.models[1]= CM.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, iw);
 		}
@@ -285,8 +261,7 @@ public class SV_INIT extends Globals
 		//
 		SV_WORLD.SV_ClearWorld();
 
-		for (i= 1; i < CM.CM_NumInlineModels(); i++)
-		{
+		for (i= 1; i < CM.CM_NumInlineModels(); i++) {
 			sv.configstrings[CS_MODELS + 1 + i]= "*" + i;
 			// copy references
 			sv.models[i + 1]= CM.InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
@@ -299,7 +274,7 @@ public class SV_INIT extends Globals
 		// precache and static commands can be issued during
 		// map initialization
 
-		sv.state = ss_loading;
+		sv.state= ss_loading;
 		Globals.server_state= sv.state;
 
 		// load and spawn all other entities
@@ -310,7 +285,7 @@ public class SV_INIT extends Globals
 		SV_GAME.ge.RunFrame();
 
 		// all precaches are complete
-		sv.state = serverstate;
+		sv.state= serverstate;
 		Globals.server_state= sv.state;
 
 		// create a baseline for more efficient communications
@@ -332,20 +307,17 @@ public class SV_INIT extends Globals
 	A brand new game has been started
 	==============
 	*/
-	public static void SV_InitGame()
-	{
+	public static void SV_InitGame() {
 		int i;
 		edict_t ent;
 		//char idmaster[32];
 		String idmaster;
 
-		if (svs.initialized)
-		{
+		if (svs.initialized) {
 			// cause any connected clients to reconnect
 			SV_MAIN.SV_Shutdown("Server restarted\n", true);
 		}
-		else
-		{
+		else {
 			// make sure the client is down
 			CL.Drop();
 			SCR.BeginLoadingPlaque();
@@ -356,30 +328,26 @@ public class SV_INIT extends Globals
 
 		svs.initialized= true;
 
-		if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0)
-		{
+		if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0) {
 			Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
 			Cvar.FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
 		}
 
 		// dedicated servers are can't be single player and are usually DM
 		// so unless they explicity set coop, force it to deathmatch
-		if (dedicated.value != 0)
-		{
+		if (dedicated.value != 0) {
 			if (0 == Cvar.VariableValue("coop"))
 				Cvar.FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
 		}
 
 		// init clients
-		if (Cvar.VariableValue("deathmatch") != 0)
-		{
+		if (Cvar.VariableValue("deathmatch") != 0) {
 			if (SV_MAIN.maxclients.value <= 1)
 				Cvar.FullSet("maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
 			else if (SV_MAIN.maxclients.value > MAX_CLIENTS)
 				Cvar.FullSet("maxclients", "" + MAX_CLIENTS, CVAR_SERVERINFO | CVAR_LATCH);
 		}
-		else if (Cvar.VariableValue("coop") != 0)
-		{
+		else if (Cvar.VariableValue("coop") != 0) {
 			if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
 				Cvar.FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 
@@ -413,8 +381,7 @@ public class SV_INIT extends Globals
 		// init game
 		SV_GAME.SV_InitGameProgs(); // bis hier alles ok!
 
-		for (i= 0; i < SV_MAIN.maxclients.value; i++)
-		{
+		for (i= 0; i < SV_MAIN.maxclients.value; i++) {
 			ent= SV_GAME.ge.edicts[i + 1];
 
 			//ent.s.number = i + 1;	//dont need this, ent.s.number already set.
@@ -440,8 +407,7 @@ public class SV_INIT extends Globals
 		map tram.cin+jail_e3
 	======================
 	*/
-	public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame)
-	{
+	public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
 		//char	level[MAX_QPATH];
 		//char	*ch;
 		int l;
@@ -470,13 +436,11 @@ public class SV_INIT extends Globals
 		//		Cvar_Set ("nextserver", "");
 
 		int c= level.indexOf('+');
-		if (c != -1)
-		{
+		if (c != -1) {
 			Cvar.Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
 			level= level.substring(0, c);
 		}
-		else
-		{
+		else {
 			Cvar.Set("nextserver", "");
 		}
 
@@ -486,8 +450,7 @@ public class SV_INIT extends Globals
 
 		// if there is a $, use the remainder as a spawnpoint
 		int pos= level.indexOf('$');
-		if (pos != -1)
-		{
+		if (pos != -1) {
 			//* ch = 0;
 			spawnpoint= level.substring(pos + 1);
 			level= level.substring(0, pos);
@@ -502,26 +465,22 @@ public class SV_INIT extends Globals
 			level= level.substring(1);
 
 		l= level.length();
-		if (l > 4 && level.endsWith(".cin"))
-		{
+		if (l > 4 && level.endsWith(".cin")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame);
 		}
-		else if (l > 4 && level.endsWith(".dm2"))
-		{
+		else if (l > 4 && level.endsWith(".dm2")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame);
 		}
-		else if (l > 4 && level.endsWith(".pcx"))
-		{
+		else if (l > 4 && level.endsWith(".pcx")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame);
 		}
-		else
-		{
+		else {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SEND.SV_SendClientMessages();

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: game_import_t.java,v 1.3 2004-08-22 14:25:11 salomo Exp $
 
 package jake2.game;
 
@@ -40,8 +40,6 @@ import jake2.server.SV_WORLD;
 //
 public class game_import_t
 {
-	// R S T:    SEE   SV_InitGameProgs() ! 
-
 	// special messages
 	public void bprintf(int printlevel, String s)
 	{

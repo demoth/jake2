@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.1 2004-07-07 19:59:50 hzi Exp $
+// $Id: client_t.java,v 1.2 2004-08-22 14:25:13 salomo Exp $
 
 package jake2.server;
 
@@ -43,7 +43,6 @@ public class client_t {
 
 	int state;
 
-	//char				userinfo[MAX_INFO_STRING];		// name, etc
 	String userinfo = "";
 
 	int lastframe; // for delta compression
@@ -85,6 +84,6 @@ public class client_t {
 
 	netchan_t netchan = new netchan_t();
 
-	//TODO: this was introduced by rst, since java can't calculate the index out of the address.
+	//this was introduced by rst, since java can't calculate the index out of the address.
 	int serverindex;
 }

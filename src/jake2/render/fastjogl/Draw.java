@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.3 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Draw.java,v 1.4 2004-08-22 14:25:14 salomo Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -275,7 +275,7 @@ public abstract class Draw extends Image {
 		gl.glEnable(GL.GL_TEXTURE_2D);
 	}
 
-//	  =============================================================================
+	//=============================================================================
 
 	/*
 	================
