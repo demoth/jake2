@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.18 2004-02-05 21:32:40 rst Exp $
+ * $Id: Menu.java,v 1.19 2004-02-08 17:38:25 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -41,7 +41,8 @@ import java.util.Comparator;
 
 /**
  * Menu
- * TODO implement Menu
+ * 
+ * 
  */
 
 abstract class keyfunc_t {
@@ -4238,9 +4239,6 @@ public final class Menu extends Key {
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
 					+ "_i.pcx";
-
-			// TODO die directory eintraege sind falsch
-			//scratch = "/players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + "_i.pcx";
 
 			re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
 		}
