@@ -2,7 +2,7 @@
  * Ref.java
  * Copyright (C) 2003
  *
- * $Id: Ref.java,v 1.2 2003-11-24 20:27:41 cwei Exp $
+ * $Id: Ref.java,v 1.3 2003-11-28 23:07:38 rst Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,29 +38,7 @@ public interface Ref extends refexport_t {
 	// ============================================================================
 	// ref.h
 	// ============================================================================
-	static final int MAX_DLIGHTS = 32;
-	static final int MAX_ENTITIES = 128;
-	static final int MAX_PARTICLES = 4096;
-	static final int MAX_LIGHTSTYLES = 256;
 
-	static final float POWERSUIT_SCALE = 4.0f;
-
-	static final int SHELL_RED_COLOR =	0xF2;
-	static final int SHELL_GREEN_COLOR = 0xD0;
-	static final int SHELL_BLUE_COLOR = 0xF3;
-
-	static final int SHELL_RG_COLOR = 0xDC;
-//	  static final int SHELL_RB_COLOR = 0x86;
-	static final int SHELL_RB_COLOR = 0x68;
-	static final int SHELL_BG_COLOR = 0x78;
-
-//	  ROGUE
-	static final int SHELL_DOUBLE_COLOR = 0xDF; // 223
-	static final int SHELL_HALF_DAM_COLOR	= 0x90;
-	static final int SHELL_CYAN_COLOR = 0x72;
-//	  ROGUE
-
-	static final int SHELL_WHITE_COLOR = 0xD7;
 	
 	// ============================================================================
 	// gl_local.h

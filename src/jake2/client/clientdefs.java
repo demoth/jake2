@@ -25,5 +25,7 @@ package jake2.client;
 public class clientdefs {
 
 	public static final int MAX_PARSE_ENTITIES = 1024; 
-	public static final int MAX_CLIENTWEAPONMODELS	= 20;	
+	public static final int MAX_CLIENTWEAPONMODELS	= 20;
+
+	public static int CMD_BACKUP = 64; // allow a lot of command backups for very fast systems	
 }

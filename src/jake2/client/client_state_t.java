@@ -33,8 +33,6 @@ import java.io.File;
 
 public class client_state_t {
 
-	public static int CMD_BACKUP = 64; // allow a lot of command backups for very fast systems
-
 	//
 	//	   the client_state_t structure is wiped completely at every
 	//	   server map change
@@ -51,9 +49,9 @@ public class client_state_t {
 	int parse_entities; // index (not anded off) into cl_parse_entities[]
 
 	usercmd_t cmd = new usercmd_t();
-	usercmd_t cmds[] = new usercmd_t[CMD_BACKUP]; // each mesage will send several old cmds
-	int cmd_time[] = new int[CMD_BACKUP]; // time sent, for calculating pings
-	short predicted_origins[][] = new short[CMD_BACKUP][3]; // for debug comparing against server
+	usercmd_t cmds[] = new usercmd_t[clientdefs.CMD_BACKUP]; // each mesage will send several old cmds
+	int cmd_time[] = new int[clientdefs.CMD_BACKUP]; // time sent, for calculating pings
+	short predicted_origins[][] = new short[clientdefs.CMD_BACKUP][3]; // for debug comparing against server
 
 	float predicted_step; // for stair up smoothing
 	int predicted_step_time;
