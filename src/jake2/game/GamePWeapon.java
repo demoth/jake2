@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.4 2004-09-12 18:25:49 salomo Exp $
+// $Id: GamePWeapon.java,v 1.5 2004-09-12 19:54:29 hzi Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.util.*;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
 public class GamePWeapon {
 
@@ -762,7 +762,7 @@ public class GamePWeapon {
 				ammo_index= GameUtil.ITEM_INDEX(ammo_item);
 	
 				if (0 == ent.client.pers.inventory[ammo_index]) {
-					GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No " + ammo_item.pickup_name + " for " + ".\n");
+					GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No " + ammo_item.pickup_name + " for " + item.pickup_name + ".\n");
 					return;
 				}
 	
