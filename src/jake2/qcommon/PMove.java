@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.5 2004-02-16 20:26:38 rst Exp $
+// $Id: PMove.java,v 1.6 2004-02-16 21:41:10 rst Exp $
 
 package jake2.qcommon;
 
@@ -161,7 +161,7 @@ public class PMove extends Game
 			if (pm.numtouch < MAXTOUCH && trace.ent != null)
 			{
 				if (trace.ent.index != -1) 
-					Com.p("touch: " + trace.ent.index);
+					Com.p("touch: " + trace.ent.classname + " (" + trace.ent.index + ")" );
 					
 				pm.touchents[pm.numtouch] = trace.ent;
 				pm.numtouch++;

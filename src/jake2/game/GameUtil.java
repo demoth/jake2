@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.16 2004-02-16 20:26:38 rst Exp $
+// $Id: GameUtil.java,v 1.17 2004-02-16 21:41:10 rst Exp $
 
 package jake2.game;
 
@@ -1391,6 +1391,7 @@ public class GameUtil extends GameBase {
 			if (it.pickup_name.equalsIgnoreCase(pickup_name))
 				return it;
 		}
+		Com.p("Item not found:" +pickup_name);
 		return null;
 	}
 

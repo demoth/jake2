@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.36 2004-02-15 20:14:39 hoz Exp $
+ * $Id: Com.java,v 1.37 2004-02-16 21:41:10 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -308,7 +308,11 @@ public final class Com {
 	public static void DPrintf(String fmt) {
 		DPrintf(fmt, null);
 	}
-
+	
+	public static void d(String fmt) {
+		DPrintf(fmt + "\n", null);
+	}
+	
 	public static void Printf(String fmt) {
 		Printf(fmt, null);
 	}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.16 2004-02-13 22:03:59 rst Exp $
+// $Id: GameAI.java,v 1.17 2004-02-16 21:41:10 rst Exp $
 
 package jake2.game;
 
@@ -3500,7 +3500,8 @@ public class GameAI extends M_Flash {
 		gi.soundindex ("items/l_health.wav");
 	}
 
-	/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
+	/*
+	 * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
 	*/
 	static void SP_item_health_mega (edict_t self)
 	{
@@ -3514,9 +3515,6 @@ public class GameAI extends M_Flash {
 		self.count = 100;
 		SpawnItem (self, FindItem ("Health"));
 		gi.soundindex ("items/m_health.wav");
-		self.style = HEALTH_IGNORE_MAX|HEALTH_TIMED;
+		self.style = HEALTH_IGNORE_MAX | HEALTH_TIMED;
 	}
-
-
-
 }

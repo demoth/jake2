@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.13 2004-02-04 18:10:55 rst Exp $
+ * $Id: M.java,v 1.14 2004-02-16 21:41:10 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -146,7 +146,7 @@ public final class M {
 	M_ChangeYaw
 	
 	===============
-	*/
+	*///ok
 	public static void M_ChangeYaw(edict_t ent) {
 		float ideal;
 		float current;

@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.12 2004-02-02 19:13:26 rst Exp $
+ * $Id: SV.java,v 1.13 2004-02-16 21:41:10 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.server;
 
 import jake2.*;
 import jake2.game.*;
+import jake2.qcommon.Com;
 import jake2.util.*;
 import jake2.client.*;
 import jake2.game.*;
@@ -805,7 +806,7 @@ public final class SV {
 		float[] neworg = { 0, 0, 0 };
 		float[] end = { 0, 0, 0 };
 	
-		trace_t trace = new trace_t();
+		trace_t trace = null;// = new trace_t();
 		int i;
 		float stepsize;
 		float[] test = { 0, 0, 0 };
@@ -1016,8 +1017,10 @@ public final class SV {
 	
 		//FIXME: how did we get here with no enemy
 		if (enemy == null)
+		{
+			Com.d("SV_NewChaseDir without enemy!");
 			return;
-	
+		}
 		olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);
 		turnaround = Math3D.anglemod(olddir - 180);
 	
@@ -1092,7 +1095,7 @@ public final class SV {
 	SV_CloseEnough
 	
 	======================
-	*/
+	*///ok
 	public static boolean SV_CloseEnough(edict_t ent, edict_t goal, float dist) {
 		int i;
 	

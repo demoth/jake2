@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.24 2004-02-16 20:26:38 rst Exp $
+// $Id: GameBase.java,v 1.25 2004-02-16 21:41:10 rst Exp $
 
 /** Father of all Objects. */
 
@@ -757,8 +757,15 @@ public class GameBase extends Globals {
 
 			if (ent == g_edicts[307])
 				G_RunEntity(ent);
+			else if (ent == g_edicts[1])
+				G_RunEntity(ent);
+				
 			else if (true)
-				if (ent.classname.startsWith("monster_soldier")) //|| ent.classname.startsWith("monster"))
+				if (ent.classname.startsWith("monster_soldier")
+					|| ent.classname.startsWith("target")
+					|| ent.classname.startsWith(
+						"misc_explo") //ent.classname.startsWith("func_door")
+				) //|| ent.classname.startsWith("monster"))
 					G_RunEntity(ent);
 
 		}
