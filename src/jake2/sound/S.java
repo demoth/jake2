@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.2 2004-04-15 10:31:40 hoz Exp $
+ * $Id: S.java,v 1.3 2004-04-15 14:37:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
+import jake2.sound.jsound.JSoundImpl;
 import jake2.util.Vargs;
 
 /**
@@ -39,7 +40,8 @@ import jake2.util.Vargs;
  */
 public class S {
 	
-	static SoundImpl sound;
+	// TODO ist nur voruebergehend: JSoundImpl()
+	static SoundImpl sound = new JSoundImpl();
 	static boolean sound_started = false;
 	
 	static int s_registration_sequence;
