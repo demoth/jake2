@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.9 2004-09-22 19:22:07 salomo Exp $
+ * $Id: CL_parse.java,v 1.10 2004-10-21 01:50:49 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -395,7 +395,7 @@ public class CL_parse {
             //s = t + 1;
         }
 
-        if (Globals.cl_noskins.value != 0 || s.length() != 0) {
+        if (Globals.cl_noskins.value != 0 || s.length() == 0) {
 
             model_filename = ("players/male/tris.md2");
             weapon_filename = ("players/male/weapon.md2");
@@ -507,7 +507,7 @@ public class CL_parse {
 
         ci = Globals.cl.clientinfo[player];
 
-        LoadClientinfo(ci, s);
+        LoadClientinfo(ci, new String(s));
     }
 
     /*
@@ -526,7 +526,7 @@ public class CL_parse {
         s = MSG.ReadString(Globals.net_message);
 
         olds = Globals.cl.configstrings[i];
-        Globals.cl.configstrings[i] = s;
+        Globals.cl.configstrings[i] = new String(s);
 
         // do something apropriate
 
