@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.8 2004-01-25 21:45:45 rst Exp $
+ * $Id: SCR.java,v 1.9 2004-01-25 21:49:50 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -55,7 +55,7 @@ public final class SCR {
 
 	public static void EndLoadingPlaque() {
 		//TODO: implement!
-		Com.Error(Defines.ERR_FATAL, "BeginLoadingPlaque not implemented!");
+		//Com.Error(Defines.ERR_FATAL, "EndLoadingPlaque not implemented!");
 	}
 
 	public static void BeginLoadingPlaque()
