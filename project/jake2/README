@@ -23,7 +23,8 @@ Installation
 from binary distribution:
 - unpack jake2-version.tar.gz or jake2-version.zip
 - copy the baseq2 directory from your full version of Quake2 or from the 
-  demo version to the Jake2 base directory
+  demo version to the Jake2 base directory, in fact You need only
+  baseq2/pak0.pak
 - run the game with Jake2.sh or Jake2.bat
 
 build from source:
