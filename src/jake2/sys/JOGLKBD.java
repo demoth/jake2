@@ -38,7 +38,7 @@ final public class JOGLKBD extends KBD
 	
 	private void HandleEvents() 
 	{
-		int b;
+		int key;
 
 		Jake2InputEvent event;
 		while ( (event=InputListener.nextEvent()) != null ) {
@@ -61,15 +61,15 @@ final public class JOGLKBD extends KBD
 						my = 0;
 					}
 					break;
-
+				// see java.awt.MouseEvent
 				case Jake2InputEvent.ButtonPress:
-					b=((MouseEvent)event.ev).getButton()-1;
-					Do_Key_Event(Key.K_MOUSE1 + b, true);
+					key = mouseEventToKey((MouseEvent)event.ev); 
+					Do_Key_Event(key, true);
 					break;
  
 				case Jake2InputEvent.ButtonRelease:
-					b=((MouseEvent)event.ev).getButton()-1;
-					Do_Key_Event(Key.K_MOUSE1 + b, false);
+					key = mouseEventToKey((MouseEvent)event.ev); 
+					Do_Key_Event(key, false);
 					break;
 					
 				case Jake2InputEvent.WheelMoved:
@@ -108,6 +108,20 @@ final public class JOGLKBD extends KBD
 			// move the mouse to the window center again
 			robot.mouseMove(win_x + win_w2, win_y + win_h2);
 		}		
+	}
+
+	// strange button numbering in java.awt.MouseEvent
+	// BUTTON1(left) BUTTON2(center) BUTTON3(right)
+	// K_MOUSE1      K_MOUSE3        K_MOUSE2
+	private final int mouseEventToKey(MouseEvent ev) {
+	    switch (ev.getButton()) {
+	    case MouseEvent.BUTTON3:
+	        return Key.K_MOUSE2;
+	    case MouseEvent.BUTTON2:
+	        return Key.K_MOUSE3;
+	    default:
+	        return Key.K_MOUSE1;
+	    }
 	}
 
 	private static int XLateKey(KeyEvent ev) {
