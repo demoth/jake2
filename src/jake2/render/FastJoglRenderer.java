@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.3 2004-07-16 10:11:34 cawe Exp $
+ * $Id: FastJoglRenderer.java,v 1.4 2004-12-14 00:11:09 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,8 @@ import jake2.Defines;
 import jake2.client.*;
 import jake2.qcommon.xcommand_t;
 import jake2.render.fastjogl.Misc;
+import jake2.sys.JOGLKBD;
+import jake2.sys.KBD;
 
 import java.awt.Dimension;
 
@@ -38,6 +40,8 @@ import java.awt.Dimension;
  * @author cwei
  */
 final class FastJoglRenderer extends Misc implements refexport_t, Ref {
+	
+	private JOGLKBD kbd=new JOGLKBD();
 	
 	public static final String DRIVER_NAME = "fastjogl";
 	
@@ -304,4 +308,8 @@ final class FastJoglRenderer extends Misc implements refexport_t, Ref {
 		return this;
 	}
 
+	public KBD getKeyboardHandler()
+	{
+		return kbd;
+	}	
 }

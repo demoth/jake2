@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.9 2004-09-22 19:22:14 salomo Exp $
+ * $Id: Sys.java,v 1.10 2004-12-14 00:11:01 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -227,7 +227,7 @@ public final class Sys extends Defines {
     }
 
     public static void SendKeyEvents() {
-        KBD.Update();
+		Globals.re.getKeyboardHandler().Update();
 
         // grab frame time
         Globals.sys_frame_time = Sys.Milliseconds();

@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.12 2004-11-03 08:53:27 hzi Exp $
+ * $Id: JoglBase.java,v 1.13 2004-12-14 00:11:09 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.client.*;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.xcommand_t;
+import jake2.sys.JOGLKBD;
 import jake2.sys.KBD;
 
 import java.awt.*;
@@ -227,11 +228,11 @@ public abstract class JoglBase implements GLEventListener {
 		});
 		
 		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
-		window.addComponentListener(KBD.listener);
-		canvas.addKeyListener(KBD.listener);
-		canvas.addMouseListener(KBD.listener);
-		canvas.addMouseMotionListener(KBD.listener);
-		canvas.addMouseWheelListener(KBD.listener);
+		window.addComponentListener(JOGLKBD.listener);
+		canvas.addKeyListener(JOGLKBD.listener);
+		canvas.addMouseListener(JOGLKBD.listener);
+		canvas.addMouseMotionListener(JOGLKBD.listener);
+		canvas.addMouseWheelListener(JOGLKBD.listener);
 				        
 		if (fullscreen) {
 			

@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.5 2004-09-22 19:22:14 salomo Exp $
+ * $Id: IN.java,v 1.6 2004-12-14 00:11:01 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,10 +45,6 @@ import javax.swing.ImageIcon;
  */
 public final class IN extends Globals {
 
-    static Component c = null;
-
-    static Cursor emptyCursor = null;
-
     static boolean mouse_avail = true;
 
     static boolean mouse_active = false;
@@ -66,7 +62,7 @@ public final class IN extends Globals {
     static boolean mlooking;
 
     public static void ActivateMouse() {
-        if (!mouse_avail || c == null)
+        if (!mouse_avail)
             return;
         if (!mouse_active) {
             KBD.mx = KBD.my = 0; // don't spazz
@@ -84,19 +80,15 @@ public final class IN extends Globals {
     }
 
     private static void install_grabs() {
-        if (emptyCursor == null) {
-            ImageIcon emptyIcon = new ImageIcon(new byte[0]);
-            emptyCursor = c.getToolkit().createCustomCursor(
-                    emptyIcon.getImage(), new Point(0, 0), "emptyCursor");
-        }
-        c.setCursor(emptyCursor);
-        KBD.centerMouse();
 
-        ignorefirst = true;
+		Globals.re.getKeyboardHandler().installGrabs();
+		Globals.re.getKeyboardHandler().centerMouse();
+
+		ignorefirst = true;
     }
 
     private static void uninstall_grabs() {
-        c.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		Globals.re.getKeyboardHandler().uninstallGrabs();
     }
 
     public static void toggleMouse() {
@@ -157,21 +149,20 @@ public final class IN extends Globals {
     }
 
     public static void Commands() {
-        int i;
-
-        if (!IN.mouse_avail)
-            return;
-
-        for (i = 0; i < 3; i++) {
-            if ((IN.mouse_buttonstate & (1 << i)) != 0
-                    && (IN.mouse_oldbuttonstate & (1 << i)) == 0)
-                KBD.Do_Key_Event(Key.K_MOUSE1 + i, true);
-
-            if ((IN.mouse_buttonstate & (1 << i)) == 0
-                    && (IN.mouse_oldbuttonstate & (1 << i)) != 0)
-                KBD.Do_Key_Event(Key.K_MOUSE1 + i, false);
-        }
-        IN.mouse_oldbuttonstate = IN.mouse_buttonstate;
+		int i;
+	
+		if (!IN.mouse_avail) 
+			return;
+	
+		KBD kbd=Globals.re.getKeyboardHandler();
+		for (i=0 ; i<3 ; i++) {
+			if ( (IN.mouse_buttonstate & (1<<i)) != 0 && (IN.mouse_oldbuttonstate & (1<<i)) == 0 )
+				kbd.Do_Key_Event(Key.K_MOUSE1 + i, true);
+	
+			if ( (IN.mouse_buttonstate & (1<<i)) == 0 && (IN.mouse_oldbuttonstate & (1<<i)) != 0 )
+				kbd.Do_Key_Event(Key.K_MOUSE1 + i, false);
+		}
+		IN.mouse_oldbuttonstate = IN.mouse_buttonstate;		
     }
 
     public static void Frame() {

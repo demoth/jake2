@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.5 2004-07-16 10:11:34 cawe Exp $
+ * $Id: JoglRenderer.java,v 1.6 2004-12-14 00:11:03 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,9 +26,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import jake2.Defines;
-import jake2.client.*;
+import jake2.client.refdef_t;
+import jake2.client.refexport_t;
 import jake2.qcommon.xcommand_t;
 import jake2.render.jogl.Misc;
+import jake2.sys.JOGLKBD;
+import jake2.sys.KBD;
 
 import java.awt.Dimension;
 
@@ -39,6 +42,8 @@ import java.awt.Dimension;
  */
 final class JoglRenderer extends Misc implements refexport_t, Ref {
 
+	private JOGLKBD kbd=new JOGLKBD();
+	
 	public static final String DRIVER_NAME = "jogl";
 
 	static {
@@ -301,4 +306,9 @@ final class JoglRenderer extends Misc implements refexport_t, Ref {
 	public refexport_t GetRefAPI() {
 		return this;
 	}
+	
+	public KBD getKeyboardHandler()
+	{
+		return kbd;
+	}	
 }

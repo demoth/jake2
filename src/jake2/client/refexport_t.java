@@ -2,7 +2,7 @@
  * refexport_t.java
  * Copyright (C) 2003
  *
- * $Id: refexport_t.java,v 1.2 2004-07-15 14:37:35 hzi Exp $
+ * $Id: refexport_t.java,v 1.3 2004-12-14 00:11:10 hzi Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ package jake2.client;
 import jake2.qcommon.xcommand_t;
 import jake2.render.image_t;
 import jake2.render.model_t;
+import jake2.sys.KBD;
 
 import java.awt.Dimension;
 import java.awt.DisplayMode;
@@ -107,4 +108,6 @@ public interface refexport_t {
 	int apiVersion();
 	
 	DisplayMode[] getModeList();
+	
+	KBD getKeyboardHandler();
 }

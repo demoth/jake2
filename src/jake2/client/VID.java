@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.9 2004-08-23 20:49:12 hzi Exp $
+ * $Id: VID.java,v 1.10 2004-12-14 00:11:10 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,7 +33,6 @@ import jake2.qcommon.*;
 import jake2.render.Renderer;
 import jake2.sound.S;
 import jake2.sys.IN;
-import jake2.sys.KBD;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
@@ -155,7 +154,7 @@ public class VID extends Globals {
 	static void FreeReflib()
 	{
 		if (Globals.re != null) {
-			KBD.Close();
+			Globals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 		}
 
@@ -173,7 +172,7 @@ public class VID extends Globals {
 
 		if ( reflib_active )
 		{
-			KBD.Close();
+			Globals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 
 			Globals.re.Shutdown();
@@ -221,7 +220,7 @@ public class VID extends Globals {
 		}
 
 		/* Init KBD */
-		KBD.Init();
+		Globals.re.getKeyboardHandler().Init();
 
 		Com.Printf( "------------------------------------\n");
 		reflib_active = true;
@@ -329,7 +328,7 @@ public class VID extends Globals {
 	{
 		if ( reflib_active )
 		{
-			KBD.Close();
+			Globals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 
 			Globals.re.Shutdown();
@@ -345,6 +344,7 @@ public class VID extends Globals {
 
 	static final int REF_OPENGL_JOGL = 0;
 	static final int REF_OPENGL_FASTJOGL =1;
+	static final int REF_OPENGL_LWJGL =2;
 
 	static cvar_t gl_mode;
 	static cvar_t gl_driver;
@@ -531,6 +531,12 @@ public class VID extends Globals {
 				if (gl_driver.modified)
 					vid_ref.modified = true;
 				break;
+		case REF_OPENGL_LWJGL :
+				Cvar.Set( "vid_ref", "lwjgl" );
+				Cvar.Set( "gl_driver", "lwjgl" );
+				if (gl_driver.modified)
+					vid_ref.modified = true;
+				break;
 		}
 
 		Menu.ForceMenuOff();
@@ -565,6 +571,7 @@ public class VID extends Globals {
 		// "[Mesa 3-D glX   ]",
 		"[OpenGL jogl    ]",
 		"[OpenGL fastjogl]",
+		"[OpenGL lwjgl]",
 		null
 	};
 	static final String[] yesno_names =
@@ -657,6 +664,11 @@ public class VID extends Globals {
 		{
 			s_current_menu_index = OPENGL_MENU;
 			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_FASTJOGL;
+		}
+		else if ( vid_ref.string.equalsIgnoreCase("lwjgl"))
+		{
+			s_current_menu_index = OPENGL_MENU;
+			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_OPENGL_LWJGL;
 		}
 //		else if (strcmp( vid_ref->string, "softx" ) == 0 ) 
 //		{
