@@ -19,13 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: dlight_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: dlight_t.java,v 1.3 2004-01-19 11:47:33 cwei Exp $
 
 package jake2.client;
 
-public class dlight_t 
+public class dlight_t
 {
-	float origin[] = {0,0,0};
-	float	color[] = {0,0,0};
-	float	intensity;
+	public float origin[] = { 0, 0, 0 };
+	public float color[] = { 0, 0, 0 };
+	public float intensity;
 }
