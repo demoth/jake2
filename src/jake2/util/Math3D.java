@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.4 2004-07-08 20:56:54 hzi Exp $
+// $Id: Math3D.java,v 1.5 2004-07-19 19:32:12 hzi Exp $
 
 package jake2.util;
 
@@ -315,21 +315,18 @@ public class Math3D extends Lib {
 	}
 
 	public static void ProjectPointOnPlane(float[] dst, float[] p, float[] normal) {
-		float d;
-		float[] n = { 0.0f, 0.0f, 0.0f };
-		float inv_denom;
 
-		inv_denom = 1.0F / Math3D.DotProduct(normal, normal);
+		float inv_denom = 1.0F / Math3D.DotProduct(normal, normal);
 
-		d = Math3D.DotProduct(normal, p) * inv_denom;
+		float d = Math3D.DotProduct(normal, p) * inv_denom;
 
-		n[0] = normal[0] * inv_denom;
-		n[1] = normal[1] * inv_denom;
-		n[2] = normal[2] * inv_denom;
+		dst[0] = normal[0] * inv_denom;
+		dst[1] = normal[1] * inv_denom;
+		dst[2] = normal[2] * inv_denom;
 
-		dst[0] = p[0] - d * n[0];
-		dst[1] = p[1] - d * n[1];
-		dst[2] = p[2] - d * n[2];
+		dst[0] = p[0] - d * dst[0];
+		dst[1] = p[1] - d * dst[1];
+		dst[2] = p[2] - d * dst[2];
 	}
 
 	/** assumes "src" is normalized */
@@ -361,7 +358,6 @@ public class Math3D extends Lib {
 	 stellt fest, auf welcher Seite sich die Kiste befindet, wenn die Ebene 
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
 	 erste Version mit vec3_t... */
-
 	public static final int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
 		
 		assert (emins.length == 3 && emaxs.length == 3) : "vec3_t bug";
@@ -427,7 +423,7 @@ public class Math3D extends Lib {
 		assert (sides != 0) : "BoxOnPlaneSide(): sides == 0 bug";
 
 		return sides;
-	}
+	}	
 
 	//	this is the slow, general version
 	private static float corners[][] = new float[2][3];
@@ -456,34 +452,36 @@ public class Math3D extends Lib {
 	}
 
 	public static void AngleVectors(float[] angles, float[] forward, float[] right, float[] up) {
-		float angle;
-		float sr, sp, sy, cr, cp, cy;
 
-		cr = 2.0f * piratio;
-		angle = (float) (angles[Defines.YAW] * (cr));
-		sy = (float) Math.sin(angle);
-		cy = (float) Math.cos(angle);
+		float cr = 2.0f * piratio;
+		float angle = (float) (angles[Defines.YAW] * (cr));
+		float sy = (float) Math.sin(angle);
+		float cy = (float) Math.cos(angle);
 		angle = (float) (angles[Defines.PITCH] * (cr));
-		sp = (float) Math.sin(angle);
-		cp = (float) Math.cos(angle);
-		angle = (float) (angles[Defines.ROLL] * (cr));
-		sr = (float) Math.sin(angle);
-		cr = (float) Math.cos(angle);
+		float sp = (float) Math.sin(angle);
+		float cp = (float) Math.cos(angle);
 
 		if (forward != null) {
 			forward[0] = cp * cy;
 			forward[1] = cp * sy;
 			forward[2] = -sp;
 		}
-		if (right != null) {
-			right[0] = (-sr * sp * cy + cr * sy);
-			right[1] = (-sr * sp * sy + -cr * cy);
-			right[2] = -sr * cp;
-		}
-		if (up != null) {
-			up[0] = (cr * sp * cy + -sr * -sy);
-			up[1] = (cr * sp * sy + -sr * cy);
-			up[2] = cr * cp;
+
+		if (right != null || up != null) {
+			angle = (float) (angles[Defines.ROLL] * (cr));
+			float sr = (float) Math.sin(angle);
+			cr = (float) Math.cos(angle);
+
+			if (right != null) {
+				right[0] = (-sr * sp * cy + cr * sy);
+				right[1] = (-sr * sp * sy + -cr * cy);
+				right[2] = -sr * cp;
+			}
+			if (up != null) {
+				up[0] = (cr * sp * cy + sr * sy);
+				up[1] = (cr * sp * sy + -sr * cy);
+				up[2] = cr * cp;
+			}
 		}
 	}
 
