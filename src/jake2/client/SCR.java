@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.9 2004-01-25 21:49:50 rst Exp $
+ * $Id: SCR.java,v 1.10 2004-01-26 20:40:17 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,6 +35,8 @@ import jake2.qcommon.Com;
  * SCR
  */
 public final class SCR {
+	
+	static dirty_t scr_dirty = new dirty_t();
 	
 	public static void Init() {
 	}
@@ -69,4 +71,27 @@ public final class SCR {
 		//TODO:
 		Com.Error(Defines.ERR_FATAL, "method not implemented.");
 	}
+	
+	/*
+	=================
+	SCR_AddDirtyPoint
+	=================
+	*/
+	static void AddDirtyPoint(int x, int y) {
+		if (x < scr_dirty.x1)
+			scr_dirty.x1 = x;
+		if (x > scr_dirty.x2)
+			scr_dirty.x2 = x;
+		if (y < scr_dirty.y1)
+			scr_dirty.y1 = y;
+		if (y > scr_dirty.y2)
+			scr_dirty.y2 = y;
+	}
+}
+
+class dirty_t {
+	int x1;
+	int x2;
+	int y1;
+	int y2;
 }
