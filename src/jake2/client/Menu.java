@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.7 2004-08-20 21:29:56 salomo Exp $
+ * $Id: Menu.java,v 1.8 2004-09-12 19:52:58 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,15 +29,12 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.sound.*;
+import jake2.sound.S;
 import jake2.sys.NET;
 import jake2.sys.Sys;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.QuakeFile;
+import jake2.util.*;
 
 import java.awt.Dimension;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -107,7 +104,7 @@ public final class Menu extends Key {
 		int flags;
 		int n= -1; //position in an array.
 
-		String statusbar= "";
+		String statusbar;
 
 		mcallback callback;
 		mcallback statusbarfunc;
