@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.9 2004-01-23 19:44:38 cwei Exp $
+// $Id: Math3D.java,v 1.10 2004-01-24 01:03:22 cwei Exp $
 
 package jake2.util;
 
@@ -81,30 +81,31 @@ public class Math3D extends Lib {
 		vecc[1] = veca[1] + scale * vecb[1];
 		vecc[2] = veca[2] + scale * vecb[2];
 	}
-	public static float VectorNormalize(float[] v) {
-		float length;
-
-		length = VectorLength(v);
-		if (length != 0.0f) {
-
-			v[0] /= length;
-			v[1] /= length;
-			v[2] /= length;
-		}
-		return length;
-	}
-	public static float VectorNormalize2(float[] v, float[] out) {
+	public static final float VectorNormalize(float[] v) {
 		float length, ilength;
 
 		length = VectorLength(v);
 		if (length != 0.0f) {
-			out[0] = v[0] / length;
-			out[1] = v[1] / length;
-			out[2] = v[2] / length;
+			ilength = 1.0f / length;
+			v[0] *= ilength;
+			v[1] *= ilength;
+			v[2] *= ilength;
 		}
 		return length;
 	}
-	public static float VectorLength(float v[]) {
+	public static final float VectorNormalize2(float[] v, float[] out) {
+		float length, ilength;
+
+		length = VectorLength(v);
+		if (length != 0.0f) {
+			ilength = 1.0f / length;
+			out[0] = v[0] * length;
+			out[1] = v[1] * length;
+			out[2] = v[2] * length;
+		}
+		return length;
+	}
+	public static final float VectorLength(float v[]) {
 		return (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}
 	public static void VectorInverse(float[] v) {
