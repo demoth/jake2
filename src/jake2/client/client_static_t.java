@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: client_static_t.java,v 1.4 2003-11-29 13:28:29 rst Exp $
+// $Id: client_static_t.java,v 1.5 2003-11-29 19:26:33 rst Exp $
 
 
 package jake2.client;
@@ -30,43 +30,43 @@ import java.io.*;
 public class client_static_t {
 
 	// was enum connstate_t 
-	int state;
+	public int state;
 
 	// was enum keydest_t 
-	int key_dest;
+	public int key_dest;
 
-	int framecount;
-	long realtime; // always increasing, no clamping, etc
-	float frametime; // seconds since last frame
+	public int framecount;
+	public long realtime; // always increasing, no clamping, etc
+	public float frametime; // seconds since last frame
 
 	//	   screen rendering information
-	float disable_screen; // showing loading plaque between levels
+	public float disable_screen; // showing loading plaque between levels
 	// or changing rendering dlls
 	// if time gets > 30 seconds ahead, break it
-	int disable_servercount; // when we receive a frame and cl.servercount
+	public int disable_servercount; // when we receive a frame and cl.servercount
 	// > cls.disable_servercount, clear disable_screen
 
 	//	   connection information
-	String servername; // name of server from original connect
-	float connect_time; // for connection retransmits
+	public String servername; // name of server from original connect
+	public float connect_time; // for connection retransmits
 
 	int quakePort; // a 16 bit value that allows quake servers
 	// to work around address translating routers
-	netchan_t netchan;
-	int serverProtocol; // in case we are doing some kind of version hack
+	public netchan_t netchan;
+	public int serverProtocol; // in case we are doing some kind of version hack
 
-	int challenge; // from the server to use for connecting
+	public int challenge; // from the server to use for connecting
 
-	File download; // file transfer from server
-	String downloadtempname;
-	String downloadname;
-	int downloadnumber;
+	public File download; // file transfer from server
+	public String downloadtempname;
+	public String downloadname;
+	public int downloadnumber;
 	// was enum dltype_t 
-	int downloadtype;
-	int downloadpercent;
+	public int downloadtype;
+	public int downloadpercent;
 
 	//	   demo recording info must be here, so it isn't cleared on level change
-	boolean demorecording;
-	boolean demowaiting; // don't record until a non-delta message is received
-	RandomAccessFile demofile;
+	public boolean demorecording;
+	public boolean demowaiting; // don't record until a non-delta message is received
+	public RandomAccessFile demofile;
 }

@@ -19,43 +19,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: netchan_t.java,v 1.3 2003-11-29 19:26:33 rst Exp $
 
 package jake2.qcommon;
 
-public class netchan_t {
-	public static int MAX_MSGLEN = 1400;
+import jake2.*;
 
-	boolean fatal_error;
+public class netchan_t {
+
+
+	public boolean fatal_error;
 
 	// was enum {NS_CLIENT, NS_SERVER}
-	int sock;
+	public int sock;
 
-	int dropped; // between last packet and previous
+	public int dropped; // between last packet and previous
 
-	int last_received; // for timeouts
-	int last_sent; // for retransmits
+	public int last_received; // for timeouts
+	public int last_sent; // for retransmits
 
-	netadr_t remote_address;
-	int qport; // qport value to write when transmitting
+	public netadr_t remote_address;
+	public int qport; // qport value to write when transmitting
 
 	// sequencing variables
-	int incoming_sequence;
-	int incoming_acknowledged;
-	int incoming_reliable_acknowledged; // single bit
+	public int incoming_sequence;
+	public int incoming_acknowledged;
+	public int incoming_reliable_acknowledged; // single bit
 
-	int incoming_reliable_sequence; // single bit, maintained local
+	public int incoming_reliable_sequence; // single bit, maintained local
 
-	int outgoing_sequence;
-	int reliable_sequence; // single bit
-	int last_reliable_sequence; // sequence number of last send
+	public int outgoing_sequence;
+	public int reliable_sequence; // single bit
+	public int last_reliable_sequence; // sequence number of last send
 
 	//	   reliable staging and holding areas
-	sizebuf_t message; // writing buffer to send to server
-	byte message_buf[] = new byte[MAX_MSGLEN - 16]; // leave space for header
+	public sizebuf_t message; // writing buffer to send to server
+	public byte message_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // leave space for header
 
 	//	   message is copied to this buffer when it is first transfered
 	int reliable_length;
-	byte reliable_buf[] = new byte[MAX_MSGLEN - 16]; // unacked reliable message
+	byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unacked reliable message
 
 }

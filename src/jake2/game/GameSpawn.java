@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.3 2003-11-29 13:28:28 rst Exp $
+// $Id: GameSpawn.java,v 1.4 2003-11-29 19:26:33 rst Exp $
 
 package jake2.game;
 
@@ -508,7 +508,7 @@ public class GameSpawn extends Game {
 	*/
 	static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
 
-		public boolean  think(edict_t ent) {
+		public boolean think(edict_t ent) {
 			ent.movetype = MOVETYPE_PUSH;
 			ent.solid = SOLID_BSP;
 			ent.inuse = true; // since the world doesn't use G_Spawn()
@@ -690,7 +690,7 @@ public class GameSpawn extends Game {
 
 			// 63 testing
 			gi.configstring(CS_LIGHTS + 63, "a");
-			
+
 			return true;
 		}
 	};

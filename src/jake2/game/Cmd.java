@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.4 2003-11-29 13:28:29 rst Exp $
+ * $Id: Cmd.java,v 1.5 2003-11-29 19:26:33 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -165,5 +165,14 @@ public final class Cmd {
 	public static String Argv(int i) {
 		if (i < 0 || i >= cmd_argc) return "";
 		return cmd_argv[i];
+	}
+
+	/**
+	 * 
+	 */
+	public static String Args() {
+		// TODO Auto-generated method stub
+		return "";
+		
 	}
 }

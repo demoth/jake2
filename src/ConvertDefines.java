@@ -58,7 +58,7 @@ public class ConvertDefines
 
 			if (args.length == 0)
 			{
-				filename= "jake2/game/defs.java";
+				filename= "jake2/Defines.java";
 			}
 			else
 				filename= args[0];
