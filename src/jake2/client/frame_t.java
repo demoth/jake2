@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.9 2004-02-15 18:01:27 rst Exp $
+// $Id: frame_t.java,v 1.10 2004-02-15 21:50:02 cwei Exp $
 
 package jake2.client;
+
+import java.util.Arrays;
 
 import jake2.game.*;
 import jake2.util.Lib;
@@ -56,7 +58,7 @@ public class frame_t implements Cloneable {
 	{
 		valid = false;
 		serverframe = servertime = deltaframe = 0;
-		areabits = new byte [MAX_MAP_AREAS/8];
+		Arrays.fill(areabits, (byte)0);
 		playerstate = new player_state_t();
 		num_entities = parse_entities = 0;
 	}	
