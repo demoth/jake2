@@ -19,7 +19,7 @@
  */
 
 // Created on 07.01.2000 by RST.
-// $Id: GhostMouse.java,v 1.2 2004-09-15 22:10:00 cawe Exp $
+// $Id: GhostMouse.java,v 1.3 2004-09-15 22:13:36 cawe Exp $
 package jake2.client;
 
 import java.awt.Dimension;
@@ -44,6 +44,6 @@ public class GhostMouse {
         frame.pack();
         frame.setLocation((int) (size.getWidth() - frame.getWidth()) / 2,
                 (int) (size.getHeight() - frame.getHeight()) / 2);
-        frame.show();
+        frame.setVisible(true);
     }
 }
