@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.28 2004-02-08 21:34:49 rst Exp $
+ * $Id: CL_main.java,v 1.29 2004-02-10 15:35:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -631,7 +631,8 @@ public class CL_main extends CL_pred {
 				Netchan.OutOfBandPrint(NS_CLIENT, adr, "info " + PROTOCOL_VERSION);
 			}
 
-			noipx = Cvar.Get("noipx", "0", CVAR_NOSET);
+			// we use no IPX
+			noipx = Cvar.Get("noipx", "1", CVAR_NOSET);
 			if (noipx.value == 0.0f) {
 				adr.type = NA_BROADCAST_IPX;
 				//adr.port = BigShort(PORT_SERVER);
