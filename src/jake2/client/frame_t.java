@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.11 2004-02-16 20:57:39 hoz Exp $
+// $Id: frame_t.java,v 1.12 2004-04-15 08:08:26 hoz Exp $
 
 package jake2.client;
 
@@ -33,7 +33,7 @@ public class frame_t implements Cloneable {
 		
 	boolean		valid;			// cleared if delta parsing was invalid
 	int				serverframe;
-	int				servertime;		// server time the message is valid for (in msec)
+	public int servertime;		// server time the message is valid for (in msec)
 	int				deltaframe;
 	byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
 	public 		player_state_t playerstate = new player_state_t(); // mem

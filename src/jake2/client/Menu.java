@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.24 2004-02-25 13:20:29 hoz Exp $
+ * $Id: Menu.java,v 1.25 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.sound.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;

@@ -2,7 +2,7 @@
  * SND_JAVA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_JAVA.java,v 1.4 2004-03-17 14:13:03 hoz Exp $
+ * $Id: SND_JAVA.java,v 1.1 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,15 +23,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.client;
+package jake2.sound.jsound;
 
 import jake2.Globals;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.FS;
 
-import java.io.*;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.sound.sampled.*;

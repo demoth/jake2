@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.13 2004-03-18 09:57:57 hoz Exp $
+ * $Id: CL_tent.java,v 1.14 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.game.player_state_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.MSG;
 import jake2.render.model_t;
+import jake2.sound.*;
 
 /**
  * CL_tent

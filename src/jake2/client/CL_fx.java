@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.15 2004-03-18 09:53:50 hoz Exp $
+ * $Id: CL_fx.java,v 1.16 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.game.M_Flash;
 import jake2.game.entity_state_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.MSG;
+import jake2.sound.*;
 
 /**
  * CL_fx

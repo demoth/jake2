@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.22 2004-04-14 14:32:08 cwei Exp $
+ * $Id: CL_parse.java,v 1.23 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,6 +40,8 @@ import jake2.qcommon.MSG;
 import jake2.qcommon.SZ;
 import jake2.qcommon.xcommand_t;
 import jake2.render.model_t;
+import jake2.sound.*;
+import jake2.sound.jsound.*;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 

@@ -1,14 +1,8 @@
 /*
  * sfx_t.java
- * Copyright (C) 2003
- * 
- * $Id: sfx_t.java,v 1.8 2004-03-17 14:13:03 hoz Exp $
- */
-/*
- * sfx_t.java
  * Copyright (C) 2004
  * 
- * $Id: sfx_t.java,v 1.8 2004-03-17 14:13:03 hoz Exp $
+ * $Id: sfx_t.java,v 1.1 2004-04-15 08:08:27 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,13 +26,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 28.11.2003 by RST.
 
-package jake2.client;
+package jake2.sound;
+
 
 public class sfx_t {
-	String name; //mem
-	int registration_sequence;
-	sfxcache_t cache; //ptr
-	String truename; //ptr
+	public String name; //mem
+	public int registration_sequence;
+	public sfxcache_t cache; //ptr
+	public String truename; //ptr
 	
 	public void clear() {
 		name = truename = null;

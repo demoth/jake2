@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.16 2004-03-18 09:57:57 hoz Exp $
+ * $Id: M.java,v 1.17 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.client;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
-import jake2.qcommon.Com;
 import jake2.server.SV;
 import jake2.util.Lib;
 import jake2.util.Math3D;

@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MEM.java,v 1.2 2004-02-25 21:30:15 hoz Exp $
+ * $Id: SND_MEM.java,v 1.1 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,10 +23,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.client;
+package jake2.sound.jsound;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
+import jake2.sound.sfx_t;
+import jake2.sound.sfxcache_t;
 
 /**
  * SND_MEM

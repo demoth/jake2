@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.16 2004-03-17 16:17:33 cwei Exp $
+ * $Id: VID.java,v 1.17 2004-04-15 08:08:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.render.Renderer;
+import jake2.sound.*;
 import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Vargs;

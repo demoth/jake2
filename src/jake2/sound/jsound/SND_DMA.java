@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.13 2004-03-17 14:13:03 hoz Exp $
+ * $Id: SND_DMA.java,v 1.1 2004-04-15 08:08:27 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,17 +26,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 26.01.2004 by RST.
 
-package jake2.client;
+package jake2.sound.jsound;
+
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.sound.*;
+import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
-
-import jake2.game.*;
-import jake2.game.Cmd;
-import jake2.game.cvar_t;
-import jake2.qcommon.*;
-import jake2.util.Vargs;
 
 
 
@@ -165,7 +164,7 @@ public class SND_DMA extends SND_MIX {
 
 			Cmd.AddCommand("play", new xcommand_t() {
 				public void execute() {
-					S.Play();
+					Play();
 				}
 			});
 			Cmd.AddCommand("stopsound", new xcommand_t() {
@@ -175,19 +174,19 @@ public class SND_DMA extends SND_MIX {
 			});
 			Cmd.AddCommand("soundlist", new xcommand_t() {
 				public void execute() {
-					S.SoundList();
+					SoundList();
 				}
 			});
 			Cmd.AddCommand("soundinfo", new xcommand_t() {
 				public void execute() {
-					S.SoundInfo_f();
+					SoundInfo_f();
 				}
 			});
 
 			if (!SNDDMA_Init())
 				return;
 
-			S.InitScaletable();
+			InitScaletable();
 
 			sound_started = true;
 			num_sfx = 0;
@@ -208,7 +207,7 @@ public class SND_DMA extends SND_MIX {
 //	   Shutdown sound engine
 //	   =======================================================================
 
-	static void Shutdown() {
+	public static void Shutdown() {
 		int i;
 		sfx_t[] sfx;
 
@@ -332,7 +331,7 @@ public class SND_DMA extends SND_MIX {
 
 	=====================
 	*/
-	static void BeginRegistration() {
+	public static void BeginRegistration() {
 		s_registration_sequence++;
 		s_registering = true;
 	}
@@ -343,17 +342,17 @@ public class SND_DMA extends SND_MIX {
 
 	==================
 	*/
-	static sfx_t RegisterSound(String name) {
+	public static sfx_t RegisterSound(String name) {
 		sfx_t sfx = null;
 
 		if (!sound_started)
 			return null;
 
-		sfx = S.FindName(name, true);
+		sfx = FindName(name, true);
 		sfx.registration_sequence = s_registration_sequence;
 
 		if (!s_registering)
-			S.LoadSound(sfx);
+			LoadSound(sfx);
 
 		return sfx;
 	}
@@ -365,7 +364,7 @@ public class SND_DMA extends SND_MIX {
 
 	=====================
 	*/
-	static void EndRegistration() {
+	public static void EndRegistration() {
 		int i;
 		sfx_t sfx;
 		int size;
@@ -394,7 +393,7 @@ public class SND_DMA extends SND_MIX {
 			sfx = known_sfx[i];
 			if (sfx.name == null)
 				continue;
-			S.LoadSound(sfx);
+			LoadSound(sfx);
 		}
 
 		s_registering = false;
@@ -643,7 +642,7 @@ public class SND_DMA extends SND_MIX {
 		// see if we already know of the model specific sound
 		String sexedFilename = "#players/" + model + "/" + base.substring(1);
 		//Com_sprintf (sexedFilename, sizeof(sexedFilename), "#players/%s/%s", model, base+1);
-		sfx = S.FindName(sexedFilename, false);
+		sfx = FindName(sexedFilename, false);
 
 		if (sfx == null) {
 			// no, so see if it exists
@@ -661,7 +660,7 @@ public class SND_DMA extends SND_MIX {
 				// no, revert to the male sound in the pak0.pak
 				//Com_sprintf (maleFilename, sizeof(maleFilename), "player/%s/%s", "male", base+1);
 				String maleFilename = "player/male/" + base.substring(1);
-				sfx = S.AliasName(sexedFilename, maleFilename);
+				sfx = AliasName(sexedFilename, maleFilename);
 			}
 		}
 
@@ -682,7 +681,7 @@ public class SND_DMA extends SND_MIX {
 	Entchannel 0 will never override a playing sound
 	====================
 	*/
-	static void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs) {
+	public static void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs) {
 
 		if (!sound_started)
 			return;
@@ -691,17 +690,17 @@ public class SND_DMA extends SND_MIX {
 			return;
 
 		if (sfx.name.charAt(0) == '*')
-			sfx = S.RegisterSexedSound(cl_entities[entnum].current, sfx.name);
+			sfx = RegisterSexedSound(cl_entities[entnum].current, sfx.name);
 
 		// make sure the sound is loaded
-		sfxcache_t sc = S.LoadSound(sfx);
+		sfxcache_t sc = LoadSound(sfx);
 		if (sc == null)
 			return; // couldn't load the sound's data
 
 		int vol = (int) (fvol * 255);
 
 		// make the playsound_t
-		playsound_t ps = S.AllocPlaysound();
+		playsound_t ps = AllocPlaysound();
 		if (ps == null)
 			return;
 
@@ -750,7 +749,7 @@ public class SND_DMA extends SND_MIX {
 	S_StartLocalSound
 	==================
 	*/
-	static void StartLocalSound(String sound) {
+	public static void StartLocalSound(String sound) {
 		sfx_t sfx;
 
 		if (!sound_started)
@@ -796,7 +795,7 @@ public class SND_DMA extends SND_MIX {
 	S_StopAllSounds
 	==================
 	*/
-	static void StopAllSounds()
+	public static void StopAllSounds()
 	{
 		int		i;
 
@@ -822,7 +821,7 @@ public class SND_DMA extends SND_MIX {
 		for (i = 0; i < MAX_CHANNELS; i++)
 			channels[i].clear();
 
-		S.ClearBuffer();
+		ClearBuffer();
 	}
 //
 	/*
@@ -1023,7 +1022,7 @@ public class SND_DMA extends SND_MIX {
 	Called once each time through the main loop
 	============
 	*/
-	static void Update(float[] origin, float[] forward, float[] right, float[] up) {
+	public static void Update(float[] origin, float[] forward, float[] right, float[] up) {
 
 		if (!sound_started)
 			return;
@@ -1032,13 +1031,13 @@ public class SND_DMA extends SND_MIX {
 		// out to make sure we aren't looping a dirty
 		// dma buffer while loading
 		if (cls.disable_screen != 0.0f) {
-			S.ClearBuffer();
+			ClearBuffer();
 			return;
 		}
 
 		// rebuild scale tables if volume is modified
 		if (s_volume.modified)
-			S.InitScaletable();
+			InitScaletable();
 
 		VectorCopy(origin, listener_origin);
 		VectorCopy(forward, listener_forward);
@@ -1058,7 +1057,7 @@ public class SND_DMA extends SND_MIX {
 				ch.clear();
 				continue;
 			}
-			S.Spatialize(ch); // respatialize channel
+			Spatialize(ch); // respatialize channel
 			if (ch.leftvol == 0 && ch.rightvol == 0) {
 				//memset (ch, 0, sizeof(*ch));
 				ch.clear();
@@ -1067,7 +1066,7 @@ public class SND_DMA extends SND_MIX {
 		}
 
 		// add loopsounds
-		S.AddLoopSounds();
+		AddLoopSounds();
 
 		//
 		// debugging output
@@ -1087,7 +1086,7 @@ public class SND_DMA extends SND_MIX {
 		}
 
 		//	   mix some sound
-		S.Update_();
+		Update_();
 	}
 
 //
