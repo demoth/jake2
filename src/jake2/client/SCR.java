@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.9 2005-01-16 16:55:52 cawe Exp $
+ * $Id: SCR.java,v 1.10 2005-01-23 19:03:42 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -896,8 +896,7 @@ public final class SCR extends Globals {
 
         Com.ParseHelp ph = new Com.ParseHelp(s);
 
-        while (!ph.isEof()) {
-            token = Com.Parse(ph);
+        while ((token = Com.Parse(ph)) != null) {
             if (token.equals("xl")) {
                 token = Com.Parse(ph);
                 x = Lib.atoi(token);
