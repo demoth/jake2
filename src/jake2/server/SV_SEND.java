@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.7 2005-01-17 22:00:09 cawe Exp $
+// $Id: SV_SEND.java,v 1.8 2005-01-17 23:09:41 cawe Exp $
 
 package jake2.server;
 
@@ -355,6 +355,7 @@ public class SV_SEND {
 	===============================================================================
 	*/
 
+	private static final sizebuf_t msg = new sizebuf_t();
 	/*
 	=======================
 	SV_SendClientDatagram
@@ -362,7 +363,6 @@ public class SV_SEND {
 	*/
 	public static boolean SV_SendClientDatagram(client_t client) {
 		//byte msg_buf[] = new byte[Defines.MAX_MSGLEN];
-		sizebuf_t msg = new sizebuf_t();
 
 		SV_ENTS.SV_BuildClientFrame(client);
 
@@ -445,6 +445,7 @@ public class SV_SEND {
 	}
 
 	private static final byte msgbuf[] = new byte[Defines.MAX_MSGLEN];
+	private static final byte[] NULLBYTE = {0};
 	/*
 	=======================
 	SV_SendClientMessages
@@ -525,7 +526,7 @@ public class SV_SEND {
 			else {
 				// just update reliable	if needed
 				if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-					Netchan.Transmit(c.netchan, 0, new byte[0]);
+					Netchan.Transmit(c.netchan, 0, NULLBYTE);
 			}
 		}
 	}
