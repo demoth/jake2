@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.20 2004-02-14 22:18:39 cwei Exp $
+ * $Id: Image.java,v 1.21 2004-02-16 13:52:18 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,6 +42,7 @@ import java.awt.image.SampleModel;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -920,7 +921,7 @@ public abstract class Image extends Main {
 		AffineTransformOp op =
 			new AffineTransformOp(
 				AffineTransform.getScaleInstance(outwidth * 1.0 / inwidth, outheight * 1.0 / inheight),
-				AffineTransformOp.TYPE_BILINEAR);
+				AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 		BufferedImage tmp = op.filter(image, null);
 
 		tmp.getRGB(0, 0, outwidth, outheight, out, 0, outwidth);
@@ -1082,13 +1083,17 @@ public abstract class Image extends Main {
 	Returns has_alpha
 	===============
 	*/
+	int[] scaled = new int[256 * 256];
+	byte[] paletted_texture = new byte[256 * 256];
+
 	boolean GL_Upload32(int[] data, int width, int height, boolean mipmap) {
 		int samples;
-		int[] scaled = new int[256 * 256];
-		byte[] paletted_texture = new byte[256 * 256];
 		int scaled_width, scaled_height;
 		int i, c;
 		int comp;
+
+		Arrays.fill(scaled, 0);
+		Arrays.fill(paletted_texture, (byte)0);
 
 		uploaded_paletted = false;
 
@@ -1268,8 +1273,12 @@ public abstract class Image extends Main {
 	Returns has_alpha
 	===============
 	*/
+
+	int[] trans = new int[512 * 256];
+
 	boolean GL_Upload8(byte[] data, int width, int height, boolean mipmap, boolean is_sky) {
-		int[] trans = new int[512 * 256];
+		
+		Arrays.fill(trans, 0);
 
 		int s = width * height;
 
@@ -1361,8 +1370,12 @@ public abstract class Image extends Main {
 				// replace goto nonscrap
 
 				image.scrap = false;
-				image.texnum = TEXNUM_IMAGES + gltextures.size() - 1; // + image pos
-				//System.out.println(gltextures.values());
+				
+				int[] unique = new int[1];
+				gl.glGenTextures(1, unique);
+				
+				image.texnum = TEXNUM_IMAGES + unique[0] - 1; // + image pos
+				// System.out.println("texturenum: " + image.texnum);
 				GL_Bind(image.texnum);
 
 				if (bits == 8) {
@@ -1415,8 +1428,10 @@ public abstract class Image extends Main {
 
 			image.scrap = false;
 
-			image.texnum = TEXNUM_IMAGES + gltextures.size() - 1; // + image pos
-			//System.out.println(gltextures.values());
+			int[] unique = new int[1];
+			gl.glGenTextures(1, unique);
+				
+			image.texnum = TEXNUM_IMAGES + unique[0] - 1; // + image pos
 			GL_Bind(image.texnum);
 
 			if (bits == 8) {
@@ -1480,6 +1495,7 @@ public abstract class Image extends Main {
 	image_t GL_FindImage(String name, int type) {
 		image_t image = null;
 		
+		// TODO loest das grossschreibungs problem
 		name = name.toLowerCase();
 
 		if (name == null || name.length() < 5)
