@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
+ * $Id: SV.java,v 1.5 2003-12-01 22:00:22 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,5 +40,8 @@ public final class SV {
 	 * TODO implement SV.init()
 	 */
 	public static void Init(){
+	}
+	
+	public static void Shutdown(String finalmsg, boolean reconnect) {
 	}
 }

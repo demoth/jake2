@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.11 2003-12-01 20:27:42 hoz Exp $
+ * $Id: Cvar.java,v 1.12 2003-12-01 22:00:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -277,26 +277,26 @@ public class Cvar {
 			i = 0;
 			for (var = Globals.cvar_vars ; var != null ; var = var.next, i++) {
 				if ((var.flags & ARCHIVE) != 0)
-					Com.print("*");
+					Com.Printf("*");
 				else
-					Com.print(" ");
+					Com.Printf(" ");
 				if ((var.flags & USERINFO) != 0)
-					Com.print("U");
+					Com.Printf("U");
 				else
-					Com.print(" ");
+					Com.Printf(" ");
 				if ((var.flags & SERVERINFO) != 0)
-					Com.print("S");
+					Com.Printf("S");
 				else
-					Com.print(" ");
+					Com.Printf(" ");
 				if ((var.flags & NOSET) != 0)
-					Com.print("-");
+					Com.Printf("-");
 				else if ((var.flags & LATCH) != 0)
-					Com.print("L");
+					Com.Printf("L");
 				else
-					Com.print(" ");
-				Com.print(" " + var.name + " \"" + var.string + "\"\n"); 
+					Com.Printf(" ");
+				Com.Printf(" " + var.name + " \"" + var.string + "\"\n"); 
 			}
-			Com.print(i + " cvars\n");
+			Com.Printf(i + " cvars\n");
 		}
 	};
 	/*

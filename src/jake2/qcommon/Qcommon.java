@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.6 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Qcommon.java,v 1.7 2003-12-01 22:00:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,7 +32,7 @@ import jake2.game.Swap;
 import jake2.server.SV;
 import jake2.sys.NET;
 import jake2.sys.Sys;
-import jake2.util.Format;
+import jake2.util.Vargs;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -95,14 +95,13 @@ public final class Qcommon {
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
 			Globals.dedicated= Cvar.Get("dedicated", "0", Cvar.NOSET);
 
-			String s=
-				Format.format_double(Globals.VERSION, 4, 2)
-					+ ' '
-					+ Globals.CPUSTRING
-					+ ' '
-					+ Globals.__DATE__
-					+ ' '
-					+ Globals.BUILDSTRING;
+			String s = Com.sprintf("%4.2f %s %s %s",
+					new Vargs(4)
+						.add(Globals.VERSION)
+						.add(Globals.CPUSTRING)
+						.add(Globals.__DATE__)
+						.add(Globals.BUILDSTRING));
+
 			Cvar.Get("version", s, Cvar.SERVERINFO | Cvar.NOSET);
 
 			NET.Init();
@@ -122,7 +121,7 @@ public final class Qcommon {
 				SCR.EndLoadingPlaque();
 			}
 
-			Com.print("====== Quake2 Initialized ======\n\n");
+			Com.Printf("====== Quake2 Initialized ======\n\n");
 
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");
@@ -183,12 +182,11 @@ public final class Qcommon {
 			}
 
 			if (Globals.showtrace.value != 0.0f) {
-				String s=
-					Format.format_long(Globals.c_traces, 4)
-						+ " traces  "
-						+ Format.format_long(Globals.c_pointcontents, 4)
-						+ "points\n";
-				Com.print(s);
+				Com.Printf("%4i traces  %4i points\n",
+					new Vargs(2).add(Globals.c_traces)
+								.add(Globals.c_pointcontents));
+
+				
 				Globals.c_traces= 0;
 				Globals.c_brush_traces= 0;
 				Globals.c_pointcontents= 0;
@@ -221,19 +219,8 @@ public final class Qcommon {
 				sv -= gm;
 				cl -= rf;
 
-				String s=
-					"all:"
-						+ Format.format_long(all, 3)
-						+ " sv:"
-						+ Format.format_long(sv, 3)
-						+ " gm:"
-						+ Format.format_long(gm, 3)
-						+ " cl:"
-						+ Format.format_long(cl, 3)
-						+ " rf:"
-						+ Format.format_long(rf, 3)
-						+ "\n";
-				Com.print(s);
+				Com.Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
+					new Vargs(5).add(all).add(sv).add(gm).add(cl).add(rf));
 			}
 
 		} catch (longjmpException e) {

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.13 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Com.java,v 1.14 2003-12-01 22:00:22 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,19 +25,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import jake2.Defines;
 import jake2.Globals;
+import jake2.client.CL;
 import jake2.game.Cmd;
+import jake2.server.SV;
+import jake2.sys.Sys;
 import jake2.util.PrintfFormat;
 import jake2.util.Vargs;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Com
  * TODO complete Com interface
  */
 public final class Com {
+	
+	static boolean recursive = false;
 	
 	private static Logger logger = Logger.getLogger(Com.class.getName());
 	
@@ -52,17 +58,44 @@ public final class Com {
 	 * @param msg
 	 */
 	static void Error(int code, String msg) throws longjmpException {
-		logger.log(Level.SEVERE, msg);
-		throw new longjmpException();
-	}
-	
-	/**
-	 * @param s
-	 */
-	public static void print(String s) {
+//		00180         va_list         argptr;
+//		00181         static char             msg[MAXPRINTMSG];
 		
+//		00183 
+		if (recursive) {
+			Sys.Error("recursive error after: " + msg);
+		}
+		recursive = true;
+//		00187 
+//		00188         va_start (argptr,fmt);
+//		00189         vsprintf (msg,fmt,argptr);
+//		00190         va_end (argptr);
+//		00191         
+		if (code == Defines.ERR_DISCONNECT) {
+			CL.Drop ();
+			recursive = false;
+			throw new longjmpException();
+		} else if (code == Defines.ERR_DROP) {
+			Com.Printf ("********************\nERROR: " + 
+				msg + "\n********************\n");
+			SV.Shutdown("Server crashed: " + msg + "\n", false);
+			CL.Drop();
+			recursive = false;
+			throw new longjmpException();
+		} else {
+			SV.Shutdown("Server fatal crashed: %s" + msg + "\n", false);
+			CL.Shutdown();
+		}
+//		00211 
+//		00212         if (logfile)
+//		00213         {
+//		00214                 fclose (logfile);
+//		00215                 logfile = NULL;
+//		00216         }
+//		00217 
+		Sys.Error(msg);
 	}
-	
+		
 	/**
 	 * Com_InitArgv checks the number of command line arguments
 	 * and copies all arguments with valid length into com_argv.

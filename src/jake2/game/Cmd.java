@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.8 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Cmd.java,v 1.9 2003-12-01 22:00:22 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,28 +39,28 @@ public final class Cmd {
 			int i = 0;
 
 			while (cmd != null) {
-				Com.print(cmd.name + '\n');
+				Com.Printf(cmd.name + '\n');
 				i++;
 				cmd = cmd.next;
 			}
-			Com.print(i + " commands\n");
+			Com.Printf(i + " commands\n");
 		}
 	};
 	
 	static xcommand_t Exec_f = new xcommand_t() {
 		public void execute() {
 			if (Cmd.Argc() != 2) {
-				Com.print("exec <filename> : execute a script file\n");
+				Com.Printf("exec <filename> : execute a script file\n");
 				return;
 			}
 
 			byte[] f = null;
 			int len = FS.LoadFile(Cmd.Argv(1), f);
 			if (f == null) {
-				Com.print("couldn't exec " + Cmd.Argv(1) + "\n");
+				Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
 				return;
 			}
-			Com.print("execing " + Cmd.Argv(1) + "\n");
+			Com.Printf("execing " + Cmd.Argv(1) + "\n");
 
 			byte[] f2 = Z.Malloc(len);
 			System.arraycopy(f, 0, f2, 0, f.length);
@@ -74,9 +74,9 @@ public final class Cmd {
 	static xcommand_t Echo_f = new xcommand_t() {
 		public void execute() {
 			for (int i  = 1;  i < Cmd.Argc(); i++) {
-				Com.print(Cmd.Argv(i) + " ");
+				Com.Printf(Cmd.Argv(i) + " ");
 			}
-			Com.print("'\n");
+			Com.Printf("'\n");
 		}
 	};
 	
@@ -84,16 +84,16 @@ public final class Cmd {
 		public void execute() {
 			cmdalias_t a = null;
 			if (Cmd.Argc() == 1) {
-				Com.print("Current alias commands:\n");
+				Com.Printf("Current alias commands:\n");
 				for (a = Globals.cmd_alias; a != null; a = a.next) {
-					Com.print(a.name + " : " + a.value);
+					Com.Printf(a.name + " : " + a.value);
 				}
 				return;
 			}
 
 			String s = Cmd.Argv(1);
 			if (s.length() > Globals.MAX_ALIAS_NAME) {
-				Com.print("Alias name is too long\n");
+				Com.Printf("Alias name is too long\n");
 				return;
 			}
 

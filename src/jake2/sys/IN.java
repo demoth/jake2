@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
+ * $Id: IN.java,v 1.5 2003-12-01 22:00:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,5 +31,8 @@ package jake2.sys;
 public final class IN {
 	
 	public static void Init() {
+	}
+	
+	public static void Shutdown() {
 	}
 }

@@ -2,7 +2,7 @@
  * CDAudio.java
  * Copyright (C) 2003
  * 
- * $Id: CDAudio.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
+ * $Id: CDAudio.java,v 1.5 2003-12-01 22:00:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,4 +33,6 @@ public final class CDAudio {
 	public static void Init() {
 	}
 
+	public static void Shutdown() {
+	}
 }

@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.17 2003-12-01 20:27:42 hoz Exp $
+ *$Id: CL.java,v 1.18 2003-12-01 22:00:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -509,8 +509,7 @@ public final class CL extends Globals {
 	//	Called after an ERR_DROP was thrown
 	//	================
 	//	*/
-	//	void CL_Drop (void)
-	//	{
+	public static void Drop() {
 	//		if (cls.state == ca_uninitialized)
 	//			return;
 	//		if (cls.state == ca_disconnected)
@@ -521,7 +520,7 @@ public final class CL extends Globals {
 	//		// drop loading plaque unless this is the initial game start
 	//		if (cls.disable_servercount != -1)
 	//			SCR_EndLoadingPlaque ();	// get rid of loading plaque
-	//	}
+	}
 	//
 	//
 	//	/*
@@ -1519,8 +1518,7 @@ public final class CL extends Globals {
 	//	Writes key bindings and archived cvars to config.cfg
 	//	===============
 	//	*/
-	//	void CL_WriteConfiguration (void)
-	//	{
+	public static void WriteConfiguration() {
 	//		FILE	*f;
 	//		char	path[MAX_QPATH];
 	//
@@ -1540,7 +1538,7 @@ public final class CL extends Globals {
 	//		fclose (f);
 	//
 	//		Cvar_WriteVariables (path);
-	//	}
+	}
 	//
 	//
 	//	/*
@@ -1745,25 +1743,22 @@ public final class CL extends Globals {
 	//	to run quit through here before the final handoff to the sys code.
 	//	===============
 	//	*/
-	//	void CL_Shutdown(void)
-	//	{
-	//		static qboolean isdown = false;
-	//	
-	//		if (isdown)
-	//		{
-	//			printf ("recursive shutdown\n");
-	//			return;
-	//		}
-	//		isdown = true;
-	//
-	//		CL_WriteConfiguration (); 
-	//
-	//		CDAudio_Shutdown ();
-	//		S_Shutdown();
-	//		IN_Shutdown ();
-	//		VID_Shutdown();
-	//	}
-	//
+	static boolean isdown = false;
+	public static void Shutdown() {
+
+		if (isdown) {
+			System.out.print("recursive shutdown\n");
+			return;
+		}
+		isdown = true;
+
+		WriteConfiguration(); 
+
+		CDAudio.Shutdown();
+		S.Shutdown();
+		IN.Shutdown();
+		VID.Shutdown();
+	}
 
 	public static void InitInput() {
 	}
