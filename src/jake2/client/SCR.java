@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.27 2004-02-08 13:26:12 hoz Exp $
+ * $Id: SCR.java,v 1.28 2004-02-11 05:11:54 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,7 +69,8 @@ public final class SCR extends Globals {
 
 	static int scr_draw_loading;
 
-	static vrect_t scr_vrect = new vrect_t(); // position of render window on screen
+	// scr_vrect ist in Globals definiert
+	// position of render window on screen
 
 	static cvar_t scr_viewsize;
 	static cvar_t scr_conspeed;
