@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.2 2004-06-13 15:01:23 cwei Exp $
+ * $Id: Light.java,v 1.3 2004-06-16 10:28:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -99,9 +99,6 @@ public abstract class Light extends Warp {
 	*/
 	void R_RenderDlights()
 	{
-		int i;
-		dlight_t l;
-
 		if (gl_flashblend.value == 0)
 			return;
 
@@ -113,10 +110,9 @@ public abstract class Light extends Warp {
 		gl.glEnable (GL.GL_BLEND);
 		gl.glBlendFunc (GL.GL_ONE, GL.GL_ONE);
 
-		for (i=0 ; i<r_newrefdef.num_dlights ; i++)
+		for (int i=0 ; i<r_newrefdef.num_dlights ; i++)
 		{
-			l = r_newrefdef.dlights[i];
-			R_RenderDlight (l);
+			R_RenderDlight(r_newrefdef.dlights[i]);
 		}
 
 		gl.glColor3f (1,1,1);
@@ -306,28 +302,26 @@ public abstract class Light extends Warp {
 			ds >>= 4;
 			dt >>= 4;
 
-			//surf.samples.reset();
-			lightmap = surf.samples.slice();
-
+			lightmap = surf.samples;
+			
 			int lightmapIndex = 0;
 			Math3D.VectorCopy (Globals.vec3_origin, pointcolor);
 			if (lightmap != null)
 			{
 				float[] scale = {0, 0, 0};
-
-//				lightmap += 3*(dt * ((surf.extents[0]>>4)+1) + ds);
+				float[] rgb;
 				lightmapIndex += 3 * (dt * ((surf.extents[0] >> 4) + 1) + ds);
 
 				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
 				{
-					for (i=0 ; i<3 ; i++)
-						scale[i] = gl_modulate.value * r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
+					rgb = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb;
+					scale[0] = gl_modulate.value * rgb[0];
+					scale[1] = gl_modulate.value * rgb[1];
+					scale[2] = gl_modulate.value * rgb[2];
 
 					pointcolor[0] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[0] * (1.0f/255);
 					pointcolor[1] += (lightmap.get(lightmapIndex + 1) & 0xFF) * scale[1] * (1.0f/255);
 					pointcolor[2] += (lightmap.get(lightmapIndex + 2) & 0xFF) * scale[2] * (1.0f/255);
-//					lightmap += 3*((surf.extents[0]>>4)+1) *
-//							((surf.extents[1]>>4)+1);
 					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);
 				}
 			}
