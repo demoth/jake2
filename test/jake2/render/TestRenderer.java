@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.3 2003-12-29 01:58:41 cwei Exp $
+ * $Id: TestRenderer.java,v 1.4 2003-12-29 02:28:29 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -74,7 +74,7 @@ public class TestRenderer {
 			}
 
 			public void Cmd_RemoveCommand(String name) {
-				// TODO implement Cmd_RemoveCommand(String name)
+				Cmd.RemoveCommand(name);
 			}
 
 			public int Cmd_Argc() {
