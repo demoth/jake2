@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.10 2004-01-28 10:52:35 cwei Exp $
+ * $Id: TestMap.java,v 1.11 2004-01-30 16:59:41 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,34 +27,16 @@ package jake2.render;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.VID;
-import jake2.client.cparticle_t;
-import jake2.client.entity_t;
-import jake2.client.lightstyle_t;
-import jake2.client.particle_t;
-import jake2.client.refdef_t;
-import jake2.client.refexport_t;
-import jake2.client.refimport_t;
-import jake2.client.viddef_t;
+import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.Qcommon;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.sys.IN;
 import jake2.sys.KBD;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
 
 import java.awt.Dimension;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * TestMap
@@ -195,7 +177,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.10 2004-01-28 10:52:35 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.11 2004-01-30 16:59:41 hoz Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -219,6 +201,9 @@ public class TestMap
 		Cmd.AddCommand("+right", right_down);
 		Cmd.AddCommand("-right", right_up);
 		Cbuf.AddText("bind RIGHTARROW +right");
+		Cbuf.Execute();
+		Cmd.AddCommand("togglemouse", togglemouse);
+		Cbuf.AddText("bind t togglemouse");
 		Cbuf.Execute();
 		Globals.cls.key_dest = Defines.key_game;
 		Globals.cls.state = Defines.ca_active;
@@ -366,7 +351,7 @@ public class TestMap
 			refdef.width = viddef.width;
 			refdef.height = viddef.height;
 			refdef.fov_x = (Globals.fov == null) ? this.fov_x : Globals.fov.value;
-			refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+			refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 			refdef.vieworg = new float[] {140, -140, 50};
 			refdef.viewangles = new float[] {0, 0, 0};
 
@@ -616,24 +601,6 @@ public class TestMap
 		}
 	}
 	
-
-	private float CalcFov(float fov_x, float width, float height)
-	{
-		double a;
-		double x;
-
-		if (fov_x < 1 || fov_x > 179)
-			ri.Sys_Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
-
-		x = width / Math.tan(fov_x / 360 * Math.PI);
-
-		a = Math.atan(height / x);
-
-		a = a * 360 / Math.PI;
-
-		return (float) a;
-	}
-
 	private void drawString(int x, int y, String text)
 	{
 		for (int i = 0; i < text.length(); i++)
@@ -646,4 +613,10 @@ public class TestMap
 	{
 		return (int) (System.currentTimeMillis() - startTime);
 	}
+	
+	static xcommand_t togglemouse = new xcommand_t() {
+		public void execute() {
+			IN.toggleMouse();
+		}
+	};
 }

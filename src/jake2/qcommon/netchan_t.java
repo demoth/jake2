@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.4 2004-01-18 10:39:34 rst Exp $
+// $Id: netchan_t.java,v 1.5 2004-01-30 16:59:41 hoz Exp $
 
 package jake2.qcommon;
 
@@ -53,7 +53,7 @@ public class netchan_t {
 	public int last_reliable_sequence; // sequence number of last send
 
 	//	   reliable staging and holding areas
-	public sizebuf_t message; // writing buffer to send to server
+	public sizebuf_t message = new sizebuf_t(); // writing buffer to send to server
 	public byte message_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // leave space for header
 
 	//	   message is copied to this buffer when it is first transfered

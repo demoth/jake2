@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: client_static_t.java,v 1.5 2003-11-29 19:26:33 rst Exp $
+// $Id: client_static_t.java,v 1.6 2004-01-30 16:59:41 hoz Exp $
 
 
 package jake2.client;
@@ -52,7 +52,7 @@ public class client_static_t {
 
 	int quakePort; // a 16 bit value that allows quake servers
 	// to work around address translating routers
-	public netchan_t netchan;
+	public netchan_t netchan = new netchan_t();
 	public int serverProtocol; // in case we are doing some kind of version hack
 
 	public int challenge; // from the server to use for connecting
