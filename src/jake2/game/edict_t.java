@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.11.2003 by RST.
-// $Id: edict_t.java,v 1.4 2004-08-22 14:25:12 salomo Exp $
+// $Id: edict_t.java,v 1.5 2004-09-04 19:08:30 salomo Exp $
 
 package jake2.game;
 
@@ -664,8 +664,7 @@ public class edict_t {
 		oldenemy= f.readEdictRef();
 		activator= f.readEdictRef();
 		groundentity= f.readEdictRef();
-		if (index == 145)
-			System.out.println("loadground:" + groundentity);
+
 		groundentity_linkcount= f.readInt();
 		teamchain= f.readEdictRef();
 		teammaster= f.readEdictRef();

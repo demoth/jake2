@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.6 2004-08-29 21:39:24 hzi Exp $
+// $Id: GameSpawn.java,v 1.7 2004-09-04 19:08:30 salomo Exp $
 
 package jake2.game;
 
@@ -166,49 +166,6 @@ public class GameSpawn extends GameSave {
 			if (!ent.set(key, value))
 				gi.dprintf("??? The key [" + key + "] is not a field\n");
 
-
-
-		/** OLD CODE, delegated to ent.set(...) and st.set(...) 
-		
-		for (f = fields; f.name; f++) {
-			if (!(f.flags & FFL_NOSPAWN) && !Q_stricmp(f.name, key)) {
-				// found it
-				if (f.flags & FFL_SPAWNTEMP)
-					b = (byte *) & st;
-				else
-					b = (byte *) ent;
-		
-				switch (f.type) {
-					case F_LSTRING :
-						* (String *) (b + f.ofs) = ED_NewString(value);
-						break;
-					case F_VECTOR :
-						sscanf(value, "%f %f %f", & vec[0], & vec[1], & vec[2]);
-						((float *) (b + f.ofs))[0] = vec[0];
-						((float *) (b + f.ofs))[1] = vec[1];
-						((float *) (b + f.ofs))[2] = vec[2];
-						break;
-					case F_INT :
-						* (int *) (b + f.ofs) = atoi(value);
-						break;
-					case F_FLOAT :
-						* (float *) (b + f.ofs) = atof(value);
-						break;
-					case F_ANGLEHACK :
-						v = atof(value);
-						((float *) (b + f.ofs))[0] = 0;
-						((float *) (b + f.ofs))[1] = v;
-						((float *) (b + f.ofs))[2] = 0;
-						break;
-					case F_IGNORE :
-						break;
-				}
-				return;
-			}
-		}
-		gi.dprintf("%s is not a field\n", key);
-		
-		*/
 	}
 
 	/*

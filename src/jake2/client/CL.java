@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.8 2004-08-27 21:05:04 hzi Exp $
+ * $Id: CL.java,v 1.9 2004-09-04 19:08:29 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -974,7 +974,7 @@ public final class CL extends CL_pred {
 					int num_skins = pheader.num_skins;
 
 					while (precache_model_skin - 1 < num_skins) {
-						Com.Printf("critical code section because of endian mess!");
+						//Com.Printf("critical code section because of endian mess!\n");
 
 						String name =
 							new String(

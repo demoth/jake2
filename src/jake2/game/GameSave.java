@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.4 2004-08-29 21:39:24 hzi Exp $
+// $Id: GameSave.java,v 1.5 2004-09-04 19:08:30 salomo Exp $
 
 package jake2.game;
 
@@ -188,7 +188,6 @@ public class GameSave extends GameFunc {
 		try {
 
 			f= new QuakeFile(filename, "r");
-			Com.Printf("loading game:" + filename);
 			CreateEdicts();
 
 			game.load(f);
@@ -288,7 +287,6 @@ public class GameSave extends GameFunc {
 					num_edicts= entnum + 1;
 
 				ent= g_edicts[entnum];
-				System.out.println("readint ent" + entnum);
 				ent.read(f);
 				ent.cleararealinks();
 				gi.linkentity(ent);

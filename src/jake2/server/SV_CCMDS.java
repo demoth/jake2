@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.9 2004-09-04 09:01:01 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.10 2004-09-04 19:08:30 salomo Exp $
 
 package jake2.server;
 
@@ -385,7 +385,6 @@ public class SV_CCMDS extends SV_ENTS {
 
 		name= FS.Gamedir() + "/save/current/" + sv.name + ".sav";
 		GameSave.ReadLevel(name);
-		System.out.println("all done!");
 	}
 
 	/*
@@ -510,7 +509,6 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 		catch (Exception e) {
 			Com.Printf("Couldn't read file " + name + "\n");
-			System.err.println(e);
 			e.printStackTrace();
 		}
 	}

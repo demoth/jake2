@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 24.07.2004 by RST.
-// $Id: QuakeFile.java,v 1.1 2004-08-20 21:29:57 salomo Exp $
+// $Id: QuakeFile.java,v 1.2 2004-09-04 19:08:30 salomo Exp $
 
 package jake2.util;
 
@@ -27,6 +27,7 @@ import jake2.game.Game;
 import jake2.game.SuperAdapter;
 import jake2.game.edict_t;
 import jake2.game.gitem_t;
+import jake2.qcommon.Com;
 
 import java.io.*;
 
@@ -115,7 +116,7 @@ public class QuakeFile extends RandomAccessFile
 
 		if (i > Game.g_edicts.length)
 		{
-			System.err.println("jake2: illegal edict num:" + i);
+			Com.DPrintf("jake2: illegal edict num:" + i + "\n");
 			return null;
 		}
 
@@ -134,9 +135,8 @@ public class QuakeFile extends RandomAccessFile
 			String str= a.getID();
 			if (a == null)
 			{
-				System.err.println("writeAdapter: invalid Adapter id for" + a);
+				Com.DPrintf("writeAdapter: invalid Adapter id for " + a + "\n");
 			}
-			System.out.println("writing adapter:" + str);
 			writeString(str);
 		}
 	}
@@ -145,7 +145,7 @@ public class QuakeFile extends RandomAccessFile
 	public SuperAdapter readAdapter() throws IOException
 	{
 		if (readInt() != 3988)
-			System.err.println("wrong read position: readadapter.");
+			Com.DPrintf("wrong read position: readadapter 3988 \n");
 
 		String id= readString();
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
+// $Id: game_locals_t.java,v 1.5 2004-09-04 19:08:29 salomo Exp $
 
 package jake2.game;
 
@@ -83,7 +83,7 @@ public class game_locals_t extends Defines
 		
 		// rst's checker :-)
 		if (f.readInt()!=1928)
-			System.err.println("error in loading game_locals.");
+			Com.DPrintf("error in loading game_locals, 1928\n");
 		
 	}
 
