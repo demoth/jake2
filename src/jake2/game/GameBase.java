@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.9 2003-12-27 15:41:00 rst Exp $
+// $Id: GameBase.java,v 1.10 2003-12-27 23:13:30 rst Exp $
 
 /** Father of all Objects. */
 
@@ -467,6 +467,12 @@ public class GameBase extends Globals {
 	public static EdictFindFilter findByTarget = new EdictFindFilter() {
 		public boolean matches(edict_t e, String s) {
 			return e.targetname.equalsIgnoreCase(s);
+		}
+	};
+	
+	public static EdictFindFilter findByClass = new EdictFindFilter() {
+		public boolean matches(edict_t e, String s) {
+			return e.classname.equalsIgnoreCase(s);
 		}
 	};
 

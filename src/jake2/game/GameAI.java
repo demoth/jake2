@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.9 2003-12-27 21:33:50 rst Exp $
+// $Id: GameAI.java,v 1.10 2003-12-27 23:13:29 rst Exp $
 
 package jake2.game;
 
@@ -138,7 +138,7 @@ public class GameAI extends GameUtil {
 		public boolean think(edict_t self) {
 
 			if (0 == (self.spawnflags & 2) && level.time < 1) {
-				M.M_droptofloor(self);
+				M.M_droptofloor.think(self);
 
 				if (self.groundentity != null)
 					if (!M.M_walkmove(self, 0, 0))

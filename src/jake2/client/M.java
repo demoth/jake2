@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.7 2003-12-09 22:12:44 rst Exp $
+ * $Id: M.java,v 1.8 2003-12-27 23:13:31 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,28 +44,28 @@ public final class M {
 	public static void M_CheckGround(edict_t ent) {
 		float[] point = { 0, 0, 0 };
 		trace_t trace;
-	
+
 		if ((ent.flags & (Defines.FL_SWIM | Defines.FL_FLY)) != 0)
 			return;
-	
+
 		if (ent.velocity[2] > 100) {
 			ent.groundentity = null;
 			return;
 		}
-	
+
 		//	   if the hull point one-quarter unit down is solid the entity is on ground
 		point[0] = ent.s.origin[0];
 		point[1] = ent.s.origin[1];
 		point[2] = ent.s.origin[2] - 0.25f;
-	
+
 		trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, point, ent, Defines.MASK_MONSTERSOLID);
-	
+
 		// check steepness
 		if (trace.plane.normal[2] < 0.7 && !trace.startsolid) {
 			ent.groundentity = null;
 			return;
 		}
-	
+
 		//		ent.groundentity = trace.ent;
 		//		ent.groundentity_linkcount = trace.ent.linkcount;
 		//		if (!trace.startsolid && !trace.allsolid)
@@ -83,14 +83,14 @@ public final class M {
 		float[] maxs = { 0, 0, 0 };
 		float[] start = { 0, 0, 0 };
 		float[] stop = { 0, 0, 0 };
-	
+
 		trace_t trace;
 		int x, y;
 		float mid, bottom;
-	
+
 		Math3D.VectorAdd(ent.s.origin, ent.mins, mins);
 		Math3D.VectorAdd(ent.s.origin, ent.maxs, maxs);
-	
+
 		//	   if all of the points under the corners are solid world, don't bother
 		//	   with the tougher checks
 		//	   the corners must be within 16 of the midpoint
@@ -105,36 +105,43 @@ public final class M {
 					//	   check it for real...
 					//
 					start[2] = mins[2];
-	
+
 					//	   the midpoint must be within 16 of the bottom
 					start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5f;
 					start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5f;
 					stop[2] = start[2] - 2 * GameBase.STEPSIZE;
 					trace = GameBase.gi.trace(start, GameBase.vec3_origin, GameBase.vec3_origin, stop, ent, Defines.MASK_MONSTERSOLID);
-	
+
 					if (trace.fraction == 1.0)
 						return false;
 					mid = bottom = trace.endpos[2];
-	
+
 					//	   the corners must be within 16 of the midpoint	
 					for (x = 0; x <= 1; x++)
 						for (y = 0; y <= 1; y++) {
 							start[0] = stop[0] = x != 0 ? maxs[0] : mins[0];
 							start[1] = stop[1] = y != 0 ? maxs[1] : mins[1];
-	
-							trace = GameBase.gi.trace(start, GameBase.vec3_origin, GameBase.vec3_origin, stop, ent, Defines.MASK_MONSTERSOLID);
-	
+
+							trace =
+								GameBase.gi.trace(
+									start,
+									GameBase.vec3_origin,
+									GameBase.vec3_origin,
+									stop,
+									ent,
+									Defines.MASK_MONSTERSOLID);
+
 							if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
 								bottom = trace.endpos[2];
 							if (trace.fraction == 1.0 || mid - trace.endpos[2] > GameBase.STEPSIZE)
 								return false;
 						}
-	
+
 					GameBase.c_yes++;
 					return true;
 				}
 			}
-	
+
 		GameBase.c_yes++;
 		return true; // we got out easy
 	}
@@ -150,30 +157,32 @@ public final class M {
 		float current;
 		float move;
 		float speed;
-	
+
 		current = Math3D.anglemod(ent.s.angles[Defines.YAW]);
 		ideal = ent.ideal_yaw;
-	
+
 		if (current == ideal)
 			return;
-	
+
 		move = ideal - current;
 		speed = ent.yaw_speed;
 		if (ideal > current) {
 			if (move >= 180)
 				move = move - 360;
-		} else {
+		}
+		else {
 			if (move <= -180)
 				move = move + 360;
 		}
 		if (move > 0) {
 			if (move > speed)
 				move = speed;
-		} else {
+		}
+		else {
 			if (move < -speed)
 				move = -speed;
 		}
-	
+
 		ent.s.angles[Defines.YAW] = Math3D.anglemod(current + move);
 	}
 
@@ -184,14 +193,14 @@ public final class M {
 	*/
 	public static void M_MoveToGoal(edict_t ent, float dist) {
 		edict_t goal = ent.goalentity;
-	
+
 		if (ent.groundentity == null && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
 			return;
-	
+
 		//	   if the next step hits the enemy, return immediately
 		if (ent.enemy != null && SV.SV_CloseEnough(ent, ent.enemy, dist))
 			return;
-	
+
 		//	   bump around...
 		if ((Lib.rand() & 3) == 1 || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist)) {
 			if (ent.inuse)
@@ -206,66 +215,65 @@ public final class M {
 	*/
 	public static boolean M_walkmove(edict_t ent, float yaw, float dist) {
 		float[] move = { 0, 0, 0 };
-	
+
 		if ((ent.groundentity == null) && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
 			return false;
-	
+
 		yaw = (float) (yaw * Math.PI * 2 / 360);
-	
+
 		move[0] = (float) Math.cos(yaw) * dist;
 		move[1] = (float) Math.sin(yaw) * dist;
 		move[2] = 0;
-	
+
 		return SV.SV_movestep(ent, move, true);
 	}
 
 	public static void M_CatagorizePosition(edict_t ent) {
-		float[] point= { 0, 0, 0 };
+		float[] point = { 0, 0, 0 };
 		int cont;
-	
+
 		//
 		//	get waterlevel
 		//
-		point[0]= ent.s.origin[0];
-		point[1]= ent.s.origin[1];
-		point[2]= ent.s.origin[2] + ent.mins[2] + 1;
-		cont= GameBase.gi.pointcontents(point);
-	
+		point[0] = ent.s.origin[0];
+		point[1] = ent.s.origin[1];
+		point[2] = ent.s.origin[2] + ent.mins[2] + 1;
+		cont = GameBase.gi.pointcontents(point);
+
 		if (0 == (cont & Defines.MASK_WATER)) {
-			ent.waterlevel= 0;
-			ent.watertype= 0;
+			ent.waterlevel = 0;
+			ent.watertype = 0;
 			return;
 		}
-	
-		ent.watertype= cont;
-		ent.waterlevel= 1;
+
+		ent.watertype = cont;
+		ent.waterlevel = 1;
 		point[2] += 26;
-		cont= GameBase.gi.pointcontents(point);
+		cont = GameBase.gi.pointcontents(point);
 		if (0 == (cont & Defines.MASK_WATER))
 			return;
-	
-		ent.waterlevel= 2;
+
+		ent.waterlevel = 2;
 		point[2] += 22;
-		cont= GameBase.gi.pointcontents(point);
+		cont = GameBase.gi.pointcontents(point);
 		if (0 != (cont & Defines.MASK_WATER))
-			ent.waterlevel= 3;
+			ent.waterlevel = 3;
 	}
 
 	public static void M_WorldEffects(edict_t ent) {
 		int dmg;
-	
+
 		if (ent.health > 0) {
 			if (0 == (ent.flags & Defines.FL_SWIM)) {
 				if (ent.waterlevel < 3) {
-					ent.air_finished= GameBase.level.time + 12;
-				} else if (ent.air_finished < GameBase.level.time) {
+					ent.air_finished = GameBase.level.time + 12;
+				}
+				else if (ent.air_finished < GameBase.level.time) {
 					// drown!
 					if (ent.pain_debounce_time < GameBase.level.time) {
-						dmg=
-							(int) (2f
-								+ 2f * Math.floor(GameBase.level.time - ent.air_finished));
+						dmg = (int) (2f + 2f * Math.floor(GameBase.level.time - ent.air_finished));
 						if (dmg > 15)
-							dmg= 15;
+							dmg = 15;
 						GameUtil.T_Damage(
 							ent,
 							GameBase.g_edicts[0],
@@ -277,20 +285,20 @@ public final class M {
 							0,
 							Defines.DAMAGE_NO_ARMOR,
 							Defines.MOD_WATER);
-						ent.pain_debounce_time= GameBase.level.time + 1;
+						ent.pain_debounce_time = GameBase.level.time + 1;
 					}
 				}
-			} else {
+			}
+			else {
 				if (ent.waterlevel > 0) {
-					ent.air_finished= GameBase.level.time + 9;
-				} else if (ent.air_finished < GameBase.level.time) {
+					ent.air_finished = GameBase.level.time + 9;
+				}
+				else if (ent.air_finished < GameBase.level.time) {
 					// suffocate!
 					if (ent.pain_debounce_time < GameBase.level.time) {
-						dmg=
-							(int) (2
-								+ 2 * Math.floor(GameBase.level.time - ent.air_finished));
+						dmg = (int) (2 + 2 * Math.floor(GameBase.level.time - ent.air_finished));
 						if (dmg > 15)
-							dmg= 15;
+							dmg = 15;
 						GameUtil.T_Damage(
 							ent,
 							GameBase.g_edicts[0],
@@ -302,30 +310,23 @@ public final class M {
 							0,
 							Defines.DAMAGE_NO_ARMOR,
 							Defines.MOD_WATER);
-						ent.pain_debounce_time= GameBase.level.time + 1;
+						ent.pain_debounce_time = GameBase.level.time + 1;
 					}
 				}
 			}
 		}
-	
+
 		if (ent.waterlevel == 0) {
 			if ((ent.flags & Defines.FL_INWATER) != 0) {
-				GameBase.gi.sound(
-					ent,
-					Defines.CHAN_BODY,
-					GameBase.gi.soundindex("player/watr_out.wav"),
-					1,
-					Defines.ATTN_NORM,
-					0);
+				GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/watr_out.wav"), 1, Defines.ATTN_NORM, 0);
 				ent.flags &= ~Defines.FL_INWATER;
 			}
 			return;
 		}
-	
-		if ((ent.watertype & Defines.CONTENTS_LAVA) != 0
-			&& 0 == (ent.flags & Defines.FL_IMMUNE_LAVA)) {
+
+		if ((ent.watertype & Defines.CONTENTS_LAVA) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_LAVA)) {
 			if (ent.damage_debounce_time < GameBase.level.time) {
-				ent.damage_debounce_time= GameBase.level.time + 0.2f;
+				ent.damage_debounce_time = GameBase.level.time + 0.2f;
 				GameUtil.T_Damage(
 					ent,
 					GameBase.g_edicts[0],
@@ -339,10 +340,9 @@ public final class M {
 					Defines.MOD_LAVA);
 			}
 		}
-		if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
-			&& 0 == (ent.flags & Defines.FL_IMMUNE_SLIME)) {
+		if ((ent.watertype & Defines.CONTENTS_SLIME) != 0 && 0 == (ent.flags & Defines.FL_IMMUNE_SLIME)) {
 			if (ent.damage_debounce_time < GameBase.level.time) {
-				ent.damage_debounce_time= GameBase.level.time + 1;
+				ent.damage_debounce_time = GameBase.level.time + 1;
 				GameUtil.T_Damage(
 					ent,
 					GameBase.g_edicts[0],
@@ -356,147 +356,118 @@ public final class M {
 					Defines.MOD_SLIME);
 			}
 		}
-	
+
 		if (0 == (ent.flags & Defines.FL_INWATER)) {
 			if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
 				if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
 					if (Lib.random() <= 0.5)
-						GameBase.gi.sound(
-							ent,
-							Defines.CHAN_BODY,
-							GameBase.gi.soundindex("player/lava1.wav"),
-							1,
-							Defines.ATTN_NORM,
-							0);
+						GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/lava1.wav"), 1, Defines.ATTN_NORM, 0);
 					else
-						GameBase.gi.sound(
-							ent,
-							Defines.CHAN_BODY,
-							GameBase.gi.soundindex("player/lava2.wav"),
-							1,
-							Defines.ATTN_NORM,
-							0);
+						GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/lava2.wav"), 1, Defines.ATTN_NORM, 0);
 				else if ((ent.watertype & Defines.CONTENTS_SLIME) != 0)
-					GameBase.gi.sound(
-						ent,
-						Defines.CHAN_BODY,
-						GameBase.gi.soundindex("player/watr_in.wav"),
-						1,
-						Defines.ATTN_NORM,
-						0);
+					GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/watr_in.wav"), 1, Defines.ATTN_NORM, 0);
 				else if ((ent.watertype & Defines.CONTENTS_WATER) != 0)
-					GameBase.gi.sound(
-						ent,
-						Defines.CHAN_BODY,
-						GameBase.gi.soundindex("player/watr_in.wav"),
-						1,
-						Defines.ATTN_NORM,
-						0);
+					GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi.soundindex("player/watr_in.wav"), 1, Defines.ATTN_NORM, 0);
 			}
-	
+
 			ent.flags |= Defines.FL_INWATER;
-			ent.damage_debounce_time= 0;
+			ent.damage_debounce_time = 0;
 		}
 	}
 
-	public static void M_droptofloor(edict_t ent) {
-		float[] end= { 0, 0, 0 };
-		trace_t trace;
-	
-		ent.s.origin[2] += 1;
-		Math3D.VectorCopy(ent.s.origin, end);
-		end[2] -= 256;
-	
-		trace=
-			GameBase.gi.trace(
-				ent.s.origin,
-				ent.mins,
-				ent.maxs,
-				end,
-				ent,
-				Defines.MASK_MONSTERSOLID);
-	
-		if (trace.fraction == 1 || trace.allsolid)
-			return;
-	
-		Math3D.VectorCopy(trace.endpos, ent.s.origin);
-	
-		GameBase.gi.linkentity(ent);
-		M.M_CheckGround(ent);
-		M_CatagorizePosition(ent);
-	}
+	public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
+		public boolean think(edict_t ent) {
+			float[] end = { 0, 0, 0 };
+			trace_t trace;
+
+			ent.s.origin[2] += 1;
+			Math3D.VectorCopy(ent.s.origin, end);
+			end[2] -= 256;
+
+			trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, end, ent, Defines.MASK_MONSTERSOLID);
+
+			if (trace.fraction == 1 || trace.allsolid)
+				return true;
+
+			Math3D.VectorCopy(trace.endpos, ent.s.origin);
+
+			GameBase.gi.linkentity(ent);
+			M.M_CheckGround(ent);
+			M_CatagorizePosition(ent);
+			return true;
+		}
+	};
 
 	public static void M_SetEffects(edict_t ent) {
 		ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
 		ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
-	
+
 		if ((ent.monsterinfo.aiflags & Defines.AI_RESURRECTING) != 0) {
 			ent.s.effects |= Defines.EF_COLOR_SHELL;
 			ent.s.renderfx |= Defines.RF_SHELL_RED;
 		}
-	
+
 		if (ent.health <= 0)
 			return;
-	
+
 		if (ent.powerarmor_time > GameBase.level.time) {
 			if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SCREEN) {
 				ent.s.effects |= Defines.EF_POWERSCREEN;
-			} else if (
-				ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SHIELD) {
+			}
+			else if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SHIELD) {
 				ent.s.effects |= Defines.EF_COLOR_SHELL;
 				ent.s.renderfx |= Defines.RF_SHELL_GREEN;
 			}
 		}
-	}
+	};
 
 	public static void M_MoveFrame(edict_t self) {
 		mmove_t move;
 		int index;
-	
-		move= self.monsterinfo.currentmove;
-		self.nextthink= GameBase.level.time + Defines.FRAMETIME;
-	
+
+		move = self.monsterinfo.currentmove;
+		self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+
 		if ((self.monsterinfo.nextframe != 0)
 			&& (self.monsterinfo.nextframe >= move.firstframe)
 			&& (self.monsterinfo.nextframe <= move.lastframe)) {
-			self.s.frame= self.monsterinfo.nextframe;
-			self.monsterinfo.nextframe= 0;
-		} else {
+			self.s.frame = self.monsterinfo.nextframe;
+			self.monsterinfo.nextframe = 0;
+		}
+		else {
 			if (self.s.frame == move.lastframe) {
 				if (move.endfunc != null) {
 					move.endfunc.think(self);
-	
+
 					// regrab move, endfunc is very likely to change it
-					move= self.monsterinfo.currentmove;
-	
+					move = self.monsterinfo.currentmove;
+
 					// check for death
 					if ((self.svflags & Defines.SVF_DEADMONSTER) != 0)
 						return;
 				}
 			}
-	
-			if (self.s.frame < move.firstframe
-				|| self.s.frame > move.lastframe) {
+
+			if (self.s.frame < move.firstframe || self.s.frame > move.lastframe) {
 				self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
-				self.s.frame= move.firstframe;
-			} else {
+				self.s.frame = move.firstframe;
+			}
+			else {
 				if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME)) {
 					self.s.frame++;
 					if (self.s.frame > move.lastframe)
-						self.s.frame= move.firstframe;
+						self.s.frame = move.firstframe;
 				}
 			}
 		}
-	
-		index= self.s.frame - move.firstframe;
+
+		index = self.s.frame - move.firstframe;
 		if (move.frame[index].ai != null)
 			if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME))
-				move.frame[index].ai.ai(
-					self,
-					move.frame[index].dist * self.monsterinfo.scale);
+				move.frame[index].ai.ai(self, move.frame[index].dist * self.monsterinfo.scale);
 			else
 				move.frame[index].ai.ai(self, 0);
-	
+
 		if (move.frame[index].think != null)
 			move.frame[index].think.think(self);
 	}
@@ -504,38 +475,38 @@ public final class M {
 	public static void M_ReactToDamage(edict_t targ, edict_t attacker) {
 		if ((null != attacker.client) && 0 != (attacker.svflags & Defines.SVF_MONSTER))
 			return;
-	
+
 		if (attacker == targ || attacker == targ.enemy)
 			return;
-	
+
 		// if we are a good guy monster and our attacker is a player
 		// or another good guy, do not get mad at them
 		if (0 != (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
 			if (attacker.client != null || (attacker.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0)
 				return;
 		}
-	
+
 		// we now know that we are not both good guys
-	
+
 		// if attacker is a client, get mad at them because he's good and we're not
 		if (attacker.client != null) {
 			targ.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
-	
+
 			// this can only happen in coop (both new and old enemies are clients)
 			// only switch if can't see the current enemy
 			if (targ.enemy != null && targ.enemy.client != null) {
 				if (GameUtil.visible(targ, targ.enemy)) {
-					targ.oldenemy= attacker;
+					targ.oldenemy = attacker;
 					return;
 				}
-				targ.oldenemy= targ.enemy;
+				targ.oldenemy = targ.enemy;
 			}
-			targ.enemy= attacker;
+			targ.enemy = attacker;
 			if (0 != (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
 				GameUtil.FoundTarget(targ);
 			return;
 		}
-	
+
 		// it's the same base (walk/swim/fly) type and a different classname and it's not a tank
 		// (they spray too much), get mad at them
 		if (((targ.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == (attacker.flags & (Defines.FL_FLY | Defines.FL_SWIM)))
@@ -545,61 +516,61 @@ public final class M {
 			&& (Lib.strcmp(attacker.classname, "monster_makron") != 0)
 			&& (Lib.strcmp(attacker.classname, "monster_jorg") != 0)) {
 			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker;
+				targ.oldenemy = targ.enemy;
+			targ.enemy = attacker;
 			if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
 				GameUtil.FoundTarget(targ);
 		}
 		// if they *meant* to shoot us, then shoot back
 		else if (attacker.enemy == targ) {
 			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker;
+				targ.oldenemy = targ.enemy;
+			targ.enemy = attacker;
 			if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
 				GameUtil.FoundTarget(targ);
 		}
 		// otherwise get mad at whoever they are mad at (help our buddy) unless it is us!
 		else if (attacker.enemy != null && attacker.enemy != targ) {
 			if (targ.enemy != null && targ.enemy.client != null)
-				targ.oldenemy= targ.enemy;
-			targ.enemy= attacker.enemy;
+				targ.oldenemy = targ.enemy;
+			targ.enemy = attacker.enemy;
 			if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
 				GameUtil.FoundTarget(targ);
 		}
 	}
 	/** Stops the Flies. */
-	public static EntThinkAdapter M_FliesOff= new EntThinkAdapter() {
+	public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			self.s.effects &= ~Defines.EF_FLIES;
-			self.s.sound= 0;
+			self.s.sound = 0;
 			return true;
 		}
 	};
 	/** Starts the Flies as setting the animation flag in the entity. */
-	public static EntThinkAdapter M_FliesOn= new EntThinkAdapter() {
+	public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			if (self.waterlevel != 0)
 				return true;
-	
+
 			self.s.effects |= Defines.EF_FLIES;
-			self.s.sound= GameBase.gi.soundindex("infantry/inflies1.wav");
-			self.think= M_FliesOff;
-			self.nextthink= GameBase.level.time + 60;
+			self.s.sound = GameBase.gi.soundindex("infantry/inflies1.wav");
+			self.think = M_FliesOff;
+			self.nextthink = GameBase.level.time + 60;
 			return true;
 		}
 	};
 	/** Adds some flies after a random time */
-	public static EntThinkAdapter M_FlyCheck= new EntThinkAdapter() {
+	public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-	
+
 			if (self.waterlevel != 0)
 				return true;
-	
+
 			if (Lib.random() > 0.5)
 				return true;
-	
-			self.think= M_FliesOn;
-			self.nextthink= GameBase.level.time + 5 + 10 * Lib.random();
+
+			self.think = M_FliesOn;
+			self.nextthink = GameBase.level.time + 5 + 10 * Lib.random();
 			return true;
 		}
 	};

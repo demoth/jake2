@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.5 2003-12-09 22:12:43 rst Exp $
+// $Id: GameFunc.java,v 1.6 2003-12-27 23:13:29 rst Exp $
 
 package jake2.game;
 
@@ -1577,7 +1577,7 @@ public class GameFunc extends Game {
 
 	}
 
-	static EntThinkAdapter func_train_find = new EntThinkAdapter() {
+	public static EntThinkAdapter func_train_find = new EntThinkAdapter() {
 		public boolean think(edict_t self) {
 			edict_t ent;
 
@@ -1608,7 +1608,7 @@ public class GameFunc extends Game {
 		}
 	};
 
-	static EntUseAdapter train_use = new EntUseAdapter() {
+	public static EntUseAdapter train_use = new EntUseAdapter() {
 		public void use(edict_t self, edict_t other, edict_t activator) {
 			self.activator = activator;
 
