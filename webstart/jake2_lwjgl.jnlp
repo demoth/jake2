@@ -34,6 +34,11 @@
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/lwjgl-native.jar"/>
 	</resources>
 
+	<resources os="Mac OS X">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<nativelib href="http://jake2.sourceforge.net/lib/osx/lwjgl-native.jar"/>	
+	</resources>
+	
 	<application-desc main-class="jake2.Jake2">
 		<argument>+set</argument>
 		<argument>vid_ref</argument>

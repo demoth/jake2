@@ -102,7 +102,10 @@
 		<copy todir="${dist}/lib/osx">
 			<fileset dir="lib/joal/osx">
 				<include name="*"/>
-			</fileset>			
+			</fileset>
+			<fileset dir="lib/lwjgl/osx">
+				<include name="*"/>
+			</fileset>	
 		</copy>
 		<copy todir="${dist}">
 			<fileset dir="scripts">
@@ -246,7 +249,11 @@
 		</jar>
 		<jar destfile="webstart/lib/osx/joal-native.jar" basedir="${dist}/lib/osx">
 			<include name="libjoal.jnilib"/>
-		</jar>		
+		</jar>
+		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx">
+			<include name="liblwjgl.jnilib"/>
+			<include name="openal.dylib"/>
+		</jar>
 		<jar destfile="webstart/lib/windows/jogl-native.jar" basedir="${dist}/lib/windows">
 			<include name="jogl*.dll"/>
 		</jar>
