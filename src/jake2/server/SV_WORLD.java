@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.3 2004-02-01 23:31:37 rst Exp $
+// $Id: SV_WORLD.java,v 1.4 2004-02-03 13:13:01 hoz Exp $
 
 package jake2.server;
 
@@ -425,7 +425,7 @@ public class SV_WORLD extends SV_CCMDS {
 		float angles[];
 
 		// get base contents from world
-		contents = CM.CM_PointContents(p, sv.models[1].headnode);
+		contents = CM.PointContents(p, sv.models[1].headnode);
 
 		// or in contents from all the other entities
 		num = SV_AreaEdicts(p, p, touch, MAX_EDICTS, AREA_SOLID);
@@ -439,7 +439,7 @@ public class SV_WORLD extends SV_CCMDS {
 			if (hit.solid != SOLID_BSP)
 				angles = vec3_origin; // boxes don't rotate
 
-			c2 = CM.CM_TransformedPointContents(p, headnode, hit.s.origin, hit.s.angles);
+			c2 = CM.TransformedPointContents(p, headnode, hit.s.origin, hit.s.angles);
 
 			contents |= c2;
 		}
@@ -472,7 +472,7 @@ public class SV_WORLD extends SV_CCMDS {
 
 		// create a temp hull from bounding box sizes
 
-		return CM.CM_HeadnodeForBox(ent.mins, ent.maxs);
+		return CM.HeadnodeForBox(ent.mins, ent.maxs);
 	}
 
 	//===========================================================================
@@ -521,7 +521,7 @@ public class SV_WORLD extends SV_CCMDS {
 
 			if ((touch.svflags & SVF_MONSTER) != 0)
 				trace =
-					CM.CM_TransformedBoxTrace(
+					CM.TransformedBoxTrace(
 						clip.start,
 						clip.end,
 						clip.mins2,
@@ -532,7 +532,7 @@ public class SV_WORLD extends SV_CCMDS {
 						angles);
 			else
 				trace =
-					CM.CM_TransformedBoxTrace(
+					CM.TransformedBoxTrace(
 						clip.start,
 						clip.end,
 						clip.mins,
@@ -599,7 +599,7 @@ public class SV_WORLD extends SV_CCMDS {
 		//memset ( clip, 0, sizeof ( moveclip_t ) );
 
 		// clip to world
-		clip.trace = CM.CM_BoxTrace(start, end, mins, maxs, 0, contentmask);
+		clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
 		clip.trace.ent = ge.edicts[0];
 		if (clip.trace.fraction == 0)
 			return clip.trace; // blocked by the world

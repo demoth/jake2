@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.14 2004-02-02 21:47:00 rst Exp $
+// $Id: CM.java,v 1.15 2004-02-03 13:13:01 hoz Exp $
 
 package jake2.qcommon;
 
@@ -932,7 +932,7 @@ public class CM extends Game {
 	BSP trees instead of being compared directly.
 	===================
 	*/
-	public static int CM_HeadnodeForBox(float[] mins, float[] maxs) {
+	public static int HeadnodeForBox(float[] mins, float[] maxs) {
 		box_planes[0].dist = maxs[0];
 		box_planes[1].dist = -maxs[0];
 		box_planes[2].dist = mins[0];
@@ -1066,7 +1066,7 @@ public class CM extends Game {
 	
 	==================
 	*/
-	public static int CM_PointContents(float[] p, int headnode) {
+	public static int PointContents(float[] p, int headnode) {
 		int l;
 
 		if (numnodes==0) // map not loaded
@@ -1085,7 +1085,7 @@ public class CM extends Game {
 	rotating entities
 	==================
 	*/
-	public static int CM_TransformedPointContents(float[] p, int headnode, float[] origin, float[] angles) {
+	public static int TransformedPointContents(float[] p, int headnode, float[] origin, float[] angles) {
 		float[] p_l={0,0,0};
 		float[] temp={0,0,0};
 		float[] forward={0,0,0}, right={0,0,0}, up={0,0,0};
@@ -1462,7 +1462,7 @@ public class CM extends Game {
 	CM_BoxTrace
 	==================
 	*/
-	public static trace_t CM_BoxTrace(float[] start, float[] end, float[] mins, float[] maxs, int headnode, int brushmask) {
+	public static trace_t BoxTrace(float[] start, float[] end, float[] mins, float[] maxs, int headnode, int brushmask) {
 
 		checkcount++; // for multi-check avoidance
 
@@ -1553,7 +1553,7 @@ public class CM extends Game {
 	==================
 	*/
 
-	public static trace_t CM_TransformedBoxTrace(
+	public static trace_t TransformedBoxTrace(
 		float[] start,
 		float[] end,
 		float[] mins,
@@ -1594,7 +1594,7 @@ public class CM extends Game {
 		}
 
 		// sweep the box through the model
-		trace = CM_BoxTrace(start_l, end_l, mins, maxs, headnode, brushmask);
+		trace = BoxTrace(start_l, end_l, mins, maxs, headnode, brushmask);
 
 		if (rotated && trace.fraction != 1.0) {
 			// FIXME: figure out how to do this with existing angles
