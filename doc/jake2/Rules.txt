@@ -7,7 +7,7 @@
 \                                                /
  \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
  
-$Id: Rules.txt,v 1.7 2003-12-28 21:41:10 hoz Exp $
+$Id: Rules.txt,v 1.8 2004-01-04 13:30:15 rst Exp $
 
 Authors:
 --------
@@ -868,6 +868,29 @@ Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Links
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+ 
+IBM Garbage Collector
+http://www-106.ibm.com/developerworks/ibm/library/i-garbage1/
+ 
+IBM: Sun 1.4.1 Garbage collection alg.
+http://www-106.ibm.com/developerworks/java/library/j-jtp11253/
+ 
+Articles by Brian Goetz
+http://www-106.ibm.com/developerworks/views/java/articles.jsp?sort_order=desc&expand=Goetz&sort_by=Date&view_by=Author&search_by=
+ 
+ 
+Hotspot Turbo
+http://java.sun.com/developer/technicalArticles/Programming/turbo/
+ 
+GC Viewer
+http://www.javaperformancetuning.com/tools/gcviewer/index.shtml
+ 
+sun jdk1.3.1 GC
+http://java.sun.com/docs/hotspot/gc/index.html
+
+
 
 Quake:
 ------
