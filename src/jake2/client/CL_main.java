@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.9 2004-01-30 13:34:31 hoz Exp $
+ * $Id: CL_main.java,v 1.10 2004-01-30 13:40:42 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -736,7 +736,7 @@ public class CL_main extends CL_pred {
 		if (cl_timedemo != null && cl_timedemo.value != 0.0f) {
 			int	time;
 
-			time = (int)(System.currentTimeMillis() - cl.timedemo_start);
+			time = (int)(Sys.Milliseconds() - cl.timedemo_start);
 			if (time > 0)
 			Com.Printf("%i frames, %3.1f seconds: %3.1f fps\n", new Vargs(3).add(
 				cl.timedemo_frames).add(
