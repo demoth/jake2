@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.2 2003-11-28 14:40:44 hoz Exp $
+ * $Id: CL.java,v 1.3 2003-11-28 21:16:43 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -49,7 +49,7 @@ public final class CL {
 			
 		// all archived variables will now be loaded
 		
-		Con.Init();
+		Console.Init();
 			
 // S.Init();
 		VID.Init();		

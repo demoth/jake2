@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.1 2003-11-28 14:40:44 hoz Exp $
+ * $Id: Console.java,v 1.4 2003-12-01 13:17:12 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,7 @@ package jake2.client;
  * Con
  * TODO implement Con
  */
-public final class Con {
+public final class Console {
 	
 	/**
 	 * 
