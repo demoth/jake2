@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.qcommon.netchan_t;
-import java.io.File;
+import java.io.*;
 
 public class client_static_t {
 
@@ -66,5 +66,5 @@ public class client_static_t {
 	//	   demo recording info must be here, so it isn't cleared on level change
 	boolean demorecording;
 	boolean demowaiting; // don't record until a non-delta message is received
-	File demofile;
+	FileWriter demofile;
 }

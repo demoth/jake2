@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.6 2003-11-28 22:45:29 hoz Exp $
+ * $Id: Globals.java,v 1.7 2003-11-28 23:42:48 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2;
 import jake2.client.client_static_t;
 import jake2.game.*;
 import jake2.qcommon.sizebuf_t;
+import jake2.client.*;
 
 import java.io.FileWriter;
 
@@ -54,18 +55,17 @@ public final class Globals {
 
 	public static final String BASEDIRNAME = "baseq2";
 
-	
 	/*
 	 * global variables
 	 */
 	public static boolean bigendien = false;
 	public static boolean cmd_wait;
-	
+
 	public static int com_argc;
 	public static int c_traces;
 	public static int c_brush_traces;
 	public static int c_pointcontents;
-	
+
 	public static String[] com_argv = new String[MAX_NUM_ARGVS];
 
 	public static cvar_t adr0;
@@ -101,26 +101,24 @@ public final class Globals {
 	public static cvar_t dedicated;
 	public static cvar_t developer;
 	public static cvar_t fixedtime;
-	public static cvar_t freelook;	
+	public static cvar_t freelook;
 	public static cvar_t host_speeds;
 	public static cvar_t log_stats;
 	public static cvar_t logfile_active;
 	public static cvar_t lookspring;
-	public static cvar_t lookstrafe;	
+	public static cvar_t lookstrafe;
 	public static cvar_t nostdout;
-	public static cvar_t sensitivity;	
+	public static cvar_t sensitivity;
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
-	
+
 	public static sizebuf_t cmd_text;
 	public static sizebuf_t net_message;
-	
+
 	public static byte[] cmd_text_buf = new byte[8192];
 	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
-	
+
 	public static cmdalias_t cmd_alias;
-	
-	public static client_static_t cls;
 
 	public static long time_before_game;
 	public static long time_after_game;
@@ -128,6 +126,37 @@ public final class Globals {
 	public static long time_after_ref;
 
 	public static FileWriter log_stats_file = null;
-	
+
 	public static EndianHandler endian = null;
+
+	public static cvar_t m_pitch;
+	public static cvar_t m_yaw;
+	public static cvar_t m_forward;
+	public static cvar_t m_side;
+
+	public static cvar_t cl_lightlevel;
+
+	//
+	//	   userinfo
+	//
+	public static cvar_t info_password;
+	public static cvar_t info_spectator;
+	public static cvar_t name;
+	public static cvar_t skin;
+	public static cvar_t rate;
+	public static cvar_t fov;
+	public static cvar_t msg;
+	public static cvar_t hand;
+	public static cvar_t gender;
+	public static cvar_t gender_auto;
+
+	public static cvar_t cl_vwep;
+
+	public static client_static_t cls;
+	public static client_state_t cl;
+
+	public static centity_t cl_entities[] = new centity_t[gamedefs.MAX_EDICTS];
+
+	public static entity_state_t cl_parse_entities[] = new entity_state_t[clientdefs.MAX_PARSE_ENTITIES];
+
 }

@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.5 2003-11-25 14:42:30 cwei Exp $
+ * $Id: Renderer.java,v 1.6 2003-11-28 23:42:48 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,19 +38,19 @@ import jake2.client.refimport_t;
  * @author cwei
  */
 public class Renderer {
-	
+
 	private static Logger logger = Logger.getLogger(Renderer.class.getName());
 
-	static Vector drivers = new Vector(3); 
+	static Vector drivers = new Vector(3);
 
-	public static final String DEFAULT = JoglRenderer.DRIVER_NAME; 
-	private static final String DEFAULT_CLASS = "jake2.render.JoglRenderer"; 
+	public static final String DEFAULT = JoglRenderer.DRIVER_NAME;
+	private static final String DEFAULT_CLASS = "jake2.render.JoglRenderer";
 
 	static {
 		try {
 			Class.forName("jake2.render.JoglRenderer");
 		} catch (ClassNotFoundException e) {
-			logger.log(Level.SEVERE, "can't found " +  DEFAULT_CLASS);
+			logger.log(Level.SEVERE, "can't found " + DEFAULT_CLASS);
 			e.printStackTrace();
 		}
 	};
@@ -63,18 +63,19 @@ public class Renderer {
 			drivers.add(impl);
 		}
 	}
-	
+
 	/**
 	 * Factory method to get the Renderer implementation.
 	 * @return refexport_t (Renderer singleton)
 	 */
 	public static refexport_t getDriver(String driverName, refimport_t rimp) {
-		if (rimp == null) throw new IllegalArgumentException("refimport_t can't be null");
+		if (rimp == null)
+			throw new IllegalArgumentException("refimport_t can't be null");
 		// find a driver
 		Ref driver = null;
 		int count = drivers.size();
-		for (int i=0; i < count && driver == null; i++) {
-			driver = (Ref)drivers.get(i);
+		for (int i = 0; i < count && driver == null; i++) {
+			driver = (Ref) drivers.get(i);
 			if (driver.getName().equals(driverName)) {
 				return driver.GetRefAPI(rimp);
 			}
@@ -88,7 +89,7 @@ public class Renderer {
 		int count = drivers.size();
 		String[] names = new String[count];
 		for (int i = 0; i < count; i++) {
-			names[i] = ((Ref)drivers.get(i)).getName();
+			names[i] = ((Ref) drivers.get(i)).getName();
 		}
 		return names;
 	}
