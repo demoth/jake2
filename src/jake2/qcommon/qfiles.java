@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.6 2004-01-08 13:17:03 cwei Exp $
+ * $Id: qfiles.java,v 1.7 2004-01-09 00:42:09 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -438,12 +438,14 @@ public class qfiles {
 	}
 
 	public static class dtrivertx_t {
-		public byte v[] = { 0, 0, 0 }; // scaled byte to fit in frame mins/maxs
-		public byte lightnormalindex;
+		public int v[] = { 0, 0, 0 }; //  byte 0..255 scaled byte to fit in frame mins/maxs
+		public int lightnormalindex; // byte 0 .. 255;
 		
 		public dtrivertx_t(ByteBuffer b) {
-			b.get(v);
-			lightnormalindex = b.get();
+			v[0] = b.get() & 0xff; // unsigned byte
+			v[1] = b.get() & 0xff; // unsigned byte
+			v[2] = b.get() & 0xff; // unsigned byte
+			lightnormalindex = b.get() & 0xff; // unsigned byte
 		}
 	}
 
@@ -497,6 +499,14 @@ public class qfiles {
 		public int ofs_frames; // offset for first frame
 		public int ofs_glcmds;
 		public int ofs_end; // end of file
+		
+		// wird extra gebraucht
+		public String[] skinNames;
+		public dstvert_t[] stVerts;
+		public dtriangle_t[] triAngles;
+		public int[] glCmds;
+		public daliasframe_t[] aliasFrames;
+		
 		
 		public dmdl_t(ByteBuffer b) {
 			ident = b.getInt();
