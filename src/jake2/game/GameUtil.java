@@ -19,7 +19,7 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.10 2005-02-19 21:19:23 salomo Exp $
+// $Id: GameUtil.java,v 1.11 2005-02-19 23:32:01 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -684,7 +684,7 @@ public class GameUtil {
         int power = 0;
         int power_used;
 
-        if (damage != 0)
+        if (damage == 0)
             return 0;
 
         client = ent.client;
