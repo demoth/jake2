@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.4 2003-12-01 20:27:42 hoz Exp $
+// $Id: MSG.java,v 1.5 2003-12-04 19:59:00 rst Exp $
 
 package jake2.qcommon;
 
@@ -41,7 +41,7 @@ public class MSG extends GameBase {
 		if (c < -128 || c > 127)
 			Com.Error(ERR_FATAL, "WriteChar: range error");
 
-		sb.data[SZ_GetSpace(sb, 1)] = (byte) c;
+		sb.data[SZ.SZ_GetSpace(sb, 1)] = (byte) c;
 	}
 
 	public static void WriteByte(sizebuf_t sb, int c) {
@@ -50,7 +50,7 @@ public class MSG extends GameBase {
 		if (c < 0 || c > 255)
 			Com.Error(ERR_FATAL, "WriteByte: range error");
 
-		sb.data[SZ_GetSpace(sb, 1)] = (byte) c;
+		sb.data[SZ.SZ_GetSpace(sb, 1)] = (byte) c;
 	}
 
 	public static void WriteShort(sizebuf_t sb, int c) {
@@ -58,14 +58,14 @@ public class MSG extends GameBase {
 		if (c < ((short) 0x8000) || c > (short) 0x7fff)
 			Com.Error(ERR_FATAL, "WriteShort: range error");
 
-		int i = SZ_GetSpace(sb, 2);
+		int i = SZ.SZ_GetSpace(sb, 2);
 		sb.data[i++] = (byte) (c & 0xff);
 		sb.data[i] = (byte) (c >> 8);
 	}
 
 	public static void WriteInt(sizebuf_t sb, int c) {
 
-		int i = SZ_GetSpace(sb, 4);
+		int i = SZ.SZ_GetSpace(sb, 4);
 		sb.data[i++] = (byte) ((c & 0xff));
 		sb.data[i++] = (byte) ((c >> 8) & 0xff);
 		sb.data[i++] = (byte) ((c >> 16) & 0xff);
@@ -82,7 +82,7 @@ public class MSG extends GameBase {
 		if (s == null)
 			x = "";
 
-		SZ_Write(sb, x.getBytes());
+		SZ.SZ_Write(sb, x.getBytes());
 	}
 
 	public static void WriteCoord(sizebuf_t sb, float f) {
@@ -545,72 +545,6 @@ public class MSG extends GameBase {
 
 		for (i = 0; i < len; i++)
 			data[i] = (byte) ReadByte(msg_read);
-	}
-
-	//===========================================================================
-
-	public static void SZ_Init(sizebuf_t buf, byte data[], int length) {
-		//memset (buf, 0, sizeof(*buf));
-		buf.data = data;
-		buf.maxsize = length;
-	}
-
-	public static void SZ_Clear(sizebuf_t buf) {
-		buf.cursize = 0;
-		buf.overflowed = false;
-	}
-
-	/** Ask for the pointer using sizebuf_t.cursize (RST) */
-	public static int SZ_GetSpace(sizebuf_t buf, int length) {
-		int data;
-
-		if (buf.cursize + length > buf.maxsize) {
-			if (!buf.allowoverflow)
-				Com.Error(ERR_FATAL, "SZ_GetSpace: overflow without allowoverflow set");
-
-			if (length > buf.maxsize)
-				Com.Error(ERR_FATAL, "SZ_GetSpace: " + length + " is > full buffer size");
-
-			Com.Printf("SZ_GetSpace: overflow\n");
-			SZ_Clear(buf);
-			buf.overflowed = true;
-		}
-
-		data = buf.cursize;
-		buf.cursize += length;
-
-		return data;
-	}
-
-	public static void SZ_Write(sizebuf_t buf, byte data[], int length) {
-		//memcpy(SZ_GetSpace(buf, length), data, length);
-		System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
-	}
-
-	public static void SZ_Write(sizebuf_t buf, byte data[]) {
-		int length = data.length;
-		//memcpy(SZ_GetSpace(buf, length), data, length);
-		System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
-	}
-
-	public static void SZ_Print(sizebuf_t buf, String data) {
-
-		int length = data.length() + 1;
-		byte str[] = data.getBytes();
-
-		if (buf.cursize != 0) {
-
-			if (buf.data[buf.cursize - 1] != 0) {
-				//memcpy( SZ_GetSpace(buf, len), data, len); // no trailing 0
-				System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
-			} else {
-				System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
-				//memcpy(SZ_GetSpace(buf, len - 1) - 1, data, len); // write over trailing 0
-			}
-
-		} else
-			System.arraycopy(data, 0, buf.data, SZ_GetSpace(buf, length), length);
-		//memcpy(SZ_GetSpace(buf, len), data, len);
 	}
 
 	//============================================================================
