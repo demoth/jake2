@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.32 2004-02-14 13:38:14 cwei Exp $
+ * $Id: SCR.java,v 1.33 2004-02-15 00:07:37 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -222,7 +222,7 @@ public final class SCR extends Globals {
 		{
 			do {
 				// scan the width of the line
-				for (l = 0; l < 40; l++)
+				for (l = 0; l < 40 && (l + s) < str.length(); l++)
 					if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
 						break;
 				for (i = 0; i < (40 - l) / 2; i++)
@@ -277,12 +277,12 @@ public final class SCR extends Globals {
 		do {
 			// scan the width of the line
 			for (l = 0; l < 40; l++)
-				if (start + l == cs.length() || cs.charAt(start + l) == '\n')
+				if (start + l == cs.length() - 1 || cs.charAt(start + l) == '\n')
 					break;
 			x = (viddef.width - l * 8) / 2;
 			SCR.AddDirtyPoint(x, y);
 			for (j = 0; j < l; j++, x += 8) {
-				re.DrawChar(x, y, cs.charAt(start + l));
+				re.DrawChar(x, y, cs.charAt(start + j));
 				if (remaining == 0)
 					return;
 				remaining--;
