@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.37 2004-06-06 23:24:45 cwei Exp $
+ * $Id: Main.java,v 1.38 2004-06-28 13:03:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -70,6 +70,7 @@ public abstract class Main extends Base {
 	boolean qglPointParameterfEXT = false;
 	boolean qglLockArraysEXT = false;
 	boolean qglMTexCoord2fSGIS = false;
+	boolean qwglSwapIntervalEXT = false;
 
 	//	=================
 	//  abstract methods
@@ -1050,11 +1051,11 @@ public abstract class Main extends Base {
 		int err; //  enum rserr_t
 		boolean fullscreen;
 
-		if (vid_fullscreen.modified && !gl_config.allow_cds) {
-			ri.Con_Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
-			ri.Cvar_SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
-			vid_fullscreen.modified = false;
-		}
+//		if (vid_fullscreen.modified && !gl_config.allow_cds) {
+//			ri.Con_Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
+//			ri.Cvar_SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
+//			vid_fullscreen.modified = false;
+//		}
 
 		fullscreen = (vid_fullscreen.value > 0.0f);
 
@@ -1242,17 +1243,13 @@ public abstract class Main extends Base {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
 		}
 
-		// #ifdef _WIN32
-		//	 if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
-		//	 {
-		//		 qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
-		//		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
-		//	 }
-		//	 else
-		//	 {
-		//		 ri.Con_Printf( Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
-		//	 }
-		// #endif
+		if (gl_config.extensions_string.indexOf("WGL_EXT_swap_control") >= 0) {
+			qwglSwapIntervalEXT = true;
+			ri.Con_Printf(Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n");
+		} else {
+			qwglSwapIntervalEXT = false;
+			ri.Con_Printf(Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n");
+		}
 
 		if (gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0) {
 			if (gl_ext_pointparameters.value != 0.0f) {
@@ -1404,7 +1401,7 @@ public abstract class Main extends Base {
 			// FIXME: only restart if CDS is required
 			cvar_t ref;
 
-			ref = ri.Cvar_Get("vid_ref", "gl", 0);
+			ref = ri.Cvar_Get("vid_ref", "jogl", 0);
 			ref.modified = true;
 		}
 

@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.22 2004-04-25 12:01:44 cwei Exp $
+ * $Id: Impl.java,v 1.23 2004-06-28 13:03:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,13 +27,11 @@ package jake2.render.jogl;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.CL;
 import jake2.qcommon.Com;
 import jake2.qcommon.xcommand_t;
-import jake2.server.SV;
 import jake2.sys.KBD;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -48,17 +46,34 @@ import net.java.games.jogl.*;
  */
 public class Impl extends Misc implements GLEventListener {
 
-
-
 	public static final String DRIVER_NAME = "jogl";
 
 	// handles the post initialization with JoglRenderer
 	protected boolean post_init = false;
 
-	// switch to updateScreen callback
-	private boolean switchToCallback = false;
-	private xcommand_t callback = null;
+	private final xcommand_t INIT_CALLBACK = new xcommand_t() {
+		public void execute() {
+			// only used for the first run (initialization)
+			// clear the screen
+			gl.glClearColor(0, 0, 0, 0);
+			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+			//
+			// check the post init process
+			//
+			if (!post_init) {
+				ri.Con_Printf(Defines.PRINT_ALL, "Missing multi-texturing for FastJOGL renderer\n");
+			}
+
+			GLimp_EndFrame();
+		}
+	};
+
+	private xcommand_t callback = INIT_CALLBACK;
 	protected boolean contextInUse = false;
+	
+	private GraphicsDevice device;
+	private DisplayMode oldDisplayMode; 
 
 	GLCanvas canvas;
 	JFrame window;
@@ -88,13 +103,9 @@ public class Impl extends Misc implements GLEventListener {
 
 		ri.Cvar_Get("r_fakeFullscreen", "0", Globals.CVAR_ARCHIVE);
 
-		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n", null);
+		ri.Con_Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
-		if (fullscreen) {
-			ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen mode " + mode + ":");
-		}
-		else
-			ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
+		ri.Con_Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
 		if (!ri.Vid_GetModeInfo(newDim, mode)) {
 			ri.Con_Printf(Defines.PRINT_ALL, " invalid mode\n");
@@ -113,18 +124,12 @@ public class Impl extends Misc implements GLEventListener {
 		// TODO Use debug pipeline
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
-		//canvas.setRenderingThread(Thread.currentThread());
-
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 
-		window.getContentPane().add(canvas);		
-		
+		window.getContentPane().add(canvas);	
 		
 		canvas.setSize(newDim.width, newDim.height);
-		window.setLocation(window_xpos, window_ypos);
-		//window.setUndecorated(true);
-		window.setResizable(false);
 
 		// register event listener
 		window.addWindowListener(new WindowAdapter() {
@@ -134,14 +139,57 @@ public class Impl extends Misc implements GLEventListener {
 		});
 		
 		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
+		window.addComponentListener(KBD.listener);
 		canvas.addKeyListener(KBD.listener);
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
-		window.addComponentListener(KBD.listener);
-		canvas.requestFocus();
 		
-		window.pack();
-		window.show();
+		/*
+		 * fullscreen handling
+		 */
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		device = env.getDefaultScreenDevice();
+
+		if (fullscreen && !device.isFullScreenSupported()) {
+			ri.Con_Printf(Defines.PRINT_ALL, "...fullscreen not supported\n");
+			vid_fullscreen.value = 0;
+			vid_fullscreen.modified = false;
+		}
+
+		fullscreen = fullscreen && device.isFullScreenSupported();
+        
+		if (oldDisplayMode == null) {
+			oldDisplayMode = device.getDisplayMode();
+		}
+		        
+		if (fullscreen) {
+			
+			DisplayMode displayMode = findDisplayMode(newDim, oldDisplayMode.getBitDepth(), oldDisplayMode.getRefreshRate());
+			
+			if (displayMode != null) {
+				newDim.width = displayMode.getWidth();
+				newDim.height = displayMode.getHeight();
+				window.setUndecorated(true);
+				window.setResizable(false);
+				device.setFullScreenWindow(window);
+				device.setDisplayMode(displayMode);
+				window.setLocation(0, 0);
+				window.setSize(displayMode.getWidth(), displayMode.getHeight());
+				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
+				ri.Con_Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
+			}
+		} else {
+			window.setLocation(window_xpos, window_ypos);
+			window.pack();
+			window.setResizable(false);
+			window.setVisible(true);
+		}
+		
+		while (!canvas.isDisplayable()) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {}
+		}
 		canvas.requestFocus();
 		
 		this.canvas = canvas;
@@ -153,6 +201,38 @@ public class Impl extends Misc implements GLEventListener {
 		ri.Vid_NewWindow(vid.width, vid.height);
 
 		return rserr_ok;
+	}
+	
+	DisplayMode findDisplayMode(Dimension dim, int depth, int rate) {
+		DisplayMode mode = null;
+		DisplayMode m = null;
+		DisplayMode[] modes = device.getDisplayModes();
+		int w = dim.width;
+		int h = dim.height;
+		
+		for (int i = 0; i < modes.length; i++) {
+			m = modes[i];
+			if (m.getWidth() == w && m.getHeight() == h && m.getBitDepth() == depth && m.getRefreshRate() == rate) {
+				mode = m;
+				break;
+			}
+		}
+		if (mode == null) mode = oldDisplayMode;
+		Com.Printf(getModeString(mode) + '\n');
+		return mode;		
+	}
+	
+	String getModeString(DisplayMode m) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(m.getWidth());
+		sb.append('x');
+		sb.append(m.getHeight());
+		sb.append('x');
+		sb.append(m.getBitDepth());
+		sb.append('@');
+		sb.append(m.getRefreshRate());
+		sb.append("Hz");
+		return sb.toString();
 	}
 
 	void GLimp_BeginFrame(float camera_separation) {
@@ -180,11 +260,19 @@ public class Impl extends Misc implements GLEventListener {
 	}
 
 	void GLimp_Shutdown() {
+		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
+			try {
+				device.setDisplayMode(oldDisplayMode);
+				device.setFullScreenWindow(null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		if (this.window != null) {
 			window.dispose();
 		}
 		post_init = false;
-		switchToCallback = false;
+		callback = INIT_CALLBACK;
 	}
 
 	void GLimp_EnableLogging(boolean enable) {
@@ -221,31 +309,8 @@ public class Impl extends Misc implements GLEventListener {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
 		
-		this.contextInUse = true;
-
-		if (switchToCallback) {
-			callback.execute();
-		}
-		else
-		{
-
-			// after the first run (initialization) switch to callback
-			switchToCallback = true;
-
-			// clear the screen
-			gl.glClearColor(0, 0, 0, 0);
-			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-			//
-			// check the post init process
-			//
-			if (!post_init) {
-				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init JOGL renderer");
-			}
-
-			GLimp_EndFrame();
-		}
-		
+		contextInUse = true;
+		callback.execute();
 		contextInUse = false;
 	}
 
@@ -260,20 +325,18 @@ public class Impl extends Misc implements GLEventListener {
 	* @see net.java.games.jogl.GLEventListener#reshape(net.java.games.jogl.GLDrawable, int, int, int, int)
 	*/
 	public void reshape(GLDrawable drawable, int x, int y, int width, int height) {
-
-		vid.height = height;
-		vid.width = width;
-
-		ri.Vid_NewWindow(width, height);
+		// do nothing
 	}
 
 	/* 
 	 * @see jake2.client.refexport_t#updateScreen()
 	 */
+	public void updateScreen() {
+		this.callback = INIT_CALLBACK;
+		canvas.display();
+	}
+	
 	public void updateScreen(xcommand_t callback) {
-//		if (canvas == null) {
-//			throw new IllegalStateException("Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
-//		}
 		this.callback = callback;
 		canvas.display();
 	}

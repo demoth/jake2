@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.8 2004-02-05 21:32:41 rst Exp $
+ * $Id: Misc.java,v 1.9 2004-06-28 13:03:30 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,9 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import net.java.games.jogl.GL;
-
 import jake2.Defines;
+import net.java.games.jogl.GL;
+import net.java.games.jogl.WGL;
 
 /**
  * Misc
@@ -249,13 +249,11 @@ public abstract class Misc extends Mesh {
 		if ( gl_swapinterval.modified )
 		{
 			gl_swapinterval.modified = false;
-
 			if ( !gl_state.stereo_enabled ) 
 			{
-//	#ifdef _WIN32
-//				if ( qwglSwapIntervalEXT )
-//					qwglSwapIntervalEXT( gl_swapinterval->value );
-//	#endif
+				if (qwglSwapIntervalEXT) {
+					((WGL)gl).wglSwapIntervalEXT((int)gl_swapinterval.value);
+				}
 			}
 		}
 	}
