@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.28 2004-02-11 17:28:48 cwei Exp $
+ * $Id: Main.java,v 1.29 2004-02-13 13:51:43 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -514,7 +514,8 @@ public abstract class Main extends Base {
 			else
 				scale = 1 + scale * 0.004f;
 
-			color = d_8to24table[p.color];
+			// TODO bugfix hack cwei
+			color = d_8to24table[p.color & 0xFF];
 
 			gl.glColor4ub(
 				(byte) ((color >> 0) & 0xff),
