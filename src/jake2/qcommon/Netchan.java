@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.10 2004-01-30 09:24:20 hoz Exp $
+ * $Id: Netchan.java,v 1.11 2004-01-30 13:06:28 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.game.*;
 import jake2.render.*;
 import jake2.server.*;
 import jake2.sys.NET;
+import jake2.sys.Sys;
 import jake2.util.Lib;
 
 /**
@@ -46,7 +47,7 @@ public final class Netchan extends SV_MAIN {
 		long port;
 
 		// pick a port value that should be nice and random
-		port = System.currentTimeMillis() & 0xffff;
+		port = Sys.Milliseconds() & 0xffff;
 
 		showpackets = Cvar.Get("showpackets", "0", 0);
 		showdrop = Cvar.Get("showdrop", "0", 0);
@@ -125,7 +126,7 @@ public final class Netchan extends SV_MAIN {
 		long port;
 
 		// pick a port value that should be nice and random
-		port = System.currentTimeMillis() & 0xffff;
+		port = Sys.Milliseconds() & 0xffff;
 
 		showpackets = Cvar.Get("showpackets", "0", 0);
 		showdrop = Cvar.Get("showdrop", "0", 0);

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.9 2004-01-30 09:24:20 hoz Exp $
+ * $Id: Menu.java,v 1.10 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,7 +69,7 @@ public final class Menu extends Key {
 
 	public final static int MAX_MENU_DEPTH = 8;
 
-	public class menulayer_t {
+	public static class menulayer_t {
 		xcommand_t draw;
 		keyfunc_t key;
 	}
@@ -365,6 +365,10 @@ public final class Menu extends Key {
 		//char	cursorname[80];
 		String cursorname;
 
+		assert (f >= 0) : "negative time and cursor bug";
+		
+		f = Math.abs(f);
+		
 		if (!cached) {
 			int i;
 
@@ -465,7 +469,7 @@ public final class Menu extends Key {
 		litname = names[m_main_cursor] + "_sel";
 		Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
-		DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11, ((int) (Globals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
+		DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11, (int)((Globals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
 
 		Globals.re.DrawGetPicSize(dim, "m_main_plaque");
 		w = dim.width;
@@ -4335,6 +4339,11 @@ public final class Menu extends Key {
 		Cmd.AddCommand("menu_options", Menu_Options);
 		Cmd.AddCommand("menu_keys", Menu_Keys);
 		Cmd.AddCommand("menu_quit", Menu_Quit);
+		
+		for (int i = 0; i < m_layers.length; i++)
+		{
+			m_layers[i] = new menulayer_t();			
+		}
 	}
 
 	/*

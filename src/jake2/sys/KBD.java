@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.7 2004-01-12 21:52:52 hoz Exp $
+ * $Id: KBD.java,v 1.8 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -211,7 +211,7 @@ public final class KBD {
 	static void Do_Key_Event(int key, boolean down) {
 		// TODO remove hard wired mouse toggle
 		if (down && key == 't') IN.toggleMouse();
-		Key.Event(key, down, System.currentTimeMillis());
+		Key.Event(key, down, Sys.Milliseconds());
 	}
 	
 	static void centerMouse() {

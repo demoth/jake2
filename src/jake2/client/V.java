@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.8 2004-01-29 17:59:38 hoz Exp $
+ * $Id: V.java,v 1.9 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.sys.Sys;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
@@ -298,7 +299,7 @@ public final class V extends Globals {
 
 		if (cl_timedemo.value != 0.0f) {
 			if (cl.timedemo_start == 0)
-				cl.timedemo_start = System.currentTimeMillis();
+				cl.timedemo_start = Sys.Milliseconds();
 			cl.timedemo_frames++;
 		}
 

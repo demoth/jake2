@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.13 2004-01-28 14:42:58 hoz Exp $
+ * $Id: Sys.java,v 1.14 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -290,7 +290,7 @@ public final class Sys extends Defines {
 		KBD.Update();
  
 		// grab frame time 
-		Globals.sys_frame_time = System.currentTimeMillis();
+		Globals.sys_frame_time = Sys.Milliseconds();
 	}
 
 	public static game_export_t GetGameAPI(game_import_t gimport)

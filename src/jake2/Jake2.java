@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.9 2004-01-18 10:39:34 rst Exp $
+ * $Id: Jake2.java,v 1.10 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.logging.*;
 
 import jake2.qcommon.*;
+import jake2.sys.Sys;
 
 /**
  * Jake2 is the main class of Quake2 for Java.
@@ -37,7 +38,7 @@ public final class Jake2 {
 
 	// R I S K Y   C O D E   D A T A B A S E
 	// ------------------------------------- 
-	// (mögliche Fehlerursachen für späteres Debuggen)
+	// (m?gliche Fehlerursachen f?r sp?teres Debuggen)
 	// - sicherstellen, dass svs.clients richtig durchnummeriert wird (client_t.serverindex) 
 	// - sicherstellen, dass SV_GAME.ge.edicts richtig durchnummeriert wird (ent.s.number der richtige index ?)
 	// - CM_DecompressVis() richtig portiert ?
@@ -87,12 +88,12 @@ public final class Jake2 {
 
 		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
 
-		long oldtime = System.currentTimeMillis();
+		long oldtime = Sys.Milliseconds();
 		long newtime;
 		long time;
 		while (true) {
 			// find time spending rendering last frame
-			newtime = System.currentTimeMillis();
+			newtime = Sys.Milliseconds();
 			time = newtime - oldtime;
 
 			if (time > 0)

@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.7 2004-01-30 09:24:20 hoz Exp $
+ * $Id: CL_main.java,v 1.8 2004-01-30 13:05:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1602,7 +1602,7 @@ public class CL_main extends CL_pred {
 	*/
 	public static void InitLocal() {
 		cls.state = Defines.ca_disconnected;
-		cls.realtime = System.currentTimeMillis();
+		cls.realtime = Sys.Milliseconds();
 
 		InitInput();
 
@@ -1895,7 +1895,7 @@ public class CL_main extends CL_pred {
 
 		// if in the debugger last frame, don't timeout
 		if (msec > 5000)
-			cls.netchan.last_received = (int)System.currentTimeMillis();
+			cls.netchan.last_received = (int)Sys.Milliseconds();
 
 		// fetch results from server
 		CL.ReadPackets();

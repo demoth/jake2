@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.12 2004-01-17 20:34:46 rst Exp $
+ * $Id: Qcommon.java,v 1.13 2004-01-30 13:05:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -200,17 +200,17 @@ public final class Qcommon {
 			long time_after= 0;
 
 			if (Globals.host_speeds.value != 0.0f)
-				time_before= System.currentTimeMillis();
+				time_before= Sys.Milliseconds();
 
 			SV_MAIN.SV_Frame(msec);
 
 			if (Globals.host_speeds.value != 0.0f)
-				time_between= System.currentTimeMillis();
+				time_between= Sys.Milliseconds();
 
 			CL.Frame(msec);
 
 			if (Globals.host_speeds.value != 0.0f) {
-				time_after= System.currentTimeMillis();
+				time_after= Sys.Milliseconds();
 
 				long all= time_after - time_before;
 				long sv= time_between - time_before;
