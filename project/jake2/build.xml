@@ -116,6 +116,7 @@
 				<include name="src/jake2/**"/>
 				<include name="lib/**"/>
 				<include name="build.xml"/>
+				<include name="build.bat"/>
 			</tarfileset>
 		</tar>
 		<zip destfile="jake2-src.zip">
@@ -125,6 +126,7 @@
 				<include name="lib/**"/>
 				<include name="build.xml"/>
 				<include name="build.sh"/>
+				<include name="build.bat"/>
 			</zipfileset>
 		</zip>
 	</target>
