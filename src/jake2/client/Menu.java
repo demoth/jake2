@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.1 2004-01-25 13:26:06 hoz Exp $
+ * $Id: Menu.java,v 1.2 2004-01-25 14:11:05 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,29 +25,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.game.Cmd;
+import jake2.qcommon.xcommand_t;
+
 /**
  * Menu
+ * TODO implement Menu
  */
 public final class Menu {
-//	/*
-//	Copyright (C) 1997-2001 Id Software, Inc.
-//
-//	This program is free software; you can redistribute it and/or
-//	modify it under the terms of the GNU General Public License
-//	as published by the Free Software Foundation; either version 2
-//	of the License, or (at your option) any later version.
-//
-//	This program is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-//
-//	See the GNU General Public License for more details.
-//
-//	You should have received a copy of the GNU General Public License
-//	along with this program; if not, write to the Free Software
-//	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-//	*/
+
 //	#include <ctype.h>
 //	#ifdef _WIN32
 //	#include <io.h>
@@ -63,24 +49,7 @@ public final class Menu {
 //	static char *menu_move_sound	= "misc/menu2.wav";
 //	static char *menu_out_sound		= "misc/menu3.wav";
 //
-//	void M_Menu_Main_f (void);
-//		void M_Menu_Game_f (void);
-//			void M_Menu_LoadGame_f (void);
-//			void M_Menu_SaveGame_f (void);
-//			void M_Menu_PlayerConfig_f (void);
-//				void M_Menu_DownloadOptions_f (void);
-//			void M_Menu_Credits_f( void );
-//		void M_Menu_Multiplayer_f( void );
-//			void M_Menu_JoinServer_f (void);
-//				void M_Menu_AddressBook_f( void );
-//			void M_Menu_StartServer_f (void);
-//				void M_Menu_DMOptions_f (void);
-//		void M_Menu_Video_f (void);
-//		void M_Menu_Options_f (void);
-//			void M_Menu_Keys_f (void);
-//		void M_Menu_Quit_f (void);
-//
-//		void M_Menu_Credits( void );
+
 //
 //	qboolean	m_entersound;		// play after drawing a frame, so caching
 //									// won't disrupt the sound
@@ -145,15 +114,14 @@ public final class Menu {
 //		cls.key_dest = key_menu;
 //	}
 //
-//	void M_ForceMenuOff (void)
-//	{
+	static void ForceMenuOff() {
 //		m_drawfunc = 0;
 //		m_keyfunc = 0;
 //		cls.key_dest = key_game;
 //		m_menudepth = 0;
 //		Key_ClearStates ();
 //		Cvar_Set ("paused", "0");
-//	}
+	}
 //
 //	void M_PopMenu (void)
 //	{
@@ -516,10 +484,14 @@ public final class Menu {
 //	}
 //
 //
-//	void M_Menu_Main_f (void)
-//	{
+	static xcommand_t Menu_Main = new xcommand_t() {
+		public void execute() {
+			Menu_Main_f();
+		}
+	};
+	static void Menu_Main_f() {
 //		M_PushMenu (M_Main_Draw, M_Main_Key);
-//	}
+	}
 //
 //	/*
 //	=======================================================================
@@ -596,11 +568,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_multiplayer_menu, key );
 //	}
 //
-//	void M_Menu_Multiplayer_f( void )
-//	{
+	static xcommand_t Menu_Multiplayer = new xcommand_t() {
+		public void execute() {
+			Menu_Multiplayer_f();
+		}
+	};
+	static void Menu_Multiplayer_f() {
 //		Multiplayer_MenuInit();
 //		M_PushMenu( Multiplayer_MenuDraw, Multiplayer_MenuKey );
-//	}
+	}
 //
 //	/*
 //	=======================================================================
@@ -1842,8 +1818,12 @@ public final class Menu {
 //
 //	extern int Developer_searchpath (int who);
 //
-//	void M_Menu_Credits_f( void )
-//	{
+	static xcommand_t Menu_Credits = new xcommand_t() {
+		public void execute() {
+			Menu_Credits_f();
+		}
+	};
+	static void Menu_Credits_f() {
 //		int		n;
 //		int		count;
 //		char	*p;
@@ -1893,7 +1873,7 @@ public final class Menu {
 //
 //		credits_start_time = cls.realtime;
 //		M_PushMenu( M_Credits_MenuDraw, M_Credits_Key);
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -2042,12 +2022,16 @@ public final class Menu {
 //		return Default_MenuKey( &s_game_menu, key );
 //	}
 //
-//	void M_Menu_Game_f (void)
-//	{
+	static xcommand_t Menu_Game = new xcommand_t() {
+		public void execute() {
+			Menu_Game_f();
+		}
+	};
+	static void Menu_Game_f() {
 //		Game_MenuInit();
 //		M_PushMenu( Game_MenuDraw, Game_MenuKey );
 //		m_game_cursor = 1;
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -2146,11 +2130,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_loadgame_menu, key );
 //	}
 //
-//	void M_Menu_LoadGame_f (void)
-//	{
+	static xcommand_t Menu_LoadGame = new xcommand_t() {
+		public void execute() {
+			Menu_LoadGame_f();
+		}
+	};
+	static void Menu_LoadGame_f() {
 //		LoadGame_MenuInit();
 //		M_PushMenu( LoadGame_MenuDraw, LoadGame_MenuKey );
-//	}
+	}
 //
 //
 //	/*
@@ -2216,15 +2204,19 @@ public final class Menu {
 //		return Default_MenuKey( &s_savegame_menu, key );
 //	}
 //
-//	void M_Menu_SaveGame_f (void)
-//	{
+	static xcommand_t Menu_SaveGame = new xcommand_t() {
+		public void execute() {
+			Menu_SaveGame_f();
+		}
+	};
+	static void Menu_SaveGame_f() {
 //		if (!Com_ServerState())
 //			return;		// not playing a game
 //
 //		SaveGame_MenuInit();
 //		M_PushMenu( SaveGame_MenuDraw, SaveGame_MenuKey );
 //		Create_Savestrings ();
-//	}
+	}
 //
 //
 //	/*
@@ -2386,11 +2378,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_joinserver_menu, key );
 //	}
 //
-//	void M_Menu_JoinServer_f (void)
-//	{
+	static xcommand_t Menu_JoinServer = new xcommand_t() {
+		public void execute() {
+			Menu_JoinServer_f();
+		}
+	};
+	static void Menu_JoinServer_f() {
 //		JoinServer_MenuInit();
 //		M_PushMenu( JoinServer_MenuDraw, JoinServer_MenuKey );
-//	}
+	}
 //
 //
 //	/*
@@ -2757,11 +2753,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_startserver_menu, key );
 //	}
 //
-//	void M_Menu_StartServer_f (void)
-//	{
+	static xcommand_t Menu_StartServer = new xcommand_t() {
+		public void execute() {
+			Menu_StartServer_f();
+		}
+	};
+	static void Menu_StartServer_f() {
 //		StartServer_MenuInit();
 //		M_PushMenu( StartServer_MenuDraw, StartServer_MenuKey );
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -3160,11 +3160,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_dmoptions_menu, key );
 //	}
 //
-//	void M_Menu_DMOptions_f (void)
-//	{
+	static xcommand_t Menu_DMOptions = new xcommand_t() {
+		public void execute() {
+			Menu_DMOptions_f();
+		}
+	};
+	static void Menu_DMOptions_f() {
 //		DMOptions_MenuInit();
 //		M_PushMenu( DMOptions_MenuDraw, DMOptions_MenuKey );
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -3292,11 +3296,15 @@ public final class Menu {
 //		return Default_MenuKey( &s_downloadoptions_menu, key );
 //	}
 //
-//	void M_Menu_DownloadOptions_f (void)
-//	{
+	static xcommand_t Menu_DownloadOptions = new xcommand_t() {
+		public void execute() {
+			Menu_DownloadOptions_f();
+		}
+	};
+	static void Menu_DownloadOptions_f() {
 //		DownloadOptions_MenuInit();
 //		M_PushMenu( DownloadOptions_MenuDraw, DownloadOptions_MenuKey );
-//	}
+	}
 //	/*
 //	=============================================================================
 //
@@ -3364,11 +3372,15 @@ public final class Menu {
 //		Menu_Draw( &s_addressbook_menu );
 //	}
 //
-//	void M_Menu_AddressBook_f(void)
-//	{
+	static xcommand_t Menu_AddressBook = new xcommand_t() {
+		public void execute() {
+			Menu_AddressBook_f();
+		}
+	};
+	static void Menu_AddressBook_f() {
 //		AddressBook_MenuInit();
 //		M_PushMenu( AddressBook_MenuDraw, AddressBook_MenuKey );
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -3883,8 +3895,12 @@ public final class Menu {
 //	}
 //
 //
-//	void M_Menu_PlayerConfig_f (void)
-//	{
+	static xcommand_t Menu_PlayerConfig = new xcommand_t() {
+		public void execute() {
+			Menu_PlayerConfig_f();
+		}
+	};
+	static void Menu_PlayerConfig_f() {
 //		if (!PlayerConfig_MenuInit())
 //		{
 //			Menu_SetStatusBar( &s_multiplayer_menu, "No valid player models found" );
@@ -3892,7 +3908,7 @@ public final class Menu {
 //		}
 //		Menu_SetStatusBar( &s_multiplayer_menu, NULL );
 //		M_PushMenu( PlayerConfig_MenuDraw, PlayerConfig_MenuKey );
-//	}
+	}
 //
 //
 //	/*
@@ -3965,30 +3981,27 @@ public final class Menu {
 //	/* Menu Subsystem */
 //
 //
-//	/*
-//	=================
-//	M_Init
-//	=================
-//	*/
-//	void M_Init (void)
-//	{
-//		Cmd_AddCommand ("menu_main", M_Menu_Main_f);
-//		Cmd_AddCommand ("menu_game", M_Menu_Game_f);
-//			Cmd_AddCommand ("menu_loadgame", M_Menu_LoadGame_f);
-//			Cmd_AddCommand ("menu_savegame", M_Menu_SaveGame_f);
-//			Cmd_AddCommand ("menu_joinserver", M_Menu_JoinServer_f);
-//				Cmd_AddCommand ("menu_addressbook", M_Menu_AddressBook_f);
-//			Cmd_AddCommand ("menu_startserver", M_Menu_StartServer_f);
-//				Cmd_AddCommand ("menu_dmoptions", M_Menu_DMOptions_f);
-//			Cmd_AddCommand ("menu_playerconfig", M_Menu_PlayerConfig_f);
-//				Cmd_AddCommand ("menu_downloadoptions", M_Menu_DownloadOptions_f);
-//			Cmd_AddCommand ("menu_credits", M_Menu_Credits_f );
-//		Cmd_AddCommand ("menu_multiplayer", M_Menu_Multiplayer_f );
+	/**
+	 * Init
+	 */
+	public static void Init() {
+		Cmd.AddCommand("menu_main", Menu_Main);
+		Cmd.AddCommand("menu_game", Menu_Game);
+		Cmd.AddCommand("menu_loadgame", Menu_LoadGame);
+		Cmd.AddCommand("menu_savegame", Menu_SaveGame);
+		Cmd.AddCommand("menu_joinserver", Menu_JoinServer);
+		Cmd.AddCommand("menu_addressbook", Menu_AddressBook);
+		Cmd.AddCommand("menu_startserver", Menu_StartServer);
+		Cmd.AddCommand("menu_dmoptions", Menu_DMOptions);
+		Cmd.AddCommand("menu_playerconfig", Menu_PlayerConfig);
+		Cmd.AddCommand("menu_downloadoptions", Menu_DownloadOptions);
+		Cmd.AddCommand("menu_credits", Menu_Credits);
+		Cmd.AddCommand("menu_multiplayer", Menu_Multiplayer);
 //		Cmd_AddCommand ("menu_video", M_Menu_Video_f);
 //		Cmd_AddCommand ("menu_options", M_Menu_Options_f);
 //			Cmd_AddCommand ("menu_keys", M_Menu_Keys_f);
 //		Cmd_AddCommand ("menu_quit", M_Menu_Quit_f);
-//	}
+	}
 //
 //
 //	/*
@@ -4028,38 +4041,12 @@ public final class Menu {
 //	M_Keydown
 //	=================
 //	*/
-//	void M_Keydown (int key)
-//	{
+	static void Keydown(int key) {
 //		const char *s;
 //
 //		if (m_keyfunc)
 //			if ( ( s = m_keyfunc( key ) ) != 0 )
 //				S_StartLocalSound( ( char * ) s );
-//	}
-//
-//
-
-	public static void Init() {
 	}
 
-	public static void ForceMenuOff() {
-//	00119         m_drawfunc = 0;
-//	00120         m_keyfunc = 0;
-//	00121         cls.key_dest = key_game;
-//	00122         m_menudepth = 0;
-//	00123         Key_ClearStates ();
-//	00124         Cvar_Set ("paused", "0");
-	}
-
-		public static void Menu_Main_f() {
-	//	00490         M_PushMenu (M_Main_Draw, M_Main_Key);
-		}
-
-			public static void Keydown(int key) {
-		//	04002         const char *s;
-		//	04003 
-		//	04004         if (m_keyfunc)
-		//	04005                 if ( ( s = m_keyfunc( key ) ) != 0 )
-		//	04006                         S_StartLocalSound( ( char * ) s );
-			}
 }

@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.17 2004-01-25 13:26:06 hoz Exp $
+ * $Id: Key.java,v 1.18 2004-01-25 14:11:05 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -726,7 +726,6 @@ public final class Key {
 		Globals.keybindings[keynum] = null;
 		
 		Globals.keybindings[keynum] = binding; 
-		System.out.println("bound: " + binding);
 	}
 	
 	static xcommand_t Unbind_f = new xcommand_t() {
