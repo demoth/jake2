@@ -19,12 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: particle_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: particle_t.java,v 1.3 2004-01-05 23:34:25 cwei Exp $
 
 package jake2.client;
 
 public class particle_t {
-	float	origin[] ={0,0,0};
-	int		color;
-	float	alpha;
+	public float origin[] = { 0, 0, 0 };
+	public int color;
+	public float alpha;
 }
