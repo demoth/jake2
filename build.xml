@@ -224,6 +224,8 @@
 		</jar>
 		<jar destfile="webstart/lib/linux/joal-native.jar" basedir="${dist}/lib/linux">
 			<include name="libjoal.so"/>
+		</jar>
+		<jar destfile="webstart/lib/linux/openal.jar" basedir="${dist}/lib/linux">
 			<include name="libopenal.so"/>
 		</jar>
 		<jar destfile="webstart/lib/osx/joal-native.jar" basedir="${dist}/lib/osx">

@@ -28,7 +28,7 @@
 		<j2se version="1.4+" max-heap-size="128M"/>
 		<jar href="http://jake2.sourceforge.net/lib/patch.jar"/>
 		<jar href="http://jake2.sourceforge.net/lib/linux/joal.jar"/>
-		<jar href="http://jake2.sourceforge.net/lib/linux/joal-native.jar"/>
+		<jar href="http://jake2.sourceforge.net/lib/linux/openal.jar"/>
 		<nativelib href="http://jake2.sourceforge.net/lib/linux/joal-native.jar"/>
 	</resources>
 	
