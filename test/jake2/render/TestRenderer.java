@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.17 2004-01-11 13:21:40 hoz Exp $
+ * $Id: TestRenderer.java,v 1.18 2004-01-11 14:51:04 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -149,7 +149,11 @@ public class TestRenderer {
 			}
 		};
 
-		//Class.forName("jake2.render.JoglRenderer");
+
+		Qcommon.Init(new String[] {"TestRenderer"});
+		// sehr wichtig !!!
+		VID.Shutdown();
+
 		String[] names = Renderer.getDriverNames();
 		System.out.println("Registered Drivers: " + Arrays.asList(names));
 
@@ -157,9 +161,7 @@ public class TestRenderer {
 
 		System.out.println("Use driver: " + re);
 		System.out.println();
-				
-		Qcommon.Init(new String[] {"TestRenderer"});
-
+		
 		re.Init();
 	}
 
