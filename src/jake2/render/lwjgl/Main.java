@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.4 2005-01-18 00:26:21 cawe Exp $
+ * $Id: Main.java,v 1.5 2005-01-21 22:25:23 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1000,7 +1000,7 @@ public abstract class Main extends Base {
 
 		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", Globals.CVAR_ARCHIVE);
 		vid_gamma = Cvar.Get("vid_gamma", "1.0", Globals.CVAR_ARCHIVE);
-		vid_ref = Cvar.Get("vid_ref", "fastjogl", Globals.CVAR_ARCHIVE);
+		vid_ref = Cvar.Get("vid_ref", "lwjgl", Globals.CVAR_ARCHIVE);
 
 		Cmd.AddCommand("imagelist", new xcommand_t() {
 			public void execute() {
@@ -1322,7 +1322,7 @@ public abstract class Main extends Base {
 			// FIXME: only restart if CDS is required
 			cvar_t ref;
 
-			ref = Cvar.Get("vid_ref", "fastjogl", 0);
+			ref = Cvar.Get("vid_ref", "lwjgl", 0);
 			ref.modified = true;
 		}
 
