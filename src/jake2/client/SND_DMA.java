@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.8 2004-02-11 09:31:32 hoz Exp $
+ * $Id: SND_DMA.java,v 1.9 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -249,7 +249,7 @@ S.SoundInfo_f();
 		if (name.length() == 0)
 			Com.Error(ERR_FATAL, "S_FindName: empty name\n");
 
-		if (strlen(name) >= MAX_QPATH)
+		if (name.length() >= MAX_QPATH)
 			Com.Error(ERR_FATAL, "Sound name too long: " + name);
 
 		// see if already loaded

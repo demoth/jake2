@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.35 2004-02-16 20:26:38 rst Exp $
+ * $Id: SCR.java,v 1.36 2004-02-21 12:07:01 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -86,6 +86,7 @@ public final class SCR extends Globals {
 	static cvar_t scr_graphscale;
 	static cvar_t scr_graphshift;
 	static cvar_t scr_drawall;
+	static cvar_t fps;
 
 	static dirty_t scr_dirty = new dirty_t();
 	static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t() };
@@ -428,6 +429,7 @@ public final class SCR extends Globals {
 		scr_graphscale = Cvar.Get ("graphscale", "1", 0);
 		scr_graphshift = Cvar.Get ("graphshift", "0", 0);
 		scr_drawall = Cvar.Get ("scr_drawall", "1", 0);
+		fps = Cvar.Get("fps", "0", 0);
 
 		//
 		// register our commands
@@ -1346,6 +1348,8 @@ public final class SCR extends Globals {
 
 				DrawNet();
 				CheckDrawCenterString();
+				DrawFPS();
+				
 //
 //				if (scr_timegraph->value)
 //					SCR_DebugGraph (cls.frametime*300, 0);
@@ -1362,6 +1366,7 @@ public final class SCR extends Globals {
 				DrawLoading();
 			}
 		}
+		
 		Globals.re.EndFrame();
 	}
 
@@ -1416,5 +1421,24 @@ public final class SCR extends Globals {
 		// tell the server to advance to the next map / cinematic
 		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
 		SZ.Print(cls.netchan.message, "nextserver " + cl.servercount + '\n');
+	}
+	
+	private static int lastframes = 0;
+	private static int lasttime = 0;
+	private static String fpsvalue = "";
+	static void DrawFPS() {
+		if (fps.value != 0.0f) {
+			int diff = cls.realtime - lasttime;
+			if (diff > 5000) {
+				fpsvalue = (cls.framecount-lastframes)*100000/diff/100.0f + " fps";
+				lastframes = cls.framecount;
+				lasttime = cls.realtime;
+			}
+			int x = viddef.width - 8*fpsvalue.length() - 2;
+			for (int i = 0; i < fpsvalue.length(); i++) {
+				re.DrawChar(x, 2, fpsvalue.charAt(i));
+				x+=8;  
+			}
+		}
 	}
 }

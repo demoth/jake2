@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.23 2004-02-15 00:58:00 rst Exp $
+ * $Id: Qcommon.java,v 1.24 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,6 +43,9 @@ import java.io.IOException;
  */
 public final class Qcommon extends Globals {
 
+	public static final String BUILDSTRING = "Java";
+	public static final String CPUSTRING = "jvm";
+	
 	/**
 	 * This function initializes the different subsystems of
 		 * the game engine. The setjmp/longjmp mechanism of the original
@@ -98,9 +101,9 @@ public final class Qcommon extends Globals {
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
 						.add(Globals.VERSION)
-						.add(Globals.CPUSTRING)
+						.add(CPUSTRING)
 						.add(Globals.__DATE__)
-						.add(Globals.BUILDSTRING));
+						.add(BUILDSTRING));
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
@@ -183,9 +186,9 @@ public final class Qcommon extends Globals {
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
 						.add(Globals.VERSION)
-						.add(Globals.CPUSTRING)
+						.add(CPUSTRING)
 						.add(Globals.__DATE__)
-						.add(Globals.BUILDSTRING));
+						.add(BUILDSTRING));
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
@@ -311,5 +314,6 @@ public final class Qcommon extends Globals {
 		} catch (longjmpException e) {
 		}
 	}
+
 
 }

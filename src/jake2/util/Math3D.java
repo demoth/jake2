@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.18 2004-02-14 13:24:02 rst Exp $
+// $Id: Math3D.java,v 1.19 2004-02-21 12:07:01 hoz Exp $
 
 package jake2.util;
 
@@ -29,10 +29,12 @@ import jake2.qcommon.Com;
 
 public class Math3D extends Lib {
 	
-	public static void set(float v1[], float v2[])
-	{
-		for (int i=0; i < v1.length; i++)
-			v1[i]=v2[i];
+	static final float shortratio = 360.0f / 65536.0f;
+	static final float piratio = (float)(Math.PI / 360.0);
+	
+	public static void set(float v1[], float v2[]) {
+		for (int i = 0; i < v1.length; i++)
+			v1[i] = v2[i];
 	}
 		 
 
@@ -265,7 +267,7 @@ public class Math3D extends Lib {
 	
 
 	public static float SHORT2ANGLE(int x) {
-		return ((x) * (360.0f / 65536));
+		return (x * shortratio);
 	}
 
 	/*
@@ -450,13 +452,13 @@ public class Math3D extends Lib {
 		float angle;
 		float sr, sp, sy, cr, cp, cy;
 
-		angle = (float) (angles[Defines.YAW] * (Math.PI * 2 / 360));
+		angle = (float) (angles[Defines.YAW] * (2.0f * piratio));
 		sy = (float) Math.sin(angle);
 		cy = (float) Math.cos(angle);
-		angle = (float) (angles[Defines.PITCH] * (Math.PI * 2 / 360));
+		angle = (float) (angles[Defines.PITCH] * (2.0f * piratio));
 		sp = (float) Math.sin(angle);
 		cp = (float) Math.cos(angle);
-		angle = (float) (angles[Defines.ROLL] * (Math.PI * 2 / 360));
+		angle = (float) (angles[Defines.ROLL] * (2.0f * piratio));
 		sr = (float) Math.sin(angle);
 		cr = (float) Math.cos(angle);
 
@@ -481,11 +483,16 @@ public class Math3D extends Lib {
 		m[0][0] = m[0][1] = m[0][2] = m[1][0] = m[1][1] = m[1][2] = m[2][0] = m[2][1] = m[2][2] = 0.0f;
 	}
 
-	public static final void MatCopy(float src[][], float dst[][]) {
-		for (int i = 0; i < 3; i++)
-		{
-			VectorCopy(src[i], dst[i]);
-		}
+	private static final void MatCopy(float src[][], float dst[][]) {
+		dst[0][0]=src[0][0];
+		dst[0][1]=src[0][1];
+		dst[0][2]=src[0][2];
+		dst[1][0]=src[1][0];
+		dst[1][1]=src[1][1];
+		dst[1][2]=src[1][2];
+		dst[2][0]=src[2][0];
+		dst[2][1]=src[2][1];
+		dst[2][2]=src[2][2];
 	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
@@ -526,13 +533,13 @@ public class Math3D extends Lib {
 
 
 	public static float anglemod(float a) {
-		return (float) (360.0f / 65536) * ((int) (a * (65536 / 360.0f)) & 65535);
+		return (float) (shortratio) * ((int) (a / (shortratio)) & 65535);
 	}
 
 
 
 	public static int ANGLE2SHORT(float x) {
-		return ((int) ((x) * 65536f / 360f) & 65535);
+		return ((int) ((x) / shortratio) & 65535);
 	}
 
 
@@ -553,11 +560,11 @@ public class Math3D extends Lib {
 		if (fov_x < 1.0f || fov_x > 179.0f)
 			Com.Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
 
-		x = width / Math.tan(fov_x / 360.0 * Math.PI);
+		x = width / Math.tan(fov_x * piratio);
 
 		a = Math.atan(height / x);
 
-		a = a * 360 / Math.PI;
+		a = a / piratio;
 
 		return (float)a;
 	}

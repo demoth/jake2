@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.32 2004-02-17 17:32:41 cwei Exp $
+ * $Id: CL.java,v 1.33 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -425,7 +425,7 @@ public final class CL extends CL_pred {
 			if (cls.state >= ca_connected)
 				to = cls.netchan.remote_address;
 			else {
-				if (strlen(rcon_address.string) == 0) {
+				if (rcon_address.string.length() == 0) {
 					Com.Printf(
 						"You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
 
@@ -1430,7 +1430,7 @@ public final class CL extends CL_pred {
 		int i;
 		cheatvar_t var;
 
-		if (0 == strcmp(cl.configstrings[CS_MAXCLIENTS], "1") || 0 == cl.configstrings[CS_MAXCLIENTS].length())
+		if ("1".equals(cl.configstrings[CS_MAXCLIENTS]) || 0 == cl.configstrings[CS_MAXCLIENTS].length())
 			return; // single player can cheat
 
 		// find all the cvars if we haven't done it yet
@@ -1444,7 +1444,7 @@ public final class CL extends CL_pred {
 		// make sure they are all set to the proper values
 		for (i = 0; i < numcheatvars; i++) {
 			var = cheatvars[i];
-			if (0 != strcmp(var.var.string, var.value)) {
+			if (!var.var.string.equals(var.value)) {
 				Cvar.Set(var.name, var.value);
 			}
 		}

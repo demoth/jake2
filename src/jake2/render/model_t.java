@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.13 2004-02-16 12:27:17 cwei Exp $
+// $Id: model_t.java,v 1.14 2004-02-21 12:07:01 hoz Exp $
 
 package jake2.render;
 
@@ -182,6 +182,7 @@ public class model_t implements Cloneable {
 		extradata = null;
 	}
 	
+	// TODO replace with set(model_t from)
 	public model_t copy() {
 		model_t theClone = null;
 		try

@@ -2,9 +2,14 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.46 2004-02-11 19:56:28 cwei Exp $
+ * $Id: Globals.java,v 1.47 2004-02-21 12:07:01 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.46  2004-02-11 19:56:28  cwei
+ * Revision 1.47  2004-02-21 12:07:01  hoz
+ * - fps display
+ * - replaced Lib functions
+ * - minor Math3D improvements
+ *
+ * Revision 1.46  2004/02/11 19:56:28  cwei
  * monster debug.
  *
  * Revision 1.45  2004/02/11 05:12:47  cwei
@@ -91,12 +96,16 @@ package jake2;
 
 import jake2.client.*;
 import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.qcommon.*;
 import jake2.qcommon.netadr_t;
 import jake2.qcommon.sizebuf_t;
 import jake2.render.model_t;
 
 import java.io.FileWriter;
 import java.io.RandomAccessFile;
+
+import java.util.Random;
 
 /**
  * Globals ist the collection of global variables and constants.
@@ -107,12 +116,6 @@ import java.io.RandomAccessFile;
  */
 public class Globals extends Defines {
 
-	/*
-	 * global constants
-	 */
-
-	public static final String BUILDSTRING = "Java";
-	public static final String CPUSTRING = "jvm";
 	public static final String __DATE__ = "2003";
 
 	public static final float VERSION = 3.21f;
@@ -466,4 +469,6 @@ public class Globals extends Defines {
 
 	public static cvar_t m_filter;
 	public static int vidref_val = VIDREF_GL;
+	
+	public static Random rnd = new Random();
 }

@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.12 2004-02-16 20:57:39 hoz Exp $
+ * $Id: CL_ents.java,v 1.13 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,9 +36,6 @@ import jake2.render.model_t;
 //	   cl_ents.c -- entity parsing and management
 public class CL_ents extends CL_inv {
 
-	//	  PGM
-	static int vidref_val;
-	//	  PGM
 
 	/*
 	=========================================================================
@@ -734,7 +731,8 @@ public class CL_ents extends CL_inv {
 			// tweak the color of beams
 			if ((renderfx & RF_BEAM)!=0) { // the four beam colors are encoded in 32 bits of skinnum (hack)
 				ent.alpha = 0.30f;
-				ent.skinnum = (s1.skinnum >> ((rand() % 4) * 8)) & 0xff;
+				ent.skinnum = (s1.skinnum >> ((rnd.nextInt(4)) * 8)) & 0xff;
+				Math.random();
 				ent.model = null;
 			}
 			else {
@@ -1012,7 +1010,7 @@ public class CL_ents extends CL_inv {
 				else if ((effects & EF_TRAP)!=0) {
 					ent.origin[2] += 32;
 					TrapParticles( ent);
-					i = (rand() % 100) + 100;
+					i = (rnd.nextInt(100)) + 100;
 					V.AddLight(ent.origin, i, 1, 0.8f, 0.1f);
 				}
 				else if ((effects & EF_FLAG1)!=0) {

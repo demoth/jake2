@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.12 2004-02-16 20:57:39 hoz Exp $
+ * $Id: CL_fx.java,v 1.13 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -125,7 +125,7 @@ public class CL_fx extends CL_tent {
 
 		s = cl.configstrings[i + CS_LIGHTS];
 
-		j = strlen(s);
+		j = s.length();
 		if (j >= MAX_QPATH)
 			Com.Error(ERR_DROP, "svc_lightstyle length=" + j);
 
@@ -288,9 +288,9 @@ public class CL_fx extends CL_tent {
 		VectorMA(dl.origin, 18, fv, dl.origin);
 		VectorMA(dl.origin, 16, rv, dl.origin);
 		if (silenced != 0)
-			dl.radius = 100 + (rand() & 31);
+			dl.radius = 100 + (rnd.nextInt() & 31);
 		else
-			dl.radius = 200 + (rand() & 31);
+			dl.radius = 200 + (rnd.nextInt() & 31);
 		dl.minlight = 32;
 		dl.die = cl.time; // + 0.1;
 
@@ -323,7 +323,7 @@ public class CL_fx extends CL_tent {
 				dl.color[1] = 1;
 				dl.color[2] = 0;
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0);
 				break;
 			case MZ_SHOTGUN :
@@ -340,41 +340,41 @@ public class CL_fx extends CL_tent {
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound("weapons/sshotf1b.wav"), volume, ATTN_NORM, 0);
 				break;
 			case MZ_CHAINGUN1 :
-				dl.radius = 200 + (rand() & 31);
+				dl.radius = 200 + (rnd.nextInt() & 31);
 				dl.color[0] = 1;
 				dl.color[1] = 0.25f;
 				dl.color[2] = 0;
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0);
 				break;
 			case MZ_CHAINGUN2 :
-				dl.radius = 225 + (rand() & 31);
+				dl.radius = 225 + (rnd.nextInt() & 31);
 				dl.color[0] = 1;
 				dl.color[1] = 0.5f;
 				dl.color[2] = 0;
 				dl.die = cl.time + 0.1f; // long delay
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0);
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0.05f);
 				break;
 			case MZ_CHAINGUN3 :
-				dl.radius = 250 + (rand() & 31);
+				dl.radius = 250 + (rnd.nextInt() & 31);
 				dl.color[0] = 1;
 				dl.color[1] = 1;
 				dl.color[2] = 0;
 				dl.die = cl.time + 0.1f; // long delay
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0);
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0.033f);
 				//Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%ib.wav", (rand() % 5) + 1);
-				soundname = "weapons/machgf" + ((rand() % 5) + 1) + "b.wav";
+				soundname = "weapons/machgf" + ((rnd.nextInt(5)) + 1) + "b.wav";
 				S.StartSound(null, i, CHAN_WEAPON, S.RegisterSound(soundname), volume, ATTN_NORM, 0.066f);
 				break;
 			case MZ_RAILGUN :
@@ -545,7 +545,7 @@ public class CL_fx extends CL_tent {
 
 		dl = CL.AllocDlight(ent);
 		VectorCopy(origin, dl.origin);
-		dl.radius = 200 + (rand() & 31);
+		dl.radius = 200 + (rnd.nextInt() & 31);
 		dl.minlight = 32;
 		dl.die = cl.time; // + 0.1;
 
@@ -729,7 +729,7 @@ public class CL_fx extends CL_tent {
 				CL.ParticleEffect(origin, vec3_origin, 0, 40);
 				CL.SmokeAndFlash(origin);
 				//Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav", 'a' + rand() % 5);
-				soundname = "tank/tnkatk2" + (char) ('a' + rand() % 5) + ".wav";
+				soundname = "tank/tnkatk2" + (char) ('a' + rnd.nextInt(5)) + ".wav";
 				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound(soundname), 1, ATTN_NORM, 0);
 				break;
 
@@ -938,7 +938,7 @@ public class CL_fx extends CL_tent {
 			case MZ2_WIDOW2_BEAM_SWEEP_9 :
 			case MZ2_WIDOW2_BEAM_SWEEP_10 :
 			case MZ2_WIDOW2_BEAM_SWEEP_11 :
-				dl.radius = 300 + (rand() & 100);
+				dl.radius = 300 + (rnd.nextInt() & 100);
 				dl.color[0] = 1;
 				dl.color[1] = 1;
 				dl.color[2] = 0;

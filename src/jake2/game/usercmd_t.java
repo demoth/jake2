@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.10 2004-02-15 19:27:29 hoz Exp $
+// $Id: usercmd_t.java,v 1.11 2004-02-21 12:07:01 hoz Exp $
 
 package jake2.game;
 
@@ -71,16 +71,16 @@ public class usercmd_t implements Cloneable {
 		return this;
 	}
 		
-	public usercmd_t getClone()
-	{
-		try {
-			usercmd_t u1 = (usercmd_t) this.clone();
-			u1.angles = Lib.clone(angles);
-			return u1;
-		}
-		catch (CloneNotSupportedException e) {
-			return null;
-		}
-	}
+//	public usercmd_t getClone()
+//	{
+//		try {
+//			usercmd_t u1 = (usercmd_t) this.clone();
+//			u1.angles = Lib.clone(angles);
+//			return u1;
+//		}
+//		catch (CloneNotSupportedException e) {
+//			return null;
+//		}
+//	}
 	
 }

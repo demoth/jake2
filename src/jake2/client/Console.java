@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.19 2004-02-08 13:26:13 hoz Exp $
+ * $Id: Console.java,v 1.20 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -574,9 +574,7 @@ public final class Console extends Globals {
 				dlbar = cls.downloadname.substring(text);
 			}
 			dlbar += ": ";
-			i = strlen(dlbar);
 			dlbar += (char)0x80;
-			i++;
 
 			// where's the dot go?
 			if (cls.downloadpercent == 0)

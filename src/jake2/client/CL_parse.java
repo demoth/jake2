@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.18 2004-02-17 13:39:40 cwei Exp $
+ * $Id: CL_parse.java,v 1.19 2004-02-21 12:07:01 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -166,7 +166,7 @@ public class CL_parse extends CL_view {
 
 			filename = Cmd.Argv(1);
 
-			if (strstr(filename, "..")) {
+			if (filename.indexOf("..") != -1) {
 				Com.Printf("Refusing to download a path with ..\n");
 				return;
 			}
@@ -183,7 +183,7 @@ public class CL_parse extends CL_view {
 			// to the real name when done, so if interrupted
 			// a runt file wont be left
 			Com.StripExtension(cls.downloadname, cls.downloadtempname);
-			strcat(cls.downloadtempname, ".tmp");
+			cls.downloadtempname += ".tmp";
 
 			MSG.WriteByte(cls.netchan.message, clc_stringcmd);
 			MSG.WriteString(cls.netchan.message, "download " + cls.downloadname);
@@ -572,7 +572,7 @@ public class CL_parse extends CL_view {
 				cl.image_precache[i - CS_IMAGES] = re.RegisterPic(cl.configstrings[i]);
 		}
 		else if (i >= CS_PLAYERSKINS && i < CS_PLAYERSKINS + MAX_CLIENTS) {
-			if (cl.refresh_prepped && strcmp(olds, s)!=0)
+			if (cl.refresh_prepped && !olds.equals(s))
 				ParseClientinfo(i - CS_PLAYERSKINS);
 		}
 	}
