@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.8 2005-01-17 21:50:42 cawe Exp $
+ * $Id: CL_fx.java,v 1.9 2005-02-06 19:18:10 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,8 +27,8 @@ package jake2.client;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.M_Flash;
 import jake2.game.entity_state_t;
+import jake2.game.monsters.M_Flash;
 import jake2.qcommon.Com;
 import jake2.qcommon.MSG;
 import jake2.sound.S;

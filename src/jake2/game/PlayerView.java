@@ -19,11 +19,12 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerView.java,v 1.2 2004-09-22 19:22:03 salomo Exp $
+// $Id: PlayerView.java,v 1.3 2005-02-06 19:13:56 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.monsters.M_Player;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
