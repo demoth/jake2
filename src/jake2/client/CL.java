@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.16 2003-12-01 13:16:39 hoz Exp $
+ *$Id: CL.java,v 1.17 2003-12-01 20:27:42 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -341,7 +341,7 @@ public final class CL extends Globals {
 				// configstrings
 				for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
 					if (cl.configstrings[i] != "") {
-						if (buf.cursize + strlen(cl.configstrings[i]) + 32 > buf.maxsize) { // write it out
+						if (buf.cursize + cl.configstrings[i].length() + 32 > buf.maxsize) { // write it out
 							//len = LittleLong(buf.cursize);
 							//fwrite(& len, 4, 1, cls.demofile);
 							cls.demofile.writeInt(buf.cursize);

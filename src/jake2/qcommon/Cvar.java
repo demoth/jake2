@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.10 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Cvar.java,v 1.11 2003-12-01 20:27:42 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,26 +35,22 @@ import jake2.server.*;
 /**
  * Cvar implements console variables. The original code is
  * located in cvar.c
- * TODO complete Cvar interface 
  */
-public class Cvar extends GamePWeapon {
+public class Cvar {
 
 	public static final int ARCHIVE = 1;
 	// set to cause it to be saved to vars.rc
-	static final int USERINFO = 2; // added to userinfo  when changed
-	static final int SERVERINFO = 4; // added to serverinfo when changed
-	static final int NOSET = 8; // don't allow change from console at all,
+	public static final int USERINFO = 2; // added to userinfo  when changed
+	public static final int SERVERINFO = 4; // added to serverinfo when changed
+	public static final int NOSET = 8; // don't allow change from console at all,
 	// but can be set from the command line
-	static final int LATCH = 16; // save changes until server restart
-
-	static cvar_t cvar_vars;
+	public static final int LATCH = 16; // save changes until server restart
 
 	/**
 	 * @param var_name
 	 * @param var_value
 	 * @param flags
 	 * @return
-	 * TODO implement Cvar.Get()
 	 */
 	public static cvar_t Get(String var_name, String var_value, int flags) {
 		cvar_t var;
@@ -92,8 +88,8 @@ public class Cvar extends GamePWeapon {
 			var.value = 0.0f;
 		}
 		// link the variable in
-		var.next = cvar_vars;
-		cvar_vars = var;
+		var.next = Globals.cvar_vars;
+		Globals.cvar_vars = var;
 
 		var.flags = flags;
 
@@ -101,11 +97,6 @@ public class Cvar extends GamePWeapon {
 	}
 
 	static boolean InfoValidate(String s) {
-		/*
-		============
-		Cvar_InfoValidate
-		============
-		*/
 
 		if (s.indexOf('\\') >= 0)
 			return false;
@@ -117,6 +108,8 @@ public class Cvar extends GamePWeapon {
 	}
 
 	static void Init() {
+		Cmd.AddCommand ("set", Set_f);
+		Cmd.AddCommand ("cvarlist", List_f);
 	}
 
 	public static String VariableString(String var_name) {
@@ -128,7 +121,7 @@ public class Cvar extends GamePWeapon {
 	static cvar_t FindVar(String var_name) {
 		cvar_t var;
 
-		for (var = cvar_vars; var != null; var = var.next) {
+		for (var = Globals.cvar_vars; var != null; var = var.next) {
 			if (var_name.equals(var.name))
 				return var;
 		}
@@ -136,7 +129,6 @@ public class Cvar extends GamePWeapon {
 		return null;
 	}
 
-	static boolean userinfo_modified = false;
 	/*
 	============
 	Cvar_FullSet
@@ -152,14 +144,14 @@ public class Cvar extends GamePWeapon {
 
 		var.modified = true;
 
-		if ((var.flags & CVAR_USERINFO) != 0)
-			userinfo_modified = true; // transmit at next oportunity
+		if ((var.flags & USERINFO) != 0)
+			Globals.userinfo_modified = true; // transmit at next oportunity
 
 		//Z_Free(var.string); // free the old value string
 		//var.string = CopyString(value);
 
 		var.string = value;
-		var.value = atof(var.string);
+		var.value = GameBase.atof(var.string);
 		var.flags = flags;
 
 		return var;
@@ -186,7 +178,7 @@ public class Cvar extends GamePWeapon {
 			return Cvar.Get(var_name, value, 0);
 		}
 
-		if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
+		if ((var.flags & (USERINFO | SERVERINFO)) != 0) {
 			if (!Cvar.InfoValidate(value)) {
 				Com.Printf("invalid info cvar value\n");
 				return var;
@@ -194,19 +186,19 @@ public class Cvar extends GamePWeapon {
 		}
 
 		if (!force) {
-			if ((var.flags & CVAR_NOSET) != 0) {
+			if ((var.flags & NOSET) != 0) {
 				Com.Printf(var_name + " is write protected.\n");
 				return var;
 			}
 
-			if ((var.flags & CVAR_LATCH) != 0) {
+			if ((var.flags & LATCH) != 0) {
 				if (var.latched_string != null) {
-					if (strcmp(value, var.latched_string) == 0)
+					if (value.equals(var.latched_string))
 						return var;
 					//Z_Free (var.latched_string);
 					var.latched_string = null;
 				} else {
-					if (strcmp(value, var.string) == 0)
+					if (value.equals(var.string))
 						return var;
 				}
 
@@ -217,8 +209,8 @@ public class Cvar extends GamePWeapon {
 				} else {
 					//var.string = CopyString(value);
 					var.string = value;
-					var.value = atof(var.string);
-					if (0 == strcmp(var.name, "game")) {
+					var.value = GameBase.atof(var.string);
+					if (var.name.equals("game")) {
 						FS.SetGamedir(var.string);
 						FS.ExecAutoexec();
 					}
@@ -232,19 +224,19 @@ public class Cvar extends GamePWeapon {
 			}
 		}
 
-		if (0 == strcmp(value, var.string))
+		if (value.equals(var.string))
 			return var; // not changed
 
 		var.modified = true;
 
-		if ((var.flags & CVAR_USERINFO) != 0)
-			userinfo_modified = true; // transmit at next oportunity
+		if ((var.flags & USERINFO) != 0)
+			Globals.userinfo_modified = true; // transmit at next oportunity
 
 		//Z_Free(var.string); // free the old value string
 
 		//var.string = CopyString(value);
 		var.string = value;
-		var.value = atof(var.string);
+		var.value = GameBase.atof(var.string);
 
 		return var;
 	}
@@ -261,10 +253,10 @@ public class Cvar extends GamePWeapon {
 			}
 
 			if (c == 4) {
-				if (0 == strcmp(Cmd.Argv(3), "u"))
-					flags = CVAR_USERINFO;
-				else if (0 == strcmp(Cmd.Argv(3), "s"))
-					flags = CVAR_SERVERINFO;
+				if (Cmd.Argv(3).equals("u"))
+					flags = USERINFO;
+				else if (Cmd.Argv(3).equals("s"))
+					flags = SERVERINFO;
 				else {
 					Com.Printf("flags can only be 'u' or 's'\n");
 					return;
@@ -275,6 +267,37 @@ public class Cvar extends GamePWeapon {
 
 		}
 
+	};
+	
+	static xcommand_t List_f = new xcommand_t() {
+		public void execute() {
+			cvar_t  var;
+			int i;
+
+			i = 0;
+			for (var = Globals.cvar_vars ; var != null ; var = var.next, i++) {
+				if ((var.flags & ARCHIVE) != 0)
+					Com.print("*");
+				else
+					Com.print(" ");
+				if ((var.flags & USERINFO) != 0)
+					Com.print("U");
+				else
+					Com.print(" ");
+				if ((var.flags & SERVERINFO) != 0)
+					Com.print("S");
+				else
+					Com.print(" ");
+				if ((var.flags & NOSET) != 0)
+					Com.print("-");
+				else if ((var.flags & LATCH) != 0)
+					Com.print("L");
+				else
+					Com.print(" ");
+				Com.print(" " + var.name + " \"" + var.string + "\"\n"); 
+			}
+			Com.print(i + " cvars\n");
+		}
 	};
 	/*
 	============
@@ -294,7 +317,7 @@ public class Cvar extends GamePWeapon {
 		cvar_t var = Cvar.FindVar(var_name);
 		if (var == null)
 			return 0;
-		return atof(var.string);
+		return GameBase.atof(var.string);
 	}
 
 }

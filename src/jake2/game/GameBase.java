@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.5 2003-11-30 21:50:08 rst Exp $
+// $Id: GameBase.java,v 1.6 2003-12-01 20:27:42 hoz Exp $
 
 /** Father of all Objects. */
 
@@ -28,7 +28,7 @@ package jake2.game;
 import jake2.*;
 import jake2.*;
 
-public class GameBase extends Defines {
+public class GameBase extends Globals {
 	public static game_locals_t game;
 	public static level_locals_t level;
 	public static game_import_t gi;

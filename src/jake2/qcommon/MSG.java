@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.3 2003-12-01 13:12:38 hoz Exp $
+// $Id: MSG.java,v 1.4 2003-12-01 20:27:42 hoz Exp $
 
 package jake2.qcommon;
 
@@ -31,7 +31,7 @@ import jake2.game.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class MSG extends Globals {
+public class MSG extends GameBase {
 
 	//
 	// writing functions
@@ -100,7 +100,7 @@ public class MSG extends Globals {
 	}
 
 	public static void WriteAngle16(sizebuf_t sb, float f) {
-		WriteShort(sb, ANGLE2SHORT(f));
+		WriteShort(sb, GameBase.ANGLE2SHORT(f));
 	}
 
 	public static void WriteDeltaUsercmd(sizebuf_t buf, usercmd_t from, usercmd_t cmd) {
@@ -164,7 +164,7 @@ public class MSG extends Globals {
 		bestd = 0;
 		best = 0;
 		for (i = 0; i < NUMVERTEXNORMALS; i++) {
-			d = DotProduct(dir, bytedirs[i]);
+			d = GameBase.DotProduct(dir, bytedirs[i]);
 			if (d > bestd) {
 				bestd = d;
 				best = i;
@@ -179,7 +179,7 @@ public class MSG extends Globals {
 		b = ReadByte(sb);
 		if (b >= NUMVERTEXNORMALS)
 			Com.Error(ERR_DROP, "MSF_ReadDir: out of range");
-		VectorCopy(bytedirs[b], dir);
+		GameBase.VectorCopy(bytedirs[b], dir);
 	}
 
 	/*

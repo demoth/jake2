@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.13 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Globals.java,v 1.14 2003-12-01 20:27:42 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,7 +40,7 @@ import java.io.FileWriter;
  * 
  * As consequence you dont have to touch that much code this time. 
  */
-public class Globals extends GamePWeapon {
+public class Globals extends Defines {
 
 	/*
 	 * global constants
@@ -333,5 +333,9 @@ public class Globals extends GamePWeapon {
 			-0.587785f, -0.425325f, -0.688191f }, {
 			-0.688191f, -0.587785f, -0.425325f }
 	};
+
+	public static boolean userinfo_modified = false;
+
+	public static cvar_t cvar_vars;
 
 }
