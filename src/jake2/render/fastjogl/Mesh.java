@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.7 2005-01-16 15:24:50 cawe Exp $
+ * $Id: Mesh.java,v 1.8 2005-01-22 22:30:35 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -226,7 +226,6 @@ public abstract class Mesh extends Light {
         FloatBuffer dstTextureCoords = textureArrayBuf;
         FloatBuffer srcTextureCoords = paliashdr.textureCoordBuf;
 
-        int size = 0;
         int dstIndex = 0;
         int srcIndex = 0;
 
@@ -244,10 +243,9 @@ public abstract class Mesh extends Light {
                 mode = GL.GL_TRIANGLE_FAN;
                 count = -count;
             }
-            size = count + pos;
-            srcIndex = 2 * pos;
-            for (int k = pos; k < size; k++) {
-                dstIndex = 2 * srcIndexBuf.get(k - pos);
+            srcIndex = pos << 1;
+            for (int k = 0; k < count; k++) {
+                dstIndex = srcIndexBuf.get(k) << 1;
                 dstTextureCoords.put(dstIndex++, srcTextureCoords
                         .get(srcIndex++));
                 dstTextureCoords

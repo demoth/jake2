@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.5 2005-01-10 00:12:00 cawe Exp $
+ * $Id: Model.java,v 1.6 2005-01-22 22:28:15 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1335,6 +1335,7 @@ public abstract class Model extends Surf {
 			count = (count < 0) ? -count : count;
 			model.vertexIndexBuf.position(pos);
 			model.indexElements[i] = model.vertexIndexBuf.slice();
+			model.indexElements[i].limit(count);
 			pos += count;
 		}
 	}
