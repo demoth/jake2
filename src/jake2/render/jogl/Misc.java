@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.3 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Misc.java,v 1.4 2004-01-05 23:59:26 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,7 +44,7 @@ public abstract class Misc extends Mesh {
 	R_InitParticleTexture
 	==================
 	*/
-	byte[][]	dottexture =
+	byte[][] dottexture =
 	{
 		{0,0,0,0,0,0,0,0},
 		{0,0,1,1,0,0,0,0},
@@ -58,38 +58,45 @@ public abstract class Misc extends Mesh {
 
 	void R_InitParticleTexture()
 	{
-//		int		x,y;
-//		byte	data[8][8][4];
-//
-//		//
-//		// particle texture
-//		//
-//		for (x=0 ; x<8 ; x++)
-//		{
-//			for (y=0 ; y<8 ; y++)
-//			{
-//				data[y][x][0] = 255;
-//				data[y][x][1] = 255;
-//				data[y][x][2] = 255;
-//				data[y][x][3] = dottexture[x][y]*255;
-//			}
-//		}
-//		r_particletexture = GL_LoadPic ("***particle***", (byte *)data, 8, 8, it_sprite, 32);
-//
-//		//
-//		// also use this for bad textures, but without alpha
-//		//
-//		for (x=0 ; x<8 ; x++)
-//		{
-//			for (y=0 ; y<8 ; y++)
-//			{
-//				data[y][x][0] = dottexture[x&3][y&3]*255;
-//				data[y][x][1] = 0; // dottexture[x&3][y&3]*255;
-//				data[y][x][2] = 0; //dottexture[x&3][y&3]*255;
-//				data[y][x][3] = 255;
-//			}
-//		}
-//		r_notexture = GL_LoadPic ("***r_notexture***", (byte *)data, 8, 8, it_wall, 32);
+		int		x,y;
+		byte[] data = new byte[8 * 8 * 4];
+
+		//
+		// particle texture
+		//
+		for (x=0 ; x<8 ; x++)
+		{
+			for (y=0 ; y<8 ; y++)
+			{
+//				data[y][x][0] = (byte)255;
+//				data[y][x][1] = (byte)255;
+//				data[y][x][2] = (byte)255;
+//				data[y][x][3] = (byte)(dottexture[x][y]*255);
+
+				// TODO try this for particles
+				data[y * 8 + x * 4 + 0] = (byte)255;
+				data[y * 8 + x * 4 + 1] = (byte)255;
+				data[y * 8 + x * 4 + 2] = (byte)255;
+				data[y * 8 + x * 4 + 3] = (byte)(dottexture[x][y]*255);
+
+			}
+		}
+		r_particletexture = GL_LoadPic ("***particle***", (byte[])data, 8, 8, it_sprite, 32);
+
+		//
+		// also use this for bad textures, but without alpha
+		//
+		for (x=0 ; x<8 ; x++)
+		{
+			for (y=0 ; y<8 ; y++)
+			{
+				data[y * 8 + x * 4 + 0] = (byte)(dottexture[x&3][y&3]*255);
+				data[y * 8 + x * 4 + 1] = 0; // dottexture[x&3][y&3]*255;
+				data[y * 8 + x * 4 + 2] = 0; //dottexture[x&3][y&3]*255;
+				data[y * 8 + x * 4 + 3] = (byte)255;
+			}
+		}
+		r_notexture = GL_LoadPic("***r_notexture***", data, 8, 8, it_wall, 32);
 	}
 
 

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.8 2004-01-05 14:01:45 cwei Exp $
+ * $Id: Main.java,v 1.9 2004-01-05 23:59:26 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -95,8 +95,9 @@ public abstract class Main extends Base {
 	abstract void GL_SetDefaultState();
 
 	abstract void GL_InitImages();
-	abstract void Mod_Init();
-	abstract void R_InitParticleTexture();
+	abstract void Mod_Init(); // Model.java
+	abstract void R_InitParticleTexture(); // MIsc.java
+	abstract void R_DrawAliasModel(entity_t e); // Mesh.java
 	abstract void Draw_InitLocal();
 	abstract void R_LightPoint(float[] p, float[] color);
 	
@@ -437,7 +438,7 @@ public abstract class Main extends Base {
 			 switch (currentmodel.type)
 			 {
 			 case mod_alias:
-//				 R_DrawAliasModel (currententity);
+				 R_DrawAliasModel(currententity);
 				 break;
 			 case mod_brush:
 //				 R_DrawBrushModel (currententity);
@@ -560,42 +561,43 @@ public abstract class Main extends Base {
 	R_DrawParticles
 	===============
 	*/
-	void R_DrawParticles()
-	{
-//	 if ( gl_ext_pointparameters->value && qglPointParameterfEXT )
-//	 {
-//		 int i;
-//		 unsigned char color[4];
-//		 const particle_t *p;
-//
-//		 gl.glDepthMask( GL.GL_FALSE );
-//		 gl.glEnable( GL.GL_BLEND );
-//		 gl.glDisable( GL.GL_TEXTURE_2D );
-//
-//		 gl.glPointSize( gl_particle_size->value );
-//
-//		 gl.glBegin( GL.GL_POINTS );
-//		 for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
-//		 {
-//			 *(int *)color = d_8to24table[p->color];
-//			 color[3] = p->alpha*255;
-//
-//			 gl.glColor4ubv( color );
-//
-//			 gl.glVertex3fv( p->origin );
-//		 }
-//		 gl.glEnd();
-//
-//		 gl.glDisable( GL.GL_BLEND );
-//		 gl.glColor4f( 1.0F, 1.0F, 1.0F, 1.0F );
-//		 gl.glDepthMask( GL.GL_TRUE );
-//		 gl.glEnable( GL.GL_TEXTURE_2D );
-//
-//	 }
-//	 else
-//	 {
-//		 GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
-//	 }
+	void R_DrawParticles() {
+
+		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
+			int color;
+			particle_t p;
+
+			gl.glDepthMask(false);
+			gl.glEnable(GL.GL_BLEND);
+			gl.glDisable(GL.GL_TEXTURE_2D);
+
+			gl.glPointSize(gl_particle_size.value);
+
+			gl.glBegin(GL.GL_POINTS);
+			for (int i = 0; i < r_newrefdef.num_particles; i++) {
+				p = r_newrefdef.particles[i];
+				color = d_8to24table[p.color];
+
+				gl.glColor4b(
+					(byte) ((color >> 0) & 0xff),
+					(byte) ((color >> 8) & 0xff),
+					(byte) ((color >> 16) & 0xff),
+					(byte) (p.alpha * 255));
+
+				gl.glVertex3fv(p.origin);
+			}
+			gl.glEnd();
+
+			gl.glDisable(GL.GL_BLEND);
+			gl.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			gl.glDepthMask(true);
+			gl.glEnable(GL.GL_TEXTURE_2D);
+
+		}
+		else
+		{
+			GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
+		}
 	}
 
 	/*

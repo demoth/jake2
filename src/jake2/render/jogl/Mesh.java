@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.1 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Mesh.java,v 1.2 2004-01-05 23:59:26 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.render.jogl;
+
+import jake2.client.entity_t;
 
 /**
  * Mesh
@@ -524,14 +526,14 @@ public abstract class Mesh extends Warp {
 //		}
 //	}
 //
-//	/*
-//	=================
-//	R_DrawAliasModel
-//
-//	=================
-//	*/
-//	void R_DrawAliasModel (entity_t *e)
-//	{
+	/*
+	=================
+	R_DrawAliasModel
+
+	=================
+	*/
+	void R_DrawAliasModel(entity_t e)
+	{
 //		int			i;
 //		dmdl_t		*paliashdr;
 //		float		an;
@@ -870,6 +872,6 @@ public abstract class Mesh extends Warp {
 //		}
 //	#endif
 //		qglColor4f (1,1,1,1);
-//	}
+	}
 
 }
