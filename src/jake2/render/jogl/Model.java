@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.1 2003-12-29 06:00:49 cwei Exp $
+ * $Id: Model.java,v 1.2 2004-01-03 03:47:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.game.cplane_t;
+import jake2.render.mleaf_t;
+import jake2.render.mnode_t;
 import jake2.render.model_t;
 
 /**
@@ -56,22 +59,22 @@ public abstract class Model extends Main {
 //	model_t	mod_inline[MAX_MOD_KNOWN];
 //
 	int registration_sequence;
-//
-//	/*
-//	===============
-//	Mod_PointInLeaf
-//	===============
-//	*/
-//	mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
-//	{
-//		mnode_t		*node;
-//		float		d;
-//		cplane_t	*plane;
+
+	/*
+	===============
+	Mod_PointInLeaf
+	===============
+	*/
+	mleaf_t Mod_PointInLeaf (float[] p, model_t model)
+	{
+		mnode_t node;
+		float	d;
+		cplane_t plane;
 //	
 //		if (!model || !model->nodes)
 //			ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
 //
-//		node = model->nodes;
+//		node = model.nodes;
 //		while (1)
 //		{
 //			if (node->contents != -1)
@@ -84,8 +87,8 @@ public abstract class Model extends Main {
 //				node = node->children[1];
 //		}
 //	
-//		return NULL;	// never reached
-//	}
+		return null;	// never reached
+	}
 //
 //
 //	/*
@@ -147,15 +150,15 @@ public abstract class Model extends Main {
 //	}
 //
 //
-////	  ===============================================================================
-//
-//	/*
-//	================
-//	Mod_Modellist_f
-//	================
-//	*/
-//	void Mod_Modellist_f (void)
-//	{
+//	  ===============================================================================
+
+	/*
+	================
+	Mod_Modellist_f
+	================
+	*/
+	void Mod_Modellist_f()
+	{
 //		int		i;
 //		model_t	*mod;
 //		int		total;
@@ -170,17 +173,17 @@ public abstract class Model extends Main {
 //			total += mod->extradatasize;
 //		}
 //		ri.Con_Printf (PRINT_ALL, "Total resident: %i\n", total);
-//	}
-//
-//	/*
-//	===============
-//	Mod_Init
-//	===============
-//	*/
-//	void Mod_Init (void)
-//	{
+	}
+
+	/*
+	===============
+	Mod_Init
+	===============
+	*/
+	void Mod_Init()
+	{
 //		memset (mod_novis, 0xff, sizeof(mod_novis));
-//	}
+	}
 //
 //
 //
@@ -1222,14 +1225,14 @@ public abstract class Model extends Main {
 //		Hunk_Free (mod->extradata);
 //		memset (mod, 0, sizeof(*mod));
 //	}
-//
-//	/*
-//	================
-//	Mod_FreeAll
-//	================
-//	*/
-//	void Mod_FreeAll (void)
-//	{
+
+	/*
+	================
+	Mod_FreeAll
+	================
+	*/
+	void Mod_FreeAll()
+	{
 //		int		i;
 //
 //		for (i=0 ; i<mod_numknown ; i++)
@@ -1237,7 +1240,7 @@ public abstract class Model extends Main {
 //			if (mod_known[i].extradatasize)
 //				Mod_Free (&mod_known[i]);
 //		}
-//	}
+	}
 
 
 }

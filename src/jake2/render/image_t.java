@@ -19,11 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: image_t.java,v 1.4 2003-12-29 03:55:37 cwei Exp $
+// $Id: image_t.java,v 1.5 2004-01-03 03:47:14 cwei Exp $
 
 package jake2.render;
 
+import jake2.Defines;
+
 public class image_t {
+	
+	public static final int MAX_NAME_SIZE = Defines.MAX_QPATH;
+	
 	public String name; // game path, including extension
 	// enum imagetype_t
 	public int type;
@@ -37,4 +42,8 @@ public class image_t {
 	public boolean has_alpha;
 
 	public boolean paletted;
+	
+	public String toString() {
+		return name + ":" + texnum;
+	}
 }

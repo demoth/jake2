@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.16 2003-12-29 06:00:49 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.17 2004-01-03 03:47:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -221,15 +221,5 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 		this.ri = rimp;
 		return this;
 	}
-
-	// ============================================================================
-	// TODO remove after impl this methods in jake2.render.jogl package
-	// ============================================================================
-
-
-	// defined in gl_warp.c
-	private void R_SetSky(String name, float rotate, float[] axis) {
-	}
-
 
 }

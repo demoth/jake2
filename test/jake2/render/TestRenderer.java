@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.4 2003-12-29 02:28:29 cwei Exp $
+ * $Id: TestRenderer.java,v 1.5 2004-01-03 03:47:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -154,20 +154,25 @@ public class TestRenderer {
 		Qcommon.Init(new String[] {"TestRenderer"});
 
 		re.Init();
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-		}
 	}
 
 	void updateScreen() {
 		re.BeginFrame(0.0f);
+		re.DrawStretchPic(0,0,VID.viddef.width, VID.viddef.height, "conback");
+		
+		String text = "Hallo Jake2 :-)";
+		
+		for (int i = 0; i < text.length(); i++) {
+			re.DrawChar(10 + 8 * i, VID.viddef.height/2, (int)text.charAt(i));
+		}
+		
 		re.DrawPic(
-			(int) (Math.random() * VID.viddef.width),
-			(int) (Math.random() * VID.viddef.height),
-			"conback");
+			(int) (Math.random() * VID.viddef.width / 2),
+			(int) (Math.random() * VID.viddef.height / 2),
+			"loading");
 		re.EndFrame();
 	}
+
 
 	void run() {
 		while (true) {

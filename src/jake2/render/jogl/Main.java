@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.5 2003-12-29 16:56:24 rst Exp $
+ * $Id: Main.java,v 1.6 2004-01-03 03:47:14 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,14 +33,17 @@ import net.java.games.jogl.util.GLUT;
 import jake2.Defines;
 import jake2.Enum;
 import jake2.client.entity_t;
+import jake2.client.particle_t;
 import jake2.client.refdef_t;
 import jake2.client.refimport_t;
 import jake2.client.viddef_t;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cvar;
+import jake2.qcommon.xcommand_t;
 import jake2.render.*;
 import jake2.util.Math3D;
+import jake2.util.Vargs;
 
 /**
  * Main
@@ -53,17 +56,55 @@ public abstract class Main extends Base {
 	GLU glu;
 	GLUT glut = new GLUT();
 	
+	int[] d_8to24table = new int[256];
+
+	int c_visible_lightmaps;
+	int c_visible_textures;
+	
+	// TODO check the qglColorTableEXT hack
+	// this a hack for function pointer test
+	// default disabled
+	boolean qglColorTableEXT = false;
+	boolean qglSelectTextureSGIS = true;
+	boolean qglActiveTextureARB = true;
+	boolean qglPointParameterfEXT = false;
+	
 	//	=================
 	//  abstract methods
 	//	=================
 	protected abstract void Draw_GetPalette();
 
+	abstract void GL_ImageList_f();
+	abstract void GL_ScreenShot_f();
+	abstract void GL_SetTexturePalette(int[] palette);
+	abstract void GL_Strings_f();
+
+	abstract void Mod_Modellist_f();
+	abstract mleaf_t Mod_PointInLeaf(float[] point, model_t model);
+
 	abstract boolean QGL_Init(String dll_name);
 	abstract void QGL_Shutdown();
-
 	abstract boolean GLimp_Init();
+	abstract void GLimp_BeginFrame( float camera_separation );
 	abstract int GLimp_SetMode(Dimension dim, int mode, boolean fullscreen);
 	abstract void GLimp_Shutdown();
+	
+	abstract void GL_SetDefaultState();
+
+	abstract void GL_InitImages();
+	abstract void Mod_Init();
+	abstract void R_InitParticleTexture();
+	abstract void Draw_InitLocal();
+	abstract void R_LightPoint(float[] p, float[] color);
+	
+	abstract void Mod_FreeAll();
+
+	abstract void GL_ShutdownImages();
+	abstract void GL_TextureMode(String string);
+	abstract void GL_TextureAlphaMode(String string);
+	abstract void GL_TextureSolidMode(String string);
+	abstract void GL_UpdateSwapInterval();
+
 
 	/*
 	====================================================================
@@ -75,6 +116,9 @@ public abstract class Main extends Base {
 
 	// IMPORTED FUNCTIONS
 	protected refimport_t ri = null;
+	
+	int GL_TEXTURE0 = GL.GL_TEXTURE0;
+	int GL_TEXTURE1 = GL.GL_TEXTURE1;
 
 	viddef_t vid = new viddef_t();
 
@@ -216,23 +260,22 @@ public abstract class Main extends Base {
 		gl.glRotatef (-e.angles[2],  1, 0, 0);
 	}
 
-// /*
-// =============================================================
-//
-//   SPRITE MODELS
-//
-// =============================================================
-// */
-//
-//
-// /*
-// =================
-// R_DrawSpriteModel
-//
-// =================
-// */
-// void R_DrawSpriteModel (entity_t *e)
-// {
+	/*
+	=============================================================
+	
+	   SPRITE MODELS
+
+	=============================================================
+	*/
+
+	/*
+	=================
+	R_DrawSpriteModel
+
+	=================
+	*/
+	void R_DrawSpriteModel (entity_t e)
+	{
 //	 float alpha = 1.0F;
 //	 vec3_t	point;
 //	 dsprframe_t	*frame;
@@ -244,28 +287,10 @@ public abstract class Main extends Base {
 //
 //	 psprite = (dsprite_t *)currentmodel->extradata;
 //
-// #if 0
-//	 if (e->frame < 0 || e->frame >= psprite->numframes)
-//	 {
-//		 ri.Con_Printf (PRINT_ALL, "no such sprite frame %i\n", e->frame);
-//		 e->frame = 0;
-//	 }
-// #endif
 //	 e->frame %= psprite->numframes;
 //
 //	 frame = &psprite->frames[e->frame];
 //
-// #if 0
-//	 if (psprite->type == SPR_ORIENTED)
-//	 {	// bullet marks on walls
-//	 vec3_t		v_forward, v_right, v_up;
-//
-//	 AngleVectors (currententity->angles, v_forward, v_right, v_up);
-//		 up = v_up;
-//		 right = v_right;
-//	 }
-//	 else
-// #endif
 //	 {	// normal sprite
 //		 up = vup;
 //		 right = vright;
@@ -275,97 +300,99 @@ public abstract class Main extends Base {
 //		 alpha = e->alpha;
 //
 //	 if ( alpha != 1.0F )
-//		 qglEnable( GL_BLEND );
+//		 gl.glEnable( GL.GL_BLEND );
 //
-//	 qglColor4f( 1, 1, 1, alpha );
+//	 gl.glColor4f( 1, 1, 1, alpha );
 //
 //	 GL_Bind(currentmodel->skins[e->frame]->texnum);
 //
-//	 GL_TexEnv( GL_MODULATE );
+//	 GL_TexEnv( GL.GL_MODULATE );
 //
 //	 if ( alpha == 1.0 )
-//		 qglEnable (GL_ALPHA_TEST);
+//		 gl.glEnable (GL.GL_ALPHA_TEST);
 //	 else
-//		 qglDisable( GL_ALPHA_TEST );
+//		 gl.glDisable( GL.GL_ALPHA_TEST );
 //
-//	 qglBegin (GL_QUADS);
+//	 gl.glBegin (GL.GL_QUADS);
 //
-//	 qglTexCoord2f (0, 1);
+//	 gl.glTexCoord2f (0, 1);
 //	 VectorMA (e->origin, -frame->origin_y, up, point);
 //	 VectorMA (point, -frame->origin_x, right, point);
-//	 qglVertex3fv (point);
+//	 gl.glVertex3fv (point);
 //
-//	 qglTexCoord2f (0, 0);
+//	 gl.glTexCoord2f (0, 0);
 //	 VectorMA (e->origin, frame->height - frame->origin_y, up, point);
 //	 VectorMA (point, -frame->origin_x, right, point);
-//	 qglVertex3fv (point);
+//	 gl.glVertex3fv (point);
 //
-//	 qglTexCoord2f (1, 0);
+//	 gl.glTexCoord2f (1, 0);
 //	 VectorMA (e->origin, frame->height - frame->origin_y, up, point);
 //	 VectorMA (point, frame->width - frame->origin_x, right, point);
-//	 qglVertex3fv (point);
+//	 gl.glVertex3fv (point);
 //
-//	 qglTexCoord2f (1, 1);
+//	 gl.glTexCoord2f (1, 1);
 //	 VectorMA (e->origin, -frame->origin_y, up, point);
 //	 VectorMA (point, frame->width - frame->origin_x, right, point);
-//	 qglVertex3fv (point);
+//	 gl.glVertex3fv (point);
 //	
-//	 qglEnd ();
+//	 gl.glEnd ();
 //
-//	 qglDisable (GL_ALPHA_TEST);
-//	 GL_TexEnv( GL_REPLACE );
+//	 gl.glDisable (GL.GL_ALPHA_TEST);
+//	 GL_TexEnv( GL.GL_REPLACE );
 //
 //	 if ( alpha != 1.0F )
-//		 qglDisable( GL_BLEND );
+//		 gl.glDisable( GL.GL_BLEND );
 //
-//	 qglColor4f( 1, 1, 1, 1 );
-// }
-//
-//// ==================================================================================
-//
-// /*
-// =============
-// R_DrawNullModel
-// =============
-// */
+//	 gl.glColor4f( 1, 1, 1, 1 );
+	}
+
+// ==================================================================================
+
+	/*
+	=============
+	R_DrawNullModel
+	=============
+	*/
 	void R_DrawNullModel()
 	{
-//	 vec3_t	shadelight;
-//	 int		i;
-//
-//	 if ( currententity->flags & RF_FULLBRIGHT )
-//		 shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
-//	 else
-//		 R_LightPoint (currententity->origin, shadelight);
-//
-//	 qglPushMatrix ();
-//	 R_RotateForEntity (currententity);
-//
-//	 qglDisable (GL_TEXTURE_2D);
-//	 qglColor3fv (shadelight);
-//
-//	 qglBegin (GL_TRIANGLE_FAN);
-//	 qglVertex3f (0, 0, -16);
-//	 for (i=0 ; i<=4 ; i++)
-//		 qglVertex3f (16*cos(i*M_PI/2), 16*sin(i*M_PI/2), 0);
-//	 qglEnd ();
-//
-//	 qglBegin (GL_TRIANGLE_FAN);
-//	 qglVertex3f (0, 0, 16);
-//	 for (i=4 ; i>=0 ; i--)
-//		 qglVertex3f (16*cos(i*M_PI/2), 16*sin(i*M_PI/2), 0);
-//	 qglEnd ();
-//
-//	 qglColor3f (1,1,1);
-//	 qglPopMatrix ();
-//	 qglEnable (GL_TEXTURE_2D);
+		float[] shadelight = { 0, 0, 0 };
+
+		if ( (currententity.flags & Defines.RF_FULLBRIGHT) != 0 )
+			shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
+		else
+			R_LightPoint(currententity.origin, shadelight);
+
+		gl.glPushMatrix();
+		R_RotateForEntity(currententity);
+
+		gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glColor3fv(shadelight);
+
+	 	gl.glBegin(GL.GL_TRIANGLE_FAN);
+		gl.glVertex3f(0, 0, -16);
+		int i;
+		for (i=0 ; i<=4 ; i++) {
+			gl.glVertex3f((float)(16.0f * Math.cos(i * Math.PI / 2)), (float)(16.0f * Math.sin(i * Math.PI / 2)), 0.0f);
+		}
+		gl.glEnd();
+
+		gl.glBegin(GL.GL_TRIANGLE_FAN);
+		gl.glVertex3f (0, 0, 16);
+		for (i=4 ; i>=0 ; i--) {
+			gl.glVertex3f((float)(16.0f * Math.cos(i * Math.PI / 2)), (float)(16.0f * Math.sin(i * Math.PI / 2)), 0.0f);
+		}
+		gl.glEnd();
+
+		gl.glColor3f(1,1,1);
+		gl.glPopMatrix();
+		gl.glEnable(GL.GL_TEXTURE_2D);
 	}
-//
-// /*
-// =============
-// R_DrawEntitiesOnList
-// =============
-// */
+
+	/*
+	=============
+	R_DrawEntitiesOnList
+	=============
+	*/
 	void R_DrawEntitiesOnList()
 	{
 //	 int		i;
@@ -412,7 +439,7 @@ public abstract class Main extends Base {
 //
 //	 // draw transparent entities
 //	 // we could sort these if it ever becomes a problem...
-//	 qglDepthMask (0);		// no z writes
+//	 gl.glDepthMask (0);		// no z writes
 //	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
 //	 {
 //		 currententity = &r_newrefdef.entities[i];
@@ -449,16 +476,17 @@ public abstract class Main extends Base {
 //			 }
 //		 }
 //	 }
-//	 qglDepthMask (1);		// back to writing
+//	 gl.glDepthMask (1);		// back to writing
 //
 	}
-//
-// /*
-// ** GL_DrawParticles
-// **
-// */
+
+ /*
+ ** GL_DrawParticles
+ **
+ */
 // void GL_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
-// {
+	void GL_DrawParticles( int num_particles, particle_t[] particles, int[] colortable )
+ {
 //	 const particle_t *p;
 //	 int				i;
 //	 vec3_t			up, right;
@@ -466,10 +494,10 @@ public abstract class Main extends Base {
 //	 byte			color[4];
 //
 //	 GL_Bind(r_particletexture->texnum);
-//	 qglDepthMask( GL_FALSE );		// no z buffering
-//	 qglEnable( GL_BLEND );
-//	 GL_TexEnv( GL_MODULATE );
-//	 qglBegin( GL_TRIANGLES );
+//	 gl.glDepthMask( GL.GL_FALSE );		// no z buffering
+//	 gl.glEnable( GL.GL_BLEND );
+//	 GL_TexEnv( GL.GL_MODULATE );
+//	 gl.glBegin( GL.GL_TRIANGLES );
 //
 //	 VectorScale (vup, 1.5, up);
 //	 VectorScale (vright, 1.5, right);
@@ -489,34 +517,34 @@ public abstract class Main extends Base {
 //		 *(int *)color = colortable[p->color];
 //		 color[3] = p->alpha*255;
 //
-//		 qglColor4ubv( color );
+//		 gl.glColor4ubv( color );
 //
-//		 qglTexCoord2f( 0.0625, 0.0625 );
-//		 qglVertex3fv( p->origin );
+//		 gl.glTexCoord2f( 0.0625, 0.0625 );
+//		 gl.glVertex3fv( p->origin );
 //
-//		 qglTexCoord2f( 1.0625, 0.0625 );
-//		 qglVertex3f( p->origin[0] + up[0]*scale, 
+//		 gl.glTexCoord2f( 1.0625, 0.0625 );
+//		 gl.glVertex3f( p->origin[0] + up[0]*scale, 
 //					  p->origin[1] + up[1]*scale, 
 //					  p->origin[2] + up[2]*scale);
 //
-//		 qglTexCoord2f( 0.0625, 1.0625 );
-//		 qglVertex3f( p->origin[0] + right[0]*scale, 
+//		 gl.glTexCoord2f( 0.0625, 1.0625 );
+//		 gl.glVertex3f( p->origin[0] + right[0]*scale, 
 //					  p->origin[1] + right[1]*scale, 
 //					  p->origin[2] + right[2]*scale);
 //	 }
 //
-//	 qglEnd ();
-//	 qglDisable( GL_BLEND );
-//	 qglColor4f( 1,1,1,1 );
-//	 qglDepthMask( 1 );		// back to normal Z buffering
-//	 GL_TexEnv( GL_REPLACE );
-// }
-//
-// /*
-// ===============
-// R_DrawParticles
-// ===============
-// */
+//	 gl.glEnd ();
+//	 gl.glDisable( GL.GL_BLEND );
+//	 gl.glColor4f( 1,1,1,1 );
+//	 gl.glDepthMask( 1 );		// back to normal Z buffering
+//	 GL_TexEnv( GL.GL_REPLACE );
+ }
+
+	/*
+	===============
+	R_DrawParticles
+	===============
+	*/
 	void R_DrawParticles()
 	{
 //	 if ( gl_ext_pointparameters->value && qglPointParameterfEXT )
@@ -525,28 +553,28 @@ public abstract class Main extends Base {
 //		 unsigned char color[4];
 //		 const particle_t *p;
 //
-//		 qglDepthMask( GL_FALSE );
-//		 qglEnable( GL_BLEND );
-//		 qglDisable( GL_TEXTURE_2D );
+//		 gl.glDepthMask( GL.GL_FALSE );
+//		 gl.glEnable( GL.GL_BLEND );
+//		 gl.glDisable( GL.GL_TEXTURE_2D );
 //
-//		 qglPointSize( gl_particle_size->value );
+//		 gl.glPointSize( gl_particle_size->value );
 //
-//		 qglBegin( GL_POINTS );
+//		 gl.glBegin( GL.GL_POINTS );
 //		 for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 //		 {
 //			 *(int *)color = d_8to24table[p->color];
 //			 color[3] = p->alpha*255;
 //
-//			 qglColor4ubv( color );
+//			 gl.glColor4ubv( color );
 //
-//			 qglVertex3fv( p->origin );
+//			 gl.glVertex3fv( p->origin );
 //		 }
-//		 qglEnd();
+//		 gl.glEnd();
 //
-//		 qglDisable( GL_BLEND );
-//		 qglColor4f( 1.0F, 1.0F, 1.0F, 1.0F );
-//		 qglDepthMask( GL_TRUE );
-//		 qglEnable( GL_TEXTURE_2D );
+//		 gl.glDisable( GL.GL_BLEND );
+//		 gl.glColor4f( 1.0F, 1.0F, 1.0F, 1.0F );
+//		 gl.glDepthMask( GL.GL_TRUE );
+//		 gl.glEnable( GL.GL_TEXTURE_2D );
 //
 //	 }
 //	 else
@@ -554,45 +582,45 @@ public abstract class Main extends Base {
 //		 GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
 //	 }
 	}
-//
-// /*
-// ============
-// R_PolyBlend
-// ============
-// */
-	void R_PolyBlend()
-	{
-//	 if (!gl_polyblend->value)
-//		 return;
-//	 if (!v_blend[3])
-//		 return;
-//
-//	 qglDisable (GL_ALPHA_TEST);
-//	 qglEnable (GL_BLEND);
-//	 qglDisable (GL_DEPTH_TEST);
-//	 qglDisable (GL_TEXTURE_2D);
-//
-//	 qglLoadIdentity ();
-//
-//	 // FIXME: get rid of these
-//	 qglRotatef (-90,  1, 0, 0);	    // put Z going up
-//	 qglRotatef (90,  0, 0, 1);	    // put Z going up
-//
-//	 qglColor4fv (v_blend);
-//
-//	 qglBegin (GL_QUADS);
-//
-//	 qglVertex3f (10, 100, 100);
-//	 qglVertex3f (10, -100, 100);
-//	 qglVertex3f (10, -100, -100);
-//	 qglVertex3f (10, 100, -100);
-//	 qglEnd ();
-//
-//	 qglDisable (GL_BLEND);
-//	 qglEnable (GL_TEXTURE_2D);
-//	 qglEnable (GL_ALPHA_TEST);
-//
-//	 qglColor4f(1,1,1,1);
+
+	/*
+	============
+	R_PolyBlend
+	============
+	*/
+	void R_PolyBlend() {
+		
+		if (gl_polyblend.value == 0.0f)
+			return;
+		if (v_blend[3] == 0.0f)
+			return;
+
+		gl.glDisable(GL.GL_ALPHA_TEST);
+		gl.glEnable(GL.GL_BLEND);
+		gl.glDisable(GL.GL_DEPTH_TEST);
+		gl.glDisable(GL.GL_TEXTURE_2D);
+
+		gl.glLoadIdentity();
+
+		// FIXME: get rid of these
+		gl.glRotatef(-90, 1, 0, 0); // put Z going up
+		gl.glRotatef(90, 0, 0, 1); // put Z going up
+
+		gl.glColor4fv(v_blend);
+
+		gl.glBegin(GL.GL_QUADS);
+
+		gl.glVertex3f(10, 100, 100);
+		gl.glVertex3f(10, -100, 100);
+		gl.glVertex3f(10, -100, -100);
+		gl.glVertex3f(10, 100, -100);
+		gl.glEnd();
+
+		gl.glDisable(GL.GL_BLEND);
+		gl.glEnable(GL.GL_TEXTURE_2D);
+		gl.glEnable(GL.GL_ALPHA_TEST);
+
+		gl.glColor4f(1, 1, 1, 1);
 	}
 
 // =======================================================================
@@ -603,93 +631,71 @@ public abstract class Main extends Base {
 
 		int bits = 0;
 		for (int j=0 ; j<3 ; j++) {
-			if (out.normal[j] < 0) bits |= 1<<j;
+			if (out.normal[j] < 0) bits |= 1 << j;
 		}
 		return bits;
 	}
 
-//
-	void R_SetFrustum()
-	{
-//	 int		i;
-//
-// #if 0
-//	 /*
-//	 ** this code is wrong, since it presume a 90 degree FOV both in the
-//	 ** horizontal and vertical plane
-//	 */
-//	 // front side is visible
-//	 VectorAdd (vpn, vright, frustum[0].normal);
-//	 VectorSubtract (vpn, vright, frustum[1].normal);
-//	 VectorAdd (vpn, vup, frustum[2].normal);
-//	 VectorSubtract (vpn, vup, frustum[3].normal);
-//
-//	 // we theoretically don't need to normalize these vectors, but I do it
-//	 // anyway so that debugging is a little easier
-//	 VectorNormalize( frustum[0].normal );
-//	 VectorNormalize( frustum[1].normal );
-//	 VectorNormalize( frustum[2].normal );
-//	 VectorNormalize( frustum[3].normal );
-// #else
-//	 // rotate VPN right by FOV_X/2 degrees
-//	 RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90-r_newrefdef.fov_x / 2 ) );
-//	 // rotate VPN left by FOV_X/2 degrees
-//	 RotatePointAroundVector( frustum[1].normal, vup, vpn, 90-r_newrefdef.fov_x / 2 );
-//	 // rotate VPN up by FOV_X/2 degrees
-//	 RotatePointAroundVector( frustum[2].normal, vright, vpn, 90-r_newrefdef.fov_y / 2 );
-//	 // rotate VPN down by FOV_X/2 degrees
-//	 RotatePointAroundVector( frustum[3].normal, vright, vpn, -( 90 - r_newrefdef.fov_y / 2 ) );
-// #endif
-//
-//	 for (i=0 ; i<4 ; i++)
-//	 {
-//		 frustum[i].type = PLANE_ANYZ;
-//		 frustum[i].dist = DotProduct (r_origin, frustum[i].normal);
-//		 frustum[i].signbits = SignbitsForPlane (&frustum[i]);
-//	 }
+
+	void R_SetFrustum() {
+
+		// rotate VPN right by FOV_X/2 degrees
+		Math3D.RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90-r_newrefdef.fov_x / 2 ) );
+		// rotate VPN left by FOV_X/2 degrees
+		Math3D.RotatePointAroundVector( frustum[1].normal, vup, vpn, 90-r_newrefdef.fov_x / 2 );
+		// rotate VPN up by FOV_X/2 degrees
+		Math3D.RotatePointAroundVector( frustum[2].normal, vright, vpn, 90-r_newrefdef.fov_y / 2 );
+		// rotate VPN down by FOV_X/2 degrees
+		Math3D.RotatePointAroundVector( frustum[3].normal, vright, vpn, -( 90 - r_newrefdef.fov_y / 2 ) );
+
+		for (int i=0 ; i<4 ; i++) {
+			frustum[i].type = Defines.PLANE_ANYZ;
+			frustum[i].dist = Math3D.DotProduct(r_origin, frustum[i].normal);
+			frustum[i].signbits = (byte)SignbitsForPlane(frustum[i]);
+		}
 	}
-//
-//// =======================================================================
-//
-// /*
-// ===============
-// R_SetupFrame
-// ===============
-// */
+
+// =======================================================================
+
+	/*
+	===============
+	R_SetupFrame
+	===============
+	*/
 	void R_SetupFrame()
 	{
-//	 int i;
-//	 mleaf_t	*leaf;
-//
-//	 r_framecount++;
-//
-////	build the transformation matrix for the given view angles
-//	 VectorCopy (r_newrefdef.vieworg, r_origin);
-//
-//	 AngleVectors (r_newrefdef.viewangles, vpn, vright, vup);
-//
-////	current viewcluster
-//	 if ( !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
-//	 {
-//		 r_oldviewcluster = r_viewcluster;
-//		 r_oldviewcluster2 = r_viewcluster2;
-//		 leaf = Mod_PointInLeaf (r_origin, r_worldmodel);
-//		 r_viewcluster = r_viewcluster2 = leaf->cluster;
-//
-//		 // check above and below so crossing solid water doesn't draw wrong
-//		 if (!leaf->contents)
-//		 {	// look down a bit
-//			 vec3_t	temp;
-//
-//			 VectorCopy (r_origin, temp);
-//			 temp[2] -= 16;
-//			 leaf = Mod_PointInLeaf (temp, r_worldmodel);
+		int i;
+		mleaf_t	leaf;
+		
+		r_framecount++;
+
+		//	build the transformation matrix for the given view angles
+		Math3D.VectorCopy(r_newrefdef.vieworg, r_origin);
+
+		Math3D.AngleVectors(r_newrefdef.viewangles, vpn, vright, vup);
+
+		//	current viewcluster
+		if ( ( r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL ) == 0)
+		{
+			r_oldviewcluster = r_viewcluster;
+			r_oldviewcluster2 = r_viewcluster2;
+			leaf = Mod_PointInLeaf(r_origin, r_worldmodel);
+			r_viewcluster = r_viewcluster2 = leaf.cluster;
+
+			// check above and below so crossing solid water doesn't draw wrong
+			if (leaf.contents == 0)
+			{	// look down a bit
+				float[] temp = { 0, 0, 0 };
+
+			 Math3D.VectorCopy (r_origin, temp);
+			 temp[2] -= 16;
+			 leaf = Mod_PointInLeaf(temp, r_worldmodel);
 //			 if ( !(leaf->contents & CONTENTS_SOLID) &&
 //				 (leaf->cluster != r_viewcluster2) )
 //				 r_viewcluster2 = leaf->cluster;
-//		 }
-//		 else
-//		 {	// look up a bit
+			}
+			else
+			{	// look up a bit
 //			 vec3_t	temp;
 //
 //			 VectorCopy (r_origin, temp);
@@ -698,107 +704,107 @@ public abstract class Main extends Base {
 //			 if ( !(leaf->contents & CONTENTS_SOLID) &&
 //				 (leaf->cluster != r_viewcluster2) )
 //				 r_viewcluster2 = leaf->cluster;
-//		 }
-//	 }
-//
-//	 for (i=0 ; i<4 ; i++)
-//		 v_blend[i] = r_newrefdef.blend[i];
-//
-//	 c_brush_polys = 0;
-//	 c_alias_polys = 0;
-//
-//	 // clear out the portion of the screen that the NOWORLDMODEL defines
-//	 if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
-//	 {
-//		 qglEnable( GL_SCISSOR_TEST );
-//		 qglClearColor( 0.3, 0.3, 0.3, 1 );
-//		 qglScissor( r_newrefdef.x, vid.height - r_newrefdef.height - r_newrefdef.y, r_newrefdef.width, r_newrefdef.height );
-//		 qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-//		 qglClearColor( 1, 0, 0.5, 0.5 );
-//		 qglDisable( GL_SCISSOR_TEST );
-//	 }
+			}
+		}
+
+	 for (i=0 ; i<4 ; i++)
+		 v_blend[i] = r_newrefdef.blend[i];
+
+	 c_brush_polys = 0;
+	 c_alias_polys = 0;
+
+	 // clear out the portion of the screen that the NOWORLDMODEL defines
+	 if ( (r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0 )
+	 {
+			gl.glEnable( GL.GL_SCISSOR_TEST );
+			gl.glClearColor( 0.3f, 0.3f, 0.3f, 1.0f );
+			gl.glScissor( r_newrefdef.x, vid.height - r_newrefdef.height - r_newrefdef.y, r_newrefdef.width, r_newrefdef.height );
+			gl.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
+			gl.glClearColor( 1.0f, 0.0f, 0.5f, 0.5f );
+			 gl.glDisable( GL.GL_SCISSOR_TEST );
+		}
 	}
-//
-//
-// void MYgluPerspective( GLdouble fovy, GLdouble aspect,
-//			  GLdouble zNear, GLdouble zFar )
-// {
-//	GLdouble xmin, xmax, ymin, ymax;
-//
-//	ymax = zNear * tan( fovy * M_PI / 360.0 );
-//	ymin = -ymax;
-//
-//	xmin = ymin * aspect;
-//	xmax = ymax * aspect;
-//
-//	xmin += -( 2 * gl_state.camera_separation ) / zNear;
-//	xmax += -( 2 * gl_state.camera_separation ) / zNear;
-//
-//	qglFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
-// }
-//
-//
-// /*
-// =============
-// R_SetupGL
-// =============
-// */
-	void R_SetupGL()
-	{
-//	 float	screenaspect;
-////	 float	yfov;
-//	 int		x, x2, y2, y, w, h;
-//
-//	 //
-//	 // set up viewport
-//	 //
-//	 x = floor(r_newrefdef.x * vid.width / vid.width);
-//	 x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
-//	 y = floor(vid.height - r_newrefdef.y * vid.height / vid.height);
-//	 y2 = ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
-//
-//	 w = x2 - x;
-//	 h = y - y2;
-//
-//	 qglViewport (x, y2, w, h);
-//
-//	 //
-//	 // set up projection matrix
-//	 //
-//	 screenaspect = (float)r_newrefdef.width/r_newrefdef.height;
-////	 yfov = 2*atan((float)r_newrefdef.height/r_newrefdef.width)*180/M_PI;
-//	 qglMatrixMode(GL_PROJECTION);
-//	 qglLoadIdentity ();
-//	 MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  4096);
-//
-//	 qglCullFace(GL_FRONT);
-//
-//	 qglMatrixMode(GL_MODELVIEW);
-//	 qglLoadIdentity ();
-//
-//	 qglRotatef (-90,  1, 0, 0);	    // put Z going up
-//	 qglRotatef (90,  0, 0, 1);	    // put Z going up
-//	 qglRotatef (-r_newrefdef.viewangles[2],  1, 0, 0);
-//	 qglRotatef (-r_newrefdef.viewangles[0],  0, 1, 0);
-//	 qglRotatef (-r_newrefdef.viewangles[1],  0, 0, 1);
-//	 qglTranslatef (-r_newrefdef.vieworg[0],  -r_newrefdef.vieworg[1],  -r_newrefdef.vieworg[2]);
-//
-////	 if ( gl_state.camera_separation != 0 && gl_state.stereo_enabled )
-////		 qglTranslatef ( gl_state.camera_separation, 0, 0 );
-//
-//	 qglGetFloatv (GL_MODELVIEW_MATRIX, r_world_matrix);
-//
-//	 //
-//	 // set drawing parms
-//	 //
-//	 if (gl_cull->value)
-//		 qglEnable(GL_CULL_FACE);
-//	 else
-//		 qglDisable(GL_CULL_FACE);
-//
-//	 qglDisable(GL_BLEND);
-//	 qglDisable(GL_ALPHA_TEST);
-//	 qglEnable(GL_DEPTH_TEST);
+
+
+	void MYgluPerspective(
+		double fovy,
+		double aspect,
+		double zNear,
+		double zFar) {
+			
+		double xmin, xmax, ymin, ymax;
+
+		ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
+		ymin = -ymax;
+
+		xmin = ymin * aspect;
+		xmax = ymax * aspect;
+
+		xmin += - (2 * gl_state.camera_separation) / zNear;
+		xmax += - (2 * gl_state.camera_separation) / zNear;
+
+		gl.glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	}
+
+
+	/*
+	=============
+	R_SetupGL
+	=============
+	*/
+	void R_SetupGL() {
+		float screenaspect;
+		int x, x2, y2, y, w, h;
+
+		//
+		// set up viewport
+		//
+		x = (int) Math.floor(r_newrefdef.x * vid.width / vid.width);
+		x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
+		y = (int) Math.floor(vid.height - r_newrefdef.y * vid.height / vid.height);
+		y2 = (int) Math.ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+
+		w = x2 - x;
+		h = y - y2;
+
+		gl.glViewport(x, y2, w, h);
+
+		//
+		// set up projection matrix
+		//
+		screenaspect = (float) r_newrefdef.width / r_newrefdef.height;
+		gl.glMatrixMode(GL.GL_PROJECTION);
+		gl.glLoadIdentity();
+		MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096);
+
+		gl.glCullFace(GL.GL_FRONT);
+
+		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glLoadIdentity();
+
+		gl.glRotatef(-90, 1, 0, 0); // put Z going up
+		gl.glRotatef(90, 0, 0, 1); // put Z going up
+		gl.glRotatef(-r_newrefdef.viewangles[2], 1, 0, 0);
+		gl.glRotatef(-r_newrefdef.viewangles[0], 0, 1, 0);
+		gl.glRotatef(-r_newrefdef.viewangles[1], 0, 0, 1);
+		gl.glTranslatef(
+			-r_newrefdef.vieworg[0],
+			-r_newrefdef.vieworg[1],
+			-r_newrefdef.vieworg[2]);
+
+		gl.glGetFloatv(GL.GL_MODELVIEW_MATRIX, r_world_matrix);
+
+		//
+		// set drawing parms
+		//
+		if (gl_cull.value > 0.0f)
+			gl.glEnable(GL.GL_CULL_FACE);
+		else
+			gl.glDisable(GL.GL_CULL_FACE);
+
+		gl.glDisable(GL.GL_BLEND);
+		gl.glDisable(GL.GL_ALPHA_TEST);
+		gl.glEnable(GL.GL_DEPTH_TEST);
 	}
 
 	/*
@@ -842,65 +848,61 @@ public abstract class Main extends Base {
 		R_PolyBlend ();
 	}
 
-// /*
-// ================
-// R_RenderView
-//
-// r_newrefdef must be set before the first call
-// ================
-// */
-	void R_RenderView (refdef_t fd)
-	{
-//	 if (r_norefresh->value)
-//		 return;
-//
-//	 r_newrefdef = *fd;
-//
-//	 if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
-//		 ri.Sys_Error (ERR_DROP, "R_RenderView: NULL worldmodel");
-//
-//	 if (r_speeds->value)
-//	 {
-//		 c_brush_polys = 0;
-//		 c_alias_polys = 0;
-//	 }
-//
-//	 R_PushDlights ();
-//
-//	 if (gl_finish->value)
-//		 qglFinish ();
-//
-//	 R_SetupFrame ();
-//
-//	 R_SetFrustum ();
-//
-//	 R_SetupGL ();
-//
-//	 R_MarkLeaves ();	// done here so we know if we're in water
-//
-//	 R_DrawWorld ();
-//
-//	 R_DrawEntitiesOnList ();
-//
-//	 R_RenderDlights ();
-//
-//	 R_DrawParticles ();
-//
-//	 R_DrawAlphaSurfaces ();
-//
-//	 R_Flash();
-//
-//	 if (r_speeds->value)
-//	 {
-//		 ri.Con_Printf (PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
-//			 c_brush_polys, 
-//			 c_alias_polys, 
-//			 c_visible_textures, 
-//			 c_visible_lightmaps); 
-//	 }
+	/*
+	================
+	R_RenderView
+
+	r_newrefdef must be set before the first call
+	================
+	*/
+	void R_RenderView(refdef_t fd) {
+		
+		if (r_norefresh.value != 0.0f) return;
+
+		r_newrefdef = fd;
+
+		if (r_worldmodel == null && (r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) == 0 )
+			ri.Sys_Error(Defines.ERR_DROP, "R_RenderView: NULL worldmodel");
+
+		if (r_speeds.value != 0.0f)
+		{
+			c_brush_polys = 0;
+			c_alias_polys = 0;
+		}
+
+		// TODO R_PushDlights();
+
+		if (gl_finish.value != 0.0f) gl.glFinish();
+
+		R_SetupFrame();
+
+		R_SetFrustum ();
+
+		R_SetupGL ();
+
+		// TODO R_MarkLeaves(); // done here so we know if we're in water
+
+		// TODO R_DrawWorld();
+
+		R_DrawEntitiesOnList();
+
+		// TODO R_RenderDlights();
+
+		R_DrawParticles();
+
+		// TODO R_DrawAlphaSurfaces();
+
+		R_Flash();
+
+		if (r_speeds.value != 0.0f)
+		{
+			ri.Con_Printf(Defines.PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+				new Vargs(4).add(c_brush_polys).add(c_alias_polys).add(c_visible_textures).add(c_visible_lightmaps)
+			); 
+		}
 	}
 
-	protected void R_SetGL2D() {
+	void R_SetGL2D() {
 		// set 2D virtual screen size
 		gl.glViewport(0, 0, vid.width, vid.height);
 		gl.glMatrixMode(GL.GL_PROJECTION);
@@ -915,15 +917,15 @@ public abstract class Main extends Base {
 		gl.glColor4f(1, 1, 1, 1);
 	}
 
-//
+
 // static void GL_DrawColoredStereoLinePair( float r, float g, float b, float y )
 // {
-//	 qglColor3f( r, g, b );
-//	 qglVertex2f( 0, y );
-//	 qglVertex2f( vid.width, y );
-//	 qglColor3f( 0, 0, 0 );
-//	 qglVertex2f( 0, y + 1 );
-//	 qglVertex2f( vid.width, y + 1 );
+//	 gl.glColor3f( r, g, b );
+//	 gl.glVertex2f( 0, y );
+//	 gl.glVertex2f( vid.width, y );
+//	 gl.glColor3f( 0, 0, 0 );
+//	 gl.glVertex2f( 0, y + 1 );
+//	 gl.glVertex2f( vid.width, y + 1 );
 // }
 //
 // static void GL_DrawStereoPattern( void )
@@ -938,11 +940,11 @@ public abstract class Main extends Base {
 //
 //	 R_SetGL2D();
 //
-//	 qglDrawBuffer( GL_BACK_LEFT );
+//	 gl.glDrawBuffer( GL.GL_BACK_LEFT );
 //
 //	 for ( i = 0; i < 20; i++ )
 //	 {
-//		 qglBegin( GL_LINES );
+//		 gl.glBegin( GL.GL_LINES );
 //			 GL_DrawColoredStereoLinePair( 1, 0, 0, 0 );
 //			 GL_DrawColoredStereoLinePair( 1, 0, 0, 2 );
 //			 GL_DrawColoredStereoLinePair( 1, 0, 0, 4 );
@@ -951,19 +953,19 @@ public abstract class Main extends Base {
 //			 GL_DrawColoredStereoLinePair( 1, 1, 0, 10);
 //			 GL_DrawColoredStereoLinePair( 1, 1, 0, 12);
 //			 GL_DrawColoredStereoLinePair( 0, 1, 0, 14);
-//		 qglEnd();
+//		 gl.glEnd();
 //		
 //		 GLimp_EndFrame();
 //	 }
 // }
-//
-//
-// /*
-// ====================
-// R_SetLightLevel
-//
-// ====================
-// */
+
+
+	/*
+	====================
+	R_SetLightLevel
+
+	====================
+	*/
 	void R_SetLightLevel()
 	{
 //	 vec3_t		shadelight;
@@ -1004,84 +1006,99 @@ public abstract class Main extends Base {
 	protected void R_RenderFrame (refdef_t fd) {
 		R_RenderView( fd );
 		R_SetLightLevel();
-		R_SetGL2D ();
+		R_SetGL2D();
 	}
 
 
-	protected void R_Register()
-	{
-	 r_lefthand = ri.Cvar_Get( "hand", "0", Cvar.USERINFO | Cvar.ARCHIVE );
-	 r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
-	 r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
-	 r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
-	 r_drawworld = ri.Cvar_Get ("r_drawworld", "1", 0);
-	 r_novis = ri.Cvar_Get ("r_novis", "0", 0);
-	 r_nocull = ri.Cvar_Get ("r_nocull", "0", 0);
-	 r_lerpmodels = ri.Cvar_Get ("r_lerpmodels", "1", 0);
-	 r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
+	protected void R_Register() {
+		r_lefthand = ri.Cvar_Get( "hand", "0", Cvar.USERINFO | Cvar.ARCHIVE );
+		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
+		r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
+		r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
+		r_drawworld = ri.Cvar_Get ("r_drawworld", "1", 0);
+		r_novis = ri.Cvar_Get ("r_novis", "0", 0);
+		r_nocull = ri.Cvar_Get ("r_nocull", "0", 0);
+		r_lerpmodels = ri.Cvar_Get ("r_lerpmodels", "1", 0);
+		r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 
-	 r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
+		r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
 
-	 gl_nosubimage = ri.Cvar_Get( "gl_nosubimage", "0", 0 );
-	 gl_allow_software = ri.Cvar_Get( "gl_allow_software", "0", 0 );
+		gl_nosubimage = ri.Cvar_Get( "gl_nosubimage", "0", 0 );
+		gl_allow_software = ri.Cvar_Get( "gl_allow_software", "0", 0 );
 
-	 gl_particle_min_size = ri.Cvar_Get( "gl_particle_min_size", "2", Cvar.ARCHIVE );
-	 gl_particle_max_size = ri.Cvar_Get( "gl_particle_max_size", "40", Cvar.ARCHIVE );
-	 gl_particle_size = ri.Cvar_Get( "gl_particle_size", "40", Cvar.ARCHIVE );
-	 gl_particle_att_a = ri.Cvar_Get( "gl_particle_att_a", "0.01", Cvar.ARCHIVE );
-	 gl_particle_att_b = ri.Cvar_Get( "gl_particle_att_b", "0.0", Cvar.ARCHIVE );
-	 gl_particle_att_c = ri.Cvar_Get( "gl_particle_att_c", "0.01", Cvar.ARCHIVE );
+		gl_particle_min_size = ri.Cvar_Get( "gl_particle_min_size", "2", Cvar.ARCHIVE );
+		gl_particle_max_size = ri.Cvar_Get( "gl_particle_max_size", "40", Cvar.ARCHIVE );
+		gl_particle_size = ri.Cvar_Get( "gl_particle_size", "40", Cvar.ARCHIVE );
+		gl_particle_att_a = ri.Cvar_Get( "gl_particle_att_a", "0.01", Cvar.ARCHIVE );
+		gl_particle_att_b = ri.Cvar_Get( "gl_particle_att_b", "0.0", Cvar.ARCHIVE );
+		gl_particle_att_c = ri.Cvar_Get( "gl_particle_att_c", "0.01", Cvar.ARCHIVE );
 
-	 gl_modulate = ri.Cvar_Get ("gl_modulate", "1", Cvar.ARCHIVE );
-	 gl_log = ri.Cvar_Get( "gl_log", "0", 0 );
-	 gl_bitdepth = ri.Cvar_Get( "gl_bitdepth", "0", 0 );
-	 gl_mode = ri.Cvar_Get( "gl_mode", "3", Cvar.ARCHIVE );
-	 gl_lightmap = ri.Cvar_Get ("gl_lightmap", "0", 0);
-	 gl_shadows = ri.Cvar_Get ("gl_shadows", "0", Cvar.ARCHIVE );
-	 gl_dynamic = ri.Cvar_Get ("gl_dynamic", "1", 0);
-	 gl_nobind = ri.Cvar_Get ("gl_nobind", "0", 0);
-	 gl_round_down = ri.Cvar_Get ("gl_round_down", "1", 0);
-	 gl_picmip = ri.Cvar_Get ("gl_picmip", "0", 0);
-	 gl_skymip = ri.Cvar_Get ("gl_skymip", "0", 0);
-	 gl_showtris = ri.Cvar_Get ("gl_showtris", "0", 0);
-	 gl_ztrick = ri.Cvar_Get ("gl_ztrick", "0", 0);
-	 gl_finish = ri.Cvar_Get ("gl_finish", "0", Cvar.ARCHIVE);
-	 gl_clear = ri.Cvar_Get ("gl_clear", "0", 0);
-	 gl_cull = ri.Cvar_Get ("gl_cull", "1", 0);
-	 gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0);
-	 gl_flashblend = ri.Cvar_Get ("gl_flashblend", "0", 0);
-	 gl_playermip = ri.Cvar_Get ("gl_playermip", "0", 0);
-	 gl_monolightmap = ri.Cvar_Get( "gl_monolightmap", "0", 0 );
-	 gl_driver = ri.Cvar_Get( "gl_driver", "opengl32", Cvar.ARCHIVE );
-	 gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Cvar.ARCHIVE );
-	 gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", Cvar.ARCHIVE );
-	 gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", Cvar.ARCHIVE );
-	 gl_lockpvs = ri.Cvar_Get( "gl_lockpvs", "0", 0 );
+		gl_modulate = ri.Cvar_Get ("gl_modulate", "1", Cvar.ARCHIVE );
+		gl_log = ri.Cvar_Get( "gl_log", "0", 0 );
+		gl_bitdepth = ri.Cvar_Get( "gl_bitdepth", "0", 0 );
+		gl_mode = ri.Cvar_Get( "gl_mode", "3", Cvar.ARCHIVE );
+		gl_lightmap = ri.Cvar_Get ("gl_lightmap", "0", 0);
+		gl_shadows = ri.Cvar_Get ("gl_shadows", "0", Cvar.ARCHIVE );
+		gl_dynamic = ri.Cvar_Get ("gl_dynamic", "1", 0);
+		gl_nobind = ri.Cvar_Get ("gl_nobind", "0", 0);
+		gl_round_down = ri.Cvar_Get ("gl_round_down", "1", 0);
+		gl_picmip = ri.Cvar_Get ("gl_picmip", "0", 0);
+		gl_skymip = ri.Cvar_Get ("gl_skymip", "0", 0);
+		gl_showtris = ri.Cvar_Get ("gl_showtris", "0", 0);
+		gl_ztrick = ri.Cvar_Get ("gl_ztrick", "0", 0);
+		gl_finish = ri.Cvar_Get ("gl_finish", "0", Cvar.ARCHIVE);
+		gl_clear = ri.Cvar_Get ("gl_clear", "0", 0);
+		gl_cull = ri.Cvar_Get ("gl_cull", "1", 0);
+		gl_polyblend = ri.Cvar_Get ("gl_polyblend", "1", 0);
+		gl_flashblend = ri.Cvar_Get ("gl_flashblend", "0", 0);
+		gl_playermip = ri.Cvar_Get ("gl_playermip", "0", 0);
+		gl_monolightmap = ri.Cvar_Get( "gl_monolightmap", "0", 0 );
+		gl_driver = ri.Cvar_Get( "gl_driver", "opengl32", Cvar.ARCHIVE );
+		gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", Cvar.ARCHIVE );
+		gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", Cvar.ARCHIVE );
+		gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", Cvar.ARCHIVE );
+		gl_lockpvs = ri.Cvar_Get( "gl_lockpvs", "0", 0 );
 
-	 gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", Cvar.ARCHIVE );
+		gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", Cvar.ARCHIVE );
 
-	 gl_ext_swapinterval = ri.Cvar_Get( "gl_ext_swapinterval", "1", Cvar.ARCHIVE );
-	 gl_ext_palettedtexture = ri.Cvar_Get( "gl_ext_palettedtexture", "1", Cvar.ARCHIVE );
-	 gl_ext_multitexture = ri.Cvar_Get( "gl_ext_multitexture", "1", Cvar.ARCHIVE );
-	 gl_ext_pointparameters = ri.Cvar_Get( "gl_ext_pointparameters", "1", Cvar.ARCHIVE );
-	 gl_ext_compiled_vertex_array = ri.Cvar_Get( "gl_ext_compiled_vertex_array", "1", Cvar.ARCHIVE );
+		gl_ext_swapinterval = ri.Cvar_Get( "gl_ext_swapinterval", "1", Cvar.ARCHIVE );
+		gl_ext_palettedtexture = ri.Cvar_Get( "gl_ext_palettedtexture", "1", Cvar.ARCHIVE );
+		gl_ext_multitexture = ri.Cvar_Get( "gl_ext_multitexture", "1", Cvar.ARCHIVE );
+		gl_ext_pointparameters = ri.Cvar_Get( "gl_ext_pointparameters", "1", Cvar.ARCHIVE );
+		gl_ext_compiled_vertex_array = ri.Cvar_Get( "gl_ext_compiled_vertex_array", "1", Cvar.ARCHIVE );
 
-	 gl_drawbuffer = ri.Cvar_Get( "gl_drawbuffer", "GL_BACK", 0 );
-	 gl_swapinterval = ri.Cvar_Get( "gl_swapinterval", "1", Cvar.ARCHIVE );
+		gl_drawbuffer = ri.Cvar_Get( "gl_drawbuffer", "GL_BACK", 0 );
+		gl_swapinterval = ri.Cvar_Get( "gl_swapinterval", "1", Cvar.ARCHIVE );
 
-	 gl_saturatelighting = ri.Cvar_Get( "gl_saturatelighting", "0", 0 );
+		gl_saturatelighting = ri.Cvar_Get( "gl_saturatelighting", "0", 0 );
 
-	 gl_3dlabs_broken = ri.Cvar_Get( "gl_3dlabs_broken", "1", Cvar.ARCHIVE );
+		gl_3dlabs_broken = ri.Cvar_Get( "gl_3dlabs_broken", "1", Cvar.ARCHIVE );
 
-	 vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", Cvar.ARCHIVE );
-	 vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", Cvar.ARCHIVE );
-	 vid_ref = ri.Cvar_Get( "vid_ref", "jogl", Cvar.ARCHIVE );
+		vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", Cvar.ARCHIVE );
+		vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", Cvar.ARCHIVE );
+		vid_ref = ri.Cvar_Get( "vid_ref", "jogl", Cvar.ARCHIVE );
 
-		// TODO R_Register --> uncomment
-//	 ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
-//	 ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
-//	 ri.Cmd_AddCommand( "modellist", Mod_Modellist_f );
-//	 ri.Cmd_AddCommand( "gl_strings", GL_Strings_f );
+		ri.Cmd_AddCommand( "imagelist", new xcommand_t() {
+			public void execute() throws Exception {
+				GL_ImageList_f();
+			}
+		});
+		
+		ri.Cmd_AddCommand( "screenshot", new xcommand_t() {
+			public void execute() throws Exception {
+				GL_ScreenShot_f();
+			}
+		});
+		ri.Cmd_AddCommand( "modellist", new xcommand_t() {
+			public void execute() throws Exception {
+				Mod_Modellist_f();
+			}
+		});
+		ri.Cmd_AddCommand( "gl_strings", new xcommand_t() {
+			public void execute() throws Exception {
+				GL_Strings_f();
+			}
+		});
 	}
 
 	/*
@@ -1131,18 +1148,17 @@ public abstract class Main extends Base {
 	   return true;
    }
 
-//
-// /*
-// ===============
-// R_Init
-// ===============
-// */
 
+	/*
+	===============
+	R_Init
+	===============
+	*/
 	// TODO fill float[] r_turbsin
 	float[] r_turbsin = new float[256];
 
-	protected boolean R_Init()
-	{	
+	protected boolean R_Init() {
+			
 		for (int j = 0; j < 256; j++ ) {
 			r_turbsin[j] *= 0.5;
 		}
@@ -1180,7 +1196,7 @@ public abstract class Main extends Base {
 		return true;
 	}
 
-	protected boolean R_Init2()
+	boolean R_Init2()
 	{	
 
 		ri.Vid_MenuInit();
@@ -1370,8 +1386,8 @@ public abstract class Main extends Base {
 //			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
 //			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
 //			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
-//			 //GL_TEXTURE0 = GL_TEXTURE0_ARB;
-//			 //GL_TEXTURE1 = GL_TEXTURE1_ARB;
+			 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
+			 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
 //		 }
 //		 else
 //		 {
@@ -1394,8 +1410,8 @@ public abstract class Main extends Base {
 //			 ri.Con_Printf( PRINT_ALL, "...using GL_SGIS_multitexture\n" );
 //			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 //			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
-//			 //GL_TEXTURE0 = GL_TEXTURE0_SGIS;
-//			 //GL_TEXTURE1 = GL_TEXTURE1_SGIS;
+//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
+//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
 //		 }
 //		 else
 //		 {
@@ -1407,52 +1423,45 @@ public abstract class Main extends Base {
 //		 ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
 //	 }
 //
-//	 GL_SetDefaultState();
-//
-//	 /*
-//	 ** draw our stereo patterns
-//	 */
-// #if 0 // commented out until H3D pays us the money they owe us
-//	 GL_DrawStereoPattern();
-// #endif
-//
-//	 GL_InitImages ();
-//	 Mod_Init ();
-//	 R_InitParticleTexture ();
-//	 Draw_InitLocal ();
-//
-//	 err = qglGetError();
-//	 if ( err != GL_NO_ERROR )
-//		 ri.Con_Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
+		GL_SetDefaultState();
+
+		GL_InitImages();
+		Mod_Init();
+		R_InitParticleTexture();
+		Draw_InitLocal();
+
+		int err = gl.glGetError();
+		if ( err != GL.GL_NO_ERROR )
+			ri.Con_Printf (Defines.PRINT_ALL, "glGetError() = 0x%x\n", new Vargs(1).add(err) );
+
 		return true;
 	}
 
 
-//
-// /*
-// ===============
-// R_Shutdown
-// ===============
-// */
-	protected void R_Shutdown()
-	{	
+
+	/*
+	===============
+	R_Shutdown
+	===============
+	*/
+	protected void R_Shutdown() {	
 		ri.Cmd_RemoveCommand("modellist");
 		ri.Cmd_RemoveCommand("screenshot");
 		ri.Cmd_RemoveCommand("imagelist");
 		ri.Cmd_RemoveCommand("gl_strings");
-//
-//	 Mod_FreeAll ();
-//
-//	 GL_ShutdownImages ();
-//
-//	 /*
-//	 ** shut down OS specific OpenGL stuff like contexts, etc.
-//	 */
-	GLimp_Shutdown();
-//
-//	 /*
-//	 ** shutdown our QGL subsystem
-//	 */
+
+		Mod_FreeAll();
+
+		GL_ShutdownImages();
+
+		/*
+		 * shut down OS specific OpenGL stuff like contexts, etc.
+		 */
+		GLimp_Shutdown();
+
+		/*
+		 * shutdown our QGL subsystem
+		 */
 		QGL_Shutdown();
 	}
 
@@ -1510,117 +1519,115 @@ public abstract class Main extends Base {
 //		 }
 //	 }
 //
-//	 GLimp_BeginFrame( camera_separation );
-//
-//	 /*
-//	 ** go into 2D mode
-//	 */
-//	 qglViewport (0,0, vid.width, vid.height);
-//	 qglMatrixMode(GL_PROJECTION);
-//	 qglLoadIdentity ();
-//	 qglOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
-//	 qglMatrixMode(GL_MODELVIEW);
-//	 qglLoadIdentity ();
-//	 qglDisable (GL_DEPTH_TEST);
-//	 qglDisable (GL_CULL_FACE);
-//	 qglDisable (GL_BLEND);
-//	 qglEnable (GL_ALPHA_TEST);
-//	 qglColor4f (1,1,1,1);
-//
-//	 /*
-//	 ** draw buffer stuff
-//	 */
-//	 if ( gl_drawbuffer->modified )
-//	 {
-//		 gl_drawbuffer->modified = false;
-//
-//		 if ( gl_state.camera_separation == 0 || !gl_state.stereo_enabled )
-//		 {
-//			 if ( Q_stricmp( gl_drawbuffer->string, "GL_FRONT" ) == 0 )
-//				 qglDrawBuffer( GL_FRONT );
-//			 else
-//				 qglDrawBuffer( GL_BACK );
-//		 }
-//	 }
-//
-//	 /*
-//	 ** texturemode stuff
-//	 */
-//	 if ( gl_texturemode->modified )
-//	 {
-//		 GL_TextureMode( gl_texturemode->string );
-//		 gl_texturemode->modified = false;
-//	 }
-//
-//	 if ( gl_texturealphamode->modified )
-//	 {
-//		 GL_TextureAlphaMode( gl_texturealphamode->string );
-//		 gl_texturealphamode->modified = false;
-//	 }
-//
-//	 if ( gl_texturesolidmode->modified )
-//	 {
-//		 GL_TextureSolidMode( gl_texturesolidmode->string );
-//		 gl_texturesolidmode->modified = false;
-//	 }
-//
-//	 /*
-//	 ** swapinterval stuff
-//	 */
-//	 GL_UpdateSwapInterval();
-//
-//	 //
-//	 // clear screen if desired
-//	 //
-//	 R_Clear ();
+		GLimp_BeginFrame( camera_separation );
+
+		/*
+		** go into 2D mode
+		*/
+		gl.glViewport (0,0, vid.width, vid.height);
+		gl.glMatrixMode(GL.GL_PROJECTION);
+		gl.glLoadIdentity ();
+		gl.glOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glLoadIdentity ();
+		gl.glDisable (GL.GL_DEPTH_TEST);
+		gl.glDisable (GL.GL_CULL_FACE);
+		gl.glDisable (GL.GL_BLEND);
+		gl.glEnable (GL.GL_ALPHA_TEST);
+		gl.glColor4f (1,1,1,1);
+
+		/*
+		** draw buffer stuff
+		*/
+		if ( gl_drawbuffer.modified )
+		{
+			gl_drawbuffer.modified = false;
+
+			if ( gl_state.camera_separation == 0 || !gl_state.stereo_enabled )
+			{
+				if ( gl_drawbuffer.string.equalsIgnoreCase("GL_FRONT") )
+					gl.glDrawBuffer( GL.GL_FRONT );
+				else
+					gl.glDrawBuffer( GL.GL_BACK );
+			}
+		}
+
+		/*
+		** texturemode stuff
+		*/
+		if ( gl_texturemode.modified )
+		{
+			GL_TextureMode( gl_texturemode.string );
+			gl_texturemode.modified = false;
+		}
+
+		if ( gl_texturealphamode.modified )
+		{
+			GL_TextureAlphaMode( gl_texturealphamode.string );
+			gl_texturealphamode.modified = false;
+		}
+
+		if ( gl_texturesolidmode.modified )
+		{
+			GL_TextureSolidMode( gl_texturesolidmode.string );
+			gl_texturesolidmode.modified = false;
+		}
+
+		/*
+		** swapinterval stuff
+		*/
+		GL_UpdateSwapInterval();
+
+		//
+		// clear screen if desired
+		//
+		R_Clear ();
 	}
-//
-// /*
-// =============
-// R_SetPalette
-// =============
-// */
-// unsigned r_rawpalette[256];
-//
-	protected void R_SetPalette (byte[] palette)
-	{
-//	 int		i;
-//
-//	 byte *rp = ( byte * ) r_rawpalette;
-//
-//	 if ( palette )
-//	 {
-//		 for ( i = 0; i < 256; i++ )
-//		 {
-//			 rp[i*4+0] = palette[i*3+0];
-//			 rp[i*4+1] = palette[i*3+1];
-//			 rp[i*4+2] = palette[i*3+2];
-//			 rp[i*4+3] = 0xff;
-//		 }
-//	 }
-//	 else
-//	 {
-//		 for ( i = 0; i < 256; i++ )
-//		 {
-//			 rp[i*4+0] = d_8to24table[i] & 0xff;
-//			 rp[i*4+1] = ( d_8to24table[i] >> 8 ) & 0xff;
-//			 rp[i*4+2] = ( d_8to24table[i] >> 16 ) & 0xff;
-//			 rp[i*4+3] = 0xff;
-//		 }
-//	 }
-//	 GL_SetTexturePalette( r_rawpalette );
-//
-//	 qglClearColor (0,0,0,0);
-//	 qglClear (GL_COLOR_BUFFER_BIT);
-//	 qglClearColor (1,0, 0.5 , 0.5);
+
+	int[] r_rawpalette = new int[256];
+
+	/*
+	=============
+	R_SetPalette
+	=============
+	*/
+	protected void R_SetPalette(byte[] palette) {
+		
+		assert (palette != null && palette.length == 768) : "byte palette[768] bug";
+		
+		int i;
+		int color = 0;
+		
+		if (palette != null) {
+
+			for (i = 0; i < 256; i++) {
+				color = (palette[i * 3 + 0] << 0) & 0x000000FF;
+				color |= (palette[i * 3 + 1] << 8) & 0x0000FF00;
+				color |= (palette[i * 3 + 2] << 8) & 0x00FF0000;
+				color |= 0xFF000000;
+				r_rawpalette[i] = color;
+			}
+			
+		} else {
+
+			for (i = 0; i < 256; i++) {
+				r_rawpalette[i] = d_8to24table[i] | 0xff000000;
+			}
+		}
+		GL_SetTexturePalette( r_rawpalette );
+
+		gl.glClearColor (0,0,0,0);
+		gl.glClear (GL.GL_COLOR_BUFFER_BIT);
+		gl.glClearColor(1f, 0f, 0.5f , 0.5f);
 	}
-//
-// /*
-// ** R_DrawBeam
-// */
+
+	static final int NUM_BEAM_SEGS = 6;
+
+	/*
+	** R_DrawBeam
+	*/
 	void R_DrawBeam(entity_t e)
 	{
-// #define NUM_BEAM_SEGS 6
 //
 //	 int	i;
 //	 float r, g, b;
@@ -1655,9 +1662,9 @@ public abstract class Main extends Base {
 //		 VectorAdd( start_points[i], direction, end_points[i] );
 //	 }
 //
-//	 qglDisable( GL_TEXTURE_2D );
-//	 qglEnable( GL_BLEND );
-//	 qglDepthMask( GL_FALSE );
+	 gl.glDisable( GL.GL_TEXTURE_2D );
+	 gl.glEnable( GL.GL_BLEND );
+	 gl.glDepthMask( false );
 //
 //	 r = ( d_8to24table[e->skinnum & 0xFF] ) & 0xFF;
 //	 g = ( d_8to24table[e->skinnum & 0xFF] >> 8 ) & 0xFF;
@@ -1667,25 +1674,26 @@ public abstract class Main extends Base {
 //	 g *= 1/255.0F;
 //	 b *= 1/255.0F;
 //
-//	 qglColor4f( r, g, b, e->alpha );
+//	 gl.glColor4f( r, g, b, e->alpha );
 //
-//	 qglBegin( GL_TRIANGLE_STRIP );
+//	 gl.glBegin( GL.GL_TRIANGLE_STRIP );
 //	 for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 //	 {
-//		 qglVertex3fv( start_points[i] );
-//		 qglVertex3fv( end_points[i] );
-//		 qglVertex3fv( start_points[(i+1)%NUM_BEAM_SEGS] );
-//		 qglVertex3fv( end_points[(i+1)%NUM_BEAM_SEGS] );
+//		 gl.glVertex3fv( start_points[i] );
+//		 gl.glVertex3fv( end_points[i] );
+//		 gl.glVertex3fv( start_points[(i+1)%NUM_BEAM_SEGS] );
+//		 gl.glVertex3fv( end_points[(i+1)%NUM_BEAM_SEGS] );
 //	 }
-//	 qglEnd();
+//	 gl.glEnd();
 //
-//	 qglEnable( GL_TEXTURE_2D );
-//	 qglDisable( GL_BLEND );
-//	 qglDepthMask( GL_TRUE );
+//	 gl.glEnable( GL.GL_TEXTURE_2D );
+//	 gl.glDisable( GL.GL_BLEND );
+//	 gl.glDepthMask( GL.GL_TRUE );
 	}
-//
-//// ===================================================================
-//
+
+
+// ===================================================================
+
 //
 // void	R_BeginRegistration (char *map);
 // struct model_s	*R_RegisterModel (char *name);
@@ -1703,51 +1711,7 @@ public abstract class Main extends Base {
 // void	Draw_Fill (int x, int y, int w, int h, int c);
 // void	Draw_FadeScreen (void);
 //
-// /*
-// @@@@@@@@@@@@@@@@@@@@@
-// GetRefAPI
 //
-// @@@@@@@@@@@@@@@@@@@@@
-// */
-// refexport_t GetRefAPI (refimport_t rimp )
-// {
-//	 refexport_t	re;
-//
-//	 ri = rimp;
-//
-//	 re.api_version = API_VERSION;
-//
-//	 re.BeginRegistration = R_BeginRegistration;
-//	 re.RegisterModel = R_RegisterModel;
-//	 re.RegisterSkin = R_RegisterSkin;
-//	 re.RegisterPic = Draw_FindPic;
-//	 re.SetSky = R_SetSky;
-//	 re.EndRegistration = R_EndRegistration;
-//
-//	 re.RenderFrame = R_RenderFrame;
-//
-//	 re.DrawGetPicSize = Draw_GetPicSize;
-//	 re.DrawPic = Draw_Pic;
-//	 re.DrawStretchPic = Draw_StretchPic;
-//	 re.DrawChar = Draw_Char;
-//	 re.DrawTileClear = Draw_TileClear;
-//	 re.DrawFill = Draw_Fill;
-//	 re.DrawFadeScreen= Draw_FadeScreen;
-//
-//	 re.DrawStretchRaw = Draw_StretchRaw;
-//
-//	 re.Init = R_Init;
-//	 re.Shutdown = R_Shutdown;
-//
-//	 re.CinematicSetPalette = R_SetPalette;
-//	 re.BeginFrame = R_BeginFrame;
-//	 re.EndFrame = GLimp_EndFrame;
-//
-//	 re.AppActivate = GLimp_AppActivate;
-//
-//	 Swap_Init ();
-//
-//	 return re;
-// }
-//
+
+
 }

@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.2 2003-12-29 06:00:49 cwei Exp $
+ * $Id: Impl.java,v 1.3 2004-01-03 03:47:14 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -62,6 +62,8 @@ public class Impl extends Misc implements GLEventListener {
 		// do nothing
 		return true;
 	}
+	
+	
 
 	/**
 	 * @param dim
@@ -127,6 +129,10 @@ public class Impl extends Misc implements GLEventListener {
 		return Enum.rserr_ok;
 	}
 
+	void GLimp_BeginFrame(float camera_separation) {
+		// do nothing
+	}
+
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
 		// swap buffer
@@ -186,28 +192,11 @@ public class Impl extends Misc implements GLEventListener {
 			switchToCallback = true;
 			
 			//
-			// Render welcome
+			// check the post init process
 			//
-			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-		
-			R_SetGL2D();
-
-			int font = GLUT.BITMAP_TIMES_ROMAN_24;
-		
-			String text;
-			if (post_init) {
-				text = "Welcome to JOGL renderer :-)";
-				gl.glColor3f(0.0f, 0.8f, 0.0f);
-			} else {
-				text = "Error: can't init JOGL renderer";
-				gl.glColor3f(0.8f, 0.0f, 0.0f);
+			if (!post_init) {
+				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init JOGL renderer");
 			}
-
-			int len = glut.glutBitmapLength(font, text);
-			gl.glWindowPos2i((vid.width - len)/2, vid.height/2);
-			glut.glutBitmapString(gl, font, text);
-			
-			gl.glFlush();
 		}
 	}
 	
@@ -247,5 +236,6 @@ public class Impl extends Misc implements GLEventListener {
 		}
 		canvas.display();
 	}
+
 
 }
