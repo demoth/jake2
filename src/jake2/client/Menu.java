@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.10 2004-01-30 13:05:46 cwei Exp $
+ * $Id: Menu.java,v 1.11 2004-01-30 14:34:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -560,10 +560,10 @@ public final class Menu extends Key {
 	
 	=======================================================================
 	*/
-	static menuframework_s s_multiplayer_menu;
-	static menuaction_s s_join_network_server_action;
-	static menuaction_s s_start_network_server_action;
-	static menuaction_s s_player_setup_action;
+	static menuframework_s s_multiplayer_menu = new menuframework_s();
+	static menuaction_s s_join_network_server_action = new menuaction_s();
+	static menuaction_s s_start_network_server_action = new menuaction_s();
+	static menuaction_s s_player_setup_action = new menuaction_s();
 
 	static void Multiplayer_MenuDraw() {
 		Banner("m_banner_multiplayer");
@@ -3728,17 +3728,17 @@ public final class Menu extends Key {
 	
 	=============================================================================
 	*/
-	static menuframework_s s_player_config_menu;
-	static menufield_s s_player_name_field;
-	static menulist_s s_player_model_box;
-	static menulist_s s_player_skin_box;
-	static menulist_s s_player_handedness_box;
-	static menulist_s s_player_rate_box;
-	static menuseparator_s s_player_skin_title;
-	static menuseparator_s s_player_model_title;
-	static menuseparator_s s_player_hand_title;
-	static menuseparator_s s_player_rate_title;
-	static menuaction_s s_player_download_action;
+	static menuframework_s s_player_config_menu = new menuframework_s();
+	static menufield_s s_player_name_field = new menufield_s();
+	static menulist_s s_player_model_box = new menulist_s();
+	static menulist_s s_player_skin_box = new menulist_s();
+	static menulist_s s_player_handedness_box = new menulist_s();
+	static menulist_s s_player_rate_box = new menulist_s();
+	static menuseparator_s s_player_skin_title = new menuseparator_s();
+	static menuseparator_s s_player_model_title = new menuseparator_s();
+	static menuseparator_s s_player_hand_title = new menuseparator_s();
+	static menuseparator_s s_player_rate_title = new menuseparator_s();
+	static menuaction_s s_player_download_action = new menuaction_s();
 
 	static class playermodelinfo_s {
 		int nskins;
@@ -3821,8 +3821,10 @@ public final class Menu extends Key {
 			path = FS.NextPath(path);
 			findname = path + "/players/*.*";
 
-			if ((dirnames = FS.ListFiles(findname, ndirs, SFF_SUBDIR)) != null)
+			if ((dirnames = FS.ListFiles(findname, ndirs, SFF_SUBDIR)) != null) {
+				ndirs = dirnames.length;
 				break;
+			}
 		}
 		while (path!=null);
 
@@ -3871,7 +3873,7 @@ public final class Menu extends Key {
 
 			// count valid skins, which consist of a skin with a matching "_i" icon
 			for (k = 0; k < npcxfiles - 1; k++) {
-				if (pcxnames[k].endsWith("_i.pcx")) {
+				if (!pcxnames[k].endsWith("_i.pcx")) {
 				//if (!strstr(pcxnames[k], "_i.pcx")) {
 					if (IconOfSkinExists(pcxnames[k], pcxnames, npcxfiles - 1)) {
 						nskins++;
@@ -3910,6 +3912,9 @@ public final class Menu extends Key {
 			}
 
 			// at this point we have a valid player model
+			if (s_pmi[s_numplayermodels] == null)
+				s_pmi[s_numplayermodels] = new playermodelinfo_s();
+			
 			s_pmi[s_numplayermodels].nskins = nskins;
 			s_pmi[s_numplayermodels].skindisplaynames = skinnames;
 
@@ -4158,6 +4163,9 @@ public final class Menu extends Key {
 
 			scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory + "/tris.md2";
 
+			// TODO die directory eintraege sind falsch
+			scratch = "players/female/tris.md2";
+
 			entity.model = re.RegisterModel(scratch);
 
 			scratch =
@@ -4166,6 +4174,9 @@ public final class Menu extends Key {
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
 					+ ".pcx";
+
+			// TODO die directory eintraege sind falsch
+			scratch = "players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + ".pcx";
 
 			entity.skin = re.RegisterSkin(scratch);
 			entity.flags = RF_FULLBRIGHT;
@@ -4203,6 +4214,10 @@ public final class Menu extends Key {
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
 					+ "_i.pcx";
+					
+			// TODO die directory eintraege sind falsch
+			scratch = "/players/female/" + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] + "_i.pcx";
+					
 			re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
 		}
 	}
