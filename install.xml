@@ -32,7 +32,7 @@
         <panel classname="TargetPanel"/> 
         <panel classname="PacksPanel"/>
         <panel classname="InstallPanel"/>
-        <panel classname="ShortcutPanel"/>
+        <!-- panel classname="ShortcutPanel"/ -->
         <panel classname="SimpleFinishPanel"/>
     </panels>
     
@@ -72,6 +72,6 @@
         </pack>
     </packs>
     
-    <native type="izpack" name="ShellLink.dll"/>
+    <!-- native type="izpack" name="ShellLink.dll"/ -->
     
 </installation>
