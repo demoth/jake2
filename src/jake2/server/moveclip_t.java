@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: moveclip_t.java,v 1.1 2004-07-07 19:59:50 hzi Exp $
+// $Id: moveclip_t.java,v 1.2 2005-01-14 16:14:02 cawe Exp $
 
 package jake2.server;
 
@@ -30,6 +30,7 @@ import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
+import jake2.util.Math3D;
 
 public class moveclip_t 
 {
@@ -41,4 +42,17 @@ public class moveclip_t
 	trace_t	trace	= new trace_t();
 	edict_t	passedict;
 	int contentmask;
+	
+	public void clear() {
+		Math3D.VectorClear(boxmins);
+		Math3D.VectorClear(boxmaxs);
+		Math3D.VectorClear(mins);
+		Math3D.VectorClear(maxs);
+		Math3D.VectorClear(mins2);
+		Math3D.VectorClear(maxs2);
+		start = end = null;
+		trace.clear();
+		passedict = null;
+		contentmask = 0;
+	}
 }

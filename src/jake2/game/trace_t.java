@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: trace_t.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
+// $Id: trace_t.java,v 1.5 2005-01-14 16:09:42 cawe Exp $
 
 package jake2.game;
 
 import jake2.util.Math3D;
 
 //a trace is returned when a box is swept through the world
-public class trace_t implements Cloneable {
+public class trace_t {
 	public boolean allsolid; // if true, plane is not valid
 	public boolean startsolid; // if true, the initial point was in a solid area
 	public float fraction; // time completed, 1.0 = didn't hit anything
@@ -38,9 +38,8 @@ public class trace_t implements Cloneable {
 	public int contents; // contents on other side of surface hit
 	// pointer
 	public edict_t ent; // not set by CM_*() functions
-
-	public void set(trace_t from)
-	{
+	
+	public void set(trace_t from) {
 		allsolid = from.allsolid;
 		startsolid = from.allsolid;
 		fraction = from.fraction;
@@ -49,5 +48,16 @@ public class trace_t implements Cloneable {
 		surface = from.surface;
 		contents = from.contents;
 		ent = from.ent;
+	}
+
+	public void clear() {
+		allsolid = false;
+		startsolid = false;
+		fraction = 0;
+		Math3D.VectorClear(endpos);
+		plane.clear();
+		surface = null;
+		contents = 0;
+		ent = null;
 	}
 }
