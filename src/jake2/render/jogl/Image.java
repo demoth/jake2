@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.11 2004-01-14 21:30:00 cwei Exp $
+ * $Id: Image.java,v 1.12 2004-01-15 01:28:08 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -511,7 +511,10 @@ public abstract class Image extends Main {
 		  return null;
 	  }
 
-	  byte[] pix = new byte[(pcx.ymax+1) * (pcx.xmax+1)];
+	  int width = pcx.xmax - pcx.xmin + 1;
+	  int height = pcx.ymax - pcx.ymin + 1;
+
+	  byte[] pix = new byte[width * height];
 
 	  if (palette != null) {
 		  palette[0] = new byte[768];
@@ -519,8 +522,8 @@ public abstract class Image extends Main {
 	  }
 
 	  if (dim != null) {
-		  dim.width = pcx.xmax+1;
-		  dim.height = pcx.ymax+1;
+		  dim.width = width;
+		  dim.height = height;
 	  }
 
 	  //
@@ -530,9 +533,9 @@ public abstract class Image extends Main {
 	  byte dataByte = 0;
 	  int runLength = 0;
 	  int x, y;
-
-	  for (y = 0; y < dim.height; y++) {
-		  for (x = 0; x < dim.width; x++) {
+	  
+	  for (y = 0; y < height; y++) {
+		  for (x = 0; x < width; ) {
 
 			  dataByte = pcx.data.get();
 
@@ -540,10 +543,14 @@ public abstract class Image extends Main {
 				  runLength = dataByte & 0x3F;
 				  dataByte = pcx.data.get();
 				  // write runLength pixel
-				  while (runLength-- > 0) pix[count++] = dataByte;
+			      while (runLength-- > 0) {
+			      	pix[count++] = dataByte;
+			      	x++;
+			      } 
 			  } else {
 				  // write one pixel
 				  pix[count++] = dataByte;
+				  x++;
 			  }
 		  }
 	  }
@@ -775,15 +782,15 @@ public abstract class Image extends Main {
 	Fill background pixels so mipmapping doesn't have haloes
 	=================
 	*/
-//
-//	typedef struct
-//	{
-//		short		x, y;
-//	} floodfill_t;
-//
-////	   must be a power of 2
-//	#define FLOODFILL_FIFO_SIZE 0x1000
-//	#define FLOODFILL_FIFO_MASK (FLOODFILL_FIFO_SIZE - 1)
+
+	static class floodfill_t
+	{
+		short x, y;
+	}
+
+	// must be a power of 2
+	static final int FLOODFILL_FIFO_SIZE = 0x1000;
+	static final int FLOODFILL_FIFO_MASK = FLOODFILL_FIFO_SIZE - 1;
 //
 //	#define FLOODFILL_STEP( off, dx, dy ) \
 //	{ \
@@ -795,51 +802,123 @@ public abstract class Image extends Main {
 //		} \
 //		else if (pos[off] != 255) fdc = pos[off]; \
 //	}
-//
+
+//	void FLOODFILL_STEP( int off, int dx, int dy )
+//	{
+//		if (pos[off] == fillcolor)
+//		{
+//			pos[off] = 255;
+//			fifo[inpt].x = x + dx; fifo[inpt].y = y + dy;
+//			inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+//		}
+//		else if (pos[off] != 255) fdc = pos[off];
+//	}
+
+
 	void R_FloodFillSkin( byte[] skin, int skinwidth, int skinheight)
 	{
 //		byte				fillcolor = *skin; // assume this is the pixel to fill
-//		floodfill_t			fifo[FLOODFILL_FIFO_SIZE];
-//		int					inpt = 0, outpt = 0;
-//		int					filledcolor = -1;
-//		int					i;
-//
-//		if (filledcolor == -1)
-//		{
-//			filledcolor = 0;
-//			// attempt to find opaque black
-//			for (i = 0; i < 256; ++i)
-//				if (d_8to24table[i] == (255 << 0)) // alpha 1.0
-//				{
-//					filledcolor = i;
-//					break;
-//				}
-//		}
-//
-//		// can't fill to filled color or to transparent color (used as visited marker)
-//		if ((fillcolor == filledcolor) || (fillcolor == 255))
-//		{
-//			//printf( "not filling skin from %d to %d\n", fillcolor, filledcolor );
-//			return;
-//		}
-//
-//		fifo[inpt].x = 0, fifo[inpt].y = 0;
-//		inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
-//
-//		while (outpt != inpt)
-//		{
-//			int			x = fifo[outpt].x, y = fifo[outpt].y;
-//			int			fdc = filledcolor;
+		int fillcolor = skin[0] & 0xff;
+		floodfill_t[] fifo = new floodfill_t[FLOODFILL_FIFO_SIZE];
+		int inpt = 0, outpt = 0;
+		int filledcolor = -1;
+		int i;
+
+		for (int j = 0; j < fifo.length; j++)
+		{
+			fifo[j] = new floodfill_t();
+		}
+
+		if (filledcolor == -1)
+		{
+			filledcolor = 0;
+			// attempt to find opaque black
+			for (i = 0; i < 256; ++i)
+				if (d_8to24table[i] == (255 << 0)) // alpha 1.0
+				//if ((d_8to24table[i] & 0xFF000000) == 0xFF000000) // alpha 1.0
+				{
+					filledcolor = i;
+					break;
+				}
+		}
+
+		// can't fill to filled color or to transparent color (used as visited marker)
+		if ((fillcolor == filledcolor) || (fillcolor == 255))
+		{
+			System.out.println("not filling skin from "+ fillcolor + " to " + filledcolor +'\n');
+			return;
+		}
+
+		fifo[inpt].x = 0; fifo[inpt].y = 0;
+		inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+
+		while (outpt != inpt)
+		{
+			int x = fifo[outpt].x;
+			int y = fifo[outpt].y;
+			int fdc = filledcolor;
 //			byte		*pos = &skin[x + skinwidth * y];
+			int pos = x + skinwidth * y;
 //
-//			outpt = (outpt + 1) & FLOODFILL_FIFO_MASK;
-//
-//			if (x > 0)				FLOODFILL_STEP( -1, -1, 0 );
-//			if (x < skinwidth - 1)	FLOODFILL_STEP( 1, 1, 0 );
-//			if (y > 0)				FLOODFILL_STEP( -skinwidth, 0, -1 );
-//			if (y < skinheight - 1)	FLOODFILL_STEP( skinwidth, 0, 1 );
-//			skin[x + skinwidth * y] = fdc;
-//		}
+			outpt = (outpt + 1) & FLOODFILL_FIFO_MASK;
+
+			int off, dx, dy;
+
+			if (x > 0)
+			{
+				// FLOODFILL_STEP( -1, -1, 0 );
+				off = -1; dx = -1; dy = 0;
+				if (skin[pos + off] == (byte)fillcolor)
+				{
+					skin[pos + off] = (byte)255;
+					fifo[inpt].x = (short)(x + dx); fifo[inpt].y = (short)(y + dy);
+					inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+				}
+				else if (skin[pos + off] != (byte)255) fdc = skin[pos + off] & 0xff;
+			} 
+
+			if (x < skinwidth - 1)
+			{
+				// FLOODFILL_STEP( 1, 1, 0 );
+				off = 1; dx = 1; dy = 0;
+				if (skin[pos + off] == (byte)fillcolor)
+				{
+					skin[pos + off] = (byte)255;
+					fifo[inpt].x = (short)(x + dx); fifo[inpt].y = (short)(y + dy);
+					inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+				}
+				else if (skin[pos + off] != (byte)255) fdc = skin[pos + off] & 0xff;
+			} 
+
+			if (y > 0)
+			{
+				// FLOODFILL_STEP( -skinwidth, 0, -1 );
+				off = -skinwidth; dx = 0; dy = -1;
+				if (skin[pos + off] == (byte)fillcolor)
+				{
+					skin[pos + off] = (byte)255;
+					fifo[inpt].x = (short)(x + dx); fifo[inpt].y = (short)(y + dy);
+					inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+				}
+				else if (skin[pos + off] != (byte)255) fdc = skin[pos + off] & 0xff;
+			} 
+
+			if (y < skinheight - 1)
+			{
+				// FLOODFILL_STEP( skinwidth, 0, 1 );
+				off = skinwidth; dx = 0; dy = 1;
+				if (skin[pos + off] == (byte)fillcolor)
+				{
+					skin[pos + off] = (byte)255;
+					fifo[inpt].x = (short)(x + dx); fifo[inpt].y = (short)(y + dy);
+					inpt = (inpt + 1) & FLOODFILL_FIFO_MASK;
+				}
+				else if (skin[pos + off] != (byte)255) fdc = skin[pos + off] & 0xff;
+			
+			} 
+
+			skin[x + skinwidth * y] = (byte)fdc;
+		}
 	}
 
 //	  =======================================================

@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.1 2004-01-14 22:09:43 cwei Exp $
+ * $Id: DancingQueens.java,v 1.2 2004-01-15 01:28:08 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -220,6 +220,7 @@ public class DancingQueens
 	
 	private final static String[] skinNames = {
 		"players/female/athena",
+		"players/female/doomgal",
 		"players/female/venus",
 		"players/female/voodoo",
 		"players/female/cobalt",
