@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.2 2004-07-15 16:16:23 hzi Exp $
+ * $Id: JoglBase.java,v 1.3 2004-07-15 16:33:24 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -111,11 +111,12 @@ public abstract class JoglBase implements GLEventListener {
 			DisplayMode ml = null;
 			for (j = 0; j < l.size(); j++) {
 				ml = (DisplayMode)l.get(j);
-				if (ml.getWidth() >= m.getWidth()) break;
+				if (ml.getWidth() > m.getWidth()) break;
+				if (ml.getWidth() == m.getWidth() && ml.getHeight() >= m.getHeight()) break;
 			}
 			if (j == l.size()) {
 				l.addLast(m);
-			} else if (ml.getWidth() > m.getWidth()) {
+			} else if (ml.getWidth() > m.getWidth() || ml.getHeight() > m.getHeight()) {
 				l.add(j, m);
 			} else if (m.getRefreshRate() > ml.getRefreshRate()){
 				l.remove(j);
@@ -136,7 +137,7 @@ public abstract class JoglBase implements GLEventListener {
 		
 		for (int i = 0; i < modes.length; i++) {
 			m = modes[i];
-			if (m.getWidth() == w) {
+			if (m.getWidth() == w && m.getHeight() == h) {
 				mode = m;
 				break;
 			}
