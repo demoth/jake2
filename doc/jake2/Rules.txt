@@ -1,0 +1,35 @@
+Rules.txt
+
+Hier sollen einige Regeln rein, auf die wir uns bei der Zusammenarbeit einigen.
+
+1. CVS
+
+Nach jedem commit sollte sich das Projekt ohne Fehler ?bersetzen lassen.
+
+Oft einchecken, nicht die Arbeit einer ganzen Woche mit einmal committen. So
+lassen sich einzelne Schritte besser nachvollziehen und gegebenenfalls
+r?ckgangig machen. Ausserdem laufen unsere Versionen nicht zu weit auseinander
+und es gibt weniger conflicts.
+
+Bei sehr gro?en Umbauten wie komplettes Redesign eines Subsystems branchen,
+erst wenn sich die ?nderung bew?hrt hat mit der Hauptlinie mergen.
+
+2. Porting
+
+Der Code wird zun?chst m?glichst 1:1 ?bertragen.
+
+Die Verzeichnisstruktur der C-Version wird als Packagestruktur ?bernommen.
+
+Die Funktionsprefixe (CL, SV, Cbuf, Sys usw.) entsprechen Java Klassen. Alle
+Funktionen sind statisch.Aus Sys_Init() wird also Sys.Init().
+
+Globale Variablen und Konstanten k?nnte man erstmal alle in eine Klasse z.B.
+Globals stecken. Beim Refactoring kann man dann untersuchen wer einzelne
+Variablen referenziert und etsprechend verschieben.
+
+
+3. Formatierung
+
+Einr?cktiefe
+Klammerung
+Filecomments
