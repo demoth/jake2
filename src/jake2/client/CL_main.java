@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.21 2004-02-05 21:32:39 rst Exp $
+ * $Id: CL_main.java,v 1.22 2004-02-06 15:11:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -848,27 +848,25 @@ public class CL_main extends CL_pred {
 		Com.Printf("Unknown command.\n");
 	}
 
-	//	/*
-	//	=================
-	//	CL_DumpPackets
-	//
-	//	A vain attempt to help bad TCP stacks that cause problems
-	//	when they overflow
-	//	=================
-	//	*/
-	//	void CL_DumpPackets (void)
-	//	{
-	//		while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
-	//		{
-	//			Com_Printf ("dumping a packet\n");
-	//		}
-	//	}
-	//
-	//	/*
-	//	=================
-	//	CL_ReadPackets
-	//	=================
-	//	*/
+	/*
+	=================
+	CL_DumpPackets
+
+	A vain attempt to help bad TCP stacks that cause problems
+	when they overflow
+	=================
+	*/
+	static void DumpPackets() {
+		while (NET.GetPacket(NS_CLIENT, net_from, net_message)) {
+			Com.Printf("dumping a packet\n");
+		}
+	}
+
+	/*
+	=================
+	CL_ReadPackets
+	=================
+	*/
 	static void ReadPackets() {
 		while (NET.GetPacket(NS_CLIENT, net_from, net_message)) {
 
@@ -876,7 +874,7 @@ public class CL_main extends CL_pred {
 			// remote command packet
 			//
 			ByteBuffer buf = ByteBuffer.wrap(net_message.data);
-			buf.order(ByteOrder.nativeOrder());
+			buf.order(ByteOrder.BIG_ENDIAN);
 			if (buf.getInt(0) == -1) {
 				//			if (*(int *)net_message.data == -1)
 				CL.ConnectionlessPacket();
@@ -1573,10 +1571,12 @@ public class CL_main extends CL_pred {
 		extratime += msec;
 
 		if (cl_timedemo.value == 0.0f) {
-			if (cls.state == ca_connected && extratime < 100)
+			if (cls.state == ca_connected && extratime < 100) {
 				return; // don't flood packets out while connecting
-			//if (extratime < 1000 / cl_maxfps.value)
-				//return; // framerate is too high
+			}
+			if (extratime < 1000 / cl_maxfps.value) {
+				return; // framerate is too high
+			}
 		}
 
 		// let the mouse activate or deactivate
@@ -1594,7 +1594,7 @@ public class CL_main extends CL_pred {
 
 		// if in the debugger last frame, don't timeout
 		if (msec > 5000)
-			cls.netchan.last_received = (int) Sys.Milliseconds();
+			cls.netchan.last_received = Sys.Milliseconds();
 
 		// fetch results from server
 		CL.ReadPackets();

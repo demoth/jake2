@@ -2,7 +2,7 @@
  * cvar_t.java
  * Copyright (C) 2003
  * 
- * $Id: cvar_t.java,v 1.5 2003-12-01 13:25:57 hoz Exp $
+ * $Id: cvar_t.java,v 1.6 2004-02-06 15:11:57 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,9 +30,9 @@ package jake2.game;
  * C version
  */
 public final class cvar_t {
-	public String name = "";
-	public String string = "";
-	public String latched_string = "";
+	public String name;
+	public String string;
+	public String latched_string;
 	public int flags = 0;
 	public boolean modified = false;
 	public float value = 0.0f;

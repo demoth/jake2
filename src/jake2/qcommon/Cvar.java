@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.28 2004-02-05 21:32:40 rst Exp $
+ * $Id: Cvar.java,v 1.29 2004-02-06 15:11:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -361,7 +361,7 @@ public class Cvar extends Globals {
 		cvar_t var;
 
 		for (var = Globals.cvar_vars; var != null; var = var.next) {
-			if (var.latched_string == null)
+			if (var.latched_string == null || var.latched_string == "")
 				continue;
 			var.string = var.latched_string;
 			var.latched_string = null;

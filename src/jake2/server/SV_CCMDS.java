@@ -19,25 +19,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.9 2004-02-05 21:32:41 rst Exp $
+// $Id: SV_CCMDS.java,v 1.10 2004-02-06 15:11:57 hoz Exp $
 
 package jake2.server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Date;
-
-import jake2.*;
-import jake2.client.*;
+import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 import jake2.util.Vargs;
+
+import java.io.*;
+import java.util.Date;
 
 public class SV_CCMDS extends SV_ENTS {
 
@@ -412,7 +407,7 @@ public class SV_CCMDS extends SV_ENTS {
 	
 	==============
 	*/
-	public static void SV_WriteServerFile(boolean autosave) throws IOException {
+	public static void SV_WriteServerFile(boolean autosave) {
 		RandomAccessFile f;
 		cvar_t var;
 		//char name[MAX_OSPATH], string[128];
@@ -424,7 +419,11 @@ public class SV_CCMDS extends SV_ENTS {
 		Com.DPrintf("SV_WriteServerFile(" + (autosave ? "true" : "false") + ")\n");
 
 		name = FS.Gamedir() + "/save/current/server.ssv";
-		f = new RandomAccessFile(name, "rw");
+		try {
+			f = new RandomAccessFile(name, "rw");
+		} catch (FileNotFoundException e) {
+			f = null;
+		}
 		if (f == null) {
 			Com.Printf("Couldn't write " + name + "\n");
 			return;
@@ -446,11 +445,14 @@ public class SV_CCMDS extends SV_ENTS {
 			comment = "ENTERING " + sv.configstrings[CS_NAME];
 		}
 
-		fwriteString(comment, 32, f);
+		try {
+			fwriteString(comment, 32, f);
+			fwriteString(svs.mapcmd, MAX_TOKEN_CHARS, f);
+
+		} catch (IOException e1) {}
 
 		// write the mapcmd
-		fwriteString(svs.mapcmd, MAX_TOKEN_CHARS, f);
-
+		
 		// write all CVAR_LATCH cvars
 		// these will be things like coop, skill, deathmatch, etc
 		for (var = Globals.cvar_vars; var != null; var = var.next) {
@@ -464,11 +466,16 @@ public class SV_CCMDS extends SV_ENTS {
 			//memset(string, 0, sizeof(string));
 			name = var.name;
 			string = var.string;
-			fwriteString(name, MAX_OSPATH, f);
-			fwriteString(string, 128, f);
+			try {
+				fwriteString(name, MAX_OSPATH, f);
+				fwriteString(string, 128, f);
+			} catch (IOException e2) {}
+			
 		}
 
-		f.close();
+		try {
+			f.close();
+		} catch (IOException e2) {}
 
 		// write game state
 		name = FS.Gamedir() + "/save/current/game.ssv";
@@ -619,13 +626,9 @@ public class SV_CCMDS extends SV_ENTS {
 
 		// copy off the level to the autosave slot
 		if (0 == dedicated.value) {
-			try {
-				SV_WriteServerFile(true);
-			}
-			catch (IOException e) {
-				Com.Printf("IOError in SV_WriteServerFile :" + e);
-				e.printStackTrace();
-			}
+
+			SV_WriteServerFile(true);
+
 			SV_CopySaveGame("current", "save0");
 		}
 	}
