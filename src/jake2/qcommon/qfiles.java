@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.13 2004-02-05 21:32:40 rst Exp $
+ * $Id: qfiles.java,v 1.14 2004-02-22 17:33:50 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -625,9 +625,8 @@ public class qfiles {
 
 		public dareaportal_t(ByteBuffer bb) {
 			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			portalnum = bb.getShort();
-			otherarea = bb.getShort();
+			portalnum = bb.getInt();
+			otherarea = bb.getInt();
 		}
 
 		int portalnum;

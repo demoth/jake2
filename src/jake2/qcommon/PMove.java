@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.6 2004-02-16 21:41:10 rst Exp $
+// $Id: PMove.java,v 1.7 2004-02-22 17:33:50 rst Exp $
 
 package jake2.qcommon;
 
@@ -646,7 +646,6 @@ public class PMove extends Game
 			else
 			{
 				pm.groundentity = trace.ent;
-
 				// hitting solid ground will end a waterjump
 				if ((pm.s.pm_flags & PMF_TIME_WATERJUMP) != 0)
 				{
@@ -655,7 +654,8 @@ public class PMove extends Game
 				}
 
 				if (0 == (pm.s.pm_flags & PMF_ON_GROUND))
-				{ // just hit the ground
+				{ 	// just hit the ground
+					Com.p("GROUND!");
 					pm.s.pm_flags |= PMF_ON_GROUND;
 					// don't do landing time if we were just going down a slope
 					if (pml.velocity[2] < -200)

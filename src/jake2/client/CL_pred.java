@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.14 2004-02-16 23:18:11 hoz Exp $
+ * $Id: CL_pred.java,v 1.15 2004-02-22 17:33:50 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -184,7 +184,7 @@ public class CL_pred extends CL_parse
 	================
 	*/
 	
-	static edict_t DUMMY_ENT = new edict_t(-1);
+	public static edict_t DUMMY_ENT = new edict_t(-1);
 	
 	static trace_t PMTrace(float[] start, float[] mins, float[] maxs, float[] end) {
 		trace_t t;

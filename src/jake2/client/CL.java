@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.33 2004-02-21 12:07:01 hoz Exp $
+ * $Id: CL.java,v 1.34 2004-02-22 17:33:50 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -91,7 +91,6 @@ public final class CL extends CL_pred {
 				cls.demofile = null;
 				cls.demorecording = false;
 				Com.Printf("Stopped demo.\n");
-
 			}
 			catch (IOException e) {
 			}

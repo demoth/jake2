@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.25 2004-02-16 21:41:10 rst Exp $
+// $Id: GameBase.java,v 1.26 2004-02-22 17:33:50 rst Exp $
 
 /** Father of all Objects. */
 
@@ -390,6 +390,11 @@ public class GameBase extends Globals {
 	}
 
 	public static pushed_t pushed[] = new pushed_t[MAX_EDICTS];
+	static {
+		for (int n=0; n  <  MAX_EDICTS; n++)
+			pushed[n] = new pushed_t();
+	}
+	
 	public static int pushed_p;
 
 	public static edict_t obstacle;
@@ -751,22 +756,22 @@ public class GameBase extends Globals {
 				continue;
 			}
 
-			//TODO: RST: disabled for debugging
-			//if (ent.classname.startsWith("trigger") )//|| ent.classname.startsWith("monster"))
-			//G_RunEntity(ent);
+			//TODO: RST: disabled for debugging;
+			G_RunEntity(ent);
 
-			if (ent == g_edicts[307])
-				G_RunEntity(ent);
-			else if (ent == g_edicts[1])
-				G_RunEntity(ent);
-				
-			else if (true)
-				if (ent.classname.startsWith("monster_soldier")
-					|| ent.classname.startsWith("target")
-					|| ent.classname.startsWith(
-						"misc_explo") //ent.classname.startsWith("func_door")
-				) //|| ent.classname.startsWith("monster"))
-					G_RunEntity(ent);
+//			if (ent == g_edicts[307])
+//				G_RunEntity(ent);
+//			else if (ent == g_edicts[1])
+//				G_RunEntity(ent);
+//				
+//			else if (true)
+//				if (ent.classname.startsWith("monster")
+//					|| ent.classname.startsWith("trigger") 
+//					|| ent.classname.startsWith("target")
+//					|| ent.classname.startsWith(
+//						"misc_explo") //ent.classname.startsWith("func_door")
+//				) //|| ent.classname.startsWith("monster"))
+//					G_RunEntity(ent);
 
 		}
 
