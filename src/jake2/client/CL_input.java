@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.4 2004-02-01 12:42:11 hoz Exp $
+ * $Id: CL_input.java,v 1.5 2004-02-01 12:59:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.client;
 import jake2.game.*;
 import jake2.game.Cmd;
 import jake2.game.usercmd_t;
+import jake2.qcommon.*;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.xcommand_t;
 import jake2.sys.IN;
@@ -87,77 +88,76 @@ public class CL_input extends CL_tent {
 	static int in_impulse;
 
 	static void KeyDown(kbutton_t b) {
-//		int		k;
-//		char	*c;
-//	
-//		c = Cmd_Argv(1);
-//		if (c[0])
-//			k = atoi(c);
-//		else
-//			k = -1;		// typed manually at the console for continuous down
-//
-//		if (k == b->down[0] || k == b->down[1])
-//			return;		// repeating key
-//	
-//		if (!b->down[0])
-//			b->down[0] = k;
-//		else if (!b->down[1])
-//			b->down[1] = k;
-//		else
-//		{
-//			Com_Printf ("Three keys down for a button!\n");
-//			return;
-//		}
-//	
-//		if (b->state & 1)
-//			return;		// still down
-//
-//		// save timestamp
-//		c = Cmd_Argv(2);
-//		b->downtime = atoi(c);
-//		if (!b->downtime)
-//			b->downtime = sys_frame_time - 100;
-//
-//		b->state |= 1 + 2;	// down + impulse down
+		int k;
+		String c;
+
+		c = Cmd.Argv(1);
+		if (c.length() > 0)
+			k = Integer.parseInt(c);
+		else
+			k = -1;		// typed manually at the console for continuous down
+
+		if (k == b.down[0] || k == b.down[1])
+			return;		// repeating key
+
+		if (b.down[0] == 0)
+			b.down[0] = k;
+		else if (b.down[1] == 0)
+			b.down[1] = k;
+		else {
+			Com.Printf("Three keys down for a button!\n");
+			return;
+		}
+
+		if ((b.state & 1) != 0)
+			return;		// still down
+
+		// save timestamp
+		c = Cmd.Argv(2);
+		b.downtime = Long.parseLong(c);
+		if (b.downtime == 0)
+			b.downtime = sys_frame_time - 100;
+
+		b.state |= 3;	// down + impulse down
 	}
-//
+
 	static void KeyUp(kbutton_t b) {
-//		int		k;
-//		char	*c;
-//		unsigned	uptime;
-//
-//		c = Cmd_Argv(1);
-//		if (c[0])
-//			k = atoi(c);
-//		else
-//		{ // typed manually at the console, assume for unsticking, so clear all
-//			b->down[0] = b->down[1] = 0;
-//			b->state = 4;	// impulse up
-//			return;
-//		}
-//
-//		if (b->down[0] == k)
-//			b->down[0] = 0;
-//		else if (b->down[1] == k)
-//			b->down[1] = 0;
-//		else
-//			return;		// key up without coresponding down (menu pass through)
-//		if (b->down[0] || b->down[1])
-//			return;		// some other key is still holding it down
-//
-//		if (!(b->state & 1))
-//			return;		// still up (this should not happen)
-//
-//		// save timestamp
-//		c = Cmd_Argv(2);
-//		uptime = atoi(c);
-//		if (uptime)
-//			b->msec += uptime - b->downtime;
-//		else
-//			b->msec += 10;
-//
-//		b->state &= ~1;		// now up
-//		b->state |= 4; 		// impulse up
+		int k;
+		String c;
+		long uptime;
+
+		c = Cmd.Argv(1);
+		if (c.length() > 0)
+			k = Integer.parseInt(c);
+		else {
+			// typed manually at the console, assume for unsticking, so clear all
+			b.down[0] = b.down[1] = 0;
+			b.state = 4;	// impulse up
+			return;
+		}
+
+		if (b.down[0] == k)
+			b.down[0] = 0;
+		else if (b.down[1] == k)
+			b.down[1] = 0;
+		else
+			return;		// key up without coresponding down (menu pass through)
+		if (b.down[0] != 0 || b.down[1] != 0)
+			return;		// some other key is still holding it down
+
+		if ((b.state & 1) == 0)
+			return;		// still up (this should not happen)
+
+		// save timestamp
+		c = Cmd.Argv(2);
+		uptime = Long.parseLong(c);
+		if (uptime != 0)
+			b.msec += uptime - b.downtime;
+		else
+			b.msec += 10;
+
+		b.state &= ~1;		// now up
+		b.state |= 4; 		// impulse up
 	}
 
 	static void IN_KLookDown() {KeyDown(in_klook);}
