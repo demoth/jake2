@@ -2,9 +2,9 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.3 2003-11-25 19:44:42 cwei Exp $
+ * $Id: Cvar.java,v 1.4 2003-11-26 01:33:42 cwei Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -33,16 +33,16 @@ import jake2.game.cvar_t;
  * TODO complete Cvar interface 
  */
 public final class Cvar {
-	
-	public static final int ARCHIVE = 1;	// set to cause it to be saved to vars.rc
-	static final int USERINFO = 2;	// added to userinfo  when changed
-	static final int SERVERINFO = 4;// added to serverinfo when changed
-	static final int NOSET = 8;		// don't allow change from console at all,
-									// but can be set from the command line
-	static final int LATCH = 16;	// save changes until server restart
-	
 
-	static cvar_t  cvar_vars;
+	public static final int ARCHIVE = 1;
+	// set to cause it to be saved to vars.rc
+	static final int USERINFO = 2; // added to userinfo  when changed
+	static final int SERVERINFO = 4; // added to serverinfo when changed
+	static final int NOSET = 8; // don't allow change from console at all,
+	// but can be set from the command line
+	static final int LATCH = 16; // save changes until server restart
+
+	static cvar_t cvar_vars;
 
 	/**
 	 * @param var_name
@@ -52,9 +52,66 @@ public final class Cvar {
 	 * TODO implement Cvar.Get()
 	 */
 	public static cvar_t Get(String var_name, String var_value, int flags) {
-		return new cvar_t();
+		cvar_t var;
+
+		if ((flags & (USERINFO | SERVERINFO)) != 0) {
+			if (!Cvar.InfoValidate(var_name)) {
+				Com.Printf("invalid info cvar name\n");
+				return null;
+			}
+		}
+
+		var = Cvar.FindVar(var_name);
+		if (var != null) {
+			var.flags |= flags;
+			return var;
+		}
+
+		if (var_value == null)
+			return null;
+
+		if ((flags & (USERINFO | SERVERINFO)) != 0) {
+			if (!Cvar.InfoValidate(var_value)) {
+				Com.Printf("invalid info cvar value\n");
+				return null;
+			}
+		}
+		var = new cvar_t();
+		var.name = new String(var_name);
+		var.string = new String(var_value);
+		var.modified = true;
+		// handles atof(var.string)
+		try {
+			var.value = Float.parseFloat(var.string);
+		} catch (NumberFormatException e) {
+			var.value = 0.0f;
+		}
+		// link the variable in
+		var.next = cvar_vars;
+		cvar_vars = var;
+
+		var.flags = flags;
+
+		return var;
 	}
-		
+
+	/**
+	 * @param var_name
+	 * @return
+	 */
+	static boolean InfoValidate(String s) {
+		/*
+		============
+		Cvar_InfoValidate
+		============
+		*/
+
+		if (s.indexOf('\\') >= 0)	return false;
+		if (s.indexOf('\"') >= 0) return false;
+		if (s.indexOf(';') >=0 ) return false;
+		return true;
+	}
+
 	/**
 	 * 
 	 */
@@ -70,12 +127,13 @@ public final class Cvar {
 		var = FindVar(var_name);
 		return (var == null) ? "" : var.string;
 	}
-	
+
 	static cvar_t FindVar(String var_name) {
-		cvar_t  var;
-		
-		for (var=cvar_vars ; var != null ; var=var.next) {
-			if (var_name.equals(var.name)) return var;
+		cvar_t var;
+
+		for (var = cvar_vars; var != null; var = var.next) {
+			if (var_name.equals(var.name))
+				return var;
 		}
 
 		return null;

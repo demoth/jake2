@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.4 2003-11-25 19:44:42 cwei Exp $
+ * $Id: FS.java,v 1.5 2003-11-26 01:33:42 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,13 +29,15 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteOrder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.imageio.stream.FileImageInputStream;
 
 
 /**
@@ -45,21 +47,6 @@ import java.util.logging.Logger;
 public final class FS {
 	
 	private static Logger logger = Logger.getLogger(FS.class.getName());
-
-	/**
-	 * @param path
-	 * @param buffer
-	 * @return
-	 */
-	public static int LoadFile(String path, byte[] buffer) {
-		return 0;
-	}
-	
-	/**
-	 * @param buffer
-	 */
-	public static void FreeFile(byte[] buffer) {
-	}
 
 //	#include "qcommon.h"
 //
@@ -88,15 +75,20 @@ public final class FS {
 ////
 //
 	static class packfile_t {
-		String	name;
-		int		filepos, filelen;
+		static final int SIZE = 64;
+
+		String name; // char name[56]
+		int filepos, filelen;
+		public String toString() {
+			return name + " [ length: " + filelen + " pos: " + filepos + " ]";
+		}
 	}
 //
 	static class pack_t {
 		String filename;
-		File handle;
+		FileImageInputStream handle;
 		int numfiles;
-		packfile_t files;
+		packfile_t[] files;
 	}
 //
 	static String fs_gamedir;
@@ -415,11 +407,7 @@ public final class FS {
 //	}
 //
 
-	static class dpackfile_t {
-		//char    name[56];
-		String name;
-		int filepos, filelen;
-	}
+	static final int IDPAKHEADER  =  (('K'<<24)+('C'<<16)+('A'<<8)+'P');
 	
 	static class dpackheader_t {
 		int ident;      // == IDPAKHEADER
@@ -439,41 +427,53 @@ public final class FS {
 //	of the list so they override previous pack files.
 //	=================
 //	*/
-	static pack_t LoadPackFile (String packfile)
+	static pack_t LoadPackFile(String packfile) throws IOException
 	{
 		dpackheader_t header;
-		int i;
-		packfile_t newfiles;
+		packfile_t[] newfiles;
 		int numpackfiles = 0;
 		pack_t pack = null;
-		InputStream packhandle;
-		dpackfile_t[] info = new dpackfile_t[MAX_FILES_IN_PACK];
+		FileImageInputStream packhandle;
 //		unsigned		checksum;
 //
 		try {
-			packhandle = new BufferedInputStream(new FileInputStream(packfile));
-			if (packhandle.available() < 1)
-				return null;
+			packhandle = new FileImageInputStream(new RandomAccessFile(packfile, "r"));
+			packhandle.setByteOrder(ByteOrder.LITTLE_ENDIAN);
+			if (packhandle.length() < 1) return null;
 		} catch (IOException e) {
-			logger.log(Level.WARNING, e.toString());
+			logger.log(Level.FINEST, e.toString());
 			return null;
 		}
 //
-//		fread (&header, 1, sizeof(header), packhandle);
-//		if (LittleLong(header.ident) != IDPAKHEADER)
-//			Com_Error (ERR_FATAL, "%s is not a packfile", packfile);
+//      fread (&header, 1, sizeof(header), packhandle);
+		header = new dpackheader_t();
+		header.ident = packhandle.readInt();		
+		header.dirofs = packhandle.readInt();
+		header.dirlen = packhandle.readInt();
+		if (header.ident != IDPAKHEADER)
+			Com.Error (Globals.ERR_FATAL, packfile + " is not a packfile");
 //		header.dirofs = LittleLong (header.dirofs);
 //		header.dirlen = LittleLong (header.dirlen);
 //
-//		numpackfiles = header.dirlen / sizeof(dpackfile_t);
+		numpackfiles = header.dirlen / packfile_t.SIZE;
 //
-//		if (numpackfiles > MAX_FILES_IN_PACK)
-//			Com_Error (ERR_FATAL, "%s has %i files", packfile, numpackfiles);
+		if (numpackfiles > MAX_FILES_IN_PACK)
+			Com.Error (Globals.ERR_FATAL, packfile +" has " + numpackfiles +" files");
 //
-//		newfiles = Z_Malloc (numpackfiles * sizeof(packfile_t));
+		newfiles = new packfile_t[numpackfiles];
 //
-//		fseek (packhandle, header.dirofs, SEEK_SET);
-//		fread (info, 1, header.dirlen, packhandle);
+		packhandle.seek(header.dirofs);
+
+		byte[] text = new byte[56];
+		for (int i=0; i < header.dirlen / 64; i++) {
+			packhandle.readFully(text);
+			newfiles[i] = new packfile_t(); 
+			newfiles[i].name = new String(text, "ISO-8859-1").trim();
+			newfiles[i].filepos = packhandle.readInt();
+			newfiles[i].filelen = packhandle.readInt();
+			System.out.println(newfiles[i]);
+		}
+
 //
 ////	   parse the directory
 //		for (i=0 ; i<numpackfiles ; i++)
@@ -483,11 +483,11 @@ public final class FS {
 //			newfiles[i].filelen = LittleLong(info[i].filelen);
 //		}
 //
-//		pack = Z_Malloc (sizeof (pack_t));
-//		strcpy (pack->filename, packfile);
-//		pack->handle = packhandle;
-//		pack->numfiles = numpackfiles;
-//		pack->files = newfiles;
+		pack = new pack_t();
+		pack.filename = new String(packfile);
+		pack.handle = packhandle;
+		pack.numfiles = numpackfiles;
+		pack.files = newfiles;
 //	
 		Com.Printf ("Added packfile " + packfile +" (" + numpackfiles +" files)\n");
 		return pack;
@@ -502,7 +502,7 @@ public final class FS {
 //	then loads and adds pak1.pak pak2.pak ... 
 //	================
 //	*/
-	static void AddGameDirectory (String dir)
+	static void AddGameDirectory (String dir) throws IOException
 	{
 		int i;
 		searchpath_t	search;
@@ -635,8 +635,8 @@ public final class FS {
 //	Creates a filelink_t
 //	================
 //	*/
-//	void FS_Link_f (void)
-//	{
+	static void Link_f()
+	{
 //		filelink_t	*l, **prev;
 //
 //		if (Cmd_Argc() != 3)
@@ -672,7 +672,7 @@ public final class FS {
 //		l->from = CopyString(Cmd_Argv(1));
 //		l->fromlength = strlen(l->from);
 //		l->to = CopyString(Cmd_Argv(2));
-//	}
+	}
 //
 //	/*
 //	** FS_ListFiles
@@ -723,8 +723,8 @@ public final class FS {
 //	/*
 //	** FS_Dir_f
 //	*/
-//	void FS_Dir_f( void )
-//	{
+	static void Dir_f()
+	{
 //		char	*path = NULL;
 //		char	findname[1024];
 //		char	wildcard[1024] = "*.*";
@@ -768,7 +768,7 @@ public final class FS {
 //			}
 //			Com_Printf( "\n" );
 //		};
-//	}
+	}
 //
 //	/*
 //	============
@@ -831,15 +831,23 @@ public final class FS {
 //	FS_InitFilesystem
 //	================
 //	*/
-	static void InitFilesystem ()
+	static void InitFilesystem()
 	{
 		Cmd.AddCommand ("path", new xcommand_t() {
 			public void execute() throws Exception {
 				Path_f();
 			}
 		});
-//		Cmd.AddCommand ("link", Link_f);
-//		Cmd.AddCommand ("dir", Dir_f );
+		Cmd.AddCommand ("link", new xcommand_t() {
+			public void execute() throws Exception {
+				Link_f();
+			}
+		});
+		Cmd.AddCommand ("dir", new xcommand_t() {
+			public void execute() throws Exception {
+				Dir_f();
+			}
+		});
 //
 //		//
 //		// basedir <path>
@@ -852,14 +860,23 @@ public final class FS {
 //		// Logically concatenates the cddir after the basedir for 
 //		// allows the game to run from outside the data tree
 //		//
-		fs_cddir = Cvar.Get("cddir", "", Cvar.NOSET);
+		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
+		fs_cddir = Cvar.Get("cddir", "../..", Cvar.NOSET);
 		if (fs_cddir.string.length() > 0)
-			AddGameDirectory(fs_cddir.string +'/' +Globals.BASEDIRNAME);
+			try {
+				AddGameDirectory(fs_cddir.string +'/' +Globals.BASEDIRNAME);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, e.toString());
+			}
 //
 //		//
 //		// start up with baseq2 by default
 //		//
-		AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
+		try {
+			AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
+		} catch (IOException e1) {
+			logger.log(Level.SEVERE, e1.toString());
+		}
 //
 //		// any set gamedirs will be freed up to here
 		fs_base_searchpaths = fs_searchpaths;
@@ -869,5 +886,20 @@ public final class FS {
 		if (fs_gamedirvar.string.length() > 0)
 			SetGamedir (fs_gamedirvar.string);
 	}
-
+	/**
+	 * @param f
+	 */
+	public static void FreeFile(byte[] f) {
+		// TODO Auto-generated method stub
+		
+	}
+	/**
+	 * @param string
+	 * @param f
+	 * @return
+	 */
+	public static int LoadFile(String string, byte[] f) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

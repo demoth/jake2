@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.8 2003-11-25 17:43:49 cwei Exp $
+ * $Id: Com.java,v 1.9 2003-11-26 01:33:42 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jake2.Globals;
@@ -51,6 +52,8 @@ public final class Com {
 	 * @param msg
 	 */
 	static void Error(int code, String msg) throws longjmpException {
+		logger.log(Level.SEVERE, msg);
+		throw new longjmpException();
 	}
 	
 	/**
