@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.15 2004-10-25 21:57:49 cawe Exp $
+ * $Id: CL_parse.java,v 1.16 2004-10-27 16:54:53 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -56,7 +56,7 @@ public class CL_parse {
     //	  =============================================================================
 
     public static String DownloadFileName(String fn) {
-        return FS.BaseGamedir() + "/" + fn;
+        return FS.Gamedir() + "/" + fn;
     }
 
     /*
