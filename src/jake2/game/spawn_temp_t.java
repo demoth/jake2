@@ -34,13 +34,13 @@ public class spawn_temp_t {
 	int lip;
 	int distance;
 	int height;
-	//?
-	char noise;
+	//TODO: does String work here ?
+	String noise;
 	float pausetime;
-	//?
+	//TODO: does String work here ?
 	String item;
-	//?
-	char gravity;
+	//TODO: does String work here ?
+	String gravity;
 
 	float minyaw;
 	float maxyaw;

@@ -18,36 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 31.10.2003 by RST.
+// Created on 18.11.2003 by RST.
 
 package jake2.game;
 
-public class moveinfo_t {
-	// fixed data
-	float[] start_origin= { 0, 0, 0 };
-	float[] start_angles= { 0, 0, 0 };
-	float[] end_origin= { 0, 0, 0 };
-	float[] end_angles= { 0, 0, 0 };
+public class GAME_SPAWN extends GAME 
+{
+	public static void main(String[] args) {
+	}
 
-	int sound_start;
-	int sound_middle;
-	int sound_end;
-
-	float accel;
-	float speed;
-	float decel;
-	float distance;
-
-	float wait;
-
-	// state data
-	int state;
-	float[] dir= { 0, 0, 0 };
-
-	float current_speed;
-	float move_speed;
-	float next_speed;
-	float remaining_distance;
-	float decel_distance;
-	EntThinkAdapter endfunc;
 }
