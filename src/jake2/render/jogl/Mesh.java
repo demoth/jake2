@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.12 2004-05-13 02:39:31 cwei Exp $
+ * $Id: Mesh.java,v 1.13 2004-05-13 02:49:12 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -414,7 +414,7 @@ public abstract class Mesh extends Light {
 
 				if ( gl_vertex_arrays.value != 0.0f )
 				{
-					vertexArrayBuf.position(order[orderIndex + 2] * 4);
+					vertexArrayBuf.position(order[orderIndex + 2] * 3);
 					vertexArrayBuf.get(point);
 				}
 				else
