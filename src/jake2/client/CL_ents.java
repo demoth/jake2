@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
+ * $Id: CL_ents.java,v 1.8 2005-01-17 21:43:13 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -220,6 +220,8 @@ public class CL_ents {
 		ent.current.set(state);
 	}
 
+	// call by reference
+	private static final int[] iw = {0};
 	/*
 	 * ================== CL_ParsePacketEntities
 	 * 
@@ -251,7 +253,8 @@ public class CL_ents {
 		}
 
 		while (true) {
-			int iw[] = { bits };
+			//int iw[] = { bits };
+			iw[0] = bits;
 			newnum = ParseEntityBits(iw);
 			bits = iw[0];
 
