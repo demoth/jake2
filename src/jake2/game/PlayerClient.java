@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.8 2004-02-11 20:40:11 cwei Exp $
+// $Id: PlayerClient.java,v 1.9 2004-02-12 14:25:38 cwei Exp $
 
 package jake2.game;
 
@@ -1391,7 +1391,9 @@ public class PlayerClient extends PlayerHud {
 				//		gi.dprintf ("pmove changed!\n");
 			}
 
-			pm.cmd = ucmd;
+			// TODO bugfix cwei
+			// this should be a copy
+			pm.cmd = new usercmd_t(ucmd);
 
 			pm.trace = PM_trace; // adds default parms
 			pm.pointcontents = gi.pointcontents;
