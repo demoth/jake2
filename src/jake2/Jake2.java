@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.21 2004-06-03 22:40:52 rst Exp $
+ * $Id: Jake2.java,v 1.22 2004-06-09 14:32:37 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,7 +42,6 @@ public final class Jake2 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
 
 		// in C the first arg is the filename
 		int argc = (args == null) ? 1 : args.length + 1;

@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.41 2004-06-03 21:32:51 rst Exp $
+ * $Id: CL.java,v 1.42 2004-06-09 14:32:37 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,17 +42,6 @@ import java.nio.ByteBuffer;
  * CL
  */
 public final class CL extends CL_pred {
-
-
-//	static cvar_t adr0;
-//	static cvar_t adr1;
-//	static cvar_t adr2;
-//	static cvar_t adr3;
-//	static cvar_t adr4;
-//	static cvar_t adr5;
-//	static cvar_t adr6;
-//	static cvar_t adr7;
-//	static cvar_t adr8;
 
 	/*
 	====================
@@ -713,7 +702,7 @@ public final class CL extends CL_pred {
 
 		c = Cmd.Argv(0);
 
-		//Com.Printf(NET.AdrToString(net_from) + ": " + c + " \n");
+		Com.Printf(NET.AdrToString(net_from) + ": " + c + "\n");
 
 		// server connection
 		if (c.equals("client_connect")) {

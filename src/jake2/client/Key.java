@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.33 2004-06-03 21:32:51 rst Exp $
+ * $Id: Key.java,v 1.34 2004-06-09 14:32:37 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -707,12 +707,11 @@ public class Key extends Globals {
 			return;
 		}
 		int b = StringToKeynum(Cmd.Argv(1));
-		/*
 		if (b == -1) {
 			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
 			return;
 		}
-		*/
+
 		if (c == 2) {
 			if (Globals.keybindings[b] != null)
 				Com.Printf("\"" + Cmd.Argv(1) + "\" = \"" + Globals.keybindings[b] + "\"\n");
