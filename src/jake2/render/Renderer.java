@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.5 2004-12-16 21:13:06 cawe Exp $
+ * $Id: Renderer.java,v 1.6 2005-01-12 00:37:13 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,7 +43,6 @@ public class Renderer {
 			try {
 				Class.forName("net.java.games.jogl.GL");
 				Class.forName("jake2.render.JoglRenderer");
-				Class.forName("jake2.render.FastJoglRenderer");
 			} catch (ClassNotFoundException e) {
 				// ignore the jogl drivers if runtime not in classpath
 			}
@@ -52,6 +51,12 @@ public class Renderer {
 				Class.forName("jake2.render.LWJGLRenderer");
 			} catch (ClassNotFoundException e) {
 				// ignore the lwjgl driver if runtime not in classpath
+			}
+			try {
+				Class.forName("net.java.games.jogl.GL");
+				Class.forName("jake2.render.FastJoglRenderer");
+			} catch (ClassNotFoundException e) {
+				// ignore the fastjogl drivers if runtime not in classpath
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -84,8 +89,17 @@ public class Renderer {
 		// null if driver not found
 		return null;
 	}
+	
+	public static String getDefaultName() {
+		return (drivers.isEmpty()) ? null : ((Ref) drivers.firstElement()).getName();
+	}
+
+	public static String getPreferedName() {
+		return (drivers.isEmpty()) ? null :  ((Ref) drivers.lastElement()).getName();
+	}
 
 	public static String[] getDriverNames() {
+		if (drivers.isEmpty()) return null;
 		int count = drivers.size();
 		String[] names = new String[count];
 		for (int i = 0; i < count; i++) {
