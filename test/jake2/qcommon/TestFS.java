@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.5 2003-12-25 18:16:47 cwei Exp $
+ * $Id: TestFS.java,v 1.6 2003-12-26 01:27:26 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,9 +31,13 @@ import jake2.imageio.ImageFrame;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.TreeSet;
 import java.util.logging.*;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 
 /**
  * TestFS
@@ -71,41 +75,54 @@ public class TestFS {
 		Cmd.cmd_argv = new String[] { "dir", "players/male/*.[a-zA-Z_0-9]?x" };
 		FS.Dir_f();
 
-
-		String[] filenames =
-			{
-				"pics/conback.pcx",
-				"pics/colormap.pcx",
-				"pics/victory.pcx",
-				"pics/help.pcx",
-				"unknown.pcx" };
-
+		// search for pack_t
+		FS.searchpath_t search;
+		Collection filenames = new TreeSet();
+		for (search = FS.fs_searchpaths; search != null; search = search.next) {
+			// is the element a pak file?
+			if (search.pack != null) {
+				// add all the pak file names
+				filenames.addAll(search.pack.files.keySet());
+			}
+		}
+		
 		ImageFrame frame = new ImageFrame(null);
 		frame.setVisible(true);
 		byte[] buffer = null;
+		
+		BufferedImage image = null; 
+		for (Iterator it = filenames.iterator(); it.hasNext();) {
 
-		for (int i = 0; i < filenames.length; i++) {
-			String filename = filenames[i];
-
-			//System.out.println("Load " + filename + " : " + FS.FileLength(filename));
+			String filename = it.next().toString();
+			if (filename.endsWith(".wal") || !filename.endsWith(".pcx")) continue;
 
 			buffer = FS.LoadFile(filename);
 
 			if (buffer != null) {
-
 				try {
-					BufferedImage image =
-						ImageIO.read(new ByteArrayInputStream(buffer));
+					image =
+						ImageIO.read(
+							new MemoryCacheImageInputStream(
+								new ByteArrayInputStream(buffer)));
+								
 					frame.showImage(image);
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e1) {
-					}
+					frame.setTitle(filename);
+
+					Thread.sleep(15);
+
 				} catch (IOException e) {
 					e.printStackTrace();
+				} catch (InterruptedException e1) {
 				}
 			}
 		}
+		frame.dispose();
+		
+		System.gc();
+		Runtime rt = Runtime.getRuntime();
+		System.out.println(
+			"\nJVM total memory: " + rt.totalMemory() / 1024 + " Kbytes");
+
 		System.out.println("\n*** FS test is succeeded :-) ***");
 	}
 

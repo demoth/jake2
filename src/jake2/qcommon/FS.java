@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.16 2003-12-25 18:19:59 cwei Exp $
+ * $Id: FS.java,v 1.17 2003-12-26 01:27:26 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -119,15 +119,6 @@ public final class FS {
 
 
 	/*
-	================
-	FS_filelength
-	================
-	*/
-	static int filelength (File f) {
-		return (int)f.length();
-	}
-
-	/*
 	============
 	FS_CreatePath
 
@@ -150,13 +141,16 @@ public final class FS {
 	==============
 	FS_FCloseFile
 
-	For some reason, other dll's can't just cal fclose()
+	For some reason, other dll's can't just call fclose()
 	on files returned by FS_FOpenFile...
 	==============
 	*/
-	static void FCloseFile (InputStream in) throws IOException
-	{
-		in.close();
+	static void FCloseFile(RandomAccessFile file) throws IOException {
+		file.close();
+	}
+	
+	static void FCloseFile(InputStream stream) throws IOException {
+		stream.close();
 	}
 
 	public static int FileLength(String filename) {
@@ -192,7 +186,7 @@ public final class FS {
 				pak = search.pack;
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
-				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
+				if (entry != null) {
 					// found it!
 					file_from_pak = 1;
 					Com.DPrintf("PackFile: " + pak.filename + " : " + filename + '\n');
@@ -232,7 +226,7 @@ public final class FS {
 	*/
 	static int file_from_pak = 0;
 
-	static InputStream FOpenFile(String filename) throws IOException
+	static RandomAccessFile FOpenFile(String filename) throws IOException
 	{
 		searchpath_t search;
 		String netpath;
@@ -255,7 +249,7 @@ public final class FS {
 				if (file.canRead())
 				{		
 					//Com.DPrintf ("link file: " + netpath +'\n');
-					return new FileInputStream(file);
+					return new RandomAccessFile(file, "r");
 				}
 				return null;
 			}
@@ -271,7 +265,7 @@ public final class FS {
 				pak = search.pack;
 				packfile_t entry = (packfile_t) pak.files.get(filename);
 
-				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
+				if (entry != null) {
 					// found it!
 					file_from_pak = 1;
 					//Com.DPrintf ("PackFile: " + pak.filename + " : " + filename + '\n');
@@ -284,11 +278,10 @@ public final class FS {
 					}
 					// open a new file on the pakfile
 					
-					byte[] buf = new byte[entry.filelen];
-					pak.handle.seek(entry.filepos);
-					pak.handle.readFully(buf);
+					RandomAccessFile raf = new RandomAccessFile(file, "r");
+					raf.seek(entry.filepos);
 
-					return new ByteArrayInputStream(buf);
+					return raf;
 				}
 			} else {
 				// check a file in the directory tree
@@ -300,7 +293,7 @@ public final class FS {
 
 				//Com.DPrintf("FindFile: " + netpath +'\n');
 
-				return new FileInputStream(file);
+				return new RandomAccessFile(file, "r");
 			}
 		}
 		//Com.DPrintf ("FindFile: can't find " + filename + '\n');
@@ -364,7 +357,7 @@ public final class FS {
 	*/
 	public static byte[] LoadFile(String path)
 	{
-		InputStream h;
+		RandomAccessFile file;
 
 		byte[] buf = null;
 		int len = 0;
@@ -375,9 +368,11 @@ public final class FS {
 		if (len < 1) return null;
 
 		try {
-			h = FOpenFile(path);
-			Read(buf = new byte[len], len, h);
-			h.close();
+			file = FOpenFile(path);
+			//Read(buf = new byte[len], len, h);
+			buf = new byte[len];
+			file.readFully(buf);
+			file.close();
 		} catch (IOException e) {
 			Com.Error(Globals.ERR_FATAL, e.toString());
 		}
