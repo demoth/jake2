@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.6 2004-02-01 21:31:20 hoz Exp $
+ * $Id: CL_fx.java,v 1.7 2004-02-02 22:06:54 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -905,7 +905,7 @@ public class CL_fx extends Globals {
 //	} cparticle_t;
 //
 //
-//	#define	PARTICLE_GRAVITY	40
+	static final int PARTICLE_GRAVITY = 40;
 //	*/
 //
 //	cparticle_t	*active_particles, *free_particles;

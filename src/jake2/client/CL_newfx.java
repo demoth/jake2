@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.4 2004-02-01 21:31:20 hoz Exp $
+ * $Id: CL_newfx.java,v 1.5 2004-02-02 22:06:54 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,7 +43,7 @@ public class CL_newfx extends CL_fx {
 //	extern int			cl_numparticles;
 //	extern cvar_t		*vid_ref;
 //
-//	extern void MakeNormalVectors (vec3_t forward, vec3_t right, vec3_t up);
+//	extern void MakeNormalVectors (float[] forward, float[] right, float[] up);
 //
 //
 //	/*
@@ -87,365 +87,347 @@ public class CL_newfx extends CL_fx {
 //		angles[YAW] = yaw;
 //		angles[ROLL] = 0;
 	}
-//
-////	  =============
-////	  =============
-//	void CL_Flashlight (int ent, vec3_t pos)
-//	{
-//		cdlight_t	*dl;
-//
-//		dl = CL_AllocDlight (ent);
-//		VectorCopy (pos,  dl->origin);
-//		dl->radius = 400;
-//		dl->minlight = 250;
-//		dl->die = cl.time + 100;
-//		dl->color[0] = 1;
-//		dl->color[1] = 1;
-//		dl->color[2] = 1;
-//	}
-//
-//	/*
-//	======
-//	CL_ColorFlash - flash of light
-//	======
-//	*/
-//	void CL_ColorFlash (vec3_t pos, int ent, int intensity, float r, float g, float b)
-//	{
-//		cdlight_t	*dl;
-//
-//		if((vidref_val == VIDREF_SOFT) && ((r < 0) || (g<0) || (b<0)))
-//		{
-//			intensity = -intensity;
-//			r = -r;
-//			g = -g;
-//			b = -b;
-//		}
-//
-//		dl = CL_AllocDlight (ent);
-//		VectorCopy (pos,  dl->origin);
-//		dl->radius = intensity;
-//		dl->minlight = 250;
-//		dl->die = cl.time + 100;
-//		dl->color[0] = r;
-//		dl->color[1] = g;
-//		dl->color[2] = b;
-//	}
-//
-//
-//	/*
-//	======
-//	CL_DebugTrail
-//	======
-//	*/
-//	void CL_DebugTrail (vec3_t start, vec3_t end)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
-//		float		len;
-////		int			j;
-//		cparticle_t	*p;
-//		float		dec;
-//		vec3_t		right, up;
-////		int			i;
-////		float		d, c, s;
-////		vec3_t		dir;
-//
-//		VectorCopy (start, move);
-//		VectorSubtract (end, start, vec);
-//		len = VectorNormalize (vec);
-//
-//		MakeNormalVectors (vec, right, up);
-//
-////		VectorScale(vec, RT2_SKIP, vec);
-//
-////		dec = 1.0;
-////		dec = 0.75;
-//		dec = 3;
-//		VectorScale (vec, dec, vec);
-//		VectorCopy (start, move);
-//
-//		while (len > 0)
-//		{
-//			len -= dec;
-//
-//			if (!free_particles)
-//				return;
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//
-//			p->time = cl.time;
-//			VectorClear (p->accel);
-//			VectorClear (p->vel);
-//			p->alpha = 1.0;
-//			p->alphavel = -0.1;
-////			p->alphavel = 0;
-//			p->color = 0x74 + (rand()&7);
-//			VectorCopy (move, p->org);
-//	/*
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = move[j] + crand()*2;
-//				p->vel[j] = crand()*3;
-//				p->accel[j] = 0;
-//			}
-//	*/
-//			VectorAdd (move, vec, move);
-//		}
-//
-//	}
-//
-//	/*
-//	===============
-//	CL_SmokeTrail
-//	===============
-//	*/
-//	void CL_SmokeTrail (vec3_t start, vec3_t end, int colorStart, int colorRun, int spacing)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
-//		float		len;
-//		int			j;
-//		cparticle_t	*p;
-//
-//		VectorCopy (start, move);
-//		VectorSubtract (end, start, vec);
-//		len = VectorNormalize (vec);
-//
-//		VectorScale (vec, spacing, vec);
-//
-//		// FIXME: this is a really silly way to have a loop
-//		while (len > 0)
-//		{
-//			len -= spacing;
-//
-//			if (!free_particles)
-//				return;
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//			VectorClear (p->accel);
-//		
-//			p->time = cl.time;
-//
-//			p->alpha = 1.0;
-//			p->alphavel = -1.0 / (1+frand()*0.5);
-//			p->color = colorStart + (rand() % colorRun);
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = move[j] + crand()*3;
-//				p->accel[j] = 0;
-//			}
-//			p->vel[2] = 20 + crand()*5;
-//
-//			VectorAdd (move, vec, move);
-//		}
-//	}
-//
-//	void CL_ForceWall (vec3_t start, vec3_t end, int color)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
-//		float		len;
-//		int			j;
-//		cparticle_t	*p;
-//
-//		VectorCopy (start, move);
-//		VectorSubtract (end, start, vec);
-//		len = VectorNormalize (vec);
-//
-//		VectorScale (vec, 4, vec);
-//
-//		// FIXME: this is a really silly way to have a loop
-//		while (len > 0)
-//		{
-//			len -= 4;
-//
-//			if (!free_particles)
-//				return;
-//		
-//			if (frand() > 0.3)
-//			{
-//				p = free_particles;
-//				free_particles = p->next;
-//				p->next = active_particles;
-//				active_particles = p;
-//				VectorClear (p->accel);
-//			
-//				p->time = cl.time;
-//
-//				p->alpha = 1.0;
-//				p->alphavel =  -1.0 / (3.0+frand()*0.5);
-//				p->color = color;
-//				for (j=0 ; j<3 ; j++)
-//				{
-//					p->org[j] = move[j] + crand()*3;
-//					p->accel[j] = 0;
-//				}
-//				p->vel[0] = 0;
-//				p->vel[1] = 0;
-//				p->vel[2] = -40 - (crand()*10);
-//			}
-//
-//			VectorAdd (move, vec, move);
-//		}
-//	}
-//
-//	void CL_FlameEffects (centity_t *ent, vec3_t origin)
-//	{
-//		int			n, count;
-//		int			j;
-//		cparticle_t	*p;
-//
-//		count = rand() & 0xF;
-//
-//		for(n=0;n<count;n++)
-//		{
-//			if (!free_particles)
-//				return;
-//			
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//		
-//			VectorClear (p->accel);
-//			p->time = cl.time;
-//
-//			p->alpha = 1.0;
-//			p->alphavel = -1.0 / (1+frand()*0.2);
-//			p->color = 226 + (rand() % 4);
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = origin[j] + crand()*5;
-//				p->vel[j] = crand()*5;
-//			}
-//			p->vel[2] = crand() * -10;
-//			p->accel[2] = -PARTICLE_GRAVITY;
-//		}
-//
-//		count = rand() & 0x7;
-//
-//		for(n=0;n<count;n++)
-//		{
-//			if (!free_particles)
-//				return;
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//			VectorClear (p->accel);
-//		
-//			p->time = cl.time;
-//
-//			p->alpha = 1.0;
-//			p->alphavel = -1.0 / (1+frand()*0.5);
-//			p->color = 0 + (rand() % 4);
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = origin[j] + crand()*3;
-//			}
-//			p->vel[2] = 20 + crand()*5;
-//		}
-//
-//	}
-//
-//
-//	/*
-//	===============
-//	CL_GenericParticleEffect
-//	===============
-//	*/
-//	void CL_GenericParticleEffect (vec3_t org, vec3_t dir, int color, int count, int numcolors, int dirspread, float alphavel)
-//	{
-//		int			i, j;
-//		cparticle_t	*p;
-//		float		d;
-//
-//		for (i=0 ; i<count ; i++)
-//		{
-//			if (!free_particles)
-//				return;
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//
-//			p->time = cl.time;
-//			if (numcolors > 1)
-//				p->color = color + (rand() & numcolors);
-//			else
-//				p->color = color;
-//
-//			d = rand() & dirspread;
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-//				p->vel[j] = crand()*20;
-//			}
-//
-//			p->accel[0] = p->accel[1] = 0;
-//			p->accel[2] = -PARTICLE_GRAVITY;
-////			VectorCopy (accel, p->accel);
-//			p->alpha = 1.0;
-//
-//			p->alphavel = -1.0 / (0.5 + frand()*alphavel);
-////			p->alphavel = alphavel;
-//		}
-//	}
-//
-//	/*
-//	===============
-//	CL_BubbleTrail2 (lets you control the # of bubbles by setting the distance between the spawns)
-//
-//	===============
-//	*/
-//	void CL_BubbleTrail2 (vec3_t start, vec3_t end, int dist)
-//	{
-//		vec3_t		move;
-//		vec3_t		vec;
-//		float		len;
-//		int			i, j;
-//		cparticle_t	*p;
-//		float		dec;
-//
-//		VectorCopy (start, move);
-//		VectorSubtract (end, start, vec);
-//		len = VectorNormalize (vec);
-//
-//		dec = dist;
-//		VectorScale (vec, dec, vec);
-//
-//		for (i=0 ; i<len ; i+=dec)
-//		{
-//			if (!free_particles)
-//				return;
-//
-//			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
-//			active_particles = p;
-//
-//			VectorClear (p->accel);
-//			p->time = cl.time;
-//
-//			p->alpha = 1.0;
-//			p->alphavel = -1.0 / (1+frand()*0.1);
-//			p->color = 4 + (rand()&7);
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				p->org[j] = move[j] + crand()*2;
-//				p->vel[j] = crand()*10;
-//			}
-//			p->org[2] -= 4;
-////			p->vel[2] += 6;
-//			p->vel[2] += 20;
-//
-//			VectorAdd (move, vec, move);
-//		}
-//	}
+
+//	  =============
+//	  =============
+	static void Flashlight(int ent, float[] pos) {
+		cdlight_t dl;
+
+		dl = CL.AllocDlight(ent);
+		VectorCopy(pos, dl.origin);
+		dl.radius = 400;
+		dl.minlight = 250;
+		dl.die = cl.time + 100;
+		dl.color[0] = 1;
+		dl.color[1] = 1;
+		dl.color[2] = 1;
+	}
+
+	/*
+	======
+	CL_ColorFlash - flash of light
+	======
+	*/
+	static void ColorFlash(float[] pos, int ent, int intensity, float r, float g, float b) {
+		cdlight_t dl;
+
+		if ((vidref_val == VIDREF_SOFT) && ((r < 0) || (g < 0) || (b < 0))) {
+			intensity = -intensity;
+			r = -r;
+			g = -g;
+			b = -b;
+		}
+
+		dl = CL.AllocDlight(ent);
+		VectorCopy(pos, dl.origin);
+		dl.radius = intensity;
+		dl.minlight = 250;
+		dl.die = cl.time + 100;
+		dl.color[0] = r;
+		dl.color[1] = g;
+		dl.color[2] = b;
+	}
+
+	/*
+	======
+	CL_DebugTrail
+	======
+	*/
+	static void DebugTrail(float[] start, float[] end) {
+		float[] move = new float[3];
+		float[] vec = new float[3];
+		
+		float len;
+		//		int			j;
+		cparticle_t p;
+		float dec;
+		float[] right = new float[3];
+		float[] up = new float[3];
+		//		int			i;
+		//		float		d, c, s;
+		//		float[]		dir;
+
+		VectorCopy(start, move);
+		VectorSubtract(end, start, vec);
+		len = VectorNormalize(vec);
+
+		MakeNormalVectors(vec, right, up);
+
+		//		VectorScale(vec, RT2_SKIP, vec);
+
+		//		dec = 1.0;
+		//		dec = 0.75;
+		dec = 3;
+		VectorScale(vec, dec, vec);
+		VectorCopy(start, move);
+
+		while (len > 0) {
+			len -= dec;
+
+			if (free_particles == null)
+				return;
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+
+			p.time = cl.time;
+			VectorClear(p.accel);
+			VectorClear(p.vel);
+			p.alpha = 1.0f;
+			p.alphavel = -0.1f;
+			//			p.alphavel = 0;
+			p.color = 0x74 + (rand() & 7);
+			VectorCopy(move, p.org);
+			/*
+					for (j=0 ; j<3 ; j++)
+					{
+						p.org[j] = move[j] + crand()*2;
+						p.vel[j] = crand()*3;
+						p.accel[j] = 0;
+					}
+			*/
+			VectorAdd(move, vec, move);
+		}
+
+	}
+
+	/*
+	===============
+	CL_SmokeTrail
+	===============
+	*/
+	static void SmokeTrail(float[] start, float[] end, int colorStart, int colorRun, int spacing) {
+		float[] move = new float[3];
+		float[] vec = new float[3];
+		float len;
+		int j;
+		cparticle_t p;
+
+		VectorCopy(start, move);
+		VectorSubtract(end, start, vec);
+		len = VectorNormalize(vec);
+
+		VectorScale(vec, spacing, vec);
+
+		// FIXME: this is a really silly way to have a loop
+		while (len > 0) {
+			len -= spacing;
+
+			if (free_particles == null)
+				return;
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+			VectorClear(p.accel);
+
+			p.time = cl.time;
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1 + frand() * 0.5f);
+			p.color = colorStart + (rand() % colorRun);
+			for (j = 0; j < 3; j++) {
+				p.org[j] = move[j] + crand() * 3;
+				p.accel[j] = 0;
+			}
+			p.vel[2] = 20 + crand() * 5;
+
+			VectorAdd(move, vec, move);
+		}
+	}
+
+	static void ForceWall(float[] start, float[] end, int color) {
+		float[] move = new float[3];
+		float[] vec = new float[3];
+		;
+		float len;
+		int j;
+		cparticle_t p;
+
+		VectorCopy(start, move);
+		VectorSubtract(end, start, vec);
+		len = VectorNormalize(vec);
+
+		VectorScale(vec, 4, vec);
+
+		// FIXME: this is a really silly way to have a loop
+		while (len > 0) {
+			len -= 4;
+
+			if (free_particles == null)
+				return;
+
+			if (frand() > 0.3) {
+				p = free_particles;
+				free_particles = p.next;
+				p.next = active_particles;
+				active_particles = p;
+				VectorClear(p.accel);
+
+				p.time = cl.time;
+
+				p.alpha = 1.0f;
+				p.alphavel = -1.0f / (3.0f + frand() * 0.5f);
+				p.color = color;
+				for (j = 0; j < 3; j++) {
+					p.org[j] = move[j] + crand() * 3;
+					p.accel[j] = 0;
+				}
+				p.vel[0] = 0;
+				p.vel[1] = 0;
+				p.vel[2] = -40 - (crand() * 10);
+			}
+
+			VectorAdd(move, vec, move);
+		}
+	}
+
+	static void FlameEffects(centity_t ent, float[] origin) {
+		int n, count;
+		int j;
+		cparticle_t p;
+
+		count = rand() & 0xF;
+
+		for (n = 0; n < count; n++) {
+			if (free_particles == null)
+				return;
+
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+
+			VectorClear(p.accel);
+			p.time = cl.time;
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1 + frand() * 0.2f);
+			p.color = 226 + (rand() % 4);
+			for (j = 0; j < 3; j++) {
+				p.org[j] = origin[j] + crand() * 5;
+				p.vel[j] = crand() * 5;
+			}
+			p.vel[2] = crand() * -10;
+			p.accel[2] = -PARTICLE_GRAVITY;
+		}
+
+		count = rand() & 0x7;
+
+		for (n = 0; n < count; n++) {
+			if (free_particles == null)
+				return;
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+			VectorClear(p.accel);
+
+			p.time = cl.time;
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1 + frand() * 0.5f);
+			p.color = 0 + (rand() % 4);
+			for (j = 0; j < 3; j++) {
+				p.org[j] = origin[j] + crand() * 3;
+			}
+			p.vel[2] = 20 + crand() * 5;
+		}
+
+	}
+
+
+	/*
+	===============
+	CL_GenericParticleEffect
+	===============
+	*/
+	void CL_GenericParticleEffect(float[] org, float[] dir, int color, int count, int numcolors, int dirspread, float alphavel) {
+		int i, j;
+		cparticle_t p;
+		float d;
+
+		for (i = 0; i < count; i++) {
+			if (free_particles == null)
+				return;
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+
+			p.time = cl.time;
+			if (numcolors > 1)
+				p.color = color + (rand() & numcolors);
+			else
+				p.color = color;
+
+			d = rand() & dirspread;
+			for (j = 0; j < 3; j++) {
+				p.org[j] = org[j] + ((rand() & 7) - 4) + d * dir[j];
+				p.vel[j] = crand() * 20;
+			}
+
+			p.accel[0] = p.accel[1] = 0;
+			p.accel[2] = -PARTICLE_GRAVITY;
+			//			VectorCopy (accel, p.accel);
+			p.alpha = 1.0f;
+
+			p.alphavel = -1.0f / (0.5f + frand() * alphavel);
+			//			p.alphavel = alphavel;
+		}
+	}
+
+	/*
+	===============
+	CL_BubbleTrail2 (lets you control the # of bubbles by setting the distance between the spawns)
+
+	===============
+	*/
+	void CL_BubbleTrail2 (float[] start, float[] end, int dist)
+	{
+		float[]		move = new float[3];
+		float[]		vec = new float[3];;
+		float		len;
+		int			i, j;
+		cparticle_t	p;
+		float		dec;
+
+		VectorCopy (start, move);
+		VectorSubtract (end, start, vec);
+		len = VectorNormalize (vec);
+
+		dec = dist;
+		VectorScale (vec, dec, vec);
+
+		for (i=0 ; i<len ; i+=dec)
+		{
+			if (free_particles == null)
+				return;
+
+			p = free_particles;
+			free_particles = p.next;
+			p.next = active_particles;
+			active_particles = p;
+
+			VectorClear (p.accel);
+			p.time = cl.time;
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1+frand()*0.1f);
+			p.color = 4 + (rand()&7);
+			for (j=0 ; j<3 ; j++)
+			{
+				p.org[j] = move[j] + crand()*2;
+				p.vel[j] = crand()*10;
+			}
+			p.org[2] -= 4;
+//			p.vel[2] += 6;
+			p.vel[2] += 20;
+
+			VectorAdd (move, vec, move);
+		}
+	}
 //
 ////	  #define CORKSCREW		1
 ////	  #define DOUBLE_SCREW	1
@@ -453,17 +435,17 @@ public class CL_newfx extends CL_fx {
 ////	  #define	SPRAY		1
 //
 //	#ifdef CORKSCREW
-//	void CL_Heatbeam (vec3_t start, vec3_t end)
+//	void CL_Heatbeam (float[] start, float[] end)
 //	{
-//		vec3_t		move;
-//		vec3_t		vec;
+//		float[]		move;
+//		float[]		vec;
 //		float		len;
 //		int			j,k;
 //		cparticle_t	*p;
-//		vec3_t		right, up;
+//		float[]		right, up;
 //		int			i;
 //		float		d, c, s;
-//		vec3_t		dir;
+//		float[]		dir;
 //		float		ltime;
 //		float		step = 5.0;
 //
@@ -496,21 +478,21 @@ public class CL_newfx extends CL_fx {
 //					return;
 //
 //				p = free_particles;
-//				free_particles = p->next;
-//				p->next = active_particles;
+//				free_particles = p.next;
+//				p.next = active_particles;
 //				active_particles = p;
 //			
-//				p->time = cl.time;
-//				VectorClear (p->accel);
+//				p.time = cl.time;
+//				VectorClear (p.accel);
 //
-//				p->alpha = 0.5;
-//		//		p->alphavel = -1.0 / (1+frand()*0.2);
+//				p.alpha = 0.5;
+//		//		p.alphavel = -1.0 / (1+frand()*0.2);
 //				// only last one frame!
-//				p->alphavel = INSTANT_PARTICLE;
-//		//		p->color = 0x74 + (rand()&7);
-////				p->color = 223 - (rand()&7);
-//				p->color = 223;
-////				p->color = 240;
+//				p.alphavel = INSTANT_PARTICLE;
+//		//		p.color = 0x74 + (rand()&7);
+////				p.color = 223 - (rand()&7);
+//				p.color = 223;
+////				p.color = 240;
 //
 //				// trim it so it looks like it's starting at the origin
 //				if (i < 10)
@@ -526,9 +508,9 @@ public class CL_newfx extends CL_fx {
 //			
 //				for (j=0 ; j<3 ; j++)
 //				{
-//					p->org[j] = move[j] + dir[j]*3;
-//		//			p->vel[j] = dir[j]*6;
-//					p->vel[j] = 0;
+//					p.org[j] = move[j] + dir[j]*3;
+//		//			p.vel[j] = dir[j]*6;
+//					p.vel[j] = 0;
 //				}
 //	#ifdef DOUBLE_SCREW
 //			}
@@ -538,24 +520,24 @@ public class CL_newfx extends CL_fx {
 //	}
 //	#endif
 //	#ifdef RINGS
-////	  void CL_Heatbeam (vec3_t start, vec3_t end)
-//	void CL_Heatbeam (vec3_t start, vec3_t forward)
+////	  void CL_Heatbeam (float[] start, float[] end)
+//	void CL_Heatbeam (float[] start, float[] forward)
 //	{
-//		vec3_t		move;
-//		vec3_t		vec;
+//		float[]		move;
+//		float[]		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
-//		vec3_t		right, up;
+//		float[]		right, up;
 //		int			i;
 //		float		c, s;
-//		vec3_t		dir;
+//		float[]		dir;
 //		float		ltime;
 //		float		step = 32.0, rstep;
 //		float		start_pt;
 //		float		rot;
 //		float		variance;
-//		vec3_t		end;
+//		float[]		end;
 //
 //		VectorMA (start, 4096, forward, end);
 //
@@ -594,12 +576,12 @@ public class CL_newfx extends CL_fx {
 //					return;
 //
 //				p = free_particles;
-//				free_particles = p->next;
-//				p->next = active_particles;
+//				free_particles = p.next;
+//				p.next = active_particles;
 //				active_particles = p;
 //			
-//				p->time = cl.time;
-//				VectorClear (p->accel);
+//				p.time = cl.time;
+//				VectorClear (p.accel);
 ////				rot+= fmod(ltime, 12.0)*M_PI;
 ////				c = cos(rot)/2.0;
 ////				s = sin(rot)/2.0;
@@ -620,16 +602,16 @@ public class CL_newfx extends CL_fx {
 //					VectorMA (dir, s, up, dir);
 //				}
 //		
-//				p->alpha = 0.5;
-//		//		p->alphavel = -1.0 / (1+frand()*0.2);
-//				p->alphavel = -1000.0;
-//		//		p->color = 0x74 + (rand()&7);
-//				p->color = 223 - (rand()&7);
+//				p.alpha = 0.5;
+//		//		p.alphavel = -1.0 / (1+frand()*0.2);
+//				p.alphavel = -1000.0;
+//		//		p.color = 0x74 + (rand()&7);
+//				p.color = 223 - (rand()&7);
 //				for (j=0 ; j<3 ; j++)
 //				{
-//					p->org[j] = move[j] + dir[j]*3;
-//		//			p->vel[j] = dir[j]*6;
-//					p->vel[j] = 0;
+//					p.org[j] = move[j] + dir[j]*3;
+//		//			p.vel[j] = dir[j]*6;
+//					p.vel[j] = 0;
 //				}
 //			}
 //			VectorAdd (move, vec, move);
@@ -637,17 +619,17 @@ public class CL_newfx extends CL_fx {
 //	}
 //	#endif
 //	#ifdef SPRAY
-//	void CL_Heatbeam (vec3_t start, vec3_t end)
+//	void CL_Heatbeam (float[] start, float[] end)
 //	{
-//		vec3_t		move;
-//		vec3_t		vec;
+//		float[]		move;
+//		float[]		vec;
 //		float		len;
 //		int			j;
 //		cparticle_t	*p;
-//		vec3_t		forward, right, up;
+//		float[]		forward, right, up;
 //		int			i;
 //		float		d, c, s;
-//		vec3_t		dir;
+//		float[]		dir;
 //		float		ltime;
 //		float		step = 32.0, rstep;
 //		float		start_pt;
@@ -670,28 +652,28 @@ public class CL_newfx extends CL_fx {
 //				return;
 //
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //		
-//			p->time = cl.time;
-//			VectorClear (p->accel);
+//			p.time = cl.time;
+//			VectorClear (p.accel);
 //		
 //			d = crand()*M_PI;
 //			c = cos(d)*30;
 //			s = sin(d)*30;
 //
-//			p->alpha = 1.0;
-//			p->alphavel = -5.0 / (1+frand());
-//			p->color = 223 - (rand()&7);
+//			p.alpha = 1.0;
+//			p.alphavel = -5.0 / (1+frand());
+//			p.color = 223 - (rand()&7);
 //
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = move[j];
+//				p.org[j] = move[j];
 //			}
-//			VectorScale (vec, 450, p->vel);
-//			VectorMA (p->vel, c, right, p->vel);
-//			VectorMA (p->vel, s, up, p->vel);
+//			VectorScale (vec, 450, p.vel);
+//			VectorMA (p.vel, c, right, p.vel);
+//			VectorMA (p.vel, s, up, p.vel);
 //		}
 //	/*
 //
@@ -714,12 +696,12 @@ public class CL_newfx extends CL_fx {
 //					return;
 //
 //				p = free_particles;
-//				free_particles = p->next;
-//				p->next = active_particles;
+//				free_particles = p.next;
+//				p.next = active_particles;
 //				active_particles = p;
 //			
-//				p->time = cl.time;
-//				VectorClear (p->accel);
+//				p.time = cl.time;
+//				VectorClear (p.accel);
 ////				rot+= fmod(ltime, 12.0)*M_PI;
 ////				c = cos(rot)/2.0;
 ////				s = sin(rot)/2.0;
@@ -738,16 +720,16 @@ public class CL_newfx extends CL_fx {
 //					VectorMA (dir, s, up, dir);
 //				}
 //		
-//				p->alpha = 0.5;
-//		//		p->alphavel = -1.0 / (1+frand()*0.2);
-//				p->alphavel = -1000.0;
-//		//		p->color = 0x74 + (rand()&7);
-//				p->color = 223 - (rand()&7);
+//				p.alpha = 0.5;
+//		//		p.alphavel = -1.0 / (1+frand()*0.2);
+//				p.alphavel = -1000.0;
+//		//		p.color = 0x74 + (rand()&7);
+//				p.color = 223 - (rand()&7);
 //				for (j=0 ; j<3 ; j++)
 //				{
-//					p->org[j] = move[j] + dir[j]*3;
-//		//			p->vel[j] = dir[j]*6;
-//					p->vel[j] = 0;
+//					p.org[j] = move[j] + dir[j]*3;
+//		//			p.vel[j] = dir[j]*6;
+//					p.vel[j] = 0;
 //				}
 //			}
 //			VectorAdd (move, vec, move);
@@ -763,12 +745,12 @@ public class CL_newfx extends CL_fx {
 //	Puffs with velocity along direction, with some randomness thrown in
 //	===============
 //	*/
-//	void CL_ParticleSteamEffect (vec3_t org, vec3_t dir, int color, int count, int magnitude)
+//	void CL_ParticleSteamEffect (float[] org, float[] dir, int color, int count, int magnitude)
 //	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
-//		vec3_t		r, u;
+//		float[]		r, u;
 //
 ////		vectoangles2 (dir, angle_dir);
 ////		AngleVectors (angle_dir, f, r, u);
@@ -780,77 +762,77 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = color + (rand()&7);
+//			p.time = cl.time;
+//			p.color = color + (rand()&7);
 //
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = org[j] + magnitude*0.1*crand();
-////				p->vel[j] = dir[j]*magnitude;
+//				p.org[j] = org[j] + magnitude*0.1*crand();
+////				p.vel[j] = dir[j]*magnitude;
 //			}
-//			VectorScale (dir, magnitude, p->vel);
+//			VectorScale (dir, magnitude, p.vel);
 //			d = crand()*magnitude/3;
-//			VectorMA (p->vel, d, r, p->vel);
+//			VectorMA (p.vel, d, r, p.vel);
 //			d = crand()*magnitude/3;
-//			VectorMA (p->vel, d, u, p->vel);
+//			VectorMA (p.vel, d, u, p.vel);
 //
-//			p->accel[0] = p->accel[1] = 0;
-//			p->accel[2] = -PARTICLE_GRAVITY/2;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = 0;
+//			p.accel[2] = -PARTICLE_GRAVITY/2;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -1.0 / (0.5 + frand()*0.3);
+//			p.alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
 //	}
 //
 //	void CL_ParticleSteamEffect2 (cl_sustain_t *self)
-////	  vec3_t org, vec3_t dir, int color, int count, int magnitude)
+////	  float[] org, float[] dir, int color, int count, int magnitude)
 //	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
-//		vec3_t		r, u;
-//		vec3_t		dir;
+//		float[]		r, u;
+//		float[]		dir;
 //
 ////		vectoangles2 (dir, angle_dir);
 ////		AngleVectors (angle_dir, f, r, u);
 //
-//		VectorCopy (self->dir, dir);
+//		VectorCopy (self.dir, dir);
 //		MakeNormalVectors (dir, r, u);
 //
-//		for (i=0 ; i<self->count ; i++)
+//		for (i=0 ; i<self.count ; i++)
 //		{
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = self->color + (rand()&7);
+//			p.time = cl.time;
+//			p.color = self.color + (rand()&7);
 //
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = self->org[j] + self->magnitude*0.1*crand();
-////				p->vel[j] = dir[j]*magnitude;
+//				p.org[j] = self.org[j] + self.magnitude*0.1*crand();
+////				p.vel[j] = dir[j]*magnitude;
 //			}
-//			VectorScale (dir, self->magnitude, p->vel);
-//			d = crand()*self->magnitude/3;
-//			VectorMA (p->vel, d, r, p->vel);
-//			d = crand()*self->magnitude/3;
-//			VectorMA (p->vel, d, u, p->vel);
+//			VectorScale (dir, self.magnitude, p.vel);
+//			d = crand()*self.magnitude/3;
+//			VectorMA (p.vel, d, r, p.vel);
+//			d = crand()*self.magnitude/3;
+//			VectorMA (p.vel, d, u, p.vel);
 //
-//			p->accel[0] = p->accel[1] = 0;
-//			p->accel[2] = -PARTICLE_GRAVITY/2;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = 0;
+//			p.accel[2] = -PARTICLE_GRAVITY/2;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -1.0 / (0.5 + frand()*0.3);
+//			p.alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
-//		self->nextthink += self->thinkinterval;
+//		self.nextthink += self.thinkinterval;
 //	}
 
 	/*
@@ -939,9 +921,9 @@ public class CL_newfx extends CL_fx {
 		}
 	}
 
-//	void CL_MonsterPlasma_Shell(vec3_t origin)
+//	void CL_MonsterPlasma_Shell(float[] origin)
 //	{
-//		vec3_t			dir;
+//		float[]			dir;
 //		int				i;
 //		cparticle_t		*p;
 //
@@ -950,136 +932,136 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
-//			VectorClear (p->accel);
+//			VectorClear (p.accel);
 //		
-//			p->time = cl.time;
+//			p.time = cl.time;
 //
-//			p->alpha = 1.0;
-//			p->alphavel = INSTANT_PARTICLE;
-//			p->color = 0xe0;
+//			p.alpha = 1.0;
+//			p.alphavel = INSTANT_PARTICLE;
+//			p.color = 0xe0;
 //
 //			dir[0] = crand();
 //			dir[1] = crand();
 //			dir[2] = crand();
 //			VectorNormalize(dir);
 //	
-//			VectorMA(origin, 10, dir, p->org);
-////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p->org);
+//			VectorMA(origin, 10, dir, p.org);
+////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p.org);
 //		}
 //	}
 //
 //	void CL_Widowbeamout (cl_sustain_t *self)
 //	{
-//		vec3_t			dir;
+//		float[]			dir;
 //		int				i;
 //		cparticle_t		*p;
 //		static int colortable[4] = {2*8,13*8,21*8,18*8};
 //		float			ratio;
 //
-//		ratio = 1.0 - (((float)self->endtime - (float)cl.time)/2100.0);
+//		ratio = 1.0 - (((float)self.endtime - (float)cl.time)/2100.0);
 //
 //		for(i=0;i<300;i++)
 //		{
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
-//			VectorClear (p->accel);
+//			VectorClear (p.accel);
 //		
-//			p->time = cl.time;
+//			p.time = cl.time;
 //
-//			p->alpha = 1.0;
-//			p->alphavel = INSTANT_PARTICLE;
-//			p->color = colortable[rand()&3];
+//			p.alpha = 1.0;
+//			p.alphavel = INSTANT_PARTICLE;
+//			p.color = colortable[rand()&3];
 //
 //			dir[0] = crand();
 //			dir[1] = crand();
 //			dir[2] = crand();
 //			VectorNormalize(dir);
 //	
-//			VectorMA(self->org, (45.0 * ratio), dir, p->org);
-////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p->org);
+//			VectorMA(self.org, (45.0 * ratio), dir, p.org);
+////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p.org);
 //		}
 //	}
 //
 //	void CL_Nukeblast (cl_sustain_t *self)
 //	{
-//		vec3_t			dir;
+//		float[]			dir;
 //		int				i;
 //		cparticle_t		*p;
 //		static int colortable[4] = {110, 112, 114, 116};
 //		float			ratio;
 //
-//		ratio = 1.0 - (((float)self->endtime - (float)cl.time)/1000.0);
+//		ratio = 1.0 - (((float)self.endtime - (float)cl.time)/1000.0);
 //
 //		for(i=0;i<700;i++)
 //		{
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
-//			VectorClear (p->accel);
+//			VectorClear (p.accel);
 //		
-//			p->time = cl.time;
+//			p.time = cl.time;
 //
-//			p->alpha = 1.0;
-//			p->alphavel = INSTANT_PARTICLE;
-//			p->color = colortable[rand()&3];
+//			p.alpha = 1.0;
+//			p.alphavel = INSTANT_PARTICLE;
+//			p.color = colortable[rand()&3];
 //
 //			dir[0] = crand();
 //			dir[1] = crand();
 //			dir[2] = crand();
 //			VectorNormalize(dir);
 //	
-//			VectorMA(self->org, (200.0 * ratio), dir, p->org);
-////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p->org);
+//			VectorMA(self.org, (200.0 * ratio), dir, p.org);
+////			VectorMA(origin, 10*(((rand () & 0x7fff) / ((float)0x7fff))), dir, p.org);
 //		}
 //	}
 //
-//	void CL_WidowSplash (vec3_t org)
+//	void CL_WidowSplash (float[] org)
 //	{
 //		static int colortable[4] = {2*8,13*8,21*8,18*8};
 //		int			i;
 //		cparticle_t	*p;
-//		vec3_t		dir;
+//		float[]		dir;
 //
 //		for (i=0 ; i<256 ; i++)
 //		{
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = colortable[rand()&3];
+//			p.time = cl.time;
+//			p.color = colortable[rand()&3];
 //
 //			dir[0] = crand();
 //			dir[1] = crand();
 //			dir[2] = crand();
 //			VectorNormalize(dir);
-//			VectorMA(org, 45.0, dir, p->org);
-//			VectorMA(vec3_origin, 40.0, dir, p->vel);
+//			VectorMA(org, 45.0, dir, p.org);
+//			VectorMA(vec3_origin, 40.0, dir, p.vel);
 //
-//			p->accel[0] = p->accel[1] = 0;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = 0;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -0.8 / (0.5 + frand()*0.3);
+//			p.alphavel = -0.8 / (0.5 + frand()*0.3);
 //		}
 //
 //	}
 //
-//	void CL_Tracker_Explode(vec3_t	origin)
+//	void CL_Tracker_Explode(float[]	origin)
 //	{
-//		vec3_t			dir, backdir;
+//		float[]			dir, backdir;
 //		int				i;
 //		cparticle_t		*p;
 //
@@ -1088,16 +1070,16 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
-//			VectorClear (p->accel);
+//			VectorClear (p.accel);
 //		
-//			p->time = cl.time;
+//			p.time = cl.time;
 //
-//			p->alpha = 1.0;
-//			p->alphavel = -1.0;
-//			p->color = 0;
+//			p.alpha = 1.0;
+//			p.alphavel = -1.0;
+//			p.color = 0;
 //
 //			dir[0] = crand();
 //			dir[1] = crand();
@@ -1105,8 +1087,8 @@ public class CL_newfx extends CL_fx {
 //			VectorNormalize(dir);
 //			VectorScale(dir, -1, backdir);
 //	
-//			VectorMA(origin, 64, dir, p->org);
-//			VectorScale(backdir, 64, p->vel);
+//			VectorMA(origin, 64, dir, p.org);
+//			VectorScale(backdir, 64, p.vel);
 //		}
 //	
 //	}
@@ -1163,7 +1145,7 @@ public class CL_newfx extends CL_fx {
 //	CL_ColorExplosionParticles
 //	===============
 //	*/
-//	void CL_ColorExplosionParticles (vec3_t org, int color, int run)
+//	void CL_ColorExplosionParticles (float[] org, int color, int run)
 //	{
 //		int			i, j;
 //		cparticle_t	*p;
@@ -1173,24 +1155,24 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = color + (rand() % run);
+//			p.time = cl.time;
+//			p.color = color + (rand() % run);
 //
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = org[j] + ((rand()%32)-16);
-//				p->vel[j] = (rand()%256)-128;
+//				p.org[j] = org[j] + ((rand()%32)-16);
+//				p.vel[j] = (rand()%256)-128;
 //			}
 //
-//			p->accel[0] = p->accel[1] = 0;
-//			p->accel[2] = -PARTICLE_GRAVITY;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = 0;
+//			p.accel[2] = -PARTICLE_GRAVITY;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -0.4 / (0.6 + frand()*0.2);
+//			p.alphavel = -0.4 / (0.6 + frand()*0.2);
 //		}
 //	}
 //
@@ -1199,12 +1181,12 @@ public class CL_newfx extends CL_fx {
 //	CL_ParticleSmokeEffect - like the steam effect, but unaffected by gravity
 //	===============
 //	*/
-//	void CL_ParticleSmokeEffect (vec3_t org, vec3_t dir, int color, int count, int magnitude)
+//	void CL_ParticleSmokeEffect (float[] org, float[] dir, int color, int count, int magnitude)
 //	{
 //		int			i, j;
 //		cparticle_t	*p;
 //		float		d;
-//		vec3_t		r, u;
+//		float[]		r, u;
 //
 //		MakeNormalVectors (dir, r, u);
 //
@@ -1213,28 +1195,28 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = color + (rand()&7);
+//			p.time = cl.time;
+//			p.color = color + (rand()&7);
 //
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = org[j] + magnitude*0.1*crand();
-////				p->vel[j] = dir[j]*magnitude;
+//				p.org[j] = org[j] + magnitude*0.1*crand();
+////				p.vel[j] = dir[j]*magnitude;
 //			}
-//			VectorScale (dir, magnitude, p->vel);
+//			VectorScale (dir, magnitude, p.vel);
 //			d = crand()*magnitude/3;
-//			VectorMA (p->vel, d, r, p->vel);
+//			VectorMA (p.vel, d, r, p.vel);
 //			d = crand()*magnitude/3;
-//			VectorMA (p->vel, d, u, p->vel);
+//			VectorMA (p.vel, d, u, p.vel);
 //
-//			p->accel[0] = p->accel[1] = p->accel[2] = 0;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = p.accel[2] = 0;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -1.0 / (0.5 + frand()*0.3);
+//			p.alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
 //	}
 //
@@ -1245,7 +1227,7 @@ public class CL_newfx extends CL_fx {
 //	Wall impact puffs (Green)
 //	===============
 //	*/
-//	void CL_BlasterParticles2 (vec3_t org, vec3_t dir, unsigned int color)
+//	void CL_BlasterParticles2 (float[] org, float[] dir, unsigned int color)
 //	{
 //		int			i, j;
 //		cparticle_t	*p;
@@ -1258,25 +1240,25 @@ public class CL_newfx extends CL_fx {
 //			if (!free_particles)
 //				return;
 //			p = free_particles;
-//			free_particles = p->next;
-//			p->next = active_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
 //			active_particles = p;
 //
-//			p->time = cl.time;
-//			p->color = color + (rand()&7);
+//			p.time = cl.time;
+//			p.color = color + (rand()&7);
 //
 //			d = rand()&15;
 //			for (j=0 ; j<3 ; j++)
 //			{
-//				p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-//				p->vel[j] = dir[j] * 30 + crand()*40;
+//				p.org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
+//				p.vel[j] = dir[j] * 30 + crand()*40;
 //			}
 //
-//			p->accel[0] = p->accel[1] = 0;
-//			p->accel[2] = -PARTICLE_GRAVITY;
-//			p->alpha = 1.0;
+//			p.accel[0] = p.accel[1] = 0;
+//			p.accel[2] = -PARTICLE_GRAVITY;
+//			p.alpha = 1.0;
 //
-//			p->alphavel = -1.0 / (0.5 + frand()*0.3);
+//			p.alphavel = -1.0 / (0.5 + frand()*0.3);
 //		}
 //	}
 
