@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.4 2004-06-17 17:51:32 hoz Exp $
+ * $Id: SND_DMA.java,v 1.5 2004-06-24 14:58:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -349,7 +349,7 @@ public class SND_DMA extends SND_MIX {
 		sfx.registration_sequence = s_registration_sequence;
 
 		if (!s_registering)
-			LoadSound(sfx);
+			WaveLoader.LoadSound(sfx);
 
 		return sfx;
 	}
@@ -390,7 +390,7 @@ public class SND_DMA extends SND_MIX {
 			sfx = known_sfx[i];
 			if (sfx.name == null)
 				continue;
-			LoadSound(sfx);
+			WaveLoader.LoadSound(sfx);
 		}
 
 		s_registering = false;
@@ -607,7 +607,7 @@ public class SND_DMA extends SND_MIX {
 		Spatialize(ch);
 
 		ch.pos = 0;
-		sc = LoadSound(ch.sfx);
+		sc = WaveLoader.LoadSound(ch.sfx);
 		ch.end = paintedtime + sc.length;
 
 		// free the playsound
@@ -689,7 +689,7 @@ public class SND_DMA extends SND_MIX {
 			sfx = RegisterSexedSound(cl_entities[entnum].current, sfx.name);
 
 		// make sure the sound is loaded
-		sfxcache_t sc = LoadSound(sfx);
+		sfxcache_t sc = WaveLoader.LoadSound(sfx);
 		if (sc == null)
 			return; // couldn't load the sound's data
 

@@ -2,7 +2,7 @@
  * SND_MIX.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MIX.java,v 1.3 2004-06-17 12:32:18 hoz Exp $
+ * $Id: SND_MIX.java,v 1.4 2004-06-24 14:58:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,7 +38,7 @@ import jake2.util.Math3D;
 /**
  * SND_MIX
  */
-public class SND_MIX extends SND_MEM {
+public class SND_MIX extends SND_JAVA {
 
 	static final int MAX_CHANNELS = 32;
 	static final int MAX_RAW_SAMPLES = 8192;
@@ -363,7 +363,7 @@ public class SND_MIX extends SND_MEM {
 					if (ch.end - ltime < count)
 						count = ch.end - ltime;
 		
-					sc = SND_DMA.LoadSound(ch.sfx);
+					sc = WaveLoader.LoadSound(ch.sfx);
 					if (sc == null)
 						break;
 

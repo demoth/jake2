@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MEM.java,v 1.3 2004-06-24 11:42:02 hoz Exp $
+ * $Id: WaveLoader.java,v 1.1 2004-06-24 14:58:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,12 +23,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.sound.jsound;
+package jake2.sound;
 
+import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
-import jake2.sound.sfx_t;
-import jake2.sound.sfxcache_t;
 import jake2.sys.Sys;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +37,7 @@ import javax.sound.sampled.*;
 /**
  * SND_MEM
  */
-public class SND_MEM extends SND_JAVA {
+public class WaveLoader {
 
 	private static final AudioFormat sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
 
@@ -47,7 +46,7 @@ public class SND_MEM extends SND_JAVA {
 	S_LoadSound
 	==============
 	*/
-	static sfxcache_t LoadSound(sfx_t s) {
+	public static sfxcache_t LoadSound(sfx_t s) {
 		String namebuffer;
 		byte[] data;
 		wavinfo_t info;
@@ -100,7 +99,7 @@ public class SND_MEM extends SND_JAVA {
 			in.close();
 		} catch (Exception e) {
 			Com.Printf("Couldn't load " + namebuffer + "\n");
-			e.printStackTrace();
+			//e.printStackTrace();
 			return null;
 		}
 		
@@ -265,7 +264,7 @@ public class SND_MEM extends SND_JAVA {
 
 		if (info.samples != 0) {
 			if (samples < info.samples)
-				Com.Error(ERR_DROP, "Sound " + name + " has a bad loop length");
+				Com.Error(Defines.ERR_DROP, "Sound " + name + " has a bad loop length");
 		} else
 			info.samples = samples;
 
