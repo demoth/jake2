@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.18 2004-02-13 16:22:07 cwei Exp $
+ * $Id: NET.java,v 1.19 2004-02-14 20:27:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -377,8 +377,8 @@ public final class NET extends Defines {
 			net_message.data[length] = 0; // sentinel
 			
 			
-			Com.DPrintf(Lib.hexDump(net_message.data, Math.max(length, length - (length % 16) + 16), false));
-			Com.DPrintf("\n");
+			//Com.DPrintf(Lib.hexDump(net_message.data, Math.max(length, length - (length % 16) + 16), false));
+			//Com.DPrintf("\n");
 			
 			return true;
 
@@ -428,8 +428,8 @@ public final class NET extends Defines {
 	public static void SendPacket (int sock, int length, byte [] data, netadr_t to)
 	{
 		//Com.Printf("NET_SendPacket: sock=" + sock  + " len=" + length + "\n");
-		Com.DPrintf(Lib.hexDump(data, Math.max(length, length - (length % 16) + 16), false));
-		Com.DPrintf("\n");
+		//Com.DPrintf(Lib.hexDump(data, Math.max(length, length - (length % 16) + 16), false));
+		//Com.DPrintf("\n");
 		
 		int		ret;
 		//struct sockaddr_in	addr;

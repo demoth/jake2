@@ -2,7 +2,7 @@
  * RW.java
  * Copyright (C) 2004
  * 
- * $Id: RW.java,v 1.2 2004-02-02 21:19:39 hoz Exp $
+ * $Id: RW.java,v 1.3 2004-02-14 20:27:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -132,7 +132,8 @@ public final class RW extends Globals {
 		old_mouse_y = KBD.my;
 
 		KBD.mx = (int)(KBD.mx * sensitivity.value);
-		KBD.my = (int)(KBD.mx * sensitivity.value);
+		// bugfix rst
+		KBD.my = (int)(KBD.my * sensitivity.value);
 
 		// add mouse X/Y movement to cmd
 		if ( (CL.in_strafe.state & 1) != 0 || ((lookstrafe.value != 0) && mlooking ))

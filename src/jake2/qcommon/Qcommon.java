@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.21 2004-02-05 21:32:40 rst Exp $
+ * $Id: Qcommon.java,v 1.22 2004-02-14 20:27:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -88,7 +88,7 @@ public final class Qcommon extends Globals {
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
-			Globals.developer= Cvar.Get("developer", "1", 0);
+			Globals.developer= Cvar.Get("developer", "0", 0);
 			Globals.timescale= Cvar.Get("timescale", "1", 0);
 			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);

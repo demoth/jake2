@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.9 2004-02-11 17:28:48 cwei Exp $
+ * $Id: CL_view.java,v 1.10 2004-02-14 20:27:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -99,8 +99,10 @@ public class CL_view extends CL_input {
 			name = new String(cl.configstrings[CS_MODELS+i]);
 			if (name.length() > 37) name = name.substring(0, 36);
 
+			/*
 			if (name.charAt(0) != '*')
-				Com.Printf("name" + "\r"); 
+				Com.Printf("name" + "\r");
+			*/
 			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
 			if (name.charAt(0) == '#') {
@@ -186,5 +188,4 @@ public class CL_view extends CL_input {
 			ping = 30;
 		SCR.DebugGraph (ping, 0xd0);
 	}
-
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.9 2004-02-14 13:24:02 rst Exp $
+// $Id: SV_WORLD.java,v 1.10 2004-02-14 20:27:51 rst Exp $
 
 package jake2.server;
 
@@ -427,11 +427,13 @@ public class SV_WORLD extends SV_CCMDS {
 		area_type = areatype;
 
 		SV_AreaEdicts_r(sv_areanodes[0]);
-
+		
+		/*
 		Com.Printf("found edicts in area:" + area_count + "\n");
 		for (int n = 0; n < area_count; n++) {
 			Com.Printf("%4i : %25s", new Vargs().add(n).add(list[n].classname));
 		}
+		*/
 		return area_count;
 	}
 
