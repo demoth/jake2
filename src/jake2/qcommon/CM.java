@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.2 2004-01-02 22:29:01 rst Exp $
+// $Id: CM.java,v 1.3 2004-01-04 02:07:45 rst Exp $
 
 package jake2.qcommon;
 
@@ -1649,25 +1649,25 @@ public class CM extends PlayerHud {
 	
 		}
 	
-	//	static void CM_SetAreaPortalState(int portalnum, boolean open) {
-	//		if (portalnum > numareaportals)
-	//			Com.Error(ERR_DROP, "areaportal > numareaportals");
-	//
-	//		portalopen[portalnum] = open;
-	//		FloodAreaConnections();
-	//	}
-	//
-	//	boolean CM_AreasConnected(int area1, int area2) {
-	//		if (map_noareas.value)
-	//			return true;
-	//
-	//		if (area1 > numareas || area2 > numareas)
-	//			Com.Error(ERR_DROP, "area > numareas");
-	//
-	//		if (map_areas[area1].floodnum == map_areas[area2].floodnum)
-	//			return true;
-	//		return false;
-	//	}
+		static void CM_SetAreaPortalState(int portalnum, boolean open) {
+			if (portalnum > numareaportals)
+				Com.Error(ERR_DROP, "areaportal > numareaportals");
+	
+			portalopen[portalnum] = open;
+			FloodAreaConnections();
+		}
+	
+		boolean CM_AreasConnected(int area1, int area2) {
+			if (map_noareas.value!=0)
+				return true;
+	
+			if (area1 > numareas || area2 > numareas)
+				Com.Error(ERR_DROP, "area > numareas");
+	
+			if (map_areas[area1].floodnum == map_areas[area2].floodnum)
+				return true;
+			return false;
+		}
 	//
 	//	/*
 	//	=================
