@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.7 2003-11-29 13:48:49 rst Exp $
+//$Id: client_state_t.java,v 1.8 2003-11-29 13:50:44 rst Exp $
 
 package jake2.client;
 
 import jake2.Defines;
 import jake2.game.cmodel_t;
 import jake2.game.usercmd_t;
-import jake2.qcommon.qcommondefs;
+
 import jake2.render.image_t;
 import jake2.render.model_t;
 
