@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.22 2004-01-25 12:32:14 hoz Exp $
+ * $Id: TestRenderer.java,v 1.23 2004-01-25 16:34:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -98,7 +98,7 @@ public class TestRenderer {
 			}
 
 			public void Cmd_ExecuteText(int exec_when, String text) {
-				// TODO implement Cbuf_ExecuteText
+				Cbuf.ExecuteText(exec_when, text);
 			}
 
 			public void Con_Printf(int print_level, String str) {

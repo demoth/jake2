@@ -2,7 +2,7 @@
  * DebugCulling.java
  * Copyright (C) 2003
  *
- * $Id: DebugCulling.java,v 1.1 2004-01-24 18:17:36 cwei Exp $
+ * $Id: DebugCulling.java,v 1.2 2004-01-25 16:34:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,7 @@ import jake2.client.refimport_t;
 import jake2.client.viddef_t;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
+import jake2.qcommon.Cbuf;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.FS;
 import jake2.qcommon.Qcommon;
@@ -124,7 +125,7 @@ public class DebugCulling
 
 			public void Cmd_ExecuteText(int exec_when, String text)
 			{
-				// TODO implement Cbuf_ExecuteText
+				Cbuf.ExecuteText(exec_when, text);
 			}
 
 			public void Con_Printf(int print_level, String str)
@@ -193,7 +194,7 @@ public class DebugCulling
 			}
 		};
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.1 2004-01-24 18:17:36 cwei Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.2 2004-01-25 16:34:58 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -239,7 +240,7 @@ public class DebugCulling
 			case 1 :
 				// register the map
 				re.SetSky("space1", 0, new float[]{ 0, 0, 0 });
-				re.BeginRegistration("fact3");
+				re.BeginRegistration("ColorTest");
 				re.EndRegistration();
 				currentState = 2;
 				//break;
@@ -265,7 +266,7 @@ public class DebugCulling
 
 	private float yaw = 0;
 
-	private float fov_x = 80;
+	private float fov_x = 90;
 	
 	private refdef_t refdef;
 	
@@ -282,8 +283,11 @@ public class DebugCulling
 			refdef.fov_x = fov_x;
 			refdef.fov_y = CalcFov(fov_x, refdef.width -10, refdef.height-10);
 			refdef.vieworg = new float[] {0, 0, 0};
-			refdef.viewangles = new float[] {0, 0, 0};
 
+			refdef.viewangles[0] = 0;
+			refdef.viewangles[1] = 90;
+			refdef.viewangles[2] = 0;
+			
 			refdef.blend =  new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
 
 			refdef.areabits = null; // draw all
@@ -300,18 +304,16 @@ public class DebugCulling
 
 			refdef.lightstyles = new lightstyle_t[] { light };
 
-			refdef.viewangles[0] = 0;
-			refdef.viewangles[1] = -90;
 		}
 
 		refdef.time = time() * 0.001f;
-		
+
 		refdef.viewangles[0] += KBD.my * 0.1f;
-		refdef.viewangles[1] -= KBD.mx * 0.1f; // 90 + 180 * (float)Math.sin(time() * 0.0001f);
+		refdef.viewangles[1] -= KBD.mx * 0.1f;
 
 		refdef.vieworg[0] = 0; // + 30 * (float)Math.sin(time() * 0.0005f);
-		refdef.vieworg[1] = 320;
-		refdef.vieworg[2] = 158;
+		refdef.vieworg[1] = -79;
+		refdef.vieworg[2] = -131;
 		
 		// wichtig da aufloesung 1/8
 		// --> ebenen schneiden nie genau die sicht

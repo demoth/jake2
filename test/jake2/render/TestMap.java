@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.5 2004-01-23 19:24:36 cwei Exp $
+ * $Id: TestMap.java,v 1.6 2004-01-25 16:34:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,7 @@ import jake2.client.refimport_t;
 import jake2.client.viddef_t;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
+import jake2.qcommon.Cbuf;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.FS;
 import jake2.qcommon.Qcommon;
@@ -124,7 +125,7 @@ public class TestMap
 
 			public void Cmd_ExecuteText(int exec_when, String text)
 			{
-				// TODO implement Cbuf_ExecuteText
+				Cbuf.ExecuteText(exec_when, text);
 			}
 
 			public void Con_Printf(int print_level, String str)
@@ -193,7 +194,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.5 2004-01-23 19:24:36 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.6 2004-01-25 16:34:58 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 

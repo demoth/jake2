@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.5 2004-01-20 13:02:50 cwei Exp $
+ * $Id: DancingQueens.java,v 1.6 2004-01-25 16:34:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,6 +35,7 @@ import jake2.client.refimport_t;
 import jake2.client.viddef_t;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
+import jake2.qcommon.Cbuf;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.FS;
 import jake2.qcommon.Qcommon;
@@ -103,7 +104,7 @@ public class DancingQueens
 			}
 
 			public void Cmd_ExecuteText(int exec_when, String text) {
-				// TODO implement Cbuf_ExecuteText
+				Cbuf.ExecuteText(exec_when, text);
 			}
 
 			public void Con_Printf(int print_level, String str) {
