@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.7 2004-02-22 17:33:50 rst Exp $
+// $Id: PMove.java,v 1.8 2004-02-27 15:50:16 rst Exp $
 
 package jake2.qcommon;
 
@@ -160,7 +160,7 @@ public class PMove extends Game
 			// save entity for contact
 			if (pm.numtouch < MAXTOUCH && trace.ent != null)
 			{
-				if (trace.ent.index != -1) 
+				if (trace.ent.index != -1 && trace.ent.index != 0) 
 					Com.p("touch: " + trace.ent.classname + " (" + trace.ent.index + ")" );
 					
 				pm.touchents[pm.numtouch] = trace.ent;
@@ -655,7 +655,6 @@ public class PMove extends Game
 
 				if (0 == (pm.s.pm_flags & PMF_ON_GROUND))
 				{ 	// just hit the ground
-					Com.p("GROUND!");
 					pm.s.pm_flags |= PMF_ON_GROUND;
 					// don't do landing time if we were just going down a slope
 					if (pml.velocity[2] < -200)

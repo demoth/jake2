@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.20 2004-02-26 22:36:31 rst Exp $
+// $Id: GameAI.java,v 1.21 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.qcommon.Com;
 import jake2.util.*;
 
 import java.util.*;
@@ -1475,6 +1476,7 @@ public class GameAI extends M_Flash {
 
 		if (Lib.Q_stricmp(cmd, "use") == 0)
 			Cmd.Use_f(ent);
+			
 		else if (Lib.Q_stricmp(cmd, "drop") == 0)
 			Cmd.Drop_f(ent);
 		else if (Lib.Q_stricmp(cmd, "give") == 0)

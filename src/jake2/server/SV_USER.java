@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.10 2004-02-15 19:27:29 hoz Exp $
+// $Id: SV_USER.java,v 1.11 2004-02-27 15:50:16 rst Exp $
 
 package jake2.server;
 
@@ -331,7 +331,7 @@ public class SV_USER extends SV_SEND {
 			sv_client.downloadcount = sv_client.downloadsize;
 
 		if (sv_client.download == null // special check for maps, if it came from a pak file, don't allow
-		// download  ZOID
+			// download  ZOID
 			|| (strncmp(name, "maps/", 5) == 0 && FS.file_from_pak != 0)) {
 			Com.DPrintf("Couldn't download " + name + " to " + sv_client.name + "\n");
 			if (sv_client.download != null) {
@@ -482,14 +482,16 @@ public class SV_USER extends SV_SEND {
 
 		//	SV_BeginRedirect (RD_CLIENT);
 
-		for (int i = 0; i < ucmds.length; i++) {
+		int i=0;
+		for (; i < ucmds.length; i++) {
 			u = ucmds[i];
 			if (0 == strcmp(Cmd.Argv(0), u.name)) {
 				u.r.run();
 				break;
 			}
 		}
-		if (u.name == null && sv.state == ss_game)
+		
+		if (i == ucmds.length && sv.state == ss_game)
 			SV_GAME.ge.ClientCommand(sv_player);
 
 		//	SV_EndRedirect ();
@@ -526,8 +528,8 @@ public class SV_USER extends SV_SEND {
 		int c;
 		String s;
 
-		usercmd_t nullcmd=new usercmd_t();
-		usercmd_t oldest=new usercmd_t(), oldcmd=new usercmd_t(), newcmd=new usercmd_t();
+		usercmd_t nullcmd = new usercmd_t();
+		usercmd_t oldest = new usercmd_t(), oldcmd = new usercmd_t(), newcmd = new usercmd_t();
 		int net_drop;
 		int stringCmdCount;
 		int checksum, calculatedChecksum;
@@ -576,7 +578,7 @@ public class SV_USER extends SV_SEND {
 					checksumIndex = net_message.readcount;
 					checksum = MSG.ReadByte(net_message);
 					lastframe = MSG.ReadLong(net_message);
-		
+
 					if (lastframe != cl.lastframe) {
 						cl.lastframe = lastframe;
 						if (cl.lastframe > 0) {
@@ -597,7 +599,7 @@ public class SV_USER extends SV_SEND {
 					}
 
 					// if the checksum fails, ignore the rest of the packet
-					
+
 					calculatedChecksum = 0;
 					/*
 						 = Com.BlockSequenceCRCByte(

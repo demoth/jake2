@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameWeaponAdapters.java,v 1.2 2004-02-27 11:03:30 rst Exp $
+// $Id: GameWeaponAdapters.java,v 1.3 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -41,7 +41,6 @@ public class GameWeaponAdapters {
 	static EntTouchAdapter blaster_touch= new EntTouchAdapter() {
 	
 		public void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf) {
-			System.out.println("BLASTER_TOUCH!");
 			int mod;
 	
 			if (other == self.owner)

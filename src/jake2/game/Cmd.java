@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.25 2004-02-26 22:36:31 rst Exp $
+ * $Id: Cmd.java,v 1.26 2004-02-27 15:50:16 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -393,7 +393,6 @@ public final class Cmd extends PlayerView {
 //
 //			Com.DPrintf("\n");
 //		}
-		//System.out.println("tokenized[" + Argv(0) + "]" + "[" + Argv(1) +  "]");
 		// execute the command line
 		if (Argc() == 0)
 			return; // no tokens
@@ -475,7 +474,7 @@ public final class Cmd extends PlayerView {
 		}
 
 		if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-			for (i = 0; i < GameBase.game.num_items; i++) {
+			for (i = 1; i < GameBase.game.num_items; i++) {
 				it = GameAI.itemlist[i];
 				if (null == it.pickup)
 					continue;
@@ -488,7 +487,7 @@ public final class Cmd extends PlayerView {
 		}
 
 		if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-			for (i = 0; i < GameBase.game.num_items; i++) {
+			for (i = 1; i < GameBase.game.num_items; i++) {
 				it = GameAI.itemlist[i];
 				if (null == it.pickup)
 					continue;
@@ -531,7 +530,7 @@ public final class Cmd extends PlayerView {
 		}
 
 		if (give_all) {
-			for (i = 0; i < GameBase.game.num_items; i++) {
+			for (i = 1; i < GameBase.game.num_items; i++) {
 				it = GameAI.itemlist[i];
 				if (it.pickup != null)
 					continue;
@@ -668,7 +667,7 @@ public final class Cmd extends PlayerView {
 
 		s = GameBase.gi.args();
 		it = GameUtil.FindItem(s);
-		if (it != null) {
+		if (it == null) {
 			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
 			return;
 		}

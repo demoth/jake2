@@ -66,13 +66,13 @@ public class edict_t {
 	public int movetype;
 	public int flags;
 
-	public String model = "";
+	public String model = null;
 	public float freetime; // sv.time when the object was freed
 
 	//
 	// only used locally in game, not by server
 	//
-	public String message = "";
+	public String message = null;
 	public String classname = "";
 	public int spawnflags;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.23 2004-02-22 21:45:47 hoz Exp $
+// $Id: SV_MAIN.java,v 1.24 2004-02-27 15:50:16 rst Exp $
 
 package jake2.server;
 
@@ -912,7 +912,8 @@ public class SV_MAIN extends SV_GAME {
 		Cvar.Get("dmflags", "" + DF_INSTANT_ITEMS, CVAR_SERVERINFO);
 		Cvar.Get("fraglimit", "0", CVAR_SERVERINFO);
 		Cvar.Get("timelimit", "0", CVAR_SERVERINFO);
-		Cvar.Get("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH);
+		//TODO: set cheats 0
+		Cvar.Get("cheats", "1", CVAR_SERVERINFO | CVAR_LATCH);
 		Cvar.Get("protocol", "" + PROTOCOL_VERSION, CVAR_SERVERINFO | CVAR_NOSET);
 	 
 		SV_MAIN.maxclients = Cvar.Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);

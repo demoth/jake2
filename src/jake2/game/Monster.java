@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.6 2004-02-26 22:36:31 rst Exp $
+// $Id: Monster.java,v 1.7 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -193,7 +193,7 @@ public class Monster extends GameAI{
 		if (GameBase.st.item != null) {
 			self.item = GameUtil.FindItemByClassname(GameBase.st.item);
 			if (self.item != null)
-				GameBase.gi.dprintf(self.classname + " at " + Lib.vtos(self.s.origin) + " has bad item: " + GameBase.st.item + "\n");
+				GameBase.gi.dprintf("monster_start:" + self.classname + " at " + Lib.vtos(self.s.origin) + " has bad item: " + GameBase.st.item + "\n");
 		}
 
 		// randomize what frame they start on

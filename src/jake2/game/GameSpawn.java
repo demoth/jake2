@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.21 2004-02-26 22:36:31 rst Exp $
+// $Id: GameSpawn.java,v 1.22 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -266,7 +266,6 @@ public class GameSpawn extends GameSave {
 	
 		if (!init)
 		{
-			System.out.println("clear!");
 			ent.clear();
 		}
 
@@ -595,14 +594,14 @@ public class GameSpawn extends GameSave {
 				
 			if (item.classname == null)
 				continue;
-			if (0 == Lib.strcmp(item.classname, ent.classname)) { // found it
+			if (0 == Lib.stricmp(item.classname, ent.classname)) { // found it
 				SpawnItem(ent, item);
 				return;
 			}
 		} // check normal spawn functions
 	
 		for (i=0; (s = spawns[i]) !=null && s.name != null; i++) {
-			if (0 == Lib.strcmp(s.name, ent.classname)) { // found it
+			if (0 == Lib.stricmp(s.name, ent.classname)) { // found it
 				
 				if (s.spawn == null)
 					gi.error("ED_CallSpawn: null-spawn on index=" + i);

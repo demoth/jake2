@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.15 2004-01-25 21:56:21 hoz Exp $
+ * $Id: Cbuf.java,v 1.16 2004-02-27 15:50:16 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,11 +194,8 @@ public final class Cbuf {
 
 			// execute the command line
 			int len = jake2.util.Lib.strlen(line);
-			//System.out.println("Cbuf.executelen:" + Globals.cmd_text.cursize + "/" + len);
 
 			String cmd = new String(line, 0, len);
-			//System.out.println("Cbuf.data   :" + new String(text,0,16).replace('\n','.').replace('\r','.'));
-			//System.out.println("Cbuf.execute:" + xxx.replace('\n','.').replace('\r','.') );
 			Cmd.ExecuteString(cmd);
 
 			if (Globals.cmd_wait) {

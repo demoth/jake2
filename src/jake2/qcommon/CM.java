@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.32 2004-02-25 21:30:15 hoz Exp $
+// $Id: CM.java,v 1.33 2004-02-27 15:50:16 rst Exp $
 
 package jake2.qcommon;
 
@@ -1723,7 +1723,7 @@ public class CM extends Game {
 	*/
 
 	public static void FloodArea_r(carea_t area, int floodnum) {
-		Com.Printf("FloodArea_r(" + floodnum + ")...\n");
+		//Com.Printf("FloodArea_r(" + floodnum + ")...\n");
 		int i;
 		qfiles.dareaportal_t p;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameFuncAdapters.java,v 1.1 2004-02-26 22:36:31 rst Exp $
+// $Id: GameFuncAdapters.java,v 1.2 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -269,6 +269,7 @@ public class GameFuncAdapters {
 	};
 	static EntUseAdapter Use_Plat = new EntUseAdapter() {
 		public void use(edict_t ent, edict_t other, edict_t activator) {
+			System.out.println("USE_PLAT!");
 			if (ent.think != null)
 				return; // already down
 			plat_go_down.think(ent);
@@ -276,6 +277,7 @@ public class GameFuncAdapters {
 	};
 	static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
 		public void touch(edict_t ent, edict_t other, cplane_t plane, csurface_t surf) {
+			System.out.println("Touch_PLAT_CENTER!");
 			if (other.client == null)
 				return;
 	

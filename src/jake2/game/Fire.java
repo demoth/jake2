@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.8 2004-02-27 11:03:30 rst Exp $
+// $Id: Fire.java,v 1.9 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -339,7 +339,6 @@ public class Fire {
 	
 		tr= GameBase.gi.trace(self.s.origin, null, null, bolt.s.origin, bolt, Defines.MASK_SHOT);
 		if (tr.fraction < 1.0) {
-			System.out.println("BLASTER_TOUCH!");
 			Math3D.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
 			bolt.touch.touch(bolt, tr.ent, null, null);
 		}

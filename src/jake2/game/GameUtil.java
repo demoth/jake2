@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.19 2004-02-27 11:03:30 rst Exp $
+// $Id: GameUtil.java,v 1.20 2004-02-27 15:50:16 rst Exp $
 
 package jake2.game;
 
@@ -760,58 +760,6 @@ public class GameUtil extends GameBase {
 		}
 	}
 
-	static boolean monster_start(edict_t self) {
-		if (deathmatch.value != 0) {
-			G_FreeEdict(self);
-			return false;
-		}
-
-		if ((self.spawnflags & 4) != 0 && 0 == (self.monsterinfo.aiflags & AI_GOOD_GUY)) {
-			self.spawnflags &= ~4;
-			self.spawnflags |= 1;
-			//		  gi.dprintf("fixed spawnflags on %s at %s\n", self.classname, vtos(self.s.origin));
-		}
-
-		if (0 == (self.monsterinfo.aiflags & AI_GOOD_GUY))
-			level.total_monsters++;
-
-		self.nextthink = level.time + FRAMETIME;
-		self.svflags |= SVF_MONSTER;
-		self.s.renderfx |= RF_FRAMELERP;
-		self.takedamage = DAMAGE_AIM;
-		self.air_finished = level.time + 12;
-
-		// monster_use()
-		self.use = GameUtilAdapters.monster_use;
-
-		self.max_health = self.health;
-		self.clipmask = MASK_MONSTERSOLID;
-
-		self.s.skinnum = 0;
-		self.deadflag = DEAD_NO;
-		self.svflags &= ~SVF_DEADMONSTER;
-
-		if (self.monsterinfo.checkattack == null)
-			//	M_CheckAttack;
-			self.monsterinfo.checkattack = GameUtilAdapters.M_CheckAttack;
-
-		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
-
-		if (st.item != null) {
-			self.item = FindItemByClassname(st.item);
-			if (self.item == null)
-				gi.dprintf("" + self.classname + " at " + Lib.vtos(self.s.origin) + " has bad item: " + st.item + "\n");
-		}
-
-		// randomize what frame they start on
-		if (self.monsterinfo.currentmove != null)
-			self.s.frame =
-				self.monsterinfo.currentmove.firstframe
-					+ (Lib.rand() % (self.monsterinfo.currentmove.lastframe - self.monsterinfo.currentmove.firstframe + 1));
-
-		return true;
-	}
-
 	/*
 	=============
 	range
@@ -865,7 +813,7 @@ public class GameUtil extends GameBase {
 	*/
 	//geht.
 	static gitem_t FindItem(String pickup_name) {
-		Com.Printf("FindItem:" + pickup_name + "\n");
+		//Com.Printf("FindItem:" + pickup_name + "\n");
 		for (int i = 1; i < game.num_items; i++) {
 			gitem_t it = GameAI.itemlist[i];
 
