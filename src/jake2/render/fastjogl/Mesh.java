@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2004-06-09 19:34:23 cwei Exp $
+ * $Id: Mesh.java,v 1.3 2004-06-12 12:28:45 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -266,6 +266,9 @@ public abstract class Mesh extends Light {
 		// PMM - added double damage shell
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
 			gl.glEnable( GL.GL_TEXTURE_2D );
+
+		gl.glDisableClientState( GL.GL_COLOR_ARRAY );
+
 	}
 			
 	/*
