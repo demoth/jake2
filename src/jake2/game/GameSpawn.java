@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.10 2003-12-28 19:52:35 rst Exp $
+// $Id: GameSpawn.java,v 1.11 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
 
 import jake2.util.*;
 import jake2.qcommon.*;
 
-public class GameSpawn extends Game {
+public class GameSpawn extends GameSave {
 
 	static EntThinkAdapter SP_item_health = null;
 	static EntThinkAdapter SP_item_health_small = null;
@@ -466,15 +466,6 @@ public class GameSpawn extends Game {
 		+"if 17 " + "xv 0 " + "yb -58 " + "string2 \"SPECTATOR MODE\" " + "endif " //	   chase camera
 	+"if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 " + "stat_string 16 " + "endif ";
 
-	static void InitBodyQue() {
-		int i;
-		edict_t ent;
-		level.body_que = 0;
-		for (i = 0; i < BODY_QUEUE_SIZE; i++) {
-			ent = G_Spawn();
-			ent.classname = "bodyque";
-		}
-	}
 
 	/*QUAKED worldspawn (0 0 0) ?
 		

@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.7 2003-12-30 15:57:33 rst Exp $
+// $Id: GameFunc.java,v 1.8 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
 
 import jake2.util.*;
 import jake2.util.*;
 
-public class GameFunc extends Game {
+public class GameFunc extends PlayerView {
 
 	/*
 	=========================================================
@@ -446,7 +446,7 @@ public class GameFunc extends Game {
 		}
 	};
 
-	void plat_spawn_inside_trigger(edict_t ent) {
+	static void plat_spawn_inside_trigger(edict_t ent) {
 		edict_t trigger;
 		float[] tmin={0,0,0}, tmax={0,0,0};
 
@@ -504,7 +504,7 @@ public class GameFunc extends Game {
 	1) base fast
 	2) chain slow
 	*/
-	void SP_func_plat(edict_t ent) {
+	static void SP_func_plat(edict_t ent) {
 		Math3D.VectorClear(ent.s.angles);
 		ent.solid = SOLID_BSP;
 		ent.movetype = MOVETYPE_PUSH;
@@ -1364,7 +1364,7 @@ public class GameFunc extends Game {
 	2)	lava
 	*/
 
-	void SP_func_water(edict_t self) {
+	static void SP_func_water(edict_t self) {
 		float[] abs_movedir={0,0,0};
 
 		G_SetMovedir(self.s.angles, self.movedir);
@@ -1627,7 +1627,7 @@ public class GameFunc extends Game {
 		}
 	};
 
-	void SP_func_train(edict_t self) {
+	static void SP_func_train(edict_t self) {
 		self.movetype = MOVETYPE_PUSH;
 
 		Math3D.VectorClear(self.s.angles);
@@ -1763,7 +1763,7 @@ public class GameFunc extends Game {
 		}
 	};
 
-	void SP_func_timer(edict_t self) {
+	static void SP_func_timer(edict_t self) {
 		if (0 == self.wait)
 			self.wait = 1.0f;
 

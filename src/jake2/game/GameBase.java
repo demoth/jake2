@@ -19,11 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.13 2004-01-09 18:30:56 rst Exp $
+// $Id: GameBase.java,v 1.14 2004-02-01 23:31:37 rst Exp $
 
 /** Father of all Objects. */
 
 package jake2.game;
+
+import java.util.StringTokenizer;
 
 import jake2.*;
 import jake2.client.*;
@@ -31,7 +33,7 @@ import jake2.server.*;
 import jake2.util.*;
 
 public class GameBase extends Globals {
-	public static game_locals_t game= new game_locals_t();
+	public static game_locals_t game = new game_locals_t();
 	public static level_locals_t level = new level_locals_t();
 	public static game_import_t gi = new game_import_t();
 	public static game_export_t globals = new game_export_t();
@@ -41,51 +43,55 @@ public class GameBase extends Globals {
 	public static int snd_fry;
 	public static int meansOfDeath;
 
-	public static edict_t g_edicts[];
+	public static edict_t g_edicts[] = new edict_t[MAX_EDICTS];
+	static {
+		for (int n=0; n < MAX_EDICTS; n++)
+			g_edicts[n] = new edict_t(n); 
+	}
 
-	public static cvar_t deathmatch= new cvar_t();
-	public static cvar_t coop= new cvar_t();
-	public static cvar_t dmflags= new cvar_t();
-	public static cvar_t skill= new cvar_t();
-	public static cvar_t fraglimit= new cvar_t();
-	public static cvar_t timelimit= new cvar_t();
-	public static cvar_t password= new cvar_t();
-	public static cvar_t spectator_password= new cvar_t();
-	public static cvar_t needpass= new cvar_t();
-	public static cvar_t maxclients= new cvar_t();
-	public static cvar_t maxspectators= new cvar_t();
+	public static cvar_t deathmatch = new cvar_t();
+	public static cvar_t coop = new cvar_t();
+	public static cvar_t dmflags = new cvar_t();
+	public static cvar_t skill = new cvar_t();
+	public static cvar_t fraglimit = new cvar_t();
+	public static cvar_t timelimit = new cvar_t();
+	public static cvar_t password = new cvar_t();
+	public static cvar_t spectator_password = new cvar_t();
+	public static cvar_t needpass = new cvar_t();
+	public static cvar_t maxclients = new cvar_t();
+	public static cvar_t maxspectators = new cvar_t();
 	public static cvar_t maxentities = new cvar_t();
-	public static cvar_t g_select_empty= new cvar_t();
-	public static cvar_t dedicated= new cvar_t();
+	public static cvar_t g_select_empty = new cvar_t();
+	public static cvar_t dedicated = new cvar_t();
 
-	public static cvar_t filterban= new cvar_t();
+	public static cvar_t filterban = new cvar_t();
 
-	public static cvar_t sv_maxvelocity= new cvar_t();
-	public static cvar_t sv_gravity= new cvar_t();
+	public static cvar_t sv_maxvelocity = new cvar_t();
+	public static cvar_t sv_gravity = new cvar_t();
 
-	public static cvar_t sv_rollspeed= new cvar_t();
-	public static cvar_t sv_rollangle= new cvar_t();
-	public static cvar_t gun_x= new cvar_t();
-	public static cvar_t gun_y= new cvar_t();
-	public static cvar_t gun_z= new cvar_t();
+	public static cvar_t sv_rollspeed = new cvar_t();
+	public static cvar_t sv_rollangle = new cvar_t();
+	public static cvar_t gun_x = new cvar_t();
+	public static cvar_t gun_y = new cvar_t();
+	public static cvar_t gun_z = new cvar_t();
 
-	public static cvar_t run_pitch= new cvar_t();
-	public static cvar_t run_roll= new cvar_t();
-	public static cvar_t bob_up= new cvar_t();
-	public static cvar_t bob_pitch= new cvar_t();
-	public static cvar_t bob_roll= new cvar_t();
+	public static cvar_t run_pitch = new cvar_t();
+	public static cvar_t run_roll = new cvar_t();
+	public static cvar_t bob_up = new cvar_t();
+	public static cvar_t bob_pitch = new cvar_t();
+	public static cvar_t bob_roll = new cvar_t();
 
-	public static cvar_t sv_cheats= new cvar_t();
+	public static cvar_t sv_cheats = new cvar_t();
 
-	public static cvar_t flood_msgs= new cvar_t();
-	public static cvar_t flood_persecond= new cvar_t();
-	public static cvar_t flood_waitdelay= new cvar_t();
+	public static cvar_t flood_msgs = new cvar_t();
+	public static cvar_t flood_persecond = new cvar_t();
+	public static cvar_t flood_waitdelay = new cvar_t();
 
-	public static cvar_t sv_maplist= new cvar_t();
+	public static cvar_t sv_maplist = new cvar_t();
 
 	public final static float STOP_EPSILON = 0.1f;
 
-	field_t fields_ent[] =
+	static field_t fields_ent[] =
 		new field_t[] {
 			new field_t("classname", F_LSTRING),
 			new field_t("model", F_LSTRING),
@@ -132,7 +138,6 @@ public class GameBase extends Globals {
 			new field_t("mynoise2", F_EDICT, FFL_NOSPAWN),
 			new field_t("target_ent", F_EDICT, FFL_NOSPAWN),
 			new field_t("chain", F_EDICT, FFL_NOSPAWN),
-			
 			new field_t("prethink", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("think", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("blocked", F_FUNCTION, FFL_NOSPAWN),
@@ -150,16 +155,14 @@ public class GameBase extends Globals {
 			new field_t("melee", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("sight", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("checkattack", F_FUNCTION, FFL_NOSPAWN),
-			
 			new field_t("currentmove", F_MMOVE, FFL_NOSPAWN),
-			
 			new field_t("endfunc", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("item", F_ITEM)
 		//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
 	};
 
 	// temp spawn vars -- only valid when the spawn function is called
-	field_t fields_st[] =
+	static field_t fields_st[] =
 		{
 			new field_t("lip", F_INT, FFL_SPAWNTEMP),
 			new field_t("distance", F_INT, FFL_SPAWNTEMP),
@@ -223,8 +226,8 @@ public class GameBase extends Globals {
 	Searches all active entities for the next one that holds
 	the matching string at fieldofs (use the FOFS() macro) in the structure.
 	
-	Searches beginning at the edict after from, or the beginning if NULL
-	NULL will be returned if the end of the list is reached.
+	Searches beginning at the edict after from, or the beginning if null
+	null will be returned if the end of the list is reached.
 	
 	=============
 	*/
@@ -290,8 +293,8 @@ public class GameBase extends Globals {
 	 * Searches all active entities for the next one that holds
 	 * the matching string at fieldofs (use the FOFS() macro) in the structure.
 	 *
-	 *	Searches beginning at the edict after from, or the beginning if NULL 
-	 *	NULL will be returned if the end of the list is reached.
+	 *	Searches beginning at the edict after from, or the beginning if null 
+	 *	null will be returned if the end of the list is reached.
 	 */
 
 	public static int MAXCHOICES = 8;
@@ -301,7 +304,7 @@ public class GameBase extends Globals {
 		edict_t choice[] = new edict_t[MAXCHOICES];
 
 		if (targetname == null) {
-			gi.dprintf("G_PickTarget called with NULL targetname\n");
+			gi.dprintf("G_PickTarget called with null targetname\n");
 			return null;
 		}
 
@@ -474,11 +477,317 @@ public class GameBase extends Globals {
 			return e.targetname.equalsIgnoreCase(s);
 		}
 	};
-	
+
 	public static EdictFindFilter findByClass = new EdictFindFilter() {
 		public boolean matches(edict_t e, String s) {
 			return e.classname.equalsIgnoreCase(s);
 		}
 	};
 
+	//===================================================================
+
+	public static void ShutdownGame() {
+		gi.dprintf("==== ShutdownGame ====\n");
+
+		//gi.FreeTags (TAG_LEVEL);
+		//gi.FreeTags (TAG_GAME);
+	}
+
+	//======================================================================
+
+	/*
+	=================
+	ClientEndServerFrames
+	=================
+	*/
+	public static void ClientEndServerFrames() {
+		int i;
+		edict_t ent;
+
+		// calc the player views now that all pushing
+		// and damage has been added
+		for (i = 0; i < maxclients.value; i++) {
+			ent = g_edicts[1 + i];
+			if (!ent.inuse || null == ent.client)
+				continue;
+			Game.ClientEndServerFrame(ent);
+		}
+
+	}
+
+	/*
+	=================
+	CreateTargetChangeLevel
+	
+	Returns the created target changelevel
+	=================
+	*/
+	public static edict_t CreateTargetChangeLevel(String map) {
+		edict_t ent;
+
+		ent = Game.G_Spawn();
+		ent.classname = "target_changelevel";
+		level.nextmap = map;
+		ent.map = level.nextmap;
+		return ent;
+	}
+
+	/*
+	=================
+	EndDMLevel
+	
+	The timelimit or fraglimit has been exceeded
+	=================
+	*/
+	public static void EndDMLevel() {
+		edict_t ent;
+		//char * s, * t, * f;
+		//static const char * seps = " ,\n\r";
+		String s, t, f;
+		String seps = " ,\n\r";
+
+		// stay on same level flag
+		if (((int) dmflags.value & DF_SAME_LEVEL) != 0) {
+			Game.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+			return;
+		}
+
+		// see if it's in the map list
+		if (sv_maplist.string.length() > 0) {
+			s = sv_maplist.string;
+			f = null;
+			StringTokenizer tk = new StringTokenizer(s, seps);
+			t = tk.nextToken();
+			//t = strtok(s, seps);
+			while (t != null) {
+				if (Q_stricmp(t, level.mapname) == 0) {
+					// it's in the list, go to the next one
+					t = tk.nextToken();
+					if (t == null) { // end of list, go to first one
+						if (f == null) // there isn't a first one, same level
+							Game.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+						else
+							Game.BeginIntermission(CreateTargetChangeLevel(f));
+					}
+					else
+						Game.BeginIntermission(CreateTargetChangeLevel(t));
+					return;
+				}
+				if (f == null)
+					f = t;
+				t = tk.nextToken();
+			}
+
+		}
+
+		if (level.nextmap.length() > 0) // go to a specific map
+			Game.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
+		else { // search for a changelevel
+			EdictIterator edit = null;
+			edit = G_Find(edit, findByClass , "target_changelevel");
+			ent = edit.o;
+			
+			if (ent == null) { // the map designer didn't include a changelevel,
+				// so create a fake ent that goes back to the same level
+				Game.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+				return;
+			}
+			Game.BeginIntermission(ent);
+		}
+	}
+
+	/*
+	=================
+	CheckNeedPass
+	=================
+	*/
+	public static void CheckNeedPass() {
+		int need;
+
+		// if password or spectator_password has changed, update needpass
+		// as needed
+		if (password.modified || spectator_password.modified) {
+			password.modified = spectator_password.modified = false;
+
+			need = 0;
+
+			if ((password.string.length() > 0) && 0!=Q_stricmp(password.string, "none"))
+				need |= 1;
+			if ((spectator_password.string.length() > 0) && 0!=Q_stricmp(spectator_password.string, "none"))
+				need |= 2;
+
+			gi.cvar_set("needpass", "" + need);
+		}
+	}
+
+	/*
+	=================
+	CheckDMRules
+	=================
+	*/
+	public static void CheckDMRules() {
+		int i;
+		gclient_t cl;
+
+		if (level.intermissiontime != 0)
+			return;
+
+		if (0 == deathmatch.value)
+			return;
+
+		if (timelimit.value != 0) {
+			if (level.time >= timelimit.value * 60) {
+				gi.bprintf(PRINT_HIGH, "Timelimit hit.\n");
+				EndDMLevel();
+				return;
+			}
+		}
+
+		if (fraglimit.value != 0) {
+			for (i = 0; i < maxclients.value; i++) {
+				cl = game.clients[i];
+				if (!g_edicts[i + 1].inuse)
+					continue;
+
+				if (cl.resp.score >= fraglimit.value) {
+					gi.bprintf(PRINT_HIGH, "Fraglimit hit.\n");
+					EndDMLevel();
+					return;
+				}
+			}
+		}
+	}
+
+	/*
+	=============
+	ExitLevel
+	=============
+	*/
+	public static void ExitLevel() {
+		int i;
+		edict_t ent;
+		//char command[256];
+		String command;
+
+		command = "gamemap \"" + level.changemap + "\"\n";
+		gi.AddCommandString(command);
+		level.changemap = null;
+		level.exitintermission = false;
+		level.intermissiontime = 0;
+		ClientEndServerFrames();
+
+		// clear some things before going to next level
+		for (i = 0; i < maxclients.value; i++) {
+			ent = g_edicts[1 + i];
+			if (!ent.inuse)
+				continue;
+			if (ent.health > ent.client.pers.max_health)
+				ent.health = ent.client.pers.max_health;
+		}
+
+	}
+
+	/*
+	================
+	G_RunFrame
+	
+	Advances the world by 0.1 seconds
+	================
+	*/
+	public static void G_RunFrame() {
+		int i;
+		edict_t ent;
+
+		level.framenum++;
+		level.time = level.framenum * FRAMETIME;
+
+		// choose a client for monsters to target this frame
+		Game.AI_SetSightClient();
+
+		// exit intermissions
+
+		if (level.exitintermission) {
+			ExitLevel();
+			return;
+		}
+
+		//
+		// treat each object in turn
+		// even the world gets a chance to think
+		//
+
+		for (i = 0; i < globals.num_edicts; i++) {
+			ent = g_edicts[i];
+			if (!ent.inuse)
+				continue;
+
+			level.current_entity = ent;
+
+			VectorCopy(ent.s.origin, ent.s.old_origin);
+
+			// if the ground entity moved, make sure we are still on it
+			if ((ent.groundentity != null) && (ent.groundentity.linkcount != ent.groundentity_linkcount)) {
+				ent.groundentity = null;
+				if (0 == (ent.flags & (FL_SWIM | FL_FLY)) && (ent.svflags & SVF_MONSTER) != 0) {
+					M.M_CheckGround(ent);
+				}
+			}
+
+			if (i > 0 && i <= maxclients.value) {
+				Game.ClientBeginServerFrame(ent);
+				continue;
+			}
+
+			G_RunEntity(ent);
+		}
+
+		// see if it is time to end a deathmatch
+		CheckDMRules();
+
+		// see if needpass needs updated
+		CheckNeedPass();
+
+		// build the playerstate_t structures for all players
+		ClientEndServerFrames();
+	}
+
+	/*
+	=================
+	GetGameAPI
+	
+	Returns a pointer to the structure with all entry points
+	and global variables
+	=================
+	*/
+
+	public static game_export_t GetGameApi(game_import_t imp) {
+		gi = imp;
+
+		globals.apiversion = GAME_API_VERSION;
+		/*
+		globals.Init = InitGame;
+		globals.Shutdown = ShutdownGame;
+		globals.SpawnEntities = SpawnEntities;
+		
+		globals.WriteGame = WriteGame;
+		globals.ReadGame = ReadGame;
+		globals.WriteLevel = WriteLevel;
+		globals.ReadLevel = ReadLevel;
+		
+		globals.ClientThink = ClientThink;
+		globals.ClientConnect = ClientConnect;
+		globals.ClientUserinfoChanged = ClientUserinfoChanged;
+		globals.ClientDisconnect = ClientDisconnect;
+		globals.ClientBegin = ClientBegin;
+		globals.ClientCommand = ClientCommand;
+		
+		globals.RunFrame = G_RunFrame;
+		
+		globals.ServerCommand = ServerCommand;
+		*/
+		//TODO: why do we need this ?
+		globals.edict_size = -1; //sizeof(edict_t);
+
+		return globals;
+	}
 }

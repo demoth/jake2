@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.12 2004-01-30 13:34:31 hoz Exp $
+ * $Id: Netchan.java,v 1.13 2004-02-01 23:31:37 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -112,8 +112,8 @@ public final class Netchan extends SV_MAIN {
 	public static cvar_t showdrop;
 	public static cvar_t qport;
 
-	public static netadr_t net_from;
-	public static sizebuf_t net_message;
+	public static netadr_t net_from = new netadr_t();
+	public static sizebuf_t net_message = new sizebuf_t();
 	public static byte net_message_buffer[] = new byte[Defines.MAX_MSGLEN];
 
 	/*

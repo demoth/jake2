@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.6 2004-01-28 14:42:58 hoz Exp $
+// $Id: SV_GAME.java,v 1.7 2004-02-01 23:31:37 rst Exp $
 
 package jake2.server;
 
@@ -413,7 +413,7 @@ public class SV_GAME extends SV_INIT
 		gimport.SetAreaPortalState = CM_SetAreaPortalState;
 		gimport.AreasConnected = CM_AreasConnected;
 		*/
-		ge = Sys.GetGameAPI(gimport);
+		ge = GameBase.GetGameApi(gimport);
 
 		if (ge == null)
 			Com.Error(ERR_DROP, "failed to load game DLL");

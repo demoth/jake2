@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.9 2004-02-01 00:42:45 rst Exp $
+// $Id: SV_INIT.java,v 1.10 2004-02-01 23:31:37 rst Exp $
 
 package jake2.server;
 
@@ -34,7 +34,7 @@ import jake2.render.*;
 import jake2.sys.NET;
 import jake2.util.Lib;
 
-public class SV_INIT extends PlayerHud {
+public class SV_INIT extends Game {
 
 	public static server_static_t svs = new server_static_t(); // persistant server info
 	public static server_t sv = new server_t(); // local server
@@ -52,7 +52,7 @@ public class SV_INIT extends PlayerHud {
 			return 0;
 
 		for (i = 1; i < max && sv.configstrings[start + i] != null; i++)
-			if (0 == Lib.strcmp(sv.configstrings[start + i], name))
+			if (0 == strcmp(sv.configstrings[start + i], name))
 				return i;
 
 		if (!create)
@@ -362,7 +362,9 @@ public class SV_INIT extends PlayerHud {
 
 		svs.spawncount = rand();
 		//svs.clients = Z_Malloc(sizeof(client_t) * maxclients.value);
-		svs.clients = new client_t[(int) maxclients.value];
+		svs.clients = new client_t[Math.max(16, (int) maxclients.value)];
+		for (int n=0; n < svs.clients.length; n++)
+			svs.clients[n]= new client_t();
 		
 		svs.num_client_entities = ((int) maxclients.value) * UPDATE_BACKUP * 64;
 		//svs.client_entities = Z_Malloc(sizeof(entity_state_t) * svs.num_client_entities);

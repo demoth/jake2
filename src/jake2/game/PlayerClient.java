@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.3 2003-12-29 22:31:15 rst Exp $
+// $Id: PlayerClient.java,v 1.4 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
 
@@ -1194,7 +1194,7 @@ public class PlayerClient extends PlayerHud {
 	loadgames will.
 	============
 	*/
-	boolean ClientConnect(edict_t ent, String userinfo) {
+	public static boolean ClientConnect(edict_t ent, String userinfo) {
 		String value;
 
 		// check to see if they are on the banned IP list

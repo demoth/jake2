@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: PlayerTrail.java,v 1.4 2003-12-09 22:12:43 rst Exp $
+// $Id: PlayerTrail.java,v 1.5 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
 
 import jake2.util.*;
 import jake2.util.*;
 
-public class PlayerTrail extends Game {
+public class PlayerTrail extends PlayerHud {
 	
 	/*
 	==============================================================================

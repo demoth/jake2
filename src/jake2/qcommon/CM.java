@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.12 2004-02-01 00:35:00 rst Exp $
+// $Id: CM.java,v 1.13 2004-02-01 23:31:37 rst Exp $
 
 package jake2.qcommon;
 
@@ -76,18 +76,45 @@ public class CM extends Game {
 
 	static int numbrushsides;
 	static cbrushside_t map_brushsides[] = new cbrushside_t[MAX_MAP_BRUSHSIDES];
+	static
+	{
+		for (int n=0; n < MAX_MAP_BRUSHSIDES; n++)
+		map_brushsides[n] = new cbrushside_t();
+	}
 
 	public static int numtexinfo;
 	public static mapsurface_t map_surfaces[] = new mapsurface_t[MAX_MAP_TEXINFO];
+		static
+	{
+		for (int n=0; n < MAX_MAP_TEXINFO; n++)
+		map_surfaces[n] = new mapsurface_t();
+	}
 
 	static int numplanes;
 	static cplane_t map_planes[] = new cplane_t[MAX_MAP_PLANES + 6]; // extra for box hull
+			static
+	{
+		for (int n=0; n < MAX_MAP_PLANES + 6; n++)
+		map_planes[n] = new cplane_t();
+	}
+
 
 	static int numnodes;
 	static cnode_t map_nodes[] = new cnode_t[MAX_MAP_NODES + 6]; // extra for box hull
+			static
+	{
+		for (int n=0; n < MAX_MAP_NODES + 6; n++)
+		map_nodes[n] = new cnode_t();
+	}
 
 	static int numleafs = 1; // allow leaf funcs to be called without a map
 	static cleaf_t map_leafs[] = new cleaf_t[MAX_MAP_LEAFS];
+				static
+	{
+		for (int n=0; n < MAX_MAP_LEAFS; n++)
+		map_leafs[n] = new cleaf_t();
+	}
+
 	static int emptyleaf, solidleaf;
 
 	static int numleafbrushes;
@@ -95,9 +122,22 @@ public class CM extends Game {
 	public static int map_leafbrushes[] = new int[MAX_MAP_LEAFBRUSHES];
 	public static int numcmodels;
 	public static cmodel_t map_cmodels[] = new cmodel_t[MAX_MAP_MODELS];
+	static 
+	{
+		for (int n=0; n < MAX_MAP_MODELS; n++)
+			map_cmodels[n] = new cmodel_t();
+		
+	} 
+	
 
 	public static int numbrushes;
 	public static cbrush_t map_brushes[] = new cbrush_t[MAX_MAP_BRUSHES];
+		static 
+	{
+		for (int n=0; n < MAX_MAP_BRUSHES; n++)
+			map_brushes[n] = new cbrush_t();
+		
+	} 
 
 	public static int numvisibility;
 	public static byte map_visibility[] = new byte[MAX_MAP_VISIBILITY];
@@ -112,9 +152,21 @@ public class CM extends Game {
 
 	public static int numareas = 1;
 	public static carea_t map_areas[] = new carea_t[MAX_MAP_AREAS];
-
+		static 
+	{
+		for (int n=0; n < MAX_MAP_AREAS; n++)
+			map_areas[n] = new carea_t();
+		
+	} 
 	public static int numareaportals;
 	public static qfiles.dareaportal_t map_areaportals[] = new qfiles.dareaportal_t[MAX_MAP_AREAPORTALS];
+	
+	static 
+	{
+		for (int n=0; n < MAX_MAP_AREAPORTALS; n++)
+			map_areaportals[n] = new qfiles.dareaportal_t();
+		
+	} 
 
 	public static int numclusters = 1;
 
@@ -200,7 +252,7 @@ public class CM extends Game {
 		bbuf.order(ByteOrder.LITTLE_ENDIAN);
 
 		//last_checksum = LittleLong(Com.BlockChecksum(buf, length));
-		last_checksum = Com.BlockChecksum(buf, length);
+		last_checksum = MD4.Com_BlockChecksum(buf, length);
 		checksum.i = last_checksum;
 
 		header = new qfiles.dheader_t(bbuf.slice());

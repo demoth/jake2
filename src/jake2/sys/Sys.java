@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.17 2004-02-01 00:35:00 rst Exp $
+ * $Id: Sys.java,v 1.18 2004-02-01 23:31:38 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,6 +33,7 @@ import java.util.regex.PatternSyntaxException;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.game.Game;
 import jake2.game.game_export_t;
 import jake2.game.game_import_t;
 import jake2.qcommon.Com;
@@ -235,6 +236,8 @@ public final class Sys extends Defines {
 
 		fdir = FindAll(path, canthave, musthave);
 		fileindex =0;
+		
+		if (fdir == null) return null;
 
 		return FindNext();
 
@@ -283,7 +286,7 @@ public final class Sys extends Defines {
 	public static void UnloadGame()
 	{
 		//TODO:implement !
-		Com.Error(Defines.ERR_FATAL, "UnloadGame not implemented!");
+		//Com.Error(Defines.ERR_FATAL, "UnloadGame not implemented!");
 		
 	}
 	
@@ -298,7 +301,7 @@ public final class Sys extends Defines {
 	{
 		//TODO:implement !
 		Com.Printf( "scheisse GetGameAPI not implemented!");
-		return null;
+		return Game.GetGameApi(gimport);
 	}
 
 	public static String GetClipboardData() {

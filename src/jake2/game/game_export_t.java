@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.6 2004-01-18 10:39:34 rst Exp $
+// $Id: game_export_t.java,v 1.7 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
+
+import jake2.Defines;
+import jake2.qcommon.Com;
 
 
 //
@@ -36,12 +39,15 @@ public class game_export_t {
 	// not each time a level is loaded.  Persistant data for clients
 	// and the server can be allocated in init
 	public void Init() {
+		Game.InitGame();
 	}
 	public void Shutdown() {
+		Game.ShutdownGame();
 	}
 
 	// each new level entered will cause a call to SpawnEntities
 	public void SpawnEntities(String mapname, String entstring, String spawnpoint) {
+		Game.SpawnEntities(mapname, entstring, spawnpoint);
 	}
 
 	// Read/Write Game is for storing persistant cross level information
@@ -49,33 +55,45 @@ public class game_export_t {
 	// WriteGame is called every time a level is exited.
 	// ReadGame is called on a loadgame.
 	public void WriteGame(String filename, boolean autosave) {
+		Com.Error(Defines.ERR_FATAL, "WriteGame not implemnted!");
 	}
+	
 	public void ReadGame(String filename) {
+		Game.ReadGame(filename);
 	}
 
 	// ReadLevel is called after the default map information has been
 	// loaded with SpawnEntities
 	public void WriteLevel(String filename) {
+		Com.Error(Defines.ERR_FATAL, "WriteLevel not implemnted!");
 	}
 
 	public void ReadLevel(String filename) {
+		Com.Error(Defines.ERR_FATAL, "ReadLevel not implemnted!");
 	}
 
 	public boolean ClientConnect(edict_t ent, String userinfo) {
-		return false;
+		return PlayerClient.ClientConnect(ent, userinfo);
 	}
 	public void ClientBegin(edict_t ent) {
+		PlayerClient.ClientBegin(ent);
 	}
 	public void ClientUserinfoChanged(edict_t ent, String userinfo) {
+		PlayerClient.ClientUserinfoChanged(ent, userinfo);
 	}
 	public void ClientDisconnect(edict_t ent) {
+		PlayerClient.ClientDisconnect(ent);
 	}
 	public void ClientCommand(edict_t ent) {
+		PlayerClient.ClientCommand(ent);
 	}
+		
 	public void ClientThink(edict_t ent, usercmd_t cmd) {
+		PlayerClient.ClientThink(ent, cmd);
 	}
 
 	public void RunFrame() {
+		Game.G_RunFrame();
 	}
 
 	// ServerCommand will be called when an "sv <command>" command is issued on the
@@ -83,6 +101,7 @@ public class game_export_t {
 	// The game can issue gi.argc() / gi.argv() commands to get the rest
 	// of the parameters
 	public void ServerCommand() {
+		Game.ServerCommand();
 	}
 
 	//
@@ -93,9 +112,8 @@ public class game_export_t {
 	// can vary in size from one game to another.
 	// 
 	// The size will be fixed when ge->Init() is called
-	public edict_t edicts[];
+	public edict_t edicts[] = Game.g_edicts;
 	public int edict_size;
 	public int num_edicts; // current number, <= max_edicts
 	public int max_edicts;
-
 }

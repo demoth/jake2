@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_t.java,v 1.2 2004-01-17 20:34:47 rst Exp $
+// $Id: server_t.java,v 1.3 2004-02-01 23:31:37 rst Exp $
 
 package jake2.server;
 
@@ -34,6 +34,15 @@ import jake2.qcommon.*;
 import jake2.render.*;
 
 public class server_t {
+	
+	public server_t()
+	{
+		models = new cmodel_t[Defines.MAX_MODELS];
+		for (int n=0; n < Defines.MAX_MODELS; n++)
+		{
+			models[n] = new cmodel_t();
+		}
+	}
 	//server_state_t	state;			// precache commands are only valid during load
 	int	state;			// precache commands are only valid during load
 	
@@ -47,7 +56,8 @@ public class server_t {
 	String 		name;			// map name, or cinematic name
 	
 	//struct cmodel_s		*models[MAX_MODELS];
-	cmodel_t		models[] = new cmodel_t[Defines.MAX_MODELS];
+	cmodel_t		models[] ;
+	
 
 	//char		configstrings[MAX_CONFIGSTRINGS][MAX_QPATH];
 	String 		configstrings[] = new String[Defines.MAX_CONFIGSTRINGS];
@@ -55,7 +65,7 @@ public class server_t {
 
 	// the multicast buffer is used to send a message to a set of clients
 	// it is only used to marshall data until SV_Multicast is called
-	sizebuf_t	multicast;
+	sizebuf_t	multicast = new sizebuf_t();
 	byte		multicast_buf[] = new byte[Defines.MAX_MSGLEN];
 
 	// demo server information

@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.9 2004-01-30 13:35:26 hoz Exp $
+ * $Id: NET.java,v 1.10 2004-02-01 23:31:38 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +34,7 @@ import java.net.*;
 
 public final class NET extends Defines {
 
-	public static netadr_t net_local_adr;
+	public static netadr_t net_local_adr = new netadr_t();
 
 	// 127.0.0.1
 	public final static int LOOPBACK = 0x7f000001;
@@ -47,7 +47,16 @@ public final class NET extends Defines {
 	};
 
 	public static class loopback_t {
-		loopmsg_t msgs[] = new loopmsg_t[MAX_LOOPBACK];
+		public loopback_t()
+		{
+			msgs = new loopmsg_t[MAX_LOOPBACK];
+			for (int n=0; n < MAX_LOOPBACK;n++)
+			{
+				msgs[n] = new loopmsg_t();
+			}
+		}
+		loopmsg_t msgs[];
+		
 		int get, send;
 	};
 
@@ -301,7 +310,8 @@ public final class NET extends Defines {
 		loop.send++;
 	
 		//memcpy (loop.msgs[i].data, data, length);
-		System.arraycopy(data,0,loop.msgs[i],0,length);
+		
+		System.arraycopy(data,0,loop.msgs[i].data,0,length);
 		loop.msgs[i].datalen = length;
 	}
 	

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.17 2004-02-01 00:35:00 rst Exp $
+// $Id: Lib.java,v 1.18 2004-02-01 23:31:38 rst Exp $
 
 package jake2.util;
 
@@ -39,8 +39,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class Lib
-{
+public class Lib {
 
 	/*
 	=============
@@ -52,8 +51,7 @@ public class Lib
 	*/
 	public static float tv_vecs[][] = new float[8][3];
 	public static int tv_index;
-	public static float[] tv(float x, float y, float z)
-	{
+	public static float[] tv(float x, float y, float z) {
 
 		float[] v;
 
@@ -76,55 +74,44 @@ public class Lib
 	for printing vectors
 	=============
 	*/
-	public static String vtos(float[] v)
-	{
+	public static String vtos(float[] v) {
 		return "(" + (int) v[0] + " " + (int) v[1] + " " + (int) v[2] + ")";
 	}
 
-	public static String vtofs(float[] v)
-	{
+	public static String vtofs(float[] v) {
 		return "(" + v[0] + " " + v[1] + " " + v[2] + ")";
 	}
-	public static short rand()
-	{
+	public static short rand() {
 		return (short) (Math.random() * 0x8000);
 	}
-	public static float crandom()
-	{
+	public static float crandom() {
 		return (float) (Math.random() - 0.5) * 2.0f;
 	}
-	public static float random()
-	{
+	public static float random() {
 		return (float) Math.random();
 	}
-	public static float crand()
-	{
+	public static float crand() {
 		return (float) (Math.random() - 0.5) * 2.0f;
 	}
-	public static float frand()
-	{
+	public static float frand() {
 		return (float) Math.random();
 	}
 
 	//TODO: delete this and clean up quake.
-	public static int strcmp(String in1, String in2)
-	{
+	public static int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
 	}
-	
-	public static int stricmp(String in1, String in2)
-	{
+
+	public static int stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
 
-	public static boolean strstr(String i1, String i2)
-	{
+	public static boolean strstr(String i1, String i2) {
 		return (i1.indexOf(i2) != -1);
 	}
 
 	//TODO: delete this and clean up quake.	
-	public static int strncmp(String in1, String in2, int len)
-	{
+	public static int strncmp(String in1, String in2, int len) {
 		int i1 = Math.min(len, in1.length());
 		int i2 = Math.min(len, in2.length());
 
@@ -133,8 +120,7 @@ public class Lib
 		if (i1 > i2)
 			return 1;
 
-		for (int n = 0; n < i1; n++)
-		{
+		for (int n = 0; n < i1; n++) {
 			char c1 = in1.charAt(n);
 			char c2 = in1.charAt(n);
 			if (c1 < c2)
@@ -144,42 +130,34 @@ public class Lib
 		}
 		return 0;
 	}
-	public static float atof(String in)
-	{
+	public static float atof(String in) {
 		float res = 0;
 
-		try
-		{
+		try {
 			res = Float.parseFloat(in);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 		}
 
 		return res;
 	}
 
-	public static int Q_stricmp(String in1, String in2)
-	{
+	public static int Q_stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
 
 	//	  =================================================================================
 
-	public static int atoi(String in)
-	{
-		try
-		{
+	public static int atoi(String in) {
+		try {
 			return Integer.parseInt(in);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			return 0;
 		}
 	}
 
-	public static float[] atov(String v)
-	{
+	public static float[] atov(String v) {
 		float[] res = { 0, 0, 0 };
 
 		int i1 = v.indexOf(" ");
@@ -192,37 +170,31 @@ public class Lib
 		return res;
 	}
 
-	public static int strlen(String in)
-	{
+	public static int strlen(String in) {
 		return in.length();
 	}
 
-	public static int strlen(char in[])
-	{
+	public static int strlen(char in[]) {
 		for (int i = 0; i < in.length; i++)
 			if (in[i] == 0)
 				return i;
 		return in.length;
 	}
 
-	public static int strlen(byte in[])
-	{
+	public static int strlen(byte in[]) {
 		for (int i = 0; i < in.length; i++)
 			if (in[i] == 0)
 				return i;
 		return in.length;
 	}
 
-	public static void strcat(String in, String i)
-	{
+	public static void strcat(String in, String i) {
 		in += i;
 	}
 
-	public static void strcpy(char dest[], char src[])
-	{
+	public static void strcpy(char dest[], char src[]) {
 		for (int i = 0; i < dest.length && i < src.length; i++)
-			if (src[i] == 0)
-			{
+			if (src[i] == 0) {
 				dest[i] = 0;
 				return;
 			}
@@ -231,11 +203,9 @@ public class Lib
 
 	}
 
-	public static void strcpy(byte dest[], byte src[])
-	{
+	public static void strcpy(byte dest[], byte src[]) {
 		for (int i = 0; i < dest.length && i < src.length; i++)
-			if (src[i] == 0)
-			{
+			if (src[i] == 0) {
 				dest[i] = 0;
 				return;
 			}
@@ -244,23 +214,20 @@ public class Lib
 
 	}
 
-	public static String readString(RandomAccessFile file, int len) throws IOException
-	{
+	public static String readString(RandomAccessFile file, int len) throws IOException {
 		byte buf[] = new byte[len];
 
 		file.read(buf, 0, len);
 		return new String(buf, 0, strlen(buf));
 	}
 
-	public static String readString(ByteBuffer bb, int len) throws IOException
-	{
+	public static String readString(ByteBuffer bb, int len) throws IOException {
 		byte buf[] = new byte[len];
 		bb.get(buf);
 		return new String(buf, 0, strlen(buf));
 	}
 
-	public static String hexdumpfile(ByteBuffer bb, int len) throws IOException
-	{
+	public static String hexdumpfile(ByteBuffer bb, int len) throws IOException {
 
 		ByteBuffer bb1 = bb.slice();
 
@@ -272,17 +239,13 @@ public class Lib
 	}
 
 	// dump data as hexstring
-	public static String hexDump(byte data1[], int len, boolean showAddress)
-	{
+	public static String hexDump(byte data1[], int len, boolean showAddress) {
 		StringBuffer result = new StringBuffer();
 		StringBuffer charfield = new StringBuffer();
 		int i = 0;
-		while (i < len)
-		{
-			if ((i & 0xf) == 0)
-			{
-				if (showAddress)
-				{
+		while (i < len) {
+			if ((i & 0xf) == 0) {
+				if (showAddress) {
 					String address = Integer.toHexString(i);
 					address = ("0000".substring(0, 4 - address.length()) + address).toUpperCase();
 					result.append(address + ": ");
@@ -297,15 +260,13 @@ public class Lib
 			i++;
 
 			// nach dem letzten, newline einfuegen
-			if ((i & 0xf) == 0)
-			{
+			if ((i & 0xf) == 0) {
 				result.append(charfield);
 				result.append("\n");
 				charfield.setLength(0);
 			}
 			//	in der Mitte ein Luecke einfuegen ?
-			else if ((i & 0xf) == 8)
-			{
+			else if ((i & 0xf) == 8) {
 				result.append(" ");
 			}
 		}
@@ -313,50 +274,41 @@ public class Lib
 	}
 
 	//formats an hex byte
-	public static String hex2(int i)
-	{
+	public static String hex2(int i) {
 		String val = Integer.toHexString(i & 0xff);
 		return ("00".substring(0, 2 - val.length()) + val).toUpperCase();
 	}
 
-	public static char readableChar(int i)
-	{
+	public static char readableChar(int i) {
 		if ((i < 0x20) || (i > 0x7f))
 			return '.';
 		else
 			return (char) i;
 	}
 
-	public static void printv(String in, float arr[])
-	{
-		for (int n = 0; n < arr.length; n++)
-		{
+	public static void printv(String in, float arr[]) {
+		for (int n = 0; n < arr.length; n++) {
 			Com.Println(in + "[" + n + "]: " + arr[n]);
 		}
 	}
 
-	public static void memset(byte[] dest, byte c, int len)
-	{
+	public static void memset(byte[] dest, byte c, int len) {
 		Arrays.fill(dest, 0, len, c);
 	}
 
-	public static void memset(byte[] dest, int c, int len)
-	{
+	public static void memset(byte[] dest, int c, int len) {
 		Arrays.fill(dest, 0, len, (byte) c);
 	}
 
-	public static void memcpy(byte[] bs, byte[] bs2, int i)
-	{
+	public static void memcpy(byte[] bs, byte[] bs2, int i) {
 		System.arraycopy(bs2, 0, bs, 0, i);
 	}
 
 	static byte nullfiller[] = new byte[8192];
 
-	public static void fwriteString(String s, int len, RandomAccessFile f) throws IOException
-	{
+	public static void fwriteString(String s, int len, RandomAccessFile f) throws IOException {
 		int diff = len - s.length();
-		if (diff > 0)
-		{
+		if (diff > 0) {
 			f.write(s.getBytes());
 
 			f.write(nullfiller, 0, diff);
@@ -365,8 +317,7 @@ public class Lib
 			f.write(s.getBytes(), 0, len);
 	}
 
-	public static String cut(String in, char c)
-	{
+	public static String cut(String in, char c) {
 		int pos = in.indexOf(c);
 
 		if (pos != -1)
@@ -374,39 +325,31 @@ public class Lib
 		return in;
 	}
 
-	public static RandomAccessFile fopen(String name, String mode)
-	{
-		try
-		{
+	public static RandomAccessFile fopen(String name, String mode) {
+		try {
 			return new RandomAccessFile(name, mode);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			return null;
 		}
 	}
 
-	public static void fclose(RandomAccessFile f)
-	{
-		try
-		{
+	public static void fclose(RandomAccessFile f) {
+		try {
 			f.close();
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 		}
 	}
 
-	public static String freadString(RandomAccessFile f, int len)
-	{
+	public static String freadString(RandomAccessFile f, int len) {
 		byte buffer[] = new byte[len];
 		FS.Read(buffer, len, f);
 
 		return new String(buffer).trim();
 	}
 
-	public static String rightFrom(String in, char c)
-	{
+	public static String rightFrom(String in, char c) {
 		int pos = in.lastIndexOf(c);
 		if (pos == -1)
 			return "";
@@ -414,9 +357,8 @@ public class Lib
 			return in.substring(pos + 1, in.length());
 		return "";
 	}
-	
-	public static String leftFrom(String in, char c)
-	{
+
+	public static String leftFrom(String in, char c) {
 		int pos = in.lastIndexOf(c);
 		if (pos == -1)
 			return "";
@@ -425,8 +367,7 @@ public class Lib
 		return "";
 	}
 
-	public static String[] linesplit(String in)
-	{
+	public static String[] linesplit(String in) {
 
 		StringTokenizer tk = new StringTokenizer(in, "\r\n");
 
@@ -437,24 +378,21 @@ public class Lib
 
 		String result[] = new String[count];
 
-		for (int i = 0; tk.hasMoreTokens(); i++)
-		{
+		for (int i = 0; tk.hasMoreTokens(); i++) {
 			result[i] = tk.nextToken();
 		}
 
 		return result;
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		System.out.println("testing Lib...");
 
 		String linetest = "line 1\r\n line zwo\nline drei\n\r line4\n.line5";
 
 		String line[] = linesplit(linetest);
 
-		for (int n = 0; n < line.length; n++)
-		{
+		for (int n = 0; n < line.length; n++) {
 			System.out.println("[" + line[n] + "]");
 		}
 
@@ -473,20 +411,30 @@ public class Lib
 		System.out.println("leftfrom[" + leftFrom("abcdefghijk#12", '#') + "]");
 		System.out.println("leftfrom[" + leftFrom("abcdefghi", '#') + "]");
 	}
-	 
+
 	public static int rename(String oldn, String newn) {
-		try
-		{
+		try {
 			File f1 = new File(oldn);
 			File f2 = new File(newn);
 			f1.renameTo(f2);
-			return 0;			
+			return 0;
 		}
-		catch(Exception e)
-		{
+		catch (Exception e) {
 			return 1;
 		}
 		return 0;
 	}
 
+	public static byte[] getIntBytes(int c) {
+		byte b[] = new byte[4];
+		b[0] = (byte) ((c & 0xff));
+		b[1] = (byte) ((c >>> 8) & 0xff);
+		b[2] = (byte) ((c >>> 16) & 0xff);
+		b[3] = (byte) ((c >>> 24) & 0xff);
+		return b;
+	}
+
+	public static int getInt(byte b[]) {
+		return (b[0] & 0xff) | ((b[1] & 0xff) << 8) | ((b[2] & 0xff) << 16) | ((b[3] & 0xff) << 24);
+	}
 }

@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.24 2004-02-01 00:35:00 rst Exp $
+ * $Id: Cvar.java,v 1.25 2004-02-01 23:31:37 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -370,7 +370,7 @@ public class Cvar {
 	// TODO: implement!
 	public static void GetLatchedVars()
 	{
-		Com.Printf( "SCHEISSE !!!!! GetLatchedVars not implemented!");
+		Com.Printf( "SCHEISSE !!!!! GetLatchedVars not implemented!\n");
 	}
 	
 	/**

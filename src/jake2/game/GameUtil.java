@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.7 2003-12-28 19:52:35 rst Exp $
+// $Id: GameUtil.java,v 1.8 2004-02-01 23:31:37 rst Exp $
 
 package jake2.game;
 
@@ -143,7 +143,7 @@ public class GameUtil extends GameBase {
 	*/
 	public static edict_t G_Spawn() {
 		int i;
-		edict_t e= null;
+		edict_t e=null;
 
 		for (i= (int) maxclients.value + 1; i < globals.num_edicts; i++) {
 			e= g_edicts[i];
@@ -158,7 +158,8 @@ public class GameUtil extends GameBase {
 		if (i == game.maxentities)
 			gi.error("ED_Alloc: no free edicts");
 
-		globals.num_edicts++;
+		e= g_edicts[i];
+		globals.num_edicts++;		
 		G_InitEdict(e, i);
 		return e;
 	}

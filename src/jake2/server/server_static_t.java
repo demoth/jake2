@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_static_t.java,v 1.3 2004-01-20 22:25:06 rst Exp $
+// $Id: server_static_t.java,v 1.4 2004-02-01 23:31:37 rst Exp $
 
 package jake2.server;
 
@@ -34,6 +34,17 @@ import jake2.server.*;
 import java.io.*;
 
 public class server_static_t {
+	public server_static_t()
+	{
+		int num = Math.max(16, (int) Game.maxclients.value);
+		Com.Printf("creating " + num + " clients in svc.\n");
+		clients =  new client_t[num];
+		for (int n=0; n < clients.length; n++)
+		{
+			clients[n] = new client_t();
+		}
+	}
+	
 	boolean	initialized;				// sv_init has completed
 	int			realtime;					// always increasing, no clamping, etc
 
@@ -44,6 +55,7 @@ public class server_static_t {
 											// used to check late spawns
 
 	client_t		clients[];					// [maxclients->value];
+	
 	int			num_client_entities;		// maxclients->value*UPDATE_BACKUP*MAX_PACKET_ENTITIES
 	int			next_client_entities;		// next client_entity to use
 	entity_state_t	client_entities[];			// [num_client_entities]

@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.15 2004-02-01 00:35:00 rst Exp $
+ * $Id: Qcommon.java,v 1.16 2004-02-01 23:31:37 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -108,7 +108,7 @@ public final class Qcommon {
 			NET.NET_Init();
 			Netchan.Init();
 
-			//SV_MAIN.SV_Init();
+			SV_MAIN.SV_Init();
 			CL.Init();
 
 			// add + commands from command line

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.12 2004-02-01 00:35:00 rst Exp $
+// $Id: MSG.java,v 1.13 2004-02-01 23:31:37 rst Exp $
 
 package jake2.qcommon;
 
@@ -71,7 +71,7 @@ public class MSG extends GameBase {
 		sb.data[i++] = (byte) ((c & 0xff));
 		sb.data[i++] = (byte) ((c >>> 8) & 0xff);
 		sb.data[i++] = (byte) ((c >>> 16) & 0xff);
-		sb.data[i++] = (byte) ((c >>> 24) &0xff);
+		sb.data[i++] = (byte) ((c >>> 24) & 0xff);
 	}
 
 	public static void WriteLong(sizebuf_t sb, int c) {
@@ -165,6 +165,7 @@ public class MSG extends GameBase {
 		WriteByte(buf, cmd.lightlevel);
 	}
 
+	//should be ok.
 	public static void WriteDir(sizebuf_t sb, float[] dir) {
 		int i, best;
 		float d, bestd;
@@ -185,7 +186,8 @@ public class MSG extends GameBase {
 		}
 		WriteByte(sb, best);
 	}
-
+	
+	//should be ok.
 	public static void ReadDir(sizebuf_t sb, float[] dir) {
 		int b;
 
@@ -203,12 +205,7 @@ public class MSG extends GameBase {
 	Can delta from either a baseline or a previous packet_entity
 	==================
 	*/
-	public static void WriteDeltaEntity(
-		entity_state_t from,
-		entity_state_t to,
-		sizebuf_t msg,
-		boolean force,
-		boolean newentity) {
+	public static void WriteDeltaEntity(entity_state_t from, entity_state_t to, sizebuf_t msg, boolean force, boolean newentity) {
 		int bits;
 
 		if (0 == to.number)
@@ -447,10 +444,10 @@ public class MSG extends GameBase {
 			c = -1;
 		else
 			c =
-				msg_read.data[msg_read.readcount] &0xff
-					+ ((msg_read.data[msg_read.readcount + 1] & 0xff) << 8)
-					+ ((msg_read.data[msg_read.readcount + 2] & 0xff) << 16)
-					+ ((msg_read.data[msg_read.readcount + 3] & 0xff) << 24);
+				(msg_read.data[msg_read.readcount] & 0xff)
+					| ((msg_read.data[msg_read.readcount + 1] & 0xff) << 8)
+					| ((msg_read.data[msg_read.readcount + 2] & 0xff) << 16)
+					| ((msg_read.data[msg_read.readcount + 3] & 0xff) << 24);
 
 		msg_read.readcount += 4;
 
@@ -474,7 +471,7 @@ public class MSG extends GameBase {
 			c = (byte) ReadByte(msg_read);
 			if (c == -1 || c == 0)
 				break;
-				
+
 			readbuf[l] = c;
 			l++;
 		}
