@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.6 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Main.java,v 1.7 2004-01-03 20:24:22 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -135,7 +135,7 @@ public abstract class Main extends Base {
 	entity_t currententity;
 	model_t currentmodel;
 
-	cplane_t frustum[] = new cplane_t[4];
+	cplane_t frustum[] =	{ new cplane_t(), new cplane_t(), new cplane_t(), new cplane_t() };
 
 	int r_visframecount; // bumped when going to a new PVS
 	int r_framecount; // used for dlight push checking
@@ -357,10 +357,13 @@ public abstract class Main extends Base {
 	{
 		float[] shadelight = { 0, 0, 0 };
 
-		if ( (currententity.flags & Defines.RF_FULLBRIGHT) != 0 )
-			shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
-		else
+		if ( (currententity.flags & Defines.RF_FULLBRIGHT) != 0 ) {
+			// TODO shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
+			shadelight[0] = shadelight[1] = shadelight[2] = 0.0F;
+			shadelight[2] = 0.8F;
+		} else {
 			R_LightPoint(currententity.origin, shadelight);
+		}
 
 		gl.glPushMatrix();
 		R_RotateForEntity(currententity);
@@ -368,6 +371,10 @@ public abstract class Main extends Base {
 		gl.glDisable(GL.GL_TEXTURE_2D);
 		gl.glColor3fv(shadelight);
 
+		// this replaces the TRIANGLE_FAN
+		glut.glutWireCube(gl, 20);
+
+		/*
 	 	gl.glBegin(GL.GL_TRIANGLE_FAN);
 		gl.glVertex3f(0, 0, -16);
 		int i;
@@ -382,7 +389,7 @@ public abstract class Main extends Base {
 			gl.glVertex3f((float)(16.0f * Math.cos(i * Math.PI / 2)), (float)(16.0f * Math.sin(i * Math.PI / 2)), 0.0f);
 		}
 		gl.glEnd();
-
+		*/
 		gl.glColor3f(1,1,1);
 		gl.glPopMatrix();
 		gl.glEnable(GL.GL_TEXTURE_2D);
@@ -395,51 +402,54 @@ public abstract class Main extends Base {
 	*/
 	void R_DrawEntitiesOnList()
 	{
-//	 int		i;
-//
-//	 if (!r_drawentities->value)
-//		 return;
-//
-//	 // draw non-transparent first
-//	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
-//	 {
-//		 currententity = &r_newrefdef.entities[i];
-//		 if (currententity->flags & RF_TRANSLUCENT)
-//			 continue;	// solid
-//
-//		 if ( currententity->flags & RF_BEAM )
-//		 {
-//			 R_DrawBeam( currententity );
-//		 }
-//		 else
-//		 {
-//			 currentmodel = currententity->model;
-//			 if (!currentmodel)
-//			 {
-//				 R_DrawNullModel ();
-//				 continue;
-//			 }
-//			 switch (currentmodel->type)
-//			 {
-//			 case mod_alias:
+	 int		i;
+
+	 if (r_drawentities.value == 0.0f) {
+	 	// TODO cwei r_drawentities.value == 0.0f
+	 	System.out.println("debug: r_drawentities.value == 0.0f");
+	 	return;
+	 }
+
+	 // draw non-transparent first
+	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
+	 {
+		 currententity = r_newrefdef.entities[i];
+		 if ( (currententity.flags & Defines.RF_TRANSLUCENT) != 0)
+			 continue;	// solid
+
+		 if ( (currententity.flags & Defines.RF_BEAM) != 0 )
+		 {
+			 R_DrawBeam( currententity );
+		 }
+		 else
+		 {
+			 currentmodel = currententity.model;
+			 if (currentmodel == null)
+			 {
+				 R_DrawNullModel();
+				 continue;
+			 }
+			 switch (currentmodel.type)
+			 {
+			 case mod_alias:
 //				 R_DrawAliasModel (currententity);
-//				 break;
-//			 case mod_brush:
+				 break;
+			 case mod_brush:
 //				 R_DrawBrushModel (currententity);
-//				 break;
-//			 case mod_sprite:
+				 break;
+			 case mod_sprite:
 //				 R_DrawSpriteModel (currententity);
-//				 break;
-//			 default:
-//				 ri.Sys_Error (ERR_DROP, "Bad modeltype");
-//				 break;
-//			 }
-//		 }
-//	 }
+				 break;
+			 default:
+				 ri.Sys_Error (Defines.ERR_DROP, "Bad modeltype");
+				 break;
+			 }
+		 }
+	 }
 //
 //	 // draw transparent entities
 //	 // we could sort these if it ever becomes a problem...
-//	 gl.glDepthMask (0);		// no z writes
+//	 gl.glDepthMask(false);		// no z writes
 //	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
 //	 {
 //		 currententity = &r_newrefdef.entities[i];
@@ -476,8 +486,8 @@ public abstract class Main extends Base {
 //			 }
 //		 }
 //	 }
-//	 gl.glDepthMask (1);		// back to writing
-//
+	 gl.glDepthMask(true);		// back to writing
+
 	}
 
  /*
@@ -845,7 +855,7 @@ public abstract class Main extends Base {
 	}
 
 	void R_Flash() {
-		R_PolyBlend ();
+		R_PolyBlend();
 	}
 
 	/*
@@ -860,6 +870,11 @@ public abstract class Main extends Base {
 		if (r_norefresh.value != 0.0f) return;
 
 		r_newrefdef = fd;
+		
+		// included by cwei
+		if (r_newrefdef == null) {
+			ri.Sys_Error(Defines.ERR_DROP, "R_RenderView: refdef_t fd is null");
+		}
 
 		if (r_worldmodel == null && (r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) == 0 )
 			ri.Sys_Error(Defines.ERR_DROP, "R_RenderView: NULL worldmodel");
@@ -1154,13 +1169,15 @@ public abstract class Main extends Base {
 	R_Init
 	===============
 	*/
-	// TODO fill float[] r_turbsin
 	float[] r_turbsin = new float[256];
 
 	protected boolean R_Init() {
+		
+		assert (Warp.SIN.length == 256) : "warpsin table bug";
 			
+		// fill r_turbsin
 		for (int j = 0; j < 256; j++ ) {
-			r_turbsin[j] *= 0.5;
+			r_turbsin[j] = Warp.SIN[j] * 0.5f;
 		}
 
 		ri.Con_Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
@@ -1626,74 +1643,82 @@ public abstract class Main extends Base {
 	/*
 	** R_DrawBeam
 	*/
-	void R_DrawBeam(entity_t e)
-	{
-//
-//	 int	i;
-//	 float r, g, b;
-//
-//	 vec3_t perpvec;
-//	 vec3_t direction, normalized_direction;
-//	 vec3_t	start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
-//	 vec3_t oldorigin, origin;
-//
-//	 oldorigin[0] = e->oldorigin[0];
-//	 oldorigin[1] = e->oldorigin[1];
-//	 oldorigin[2] = e->oldorigin[2];
-//
-//	 origin[0] = e->origin[0];
-//	 origin[1] = e->origin[1];
-//	 origin[2] = e->origin[2];
-//
-//	 normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
-//	 normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
-//	 normalized_direction[2] = direction[2] = oldorigin[2] - origin[2];
-//
-//	 if ( VectorNormalize( normalized_direction ) == 0 )
-//		 return;
-//
-//	 PerpendicularVector( perpvec, normalized_direction );
-//	 VectorScale( perpvec, e->frame / 2, perpvec );
-//
-//	 for ( i = 0; i < 6; i++ )
-//	 {
-//		 RotatePointAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
-//		 VectorAdd( start_points[i], origin, start_points[i] );
-//		 VectorAdd( start_points[i], direction, end_points[i] );
-//	 }
-//
-	 gl.glDisable( GL.GL_TEXTURE_2D );
-	 gl.glEnable( GL.GL_BLEND );
-	 gl.glDepthMask( false );
-//
-//	 r = ( d_8to24table[e->skinnum & 0xFF] ) & 0xFF;
-//	 g = ( d_8to24table[e->skinnum & 0xFF] >> 8 ) & 0xFF;
-//	 b = ( d_8to24table[e->skinnum & 0xFF] >> 16 ) & 0xFF;
-//
-//	 r *= 1/255.0F;
-//	 g *= 1/255.0F;
-//	 b *= 1/255.0F;
-//
-//	 gl.glColor4f( r, g, b, e->alpha );
-//
-//	 gl.glBegin( GL.GL_TRIANGLE_STRIP );
-//	 for ( i = 0; i < NUM_BEAM_SEGS; i++ )
-//	 {
-//		 gl.glVertex3fv( start_points[i] );
-//		 gl.glVertex3fv( end_points[i] );
-//		 gl.glVertex3fv( start_points[(i+1)%NUM_BEAM_SEGS] );
-//		 gl.glVertex3fv( end_points[(i+1)%NUM_BEAM_SEGS] );
-//	 }
-//	 gl.glEnd();
-//
-//	 gl.glEnable( GL.GL_TEXTURE_2D );
-//	 gl.glDisable( GL.GL_BLEND );
-//	 gl.glDepthMask( GL.GL_TRUE );
+	void R_DrawBeam(entity_t e) {
+
+		int i;
+		float r, g, b;
+
+		float[] perpvec = { 0, 0, 0 }; // vec3_t
+		float[] direction = { 0, 0, 0 }; // vec3_t
+		float[] normalized_direction = { 0, 0, 0 }; // vec3_t
+
+		float[][] start_points = new float[NUM_BEAM_SEGS][3];
+		// array of vec3_t
+		float[][] end_points = new float[NUM_BEAM_SEGS][3]; // array of vec3_t
+
+		float[] oldorigin = { 0, 0, 0 }; // vec3_t
+		float[] origin = { 0, 0, 0 }; // vec3_t
+
+		oldorigin[0] = e.oldorigin[0];
+		oldorigin[1] = e.oldorigin[1];
+		oldorigin[2] = e.oldorigin[2];
+
+		origin[0] = e.origin[0];
+		origin[1] = e.origin[1];
+		origin[2] = e.origin[2];
+
+		normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
+		normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
+		normalized_direction[2] = direction[2] = oldorigin[2] - origin[2];
+
+		if (Math3D.VectorNormalize(normalized_direction) == 0.0f)
+			return;
+
+		Math3D.PerpendicularVector(perpvec, normalized_direction);
+		Math3D.VectorScale(perpvec, e.frame / 2, perpvec);
+
+		for (i = 0; i < 6; i++) {
+			Math3D.RotatePointAroundVector(
+				start_points[i],
+				normalized_direction,
+				perpvec,
+				(360.0f / NUM_BEAM_SEGS) * i);
+				
+			Math3D.VectorAdd(start_points[i], origin, start_points[i]);
+			Math3D.VectorAdd(start_points[i], direction, end_points[i]);
+		}
+
+		gl.glDisable(GL.GL_TEXTURE_2D);
+		gl.glEnable(GL.GL_BLEND);
+		gl.glDepthMask(false);
+
+		r = (d_8to24table[e.skinnum & 0xFF]) & 0xFF;
+		g = (d_8to24table[e.skinnum & 0xFF] >> 8) & 0xFF;
+		b = (d_8to24table[e.skinnum & 0xFF] >> 16) & 0xFF;
+
+		r *= 1 / 255.0f;
+		g *= 1 / 255.0f;
+		b *= 1 / 255.0f;
+
+		gl.glColor4f(r, g, b, e.alpha);
+
+		gl.glBegin(GL.GL_TRIANGLE_STRIP);
+		for (i = 0; i < NUM_BEAM_SEGS; i++) {
+			gl.glVertex3fv(start_points[i]);
+			gl.glVertex3fv(end_points[i]);
+			gl.glVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
+			gl.glVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
+		}
+		gl.glEnd();
+
+		gl.glEnable(GL.GL_TEXTURE_2D);
+		gl.glDisable(GL.GL_BLEND);
+		gl.glDepthMask(true);
 	}
 
 
-// ===================================================================
 
+	 
 //
 // void	R_BeginRegistration (char *map);
 // struct model_s	*R_RegisterModel (char *name);

@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.2 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Misc.java,v 1.3 2004-01-03 20:24:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +34,7 @@ import jake2.Defines;
  *  
  * @author cwei
  */
-public abstract class Misc extends Light {
+public abstract class Misc extends Mesh {
 ////	   r_misc.c
 //
 //	#include "gl_local.h"
@@ -192,7 +192,8 @@ public abstract class Misc extends Light {
 	*/
 	void GL_SetDefaultState()
 	{
-		gl.glClearColor (1f,0f, 0.5f , 0.5f);
+		// TODO gl.glClearColor (1f,0f, 0.5f , 0.5f);
+		gl.glClearColor(0, 0, 0, 0); // replaced with black
 		gl.glCullFace(GL.GL_FRONT);
 		gl.glEnable(GL.GL_TEXTURE_2D);
 
@@ -262,10 +263,5 @@ public abstract class Misc extends Light {
 	// ============================================================================
 	// TODO remove after impl this methods in jake2.render.jogl package
 	// ============================================================================
-
-
-	// defined in gl_warp.c
-	protected void R_SetSky(String name, float rotate, float[] axis) {
-	}
 
 }

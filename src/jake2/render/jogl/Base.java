@@ -2,7 +2,7 @@
  * Base.java
  * Copyright (C) 2003
  *
- * $Id: Base.java,v 1.1 2003-12-29 06:00:49 cwei Exp $
+ * $Id: Base.java,v 1.2 2004-01-03 20:24:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -60,6 +60,12 @@ public class Base {
 	static final int it_wall = 2;
 	static final int it_pic = 3;
 	static final int it_sky = 4;
+	
+	// enum modtype_t
+	static final int mod_bad = 0;
+	static final int mod_brush = 1;
+	static final int mod_sprite = 2;
+	static final int mod_alias = 3;
 	
 	static final int TEXNUM_LIGHTMAPS = 1024;
 	static final int TEXNUM_SCRAPS = 1152;

@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.3 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Impl.java,v 1.4 2004-01-03 20:24:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -190,6 +190,10 @@ public class Impl extends Misc implements GLEventListener {
 
 			// after the first run (initialization) switch to callback
 			switchToCallback = true;
+
+			// clear the screen
+			gl.glClearColor(0, 0, 0, 0);
+			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 			
 			//
 			// check the post init process
@@ -197,6 +201,8 @@ public class Impl extends Misc implements GLEventListener {
 			if (!post_init) {
 				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init JOGL renderer");
 			}
+			
+			GLimp_EndFrame();
 		}
 	}
 	

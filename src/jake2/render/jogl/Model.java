@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.2 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Model.java,v 1.3 2004-01-03 20:24:22 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,9 +194,9 @@ public abstract class Model extends Main {
 //	Loads in a model for the given name
 //	==================
 //	*/
-//	model_t *Mod_ForName (char *name, qboolean crash)
-//	{
-//		model_t	*mod;
+	model_t Mod_ForName(String name, boolean crash)
+	{
+		model_t	mod = null;
 //		unsigned *buf;
 //		int		i;
 //	
@@ -288,8 +288,8 @@ public abstract class Model extends Main {
 //
 //		ri.FS_FreeFile (buf);
 //
-//		return mod;
-//	}
+		return mod;
+	}
 //
 //	/*
 //	===============================================================================
@@ -941,13 +941,13 @@ public abstract class Model extends Main {
 //	==============================================================================
 //	*/
 //
-//	/*
-//	=================
-//	Mod_LoadAliasModel
-//	=================
-//	*/
-//	void Mod_LoadAliasModel (model_t *mod, void *buffer)
-//	{
+	/*
+	=================
+	Mod_LoadAliasModel
+	=================
+	*/
+	void Mod_LoadAliasModel (model_t mod, byte[] buffer)
+	{
 //		int					i, j;
 //		dmdl_t				*pinmodel, *pheader;
 //		dstvert_t			*pinst, *poutst;
@@ -1063,7 +1063,7 @@ public abstract class Model extends Main {
 //		mod->maxs[0] = 32;
 //		mod->maxs[1] = 32;
 //		mod->maxs[2] = 32;
-//	}
+	}
 //
 //	/*
 //	==============================================================================
