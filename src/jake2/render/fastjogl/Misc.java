@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.2 2004-06-13 14:26:07 cwei Exp $
+ * $Id: Misc.java,v 1.3 2004-06-14 11:29:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -240,6 +240,13 @@ public abstract class Misc extends Mesh {
 		}
 
 		GL_UpdateSwapInterval();
+		
+		/*
+		 * vertex array extension
+		 */
+		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+		gl.glClientActiveTextureARB(GL_TEXTURE0);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
 	void GL_UpdateSwapInterval()

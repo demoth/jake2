@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.3 2004-06-13 23:10:17 cwei Exp $
+ * $Id: Surf.java,v 1.4 2004-06-14 11:29:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1100,12 +1100,6 @@ public abstract class Surf extends Draw {
 			GL_TexEnv( GL.GL_MODULATE );
 		}
 
-		gl.glClientActiveTextureARB(GL_TEXTURE0);
-		gl.glInterleavedArrays(GL.GL_T2F_V3F, 7 * 4, globalPolygonInterleavedBuf);
-		gl.glClientActiveTextureARB(GL_TEXTURE1);
-		gl.glTexCoordPointer(2, GL.GL_FLOAT, 7 * 4, globalPolygonTexCoord1Buf);
-		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-
 		//
 		// draw texture
 		//
@@ -1139,13 +1133,6 @@ public abstract class Surf extends Draw {
 			}
 		}
 		
-		gl.glClientActiveTextureARB(GL_TEXTURE0);
-		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-		gl.glClientActiveTextureARB(GL_TEXTURE1);
-		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
-
-
 		if ( (currententity.flags & Defines.RF_TRANSLUCENT) == 0 )
 		{
 			if ( !qglMTexCoord2fSGIS )
@@ -1228,10 +1215,20 @@ public abstract class Surf extends Draw {
 		GL_EnableMultitexture( true );
 		GL_SelectTexture(GL_TEXTURE0);
 		GL_TexEnv( GL.GL_REPLACE );
+		gl.glInterleavedArrays(GL.GL_T2F_V3F, POLYGON_STRIDE, globalPolygonInterleavedBuf);
 		GL_SelectTexture(GL_TEXTURE1);
 		GL_TexEnv( GL.GL_MODULATE );
+		gl.glTexCoordPointer(2, GL.GL_FLOAT, POLYGON_STRIDE, globalPolygonTexCoord1Buf);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
 		R_DrawInlineBModel();
+
+		gl.glClientActiveTextureARB(GL_TEXTURE1);
+		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glClientActiveTextureARB(GL_TEXTURE0);
+		//gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
+
 		GL_EnableMultitexture( false );
 
 		gl.glPopMatrix();
@@ -1415,26 +1412,20 @@ public abstract class Surf extends Draw {
 
 			GL_SelectTexture( GL_TEXTURE0);
 			GL_TexEnv( GL.GL_REPLACE );
+			gl.glInterleavedArrays(GL.GL_T2F_V3F, 7 * 4, globalPolygonInterleavedBuf);
 			GL_SelectTexture( GL_TEXTURE1);
+			gl.glTexCoordPointer(2, GL.GL_FLOAT, 7 * 4, globalPolygonTexCoord1Buf);
+			gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
 			if ( gl_lightmap.value != 0)
 				GL_TexEnv( GL.GL_REPLACE );
 			else 
 				GL_TexEnv( GL.GL_MODULATE );
 				
-			gl.glClientActiveTextureARB(GL_TEXTURE0);
-			gl.glInterleavedArrays(GL.GL_T2F_V3F, 7 * 4, globalPolygonInterleavedBuf);
-			gl.glClientActiveTextureARB(GL_TEXTURE1);
-			gl.glTexCoordPointer(2, GL.GL_FLOAT, 7 * 4, globalPolygonTexCoord1Buf);
-			gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-
 			R_RecursiveWorldNode(r_worldmodel.nodes[0]); // root node
 				
-			gl.glClientActiveTextureARB(GL_TEXTURE0);
-			gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 			gl.glClientActiveTextureARB(GL_TEXTURE1);
 			gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-			gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 
 			GL_EnableMultitexture( false );
 		}
@@ -1894,6 +1885,7 @@ public abstract class Surf extends Draw {
 	 * new functions for vertex array handling
 	 */
 	static final int POLYGON_BUFFER_SIZE = 100000;
+	static final int POLYGON_STRIDE = 7 * BufferUtils.SIZEOF_FLOAT;
 
 	static FloatBuffer globalPolygonInterleavedBuf = BufferUtils.newFloatBuffer(POLYGON_BUFFER_SIZE * 7);
 	static FloatBuffer globalPolygonTexCoord1Buf = null;
@@ -1909,21 +1901,22 @@ public abstract class Surf extends Draw {
 		p.pos = globalPolygonInterleavedBuf.position() / 7;
 		
 		float[] v;
+		FloatBuffer buffer = globalPolygonInterleavedBuf;
 		
 		for (int i = 0; i < p.verts.length; i++) {
 			v = p.verts[i];
 			// textureCoord0
-			globalPolygonInterleavedBuf.put(v[3]);
-			globalPolygonInterleavedBuf.put(v[4]);
+			buffer.put(v[3]);
+			buffer.put(v[4]);
 			
 			// vertex
-			globalPolygonInterleavedBuf.put(v[0]);
-			globalPolygonInterleavedBuf.put(v[1]);
-			globalPolygonInterleavedBuf.put(v[2]);
+			buffer.put(v[0]);
+			buffer.put(v[1]);
+			buffer.put(v[2]);
 
 			// textureCoord1
-			globalPolygonInterleavedBuf.put(v[5]);
-			globalPolygonInterleavedBuf.put(v[6]);
+			buffer.put(v[5]);
+			buffer.put(v[6]);
 		}
 	}
 

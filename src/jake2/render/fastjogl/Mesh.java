@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.3 2004-06-12 12:28:45 cwei Exp $
+ * $Id: Mesh.java,v 1.4 2004-06-14 11:29:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -193,7 +193,7 @@ public abstract class Mesh extends Light {
 
 		GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
 		
-		gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
+		//gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
 		gl.glVertexPointer( 3, GL.GL_FLOAT, 0, vertexArrayBuf );
 
 		// PMM - added double damage shell
@@ -223,7 +223,7 @@ public abstract class Mesh extends Light {
 
 		gl.glClientActiveTextureARB(GL_TEXTURE0);
 		gl.glTexCoordPointer( 2, GL.GL_FLOAT, 0, textureArrayBuf);
-		gl.glEnableClientState( GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glEnableClientState( GL.GL_TEXTURE_COORD_ARRAY);
 
 		int pos = 0;
 		int[] counts = paliashdr.counts;
@@ -298,6 +298,8 @@ public abstract class Mesh extends Light {
 		height = -lheight + 1.0f;
 		
 		int orderIndex = 0;
+
+		// TODO shadow drawing with vertex arrays
 
 		while (true)
 		{

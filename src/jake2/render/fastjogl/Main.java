@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.2 2004-06-13 14:26:07 cwei Exp $
+ * $Id: Main.java,v 1.3 2004-06-14 11:29:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -554,7 +554,7 @@ public abstract class Main extends Base {
 
 		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
 
-			gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+			//gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 			gl.glVertexPointer(3, GL.GL_FLOAT, 0, particle_t.vertexArray);
 			gl.glEnableClientState(GL.GL_COLOR_ARRAY);
 			gl.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, particle_t.colorArray);
@@ -567,7 +567,7 @@ public abstract class Main extends Base {
 			gl.glDrawArrays(GL.GL_POINTS, 0, r_newrefdef.num_particles);
 			
 			gl.glDisableClientState(GL.GL_COLOR_ARRAY);
-			gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
+			//gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 
 			gl.glDisable(GL.GL_BLEND);
 			gl.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
