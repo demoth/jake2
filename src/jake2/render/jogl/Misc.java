@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.4 2004-01-05 23:59:26 cwei Exp $
+ * $Id: Misc.java,v 1.5 2004-01-13 15:00:05 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,20 +68,14 @@ public abstract class Misc extends Mesh {
 		{
 			for (y=0 ; y<8 ; y++)
 			{
-//				data[y][x][0] = (byte)255;
-//				data[y][x][1] = (byte)255;
-//				data[y][x][2] = (byte)255;
-//				data[y][x][3] = (byte)(dottexture[x][y]*255);
-
-				// TODO try this for particles
-				data[y * 8 + x * 4 + 0] = (byte)255;
-				data[y * 8 + x * 4 + 1] = (byte)255;
-				data[y * 8 + x * 4 + 2] = (byte)255;
-				data[y * 8 + x * 4 + 3] = (byte)(dottexture[x][y]*255);
+				data[y * 32 + x * 4 + 0] = (byte)255;
+				data[y * 32 + x * 4 + 1] = (byte)255;
+				data[y * 32 + x * 4 + 2] = (byte)255;
+				data[y * 32 + x * 4 + 3] = (byte)(dottexture[x][y]*255);
 
 			}
 		}
-		r_particletexture = GL_LoadPic ("***particle***", (byte[])data, 8, 8, it_sprite, 32);
+		r_particletexture = GL_LoadPic("***particle***", data, 8, 8, it_sprite, 32);
 
 		//
 		// also use this for bad textures, but without alpha
@@ -90,10 +84,10 @@ public abstract class Misc extends Mesh {
 		{
 			for (y=0 ; y<8 ; y++)
 			{
-				data[y * 8 + x * 4 + 0] = (byte)(dottexture[x&3][y&3]*255);
-				data[y * 8 + x * 4 + 1] = 0; // dottexture[x&3][y&3]*255;
-				data[y * 8 + x * 4 + 2] = 0; //dottexture[x&3][y&3]*255;
-				data[y * 8 + x * 4 + 3] = (byte)255;
+				data[y * 32 + x * 4 + 0] = (byte)(dottexture[x&3][y&3]*255);
+				data[y * 32 + x * 4 + 1] = 0; // dottexture[x&3][y&3]*255;
+				data[y * 32 + x * 4 + 2] = 0; //dottexture[x&3][y&3]*255;
+				data[y * 32 + x * 4 + 3] = (byte)255;
 			}
 		}
 		r_notexture = GL_LoadPic("***r_notexture***", data, 8, 8, it_wall, 32);

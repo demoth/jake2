@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.9 2004-01-10 16:01:19 cwei Exp $
+ * $Id: Image.java,v 1.10 2004-01-13 15:00:05 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,6 +40,7 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -1324,7 +1325,14 @@ public abstract class Image extends Main {
 				else
 				{
 					int[] tmp = new int[pic.length / 4];
-					ByteBuffer.wrap(pic).asIntBuffer().get(tmp);
+				
+					for (i=0; i<tmp.length; i++) {
+						tmp[i] = ((pic[4 * i + 0] & 0xFF) << 0); // & 0x000000FF;
+						tmp[i] |= ((pic[4 * i + 1] & 0xFF) << 8); // & 0x0000FF00;
+						tmp[i] |= ((pic[4 * i + 2] & 0xFF) << 16); // & 0x00FF0000;
+						tmp[i] |= ((pic[4 * i + 3] & 0xFF) << 24); // & 0xFF000000;
+					}
+
 					image.has_alpha = GL_Upload32(tmp, width, height, (image.type != it_pic && image.type != it_sky) );
 				}
 				
@@ -1373,7 +1381,14 @@ public abstract class Image extends Main {
 			else
 			{
 				int[] tmp = new int[pic.length / 4];
-				ByteBuffer.wrap(pic).asIntBuffer().get(tmp);
+				
+				for (int i=0; i<tmp.length; i++) {
+					tmp[i] = ((pic[4 * i + 0] & 0xFF) << 0); // & 0x000000FF;
+					tmp[i] |= ((pic[4 * i + 1] & 0xFF) << 8); // & 0x0000FF00;
+					tmp[i] |= ((pic[4 * i + 2] & 0xFF) << 16); // & 0x00FF0000;
+					tmp[i] |= ((pic[4 * i + 3] & 0xFF) << 24); // & 0xFF000000;
+				}
+
 				image.has_alpha = GL_Upload32(tmp, width, height, (image.type != it_pic && image.type != it_sky) );
 			}
 			image.upload_width = upload_width;		// after power of 2 and scales

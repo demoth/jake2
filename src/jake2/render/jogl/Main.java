@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.13 2004-01-12 16:57:34 cwei Exp $
+ * $Id: Main.java,v 1.14 2004-01-13 15:00:05 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -500,62 +500,66 @@ public abstract class Main extends Base {
 	** GL_DrawParticles
 	**
 	*/
-// void GL_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
-	void GL_DrawParticles( int num_particles, particle_t[] particles, int[] colortable )
- {
- 	// TODO impl GL_DrawParticles(...)
-//	 const particle_t *p;
-//	 int				i;
-//	 vec3_t			up, right;
-//	 float			scale;
-//	 byte			color[4];
-//
-//	 GL_Bind(r_particletexture->texnum);
-//	 gl.glDepthMask( GL.GL_FALSE );		// no z buffering
-//	 gl.glEnable( GL.GL_BLEND );
-//	 GL_TexEnv( GL.GL_MODULATE );
-//	 gl.glBegin( GL.GL_TRIANGLES );
-//
-//	 VectorScale (vup, 1.5, up);
-//	 VectorScale (vright, 1.5, right);
-//
-//	 for ( p = particles, i=0 ; i < num_particles ; i++,p++)
-//	 {
-//		 // hack a scale up to keep particles from disapearing
-//		 scale = ( p->origin[0] - r_origin[0] ) * vpn[0] + 
-//				 ( p->origin[1] - r_origin[1] ) * vpn[1] +
-//				 ( p->origin[2] - r_origin[2] ) * vpn[2];
-//
-//		 if (scale < 20)
-//			 scale = 1;
-//		 else
-//			 scale = 1 + scale * 0.004;
-//
-//		 *(int *)color = colortable[p->color];
-//		 color[3] = p->alpha*255;
-//
-//		 gl.glColor4ubv( color );
-//
-//		 gl.glTexCoord2f( 0.0625, 0.0625 );
-//		 gl.glVertex3fv( p->origin );
-//
-//		 gl.glTexCoord2f( 1.0625, 0.0625 );
-//		 gl.glVertex3f( p->origin[0] + up[0]*scale, 
-//					  p->origin[1] + up[1]*scale, 
-//					  p->origin[2] + up[2]*scale);
-//
-//		 gl.glTexCoord2f( 0.0625, 1.0625 );
-//		 gl.glVertex3f( p->origin[0] + right[0]*scale, 
-//					  p->origin[1] + right[1]*scale, 
-//					  p->origin[2] + right[2]*scale);
-//	 }
-//
-//	 gl.glEnd ();
-//	 gl.glDisable( GL.GL_BLEND );
-//	 gl.glColor4f( 1,1,1,1 );
-//	 gl.glDepthMask( 1 );		// back to normal Z buffering
-//	 GL_TexEnv( GL.GL_REPLACE );
- }
+	void GL_DrawParticles(int num_particles,	particle_t[] particles) {
+		particle_t p;
+		int i;
+		float[] up = { 0, 0, 0 };
+		float[] right = { 0, 0, 0 };
+		float scale;
+		int color;
+
+		GL_Bind(r_particletexture.texnum);
+		gl.glDepthMask(false); // no z buffering
+		gl.glEnable(GL.GL_BLEND);
+		GL_TexEnv(GL.GL_MODULATE);
+		gl.glBegin(GL.GL_TRIANGLES);
+
+		Math3D.VectorScale(vup, 1.5f, up);
+		Math3D.VectorScale(vright, 1.5f, right);
+
+		for (i = 0; i < num_particles; i++) {
+			p = particles[i];
+			// hack a scale up to keep particles from disapearing
+			scale =
+				(p.origin[0] - r_origin[0]) * vpn[0]
+					+ (p.origin[1] - r_origin[1]) * vpn[1]
+					+ (p.origin[2] - r_origin[2]) * vpn[2];
+
+			if (scale < 20)
+				scale = 1;
+			else
+				scale = 1 + scale * 0.004f;
+
+			color = d_8to24table[p.color];
+
+			gl.glColor4ub(
+				(byte) ((color >> 0) & 0xff),
+				(byte) ((color >> 8) & 0xff),
+				(byte) ((color >> 16) & 0xff),
+				(byte) (p.alpha * 255));
+
+			gl.glTexCoord2f(0.0625f, 0.0625f);
+			gl.glVertex3fv(p.origin);
+
+			gl.glTexCoord2f(1.0625f, 0.0625f);
+			gl.glVertex3f(
+				p.origin[0] + up[0] * scale,
+				p.origin[1] + up[1] * scale,
+				p.origin[2] + up[2] * scale);
+
+			gl.glTexCoord2f(0.0625f, 1.0625f);
+			gl.glVertex3f(
+				p.origin[0] + right[0] * scale,
+				p.origin[1] + right[1] * scale,
+				p.origin[2] + right[2] * scale);
+		}
+
+		gl.glEnd();
+		gl.glDisable(GL.GL_BLEND);
+		gl.glColor4f(1, 1, 1, 1);
+		gl.glDepthMask(true); // back to normal Z buffering
+		GL_TexEnv(GL.GL_REPLACE);
+	}
 
 	/*
 	===============
@@ -597,7 +601,7 @@ public abstract class Main extends Base {
 		}
 		else
 		{
-			GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
+			GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles);
 		}
 	}
 
