@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Mesh.java,v 1.2 2004-06-09 19:34:23 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -58,10 +58,6 @@ public abstract class Mesh extends Light {
 	static final int NUMVERTEXNORMALS =	162;
 
 	float[][] r_avertexnormals = Anorms.VERTEXNORMALS;
-
-	float[][] s_lerped = new float[qfiles.MAX_VERTS][4];
-
-
 	float[] shadevector = {0, 0, 0};
 	float[] shadelight = {0, 0, 0};
 
@@ -118,6 +114,9 @@ public abstract class Mesh extends Light {
 	FloatBuffer textureArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 2);
 	boolean isFilled = false;
 	float[] tmpVec = {0, 0, 0};
+	float[][] vectors = {
+		{0, 0, 0}, {0, 0, 0}, {0, 0, 0} // 3 mal vec3_t
+	};
 	
 	/*
 	=============
@@ -143,16 +142,12 @@ public abstract class Mesh extends Light {
 
 		float[] move = {0, 0, 0}; // vec3_t
 		float[] delta = {0, 0, 0}; // vec3_t
-		float[][] vectors = {
-			{0, 0, 0}, {0, 0, 0}, {0, 0, 0} // 3 mal vec3_t
-		};
 		
 		float[] frontv = {0, 0, 0}; // vec3_t
 		float[] backv = {0, 0, 0}; // vec3_t
 
 		int		i;
 		int		index_xyz;
-		//float[][]	lerp;
 
 		frame = paliashdr.aliasFrames[currententity.frame];
 
@@ -161,8 +156,6 @@ public abstract class Mesh extends Light {
 		oldframe = paliashdr.aliasFrames[currententity.oldframe];
 
 		ov = oldframe.verts;
-
-		order = paliashdr.glCmds;
 
 		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
 			alpha = currententity.alpha;
@@ -354,12 +347,6 @@ public abstract class Mesh extends Light {
 		
 		qfiles.dmdl_t paliashdr;
 
-		float[][] vectors = {
-			{0, 0, 0},
-			{0, 0, 0},
-			{0, 0, 0}
-		};
-
 		float[] thismins = {0, 0, 0};
 		float[] oldmins = {0, 0, 0};
 		float[] thismaxs = {0, 0, 0};
@@ -448,10 +435,10 @@ public abstract class Mesh extends Light {
 		angles[YAW] = -angles[YAW];
 		Math3D.AngleVectors( angles, vectors[0], vectors[1], vectors[2] );
 
+		float[] tmp = {0, 0, 0};
+
 		for ( i = 0; i < 8; i++ )
 		{
-			float[] tmp = {0, 0, 0};
-
 			Math3D.VectorCopy( bbox[i], tmp );
 
 			bbox[i][0] = Math3D.DotProduct( vectors[0], tmp );
@@ -491,6 +478,13 @@ public abstract class Mesh extends Light {
 		}
 	}
 
+
+	// bounding box
+	float[][] bbox = {
+		{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0},
+		{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}
+	};
+
 	/*
 	=================
 	R_DrawAliasModel
@@ -503,11 +497,6 @@ public abstract class Mesh extends Light {
 		qfiles.dmdl_t paliashdr;
 		float		an;
 
-		// bounding box
-		float[][] bbox = {
-			{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0},
-			{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}
-		};
 		image_t		skin;
 
 		if ( ( e.flags & Defines.RF_WEAPONMODEL ) == 0)
