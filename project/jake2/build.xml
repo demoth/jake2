@@ -12,6 +12,7 @@
 	<!-- different classpaths -->
 	<path id="build.class.path">
 		<pathelement location="lib/jogl/linux/jogl.jar"/>
+		<pathelement location="lib/joal/linux/joal.jar"/>
 	</path>
 	
 	<!-- initialize directories -->
@@ -35,11 +36,17 @@
 			<fileset dir="lib/jogl/linux">
 				<include name="*"/>
 			</fileset>
+			<fileset dir="lib/joal/linux">
+				<include name="*"/>
+			</fileset>			
 		</copy>
 		<copy todir="${dist}/lib/windows">
 			<fileset dir="lib/jogl/windows">
 				<include name="*"/>
 			</fileset>
+			<fileset dir="lib/joal/windows">
+				<include name="*"/>
+			</fileset>			
 		</copy>		
 		<copy todir="${dist}">
 			<fileset dir="scripts">
@@ -71,6 +78,7 @@
 			defaultpackage="" overloadaggressively="off">
 			<injar name="${dist}/lib/jake.jar"/>
 			<libraryjar name="lib/jogl/linux/jogl.jar"/>
+			<libraryjar name="lib/joal/linux/joal.jar"/>
 			<libraryjar name="${java.home}/lib/rt.jar"/>
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
