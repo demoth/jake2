@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.14 2004-05-19 16:41:01 cwei Exp $
+ * $Id: Mesh.java,v 1.15 2004-05-19 23:17:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -305,6 +305,8 @@ public abstract class Mesh extends Light {
 		{
 			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, s_lerped, move, frontv, backv );
 
+			float[] tmp;
+			
 			while (true)
 			{
 				// get the vertex count and primitive type
@@ -329,7 +331,8 @@ public abstract class Mesh extends Light {
 						orderIndex += 3;
 
 						gl.glColor4f( shadelight[0], shadelight[1], shadelight[2], alpha);
-						gl.glVertex3fv (s_lerped[index_xyz]);
+						tmp = s_lerped[index_xyz];
+						gl.glVertex3f(tmp[0], tmp[1], tmp[2]);
 
 					} while (--count != 0);
 				}
@@ -348,7 +351,8 @@ public abstract class Mesh extends Light {
 						l = shadedots[verts[index_xyz].lightnormalindex];
 					
 						gl.glColor4f (l* shadelight[0], l*shadelight[1], l*shadelight[2], alpha);
-						gl.glVertex3fv (s_lerped[index_xyz]);
+						tmp = s_lerped[index_xyz];
+						gl.glVertex3f(tmp[0], tmp[1], tmp[2]);
 					} while (--count != 0);
 				}
 				gl.glEnd ();
