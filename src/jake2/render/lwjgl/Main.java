@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2005-01-17 13:30:38 cawe Exp $
+ * $Id: Main.java,v 1.4 2005-01-18 00:26:21 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -894,7 +894,7 @@ public abstract class Main extends Base {
 	}
 
 	// stack variable
-	private final float[] shadelight1 = { 0, 0, 0 };
+	private final float[] light = { 0, 0, 0 };
 	/**
 	 *	R_SetLightLevel
 	 */
@@ -904,21 +904,21 @@ public abstract class Main extends Base {
 
 		// save off light value for server to look at (BIG HACK!)
 
-		R_LightPoint(r_newrefdef.vieworg, shadelight);
+		R_LightPoint(r_newrefdef.vieworg, light);
 
 		// pick the greatest component, which should be the same
 		// as the mono value returned by software
-		if (shadelight1[0] > shadelight1[1]) {
-			if (shadelight1[0] > shadelight1[2])
-				r_lightlevel.value = 150 * shadelight1[0];
+		if (light[0] > light[1]) {
+			if (light[0] > light[2])
+				r_lightlevel.value = 150 * light[0];
 			else
-				r_lightlevel.value = 150 * shadelight1[2];
+				r_lightlevel.value = 150 * light[2];
 		}
 		else {
-			if (shadelight1[1] > shadelight1[2])
-				r_lightlevel.value = 150 * shadelight1[1];
+			if (light[1] > light[2])
+				r_lightlevel.value = 150 * light[1];
 			else
-				r_lightlevel.value = 150 * shadelight1[2];
+				r_lightlevel.value = 150 * light[2];
 		}
 	}
 
