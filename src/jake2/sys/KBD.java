@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.3 2004-01-09 09:48:59 hoz Exp $
+ * $Id: KBD.java,v 1.4 2004-01-09 10:29:27 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -215,35 +215,27 @@ public final class KBD {
 			case KeyEvent.VK_F12: key = Key.K_F12; break; 
 
 			case KeyEvent.VK_BACK_SPACE: key = Key.K_BACKSPACE; break; 
- 
-//	00683                 case XK_KP_Delete: key = K_KP_DEL; break;
-//	00684                 case XK_Delete: key = K_DEL; break;
-//	00685 
-//	00686                 case XK_Pause:  key = K_PAUSE;           break;
-//	00687 
-//	00688                 case XK_Shift_L:
-//	00689                 case XK_Shift_R:        key = K_SHIFT;          break;
-//	00690 
-//	00691                 case XK_Execute: 
-//	00692                 case XK_Control_L: 
-//	00693                 case XK_Control_R:      key = K_CTRL;            break;
-//	00694 
-//	00695                 case XK_Alt_L:  
-//	00696                 case XK_Meta_L: 
-//	00697                 case XK_Alt_R:  
-//	00698                 case XK_Meta_R: key = K_ALT;                    break;
-//	00699 
-//	00700                 case XK_KP_Begin: key = K_KP_5; break;
-//	00701 
-//	00702                 case XK_Insert:key = K_INS; break;
-//	00703                 case XK_KP_Insert: key = K_KP_INS; break;
-//	00704 
-//	00705                 case XK_KP_Multiply: key = '*'; break;
-//	00706                 case XK_KP_Add:  key = K_KP_PLUS; break;
-//	00707                 case XK_KP_Subtract: key = K_KP_MINUS; break;
-//	00708                 case XK_KP_Divide: key = K_KP_SLASH; break;
-//	00709 
 
+			case KeyEvent.VK_DELETE: key = Key.K_DEL; break; 
+//	00683                 case XK_KP_Delete: key = K_KP_DEL; break;
+
+			case KeyEvent.VK_PAUSE: key = Key.K_PAUSE; break; 
+	
+			case KeyEvent.VK_SHIFT: key = Key.K_SHIFT; break; 
+			case KeyEvent.VK_CONTROL: key = Key.K_CTRL; break; 
+			
+			case KeyEvent.VK_ALT:
+			case KeyEvent.VK_ALT_GRAPH: key = Key.K_ALT; break;
+ 
+//	00700                 case XK_KP_Begin: key = K_KP_5; break;
+//	00701
+			case KeyEvent.VK_INSERT: key = Key.K_INS; break;
+
+			case KeyEvent.VK_MULTIPLY: key = '*'; break;
+			case KeyEvent.VK_PLUS: key = Key.K_KP_PLUS; break;
+			case KeyEvent.VK_MINUS: key = Key.K_KP_MINUS; break;
+			case KeyEvent.VK_DIVIDE: key = Key.K_KP_SLASH; break;
+ 
 			default:
 				key = ev.getKeyChar();
 				if (key >= 'A' && key <= 'Z')
