@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.3 2004-01-21 17:08:39 cwei Exp $
+ * $Id: Warp.java,v 1.4 2004-01-22 15:44:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -277,8 +277,8 @@ public abstract class Warp extends Model {
 	Does a water warp on the pre-fragmented glpoly_t chain
 	=============
 	*/
-//	void EmitWaterPolys (msurface_t *fa)
-//	{
+	void EmitWaterPolys(msurface_t fa)
+	{
 //		glpoly_t	*p, *bp;
 //		float		*v;
 //		int			i;
@@ -320,7 +320,7 @@ public abstract class Warp extends Model {
 //			}
 //			qglEnd ();
 //		}
-//	}
+	}
 
 
 //	  ===================================================================

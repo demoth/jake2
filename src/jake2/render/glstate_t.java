@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glstate_t.java,v 1.3 2003-12-29 01:48:28 cwei Exp $
+// $Id: glstate_t.java,v 1.4 2004-01-22 15:44:40 cwei Exp $
 
 package jake2.render;
 
@@ -28,13 +28,13 @@ public class glstate_t
 	public float inverse_intensity;
 	public boolean fullscreen;
 
-	public int     prev_mode;
+	public int prev_mode;
 
-	public byte	d_16to8table[];
+	public byte d_16to8table[];
 
 	public int lightmap_textures;
 
-	public int	currenttextures[]= {0,0};
+	public int currenttextures[]= {0,0};
 	public int currenttmu;
 
 	public float camera_separation;

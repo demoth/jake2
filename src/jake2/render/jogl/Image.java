@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.14 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Image.java,v 1.15 2004-01-22 15:44:40 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -153,6 +153,7 @@ public abstract class Image extends Main {
 
 		if (qglSelectTextureSGIS) {
 			// TODO handle this: gl.glSelectTextureSGIS(texture);
+			gl.glActiveTexture(texture);
 		} else if (qglActiveTextureARB) {
 			gl.glActiveTextureARB(texture);
 			gl.glClientActiveTextureARB(texture);
@@ -166,7 +167,7 @@ public abstract class Image extends Main {
 
 		if ( mode != lastmodes[gl_state.currenttmu] )
 		{
-			gl.glTexEnvf( GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, mode );
+			gl.glTexEnvi( GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, mode );
 			lastmodes[gl_state.currenttmu] = mode;
 		}
 	}
@@ -174,7 +175,7 @@ public abstract class Image extends Main {
 
 	void GL_Bind(int texnum) {
 
-		if ((gl_nobind.value > 0.0f) && (draw_chars != null)) {
+		if ((gl_nobind.value != 0) && (draw_chars != null)) {
 			// performance evaluation option
 			texnum = draw_chars.texnum;
 		}
@@ -291,8 +292,8 @@ public abstract class Image extends Main {
 			if (glt.type != it_pic && glt.type != it_sky )
 			{
 				GL_Bind(glt.texnum);
-				gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, gl_filter_min);
-				gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, gl_filter_max);
+				gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, gl_filter_min);
+				gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, gl_filter_max);
 			}
 		}
 	}

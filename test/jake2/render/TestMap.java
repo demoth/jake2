@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.1 2004-01-22 01:51:57 cwei Exp $
+ * $Id: TestMap.java,v 1.2 2004-01-22 15:44:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -185,7 +185,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.1 2004-01-22 01:51:57 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.2 2004-01-22 15:44:40 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -198,46 +198,58 @@ public class TestMap
 
 	float fps = 0.0f;
 	long start = 0;
-
-	void updateScreen()
-	{
-		re.BeginFrame(0.0f);
-
-		if (framecount % 500 == 0)
-		{
-			long time = System.currentTimeMillis();
-			fps = 500000.0f / (time - start);
-			start = time;
-		}
-		String text = fps + " fps";
-
-		testMap();
-
-		drawString(10, viddef.height - 16, text);
-		
-		re.EndFrame();
-		framecount++;
-	}
-
 	long startTime;
 
 	void run()
 	{
-		// register the map
-		re.BeginRegistration("base1");
-		//re.EndRegistration();
-		
 		startTime = System.currentTimeMillis();
 		while (true)
 		{
 			re.updateScreen();
 			KBD.Update();
-			try {
-				Thread.sleep(5);
-			}
-			catch (InterruptedException e) {
-			}
+//			try {
+//				Thread.sleep(5);
+//			}
+//			catch (InterruptedException e) {
+//			}
 		}
+	}
+
+	int currentState = 0;
+
+	void updateScreen()
+	{
+		re.BeginFrame(0.0f);
+		
+		switch (currentState)
+		{
+			case 0 :
+				re.DrawStretchPic(0, 0, viddef.width, viddef.height, "conback");
+				re.DrawPic(viddef.width / 2 - 50, viddef.height / 2, "loading");
+				currentState = 1;
+				break;
+			case 1 :
+				// register the map
+				re.BeginRegistration("base1");
+				re.EndRegistration();
+				currentState = 2;
+				//break;
+			default :
+				if (framecount % 500 == 0)
+				{
+					long time = System.currentTimeMillis();
+					fps = 500000.0f / (time - start);
+					start = time;
+				}
+				String text = fps + " fps";
+
+				testMap();
+
+				drawString(10, viddef.height - 16, text);
+		}
+		
+		re.EndFrame();
+		framecount++;
 	}
 
 	//		===================================================================
@@ -263,7 +275,7 @@ public class TestMap
 			refdef.vieworg = new float[] {0, 0, 0};
 			refdef.viewangles = new float[] {0, 0, 0};
 
-			refdef.blend = new float[] { 1.0f, 0.5f, 0.25f, 0.5f };
+			refdef.blend =  new float[] { 0.0f, 0.0f, 0.0f, 0.5f };
 
 			refdef.areabits = null; // draw all
 //			refdef.areabits = new byte[Defines.MAX_MAP_AREAS / 8];
@@ -273,20 +285,26 @@ public class TestMap
 			refdef.entities = null;
 
 			lightstyle_t light = new lightstyle_t();
-			light.rgb = new float[] {0, 0, 0.8f};
-			light.white = 1.0f;
+			light.rgb = new float[] {1.0f, 1.0f, 1.0f};
+			light.white = 3.0f;
 
 			refdef.lightstyles = new lightstyle_t[] { light };
 		}
 
 		refdef.time = time() * 0.001f;
 		
-		refdef.viewangles[0] = -10;
-		refdef.viewangles[1] = 140 + 20 * (float)Math.sin(time() * 0.001f);
+		refdef.viewangles[0] = -5;
+		refdef.viewangles[1] = 110 + 40 * (float)Math.sin(time() * 0.0005f);
 
-		refdef.vieworg[0] = 120 + 50 * (float)Math.sin(time() * 0.001f);
-		refdef.vieworg[1] = -200 + 50 * (float)Math.sin(time() * 0.002f);
+		refdef.vieworg[0] = 160 + 40 * (float)Math.sin(time() * 0.001f);
+		refdef.vieworg[1] = -200 + 20 * (float)Math.sin(time() * 0.002f);
 		refdef.vieworg[2] = 50;
+		
+		// wichtig da aufloesung 1/8
+		// --> ebenen schneiden nie genau die sicht
+		refdef.vieworg[0] += 1.0f / 16;
+		refdef.vieworg[1] += 1.0f / 16;
+		refdef.vieworg[2] += 1.0f / 16;
 
 		re.RenderFrame(refdef);
 	}
