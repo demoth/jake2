@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.24 2004-03-16 12:46:22 cwei Exp $
+ * $Id: Image.java,v 1.25 2004-06-06 21:05:42 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
+import jake2.client.particle_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.longjmpException;
 import jake2.qcommon.qfiles;
@@ -1578,7 +1579,7 @@ public abstract class Image extends Main {
 
 			// free it
 			// TODO jogl bug
-			//gl.glDeleteTextures(1, new int[] {image.texnum});
+			gl.glDeleteTextures(1, new int[] {image.texnum});
 			image.clear();
 		}
 	}
@@ -1590,7 +1591,6 @@ public abstract class Image extends Main {
 	*/
 	protected void Draw_GetPalette() {
 		int r, g, b;
-		int v;
 		Dimension dim;
 		byte[] pic;
 		byte[][] palette = new byte[1][]; //new byte[768];
@@ -1604,15 +1604,18 @@ public abstract class Image extends Main {
 
 		byte[] pal = palette[0];
 
+		int j = 0;
 		for (int i = 0; i < 256; i++) {
-			r = pal[i * 3 + 0];
-			g = pal[i * 3 + 1];
-			b = pal[i * 3 + 2];
+			r = pal[j++] & 0xFF;
+			g = pal[j++] & 0xFF;
+			b = pal[j++] & 0xFF;
 
-			d_8to24table[i] = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+			d_8to24table[i] = (255 << 24) | (b << 16) | (g << 8) | (r << 0);
 		}
 
-		d_8to24table[255] &= 0x00ffffff; // 255 is transparent
+		d_8to24table[255] &= 0x00FFFFFF; // 255 is transparent
+		
+		particle_t.setColorPalette(d_8to24table);
 	}
 
 	/*
@@ -1686,7 +1689,7 @@ public abstract class Image extends Main {
 	   			continue; // free image_t slot
 			// free it
 			// TODO jogl bug
-			//gl.glDeleteTextures(1, new int[] {image.texnum});
+			gl.glDeleteTextures(1, new int[] {image.texnum});
 	  		image.clear();
 		}
 	}
