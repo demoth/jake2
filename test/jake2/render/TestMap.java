@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.9 2004-01-28 10:19:51 cwei Exp $
+ * $Id: TestMap.java,v 1.10 2004-01-28 10:52:35 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,7 +195,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.9 2004-01-28 10:19:51 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.10 2004-01-28 10:52:35 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -444,15 +444,19 @@ public class TestMap
 		
 		// check the enemy distance
 		float[] diff = {0, 0, 0};
-		Math3D.VectorSubtract(ent.origin, refdef.vieworg, diff);
-		//System.out.println(dist);
+		Math3D.VectorSubtract( refdef.vieworg, ent.origin, diff);
+
 		if (Math3D.VectorLength(diff) < 250 && active_particles.size() == 0) {
 			RailTrail(ent.origin, refdef.vieworg);
 		} else {
 			// monster and partice animation
 			if (active_particles.size() > 0) {
-				// mosnster
+				// monster
 				ent.frame = (int)((time() * 0.013f) % 15);
+				// monster look at you :-)
+				Math3D.VectorNormalize(diff);
+				Math3D.vectoangles(diff, ent.angles);
+				
 				// particles
 				animateParticles();
 
