@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.13 2004-02-12 14:23:15 cwei Exp $
+ * $Id: CL_input.java,v 1.14 2004-02-14 21:15:00 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -299,6 +299,7 @@ public class CL_input extends CL_ents {
 			cmd.sidemove *= 2;
 			cmd.upmove *= 2;
 		}
+		
 	}
 
 	static void ClampPitch() {
@@ -358,6 +359,15 @@ public class CL_input extends CL_ents {
 
 		// send the ambient light level at the player's current position
 		cmd.lightlevel = (byte)cl_lightlevel.value;
+		
+		//Com.p("forward =" + cmd.forwardmove);
+		
+		//TODO: INPUT BUGFIX that is so unbelievable dreckig.
+		
+		// hauptsache der scheissmist zuckelt.
+		cmd.forwardmove += (int) (10 * Math.random() -5);
+		
+		
 	}
 
 	/*
