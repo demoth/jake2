@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.5 2004-02-12 16:59:59 rst Exp $
+// $Id: SV_WORLD.java,v 1.6 2004-02-12 17:05:15 rst Exp $
 
 package jake2.server;
 
@@ -554,6 +554,7 @@ public class SV_WORLD extends SV_CCMDS
 	public static void SV_ClipMoveToEntities(moveclip_t clip)
 	{
 		int i, num;
+		// TODO: make static instead of new
 		edict_t touchlist[]= new edict_t[MAX_EDICTS];
 		edict_t touch;
 		trace_t trace;
@@ -688,7 +689,7 @@ public class SV_WORLD extends SV_CCMDS
 		int contentmask)
 	{
 		moveclip_t clip= new moveclip_t();
-		;
+		
 
 		if (mins == null)
 			mins= vec3_origin;
