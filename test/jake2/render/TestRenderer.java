@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.13 2004-01-05 21:46:44 cwei Exp $
+ * $Id: TestRenderer.java,v 1.14 2004-01-08 13:06:51 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.util.Arrays;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -163,13 +164,13 @@ public class TestRenderer {
 
 	void updateScreen() {
 		re.BeginFrame(0.0f);
-		viddef = VID.viddef;
-		re.DrawStretchPic(0,0,VID.viddef.width, VID.viddef.height, "conback");
+		viddef = Globals.viddef;
+		re.DrawStretchPic(0,0,viddef.width, viddef.height, "conback");
 		
 		String text = "Hallo Jake2 :-)";
 		
 		for (int i = 0; i < text.length(); i++) {
-			re.DrawChar(10 + 8 * i, VID.viddef.height/2, (int)text.charAt(i));
+			re.DrawChar(10 + 8 * i, viddef.height/2, (int)text.charAt(i));
 		}
 		
 		Dimension wal = new Dimension();
@@ -409,7 +410,7 @@ public class TestRenderer {
 
 		a = a * 360 / Math.PI;
 
-		return new Double(a).floatValue();
+		return (float) a; //new Double(a).floatValue();
 	}
 
 	private void drawString(int x, int y, String text) {

@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.4 2003-12-27 03:09:10 cwei Exp $
+ * $Id: VID.java,v 1.5 2004-01-08 13:06:51 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.qcommon.Com;
 import jake2.util.Vargs;
 
@@ -57,7 +58,7 @@ public class VID {
 	static final int NUM_MODES = vid_modes.length;
 
 	//	Global variables used internally by this module
-	public static viddef_t viddef = new viddef_t();
+	//public static viddef_t viddef = new viddef_t();
 	// global video state; used by other modules
 
 	// TODO implement VID;
@@ -117,8 +118,8 @@ public class VID {
 	 * @param height
 	 */
 	public static void NewWindow(int width, int height) {
-		viddef.width = width;
-		viddef.height = height;
+		Globals.viddef.width = width;
+		Globals.viddef.height = height;
 	}
 	
 	public static void Printf(int print_level, String fmt, Vargs vargs) {
