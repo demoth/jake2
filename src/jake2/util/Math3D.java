@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.3 2003-12-27 21:33:50 rst Exp $
+// $Id: Math3D.java,v 1.4 2003-12-28 23:47:48 cwei Exp $
 
 package jake2.util;
 
@@ -303,9 +303,12 @@ public class Math3D extends Lib {
 	/** 
 	 stellt fest, auf welcher Seite sich die Kiste befindet, wenn die Ebene 
 	 durch Entfernung und Senkrechten-Normale gegeben ist.    
-	 erste Version mit v ec 3_t... */
+	 erste Version mit vec3_t... */
 
 	public static int BoxOnPlaneSide(float emins[], float emaxs[], cplane_t p) {
+		
+		assert (emins.length == 3 && emaxs.length == 3) : "vec3_t bug";
+		
 		float dist1, dist2;
 		int sides;
 
