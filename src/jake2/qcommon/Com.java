@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.10 2005-01-23 20:04:02 cawe Exp $
+ * $Id: Com.java,v 1.11 2005-02-06 19:25:55 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,6 +43,9 @@ import java.io.*;
 public final class Com
 {
 
+    static String debugContext = "";
+    static String _debugContext = "";
+    
 	static int com_argc;
 	static String[] com_argv= new String[Defines.MAX_NUM_ARGVS];
 
@@ -339,26 +342,34 @@ public final class Com
 
 	public static void DPrintf(String fmt)
 	{
+	    _debugContext = debugContext;
 		DPrintf(fmt, null);
+		_debugContext = "";
+	}
+	
+	public static void dprintln(String fmt)
+	{
+		DPrintf(_debugContext + fmt + "\n", null);
 	}
 
 	public static void Printf(String fmt)
 	{
-		Printf(fmt, null);
+		Printf(_debugContext + fmt, null);
 	}
 
 	public static void DPrintf(String fmt, Vargs vargs)
 	{
 		if (Globals.developer == null || Globals.developer.value == 0)
 			return; // don't confuse non-developers with techie stuff...
-
+		_debugContext = debugContext;
 		Printf(fmt, vargs);
+		_debugContext="";
 	}
 
 	public static void Printf(String fmt, Vargs vargs)
 	{
-		// TODO Com.Printf ist nur zum testen
-		String msg= sprintf(fmt, vargs);
+		// Com.Printf is for testing only.
+		String msg= sprintf(_debugContext + fmt, vargs);
 
 		if (rd_target != 0)
 		{
@@ -424,7 +435,7 @@ public final class Com
 
 	public static void Println(String fmt)
 	{
-		Printf(fmt + "\n");
+		Printf(_debugContext + fmt + "\n");
 	}
 
 	public static String sprintf(String fmt, Vargs vargs)
