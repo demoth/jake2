@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.14 2004-06-09 14:32:37 hoz Exp $
+ * $Id: CL_view.java,v 1.15 2004-06-15 17:11:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -101,7 +101,7 @@ public class CL_view extends CL_input {
 
 			
 			if (name.charAt(0) != '*')
-				Com.Printf("name" + "\r");
+				Com.Printf(name + "\r");
 			
 			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
@@ -133,7 +133,7 @@ public class CL_view extends CL_input {
 		for (i=0 ; i<MAX_CLIENTS ; i++) {
 			if (cl.configstrings[CS_PLAYERSKINS+i].length() == 0)
 				continue;
-			Com.Printf("client %i\r", new Vargs(1).add(i));
+			Com.Printf("client " + i + '\r');
 			SCR.UpdateScreen2();
 			Sys.SendKeyEvents();	// pump message loop
 			CL.ParseClientinfo(i);
