@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.13 2004-01-18 10:39:34 rst Exp $
+ * $Id: Cbuf.java,v 1.14 2004-01-25 12:32:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.util.Lib;
 
 /**
  * Cbuf
- * TODO complete Cbuf interface
  */
 public final class Cbuf {
 
@@ -137,6 +137,7 @@ public final class Cbuf {
 	 * @param text
 	 */
 	public static void AddText(String text) {
+		System.out.println(text);
 		int l = text.length();
 
 		if (Globals.cmd_text.cursize + l >= Globals.cmd_text.maxsize) {
@@ -207,6 +208,22 @@ public final class Cbuf {
 				Globals.cmd_wait = false;
 				break;
 			}
+		}
+	}
+
+	public static void ExecuteText(int exec_when, String text) {
+		switch(exec_when) {
+			case Defines.EXEC_NOW:
+				Cmd.ExecuteString(text);
+				break;
+			case Defines.EXEC_INSERT:
+				Cbuf.InsertText(text);
+				break;
+			case Defines.EXEC_APPEND:
+				Cbuf.AddText(text);
+				break;
+			default:
+				Com.Error(Defines.ERR_FATAL, "Cbuf_ExecuteText: bad exec_when");
 		}
 	}
 

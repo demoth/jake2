@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.15 2004-01-19 20:26:45 hoz Exp $
+ * $Id: Key.java,v 1.16 2004-01-25 12:32:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,7 +36,6 @@ import jake2.util.Lib;
 
 /**
  * Key
- * TODO complete key interface
  */
 public final class Key {
 	//
@@ -150,80 +149,46 @@ public final class Key {
 		keynames[K_F11] = "F11";
 		keynames[K_F12] = "F12";
 
-//	00080 
-//	00081         {"INS", K_INS},
-//	00082         {"DEL", K_DEL},
-//	00083         {"PGDN", K_PGDN},
-//	00084         {"PGUP", K_PGUP},
-//	00085         {"HOME", K_HOME},
-//	00086         {"END", K_END},
-//	00087 
-//	00088         {"MOUSE1", K_MOUSE1},
-//	00089         {"MOUSE2", K_MOUSE2},
-//	00090         {"MOUSE3", K_MOUSE3},
-//	00091 
+		keynames[K_INS] = "INS";
+		keynames[K_DEL] = "DEL";
+		keynames[K_PGDN] = "PGDN";
+		keynames[K_PGUP] = "PGUP";
+		keynames[K_HOME] = "HOME";
+		keynames[K_END] = "END";
+
+		keynames[K_MOUSE1] = "MOUSE1";
+		keynames[K_MOUSE2] = "MOUSE2";
+		keynames[K_MOUSE3] = "MOUSE3";
+
 //	00092         {"JOY1", K_JOY1},
 //	00093         {"JOY2", K_JOY2},
 //	00094         {"JOY3", K_JOY3},
 //	00095         {"JOY4", K_JOY4},
-//	00096 
-//	00097         {"AUX1", K_AUX1},
-//	00098         {"AUX2", K_AUX2},
-//	00099         {"AUX3", K_AUX3},
-//	00100         {"AUX4", K_AUX4},
-//	00101         {"AUX5", K_AUX5},
-//	00102         {"AUX6", K_AUX6},
-//	00103         {"AUX7", K_AUX7},
-//	00104         {"AUX8", K_AUX8},
-//	00105         {"AUX9", K_AUX9},
-//	00106         {"AUX10", K_AUX10},
-//	00107         {"AUX11", K_AUX11},
-//	00108         {"AUX12", K_AUX12},
-//	00109         {"AUX13", K_AUX13},
-//	00110         {"AUX14", K_AUX14},
-//	00111         {"AUX15", K_AUX15},
-//	00112         {"AUX16", K_AUX16},
-//	00113         {"AUX17", K_AUX17},
-//	00114         {"AUX18", K_AUX18},
-//	00115         {"AUX19", K_AUX19},
-//	00116         {"AUX20", K_AUX20},
-//	00117         {"AUX21", K_AUX21},
-//	00118         {"AUX22", K_AUX22},
-//	00119         {"AUX23", K_AUX23},
-//	00120         {"AUX24", K_AUX24},
-//	00121         {"AUX25", K_AUX25},
-//	00122         {"AUX26", K_AUX26},
-//	00123         {"AUX27", K_AUX27},
-//	00124         {"AUX28", K_AUX28},
-//	00125         {"AUX29", K_AUX29},
-//	00126         {"AUX30", K_AUX30},
-//	00127         {"AUX31", K_AUX31},
-//	00128         {"AUX32", K_AUX32},
-//	00129 
-//	00130         {"KP_HOME",                     K_KP_HOME },
-//	00131         {"KP_UPARROW",          K_KP_UPARROW },
-//	00132         {"KP_PGUP",                     K_KP_PGUP },
-//	00133         {"KP_LEFTARROW",        K_KP_LEFTARROW },
-//	00134         {"KP_5",                        K_KP_5 },
-//	00135         {"KP_RIGHTARROW",       K_KP_RIGHTARROW },
-//	00136         {"KP_END",                      K_KP_END },
-//	00137         {"KP_DOWNARROW",        K_KP_DOWNARROW },
-//	00138         {"KP_PGDN",                     K_KP_PGDN },
-//	00139         {"KP_ENTER",            K_KP_ENTER },
-//	00140         {"KP_INS",                      K_KP_INS },
-//	00141         {"KP_DEL",                      K_KP_DEL },
-//	00142         {"KP_SLASH",            K_KP_SLASH },
-//	00143         {"KP_MINUS",            K_KP_MINUS },
-//	00144         {"KP_PLUS",                     K_KP_PLUS },
-//	00145 
-//	00146         {"MWHEELUP", K_MWHEELUP },
-//	00147         {"MWHEELDOWN", K_MWHEELDOWN },
-//	00148 
-//	00149         {"PAUSE", K_PAUSE},
-//	00150 
-//	00151         {"SEMICOLON", ';'},     // because a raw semicolon seperates commands
-//	00152 
-//	00153         {NULL,0}	
+
+		keynames[K_KP_HOME] = "KP_HOME";
+		keynames[K_KP_UPARROW] = "KP_UPARROW";
+		keynames[K_KP_PGUP] = "KP_PGUP";
+		keynames[K_KP_LEFTARROW] = "KP_LEFTARROW";
+		keynames[K_KP_5] = "KP_5";
+		keynames[K_KP_RIGHTARROW] = "KP_RIGHTARROW";
+		keynames[K_KP_END] = "KP_END";
+		keynames[K_KP_DOWNARROW] = "KP_DOWNARROW";
+		keynames[K_KP_PGDN] = "KP_PGDN";
+		keynames[K_KP_ENTER] = "KP_ENTER";
+		keynames[K_KP_INS] = "KP_INS";
+		keynames[K_KP_DEL] = "KP_DEL";
+		keynames[K_KP_SLASH] = "KP_SLASH";
+		
+		keynames[K_KP_PLUS] = "KP_PLUS";
+		keynames[K_KP_MINUS] = "KP_MINUS";
+		
+		keynames[K_MWHEELUP] = "MWHEELUP";
+		keynames[K_MWHEELDOWN] = "MWHEELDOWN";
+		
+		keynames[K_PAUSE] = "PAUSE";
+		keynames[';'] = "SEMICOLON"; // because a raw semicolon seperates commands
+
+		keynames[0] = "NULL";
 	}
 	
 	/**
@@ -761,6 +726,7 @@ public final class Key {
 		Globals.keybindings[keynum] = null;
 		
 		Globals.keybindings[keynum] = binding; 
+		System.out.println("bound: " + binding);
 	}
 	
 	static xcommand_t Unbind_f = new xcommand_t() {

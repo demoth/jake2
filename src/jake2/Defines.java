@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.20 2004-01-20 22:25:07 rst Exp $
+// $Id: Defines.java,v 1.21 2004-01-25 12:32:14 hoz Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1329,6 +1329,8 @@ public class Defines extends Math3D {
 	public static final int AREA_DEPTH = 4;
 	public static final int AREA_NODES = 32;
 	
-	//linux/sys.h
+	public static final int EXEC_NOW = 0;
+	public static final int EXEC_INSERT = 1;
+	public static final int EXEC_APPEND = 2;
 	
 }

@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.21 2004-01-13 16:00:40 cwei Exp $
+ * $Id: TestRenderer.java,v 1.22 2004-01-25 12:32:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -55,6 +55,7 @@ public class TestRenderer {
 	refimport_t ri;
 	viddef_t viddef;
 	int framecount = 0;
+	static int testnr = 0;
 
 	public TestRenderer(String[] args) {
 		this.args = args;
@@ -171,7 +172,11 @@ public class TestRenderer {
 //		for (int i = 0; i < raw.length; i++) {
 //			raw[i] = (byte)((i % 3) + 1); //((i % 4) + 20);
 //		} 
-		
+		Cmd.AddCommand("nexttest", nexttest);
+		Cbuf.AddText("bind n nexttest");
+		Cbuf.Execute();
+		Globals.cls.key_dest = Defines.key_game;
+		Globals.cls.state = Defines.ca_active;		
 	}
 
 	float fps = 0.0f;
@@ -198,7 +203,7 @@ public class TestRenderer {
 
 		re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
 
-		switch ((framecount / 500) % 3) {
+		switch (testnr) {
 			case 0 :
 				testParticles();
 				break;
@@ -223,6 +228,7 @@ public class TestRenderer {
 		while (true) {
 			re.updateScreen();
 			KBD.Update();
+			Cbuf.Execute();
 			try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {
@@ -827,5 +833,12 @@ public class TestRenderer {
 	private int time() {
 		return (int)(System.currentTimeMillis() - startTime);
 	}
+	
+	static xcommand_t nexttest = new xcommand_t() {
+		public void execute() {
+			testnr++;
+			testnr = testnr % 3;
+		}
+	};
 
 }

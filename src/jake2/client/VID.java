@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.7 2004-01-12 21:52:52 hoz Exp $
+ * $Id: VID.java,v 1.8 2004-01-25 12:32:14 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -215,7 +215,7 @@ public class VID {
 			}
 
 			public void Cmd_ExecuteText(int exec_when, String text) {
-				// TODO implement Cbuf_ExecuteText
+				Cbuf.ExecuteText(exec_when, text);
 			}
 
 			public void Con_Printf(int print_level, String str) {
@@ -352,8 +352,8 @@ public class VID {
 				Cvar.Set( "vid_ref", "jogl" );
 
 				/*
-				** drop the console if we fail to load a refresh
-				*/
+				 * drop the console if we fail to load a refresh
+				 */
 				if ( Globals.cls.key_dest != Globals.key_console )
 				{
 					try {
