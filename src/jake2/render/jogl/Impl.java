@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.15 2004-02-17 11:35:10 cwei Exp $
+ * $Id: Impl.java,v 1.16 2004-02-17 12:49:46 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.qcommon.xcommand_t;
 import jake2.sys.KBD;
 
 import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -105,8 +106,8 @@ public class Impl extends Misc implements GLEventListener {
 		
 		GLCanvas canvas = GLDrawableFactory.getFactory().createGLCanvas(new GLCapabilities());
 
-		// Use debug pipeline
-		canvas.setGL(new DebugGL(canvas.getGL()));
+		// TODO Use debug pipeline
+		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		//canvas.setRenderingThread(Thread.currentThread());
 
@@ -115,8 +116,9 @@ public class Impl extends Misc implements GLEventListener {
 
 		window.getContentPane().add(canvas);		
 		
+		
+		canvas.setSize(newDim.width, newDim.height);
 		window.setLocation(window_xpos, window_ypos);
-		window.setSize(newDim.width, newDim.height);
 		//window.setUndecorated(true);
 		window.setResizable(false);
 
@@ -135,7 +137,10 @@ public class Impl extends Misc implements GLEventListener {
 		canvas.addMouseMotionListener(KBD.listener);
 		window.addComponentListener(KBD.listener);
 
+		window.pack();
 		window.show();
+		canvas.requestFocus();
+
 		this.canvas = canvas;
 
 		vid.width = newDim.width;
