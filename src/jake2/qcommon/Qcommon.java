@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.16 2004-02-01 23:31:37 rst Exp $
+ * $Id: Qcommon.java,v 1.17 2004-02-02 17:52:36 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,6 +43,92 @@ import java.io.IOException;
  * namely initialization, shutdown and frame generation.
  */
 public final class Qcommon {
+
+	/**
+	 * This function initializes the different subsystems of
+		 * the game engine. The setjmp/longjmp mechanism of the original
+		 * was replaced with exceptions.
+	 * @param args the original unmodified command line arguments
+	 */
+	public static void InitForTestMap(String[] args) {
+		try {
+			Z.chain.next= Z.chain.prev= Z.chain;
+
+			// prepare enough of the subsystems to handle
+			// cvar and command buffer management
+			Com.InitArgv(args);
+
+			Swap.Init();
+			Cbuf.Init();
+
+			Cmd.Init();
+			Cvar.Init();
+
+			Key.Init();
+
+			// we need to add the early commands twice, because
+			// a basedir or cddir needs to be set before execing
+			// config files, but we want other parms to override
+			// the settings of the config files
+			Cbuf.AddEarlyCommands(false);
+			Cbuf.Execute();
+
+			FS.InitFilesystem();
+
+			Cbuf.AddText("exec default.cfg\n");
+			Cbuf.AddText("exec config.cfg\n");
+
+			Cbuf.AddEarlyCommands(true);
+			Cbuf.Execute();
+
+			//
+			// init commands and vars
+			//
+			Cmd.AddCommand("z_stats", Z.Stats_f);
+			Cmd.AddCommand("error", Com.Error_f);
+
+			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
+			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
+			Globals.developer= Cvar.Get("developer", "0", 0);
+			Globals.timescale= Cvar.Get("timescale", "1", 0);
+			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
+			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
+			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
+			Globals.dedicated= Cvar.Get("dedicated", "0", Cvar.NOSET);
+
+			String s = Com.sprintf("%4.2f %s %s %s",
+					new Vargs(4)
+						.add(Globals.VERSION)
+						.add(Globals.CPUSTRING)
+						.add(Globals.__DATE__)
+						.add(Globals.BUILDSTRING));
+
+			Cvar.Get("version", s, Cvar.SERVERINFO | Cvar.NOSET);
+
+			NET.NET_Init();
+			Netchan.Init();
+
+			//SV_MAIN.SV_Init();
+			CL.Init();
+
+			// add + commands from command line
+			if (!Cbuf.AddLateCommands()) {
+				// if the user didn't give any commands, run default action
+				Cbuf.AddText("d1\n");
+				Cbuf.Execute();
+			} else {
+				// the user asked for something explicit
+				// so drop the loading plaque
+				SCR.EndLoadingPlaque();
+			}
+
+			Com.Printf("====== Quake2 Initialized ======\n\n");
+
+		} catch (longjmpException e) {
+			Sys.Error("Error during initialization");
+		}
+	}
+
 
 	/**
 	 * This function initializes the different subsystems of
