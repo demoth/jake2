@@ -19,7 +19,7 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.9 2004-09-22 19:22:05 salomo Exp $
+// $Id: GameSpawn.java,v 1.10 2005-01-12 12:14:17 hzi Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -349,7 +349,7 @@ public class GameSpawn {
         float[] vec = { 0, 0, 0 };
 
         if (key.equals("nextmap"))
-            Com.p("nextmap: " + value);
+            Com.Println("nextmap: " + value);
         if (!GameBase.st.set(key, value))
             if (!ent.set(key, value))
                 GameBase.gi.dprintf("??? The key [" + key

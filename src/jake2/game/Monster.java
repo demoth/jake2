@@ -19,7 +19,7 @@
  */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.4 2004-09-22 19:22:06 salomo Exp $
+// $Id: Monster.java,v 1.5 2005-01-12 12:14:17 hzi Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -348,7 +348,7 @@ public class Monster {
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (self.index == 312)
-                Com.p("monster_triggered_start");
+                Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;
             self.movetype = Defines.MOVETYPE_NONE;
             self.svflags |= Defines.SVF_NOCLIENT;

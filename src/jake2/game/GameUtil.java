@@ -19,7 +19,7 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.7 2004-09-22 19:22:05 salomo Exp $
+// $Id: GameUtil.java,v 1.8 2005-01-12 12:14:17 hzi Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -828,7 +828,7 @@ public class GameUtil {
             if (it.pickup_name.equalsIgnoreCase(pickup_name))
                 return it;
         }
-        Com.p("Item not found:" + pickup_name);
+        Com.Println("Item not found:" + pickup_name);
         return null;
     }
 

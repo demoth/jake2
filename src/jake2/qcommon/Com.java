@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.6 2004-08-22 18:30:15 hzi Exp $
+ * $Id: Com.java,v 1.7 2005-01-12 12:14:16 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -91,10 +91,12 @@ public final class Com
 			if (in == null)
 			{
 				data= null;
+				length = 0;
 			}
 			else
 			{
 				data= in.toCharArray();
+				length = data.length;
 			}
 			index= 0;
 		}
@@ -108,39 +110,50 @@ public final class Com
 		{
 			data= in;
 			index= offset;
+			if (data != null) length = data.length;
+			else length = 0;
 		}
 
 		public char getchar()
 		{
-			// faster than if
-			try
-			{
-				return data[index];
-			}
-			catch (Exception e)
-			{
-				data= null;
-				// last char
-				return 0;
-			}
+		    if (index < length) {
+		        return data[index];
+		    }
+		    return 0;			
+//			// faster than if
+//			try
+//			{
+//				return data[index];
+//			}
+//			catch (Exception e)
+//			{
+//				data= null;
+//				// last char
+//				return 0;
+//			}
 		}
 
 		public char nextchar()
 		{
 			// faster than if
-			try
-			{
-				index++;
-				return data[index];
-			}
-			catch (Exception e)
-			{
-				data= null;
-				// avoid int wraps;
-				index--;
-				// last char
-				return 0;
-			}
+		    index++;
+		    if (index < length) {
+		        return data[index];
+		    }
+		    return 0;
+//			try
+//			{
+//				index++;
+//				return data[index];
+//			}
+//			catch (Exception e)
+//			{
+//				data= null;
+//				// avoid int wraps;
+//				index--;
+//				// last char
+//				return 0;
+//			}
 		}
 		
 		public char prevchar() {
@@ -154,32 +167,33 @@ public final class Com
 
 		public boolean isEof()
 		{
-			return data == null;
+			return index >= length;
 		}
 
 		public int index;
 		public char data[];
+		private int length;
 
 		public char skipwhites()
 		{
-			char c;
-			while (((c= getchar()) <= ' ') && c != 0)
+			char c = 0;
+			while ( index < length && ((c= data[index]) <= ' ') && c != 0)
 				index++;
 			return c;
 		}
 
 		public char skipwhitestoeol()
 		{
-			char c;
-			while (((c= getchar()) <= ' ') && c != '\n' && c != 0)
+			char c = 0;
+			while ( index < length &&((c= data[index]) <= ' ') && c != '\n' && c != 0)
 				index++;
 			return c;
 		}
 
 		public char skiptoeol()
 		{
-			char c;
-			while ((c= getchar()) != '\n' && c != 0)
+			char c = 0;
+			while ( index < length &&(c= data[index]) != '\n' && c != 0)
 				index++;
 			return c;
 		}
@@ -407,14 +421,7 @@ public final class Com
 
 	public static void Println(String fmt)
 	{
-		Printf(fmt);
-		Printf("\n");
-	}
-
-	public static void p(String fmt)
-	{
-		Printf(fmt);
-		Printf("\n");
+		Printf(fmt + "\n");
 	}
 
 	public static String sprintf(String fmt, Vargs vargs)

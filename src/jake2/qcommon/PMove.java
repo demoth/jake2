@@ -19,14 +19,12 @@
  */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.5 2004-09-22 19:22:09 salomo Exp $
+// $Id: PMove.java,v 1.6 2005-01-12 12:14:16 hzi Exp $
 package jake2.qcommon;
 
-import jake2.*;
-import jake2.client.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
 import jake2.util.Math3D;
 
 public class PMove {
@@ -46,8 +44,6 @@ public class PMove {
         public float frametime;
 
         public csurface_t groundsurface;
-
-        public cplane_t groundplane = new cplane_t();
 
         public int groundcontents;
 
@@ -618,7 +614,6 @@ public class PMove {
         } else {
             trace = PMove.pm.trace.trace(PMove.pml.origin, PMove.pm.mins,
                     PMove.pm.maxs, point);
-            PMove.pml.groundplane = trace.plane;
             PMove.pml.groundsurface = trace.surface;
             PMove.pml.groundcontents = trace.contents;
 
@@ -1069,8 +1064,8 @@ public class PMove {
         PMove.pm.watertype = 0;
         PMove.pm.waterlevel = 0;
 
-        // clear all pmove local vars
-        PMove.pml = new PMove.pml_t();
+        PMove.pml.groundsurface = null;
+        PMove.pml.groundcontents = 0;
 
         // convert origin and velocity to float values
         PMove.pml.origin[0] = PMove.pm.s.origin[0] * 0.125f;
