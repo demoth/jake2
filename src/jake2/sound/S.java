@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.5 2004-04-16 09:28:04 hoz Exp $
+ * $Id: S.java,v 1.6 2004-04-23 08:42:34 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,24 +25,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sound;
 
-import java.io.*;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import javax.sound.sampled.*;
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioSystem;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
 import jake2.sound.joal.JOALSoundImpl;
 import jake2.sound.jsound.JSoundImpl;
 import jake2.util.Vargs;
+
+import java.io.*;
+
+import javax.sound.sampled.*;
 
 /**
  * S
@@ -446,15 +440,18 @@ public class S {
 	}
 				
 	public static void StartSound(float[] origin, int entnum, int entchannel, sfx_t sfx, float fvol, float attenuation, float timeofs) {
-		sound.StartSound(origin, entnum, entchannel, sfx, fvol, attenuation, timeofs);
+		if (sound_started)
+			sound.StartSound(origin, entnum, entchannel, sfx, fvol, attenuation, timeofs);
 	}
 
 	public static void Update(float[] origin, float[] forward, float[] right, float[] up) {
-		sound.Update(origin, forward, right, up);
+		if (sound_started)
+			sound.Update(origin, forward, right, up);
 	}
 
 	public static void StopAllSounds()
 	{
-		sound.StopAllSounds();
+		if (sound_started)
+			sound.StopAllSounds();
 	}
 }
