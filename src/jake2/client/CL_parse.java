@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.21 2004-03-18 09:55:45 hoz Exp $
+ * $Id: CL_parse.java,v 1.22 2004-04-14 14:32:08 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -200,7 +200,7 @@ public class CL_parse extends CL_view {
 		S.BeginRegistration();
 		CL.RegisterTEntSounds();
 		for (int i = 1; i < MAX_SOUNDS; i++) {
-			if (cl.configstrings[CS_SOUNDS + i] == null || cl.configstrings[CS_SOUNDS + i] == "")
+			if (cl.configstrings[CS_SOUNDS + i] == null || cl.configstrings[CS_SOUNDS + i].equals("") || cl.configstrings[CS_SOUNDS + i].equals("\0"))
 				break;
 			cl.sound_precache[i] = S.RegisterSound(cl.configstrings[CS_SOUNDS + i]);
 			Sys.SendKeyEvents(); // pump message loop
