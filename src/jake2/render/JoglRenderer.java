@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.13 2003-12-27 16:24:25 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.14 2003-12-27 20:12:37 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -629,10 +629,12 @@ final class JoglRenderer extends Draw implements Ref, GLEventListener {
 
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
+
 		window.getContentPane().add(canvas);
-
 		window.setSize(newDim.width, newDim.height);
-
+		window.setUndecorated(true);
+		window.setResizable(false);
+		
 		window.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
@@ -831,10 +833,16 @@ final class JoglRenderer extends Draw implements Ref, GLEventListener {
 	*/
 	public void reshape(
 		GLDrawable drawable,
-		int arg1,
-		int arg2,
-		int arg3,
-		int arg4) {
+		int x,
+		int y,
+		int width,
+		int height) {
+			
+		vid.height = height;
+		vid.width = width;
+		
+		ri.Vid_NewWindow(width, height);
+		
 		// do nothing
 	}
 
