@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.8 2004-01-31 16:58:45 rst Exp $
+// $Id: SV_INIT.java,v 1.9 2004-02-01 00:42:45 rst Exp $
 
 package jake2.server;
 
@@ -462,17 +462,17 @@ public class SV_INIT extends PlayerHud {
 			level = level.substring(1);
 
 		l = strlen(level);
-		if (l > 4 && !level.endsWith(".cin")) {
+		if (l > 4 && level.endsWith(".cin")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame);
 		}
-		else if (l > 4 && !level.endsWith(".dm2")) {
+		else if (l > 4 && level.endsWith(".dm2")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame);
 		}
-		else if (l > 4 && !level.endsWith(".pcx")) {
+		else if (l > 4 && level.endsWith(".pcx")) {
 			SCR.BeginLoadingPlaque(); // for local system
 			SV_SEND.SV_BroadcastCommand("changing\n");
 			SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame);
