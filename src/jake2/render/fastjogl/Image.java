@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.3 2004-06-15 17:21:56 cwei Exp $
+ * $Id: Image.java,v 1.4 2004-06-21 11:33:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,19 +37,12 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
 
 import net.java.games.jogl.GL;
+import net.java.games.jogl.util.BufferUtils;
 
 /**
  * Image
@@ -1050,6 +1043,7 @@ public abstract class Image extends Main {
 	*/
 	int[] scaled = new int[256 * 256];
 	byte[] paletted_texture = new byte[256 * 256];
+	IntBuffer tex = BufferUtils.newIntBuffer(512 * 256);
 
 	boolean GL_Upload32(int[] data, int width, int height, boolean mipmap) {
 		int samples;
@@ -1131,6 +1125,7 @@ public abstract class Image extends Main {
 							paletted_texture);
 					}
 					else {
+						tex.rewind(); tex.put(data);
 						gl.glTexImage2D(
 							GL.GL_TEXTURE_2D,
 							0,
@@ -1140,14 +1135,13 @@ public abstract class Image extends Main {
 							0,
 							GL.GL_RGBA,
 							GL.GL_UNSIGNED_BYTE,
-							data);
+							tex);
 					}
 					//goto done;
 					throw new longjmpException();
 				}
 				//memcpy (scaled, data, width*height*4); were bytes
-				IntBuffer.wrap(data).get(scaled, 0, width * height);
-
+				System.arraycopy(data, 0, scaled, 0, width * height);
 			}
 			else
 				GL_ResampleTexture(data, width, height, scaled, scaled_width, scaled_height);
@@ -1169,7 +1163,8 @@ public abstract class Image extends Main {
 					paletted_texture);
 			}
 			else {
-				gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, scaled);
+				tex.rewind(); tex.put(scaled);
+				gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, tex);
 			}
 
 			if (mipmap) {
@@ -1200,6 +1195,7 @@ public abstract class Image extends Main {
 							paletted_texture);
 					}
 					else {
+						tex.rewind(); tex.put(scaled);
 						gl.glTexImage2D(
 							GL.GL_TEXTURE_2D,
 							miplevel,
@@ -1209,7 +1205,7 @@ public abstract class Image extends Main {
 							0,
 							GL.GL_RGBA,
 							GL.GL_UNSIGNED_BYTE,
-							scaled);
+							tex);
 					}
 				}
 			}
@@ -1595,7 +1591,7 @@ public abstract class Image extends Main {
 		}
 
 		d_8to24table[255] &= 0x00FFFFFF; // 255 is transparent
-		
+
 		particle_t.setColorPalette(d_8to24table);
 	}
 

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.3 2004-06-16 10:28:34 cwei Exp $
+ * $Id: Light.java,v 1.4 2004-06-21 11:33:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.Arrays;
-
-import net.java.games.jogl.GL;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.dlight_t;
@@ -38,11 +32,14 @@ import jake2.client.lightstyle_t;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
 import jake2.qcommon.longjmpException;
-import jake2.render.mnode_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.util.Lib;
+import jake2.render.*;
 import jake2.util.Math3D;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
+
+import net.java.games.jogl.GL;
 
 /**
  * Light
@@ -500,7 +497,7 @@ public abstract class Light extends Warp {
 	Combine and scale multiple lightmaps into the floating format in blocklights
 	===============
 	*/
-	void R_BuildLightMap(msurface_t surf, ByteBuffer dest, int stride)
+	void R_BuildLightMap(msurface_t surf, IntBuffer dest, int stride)
 	{
 		int smax, tmax;
 		int r, g, b, a, max;
@@ -511,7 +508,7 @@ public abstract class Light extends Warp {
 		float[] bl;
 		lightstyle_t	style;
 		int monolightmap;
-
+		
 		if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) != 0 )
 			ri.Sys_Error(Defines.ERR_DROP, "R_BuildLightMap called for non-lit surface");
 
@@ -633,7 +630,7 @@ public abstract class Light extends Warp {
 		} catch (longjmpException store) {}
 	
 		// put into texture format
-		stride -= (smax<<2);
+		stride -= smax;
 		bl = s_blocklights;
 		int blp = 0;
 
@@ -692,11 +689,8 @@ public abstract class Light extends Warp {
 						b = (int)(b*t);
 						a = (int)(a*t);
 					}
-					dest.put(destp++, (byte)r);
-					dest.put(destp++, (byte)g);
-					dest.put(destp++, (byte)b);
-					dest.put(destp++, (byte)a);
-					//destp += 4;
+					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
 		}
@@ -776,14 +770,8 @@ public abstract class Light extends Warp {
 						a = 255 - a;
 						break;
 					}
-
-					dest.put(destp++, (byte)r);
-					dest.put(destp++, (byte)g);
-					dest.put(destp++, (byte)b);
-					dest.put(destp++, (byte)a);
-					
-					//dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
-					//destp += 4;
+					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
 		}

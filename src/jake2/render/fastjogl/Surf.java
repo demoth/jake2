@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.8 2004-06-15 17:21:56 cwei Exp $
+ * $Id: Surf.java,v 1.9 2004-06-21 11:33:38 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,35 +25,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.nio.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import jake2.Defines;
+import jake2.client.*;
+import jake2.game.cplane_t;
+import jake2.render.*;
+import jake2.util.Math3D;
+
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 
 import net.java.games.jogl.GL;
 import net.java.games.jogl.util.BufferUtils;
-
-import jake2.Defines;
-import jake2.client.dlight_t;
-import jake2.client.entity_t;
-import jake2.client.lightstyle_t;
-import jake2.game.cplane_t;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.util.Lib;
-import jake2.util.Math3D;
 
 /**
  * Surf
@@ -92,8 +75,8 @@ public abstract class Surf extends Draw {
 
 		// the lightmap texture data needs to be kept in
 		// main memory so texsubimage can update properly
-		byte[] lightmap_buffer = new byte[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-		
+		//byte[] lightmap_buffer = new byte[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+		IntBuffer lightmap_buffer = BufferUtils.newIntBuffer(BLOCK_WIDTH * BLOCK_HEIGHT);
 		
 		public gllightmapstate_t() {
 			for (int i = 0; i < MAX_LIGHTMAPS; i++)
@@ -120,7 +103,7 @@ public abstract class Surf extends Draw {
 	// Light.java
 	abstract void R_MarkLights (dlight_t light, int bit, mnode_t node);
 	abstract void R_SetCacheState( msurface_t surf );
-	abstract void R_BuildLightMap(msurface_t surf, ByteBuffer dest, int stride);
+	abstract void R_BuildLightMap(msurface_t surf, IntBuffer dest, int stride);
 
 	/*
 	=============================================================
@@ -233,7 +216,7 @@ public abstract class Surf extends Draw {
 		gl.glEnable (GL.GL_TEXTURE_2D);
 	}
 
-	private ByteBuffer temp2 = BufferUtils.newByteBuffer(34 * 34 * 4); 
+	private IntBuffer temp2 = BufferUtils.newIntBuffer(34 * 34); 
 
 	/*
 	================
@@ -319,7 +302,7 @@ public abstract class Surf extends Draw {
 				smax = (fa.extents[0]>>4)+1;
 				tmax = (fa.extents[1]>>4)+1;
 
-				R_BuildLightMap( fa, temp2, smax*4 );
+				R_BuildLightMap( fa, temp2, smax);
 				R_SetCacheState( fa );
 
 				GL_Bind( gl_state.lightmap_textures + fa.lightmaptexturenum );
@@ -455,7 +438,7 @@ public abstract class Surf extends Draw {
 	}
 
 	// direct buffer
-	ByteBuffer temp = BufferUtils.newByteBuffer(128 * 128 * 4);
+	private IntBuffer temp = BufferUtils.newIntBuffer(128 * 128);
 
 	void GL_RenderLightmappedPoly( msurface_t surf )
 	{
@@ -506,7 +489,7 @@ public abstract class Surf extends Draw {
 				smax = (surf.extents[0]>>4)+1;
 				tmax = (surf.extents[1]>>4)+1;
 
-				R_BuildLightMap( surf, temp, smax*4 );
+				R_BuildLightMap( surf, temp, smax);
 				R_SetCacheState( surf );
 
 				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + surf.lightmaptexturenum );
@@ -525,7 +508,7 @@ public abstract class Surf extends Draw {
 				smax = (surf.extents[0]>>4)+1;
 				tmax = (surf.extents[1]>>4)+1;
 
-				R_BuildLightMap( surf, temp, smax*4 );
+				R_BuildLightMap( surf, temp, smax);
 
 				GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + 0 );
 
@@ -1260,7 +1243,7 @@ public abstract class Surf extends Draw {
 	void GL_CreateSurfaceLightmap(msurface_t surf)
 	{
 		int smax, tmax;
-		ByteBuffer base;
+		IntBuffer base;
 
 		if ( (surf.flags & (Defines.SURF_DRAWSKY | Defines.SURF_DRAWTURB)) != 0)
 			return;
@@ -1288,15 +1271,18 @@ public abstract class Surf extends Draw {
 		surf.lightmaptexturenum = gl_lms.current_lightmap_texture;
 		
 		// base = gl_lms.lightmap_buffer;
-		base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
-		int basep = (surf.light_t * BLOCK_WIDTH + surf.light_s) * LIGHTMAP_BYTES;
+		//base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
+		//base.order(ByteOrder.BIG_ENDIAN);
+		int basep = (surf.light_t * BLOCK_WIDTH + surf.light_s);// * LIGHTMAP_BYTES;
+		base = gl_lms.lightmap_buffer;
 		base.position(basep);
 
 		R_SetCacheState( surf );
-		R_BuildLightMap(surf, base.slice(), BLOCK_WIDTH * LIGHTMAP_BYTES);
+		R_BuildLightMap(surf, base.slice(), BLOCK_WIDTH);
 	}
 
 	lightstyle_t[] lightstyles;
+	IntBuffer dummy = BufferUtils.newIntBuffer(128*128);
 
 	/*
 	==================
@@ -1308,7 +1294,6 @@ public abstract class Surf extends Draw {
 	{
 		// static lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
 		int i;
-		int[] dummy = new int[128*128];
 
 		// init lightstyles
 		if ( lightstyles == null ) {
