@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.4 2004-01-09 00:44:43 cwei Exp $
+ * $Id: Mesh.java,v 1.5 2004-01-09 15:09:12 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -139,20 +139,15 @@ public abstract class Mesh extends Warp {
 		int		i;
 		int		index_xyz;
 		float[][]	lerp;
-//
-//		frame = (daliasframe_t *)((byte *)paliashdr + paliashdr.ofs_frames 
-//			+ currententity.frame * paliashdr.framesize);
+
 		frame = paliashdr.aliasFrames[currententity.frame];
 
 		verts = v = frame.verts;
 
-//		oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr.ofs_frames 
-//			+ currententity.oldframe * paliashdr.framesize);
 		oldframe = paliashdr.aliasFrames[currententity.oldframe];
 
 		ov = oldframe.verts;
 
-//		order = (int *)((byte *)paliashdr + paliashdr.ofs_glcmds);
 		order = paliashdr.glCmds;
 
 		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
@@ -404,22 +399,22 @@ public abstract class Mesh extends Warp {
 //			gl.glEnd ();
 //		}	
 	}
-//
-//
-//	/*
-//	** R_CullAliasModel
-//	*/
-//	static qboolean R_CullAliasModel( vec3_t bbox[8], entity_t *e )
-//	{
-//		int i;
+
+
+	/*
+	** R_CullAliasModel
+	*/
+	boolean R_CullAliasModel( float[][] bbox, entity_t e )
+	{
+		int i;
 //		vec3_t		mins, maxs;
-//		dmdl_t		*paliashdr;
+		qfiles.dmdl_t paliashdr;
 //		vec3_t		vectors[3];
 //		vec3_t		thismins, oldmins, thismaxs, oldmaxs;
-//		daliasframe_t *pframe, *poldframe;
+		qfiles.daliasframe_t pframe, poldframe;
 //		vec3_t angles;
 //
-//		paliashdr = (dmdl_t *)currentmodel.extradata;
+		paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
 //
 //		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
 //		{
@@ -545,10 +540,10 @@ public abstract class Mesh extends Warp {
 //				return true;
 //			}
 //
-//			return false;
+			return false;
 //		}
-//	}
-//
+	}
+
 	/*
 	=================
 	R_DrawAliasModel
@@ -557,28 +552,29 @@ public abstract class Mesh extends Warp {
 	*/
 	void R_DrawAliasModel(entity_t e)
 	{
-		int			i;
-		qfiles.dmdl_t		paliashdr;
+		int i;
+		qfiles.dmdl_t paliashdr;
 		float		an;
-//		vec3_t		bbox[8];
+
+		// bounding box
 		float[][] bbox = {
-			{0,0,0}, {0,0,0}, {0,0,0}, {0,0,0},
-			{0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}
+			{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0},
+			{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}
 		};
 		image_t		skin;
-//
-//		if ( !( e.flags & Defines.RF_WEAPONMODEL ) )
-//		{
-//			if ( R_CullAliasModel( bbox, e ) )
-//				return;
-//		}
-//
-//		if ( e.flags & Defines.RF_WEAPONMODEL )
-//		{
-//			if ( r_lefthand.value == 2 )
-//				return;
-//		}
-//
+
+		if ( ( e.flags & Defines.RF_WEAPONMODEL ) == 0)
+		{
+			if ( R_CullAliasModel( bbox, e ) )
+				return;
+		}
+
+		if ( (e.flags & Defines.RF_WEAPONMODEL) != 0 )
+		{
+			if ( r_lefthand.value == 2.0f )
+				return;
+		}
+
 		paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
 
 		//

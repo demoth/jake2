@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.1 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Light.java,v 1.2 2004-01-09 15:09:12 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.render.jogl;
+
+import jake2.game.cplane_t;
 
 /**
  * Light
@@ -189,20 +191,20 @@ public abstract class Light extends Surf {
 //		for (i=0 ; i<r_newrefdef.num_dlights ; i++, l++)
 //			R_MarkLights ( l, 1<<i, r_worldmodel->nodes );
 	}
-//
-//
-//	/*
-//	=============================================================================
-//
-//	LIGHT SAMPLING
-//
-//	=============================================================================
-//	*/
-//
-//	vec3_t			pointcolor;
-//	cplane_t		*lightplane;		// used as shadow plane
-//	vec3_t			lightspot;
-//
+
+
+	/*
+	=============================================================================
+
+	LIGHT SAMPLING
+
+	=============================================================================
+	*/
+
+	float[] pointcolor = {0, 0, 0}; // vec3_t
+	cplane_t lightplane; // used as shadow plane
+	float[] lightspot = {0, 0, 0}; // vec3_t
+
 //	int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 //	{
 //		float		front, back, frac;
