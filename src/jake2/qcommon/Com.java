@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.39 2004-02-25 13:20:28 hoz Exp $
+ * $Id: Com.java,v 1.40 2004-02-26 13:25:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,9 +45,8 @@ public final class Com {
 	static int com_argc;
 	static String[] com_argv = new String[Defines.MAX_NUM_ARGVS];
 	
-	public static class RD_Flusher {
-		public void rd_flush(int target, byte [] buffer) {
-		}
+	public abstract static class RD_Flusher {
+		public abstract void rd_flush(int target, byte [] buffer);
 	}
 
 	static int rd_target;
@@ -206,7 +205,7 @@ public final class Com {
 				c = hlp.nextchar();
 				if (c == '\"' || c == 0) {
 
-					char xxx = hlp.nextchar();
+					hlp.nextchar();
 					com_token[len] = '?';
 					return new String(com_token, 0, len);
 				}

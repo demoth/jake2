@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.21 2004-02-14 20:27:50 rst Exp $
+ * $Id: Netchan.java,v 1.22 2004-02-26 13:25:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -158,9 +158,9 @@ public final class Netchan extends SV_MAIN {
 
 		chan.clear();
 		chan.sock = sock;
-		chan.remote_address = adr.copy();
+		chan.remote_address.set(adr);
 		chan.qport = qport;
-		chan.last_received = (int) Globals.curtime;
+		chan.last_received = Globals.curtime;
 		chan.incoming_sequence = 0;
 		chan.outgoing_sequence = 1;
 

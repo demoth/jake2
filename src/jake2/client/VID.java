@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.14 2004-02-17 11:35:10 cwei Exp $
+ * $Id: VID.java,v 1.15 2004-02-26 13:25:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,9 +31,8 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.render.Renderer;
-import jake2.sys.*;
+import jake2.sys.IN;
 import jake2.sys.KBD;
-import jake2.sys.RW;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
@@ -147,7 +146,7 @@ public class VID extends Globals {
 	{
 		if (Globals.re != null) {
 			KBD.Close();
-			RW.IN_Shutdown();
+			IN.Shutdown();
 		}
 
 		Globals.re = null;
@@ -165,7 +164,7 @@ public class VID extends Globals {
 		if ( reflib_active )
 		{
 			KBD.Close();
-			RW.IN_Shutdown();
+			IN.Shutdown();
 
 			Globals.re.Shutdown();
 			FreeReflib();
@@ -404,7 +403,7 @@ public class VID extends Globals {
 		if ( reflib_active )
 		{
 			KBD.Close();
-			RW.IN_Shutdown();
+			IN.Shutdown();
 
 			Globals.re.Shutdown();
 			FreeReflib();

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.23 2004-02-22 21:45:47 hoz Exp $
+ * $Id: Cmd.java,v 1.24 2004-02-26 13:25:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -240,7 +240,6 @@ public final class Cmd extends PlayerView {
 	============
 	*/
 	public static void TokenizeString(char text[], boolean macroExpand) {
-		int i;
 		String com_token;
 
 		cmd_argc = 0;
@@ -1070,7 +1069,6 @@ public final class Cmd extends PlayerView {
 
 		int i, j;
 		edict_t other;
-		char p;
 		String text;
 		gclient_t cl;
 

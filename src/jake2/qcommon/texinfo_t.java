@@ -19,16 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: texinfo_t.java,v 1.4 2004-02-04 20:33:35 rst Exp $
+// $Id: texinfo_t.java,v 1.5 2004-02-26 13:25:35 hoz Exp $
 
 package jake2.qcommon;
 
-import jake2.game.EndianHandler;
+import jake2.util.Lib;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import jake2.util.*;
 
 public class texinfo_t {
 
