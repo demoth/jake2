@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.19 2004-02-05 21:32:41 rst Exp $
+// $Id: Lib.java,v 1.20 2004-02-12 15:07:30 rst Exp $
 
 package jake2.util;
 
@@ -75,11 +75,11 @@ public class Lib {
 	=============
 	*/
 	public static String vtos(float[] v) {
-		return "(" + (int) v[0] + " " + (int) v[1] + " " + (int) v[2] + ")";
+		return  (int) v[0] + " " + (int) v[1] + " " + (int) v[2] ;
 	}
 
 	public static String vtofs(float[] v) {
-		return "(" + v[0] + " " + v[1] + " " + v[2] + ")";
+		return v[0] + " " + v[1] + " " + v[2] ;
 	}
 	public static short rand() {
 		return (short) (Math.random() * 0x8000);
