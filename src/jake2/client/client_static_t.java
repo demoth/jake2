@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: client_static_t.java,v 1.8 2004-02-04 11:24:15 hoz Exp $
+// $Id: client_static_t.java,v 1.9 2004-02-04 20:33:35 rst Exp $
 
 
 package jake2.client;
@@ -47,7 +47,7 @@ public class client_static_t {
 	// > cls.disable_servercount, clear disable_screen
 
 	//	   connection information
-	public String servername; // name of server from original connect
+	public String servername = ""; // name of server from original connect
 	public float connect_time; // for connection retransmits
 
 	int quakePort; // a 16 bit value that allows quake servers
@@ -58,8 +58,8 @@ public class client_static_t {
 	public int challenge; // from the server to use for connecting
 
 	public RandomAccessFile download; // file transfer from server
-	public String downloadtempname;
-	public String downloadname;
+	public String downloadtempname="";
+	public String downloadname="";
 	public int downloadnumber;
 	// was enum dltype_t 
 	public int downloadtype;

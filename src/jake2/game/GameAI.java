@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.14 2004-02-04 18:10:55 rst Exp $
+// $Id: GameAI.java,v 1.15 2004-02-04 20:33:35 rst Exp $
 
 package jake2.game;
 
@@ -1100,7 +1100,7 @@ public class GameAI extends M_Flash {
 
 		StringTokenizer tk = new StringTokenizer(s);
 
-		// TODO: check it, it changed a lot.
+
 		while (tk.hasMoreTokens()) {
 			data = tk.nextToken();
 
@@ -1116,8 +1116,10 @@ public class GameAI extends M_Flash {
 				gi.modelindex(data);
 			else if (data.endsWith("wav"))
 				gi.soundindex(data);
-			if (data.endsWith("pcx"))
+			else if (data.endsWith("pcx"))
 				gi.imageindex(data);
+			else 
+				gi.error("PrecacheItem: bad precache string: " + data);
 		}
 	}
 

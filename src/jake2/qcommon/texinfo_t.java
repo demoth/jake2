@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: texinfo_t.java,v 1.3 2004-01-20 13:48:21 cwei Exp $
+// $Id: texinfo_t.java,v 1.4 2004-02-04 20:33:35 rst Exp $
 
 package jake2.qcommon;
 
@@ -62,6 +62,6 @@ public class texinfo_t {
 	public int flags; // miptex flags + overrides
 	public int value; // light emission, etc
 	//char			texture[32];	// texture name (textures/*.wal)
-	public String texture;
+	public String texture="";
 	public int nexttexinfo; // for animations, -1 = end of chain
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: image_t.java,v 1.5 2004-01-03 03:47:14 cwei Exp $
+// $Id: image_t.java,v 1.6 2004-02-04 20:33:35 rst Exp $
 
 package jake2.render;
 
@@ -29,7 +29,7 @@ public class image_t {
 	
 	public static final int MAX_NAME_SIZE = Defines.MAX_QPATH;
 	
-	public String name; // game path, including extension
+	public String name=""; // game path, including extension
 	// enum imagetype_t
 	public int type;
 	public int width, height; // source image

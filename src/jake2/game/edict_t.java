@@ -35,7 +35,6 @@ public class edict_t {
 
 	// integrated entity state
 	public entity_state_t s = new entity_state_t();
-	public gclient_t client;
 	public boolean inuse;
 	public int linkcount;
 
@@ -57,7 +56,6 @@ public class edict_t {
 	public float[] size = { 0, 0, 0 };
 	public int solid;
 	public int clipmask;
-	public edict_t owner = null;
 
 	// the game dll can add anything it wants after
 	// this point in the structure
@@ -182,11 +180,15 @@ public class edict_t {
 
 	public int style; // also used as areaportal number
 
-	public gitem_t item = null; // for bonus items
+	public gitem_t item; // for bonus items
 
 	// common integrated data blocks
 	public moveinfo_t moveinfo = new moveinfo_t();
 	public monsterinfo_t monsterinfo = new monsterinfo_t();
+
+	public gclient_t client;
+	public edict_t owner;
+	
 
 	/////////////////////////////////////////////////
 

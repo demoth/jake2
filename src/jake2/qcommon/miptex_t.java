@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: miptex_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: miptex_t.java,v 1.2 2004-02-04 20:33:35 rst Exp $
 
 package jake2.qcommon;
 
@@ -33,13 +33,16 @@ import jake2.*;
 
 public class miptex_t {
 	//char		name[32];
-	String		name;
-	//unsigned	width, height;
+	String		name="";
+	
 	int		width, height;
+	
 	//unsigned	offsets[MIPLEVELS];		// four mip maps stored
 	int		offsets[] = new int[Defines.MIPLEVELS];		// four mip maps stored
+	
 	//char		animname[32];			// next frame in animation chain
-	String 		animframe;
+	String 		animframe="";
+	
 	int			flags;
 	int			contents;
 	int			value;

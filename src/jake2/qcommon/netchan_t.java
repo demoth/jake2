@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.5 2004-01-30 16:59:41 hoz Exp $
+// $Id: netchan_t.java,v 1.6 2004-02-04 20:33:35 rst Exp $
 
 package jake2.qcommon;
 
@@ -38,7 +38,7 @@ public class netchan_t {
 	public int last_received; // for timeouts
 	public int last_sent; // for retransmits
 
-	public netadr_t remote_address;
+	public netadr_t remote_address = new netadr_t();
 	public int qport; // qport value to write when transmitting
 
 	// sequencing variables

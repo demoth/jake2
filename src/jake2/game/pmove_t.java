@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.8 2004-02-04 18:10:55 rst Exp $
+// $Id: pmove_t.java,v 1.9 2004-02-04 20:33:35 rst Exp $
 
 package jake2.game;
 
@@ -43,10 +43,10 @@ public class pmove_t {
 	}
 
 	// state (in / out)
-	public pmove_state_t s;
+	public pmove_state_t s = new pmove_state_t();
 
 	// command (in)
-	public usercmd_t cmd;
+	public usercmd_t cmd = new usercmd_t();
 	public boolean snapinitial; // if s has been changed outside pmove
 
 	// results (out)
@@ -63,10 +63,21 @@ public class pmove_t {
 	public int waterlevel;
 
 	public TraceAdapter trace;
-
 	public PointContentsAdapter pointcontents;	
 
 	public void clear() {
-		// TODO: create the clear() method.
+		groundentity = null;
+		waterlevel = watertype =0;
+		trace = null;
+		pointcontents = null;
+		mins = new float [3];
+		maxs = new float [3];
+		viewheight=0;
+		viewangles = new float [3];
+		touchents = new edict_t[Defines.MAXTOUCH];
+		numtouch =0;
+		snapinitial=false;
+		cmd = new usercmd_t();
+		s = new pmove_state_t();
 	}
 }

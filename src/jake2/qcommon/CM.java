@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.16 2004-02-04 18:10:56 rst Exp $
+// $Id: CM.java,v 1.17 2004-02-04 20:33:35 rst Exp $
 
 package jake2.qcommon;
 
@@ -1223,6 +1223,7 @@ public class CM extends Game {
 				if (enterfrac < 0)
 					enterfrac = 0;
 				trace.fraction = enterfrac;
+				// copy
 				trace.plane.set(clipplane);
 				trace.surface = leadside.surface.c;
 				trace.contents = brush.contents;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.7 2004-02-01 00:35:00 rst Exp $
+// $Id: client_persistant_t.java,v 1.8 2004-02-04 20:33:35 rst Exp $
 
 package jake2.game;
 
@@ -55,7 +55,9 @@ public class client_persistant_t {
 	int max_cells;
 	int max_slugs;
 
+	//reference
 	gitem_t weapon;
+	//reference
 	gitem_t lastweapon;
 
 	int power_cubes; // used for tracking the cubes in coop games

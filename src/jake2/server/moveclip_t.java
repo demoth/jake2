@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: moveclip_t.java,v 1.1 2003-12-09 22:12:43 rst Exp $
+// $Id: moveclip_t.java,v 1.2 2004-02-04 20:33:35 rst Exp $
 
 package jake2.server;
 
@@ -34,10 +34,10 @@ import jake2.server.*;
 public class moveclip_t 
 {
 	float [] boxmins={0,0,0}, boxmaxs={0,0,0};// enclose the test object along entire move
-	float	[]	mins, maxs;	// size of the moving object
+	float [] mins, maxs;	// size of the moving object
 	float [] mins2={0,0,0}, maxs2={0,0,0};	// size when clipping against mosnters
-	float	[]	start, end;
-	trace_t	trace;
+	float [] start, end;
+	trace_t	trace	= new trace_t();
 	edict_t	passedict;
 	int contentmask;
 }

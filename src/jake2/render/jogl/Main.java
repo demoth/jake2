@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.25 2004-02-03 09:33:52 hoz Exp $
+ * $Id: Main.java,v 1.26 2004-02-04 20:33:35 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -981,7 +981,7 @@ public abstract class Main extends Base {
 		gl_modulate = ri.Cvar_Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
 		gl_log = ri.Cvar_Get("gl_log", "0", 0);
 		gl_bitdepth = ri.Cvar_Get("gl_bitdepth", "0", 0);
-		gl_mode = ri.Cvar_Get("gl_mode", "3", Globals.CVAR_ARCHIVE);
+		gl_mode = ri.Cvar_Get("gl_mode", "1", Globals.CVAR_ARCHIVE);
 		gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 		gl_shadows = ri.Cvar_Get("gl_shadows", "0", Globals.CVAR_ARCHIVE);
 		gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);

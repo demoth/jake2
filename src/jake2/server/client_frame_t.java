@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_frame_t.java,v 1.1 2004-01-13 21:07:01 rst Exp $
+// $Id: client_frame_t.java,v 1.2 2004-02-04 20:33:35 rst Exp $
 
 package jake2.server;
 
@@ -34,8 +34,8 @@ import jake2.server.*;
 public class client_frame_t {
 
 	int					areabytes;
-	byte					areabits[] = new byte[Defines.MAX_MAP_AREAS/8];		// portalarea visibility bits
-	player_state_t			ps;
+	byte				areabits[] = new byte[Defines.MAX_MAP_AREAS/8];		// portalarea visibility bits
+	player_state_t		ps = new player_state_t();
 	int					num_entities;
 	int					first_entity;		// into the circular sv_packet_entities[]
 	int					senttime;			// for ping calculations

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.5 2004-01-09 18:30:57 rst Exp $
+// $Id: game_locals_t.java,v 1.6 2004-02-04 20:33:35 rst Exp $
 
 package jake2.game;
 
@@ -37,8 +37,8 @@ public class game_locals_t extends Defines {
 	//	the server.ssv file for savegames
 	//
 
-	public String helpmessage1;
-	public String helpmessage2;
+	public String helpmessage1="";
+	public String helpmessage2="";
 	public int helpchanged; // flash F1 icon if non 0, play sound
 	// and increment only if 1, 2, or 3
 
@@ -57,7 +57,6 @@ public class game_locals_t extends Defines {
 
 	// items
 	public int num_items;
-
 	public boolean autosaved;
 
 	public void load(ByteBuffer bb) throws IOException {

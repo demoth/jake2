@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: entity_t.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: entity_t.java,v 1.4 2004-02-04 20:33:35 rst Exp $
 
 package jake2.client;
 
@@ -27,6 +27,7 @@ package jake2.client;
 import jake2.render.*;
 
 public class entity_t {
+	//reference
 	public				model_t				model;			// opaque type outside refresh
 	public float				angles[]={0,0,0};
 
@@ -51,6 +52,7 @@ public class entity_t {
 	public int				lightstyle;		// for flashing entities
 	public float				alpha;			// ignore if RF_TRANSLUCENT isn't set
 
+	// reference
 	public image_t				skin;			// NULL for inline skin
 	public int				flags;
 }
