@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.11 2003-12-29 22:31:15 rst Exp $
+ * $Id: Cbuf.java,v 1.12 2004-01-02 14:08:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -135,7 +135,7 @@ public final class Cbuf {
 	/**
 	 * @param text
 	 */
-	static void AddText(String text) {
+	public static void AddText(String text) {
 		int l = text.length();
 
 		if (Globals.cmd_text.cursize + l >= Globals.cmd_text.maxsize) {

@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.9 2003-12-28 19:52:35 rst Exp $
+ * $Id: M.java,v 1.10 2004-01-02 14:08:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -574,4 +574,13 @@ public final class M {
 			return true;
 		}
 	};
+	
+	public static void ForceMenuOff() {
+//	00119         m_drawfunc = 0;
+//	00120         m_keyfunc = 0;
+//	00121         cls.key_dest = key_game;
+//	00122         m_menudepth = 0;
+//	00123         Key_ClearStates ();
+//	00124         Cvar_Set ("paused", "0");
+	}
 }

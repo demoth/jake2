@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.4 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Key.java,v 1.5 2004-01-02 14:08:20 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,4 +36,10 @@ public final class Key {
 	 */
 	public static void Init() {
 	}
+	
+	public static void ClearTyping() {
+//	00058         key_lines[edit_line][1] = 0;    // clear any typing
+//	00059         key_linepos = 1;
+	}
+	
 }

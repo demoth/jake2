@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.8 2003-12-28 13:53:38 hoz Exp $
+ * $Id: Console.java,v 1.9 2004-01-02 14:08:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,12 +38,57 @@ import jake2.qcommon.*;
  */
 public final class Console {
 	
-	public static xcommand_t ToggleConsole_f;
-	public static xcommand_t ToggleChat_f;
-	public static xcommand_t MessageMode_f;
-	public static xcommand_t MessageMode2_f;
-	public static xcommand_t Clear_f;
-	public static xcommand_t Dump_f;
+	public static xcommand_t ToggleConsole_f = new xcommand_t() {
+		public void execute() {
+			SCR.EndLoadingPlaque();        // get rid of loading plaque
+ 
+			if (Globals.cl.attractloop) {
+				Cbuf.AddText("killserver\n");
+				return;
+			}
+ 
+			if (Globals.cls.state == Defines.ca_disconnected) {
+				// start the demo loop again
+				Cbuf.AddText("d1\n");
+				return;
+			}
+
+			Key.ClearTyping(); 
+			Console.ClearNotify();
+
+			if (Globals.cls.key_dest == Defines.key_console) {
+				M.ForceMenuOff();
+				Cvar.Set("paused", "0");
+			}
+			else {
+				M.ForceMenuOff();
+				Globals.cls.key_dest = Defines.key_console;     
+
+				if (Cvar.VariableValue("maxclients") == 1 && Com.ServerState()!= 0)
+					Cvar.Set("paused", "1");
+			}
+		}
+	};
+	public static xcommand_t ToggleChat_f = new xcommand_t() {
+		public void execute() {
+		}
+	};
+	public static xcommand_t MessageMode_f = new xcommand_t() {
+		public void execute() {
+		}
+	};
+	public static xcommand_t MessageMode2_f = new xcommand_t() {
+		public void execute() {
+		}
+	};
+	public static xcommand_t Clear_f = new xcommand_t() {
+		public void execute() {
+		}
+	};
+	public static xcommand_t Dump_f = new xcommand_t() {
+		public void execute() {
+		}
+	};
 	
 	/**
 	 * 
