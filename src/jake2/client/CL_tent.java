@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.8 2005-01-20 23:15:23 cawe Exp $
+ * $Id: CL_tent.java,v 1.9 2005-01-21 01:14:47 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -544,13 +544,14 @@ public class CL_tent {
 
     //	  rogue
 
+    // stack variable
+    private static final float[] start = new float[3];
+    private static final float[] end = new float[3];
     /*
      * ================= CL_ParseLightning =================
      */
     static int ParseLightning(model_t model) {
         int srcEnt, destEnt;
-        float[] start = new float[3];
-        float[] end = new float[3];
         beam_t[] b;
         int i;
 
@@ -595,12 +596,12 @@ public class CL_tent {
         return srcEnt;
     }
 
+    // stack variable
+    // start, end
     /*
      * ================= CL_ParseLaser =================
      */
     static void ParseLaser(int colors) {
-        float[] start = new float[3];
-        float[] end = new float[3];
         laser_t[] l;
         int i;
 
@@ -623,11 +624,12 @@ public class CL_tent {
         }
     }
 
+    // stack variable
+    private static final float[] pos = new float[3];
+    private static final float[] dir = new float[3];
     //	  =============
     //	  ROGUE
     static void ParseSteam() {
-        float[] pos = new float[3];
-        float[] dir = new float[3];
         int id, i;
         int r;
         int cnt;
@@ -689,9 +691,10 @@ public class CL_tent {
             //			S_StartSound (pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
         }
     }
-
+    
+    // stack variable
+    // pos
     static void ParseWidow() {
-        float[] pos = new float[3];
         int id, i;
         cl_sustain_t[] s;
         cl_sustain_t free_sustain;
@@ -724,8 +727,9 @@ public class CL_tent {
         }
     }
 
+    // stack variable
+    // pos
     static void ParseNuke() {
-        float[] pos = new float[3];
         int i;
         cl_sustain_t[] s;
         cl_sustain_t free_sustain;
@@ -763,12 +767,12 @@ public class CL_tent {
      * ================= CL_ParseTEnt =================
      */
     static int[] splash_color = { 0x00, 0xe0, 0xb0, 0x50, 0xd0, 0xe0, 0xe8 };
+    // stack variable
+    // pos, dir
+    private static final float[] pos2 = {0, 0, 0};
 
     static void ParseTEnt() {
         int type;
-        float[] pos = new float[3];
-        float[] pos2 = new float[3];
-        float[] dir = new float[3];
         explosion_t ex;
         int cnt;
         int color;
@@ -1293,6 +1297,8 @@ public class CL_tent {
         }
     }
 
+    // stack variable
+    // dist, org
     private static final entity_t ent = new entity_t();
     /*
      * ================= CL_AddBeams =================
@@ -1300,8 +1306,6 @@ public class CL_tent {
     static void AddBeams() {
         int i, j;
         beam_t[] b;
-        float[] dist = new float[3];
-        float[] org = new float[3];
         float d;
         float yaw, pitch;
         float forward;
@@ -1411,13 +1415,17 @@ public class CL_tent {
 
     //extern cvar_t *hand;
 
+    // stack variable
+    private static final float[] dist = new float[3];
+    private static final float[] org = new float[3];
+    private static final float[] f = new float[3];
+    private static final float[] u = new float[3];
+    private static final float[] r = new float[3];
     /*
      * ================= ROGUE - draw player locked beams CL_AddPlayerBeams
      * =================
      */
     static void AddPlayerBeams() {
-        float[] dist = new float[3];
-        float[] org = new float[3];
         float d;
         //entity_t ent = new entity_t();
         float yaw, pitch;
@@ -1445,9 +1453,6 @@ public class CL_tent {
 
         //	   update beams
         beam_t[] b = cl_playerbeams;
-        float[] f = new float[3];
-        float[] u = new float[3];
-        float[] r = new float[3];
         for (int i = 0; i < MAX_BEAMS; i++) {
 
             if (b[i].model == null || b[i].endtime < Globals.cl.time)
