@@ -2,7 +2,7 @@
  * LWJGLRenderer.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLRenderer.java,v 1.2 2004-12-14 12:57:14 cawe Exp $
+ * $Id: LWJGLRenderer.java,v 1.3 2004-12-20 21:49:14 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,9 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import jake2.Defines;
-import jake2.client.refdef_t;
-import jake2.client.refexport_t;
-import jake2.qcommon.xcommand_t;
+import jake2.client.*;
 import jake2.render.lwjgl.Misc;
 import jake2.sys.KBD;
 import jake2.sys.LWJGLKBD;
@@ -66,10 +64,12 @@ final class LWJGLRenderer extends Misc implements refexport_t, Ref {
 		
 		// pre init
 		if (!R_Init(vid_xpos, vid_ypos)) return false;
-		// calls the R_Init2() internally		
-		updateScreen();
-		// the result from R_Init2()
-		return post_init;
+		// post init		
+		boolean ok = R_Init2();
+		if (!ok) {
+			VID.Printf(Defines.PRINT_ALL, "Missing multi-texturing for LWJGL renderer\n");
+		}
+		return ok;
 	}
 
 	/** 
@@ -82,214 +82,136 @@ final class LWJGLRenderer extends Misc implements refexport_t, Ref {
 	/** 
 	 * @see jake2.client.refexport_t#BeginRegistration(java.lang.String)
 	 */
-	public void BeginRegistration(String map) {
-		if (contextInUse) {
-			R_BeginRegistration(map);
-			return;
-		}	
-		this.name = map;
-			
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				R_BeginRegistration(LWJGLRenderer.this.name);
-			}
-		});
+	public final void BeginRegistration(String map) {
+		R_BeginRegistration(map);
 	}
 
-	
-	private model_t model = null;
-	private String name = null;
-	
 	/** 
 	 * @see jake2.client.refexport_t#RegisterModel(java.lang.String)
 	 */
-	public model_t RegisterModel(String name) {
-		
-		if (contextInUse)
-			return R_RegisterModel(name);
-		
-		model = null;
-		this.name = name;
-		
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				LWJGLRenderer.this.model = R_RegisterModel(LWJGLRenderer.this.name);
-			}
-		});
-		return model;
+	public final model_t RegisterModel(String name) {
+		return R_RegisterModel(name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#RegisterSkin(java.lang.String)
 	 */
-	public image_t RegisterSkin(String name) {
-		if (contextInUse)
-			return R_RegisterSkin(name);
-		
-		this.image = null;
-		this.name = name;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				LWJGLRenderer.this.image = R_RegisterSkin(LWJGLRenderer.this.name);
-			}
-		});
-		return image;
+	public final image_t RegisterSkin(String name) {
+		return R_RegisterSkin(name);
 	}
 	
-	private image_t image = null;
-
 	/** 
 	 * @see jake2.client.refexport_t#RegisterPic(java.lang.String)
 	 */
-	public image_t RegisterPic(String name) {
-		if (contextInUse)
-			return Draw_FindPic(name);
-		
-		this.image = null;
-		this.name = name;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				LWJGLRenderer.this.image = Draw_FindPic(LWJGLRenderer.this.name);
-			}
-		});
-		return image;
+	public final image_t RegisterPic(String name) {
+		return Draw_FindPic(name);
 	}
-
-
-	private float[] axis;
-	private float rotate;
-
 	/** 
 	 * @see jake2.client.refexport_t#SetSky(java.lang.String, float, float[])
 	 */
-	public void SetSky(String name, float rotate, float[] axis) {
-		if (contextInUse) {
-			R_SetSky(name, rotate, axis);
-			return;
-		}
-
-		this.name = name;
-		this.rotate = rotate;
-		this.axis = axis;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				R_SetSky(LWJGLRenderer.this.name, LWJGLRenderer.this.rotate, LWJGLRenderer.this.axis);
-			}
-		});
-
+	public final void SetSky(String name, float rotate, float[] axis) {
+		R_SetSky(name, rotate, axis);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#EndRegistration()
 	 */
-	public void EndRegistration() {
-		if (contextInUse) {
-			R_EndRegistration();
-			return;
-		}
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				R_EndRegistration();
-			}
-		});
+	public final void EndRegistration() {
+		R_EndRegistration();
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#RenderFrame(jake2.client.refdef_t)
 	 */
-	public void RenderFrame(refdef_t fd) {
+	public final void RenderFrame(refdef_t fd) {
 		R_RenderFrame(fd);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawGetPicSize(java.awt.Dimension, java.lang.String)
 	 */
-	public void DrawGetPicSize(Dimension dim, String name) {
+	public final void DrawGetPicSize(Dimension dim, String name) {
 		Draw_GetPicSize(dim, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawPic(int, int, java.lang.String)
 	 */
-	public void DrawPic(int x, int y, String name) {
+	public final void DrawPic(int x, int y, String name) {
 		Draw_Pic(x, y, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawStretchPic(int, int, int, int, java.lang.String)
 	 */
-	public void DrawStretchPic(int x, int y, int w, int h, String name) {
+	public final void DrawStretchPic(int x, int y, int w, int h, String name) {
 		Draw_StretchPic(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawChar(int, int, int)
 	 */
-	public void DrawChar(int x, int y, int num) {
+	public final void DrawChar(int x, int y, int num) {
 		Draw_Char(x, y, num);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawTileClear(int, int, int, int, java.lang.String)
 	 */
-	public void DrawTileClear(int x, int y, int w, int h, String name) {
+	public final void DrawTileClear(int x, int y, int w, int h, String name) {
 		Draw_TileClear(x, y, w, h, name);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFill(int, int, int, int, int)
 	 */
-	public void DrawFill(int x, int y, int w, int h, int c) {
+	public final void DrawFill(int x, int y, int w, int h, int c) {
 		Draw_Fill(x, y, w, h, c);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawFadeScreen()
 	 */
-	public void DrawFadeScreen() {
+	public final void DrawFadeScreen() {
 		Draw_FadeScreen();
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#DrawStretchRaw(int, int, int, int, int, int, byte[])
 	 */
-	public void DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte[] data) {
+	public final void DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte[] data) {
 		Draw_StretchRaw(x, y, w, h, cols, rows, data);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#CinematicSetPalette(byte[])
 	 */
-	public void CinematicSetPalette(byte[] palette) {
+	public final void CinematicSetPalette(byte[] palette) {
 		R_SetPalette(palette);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#BeginFrame(float)
 	 */
-	public void BeginFrame(float camera_separation) {
+	public final void BeginFrame(float camera_separation) {
 		R_BeginFrame(camera_separation);
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#EndFrame()
 	 */
-	public void EndFrame() {
+	public final void EndFrame() {
 		GLimp_EndFrame();
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#AppActivate(boolean)
 	 */
-	public void AppActivate(boolean activate) {
+	public final void AppActivate(boolean activate) {
 		GLimp_AppActivate(activate);
 	}
 
-	public int apiVersion() {
+	public final int apiVersion() {
 		return Defines.API_VERSION;
 	}
 
@@ -297,17 +219,17 @@ final class LWJGLRenderer extends Misc implements refexport_t, Ref {
 	// Ref interface
 	// ============================================================================
 
-	public String getName() {
+	public final String getName() {
 		return DRIVER_NAME;
 	}
 
-	public String toString() {
+	public final String toString() {
 		return DRIVER_NAME;
 	}
 
-	public refexport_t GetRefAPI() {
+	public final refexport_t GetRefAPI() {
 		return this;
 	}
 	
-	public KBD getKeyboardHandler() { return kbd; }
+	public final KBD getKeyboardHandler() { return kbd; }
 }
