@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.12 2004-06-26 23:30:00 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.13 2004-06-26 23:43:10 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -296,7 +296,7 @@ public final class JOALSoundImpl implements Sound {
 		playChannels(listenerOrigin);
 	}
 	
-	Hashtable looptable = new Hashtable(MAX_CHANNELS);
+	Map looptable = new Hashtable(2 * MAX_CHANNELS);
 	
 	/*
 	==================
