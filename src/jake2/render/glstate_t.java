@@ -19,29 +19,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glstate_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: glstate_t.java,v 1.3 2003-12-29 01:48:28 cwei Exp $
 
 package jake2.render;
 
 public class glstate_t 
 {
-	float inverse_intensity;
-	boolean fullscreen;
+	public float inverse_intensity;
+	public boolean fullscreen;
 
-	int     prev_mode;
+	public int     prev_mode;
 
-	byte	d_16to8table[];
+	public byte	d_16to8table[];
 
-	int lightmap_textures;
+	public int lightmap_textures;
 
-	int	currenttextures[]= {0,0};
-	int currenttmu;
+	public int	currenttextures[]= {0,0};
+	public int currenttmu;
 
-	float camera_separation;
-	boolean stereo_enabled;
+	public float camera_separation;
+	public boolean stereo_enabled;
 
-	byte originalRedGammaTable[]= new byte [256];
-	byte originalGreenGammaTable[]= new byte [256];
-	byte originalBlueGammaTable[]= new byte [256];
+	public byte originalRedGammaTable[]= new byte [256];
+	public byte originalGreenGammaTable[]= new byte [256];
+	public byte originalBlueGammaTable[]= new byte [256];
 
 }

@@ -19,22 +19,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: image_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: image_t.java,v 1.3 2003-12-29 01:48:28 cwei Exp $
 
 package jake2.render;
 
 public class image_t {
-	String		name;			// game path, including extension
+	public String name; // game path, including extension
 	//TODO: int should be ok here.
-	int		type;
-	int		width, height;				// source image
-	int		upload_width, upload_height;	// after power of two and picmip
-	int		registration_sequence;		// 0 = free
-	msurface_t	texturechain;	// for sort-by-texture world drawing
-	int		texnum;						// gl texture binding
-	float	sl, tl, sh, th;				// 0,0 - 1,1 unless part of the scrap
-	boolean	scrap;
-	boolean	has_alpha;
+	public int type;
+	public int width, height; // source image
+	public int upload_width, upload_height; // after power of two and picmip
+	public int registration_sequence; // 0 = free
+	public msurface_t texturechain; // for sort-by-texture world drawing
+	public int texnum; // gl texture binding
+	public float sl, tl, sh, th; // 0,0 - 1,1 unless part of the scrap
+	public boolean scrap;
+	public boolean has_alpha;
 
-	boolean paletted;
+	public boolean paletted;
 }

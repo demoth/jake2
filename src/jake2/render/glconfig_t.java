@@ -19,17 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glconfig_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: glconfig_t.java,v 1.3 2003-12-29 01:47:53 cwei Exp $
 
 package jake2.render;
 
 public class glconfig_t {
 
-	int renderer;
-	String renderer_string;
-	String vendor_string;
-	String version_string;
-	String extensions_string;
+	public int renderer;
+	public String renderer_string;
+	public String vendor_string;
+	public String version_string;
+	public String extensions_string;
 
-	boolean allow_cds;
+	public boolean allow_cds;
 }
