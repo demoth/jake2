@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: image_t.java,v 1.6 2004-02-04 20:33:35 rst Exp $
+// $Id: image_t.java,v 1.7 2004-02-17 15:03:04 cwei Exp $
 
 package jake2.render;
 
@@ -29,6 +29,11 @@ public class image_t {
 	
 	public static final int MAX_NAME_SIZE = Defines.MAX_QPATH;
 	
+	// used to get the pos in array
+	// added by cwei
+	private int id;
+	
+	// quake 2 variables
 	public String name=""; // game path, including extension
 	// enum imagetype_t
 	public int type;
@@ -42,6 +47,30 @@ public class image_t {
 	public boolean has_alpha;
 
 	public boolean paletted;
+	
+	public image_t(int id) {
+		this.id = id;
+	}
+	
+	public void clear() {
+		// don't clear the id
+		// wichtig !!!
+		name = "";
+		type = 0;
+		width = height = 0;
+		upload_width = upload_height = 0;
+		registration_sequence = 0; // 0 = free
+		texturechain = null;
+		texnum = 0; // gl texture binding
+		sl =  tl = sh = th = 0;
+		scrap = false;
+		has_alpha = false;
+		paletted = false;
+	}
+
+	public int getId() {
+		return id;
+	}
 	
 	public String toString() {
 		return name + ":" + texnum;

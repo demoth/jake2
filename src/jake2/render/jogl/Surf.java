@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.16 2004-02-15 21:54:54 cwei Exp $
+ * $Id: Surf.java,v 1.17 2004-02-17 15:03:04 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -630,10 +630,9 @@ public abstract class Surf extends Draw {
 
 		if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
 		{
-//			for ( i = 0, image=gltextures ; i<numgltextures ; i++,image++)
-			for (Iterator it = gltextures.values().iterator(); it.hasNext();)
+			for (i = 0; i < numgltextures ; i++)
 			{
-				image = (image_t) it.next();
+				image = gltextures[i];
 				if (image.registration_sequence == 0)
 					continue;
 				s = image.texturechain;
@@ -649,10 +648,10 @@ public abstract class Surf extends Draw {
 		}
 		else
 		{
-//			for ( i = 0, image=gltextures ; i<numgltextures ; i++,image++)
-			for (Iterator it = gltextures.values().iterator(); it.hasNext();)
+			for (i = 0; i < numgltextures ; i++)
 			{
-				image = (image_t) it.next();
+				image = gltextures[i];
+
 				if (image.registration_sequence == 0)
 					continue;
 				if (image.texturechain == null)
@@ -667,10 +666,10 @@ public abstract class Surf extends Draw {
 			}
 
 			GL_EnableMultitexture( false );
-//			for ( i = 0, image=gltextures ; i<numgltextures ; i++,image++)
-			for (Iterator it = gltextures.values().iterator(); it.hasNext();)
+			for (i = 0; i < numgltextures ; i++)
 			{
-				image = (image_t) it.next();
+				image = gltextures[i];
+
 				if (image.registration_sequence == 0)
 					continue;
 				s = image.texturechain;

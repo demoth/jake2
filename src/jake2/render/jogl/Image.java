@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.22 2004-02-16 15:15:55 cwei Exp $
+ * $Id: Image.java,v 1.23 2004-02-17 15:03:04 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -59,9 +59,8 @@ public abstract class Image extends Main {
 
 	image_t draw_chars;
 
-	// image_t[] gltextures = new image_t[MAX_GLTEXTURES];
-	// image_t Hashtable
-	Map gltextures = new Hashtable(MAX_GLTEXTURES); // image_t
+	image_t[] gltextures = new image_t[MAX_GLTEXTURES];
+	//Map gltextures = new Hashtable(MAX_GLTEXTURES); // image_t
 	int numgltextures;
 	int base_textureid; // gltextures[i] = base_textureid+i
 
@@ -83,6 +82,15 @@ public abstract class Image extends Main {
 
 	int gl_filter_min = GL.GL_LINEAR_MIPMAP_NEAREST;
 	int gl_filter_max = GL.GL_LINEAR;
+	
+	Image() {
+		// init the texture cache
+		for (int i = 0; i < gltextures.length; i++)
+		{
+			gltextures[i] = new image_t(i);
+		}
+		numgltextures = 0;
+	}
 
 	void GL_SetTexturePalette(int[] palette) {
 
@@ -272,8 +280,8 @@ public abstract class Image extends Main {
 
 		image_t glt;
 		// change all the existing mipmap texture objects
-		for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-			glt = (image_t) it.next();
+		for (i = 0; i < numgltextures; i++) {
+			glt = gltextures[i];
 
 			if (glt.type != it_pic && glt.type != it_sky) {
 				GL_Bind(glt.texnum);
@@ -338,8 +346,8 @@ public abstract class Image extends Main {
 		ri.Con_Printf(Defines.PRINT_ALL, "------------------\n");
 		texels = 0;
 
-		for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-			image = (image_t) it.next();
+		for (int i = 0; i < numgltextures; i++) {
+			image = gltextures[i];
 			if (image.texnum <= 0)
 				continue;
 
@@ -1336,16 +1344,29 @@ public abstract class Image extends Main {
 	================
 	*/
 	image_t GL_LoadPic(String name, byte[] pic, int width, int height, int type, int bits) {
-		image_t image = null;
+		image_t image;
+		int i;
 
-		if (gltextures.size() == MAX_GLTEXTURES)
-			ri.Sys_Error(Defines.ERR_DROP, "MAX_GLTEXTURES");
+		// find a free image_t
+		for (i = 0; i<numgltextures ; i++)
+		{
+			image = gltextures[i];
+			if (image.texnum == 0)
+				break;
+		}
 
-		// create a new image_t
-		image = new image_t();
+		if (i == numgltextures)
+		{
+			if (numgltextures == MAX_GLTEXTURES)
+				ri.Sys_Error (Defines.ERR_DROP, "MAX_GLTEXTURES");
+			
+			numgltextures++;
+		}
+		image = gltextures[i];
 
 		if (name.length() > Defines.MAX_QPATH)
 			ri.Sys_Error(Defines.ERR_DROP, "Draw_LoadPic: \"" + name + "\" is too long");
+
 		image.name = name;
 		image.registration_sequence = registration_sequence;
 
@@ -1353,8 +1374,6 @@ public abstract class Image extends Main {
 		image.height = height;
 		image.type = type;
 
-		// put the image into the texture cache
-		gltextures.put(name, image);
 
 		if (type == it_skin && bits == 8)
 			R_FloodFillSkin(pic, width, height);
@@ -1362,7 +1381,7 @@ public abstract class Image extends Main {
 		// load little pics into the scrap
 		if (image.type == it_pic && bits == 8 && image.width < 64 && image.height < 64) {
 			pos_t pos = new pos_t(0, 0);
-			int i, j, k;
+			int j, k;
 
 			int texnum = Scrap_AllocBlock(image.width, image.height, pos);
 
@@ -1371,11 +1390,7 @@ public abstract class Image extends Main {
 
 				image.scrap = false;
 				
-				int[] unique = new int[1];
-				gl.glGenTextures(1, unique);
-				
-				image.texnum = TEXNUM_IMAGES + unique[0] - 1; // + image pos
-				// System.out.println("texturenum: " + image.texnum);
+				image.texnum = TEXNUM_IMAGES + image.getId(); // image pos in array
 				GL_Bind(image.texnum);
 
 				if (bits == 8) {
@@ -1428,10 +1443,7 @@ public abstract class Image extends Main {
 
 			image.scrap = false;
 
-			int[] unique = new int[1];
-			gl.glGenTextures(1, unique);
-				
-			image.texnum = TEXNUM_IMAGES + unique[0] - 1; // + image pos
+			image.texnum = TEXNUM_IMAGES + image.getId(); //image pos in array
 			GL_Bind(image.texnum);
 
 			if (bits == 8) {
@@ -1440,7 +1452,7 @@ public abstract class Image extends Main {
 			else {
 				int[] tmp = new int[pic.length / 4];
 
-				for (int i = 0; i < tmp.length; i++) {
+				for (i = 0; i < tmp.length; i++) {
 					tmp[i] = ((pic[4 * i + 0] & 0xFF) << 0); // & 0x000000FF;
 					tmp[i] |= ((pic[4 * i + 1] & 0xFF) << 8); // & 0x0000FF00;
 					tmp[i] |= ((pic[4 * i + 2] & 0xFF) << 16); // & 0x00FF0000;
@@ -1507,12 +1519,14 @@ public abstract class Image extends Main {
 		//	ri.Sys_Error (ERR_DROP, "GL_FindImage: bad name: %s", name);
 
 		// look for it
-		image = (image_t) gltextures.get(name);
-
-		if (image != null) {
-			// found it
-			image.registration_sequence = registration_sequence;
-			return image;
+		for (int i = 0; i < numgltextures; i++)
+		{
+			image = gltextures[i];
+			if (name.equals(image.name))
+	        {
+	             image.registration_sequence = registration_sequence;
+	             return image;
+	        }
 		}
 
 		//
@@ -1575,8 +1589,8 @@ public abstract class Image extends Main {
 
 		image_t image = null;
 
-		for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-			image = (image_t) it.next();
+		for (int i = 0; i < numgltextures; i++) {
+			image = gltextures[i];
 			// used this sequence
 			if (image.registration_sequence == registration_sequence)
 				continue;
@@ -1590,7 +1604,7 @@ public abstract class Image extends Main {
 			// free it
 			// TODO jogl bug
 			//gl.glDeleteTextures(1, new int[] {image.texnum});
-			it.remove();
+			image.clear();
 		}
 	}
 
@@ -1687,14 +1701,18 @@ public abstract class Image extends Main {
 	===============
 	*/
 	void GL_ShutdownImages() {
-		image_t image = null;
-
-		for (Iterator it = gltextures.values().iterator(); it.hasNext();) {
-			image = (image_t) it.next();
+		image_t image;
+		
+		for (int i=0; i < numgltextures ; i++)
+		{
+			image = gltextures[i];
+			
+			if (image.registration_sequence == 0)
+	   			continue; // free image_t slot
 			// free it
 			// TODO jogl bug
 			//gl.glDeleteTextures(1, new int[] {image.texnum});
-			it.remove();
+	  		image.clear();
 		}
 	}
 
