@@ -19,45 +19,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: monsterinfo_t.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: monsterinfo_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
 public class monsterinfo_t {
 
-	mmove_t currentmove;
-	int aiflags;
-	int nextframe;
-	float scale;
+	public mmove_t currentmove;
+	public int aiflags;
+	public int nextframe;
+	public float scale;
 
-	EntThinkAdapter stand;
-	EntThinkAdapter idle;
-	EntThinkAdapter search;
-	EntThinkAdapter walk;
-	EntThinkAdapter run;
+	public EntThinkAdapter stand;
+	public EntThinkAdapter idle;
+	public EntThinkAdapter search;
+	public EntThinkAdapter walk;
+	public EntThinkAdapter run;
 
-	EntDodgeAdapter dodge;
+	public EntDodgeAdapter dodge;
 
-	EntThinkAdapter attack;
-	EntThinkAdapter melee;
+	public EntThinkAdapter attack;
+	public EntThinkAdapter melee;
 
-	EntInteractAdapter sight;
+	public EntInteractAdapter sight;
 
-	EntThinkAdapter checkattack;
+	public EntThinkAdapter checkattack;
 
-	float pausetime;
-	float attack_finished;
+	public float pausetime;
+	public float attack_finished;
 
-	float[] saved_goal= { 0, 0, 0 };
-	float search_time;
-	float trail_time;
-	float[] last_sighting= { 0, 0, 0 };
-	int attack_state;
-	int lefty;
-	float idle_time;
-	int linkcount;
+	public float[] saved_goal= { 0, 0, 0 };
+	public float search_time;
+	public float trail_time;
+	public float[] last_sighting= { 0, 0, 0 };
+	public int attack_state;
+	public int lefty;
+	public float idle_time;
+	public int linkcount;
 
-	int power_armor_type;
-	int power_armor_power;
+	public int power_armor_type;
+	public int power_armor_power;
 
 }

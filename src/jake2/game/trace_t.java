@@ -19,18 +19,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: trace_t.java,v 1.3 2003-11-29 13:28:28 rst Exp $
+// $Id: trace_t.java,v 1.4 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
 //a trace is returned when a box is swept through the world
 public class trace_t {
-	boolean allsolid; // if true, plane is not valid
-	boolean startsolid; // if true, the initial point was in a solid area
-	float fraction; // time completed, 1.0 = didn't hit anything
-	float[] endpos= {0,0,0}; // final position
-	cplane_t plane; // surface normal at impact
-	csurface_t surface; // surface hit
-	int contents; // contents on other side of surface hit
-	edict_t ent; // not set by CM_*() functions
+	public boolean allsolid; // if true, plane is not valid
+	public boolean startsolid; // if true, the initial point was in a solid area
+	public float fraction; // time completed, 1.0 = didn't hit anything
+	public float[] endpos= {0,0,0}; // final position
+	public cplane_t plane; // surface normal at impact
+	public csurface_t surface; // surface hit
+	public int contents; // contents on other side of surface hit
+	public edict_t ent; // not set by CM_*() functions
 }

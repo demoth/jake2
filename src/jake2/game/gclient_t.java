@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: gclient_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -28,83 +28,83 @@ public class gclient_t {
 	//	except for 'client->pers'
 
 	// known to server
-	player_state_t ps; // communicated by server to clients
-	int ping;
+	public player_state_t ps; // communicated by server to clients
+	public int ping;
 
 	// private to game
-	client_persistant_t pers;
-	client_respawn_t resp;
-	pmove_state_t old_pmove; // for detecting out-of-pmove changes
+	public client_persistant_t pers;
+	public client_respawn_t resp;
+	public pmove_state_t old_pmove; // for detecting out-of-pmove changes
 
-	boolean showscores; // set layout stat
-	boolean showinventory; // set layout stat
-	boolean showhelp;
-	boolean showhelpicon;
+	public boolean showscores; // set layout stat
+	public boolean showinventory; // set layout stat
+	public boolean showhelp;
+	public boolean showhelpicon;
 
-	int ammo_index;
+	public int ammo_index;
 
-	int buttons;
-	int oldbuttons;
-	int latched_buttons;
+	public int buttons;
+	public int oldbuttons;
+	public int latched_buttons;
 
-	boolean weapon_thunk;
+	public boolean weapon_thunk;
 
-	gitem_t newweapon;
+	public gitem_t newweapon;
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
-	int damage_armor; // damage absorbed by armor
-	int damage_parmor; // damage absorbed by power armor
-	int damage_blood; // damage taken out of health
-	int damage_knockback; // impact damage
-	float[] damage_from= { 0, 0, 0 }; // origin for vector calculation
+	public int damage_armor; // damage absorbed by armor
+	public int damage_parmor; // damage absorbed by power armor
+	public int damage_blood; // damage taken out of health
+	public int damage_knockback; // impact damage
+	public float[] damage_from= { 0, 0, 0 }; // origin for vector calculation
 
-	float killer_yaw; // when dead, look at killer
+	public float killer_yaw; // when dead, look at killer
 
-	int weaponstate;
-	float[] kick_angles= { 0, 0, 0 }; // weapon kicks
-	float[] kick_origin= { 0, 0, 0 };
-	float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
-	float fall_time, fall_value; // for view drop on fall
-	float damage_alpha;
-	float bonus_alpha;
-	float[] damage_blend= { 0, 0, 0 };
-	float[] v_angle= { 0, 0, 0 }; // aiming direction
-	float bobtime; // so off-ground doesn't change it
-	float[] oldviewangles= { 0, 0, 0 };
-	float[] oldvelocity= { 0, 0, 0 };
+	public int weaponstate;
+	public float[] kick_angles= { 0, 0, 0 }; // weapon kicks
+	public float[] kick_origin= { 0, 0, 0 };
+	public float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
+	public float fall_time, fall_value; // for view drop on fall
+	public float damage_alpha;
+	public float bonus_alpha;
+	public float[] damage_blend= { 0, 0, 0 };
+	public float[] v_angle= { 0, 0, 0 }; // aiming direction
+	public float bobtime; // so off-ground doesn't change it
+	public float[] oldviewangles= { 0, 0, 0 };
+	public float[] oldvelocity= { 0, 0, 0 };
 
-	float next_drown_time;
-	int old_waterlevel;
-	int breather_sound;
+	public float next_drown_time;
+	public int old_waterlevel;
+	public int breather_sound;
 
-	int machinegun_shots; // for weapon raising
+	public int machinegun_shots; // for weapon raising
 
 	// animation vars
-	int anim_end;
-	int anim_priority;
-	boolean anim_duck;
-	boolean anim_run;
+	public int anim_end;
+	public int anim_priority;
+	public boolean anim_duck;
+	public boolean anim_run;
 
 	// powerup timers
-	float quad_framenum;
-	float invincible_framenum;
-	float breather_framenum;
-	float enviro_framenum;
+	public float quad_framenum;
+	public float invincible_framenum;
+	public float breather_framenum;
+	public float enviro_framenum;
 
-	boolean grenade_blew_up;
-	float grenade_time;
-	int silencer_shots;
-	int weapon_sound;
+	public boolean grenade_blew_up;
+	public float grenade_time;
+	public int silencer_shots;
+	public int weapon_sound;
 
-	float pickup_msg_time;
+	public float pickup_msg_time;
 
-	float flood_locktill; // locked from talking
-	float flood_when[]= new float[10]; // when messages were said
-	int flood_whenhead; // head pointer for when said
+	public float flood_locktill; // locked from talking
+	public float flood_when[]= new float[10]; // when messages were said
+	public int flood_whenhead; // head pointer for when said
 
-	float respawn_time; // can respawn when time > this
+	public float respawn_time; // can respawn when time > this
 
-	edict_t chase_target; // player we are chasing
-	boolean update_chase; // need to update chase info?
+	public edict_t chase_target; // player we are chasing
+	public boolean update_chase; // need to update chase info?
 }

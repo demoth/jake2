@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.4 2003-12-04 20:35:26 rst Exp $
+// $Id: GameAI.java,v 1.5 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
 import jake2.Defines;
+import jake2.client.M;
 
 import java.util.*;
 
@@ -289,45 +290,6 @@ public class GameAI extends GameUtil {
 		gi.multicast(start, MULTICAST_PVS);
 	}
 
-	/** Stops the Flies. */
-	public static EntThinkAdapter M_FliesOff= new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			self.s.effects &= ~EF_FLIES;
-			self.s.sound= 0;
-			return true;
-		}
-	};
-
-	/** Starts the Flies as setting the animation flag in the entity. */
-	public static EntThinkAdapter M_FliesOn= new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-			if (self.waterlevel != 0)
-				return true;
-
-			self.s.effects |= EF_FLIES;
-			self.s.sound= gi.soundindex("infantry/inflies1.wav");
-			self.think= M_FliesOff;
-			self.nextthink= level.time + 60;
-			return true;
-		}
-	};
-
-	/** Adds some flies after a random time */
-	public static EntThinkAdapter M_FlyCheck= new EntThinkAdapter() {
-		public boolean think(edict_t self) {
-
-			if (self.waterlevel != 0)
-				return true;
-
-			if (random() > 0.5)
-				return true;
-
-			self.think= M_FliesOn;
-			self.nextthink= level.time + 5 + 10 * random();
-			return true;
-		}
-	};
-
 	public static void AttackFinished(edict_t self, float time) {
 		self.monsterinfo.attack_finished= level.time + time;
 	}
@@ -535,7 +497,7 @@ public class GameAI extends GameUtil {
 		VectorCopy(trace.endpos, ent.s.origin);
 
 		gi.linkentity(ent);
-		M_CheckGround(ent);
+		M.M_CheckGround(ent);
 		M_CatagorizePosition(ent);
 	}
 
@@ -620,7 +582,7 @@ public class GameAI extends GameUtil {
 			M_MoveFrame(self);
 			if (self.linkcount != self.monsterinfo.linkcount) {
 				self.monsterinfo.linkcount= self.linkcount;
-				M_CheckGround(self);
+				M.M_CheckGround(self);
 			}
 			M_CatagorizePosition(self);
 			M_WorldEffects(self);
@@ -862,7 +824,7 @@ public class GameAI extends GameUtil {
 				M_droptofloor(self);
 
 				if (self.groundentity != null)
-					if (!M_walkmove(self, 0, 0))
+					if (!M.M_walkmove(self, 0, 0))
 						gi.dprintf(
 							self.classname
 								+ " in solid at "
@@ -893,7 +855,7 @@ public class GameAI extends GameUtil {
 
 	public static EntThinkAdapter flymonster_start_go= new EntThinkAdapter() {
 		public boolean think(edict_t self) {
-			if (!M_walkmove(self, 0, 0))
+			if (!M.M_walkmove(self, 0, 0))
 				gi.dprintf(
 					self.classname
 						+ " in solid at "
@@ -958,12 +920,12 @@ public class GameAI extends GameUtil {
 	public static AIAdapter ai_turn= new AIAdapter() {
 		public void ai(edict_t self, float dist) {
 			if (dist != 0)
-				M_walkmove(self, self.s.angles[YAW], dist);
+				M.M_walkmove(self, self.s.angles[YAW], dist);
 
 			if (FindTarget(self))
 				return;
 
-			M_ChangeYaw(self);
+			M.M_ChangeYaw(self);
 		}
 	};
 
@@ -977,7 +939,7 @@ public class GameAI extends GameUtil {
 	*/
 	public static AIAdapter ai_move= new AIAdapter() {
 		public void ai(edict_t self, float dist) {
-			M_walkmove(self, self.s.angles[YAW], dist);
+			M.M_walkmove(self, self.s.angles[YAW], dist);
 		}
 	};
 
@@ -990,7 +952,7 @@ public class GameAI extends GameUtil {
 	*/
 	public static AIAdapter ai_walk= new AIAdapter() {
 		public void ai(edict_t self, float dist) {
-			M_MoveToGoal(self, dist);
+			M.M_MoveToGoal(self, dist);
 
 			// check for noticing a player
 			if (FindTarget(self))
@@ -1022,7 +984,7 @@ public class GameAI extends GameUtil {
 			float[] v= { 0, 0, 0 };
 
 			if (dist != 0)
-				M_walkmove(self, self.s.angles[YAW], dist);
+				M.M_walkmove(self, self.s.angles[YAW], dist);
 
 			if ((self.monsterinfo.aiflags & AI_STAND_GROUND) != 0) {
 				if (self.enemy != null) {
@@ -1036,7 +998,7 @@ public class GameAI extends GameUtil {
 							&= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
 						self.monsterinfo.run.think(self);
 					}
-					M_ChangeYaw(self);
+					M.M_ChangeYaw(self);
 					ai_checkattack(self, 0);
 				} else
 					FindTarget(self);
@@ -1079,10 +1041,10 @@ public class GameAI extends GameUtil {
 
 			VectorSubtract(self.enemy.s.origin, self.s.origin, v);
 			self.ideal_yaw= vectoyaw(v);
-			M_ChangeYaw(self);
+			M.M_ChangeYaw(self);
 
 			if (dist != 0)
-				M_walkmove(self, self.s.angles[YAW], dist);
+				M.M_walkmove(self, self.s.angles[YAW], dist);
 		}
 	};
 
@@ -1096,12 +1058,12 @@ public class GameAI extends GameUtil {
 	*/
 	public static void ai_turn(edict_t self, float dist) {
 		if (dist != 0)
-			M_walkmove(self, self.s.angles[YAW], dist);
+			M.M_walkmove(self, self.s.angles[YAW], dist);
 
 		if (FindTarget(self))
 			return;
 
-		M_ChangeYaw(self);
+		M.M_ChangeYaw(self);
 	}
 
 	/*
@@ -1155,7 +1117,7 @@ public class GameAI extends GameUtil {
 	*/
 	public static void ai_run_melee(edict_t self) {
 		self.ideal_yaw= enemy_yaw;
-		M_ChangeYaw(self);
+		M.M_ChangeYaw(self);
 
 		if (FacingIdeal(self)) {
 			self.monsterinfo.melee.think(self);
@@ -1172,7 +1134,7 @@ public class GameAI extends GameUtil {
 	*/
 	public static void ai_run_missile(edict_t self) {
 		self.ideal_yaw= enemy_yaw;
-		M_ChangeYaw(self);
+		M.M_ChangeYaw(self);
 
 		if (FacingIdeal(self)) {
 			self.monsterinfo.attack.think(self);
@@ -1191,18 +1153,18 @@ public class GameAI extends GameUtil {
 		float ofs;
 
 		self.ideal_yaw= enemy_yaw;
-		M_ChangeYaw(self);
+		M.M_ChangeYaw(self);
 
 		if (self.monsterinfo.lefty != 0)
 			ofs= 90;
 		else
 			ofs= -90;
 
-		if (M_walkmove(self, self.ideal_yaw + ofs, distance))
+		if (M.M_walkmove(self, self.ideal_yaw + ofs, distance))
 			return;
 
 		self.monsterinfo.lefty= 1 - self.monsterinfo.lefty;
-		M_walkmove(self, self.ideal_yaw - ofs, distance);
+		M.M_walkmove(self, self.ideal_yaw - ofs, distance);
 	}
 
 	/*
@@ -1347,7 +1309,7 @@ public class GameAI extends GameUtil {
 
 			// if we're going to a combat point, just proceed
 			if ((self.monsterinfo.aiflags & AI_COMBAT_POINT) != 0) {
-				M_MoveToGoal(self, dist);
+				M.M_MoveToGoal(self, dist);
 				return;
 			}
 
@@ -1360,7 +1322,7 @@ public class GameAI extends GameUtil {
 					return;
 				}
 
-				M_MoveToGoal(self, dist);
+				M.M_MoveToGoal(self, dist);
 
 				if (!FindTarget(self))
 					return;
@@ -1377,7 +1339,7 @@ public class GameAI extends GameUtil {
 			if (enemy_vis) {
 				//			if (self.aiflags & AI_LOST_SIGHT)
 				//				dprint("regained sight\n");
-				M_MoveToGoal(self, dist);
+				M.M_MoveToGoal(self, dist);
 				self.monsterinfo.aiflags &= ~AI_LOST_SIGHT;
 				VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
 				self.monsterinfo.trail_time= level.time;
@@ -1393,7 +1355,7 @@ public class GameAI extends GameUtil {
 
 			if ((self.monsterinfo.search_time != 0)
 				&& (level.time > (self.monsterinfo.search_time + 20))) {
-				M_MoveToGoal(self, dist);
+				M.M_MoveToGoal(self, dist);
 				self.monsterinfo.search_time= 0;
 				//			dprint("search timeout\n");
 				return;
@@ -1568,7 +1530,7 @@ public class GameAI extends GameUtil {
 				//			else gi.dprintf("course was fine\n");
 			}
 
-			M_MoveToGoal(self, dist);
+			M.M_MoveToGoal(self, dist);
 
 			G_FreeEdict(tempgoal);
 

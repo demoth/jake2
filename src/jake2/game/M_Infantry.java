@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.5 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Infantry.java,v 1.6 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
+
+import jake2.client.M;
 
 public class M_Infantry extends Game {
 
@@ -508,7 +510,7 @@ public class M_Infantry extends Game {
 			self.svflags |= SVF_DEADMONSTER;
 			gi.linkentity(self);
 
-			M_FlyCheck.think(self);
+			M.M_FlyCheck.think(self);
 			return true;
 		}
 	};

@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Mutant.java,v 1.4 2003-12-04 20:35:26 rst Exp $
+// $Id: M_Mutant.java,v 1.5 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
+
+import jake2.client.M;
 
 public class M_Mutant extends Game {
 
@@ -500,7 +502,7 @@ public class M_Mutant extends Game {
 				}
 			}
 
-			if (!M_CheckBottom(self)) {
+			if (!M.M_CheckBottom(self)) {
 				if (self.groundentity != null) {
 					self.monsterinfo.nextframe = FRAME_attack02;
 					self.touch = null;
@@ -706,7 +708,7 @@ public class M_Mutant extends Game {
 			self.svflags |= SVF_DEADMONSTER;
 			gi.linkentity(self);
 
-			M_FlyCheck.think(self);
+			M.M_FlyCheck.think(self);
 			return true;
 		}
 	};

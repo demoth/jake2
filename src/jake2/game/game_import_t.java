@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: game_import_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -31,15 +31,15 @@ public class game_import_t {
 	// overload them like in the awt Adapter-Tricks
 
 	// special messages
-	void bprintf(int printlevel, String s) {
+	public void bprintf(int printlevel, String s) {
 	}
-	void dprintf(String s) {
+	public void dprintf(String s) {
 	}
-	void cprintf(edict_t ent, int printlevel, String s) {
+	public void cprintf(edict_t ent, int printlevel, String s) {
 	}
-	void centerprintf(edict_t ent, String s) {
+	public void centerprintf(edict_t ent, String s) {
 	}
-	void sound(
+	public void sound(
 		edict_t ent,
 		int channel,
 		int soundindex,
@@ -47,7 +47,7 @@ public class game_import_t {
 		float attenuation,
 		float timeofs) {
 	}
-	void positioned_sound(
+	public void positioned_sound(
 		float[] origin,
 		edict_t ent[],
 		int channel,
@@ -61,28 +61,28 @@ public class game_import_t {
 	// and misc data like the sky definition and cdtrack.
 	// All of the current configstrings are sent to clients when
 	// they connect, and changes are sent to all connected clients.
-	void configstring(int num, String string) {
+	public void configstring(int num, String string) {
 	}
-	void error(String err) {
+	public void error(String err) {
 	}
-	void error(int level, String err) {
+	public void error(int level, String err) {
 	}
 
 	// the *index functions create configstrings and some internal server state
-	int modelindex(String name) {
+	public int modelindex(String name) {
 		return 0;
 	}
-	int soundindex(String name) {
+	public int soundindex(String name) {
 		return 0;
 	}
-	int imageindex(String name) {
+	public int imageindex(String name) {
 		return 0;
 	}
 	void setmodel(edict_t ent, String name) {
 	}
 
 	// collision detection
-	trace_t trace(
+	public trace_t trace(
 		float[] start,
 		float[] mins,
 		float[] maxs,
@@ -91,97 +91,97 @@ public class game_import_t {
 		int contentmask) {
 		return null;
 	}
-	int pointcontents(float[] point) {
+	public int pointcontents(float[] point) {
 		return 0;
 	}
-	boolean inPVS(float[] p1, float[] p2) {
+	public boolean inPVS(float[] p1, float[] p2) {
 		return false;
 	}
-	boolean inPHS(float[] p1, float[] p2) {
+	public boolean inPHS(float[] p1, float[] p2) {
 		return false;
 	}
-	void SetAreaPortalState(int portalnum, boolean open) {
+	public void SetAreaPortalState(int portalnum, boolean open) {
 	}
-	boolean AreasConnected(int area1, int area2) {
+	public boolean AreasConnected(int area1, int area2) {
 		return false;
 	}
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to linkentity.  If the size, position, or
 	// solidity changes, it must be relinked.
-	void linkentity(edict_t ent) {
+	public void linkentity(edict_t ent) {
 	}
-	void unlinkentity(edict_t ent) {
+	public void unlinkentity(edict_t ent) {
 	}
 	// call before removing an interactive edict
-	int BoxEdicts(float[] mins, float[] maxs, edict_t list[], int maxcount, int areatype) {
+	public int BoxEdicts(float[] mins, float[] maxs, edict_t list[], int maxcount, int areatype) {
 		return 0;
 	}
-	void Pmove(pmove_t pmove) {
+	public void Pmove(pmove_t pmove) {
 	}
 	// player movement code common with client prediction
 
 	// network messaging
-	void multicast(float[] origin, int to) {
+	public void multicast(float[] origin, int to) {
 	}
-	void unicast(edict_t ent, boolean reliable) {
+	public void unicast(edict_t ent, boolean reliable) {
 	}
-	void WriteChar(int c) {
+	public void WriteChar(int c) {
 	}
-	void WriteByte(int c) {
+	public void WriteByte(int c) {
 	}
-	void WriteShort(int c) {
+	public void WriteShort(int c) {
 	}
-	void WriteLong(int c) {
+	public void WriteLong(int c) {
 	}
-	void WriteFloat(float f) {
+	public void WriteFloat(float f) {
 	}
-	void WriteString(String s) {
+	public void WriteString(String s) {
 	}
-	void WritePosition(float[] pos) {
+	public void WritePosition(float[] pos) {
 	} // some fractional bits
-	void WriteDir(float[] pos) {
+	public void WriteDir(float[] pos) {
 	} // single byte encoded, very coarse
-	void WriteAngle(float f) {
+	public void WriteAngle(float f) {
 	}
 
 	// managed memory allocation
-	void TagMalloc(int size, int tag) {
+	public void TagMalloc(int size, int tag) {
 	}
-	void TagFree(Object block) {
+	public void TagFree(Object block) {
 	}
-	void FreeTags(int tag) {
+	public void FreeTags(int tag) {
 	}
 
 	// console variable interaction
-	cvar_t cvar(String var_name, String value, int flags) {
+	public cvar_t cvar(String var_name, String value, int flags) {
 		return null;
 	}
-	cvar_t cvar_set(String var_name, String value) {
+	public cvar_t cvar_set(String var_name, String value) {
 		return null;
 	}
-	cvar_t cvar_forceset(String var_name, String value) {
+	public cvar_t cvar_forceset(String var_name, String value) {
 		return null;
 	}
 
 	// ClientCommand and ServerCommand parameter access
-	int argc() {
+	public int argc() {
 		return 0;
 	}
-	String argv(int n) {
+	public String argv(int n) {
 		return null;
 	}
 	// concatenation of all argv >= 1
 
-	String args() {
+	public String args() {
 		return null;
 	}
 
 	// add commands to the server console as if they were typed in
 	// for map changing, etc
-	void AddCommandString(String text) {
+	public void AddCommandString(String text) {
 	}
 
-	void DebugGraph(float value, int color) {
+	public void DebugGraph(float value, int color) {
 	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST
-// $Id: level_locals_t.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: level_locals_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -28,42 +28,42 @@ public class level_locals_t {
 	//	this structure is cleared as each map is entered
 	//	it is read/written to the level.sav file for savegames
 	//
-	int framenum;
-	float time;
+	public int framenum;
+	public float time;
 
-	String level_name= ""; // the descriptive name (Outer Base, etc)
-	String mapname= ""; // the server name (base1, etc)
-	String nextmap= ""; // go here when fraglimit is hit
+	public String level_name= ""; // the descriptive name (Outer Base, etc)
+	public String mapname= ""; // the server name (base1, etc)
+	public String nextmap= ""; // go here when fraglimit is hit
 
 	// intermission state
-	float intermissiontime; // time the intermission was started
-	char changemap;
-	int exitintermission;
-	float[] intermission_origin= { 0, 0, 0 };
-	float[] intermission_angle= { 0, 0, 0 };
+	public float intermissiontime; // time the intermission was started
+	public char changemap;
+	public int exitintermission;
+	public float[] intermission_origin= { 0, 0, 0 };
+	public float[] intermission_angle= { 0, 0, 0 };
 
-	edict_t sight_client; // changed once each frame for coop games
+	public edict_t sight_client; // changed once each frame for coop games
 
-	edict_t sight_entity;
-	int sight_entity_framenum;
-	edict_t sound_entity;
-	int sound_entity_framenum;
-	edict_t sound2_entity;
-	int sound2_entity_framenum;
+	public edict_t sight_entity;
+	public int sight_entity_framenum;
+	public edict_t sound_entity;
+	public int sound_entity_framenum;
+	public edict_t sound2_entity;
+	public int sound2_entity_framenum;
 
-	int pic_health;
+	public int pic_health;
 
-	int total_secrets;
-	int found_secrets;
+	public int total_secrets;
+	public int found_secrets;
 
-	int total_goals;
-	int found_goals;
+	public int total_goals;
+	public int found_goals;
 
-	int total_monsters;
-	int killed_monsters;
+	public int total_monsters;
+	public int killed_monsters;
 
-	edict_t current_entity; // entity running from G_RunFrame
-	int body_que; // dead bodies
+	public edict_t current_entity; // entity running from G_RunFrame
+	public int body_que; // dead bodies
 
-	int power_cubes; // ugly necessity for coop
+	public int power_cubes; // ugly necessity for coop
 }

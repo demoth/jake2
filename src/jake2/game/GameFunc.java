@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.3 2003-12-04 20:35:26 rst Exp $
+// $Id: GameFunc.java,v 1.4 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -580,7 +580,7 @@ public class GameFunc extends Game {
 	*/
 
 	static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
-		void blocked(edict_t self, edict_t other) {
+		public void blocked(edict_t self, edict_t other) {
 			T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, self.dmg, 1, 0, MOD_CRUSH);
 		}
 	};
@@ -1071,7 +1071,7 @@ public class GameFunc extends Game {
 	};
 
 	static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
-		void blocked(edict_t self, edict_t other) {
+		public void blocked(edict_t self, edict_t other) {
 			edict_t ent;
 
 			if (0 == (other.svflags & SVF_MONSTER) && (null == other.client)) {

@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: GameUtil.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
+
+import jake2.client.M;
 
 public class GameUtil extends GameBase {
 
@@ -548,7 +550,7 @@ public class GameUtil extends GameBase {
 	};
 
 	static EntThinkAdapter drop_make_touchable= new EntThinkAdapter() {
-		boolean think(edict_t ent) {
+		public boolean think(edict_t ent) {
 			ent.touch= Touch_Item;
 			if (deathmatch.value != 0) {
 				ent.nextthink= level.time + 29;
@@ -1194,7 +1196,7 @@ public class GameUtil extends GameBase {
 	 * 
 	 */
 	static void ai_walk(edict_t self, float dist) {
-		M_MoveToGoal(self, dist);
+		M.M_MoveToGoal(self, dist);
 
 		// check for noticing a player
 		if (FindTarget(self))
@@ -1241,7 +1243,7 @@ public class GameUtil extends GameBase {
 
 	static EntThinkAdapter M_CheckAttack= new EntThinkAdapter() {
 
-		boolean think(edict_t self) {
+		public boolean think(edict_t self) {
 			float[] spot1= { 0, 0, 0 };
 
 			float[] spot2= { 0, 0, 0 };
@@ -1640,7 +1642,7 @@ public class GameUtil extends GameBase {
 	==============
 	*/
 	static void ai_move(edict_t self, float dist) {
-		M_walkmove(self, self.s.angles[YAW], dist);
+		M.M_walkmove(self, self.s.angles[YAW], dist);
 	}
 
 	/*
@@ -1794,7 +1796,7 @@ public class GameUtil extends GameBase {
 					return false;
 
 			self.ideal_yaw= vectoyaw(temp);
-			M_ChangeYaw(self);
+			M.M_ChangeYaw(self);
 
 			// hunt the sound for a bit; hopefully find the real player
 			self.monsterinfo.aiflags |= AI_SOUND_TARGET;

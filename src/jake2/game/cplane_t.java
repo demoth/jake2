@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: cplane_t.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: cplane_t.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -27,10 +27,10 @@ package jake2.game;
 public class cplane_t
 {
 	// Fixme: just for testuing... both representations of a vector normal, vec3t and float[]
-	float normal[]= new float[3];
-	float dist;
-	byte type; // for fast side tests
-	byte signbits; // signx + (signy<<1) + (signz<<1)
-	byte pad[]= new byte[2];
+	public float normal[]= new float[3];
+	public float dist;
+	public byte type; // for fast side tests
+	public byte signbits; // signx + (signy<<1) + (signz<<1)
+	public byte pad[]= new byte[2];
 
 }

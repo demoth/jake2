@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntDodgeAdapter.java,v 1.2 2003-11-29 13:28:28 rst Exp $
+// $Id: EntDodgeAdapter.java,v 1.3 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
 public class EntDodgeAdapter {
-	void dodge(edict_t self, edict_t other, float eta) {
+	public void dodge(edict_t self, edict_t other, float eta) {
 	}
 }

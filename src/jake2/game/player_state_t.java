@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: player_state_t.java,v 1.4 2003-11-29 13:34:48 rst Exp $
+// $Id: player_state_t.java,v 1.5 2003-12-04 21:04:35 rst Exp $
 
 package jake2.game;
 
@@ -32,26 +32,26 @@ public class player_state_t {
 	//	but the number of pmove_state_t changes will be reletive to client
 	//	frame rates
 
-	pmove_state_t pmove; // for prediction
+	public pmove_state_t pmove; // for prediction
 
 	// these fields do not need to be communicated bit-precise
 
-	float[] viewangles= { 0, 0, 0 }; // for fixed views
+	public float[] viewangles= { 0, 0, 0 }; // for fixed views
 
-	float[] viewoffset= { 0, 0, 0 }; // add to pmovestate->origin
-	float[] kick_angles= { 0, 0, 0 }; // add to view direction to get render angles
+	public float[] viewoffset= { 0, 0, 0 }; // add to pmovestate->origin
+	public float[] kick_angles= { 0, 0, 0 }; // add to view direction to get render angles
 	// set by weapon kicks, pain effects, etc
 
-	float[] gunangles= { 0, 0, 0 };
-	float[] gunoffset= { 0, 0, 0 };
-	int gunindex;
-	int gunframe;
+	public float[] gunangles= { 0, 0, 0 };
+	public float[] gunoffset= { 0, 0, 0 };
+	public int gunindex;
+	public int gunframe;
 
-	float blend[]= new float[4]; // rgba full screen effect
+	public float blend[]= new float[4]; // rgba full screen effect
 
-	float fov; // horizontal field of view
+	public float fov; // horizontal field of view
 
-	int rdflags; // refdef flags
+	public int rdflags; // refdef flags
 
-	short stats[]= new short[Defines.MAX_STATS]; // fast status bar updates
+	public short stats[]= new short[Defines.MAX_STATS]; // fast status bar updates
 }
