@@ -2,7 +2,7 @@
  * FastJoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: FastJoglRenderer.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: FastJoglRenderer.java,v 1.2 2004-06-13 00:54:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,7 +64,7 @@ final class FastJoglRenderer extends Impl implements refexport_t, Ref {
 		// pre init
 		if (!R_Init(vid_xpos, vid_ypos)) return false;
 		// calls the R_Init2() internally		
-		updateScreen(null);
+		updateScreen();
 		// the result from R_Init2()
 		return post_init;
 	}

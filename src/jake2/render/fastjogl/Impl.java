@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Impl.java,v 1.2 2004-06-13 00:54:42 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,6 +34,9 @@ import jake2.server.SV;
 import jake2.sys.KBD;
 
 import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -57,8 +60,30 @@ public class Impl extends Misc implements GLEventListener {
 
 	// switch to updateScreen callback
 	private boolean switchToCallback = false;
-	private xcommand_t callback = null;
+
+	private final xcommand_t INIT_CALLBACK = new xcommand_t() {
+		public void execute() {
+			// only used for the first run (initialization)
+			// clear the screen
+			gl.glClearColor(0, 0, 0, 0);
+			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+			//
+			// check the post init process
+			//
+			if (!post_init) {
+				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init FastJOGL renderer");
+			}
+
+			GLimp_EndFrame();
+		}
+	};
+
+	private xcommand_t callback = INIT_CALLBACK;
 	protected boolean contextInUse = false;
+	
+	private GraphicsDevice device;
+	private DisplayMode oldDisplayMode; 
 
 	GLCanvas canvas;
 	JFrame window;
@@ -118,11 +143,9 @@ public class Impl extends Misc implements GLEventListener {
 		canvas.setNoAutoRedrawMode(true);
 		canvas.addGLEventListener(this);
 
-		window.getContentPane().add(canvas);		
-		
+		window.getContentPane().add(canvas);	
 		
 		canvas.setSize(newDim.width, newDim.height);
-		window.setLocation(window_xpos, window_ypos);
 		//window.setUndecorated(true);
 		window.setResizable(false);
 
@@ -134,13 +157,41 @@ public class Impl extends Misc implements GLEventListener {
 		});
 		
 		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
+		window.addComponentListener(KBD.listener);
 		canvas.addKeyListener(KBD.listener);
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
-		window.addComponentListener(KBD.listener);
-		canvas.requestFocus();
+		//canvas.requestFocus();
 		
-		window.pack();
+		/*
+		 * fullscreen handling
+		 */
+		
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		device = env.getDefaultScreenDevice();
+		fullscreen = fullscreen && device.isFullScreenSupported();
+        
+		if (fullscreen) {
+
+			if (oldDisplayMode == null) {
+				oldDisplayMode = device.getDisplayMode();
+			}
+			
+			DisplayMode displayMode = findDisplayMode(newDim, oldDisplayMode.getBitDepth(), oldDisplayMode.getRefreshRate());
+			
+			if (displayMode != null) {
+				canvas.setSize(displayMode.getWidth(), displayMode.getWidth());
+				window.setUndecorated(true);
+				window.setSize(displayMode.getWidth(), displayMode.getHeight());
+				window.setLocation(0, 0);
+				device.setFullScreenWindow(window);
+				device.setDisplayMode(displayMode);
+			}
+		} else {
+			window.setLocation(window_xpos, window_ypos);
+			window.pack();
+		}
+
 		window.show();
 		canvas.requestFocus();
 		
@@ -153,6 +204,40 @@ public class Impl extends Misc implements GLEventListener {
 		ri.Vid_NewWindow(vid.width, vid.height);
 
 		return rserr_ok;
+	}
+	
+	DisplayMode findDisplayMode(Dimension dim, int depth, int rate) {
+		DisplayMode mode = null;
+		DisplayMode m = null;
+		DisplayMode[] modes = device.getDisplayModes();
+		int w = dim.width;
+		int h = dim.height;
+		
+		for (int i = 0; i < modes.length; i++) {
+			m = modes[i];
+			if (m.getWidth() == w && m.getHeight() == h && m.getBitDepth() == depth && m.getRefreshRate() == rate) {
+				mode = m;
+				Com.Printf(getModeString(mode) + '\n');
+				break;
+			}
+		}
+		
+		if (mode == null) mode = oldDisplayMode;
+		
+		return mode;		
+	}
+	
+	String getModeString(DisplayMode m) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(m.getWidth());
+		sb.append('x');
+		sb.append(m.getHeight());
+		sb.append('x');
+		sb.append(m.getBitDepth());
+		sb.append('@');
+		sb.append(m.getRefreshRate());
+		sb.append("Hz");
+		return sb.toString();
 	}
 
 	void GLimp_BeginFrame(float camera_separation) {
@@ -180,11 +265,17 @@ public class Impl extends Misc implements GLEventListener {
 	}
 
 	void GLimp_Shutdown() {
+		if (oldDisplayMode != null) {
+			try {
+				device.setDisplayMode(oldDisplayMode);
+			} catch (Exception e) {
+			}
+		}
 		if (this.window != null) {
 			window.dispose();
 		}
 		post_init = false;
-		switchToCallback = false;
+		callback = INIT_CALLBACK;
 	}
 
 	void GLimp_EnableLogging(boolean enable) {
@@ -212,6 +303,11 @@ public class Impl extends Misc implements GLEventListener {
 
 		// this is a hack to run R_init() in gl context
 		post_init = R_Init2();
+
+		if (gl instanceof WGL) {
+			// Win32 VSync is off
+			((WGL)gl).wglSwapIntervalEXT(0);
+		}
 	}
 
 	/* 
@@ -221,31 +317,8 @@ public class Impl extends Misc implements GLEventListener {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
 		
-		this.contextInUse = true;
-
-		if (switchToCallback) {
-			callback.execute();
-		}
-		else
-		{
-
-			// after the first run (initialization) switch to callback
-			switchToCallback = true;
-
-			// clear the screen
-			gl.glClearColor(0, 0, 0, 0);
-			gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-			//
-			// check the post init process
-			//
-			if (!post_init) {
-				ri.Sys_Error(Defines.ERR_FATAL, "Error: can't init FastJOGL renderer");
-			}
-
-			GLimp_EndFrame();
-		}
-		
+		contextInUse = true;
+		callback.execute();
 		contextInUse = false;
 	}
 
@@ -270,10 +343,12 @@ public class Impl extends Misc implements GLEventListener {
 	/* 
 	 * @see jake2.client.refexport_t#updateScreen()
 	 */
+	public void updateScreen() {
+		this.callback = INIT_CALLBACK;
+		canvas.display();
+	}
+	
 	public void updateScreen(xcommand_t callback) {
-//		if (canvas == null) {
-//			throw new IllegalStateException("Refresh modul \"" + DRIVER_NAME + "\" have to be initialized.");
-//		}
 		this.callback = callback;
 		canvas.display();
 	}
