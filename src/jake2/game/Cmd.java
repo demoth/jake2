@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.10 2005-01-23 20:04:02 cawe Exp $
+ * $Id: Cmd.java,v 1.11 2005-02-06 18:53:50 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.server.SV_GAME;
 import jake2.util.Lib;
@@ -379,8 +380,8 @@ public final class Cmd {
     /*
      * ============ Cmd_ExecuteString
      * 
-     * A complete command line has been parsed, so try to execute it FIXME:
-     * lookupnoadd the token to speed search? ============
+     * A complete command line has been parsed, so try to execute it 
+     * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
 
@@ -659,15 +660,16 @@ public final class Cmd {
         String s;
 
         s = Cmd.Args();
+
         it = GameUtil.FindItem(s);
+        Com.dprintln("using:" + s);
         if (it == null) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s
                     + "\n");
             return;
         }
         if (it.use == null) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
+            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH,
                             "Item is not usable.\n");
             return;
         }
@@ -896,7 +898,7 @@ public final class Cmd {
         }
 
         ent.client.showscores = true;
-        GameAI.DeathmatchScoreboard(ent);
+        PlayerHud.DeathmatchScoreboard(ent);
     }
 
     /*
@@ -946,7 +948,6 @@ public final class Cmd {
         ent.client.showscores = false;
         ent.client.showhelp = false;
         ent.client.showinventory = false;
-
     }
 
     /*
