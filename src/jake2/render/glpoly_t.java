@@ -19,13 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glpoly_t.java,v 1.6 2004-06-13 21:42:27 cwei Exp $
+// $Id: glpoly_t.java,v 1.7 2004-06-22 11:21:48 cwei Exp $
 
 package jake2.render;
-
-import java.nio.FloatBuffer;
-
-import net.java.games.jogl.util.BufferUtils;
 
 public class glpoly_t {
 	public final static int VERTEXSIZE = 7;
