@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: GamePWeapon.java,v 1.3 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -459,7 +459,7 @@ public class GamePWeapon extends M_Player {
 		speed=
 			(int) (GRENADE_MINSPEED
 				+ (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER));
-		fire_grenade2(ent, start, forward, damage, speed, timer, radius, held);
+		Fire.fire_grenade2(ent, start, forward, damage, speed, timer, radius, held);
 
 		if (0 == ((int) dmflags.value & DF_INFINITE_AMMO))
 			ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -618,7 +618,7 @@ public class GamePWeapon extends M_Player {
 			VectorScale(forward, -2, ent.client.kick_origin);
 			ent.client.kick_angles[0]= -1;
 
-			fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
+			Fire.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
 			gi.WriteByte(svc_muzzleflash);
 			//gi.WriteShort(ent - g_edicts);
@@ -690,7 +690,7 @@ public class GamePWeapon extends M_Player {
 
 			VectorSet(offset, 8, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
-			fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
+			Fire.fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
 
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
@@ -758,7 +758,7 @@ public class GamePWeapon extends M_Player {
 		VectorScale(forward, -2, ent.client.kick_origin);
 		ent.client.kick_angles[0]= -1;
 
-		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+		Fire.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
 		// send muzzle flash
 		gi.WriteByte(svc_muzzleflash);
@@ -946,7 +946,7 @@ public class GamePWeapon extends M_Player {
 			AngleVectors(angles, forward, right, null);
 			VectorSet(offset, 0, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
-			fire_bullet(
+			Fire.fire_bullet(
 				ent,
 				start,
 				forward,
@@ -1080,7 +1080,7 @@ public class GamePWeapon extends M_Player {
 				VectorSet(offset, 0, r, u + ent.viewheight - 8);
 				P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
 
-				fire_bullet(
+				Fire.fire_bullet(
 					ent,
 					start,
 					forward,
@@ -1155,7 +1155,7 @@ public class GamePWeapon extends M_Player {
 			}
 
 			if (deathmatch.value != 0)
-				fire_shotgun(
+				Fire.fire_shotgun(
 					ent,
 					start,
 					forward,
@@ -1166,7 +1166,7 @@ public class GamePWeapon extends M_Player {
 					DEFAULT_DEATHMATCH_SHOTGUN_COUNT,
 					MOD_SHOTGUN);
 			else
-				fire_shotgun(
+				Fire.fire_shotgun(
 					ent,
 					start,
 					forward,
@@ -1232,7 +1232,7 @@ public class GamePWeapon extends M_Player {
 			v[YAW]= ent.client.v_angle[YAW] - 5;
 			v[ROLL]= ent.client.v_angle[ROLL];
 			AngleVectors(v, forward, null, null);
-			fire_shotgun(
+			Fire.fire_shotgun(
 				ent,
 				start,
 				forward,
@@ -1244,7 +1244,7 @@ public class GamePWeapon extends M_Player {
 				MOD_SSHOTGUN);
 			v[YAW]= ent.client.v_angle[YAW] + 5;
 			AngleVectors(v, forward, null, null);
-			fire_shotgun(
+			Fire.fire_shotgun(
 				ent,
 				start,
 				forward,
@@ -1320,7 +1320,7 @@ public class GamePWeapon extends M_Player {
 
 			VectorSet(offset, 0, 7, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
-			fire_rail(ent, start, forward, damage, kick);
+			Fire.fire_rail(ent, start, forward, damage, kick);
 
 			// send muzzle flash
 			gi.WriteByte(svc_muzzleflash);
@@ -1407,7 +1407,7 @@ public class GamePWeapon extends M_Player {
 
 			VectorSet(offset, 8, 8, ent.viewheight - 8);
 			P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
-			fire_bfg(ent, start, forward, damage, 400, damage_radius);
+			Fire.fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
 			ent.client.ps.gunframe++;
 

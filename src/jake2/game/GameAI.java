@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.3 2003-12-04 20:25:10 rst Exp $
+// $Id: GameAI.java,v 1.4 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -141,7 +141,7 @@ public class GameAI extends GameUtil {
 		int hspread,
 		int vspread,
 		int flashtype) {
-		GameWeapon.fire_bullet(
+		Fire.fire_bullet(
 			self,
 			start,
 			dir,
@@ -168,7 +168,7 @@ public class GameAI extends GameUtil {
 		int vspread,
 		int count,
 		int flashtype) {
-		GameWeapon.fire_shotgun(
+		Fire.fire_shotgun(
 			self,
 			start,
 			aimdir,
@@ -194,7 +194,7 @@ public class GameAI extends GameUtil {
 		int speed,
 		int flashtype,
 		int effect) {
-		GameWeapon.fire_blaster(
+		Fire.fire_blaster(
 			self,
 			start,
 			dir,
@@ -217,7 +217,7 @@ public class GameAI extends GameUtil {
 		int damage,
 		int speed,
 		int flashtype) {
-		GameWeapon.fire_grenade(
+		Fire.fire_grenade(
 			self,
 			start,
 			aimdir,
@@ -240,7 +240,7 @@ public class GameAI extends GameUtil {
 		int damage,
 		int speed,
 		int flashtype) {
-		GameWeapon.fire_rocket(
+		Fire.fire_rocket(
 			self,
 			start,
 			dir,
@@ -263,7 +263,7 @@ public class GameAI extends GameUtil {
 		int damage,
 		int kick,
 		int flashtype) {
-		GameWeapon.fire_rail(self, start, aimdir, damage, kick);
+		Fire.fire_rail(self, start, aimdir, damage, kick);
 
 		gi.WriteByte(svc_muzzleflash2);
 		gi.WriteShort(self.s.number);
@@ -281,7 +281,7 @@ public class GameAI extends GameUtil {
 		int kick,
 		float damage_radius,
 		int flashtype) {
-		GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
+		Fire.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
 		gi.WriteByte(svc_muzzleflash2);
 		gi.WriteShort(self.s.number);

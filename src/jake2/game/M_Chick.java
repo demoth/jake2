@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Chick.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Chick.java,v 1.4 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -740,7 +740,7 @@ public class M_Chick extends GameWeapon {
 
 			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 10);
 			gi.sound(self, CHAN_WEAPON, sound_melee_swing, 1, ATTN_NORM, 0);
-			fire_hit(self, aim, (10 + (rand() % 6)), 100);
+			Fire.fire_hit(self, aim, (10 + (rand() % 6)), 100);
 			return true;
 		}
 	};

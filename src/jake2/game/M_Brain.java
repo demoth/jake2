@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Brain.java,v 1.3 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Brain.java,v 1.4 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -581,7 +581,7 @@ public class M_Brain extends GameWeapon {
 			float[] aim= { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
-			if (fire_hit(self, aim, (15 + (rand() % 5)), 40))
+			if (Fire.fire_hit(self, aim, (15 + (rand() % 5)), 40))
 				gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 			return true;
 		}
@@ -606,7 +606,7 @@ public class M_Brain extends GameWeapon {
 			float[] aim= { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
-			if (fire_hit(self, aim, (15 + (rand() % 5)), 40))
+			if (Fire.fire_hit(self, aim, (15 + (rand() % 5)), 40))
 				gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 
 			return true;
@@ -628,7 +628,7 @@ public class M_Brain extends GameWeapon {
 			float[] aim= { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, 0, 8);
-			if (fire_hit(self, aim, (10 + (rand() % 5)), -600) && skill.value > 0)
+			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), -600) && skill.value > 0)
 				self.spawnflags |= 65536;
 			gi.sound(self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
 			return true;

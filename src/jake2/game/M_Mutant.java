@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Mutant.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Mutant.java,v 1.4 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -424,7 +424,7 @@ public class M_Mutant extends Game {
 			float[] aim={0,0,0};
 
 			VectorSet(aim, MELEE_DISTANCE, self.mins[0], 8);
-			if (fire_hit(self, aim, (10 + (rand() % 5)), 100))
+			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), 100))
 				gi.sound(self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
@@ -437,7 +437,7 @@ public class M_Mutant extends Game {
 			float[] aim={0,0,0};
 
 			VectorSet(aim, MELEE_DISTANCE, self.maxs[0], 8);
-			if (fire_hit(self, aim, (10 + (rand() % 5)), 100))
+			if (Fire.fire_hit(self, aim, (10 + (rand() % 5)), 100))
 				gi.sound(self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 			else
 				gi.sound(self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);

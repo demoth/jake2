@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.4 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Infantry.java,v 1.5 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -727,7 +727,7 @@ public class M_Infantry extends Game {
 			float[] aim = { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, 0, 0);
-			if (fire_hit(self, aim, (5 + (rand() % 5)), 50))
+			if (Fire.fire_hit(self, aim, (5 + (rand() % 5)), 50))
 				gi.sound(self, CHAN_WEAPON, sound_punch_hit, 1, ATTN_NORM, 0);
 			return true;
 		}

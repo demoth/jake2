@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flipper.java,v 1.4 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Flipper.java,v 1.5 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -366,7 +366,7 @@ public class M_Flipper extends Game {
 			float[] aim= { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, 0, 0);
-			fire_hit(self, aim, 5, 0);
+			Fire.fire_hit(self, aim, 5, 0);
 			return true;
 		}
 	};

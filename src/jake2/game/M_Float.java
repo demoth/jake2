@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Float.java,v 1.5 2003-11-29 13:28:28 rst Exp $
+// $Id: M_Float.java,v 1.6 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -553,7 +553,7 @@ public class M_Float extends Game {
 		public boolean think(edict_t self) {
 
 			gi.sound(self, CHAN_WEAPON, sound_attack3, 1, ATTN_NORM, 0);
-			fire_hit(self, aim, 5 + rand() % 6, -50);
+			Fire.fire_hit(self, aim, 5 + rand() % 6, -50);
 			return true;
 		}
 	};

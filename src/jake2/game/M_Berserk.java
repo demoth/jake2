@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST
-// $Id: M_Berserk.java,v 1.3 2003-11-29 13:28:29 rst Exp $
+// $Id: M_Berserk.java,v 1.4 2003-12-04 20:35:26 rst Exp $
 
 package jake2.game;
 
@@ -424,7 +424,7 @@ public class M_Berserk extends GameWeapon {
 		public boolean think(edict_t self) {
 			float[] aim= { MELEE_DISTANCE, 0f, -24f };
 
-			fire_hit(self, aim, (15 + (rand() % 6)), 400);
+			Fire.fire_hit(self, aim, (15 + (rand() % 6)), 400);
 			//	Faster attack -- upwards and backwards
 
 			return true;
@@ -456,7 +456,7 @@ public class M_Berserk extends GameWeapon {
 			float aim[]= { 0, 0, 0 };
 
 			VectorSet(aim, MELEE_DISTANCE, self.mins[0], -4);
-			fire_hit(self, aim, (5 + (rand() % 6)), 400); // Slower attack
+			Fire.fire_hit(self, aim, (5 + (rand() % 6)), 400); // Slower attack
 
 			return true;
 		}
