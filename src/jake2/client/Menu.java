@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.2 2004-01-25 14:11:05 hoz Exp $
+ * $Id: Menu.java,v 1.3 2004-01-25 21:56:21 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import java.awt.Dimension;
+
+import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.qcommon.xcommand_t;
 
@@ -41,18 +44,17 @@ public final class Menu {
 //	#include "client.h"
 //	#include "../client/qmenu.h"
 //
-//	static int	m_main_cursor;
+	static int m_main_cursor;
+
+	static final int NUM_CURSOR_FRAMES = 15;
 //
-//	#define NUM_CURSOR_FRAMES 15
-//
-//	static char *menu_in_sound		= "misc/menu1.wav";
-//	static char *menu_move_sound	= "misc/menu2.wav";
-//	static char *menu_out_sound		= "misc/menu3.wav";
-//
+	static final String menu_in_sound = "misc/menu1.wav";
+	static final String menu_move_sound = "misc/menu2.wav";
+	static final String menu_out_sound = "misc/menu3.wav";
 
 //
-//	qboolean	m_entersound;		// play after drawing a frame, so caching
-//									// won't disrupt the sound
+	static boolean	m_entersound;	// play after drawing a frame, so caching
+									// won't disrupt the sound
 //
 //	void	(*m_drawfunc) (void);
 //	const char *(*m_keyfunc) (int key);
@@ -80,8 +82,7 @@ public final class Menu {
 //		re.DrawPic( viddef.width / 2 - w / 2, viddef.height / 2 - 110, name );
 //	}
 //
-//	void M_PushMenu ( void (*draw) (void), const char *(*key) (int k) )
-//	{
+	static void PushMenu(xcommand_t draw, keyfunc_t key) {//, const char *(*key) (int k) ) {
 //		int		i;
 //
 //		if (Cvar_VariableValue ("maxclients") == 1 
@@ -112,7 +113,7 @@ public final class Menu {
 //		m_entersound = true;
 //
 //		cls.key_dest = key_menu;
-//	}
+	}
 //
 	static void ForceMenuOff() {
 //		m_drawfunc = 0;
@@ -123,8 +124,7 @@ public final class Menu {
 //		Cvar_Set ("paused", "0");
 	}
 //
-//	void M_PopMenu (void)
-//	{
+	static void PopMenu() {
 //		S_StartLocalSound( menu_out_sound );
 //		if (m_menudepth < 1)
 //			Com_Error (ERR_FATAL, "M_PopMenu: depth < 1");
@@ -135,7 +135,7 @@ public final class Menu {
 //
 //		if (!m_menudepth)
 //			M_ForceMenuOff ();
-//	}
+	}
 //
 //
 //	const char *Default_MenuKey( menuframework_s *m, int key )
@@ -305,8 +305,7 @@ public final class Menu {
 //	and both above and below y.
 //	=============
 //	*/
-//	void M_DrawCursor( int x, int y, int f )
-//	{
+	static void DrawCursor(int x, int y, int f) {
 //		char	cursorname[80];
 //		static qboolean cached;
 //
@@ -325,7 +324,7 @@ public final class Menu {
 //
 //		Com_sprintf( cursorname, sizeof(cursorname), "m_cursor%d", f );
 //		re.DrawPic( x, y, cursorname );
-//	}
+	}
 //
 //	void M_DrawTextBox (int x, int y, int width, int lines)
 //	{
@@ -371,117 +370,124 @@ public final class Menu {
 //	}
 //
 //		
-//	/*
-//	=======================================================================
-//
-//	MAIN MENU
-//
-//	=======================================================================
-//	*/
-//	#define	MAIN_ITEMS	5
-//
-//
-//	void M_Main_Draw (void)
-//	{
-//		int i;
-//		int w, h;
-//		int ystart;
-//		int	xoffset;
-//		int widest = -1;
-//		int totalheight = 0;
-//		char litname[80];
-//		char *names[] =
-//		{
-//			"m_main_game",
-//			"m_main_multiplayer",
-//			"m_main_options",
-//			"m_main_video",
-//			"m_main_quit",
-//			0
-//		};
-//
-//		for ( i = 0; names[i] != 0; i++ )
-//		{
-//			re.DrawGetPicSize( &w, &h, names[i] );
-//
-//			if ( w > widest )
-//				widest = w;
-//			totalheight += ( h + 12 );
-//		}
-//
-//		ystart = ( viddef.height / 2 - 110 );
-//		xoffset = ( viddef.width - widest + 70 ) / 2;
-//
-//		for ( i = 0; names[i] != 0; i++ )
-//		{
-//			if ( i != m_main_cursor )
-//				re.DrawPic( xoffset, ystart + i * 40 + 13, names[i] );
-//		}
+	/*
+	=======================================================================
+	
+	MAIN MENU
+	
+	=======================================================================
+	*/
+	static final int MAIN_ITEMS = 5;
+
+
+	static xcommand_t Main_Draw = new xcommand_t() {
+		public void execute() {
+			M_Main_Draw();
+		}
+	};
+	static void M_Main_Draw() {
+		int i;
+		int w, h;
+		int ystart;
+		int	xoffset;
+		int widest = -1;
+		int totalheight = 0;
+		String litname;
+		String[] names = {
+			"m_main_game",
+			"m_main_multiplayer",
+			"m_main_options",
+			"m_main_video",
+			"m_main_quit"
+		};
+		Dimension dim = new Dimension();
+
+		for (i = 0; i < names.length; i++ ) {
+			Globals.re.DrawGetPicSize(dim, names[i]);
+			w = dim.width;
+			h = dim.height;
+
+			if ( w > widest )
+				widest = w;
+			totalheight += ( h + 12 );
+		}
+
+		ystart = ( Globals.viddef.height / 2 - 110 );
+		xoffset = ( Globals.viddef.width - widest + 70 ) / 2;
+
+		for ( i = 0; i < names.length; i++ ) {
+			if ( i != m_main_cursor )
+				Globals.re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
+		}
 //		strcpy( litname, names[m_main_cursor] );
 //		strcat( litname, "_sel" );
-//		re.DrawPic( xoffset, ystart + m_main_cursor * 40 + 13, litname );
-//
-//		M_DrawCursor( xoffset - 25, ystart + m_main_cursor * 40 + 11, (int)(cls.realtime / 100)%NUM_CURSOR_FRAMES );
-//
-//		re.DrawGetPicSize( &w, &h, "m_main_plaque" );
-//		re.DrawPic( xoffset - 30 - w, ystart, "m_main_plaque" );
-//
-//		re.DrawPic( xoffset - 30 - w, ystart + h + 5, "m_main_logo" );
-//	}
-//
-//
-//	const char *M_Main_Key (int key)
-//	{
-//		const char *sound = menu_move_sound;
-//
-//		switch (key)
-//		{
-//		case K_ESCAPE:
-//			M_PopMenu ();
-//			break;
-//
-//		case K_KP_DOWNARROW:
-//		case K_DOWNARROW:
-//			if (++m_main_cursor >= MAIN_ITEMS)
-//				m_main_cursor = 0;
-//			return sound;
-//
-//		case K_KP_UPARROW:
-//		case K_UPARROW:
-//			if (--m_main_cursor < 0)
-//				m_main_cursor = MAIN_ITEMS - 1;
-//			return sound;
-//
-//		case K_KP_ENTER:
-//		case K_ENTER:
-//			m_entersound = true;
-//
-//			switch (m_main_cursor)
-//			{
-//			case 0:
-//				M_Menu_Game_f ();
-//				break;
-//
-//			case 1:
-//				M_Menu_Multiplayer_f();
-//				break;
-//
-//			case 2:
-//				M_Menu_Options_f ();
-//				break;
-//
-//			case 3:
-//				M_Menu_Video_f ();
-//				break;
-//
-//			case 4:
-//				M_Menu_Quit_f ();
-//				break;
-//			}
-//		}
-//
-//		return NULL;
-//	}
+		litname = names[m_main_cursor] + "_sel";
+		Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
+
+		DrawCursor( xoffset - 25, ystart + m_main_cursor * 40 + 11, ((int)(Globals.cls.realtime / 100))%NUM_CURSOR_FRAMES );
+
+		Globals.re.DrawGetPicSize(dim, "m_main_plaque");
+		w = dim.width;
+		h = dim.height;
+		Globals.re.DrawPic( xoffset - 30 - w, ystart, "m_main_plaque" );
+
+		Globals.re.DrawPic( xoffset - 30 - w, ystart + h + 5, "m_main_logo" );
+	}
+
+	static keyfunc_t Main_Key = new keyfunc_t() {
+		public String execute(int key) {
+			return M_Main_Key(key);
+		}
+	};
+	static String M_Main_Key(int key) {
+		String sound = menu_move_sound;
+
+		switch (key) {
+			case Key.K_ESCAPE:
+				PopMenu();
+				break;
+
+		case Key.K_KP_DOWNARROW:
+		case Key.K_DOWNARROW:
+			if (++m_main_cursor >= MAIN_ITEMS)
+				m_main_cursor = 0;
+			return sound;
+
+		case Key.K_KP_UPARROW:
+		case Key.K_UPARROW:
+			if (--m_main_cursor < 0)
+				m_main_cursor = MAIN_ITEMS - 1;
+			return sound;
+
+		case Key.K_KP_ENTER:
+		case Key.K_ENTER:
+			m_entersound = true;
+
+			switch (m_main_cursor) {
+				case 0:
+					Menu_Game_f();
+					break;
+
+				case 1:
+					Menu_Multiplayer_f();
+					break;
+
+				case 2:
+					Menu_Options_f();
+					break;
+
+				case 3:
+					Menu_Video_f();
+					break;
+
+				case 4:
+					Menu_Quit_f();
+					break;
+			}
+		}
+
+		return null;
+	}
 //
 //
 	static xcommand_t Menu_Main = new xcommand_t() {
@@ -490,7 +496,7 @@ public final class Menu {
 		}
 	};
 	static void Menu_Main_f() {
-//		M_PushMenu (M_Main_Draw, M_Main_Key);
+		PushMenu(Main_Draw, Main_Key);
 	}
 //
 //	/*
@@ -741,8 +747,7 @@ public final class Menu {
 //		Menu_SetStatusBar( &s_keys_menu, "press a key or button for this action" );
 //	}
 //
-//	static void Keys_MenuInit( void )
-//	{
+	static void Keys_MenuInit() {
 //		int y = 0;
 //		int i = 0;
 //
@@ -962,16 +967,24 @@ public final class Menu {
 //	
 //		Menu_SetStatusBar( &s_keys_menu, "enter to change, backspace to clear" );
 //		Menu_Center( &s_keys_menu );
-//	}
-//
-//	static void Keys_MenuDraw (void)
-//	{
+	}
+
+	static xcommand_t Keys_MenuDraw = new xcommand_t() {
+		public void execute() {
+			Keys_MenuDraw_f();
+		}
+	};
+	static void Keys_MenuDraw_f() {
 //		Menu_AdjustCursor( &s_keys_menu, 1 );
 //		Menu_Draw( &s_keys_menu );
-//	}
-//
-//	static const char *Keys_MenuKey( int key )
-//	{
+	}
+
+	static keyfunc_t Keys_MenuKey = new keyfunc_t() {
+		public String execute(int key) {
+			return Keys_MenuKey_f(key);
+		}
+	};
+	static String Keys_MenuKey_f(int key) {
 //		menuaction_s *item = ( menuaction_s * ) Menu_ItemAtCursor( &s_keys_menu );
 //
 //		if ( bind_grab )
@@ -1003,13 +1016,18 @@ public final class Menu {
 //		default:
 //			return Default_MenuKey( &s_keys_menu, key );
 //		}
-//	}
-//
-//	void M_Menu_Keys_f (void)
-//	{
-//		Keys_MenuInit();
-//		M_PushMenu( Keys_MenuDraw, Keys_MenuKey );
-//	}
+		return null;
+	}
+
+	static xcommand_t Menu_Keys = new xcommand_t() {
+		public void execute() {
+			Menu_Keys_f();
+		}
+	};
+	static void Menu_Keys_f() {
+		Keys_MenuInit();
+		PushMenu(Keys_MenuDraw, Keys_MenuKey);
+	}
 //
 //
 //	/*
@@ -1380,25 +1398,33 @@ public final class Menu {
 //		return Default_MenuKey( &s_options_menu, key );
 //	}
 //
-//	void M_Menu_Options_f (void)
-//	{
+	static xcommand_t Menu_Options = new xcommand_t() {
+		public void execute() {
+			Menu_Options_f();
+		}
+	};
+	static void Menu_Options_f() {
 //		Options_MenuInit();
 //		M_PushMenu ( Options_MenuDraw, Options_MenuKey );
-//	}
-//
-//	/*
-//	=======================================================================
-//
-//	VIDEO MENU
-//
-//	=======================================================================
-//	*/
-//
-//	void M_Menu_Video_f (void)
-//	{
+	}
+
+	/*
+	=======================================================================
+	
+	VIDEO MENU
+	
+	=======================================================================
+	*/
+
+	static xcommand_t Menu_Video = new xcommand_t() {
+		public void execute() {
+			Menu_Video_f();
+		}
+	};
+	static void Menu_Video_f() {
 //		VID_MenuInit();
 //		M_PushMenu( VID_MenuDraw, VID_MenuKey );
-//	}
+	}
 //
 //	/*
 //	=============================================================================
@@ -3317,8 +3343,7 @@ public final class Menu {
 //	static menuframework_s	s_addressbook_menu;
 //	static menufield_s		s_addressbook_fields[NUM_ADDRESSBOOK_ENTRIES];
 //
-//	void AddressBook_MenuInit( void )
-//	{
+	static void AddressBook_MenuInit() {
 //		int i;
 //
 //		s_addressbook_menu.x = viddef.width / 2 - 142;
@@ -3348,10 +3373,14 @@ public final class Menu {
 //
 //			Menu_AddItem( &s_addressbook_menu, &s_addressbook_fields[i] );
 //		}
-//	}
+	}
 //
-//	const char *AddressBook_MenuKey( int key )
-//	{
+	static keyfunc_t AddressBook_MenuKey = new keyfunc_t() {
+		public String execute(int key) {
+			return AddressBook_MenuKey_f(key);
+		}
+	};
+	static String AddressBook_MenuKey_f(int key) {
 //		if ( key == K_ESCAPE )
 //		{
 //			int index;
@@ -3364,13 +3393,18 @@ public final class Menu {
 //			}
 //		}
 //		return Default_MenuKey( &s_addressbook_menu, key );
-//	}
-//
-//	void AddressBook_MenuDraw(void)
-//	{
+		return null;
+	}
+
+	static xcommand_t AddressBook_MenuDraw = new xcommand_t() {
+		public void execute() {
+			AddressBook_MenuDraw_f();
+		}
+	};
+	static void AddressBook_MenuDraw_f() {
 //		M_Banner( "m_banner_addressbook" );
 //		Menu_Draw( &s_addressbook_menu );
-//	}
+	}
 //
 	static xcommand_t Menu_AddressBook = new xcommand_t() {
 		public void execute() {
@@ -3378,8 +3412,8 @@ public final class Menu {
 		}
 	};
 	static void Menu_AddressBook_f() {
-//		AddressBook_MenuInit();
-//		M_PushMenu( AddressBook_MenuDraw, AddressBook_MenuKey );
+		AddressBook_MenuInit();
+		PushMenu(AddressBook_MenuDraw, AddressBook_MenuKey);
 	}
 //
 //	/*
@@ -3970,10 +4004,14 @@ public final class Menu {
 //	}
 //
 //
-//	void M_Menu_Quit_f (void)
-//	{
+	static xcommand_t Menu_Quit = new xcommand_t() {
+		public void execute() {
+			Menu_Quit_f();
+		}
+	};
+	static void Menu_Quit_f() {
 //		M_PushMenu (M_Quit_Draw, M_Quit_Key);
-//	}
+	}
 //
 //
 //
@@ -3997,10 +4035,10 @@ public final class Menu {
 		Cmd.AddCommand("menu_downloadoptions", Menu_DownloadOptions);
 		Cmd.AddCommand("menu_credits", Menu_Credits);
 		Cmd.AddCommand("menu_multiplayer", Menu_Multiplayer);
-//		Cmd_AddCommand ("menu_video", M_Menu_Video_f);
-//		Cmd_AddCommand ("menu_options", M_Menu_Options_f);
-//			Cmd_AddCommand ("menu_keys", M_Menu_Keys_f);
-//		Cmd_AddCommand ("menu_quit", M_Menu_Quit_f);
+		Cmd.AddCommand("menu_video", Menu_Video);
+		Cmd.AddCommand("menu_options", Menu_Options);
+		Cmd.AddCommand("menu_keys", Menu_Keys);
+		Cmd.AddCommand("menu_quit", Menu_Quit);
 	}
 //
 //
@@ -4049,4 +4087,8 @@ public final class Menu {
 //				S_StartLocalSound( ( char * ) s );
 	}
 
+}
+
+abstract class keyfunc_t {
+	abstract String execute(int key);
 }
