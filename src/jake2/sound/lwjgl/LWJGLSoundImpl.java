@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.2 2004-12-16 20:33:08 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.3 2004-12-21 00:42:31 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -23,6 +23,7 @@ import java.util.*;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.*;
+import org.lwjgl.openal.eax.*;
 import org.lwjgl.openal.eax.EAX20;
 import org.lwjgl.openal.eax.EAXListenerProperties;
 
@@ -130,8 +131,14 @@ public final class LWJGLSoundImpl implements Sound {
 	{
 		if (AL10.alIsExtensionPresent("EAX2.0")) 
 		{
-			Com.Printf("... using EAX2.0\n");
-			hasEAX=true;
+			try {
+				EAX.create();
+				Com.Printf("... using EAX2.0\n");
+				hasEAX=true;
+			} catch (LWJGLException e) {
+				Com.Printf("... can't create EAX2.0\n");
+				hasEAX=false;
+			}
 		} 
 		else 
 		{
@@ -143,6 +150,10 @@ public final class LWJGLSoundImpl implements Sound {
 	
 	void exitOpenAL() 
 	{
+		// Release the EAX context.
+		if (hasEAX){
+			EAX.destroy();
+		}
 		// Release the context and the device.
 		AL.destroy();
 	}
@@ -325,16 +336,6 @@ public final class LWJGLSoundImpl implements Sound {
 	private float[] listenerOrientation = {0, 0, 0, 0, 0, 0};
 	private FloatBuffer listenerOrientationBuffer=FloatBuffer.wrap(listenerOrientation);
 
-	private IntBuffer eaxEnv = Lib.newIntBuffer(1);
-	private int currentEnv = -1;
-	private boolean changeEnv = true;
-	
-	// TODO workaround for JOAL-bug
-	// should be EAX.LISTENER
-	private final static int EAX_LISTENER = 0;
-	// should be EAX.SOURCE
-	private final static int EAX_SOURCE = 1;
-
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Update(float[], float[], float[], float[])
 	 */
@@ -346,31 +347,26 @@ public final class LWJGLSoundImpl implements Sound {
 		convertOrientation(forward, up, listenerOrientation);		
 		AL10.nalListenerfv(AL10.AL_ORIENTATION, listenerOrientationBuffer,0);
 		
-		if (hasEAX) 
-		{
-			// workaround for environment initialisation
-			if (currentEnv == -1) 
-			{
-				eaxEnv.put(0, EAX20.EAX_ENVIRONMENT_UNDERWATER);
-				EAX20.eaxSet(EAX_LISTENER, EAXListenerProperties.EAXLISTENER_ENVIRONMENT | EAXListenerProperties.EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
-				changeEnv = true;
-			}
-
+		if (hasEAX){
 			if ((GameBase.gi.pointcontents.pointcontents(origin)& Defines.MASK_WATER)!= 0) {
-				changeEnv = currentEnv != EAX20.EAX_ENVIRONMENT_UNDERWATER;
-				currentEnv = EAX20.EAX_ENVIRONMENT_UNDERWATER;
+				changeEnvironment(EAX20.EAX_ENVIRONMENT_UNDERWATER);
 			} else {
-				changeEnv = currentEnv != EAX20.EAX_ENVIRONMENT_GENERIC;
-				currentEnv = EAX20.EAX_ENVIRONMENT_GENERIC;
-			}
-			if (changeEnv) {
-				eaxEnv.put(0, currentEnv);
-				EAX20.eaxSet(EAX_LISTENER, EAXListenerProperties.EAXLISTENER_ENVIRONMENT | EAXListenerProperties.EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
+				changeEnvironment(EAX20.EAX_ENVIRONMENT_GENERIC);
 			}
 		}
 		
 		AddLoopSounds(origin);
 		playChannels(listenerOrigin);
+	}
+	
+	private IntBuffer eaxEnv = Lib.newIntBuffer(1);
+	private int currentEnv = EAX20.EAX_ENVIRONMENT_UNDERWATER;
+	
+	private void changeEnvironment(int env) {
+		if (env == currentEnv) return;
+		currentEnv = env;
+		eaxEnv.put(0, currentEnv);
+		EAX20.eaxSet(EAX20.LISTENER_GUID, EAXListenerProperties.EAXLISTENER_ENVIRONMENT | EAXListenerProperties.EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
 	}
 	
 	Map looptable = new Hashtable(MAX_CHANNELS);
