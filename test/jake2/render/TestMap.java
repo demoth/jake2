@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.7 2004-01-27 12:14:36 cwei Exp $
+ * $Id: TestMap.java,v 1.8 2004-01-27 16:42:35 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,6 +44,7 @@ import jake2.qcommon.FS;
 import jake2.qcommon.Qcommon;
 import jake2.qcommon.qfiles;
 import jake2.qcommon.xcommand_t;
+import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -194,13 +195,33 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.7 2004-01-27 12:14:36 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.8 2004-01-27 16:42:35 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
 		this.re = Renderer.getDriver("jogl", ri);
 
 		re.Init();
+		
+		// init keyboard
+		Cmd.AddCommand("+forward", forward_down);
+		Cmd.AddCommand("-forward", forward_up);
+		Cbuf.AddText("bind UPARROW +forward");
+		Cbuf.Execute();
+		Cmd.AddCommand("+backward", backward_down);
+		Cmd.AddCommand("-backward", backward_up);
+		Cbuf.AddText("bind DOWNARROW +backward");
+		Cbuf.Execute();
+		Cmd.AddCommand("+left", left_down);
+		Cmd.AddCommand("-left", left_up);
+		Cbuf.AddText("bind LEFTARROW +left");
+		Cbuf.Execute();
+		Cmd.AddCommand("+right", right_down);
+		Cmd.AddCommand("-right", right_up);
+		Cbuf.AddText("bind RIGHTARROW +right");
+		Cbuf.Execute();
+		Globals.cls.key_dest = Defines.key_game;
+		Globals.cls.state = Defines.ca_active;
 
 		viddef = Globals.viddef;
 	}
@@ -216,11 +237,7 @@ public class TestMap
 		{
 			re.updateScreen();
 			KBD.Update();
-//			try {
-//				Thread.sleep(5);
-//			}
-//			catch (InterruptedException e) {
-//			}
+			Cbuf.Execute();
 		}
 	}
 
@@ -264,6 +281,68 @@ public class TestMap
 
 	//		===================================================================
 
+
+	static final int FORWARD = 2;
+	static final int FORWARD_MASK = ~FORWARD;
+	static final int BACKWARD = 4;
+	static final int BACKWARD_MASK = ~BACKWARD;
+	static final int LEFT = 8;
+	static final int LEFT_MASK = ~LEFT;
+	static final int RIGHT = 16;
+	static final int RIGHT_MASK = ~RIGHT;
+	
+
+	int movePlayer = 0;
+
+	// forward
+	xcommand_t forward_down = new xcommand_t() {
+		public void execute() {
+			movePlayer |=  FORWARD;
+			movePlayer &= BACKWARD_MASK;
+		}
+	};
+	xcommand_t forward_up = new xcommand_t() {
+		public void execute() {
+			movePlayer &=  FORWARD_MASK;
+		}
+	};
+	// backward
+	xcommand_t backward_down = new xcommand_t() {
+		public void execute() {
+			movePlayer |=  BACKWARD; 
+			movePlayer &= FORWARD_MASK;
+		}
+	};
+	xcommand_t backward_up = new xcommand_t() {
+		public void execute() {
+			movePlayer &=  BACKWARD_MASK;
+		}
+	};
+	// left
+	xcommand_t left_down = new xcommand_t() {
+		public void execute() {
+			movePlayer |=  LEFT;
+			movePlayer &= RIGHT_MASK;
+		}
+	};
+	xcommand_t left_up = new xcommand_t() {
+		public void execute() {
+			movePlayer &=  LEFT_MASK;
+		}
+	};
+	// right
+	xcommand_t right_down = new xcommand_t() {
+		public void execute() {
+			movePlayer |=  RIGHT;
+			movePlayer &=  LEFT_MASK;
+		}
+	};
+	xcommand_t right_up = new xcommand_t() {
+		public void execute() {
+			movePlayer &=  RIGHT_MASK;
+		}
+	};
+
 	private float yaw = 0;
 
 	private float fov_x = 90;
@@ -271,6 +350,10 @@ public class TestMap
 	private refdef_t refdef;
 	
 	private entity_t ent;
+	
+	float[] vpn = {0, 0, 0};
+	float[] vright = {0, 0, 0};
+	float[] vup = {0, 0, 0};
 	
 	private void testMap()
 	{
@@ -284,7 +367,7 @@ public class TestMap
 			refdef.height = viddef.height;
 			refdef.fov_x = fov_x;
 			refdef.fov_y = CalcFov(fov_x, refdef.width, refdef.height);
-			refdef.vieworg = new float[] {0, 0, 0};
+			refdef.vieworg = new float[] {140, -140, 50};
 			refdef.viewangles = new float[] {0, 0, 0};
 
 			refdef.blend =  new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -293,9 +376,7 @@ public class TestMap
 //			refdef.areabits = new byte[Defines.MAX_MAP_AREAS / 8];
 //			Arrays.fill(refdef.areabits, (byte) 0xFF);
 
-
 			// load a monster
-			
 			ent = new entity_t();
 			
 			model_t weapon = re.RegisterModel("models/monsters/soldier/tris.md2");
@@ -322,42 +403,70 @@ public class TestMap
 			}
 
 			refdef.viewangles[1] = 130;
+			// set the start time
+			refdef.time = time() * 0.001f;
 		}
 
-		refdef.time = time() * 0.001f;
-		
 		refdef.viewangles[0] += KBD.my * 0.1f;
 		refdef.viewangles[1] -= KBD.mx * 0.1f; // 90 + 180 * (float)Math.sin(time() * 0.0001f);
+		
+		float dt = time() * 0.001f - refdef.time;
 
-		refdef.vieworg[0] = 140; // + 30 * (float)Math.sin(time() * 0.0005f);
-		refdef.vieworg[1] = -140 - 190 * (float)Math.sin(time() * 0.0005f);
-		refdef.vieworg[2] = 50;
+		if (movePlayer != 0) {
+			
+			float velocity = 150f * dt;
+			Math3D.AngleVectors(refdef.viewangles, vpn, vright, vup);
+
+			// forward		
+			if ((movePlayer & FORWARD_MASK) != 0)
+				Math3D.VectorMA(refdef.vieworg, -velocity, vpn, refdef.vieworg);
+			// backward
+			if ((movePlayer & BACKWARD_MASK) != 0)
+				Math3D.VectorMA(refdef.vieworg, velocity, vpn, refdef.vieworg);
+			// left
+			if ((movePlayer & LEFT_MASK) != 0)
+				Math3D.VectorMA(refdef.vieworg, velocity, vright, refdef.vieworg);
+			// right
+			if ((movePlayer & RIGHT_MASK) != 0)
+				Math3D.VectorMA(refdef.vieworg, -velocity, vright, refdef.vieworg);
+			
+			// wichtig da aufloesung 1/8
+			// --> ebenen schneiden nie genau die sicht
+			refdef.vieworg[0] += 1.0f / 16;
+			refdef.vieworg[1] += 1.0f / 16;
+			refdef.vieworg[2] += 1.0f / 16;
+		}
 		
-		// wichtig da aufloesung 1/8
-		// --> ebenen schneiden nie genau die sicht
-		refdef.vieworg[0] += 1.0f / 16;
-		refdef.vieworg[1] += 1.0f / 16;
-		refdef.vieworg[2] += 1.0f / 16;
-		
-		// monster animation
-		ent.frame = (int)((time() * 0.013f) % 15);
-		
+		refdef.time = time() * 0.001f;
+
 		// particle init
 		particles.clear();
 		
-		if (active_particles.size() == 0) {
-			target = new float[] {150 + Lib.crand() * 80, Lib.crand() * 40, 40};
+		// check the enemy distance
+		float[] diff = {0, 0, 0};
+		Math3D.VectorSubtract(ent.origin, refdef.vieworg, diff);
+		//System.out.println(dist);
+		if (Math3D.VectorLength(diff) < 250 && active_particles.size() == 0) {
 			RailTrail(ent.origin, refdef.vieworg);
-		}
+		} else {
+			// monster and partice animation
+			if (active_particles.size() > 0) {
+				// mosnster
+				ent.frame = (int)((time() * 0.013f) % 15);
+				// particles
+				animateParticles();
 
-		animateParticles();
-		
-		particle_t[] tmp = new particle_t[particles.size()];
-		
-		particles.toArray(tmp);
-		
-		refdef.particles = tmp;
-		refdef.num_particles = tmp.length;
+				particle_t[] tmp = new particle_t[particles.size()];
+				particles.toArray(tmp);
+
+				refdef.particles = tmp;
+				refdef.num_particles = tmp.length;
+			}
+			else {
+				ent.frame = 0;
+				refdef.num_particles = 0;
+			}
+		}
 		
 		re.RenderFrame(refdef);
 	}
