@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.8 2003-12-28 19:52:35 rst Exp $
+ * $Id: SV.java,v 1.9 2004-01-13 21:07:01 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,12 +37,6 @@ import jake2.game.trace_t;
  */
 public final class SV {
 	
-	/**
-	 * @param msec
-	 */
-	public static void Frame(long msec) {
-	}
-
 	/**
 	 * TODO implement SV.init()
 	 */

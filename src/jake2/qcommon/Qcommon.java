@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.10 2004-01-02 17:43:13 rst Exp $
+ * $Id: Qcommon.java,v 1.11 2004-01-13 21:07:01 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.Swap;
 import jake2.server.SV;
+import jake2.server.SV_MAIN;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Vargs;
@@ -201,7 +202,7 @@ public final class Qcommon {
 			if (Globals.host_speeds.value != 0.0f)
 				time_before= System.currentTimeMillis();
 
-			SV.Frame(msec);
+			SV_MAIN.SV_Frame(msec);
 
 			if (Globals.host_speeds.value != 0.0f)
 				time_between= System.currentTimeMillis();
