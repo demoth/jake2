@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.7 2004-06-23 13:37:07 hoz Exp $
+ * $Id: Impl.java,v 1.8 2004-06-28 06:48:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -173,14 +173,13 @@ public class Impl extends Misc implements GLEventListener {
 			if (displayMode != null) {
 				newDim.width = displayMode.getWidth();
 				newDim.height = displayMode.getHeight();
-				window.setLocation(0, 0);
 				window.setUndecorated(true);
-				window.setSize(displayMode.getWidth(), displayMode.getHeight());
-				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
 				window.setResizable(false);
 				device.setFullScreenWindow(window);
 				device.setDisplayMode(displayMode);
-				window.validate();
+				window.setLocation(0, 0);
+				window.setSize(displayMode.getWidth(), displayMode.getHeight());
+				canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
 			}
 		} else {
 			window.setLocation(window_xpos, window_ypos);
@@ -189,6 +188,11 @@ public class Impl extends Misc implements GLEventListener {
 			window.setVisible(true);
 		}
 		
+		while (!canvas.isDisplayable()) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {}
+		}
 		canvas.requestFocus();
 		
 		this.canvas = canvas;
@@ -213,11 +217,11 @@ public class Impl extends Misc implements GLEventListener {
 			m = modes[i];
 			if (m.getWidth() == w && m.getHeight() == h && m.getBitDepth() == depth && m.getRefreshRate() == rate) {
 				mode = m;
-				Com.Printf(getModeString(mode) + '\n');
 				break;
 			}
 		}
 		if (mode == null) mode = oldDisplayMode;
+		Com.Printf(getModeString(mode) + '\n');
 		return mode;		
 	}
 	
