@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.14 2004-01-30 10:40:08 hoz Exp $
+ * $Id: Console.java,v 1.15 2004-01-30 10:56:57 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -300,82 +300,72 @@ public final class Console extends Globals {
 		while (i++ < e) Globals.con.text[i] = ' ';
 	}
 
-//	00342 /*
-//	00343 ================
-//	00344 Con_Print
-//	00345 
-//	00346 Handles cursor positioning, line wrapping, etc
-//	00347 All console printing must go through this in order to be logged to disk
-//	00348 If no console is visible, the text will appear at the top of the game window
-//	00349 ================
-//	00350 */
+	/*
+	================
+	Con_Print
+
+	Handles cursor positioning, line wrapping, etc
+	All console printing must go through this in order to be logged to disk
+	If no console is visible, the text will appear at the top of the game window
+	================
+	*/
+	private static int cr;
 	static void Print(String txt) {
-//	00353         int             y;
-//	00354         int             c, l;
-//	00355         static int      cr;
-//	00356         int             mask;
+		int y;
+		int c, l;
+		int mask;
+		int txtpos = 0;
 //	00357 
-//	00358         if (!con.initialized)
-//	00359                 return;
+		if (!con.initialized) return;
 //	00360 
-//	00361         if (txt[0] == 1 || txt[0] == 2)
-//	00362         {
-//	00363                 mask = 128;             // go to colored text
-//	00364                 txt++;
-//	00365         }
-//	00366         else
-//	00367                 mask = 0;
-//	00368 
-//	00369 
-//	00370         while ( (c = *txt) )
-//	00371         {
-//	00372         // count word length
-//	00373                 for (l=0 ; l< con.linewidth ; l++)
-//	00374                         if ( txt[l] <= ' ')
-//	00375                                 break;
-//	00376 
-//	00377         // word wrap
-//	00378                 if (l != con.linewidth && (con.x + l > con.linewidth) )
-//	00379                         con.x = 0;
-//	00380 
-//	00381                 txt++;
-//	00382 
-//	00383                 if (cr)
-//	00384                 {
-//	00385                         con.current--;
-//	00386                         cr = false;
-//	00387                 }
-//	00388 
-//	00389                 
-//	00390                 if (!con.x)
-//	00391                 {
-//	00392                         Con_Linefeed ();
-//	00393                 // mark time for transparent overlay
-//	00394                         if (con.current >= 0)
-//	00395                                 con.times[con.current % NUM_CON_TIMES] = cls.realtime;
-//	00396                 }
-//	00397 
-//	00398                 switch (c)
-//	00399                 {
-//	00400                 case '\n':
-//	00401                         con.x = 0;
-//	00402                         break;
-//	00403 
-//	00404                 case '\r':
-//	00405                         con.x = 0;
-//	00406                         cr = 1;
-//	00407                         break;
-//	00408 
-//	00409                 default:        // display character and advance
-//	00410                         y = con.current % con.totallines;
-//	00411                         con.text[y*con.linewidth+con.x] = c | mask | con.ormask;
-//	00412                         con.x++;
-//	00413                         if (con.x >= con.linewidth)
-//	00414                                 con.x = 0;
-//	00415                         break;
-//	00416                 }
-//	00417                 
-//	00418         }
+		if (txt.charAt(0) == 1 || txt.charAt(0) == 2) {
+			mask = 128;             // go to colored text
+			txtpos++;
+		} else mask = 0;
+
+		while ( txtpos < txt.length() ) {
+			c = txt.charAt(txtpos);
+			// count word length
+			for (l=0 ; l< con.linewidth ; l++)
+				if ( txt.charAt(l + txtpos) <= ' ') break;
+
+			// word wrap
+			if (l != con.linewidth && (con.x + l > con.linewidth) )
+				con.x = 0;
+
+			txtpos++;
+	
+			if (cr != 0) {
+				con.current--;
+				cr = 0;
+			}
+   
+			if (con.x == 0) {
+				Console.Linefeed();
+				// mark time for transparent overlay
+				if (con.current >= 0)
+					con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+			}
+
+			switch (c) {
+				case '\n':
+					con.x = 0;
+					break;
+
+				case '\r':
+					con.x = 0;
+					cr = 1;
+					break;
+
+				default:        // display character and advance
+					y = con.current % con.totallines;
+					con.text[y*con.linewidth+con.x] = (byte)(c | mask | con.ormask);
+					con.x++;
+					if (con.x >= con.linewidth)
+						con.x = 0;
+					break;
+			}               
+		}
 	}
 
 	/*
