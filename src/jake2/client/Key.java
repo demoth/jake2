@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.29 2004-02-16 23:18:11 hoz Exp $
+ * $Id: Key.java,v 1.30 2004-02-25 13:20:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -114,6 +114,7 @@ public class Key extends Globals {
 	public static final int K_MWHEELDOWN = 239;
 	public static final int K_MWHEELUP = 240;
 
+	static int anykeydown = 0;
 	static int key_waiting;
 	static int history_line = 0;
 	static boolean shift_down = false;
@@ -369,12 +370,12 @@ public class Key extends Globals {
 		Globals.keydown[key] = down;
 		if (down) {
 			if (key_repeats[key] == 1)
-				Globals.anykeydown++;
+				Key.anykeydown++;
 		}
 		else {
-			Globals.anykeydown--;
-			if (Globals.anykeydown < 0)
-				Globals.anykeydown = 0;
+			Key.anykeydown--;
+			if (Key.anykeydown < 0)
+				Key.anykeydown = 0;
 		}
 
 		//
@@ -791,7 +792,7 @@ public class Key extends Globals {
 	static void ClearStates() {
 		int i;
 
-		anykeydown = 0;
+		Key.anykeydown = 0;
 
 		for (i = 0; i < 256; i++) {
 			if (keydown[i] || key_repeats[i]!=0)

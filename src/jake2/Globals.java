@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.48 2004-02-22 21:45:46 hoz Exp $
+ * $Id: Globals.java,v 1.49 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,23 +57,11 @@ public class Globals extends Defines {
 	public static boolean cmd_wait;
 
 	public static int alias_count;
-	public static int com_argc;
 	public static int c_traces;
 	public static int c_brush_traces;
 	public static int c_pointcontents;
 	public static int server_state;
 
-	public static String[] com_argv = new String[MAX_NUM_ARGVS];
-
-	public static cvar_t adr0;
-	public static cvar_t adr1;
-	public static cvar_t adr2;
-	public static cvar_t adr3;
-	public static cvar_t adr4;
-	public static cvar_t adr5;
-	public static cvar_t adr6;
-	public static cvar_t adr7;
-	public static cvar_t adr8;
 	public static cvar_t cl_add_blend;
 	public static cvar_t cl_add_entities;
 	public static cvar_t cl_add_lights;
@@ -371,7 +359,6 @@ public class Globals extends Defines {
 
 	public static String[] keybindings = new String[256];
 	public static boolean[] keydown = new boolean[256];
-	public static int anykeydown = 0;
 	public static boolean chat_team = false;
 	public static String chat_buffer = "";
 	public static byte[][] key_lines = new byte[32][];
@@ -384,7 +371,7 @@ public class Globals extends Defines {
 
 	public static cvar_t crosshair;
 	public static vrect_t scr_vrect = new vrect_t();
-	public static long sys_frame_time;
+	public static int sys_frame_time;
 	public static int chat_bufferlen = 0;
 	public static int gun_frame;
 	public static model_t gun_model;

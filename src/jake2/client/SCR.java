@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.38 2004-02-22 21:45:47 hoz Exp $
+ * $Id: SCR.java,v 1.39 2004-02-25 13:20:29 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -841,7 +841,6 @@ public final class SCR extends Globals {
 	static void DrawField(int x, int y, int color, int width, int value)
 	{
 		char ptr;
-		int ptrp;
 		String num;
 		int l;
 		int frame;
@@ -863,7 +862,7 @@ public final class SCR extends Globals {
 		x += 2 + CHAR_WIDTH*(width - l);
 
 		ptr = num.charAt(0);
-		ptrp = 0;
+
 		for (int i = 0; i < l; i++)
 		{
 			ptr = num.charAt(i);

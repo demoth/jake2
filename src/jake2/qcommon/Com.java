@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.38 2004-02-21 13:00:12 cwei Exp $
+ * $Id: Com.java,v 1.39 2004-02-25 13:20:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,24 +30,21 @@ import jake2.Globals;
 import jake2.client.CL;
 import jake2.client.Console;
 import jake2.game.Cmd;
-import jake2.server.SV;
 import jake2.server.SV_MAIN;
 import jake2.sys.Sys;
-import jake2.util.Lib;
-import jake2.util.PrintfFormat;
-import jake2.util.Vargs;
+import jake2.util.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.logging.Logger;
+import java.io.*;
 
 /**
  * Com
  * TODO complete Com interface
  */
 public final class Com {
-
+	
+	static int com_argc;
+	static String[] com_argv = new String[Defines.MAX_NUM_ARGVS];
+	
 	public static class RD_Flusher {
 		public void rd_flush(int target, byte [] buffer) {
 		}
@@ -82,8 +79,6 @@ public final class Com {
 	static boolean recursive = false;
 
 	static String msg = "";
-
-	private static Logger logger = Logger.getLogger(Com.class.getName());
 
 	// helper class to replace the pointer-pointer
 	public static class ParseHelp {
@@ -296,12 +291,12 @@ public final class Com {
 			Com.Error(Globals.ERR_FATAL, "argc > MAX_NUM_ARGVS");
 		}
 
-		Globals.com_argc = args.length;
-		for (int i = 0; i < Globals.com_argc; i++) {
+		Com.com_argc = args.length;
+		for (int i = 0; i < Com.com_argc; i++) {
 			if (args[i].length() >= Globals.MAX_TOKEN_CHARS)
-				Globals.com_argv[i] = "";
+				Com.com_argv[i] = "";
 			else
-				Globals.com_argv[i] = args[i];
+				Com.com_argv[i] = args[i];
 		}
 	}
 
@@ -417,19 +412,19 @@ public final class Com {
 	}
 
 	public static int Argc() {
-		return Globals.com_argc;
+		return Com.com_argc;
 	}
 
 	public static String Argv(int arg) {
-		if (arg < 0 || arg >= Globals.com_argc || Globals.com_argv[arg].length() < 1)
+		if (arg < 0 || arg >= Com.com_argc || Com.com_argv[arg].length() < 1)
 			return "";
-		return Globals.com_argv[arg];
+		return Com.com_argv[arg];
 	}
 
 	public static void ClearArgv(int arg) {
-		if (arg < 0 || arg >= Globals.com_argc || Globals.com_argv[arg].length() < 1)
+		if (arg < 0 || arg >= Com.com_argc || Com.com_argv[arg].length() < 1)
 			return;
-		Globals.com_argv[arg] = "";
+		Com.com_argv[arg] = "";
 	}
 
 	public static void Quit() {

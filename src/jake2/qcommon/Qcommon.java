@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.24 2004-02-21 12:07:01 hoz Exp $
+ * $Id: Qcommon.java,v 1.25 2004-02-25 13:20:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -54,7 +54,6 @@ public final class Qcommon extends Globals {
 	 */
 	public static void InitForTestMap(String[] args) {
 		try {
-			Z.chain.next= Z.chain.prev= Z.chain;
 
 			// prepare enough of the subsystems to handle
 			// cvar and command buffer management
@@ -86,7 +85,6 @@ public final class Qcommon extends Globals {
 			//
 			// init commands and vars
 			//
-			Cmd.AddCommand("z_stats", Z.Stats_f);
 			Cmd.AddCommand("error", Com.Error_f);
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
@@ -171,7 +169,6 @@ public final class Qcommon extends Globals {
 			//
 			// init commands and vars
 			//
-			Cmd.AddCommand("z_stats", Z.Stats_f);
 			Cmd.AddCommand("error", Com.Error_f);
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);

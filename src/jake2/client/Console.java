@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.20 2004-02-21 12:07:01 hoz Exp $
+ * $Id: Console.java,v 1.21 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -398,7 +398,6 @@ public final class Console extends Globals {
 	================
 	*/
 	static void DrawInput() {
-		int y;
 		int i;
 		byte[] text;
 		int start = 0;
@@ -422,7 +421,7 @@ public final class Console extends Globals {
 			start += 1 + key_linepos - con.linewidth;
                  
 		// draw it
-		y = con.vislines-16;
+//		y = con.vislines-16;
  
 		for (i=0 ; i<con.linewidth ; i++)
 			re.DrawChar ( (i+1)<<3, con.vislines - 22, text[i]);

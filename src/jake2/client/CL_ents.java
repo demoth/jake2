@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.13 2004-02-21 12:07:01 hoz Exp $
+ * $Id: CL_ents.java,v 1.14 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -588,7 +588,6 @@ public class CL_ents extends CL_inv {
 
 	public static model_t S_RegisterSexedModel(entity_state_t  ent, String base) {
 		int n;
-		String p;
 		model_t mdl;
 		String model;
 		String buffer;
@@ -1141,7 +1140,6 @@ public class CL_ents extends CL_inv {
 	static void CalcViewValues() {
 		int i;
 		float lerp, backlerp;
-		centity_t   ent;
 		frame_t   oldframe;
 		player_state_t   ps,   ops;
 
@@ -1161,7 +1159,6 @@ public class CL_ents extends CL_inv {
 			|| Math.abs(ops.pmove.origin[2] - ps.pmove.origin[2]) > 256 * 8)
 			ops = ps; // don't interpolate
 
-		ent =  cl_entities[cl.playernum + 1];
 		lerp = cl.lerpfrac;
 
 		// calculate the origin

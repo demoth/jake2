@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.24 2004-02-16 20:57:39 hoz Exp $
+ * $Id: CL_input.java,v 1.25 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -341,7 +341,7 @@ public class CL_input extends CL_ents {
 			cmd.buttons |= BUTTON_USE;
 		in_use.state &= ~2;
 
-		if (anykeydown != 0 && cls.key_dest == key_game)
+		if (Key.anykeydown != 0 && cls.key_dest == key_game)
 			cmd.buttons |= BUTTON_ANY;
 
 		// send milliseconds of time to apply the move

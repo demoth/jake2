@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.6 2004-02-03 09:33:52 hoz Exp $
+ * $Id: CL_newfx.java,v 1.7 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -229,59 +229,59 @@ public class CL_newfx extends CL_fx {
 		}
 	}
 
-	static void FlameEffects(centity_t ent, float[] origin) {
-		int n, count;
-		int j;
-		cparticle_t p;
-
-		count = rand() & 0xF;
-
-		for (n = 0; n < count; n++) {
-			if (free_particles == null)
-				return;
-
-			p = free_particles;
-			free_particles = p.next;
-			p.next = active_particles;
-			active_particles = p;
-
-			VectorClear(p.accel);
-			p.time = cl.time;
-
-			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (1 + frand() * 0.2f);
-			p.color = 226 + (rand() % 4);
-			for (j = 0; j < 3; j++) {
-				p.org[j] = origin[j] + crand() * 5;
-				p.vel[j] = crand() * 5;
-			}
-			p.vel[2] = crand() * -10;
-			p.accel[2] = -PARTICLE_GRAVITY;
-		}
-
-		count = rand() & 0x7;
-
-		for (n = 0; n < count; n++) {
-			if (free_particles == null)
-				return;
-			p = free_particles;
-			free_particles = p.next;
-			p.next = active_particles;
-			active_particles = p;
-			VectorClear(p.accel);
-
-			p.time = cl.time;
-
-			p.alpha = 1.0f;
-			p.alphavel = -1.0f / (1 + frand() * 0.5f);
-			p.color = 0 + (rand() % 4);
-			for (j = 0; j < 3; j++) {
-				p.org[j] = origin[j] + crand() * 3;
-			}
-			p.vel[2] = 20 + crand() * 5;
-		}
-
-	}
+//	static void FlameEffects(centity_t ent, float[] origin) {
+//		int n, count;
+//		int j;
+//		cparticle_t p;
+//
+//		count = rand() & 0xF;
+//
+//		for (n = 0; n < count; n++) {
+//			if (free_particles == null)
+//				return;
+//
+//			p = free_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
+//			active_particles = p;
+//
+//			VectorClear(p.accel);
+//			p.time = cl.time;
+//
+//			p.alpha = 1.0f;
+//			p.alphavel = -1.0f / (1 + frand() * 0.2f);
+//			p.color = 226 + (rand() % 4);
+//			for (j = 0; j < 3; j++) {
+//				p.org[j] = origin[j] + crand() * 5;
+//				p.vel[j] = crand() * 5;
+//			}
+//			p.vel[2] = crand() * -10;
+//			p.accel[2] = -PARTICLE_GRAVITY;
+//		}
+//
+//		count = rand() & 0x7;
+//
+//		for (n = 0; n < count; n++) {
+//			if (free_particles == null)
+//				return;
+//			p = free_particles;
+//			free_particles = p.next;
+//			p.next = active_particles;
+//			active_particles = p;
+//			VectorClear(p.accel);
+//
+//			p.time = cl.time;
+//
+//			p.alpha = 1.0f;
+//			p.alphavel = -1.0f / (1 + frand() * 0.5f);
+//			p.color = 0 + (rand() % 4);
+//			for (j = 0; j < 3; j++) {
+//				p.org[j] = origin[j] + crand() * 3;
+//			}
+//			p.vel[2] = 20 + crand() * 5;
+//		}
+//
+//	}
 
 
 	/*

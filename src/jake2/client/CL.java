@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.34 2004-02-22 17:33:50 rst Exp $
+ * $Id: CL.java,v 1.35 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,7 +42,16 @@ import java.nio.ByteBuffer;
  */
 public final class CL extends CL_pred {
 
-	////	   cl_main.c  -- client main loop
+
+//	static cvar_t adr0;
+//	static cvar_t adr1;
+//	static cvar_t adr2;
+//	static cvar_t adr3;
+//	static cvar_t adr4;
+//	static cvar_t adr5;
+//	static cvar_t adr6;
+//	static cvar_t adr7;
+//	static cvar_t adr8;
 
 	/*
 	====================
@@ -106,7 +115,8 @@ public final class CL extends CL_pred {
 	Begins recording a demo from the current position
 	====================
 	*/
-	private static entity_state_t nullstate = new entity_state_t(null);
+	static entity_state_t nullstate = new entity_state_t(null);
+	
 	static xcommand_t Record_f = new xcommand_t() {
 		public void execute() {
 			try {
@@ -114,7 +124,6 @@ public final class CL extends CL_pred {
 				byte buf_data[] = new byte[MAX_MSGLEN];
 				sizebuf_t buf = new sizebuf_t();
 				int i;
-				int len;
 				entity_state_t ent;
 
 				if (Cmd.Argc() != 2) {
@@ -1032,7 +1041,7 @@ public final class CL extends CL_pred {
 
 					int i, n;
 					//char model[MAX_QPATH], skin[MAX_QPATH], * p;
-					String model, skin, p;
+					String model, skin;
 
 					i = (precache_check - CS_PLAYERSKINS) / PLAYER_MULT;
 					n = (precache_check - CS_PLAYERSKINS) % PLAYER_MULT;
@@ -1194,7 +1203,7 @@ public final class CL extends CL_pred {
 				CM.intwrap iw = new CM.intwrap(0); // for detecting cheater maps
 
 				CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
-				int mapchecksum = iw.i ;
+//				int mapchecksum = iw.i ;
 				CL.RegisterSounds();
 				CL.PrepRefresh();
 				return;
@@ -1220,15 +1229,16 @@ public final class CL extends CL_pred {
 
 		InitInput();
 
-		adr0 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr1 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr2 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr3 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr4 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr5 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr6 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr7 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-		adr8 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+		// never used !!
+//		adr0 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
+//		adr1 = Cvar.Get("adr1", "", CVAR_ARCHIVE);
+//		adr2 = Cvar.Get("adr2", "", CVAR_ARCHIVE);
+//		adr3 = Cvar.Get("adr3", "", CVAR_ARCHIVE);
+//		adr4 = Cvar.Get("adr4", "", CVAR_ARCHIVE);
+//		adr5 = Cvar.Get("adr5", "", CVAR_ARCHIVE);
+//		adr6 = Cvar.Get("adr6", "", CVAR_ARCHIVE);
+//		adr7 = Cvar.Get("adr7", "", CVAR_ARCHIVE);
+//		adr8 = Cvar.Get("adr8", "", CVAR_ARCHIVE);
 
 		//
 		// register our variables
@@ -1484,7 +1494,7 @@ public final class CL extends CL_pred {
 	==================
 	*/
 	private static int extratime;
-	private static int lasttimecalled;
+//	private static int lasttimecalled;
 
 	public static void Frame(int msec) {
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.19 2004-02-21 12:07:01 hoz Exp $
+// $Id: Math3D.java,v 1.20 2004-02-25 13:20:29 hoz Exp $
 
 package jake2.util;
 
@@ -116,18 +116,18 @@ public class Math3D extends Lib {
 		}
 		return length;
 	}
-	public static final float VectorNormalize2(float[] v, float[] to) {
-		float length, ilength;
-
-		length = VectorLength(v);
-		if (length != 0.0f) {
-			ilength = 1.0f / length;
-			to[0] = v[0] * length;
-			to[1] = v[1] * length;
-			to[2] = v[2] * length;
-		}
-		return length;
-	}
+//	public static final float VectorNormalize2(float[] v, float[] to) {
+//		float length, ilength;
+//
+//		length = VectorLength(v);
+//		if (length != 0.0f) {
+//			ilength = 1.0f / length;
+//			to[0] = v[0] * ilength;
+//			to[1] = v[1] * ilength;
+//			to[2] = v[2] * ilength;
+//		}
+//		return length;
+//	}
 	public static final float VectorLength(float v[]) {
 		return (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	}

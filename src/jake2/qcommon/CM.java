@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.30 2004-02-22 17:33:50 rst Exp $
+// $Id: CM.java,v 1.31 2004-02-25 13:20:28 hoz Exp $
 
 package jake2.qcommon;
 
@@ -170,9 +170,6 @@ public class CM extends Game {
 	public static boolean portalopen[] = new boolean[MAX_MAP_AREAPORTALS];
 
 	public static cvar_t map_noareas;
-
-	public static int c_pointcontents;
-	public static int c_traces, c_brush_traces;
 
 	/*
 	===============================================================================

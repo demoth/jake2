@@ -2,7 +2,7 @@
  * RW.java
  * Copyright (C) 2004
  * 
- * $Id: RW.java,v 1.4 2004-02-15 01:19:41 hoz Exp $
+ * $Id: RW.java,v 1.5 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -53,10 +53,6 @@ public final class RW extends Globals {
 	}
  
 	static void IN_Init(/*in_state_t in_state_p*/) {
-		int mtype;
-		int i;
-
-//		in_state = in_state_p;
 
 		// mouse variables
 		m_filter = Cvar.Get("m_filter", "0", 0);

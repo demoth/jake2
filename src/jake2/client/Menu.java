@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.23 2004-02-21 12:07:01 hoz Exp $
+ * $Id: Menu.java,v 1.24 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -90,9 +90,8 @@ public final class Menu extends Key {
 
 	}
 
-	static class mcallback {
-		public void execute(Object self) {
-		}
+	abstract static class mcallback {
+		abstract public void execute(Object self);
 	}
 
 	static class menucommon_s {
@@ -149,8 +148,6 @@ public final class Menu extends Key {
 	public static int m_menudepth;
 
 	static void Banner(String name) {
-		int w, h;
-
 		Dimension dim = new Dimension();
 		Globals.re.DrawGetPicSize(dim, name);
 
@@ -723,7 +720,6 @@ public final class Menu extends Key {
 
 	static void UnbindCommand(String command) {
 		int j;
-		int l;
 		String b;
 
 		for (j = 0; j < 256; j++) {
@@ -738,7 +734,6 @@ public final class Menu extends Key {
 	static void FindKeysForCommand(String command, int twokeys[]) {
 		int count;
 		int j;
-		int l;
 		String b;
 
 		twokeys[0] = twokeys[1] = -1;
@@ -2057,8 +2052,6 @@ public final class Menu extends Key {
 	};
 	static void Menu_Credits_f() {
 		int n;
-		int count;
-		String p;
 		int isdeveloper = 0;
 
 		byte b[] = FS.LoadFile("credits");
@@ -2811,10 +2804,8 @@ public final class Menu extends Key {
 		//	  =======
 		
 		byte[] buffer = null;
-		//char mapsname[1024];
 		String mapsname;
 		String s;
-		int length;
 		int i;
 		RandomAccessFile fp;
 

@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.14 2004-02-06 18:38:20 rst Exp $
+ * $Id: SZ.java,v 1.15 2004-02-25 13:20:28 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,9 +43,11 @@ public final class SZ {
 	public static void Init(sizebuf_t buf, byte data[], int length) {
 		//memset (buf, 0, sizeof(*buf));
 		//TODO: slow but safe;
-		Arrays.fill(data,(byte)0);
+		//Arrays.fill(data,(byte)0);
 		buf.data = data;
 		buf.maxsize = length;
+		buf.cursize = 0;
+		buf.allowoverflow = buf.overflowed = false;
 	}
 
 

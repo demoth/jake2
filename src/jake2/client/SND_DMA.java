@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.9 2004-02-21 12:07:01 hoz Exp $
+ * $Id: SND_DMA.java,v 1.10 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -117,14 +117,12 @@ public class SND_DMA extends SND_MIX {
 //	   ====================================================================
 
 
-	static void SoundInfo_f()
-	{
-		if (!sound_started)
-		{
-			Com.Printf ("sound system not started\n");
+	static void SoundInfo_f() {
+		if (!sound_started) {
+			Com.Printf("sound system not started\n");
 			return;
 		}
-	
+
 		Com.Printf("%5d stereo\n", new Vargs(1).add(dma.channels - 1));
 		Com.Printf("%5d samples\n", new Vargs(1).add(dma.samples));
 		Com.Printf("%5d samplepos\n", new Vargs(1).add(dma.samplepos));

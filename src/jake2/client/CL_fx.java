@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.13 2004-02-21 12:07:01 hoz Exp $
+ * $Id: CL_fx.java,v 1.14 2004-02-25 13:20:29 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1848,7 +1848,7 @@ public class CL_fx extends CL_tent {
 		int			i;
 		cparticle_t	p;
 		float		angle;
-		float		sr, sp, sy, cr, cp, cy;
+		float		sp, sy, cp, cy;
 		float [] 		forward= new float[3];
 		float		dist = 64;
 		float		ltime;
@@ -1877,8 +1877,6 @@ public class CL_fx extends CL_tent {
 			sp = (float)Math.sin(angle);
 			cp = (float)Math.cos(angle);
 			angle = ltime * avelocities[i][2];
-			sr = (float)Math.sin(angle);
-			cr = (float)Math.cos(angle);
 	
 			forward[0] = cp*cy;
 			forward[1] = cp*sy;
@@ -1945,7 +1943,7 @@ public class CL_fx extends CL_tent {
 		int i;
 		cparticle_t p;
 		float angle;
-		float sr, sp, sy, cr, cp, cy;
+		float sp, sy, cp, cy;
 		float[] forward = new float[3];
 		float dist = 64;
 		float[] v = new float[3];
@@ -1968,8 +1966,6 @@ public class CL_fx extends CL_tent {
 			sp = (float)Math.sin(angle);
 			cp = (float)Math.cos(angle);
 			angle = ltime * avelocities[i][2];
-			sr = (float)Math.sin(angle);
-			cr = (float)Math.cos(angle);
 
 			forward[0] = cp * cy;
 			forward[1] = cp * sy;
