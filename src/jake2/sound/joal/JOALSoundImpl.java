@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.13 2004-06-26 23:43:10 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.14 2004-06-27 10:35:03 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -18,8 +18,6 @@ import jake2.util.Math3D;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
-import java.util.HashSet;
-import java.util.Hashtable;
 
 import net.java.games.joal.*;
 
@@ -87,13 +85,13 @@ public final class JOALSoundImpl implements Sound {
 		String deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
 //		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
 
-		System.out.println(os + " using " + deviceName + " --> " + deviceSpecifier); //((deviceName == null) ? defaultSpecifier : deviceName));
+		Com.Printf(os + " using " + deviceName + " --> " + deviceSpecifier); //((deviceName == null) ? defaultSpecifier : deviceName));
 
 		ALC.Context context = alc.alcCreateContext(device, new int[] {0});
 		alc.alcMakeContextCurrent(context);
 		// Check for an error.
 		if (alc.alcGetError(device) != ALC.ALC_NO_ERROR) {
-			System.err.println("Error with Device");
+			Com.DPrintf("Error with SoundDevice");
 		}
 	}
 	
@@ -309,15 +307,21 @@ public final class JOALSoundImpl implements Sound {
 	*/
 	void AddLoopSounds(float[] listener)	{
 		
-		if (Globals.cl_paused.value != 0.0f)
+		if (Globals.cl_paused.value != 0.0f) {
+			removeUnusedLoopSounds();
 			return;
+		}
 
-		if (Globals.cls.state != Globals.ca_active)
+		if (Globals.cls.state != Globals.ca_active) {
+			removeUnusedLoopSounds();
 			return;
+		}
 
-		if (!Globals.cl.sound_prepped)
+		if (!Globals.cl.sound_prepped) {
+			removeUnusedLoopSounds();
 			return;
-
+		}
+		
 		Channel ch;
 		sfx_t	sfx;
 		sfxcache_t sc;
@@ -363,6 +367,12 @@ public final class JOALSoundImpl implements Sound {
 			al.alSourcei(ch.sourceId, AL.AL_LOOPING, AL.AL_TRUE);
 		}
 
+		removeUnusedLoopSounds();
+
+	}
+	
+	void removeUnusedLoopSounds() {
+		Channel ch;
 		// stop unused loopsounds
 		for (Iterator iter = looptable.values().iterator(); iter.hasNext();) {
 			ch = (Channel)iter.next();
@@ -679,6 +689,7 @@ public final class JOALSoundImpl implements Sound {
 	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
 	 */
 	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
+		// TODO implement RawSamples
 	}
 
 }
