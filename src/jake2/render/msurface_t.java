@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.6 2004-01-20 16:15:41 cwei Exp $
+// $Id: msurface_t.java,v 1.7 2004-03-12 19:32:10 cwei Exp $
 
 package jake2.render;
 
 import java.nio.ByteBuffer;
 
 import jake2.game.*;
+import jake2.qcommon.texinfo_t;
 import jake2.*;
 
 public class msurface_t
@@ -50,7 +51,8 @@ public class msurface_t
 	public msurface_t texturechain;
 	public msurface_t lightmapchain;
 
-	public mtexinfo_t texinfo;
+	// TODO check this
+	public mtexinfo_t texinfo = new mtexinfo_t();
 
 	// lighting info
 	public int dlightframe;
@@ -62,5 +64,40 @@ public class msurface_t
 	// values currently used in lightmap
 	//public byte samples[]; // [numstyles*surfsize]
 	public ByteBuffer samples; // [numstyles*surfsize]
+	
+	public void clear() {
+		visframe = 0;
+		plane = null;
+		flags = 0;
 
+		firstedge = 0;
+		numedges = 0;
+
+		texturemins[0] = texturemins[1] = 0;
+		extents[0] = extents[1] = 0;
+
+		light_s = light_t = 0;
+		dlight_s = dlight_t = 0;
+
+		polys = null;
+		texturechain = null;
+		lightmapchain = null;
+
+		texinfo = null;
+
+		dlightframe = 0;
+		dlightbits = 0;
+
+		lightmaptexturenum = 0;
+		
+		for (int i = 0; i < styles.length; i++)
+		{
+			styles[i] = 0;
+		}
+		for (int i = 0; i < cached_light.length; i++)
+		{
+			cached_light[i] = 0;
+		}
+		samples = null;
+	}
 }

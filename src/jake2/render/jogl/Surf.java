@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.18 2004-03-12 12:03:29 cwei Exp $
+ * $Id: Surf.java,v 1.19 2004-03-12 19:32:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -88,16 +88,21 @@ public abstract class Surf extends Draw {
 		int current_lightmap_texture;
 
 		msurface_t[] lightmap_surfaces = new msurface_t[MAX_LIGHTMAPS];
-
 		int[] allocated = new int[BLOCK_WIDTH];
 
 		// the lightmap texture data needs to be kept in
 		// main memory so texsubimage can update properly
 		byte[] lightmap_buffer = new byte[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
 		
-		public void clearLightmapSurfaces() {
+		
+		public gllightmapstate_t() {
 			for (int i = 0; i < MAX_LIGHTMAPS; i++)
 				lightmap_surfaces[i] = new msurface_t();
+		}
+		
+		public void clearLightmapSurfaces() {
+			for (int i = 0; i < MAX_LIGHTMAPS; i++)
+				lightmap_surfaces[i].clear();
 		}
 		
 	} 
@@ -392,64 +397,74 @@ public abstract class Surf extends Draw {
 
 			for ( surf = gl_lms.lightmap_surfaces[0]; surf != null; surf = surf.lightmapchain )
 			{
-//				int		smax, tmax;
-//				byte	*base;
-//
-//				smax = (surf->extents[0]>>4)+1;
-//				tmax = (surf->extents[1]>>4)+1;
-//
-//				if ( LM_AllocBlock( smax, tmax, &surf->dlight_s, &surf->dlight_t ) )
-//				{
-//					base = gl_lms.lightmap_buffer;
-//					base += ( surf->dlight_t * BLOCK_WIDTH + surf->dlight_s ) * LIGHTMAP_BYTES;
-//
-//					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
-//				}
-//				else
-//				{
-//					msurface_t *drawsurf;
-//
-//					// upload what we have so far
-//					LM_UploadBlock( true );
-//
-//					// draw all surfaces that use this lightmap
-//					for ( drawsurf = newdrawsurf; drawsurf != surf; drawsurf = drawsurf->lightmapchain )
-//					{
-//						if ( drawsurf->polys )
-//							DrawGLPolyChain( drawsurf->polys, 
-//											  ( drawsurf->light_s - drawsurf->dlight_s ) * ( 1.0 / 128.0 ), 
-//											( drawsurf->light_t - drawsurf->dlight_t ) * ( 1.0 / 128.0 ) );
-//					}
-//
-//					newdrawsurf = drawsurf;
-//
-//					// clear the block
-//					LM_InitBlock();
-//
-//					// try uploading the block now
-//					if ( !LM_AllocBlock( smax, tmax, &surf->dlight_s, &surf->dlight_t ) )
-//					{
-//						ri.Sys_Error( ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n", smax, tmax );
-//					}
-//
-//					base = gl_lms.lightmap_buffer;
-//					base += ( surf->dlight_t * BLOCK_WIDTH + surf->dlight_s ) * LIGHTMAP_BYTES;
-//
-//					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
-//				}
+				int smax, tmax;
+				ByteBuffer base;
+
+				smax = (surf.extents[0]>>4)+1;
+				tmax = (surf.extents[1]>>4)+1;
+				
+				pos_t lightPos = new pos_t(surf.dlight_s, surf.dlight_t);
+
+				if ( LM_AllocBlock( smax, tmax, lightPos) )
+				{
+					// kopiere die koordinaten zurueck
+					surf.dlight_s = lightPos.x;
+					surf.dlight_t = lightPos.y;
+
+					base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
+					base.position( ( surf.dlight_t * BLOCK_WIDTH + surf.dlight_s ) * LIGHTMAP_BYTES);
+
+					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
+				}
+				else
+				{
+					msurface_t drawsurf;
+
+					// upload what we have so far
+					LM_UploadBlock( true );
+
+					// draw all surfaces that use this lightmap
+					for ( drawsurf = newdrawsurf; drawsurf != surf; drawsurf = drawsurf.lightmapchain )
+					{
+						if ( drawsurf.polys != null )
+							DrawGLPolyChain( drawsurf.polys, 
+											  ( drawsurf.light_s - drawsurf.dlight_s ) * ( 1.0f / 128.0f ), 
+											( drawsurf.light_t - drawsurf.dlight_t ) * ( 1.0f / 128.0f ) );
+					}
+
+					newdrawsurf = drawsurf;
+
+					// clear the block
+					LM_InitBlock();
+
+					// try uploading the block now
+					if ( !LM_AllocBlock( smax, tmax, lightPos) )
+					{
+						ri.Sys_Error( Defines.ERR_FATAL, "Consecutive calls to LM_AllocBlock(" + smax + "," + tmax + ") failed (dynamic)\n");
+					}
+					
+					// kopiere die koordinaten zurueck
+					surf.dlight_s = lightPos.x;
+					surf.dlight_t = lightPos.y;
+
+					base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
+					base.position( ( surf.dlight_t * BLOCK_WIDTH + surf.dlight_s ) * LIGHTMAP_BYTES);
+
+					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
+				}
 			}
 
 			/*
 			** draw remainder of dynamic lightmaps that haven't been uploaded yet
 			*/
-//			if ( newdrawsurf != null )
-//				LM_UploadBlock( true );
-//
-//			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
-//			{
-//				if ( surf.polys != null )
-//					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
-//			}
+			if ( newdrawsurf != null )
+				LM_UploadBlock( true );
+
+			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
+			{
+				if ( surf.polys != null )
+					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
+			}
 		}
 
 		/*
@@ -459,6 +474,8 @@ public abstract class Surf extends Draw {
 		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
 		gl.glDepthMask( true );
 	}
+	
+	private ByteBuffer temp2 = BufferUtils.newByteBuffer(34 * 34 * 4); 
 
 	/*
 	================
@@ -505,57 +522,64 @@ public abstract class Surf extends Draw {
 		//	  PGM
 		//	  ======
 
-//		/*
-//		** check for lightmap modification
-//		*/
-//		for ( maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++ )
-//		{
-//			if ( r_newrefdef.lightstyles[fa->styles[maps]].white != fa->cached_light[maps] )
-//				goto dynamic;
-//		}
-//
-//		// dynamic this frame or dynamic previously
-//		if ( ( fa->dlightframe == r_framecount ) )
-//		{
-//	dynamic:
-//			if ( gl_dynamic->value )
-//			{
-//				if (!( fa->texinfo->flags & (SURF_SKY|SURF_TRANS33|SURF_TRANS66|SURF_WARP ) ) )
-//				{
-//					is_dynamic = true;
-//				}
-//			}
-//		}
-//
+		// ersetzt goto
+		boolean gotoDynamic = false;
+		/*
+		** check for lightmap modification
+		*/
+		for ( maps = 0; maps < Defines.MAXLIGHTMAPS && fa.styles[maps] != (byte)255; maps++ )
+		{
+			if ( r_newrefdef.lightstyles[fa.styles[maps] & 0xFF].white != fa.cached_light[maps] ) {
+				gotoDynamic = true;
+				break;
+			}
+		}
+		
+		// this is a hack from cwei
+		if (maps == 4) maps--;
+
+		// dynamic this frame or dynamic previously
+		if ( gotoDynamic || ( fa.dlightframe == r_framecount ) )
+		{
+			//	label dynamic:
+			if ( gl_dynamic.value != 0 )
+			{
+				if (( fa.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP ) ) == 0)
+				{
+					is_dynamic = true;
+				}
+			}
+		}
+
 		if ( is_dynamic )
 		{
-//			if ( ( fa->styles[maps] >= 32 || fa->styles[maps] == 0 ) && ( fa->dlightframe != r_framecount ) )
-//			{
-//				unsigned	temp[34*34];
-//				int			smax, tmax;
-//
-//				smax = (fa->extents[0]>>4)+1;
-//				tmax = (fa->extents[1]>>4)+1;
-//
-//				R_BuildLightMap( fa, (void *)temp, smax*4 );
-//				R_SetCacheState( fa );
-//
-//				GL_Bind( gl_state.lightmap_textures + fa->lightmaptexturenum );
-//
-//				qglTexSubImage2D( GL_TEXTURE_2D, 0,
-//								  fa->light_s, fa->light_t, 
-//								  smax, tmax, 
-//								  GL_LIGHTMAP_FORMAT, 
-//								  GL_UNSIGNED_BYTE, temp );
-//
-//				fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
-//				gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
-//			}
-//			else
-//			{
-//				fa->lightmapchain = gl_lms.lightmap_surfaces[0];
-//				gl_lms.lightmap_surfaces[0] = fa;
-//			}
+			if ( ( (fa.styles[maps] & 0xFF) >= 32 || fa.styles[maps] == 0 ) && ( fa.dlightframe != r_framecount ) )
+			{
+				// ist ersetzt durch temp2:	unsigned	temp[34*34];
+				int smax, tmax;
+
+				smax = (fa.extents[0]>>4)+1;
+				tmax = (fa.extents[1]>>4)+1;
+
+				R_BuildLightMap( fa, temp2, smax*4 );
+				R_SetCacheState( fa );
+
+				GL_Bind( gl_state.lightmap_textures + fa.lightmaptexturenum );
+
+				gl.glTexSubImage2D( GL.GL_TEXTURE_2D, 0,
+								  fa.light_s, fa.light_t, 
+								  smax, tmax, 
+								  GL_LIGHTMAP_FORMAT, 
+								  GL.GL_UNSIGNED_BYTE, temp2 );
+
+				fa.lightmapchain = gl_lms.lightmap_surfaces[fa.lightmaptexturenum];
+				gl_lms.lightmap_surfaces[fa.lightmaptexturenum] = fa;
+			}
+			else
+			{
+				fa.lightmapchain = gl_lms.lightmap_surfaces[0];
+				gl_lms.lightmap_surfaces[0] = fa;
+			}
 		}
 		else
 		{
