@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.36 2004-02-15 13:19:11 hoz Exp $
+ * $Id: CL_main.java,v 1.37 2004-02-15 14:15:33 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1125,12 +1125,12 @@ public class CL_main extends CL_pred {
 			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1].toLowerCase(), true, iw);
 			map_checksum = iw.i;
 
-			if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
-				Com.Error(
-					ERR_DROP,
-					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
-				return;
-			}
+//			if ((map_checksum ^ atoi(cl.configstrings[CS_MAPCHECKSUM])) != 0) {
+//				Com.Error(
+//					ERR_DROP,
+//					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
+//				return;
+//			}
 		}
 
 		if (precache_check > ENV_CNT && precache_check < TEXTURE_CNT) {
