@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.5 2004-07-28 11:54:43 hzi Exp $
+ * $Id: Com.java,v 1.6 2004-08-22 18:30:15 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -205,7 +205,7 @@ public final class Com
 			//	   skip // comments
 			if (hlp.getchar() == '/') {
 				if (hlp.nextchar() == '/') {
-					hlp.skipwhitestoeol();
+					hlp.skiptoeol();
 					return "";
 				} else {
 					hlp.prevchar();
@@ -429,11 +429,6 @@ public final class Com
 			msg= new PrintfFormat(fmt).sprintf(vargs.toArray());
 		}
 		return msg;
-	}
-
-	public static int ServerState()
-	{
-		return Globals.server_state;
 	}
 
 	public static int Argc()
