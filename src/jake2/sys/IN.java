@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.8 2004-01-09 11:24:22 hoz Exp $
+ * $Id: IN.java,v 1.9 2004-01-09 13:35:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -74,7 +74,6 @@ public final class IN {
 	
 	private static void uninstall_grabs() {
 		c.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		mouse_active = false;
 	}
 	
 	public static void toggleMouse() {

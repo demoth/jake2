@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.10 2004-01-02 14:08:20 hoz Exp $
+ * $Id: M.java,v 1.11 2004-01-09 13:35:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.*;
+import jake2.Defines;
 import jake2.game.*;
-
-import jake2.game.*;
-import jake2.game.trace_t;
 import jake2.server.SV;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
 /**
  * M
@@ -583,4 +581,17 @@ public final class M {
 //	00123         Key_ClearStates ();
 //	00124         Cvar_Set ("paused", "0");
 	}
+	
+	public static void Keydown(int key) {
+//	04002         const char *s;
+//	04003 
+//	04004         if (m_keyfunc)
+//	04005                 if ( ( s = m_keyfunc( key ) ) != 0 )
+//	04006                         S_StartLocalSound( ( char * ) s );
+	}
+
+	public static void Menu_Main_f() {
+//	00490         M_PushMenu (M_Main_Draw, M_Main_Key);
+	}
+
 }
