@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.13 2004-02-22 21:45:47 hoz Exp $
+ * $Id: Draw.java,v 1.14 2004-06-06 20:50:19 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -257,10 +257,10 @@ public abstract class Draw extends Image {
 
 		int color = d_8to24table[colorIndex]; 
 
-		gl.glColor3f(
-			((color >> 0) & 0xff)/255.0f, // r
-			((color >> 8) & 0xff)/255.0f, // g
-			((color >> 16) & 0xff)/255.0f // b
+		gl.glColor3ub(
+			(byte)((color >> 0) & 0xff), // r
+			(byte)((color >> 8) & 0xff), // g
+			(byte)((color >> 16) & 0xff) // b
 		);
 
 		gl.glBegin (GL.GL_QUADS);
