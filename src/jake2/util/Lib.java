@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.11 2004-01-18 12:36:02 hoz Exp $
+// $Id: Lib.java,v 1.12 2004-01-20 22:25:07 rst Exp $
 
 package jake2.util;
 
@@ -96,6 +96,12 @@ public class Lib {
 	public static int stricmp(String in1, String in2) {
 		return in1.compareToIgnoreCase(in2);
 	}
+	
+	public static boolean strstr(String i1, String i2)
+	{
+		return (i1.indexOf(i2)!=-1);
+	}
+	
 	//TODO: delete this and clean up quake.	
 	public static int strncmp(String in1, String in2, int len) {
 		int i1 = Math.min(len, in1.length());
@@ -304,5 +310,19 @@ public class Lib {
 	 
 	public static void memcpy(byte[] bs, byte[] bs2, int i) {
 		System.arraycopy(bs2, 0, bs, 0, i);		
+	}
+	
+	static byte nullfiller[] = new byte[8192];
+	
+	public static void fwrite(String s, int len, RandomAccessFile f) throws IOException
+	{
+		int diff = len - s.length();
+		if (diff > 0)
+		{
+			f.write(s.getBytes());
+		
+			f.write(nullfiller,0,diff);
+		}
+		else f.write(s.getBytes(),0,len);
 	}
 }

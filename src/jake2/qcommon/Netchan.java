@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.8 2004-01-18 10:39:34 rst Exp $
+ * $Id: Netchan.java,v 1.9 2004-01-20 22:25:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -151,6 +151,10 @@ public final class Netchan extends SV_MAIN {
 
 		// send the datagram
 		NET.NET_SendPacket(net_socket, send.cursize, send.data, adr);
+	}
+	
+	public static void Netchan_OutOfBandPrint(int net_socket, netadr_t adr, String s) {
+		Netchan_OutOfBand(net_socket, adr, s.length(), s.getBytes());
 	}
 
 	/*

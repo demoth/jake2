@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.9 2004-01-09 22:25:09 rst Exp $
+ * $Id: Sys.java,v 1.10 2004-01-20 22:25:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,13 +30,16 @@ import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import jake2.Defines;
+import jake2.Globals;
 import jake2.client.CL;
 import jake2.qcommon.Com;
+import jake2.util.Lib;
 
 /**
  * Sys
  */
-public final class Sys {
+public final class Sys extends Defines {
 
 	public static void StackTrace() {
 
@@ -55,7 +58,7 @@ public final class Sys {
 
 		CL.Shutdown();
 		//System.err.println("Error: " + error);
-		
+
 		//StackTrace();
 		new Exception(error).printStackTrace();
 		System.exit(1);
@@ -64,21 +67,20 @@ public final class Sys {
 
 	public static void Quit() {
 		CL.Shutdown();
-		
+
 		System.exit(0);
 	}
 
 	public static File[] FindAll(String path, int musthave, int canthave) {
-		String findbase = path;
-		String p = null;
-		String findpattern = null;
 
-		int index = 0;
-		if ((index = path.lastIndexOf('/')) > 0) {
+		int index = path.lastIndexOf('/');
+
+		if (index != -1) {
 			findbase = path.substring(0, index);
 			findpattern = path.substring(index + 1, path.length());
 		}
 		else {
+			findbase = path;
 			findpattern = "*";
 		}
 
@@ -186,9 +188,91 @@ public final class Sys {
 		}
 
 		boolean CompareAttributes(File dir, int musthave, int canthave) {
-			// TODO implement or check the CompareAttributes() function
+			// . and .. never match
+			String name = dir.getName();
+
+			if (Lib.strcmp(name, ".") == 0 || Lib.strcmp(name, "..") == 0)
+				return false;
+
 			return true;
+
+			//was commented out, but you can implement file-attrib searching. rst.
+			//use the flags FILE_ISREADABLE, FILE_ISWRITABLE ... 
+			//
+			//	if (stat(fn, &st) == -1)
+			//		return false; // shouldn't happen
+			//
+			//	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
+			//		return false;
+			//
+			//	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
+			//		return false;
+			//
+			//	return true;
 		}
+
+	}
+
+	public static long Milliseconds() {
+		return Globals.curtime = System.currentTimeMillis();
+	}
+
+	//============================================
+
+	static File[] fdir;
+	static int fileindex;
+	static String findbase;
+	static String findpattern;
+
+	public static File FindFirst(String path, int musthave, int canthave) {
+
+		if (fdir != null)
+			Sys.Error("Sys_BeginFind without close");
+
+		//	COM_FilePath (path, findbase);
+
+		fdir = FindAll(path, canthave, musthave);
+
+		return FindNext();
+
+		//strcpy(findbase, path);
+		//
+		//	if ((p = strrchr(findbase, '/')) != NULL) {
+		//		*p = 0;
+		//		strcpy(findpattern, p + 1);
+		//	} else
+		//		strcpy(findpattern, "*");
+		//
+		//	if (strcmp(findpattern, "*.*") == 0)
+		//		strcpy(findpattern, "*");
+
+		//		if ((fdir = opendir(findbase)) == NULL)
+		//			return NULL;
+		//		while ((d = readdir(fdir)) != NULL) {
+		//			if (!* findpattern || glob_match(findpattern, d - > d_name)) {
+		//				//			if (*findpattern)
+		//				//				printf("%s matched %s\n", findpattern, d->d_name);
+		//				if (CompareAttributes(findbase, d - > d_name, musthave, canhave)) {
+		//					sprintf(findpath, "%s/%s", findbase, d - > d_name);
+		//					return findpath;
+		//				}
+		//			}
+		//		}
+		//		return null;
+	}
+
+	public static File FindNext() {
+
+		if (fileindex >= fdir.length)
+			return null;
+
+		return fdir[fileindex++];
+	}
+
+	public static void FindClose() {
+
+		if (fdir != null)
+			fdir = null;
 
 	}
 

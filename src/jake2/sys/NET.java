@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.5 2004-01-17 20:34:47 rst Exp $
+ * $Id: NET.java,v 1.6 2004-01-20 22:25:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -229,7 +229,25 @@ public final class NET extends Defines {
 //	}
 //	
 	
-	boolean	NET_IsLocalAddress (netadr_t adr)
+	public static boolean NET_StringToAdr( String s, netadr_t a)
+	{
+		try
+		{
+			InetAddress ia = InetAddress.getByName(s);
+			a.ip = ia.getAddress();
+			return true;
+		}
+		catch
+		(
+			Exception e)
+		{
+			return false;
+		}		
+	}
+	
+	
+	
+	public static boolean	NET_IsLocalAddress (netadr_t adr)
 	{
 		return NET_CompareAdr (adr, net_local_adr);
 	}
@@ -243,7 +261,7 @@ public final class NET extends Defines {
 	*/
 	
 	// trivial! this SHOULD work !
-	boolean	NET_GetLoopPacket (int sock, netadr_t net_from, sizebuf_t net_message)
+	public static boolean	NET_GetLoopPacket (int sock, netadr_t net_from, sizebuf_t net_message)
 	{
 		int		i;
 		loopback_t	loop;
@@ -293,7 +311,7 @@ public final class NET extends Defines {
 	private static DatagramPacket receivedatagrampacket = new DatagramPacket(new byte[65507], 65507);
 	
 	//=============================================================================	
-	boolean	NET_GetPacket (int sock, netadr_t net_from, sizebuf_t net_message)
+	public static boolean	NET_GetPacket (int sock, netadr_t net_from, sizebuf_t net_message)
 	{
 		DatagramSocket	net_socket;
 //		int 	ret;
@@ -614,7 +632,7 @@ public final class NET extends Defines {
 	NET_ErrorString
 	====================
 	*/
-	public String NET_ErrorString() {
+	public static String NET_ErrorString() {
 		int code;
 
 		//code = errno;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.2 2004-01-18 10:39:34 rst Exp $
+// $Id: SV_GAME.java,v 1.3 2004-01-20 22:25:06 rst Exp $
 
 package jake2.server;
 
@@ -31,7 +31,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class SV_GAME 
+public class SV_GAME extends PlayerHud
 {
 
 

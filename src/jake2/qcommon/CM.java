@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.6 2004-01-20 12:57:07 cwei Exp $
+// $Id: CM.java,v 1.7 2004-01-20 22:25:07 rst Exp $
 
 package jake2.qcommon;
 
@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -711,7 +712,7 @@ public class CM extends PlayerHud {
 
 		map_vis = new qfiles.dvis_t(bb);
 
-		/* done 
+		/* already done 
 		map_vis.numclusters = LittleLong(map_vis.numclusters);
 		for (i = 0; i < map_vis.numclusters; i++) {
 			map_vis.bitofs[i][0] = LittleLong(map_vis.bitofs[i][0]);
@@ -804,7 +805,7 @@ public class CM extends PlayerHud {
 	can just be stored out and get a proper clipping hull structure.
 	===================
 	*/
-	static void CM_InitBoxHull() {
+	public static void CM_InitBoxHull() {
 		int i;
 		int side;
 		cnode_t c;
@@ -889,7 +890,7 @@ public class CM extends PlayerHud {
 	BSP trees instead of being compared directly.
 	===================
 	*/
-	int CM_HeadnodeForBox(float[] mins, float[] maxs) {
+	public static int CM_HeadnodeForBox(float[] mins, float[] maxs) {
 		box_planes[0].dist = maxs[0];
 		box_planes[1].dist = -maxs[0];
 		box_planes[2].dist = mins[0];
@@ -954,7 +955,7 @@ public class CM extends PlayerHud {
 	static float 	leaf_mins[],  leaf_maxs[];
 	static int 	leaf_topnode;
 
-	static void CM_BoxLeafnums_r(int nodenum) {
+	public static void CM_BoxLeafnums_r(int nodenum) {
 		cplane_t plane;
 		cnode_t node;
 		int s;
@@ -987,7 +988,7 @@ public class CM extends PlayerHud {
 		}
 	}
 
-	static int CM_BoxLeafnums_headnode(float[] mins, float[] maxs, int  list[], int listsize, int headnode, intwrap topnode) {
+	public static int CM_BoxLeafnums_headnode(float[] mins, float[] maxs, int  list[], int listsize, int headnode, intwrap topnode) {
 		leaf_list = list;
 		leaf_count = 0;
 		leaf_maxcount = listsize;
@@ -1008,13 +1009,13 @@ public class CM extends PlayerHud {
 		return CM_BoxLeafnums_headnode(mins, maxs, list, listsize, map_cmodels[0].headnode, topnode);
 	}
 	
-	static class intwrap
+	public static class intwrap
 	{
-		intwrap(int i)
+		public intwrap(int i)
 		{
 			this.i=i;
 		}
-		int i;
+		public int i;
 	}
 
 	/*
@@ -1023,7 +1024,7 @@ public class CM extends PlayerHud {
 	
 	==================
 	*/
-	int CM_PointContents(float[] p, int headnode) {
+	public static int CM_PointContents(float[] p, int headnode) {
 		int l;
 
 		if (numnodes==0) // map not loaded
@@ -1042,7 +1043,7 @@ public class CM extends PlayerHud {
 	rotating entities
 	==================
 	*/
-	int CM_TransformedPointContents(float[] p, int headnode, float[] origin, float[] angles) {
+	public static int CM_TransformedPointContents(float[] p, int headnode, float[] origin, float[] angles) {
 		float[] p_l={0,0,0};
 		float[] temp={0,0,0};
 		float[] forward={0,0,0}, right={0,0,0}, up={0,0,0};
@@ -1090,7 +1091,7 @@ public class CM extends PlayerHud {
 	CM_ClipBoxToBrush
 	================
 	*/
-	static void CM_ClipBoxToBrush(float[] mins, float[] maxs, float[] p1, float[] p2, trace_t trace, cbrush_t brush) {
+	public static void CM_ClipBoxToBrush(float[] mins, float[] maxs, float[] p1, float[] p2, trace_t trace, cbrush_t brush) {
 		int i, j;
 		cplane_t plane, clipplane;
 		float dist;
@@ -1192,7 +1193,7 @@ public class CM extends PlayerHud {
 	CM_TestBoxInBrush
 	================
 	*/
-	static void CM_TestBoxInBrush(float[] mins, float[] maxs, float[] p1, trace_t trace, cbrush_t brush) {
+	public static void CM_TestBoxInBrush(float[] mins, float[] maxs, float[] p1, trace_t trace, cbrush_t brush) {
 		int i, j;
 		cplane_t plane;
 		float dist;
@@ -1275,7 +1276,7 @@ public class CM extends PlayerHud {
 	CM_TestInLeaf
 	================
 	*/
-	static void CM_TestInLeaf(int leafnum) {
+	public static void CM_TestInLeaf(int leafnum) {
 		int k;
 		int brushnum;
 		cleaf_t leaf;
@@ -1307,7 +1308,7 @@ public class CM extends PlayerHud {
 	
 	==================
 	*/
-	static void CM_RecursiveHullCheck(int num, float p1f, float p2f, float[] p1, float[] p2) {
+	public static void CM_RecursiveHullCheck(int num, float p1f, float p2f, float[] p1, float[] p2) {
 		cnode_t node;
 		cplane_t plane;
 		float t1, t2, offset;
@@ -1419,7 +1420,7 @@ public class CM extends PlayerHud {
 	CM_BoxTrace
 	==================
 	*/
-	static trace_t CM_BoxTrace(float[] start, float[] end, float[] mins, float[] maxs, int headnode, int brushmask) {
+	public static trace_t CM_BoxTrace(float[] start, float[] end, float[] mins, float[] maxs, int headnode, int brushmask) {
 
 		checkcount++; // for multi-check avoidance
 
@@ -1763,11 +1764,11 @@ public class CM extends PlayerHud {
 	Writes the portal state to a savegame file
 	===================
 	*/
-	public static void CM_WritePortalState(File f) {
+	public static void CM_WritePortalState(RandomAccessFile os) {
 		//this single line has to be ported.
 		//fwrite(portalopen, sizeof(portalopen), 1, f);
 		try {
-			DataOutputStream os = new DataOutputStream(new FileOutputStream(f));
+			
 			for (int n = 0; n < portalopen.length; n++)
 				if (portalopen[n])
 					os.writeInt(1);
@@ -1789,7 +1790,7 @@ public class CM extends PlayerHud {
 	and recalculates the area connections
 	===================
 	*/
-	public static void CM_ReadPortalState(File f) {
+	public static void CM_ReadPortalState(RandomAccessFile f) {
 		//this single line has to be replaced.
 		//FS_Read(portalopen, sizeof(portalopen), f);
 		int len = portalopen.length * 4;
@@ -1797,7 +1798,7 @@ public class CM extends PlayerHud {
 		byte buf[] = new byte[len];
 
 		try {
-			FS.Read(buf, len, new FileInputStream(f));
+			FS.Read(buf, len, f);
 		}
 		catch (FileNotFoundException e) {
 			Com.Printf("ERROR:" + e);

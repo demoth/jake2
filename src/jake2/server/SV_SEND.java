@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.2 2004-01-18 10:39:34 rst Exp $
+// $Id: SV_SEND.java,v 1.3 2004-01-20 22:25:06 rst Exp $
 
 package jake2.server;
 
@@ -398,8 +398,7 @@ public class SV_SEND extends SV_MAIN {
 
 		// send over all the relevant entity_state_t
 		// and the player_state_t
-		// TODO: T H I S   I S    U R G E N T !!!
-		//SV_WriteFrameToClient (client, msg);
+		SV_CCMDS.SV_WriteFrameToClient (client, msg);
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message

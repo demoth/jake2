@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.23 2004-01-08 22:38:16 rst Exp $
+ * $Id: Com.java,v 1.24 2004-01-20 22:25:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,6 +42,37 @@ import java.util.logging.Logger;
  */
 public final class Com {
 
+	public static class RD_Flusher {
+		public void rd_flush(int target, byte [] buffer) {
+		}
+	}
+
+	static int rd_target;
+	static byte []rd_buffer;
+	static int rd_buffersize;
+	static RD_Flusher rd_flusher;
+
+	public static void BeginRedirect(int target, byte [] buffer, int buffersize, RD_Flusher flush) {
+		if (0 == target || null == buffer || 0 == buffersize || null == flush)
+			return;
+
+		rd_target = target;
+		rd_buffer = buffer;
+		rd_buffersize = buffersize;
+		rd_flusher = flush;
+
+		rd_buffer = null;
+	}
+
+	public static void EndRedirect() {
+		rd_flusher.rd_flush(rd_target, rd_buffer);
+
+		rd_target = 0;
+		rd_buffer = null;
+		rd_buffersize = 0;
+		rd_flusher = null;
+	}
+
 	static boolean recursive = false;
 
 	static String msg = "";
@@ -50,19 +81,17 @@ public final class Com {
 
 	// helper class to replace the pointer-pointer
 	public static class ParseHelp {
-		
+
 		public ParseHelp(String in, int offset) {
-			this(in.toCharArray(),offset);
+			this(in.toCharArray(), offset);
 		}
 
-		public ParseHelp(String in)
-		{
-			this(in.toCharArray(),0);
+		public ParseHelp(String in) {
+			this(in.toCharArray(), 0);
 		}
-				
-		public ParseHelp(char in[])
-		{
-			this(in,0);
+
+		public ParseHelp(char in[]) {
+			this(in, 0);
 		}
 
 		public ParseHelp(char in[], int offset) {
@@ -101,7 +130,7 @@ public final class Com {
 		}
 
 		public boolean isEof() {
-			return data==null;
+			return data == null;
 		}
 
 		public int index;
@@ -120,7 +149,7 @@ public final class Com {
 				index++;
 			return c;
 		}
-		
+
 		public char skiptoeol() {
 			char c;
 			while ((c = getchar()) != '\n' && c != 0)
@@ -146,14 +175,13 @@ public final class Com {
 
 		// skip whitespace
 		hlp.skipwhites();
-		
+
 		if (hlp.isEof()) {
 			return "";
 		}
 
 		// skip // comments
-		if (hlp.getchar() == '/')
-		{
+		if (hlp.getchar() == '/') {
 			if (hlp.nextchar() == '/') {
 				if ((hlp.skiptoeol() == 0) || (hlp.skipwhites() == 0)) {
 					return "";
@@ -196,7 +224,7 @@ public final class Com {
 			Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
 			len = 0;
 		}
-		
+
 		// trigger the eof
 		hlp.skipwhites();
 
@@ -284,7 +312,7 @@ public final class Com {
 
 		//logger.log(Level.INFO, msg);
 	}
-	
+
 	public static void Println(String fmt) {
 		Printf(fmt);
 		Printf("\n");
@@ -332,6 +360,5 @@ public final class Com {
 
 		Sys.Quit();
 	}
-
 
 }

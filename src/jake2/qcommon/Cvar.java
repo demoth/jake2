@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.19 2004-01-18 10:39:34 rst Exp $
+ * $Id: Cvar.java,v 1.20 2004-01-20 22:25:07 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -294,6 +294,15 @@ public class Cvar {
 			Com.Printf(i + " cvars\n");
 		}
 	};
+
+	/*
+	============
+	Cvar_ForceSet
+	============
+	*/
+	public static cvar_t ForceSet(String var_name, String value) {
+		return Cvar.Set2(var_name, value, true);
+	}
 	/*
 	============
 	Cvar_SetValue
@@ -356,7 +365,6 @@ public class Cvar {
 	// returns an info string containing all the CVAR_SERVERINFO cvars
 	public static String Serverinfo() {
 		return BitInfo(Defines.CVAR_SERVERINFO);
-		return null;
 	}
 
 }

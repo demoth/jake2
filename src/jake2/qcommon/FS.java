@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.20 2004-01-18 10:39:34 rst Exp $
+ * $Id: FS.java,v 1.21 2004-01-20 22:25:07 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -63,7 +63,7 @@ public final class FS {
 =============================================================================
 */
 
-	static class packfile_t {
+public static class packfile_t {
 		static final int SIZE = 64;
 		static final int NAME_SIZE = 56;
 
@@ -75,34 +75,34 @@ public final class FS {
 		}
 	}
 
-	static class pack_t {
+	public static class pack_t {
 		String filename;
 		RandomAccessFile handle;
 		int numfiles;
 		Hashtable files; // with packfile_t entries
 	}
 
-	static String fs_gamedir;
-	static cvar_t	fs_basedir;
-	static cvar_t	fs_cddir;
-	static cvar_t	fs_gamedirvar;
+	public static String fs_gamedir;
+	public static cvar_t	fs_basedir;
+	public static cvar_t	fs_cddir;
+	public static cvar_t	fs_gamedirvar;
 
-	static class filelink_t {
+	public static class filelink_t {
 		String from;
 		int fromlength;
 		String to;
 	}
 
-	static List fs_links = new LinkedList(); // with filelink_t entries
+	public static List fs_links = new LinkedList(); // with filelink_t entries
 
-	static class searchpath_t {
+	public static class searchpath_t {
 		String filename;
 		pack_t pack;		// only one of filename / pack will be used
 		searchpath_t next;
 	}
 
-	static searchpath_t fs_searchpaths;
-	static searchpath_t fs_base_searchpaths;	// without gamedirs
+	public static searchpath_t fs_searchpaths;
+	public static searchpath_t fs_base_searchpaths;	// without gamedirs
 
 
 /*
@@ -144,11 +144,11 @@ public final class FS {
 	on files returned by FS_FOpenFile...
 	==============
 	*/
-	static void FCloseFile(RandomAccessFile file) throws IOException {
+	public static void FCloseFile(RandomAccessFile file) throws IOException {
 		file.close();
 	}
 	
-	static void FCloseFile(InputStream stream) throws IOException {
+	public static void FCloseFile(InputStream stream) throws IOException {
 		stream.close();
 	}
 
@@ -309,9 +309,9 @@ public final class FS {
 	Properly handles partial reads
 	=================
 	*/
-	static final int MAX_READ	= 0x10000; // read in blocks of 64k
+	public static final int MAX_READ	= 0x10000; // read in blocks of 64k
 
-	static void Read(byte[] buffer, int len, InputStream f) {
+	public static void Read(byte[] buffer, int len, RandomAccessFile f) {
 
 		int block, remaining;
 		int offset = 0;
@@ -346,6 +346,13 @@ public final class FS {
 			remaining -= read;
 			offset += read;
 		}
+	}
+	
+	public static String ReadString(int len, RandomAccessFile f) {
+		byte buffer[] = new byte[len];
+		FS.Read(buffer,len,f);
+		
+		return new String(buffer).trim();
 	}
 
 	/*
@@ -569,7 +576,7 @@ public final class FS {
 	Sets the gamedir and path to a different directory.
 	================
 	*/
-	static void SetGamedir (String dir)
+	public static void SetGamedir (String dir)
 	{
 		searchpath_t	next;
 
@@ -637,7 +644,7 @@ public final class FS {
 	Creates a filelink_t
 	================
 	*/
-	static void Link_f() {
+	public static void Link_f() {
 		filelink_t entry = null;
 
 		if (Cmd.Argc() != 3) {
@@ -694,7 +701,7 @@ public final class FS {
 	/*
 	** FS_Dir_f
 	*/
-	static void Dir_f()
+	public static void Dir_f()
 	{
 		String path = null;
 		String findname = null;
@@ -740,7 +747,7 @@ public final class FS {
 
 	============
 	*/
-	static void Path_f() {
+	public static void Path_f() {
 
 		searchpath_t	s;
 		filelink_t link;
@@ -771,7 +778,7 @@ public final class FS {
 	Allows enumerating all of the directories in the search path
 	================
 	*/
-	static String NextPath (String prevpath)
+	public static String NextPath (String prevpath)
 	{
 		searchpath_t	s;
 		String prev;
@@ -797,7 +804,7 @@ public final class FS {
 	FS_InitFilesystem
 	================
 	*/
-	static void InitFilesystem()
+	public static void InitFilesystem()
 	{
 		Cmd.AddCommand ("path", new xcommand_t() {
 			public void execute() throws Exception {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.19 2004-01-20 12:47:04 cwei Exp $
+// $Id: Defines.java,v 1.20 2004-01-20 22:25:07 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -29,6 +29,12 @@ import jake2.util.*;
 
 public class Defines extends Math3D {
 	
+	// used by filefinders in Sys
+	public final static int FILEISREADABLE = 1;
+	public final static int FILEISWRITABLE = 2;
+	public final static int FILEISFILE = 4;
+	public final static int FILEISDIRECTORY = 8;
+	
 	// datentyp konstanten
 	// groesse in bytes
 	public final static int SIZE_OF_SHORT = 2;
@@ -36,7 +42,6 @@ public class Defines extends Math3D {
 	public final static int SIZE_OF_LONG = 8;
 	public final static int SIZE_OF_FLOAT = 4;
 	public final static int SIZE_OF_DOUBLE = 8;
-	
 
 	public final static int WEAPON_READY = 0;
 	public final static int WEAPON_ACTIVATING = 1;
@@ -550,7 +555,8 @@ public class Defines extends Math3D {
 	public final static int CHAN_ITEM = 3;
 	public final static int CHAN_BODY = 4;
 	//	   modifier flags
-	public final static int CHAN_NO_PHS_ADD = 8; // send to all clients, not just ones in PHS (ATTN 0 will also do this) 
+	public final static int CHAN_NO_PHS_ADD = 8;
+	// send to all clients, not just ones in PHS (ATTN 0 will also do this)
 	public final static int CHAN_RELIABLE = 16; // send by reliable message, not datagram 
 
 	//	   sound attenuation values
@@ -703,9 +709,11 @@ public class Defines extends Math3D {
 	//	content masks
 	public final static int MASK_ALL = (-1);
 	public final static int MASK_SOLID = (CONTENTS_SOLID | CONTENTS_WINDOW);
-	public final static int MASK_PLAYERSOLID = (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
+	public final static int MASK_PLAYERSOLID =
+		(CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
 	public final static int MASK_DEADSOLID = (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW);
-	public final static int MASK_MONSTERSOLID = (CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
+	public final static int MASK_MONSTERSOLID =
+		(CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
 	public final static int MASK_WATER = (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME);
 	public final static int MASK_OPAQUE = (CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA);
 	public final static int MASK_SHOT = (CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEADMONSTER);
@@ -784,7 +792,8 @@ public class Defines extends Math3D {
 	public final static int DAMAGE_ENERGY = 0x00000004; // damage is from an energy based weapon 
 	public final static int DAMAGE_NO_KNOCKBACK = 0x00000008; // do not affect velocity, just view angles 
 	public final static int DAMAGE_BULLET = 0x00000010; // damage is from a bullet (used for ricochets) 
-	public final static int DAMAGE_NO_PROTECTION = 0x00000020; // armor, shields, invulnerability, and godmode have no effect 
+	public final static int DAMAGE_NO_PROTECTION = 0x00000020;
+	// armor, shields, invulnerability, and godmode have no effect
 
 	public final static int DAMAGE_NO = 0;
 	public final static int DAMAGE_YES = 1; // will take damage if hit 
@@ -1059,7 +1068,8 @@ public class Defines extends Math3D {
 	public final static int svc_reconnect = 8;
 	public final static int svc_sound = 9; // <see code> 
 	public final static int svc_print = 10; // [byte] id [string] null terminated string 
-	public final static int svc_stufftext = 11; // [string] stuffed into client's console buffer, should be \n terminated 
+	public final static int svc_stufftext = 11;
+	// [string] stuffed into client's console buffer, should be \n terminated
 	public final static int svc_serverdata = 12; // [long] protocol ... 
 	public final static int svc_configstring = 13; // [short] [string] 
 	public final static int svc_spawnbaseline = 14;
@@ -1085,9 +1095,9 @@ public class Defines extends Math3D {
 	public final static int PS_M_GRAVITY = (1 << 5);
 	public final static int PS_M_DELTA_ANGLES = (1 << 6);
 
-	public final static int UPDATE_BACKUP= 16;	// copies of entity_state_t to keep buffered 
-                                                         // must be power of two
-	public final static int UPDATE_MASK= (UPDATE_BACKUP-1);	
+	public final static int UPDATE_BACKUP = 16; // copies of entity_state_t to keep buffered 
+	// must be power of two
+	public final static int UPDATE_MASK = (UPDATE_BACKUP - 1);
 
 	public final static int PS_VIEWOFFSET = (1 << 7);
 	public final static int PS_VIEWANGLES = (1 << 8);
@@ -1308,8 +1318,17 @@ public class Defines extends Math3D {
 	public final static int RD_PACKET = 2;
 
 	public final static int RATE_MESSAGES = 10;
-	
-	public final static int LATENCY_COUNTS= 16;	
-	
+
+	public final static int LATENCY_COUNTS = 16;
+
 	public static final int MAXCMDLINE = 256;
+
+	public static final int MAX_MASTERS = 8;
+
+	//server/sv_world.h
+	public static final int AREA_DEPTH = 4;
+	public static final int AREA_NODES = 32;
+	
+	//linux/sys.h
+	
 }
