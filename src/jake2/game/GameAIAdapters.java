@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameAIAdapters.java,v 1.3 2004-02-29 17:23:43 rst Exp $
+// $Id: GameAIAdapters.java,v 1.4 2004-03-18 10:09:07 hoz Exp $
 
 package jake2.game;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.client.M;
 import jake2.qcommon.Com;
 import jake2.util.*;
@@ -253,11 +254,11 @@ public class GameAIAdapters
 				if (self.monsterinfo.idle_time != 0)
 				{
 					self.monsterinfo.search.think(self);
-					self.monsterinfo.idle_time = GameBase.level.time + 15 + Lib.random() * 15;
+					self.monsterinfo.idle_time = GameBase.level.time + 15 + Globals.rnd.nextFloat() * 15;
 				}
 				else
 				{
-					self.monsterinfo.idle_time = GameBase.level.time + Lib.random() * 15;
+					self.monsterinfo.idle_time = GameBase.level.time + Globals.rnd.nextFloat() * 15;
 				}
 			}
 		}
@@ -314,11 +315,11 @@ public class GameAIAdapters
 				if (self.monsterinfo.idle_time != 0)
 				{
 					self.monsterinfo.idle.think(self);
-					self.monsterinfo.idle_time = GameBase.level.time + 15 + Lib.random() * 15;
+					self.monsterinfo.idle_time = GameBase.level.time + 15 + Globals.rnd.nextFloat() * 15;
 				}
 				else
 				{
-					self.monsterinfo.idle_time = GameBase.level.time + Lib.random() * 15;
+					self.monsterinfo.idle_time = GameBase.level.time + Globals.rnd.nextFloat() * 15;
 				}
 			}
 		}
@@ -846,12 +847,14 @@ public class GameAIAdapters
 			trace_t tr;
 			float[] dest = { 0, 0, 0 };
 
-			float v[];
+			//float v[];
 
-			v = Lib.tv(-15, -15, -15);
-			Math3D.VectorCopy(v, ent.mins);
-			v = Lib.tv(15, 15, 15);
-			Math3D.VectorCopy(v, ent.maxs);
+			//v = Lib.tv(-15, -15, -15);
+			//Math3D.VectorCopy(v, ent.mins);
+			ent.mins[0] = ent.mins[1] = ent.mins[2] = -15;
+			//v = Lib.tv(15, 15, 15);
+			//Math3D.VectorCopy(v, ent.maxs);
+			ent.maxs[0] = ent.maxs[1] = ent.maxs[2] = 15;
 
 			if (ent.model != null)
 				GameBase.gi.setmodel(ent, ent.model);
@@ -861,7 +864,7 @@ public class GameAIAdapters
 			ent.movetype = Defines.MOVETYPE_TOSS;
 			ent.touch = GameUtilAdapters.Touch_Item;
 
-			v = Lib.tv(0, 0, -128);
+			float v[] = {0, 0, -128};
 			Math3D.VectorAdd(ent.s.origin, v, dest);
 
 			tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, dest, ent, Defines.MASK_SOLID);
@@ -918,7 +921,7 @@ public class GameAIAdapters
 			if (self.s.frame == 10)
 			{
 				self.think = GameUtilAdapters.G_FreeEdictA;
-				self.nextthink = GameBase.level.time + 8 + Lib.random() * 10;
+				self.nextthink = GameBase.level.time + 8 + Globals.rnd.nextFloat() * 10;
 			}
 			return true;
 		}
