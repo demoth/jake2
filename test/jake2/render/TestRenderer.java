@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.20 2004-01-13 03:37:32 cwei Exp $
+ * $Id: TestRenderer.java,v 1.21 2004-01-13 16:00:40 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -461,6 +461,8 @@ public class TestRenderer {
 		refdef.time = 1.0f * 0.001f;
 		
 		animateParticles();
+		
+		drawString(refdef.x, refdef.y - 20, "active particles: " + particles.size());
 		
 		particle_t[] tmp = new particle_t[particles.size()];
 		
