@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.6 2004-09-22 19:22:11 salomo Exp $
+ * $Id: Mesh.java,v 1.7 2005-01-16 15:24:50 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
 import jake2.render.image_t;
 import jake2.util.Math3D;
+import jake2.util.Vec3Cache;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -137,9 +138,6 @@ public abstract class Mesh extends Light {
         int count;
         float alpha;
 
-        float[] move = { 0, 0, 0 }; // vec3_t
-        float[] frontv = { 0, 0, 0 }; // vec3_t
-        float[] backv = { 0, 0, 0 }; // vec3_t
 
         qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
 
@@ -162,18 +160,21 @@ public abstract class Mesh extends Light {
 
         float frontlerp = 1.0f - backlerp;
 
+        float[] frontv = Vec3Cache.get(); // vec3_t
         // move should be the delta back to the previous frame * backlerp
         Math3D.VectorSubtract(currententity.oldorigin, currententity.origin,
                 frontv);
         Math3D.AngleVectors(currententity.angles, vectors[0], vectors[1],
                 vectors[2]);
 
+        float[] move = Vec3Cache.get(); // vec3_t
         move[0] = Math3D.DotProduct(frontv, vectors[0]); // forward
         move[1] = -Math3D.DotProduct(frontv, vectors[1]); // left
         move[2] = Math3D.DotProduct(frontv, vectors[2]); // up
 
         Math3D.VectorAdd(move, oldframe.translate, move);
 
+        float[] backv = Vec3Cache.get(); // vec3_t
         for (int i = 0; i < 3; i++) {
             move[i] = backlerp * move[i] + frontlerp * frame.translate[i];
             frontv[i] = frontlerp * frame.scale[i];
@@ -183,6 +184,8 @@ public abstract class Mesh extends Light {
         // ab hier wird optimiert
 
         GL_LerpVerts(paliashdr.num_xyz, ov, verts, move, frontv, backv);
+        
+        Vec3Cache.release(3); // frontv, move, backv
 
         //gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
         gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertexArrayBuf);
@@ -272,7 +275,6 @@ public abstract class Mesh extends Light {
     void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum) {
         qfiles.dtrivertx_t[] verts;
         int[] order;
-        float[] point = { 0, 0, 0 };
         float height, lheight;
         int count;
         qfiles.daliasframe_t frame;
@@ -294,6 +296,7 @@ public abstract class Mesh extends Light {
 
         // TODO shadow drawing with vertex arrays
 
+        float[] point = Vec3Cache.get();
         while (true) {
             // get the vertex count and primitive type
             count = order[orderIndex++];
@@ -322,6 +325,7 @@ public abstract class Mesh extends Light {
 
             gl.glEnd();
         }
+        Vec3Cache.release(); // point
     }
 
     /*
@@ -329,9 +333,6 @@ public abstract class Mesh extends Light {
      */
     //	TODO sync with jogl renderer. hoz
     boolean R_CullAliasModel(entity_t e) {
-        float[] mins = { 0, 0, 0 };
-        float[] maxs = { 0, 0, 0 };
-
         qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
 
         if ((e.frame >= paliashdr.num_frames) || (e.frame < 0)) {
@@ -352,6 +353,9 @@ public abstract class Mesh extends Light {
         /*
          * * compute axially aligned mins and maxs
          */
+        float[] mins = Vec3Cache.get();
+        float[] maxs = Vec3Cache.get();
+
         if (pframe == poldframe) {
             for (int i = 0; i < 3; i++) {
                 mins[i] = pframe.translate[i];
@@ -415,6 +419,8 @@ public abstract class Mesh extends Light {
 
             Math3D.VectorAdd(e.origin, bbox[i], bbox[i]);
         }
+        
+        Vec3Cache.release(2); // mins, maxs
 
         int f, mask;
         int aggregatemask = ~0; // 0xFFFFFFFF

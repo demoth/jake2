@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.10 2005-01-12 12:14:27 hzi Exp $
+ * $Id: Light.java,v 1.11 2005-01-16 15:24:50 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,10 +31,9 @@ import jake2.client.dlight_t;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.longjmpException;
-import jake2.render.mnode_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
+import jake2.render.*;
 import jake2.util.Math3D;
+import jake2.util.Vec3Cache;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -63,30 +62,28 @@ public abstract class Light extends Warp {
      */
 
     void R_RenderDlight(dlight_t light) {
-        int i, j;
-        float a;
-        float[] v = { 0, 0, 0 };
-        float rad;
-
-        rad = light.intensity * 0.35f;
-
+        float rad = light.intensity * 0.35f;
+        float[] v = Vec3Cache.get();
         Math3D.VectorSubtract(light.origin, r_origin, v);
 
         gl.glBegin(GL.GL_TRIANGLE_FAN);
         gl.glColor3f(light.color[0] * 0.2f, light.color[1] * 0.2f,
                 light.color[2] * 0.2f);
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             v[i] = light.origin[i] - vpn[i] * rad;
+        
         gl.glVertex3f(v[0], v[1], v[2]);
         gl.glColor3f(0, 0, 0);
-        for (i = 16; i >= 0; i--) {
+        float a;
+        for (int i = 16; i >= 0; i--) {
             a = (float) (i / 16.0f * Math.PI * 2);
-            for (j = 0; j < 3; j++)
+            for (int j = 0; j < 3; j++)
                 v[j] = (float) (light.origin[j] + vright[j] * Math.cos(a) * rad + vup[j]
                         * Math.sin(a) * rad);
             gl.glVertex3f(v[0], v[1], v[2]);
         }
         gl.glEnd();
+        Vec3Cache.release();
     }
 
     /*
@@ -127,17 +124,11 @@ public abstract class Light extends Warp {
      * ============= R_MarkLights =============
      */
     void R_MarkLights(dlight_t light, int bit, mnode_t node) {
-        cplane_t splitplane;
-        float dist;
-        msurface_t surf;
-        int i;
-        int sidebit;
-
         if (node.contents != -1)
             return;
 
-        splitplane = node.plane;
-        dist = Math3D.DotProduct(light.origin, splitplane.normal)
+        cplane_t splitplane = node.plane;
+        float dist = Math3D.DotProduct(light.origin, splitplane.normal)
                 - splitplane.dist;
 
         if (dist > light.intensity - DLIGHT_CUTOFF) {
@@ -149,8 +140,10 @@ public abstract class Light extends Warp {
             return;
         }
 
+        msurface_t surf;
+        int sidebit;
         // mark the polygons
-        for (i = 0; i < node.numsurfaces; i++) {
+        for (int i = 0; i < node.numsurfaces; i++) {
 
             surf = r_worldmodel.surfaces[node.firstsurface + i];
 
@@ -181,15 +174,14 @@ public abstract class Light extends Warp {
      * ============= R_PushDlights =============
      */
     void R_PushDlights() {
-        int i;
-        dlight_t l;
-
         if (gl_flashblend.value != 0)
             return;
 
         r_dlightframecount = r_framecount + 1; // because the count hasn't
+        
         //  advanced yet for this frame
-        for (i = 0; i < r_newrefdef.num_dlights; i++) {
+        dlight_t l;
+        for (int i = 0; i < r_newrefdef.num_dlights; i++) {
             l = r_newrefdef.dlights[i];
             R_MarkLights(l, 1 << i, r_worldmodel.nodes[0]);
         }
@@ -215,12 +207,8 @@ public abstract class Light extends Warp {
         if (node.contents != -1)
             return -1; // didn't hit anything
 
-        msurface_t surf;
-        int s, t, ds, dt;
-        int i;
-        mtexinfo_t tex;
-        ByteBuffer lightmap;
-        int maps;
+//        ByteBuffer lightmap;
+//        int maps;
 
         // calculate mid point
 
@@ -235,28 +223,39 @@ public abstract class Light extends Warp {
             return RecursiveLightPoint(node.children[sideIndex], start, end);
 
         float frac = front / (front - back);
-        float[] mid = { 0, 0, 0 };
+        float[] mid = Vec3Cache.get();
         mid[0] = start[0] + (end[0] - start[0]) * frac;
         mid[1] = start[1] + (end[1] - start[1]) * frac;
         mid[2] = start[2] + (end[2] - start[2]) * frac;
 
         // go down front side
         int r = RecursiveLightPoint(node.children[sideIndex], start, mid);
-        if (r >= 0)
+        if (r >= 0) {
+            Vec3Cache.release();
             return r; // hit something
+        }
 
-        if ((back < 0) == side)
+        if ((back < 0) == side) {
+            Vec3Cache.release();
             return -1; // didn't hit anuthing
+        }
 
         // check for impact on this node
         Math3D.VectorCopy(mid, lightspot);
         lightplane = plane;
 
         int surfIndex = node.firstsurface;
+
+        msurface_t surf;
+        mtexinfo_t tex;
 		float scale0;
 		float scale1;
 		float scale2;
-        for (i = 0; i < node.numsurfaces; i++, surfIndex++) {
+		int s, t, ds, dt;
+		ByteBuffer lightmap;
+		int maps;
+
+		for (int i = 0; i < node.numsurfaces; i++, surfIndex++) {
             surf = r_worldmodel.surfaces[surfIndex];
 
             if ((surf.flags & (Defines.SURF_DRAWTURB | Defines.SURF_DRAWSKY)) != 0)
@@ -307,11 +306,14 @@ public abstract class Light extends Warp {
                             * ((surf.extents[1] >> 4) + 1);
                 }
             }
+            Vec3Cache.release();
             return 1;
         }
 
         // go down back side
-        return RecursiveLightPoint(node.children[1 - sideIndex], mid, end);
+		r = RecursiveLightPoint(node.children[1 - sideIndex], mid, end);
+        Vec3Cache.release();
+        return r;
     }
 
     /*
@@ -326,7 +328,7 @@ public abstract class Light extends Warp {
             return;
         }
         
-        float[] end = { 0, 0, 0 };
+        float[] end = Vec3Cache.get();
         end[0] = p[0];
         end[1] = p[1];
         end[2] = p[2] - 2048;
@@ -356,6 +358,7 @@ public abstract class Light extends Warp {
         }
 
         Math3D.VectorScale(color, gl_modulate.value, color);
+        Vec3Cache.release();
     }
 
     //	  ===================================================================
@@ -369,7 +372,7 @@ public abstract class Light extends Warp {
     void R_AddDynamicLights(msurface_t surf) {
         int sd, td;
         float fdist, frad, fminlight;
-        float[] impact = { 0, 0, 0 };
+        float[] impact = Vec3Cache.get();
         int s, t;
         dlight_t dl;
         float[] pfBL;
@@ -432,6 +435,7 @@ public abstract class Light extends Warp {
                 }
             }
         }
+        Vec3Cache.release();
     }
 
     /*

@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.6 2005-01-10 00:05:23 cawe Exp $
+ * $Id: Warp.java,v 1.7 2005-01-16 15:24:50 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.Globals;
 import jake2.qcommon.Com;
 import jake2.render.*;
 import jake2.util.Math3D;
+import jake2.util.Vec3Cache;
 import net.java.games.jogl.GL;
 
 /**
@@ -347,18 +348,18 @@ public abstract class Warp extends Model {
 
     void DrawSkyPolygon(int nump, float[][] vecs) {
         int i, j;
-        float[] v = { 0, 0, 0 };
-        float[] av = { 0, 0, 0 };
         float s, t, dv;
         int axis;
         float[] vp;
 
         c_sky++;
         // decide which face it maps to
+        float[] v = Vec3Cache.get();
         Math3D.VectorCopy(Globals.vec3_origin, v);
         for (i = 0; i < nump; i++) {
             Math3D.VectorAdd(vecs[i], v, v);
         }
+        float[] av = Vec3Cache.get();
         av[0] = Math.abs(v[0]);
         av[1] = Math.abs(v[1]);
         av[2] = Math.abs(v[2]);
@@ -378,6 +379,8 @@ public abstract class Warp extends Model {
             else
                 axis = 4;
         }
+        
+        Vec3Cache.release(2); // v, av
 
         // project new texture coords
         for (i = 0; i < nump; i++) {
@@ -526,24 +529,22 @@ public abstract class Warp extends Model {
      * ============== R_ClearSkyBox ==============
      */
     void R_ClearSkyBox() {
-        int i;
-
-        for (i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++) {
             skymins[0][i] = skymins[1][i] = 9999;
             skymaxs[0][i] = skymaxs[1][i] = -9999;
         }
     }
 
     void MakeSkyVec(float s, float t, int axis) {
-        float[] v = { 0, 0, 0 };
-        float[] b = { 0, 0, 0 };
-        int j, k;
-
+        float[] b = Vec3Cache.get();
         b[0] = s * 2300;
         b[1] = t * 2300;
         b[2] = 2300;
 
-        for (j = 0; j < 3; j++) {
+        float[] v = Vec3Cache.get();
+        int k;
+
+        for (int j = 0; j < 3; j++) {
             k = st_to_vec[axis][j];
             if (k < 0)
                 v[j] = -b[-k - 1];
@@ -567,6 +568,8 @@ public abstract class Warp extends Model {
         t = 1.0f - t;
         gl.glTexCoord2f(s, t);
         gl.glVertex3f(v[0], v[1], v[2]);
+
+        Vec3Cache.release(2); // b, v
     }
 
     /*
@@ -576,7 +579,7 @@ public abstract class Warp extends Model {
 
     void R_DrawSkyBox() {
         int i;
-
+        
         if (skyrotate != 0) { // check for no sky at all
             for (i = 0; i < 6; i++)
                 if (skymins[0][i] < skymaxs[0][i]

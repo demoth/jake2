@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.7 2005-01-10 00:14:33 cawe Exp $
+ * $Id: Surf.java,v 1.8 2005-01-16 15:24:50 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 import jake2.render.*;
+import jake2.util.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -610,20 +611,18 @@ public abstract class Surf extends Draw {
      * ================= R_DrawBrushModel =================
      */
     void R_DrawBrushModel(entity_t e) {
-        float[] mins = { 0, 0, 0 };
-        float[] maxs = { 0, 0, 0 };
-        int i;
-        boolean rotated;
-
         if (currentmodel.nummodelsurfaces == 0)
             return;
 
         currententity = e;
         gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
 
+        float[] mins = Vec3Cache.get();
+        float[] maxs = Vec3Cache.get();
+        boolean rotated;
         if (e.angles[0] != 0 || e.angles[1] != 0 || e.angles[2] != 0) {
             rotated = true;
-            for (i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
                 mins[i] = e.origin[i] - currentmodel.radius;
                 maxs[i] = e.origin[i] + currentmodel.radius;
             }
@@ -633,8 +632,12 @@ public abstract class Surf extends Draw {
             Math3D.VectorAdd(e.origin, currentmodel.maxs, maxs);
         }
 
-        if (R_CullBox(mins, maxs))
+        if (R_CullBox(mins, maxs)) {
+            Vec3Cache.release(2); // mins, maxs
             return;
+        }
+
+        Vec3Cache.release(2); // mins, maxs
 
         gl.glColor3f(1, 1, 1);
 
@@ -646,16 +649,18 @@ public abstract class Surf extends Draw {
 
         Math3D.VectorSubtract(r_newrefdef.vieworg, e.origin, modelorg);
         if (rotated) {
-            float[] temp = { 0, 0, 0 };
-            float[] forward = { 0, 0, 0 };
-            float[] right = { 0, 0, 0 };
-            float[] up = { 0, 0, 0 };
+            float[] temp = Vec3Cache.get();
+            float[] forward =  Vec3Cache.get();
+            float[] right =  Vec3Cache.get();
+            float[] up =  Vec3Cache.get();
 
             Math3D.VectorCopy(modelorg, temp);
             Math3D.AngleVectors(e.angles, forward, right, up);
             modelorg[0] = Math3D.DotProduct(temp, forward);
             modelorg[1] = -Math3D.DotProduct(temp, right);
             modelorg[2] = Math3D.DotProduct(temp, up);
+            
+            Vec3Cache.release(4); // temp, forward, right, up
         }
 
         gl.glPushMatrix();
@@ -812,11 +817,9 @@ public abstract class Surf extends Draw {
     /*
      * ============= R_DrawWorld =============
      */
+    entity_t worldEnt = new entity_t();
+    
     void R_DrawWorld() {
-        entity_t ent = new entity_t();
-        // auto cycle the world frame for texture animation
-        ent.frame = (int) (r_newrefdef.time * 2);
-        currententity = ent;
 
         if (r_drawworld.value == 0)
             return;
@@ -827,6 +830,12 @@ public abstract class Surf extends Draw {
         currentmodel = r_worldmodel;
 
         Math3D.VectorCopy(r_newrefdef.vieworg, modelorg);
+        
+        entity_t ent = worldEnt;
+        // auto cycle the world frame for texture animation
+        ent.clear();
+        ent.frame = (int) (r_newrefdef.time * 2);
+        currententity = ent;
 
         gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
 
@@ -1041,14 +1050,11 @@ public abstract class Surf extends Draw {
         int vertpage;
         float[] vec;
         float s, t;
-        float[] total = { 0, 0, 0 };
-
-        // reconstruct the polygon
+         // reconstruct the polygon
         pedges = currentmodel.edges;
         lnumverts = fa.numedges;
         vertpage = 0;
 
-        Math3D.VectorClear(total);
         //
         // draw texture
         //
@@ -1076,8 +1082,7 @@ public abstract class Surf extends Draw {
                     + fa.texinfo.vecs[1][3];
             t /= fa.texinfo.image.height;
 
-            Math3D.VectorAdd(total, vec, total);
-			poly.x(i, vec[0]);
+ 			poly.x(i, vec[0]);
 			poly.y(i, vec[1]);
 			poly.z(i, vec[2]);
 			poly.s1(i, s);
@@ -1156,12 +1161,10 @@ public abstract class Surf extends Draw {
      */
     void GL_BeginBuildingLightmaps(model_t m) {
         // static lightstyle_t lightstyles[MAX_LIGHTSTYLES];
-        int i;
-
-        // init lightstyles
+         // init lightstyles
         if (lightstyles == null) {
             lightstyles = new lightstyle_t[Defines.MAX_LIGHTSTYLES];
-            for (i = 0; i < lightstyles.length; i++) {
+            for (int i = 0; i < lightstyles.length; i++) {
                 lightstyles[i] = new lightstyle_t();
             }
         }
@@ -1178,7 +1181,7 @@ public abstract class Surf extends Draw {
          * * setup the base lightstyles so the lightmaps won't have to be
          * regenerated * the first time they're seen
          */
-        for (i = 0; i < Defines.MAX_LIGHTSTYLES; i++) {
+        for (int i = 0; i < Defines.MAX_LIGHTSTYLES; i++) {
             lightstyles[i].rgb[0] = 1;
             lightstyles[i].rgb[1] = 1;
             lightstyles[i].rgb[2] = 1;
