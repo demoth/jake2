@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.2 2004-07-20 11:02:24 hzi Exp $
+ * $Id: Cvar.java,v 1.3 2004-07-30 06:08:41 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -189,7 +189,7 @@ public class Cvar extends Globals {
 						return var;
 				}
 
-				if (Com.ServerState() != 0) {
+				if (Globals.server_state != 0) {
 					Com.Printf(var_name + " will be changed for next game.\n");
 					var.latched_string = value;
 				}
