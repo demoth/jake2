@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.6 2004-02-08 13:26:13 hoz Exp $
+ * $Id: SND_DMA.java,v 1.7 2004-02-09 23:16:50 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ package jake2.client;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.util.Vargs;
 
 
 
@@ -59,32 +60,22 @@ public class SND_DMA extends SND_MIX {
 //
 //	#define		SOUND_LOOPATTENUATE	0.003
 //
-//	int			s_registration_sequence;
+	static int s_registration_sequence;
 //
 //	channel_t   channels[MAX_CHANNELS];
 //
 //	qboolean	snd_initialized = false;
 	static boolean sound_started = false;
 //
-	static class dma_t {
-		int channels;
-		int samples; // mono samples in buffer
-		int submission_chunk; // don't mix less than this #
-		int samplepos; // in mono samples
-		int samplebits;
-		int speed;
-		byte[] buffer;
-	}
 
 
-	static dma_t dma;
 //
 //	vec3_t		listener_origin;
 //	vec3_t		listener_forward;
 //	vec3_t		listener_right;
 //	vec3_t		listener_up;
 //
-//	qboolean	s_registering;
+	static boolean s_registering;
 //
 	static int soundtime;		// sample PAIRS
 	static int paintedtime; 	// sample PAIRS
@@ -93,8 +84,12 @@ public class SND_DMA extends SND_MIX {
 ////	   than could actually be referenced during gameplay,
 ////	   because we don't want to free anything until we are
 ////	   sure we won't need it.
-//	#define		MAX_SFX		(MAX_SOUNDS*2)
-//	sfx_t		known_sfx[MAX_SFX];
+	static final int MAX_SFX = (MAX_SOUNDS*2);
+	static sfx_t[] known_sfx = new sfx_t[MAX_SFX];
+	static {
+		for (int i = 0; i< known_sfx.length; i++)
+			known_sfx[i] = new sfx_t();
+	}
 	static int num_sfx;
 //
 //	#define		MAX_PLAYSOUNDS	128
@@ -117,53 +112,48 @@ public class SND_DMA extends SND_MIX {
 //	portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
 //
 //
-////	   ====================================================================
-////	   User-setable variables
-////	   ====================================================================
-//
-//
+//	   ====================================================================
+//	   User-setable variables
+//	   ====================================================================
+
+
 	static void SoundInfo_f()
 	{
-//		if (!sound_started)
-//		{
-//			Com_Printf ("sound system not started\n");
-//			return;
-//		}
-//	
-//		Com_Printf("%5d stereo\n", dma.channels - 1);
-//		Com_Printf("%5d samples\n", dma.samples);
-//		Com_Printf("%5d samplepos\n", dma.samplepos);
-//		Com_Printf("%5d samplebits\n", dma.samplebits);
-//		Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
-//		Com_Printf("%5d speed\n", dma.speed);
-//		Com_Printf("0x%x dma buffer\n", dma.buffer);
+		if (!sound_started)
+		{
+			Com.Printf ("sound system not started\n");
+			return;
+		}
+	
+		Com.Printf("%5d stereo\n", new Vargs(1).add(dma.channels - 1));
+		Com.Printf("%5d samples\n", new Vargs(1).add(dma.samples));
+		Com.Printf("%5d samplepos\n", new Vargs(1).add(dma.samplepos));
+		Com.Printf("%5d samplebits\n", new Vargs(1).add(dma.samplebits));
+		Com.Printf("%5d submission_chunk\n", new Vargs(1).add(dma.submission_chunk));
+		Com.Printf("%5d speed\n", new Vargs(1).add(dma.speed));
 	}
-//
-//
-//
+
 	/*
 	================
 	S_Init
 	================
 	*/
-	static void Init()
-	{
-		cvar_t	cv;
+	public static void Init() {
+		cvar_t cv;
 
 		Com.Printf("\n------- sound initialization -------\n");
 
-		cv = Cvar.Get ("s_initsound", "1", 0);
+		cv = Cvar.Get("s_initsound", "1", 0);
 		if (cv.value == 0.0f)
-			Com.Printf ("not initializing.\n");
-		else
-		{
-			s_volume = Cvar.Get ("s_volume", "0.7", CVAR_ARCHIVE);
-			s_khz = Cvar.Get ("s_khz", "11", CVAR_ARCHIVE);
-			s_loadas8bit = Cvar.Get ("s_loadas8bit", "1", CVAR_ARCHIVE);
-			s_mixahead = Cvar.Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
-			s_show = Cvar.Get ("s_show", "0", 0);
-			s_testsound = Cvar.Get ("s_testsound", "0", 0);
-			s_primary = Cvar.Get ("s_primary", "0", CVAR_ARCHIVE);	// win32 specific
+			Com.Printf("not initializing.\n");
+		else {
+			s_volume = Cvar.Get("s_volume", "0.7", CVAR_ARCHIVE);
+			s_khz = Cvar.Get("s_khz", "11", CVAR_ARCHIVE);
+			s_loadas8bit = Cvar.Get("s_loadas8bit", "1", CVAR_ARCHIVE);
+			s_mixahead = Cvar.Get("s_mixahead", "0.2", CVAR_ARCHIVE);
+			s_show = Cvar.Get("s_show", "0", 0);
+			s_testsound = Cvar.Get("s_testsound", "0", 0);
+			s_primary = Cvar.Get("s_primary", "0", CVAR_ARCHIVE); // win32 specific
 
 			Cmd.AddCommand("play", new xcommand_t() {
 				public void execute() {
@@ -174,22 +164,22 @@ public class SND_DMA extends SND_MIX {
 				public void execute() {
 					S.StopAllSounds();
 				}
-			});					
+			});
 			Cmd.AddCommand("soundlist", new xcommand_t() {
 				public void execute() {
 					S.SoundList();
 				}
-			});	
-			Cmd.AddCommand("soundinfo",  new xcommand_t() {
+			});
+			Cmd.AddCommand("soundinfo", new xcommand_t() {
 				public void execute() {
 					S.SoundInfo_f();
 				}
-			});						
+			});
 
 			if (!SNDDMA_Init())
 				return;
 
-			S.InitScaletable ();
+			S.InitScaletable();
 
 			sound_started = true;
 			num_sfx = 0;
@@ -197,11 +187,11 @@ public class SND_DMA extends SND_MIX {
 			soundtime = 0;
 			paintedtime = 0;
 
-			//Com.Printf ("sound sampling rate: " + dma.speed + "\n");
+			Com.Printf("sound sampling rate: " + dma.speed + "\n");
 
-			S.StopAllSounds ();
+			S.StopAllSounds();
 		}
-
+S.SoundInfo_f();
 		Com.Printf("------------------------------------\n");
 	}
 
@@ -212,88 +202,85 @@ public class SND_DMA extends SND_MIX {
 
 	static void Shutdown()
 	{
-//		int		i;
-//		sfx_t	*sfx;
-//
-//		if (!sound_started)
-//			return;
-//
-//		SNDDMA_Shutdown();
-//
-//		sound_started = 0;
-//
-//		Cmd_RemoveCommand("play");
-//		Cmd_RemoveCommand("stopsound");
-//		Cmd_RemoveCommand("soundlist");
-//		Cmd_RemoveCommand("soundinfo");
-//
-//		// free all sounds
-//		for (i=0, sfx=known_sfx ; i < num_sfx ; i++,sfx++)
-//		{
-//			if (!sfx->name[0])
-//				continue;
-//			if (sfx->cache)
-//				Z_Free (sfx->cache);
-//			memset (sfx, 0, sizeof(*sfx));
-//		}
-//
-//		num_sfx = 0;
+		int		i;
+		sfx_t[]	sfx;
+
+		if (!sound_started)
+			return;
+
+		SNDDMA_Shutdown();
+
+		sound_started = false;
+
+		Cmd.RemoveCommand("play");
+		Cmd.RemoveCommand("stopsound");
+		Cmd.RemoveCommand("soundlist");
+		Cmd.RemoveCommand("soundinfo");
+
+		// free all sounds
+		for (i=0, sfx=known_sfx ; i < num_sfx ; i++)
+		{
+			if (sfx[i].name == null)
+				continue;
+
+			//memset (sfx, 0, sizeof(*sfx));
+			sfx[i].clear();
+		}
+
+		num_sfx = 0;
 	}
-//
-//
-////	   =======================================================================
-////	   Load a sound
-////	   =======================================================================
-//
-//	/*
-//	==================
-//	S_FindName
-//
-//	==================
-//	*/
-//	sfx_t *S_FindName (char *name, qboolean create)
-//	{
-//		int		i;
-//		sfx_t	*sfx;
-//
-//		if (!name)
-//			Com_Error (ERR_FATAL, "S_FindName: NULL\n");
-//		if (!name[0])
-//			Com_Error (ERR_FATAL, "S_FindName: empty name\n");
-//
-//		if (strlen(name) >= MAX_QPATH)
-//			Com_Error (ERR_FATAL, "Sound name too long: %s", name);
-//
-//		// see if already loaded
-//		for (i=0 ; i < num_sfx ; i++)
-//			if (!strcmp(known_sfx[i].name, name))
-//			{
-//				return &known_sfx[i];
-//			}
-//
-//		if (!create)
-//			return NULL;
-//
-//		// find a free sfx
-//		for (i=0 ; i < num_sfx ; i++)
-//			if (!known_sfx[i].name[0])
-////				registration_sequence < s_registration_sequence)
-//				break;
-//
-//		if (i == num_sfx)
-//		{
-//			if (num_sfx == MAX_SFX)
-//				Com_Error (ERR_FATAL, "S_FindName: out of sfx_t");
-//			num_sfx++;
-//		}
-//	
-//		sfx = &known_sfx[i];
-//		memset (sfx, 0, sizeof(*sfx));
-//		strcpy (sfx->name, name);
-//		sfx->registration_sequence = s_registration_sequence;
-//	
-//		return sfx;
-//	}
+
+//	   =======================================================================
+//	   Load a sound
+//	   =======================================================================
+
+	/*
+	==================
+	S_FindName
+
+	==================
+	*/
+	static sfx_t FindName(String name, boolean create) {
+		int i;
+		sfx_t sfx = null;
+
+		if (name == null)
+			Com.Error(ERR_FATAL, "S_FindName: NULL\n");
+		if (name.length() == 0)
+			Com.Error(ERR_FATAL, "S_FindName: empty name\n");
+
+		if (strlen(name) >= MAX_QPATH)
+			Com.Error(ERR_FATAL, "Sound name too long: " + name);
+
+		// see if already loaded
+		for (i = 0; i < num_sfx; i++)
+			if (name.equals(known_sfx[i].name)) {
+				return known_sfx[i];
+			}
+
+		if (!create)
+			return null;
+
+		// find a free sfx
+		for (i = 0; i < num_sfx; i++)
+			if (known_sfx[i].name == null)
+				// registration_sequence < s_registration_sequence)
+				break;
+
+		if (i == num_sfx) {
+			if (num_sfx == MAX_SFX)
+				Com.Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			num_sfx++;
+		}
+
+		sfx = known_sfx[i];
+		//memset (sfx, 0, sizeof(*sfx));
+		sfx.clear();
+		sfx.name = name;
+		sfx.registration_sequence = s_registration_sequence;
+
+		return sfx;
+	}
 //
 //
 //	/*
@@ -339,10 +326,9 @@ public class SND_DMA extends SND_MIX {
 
 	=====================
 	*/
-	static void BeginRegistration ()
-	{
-//		s_registration_sequence++;
-//		s_registering = true;
+	static void BeginRegistration() {
+		s_registration_sequence++;
+		s_registering = true;
 	}
 
 	/*
@@ -351,29 +337,28 @@ public class SND_DMA extends SND_MIX {
 
 	==================
 	*/
-	static sfx_t RegisterSound (String name)
-	{
-		sfx_t	sfx = null;
-//
-//		if (!sound_started)
-//			return NULL;
-//
-//		sfx = S_FindName (name, true);
-//		sfx->registration_sequence = s_registration_sequence;
-//
-//		if (!s_registering)
-//			S_LoadSound (sfx);
-//
+	static sfx_t RegisterSound(String name) {
+		sfx_t sfx = null;
+
+		if (!sound_started)
+			return null;
+
+		sfx = S.FindName(name, true);
+		sfx.registration_sequence = s_registration_sequence;
+
+		if (!s_registering)
+			S.LoadSound(sfx);
+
 		return sfx;
 	}
-//
-//
-//	/*
-//	=====================
-//	S_EndRegistration
-//
-//	=====================
-//	*/
+
+
+	/*
+	=====================
+	S_EndRegistration
+
+	=====================
+	*/
 	static void EndRegistration ()
 	{
 //		int		i;
