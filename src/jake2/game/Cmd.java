@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.29 2004-06-03 21:32:51 rst Exp $
+ * $Id: Cmd.java,v 1.30 2004-06-22 14:52:12 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -72,7 +72,7 @@ public final class Cmd extends PlayerView
 				Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
 				return;
 			}
-			//Com.Printf("execing " + Cmd.Argv(1) + "\n");
+			Com.Printf("execing " + Cmd.Argv(1) + "\n");
 
 			Cbuf.InsertText(new String(f));
 
@@ -86,9 +86,9 @@ public final class Cmd extends PlayerView
 		{
 			for (int i= 1; i < Cmd.Argc(); i++)
 			{
-				//Com.Printf(Cmd.Argv(i) + " ");
+				Com.Printf(Cmd.Argv(i) + " ");
 			}
-			//Com.Printf("'\n");
+			Com.Printf("'\n");
 		}
 	};
 
@@ -454,17 +454,9 @@ public final class Cmd extends PlayerView
 				if (null == cmd.function)
 				{ // forward to server command
 					Cmd.ExecuteString("cmd " + text);
+				} else  {
+					cmd.function.execute();
 				}
-				else
-					try
-					{
-						cmd.function.execute();
-					}
-					catch (Exception e)
-					{
-						System.err.println("Exception in executing a command " + cmd.name + ":");
-						e.printStackTrace();
-					}
 				return;
 			}
 		}
