@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.3 2004-11-03 14:33:06 hzi Exp $
+ * $Id: S.java,v 1.4 2004-12-16 20:17:55 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,7 +46,7 @@ public class S {
 		try {
 			Class.forName("jake2.sound.DummyDriver");
 			Class.forName("jake2.sound.joal.JOALSoundImpl");
-			Class.forName("jake2.sound.jsound.JSoundImpl");
+			Class.forName("jake2.sound.lwjgl.LWJGLSoundImpl");
 		}
 		catch (Throwable e) {
 		}
