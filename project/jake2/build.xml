@@ -16,7 +16,7 @@
 
 	<!-- different classpaths -->
 	<path id="build.class.path">
-		<pathelement location="lib/jogl/linux/jogl.jar"/>
+		<pathelement location="lib/jogl/jogl.jar"/>
 		<pathelement location="lib/joal/linux/joal.jar"/>
 	</path>
 	
@@ -35,8 +35,13 @@
 		</javac>
 	</target>
 		
-	<!-- copy libs -->
-	<target name="copylibs">
+	<!-- copy files -->
+	<target name="copy">
+		<copy todir="${dist}/lib">
+			<fileset dir="lib/jogl">
+				<include name="*.jar"/>
+			</fileset>	
+		</copy>
 		<copy todir="${dist}/lib/linux">
 			<fileset dir="lib/jogl/linux">
 				<include name="*"/>
@@ -69,6 +74,14 @@
 				<include name="*.sh"/>
 			</fileset>
 		</chmod>
+		<fixcrlf srcdir="${dist}"
+			eol="crlf"
+			includes="*.bat"
+		/>
+		<fixcrlf srcdir="${dist}"
+			eol="lf"
+			includes="*.sh"
+		/> 		
 	</target>
 		
 	<!-- jar -->
@@ -79,7 +92,7 @@
 		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off">
 			<injar name="${dist}/lib/jake.jar"/>
-			<libraryjar name="lib/jogl/linux/jogl.jar"/>
+			<libraryjar name="lib/jogl/jogl.jar"/>
 			<libraryjar name="lib/joal/linux/joal.jar"/>
 			<libraryjar name="${java.home}/lib/rt.jar"/>
 			<keep access="public" name="jake2.Jake2">
@@ -94,7 +107,7 @@
 	</target>
 
 	<!-- dist -->
-	<target name="dist" depends="jar,copylibs">
+	<target name="dist" depends="jar,copy">
 	</target>
 		
 	<!-- binary distribution -->
@@ -116,7 +129,7 @@
 	</target>
 	
 	<!-- source distribution -->
-	<target name="srcdist" >
+	<target name="srcdist">
 		<tar destfile="jake2src-${version}.tar.gz" compression="gzip">
 			<tarfileset dir="." prefix="Jake2" mode="755">
 				<include name="scripts/*.*"/>

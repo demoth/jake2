@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.19 2004-05-04 09:12:43 hoz Exp $
+ * $Id: Jake2.java,v 1.20 2004-05-26 07:15:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -65,13 +65,6 @@ public final class Jake2 {
 			if (time > 0)
 				Qcommon.Frame(time);
 			oldtime = newtime;
-
-			// save cpu resources
-//			try {
-//				Thread.sleep(1);
-//			}
-//			catch (InterruptedException e) {
-//			}
 		}
 	}
 }
