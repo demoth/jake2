@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.3 2004-02-06 21:03:30 rst Exp $
+// $Id: GameTarget.java,v 1.4 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.game;
 
@@ -726,7 +726,7 @@ public class GameTarget extends GameTurret {
 
 	public static void SP_target_lightramp(edict_t self) {
 		if (self.message == null
-			|| strlen(self.message) != 2
+			|| self.message.length() != 2
 			|| self.message.charAt(0) < 'a'
 			|| self.message.charAt(0) > 'z'
 			|| self.message.charAt(1) < 'a'

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.19 2004-02-21 12:07:01 hoz Exp $
+ * $Id: CL_parse.java,v 1.20 2004-02-22 21:45:47 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -135,8 +135,7 @@ public class CL_parse extends CL_view {
 			MSG.WriteString(cls.netchan.message, "download " + cls.downloadname + " " + len);
 		}
 		else {
-			// TODO bugfix cwei
-			cls.downloadname = cls.downloadname.toLowerCase();
+			cls.downloadname = cls.downloadname;
 
 			Com.Printf("Downloading " + cls.downloadname + "\n");
 			MSG.WriteByte(cls.netchan.message, clc_stringcmd);
@@ -546,13 +545,8 @@ public class CL_parse extends CL_view {
 
 		// do something apropriate 
 
-		if (i >= CS_LIGHTS && i < CS_LIGHTS + MAX_LIGHTSTYLES)
-		{
+		if (i >= CS_LIGHTS && i < CS_LIGHTS + MAX_LIGHTSTYLES) {
 			SetLightstyle(i - CS_LIGHTS);
-		}
-		else if (i == CS_CDTRACK) {
-			if (cl.refresh_prepped)
-				CDAudio.CDAudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true);
 		}
 		else if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 			if (cl.refresh_prepped) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.11.2003 by RST.
-// $Id: GameAI.java,v 1.17 2004-02-16 21:41:10 rst Exp $
+// $Id: GameAI.java,v 1.18 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.game;
 
@@ -2163,7 +2163,7 @@ public class GameAI extends M_Flash {
 		// print level name and exit rules
 		string = "";
 
-		stringlength = Lib.strlen(string);
+		stringlength = string.length();
 
 		// add the clients in sorted order
 		if (total > 12)
@@ -2186,7 +2186,7 @@ public class GameAI extends M_Flash {
 				tag = null;
 			if (tag != null) {
 				entry = "xv " + (x + 32) + " yv " + y + " picn " + tag + " ";
-				j = Lib.strlen(entry);
+				j = entry.length();
 				if (stringlength + j > 1024)
 					break;
 
@@ -2212,7 +2212,7 @@ public class GameAI extends M_Flash {
 					+ (level.framenum - cl.resp.enterframe) / 600f
 					+ " ";
 
-			j = Lib.strlen(entry);
+			j = entry.length();
 
 			if (stringlength + j > 1024)
 				break;

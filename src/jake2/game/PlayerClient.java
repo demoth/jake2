@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.16 2004-02-17 18:24:15 cwei Exp $
+// $Id: PlayerClient.java,v 1.17 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.game;
 
@@ -1178,7 +1178,7 @@ public class PlayerClient extends PlayerHud {
 
 		// handedness
 		s = Info.Info_ValueForKey(userinfo, "hand");
-		if (strlen(s) > 0) {
+		if (s.length() > 0) {
 			ent.client.pers.hand = atoi(s);
 		}
 

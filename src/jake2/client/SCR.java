@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.37 2004-02-22 15:02:46 cwei Exp $
+ * $Id: SCR.java,v 1.38 2004-02-22 21:45:47 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -87,6 +87,7 @@ public final class SCR extends Globals {
 	static cvar_t scr_graphshift;
 	static cvar_t scr_drawall;
 	static cvar_t fps;
+	static cvar_t fps_updates;
 
 	static dirty_t scr_dirty = new dirty_t();
 	static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t() };
@@ -430,6 +431,7 @@ public final class SCR extends Globals {
 		scr_graphshift = Cvar.Get ("graphshift", "0", 0);
 		scr_drawall = Cvar.Get ("scr_drawall", "1", 0);
 		fps = Cvar.Get("fps", "0", 0);
+		fps_updates = Cvar.Get("fps_updates", "1", 0);
 
 		//
 		// register our commands
@@ -588,7 +590,7 @@ public final class SCR extends Globals {
 	public static void BeginLoadingPlaque() {
 		S.StopAllSounds ();
 		cl.sound_prepped = false; // don't play ambients
-		CDAudio.Stop();
+
 		if (cls.disable_screen != 0)
 			return;
 		if (developer.value != 0)
@@ -601,6 +603,7 @@ public final class SCR extends Globals {
 			scr_draw_loading = 2;	// clear to balack first
 		else
 			scr_draw_loading = 1;
+			
 		UpdateScreen();
 		cls.disable_screen = Sys.Milliseconds();
 		cls.disable_servercount = cl.servercount;
@@ -1427,9 +1430,9 @@ public final class SCR extends Globals {
 	private static int lasttime = 0;
 	private static String fpsvalue = "";
 	static void DrawFPS() {
-		if (fps.value != 0.0f) {
+		if (fps.value > 0.0f) {
 			int diff = cls.realtime - lasttime;
-			if (diff > 500) {
+			if (diff > (int)(fps.value * 1000)) {
 				fpsvalue = (cls.framecount-lastframes)*100000/diff/100.0f + " fps";
 				lastframes = cls.framecount;
 				lasttime = cls.realtime;

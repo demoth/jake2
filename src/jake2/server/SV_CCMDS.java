@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.15 2004-02-17 13:09:23 cwei Exp $
+// $Id: SV_CCMDS.java,v 1.16 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.server;
 
@@ -297,7 +297,7 @@ public class SV_CCMDS extends SV_ENTS {
 		CopyFile(name, name2);
 
 		String name1 = FS.Gamedir() + "/save/" + src + "/";
-		len = strlen(name1);
+		len = name1.length();
 		name = FS.Gamedir() + "/save/" + src + "/*.sav";
 
 		found = Sys.FindFirst(name, 0, 0);
@@ -458,7 +458,7 @@ public class SV_CCMDS extends SV_ENTS {
 		for (var = Globals.cvar_vars; var != null; var = var.next) {
 			if (0 == (var.flags & CVAR_LATCH))
 				continue;
-			if (strlen(var.name) >= MAX_OSPATH - 1 || strlen(var.string) >= 128 - 1) {
+			if (var.name.length() >= MAX_OSPATH - 1 || var.string.length() >= 128 - 1) {
 				Com.Printf("Cvar too long: " + var.name + " = " + var.string + "\n");
 				continue;
 			}
@@ -851,7 +851,7 @@ public class SV_CCMDS extends SV_ENTS {
 			}
 
 			Com.Printf("%s", new Vargs().add(cl.name));
-			l = 16 - strlen(cl.name);
+			l = 16 - cl.name.length();
 			for (j = 0; j < l; j++)
 				Com.Printf(" ");
 
@@ -859,7 +859,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 			s = NET.AdrToString(cl.netchan.remote_address);
 			Com.Printf(s);
-			l = 22 - strlen(s);
+			l = 22 - s.length();
 			for (j = 0; j < l; j++)
 				Com.Printf(" ");
 

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.22 2004-02-07 13:02:43 rst Exp $
+ * $Id: Cmd.java,v 1.23 2004-02-22 21:45:47 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,7 +194,7 @@ public final class Cmd extends PlayerView {
 
 			token = Cvar.VariableString(token);
 
-			j = strlen(token);
+			j = token.length();
 
 			len += j;
 
@@ -1001,7 +1001,7 @@ public final class Cmd extends PlayerView {
 					+ GameBase.game.clients[index[i].intValue()].pers.netname
 					+ "\n";
 
-			if (Lib.strlen(small) + Lib.strlen(large) > 1024 - 100) {
+			if (small.length() + large.length() > 1024 - 100) {
 				// can't print all of them in one packet
 				large += "...\n";
 				break;
@@ -1108,7 +1108,7 @@ public final class Cmd extends PlayerView {
 		}
 
 		// don't let text be too long for malicious reasons
-		if (strlen(text) > 150)
+		if (text.length() > 150)
 			//text[150] = 0;
 			text = text.substring(0, 150);
 
@@ -1186,7 +1186,7 @@ public final class Cmd extends PlayerView {
 					+ (e2.client.resp.spectator ? " (spectator)" : "")
 					+ "\n";
 
-			if (Lib.strlen(text) + Lib.strlen(st) > 1024 - 50) {
+			if (text.length() + st.length() > 1024 - 50) {
 				text += "And more...\n";
 				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
 				return;

@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.12 2004-01-20 16:15:41 cwei Exp $
+ * $Id: Draw.java,v 1.13 2004-02-22 21:45:47 hoz Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,7 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.Defines;
-import jake2.Enum;
 import jake2.Globals;
 import jake2.render.image_t;
 

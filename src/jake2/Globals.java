@@ -2,76 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.47 2004-02-21 12:07:01 hoz Exp $
- * $Log: Globals.java,v $
- * Revision 1.47  2004-02-21 12:07:01  hoz
- * - fps display
- * - replaced Lib functions
- * - minor Math3D improvements
- *
- * Revision 1.46  2004/02/11 19:56:28  cwei
- * monster debug.
- *
- * Revision 1.45  2004/02/11 05:12:47  cwei
- * scr_rect wird gesetzt
- *
- * Revision 1.44  2004/02/08 13:26:13  hoz
- * - aufr?umen
- *
- * Revision 1.43  2004/02/04 11:24:15  hoz
- * - some fx functions
- * - long -> int for time variables
- *
- * Revision 1.42  2004/02/02 22:06:54  hoz
- * - some client effects
- *
- * Revision 1.41  2004/02/02 21:15:40  hoz
- * input kram
- *
- * Revision 1.40  2004/02/02 19:25:23  hoz
- * *** empty log message ***
- *
- * Revision 1.39  2004/02/02 19:13:26  rst
- * cosmetic
- *
- * Revision 1.38  2004/01/30 18:44:32  cwei
- * logfile
- *
- * Revision 1.37  2004/01/30 13:34:31  hoz
- * - client code
- *
- * Revision 1.36  2004/01/30 09:24:20  hoz
- * - client code
- *
- * Revision 1.35  2004/01/28 21:04:10  hoz
- * - client code
- *
- * Revision 1.34  2004/01/28 14:42:58  hoz
- * - client code
- *
- * Revision 1.33  2004/01/28 10:03:06  hoz
- * - client code
- *
- * Revision 1.32  2004/01/27 20:10:29  rst
- * now has a quake menu
- *
- * Revision 1.31  2004/01/18 12:36:02  hoz
- * Key.*
- *
- * Revision 1.30  2004/01/18 10:39:34  rst
- * M O N S T E R - C O M M I T
- * (network and server code)
- *
- * Revision 1.29  2004/01/18 09:41:57  hoz
- * Key.Message()
- *
- * Revision 1.28  2004/01/11 14:38:47  cwei
- * Aenderungen fuer VID impl
- *
- * Revision 1.27  2004/01/09 22:25:09  rst
- * cosmetic
- *
- * 
+ * $Id: Globals.java,v 1.48 2004-02-22 21:45:46 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -96,15 +27,12 @@ package jake2;
 
 import jake2.client.*;
 import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.qcommon.*;
 import jake2.qcommon.netadr_t;
 import jake2.qcommon.sizebuf_t;
 import jake2.render.model_t;
 
 import java.io.FileWriter;
 import java.io.RandomAccessFile;
-
 import java.util.Random;
 
 /**

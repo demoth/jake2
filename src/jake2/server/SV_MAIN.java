@@ -19,21 +19,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.22 2004-02-16 20:26:38 rst Exp $
+// $Id: SV_MAIN.java,v 1.23 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.server;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import jake2.*;
-import jake2.client.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;
+
+import java.io.IOException;
 
 public class SV_MAIN extends SV_GAME {
 
@@ -401,7 +399,7 @@ public class SV_MAIN extends SV_GAME {
 	}
 
 	public static int Rcon_Validate() {
-		if (0 == strlen(rcon_password.string))
+		if (0 == rcon_password.string.length())
 			return 0;
 
 		if (0 != strcmp(Cmd.Argv(1), rcon_password.string))
@@ -889,7 +887,7 @@ public class SV_MAIN extends SV_GAME {
 
 		// msg command
 		val = Info.Info_ValueForKey(cl.userinfo, "msg");
-		if (strlen(val) > 0) {
+		if (val.length() > 0) {
 			cl.messagelevel = atoi(val);
 		}
 

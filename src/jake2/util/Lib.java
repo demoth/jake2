@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.27 2004-02-21 12:07:01 hoz Exp $
+// $Id: Lib.java,v 1.28 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.util;
 
@@ -167,9 +167,9 @@ public class Lib {
 		return res;
 	}
 
-	public static int strlen(String in) {
-		return in.length();
-	}
+//	public static int strlen(String in) {
+//		return in.length();
+//	}
 
 	public static int strlen(char in[]) {
 		for (int i = 0; i < in.length; i++)

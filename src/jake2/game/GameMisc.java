@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameMisc.java,v 1.1 2003-12-27 23:13:31 rst Exp $
+// $Id: GameMisc.java,v 1.2 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.game;
 
@@ -1269,7 +1269,7 @@ public class GameMisc extends GameTrigger {
 			int n, l;
 			char c;
 
-			l = strlen(self.message);
+			l = self.message.length();
 			for (e = self.teammaster; e != null; e = e.teamchain) {
 				if (e.count == 0)
 					continue;

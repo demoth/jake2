@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.6 2004-02-06 18:38:20 rst Exp $
+// $Id: Info.java,v 1.7 2004-02-22 21:45:47 hoz Exp $
 
 package jake2.game;
 
@@ -75,7 +75,7 @@ public class Info extends PlayerView {
 			return s;
 		}
 
-		if (strlen(key) > MAX_INFO_KEY - 1 || strlen(value) > MAX_INFO_KEY - 1) {
+		if (key.length() > MAX_INFO_KEY - 1 || value.length() > MAX_INFO_KEY - 1) {
 			Com.Printf("Keys and values must be < 64 characters.\n");
 			return s;
 		}
