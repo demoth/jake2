@@ -52,13 +52,13 @@ public class PCXImageReader extends ImageReader {
 	public int getHeight(int imageIndex) throws IOException {
 		checkIndex(imageIndex);
 		readHeader();
-		return header.height;
+		return header.getHeight();
 	}
 
 	public int getWidth(int imageIndex) throws IOException {
 		checkIndex(imageIndex);
 		readHeader();
-		return header.width;
+		return header.getWidth();
 	}
 
 	public int getNumImages(boolean allowSearch) throws IOException {
@@ -102,7 +102,7 @@ public class PCXImageReader extends ImageReader {
 
 		//		Compute initial source region, clip against destination later
 		Rectangle sourceRegion =
-			getSourceRegion(param, header.width, header.height);
+			getSourceRegion(param, header.getWidth(), header.getHeight());
 
 		// Set everything to default values
 		int sourceXSubsampling = 1;
@@ -125,8 +125,8 @@ public class PCXImageReader extends ImageReader {
 			getDestination(
 				param,
 				getImageTypes(0),
-				header.width,
-				header.height);
+				header.getWidth(),
+				header.getHeight()); // TODO noch testen
 
 		// Enure band settings from param are compatible with images
 		int inputBands = 1;
@@ -139,12 +139,12 @@ public class PCXImageReader extends ImageReader {
 		for (int i = 0; i < inputBands; i++) {
 			bandOffsets[i] = i;
 		}
-		int bytesPerRow = header.width * inputBands;
+		int bytesPerRow = header.getWidth() * inputBands;
 		DataBufferByte rowDB = new DataBufferByte(bytesPerRow);
 		WritableRaster rowRas =
 			Raster.createInterleavedRaster(
 				rowDB,
-				header.width,
+				header.getWidth(),
 				1,
 				bytesPerRow,
 				inputBands,
@@ -167,7 +167,7 @@ public class PCXImageReader extends ImageReader {
 				rowRas.createWritableChild(
 					0,
 					0,
-					header.width,
+					header.getWidth(),
 					1,
 					0,
 					0,
@@ -188,7 +188,7 @@ public class PCXImageReader extends ImageReader {
 
 		}
 
-		for (int srcY = 0; srcY < header.height; srcY++) {
+		for (int srcY = 0; srcY < header.getHeight(); srcY++) {
 			// Read the row
 			try {
 				decodeRow(rowBuf);
@@ -297,7 +297,7 @@ public class PCXImageReader extends ImageReader {
 			stream.readFully(buffer);
 			this.header = new PCX.Header(buffer);
 			System.out.println(
-				"PCX width: " + header.width + " height: " + header.height);
+				"PCX width: " + header.getWidth() + " height: " + header.getHeight());
 
 		} catch (IOException e) {
 			throw new IIOException("Error reading quake2 PCX header", e);

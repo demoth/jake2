@@ -91,7 +91,8 @@ public class PCXImageReaderSpi extends ImageReaderSpi {
 			stream.mark();
 			stream.readFully(buffer);
 			stream.reset();
-			PCX.Header pcx = new PCX.Header(buffer);
+			// buffer is copied (readonly) and header checked
+			PCX.Header pcx = new PCX.Header(buffer); 
 		} catch (IOException e) {
 			return false;
 		}
