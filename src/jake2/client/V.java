@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.9 2004-01-30 13:05:46 cwei Exp $
+ * $Id: V.java,v 1.10 2004-02-01 22:05:30 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,6 @@ import java.io.IOException;
 
 /**
  * V
- * TODO implement V
  */
 public final class V extends Globals {
 	
@@ -82,157 +81,159 @@ public final class V extends Globals {
 			return;
 		r_entities[r_numentities++] = ent;
 	}
-//
-//
-//	/*
-//	=====================
-//	V_AddParticle
-//
-//	=====================
-//	*/
-//	void V_AddParticle (vec3_t org, int color, float alpha)
-//	{
-//		particle_t	*p;
-//
-//		if (r_numparticles >= MAX_PARTICLES)
-//			return;
-//		p = &r_particles[r_numparticles++];
-//		VectorCopy (org, p->origin);
-//		p->color = color;
-//		p->alpha = alpha;
-//	}
-//
-//	/*
-//	=====================
-//	V_AddLight
-//
-//	=====================
-//	*/
-//	void V_AddLight (vec3_t org, float intensity, float r, float g, float b)
-//	{
-//		dlight_t	*dl;
-//
-//		if (r_numdlights >= MAX_DLIGHTS)
-//			return;
-//		dl = &r_dlights[r_numdlights++];
-//		VectorCopy (org, dl->origin);
-//		dl->intensity = intensity;
-//		dl->color[0] = r;
-//		dl->color[1] = g;
-//		dl->color[2] = b;
-//	}
-//
-//
-//	/*
-//	=====================
-//	V_AddLightStyle
-//
-//	=====================
-//	*/
-//	void V_AddLightStyle (int style, float r, float g, float b)
-//	{
-//		lightstyle_t	*ls;
-//
-//		if (style < 0 || style > MAX_LIGHTSTYLES)
-//			Com_Error (ERR_DROP, "Bad light style %i", style);
-//		ls = &r_lightstyles[style];
-//
-//		ls->white = r+g+b;
-//		ls->rgb[0] = r;
-//		ls->rgb[1] = g;
-//		ls->rgb[2] = b;
-//	}
-//
-//	/*
-//	================
-//	V_TestParticles
-//
-//	If cl_testparticles is set, create 4096 particles in the view
-//	================
-//	*/
+
+	/*
+	=====================
+	V_AddParticle
+
+	=====================
+	*/
+	static void AddParticle(float[] org, int color, float alpha) {
+		particle_t p;
+
+		if (r_numparticles >= MAX_PARTICLES)
+			return;
+		p = r_particles[r_numparticles++];
+		VectorCopy(org, p.origin);
+		p.color = color;
+		p.alpha = alpha;
+	}
+
+	/*
+	=====================
+	V_AddLight
+
+	=====================
+	*/
+	static void AddLight(float[] org, float intensity, float r, float g, float b) {
+		dlight_t dl;
+
+		if (r_numdlights >= MAX_DLIGHTS)
+			return;
+		dl = r_dlights[r_numdlights++];
+		VectorCopy(org, dl.origin);
+		dl.intensity = intensity;
+		dl.color[0] = r;
+		dl.color[1] = g;
+		dl.color[2] = b;
+	}
+
+
+	/*
+	=====================
+	V_AddLightStyle
+
+	=====================
+	*/
+	static void V_AddLightStyle(int style, float r, float g, float b) {
+		lightstyle_t ls;
+
+		if (style < 0 || style > MAX_LIGHTSTYLES)
+			Com.Error(ERR_DROP, "Bad light style " + style);
+		ls = r_lightstyles[style];
+
+		ls.white = r + g + b;
+		ls.rgb[0] = r;
+		ls.rgb[1] = g;
+		ls.rgb[2] = b;
+	}
+
+	/*
+	================
+	V_TestParticles
+
+	If cl_testparticles is set, create 4096 particles in the view
+	================
+	*/
 	static void TestParticles() {
-//		particle_t	*p;
-//		int			i, j;
-//		float		d, r, u;
-//
-//		r_numparticles = MAX_PARTICLES;
-//		for (i=0 ; i<r_numparticles ; i++)
-//		{
-//			d = i*0.25;
-//			r = 4*((i&7)-3.5);
-//			u = 4*(((i>>3)&7)-3.5);
-//			p = &r_particles[i];
-//
-//			for (j=0 ; j<3 ; j++)
-//				p->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*d +
-//				cl.v_right[j]*r + cl.v_up[j]*u;
-//
-//			p->color = 8;
-//			p->alpha = cl_testparticles->value;
-//		}
+		particle_t p;
+		int i, j;
+		float d, r, u;
+
+		r_numparticles = MAX_PARTICLES;
+		for (i = 0; i < r_numparticles; i++) {
+			d = i * 0.25f;
+			r = 4 * ((i & 7) - 3.5f);
+			u = 4 * (((i >> 3) & 7) - 3.5f);
+			p = r_particles[i];
+
+			for (j = 0; j < 3; j++)
+				p.origin[j] =
+					cl.refdef.vieworg[j]
+						+ cl.v_forward[j] * d
+						+ cl.v_right[j] * r
+						+ cl.v_up[j] * u;
+
+			p.color = 8;
+			p.alpha = cl_testparticles.value;
+		}
 	}
-//	
-//	/*
-//	================
-//	V_TestEntities
-//
-//	If cl_testentities is set, create 32 player models
-//	================
-//	*/
+
+	/*
+	================
+	V_TestEntities
+
+	If cl_testentities is set, create 32 player models
+	================
+	*/
 	static void TestEntities() {
-//		int			i, j;
-//		float		f, r;
-//		entity_t	*ent;
-//
-//		r_numentities = 32;
-//		memset (r_entities, 0, sizeof(r_entities));
-//
-//		for (i=0 ; i<r_numentities ; i++)
-//		{
-//			ent = &r_entities[i];
-//
-//			r = 64 * ( (i%4) - 1.5 );
-//			f = 64 * (i/4) + 128;
-//
-//			for (j=0 ; j<3 ; j++)
-//				ent->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
-//				cl.v_right[j]*r;
-//
-//			ent->model = cl.baseclientinfo.model;
-//			ent->skin = cl.baseclientinfo.skin;
-//		}
+		int			i, j;
+		float		f, r;
+		entity_t	ent;
+
+		r_numentities = 32;
+		//memset (r_entities, 0, sizeof(r_entities));
+		for (i = 0; i < r_entities.length; i++)
+			r_entities[i] = new entity_t();
+
+		for (i=0 ; i<r_numentities ; i++)
+		{
+			ent = r_entities[i];
+
+			r = 64 * ( (i%4) - 1.5f );
+			f = 64 * (i/4) + 128;
+
+			for (j=0 ; j<3 ; j++)
+				ent.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
+				cl.v_right[j]*r;
+
+			ent.model = cl.baseclientinfo.model;
+			ent.skin = cl.baseclientinfo.skin;
+		}
 	}
-//	
-//	/*
-//	================
-//	V_TestLights
-//
-//	If cl_testlights is set, create 32 lights models
-//	================
-//	*/
+	
+	/*
+	================
+	V_TestLights
+
+	If cl_testlights is set, create 32 lights models
+	================
+	*/
 	static void TestLights() {
-//		int			i, j;
-//		float		f, r;
-//		dlight_t	*dl;
-//
-//		r_numdlights = 32;
-//		memset (r_dlights, 0, sizeof(r_dlights));
-//
-//		for (i=0 ; i<r_numdlights ; i++)
-//		{
-//			dl = &r_dlights[i];
-//
-//			r = 64 * ( (i%4) - 1.5 );
-//			f = 64 * (i/4) + 128;
-//
-//			for (j=0 ; j<3 ; j++)
-//				dl->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
-//				cl.v_right[j]*r;
-//			dl->color[0] = ((i%6)+1) & 1;
-//			dl->color[1] = (((i%6)+1) & 2)>>1;
-//			dl->color[2] = (((i%6)+1) & 4)>>2;
-//			dl->intensity = 200;
-//		}
+		int			i, j;
+		float		f, r;
+		dlight_t	dl;
+
+		r_numdlights = 32;
+		//memset (r_dlights, 0, sizeof(r_dlights));
+		for (i = 0; i < r_dlights.length; i++)
+			r_dlights[i] = new dlight_t();
+
+		for (i=0 ; i<r_numdlights ; i++)
+		{
+			dl = r_dlights[i];
+
+			r = 64 * ( (i%4) - 1.5f );
+			f = 64 * (i/4) + 128;
+
+			for (j=0 ; j<3 ; j++)
+				dl.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
+				cl.v_right[j]*r;
+			dl.color[0] = ((i%6)+1) & 1;
+			dl.color[1] = (((i%6)+1) & 2)>>1;
+			dl.color[2] = (((i%6)+1) & 4)>>2;
+			dl.intensity = 200;
+		}
 	}
 
 	static xcommand_t Gun_Next_f = new xcommand_t() {
@@ -262,28 +263,6 @@ public final class V extends Globals {
 		}
 	};
 
-
-/*
- *  !!! sortieren nach absoluten adressen mach keinen sinn in java !!!
- */
-//	static Comparator entitycmpfnc = new Comparator() {
-//		public int compare(Object a1, Object b1) {
-//			/*
-//			** all other models are sorted by model then skin
-//			*/
-//			entity_t a = (entity_t)a1;
-//			entity_t b = (entity_t)b1;
-//			if ( a.model == b.model ) {
-//				return ( ( int ) a.skin - ( int ) b.skin );
-//			}
-////			else
-////			{
-////				return ( ( int ) amodel - ( int ) b->model );
-////			}			
-//			return 0;
-//		}
-//	};
-	
 	/*
 	==================
 	V_RenderView
@@ -373,7 +352,7 @@ public final class V extends Globals {
 			cl.refdef.rdflags = cl.frame.playerstate.rdflags;
 
 			// sort entities for better cache locality
-			// !!! useless !!!
+			// !!! useless in Java !!!
 			//Arrays.sort(cl.refdef.entities, entitycmpfnc);
 		}
 

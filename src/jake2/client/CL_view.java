@@ -2,7 +2,7 @@
  * CL_view.java
  * Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.5 2004-02-01 00:35:00 rst Exp $
+ * $Id: CL_view.java,v 1.6 2004-02-01 22:05:30 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -151,19 +151,28 @@ public class CL_view extends CL_input {
 	}
  
 	public static void AddNetgraph() {
-		// TODO:implement!
-		
-	}
+		int             i;
+		int             in;
+		int             ping;
 
-	public static void V_AddLight(float[] start, float i, float j, float k, float l) {
-		// TODO:implement!
-		
-	}
+		// if using the debuggraph for something else, don't
+		// add the net lines
+		if (SCR.scr_debuggraph.value == 0.0f || SCR.scr_timegraph.value == 0.0f)
+			return;
 
-	public static void V_AddEntity(entity_t ent) {
-		// TODO:implement!
-		
-	}
+		for (i=0 ; i<cls.netchan.dropped ; i++)
+			SCR.DebugGraph(30, 0x40);
 
+		for (i=0 ; i<cl.surpressCount ; i++)
+			SCR.DebugGraph(30, 0xdf);
+
+		// see what the latency was on this packet
+		in = cls.netchan.incoming_acknowledged & (CMD_BACKUP-1);
+		ping = (int)(cls.realtime - cl.cmd_time[in]);
+		ping /= 30;
+		if (ping > 30)
+			ping = 30;
+		SCR.DebugGraph (ping, 0xd0);
+	}
 
 }

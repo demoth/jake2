@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.5 2004-02-01 21:31:19 hoz Exp $
+ * $Id: CL_ents.java,v 1.6 2004-02-01 22:05:30 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -793,7 +793,7 @@ public class CL_ents extends CL_inv {
 
 					AngleVectors(ent.angles, forward, null, null);
 					VectorMA(ent.origin, 64, forward, start);
-					CL_view.V_AddLight(start, 100, 1, 0, 0);
+					V.AddLight(start, 100, 1, 0, 0);
 				}
 			}
 			else { // interpolate angles
@@ -811,13 +811,13 @@ public class CL_ents extends CL_inv {
 				// FIXME: still pass to refresh
 
 				if ((effects & EF_FLAG1)!=0)
-					CL_view.V_AddLight(ent.origin, 225, 1.0f, 0.1f, 0.1f);
+					V.AddLight(ent.origin, 225, 1.0f, 0.1f, 0.1f);
 				else if ((effects & EF_FLAG2)!=0)
-					CL_view.V_AddLight(ent.origin, 225, 0.1f, 0.1f, 1.0f);
+					V.AddLight(ent.origin, 225, 0.1f, 0.1f, 1.0f);
 				else if ((effects & EF_TAGTRAIL)!=0) //PGM
-					CL_view.V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f); //PGM
+					V.AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f); //PGM
 				else if ((effects & EF_TRACKERTRAIL)!=0) //PGM
-					CL_view.V_AddLight(ent.origin, 225, -1.0f, -1.0f, -1.0f); //PGM
+					V.AddLight(ent.origin, 225, -1.0f, -1.0f, -1.0f); //PGM
 
 				continue;
 			}
@@ -848,7 +848,7 @@ public class CL_ents extends CL_inv {
 			//	  pmm
 
 			// add to refresh list
-			CL_view.V_AddEntity( ent);
+			V.AddEntity( ent);
 
 			// color shells generate a seperate entity for the main model
 			if ((effects & EF_COLOR_SHELL)!=0) {
@@ -888,7 +888,7 @@ public class CL_ents extends CL_inv {
 				// pmm
 				ent.flags = renderfx | RF_TRANSLUCENT;
 				ent.alpha = 0.30f;
-				CL_view.V_AddEntity( ent);
+				V.AddEntity( ent);
 			}
 
 			ent.skin = null; // never use a custom skin on others
@@ -922,7 +922,7 @@ public class CL_ents extends CL_inv {
 				}
 				// pmm
 
-				CL_view.V_AddEntity( ent);
+				V.AddEntity( ent);
 
 				//PGM - make sure these get reset.
 				ent.flags = 0;
@@ -931,11 +931,11 @@ public class CL_ents extends CL_inv {
 			}
 			if (s1.modelindex3!=0) {
 				ent.model = cl.model_draw[s1.modelindex3];
-				CL_view.V_AddEntity( ent);
+				V.AddEntity( ent);
 			}
 			if (s1.modelindex4!=0) {
 				ent.model = cl.model_draw[s1.modelindex4];
-				CL_view.V_AddEntity( ent);
+				V.AddEntity( ent);
 			}
 
 			if ((effects & EF_POWERSCREEN)!=0) {
@@ -944,14 +944,14 @@ public class CL_ents extends CL_inv {
 				ent.frame = 0;
 				ent.flags |= (RF_TRANSLUCENT | RF_SHELL_GREEN);
 				ent.alpha = 0.30f;
-				CL_view.V_AddEntity( ent);
+				V.AddEntity( ent);
 			}
 
 			// add automatic particle trails
 			if ((effects & ~EF_ROTATE)!=0) {
 				if ((effects & EF_ROCKET)!=0) {
 					RocketTrail(cent.lerp_origin, ent.origin, cent);
-					CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
+					V.AddLight(ent.origin, 200, 1, 1, 0);
 				}
 				// PGM - Do not reorder EF_BLASTER and EF_HYPERBLASTER. 
 				// EF_BLASTER | EF_TRACKER is a special case for EF_BLASTER2... Cheese!
@@ -961,19 +961,19 @@ public class CL_ents extends CL_inv {
 					if ((effects & EF_TRACKER)!=0) // lame... problematic?
 						{
 						CL_newfx.BlasterTrail2(cent.lerp_origin, ent.origin);
-						CL_view.V_AddLight(ent.origin, 200, 0, 1, 0);
+						V.AddLight(ent.origin, 200, 0, 1, 0);
 					}
 					else {
 						BlasterTrail(cent.lerp_origin, ent.origin);
-						CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
+						V.AddLight(ent.origin, 200, 1, 1, 0);
 					}
 					//	  PGM
 				}
 				else if ((effects & EF_HYPERBLASTER)!=0) {
 					if ((effects & EF_TRACKER)!=0) // PGM	overloaded for blaster2.
-						CL_view.V_AddLight(ent.origin, 200, 0, 1, 0); // PGM
+						V.AddLight(ent.origin, 200, 0, 1, 0); // PGM
 					else // PGM
-						CL_view.V_AddLight(ent.origin, 200, 1, 1, 0);
+						V.AddLight(ent.origin, 200, 1, 1, 0);
 				}
 				else if ((effects & EF_GIB)!=0) {
 					DiminishingTrail(cent.lerp_origin, ent.origin, cent, effects);
@@ -994,28 +994,28 @@ public class CL_ents extends CL_inv {
 					else {
 						i = bfg_lightramp[s1.frame];
 					}
-					CL_view.V_AddLight(ent.origin, i, 0, 1, 0);
+					V.AddLight(ent.origin, i, 0, 1, 0);
 				}
 				// RAFAEL
 				else if ((effects & EF_TRAP)!=0) {
 					ent.origin[2] += 32;
 					TrapParticles( ent);
 					i = (rand() % 100) + 100;
-					CL_view.V_AddLight(ent.origin, i, 1, 0.8f, 0.1f);
+					V.AddLight(ent.origin, i, 1, 0.8f, 0.1f);
 				}
 				else if ((effects & EF_FLAG1)!=0) {
 					FlagTrail(cent.lerp_origin, ent.origin, 242);
-					CL_view.V_AddLight(ent.origin, 225, 1, 0.1f, 0.1f);
+					V.AddLight(ent.origin, 225, 1, 0.1f, 0.1f);
 				}
 				else if ((effects & EF_FLAG2)!=0) {
 					FlagTrail(cent.lerp_origin, ent.origin, 115);
-					CL_view.V_AddLight(ent.origin, 225, 0.1f, 0.1f, 1);
+					V.AddLight(ent.origin, 225, 0.1f, 0.1f, 1);
 				}
 				//	  ======
 				//	  ROGUE
 				else if ((effects & EF_TAGTRAIL)!=0) {
 					CL_newfx.TagTrail(cent.lerp_origin, ent.origin, 220);
-					CL_view.V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
+					V.AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
 				}
 				else if ((effects & EF_TRACKERTRAIL)!=0) {
 					if ((effects & EF_TRACKER)!=0) {
@@ -1024,22 +1024,22 @@ public class CL_ents extends CL_inv {
 						intensity = (float) (50 + (500 * (Math.sin(cl.time / 500.0) + 1.0)));
 						// FIXME - check out this effect in rendition
 						if (vidref_val == VIDREF_GL)
-							CL_view.V_AddLight(ent.origin, intensity, -1.0f, -1.0f, -1.0f);
+							V.AddLight(ent.origin, intensity, -1.0f, -1.0f, -1.0f);
 						else
-							CL_view.V_AddLight(ent.origin, -1.0f * intensity, 1.0f, 1.0f, 1.0f);
+							V.AddLight(ent.origin, -1.0f * intensity, 1.0f, 1.0f, 1.0f);
 					}
 					else {
 						CL_newfx.Tracker_Shell(cent.lerp_origin);
-						CL_view.V_AddLight(ent.origin, 155, -1.0f, -1.0f, -1.0f);
+						V.AddLight(ent.origin, 155, -1.0f, -1.0f, -1.0f);
 					}
 				}
 				else if ((effects & EF_TRACKER)!=0) {
 					CL_newfx.TrackerTrail(cent.lerp_origin, ent.origin, 0);
 					// FIXME - check out this effect in rendition
 					if (vidref_val == VIDREF_GL)
-						CL_view.V_AddLight(ent.origin, 200, -1, -1, -1);
+						V.AddLight(ent.origin, 200, -1, -1, -1);
 					else
-						CL_view.V_AddLight(ent.origin, -200, 1, 1, 1);
+						V.AddLight(ent.origin, -200, 1, 1, 1);
 				}
 				//	  ROGUE
 				//	  ======
@@ -1050,18 +1050,18 @@ public class CL_ents extends CL_inv {
 				// RAFAEL
 				else if ((effects & EF_IONRIPPER)!=0) {
 					IonripperTrail(cent.lerp_origin, ent.origin);
-					CL_view.V_AddLight(ent.origin, 100, 1, 0.5f, 0.5f);
+					V.AddLight(ent.origin, 100, 1, 0.5f, 0.5f);
 				}
 				// RAFAEL
 				else if ((effects & EF_BLUEHYPERBLASTER)!=0) {
-					CL_view.V_AddLight(ent.origin, 200, 0, 0, 1);
+					V.AddLight(ent.origin, 200, 0, 0, 1);
 				}
 				// RAFAEL
 				else if ((effects & EF_PLASMA)!=0) {
 					if ((effects & EF_ANIM_ALLFAST)!=0) {
 						BlasterTrail(cent.lerp_origin, ent.origin);
 					}
-					CL_view.V_AddLight(ent.origin, 130, 1, 0.5f, 0.5f);
+					V.AddLight(ent.origin, 130, 1, 0.5f, 0.5f);
 				}
 			}
 
@@ -1118,7 +1118,7 @@ public class CL_ents extends CL_inv {
 		gun.flags = RF_MINLIGHT | RF_DEPTHHACK | RF_WEAPONMODEL;
 		gun.backlerp = 1.0f - cl.lerpfrac;
 		VectorCopy(gun.origin, gun.oldorigin); // don't lerp at all
-		CL_view.V_AddEntity( gun);
+		V.AddEntity( gun);
 	}
 
 	/*
