@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.3 2004-09-22 19:22:08 salomo Exp $
+ * $Id: V.java,v 1.4 2005-01-20 23:15:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -153,6 +153,8 @@ public final class V extends Globals {
         ls.rgb[2] = b;
     }
 
+    // stack variable
+    private static final float[] origin = { 0, 0, 0 };
     /*
      * ================ V_TestParticles
      * 
@@ -162,8 +164,6 @@ public final class V extends Globals {
     static void TestParticles() {
         int i, j;
         float d, r, u;
-
-        float[] origin = { 0, 0, 0 };
 
         r_numparticles = 0;
         for (i = 0; i < MAX_PARTICLES; i++) {
@@ -192,7 +192,7 @@ public final class V extends Globals {
         r_numentities = 32;
         //memset (r_entities, 0, sizeof(r_entities));
         for (i = 0; i < r_entities.length; i++)
-            r_entities[i] = new entity_t();
+        	r_entities[i].clear();
 
         for (i = 0; i < r_numentities; i++) {
             ent = r_entities[i];

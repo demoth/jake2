@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.8 2005-01-17 21:43:13 cawe Exp $
+ * $Id: CL_ents.java,v 1.9 2005-01-20 23:15:22 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -586,13 +586,14 @@ public class CL_ents {
 	 * ==========================================================================
 	 */
 
+	// stack variable
+	private static final entity_t ent = new entity_t();
 	/*
 	 * =============== 
 	 * CL_AddPacketEntities
 	 * ===============
 	 */
 	static void AddPacketEntities(frame_t frame) {
-		entity_t ent;
 		entity_state_t s1;
 		float autorotate;
 		int i;
@@ -609,7 +610,7 @@ public class CL_ents {
 		autoanim = 2 * Globals.cl.time / 1000;
 
 		//memset( ent, 0, sizeof(ent));
-		ent = new entity_t();
+		ent.clear();
 
 		for (pnum = 0; pnum < frame.num_entities; pnum++) {
 			s1 = Globals.cl_parse_entities[(frame.parse_entities + pnum) & (Defines.MAX_PARSE_ENTITIES - 1)];
@@ -1019,12 +1020,13 @@ public class CL_ents {
 			Math3D.VectorCopy(ent.origin, cent.lerp_origin);
 		}
 	}
-
+	
+	// stack variable
+	private static final entity_t gun = new entity_t();
 	/*
 	 * ============== CL_AddViewWeapon ==============
 	 */
 	static void AddViewWeapon(player_state_t ps, player_state_t ops) {
-		entity_t gun; // view model
 		int i;
 
 		// allow the gun to be completely removed
@@ -1036,7 +1038,7 @@ public class CL_ents {
 			return;
 
 		//memset( gun, 0, sizeof(gun));
-		gun = new entity_t();
+		gun.clear();
 
 		if (Globals.gun_model != null)
 			gun.model = Globals.gun_model; // development tool

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.16 2005-01-12 08:47:42 hzi Exp $
+ * $Id: Menu.java,v 1.17 2005-01-20 23:15:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -4094,6 +4094,8 @@ public final class Menu extends Key {
     }
 
     static int yaw;
+    
+    private static final entity_t entity = new entity_t();
 
     static void PlayerConfig_MenuDraw() {
 
@@ -4115,9 +4117,8 @@ public final class Menu extends Key {
         if (s_pmi[s_player_model_box.curvalue].skindisplaynames != null) {
 
             int maxframe = 29;
-            entity_t entity = new entity_t();
-
             //memset(entity, 0, sizeof(entity));
+            entity.clear();
 
             scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory
                     + "/tris.md2";

@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
+ * $Id: CL_tent.java,v 1.8 2005-01-20 23:15:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -58,7 +58,7 @@ public class CL_tent {
 
         void clear() {
             lightcolor[0] = lightcolor[1] = lightcolor[2] = light = start = type = frames = baseframe = 0;
-            ent = new entity_t();
+            ent.clear();
         }
     }
 
@@ -122,7 +122,7 @@ public class CL_tent {
 
         void clear() {
             endtime = 0;
-            ent = new entity_t();
+            ent.clear();
         }
     }
 
@@ -1293,6 +1293,7 @@ public class CL_tent {
         }
     }
 
+    private static final entity_t ent = new entity_t();
     /*
      * ================= CL_AddBeams =================
      */
@@ -1302,7 +1303,6 @@ public class CL_tent {
         float[] dist = new float[3];
         float[] org = new float[3];
         float d;
-        entity_t ent = new entity_t();
         float yaw, pitch;
         float forward;
         float len, steps;
@@ -1354,7 +1354,7 @@ public class CL_tent {
             d = Math3D.VectorNormalize(dist);
 
             //memset (&ent, 0, sizeof(ent));
-            ent = new entity_t();
+            ent.clear();
             if (b[i].model == cl_mod_lightning) {
                 model_length = 35.0f;
                 d -= 20.0; // correction so it doesn't end in middle of tesla
@@ -1419,7 +1419,7 @@ public class CL_tent {
         float[] dist = new float[3];
         float[] org = new float[3];
         float d;
-        entity_t ent = new entity_t();
+        //entity_t ent = new entity_t();
         float yaw, pitch;
         float forward;
         float len, steps;
@@ -1582,8 +1582,7 @@ public class CL_tent {
             d = Math3D.VectorNormalize(dist);
 
             //memset (&ent, 0, sizeof(ent));
-            //ent = new entity_t();
-            // this is not required. hoz
+            ent.clear();
 
             if (b[i].model == cl_mod_heatbeam) {
                 model_length = 32.0f;
