@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.11 2004-06-28 14:15:57 cwei Exp $
+ * $Id: Surf.java,v 1.12 2004-06-28 17:54:13 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1398,7 +1398,7 @@ public abstract class Surf extends Draw {
 	/*
 	 * new functions for vertex array handling
 	 */
-	static final int POLYGON_BUFFER_SIZE = 100000;
+	static final int POLYGON_BUFFER_SIZE = 120000;
 	static final int POLYGON_STRIDE = 7;
 	static final int POLYGON_BYTE_STRIDE = POLYGON_STRIDE * BufferUtils.SIZEOF_FLOAT;
 
