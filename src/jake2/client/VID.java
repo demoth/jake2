@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.12 2005-01-11 15:53:56 hzi Exp $
+ * $Id: VID.java,v 1.13 2005-01-12 00:40:14 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -255,21 +255,23 @@ public class VID extends Globals {
 			Globals.cl.refresh_prepped = false;
 			Globals.cls.disable_screen = 1.0f; // true;
 
+			String defaultName = Renderer.getDefaultName();
+			
 			if ( !LoadRefresh( vid_ref.string ) )
 			{
-				if ( vid_ref.string.equals("jogl") ) {
+				if ( vid_ref.string.equals(defaultName) ) {
 					Com.Printf("Refresh failed\n");
 					gl_mode = Cvar.Get( "gl_mode", "0", 0 );
 					if (gl_mode.value != 0.0f) {
 						Com.Printf("Trying mode 0\n");
 						Cvar.SetValue("gl_mode", 0);
 						if ( !LoadRefresh( vid_ref.string ) )
-							Com.Error(Defines.ERR_FATAL, "Couldn't fall back to jogl refresh!");
+							Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + defaultName +" refresh!");
 					} else
-						Com.Error(Defines.ERR_FATAL, "Couldn't fall back to jogl refresh!");
+						Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + defaultName +" refresh!");
 				}
 
-				Cvar.Set( "vid_ref", "jogl" );
+				Cvar.Set("vid_ref", defaultName);
 
 				/*
 				 * drop the console if we fail to load a refresh
@@ -294,7 +296,7 @@ public class VID extends Globals {
 	public static void Init()
 	{
 		/* Create the video variables so we know how to start the graphics drivers */
-		vid_ref = Cvar.Get("vid_ref", "fastjogl", CVAR_ARCHIVE);
+		vid_ref = Cvar.Get("vid_ref", Renderer.getPreferedName(), CVAR_ARCHIVE);
 		vid_xpos = Cvar.Get("vid_xpos", "3", CVAR_ARCHIVE);
 		vid_ypos = Cvar.Get("vid_ypos", "22", CVAR_ARCHIVE);
 		vid_width = Cvar.Get("vid_width", "640", CVAR_ARCHIVE);
@@ -506,7 +508,6 @@ public class VID extends Globals {
 		"[1600 1200]",
 		"[2048 1536]",
 		"user mode",
-		null
 	};
 	static String[] fs_resolutions;
 	static int mode_x;
@@ -522,18 +523,16 @@ public class VID extends Globals {
 		"[OpenGL jogl    ]",
 		"[OpenGL fastjogl]",
 		"[OpenGL lwjgl   ]",
-		null
 	};
 	static final String[] yesno_names =
 	{
 		"no",
 		"yes",
-		null
 	};
 
 	static void initModeList() {
 		DisplayMode[] modes = re.getModeList();
-		fs_resolutions = new String[modes.length + 1];
+		fs_resolutions = new String[modes.length];
 		fs_modes = new vidmode_t[modes.length];
 		for (int i = 0; i < modes.length; i++) {
 			DisplayMode m = modes[i];
@@ -562,7 +561,7 @@ public class VID extends Globals {
 	public static void MenuInit() {
 		
 		if ( gl_driver == null )
-			gl_driver = Cvar.Get( "gl_driver", "jogl", 0 );
+			gl_driver = Cvar.Get( "gl_driver", Renderer.getPreferedName(), 0 );
 		if ( gl_picmip == null )
 			gl_picmip = Cvar.Get( "gl_picmip", "0", 0 );
 		if ( gl_mode == null)
