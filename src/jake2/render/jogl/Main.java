@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.18 2004-01-21 17:08:39 cwei Exp $
+ * $Id: Main.java,v 1.19 2004-01-22 03:23:33 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1396,6 +1396,7 @@ public abstract class Main extends Base {
 	//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
 	//			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
 	//			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
+				 qglActiveTextureARB = true;
 				 qglMTexCoord2fSGIS = true;
 				 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
 				 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;

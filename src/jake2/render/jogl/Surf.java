@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.7 2004-01-21 17:08:39 cwei Exp $
+ * $Id: Surf.java,v 1.8 2004-01-22 03:23:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -105,6 +105,7 @@ public abstract class Surf extends Draw {
 	abstract void R_DrawSkyBox();
 	abstract void R_AddSkySurface(msurface_t surface);
 	abstract void R_ClearSkyBox();
+	abstract void R_MarkLights (dlight_t light, int bit, mnode_t node);
 
 	/*
 	=============================================================
@@ -473,9 +474,9 @@ public abstract class Surf extends Draw {
 //		}
 //		else
 //		{
-//			GL_Bind( image->texnum );
-//
-//			GL_TexEnv( GL_REPLACE );
+			GL_Bind( image.texnum );
+
+			GL_TexEnv( GL.GL_REPLACE );
 //		}
 //
 ////	  ======
@@ -483,7 +484,7 @@ public abstract class Surf extends Draw {
 //		if(fa->texinfo->flags & SURF_FLOWING)
 //			DrawGLFlowingPoly (fa);
 //		else
-//			DrawGLPoly (fa->polys);
+			DrawGLPoly (fa.polys);
 ////	  PGM
 ////	  ======
 //
@@ -799,7 +800,7 @@ public abstract class Surf extends Draw {
 		{
 			c_brush_polys++;
 
-			GL_MBind( GL_TEXTURE0, image.texnum );
+			GL_MBind( GL_TEXTURE1, image.texnum );
 			GL_MBind( GL_TEXTURE1, gl_state.lightmap_textures + lmtex );
 
 			// ==========
@@ -818,8 +819,8 @@ public abstract class Surf extends Draw {
 					for (i=0 ; i< nv; i++)
 					{
 						v = p.verts[i];
-			
-						gl.glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
+						
+						gl.glMultiTexCoord2f(GL_TEXTURE0, (v[3]+scroll), v[4]);
 						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE0, (v[3]+scroll), v[4]);
 						// qglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
@@ -838,7 +839,7 @@ public abstract class Surf extends Draw {
 					for (i=0 ; i< nv; i++)
 					{
 						v = p.verts[i];
-						
+
 						gl.glMultiTexCoord2f(GL_TEXTURE0, v[3], v[4]);
 						gl.glMultiTexCoord2f(GL_TEXTURE1, v[5], v[6]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
@@ -874,7 +875,7 @@ public abstract class Surf extends Draw {
 			for (k=0 ; k<r_newrefdef.num_dlights ; k++)
 			{
 				lt = r_newrefdef.dlights[k];
-				// TODO R_MarkLights(lt, 1<<k, currentmodel.nodes[currentmodel.firstnode]);
+				R_MarkLights(lt, 1<<k, currentmodel.nodes[currentmodel.firstnode]);
 			}
 		}
 

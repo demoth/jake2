@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.5 2004-01-21 17:08:40 cwei Exp $
+ * $Id: Light.java,v 1.6 2004-01-22 03:23:34 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,22 +42,20 @@ import jake2.util.Math3D;
  * @author cwei
  */
 public abstract class Light extends Warp {
-////	   r_light.c
-//
-//	#include "gl_local.h"
-//
-//	int	r_dlightframecount;
-//
-//	#define	DLIGHT_CUTOFF	64
-//
-//	/*
-//	=============================================================================
-//
-//	DYNAMIC LIGHTS BLEND RENDERING
-//
-//	=============================================================================
-//	*/
-//
+	// r_light.c
+
+	int r_dlightframecount;
+
+	static final int DLIGHT_CUTOFF = 64;
+
+	/*
+	=============================================================================
+
+	DYNAMIC LIGHTS BLEND RENDERING
+
+	=============================================================================
+	*/
+
 	void R_RenderDlight (dlight_t light)
 	{
 //		int		i, j;
@@ -86,11 +84,11 @@ public abstract class Light extends Warp {
 //		qglEnd ();
 	}
 
-//	/*
-//	=============
-//	R_RenderDlights
-//	=============
-//	*/
+	/*
+	=============
+	R_RenderDlights
+	=============
+	*/
 	void R_RenderDlights()
 	{
 //		int		i;
@@ -117,60 +115,60 @@ public abstract class Light extends Warp {
 //		qglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //		qglDepthMask (1);
 	}
-//
-//
-//	/*
-//	=============================================================================
-//
-//	DYNAMIC LIGHTS
-//
-//	=============================================================================
-//	*/
-//
-//	/*
-//	=============
-//	R_MarkLights
-//	=============
-//	*/
-//	void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
-//	{
-//		cplane_t	*splitplane;
-//		float		dist;
-//		msurface_t	*surf;
-//		int			i;
-//	
-//		if (node.contents != -1)
-//			return;
-//
-//		splitplane = node.plane;
-//		dist = DotProduct (light.origin, splitplane.normal) - splitplane.dist;
-//	
-//		if (dist > light.intensity-DLIGHT_CUTOFF)
-//		{
-//			R_MarkLights (light, bit, node.children[0]);
-//			return;
-//		}
-//		if (dist < -light.intensity+DLIGHT_CUTOFF)
-//		{
-//			R_MarkLights (light, bit, node.children[1]);
-//			return;
-//		}
-//		
-////	   mark the polygons
-//		surf = r_worldmodel.surfaces + node.firstsurface;
-//		for (i=0 ; i<node.numsurfaces ; i++, surf++)
-//		{
-//			if (surf.dlightframe != r_dlightframecount)
-//			{
-//				surf.dlightbits = 0;
-//				surf.dlightframe = r_dlightframecount;
-//			}
-//			surf.dlightbits |= bit;
-//		}
-//
-//		R_MarkLights (light, bit, node.children[0]);
-//		R_MarkLights (light, bit, node.children[1]);
-//	}
+
+
+	/*
+	=============================================================================
+
+	DYNAMIC LIGHTS
+
+	=============================================================================
+	*/
+
+	/*
+	=============
+	R_MarkLights
+	=============
+	*/
+	void R_MarkLights (dlight_t light, int bit, mnode_t node)
+	{
+		cplane_t splitplane;
+		float dist;
+		msurface_t	surf;
+		int i;
+	
+		if (node.contents != -1)
+			return;
+
+		splitplane = node.plane;
+		dist = Math3D.DotProduct (light.origin, splitplane.normal) - splitplane.dist;
+	
+		if (dist > light.intensity - DLIGHT_CUTOFF)
+		{
+			R_MarkLights (light, bit, node.children[0]);
+			return;
+		}
+		if (dist < -light.intensity + DLIGHT_CUTOFF)
+		{
+			R_MarkLights (light, bit, node.children[1]);
+			return;
+		}
+		
+		// mark the polygons
+		for (i=0 ; i<node.numsurfaces ; i++)
+		{
+			surf = r_worldmodel.surfaces[node.firstsurface + i];
+			if (surf.dlightframe != r_dlightframecount)
+			{
+				surf.dlightbits = 0;
+				surf.dlightframe = r_dlightframecount;
+			}
+			surf.dlightbits |= bit;
+		}
+
+		R_MarkLights (light, bit, node.children[0]);
+		R_MarkLights (light, bit, node.children[1]);
+	}
 
 
 	/*
@@ -180,17 +178,18 @@ public abstract class Light extends Warp {
 	*/
 	void R_PushDlights()
 	{
-//		int		i;
-//		dlight_t	*l;
-//
-//		if (gl_flashblend.value)
-//			return;
-//
-//		r_dlightframecount = r_framecount + 1;	// because the count hasn't
-//												//  advanced yet for this frame
-//		l = r_newrefdef.dlights;
-//		for (i=0 ; i<r_newrefdef.num_dlights ; i++, l++)
-//			R_MarkLights ( l, 1<<i, r_worldmodel.nodes );
+		int i;
+		dlight_t l;
+
+		if (gl_flashblend.value != 0)
+			return;
+
+		r_dlightframecount = r_framecount + 1;	// because the count hasn't
+												//  advanced yet for this frame
+		for (i=0 ; i<r_newrefdef.num_dlights ; i++) {
+			l = r_newrefdef.dlights[i];
+			R_MarkLights( l, 1<<i, r_worldmodel.nodes[0] );
+		}
 	}
 
 
@@ -453,22 +452,22 @@ public abstract class Light extends Warp {
 //			}
 //		}
 //	}
-//
-//
-//	/*
-//	** R_SetCacheState
-//	*/
-//	void R_SetCacheState( msurface_t *surf )
-//	{
-//		int maps;
-//
-//		for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
-//			 maps++)
-//		{
-//			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps]].white;
-//		}
-//	}
-//
+
+
+	/*
+	** R_SetCacheState
+	*/
+	void R_SetCacheState( msurface_t surf )
+	{
+		int maps;
+
+		for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
+			 maps++)
+		{
+			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps]].white;
+		}
+	}
+
 //	/*
 //	===============
 //	R_BuildLightMap
