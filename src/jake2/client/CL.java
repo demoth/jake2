@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.7 2004-08-18 20:27:35 hzi Exp $
+ * $Id: CL.java,v 1.8 2004-08-27 21:05:04 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1549,6 +1549,11 @@ public final class CL extends CL_pred {
 		SCR.RunConsole();
 
 		cls.framecount++;
+		if (cls.state != ca_active || cls.key_dest != key_game) {
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {}
+		}
 	}
 
 	//	  ============================================================================
