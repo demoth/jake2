@@ -125,7 +125,7 @@
 	
 	<!-- source distribution -->
 	<target name="srcdist" >
-		<tar destfile="jake2-src.tar.gz" compression="gzip">
+		<tar destfile="jake2src.tar.gz" compression="gzip">
 			<tarfileset dir="." prefix="Jake2" mode="755">
 				<include name="scripts/*.*"/>
 				<include name="build.sh"/>
@@ -141,7 +141,7 @@
 				<include name="readme.id"/>
 			</tarfileset>
 		</tar>
-		<zip destfile="jake2-src.zip">
+		<zip destfile="jake2src.zip">
 			<zipfileset dir="." prefix="Jake2">
 				<include name="src/jake2/**"/>
 				<include name="scripts/*.*"/>
