@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.15 2004-01-14 21:30:00 cwei Exp $
+ * $Id: Main.java,v 1.16 2004-01-19 12:59:06 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1247,7 +1247,8 @@ public abstract class Main extends Base {
 	 else
 		 gl_config.renderer = GL_RENDERER_OTHER;
 
-	 if ( gl_monolightmap.string.toUpperCase().charAt(0) != 'F' )
+	String monolightmap = gl_monolightmap.string.toUpperCase();
+	 if ( monolightmap.length() < 2 || monolightmap.charAt(1) != 'F' )
 	 {
 		 if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 )
 		 {

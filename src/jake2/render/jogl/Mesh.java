@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.7 2004-01-14 22:09:43 cwei Exp $
+ * $Id: Mesh.java,v 1.8 2004-01-19 12:59:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,9 +43,8 @@ import jake2.util.Math3D;
  * @author cwei
  */
 public abstract class Mesh extends Warp {
-////	   gl_mesh.c: triangle model functions
-//
-//	#include "gl_local.h"
+
+	// g_mesh.c: triangle model functions
 
 	/*
 	=============================================================
@@ -56,16 +55,8 @@ public abstract class Mesh extends Warp {
 	*/
 
 	static final int NUMVERTEXNORMALS =	162;
-//
-//	float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
-//	#include "anorms.h"
-//	};
 
 	float[][] r_avertexnormals = Anorms.VERTEXNORMALS;
-//
-//	typedef float vec4_t[4];
-//
-//	static	vec4_t	s_lerped[MAX_VERTS];
 
 	float[][] s_lerped = new float[qfiles.MAX_VERTS][4];
 
@@ -73,12 +64,11 @@ public abstract class Mesh extends Warp {
 	float[] shadevector = {0, 0, 0};
 	float[] shadelight = {0, 0, 0};
 
-//	   precalculated dot products for quantized angles
+	// precalculated dot products for quantized angles
 	static final int SHADEDOT_QUANT = 16;
-//	float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
-//	#include "anormtab.h"
-//	;
+
 	float[][]	r_avertexnormal_dots = Anorms.VERTEXNORMAL_DOTS;
+
 	float[] shadedots = r_avertexnormal_dots[0];
 
 	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[][] lerp, float[] move, float[] frontv, float[] backv )
@@ -277,11 +267,11 @@ public abstract class Mesh extends Warp {
 					{
 						index_xyz = order[orderIndex + 2];
 						orderIndex += 3;
-
-						//gl.glVertex3fv( s_lerped[index_xyz] );
-//						vertexArrayBuf.position(4 * index_xyz);
-//						vertexArrayBuf.get(tmpVec);
-//						gl.glVertex3fv( tmpVec );
+						/*
+						vertexArrayBuf.position(4 * index_xyz);
+						vertexArrayBuf.get(tmpVec);
+						gl.glVertex3fv( tmpVec );
+						*/
 						gl.glArrayElement( index_xyz );
 
 					} while (--count != 0);
@@ -372,68 +362,73 @@ public abstract class Mesh extends Warp {
 	GL_DrawAliasShadow
 	=============
 	*/
-//	extern	vec3_t			lightspot;
-
 	void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum)
 	{
-//		dtrivertx_t	*verts;
-//		int		*order;
-//		vec3_t	point;
-//		float	height, lheight;
-//		int		count;
-//		daliasframe_t	*frame;
-//
-//		lheight = currententity.origin[2] - lightspot[2];
-//
-//		frame = (daliasframe_t *)((byte *)paliashdr + paliashdr.ofs_frames 
-//			+ currententity.frame * paliashdr.framesize);
-//		verts = frame.verts;
-//
-//		height = 0;
-//
-//		order = (int *)((byte *)paliashdr + paliashdr.ofs_glcmds);
-//
-//		height = -lheight + 1.0;
-//
-//		while (1)
-//		{
-//			// get the vertex count and primitive type
-//			count = *order++;
-//			if (!count)
-//				break;		// done
-//			if (count < 0)
-//			{
-//				count = -count;
-//				gl.glBegin (GL.GL_TRIANGLE_FAN);
-//			}
-//			else
-//				gl.glBegin (GL.GL_TRIANGLE_STRIP);
-//
-//			do
-//			{
-//				// normals and vertexes come from the frame list
-//	/*
-//				point[0] = verts[order[2]].v[0] * frame.scale[0] + frame.translate[0];
-//				point[1] = verts[order[2]].v[1] * frame.scale[1] + frame.translate[1];
-//				point[2] = verts[order[2]].v[2] * frame.scale[2] + frame.translate[2];
-//	*/
-//
-//				memcpy( point, s_lerped[order[2]], sizeof( point )  );
-//
-//				point[0] -= shadevector[0]*(point[2]+lheight);
-//				point[1] -= shadevector[1]*(point[2]+lheight);
-//				point[2] = height;
-////				height -= 0.001;
-//				gl.glVertex3fv (point);
-//
-//				order += 3;
-//
-////				verts++;
-//
-//			} while (--count);
-//
-//			gl.glEnd ();
-//		}	
+		qfiles.dtrivertx_t[] verts;
+		int[] order;
+		float[] point = {0, 0, 0};
+		float	height, lheight;
+		int count;
+		qfiles.daliasframe_t frame;
+
+		lheight = currententity.origin[2] - lightspot[2];
+
+		frame = paliashdr.aliasFrames[currententity.frame];
+
+		verts = frame.verts;
+
+		height = 0;
+
+		order = paliashdr.glCmds;
+
+		height = -lheight + 1.0f;
+		
+		int orderIndex = 0;
+
+		while (true)
+		{
+			// get the vertex count and primitive type
+			count = order[orderIndex++];
+			if (count == 0)
+				break;		// done
+			if (count < 0)
+			{
+				count = -count;
+				gl.glBegin (GL.GL_TRIANGLE_FAN);
+			}
+			else
+				gl.glBegin (GL.GL_TRIANGLE_STRIP);
+
+			do
+			{
+				// normals and vertexes come from the frame list
+				/*
+				point[0] = verts[order[2]].v[0] * frame.scale[0] + frame.translate[0];
+				point[1] = verts[order[2]].v[1] * frame.scale[1] + frame.translate[1];
+				point[2] = verts[order[2]].v[2] * frame.scale[2] + frame.translate[2];
+				*/
+
+				if ( gl_vertex_arrays.value != 0.0f )
+				{
+					vertexArrayBuf.position(order[orderIndex + 2] * 4);
+					vertexArrayBuf.get(point);
+				}
+				else
+				{
+					System.arraycopy(s_lerped[order[orderIndex + 2]], 0, point, 0, 3);
+				}
+					
+				point[0] -= shadevector[0]*(point[2]+lheight);
+				point[1] -= shadevector[1]*(point[2]+lheight);
+				point[2] = height;
+				gl.glVertex3fv (point);
+
+				orderIndex += 3;
+
+			} while (--count != 0);
+
+			gl.glEnd ();
+		}	
 	}
 
 
@@ -443,141 +438,146 @@ public abstract class Mesh extends Warp {
 	boolean R_CullAliasModel( float[][] bbox, entity_t e )
 	{
 		int i;
-//		vec3_t		mins, maxs;
+		float[] mins = {0, 0, 0};
+		float[] maxs = {0, 0, 0};
+		
 		qfiles.dmdl_t paliashdr;
-//		vec3_t		vectors[3];
-//		vec3_t		thismins, oldmins, thismaxs, oldmaxs;
+
+		float[][] vectors = {
+			{0, 0, 0},
+			{0, 0, 0},
+			{0, 0, 0}
+		};
+
+		float[] thismins = {0, 0, 0};
+		float[] oldmins = {0, 0, 0};
+		float[] thismaxs = {0, 0, 0};
+		float[] oldmaxs = {0, 0, 0};
 		qfiles.daliasframe_t pframe, poldframe;
-//		vec3_t angles;
-//
+		float[] angles = {0, 0, 0};
+
 		paliashdr = (qfiles.dmdl_t)currentmodel.extradata;
-//
-//		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
-//		{
-//			ri.Con_Printf (PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n", 
-//				currentmodel.name, e.frame);
-//			e.frame = 0;
-//		}
-//		if ( ( e.oldframe >= paliashdr.num_frames ) || ( e.oldframe < 0 ) )
-//		{
-//			ri.Con_Printf (PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n", 
-//				currentmodel.name, e.oldframe);
-//			e.oldframe = 0;
-//		}
-//
-//		pframe = ( daliasframe_t * ) ( ( byte * ) paliashdr + 
-//										  paliashdr.ofs_frames +
-//										  e.frame * paliashdr.framesize);
-//
-//		poldframe = ( daliasframe_t * ) ( ( byte * ) paliashdr + 
-//										  paliashdr.ofs_frames +
-//										  e.oldframe * paliashdr.framesize);
-//
-//		/*
-//		** compute axially aligned mins and maxs
-//		*/
-//		if ( pframe == poldframe )
-//		{
-//			for ( i = 0; i < 3; i++ )
-//			{
-//				mins[i] = pframe.translate[i];
-//				maxs[i] = mins[i] + pframe.scale[i]*255;
-//			}
-//		}
-//		else
-//		{
-//			for ( i = 0; i < 3; i++ )
-//			{
-//				thismins[i] = pframe.translate[i];
-//				thismaxs[i] = thismins[i] + pframe.scale[i]*255;
-//
-//				oldmins[i]  = poldframe.translate[i];
-//				oldmaxs[i]  = oldmins[i] + poldframe.scale[i]*255;
-//
-//				if ( thismins[i] < oldmins[i] )
-//					mins[i] = thismins[i];
-//				else
-//					mins[i] = oldmins[i];
-//
-//				if ( thismaxs[i] > oldmaxs[i] )
-//					maxs[i] = thismaxs[i];
-//				else
-//					maxs[i] = oldmaxs[i];
-//			}
-//		}
-//
-//		/*
-//		** compute a full bounding box
-//		*/
-//		for ( i = 0; i < 8; i++ )
-//		{
-//			vec3_t   tmp;
-//
-//			if ( i & 1 )
-//				tmp[0] = mins[0];
-//			else
-//				tmp[0] = maxs[0];
-//
-//			if ( i & 2 )
-//				tmp[1] = mins[1];
-//			else
-//				tmp[1] = maxs[1];
-//
-//			if ( i & 4 )
-//				tmp[2] = mins[2];
-//			else
-//				tmp[2] = maxs[2];
-//
-//			VectorCopy( tmp, bbox[i] );
-//		}
-//
-//		/*
-//		** rotate the bounding box
-//		*/
-//		VectorCopy( e.angles, angles );
-//		angles[YAW] = -angles[YAW];
-//		AngleVectors( angles, vectors[0], vectors[1], vectors[2] );
-//
-//		for ( i = 0; i < 8; i++ )
-//		{
-//			vec3_t tmp;
-//
-//			VectorCopy( bbox[i], tmp );
-//
-//			bbox[i][0] = DotProduct( vectors[0], tmp );
-//			bbox[i][1] = -DotProduct( vectors[1], tmp );
-//			bbox[i][2] = DotProduct( vectors[2], tmp );
-//
-//			VectorAdd( e.origin, bbox[i], bbox[i] );
-//		}
-//
-//		{
-//			int p, f, aggregatemask = ~0;
-//
-//			for ( p = 0; p < 8; p++ )
-//			{
-//				int mask = 0;
-//
-//				for ( f = 0; f < 4; f++ )
-//				{
-//					float dp = DotProduct( frustum[f].normal, bbox[p] );
-//
-//					if ( ( dp - frustum[f].dist ) < 0 )
-//					{
-//						mask |= ( 1 << f );
-//					}
-//				}
-//
-//				aggregatemask &= mask;
-//			}
-//
-//			if ( aggregatemask )
-//			{
-//				return true;
-//			}
-//
+
+		if ( ( e.frame >= paliashdr.num_frames ) || ( e.frame < 0 ) )
+		{
+			ri.Con_Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name +": no such frame " + e.frame + '\n');
+			e.frame = 0;
+		}
+		if ( ( e.oldframe >= paliashdr.num_frames ) || ( e.oldframe < 0 ) )
+		{
+			ri.Con_Printf (Defines.PRINT_ALL, "R_CullAliasModel " + currentmodel.name + ": no such oldframe " + e.oldframe + '\n');
+			e.oldframe = 0;
+		}
+
+		pframe = paliashdr.aliasFrames[e.frame];
+		poldframe = paliashdr.aliasFrames[e.oldframe];
+
+		/*
+		** compute axially aligned mins and maxs
+		*/
+		if ( pframe == poldframe )
+		{
+			for ( i = 0; i < 3; i++ )
+			{
+				mins[i] = pframe.translate[i];
+				maxs[i] = mins[i] + pframe.scale[i]*255;
+			}
+		}
+		else
+		{
+			for ( i = 0; i < 3; i++ )
+			{
+				thismins[i] = pframe.translate[i];
+				thismaxs[i] = thismins[i] + pframe.scale[i]*255;
+
+				oldmins[i]  = poldframe.translate[i];
+				oldmaxs[i]  = oldmins[i] + poldframe.scale[i]*255;
+
+				if ( thismins[i] < oldmins[i] )
+					mins[i] = thismins[i];
+				else
+					mins[i] = oldmins[i];
+
+				if ( thismaxs[i] > oldmaxs[i] )
+					maxs[i] = thismaxs[i];
+				else
+					maxs[i] = oldmaxs[i];
+			}
+		}
+
+		/*
+		** compute a full bounding box
+		*/
+		for ( i = 0; i < 8; i++ )
+		{
+			float[] tmp = {0, 0, 0};
+
+			if ( (i & 1) != 0 )
+				tmp[0] = mins[0];
+			else
+				tmp[0] = maxs[0];
+
+			if ( (i & 2) != 0)
+				tmp[1] = mins[1];
+			else
+				tmp[1] = maxs[1];
+
+			if ( (i & 4) != 0)
+				tmp[2] = mins[2];
+			else
+				tmp[2] = maxs[2];
+
+			Math3D.VectorCopy( tmp, bbox[i] );
+		}
+
+		/*
+		** rotate the bounding box
+		*/
+		Math3D.VectorCopy( e.angles, angles );
+		angles[YAW] = -angles[YAW];
+		Math3D.AngleVectors( angles, vectors[0], vectors[1], vectors[2] );
+
+		for ( i = 0; i < 8; i++ )
+		{
+			float[] tmp = {0, 0, 0};
+
+			Math3D.VectorCopy( bbox[i], tmp );
+
+			bbox[i][0] = Math3D.DotProduct( vectors[0], tmp );
+			bbox[i][1] = -Math3D.DotProduct( vectors[1], tmp );
+			bbox[i][2] = Math3D.DotProduct( vectors[2], tmp );
+
+			Math3D.VectorAdd( e.origin, bbox[i], bbox[i] );
+		}
+
+		{
+			int p, f;
+			int aggregatemask = ~0; // 0xFFFFFFFF
+			
+			for ( p = 0; p < 8; p++ )
+			{
+				int mask = 0;
+
+				for ( f = 0; f < 4; f++ )
+				{
+					float dp = Math3D.DotProduct( frustum[f].normal, bbox[p] );
+
+					if ( ( dp - frustum[f].dist ) < 0 )
+					{
+						mask |= ( 1 << f );
+					}
+				}
+
+				aggregatemask &= mask;
+			}
+
+			if ( aggregatemask != 0 )
+			{
+				return true;
+			}
+
 			return false;
-//		}
+		}
 	}
 
 	/*
@@ -641,91 +641,90 @@ public abstract class Mesh extends Warp {
 				shadelight[2] = 1.0f;
 		}
 
-		else if ( (currententity.flags & Defines.RF_FULLBRIGHT) !=0 )
+		else if ( (currententity.flags & Defines.RF_FULLBRIGHT) != 0 )
 		{
 			for (i=0 ; i<3 ; i++)
 				shadelight[i] = 1.0f;
 		}
 		else
 		{
-//			R_LightPoint (currententity.origin, shadelight);
-//
-//			// player lighting hack for communication back to server
-//			// big hack!
-//			if ( currententity.flags & Defines.RF_WEAPONMODEL )
-//			{
-//				// pick the greatest component, which should be the same
-//				// as the mono value returned by software
-//				if (shadelight[0] > shadelight[1])
-//				{
-//					if (shadelight[0] > shadelight[2])
-//						r_lightlevel.value = 150*shadelight[0];
-//					else
-//						r_lightlevel.value = 150*shadelight[2];
-//				}
-//				else
-//				{
-//					if (shadelight[1] > shadelight[2])
-//						r_lightlevel.value = 150*shadelight[1];
-//					else
-//						r_lightlevel.value = 150*shadelight[2];
-//				}
-//
-//			}
-//		
-//			if ( gl_monolightmap.string[0] != '0' )
-//			{
-//				float s = shadelight[0];
-//
-//				if ( s < shadelight[1] )
-//					s = shadelight[1];
-//				if ( s < shadelight[2] )
-//					s = shadelight[2];
-//
-//				shadelight[0] = s;
-//				shadelight[1] = s;
-//				shadelight[2] = s;
-//			}
+			R_LightPoint (currententity.origin, shadelight);
+
+			// player lighting hack for communication back to server
+			// big hack!
+			if ( (currententity.flags & Defines.RF_WEAPONMODEL) != 0 )
+			{
+				// pick the greatest component, which should be the same
+				// as the mono value returned by software
+				if (shadelight[0] > shadelight[1])
+				{
+					if (shadelight[0] > shadelight[2])
+						r_lightlevel.value = 150*shadelight[0];
+					else
+						r_lightlevel.value = 150*shadelight[2];
+				}
+				else
+				{
+					if (shadelight[1] > shadelight[2])
+						r_lightlevel.value = 150*shadelight[1];
+					else
+						r_lightlevel.value = 150*shadelight[2];
+				}
+			}
+		
+			if ( gl_monolightmap.string.charAt(0) != '0' )
+			{
+				float s = shadelight[0];
+
+				if ( s < shadelight[1] )
+					s = shadelight[1];
+				if ( s < shadelight[2] )
+					s = shadelight[2];
+
+				shadelight[0] = s;
+				shadelight[1] = s;
+				shadelight[2] = s;
+			}
 		}
-//
-//		if ( currententity.flags & Defines.RF_MINLIGHT )
-//		{
-//			for (i=0 ; i<3 ; i++)
-//				if (shadelight[i] > 0.1)
-//					break;
-//			if (i == 3)
-//			{
-//				shadelight[0] = 0.1;
-//				shadelight[1] = 0.1;
-//				shadelight[2] = 0.1;
-//			}
-//		}
-//
-//		if ( currententity.flags & Defines.RF_GLOW )
-//		{	// bonus items will pulse with time
-//			float	scale;
-//			float	min;
-//
-//			scale = 0.1 * sin(r_newrefdef.time*7);
-//			for (i=0 ; i<3 ; i++)
-//			{
-//				min = shadelight[i] * 0.8;
-//				shadelight[i] += scale;
-//				if (shadelight[i] < min)
-//					shadelight[i] = min;
-//			}
-//		}
-//
-////	   =================
-////	   PGM	ir goggles color override
-//		if ( r_newrefdef.rdflags & RDF_IRGOGGLES && currententity.flags & Defines.RF_IR_VISIBLE)
-//		{
-//			shadelight[0] = 1.0;
-//			shadelight[1] = 0.0;
-//			shadelight[2] = 0.0;
-//		}
-//	   PGM	
-//	   =================
+
+		if ( (currententity.flags & Defines.RF_MINLIGHT) != 0 )
+		{
+			for (i=0 ; i<3 ; i++)
+				if (shadelight[i] > 0.1f)
+					break;
+			if (i == 3)
+			{
+				shadelight[0] = 0.1f;
+				shadelight[1] = 0.1f;
+				shadelight[2] = 0.1f;
+			}
+		}
+
+		if ( (currententity.flags & Defines.RF_GLOW) != 0 )
+		{	// bonus items will pulse with time
+			float	scale;
+			float	min;
+
+			scale = (float)(0.1f * Math.sin(r_newrefdef.time*7));
+			for (i=0 ; i<3 ; i++)
+			{
+				min = shadelight[i] * 0.8f;
+				shadelight[i] += scale;
+				if (shadelight[i] < min)
+					shadelight[i] = min;
+			}
+		}
+
+		// =================
+		// PGM	ir goggles color override
+		if ( (r_newrefdef.rdflags & Defines.RDF_IRGOGGLES) != 0 && (currententity.flags & Defines.RF_IR_VISIBLE) != 0)
+		{
+			shadelight[0] = 1.0f;
+			shadelight[1] = 0.0f;
+			shadelight[2] = 0.0f;
+		}
+		// PGM	
+		// =================
 
 		shadedots = r_avertexnormal_dots[((int)(currententity.angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 	
@@ -746,20 +745,18 @@ public abstract class Mesh extends Warp {
 		//
 		if ( (currententity.flags & Defines.RF_DEPTHHACK) != 0) // hack the depth range to prevent view model from poking into walls
 			gl.glDepthRange(gldepthmin, gldepthmin + 0.3*(gldepthmax-gldepthmin));
-//
-//		if ( ( currententity.flags & Defines.RF_WEAPONMODEL ) && ( r_lefthand.value == 1.0F ) )
-//		{
-//			extern void MYgluPerspective( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar );
-//
-//			gl.glMatrixMode( GL.GL_PROJECTION );
-//			gl.glPushMatrix();
-//			gl.glLoadIdentity();
-//			gl.glScalef( -1, 1, 1 );
-//			MYgluPerspective( r_newrefdef.fov_y, ( float ) r_newrefdef.width / r_newrefdef.height,  4,  4096);
-//			gl.glMatrixMode( GL.GL_MODELVIEW );
-//
-//			gl.glCullFace( GL.GL_BACK );
-//		}
+
+		if ( (currententity.flags & Defines.RF_WEAPONMODEL) != 0 && (r_lefthand.value == 1.0f) )
+		{
+			gl.glMatrixMode( GL.GL_PROJECTION );
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			gl.glScalef( -1, 1, 1 );
+			MYgluPerspective( r_newrefdef.fov_y, ( float ) r_newrefdef.width / r_newrefdef.height,  4,  4096);
+			gl.glMatrixMode( GL.GL_MODELVIEW );
+
+			gl.glCullFace( GL.GL_BACK );
+		}
 
 		gl.glPushMatrix ();
 		e.angles[PITCH] = -e.angles[PITCH];	// sigh.
@@ -836,18 +833,18 @@ public abstract class Mesh extends Warp {
 		if ( (currententity.flags & Defines.RF_DEPTHHACK) != 0)
 			gl.glDepthRange (gldepthmin, gldepthmax);
 
-//		if (gl_shadows.value && !(currententity.flags & (Defines.RF_TRANSLUCENT | Defines.RF_WEAPONMODEL)))
-//		{
-//			gl.glPushMatrix ();
-//			R_RotateForEntity (e);
-//			gl.glDisable (GL.GL_TEXTURE_2D);
-//			gl.glEnable (GL.GL_BLEND);
-//			gl.glColor4f (0,0,0,0.5);
-//			GL_DrawAliasShadow (paliashdr, currententity.frame );
-//			gl.glEnable (GL.GL_TEXTURE_2D);
-//			gl.glDisable (GL.GL_BLEND);
-//			gl.glPopMatrix ();
-//		}
+		if ( gl_shadows.value != 0.0f && (currententity.flags & (Defines.RF_TRANSLUCENT | Defines.RF_WEAPONMODEL)) == 0)
+		{
+			gl.glPushMatrix ();
+			R_RotateForEntity (e);
+			gl.glDisable (GL.GL_TEXTURE_2D);
+			gl.glEnable (GL.GL_BLEND);
+			gl.glColor4f (0,0,0,0.5f);
+			GL_DrawAliasShadow (paliashdr, currententity.frame );
+			gl.glEnable (GL.GL_TEXTURE_2D);
+			gl.glDisable (GL.GL_BLEND);
+			gl.glPopMatrix ();
+		}
 		gl.glColor4f (1,1,1,1);
 	}
 

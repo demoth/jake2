@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.2 2004-01-09 15:09:12 cwei Exp $
+ * $Id: Light.java,v 1.3 2004-01-19 12:59:06 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.Defines;
+import jake2.client.dlight_t;
+import jake2.game.GameBase;
 import jake2.game.cplane_t;
+import jake2.render.mnode_t;
+import jake2.render.msurface_t;
+import jake2.render.mtexinfo_t;
+import jake2.util.Math3D;
 
 /**
  * Light
@@ -49,42 +56,34 @@ public abstract class Light extends Surf {
 //	=============================================================================
 //	*/
 //
-//	void R_RenderDlight (dlight_t *light)
-//	{
+	void R_RenderDlight (dlight_t light)
+	{
 //		int		i, j;
 //		float	a;
 //		vec3_t	v;
 //		float	rad;
 //
-//		rad = light->intensity * 0.35;
+//		rad = light.intensity * 0.35;
 //
-//		VectorSubtract (light->origin, r_origin, v);
-//	#if 0
-//		// FIXME?
-//		if (VectorLength (v) < rad)
-//		{	// view is inside the dlight
-//			V_AddBlend (light->color[0], light->color[1], light->color[2], light->intensity * 0.0003, v_blend);
-//			return;
-//		}
-//	#endif
+//		VectorSubtract (light.origin, r_origin, v);
 //
 //		qglBegin (GL_TRIANGLE_FAN);
-//		qglColor3f (light->color[0]*0.2, light->color[1]*0.2, light->color[2]*0.2);
+//		qglColor3f (light.color[0]*0.2, light.color[1]*0.2, light.color[2]*0.2);
 //		for (i=0 ; i<3 ; i++)
-//			v[i] = light->origin[i] - vpn[i]*rad;
+//			v[i] = light.origin[i] - vpn[i]*rad;
 //		qglVertex3fv (v);
 //		qglColor3f (0,0,0);
 //		for (i=16 ; i>=0 ; i--)
 //		{
 //			a = i/16.0 * M_PI*2;
 //			for (j=0 ; j<3 ; j++)
-//				v[j] = light->origin[j] + vright[j]*cos(a)*rad
+//				v[j] = light.origin[j] + vright[j]*cos(a)*rad
 //					+ vup[j]*sin(a)*rad;
 //			qglVertex3fv (v);
 //		}
 //		qglEnd ();
-//	}
-//
+	}
+
 //	/*
 //	=============
 //	R_RenderDlights
@@ -95,7 +94,7 @@ public abstract class Light extends Surf {
 //		int		i;
 //		dlight_t	*l;
 //
-//		if (!gl_flashblend->value)
+//		if (!gl_flashblend.value)
 //			return;
 //
 //		r_dlightframecount = r_framecount + 1;	// because the count hasn't
@@ -138,37 +137,37 @@ public abstract class Light extends Surf {
 //		msurface_t	*surf;
 //		int			i;
 //	
-//		if (node->contents != -1)
+//		if (node.contents != -1)
 //			return;
 //
-//		splitplane = node->plane;
-//		dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
+//		splitplane = node.plane;
+//		dist = DotProduct (light.origin, splitplane.normal) - splitplane.dist;
 //	
-//		if (dist > light->intensity-DLIGHT_CUTOFF)
+//		if (dist > light.intensity-DLIGHT_CUTOFF)
 //		{
-//			R_MarkLights (light, bit, node->children[0]);
+//			R_MarkLights (light, bit, node.children[0]);
 //			return;
 //		}
-//		if (dist < -light->intensity+DLIGHT_CUTOFF)
+//		if (dist < -light.intensity+DLIGHT_CUTOFF)
 //		{
-//			R_MarkLights (light, bit, node->children[1]);
+//			R_MarkLights (light, bit, node.children[1]);
 //			return;
 //		}
 //		
 ////	   mark the polygons
-//		surf = r_worldmodel->surfaces + node->firstsurface;
-//		for (i=0 ; i<node->numsurfaces ; i++, surf++)
+//		surf = r_worldmodel.surfaces + node.firstsurface;
+//		for (i=0 ; i<node.numsurfaces ; i++, surf++)
 //		{
-//			if (surf->dlightframe != r_dlightframecount)
+//			if (surf.dlightframe != r_dlightframecount)
 //			{
-//				surf->dlightbits = 0;
-//				surf->dlightframe = r_dlightframecount;
+//				surf.dlightbits = 0;
+//				surf.dlightframe = r_dlightframecount;
 //			}
-//			surf->dlightbits |= bit;
+//			surf.dlightbits |= bit;
 //		}
 //
-//		R_MarkLights (light, bit, node->children[0]);
-//		R_MarkLights (light, bit, node->children[1]);
+//		R_MarkLights (light, bit, node.children[0]);
+//		R_MarkLights (light, bit, node.children[1]);
 //	}
 
 
@@ -182,14 +181,14 @@ public abstract class Light extends Surf {
 //		int		i;
 //		dlight_t	*l;
 //
-//		if (gl_flashblend->value)
+//		if (gl_flashblend.value)
 //			return;
 //
 //		r_dlightframecount = r_framecount + 1;	// because the count hasn't
 //												//  advanced yet for this frame
 //		l = r_newrefdef.dlights;
 //		for (i=0 ; i<r_newrefdef.num_dlights ; i++, l++)
-//			R_MarkLights ( l, 1<<i, r_worldmodel->nodes );
+//			R_MarkLights ( l, 1<<i, r_worldmodel.nodes );
 	}
 
 
@@ -205,106 +204,111 @@ public abstract class Light extends Surf {
 	cplane_t lightplane; // used as shadow plane
 	float[] lightspot = {0, 0, 0}; // vec3_t
 
-//	int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
-//	{
-//		float		front, back, frac;
-//		int			side;
-//		cplane_t	*plane;
-//		vec3_t		mid;
-//		msurface_t	*surf;
-//		int			s, t, ds, dt;
-//		int			i;
-//		mtexinfo_t	*tex;
-//		byte		*lightmap;
-//		int			maps;
-//		int			r;
-//
-//		if (node->contents != -1)
-//			return -1;		// didn't hit anything
-//	
-////	   calculate mid point
-//
-////	   FIXME: optimize for axial
-//		plane = node->plane;
-//		front = DotProduct (start, plane->normal) - plane->dist;
-//		back = DotProduct (end, plane->normal) - plane->dist;
-//		side = front < 0;
-//	
-//		if ( (back < 0) == side)
-//			return RecursiveLightPoint (node->children[side], start, end);
-//	
-//		frac = front / (front-back);
-//		mid[0] = start[0] + (end[0] - start[0])*frac;
-//		mid[1] = start[1] + (end[1] - start[1])*frac;
-//		mid[2] = start[2] + (end[2] - start[2])*frac;
-//	
-////	   go down front side	
-//		r = RecursiveLightPoint (node->children[side], start, mid);
-//		if (r >= 0)
-//			return r;		// hit something
-//		
-//		if ( (back < 0) == side )
-//			return -1;		// didn't hit anuthing
-//		
-////	   check for impact on this node
-//		VectorCopy (mid, lightspot);
-//		lightplane = plane;
-//
-//		surf = r_worldmodel->surfaces + node->firstsurface;
-//		for (i=0 ; i<node->numsurfaces ; i++, surf++)
-//		{
-//			if (surf->flags&(SURF_DRAWTURB|SURF_DRAWSKY)) 
-//				continue;	// no lightmaps
-//
-//			tex = surf->texinfo;
-//		
-//			s = DotProduct (mid, tex->vecs[0]) + tex->vecs[0][3];
-//			t = DotProduct (mid, tex->vecs[1]) + tex->vecs[1][3];;
-//
-//			if (s < surf->texturemins[0] ||
-//			t < surf->texturemins[1])
-//				continue;
-//		
-//			ds = s - surf->texturemins[0];
-//			dt = t - surf->texturemins[1];
-//		
-//			if ( ds > surf->extents[0] || dt > surf->extents[1] )
-//				continue;
-//
-//			if (!surf->samples)
-//				return 0;
-//
-//			ds >>= 4;
-//			dt >>= 4;
-//
-//			lightmap = surf->samples;
-//			VectorCopy (vec3_origin, pointcolor);
-//			if (lightmap)
-//			{
-//				vec3_t scale;
-//
-//				lightmap += 3*(dt * ((surf->extents[0]>>4)+1) + ds);
-//
-//				for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
-//						maps++)
-//				{
-//					for (i=0 ; i<3 ; i++)
-//						scale[i] = gl_modulate->value*r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
-//
-//					pointcolor[0] += lightmap[0] * scale[0] * (1.0/255);
-//					pointcolor[1] += lightmap[1] * scale[1] * (1.0/255);
-//					pointcolor[2] += lightmap[2] * scale[2] * (1.0/255);
-//					lightmap += 3*((surf->extents[0]>>4)+1) *
-//							((surf->extents[1]>>4)+1);
-//				}
-//			}
-//		
-//			return 1;
-//		}
-//
-////	   go down back side
-//		return RecursiveLightPoint (node->children[!side], mid, end);
-//	}
+	int RecursiveLightPoint (mnode_t node, float[] start, float[] end)
+	{
+		float front, back, frac;
+		boolean side;
+		int sideIndex;
+		cplane_t plane;
+		float[] mid = {0, 0, 0};
+		msurface_t surf;
+		int s, t, ds, dt;
+		int i;
+		mtexinfo_t tex;
+		byte[] lightmap;
+		int maps;
+		int r;
+
+		if (node.contents != -1)
+			return -1;		// didn't hit anything
+	
+		// calculate mid point
+
+		// FIXME: optimize for axial
+		plane = node.plane;
+		front = Math3D.DotProduct (start, plane.normal) - plane.dist;
+		back = Math3D.DotProduct (end, plane.normal) - plane.dist;
+		side = (front < 0);
+		sideIndex = (side) ? 1 : 0;
+	
+		if ( (back < 0) == side)
+			return RecursiveLightPoint (node.children[sideIndex], start, end);
+	
+		frac = front / (front-back);
+		mid[0] = start[0] + (end[0] - start[0])*frac;
+		mid[1] = start[1] + (end[1] - start[1])*frac;
+		mid[2] = start[2] + (end[2] - start[2])*frac;
+	
+		// go down front side	
+		r = RecursiveLightPoint (node.children[sideIndex], start, mid);
+		if (r >= 0)
+			return r;		// hit something
+		
+		if ( (back < 0) == side )
+			return -1; // didn't hit anuthing
+		
+		// check for impact on this node
+		Math3D.VectorCopy (mid, lightspot);
+		lightplane = plane;
+
+		int surfIndex = node.firstsurface;
+		for (i=0 ; i<node.numsurfaces ; i++, surfIndex++)
+		{
+			surf = r_worldmodel.surfaces[surfIndex];
+			
+			if ((surf.flags & (Defines.SURF_DRAWTURB | Defines.SURF_DRAWSKY)) != 0) 
+				continue;	// no lightmaps
+
+			tex = surf.texinfo;
+		
+			s = (int)(Math3D.DotProduct (mid, tex.vecs[0]) + tex.vecs[0][3]);
+			t = (int)(Math3D.DotProduct (mid, tex.vecs[1]) + tex.vecs[1][3]);
+
+			if (s < surf.texturemins[0] || t < surf.texturemins[1])
+				continue;
+		
+			ds = s - surf.texturemins[0];
+			dt = t - surf.texturemins[1];
+		
+			if ( ds > surf.extents[0] || dt > surf.extents[1] )
+				continue;
+
+			if (surf.samples == null)
+				return 0;
+
+			ds >>= 4;
+			dt >>= 4;
+
+			lightmap = surf.samples;
+			int lightmapIndex = 0;
+			Math3D.VectorCopy (GameBase.vec3_origin, pointcolor);
+			if (lightmap != null)
+			{
+				float[] scale = {0, 0, 0};
+
+//				lightmap += 3*(dt * ((surf.extents[0]>>4)+1) + ds);
+				lightmapIndex += 3 * (dt * ((surf.extents[0] >> 4) + 1) + ds);
+
+				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != -1; maps++)
+				{
+					for (i=0 ; i<3 ; i++)
+						scale[i] = gl_modulate.value * r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
+
+					pointcolor[0] += (lightmap[lightmapIndex + 0] & 0xFF) * scale[0] * (1.0/255);
+					pointcolor[1] += (lightmap[lightmapIndex + 1] & 0xFF) * scale[1] * (1.0/255);
+					pointcolor[2] += (lightmap[lightmapIndex + 2] & 0xFF) * scale[2] * (1.0/255);
+//					lightmap += 3*((surf.extents[0]>>4)+1) *
+//							((surf.extents[1]>>4)+1);
+					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);
+				}
+			}
+		
+			return 1;
+		}
+
+		// go down back side
+		return RecursiveLightPoint (node.children[1 - sideIndex], mid, end);
+	}
 
 	/*
 	===============
@@ -316,65 +320,64 @@ public abstract class Light extends Surf {
 		assert (p.length == 3) : "vec3_t bug";
 		assert (color.length == 3) : "rgb bug";
 
-//		vec3_t		end;
-//		float		r;
-//		int			lnum;
-//		dlight_t	*dl;
-//		float		light;
-//		vec3_t		dist;
-//		float		add;
-//	
-//		if (!r_worldmodel->lightdata)
-//		{
-//			color[0] = color[1] = color[2] = 1.0;
-//			return;
-//		}
-//	
-//		end[0] = p[0];
-//		end[1] = p[1];
-//		end[2] = p[2] - 2048;
-//	
-//		r = RecursiveLightPoint (r_worldmodel->nodes, p, end);
-//	
-//		if (r == -1)
-//		{
-//			VectorCopy (vec3_origin, color);
-//		}
-//		else
-//		{
-//			VectorCopy (pointcolor, color);
-//		}
-//
-//		//
-//		// add dynamic lights
-//		//
-//		light = 0;
-//		dl = r_newrefdef.dlights;
-//		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++, dl++)
-//		{
-//			VectorSubtract (currententity->origin,
-//							dl->origin,
-//							dist);
-//			add = dl->intensity - VectorLength(dist);
-//			add *= (1.0/256);
-//			if (add > 0)
-//			{
-//				VectorMA (color, add, dl->color, color);
-//			}
-//		}
-//
-//		VectorScale (color, gl_modulate->value, color);
+		float[] end = {0, 0, 0};
+		float r;
+		int lnum;
+		dlight_t dl;
+		float light;
+		float[] dist = {0, 0, 0};
+		float add;
+	
+		if (r_worldmodel.lightdata == null)
+		{
+			color[0] = color[1] = color[2] = 1.0f;
+			return;
+		}
+	
+		end[0] = p[0];
+		end[1] = p[1];
+		end[2] = p[2] - 2048;
+	
+		r = RecursiveLightPoint(r_worldmodel.nodes[0], p, end);
+	
+		if (r == -1)
+		{
+			Math3D.VectorCopy (GameBase.vec3_origin, color);
+		}
+		else
+		{
+			Math3D.VectorCopy (pointcolor, color);
+		}
+
+		//
+		// add dynamic lights
+		//
+		light = 0;
+		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
+		{
+			dl = r_newrefdef.dlights[lnum];
+			
+			Math3D.VectorSubtract (currententity.origin, dl.origin, dist);
+			add = dl.intensity - Math3D.VectorLength(dist);
+			add *= (1.0f/256);
+			if (add > 0)
+			{
+				Math3D.VectorMA (color, add, dl.color, color);
+			}
+		}
+
+		Math3D.VectorScale (color, gl_modulate.value, color);
 	}
-//
-//
-////	  ===================================================================
+
+
+//	  ===================================================================
 //
 //	static float s_blocklights[34*34*3];
-//	/*
-//	===============
-//	R_AddDynamicLights
-//	===============
-//	*/
+	/*
+	===============
+	R_AddDynamicLights
+	===============
+	*/
 //	void R_AddDynamicLights (msurface_t *surf)
 //	{
 //		int			lnum;
@@ -389,19 +392,19 @@ public abstract class Light extends Surf {
 //		float		*pfBL;
 //		float		fsacc, ftacc;
 //
-//		smax = (surf->extents[0]>>4)+1;
-//		tmax = (surf->extents[1]>>4)+1;
-//		tex = surf->texinfo;
+//		smax = (surf.extents[0]>>4)+1;
+//		tmax = (surf.extents[1]>>4)+1;
+//		tex = surf.texinfo;
 //
 //		for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
 //		{
-//			if ( !(surf->dlightbits & (1<<lnum) ) )
+//			if ( !(surf.dlightbits & (1<<lnum) ) )
 //				continue;		// not lit by this light
 //
 //			dl = &r_newrefdef.dlights[lnum];
-//			frad = dl->intensity;
-//			fdist = DotProduct (dl->origin, surf->plane->normal) -
-//					surf->plane->dist;
+//			frad = dl.intensity;
+//			fdist = DotProduct (dl.origin, surf.plane.normal) -
+//					surf.plane.dist;
 //			frad -= fabs(fdist);
 //			// rad is now the highest intensity on the plane
 //
@@ -412,12 +415,12 @@ public abstract class Light extends Surf {
 //
 //			for (i=0 ; i<3 ; i++)
 //			{
-//				impact[i] = dl->origin[i] -
-//						surf->plane->normal[i]*fdist;
+//				impact[i] = dl.origin[i] -
+//						surf.plane.normal[i]*fdist;
 //			}
 //
-//			local[0] = DotProduct (impact, tex->vecs[0]) + tex->vecs[0][3] - surf->texturemins[0];
-//			local[1] = DotProduct (impact, tex->vecs[1]) + tex->vecs[1][3] - surf->texturemins[1];
+//			local[0] = DotProduct (impact, tex.vecs[0]) + tex.vecs[0][3] - surf.texturemins[0];
+//			local[1] = DotProduct (impact, tex.vecs[1]) + tex.vecs[1][3] - surf.texturemins[1];
 //
 //			pfBL = s_blocklights;
 //			for (t = 0, ftacc = 0 ; t<tmax ; t++, ftacc += 16)
@@ -440,9 +443,9 @@ public abstract class Light extends Surf {
 //
 //					if ( fdist < fminlight )
 //					{
-//						pfBL[0] += ( frad - fdist ) * dl->color[0];
-//						pfBL[1] += ( frad - fdist ) * dl->color[1];
-//						pfBL[2] += ( frad - fdist ) * dl->color[2];
+//						pfBL[0] += ( frad - fdist ) * dl.color[0];
+//						pfBL[1] += ( frad - fdist ) * dl.color[1];
+//						pfBL[2] += ( frad - fdist ) * dl.color[2];
 //					}
 //				}
 //			}
@@ -457,10 +460,10 @@ public abstract class Light extends Surf {
 //	{
 //		int maps;
 //
-//		for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+//		for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
 //			 maps++)
 //		{
-//			surf->cached_light[maps] = r_newrefdef.lightstyles[surf->styles[maps]].white;
+//			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps]].white;
 //		}
 //	}
 //
@@ -483,49 +486,49 @@ public abstract class Light extends Surf {
 //		lightstyle_t	*style;
 //		int monolightmap;
 //
-//		if ( surf->texinfo->flags & (SURF_SKY|SURF_TRANS33|SURF_TRANS66|SURF_WARP) )
+//		if ( surf.texinfo.flags & (SURF_SKY|SURF_TRANS33|SURF_TRANS66|SURF_WARP) )
 //			ri.Sys_Error (ERR_DROP, "R_BuildLightMap called for non-lit surface");
 //
-//		smax = (surf->extents[0]>>4)+1;
-//		tmax = (surf->extents[1]>>4)+1;
+//		smax = (surf.extents[0]>>4)+1;
+//		tmax = (surf.extents[1]>>4)+1;
 //		size = smax*tmax;
 //		if (size > (sizeof(s_blocklights)>>4) )
 //			ri.Sys_Error (ERR_DROP, "Bad s_blocklights size");
 //
 ////	   set to full bright if no light data
-//		if (!surf->samples)
+//		if (!surf.samples)
 //		{
 //			int maps;
 //
 //			for (i=0 ; i<size*3 ; i++)
 //				s_blocklights[i] = 255;
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
 //				 maps++)
 //			{
-//				style = &r_newrefdef.lightstyles[surf->styles[maps]];
+//				style = &r_newrefdef.lightstyles[surf.styles[maps]];
 //			}
 //			goto store;
 //		}
 //
 //		// count the # of maps
-//		for ( nummaps = 0 ; nummaps < MAXLIGHTMAPS && surf->styles[nummaps] != 255 ;
+//		for ( nummaps = 0 ; nummaps < MAXLIGHTMAPS && surf.styles[nummaps] != 255 ;
 //			 nummaps++)
 //			;
 //
-//		lightmap = surf->samples;
+//		lightmap = surf.samples;
 //
 //		// add all the lightmaps
 //		if ( nummaps == 1 )
 //		{
 //			int maps;
 //
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
 //				 maps++)
 //			{
 //				bl = s_blocklights;
 //
 //				for (i=0 ; i<3 ; i++)
-//					scale[i] = gl_modulate->value*r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
+//					scale[i] = gl_modulate.value*r_newrefdef.lightstyles[surf.styles[maps]].rgb[i];
 //
 //				if ( scale[0] == 1.0F &&
 //					 scale[1] == 1.0F &&
@@ -556,13 +559,13 @@ public abstract class Light extends Surf {
 //
 //			memset( s_blocklights, 0, sizeof( s_blocklights[0] ) * size * 3 );
 //
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
 //				 maps++)
 //			{
 //				bl = s_blocklights;
 //
 //				for (i=0 ; i<3 ; i++)
-//					scale[i] = gl_modulate->value*r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
+//					scale[i] = gl_modulate.value*r_newrefdef.lightstyles[surf.styles[maps]].rgb[i];
 //
 //				if ( scale[0] == 1.0F &&
 //					 scale[1] == 1.0F &&
@@ -589,7 +592,7 @@ public abstract class Light extends Surf {
 //		}
 //
 ////	   add all the dynamic lights
-//		if (surf->dlightframe == r_framecount)
+//		if (surf.dlightframe == r_framecount)
 //			R_AddDynamicLights (surf);
 //
 ////	   put into texture format
@@ -597,7 +600,7 @@ public abstract class Light extends Surf {
 //		stride -= (smax<<2);
 //		bl = s_blocklights;
 //
-//		monolightmap = gl_monolightmap->string[0];
+//		monolightmap = gl_monolightmap.string[0];
 //
 //		if ( monolightmap == '0' )
 //		{
