@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: spawn_temp_t.java,v 1.7 2004-02-02 22:13:02 rst Exp $
+// $Id: spawn_temp_t.java,v 1.8 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
 
@@ -47,7 +47,6 @@ public class spawn_temp_t {
 	public float maxyaw;
 	public float minpitch;
 	public float maxpitch;
-
 
 	public boolean set(String key, String value) {
 		if (key.equals("lip")) {

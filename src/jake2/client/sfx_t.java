@@ -2,7 +2,7 @@
  * sfx_t.java
  * Copyright (C) 2003
  * 
- * $Id: sfx_t.java,v 1.5 2004-02-09 23:16:50 hoz Exp $
+ * $Id: sfx_t.java,v 1.6 2004-02-14 13:24:02 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,10 +29,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 public class sfx_t {
-	String name;
+	String name =""; //mem
 	int registration_sequence;
-	sfxcache_t cache;
-	String truename;
+	sfxcache_t cache; //ptr
+	String truename; //ptr
 	public void clear() {
 		name = truename = null;
 		cache = null;

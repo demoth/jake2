@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.14 2004-02-13 22:03:59 rst Exp $
+// $Id: GameUtil.java,v 1.15 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
+
+import java.sql.Savepoint;
 
 import jake2.Defines;
 import jake2.client.M;
@@ -37,6 +39,15 @@ public class GameUtil extends GameBase {
 			return true;
 		}
 	};
+	
+	public static void checkClassname(edict_t ent)
+	{
+			
+			if (ent.classname ==null)
+			{
+				Com.Printf("edict with classname = null: " + ent.index);
+			}
+	}
 
 	/**
 	the global "activator" should be set to the entity that initiated the firing.
@@ -52,6 +63,9 @@ public class GameUtil extends GameBase {
 
 	public static void G_UseTargets(edict_t ent, edict_t activator) {
 		edict_t t;
+	
+		checkClassname(ent);
+
 
 		//
 		//	   check for a delay
@@ -224,7 +238,7 @@ public class GameUtil extends GameBase {
 
 		while (true) {
 			tr = gi.trace(ent.s.origin, ent.mins, ent.maxs, ent.s.origin, null, MASK_PLAYERSOLID);
-			if (tr.ent == null)
+			if (tr.ent == null || tr.ent == g_edicts[0])
 				break;
 
 			// nail it

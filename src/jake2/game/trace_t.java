@@ -19,19 +19,36 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: trace_t.java,v 1.5 2004-01-17 20:34:47 rst Exp $
+// $Id: trace_t.java,v 1.6 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
 
+import jake2.util.Lib;
+
 //a trace is returned when a box is swept through the world
-public class trace_t {
+public class trace_t implements Cloneable {
 	public boolean allsolid; // if true, plane is not valid
 	public boolean startsolid; // if true, the initial point was in a solid area
 	public float fraction; // time completed, 1.0 = didn't hit anything
-	public float[] endpos= {0,0,0}; // final position
+	public float[] endpos = { 0, 0, 0 }; // final position
+	// memory
 	public cplane_t plane = new cplane_t(); // surface normal at impact
+	// pointer
 	public csurface_t surface; // surface hit
 	public int contents; // contents on other side of surface hit
+	// pointer
 	public edict_t ent; // not set by CM_*() functions
-		
+
+	// =============
+	public trace_t getClone() {
+		trace_t out = null;
+		try {
+			out = (trace_t) this.clone();
+			out.plane = plane.getClone();
+			endpos = Lib.clone(endpos);
+		}
+		catch (CloneNotSupportedException e) {
+		}
+		return out;
+	}
 }

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.33 2004-02-05 21:32:40 rst Exp $
+ * $Id: Com.java,v 1.34 2004-02-14 13:24:02 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -167,6 +167,7 @@ public final class Com {
 	public static char com_token[] = new char[Defines.MAX_TOKEN_CHARS];
 
 	// See GameSpanw.ED_ParseEdict() to see how to use it now.
+	// works perfect !
 	public static String Parse(ParseHelp hlp) {
 
 		int c;
@@ -381,6 +382,11 @@ public final class Com {
 	}
 
 	public static void Println(String fmt) {
+		Printf(fmt);
+		Printf("\n");
+	}
+	
+	public static void p(String fmt) {
 		Printf(fmt);
 		Printf("\n");
 	}

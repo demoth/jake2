@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.8 2004-02-04 18:10:55 rst Exp $
+// $Id: game_export_t.java,v 1.9 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
 
@@ -98,7 +98,7 @@ public class game_export_t {
 
 	// ServerCommand will be called when an "sv <command>" command is issued on the
 	// server console.
-	// The game can issue gi.argc() / gi.argv() commands to get the rest
+	// the game can issue gi.argc() / gi.argv() commands to get the rest
 	// of the parameters
 	public void ServerCommand() {
 		Game.ServerCommand();
@@ -108,13 +108,11 @@ public class game_export_t {
 	// global variables shared between game and server
 	//
 
-	// The edict array is allocated in the game dll so it
+	// the edict array is allocated in the game dll so it
 	// can vary in size from one game to another.
-	// 
-	// The size will be fixed when ge->Init() is called
+	
+	// the size will be fixed when ge.Init() is called
 	public edict_t edicts[] = Game.g_edicts;
-	// DO WE NEED THIS ?
-	//public int edict_size;
 	public int num_edicts; // current number, <= max_edicts
 	public int max_edicts;
 }

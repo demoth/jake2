@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.17 2004-02-04 18:10:56 rst Exp $
+// $Id: Math3D.java,v 1.18 2004-02-14 13:24:02 rst Exp $
 
 package jake2.util;
 
@@ -60,22 +60,22 @@ public class Math3D extends Lib {
 		to[2] = from[2];
 	}
 	
-	public static void VectorCopy(short[] a, short[] b) {
-		b[0] = a[0];
-		b[1] = a[1];
-		b[2] = a[2];
+	public static void VectorCopy(short[] from, short[] to) {
+		to[0] = from[0];
+		to[1] = from[1];
+		to[2] = from[2];
 	}
 		
-	public static void VectorCopy(short[] a, float[] b) {
-		b[0] = a[0];
-		b[1] = a[1];
-		b[2] = a[2];
+	public static void VectorCopy(short[] from, float[] to) {
+		to[0] = from[0];
+		to[1] = from[1];
+		to[2] = from[2];
 	}
 	
-	public static void VectorCopy(float[] a, short[] b) {
-		b[0] = (short) a[0];
-		b[1] = (short) a[1];
-		b[2] = (short) a[2];
+	public static void VectorCopy(float[] from, short[] to) {
+		to[0] = (short) from[0];
+		to[1] = (short) from[1];
+		to[2] = (short) from[2];
 	}
 	
 	public static void VectorClear(float[] a) {
@@ -87,20 +87,20 @@ public class Math3D extends Lib {
 
 		return 1;
 	}
-	public static void VectorNegate(float[] a, float[] b) {
-		b[0] = -a[0];
-		b[1] = -a[1];
-		b[2] = -a[2];
+	public static void VectorNegate(float[] from, float[] to) {
+		to[0] = -from[0];
+		to[1] = -from[1];
+		to[2] = -from[2];
 	}
 	public static void VectorSet(float[] v, float x, float y, float z) {
 		v[0] = (x);
 		v[1] = (y);
 		v[2] = (z);
 	}
-	public static void VectorMA(float[] veca, float scale, float[] vecb, float[] vecc) {
-		vecc[0] = veca[0] + scale * vecb[0];
-		vecc[1] = veca[1] + scale * vecb[1];
-		vecc[2] = veca[2] + scale * vecb[2];
+	public static void VectorMA(float[] veca, float scale, float[] vecb, float[] to) {
+		to[0] = veca[0] + scale * vecb[0];
+		to[1] = veca[1] + scale * vecb[1];
+		to[2] = veca[2] + scale * vecb[2];
 	}
 	public static final float VectorNormalize(float[] v) {
 		float length, ilength;
@@ -114,15 +114,15 @@ public class Math3D extends Lib {
 		}
 		return length;
 	}
-	public static final float VectorNormalize2(float[] v, float[] out) {
+	public static final float VectorNormalize2(float[] v, float[] to) {
 		float length, ilength;
 
 		length = VectorLength(v);
 		if (length != 0.0f) {
 			ilength = 1.0f / length;
-			out[0] = v[0] * length;
-			out[1] = v[1] * length;
-			out[2] = v[2] * length;
+			to[0] = v[0] * length;
+			to[1] = v[1] * length;
+			to[2] = v[2] * length;
 		}
 		return length;
 	}
@@ -193,8 +193,7 @@ public class Math3D extends Lib {
 		angles[Defines.ROLL] = 0;
 	}
 
-	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
-		
+	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {		
 		float m[][] = new float[3][3];
 		float im[][] = new float[3][3];
 		float zrot[][] = new float[3][3];

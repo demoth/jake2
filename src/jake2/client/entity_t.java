@@ -19,41 +19,40 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: entity_t.java,v 1.5 2004-02-13 22:04:00 rst Exp $
+// $Id: entity_t.java,v 1.6 2004-02-14 13:24:02 rst Exp $
 
 package jake2.client;
-
 
 import jake2.render.*;
 
 // ok!
 public class entity_t {
-	//reference
-	public				model_t				model;			// opaque type outside refresh
-	public float				angles[]={0,0,0};
+	//ptr
+	public model_t model; // opaque type outside refresh
+	public float angles[] = { 0, 0, 0 };
 
 	/*
 	** most recent data
 	*/
-	public float				origin[]={0,0,0};		// also used as RF_BEAM's "from"
-	public int				frame;			// also used as RF_BEAM's diameter
+	public float origin[] = { 0, 0, 0 }; // also used as RF_BEAM's "from"
+	public int frame; // also used as RF_BEAM's diameter
 
 	/*
 	** previous data for lerping
 	*/
-	public float				oldorigin[]={0,0,0};// also used as RF_BEAM's "to"
-	public int				oldframe;
+	public float oldorigin[] = { 0, 0, 0 }; // also used as RF_BEAM's "to"
+	public int oldframe;
 
 	/*
 	** misc
 	*/
-	public float				backlerp;		// 0.0 = current, 1.0 = old
-	public int				skinnum;		// also used as RF_BEAM's palette index
+	public float backlerp; // 0.0 = current, 1.0 = old
+	public int skinnum; // also used as RF_BEAM's palette index
 
-	public int				lightstyle;		// for flashing entities
-	public float				alpha;			// ignore if RF_TRANSLUCENT isn't set
+	public int lightstyle; // for flashing entities
+	public float alpha; // ignore if RF_TRANSLUCENT isn't set
 
 	// reference
-	public image_t				skin;			// NULL for inline skin
-	public int				flags;
+	public image_t skin; // NULL for inline skin
+	public int flags;
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.11 2004-02-13 22:03:59 rst Exp $
+// $Id: PlayerClient.java,v 1.12 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
 
@@ -1367,7 +1367,7 @@ public class PlayerClient extends PlayerHud {
 
 			// set up for pmove
 			//memset(& pm, 0, sizeof(pm));
-			pm.clear();
+			pm = new pmove_t();
 
 			if (ent.movetype == MOVETYPE_NOCLIP)
 				client.ps.pmove.pm_type = PM_SPECTATOR;
@@ -1452,7 +1452,7 @@ public class PlayerClient extends PlayerHud {
 						break;
 				if (j != i)
 					continue; // duplicated
-				if (other.touch != null)
+				if (other.touch == null)
 					continue;
 				other.touch.touch(other, ent, null, null);
 			}

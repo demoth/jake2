@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.19 2004-02-13 11:09:51 rst Exp $
+// $Id: GameBase.java,v 1.20 2004-02-14 13:24:02 rst Exp $
 
 /** Father of all Objects. */
 
@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 
 import jake2.*;
 import jake2.client.*;
+import jake2.qcommon.Com;
 import jake2.server.*;
 import jake2.util.*;
 
@@ -246,16 +247,22 @@ public class GameBase extends Globals {
 
 		for (; from.i < globals.num_edicts; from.i++) {
 			from.o = g_edicts[from.i];
-
+			if (from.o.classname ==null)
+			{
+				Com.Printf("edict with classname = null" + from.o.index);
+			}
+			
 			if (!from.o.inuse)
 				continue;
 
 			if (eff.matches(from.o, s))
 				return from;
 		}
-		from.o = null;
-		from.i = 0;
-		return from;
+		// bugfix rst
+		return null;
+//		from.o = null;
+//		from.i = 0;
+//		return from;
 	}
 
 	/**

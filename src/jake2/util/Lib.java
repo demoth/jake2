@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.22 2004-02-13 21:04:38 rst Exp $
+// $Id: Lib.java,v 1.23 2004-02-14 13:24:02 rst Exp $
 
 package jake2.util;
 
@@ -80,6 +80,10 @@ public class Lib {
 
 	public static String vtofs(float[] v) {
 		return v[0] + " " + v[1] + " " + v[2];
+	}
+	
+	public static String vtofsbeaty(float[] v) {
+		return Com.sprintf("%8.2f %8.2f %8.2f", new Vargs().add(v[0]).add(v[1]).add(v[2]));
 	}
 	public static short rand() {
 		return (short) (Math.random() * 0x8000);
@@ -447,6 +451,15 @@ public class Lib {
 		}
 	}
 
+	public static byte[] clone(byte in[]) {
+		byte out[] = new byte[in.length];
+
+		if (in.length != 0)
+			System.arraycopy(in, 0, out, 0, in.length);
+
+		return out;
+	}
+	
 	public static float[] clone(float in[]) {
 		float out[] = new float[in.length];
 
@@ -455,6 +468,7 @@ public class Lib {
 
 		return out;
 	}
+
 	public static short[] clone(short in[]) {
 		short out[] = new short[in.length];
 

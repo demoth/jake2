@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.8 2004-02-12 14:24:32 cwei Exp $
+ * $Id: CL_pred.java,v 1.9 2004-02-14 13:24:02 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -137,8 +137,8 @@ public class CL_pred extends CL_parse
 			else
 			{ // encoded bbox
 				x = 8 * (ent.solid & 31);
-				zd = 8 * ((ent.solid >> 5) & 31);
-				zu = 8 * ((ent.solid >> 10) & 63) - 32;
+				zd = 8 * ((ent.solid >>> 5) & 31);
+				zu = 8 * ((ent.solid >>> 10) & 63) - 32;
 
 				bmins[0] = bmins[1] = -x;
 				bmaxs[0] = bmaxs[1] = x;

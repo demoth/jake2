@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.18 2004-02-13 22:03:59 rst Exp $
+// $Id: GameSpawn.java,v 1.19 2004-02-14 13:24:02 rst Exp $
 
 package jake2.game;
 
@@ -189,7 +189,7 @@ public class GameSpawn extends GameSave {
 	===============
 	*/
 	static void ED_ParseField(String key, String value, edict_t ent) {
-		field_t f;
+		field_t f1;
 		byte b;
 		float v;
 		float[] vec = { 0, 0, 0 };
@@ -364,7 +364,7 @@ public class GameSpawn extends GameSave {
 			String com_token;
 			int i;
 			float skill_level;
-			skill.value =2.0f;
+			//skill.value =2.0f;
 			skill_level = (float) Math.floor(skill.value);
 			
 			if (skill_level < 0)
@@ -398,7 +398,7 @@ public class GameSpawn extends GameSave {
 			
 			Com.ParseHelp ph = new Com.ParseHelp(entities);
 			
-			Com.DPrintf("* * *     die scheiss edict- nummer stimmen nicht ???     * * *  \n");
+			//Com.DPrintf("* * *     die scheiss edict- nummer stimmen nicht ???     * * *  \n");
 			while (true) { // parse the opening brace
 					
 				com_token = Com.Parse(ph);
