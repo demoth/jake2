@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.5 2004-09-22 19:22:09 salomo Exp $
+ * $Id: Cvar.java,v 1.6 2004-10-21 03:11:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,7 +52,7 @@ public class Cvar extends Globals {
         cvar_t var;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
-            if (!Info.Info_Validate(var_name)) {
+            if (!InfoValidate(var_name)) {
                 Com.Printf("invalid info cvar name\n");
                 return null;
             }
