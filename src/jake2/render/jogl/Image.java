@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.12 2004-01-15 01:28:08 cwei Exp $
+ * $Id: Image.java,v 1.13 2004-01-19 14:31:23 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -815,6 +815,7 @@ public abstract class Image extends Main {
 //	}
 
 
+	// TODO check this: R_FloodFillSkin( byte[] skin, int skinwidth, int skinheight)
 	void R_FloodFillSkin( byte[] skin, int skinwidth, int skinheight)
 	{
 //		byte				fillcolor = *skin; // assume this is the pixel to fill
@@ -835,7 +836,7 @@ public abstract class Image extends Main {
 			// attempt to find opaque black
 			for (i = 0; i < 256; ++i)
 				if (d_8to24table[i] == (255 << 0)) // alpha 1.0
-				//if ((d_8to24table[i] & 0xFF000000) == 0xFF000000) // alpha 1.0
+				// TODO check this: if ((d_8to24table[i] & 0xFF000000) == 0xFF000000) // alpha 1.0
 				{
 					filledcolor = i;
 					break;
@@ -929,6 +930,7 @@ public abstract class Image extends Main {
 	GL_ResampleTexture
 	================
 	*/
+	// cwei :-)
 	void GL_ResampleTexture(int[] in, int inwidth, int inheight, int[] out,  int outwidth, int outheight)
 	{
 //		int		i, j;
@@ -997,38 +999,49 @@ public abstract class Image extends Main {
 	lighting range
 	================
 	*/
-	void GL_LightScaleTexture (int[] in, int inwidth, int inheight, boolean only_gamma )
+	void GL_LightScaleTexture(int[] in, int inwidth, int inheight, boolean only_gamma )
 	{
-//		if ( only_gamma )
-//		{
-//			int		i, c;
-//			byte	*p;
-//
-//			p = (byte *)in;
-//
-//			c = inwidth*inheight;
-//			for (i=0 ; i<c ; i++, p+=4)
-//			{
-//				p[0] = gammatable[p[0]];
-//				p[1] = gammatable[p[1]];
-//				p[2] = gammatable[p[2]];
-//			}
-//		}
-//		else
-//		{
-//			int		i, c;
-//			byte	*p;
-//
-//			p = (byte *)in;
-//
-//			c = inwidth*inheight;
-//			for (i=0 ; i<c ; i++, p+=4)
-//			{
-//				p[0] = gammatable[intensitytable[p[0]]];
-//				p[1] = gammatable[intensitytable[p[1]]];
-//				p[2] = gammatable[intensitytable[p[2]]];
-//			}
-//		}
+		if ( only_gamma )
+		{
+			int i, c;
+			int r, g, b, color;
+
+			c = inwidth*inheight;
+			for (i=0 ; i<c ; i++)
+			{
+				color = in[i];
+				r = (color >> 0) & 0xFF;
+				g = (color >> 8) & 0xFF;
+				b = (color >> 16) & 0xFF;
+				 
+				r = gammatable[r] & 0xFF;
+				g = gammatable[g] & 0xFF;
+				b = gammatable[b] & 0xFF;
+				
+				in[i] = (r << 0) | (g << 8) | (b << 16) | (color & 0xFF000000); 
+			}
+		}
+		else
+		{
+			int i, c;
+			int r, g, b, color;
+
+			c = inwidth*inheight;
+			for (i=0 ; i<c ; i++)
+			{
+				color = in[i];
+				r = (color >> 0) & 0xFF;
+				g = (color >> 8) & 0xFF;
+				b = (color >> 16) & 0xFF;
+				 
+				r = gammatable[intensitytable[r] & 0xFF] & 0xFF;
+				g = gammatable[intensitytable[g] & 0xFF] & 0xFF;
+				b = gammatable[intensitytable[b] & 0xFF] & 0xFF;
+				
+				in[i] = (r << 0) | (g << 8) | (b << 16) | (color & 0xFF000000); 
+			}
+
+		}
 	}
 
 	/*
@@ -1038,24 +1051,35 @@ public abstract class Image extends Main {
 	Operates in place, quartering the size of the texture
 	================
 	*/
-	void GL_MipMap (int[] in, int width, int height)
+	void GL_MipMap(int[] in, int width, int height)
 	{
 		int		i, j;
 		int[] out;
 
-		width <<=2;
-		height >>= 1;
 		out = in;
-//		for (i=0 ; i<height ; i++, in+=width)
-//		{
-//			for (j=0 ; j<width ; j+=8, out+=4, in+=8)
-//			{
-//				out[0] = (in[0] + in[4] + in[width+0] + in[width+4])>>2;
-//				out[1] = (in[1] + in[5] + in[width+1] + in[width+5])>>2;
-//				out[2] = (in[2] + in[6] + in[width+2] + in[width+6])>>2;
-//				out[3] = (in[3] + in[7] + in[width+3] + in[width+7])>>2;
-//			}
-//		}
+		
+		int inIndex = 0;
+		int outIndex =0;
+
+		int r, g, b, a;
+		int p1, p2, p3, p4;
+
+		for (i=0 ; i<height ; i+=2, inIndex += width)
+		{
+			for (j=0 ; j<width ; j+=2, outIndex+=1, inIndex+=2)
+			{
+
+				p1 = in[inIndex + 0]; p2 = in[inIndex + 1];
+				p3 = in[inIndex + width + 0]; p4 = in[inIndex + width + 1];
+
+				r = ( ((p1 >> 0) & 0xFF) + ((p2 >> 0) & 0xFF) +((p3 >> 0) & 0xFF) +((p4 >> 0) & 0xFF)) >> 2 ;
+				g = ( ((p1 >> 8) & 0xFF) + ((p2 >> 8) & 0xFF) +((p3 >> 8) & 0xFF) +((p4 >> 8) & 0xFF)) >> 2 ;
+				b = ( ((p1 >> 16) & 0xFF) + ((p2 >> 16) & 0xFF) +((p3 >> 16) & 0xFF) +((p4 >> 16) & 0xFF)) >> 2 ;
+				a = ( ((p1 >> 24) & 0xFF) + ((p2 >> 24) & 0xFF) +((p3 >> 24) & 0xFF) +((p4 >> 24) & 0xFF)) >> 2 ;
+
+				out[outIndex] = (r << 0) | (g << 8) | (b << 16) | (a <<24);
+			}
+		}
 	}
 
 
@@ -1249,7 +1273,7 @@ public abstract class Image extends Main {
 					}
 					else
 					{
-						gl.glTexImage2D (GL.GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, scaled);
+						gl.glTexImage2D(GL.GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, scaled);
 					}
 				}
 			}
