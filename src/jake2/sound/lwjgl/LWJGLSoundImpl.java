@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.1 2004-12-16 20:17:55 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.2 2004-12-16 20:33:08 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -544,7 +544,7 @@ public final class LWJGLSoundImpl implements Sound {
 	 * @see jake2.sound.Sound#getName()
 	 */
 	public String getName() {
-		return "lwjgl_joal";
+		return "lwjgl";
 	}
 
 
