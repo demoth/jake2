@@ -2,7 +2,7 @@
  * Z.java
  * Copyright (C) 2003
  * 
- * $Id: Z.java,v 1.2 2003-11-18 21:11:29 hoz Exp $
+ * $Id: Z.java,v 1.3 2003-11-26 17:02:45 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,7 +68,7 @@ public final class Z {
 		01183         z_chain.next = z;
 		01184 
 		01185         return (void *) (z + 1);*/
-		return null;
+		return new byte[size];
 	}
 	
 	/**
