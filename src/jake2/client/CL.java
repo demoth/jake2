@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.16 2004-11-07 19:38:40 cawe Exp $
+ * $Id: CL.java,v 1.17 2005-01-23 19:08:57 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,7 +43,7 @@ import java.nio.ByteOrder;
  * CL
  */
 public final class CL {
-
+    
     static int precache_check; // for autodownload of precache items
 
     static int precache_spawncount;
@@ -206,6 +206,7 @@ public final class CL {
 
                 // baselines
                 //memset( nullstate, 0, sizeof(nullstate));
+                nullstate.clear();
                 for (i = 0; i < Defines.MAX_EDICTS; i++) {
                     ent = Globals.cl_entities[i].baseline;
                     if (ent.modelindex == 0)
@@ -1291,16 +1292,15 @@ public final class CL {
 
         CL_input.InitInput();
 
-        // never used !!
-        //		adr0 = Cvar.Get("adr0", "", CVAR_ARCHIVE);
-        //		adr1 = Cvar.Get("adr1", "", CVAR_ARCHIVE);
-        //		adr2 = Cvar.Get("adr2", "", CVAR_ARCHIVE);
-        //		adr3 = Cvar.Get("adr3", "", CVAR_ARCHIVE);
-        //		adr4 = Cvar.Get("adr4", "", CVAR_ARCHIVE);
-        //		adr5 = Cvar.Get("adr5", "", CVAR_ARCHIVE);
-        //		adr6 = Cvar.Get("adr6", "", CVAR_ARCHIVE);
-        //		adr7 = Cvar.Get("adr7", "", CVAR_ARCHIVE);
-        //		adr8 = Cvar.Get("adr8", "", CVAR_ARCHIVE);
+        Cvar.Get("adr0", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr1", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr2", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr3", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr4", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr5", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr6", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr7", "", Defines.CVAR_ARCHIVE);
+        Cvar.Get("adr8", "", Defines.CVAR_ARCHIVE);
 
         //
         // register our variables
