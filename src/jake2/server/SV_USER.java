@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.6 2004-02-11 19:56:28 cwei Exp $
+// $Id: SV_USER.java,v 1.7 2004-02-12 14:29:12 cwei Exp $
 
 package jake2.server;
 
@@ -507,7 +507,7 @@ public class SV_USER extends SV_SEND {
 	*/
 
 	public static void SV_ClientThink(client_t cl, usercmd_t cmd) {
-		cl.commandMsec -= cmd.msec;
+		cl.commandMsec -= cmd.msec & 0xFF;
 
 		if (cl.commandMsec < 0 && sv_enforcetime.value != 0) {
 			Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
