@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.10 2004-01-25 01:14:41 cwei Exp $
+ * $Id: qfiles.java,v 1.11 2004-01-28 15:00:19 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,321 +40,39 @@ import jake2.server.*;
  * @author cwei
  */
 public class qfiles {
-
-	public static class darea_t {
-
-		public darea_t(ByteBuffer bb) {
-
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			numareaportals = bb.getInt();
-			firstareaportal = bb.getInt();
-
-		}
-		int numareaportals;
-		int firstareaportal;
-
-		public static int SIZE = 8;
-	}
-
-	// each area has a list of portals that lead into other areas
-	// when portals are closed, other areas may not be visible or
-	// hearable even if the vis info says that it should be
-
-	public static class dareaportal_t {
-
-		public dareaportal_t() {
-		}
-
-		public dareaportal_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			portalnum = bb.getShort();
-			otherarea = bb.getShort();
-		}
-
-		int portalnum;
-		int otherarea;
-
-		public static int SIZE = 8;
-	}
-
-	public static class dbrush_t {
-
-		public dbrush_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-			firstside = bb.getInt();
-			numsides = bb.getInt();
-			contents = bb.getInt();
-		}
-
-		public static int SIZE = 3 * 4;
-
-		int firstside;
-		int numsides;
-		int contents;
-	}
-
-	public static class dbrushside_t {
-
-		public dbrushside_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			planenum = bb.getShort() & 0xffff;
-			texinfo = bb.getShort();
-		}
-
-		//unsigned short planenum;
-		int planenum; // facing out of the leaf
-
-		short texinfo;
-
-		public static int SIZE = 4;
-	}
-
-	public static class dedge_t {
-		// unsigned short v[2];
-		int v[] = { 0, 0 };
-	}
-
-	public static class dface_t {
-		
-		public static final int SIZE =
-				4 * Defines.SIZE_OF_SHORT
-			+	2 * Defines.SIZE_OF_INT
-			+	Defines.MAXLIGHTMAPS;
-
-		//unsigned short	planenum;
-		public int planenum;
-		public short side;
-
-		public int firstedge; // we must support > 64k edges
-		public short numedges;
-		public short texinfo;
-
-		// lighting info
-		public byte styles[] = new byte[Defines.MAXLIGHTMAPS];
-		public int lightofs; // start of [numstyles*surfsize] samples
-		
-		public dface_t(ByteBuffer b) {
-			planenum = b.getShort() & 0xFFFF;
-			side = b.getShort();
-			firstedge = b.getInt();
-			numedges = b.getShort();
-			texinfo = b.getShort();
-			b.get(styles);
-			lightofs = b.getInt();
-		}
-		
-	}
-
-	public static class dheader_t {
-
-		public dheader_t(ByteBuffer bb) {
-
-			this.ident = bb.getInt();
-			this.version = bb.getInt();
-
-			for (int n = 0; n < Defines.HEADER_LUMPS; n++)
-				lumps[n] = new lump_t(bb.getInt(), bb.getInt());
-
-		}
-
-		public int ident;
-		public int version;
-		public lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
-	}
-
-	public static class dleaf_t {
-		
-		
-
-		public dleaf_t(byte[] cmod_base, int i, int j) {
-			this(ByteBuffer.wrap(cmod_base, i, j).order(ByteOrder.LITTLE_ENDIAN));
-		}
-
-		public dleaf_t(ByteBuffer bb) {
-			contents = bb.getInt();
-			cluster = bb.getShort();
-			area = bb.getShort();
-
-			mins[0] = bb.getShort();
-			mins[1] = bb.getShort();
-			mins[2] = bb.getShort();
-
-			maxs[0] = bb.getShort();
-			maxs[1] = bb.getShort();
-			maxs[2] = bb.getShort();
-
-			firstleafface = bb.getShort() & 0xffff;
-			numleaffaces = bb.getShort() & 0xffff;
-
-			firstleafbrush = bb.getShort() & 0xffff;
-			numleafbrushes = bb.getShort() & 0xffff;
-		}
-
-		public static final int SIZE = 4 + 8 * 2 + 4 * 2;
-
-		public int contents; // OR of all brushes (not needed?)
-
-		public short cluster;
-		public short area;
-
-		public short mins[] = { 0, 0, 0 }; // for frustum culling
-		public short maxs[] = { 0, 0, 0 };
-
-		/*
-		unsigned short	firstleafface;
-		unsigned short	numleaffaces;
-		
-		unsigned short	firstleafbrush;
-		unsigned short	numleafbrushes;
-		*/
-		public int firstleafface;
-		public int numleaffaces;
-
-		public int firstleafbrush;
-		public int numleafbrushes;
-	}
-
-
-	public static class dmodel_t {
-
-		public dmodel_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			for (int j = 0; j < 3; j++)
-				mins[j] = bb.getFloat();
-
-			for (int j = 0; j < 3; j++)
-				maxs[j] = bb.getFloat();
-
-			for (int j = 0; j < 3; j++)
-				origin[j] = bb.getFloat();
-
-			headnode = bb.getInt();
-			firstface = bb.getInt();
-			numfaces = bb.getInt();
-		}
-		public float mins[] = { 0, 0, 0 };
-		public float maxs[] = { 0, 0, 0 };
-		public float origin[] = { 0, 0, 0 }; // for sounds or lights
-		public int headnode;
-		public int firstface, numfaces; // submodels just draw faces
-		// without walking the bsp tree
-
-		public static int SIZE = 3 * 4 + 3 * 4 + 3 * 4 + 4 + 8;
-	}
-
-	public static class dnode_t {
-
-		public dnode_t(ByteBuffer bb) {
-
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-			planenum = bb.getInt();
-
-			children[0] = bb.getInt();
-			children[1] = bb.getInt();
-
-			for (int j = 0; j < 3; j++)
-				mins[j] = bb.getShort();
-
-			for (int j = 0; j < 3; j++)
-				maxs[j] = bb.getShort();
-
-			firstface = bb.getShort() & 0xffff;
-			numfaces = bb.getShort() & 0xffff;
-
-		}
-
-		public int planenum;
-		public int children[] = { 0, 0 };
-		// negative numbers are -(leafs+1), not nodes
-		public short mins[] = { 0, 0, 0 }; // for frustom culling
-		public short maxs[] = { 0, 0, 0 };
-
-		/*
-		unsigned short	firstface;
-		unsigned short	numfaces;	// counting both sides
-		*/
-
-		public int firstface;
-		public int numfaces;
-
-		public static int SIZE = 4 + 8 + 6 + 6 + 2 + 2; // counting both sides
-	}
-
-	public static class dplane_t {
-
-		// planes (x&~1) and (x&~1)+1 are always opposites
-
-		public dplane_t(ByteBuffer bb) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
-			normal[0] = (bb.getFloat());
-			normal[1] = (bb.getFloat());
-			normal[2] = (bb.getFloat());
-
-			dist = (bb.getFloat());
-			type = (bb.getInt());
-		}
-
-		public float normal[] = { 0, 0, 0 };
-		public float dist;
-		public int type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
-
-		public static final int SIZE = 3 * 4 + 4 + 4;
-	}
-
-
-
-	public static class dvis_t {
-
-		public dvis_t(ByteBuffer bb) {
-			numclusters = bb.getInt();
-			bitofs = new int[numclusters][2];
-
-			for (int i = 0; i < numclusters; i++) {
-				bitofs[i][0] = bb.getInt();
-				bitofs[i][1] = bb.getInt();
-			}
-		}
-
-		public int numclusters;
-		public int bitofs[][] = new int[8][2]; // bitofs[numclusters][2]	
-	}
-
-	////
-	////	   qfiles.h: quake file formats
-	////	   This file must be identical in the quake and utils directories
-	////
 	//
-	//	/*
-	//	========================================================================
+	// qfiles.h: quake file formats
+	// This file must be identical in the quake and utils directories
 	//
-	//	The .pak files are just a linear collapse of a directory tree
-	//
-	//	========================================================================
-	//	*/
-	//
+
+	/*
+	========================================================================
+	
+	The .pak files are just a linear collapse of a directory tree
+	
+	========================================================================
+	*/
+
 	//	#define IDPAKHEADER		(('K'<<24)+('C'<<16)+('A'<<8)+'P')
-	//
-	//	typedef struct
-	//	{
-	//		char	name[56];
-	//		int		filepos, filelen;
-	//	} dpackfile_t;
-	//
-	//	typedef struct
-	//	{
-	//		int		ident;		// == IDPAKHEADER
-	//		int		dirofs;
-	//		int		dirlen;
-	//	} dpackheader_t;
-	//
+
+	// gibts schon in FS
+	/*
+		typedef struct
+		{
+			char	name[56];
+			int		filepos, filelen;
+		} dpackfile_t;
+	
+		typedef struct
+		{
+			int		ident;		// == IDPAKHEADER
+			int		dirofs;
+			int		dirlen;
+		} dpackheader_t;
+	*/
+
 	//	#define	MAX_FILES_IN_PACK	4096
-	//
-	//
+
 	/*
 	========================================================================
 	
@@ -644,31 +362,28 @@ public class qfiles {
 
 	}
 	
+	/*
+	==============================================================================
 	
+	  .BSP file format
 	
-	//	/*
-	//	==============================================================================
-	//
-	//	  .BSP file format
-	//
-	//	==============================================================================
-	//	*/
-	//
+	==============================================================================
+	*/
+
 	public static final int IDBSPHEADER = (('P'<<24)+('S'<<16)+('B'<<8)+'I');
-	//			// little-endian "IBSP"
-	//
+	// little-endian "IBSP"
+
 	//	#define BSPVERSION	38
-	//
-	//
-	////	   upper design bounds
-	////	   leaffaces, leafbrushes, planes, and verts are still bounded by
-	////	   16 bit short limits
+
+	// upper design bounds
+	// leaffaces, leafbrushes, planes, and verts are still bounded by
+	// 16 bit short limits
 	//	#define	MAX_MAP_MODELS		1024
 	//	#define	MAX_MAP_BRUSHES		8192
 	//	#define	MAX_MAP_ENTITIES	2048
 	//	#define	MAX_MAP_ENTSTRING	0x40000
 	//	#define	MAX_MAP_TEXINFO		8192
-	//
+
 	//	#define	MAX_MAP_AREAS		256
 	//	#define	MAX_MAP_AREAPORTALS	1024
 	//	#define	MAX_MAP_PLANES		65536
@@ -684,19 +399,22 @@ public class qfiles {
 	//	#define	MAX_MAP_SURFEDGES	256000
 	//	#define	MAX_MAP_LIGHTING	0x200000
 	//	#define	MAX_MAP_VISIBILITY	0x100000
-	//
-	////	   key / value pair sizes
-	//
+
+	// key / value pair sizes
+
 	//	#define	MAX_KEY		32
 	//	#define	MAX_VALUE	1024
-	//
-	////	  =============================================================================
-	//
-	//	typedef struct
-	//	{
-	//		int		fileofs, filelen;
-	//	} lump_t;
-	//
+
+	// =============================================================================
+
+	// gibts schon in qcommon
+	/*
+		typedef struct
+		{
+			int		fileofs, filelen;
+		} lump_t;
+	*/
+
 	//	#define	LUMP_ENTITIES		0
 	//	#define	LUMP_PLANES			1
 	//	#define	LUMP_VERTEXES		2
@@ -717,23 +435,51 @@ public class qfiles {
 	//	#define	LUMP_AREAS			17
 	//	#define	LUMP_AREAPORTALS	18
 	//	#define	HEADER_LUMPS		19
-	//
-	//	typedef struct
-	//	{
-	//		int			ident;
-	//		int			version;	
-	//		lump_t		lumps[HEADER_LUMPS];
-	//	} dheader_t;
-	//
-	//	typedef struct
-	//	{
-	//		float		mins[3], maxs[3];
-	//		float		origin[3];		// for sounds or lights
-	//		int			headnode;
-	//		int			firstface, numfaces;	// submodels just draw faces
-	//											// without walking the bsp tree
-	//	} dmodel_t;
-	//
+
+	public static class dheader_t {
+
+		public dheader_t(ByteBuffer bb) {
+
+			this.ident = bb.getInt();
+			this.version = bb.getInt();
+
+			for (int n = 0; n < Defines.HEADER_LUMPS; n++)
+				lumps[n] = new lump_t(bb.getInt(), bb.getInt());
+
+		}
+
+		public int ident;
+		public int version;
+		public lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
+	}
+
+	public static class dmodel_t {
+
+		public dmodel_t(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			for (int j = 0; j < 3; j++)
+				mins[j] = bb.getFloat();
+
+			for (int j = 0; j < 3; j++)
+				maxs[j] = bb.getFloat();
+
+			for (int j = 0; j < 3; j++)
+				origin[j] = bb.getFloat();
+
+			headnode = bb.getInt();
+			firstface = bb.getInt();
+			numfaces = bb.getInt();
+		}
+		public float mins[] = { 0, 0, 0 };
+		public float maxs[] = { 0, 0, 0 };
+		public float origin[] = { 0, 0, 0 }; // for sounds or lights
+		public int headnode;
+		public int firstface, numfaces; // submodels just draw faces
+		// without walking the bsp tree
+
+		public static int SIZE = 3 * 4 + 3 * 4 + 3 * 4 + 4 + 8;
+	}
 	
 	public static class dvertex_t {
 		
@@ -748,35 +494,48 @@ public class qfiles {
 		}
 	}
 
-
-	//
-	////	   0-2 are axial planes
+	// 0-2 are axial planes
 	//	#define	PLANE_X			0
 	//	#define	PLANE_Y			1
 	//	#define	PLANE_Z			2
+
+	// 3-5 are non-axial planes snapped to the nearest
+	// #define	PLANE_ANYX		3
+	// #define	PLANE_ANYY		4
+	// #define	PLANE_ANYZ		5
+
+	// planes (x&~1) and (x&~1)+1 are always opposites
+
+	public static class dplane_t {
+
+		// planes (x&~1) and (x&~1)+1 are always opposites
+
+		public dplane_t(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			normal[0] = (bb.getFloat());
+			normal[1] = (bb.getFloat());
+			normal[2] = (bb.getFloat());
+
+			dist = (bb.getFloat());
+			type = (bb.getInt());
+		}
+
+		public float normal[] = { 0, 0, 0 };
+		public float dist;
+		public int type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+
+		public static final int SIZE = 3 * 4 + 4 + 4;
+	}
+
 	//
-	////	   3-5 are non-axial planes snapped to the nearest
-	//	#define	PLANE_ANYX		3
-	//	#define	PLANE_ANYY		4
-	//	#define	PLANE_ANYZ		5
+	// contents flags are seperate bits
+	// a given brush can contribute multiple content bits
+	// multiple brushes can be in a single leaf
 	//
-	////	   planes (x&~1) and (x&~1)+1 are always opposites
+	// these definitions also need to be in q_shared.h!
 	//
-	//	typedef struct
-	//	{
-	//		float	normal[3];
-	//		float	dist;
-	//		int		type;		// PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
-	//	} dplane_t;
-	//
-	//
-	////	   contents flags are seperate bits
-	////	   a given brush can contribute multiple content bits
-	////	   multiple brushes can be in a single leaf
-	//
-	////	   these definitions also need to be in q_shared.h!
-	//
-	////	   lower bits are stronger, and will eat weaker brushes completely
+	// lower bits are stronger, and will eat weaker brushes completely
 	//	#define	CONTENTS_SOLID			1		// an eye is never valid in a solid
 	//	#define	CONTENTS_WINDOW			2		// translucent, but not watery
 	//	#define	CONTENTS_AUX			4
@@ -786,14 +545,14 @@ public class qfiles {
 	//	#define	CONTENTS_MIST			64
 	//	#define	LAST_VISIBLE_CONTENTS	64
 	//
-	////	   remaining contents are non-visible, and don't eat brushes
+	// remaining contents are non-visible, and don't eat brushes
 	//
 	//	#define	CONTENTS_AREAPORTAL		0x8000
 	//
 	//	#define	CONTENTS_PLAYERCLIP		0x10000
 	//	#define	CONTENTS_MONSTERCLIP	0x20000
 	//
-	////	   currents can be added to any other contents, and may be mixed
+	// currents can be added to any other contents, and may be mixed
 	//	#define	CONTENTS_CURRENT_0		0x40000
 	//	#define	CONTENTS_CURRENT_90		0x80000
 	//	#define	CONTENTS_CURRENT_180	0x100000
@@ -809,8 +568,6 @@ public class qfiles {
 	//	#define	CONTENTS_TRANSLUCENT	0x10000000	// auto set if any surface has trans
 	//	#define	CONTENTS_LADDER			0x20000000
 	//
-	//
-	//
 	//	#define	SURF_LIGHT		0x1		// value will hold the light strength
 	//
 	//	#define	SURF_SLICK		0x2		// effects game physics
@@ -821,115 +578,236 @@ public class qfiles {
 	//	#define	SURF_TRANS66	0x20
 	//	#define	SURF_FLOWING	0x40	// scroll towards angle
 	//	#define	SURF_NODRAW		0x80	// don't bother referencing the texture
-	//
-	//
-	//
-	//
-	//	typedef struct
-	//	{
-	//		int			planenum;
-	//		int			children[2];	// negative numbers are -(leafs+1), not nodes
-	//		short		mins[3];		// for frustom culling
-	//		short		maxs[3];
-	//		unsigned short	firstface;
-	//		unsigned short	numfaces;	// counting both sides
-	//	} dnode_t;
-	//
-	//
+
+	public static class dnode_t {
+
+		public dnode_t(ByteBuffer bb) {
+
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+			planenum = bb.getInt();
+
+			children[0] = bb.getInt();
+			children[1] = bb.getInt();
+
+			for (int j = 0; j < 3; j++)
+				mins[j] = bb.getShort();
+
+			for (int j = 0; j < 3; j++)
+				maxs[j] = bb.getShort();
+
+			firstface = bb.getShort() & 0xffff;
+			numfaces = bb.getShort() & 0xffff;
+
+		}
+
+		public int planenum;
+		public int children[] = { 0, 0 };
+		// negative numbers are -(leafs+1), not nodes
+		public short mins[] = { 0, 0, 0 }; // for frustom culling
+		public short maxs[] = { 0, 0, 0 };
+
+		/*
+		unsigned short	firstface;
+		unsigned short	numfaces;	// counting both sides
+		*/
+
+		public int firstface;
+		public int numfaces;
+
+		public static int SIZE = 4 + 8 + 6 + 6 + 2 + 2; // counting both sides
+	}
 	
-// gibts schon in qcommon
-//
-//		public static class texinfo_t
-//		{
-//			public float[][] vecs = new float[2][4]; // [s/t][xyz offset]
-//			public int flags; // miptex flags + overrides
-//			public int value; // light emission, etc
-//			public String texture;
-//			// char texture[32];	// texture name (textures/*.wal)
-//			public int nexttexinfo; // for animations, -1 = end of chain
-//		}
-	//
-	//
-	////	   note that edge 0 is never used, because negative edge nums are used for
-	////	   counterclockwise use of the edge in a face
-	//	typedef struct
-	//	{
-	//		unsigned short	v[2];		// vertex numbers
-	//	} dedge_t;
-	//
+	// gibts schon in qcommon
+	/*
+	 	public static class texinfo_t
+		{
+			public float[][] vecs = new float[2][4]; // [s/t][xyz offset]
+			public int flags; // miptex flags + overrides
+			public int value; // light emission, etc
+			public String texture;
+			// char texture[32];	// texture name (textures/*.wal)
+			public int nexttexinfo; // for animations, -1 = end of chain
+		}
+	*/
+
+	// note that edge 0 is never used, because negative edge nums are used for
+	// counterclockwise use of the edge in a face
+	
+	public static class dedge_t {
+		// unsigned short v[2];
+		int v[] = { 0, 0 };
+	}
+
 	//	#define	MAXLIGHTMAPS	4
-	//	typedef struct
-	//	{
-	//		unsigned short	planenum;
-	//		short		side;
-	//
-	//		int			firstedge;		// we must support > 64k edges
-	//		short		numedges;	
-	//		short		texinfo;
-	//
-	////	   lighting info
-	//		byte		styles[MAXLIGHTMAPS];
-	//		int			lightofs;		// start of [numstyles*surfsize] samples
-	//	} dface_t;
-	//
-	//	typedef struct
-	//	{
-	//		int				contents;			// OR of all brushes (not needed?)
-	//
-	//		short			cluster;
-	//		short			area;
-	//
-	//		short			mins[3];			// for frustum culling
-	//		short			maxs[3];
-	//
-	//		unsigned short	firstleafface;
-	//		unsigned short	numleaffaces;
-	//
-	//		unsigned short	firstleafbrush;
-	//		unsigned short	numleafbrushes;
-	//	} dleaf_t;
-	//
-	//	typedef struct
-	//	{
-	//		unsigned short	planenum;		// facing out of the leaf
-	//		short	texinfo;
-	//	} dbrushside_t;
-	//
-	//	typedef struct
-	//	{
-	//		int			firstside;
-	//		int			numsides;
-	//		int			contents;
-	//	} dbrush_t;
-	//
+	
+	public static class dface_t {
+		
+		public static final int SIZE =
+				4 * Defines.SIZE_OF_SHORT
+			+	2 * Defines.SIZE_OF_INT
+			+	Defines.MAXLIGHTMAPS;
+
+		//unsigned short	planenum;
+		public int planenum;
+		public short side;
+
+		public int firstedge; // we must support > 64k edges
+		public short numedges;
+		public short texinfo;
+
+		// lighting info
+		public byte styles[] = new byte[Defines.MAXLIGHTMAPS];
+		public int lightofs; // start of [numstyles*surfsize] samples
+		
+		public dface_t(ByteBuffer b) {
+			planenum = b.getShort() & 0xFFFF;
+			side = b.getShort();
+			firstedge = b.getInt();
+			numedges = b.getShort();
+			texinfo = b.getShort();
+			b.get(styles);
+			lightofs = b.getInt();
+		}
+		
+	}
+
+	public static class dleaf_t {
+
+		public dleaf_t(byte[] cmod_base, int i, int j) {
+			this(ByteBuffer.wrap(cmod_base, i, j).order(ByteOrder.LITTLE_ENDIAN));
+		}
+
+		public dleaf_t(ByteBuffer bb) {
+			contents = bb.getInt();
+			cluster = bb.getShort();
+			area = bb.getShort();
+
+			mins[0] = bb.getShort();
+			mins[1] = bb.getShort();
+			mins[2] = bb.getShort();
+
+			maxs[0] = bb.getShort();
+			maxs[1] = bb.getShort();
+			maxs[2] = bb.getShort();
+
+			firstleafface = bb.getShort() & 0xffff;
+			numleaffaces = bb.getShort() & 0xffff;
+
+			firstleafbrush = bb.getShort() & 0xffff;
+			numleafbrushes = bb.getShort() & 0xffff;
+		}
+
+		public static final int SIZE = 4 + 8 * 2 + 4 * 2;
+
+		public int contents; // OR of all brushes (not needed?)
+
+		public short cluster;
+		public short area;
+
+		public short mins[] = { 0, 0, 0 }; // for frustum culling
+		public short maxs[] = { 0, 0, 0 };
+
+		public int firstleafface; // unsigned short
+		public int numleaffaces; // unsigned short
+
+		public int firstleafbrush; // unsigned short
+		public int numleafbrushes; // unsigned short
+	}
+	
+	public static class dbrushside_t {
+
+		public dbrushside_t(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			planenum = bb.getShort() & 0xffff;
+			texinfo = bb.getShort();
+		}
+
+		//unsigned short planenum;
+		int planenum; // facing out of the leaf
+
+		short texinfo;
+
+		public static int SIZE = 4;
+	}
+	
+	public static class dbrush_t {
+
+		public dbrush_t(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+			firstside = bb.getInt();
+			numsides = bb.getInt();
+			contents = bb.getInt();
+		}
+
+		public static int SIZE = 3 * 4;
+
+		int firstside;
+		int numsides;
+		int contents;
+	}
+
 	//	#define	ANGLE_UP	-1
 	//	#define	ANGLE_DOWN	-2
-	//
-	//
-	////	   the visibility lump consists of a header with a count, then
-	////	   byte offsets for the PVS and PHS of each cluster, then the raw
-	////	   compressed bit vectors
-	//	#define	DVIS_PVS	0
-	//	#define	DVIS_PHS	1
-	//	typedef struct
-	//	{
-	//		int			numclusters;
-	//		int			bitofs[8][2];	// bitofs[numclusters][2]
-	//	} dvis_t;
-	//
-	////	   each area has a list of portals that lead into other areas
-	////	   when portals are closed, other areas may not be visible or
-	////	   hearable even if the vis info says that it should be
-	//	typedef struct
-	//	{
-	//		int		portalnum;
-	//		int		otherarea;
-	//	} dareaportal_t;
-	//
-	//	typedef struct
-	//	{
-	//		int		numareaportals;
-	//		int		firstareaportal;
-	//	} darea_t;
+
+	// the visibility lump consists of a header with a count, then
+	// byte offsets for the PVS and PHS of each cluster, then the raw
+	// compressed bit vectors
+	// #define	DVIS_PVS	0
+	// #define	DVIS_PHS	1
+
+	public static class dvis_t {
+
+		public dvis_t(ByteBuffer bb) {
+			numclusters = bb.getInt();
+			bitofs = new int[numclusters][2];
+
+			for (int i = 0; i < numclusters; i++) {
+				bitofs[i][0] = bb.getInt();
+				bitofs[i][1] = bb.getInt();
+			}
+		}
+
+		public int numclusters;
+		public int bitofs[][] = new int[8][2]; // bitofs[numclusters][2]	
+	}
+	
+	// each area has a list of portals that lead into other areas
+	// when portals are closed, other areas may not be visible or
+	// hearable even if the vis info says that it should be
+	
+	public static class dareaportal_t {
+
+		public dareaportal_t() {
+		}
+
+		public dareaportal_t(ByteBuffer bb) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			portalnum = bb.getShort();
+			otherarea = bb.getShort();
+		}
+
+		int portalnum;
+		int otherarea;
+
+		public static int SIZE = 8;
+	}
+
+	public static class darea_t {
+
+		public darea_t(ByteBuffer bb) {
+
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			numareaportals = bb.getInt();
+			firstareaportal = bb.getInt();
+
+		}
+		int numareaportals;
+		int firstareaportal;
+
+		public static int SIZE = 8;
+	}
 
 }
