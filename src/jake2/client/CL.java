@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.6 2004-07-30 06:03:40 hzi Exp $
+ * $Id: CL.java,v 1.7 2004-08-18 20:27:35 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,6 +37,7 @@ import jake2.util.Vargs;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * CL
@@ -948,7 +949,9 @@ public final class CL extends CL_pred {
 							continue; // couldn't load it
 						}
 						ByteBuffer bb = ByteBuffer.wrap(precache_model);
-						int header = Globals.endian.LittleLong(bb.getInt());
+						bb.order(ByteOrder.LITTLE_ENDIAN);
+						
+						int header = bb.getInt();
 
 						if (header != qfiles.IDALIASHEADER) {
 							// not an alias model
@@ -958,17 +961,17 @@ public final class CL extends CL_pred {
 							precache_check++;
 							continue;
 						}
-						pheader = new qfiles.dmdl_t(ByteBuffer.wrap(precache_model));
-						if (Globals.endian.LittleLong(pheader.version) != ALIAS_VERSION) {
+						pheader = new qfiles.dmdl_t(ByteBuffer.wrap(precache_model).order(ByteOrder.LITTLE_ENDIAN));
+						if (pheader.version != ALIAS_VERSION) {
 							precache_check++;
 							precache_model_skin = 0;
 							continue; // couldn't load it
 						}
 					}
 
-					pheader = new qfiles.dmdl_t(ByteBuffer.wrap(precache_model));
+					pheader = new qfiles.dmdl_t(ByteBuffer.wrap(precache_model).order(ByteOrder.LITTLE_ENDIAN));
 
-					int num_skins = Globals.endian.LittleLong(pheader.num_skins);
+					int num_skins = pheader.num_skins;
 
 					while (precache_model_skin - 1 < num_skins) {
 						Com.Printf("critical code section because of endian mess!");
@@ -976,7 +979,7 @@ public final class CL extends CL_pred {
 						String name =
 							new String(
 								precache_model,
-								Globals.endian.LittleLong(pheader.ofs_skins) + (precache_model_skin - 1) * MAX_SKINNAME,
+								pheader.ofs_skins + (precache_model_skin - 1) * MAX_SKINNAME,
 								MAX_SKINNAME * num_skins);
 
 						if (!CheckOrDownloadFile(name)) {

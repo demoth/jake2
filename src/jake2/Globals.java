@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.3 2004-07-08 20:24:48 hzi Exp $
+ * $Id: Globals.java,v 1.4 2004-08-18 20:27:36 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -127,8 +127,6 @@ public class Globals extends Defines {
 	public static int time_after_ref;
 
 	public static FileWriter log_stats_file = null;
-
-	public static EndianHandler endian = null;
 
 	public static cvar_t m_pitch;
 	public static cvar_t m_yaw;

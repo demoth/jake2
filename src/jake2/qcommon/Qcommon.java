@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.4 2004-07-09 06:50:49 hzi Exp $
+ * $Id: Qcommon.java,v 1.5 2004-08-18 20:27:36 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.game.Swap;
 import jake2.server.SV_MAIN;
 import jake2.sys.NET;
 import jake2.sys.Sys;
@@ -59,7 +58,6 @@ public final class Qcommon extends Globals {
 			// cvar and command buffer management
 			Com.InitArgv(args);
 
-			Swap.Init();
 			Cbuf.Init();
 			
 			Cmd.Init();
