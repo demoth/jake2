@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.8 2005-01-23 01:18:28 cawe Exp $
+ * $Id: Com.java,v 1.9 2005-01-23 18:58:11 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -207,20 +207,21 @@ public final class Com
 		int len = 0;
 
 		if (hlp.data == null) {
-			return "";
+			return null;
 		}
 
 		while (true) {
 			//	   skip whitespace
 			hlp.skipwhites();
 			if (hlp.isEof())
-				return "";
+				return null;
 
 			//	   skip // comments
 			if (hlp.getchar() == '/') {
 				if (hlp.nextchar() == '/') {
 					hlp.skiptoeol();
-					return "";
+					// goto skip whitespace
+					continue;
 				} else {
 					hlp.prevchar();
 					break;
