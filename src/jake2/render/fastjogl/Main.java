@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.5 2004-12-08 09:58:34 hzi Exp $
+ * $Id: Main.java,v 1.6 2005-01-16 17:08:57 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +28,10 @@ package jake2.render.fastjogl;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.*;
-import jake2.game.*;
+import jake2.game.Cmd;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.xcommand_t;
 import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
@@ -639,6 +637,9 @@ public abstract class Main extends Base {
 	R_SetupFrame
 	===============
 	*/
+	
+	private final float[] temp = { 0, 0, 0 };
+	
 	void R_SetupFrame() {
 		int i;
 		mleaf_t leaf;
@@ -659,8 +660,6 @@ public abstract class Main extends Base {
 
 			// check above and below so crossing solid water doesn't draw wrong
 			if (leaf.contents == 0) { // look down a bit
-				float[] temp = { 0, 0, 0 };
-
 				Math3D.VectorCopy(r_origin, temp);
 				temp[2] -= 16;
 				leaf = Mod_PointInLeaf(temp, r_worldmodel);
@@ -668,8 +667,6 @@ public abstract class Main extends Base {
 					r_viewcluster2 = leaf.cluster;
 			}
 			else { // look up a bit
-				float[] temp = { 0, 0, 0 };
-
 				Math3D.VectorCopy(r_origin, temp);
 				temp[2] += 16;
 				leaf = Mod_PointInLeaf(temp, r_worldmodel);
@@ -897,9 +894,9 @@ public abstract class Main extends Base {
 	
 	====================
 	*/
+	private final float[] shadelight = { 0, 0, 0 };
+	
 	void R_SetLightLevel() {
-		float[] shadelight = { 0, 0, 0 };
-
 		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0)
 			return;
 
