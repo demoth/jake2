@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.13 2005-02-07 17:38:57 cawe Exp $
+ * $Id: SCR.java,v 1.14 2005-02-08 20:33:33 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@
 
 package jake2.client;
 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -36,6 +37,7 @@ import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
+import java.nio.ByteBuffer;
 
 /**
  * SCR
@@ -1233,7 +1235,7 @@ public final class SCR extends Globals {
                     }
                     DrawConsole();
                 } else {
-                    // TODO impl: cl_cin.c for cinematics
+                    // TODO implement cinematics completely
                     DrawCinematic();
                 }
             } else {
@@ -1372,141 +1374,110 @@ public final class SCR extends Globals {
     //		int count;
     //	} cblock_t;
     //
-    //	typedef struct
-    //	{
-    //		qboolean restart_sound;
-    //		int s_rate;
-    //		int s_width;
-    //		int s_channels;
-    //
-    //		int width;
-    //		int height;
-    //		byte *pic;
-    //		byte *pic_pending;
-    //
-    //		// order 1 huffman stuff
-    //		int *hnodes1; // [256][256][2];
-    //		int numhnodes1[256];
-    //
-    //		int h_used[512];
-    //		int h_count[512];
-    //	} cinematics_t;
-    //
-    //	cinematics_t cin;
-    //
-    //	/*
-    //	=================================================================
-    //
-    //	PCX LOADING
-    //
-    //	=================================================================
-    //	*/
-    //
-    //
-    //	/*
-    //	==============
-    //	SCR_LoadPCX
-    //	==============
-    //	*/
-    //	void SCR_LoadPCX (char *filename, byte **pic, byte **palette, int *width,
-    // int *height)
-    //	{
-    //		byte *raw;
-    //		pcx_t *pcx;
-    //		int x, y;
-    //		int len;
-    //		int dataByte, runLength;
-    //		byte *out, *pix;
-    //
-    //		*pic = NULL;
-    //
-    //		//
-    //		// load the file
-    //		//
-    //		len = FS_LoadFile (filename, (void **)&raw);
-    //		if (!raw)
-    //			return; // Com_Printf ("Bad pcx file %s\n", filename);
-    //
-    //		//
-    //		// parse the PCX file
-    //		//
-    //		pcx = (pcx_t *)raw;
-    //		raw = &pcx->data;
-    //
-    //		if (pcx->manufacturer != 0x0a
-    //			|| pcx->version != 5
-    //			|| pcx->encoding != 1
-    //			|| pcx->bits_per_pixel != 8
-    //			|| pcx->xmax >= 640
-    //			|| pcx->ymax >= 480)
-    //		{
-    //			Com_Printf ("Bad pcx file %s\n", filename);
-    //			return;
-    //		}
-    //
-    //		out = Z_Malloc ( (pcx->ymax+1) * (pcx->xmax+1) );
-    //
-    //		*pic = out;
-    //
-    //		pix = out;
-    //
-    //		if (palette)
-    //		{
-    //			*palette = Z_Malloc(768);
-    //			memcpy (*palette, (byte *)pcx + len - 768, 768);
-    //		}
-    //
-    //		if (width)
-    //			*width = pcx->xmax+1;
-    //		if (height)
-    //			*height = pcx->ymax+1;
-    //
-    //		for (y=0 ; y<=pcx->ymax ; y++, pix += pcx->xmax+1)
-    //		{
-    //			for (x=0 ; x<=pcx->xmax ; )
-    //			{
-    //				dataByte = *raw++;
-    //
-    //				if((dataByte & 0xC0) == 0xC0)
-    //				{
-    //					runLength = dataByte & 0x3F;
-    //					dataByte = *raw++;
-    //				}
-    //				else
-    //					runLength = 1;
-    //
-    //				while(runLength-- > 0)
-    //					pix[x++] = dataByte;
-    //			}
-    //
-    //		}
-    //
-    //		if ( raw - (byte *)pcx > len)
-    //		{
-    //			Com_Printf ("PCX file %s was malformed", filename);
-    //			Z_Free (*pic);
-    //			*pic = NULL;
-    //		}
-    //
-    //		FS_FreeFile (pcx);
-    //	}
-    //
-    // =============================================================
-    /*
-     * ================== SCR_StopCinematic ==================
+    
+    private static class cinematics_t {
+        boolean restart_sound;
+        int s_rate;
+        int s_width;
+        int s_channels;
+        
+        int width;
+        int height;
+        byte[] pic;
+        byte[] pic_pending;
+        // order 1 huffman stuff
+        int[] hnodes1; // [256][256][2];
+        int[] numhnodes1 = new int[256];
+        
+        int[] h_used = new int[512];
+        int[] h_count = new int[512];
+    }
+    
+    private static cinematics_t cin = new cinematics_t();
+
+    /**
+     * LoadPCX
+     */
+    static int LoadPCX(String filename, byte[] palette, cinematics_t cin) {
+        qfiles.pcx_t pcx;
+
+        // load the file
+        ByteBuffer raw = FS.LoadMappedFile(filename);
+
+        if (raw == null) {
+            VID.Printf(Defines.PRINT_DEVELOPER, "Bad pcx file " + filename
+                    + '\n');
+            return 0;
+        }
+
+        // parse the PCX file
+        pcx = new qfiles.pcx_t(raw);
+
+        if (pcx.manufacturer != 0x0a || pcx.version != 5 || pcx.encoding != 1
+                || pcx.bits_per_pixel != 8 || pcx.xmax >= 640
+                || pcx.ymax >= 480) {
+
+            VID.Printf(Defines.PRINT_ALL, "Bad pcx file " + filename + '\n');
+            return 0;
+        }
+
+        int width = pcx.xmax - pcx.xmin + 1;
+        int height = pcx.ymax - pcx.ymin + 1;
+
+        byte[] pix = new byte[width * height];
+
+        if (palette != null) {
+            raw.position(raw.limit() - 768);
+            raw.get(palette);
+        }
+
+        if (cin != null) {
+            cin.pic = pix;
+            cin.width = width;
+            cin.height = height;
+        }
+
+        //
+        // decode pcx
+        //
+        int count = 0;
+        byte dataByte = 0;
+        int runLength = 0;
+        int x, y;
+
+        // simple counter for buffer indexing
+        int p = 0;
+
+        for (y = 0; y < height; y++) {
+            for (x = 0; x < width;) {
+
+                dataByte = pcx.data.get(p++);
+
+                if ((dataByte & 0xC0) == 0xC0) {
+                    runLength = dataByte & 0x3F;
+                    dataByte = pcx.data.get(p++);
+                    // write runLength pixel
+                    while (runLength-- > 0) {
+                        pix[count++] = dataByte;
+                        x++;
+                    }
+                } else {
+                    // write one pixel
+                    pix[count++] = dataByte;
+                    x++;
+                }
+            }
+        }
+        return width * height;
+    }
+
+    /**
+     * TODO StopCinematic
      */
     static void StopCinematic() {
         cl.cinematictime = 0; // done
-        //		if (cin.pic)
-        //		{
-        //			Z_Free (cin.pic);
-        //			cin.pic = NULL;
-        //		}
-        //		if (cin.pic_pending)
-        //		{
-        //			Z_Free (cin.pic_pending);
-        //			cin.pic_pending = NULL;
-        //		}
+        cin.pic = null;
+        cin.pic_pending = null;
         if (cl.cinematicpalette_active) {
             re.CinematicSetPalette(null);
             cl.cinematicpalette_active = false;
@@ -1531,11 +1502,10 @@ public final class SCR extends Globals {
         //
     }
 
-    /*
-     * ==================== SCR_FinishCinematic
+    /**
+     * FinishCinematic
      * 
      * Called when either the cinematic completes, or it is aborted
-     * ====================
      */
     static void FinishCinematic() {
         // tell the server to advance to the next map / cinematic
@@ -1762,13 +1732,13 @@ public final class SCR extends Globals {
     //		return out;
     //	}
     //
-    //	/*
-    //	==================
-    //	SCR_ReadNextFrame
-    //	==================
-    //	*/
-    //	byte *SCR_ReadNextFrame (void)
-    //	{
+    
+    /**
+     * TODO ReadNextFrame
+     */ 
+   static byte[] ReadNextFrame() {
+       // TODO implement video frame loading
+       return null;
     //		int r;
     //		int command;
     //		byte samples[22050/14*4];
@@ -1822,93 +1792,82 @@ public final class SCR extends Globals {
     //		cl.cinematicframe++;
     //
     //		return pic;
-    //	}
+    }
     //
     //
-    /*
-     * ================== SCR_RunCinematic
-     * 
-     * ==================
+    /**
+     * RunCinematic
      */
     static void RunCinematic() {
-        int frame;
-
         if (cl.cinematictime <= 0) {
             StopCinematic();
             return;
         }
 
-        //		if (cl.cinematicframe == -1)
-        //			return; // static image
-        //
-        //		if (cls.key_dest != key_game)
-        //		{ // pause if menu or console is up
-        //			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
-        //			return;
-        //		}
-        //
-        //		frame = (cls.realtime - cl.cinematictime)*14.0/1000;
-        //		if (frame <= cl.cinematicframe)
-        //			return;
-        //		if (frame > cl.cinematicframe+1)
-        //		{
-        //			Com_Printf ("Dropped frame: %i > %i\n", frame, cl.cinematicframe+1);
-        //			cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
-        //		}
-        //		if (cin.pic)
-        //			Z_Free (cin.pic);
-        //		cin.pic = cin.pic_pending;
-        //		cin.pic_pending = NULL;
-        //		cin.pic_pending = SCR_ReadNextFrame ();
-        //		if (!cin.pic_pending)
-        //		{
-        //			SCR_StopCinematic ();
-        //			SCR_FinishCinematic ();
-        //			cl.cinematictime = 1; // hack to get the black screen behind loading
-        //			SCR_BeginLoadingPlaque ();
-        //			cl.cinematictime = 0;
-        //			return;
-        //		}
+        if (cl.cinematicframe == -1)
+            return; // static image
+        
+        if (cls.key_dest != key_game)
+        { // pause if menu or console is up
+            cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+            return;
+        }
+        
+        int frame = (int)((cls.realtime - cl.cinematictime) * 14.0f/1000);
+        if (frame <= cl.cinematicframe)
+            return;
+        
+        if (frame > cl.cinematicframe+1)
+        {
+            Com.Println("Dropped frame: " + frame + " > " + (cl.cinematicframe+1));
+            cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+        }
+        cin.pic = cin.pic_pending;
+        cin.pic_pending = ReadNextFrame();
+        if (cin.pic_pending == null)
+        {
+            StopCinematic();
+            FinishCinematic();
+            cl.cinematictime = 1; // hack to get the black screen behind loading
+            BeginLoadingPlaque();
+            cl.cinematictime = 0;
+            return;
+        }
     }
 
-    /*
-     * ================== SCR_DrawCinematic
+    /**
+     * DrawCinematic
      * 
      * Returns true if a cinematic is active, meaning the view rendering should
-     * be skipped ==================
+     * be skipped.
      */
     static boolean DrawCinematic() {
-        //		if (cl.cinematictime <= 0)
-        //		{
-        return false;
-        //		}
-        //
-        //		if (cls.key_dest == key_menu)
-        //		{ // blank screen and pause if menu is up
-        //			re.CinematicSetPalette(NULL);
-        //			cl.cinematicpalette_active = false;
-        //			return true;
-        //		}
-        //
-        //		if (!cl.cinematicpalette_active)
-        //		{
-        //			re.CinematicSetPalette(cl.cinematicpalette);
-        //			cl.cinematicpalette_active = true;
-        //		}
-        //
-        //		if (!cin.pic)
-        //			return true;
-        //
-        //		re.DrawStretchRaw (0, 0, viddef.width, viddef.height,
-        //			cin.width, cin.height, cin.pic);
-        //
-        //		return true;
+        if (cl.cinematictime <= 0) {
+            return false;
+        }
+        
+        if (cls.key_dest == key_menu) {
+            // blank screen and pause if menu is up
+            Globals.re.CinematicSetPalette(null);
+            cl.cinematicpalette_active = false;
+            return true;
+        }
+        
+        if (!cl.cinematicpalette_active) {
+            re.CinematicSetPalette(cl.cinematicpalette);
+        	cl.cinematicpalette_active = true;
+        }
+        
+        if (cin.pic == null)
+            return true;
+        
+        Globals.re.DrawStretchRaw(0, 0, viddef.width, viddef.height, cin.width, cin.height, cin.pic);
+        
+        return true;
     }
 
-    /*
-     * ================== SCR_PlayCinematic
-     * 
-     * ==================
+    /**
+     * TODO PlayCinematic
      */
     static void PlayCinematic(String arg) {
         //		int width, height;
@@ -1920,27 +1879,20 @@ public final class SCR extends Globals {
         //CDAudio.Stop();
 
         cl.cinematicframe = 0;
-        //		dot = strstr (arg, ".");
-        //		if (dot && !strcmp (dot, ".pcx"))
-        //		{ // static pcx image
-        //			Com_sprintf (name, sizeof(name), "pics/%s", arg);
-        //			SCR_LoadPCX (name, &cin.pic, &palette, &cin.width, &cin.height);
-        //			cl.cinematicframe = -1;
-        //			cl.cinematictime = 1;
-        //			SCR_EndLoadingPlaque ();
-        //			cls.state = ca_active;
-        //			if (!cin.pic)
-        //			{
-        //				Com_Printf ("%s not found.\n", name);
-        //				cl.cinematictime = 0;
-        //			}
-        //			else
-        //			{
-        //				memcpy (cl.cinematicpalette, palette, sizeof(cl.cinematicpalette));
-        //				Z_Free (palette);
-        //			}
-        //			return;
-        //		}
+        if (arg.endsWith(".pcx")) {
+            // static pcx image
+            String name = "pics/" + arg;
+            int size = LoadPCX(name, cl.cinematicpalette, cin);
+            cl.cinematicframe = -1;
+            cl.cinematictime = 1;
+            EndLoadingPlaque();
+            cls.state = ca_active;
+            if (size == 0 || cin.pic == null) {
+                Com.Println(name + " not found.");
+                cl.cinematictime = 0;
+            }
+            return;
+        }
         //
         //		Com_sprintf (name, sizeof(name), "video/%s", arg);
         //		FS_FOpenFile (name, &cl.cinematic_file);
