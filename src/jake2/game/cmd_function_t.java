@@ -1,10 +1,10 @@
 /*
- * Sys.java
+ * cmd_function_t.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.5 2003-12-02 10:07:35 hoz Exp $
+ * $Id: cmd_function_t.java,v 1.1 2003-12-02 10:07:36 hoz Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -23,35 +23,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.sys;
+package jake2.game;
 
-import jake2.client.CL;
+import jake2.qcommon.xcommand_t;
 
 /**
- * Sys
+ * cmd_function_t
  */
-public final class Sys {
-	
-	/**
-	 * @param error
-	 */
-	public static void Error(String error) {
-//		00099         va_list     argptr;
-//		00100         char        string[1024];
-//		00101 
-//		00102 // change stdin to non blocking
-//		00103         fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
-//		00104 
-		CL.Shutdown();
-//		00106     
-//		00107         va_start (argptr,error);
-//		00108         vsprintf (string,error,argptr);
-//		00109         va_end (argptr);
-//		00110         fprintf(stderr, "Error: %s\n", string);
-		System.err.println("Error: " + error);
-//		00111 
-		System.exit(1);
-			
-	}
-	
+public final class cmd_function_t {
+	public cmd_function_t next = null;
+	String name = null;
+	xcommand_t function = null;
 }

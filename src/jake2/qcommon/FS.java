@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.11 2003-12-01 13:25:57 hoz Exp $
+ * $Id: FS.java,v 1.12 2003-12-02 10:07:36 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -560,7 +560,7 @@ public final class FS {
 //		if (Sys_FindFirst(name, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
 		File f = new File(name);
 		if (f.exists())
-			Cbuf.addText("exec autoexec.cfg\n");
+			Cbuf.AddText("exec autoexec.cfg\n");
 //		Sys_FindClose();
 	}
 //

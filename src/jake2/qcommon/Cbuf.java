@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.6 2003-12-01 13:25:57 hoz Exp $
+ * $Id: Cbuf.java,v 1.7 2003-12-02 10:07:36 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -50,19 +50,39 @@ public final class Cbuf {
 	 * @param clear
 	 */
 	static void AddEarlyCommands(boolean clear) {
+ 
+		for (int i=0 ; i < Com.Argc() ; i++) {
+			String s = Com.Argv(i);
+				if (!s.equals("+set"))
+					continue;
+			Cbuf.AddText("set " + Com.Argv(i+1) + " " + Com.Argv(i+2) +"n");
+			if (clear) {
+				Com.ClearArgv(i);
+				Com.ClearArgv(i+1);
+				Com.ClearArgv(i+2);
+			}
+			i+=2;
+		}
 	}
 	
 	/**
 	 * @return
 	 */
-	static boolean addLateCommands() {
+	static boolean AddLateCommands() {
 		return true;
 	}
 	
 	/**
 	 * @param text
 	 */
-	static void addText(String text) {
+	static void AddText(String text) {
+		int l = text.length();
+
+		if (Globals.cmd_text.cursize + l >= Globals.cmd_text.maxsize) {
+			Com.Printf("Cbuf_AddText: overflow\n");
+			return;
+		}
+		SZ.Write(Globals.cmd_text, text.getBytes(), l);		
 	}
 	
 	/**

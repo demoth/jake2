@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- *$Id: CL.java,v 1.18 2003-12-01 22:00:22 hoz Exp $
+ *$Id: CL.java,v 1.19 2003-12-02 10:07:36 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -482,7 +482,7 @@ public final class CL extends Globals {
 		public void execute() {
 				// never pause in multiplayer
 
-	if (Cvar.VariableValue("maxclients") > 1 || !Com.ServerState()) {
+	if (Cvar.VariableValue("maxclients") > 1 || Com.ServerState() == 0) {
 				Cvar.SetValue("paused", 0);
 				return;
 			}

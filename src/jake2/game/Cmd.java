@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.9 2003-12-01 22:00:22 hoz Exp $
+ * $Id: Cmd.java,v 1.10 2003-12-02 10:07:36 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -133,6 +133,7 @@ public final class Cmd {
 	public static cmd_function_t cmd_functions = null;
 	static int cmd_argc;
 	static String[] cmd_argv = new String[Globals.MAX_STRING_TOKENS];
+	static String cmd_args;
 
 	/**
 	 * register our commands
@@ -148,9 +149,29 @@ public final class Cmd {
 	/**
 	 * @param cmdname
 	 * @param function
-	 * TODO implement Cmd.AddCommand()
 	 */
-	public static void AddCommand(String cmdname, xcommand_t function) { 	
+	public static void AddCommand(String cmd_name, xcommand_t function) {
+		cmd_function_t  cmd;
+         
+		// fail if the command is a variable name
+		if ((Cvar.VariableString(cmd_name)).length() > 0) {
+			Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
+			return;
+		}
+		
+		// fail if the command already exists
+		for (cmd=cmd_functions ; cmd != null ; cmd=cmd.next) {
+			if (cmd_name.equals(cmd.name)) {
+				Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined\n");
+				return;
+			}
+		}
+		
+		cmd = new cmd_function_t();
+		cmd.name = cmd_name;
+		cmd.function = function;
+		cmd.next = cmd_functions;
+		cmd_functions = cmd; 
 	}
 	
 	/**
@@ -173,8 +194,6 @@ public final class Cmd {
 	 * 
 	 */
 	public static String Args() {
-		// TODO Auto-generated method stub
-		return "";
-		
+		return cmd_args;
 	}
 }

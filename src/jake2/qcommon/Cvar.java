@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.12 2003-12-01 22:00:22 hoz Exp $
+ * $Id: Cvar.java,v 1.13 2003-12-02 10:07:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -202,7 +202,7 @@ public class Cvar {
 						return var;
 				}
 
-				if (Com.ServerState()) {
+				if (Com.ServerState() != 0) {
 					Com.Printf(var_name + " will be changed for next game.\n");
 					//var.latched_string = CopyString(value);
 					var.latched_string = value;

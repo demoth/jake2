@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.7 2003-12-01 22:00:22 hoz Exp $
+ * $Id: Qcommon.java,v 1.8 2003-12-02 10:07:35 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -74,8 +74,8 @@ public final class Qcommon {
 
 			FS.InitFilesystem();
 
-			Cbuf.addText("exec default.cfg\n");
-			Cbuf.addText("exec config.cfg\n");
+			Cbuf.AddText("exec default.cfg\n");
+			Cbuf.AddText("exec config.cfg\n");
 
 			Cbuf.AddEarlyCommands(true);
 			Cbuf.Execute();
@@ -111,9 +111,9 @@ public final class Qcommon {
 			CL.Init();
 
 			// add + commands from command line
-			if (!Cbuf.addLateCommands()) {
+			if (!Cbuf.AddLateCommands()) {
 				// if the user didn't give any commands, run default action
-				Cbuf.addText("d1\n");
+				Cbuf.AddText("d1\n");
 				Cbuf.Execute();
 			} else {
 				// the user asked for something explicit

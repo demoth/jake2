@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.14 2003-12-01 22:00:22 hoz Exp $
+ * $Id: Com.java,v 1.15 2003-12-02 10:07:36 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +34,6 @@ import jake2.sys.Sys;
 import jake2.util.PrintfFormat;
 import jake2.util.Vargs;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -148,8 +147,23 @@ public final class Com {
 	}
 
 	
-	public static boolean ServerState() {
-		// TODO Auto-generated method stub
-		return false;
+	public static int ServerState() {
+		return Globals.server_state;
+	}
+	
+	public static int Argc() {
+		return Globals.com_argc;
+	}
+	
+	public static String Argv(int arg) {
+		if (arg < 0 || arg >= Globals.com_argc || Globals.com_argv[arg].length() < 1)
+			return "";
+		return Globals.com_argv[arg];		
+	}
+	
+	public static void ClearArgv(int arg) {
+		if (arg < 0 || arg >= Globals.com_argc || Globals.com_argv[arg].length() < 1)
+			return;
+		Globals.com_argv[arg] = "";
 	}
 }

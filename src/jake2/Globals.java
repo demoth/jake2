@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.14 2003-12-01 20:27:42 hoz Exp $
+ * $Id: Globals.java,v 1.15 2003-12-02 10:07:36 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,6 +64,7 @@ public class Globals extends Defines {
 	public static int c_traces;
 	public static int c_brush_traces;
 	public static int c_pointcontents;
+	public static int server_state;
 
 	public static String[] com_argv = new String[MAX_NUM_ARGVS];
 
