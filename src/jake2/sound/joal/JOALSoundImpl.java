@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.3 2004-04-26 15:59:43 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.4 2004-04-26 16:39:41 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -10,7 +10,9 @@ package jake2.sound.joal;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.game.cvar_t;
 import jake2.game.entity_state_t;
+import jake2.qcommon.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 import jake2.sound.*;
@@ -36,6 +38,8 @@ public final class JOALSoundImpl implements Sound {
 
 	static AL al;
 	static ALC alc;
+	
+	cvar_t s_volume;
 	
 	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
 	
@@ -71,7 +75,10 @@ public final class JOALSoundImpl implements Sound {
 		al.alGenSources(MAX_SFX, sources);
 
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
-//		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);		
+//		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);	
+
+		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
+
 		return true;
 	}
 	
@@ -112,33 +119,8 @@ public final class JOALSoundImpl implements Sound {
 		StopAllSounds();
 		al.alDeleteSources(sources.length, sources);
 		al.alDeleteBuffers(buffers.length, buffers);
-		try {
-			exitOpenAL();
-		}
-		catch (Exception e) {
-			Com.Printf(e.getMessage() + '\n');
-		}
+		ALut.alutExit();
 	}
-	
-	private void exitOpenAL() {
-		 ALC.Context curContext;
-		 ALC.Device curDevice;
-
-		 // Get the current context.
-		 curContext = alc.alcGetCurrentContext();
-
-		 // Get the device used by that context.
-		 curDevice = alc.alcGetContextsDevice(curContext);
-
-		 // Reset the current context to NULL.
-		 alc.alcMakeContextCurrent(null);
-
-		 // Release the context and the device.
-		 alc.alcDestroyContext(curContext);
-		 alc.alcCloseDevice(curDevice);
-	 }
-	
-	
 	
 	private final static float[] NULLVECTOR = {0, 0, 0};
 	private float[] entityOrigin = {0, 0, 0};
@@ -171,7 +153,7 @@ public final class JOALSoundImpl implements Sound {
 		//System.out.println(sfx.name + " fvol: " + fvol + " atten: " + attenuation);
 
 		al.alSourcei (sources[sfx.id], AL.AL_BUFFER, buffers[sfx.id]);
-		al.alSourcef (sources[sfx.id], AL.AL_GAIN, 0.7f);
+		al.alSourcef (sources[sfx.id], AL.AL_GAIN, s_volume.value);
 		al.alSourcef (sources[sfx.id], AL.AL_PITCH, 1.0f);
 		al.alSourcei (sources[sfx.id], AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
 		al.alSourcefv(sources[sfx.id], AL.AL_VELOCITY, NULLVECTOR);
@@ -291,6 +273,7 @@ public final class JOALSoundImpl implements Sound {
 						convertVector(originlist[i], sourceOrigin);
 						break;
 				}
+		
 				al.alSourcefv(playlist[i], AL.AL_POSITION, sourceOrigin);
 				al.alSourceStop(playlist[i]);
 				al.alSourceRewind(playlist[i]);
