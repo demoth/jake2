@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.15 2004-02-11 05:20:38 cwei Exp $
+ * $Id: Surf.java,v 1.16 2004-02-15 21:54:54 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -982,6 +982,7 @@ public abstract class Surf extends Draw {
 			{
 				mins[i] = e.origin[i] - currentmodel.radius;
 				maxs[i] = e.origin[i] + currentmodel.radius;
+				//System.out.println("rotate: " + Lib.vtos(mins) + " " + Lib.vtos(maxs));
 			}
 		}
 		else
@@ -989,10 +990,13 @@ public abstract class Surf extends Draw {
 			rotated = false;
 			Math3D.VectorAdd(e.origin, currentmodel.mins, mins);
 			Math3D.VectorAdd(e.origin, currentmodel.maxs, maxs);
+			//System.out.println("       "  + Lib.vtos(mins) + " " + Lib.vtos(maxs));
 		}
 
-		if (R_CullBox(mins, maxs))
+		if (R_CullBox(mins, maxs)) {
+			//System.out.println("origin "  + Lib.vtos(e.origin) + " +++ " + Lib.vtos(currentmodel.mins));
 			return;
+		}
 
 		gl.glColor3f (1,1,1);
 		
@@ -1239,6 +1243,7 @@ public abstract class Surf extends Draw {
 		R_DrawTriangleOutlines();
 	}
 
+	byte[] fatvis = new byte[Defines.MAX_MAP_LEAFS / 8];
 
 	/*
 	===============
@@ -1251,7 +1256,10 @@ public abstract class Surf extends Draw {
 	void R_MarkLeaves()
 	{
 		byte[] vis;
-		byte[] fatvis = new byte[Defines.MAX_MAP_LEAFS / 8];
+		//byte[] fatvis = new byte[Defines.MAX_MAP_LEAFS / 8];
+		
+		Arrays.fill(fatvis, (byte)0);
+		
 		mnode_t node;
 		int i, c;
 		mleaf_t leaf;
@@ -1287,11 +1295,12 @@ public abstract class Surf extends Draw {
 			System.arraycopy(vis, 0, fatvis, 0, (r_worldmodel.numleafs+7) / 8);
 			vis = Mod_ClusterPVS(r_viewcluster2, r_worldmodel);
 			c = (r_worldmodel.numleafs + 31) / 32;
+			int k = 0;
 			for (i=0 ; i<c ; i++) {
-				fatvis[4 * i + 0] |= vis[4 * i + 0];
-				fatvis[4 * i + 1] |= vis[4 * i + 1];
-				fatvis[4 * i + 2] |= vis[4 * i + 2];
-				fatvis[4 * i + 3] |= vis[4 * i + 3];
+				fatvis[k] |= vis[k++];
+				fatvis[k] |= vis[k++];
+				fatvis[k] |= vis[k++];
+				fatvis[k] |= vis[k++];
 			}
 
 			vis = fatvis;
