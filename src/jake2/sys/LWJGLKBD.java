@@ -13,8 +13,10 @@ import org.lwjgl.opengl.Display;
  */
 public class LWJGLKBD extends KBD {
 
-	static private int win_w2;
-	static private int win_h2;
+	private int win_w2;
+	private int win_h2;
+	
+	private char[] lwjglKeycodeMap = null;
 	
 	public void Init()
 	{
@@ -24,10 +26,13 @@ public class LWJGLKBD extends KBD {
 			if (!Mouse.isCreated()) Mouse.create();
 			
 			if (!Keyboard.isBuffered()) Keyboard.enableBuffer();
+			if (!Keyboard.isTranslationEnabled()) Keyboard.enableTranslation();
 			if (!Mouse.isBuffered()) Mouse.enableBuffer();
 			
 			win_w2=Display.getDisplayMode().getWidth()/2;
 			win_h2=Display.getDisplayMode().getHeight()/2;
+
+			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
 			
 		} catch (Exception e) {;}	
 	}
@@ -40,28 +45,39 @@ public class LWJGLKBD extends KBD {
 	public void Close() {
 		Keyboard.destroy();
 		Mouse.destroy();
+		// free the memory for GC
+		lwjglKeycodeMap = null;
 	}
 	
 	private void HandleEvents() 
 	{
+		Keyboard.poll();
+		
 		if (Display.isCloseRequested())
 		{
 			Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
 		}
-		
-		for (int i=0; i<Keyboard.getNumKeyboardEvents(); i++)
+		int key;
+		char ch;
+		boolean down;
+		while (Keyboard.next())
 		{
-			Keyboard.next();
+			key = Keyboard.getEventKey();
+			ch = Keyboard.getEventCharacter();
+			down =  Keyboard.getEventKeyState();
 			
-			int key=Keyboard.getEventKey();
-			char ch=Keyboard.getEventCharacter();
-			Do_Key_Event(XLateKey(key,ch),Keyboard.getEventKeyState());
+			// fill the character translation table
+			// this is needed because the getEventCharacter() returns \0 if a key is released
+			// keycode is correct but the charachter value is not
+			if (down) lwjglKeycodeMap[key] = ch;
+
+			Do_Key_Event(XLateKey(key,ch), down);
 		}	
 		
 		if (IN.mouse_active)
 		{
-			mx=(Mouse.getX()-win_w2)*2;
-			my=(Mouse.getY()-win_h2)*2;
+			mx =  Mouse.getDX() << 1;
+			my = -Mouse.getDY() << 1;
 		}
 		else
 		{
@@ -79,7 +95,7 @@ public class LWJGLKBD extends KBD {
 		}	
 	}
 
-	private static int XLateKey(int code, int ch) 
+	private int XLateKey(int code, int ch) 
 	{
 		int key = 0;
 
@@ -150,16 +166,16 @@ public class LWJGLKBD extends KBD {
 //	00701
 			case Keyboard.KEY_INSERT: key = Key.K_INS; break;
 			// toggle console for DE and US keyboards
+			case Keyboard.KEY_GRAVE:
 			case Keyboard.KEY_CIRCUMFLEX: key = '`'; break;
-			 
+
 			default:
-				key = ch;
+				key = lwjglKeycodeMap[code];
 				if (key >= 'A' && key <= 'Z')
-					key = key - 'A' + 'a';
+						key = key - 'A' + 'a';
 			break;
 		}
 		if (key > 255) key = 0;
-
 		return key;
 	}	
 		
