@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.3 2004-09-22 19:22:03 salomo Exp $
+// $Id: GameTarget.java,v 1.4 2005-02-19 21:18:44 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -222,7 +222,7 @@ public class GameTarget {
             return;
         }
 
-        if (GameBase.deathmatch.value != 9) {
+        if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -700,13 +700,13 @@ public class GameTarget {
 
             if (null == self.enemy) {
                 if (self.target != null) {
-                    ent = GameBase.G_Find(null, GameBase.findByTarget,
-                            self.target).o;
-                    if (ent == null)
+                    EdictIterator edit = GameBase.G_Find(null, GameBase.findByTarget,
+                            self.target);
+                    if (edit == null)
                         GameBase.gi.dprintf(self.classname + " at "
                                 + Lib.vtos(self.s.origin) + ": " + self.target
                                 + " is a bad target\n");
-                    self.enemy = ent;
+                    self.enemy = edit.o;
                 } else {
                     GameBase.G_SetMovedir(self.s.angles, self.movedir);
                 }
@@ -740,13 +740,11 @@ public class GameTarget {
     static EntThinkAdapter target_lightramp_think = new EntThinkAdapter() {
         public boolean think(edict_t self) {
 
-            char style[] = { ' ', ' ' };
-
-            style[0] = (char) ('a' + (int) (self.movedir[0] + (GameBase.level.time - self.timestamp)
-                    / Defines.FRAMETIME * self.movedir[2]));
-            style[1] = 0;
+            char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (GameBase.level.time - self.timestamp)
+                    / Defines.FRAMETIME * self.movedir[2]))};
+            
             GameBase.gi.configstring(Defines.CS_LIGHTS + self.enemy.style,
-                    new String(style));
+                    new String(tmp));
 
             if ((GameBase.level.time - self.timestamp) < self.speed) {
                 self.nextthink = GameBase.level.time + Defines.FRAMETIME;
@@ -775,10 +773,12 @@ public class GameTarget {
                 while (true) {
                     es = GameBase
                             .G_Find(es, GameBase.findByTarget, self.target);
+                    
+                    if (es == null)
+                        break;
+                    
                     e = es.o;
 
-                    if (e == null)
-                        break;
                     if (Lib.strcmp(e.classname, "light") != 0) {
                         GameBase.gi.dprintf(self.classname + " at "
                                 + Lib.vtos(self.s.origin));
