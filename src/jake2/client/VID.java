@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.3 2003-12-04 15:09:20 cwei Exp $
+ * $Id: VID.java,v 1.4 2003-12-27 03:09:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.client;
+
+import jake2.Defines;
+import jake2.qcommon.Com;
+import jake2.util.Vargs;
 
 import java.awt.Dimension;
 
@@ -115,6 +119,20 @@ public class VID {
 	public static void NewWindow(int width, int height) {
 		viddef.width = width;
 		viddef.height = height;
+	}
+	
+	public static void Printf(int print_level, String fmt, Vargs vargs) {
+//		static qboolean	inupdate;
+		if (print_level == Defines.PRINT_ALL)
+			Com.Printf(fmt, vargs);
+		else
+			Com.DPrintf(fmt, vargs);
+	}
+
+	public static void Error(int err_level, String fmt, Vargs vargs)
+	{
+		//static qboolean	inupdate;
+		Com.Error(err_level, fmt, vargs);
 	}
 
 }
