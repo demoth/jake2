@@ -44,8 +44,8 @@
 		<argument>vid_ref</argument>
 		<argument>lwjgl</argument>
 		<argument>+set</argument>
-		<argument>+s_impl</argument>
-		<argument>+lwjgl</argument>
+		<argument>s_impl</argument>
+		<argument>lwjgl</argument>
 	</application-desc>
 
 </jnlp>
