@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.4 2004-07-23 10:07:14 hzi Exp $
+ * $Id: Cmd.java,v 1.5 2004-08-19 20:56:41 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,9 +28,11 @@ package jake2.game;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.*;
+import jake2.server.SV_GAME;
 import jake2.util.Lib;
 
 import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * Cmd
@@ -504,21 +506,21 @@ public final class Cmd extends PlayerView
 
 		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
-		name= GameBase.gi.args();
+		name= Cmd.Args();
 
 		if (0 == Lib.Q_stricmp(name, "all"))
 			give_all= true;
 		else
 			give_all= false;
 
-		if (give_all || 0 == Lib.Q_stricmp(GameBase.gi.argv(1), "health"))
+		if (give_all || 0 == Lib.Q_stricmp(Cmd.Argv(1), "health"))
 		{
-			if (GameBase.gi.argc() == 3)
-				ent.health= Lib.atoi(GameBase.gi.argv(2));
+			if (Cmd.Argc() == 3)
+				ent.health= Lib.atoi(Cmd.Argv(2));
 			else
 				ent.health= ent.max_health;
 			if (!give_all)
@@ -604,18 +606,18 @@ public final class Cmd extends PlayerView
 		it= GameUtil.FindItem(name);
 		if (it == null)
 		{
-			name= GameBase.gi.argv(1);
+			name= Cmd.Argv(1);
 			it= GameUtil.FindItem(name);
 			if (it == null)
 			{
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
 				return;
 			}
 		}
 
 		if (it.pickup == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "non-pickup item\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "non-pickup item\n");
 			return;
 		}
 
@@ -623,8 +625,8 @@ public final class Cmd extends PlayerView
 
 		if ((it.flags & Defines.IT_AMMO) != 0)
 		{
-			if (GameBase.gi.argc() == 3)
-				ent.client.pers.inventory[index]= Lib.atoi(GameBase.gi.argv(2));
+			if (Cmd.Argc() == 3)
+				ent.client.pers.inventory[index]= Lib.atoi(Cmd.Argv(2));
 			else
 				ent.client.pers.inventory[index] += it.quantity;
 		}
@@ -654,7 +656,7 @@ public final class Cmd extends PlayerView
 
 		if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
@@ -664,7 +666,7 @@ public final class Cmd extends PlayerView
 		else
 			msg= "godmode ON\n";
 
-		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
+		SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
 	}
 
 	/*
@@ -682,7 +684,7 @@ public final class Cmd extends PlayerView
 
 		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
@@ -692,7 +694,7 @@ public final class Cmd extends PlayerView
 		else
 			msg= "notarget ON\n";
 
-		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
+		SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
 	}
 
 	/*
@@ -708,7 +710,7 @@ public final class Cmd extends PlayerView
 
 		if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 			return;
 		}
 
@@ -723,7 +725,7 @@ public final class Cmd extends PlayerView
 			msg= "noclip ON\n";
 		}
 
-		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, msg);
+		SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
 	}
 
 	/*
@@ -739,22 +741,22 @@ public final class Cmd extends PlayerView
 		gitem_t it;
 		String s;
 
-		s= GameBase.gi.args();
+		s= Cmd.Args();
 		it= GameUtil.FindItem(s);
 		if (it == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
 			return;
 		}
 		if (it.use == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
 			return;
 		}
 		index= GameUtil.ITEM_INDEX(it);
 		if (0 == ent.client.pers.inventory[index])
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
 			return;
 		}
 
@@ -774,22 +776,22 @@ public final class Cmd extends PlayerView
 		gitem_t it;
 		String s;
 
-		s= GameBase.gi.args();
+		s= Cmd.Args();
 		it= GameUtil.FindItem(s);
 		if (it == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s + "\n");
 			return;
 		}
 		if (it.drop == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
 			return;
 		}
 		index= GameUtil.ITEM_INDEX(it);
 		if (0 == ent.client.pers.inventory[index])
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s + "\n");
 			return;
 		}
 
@@ -840,14 +842,14 @@ public final class Cmd extends PlayerView
 
 		if (ent.client.pers.selected_item == -1)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
 			return;
 		}
 
 		it= GameAI.itemlist[ent.client.pers.selected_item];
 		if (it.use == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
 			return;
 		}
 		it.use.use(ent, it);
@@ -970,14 +972,14 @@ public final class Cmd extends PlayerView
 
 		if (ent.client.pers.selected_item == -1)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
 			return;
 		}
 
 		it= GameAI.itemlist[ent.client.pers.selected_item];
 		if (it.drop == null)
 		{
-			GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
+			SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
 			return;
 		}
 		it.drop.drop(ent, it);
@@ -1117,7 +1119,7 @@ public final class Cmd extends PlayerView
 			large += small;
 		}
 
-		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "" + large + "\n" + count + " players\n");
+		SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "" + large + "\n" + count + " players\n");
 	}
 
 	/*
@@ -1129,7 +1131,7 @@ public final class Cmd extends PlayerView
 	{
 		int i;
 
-		i= Lib.atoi(GameBase.gi.argv(1));
+		i= Lib.atoi(Cmd.Argv(1));
 
 		// can't wave when ducked
 		if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
@@ -1143,28 +1145,28 @@ public final class Cmd extends PlayerView
 		switch (i)
 		{
 			case 0 :
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "flipoff\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "flipoff\n");
 				ent.s.frame= M_Player.FRAME_flip01 - 1;
 				ent.client.anim_end= M_Player.FRAME_flip12;
 				break;
 			case 1 :
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "salute\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "salute\n");
 				ent.s.frame= M_Player.FRAME_salute01 - 1;
 				ent.client.anim_end= M_Player.FRAME_salute11;
 				break;
 			case 2 :
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "taunt\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "taunt\n");
 				ent.s.frame= M_Player.FRAME_taunt01 - 1;
 				ent.client.anim_end= M_Player.FRAME_taunt17;
 				break;
 			case 3 :
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "wave\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "wave\n");
 				ent.s.frame= M_Player.FRAME_wave01 - 1;
 				ent.client.anim_end= M_Player.FRAME_wave11;
 				break;
 			case 4 :
 			default :
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "point\n");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "point\n");
 				ent.s.frame= M_Player.FRAME_point01 - 1;
 				ent.client.anim_end= M_Player.FRAME_point12;
 				break;
@@ -1184,7 +1186,7 @@ public final class Cmd extends PlayerView
 		String text;
 		gclient_t cl;
 
-		if (gi.argc() < 2 && !arg0)
+		if (Cmd.Argc() < 2 && !arg0)
 			return;
 
 		if (0 == ((int) (dmflags.value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
@@ -1197,16 +1199,16 @@ public final class Cmd extends PlayerView
 
 		if (arg0)
 		{
-			text += gi.argv(0);
+			text += Cmd.Argv(0);
 			text += " ";
-			text += gi.args();
+			text += Cmd.Args();
 		}
 		else
 		{
-			if (gi.args().startsWith("\""))
-				text += gi.args().substring(1, gi.args().length() - 1);
+			if (Cmd.Args().startsWith("\""))
+				text += Cmd.Args().substring(1, Cmd.Args().length() - 1);
 			else
-				text += gi.args();
+				text += Cmd.Args();
 			/*
 			p = gi.args();
 			// *p ==
@@ -1232,7 +1234,7 @@ public final class Cmd extends PlayerView
 
 			if (level.time < cl.flood_locktill)
 			{
-				gi.cprintf(ent, PRINT_HIGH, "You can't talk for " + (int) (cl.flood_locktill - level.time) + " more seconds\n");
+				SV_GAME.PF_cprintf(ent, PRINT_HIGH, "You can't talk for " + (int) (cl.flood_locktill - level.time) + " more seconds\n");
 				return;
 			}
 			i= (int) (cl.flood_whenhead - flood_msgs.value + 1);
@@ -1242,7 +1244,7 @@ public final class Cmd extends PlayerView
 			if (cl.flood_when[i] != 0 && level.time - cl.flood_when[i] < flood_persecond.value)
 			{
 				cl.flood_locktill= level.time + flood_waitdelay.value;
-				gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for " + (int) flood_waitdelay.value + " seconds.\n");
+				SV_GAME.PF_cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for " + (int) flood_waitdelay.value + " seconds.\n");
 				return;
 			}
 			//cl.flood_whenhead = (cl.flood_whenhead + 1) % (sizeof(cl.flood_when) / sizeof(cl.flood_when[0]));
@@ -1251,7 +1253,7 @@ public final class Cmd extends PlayerView
 		}
 
 		if (dedicated.value != 0)
-			gi.cprintf(null, PRINT_CHAT, "" + text + "");
+			SV_GAME.PF_cprintf(null, PRINT_CHAT, "" + text + "");
 
 		for (j= 1; j <= game.maxclients; j++)
 		{
@@ -1265,7 +1267,7 @@ public final class Cmd extends PlayerView
 				if (!OnSameTeam(ent, other))
 					continue;
 			}
-			gi.cprintf(other, PRINT_CHAT, "" + text + "");
+			SV_GAME.PF_cprintf(other, PRINT_CHAT, "" + text + "");
 		}
 
 	}
@@ -1308,12 +1310,12 @@ public final class Cmd extends PlayerView
 			if (text.length() + st.length() > 1024 - 50)
 			{
 				text += "And more...\n";
-				GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
+				SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
 				return;
 			}
 			text += st;
 		}
-		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, text);
+		SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, text);
 	}
 
 	//	  ======================================================================
@@ -1345,6 +1347,26 @@ public final class Cmd extends PlayerView
 			SZ.Print(Globals.cls.netchan.message, " ");
 			SZ.Print(Globals.cls.netchan.message, Cmd.Args());
 		}
-	};
+	}
+	
+	/*
+	============
+	Cmd_CompleteCommand
+	============
+	*/
+	public static Vector CompleteCommand(String partial)
+	{
+		Vector cmds = new Vector();
+	
+		// check for match
+		for (cmd_function_t cmd = cmd_functions; cmd != null ; cmd = cmd.next)
+			if (cmd.name.startsWith(partial))
+				cmds.add(cmd.name);
+		for (cmdalias_t a = cmd_alias; a != null; a=a.next)
+			if (a.name.startsWith(partial))
+				cmds.add(a.name);
+
+		return cmds;
+	}
 
 }

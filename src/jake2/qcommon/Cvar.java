@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.3 2004-07-30 06:08:41 hzi Exp $
+ * $Id: Cvar.java,v 1.4 2004-08-19 20:56:41 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.qcommon;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Vector;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -430,21 +431,16 @@ public class Cvar extends Globals {
 	Cvar_CompleteVariable
 	============
 	*/
-	static String CompleteVariable(String partial) {
-		cvar_t cvar;
-		int len;
-
-		len = partial.length();
-
-		if (len == 0)
-			return null;
+	public static Vector CompleteVariable(String partial) {
+		
+		Vector vars = new Vector();
 
 		// check match
-		for (cvar = Globals.cvar_vars; cvar != null; cvar = cvar.next)
+		for (cvar_t cvar = Globals.cvar_vars; cvar != null; cvar = cvar.next)
 			if (cvar.name.startsWith(partial))
-				return cvar.name;
-
-		return null;
+				vars.add(cvar.name);
+		
+		return vars;
 	}
 
 	/*

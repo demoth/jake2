@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.5 2004-07-23 10:02:49 hzi Exp $
+ * $Id: Key.java,v 1.6 2004-08-19 20:56:41 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,16 +25,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.qcommon.*;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Com;
 import jake2.util.Lib;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Vector;
 
 /**
  * Key
@@ -673,26 +672,49 @@ public class Key extends Globals {
 
 	}
 
+	private static void printCompletions(String type, Vector compl) {
+		Com.Printf(type);
+		for (int i = 0; i < compl.size(); i++) {
+			Com.Printf((String)compl.get(i) + " ");
+		}
+		Com.Printf("\n");
+	}
+	
 	static void CompleteCommand() {
-		//	00166         char    *cmd, *s;
-		//	00167 
-		//	00168         s = key_lines[edit_line]+1;
-		//	00169         if (*s == '\\' || *s == '/')
-		//	00170                 s++;
-		//	00171 
-		//	00172         cmd = Cmd_CompleteCommand (s);
-		//	00173         if (!cmd)
-		//	00174                 cmd = Cvar_CompleteVariable (s);
-		//	00175         if (cmd)
-		//	00176         {
-		//	00177                 key_lines[edit_line][1] = '/';
-		//	00178                 strcpy (key_lines[edit_line]+2, cmd);
-		//	00179                 key_linepos = strlen(cmd)+2;
-		//	00180                 key_lines[edit_line][key_linepos] = ' ';
-		//	00181                 key_linepos++;
-		//	00182                 key_lines[edit_line][key_linepos] = 0;
-		//	00183                 return;
-		//	00184         }
+		
+		int start = 1;
+		if (key_lines[edit_line][start] == '\\' ||  key_lines[edit_line][start] == '/')
+			start++;
+		
+		int end = start;
+		while (key_lines[edit_line][end] != 0) end++;
+			
+		String s = new String(key_lines[edit_line], start, end-start);
+		
+		Vector cmds = Cmd.CompleteCommand(s);
+		Vector vars = Cvar.CompleteVariable(s);
+		
+		int c = cmds.size();
+		int v = vars.size();
+		
+		if ((c + v) > 1) {
+			if (c > 0) printCompletions("\nCommands:\n", cmds);
+			if (v > 0) printCompletions("\nVariables:\n", vars);
+			return;
+		} else if (c == 1) {
+			s = (String)cmds.get(0);
+		} else if (v == 1) {
+			s = (String)vars.get(0);
+		} else return;
+		
+		key_lines[edit_line][1] = '/';
+		byte[] bytes = s.getBytes();
+		System.arraycopy(bytes, 0, key_lines[edit_line], 2, bytes.length);
+		key_linepos = bytes.length + 2;
+		key_lines[edit_line][key_linepos++] = ' ';
+		key_lines[edit_line][key_linepos] = 0;
+		
+		return;
 	}
 
 	public static xcommand_t Bind_f = new xcommand_t() {
