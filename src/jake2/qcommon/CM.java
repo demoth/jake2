@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.5 2004-01-17 20:34:46 rst Exp $
+// $Id: CM.java,v 1.6 2004-01-20 12:57:07 cwei Exp $
 
 package jake2.qcommon;
 
@@ -207,6 +207,7 @@ public class CM extends PlayerHud {
 		length = buf.length;
 
 		ByteBuffer bbuf = ByteBuffer.wrap(buf);
+		bbuf.order(ByteOrder.LITTLE_ENDIAN);
 
 		//last_checksum = LittleLong(Com.BlockChecksum(buf, length));
 		checksum = last_checksum;
@@ -1590,7 +1591,7 @@ public class CM extends PlayerHud {
 
 		row = (numclusters + 7) >> 3;
 		int outp = 0;
-		int inp = 0;
+		int inp = offset;
 
 		if (in == null || numvisibility == 0) { // no vis info, so make all visible
 			while (row != 0) {
