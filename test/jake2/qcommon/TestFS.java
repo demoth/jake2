@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.4 2003-12-24 01:15:58 cwei Exp $
+ * $Id: TestFS.java,v 1.5 2003-12-25 18:16:47 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -48,7 +48,6 @@ public class TestFS {
 		init();
 
 		FS.InitFilesystem();
-//		FS.Dir_f();
 
 		Cmd.cmd_argc = 3;
 		Cmd.cmd_argv = new String[] { "link", "unknown.pcx", "../../baseq2/space.pcx" };
@@ -66,6 +65,11 @@ public class TestFS {
 		FS.Link_f();
 
 		FS.Path_f();
+
+
+		Cmd.cmd_argc = 2;
+		Cmd.cmd_argv = new String[] { "dir", "players/male/*.[a-zA-Z_0-9]?x" };
+		FS.Dir_f();
 
 
 		String[] filenames =
