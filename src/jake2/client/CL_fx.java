@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.7 2004-02-02 22:06:54 hoz Exp $
+ * $Id: CL_fx.java,v 1.8 2004-02-04 11:24:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.client;
 
 import jake2.Globals;
 import jake2.game.entity_state_t;
+import jake2.qcommon.Com;
 
 /**
  * CL_fx
@@ -44,6 +45,11 @@ public class CL_fx extends Globals {
 		float	die;				// stop lighting after this time
 		float	decay;				// drop this each second
 		float	minlight;			// don't add when contributing less
+		void clear() {
+			radius = decay = die = minlight =
+			color[0] = color[1] = color[2] = origin[0] = origin[1] = origin[2] =
+			key = 0;
+		}
 	}
 	
 	
@@ -68,192 +74,200 @@ public class CL_fx extends Globals {
 //		float	value[3];
 //		float	map[MAX_QPATH];
 //	} clightstyle_t;
-//
-//	clightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
-//	int			lastofs;
-//
-//	/*
-//	================
-//	CL_ClearLightStyles
-//	================
-//	*/
+	static class clightstyle_t {
+		int length;
+		float[] value = new float[3];
+		float[] map = new float[MAX_QPATH];
+		void clear() {
+			value[0] = value[1] = value[2] = length = 0;
+			for (int i = 0; i < map.length; i++)
+				map[i] = 0.0f;
+		}
+	}
+	static clightstyle_t[] cl_lightstyle = new clightstyle_t[MAX_LIGHTSTYLES];
+	static {
+		for(int i=0; i<cl_lightstyle.length; i++) {
+			cl_lightstyle[i] = new clightstyle_t();
+		}
+	}
+	static int lastofs;
+
+	/*
+	================
+	CL_ClearLightStyles
+	================
+	*/
 	static void ClearLightStyles ()
 	{
-//		memset (cl_lightstyle, 0, sizeof(cl_lightstyle));
-//		lastofs = -1;
+		//memset (cl_lightstyle, 0, sizeof(cl_lightstyle));
+		for (int i = 0; i < cl_lightstyle.length; i++)
+			cl_lightstyle[i].clear();
+		lastofs = -1;
 	}
-//
-//	/*
-//	================
-//	CL_RunLightStyles
-//	================
-//	*/
-	static void RunLightStyles() {
-//		int		ofs;
-//		int		i;
-//		clightstyle_t	*ls;
-//
-//		ofs = cl.time / 100;
-//		if (ofs == lastofs)
-//			return;
-//		lastofs = ofs;
-//
-//		for (i=0,ls=cl_lightstyle ; i<MAX_LIGHTSTYLES ; i++, ls++)
-//		{
-//			if (!ls->length)
-//			{
-//				ls->value[0] = ls->value[1] = ls->value[2] = 1.0;
-//				continue;
-//			}
-//			if (ls->length == 1)
-//				ls->value[0] = ls->value[1] = ls->value[2] = ls->map[0];
-//			else
-//				ls->value[0] = ls->value[1] = ls->value[2] = ls->map[ofs%ls->length];
-//		}
-	}
-//
-//
-	public static void SetLightstyle (int i)
-	{ 
-		//TODO: implement!
-//		char	*s;
-//		int		j, k;
-//
-//		s = cl.configstrings[i+CS_LIGHTS];
-//
-//		j = strlen (s);
-//		if (j >= MAX_QPATH)
-//			Com_Error (ERR_DROP, "svc_lightstyle length=%i", j);
-//
-//		cl_lightstyle[i].length = j;
-//
-//		for (k=0 ; k<j ; k++)
-//			cl_lightstyle[i].map[k] = (float)(s[k]-'a')/(float)('m'-'a');
-	}
-//
-//	/*
-//	================
-//	CL_AddLightStyles
-//	================
-//	*/
-	static void AddLightStyles ()
-	{
-//		int		i;
-//		clightstyle_t	*ls;
-//
-//		for (i=0,ls=cl_lightstyle ; i<MAX_LIGHTSTYLES ; i++, ls++)
-//			V_AddLightStyle (i, ls->value[0], ls->value[1], ls->value[2]);
-	}
-//
-//	/*
-//	==============================================================
-//
-//	DLIGHT MANAGEMENT
-//
-//	==============================================================
-//	*/
-//
-//	cdlight_t		cl_dlights[MAX_DLIGHTS];
-//
-//	/*
-//	================
-//	CL_ClearDlights
-//	================
-//	*/
-	static void ClearDlights ()
-	{
-//		memset (cl_dlights, 0, sizeof(cl_dlights));
-	}
-//
-//	/*
-//	===============
-//	CL_AllocDlight
-//
-//	===============
-//	*/
-	static cdlight_t AllocDlight (int key)
-	{
-//		int		i;
-//		cdlight_t	*dl;
-//
-////	   first look for an exact key match
-//		if (key)
-//		{
-//			dl = cl_dlights;
-//			for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
-//			{
-//				if (dl->key == key)
-//				{
-//					memset (dl, 0, sizeof(*dl));
-//					dl->key = key;
-//					return dl;
-//				}
-//			}
-//		}
-//
-////	   then look for anything else
-//		dl = cl_dlights;
-//		for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
-//		{
-//			if (dl->die < cl.time)
-//			{
-//				memset (dl, 0, sizeof(*dl));
-//				dl->key = key;
-//				return dl;
-//			}
-//		}
-//
-//		dl = &cl_dlights[0];
-//		memset (dl, 0, sizeof(*dl));
-//		dl->key = key;
-//		return dl;
-	return null;
-	}
-//
-//	/*
-//	===============
-//	CL_NewDlight
-//	===============
-//	*/
-	static void NewDlight (int key, float x, float y, float z, float radius, float time)
-	{
-//		cdlight_t	*dl;
-//
-//		dl = CL_AllocDlight (key);
-//		dl->origin[0] = x;
-//		dl->origin[1] = y;
-//		dl->origin[2] = z;
-//		dl->radius = radius;
-//		dl->die = cl.time + time;
-	}
-//
-//
-//	/*
-//	===============
-//	CL_RunDLights
-//
-//	===============
-//	*/
 
+	/*
+	================
+	CL_RunLightStyles
+	================
+	*/
+	static void RunLightStyles() {
+		int ofs;
+		int i;
+		clightstyle_t[] ls;
+
+		ofs = cl.time / 100;
+		if (ofs == lastofs)
+			return;
+		lastofs = ofs;
+		ls = cl_lightstyle;
+		for (i = 0; i < ls.length; i++) {
+			if (ls[i].length == 0) {
+				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = 1.0f;
+				continue;
+			}
+			if (ls.length == 1)
+				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = ls[i].map[0];
+			else
+				ls[i].value[0] = ls[i].value[1] = ls[i].value[2] = ls[i].map[ofs % ls[i].length];
+		}
+	}
+
+	static void SetLightstyle(int i) {
+		String s;
+		int j, k;
+
+		s = cl.configstrings[i + CS_LIGHTS];
+
+		j = strlen(s);
+		if (j >= MAX_QPATH)
+			Com.Error(ERR_DROP, "svc_lightstyle length=" + j);
+
+		cl_lightstyle[i].length = j;
+
+		for (k = 0; k < j; k++)
+			cl_lightstyle[i].map[k] = (float) (s.charAt(k) - 'a') / (float) ('m' - 'a');
+	}
+
+	/*
+	================
+	CL_AddLightStyles
+	================
+	*/
+	static void AddLightStyles() {
+		int i;
+		clightstyle_t[] ls;
+
+		ls = cl_lightstyle;
+		for (i = 0; i < ls.length; i++)
+			V.AddLightStyle(i, ls[i].value[0], ls[i].value[1], ls[i].value[2]);
+	}
+
+	/*
+	==============================================================
+
+	DLIGHT MANAGEMENT
+
+	==============================================================
+	*/
+
+	static cdlight_t[] cl_dlights = new cdlight_t[MAX_DLIGHTS];
+	static {
+		for (int i = 0; i < cl_dlights.length; i++)
+		cl_dlights[i] = new cdlight_t();
+	}
+
+	/*
+	================
+	CL_ClearDlights
+	================
+	*/
+	static void ClearDlights() {
+		//		memset (cl_dlights, 0, sizeof(cl_dlights));
+		for (int i = 0; i < cl_dlights.length; i++) {
+			cl_dlights[i].clear();
+		}
+	}
+
+	/*
+	===============
+	CL_AllocDlight
+
+	===============
+	*/
+	static cdlight_t AllocDlight(int key) {
+		int i;
+		cdlight_t[] dl;
+
+		//	   first look for an exact key match
+		if (key != 0) {
+			dl = cl_dlights;
+			for (i = 0; i < MAX_DLIGHTS; i++) {
+				if (dl[i].key == key) {
+					//memset (dl, 0, sizeof(*dl));
+					dl[i].clear();
+					dl[i].key = key;
+					return dl[i];
+				}
+			}
+		}
+
+		//	   then look for anything else
+		dl = cl_dlights;
+		for (i = 0; i < MAX_DLIGHTS; i++) {
+			if (dl[i].die < cl.time) {
+				//memset (dl, 0, sizeof(*dl));
+				dl[i].clear();
+				dl[i].key = key;
+				return dl[i];
+			}
+		}
+
+		//dl = &cl_dlights[0];
+		//memset (dl, 0, sizeof(*dl));
+		dl[0].clear();
+		dl[0].key = key;
+		return dl[0];
+	}
+
+	/*
+	===============
+	CL_NewDlight
+	===============
+	*/
+	static void NewDlight(int key, float x, float y, float z, float radius, float time) {
+		cdlight_t dl;
+
+		dl = CL.AllocDlight(key);
+		dl.origin[0] = x;
+		dl.origin[1] = y;
+		dl.origin[2] = z;
+		dl.radius = radius;
+		dl.die = cl.time + time;
+	}
+
+	/*
+	===============
+	CL_RunDLights
+
+	===============
+	*/
 	static void RunDLights() {
-//		int			i;
-//		cdlight_t	*dl;
-//
-//		dl = cl_dlights;
-//		for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
-//		{
-//			if (!dl->radius)
-//				continue;
-//		
-//			if (dl->die < cl.time)
-//			{
-//				dl->radius = 0;
-//				return;
-//			}
-//			dl->radius -= cls.frametime*dl->decay;
-//			if (dl->radius < 0)
-//				dl->radius = 0;
-//		}
+		int i;
+		cdlight_t[] dl;
+
+		dl = cl_dlights;
+		for (i = 0; i < MAX_DLIGHTS; i++) {
+			if (dl[i].radius == 0.0f)
+				continue;
+
+			if (dl[i].die < cl.time) {
+				dl[i].radius = 0;
+				return;
+			}
+			dl[i].radius -= cls.frametime * dl[i].decay;
+			if (dl[i].radius < 0)
+				dl[i].radius = 0;
+		}
 	}
 //
 //	/*
@@ -827,56 +841,46 @@ public class CL_fx extends Globals {
 //
 //		}
 	}
-//
-//
-//	/*
-//	===============
-//	CL_AddDLights
-//
-//	===============
-//	*/
-//	void CL_AddDLights ()
-//	{
-//		int			i;
-//		cdlight_t	*dl;
-//
-//		dl = cl_dlights;
-//
-////	  =====
-////	  PGM
-//		if(vidref_val == VIDREF_GL)
-//		{
-//			for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
-//			{
-//				if (!dl->radius)
-//					continue;
-//				V_AddLight (dl->origin, dl->radius,
-//					dl->color[0], dl->color[1], dl->color[2]);
-//			}
-//		}
-//		else
-//		{
-//			for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
-//			{
-//				if (!dl->radius)
-//					continue;
-//
-//				// negative light in software. only black allowed
-//				if ((dl->color[0] < 0) || (dl->color[1] < 0) || (dl->color[2] < 0))
-//				{
-//					dl->radius = -(dl->radius);
-//					dl->color[0] = 1;
-//					dl->color[1] = 1;
-//					dl->color[2] = 1;
-//				}
-//				V_AddLight (dl->origin, dl->radius,
-//					dl->color[0], dl->color[1], dl->color[2]);
-//			}
-//		}
-////	  PGM
-////	  =====
-//	}
-//
+
+	/*
+	===============
+	CL_AddDLights
+
+	===============
+	*/
+	static void AddDLights() {
+		int i;
+		cdlight_t[] dl;
+
+		dl = cl_dlights;
+
+		//	  =====
+		//	  PGM
+		if (vidref_val == VIDREF_GL) {
+			for (i = 0; i < MAX_DLIGHTS; i++) {
+				if (dl[i].radius == 0.0f)
+					continue;
+				V.AddLight(dl[i].origin, dl[i].radius, dl[i].color[0], dl[i].color[1], dl[i].color[2]);
+			}
+		} else {
+			for (i = 0; i < MAX_DLIGHTS; i++) {
+				if (dl[i].radius == 0.0f)
+					continue;
+
+				// negative light in software. only black allowed
+				if ((dl[i].color[0] < 0) || (dl[i].color[1] < 0) || (dl[i].color[2] < 0)) {
+					dl[i].radius = - (dl[i].radius);
+					dl[i].color[0] = 1;
+					dl[i].color[1] = 1;
+					dl[i].color[2] = 1;
+				}
+				V.AddLight(dl[i].origin, dl[i].radius, dl[i].color[0], dl[i].color[1], dl[i].color[2]);
+			}
+		}
+		//	  PGM
+		//	  =====
+	}
+
 //
 //
 //	/*
@@ -911,25 +915,28 @@ public class CL_fx extends Globals {
 //	cparticle_t	*active_particles, *free_particles;
 	static cparticle_t active_particles, free_particles;
 //
-//	cparticle_t	particles[MAX_PARTICLES];
-//	int			cl_numparticles = MAX_PARTICLES;
-//
-//
-//	/*
-//	===============
-//	CL_ClearParticles
-//	===============
-//	*/
-	static void ClearParticles ()
+	static cparticle_t[] particles = new cparticle_t[MAX_PARTICLES];
+	static {
+		for (int i = 0; i < particles.length; i++)
+			particles[i] = new cparticle_t();
+	}
+	static int cl_numparticles = MAX_PARTICLES;
+
+	/*
+	===============
+	CL_ClearParticles
+	===============
+	*/
+	static void ClearParticles()
 	{
-//		int		i;
-//	
-//		free_particles = &particles[0];
-//		active_particles = NULL;
-//
-//		for (i=0 ;i<cl_numparticles ; i++)
-//			particles[i].next = &particles[i+1];
-//		particles[cl_numparticles-1].next = NULL;
+		int		i;
+	
+		free_particles = particles[0];
+		active_particles = null;
+
+		for (i=0 ; i<particles.length - 1; i++)
+			particles[i].next = particles[i+1];
+		particles[particles.length - 1].next = null;
 	}
 //
 //
@@ -2294,23 +2301,18 @@ public class CL_fx extends Globals {
 //			break;
 //		}
 	}
-//
-//
-//	/*
-//	==============
-//	CL_ClearEffects
-//
-//	==============
-//	*/
+
+
+	/*
+	==============
+	CL_ClearEffects
+
+	==============
+	*/
 	static void ClearEffects() {
-//		CL_ClearParticles ();
-//		CL_ClearDlights ();
-//		CL_ClearLightStyles ();
+		CL.ClearParticles();
+		CL.ClearDlights();
+		CL.ClearLightStyles();
 	}
 
-	public static void AddDLights() {
-		// TODO:implement!
-		
-	}
-//
 }

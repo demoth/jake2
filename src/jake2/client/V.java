@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.10 2004-02-01 22:05:30 hoz Exp $
+ * $Id: V.java,v 1.11 2004-02-04 11:24:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -56,6 +56,14 @@ public final class V extends Globals {
 	static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
 
 	static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
+	static {
+		for (int i = 0; i < r_dlights.length; i++)
+			r_dlights[i] = new dlight_t();
+		for (int i = 0; i < r_entities.length; i++)
+			r_entities[i] = new entity_t();
+		for (int i = 0; i < r_lightstyles.length; i++)
+			r_lightstyles[i] = new lightstyle_t();						
+	}
 			
 	/*
 	====================
@@ -125,7 +133,7 @@ public final class V extends Globals {
 
 	=====================
 	*/
-	static void V_AddLightStyle(int style, float r, float g, float b) {
+	static void AddLightStyle(int style, float r, float g, float b) {
 		lightstyle_t ls;
 
 		if (style < 0 || style > MAX_LIGHTSTYLES)

@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.19 2004-02-03 09:33:52 hoz Exp $
+ * $Id: Qcommon.java,v 1.20 2004-02-04 11:24:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -280,9 +280,9 @@ public final class Qcommon extends Globals {
 
 			Cbuf.Execute ();
 
-			long time_before= 0;
-			long time_between= 0;
-			long time_after= 0;
+			int time_before= 0;
+			int time_between= 0;
+			int time_after= 0;
 
 			if (Globals.host_speeds.value != 0.0f)
 				time_before= Sys.Milliseconds();
@@ -297,11 +297,11 @@ public final class Qcommon extends Globals {
 			if (Globals.host_speeds.value != 0.0f) {
 				time_after= Sys.Milliseconds();
 
-				long all= time_after - time_before;
-				long sv= time_between - time_before;
-				long cl= time_after - time_between;
-				long gm= Globals.time_after_game - Globals.time_before_game;
-				long rf= Globals.time_after_ref - Globals.time_before_ref;
+				int all= time_after - time_before;
+				int sv= time_between - time_before;
+				int cl= time_after - time_between;
+				int gm= Globals.time_after_game - Globals.time_before_game;
+				int rf= Globals.time_after_ref - Globals.time_before_ref;
 				sv -= gm;
 				cl -= rf;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.15 2004-02-02 21:15:40 hoz Exp $
+//$Id: client_state_t.java,v 1.16 2004-02-04 11:24:15 hoz Exp $
 
 package jake2.client;
 
@@ -40,7 +40,7 @@ public class client_state_t {
 	int timeoutcount;
 
 	int timedemo_frames;
-	long timedemo_start;
+	int timedemo_start;
 
 	public boolean refresh_prepped; // false if on new level or new ref dll
 	boolean sound_prepped; // ambient sounds can start

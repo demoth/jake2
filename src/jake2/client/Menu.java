@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.16 2004-02-04 08:59:37 hoz Exp $
+ * $Id: Menu.java,v 1.17 2004-02-04 11:24:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1648,7 +1648,7 @@ public final class Menu extends Key {
 	
 	=============================================================================
 	*/
-	static long credits_start_time;
+	static int credits_start_time;
 
 	static String creditsIndex[] = new String[256];
 	static String creditsBuffer;

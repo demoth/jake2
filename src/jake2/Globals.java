@@ -2,9 +2,13 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.42 2004-02-02 22:06:54 hoz Exp $
+ * $Id: Globals.java,v 1.43 2004-02-04 11:24:15 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.42  2004-02-02 22:06:54  hoz
+ * Revision 1.43  2004-02-04 11:24:15  hoz
+ * - some fx functions
+ * - long -> int for time variables
+ *
+ * Revision 1.42  2004/02/02 22:06:54  hoz
  * - some client effects
  *
  * Revision 1.41  2004/02/02 21:15:40  hoz
@@ -191,10 +195,10 @@ public class Globals extends Defines {
 
 	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
 
-	public static long time_before_game;
-	public static long time_after_game;
-	public static long time_before_ref;
-	public static long time_after_ref;
+	public static int time_before_game;
+	public static int time_after_game;
+	public static int time_before_ref;
+	public static int time_after_ref;
 
 	public static FileWriter log_stats_file = null;
 

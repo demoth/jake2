@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.13 2004-02-01 23:31:37 rst Exp $
+ * $Id: Netchan.java,v 1.14 2004-02-04 11:24:15 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,7 +44,7 @@ public final class Netchan extends SV_MAIN {
 	 * TODO implement Netchan.Init()
 	 */
 	public static void Init() {
-		long port;
+		int port;
 
 		// pick a port value that should be nice and random
 		port = Sys.Milliseconds() & 0xffff;

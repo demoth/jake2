@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: client_static_t.java,v 1.7 2004-01-31 16:56:11 rst Exp $
+// $Id: client_static_t.java,v 1.8 2004-02-04 11:24:15 hoz Exp $
 
 
 package jake2.client;
@@ -36,7 +36,7 @@ public class client_static_t {
 	public int key_dest;
 
 	public int framecount;
-	public long realtime; // always increasing, no clamping, etc
+	public int realtime; // always increasing, no clamping, etc
 	public float frametime; // seconds since last frame
 
 	//	   screen rendering information
