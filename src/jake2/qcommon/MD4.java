@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.02.2004 by RST.
-// $Id: MD4.java,v 1.2 2004-02-02 19:13:26 rst Exp $
+// $Id: MD4.java,v 1.3 2004-06-01 15:55:29 rst Exp $
 
 package jake2.qcommon;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.MessageDigest;
 
 import jake2.*;
@@ -295,17 +296,20 @@ public class MD4 extends MessageDigest implements Cloneable {
 		return t << s | t >>> (32 - s);
 	}
 
+	/**
+	 * Bugfixed, now works prima (RST).
+	 */
 	public static int Com_BlockChecksum(byte[] buffer, int length) {
-		byte digest[] = new byte[16];
+		
 		int val;
 		MD4 md4 = new MD4();
 
 		md4.engineUpdate(buffer, 0, length);
 		byte data[] = md4.engineDigest();
 		Com.Printf("md4: " + Lib.hexDump(data, 16, false));
-
+		
 		ByteBuffer bb = ByteBuffer.wrap(data);
-		//val = digest[0] ^ digest[1] ^ digest[2] ^ digest[3];
+		bb.order(ByteOrder.LITTLE_ENDIAN);
 		val = bb.getInt() ^ bb.getInt() ^ bb.getInt() ^ bb.getInt();
 		return val;
 	}
