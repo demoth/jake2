@@ -19,7 +19,7 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.6 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_USER.java,v 1.7 2004-12-06 14:23:04 hzi Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -523,7 +523,7 @@ public class SV_USER {
         int i = 0;
         for (; i < SV_USER.ucmds.length; i++) {
             u = SV_USER.ucmds[i];
-            if (0 == Lib.strcmp(Cmd.Argv(0), u.name)) {
+            if (Cmd.Argv(0).equals(u.name)) {
                 u.r.run();
                 break;
             }
