@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.5 2004-06-24 14:58:44 cwei Exp $
+ * $Id: SND_DMA.java,v 1.6 2004-06-27 13:11:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,6 @@ import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
 
 
 
@@ -46,31 +45,16 @@ import java.util.Arrays;
  * TODO implement sound system
  */
 public class SND_DMA extends SND_MIX {
-////	   snd_dma.c -- main control for any streaming sound output device
-//
-//	#include "client.h"
-//	#include "snd_loc.h"
-//
-//	void S_Play(void);
-//	void S_SoundList(void);
-//	void S_Update_();
-//	void S_StopAllSounds(void);
-//
-//
+
 ////	   =======================================================================
 ////	   Internal sound data & structures
 ////	   =======================================================================
 //
 ////	   only begin attenuating sound volumes when outside the FULLVOLUME range
-//	#define		SOUND_FULLVOLUME	80
 	static final int SOUND_FULLVOLUME = 80;
-//	#define		SOUND_LOOPATTENUATE	0.003
 	static final float SOUND_LOOPATTENUATE = 0.003f;
 	static int s_registration_sequence;
-//
 
-//
-//	qboolean	snd_initialized = false;
 	static boolean sound_started = false;
 
 	static float[] listener_origin = {0, 0, 0};
@@ -81,12 +65,11 @@ public class SND_DMA extends SND_MIX {
 	static boolean s_registering;
 
 	static int soundtime;		// sample PAIRS
-	
-//
-////	   during registration it is possible to have more sounds
-////	   than could actually be referenced during gameplay,
-////	   because we don't want to free anything until we are
-////	   sure we won't need it.
+
+	//	   during registration it is possible to have more sounds
+	//	   than could actually be referenced during gameplay,
+	//	   because we don't want to free anything until we are
+	//	   sure we won't need it.
 	static final int MAX_SFX = (MAX_SOUNDS*2);
 	static sfx_t[] known_sfx = new sfx_t[MAX_SFX];
 	static {
@@ -94,7 +77,7 @@ public class SND_DMA extends SND_MIX {
 			known_sfx[i] = new sfx_t();
 	}
 	static int num_sfx;
-//
+
 	static final int MAX_PLAYSOUNDS = 128;
 	static playsound_t[] s_playsounds = new playsound_t[MAX_PLAYSOUNDS];
 	static {
@@ -195,7 +178,6 @@ public class SND_DMA extends SND_MIX {
 
 			StopAllSounds();
 		}
-
 		Com.Printf("------------------------------------\n");
 	}
 

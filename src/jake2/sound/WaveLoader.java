@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.1 2004-06-24 14:58:44 cwei Exp $
+ * $Id: WaveLoader.java,v 1.2 2004-06-27 13:11:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.qcommon.FS;
 import jake2.sys.Sys;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import javax.sound.sampled.*;
 
@@ -90,6 +91,9 @@ public class WaveLoader {
 		AudioInputStream out = null;
 		try {
 			in = AudioSystem.getAudioInputStream(new ByteArrayInputStream(data));
+			if (in.getFormat().getSampleSizeInBits() == 8) {
+				in = convertTo16bit(in);
+			}
 			out = AudioSystem.getAudioInputStream(sampleFormat, in);
 			int l = (int)out.getFrameLength();
 			sc = s.cache = new sfxcache_t(l*2);
@@ -99,7 +103,6 @@ public class WaveLoader {
 			in.close();
 		} catch (Exception e) {
 			Com.Printf("Couldn't load " + namebuffer + "\n");
-			//e.printStackTrace();
 			return null;
 		}
 		
@@ -108,11 +111,26 @@ public class WaveLoader {
 		sc.width = sampleFormat.getSampleSizeInBits() / 8;
 		sc.stereo = 0;
 
-		FS.FreeFile(data);
+		data = null;
 
 		return sc;
 	}
 
+	static AudioInputStream convertTo16bit(AudioInputStream in) throws IOException {
+		AudioFormat format = in.getFormat();
+		int length = (int)in.getFrameLength();
+		byte[] samples = new byte[2*length];
+		
+		for (int i = 0; i < length; i++) {
+			in.read(samples, 2*i+1, 1);
+			samples[2*i+1] -= 128;
+		}
+		in.close();			
+
+		AudioFormat newformat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16, format.getChannels(), 2, format.getFrameRate(), false);
+		return new AudioInputStream(new ByteArrayInputStream(samples), newformat, length);
+	}
+	
 	/*
 	===============================================================================
 

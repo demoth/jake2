@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.12 2004-06-17 12:12:43 hoz Exp $
+ * $Id: S.java,v 1.13 2004-06-27 13:11:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,19 +26,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.sound;
 
 import jake2.Defines;
-import jake2.Globals;
-import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.game.entity_state_t;
-import jake2.qcommon.*;
-import jake2.sound.joal.JOALSoundImpl;
-import jake2.sound.jsound.JSoundImpl;
-import jake2.util.Vargs;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 
-import java.io.*;
 import java.util.Vector;
-
-import javax.sound.sampled.*;
 
 /**
  * S
