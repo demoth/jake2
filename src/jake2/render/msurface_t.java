@@ -19,41 +19,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.4 2003-11-29 13:48:49 rst Exp $
+// $Id: msurface_t.java,v 1.5 2004-01-19 12:34:13 cwei Exp $
 
 package jake2.render;
 
 import jake2.game.*;
 import jake2.*;
-public class msurface_t {
 
-	int		visframe;		// should be drawn when node is crossed
+public class msurface_t
+{
 
-	cplane_t	plane;
-	int		flags;
+	public int visframe; // should be drawn when node is crossed
 
-	int		firstedge;	// look up in model->surfedges[], negative numbers
-	int		numedges;	// are backwards edges
-	
-	short		texturemins[] ={0,0};
-	short		extents[]={0,0};
+	public cplane_t plane;
+	public int flags;
 
-	int		light_s, light_t;	// gl lightmap coordinates
-	int		dlight_s, dlight_t; // gl lightmap coordinates for dynamic lightmaps
+	public int firstedge; // look up in model->surfedges[], negative numbers
+	public int numedges; // are backwards edges
 
-	glpoly_t	polys;				// multiple if warped
-	msurface_t	texturechain;
-	msurface_t	lightmapchain;
+	public short texturemins[] = { 0, 0 };
+	public short extents[] = { 0, 0 };
 
-	mtexinfo_t	texinfo;
-	
-// lighting info
-	int			dlightframe;
-	int			dlightbits;
+	public int light_s, light_t; // gl lightmap coordinates
+	public int dlight_s, dlight_t;
+	// gl lightmap coordinates for dynamic lightmaps
 
-	int			lightmaptexturenum;
-	byte		styles[]=new byte[Defines.MAXLIGHTMAPS];
-	float		cached_light[]= new float[Defines.MAXLIGHTMAPS];	// values currently used in lightmap
-	byte		samples[];		// [numstyles*surfsize]
+	public glpoly_t polys; // multiple if warped
+	public msurface_t texturechain;
+	public msurface_t lightmapchain;
+
+	public mtexinfo_t texinfo;
+
+	// lighting info
+	public int dlightframe;
+	public int dlightbits;
+
+	public int lightmaptexturenum;
+	public byte styles[] = new byte[Defines.MAXLIGHTMAPS];
+	public float cached_light[] = new float[Defines.MAXLIGHTMAPS];
+	// values currently used in lightmap
+	public byte samples[]; // [numstyles*surfsize]
 
 }

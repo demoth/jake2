@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.17 2004-01-18 10:39:34 rst Exp $
+// $Id: Defines.java,v 1.18 2004-01-19 12:34:13 cwei Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -156,7 +156,7 @@ public class Defines extends Math3D {
 	public final static int SURF_TRANS66 = 0x20;
 	public final static int SURF_FLOWING = 0x40; // scroll towards angle 
 	public final static int SURF_NODRAW = 0x80; // don't bother referencing the texture 
-
+	
 	// structure offset for asm code
 	public final static int CPLANE_NORMAL_X = 0;
 	public final static int CPLANE_NORMAL_Y = 4;
@@ -1006,6 +1006,13 @@ public class Defines extends Math3D {
 	public static final int MAX_DLIGHTS = 32;
 	public static final int MAX_ENTITIES = 128;
 	public static final int MAX_PARTICLES = 4096;
+	
+	// gl_model.h
+	public static final int SURF_PLANEBACK = 2;
+	public static final int SURF_DRAWSKY = 4;
+	public static final int SURF_DRAWTURB = 0x10;
+	public static final int SURF_DRAWBACKGROUND = 0x40;
+	public static final int SURF_UNDERWATER = 0x80;
 
 	public static final float POWERSUIT_SCALE = 4.0f;
 

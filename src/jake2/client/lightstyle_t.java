@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: lightstyle_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: lightstyle_t.java,v 1.3 2004-01-19 12:34:13 cwei Exp $
 
 package jake2.client;
 
-public class lightstyle_t {
-		float		rgb[]= {0,0,0};	// 0.0 - 2.0
-		float		white;			// highest of rgb
+public class lightstyle_t
+{
+	public float rgb[] = { 0, 0, 0 }; // 0.0 - 2.0
+	public float white; // highest of rgb
 }
