@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Com.java,v 1.2 2003-11-18 08:48:26 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import jake2.Globals;
+
 /**
  * Com
  * TODO complete Com interface
@@ -44,4 +46,25 @@ public final class Com {
 	public static void print(String s) {
 		
 	}
+	
+	/**
+	 * COM_InitArgv checks the number of command line arguments
+	 * and copies all arguments with valid length into com_argv.
+	 * @param args
+	 */	
+	static void InitArgv(String[] args) throws longjmpException {
+	
+		if (args.length > Globals.MAX_NUM_ARGVS) {
+			Com.Error(Globals.ERR_FATAL, "argc > MAX_NUM_ARGVS");
+		}
+
+		Globals.com_argc = args.length;
+		for (int i = 0; i < Globals.com_argc; i++) {
+			if (args[i].length() >= Globals.MAX_TOKEN_CHARS)
+				Globals.com_argv[i] = "";
+			else
+				Globals.com_argv[i] = args[i];
+		}
+	}
+
 }

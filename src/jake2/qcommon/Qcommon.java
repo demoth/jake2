@@ -2,9 +2,9 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Qcommon.java,v 1.2 2003-11-18 08:48:26 rst Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -42,27 +42,27 @@ import java.io.IOException;
  * namely initialization, shutdown and frame generation.
  */
 public final class Qcommon {
-	
+
 	/**
 	 * This function initializes the different subsystems of
- 	 * the game engine. The setjmp/longjmp mechanism of the original
- 	 * was replaced with exceptions.
+		 * the game engine. The setjmp/longjmp mechanism of the original
+		 * was replaced with exceptions.
 	 * @param args the original unmodified command line arguments
 	 */
 	public static void Init(String[] args) {
 		try {
-			Z.chain.next = Z.chain.prev = Z.chain;
-			
+			Z.chain.next= Z.chain.prev= Z.chain;
+
 			// prepare enough of the subsystems to handle
 			// cvar and command buffer management
-			COM.InitArgv(args);
+			Com.InitArgv(args);
 
 			Swap.Init();
 			Cbuf.Init();
 
 			Cmd.Init();
 			Cvar.Init();
-			
+
 			Key.Init();
 
 			// we need to add the early commands twice, because
@@ -86,16 +86,16 @@ public final class Qcommon {
 			Cmd.AddCommand("z_stats", new Z_Stats_f());
 			Cmd.AddCommand("error", new Com_Error_f());
 
-			Globals.host_speeds = Cvar.Get("host_speeds", "0", 0);
-			Globals.log_stats = Cvar.Get("log_stats", "0", 0);
-			Globals.developer = Cvar.Get("developer", "0", 0);
-			Globals.timescale = Cvar.Get("timescale", "1", 0);
-			Globals.fixedtime = Cvar.Get("fixedtime", "0", 0);
-			Globals.logfile_active = Cvar.Get("logfile", "0", 0);
-			Globals.showtrace = Cvar.Get("showtrace", "0", 0);
-			Globals.dedicated = Cvar.Get("dedicated", "0", Cvar.NOSET);
+			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
+			Globals.log_stats= Cvar.Get("log_stats", "0", 0);
+			Globals.developer= Cvar.Get("developer", "0", 0);
+			Globals.timescale= Cvar.Get("timescale", "1", 0);
+			Globals.fixedtime= Cvar.Get("fixedtime", "0", 0);
+			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
+			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
+			Globals.dedicated= Cvar.Get("dedicated", "0", Cvar.NOSET);
 
-			String s =
+			String s=
 				Format.format_double(Globals.VERSION, 4, 2)
 					+ ' '
 					+ Globals.CPUSTRING
@@ -123,7 +123,7 @@ public final class Qcommon {
 			}
 
 			Com.print("====== Quake2 Initialized ======\n\n");
-			
+
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");
 		}
@@ -136,96 +136,108 @@ public final class Qcommon {
 	 */
 	public static void Frame(long msec) {
 		try {
-		
+
 			if (Globals.log_stats.modified) {
-				Globals.log_stats.modified = false;
-				
+				Globals.log_stats.modified= false;
+
 				if (Globals.log_stats.value != 0.0f) {
-					
+
 					if (Globals.log_stats_file != null) {
 						try {
 							Globals.log_stats_file.close();
-						} catch (IOException e) {}
-						Globals.log_stats_file = null;
+						} catch (IOException e) {
+						}
+						Globals.log_stats_file= null;
 					}
-					
+
 					try {
-						Globals.log_stats_file = new FileWriter("stats.log");
+						Globals.log_stats_file= new FileWriter("stats.log");
 					} catch (IOException e) {
-						Globals.log_stats_file = null; 
+						Globals.log_stats_file= null;
 					}
 					if (Globals.log_stats_file != null) {
 						try {
-							Globals.log_stats_file.write(
-								"entities,dlights,parts,frame time\n");
+							Globals.log_stats_file.write("entities,dlights,parts,frame time\n");
 						} catch (IOException e) {
 						}
 					}
 
 				} else {
-					
+
 					if (Globals.log_stats_file != null) {
 						try {
 							Globals.log_stats_file.close();
-						} catch (IOException e) {}
-						Globals.log_stats_file = null;
+						} catch (IOException e) {
+						}
+						Globals.log_stats_file= null;
 					}
 				}
 			}
-			
+
 			if (Globals.fixedtime.value != 0.0f) {
-				msec = (long)Globals.fixedtime.value;
+				msec= (long) Globals.fixedtime.value;
 			} else if (Globals.timescale.value != 0.0f) {
 				msec *= Globals.timescale.value;
-				if (msec < 1) msec = 1;
+				if (msec < 1)
+					msec= 1;
 			}
-			
+
 			if (Globals.showtrace.value != 0.0f) {
-				String s = Format.format_long(Globals.c_traces, 4)
-					+ " traces  "
-					+ Format.format_long(Globals.c_pointcontents, 4)
-					+ "points\n";
+				String s=
+					Format.format_long(Globals.c_traces, 4)
+						+ " traces  "
+						+ Format.format_long(Globals.c_pointcontents, 4)
+						+ "points\n";
 				Com.print(s);
-				Globals.c_traces = 0;
-				Globals.c_brush_traces = 0;
-				Globals.c_pointcontents = 0;
+				Globals.c_traces= 0;
+				Globals.c_brush_traces= 0;
+				Globals.c_pointcontents= 0;
 			}
 
 			//Cbuf.Execute ();
 
-			long time_before = 0;
-			long time_between = 0;
-			long time_after = 0;
-			if (Globals.host_speeds.value != 0.0f) time_before = System.currentTimeMillis(); 
+			long time_before= 0;
+			long time_between= 0;
+			long time_after= 0;
+
+			if (Globals.host_speeds.value != 0.0f)
+				time_before= System.currentTimeMillis();
 
 			SV.Frame(msec);
 
-			if (Globals.host_speeds.value != 0.0f) time_between = System.currentTimeMillis();
+			if (Globals.host_speeds.value != 0.0f)
+				time_between= System.currentTimeMillis();
 
 			CL.Frame(msec);
-			
+
 			if (Globals.host_speeds.value != 0.0f) {
-				time_after = System.currentTimeMillis();
-				
-				long all = time_after - time_before;
-				long sv = time_between - time_before;
-				long cl = time_after - time_between;
-				long gm = Globals.time_after_game - Globals.time_before_game;
-				long rf = Globals.time_after_ref - Globals.time_before_ref;
+				time_after= System.currentTimeMillis();
+
+				long all= time_after - time_before;
+				long sv= time_between - time_before;
+				long cl= time_after - time_between;
+				long gm= Globals.time_after_game - Globals.time_before_game;
+				long rf= Globals.time_after_ref - Globals.time_before_ref;
 				sv -= gm;
 				cl -= rf;
-				
-				String s = "all:" + Format.format_long(all, 3) +
-								" sv:" + Format.format_long(sv, 3) +
-								" gm:" + Format.format_long(gm, 3) +
-								" cl:" + Format.format_long(cl, 3) +
-								" rf:" + Format.format_long(rf, 3) + "\n";
-				Com.print (s);
-			}  
-		
+
+				String s=
+					"all:"
+						+ Format.format_long(all, 3)
+						+ " sv:"
+						+ Format.format_long(sv, 3)
+						+ " gm:"
+						+ Format.format_long(gm, 3)
+						+ " cl:"
+						+ Format.format_long(cl, 3)
+						+ " rf:"
+						+ Format.format_long(rf, 3)
+						+ "\n";
+				Com.print(s);
+			}
+
 		} catch (longjmpException e) {
 		}
 	}
-		
 
 }

@@ -6,7 +6,6 @@
  */
 package jake2.game;
 
-
 /**
  * LittleEndianHandler</code>
  */

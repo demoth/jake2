@@ -1,10 +1,4 @@
 /*
- * Swap.java
- * Copyright (C) 2003
- * 
- * $Id: Swap.java,v 1.2 2003-11-18 08:48:05 rst Exp $
- */
-/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 See the GNU General Public License for more details.
 
@@ -23,23 +17,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
 package jake2.game;
 
-import jake2.Globals;
 
-/**
- * Swap
- */
-public final class Swap {
+public class client_respawn_t
+// client data that stays across deathmatch respawns
+{
+	client_persistant_t coop_respawn; // what to set client->pers to on a respawn
+	int enterframe; // level.framenum the client entered the game
+	int score; // frags, etc
+	float cmd_angles[] = { 0, 0, 0 }; // angles sent over in the last command
 
-	public static void Init() {
-		// set the byte swapping variables in a portable manner
-		// TODO test endianess 
-		if (Globals.bigendien) {
-			Globals.endian= new BigEndianHandler();
-		} else {
-			Globals.endian= new LittleEndianHandler();
-		}
-	}
-
+	boolean spectator; // client is a spectator
 }
