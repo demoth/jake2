@@ -2,7 +2,7 @@
  * cl_sustain_t.java
  * Copyright (C) 2004
  * 
- * $Id: cl_sustain_t.java,v 1.2 2004-02-04 22:00:04 hoz Exp $
+ * $Id: cl_sustain_t.java,v 1.3 2004-02-05 10:35:16 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,10 @@ package jake2.client;
  * cl_sustain_t
  */
 public class cl_sustain_t {
+	static abstract class ThinkAdapter {
+		abstract void think(cl_sustain_t self);
+	}
+	
 	int id;
 	int type;
 	int endtime;
@@ -39,7 +43,7 @@ public class cl_sustain_t {
 	int color;
 	int count;
 	int magnitude;
-	//void            (*think)(struct cl_sustain *self);
+	ThinkAdapter think;
 	void clear() { 
 		org[0] = org[1] = org[2] = 
 		dir[0] = dir[1] = dir[2] = 

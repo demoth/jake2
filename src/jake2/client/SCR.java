@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.23 2004-02-02 20:28:52 cwei Exp $
+ * $Id: SCR.java,v 1.24 2004-02-05 10:35:16 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,15 +27,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
-import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.MSG;
-import jake2.qcommon.SZ;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.sys.Sys;
 import jake2.util.Vargs;
 
@@ -119,9 +114,12 @@ public final class SCR extends Globals {
 //		float	value;
 //		int		color;
 //	} graphsamp_t;
-//
-//	static	int			current;
-//	static	graphsamp_t	values[1024];
+	static class graphsamp_t {
+		float value;
+		int color;
+	}
+	static int current;
+	static graphsamp_t[] values = new graphsamp_t[1024];
 
 	/*
 	==============
@@ -129,9 +127,9 @@ public final class SCR extends Globals {
 	==============
 	*/
 	public static void DebugGraph(float value, int color) {
-//		values[current&1023].value = value;
-//		values[current&1023].color = color;
-//		current++;
+		values[current&1023].value = value;
+		values[current&1023].color = color;
+		current++;
 	}
 
 	/*
@@ -139,34 +137,30 @@ public final class SCR extends Globals {
 	SCR_DrawDebugGraph
 	==============
 	*/
-	static void DrawDebugGraph()
-	{
-//		int		a, x, y, w, i, h;
-//		float	v;
-//		int		color;
-//
-//		//
-//		// draw the graph
-//		//
-//		w = scr_vrect.width;
-//
-//		x = scr_vrect.x;
-//		y = scr_vrect.y+scr_vrect.height;
-//		re.DrawFill (x, y-scr_graphheight->value,
-//			w, scr_graphheight->value, 8);
-//
-//		for (a=0 ; a<w ; a++)
-//		{
-//			i = (current-1-a+1024) & 1023;
-//			v = values[i].value;
-//			color = values[i].color;
-//			v = v*scr_graphscale->value + scr_graphshift->value;
-//		
-//			if (v < 0)
-//				v += scr_graphheight->value * (1+(int)(-v/scr_graphheight->value));
-//			h = (int)v % (int)scr_graphheight->value;
-//			re.DrawFill (x+w-1-a, y - h, 1,	h, color);
-//		}
+	static void DrawDebugGraph() {
+		int a, x, y, w, i, h;
+		float v;
+		int color;
+
+		// draw the graph
+
+		w = scr_vrect.width;
+
+		x = scr_vrect.x;
+		y = scr_vrect.y + scr_vrect.height;
+		re.DrawFill(x, (int) (y - scr_graphheight.value), w, (int)scr_graphheight.value, 8);
+
+		for (a = 0; a < w; a++) {
+			i = (current - 1 - a + 1024) & 1023;
+			v = values[i].value;
+			color = values[i].color;
+			v = v * scr_graphscale.value + scr_graphshift.value;
+
+			if (v < 0)
+				v += scr_graphheight.value * (1 + (int) (-v / scr_graphheight.value));
+			h = (int)v % (int)scr_graphheight.value;
+			re.DrawFill(x + w - 1 - a, y - h, 1, h, color);
+		}
 	}
 
 	/*
@@ -178,7 +172,7 @@ public final class SCR extends Globals {
 	*/
 
 	// char scr_centerstring[1024];
-	static char[] scr_centerstring = new char[1024];
+	static String scr_centerstring;
 	static float scr_centertime_start;	// for slow victory printing
 	static float scr_centertime_off;
 	static int scr_center_lines;
@@ -192,105 +186,109 @@ public final class SCR extends Globals {
 	for a few moments
 	==============
 	*/
-	static void CenterPrint(String str)
-	{
-//		char	*s;
-//		char	line[64];
-//		int		i, j, l;
-//
-//		strncpy (scr_centerstring, str, sizeof(scr_centerstring)-1);
-//		scr_centertime_off = scr_centertime->value;
-//		scr_centertime_start = cl.time;
-//
-//		// count the number of lines for centering
-//		scr_center_lines = 1;
-//		s = str;
-//		while (*s)
-//		{
-//			if (*s == '\n')
-//				scr_center_lines++;
-//			s++;
-//		}
-//
-//		// echo it to the console
-//		Com_Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
-//
-//		s = str;
-//		do	
-//		{
-//		// scan the width of the line
-//			for (l=0 ; l<40 ; l++)
-//				if (s[l] == '\n' || !s[l])
-//					break;
-//			for (i=0 ; i<(40-l)/2 ; i++)
-//				line[i] = ' ';
-//
-//			for (j=0 ; j<l ; j++)
-//			{
-//				line[i++] = s[j];
-//			}
-//
-//			line[i] = '\n';
-//			line[i+1] = 0;
-//
-//			Com_Printf ("%s", line);
-//
-//			while (*s && *s != '\n')
-//				s++;
-//
-//			if (!*s)
-//				break;
-//			s++;		// skip the \n
-//		} while (1);
-//		Com_Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
-//		Con_ClearNotify ();
+	static void CenterPrint(String str) {
+		//char	*s;
+		int s;
+		StringBuffer line = new StringBuffer(64);
+		int i, j, l;
+
+		//strncpy (scr_centerstring, str, sizeof(scr_centerstring)-1);
+		scr_centerstring = str;
+		scr_centertime_off = scr_centertime.value;
+		scr_centertime_start = cl.time;
+
+		// count the number of lines for centering
+		scr_center_lines = 1;
+		s = 0;
+		while (s < str.length()) {
+			if (str.charAt(s) == '\n')
+				scr_center_lines++;
+			s++;
+		}
+
+		// echo it to the console
+		Com.Printf(
+			"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
+
+		s = 0;
+		do {
+			// scan the width of the line
+			for (l = 0; l < 40; l++)
+				if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
+					break;
+			for (i = 0; i < (40 - l) / 2; i++)
+				line.append(' ');
+
+			for (j = 0; j < l; j++) {
+				line.append(str.charAt(s + j));
+			}
+
+			line.append('\n');
+
+			Com.Printf(line.toString());
+
+			while (s < str.length() && str.charAt(s) != '\n')
+				s++;
+
+			if (s == str.length())
+				break;
+			s++; // skip the \n
+		}
+		while (true);
+		Com.Printf(
+			"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
+		Console.ClearNotify();
 	}
 
+	static void DrawCenterString() {
+		String cs = scr_centerstring;
+		int start;
+		int l;
+		int j;
+		int x, y;
+		int remaining;
 
-	static void DrawCenterString()
-	{
-//		char	*start;
-//		int		l;
-//		int		j;
-//		int		x, y;
-//		int		remaining;
-//
+		if (cs == null)
+			return;
+		if (cs.length() == 0)
+			return;
+
 		// the finale prints the characters one at a time
-//		remaining = 9999;
-//
-//		scr_erase_center = 0;
-//		start = scr_centerstring;
-//
-//		if (scr_center_lines <= 4)
-//			y = viddef.height*0.35;
-//		else
-//			y = 48;
-//
-//		do	
-//		{
-//		// scan the width of the line
-//			for (l=0 ; l<40 ; l++)
-//				if (start[l] == '\n' || !start[l])
-//					break;
-//			x = (viddef.width - l*8)/2;
-//			SCR_AddDirtyPoint (x, y);
-//			for (j=0 ; j<l ; j++, x+=8)
-//			{
-//				re.DrawChar (x, y, start[j]);	
-//				if (!remaining--)
-//					return;
-//			}
-//			SCR_AddDirtyPoint (x, y+8);
-//			
-//			y += 8;
-//
-//			while (*start && *start != '\n')
-//				start++;
-//
-//			if (!*start)
-//				break;
-//			start++;		// skip the \n
-//		} while (1);
+		remaining = 9999;
+
+		scr_erase_center = 0;
+		start = 0;
+
+		if (scr_center_lines <= 4)
+			y = (int) (viddef.height * 0.35);
+		else
+			y = 48;
+
+		do {
+			// scan the width of the line
+			for (l = 0; l < 40; l++)
+				if (start + l == cs.length() || cs.charAt(start + l) == '\n')
+					break;
+			x = (viddef.width - l * 8) / 2;
+			SCR.AddDirtyPoint(x, y);
+			for (j = 0; j < l; j++, x += 8) {
+				re.DrawChar(x, y, cs.charAt(start + l));
+				if (remaining == 0)
+					return;
+				remaining--;
+			}
+			SCR.AddDirtyPoint(x, y + 8);
+
+			y += 8;
+
+			while (start < cs.length() && cs.charAt(start) != '\n')
+				start++;
+
+			if (start == cs.length())
+				break;
+			start++; // skip the \n
+		}
+		while (true);
 	}
 
 	static void CheckDrawCenterString()
@@ -619,43 +617,36 @@ public final class SCR extends Globals {
 	SCR_TimeRefresh_f
 	================
 	*/
+	static void TimeRefresh_f() {
+		int i;
+		int start, stop;
+		float time;
 
-	static void TimeRefresh_f()
-	{
-//		int		i;
-//		int		start, stop;
-//		float	time;
-//
-//		if ( cls.state != ca_active )
-//			return;
-//
-//		start = Sys_Milliseconds ();
-//
-//		if (Cmd_Argc() == 2)
-//		{	// run without page flipping
-//			re.BeginFrame( 0 );
-//			for (i=0 ; i<128 ; i++)
-//			{
-//				cl.refdef.viewangles[1] = i/128.0*360.0;
-//				re.RenderFrame (&cl.refdef);
-//			}
-//			re.EndFrame();
-//		}
-//		else
-//		{
-//			for (i=0 ; i<128 ; i++)
-//			{
-//				cl.refdef.viewangles[1] = i/128.0*360.0;
-//
-//				re.BeginFrame( 0 );
-//				re.RenderFrame (&cl.refdef);
-//				re.EndFrame();
-//			}
-//		}
-//
-//		stop = Sys_Milliseconds ();
-//		time = (stop-start)/1000.0;
-//		Com_Printf ("%f seconds (%f fps)\n", time, 128/time);
+		if (cls.state != ca_active)
+			return;
+
+		start = Sys.Milliseconds();
+
+		if (Cmd.Argc() == 2) { // run without page flipping
+			re.BeginFrame(0);
+			for (i = 0; i < 128; i++) {
+				cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+				re.RenderFrame(cl.refdef);
+			}
+			re.EndFrame();
+		} else {
+			for (i = 0; i < 128; i++) {
+				cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+
+				re.BeginFrame(0);
+				re.RenderFrame(cl.refdef);
+				re.EndFrame();
+			}
+		}
+
+		stop = Sys.Milliseconds();
+		time = (stop - start) / 1000.0f;
+		Com.Printf("%f seconds (%f fps)\n", new Vargs(2).add(time).add(128.0f / time));
 	}
 
 	static void DirtyScreen() {
@@ -1211,9 +1202,8 @@ public final class SCR extends Globals {
 	is based on the stats array
 	================
 	*/
-	static void DrawStats()
-	{
-//		SCR_ExecuteLayoutString (cl.configstrings[CS_STATUSBAR]);
+	static void DrawStats() {
+		SCR.ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
 	}
 
 	/*
