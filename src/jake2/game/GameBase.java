@@ -19,7 +19,7 @@
  */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.9 2005-02-13 17:02:45 cawe Exp $
+// $Id: GameBase.java,v 1.10 2005-02-20 21:50:36 salomo Exp $
 /** Father of all GameObjects. */
 
 package jake2.game;
@@ -286,9 +286,9 @@ public class GameBase {
     public static float[] MOVEDIR_DOWN = { 0, 0, -1 };
 
     public static void G_SetMovedir(float[] angles, float[] movedir) {
-        if (Math3D.VectorCompare(angles, VEC_UP) != 0) {
+        if (Math3D.VectorEquals(angles, VEC_UP)) {
             Math3D.VectorCopy(MOVEDIR_UP, movedir);
-        } else if (Math3D.VectorCompare(angles, VEC_DOWN) != 0) {
+        } else if (Math3D.VectorEquals(angles, VEC_DOWN)) {
             Math3D.VectorCopy(MOVEDIR_DOWN, movedir);
         } else {
             Math3D.AngleVectors(angles, movedir, null, null);

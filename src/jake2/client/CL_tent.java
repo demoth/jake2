@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.9 2005-01-21 01:14:47 cawe Exp $
+ * $Id: CL_tent.java,v 1.10 2005-02-20 21:50:52 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1565,7 +1565,7 @@ public class CL_tent {
 
                     // if it's a non-origin offset, it's a player, so use the
                     // hardcoded player offset
-                    if (Math3D.VectorCompare(b[i].offset, Globals.vec3_origin) == 0) {
+                    if (!Math3D.VectorEquals(b[i].offset, Globals.vec3_origin)) {
                         Math3D.VectorMA(org, -(b[i].offset[0]) + 1, r, org);
                         Math3D.VectorMA(org, -(b[i].offset[1]), f, org);
                         Math3D.VectorMA(org, -(b[i].offset[2]) - 10, u, org);

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.8 2005-01-16 17:04:50 cawe Exp $
+// $Id: Math3D.java,v 1.9 2005-02-20 21:50:36 salomo Exp $
 
 package jake2.util;
 
@@ -74,11 +74,11 @@ public class Math3D {
 	public static void VectorClear(float[] a) {
 		a[0] = a[1] = a[2] = 0;
 	}
-	public static int VectorCompare(float[] v1, float[] v2) {
+	public static boolean VectorEquals(float[] v1, float[] v2) {
 		if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
-			return 0;
+			return false;
 
-		return 1;
+		return true;
 	}
 	public static void VectorNegate(float[] from, float[] to) {
 		to[0] = -from[0];

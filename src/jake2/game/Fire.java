@@ -19,7 +19,7 @@
  */
 
 // Created on 04.12.2003 by RST.
-// $Id: Fire.java,v 1.4 2004-09-22 19:22:02 salomo Exp $
+// $Id: Fire.java,v 1.5 2005-02-20 21:50:36 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -145,7 +145,7 @@ public class Fire {
                 water = true;
                 Math3D.VectorCopy(tr.endpos, water_start);
 
-                if (0 == Math3D.VectorCompare(start, tr.endpos)) {
+                if (!Math3D.VectorEquals(start, tr.endpos)) {
                     if ((tr.contents & Defines.CONTENTS_WATER) != 0) {
                         if (Lib.strcmp(tr.surface.name, "*brwater") == 0)
                             color = Defines.SPLASH_BROWN_WATER;

@@ -19,7 +19,7 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.5 2004-09-22 19:22:04 salomo Exp $
+// $Id: GameFunc.java,v 1.6 2005-02-20 21:50:36 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -668,7 +668,7 @@ public class GameFunc {
                 Math3D.VectorSubtract(ent.moveinfo.start_angles, ent.s.angles,
                         move);
 
-            if (Math3D.VectorCompare(move, Globals.vec3_origin) != 0) {
+            if (Math3D.VectorEquals(move, Globals.vec3_origin)) {
                 AngleMove_Done.think(ent);
                 return true;
             }
@@ -881,7 +881,7 @@ public class GameFunc {
 
     static EntUseAdapter rotating_use = new EntUseAdapter() {
         public void use(edict_t self, edict_t other, edict_t activator) {
-            if (0 == Math3D.VectorCompare(self.avelocity, Globals.vec3_origin)) {
+            if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
                 self.s.sound = 0;
                 Math3D.VectorClear(self.avelocity);
                 self.touch = null;
@@ -1972,7 +1972,7 @@ public class GameFunc {
 
         public void use(edict_t self, edict_t other, edict_t activator) {
             // make sure we're not already moving
-            if (0 == Math3D.VectorCompare(self.s.origin, Globals.vec3_origin))
+            if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
                 return;
 
             GameFunc.Move_Calc(self, self.pos1, door_secret_move1);

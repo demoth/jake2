@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.10 2004-09-22 19:22:12 salomo Exp $
+ * $Id: SV.java,v 1.11 2005-02-20 21:50:37 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -200,7 +200,7 @@ public final class SV {
 
                 for (j = 0; j < numplanes; j++)
                     if ((j != i)
-                            && Math3D.VectorCompare(planes[i], planes[j]) == 0.0f) {
+                            && !Math3D.VectorEquals(planes[i], planes[j])) {
                         if (Math3D.DotProduct(new_velocity, planes[j]) < 0)
                             break; // not ok
                     }

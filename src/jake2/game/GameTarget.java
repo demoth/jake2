@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.4 2005-02-19 21:18:44 salomo Exp $
+// $Id: GameTarget.java,v 1.5 2005-02-20 21:50:36 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -608,7 +608,7 @@ public class GameTarget {
                                 point);
                 Math3D.VectorSubtract(point, self.s.origin, self.movedir);
                 Math3D.VectorNormalize(self.movedir);
-                if (0 == Math3D.VectorCompare(self.movedir, last_movedir))
+                if (!Math3D.VectorEquals(self.movedir, last_movedir))
                     self.spawnflags |= 0x80000000;
             }
 
