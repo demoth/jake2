@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.5 2004-01-02 17:40:54 rst Exp $
+// $Id: Lib.java,v 1.6 2004-01-05 22:33:27 rst Exp $
 
 package jake2.util;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 import jake2.*;
 import jake2.client.*;
@@ -201,11 +202,20 @@ public class Lib {
 		return new String(buf, 0, strlen(buf));
 	}
 
-	public static String hexdumpfile( RandomAccessFile file, int len) throws IOException
+	public static String readString(ByteBuffer bb, int len) throws IOException {
+		byte buf[] = new byte[len];
+		bb.get(buf);
+		return new String(buf, 0, strlen(buf));
+	}
+
+	public static String hexdumpfile( ByteBuffer bb, int len) throws IOException
 	{
+		
+		ByteBuffer bb1 = bb.slice();
+		
 		byte buf[] = new byte[len];
 
-		file.read(buf, 0, len);
+		bb1.get(buf);
 		
 		return hexDump(buf,len,false);
 	}

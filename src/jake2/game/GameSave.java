@@ -19,14 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.3 2004-01-02 17:40:54 rst Exp $
+// $Id: GameSave.java,v 1.4 2004-01-05 22:33:27 rst Exp $
 
 package jake2.game;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
+import java.nio.*;
 
 import jake2.*;
 import jake2.client.*;
@@ -365,86 +365,273 @@ public class GameSave extends PlayerView {
 	All pointer variables (except function pointers) must be handled specially.
 	==============
 	*/
-	public static void ReadClient(RandomAccessFile f, gclient_t client) throws IOException {
-		//System.out.println(hexdumpfile(f, 256));
+	public static void ReadClient(ByteBuffer bb, gclient_t client) throws IOException {
 
-		System.out.println("pmtype: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("pmtype: " + bb.getInt());
 
-		System.out.println("origin[0]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("origin[1]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("origin[2]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("origin[0]: " + bb.getShort());
+		System.out.println("origin[1]: " + bb.getShort());
+		System.out.println("origin[2]: " + bb.getShort());
 
-		System.out.println("velocity[0]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("velocity[1]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("velocity[2]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("velocity[0]: " + bb.getShort());
+		System.out.println("velocity[1]: " + bb.getShort());
+		System.out.println("velocity[2]: " + bb.getShort());
 
-		System.out.println("pmflags: " + f.read());
-		System.out.println("pmtime: " + f.read());
-		System.out.println("gravity: " + EndianHandler.swapShort(f.readShort()));
-		// no idea why !!! 
-		f.readShort();
+		System.out.println("pmflags: " + bb.get());
+		System.out.println("pmtime: " + bb.get());
+		System.out.println("gravity: " + bb.getShort());
 
-		System.out.println("delta-angle[0]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("delta-angle[1]: " + EndianHandler.swapShort(f.readShort()));
-		System.out.println("delta-angle[2]: " + EndianHandler.swapShort(f.readShort()));
+		System.out.println("\n" + Lib.hexdumpfile(bb, 128));
+
+		//TODO: FUCKED UP DAMN SHITTY FILL SHORTY Dreckmist
+		bb.getShort();
+
+		System.out.println("delta-angle[0]: " + bb.getShort());
+		System.out.println("delta-angle[1]: " + bb.getShort());
+		System.out.println("delta-angle[2]: " + bb.getShort());
 
 		//--------------
-		System.out.println("viewangles[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("viewangles[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("viewangles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewangles[0]: " + bb.getFloat());
+		System.out.println("viewangles[1]: " + bb.getFloat());
+		System.out.println("viewangles[2]: " + bb.getFloat());
 
-		System.out.println("viewoffset[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("viewoffset[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("viewoffset[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("viewoffset[0]: " + bb.getFloat());
+		System.out.println("viewoffset[1]: " + bb.getFloat());
+		System.out.println("viewoffset[2]: " + bb.getFloat());
 
-		System.out.println("kick_angles[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("kick_angles[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("kick_angles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("kick_angles[0]: " + bb.getFloat());
+		System.out.println("kick_angles[1]: " + bb.getFloat());
+		System.out.println("kick_angles[2]: " + bb.getFloat());
 
-		System.out.println("gunangles[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("gunangles[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("gunangles[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunangles[0]: " + bb.getFloat());
+		System.out.println("gunangles[1]: " + bb.getFloat());
+		System.out.println("gunangles[2]: " + bb.getFloat());
 
-		System.out.println("gunoffset[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("gunoffset[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("gunoffset[2]: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunoffset[0]: " + bb.getFloat());
+		System.out.println("gunoffset[1]: " + bb.getFloat());
+		System.out.println("gunoffset[2]: " + bb.getFloat());
 
-		System.out.println("gunindex: " + EndianHandler.swapInt(f.readInt()));
-		System.out.println("gunframe: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("\n" + Lib.hexdumpfile(bb, 128));
 
-		System.out.println("blend[0]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("blend[1]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("blend[2]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("blend[3]: " + EndianHandler.swapFloat(f.readFloat()));
-		System.out.println("fov: " + EndianHandler.swapFloat(f.readFloat()));
+		System.out.println("gunindex: " + bb.getInt());
+		System.out.println("gunframe: " + bb.getInt());
 
-		System.out.println("rdflags: " + EndianHandler.swapInt(f.readInt()));
+		System.out.println("blend[0]: " + bb.getFloat());
+		System.out.println("blend[1]: " + bb.getFloat());
+		System.out.println("blend[2]: " + bb.getFloat());
+		System.out.println("blend[3]: " + bb.getFloat());
+
+		System.out.println("fov: " + bb.getFloat());
+
+		System.out.println("rdflags: " + bb.getInt());
+
 		for (int n = 0; n < MAX_STATS; n++)
-			
-			System.out.println("stats[" + n + "]: " + EndianHandler.swapShort(f.readShort()));
-			
-		System.out.println("ping: " + EndianHandler.swapInt(f.readInt()));
-		System.out.println("userinfo: " + Lib.readString(f, Defines.MAX_INFO_STRING));
-		
-		System.out.println("\n" + Lib.hexdumpfile(f, 1024));
-		
-		System.out.println("netname: " + Lib.readString(f, 16));
-		System.out.println("???: " + Lib.readString(f, 16));
-		
-		System.out.println("hand: " + EndianHandler.swapInt(f.readInt()));
-		
-		System.out.println("connected: " + EndianHandler.swapInt(f.readInt()));
-		System.out.println("health: " + EndianHandler.swapInt(f.readInt()));
-		
-		System.out.println("max_health: " + EndianHandler.swapInt(f.readInt()));
-		System.out.println("saved flags: " + EndianHandler.swapInt(f.readInt()));
-		System.out.println("selected Item: " + EndianHandler.swapInt(f.readInt()));
-		 
+			System.out.println("stats[" + n + "]: " + bb.getShort());
+
+		System.out.println("ping: " + bb.getInt());
+
+		System.out.println("\n" + Lib.hexdumpfile(bb, 128));
+
+		// client persistant_t
+
+		System.out.println("userinfo: " + Lib.readString(bb, Defines.MAX_INFO_STRING));
+		System.out.println("netname: " + Lib.readString(bb, 16));
+
+		System.out.println("hand: " + bb.getInt());
+
+		System.out.println("connected: " + bb.getInt());
+		System.out.println("health: " + bb.getInt());
+
+		System.out.println("max_health: " + bb.getInt());
+		System.out.println("saved flags: " + bb.getInt());
+		System.out.println("selected Item: " + bb.getInt());
+
 		for (int n = 0; n < MAX_ITEMS; n++)
-				 System.out.println("inventory[" + n + "]: " + EndianHandler.swapInt(f.readInt()));
-				 
+			System.out.println("inventory[" + n + "]: " + bb.getInt());
+
+		System.out.println("max_bullets: " + bb.getInt());
+		System.out.println("max_shells: " + bb.getInt());
+		System.out.println("max_rockets: " + bb.getInt());
+		System.out.println("max_grenades: " + bb.getInt());
+		System.out.println("max_cells: " + bb.getInt());
+		System.out.println("max_slugs: " + bb.getInt());
+		System.out.println("weapon: " + bb.getInt());
+		System.out.println("lastweapon: " + bb.getInt());
+		System.out.println("powercubes: " + bb.getInt());
+		System.out.println("score: " + bb.getInt());
+
+		System.out.println("gamehelpchanged: " + bb.getInt());
+		System.out.println("helpchanged: " + bb.getInt());
+		System.out.println("spectator: " + bb.getInt());
+
+		// client persistant_t				
+
+		System.out.println("userinfo: " + Lib.readString(bb, Defines.MAX_INFO_STRING));
+		System.out.println("netname: " + Lib.readString(bb, 16));
+
+		System.out.println("hand: " + bb.getInt());
+
+		System.out.println("connected: " + bb.getInt());
+		System.out.println("health: " + bb.getInt());
+
+		System.out.println("max_health: " + bb.getInt());
+		System.out.println("saved flags: " + bb.getInt());
+		System.out.println("selected Item: " + bb.getInt());
+
+		for (int n = 0; n < MAX_ITEMS; n++)
+			System.out.println("inventory[" + n + "]: " + bb.getInt());
+
+		System.out.println("max_bullets: " + bb.getInt());
+		System.out.println("max_shells: " + bb.getInt());
+		System.out.println("max_rockets: " + bb.getInt());
+		System.out.println("max_grenades: " + bb.getInt());
+		System.out.println("max_cells: " + bb.getInt());
+		System.out.println("max_slugs: " + bb.getInt());
+		System.out.println("weapon: " + bb.getInt());
+		System.out.println("lastweapon: " + bb.getInt());
+		System.out.println("powercubes: " + bb.getInt());
+		System.out.println("score: " + bb.getInt());
+
+		System.out.println("gamehelpchanged: " + bb.getInt());
+		System.out.println("helpchanged: " + bb.getInt());
+		System.out.println("spectator: " + bb.getInt());
+
+		///////////////
+
+		System.out.println("enterframe: " + bb.getInt());
+		System.out.println("score: " + bb.getInt());
+
+		System.out.println("cmd_angles[0]: " + bb.getFloat());
+		System.out.println("cmd_angles[1]: " + bb.getFloat());
+		System.out.println("cmd_angles[2]: " + bb.getFloat());
+
+		System.out.println("spectator: " + bb.getInt());
+
+		// pmove_state_t
+
+		System.out.println("pmtype: " + bb.getInt());
+
+		System.out.println("origin[0]: " + bb.getShort());
+		System.out.println("origin[1]: " + bb.getShort());
+		System.out.println("origin[2]: " + bb.getShort());
+
+		System.out.println("velocity[0]: " + bb.getShort());
+		System.out.println("velocity[1]: " + bb.getShort());
+		System.out.println("velocity[2]: " + bb.getShort());
+
+		System.out.println("pmflags: " + bb.get());
+		System.out.println("pmtime: " + bb.get());
+		System.out.println("gravity: " + bb.getShort());
+
+		System.out.println("\n" + Lib.hexdumpfile(bb, 128));
+
+		//TODO: FUCKED UP DAMN SHITTY FILL SHORTY Dreckmist
+		bb.getShort();
+
+		System.out.println("delta-angle[0]: " + bb.getShort());
+		System.out.println("delta-angle[1]: " + bb.getShort());
+		System.out.println("delta-angle[2]: " + bb.getShort());
+
+		////////////////////////////////////////////////////////
+		System.out.println("showscores: " + bb.getInt());
+		System.out.println("showinventury: " + bb.getInt());
+		System.out.println("showhelp: " + bb.getInt());
+		System.out.println("showhelpicon: " + bb.getInt());
+		System.out.println("ammoindex: " + bb.getInt());
+
+		System.out.println("buttons: " + bb.getInt());
+		System.out.println("oldbuttons: " + bb.getInt());
+		System.out.println("latchedbuttons: " + bb.getInt());
+
+		System.out.println("weaponthunk: " + bb.getInt());
+
+		System.out.println("newweapon: " + bb.getInt());
+
+		System.out.println("damage_armor: " + bb.getInt());
+		System.out.println("damage_parmor: " + bb.getInt());
+		System.out.println("damage_blood: " + bb.getInt());
+		System.out.println("damage_knockback: " + bb.getInt());
+
+		System.out.println("damage_from[0]: " + bb.getFloat());
+		System.out.println("damage_from[1]: " + bb.getFloat());
+		System.out.println("damage_from[2]: " + bb.getFloat());
+
+		System.out.println("killer_yaw: " + bb.getFloat());
+
+		System.out.println("weaponstate: " + bb.getInt());
+
+		System.out.println("kick_angles[0]: " + bb.getFloat());
+		System.out.println("kick_angles[1]: " + bb.getFloat());
+		System.out.println("kick_angles[2]: " + bb.getFloat());
+
+		System.out.println("kick_origin[0]: " + bb.getFloat());
+		System.out.println("kick_origin[1]: " + bb.getFloat());
+		System.out.println("kick_origin[2]: " + bb.getFloat());
+
+		System.out.println("v_dmg_roll: " + bb.getFloat());
+		System.out.println("v_dmg_pitch: " + bb.getFloat());
+		System.out.println("v_dmg_time: " + bb.getFloat());
+		System.out.println("fall_time: " + bb.getFloat());
+		System.out.println("fall_value: " + bb.getFloat());
+		System.out.println("damage_alpha: " + bb.getFloat());
+		System.out.println("bonus_alpha: " + bb.getFloat());
+
+		System.out.println("damage_blend[0]: " + bb.getFloat());
+		System.out.println("damage_blend[1]: " + bb.getFloat());
+		System.out.println("damage_blend[2]: " + bb.getFloat());
+
+		System.out.println("v_angle[0]: " + bb.getFloat());
+		System.out.println("v_angle[1]: " + bb.getFloat());
+		System.out.println("v_angle[2]: " + bb.getFloat());
+
+		System.out.println("bob_time: " + bb.getFloat());
+
+		System.out.println("oldviewangles[0]: " + bb.getFloat());
+		System.out.println("oldviewangles[1]: " + bb.getFloat());
+		System.out.println("oldviewangles[2]: " + bb.getFloat());
+
+		System.out.println("oldvelocity[0]: " + bb.getFloat());
+		System.out.println("oldvelocity[1]: " + bb.getFloat());
+		System.out.println("oldvelocity[2]: " + bb.getFloat());
+
+		System.out.println("next_downtime: " + bb.getFloat());
+
+		System.out.println("old_waterlevel: " + bb.getInt());
+		System.out.println("breathersound: " + bb.getInt());
+		System.out.println("machinegun_shots: " + bb.getInt());
+		System.out.println("anim_end: " + bb.getInt());
+		System.out.println("anim_priority: " + bb.getInt());
+		System.out.println("anim_duck: " + bb.getInt());
+		System.out.println("anim_run: " + bb.getInt());
+
+		System.out.println("quad_framenum: " + bb.getFloat());
+		System.out.println("invincible_framenum: " + bb.getFloat());
+		System.out.println("breather_framenum: " + bb.getFloat());
+		System.out.println("enviro_framenum: " + bb.getFloat());
+
+		System.out.println("grenade_blew_up: " + bb.getInt());
+		System.out.println("grenade_time: " + bb.getFloat());
+		System.out.println("silencer_shots: " + bb.getInt());
+		System.out.println("weapon_sound: " + bb.getInt());
+		System.out.println("pickup_msg_time: " + bb.getFloat());
+		System.out.println("flood_locktill: " + bb.getFloat());
+		System.out.println("flood_when [0]: " + bb.getFloat());
+		System.out.println("flood_when [1]: " + bb.getFloat());
+		System.out.println("flood_when [2]: " + bb.getFloat());
+		System.out.println("flood_when [3]: " + bb.getFloat());
+		System.out.println("flood_when [4]: " + bb.getFloat());
+		System.out.println("flood_when [5]: " + bb.getFloat());
+		System.out.println("flood_when [6]: " + bb.getFloat());
+		System.out.println("flood_when [7]: " + bb.getFloat());
+		System.out.println("flood_when [8]: " + bb.getFloat());
+		System.out.println("flood_when [9]: " + bb.getFloat());
+		System.out.println("flood_whenhead: " + bb.getInt());
+		System.out.println("respawn_time: " + bb.getFloat());
+		System.out.println("chase_target: " + bb.getInt());
+		System.out.println("update_chase: " + bb.getInt());
+
 		//System.out.println("\n" + Lib.hexdumpfile(f, 1024));
-		 
+
 		//field_t		*field;
 		//fread (client, sizeof(*client), 1, f);
 		/*for (field=clientfields ; field.name ; field++)
@@ -452,7 +639,9 @@ public class GameSave extends PlayerView {
 			ReadField (f, field, (byte *)client);
 		}
 		*/
-	} ///*
+	} //
+
+	/*
 	//============
 	//WriteGame
 	//
@@ -501,23 +690,37 @@ public class GameSave extends PlayerView {
 		//f = fopen (filename, "rb");
 		try {
 			f = new RandomAccessFile(filename, "r");
-			String date = Lib.readString(f, 16);
-			String helpmessage1 = Lib.readString(f, 512);
-			String helpmessage2 = Lib.readString(f, 512);
+
+			byte buf[] = new byte[(int) f.length()];
+
+			f.readFully(buf);
+
+			ByteBuffer bb = ByteBuffer.wrap(buf);
+
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+
+			String date = Lib.readString(bb, 16);
+			String helpmessage1 = Lib.readString(bb, 512);
+			String helpmessage2 = Lib.readString(bb, 512);
+
 			System.out.println("String date: " + date);
 			System.out.println("String helpmessage1: " + helpmessage1);
 			System.out.println("String helpmessage2: " + helpmessage2);
-			System.out.println("helpchanged: " + EndianHandler.swapInt(f.readInt()));
+
+			System.out.println("helpchanged: " + bb.getInt());
 			// gclient_t*
-			f.readInt();
-			System.out.println("spawnpoit: " + Lib.readString(f, 512));
-			System.out.println("maxclients: " + EndianHandler.swapInt(f.readInt()));
-			System.out.println("maxentities: " + EndianHandler.swapInt(f.readInt()));
-			System.out.println("serverflags: " + EndianHandler.swapInt(f.readInt()));
-			System.out.println("numitems: " + EndianHandler.swapInt(f.readInt()));
-			System.out.println("autosaved: " + EndianHandler.swapShort(f.readShort()));
-			ReadClient(f, new gclient_t(0));
+			bb.getInt();
+			System.out.println("spawnpoit: " + Lib.readString(bb, 512));
+			System.out.println("maxclients: " + bb.getInt());
+			System.out.println("maxentities: " + bb.getInt());
+			System.out.println("serverflags: " + bb.getInt());
+			System.out.println("numitems: " + bb.getInt());
+			System.out.println("autosaved: " + bb.getInt());
+
+			//for (i=0 ; i<game.maxclients ; i++)
+			ReadClient(bb, new gclient_t(0));
 		}
+
 		catch (Exception e) {
 			e.printStackTrace();
 			//gi.error ("File problems in "+ filename);
@@ -546,7 +749,9 @@ public class GameSave extends PlayerView {
 		}
 		catch (IOException e) { //nothingh
 		}
-	} //
+	}
+
+	//
 	////==========================================================
 	//
 	//
@@ -800,6 +1005,5 @@ public class GameSave extends PlayerView {
 	//				ent.nextthink = level.time + ent.delay;
 	//	}
 	//}
-
 
 }
