@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.9 2004-01-29 17:56:41 hoz Exp $
+//$Id: client_state_t.java,v 1.10 2004-01-30 11:28:24 cwei Exp $
 
 package jake2.client;
 
@@ -76,7 +76,7 @@ public class client_state_t {
 	// is rendering at.  always <= cls.realtime
 	float lerpfrac; // between oldframe and frame
 
-	refdef_t refdef;
+	refdef_t refdef = new refdef_t();
 
 	float[] v_forward = { 0, 0, 0 };
 	float[] v_right = { 0, 0, 0 };
