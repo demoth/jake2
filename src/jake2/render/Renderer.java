@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.4 2004-12-14 12:58:05 cawe Exp $
+ * $Id: Renderer.java,v 1.5 2004-12-16 21:13:06 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,18 +36,24 @@ import jake2.client.refexport_t;
  */
 public class Renderer {
 
-
 	static Vector drivers = new Vector(3);
-
-	public static final String DEFAULT = JoglRenderer.DRIVER_NAME;
-	private static final String DEFAULT_CLASS = "jake2.render.JoglRenderer";
 
 	static {
 		try {
-			Class.forName("jake2.render.JoglRenderer");
-			Class.forName("jake2.render.FastJoglRenderer");
-			Class.forName("jake2.render.LWJGLRenderer");
-		} catch (ClassNotFoundException e) {
+			try {
+				Class.forName("net.java.games.jogl.GL");
+				Class.forName("jake2.render.JoglRenderer");
+				Class.forName("jake2.render.FastJoglRenderer");
+			} catch (ClassNotFoundException e) {
+				// ignore the jogl drivers if runtime not in classpath
+			}
+			try {
+				Class.forName("org.lwjgl.opengl.GL11");
+				Class.forName("jake2.render.LWJGLRenderer");
+			} catch (ClassNotFoundException e) {
+				// ignore the lwjgl driver if runtime not in classpath
+			}
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 	};
