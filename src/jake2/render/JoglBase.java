@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.4 2004-07-16 10:11:34 cawe Exp $
+ * $Id: JoglBase.java,v 1.5 2004-07-16 12:12:29 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -199,6 +199,9 @@ public abstract class JoglBase implements GLEventListener {
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		canvas.setNoAutoRedrawMode(true);
+// TODO this and a new JOGL-release solves the flickering bug (Loading)
+// change also GLimp_EndFrame()
+//		canvas.setAutoSwapBufferMode(false);
 		canvas.addGLEventListener(this);
 
 		window.getContentPane().add(canvas);	
@@ -293,7 +296,8 @@ public abstract class JoglBase implements GLEventListener {
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
 		// swap buffer
-		// but jogl has no method to swap
+//		TODO this and a new JOGL-release solves the flickering bug (Loading)
+//		canvas.swapBuffers();
 	}
 	protected void GLimp_BeginFrame(float camera_separation) {
 		// do nothing
