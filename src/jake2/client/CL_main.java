@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.34 2004-02-15 01:56:17 cwei Exp $
+ * $Id: CL_main.java,v 1.35 2004-02-15 11:27:49 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -116,7 +116,7 @@ public class CL_main extends CL_pred {
 				int i;
 				int len;
 				entity_state_t ent;
-				//TODO: check ent_state_t creation
+				//TODO: Performance Killer !
 				entity_state_t nullstate = new entity_state_t(null);
 
 				if (Cmd.Argc() != 2) {
@@ -1120,18 +1120,15 @@ public class CL_main extends CL_pred {
 
 			CM.intwrap iw = new CM.intwrap(map_checksum);
 
-			// TODO bugfix cwei
-
 			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1].toLowerCase(), true, iw);
 			map_checksum = iw.i;
 
-// TODO bugfix cwei
-//			if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
-//				Com.Error(
-//					ERR_DROP,
-//					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
-//				return;
-//			}
+			if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
+				Com.Error(
+					ERR_DROP,
+					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
+				return;
+			}
 		}
 
 		if (precache_check > ENV_CNT && precache_check < TEXTURE_CNT) {
@@ -1271,7 +1268,6 @@ public class CL_main extends CL_pred {
 		m_forward = Cvar.Get("m_forward", "1", 0);
 		m_side = Cvar.Get("m_side", "1", 0);
 
-		// TODO: shownet variable 
 		cl_shownet = Cvar.Get("cl_shownet", "0", 0);
 		cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
 		cl_showclamp = Cvar.Get("showclamp", "0", 0);

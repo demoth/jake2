@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.5 2004-02-14 13:24:02 rst Exp $
+// $Id: PlayerHud.java,v 1.6 2004-02-15 11:27:49 rst Exp $
 
 package jake2.game;
 
@@ -124,11 +124,11 @@ public class PlayerHud extends GameTarget {
 		level.exitintermission = false;
 
 		// find an intermission spot
-		ent = G_Find(null, findByClass, "info_player_intermission").o;
+		ent = G_FindEdict(null, findByClass, "info_player_intermission");
 		if (ent == null) { // the map creator forgot to put in an intermission point...
-			ent = G_Find(null, findByClass, "info_player_start").o;
+			ent = G_FindEdict(null, findByClass, "info_player_start");
 			if (ent == null)
-				ent = G_Find(null, findByClass, "info_player_deathmatch").o;
+				ent = G_FindEdict(null, findByClass, "info_player_deathmatch");
 		}
 		else { // chose one of four spots
 			i = rand() & 3;
@@ -136,11 +136,11 @@ public class PlayerHud extends GameTarget {
 
 			while (i-- > 0) {
 				es = G_Find(es, findByClass, "info_player_intermission");
+
+				if (es == null) // wrap around the list
+					continue;
 				ent = es.o;
-				if (ent == null) { // wrap around the list
-					es = G_Find(es, findByClass, "info_player_intermission");
-					ent = es.o;
-				}
+
 			}
 		}
 
@@ -480,11 +480,10 @@ public class PlayerHud extends GameTarget {
 		// selected item
 		//
 		// bugfix rst
-		if (ent.client.pers.selected_item <=0)
+		if (ent.client.pers.selected_item <= 0)
 			ent.client.ps.stats[STAT_SELECTED_ICON] = 0;
 		else
-			ent.client.ps.stats[STAT_SELECTED_ICON] = 
-				(short) gi.imageindex(itemlist[ent.client.pers.selected_item].icon);
+			ent.client.ps.stats[STAT_SELECTED_ICON] = (short) gi.imageindex(itemlist[ent.client.pers.selected_item].icon);
 
 		ent.client.ps.stats[STAT_SELECTED_ITEM] = (short) ent.client.pers.selected_item;
 

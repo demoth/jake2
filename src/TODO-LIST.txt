@@ -4,7 +4,7 @@ Dringende Aufgaben
 Holger
 --------
 - bewegungshack muss wieder weg.
-- es gibt noch paar Exceptions im Key-Handler abzufangen
+- es gibt noch paar Exceptions im Key-Handler abzufangen (evtl schon weg)
 - GameScreen/Console umschalten muss gehen.
 - Mouselook im Spiel wäre gut
 - Schiessen im Spiel! 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.22 2004-02-15 00:58:00 rst Exp $
+// $Id: GameBase.java,v 1.23 2004-02-15 11:27:49 rst Exp $
 
 /** Father of all Objects. */
 
@@ -53,7 +53,7 @@ public class GameBase extends Globals {
 	public static cvar_t deathmatch = new cvar_t();
 	public static cvar_t coop = new cvar_t();
 	public static cvar_t dmflags = new cvar_t();
-	public static cvar_t skill = new cvar_t();
+	public static cvar_t skill;// = new cvar_t();
 	public static cvar_t fraglimit = new cvar_t();
 	public static cvar_t timelimit = new cvar_t();
 	public static cvar_t password = new cvar_t();
@@ -233,6 +233,7 @@ public class GameBase extends Globals {
 	=============
 	*/
 
+
 	/** 
 	 * Finds an edict.
 	 * Call with null as from parameter to search from array beginning.
@@ -258,15 +259,21 @@ public class GameBase extends Globals {
 			if (eff.matches(from.o, s))
 				return from;
 		}
-		// bugfix rst
-		return null;
-//		from.o = null;
-//		from.i = 0;
-//		return from;
-	}
 
-	/**
-	 * 
+		return null;
+	}
+	
+	// comfort version (rst)
+	public static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff, String s) {	
+		EdictIterator ei = G_Find(from, eff, s);
+		if (ei == null)
+			return null;
+		else
+			return ei.o;
+	}
+	
+	
+	/** 
 	 * Returns entities that have origins within a spherical area.
 	*/
 	public static EdictIterator findradius(EdictIterator from, float[] org, float rad) {
@@ -593,14 +600,13 @@ public class GameBase extends Globals {
 			Game.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
 		else { // search for a changelevel
 			EdictIterator edit = null;
-			edit = G_Find(edit, findByClass , "target_changelevel");
-			ent = edit.o;
-			
-			if (ent == null) { // the map designer didn't include a changelevel,
+			edit = G_Find(edit, findByClass , "target_changelevel");			
+			if (edit == null) { // the map designer didn't include a changelevel,
 				// so create a fake ent that goes back to the same level
 				Game.BeginIntermission(CreateTargetChangeLevel(level.mapname));
 				return;
 			}
+			ent = edit.o;
 			Game.BeginIntermission(ent);
 		}
 	}
@@ -747,9 +753,9 @@ public class GameBase extends Globals {
 				continue;
 			}
 	
-			//G_RunEntity(ent);
-			/*
-			//TODO: disabled for debugging
+
+			
+			//TODO: RST: disabled for debugging
 			if (ent.classname.startsWith("trigger") )//|| ent.classname.startsWith("monster"))
 				G_RunEntity(ent);
 				
@@ -758,7 +764,6 @@ public class GameBase extends Globals {
 				
 			if (ent.classname.startsWith("monster_inf") )//|| ent.classname.startsWith("monster"))
 				G_RunEntity(ent);
-			*/
 		}
 
 		// see if it is time to end a deathmatch

@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.19 2004-02-14 20:27:51 rst Exp $
+ * $Id: NET.java,v 1.20 2004-02-15 11:27:49 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -582,7 +582,6 @@ public final class NET extends Defines {
 		//empty
 	}	
 	
-	// TODO: check this, im not a network socket expert.
 	/*
 	====================
 	NET_Socket

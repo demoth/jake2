@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.26 2004-02-15 01:19:41 hoz Exp $
+ * $Id: Key.java,v 1.27 2004-02-15 11:27:49 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -302,6 +302,7 @@ public class Key extends Globals {
 
 		// update auto-repeat status
 		if (down) {
+
 			key_repeats[key]++;
 			if (key != K_BACKSPACE
 				&& key != K_PAUSE
@@ -316,6 +317,7 @@ public class Key extends Globals {
 				Com.Printf(Key.KeynumToString(key) + " is unbound, hit F4 to set.\n");
 		}
 		else {
+
 			key_repeats[key] = 0;
 		}
 
