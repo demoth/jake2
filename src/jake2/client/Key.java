@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.11 2004-01-18 09:41:57 hoz Exp $
+ * $Id: Key.java,v 1.12 2004-01-18 12:36:02 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.Com;
+import jake2.util.Lib;
 
 
 /**
@@ -111,6 +112,7 @@ public final class Key {
 	public static final int K_MWHEELUP = 240;
 	
 	static int key_waiting;
+	static int history_line = 0;
 	static boolean shift_down = false;
 	static int[] key_repeats = new int[256];
 	static int[] keyshift = new int[256];
@@ -441,117 +443,106 @@ public final class Key {
 		Globals.chat_buffer += (char)key;
 	}
 
-//	00187 /*
-//	00188 ====================
-//	00189 Key_Console
-//	00190 
-//	00191 Interactive line editing and console scrollback
-//	00192 ====================
-//	00193 */
+	/**
+	 * Interactive line editing and console scrollback.
+	 */
 	public static void Console(int key) {
-//	00196 
-//	00197         switch ( key )
-//	00198         {
-//	00199         case K_KP_SLASH:
-//	00200                 key = '/';
-//	00201                 break;
-//	00202         case K_KP_MINUS:
-//	00203                 key = '-';
-//	00204                 break;
-//	00205         case K_KP_PLUS:
-//	00206                 key = '+';
-//	00207                 break;
-//	00208         case K_KP_HOME:
-//	00209                 key = '7';
-//	00210                 break;
-//	00211         case K_KP_UPARROW:
-//	00212                 key = '8';
-//	00213                 break;
-//	00214         case K_KP_PGUP:
-//	00215                 key = '9';
-//	00216                 break;
-//	00217         case K_KP_LEFTARROW:
-//	00218                 key = '4';
-//	00219                 break;
-//	00220         case K_KP_5:
-//	00221                 key = '5';
-//	00222                 break;
-//	00223         case K_KP_RIGHTARROW:
-//	00224                 key = '6';
-//	00225                 break;
-//	00226         case K_KP_END:
-//	00227                 key = '1';
-//	00228                 break;
-//	00229         case K_KP_DOWNARROW:
-//	00230                 key = '2';
-//	00231                 break;
-//	00232         case K_KP_PGDN:
-//	00233                 key = '3';
-//	00234                 break;
-//	00235         case K_KP_INS:
-//	00236                 key = '0';
-//	00237                 break;
-//	00238         case K_KP_DEL:
-//	00239                 key = '.';
-//	00240                 break;
-//	00241         }
-//	00242 
-//	00243         if ( key == 'l' ) 
-//	00244         {
-//	00245                 if ( keydown[K_CTRL] )
-//	00246                 {
-//	00247                         Cbuf_AddText ("clear\n");
-//	00248                         return;
-//	00249                 }
-//	00250         }
-//	00251 
-//	00252         if ( key == K_ENTER || key == K_KP_ENTER )
-//	00253         {       // backslash text are commands, else chat
-//	00254                 if (key_lines[edit_line][1] == '\\' || key_lines[edit_line][1] == '/')
-//	00255                         Cbuf_AddText (key_lines[edit_line]+2);  // skip the >
-//	00256                 else
-//	00257                         Cbuf_AddText (key_lines[edit_line]+1);  // valid command
-//	00258 
-//	00259                 Cbuf_AddText ("\n");
-//	00260                 Com_Printf ("%s\n",key_lines[edit_line]);
-//	00261                 edit_line = (edit_line + 1) & 31;
-//	00262                 history_line = edit_line;
-//	00263                 key_lines[edit_line][0] = ']';
-//	00264                 key_linepos = 1;
-//	00265                 if (cls.state == ca_disconnected)
-//	00266                         SCR_UpdateScreen ();    // force an update, because the command
-//	00267                                                                         // may take some time
-//	00268                 return;
-//	00269         }
-//	00270 
-//	00271         if (key == K_TAB)
-//	00272         {       // command completion
-//	00273                 CompleteCommand ();
-//	00274                 return;
-//	00275         }
-//	00276         
-//	00277         if ( ( key == K_BACKSPACE ) || ( key == K_LEFTARROW ) || ( key == K_KP_LEFTARROW ) || ( ( key == 'h' ) && ( keydown[K_CTRL] ) ) )
-//	00278         {
-//	00279                 if (key_linepos > 1)
-//	00280                         key_linepos--;
-//	00281                 return;
-//	00282         }
-//	00283 
-//	00284         if ( ( key == K_UPARROW ) || ( key == K_KP_UPARROW ) ||
-//	00285                  ( ( key == 'p' ) && keydown[K_CTRL] ) )
-//	00286         {
-//	00287                 do
-//	00288                 {
-//	00289                         history_line = (history_line - 1) & 31;
-//	00290                 } while (history_line != edit_line
-//	00291                                 && !key_lines[history_line][1]);
-//	00292                 if (history_line == edit_line)
-//	00293                         history_line = (edit_line+1)&31;
-//	00294                 strcpy(key_lines[edit_line], key_lines[history_line]);
-//	00295                 key_linepos = strlen(key_lines[edit_line]);
-//	00296                 return;
-//	00297         }
-//	00298 
+
+		switch ( key ) {
+			case K_KP_SLASH:
+				key = '/';
+				break;
+			case K_KP_MINUS:
+				key = '-';
+				break;
+			case K_KP_PLUS:
+				key = '+';
+				break;
+			case K_KP_HOME:
+				key = '7';
+				break;
+			case K_KP_UPARROW:
+				key = '8';
+				break;
+			case K_KP_PGUP:
+				key = '9';
+				break;
+			case K_KP_LEFTARROW:
+				key = '4';
+				break;
+			case K_KP_5:
+				key = '5';
+				break;
+			case K_KP_RIGHTARROW:
+				key = '6';
+				break;
+			case K_KP_END:
+				key = '1';
+				break;
+			case K_KP_DOWNARROW:
+				key = '2';
+				break;
+			case K_KP_PGDN:
+				key = '3';
+				break;
+			case K_KP_INS:
+				key = '0';
+				break;
+			case K_KP_DEL:
+				key = '.';
+				break;
+		}
+
+		if ( key == 'l' ) {
+			if ( Globals.keydown[K_CTRL] ) {
+				Cbuf.AddText("clear\n");
+				return;
+			}
+		}
+
+		if ( key == K_ENTER || key == K_KP_ENTER ) {
+			// backslash text are commands, else chat
+			if (Globals.key_lines[Globals.edit_line][1] == '\\' || Globals.key_lines[Globals.edit_line][1] == '/')
+				Cbuf.AddText(new String(Globals.key_lines[Globals.edit_line], 2, Lib.strlen(Globals.key_lines[Globals.edit_line])-2));
+			else
+				Cbuf.AddText(new String(Globals.key_lines[Globals.edit_line], 1, Lib.strlen(Globals.key_lines[Globals.edit_line])-1));
+ 
+			Cbuf.AddText("\n");
+			Com.Printf(new String(Globals.key_lines[Globals.edit_line], 0, Lib.strlen(Globals.key_lines[Globals.edit_line])));
+			Globals.edit_line = (Globals.edit_line + 1) & 31;
+			history_line = Globals.edit_line;
+			Globals.key_lines[Globals.edit_line][0] = ']';
+			Globals.key_linepos = 1;
+			if (Globals.cls.state == Defines.ca_disconnected)
+				SCR.UpdateScreen();		// force an update, because the command
+										// may take some time
+			return;
+		}
+
+		if (key == K_TAB) {
+			// command completion
+			CompleteCommand ();
+			return;
+		}
+         
+		if ( ( key == K_BACKSPACE ) || ( key == K_LEFTARROW ) || ( key == K_KP_LEFTARROW ) || ( ( key == 'h' ) && ( Globals.keydown[K_CTRL] ) ) ) {
+			if (Globals.key_linepos > 1)
+				Globals.key_linepos--;
+			return;
+		}
+ 
+		if ( ( key == K_UPARROW ) || ( key == K_KP_UPARROW ) ||
+				( ( key == 'p' ) && Globals.keydown[K_CTRL] ) ) {
+			do {
+				history_line = (history_line - 1) & 31;
+			} while (history_line != Globals.edit_line && Globals.key_lines[history_line][1]==0);
+			if (history_line == Globals.edit_line)
+				history_line = (Globals.edit_line+1)&31;
+			Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
+			Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
+			return;
+		}
+ 
 //	00299         if ( ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW ) ||
 //	00300                  ( ( key == 'n' ) && keydown[K_CTRL] ) )
 //	00301         {
@@ -575,11 +566,10 @@ public final class Key {
 //	00319                 return;
 //	00320         }
 //	00321 
-//	00322         if (key == K_PGUP || key == K_KP_PGUP )
-//	00323         {
-//	00324                 con.display -= 2;
-//	00325                 return;
-//	00326         }
+		if (key == K_PGUP || key == K_KP_PGUP ) {
+			Globals.con.display -= 2;
+			return;
+		}
 //	00327 
 //	00328         if (key == K_PGDN || key == K_KP_PGDN ) 
 //	00329         {
@@ -611,5 +601,27 @@ public final class Key {
 //	00355                 key_lines[edit_line][key_linepos] = 0;
 //	00356         }
 //	00357 
-	}		
+	}
+	
+	static void CompleteCommand() {
+//	00166         char    *cmd, *s;
+//	00167 
+//	00168         s = key_lines[edit_line]+1;
+//	00169         if (*s == '\\' || *s == '/')
+//	00170                 s++;
+//	00171 
+//	00172         cmd = Cmd_CompleteCommand (s);
+//	00173         if (!cmd)
+//	00174                 cmd = Cvar_CompleteVariable (s);
+//	00175         if (cmd)
+//	00176         {
+//	00177                 key_lines[edit_line][1] = '/';
+//	00178                 strcpy (key_lines[edit_line]+2, cmd);
+//	00179                 key_linepos = strlen(cmd)+2;
+//	00180                 key_lines[edit_line][key_linepos] = ' ';
+//	00181                 key_linepos++;
+//	00182                 key_lines[edit_line][key_linepos] = 0;
+//	00183                 return;
+//	00184         }
+	}	
 }

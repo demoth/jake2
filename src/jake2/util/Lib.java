@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.10 2004-01-18 10:39:34 rst Exp $
+// $Id: Lib.java,v 1.11 2004-01-18 12:36:02 hoz Exp $
 
 package jake2.util;
 
@@ -179,6 +179,17 @@ public class Lib {
 	}
 
 	public static void strcpy(char dest[], char src[]) {
+		for (int i = 0; i < dest.length && i < src.length; i++)
+			if (src[i] == 0) {
+				dest[i] = 0;
+				return;
+			}
+			else
+				dest[i] = src[i];
+
+	}
+	
+	public static void strcpy(byte dest[], byte src[]) {
 		for (int i = 0; i < dest.length && i < src.length; i++)
 			if (src[i] == 0) {
 				dest[i] = 0;

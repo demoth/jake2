@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.30 2004-01-18 10:39:34 rst Exp $
+ * $Id: Globals.java,v 1.31 2004-01-18 12:36:02 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.30  2004-01-18 10:39:34  rst
+ * Revision 1.31  2004-01-18 12:36:02  hoz
+ * Key.*
+ *
+ * Revision 1.30  2004/01/18 10:39:34  rst
  * M O N S T E R - C O M M I T
  * (network and server code)
  *
@@ -378,4 +381,11 @@ public class Globals extends Defines {
 	public static int anykeydown = 0;
 	public static boolean chat_team = false;
 	public static String chat_buffer = "";
+	public static byte[][] key_lines = new byte[32][];
+	public static int key_linepos;
+	static {
+		for (int i = 0; i < key_lines.length; i++)
+			key_lines[i] = new byte[Defines.MAXCMDLINE];
+	};
+	public static int edit_line;
 }
