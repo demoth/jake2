@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.12 2005-02-13 17:02:46 cawe Exp $
+ * $Id: Cmd.java,v 1.13 2005-03-13 20:52:05 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -250,6 +250,7 @@ public final class Cmd {
         String com_token;
 
         cmd_argc = 0;
+        cmd_args = "";
 
         int len = Lib.strlen(text);
 
