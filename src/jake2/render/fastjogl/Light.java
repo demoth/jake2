@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.4 2004-06-21 11:33:38 cwei Exp $
+ * $Id: Light.java,v 1.5 2004-06-28 13:51:28 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -540,8 +540,7 @@ public abstract class Light extends Warp {
 				 nummaps++)
 				;
 	
-			//surf.samples.reset();	
-			lightmap = surf.samples.slice();
+			lightmap = surf.samples;
 			int lightmapIndex = 0;
 	
 			// add all the lightmaps
