@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: EntDieAdapter.java,v 1.3 2003-12-04 21:04:35 rst Exp $
+// $Id: EntDieAdapter.java,v 1.4 2004-01-09 18:30:56 rst Exp $
 
 package jake2.game;
 
-public class EntDieAdapter {
+public class EntDieAdapter  extends SuperAdapter {
 	public void die(edict_t self, edict_t inflictor, edict_t attacker, int damage, float[] point) {
 	}
 }

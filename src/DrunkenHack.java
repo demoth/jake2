@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.01.2004 by RST.
-// $Id: DrunkenHack.java,v 1.1 2004-01-08 23:56:43 rst Exp $
+// $Id: DrunkenHack.java,v 1.2 2004-01-09 18:30:57 rst Exp $
 // $Log: DrunkenHack.java,v $
-// Revision 1.1  2004-01-08 23:56:43  rst
+// Revision 1.2  2004-01-09 18:30:57  rst
+// Superadapter replaces function pointers in save games.
+//
+// Revision 1.1  2004/01/08 23:56:43  rst
 // some preisfrage
 // 
 
@@ -43,7 +46,7 @@ public class DrunkenHack {
 	static class t0
 	{
 		// the identificator
-		public static int myid = id++;
+		public int myid = id++;
 		
 		public String test()
 		{

@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: AIAdapter.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: AIAdapter.java,v 1.3 2004-01-09 18:30:56 rst Exp $
 
 package jake2.game;
 
-public class AIAdapter {
+public class AIAdapter  extends SuperAdapter {
 	public void ai(edict_t self, float dist) {
 	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.12 2004-01-08 22:38:16 rst Exp $
+// $Id: GameBase.java,v 1.13 2004-01-09 18:30:56 rst Exp $
 
 /** Father of all Objects. */
 
@@ -132,6 +132,7 @@ public class GameBase extends Globals {
 			new field_t("mynoise2", F_EDICT, FFL_NOSPAWN),
 			new field_t("target_ent", F_EDICT, FFL_NOSPAWN),
 			new field_t("chain", F_EDICT, FFL_NOSPAWN),
+			
 			new field_t("prethink", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("think", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("blocked", F_FUNCTION, FFL_NOSPAWN),
@@ -149,7 +150,9 @@ public class GameBase extends Globals {
 			new field_t("melee", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("sight", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("checkattack", F_FUNCTION, FFL_NOSPAWN),
+			
 			new field_t("currentmove", F_MMOVE, FFL_NOSPAWN),
+			
 			new field_t("endfunc", F_FUNCTION, FFL_NOSPAWN),
 			new field_t("item", F_ITEM)
 		//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves

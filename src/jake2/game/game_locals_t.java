@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.4 2004-01-08 22:38:16 rst Exp $
+// $Id: game_locals_t.java,v 1.5 2004-01-09 18:30:57 rst Exp $
 
 package jake2.game;
 
@@ -76,10 +76,6 @@ public class game_locals_t extends Defines {
 		num_items = bb.getInt();
 		autosaved = bb.getInt() != 0;
 
-		for (int i = 0; i < maxclients; i++) {
-			clients[i] = new gclient_t(i);
-			clients[i].load(bb);
-		}
 	}
 
 	public void dump() {
