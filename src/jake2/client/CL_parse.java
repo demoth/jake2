@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.16 2004-10-27 16:54:53 cawe Exp $
+ * $Id: CL_parse.java,v 1.17 2004-10-28 22:52:38 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -245,7 +245,7 @@ public class CL_parse {
         if (percent != 100) {
             // request next block
             //	   change display routines by zoid
-
+            Globals.cls.downloadpercent = percent;
             MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
             SZ.Print(Globals.cls.netchan.message, "nextdl");
         } else {
