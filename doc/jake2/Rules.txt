@@ -1,40 +1,956 @@
-Rules.txt
+ /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+/                                                \
+\ The black book of porting quake to java/javaGl /
+/                                                \
+\             Version 1.1                        /
+/                                                \
+\                                                /
+ \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+ 
+$Id: Rules.txt,v 1.3 2003-11-17 22:37:37 rst Exp $
 
-Hier sollen einige Regeln rein, auf die wir uns bei der Zusammenarbeit einigen.
+Authors:
+--------
+HOZ
+CWEI
+RST
 
-1. CVS
 
-Nach jedem commit sollte sich das Projekt ohne Fehler übersetzen lassen.
+Since there are just a couple of crazy germans in the
+team hacking quake this documentation will grow in 
+german at first.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Warum ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Computergestuetzte Migration von Software-Projekten 
+hat in der heutigen Wirtschaft bereits eine sehr 
+grosse Bedeutung. 
+
+Aus reiner Freude am idsoftware-Produkt Quake
+bzw. aus Neugier und als Machbarkeitsstudie 
+entsteht im kleinen Kreis diese Privat-Initiative,
+Quake zu verstehen und in Java Umzusetzen und 
+zu redesignen.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Grundsaetzliches 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Diese Doku ist wichtiger als Code. Alle JTeamers sind zu ermuntern, 
+ihren Senf mit reinzuschmeissen.
+
+Vielleicht kommt ein Artikel fuers Java-Magazin 
+oder C't dabei raus, der sich verkaufen laesst,
+evtl. sogar oeffentliches Interesse erregt :-)
+
+Ist egal. Es soll Spass machen.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Einleitung
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ausgangspunkt ist der Quake2-Quelltext in der Linux Version 3.21.
+Nach dem ersten Inspizieren waren noch einige kleine Handgriffe 
+notwendig, bis der Compiler durchlief:
+
+----------> Carsten, Holger
+Problem mit GL-Headern ?
+
+KDevelop sowie doxygen erwiesen sich bei der Portierung als 
+nuetzliche kleine Helfer.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Analyse
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Quake ist erstaunlich einfach gehalten, wie man schon am ersten Anblick der 
+Haupt-Routine erkennt.
+
+	//linux/sys_linux.c:main()
+	//------------------------
+	int main (int argc, char **argv)
+	{
+		int 	time, oldtime, newtime;
+		
+		// ...
+		Qcommon_Init(argc, argv);
+		// ...
+		oldtime = Sys_Milliseconds ();
+		while (1)
+		{
+			// find time spent rendering last frame
+			do 
+			{
+				newtime = Sys_Milliseconds ();
+				time = newtime - oldtime;
+			} while (time < 1);
+			Qcommon_Frame (time);
+			oldtime = newtime;
+		}
+	}
+
+
+Der CallGraph sieht wie folgt aus:
+
+
+linux/sys_linux.c:main()
+ |
+ +-common/qcommon.c:Qcommon_Init() 
+ |  |    
+ |  +-COM_InitArgv()
+ |  |
+ |  +-Swap_Init() 
+ |  .... 
+ |
+ +-common/qcommon.c:Qcommon_Frame()
+
+
+Quake besteht, vereinfacht ausgedrueckt, aus einem Array fuer alle 
+Game Entities (Spieler, Monster usw), sowie einem Array aller 
+game items (ammo, health, 
+und einem Satz von Game-Logik-Funktionen, die meist auf ein oder 
+mehrere Entities angewendet werden und "Funktionen fuer den Rest" 
+(FileIO, Grafik, Netzwerk etc).
+
+Die Portierungs-Regeln sollte als naechstes festgelegt werden.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Portierungs-Regeln 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Keine moderne Community kommt ohne grundsatzregeln aus, deshalb 
+sollen hier einige Regeln rein, auf die wir uns bei der Zusammenarbeit einigen.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CVS (Allgemeines)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Nach jedem commit sollte sich das Projekt ohne Fehler uebersetzen lassen.
 
 Oft einchecken, nicht die Arbeit einer ganzen Woche mit einmal committen. So
 lassen sich einzelne Schritte besser nachvollziehen und gegebenenfalls
-rückgangig machen. Ausserdem laufen unsere Versionen nicht zu weit auseinander
+rueckgangig machen. Ausserdem laufen unsere Versionen nicht zu weit auseinander
 und es gibt weniger conflicts.
 
-Bei sehr großen Umbauten wie komplettes Redesign eines Subsystems branchen,
-erst wenn sich die Änderung bewährt hat mit der Hauptlinie mergen.
+Bei sehr grossen Umbauten wie komplettes Redesign eines Subsystems branchen,
+erst wenn sich die Aenderung bewaehrt hat mit der Hauptlinie mergen.
 
-2. Porting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Nameskonventionen und Verzeichnisstruktur (Packages)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Die Verzeichnisstruktur der C-Version wird als Packagestruktur uebernommen.
 
-2.1. Algemeines
-Der Code wird zunächst möglichst 1:1 übertragen.
+Der Code wird zunaechst moeglichst 1:1 uebertragen.
 
-2.2. Verzeichnisse <-> Packages
-Die Verzeichnisstruktur der C-Version wird als Packagestruktur übernommen. Aus
-dem Verzeichnis linux wird allerdings sys.
+RST> kleiner Trick: 
+RST>
+RST> Wenn man durch Vererbung kurzfristig den C namespace nachbildet,
+RST> kann man sich stupide Tipparbeit sparen.
 
-linux --> sys
+RST> Ihr koennt z.B. von game.GAME erben, das ist eigentlich ohne Nebeneffekte und 
+RST> ihr braucht den Code i.d.R gar nicht anfassen:
+RST>
+RST> dann geht sogar    if (strcmp(gname, "monster"))
+RST>
+RST> Das manuelle Ersetzen (hier mit .equals()) kann man evtl. spaeter automatisieren.
+
+RST> Eine einzige Ausnahme musste ich machen, die oeffentlichen Monster-Spawn-Funktionen 
+RST> stecken in M_<Monster>.java
+
+RST> z.B. M_Berserk.SP_monster_berserk(ent);
+
+
+RST> An einem definierten Punkt (60% portiert) sollte dann nach dem schema unten umbenannt und 
+RST> sortiert werden. Das ist relativ fix mit einem schnellen Rechner. 
+RST> (Zum Glueck hab ich keinen neuen.)
+RST> 
+
 
 Die Funktionsprefixe (CL, SV, Cbuf, Sys usw.) entsprechen Java Klassen. Alle
 Funktionen sind statisch.Aus Sys_Init() wird also Sys.Init().
 
-Globale Variablen und Konstanten könnte man erstmal alle in eine Klasse z.B.
+RST> Hab gemerkt, dass idsoftware auch nicht konsequent die eigenen prefixes nimmt.
+
+
+Globale Variablen und Konstanten koennte man erstmal alle in eine Klasse z.B.
 Globals stecken. Beim Refactoring kann man dann untersuchen wer einzelne
-Variablen referenziert und etsprechend verschieben.
+Variablen referenziert und entsprechend verschieben.
 
 
-3. Formatierung
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Formatierung des neuen Java Quelltextes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Einrücktiefe
+Zeichen/Zeile
+Rene: 120 ?
+
+Einruecktiefe
+Rene:1 tab = 4 chars
+
 Klammerung
+Rene: ist egal, symmetrische variante ist gut
+Carsten: braucht wahrscheinlich die unsymmetrische Klammersetzung
+
 Filecomments
+javadoc (mit eclipse auto-einruecken) z.B.
+
+/**
+ * Das ist ne Funktion.
+ */
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Loesung der Portierungs-Probleme mittels Fortgeschrittener 
+Design und Code-Techniken
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Problem vec3_t.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Bereich: Basis (Mathe)
+
+In C kann man den Typ float[3] neu benennen, z. B. in vec3_t, 
+was in Quake konsequent durchgefuehrt wurde:
+
+
+	void VectorMA(float[] veca, float scale, float[] vecb, float[] vecc)
+	{
+		vecc[0]= veca[0] + scale * vecb[0];
+		vecc[1]= veca[1] + scale * vecb[1];
+		vecc[2]= veca[2] + scale * vecb[2];
+	}
+
+
+In Java koennte man sich eine Klasse vec3_t bauen:
+
+
+	class vec3_t
+	{
+		// vermeided daemliches new()
+		float v[] = {0,0,0};
+	}
+
+
+Als Konsequenz muss man aber jede Vector-Funktion aendern:
+
+
+aus 
+	void VectorXYZ(vec3_t vector, float a)
+	{
+		vector[0] = sin(a);
+	}
+
+wird (man beachte .v)
+
+	void VectorXYZ(vec3_t vector, float a)
+	{
+		vector.v[0] = a;
+	}
+
+
+Daher ist es bequemer, besser und schneller, auf den Namen vec3_t zu 
+verzichten und direkt float[] zu verwenden:
+
+
+	void VectorAdd(float[] a, float[] b, float[] c)
+	{
+		c[0]= a[0] + b[0];
+		c[1]= a[1] + b[1];
+		c[2]= a[2] + b[2];
+	}
+
+Man muss dann nur die Funktionsparameter anpassen, die 
+Funktionen laufen und lassen sich besser lesen.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2. Problem Funktionspointer.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Bereich: edict_t Struktur fuer Game-Elemente
+
+In der Edikt-Struktur fuer Game-Entities edict_t u.a. werden 
+haefig callbacks z. B. fuer pain(), use(), touch(), use()... 
+zugewiesen.
+
+Funktionspointer gibt es aber nicht in java.
+
+Überladen durch Vererbung kommt nicht in Frage.
+Die Callback-Funktionen sollen dynamisch einzeln zugewiesen 
+werden koennen.
+
+
+Also muss man fuer jede Funktion einen Adapter bauen, 
+wie es in AWT/Swing-Programmen gemacht wird:
+
+
+
+class edict_t
+{
+	//wir wollen ersetzen:
+	//void	(*touch)(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);
+	
+	// das geht schoen mit
+	class TouchAdapter
+	{
+		void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf)
+		{
+		}
+	}
+	TouchAdapter touch = null;
+	...
+}
+
+Als Konsequenz muessen die calls angepasst werden.
+
+Beispiel: SV_Impact (Funktion, die den Aufprall eines fliegenden Objektes 
+          realisiert.
+
+aus
+
+	if (e1.touch)
+		e1.touch(...)
+
+wird dann
+
+	if (e1.touch != null)
+		e1.touch.touch(...)
+
+
+Ansonsten gibt es keine Konsequenzen, ausser:
+
+Eine Sache mit "nested classes", also wenn die Adapter wie oben 
+sinnvollerweise als Klassen in Klassen definiert werden.
+
+Damit die Adapter Zugriff auf eine Instanz des Aussen-Typs hat, muss
+eine Zuweisung eines Adapters so aussehen (siehe new).
+
+	t.think= t.new ThinkAdapter()
+	{
+		public void think(edict_t ent)
+		{
+			G_UseTargets(ent, ent.activator);
+			G_FreeEdict(ent);
+		}
+	};
+
+
+Dieser Mechanismus sollte auch konsequent in den Monster-Definitionen 
+in "m_*.c" angewendet werden.
+
+Wie es sicht zeigt, ist dort diese Startegie aeusserst erfolgreich.
+
+ABER! HA!
+
+Eine Instanz eines Nested Adapters zu bilden ist trickreich!
+Man muss UNBEDINGT einen Konstructor mit einer Instanz der Aussen-Klasse 
+definieren, der deren SuperKonstruktor definiert:
+
+	class MCheckAttackAdapter extends monsterinfo_t.CheckAttackAdapter
+	{
+		MCheckAttackAdapter(monsterinfo_t mi)
+		{
+			mi.super();
+		}
+
+		.
+		.
+		.
+
+aber, 
+es geht trotzdem ganz bequem:
+
+		self.s.skinnum= 0;
+		self.deadflag= defs.DEAD_NO;
+		self.svflags &= ~defs.SVF_DEADMONSTER;
+
+		
+		if (self.monsterinfo.checkattack == null)
+			self.monsterinfo.checkattack= 
+				new MCheckAttackAdapter(self.monsterinfo);
+
+		// BEFORE IT WAS
+		// 	self->monsterinfo.checkattack = M_CheckAttack;
+		
+
+Fuck the Java hell. 
+Tomorrow ill turn back to programmin' in C.
+
+Nach einigen Versuchen wird eine einfachere Loesung gefunden 
+und der bereits portierte Code angepasst. 
+
+Die Idee der Adapter als nested classes wurde verworfen und folgende 
+Adapter als Klassen definiert, die global bequemer zu Instantiieren sind:
+
+	EntBlockedAdapter,
+	EntDieAdapter,
+	EntDodgeAdapter,
+	EntInteractAdapter,
+	EntPainAdapter,
+	EntThinkAdapter
+	EntTouchAdapter,
+	EntUseAdapter,
+	EntUseAdapter
+	
+sowie
+
+	ItemUseAdapter,
+	ItemDropAdapter
+	
+Diese Klassen finden ausgiebig in den Monster-Klassen M_<monster>.java
+Anwendung, fast jede Funktion musste dort in einen dieser Adapter 
+gekapselt werden.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4. Problem goto
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kein Problem.
+Man muss sich entweder mit einer boolschen Variablen helfen, oder 
+die Struktur aendern.
+
+Es empfiehlt sich, bei groesseren Umbauten ein 
+
+	//TODO: test goto replacement 
+
+reinzuschreiben, damit man die Stelle leicht findet.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5. Problem #define
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In Quake werden viele Konstanten (Waffen, Monsternummern etc.)
+verwendet und mit #define definiert. 
+
+In Java definiert man Konstanten besser mit
+	
+	public static final <typ> = <wert>
+
+Loesung: Klasse "defs"
+
+Fuer die Portierung wurde die Klasse "defs" als Konstanten-Behaelter 
+erfunden. Man kann dort #define-Anweisung reinkopieren, 
+die dann ein mini - java programm automatisch in "public final static int" 
+uebersetzt. 
+
+Da selten Strings oder floats definiert werden, wurde noch KEINE
+Typ-Erkennung im Mini-Übersetzer eingebaut.
+
+
+Konsequenzen:
+
+aus
+	if (gi.pointcontents(start) != CONTENTS_SOLID)
+
+wird 
+	if (gi.pointcontents(start) != defs.CONTENTS_SOLID)
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6. Problem memset()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In Quake werden grosse, wiederverwendete Objekte haeufig mit memset()
+initialisiert, wofuer i.d.R. eine knackige ASM-Loop in der libc
+zustaendig ist.
+
+	memset(ed, 0, sizeof(* ed));
+
+In Java bleibt nichts anderes uebrig, als z.B. eine Funktion ed.clear()
+zu schreiben (z. B. mit a=b=c=usw=alles=in=einer=Anweisung=null;..), 
+oder sich mit new() eine neue Instanz von der Halde zu holen. 
+
+Beides ist jedoch schmerzhaft, verglichen mit C.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7. Problem Operatoren ++ und -- fuer Arrays.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ein brilliantes Glanzstueck in C ist die Funktion G_Find() und deren 
+Anwendung (Q_stricmp entspricht dem equalsIgnoreCase in Java).
+Man beachte das "from++", welches auf den "naechsten Datensatz schaltet":
+
+	edict_t *G_Find (edict_t *from, int fieldofs, char *match)
+	{
+		char	*s;
+
+		// from beginning ?
+		if (!from)
+			from = g_edicts;
+		else
+			from++;
+
+		for ( ; from < &g_edicts[globals.num_edicts] ; from++)
+		{
+						
+			// string address
+			s = *(char **) ((byte *)from + fieldofs);
+			
+			...	
+				
+			// string compare
+			if (!Q_stricmp (s, match))
+				return from;
+		}
+
+		return NULL;
+	}
+
+
+Den Byte-Offset einer Member-Variablen (notwendig fuer den Parameter fieldofs)
+kann man elegant unter Verwendung des Macros FOFS() berechnen:
+
+Wird die G_Find() mit from=NULL aufgerufen, startet die Suche am Anfang des 
+globalen edict-Arrays. G_Find liefert NULL wenn nichts gefunden wurde, d. h. 
+der Pointer from nicht mehr kleiner als die Adresse des "ueberletzten" 
+Array-Elements "&g_edicts[globals.num_edicts]" ist.  
+In der Benutzung ergibt sich sehr schoener Code:
+
+
+	while ((t = G_Find (t, FOFS(targetname), self->target)))
+	{
+		if (Q_stricmp(t->classname, "func_areaportal") == 0)
+		{
+			gi.SetAreaPortalState (t->style, open);
+		}
+	}
+	
+	
+Diesen Dualismus aus Pointer und Index fuer die schnelle Suche auf Arrays 
+kann man so in Java nachbilden:
+	
+	/** Pointer Index Corellation. */
+	class EdictIterator
+	{
+		EdictIterator(int i)
+		{
+			this.i= i;
+		}
+		edict_t o;		// Object
+		int i;			// Index
+	}
+
+	/** 
+	 * Finds an edict.
+	 * Call with null as from parameter to search from array beginning.
+	 */
+
+	EdictIterator G_Find(EdictIterator from, EdictFindFilter eff, String s)
+	{
+		if (from == null)
+			from= new EdictIterator(0);
+		else
+			from.i++;
+
+		for (; from.i < globals.num_edicts; from.i++)
+		{
+			from.o= g_edicts[from.i];
+			
+			if (!from.o.inuse)
+				continue;
+
+			if (eff.matches(from.o, s))
+				return from;
+		}
+		return null;
+	}
+	
+In der Verwendung sieht das dann so aus, 
+z.B. G_PickTarget:
+
+	edict_t G_PickTarget(String targetname)
+	{
+		...
+		EdictIterator es= null;
+		EdictFindFilter ef = new EdictFindFilter()
+		{
+			public boolean matches(edict_t e, String s)
+			{
+				return e.targetname.equalsIgnoreCase(s);
+			}
+		};
+
+		while ((es= G_Find(es, ef, targetname)) != null)
+		{				
+			choice[num_choices++]= es.o;
+			if (num_choices == MAXCHOICES)
+				break;
+		}
+		...
+	}
+	
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8. Problem Auto Variablen.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In C kann man tempraere Objekte und Variablen definieren, 
+die sich zur Laufzeit im Stack befinden und wieder automatisch 
+freigegeben werden, wenn man die Funktion verlaesst (auto-variablen):
+
+	void abc()
+	{
+		gclient_t client;
+		gclient_t *pointer;
+		
+		client.a= 12;
+		pointer=  &client;
+		
+		pointer->a= 12;
+	}
+
+In Java gibt es diese Auto-Variablen nicht, d.h. man muss auch 
+temporare Variablen explizit mit new() anfordern:
+
+	void abc()
+	{
+		gclient_t client = new gclient_t();
+
+		client.a= 12;
+	}
+
+Das macht sich besonders negativ in manchen Funktionen bemerkbar, wo 
+temporaere Arrays angelegt werden:
+
+	void G_TouchSolids(edict_t ent)
+	{
+		edict_t touch[]= new edict_t[defs.MAX_EDICTS];
+		...
+		int num= gi.BoxEdicts(..., touch, ...);
+	}
+
+Um das new zu vermeiden kann man touch[] statisch machen:
+
+	// das existiert jetzt immer
+	private static edict_t touch_for_touchsolids[]= new edict_t[defs.MAX_EDICTS];
+
+	void G_TouchSolids(edict_t ent)
+	{
+		int num= gi.BoxEdicts(..., touch_for_touchsolids, ...);
+	}
+
+
+Diese Funktion ist dann logischerweise nicht Thread-sicher,
+was spaetestens im Client-Server Betrieb eine Rolle spielt.
+
+Thread-Sicherheit ohne den new() Operator erreicht man, indem man
+mehrere statische Variablen-Instanzen fuer die Funktion bereithaelt, 
+wie es schon im Orginal der Funktion tv() realisiert wurde:
+
+	/**	
+	 * This is just a convenience function
+	 * for making temporary vectors for function calls.
+	*/
+	static float tv_vecs[][]= new float[8][3];
+	static int tv_index;
+
+	float[] tv(float x, float y, float z)
+	{
+
+		float[] v;
+
+		// use an array so that multiple tempvectors won't collide
+		// for a while
+		v= tv_vecs[tv_index];
+		tv_index= (tv_index++) & 7;
+
+		v[0]= x;
+		v[1]= y;
+		v[2]= z;
+
+		return v;
+	}
+
+Rationale Überlegungen:
+
+Selbst der Speicherplatz fuer Auto-Variablen ohne teure Freispeicher-
+Operationen durch Erhoehung des Stack-Zeigers gewonnen wird, 
+unterliegt der Vorgang dem Speichermanagement des Betriebssystems.
+Es ist die Frage, wieviel teurer ein java-new() ist, das in einer
+Speicherverwaltung in einer Speicherverwaltung realisiert ist. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9. Problem Debug-Info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sollten Debug-Informationen integriert werden, dann ist log4j 
+zu bevorzugen.
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10. Problem Programmstruktur
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quake ist ein Monolith, ein grosser Klotz, wo jede Funktion jede 
+andere kennt. Quake ist damit sehr einfach.
+
+Quake hat dennoch erfreulicherweise sein eigenes Objekt-Modell, 
+das sich in zahlreichen Klassen wie "player_state_t", "cplane_t", 
+"game_locals_t" etc. wieder findet.
+
+Die globalen Variablen wurden gut in Objekte "game_locals_t",
+"level_locals_t" etc. untergebracht.
+
+Es waere eine reizvolle Aufgabe, dem Quake ein "schnickes Design" 
+zu verpassen, um z.B. andere Laien zu ermuntern, 
+neue "plugins" fuer Monster, Waffen, Team-Bots zu integrieren.
+
+Eine bewaehrte Methode fuer ein Redesign ist, die Funktionen durch 
+iteratives Refactoring auf die bestehnenden Quake-Datenstrukturen 
+zu verteilen. Wo es sich anbietet (LevelReader, Keyboard, etc.) 
+muessen neue Klassen "erfunden" werden, ein Vorschlag (siehe oben) 
+ist, die Klasse nach den Funktionsprefixen zu benennen.
+	
+		
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+19. Problem AI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kein Problem.		
+		
+Erwaehnenswert ist die Funktion AI_SetSightClient().
+
+		
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+19. Problem Testen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Man sollte in kleinen Schritten vorgehen und Milestone fuer
+Milestone festlegen.
+
+Milestones:
+--------------
+1. PCX laden (wuerd ich gern machen)
+2. BSP einlesen 
+3. Savegame einlesen 
+
+Wenn irgendwann die Initialisierung der Engine und das Laden eines Levels 
+ohne Exception klappt, dann sollte man versuchen, ein SaveGame zu laden 
+und ein Frame zu zeichnen.
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+20. Problem Screen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Gibts in JavaGL ein gl_HelloWorld.java mit Frame aufmachen und z.B.
+Wuerfel zeichnen ?
+
+In Java 1.4 koennte man auch in FullScreen Mode schalten.
+Im Netz ist ein FullScreenBeispiel zum MouseCursor ausblenden.
+
+Ein normales Frame 300x200 sollte reichen.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+21. Problem OpenGL, javaGL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sollte kein Thema sein.
+
+Fuer jede qgl_XXX-Funktion sollte es doch ein Java Äquivalent geben.
+VectorMA() und der andere Schrott funktioniert schon.
+
+
+aus ref_gl/glr_main.c:
+----------------------
+	qglBegin (GL_QUADS);
+
+	qglTexCoord2f (0, 1);
+	VectorMA (e->origin, -frame->origin_y, up, point);
+	VectorMA (point, -frame->origin_x, right, point);
+	qglVertex3fv (point);
+
+	qglTexCoord2f (0, 0);
+	VectorMA (e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA (point, -frame->origin_x, right, point);
+	qglVertex3fv (point);
+
+	qglTexCoord2f (1, 0);
+	VectorMA (e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA (point, frame->width - frame->origin_x, right, point);
+	qglVertex3fv (point);
+
+	qglTexCoord2f (1, 1);
+	VectorMA (e->origin, -frame->origin_y, up, point);
+	VectorMA (point, frame->width - frame->origin_x, right, point);
+	qglVertex3fv (point);
+	
+	qglEnd ();
+
+
+nervig werden allenfalls LoadTGA, LodPCX usw. 
+
+
+
+
+
+
+
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+31. Problem Keyboard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Wird mit KeyboardAdapter.keyPressed() und keyReleased() gemacht.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+32. Problem Netzwerk
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Das Interface zum Netzwerk-Code ist relativ sauber, 
+kann man evtl. mal versuchen.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+41. Problem Sound
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kein Problem.
+Low-Level-Kram Wird weggelassen. es gibt nur leere Funktionen:
+
+	PlaySound
+	{
+	}
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+S T A T U S
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Mathematik, Physik, die Edict-Verwaltung und viel Monster AI wurde 
+uebernommen.
+
+Paket client:
+-------------
+
+
+Paket game:
+------------
+fast fertig.
+
+Es fehlen noch die M_Flash ... M_Tank
+
+Folgende Funktionen sind definitiv noch nicht funktionsfaehig:
+
+Cmd_Say (...)
+ITEM_INDEX(gitem_t)
+
+In edict_t wurden char * durch String ersetzt, muss geprueft werden.
+edict_t hat jetzt keine feste bytegroesse von 246 bytes mehr.
+
+
+Paket qcommon:
+--------------
+holger: hat schon was
+
+
+Paket ref_gl:
+--------------
+Carsten: hat schon md2 viewer in der mache.
+
+Paket server:
+--------------
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-log4j
+-jogl
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Links
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Quake:
+------
+
+http://www.gamers.org/docs/FAQ/djmfaq/dj-quakefaq/quakefaq.html
+http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_1.htm
+http://www.gamers.org/pub/idgames2/docs/faqs/
+
+npr-quake:
+http://www.cs.wisc.edu/graphics/Gallery/NPRQuake/sketchyNPR.html
+
+von Carsten:
+http://web.hypersurf.com/~sully/OpenGL/DemoBox.html
+http://www.gamestutorial.com/
+
+google://quake koordinaten-system
+google://quake 3 bsp collision detection
+
+MD2 programmieren:
+-------------------
+http://www.flipcode.com/
+
+http://www.zfx.info/Tutorials.php?ID=69
+
+http://www-user.tu-chemnitz.de/~mfie/KeyJ/essay/3deng.htm
+
+http://www.tommti-systems.de/go.html?http://www.tommti-systems.com/main-Dateien/reviews/highordersurfaces/highordersurfaces.html
+
+
+http://kpdus.tripod.com/jad.html/
+http://www.javaboutique.internet.com/warp/
+http://www.jars.com/ - Java Review Service
+http://www.jfind.com/resource.php3
+http://www.scriptsearch.com/Java/
+
+Java Image Operators:
+---------------------
+http://www.dai.ed.ac.uk/HIPR2/fulldemo.htm
+
+Applets:
+http://www.cfxweb.net/ 
+-- 5 CFXweb Java Applet Coding Contest's. the best.
+http://www.eigelb.at/ 
+-- interesting applets
+http://www.java.co.uk/ 
+-- golden Duke award was here...
+
+http://applet3d.free.fr
+http://www.dseffects.com
+http://www.fouda.de
+http://Durius.Com
+http://home.kabelfoon.nl/~rhordijk/progs.html
+http://www.updated.com/search/ -- java search system
+
+effect algoritms:
+http://freespace.virgin.net/hugo.elias
+
+Programs promoting:
+http://www.twocows.com
+http://www.zdnet.com
+http://www.cnet.com
+
+3D stuff
+---------
+http://www.houseof3d.com/pete
+
+Java fun from Japan
+-------------------
+http://www.bekkoame.ne.jp/~ishmnn/java/java.html#logo
+
+3D Renderers
+------------
+http://w1.312.telia.com/~u31218833/html/docs/012_Download_3grafik.htm
+
+OS:
+----
+JX Java: 
+--------
+http://www4.informatik.uni-erlangen.de/Projects/JX/
+
+E-leos:
+-------
+http://www.e-leos.net/links.html
+
+
+
+
+
+
