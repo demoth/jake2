@@ -19,7 +19,7 @@
  */
 
 // Created on 12.11.2003 by RST.
-// $Id: GameWeapon.java,v 1.3 2004-09-22 19:22:02 salomo Exp $
+// $Id: GameWeapon.java,v 1.4 2005-02-13 19:22:09 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -42,7 +42,7 @@ public class GameWeapon {
         edict_t noise;
 
         if (type == Defines.PNOISE_WEAPON) {
-            if (who.client.silencer_shots == 0) {
+            if (who.client.silencer_shots > 0) {
                 who.client.silencer_shots--;
                 return;
             }
