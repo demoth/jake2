@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.7 2004-01-05 14:00:35 cwei Exp $
+// $Id: model_t.java,v 1.8 2004-01-06 02:06:44 cwei Exp $
 
 package jake2.render;
 
@@ -29,7 +29,7 @@ import jake2.game.*;
 
 public class model_t {
 	
-	public String name;
+	public String name = "";
 
 	public int registration_sequence;
 
@@ -101,4 +101,11 @@ public class model_t {
 
 	// or whatever
 	public Object extradata;
+	
+	public void clear() {
+		name = "";
+		extradata = null;
+		registration_sequence = 0;
+		// TODO and so on
+	}
 }

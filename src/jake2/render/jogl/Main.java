@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.9 2004-01-05 23:59:26 cwei Exp $
+ * $Id: Main.java,v 1.10 2004-01-06 02:06:44 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -98,6 +98,7 @@ public abstract class Main extends Base {
 	abstract void Mod_Init(); // Model.java
 	abstract void R_InitParticleTexture(); // MIsc.java
 	abstract void R_DrawAliasModel(entity_t e); // Mesh.java
+	abstract void R_DrawBrushModel(entity_t e); // Surf.java
 	abstract void Draw_InitLocal();
 	abstract void R_LightPoint(float[] p, float[] color);
 	
@@ -441,7 +442,7 @@ public abstract class Main extends Base {
 				 R_DrawAliasModel(currententity);
 				 break;
 			 case mod_brush:
-//				 R_DrawBrushModel (currententity);
+				 //	TODO R_DrawBrushModel (currententity);
 				 break;
 			 case mod_sprite:
 				 R_DrawSpriteModel(currententity);
@@ -452,46 +453,46 @@ public abstract class Main extends Base {
 			 }
 		 }
 	 }
-//
-//	 // draw transparent entities
-//	 // we could sort these if it ever becomes a problem...
-//	 gl.glDepthMask(false);		// no z writes
-//	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
-//	 {
-//		 currententity = &r_newrefdef.entities[i];
-//		 if (!(currententity->flags & RF_TRANSLUCENT))
-//			 continue;	// solid
-//
-//		 if ( currententity->flags & RF_BEAM )
-//		 {
-//			 R_DrawBeam( currententity );
-//		 }
-//		 else
-//		 {
-//			 currentmodel = currententity->model;
-//
-//			 if (!currentmodel)
-//			 {
-//				 R_DrawNullModel ();
-//				 continue;
-//			 }
-//			 switch (currentmodel->type)
-//			 {
-//			 case mod_alias:
-//				 R_DrawAliasModel (currententity);
-//				 break;
-//			 case mod_brush:
-//				 R_DrawBrushModel (currententity);
-//				 break;
-//			 case mod_sprite:
-//				 R_DrawSpriteModel (currententity);
-//				 break;
-//			 default:
-//				 ri.Sys_Error (ERR_DROP, "Bad modeltype");
-//				 break;
-//			 }
-//		 }
-//	 }
+
+	 // draw transparent entities
+	 // we could sort these if it ever becomes a problem...
+	 gl.glDepthMask(false);		// no z writes
+	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
+	 {
+		 currententity = r_newrefdef.entities[i];
+		 if ((currententity.flags & Defines.RF_TRANSLUCENT) == 0)
+			 continue;	// solid
+
+		 if ( (currententity.flags & Defines.RF_BEAM) != 0 )
+		 {
+			 R_DrawBeam( currententity );
+		 }
+		 else
+		 {
+			 currentmodel = currententity.model;
+
+			 if (currentmodel == null)
+			 {
+				 R_DrawNullModel();
+				 continue;
+			 }
+			 switch (currentmodel.type)
+			 {
+			 case mod_alias:
+				 R_DrawAliasModel (currententity);
+				 break;
+			 case mod_brush:
+				 R_DrawBrushModel(currententity);
+				 break;
+			 case mod_sprite:
+				 R_DrawSpriteModel (currententity);
+				 break;
+			 default:
+				 ri.Sys_Error (Defines.ERR_DROP, "Bad modeltype");
+				 break;
+			 }
+		 }
+	 }
 	 gl.glDepthMask(true);		// back to writing
 
 	}

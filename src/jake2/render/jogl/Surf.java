@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.1 2004-01-03 03:47:14 cwei Exp $
+ * $Id: Surf.java,v 1.2 2004-01-06 02:06:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.render.jogl;
+
+import jake2.client.entity_t;
 
 /**
  * Surf
@@ -963,13 +965,13 @@ public abstract class Surf extends Draw {
 //		}
 //	}
 //
-//	/*
-//	=================
-//	R_DrawBrushModel
-//	=================
-//	*/
-//	void R_DrawBrushModel (entity_t *e)
-//	{
+	/*
+	=================
+	R_DrawBrushModel
+	=================
+	*/
+	void R_DrawBrushModel(entity_t e)
+	{
 //		vec3_t		mins, maxs;
 //		int			i;
 //		qboolean	rotated;
@@ -1032,7 +1034,7 @@ public abstract class Surf extends Draw {
 //		GL_EnableMultitexture( false );
 //
 //		qglPopMatrix ();
-//	}
+	}
 //
 //	/*
 //	=============================================================

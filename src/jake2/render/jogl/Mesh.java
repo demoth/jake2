@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2004-01-05 23:59:26 cwei Exp $
+ * $Id: Mesh.java,v 1.3 2004-01-06 02:06:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,16 +36,16 @@ public abstract class Mesh extends Warp {
 ////	   gl_mesh.c: triangle model functions
 //
 //	#include "gl_local.h"
-//
-//	/*
-//	=============================================================
-//
-//	  ALIAS MODELS
-//
-//	=============================================================
-//	*/
-//
-//	#define NUMVERTEXNORMALS	162
+
+	/*
+	=============================================================
+
+	  ALIAS MODELS
+
+	=============================================================
+	*/
+
+	static final int NUMVERTEXNORMALS =	162;
 //
 //	float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
 //	#include "anorms.h"

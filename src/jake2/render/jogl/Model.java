@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.4 2004-01-05 14:01:27 cwei Exp $
+ * $Id: Model.java,v 1.5 2004-01-06 02:06:44 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import java.util.Arrays;
 
 import jake2.Defines;
 import jake2.game.cplane_t;
+import jake2.game.cvar_t;
 import jake2.qcommon.qfiles;
 import jake2.render.mleaf_t;
 import jake2.render.mnode_t;
@@ -190,20 +191,19 @@ public abstract class Model extends Image {
 		// init mod_known
 		for (int i=0; i < MAX_MOD_KNOWN; i++) {
 			mod_known[i] = new model_t();
-			mod_known[i].name = "";
 		}
 		Arrays.fill(mod_novis, (byte)0xff);
 	}
-//
-//
-//
-//	/*
-//	==================
-//	Mod_ForName
-//
-//	Loads in a model for the given name
-//	==================
-//	*/
+
+
+
+	/*
+	==================
+	Mod_ForName
+
+	Loads in a model for the given name
+	==================
+	*/
 	model_t Mod_ForName(String name, boolean crash)
 	{
 		model_t mod = null;
@@ -300,14 +300,14 @@ public abstract class Model extends Image {
 	
 		case qfiles.IDBSPHEADER:
 //			loadmodel->extradata = Hunk_Begin (0x1000000);
-//			Mod_LoadBrushModel (mod, buf);
+			Mod_LoadBrushModel(mod, bb);
 			break;
 
 		default:
 			ri.Sys_Error(Defines.ERR_DROP,"Mod_NumForName: unknown fileid for " + mod.name);
 			break;
 		}
-//
+
 //		loadmodel->extradatasize = Hunk_End ();
 
 		return mod;
@@ -890,7 +890,7 @@ public abstract class Model extends Image {
 	Mod_LoadBrushModel
 	=================
 	*/
-	void Mod_LoadBrushModel (model_t mod, ByteBuffer buffer)
+	void Mod_LoadBrushModel(model_t mod, ByteBuffer buffer)
 	{
 //		int			i;
 //		dheader_t	*header;
@@ -972,76 +972,63 @@ public abstract class Model extends Image {
 	*/
 	void Mod_LoadAliasModel (model_t mod, ByteBuffer buffer)
 	{
-//		int					i, j;
-//		dmdl_t				*pinmodel, *pheader;
-//		dstvert_t			*pinst, *poutst;
-//		dtriangle_t			*pintri, *pouttri;
-//		daliasframe_t		*pinframe, *poutframe;
-//		int					*pincmd, *poutcmd;
-//		int					version;
-//
-//		pinmodel = (dmdl_t *)buffer;
-//
-//		version = LittleLong (pinmodel->version);
-//		if (version != ALIAS_VERSION)
-//			ri.Sys_Error (ERR_DROP, "%s has wrong version number (%i should be %i)",
-//					 mod->name, version, ALIAS_VERSION);
-//
+		int i, j;
+		qfiles.dmdl_t pheader;
+		qfiles.dstvert_t[] poutst;
+		qfiles.dtriangle_t[] pouttri;
+		qfiles.daliasframe_t[] poutframe;
+		int poutcmd;
+
+		pheader = new qfiles.dmdl_t(buffer.slice());
+
+		if (pheader.version != qfiles.ALIAS_VERSION)
+			ri.Sys_Error(Defines.ERR_DROP, "%s has wrong version number (%i should be %i)",
+					 new Vargs(3).add(mod.name).add(pheader.version).add(qfiles.ALIAS_VERSION));
+
 //		pheader = Hunk_Alloc (LittleLong(pinmodel->ofs_end));
 //	
-//		// byte swap the header fields and sanity check
-//		for (i=0 ; i<sizeof(dmdl_t)/4 ; i++)
-//			((int *)pheader)[i] = LittleLong (((int *)buffer)[i]);
 //
-//		if (pheader->skinheight > MAX_LBM_HEIGHT)
-//			ri.Sys_Error (ERR_DROP, "model %s has a skin taller than %d", mod->name,
-//					   MAX_LBM_HEIGHT);
-//
-//		if (pheader->num_xyz <= 0)
-//			ri.Sys_Error (ERR_DROP, "model %s has no vertices", mod->name);
-//
-//		if (pheader->num_xyz > MAX_VERTS)
-//			ri.Sys_Error (ERR_DROP, "model %s has too many vertices", mod->name);
-//
-//		if (pheader->num_st <= 0)
-//			ri.Sys_Error (ERR_DROP, "model %s has no st vertices", mod->name);
-//
-//		if (pheader->num_tris <= 0)
-//			ri.Sys_Error (ERR_DROP, "model %s has no triangles", mod->name);
-//
-//		if (pheader->num_frames <= 0)
-//			ri.Sys_Error (ERR_DROP, "model %s has no frames", mod->name);
-//
-////
-////	   load base s and t vertices (not used in gl version)
-////
-//		pinst = (dstvert_t *) ((byte *)pinmodel + pheader->ofs_st);
-//		poutst = (dstvert_t *) ((byte *)pheader + pheader->ofs_st);
-//
-//		for (i=0 ; i<pheader->num_st ; i++)
-//		{
-//			poutst[i].s = LittleShort (pinst[i].s);
-//			poutst[i].t = LittleShort (pinst[i].t);
-//		}
-//
-////
-////	   load triangle lists
-////
-//		pintri = (dtriangle_t *) ((byte *)pinmodel + pheader->ofs_tris);
-//		pouttri = (dtriangle_t *) ((byte *)pheader + pheader->ofs_tris);
-//
-//		for (i=0 ; i<pheader->num_tris ; i++)
-//		{
-//			for (j=0 ; j<3 ; j++)
-//			{
-//				pouttri[i].index_xyz[j] = LittleShort (pintri[i].index_xyz[j]);
-//				pouttri[i].index_st[j] = LittleShort (pintri[i].index_st[j]);
-//			}
-//		}
-//
-////
-////	   load the frames
-////
+		if (pheader.skinheight > MAX_LBM_HEIGHT)
+			ri.Sys_Error(Defines.ERR_DROP, "model "+ mod.name +" has a skin taller than " + MAX_LBM_HEIGHT);
+
+		if (pheader.num_xyz <= 0)
+			ri.Sys_Error(Defines.ERR_DROP, "model " + mod.name + " has no vertices");
+
+		if (pheader.num_xyz > qfiles.MAX_VERTS)
+			ri.Sys_Error(Defines.ERR_DROP, "model " + mod.name +" has too many vertices");
+
+		if (pheader.num_st <= 0)
+			ri.Sys_Error(Defines.ERR_DROP, "model " + mod.name + " has no st vertices");
+
+		if (pheader.num_tris <= 0)
+			ri.Sys_Error(Defines.ERR_DROP, "model " + mod.name + " has no triangles");
+
+		if (pheader.num_frames <= 0)
+			ri.Sys_Error(Defines.ERR_DROP, "model " + mod.name + " has no frames");
+
+		//
+		// load base s and t vertices (not used in gl version)
+		//
+		poutst = new qfiles.dstvert_t[pheader.num_st]; 
+		buffer.position(pheader.ofs_st);
+		for (i=0 ; i<pheader.num_st ; i++)
+		{
+			poutst[i] = new qfiles.dstvert_t(buffer);
+		} 
+
+		//
+		//	   load triangle lists
+		//
+		pouttri = new qfiles.dtriangle_t[pheader.num_tris];
+		buffer.position(pheader.ofs_tris);
+		for (i=0 ; i<pheader.num_tris ; i++)
+		{
+			pouttri[i] = new qfiles.dtriangle_t(buffer);
+		}
+
+		//
+		//	   load the frames
+		//
 //		for (i=0 ; i<pheader->num_frames ; i++)
 //		{
 //			pinframe = (daliasframe_t *) ((byte *)pinmodel 
@@ -1061,11 +1048,11 @@ public abstract class Model extends Image {
 //
 //		}
 //
-//		mod->type = mod_alias;
-//
-//		//
-//		// load the glcmds
-//		//
+		mod.type = mod_alias;
+
+		//
+		// load the glcmds
+		//
 //		pincmd = (int *) ((byte *)pinmodel + pheader->ofs_glcmds);
 //		poutcmd = (int *) ((byte *)pheader + pheader->ofs_glcmds);
 //		for (i=0 ; i<pheader->num_glcmds ; i++)
@@ -1081,12 +1068,12 @@ public abstract class Model extends Image {
 //				, it_skin);
 //		}
 //
-//		mod->mins[0] = -32;
-//		mod->mins[1] = -32;
-//		mod->mins[2] = -32;
-//		mod->maxs[0] = 32;
-//		mod->maxs[1] = 32;
-//		mod->maxs[2] = 32;
+		mod.mins[0] = -32;
+		mod.mins[1] = -32;
+		mod.mins[2] = -32;
+		mod.maxs[0] = 32;
+		mod.maxs[1] = 32;
+		mod.maxs[2] = 32;
 	}
 
 	/*
@@ -1104,16 +1091,6 @@ public abstract class Model extends Image {
 	*/
 	void Mod_LoadSpriteModel(model_t mod, ByteBuffer buffer)
 	{
-//		dsprite_t	*sprin, *sprout;
-//		int			i;
-//
-//		sprin = (dsprite_t *)buffer;
-//		sprout = Hunk_Alloc (modfilelen);
-//
-//		sprout->ident = LittleLong (sprin->ident);
-//		sprout->version = LittleLong (sprin->version);
-//		sprout->numframes = LittleLong (sprin->numframes);
-		
 		qfiles.dsprite_t sprout = new qfiles.dsprite_t(buffer);
 		
 		if (sprout.version != qfiles.SPRITE_VERSION)
@@ -1124,14 +1101,8 @@ public abstract class Model extends Image {
 			ri.Sys_Error(Defines.ERR_DROP, "%s has too many frames (%i > %i)",
 				new Vargs(3).add(mod.name).add(sprout.numframes).add(qfiles.MAX_MD2SKINS));
 
-//		// byte swap everything
 		for (int i=0 ; i<sprout.numframes ; i++)
 		{
-//			sprout->frames[i].width = LittleLong (sprin->frames[i].width);
-//			sprout->frames[i].height = LittleLong (sprin->frames[i].height);
-//			sprout->frames[i].origin_x = LittleLong (sprin->frames[i].origin_x);
-//			sprout->frames[i].origin_y = LittleLong (sprin->frames[i].origin_y);
-//			memcpy (sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
 			mod.skins[i] = GL_FindImage(sprout.frames[i].name,	it_sprite);
 		}
 
@@ -1141,41 +1112,40 @@ public abstract class Model extends Image {
 
 //	  =============================================================================
 
-//	/*
-//	@@@@@@@@@@@@@@@@@@@@@
-//	R_BeginRegistration
-//
-//	Specifies the model that will be used as the world
-//	@@@@@@@@@@@@@@@@@@@@@
-//	*/
+	/*
+	@@@@@@@@@@@@@@@@@@@@@
+	R_BeginRegistration
+
+	Specifies the model that will be used as the world
+	@@@@@@@@@@@@@@@@@@@@@
+	*/
 	protected void R_BeginRegistration(String model)
 	{
-//		char	fullname[MAX_QPATH];
-//		cvar_t	*flushmap;
-//
-//		registration_sequence++;
-//		r_oldviewcluster = -1;		// force markleafs
-//
-//		Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", model);
-//
-//		// explicitly free the old map if different
-//		// this guarantees that mod_known[0] is the world map
-//		flushmap = ri.Cvar_Get ("flushmap", "0", 0);
-//		if ( strcmp(mod_known[0].name, fullname) || flushmap->value)
-//			Mod_Free (&mod_known[0]);
-//		r_worldmodel = Mod_ForName(fullname, true);
-//
-//		r_viewcluster = -1;
+		cvar_t flushmap;
+
+		registration_sequence++;
+		r_oldviewcluster = -1;		// force markleafs
+
+		String fullname = "maps/" + model + ".bsp";
+
+		// explicitly free the old map if different
+		// this guarantees that mod_known[0] is the world map
+		flushmap = ri.Cvar_Get("flushmap", "0", 0);
+		if ( !mod_known[0].name.equals(fullname) || flushmap.value != 0.0f)
+			Mod_Free(mod_known[0]);
+		r_worldmodel = Mod_ForName(fullname, true);
+
+		r_viewcluster = -1;
 	}
-//
-//
-//	/*
-//	@@@@@@@@@@@@@@@@@@@@@
-//	R_RegisterModel
-//
-//	@@@@@@@@@@@@@@@@@@@@@
-//	*/
-	protected model_t R_RegisterModel (String name)
+
+
+	/*
+	@@@@@@@@@@@@@@@@@@@@@
+	R_RegisterModel
+
+	@@@@@@@@@@@@@@@@@@@@@
+	*/
+	protected model_t R_RegisterModel(String name)
 	{
 		model_t	mod = null;
 		int		i;
@@ -1212,46 +1182,50 @@ public abstract class Model extends Image {
 		}
 		return mod;
 	}
-//
-//
-//	/*
-//	@@@@@@@@@@@@@@@@@@@@@
-//	R_EndRegistration
-//
-//	@@@@@@@@@@@@@@@@@@@@@
-//	*/
+
+
+	/*
+	@@@@@@@@@@@@@@@@@@@@@
+	R_EndRegistration
+
+	@@@@@@@@@@@@@@@@@@@@@
+	*/
 	protected void R_EndRegistration()
 	{
-//		int		i;
-//		model_t	*mod;
-//
-//		for (i=0, mod=mod_known ; i<mod_numknown ; i++, mod++)
-//		{
-//			if (!mod->name[0])
-//				continue;
-//			if (mod->registration_sequence != registration_sequence)
-//			{	// don't need this model
-//				Mod_Free (mod);
-//			}
-//		}
-//
-//		GL_FreeUnusedImages ();
+		model_t	mod;
+
+		for (int i=0; i<mod_numknown ; i++)
+		{
+			mod = mod_known[i];
+			if (mod.name == "")
+				continue;
+			if (mod.registration_sequence != registration_sequence)
+			{	// don't need this model
+				// Mod_Free(mod);
+				// TODO clear model_t or new model_t()
+				mod_known[i] = new model_t();
+			}
+		}
+
+		GL_FreeUnusedImages();
 	}
-//
-//
-////	  =============================================================================
-//
-//
-//	/*
-//	================
-//	Mod_Free
-//	================
-//	*/
-//	void Mod_Free (model_t *mod)
-//	{
-//		Hunk_Free (mod->extradata);
-//		memset (mod, 0, sizeof(*mod));
-//	}
+
+
+//	  =============================================================================
+
+
+	/*
+	================
+	Mod_Free
+	================
+	*/
+	void Mod_Free (model_t mod)
+	{
+		// Hunk_Free (mod->extradata);
+		// memset (mod, 0, sizeof(*mod));
+		mod.clear();
+		
+	}
 
 	/*
 	================
