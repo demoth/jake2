@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.8 2004-01-27 16:42:35 cwei Exp $
+ * $Id: TestMap.java,v 1.9 2004-01-28 10:19:51 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,7 +195,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.8 2004-01-27 16:42:35 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.9 2004-01-28 10:19:51 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -365,8 +365,8 @@ public class TestMap
 			refdef.y = 0;
 			refdef.width = viddef.width;
 			refdef.height = viddef.height;
-			refdef.fov_x = fov_x;
-			refdef.fov_y = CalcFov(fov_x, refdef.width, refdef.height);
+			refdef.fov_x = (Globals.fov == null) ? this.fov_x : Globals.fov.value;
+			refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
 			refdef.vieworg = new float[] {140, -140, 50};
 			refdef.viewangles = new float[] {0, 0, 0};
 
