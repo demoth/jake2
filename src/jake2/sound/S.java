@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.8 2005-01-12 01:21:34 cawe Exp $
+ * $Id: S.java,v 1.9 2005-02-06 19:19:03 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,26 +42,32 @@ public class S {
 	
 	static Vector drivers = new Vector(3);
 	 
-	static {
-		try {
+	static {	    
 			// dummy driver (no sound)
-			Class.forName("jake2.sound.DummyDriver");
+			try {	    
+			    Class.forName("jake2.sound.DummyDriver");
+			} catch (Throwable e) {
+			    Com.DPrintf("could not init dummy sound driver class.");
+				// ignore the lwjgl driver if runtime not in classpath
+			}
+			
 			try {
 				Class.forName("org.lwjgl.openal.AL");
 				Class.forName("jake2.sound.lwjgl.LWJGLSoundImpl");
-			} catch (ClassNotFoundException e) {
+			} catch (Throwable e) {
 				// ignore the lwjgl driver if runtime not in classpath
+			    Com.DPrintf("could not init lwjgl sound driver class.");
 			}
+			
 			// prefered driver
 			try {
 				Class.forName("net.java.games.joal.AL");
 				Class.forName("jake2.sound.joal.JOALSoundImpl");
-			} catch (ClassNotFoundException e) {
+			} catch (Throwable e) {
 				// ignore the joal driver if runtime not in classpath
+			    Com.DPrintf("could not init joal sound driver class.");
 			}
-		}
-		catch (Throwable e) {
-		}
+		
 	};
 	
 	public static void register(Sound driver) {
