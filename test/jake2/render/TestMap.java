@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.2 2004-01-22 15:44:40 cwei Exp $
+ * $Id: TestMap.java,v 1.3 2004-01-23 00:59:03 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -185,7 +185,7 @@ public class TestMap
 			}
 		};
 
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.2 2004-01-22 15:44:40 cwei Exp $" });
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.3 2004-01-23 00:59:03 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -230,6 +230,7 @@ public class TestMap
 				break;
 			case 1 :
 				// register the map
+				re.SetSky("unit1_", 0, new float[]{ 0, 0, 0 });
 				re.BeginRegistration("base1");
 				re.EndRegistration();
 				currentState = 2;
@@ -289,15 +290,17 @@ public class TestMap
 			light.white = 3.0f;
 
 			refdef.lightstyles = new lightstyle_t[] { light };
+
+			refdef.viewangles[1] = 130;
 		}
 
 		refdef.time = time() * 0.001f;
 		
-		refdef.viewangles[0] = -5;
-		refdef.viewangles[1] = 110 + 40 * (float)Math.sin(time() * 0.0005f);
+		refdef.viewangles[0] += KBD.my * 0.1f;
+		refdef.viewangles[1] -= KBD.mx * 0.1f; // 90 + 180 * (float)Math.sin(time() * 0.0001f);
 
-		refdef.vieworg[0] = 160 + 40 * (float)Math.sin(time() * 0.001f);
-		refdef.vieworg[1] = -200 + 20 * (float)Math.sin(time() * 0.002f);
+		refdef.vieworg[0] = 140; // + 30 * (float)Math.sin(time() * 0.0005f);
+		refdef.vieworg[1] = -140 - 190 * (float)Math.sin(time() * 0.0005f);
 		refdef.vieworg[2] = 50;
 		
 		// wichtig da aufloesung 1/8
