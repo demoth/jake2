@@ -2,7 +2,7 @@
  * cl_sustain_t.java
  * Copyright (C) 2004
  * 
- * $Id: cl_sustain_t.java,v 1.1 2004-02-03 09:33:52 hoz Exp $
+ * $Id: cl_sustain_t.java,v 1.2 2004-02-04 22:00:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,4 +40,9 @@ public class cl_sustain_t {
 	int count;
 	int magnitude;
 	//void            (*think)(struct cl_sustain *self);
+	void clear() { 
+		org[0] = org[1] = org[2] = 
+		dir[0] = dir[1] = dir[2] = 
+		id = type = endtime = nextthink = thinkinterval = color = count = magnitude = 0;
+	}
 }

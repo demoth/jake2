@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.9 2004-02-04 14:33:57 hoz Exp $
+ * $Id: CL_fx.java,v 1.10 2004-02-04 22:00:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.Globals;
 import jake2.game.M_Flash;
 import jake2.game.entity_state_t;
 import jake2.qcommon.Com;
@@ -34,7 +33,7 @@ import jake2.qcommon.MSG;
 /**
  * CL_fx
  */
-public class CL_fx extends Globals {
+public class CL_fx extends CL_tent {
 	
 	static final float INSTANT_PARTICLE = -10000.0f;
 	
@@ -516,381 +515,444 @@ public class CL_fx extends Globals {
 	CL_ParseMuzzleFlash2
 	==============
 	*/
-	static void ParseMuzzleFlash2 () 
-	{
-//		int			ent;
-//		float [] 		origin = new float[3];
-//		int			flash_number;
-//		cdlight_t	dl;
-//		float [] 		forward= new float[3];
-//		float[] right= new float[3];
-//		String		soundname;
-//
-//		ent = MSG.ReadShort (net_message);
-//		if (ent < 1 || ent >= MAX_EDICTS)
-//			Com.Error (ERR_DROP, "CL_ParseMuzzleFlash2: bad entity");
-//
-//		flash_number = MSG.ReadByte (net_message);
-//
-//		// locate the origin
-//		AngleVectors (cl_entities[ent].current.angles, forward, right, null);
-//		origin[0] = cl_entities[ent].current.origin[0] + forward[0] * M_Flash.monster_flash_offset[flash_number][0] + right[0] * monster_flash_offset[flash_number][1];
-//		origin[1] = cl_entities[ent].current.origin[1] + forward[1] * monster_flash_offset[flash_number][0] + right[1] * monster_flash_offset[flash_number][1];
-//		origin[2] = cl_entities[ent].current.origin[2] + forward[2] * monster_flash_offset[flash_number][0] + right[2] * monster_flash_offset[flash_number][1] + monster_flash_offset[flash_number][2];
-//
-//		dl = CL.AllocDlight (ent);
-//		VectorCopy (origin,  dl.origin);
-//		dl.radius = 200 + (rand()&31);
-//		dl.minlight = 32;
-//		dl.die = cl.time;	// + 0.1;
-//
-//		switch (flash_number)
-//		{
-//		case MZ2_INFANTRY_MACHINEGUN_1:
-//		case MZ2_INFANTRY_MACHINEGUN_2:
-//		case MZ2_INFANTRY_MACHINEGUN_3:
-//		case MZ2_INFANTRY_MACHINEGUN_4:
-//		case MZ2_INFANTRY_MACHINEGUN_5:
-//		case MZ2_INFANTRY_MACHINEGUN_6:
-//		case MZ2_INFANTRY_MACHINEGUN_7:
-//		case MZ2_INFANTRY_MACHINEGUN_8:
-//		case MZ2_INFANTRY_MACHINEGUN_9:
-//		case MZ2_INFANTRY_MACHINEGUN_10:
-//		case MZ2_INFANTRY_MACHINEGUN_11:
-//		case MZ2_INFANTRY_MACHINEGUN_12:
-//		case MZ2_INFANTRY_MACHINEGUN_13:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_SOLDIER_MACHINEGUN_1:
-//		case MZ2_SOLDIER_MACHINEGUN_2:
-//		case MZ2_SOLDIER_MACHINEGUN_3:
-//		case MZ2_SOLDIER_MACHINEGUN_4:
-//		case MZ2_SOLDIER_MACHINEGUN_5:
-//		case MZ2_SOLDIER_MACHINEGUN_6:
-//		case MZ2_SOLDIER_MACHINEGUN_7:
-//		case MZ2_SOLDIER_MACHINEGUN_8:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("soldier/solatck3.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_GUNNER_MACHINEGUN_1:
-//		case MZ2_GUNNER_MACHINEGUN_2:
-//		case MZ2_GUNNER_MACHINEGUN_3:
-//		case MZ2_GUNNER_MACHINEGUN_4:
-//		case MZ2_GUNNER_MACHINEGUN_5:
-//		case MZ2_GUNNER_MACHINEGUN_6:
-//		case MZ2_GUNNER_MACHINEGUN_7:
-//		case MZ2_GUNNER_MACHINEGUN_8:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("gunner/gunatck2.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_ACTOR_MACHINEGUN_1:
-//		case MZ2_SUPERTANK_MACHINEGUN_1:
-//		case MZ2_SUPERTANK_MACHINEGUN_2:
-//		case MZ2_SUPERTANK_MACHINEGUN_3:
-//		case MZ2_SUPERTANK_MACHINEGUN_4:
-//		case MZ2_SUPERTANK_MACHINEGUN_5:
-//		case MZ2_SUPERTANK_MACHINEGUN_6:
-//		case MZ2_TURRET_MACHINEGUN:			// PGM
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_BOSS2_MACHINEGUN_L1:
-//		case MZ2_BOSS2_MACHINEGUN_L2:
-//		case MZ2_BOSS2_MACHINEGUN_L3:
-//		case MZ2_BOSS2_MACHINEGUN_L4:
-//		case MZ2_BOSS2_MACHINEGUN_L5:
-//		case MZ2_CARRIER_MACHINEGUN_L1:		// PMM
-//		case MZ2_CARRIER_MACHINEGUN_L2:		// PMM
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("infantry/infatck1.wav"), 1, ATTN_NONE, 0);
-//			break;
-//
-//		case MZ2_SOLDIER_BLASTER_1:
-//		case MZ2_SOLDIER_BLASTER_2:
-//		case MZ2_SOLDIER_BLASTER_3:
-//		case MZ2_SOLDIER_BLASTER_4:
-//		case MZ2_SOLDIER_BLASTER_5:
-//		case MZ2_SOLDIER_BLASTER_6:
-//		case MZ2_SOLDIER_BLASTER_7:
-//		case MZ2_SOLDIER_BLASTER_8:
-//		case MZ2_TURRET_BLASTER:			// PGM
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("soldier/solatck2.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_FLYER_BLASTER_1:
-//		case MZ2_FLYER_BLASTER_2:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("flyer/flyatck3.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_MEDIC_BLASTER_1:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("medic/medatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_HOVER_BLASTER_1:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("hover/hovatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_FLOAT_BLASTER_1:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("floater/fltatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_SOLDIER_SHOTGUN_1:
-//		case MZ2_SOLDIER_SHOTGUN_2:
-//		case MZ2_SOLDIER_SHOTGUN_3:
-//		case MZ2_SOLDIER_SHOTGUN_4:
-//		case MZ2_SOLDIER_SHOTGUN_5:
-//		case MZ2_SOLDIER_SHOTGUN_6:
-//		case MZ2_SOLDIER_SHOTGUN_7:
-//		case MZ2_SOLDIER_SHOTGUN_8:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("soldier/solatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_TANK_BLASTER_1:
-//		case MZ2_TANK_BLASTER_2:
-//		case MZ2_TANK_BLASTER_3:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_TANK_MACHINEGUN_1:
-//		case MZ2_TANK_MACHINEGUN_2:
-//		case MZ2_TANK_MACHINEGUN_3:
-//		case MZ2_TANK_MACHINEGUN_4:
-//		case MZ2_TANK_MACHINEGUN_5:
-//		case MZ2_TANK_MACHINEGUN_6:
-//		case MZ2_TANK_MACHINEGUN_7:
-//		case MZ2_TANK_MACHINEGUN_8:
-//		case MZ2_TANK_MACHINEGUN_9:
-//		case MZ2_TANK_MACHINEGUN_10:
-//		case MZ2_TANK_MACHINEGUN_11:
-//		case MZ2_TANK_MACHINEGUN_12:
-//		case MZ2_TANK_MACHINEGUN_13:
-//		case MZ2_TANK_MACHINEGUN_14:
-//		case MZ2_TANK_MACHINEGUN_15:
-//		case MZ2_TANK_MACHINEGUN_16:
-//		case MZ2_TANK_MACHINEGUN_17:
-//		case MZ2_TANK_MACHINEGUN_18:
-//		case MZ2_TANK_MACHINEGUN_19:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav", 'a' + rand() % 5);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound(soundname), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_CHICK_ROCKET_1:
-//		case MZ2_TURRET_ROCKET:			// PGM
-//			dl.color[0] = 1;dl.color[1] = 0.5;dl.color[2] = 0.2;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("chick/chkatck2.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_TANK_ROCKET_1:
-//		case MZ2_TANK_ROCKET_2:
-//		case MZ2_TANK_ROCKET_3:
-//			dl.color[0] = 1;dl.color[1] = 0.5;dl.color[2] = 0.2;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("tank/tnkatck1.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_SUPERTANK_ROCKET_1:
-//		case MZ2_SUPERTANK_ROCKET_2:
-//		case MZ2_SUPERTANK_ROCKET_3:
-//		case MZ2_BOSS2_ROCKET_1:
-//		case MZ2_BOSS2_ROCKET_2:
-//		case MZ2_BOSS2_ROCKET_3:
-//		case MZ2_BOSS2_ROCKET_4:
-//		case MZ2_CARRIER_ROCKET_1:
-////		case MZ2_CARRIER_ROCKET_2:
-////		case MZ2_CARRIER_ROCKET_3:
-////		case MZ2_CARRIER_ROCKET_4:
-//			dl.color[0] = 1;dl.color[1] = 0.5;dl.color[2] = 0.2;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("tank/rocket.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_GUNNER_GRENADE_1:
-//		case MZ2_GUNNER_GRENADE_2:
-//		case MZ2_GUNNER_GRENADE_3:
-//		case MZ2_GUNNER_GRENADE_4:
-//			dl.color[0] = 1;dl.color[1] = 0.5;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("gunner/gunatck3.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_GLADIATOR_RAILGUN_1:
-//		// PMM
-//		case MZ2_CARRIER_RAILGUN:
-//		case MZ2_WIDOW_RAIL:
-//		// pmm
-//			dl.color[0] = 0.5;dl.color[1] = 0.5;dl.color[2] = 1.0;
-//			break;
-//
-////	   --- Xian's shit starts ---
-//		case MZ2_MAKRON_BFG:
-//			dl.color[0] = 0.5;dl.color[1] = 1 ;dl.color[2] = 0.5;
-//			//S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("makron/bfg_fire.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_MAKRON_BLASTER_1:
-//		case MZ2_MAKRON_BLASTER_2:
-//		case MZ2_MAKRON_BLASTER_3:
-//		case MZ2_MAKRON_BLASTER_4:
-//		case MZ2_MAKRON_BLASTER_5:
-//		case MZ2_MAKRON_BLASTER_6:
-//		case MZ2_MAKRON_BLASTER_7:
-//		case MZ2_MAKRON_BLASTER_8:
-//		case MZ2_MAKRON_BLASTER_9:
-//		case MZ2_MAKRON_BLASTER_10:
-//		case MZ2_MAKRON_BLASTER_11:
-//		case MZ2_MAKRON_BLASTER_12:
-//		case MZ2_MAKRON_BLASTER_13:
-//		case MZ2_MAKRON_BLASTER_14:
-//		case MZ2_MAKRON_BLASTER_15:
-//		case MZ2_MAKRON_BLASTER_16:
-//		case MZ2_MAKRON_BLASTER_17:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("makron/blaster.wav"), 1, ATTN_NORM, 0);
-//			break;
-//	
-//		case MZ2_JORG_MACHINEGUN_L1:
-//		case MZ2_JORG_MACHINEGUN_L2:
-//		case MZ2_JORG_MACHINEGUN_L3:
-//		case MZ2_JORG_MACHINEGUN_L4:
-//		case MZ2_JORG_MACHINEGUN_L5:
-//		case MZ2_JORG_MACHINEGUN_L6:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("boss3/xfire.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_JORG_MACHINEGUN_R1:
-//		case MZ2_JORG_MACHINEGUN_R2:
-//		case MZ2_JORG_MACHINEGUN_R3:
-//		case MZ2_JORG_MACHINEGUN_R4:
-//		case MZ2_JORG_MACHINEGUN_R5:
-//		case MZ2_JORG_MACHINEGUN_R6:
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			break;
-//
-//		case MZ2_JORG_BFG_1:
-//			dl.color[0] = 0.5;dl.color[1] = 1 ;dl.color[2] = 0.5;
-//			break;
-//
-//		case MZ2_BOSS2_MACHINEGUN_R1:
-//		case MZ2_BOSS2_MACHINEGUN_R2:
-//		case MZ2_BOSS2_MACHINEGUN_R3:
-//		case MZ2_BOSS2_MACHINEGUN_R4:
-//		case MZ2_BOSS2_MACHINEGUN_R5:
-//		case MZ2_CARRIER_MACHINEGUN_R1:			// PMM
-//		case MZ2_CARRIER_MACHINEGUN_R2:			// PMM
-//
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//
-//			CL_ParticleEffect (origin, vec3_origin, 0, 40);
-//			CL_SmokeAndFlash(origin);
-//			break;
-//
-////	   ======
-////	   ROGUE
-//		case MZ2_STALKER_BLASTER:
-//		case MZ2_DAEDALUS_BLASTER:
-//		case MZ2_MEDIC_BLASTER_2:
-//		case MZ2_WIDOW_BLASTER:
-//		case MZ2_WIDOW_BLASTER_SWEEP1:
-//		case MZ2_WIDOW_BLASTER_SWEEP2:
-//		case MZ2_WIDOW_BLASTER_SWEEP3:
-//		case MZ2_WIDOW_BLASTER_SWEEP4:
-//		case MZ2_WIDOW_BLASTER_SWEEP5:
-//		case MZ2_WIDOW_BLASTER_SWEEP6:
-//		case MZ2_WIDOW_BLASTER_SWEEP7:
-//		case MZ2_WIDOW_BLASTER_SWEEP8:
-//		case MZ2_WIDOW_BLASTER_SWEEP9:
-//		case MZ2_WIDOW_BLASTER_100:
-//		case MZ2_WIDOW_BLASTER_90:
-//		case MZ2_WIDOW_BLASTER_80:
-//		case MZ2_WIDOW_BLASTER_70:
-//		case MZ2_WIDOW_BLASTER_60:
-//		case MZ2_WIDOW_BLASTER_50:
-//		case MZ2_WIDOW_BLASTER_40:
-//		case MZ2_WIDOW_BLASTER_30:
-//		case MZ2_WIDOW_BLASTER_20:
-//		case MZ2_WIDOW_BLASTER_10:
-//		case MZ2_WIDOW_BLASTER_0:
-//		case MZ2_WIDOW_BLASTER_10L:
-//		case MZ2_WIDOW_BLASTER_20L:
-//		case MZ2_WIDOW_BLASTER_30L:
-//		case MZ2_WIDOW_BLASTER_40L:
-//		case MZ2_WIDOW_BLASTER_50L:
-//		case MZ2_WIDOW_BLASTER_60L:
-//		case MZ2_WIDOW_BLASTER_70L:
-//		case MZ2_WIDOW_RUN_1:
-//		case MZ2_WIDOW_RUN_2:
-//		case MZ2_WIDOW_RUN_3:
-//		case MZ2_WIDOW_RUN_4:
-//		case MZ2_WIDOW_RUN_5:
-//		case MZ2_WIDOW_RUN_6:
-//		case MZ2_WIDOW_RUN_7:
-//		case MZ2_WIDOW_RUN_8:
-//			dl.color[0] = 0;dl.color[1] = 1;dl.color[2] = 0;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_WIDOW_DISRUPTOR:
-//			dl.color[0] = -1;dl.color[1] = -1;dl.color[2] = -1;
-//			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("weapons/disint2.wav"), 1, ATTN_NORM, 0);
-//			break;
-//
-//		case MZ2_WIDOW_PLASMABEAM:
-//		case MZ2_WIDOW2_BEAMER_1:
-//		case MZ2_WIDOW2_BEAMER_2:
-//		case MZ2_WIDOW2_BEAMER_3:
-//		case MZ2_WIDOW2_BEAMER_4:
-//		case MZ2_WIDOW2_BEAMER_5:
-//		case MZ2_WIDOW2_BEAM_SWEEP_1:
-//		case MZ2_WIDOW2_BEAM_SWEEP_2:
-//		case MZ2_WIDOW2_BEAM_SWEEP_3:
-//		case MZ2_WIDOW2_BEAM_SWEEP_4:
-//		case MZ2_WIDOW2_BEAM_SWEEP_5:
-//		case MZ2_WIDOW2_BEAM_SWEEP_6:
-//		case MZ2_WIDOW2_BEAM_SWEEP_7:
-//		case MZ2_WIDOW2_BEAM_SWEEP_8:
-//		case MZ2_WIDOW2_BEAM_SWEEP_9:
-//		case MZ2_WIDOW2_BEAM_SWEEP_10:
-//		case MZ2_WIDOW2_BEAM_SWEEP_11:
-//			dl.radius = 300 + (rand()&100);
-//			dl.color[0] = 1;dl.color[1] = 1;dl.color[2] = 0;
-//			dl.die = cl.time + 200;
-//			break;
-////	   ROGUE
-////	   ======
-//
-////	   --- Xian's shit ends ---
-//
-//		}
+	static void ParseMuzzleFlash2() {
+		int ent;
+		float[] origin = new float[3];
+		int flash_number;
+		cdlight_t dl;
+		float[] forward = new float[3];
+		float[] right = new float[3];
+		String soundname;
+
+		ent = MSG.ReadShort(net_message);
+		if (ent < 1 || ent >= MAX_EDICTS)
+			Com.Error(ERR_DROP, "CL_ParseMuzzleFlash2: bad entity");
+
+		flash_number = MSG.ReadByte(net_message);
+
+		// locate the origin
+		AngleVectors(cl_entities[ent].current.angles, forward, right, null);
+		origin[0] =
+			cl_entities[ent].current.origin[0]
+				+ forward[0] * M_Flash.monster_flash_offset[flash_number][0]
+				+ right[0] * M_Flash.monster_flash_offset[flash_number][1];
+		origin[1] =
+			cl_entities[ent].current.origin[1]
+				+ forward[1] * M_Flash.monster_flash_offset[flash_number][0]
+				+ right[1] * M_Flash.monster_flash_offset[flash_number][1];
+		origin[2] =
+			cl_entities[ent].current.origin[2]
+				+ forward[2] * M_Flash.monster_flash_offset[flash_number][0]
+				+ right[2] * M_Flash.monster_flash_offset[flash_number][1]
+				+ M_Flash.monster_flash_offset[flash_number][2];
+
+		dl = CL.AllocDlight(ent);
+		VectorCopy(origin, dl.origin);
+		dl.radius = 200 + (rand() & 31);
+		dl.minlight = 32;
+		dl.die = cl.time; // + 0.1;
+
+		switch (flash_number) {
+			case MZ2_INFANTRY_MACHINEGUN_1 :
+			case MZ2_INFANTRY_MACHINEGUN_2 :
+			case MZ2_INFANTRY_MACHINEGUN_3 :
+			case MZ2_INFANTRY_MACHINEGUN_4 :
+			case MZ2_INFANTRY_MACHINEGUN_5 :
+			case MZ2_INFANTRY_MACHINEGUN_6 :
+			case MZ2_INFANTRY_MACHINEGUN_7 :
+			case MZ2_INFANTRY_MACHINEGUN_8 :
+			case MZ2_INFANTRY_MACHINEGUN_9 :
+			case MZ2_INFANTRY_MACHINEGUN_10 :
+			case MZ2_INFANTRY_MACHINEGUN_11 :
+			case MZ2_INFANTRY_MACHINEGUN_12 :
+			case MZ2_INFANTRY_MACHINEGUN_13 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_SOLDIER_MACHINEGUN_1 :
+			case MZ2_SOLDIER_MACHINEGUN_2 :
+			case MZ2_SOLDIER_MACHINEGUN_3 :
+			case MZ2_SOLDIER_MACHINEGUN_4 :
+			case MZ2_SOLDIER_MACHINEGUN_5 :
+			case MZ2_SOLDIER_MACHINEGUN_6 :
+			case MZ2_SOLDIER_MACHINEGUN_7 :
+			case MZ2_SOLDIER_MACHINEGUN_8 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("soldier/solatck3.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_GUNNER_MACHINEGUN_1 :
+			case MZ2_GUNNER_MACHINEGUN_2 :
+			case MZ2_GUNNER_MACHINEGUN_3 :
+			case MZ2_GUNNER_MACHINEGUN_4 :
+			case MZ2_GUNNER_MACHINEGUN_5 :
+			case MZ2_GUNNER_MACHINEGUN_6 :
+			case MZ2_GUNNER_MACHINEGUN_7 :
+			case MZ2_GUNNER_MACHINEGUN_8 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("gunner/gunatck2.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_ACTOR_MACHINEGUN_1 :
+			case MZ2_SUPERTANK_MACHINEGUN_1 :
+			case MZ2_SUPERTANK_MACHINEGUN_2 :
+			case MZ2_SUPERTANK_MACHINEGUN_3 :
+			case MZ2_SUPERTANK_MACHINEGUN_4 :
+			case MZ2_SUPERTANK_MACHINEGUN_5 :
+			case MZ2_SUPERTANK_MACHINEGUN_6 :
+			case MZ2_TURRET_MACHINEGUN : // PGM
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("infantry/infatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_BOSS2_MACHINEGUN_L1 :
+			case MZ2_BOSS2_MACHINEGUN_L2 :
+			case MZ2_BOSS2_MACHINEGUN_L3 :
+			case MZ2_BOSS2_MACHINEGUN_L4 :
+			case MZ2_BOSS2_MACHINEGUN_L5 :
+			case MZ2_CARRIER_MACHINEGUN_L1 : // PMM
+			case MZ2_CARRIER_MACHINEGUN_L2 : // PMM
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("infantry/infatck1.wav"), 1, ATTN_NONE, 0);
+				break;
+
+			case MZ2_SOLDIER_BLASTER_1 :
+			case MZ2_SOLDIER_BLASTER_2 :
+			case MZ2_SOLDIER_BLASTER_3 :
+			case MZ2_SOLDIER_BLASTER_4 :
+			case MZ2_SOLDIER_BLASTER_5 :
+			case MZ2_SOLDIER_BLASTER_6 :
+			case MZ2_SOLDIER_BLASTER_7 :
+			case MZ2_SOLDIER_BLASTER_8 :
+			case MZ2_TURRET_BLASTER : // PGM
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("soldier/solatck2.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_FLYER_BLASTER_1 :
+			case MZ2_FLYER_BLASTER_2 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("flyer/flyatck3.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_MEDIC_BLASTER_1 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("medic/medatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_HOVER_BLASTER_1 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("hover/hovatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_FLOAT_BLASTER_1 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("floater/fltatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_SOLDIER_SHOTGUN_1 :
+			case MZ2_SOLDIER_SHOTGUN_2 :
+			case MZ2_SOLDIER_SHOTGUN_3 :
+			case MZ2_SOLDIER_SHOTGUN_4 :
+			case MZ2_SOLDIER_SHOTGUN_5 :
+			case MZ2_SOLDIER_SHOTGUN_6 :
+			case MZ2_SOLDIER_SHOTGUN_7 :
+			case MZ2_SOLDIER_SHOTGUN_8 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("soldier/solatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_TANK_BLASTER_1 :
+			case MZ2_TANK_BLASTER_2 :
+			case MZ2_TANK_BLASTER_3 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_TANK_MACHINEGUN_1 :
+			case MZ2_TANK_MACHINEGUN_2 :
+			case MZ2_TANK_MACHINEGUN_3 :
+			case MZ2_TANK_MACHINEGUN_4 :
+			case MZ2_TANK_MACHINEGUN_5 :
+			case MZ2_TANK_MACHINEGUN_6 :
+			case MZ2_TANK_MACHINEGUN_7 :
+			case MZ2_TANK_MACHINEGUN_8 :
+			case MZ2_TANK_MACHINEGUN_9 :
+			case MZ2_TANK_MACHINEGUN_10 :
+			case MZ2_TANK_MACHINEGUN_11 :
+			case MZ2_TANK_MACHINEGUN_12 :
+			case MZ2_TANK_MACHINEGUN_13 :
+			case MZ2_TANK_MACHINEGUN_14 :
+			case MZ2_TANK_MACHINEGUN_15 :
+			case MZ2_TANK_MACHINEGUN_16 :
+			case MZ2_TANK_MACHINEGUN_17 :
+			case MZ2_TANK_MACHINEGUN_18 :
+			case MZ2_TANK_MACHINEGUN_19 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				//Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav", 'a' + rand() % 5);
+				soundname = "tank/tnkatk2" + (char) ('a' + rand() % 5) + ".wav";
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound(soundname), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_CHICK_ROCKET_1 :
+			case MZ2_TURRET_ROCKET : // PGM
+				dl.color[0] = 1;
+				dl.color[1] = 0.5f;
+				dl.color[2] = 0.2f;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("chick/chkatck2.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_TANK_ROCKET_1 :
+			case MZ2_TANK_ROCKET_2 :
+			case MZ2_TANK_ROCKET_3 :
+				dl.color[0] = 1;
+				dl.color[1] = 0.5f;
+				dl.color[2] = 0.2f;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("tank/tnkatck1.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_SUPERTANK_ROCKET_1 :
+			case MZ2_SUPERTANK_ROCKET_2 :
+			case MZ2_SUPERTANK_ROCKET_3 :
+			case MZ2_BOSS2_ROCKET_1 :
+			case MZ2_BOSS2_ROCKET_2 :
+			case MZ2_BOSS2_ROCKET_3 :
+			case MZ2_BOSS2_ROCKET_4 :
+			case MZ2_CARRIER_ROCKET_1 :
+				//		case MZ2_CARRIER_ROCKET_2:
+				//		case MZ2_CARRIER_ROCKET_3:
+				//		case MZ2_CARRIER_ROCKET_4:
+				dl.color[0] = 1;
+				dl.color[1] = 0.5f;
+				dl.color[2] = 0.2f;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("tank/rocket.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_GUNNER_GRENADE_1 :
+			case MZ2_GUNNER_GRENADE_2 :
+			case MZ2_GUNNER_GRENADE_3 :
+			case MZ2_GUNNER_GRENADE_4 :
+				dl.color[0] = 1;
+				dl.color[1] = 0.5f;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("gunner/gunatck3.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_GLADIATOR_RAILGUN_1 :
+				// PMM
+			case MZ2_CARRIER_RAILGUN :
+			case MZ2_WIDOW_RAIL :
+				// pmm
+				dl.color[0] = 0.5f;
+				dl.color[1] = 0.5f;
+				dl.color[2] = 1.0f;
+				break;
+
+				//	   --- Xian's shit starts ---
+			case MZ2_MAKRON_BFG :
+				dl.color[0] = 0.5f;
+				dl.color[1] = 1;
+				dl.color[2] = 0.5f;
+				//S.StartSound (null, ent, CHAN_WEAPON, S.RegisterSound("makron/bfg_fire.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_MAKRON_BLASTER_1 :
+			case MZ2_MAKRON_BLASTER_2 :
+			case MZ2_MAKRON_BLASTER_3 :
+			case MZ2_MAKRON_BLASTER_4 :
+			case MZ2_MAKRON_BLASTER_5 :
+			case MZ2_MAKRON_BLASTER_6 :
+			case MZ2_MAKRON_BLASTER_7 :
+			case MZ2_MAKRON_BLASTER_8 :
+			case MZ2_MAKRON_BLASTER_9 :
+			case MZ2_MAKRON_BLASTER_10 :
+			case MZ2_MAKRON_BLASTER_11 :
+			case MZ2_MAKRON_BLASTER_12 :
+			case MZ2_MAKRON_BLASTER_13 :
+			case MZ2_MAKRON_BLASTER_14 :
+			case MZ2_MAKRON_BLASTER_15 :
+			case MZ2_MAKRON_BLASTER_16 :
+			case MZ2_MAKRON_BLASTER_17 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("makron/blaster.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_JORG_MACHINEGUN_L1 :
+			case MZ2_JORG_MACHINEGUN_L2 :
+			case MZ2_JORG_MACHINEGUN_L3 :
+			case MZ2_JORG_MACHINEGUN_L4 :
+			case MZ2_JORG_MACHINEGUN_L5 :
+			case MZ2_JORG_MACHINEGUN_L6 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("boss3/xfire.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_JORG_MACHINEGUN_R1 :
+			case MZ2_JORG_MACHINEGUN_R2 :
+			case MZ2_JORG_MACHINEGUN_R3 :
+			case MZ2_JORG_MACHINEGUN_R4 :
+			case MZ2_JORG_MACHINEGUN_R5 :
+			case MZ2_JORG_MACHINEGUN_R6 :
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				break;
+
+			case MZ2_JORG_BFG_1 :
+				dl.color[0] = 0.5f;
+				dl.color[1] = 1;
+				dl.color[2] = 0.5f;
+				break;
+
+			case MZ2_BOSS2_MACHINEGUN_R1 :
+			case MZ2_BOSS2_MACHINEGUN_R2 :
+			case MZ2_BOSS2_MACHINEGUN_R3 :
+			case MZ2_BOSS2_MACHINEGUN_R4 :
+			case MZ2_BOSS2_MACHINEGUN_R5 :
+			case MZ2_CARRIER_MACHINEGUN_R1 : // PMM
+			case MZ2_CARRIER_MACHINEGUN_R2 : // PMM
+
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+
+				CL.ParticleEffect(origin, vec3_origin, 0, 40);
+				CL.SmokeAndFlash(origin);
+				break;
+
+				//	   ======
+				//	   ROGUE
+			case MZ2_STALKER_BLASTER :
+			case MZ2_DAEDALUS_BLASTER :
+			case MZ2_MEDIC_BLASTER_2 :
+			case MZ2_WIDOW_BLASTER :
+			case MZ2_WIDOW_BLASTER_SWEEP1 :
+			case MZ2_WIDOW_BLASTER_SWEEP2 :
+			case MZ2_WIDOW_BLASTER_SWEEP3 :
+			case MZ2_WIDOW_BLASTER_SWEEP4 :
+			case MZ2_WIDOW_BLASTER_SWEEP5 :
+			case MZ2_WIDOW_BLASTER_SWEEP6 :
+			case MZ2_WIDOW_BLASTER_SWEEP7 :
+			case MZ2_WIDOW_BLASTER_SWEEP8 :
+			case MZ2_WIDOW_BLASTER_SWEEP9 :
+			case MZ2_WIDOW_BLASTER_100 :
+			case MZ2_WIDOW_BLASTER_90 :
+			case MZ2_WIDOW_BLASTER_80 :
+			case MZ2_WIDOW_BLASTER_70 :
+			case MZ2_WIDOW_BLASTER_60 :
+			case MZ2_WIDOW_BLASTER_50 :
+			case MZ2_WIDOW_BLASTER_40 :
+			case MZ2_WIDOW_BLASTER_30 :
+			case MZ2_WIDOW_BLASTER_20 :
+			case MZ2_WIDOW_BLASTER_10 :
+			case MZ2_WIDOW_BLASTER_0 :
+			case MZ2_WIDOW_BLASTER_10L :
+			case MZ2_WIDOW_BLASTER_20L :
+			case MZ2_WIDOW_BLASTER_30L :
+			case MZ2_WIDOW_BLASTER_40L :
+			case MZ2_WIDOW_BLASTER_50L :
+			case MZ2_WIDOW_BLASTER_60L :
+			case MZ2_WIDOW_BLASTER_70L :
+			case MZ2_WIDOW_RUN_1 :
+			case MZ2_WIDOW_RUN_2 :
+			case MZ2_WIDOW_RUN_3 :
+			case MZ2_WIDOW_RUN_4 :
+			case MZ2_WIDOW_RUN_5 :
+			case MZ2_WIDOW_RUN_6 :
+			case MZ2_WIDOW_RUN_7 :
+			case MZ2_WIDOW_RUN_8 :
+				dl.color[0] = 0;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("tank/tnkatck3.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_WIDOW_DISRUPTOR :
+				dl.color[0] = -1;
+				dl.color[1] = -1;
+				dl.color[2] = -1;
+				S.StartSound(null, ent, CHAN_WEAPON, S.RegisterSound("weapons/disint2.wav"), 1, ATTN_NORM, 0);
+				break;
+
+			case MZ2_WIDOW_PLASMABEAM :
+			case MZ2_WIDOW2_BEAMER_1 :
+			case MZ2_WIDOW2_BEAMER_2 :
+			case MZ2_WIDOW2_BEAMER_3 :
+			case MZ2_WIDOW2_BEAMER_4 :
+			case MZ2_WIDOW2_BEAMER_5 :
+			case MZ2_WIDOW2_BEAM_SWEEP_1 :
+			case MZ2_WIDOW2_BEAM_SWEEP_2 :
+			case MZ2_WIDOW2_BEAM_SWEEP_3 :
+			case MZ2_WIDOW2_BEAM_SWEEP_4 :
+			case MZ2_WIDOW2_BEAM_SWEEP_5 :
+			case MZ2_WIDOW2_BEAM_SWEEP_6 :
+			case MZ2_WIDOW2_BEAM_SWEEP_7 :
+			case MZ2_WIDOW2_BEAM_SWEEP_8 :
+			case MZ2_WIDOW2_BEAM_SWEEP_9 :
+			case MZ2_WIDOW2_BEAM_SWEEP_10 :
+			case MZ2_WIDOW2_BEAM_SWEEP_11 :
+				dl.radius = 300 + (rand() & 100);
+				dl.color[0] = 1;
+				dl.color[1] = 1;
+				dl.color[2] = 0;
+				dl.die = cl.time + 200;
+				break;
+				//	   ROGUE
+				//	   ======
+
+				//	   --- Xian's shit ends ---
+
+		}
 	}
 
 	/*
@@ -2180,8 +2242,6 @@ public class CL_fx extends Globals {
 
 		active_particles = active;
 	}
-
-	static sfx_t[] cl_sfx_footsteps = new sfx_t[4];
 	
 	/*
 	==============

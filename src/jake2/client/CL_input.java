@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.8 2004-02-02 21:47:00 rst Exp $
+ * $Id: CL_input.java,v 1.9 2004-02-04 22:00:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,7 +36,7 @@ import jake2.sys.IN;
 /**
  * CL_input
  */
-public class CL_input extends CL_tent {
+public class CL_input extends CL_ents {
 	
 	static long frame_msec;
 	static long old_sys_frame_time;
