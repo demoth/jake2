@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.2 2004-12-14 12:56:58 cawe Exp $
+ * $Id: Main.java,v 1.3 2005-01-17 13:30:38 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -61,7 +61,6 @@ import org.lwjgl.opengl.GL13;
  * @author cwei
  */
 public abstract class Main extends Base {
-
 
 	public static int[] d_8to24table = new int[256];
 
@@ -126,7 +125,6 @@ public abstract class Main extends Base {
 
 	int GL_TEXTURE0 = GL13.GL_TEXTURE0;
 	int GL_TEXTURE1 = GL13.GL_TEXTURE1;
-
 
 	model_t r_worldmodel;
 
@@ -239,13 +237,10 @@ public abstract class Main extends Base {
 	// to port from gl_rmain.c, ...
 	// ============================================================================
 
-	/*
-	=================
-	R_CullBox
-	
-	Returns true if the box is completely outside the frustom
-	=================
-	*/
+	/**
+	 * R_CullBox
+	 * Returns true if the box is completely outside the frustum
+	 */
 	final boolean R_CullBox(float[] mins, float[] maxs) {
 		assert(mins.length == 3 && maxs.length == 3) : "vec3_t bug";
 
@@ -259,8 +254,10 @@ public abstract class Main extends Base {
 		return false;
 	}
 
+	/**
+	 * R_RotateForEntity
+	 */
 	final void R_RotateForEntity(entity_t e) {
-
 		gl.glTranslatef(e.origin[0], e.origin[1], e.origin[2]);
 
 		gl.glRotatef(e.angles[1], 0, 0, 1);
@@ -276,15 +273,13 @@ public abstract class Main extends Base {
 	=============================================================
 	*/
 
-	/*
-	=================
-	R_DrawSpriteModel
-	
-	=================
-	*/
+	// stack variable
+	private final float[] point = { 0, 0, 0 };
+	/**
+	 * R_DrawSpriteModel
+	 */
 	void R_DrawSpriteModel(entity_t e) {
 		float alpha = 1.0F;
-		float[] point = { 0, 0, 0 };
 
 		qfiles.dsprframe_t frame;
 		qfiles.dsprite_t psprite;
@@ -350,15 +345,12 @@ public abstract class Main extends Base {
 
 	// ==================================================================================
 
-	/*
-	=============
-	R_DrawNullModel
-	=============
-	cwei :-)
+	// stack variable
+	private final float[] shadelight = { 0, 0, 0 };
+	/**
+	 * R_DrawNullModel
 	*/
 	void R_DrawNullModel() {
-		float[] shadelight = { 0, 0, 0 };
-
 		if ((currententity.flags & Defines.RF_FULLBRIGHT) != 0) {
 			// cwei wollte blau: shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
 			shadelight[0] = shadelight[1] = shadelight[2] = 0.0F;
@@ -398,18 +390,15 @@ public abstract class Main extends Base {
 		gl.glEnable(GL11.GL_TEXTURE_2D);
 	}
 
-	/*
-	=============
-	R_DrawEntitiesOnList
-	=============
-	*/
+	/**
+	 * R_DrawEntitiesOnList
+	 */
 	void R_DrawEntitiesOnList() {
-		int i;
-
 		if (r_drawentities.value == 0.0f)
 			return;
 
 		// draw non-transparent first
+		int i;
 		for (i = 0; i < r_newrefdef.num_entities; i++) {
 			currententity = r_newrefdef.entities[i];
 			if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
@@ -477,16 +466,13 @@ public abstract class Main extends Base {
 		gl.glDepthMask(true); // back to writing
 	}
 	
-	/*
-	** GL_DrawParticles
-	**
-	*/
+	// stack variable 
+	private final float[] up = { 0, 0, 0 };
+	private final float[] right = { 0, 0, 0 };
+	/**
+	 * GL_DrawParticles
+	 */
 	void GL_DrawParticles(int num_particles) {
-		float[] up = { 0, 0, 0 };
-		float[] right = { 0, 0, 0 };
-		float scale;
-		int color;
-
 		float origin_x, origin_y, origin_z;
 
 		Math3D.VectorScale(vup, 1.5f, up);
@@ -501,6 +487,8 @@ public abstract class Main extends Base {
 
 		FloatBuffer sourceVertices = particle_t.vertexArray;
 		IntBuffer sourceColors = particle_t.colorArray;
+		float scale;
+		int color;
 		for (int j = 0, i = 0; i < num_particles; i++) {
 			origin_x = sourceVertices.get(j++);
 			origin_y = sourceVertices.get(j++);
@@ -540,11 +528,9 @@ public abstract class Main extends Base {
 		GL_TexEnv(GL11.GL_REPLACE);
 	}
 
-	/*
-	===============
-	R_DrawParticles
-	===============
-	*/
+	/**
+	 * R_DrawParticles
+	 */
 	void R_DrawParticles() {
 
 		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
@@ -575,11 +561,9 @@ public abstract class Main extends Base {
 		}
 	}
 
-	/*
-	============
-	R_PolyBlend
-	============
-	*/
+	/**
+	 * R_PolyBlend
+	 */
 	void R_PolyBlend() {
 		if (gl_polyblend.value == 0.0f)
 			return;
@@ -617,6 +601,9 @@ public abstract class Main extends Base {
 
 	// =======================================================================
 
+	/**
+	 * SignbitsForPlane
+	 */
 	int SignbitsForPlane(cplane_t out) {
 		// for fast box on planeside test
 		int bits = 0;
@@ -627,6 +614,9 @@ public abstract class Main extends Base {
 		return bits;
 	}
 
+	/**
+	 * R_SetFrustum
+	 */
 	void R_SetFrustum() {
 		// rotate VPN right by FOV_X/2 degrees
 		Math3D.RotatePointAroundVector(frustum[0].normal, vup, vpn, - (90f - r_newrefdef.fov_x / 2f));
@@ -646,15 +636,12 @@ public abstract class Main extends Base {
 
 	// =======================================================================
 
-	/*
-	===============
-	R_SetupFrame
-	===============
-	*/
+	// stack variable
+	private final float[] temp = {0, 0, 0};
+	/**
+	 * R_SetupFrame
+	 */
 	void R_SetupFrame() {
-		int i;
-		mleaf_t leaf;
-
 		r_framecount++;
 
 		//	build the transformation matrix for the given view angles
@@ -663,6 +650,7 @@ public abstract class Main extends Base {
 		Math3D.AngleVectors(r_newrefdef.viewangles, vpn, vright, vup);
 
 		//	current viewcluster
+		mleaf_t leaf;
 		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) == 0) {
 			r_oldviewcluster = r_viewcluster;
 			r_oldviewcluster2 = r_viewcluster2;
@@ -671,8 +659,6 @@ public abstract class Main extends Base {
 
 			// check above and below so crossing solid water doesn't draw wrong
 			if (leaf.contents == 0) { // look down a bit
-				float[] temp = { 0, 0, 0 };
-
 				Math3D.VectorCopy(r_origin, temp);
 				temp[2] -= 16;
 				leaf = Mod_PointInLeaf(temp, r_worldmodel);
@@ -680,8 +666,6 @@ public abstract class Main extends Base {
 					r_viewcluster2 = leaf.cluster;
 			}
 			else { // look up a bit
-				float[] temp = { 0, 0, 0 };
-
 				Math3D.VectorCopy(r_origin, temp);
 				temp[2] += 16;
 				leaf = Mod_PointInLeaf(temp, r_worldmodel);
@@ -690,7 +674,7 @@ public abstract class Main extends Base {
 			}
 		}
 
-		for (i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 			v_blend[i] = r_newrefdef.blend[i];
 
 		c_brush_polys = 0;
@@ -711,14 +695,20 @@ public abstract class Main extends Base {
 		}
 	}
 
+	/**
+	 * MYgluPerspective
+	 * 
+	 * @param fovy
+	 * @param aspect
+	 * @param zNear
+	 * @param zFar
+	 */
 	void MYgluPerspective(double fovy, double aspect, double zNear, double zFar) {
-		double xmin, xmax, ymin, ymax;
+		double ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
+		double ymin = -ymax;
 
-		ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
-		ymin = -ymax;
-
-		xmin = ymin * aspect;
-		xmax = ymax * aspect;
+		double xmin = ymin * aspect;
+		double xmax = ymax * aspect;
 
 		xmin += - (2 * gl_state.camera_separation) / zNear;
 		xmax += - (2 * gl_state.camera_separation) / zNear;
@@ -726,11 +716,9 @@ public abstract class Main extends Base {
 		gl.glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 	}
 
-	/*
-	=============
-	R_SetupGL
-	=============
-	*/
+	/**
+	 * R_SetupGL
+	 */
 	void R_SetupGL() {
 
 		//
@@ -786,13 +774,11 @@ public abstract class Main extends Base {
 		gl.glEnable(GL11.GL_DEPTH_TEST);
 	}
 
-	/*
-	=============
-	R_Clear
-	=============
-	*/
 	int trickframe = 0;
 
+	/**
+	 * R_Clear
+	 */
 	void R_Clear() {
 		if (gl_ztrick.value != 0.0f) {
 
@@ -825,17 +811,17 @@ public abstract class Main extends Base {
 		gl.glDepthRange(gldepthmin, gldepthmax);
 	}
 
+	/**
+	 * R_Flash
+	 */
 	void R_Flash() {
 		R_PolyBlend();
 	}
 
-	/*
-	================
-	R_RenderView
-	
-	r_newrefdef must be set before the first call
-	================
-	*/
+	/**
+	 * R_RenderView
+	 * r_newrefdef must be set before the first call
+	 */
 	void R_RenderView(refdef_t fd) {
 
 		if (r_norefresh.value != 0.0f)
@@ -889,6 +875,9 @@ public abstract class Main extends Base {
 		}
 	}
 
+	/**
+	 * R_SetGL2D
+	 */
 	void R_SetGL2D() {
 		// set 2D virtual screen size
 		gl.glViewport(0, 0, vid.width, vid.height);
@@ -904,15 +893,12 @@ public abstract class Main extends Base {
 		gl.glColor4f(1, 1, 1, 1);
 	}
 
-	/*
-	====================
-	R_SetLightLevel
-	
-	====================
-	*/
+	// stack variable
+	private final float[] shadelight1 = { 0, 0, 0 };
+	/**
+	 *	R_SetLightLevel
+	 */
 	void R_SetLightLevel() {
-		float[] shadelight = { 0, 0, 0 };
-
 		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0)
 			return;
 
@@ -922,32 +908,32 @@ public abstract class Main extends Base {
 
 		// pick the greatest component, which should be the same
 		// as the mono value returned by software
-		if (shadelight[0] > shadelight[1]) {
-			if (shadelight[0] > shadelight[2])
-				r_lightlevel.value = 150 * shadelight[0];
+		if (shadelight1[0] > shadelight1[1]) {
+			if (shadelight1[0] > shadelight1[2])
+				r_lightlevel.value = 150 * shadelight1[0];
 			else
-				r_lightlevel.value = 150 * shadelight[2];
+				r_lightlevel.value = 150 * shadelight1[2];
 		}
 		else {
-			if (shadelight[1] > shadelight[2])
-				r_lightlevel.value = 150 * shadelight[1];
+			if (shadelight1[1] > shadelight1[2])
+				r_lightlevel.value = 150 * shadelight1[1];
 			else
-				r_lightlevel.value = 150 * shadelight[2];
+				r_lightlevel.value = 150 * shadelight1[2];
 		}
 	}
 
-	/*
-	@@@@@@@@@@@@@@@@@@@@@
-	R_RenderFrame
-	
-	@@@@@@@@@@@@@@@@@@@@@
-	*/
+	/**
+	 * R_RenderFrame
+	 */
 	protected void R_RenderFrame(refdef_t fd) {
 		R_RenderView(fd);
 		R_SetLightLevel();
 		R_SetGL2D();
 	}
 
+	/**
+	 * R_Register
+	 */
 	protected void R_Register() {
 		r_lefthand = Cvar.Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
 		r_norefresh = Cvar.Get("r_norefresh", "0", 0);
@@ -1039,29 +1025,18 @@ public abstract class Main extends Base {
 		});
 	}
 
-	/*
-	==================
-	R_SetMode
-	==================
-	*/
+	/**
+	 * R_SetMode
+	 */
 	protected boolean R_SetMode() {
-
-		int err; //  enum rserr_t
-		boolean fullscreen;
-
-//		if (vid_fullscreen.modified && !gl_config.allow_cds) {
-//			VID.Printf(Defines.PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n");
-//			Cvar.SetValue("vid_fullscreen", (vid_fullscreen.value > 0.0f) ? 0.0f : 1.0f);
-//			vid_fullscreen.modified = false;
-//		}
-
-		fullscreen = (vid_fullscreen.value > 0.0f);
+		boolean fullscreen = (vid_fullscreen.value > 0.0f);
 
 		vid_fullscreen.modified = false;
 		gl_mode.modified = false;
 
 		Dimension dim = new Dimension(vid.width, vid.height);
 
+		int err; //  enum rserr_t
 		if ((err = GLimp_SetMode(dim, (int) gl_mode.value, fullscreen)) == rserr_ok) {
 			gl_state.prev_mode = (int) gl_mode.value;
 		}
@@ -1088,13 +1063,11 @@ public abstract class Main extends Base {
 		return true;
 	}
 
-	/*
-	===============
-	R_Init
-	===============
-	*/
 	float[] r_turbsin = new float[256];
 
+	/**
+	 * R_Init
+	 */
 	protected boolean R_Init(int vid_xpos, int vid_ypos) {
 
 		assert(Warp.SIN.length == 256) : "warpsin table bug";
@@ -1121,6 +1094,9 @@ public abstract class Main extends Base {
 		return true;
 	}
 
+	/**
+	 * R_Init2
+	 */
 	protected boolean R_Init2() {
 		VID.MenuInit();
 
@@ -1313,11 +1289,9 @@ public abstract class Main extends Base {
 		return true;
 	}
 
-	/*
-	===============
-	R_Shutdown
-	===============
-	*/
+	/**
+	 * R_Shutdown
+	 */
 	protected void R_Shutdown() {
 		Cmd.RemoveCommand("modellist");
 		Cmd.RemoveCommand("screenshot");
@@ -1334,11 +1308,9 @@ public abstract class Main extends Base {
 		GLimp_Shutdown();
 	}
 
-	/*
-	@@@@@@@@@@@@@@@@@@@@@
-	R_BeginFrame
-	@@@@@@@@@@@@@@@@@@@@@
-	*/
+	/**
+	 * R_BeginFrame
+	 */
 	protected void R_BeginFrame(float camera_separation) {
 
 		gl_state.camera_separation = camera_separation;
@@ -1449,11 +1421,9 @@ public abstract class Main extends Base {
 
 	int[] r_rawpalette = new int[256];
 
-	/*
-	=============
-	R_SetPalette
-	=============
-	*/
+	/**
+	 * R_SetPalette
+	 */
 	protected void R_SetPalette(byte[] palette) {
 		// 256 RGB values (768 bytes)
 		// or null
@@ -1487,21 +1457,16 @@ public abstract class Main extends Base {
 	// array of vec3_t
 	float[][] end_points = new float[NUM_BEAM_SEGS][3]; // array of vec3_t
 
-	/*
-	** R_DrawBeam
-	*/
+	// stack variable
+	private final float[] perpvec = { 0, 0, 0 }; // vec3_t
+	private final float[] direction = { 0, 0, 0 }; // vec3_t
+	private final float[] normalized_direction = { 0, 0, 0 }; // vec3_t
+	private final float[] oldorigin = { 0, 0, 0 }; // vec3_t
+	private final float[] origin = { 0, 0, 0 }; // vec3_t
+	/**
+	 * R_DrawBeam
+	 */
 	void R_DrawBeam(entity_t e) {
-
-		int i;
-		float r, g, b;
-
-		float[] perpvec = { 0, 0, 0 }; // vec3_t
-		float[] direction = { 0, 0, 0 }; // vec3_t
-		float[] normalized_direction = { 0, 0, 0 }; // vec3_t
-
-		float[] oldorigin = { 0, 0, 0 }; // vec3_t
-		float[] origin = { 0, 0, 0 }; // vec3_t
-
 		oldorigin[0] = e.oldorigin[0];
 		oldorigin[1] = e.oldorigin[1];
 		oldorigin[2] = e.oldorigin[2];
@@ -1520,7 +1485,7 @@ public abstract class Main extends Base {
 		Math3D.PerpendicularVector(perpvec, normalized_direction);
 		Math3D.VectorScale(perpvec, e.frame / 2, perpvec);
 
-		for (i = 0; i < 6; i++) {
+		for (int i = 0; i < 6; i++) {
 			Math3D.RotatePointAroundVector(
 				start_points[i],
 				normalized_direction,
@@ -1535,9 +1500,9 @@ public abstract class Main extends Base {
 		gl.glEnable(GL11.GL_BLEND);
 		gl.glDepthMask(false);
 
-		r = (d_8to24table[e.skinnum & 0xFF]) & 0xFF;
-		g = (d_8to24table[e.skinnum & 0xFF] >> 8) & 0xFF;
-		b = (d_8to24table[e.skinnum & 0xFF] >> 16) & 0xFF;
+		float r = (d_8to24table[e.skinnum & 0xFF]) & 0xFF;
+		float g = (d_8to24table[e.skinnum & 0xFF] >> 8) & 0xFF;
+		float b = (d_8to24table[e.skinnum & 0xFF] >> 16) & 0xFF;
 
 		r *= 1 / 255.0f;
 		g *= 1 / 255.0f;
@@ -1549,7 +1514,7 @@ public abstract class Main extends Base {
 		
 		float[] v;
 		
-		for (i = 0; i < NUM_BEAM_SEGS; i++) {
+		for (int i = 0; i < NUM_BEAM_SEGS; i++) {
 			v = start_points[i];
 			gl.glVertex3f(v[0], v[1], v[2]);
 			v = end_points[i];
@@ -1565,5 +1530,4 @@ public abstract class Main extends Base {
 		gl.glDisable(GL11.GL_BLEND);
 		gl.glDepthMask(true);
 	}
-
 }
