@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.11 2004-01-09 13:35:15 hoz Exp $
+ * $Id: M.java,v 1.12 2004-01-25 13:26:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,9 +35,6 @@ import jake2.util.Math3D;
  * M
  */
 public final class M {
-
-	public static void Init() {
-	}
 
 	public static void M_CheckGround(edict_t ent) {
 		float[] point = { 0, 0, 0 };
@@ -573,25 +570,4 @@ public final class M {
 		}
 	};
 	
-	public static void ForceMenuOff() {
-//	00119         m_drawfunc = 0;
-//	00120         m_keyfunc = 0;
-//	00121         cls.key_dest = key_game;
-//	00122         m_menudepth = 0;
-//	00123         Key_ClearStates ();
-//	00124         Cvar_Set ("paused", "0");
-	}
-	
-	public static void Keydown(int key) {
-//	04002         const char *s;
-//	04003 
-//	04004         if (m_keyfunc)
-//	04005                 if ( ( s = m_keyfunc( key ) ) != 0 )
-//	04006                         S_StartLocalSound( ( char * ) s );
-	}
-
-	public static void Menu_Main_f() {
-//	00490         M_PushMenu (M_Main_Draw, M_Main_Key);
-	}
-
 }

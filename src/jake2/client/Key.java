@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.16 2004-01-25 12:32:14 hoz Exp $
+ * $Id: Key.java,v 1.17 2004-01-25 13:26:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -350,11 +350,11 @@ public final class Key {
 					Key.Message(key);
 					break;
 				case Defines.key_menu:
-					M.Keydown(key);
+					Menu.Keydown(key);
 				break;
 				case Defines.key_game:
 				case Defines.key_console:
-					M.Menu_Main_f();
+					Menu.Menu_Main_f();
 				break;
 				default:
 					Com.Error(Defines.ERR_FATAL, "Bad cls.key_dest");
@@ -426,7 +426,7 @@ public final class Key {
 				Key.Message(key);
 				break;
 			case Defines.key_menu:
-				M.Keydown(key);
+				Menu.Keydown(key);
 				break;
  
 			case Defines.key_game:

@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.27 2003-12-11 15:20:03 hoz Exp $
+ * $Id: CL.java,v 1.28 2004-01-25 13:26:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -67,7 +67,7 @@ public final class CL extends Globals {
 		net_message.data = net_message_buffer;
 		net_message.maxsize = net_message_buffer.length;
 
-		M.Init();
+		Menu.Init();
 
 		SCR.Init();
 		cls.disable_screen = 1.0f; // don't draw yet
