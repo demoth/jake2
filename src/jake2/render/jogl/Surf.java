@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.5 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Surf.java,v 1.6 2005-01-09 22:34:21 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -154,15 +154,11 @@ public abstract class Surf extends Draw {
 	*/
 	void DrawGLPoly(glpoly_t p)
 	{
-		int i;
-		float[] v;
-
 		gl.glBegin(GL.GL_POLYGON);
-		for (i=0 ; i<p.numverts ; i++)
+		for (int i=0 ; i<p.numverts ; i++)
 		{
-			v = p.verts[i];
-			gl.glTexCoord2f(v[3], v[4]);
-			gl.glVertex3f(v[0], v[1], v[2]);
+			gl.glTexCoord2f(p.s1(i), p.t1(i));
+			gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 		}
 		gl.glEnd();
 	}
@@ -176,23 +172,16 @@ public abstract class Surf extends Draw {
 	*/
 	void DrawGLFlowingPoly(msurface_t fa)
 	{
-		int i;
-		float[] v;
-		glpoly_t p;
-		float scroll;
-
-		p = fa.polys;
-
-		scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
+		float scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
 		if(scroll == 0.0f)
 			scroll = -64.0f;
 
 		gl.glBegin (GL.GL_POLYGON);
-		for (i=0 ; i<p.numverts ; i++)
+		glpoly_t p = fa.polys;
+		for (int i=0 ; i<p.numverts ; i++)
 		{
-			v = p.verts[i];
-			gl.glTexCoord2f ((v[3] + scroll), v[4]);
-			gl.glVertex3f(v[0], v[1], v[2]);
+			gl.glTexCoord2f(p.s1(i) + scroll, p.t1(i));
+			gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 		}
 		gl.glEnd ();
 	}
@@ -204,9 +193,6 @@ public abstract class Surf extends Draw {
 	*/
 	void R_DrawTriangleOutlines()
 	{
-		int i, j;
-		glpoly_t	p;
-
 		if (gl_showtris.value == 0)
 			return;
 
@@ -214,28 +200,27 @@ public abstract class Surf extends Draw {
 		gl.glDisable (GL.GL_DEPTH_TEST);
 		gl.glColor4f (1,1,1,1);
 
-		for (i=0 ; i<MAX_LIGHTMAPS ; i++)
+		for (int i=0 ; i<MAX_LIGHTMAPS ; i++)
 		{
 			msurface_t surf;
 
 			for ( surf = gl_lms.lightmap_surfaces[i]; surf != null; surf = surf.lightmapchain )
 			{
-				p = surf.polys;
+				glpoly_t p = surf.polys;
 				for ( ; p != null ; p=p.chain)
 				{
-					for (j=2 ; j<p.numverts ; j++ )
+					for (int j=2 ; j<p.numverts ; j++ )
 					{
 						gl.glBegin (GL.GL_LINE_STRIP);
-						gl.glVertex3fv (p.verts[0]);
-						gl.glVertex3fv (p.verts[j-1]);
-						gl.glVertex3fv (p.verts[j]);
-						gl.glVertex3fv (p.verts[0]);
+						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
+						gl.glVertex3f(p.x(j-1), p.y(j-1), p.z(j-1));
+						gl.glVertex3f(p.x(j), p.y(j), p.z(j));
+						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
 						gl.glEnd ();
 					}
 				}
 			}
 		}
-
 		gl.glEnable (GL.GL_DEPTH_TEST);
 		gl.glEnable (GL.GL_TEXTURE_2D);
 	}
@@ -249,15 +234,11 @@ public abstract class Surf extends Draw {
 		{
 			for ( ; p != null; p = p.chain )
 			{
-				float[] v;
-				int j;
-
 				gl.glBegin(GL.GL_POLYGON);
-				for (j=0 ; j<p.numverts ; j++)
+				for (int j=0 ; j<p.numverts ; j++)
 				{
-					v = p.verts[j];
-					gl.glTexCoord2f (v[5], v[6] );
-					gl.glVertex3f(v[0], v[1], v[2]);
+					gl.glTexCoord2f (p.s2(j), p.t2(j));
+					gl.glVertex3f(p.x(j), p.y(j), p.z(j));
 				}
 				gl.glEnd();
 			}
@@ -266,15 +247,11 @@ public abstract class Surf extends Draw {
 		{
 			for ( ; p != null; p = p.chain )
 			{
-				float[] v;
-				int j;
-
 				gl.glBegin(GL.GL_POLYGON);
-				for (j=0 ; j<p.numverts ; j++)
+				for (int j=0 ; j<p.numverts ; j++)
 				{
-					v = p.verts[j];
-					gl.glTexCoord2f (v[5] - soffset, v[6] - toffset );
-					gl.glVertex3f(v[0], v[1], v[2]);
+					gl.glTexCoord2f (p.s2(j) - soffset, p.t2(j) - toffset);
+					gl.glVertex3f(p.x(j), p.y(j), p.z(j));
 				}
 				gl.glEnd();
 			}
@@ -803,13 +780,11 @@ public abstract class Surf extends Draw {
 					gl.glBegin (GL.GL_POLYGON);
 					for (i=0 ; i< nv; i++)
 					{
-						v = p.verts[i];
-						
-						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3] + scroll), v[4]);
-						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, p.s1(i) + scroll, p.t1(i));
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, p.s2(i), p.t2(i));
+						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3] + scroll, v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3f(v[0], v[1], v[2]);
+						gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 					}
 					gl.glEnd ();
 				}
@@ -821,13 +796,11 @@ public abstract class Surf extends Draw {
 					gl.glBegin (GL.GL_POLYGON);
 					for (i=0 ; i< nv; i++)
 					{
-						v = p.verts[i];
-						
-						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
-						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, p.s1(i), p.t1(i));
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, p.s2(i), p.t2(i));
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3f(v[0], v[1], v[2]);
+						gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 					}
 					gl.glEnd ();
 				}
@@ -857,13 +830,11 @@ public abstract class Surf extends Draw {
 					gl.glBegin(GL.GL_POLYGON);
 					for (i=0 ; i< nv; i++)
 					{
-						v = p.verts[i];
-						
-						gl.glMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
-						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-						// qglMTexCoord2fSGIS( GL_TEXTURE0, (v[3]+scroll), v[4]);
-						// qglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3f(v[0], v[1], v[2]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, p.s1(i) + scroll, p.t1(i));
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, p.s2(i), p.t2(i));
+						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3] + scroll, v[4]);
+						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
+						gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 					}
 					gl.glEnd();
 				}
@@ -877,13 +848,11 @@ public abstract class Surf extends Draw {
 					gl.glBegin (GL.GL_POLYGON);
 					for (i=0 ; i< nv; i++)
 					{
-						v = p.verts[i];
-
-						gl.glMultiTexCoord2fARB(GL_TEXTURE0, v[3], v[4]);
-						gl.glMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
+						gl.glMultiTexCoord2fARB(GL_TEXTURE0, p.s1(i), p.t1(i));
+						gl.glMultiTexCoord2fARB(GL_TEXTURE1, p.s2(i), p.t2(i));
 						//gglMTexCoord2fSGIS( GL_TEXTURE0, v[3], v[4]);
 						//gglMTexCoord2fSGIS( GL_TEXTURE1, v[5], v[6]);
-						gl.glVertex3f(v[0], v[1], v[2]);
+						gl.glVertex3f(p.x(i), p.y(i), p.z(i));
 					}
 					gl.glEnd ();
 				}
@@ -1477,12 +1446,11 @@ public abstract class Surf extends Draw {
 		// draw texture
 		//
 		// poly = Hunk_Alloc (sizeof(glpoly_t) + (lnumverts-4) * VERTEXSIZE*sizeof(float));
-		poly = new glpoly_t(lnumverts);
+		poly = Polygon.create(lnumverts);
 
 		poly.next = fa.polys;
 		poly.flags = fa.flags;
 		fa.polys = poly;
-		poly.numverts = lnumverts;
 
 		for (i=0 ; i<lnumverts ; i++)
 		{
@@ -1505,9 +1473,15 @@ public abstract class Surf extends Draw {
 			t /= fa.texinfo.image.height;
 
 			Math3D.VectorAdd (total, vec, total);
-			Math3D.VectorCopy (vec, poly.verts[i]);
-			poly.verts[i][3] = s;
-			poly.verts[i][4] = t;
+			//Math3D.VectorCopy (vec, poly.verts[i]);
+			poly.x(i, vec[0]);
+			poly.y(i, vec[1]);
+			poly.z(i, vec[2]);
+			
+			//poly.verts[i][3] = s;
+			//poly.verts[i][4] = t;
+			poly.s1(i, s);
+			poly.t1(i, t);
 
 			//
 			// lightmap texture coordinates
@@ -1524,12 +1498,11 @@ public abstract class Surf extends Draw {
 			t += 8;
 			t /= BLOCK_HEIGHT*16; //fa.texinfo.texture.height;
 
-			poly.verts[i][5] = s;
-			poly.verts[i][6] = t;
+			//poly.verts[i][5] = s;
+			//poly.verts[i][6] = t;
+			poly.s2(i, s);
+			poly.t2(i, t);
 		}
-
-		poly.numverts = lnumverts;
-
 	}
 
 	/*

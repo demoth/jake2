@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.4 2004-07-16 10:11:35 cawe Exp $
+ * $Id: Model.java,v 1.5 2005-01-09 22:34:21 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1149,6 +1149,8 @@ public abstract class Model extends Surf {
 	protected void R_BeginRegistration(String model)
 	{
 		cvar_t flushmap;
+		
+		Polygon.reset();
 
 		registration_sequence++;
 		r_oldviewcluster = -1;		// force markleafs
