@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.11 2003-12-02 13:16:15 hoz Exp $
+ * $Id: Cmd.java,v 1.12 2003-12-04 15:09:20 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -55,19 +55,15 @@ public final class Cmd {
 			}
 
 			byte[] f = null;
-			int len = FS.LoadFile(Cmd.Argv(1), f);
+			f = FS.LoadFile(Cmd.Argv(1));
 			if (f == null) {
 				Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
 				return;
 			}
 			Com.Printf("execing " + Cmd.Argv(1) + "\n");
 
-			byte[] f2 = Z.Malloc(len);
-			System.arraycopy(f, 0, f2, 0, f.length);
+			Cbuf.InsertText(new String(f));
 			
-			Cbuf.InsertText(new String(f2));
-			
-			Z.Free(f2);
 			FS.FreeFile(f);
 		}
 	};

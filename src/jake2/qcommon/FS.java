@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.12 2003-12-02 10:07:36 hoz Exp $
+ * $Id: FS.java,v 1.13 2003-12-04 15:09:20 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -231,73 +232,77 @@ public final class FS {
 //	*/
 	static int file_from_pak = 0;
 //	#ifndef NO_ADDONS
-	static int FOpenFile (String filename, File file)
+	static int FOpenFile(String filename, File file)
 	{
-//		searchpath_t	*search;
-//		char			netpath[MAX_OSPATH];
-//		pack_t			*pak;
-//		int				i;
-//		filelink_t		*link;
+		searchpath_t search;
+		String netpath;
+		pack_t pak;
+		int i;
+		filelink_t link;
 //
-//		file_from_pak = 0;
+		file_from_pak = 0;
 //
 //		// check for links first
-//		for (link = fs_links ; link ; link=link->next)
-//		{
+		for (link = fs_links ; link != null ; link=link.next)
+		{
 //			if (!strncmp (filename, link->from, link->fromlength))
-//			{
-//				Com_sprintf (netpath, sizeof(netpath), "%s%s",link->to, filename+link->fromlength);
-//				*file = fopen (netpath, "rb");
-//				if (*file)
-//				{		
-//					Com_DPrintf ("link file: %s\n",netpath);
-//					return FS_filelength (*file);
-//				}
-//				return -1;
-//			}
-//		}
+			if (filename.regionMatches(0, link.from, 0, link.fromlength))
+			{
+//				Com.sprintf (netpath, sizeof(netpath), "%s%s",link->to, filename+link->fromlength);
+				netpath = link.to + filename.substring(link.fromlength);
+				file = new File(netpath);
+				if (file.canRead())
+				{		
+					Com.DPrintf ("link file: " + netpath +'\n');
+					return FS.filelength(file);
+				}
+				return -1;
+			}
+		}
 //
 ////
 ////	   search through the path, one element at a time
 ////
-//		for (search = fs_searchpaths ; search ; search = search->next)
-//		{
+		for (search = fs_searchpaths ; search != null ; search = search.next)
+		{
 //		// is the element a pak file?
-//			if (search->pack)
-//			{
+			if (search.pack != null)
+			{
 //			// look through all the pak file elements
-//				pak = search->pack;
-//				for (i=0 ; i<pak->numfiles ; i++)
+				pak = search.pack;
+				for (i=0 ; i < pak.numfiles ; i++)
 //					if (!Q_strcasecmp (pak->files[i].name, filename))
-//					{	// found it!
-//						file_from_pak = 1;
-//						Com_DPrintf ("PackFile: %s : %s\n",pak->filename, filename);
+					if (filename.equalsIgnoreCase(pak.files[i].name))
+					{	// found it!
+						file_from_pak = 1;
+						Com.DPrintf ("PackFile: " + pak.filename + " : " + filename + '\n');
 //					// open a new file on the pakfile
-//						*file = fopen (pak->filename, "rb");
-//						if (!*file)
-//							Com_Error (ERR_FATAL, "Couldn't reopen %s", pak->filename);	
+						file = new File(pak.filename);
+						if (!file.canRead())
+							Com.Error(Globals.ERR_FATAL, "Couldn't reopen " + pak.filename);	
 //						fseek (*file, pak->files[i].filepos, SEEK_SET);
-//						return pak->files[i].filelen;
-//					}
-//			}
-//			else
-//			{		
+						// TODO setzte seek() fuer pakfile
+						return pak.files[i].filelen;
+					}
+			}
+			else
+			{		
 //		// check a file in the directory tree
 //			
 //				Com_sprintf (netpath, sizeof(netpath), "%s/%s",search->filename, filename);
+				netpath = search.filename + '/' + filename;
 //			
-//				*file = fopen (netpath, "rb");
-//				if (!*file)
-//					continue;
+				file = new File(netpath);
+				if (!file.canRead()) continue;
 //			
-//				Com_DPrintf ("FindFile: %s\n",netpath);
+				Com.DPrintf("FindFile: " + netpath +'\n');
 //
-//				return FS_filelength (*file);
-//			}
+				return FS.filelength(file);
+			}
 //		
-//		}
+		}
 //	
-		Com.DPrintf ("FindFile: can't find " + filename +"\n", null);
+		Com.DPrintf ("FindFile: can't find " + filename + '\n');
 //	
 		file = null;
 		return -1;
@@ -312,7 +317,7 @@ public final class FS {
 //	=================
 //	*/
 //	void CDAudio_Stop(void);
-//	#define	MAX_READ	0x10000		// read in blocks of 64k
+	static final int MAX_READ	= 0x10000; // read in blocks of 64k
 //	void FS_Read (void *buffer, int len, FILE *f)
 //	{
 //		int		block, remaining;
@@ -361,21 +366,19 @@ public final class FS {
 //	a null buffer will just return the file length without loading
 //	============
 //	*/
-//	int FS_LoadFile (char *path, void **buffer)
-//	{
+	public static byte[] LoadFile(String path)
+	{
 //		FILE	*h;
-//		byte	*buf;
-//		int		len;
-//
-//		buf = NULL;	// quiet compiler warning
+
+		byte[] buf = null;
+		int		len = 0;
+		
 //
 ////	   look for it in the filesystem or pack files
 //		len = FS_FOpenFile (path, &h);
 //		if (!h)
 //		{
-//			if (buffer)
-//				*buffer = NULL;
-//			return -1;
+	// TODO		if (!shouldLoad) return null;
 //		}
 //	
 //		if (!buffer)
@@ -391,8 +394,8 @@ public final class FS {
 //
 //		fclose (h);
 //
-//		return len;
-//	}
+		return buf;
+	}
 //
 //
 //	/*
@@ -400,10 +403,10 @@ public final class FS {
 //	FS_FreeFile
 //	=============
 //	*/
-//	void FS_FreeFile (void *buffer)
-//	{
-//		Z_Free (buffer);
-//	}
+	public static void FreeFile(byte[] buffer)
+	{
+		Z.Free(buffer);
+	}
 //
 
 	static final int IDPAKHEADER  =  (('K'<<24)+('C'<<16)+('A'<<8)+'P');
@@ -467,7 +470,7 @@ public final class FS {
 		for (int i=0; i < numpackfiles; i++) {
 			packhandle.readFully(text);
 			newfiles[i] = new packfile_t(); 
-			newfiles[i].name = new String(text, "ISO-8859-1").trim();
+			newfiles[i].name = new String(text).trim();
 			newfiles[i].filepos = packhandle.readInt();
 			newfiles[i].filelen = packhandle.readInt();
 			// TODO FS.LoadPackFile --> remove sysout 
@@ -547,7 +550,9 @@ public final class FS {
 //	FS_ExecAutoexec
 //	=============
 //	*/
+
 	public static void ExecAutoexec() {
+
 		String dir;
 		String name;
 //
@@ -671,11 +676,11 @@ public final class FS {
 //	/*
 //	** FS_ListFiles
 //	*/
-//	char **FS_ListFiles( char *findname, int *numfiles, unsigned musthave, unsigned canthave )
-//	{
+	public static String[] ListFiles( String findname, int numfiles, int musthave, int canthave )
+	{
 //		char *s;
 //		int nfiles = 0;
-//		char **list = 0;
+		String[] list = null;
 //
 //		s = Sys_FindFirst( findname, musthave, canthave );
 //		while ( s )
@@ -711,8 +716,8 @@ public final class FS {
 //		}
 //		Sys_FindClose ();
 //
-//		return list;
-//	}
+		return list;
+	}
 //
 //	/*
 //	** FS_Dir_f
@@ -879,21 +884,5 @@ public final class FS {
 		fs_gamedirvar = Cvar.Get("game", "", Cvar.LATCH | Cvar.SERVERINFO);
 		if (fs_gamedirvar.string.length() > 0)
 			SetGamedir (fs_gamedirvar.string);
-	}
-	/**
-	 * @param f
-	 */
-	public static void FreeFile(byte[] f) {
-		// TODO Auto-generated method stub
-		
-	}
-	/**
-	 * @param string
-	 * @param f
-	 * @return
-	 */
-	public static int LoadFile(String string, byte[] f) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }

@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.2 2003-11-25 15:31:38 cwei Exp $
+ * $Id: VID.java,v 1.3 2003-12-04 15:09:20 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -51,6 +51,11 @@ public class VID {
 			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10)};
 
 	static final int NUM_MODES = vid_modes.length;
+
+	//	Global variables used internally by this module
+	public static viddef_t viddef = new viddef_t();
+	// global video state; used by other modules
+
 	// TODO implement VID;
 	// es fehlen noch funktionen aus vid_so.c
 
@@ -95,9 +100,10 @@ public class VID {
 	 * @return
 	 */
 	public static boolean GetModeInfo(Dimension dim, int mode) {
-		if ( mode < 0 || mode >= NUM_MODES )  return false;
-		
-		dim.width  = vid_modes[mode].width;
+		if (mode < 0 || mode >= NUM_MODES)
+			return false;
+
+		dim.width = vid_modes[mode].width;
 		dim.height = vid_modes[mode].height;
 		return true;
 	}
@@ -107,8 +113,8 @@ public class VID {
 	 * @param height
 	 */
 	public static void NewWindow(int width, int height) {
-		// TODO Auto-generated method stub
-
+		viddef.width = width;
+		viddef.height = height;
 	}
 
 }
