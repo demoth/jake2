@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.6 2004-01-14 21:30:00 cwei Exp $
+ * $Id: Mesh.java,v 1.7 2004-01-14 22:09:43 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -279,8 +279,10 @@ public abstract class Mesh extends Warp {
 						orderIndex += 3;
 
 						//gl.glVertex3fv( s_lerped[index_xyz] );
-						vertexArrayBuf.get(tmpVec, 4 * index_xyz, 3);
-						gl.glVertex3fv( tmpVec );
+//						vertexArrayBuf.position(4 * index_xyz);
+//						vertexArrayBuf.get(tmpVec);
+//						gl.glVertex3fv( tmpVec );
+						gl.glArrayElement( index_xyz );
 
 					} while (--count != 0);
 				}
