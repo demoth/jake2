@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.40 2004-02-02 19:25:23 hoz Exp $
+ * $Id: Globals.java,v 1.41 2004-02-02 21:15:40 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.40  2004-02-02 19:25:23  hoz
+ * Revision 1.41  2004-02-02 21:15:40  hoz
+ * input kram
+ *
+ * Revision 1.40  2004/02/02 19:25:23  hoz
  * *** empty log message ***
  *
  * Revision 1.39  2004/02/02 19:13:26  rst
@@ -439,4 +442,6 @@ public class Globals extends Defines {
 	public static RandomAccessFile logfile = null;
 	
 	public static float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
+
+	public static cvar_t m_filter;
 }

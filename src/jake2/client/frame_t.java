@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.4 2004-01-31 16:56:11 rst Exp $
+// $Id: frame_t.java,v 1.5 2004-02-02 21:15:40 hoz Exp $
 
 package jake2.client;
 
@@ -34,7 +34,7 @@ public class frame_t {
 	int				servertime;		// server time the message is valid for (in msec)
 	int				deltaframe;
 	byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
-	player_state_t playerstate = new player_state_t();
+	public player_state_t playerstate = new player_state_t();
 	int				num_entities;
 	int				parse_entities;	// non-masked index into cl_parse_entities array
 	

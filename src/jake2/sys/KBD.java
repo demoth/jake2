@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.10 2004-02-02 13:12:13 hoz Exp $
+ * $Id: KBD.java,v 1.11 2004-02-02 21:19:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -125,7 +125,6 @@ public final class KBD {
 		if (mx != 0 || my != 0) {
 			// move the mouse to the window center again
 			robot.mouseMove(win_x + win_w2, win_y + win_h2);
-//		00542                 XWarpPointer(dpy,None,win,0,0,0,0, vid.width/2,vid.height/2);
 		}		
 	}
 

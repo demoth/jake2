@@ -2,7 +2,7 @@
  * RW.java
  * Copyright (C) 2004
  * 
- * $Id: RW.java,v 1.1 2004-01-12 21:52:52 hoz Exp $
+ * $Id: RW.java,v 1.2 2004-02-02 21:19:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,46 +25,65 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
+import jake2.Globals;
+import jake2.client.CL;
+import jake2.client.Key;
+import jake2.game.Cmd;
+import jake2.game.usercmd_t;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.xcommand_t;
+
 /**
  * RW
  */
-public final class RW {
-
+public final class RW extends Globals {
+	static int mouse_buttonstate;
+	static int mouse_oldbuttonstate;
+	static int old_mouse_x;
+	static int old_mouse_y;
+	static boolean mlooking;
+	
 	static void IN_MLookDown() { 
-//	00285         mlooking = true; 
+		mlooking = true; 
 	}
  
 	static void IN_MLookUp() {
-//	00290         mlooking = false;
-//	00291         in_state->IN_CenterView_fp ();
+		mlooking = false;
+		IN.CenterView();
 	}
  
 	static void IN_Init(/*in_state_t in_state_p*/) {
-//	00296         int mtype;
-//	00297         int i;
-//	00298 
-//	00299         in_state = in_state_p;
-//	00300 
-//	00301         // mouse variables
-//	00302         m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-//	00303     in_mouse = ri.Cvar_Get ("in_mouse", "0", CVAR_ARCHIVE);
-//	00304     in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
-//	00305         freelook = ri.Cvar_Get( "freelook", "0", 0 );
-//	00306         lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
-//	00307         sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
-//	00308         m_pitch = ri.Cvar_Get ("m_pitch", "0.022", 0);
-//	00309         m_yaw = ri.Cvar_Get ("m_yaw", "0.022", 0);
-//	00310         m_forward = ri.Cvar_Get ("m_forward", "1", 0);
-//	00311         m_side = ri.Cvar_Get ("m_side", "0.8", 0);
-//	00312 
-//	00313         ri.Cmd_AddCommand ("+mlook", RW_IN_MLookDown);
-//	00314         ri.Cmd_AddCommand ("-mlook", RW_IN_MLookUp);
-//	00315 
-//	00316         ri.Cmd_AddCommand ("force_centerview", Force_CenterView_f);
-//	00317 
-//	00318         mouse_avail = true;
+		int mtype;
+		int i;
+
+//		in_state = in_state_p;
+
+		// mouse variables
+		m_filter = Cvar.Get("m_filter", "0", 0);
+		in_mouse = Cvar.Get("in_mouse", "1", CVAR_ARCHIVE);
+		freelook = Cvar.Get("freelook", "0", 0 );
+		lookstrafe = Cvar.Get("lookstrafe", "0", 0);
+		sensitivity = Cvar.Get("sensitivity", "3", 0);
+		m_pitch = Cvar.Get("m_pitch", "0.022", 0);
+		m_yaw = Cvar.Get("m_yaw", "0.022", 0);
+		m_forward = Cvar.Get("m_forward", "1", 0);
+		m_side = Cvar.Get("m_side", "0.8", 0);
+
+		Cmd.AddCommand("+mlook", new xcommand_t() {
+			public void execute() {IN_MLookDown();}});
+		Cmd.AddCommand("-mlook", new xcommand_t() {
+			public void execute() {IN_MLookUp();}});
+			
+		Cmd.AddCommand ("force_centerview", new xcommand_t() {
+			public void execute() {Force_CenterView_f();}});
+
+		IN.mouse_avail = true;
 	}
- 
+	
+	static void Force_CenterView_f() {
+		IN.viewangles[PITCH] = 0;
+	}
+	 
 	public static void IN_Shutdown() {
 		IN.mouse_avail = false;
 	}
@@ -80,58 +99,52 @@ public final class RW {
 	}
 	
 	static void IN_Commands() {
-//	00333         int i;
-//	00334    
-//	00335         if (!mouse_avail) 
-//	00336                 return;
-//	00337    
-//	00338         for (i=0 ; i<3 ; i++) {
-//	00339                 if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
-//	00340                         in_state->Key_Event_fp (K_MOUSE1 + i, true);
-//	00341 
-//	00342                 if ( !(mouse_buttonstate & (1<<i)) && (mouse_oldbuttonstate & (1<<i)) )
-//	00343                         in_state->Key_Event_fp (K_MOUSE1 + i, false);
-//	00344         }
-//	00345         mouse_oldbuttonstate = mouse_buttonstate;
+		int i;
+   
+		if (!IN.mouse_avail) 
+			return;
+ 
+		for (i=0 ; i<3 ; i++) {
+			if ( (mouse_buttonstate & (1<<i)) != 0 && (mouse_oldbuttonstate & (1<<i)) == 0 )
+				KBD.Do_Key_Event(Key.K_MOUSE1 + i, true);
+
+			if ( (mouse_buttonstate & (1<<i)) == 0 && (mouse_oldbuttonstate & (1<<i)) != 0 )
+				KBD.Do_Key_Event(Key.K_MOUSE1 + i, false);
+		}
+		mouse_oldbuttonstate = mouse_buttonstate;
 	}
 
-//	00348 /*
-//	00349 ===========
-//	00350 IN_Move
-//	00351 ===========
-//	00352 */
-	static void IN_Move(/*usercmd_t *cmd*/) {
-//	00355         if (!mouse_avail)
-//	00356                 return;
-//	00357    
-//	00358         if (m_filter->value)
-//	00359         {
-//	00360                 mx = (mx + old_mouse_x) * 0.5;
-//	00361                 my = (my + old_mouse_y) * 0.5;
-//	00362         }
-//	00363 
-//	00364         old_mouse_x = mx;
-//	00365         old_mouse_y = my;
-//	00366 
-//	00367         mx *= sensitivity->value;
-//	00368         my *= sensitivity->value;
-//	00369 
-//	00370 // add mouse X/Y movement to cmd
-//	00371         if ( (*in_state->in_strafe_state & 1) || 
-//	00372                 (lookstrafe->value && mlooking ))
-//	00373                 cmd->sidemove += m_side->value * mx;
-//	00374         else
-//	00375                 in_state->viewangles[YAW] -= m_yaw->value * mx;
-//	00376 
-//	00377         if ( (mlooking || freelook->value) && 
-//	00378                 !(*in_state->in_strafe_state & 1))
-//	00379         {
-//	00380                 in_state->viewangles[PITCH] += m_pitch->value * my;
-//	00381         }
-//	00382         else
-//	00383         {
-//	00384                 cmd->forwardmove -= m_forward->value * my;
-//	00385         }
-//	00386         mx = my = 0;
+	/*
+	===========
+	IN_Move
+	===========
+	*/
+	static void IN_Move(usercmd_t cmd) {
+		if (!IN.mouse_avail)
+			return;
+
+		if (m_filter.value != 0.0f) {
+			KBD.mx = (KBD.mx + old_mouse_x) / 2;
+			KBD.my = (KBD.my + old_mouse_y) / 2;
+		}
+
+		old_mouse_x = KBD.mx;
+		old_mouse_y = KBD.my;
+
+		KBD.mx = (int)(KBD.mx * sensitivity.value);
+		KBD.my = (int)(KBD.mx * sensitivity.value);
+
+		// add mouse X/Y movement to cmd
+		if ( (CL.in_strafe.state & 1) != 0 || ((lookstrafe.value != 0) && mlooking ))
+			cmd.sidemove += m_side.value * KBD.mx;
+		else
+			IN.viewangles[YAW] -= m_yaw.value * KBD.mx;
+
+		if ( (mlooking || freelook.value != 0.0f) && (CL.in_strafe.state & 1) == 0) {
+			IN.viewangles[PITCH] += m_pitch.value * KBD.my;
+		} else {
+			cmd.forwardmove -= m_forward.value * KBD.my;
+		}
+		KBD.mx = KBD.my = 0;
 	}	
 }

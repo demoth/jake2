@@ -2,7 +2,7 @@
  * kbutton_t.java
  * Copyright (C) 2004
  * 
- * $Id: kbutton_t.java,v 1.1 2004-02-01 12:42:11 hoz Exp $
+ * $Id: kbutton_t.java,v 1.2 2004-02-02 21:15:40 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,5 +32,5 @@ public class kbutton_t {
 	int[] down = new int[2];	// key nums holding it down
 	long downtime;				// msec timestamp
 	long msec;					// msec down this frame
-	int state;
+	public int state;
 }

@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.17 2004-02-02 19:25:23 hoz Exp $
+ * $Id: CL_main.java,v 1.18 2004-02-02 21:15:40 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,6 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.server.SV;
 import jake2.server.SV_MAIN;
 import jake2.sys.*;
 import jake2.util.Vargs;

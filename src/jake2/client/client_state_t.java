@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.14 2004-02-02 19:25:23 hoz Exp $
+//$Id: client_state_t.java,v 1.15 2004-02-02 21:15:40 hoz Exp $
 
 package jake2.client;
 
@@ -60,7 +60,7 @@ public class client_state_t {
 	float[] predicted_angles;
 	float[] prediction_error;
 
-	frame_t frame = new frame_t(); // received from server
+	public frame_t frame = new frame_t(); // received from server
 	int surpressCount; // number of messages rate supressed
 	frame_t frames[] = new frame_t[Defines.UPDATE_BACKUP];
 
@@ -69,7 +69,7 @@ public class client_state_t {
 	// the server sends a delta each frame which is added to the locally
 	// tracked view angles to account for standing on rotating objects,
 	// and teleport direction changes
-	float[] viewangles = { 0, 0, 0 };
+	public float[] viewangles = { 0, 0, 0 };
 
 	int time; // this is the time value that the client
 	// is rendering at.  always <= cls.realtime

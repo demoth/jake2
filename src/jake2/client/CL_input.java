@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.6 2004-02-02 12:01:28 hoz Exp $
+ * $Id: CL_input.java,v 1.7 2004-02-02 21:15:40 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -78,7 +78,7 @@ public class CL_input extends CL_tent {
 	static kbutton_t in_lookdown = new kbutton_t();
 	static kbutton_t in_moveleft = new kbutton_t();
 	static kbutton_t in_moveright = new kbutton_t();
-	static kbutton_t in_strafe = new kbutton_t();
+	public static kbutton_t in_strafe = new kbutton_t();
 	static kbutton_t in_speed = new kbutton_t();
 	static kbutton_t in_use = new kbutton_t();
 	static kbutton_t in_attack = new kbutton_t();

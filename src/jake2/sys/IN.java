@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.16 2004-02-02 19:25:23 hoz Exp $
+ * $Id: IN.java,v 1.17 2004-02-02 21:19:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,6 +44,8 @@ public final class IN extends Globals {
 	static boolean mouse_avail = true;
 	static boolean mouse_active = false;
 	static boolean ignorefirst = false;
+	
+	static float[] viewangles = cl.viewangles;
 
 	public static void ActivateMouse() {
 		//		if (!mouse_avail || c == null) return;
@@ -85,7 +87,6 @@ public final class IN extends Globals {
 	}
 
 	public static void Init() {
-
 		in_mouse = Cvar.Get("in_mouse", "1", CVAR_ARCHIVE);
 		in_joystick = Cvar.Get("in_joystick", "0", CVAR_ARCHIVE);
 	}
@@ -95,20 +96,12 @@ public final class IN extends Globals {
 	}
 
 	public static void Real_IN_Init() {
-		//	00473         if (RW_IN_Init_fp)
-		//	00474                 RW_IN_Init_fp(&in_state);
+		RW.IN_Init();
 	}
 
 	public static void Commands() {
-		//	00485         if (RW_IN_Commands_fp)
-		//	00486                 RW_IN_Commands_fp();
+		RW.IN_Commands();
 	}
-
-	//	00489 void IN_Move (usercmd_t *cmd)
-	//	00490 {
-	//	00491         if (RW_IN_Move_fp)
-	//	00492                 RW_IN_Move_fp(cmd);
-	//	00493 }
 
 	public static void Frame() {
 
@@ -122,15 +115,13 @@ public final class IN extends Globals {
 
 	public static void Activate(boolean active) {
 	}
-//
-//
+
 	public static void CenterView() {
-//		cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
+		cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 	}
 	
 	public static void Move(usercmd_t cmd) {
-//	00491         if (RW_IN_Move_fp)
-//	00492                 RW_IN_Move_fp(cmd);
+		RW.IN_Move(cmd);
 	}
 
 }
