@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.5 2004-07-09 06:50:50 hzi Exp $
+ * $Id: CL.java,v 1.6 2004-07-30 06:03:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -249,7 +249,7 @@ public final class CL extends CL_pred {
 		public void execute() {
 				// never pause in multiplayer
 
-	if (Cvar.VariableValue("maxclients") > 1 || Com.ServerState() == 0) {
+	if (Cvar.VariableValue("maxclients") > 1 || Globals.server_state == 0) {
 				Cvar.SetValue("paused", 0);
 				return;
 			}
@@ -312,7 +312,7 @@ public final class CL extends CL_pred {
 
 		// if the local server is running and we aren't
 		// then connect
-		if (cls.state == ca_disconnected && Com.ServerState() != 0) {
+		if (cls.state == ca_disconnected && Globals.server_state != 0) {
 			cls.state = ca_connecting;
 			cls.servername = "localhost";
 			// we don't need a challenge on the localhost
@@ -358,7 +358,7 @@ public final class CL extends CL_pred {
 				return;
 			}
 		
-			if (Com.ServerState() != 0) {
+			if (Globals.server_state != 0) {
 				// if running a local server, kill it and reissue
 				SV_MAIN.SV_Shutdown("Server quit\n", false);
 			} else {

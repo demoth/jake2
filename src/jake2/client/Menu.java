@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.5 2004-07-23 10:02:49 hzi Exp $
+ * $Id: Menu.java,v 1.6 2004-07-30 06:03:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -158,7 +158,7 @@ public final class Menu extends Key {
 	static void PushMenu(xcommand_t draw, keyfunc_t key) { //, String(*key) (int k) ) {
 		int i;
 
-		if (Cvar.VariableValue("maxclients") == 1 && Com.ServerState() != 0)
+		if (Cvar.VariableValue("maxclients") == 1 && Globals.server_state != 0)
 			Cvar.Set("paused", "1");
 
 		// if this menu is already present, drop back to that level
@@ -2475,7 +2475,7 @@ public final class Menu extends Key {
 		}
 	};
 	static void Menu_SaveGame_f() {
-		if (0 == Com.ServerState())
+		if (0 == Globals.server_state)
 			return; // not playing a game
 
 		SaveGame_MenuInit();
@@ -2800,7 +2800,7 @@ public final class Menu extends Key {
 		}
 
 		if (spot != null) {
-			if (Com.ServerState() != 0)
+			if (Globals.server_state != 0)
 				Cbuf.AddText("disconnect\n");
 			Cbuf.AddText("gamemap \"*" + startmap + "$" + spot + "\"\n");
 		}

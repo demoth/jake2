@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.7 2004-07-23 22:38:51 hzi Exp $
+ * $Id: CL_parse.java,v 1.8 2004-07-30 06:03:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.entity_state_t;
 import jake2.qcommon.*;
@@ -315,7 +316,7 @@ public class CL_parse extends CL_view {
 		cls.serverProtocol = i;
 
 		// BIG HACK to let demos from release work with the 3.0x patch!!!
-		if (Com.ServerState() != 0 && PROTOCOL_VERSION == 34) {
+		if (Globals.server_state != 0 && PROTOCOL_VERSION == 34) {
 		}
 		else if (i != PROTOCOL_VERSION)
 			Com.Error(ERR_DROP, "Server returned version " + i + ", not " + PROTOCOL_VERSION);

@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.3 2004-07-19 19:20:22 hzi Exp $
+ * $Id: Console.java,v 1.4 2004-07-30 06:03:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -66,7 +66,7 @@ public final class Console extends Globals {
 				Menu.ForceMenuOff();
 				Globals.cls.key_dest = Defines.key_console;     
 
-				if (Cvar.VariableValue("maxclients") == 1 && Com.ServerState()!= 0)
+				if (Cvar.VariableValue("maxclients") == 1 && Globals.server_state!= 0)
 					Cvar.Set("paused", "1");
 			}
 		}
