@@ -19,7 +19,7 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.7 2004-12-06 14:23:04 hzi Exp $
+// $Id: SV_USER.java,v 1.8 2005-02-06 19:28:16 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -165,13 +165,12 @@ public class SV_USER {
         gamedir = Cvar.VariableString("gamedir");
 
         // send the serverdata
-        MSG
-                .WriteByte(SV_MAIN.sv_client.netchan.message,
+        MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                         Defines.svc_serverdata);
         MSG.WriteInt(SV_MAIN.sv_client.netchan.message,
                 Defines.PROTOCOL_VERSION);
-        MSG
-                .WriteLong(SV_MAIN.sv_client.netchan.message,
+        
+        MSG.WriteLong(SV_MAIN.sv_client.netchan.message,
                         SV_INIT.svs.spawncount);
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                 SV_INIT.sv.attractloop ? 1 : 0);
@@ -206,7 +205,7 @@ public class SV_USER {
             MSG.WriteString(SV_MAIN.sv_client.netchan.message,
                     "cmd configstrings " + SV_INIT.svs.spawncount + " 0\n");
         }
-
+        
     }
 
     /*
@@ -475,8 +474,8 @@ public class SV_USER {
 
         //ZOID, ss_pic can be nextserver'd in coop mode
         if (SV_INIT.sv.state == Defines.ss_game
-                || (SV_INIT.sv.state == Defines.ss_pic && 0 == Cvar
-                        .VariableValue("coop")))
+                || (SV_INIT.sv.state == Defines.ss_pic && 
+                        0 == Cvar.VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
         SV_INIT.svs.spawncount++; // make sure another doesn't sneak in
@@ -513,6 +512,8 @@ public class SV_USER {
      * ================== SV_ExecuteUserCommand ==================
      */
     public static void SV_ExecuteUserCommand(String s) {
+        
+        Com.dprintln("SV_ExecuteUserCommand:" + s );
         SV_USER.ucmd_t u = null;
 
         Cmd.TokenizeString(s.toCharArray(), true);

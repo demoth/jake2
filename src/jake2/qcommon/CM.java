@@ -19,7 +19,7 @@
  */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.9 2005-01-21 00:46:54 cawe Exp $
+// $Id: CM.java,v 1.10 2005-02-06 19:25:14 salomo Exp $
 package jake2.qcommon;
 
 import jake2.Defines;
@@ -216,7 +216,7 @@ public class CM {
      */
     public static cmodel_t CM_LoadMap(String name, boolean clientload,
             int checksum[]) {
-        Com.DPrintf("CM_LoadMap...\n");
+        Com.DPrintf("CM_LoadMap(" + name + ")...\n");
         byte buf[];
         int i;
         qfiles.dheader_t header;
@@ -279,7 +279,7 @@ public class CM {
         cmod_base = buf;
 
         // load into heap
-        CMod_LoadSurfaces(header.lumps[Defines.LUMP_TEXINFO]); // ok.
+        CMod_LoadSurfaces(header.lumps[Defines.LUMP_TEXINFO]); // ok        
         CMod_LoadLeafs(header.lumps[Defines.LUMP_LEAFS]);
         CMod_LoadLeafBrushes(header.lumps[Defines.LUMP_LEAFBRUSHES]);
         CMod_LoadPlanes(header.lumps[Defines.LUMP_PLANES]);
@@ -288,11 +288,11 @@ public class CM {
         CMod_LoadSubmodels(header.lumps[Defines.LUMP_MODELS]);
 
         CMod_LoadNodes(header.lumps[Defines.LUMP_NODES]);
-        CMod_LoadAreas(header.lumps[Defines.LUMP_AREAS]);
-        CMod_LoadAreaPortals(header.lumps[Defines.LUMP_AREAPORTALS]);
+        CMod_LoadAreas(header.lumps[Defines.LUMP_AREAS]);    
+        CMod_LoadAreaPortals(header.lumps[Defines.LUMP_AREAPORTALS]);       
         CMod_LoadVisibility(header.lumps[Defines.LUMP_VISIBILITY]);
         CMod_LoadEntityString(header.lumps[Defines.LUMP_ENTITIES]);
-
+        
         FS.FreeFile(buf);
 
         CM_InitBoxHull();
@@ -318,13 +318,13 @@ public class CM {
      * ================= CMod_LoadSubmodels =================
      */
     public static void CMod_LoadSubmodels(lump_t l) {
-        Com.DPrintf("CMod_LoadSubmodels...\n");
+        Com.DPrintf("CMod_LoadSubmodels()\n");
         qfiles.dmodel_t in;
         cmodel_t out;
         int i, j, count;
 
         if ((l.filelen % qfiles.dmodel_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            Com.Error(Defines.ERR_DROP, "CMod_LoadBmodel: funny lump size");
 
         count = l.filelen / qfiles.dmodel_t.SIZE;
 
@@ -333,7 +333,7 @@ public class CM {
         if (count > Defines.MAX_MAP_MODELS)
             Com.Error(Defines.ERR_DROP, "Map has too many models");
 
-        Com.DPrintf("   numcmodels=" + count + "\n");
+        Com.DPrintf(" numcmodels=" + count + "\n");
         numcmodels = count;
 
         if (debugloadmap) {
@@ -370,7 +370,7 @@ public class CM {
      * ================= CMod_LoadSurfaces =================
      */
     public static void CMod_LoadSurfaces(lump_t l) {
-        Com.DPrintf("CMod_LoadSurfaces...\n");
+        Com.DPrintf("CMod_LoadSurfaces()\n");
         texinfo_t in;
         mapsurface_t out;
         int i, count;
@@ -385,7 +385,7 @@ public class CM {
             Com.Error(Defines.ERR_DROP, "Map has too many surfaces");
 
         numtexinfo = count;
-        Com.DPrintf("numtexinfo=" + count + "\n");
+        Com.DPrintf(" numtexinfo=" + count + "\n");
         if (debugloadmap)
             Com.DPrintf("surfaces:\n");
 
@@ -414,7 +414,7 @@ public class CM {
      * =================
      */
     public static void CMod_LoadNodes(lump_t l) {
-        Com.DPrintf("CMod_LoadNodes...\n");
+        Com.DPrintf("CMod_LoadNodes()\n");
         qfiles.dnode_t in;
         int child;
         cnode_t out;
@@ -431,7 +431,7 @@ public class CM {
             Com.Error(Defines.ERR_DROP, "Map has too many nodes");
 
         numnodes = count;
-        Com.DPrintf("   numnodes=" + count + "\n");
+        Com.DPrintf(" numnodes=" + count + "\n");
 
         if (debugloadmap) {
             Com.DPrintf("nodes(planenum, child[0], child[1])\n");
@@ -460,7 +460,7 @@ public class CM {
      * =================
      */
     public static void CMod_LoadBrushes(lump_t l) {
-        Com.DPrintf("CMod_LoadBrushes...\n");
+        Com.DPrintf("CMod_LoadBrushes()\n");
         qfiles.dbrush_t in;
         cbrush_t out;
         int i, count;
@@ -474,7 +474,7 @@ public class CM {
             Com.Error(Defines.ERR_DROP, "Map has too many brushes");
 
         numbrushes = count;
-        Com.DPrintf("   numbrushes=" + count + "\n");
+        Com.DPrintf(" numbrushes=" + count + "\n");
         if (debugloadmap) {
             Com.DPrintf("brushes:(firstbrushside, numsides, contents)\n");
         }
@@ -499,7 +499,7 @@ public class CM {
      * ================= CMod_LoadLeafs =================
      */
     public static void CMod_LoadLeafs(lump_t l) {
-        Com.DPrintf("CMod_LoadLeafs...\n");
+        Com.DPrintf("CMod_LoadLeafs()\n");
         int i;
         cleaf_t out;
         qfiles.dleaf_t in;
@@ -517,13 +517,12 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             Com.Error(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.DPrintf("   numleafes=" + count + "\n");
+        Com.DPrintf(" numleafes=" + count + "\n");
 
         numleafs = count;
         numclusters = 0;
         if (debugloadmap)
-            Com
-                    .DPrintf("cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
+            Com.DPrintf("cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
         for (i = 0; i < count; i++) {
             in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE
                     + l.fileofs, qfiles.dleaf_t.SIZE);
@@ -547,7 +546,7 @@ public class CM {
 
         }
 
-        Com.DPrintf("   numclusters=" + numclusters + "\n");
+        Com.DPrintf(" numclusters=" + numclusters + "\n");
 
         if (map_leafs[0].contents != Defines.CONTENTS_SOLID)
             Com.Error(Defines.ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
@@ -570,7 +569,7 @@ public class CM {
      * ================= CMod_LoadPlanes =================
      */
     public static void CMod_LoadPlanes(lump_t l) {
-        Com.DPrintf("CMod_LoadPlanes...\n");
+        Com.DPrintf("CMod_LoadPlanes()\n");
         int i, j;
         cplane_t out;
         qfiles.dplane_t in;
@@ -589,7 +588,7 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             Com.Error(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.DPrintf("   numplanes=" + count + "\n");
+        Com.DPrintf(" numplanes=" + count + "\n");
 
         numplanes = count;
         if (debugloadmap) {
@@ -628,7 +627,7 @@ public class CM {
      * ================= CMod_LoadLeafBrushes =================
      */
     public static void CMod_LoadLeafBrushes(lump_t l) {
-        Com.DPrintf("CMod_LoadLeafBrushes...\n");
+        Com.DPrintf("CMod_LoadLeafBrushes()\n");
         int i;
         int out[];
         short in[];
@@ -639,7 +638,7 @@ public class CM {
 
         count = l.filelen / 2;
 
-        Com.DPrintf("   numbrushes=" + count + "\n");
+        Com.DPrintf(" numbrushes=" + count + "\n");
 
         if (count < 1)
             Com.Error(Defines.ERR_DROP, "Map with no planes");
@@ -670,7 +669,7 @@ public class CM {
      * ================= CMod_LoadBrushSides =================
      */
     public static void CMod_LoadBrushSides(lump_t l) {
-        Com.DPrintf("CMod_LoadBrushSides...\n");
+        Com.DPrintf("CMod_LoadBrushSides()\n");
         int i, j;
         cbrushside_t out;
         qfiles.dbrushside_t in;
@@ -687,7 +686,7 @@ public class CM {
 
         numbrushsides = count;
 
-        Com.DPrintf("   numbrushsides=" + count + "\n");
+        Com.DPrintf(" numbrushsides=" + count + "\n");
 
         if (debugloadmap) {
             Com.DPrintf("brushside(planenum, surfacenum):\n");
@@ -727,7 +726,7 @@ public class CM {
      * ================= CMod_LoadAreas =================
      */
     public static void CMod_LoadAreas(lump_t l) {
-        Com.DPrintf("CMod_LoadAreas...\n");
+        Com.DPrintf("CMod_LoadAreas()\n");
         int i;
         carea_t out;
         qfiles.darea_t in;
@@ -741,7 +740,7 @@ public class CM {
         if (count > Defines.MAX_MAP_AREAS)
             Com.Error(Defines.ERR_DROP, "Map has too many areas");
 
-        Com.DPrintf("   numareas=" + count + "\n");
+        Com.DPrintf(" numareas=" + count + "\n");
         numareas = count;
 
         if (debugloadmap) {
@@ -769,7 +768,7 @@ public class CM {
      * ================= CMod_LoadAreaPortals =================
      */
     public static void CMod_LoadAreaPortals(lump_t l) {
-        Com.DPrintf("CMod_LoadAreaPortals...\n");
+        Com.DPrintf("CMod_LoadAreaPortals()\n");
         int i;
         qfiles.dareaportal_t out;
         qfiles.dareaportal_t in;
@@ -783,7 +782,7 @@ public class CM {
             Com.Error(Defines.ERR_DROP, "Map has too many areas");
 
         numareaportals = count;
-        Com.DPrintf("   numareaportals=" + count + "\n");
+        Com.DPrintf(" numareaportals=" + count + "\n");
         if (debugloadmap) {
             Com.DPrintf("areaportals(portalnum, otherarea)\n");
         }
@@ -808,12 +807,12 @@ public class CM {
      * ================= CMod_LoadVisibility =================
      */
     public static void CMod_LoadVisibility(lump_t l) {
-        Com.DPrintf("CMod_LoadVisibility...\n");
+        Com.DPrintf("CMod_LoadVisibility()\n");
         int i;
 
         numvisibility = l.filelen;
 
-        Com.DPrintf("   numvisibility=" + numvisibility + "\n");
+        Com.DPrintf(" numvisibility=" + numvisibility + "\n");
 
         if (l.filelen > Defines.MAX_MAP_VISIBILITY)
             Com.Error(Defines.ERR_DROP, "Map has too large visibility lump");
@@ -831,7 +830,7 @@ public class CM {
      * ================= CMod_LoadEntityString =================
      */
     public static void CMod_LoadEntityString(lump_t l) {
-        Com.DPrintf("CMod_LoadEntityString...\n");
+        Com.DPrintf("CMod_LoadEntityString()\n");
 
         numentitychars = l.filelen;
 
@@ -839,10 +838,12 @@ public class CM {
             Com.Error(Defines.ERR_DROP, "Map has too large entity lump");
 
         int x = 0;
-        for (; x < l.filelen && cmod_base[x + l.fileofs] != 0; x++)
-            ;
+        for (; x < l.filelen && cmod_base[x + l.fileofs] != 0; x++);
 
         map_entitystring = new String(cmod_base, l.fileofs, x).trim();
+        Com.dprintln("entitystring=" + map_entitystring.length() + 
+                " bytes, [" + map_entitystring.substring(0, Math.min (
+                        map_entitystring.length(), 15)) + "...]" );
     }
 
     /*
