@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.14 2004-02-25 13:20:29 hoz Exp $
+ * $Id: CL_ents.java,v 1.15 2004-04-20 17:42:31 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1268,7 +1268,7 @@ public class CL_ents extends CL_inv {
 	Called to get the sound spatialization origin
 	===============
 	*/
-	void GetEntitySoundOrigin(int ent, float[] org) {
+	public static void GetEntitySoundOrigin(int ent, float[] org) {
 		centity_t old;
 
 		if (ent < 0 || ent >= MAX_EDICTS)

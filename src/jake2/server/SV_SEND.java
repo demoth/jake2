@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.9 2004-03-16 21:00:34 cwei Exp $
+// $Id: SV_SEND.java,v 1.10 2004-04-20 17:42:31 cwei Exp $
 
 package jake2.server;
 
@@ -287,7 +287,7 @@ public class SV_SEND extends SV_MAIN {
 		int flags;
 		int i;
 		int ent;
-		float[] origin_v = null;
+		float[] origin_v = {0,0,0};
 		boolean use_phs;
 
 		if (volume < 0 || volume > 1.0)

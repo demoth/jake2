@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.23 2004-04-15 08:08:26 hoz Exp $
+ * $Id: CL_parse.java,v 1.24 2004-04-20 17:42:31 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -557,7 +557,7 @@ public class CL_parse extends CL_view {
 		}
 		else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_MODELS) {
 			if (cl.refresh_prepped)
-				cl.sound_precache[i - CS_SOUNDS] = SND_DMA.RegisterSound(cl.configstrings[i]);
+				cl.sound_precache[i - CS_SOUNDS] = S.RegisterSound(cl.configstrings[i]);
 		}
 		else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_MODELS) {
 			if (cl.refresh_prepped)
@@ -634,7 +634,7 @@ public class CL_parse extends CL_view {
 		if (null==cl.sound_precache[sound_num])
 			return;
 
-		SND_DMA.StartSound(pos, ent, channel, cl.sound_precache[sound_num], volume, attenuation, ofs);
+		S.StartSound(pos, ent, channel, cl.sound_precache[sound_num], volume, attenuation, ofs);
 	}
 
 	public static void SHOWNET(String s) {
@@ -711,7 +711,7 @@ public class CL_parse extends CL_view {
 				case svc_print :
 					i = MSG.ReadByte(net_message);
 					if (i == PRINT_CHAT) {
-						SND_DMA.StartLocalSound("misc/talk.wav");
+						S.StartLocalSound("misc/talk.wav");
 						con.ormask = 128;
 					}
 					Com.Printf(MSG.ReadString(net_message));
