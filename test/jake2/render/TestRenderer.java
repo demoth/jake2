@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.25 2004-01-28 10:32:10 hoz Exp $
+ * $Id: TestRenderer.java,v 1.26 2004-02-11 17:29:52 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -227,7 +227,7 @@ public class TestRenderer {
 	void run() {
 		startTime = System.currentTimeMillis();
 		while (true) {
-			re.updateScreen();
+			re.updateScreen(null);
 			KBD.Update();
 			Cbuf.Execute();
 			try {
