@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.7 2004-02-29 00:51:05 rst Exp $
+// $Id: client_respawn_t.java,v 1.8 2004-03-18 10:02:52 hoz Exp $
 
 package jake2.game;
 
@@ -42,7 +42,7 @@ public class client_respawn_t
 		coop_respawn.set(from.coop_respawn);
 		enterframe = from.enterframe;
 		score = from.score;
-		cmd_angles = Lib.clone(cmd_angles);
+		cmd_angles = Lib.clone(from.cmd_angles);
 		spectator = from.spectator;
 	}
 
