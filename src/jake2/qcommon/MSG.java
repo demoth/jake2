@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.22 2004-02-14 14:05:27 cwei Exp $
+// $Id: MSG.java,v 1.23 2004-02-14 20:53:19 rst Exp $
 
 package jake2.qcommon;
 
@@ -411,16 +411,16 @@ public class MSG extends GameBase {
 		msg.readcount = 0;
 	}
 
-	// returns -1 if no more characters are available
+	// returns -1 if no more characters are available, but also [-128 , 127]
 	public static int ReadChar(sizebuf_t msg_read) {
 		int c;
 
 		if (msg_read.readcount + 1 > msg_read.cursize)
 			c = -1;
 		else
-			c = 0xff & msg_read.data[msg_read.readcount];
+			c = msg_read.data[msg_read.readcount];
 		msg_read.readcount++;
-
+		// kickangles bugfix (rst)
 		return c;
 	}
 

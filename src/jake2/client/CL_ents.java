@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.9 2004-02-13 21:04:38 rst Exp $
+ * $Id: CL_ents.java,v 1.10 2004-02-14 20:53:19 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -417,9 +417,11 @@ public class CL_ents extends CL_inv {
 		}
 
 		if ((flags & PS_KICKANGLES) != 0) {
+			
 			state.kick_angles[0] = MSG.ReadChar(net_message) * 0.25f;
 			state.kick_angles[1] = MSG.ReadChar(net_message) * 0.25f;
 			state.kick_angles[2] = MSG.ReadChar(net_message) * 0.25f;
+			
 		}
 
 		if ((flags & PS_WEAPONINDEX) != 0) {
