@@ -2,7 +2,7 @@
  * SND_MIX.java
  * Copyright (C) 2004
  * 
- * $Id: SND_MIX.java,v 1.2 2004-06-17 12:10:44 hoz Exp $
+ * $Id: SND_MIX.java,v 1.3 2004-06-17 12:32:18 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -468,7 +468,9 @@ public class SND_MIX extends SND_MEM {
 
 		leftvol = ch.leftvol*snd_vol;
 		rightvol = ch.rightvol*snd_vol;
-		sb = ByteBuffer.wrap(sc.data).asShortBuffer();
+		ByteBuffer bb = ByteBuffer.wrap(sc.data);
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		sb = bb.asShortBuffer();
 		sfx = ch.pos;
 
 		//samp = paintbuffer[offset];
