@@ -38,6 +38,12 @@
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/joal-native.jar"/>
 	</resources>
 
+	<resources os="Mac OS X">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<jar href="http://jake2.sourceforge.net/lib/osx/joal.jar"/>
+		<nativelib href="http://jake2.sourceforge.net/lib/osx/joal-native.jar"/>		
+	</resources>
+	
 	<application-desc main-class="jake2.Jake2"/> 
 
 </jnlp>

@@ -85,7 +85,12 @@
 			<fileset dir="lib/joal/windows">
 				<include name="*"/>
 			</fileset>			
-		</copy>		
+		</copy>
+		<copy todir="${dist}/lib/osx">
+			<fileset dir="lib/joal/osx">
+				<include name="*"/>
+			</fileset>			
+		</copy>
 		<copy todir="${dist}">
 			<fileset dir="scripts">
 				<include name="Jake2.*"/>
