@@ -15,8 +15,8 @@ Jake2 befindet sich noch im Entwicklungsstadium. Die Kontaktaddresse für
 Bugreports und Rückmeldungen ist jake2@bytonic.de.
 
 Jake2 wird von uns unter Linux und Windows2000/XP getestet. Wir haben Feedback,
-dass Jake2 richtigen plattformspezifischen jogl Bibliotheken auch auf Mac OS X 
-läuft.
+dass Jake2 mit den richtigen plattformspezifischen jogl Bibliotheken auch auf
+Mac OS X läuft.
 
 Mindestanforderungen:
 400 MHz CPU
@@ -27,10 +27,10 @@ Installation
 ------------
 
 ausgehend von der Binärdistribution:
-- jake2-version.tar.gz oder jake2-version.zip entpacken
-- baseq2 Verzeichnis des Quake2 Originals oder der Demoversion in das Jake2
-  Verzeichnis kopieren
-- mit Jake2.sh oder Jake2.bat starten
+- Installationsprogramm mit "java -jar Jake2-Install.jar" starten
+- den Anweisungen folgen
+- ins Installationsverzeichnis wechseln
+- Jake2 mit "jake2.sh" oder "jake2.bat" aus dem Installationsverzeichnis starten
 
 ausgehend von Sourcedistribution:
 - jake2src-version.tar.gz oder jake2src-version.zip entpacken
@@ -38,11 +38,10 @@ ausgehend von Sourcedistribution:
 - "build.sh bindist" oder "build.bat bindist" erzeugt die Binärdistribution
 
 Quake2 Leveldaten installieren:
-- ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
-  herunterladen
-- Install\Data\baseq2\ aus q2-314-demo-x86.exe mit unzip oder Winzip
-  extrahieren
-- baseq2 ins Jake2 Verzeichnis kopieren
+- Wenn die Quake2 Leveldaten beim Start von Jake2 nicht gefunden werden,
+  besteht die Möglichkeit ein baseq2 Verzeichnis einer bestehenden Quake2
+  Installation (Demo oder Vollversion) auszuwählen oder die Leveldaten der
+  Demo herunterzuladen und zu installieren
 
 Zum Testen neuer und experimenteller Features kann der aktuelle Jake2 
 Sourcetree per anonymous CVS ausgecheckt werden.
@@ -50,6 +49,22 @@ Sourcetree per anonymous CVS ausgecheckt werden.
 - bei der Frage nach dem Passwort einfach Enter drücken
 - "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 co jake2"
 - dann gehts weiter wie oben für die Sourcedistribution beschrieben
+
+externe Komponenten
+-------------------
+
+Jake2 benutzt:
+jogl     OpenGL bindings    https://jogl.dev.java.net
+joal     OpenAL bindings    https://joal.dev.java.net
+openal   Audio library      http://www.openal.org
+izpack	 Installer          http://www.izforge.com/
+
+the source distribution comes with:
+ant      build tool         http://ant.apache.org
+xerces   XML library        http://xml.apache.org
+proguard obfuscator         http://proguard.sourceforge.net
+
+
 
 viel Spass!
 

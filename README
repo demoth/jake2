@@ -23,10 +23,9 @@ Installation
 ------------
 
 from binary distribution:
-- unpack jake2-version.tar.gz or jake2-version.zip
-- copy the baseq2 directory from your full version of Quake2 or from the 
-  demo version to the Jake2 base directory, in fact You need only
-  baseq2/pak0.pak
+- run the installer with "java -jar Jake2-Install.jar"
+- follow the instructions
+- change to the installation directory
 - run the game with Jake2.sh or Jake2.bat
 
 build from source:
@@ -36,10 +35,9 @@ build from source:
   distribution
 
 installation of Quake2 data:
-- download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe (37 MB)
-- extract the directory Install\Data\baseq2 from q2-314-demo-x86.exe with unzip
-  or Winzip
-- copy the baseq2 directory to the Jake2 directory      
+- if Jake2 does not detect the Quake2 files on startup you have the choice
+  to select a baseq2 directory of a Quake2 installation (demo or full version)
+  or to download and install the Quake2 demo files
 
 If you want to have the latest experimental features you can grab the latest
 Jake2 sources from CVS.
@@ -47,6 +45,22 @@ Jake2 sources from CVS.
 - when askesd for password simply press the Enter key
 - "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 co jake2"
 - procced with the build from source instructions
+
+3rd party components
+--------------------
+
+Jake2 uses:
+jogl     OpenGL bindings    https://jogl.dev.java.net
+joal     OpenAL bindings    https://joal.dev.java.net
+openal   Audio library      http://www.openal.org
+izpack	 Installer	        http://www.izforge.com/
+
+the source distribution comes with:
+ant      build tool         http://ant.apache.org
+xerces   XML library        http://xml.apache.org
+proguard obfuscator         http://proguard.sourceforge.net
+
+
 
 have fun!
 
