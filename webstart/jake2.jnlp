@@ -8,6 +8,7 @@
 		<vendor>Bytonic Software</vendor>
 		<homepage href="http://www.bytonic.de/html/jake2.html"/>
 		<description>Java port of the Quake2 game engine</description>
+		<icon href="icon.gif"/>
 		<offline-allowed/>
 	</information>
 	
