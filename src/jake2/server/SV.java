@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.2 2004-07-08 15:58:45 hzi Exp $
+ * $Id: SV.java,v 1.3 2004-07-26 18:45:48 cawe Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1018,7 +1018,7 @@ public final class SV {
 		//FIXME: how did we get here with no enemy
 		if (enemy == null)
 		{
-			Com.d("SV_NewChaseDir without enemy!");
+			Com.DPrintf("SV_NewChaseDir without enemy!");
 			return;
 		}
 		olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);
