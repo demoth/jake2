@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.7 2004-01-30 09:24:20 hoz Exp $
+ * $Id: NET.java,v 1.8 2004-01-30 10:40:08 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,6 +52,10 @@ public final class NET extends Defines {
 	};
 
 	public static loopback_t loopbacks[] = new loopback_t[2];
+	static {
+		loopbacks[0] = new loopback_t();
+		loopbacks[1] = new loopback_t();
+	}
 	public static DatagramSocket ip_sockets[] = {null,null};
 	//public static DatagramSocket ipx_sockets[] = new int[2];
 

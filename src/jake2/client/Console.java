@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.13 2004-01-28 21:04:10 hoz Exp $
+ * $Id: Console.java,v 1.14 2004-01-30 10:40:08 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -309,8 +309,7 @@ public final class Console extends Globals {
 //	00348 If no console is visible, the text will appear at the top of the game window
 //	00349 ================
 //	00350 */
-//	00351 void Con_Print (char *txt)
-//	00352 {
+	static void Print(String txt) {
 //	00353         int             y;
 //	00354         int             c, l;
 //	00355         static int      cr;
@@ -377,28 +376,27 @@ public final class Console extends Globals {
 //	00416                 }
 //	00417                 
 //	00418         }
-//	00419 }
-//	00420 
-//	00421 
-//	00422 /*
-//	00423 ==============
-//	00424 Con_CenteredPrint
-//	00425 ==============
-//	00426 */
-//	00427 void Con_CenteredPrint (char *text)
-//	00428 {
-//	00429         int             l;
-//	00430         char    buffer[1024];
-//	00431 
-//	00432         l = strlen(text);
-//	00433         l = (con.linewidth-l)/2;
-//	00434         if (l < 0)
-//	00435                 l = 0;
-//	00436         memset (buffer, ' ', l);
-//	00437         strcpy (buffer+l, text);
-//	00438         strcat (buffer, "\n");
-//	00439         Con_Print (buffer);
-//	00440 }
+	}
+
+	/*
+	==============
+	Con_CenteredPrint
+	==============
+	*/
+	static void CenteredPrint(String text) {
+		int l = text.length();
+		l = (con.linewidth-l)/2;
+		if (l < 0) l = 0;
+		
+		StringBuffer sb = new StringBuffer(1024);
+		for (int i = 0; i < l; i++) sb.append(' ');
+		sb.append(text);
+		sb.append('\n');
+		
+		sb.setLength(1024);
+
+		Console.Print(sb.toString());
+	}
  
 	/*
 	==============================================================================
