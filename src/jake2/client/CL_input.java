@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.12 2004-02-12 00:16:03 hoz Exp $
+ * $Id: CL_input.java,v 1.13 2004-02-12 14:23:15 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -344,7 +344,7 @@ public class CL_input extends CL_ents {
 			cmd.buttons |= BUTTON_ANY;
 
 		// send milliseconds of time to apply the move
-		ms = (int)cls.frametime * 1000;
+		ms = (int)(cls.frametime * 1000);
 		if (ms > 250)
 			ms = 100; // time was unreasonable
 		cmd.msec = (byte)ms;
@@ -489,12 +489,12 @@ public class CL_input extends CL_ents {
 
 		if (cls.state == ca_disconnected || cls.state == ca_connecting)
 			return;
-//TODO: Timeout zum debuggen weggemacht 
-//		if (cls.state == ca_connected) {
-//			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
-//				Netchan.Transmit(cls.netchan, 0, new byte[0]);
-//			return;
-//		}
+		
+		if (cls.state == ca_connected) {
+			if (cls.netchan.message.cursize != 0 || curtime - cls.netchan.last_sent > 1000)
+				Netchan.Transmit(cls.netchan, 0, new byte[0]);
+			return;
+		}
 
 		// send a userinfo update if needed
 		if (userinfo_modified) {
