@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.27 2004-02-14 13:24:02 rst Exp $
+// $Id: CM.java,v 1.28 2004-02-17 00:38:50 cwei Exp $
 
 package jake2.qcommon;
 
@@ -236,7 +236,8 @@ public class CM extends Game {
 		//
 		// load the file
 		//
-		buf = FS.LoadFile(name);
+		// TODO bugfix cwei
+		buf = FS.LoadFile(name.toLowerCase());
 
 		if (buf == null)
 			Com.Error(ERR_DROP, "Couldn't load " + name);
@@ -903,7 +904,7 @@ public class CM extends Game {
 		cplane_t p;
 		cbrushside_t s;
 
-		box_headnode = numnodes; // noch platz für 6 brushes
+		box_headnode = numnodes; // noch platz f?r 6 brushes
 
 		box_planes =
 			new cplane_t[] {
