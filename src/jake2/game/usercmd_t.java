@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: usercmd_t.java,v 1.3 2004-09-12 18:25:49 salomo Exp $
 
 package jake2.game;
 
@@ -30,57 +30,44 @@ import jake2.util.Lib;
 public class usercmd_t implements Cloneable {
 	public byte msec;
 	public byte buttons;
-	public short angles[] = new short[3];
+	public short angles[]= new short[3];
 	public short forwardmove, sidemove, upmove;
 	public byte impulse; // remove?
 	public byte lightlevel; // light level the player is standing on
 
 	public void reset() {
-		forwardmove = sidemove = upmove = msec = buttons = impulse = lightlevel = 0;
-		Arrays.fill(angles, (short)0);
+		forwardmove= sidemove= upmove= msec= buttons= impulse= lightlevel= 0;
+		Arrays.fill(angles, (short) 0);
 	}
-	
-	public usercmd_t() {};
-	
+
+	public usercmd_t() {
+	};
+
 	public usercmd_t(usercmd_t from) {
-		msec = from.msec;
-		buttons = from.buttons;
-		angles[0] = from.angles[0];
-		angles[1] = from.angles[1];
-		angles[2] = from.angles[2];
-		forwardmove = from.forwardmove;
-		sidemove = from.sidemove;
-		upmove = from.upmove;
-		impulse = from.impulse;
-		lightlevel = from.lightlevel;
+		msec= from.msec;
+		buttons= from.buttons;
+		angles[0]= from.angles[0];
+		angles[1]= from.angles[1];
+		angles[2]= from.angles[2];
+		forwardmove= from.forwardmove;
+		sidemove= from.sidemove;
+		upmove= from.upmove;
+		impulse= from.impulse;
+		lightlevel= from.lightlevel;
 	}
-	
-	public usercmd_t set(usercmd_t from)
-	{
-		msec = from.msec;
-		buttons = from.buttons;
-		angles[0] = from.angles[0];
-		angles[1] = from.angles[1];
-		angles[2] = from.angles[2];
-		forwardmove = from.forwardmove;
-		sidemove = from.sidemove;
-		upmove = from.upmove;
-		impulse = from.impulse;
-		lightlevel = from.lightlevel;
-		
+
+	public usercmd_t set(usercmd_t from) {
+		msec= from.msec;
+		buttons= from.buttons;
+		angles[0]= from.angles[0];
+		angles[1]= from.angles[1];
+		angles[2]= from.angles[2];
+		forwardmove= from.forwardmove;
+		sidemove= from.sidemove;
+		upmove= from.upmove;
+		impulse= from.impulse;
+		lightlevel= from.lightlevel;
+
 		return this;
 	}
-		
-//	public usercmd_t getClone()
-//	{
-//		try {
-//			usercmd_t u1 = (usercmd_t) this.clone();
-//			u1.angles = Lib.clone(angles);
-//			return u1;
-//		}
-//		catch (CloneNotSupportedException e) {
-//			return null;
-//		}
-//	}
-	
 }

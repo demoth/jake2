@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.3 2004-09-10 19:02:55 salomo Exp $
+// $Id: GamePWeapon.java,v 1.4 2004-09-12 18:25:49 salomo Exp $
 
 package jake2.game;
 
@@ -1233,7 +1233,7 @@ public class GamePWeapon {
 		if (ent.client.weaponstate == Defines.WEAPON_READY) {
 			if (((ent.client.latched_buttons | ent.client.buttons) & Defines.BUTTON_ATTACK) != 0) {
 				ent.client.latched_buttons &= ~Defines.BUTTON_ATTACK;
-				if ((0 != ent.client.ammo_index)
+				if ((0 == ent.client.ammo_index)
 					|| (ent.client.pers.inventory[ent.client.ammo_index]
 						>= ent.client.pers.weapon.quantity)) {
 					ent.client.ps.gunframe= FRAME_FIRE_FIRST;

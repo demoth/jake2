@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: Monster.java,v 1.3 2004-09-12 18:25:49 salomo Exp $
 
 package jake2.game;
 
@@ -31,10 +31,9 @@ import jake2.util.*;
 
 import java.util.*;
 
-public class Monster extends GameAI
-{
+public class Monster extends GameAI {
 
-	// FIXME mosnters should call these with a totally accurate direction
+	// FIXME monsters should call these with a totally accurate direction
 	//	and we can mess it up based on skill.  Spread should be for normal
 	//	and we can tighten or loosen based on skill.  We could muck with
 	//	the damages too, but I'm not sure that's such a good idea.
@@ -46,8 +45,7 @@ public class Monster extends GameAI
 		int kick,
 		int hspread,
 		int vspread,
-		int flashtype)
-	{
+		int flashtype) {
 		Fire.fire_bullet(self, start, dir, damage, kick, hspread, vspread, Defines.MOD_UNKNOWN);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -65,8 +63,7 @@ public class Monster extends GameAI
 		int hspread,
 		int vspread,
 		int count,
-		int flashtype)
-	{
+		int flashtype) {
 		Fire.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread, count, Defines.MOD_UNKNOWN);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -82,8 +79,7 @@ public class Monster extends GameAI
 		int damage,
 		int speed,
 		int flashtype,
-		int effect)
-	{
+		int effect) {
 		Fire.fire_blaster(self, start, dir, damage, speed, effect, false);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -92,8 +88,7 @@ public class Monster extends GameAI
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
 	/** The Moster fires the grenade. */
-	public static void monster_fire_grenade(edict_t self, float[] start, float[] aimdir, int damage, int speed, int flashtype)
-	{
+	public static void monster_fire_grenade(edict_t self, float[] start, float[] aimdir, int damage, int speed, int flashtype) {
 		Fire.fire_grenade(self, start, aimdir, damage, speed, 2.5f, damage + 40);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -102,8 +97,7 @@ public class Monster extends GameAI
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
 	/** The Moster fires the rocket. */
-	public static void monster_fire_rocket(edict_t self, float[] start, float[] dir, int damage, int speed, int flashtype)
-	{
+	public static void monster_fire_rocket(edict_t self, float[] start, float[] dir, int damage, int speed, int flashtype) {
 		Fire.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -112,8 +106,7 @@ public class Monster extends GameAI
 		GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
 	}
 	/** The Moster fires the railgun. */
-	public static void monster_fire_railgun(edict_t self, float[] start, float[] aimdir, int damage, int kick, int flashtype)
-	{
+	public static void monster_fire_railgun(edict_t self, float[] start, float[] aimdir, int damage, int kick, int flashtype) {
 		Fire.fire_rail(self, start, aimdir, damage, kick);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -130,8 +123,7 @@ public class Monster extends GameAI
 		int speed,
 		int kick,
 		float damage_radius,
-		int flashtype)
-	{
+		int flashtype) {
 		Fire.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
 		GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -147,19 +139,17 @@ public class Monster extends GameAI
 	enemy as activator.
 	================
 	*/
-	public static void monster_death_use(edict_t self)
-	{
+	public static void monster_death_use(edict_t self) {
 		self.flags &= ~(Defines.FL_FLY | Defines.FL_SWIM);
 		self.monsterinfo.aiflags &= Defines.AI_GOOD_GUY;
 
-		if (self.item != null)
-		{
+		if (self.item != null) {
 			GameUtil.Drop_Item(self, self.item);
-			self.item = null;
+			self.item= null;
 		}
 
 		if (self.deathtarget != null)
-			self.target = self.deathtarget;
+			self.target= self.deathtarget;
 
 		if (self.target == null)
 			return;
@@ -167,16 +157,13 @@ public class Monster extends GameAI
 		GameUtil.G_UseTargets(self, self.enemy);
 	}
 	// ============================================================================
-	public static boolean monster_start(edict_t self)
-	{
-		if (GameBase.deathmatch.value != 0)
-		{
+	public static boolean monster_start(edict_t self) {
+		if (GameBase.deathmatch.value != 0) {
 			GameUtil.G_FreeEdict(self);
 			return false;
 		}
 
-		if ((self.spawnflags & 4) != 0 && 0 == (self.monsterinfo.aiflags & Defines.AI_GOOD_GUY))
-		{
+		if ((self.spawnflags & 4) != 0 && 0 == (self.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
 			self.spawnflags &= ~4;
 			self.spawnflags |= 1;
 			//		 gi.dprintf("fixed spawnflags on %s at %s\n", self.classname, vtos(self.s.origin));
@@ -185,26 +172,25 @@ public class Monster extends GameAI
 		if (0 == (self.monsterinfo.aiflags & Defines.AI_GOOD_GUY))
 			GameBase.level.total_monsters++;
 
-		self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+		self.nextthink= GameBase.level.time + Defines.FRAMETIME;
 		self.svflags |= Defines.SVF_MONSTER;
 		self.s.renderfx |= Defines.RF_FRAMELERP;
-		self.takedamage = Defines.DAMAGE_AIM;
-		self.air_finished = GameBase.level.time + 12;
-		self.use = GameUtilAdapters.monster_use;
-		self.max_health = self.health;
-		self.clipmask = Defines.MASK_MONSTERSOLID;
+		self.takedamage= Defines.DAMAGE_AIM;
+		self.air_finished= GameBase.level.time + 12;
+		self.use= GameUtilAdapters.monster_use;
+		self.max_health= self.health;
+		self.clipmask= Defines.MASK_MONSTERSOLID;
 
-		self.s.skinnum = 0;
-		self.deadflag = Defines.DEAD_NO;
+		self.s.skinnum= 0;
+		self.deadflag= Defines.DEAD_NO;
 		self.svflags &= ~Defines.SVF_DEADMONSTER;
 
 		if (null == self.monsterinfo.checkattack)
-			self.monsterinfo.checkattack = GameUtilAdapters.M_CheckAttack;
+			self.monsterinfo.checkattack= GameUtilAdapters.M_CheckAttack;
 		Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
-		if (GameBase.st.item != null && GameBase.st.item.length()>0 )
-		{
-			self.item = GameUtil.FindItemByClassname(GameBase.st.item);
+		if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
+			self.item= GameUtil.FindItemByClassname(GameBase.st.item);
 			if (self.item == null)
 				GameBase.gi.dprintf(
 					"monster_start:"
@@ -218,29 +204,27 @@ public class Monster extends GameAI
 
 		// randomize what frame they start on
 		if (self.monsterinfo.currentmove != null)
-			self.s.frame =
+			self.s.frame=
 				self.monsterinfo.currentmove.firstframe
 					+ (Lib.rand() % (self.monsterinfo.currentmove.lastframe - self.monsterinfo.currentmove.firstframe + 1));
 
 		return true;
 	}
 
-	public static void monster_start_go(edict_t self)
-	{
+	public static void monster_start_go(edict_t self) {
 
-		float[] v = { 0, 0, 0 };
+		float[] v= { 0, 0, 0 };
 
 		if (self.health <= 0)
 			return;
 
 		// check for target to combat_point and change to combattarget
-		if (self.target != null)
-		{
+		if (self.target != null) {
 			boolean notcombat;
 			boolean fixup;
-			edict_t target = null;
-			notcombat = false;
-			fixup = false;
+			edict_t target= null;
+			notcombat= false;
+			fixup= false;
 			/*
 			if (true) {
 				Com.Printf("all entities:\n");
@@ -258,39 +242,33 @@ public class Monster extends GameAI
 			}
 			*/
 
-			EdictIterator edit = null;
+			EdictIterator edit= null;
 
-			while ((edit = GameBase.G_Find(edit, GameBase.findByTarget, self.target)) != null)
-			{
-				target = edit.o;
-				if (Lib.strcmp(target.classname, "point_combat") == 0)
-				{
-					self.combattarget = self.target;
-					fixup = true;
+			while ((edit= GameBase.G_Find(edit, GameBase.findByTarget, self.target)) != null) {
+				target= edit.o;
+				if (Lib.strcmp(target.classname, "point_combat") == 0) {
+					self.combattarget= self.target;
+					fixup= true;
 				}
-				else
-				{
-					notcombat = true;
+				else {
+					notcombat= true;
 				}
 			}
 			if (notcombat && self.combattarget != null)
 				GameBase.gi.dprintf(self.classname + " at " + Lib.vtos(self.s.origin) + " has target with mixed types\n");
 			if (fixup)
-				self.target = null;
+				self.target= null;
 		}
 
 		// validate combattarget
-		if (self.combattarget != null)
-		{
-			edict_t target = null;
+		if (self.combattarget != null) {
+			edict_t target= null;
 
-			EdictIterator edit = null;
-			while ((edit = GameBase.G_Find(edit, GameBase.findByTarget, self.combattarget)) != null)
-			{
-				target = edit.o;
+			EdictIterator edit= null;
+			while ((edit= GameBase.G_Find(edit, GameBase.findByTarget, self.combattarget)) != null) {
+				target= edit.o;
 
-				if (Lib.strcmp(target.classname, "point_combat") != 0)
-				{
+				if (Lib.strcmp(target.classname, "point_combat") != 0) {
 					GameBase.gi.dprintf(
 						self.classname
 							+ " at "
@@ -305,37 +283,32 @@ public class Monster extends GameAI
 			}
 		}
 
-		if (self.target != null)
-		{
-			self.goalentity = self.movetarget = GameBase.G_PickTarget(self.target);
-			if (null == self.movetarget)
-			{
+		if (self.target != null) {
+			self.goalentity= self.movetarget= GameBase.G_PickTarget(self.target);
+			if (null == self.movetarget) {
 				GameBase.gi.dprintf(self.classname + " can't find target " + self.target + " at " + Lib.vtos(self.s.origin) + "\n");
-				self.target = null;
-				self.monsterinfo.pausetime = 100000000;
+				self.target= null;
+				self.monsterinfo.pausetime= 100000000;
 				self.monsterinfo.stand.think(self);
 			}
-			else if (Lib.strcmp(self.movetarget.classname, "path_corner") == 0)
-			{
+			else if (Lib.strcmp(self.movetarget.classname, "path_corner") == 0) {
 				Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
-				self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D.vectoyaw(v);
+				self.ideal_yaw= self.s.angles[Defines.YAW]= Math3D.vectoyaw(v);
 				self.monsterinfo.walk.think(self);
-				self.target = null;
+				self.target= null;
 			}
-			else
-			{
-				self.goalentity = self.movetarget = null;
-				self.monsterinfo.pausetime = 100000000;
+			else {
+				self.goalentity= self.movetarget= null;
+				self.monsterinfo.pausetime= 100000000;
 				self.monsterinfo.stand.think(self);
 			}
 		}
-		else
-		{
-			self.monsterinfo.pausetime = 100000000;
+		else {
+			self.monsterinfo.pausetime= 100000000;
 			self.monsterinfo.stand.think(self);
 		}
 
-		self.think = MonsterAdapters.monster_think;
-		self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+		self.think= MonsterAdapters.monster_think;
+		self.nextthink= GameBase.level.time + Defines.FRAMETIME;
 	}
 }
