@@ -2,9 +2,9 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.8 2004-01-08 22:38:16 rst Exp $
+ * $Id: Sys.java,v 1.9 2004-01-09 22:25:09 rst Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -37,71 +37,65 @@ import jake2.qcommon.Com;
  * Sys
  */
 public final class Sys {
-	
+
+	public static void StackTrace() {
+
+		StackTraceElement trace[] = new Throwable().getStackTrace();
+
+		Com.Println("StackTrace:");
+
+		for (int i = 0; i < trace.length; i++)
+			Com.Println("" + trace[i]);
+	}
+
 	/**
 	 * @param error
 	 */
 	public static void Error(String error) {
-//		00099         va_list     argptr;
-//		00100         char        string[1024];
-//		00101 
-//		00102 // change stdin to non blocking
-//		00103         fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
-//		00104 
-		CL.Shutdown();
-//		00106     
-//		00107         va_start (argptr,error);
-//		00108         vsprintf (string,error,argptr);
-//		00109         va_end (argptr);
-//		00110         fprintf(stderr, "Error: %s\n", string);
-		System.err.println("Error: " + error);
-//		00111 
 
-		int b = 0;
-		try
-		{
-			throw new Exception("Call Stack:");
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		CL.Shutdown();
+		//System.err.println("Error: " + error);
+		
+		//StackTrace();
+		new Exception(error).printStackTrace();
 		System.exit(1);
-			
+
 	}
-	
+
 	public static void Quit() {
 		CL.Shutdown();
-//	00093         fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
+		
 		System.exit(0);
 	}
-	
+
 	public static File[] FindAll(String path, int musthave, int canthave) {
 		String findbase = path;
 		String p = null;
 		String findpattern = null;
-		
+
 		int index = 0;
 		if ((index = path.lastIndexOf('/')) > 0) {
 			findbase = path.substring(0, index);
-			findpattern = path.substring(index+1, path.length());
-		} else {
+			findpattern = path.substring(index + 1, path.length());
+		}
+		else {
 			findpattern = "*";
 		}
-		
+
 		if (findpattern.equals("*.*")) {
 			findpattern = "*";
 		}
-		
+
 		File fdir = new File(findbase);
-		
-		if (!fdir.exists()) return null;
-		
+
+		if (!fdir.exists())
+			return null;
+
 		FilenameFilter filter = new FileFilter(findpattern, musthave, canthave);
-		
+
 		return fdir.listFiles(filter);
 	}
-	
+
 	/**
 	 *  Match the pattern findpattern against the filename.
 	 * 
@@ -116,17 +110,17 @@ public final class Sys {
 	 * and match the character exactly, precede it with a `\'.
 	*/
 	static class FileFilter implements FilenameFilter {
-		
+
 		String regexpr;
 		int musthave, canthave;
-		
+
 		FileFilter(String findpattern, int musthave, int canthave) {
 			this.regexpr = convert2regexpr(findpattern);
 			this.musthave = musthave;
 			this.canthave = canthave;
-			
+
 		}
-		
+
 		/* 
 		 * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
 		 */
@@ -136,57 +130,66 @@ public final class Sys {
 			}
 			return false;
 		}
-		
+
 		String convert2regexpr(String pattern) {
-			
+
 			StringBuffer sb = new StringBuffer();
-			
+
 			char c;
 			boolean escape = false;
-			
+
 			String subst;
-			
+
 			// convert pattern
 			for (int i = 0; i < pattern.length(); i++) {
 				c = pattern.charAt(i);
 				subst = null;
-				switch(c) {
-					case '*': subst = (!escape) ? ".*" : "*";
-					break;
-					case '.': subst = (!escape) ? "\\." : ".";
-					break;
-					case '!':  subst = (!escape) ? "^" : "!";
-					break;
-					case '?':  subst = (!escape) ? "." : "?";
-					break;
-					case '\\': escape = !escape;
-					break;
-					default: escape = false; 
+				switch (c) {
+					case '*' :
+						subst = (!escape) ? ".*" : "*";
+						break;
+					case '.' :
+						subst = (!escape) ? "\\." : ".";
+						break;
+					case '!' :
+						subst = (!escape) ? "^" : "!";
+						break;
+					case '?' :
+						subst = (!escape) ? "." : "?";
+						break;
+					case '\\' :
+						escape = !escape;
+						break;
+					default :
+						escape = false;
 				}
 				if (subst != null) {
 					sb.append(subst);
 					escape = false;
-				} else sb.append(c);
+				}
+				else
+					sb.append(c);
 			}
-			
+
 			// the converted pattern
 			String regexpr = sb.toString();
 
 			System.out.println("pattern: " + pattern + " regexpr: " + regexpr);
 			try {
 				Pattern.compile(regexpr);
-			} catch (PatternSyntaxException e) {
+			}
+			catch (PatternSyntaxException e) {
 				Com.Printf("invalid file pattern ( *.* is used instead )\n");
 				return ".*"; // the default
 			}
 			return regexpr;
 		}
-		
+
 		boolean CompareAttributes(File dir, int musthave, int canthave) {
 			// TODO implement or check the CompareAttributes() function
 			return true;
 		}
-		
+
 	}
-	
+
 }

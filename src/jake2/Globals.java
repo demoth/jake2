@@ -2,7 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.26 2004-01-09 13:35:15 hoz Exp $
+ * $Id: Globals.java,v 1.27 2004-01-09 22:25:09 rst Exp $
+ * $Log: Globals.java,v $
+ * Revision 1.27  2004-01-09 22:25:09  rst
+ * cosmetic
+ *
+ * 
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
