@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.11 2004-01-27 20:10:29 rst Exp $
+ * $Id: SCR.java,v 1.12 2004-01-28 09:03:24 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,6 +69,7 @@ public final class SCR {
 	public static void DebugGraph(float value, int color)
 	{
 		//TODO: implent all den mist 
+		//TODO: shut up
 		Com.Error(Defines.ERR_FATAL, "method not implemented.");
 	}
 
