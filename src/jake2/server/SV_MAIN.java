@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.15 2004-02-05 21:32:41 rst Exp $
+// $Id: SV_MAIN.java,v 1.16 2004-02-06 21:03:30 rst Exp $
 
 package jake2.server;
 
@@ -397,7 +397,7 @@ public class SV_MAIN extends SV_GAME {
 		svs.clients[i].datagram.allowoverflow = true;
 		svs.clients[i].lastmessage = svs.realtime; // don't timeout
 		svs.clients[i].lastconnect = svs.realtime;
-		Com.DPrintf("new client added.");
+		Com.DPrintf("new client added.\n");
 	}
 
 	public static int Rcon_Validate() {
@@ -479,7 +479,7 @@ public class SV_MAIN extends SV_GAME {
 
 		c = Cmd.Argv(0);
 		Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
-		Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
+		//Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
 		if (0 == strcmp(c, "ping"))
 			SVC_Ping();
@@ -572,7 +572,7 @@ public class SV_MAIN extends SV_GAME {
 	public static void SV_ReadPackets() {
 		int i;
 		client_t cl;
-		int qport;
+		int qport =0;
 
 		while (NET.GetPacket(NS_SERVER, Netchan.net_from, net_message)) {
 

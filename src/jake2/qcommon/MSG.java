@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.16 2004-02-06 18:38:20 rst Exp $
+// $Id: MSG.java,v 1.17 2004-02-06 21:03:30 rst Exp $
 
 package jake2.qcommon;
 
@@ -45,7 +45,7 @@ public class MSG extends GameBase {
 	public static void WriteByte(sizebuf_t sb, int c) {
 		byte buf;
 
-		if (c < 0 || c > 255)
+		if (c < -128 || c > 127)
 			Com.Error(ERR_FATAL, "WriteByte: range error");
 
 		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
@@ -93,9 +93,7 @@ public class MSG extends GameBase {
 	}
 
 	public static void WriteString(sizebuf_t sb, byte s[]) {
-		if (s == null)
-			s = new byte[0];
-		SZ.Write(sb, s);
+		WriteString(sb, new String(s).trim());
 	}
 
 	public static void WriteCoord(sizebuf_t sb, float f) {

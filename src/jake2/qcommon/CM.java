@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.18 2004-02-05 21:32:40 rst Exp $
+// $Id: CM.java,v 1.19 2004-02-06 21:03:30 rst Exp $
 
 package jake2.qcommon;
 
@@ -652,7 +652,7 @@ public class CM extends Game {
 
 			//TODO: RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!
 			if (j == -1)
-				Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!");
+				Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!\n");
 			else
 				out.surface = map_surfaces[j];
 		}

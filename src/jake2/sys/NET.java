@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.13 2004-02-06 18:38:20 rst Exp $
+ * $Id: NET.java,v 1.14 2004-02-06 21:03:30 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -333,7 +333,7 @@ public final class NET extends Defines {
 		
 		if (NET_GetLoopPacket (sock, net_from, net_message))
 		{
-			Com.DPrintf("received packet on sock=" + sock + "  len=" + net_message.cursize+"\n");
+			//Com.DPrintf("received packet on sock=" + sock + "  len=" + net_message.cursize+"\n");
 			return true;
 		}
 		net_socket = ip_sockets[sock];
@@ -399,7 +399,7 @@ public final class NET extends Defines {
 	public static void NET_SendPacket (int sock, int length, byte [] data, netadr_t to)
 	{
 		Com.Printf("NET_SendPacket: sock=" + sock  + " len=" + length + "\n");
-		Com.Printf(Lib.hexDump(data, 32, false));
+		Com.Printf(Lib.hexDump(data, 64, false));
 		int		ret;
 		//struct sockaddr_in	addr;
 		

@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.16 2004-02-06 18:38:20 rst Exp $
+ * $Id: Netchan.java,v 1.17 2004-02-06 21:03:30 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -108,6 +108,7 @@ public final class Netchan extends SV_MAIN {
 	
 	===============
 	*/
+	//ok.
 	public static void Netchan_Init() {
 		long port;
 
@@ -126,6 +127,7 @@ public final class Netchan extends SV_MAIN {
 	Sends an out-of-band datagram
 	================
 	*/
+	//ok.
 	public static void Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte data[]) {
 		sizebuf_t send = new sizebuf_t();
 		byte send_buf[] = new byte[Defines.MAX_MSGLEN];
@@ -326,7 +328,7 @@ public final class Netchan extends SV_MAIN {
 					+ (chan.incoming_reliable_sequence ^ 1)
 					+ " ack="
 					+ sequence_ack
-					+ "rack="
+					+ " rack="
 					+ reliable_ack
 					+ "\n");
 			else

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: netchan_t.java,v 1.6 2004-02-04 20:33:35 rst Exp $
+// $Id: netchan_t.java,v 1.7 2004-02-06 21:03:30 rst Exp $
 
 package jake2.qcommon;
 
@@ -61,6 +61,7 @@ public class netchan_t {
 	
 	byte reliable_buf[] = new byte[Defines.MAX_MSGLEN - 16]; // unpcked reliable message
 
+	//ok.
 	public void clear()
 	{
 		sock=dropped=last_received=last_sent=0;

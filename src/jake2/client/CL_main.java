@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.23 2004-02-06 18:38:20 rst Exp $
+ * $Id: CL_main.java,v 1.24 2004-02-06 21:03:30 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -868,6 +868,7 @@ public class CL_main extends CL_pred {
 	=================
 	*/
 	static void ReadPackets() {
+		int xxxx =0;
 		while (NET.GetPacket(NS_CLIENT, net_from, net_message)) {
 
 			//
@@ -1351,7 +1352,7 @@ public class CL_main extends CL_pred {
 		m_forward = Cvar.Get("m_forward", "1", 0);
 		m_side = Cvar.Get("m_side", "1", 0);
 
-		cl_shownet = Cvar.Get("cl_shownet", "1", 0);
+		cl_shownet = Cvar.Get("cl_shownet", "3", 0);
 		cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
 		cl_showclamp = Cvar.Get("showclamp", "0", 0);
 		cl_timeout = Cvar.Get("cl_timeout", "120", 0);

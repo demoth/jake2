@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.25 2004-02-05 21:32:40 rst Exp $
+ * $Id: SCR.java,v 1.26 2004-02-06 21:03:30 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -120,6 +120,11 @@ public final class SCR extends Globals {
 	}
 	static int current;
 	static graphsamp_t[] values = new graphsamp_t[1024];
+	
+	static {
+		for (int n=0; n < 1024; n++)
+		values[n]= new graphsamp_t();
+	}
 
 	/*
 	==============
@@ -409,13 +414,13 @@ public final class SCR extends Globals {
 		scr_showpause = Cvar.Get ("scr_showpause", "1", 0);
 		scr_centertime = Cvar.Get ("scr_centertime", "2.5", 0);
 		scr_printspeed = Cvar.Get ("scr_printspeed", "8", 0);
-		scr_netgraph = Cvar.Get ("netgraph", "0", 0);
-		scr_timegraph = Cvar.Get ("timegraph", "0", 0);
-		scr_debuggraph = Cvar.Get ("debuggraph", "0", 0);
+		scr_netgraph = Cvar.Get ("netgraph", "1", 0);
+		scr_timegraph = Cvar.Get ("timegraph", "1", 0);
+		scr_debuggraph = Cvar.Get ("debuggraph", "1", 0);
 		scr_graphheight = Cvar.Get ("graphheight", "32", 0);
 		scr_graphscale = Cvar.Get ("graphscale", "1", 0);
 		scr_graphshift = Cvar.Get ("graphshift", "0", 0);
-		scr_drawall = Cvar.Get ("scr_drawall", "0", 0);
+		scr_drawall = Cvar.Get ("scr_drawall", "1", 0);
 
 		//
 		// register our commands
