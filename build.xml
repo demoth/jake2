@@ -1,5 +1,5 @@
 <!-- Buildfile -->
-<project name="jake2" default="dist" basedir=".">
+<project name="jake2" default="usage" basedir=".">
 
 	<taskdef name="proguard" classname="proguard.ant.ProGuardTask">
 		<classpath>
@@ -20,6 +20,19 @@
 		<pathelement location="lib/joal/linux/joal.jar"/>
 	</path>
 	
+	<!-- usage -->
+	<target name="usage">
+		<echo message="command line arguments of build.sh or build.bat"/>
+		<echo message=""/>
+		<echo message="bindist      only binary distibution"/>
+		<echo message="srcdist      only source distibution"/>
+		<echo message="all          source and binary distibution"/>
+		<echo message="clean        keep jake2-cvs.tar.gz and jake2-cvs.zip"/>
+		<echo message="distclean    delete all"/>
+		<echo message="jar          only dist/lib/jake2.jar"/>
+		<echo message=""/>
+	</target>
+
 	<!-- initialize directories -->
 	<target name="init">
 		<mkdir dir="${build}"/>
