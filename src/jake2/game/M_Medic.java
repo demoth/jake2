@@ -851,8 +851,7 @@ public class M_Medic extends Game {
 				self.enemy.combattarget = null;
 				self.enemy.deathtarget = null;
 				self.enemy.owner = self;
-				//TODO: ED_CallSpawn(self.enemy);
-				//ED_CallSpawn(self.enemy);
+				GameSpawn.ED_CallSpawn(self.enemy);
 				self.enemy.owner = null;
 				if (self.enemy.think != null) {
 					self.enemy.nextthink = level.time;
