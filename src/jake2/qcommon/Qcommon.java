@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.33 2004-06-03 21:32:52 rst Exp $
+ * $Id: Qcommon.java,v 1.34 2004-06-03 22:20:53 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -54,17 +54,23 @@ public final class Qcommon extends Globals {
 	 */
 	public static void Init(String[] args) {
 		try {
-
+			Com.Printf("Welcome to Jake2 - a java port of Quake II\n");
+			Com.Printf("-----------------------------------------------\n");
+			Com.Printf("this port is the work of bytonic software, 2003-2004\n");
+			Com.Printf("  *** http://www.bytonic.de/html/jake2.html ***\n\n");			
+			Com.Printf("please read the install instructions you find there.\n");
+			Com.Printf("\n");
+			Com.Printf("have fun and enjoy out further projects!\n");
+			Com.Printf("Rene Stoeckel, Carsten Weisse, Holger Zickner ...\n\n");
+			Com.Printf("-----------------------------------------------\n");
+			
 			// prepare enough of the subsystems to handle
 			// cvar and command buffer management
 			Com.InitArgv(args);
-
 			Swap.Init();
 			Cbuf.Init();
-			
 			Cmd.Init();
 			Cvar.Init();
-
 			Key.Init();
 
 			// we need to add the early commands twice, because
