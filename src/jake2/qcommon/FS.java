@@ -2,12 +2,12 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.8 2004-10-18 19:45:54 cawe Exp $
+ * $Id: FS.java,v 1.9 2004-10-19 17:23:20 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
 
-This program is free software; you can redistribute it and/or
+ This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
@@ -31,7 +31,9 @@ import jake2.game.cvar_t;
 import jake2.sys.Sys;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 import javax.imageio.stream.FileImageInputStream;
@@ -44,11 +46,11 @@ import javax.imageio.stream.FileImageInputStream;
 public final class FS extends Globals {
 
     /*
-     * =============================================================================
+     * ==================================================
      * 
      * QUAKE FILESYSTEM
      * 
-     * =============================================================================
+     * ==================================================
      */
 
     public static class packfile_t {
@@ -93,25 +95,23 @@ public final class FS extends Globals {
         String to;
     }
 
-    public static List fs_links = new LinkedList(); // with
-                                                                    // filelink_t
-                                                                    // entries
+    // with filelink_t entries
+    public static List fs_links = new LinkedList();
 
     public static class searchpath_t {
         String filename;
 
-        pack_t pack; // only one of filename / pack will be used
+        pack_t pack; // only one of filename or pack will be used
 
         searchpath_t next;
     }
 
     public static searchpath_t fs_searchpaths;
 
-    public static searchpath_t fs_base_searchpaths; // without
-                                                                         // gamedirs
+    // without gamedirs
+    public static searchpath_t fs_base_searchpaths;
 
     /*
-     * 
      * All of Quake's data access is through a hierchal file system, but the
      * contents of the file system can be transparently merged from several
      * sources.
@@ -132,9 +132,9 @@ public final class FS extends Globals {
      */
 
     /*
-     * ============ FS_CreatePath
+     * CreatePath
      * 
-     * Creates any directories needed to store the given filename ============
+     * Creates any directories needed to store the given filename.
      */
     public static void CreatePath(String path) {
         int index = path.lastIndexOf('/');
@@ -148,10 +148,10 @@ public final class FS extends Globals {
     }
 
     /*
-     * ============== FS_FCloseFile
+     * FCloseFile
      * 
      * For some reason, other dll's can't just call fclose() on files returned
-     * by FS_FOpenFile... ==============
+     * by FS_FOpenFile...
      */
     public static void FCloseFile(RandomAccessFile file) throws IOException {
         file.close();
@@ -185,7 +185,7 @@ public final class FS extends Globals {
             }
         }
 
-        //	   search through the path, one element at a time
+        // search through the path, one element at a time
 
         for (search = fs_searchpaths; search != null; search = search.next) {
             // is the element a pak file?
@@ -225,16 +225,14 @@ public final class FS extends Globals {
         return -1;
     }
 
-    /*
-     * =========== FS_FOpenFile
-     * 
-     * Finds the file in the search path. returns filesize and an open FILE *
-     * Used for streaming data out of either a pak file or a seperate file.
-     * ===========
-     */
-
     public static int file_from_pak = 0;
 
+    /*
+     * FOpenFile
+     * 
+     * Finds the file in the search path. returns a RadomAccesFile. Used for
+     * streaming data out of either a pak file or a seperate file.
+     */
     public static RandomAccessFile FOpenFile(String filename)
             throws IOException {
         searchpath_t search;
@@ -263,7 +261,7 @@ public final class FS extends Globals {
         }
 
         //
-        //	   search through the path, one element at a time
+        // search through the path, one element at a time
         //
         for (search = fs_searchpaths; search != null; search = search.next) {
             // is the element a pak file?
@@ -310,15 +308,14 @@ public final class FS extends Globals {
         return null;
     }
 
-    /*
-     * ================= FS_ReadFile
-     * 
-     * Properly handles partial reads =================
-     */
-    public static final int MAX_READ = 0x10000; // read in
-                                                                    // blocks of
-                                                                    // 64k
+    // read in blocks of 64k
+    public static final int MAX_READ = 0x10000;
 
+    /**
+     * Read
+     * 
+     * Properly handles partial reads
+     */
     public static void Read(byte[] buffer, int len, RandomAccessFile f) {
 
         int block, remaining;
@@ -343,7 +340,7 @@ public final class FS extends Globals {
                 Com.Error(Globals.ERR_FATAL, "FS_Read: -1 bytes read");
             }
             //
-            //			do some progress bar thing here...
+            // do some progress bar thing here...
             //
             remaining -= read;
             offset += read;
@@ -351,10 +348,10 @@ public final class FS extends Globals {
     }
 
     /*
-     * ============ FS_LoadFile
+     * LoadFile
      * 
      * Filename are reletive to the quake search path a null buffer will just
-     * return the file length without loading ============
+     * return the file content as byte[]
      */
     public static byte[] LoadFile(String path) {
         RandomAccessFile file;
@@ -362,7 +359,7 @@ public final class FS extends Globals {
         byte[] buf = null;
         int len = 0;
 
-        // TODO bughack for bad strings (fuck \0)
+        // TODO hack for bad strings (fuck \0)
         int index = path.indexOf('\0');
         if (index != -1)
             path = path.substring(0, index);
@@ -386,7 +383,111 @@ public final class FS extends Globals {
     }
 
     /*
-     * ============= FS_FreeFile =============
+     * LoadMappedFile
+     * 
+     * Filename are reletive to the quake search path a null buffer will just
+     * return the file content as ByteBuffer (memory mapped)
+     */
+    public static ByteBuffer LoadMappedFile(String filename) {
+        searchpath_t search;
+        String netpath;
+        pack_t pak;
+        int i;
+        filelink_t link;
+        File file = null;
+
+        int fileLength = 0;
+        FileChannel channel = null;
+        FileInputStream input = null;
+        ByteBuffer buffer = null;
+
+        file_from_pak = 0;
+
+        try {
+            // check for links first
+            for (Iterator it = fs_links.iterator(); it.hasNext();) {
+                link = (filelink_t) it.next();
+
+                if (filename.regionMatches(0, link.from, 0, link.fromlength)) {
+                    netpath = link.to + filename.substring(link.fromlength);
+                    file = new File(netpath);
+                    if (file.canRead()) {
+                        input = new FileInputStream(file);
+                        channel = input.getChannel();
+                        fileLength = (int) channel.size();
+                        buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0,
+                                fileLength);
+                        input.close();
+                        return buffer;
+                    }
+                    return null;
+                }
+            }
+
+            //
+            // search through the path, one element at a time
+            //
+            for (search = fs_searchpaths; search != null; search = search.next) {
+                // is the element a pak file?
+                if (search.pack != null) {
+                    // look through all the pak file elements
+                    pak = search.pack;
+                    filename = filename.toLowerCase();
+                    packfile_t entry = (packfile_t) pak.files.get(filename);
+
+                    if (entry != null) {
+                        // found it!
+                        file_from_pak = 1;
+                        //Com.DPrintf ("PackFile: " + pak.filename + " : " +
+                        // filename + '\n');
+                        file = new File(pak.filename);
+                        if (!file.canRead())
+                            Com.Error(Globals.ERR_FATAL, "Couldn't reopen "
+                                    + pak.filename);
+                        if (pak.handle == null || !pak.handle.getFD().valid()) {
+                            // hold the pakfile handle open
+                            pak.handle = new RandomAccessFile(pak.filename, "r");
+                        }
+                        // open a new file on the pakfile
+
+                        channel = pak.handle.getChannel();
+                        buffer = channel.map(FileChannel.MapMode.READ_ONLY,
+                                entry.filepos, entry.filelen);
+                        channel.close();
+                        return buffer;
+                    }
+                } else {
+                    // check a file in the directory tree
+                    netpath = search.filename + '/' + filename;
+
+                    file = new File(netpath);
+                    if (!file.canRead())
+                        continue;
+
+                    //Com.DPrintf("FindFile: " + netpath +'\n');
+                    input = new FileInputStream(file);
+                    channel = input.getChannel();
+                    fileLength = (int) channel.size();
+                    buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0,
+                            fileLength);
+                    input.close();
+                    return buffer;
+                }
+            }
+        } catch (Exception e) {
+        }
+        try {
+            if (input != null)
+                input.close();
+            else if (channel != null && channel.isOpen())
+                channel.close();
+        } catch (IOException ioe) {
+        }
+        return null;
+    }
+
+    /*
+     * FreeFile
      */
     public static void FreeFile(byte[] buffer) {
         buffer = null;
@@ -395,7 +496,7 @@ public final class FS extends Globals {
     static final int IDPAKHEADER = (('K' << 24) + ('C' << 16) + ('A' << 8) + 'P');
 
     static class dpackheader_t {
-        int ident; // == IDPAKHEADER
+        int ident; // IDPAKHEADER
 
         int dirofs;
 
@@ -404,13 +505,16 @@ public final class FS extends Globals {
 
     static final int MAX_FILES_IN_PACK = 4096;
 
+    // buffer for C-Strings char[56]
+    static byte[] tmpText = new byte[packfile_t.NAME_SIZE];
+
     /*
-     * ================= FS_LoadPackFile
+     * LoadPackFile
      * 
      * Takes an explicit (not game tree related) path to a pak file.
      * 
      * Loads the header and directory, adding the files at the beginning of the
-     * list so they override previous pack files. =================
+     * list so they override previous pack files.
      */
     static pack_t LoadPackFile(String packfile) {
 
@@ -448,26 +552,22 @@ public final class FS extends Globals {
 
             packhandle.seek(header.dirofs);
 
-            // buffer for C-Strings char[56]
-            byte[] text = new byte[packfile_t.NAME_SIZE];
             // parse the directory
             packfile_t entry = null;
 
             for (int i = 0; i < numpackfiles; i++) {
-                packhandle.readFully(text);
+                packhandle.readFully(tmpText);
 
                 entry = new packfile_t();
-                entry.name = new String(text).trim();
+                entry.name = new String(tmpText).trim();
                 entry.filepos = packhandle.readInt();
                 entry.filelen = packhandle.readInt();
 
                 newfiles.put(entry.name.toLowerCase(), entry);
-
-                //logger.log(Level.FINEST, i + ".\t" + entry);
             }
 
         } catch (IOException e) {
-            //logger.log(Level.WARNING, e.toString());
+            Com.DPrintf(e.getMessage() + '\n');
             return null;
         }
 
@@ -484,10 +584,10 @@ public final class FS extends Globals {
     }
 
     /*
-     * ================ FS_AddGameDirectory
+     * AddGameDirectory
      * 
      * Sets fs_gamedir, adds the directory to the head of the path, then loads
-     * and adds pak1.pak pak2.pak ... ================
+     * and adds pak1.pak pak2.pak ...
      */
     static void AddGameDirectory(String dir) {
         int i;
@@ -530,18 +630,17 @@ public final class FS extends Globals {
     }
 
     /*
-     * ============ FS_Gamedir
+     * Gamedir
      * 
-     * Called to find where to write a file (demos, savegames, etc) ============
+     * Called to find where to write a file (demos, savegames, etc)
      */
     public static String Gamedir() {
         return (fs_userdir != null) ? fs_userdir : Globals.BASEDIRNAME;
     }
 
     /*
-     * ============= FS_ExecAutoexec =============
+     * ExecAutoexec
      */
-
     public static void ExecAutoexec() {
 
         String dir;
@@ -565,15 +664,12 @@ public final class FS extends Globals {
     }
 
     /*
-     * ================ FS_SetGamedir
+     * SetGamedir
      * 
-     * Sets the gamedir and path to a different directory. ================
+     * Sets the gamedir and path to a different directory.
      */
     public static void SetGamedir(String dir) {
         searchpath_t next;
-
-        //		if (strstr(dir, "..") || strstr(dir, "/")
-        //			|| strstr(dir, "\\") || strstr(dir, ":") )
 
         if (dir.indexOf("..") != -1 || dir.indexOf("/") != -1
                 || dir.indexOf("\\") != -1 || dir.indexOf(":") != -1) {
@@ -589,7 +685,7 @@ public final class FS extends Globals {
                 try {
                     fs_searchpaths.pack.handle.close();
                 } catch (IOException e) {
-                    //logger.log(Level.WARNING, e.toString());
+                    Com.DPrintf(e.getMessage() + '\n');
                 }
                 // clear the hashtable
                 fs_searchpaths.pack.files.clear();
@@ -622,9 +718,9 @@ public final class FS extends Globals {
     }
 
     /*
-     * ================ FS_Link_f
+     * Link_f
      * 
-     * Creates a filelink_t ================
+     * Creates a filelink_t
      */
     public static void Link_f() {
         filelink_t entry = null;
@@ -660,7 +756,7 @@ public final class FS extends Globals {
     }
 
     /*
-     * * FS_ListFiles
+     * ListFiles
      */
     public static String[] ListFiles(String findname, int musthave, int canthave) {
         String[] list = null;
@@ -678,7 +774,7 @@ public final class FS extends Globals {
     }
 
     /*
-     * * FS_Dir_f
+     * Dir_f
      */
     public static void Dir_f() {
         String path = null;
@@ -720,9 +816,7 @@ public final class FS extends Globals {
     }
 
     /*
-     * ============ FS_Path_f
-     * 
-     * ============
+     * Path_f
      */
     public static void Path_f() {
 
@@ -748,10 +842,9 @@ public final class FS extends Globals {
     }
 
     /*
-     * ================ FS_NextPath
+     * NextPath
      * 
      * Allows enumerating all of the directories in the search path
-     * ================
      */
     public static String NextPath(String prevpath) {
         searchpath_t s;
@@ -775,7 +868,7 @@ public final class FS extends Globals {
     }
 
     /*
-     * ================ FS_InitFilesystem ================
+     * InitFilesystem
      */
     public static void InitFilesystem() {
         Cmd.AddCommand("path", new xcommand_t() {
