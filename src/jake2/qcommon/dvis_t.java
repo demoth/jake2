@@ -19,13 +19,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: dvis_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: dvis_t.java,v 1.3 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
+import java.nio.ByteBuffer;
+
 public class dvis_t {
 	
-		int			numclusters;
-		int			bitofs[][]= new int[8][2];	// bitofs[numclusters][2]
+	 
+	public dvis_t(ByteBuffer bb) {
+		numclusters = bb.getInt();
+		bitofs = new int[numclusters][2];
+		
+		for (int i=0; i < numclusters; i++)
+		{
+			bitofs[i][0]= bb.getInt();
+			bitofs[i][1]= bb.getInt();	
+		}
+	}
 	
+	int			numclusters;
+	int			bitofs[][]= new int[8][2];	// bitofs[numclusters][2]	
 }

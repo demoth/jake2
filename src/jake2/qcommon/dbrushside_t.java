@@ -19,29 +19,32 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: dbrushside_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: dbrushside_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
  import jake2.*;
  import jake2.client.*;
  import jake2.game.*;
- import jake2.qcommon.*;
  import jake2.render.*;
  import jake2.server.*;
 
 public class dbrushside_t {
 	 
 	public dbrushside_t(ByteBuffer bb) {
-		planenum = EndianHandler.swapShort(bb.getShort());
-		texinfo = EndianHandler.swapShort(bb.getShort());
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		planenum = bb.getShort() & 0xffff;
+		texinfo = bb.getShort();
 	}
 	
 	//unsigned short planenum;
 	int	planenum;					// facing out of the leaf
+	
 	short	texinfo;
 	
 	public static int SIZE = 4;

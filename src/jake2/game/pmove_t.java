@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_t.java,v 1.5 2003-12-28 19:52:35 rst Exp $
+// $Id: pmove_t.java,v 1.6 2004-01-02 22:29:01 rst Exp $
 
 package jake2.game;
 
@@ -66,7 +66,6 @@ public class pmove_t {
 	public PointContentsAdapter pointcontents;
 
 	public void clear() {
-		// TODO Auto-generated method stub
-
+		// TODO: create the clear() method.
 	}
 }

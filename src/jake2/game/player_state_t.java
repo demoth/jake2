@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: player_state_t.java,v 1.6 2003-12-28 19:52:34 rst Exp $
+// $Id: player_state_t.java,v 1.7 2004-01-02 22:29:01 rst Exp $
 
 package jake2.game;
 
@@ -59,7 +59,6 @@ public class player_state_t {
 	 * 
 	 */
 	public void clear() {
-		// TODO Auto-generated method stub
-		
-	} // fast status bar updates
+		// TODO: create the clear() method.	
+	}
 }

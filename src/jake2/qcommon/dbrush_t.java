@@ -19,33 +19,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: dbrush_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: dbrush_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-
- import jake2.*;
-  import jake2.client.*;
-  import jake2.game.*;
-  import jake2.render.*;
-  import jake2.server.*;
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.render.*;
+import jake2.server.*;
 
 public class dbrush_t {
-	
+
 	/**
 	 * @param buffer
 	 */
 	public dbrush_t(ByteBuffer bb) {
-		firstside=EndianHandler.swapInt(bb.getInt());
-		numsides=EndianHandler.swapInt(bb.getInt());
-		contents = EndianHandler.swapInt(bb.getInt());
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		firstside = bb.getInt();
+		numsides = bb.getInt();
+		contents = bb.getInt();
 	}
 
-	public static int SIZE = 3*4;
-	
-	int			firstside;
-	int			numsides;
-	int			contents;
+	public static int SIZE = 3 * 4;
+
+	int firstside;
+	int numsides;
+	int contents;
 }

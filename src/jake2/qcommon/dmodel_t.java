@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: dmodel_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: dmodel_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 // import jake2.*;
@@ -32,10 +35,30 @@ package jake2.qcommon;
 // import jake2.server.*;
 
 public class dmodel_t {
+ 
+	public dmodel_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		
+		for (int j=0; j < 3; j++)
+			mins[j] = bb.getFloat();
+
+		for (int j=0; j < 3; j++)
+			maxs[j] = bb.getFloat();
+
+		for (int j=0; j < 3; j++)
+			origin[j] = bb.getFloat();
+
+		headnode = bb.getInt();
+		firstface = bb.getInt();
+		numfaces = bb.getInt();		 
+	}
 	float		mins[] ={0,0,0};
 	float		maxs[] ={0,0,0};
 	float		origin[] ={0,0,0};		// for sounds or lights
 	int		headnode;
 	int		firstface, numfaces;	// submodels just draw faces
 										// without walking the bsp tree
+																				
+	public static int SIZE = 3 * 4 + 3 * 4 + 3 * 4 + 4 + 8; 
 }

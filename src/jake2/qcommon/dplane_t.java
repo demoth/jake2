@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: dplane_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: dplane_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
-import java.nio.ByteBuffer;
+import java.nio.*;
 
 
 import jake2.*;
@@ -38,12 +38,14 @@ public class dplane_t {
 	// planes (x&~1) and (x&~1)+1 are always opposites
  
 	public dplane_t(ByteBuffer bb) {
-		normal[0]=EndianHandler.swapFloat(bb.getFloat());
-		normal[1]=EndianHandler.swapFloat(bb.getFloat());
-		normal[2]=EndianHandler.swapFloat(bb.getFloat());
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+	
+		normal[0]= (bb.getFloat());
+		normal[1]= (bb.getFloat());
+		normal[2]= (bb.getFloat());
 		 
-		dist =EndianHandler.swapFloat(bb.getFloat());
-		type = EndianHandler.swapInt(bb.getInt());
+		dist = (bb.getFloat());
+		type =  (bb.getInt());
 	}
 	
 	float	normal[] = {0,0,0};

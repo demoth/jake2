@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: CM.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
 import java.util.Arrays;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import jake2.*;
 import jake2.client.*;
@@ -100,9 +101,11 @@ public class CM extends PlayerHud {
 	static cbrush_t map_brushes[] = new cbrush_t[MAX_MAP_BRUSHES];
 
 	static int numvisibility;
-	static byte map_visibility[] = new byte[MAX_MAP_VISIBILITY];
+	//static byte map_visibility[] = new byte[MAX_MAP_VISIBILITY];
 
 	//static dvis_t		*map_vis = (dvis_t *)map_visibility;
+	// main visibility data. rst
+	static dvis_t map_vis;
 
 	static int numentitychars;
 	//static char		map_entitystring[MAX_MAP_ENTSTRING];
@@ -135,7 +138,6 @@ public class CM extends PlayerHud {
 	===============================================================================
 	*/
 
-
 	static byte cmod_base[];
 
 	static int checksum;
@@ -159,9 +161,11 @@ public class CM extends PlayerHud {
 		if (0 == strcmp(map_name, name) && (clientload || 0 == Cvar.VariableValue("flushmap"))) {
 			checksum = last_checksum;
 			if (!clientload) {
-				Arrays.fill(portalopen, false);
 				//memset(portalopen, 0, sizeof(portalopen));
-				//FloodAreaConnections();
+				Arrays.fill(portalopen, false);
+				
+				
+				FloodAreaConnections();
 			}
 			return map_cmodels[0]; // still have the right version
 		}
@@ -217,68 +221,74 @@ public class CM extends PlayerHud {
 		CMod_LoadSurfaces(header.lumps[LUMP_TEXINFO]);
 		CMod_LoadLeafs(header.lumps[LUMP_LEAFS]);
 		CMod_LoadLeafBrushes(header.lumps[LUMP_LEAFBRUSHES]);
-		CMod_LoadPlanes( header.lumps[LUMP_PLANES]);
-		CMod_LoadBrushes( header.lumps[LUMP_BRUSHES]);
-		CMod_LoadBrushSides( header.lumps[LUMP_BRUSHSIDES]);
-		/*
-		CMod_LoadSubmodels( header.lumps[LUMP_MODELS]);
-		CMod_LoadNodes( header.lumps[LUMP_NODES]);
-		CMod_LoadAreas( header.lumps[LUMP_AREAS]);
-		CMod_LoadAreaPortals( header.lumps[LUMP_AREAPORTALS]);
+		CMod_LoadPlanes(header.lumps[LUMP_PLANES]);
+		CMod_LoadBrushes(header.lumps[LUMP_BRUSHES]);
+		CMod_LoadBrushSides(header.lumps[LUMP_BRUSHSIDES]);
+		CMod_LoadSubmodels(header.lumps[LUMP_MODELS]);
+
+		CMod_LoadNodes(header.lumps[LUMP_NODES]);
+		CMod_LoadAreas(header.lumps[LUMP_AREAS]);
+		CMod_LoadAreaPortals(header.lumps[LUMP_AREAPORTALS]);
 		CMod_LoadVisibility(header.lumps[LUMP_VISIBILITY]);
 		CMod_LoadEntityString(header.lumps[LUMP_ENTITIES]);
+		 
+		FS.FreeFile(buf);
 		
-		FS_FreeFile(buf);
 		
-		CM_InitBoxHull();
+		//TODO:port next
+		//CM_InitBoxHull();
 		
-		memset(portalopen, 0, sizeof(portalopen));
+		//memset(portalopen, 0, sizeof(portalopen));
+		Arrays.fill(portalopen, false);
+		
 		FloodAreaConnections();
 		
-		strcpy(map_name, name);
-		*/
+		map_name=name;
+		
 		System.out.println("ok!");
 		return map_cmodels[0];
 	}
 
-	//
-	//
-	//	/*
-	//	=================
-	//	CMod_LoadSubmodels
-	//	=================
-	//	*/
-	//	static void CMod_LoadSubmodels(lump_t l) {
-	//		dmodel_t  in;
-	//		cmodel_t  out;
-	//		int i, j, count;
-	//
-	//		in = (cmod_base + l.fileofs);
-	//		
-	//		if (l.filelen % sizeof(* in))
-	//			Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-	//			
-	//		count = l.filelen / sizeof(* in);
-	//
-	//		if (count < 1)
-	//			Com_Error(ERR_DROP, "Map with no models");
-	//		if (count > MAX_MAP_MODELS)
-	//			Com_Error(ERR_DROP, "Map has too many models");
-	//
-	//		numcmodels = count;
-	//
-	//		for (i = 0; i < count; i++, in++, out++) {
-	//			out = & map_cmodels[i];
-	//
-	//			for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
-	//				out.mins[j] = LittleFloat(in.mins[j]) - 1;
-	//				out.maxs[j] = LittleFloat(in.maxs[j]) + 1;
-	//				out.origin[j] = LittleFloat(in.origin[j]);
-	//			}
-	//			out.headnode = LittleLong(in.headnode);
-	//		}
-	//	}
-	//
+	/*
+	=================
+	CMod_LoadSubmodels
+	=================
+	*/
+	static void CMod_LoadSubmodels(lump_t l) {
+		Com.DPrintf("CMod_LoadSubmodels...\n");
+		dmodel_t in;
+		cmodel_t out;
+		int i, j, count;
+
+		//in = (cmod_base + l.fileofs);
+
+		if ((l.filelen % dmodel_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+
+		count = l.filelen / dmodel_t.SIZE;
+
+		if (count < 1)
+			Com.Error(ERR_DROP, "Map with no models");
+		if (count > MAX_MAP_MODELS)
+			Com.Error(ERR_DROP, "Map has too many models");
+
+		numcmodels = count;
+
+		for (i = 0; i < count; i++) {
+			in = new dmodel_t(ByteBuffer.wrap(cmod_base, i * dmodel_t.SIZE + l.fileofs, dmodel_t.SIZE));
+			out = map_cmodels[i];
+			if (out == null)
+				out = map_cmodels[i] = new cmodel_t();
+
+			for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
+				out.mins[j] = in.mins[j] - 1;
+				out.maxs[j] = in.maxs[j] + 1;
+				out.origin[j] = in.origin[j];
+			}
+			out.headnode = in.headnode;
+		}
+	}
+
 	/*
 	=================
 	CMod_LoadSurfaces
@@ -321,82 +331,84 @@ public class CM extends PlayerHud {
 			out.c.value = in.value;
 		}
 	}
-	//
-	//	/*
-	//	=================
-	//	CMod_LoadNodes
-	//	
-	//	=================
-	//	*/
-	//	static void CMod_LoadNodes(lump_t * l) {
-	//		dnode_t * in;
-	//		int child;
-	//		cnode_t * out;
-	//		int i, j, count;
-	//
-	//		in = (void *) (cmod_base + l.fileofs);
-	//		if (l.filelen % sizeof(* in))
-	//			Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-	//		count = l.filelen / sizeof(* in);
-	//
-	//		if (count < 1)
-	//			Com_Error(ERR_DROP, "Map has no nodes");
-	//		if (count > MAX_MAP_NODES)
-	//			Com_Error(ERR_DROP, "Map has too many nodes");
-	//
-	//		out = map_nodes;
-	//
-	//		numnodes = count;
-	//
-	//		for (i = 0; i < count; i++, out++, in++) {
-	//			out.plane = map_planes + LittleLong(in.planenum);
-	//			for (j = 0; j < 2; j++) {
-	//				child = LittleLong(in.children[j]);
-	//				out.children[j] = child;
-	//			}
-	//		}
-	//
-	//	}
-	//
-		/*
-		=================
-		CMod_LoadBrushes
-		
-		=================
-		*/
-		static void CMod_LoadBrushes(lump_t   l) {
-			Com.DPrintf("CMod_LoadBrushes...\n");
-			dbrush_t   in;
-			cbrush_t  out;
-			int i, count;
+
+	/*
+	=================
+	CMod_LoadNodes
 	
-			//in = (void *) (cmod_base + l.fileofs);
-			if ((l.filelen % dbrush_t.SIZE)!=0)
-				Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-				
-			count = l.filelen / dbrush_t.SIZE;
-	
-			if (count > MAX_MAP_BRUSHES)
-				Com.Error(ERR_DROP, "Map has too many brushes");
-	
-			
-	
-			numbrushes = count;
-	
-			for (i = 0; i < count; i++) {
-				in = new dbrush_t(ByteBuffer.wrap(cmod_base, i * dbrush_t.SIZE + l.fileofs, dbrush_t.SIZE));
-				
-				out = map_brushes[i];
-				if (out ==null)
-					out = map_brushes[i] = new cbrush_t();
-				
-				out.firstbrushside = in.firstside;
-				out.numsides = in.numsides;
-				out.contents = in.contents;
+	=================
+	*/
+	static void CMod_LoadNodes(lump_t l) {
+		Com.DPrintf("CMod_LoadNodes...\n");
+		dnode_t in;
+		int child;
+		cnode_t out;
+		int i, j, count;
+
+		//in = (void *) (cmod_base + l.fileofs);
+		if ((l.filelen % dnode_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size:" + l.fileofs + "," + dnode_t.SIZE);
+		count = l.filelen / dnode_t.SIZE;
+
+		if (count < 1)
+			Com.Error(ERR_DROP, "Map has no nodes");
+		if (count > MAX_MAP_NODES)
+			Com.Error(ERR_DROP, "Map has too many nodes");
+
+		numnodes = count;
+
+		for (i = 0; i < count; i++) {
+			in = new dnode_t(ByteBuffer.wrap(cmod_base, dnode_t.SIZE * i + l.fileofs, dnode_t.SIZE));
+			out = map_nodes[i];
+			if (out == null)
+				out = map_nodes[i] = new cnode_t();
+
+			out.plane = map_planes[in.planenum];
+			for (j = 0; j < 2; j++) {
+				child = in.children[j];
+				out.children[j] = child;
 			}
-	
 		}
+
+	}
+
+	/*
+	=================
+	CMod_LoadBrushes
 	
+	=================
+	*/
+	static void CMod_LoadBrushes(lump_t l) {
+		Com.DPrintf("CMod_LoadBrushes...\n");
+		dbrush_t in;
+		cbrush_t out;
+		int i, count;
+
+		//in = (void *) (cmod_base + l.fileofs);
+		if ((l.filelen % dbrush_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+
+		count = l.filelen / dbrush_t.SIZE;
+
+		if (count > MAX_MAP_BRUSHES)
+			Com.Error(ERR_DROP, "Map has too many brushes");
+
+		numbrushes = count;
+
+		for (i = 0; i < count; i++) {
+			in = new dbrush_t(ByteBuffer.wrap(cmod_base, i * dbrush_t.SIZE + l.fileofs, dbrush_t.SIZE));
+
+			out = map_brushes[i];
+			if (out == null)
+				out = map_brushes[i] = new cbrush_t();
+
+			out.firstbrushside = in.firstside;
+			out.numsides = in.numsides;
+			out.contents = in.contents;
+		}
+
+	}
+
 	/*
 	=================
 	CMod_LoadLeafs
@@ -456,59 +468,58 @@ public class CM extends PlayerHud {
 		if (emptyleaf == -1)
 			Com.Error(ERR_DROP, "Map does not have an empty leaf");
 	}
-	
-		/*
-		=================
-		CMod_LoadPlanes
-		=================
-		*/
-		static void CMod_LoadPlanes(lump_t   l) {
-			Com.DPrintf("CMod_LoadPlanes...\n");
-			int i, j;
-			cplane_t   out;
-			dplane_t   in;
-			int count;
-			int bits;
-	
-			//in = (void *) (cmod_base + l.fileofs);
-			
-			if ((l.filelen % dplane_t.SIZE)!=0)
-				Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-				
-			count = l.filelen / dplane_t.SIZE;
-	
-			if (count < 1)
-				Com.Error(ERR_DROP, "Map with no planes");
-				
-			// need to save space for box planes
-			
-			if (count > MAX_MAP_PLANES)
-				Com.Error(ERR_DROP, "Map has too many planes");
-	
-			
-			numplanes = count;
-	
-			for (i = 0; i < count; i++) {
-				in = new dplane_t(ByteBuffer.wrap(cmod_base, i*dplane_t.SIZE + l.fileofs, dplane_t.SIZE));
-								
-				out = map_planes[i];
-				if (out == null)
-					out = map_planes[i] = new cplane_t();
-					
-				bits = 0;
-				for (j = 0; j < 3; j++) {
-					out.normal[j] = in.normal[j];
-					
-					if (out.normal[j] < 0)
-						bits |= 1 << j;
-				}
-	
-				out.dist = in.dist;
-				out.type = (byte) in.type;
-				out.signbits = (byte) bits;
+
+	/*
+	=================
+	CMod_LoadPlanes
+	=================
+	*/
+	static void CMod_LoadPlanes(lump_t l) {
+		Com.DPrintf("CMod_LoadPlanes...\n");
+		int i, j;
+		cplane_t out;
+		dplane_t in;
+		int count;
+		int bits;
+
+		//in = (void *) (cmod_base + l.fileofs);
+
+		if ((l.filelen % dplane_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+
+		count = l.filelen / dplane_t.SIZE;
+
+		if (count < 1)
+			Com.Error(ERR_DROP, "Map with no planes");
+
+		// need to save space for box planes
+
+		if (count > MAX_MAP_PLANES)
+			Com.Error(ERR_DROP, "Map has too many planes");
+
+		numplanes = count;
+
+		for (i = 0; i < count; i++) {
+			in = new dplane_t(ByteBuffer.wrap(cmod_base, i * dplane_t.SIZE + l.fileofs, dplane_t.SIZE));
+
+			out = map_planes[i];
+			if (out == null)
+				out = map_planes[i] = new cplane_t();
+
+			bits = 0;
+			for (j = 0; j < 3; j++) {
+				out.normal[j] = in.normal[j];
+
+				if (out.normal[j] < 0)
+					bits |= 1 << j;
 			}
+
+			out.dist = in.dist;
+			out.type = (byte) in.type;
+			out.signbits = (byte) bits;
 		}
-	
+	}
+
 	/*
 	=================
 	CMod_LoadLeafBrushes
@@ -538,146 +549,183 @@ public class CM extends PlayerHud {
 		out = map_leafbrushes;
 		numleafbrushes = count;
 
-		ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, count * 2);
+		ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, count * 2).order(ByteOrder.LITTLE_ENDIAN);
 
 		for (i = 0; i < count; i++) {
-			out[i] = EndianHandler.swapShort(bb.getShort());
+			out[i] = bb.getShort();
 		}
 	}
 
-		/*
-		=================
-		CMod_LoadBrushSides
-		=================
-		*/
-		static void CMod_LoadBrushSides(lump_t   l) {
-			Com.DPrintf("CMod_LoadBrushSides...\n");
-			int i, j;
-			cbrushside_t  out;
-			dbrushside_t   in;
-			int count;
-			int num;
-	
-			//in = (void *) (cmod_base + l.fileofs);
-			if ((l.filelen % dbrushside_t.SIZE)!=0)
-				Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-			count = l.filelen / dbrushside_t.SIZE;
-	
-			// need to save space for box planes
-			if (count > MAX_MAP_BRUSHSIDES)
-				Com.Error(ERR_DROP, "Map has too many planes");
-	
+	/*
+	=================
+	CMod_LoadBrushSides
+	=================
+	*/
+	static void CMod_LoadBrushSides(lump_t l) {
+		Com.DPrintf("CMod_LoadBrushSides...\n");
+		int i, j;
+		cbrushside_t out;
+		dbrushside_t in;
+		int count;
+		int num;
+
+		//in = (void *) (cmod_base + l.fileofs);
+		if ((l.filelen % dbrushside_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		count = l.filelen / dbrushside_t.SIZE;
+
+		// need to save space for box planes
+		if (count > MAX_MAP_BRUSHSIDES)
+			Com.Error(ERR_DROP, "Map has too many planes");
+
+		numbrushsides = count;
+
+		for (i = 0; i < count; i++) {
+
+			in = new dbrushside_t(ByteBuffer.wrap(cmod_base, i * dbrushside_t.SIZE + l.fileofs, dbrushside_t.SIZE));
+
+			out = map_brushsides[i];
+			if (out == null)
+				out = map_brushsides[i] = new cbrushside_t();
+				
+			num = in.planenum;
+			System.out.println("planenum= " + in.planenum);
+			System.out.println("texinfo= " + in.texinfo);
 			
-			numbrushsides = count;
-	
-			for (i = 0; i < count; i++) {
+			out.plane = map_planes[num];
+			
+			j = in.texinfo;
+
+			if (j >= numtexinfo)
+				Com.Error(ERR_DROP, "Bad brushside texinfo");
 				
-				in = new dbrushside_t(ByteBuffer.wrap(cmod_base , i*dbrushside_t.SIZE + l.fileofs , dbrushside_t.SIZE));
-				
-				out = map_brushsides[i];					
-				if (out ==null)
-					out = map_brushsides[i] = new cbrushside_t();				
-				num = in.planenum;
-				out.plane = map_planes[num];				
-				j =  in.texinfo ;
-								
-				if (j >= numtexinfo)
-					Com.Error(ERR_DROP, "Bad brushside texinfo");
+			//TODO: RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!
+			if (j==-1)
+				Com.DPrintf("RST says: some mysterious happens here, even in the original code ???, texinfo is -1!!!");
+			else
 				out.surface = map_surfaces[j];
-			}
 		}
+	}
+
+	/*
+	=================
+	CMod_LoadAreas
+	=================
+	*/
+	static void CMod_LoadAreas(lump_t l) {
+		Com.DPrintf("CMod_LoadAreas...\n");
+		int i;
+		carea_t out;
+		darea_t in;
+		int count;
+
+		//in = (void *) (cmod_base + l.fileofs);
+		if ((l.filelen % darea_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+
+		count = l.filelen / darea_t.SIZE;
+
+		if (count > MAX_MAP_AREAS)
+			Com.Error(ERR_DROP, "Map has too many areas");
+
+		numareas = count;
+
+		for (i = 0; i < count; i++) {
+
+			in = new darea_t(ByteBuffer.wrap(cmod_base, i * darea_t.SIZE + l.fileofs, darea_t.SIZE));
+			out = map_areas[i];
+			if (out == null)
+				out = map_areas[i] = new carea_t();
+
+			out.numareaportals = in.numareaportals;
+			out.firstareaportal = in.firstareaportal;
+			out.floodvalid = 0;
+			out.floodnum = 0;
+		}
+	}
+
+	/*
+	=================
+	CMod_LoadAreaPortals
+	=================
+	*/
+	static void CMod_LoadAreaPortals(lump_t l) {
+		Com.DPrintf("CMod_LoadAreaPortals...\n");
+		int i;
+		dareaportal_t out;
+		dareaportal_t in;
+		int count;
+
+		//in = (void *) (cmod_base + l.fileofs);
+		if ((l.filelen % dareaportal_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		count = l.filelen / dareaportal_t.SIZE;
+
+		if (count > MAX_MAP_AREAS)
+			Com.Error(ERR_DROP, "Map has too many areas");
+
+		numareaportals = count;
+
+		for (i = 0; i < count; i++) {
+			in = new dareaportal_t(ByteBuffer.wrap(cmod_base, i * dareaportal_t.SIZE + l.fileofs, dareaportal_t.SIZE));
+			// dont loose data. rst
+			out = map_areaportals[i];
+			if (out == null)
+				out = map_areaportals[i] = new dareaportal_t();
+			
 	
-	//	/*
-	//	=================
-	//	CMod_LoadAreas
-	//	=================
-	//	*/
-	//	static void CMod_LoadAreas(lump_t * l) {
-	//		int i;
-	//		carea_t * out;
-	//		darea_t * in;
-	//		int count;
-	//
-	//		in = (void *) (cmod_base + l.fileofs);
-	//		if (l.filelen % sizeof(* in))
-	//			Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-	//		count = l.filelen / sizeof(* in);
-	//
-	//		if (count > MAX_MAP_AREAS)
-	//			Com_Error(ERR_DROP, "Map has too many areas");
-	//
-	//		out = map_areas;
-	//		numareas = count;
-	//
-	//		for (i = 0; i < count; i++, in++, out++) {
-	//			out.numareaportals = LittleLong(in.numareaportals);
-	//			out.firstareaportal = LittleLong(in.firstareaportal);
-	//			out.floodvalid = 0;
-	//			out.floodnum = 0;
-	//		}
-	//	}
-	//
-	//	/*
-	//	=================
-	//	CMod_LoadAreaPortals
-	//	=================
-	//	*/
-	//	static void CMod_LoadAreaPortals(lump_t * l) {
-	//		int i;
-	//		dareaportal_t * out;
-	//		dareaportal_t * in;
-	//		int count;
-	//
-	//		in = (void *) (cmod_base + l.fileofs);
-	//		if (l.filelen % sizeof(* in))
-	//			Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-	//		count = l.filelen / sizeof(* in);
-	//
-	//		if (count > MAX_MAP_AREAS)
-	//			Com_Error(ERR_DROP, "Map has too many areas");
-	//
-	//		out = map_areaportals;
-	//		numareaportals = count;
-	//
-	//		for (i = 0; i < count; i++, in++, out++) {
-	//			out.portalnum = LittleLong(in.portalnum);
-	//			out.otherarea = LittleLong(in.otherarea);
-	//		}
-	//	}
-	//
-	//	/*
-	//	=================
-	//	CMod_LoadVisibility
-	//	=================
-	//	*/
-	//	static void CMod_LoadVisibility(lump_t * l) {
-	//		int i;
-	//
-	//		numvisibility = l.filelen;
-	//		if (l.filelen > MAX_MAP_VISIBILITY)
-	//			Com_Error(ERR_DROP, "Map has too large visibility lump");
-	//
-	//		memcpy(map_visibility, cmod_base + l.fileofs, l.filelen);
-	//
-	//		map_vis.numclusters = LittleLong(map_vis.numclusters);
-	//		for (i = 0; i < map_vis.numclusters; i++) {
-	//			map_vis.bitofs[i][0] = LittleLong(map_vis.bitofs[i][0]);
-	//			map_vis.bitofs[i][1] = LittleLong(map_vis.bitofs[i][1]);
-	//		}
-	//	}
-	//
-	//	/*
-	//	=================
-	//	CMod_LoadEntityString
-	//	=================
-	//	*/
-	//	void CMod_LoadEntityString(lump_t * l) {
-	//		numentitychars = l.filelen;
-	//		if (l.filelen > MAX_MAP_ENTSTRING)
-	//			Com_Error(ERR_DROP, "Map has too large entity lump");
-	//
-	//		memcpy(map_entitystring, cmod_base + l.fileofs, l.filelen);
-	//	}
+			out.portalnum = in.portalnum;
+			out.otherarea = in.otherarea;
+		}
+	}
+
+	/*
+	=================
+	CMod_LoadVisibility
+	=================
+	*/
+	static void CMod_LoadVisibility(lump_t l) {
+		Com.DPrintf("CMod_LoadVisibility...\n");
+		int i;
+
+		numvisibility = l.filelen;
+		if (l.filelen > MAX_MAP_VISIBILITY)
+			Com.Error(ERR_DROP, "Map has too large visibility lump");
+
+		//memcpy(map_visibility, cmod_base + l.fileofs, l.filelen);
+		ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, l.filelen);
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		map_vis = new dvis_t(bb);
+
+		/* done 
+		map_vis.numclusters = LittleLong(map_vis.numclusters);
+		for (i = 0; i < map_vis.numclusters; i++) {
+			map_vis.bitofs[i][0] = LittleLong(map_vis.bitofs[i][0]);
+			map_vis.bitofs[i][1] = LittleLong(map_vis.bitofs[i][1]);
+		}
+		*/
+	}
+
+	/*
+	=================
+	CMod_LoadEntityString
+	=================
+	*/
+	static void CMod_LoadEntityString(lump_t l) {
+		Com.DPrintf("CMod_LoadEntityString...\n");
+
+		numentitychars = l.filelen;
+
+		if (l.filelen > MAX_MAP_ENTSTRING)
+			Com.Error(ERR_DROP, "Map has too large entity lump");
+
+		int x = 0;
+		for (; x < l.filelen && cmod_base[x + l.fileofs] != 0; x++);
+
+		map_entitystring = new String(cmod_base, l.fileofs, x);
+		//memcpy(map_entitystring, cmod_base + l.fileofs, l.filelen);
+	}
 	//
 	//
 	//	/*
@@ -689,10 +737,10 @@ public class CM extends PlayerHud {
 	//		int num;
 	//
 	//		if (!name || name[0] != '*')
-	//			Com_Error(ERR_DROP, "CM_InlineModel: bad name");
+	//			Com.Error(ERR_DROP, "CM_InlineModel: bad name");
 	//		num = atoi(name + 1);
 	//		if (num < 1 || num >= numcmodels)
-	//			Com_Error(ERR_DROP, "CM_InlineModel: bad number");
+	//			Com.Error(ERR_DROP, "CM_InlineModel: bad number");
 	//
 	//		return & map_cmodels[num];
 	//	}
@@ -711,19 +759,19 @@ public class CM extends PlayerHud {
 	//
 	//	int CM_LeafContents(int leafnum) {
 	//		if (leafnum < 0 || leafnum >= numleafs)
-	//			Com_Error(ERR_DROP, "CM_LeafContents: bad number");
+	//			Com.Error(ERR_DROP, "CM_LeafContents: bad number");
 	//		return map_leafs[leafnum].contents;
 	//	}
 	//
 	//	int CM_LeafCluster(int leafnum) {
 	//		if (leafnum < 0 || leafnum >= numleafs)
-	//			Com_Error(ERR_DROP, "CM_LeafCluster: bad number");
+	//			Com.Error(ERR_DROP, "CM_LeafCluster: bad number");
 	//		return map_leafs[leafnum].cluster;
 	//	}
 	//
 	//	int CM_LeafArea(int leafnum) {
 	//		if (leafnum < 0 || leafnum >= numleafs)
-	//			Com_Error(ERR_DROP, "CM_LeafArea: bad number");
+	//			Com.Error(ERR_DROP, "CM_LeafArea: bad number");
 	//		return map_leafs[leafnum].area;
 	//	}
 	//
@@ -756,7 +804,7 @@ public class CM extends PlayerHud {
 	//			|| numleafbrushes + 1 > MAX_MAP_LEAFBRUSHES
 	//			|| numbrushsides + 6 > MAX_MAP_BRUSHSIDES
 	//			|| numplanes + 12 > MAX_MAP_PLANES)
-	//			Com_Error(ERR_DROP, "Not enough room for box tree");
+	//			Com.Error(ERR_DROP, "Not enough room for box tree");
 	//
 	//		box_brush = & map_brushes[numbrushes];
 	//		box_brush.numsides = 6;
@@ -1409,7 +1457,8 @@ public class CM extends PlayerHud {
 	//	rotating entities
 	//	==================
 	//	*/
-	//	# ifdef _WIN32 # pragma optimize("", off) # endif trace_t CM_TransformedBoxTrace(
+	//	# ifdef _WIN32 # pragma optimize("", off) # endif 
+	//trace_t CM_TransformedBoxTrace(
 	//		vec3_t start,
 	//		vec3_t end,
 	//		vec3_t mins,
@@ -1548,55 +1597,61 @@ public class CM extends PlayerHud {
 	//	===============================================================================
 	//	*/
 	//
-	//	static void FloodArea_r(carea_t * area, int floodnum) {
-	//		int i;
-	//		dareaportal_t * p;
+		static void FloodArea_r(carea_t area, int floodnum) {
+			Com.DPrintf("FloodArea_r("+ floodnum + ")...\n");
+			int i;
+			dareaportal_t p;
+	
+			if (area.floodvalid == floodvalid) {
+				if (area.floodnum == floodnum)
+					return;
+				Com.Error(ERR_DROP, "FloodArea_r: reflooded");
+			}
+	
+			area.floodnum = floodnum;
+			area.floodvalid = floodvalid;
+			
+			for (i = 0; i < area.numareaportals; i++) {
+				p = map_areaportals[area.firstareaportal + i];
+				if (portalopen[p.portalnum])
+					FloodArea_r( map_areas[p.otherarea], floodnum);
+			}
+		}
 	//
-	//		if (area.floodvalid == floodvalid) {
-	//			if (area.floodnum == floodnum)
-	//				return;
-	//			Com_Error(ERR_DROP, "FloodArea_r: reflooded");
-	//		}
-	//
-	//		area.floodnum = floodnum;
-	//		area.floodvalid = floodvalid;
-	//		p = & map_areaportals[area.firstareaportal];
-	//		for (i = 0; i < area.numareaportals; i++, p++) {
-	//			if (portalopen[p.portalnum])
-	//				FloodArea_r(& map_areas[p.otherarea], floodnum);
-	//		}
-	//	}
-	//
-	//	/*
-	//	====================
-	//	FloodAreaConnections
-	//	
-	//	
-	//	====================
-	//	*/
-	//	static void FloodAreaConnections(void) {
-	//		int i;
-	//		carea_t * area;
-	//		int floodnum;
-	//
-	//		// all current floods are now invalid
-	//		floodvalid++;
-	//		floodnum = 0;
-	//
-	//		// area 0 is not used
-	//		for (i = 1; i < numareas; i++) {
-	//			area = & map_areas[i];
-	//			if (area.floodvalid == floodvalid)
-	//				continue; // already flooded into
-	//			floodnum++;
-	//			FloodArea_r(area, floodnum);
-	//		}
-	//
-	//	}
-	//
+		/*
+		====================
+		FloodAreaConnections
+		
+		
+		====================
+		*/
+		static void FloodAreaConnections() {
+			Com.DPrintf("FloodAreaConnections...\n");
+			
+			int i;
+			carea_t  area;
+			int floodnum;
+	
+			// all current floods are now invalid
+			floodvalid++;
+			floodnum = 0;
+	
+			// area 0 is not used
+			for (i = 1; i < numareas; i++) {
+				
+				area = map_areas[i];
+				
+				if (area.floodvalid == floodvalid)
+					continue; // already flooded into
+				floodnum++;
+				FloodArea_r(area, floodnum);
+			}
+	
+		}
+	
 	//	static void CM_SetAreaPortalState(int portalnum, boolean open) {
 	//		if (portalnum > numareaportals)
-	//			Com_Error(ERR_DROP, "areaportal > numareaportals");
+	//			Com.Error(ERR_DROP, "areaportal > numareaportals");
 	//
 	//		portalopen[portalnum] = open;
 	//		FloodAreaConnections();
@@ -1607,7 +1662,7 @@ public class CM extends PlayerHud {
 	//			return true;
 	//
 	//		if (area1 > numareas || area2 > numareas)
-	//			Com_Error(ERR_DROP, "area > numareas");
+	//			Com.Error(ERR_DROP, "area > numareas");
 	//
 	//		if (map_areas[area1].floodnum == map_areas[area2].floodnum)
 	//			return true;

@@ -19,9 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: darea_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: darea_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 // import jake2.*;
@@ -32,6 +35,18 @@ package jake2.qcommon;
 // import jake2.server.*;
 
 public class darea_t {
+	
+ 
+	public darea_t(ByteBuffer bb) {
+		
+		 bb.order(ByteOrder.LITTLE_ENDIAN);
+		 
+		 numareaportals = bb.getInt();
+		 firstareaportal = bb.getInt();
+		 
+	}
 	int		numareaportals;
 	int		firstareaportal;
+	
+	public static int SIZE = 8;
 }

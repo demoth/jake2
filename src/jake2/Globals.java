@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.22 2003-12-29 22:31:16 rst Exp $
+ * $Id: Globals.java,v 1.23 2004-01-02 22:29:01 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -114,9 +114,7 @@ public class Globals extends Defines {
 	public static sizebuf_t cmd_text = new sizebuf_t();
 	public static sizebuf_t net_message = new sizebuf_t();
 
-	//TODO: RST was debugging
-	//public static byte[] cmd_text_buf = new byte[8192];
-	public static byte[] cmd_text_buf = new byte[16384];
+	public static byte[] cmd_text_buf = new byte[8192];
 	public static byte[] net_message_buffer = new byte[MAX_MSGLEN];
 
 	public static cmdalias_t cmd_alias;

@@ -19,16 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: dleaf_t.java,v 1.1 2004-01-02 17:40:54 rst Exp $
+// $Id: dleaf_t.java,v 1.2 2004-01-02 22:29:01 rst Exp $
 
 package jake2.qcommon;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import jake2.*;
 import jake2.client.*;
 import jake2.game.*;
-import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
@@ -36,24 +36,26 @@ public class dleaf_t {
 
 	public dleaf_t(byte[] cmod_base, int i, int j) {
 		ByteBuffer bb = ByteBuffer.wrap(cmod_base, i, j);
+		
+		bb.order(ByteOrder.LITTLE_ENDIAN);
 
-		contents = EndianHandler.swapInt(bb.getInt());
-		cluster = EndianHandler.swapShort(bb.getShort());
-		area = EndianHandler.swapShort(bb.getShort());
+		contents = bb.getInt();
+		cluster = bb.getShort();
+		area = bb.getShort();
 		
-		mins[0] = EndianHandler.swapShort(bb.getShort());
-		mins[1] = EndianHandler.swapShort(bb.getShort());
-		mins[2] = EndianHandler.swapShort(bb.getShort());
+		mins[0] = bb.getShort();
+		mins[1] = bb.getShort();
+		mins[2] = bb.getShort();
 
-		maxs[0] = EndianHandler.swapShort(bb.getShort());
-		maxs[1] = EndianHandler.swapShort(bb.getShort());
-		maxs[2] = EndianHandler.swapShort(bb.getShort());
+		maxs[0] = bb.getShort();
+		maxs[1] = bb.getShort();
+		maxs[2] = bb.getShort();
 		
-		firstleafface = EndianHandler.swapShort(bb.getShort());
-		numleaffaces = EndianHandler.swapShort(bb.getShort());
+		firstleafface = bb.getShort() &0xffff;
+		numleaffaces = bb.getShort() &0xffff;
 		
-		firstleafbrush = EndianHandler.swapShort(bb.getShort());
-		numleafbrushes = EndianHandler.swapShort(bb.getShort());
+		firstleafbrush = bb.getShort() &0xffff;
+		numleafbrushes = bb.getShort() &0xffff;
 	}
 
 	public static int SIZE = 4 +  8 * 2 + 4 * 2;
