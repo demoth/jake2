@@ -1473,6 +1473,35 @@ public class GAME_AI extends GAME_UTIL {
 		}
 		gi.centerprintf(ent, "No other players to chase.");
 	}
+	
+	
+	
+
+	/*
+	===============
+	SetItemNames
+
+	Called by worldspawn
+	===============
+	*/
+	static void SetItemNames ()
+	{
+		int	i;
+		gitem_t	it;
+
+		for (i=0 ; i<game.num_items ; i++)
+		{
+			it = itemlist[i];
+			gi.configstring (CS_ITEMS+i, it.pickup_name);
+		}
+
+		jacket_armor_index = ITEM_INDEX(FindItem("Jacket Armor"));
+		combat_armor_index = ITEM_INDEX(FindItem("Combat Armor"));
+		body_armor_index   = ITEM_INDEX(FindItem("Body Armor"));
+		power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
+		power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
+	}
+
 
 	static void SelectNextItem(edict_t ent, int itflags) {
 		gclient_t cl;

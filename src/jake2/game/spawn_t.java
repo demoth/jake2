@@ -18,32 +18,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 31.10.2003 by RST.
+// Created on 19.11.2003 by RST.
 
 package jake2.game;
 
-public class spawn_temp_t {
-	// world vars
-	//TODO: is String ok here ?
-	String sky;
-	float skyrotate;
-	float[] skyaxis= { 0, 0, 0 };
-	//TODO: is String ok here ?
-	String nextmap;
+public class spawn_t {
+	public spawn_t(String name, EntThinkAdapter spawn) {
+		this.name = name;
+		this.spawn = spawn;
+	}
 
-	int lip;
-	int distance;
-	int height;
-	//TODO: does String work here ?
-	String noise;
-	float pausetime;
-	//TODO: does String work here ?
-	String item;
-	//TODO: does String work here ?
-	String gravity;
-
-	float minyaw;
-	float maxyaw;
-	float minpitch;
-	float maxpitch;
+	String name;
+	EntThinkAdapter spawn;
 }
