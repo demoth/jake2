@@ -406,7 +406,7 @@ public class GAME_UTIL extends GAME_BASE {
 		}
 	};
 
-	static EntInteractAdapter Pickup_Health= new EntInteractAdapter() {
+	final static EntInteractAdapter Pickup_Health= new EntInteractAdapter() {
 		public boolean interact(edict_t ent, edict_t other) {
 
 			if (0 == (ent.style & HEALTH_IGNORE_MAX))
