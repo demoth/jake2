@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.31 2004-02-11 02:34:24 cwei Exp $
+ * $Id: CL_main.java,v 1.32 2004-02-11 15:01:15 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1119,15 +1119,18 @@ public class CL_main extends CL_pred {
 
 			CM.intwrap iw = new CM.intwrap(map_checksum);
 
-			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, iw);
+			// TODO bugfix cwei
+
+			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1].toLowerCase(), true, iw);
 			map_checksum = iw.i;
 
-			if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
-				Com.Error(
-					ERR_DROP,
-					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
-				return;
-			}
+// TODO bugfix cwei
+//			if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
+//				Com.Error(
+//					ERR_DROP,
+//					"Local map version differs from server: " + map_checksum + " != '" + cl.configstrings[CS_MAPCHECKSUM] + "'\n");
+//				return;
+//			}
 		}
 
 		if (precache_check > ENV_CNT && precache_check < TEXTURE_CNT) {
