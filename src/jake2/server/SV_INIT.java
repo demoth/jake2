@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.12 2005-02-12 21:43:48 salomo Exp $
+// $Id: SV_INIT.java,v 1.13 2005-02-19 21:21:46 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -59,11 +59,10 @@ public class SV_INIT {
         if (i == max)
             Com.Error(Defines.ERR_DROP, "*Index: overflow");
 
-        //strncpy (sv.configstrings[start+i], name,
-        // sizeof(sv.configstrings[i]));
         sv.configstrings[start + i] = name;
 
-        if (sv.state != Defines.ss_loading) { // send the update to everyone
+        if (sv.state != Defines.ss_loading) { 
+            // send the update to everyone
             SZ.Clear(sv.multicast);
             MSG.WriteChar(sv.multicast, Defines.svc_configstring);
             MSG.WriteShort(sv.multicast, start + i);
@@ -108,9 +107,7 @@ public class SV_INIT {
                 continue;
             svent.s.number = entnum;
 
-            //
             // take current state as baseline
-            //
             Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
             // rst: bugfix
             sv.baselines[entnum].set(svent.s); // = svent.s.getClone();
@@ -153,7 +150,8 @@ public class SV_INIT {
         // get configstrings and areaportals
         SV_CCMDS.SV_ReadLevelFile();
 
-        if (!sv.loadgame) { // coming back to a level after being in a different
+        if (!sv.loadgame) { 
+            // coming back to a level after being in a different
             // level, so run it for ten seconds
 
             // rlava2 was sending too many lightstyles, and overflowing the

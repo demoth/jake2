@@ -19,7 +19,7 @@
  */
 
 // Created on 16.11.2003 by RST.
-// $Id: GamePWeapon.java,v 1.7 2005-02-06 19:01:45 salomo Exp $
+// $Id: GamePWeapon.java,v 1.8 2005-02-19 21:18:15 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -1210,7 +1210,6 @@ public class GamePWeapon {
                 } else {
                     ent.s.frame = M_Player.FRAME_pain304 + 1;
                     ent.client.anim_end = M_Player.FRAME_pain301;
-
                 }
             }
 
