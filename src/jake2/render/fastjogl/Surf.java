@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.10 2004-06-22 11:25:38 cwei Exp $
+ * $Id: Surf.java,v 1.11 2004-06-28 14:15:57 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,8 +33,6 @@ import jake2.util.Lib;
 import jake2.util.Math3D;
 
 import java.nio.*;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import net.java.games.jogl.GL;
@@ -1272,12 +1270,8 @@ public abstract class Surf extends Draw {
 
 		surf.lightmaptexturenum = gl_lms.current_lightmap_texture;
 		
-		// base = gl_lms.lightmap_buffer;
-		//base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
-		//base.order(ByteOrder.BIG_ENDIAN);
-		int basep = (surf.light_t * BLOCK_WIDTH + surf.light_s);// * LIGHTMAP_BYTES;
 		base = gl_lms.lightmap_buffer;
-		base.position(basep);
+		base.position(surf.light_t * BLOCK_WIDTH + surf.light_s);
 
 		R_SetCacheState( surf );
 		R_BuildLightMap(surf, base.slice(), BLOCK_WIDTH);

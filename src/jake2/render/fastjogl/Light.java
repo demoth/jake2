@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.5 2004-06-28 13:51:28 cwei Exp $
+ * $Id: Light.java,v 1.6 2004-06-28 14:15:57 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -300,8 +300,8 @@ public abstract class Light extends Warp {
 			dt >>= 4;
 
 			lightmap = surf.samples;
-			
 			int lightmapIndex = 0;
+
 			Math3D.VectorCopy (Globals.vec3_origin, pointcolor);
 			if (lightmap != null)
 			{
@@ -322,7 +322,6 @@ public abstract class Light extends Warp {
 					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);
 				}
 			}
-		
 			return 1;
 		}
 

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.11 2004-05-19 16:41:01 cwei Exp $
+ * $Id: Light.java,v 1.12 2004-06-28 14:15:57 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.Arrays;
-
-import net.java.games.jogl.GL;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.dlight_t;
@@ -38,11 +32,14 @@ import jake2.client.lightstyle_t;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
 import jake2.qcommon.longjmpException;
-import jake2.render.mnode_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.util.Lib;
+import jake2.render.*;
 import jake2.util.Math3D;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
+
+import net.java.games.jogl.GL;
 
 /**
  * Light
@@ -306,16 +303,13 @@ public abstract class Light extends Warp {
 			ds >>= 4;
 			dt >>= 4;
 
-			//surf.samples.reset();
-			lightmap = surf.samples.slice();
-
+			lightmap = surf.samples;
 			int lightmapIndex = 0;
+
 			Math3D.VectorCopy (Globals.vec3_origin, pointcolor);
 			if (lightmap != null)
 			{
 				float[] scale = {0, 0, 0};
-
-//				lightmap += 3*(dt * ((surf.extents[0]>>4)+1) + ds);
 				lightmapIndex += 3 * (dt * ((surf.extents[0] >> 4) + 1) + ds);
 
 				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
@@ -326,15 +320,11 @@ public abstract class Light extends Warp {
 					pointcolor[0] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[0] * (1.0f/255);
 					pointcolor[1] += (lightmap.get(lightmapIndex + 1) & 0xFF) * scale[1] * (1.0f/255);
 					pointcolor[2] += (lightmap.get(lightmapIndex + 2) & 0xFF) * scale[2] * (1.0f/255);
-//					lightmap += 3*((surf.extents[0]>>4)+1) *
-//							((surf.extents[1]>>4)+1);
 					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);
 				}
 			}
-		
 			return 1;
 		}
-
 		// go down back side
 		return RecursiveLightPoint (node.children[1 - sideIndex], mid, end);
 	}
@@ -506,7 +496,7 @@ public abstract class Light extends Warp {
 	Combine and scale multiple lightmaps into the floating format in blocklights
 	===============
 	*/
-	void R_BuildLightMap(msurface_t surf, ByteBuffer dest, int stride)
+	void R_BuildLightMap(msurface_t surf, IntBuffer dest, int stride)
 	{
 		int smax, tmax;
 		int r, g, b, a, max;
@@ -549,8 +539,8 @@ public abstract class Light extends Warp {
 				 nummaps++)
 				;
 	
-			//surf.samples.reset();	
-			lightmap = surf.samples.slice();
+			lightmap = surf.samples;
+			int lightmapIndex = 0;
 	
 			// add all the lightmaps
 			if ( nummaps == 1 )
@@ -572,18 +562,18 @@ public abstract class Light extends Warp {
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] = lightmap.get() & 0xFF;
-							bl[blp++] = lightmap.get() & 0xFF;
-							bl[blp++] = lightmap.get() & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
 						}
 					}
 					else
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] = (lightmap.get() & 0xFF) * scale[0];
-							bl[blp++] = (lightmap.get()  & 0xFF) * scale[1];
-							bl[blp++] = (lightmap.get() & 0xFF) * scale[2];
+							bl[blp++] = (lightmap.get(lightmapIndex++) & 0xFF) * scale[0];
+							bl[blp++] = (lightmap.get(lightmapIndex++)  & 0xFF) * scale[1];
+							bl[blp++] = (lightmap.get(lightmapIndex++) & 0xFF) * scale[2];
 						}
 					}
 					//lightmap += size*3;		// skip to next lightmap
@@ -612,18 +602,18 @@ public abstract class Light extends Warp {
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] += lightmap.get() & 0xFF;
-							bl[blp++] += lightmap.get() & 0xFF;
-							bl[blp++] += lightmap.get() & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
 						}
 					}
 					else
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[0];
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[1];
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[2];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[0];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[1];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[2];
 						}
 					}
 					//lightmap += size*3;		// skip to next lightmap
@@ -638,7 +628,7 @@ public abstract class Light extends Warp {
 		} catch (longjmpException store) {}
 	
 		// put into texture format
-		stride -= (smax<<2);
+		stride -= smax;
 		bl = s_blocklights;
 		int blp = 0;
 
@@ -697,8 +687,8 @@ public abstract class Light extends Warp {
 						b = (int)(b*t);
 						a = (int)(a*t);
 					}
-					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
-					destp += 4;
+					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
 		}
@@ -778,9 +768,8 @@ public abstract class Light extends Warp {
 						a = 255 - a;
 						break;
 					}
-
-					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
-					destp += 4;
+					r &= 0xFF; g &= 0xFF; b &= 0xFF; a &= 0xFF;
+					dest.put(destp++, (a << 24) | (b << 16) | (g << 8) | (r << 0));
 				}
 			}
 		}
