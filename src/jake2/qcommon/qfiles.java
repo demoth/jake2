@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.9 2004-01-20 16:15:41 cwei Exp $
+ * $Id: qfiles.java,v 1.10 2004-01-25 01:14:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -257,10 +257,10 @@ public class qfiles {
 			children[1] = bb.getInt();
 
 			for (int j = 0; j < 3; j++)
-				mins[0] = bb.getShort();
+				mins[j] = bb.getShort();
 
 			for (int j = 0; j < 3; j++)
-				maxs[0] = bb.getShort();
+				maxs[j] = bb.getShort();
 
 			firstface = bb.getShort() & 0xffff;
 			numfaces = bb.getShort() & 0xffff;
