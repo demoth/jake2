@@ -19,7 +19,7 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.8 2005-01-12 12:14:17 hzi Exp $
+// $Id: GameUtil.java,v 1.9 2005-02-06 19:04:55 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -781,7 +781,7 @@ public class GameUtil {
      * infront, or visibility and show hostile 2 infront and show hostile 3 only
      * triggered by damage =============
      */
-    static int range(edict_t self, edict_t other) {
+    public static int range(edict_t self, edict_t other) {
         float[] v = { 0, 0, 0 };
         float len;
 
@@ -900,7 +900,7 @@ public class GameUtil {
      * 
      * returns true if the entity is in front (in sight) of self =============
      */
-    static boolean infront(edict_t self, edict_t other) {
+    public static boolean infront(edict_t self, edict_t other) {
         float[] vec = { 0, 0, 0 };
         float dot;
         float[] forward = { 0, 0, 0 };
@@ -1684,7 +1684,7 @@ public class GameUtil {
     //		return RANGE_FAR;
     //	}
     //	============================================================================
-    static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
+    public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
 
         public boolean think(edict_t self) {
             float[] spot1 = { 0, 0, 0 };
