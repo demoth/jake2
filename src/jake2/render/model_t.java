@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.12 2004-02-15 20:17:51 cwei Exp $
+// $Id: model_t.java,v 1.13 2004-02-16 12:27:17 cwei Exp $
 
 package jake2.render;
 
@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import jake2.qcommon.*;
 import jake2.util.Lib;
+import jake2.util.Math3D;
 import jake2.*;
 import jake2.game.*;
 
@@ -106,9 +107,79 @@ public class model_t implements Cloneable {
 	
 	public void clear() {
 		name = "";
-		extradata = null;
 		registration_sequence = 0;
-		// TODO and so on
+
+		// was enum modtype_t
+		type = 0;
+		numframes = 0;
+		flags = 0;
+
+		//
+		// volume occupied by the model graphics
+		//		
+		Math3D.VectorClear(mins);
+		Math3D.VectorClear(maxs);
+		radius = 0;;
+
+		//
+		// solid volume for clipping 
+		//
+		clipbox = false;
+		Math3D.VectorClear(clipmins);
+		Math3D.VectorClear(clipmaxs);
+
+		//
+		// brush model
+		//
+		firstmodelsurface = nummodelsurfaces = 0;
+		lightmap = 0; // only for submodels
+
+		numsubmodels = 0;
+		submodels = null;
+
+		numplanes = 0;
+		planes = null;
+
+		numleafs = 0; // number of visible leafs, not counting 0
+		leafs = null;
+
+		numvertexes = 0;
+		vertexes = null;
+
+		numedges = 0;
+		edges = null;
+
+		numnodes = 0;
+		firstnode = 0;
+		nodes = null;
+
+		numtexinfo = 0;
+		texinfo = null;
+
+		numsurfaces = 0;
+		surfaces = null;
+
+		numsurfedges = 0;
+		surfedges = null;
+
+		nummarksurfaces = 0;
+		marksurfaces = null;
+
+		vis = null;
+
+		lightdata = null;
+
+		// for alias models and skins
+		// was image_t *skins[]; (array of pointers)
+		for (int i = 0; i < skins.length; i++)
+		{
+			skins[i] = null;
+		}
+
+		extradatasize = 0;
+
+		// or whatever
+		extradata = null;
 	}
 	
 	public model_t copy() {
