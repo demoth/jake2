@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.6 2004-09-22 19:22:06 salomo Exp $
+// $Id: PlayerClient.java,v 1.7 2005-02-06 19:10:48 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -520,8 +520,15 @@ public class PlayerClient {
         // assume there are four coop spots at each spawnpoint
         while (true) {
 
-            spot = (es = GameBase.G_Find(es, GameBase.findByClass,
-                    "info_player_coop")).o;
+            es = GameBase.G_Find(es, GameBase.findByClass,
+                    "info_player_coop");
+                    
+            // nullpointer exi fixed (RST).
+            if (es == null)
+                return null;
+            
+            spot = es.o;
+                
             if (spot == null)
                 return null; // we didn't have enough...
 
@@ -792,30 +799,20 @@ public class PlayerClient {
         client = ent.client;
 
         // deathmatch wipes most client data every spawn
-        if (GameBase.deathmatch.value != 0) {
-            String userinfo;
-            //char userinfo[MAX_INFO_STRING];
+        if (GameBase.deathmatch.value != 0) {           
 
             resp.set(client.resp);
-            userinfo = client.pers.userinfo;
-
-            //memcpy(userinfo, client.pers.userinfo, sizeof(userinfo));
+            String userinfo = client.pers.userinfo;
             InitClientPersistant(client);
+            
             userinfo = ClientUserinfoChanged(ent, userinfo);
+            
         } else if (GameBase.coop.value != 0) {
-            //		int n;
-            //char userinfo[MAX_INFO_STRING];
-            String userinfo;
 
             resp.set(client.resp);
-            //memcpy(userinfo, client.pers.userinfo, sizeof(userinfo));
-            userinfo = client.pers.userinfo;
-            // this is kind of ugly, but it's how we want to handle keys in coop
-            //		for (n = 0; n < game.num_items; n++)
-            //		{
-            //			if (itemlist[n].flags & IT_KEY)
-            //				resp.coop_respawn.inventory[n] = client.pers.inventory[n];
-            //		}
+
+            String userinfo = client.pers.userinfo;
+
             resp.coop_respawn.game_helpchanged = client.pers.game_helpchanged;
             resp.coop_respawn.helpchanged = client.pers.helpchanged;
             client.pers.set(resp.coop_respawn);
@@ -823,13 +820,11 @@ public class PlayerClient {
             if (resp.score > client.pers.score)
                 client.pers.score = resp.score;
         } else {
-            //memset(& resp, 0, sizeof(resp));
             resp.clear();
         }
 
         // clear everything but the persistant data
         saved.set(client.pers);
-        //memset(client, 0, sizeof(* client));
         client.clear();
         client.pers.set(saved);
         if (client.pers.health <= 0)
@@ -866,8 +861,7 @@ public class PlayerClient {
         Math3D.VectorClear(ent.velocity);
 
         // clear playerstate values
-        ent.client.ps.clear();
-        //memset(& ent.client.ps, 0, sizeof(client.ps));
+        ent.client.ps.clear();     
 
         client.ps.pmove.origin[0] = (short) (spawn_origin[0] * 8);
         client.ps.pmove.origin[1] = (short) (spawn_origin[1] * 8);
@@ -1013,7 +1007,6 @@ public class PlayerClient {
             // send effect if in a multiplayer game
             if (GameBase.game.maxclients > 1) {
                 GameBase.gi.WriteByte(Defines.svc_muzzleflash);
-                //gi.WriteShort(ent - g_edicts);
                 GameBase.gi.WriteShort(ent.index);
                 GameBase.gi.WriteByte(Defines.MZ_LOGIN);
                 GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
@@ -1041,15 +1034,12 @@ public class PlayerClient {
 
         // check for malformed or illegal info strings
         if (!Info.Info_Validate(userinfo)) {
-            //strcpy(userinfo, "\\name\\badinfo\\skin\\male/grunt");
             return "\\name\\badinfo\\skin\\male/grunt";
         }
 
         // set name
         s = Info.Info_ValueForKey(userinfo, "name");
 
-        //strncpy(ent.client.pers.netname, s, sizeof(ent.client.pers.netname) -
-        // 1);
         ent.client.pers.netname = s;
 
         // set spectator
@@ -1089,8 +1079,6 @@ public class PlayerClient {
         }
 
         // save off the userinfo in case we want to check something later
-        //strncpy(ent.client.pers.userinfo, userinfo,
-        // sizeof(ent.client.pers.userinfo) - 1);
         ent.client.pers.userinfo = userinfo;
 
         return userinfo;
