@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.3 2004-01-20 22:25:06 rst Exp $
+// $Id: SV_INIT.java,v 1.4 2004-01-25 17:24:24 rst Exp $
 
 package jake2.server;
 
@@ -33,7 +33,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.util.Lib;
 
-public class SV_INIT extends SV_GAME {
+public class SV_INIT extends PlayerHud {
 
 	public static server_static_t svs = new server_static_t(); // persistant server info
 	public static server_t sv = new server_t(); // local server
@@ -99,9 +99,9 @@ public class SV_INIT extends SV_GAME {
 		edict_t svent;
 		int entnum;
 
-		for (entnum = 1; entnum < ge.num_edicts; entnum++) {
+		for (entnum = 1; entnum < SV_GAME.ge.num_edicts; entnum++) {
 			//svent = EDICT_NUM(entnum);
-			svent = ge.edicts[entnum];
+			svent = SV_GAME.ge.edicts[entnum];
 
 			if (!svent.inuse)
 				continue;
@@ -168,7 +168,7 @@ public class SV_INIT extends SV_GAME {
 			previousState = sv.state; // PGM
 			sv.state = ss_loading; // PGM
 			for (i = 0; i < 100; i++)
-				ge.RunFrame();
+				SV_GAME.ge.RunFrame();
 
 			sv.state = previousState; // PGM
 		}

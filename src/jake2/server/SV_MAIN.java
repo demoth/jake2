@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.5 2004-01-20 22:25:07 rst Exp $
+// $Id: SV_MAIN.java,v 1.6 2004-01-25 17:24:24 rst Exp $
 
 package jake2.server;
 
@@ -35,7 +35,7 @@ import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 
-public class SV_MAIN extends SV_INIT {
+public class SV_MAIN extends SV_GAME {
 
 	static netadr_t master_adr[] = new netadr_t[MAX_MASTERS]; // address of group servers
 	static {
@@ -920,11 +920,8 @@ public class SV_MAIN extends SV_INIT {
 		allow_download_maps = Cvar.Get("allow_download_maps", "1", CVAR_ARCHIVE);
 
 		sv_noreload = Cvar.Get("sv_noreload", "0", 0);
-
 		sv_airaccelerate = Cvar.Get("sv_airaccelerate", "0", CVAR_LATCH);
-
 		public_server = Cvar.Get("public", "0", 0);
-
 		sv_reconnect_limit = Cvar.Get("sv_reconnect_limit", "3", CVAR_ARCHIVE);
 
 		SZ.Init(net_message, net_message_buffer, net_message_buffer.length);

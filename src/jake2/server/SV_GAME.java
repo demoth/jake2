@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.3 2004-01-20 22:25:06 rst Exp $
+// $Id: SV_GAME.java,v 1.4 2004-01-25 17:24:24 rst Exp $
 
 package jake2.server;
 
@@ -31,7 +31,7 @@ import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
 
-public class SV_GAME extends PlayerHud
+public class SV_GAME extends SV_INIT
 {
 
 
@@ -41,55 +41,59 @@ public class SV_GAME extends PlayerHud
 public static game_export_t ge;
 
 
-///*
-//===============
-//PF_Unicast
-//
-//Sends the contents of the mutlicast buffer to a single client
-//===============
-//*/
-//void PF_Unicast (edict_t *ent, qboolean reliable)
-//{
-//	int		p;
-//	client_t	*client;
-//
-//	if (!ent)
-//		return;
-//
-//	p = NUM_FOR_EDICT(ent);
-//	if (p < 1 || p > maxclients->value)
-//		return;
-//
-//	client = svs.clients + (p-1);
-//
-//	if (reliable)
-//		SZ_Write (&client->netchan.message, sv.multicast.data, sv.multicast.cursize);
-//	else
-//		SZ_Write (&client->datagram, sv.multicast.data, sv.multicast.cursize);
-//
-//	SZ_Clear (&sv.multicast);
-//}
-//
-//
-///*
-//===============
-//PF_dprintf
-//
-//Debug print to server console
-//===============
-//*/
-//void PF_dprintf (char *fmt, ...)
-//{
-//	char		msg[1024];
-//	va_list		argptr;
-//	
-//	va_start (argptr,fmt);
-//	vsprintf (msg, fmt, argptr);
-//	va_end (argptr);
-//
-//	Com_Printf ("%s", msg);
-//}
-//
+/*
+===============
+PF_Unicast
+
+Sends the contents of the mutlicast buffer to a single client
+===============
+*/
+public static void PF_Unicast (edict_t ent, boolean reliable)
+{
+	int		p;
+	client_t	client;
+
+	if (ent== null)
+		return;
+
+	//p = NUM_FOR_EDICT(ent);
+	p = ent.s.number;
+	if (p < 1 || p > maxclients.value)
+		return;
+
+	client = SV_INIT.svs.clients[p-1];
+
+	if (reliable)
+		SZ.Write (client.netchan.message, SV_INIT.sv.multicast.data, SV_INIT.sv.multicast.cursize);
+	else
+		SZ.Write (client.datagram, sv.multicast.data, sv.multicast.cursize);
+
+	SZ.Clear (sv.multicast);
+}
+
+
+/*
+===============
+PF_dprintf
+
+Debug print to server console
+===============
+*/
+static void PF_dprintf (String fmt)
+{
+	/*
+	char		msg[1024];
+	va_list		argptr;
+	
+	va_start (argptr,fmt);
+	vsprintf (msg, fmt, argptr);
+	va_end (argptr);
+
+	*/
+	
+	Com.Printf(fmt);
+}
+
 //
 ///*
 //===============
@@ -107,7 +111,7 @@ public static game_export_t ge;
 //	if (ent)
 //	{
 //		n = NUM_FOR_EDICT(ent);
-//		if (n < 1 || n > maxclients->value)
+//		if (n < 1 || n > maxclients.value)
 //			Com_Error (ERR_DROP, "cprintf to a non-client");
 //	}
 //
@@ -136,7 +140,7 @@ public static game_export_t ge;
 //	int			n;
 //	
 //	n = NUM_FOR_EDICT(ent);
-//	if (n < 1 || n > maxclients->value)
+//	if (n < 1 || n > maxclients.value)
 //		return;	// Com_Error (ERR_DROP, "centerprintf to a non-client");
 //
 //	va_start (argptr,fmt);
@@ -186,15 +190,15 @@ public static game_export_t ge;
 //
 //	i = SV_ModelIndex (name);
 //		
-////	ent->model = name;
-//	ent->s.modelindex = i;
+////	ent.model = name;
+//	ent.s.modelindex = i;
 //
 //// if it is an inline model, get the size information for it
 //	if (name[0] == '*')
 //	{
 //		mod = CM_InlineModel (name);
-//		VectorCopy (mod->mins, ent->mins);
-//		VectorCopy (mod->maxs, ent->maxs);
+//		VectorCopy (mod.mins, ent.mins);
+//		VectorCopy (mod.maxs, ent.maxs);
 //		SV_LinkEdict (ent);
 //	}
 //
@@ -220,7 +224,7 @@ public static game_export_t ge;
 //	
 //	if (sv.state != ss_loading)
 //	{	// send the update to everyone
-//		SZ_Clear (&sv.multicast);
+//		SZ.Clear (&sv.multicast);
 //		MSG_WriteChar (&sv.multicast, svc_configstring);
 //		MSG_WriteShort (&sv.multicast, index);
 //		MSG_WriteString (&sv.multicast, val);
@@ -249,7 +253,7 @@ public static game_export_t ge;
 //Also checks portalareas so that doors block sight
 //=================
 //*/
-//qboolean PF_inPVS (vec3_t p1, vec3_t p2)
+//boolean PF_inPVS (vec3_t p1, vec3_t p2)
 //{
 //	int		leafnum;
 //	int		cluster;
@@ -279,7 +283,7 @@ public static game_export_t ge;
 //Also checks portalareas so that doors block sound
 //=================
 //*/
-//qboolean PF_inPHS (vec3_t p1, vec3_t p2)
+//boolean PF_inPHS (vec3_t p1, vec3_t p2)
 //{
 //	int		leafnum;
 //	int		cluster;
@@ -324,7 +328,7 @@ public static game_export_t ge;
 //{
 //	if (!ge)
 //		return;
-//	ge->Shutdown ();
+//	ge.Shutdown ();
 //	Sys_UnloadGame ();
 //	ge = NULL;
 //}
@@ -405,11 +409,11 @@ public static game_export_t ge;
 //
 //	if (!ge)
 //		Com_Error (ERR_DROP, "failed to load game DLL");
-//	if (ge->apiversion != GAME_API_VERSION)
-//		Com_Error (ERR_DROP, "game is version %i, not %i", ge->apiversion,
+//	if (ge.apiversion != GAME_API_VERSION)
+//		Com_Error (ERR_DROP, "game is version %i, not %i", ge.apiversion,
 //		GAME_API_VERSION);
 //
-//	ge->Init ();
+//	ge.Init ();
 //}
 //
 
