@@ -70,18 +70,9 @@
 			</fileset>
 		</chmod>
 	</target>
-	
-	<!-- copy resources -->
-	<target name="copyres">
-		<copy todir="${build}">
-			<fileset dir="src">
-				<include name="jake2/*.properties"/>
-			</fileset>
-		</copy>
-	</target>
 		
 	<!-- jar -->
-	<target name="jar" depends="compile,copyres">
+	<target name="jar" depends="compile">
 		<jar destfile="${dist}/lib/jake.jar" basedir="${build}">
 			<include name="jake2/**"/>
 		</jar>
