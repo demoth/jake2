@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.6 2004-09-10 19:02:55 salomo Exp $
+// $Id: client_persistant_t.java,v 1.7 2005-02-06 18:52:55 salomo Exp $
 
 package jake2.game;
 
@@ -76,12 +76,12 @@ public class client_persistant_t {
 	int inventory[]= new int[Defines.MAX_ITEMS];
 
 	// ammo capacities
-	int max_bullets;
-	int max_shells;
-	int max_rockets;
-	int max_grenades;
-	int max_cells;
-	int max_slugs;
+	public int max_bullets;
+	public int max_shells;
+	public int max_rockets;
+	public int max_grenades;
+	public int max_cells;
+	public int max_slugs;
 	//pointer
 	gitem_t weapon;
 	//pointer
