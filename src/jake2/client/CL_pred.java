@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.5 2004-02-08 13:26:12 hoz Exp $
+ * $Id: CL_pred.java,v 1.6 2004-02-11 15:02:53 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -130,6 +130,8 @@ public class CL_pred extends CL_parse {
 			trace = CM.TransformedBoxTrace(start, end, mins, maxs, headnode, MASK_PLAYERSOLID, ent.origin, angles);
 
 			if (trace.allsolid || trace.startsolid || trace.fraction < tr.fraction) {
+				// TODO bugfix cwei
+				if (trace.ent == null) trace.ent = new edict_t(0);
 				trace.ent.s = ent;
 				if (tr.startsolid) {
 					tr = trace;
