@@ -1,2 +1,2 @@
-jake2.imageio.PCXImageReaderSpi
-jake2.imageio.WALImageReaderSpi
+com.bytonic.imageio.PCXImageReaderSpi
+com.bytonic.imageio.WALImageReaderSpi
