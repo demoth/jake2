@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.12 2004-01-25 19:07:17 cwei Exp $
+ * $Id: Surf.java,v 1.13 2004-01-27 12:14:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,6 +41,7 @@ import jake2.client.dlight_t;
 import jake2.client.entity_t;
 import jake2.client.lightstyle_t;
 import jake2.game.cplane_t;
+import jake2.imageio.ImageFrame;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.render.medge_t;
@@ -43,6 +50,7 @@ import jake2.render.mnode_t;
 import jake2.render.model_t;
 import jake2.render.msurface_t;
 import jake2.render.mtexinfo_t;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
 /**
@@ -83,7 +91,7 @@ public abstract class Surf extends Draw {
 
 		// the lightmap texture data needs to be kept in
 		// main memory so texsubimage can update properly
-		byte[] lightmap_buffer = new byte[4*BLOCK_WIDTH*BLOCK_HEIGHT];
+		byte[] lightmap_buffer = new byte[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
 		
 		public void clearLightmapSurfaces() {
 			for (int i = 0; i < MAX_LIGHTMAPS; i++)
@@ -103,12 +111,17 @@ public abstract class Surf extends Draw {
 //	extern void R_BuildLightMap (msurface_t *surf, byte *dest, int stride);
 //
 
+	// Model.java
 	abstract byte[] Mod_ClusterPVS(int cluster, model_t model);
+	// Warp.java
 	abstract void R_DrawSkyBox();
 	abstract void R_AddSkySurface(msurface_t surface);
 	abstract void R_ClearSkyBox();
-	abstract void R_MarkLights (dlight_t light, int bit, mnode_t node);
 	abstract void EmitWaterPolys(msurface_t fa);
+	// Light.java
+	abstract void R_MarkLights (dlight_t light, int bit, mnode_t node);
+	abstract void R_SetCacheState( msurface_t surf );
+	abstract void R_BuildLightMap(msurface_t surf, ByteBuffer dest, int stride);
 
 	/*
 	=============================================================
@@ -366,17 +379,17 @@ public abstract class Surf extends Draw {
 		*/
 		if ( gl_dynamic.value != 0 )
 		{
-//			LM_InitBlock();
-//
-//			GL_Bind( gl_state.lightmap_textures+0 );
-//
-//			if (currentmodel == r_worldmodel)
-//				c_visible_lightmaps++;
-//
-//			newdrawsurf = gl_lms.lightmap_surfaces[0];
-//
-//			for ( surf = gl_lms.lightmap_surfaces[0]; surf != 0; surf = surf->lightmapchain )
-//			{
+			LM_InitBlock();
+
+			GL_Bind( gl_state.lightmap_textures+0 );
+
+			if (currentmodel == r_worldmodel)
+				c_visible_lightmaps++;
+
+			newdrawsurf = gl_lms.lightmap_surfaces[0];
+
+			for ( surf = gl_lms.lightmap_surfaces[0]; surf != null; surf = surf.lightmapchain )
+			{
 //				int		smax, tmax;
 //				byte	*base;
 //
@@ -422,19 +435,19 @@ public abstract class Surf extends Draw {
 //
 //					R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
 //				}
-//			}
-//
+			}
+
 			/*
 			** draw remainder of dynamic lightmaps that haven't been uploaded yet
 			*/
-//			if ( newdrawsurf != null )
-//				LM_UploadBlock( true );
-//
-//			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
-//			{
-//				if ( surf.polys != null )
-//					DrawGLPolyChain( surf->polys, ( surf->light_s - surf->dlight_s ) * ( 1.0 / 128.0 ), ( surf->light_t - surf->dlight_t ) * ( 1.0 / 128.0 ) );
-//			}
+			if ( newdrawsurf != null )
+				LM_UploadBlock( true );
+
+			for ( surf = newdrawsurf; surf != null; surf = surf.lightmapchain )
+			{
+				if ( surf.polys != null )
+					DrawGLPolyChain( surf.polys, ( surf.light_s - surf.dlight_s ) * ( 1.0f / 128.0f ), ( surf.light_t - surf.dlight_t ) * ( 1.0f / 128.0f ) );
+			}
 		}
 
 		/*
@@ -458,7 +471,7 @@ public abstract class Surf extends Draw {
 
 		c_brush_polys++;
 
-		image = R_TextureAnimation (fa.texinfo);
+		image = R_TextureAnimation(fa.texinfo);
 
 		if ((fa.flags & Defines.SURF_DRAWTURB) != 0)
 		{	
@@ -484,7 +497,7 @@ public abstract class Surf extends Draw {
 		//	  ======
 		//	  PGM
 		if((fa.texinfo.flags & Defines.SURF_FLOWING) != 0)
-			DrawGLFlowingPoly (fa);
+			DrawGLFlowingPoly(fa);
 		else
 			DrawGLPoly (fa.polys);
 		//	  PGM
@@ -687,10 +700,10 @@ public abstract class Surf extends Draw {
 		boolean is_dynamic = false;
 		int lmtex = surf.lightmaptexturenum;
 		glpoly_t p;
-//
-//		for ( map = 0; map < MAXLIGHTMAPS && surf.styles[map] != 255; map++ )
+
+//		for ( map = 0; map < Defines.MAXLIGHTMAPS && surf.styles[map] != (byte)255; map++ )
 //		{
-//			if ( r_newrefdef.lightstyles[surf.styles[map]].white != surf.cached_light[map] )
+//			if ( r_newrefdef.lightstyles[surf.styles[map] & 0xFF].white != surf.cached_light[map] )
 //				goto dynamic;
 //		}
 //
@@ -1367,6 +1380,10 @@ public abstract class Surf extends Draw {
 						   gl_lms.lightmap_buffer );
 			if ( ++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 				ri.Sys_Error( Defines.ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
+				
+				
+			//debugLightmap(gl_lms.lightmap_buffer, 128, 128, 4);
+
 		}
 	}
 
@@ -1393,8 +1410,8 @@ public abstract class Surf extends Draw {
 			}
 			if (j == w)
 			{	// this is a valid spot
-				pos.x = i;
-				pos.y = best = best2;
+				pos.x = x = i;
+				pos.y = y = best = best2;
 			}
 		}
 
@@ -1496,31 +1513,40 @@ public abstract class Surf extends Draw {
 	void GL_CreateSurfaceLightmap(msurface_t surf)
 	{
 		int smax, tmax;
-		byte[] base;
+		ByteBuffer base;
 
 		if ( (surf.flags & (Defines.SURF_DRAWSKY | Defines.SURF_DRAWTURB)) != 0)
 			return;
-//
-//		smax = (surf.extents[0]>>4)+1;
-//		tmax = (surf.extents[1]>>4)+1;
-//
-//		if ( !LM_AllocBlock( smax, tmax, &surf.light_s, &surf.light_t ) )
-//		{
-//			LM_UploadBlock( false );
-//			LM_InitBlock();
-//			if ( !LM_AllocBlock( smax, tmax, &surf.light_s, &surf.light_t ) )
-//			{
-//				ri.Sys_Error( ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n", smax, tmax );
-//			}
-//		}
-//
-//		surf.lightmaptexturenum = gl_lms.current_lightmap_texture;
-//
-//		base = gl_lms.lightmap_buffer;
-//		base += (surf.light_t * BLOCK_WIDTH + surf.light_s) * LIGHTMAP_BYTES;
-//
-//		R_SetCacheState( surf );
-//		R_BuildLightMap(surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
+
+		smax = (surf.extents[0]>>4)+1;
+		tmax = (surf.extents[1]>>4)+1;
+		
+		pos_t lightPos = new pos_t(surf.light_s, surf.light_t);
+
+		if ( !LM_AllocBlock( smax, tmax, lightPos ) )
+		{
+			LM_UploadBlock( false );
+			LM_InitBlock();
+			lightPos = new pos_t(surf.light_s, surf.light_t);
+			if ( !LM_AllocBlock( smax, tmax, lightPos ) )
+			{
+				ri.Sys_Error( Defines.ERR_FATAL, "Consecutive calls to LM_AllocBlock(" + smax +"," + tmax +") failed\n");
+			}
+		}
+		
+		// kopiere die koordinaten zurueck
+		surf.light_s = lightPos.x;
+		surf.light_t = lightPos.y;
+
+		surf.lightmaptexturenum = gl_lms.current_lightmap_texture;
+		
+		// base = gl_lms.lightmap_buffer;
+		base = ByteBuffer.wrap(gl_lms.lightmap_buffer);
+		int basep = (surf.light_t * BLOCK_WIDTH + surf.light_s) * LIGHTMAP_BYTES;
+		base.position(basep);
+
+		R_SetCacheState( surf );
+		R_BuildLightMap(surf, base.slice(), BLOCK_WIDTH * LIGHTMAP_BYTES);
 	}
 
 	lightstyle_t[] lightstyles;
@@ -1639,6 +1665,29 @@ public abstract class Surf extends Draw {
 	{
 		LM_UploadBlock( false );
 		GL_EnableMultitexture( false );
+	}
+	
+	
+	ImageFrame frame;
+	
+	void debugLightmap(byte[] buf, int w, int h, float scale) {
+		IntBuffer pix = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+		
+		int[] pixel = new int[w * h];
+		
+		pix.get(pixel);
+		
+		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+		image.setRGB(0,  0, w, h, pixel, 0, w);
+		AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(scale, scale), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+		BufferedImage tmp = op.filter(image, null);
+		
+		if (frame == null) {
+			frame = new ImageFrame(null);
+			frame.show();
+		} 
+		frame.showImage(tmp);
+		
 	}
 
 }

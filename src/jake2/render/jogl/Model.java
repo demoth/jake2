@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.16 2004-01-25 19:07:17 cwei Exp $
+ * $Id: Model.java,v 1.17 2004-01-27 12:14:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -678,8 +678,10 @@ public abstract class Model extends Surf {
 				out[surfnum].samples = null;
 			else {
 				ByteBuffer pointer = ByteBuffer.wrap(loadmodel.lightdata);
-				pointer.position(i);	
-				out[surfnum].samples = pointer.slice(); // subarray
+				pointer.position(i);
+				pointer = pointer.slice();
+				pointer.mark();	
+				out[surfnum].samples = pointer; // subarray
 			}
 		
 			// set the drawing flags

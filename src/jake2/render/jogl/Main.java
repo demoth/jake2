@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.22 2004-01-24 01:50:00 cwei Exp $
+ * $Id: Main.java,v 1.23 2004-01-27 12:14:36 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -925,11 +925,11 @@ public abstract class Main extends Base {
 
 		R_DrawEntitiesOnList();
 
-		// TODO R_RenderDlights();
+		R_RenderDlights();
 
 		R_DrawParticles();
 
-		// TODO R_DrawAlphaSurfaces();
+		R_DrawAlphaSurfaces();
 
 		R_Flash();
 

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.6 2004-01-22 03:23:34 cwei Exp $
+ * $Id: Light.java,v 1.7 2004-01-27 12:14:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,14 +26,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import jake2.Defines;
 import jake2.client.dlight_t;
+import jake2.client.lightstyle_t;
 import jake2.game.GameBase;
 import jake2.game.cplane_t;
+import jake2.qcommon.longjmpException;
 import jake2.render.mnode_t;
 import jake2.render.msurface_t;
 import jake2.render.mtexinfo_t;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
 /**
@@ -280,7 +285,9 @@ public abstract class Light extends Warp {
 			ds >>= 4;
 			dt >>= 4;
 
-			lightmap = surf.samples;
+			//surf.samples.reset();
+			lightmap = surf.samples.slice();
+
 			int lightmapIndex = 0;
 			Math3D.VectorCopy (GameBase.vec3_origin, pointcolor);
 			if (lightmap != null)
@@ -290,14 +297,14 @@ public abstract class Light extends Warp {
 //				lightmap += 3*(dt * ((surf.extents[0]>>4)+1) + ds);
 				lightmapIndex += 3 * (dt * ((surf.extents[0] >> 4) + 1) + ds);
 
-				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != -1; maps++)
+				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
 				{
 					for (i=0 ; i<3 ; i++)
 						scale[i] = gl_modulate.value * r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
 
-					pointcolor[0] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[0] * (1.0/255);
-					pointcolor[1] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[1] * (1.0/255);
-					pointcolor[2] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[2] * (1.0/255);
+					pointcolor[0] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[0] * (1.0f/255);
+					pointcolor[1] += (lightmap.get(lightmapIndex + 1) & 0xFF) * scale[1] * (1.0f/255);
+					pointcolor[2] += (lightmap.get(lightmapIndex + 2) & 0xFF) * scale[2] * (1.0f/255);
 //					lightmap += 3*((surf.extents[0]>>4)+1) *
 //							((surf.extents[1]>>4)+1);
 					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);
@@ -372,15 +379,16 @@ public abstract class Light extends Warp {
 
 
 //	  ===================================================================
-//
-//	static float s_blocklights[34*34*3];
+
+	float[] s_blocklights = new float[34 * 34 * 3];
+	
 	/*
 	===============
 	R_AddDynamicLights
 	===============
 	*/
-//	void R_AddDynamicLights (msurface_t *surf)
-//	{
+	void R_AddDynamicLights(msurface_t surf)
+	{
 //		int			lnum;
 //		int			sd, td;
 //		float		fdist, frad, fminlight;
@@ -451,7 +459,7 @@ public abstract class Light extends Warp {
 //				}
 //			}
 //		}
-//	}
+	}
 
 
 	/*
@@ -464,292 +472,295 @@ public abstract class Light extends Warp {
 		for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
 			 maps++)
 		{
-			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps]].white;
+			surf.cached_light[maps] = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].white;
 		}
 	}
 
-//	/*
-//	===============
-//	R_BuildLightMap
-//
-//	Combine and scale multiple lightmaps into the floating format in blocklights
-//	===============
-//	*/
-//	void R_BuildLightMap (msurface_t *surf, byte *dest, int stride)
-//	{
-//		int			smax, tmax;
-//		int			r, g, b, a, max;
-//		int			i, j, size;
-//		byte		*lightmap;
-//		float		scale[4];
-//		int			nummaps;
-//		float		*bl;
-//		lightstyle_t	*style;
-//		int monolightmap;
-//
-//		if ( surf.texinfo.flags & (SURF_SKY|SURF_TRANS33|SURF_TRANS66|SURF_WARP) )
-//			ri.Sys_Error (ERR_DROP, "R_BuildLightMap called for non-lit surface");
-//
-//		smax = (surf.extents[0]>>4)+1;
-//		tmax = (surf.extents[1]>>4)+1;
-//		size = smax*tmax;
-//		if (size > (sizeof(s_blocklights)>>4) )
-//			ri.Sys_Error (ERR_DROP, "Bad s_blocklights size");
-//
-////	   set to full bright if no light data
-//		if (!surf.samples)
-//		{
-//			int maps;
-//
-//			for (i=0 ; i<size*3 ; i++)
-//				s_blocklights[i] = 255;
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
-//				 maps++)
-//			{
-//				style = &r_newrefdef.lightstyles[surf.styles[maps]];
-//			}
-//			goto store;
-//		}
-//
-//		// count the # of maps
-//		for ( nummaps = 0 ; nummaps < MAXLIGHTMAPS && surf.styles[nummaps] != 255 ;
-//			 nummaps++)
-//			;
-//
-//		lightmap = surf.samples;
-//
-//		// add all the lightmaps
-//		if ( nummaps == 1 )
-//		{
-//			int maps;
-//
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
-//				 maps++)
-//			{
-//				bl = s_blocklights;
-//
-//				for (i=0 ; i<3 ; i++)
-//					scale[i] = gl_modulate.value*r_newrefdef.lightstyles[surf.styles[maps]].rgb[i];
-//
-//				if ( scale[0] == 1.0F &&
-//					 scale[1] == 1.0F &&
-//					 scale[2] == 1.0F )
-//				{
-//					for (i=0 ; i<size ; i++, bl+=3)
-//					{
-//						bl[0] = lightmap[i*3+0];
-//						bl[1] = lightmap[i*3+1];
-//						bl[2] = lightmap[i*3+2];
-//					}
-//				}
-//				else
-//				{
-//					for (i=0 ; i<size ; i++, bl+=3)
-//					{
-//						bl[0] = lightmap[i*3+0] * scale[0];
-//						bl[1] = lightmap[i*3+1] * scale[1];
-//						bl[2] = lightmap[i*3+2] * scale[2];
-//					}
-//				}
-//				lightmap += size*3;		// skip to next lightmap
-//			}
-//		}
-//		else
-//		{
-//			int maps;
-//
-//			memset( s_blocklights, 0, sizeof( s_blocklights[0] ) * size * 3 );
-//
-//			for (maps = 0 ; maps < MAXLIGHTMAPS && surf.styles[maps] != 255 ;
-//				 maps++)
-//			{
-//				bl = s_blocklights;
-//
-//				for (i=0 ; i<3 ; i++)
-//					scale[i] = gl_modulate.value*r_newrefdef.lightstyles[surf.styles[maps]].rgb[i];
-//
-//				if ( scale[0] == 1.0F &&
-//					 scale[1] == 1.0F &&
-//					 scale[2] == 1.0F )
-//				{
-//					for (i=0 ; i<size ; i++, bl+=3 )
-//					{
-//						bl[0] += lightmap[i*3+0];
-//						bl[1] += lightmap[i*3+1];
-//						bl[2] += lightmap[i*3+2];
-//					}
-//				}
-//				else
-//				{
-//					for (i=0 ; i<size ; i++, bl+=3)
-//					{
-//						bl[0] += lightmap[i*3+0] * scale[0];
-//						bl[1] += lightmap[i*3+1] * scale[1];
-//						bl[2] += lightmap[i*3+2] * scale[2];
-//					}
-//				}
-//				lightmap += size*3;		// skip to next lightmap
-//			}
-//		}
-//
-////	   add all the dynamic lights
-//		if (surf.dlightframe == r_framecount)
-//			R_AddDynamicLights (surf);
-//
-////	   put into texture format
-//	store:
-//		stride -= (smax<<2);
-//		bl = s_blocklights;
-//
-//		monolightmap = gl_monolightmap.string[0];
-//
-//		if ( monolightmap == '0' )
-//		{
-//			for (i=0 ; i<tmax ; i++, dest += stride)
-//			{
-//				for (j=0 ; j<smax ; j++)
-//				{
-//				
-//					r = Q_ftol( bl[0] );
-//					g = Q_ftol( bl[1] );
-//					b = Q_ftol( bl[2] );
-//
-//					// catch negative lights
-//					if (r < 0)
-//						r = 0;
-//					if (g < 0)
-//						g = 0;
-//					if (b < 0)
-//						b = 0;
-//
-//					/*
-//					** determine the brightest of the three color components
-//					*/
-//					if (r > g)
-//						max = r;
-//					else
-//						max = g;
-//					if (b > max)
-//						max = b;
-//
-//					/*
-//					** alpha is ONLY used for the mono lightmap case.  For this reason
-//					** we set it to the brightest of the color components so that 
-//					** things don't get too dim.
-//					*/
-//					a = max;
-//
-//					/*
-//					** rescale all the color components if the intensity of the greatest
-//					** channel exceeds 1.0
-//					*/
-//					if (max > 255)
-//					{
-//						float t = 255.0F / max;
-//
-//						r = r*t;
-//						g = g*t;
-//						b = b*t;
-//						a = a*t;
-//					}
-//
-//					dest[0] = r;
-//					dest[1] = g;
-//					dest[2] = b;
-//					dest[3] = a;
-//
-//					bl += 3;
-//					dest += 4;
-//				}
-//			}
-//		}
-//		else
-//		{
-//			for (i=0 ; i<tmax ; i++, dest += stride)
-//			{
-//				for (j=0 ; j<smax ; j++)
-//				{
-//				
-//					r = Q_ftol( bl[0] );
-//					g = Q_ftol( bl[1] );
-//					b = Q_ftol( bl[2] );
-//
-//					// catch negative lights
-//					if (r < 0)
-//						r = 0;
-//					if (g < 0)
-//						g = 0;
-//					if (b < 0)
-//						b = 0;
-//
-//					/*
-//					** determine the brightest of the three color components
-//					*/
-//					if (r > g)
-//						max = r;
-//					else
-//						max = g;
-//					if (b > max)
-//						max = b;
-//
-//					/*
-//					** alpha is ONLY used for the mono lightmap case.  For this reason
-//					** we set it to the brightest of the color components so that 
-//					** things don't get too dim.
-//					*/
-//					a = max;
-//
-//					/*
-//					** rescale all the color components if the intensity of the greatest
-//					** channel exceeds 1.0
-//					*/
-//					if (max > 255)
-//					{
-//						float t = 255.0F / max;
-//
-//						r = r*t;
-//						g = g*t;
-//						b = b*t;
-//						a = a*t;
-//					}
-//
-//					/*
-//					** So if we are doing alpha lightmaps we need to set the R, G, and B
-//					** components to 0 and we need to set alpha to 1-alpha.
-//					*/
-//					switch ( monolightmap )
-//					{
-//					case 'L':
-//					case 'I':
-//						r = a;
-//						g = b = 0;
-//						break;
-//					case 'C':
-//						// try faking colored lighting
-//						a = 255 - ((r+g+b)/3);
-//						r *= a/255.0;
-//						g *= a/255.0;
-//						b *= a/255.0;
-//						break;
-//					case 'A':
-//					default:
-//						r = g = b = 0;
-//						a = 255 - a;
-//						break;
-//					}
-//
-//					dest[0] = r;
-//					dest[1] = g;
-//					dest[2] = b;
-//					dest[3] = a;
-//
-//					bl += 3;
-//					dest += 4;
-//				}
-//			}
-//		}
-//	}
+	/*
+	===============
+	R_BuildLightMap
 
+	Combine and scale multiple lightmaps into the floating format in blocklights
+	===============
+	*/
+	void R_BuildLightMap(msurface_t surf, ByteBuffer dest, int stride)
+	{
+		int smax, tmax;
+		int r, g, b, a, max;
+		int i, j, size;
+		ByteBuffer lightmap;
+		float[] scale = {0, 0, 0, 0};
+		int nummaps;
+		float[] bl;
+		lightstyle_t	style;
+		int monolightmap;
 
+		if ( (surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) != 0 )
+			ri.Sys_Error(Defines.ERR_DROP, "R_BuildLightMap called for non-lit surface");
+
+		smax = (surf.extents[0] >> 4) + 1;
+		tmax = (surf.extents[1] >> 4) + 1;
+		size = smax * tmax;
+		if (size > ((s_blocklights.length * Defines.SIZE_OF_FLOAT) >> 4) )
+			ri.Sys_Error(Defines.ERR_DROP, "Bad s_blocklights size");
+
+		try {
+			// set to full bright if no light data
+			if (surf.samples == null)
+			{
+				int maps;
+	
+				for (i=0 ; i<size*3 ; i++)
+					s_blocklights[i] = 255;
+	
+				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255; maps++)
+				{
+					style = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF];
+				}
+				// goto store;
+				throw new longjmpException();
+			}
+	
+			// count the # of maps
+			for ( nummaps = 0 ; nummaps < Defines.MAXLIGHTMAPS && surf.styles[nummaps] != (byte)255 ;
+				 nummaps++)
+				;
+	
+			//surf.samples.reset();	
+			lightmap = surf.samples.slice();
+	
+			// add all the lightmaps
+			if ( nummaps == 1 )
+			{
+				int maps;
+	
+				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
+					 maps++)
+				{
+					bl = s_blocklights;
+					int blp = 0;
+	
+					for (i=0 ; i<3 ; i++)
+						scale[i] = gl_modulate.value * r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
+	
+					if ( scale[0] == 1.0F &&
+						 scale[1] == 1.0F &&
+						 scale[2] == 1.0F )
+					{
+						for (i=0 ; i<size ; i++)
+						{
+							bl[blp++] = lightmap.get() & 0xFF;
+							bl[blp++] = lightmap.get() & 0xFF;
+							bl[blp++] = lightmap.get() & 0xFF;
+						}
+					}
+					else
+					{
+						for (i=0 ; i<size ; i++)
+						{
+							bl[blp++] = (lightmap.get() & 0xFF) * scale[0];
+							bl[blp++] = (lightmap.get()  & 0xFF) * scale[1];
+							bl[blp++] = (lightmap.get() & 0xFF) * scale[2];
+						}
+					}
+					//lightmap += size*3;		// skip to next lightmap
+				}
+			}
+			else
+			{
+				int maps;
+	
+	//			memset( s_blocklights, 0, sizeof( s_blocklights[0] ) * size * 3 );
+	
+				Arrays.fill(s_blocklights, 0, size * 3, 0.0f);
+	
+				for (maps = 0 ; maps < Defines.MAXLIGHTMAPS && surf.styles[maps] != (byte)255 ;
+					 maps++)
+				{
+					bl = s_blocklights;
+					int blp = 0;
+	
+					for (i=0 ; i<3 ; i++)
+						scale[i] = gl_modulate.value*r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
+	
+					if ( scale[0] == 1.0F &&
+						 scale[1] == 1.0F &&
+						 scale[2] == 1.0F )
+					{
+						for (i=0 ; i<size ; i++)
+						{
+							bl[blp++] += lightmap.get() & 0xFF;
+							bl[blp++] += lightmap.get() & 0xFF;
+							bl[blp++] += lightmap.get() & 0xFF;
+						}
+					}
+					else
+					{
+						for (i=0 ; i<size ; i++)
+						{
+							bl[blp++] += (lightmap.get() & 0xFF) * scale[0];
+							bl[blp++] += (lightmap.get() & 0xFF) * scale[1];
+							bl[blp++] += (lightmap.get() & 0xFF) * scale[2];
+						}
+					}
+					//lightmap += size*3;		// skip to next lightmap
+				}
+			}
+	
+			// add all the dynamic lights
+			if (surf.dlightframe == r_framecount)
+				R_AddDynamicLights(surf);
+	
+		// label store:
+		} catch (longjmpException store) {}
+	
+		// put into texture format
+		stride -= (smax<<2);
+		bl = s_blocklights;
+		int blp = 0;
+
+		monolightmap = gl_monolightmap.string.charAt(0);
+
+		int destp = 0;
+
+		if ( monolightmap == '0' )
+		{
+			for (i=0 ; i<tmax ; i++, destp += stride)
+			{
+				dest.position(destp);
+				
+				for (j=0 ; j<smax ; j++)
+				{
+				
+					r = (int)bl[blp++];
+					g = (int)bl[blp++];
+					b = (int)bl[blp++];
+
+					// catch negative lights
+					if (r < 0)
+						r = 0;
+					if (g < 0)
+						g = 0;
+					if (b < 0)
+						b = 0;
+
+					/*
+					** determine the brightest of the three color components
+					*/
+					if (r > g)
+						max = r;
+					else
+						max = g;
+					if (b > max)
+						max = b;
+
+					/*
+					** alpha is ONLY used for the mono lightmap case.  For this reason
+					** we set it to the brightest of the color components so that 
+					** things don't get too dim.
+					*/
+					a = max;
+
+					/*
+					** rescale all the color components if the intensity of the greatest
+					** channel exceeds 1.0
+					*/
+					if (max > 255)
+					{
+						float t = 255.0F / max;
+
+						r = (int)(r*t);
+						g = (int)(g*t);
+						b = (int)(b*t);
+						a = (int)(a*t);
+					}
+					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
+					destp += 4;
+				}
+			}
+		}
+		else
+		{
+			for (i=0 ; i<tmax ; i++, destp += stride)
+			{
+				dest.position(destp);
+
+				for (j=0 ; j<smax ; j++)
+				{
+				
+					r = (int) bl[blp++];
+					g = (int) bl[blp++];
+					b = (int) bl[blp++];
+
+					// catch negative lights
+					if (r < 0)
+						r = 0;
+					if (g < 0)
+						g = 0;
+					if (b < 0)
+						b = 0;
+
+					/*
+					** determine the brightest of the three color components
+					*/
+					if (r > g)
+						max = r;
+					else
+						max = g;
+					if (b > max)
+						max = b;
+
+					/*
+					** alpha is ONLY used for the mono lightmap case.  For this reason
+					** we set it to the brightest of the color components so that 
+					** things don't get too dim.
+					*/
+					a = max;
+
+					/*
+					** rescale all the color components if the intensity of the greatest
+					** channel exceeds 1.0
+					*/
+					if (max > 255)
+					{
+						float t = 255.0F / max;
+
+						r = (int)(r*t);
+						g = (int)(g*t);
+						b = (int)(b*t);
+						a = (int)(a*t);
+					}
+
+					/*
+					** So if we are doing alpha lightmaps we need to set the R, G, and B
+					** components to 0 and we need to set alpha to 1-alpha.
+					*/
+					switch ( monolightmap )
+					{
+					case 'L':
+					case 'I':
+						r = a;
+						g = b = 0;
+						break;
+					case 'C':
+						// try faking colored lighting
+						a = 255 - ((r+g+b)/3);
+						r *= a/255.0f;
+						g *= a/255.0f;
+						b *= a/255.0f;
+						break;
+					case 'A':
+					default:
+						r = g = b = 0;
+						a = 255 - a;
+						break;
+					}
+
+					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
+					destp += 4;
+				}
+			}
+		}
+	}
 
 }

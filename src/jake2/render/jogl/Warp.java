@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.7 2004-01-25 16:39:00 cwei Exp $
+ * $Id: Warp.java,v 1.8 2004-01-27 12:14:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -269,8 +269,8 @@ public abstract class Warp extends Model {
 //	{
 //		#include "warpsin.h"
 //	};
-//	#define TURBSCALE (256.0 / (2 * M_PI))
-//
+	static final float TURBSCALE = (float)(256.0f / (2 * Math.PI));
+
 	/*
 	=============
 	EmitWaterPolys
@@ -280,49 +280,43 @@ public abstract class Warp extends Model {
 	*/
 	void EmitWaterPolys(msurface_t fa)
 	{
-//		glpoly_t	*p, *bp;
-//		float		*v;
-//		int			i;
-//		float		s, t, os, ot;
-//		float		scroll;
-//		float		rdt = r_newrefdef.time;
-//
-//		if (fa->texinfo->flags & SURF_FLOWING)
-//			scroll = -64 * ( (r_newrefdef.time*0.5) - (int)(r_newrefdef.time*0.5) );
-//		else
-//			scroll = 0;
-//		for (bp=fa->polys ; bp ; bp=bp->next)
-//		{
-//			p = bp;
-//
-//			qglBegin (GL_TRIANGLE_FAN);
-//			for (i=0,v=p->verts[0] ; i<p->numverts ; i++, v+=VERTEXSIZE)
-//			{
-//				os = v[3];
-//				ot = v[4];
-//
-//	#if !id386
-//				s = os + r_turbsin[(int)((ot*0.125+r_newrefdef.time) * TURBSCALE) & 255];
-//	#else
-//				s = os + r_turbsin[Q_ftol( ((ot*0.125+rdt) * TURBSCALE) ) & 255];
-//	#endif
-//				s += scroll;
-//				s *= (1.0/64);
-//
-//	#if !id386
-//				t = ot + r_turbsin[(int)((os*0.125+rdt) * TURBSCALE) & 255];
-//	#else
-//				t = ot + r_turbsin[Q_ftol( ((os*0.125+rdt) * TURBSCALE) ) & 255];
-//	#endif
-//				t *= (1.0/64);
-//
-//				qglTexCoord2f (s, t);
-//				qglVertex3fv (v);
-//			}
-//			qglEnd ();
-//		}
-	}
+		glpoly_t	p, bp;
+		float[] v;
+		int i;
+		float s = 0;
+		float t = 0;
+		float os, ot;
+		float scroll;
+		float rdt = r_newrefdef.time;
 
+		if ((fa.texinfo.flags & Defines.SURF_FLOWING) != 0)
+			scroll = -64 * ( (r_newrefdef.time*0.5f) - (int)(r_newrefdef.time*0.5f) );
+		else
+			scroll = 0;
+		for (bp=fa.polys ; bp != null ; bp=bp.next)
+		{
+			p = bp;
+
+			gl.glBegin(GL.GL_TRIANGLE_FAN);
+			for (i=0; i<p.numverts ; i++)
+			{
+				v = p.verts[i];
+				os = v[3];
+				ot = v[4];
+
+				s = os + Warp.SIN[(int)((ot * 0.125f + r_newrefdef.time) * TURBSCALE) & 255];
+				s += scroll;
+				s *= (1.0f/64);
+
+				t = ot + Warp.SIN[(int)((os * 0.125f + rdt) * TURBSCALE) & 255];
+				t *= (1.0f/64);
+
+				gl.glTexCoord2f (s, t);
+				gl.glVertex3fv( v );
+			}
+			gl.glEnd ();
+		}
+	}
 
 //	  ===================================================================
 

@@ -2,7 +2,7 @@
  * DebugCulling.java
  * Copyright (C) 2003
  *
- * $Id: DebugCulling.java,v 1.2 2004-01-25 16:34:58 cwei Exp $
+ * $Id: DebugCulling.java,v 1.3 2004-01-27 12:14:36 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,7 +194,7 @@ public class DebugCulling
 			}
 		};
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.2 2004-01-25 16:34:58 cwei Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.3 2004-01-27 12:14:36 cwei Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -302,7 +302,13 @@ public class DebugCulling
 			light.rgb = new float[] {1.0f, 1.0f, 1.0f};
 			light.white = 3.0f;
 
-			refdef.lightstyles = new lightstyle_t[] { light };
+			refdef.lightstyles = new lightstyle_t[Defines.MAX_LIGHTSTYLES];
+			for (int i = 0; i < Defines.MAX_LIGHTSTYLES; i++)
+			{
+				refdef.lightstyles[i] = new lightstyle_t();
+				refdef.lightstyles[i].rgb = new float[] { 1.0f, 1.0f, 1.0f };
+				refdef.lightstyles[i].white = 3.0f; // r + g + b
+			}
 
 		}
 
