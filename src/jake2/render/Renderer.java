@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.3 2003-11-24 15:06:28 cwei Exp $
+ * $Id: Renderer.java,v 1.4 2003-11-25 13:10:11 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,6 +36,7 @@ import jake2.client.refimport_t;
 import jake2.qcommon.xcommand_t;
 
 import jake2.game.cvar_t;
+import jake2.util.Vargs;
 
 /**
  * Renderer
@@ -100,7 +101,7 @@ public class Renderer {
 		// only for testing
 		// a simple refimport_t implementation
 		refimport_t rimp = new refimport_t() {
-			public void Sys_Error(int err_level, String str, Object[] vargs) {
+			public void Sys_Error(int err_level, String str, Vargs vargs) {
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd) {
@@ -123,7 +124,7 @@ public class Renderer {
 			public void Con_Printf(
 				int print_level,
 				String str,
-				Object[] vargs) {
+				Vargs vargs) {
 			}
 
 			public int FS_LoadFile(String name, byte[] buf) {

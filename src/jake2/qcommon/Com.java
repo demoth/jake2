@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.4 2003-11-18 22:00:25 hoz Exp $
+ * $Id: Com.java,v 1.5 2003-11-25 13:10:11 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,14 +25,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import jake2.Globals;
 import jake2.game.Cmd;
+import jake2.util.PrintfFormat;
+import jake2.util.Vargs;
 
 /**
  * Com
  * TODO complete Com interface
  */
 public final class Com {
+	
+	private static Logger logger = Logger.getLogger(Com.class.getName());
 	
 	public static xcommand_t Error_f = new xcommand_t() {
 		public void execute() throws longjmpException {
@@ -72,6 +79,20 @@ public final class Com {
 			else
 				Globals.com_argv[i] = args[i];
 		}
+	}
+	
+	public static void Printf(String fmt, Vargs vargs) {
+		String msg = "";
+		if (vargs == null || vargs.size() == 0) {
+			msg = fmt; 
+		} else {
+			msg = new PrintfFormat(fmt).sprintf(vargs.toArray());
+		}
+		
+		// TODO Com.Printf is only a hack
+		
+		logger.log(Level.INFO, msg);
+		
 	}
 
 }

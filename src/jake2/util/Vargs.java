@@ -2,7 +2,7 @@
  * Vargs.java
  * Copyright (C) 2003
  *
- * $Id: Vargs.java,v 1.1 2003-11-25 11:05:02 cwei Exp $
+ * $Id: Vargs.java,v 1.2 2003-11-25 13:10:11 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -108,5 +108,13 @@ public class Vargs {
 //		v = null;
 //		return tmp;
 		return (Vector)v.clone();
+	}
+	
+	public Object[] toArray() {
+		return v.toArray();
+	}
+	
+	public int size() {
+		return v.size();
 	}
 }
