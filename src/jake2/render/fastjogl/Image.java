@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.6 2004-06-28 13:36:38 cwei Exp $
+ * $Id: Image.java,v 1.7 2004-06-28 13:43:04 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,12 +39,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.nio.*;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import net.java.games.jogl.GL;
-import net.java.games.jogl.util.BufferUtils;
 
 /**
  * Image
