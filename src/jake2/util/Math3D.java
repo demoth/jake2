@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.4 2003-12-28 23:47:48 cwei Exp $
+// $Id: Math3D.java,v 1.5 2004-01-05 21:45:16 cwei Exp $
 
 package jake2.util;
+
+import java.util.Arrays;
 
 import jake2.*;
 import jake2.client.*;
@@ -192,7 +194,7 @@ public class Math3D extends Lib {
 		m[1][2] = vf[1];
 		m[2][2] = vf[2];
 
-		Math3D.MatCopy(im, m);
+		Math3D.MatCopy(m, im); // achtung: src -> dst
 
 		im[0][1] = m[1][0];
 		im[0][2] = m[2][0];
@@ -436,18 +438,8 @@ public class Math3D extends Lib {
 		m[0][0] = m[0][1] = m[0][2] = m[1][0] = m[1][1] = m[1][2] = m[2][0] = m[2][1] = m[2][2] = 0.0f;
 	}
 
-	public static void MatCopy(float src[][], float dst[][]) {
-		dst[0][0] = src[0][0];
-		dst[0][1] = src[0][1];
-		dst[0][2] = src[0][2];
-
-		dst[1][0] = src[1][0];
-		dst[1][1] = src[1][1];
-		dst[1][2] = src[1][2];
-
-		dst[2][0] = src[2][0];
-		dst[2][1] = src[2][1];
-		dst[2][2] = src[2][2];
+	public static final void MatCopy(float src[][], float dst[][]) {
+		System.arraycopy(src, 0, dst, 0, dst.length);
 	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
