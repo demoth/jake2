@@ -19,7 +19,7 @@
  */
 
 // Created on 26.02.2004 by RST.
-// $Id: PlayerClientAdapters.java,v 1.3 2004-09-22 19:22:05 salomo Exp $
+// $Id: PlayerClientAdapters.java,v 1.4 2005-02-19 21:20:31 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -53,9 +53,12 @@ public class PlayerClientAdapters {
             while (true) {
                 es = GameBase.G_Find(es, GameBase.findByClass,
                         "info_player_start");
-                spot = es.o;
-                if (spot == null)
+
+                if (es == null)
                     return true;
+                
+                spot = es.o;
+                
                 if (spot.targetname == null)
                     continue;
                 Math3D.VectorSubtract(self.s.origin, spot.s.origin, d);
