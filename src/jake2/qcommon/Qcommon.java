@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.28 2004-03-11 16:27:34 cwei Exp $
+ * $Id: Qcommon.java,v 1.29 2004-03-17 14:26:06 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -183,7 +183,6 @@ public final class Qcommon extends Globals {
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
 			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
-			Globals.slomo= Cvar.Get("slomo", "1", 0);
 			String s = Com.sprintf("%4.2f %s %s %s",
 					new Vargs(4)
 						.add(Globals.VERSION)
