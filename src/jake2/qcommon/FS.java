@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.13 2003-12-04 15:09:20 cwei Exp $
+ * $Id: FS.java,v 1.14 2003-12-23 13:15:47 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +28,16 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
+import jake2.sys.CDAudio;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,9 +90,10 @@ public final class FS {
 //
 	static class pack_t {
 		String filename;
-		FileImageInputStream handle;
+		RandomAccessFile handle;
 		int numfiles;
-		packfile_t[] files;
+		//packfile_t[] files;
+		Hashtable files;
 	}
 //
 	static String fs_gamedir;
@@ -132,7 +137,7 @@ public final class FS {
 //	FS_filelength
 //	================
 //	*/
-	public static int filelength (File f) {
+	static int filelength (File f) {
 		return (int)f.length();
 	}
 //
@@ -220,6 +225,72 @@ public final class FS {
 //	}
 //
 //
+
+	public static int FileLength(String filename) {
+		searchpath_t search;
+		String netpath;
+		pack_t pak;
+		int i;
+		filelink_t link;
+
+		file_from_pak = 0;
+
+		// check for links first
+		for (link = fs_links; link != null; link = link.next) {
+			if (filename.regionMatches(0, link.from, 0, link.fromlength)) {
+				netpath = link.to + filename.substring(link.fromlength);
+				File file = new File(netpath);
+				if (file.canRead()) {
+					Com.DPrintf("link file: " + netpath + '\n');
+					return (int) file.length();
+				}
+				return -1;
+			}
+		}
+
+		//	   search through the path, one element at a time
+
+		for (search = fs_searchpaths; search != null; search = search.next) {
+			// is the element a pak file?
+			if (search.pack != null) {
+				// look through all the pak file elements
+				pak = search.pack;
+				packfile_t entry = (packfile_t) pak.files.get(filename);
+
+				/*  for (i=0 ; i < pak.numfiles ; i++) */
+
+				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
+					// found it!
+					file_from_pak = 1;
+					Com.DPrintf(
+						"PackFile: " + pak.filename + " : " + filename + '\n');
+					// open a new file on the pakfile
+					File file = new File(pak.filename);
+					if (!file.canRead()) {
+						Com.Error(
+							Globals.ERR_FATAL,
+							"Couldn't reopen " + pak.filename);
+					}
+					return entry.filelen;
+				}
+			} else {
+				// check a file in the directory tree
+				netpath = search.filename + '/' + filename;
+
+				File file = new File(netpath);
+				if (!file.canRead())
+					continue;
+
+				Com.DPrintf("FindFile: " + netpath + '\n');
+
+				return (int) file.length();
+			}
+		}
+		Com.DPrintf("FindFile: can't find " + filename + '\n');
+		return -1;
+	}
+
+
 //	/*
 //	===========
 //	FS_FOpenFile
@@ -232,15 +303,18 @@ public final class FS {
 //	*/
 	static int file_from_pak = 0;
 //	#ifndef NO_ADDONS
-	static int FOpenFile(String filename, File file)
+	static InputStream FOpenFile(String filename) throws IOException
 	{
 		searchpath_t search;
 		String netpath;
 		pack_t pak;
 		int i;
 		filelink_t link;
+		File file = null;
 //
 		file_from_pak = 0;
+		
+		InputStream stream = null;
 //
 //		// check for links first
 		for (link = fs_links ; link != null ; link=link.next)
@@ -248,64 +322,70 @@ public final class FS {
 //			if (!strncmp (filename, link->from, link->fromlength))
 			if (filename.regionMatches(0, link.from, 0, link.fromlength))
 			{
-//				Com.sprintf (netpath, sizeof(netpath), "%s%s",link->to, filename+link->fromlength);
 				netpath = link.to + filename.substring(link.fromlength);
 				file = new File(netpath);
 				if (file.canRead())
 				{		
-					Com.DPrintf ("link file: " + netpath +'\n');
-					return FS.filelength(file);
+					//Com.DPrintf ("link file: " + netpath +'\n');
+					stream = new FileInputStream(file);
+					return stream;
 				}
-				return -1;
+				return null;
 			}
 		}
+
 //
-////
-////	   search through the path, one element at a time
-////
-		for (search = fs_searchpaths ; search != null ; search = search.next)
-		{
-//		// is the element a pak file?
-			if (search.pack != null)
-			{
-//			// look through all the pak file elements
+//	   search through the path, one element at a time
+//
+		for (search = fs_searchpaths; search != null; search = search.next) {
+			// is the element a pak file?
+			if (search.pack != null) {
+				// look through all the pak file elements
 				pak = search.pack;
-				for (i=0 ; i < pak.numfiles ; i++)
-//					if (!Q_strcasecmp (pak->files[i].name, filename))
-					if (filename.equalsIgnoreCase(pak.files[i].name))
-					{	// found it!
-						file_from_pak = 1;
-						Com.DPrintf ("PackFile: " + pak.filename + " : " + filename + '\n');
-//					// open a new file on the pakfile
-						file = new File(pak.filename);
-						if (!file.canRead())
-							Com.Error(Globals.ERR_FATAL, "Couldn't reopen " + pak.filename);	
-//						fseek (*file, pak->files[i].filepos, SEEK_SET);
-						// TODO setzte seek() fuer pakfile
-						return pak.files[i].filelen;
+				packfile_t entry = (packfile_t) pak.files.get(filename);
+
+				/*  for (i=0 ; i < pak.numfiles ; i++) */
+
+				if (entry != null && filename.equalsIgnoreCase(entry.name)) {
+					// found it!
+					file_from_pak = 1;
+					//Com.DPrintf ("PackFile: " + pak.filename + " : " + filename + '\n');
+					file = new File(pak.filename);
+					if (!file.canRead())
+						Com.Error(
+							Globals.ERR_FATAL,
+							"Couldn't reopen " + pak.filename);
+					if (pak.handle == null || !pak.handle.getFD().valid()) {
+						// hold the pakfile handle open
+						pak.handle = new RandomAccessFile(pak.filename, "r");
 					}
-			}
-			else
-			{		
-//		// check a file in the directory tree
-//			
-//				Com_sprintf (netpath, sizeof(netpath), "%s/%s",search->filename, filename);
+					// open a new file on the pakfile
+					byte[] buf = new byte[entry.filelen];
+					pak.handle.seek(entry.filepos);
+					pak.handle.readFully(buf);
+
+					ByteArrayInputStream in = new ByteArrayInputStream(buf);
+					return in;
+					//stream = new FileImageInputStream(file);
+					//stream.seek(pak.files[i].filepos);
+					//return stream;
+				}
+			} else {
+				// check a file in the directory tree
 				netpath = search.filename + '/' + filename;
-//			
+
 				file = new File(netpath);
-				if (!file.canRead()) continue;
-//			
-				Com.DPrintf("FindFile: " + netpath +'\n');
-//
-				return FS.filelength(file);
+				if (!file.canRead())
+					continue;
+
+				//Com.DPrintf("FindFile: " + netpath +'\n');
+
+				stream = new FileInputStream(file);
+				return stream;
 			}
-//		
 		}
-//	
-		Com.DPrintf ("FindFile: can't find " + filename + '\n');
-//	
-		file = null;
-		return -1;
+		//Com.DPrintf ("FindFile: can't find " + filename + '\n');
+		return null;
 	}
 //
 //
@@ -316,47 +396,54 @@ public final class FS {
 //	Properly handles partial reads
 //	=================
 //	*/
-//	void CDAudio_Stop(void);
 	static final int MAX_READ	= 0x10000; // read in blocks of 64k
-//	void FS_Read (void *buffer, int len, FILE *f)
-//	{
-//		int		block, remaining;
-//		int		read;
-//		byte	*buf;
-//		int		tries;
+
+	static byte[] Read (int len, InputStream f)
+	{
+		int block, remaining, offset;
+		int read;
+		int tries;
 //
-//		buf = (byte *)buffer;
+		byte[] buf = new byte[len];
 //
 //		// read in chunks for progress bar
-//		remaining = len;
-//		tries = 0;
-//		while (remaining)
-//		{
-//			block = remaining;
-//			if (block > MAX_READ)
-//				block = MAX_READ;
+		remaining = len;
+		offset = 0;
+		read = 0;
+		tries = 0;
+		
+		while (remaining != 0)
+		{
+			block = Math.min(remaining, MAX_READ);
 //			read = fread (buf, 1, block, f);
-//			if (read == 0)
-//			{
-//				// we might have been trying to read from a CD
-//				if (!tries)
-//				{
-//					tries = 1;
-//					CDAudio_Stop();
-//				}
-//				else
-//					Com_Error (ERR_FATAL, "FS_Read: 0 bytes read");
-//			}
+			try {
+				read = f.read(buf, offset, block);
+			} catch (IOException e) {
+				Com.Error(Globals.ERR_FATAL, e.toString());
+			}
+
+			if (read == 0)
+			{
+				// we might have been trying to read from a CD
+				if (tries == 0)
+				{
+					tries = 1;
+					CDAudio.Stop();
+				}
+				else
+					Com.Error(Globals.ERR_FATAL, "FS_Read: 0 bytes read");
+			}
 //
-//			if (read == -1)
-//				Com_Error (ERR_FATAL, "FS_Read: -1 bytes read");
+			if (read == -1)
+				Com.Error(Globals.ERR_FATAL, "FS_Read: -1 bytes read");
 //
 //			// do some progress bar thing here...
 //
-//			remaining -= read;
-//			buf += read;
-//		}
-//	}
+			remaining -= read;
+			offset += read;
+		}
+		return buf;
+	}
 //
 //	/*
 //	============
@@ -368,32 +455,23 @@ public final class FS {
 //	*/
 	public static byte[] LoadFile(String path)
 	{
-//		FILE	*h;
+		InputStream h;
 
 		byte[] buf = null;
-		int		len = 0;
+		int len = 0;
 		
-//
-////	   look for it in the filesystem or pack files
-//		len = FS_FOpenFile (path, &h);
-//		if (!h)
-//		{
-	// TODO		if (!shouldLoad) return null;
-//		}
-//	
-//		if (!buffer)
-//		{
-//			fclose (h);
-//			return len;
-//		}
-//
-//		buf = Z_Malloc(len);
-//		*buffer = buf;
-//
-//		FS_Read (buf, len, h);
-//
-//		fclose (h);
-//
+		// look for it in the filesystem or pack files
+		len = FileLength(path);
+
+		if (len < 1) return null;
+
+		try {
+			h = FOpenFile(path);
+			buf = Read(len, h);
+			h.close();
+		} catch (IOException e) {
+			Com.Error(Globals.ERR_FATAL, e.toString());
+		}
 		return buf;
 	}
 //
@@ -429,61 +507,81 @@ public final class FS {
 //	of the list so they override previous pack files.
 //	=================
 //	*/
-	static pack_t LoadPackFile(String packfile) throws IOException
-	{
+	static pack_t LoadPackFile(String packfile) {
+		
 		dpackheader_t header;
-		packfile_t[] newfiles;
+		//packfile_t[] newfiles;
+		Hashtable newfiles;
 		int numpackfiles = 0;
 		pack_t pack = null;
+		RandomAccessFile file;
 		FileImageInputStream packhandle;
-//		unsigned		checksum;
-//
+		//		unsigned		checksum;
+		//
 		try {
-			packhandle = new FileImageInputStream(new RandomAccessFile(packfile, "r"));
+			packhandle =
+				new FileImageInputStream(
+					file = new RandomAccessFile(packfile, "r"));
 			packhandle.setByteOrder(ByteOrder.LITTLE_ENDIAN);
-			
-			if (packhandle.length() < 1) return null;
-		} catch (IOException e) {
-			logger.log(Level.FINEST, e.toString());
-			return null;
-		}
-//
-		header = new dpackheader_t();
-		header.ident = packhandle.readInt();		
-		header.dirofs = packhandle.readInt();
-		header.dirlen = packhandle.readInt();
-		if (header.ident != IDPAKHEADER)
-			Com.Error (Globals.ERR_FATAL, packfile + " is not a packfile");
-//
-		numpackfiles = header.dirlen / packfile_t.SIZE;
-//
-		if (numpackfiles > MAX_FILES_IN_PACK)
-			Com.Error (Globals.ERR_FATAL, packfile +" has " + numpackfiles +" files");
-//
-		newfiles = new packfile_t[numpackfiles];
-//
-		packhandle.seek(header.dirofs);
 
-		// buffer for C-Strings char[56] 
-		byte[] text = new byte[56];
-		// parse the directory
-		for (int i=0; i < numpackfiles; i++) {
-			packhandle.readFully(text);
-			newfiles[i] = new packfile_t(); 
-			newfiles[i].name = new String(text).trim();
-			newfiles[i].filepos = packhandle.readInt();
-			newfiles[i].filelen = packhandle.readInt();
-			// TODO FS.LoadPackFile --> remove sysout 
-			logger.log(Level.FINEST, i + ".\t" + newfiles[i]);
+			if (packhandle.length() < 1) return null;
+			//
+			header = new dpackheader_t();
+			header.ident = packhandle.readInt();
+			header.dirofs = packhandle.readInt();
+			header.dirlen = packhandle.readInt();
+			
+			if (header.ident != IDPAKHEADER)
+				Com.Error(Globals.ERR_FATAL, packfile + " is not a packfile");
+			//
+			numpackfiles = header.dirlen / packfile_t.SIZE;
+			//
+			if (numpackfiles > MAX_FILES_IN_PACK)
+				Com.Error(
+					Globals.ERR_FATAL,
+					packfile + " has " + numpackfiles + " files");
+			//
+			//newfiles = new packfile_t[numpackfiles];
+			newfiles = new Hashtable(numpackfiles);
+
+			packhandle.seek(header.dirofs);
+
+			// buffer for C-Strings char[56] 
+			byte[] text = new byte[56];
+			// parse the directory
+			packfile_t entry = null;
+			
+			for (int i = 0; i < numpackfiles; i++) {
+				packhandle.readFully(text);
+//				newfiles[i] = new packfile_t();
+//				newfiles[i].name = new String(text).trim();
+//				newfiles[i].filepos = packhandle.readInt();
+//				newfiles[i].filelen = packhandle.readInt();
+
+				entry = new packfile_t();
+				entry.name = new String(text).trim();
+				entry.filepos = packhandle.readInt();
+				entry.filelen = packhandle.readInt();
+				
+				newfiles.put(entry.name, entry);
+				
+				// TODO FS.LoadPackFile --> remove sysout 
+				logger.log(Level.FINEST, i + ".\t" + entry);
+			}
+
+		} catch (IOException e) {
+			logger.log(Level.WARNING, e.toString());
+			return null;
 		}
 
 		pack = new pack_t();
 		pack.filename = new String(packfile);
-		pack.handle = packhandle;
+		pack.handle = file;
 		pack.numfiles = numpackfiles;
 		pack.files = newfiles;
-//	
-		Com.Printf ("Added packfile " + packfile +" (" + numpackfiles +" files)\n");
+
+		Com.Printf(
+			"Added packfile " + packfile + " (" + numpackfiles + " files)\n");
 		return pack;
 	}
 //
@@ -496,29 +594,26 @@ public final class FS {
 //	then loads and adds pak1.pak pak2.pak ... 
 //	================
 //	*/
-	static void AddGameDirectory(String dir) throws IOException
+	static void AddGameDirectory(String dir)
 	{
 		int i;
 		searchpath_t	search;
 		pack_t pak;
 		String pakfile;
-//
-//		strcpy (fs_gamedir, dir);
+
 		fs_gamedir = new String(dir);
-//
-//		//
-//		// add the directory to the search path
-//		//
-//		search = Z_Malloc (sizeof(searchpath_t));
+
+		//
+		// add the directory to the search path
+		//
 		search = new searchpath_t();
-//		strcpy (search->filename, dir);
 		search.filename = new String(dir);
 		search.next = fs_searchpaths;
 		fs_searchpaths = search;
-//
-//		//
-//		// add any pak files in the format pak0.pak pak1.pak, ...
-//		//
+
+		//
+		// add any pak files in the format pak0.pak pak1.pak, ...
+		//
 		for (i=0; i<10; i++)
 		{
 			pakfile = dir + "/pak" + i +".pak";
@@ -580,50 +675,60 @@ public final class FS {
 	static void SetGamedir (String dir)
 	{
 		searchpath_t	next;
-//
+
 //		if (strstr(dir, "..") || strstr(dir, "/")
 //			|| strstr(dir, "\\") || strstr(dir, ":") )
-		{
-			Com.Printf ("Gamedir should be a single filename, not a path\n");
+
+		if (dir.indexOf("..") != -1
+			|| dir.indexOf("/") != -1
+			|| dir.indexOf("\\") != -1
+			|| dir.indexOf(":") != -1) {
+			Com.Printf("Gamedir should be a single filename, not a path\n");
 			return;
 		}
-//
-//		//
-//		// free up any current game dir info
-//		//
-//		while (fs_searchpaths != fs_base_searchpaths)
-//		{
-//			if (fs_searchpaths->pack)
-//			{
-//				fclose (fs_searchpaths->pack->handle);
-//				Z_Free (fs_searchpaths->pack->files);
-//				Z_Free (fs_searchpaths->pack);
-//			}
-//			next = fs_searchpaths->next;
-//			Z_Free (fs_searchpaths);
-//			fs_searchpaths = next;
-//		}
+
+		//
+		// free up any current game dir info
+		//
+		while (fs_searchpaths != fs_base_searchpaths)
+		{
+			if (fs_searchpaths.pack != null)
+			{
+				try {
+					fs_searchpaths.pack.handle.close();
+				} catch (IOException e) {
+					logger.log(Level.WARNING, e.toString());
+				}
+				fs_searchpaths.pack.files = null; // or clear if it is a hashtable
+				fs_searchpaths.pack = null;
+			}
+			next = fs_searchpaths.next;
+			fs_searchpaths = null;
+			fs_searchpaths = next;
+		}
 //
 //		//
 //		// flush all data, so it will be forced to reload
 //		//
-//		if (dedicated && !dedicated->value)
-//			Cbuf_AddText ("vid_restart\nsnd_restart\n");
+		if ((Globals.dedicated != null) && (Globals.dedicated.value == 0.0f))
+			Cbuf.AddText ("vid_restart\nsnd_restart\n");
 //
 //		Com_sprintf (fs_gamedir, sizeof(fs_gamedir), "%s/%s", fs_basedir->string, dir);
+		fs_gamedir = fs_basedir.string + '/' + dir;
 //
-//		if (!strcmp(dir,BASEDIRNAME) || (*dir == 0))
-//		{
-//			Cvar_FullSet ("gamedir", "", CVAR_SERVERINFO|CVAR_NOSET);
-//			Cvar_FullSet ("game", "", CVAR_LATCH|CVAR_SERVERINFO);
-//		}
-//		else
-//		{
-//			Cvar_FullSet ("gamedir", dir, CVAR_SERVERINFO|CVAR_NOSET);
-//			if (fs_cddir->string[0])
-//				FS_AddGameDirectory (va("%s/%s", fs_cddir->string, dir) );
-//			FS_AddGameDirectory (va("%s/%s", fs_basedir->string, dir) );
-//		}
+		if (!dir.equals(Globals.BASEDIRNAME) || (dir.length() == 0))
+		{
+			Cvar.FullSet ("gamedir", "", Cvar.SERVERINFO | Cvar.NOSET);
+			Cvar.FullSet ("game", "", Cvar.LATCH | Cvar.SERVERINFO);
+		}
+		else
+		{
+			Cvar.FullSet ("gamedir", dir, Cvar.SERVERINFO | Cvar.NOSET);
+			if (fs_cddir.string != null && fs_cddir.string.length() > 0)
+				AddGameDirectory (fs_cddir.string + '/' + dir);
+				
+			AddGameDirectory (fs_basedir.string + '/' + dir);
+		}
 	}
 //
 //
@@ -725,30 +830,31 @@ public final class FS {
 	static void Dir_f()
 	{
 //		char	*path = NULL;
+		String path = null;
 //		char	findname[1024];
+		String findname = null;
 //		char	wildcard[1024] = "*.*";
+		String wildcard = "*.*";
 //		char	**dirnames;
+		String[] dirnames;
 //		int		ndirs;
+		int ndirs;
 //
-//		if ( Cmd_Argc() != 1 )
-//		{
-//			strcpy( wildcard, Cmd_Argv( 1 ) );
-//		}
+		if ( Cmd.Argc() != 1 )
+		{
+			wildcard =  Cmd.Argv(1);
+		}
 //
-//		while ( ( path = FS_NextPath( path ) ) != NULL )
-//		{
-//			char *tmp = findname;
+		while ( ( path = NextPath( path ) ) != null )
+		{
+			String tmp = findname;
 //
-//			Com_sprintf( findname, sizeof(findname), "%s/%s", path, wildcard );
+			findname = path + '/' + wildcard;
 //
-//			while ( *tmp != 0 )
-//			{
-//				if ( *tmp == '\\' ) 
-//					*tmp = '/';
-//				tmp++;
-//			}
-//			Com_Printf( "Directory of %s\n", findname );
-//			Com_Printf( "----\n" );
+			if (tmp != null) tmp.replaceAll("\\\\", "/");
+
+			Com.Printf( "Directory of " + findname +'\n' );
+			Com.Printf( "----\n" );
 //
 //			if ( ( dirnames = FS_ListFiles( findname, &ndirs, 0, 0 ) ) != 0 )
 //			{
@@ -765,8 +871,8 @@ public final class FS {
 //				}
 //				free( dirnames );
 //			}
-//			Com_Printf( "\n" );
-//		};
+			Com.Printf( "\n" );
+		}
 	}
 //
 //	/*
@@ -807,20 +913,19 @@ public final class FS {
 	{
 		searchpath_t	s;
 		String prev;
-//
-		if (prevpath == null || prevpath.length() == 0 )
-			return fs_gamedir;
-//
+
+		if (prevpath == null || prevpath.length() == 0 )	return fs_gamedir;
+
 		prev = fs_gamedir;
 		for (s=fs_searchpaths ; s != null ; s=s.next)
 		{
-			if (s.pack != null)
-				continue;
-			if (prevpath.equals(prev))
-				return s.filename;
+			if (s.pack != null) continue;
+			
+			if (prevpath == prev) return s.filename;
+				
 			prev = s.filename;
 		}
-//
+
 		return null;
 	}
 //
@@ -862,20 +967,12 @@ public final class FS {
 		// TODO zur zeit wird auf baseq2 mit ../../ zugegriffen, sonst ""
 		fs_cddir = Cvar.Get("cddir", "../..", Cvar.NOSET);
 		if (fs_cddir.string.length() > 0)
-			try {
-				AddGameDirectory(fs_cddir.string +'/' +Globals.BASEDIRNAME);
-			} catch (IOException e) {
-				logger.log(Level.SEVERE, e.toString());
-			}
-//
-//		//
-//		// start up with baseq2 by default
-//		//
-		try {
-			AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
-		} catch (IOException e1) {
-			logger.log(Level.SEVERE, e1.toString());
-		}
+			AddGameDirectory(fs_cddir.string +'/' +Globals.BASEDIRNAME);
+
+		//
+		// start up with baseq2 by default
+		//
+		AddGameDirectory(fs_basedir.string +'/' +Globals.BASEDIRNAME);
 //
 //		// any set gamedirs will be freed up to here
 		fs_base_searchpaths = fs_searchpaths;
