@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.2 2004-01-26 14:29:02 hoz Exp $
+ * $Id: CL_fx.java,v 1.3 2004-01-29 22:44:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -77,8 +77,7 @@ public class CL_fx extends Globals {
 //	CL_RunLightStyles
 //	================
 //	*/
-//	void CL_RunLightStyles (void)
-//	{
+	static void RunLightStyles() {
 //		int		ofs;
 //		int		i;
 //		clightstyle_t	*ls;
@@ -100,7 +99,7 @@ public class CL_fx extends Globals {
 //			else
 //				ls->value[0] = ls->value[1] = ls->value[2] = ls->map[ofs%ls->length];
 //		}
-//	}
+	}
 //
 //
 //	void CL_SetLightstyle (int i)
@@ -222,8 +221,7 @@ public class CL_fx extends Globals {
 //
 //	===============
 //	*/
-//	void CL_RunDLights (void)
-//	{
+	static void RunDLights() {
 //		int			i;
 //		cdlight_t	*dl;
 //
@@ -242,7 +240,7 @@ public class CL_fx extends Globals {
 //			if (dl->radius < 0)
 //				dl->radius = 0;
 //		}
-//	}
+	}
 //
 //	/*
 //	==============

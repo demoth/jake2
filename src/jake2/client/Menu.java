@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.7 2004-01-28 21:04:10 hoz Exp $
+ * $Id: Menu.java,v 1.8 2004-01-29 22:44:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -196,7 +196,7 @@ public final class Menu extends Key {
 	}
 
 	static void PopMenu() {
-		SND_DMA.S_StartLocalSound(menu_out_sound);
+		S.StartLocalSound(menu_out_sound);
 		if (m_menudepth < 1)
 			Com.Error(ERR_FATAL, "PopMenu: depth < 1");
 		m_menudepth--;
@@ -4361,7 +4361,7 @@ public final class Menu extends Key {
 		// menu has been drawn, to avoid delay while
 		// caching images
 		if (m_entersound) {
-			SND_DMA.S_StartLocalSound(menu_in_sound);
+			S.StartLocalSound(menu_in_sound);
 			m_entersound = false;
 		}
 	}
@@ -4376,7 +4376,7 @@ public final class Menu extends Key {
 
 		if (m_keyfunc != null)
 			if ((s = m_keyfunc.execute(key)) != null)
-				SND_DMA.S_StartLocalSound(s);
+				S.StartLocalSound(s);
 	}
 
 	public static void Action_DoEnter(menuaction_s a) {

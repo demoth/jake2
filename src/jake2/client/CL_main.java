@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.5 2004-01-28 21:04:10 hoz Exp $
+ * $Id: CL_main.java,v 1.6 2004-01-29 22:44:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,7 +42,7 @@ import jake2.sys.IN;
 /**
  * CL_main
  */
-public class CL_main extends CL_parse {
+public class CL_main extends CL_pred {
 
 ////	   cl_main.c  -- client main loop
 //
@@ -1182,8 +1182,7 @@ public class CL_main extends CL_parse {
 //	CL_ReadPackets
 //	=================
 //	*/
-//	void CL_ReadPackets (void)
-//	{
+	static void ReadPackets() {
 //		while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
 //		{
 ////		Com_Printf ("packet\n");
@@ -1217,7 +1216,7 @@ public class CL_main extends CL_parse {
 //			if (!Netchan_Process(&cls.netchan, &net_message))
 //				continue;		// wasn't accepted for some reason
 //			CL_ParseServerMessage ();
-//		}
+		}
 //
 //		//
 //		// check timeout
@@ -1845,8 +1844,7 @@ public class CL_main extends CL_parse {
 //
 //	==================
 //	*/
-//	void CL_SendCommand (void)
-//	{
+	static void SendCommand() {
 //		// get new key events
 //		Sys_SendKeyEvents ();
 //
@@ -1864,82 +1862,72 @@ public class CL_main extends CL_parse {
 //
 //		// resend a connection request if necessary
 //		CL_CheckForResend ();
-//	}
+	}
 //
 //
-//	/*
-//	==================
-//	CL_Frame
-//
-//	==================
-//	*/
+	/*
+	==================
+	CL_Frame
+
+	==================
+	*/
+	private static long extratime;
+	private static int lasttimecalled;
 	public static void Frame(long msec) {
-//		static int	extratime;
-//		static int  lasttimecalled;
-//
-//		extratime += msec;
-//
-//		if (!cl_timedemo->value)
-//		{
-//			if (cls.state == ca_connected && extratime < 100)
-//				return;			// don't flood packets out while connecting
-//			if (extratime < 1000/cl_maxfps->value)
-//				return;			// framerate is too high
-//		}
-//
-//		// let the mouse activate or deactivate
-//		IN_Frame ();
-//
-//		// decide the simulation time
-//		cls.frametime = extratime/1000.0;
-//		cl.time += extratime;
-//		cls.realtime = curtime;
-//
-//		extratime = 0;
-//	#if 0
-//		if (cls.frametime > (1.0 / cl_minfps->value))
-//			cls.frametime = (1.0 / cl_minfps->value);
-//	#else
-//		if (cls.frametime > (1.0 / 5))
-//			cls.frametime = (1.0 / 5);
-//	#endif
-//
-//		// if in the debugger last frame, don't timeout
-//		if (msec > 5000)
-//			cls.netchan.last_received = Sys_Milliseconds ();
-//
-//		// fetch results from server
-//		CL_ReadPackets ();
-//
-//		// send a new command message to the server
-//		CL_SendCommand ();
-//
-//		// predict all unacknowledged movements
-//		CL_PredictMovement ();
-//
-//		// allow rendering DLL change
-//		VID_CheckChanges ();
-//		if (!cl.refresh_prepped && cls.state == ca_active)
-//			CL_PrepRefresh ();
-//
-//
-//		SCR_UpdateScreen ();
-//
-//
-//		// update audio
-//		S_Update (cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
-//	
-//		CDAudio_Update();
-//
-//		// advance local effects for next frame
-//		CL_RunDLights ();
-//		CL_RunLightStyles ();
-////		SCR_RunCinematic ();
-//		SCR_RunConsole ();
-//
-//		cls.framecount++;
-//
-//
+
+		extratime += msec;
+
+		if (cl_timedemo.value == 0.0f) {
+			if (cls.state == ca_connected && extratime < 100)
+				return;			// don't flood packets out while connecting
+			if (extratime < 1000/cl_maxfps.value)
+				return;			// framerate is too high
+		}
+
+		// let the mouse activate or deactivate
+		IN.Frame();
+
+		// decide the simulation time
+		cls.frametime = extratime/1000.0f;
+		cl.time += extratime;
+		cls.realtime = curtime;
+
+		extratime = 0;
+
+		if (cls.frametime > (1.0f / 5))
+			cls.frametime = (1.0f / 5);
+
+
+		// if in the debugger last frame, don't timeout
+		if (msec > 5000)
+			cls.netchan.last_received = (int)System.currentTimeMillis();
+
+		// fetch results from server
+		CL.ReadPackets();
+
+		// send a new command message to the server
+		CL.SendCommand();
+
+		// predict all unacknowledged movements
+		CL.PredictMovement();
+
+		// allow rendering DLL change
+		VID.CheckChanges();
+		if (!cl.refresh_prepped && cls.state == ca_active)
+			CL.PrepRefresh();
+
+		SCR.UpdateScreen();
+
+		// update audio
+		S.Update(cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
+
+		// advance local effects for next frame
+		CL.RunDLights();
+		CL.RunLightStyles();
+
+		SCR.RunConsole();
+
+		cls.framecount++;
 	}
 //
 //

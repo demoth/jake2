@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.6 2004-01-11 14:38:47 cwei Exp $
+ * $Id: S.java,v 1.7 2004-01-29 22:44:58 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,7 @@ package jake2.client;
 /**
  * S
  */
-public class S {
+public class S extends SND_DMA {
 
 	public static void Init() {
 	}

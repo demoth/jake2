@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.15 2004-01-29 17:56:41 hoz Exp $
+ * $Id: SCR.java,v 1.16 2004-01-29 22:44:58 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -494,8 +494,7 @@ public final class SCR extends Globals {
 //	Scroll it up or down
 //	==================
 //	*/
-//	void SCR_RunConsole (void)
-//	{
+	static void RunConsole() {
 ////	   decide on the height of the console
 //		if (cls.key_dest == key_console)
 //			scr_conlines = 0.5;		// half screen
@@ -516,7 +515,7 @@ public final class SCR extends Globals {
 //				scr_con_current = scr_conlines;
 //		}
 //
-//	}
+	}
 //
 //	/*
 //	==================
