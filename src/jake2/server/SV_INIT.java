@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.6 2004-01-28 14:42:58 hoz Exp $
+// $Id: SV_INIT.java,v 1.7 2004-01-30 13:34:31 hoz Exp $
 
 package jake2.server;
 
@@ -374,7 +374,7 @@ public class SV_INIT extends PlayerHud {
 		// heartbeats will always be sent to the id master
 		svs.last_heartbeat = -99999; // send immediately
 		idmaster =  "192.246.40.37:" +  PORT_MASTER;
-		NET.NET_StringToAdr(idmaster, SV_MAIN.master_adr[0]);
+		NET.StringToAdr(idmaster, SV_MAIN.master_adr[0]);
 
 		// init game
 		SV_GAME.SV_InitGameProgs();

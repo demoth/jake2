@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.4 2004-01-25 21:45:45 rst Exp $
+// $Id: SV_SEND.java,v 1.5 2004-01-30 13:34:31 hoz Exp $
 
 package jake2.server;
 
@@ -419,7 +419,7 @@ public class SV_SEND extends SV_MAIN {
 		}
 
 		// send the datagram
-		Netchan.Netchan_Transmit(client.netchan, msg.cursize, msg.data);
+		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
 
 		// record the size for rate estimation
 		client.message_size[sv.framenum % RATE_MESSAGES] = msg.cursize;
@@ -544,7 +544,7 @@ public class SV_SEND extends SV_MAIN {
 			}
 
 			if (sv.state == ss_cinematic || sv.state == ss_demo || sv.state == ss_pic)
-				Netchan.Netchan_Transmit(c.netchan, msglen, msgbuf);
+				Netchan.Transmit(c.netchan, msglen, msgbuf);
 			else if (c.state == cs_spawned) {
 				// don't overrun bandwidth
 				if (SV_RateDrop(c))
@@ -555,7 +555,7 @@ public class SV_SEND extends SV_MAIN {
 			else {
 				// just update reliable	if needed
 				if (c.netchan.message.cursize != 0 || Globals.curtime - c.netchan.last_sent > 1000)
-					Netchan.Netchan_Transmit(c.netchan, 0, null);
+					Netchan.Transmit(c.netchan, 0, null);
 			}
 		}
 	}

@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.15 2004-01-30 10:56:57 hoz Exp $
+ * $Id: Console.java,v 1.16 2004-01-30 13:34:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,8 +34,7 @@ import jake2.qcommon.*;
 import jake2.util.Vargs;
 
 /**
- * Con
- * TODO implement Con
+ * Console
  */
 public final class Console extends Globals {
 	
@@ -315,9 +314,9 @@ public final class Console extends Globals {
 		int c, l;
 		int mask;
 		int txtpos = 0;
-//	00357 
+
 		if (!con.initialized) return;
-//	00360 
+
 		if (txt.charAt(0) == 1 || txt.charAt(0) == 2) {
 			mask = 128;             // go to colored text
 			txtpos++;

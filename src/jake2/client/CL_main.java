@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.8 2004-01-30 13:05:45 cwei Exp $
+ * $Id: CL_main.java,v 1.9 2004-01-30 13:34:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,23 +25,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import jake2.Defines;
+import jake2.Globals;
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.sys.*;
+import jake2.util.Vargs;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import jake2.Defines;
-import jake2.Globals;
-
-import jake2.game.*;
-import jake2.game.Cmd;
-import jake2.game.entity_state_t;
-import jake2.qcommon.*;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.FS;
-import jake2.sys.*;
-import jake2.sys.IN;
-import jake2.sys.Sys;
 
 /**
  * CL_main
@@ -131,25 +125,15 @@ public class CL_main extends CL_pred {
 //	extern	cvar_t *allow_download_sounds;
 //	extern	cvar_t *allow_download_maps;
 //
-////	  ======================================================================
-//
-//
-//	/*
-//	====================
-//	CL_WriteDemoMessage
-//
-//	Dumps the current net message, prefixed by the length
-//	====================
-//	*/
-//	static void WriteDemoMessage() {
-//		int		len, swlen;
-//
-//		// the first eight bytes are just packet sequencing stuff
-//		len = net_message.cursize-8;
-//		swlen = LittleLong(len);
-//		fwrite (&swlen, 4, 1, cls.demofile);
-//		fwrite (net_message.data+8,	len, 1, cls.demofile);
-//	}
+//	  ======================================================================
+
+	/*
+	====================
+	CL_WriteDemoMessage
+
+	Dumps the current net message, prefixed by the length
+	====================
+	*/
 	static void WriteDemoMessage() throws IOException {
 		int swlen;
 
@@ -161,33 +145,14 @@ public class CL_main extends CL_pred {
 		cls.demofile.write(net_message.data, 8, swlen);
 		//fwrite (net_message.data+8,	len, 1, cls.demofile);
 	}	
-//
-//
-//	/*
-//	====================
-//	CL_Stop_f
-//
-//	stop recording a demo
-//	====================
-//	*/
-//	void CL_Stop_f (void)
-//	{
-//		int		len;
-//
-//		if (!cls.demorecording)
-//		{
-//			Com_Printf ("Not recording a demo.\n");
-//			return;
-//		}
-//
-////	   finish up
-//		len = -1;
-//		fwrite (&len, 4, 1, cls.demofile);
-//		fclose (cls.demofile);
-//		cls.demofile = NULL;
-//		cls.demorecording = false;
-//		Com_Printf ("Stopped demo.\n");
-//	}
+
+	/*
+	====================
+	CL_Stop_f
+
+	stop recording a demo
+	====================
+	*/
 	static xcommand_t Stop_f = new xcommand_t() {
 		public void execute() {
 			try {
@@ -446,37 +411,18 @@ public class CL_main extends CL_pred {
 			}
 		}
 	};
-//
-////	  ======================================================================
-//
-//	/*
-//	===================
-//	Cmd_ForwardToServer
-//
-//	adds the current command line as a clc_stringcmd to the client message.
-//	things like godmode, noclip, etc, are commands directed to the server,
-//	so when they are typed in at the console, they will need to be forwarded.
-//	===================
-//	*/
-//	void Cmd_ForwardToServer (void)
-//	{
-//		char	*cmd;
-//
-//		cmd = Cmd_Argv(0);
-//		if (cls.state <= ca_connected || *cmd == '-' || *cmd == '+')
-//		{
-//			Com_Printf ("Unknown command \"%s\"\n", cmd);
-//			return;
-//		}
-//
-//		MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
-//		SZ_Print (&cls.netchan.message, cmd);
-//		if (Cmd_Argc() > 1)
-//		{
-//			SZ_Print (&cls.netchan.message, " ");
-//			SZ_Print (&cls.netchan.message, Cmd_Args());
-//		}
-//	}
+
+//	  ======================================================================
+
+	/*
+	===================
+	Cmd_ForwardToServer
+
+	adds the current command line as a clc_stringcmd to the client message.
+	things like godmode, noclip, etc, are commands directed to the server,
+	so when they are typed in at the console, they will need to be forwarded.
+	===================
+	*/
 	static void ForwardToServer() {
 		String cmd;
 
@@ -529,28 +475,12 @@ public class CL_main extends CL_pred {
 //		}
 		}
 	};
-//
-//
-//	/*
-//	==================
-//	CL_ForwardToServer_f
-//	==================
-//	*/
-//	void CL_ForwardToServer_f (void)
-//	{
-//		if (cls.state != ca_connected && cls.state != ca_active)
-//		{
-//			Com_Printf ("Can't \"%s\", not connected\n", Cmd_Argv(0));
-//			return;
-//		}
-//	
-//		// don't forward the first argument
-//		if (Cmd_Argc() > 1)
-//		{
-//			MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
-//			SZ_Print (&cls.netchan.message, Cmd_Args());
-//		}
-//	}
+
+	/*
+	==================
+	CL_ForwardToServer_f
+	==================
+	*/
 	static xcommand_t ForwardToServer_f = new xcommand_t() {
 		public void execute() {
 			if (cls.state != ca_connected && cls.state != ca_active) {
@@ -565,24 +495,12 @@ public class CL_main extends CL_pred {
 			}
 		}
 	};	
-//
-//
-//	/*
-//	==================
-//	CL_Pause_f
-//	==================
-//	*/
-//	void CL_Pause_f (void)
-//	{
-//		// never pause in multiplayer
-//		if (Cvar_VariableValue ("maxclients") > 1 || !Com_ServerState ())
-//		{
-//			Cvar_SetValue ("paused", 0);
-//			return;
-//		}
-//
-//		Cvar_SetValue ("paused", !cl_paused->value);
-//	}
+
+	/*
+	==================
+	CL_Pause_f
+	==================
+	*/
 	static xcommand_t Pause_f = new xcommand_t() {
 		public void execute() {
 				// never pause in multiplayer
@@ -595,7 +513,7 @@ public class CL_main extends CL_pred {
 			Cvar.SetValue("paused", cl_paused.value);
 		}
 	};
-//
+
 //	/*
 //	==================
 //	CL_Quit_f
@@ -607,83 +525,79 @@ public class CL_main extends CL_pred {
 			Com.Quit();
 		}
 	};
-//
-//
-//	/*
-//	=======================
-//	CL_SendConnectPacket
-//
-//	We have gotten a challenge from the server, so try and
-//	connect.
-//	======================
-//	*/
-//	void CL_SendConnectPacket (void)
-//	{
-//		netadr_t	adr;
-//		int		port;
-//
-//		if (!NET_StringToAdr (cls.servername, &adr))
-//		{
-//			Com_Printf ("Bad server address\n");
-//			cls.connect_time = 0;
-//			return;
-//		}
-//		if (adr.port == 0)
-//			adr.port = BigShort (PORT_SERVER);
-//
-//		port = Cvar_VariableValue ("qport");
-//		userinfo_modified = false;
-//
-//		Netchan_OutOfBandPrint (NS_CLIENT, adr, "connect %i %i %i \"%s\"\n",
-//			PROTOCOL_VERSION, port, cls.challenge, Cvar_Userinfo() );
-//	}
-//
-//	/*
-//	=================
-//	CL_CheckForResend
-//
-//	Resend a connect message if the last one has timed out
-//	=================
-//	*/
-	static void CheckForResend() {
-//		netadr_t	adr;
-//
-//		// if the local server is running and we aren't
-//		// then connect
-//		if (cls.state == ca_disconnected && Com_ServerState() )
-//		{
-//			cls.state = ca_connecting;
-//			strncpy (cls.servername, "localhost", sizeof(cls.servername)-1);
-//			// we don't need a challenge on the localhost
-//			CL_SendConnectPacket ();
-//			return;
-////			cls.connect_time = -99999;	// CL_CheckForResend() will fire immediately
-//		}
-//
-//		// resend if we haven't gotten a reply yet
-//		if (cls.state != ca_connecting)
-//			return;
-//
-//		if (cls.realtime - cls.connect_time < 3000)
-//			return;
-//
-//		if (!NET_StringToAdr (cls.servername, &adr))
-//		{
-//			Com_Printf ("Bad server address\n");
-//			cls.state = ca_disconnected;
-//			return;
-//		}
-//		if (adr.port == 0)
-//			adr.port = BigShort (PORT_SERVER);
-//
-//		cls.connect_time = cls.realtime;	// for retransmit requests
-//
-//		Com_Printf ("Connecting to %s...\n", cls.servername);
-//
-//		Netchan_OutOfBandPrint (NS_CLIENT, adr, "getchallenge\n");
+
+	/*
+	=======================
+	CL_SendConnectPacket
+
+	We have gotten a challenge from the server, so try and
+	connect.
+	======================
+	*/
+	static void SendConnectPacket() {
+		netadr_t adr = new netadr_t();
+		int port;
+
+		if (!NET.StringToAdr(cls.servername, adr)) {
+			Com.Printf("Bad server address\n");
+			cls.connect_time = 0;
+			return;
+		}
+		if (adr.port == 0)
+			adr.port = PORT_SERVER;
+//			adr.port = BigShort(PORT_SERVER);
+
+		port = (int)Cvar.VariableValue("qport");
+		userinfo_modified = false;
+
+		Netchan.OutOfBandPrint(NS_CLIENT, adr, "connect " +
+			PROTOCOL_VERSION + " " + port + " " + cls.challenge + " \"" +
+			Cvar.Userinfo() + "\"\n");
 	}
-//
-//
+
+	/*
+	=================
+	CL_CheckForResend
+
+	Resend a connect message if the last one has timed out
+	=================
+	*/
+	static void CheckForResend() {
+		netadr_t adr = new netadr_t();
+
+		// if the local server is running and we aren't
+		// then connect
+		if (cls.state == ca_disconnected && Com.ServerState() != 0 ) {
+			cls.state = ca_connecting;
+			cls.servername = "localhost";
+			// we don't need a challenge on the localhost
+			CL.SendConnectPacket();
+			return;
+		}
+
+		// resend if we haven't gotten a reply yet
+		if (cls.state != ca_connecting)
+			return;
+
+		if (cls.realtime - cls.connect_time < 3000)
+			return;
+
+		if (!NET.StringToAdr(cls.servername, adr)) {
+			Com.Printf("Bad server address\n");
+			cls.state = ca_disconnected;
+			return;
+		}
+		if (adr.port == 0)
+//			adr.port = BigShort(PORT_SERVER);
+			adr.port = PORT_SERVER;
+
+		cls.connect_time = cls.realtime;	// for retransmit requests
+
+		Com.Printf("Connecting to " + cls.servername + "...\n");
+
+		Netchan.OutOfBandPrint(NS_CLIENT, adr, "getchallenge\n");
+	}
+
 //	/*
 //	================
 //	CL_Connect_f
@@ -782,79 +696,81 @@ public class CL_main extends CL_pred {
 //		NET_SendPacket (NS_CLIENT, strlen(message)+1, message, to);
 		}
 	};
-//
-//
-//	/*
-//	=====================
-//	CL_ClearState
-//
-//	=====================
-//	*/
+
+
+	/*
+	=====================
+	CL_ClearState
+
+	=====================
+	*/
 	static void ClearState() {
 		S.StopAllSounds();
 		CL.ClearEffects();
 		CL.ClearTEnts();
 
 		// wipe the entire cl structure
-//		memset (&cl, 0, sizeof(cl));
-//		memset (&cl_entities, 0, sizeof(cl_entities));
-//
+		cl = new client_state_t();
+		for (int i = 0; i < cl_entities.length; i++) {
+			cl_entities[i] = new centity_t();
+		}
+
 		SZ.Clear(cls.netchan.message);
 	}
-//
-//	/*
-//	=====================
-//	CL_Disconnect
-//
-//	Goes from a connected state to full screen console state
-//	Sends a disconnect message to the server
-//	This is also called on Com_Error, so it shouldn't cause any errors
-//	=====================
-//	*/
+
+	/*
+	=====================
+	CL_Disconnect
+
+	Goes from a connected state to full screen console state
+	Sends a disconnect message to the server
+	This is also called on Com_Error, so it shouldn't cause any errors
+	=====================
+	*/
 	static void Disconnect() {
-//		byte	final[32];
-//
-//		if (cls.state == ca_disconnected)
-//			return;
-//
-//		if (cl_timedemo && cl_timedemo->value)
-//		{
-//			int	time;
-//		
-//			time = Sys_Milliseconds () - cl.timedemo_start;
-//			if (time > 0)
-//				Com_Printf ("%i frames, %3.1f seconds: %3.1f fps\n", cl.timedemo_frames,
-//				time/1000.0, cl.timedemo_frames*1000.0 / time);
-//		}
-//
-//		VectorClear (cl.refdef.blend);
-//		re.CinematicSetPalette(NULL);
-//
-//		M_ForceMenuOff ();
-//
-//		cls.connect_time = 0;
-//
-//		SCR_StopCinematic ();
-//
-//		if (cls.demorecording)
-//			CL_Stop_f ();
-//
-//		// send a disconnect message to the server
-//		final[0] = clc_stringcmd;
-//		strcpy ((char *)final+1, "disconnect");
-//		Netchan_Transmit (&cls.netchan, strlen(final), final);
-//		Netchan_Transmit (&cls.netchan, strlen(final), final);
-//		Netchan_Transmit (&cls.netchan, strlen(final), final);
-//
-//		CL_ClearState ();
-//
-//		// stop download
-//		if (cls.download) {
+		String fin;
+
+		if (cls.state == ca_disconnected)
+			return;
+
+		if (cl_timedemo != null && cl_timedemo.value != 0.0f) {
+			int	time;
+
+			time = (int)(System.currentTimeMillis() - cl.timedemo_start);
+			if (time > 0)
+			Com.Printf("%i frames, %3.1f seconds: %3.1f fps\n", new Vargs(3).add(
+				cl.timedemo_frames).add(
+				time/1000.0).add(cl.timedemo_frames*1000.0 / time));
+		}
+
+		VectorClear(cl.refdef.blend);
+		re.CinematicSetPalette(null);
+
+		Menu.ForceMenuOff();
+
+		cls.connect_time = 0;
+
+//		SCR.StopCinematic();
+
+		if (cls.demorecording)
+			CL.Stop_f.execute();
+
+		// send a disconnect message to the server
+		fin = (char)clc_stringcmd + "disconnect";
+		Netchan.Transmit(cls.netchan, fin.length(), fin.getBytes());
+		Netchan.Transmit(cls.netchan, fin.length(), fin.getBytes());
+		Netchan.Transmit(cls.netchan, fin.length(), fin.getBytes());
+
+		CL.ClearState();
+
+		// stop download
+		if (cls.download != null) {
+			cls.download = null;
 //			fclose(cls.download);
 //			cls.download = NULL;
-//		}
-//
-//		cls.state = ca_disconnected;
+		}
+
+		cls.state = ca_disconnected;
 	}
 
 	static xcommand_t Disconnect_f = new xcommand_t() {
@@ -972,25 +888,23 @@ public class CL_main extends CL_pred {
 //		}
 		}
 	};
-//
-//	/*
-//	=================
-//	CL_ParseStatusMessage
-//
-//	Handle a reply from a ping
-//	=================
-//	*/
-//	void CL_ParseStatusMessage (void)
-//	{
-//		char	*s;
-//
-//		s = MSG_ReadString(&net_message);
-//
-//		Com_Printf ("%s\n", s);
-//		M_AddToServerList (net_from, s);
-//	}
-//
-//
+
+	/*
+	=================
+	CL_ParseStatusMessage
+
+	Handle a reply from a ping
+	=================
+	*/
+	static void ParseStatusMessage() {
+		String s;
+
+		s = MSG.ReadString(net_message);
+
+		Com.Printf(s + "\n");
+		Menu.AddToServerList(net_from, s);
+	}
+
 //	/*
 //	=================
 //	CL_PingServers_f
@@ -1070,99 +984,88 @@ public class CL_main extends CL_pred {
 //		}
 		}
 	};
-//
-//
-//	/*
-//	=================
-//	CL_ConnectionlessPacket
-//
-//	Responses to broadcasts, etc
-//	=================
-//	*/
+
+	/*
+	=================
+	CL_ConnectionlessPacket
+	
+	Responses to broadcasts, etc
+	=================
+	*/
 	static void ConnectionlessPacket() {
-//		char	*s;
-//		char	*c;
-//	
-//		MSG_BeginReading (&net_message);
-//		MSG_ReadLong (&net_message);	// skip the -1
-//
-//		s = MSG_ReadStringLine (&net_message);
-//
-//		Cmd_TokenizeString (s, false);
-//
-//		c = Cmd_Argv(0);
-//
-//		Com_Printf ("%s: %s\n", NET_AdrToString (net_from), c);
-//
-//		// server connection
-//		if (!strcmp(c, "client_connect"))
-//		{
-//			if (cls.state == ca_connected)
-//			{
-//				Com_Printf ("Dup connect received.  Ignored.\n");
-//				return;
-//			}
-//			Netchan_Setup (NS_CLIENT, &cls.netchan, net_from, cls.quakePort);
-//			MSG_WriteChar (&cls.netchan.message, clc_stringcmd);
-//			MSG_WriteString (&cls.netchan.message, "new");	
-//			cls.state = ca_connected;
-//			return;
-//		}
-//
-//		// server responding to a status broadcast
-//		if (!strcmp(c, "info"))
-//		{
-//			CL_ParseStatusMessage ();
-//			return;
-//		}
-//
-//		// remote command from gui front end
-//		if (!strcmp(c, "cmd"))
-//		{
-//			if (!NET_IsLocalAddress(net_from))
-//			{
-//				Com_Printf ("Command packet from remote host.  Ignored.\n");
-//				return;
-//			}
-//			s = MSG_ReadString (&net_message);
-//			Cbuf_AddText (s);
-//			Cbuf_AddText ("\n");
-//			return;
-//		}
-//		// print command from somewhere
-//		if (!strcmp(c, "print"))
-//		{
-//			s = MSG_ReadString (&net_message);
-//			Com_Printf ("%s", s);
-//			return;
-//		}
-//
-//		// ping from somewhere
-//		if (!strcmp(c, "ping"))
-//		{
-//			Netchan_OutOfBandPrint (NS_CLIENT, net_from, "ack");
-//			return;
-//		}
-//
-//		// challenge from the server we are connecting to
-//		if (!strcmp(c, "challenge"))
-//		{
-//			cls.challenge = atoi(Cmd_Argv(1));
-//			CL_SendConnectPacket ();
-//			return;
-//		}
-//
-//		// echo request from server
-//		if (!strcmp(c, "echo"))
-//		{
-//			Netchan_OutOfBandPrint (NS_CLIENT, net_from, "%s", Cmd_Argv(1) );
-//			return;
-//		}
-//
-//		Com_Printf ("Unknown command.\n");
+		String s;
+		String c;
+
+		MSG.BeginReading(net_message);
+		MSG.ReadLong(net_message);	// skip the -1
+
+		s = MSG.ReadStringLine(net_message);
+
+		Cmd.TokenizeString(s.toCharArray(), false);
+
+		c = Cmd.Argv(0);
+
+		Com.Printf(NET.AdrToString(net_from) + ": " + c + " \n");
+
+		// server connection
+		if (c.equals("client_connect")) {
+			if (cls.state == ca_connected) {
+				Com.Printf("Dup connect received.  Ignored.\n");
+				return;
+			}
+			Netchan.Setup(NS_CLIENT, cls.netchan, net_from, cls.quakePort);
+			MSG.WriteChar(cls.netchan.message, clc_stringcmd);
+			MSG.WriteString(cls.netchan.message, "new");	
+			cls.state = ca_connected;
+			return;
+		}
+
+		// server responding to a status broadcast
+		if (c.equals("info")) {
+			CL.ParseStatusMessage();
+			return;
+		}
+
+		// remote command from gui front end
+		if (c.equals("cmd")) {
+			if (!NET.IsLocalAddress(net_from)) {
+				Com.Printf("Command packet from remote host.  Ignored.\n");
+				return;
+			}
+			s = MSG.ReadString(net_message);
+			Cbuf.AddText(s);
+			Cbuf.AddText("\n");
+			return;
+		}
+		// print command from somewhere
+		if (c.equals("print")) {
+			s = MSG.ReadString(net_message);
+			Com.Printf(s);
+			return;
+		}
+
+		// ping from somewhere
+		if (c.equals("ping")) {
+			Netchan.OutOfBandPrint(NS_CLIENT, net_from, "ack");
+			return;
+		}
+
+		// challenge from the server we are connecting to
+		if (c.equals("challenge")) {
+			cls.challenge = Integer.parseInt(Cmd.Argv(1));
+			CL.SendConnectPacket();
+			return;
+		}
+
+		// echo request from server
+		if (c.equals("echo")) {
+			Netchan.OutOfBandPrint(NS_CLIENT, net_from, Cmd.Argv(1));
+			return;
+		}
+
+		Com.Printf("Unknown command.\n");
 	}
-//
-//
+
 //	/*
 //	=================
 //	CL_DumpPackets

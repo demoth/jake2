@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.11 2004-01-30 13:06:28 cwei Exp $
+ * $Id: Netchan.java,v 1.12 2004-01-30 13:34:31 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -154,7 +154,7 @@ public final class Netchan extends SV_MAIN {
 		NET.NET_SendPacket(net_socket, send.cursize, send.data, adr);
 	}
 	
-	public static void Netchan_OutOfBandPrint(int net_socket, netadr_t adr, String s) {
+	public static void OutOfBandPrint(int net_socket, netadr_t adr, String s) {
 		Netchan_OutOfBand(net_socket, adr, s.length(), s.getBytes());
 	}
 
@@ -165,7 +165,7 @@ public final class Netchan extends SV_MAIN {
 	called to open a channel to a remote system
 	==============
 	*/
-	public static void Netchan_Setup(int sock, netchan_t chan, netadr_t adr, int qport) {
+	public static void Setup(int sock, netchan_t chan, netadr_t adr, int qport) {
 		//memset (chan, 0, sizeof(*chan));
 
 		chan.clear();
@@ -220,7 +220,7 @@ public final class Netchan extends SV_MAIN {
 	A 0 length will still generate a packet and deal with the reliable messages.
 	================
 	*/
-	public static void Netchan_Transmit(netchan_t chan, int length, byte data[]) {
+	public static void Transmit(netchan_t chan, int length, byte data[]) {
 		sizebuf_t send = new sizebuf_t();
 		byte send_buf[] = new byte[MAX_MSGLEN];
 		int send_reliable;

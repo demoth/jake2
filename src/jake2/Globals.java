@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.36 2004-01-30 09:24:20 hoz Exp $
+ * $Id: Globals.java,v 1.37 2004-01-30 13:34:31 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.36  2004-01-30 09:24:20  hoz
+ * Revision 1.37  2004-01-30 13:34:31  hoz
+ * - client code
+ *
+ * Revision 1.36  2004/01/30 09:24:20  hoz
  * - client code
  *
  * Revision 1.35  2004/01/28 21:04:10  hoz
@@ -208,6 +211,11 @@ public class Globals extends Defines {
 	public static client_state_t cl = new client_state_t();
 
 	public static centity_t cl_entities[] = new centity_t[Defines.MAX_EDICTS];
+	static {
+		for (int i = 0; i < cl_entities.length; i++) {
+			cl_entities[i] = new centity_t();
+		}
+	}
 
 	public static entity_state_t cl_parse_entities[] = new entity_state_t[Defines.MAX_PARSE_ENTITIES];
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.8 2004-01-30 09:24:20 hoz Exp $
+// $Id: SV_MAIN.java,v 1.9 2004-01-30 13:34:31 hoz Exp $
 
 package jake2.server;
 
@@ -154,7 +154,7 @@ public class SV_MAIN extends SV_GAME {
 	================
 	*/
 	public static void SVC_Status() {
-		Netchan.Netchan_OutOfBandPrint(NS_SERVER, Netchan.net_from, "print\n" + SV_StatusString());
+		Netchan.OutOfBandPrint(NS_SERVER, Netchan.net_from, "print\n" + SV_StatusString());
 	}
 
 	/*
@@ -196,7 +196,7 @@ public class SV_MAIN extends SV_GAME {
 			string = hostname.string + " " + sv.name + " " + count + "/" + (int) maxclients.value + "\n";
 		}
 
-		Netchan.Netchan_OutOfBandPrint(NS_SERVER, Netchan.net_from, "info\n" + string);
+		Netchan.OutOfBandPrint(NS_SERVER, Netchan.net_from, "info\n" + string);
 	}
 
 	/*
@@ -207,7 +207,7 @@ public class SV_MAIN extends SV_GAME {
 	================
 	*/
 	public static void SVC_Ping() {
-		Netchan.Netchan_OutOfBandPrint(NS_SERVER, Netchan.net_from, "ack");
+		Netchan.OutOfBandPrint(NS_SERVER, Netchan.net_from, "ack");
 	}
 
 	/*
@@ -248,7 +248,7 @@ public class SV_MAIN extends SV_GAME {
 		}
 
 		// send it back
-		Netchan.Netchan_OutOfBandPrint(NS_SERVER, Netchan.net_from, "challenge " + svs.challenges[i].challenge);
+		Netchan.OutOfBandPrint(NS_SERVER, Netchan.net_from, "challenge " + svs.challenges[i].challenge);
 	}
 
 	/*
@@ -276,7 +276,7 @@ public class SV_MAIN extends SV_GAME {
 
 		version = atoi(Cmd.Argv(1));
 		if (version != PROTOCOL_VERSION) {
-			Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nServer is version " + VERSION + "\n");
+			Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nServer is version " + VERSION + "\n");
 			Com.DPrintf("    rejected connect from version " + version + "\n");
 			return;
 		}
@@ -292,25 +292,25 @@ public class SV_MAIN extends SV_GAME {
 
 		// attractloop servers are ONLY for local clients
 		if (sv.attractloop) {
-			if (!NET.NET_IsLocalAddress(adr)) {
+			if (!NET.IsLocalAddress(adr)) {
 				Com.Printf("Remote connect in attract loop.  Ignored.\n");
-				Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+				Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
 				return;
 			}
 		}
 
 		// see if the challenge is valid
-		if (!NET.NET_IsLocalAddress(adr)) {
+		if (!NET.IsLocalAddress(adr)) {
 			for (i = 0; i < MAX_CHALLENGES; i++) {
 				if (NET.NET_CompareBaseAdr(Netchan.net_from, svs.challenges[i].adr)) {
 					if (challenge == svs.challenges[i].challenge)
 						break; // good
-					Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nBad challenge.\n");
+					Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nBad challenge.\n");
 					return;
 				}
 			}
 			if (i == MAX_CHALLENGES) {
-				Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nNo challenge for address.\n");
+				Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nNo challenge for address.\n");
 				return;
 			}
 		}
@@ -327,7 +327,7 @@ public class SV_MAIN extends SV_GAME {
 				continue;
 			if (NET.NET_CompareBaseAdr(adr, cl.netchan.remote_address)
 				&& (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-				if (!NET.NET_IsLocalAddress(adr) && (svs.realtime - cl.lastconnect) < ((int) sv_reconnect_limit.value * 1000)) {
+				if (!NET.IsLocalAddress(adr) && (svs.realtime - cl.lastconnect) < ((int) sv_reconnect_limit.value * 1000)) {
 					Com.DPrintf(NET.AdrToString(adr) + ":reconnect rejected : too soon\n");
 					return;
 				}
@@ -349,7 +349,7 @@ public class SV_MAIN extends SV_GAME {
 			}
 		}
 		if (index == -1) {
-			Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nServer is full.\n");
+			Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nServer is full.\n");
 			Com.DPrintf("Rejected a connection.\n");
 			return;
 		}
@@ -372,12 +372,12 @@ public class SV_MAIN extends SV_GAME {
 		// get the game a chance to reject this connection or modify the userinfo
 		if (!(ge.ClientConnect(ent, userinfo))) {
 			if (Info.Info_ValueForKey(userinfo, "rejmsg") != null)
-				Netchan.Netchan_OutOfBandPrint(
+				Netchan.OutOfBandPrint(
 					NS_SERVER,
 					adr,
 					"print\n" + Info.Info_ValueForKey(userinfo, "rejmsg") + "\nConnection refused.\n");
 			else
-				Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
+				Netchan.OutOfBandPrint(NS_SERVER, adr, "print\nConnection refused.\n");
 			Com.DPrintf("Game rejected a connection.\n");
 			return;
 		}
@@ -387,9 +387,9 @@ public class SV_MAIN extends SV_GAME {
 		SV_UserinfoChanged(svs.clients[i]);
 
 		// send the connect packet to the client
-		Netchan.Netchan_OutOfBandPrint(NS_SERVER, adr, "client_connect");
+		Netchan.OutOfBandPrint(NS_SERVER, adr, "client_connect");
 
-		Netchan.Netchan_Setup(NS_SERVER, svs.clients[i].netchan, adr, qport);
+		Netchan.Setup(NS_SERVER, svs.clients[i].netchan, adr, qport);
 
 		svs.clients[i].state = cs_connected;
 
@@ -805,7 +805,7 @@ public class SV_MAIN extends SV_GAME {
 		for (i = 0; i < MAX_MASTERS; i++)
 			if (master_adr[i].port != 0) {
 				Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
-				Netchan.Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "heartbeat\n" + string);
+				Netchan.OutOfBandPrint(NS_SERVER, master_adr[i], "heartbeat\n" + string);
 			}
 	}
 
@@ -832,7 +832,7 @@ public class SV_MAIN extends SV_GAME {
 			if (master_adr[i].port != 0) {
 				if (i > 0)
 					Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
-				Netchan.Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "shutdown");
+				Netchan.OutOfBandPrint(NS_SERVER, master_adr[i], "shutdown");
 			}
 	}
 
@@ -957,12 +957,12 @@ public class SV_MAIN extends SV_GAME {
 		for (i = 0; i < maxclients.value; i++) {
 			cl = svs.clients[i];
 			if (cl.state >= cs_connected)
-				Netchan.Netchan_Transmit(cl.netchan, net_message.cursize, net_message.data);
+				Netchan.Transmit(cl.netchan, net_message.cursize, net_message.data);
 		}
 		for (i = 0; i < maxclients.value; i++) {
 			cl = svs.clients[i];
 			if (cl.state >= cs_connected)
-				Netchan.Netchan_Transmit(cl.netchan, net_message.cursize, net_message.data);
+				Netchan.Transmit(cl.netchan, net_message.cursize, net_message.data);
 		}
 	}
 

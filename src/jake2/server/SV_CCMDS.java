@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.4 2004-01-30 09:24:20 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.5 2004-01-30 13:34:31 hoz Exp $
 
 package jake2.server;
 
@@ -78,7 +78,7 @@ public class SV_CCMDS extends SV_ENTS {
 			if (slot == MAX_MASTERS)
 				break;
 
-			if (!NET.NET_StringToAdr(Cmd.Argv(i), master_adr[i])) {
+			if (!NET.StringToAdr(Cmd.Argv(i), master_adr[i])) {
 				Com.Printf("Bad address: " + Cmd.Argv(i) + "\n");
 				continue;
 			}
@@ -90,7 +90,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 			Com.Printf("Sending a ping.\n");
 
-			Netchan.Netchan_OutOfBandPrint(NS_SERVER, master_adr[slot], "ping");
+			Netchan.OutOfBandPrint(NS_SERVER, master_adr[slot], "ping");
 
 			slot++;
 		}
