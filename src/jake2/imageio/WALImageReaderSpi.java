@@ -50,13 +50,13 @@ import javax.imageio.stream.ImageInputStream;
  *  */
 public class WALImageReaderSpi extends ImageReaderSpi {
 
-	static final String vendorName = "cwei.in-chemnitz.de";
+	static final String vendorName = "jteam@in-chemnitz.de";
 	static final String version = "1.0_beta";
 	static final String[] names = { "quake2 wal" };
 	static final String[] suffixes = { "wal" };
 	static final String[] MIMETypes = { "image/x-quake2-wal" };
-	static final String readerClassName = "cwei.imageio.WALImageReader";
-	static final String[] writerSpiNames = null; //		{ "cwei.imageio.WALImageWriterSpi" };
+	static final String readerClassName = "jake2.imageio.WALImageReader";
+	static final String[] writerSpiNames = null; //		{ "jake2.imageio.WALImageWriterSpi" };
 
 	// Metadata formats, more information below
 	static final boolean supportsStandardStreamMetadataFormat = false;
@@ -67,8 +67,8 @@ public class WALImageReaderSpi extends ImageReaderSpi {
 	static final String[] extraStreamMetadataFormatClassNames = null;
 	static final boolean supportsStandardImageMetadataFormat = false;
 	static final String nativeImageMetadataFormatName =
-		"cwei.imageio.WALMetaData_1.0";
-	static final String nativeImageMetadataFormatClassName = null;	// "cwei.imageio.WALMetadata";
+		"jake2.imageio.WALMetaData_1.0";
+	static final String nativeImageMetadataFormatClassName = null;	// "jake2.imageio.WALMetadata";
 	static final String[] extraImageMetadataFormatNames = null;
 	static final String[] extraImageMetadataFormatClassNames = null;
 
@@ -99,7 +99,18 @@ public class WALImageReaderSpi extends ImageReaderSpi {
 		if (!(source instanceof ImageInputStream)) {
 			return false;
 		}
-		return parseStream((ImageInputStream) source);
+		ImageInputStream stream = (ImageInputStream)source;
+		byte[] buffer = new byte[WAL.HEADER_SIZE];
+		try {
+			stream.mark();
+			stream.readFully(buffer);
+			stream.reset();
+			// buffer will be converted to members and header checked
+			WAL.Header wal = new WAL.Header(buffer); 
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -112,25 +123,5 @@ public class WALImageReaderSpi extends ImageReaderSpi {
 
 	public String getDescription(Locale locale) {
 		return "id-software's Quake2 wal format for textures";
-	}
-
-	private boolean parseStream(ImageInputStream stream) {
-
-		byte[] b = new byte[32 + 4 + 4 + 4*4 + 32 + 4+ 4+ 4];
-		try {
-			stream.mark();
-			stream.readFully(b);
-			stream.reset();
-			// check the first offset entry 
-			int offset = ((b[40] & 0xff) << 0) + ((b[41] & 0xff) << 8) + ((b[42] & 0xff) << 16) + ((b[43] & 0x7f) << 24);
-			// the fist offset is always 0x64
-			if (offset != 0x64) {
-				return false;
-			}
-		} catch (IOException e) {
-			return false;
-		}
-
-		return true;
 	}
 }

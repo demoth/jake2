@@ -14,6 +14,8 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageReadParam;
@@ -29,12 +31,11 @@ import javax.imageio.stream.ImageInputStream;
  */
 public class WALImageReader extends ImageReader {
 
-	ImageInputStream stream = null;
-	int width, height;
-	String name;
-	String next;
+	private static Logger logger =
+		Logger.getLogger(WALImageReader.class.getName());
 
-	boolean gotHeader = false;
+	ImageInputStream stream = null;
+	WAL.Header header = null;
 
 	public WALImageReader(ImageReaderSpi originatingProvider) {
 		super(originatingProvider);
@@ -56,13 +57,13 @@ public class WALImageReader extends ImageReader {
 	public int getHeight(int imageIndex) throws IOException {
 		checkIndex(imageIndex);
 		readHeader();
-		return height;
+		return header.getHeight();
 	}
 
 	public int getWidth(int imageIndex) throws IOException {
 		checkIndex(imageIndex);
 		readHeader();
-		return width;
+		return header.getWidth();
 	}
 
 	public int getNumImages(boolean allowSearch) throws IOException {
@@ -103,6 +104,9 @@ public class WALImageReader extends ImageReader {
 
 		checkIndex(imageIndex);
 		readHeader();
+		
+		int width = header.getWidth();
+		int height = header.getHeight();
 
 		//		Compute initial source region, clip against destination later
 		Rectangle sourceRegion = getSourceRegion(param, width, height);
@@ -239,102 +243,31 @@ public class WALImageReader extends ImageReader {
 	}
 
 	private void readHeader() throws IIOException {
-		/*		struct wal_header
-				{
-					char    name[32];        // name of the texture
-		 
-					uint32  width;           // width (in pixels) of the largest mipmap level
-					uint32  height;          // height (in pixels) of the largest mipmap level
-		 
-					int32   offset[4];       // byte offset of the start of each of the 4 mipmap levels
-		
-					char    next_name[32];   // name of the next texture in the animation
-		
-					uint32  flags;           // ?
-					uint32  contents;        // ?
-					uint32  value;           // ?
-				};
-		*/
-		if (gotHeader) {
-			return;
-		}
 
-		gotHeader = true;
+		if (header != null) return;
 
-		System.out.println("WAL read header");
+		logger.log(Level.FINE, "WAL read header");
 
 		if (stream == null) {
 			if (this.input == null) {
 				throw new IllegalStateException("No input stream");
 			}
 			stream = (ImageInputStream) input;
-
 		}
 
-		byte[] name = new byte[32];
+		byte[] buffer = new byte[WAL.HEADER_SIZE];
 
 		try {
-			stream.readFully(name);
+			stream.readFully(buffer);
+			this.header = new WAL.Header(buffer);
+			logger.log(
+				Level.FINE,
+				"WAL width: "
+					+ header.getWidth()
+					+ " height: "
+					+ header.getHeight());
 		} catch (IOException e) {
-			throw new IIOException("Error reading texture name", e);
+			throw new IIOException("Error reading quake2 WAL header", e);
 		}
-
-		char[] tmp = new char[32];
-		for (int i = 0; i < 32; ++i) {
-			tmp[i] = ((char) name[i]);
-		}
-
-		this.name = String.copyValueOf(tmp);
-
-		System.out.println("WAL name: " + this.name);
-
-		// Read width, height, color type, newline
-
-		byte[] i = new byte[4];
-
-		try {
-			stream.readFully(i);
-			this.width =
-				((i[3] & 0x7f) << 24)
-					+ ((i[2] & 0xff) << 16)
-					+ ((i[1] & 0xff) << 8)
-					+ (i[0] & 0xff);
-
-			stream.readFully(i);
-			this.height =
-				((i[3] & 0x7f) << 24)
-					+ ((i[2] & 0xff) << 16)
-					+ ((i[1] & 0xff) << 8)
-					+ (i[0] & 0xff);
-
-			System.out.println(
-				"WAL width: " + this.width + " height: " + this.height);
-
-			// offset for the 4 mipmap levels
-			int[] offset = new int[4];
-			offset[0] = stream.readInt();
-			offset[1] = stream.readInt();
-			offset[2] = stream.readInt();
-			offset[3] = stream.readInt();
-
-			// next file name for animation
-			byte[] next = new byte[32];
-			stream.readFully(next);
-
-			for (int j = 0; j < 32; ++j) {
-				tmp[j] = ((char) name[j]);
-			}
-			this.next = String.copyValueOf(tmp);
-			System.out.println("WAL next: " + this.next);
-
-			// unknow entries
-			int flags = stream.readInt();
-			int contents = stream.readInt();
-			int value = stream.readInt();
-
-		} catch (IOException e) {
-			throw new IIOException("Error reading header", e);
-		}
-
 	}
 }

@@ -104,10 +104,13 @@ public class PCXImageReader extends ImageReader {
 
 		checkIndex(imageIndex);
 		readHeader();
+		
+		int width = header.getWidth();
+		int height = header.getHeight();
 
 		//		Compute initial source region, clip against destination later
 		Rectangle sourceRegion =
-			getSourceRegion(param, header.getWidth(), header.getHeight());
+			getSourceRegion(param, width, height);
 
 		// Set everything to default values
 		int sourceXSubsampling = 1;
@@ -130,8 +133,8 @@ public class PCXImageReader extends ImageReader {
 			getDestination(
 				param,
 				getImageTypes(0),
-				header.getWidth(),
-				header.getHeight());
+				width,
+				height);
 
 		// Enure band settings from param are compatible with images
 		int inputBands = 1;
@@ -144,12 +147,12 @@ public class PCXImageReader extends ImageReader {
 		for (int i = 0; i < inputBands; i++) {
 			bandOffsets[i] = i;
 		}
-		int bytesPerRow = header.getWidth() * inputBands;
+		int bytesPerRow = width * inputBands;
 		DataBufferByte rowDB = new DataBufferByte(bytesPerRow);
 		WritableRaster rowRas =
 			Raster.createInterleavedRaster(
 				rowDB,
-				header.getWidth(),
+				width,
 				1,
 				bytesPerRow,
 				inputBands,
@@ -172,7 +175,7 @@ public class PCXImageReader extends ImageReader {
 				rowRas.createWritableChild(
 					0,
 					0,
-					header.getWidth(),
+					width,
 					1,
 					0,
 					0,
@@ -193,7 +196,7 @@ public class PCXImageReader extends ImageReader {
 
 		}
 
-		for (int srcY = 0; srcY < header.getHeight(); srcY++) {
+		for (int srcY = 0; srcY < height; srcY++) {
 			// Read the row
 			try {
 				decodeRow(rowBuf);
@@ -284,9 +287,8 @@ public class PCXImageReader extends ImageReader {
 	}
 
 	private void readHeader() throws IIOException {
-		if (header != null) {
-			return;
-		}
+		
+		if (header != null) return;
 
 		logger.log(Level.FINE, "PCX read header");
 
