@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.19 2004-02-13 16:21:14 cwei Exp $
+ * $Id: Image.java,v 1.20 2004-02-14 22:18:39 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1479,6 +1479,8 @@ public abstract class Image extends Main {
 	*/
 	image_t GL_FindImage(String name, int type) {
 		image_t image = null;
+		
+		name = name.toLowerCase();
 
 		if (name == null || name.length() < 5)
 			return null; //	ri.Sys_Error (ERR_DROP, "GL_FindImage: NULL name");
