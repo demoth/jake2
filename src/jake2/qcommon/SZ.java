@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.3 2004-09-10 19:02:53 salomo Exp $
+ * $Id: SZ.java,v 1.4 2005-01-17 23:05:57 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -39,7 +39,10 @@ public final class SZ {
 	//===========================================================================
 	
 	public static void Init(sizebuf_t buf, byte data[], int length) {
-		buf.data = data;
+	  // TODO check this. cwei
+	  buf.readcount = 0;
+
+	  buf.data = data;
 		buf.maxsize = length;
 		buf.cursize = 0;
 		buf.allowoverflow = buf.overflowed = false;
