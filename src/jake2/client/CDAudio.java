@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.01.2004 by RST.
-// $Id: CDAudio.java,v 1.1 2004-01-31 16:56:11 rst Exp $
+// $Id: CDAudio.java,v 1.2 2004-01-31 23:32:00 cwei Exp $
 
 package jake2.client;
 
@@ -35,5 +35,9 @@ public class CDAudio {
 
 	public static void CDAudio_Play(int i, boolean b) {
 		// TODO:implement		
+	}
+
+	public static void Stop()	{
+		// TODO impl: CDAudio.Stop()
 	}
 }

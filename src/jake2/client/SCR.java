@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.20 2004-01-31 16:56:11 rst Exp $
+ * $Id: SCR.java,v 1.21 2004-01-31 23:32:00 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -367,32 +367,32 @@ public final class SCR extends Globals {
 	*/
 	static void Sky_f()
 	{
-//		float	rotate;
-//		vec3_t	axis;
-//
-//		if (Cmd_Argc() < 2)
-//		{
-//			Com_Printf ("Usage: sky <basename> <rotate> <axis x y z>\n");
-//			return;
-//		}
-//		if (Cmd_Argc() > 2)
-//			rotate = atof(Cmd_Argv(2));
-//		else
-//			rotate = 0;
-//		if (Cmd_Argc() == 6)
-//		{
-//			axis[0] = atof(Cmd_Argv(3));
-//			axis[1] = atof(Cmd_Argv(4));
-//			axis[2] = atof(Cmd_Argv(5));
-//		}
-//		else
-//		{
-//			axis[0] = 0;
-//			axis[1] = 0;
-//			axis[2] = 1;
-//		}
-//
-//		re.SetSky (Cmd_Argv(1), rotate, axis);
+		float	rotate;
+		float[] axis = {0, 0, 0};
+
+		if (Cmd.Argc() < 2)
+		{
+			Com.Printf("Usage: sky <basename> <rotate> <axis x y z>\n");
+			return;
+		}
+		if (Cmd.Argc() > 2)
+			rotate = Float.parseFloat(Cmd.Argv(2));
+		else
+			rotate = 0;
+		if (Cmd.Argc() == 6)
+		{
+			axis[0] = Float.parseFloat(Cmd.Argv(3));
+			axis[1] = Float.parseFloat(Cmd.Argv(4));
+			axis[2] = Float.parseFloat(Cmd.Argv(5));
+		}
+		else
+		{
+			axis[0] = 0;
+			axis[1] = 0;
+			axis[2] = 1;
+		}
+
+		re.SetSky(Cmd.Argv(1), rotate, axis);
 	}
 
 // ============================================================================
@@ -574,7 +574,7 @@ public final class SCR extends Globals {
 	public static void BeginLoadingPlaque() {
 		S.StopAllSounds ();
 		cl.sound_prepped = false; // don't play ambients
-		// TODO CDAudio.Stop();
+		CDAudio.Stop();
 		if (cls.disable_screen != 0)
 			return;
 		if (developer.value != 0)
