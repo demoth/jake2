@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.17 2004-06-28 19:22:21 cwei Exp $
+ * $Id: JOALSoundImpl.java,v 1.18 2004-06-28 21:07:07 cwei Exp $
  */
 package jake2.sound.joal;
 
@@ -14,6 +14,7 @@ import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sound.*;
 import jake2.util.Math3D;
+import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -60,14 +61,41 @@ public final class JOALSoundImpl implements Sound {
 			return false;
 		}
 		
-		//al.alGenBuffers(MAX_SFX, buffers);
 		checkError();
 		al.alGenSources(MAX_CHANNELS, sources);
 		checkError();
-		s_volume = Cvar.Get("s_volume", "0.8", Defines.CVAR_ARCHIVE);
+		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 		initChannels();
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
-//		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);	
+//		al.alDistanceModel(AL.AL_INVERSE_DISTANCE);
+		Cmd.AddCommand("play", new xcommand_t() {
+			public void execute() {
+				Play();
+			}
+		});
+		Cmd.AddCommand("stopsound", new xcommand_t() {
+			public void execute() {
+				StopAllSounds();
+			}
+		});
+		Cmd.AddCommand("soundlist", new xcommand_t() {
+			public void execute() {
+				SoundList();
+			}
+		});
+		Cmd.AddCommand("soundinfo", new xcommand_t() {
+			public void execute() {
+				SoundInfo_f();
+			}
+		});
+
+		num_sfx = 0;
+
+
+		Com.Printf("sound sampling rate: 44100Hz\n");
+
+		StopAllSounds();
+		Com.Printf("------------------------------------\n");
 		return true;
 	}
 	
@@ -83,9 +111,9 @@ public final class JOALSoundImpl implements Sound {
 		}
 		ALC.Device device = alc.alcOpenDevice(deviceName);
 		String deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
-//		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
+		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
 
-		Com.Printf(os + " using " + deviceName + " --> " + deviceSpecifier); //((deviceName == null) ? defaultSpecifier : deviceName));
+		Com.Printf(os + " using " + ((deviceName == null) ? defaultSpecifier : deviceName) + '\n');
 
 		ALC.Context context = alc.alcCreateContext(device, new int[] {0});
 		alc.alcMakeContextCurrent(context);
@@ -695,6 +723,69 @@ public final class JOALSoundImpl implements Sound {
 	 */
 	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
 		// TODO implement RawSamples
+	}
+	
+	/*
+	===============================================================================
+
+	console functions
+
+	===============================================================================
+	*/
+
+	void Play() {
+		int i;
+		String name;
+		sfx_t sfx;
+
+		i = 1;
+		while (i < Cmd.Argc()) {
+			name = new String(Cmd.Argv(i));
+			if (name.indexOf('.') == -1)
+				name += ".wav";
+
+			sfx = RegisterSound(name);
+			StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
+			i++;
+		}
+	}
+
+	void SoundList() {
+		int i;
+		sfx_t sfx;
+		sfxcache_t sc;
+		int size, total;
+
+		total = 0;
+		for (i = 0; i < num_sfx; i++) {
+			sfx = known_sfx[i];
+			if (sfx.registration_sequence == 0)
+				continue;
+			sc = sfx.cache;
+			if (sc != null) {
+				size = sc.length * sc.width * (sc.stereo + 1);
+				total += size;
+				if (sc.loopstart >= 0)
+					Com.Printf("L");
+				else
+					Com.Printf(" ");
+				Com.Printf("(%2db) %6i : %s\n", new Vargs(3).add(sc.width * 8).add(size).add(sfx.name));
+			} else {
+				if (sfx.name.charAt(0) == '*')
+					Com.Printf("  placeholder : " + sfx.name + "\n");
+				else
+					Com.Printf("  not loaded  : " + sfx.name + "\n");
+			}
+		}
+		Com.Printf("Total resident: " + total + "\n");
+	}
+	
+	void SoundInfo_f() {
+
+		Com.Printf("%5d stereo\n", new Vargs(1).add(1));
+		Com.Printf("%5d samples\n", new Vargs(1).add(22050));
+		Com.Printf("%5d samplebits\n", new Vargs(1).add(16));
+		Com.Printf("%5d speed\n", new Vargs(1).add(44100));
 	}
 
 }
