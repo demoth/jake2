@@ -18,12 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.3 2004-07-08 20:24:29 hzi Exp $
+// $Id: client_respawn_t.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
 
 package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.util.Lib;
+import jake2.util.Math3D;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,7 +43,7 @@ public class client_respawn_t
 		coop_respawn.set(from.coop_respawn);
 		enterframe = from.enterframe;
 		score = from.score;
-		cmd_angles = Lib.clone(from.cmd_angles);
+		Math3D.VectorCopy(from.cmd_angles, cmd_angles);
 		spectator = from.spectator;
 	}
 
@@ -52,7 +53,7 @@ public class client_respawn_t
 		coop_respawn = new client_persistant_t();
 		enterframe = 0;
 		score = 0;
-		cmd_angles = new float[3];
+		Math3D.VectorClear(cmd_angles);
 		spectator = false;
 	}
 

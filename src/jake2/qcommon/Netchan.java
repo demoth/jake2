@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.2 2004-07-08 15:58:46 hzi Exp $
+ * $Id: Netchan.java,v 1.3 2004-07-12 20:47:00 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,15 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import sun.applet.resources.MsgAppletViewer;
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.Globals;
+import jake2.game.cvar_t;
+import jake2.server.SV_MAIN;
 import jake2.sys.NET;
 import jake2.sys.Sys;
-import jake2.util.Lib;
 
 /**
  * Netchan
@@ -224,7 +221,7 @@ public final class Netchan extends SV_MAIN {
 		send_reliable = Netchan_NeedReliable(chan) ? 1 : 0;
 
 		if (chan.reliable_length == 0 && chan.message.cursize != 0) {
-			Lib.memcpy(chan.reliable_buf, chan.message_buf, chan.message.cursize);
+			System.arraycopy(chan.message_buf, 0, chan.reliable_buf, 0, chan.message.cursize);
 			chan.reliable_length = chan.message.cursize;
 			chan.message.cursize = 0;
 			chan.reliable_sequence ^= 1;

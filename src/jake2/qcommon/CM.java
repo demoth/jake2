@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.3 2004-07-09 06:50:50 hzi Exp $
+// $Id: CM.java,v 1.4 2004-07-12 20:47:00 hzi Exp $
 
 package jake2.qcommon;
 
@@ -1703,7 +1703,7 @@ public class CM extends Game {
 
 	public static byte[] CM_ClusterPVS(int cluster) {
 		if (cluster == -1)
-			Lib.memset(pvsrow, (byte) 0, (numclusters + 7) >> 3);
+			Arrays.fill(pvsrow, 0, (numclusters + 7) >> 3, (byte)0);
 		else
 			CM_DecompressVis(map_visibility, map_vis.bitofs[cluster][DVIS_PVS], pvsrow);
 		return pvsrow;
@@ -1711,7 +1711,7 @@ public class CM extends Game {
 
 	public static byte[] CM_ClusterPHS(int cluster) {
 		if (cluster == -1)
-			Lib.memset(phsrow, (byte) 0, (numclusters + 7) >> 3);
+			Arrays.fill(phsrow, 0, (numclusters + 7) >> 3, (byte)0);
 		else
 			CM_DecompressVis(map_visibility, map_vis.bitofs[cluster][Defines.DVIS_PHS], phsrow);
 		return phsrow;
@@ -1822,10 +1822,10 @@ public class CM extends Game {
 		bytes = (numareas + 7) >> 3;
 
 		if (map_noareas.value != 0) { // for debugging, send everything
-			Lib.memset(buffer, 255, bytes);
+			Arrays.fill(buffer, 0, bytes, (byte)255);
 		}
 		else {
-			Lib.memset(buffer, 0, bytes);
+			Arrays.fill(buffer, 0, bytes, (byte)0);
 			floodnum = map_areas[area].floodnum;
 			for (i = 0; i < numareas; i++) {
 				if (map_areas[i].floodnum == floodnum || area == 0)

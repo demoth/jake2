@@ -19,18 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.2 2004-07-08 15:58:45 hzi Exp $
+// $Id: SV_ENTS.java,v 1.3 2004-07-12 20:47:02 hzi Exp $
 
 package jake2.server;
 
-import java.io.IOException;
-
-import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.util.Vargs;
+
+import java.io.IOException;
 
 public class SV_ENTS extends SV_USER {
 
@@ -383,7 +379,7 @@ public class SV_ENTS extends SV_USER {
 		for (i = 0; i < count; i++)
 			leafs[i] = CM.CM_LeafCluster(leafs[i]);
 
-		memcpy(fatpvs, CM.CM_ClusterPVS(leafs[0]), longs << 2);
+		System.arraycopy(CM.CM_ClusterPVS(leafs[0]), 0, fatpvs, 0, longs << 2);
 		// or in all the other leaf bits
 		for (i = 1; i < count; i++) {
 			for (j = 0; j < i; j++)

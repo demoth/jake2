@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.5 2004-07-09 06:50:50 hzi Exp $
+ * $Id: CL_parse.java,v 1.6 2004-07-12 20:47:01 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -218,7 +218,9 @@ public class CL_parse extends CL_view {
 			Com.Printf("Server does not have this file.\n");
 			if (cls.download != null) {
 				// if here, we tried to resume a file but the server said no
-				fclose(cls.download);
+				try {
+					cls.download.close();
+				} catch (IOException e) {}
 				cls.download = null;
 			}
 			CL.RequestNextDownload();
@@ -262,7 +264,9 @@ public class CL_parse extends CL_view {
 
 			//			Com.Printf ("100%%\n");
 
-			fclose(cls.download);
+			try {
+				cls.download.close();
+			} catch (IOException e) {}
 
 			// rename the temp file to it's final name
 			oldn = DownloadFileName(cls.downloadtempname);
@@ -693,7 +697,9 @@ public class CL_parse extends CL_view {
 					Com.Printf("Server disconnected, reconnecting\n");
 					if (cls.download != null) {
 						//ZOID, close download
-						fclose(cls.download);
+						try {
+							cls.download.close();
+						} catch (IOException e) {}
 						cls.download = null;
 					}
 					cls.state = ca_connecting;

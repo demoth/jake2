@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.4 2004-07-09 06:50:50 hzi Exp $
+ * $Id: CL_ents.java,v 1.5 2004-07-12 20:47:01 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -234,22 +234,23 @@ public class CL_ents extends CL_inv {
 		int bits=0;
 
 		entity_state_t oldstate=null;
-		int oldindex, oldnum;
+		int oldnum;
 
 		newframe.parse_entities = cl.parse_entities;
 		newframe.num_entities = 0;
 
 		// delta from the entities present in oldframe
-		oldindex = 0;
+		int oldindex = 0;
 		if (oldframe == null)
 			oldnum = 99999;
 		else {
-			if (oldindex >= oldframe.num_entities)
-				oldnum = 99999;
-			else {
+			// oldindex == 0. hoz
+//			if (oldindex >= oldframe.num_entities)
+//				oldnum = 99999;
+//			else {
 				oldstate = cl_parse_entities[(oldframe.parse_entities + oldindex) & (MAX_PARSE_ENTITIES - 1)];
 				oldnum = oldstate.number;
-			}
+//			}
 		}
 
 		while (true) {

@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: trace_t.java,v 1.3 2004-07-08 20:24:29 hzi Exp $
+// $Id: trace_t.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
 
 package jake2.game;
 
-import jake2.util.Lib;
+import jake2.util.Math3D;
 
 //a trace is returned when a box is swept through the world
 public class trace_t implements Cloneable {
@@ -44,23 +44,10 @@ public class trace_t implements Cloneable {
 		allsolid = from.allsolid;
 		startsolid = from.allsolid;
 		fraction = from.fraction;
-		endpos = Lib.clone(from.endpos);
+		Math3D.VectorCopy(from.endpos, endpos);
 		plane.set(from.plane);
 		surface = from.surface;
 		contents = from.contents;
 		ent = from.ent;
 	}
-	
-	// =============
-//	public trace_t getClone() {
-//		trace_t out = null;
-//		try {
-//			out = (trace_t) this.clone();
-//			out.plane = plane.getClone();
-//			out.endpos = Lib.clone(endpos);
-//		}
-//		catch (CloneNotSupportedException e) {
-//		}
-//		return out;
-//	}
 }

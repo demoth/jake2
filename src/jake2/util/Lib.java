@@ -19,19 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
+// $Id: Lib.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
 
 package jake2.util;
 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import net.java.games.jogl.util.BufferUtils;
@@ -158,17 +156,10 @@ public class Lib {
 
 	}
 
-	public static String readString(RandomAccessFile file, int len) throws IOException {
-		byte buf[] = new byte[len];
-
-		file.read(buf, 0, len);
-		return new String(buf, 0, strlen(buf));
-	}
-
-	public static String readString(ByteBuffer bb, int len) throws IOException {
-		byte buf[] = new byte[len];
-		bb.get(buf);
-		return new String(buf, 0, strlen(buf));
+	static byte[] buffer = new byte[Defines.MAX_INFO_STRING];
+	public static String readString(ByteBuffer bb, int len) {
+		bb.get(buffer, 0, len);
+		return new String(buffer, 0, len);
 	}
 
 	public static String hexdumpfile(ByteBuffer bb, int len) throws IOException {
@@ -236,19 +227,7 @@ public class Lib {
 		}
 	}
 
-	public static void memset(byte[] dest, byte c, int len) {
-		Arrays.fill(dest, 0, len, c);
-	}
-
-	public static void memset(byte[] dest, int c, int len) {
-		Arrays.fill(dest, 0, len, (byte) c);
-	}
-
-	public static void memcpy(byte[] bs, byte[] bs2, int i) {
-		System.arraycopy(bs2, 0, bs, 0, i);
-	}
-
-	static byte nullfiller[] = new byte[8192];
+	static final byte nullfiller[] = new byte[8192];
 
 	public static void fwriteString(String s, int len, RandomAccessFile f) throws IOException {
 		if (s ==  null) 
@@ -360,51 +339,6 @@ public class Lib {
 	public static float[] clone(float in[]) {
 		float out[] = new float[in.length];
 
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	public static long[] clone(long in[]) {
-		long out[] = new long[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	public static boolean[] clone(boolean in[]) {
-		boolean out[] = new boolean[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	public static int[] clone(int in[]) {
-		int out[] = new int[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	public static double[] clone(double in[]) {
-		double out[] = new double[in.length];
-
-		if (in.length != 0)
-			System.arraycopy(in, 0, out, 0, in.length);
-
-		return out;
-	}
-
-	// this works with Strings also.
-	public static String[] clone(String in[]) {
-		String out[] = new String[in.length];
 		if (in.length != 0)
 			System.arraycopy(in, 0, out, 0, in.length);
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: game_locals_t.java,v 1.3 2004-07-12 20:47:01 hzi Exp $
 
 package jake2.game;
 
@@ -27,7 +27,6 @@ import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class game_locals_t extends Defines
@@ -60,7 +59,7 @@ public class game_locals_t extends Defines
 	public int num_items;
 	public boolean autosaved;
 
-	public void load(ByteBuffer bb) throws IOException
+	public void load(ByteBuffer bb)
 	{
 		String date = Lib.readString(bb, 16);
 

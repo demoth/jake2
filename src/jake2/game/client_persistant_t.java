@@ -19,26 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.3 2004-07-08 20:24:29 hzi Exp $
+// $Id: client_persistant_t.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.util.Lib;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class client_persistant_t implements Cloneable {
-
-//	public client_persistant_t getClone() {
-//		try {
-//			return (client_persistant_t) this.clone();
-//		}
-//		catch (CloneNotSupportedException e) {
-//			return null;
-//		}
-//	}
+public class client_persistant_t {
 	
 	public void set(client_persistant_t from)
 	{
@@ -51,7 +41,6 @@ public class client_persistant_t implements Cloneable {
 		savedFlags = from.savedFlags;
 		selected_item = from.selected_item;
 		System.arraycopy(from.inventory, 0, inventory, 0, inventory.length);
-		//inventory = Lib.clone(from.inventory);
 		max_bullets = from.max_bullets;
 		max_shells = from.max_shells;
 		max_rockets = from.max_rockets;
@@ -100,7 +89,7 @@ public class client_persistant_t implements Cloneable {
 	int helpchanged;
 	boolean spectator; // client is a spectator
 
-	public void load(ByteBuffer bb) throws IOException {
+	public void load(ByteBuffer bb) {
 		// client persistant_t
 
 		userinfo = Lib.readString(bb, Defines.MAX_INFO_STRING);

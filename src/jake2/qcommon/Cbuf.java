@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.2 2004-07-08 15:58:46 hzi Exp $
+ * $Id: Cbuf.java,v 1.3 2004-07-12 20:47:00 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.qcommon;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
-import jake2.util.Lib;
 
 /**
  * Cbuf
@@ -229,7 +228,7 @@ public final class Cbuf {
 	============
 	*/
 	public static void CopyToDefer() {
-		Lib.memcpy(Globals.defer_text_buf, Globals.cmd_text_buf, Globals.cmd_text.cursize);
+		System.arraycopy(Globals.cmd_text_buf, 0, Globals.defer_text_buf, 0, Globals.cmd_text.cursize);
 		Globals.defer_text_buf[Globals.cmd_text.cursize] = 0;
 		Globals.cmd_text.cursize = 0;
 	}
