@@ -19,10 +19,24 @@
  */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.4 2004-09-22 19:22:01 salomo Exp $
-package jake2.game;
+// $Id: M_Actor.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.EntTouchAdapter;
+import jake2.game.EntUseAdapter;
+import jake2.game.GameAI;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.Monster;
+import jake2.game.cplane_t;
+import jake2.game.csurface_t;
+import jake2.game.edict_t;
+import jake2.game.mframe_t;
+import jake2.game.mmove_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -1503,7 +1517,7 @@ public class M_Actor {
      * QUAKED misc_actor (1 .5 0) (-16 -16 -24) (16 16 32)
      */
 
-    static void SP_misc_actor(edict_t self) {
+    public static void SP_misc_actor(edict_t self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -1557,7 +1571,7 @@ public class M_Actor {
         self.use = actor_use;
     }
 
-    static void SP_target_actor(edict_t self) {
+    public static void SP_target_actor(edict_t self) {
         if (self.targetname != null)
             GameBase.gi.dprintf(self.classname + " with no targetname at "
                     + Lib.vtos(self.s.origin) + " \n");

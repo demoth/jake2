@@ -19,10 +19,23 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.3 2004-09-22 19:22:04 salomo Exp $
-package jake2.game;
+// $Id: M_Soldier.java,v 1.2 2005-02-06 18:48:15 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntDodgeAdapter;
+import jake2.game.EntInteractAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.GameAI;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.Monster;
+import jake2.game.edict_t;
+import jake2.game.mframe_t;
+import jake2.game.mmove_t;
+import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -1430,7 +1443,7 @@ public class M_Soldier {
      * QUAKED monster_soldier_light (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
+    public static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (GameBase.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
@@ -1457,8 +1470,13 @@ public class M_Soldier {
      * Trigger_Spawn Sight
      */
 
-    static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
+    public static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
         public boolean think(edict_t self) {
+            Com.DPrintf("Spawning a soldier at " + self.s.origin[0] + " " +
+                    self.s.origin[1] + " " +
+                    self.s.origin[2] + " " +
+                    "\n");
+            
             if (GameBase.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
@@ -1481,7 +1499,7 @@ public class M_Soldier {
      * QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
+    public static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (GameBase.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);

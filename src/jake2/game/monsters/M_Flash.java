@@ -19,8 +19,8 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flash.java,v 1.2 2004-09-22 19:22:01 salomo Exp $
-package jake2.game;
+// $Id: M_Flash.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
+package jake2.game.monsters;
 
 public class M_Flash {
 

@@ -19,10 +19,21 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Tank.java,v 1.3 2004-09-22 19:22:02 salomo Exp $
-package jake2.game;
+// $Id: M_Tank.java,v 1.2 2005-02-06 18:48:15 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntInteractAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.GameAI;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.Monster;
+import jake2.game.edict_t;
+import jake2.game.mframe_t;
+import jake2.game.mmove_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -1442,7 +1453,7 @@ public class M_Tank {
      * QUAKED monster_tank_commander (1 .5 0) (-32 -32 -16) (32 32 72) Ambush
      * Trigger_Spawn Sight
      */
-    static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {
+    public static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (GameBase.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);

@@ -19,11 +19,24 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.3 2004-09-22 19:22:06 salomo Exp $
-package jake2.game;
+// $Id: M_Infantry.java,v 1.2 2005-02-06 18:48:14 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntDodgeAdapter;
+import jake2.game.EntInteractAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.Fire;
+import jake2.game.GameAI;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.Monster;
+import jake2.game.edict_t;
+import jake2.game.mframe_t;
+import jake2.game.mmove_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -496,7 +509,7 @@ public class M_Infantry {
     static mmove_t infantry_move_stand = new mmove_t(FRAME_stand50,
             FRAME_stand71, infantry_frames_stand, null);
 
-    static EntThinkAdapter infantry_stand = new EntThinkAdapter() {
+    public static EntThinkAdapter infantry_stand = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = infantry_move_stand;
             return true;
@@ -817,7 +830,7 @@ public class M_Infantry {
     static mmove_t infantry_move_death3 = new mmove_t(FRAME_death301,
             FRAME_death309, infantry_frames_death3, infantry_dead);
 
-    static EntDieAdapter infantry_die = new EntDieAdapter() {
+    public static EntDieAdapter infantry_die = new EntDieAdapter() {
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
 
@@ -1014,7 +1027,7 @@ public class M_Infantry {
      * QUAKED monster_infantry (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    static void SP_monster_infantry(edict_t self) {
+    public static void SP_monster_infantry(edict_t self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

@@ -19,10 +19,15 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss3.java,v 1.2 2004-09-22 19:22:05 salomo Exp $
-package jake2.game;
+// $Id: M_Boss3.java,v 1.2 2005-02-06 18:48:17 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.EntThinkAdapter;
+import jake2.game.EntUseAdapter;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.edict_t;
 import jake2.util.Math3D;
 
 public class M_Boss3 {
@@ -54,7 +59,7 @@ public class M_Boss3 {
      * 
      * Just stands and cycles in one place until targeted, then teleports away.
      */
-    static void SP_monster_boss3_stand(edict_t self) {
+    public static void SP_monster_boss3_stand(edict_t self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

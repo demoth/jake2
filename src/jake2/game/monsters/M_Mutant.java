@@ -19,11 +19,25 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Mutant.java,v 1.3 2004-09-22 19:22:01 salomo Exp $
-package jake2.game;
+// $Id: M_Mutant.java,v 1.2 2005-02-06 18:48:17 salomo Exp $
+package jake2.game.monsters;
 
 import jake2.Defines;
 import jake2.client.M;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntInteractAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.EntTouchAdapter;
+import jake2.game.Fire;
+import jake2.game.GameAI;
+import jake2.game.GameBase;
+import jake2.game.GameUtil;
+import jake2.game.cplane_t;
+import jake2.game.csurface_t;
+import jake2.game.edict_t;
+import jake2.game.mframe_t;
+import jake2.game.mmove_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -979,7 +993,7 @@ public class M_Mutant {
      * QUAKED monster_mutant (1 .5 0) (-32 -32 -24) (32 32 32) Ambush
      * Trigger_Spawn Sight
      */
-    static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
+    public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
         public boolean think(edict_t self) {
             if (GameBase.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
