@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.34 2004-06-09 14:32:37 hoz Exp $
+ * $Id: Key.java,v 1.35 2004-06-28 05:38:30 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -119,7 +119,7 @@ public class Key extends Globals {
 	static int history_line = 0;
 	static boolean shift_down = false;
 	static int[] key_repeats = new int[256];
-	static int[] keyshift = new int[256];
+	//static int[] keyshift = new int[256];
 	static boolean[] menubound = new boolean[256];
 	static boolean[] consolekeys = new boolean[256];
 
@@ -241,31 +241,31 @@ public class Key extends Globals {
 		consolekeys['`'] = false;
 		consolekeys['~'] = false;
 
-		for (int i = 0; i < 256; i++)
-			keyshift[i] = i;
-		for (int i = 'a'; i <= 'z'; i++)
-			keyshift[i] = i - 'a' + 'A';
-		keyshift['1'] = '!';
-		keyshift['2'] = '@';
-		keyshift['3'] = '#';
-		keyshift['4'] = '$';
-		keyshift['5'] = '%';
-		keyshift['6'] = '^';
-		keyshift['7'] = '&';
-		keyshift['8'] = '*';
-		keyshift['9'] = '(';
-		keyshift['0'] = ')';
-		keyshift['-'] = '_';
-		keyshift['='] = '+';
-		keyshift[','] = '<';
-		keyshift['.'] = '>';
-		keyshift['/'] = '?';
-		keyshift[';'] = ':';
-		keyshift['\''] = '"';
-		keyshift['['] = '{';
-		keyshift[']'] = '}';
-		keyshift['`'] = '~';
-		keyshift['\\'] = '|';
+//		for (int i = 0; i < 256; i++)
+//			keyshift[i] = i;
+//		for (int i = 'a'; i <= 'z'; i++)
+//			keyshift[i] = i - 'a' + 'A';
+//		keyshift['1'] = '!';
+//		keyshift['2'] = '@';
+//		keyshift['3'] = '#';
+//		keyshift['4'] = '$';
+//		keyshift['5'] = '%';
+//		keyshift['6'] = '^';
+//		keyshift['7'] = '&';
+//		keyshift['8'] = '*';
+//		keyshift['9'] = '(';
+//		keyshift['0'] = ')';
+//		keyshift['-'] = '_';
+//		keyshift['='] = '+';
+//		keyshift[','] = '<';
+//		keyshift['.'] = '>';
+//		keyshift['/'] = '?';
+//		keyshift[';'] = ':';
+//		keyshift['\''] = '"';
+//		keyshift['['] = '{';
+//		keyshift[']'] = '}';
+//		keyshift['`'] = '~';
+//		keyshift['\\'] = '|';
 
 		menubound[K_ESCAPE] = true;
 		for (int i = 0; i < 12; i++)
@@ -386,13 +386,13 @@ public class Key extends Globals {
 				cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
 				Cbuf.AddText(cmd);
 			}
-			if (keyshift[key] != key) {
-				kb = Globals.keybindings[keyshift[key]];
-				if (kb != null && kb.length()>0 && kb.charAt(0) == '+') {
-					cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
-					Cbuf.AddText(cmd);
-				}
-			}
+//			if (keyshift[key] != key) {
+//				kb = Globals.keybindings[keyshift[key]];
+//				if (kb != null && kb.length()>0 && kb.charAt(0) == '+') {
+//					cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
+//					Cbuf.AddText(cmd);
+//				}
+//			}
 			return;
 		}
 
@@ -419,8 +419,8 @@ public class Key extends Globals {
 		if (!down)
 			return; // other systems only care about key down events
 
-		if (shift_down)
-			key = keyshift[key];
+//		if (shift_down)
+//			key = keyshift[key];
 
 		switch (Globals.cls.key_dest) {
 			case Defines.key_message :
