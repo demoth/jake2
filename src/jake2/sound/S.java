@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.11 2004-06-17 12:10:44 hoz Exp $
+ * $Id: S.java,v 1.12 2004-06-17 12:12:43 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -94,7 +94,7 @@ public class S {
 			return;			
 		}
 
-		s_impl = Cvar.Get("s_impl", "jsound", Defines.CVAR_ARCHIVE);
+		s_impl = Cvar.Get("s_impl", "dummy", Defines.CVAR_ARCHIVE);
 		useDriver(s_impl.string);
 
 		if (impl.Init()) {
