@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.7 2004-10-11 14:04:16 hzi Exp $
+ * $Id: CL_fx.java,v 1.8 2005-01-17 21:50:42 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -250,14 +250,15 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	private static final float[] fv = {0, 0, 0};
+	private static final float[] rv = {0, 0, 0};
 	/*
 	 * ==============
 	 *  CL_ParseMuzzleFlash
 	 * ==============
 	 */
 	static void ParseMuzzleFlash() {
-		float[] fv = new float[3];
-		float[] rv = new float[3];
 		float volume;
 		String soundname;
 
@@ -504,13 +505,14 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	private static final float[] origin = {0, 0, 0};
+	private static final float[] forward = {0, 0, 0};
+	private static final float[] right = {0, 0, 0};
 	/*
 	 * ============== CL_ParseMuzzleFlash2 ==============
 	 */
 	static void ParseMuzzleFlash2() {
-		float[] origin = new float[3];
-		float[] forward = new float[3];
-		float[] right = new float[3];
 		String soundname;
 
 		int ent = MSG.ReadShort(Globals.net_message);
@@ -980,12 +982,10 @@ public class CL_fx {
 	 * =============== CL_ClearParticles ===============
 	 */
 	static void ClearParticles() {
-		int i;
-
 		free_particles = particles[0];
 		active_particles = null;
 
-		for (i = 0; i < particles.length - 1; i++)
+		for (int i = 0; i < particles.length - 1; i++)
 			particles[i].next = particles[i + 1];
 		particles[particles.length - 1].next = null;
 	}
@@ -996,11 +996,11 @@ public class CL_fx {
 	 * Wall impact puffs ===============
 	 */
 	static void ParticleEffect(float[] org, float[] dir, int color, int count) {
-		int i, j;
+		int j;
 		cparticle_t p;
 		float d;
-
-		for (i = 0; i < count; i++) {
+		
+		for (int i = 0; i < count; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1029,11 +1029,11 @@ public class CL_fx {
 	 * =============== CL_ParticleEffect2 ===============
 	 */
 	static void ParticleEffect2(float[] org, float[] dir, int color, int count) {
-		int i, j;
+		int j;
 		cparticle_t p;
 		float d;
 
-		for (i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1063,11 +1063,11 @@ public class CL_fx {
 	 * =============== CL_ParticleEffect3 ===============
 	 */
 	static void ParticleEffect3(float[] org, float[] dir, int color, int count) {
-		int i, j;
+		int j;
 		cparticle_t p;
 		float d;
 
-		for (i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1096,10 +1096,10 @@ public class CL_fx {
 	 * =============== CL_TeleporterParticles ===============
 	 */
 	static void TeleporterParticles(entity_state_t ent) {
-		int i, j;
+		int j;
 		cparticle_t p;
 
-		for (i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1132,10 +1132,10 @@ public class CL_fx {
 	 * ===============
 	 */
 	static void LogoutEffect(float[] org, int type) {
-		int i, j;
+		int j;
 		cparticle_t p;
 
-		for (i = 0; i < 500; i++) {
+		for (int i = 0; i < 500; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1173,10 +1173,10 @@ public class CL_fx {
 	 * ===============
 	 */
 	static void ItemRespawnParticles(float[] org) {
-		int i, j;
+		int j;
 		cparticle_t p;
 
-		for (i = 0; i < 64; i++) {
+		for (int i = 0; i < 64; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1207,10 +1207,10 @@ public class CL_fx {
 	 * =============== CL_ExplosionParticles ===============
 	 */
 	static void ExplosionParticles(float[] org) {
-		int i, j;
+		int j;
 		cparticle_t p;
 
-		for (i = 0; i < 256; i++) {
+		for (int i = 0; i < 256; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1235,11 +1235,10 @@ public class CL_fx {
 	}
 
 	static void BigTeleportParticles(float[] org) {
-		int i;
 		cparticle_t p;
 		float angle, dist;
 
-		for (i = 0; i < 4096; i++) {
+		for (int i = 0; i < 4096; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1276,13 +1275,12 @@ public class CL_fx {
 	 * Wall impact puffs ===============
 	 */
 	static void BlasterParticles(float[] org, float[] dir) {
-		int i, j;
+		int j;
 		cparticle_t p;
 		float d;
-		int count;
 
-		count = 40;
-		for (i = 0; i < count; i++) {
+		int count = 40;
+		for (int i = 0; i < count; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -1307,14 +1305,15 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	private static final float[] move = {0, 0, 0};
+	private static final float[] vec = {0, 0, 0};
 	/*
 	 * =============== CL_BlasterTrail
 	 * 
 	 * ===============
 	 */
 	static void BlasterTrail(float[] start, float[] end) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1354,15 +1353,14 @@ public class CL_fx {
 		}
 	}
 
-
+	// stack variable
+	// move, vec
 	/*
 	 * ===============
 	 *  CL_FlagTrail
 	 * ===============
 	 */
 	static void FlagTrail(float[] start, float[] end, float color) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1401,14 +1399,14 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// move, vec
 	/*
 	 * =============== CL_DiminishingTrail
 	 * 
 	 * ===============
 	 */
 	static void DiminishingTrail(float[] start, float[] end, centity_t old, int flags) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		cparticle_t p;
 		float orgscale;
 		float velscale;
@@ -1486,14 +1484,14 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// move, vec
 	/*
 	 * =============== CL_RocketTrail
 	 * 
 	 * ===============
 	 */
 	static void RocketTrail(float[] start, float[] end, centity_t old) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1538,14 +1536,14 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// move, vec
 	/*
 	 * =============== CL_RailTrail
 	 * 
 	 * ===============
 	 */
 	static void RailTrail(float[] start, float[] end) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1624,13 +1622,12 @@ public class CL_fx {
 		}
 	}
 
-	//	   RAFAEL
+	// stack variable
+	// move, vec
 	/*
 	 * =============== CL_IonripperTrail ===============
 	 */
 	static void IonripperTrail(float[] start, float[] ent) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1679,14 +1676,14 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// move, vec
 	/*
 	 * =============== CL_BubbleTrail
 	 * 
 	 * ===============
 	 */
 	static void BubbleTrail(float[] start, float[] end) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
 		float len;
 		int i, j;
 		cparticle_t p;
@@ -1724,6 +1721,8 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// forward
 	/*
 	 * =============== CL_FlyParticles ===============
 	 */
@@ -1732,7 +1731,6 @@ public class CL_fx {
 		cparticle_t p;
 		float angle;
 		float sp, sy, cp, cy;
-		float[] forward = new float[3];
 		float dist = 64;
 		float ltime;
 
@@ -1812,6 +1810,9 @@ public class CL_fx {
 		FlyParticles(origin, count);
 	}
 
+	// stack variable
+	private static final float[] v = {0, 0, 0};
+	// forward
 	/*
 	 * =============== CL_BfgParticles ===============
 	 */
@@ -1821,9 +1822,7 @@ public class CL_fx {
 		cparticle_t p;
 		float angle;
 		float sp, sy, cp, cy;
-		float[] forward = new float[3];
 		float dist = 64;
-		float[] v = new float[3];
 		float ltime;
 
 		if (avelocities[0][0] == 0.0f) {
@@ -1875,15 +1874,15 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	// move, vec
+	private static final float[] start = {0, 0, 0};
+	private static final float[] end = {0, 0, 0};
 	/*
 	 * =============== CL_TrapParticles ===============
 	 */
 	//	   RAFAEL
 	static void TrapParticles(entity_t ent) {
-		float[] move = new float[3];
-		float[] vec = new float[3];
-		float[] start = new float[3];
-		float[] end = new float[3];
 		float len;
 		int j;
 		cparticle_t p;
@@ -1976,10 +1975,10 @@ public class CL_fx {
 	 */
 	//	  FIXME combined with CL_ExplosionParticles
 	static void BFGExplosionParticles(float[] org) {
-		int i, j;
+		int j;
 		cparticle_t p;
 
-		for (i = 0; i < 256; i++) {
+		for (int i = 0; i < 256; i++) {
 			if (free_particles == null)
 				return;
 			p = free_particles;
@@ -2003,16 +2002,16 @@ public class CL_fx {
 		}
 	}
 
+	// stack variable
+	private static final float[] dir = {0, 0, 0};
 	/*
 	 * =============== CL_TeleportParticles
 	 * 
 	 * ===============
 	 */
 	static void TeleportParticles(float[] org) {
-
 		cparticle_t p;
 		float vel;
-		float[] dir = new float[3];
 
 		for (int i = -16; i <= 16; i += 4)
 			for (int j = -16; j <= 16; j += 4)
@@ -2047,6 +2046,8 @@ public class CL_fx {
 				}
 	}
 
+	// stack variable
+	private static final float[] org = {0, 0, 0};
 	/*
 	 * =============== CL_AddParticles ===============
 	 */
@@ -2055,7 +2056,6 @@ public class CL_fx {
 		float alpha;
 		float time = 0.0f;
 		float time2;
-		float[] org = new float[3];
 		int color;
 		cparticle_t active, tail;
 

@@ -2,7 +2,7 @@
  * CL_newfx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_newfx.java,v 1.6 2004-10-11 14:04:16 hzi Exp $
+ * $Id: CL_newfx.java,v 1.7 2005-01-17 21:50:42 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -75,19 +75,19 @@ public class CL_newfx {
         dl.color[2] = b;
     }
 
+  	// stack variable
+  	private static final float[] move = {0, 0, 0};
+  	private static final float[] vec = {0, 0, 0};
+  	private static final float[] right = {0, 0, 0};
+  	private static final float[] up = {0, 0, 0};
     /*
      * ====== CL_DebugTrail ======
      */
     static void DebugTrail(float[] start, float[] end) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
-
         float len;
         //		int j;
         cparticle_t p;
         float dec;
-        float[] right = new float[3];
-        float[] up = new float[3];
         //		int i;
         //		float d, c, s;
         //		float[] dir;
@@ -133,10 +133,9 @@ public class CL_newfx {
 
     }
 
+  	// stack variable
+    // move, vec
     static void ForceWall(float[] start, float[] end, int color) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
-        ;
         float len;
         int j;
         cparticle_t p;
@@ -179,6 +178,8 @@ public class CL_newfx {
         }
     }
 
+  	// stack variable
+    // move, vec
     /*
      * =============== CL_BubbleTrail2 (lets you control the # of bubbles by
      * setting the distance between the spawns)
@@ -186,9 +187,6 @@ public class CL_newfx {
      * ===============
      */
     static void BubbleTrail2(float[] start, float[] end, int dist) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
-        ;
         float len;
         int i, j;
         cparticle_t p;
@@ -228,23 +226,22 @@ public class CL_newfx {
         }
     }
 
+  	// stack variable
+    // move, vec, right, up
+    private static final float[] dir = {0, 0, 0};
+    private static final float[] end = {0, 0, 0};
+    
     static void Heatbeam(float[] start, float[] forward) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
         float len;
         int j;
         cparticle_t p;
-        float[] right = new float[3];
-        float[] up = new float[3];
         int i;
         float c, s;
-        float[] dir = new float[3];
         float ltime;
         float step = 32.0f, rstep;
         float start_pt;
         float rot;
         float variance;
-        float[] end = new float[3];
 
         Math3D.VectorMA(start, 4096, forward, end);
 
@@ -319,6 +316,9 @@ public class CL_newfx {
         }
     }
 
+  	// stack variable
+    private static final float[] r = {0, 0, 0};
+    private static final float[] u = {0, 0, 0};
     /*
      * =============== CL_ParticleSteamEffect
      * 
@@ -330,8 +330,6 @@ public class CL_newfx {
         int i, j;
         cparticle_t p;
         float d;
-        float[] r = new float[3];
-        float[] u = new float[3];
 
         //		vectoangles2 (dir, angle_dir);
         //		AngleVectors (angle_dir, f, r, u);
@@ -367,15 +365,14 @@ public class CL_newfx {
         }
     }
 
+  	// stack variable
+    // r, u, dir
     static void ParticleSteamEffect2(cl_sustain_t self)
     //	  float[] org, float[] dir, int color, int count, int magnitude)
     {
         int i, j;
         cparticle_t p;
         float d;
-        float[] r = new float[3];
-        float[] u = new float[3];
-        float[] dir = new float[3];
 
         //		vectoangles2 (dir, angle_dir);
         //		AngleVectors (angle_dir, f, r, u);
@@ -413,16 +410,14 @@ public class CL_newfx {
         self.nextthink += self.thinkinterval;
     }
 
+  	// stack variable
+    // move, vec, right, up 
+    private static final float[] forward = {0, 0, 0};
+    private static final float[] angle_dir = {0, 0, 0};
     /*
      * =============== CL_TrackerTrail ===============
      */
     static void TrackerTrail(float[] start, float[] end, int particleColor) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
-        float[] forward = new float[3];
-        float[] right = new float[3];
-        float[] up = new float[3];
-        float[] angle_dir = new float[3];
         float len;
         cparticle_t p;
         int dec;
@@ -468,12 +463,12 @@ public class CL_newfx {
         }
     }
 
+    // stack variable
+    // dir
     static void Tracker_Shell(float[] origin) {
-        float[] dir = new float[3];
-        int i;
         cparticle_t p;
 
-        for (i = 0; i < 300; i++) {
+        for (int i = 0; i < 300; i++) {
             if (CL_fx.free_particles == null)
                 return;
             p = CL_fx.free_particles;
@@ -497,12 +492,12 @@ public class CL_newfx {
         }
     }
 
+    // stack variable
+    // dir
     static void MonsterPlasma_Shell(float[] origin) {
-        float[] dir = new float[3];
-        int i;
         cparticle_t p;
 
-        for (i = 0; i < 40; i++) {
+        for (int i = 0; i < 40; i++) {
             if (CL_fx.free_particles == null)
                 return;
             p = CL_fx.free_particles;
@@ -530,8 +525,9 @@ public class CL_newfx {
 
     private static int[] wb_colortable = { 2 * 8, 13 * 8, 21 * 8, 18 * 8 };
 
+    // stack variable
+    // dir
     static void Widowbeamout(cl_sustain_t self) {
-        float[] dir = new float[3];
         int i;
         cparticle_t p;
 
@@ -567,8 +563,9 @@ public class CL_newfx {
 
     private static int[] nb_colortable = { 110, 112, 114, 116 };
 
+    // stack variable
+    // dir
     static void Nukeblast(cl_sustain_t self) {
-        float[] dir = new float[3];
         int i;
         cparticle_t p;
 
@@ -604,10 +601,11 @@ public class CL_newfx {
 
     private static int[] ws_colortable = { 2 * 8, 13 * 8, 21 * 8, 18 * 8 };
 
+    // stack variable
+    // dir
     static void WidowSplash(float[] org) {
         int i;
         cparticle_t p;
-        float[] dir = new float[3];
 
         for (i = 0; i < 256; i++) {
             if (CL_fx.free_particles == null)
@@ -635,14 +633,14 @@ public class CL_newfx {
 
     }
 
+    // stack variable
+    // move, vec
     /*
      * ===============
      *  CL_TagTrail
      * ===============
      */
     static void TagTrail(float[] start, float[] end, float color) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
         float len;
         int j;
         cparticle_t p;
@@ -712,6 +710,8 @@ public class CL_newfx {
         }
     }
 
+    // stack variable
+    // r, u
     /*
      * =============== CL_ParticleSmokeEffect - like the steam effect, but
      * unaffected by gravity ===============
@@ -721,8 +721,6 @@ public class CL_newfx {
         int i, j;
         cparticle_t p;
         float d;
-        float[] r = new float[3];
-        float[] u = new float[3];
 
         Math3D.MakeNormalVectors(dir, r, u);
 
@@ -791,14 +789,14 @@ public class CL_newfx {
         }
     }
 
+    // stack variable
+    // move, vec
     /*
      * =============== CL_BlasterTrail2
      * 
      * Green! ===============
      */
     static void BlasterTrail2(float[] start, float[] end) {
-        float[] move = new float[3];
-        float[] vec = new float[3];
         float len;
         int j;
         cparticle_t p;
