@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.10 2004-11-06 20:58:11 salomo Exp $
+// $Id: SV_INIT.java,v 1.11 2005-02-06 19:27:24 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -195,15 +195,14 @@ public class SV_INIT {
             } catch (Exception e) {
             }
 
-        svs.spawncount++; // any partially connected client will be
-        // restarted
+        // any partially connected client will be restarted
+        svs.spawncount++;        
 
         sv.state = Defines.ss_dead;
 
         Globals.server_state = sv.state;
 
         // wipe the entire per-level structure
-        //memset(sv, 0, sizeof(sv));
         sv = new server_t();
 
         svs.realtime = 0;
@@ -407,13 +406,9 @@ public class SV_INIT {
      * 
      * map tram.cin+jail_e3 ======================
      */
-    public static void SV_Map(boolean attractloop, String levelstring,
-            boolean loadgame) {
-        //char level[MAX_QPATH];
-        //char *ch;
-        int l;
-        //char spawnpoint[MAX_QPATH];
+    public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
 
+        int l;
         String level, ch, spawnpoint;
 
         sv.loadgame = loadgame;
@@ -447,7 +442,7 @@ public class SV_INIT {
         }
 
         //ZOID special hack for end game screen in coop mode
-        if (Cvar.VariableValue("coop") != 0 && !level.equals("victory.pcx"))
+        if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
             Cvar.Set("nextserver", "gamemap \"*base1\"");
 
         // if there is a $, use the remainder as a spawnpoint
