@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.38 2004-06-28 13:03:30 cwei Exp $
+ * $Id: Main.java,v 1.39 2004-06-28 14:50:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.*;
 import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
+import jake2.qcommon.Cvar;
 import jake2.qcommon.qfiles;
 import jake2.qcommon.xcommand_t;
 import jake2.render.*;
@@ -953,7 +954,7 @@ public abstract class Main extends Base {
 	protected void R_Register() {
 		r_lefthand = ri.Cvar_Get("hand", "0", Globals.CVAR_USERINFO | Globals.CVAR_ARCHIVE);
 		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
-		r_fullbright = ri.Cvar_Get("r_fullbright", "1", 0);
+		r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 		r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 		r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 		r_novis = ri.Cvar_Get("r_novis", "0", 0);
@@ -1312,13 +1313,16 @@ public abstract class Main extends Base {
 				qglMTexCoord2fSGIS = true;
 				GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
 				GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
+				Cvar.SetValue("r_fullbright", 1);
 			}
 			else {
 				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_ARB_multitexture\n");
+				Cvar.SetValue("r_fullbright", 0);
 			}
 		}
 		else {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
+			Cvar.SetValue("r_fullbright", 0);
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0) {
@@ -1331,15 +1335,18 @@ public abstract class Main extends Base {
 				//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
 				qglSelectTextureSGIS = true;
 				qglMTexCoord2fSGIS = true;
+				Cvar.SetValue("r_fullbright", 1);
 				//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
 				//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
 			}
 			else {
 				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n");
+				Cvar.SetValue("r_fullbright", 0);
 			}
 		}
 		else {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n");
+			Cvar.SetValue("r_fullbright", 0);
 		}
 
 		GL_SetDefaultState();
