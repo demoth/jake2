@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.31 2004-02-13 13:22:08 cwei Exp $
+ * $Id: SCR.java,v 1.32 2004-02-14 13:38:14 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -217,30 +217,34 @@ public final class SCR extends Globals {
 			"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 
 		s = 0;
-		do {
-			// scan the width of the line
-			for (l = 0; l < 40; l++)
-				if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
+		
+		if (str.length() != 0)
+		{
+			do {
+				// scan the width of the line
+				for (l = 0; l < 40; l++)
+					if (str.charAt(s + l) == '\n' || str.charAt(s + l) == 0)
+						break;
+				for (i = 0; i < (40 - l) / 2; i++)
+					line.append(' ');
+	
+				for (j = 0; j < l; j++) {
+					line.append(str.charAt(s + j));
+				}
+	
+				line.append('\n');
+	
+				Com.Printf(line.toString());
+	
+				while (s < str.length() && str.charAt(s) != '\n')
+					s++;
+	
+				if (s == str.length())
 					break;
-			for (i = 0; i < (40 - l) / 2; i++)
-				line.append(' ');
-
-			for (j = 0; j < l; j++) {
-				line.append(str.charAt(s + j));
+				s++; // skip the \n
 			}
-
-			line.append('\n');
-
-			Com.Printf(line.toString());
-
-			while (s < str.length() && str.charAt(s) != '\n')
-				s++;
-
-			if (s == str.length())
-				break;
-			s++; // skip the \n
+			while (true);
 		}
-		while (true);
 		Com.Printf(
 			"\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 		Console.ClearNotify();
