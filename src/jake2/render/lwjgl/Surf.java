@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.5 2005-01-09 22:35:31 cawe Exp $
+ * $Id: Surf.java,v 1.6 2005-01-10 00:12:00 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,28 +26,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.lwjgl;
 
 import jake2.Defines;
-import jake2.client.dlight_t;
-import jake2.client.entity_t;
-import jake2.client.lightstyle_t;
+import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
+import jake2.render.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Arrays;
-
-import net.java.games.jogl.GL;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -1194,13 +1181,10 @@ public abstract class Surf extends Draw {
 			t /= fa.texinfo.image.height;
 
 			Math3D.VectorAdd (total, vec, total);
-			//Math3D.VectorCopy (vec, poly.verts[i]);
 			poly.x(i, vec[0]);
 			poly.y(i, vec[1]);
 			poly.z(i, vec[2]);
 			
-			//poly.verts[i][3] = s;
-			//poly.verts[i][4] = t;
 			poly.s1(i, s);
 			poly.t1(i, t);
 
@@ -1219,8 +1203,6 @@ public abstract class Surf extends Draw {
 			t += 8;
 			t /= BLOCK_HEIGHT*16; //fa.texinfo.texture.height;
 
-//          poly.verts[i][5] = s;
-//          poly.verts[i][6] = t;
 			poly.s2(i, s);
 			poly.t2(i, t);
 		}

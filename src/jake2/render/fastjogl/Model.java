@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.6 2005-01-09 22:36:31 cawe Exp $
+ * $Id: Model.java,v 1.7 2005-01-10 00:14:32 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,27 +29,12 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.lump_t;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.texinfo_t;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mmodel_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
-import jake2.render.mvertex_t;
+import jake2.qcommon.*;
+import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Arrays;
 import java.util.Vector;
 

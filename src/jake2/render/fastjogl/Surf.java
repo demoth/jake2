@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.6 2005-01-09 22:36:31 cawe Exp $
+ * $Id: Surf.java,v 1.7 2005-01-10 00:14:33 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,25 +26,14 @@
 package jake2.render.fastjogl;
 
 import jake2.Defines;
-import jake2.client.dlight_t;
-import jake2.client.entity_t;
-import jake2.client.lightstyle_t;
+import jake2.client.*;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
-import jake2.render.glpoly_t;
-import jake2.render.image_t;
-import jake2.render.medge_t;
-import jake2.render.mleaf_t;
-import jake2.render.mnode_t;
-import jake2.render.model_t;
-import jake2.render.msurface_t;
-import jake2.render.mtexinfo_t;
+import jake2.render.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Arrays;
 
 import net.java.games.jogl.GL;

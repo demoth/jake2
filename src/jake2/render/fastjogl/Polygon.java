@@ -2,7 +2,7 @@
  * Polygon.java
  * Copyright (C) 2003
  *
- * $Id: Polygon.java,v 1.1 2005-01-09 22:36:31 cawe Exp $
+ * $Id: Polygon.java,v 1.2 2005-01-10 00:14:33 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,11 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.fastjogl;
 
-import java.nio.FloatBuffer;
-
-import jake2.Defines;
 import jake2.render.glpoly_t;
 import jake2.util.Lib;
+
+import java.nio.FloatBuffer;
 
 /**
  * Polygon
