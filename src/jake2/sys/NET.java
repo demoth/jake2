@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.5 2004-10-17 21:31:32 cawe Exp $
+ * $Id: NET.java,v 1.6 2004-10-20 20:37:31 cawe Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -70,17 +70,20 @@ public final class NET {
 
     private static DatagramSocket[] ip_sockets = { null, null };
 
-    //=============================================================================
-
+    /*
+     * CompareAdr
+     * 
+     * Compares with the port
+     */
     public static boolean CompareAdr(netadr_t a, netadr_t b) {
         return (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
                 && a.ip[3] == b.ip[3] && a.port == b.port);
     }
 
     /*
-     * =================== NET_CompareBaseAdr
+     * CompareBaseAdr
      * 
-     * Compares without the port ===================
+     * Compares without the port
      */
     public static boolean CompareBaseAdr(netadr_t a, netadr_t b) {
         if (a.type != b.type)
@@ -96,18 +99,38 @@ public final class NET {
         return false;
     }
 
+    /*
+     * AdrToString
+     * 
+     * IP address with the port
+     */
     public static String AdrToString(netadr_t a) {
-        return "" + (a.ip[0] & 0xff) + "." + (a.ip[1] & 0xff) + "."
-                + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff) + ":" + a.port;
+        StringBuffer sb = new StringBuffer();
+        sb.append(a.ip[0] & 0xFF).append('.').append(a.ip[1] & 0xFF);
+        sb.append('.');
+        sb.append(a.ip[2] & 0xFF).append('.').append(a.ip[3] & 0xFF);
+        sb.append(':').append(a.port);
+        return sb.toString();
     }
 
+    /*
+     * BaseAdrToString
+     * 
+     * IP address without the port
+     */
     public static String BaseAdrToString(netadr_t a) {
-        return "" + (a.ip[0] & 0xff) + "." + (a.ip[1] & 0xff) + "."
-                + (a.ip[2] & 0xff) + "." + (a.ip[3] & 0xff);
+        StringBuffer sb = new StringBuffer();
+        sb.append(a.ip[0] & 0xFF).append('.').append(a.ip[1] & 0xFF);
+        sb.append('.');
+        sb.append(a.ip[2] & 0xFF).append('.').append(a.ip[3] & 0xFF);
+        return sb.toString();
     }
 
+    /*
+     * StringToAdr
+     */
     public static boolean StringToAdr(String s, netadr_t a) {
-        if (s.equalsIgnoreCase("localhost")) {
+        if (s.equalsIgnoreCase("localhost") || s.equalsIgnoreCase("loopback")) {
             a.set(net_local_adr);
             return true;
         }
@@ -125,16 +148,19 @@ public final class NET {
         }
     }
 
+    /*
+     * IsLocalAddress
+     */
     public static boolean IsLocalAddress(netadr_t adr) {
         return CompareAdr(adr, net_local_adr);
     }
 
     /*
-     * =============================================================================
+     * ==================================================
      * 
      * LOOPBACK BUFFERS FOR LOCAL PLAYER
      * 
-     * =============================================================================
+     * ==================================================
      */
 
     public static boolean GetLoopPacket(int sock, netadr_t net_from,
@@ -159,6 +185,9 @@ public final class NET {
         return true;
     }
 
+    /*
+     * SendLoopPacket
+     */
     public static void SendLoopPacket(int sock, int length, byte[] data,
             netadr_t to) {
         int i;
@@ -174,7 +203,9 @@ public final class NET {
         loop.msgs[i].datalen = length;
     }
 
-    //=============================================================================
+    /*
+     * GetPacket
+     */
     public static boolean GetPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
 
@@ -217,8 +248,9 @@ public final class NET {
         }
     }
 
-    //	=============================================================================
-
+    /*
+     * SendPacket
+     */
     public static void SendPacket(int sock, int length, byte[] data, netadr_t to) {
         if (to.type == Defines.NA_LOOPBACK) {
             SendLoopPacket(sock, length, data, to);
@@ -244,10 +276,8 @@ public final class NET {
         }
     }
 
-    //=============================================================================
-
     /*
-     * ==================== NET_OpenIP ====================
+     * OpenIP
      */
     public static void OpenIP() {
         cvar_t port, ip;
@@ -265,7 +295,7 @@ public final class NET {
     }
 
     /*
-     * ==================== NET_Config ====================
+     * Config
      * 
      * A single player game will only use the loopback code
      */
@@ -284,17 +314,15 @@ public final class NET {
         }
     }
 
-    //===================================================================
-
     /*
-     * ==================== NET_Init ====================
+     * Init
      */
     public static void Init() {
-        //empty
+        // nothing to do
     }
 
     /*
-     * ==================== NET_Socket ====================
+     * Socket
      */
     public static DatagramSocket Socket(int sock, String ip, int port) {
 
@@ -329,7 +357,7 @@ public final class NET {
     }
 
     /*
-     * ==================== NET_Shutdown ====================
+     * Shutdown
      */
     public static void Shutdown() {
         // close sockets
