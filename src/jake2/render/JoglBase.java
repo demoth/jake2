@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.6 2004-08-19 20:49:56 hzi Exp $
+ * $Id: JoglBase.java,v 1.7 2004-08-23 20:49:12 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -104,6 +104,7 @@ public abstract class JoglBase implements GLEventListener {
 			
 			if (m.getBitDepth() != oldDisplayMode.getBitDepth()) continue;
 			if (m.getRefreshRate() > oldDisplayMode.getRefreshRate()) continue;
+			if (m.getHeight() < 240 || m.getWidth() < 320) continue;
 			
 			int j = 0;
 			DisplayMode ml = null;

@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.8 2004-07-16 10:11:36 cawe Exp $
+ * $Id: VID.java,v 1.9 2004-08-23 20:49:12 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -63,6 +63,8 @@ public class VID extends Globals {
 	static cvar_t vid_ref;			// Name of Refresh DLL loaded
 	static cvar_t vid_xpos;			// X coordinate of window position
 	static cvar_t vid_ypos;			// Y coordinate of window position
+	static cvar_t vid_width;
+	static cvar_t vid_height;
 	static cvar_t vid_fullscreen;
 
 	// Global variables used internally by this module
@@ -101,15 +103,17 @@ public class VID extends Globals {
 	cause the entire video mode and refresh DLL to be reset on the next frame.
 	============
 	*/
-	static void Restart_f()
-	{
+	static void Restart_f() {
+		vid_modes[11].width = (int) vid_width.value;
+		vid_modes[11].height = (int) vid_height.value;
+
 		vid_ref.modified = true;
 	}
 
 	/*
 	** VID_GetModeInfo
 	*/
-	static final vidmode_t vid_modes[] =
+	static vidmode_t vid_modes[] =
 		{
 			new vidmode_t("Mode 0: 320x240", 320, 240, 0),
 			new vidmode_t("Mode 1: 400x300", 400, 300, 1),
@@ -121,7 +125,8 @@ public class VID extends Globals {
 			new vidmode_t("Mode 7: 1152x864", 1152, 864, 7),
 			new vidmode_t("Mode 8: 1280x1024", 1280, 1024, 8),
 			new vidmode_t("Mode 9: 1600x1200", 1600, 1200, 9),
-			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10)};
+			new vidmode_t("Mode 10: 2048x1536", 2048, 1536, 10),
+			new vidmode_t("Mode 11: user", 640, 480, 11)};
 	static vidmode_t fs_modes[];
 
 	public static boolean GetModeInfo(Dimension dim, int mode) {
@@ -130,11 +135,12 @@ public class VID extends Globals {
 		vidmode_t[] modes = vid_modes;
 		if (vid_fullscreen.value != 0.0f) modes = fs_modes;
 		
-		if (mode < 0 || mode >= modes.length)
+		if (mode < 0 || mode >= modes.length) 
 			return false;
-
+			
 		dim.width = modes[mode].width;
 		dim.height = modes[mode].height;
+		
 		return true;
 	}
 
@@ -292,9 +298,14 @@ public class VID extends Globals {
 		vid_ref = Cvar.Get("vid_ref", "fastjogl", CVAR_ARCHIVE);
 		vid_xpos = Cvar.Get("vid_xpos", "3", CVAR_ARCHIVE);
 		vid_ypos = Cvar.Get("vid_ypos", "22", CVAR_ARCHIVE);
+		vid_width = Cvar.Get("vid_width", "640", CVAR_ARCHIVE);
+		vid_height = Cvar.Get("vid_height", "480", CVAR_ARCHIVE);
 		vid_fullscreen = Cvar.Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 		vid_gamma = Cvar.Get( "vid_gamma", "1", CVAR_ARCHIVE );
 
+		vid_modes[11].width = (int)vid_width.value;
+		vid_modes[11].height = (int)vid_height.value;
+		
 		/* Add some console commands that we want to handle */
 		Cmd.AddCommand ("vid_restart", new xcommand_t() {
 			public void execute() {
@@ -538,11 +549,11 @@ public class VID extends Globals {
 		"[1280 1024]",
 		"[1600 1200]",
 		"[2048 1536]",
+		"user mode",
 		null
 	};
 	static String[] fs_resolutions;
-	static int last_fs;
-	static int last_win;
+	static int mode_x;
 	
 	static final String[] refs =
 	{
@@ -617,13 +628,13 @@ public class VID extends Globals {
 			if (s_mode_list[OPENGL_MENU].curvalue >= fs_resolutions.length - 1) {
 				s_mode_list[OPENGL_MENU].curvalue = 0;
 			}
-			last_fs = s_mode_list[OPENGL_MENU].curvalue;
+			mode_x = fs_modes[s_mode_list[OPENGL_MENU].curvalue].width;
 		} else {
 			s_mode_list[OPENGL_MENU].itemnames = resolutions;
 			if (s_mode_list[OPENGL_MENU].curvalue >= resolutions.length - 1) {
 				s_mode_list[OPENGL_MENU].curvalue = 0;
 			}
-			last_win = s_mode_list[OPENGL_MENU].curvalue;
+			mode_x = vid_modes[s_mode_list[OPENGL_MENU].curvalue].width;
 		}
 
 		if ( SCR.scr_viewsize == null )
@@ -727,10 +738,14 @@ public class VID extends Globals {
 					int fs = ((Menu.menulist_s)o).curvalue;
 					if (fs == 0) {
 						s_mode_list[1].itemnames = resolutions;
-						s_mode_list[1].curvalue = last_win;
+						int i = vid_modes.length - 2;
+						while (i > 0 && vid_modes[i].width > mode_x) i--;
+						s_mode_list[1].curvalue = i;
 					} else {
 						s_mode_list[1].itemnames = fs_resolutions;
-						s_mode_list[1].curvalue = last_fs;						
+						int i = fs_modes.length - 1;
+						while (i > 0 && fs_modes[i].width > mode_x) i--;						
+						s_mode_list[1].curvalue = i;						
 					}
 				}
 			};
