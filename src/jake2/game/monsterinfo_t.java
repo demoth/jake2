@@ -19,9 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: monsterinfo_t.java,v 1.1 2004-07-07 19:59:26 hzi Exp $
+// $Id: monsterinfo_t.java,v 1.2 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
+
+import jake2.util.QuakeFile;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class monsterinfo_t {
 
@@ -59,5 +64,99 @@ public class monsterinfo_t {
 
 	public int power_armor_type;
 	public int power_armor_power;
+
+	/** Writes the monsterinfo to the file.*/
+	public void write(QuakeFile f) throws IOException
+	{
+		f.writeBoolean(currentmove != null);
+		if (currentmove != null)
+			currentmove.write(f);
+		f.writeInt(aiflags);
+		f.writeInt(nextframe);
+		f.writeFloat(scale);
+		f.writeAdapter(stand);
+		f.writeAdapter(idle);
+		f.writeAdapter(search);
+		f.writeAdapter(walk);
+		f.writeAdapter(run);
+		
+		f.writeAdapter(dodge);
+		
+		f.writeAdapter(attack);
+		f.writeAdapter(melee);
+		
+		f.writeAdapter(sight);
+		
+		f.writeAdapter(checkattack);
+		
+ 		f.writeFloat(pausetime);
+ 		f.writeFloat(attack_finished);
+ 	
+		f.writeVector(saved_goal);
+		
+		f.writeFloat(search_time);
+		f.writeFloat(trail_time);
+		
+		f.writeVector(last_sighting);
+ 
+		f.writeInt(attack_state);
+		f.writeInt(lefty);
+	
+		f.writeFloat(idle_time);
+		f.writeInt(linkcount);
+		
+		f.writeInt(power_armor_power);
+		f.writeInt(power_armor_type);
+	}
+
+	/** Writes the monsterinfo to the file.*/
+	public void read(QuakeFile f) throws IOException
+	{
+		if (f.readBoolean())
+		{
+			currentmove= new mmove_t();
+			currentmove.read(f);
+		}
+		else
+			currentmove= null; 
+		aiflags = f.readInt();
+		nextframe = f.readInt();
+		scale = f.readFloat();
+		stand = (EntThinkAdapter) f.readAdapter();
+		idle = (EntThinkAdapter) f.readAdapter();
+		search = (EntThinkAdapter) f.readAdapter();
+		walk = (EntThinkAdapter) f.readAdapter();
+		run = (EntThinkAdapter) f.readAdapter();
+		
+		dodge = (EntDodgeAdapter) f.readAdapter();
+		
+		attack = (EntThinkAdapter) f.readAdapter();
+		melee = (EntThinkAdapter) f.readAdapter();
+		
+		sight = (EntInteractAdapter) f.readAdapter();
+		
+		checkattack = (EntThinkAdapter) f.readAdapter();
+		
+ 		pausetime = f.readFloat();
+ 		attack_finished = f.readFloat();
+ 	
+		saved_goal = f.readVector();
+		
+		search_time = f.readFloat();
+		trail_time = f.readFloat();
+		
+		last_sighting = f.readVector();
+ 
+		attack_state = f.readInt();
+		lefty = f.readInt();
+	
+		idle_time = f.readFloat();
+		linkcount = f.readInt();
+		
+		power_armor_power = f.readInt();
+		power_armor_type = f.readInt();
+
+	}
+
 
 }

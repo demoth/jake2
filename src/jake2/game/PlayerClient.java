@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.3 2004-07-08 20:24:29 hzi Exp $
+// $Id: PlayerClient.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
@@ -355,9 +355,11 @@ public class PlayerClient extends PlayerHud {
 			ent = g_edicts[1 + i];
 			if (!ent.inuse)
 				continue;
+				
 			game.clients[i].pers.health = ent.health;
 			game.clients[i].pers.max_health = ent.max_health;
 			game.clients[i].pers.savedFlags = (ent.flags & (FL_GODMODE | FL_NOTARGET | FL_POWER_ARMOR));
+			
 			if (coop.value != 0)
 				game.clients[i].pers.score = ent.client.resp.score;
 		}
@@ -371,13 +373,6 @@ public class PlayerClient extends PlayerHud {
 			ent.client.resp.score = ent.client.pers.score;
 	}
 
-	/*
-	=======================================================================
-	
-	  SelectSpawnPoint
-	
-	=======================================================================
-	*/
 
 	/*
 	================

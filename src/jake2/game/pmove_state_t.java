@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.1 2004-07-07 19:59:26 hzi Exp $
+// $Id: pmove_state_t.java,v 1.2 2004-08-20 21:29:58 salomo Exp $
 package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.util.Math3D;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 public class pmove_state_t {
@@ -39,12 +40,15 @@ public class pmove_state_t {
 
 	public short origin[] = { 0, 0, 0 }; // 12.3
 	public short velocity[] = { 0, 0, 0 }; // 12.3
-	public byte pm_flags; // ducked, jump_held, etc
-	public byte pm_time; // each unit = 8 ms
+	/** ducked, jump_held, etc. */
+	public byte pm_flags;
+	/** each unit = 8 ms. */
+	public byte pm_time; 
 	public short gravity;
-	public short delta_angles[] = { 0, 0, 0 }; // add to command angles to get view direction
-	// changed by spawns, rotating objects, and teleporters
-
+	/** add to command angles to get view direction. */
+	public short delta_angles[] = { 0, 0, 0 }; 
+	/** changed by spawns, rotating objects, and teleporters.*/
+	
 	private static pmove_state_t prototype = new pmove_state_t();
 	
 	public void reset()
@@ -81,28 +85,53 @@ public class pmove_state_t {
 		return false;
 	}
 
-	public void load(ByteBuffer bb) throws IOException {
+	/** Reads the playermove from the file.*/
+	public void load(RandomAccessFile f) throws IOException {
 
-		pm_type = bb.getInt();
+		pm_type = f.readInt();
 
-		origin[0] = bb.getShort();
-		origin[1] = bb.getShort();
-		origin[2] = bb.getShort();
+		origin[0] = f.readShort();
+		origin[1] = f.readShort();
+		origin[2] = f.readShort();
 
-		velocity[0] = bb.getShort();
-		velocity[1] = bb.getShort();
-		velocity[2] = bb.getShort();
+		velocity[0] = f.readShort();
+		velocity[1] = f.readShort();
+		velocity[2] = f.readShort();
 
-		pm_flags = bb.get();
-		pm_time = bb.get();
-		gravity = bb.getShort();
+		pm_flags = f.readByte();
+		pm_time = f.readByte();
+		gravity = f.readShort();
 
-		bb.getShort();
+		f.readShort();
 
-		delta_angles[0] = bb.getShort();
-		delta_angles[1] = bb.getShort();
-		delta_angles[2] = bb.getShort();
+		delta_angles[0] = f.readShort();
+		delta_angles[1] = f.readShort();
+		delta_angles[2] = f.readShort();
 
+	}
+	
+	/** Writes the playermove to the file. */
+	public void write (RandomAccessFile f) throws IOException {
+
+		f.writeInt(pm_type);
+
+		f.writeShort(origin[0]);
+		f.writeShort(origin[1]);
+		f.writeShort(origin[2]);
+
+		f.writeShort(velocity[0]);
+		f.writeShort(velocity[1]);
+		f.writeShort(velocity[2]);
+
+		f.writeByte(pm_flags);
+		f.writeByte(pm_time);
+		f.writeShort(gravity);
+
+		f.writeShort(0);
+
+		f.writeShort(delta_angles[0]);
+		f.writeShort(delta_angles[1]);
+		f.writeShort(delta_angles[2]);
 	}
 
 	public void dump() {
@@ -124,7 +153,4 @@ public class pmove_state_t {
 		Com.Println("delta-angle[1]: " + delta_angles[0]);
 		Com.Println("delta-angle[2]: " + delta_angles[0]);
 	}
-
- 
-
 }

@@ -19,15 +19,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_locals_t.java,v 1.3 2004-07-12 20:47:01 hzi Exp $
+// $Id: game_locals_t.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
 import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
+import jake2.util.QuakeFile;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 public class game_locals_t extends Defines
 {
@@ -59,28 +63,54 @@ public class game_locals_t extends Defines
 	public int num_items;
 	public boolean autosaved;
 
-	public void load(ByteBuffer bb)
+	/** Reads the game locals from a file. */
+	public void load(QuakeFile f) throws IOException
 	{
-		String date = Lib.readString(bb, 16);
+		String date = f.readString();
 
-		helpmessage1 = Lib.readString(bb, 512);
-		helpmessage2 = Lib.readString(bb, 512);
+		helpmessage1 = f.readString();
+		helpmessage2 = f.readString();
 
-		helpchanged = bb.getInt();
+		helpchanged = f.readInt();
 		// gclient_t*
-		bb.getInt();
-		spawnpoint = Lib.readString(bb, 512);
-		maxclients = bb.getInt();
-		maxentities = bb.getInt();
-		serverflags = bb.getInt();
-		num_items = bb.getInt();
-		autosaved = bb.getInt() != 0;
-
+		
+		spawnpoint = f.readString();
+		maxclients = f.readInt();
+		maxentities = f.readInt();
+		serverflags = f.readInt();
+		num_items = f.readInt();
+		autosaved = f.readInt() != 0;
+		
+		// rst's checker :-)
+		if (f.readInt()!=1928)
+			System.err.println("error in loading game_locals.");
+		
 	}
 
+	/** Writes the game locals to a file. */
+	public void write(QuakeFile f) throws IOException
+	{
+		f.writeString(new Date().toString());
+
+		f.writeString(helpmessage1);
+		f.writeString(helpmessage2);
+
+		f.writeInt(helpchanged);
+		// gclient_t*
+		
+		f.writeString(spawnpoint);
+		f.writeInt(maxclients);
+		f.writeInt(maxentities);
+		f.writeInt(serverflags);
+		f.writeInt(num_items);
+		f.writeInt(autosaved?1:0);
+		// rst's checker :-)
+		f.writeInt(1928);
+	}
+
+	/** Prints the game locals.*/
 	public void dump()
 	{
-
 		Com.Println("String helpmessage1: " + helpmessage1);
 		Com.Println("String helpmessage2: " + helpmessage2);
 

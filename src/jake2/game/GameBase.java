@@ -19,9 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+// $Id: GameBase.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
 
-/** Father of all Objects. */
+/** Father of all GameObjects. */
 
 package jake2.game;
 
@@ -441,6 +441,7 @@ public class GameBase extends Globals
 	*/
 	public static void G_RunEntity(edict_t ent)
 	{
+		
 		if (ent.prethink != null)
 			ent.prethink.think(ent);
 

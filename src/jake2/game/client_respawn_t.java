@@ -18,26 +18,40 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.4 2004-07-12 20:47:01 hzi Exp $
+// $Id: client_respawn_t.java,v 1.5 2004-08-20 21:29:57 salomo Exp $
 
 package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+import jake2.util.QuakeFile;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+/** Client data that stays across deathmatch respawns.*/
 public class client_respawn_t
-// client data that stays across deathmatch respawns
-{
-	client_persistant_t coop_respawn = new client_persistant_t(); // what to set client->pers to on a respawn
-	int enterframe; // level.framenum the client entered the game
-	int score; // frags, etc
-	float cmd_angles[] = { 0, 0, 0 }; // angles sent over in the last command
-	boolean spectator; // client is a spectator
 
+{
+	/** What to set client->pers to on a respawn */
+	protected client_persistant_t coop_respawn = new client_persistant_t();
+	 
+	/** Level.framenum the client entered the game. */
+	protected int enterframe;
+	 		
+	/** frags, etc. */
+	protected int score; 
+	
+	/** angles sent over in the last command. */
+	protected float cmd_angles[] = { 0, 0, 0 };
+	 
+	/** client is a spectator. */
+	protected boolean spectator; 
+
+	
+	/** Copies the client respawn data. */
 	public void set(client_respawn_t from)
 	{
 		coop_respawn.set(from.coop_respawn);
@@ -47,7 +61,7 @@ public class client_respawn_t
 		spectator = from.spectator;
 	}
 
-	//ok
+	/** Clears the client reaspawn informations. */
 	public void clear()
 	{
 		coop_respawn = new client_persistant_t();
@@ -57,17 +71,33 @@ public class client_respawn_t
 		spectator = false;
 	}
 
-	public void load(ByteBuffer bb) throws IOException
+	/** Reads a client_respawn from a file. */
+	public void read(QuakeFile f) throws IOException
 	{
-		coop_respawn.load(bb);
-		enterframe = bb.getInt();
-		score = bb.getInt();
-		cmd_angles[0] = bb.getFloat();
-		cmd_angles[1] = bb.getFloat();
-		cmd_angles[2] = bb.getFloat();
-		spectator = bb.getInt() != 0;
+		coop_respawn.read(f);
+		enterframe = f.readInt();
+		score = f.readInt();
+		cmd_angles[0] = f.readFloat();
+		cmd_angles[1] = f.readFloat();
+		cmd_angles[2] = f.readFloat();
+		spectator = f.readInt() != 0;
+	}
+	
+	/** Writes a client_respawn to a file. */
+	public void write(QuakeFile f) throws IOException
+	{
+		coop_respawn.write(f);
+		f.writeInt(enterframe);
+		f.writeInt(score);
+		f.writeFloat(cmd_angles[0]);
+		f.writeFloat(cmd_angles[1]);
+		f.writeFloat(cmd_angles[2]);
+		f.writeInt(spectator?1:0);
 	}
 
+
+
+	/** Prints out a client_respawn_t to the quake console.*/
 	public void dump()
 	{
 		coop_respawn.dump();

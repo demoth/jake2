@@ -18,111 +18,130 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+// Created on 04.11.2003 by RST.
+// $Id: edict_t.java,v 1.3 2004-08-20 21:29:57 salomo Exp $
+
 package jake2.game;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import jake2.*;
 import jake2.util.*;
 
-public class edict_t {
- 
-	public edict_t(int i) {
-		s.number = i;
-		index = i;
+public class edict_t
+{
+
+	/** Constructor. */
+	public edict_t(int i)
+	{
+		s.number= i;
+		index= i;
 	}
 
-	public void clear() {
+	/** Used during level loading. */
+	public void cleararealinks()
+	{
+		area= new link_t(this);
 	}
 
-	// integrated entity state
-	public entity_state_t s = new entity_state_t(this);
+	/** Integrated entity state. */
+	public entity_state_t s= new entity_state_t(this);
 	public boolean inuse;
 	public int linkcount;
 
-	// FIXME: move these fields to a server private sv_entity_t
-	public link_t area = new link_t(this); // linked to a division node or leaf
+	/** FIXME: move these fields to a server private sv_entity_t.
+	 * linked to a division node or leaf. */
+	public link_t area= new link_t(this);
 
-	public int num_clusters; // if -1, use headnode instead
-	public int clusternums[] = new int[Defines.MAX_ENT_CLUSTERS];
-	public int headnode; // unused if num_clusters != -1
+	/** if -1, use headnode instead.*/
+	public int num_clusters;
+	public int clusternums[]= new int[Defines.MAX_ENT_CLUSTERS];
+
+	/** unused if num_clusters != -1. */
+	public int headnode;
 	public int areanum, areanum2;
 
 	//================================
 
-	public int svflags; // SVF_NOCLIENT, SVF_DEADMONSTER, SVF_MONSTER, etc
-	public float[] mins = { 0, 0, 0 };
-	public float[] maxs = { 0, 0, 0 };
-	public float[] absmin = { 0, 0, 0 };
-	public float[] absmax = { 0, 0, 0 };
-	public float[] size = { 0, 0, 0 };
+	/** SVF_NOCLIENT, SVF_DEADMONSTER, SVF_MONSTER, etc. */
+	public int svflags;
+	public float[] mins= { 0, 0, 0 };
+	public float[] maxs= { 0, 0, 0 };
+	public float[] absmin= { 0, 0, 0 };
+	public float[] absmax= { 0, 0, 0 };
+	public float[] size= { 0, 0, 0 };
 	public int solid;
 	public int clipmask;
-
-	// the game dll can add anything it wants after
-	// this point in the structure
-	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
-	// EXPECTS THE FIELDS IN THAT ORDER!
 
 	//================================
 	public int movetype;
 	public int flags;
 
-	public String model = null;
-	public float freetime; // sv.time when the object was freed
+	public String model= null;
+
+	/** sv.time when the object was freed. */
+	public float freetime;
 
 	//
 	// only used locally in game, not by server
 	//
-	public String message = null;
-	public String classname = "";
+	public String message= null;
+	public String classname= "";
 	public int spawnflags;
 
 	public float timestamp;
 
-	// set in qe3, -1 = up, -2 = down
+	/** set in qe3, -1 = up, -2 = down */
 	public float angle;
 
-	public String target = null;
-	public String targetname = null;
-	public String killtarget = null;
-	public String team = null;
-	public String pathtarget = null;
-	public String deathtarget = null;
-	public String combattarget = null;
+	public String target= null;
+	public String targetname= null;
+	public String killtarget= null;
+	public String team= null;
+	public String pathtarget= null;
+	public String deathtarget= null;
+	public String combattarget= null;
 
-	public edict_t target_ent = null;
+	public edict_t target_ent= null;
 
 	public float speed, accel, decel;
-	public float[] movedir = { 0, 0, 0 };
+	public float[] movedir= { 0, 0, 0 };
 
-	public float[] pos1 = { 0, 0, 0 };
-	public float[] pos2 = { 0, 0, 0 };
+	public float[] pos1= { 0, 0, 0 };
+	public float[] pos2= { 0, 0, 0 };
 
-	public float[] velocity = { 0, 0, 0 };
-	public float[] avelocity = { 0, 0, 0 };
+	public float[] velocity= { 0, 0, 0 };
+	public float[] avelocity= { 0, 0, 0 };
 	public int mass;
 	public float air_finished;
-	public float gravity; // per entity gravity multiplier (1.0 is normal)
-	// use for lowgrav artifact, flares
 
-	public edict_t goalentity = null;
-	public edict_t movetarget = null;
+	/** per entity gravity multiplier (1.0 is normal). */
+	public float gravity;
+	/** use for lowgrav artifact, flares. */
+
+	public edict_t goalentity= null;
+	public edict_t movetarget= null;
 	public float yaw_speed;
 	public float ideal_yaw;
 
 	public float nextthink;
 
-	public EntThinkAdapter prethink = null;
-	public EntThinkAdapter think = null;
-	public EntBlockedAdapter blocked = null;
-	public EntTouchAdapter touch = null;
-	public EntUseAdapter use = null;
-	public EntPainAdapter pain = null;
-	public EntDieAdapter die = null;
+	public EntThinkAdapter prethink= null;
+	public EntThinkAdapter think= null;
+	public EntBlockedAdapter blocked= null;
+	public EntTouchAdapter touch= null;
+	public EntUseAdapter use= null;
+	public EntPainAdapter pain= null;
+	public EntDieAdapter die= null;
 
-	public float touch_debounce_time; // are all these legit?  do we need more/less of them?
+	/** Are all these legit?  do we need more/less of them? */
+	public float touch_debounce_time;
 	public float pain_debounce_time;
 	public float damage_debounce_time;
-	public float fly_sound_debounce_time; //move to clientinfo
+
+	/** Move to clientinfo.*/
+	public float fly_sound_debounce_time;
 	public float last_move_time;
 
 	public int health;
@@ -133,37 +152,42 @@ public class edict_t {
 
 	public float powerarmor_time;
 
-	public String map = null;
-	; // target_changelevel
+	/** target_changelevel. */
+	public String map= null;
 
-	public int viewheight; // height above origin where eyesight is determined
+	/** Height above origin where eyesight is determined. */
+	public int viewheight;
 	public int takedamage;
 	public int dmg;
 	public int radius_dmg;
 	public float dmg_radius;
-	public int sounds; //make this a spawntemp var?
+
+	/** make this a spawntemp var? */
+	public int sounds;
 	public int count;
 
-	public edict_t chain = null;
-	public edict_t enemy = null;
-	public edict_t oldenemy = null;
-	public edict_t activator = null;
-	public edict_t groundentity = null;
+	public edict_t chain= null;
+	public edict_t enemy= null;
+	public edict_t oldenemy= null;
+	public edict_t activator= null;
+	public edict_t groundentity= null;
 	public int groundentity_linkcount;
-	public edict_t teamchain = null;
-	public edict_t teammaster = null;
+	public edict_t teamchain= null;
+	public edict_t teammaster= null;
 
-	public edict_t mynoise = null; // can go in client only
-	public edict_t mynoise2 = null;
+	/** can go in client only. */
+	public edict_t mynoise= null;
+	public edict_t mynoise2= null;
 
 	public int noise_index;
 	public int noise_index2;
 	public float volume;
 	public float attenuation;
 
-	// timing variables
+	/** Timing variables. */
 	public float wait;
-	public float delay; // before firing targets
+	/** before firing targets...*/
+	public float delay;
 	public float random;
 
 	public float teleport_time;
@@ -171,298 +195,557 @@ public class edict_t {
 	public int watertype;
 	public int waterlevel;
 
-	public float[] move_origin = { 0, 0, 0 };
+	public float[] move_origin= { 0, 0, 0 };
 
-	public float[] move_angles = { 0, 0, 0 };
+	public float[] move_angles= { 0, 0, 0 };
 
-	// move this to clientinfo?
+	/** move this to clientinfo? .*/
 	public int light_level;
 
-	public int style; // also used as areaportal number
+	/** also used as areaportal number. */
+	public int style;
 
 	public gitem_t item; // for bonus items
 
-	// common integrated data blocks
-	public moveinfo_t moveinfo = new moveinfo_t();
-	public monsterinfo_t monsterinfo = new monsterinfo_t();
+	/** common integrated data blocks. */
+	public moveinfo_t moveinfo= new moveinfo_t();
+	public monsterinfo_t monsterinfo= new monsterinfo_t();
 
 	public gclient_t client;
 	public edict_t owner;
-	
-	public int index;	//introduced by rst
-	
+
+	/** Introduced by rst. */
+	public int index;
 
 	/////////////////////////////////////////////////
 
-	public boolean set(String key, String value) {
+	public boolean set(String key, String value)
+	{
 
-		if (key.equals("classname")) {
-			classname = GameSpawn.ED_NewString(value);
+		if (key.equals("classname"))
+		{
+			classname= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("model")) {
-			model = GameSpawn.ED_NewString(value);
+		if (key.equals("model"))
+		{
+			model= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("spawnflags")) {
-			spawnflags = Lib.atoi(value);
+		if (key.equals("spawnflags"))
+		{
+			spawnflags= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("speed")) {
-			speed = Lib.atof(value);
+		if (key.equals("speed"))
+		{
+			speed= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("accel")) {
-			accel = Lib.atof(value);
+		if (key.equals("accel"))
+		{
+			accel= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("decel")) {
-			decel = Lib.atof(value);
+		if (key.equals("decel"))
+		{
+			decel= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("target")) {
-			target = GameSpawn.ED_NewString(value);
+		if (key.equals("target"))
+		{
+			target= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("targetname")) {
-			targetname = GameSpawn.ED_NewString(value);
+		if (key.equals("targetname"))
+		{
+			targetname= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("pathtarget")) {
-			pathtarget = GameSpawn.ED_NewString(value);
+		if (key.equals("pathtarget"))
+		{
+			pathtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("deathtarget")) {
-			deathtarget = GameSpawn.ED_NewString(value);
+		if (key.equals("deathtarget"))
+		{
+			deathtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
-		if (key.equals("killtarget")) {
-			killtarget = GameSpawn.ED_NewString(value);
-			return true;
-		} // F_LSTRING),
-
-		if (key.equals("combattarget")) {
-			combattarget = GameSpawn.ED_NewString(value);
+		if (key.equals("killtarget"))
+		{
+			killtarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("message")) {
-			message = GameSpawn.ED_NewString(value);
+		if (key.equals("combattarget"))
+		{
+			combattarget= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("team")) {
-			team = GameSpawn.ED_NewString(value);
+		if (key.equals("message"))
+		{
+			message= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("wait")) {
-			wait = Lib.atof(value);
+		if (key.equals("team"))
+		{
+			team= GameSpawn.ED_NewString(value);
+			return true;
+		} // F_LSTRING),
+
+		if (key.equals("wait"))
+		{
+			wait= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("delay")) {
-			delay = Lib.atof(value);
+		if (key.equals("delay"))
+		{
+			delay= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("random")) {
-			random = Lib.atof(value);
+		if (key.equals("random"))
+		{
+			random= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("move_origin")) {
-			move_origin = Lib.atov(value);
+		if (key.equals("move_origin"))
+		{
+			move_origin= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("move_angles")) {
-			move_angles = Lib.atov(value);
+		if (key.equals("move_angles"))
+		{
+			move_angles= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("style")) {
-			style = Lib.atoi(value);
+		if (key.equals("style"))
+		{
+			style= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("count")) {
-			count = Lib.atoi(value);
+		if (key.equals("count"))
+		{
+			count= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("health")) {
-			health = Lib.atoi(value);
+		if (key.equals("health"))
+		{
+			health= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("sounds")) {
-			sounds = Lib.atoi(value);
+		if (key.equals("sounds"))
+		{
+			sounds= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("light")) {
+		if (key.equals("light"))
+		{
 			return true;
 		} // F_IGNORE),
 
-		if (key.equals("dmg")) {
-			dmg = Lib.atoi(value);
+		if (key.equals("dmg"))
+		{
+			dmg= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("mass")) {
-			mass = Lib.atoi(value);
+		if (key.equals("mass"))
+		{
+			mass= Lib.atoi(value);
 			return true;
 		} // F_INT),
 
-		if (key.equals("volume")) {
-			volume = Lib.atof(value);
+		if (key.equals("volume"))
+		{
+			volume= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("attenuation")) {
-			attenuation = Lib.atof(value);
+		if (key.equals("attenuation"))
+		{
+			attenuation= Lib.atof(value);
 			return true;
 		} // F_FLOAT),
 
-		if (key.equals("map")) {
-			map = GameSpawn.ED_NewString(value);
+		if (key.equals("map"))
+		{
+			map= GameSpawn.ED_NewString(value);
 			return true;
 		} // F_LSTRING),
 
-		if (key.equals("origin")) {
-			s.origin = Lib.atov(value);
+		if (key.equals("origin"))
+		{
+			s.origin= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("angles")) {
-			s.angles = Lib.atov(value);
+		if (key.equals("angles"))
+		{
+			s.angles= Lib.atov(value);
 			return true;
 		} // F_VECTOR),
 
-		if (key.equals("angle")) {
-			s.angles = new float[] { 0, Lib.atof(value), 0 };
+		if (key.equals("angle"))
+		{
+			s.angles= new float[] { 0, Lib.atof(value), 0 };
 			return true;
 		} // F_ANGLEHACK),
 
-		/* --- NOSPAWN ---
-		if (key.equals("goalentity")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		
-		if (key.equals("movetarget")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		
-		if (key.equals("enemy")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		
-		if (key.equals("oldenemy")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		
-		if (key.equals("activator")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		
-		if (key.equals("groundentity")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("teamchain")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("teammaster")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("owner")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("mynoise")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("mynoise2")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("target_ent")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("chain")) {
-			return true;
-		} // F_EDICT, FFL_NOSPAWN),
-		if (key.equals("prethink")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("think")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("blocked")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("touch")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("use")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("pain")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("die")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("stand")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("idle")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("search")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("walk")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("run")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("dodge")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("attack")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("melee")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("sight")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("checkattack")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		if (key.equals("currentmove")) {
-			return true;
-		} // F_MMOVE, FFL_NOSPAWN),
-		if (key.equals("endfunc")) {
-			return true;
-		} // F_FUNCTION, FFL_NOSPAWN),
-		
-		*/
-		if (key.equals("item")) {
+		if (key.equals("item"))
+		{
 			Game.gi.error("ent.set(\"item\") called.");
 			return true;
 		} // F_ITEM)
 
 		return false;
+	}
+
+	/** Writes the entity to the file. */
+	public void write(QuakeFile f) throws IOException
+	{
+
+		s.write(f);
+		f.writeBoolean(inuse);
+		f.writeInt(linkcount);
+		f.writeInt(num_clusters);
+
+		f.writeInt(9999);
+
+		if (clusternums == null)
+			f.writeInt(-1);
+		else
+		{
+			f.writeInt(Defines.MAX_ENT_CLUSTERS);
+			for (int n= 0; n < Defines.MAX_ENT_CLUSTERS; n++)
+				f.writeInt(clusternums[n]);
+
+		}
+		f.writeInt(headnode);
+		f.writeInt(areanum);
+		f.writeInt(areanum2);
+		f.writeInt(svflags);
+		f.writeVector(mins);
+		f.writeVector(maxs);
+		f.writeVector(absmin);
+		f.writeVector(absmax);
+		f.writeVector(size);
+		f.writeInt(solid);
+		f.writeInt(clipmask);
+
+		f.writeInt(movetype);
+		f.writeInt(flags);
+
+		f.writeString(model);
+		f.writeFloat(freetime);
+		f.writeString(message);
+		f.writeString(classname);
+		f.writeInt(spawnflags);
+		f.writeFloat(timestamp);
+
+		f.writeFloat(angle);
+
+		f.writeString(target);
+		f.writeString(targetname);
+		f.writeString(team);
+		f.writeString(pathtarget);
+		f.writeString(deathtarget);
+		f.writeString(combattarget);
+
+		f.writeEdictRef(target_ent);
+
+		f.writeFloat(speed);
+		f.writeFloat(accel);
+		f.writeFloat(decel);
+
+		f.writeVector(movedir);
+
+		f.writeVector(pos1);
+		f.writeVector(pos2);
+
+		f.writeVector(velocity);
+		f.writeVector(avelocity);
+
+		f.writeInt(mass);
+		f.writeFloat(air_finished);
+
+		f.writeFloat(gravity);
+
+		f.writeEdictRef(goalentity);
+		f.writeEdictRef(movetarget);
+
+		f.writeFloat(yaw_speed);
+		f.writeFloat(ideal_yaw);
+
+		f.writeFloat(nextthink);
+
+		f.writeAdapter(prethink);
+		f.writeAdapter(think);
+		f.writeAdapter(blocked);
+
+		f.writeAdapter(touch);
+		f.writeAdapter(use);
+		f.writeAdapter(pain);
+		f.writeAdapter(die);
+
+		f.writeFloat(touch_debounce_time);
+		f.writeFloat(pain_debounce_time);
+		f.writeFloat(damage_debounce_time);
+
+		f.writeFloat(fly_sound_debounce_time);
+		f.writeFloat(last_move_time);
+
+		f.writeInt(health);
+		f.writeInt(max_health);
+
+		f.writeInt(gib_health);
+		f.writeInt(deadflag);
+		f.writeInt(show_hostile);
+
+		f.writeFloat(powerarmor_time);
+
+		f.writeString(map);
+
+		f.writeInt(viewheight);
+		f.writeInt(takedamage);
+		f.writeInt(dmg);
+		f.writeInt(radius_dmg);
+		f.writeFloat(dmg_radius);
+
+		f.writeInt(sounds);
+		f.writeInt(count);
+
+		f.writeEdictRef(chain);
+		f.writeEdictRef(enemy);
+		f.writeEdictRef(oldenemy);
+		f.writeEdictRef(activator);
+		f.writeEdictRef(groundentity);
+		f.writeInt(groundentity_linkcount);
+		f.writeEdictRef(teamchain);
+		f.writeEdictRef(teammaster);
+
+		f.writeEdictRef(mynoise);
+		f.writeEdictRef(mynoise2);
+
+		f.writeInt(noise_index);
+		f.writeInt(noise_index2);
+
+		f.writeFloat(volume);
+		f.writeFloat(attenuation);
+		f.writeFloat(wait);
+		f.writeFloat(delay);
+		f.writeFloat(random);
+
+		f.writeFloat(teleport_time);
+
+		f.writeInt(watertype);
+		f.writeInt(waterlevel);
+		f.writeVector(move_origin);
+		f.writeVector(move_angles);
+
+		f.writeInt(light_level);
+		f.writeInt(style);
+
+		f.writeItem(item);
+
+		moveinfo.write(f);
+		monsterinfo.write(f);
+		if (client == null)
+			f.writeInt(-1);
+		else
+			f.writeInt(client.index);
+
+		f.writeEdictRef(owner);
+
+		// rst's checker :-)		
+		f.writeInt(9876);
+	}
+
+	/** Reads the entity from the file.*/
+	public void read(QuakeFile f) throws IOException
+	{
+		s.read(f);
+		inuse= f.readBoolean();
+		linkcount= f.readInt();
+		num_clusters= f.readInt();
+
+		if (f.readInt() != 9999)
+			new Throwable("wrong read pos!").printStackTrace();
+
+		int len= f.readInt();
+
+		if (len == -1)
+			clusternums= null;
+		else
+		{
+			clusternums= new int[Defines.MAX_ENT_CLUSTERS];
+			for (int n= 0; n < Defines.MAX_ENT_CLUSTERS; n++)
+				clusternums[n]= f.readInt();
+		}
+
+		headnode= f.readInt();
+		areanum= f.readInt();
+		areanum2= f.readInt();
+		svflags= f.readInt();
+		mins= f.readVector();
+		maxs= f.readVector();
+		absmin= f.readVector();
+		absmax= f.readVector();
+		size= f.readVector();
+		solid= f.readInt();
+		clipmask= f.readInt();
+
+		movetype= f.readInt();
+		flags= f.readInt();
+
+		model= f.readString();
+		freetime= f.readFloat();
+		message= f.readString();
+		classname= f.readString();
+		spawnflags= f.readInt();
+		timestamp= f.readFloat();
+
+		angle= f.readFloat();
+
+		target= f.readString();
+		targetname= f.readString();
+		team= f.readString();
+		pathtarget= f.readString();
+		deathtarget= f.readString();
+		combattarget= f.readString();
+
+		target_ent= f.readEdictRef();
+
+		speed= f.readFloat();
+		accel= f.readFloat();
+		decel= f.readFloat();
+
+		movedir= f.readVector();
+
+		pos1= f.readVector();
+		pos2= f.readVector();
+
+		velocity= f.readVector();
+		avelocity= f.readVector();
+
+		mass= f.readInt();
+		air_finished= f.readFloat();
+
+		gravity= f.readFloat();
+
+		goalentity= f.readEdictRef();
+		movetarget= f.readEdictRef();
+
+		yaw_speed= f.readFloat();
+		ideal_yaw= f.readFloat();
+
+		nextthink= f.readFloat();
+
+		prethink= (EntThinkAdapter) f.readAdapter();
+		think= (EntThinkAdapter) f.readAdapter();
+		blocked= (EntBlockedAdapter) f.readAdapter();
+
+		touch= (EntTouchAdapter) f.readAdapter();
+		use= (EntUseAdapter) f.readAdapter();
+		pain= (EntPainAdapter) f.readAdapter();
+		die= (EntDieAdapter) f.readAdapter();
+
+		touch_debounce_time= f.readFloat();
+		pain_debounce_time= f.readFloat();
+		damage_debounce_time= f.readFloat();
+
+		fly_sound_debounce_time= f.readFloat();
+		last_move_time= f.readFloat();
+
+		health= f.readInt();
+		max_health= f.readInt();
+
+		gib_health= f.readInt();
+		deadflag= f.readInt();
+		show_hostile= f.readInt();
+
+		powerarmor_time= f.readFloat();
+
+		map= f.readString();
+
+		viewheight= f.readInt();
+		takedamage= f.readInt();
+		dmg= f.readInt();
+		radius_dmg= f.readInt();
+		dmg_radius= f.readFloat();
+
+		sounds= f.readInt();
+		count= f.readInt();
+
+		chain= f.readEdictRef();
+		enemy= f.readEdictRef();
+
+		oldenemy= f.readEdictRef();
+		activator= f.readEdictRef();
+		groundentity= f.readEdictRef();
+		if (index == 145)
+			System.out.println("loadground:" + groundentity);
+		groundentity_linkcount= f.readInt();
+		teamchain= f.readEdictRef();
+		teammaster= f.readEdictRef();
+
+		mynoise= f.readEdictRef();
+		mynoise2= f.readEdictRef();
+
+		noise_index= f.readInt();
+		noise_index2= f.readInt();
+
+		volume= f.readFloat();
+		attenuation= f.readFloat();
+		wait= f.readFloat();
+		delay= f.readFloat();
+		random= f.readFloat();
+
+		teleport_time= f.readFloat();
+
+		watertype= f.readInt();
+		waterlevel= f.readInt();
+		move_origin= f.readVector();
+		move_angles= f.readVector();
+
+		light_level= f.readInt();
+		style= f.readInt();
+
+		item= f.readItem();
+
+		moveinfo.read(f);
+		monsterinfo.read(f);
+
+		int ndx= f.readInt();
+		if (ndx == -1)
+			client= null;
+		else
+			client= Game.game.clients[ndx];
+
+		owner= f.readEdictRef();
+
+		// rst's checker :-)
+		if (f.readInt() != 9876)
+			System.err.println("ent load check failed for num " + index);
 	}
 }

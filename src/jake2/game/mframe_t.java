@@ -19,18 +19,44 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 11.11.2003 by RST.
-// $Id: mframe_t.java,v 1.1 2004-07-07 19:59:26 hzi Exp $
+// $Id: mframe_t.java,v 1.2 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
-public class mframe_t {
-	public mframe_t(AIAdapter ai, float dist, EntThinkAdapter think) {
+import jake2.util.Lib;
+import jake2.util.QuakeFile;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+public class mframe_t
+{
+	public mframe_t(AIAdapter ai, float dist, EntThinkAdapter think)
+	{
 		this.ai= ai;
 		this.dist= dist;
 		this.think= think;
 	}
+	
+	/** Empty constructor. */	
+	public mframe_t()
+	{}
 
 	public AIAdapter ai;
 	public float dist;
 	public EntThinkAdapter think;
+
+	public void write(QuakeFile f) throws IOException
+	{
+		f.writeAdapter(ai);
+		f.writeFloat(dist);
+		f.writeAdapter(think);
+	}
+
+	public void read(QuakeFile f) throws IOException
+	{
+		ai= (AIAdapter) f.readAdapter();
+		dist= f.readFloat();
+		think= (EntThinkAdapter) f.readAdapter();
+	}
 }

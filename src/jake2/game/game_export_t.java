@@ -19,11 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_export_t.java,v 1.3 2004-07-09 06:50:49 hzi Exp $
+// $Id: game_export_t.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import jake2.qcommon.Com;
+import jake2.util.QuakeFile;
 
 //
 //functions exported by the game subsystem
@@ -58,8 +63,7 @@ public class game_export_t
 	// ReadGame is called on a loadgame.
 	public void WriteGame(String filename, boolean autosave)
 	{
-		// TODO WriteGame not implemented.
-		Com.Println("WriteGame not implemented.");
+		GameSave.WriteGame(filename, autosave);
 	}
 
 	public void ReadGame(String filename)
@@ -71,28 +75,43 @@ public class game_export_t
 	// loaded with SpawnEntities
 	public void WriteLevel(String filename)
 	{
-		// TODO WriteLevel not implemented.
-		Com.Println("WriteLevel not implemented.");
+		try
+		{
+			GameSave.WriteLevel(filename);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}		
 	}
 
 	public void ReadLevel(String filename)
 	{
-		// TODO ReadLevel not implemented.
-		Com.Println("ReadLevel not implemented.");
+		try
+		{
+			GameSave.ReadLevel(filename);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public boolean ClientConnect(edict_t ent, String userinfo)
 	{
 		return PlayerClient.ClientConnect(ent, userinfo);
 	}
+	
 	public void ClientBegin(edict_t ent)
 	{
 		PlayerClient.ClientBegin(ent);
 	}
+	
 	public void ClientUserinfoChanged(edict_t ent, String userinfo)
 	{
 		PlayerClient.ClientUserinfoChanged(ent, userinfo);
 	}
+	
 	public void ClientDisconnect(edict_t ent)
 	{
 		PlayerClient.ClientDisconnect(ent);
@@ -132,4 +151,4 @@ public class game_export_t
 	public edict_t edicts[] = Game.g_edicts;
 	public int num_edicts; // current number, <= max_edicts
 	public int max_edicts;
-}
+}

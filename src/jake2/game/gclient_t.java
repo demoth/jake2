@@ -19,15 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: gclient_t.java,v 1.3 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.util.Lib;
+import jake2.util.QuakeFile;
 
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 public class gclient_t
@@ -123,6 +125,9 @@ public class gclient_t
 
 	public int index;
 
+
+
+
 	public void clear()
 	{
 		player_state_t ps = new player_state_t();
@@ -163,116 +168,233 @@ public class gclient_t
 
 	}
 
-	public void load(ByteBuffer bb) throws IOException
+	/** Reads a game client from the file. */
+	public void read(QuakeFile f) throws IOException
 	{
 
-		ps.load(bb);
+		ps.load(f);
 
-		ping = bb.getInt();
+		ping = f.readInt();
 
-		pers.load(bb);
-		resp.load(bb);
+		pers.read(f);
+		resp.read(f);
 
-		old_pmove.load(bb);
+		old_pmove.load(f);
 
-		showscores = bb.getInt() != 0;
-		showinventory = bb.getInt() != 0;
-		showhelp = bb.getInt() != 0;
-		showhelpicon = bb.getInt() != 0;
-		ammo_index = bb.getInt();
+		showscores = f.readInt() != 0;
+		showinventory = f.readInt() != 0;
+		showhelp = f.readInt() != 0;
+		showhelpicon = f.readInt() != 0;
+		ammo_index = f.readInt();
 
-		buttons = bb.getInt();
-		oldbuttons = bb.getInt();
-		latched_buttons = bb.getInt();
+		buttons = f.readInt();
+		oldbuttons = f.readInt();
+		latched_buttons = f.readInt();
 
-		//weapon_thunk=bb.getInt()!=0;
-		bb.getInt();
-		//newweapon=GameTarget.itemlist[bb.getInt()];
-		bb.getInt();
+		weapon_thunk=f.readInt()!=0;
+		
+		newweapon=f.readItem();
+		
 
-		damage_armor = bb.getInt();
-		damage_parmor = bb.getInt();
-		damage_blood = bb.getInt();
-		damage_knockback = bb.getInt();
+		damage_armor = f.readInt();
+		damage_parmor = f.readInt();
+		damage_blood = f.readInt();
+		damage_knockback = f.readInt();
 
-		damage_from[0] = bb.getFloat();
-		damage_from[1] = bb.getFloat();
-		damage_from[2] = bb.getFloat();
+		damage_from[0] = f.readFloat();
+		damage_from[1] = f.readFloat();
+		damage_from[2] = f.readFloat();
 
-		killer_yaw = bb.getFloat();
+		killer_yaw = f.readFloat();
 
-		weaponstate = bb.getInt();
+		weaponstate = f.readInt();
 
-		kick_angles[0] = bb.getFloat();
-		kick_angles[1] = bb.getFloat();
-		kick_angles[2] = bb.getFloat();
+		kick_angles[0] = f.readFloat();
+		kick_angles[1] = f.readFloat();
+		kick_angles[2] = f.readFloat();
 
-		kick_origin[0] = bb.getFloat();
-		kick_origin[1] = bb.getFloat();
-		kick_origin[2] = bb.getFloat();
+		kick_origin[0] = f.readFloat();
+		kick_origin[1] = f.readFloat();
+		kick_origin[2] = f.readFloat();
 
-		v_dmg_roll = bb.getFloat();
-		v_dmg_pitch = bb.getFloat();
-		v_dmg_time = bb.getFloat();
-		fall_time = bb.getFloat();
-		fall_value = bb.getFloat();
-		damage_alpha = bb.getFloat();
-		bonus_alpha = bb.getFloat();
+		v_dmg_roll = f.readFloat();
+		v_dmg_pitch = f.readFloat();
+		v_dmg_time = f.readFloat();
+		fall_time = f.readFloat();
+		fall_value = f.readFloat();
+		damage_alpha = f.readFloat();
+		bonus_alpha = f.readFloat();
 
-		damage_blend[0] = bb.getFloat();
-		damage_blend[1] = bb.getFloat();
-		damage_blend[2] = bb.getFloat();
+		damage_blend[0] = f.readFloat();
+		damage_blend[1] = f.readFloat();
+		damage_blend[2] = f.readFloat();
 
-		v_angle[0] = bb.getFloat();
-		v_angle[1] = bb.getFloat();
-		v_angle[2] = bb.getFloat();
+		v_angle[0] = f.readFloat();
+		v_angle[1] = f.readFloat();
+		v_angle[2] = f.readFloat();
 
-		bobtime = bb.getFloat();
+		bobtime = f.readFloat();
 
-		oldviewangles[0] = bb.getFloat();
-		oldviewangles[1] = bb.getFloat();
-		oldviewangles[2] = bb.getFloat();
+		oldviewangles[0] = f.readFloat();
+		oldviewangles[1] = f.readFloat();
+		oldviewangles[2] = f.readFloat();
 
-		oldvelocity[0] = bb.getFloat();
-		oldvelocity[1] = bb.getFloat();
-		oldvelocity[2] = bb.getFloat();
+		oldvelocity[0] = f.readFloat();
+		oldvelocity[1] = f.readFloat();
+		oldvelocity[2] = f.readFloat();
 
-		next_drown_time = bb.getFloat();
+		next_drown_time = f.readFloat();
 
-		old_waterlevel = bb.getInt();
-		breather_sound = bb.getInt();
-		machinegun_shots = bb.getInt();
-		anim_end = bb.getInt();
-		anim_priority = bb.getInt();
-		anim_duck = bb.getInt() != 0;
-		anim_run = bb.getInt() != 0;
+		old_waterlevel = f.readInt();
+		breather_sound = f.readInt();
+		machinegun_shots = f.readInt();
+		anim_end = f.readInt();
+		anim_priority = f.readInt();
+		anim_duck = f.readInt() != 0;
+		anim_run = f.readInt() != 0;
 
-		quad_framenum = bb.getFloat();
-		invincible_framenum = bb.getFloat();
-		breather_framenum = bb.getFloat();
-		enviro_framenum = bb.getFloat();
+		quad_framenum = f.readFloat();
+		invincible_framenum = f.readFloat();
+		breather_framenum = f.readFloat();
+		enviro_framenum = f.readFloat();
 
-		grenade_blew_up = bb.getInt() != 0;
-		grenade_time = bb.getFloat();
-		silencer_shots = bb.getInt();
-		weapon_sound = bb.getInt();
-		pickup_msg_time = bb.getFloat();
-		flood_locktill = bb.getFloat();
-		flood_when[0] = bb.getFloat();
-		flood_when[1] = bb.getFloat();
-		flood_when[2] = bb.getFloat();
-		flood_when[3] = bb.getFloat();
-		flood_when[4] = bb.getFloat();
-		flood_when[5] = bb.getFloat();
-		flood_when[6] = bb.getFloat();
-		flood_when[7] = bb.getFloat();
-		flood_when[8] = bb.getFloat();
-		flood_when[9] = bb.getFloat();
-		flood_whenhead = bb.getInt();
-		respawn_time = bb.getFloat();
-		chase_target = GameUtil.g_edicts[bb.getInt()];
-		update_chase = bb.getInt() != 0;
+		grenade_blew_up = f.readInt() != 0;
+		grenade_time = f.readFloat();
+		silencer_shots = f.readInt();
+		weapon_sound = f.readInt();
+		pickup_msg_time = f.readFloat();
+		flood_locktill = f.readFloat();
+		flood_when[0] = f.readFloat();
+		flood_when[1] = f.readFloat();
+		flood_when[2] = f.readFloat();
+		flood_when[3] = f.readFloat();
+		flood_when[4] = f.readFloat();
+		flood_when[5] = f.readFloat();
+		flood_when[6] = f.readFloat();
+		flood_when[7] = f.readFloat();
+		flood_when[8] = f.readFloat();
+		flood_when[9] = f.readFloat();
+		flood_whenhead = f.readInt();
+		respawn_time = f.readFloat();
+		chase_target = f.readEdictRef();
+		update_chase = f.readInt() != 0;
+		
+		if (f.readInt() != 8765)
+			System.err.println("game client load failed for num=" + index);
 	}
+	
+	/** Writes a game_client_t (a player) to a file. */ 
+	public void write(QuakeFile f) throws IOException
+	{
+		ps.write(f);
+
+		f.writeInt(ping);
+
+		pers.write(f);
+		resp.write(f);
+
+		old_pmove.write(f);
+
+		f.writeInt(showscores?1:0);
+		f.writeInt(showinventory?1:0);
+		f.writeInt(showhelp?1:0);
+		f.writeInt(showhelpicon?1:0);
+		f.writeInt(ammo_index);
+
+		f.writeInt(buttons);
+		f.writeInt(oldbuttons);
+		f.writeInt(latched_buttons);
+
+		f.writeInt(weapon_thunk?1:0);
+		f.writeItem(newweapon);
+		
+
+		f.writeInt(damage_armor);
+		f.writeInt(damage_parmor);
+		f.writeInt(damage_blood);
+		f.writeInt(damage_knockback);
+
+		f.writeFloat(damage_from[0]);
+		f.writeFloat(damage_from[1]);
+		f.writeFloat(damage_from[2]);
+
+		f.writeFloat(killer_yaw);
+
+		f.writeInt(weaponstate);
+
+		f.writeFloat(kick_angles[0]);
+		f.writeFloat(kick_angles[1]);
+		f.writeFloat(kick_angles[2]);
+
+		f.writeFloat(kick_origin[0]);
+		f.writeFloat(kick_origin[1]);
+		f.writeFloat(kick_origin[2]);
+
+		f.writeFloat(v_dmg_roll);
+		f.writeFloat(v_dmg_pitch);
+		f.writeFloat(v_dmg_time);
+		f.writeFloat(fall_time);
+		f.writeFloat(fall_value);
+		f.writeFloat(damage_alpha);
+		f.writeFloat(bonus_alpha);
+
+		f.writeFloat(damage_blend[0]);
+		f.writeFloat(damage_blend[1]);
+		f.writeFloat(damage_blend[2]);
+
+		f.writeFloat(v_angle[0]);
+		f.writeFloat(v_angle[1]);
+		f.writeFloat(v_angle[2]);
+
+		f.writeFloat(bobtime);
+
+		f.writeFloat(oldviewangles[0]);
+		f.writeFloat(oldviewangles[1]);
+		f.writeFloat(oldviewangles[2]);
+
+		f.writeFloat(oldvelocity[0]);
+		f.writeFloat(oldvelocity[1]);
+		f.writeFloat(oldvelocity[2]);
+
+		f.writeFloat(next_drown_time);
+
+		f.writeInt(old_waterlevel);
+		f.writeInt(breather_sound);
+		f.writeInt(machinegun_shots);
+		f.writeInt(anim_end);
+		f.writeInt(anim_priority);
+		f.writeInt(anim_duck?1:0);
+		f.writeInt(anim_run?1:0);
+
+		f.writeFloat(quad_framenum);
+		f.writeFloat(invincible_framenum);
+		f.writeFloat(breather_framenum);
+		f.writeFloat(enviro_framenum);
+
+		f.writeInt(grenade_blew_up?1:0);
+		f.writeFloat(grenade_time);
+		f.writeInt(silencer_shots);
+		f.writeInt(weapon_sound);
+		f.writeFloat(pickup_msg_time);
+		f.writeFloat(flood_locktill);
+		f.writeFloat(flood_when[0]);
+		f.writeFloat(flood_when[1]);
+		f.writeFloat(flood_when[2]);
+		f.writeFloat(flood_when[3]);
+		f.writeFloat(flood_when[4]);
+		f.writeFloat(flood_when[5]);
+		f.writeFloat(flood_when[6]);
+		f.writeFloat(flood_when[7]);
+		f.writeFloat(flood_when[8]);
+		f.writeFloat(flood_when[9]);
+		f.writeInt(flood_whenhead);
+		f.writeFloat(respawn_time);
+		f.writeEdictRef(chase_target);
+		f.writeInt(update_chase?1:0);
+		
+		f.writeInt(8765);
+	}
+	
 	public void dump()
 	{
 
@@ -357,7 +479,5 @@ public class gclient_t
 		Com.Println("respawn_time: " + respawn_time);
 		Com.Println("chase_target: " + chase_target);
 		Com.Println("update_chase: " + update_chase);
-
 	}
-
 }

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.6 2004-07-30 06:03:40 hzi Exp $
+ * $Id: Menu.java,v 1.7 2004-08-20 21:29:56 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,8 +34,10 @@ import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+import jake2.util.QuakeFile;
 
 import java.awt.Dimension;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -53,11 +55,11 @@ abstract class keyfunc_t {
 public final class Menu extends Key {
 
 	static int m_main_cursor;
-	static final int NUM_CURSOR_FRAMES = 15;
+	static final int NUM_CURSOR_FRAMES= 15;
 
-	static final String menu_in_sound = "misc/menu1.wav";
-	static final String menu_move_sound = "misc/menu2.wav";
-	static final String menu_out_sound = "misc/menu3.wav";
+	static final String menu_in_sound= "misc/menu1.wav";
+	static final String menu_move_sound= "misc/menu2.wav";
+	static final String menu_out_sound= "misc/menu3.wav";
 
 	static boolean m_entersound; // play after drawing a frame, so caching		
 	// won't disrupt the sound
@@ -69,7 +71,7 @@ public final class Menu extends Key {
 	//	  =============================================================================
 	/* Support Routines */
 
-	public final static int MAX_MENU_DEPTH = 8;
+	public final static int MAX_MENU_DEPTH= 8;
 
 	public static class menulayer_t {
 		xcommand_t draw;
@@ -82,7 +84,7 @@ public final class Menu extends Key {
 
 		int nitems;
 		int nslots;
-		menucommon_s items[] = new menucommon_s[64];
+		menucommon_s items[]= new menucommon_s[64];
 
 		String statusbar;
 
@@ -97,15 +99,15 @@ public final class Menu extends Key {
 
 	static class menucommon_s {
 		int type;
-		String name;
+		String name= "";
 		int x, y;
 		menuframework_s parent;
 		int cursor_offset;
-		int localdata[] = { 0, 0, 0, 0 };
+		int localdata[]= { 0, 0, 0, 0 };
 		int flags;
-		int n = -1; //position in an array.
+		int n= -1; //position in an array.
 
-		String statusbar;
+		String statusbar= "";
 
 		mcallback callback;
 		mcallback statusbarfunc;
@@ -145,11 +147,11 @@ public final class Menu extends Key {
 
 	}
 
-	public static menulayer_t m_layers[] = new menulayer_t[MAX_MENU_DEPTH];
+	public static menulayer_t m_layers[]= new menulayer_t[MAX_MENU_DEPTH];
 	public static int m_menudepth;
 
 	static void Banner(String name) {
-		Dimension dim = new Dimension();
+		Dimension dim= new Dimension();
 		Globals.re.DrawGetPicSize(dim, name);
 
 		Globals.re.DrawPic(viddef.width / 2 - dim.width / 2, viddef.height / 2 - 110, name);
@@ -163,33 +165,33 @@ public final class Menu extends Key {
 
 		// if this menu is already present, drop back to that level
 		// to avoid stacking menus by hotkeys
-		for (i = 0; i < m_menudepth; i++)
+		for (i= 0; i < m_menudepth; i++)
 			if (m_layers[i].draw == draw && m_layers[i].key == key) {
-				m_menudepth = i;
+				m_menudepth= i;
 			}
 
 		if (i == m_menudepth) {
 			if (m_menudepth >= MAX_MENU_DEPTH)
 				Com.Error(ERR_FATAL, "PushMenu: MAX_MENU_DEPTH");
 
-			m_layers[m_menudepth].draw = m_drawfunc;
-			m_layers[m_menudepth].key = m_keyfunc;
+			m_layers[m_menudepth].draw= m_drawfunc;
+			m_layers[m_menudepth].key= m_keyfunc;
 			m_menudepth++;
 		}
 
-		m_drawfunc = draw;
-		m_keyfunc = key;
+		m_drawfunc= draw;
+		m_keyfunc= key;
 
-		m_entersound = true;
+		m_entersound= true;
 
-		cls.key_dest = key_menu;
+		cls.key_dest= key_menu;
 	}
 
 	static void ForceMenuOff() {
-		m_drawfunc = null;
-		m_keyfunc = null;
-		cls.key_dest = key_game;
-		m_menudepth = 0;
+		m_drawfunc= null;
+		m_keyfunc= null;
+		cls.key_dest= key_game;
+		m_menudepth= 0;
 		Key.ClearStates();
 		Cvar.Set("paused", "0");
 	}
@@ -200,19 +202,19 @@ public final class Menu extends Key {
 			Com.Error(ERR_FATAL, "PopMenu: depth < 1");
 		m_menudepth--;
 
-		m_drawfunc = m_layers[m_menudepth].draw;
-		m_keyfunc = m_layers[m_menudepth].key;
+		m_drawfunc= m_layers[m_menudepth].draw;
+		m_keyfunc= m_layers[m_menudepth].key;
 
 		if (0 == m_menudepth)
 			ForceMenuOff();
 	}
 
 	static String Default_MenuKey(menuframework_s m, int key) {
-		String sound = null;
+		String sound= null;
 		menucommon_s item;
 
 		if (m != null) {
-			if ((item = ((menucommon_s) Menu_ItemAtCursor(m))) != null) {
+			if ((item= ((menucommon_s) Menu_ItemAtCursor(m))) != null) {
 				if (item.type == MTYPE_FIELD) {
 					if (Field_Key((menufield_s) item, key))
 						return null;
@@ -229,14 +231,14 @@ public final class Menu extends Key {
 				if (m != null) {
 					m.cursor--;
 					Menu_AdjustCursor(m, -1);
-					sound = menu_move_sound;
+					sound= menu_move_sound;
 				}
 				break;
 			case K_TAB :
 				if (m != null) {
 					m.cursor++;
 					Menu_AdjustCursor(m, 1);
-					sound = menu_move_sound;
+					sound= menu_move_sound;
 				}
 				break;
 			case K_KP_DOWNARROW :
@@ -244,21 +246,21 @@ public final class Menu extends Key {
 				if (m != null) {
 					m.cursor++;
 					Menu_AdjustCursor(m, 1);
-					sound = menu_move_sound;
+					sound= menu_move_sound;
 				}
 				break;
 			case K_KP_LEFTARROW :
 			case K_LEFTARROW :
 				if (m != null) {
 					Menu_SlideItem(m, -1);
-					sound = menu_move_sound;
+					sound= menu_move_sound;
 				}
 				break;
 			case K_KP_RIGHTARROW :
 			case K_RIGHTARROW :
 				if (m != null) {
 					Menu_SlideItem(m, 1);
-					sound = menu_move_sound;
+					sound= menu_move_sound;
 				}
 				break;
 
@@ -307,7 +309,7 @@ public final class Menu extends Key {
 			case K_ENTER :
 				if (m != null)
 					Menu_SelectItem(m);
-				sound = menu_move_sound;
+				sound= menu_move_sound;
 				break;
 		}
 
@@ -329,7 +331,7 @@ public final class Menu extends Key {
 
 	public static void Print(int cx, int cy, String str) {
 		//while (*str)
-		for (int n = 0; n < str.length(); n++) {
+		for (int n= 0; n < str.length(); n++) {
 			DrawCharacter(cx, cy, str.charAt(n) + 128);
 			//str++;
 			cx += 8;
@@ -337,7 +339,7 @@ public final class Menu extends Key {
 	}
 
 	public static void PrintWhite(int cx, int cy, String str) {
-		for (int n = 0; n < str.length(); n++) {
+		for (int n= 0; n < str.length(); n++) {
 			DrawCharacter(cx, cy, str.charAt(n));
 			//str++;
 			cx += 8;
@@ -364,20 +366,20 @@ public final class Menu extends Key {
 
 		assert(f >= 0) : "negative time and cursor bug";
 
-		f = Math.abs(f);
+		f= Math.abs(f);
 
 		if (!cached) {
 			int i;
 
-			for (i = 0; i < NUM_CURSOR_FRAMES; i++) {
-				cursorname = "m_cursor" + i;
+			for (i= 0; i < NUM_CURSOR_FRAMES; i++) {
+				cursorname= "m_cursor" + i;
 
 				re.RegisterPic(cursorname);
 			}
-			cached = true;
+			cached= true;
 		}
 
-		cursorname = "m_cursor" + f;
+		cursorname= "m_cursor" + f;
 		re.DrawPic(x, y, cursorname);
 	}
 
@@ -386,11 +388,11 @@ public final class Menu extends Key {
 		int n;
 
 		// draw left side
-		cx = x;
-		cy = y;
+		cx= x;
+		cy= y;
 		DrawCharacter(cx, cy, 1);
 
-		for (n = 0; n < lines; n++) {
+		for (n= 0; n < lines; n++) {
 			cy += 8;
 			DrawCharacter(cx, cy, 4);
 		}
@@ -399,10 +401,10 @@ public final class Menu extends Key {
 		// draw middle
 		cx += 8;
 		while (width > 0) {
-			cy = y;
+			cy= y;
 			DrawCharacter(cx, cy, 2);
 
-			for (n = 0; n < lines; n++) {
+			for (n= 0; n < lines; n++) {
 				cy += 8;
 				DrawCharacter(cx, cy, 5);
 			}
@@ -413,9 +415,9 @@ public final class Menu extends Key {
 		}
 
 		// draw right side
-		cy = y;
+		cy= y;
 		DrawCharacter(cx, cy, 3);
-		for (n = 0; n < lines; n++) {
+		for (n= 0; n < lines; n++) {
 			cy += 8;
 			DrawCharacter(cx, cy, 6);
 
@@ -431,9 +433,9 @@ public final class Menu extends Key {
 	
 	=======================================================================
 	*/
-	static final int MAIN_ITEMS = 5;
+	static final int MAIN_ITEMS= 5;
 
-	static xcommand_t Main_Draw = new xcommand_t() {
+	static xcommand_t Main_Draw= new xcommand_t() {
 		public void execute() {
 			Main_Draw();
 		}
@@ -443,52 +445,52 @@ public final class Menu extends Key {
 		int w, h;
 		int ystart;
 		int xoffset;
-		int widest = -1;
-		int totalheight = 0;
+		int widest= -1;
+		int totalheight= 0;
 		String litname;
-		String[] names = { "m_main_game", "m_main_multiplayer", "m_main_options", "m_main_video", "m_main_quit" };
-		Dimension dim = new Dimension();
+		String[] names= { "m_main_game", "m_main_multiplayer", "m_main_options", "m_main_video", "m_main_quit" };
+		Dimension dim= new Dimension();
 
-		for (i = 0; i < names.length; i++) {
+		for (i= 0; i < names.length; i++) {
 			Globals.re.DrawGetPicSize(dim, names[i]);
-			w = dim.width;
-			h = dim.height;
+			w= dim.width;
+			h= dim.height;
 
 			if (w > widest)
-				widest = w;
+				widest= w;
 			totalheight += (h + 12);
 		}
 
-		ystart = (Globals.viddef.height / 2 - 110);
-		xoffset = (Globals.viddef.width - widest + 70) / 2;
+		ystart= (Globals.viddef.height / 2 - 110);
+		xoffset= (Globals.viddef.width - widest + 70) / 2;
 
-		for (i = 0; i < names.length; i++) {
+		for (i= 0; i < names.length; i++) {
 			if (i != m_main_cursor)
 				Globals.re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
 		}
 
 		//strcat(litname, "_sel");
-		litname = names[m_main_cursor] + "_sel";
+		litname= names[m_main_cursor] + "_sel";
 		Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
 		DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11, (int) ((Globals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
 
 		Globals.re.DrawGetPicSize(dim, "m_main_plaque");
-		w = dim.width;
-		h = dim.height;
+		w= dim.width;
+		h= dim.height;
 		Globals.re.DrawPic(xoffset - 30 - w, ystart, "m_main_plaque");
 
 		Globals.re.DrawPic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
 	}
 
-	static keyfunc_t Main_Key = new keyfunc_t() {
+	static keyfunc_t Main_Key= new keyfunc_t() {
 		public String execute(int key) {
 			return Main_Key(key);
 		}
 	};
 
 	static String Main_Key(int key) {
-		String sound = menu_move_sound;
+		String sound= menu_move_sound;
 
 		switch (key) {
 			case Key.K_ESCAPE :
@@ -498,18 +500,18 @@ public final class Menu extends Key {
 			case Key.K_KP_DOWNARROW :
 			case Key.K_DOWNARROW :
 				if (++m_main_cursor >= MAIN_ITEMS)
-					m_main_cursor = 0;
+					m_main_cursor= 0;
 				return sound;
 
 			case Key.K_KP_UPARROW :
 			case Key.K_UPARROW :
 				if (--m_main_cursor < 0)
-					m_main_cursor = MAIN_ITEMS - 1;
+					m_main_cursor= MAIN_ITEMS - 1;
 				return sound;
 
 			case Key.K_KP_ENTER :
 			case Key.K_ENTER :
-				m_entersound = true;
+				m_entersound= true;
 
 				switch (m_main_cursor) {
 					case 0 :
@@ -537,7 +539,7 @@ public final class Menu extends Key {
 		return null;
 	}
 
-	static xcommand_t Menu_Main = new xcommand_t() {
+	static xcommand_t Menu_Main= new xcommand_t() {
 		public void execute() {
 			Menu_Main_f();
 		}
@@ -562,10 +564,10 @@ public final class Menu extends Key {
 	
 	=======================================================================
 	*/
-	static menuframework_s s_multiplayer_menu = new menuframework_s();
-	static menuaction_s s_join_network_server_action = new menuaction_s();
-	static menuaction_s s_start_network_server_action = new menuaction_s();
-	static menuaction_s s_player_setup_action = new menuaction_s();
+	static menuframework_s s_multiplayer_menu= new menuframework_s();
+	static menuaction_s s_join_network_server_action= new menuaction_s();
+	static menuaction_s s_start_network_server_action= new menuaction_s();
+	static menuaction_s s_player_setup_action= new menuaction_s();
 
 	static void Multiplayer_MenuDraw() {
 		Banner("m_banner_multiplayer");
@@ -587,37 +589,37 @@ public final class Menu extends Key {
 	}
 
 	static void Multiplayer_MenuInit() {
-		s_multiplayer_menu.x = (int) (viddef.width * 0.50f - 64);
-		s_multiplayer_menu.nitems = 0;
+		s_multiplayer_menu.x= (int) (viddef.width * 0.50f - 64);
+		s_multiplayer_menu.nitems= 0;
 
-		s_join_network_server_action.type = MTYPE_ACTION;
-		s_join_network_server_action.flags = QMF_LEFT_JUSTIFY;
-		s_join_network_server_action.x = 0;
-		s_join_network_server_action.y = 0;
-		s_join_network_server_action.name = " join network server";
-		s_join_network_server_action.callback = new mcallback() {
+		s_join_network_server_action.type= MTYPE_ACTION;
+		s_join_network_server_action.flags= QMF_LEFT_JUSTIFY;
+		s_join_network_server_action.x= 0;
+		s_join_network_server_action.y= 0;
+		s_join_network_server_action.name= " join network server";
+		s_join_network_server_action.callback= new mcallback() {
 			public void execute(Object o) {
 				JoinNetworkServerFunc(o);
 			};
 		};
 
-		s_start_network_server_action.type = MTYPE_ACTION;
-		s_start_network_server_action.flags = QMF_LEFT_JUSTIFY;
-		s_start_network_server_action.x = 0;
-		s_start_network_server_action.y = 10;
-		s_start_network_server_action.name = " start network server";
-		s_start_network_server_action.callback = new mcallback() {
+		s_start_network_server_action.type= MTYPE_ACTION;
+		s_start_network_server_action.flags= QMF_LEFT_JUSTIFY;
+		s_start_network_server_action.x= 0;
+		s_start_network_server_action.y= 10;
+		s_start_network_server_action.name= " start network server";
+		s_start_network_server_action.callback= new mcallback() {
 			public void execute(Object o) {
 				StartNetworkServerFunc(o);
 			}
 		};
 
-		s_player_setup_action.type = MTYPE_ACTION;
-		s_player_setup_action.flags = QMF_LEFT_JUSTIFY;
-		s_player_setup_action.x = 0;
-		s_player_setup_action.y = 20;
-		s_player_setup_action.name = " player setup";
-		s_player_setup_action.callback = new mcallback() {
+		s_player_setup_action.type= MTYPE_ACTION;
+		s_player_setup_action.flags= QMF_LEFT_JUSTIFY;
+		s_player_setup_action.x= 0;
+		s_player_setup_action.y= 20;
+		s_player_setup_action.name= " player setup";
+		s_player_setup_action.callback= new mcallback() {
 			public void execute(Object o) {
 				PlayerSetupFunc(o);
 			}
@@ -636,7 +638,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_multiplayer_menu, key);
 	}
 
-	static xcommand_t Menu_Multiplayer = new xcommand_t() {
+	static xcommand_t Menu_Multiplayer= new xcommand_t() {
 		public void execute() {
 			Menu_Multiplayer_f();
 		}
@@ -662,7 +664,7 @@ public final class Menu extends Key {
 	
 	=======================================================================
 	*/
-	static String bindnames[][] = { { "+attack", "attack" }, {
+	static String bindnames[][]= { { "+attack", "attack" }, {
 			"weapnext", "next weapon" }, {
 			"+forward", "walk forward" }, {
 			"+back", "backpedal" }, {
@@ -693,38 +695,38 @@ public final class Menu extends Key {
 	int keys_cursor;
 	static boolean bind_grab;
 
-	static menuframework_s s_keys_menu = new menuframework_s();
-	static menuaction_s s_keys_attack_action = new menuaction_s();
-	static menuaction_s s_keys_change_weapon_action = new menuaction_s();
-	static menuaction_s s_keys_walk_forward_action = new menuaction_s();
-	static menuaction_s s_keys_backpedal_action = new menuaction_s();
-	static menuaction_s s_keys_turn_left_action = new menuaction_s();
-	static menuaction_s s_keys_turn_right_action = new menuaction_s();
-	static menuaction_s s_keys_run_action = new menuaction_s();
-	static menuaction_s s_keys_step_left_action = new menuaction_s();
-	static menuaction_s s_keys_step_right_action = new menuaction_s();
-	static menuaction_s s_keys_sidestep_action = new menuaction_s();
-	static menuaction_s s_keys_look_up_action = new menuaction_s();
-	static menuaction_s s_keys_look_down_action = new menuaction_s();
-	static menuaction_s s_keys_center_view_action = new menuaction_s();
-	static menuaction_s s_keys_mouse_look_action = new menuaction_s();
-	static menuaction_s s_keys_keyboard_look_action = new menuaction_s();
-	static menuaction_s s_keys_move_up_action = new menuaction_s();
-	static menuaction_s s_keys_move_down_action = new menuaction_s();
-	static menuaction_s s_keys_inventory_action = new menuaction_s();
-	static menuaction_s s_keys_inv_use_action = new menuaction_s();
-	static menuaction_s s_keys_inv_drop_action = new menuaction_s();
-	static menuaction_s s_keys_inv_prev_action = new menuaction_s();
-	static menuaction_s s_keys_inv_next_action = new menuaction_s();
+	static menuframework_s s_keys_menu= new menuframework_s();
+	static menuaction_s s_keys_attack_action= new menuaction_s();
+	static menuaction_s s_keys_change_weapon_action= new menuaction_s();
+	static menuaction_s s_keys_walk_forward_action= new menuaction_s();
+	static menuaction_s s_keys_backpedal_action= new menuaction_s();
+	static menuaction_s s_keys_turn_left_action= new menuaction_s();
+	static menuaction_s s_keys_turn_right_action= new menuaction_s();
+	static menuaction_s s_keys_run_action= new menuaction_s();
+	static menuaction_s s_keys_step_left_action= new menuaction_s();
+	static menuaction_s s_keys_step_right_action= new menuaction_s();
+	static menuaction_s s_keys_sidestep_action= new menuaction_s();
+	static menuaction_s s_keys_look_up_action= new menuaction_s();
+	static menuaction_s s_keys_look_down_action= new menuaction_s();
+	static menuaction_s s_keys_center_view_action= new menuaction_s();
+	static menuaction_s s_keys_mouse_look_action= new menuaction_s();
+	static menuaction_s s_keys_keyboard_look_action= new menuaction_s();
+	static menuaction_s s_keys_move_up_action= new menuaction_s();
+	static menuaction_s s_keys_move_down_action= new menuaction_s();
+	static menuaction_s s_keys_inventory_action= new menuaction_s();
+	static menuaction_s s_keys_inv_use_action= new menuaction_s();
+	static menuaction_s s_keys_inv_drop_action= new menuaction_s();
+	static menuaction_s s_keys_inv_prev_action= new menuaction_s();
+	static menuaction_s s_keys_inv_next_action= new menuaction_s();
 
-	static menuaction_s s_keys_help_computer_action = new menuaction_s();
+	static menuaction_s s_keys_help_computer_action= new menuaction_s();
 
 	static void UnbindCommand(String command) {
 		int j;
 		String b;
 
-		for (j = 0; j < 256; j++) {
-			b = keybindings[j];
+		for (j= 0; j < 256; j++) {
+			b= keybindings[j];
 			if (b == null)
 				continue;
 			if (b.equals(command))
@@ -737,16 +739,16 @@ public final class Menu extends Key {
 		int j;
 		String b;
 
-		twokeys[0] = twokeys[1] = -1;
-		count = 0;
+		twokeys[0]= twokeys[1]= -1;
+		count= 0;
 
-		for (j = 0; j < 256; j++) {
-			b = keybindings[j];
+		for (j= 0; j < 256; j++) {
+			b= keybindings[j];
 			if (b == null)
 				continue;
-				
-			if (b.equals(command)) {				
-				twokeys[count] = j;
+
+			if (b.equals(command)) {
+				twokeys[count]= j;
 				count++;
 				if (count == 2)
 					break;
@@ -762,8 +764,8 @@ public final class Menu extends Key {
 	}
 
 	static void DrawKeyBindingFunc(Object self) {
-		int keys[] = { 0, 0 };
-		menuaction_s a = (menuaction_s) self;
+		int keys[]= { 0, 0 };
+		menuaction_s a= (menuaction_s) self;
 
 		FindKeysForCommand(bindnames[a.localdata[0]][0], keys);
 
@@ -774,11 +776,11 @@ public final class Menu extends Key {
 			int x;
 			String name;
 
-			name = Key.KeynumToString(keys[0]);
+			name= Key.KeynumToString(keys[0]);
 
 			Menu_DrawString(a.x + a.parent.x + 16, a.y + a.parent.y, name);
 
-			x = name.length() * 8;
+			x= name.length() * 8;
 
 			if (keys[1] != -1) {
 				Menu_DrawString(a.x + a.parent.x + 24 + x, a.y + a.parent.y, "or");
@@ -788,322 +790,322 @@ public final class Menu extends Key {
 	}
 
 	static void KeyBindingFunc(Object self) {
-		menuaction_s a = (menuaction_s) self;
-		int keys[] = { 0, 0 };
+		menuaction_s a= (menuaction_s) self;
+		int keys[]= { 0, 0 };
 
 		FindKeysForCommand(bindnames[a.localdata[0]][0], keys);
 
 		if (keys[1] != -1)
 			UnbindCommand(bindnames[a.localdata[0]][0]);
 
-		bind_grab = true;
+		bind_grab= true;
 
 		Menu_SetStatusBar(s_keys_menu, "press a key or button for this action");
 	}
 
 	static void Keys_MenuInit() {
-		int y = 0;
-		int i = 0;
+		int y= 0;
+		int i= 0;
 
-		s_keys_menu.x = (int) (viddef.width * 0.50);
-		s_keys_menu.nitems = 0;
-		s_keys_menu.cursordraw = new mcallback() {
+		s_keys_menu.x= (int) (viddef.width * 0.50);
+		s_keys_menu.nitems= 0;
+		s_keys_menu.cursordraw= new mcallback() {
 			public void execute(Object o) {
 				KeyCursorDrawFunc((menuframework_s) o);
 			}
 		};
 
-		s_keys_attack_action.type = MTYPE_ACTION;
-		s_keys_attack_action.flags = QMF_GRAYED;
-		s_keys_attack_action.x = 0;
-		s_keys_attack_action.y = y;
-		s_keys_attack_action.ownerdraw = new mcallback() {
+		s_keys_attack_action.type= MTYPE_ACTION;
+		s_keys_attack_action.flags= QMF_GRAYED;
+		s_keys_attack_action.x= 0;
+		s_keys_attack_action.y= y;
+		s_keys_attack_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
-		s_keys_attack_action.localdata[0] = i;
-		s_keys_attack_action.name = bindnames[s_keys_attack_action.localdata[0]][1];
+		s_keys_attack_action.localdata[0]= i;
+		s_keys_attack_action.name= bindnames[s_keys_attack_action.localdata[0]][1];
 
-		s_keys_change_weapon_action.type = MTYPE_ACTION;
-		s_keys_change_weapon_action.flags = QMF_GRAYED;
-		s_keys_change_weapon_action.x = 0;
-		s_keys_change_weapon_action.y = y += 9;
-		s_keys_change_weapon_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-
-		s_keys_change_weapon_action.localdata[0] = ++i;
-		s_keys_change_weapon_action.name = bindnames[s_keys_change_weapon_action.localdata[0]][1];
-
-		s_keys_walk_forward_action.type = MTYPE_ACTION;
-		s_keys_walk_forward_action.flags = QMF_GRAYED;
-		s_keys_walk_forward_action.x = 0;
-		s_keys_walk_forward_action.y = y += 9;
-		s_keys_walk_forward_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_walk_forward_action.localdata[0] = ++i;
-		s_keys_walk_forward_action.name = bindnames[s_keys_walk_forward_action.localdata[0]][1];
-
-		s_keys_backpedal_action.type = MTYPE_ACTION;
-		s_keys_backpedal_action.flags = QMF_GRAYED;
-		s_keys_backpedal_action.x = 0;
-		s_keys_backpedal_action.y = y += 9;
-		s_keys_backpedal_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_backpedal_action.localdata[0] = ++i;
-		s_keys_backpedal_action.name = bindnames[s_keys_backpedal_action.localdata[0]][1];
-
-		s_keys_turn_left_action.type = MTYPE_ACTION;
-		s_keys_turn_left_action.flags = QMF_GRAYED;
-		s_keys_turn_left_action.x = 0;
-		s_keys_turn_left_action.y = y += 9;
-		s_keys_turn_left_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_turn_left_action.localdata[0] = ++i;
-		s_keys_turn_left_action.name = bindnames[s_keys_turn_left_action.localdata[0]][1];
-
-		s_keys_turn_right_action.type = MTYPE_ACTION;
-		s_keys_turn_right_action.flags = QMF_GRAYED;
-		s_keys_turn_right_action.x = 0;
-		s_keys_turn_right_action.y = y += 9;
-		s_keys_turn_right_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_turn_right_action.localdata[0] = ++i;
-		s_keys_turn_right_action.name = bindnames[s_keys_turn_right_action.localdata[0]][1];
-
-		s_keys_run_action.type = MTYPE_ACTION;
-		s_keys_run_action.flags = QMF_GRAYED;
-		s_keys_run_action.x = 0;
-		s_keys_run_action.y = y += 9;
-		s_keys_run_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_run_action.localdata[0] = ++i;
-		s_keys_run_action.name = bindnames[s_keys_run_action.localdata[0]][1];
-
-		s_keys_step_left_action.type = MTYPE_ACTION;
-		s_keys_step_left_action.flags = QMF_GRAYED;
-		s_keys_step_left_action.x = 0;
-		s_keys_step_left_action.y = y += 9;
-		s_keys_step_left_action.ownerdraw = new mcallback() {
-			public void execute(Object o) {
-				DrawKeyBindingFunc(o);
-			}
-		};
-		s_keys_step_left_action.localdata[0] = ++i;
-		s_keys_step_left_action.name = bindnames[s_keys_step_left_action.localdata[0]][1];
-
-		s_keys_step_right_action.type = MTYPE_ACTION;
-		s_keys_step_right_action.flags = QMF_GRAYED;
-		s_keys_step_right_action.x = 0;
-		s_keys_step_right_action.y = y += 9;
-		s_keys_step_right_action.ownerdraw = new mcallback() {
+		s_keys_change_weapon_action.type= MTYPE_ACTION;
+		s_keys_change_weapon_action.flags= QMF_GRAYED;
+		s_keys_change_weapon_action.x= 0;
+		s_keys_change_weapon_action.y= y += 9;
+		s_keys_change_weapon_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_step_right_action.localdata[0] = ++i;
-		s_keys_step_right_action.name = bindnames[s_keys_step_right_action.localdata[0]][1];
+		s_keys_change_weapon_action.localdata[0]= ++i;
+		s_keys_change_weapon_action.name= bindnames[s_keys_change_weapon_action.localdata[0]][1];
 
-		s_keys_sidestep_action.type = MTYPE_ACTION;
-		s_keys_sidestep_action.flags = QMF_GRAYED;
-		s_keys_sidestep_action.x = 0;
-		s_keys_sidestep_action.y = y += 9;
-		s_keys_sidestep_action.ownerdraw = new mcallback() {
+		s_keys_walk_forward_action.type= MTYPE_ACTION;
+		s_keys_walk_forward_action.flags= QMF_GRAYED;
+		s_keys_walk_forward_action.x= 0;
+		s_keys_walk_forward_action.y= y += 9;
+		s_keys_walk_forward_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_walk_forward_action.localdata[0]= ++i;
+		s_keys_walk_forward_action.name= bindnames[s_keys_walk_forward_action.localdata[0]][1];
+
+		s_keys_backpedal_action.type= MTYPE_ACTION;
+		s_keys_backpedal_action.flags= QMF_GRAYED;
+		s_keys_backpedal_action.x= 0;
+		s_keys_backpedal_action.y= y += 9;
+		s_keys_backpedal_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_backpedal_action.localdata[0]= ++i;
+		s_keys_backpedal_action.name= bindnames[s_keys_backpedal_action.localdata[0]][1];
+
+		s_keys_turn_left_action.type= MTYPE_ACTION;
+		s_keys_turn_left_action.flags= QMF_GRAYED;
+		s_keys_turn_left_action.x= 0;
+		s_keys_turn_left_action.y= y += 9;
+		s_keys_turn_left_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_turn_left_action.localdata[0]= ++i;
+		s_keys_turn_left_action.name= bindnames[s_keys_turn_left_action.localdata[0]][1];
+
+		s_keys_turn_right_action.type= MTYPE_ACTION;
+		s_keys_turn_right_action.flags= QMF_GRAYED;
+		s_keys_turn_right_action.x= 0;
+		s_keys_turn_right_action.y= y += 9;
+		s_keys_turn_right_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_turn_right_action.localdata[0]= ++i;
+		s_keys_turn_right_action.name= bindnames[s_keys_turn_right_action.localdata[0]][1];
+
+		s_keys_run_action.type= MTYPE_ACTION;
+		s_keys_run_action.flags= QMF_GRAYED;
+		s_keys_run_action.x= 0;
+		s_keys_run_action.y= y += 9;
+		s_keys_run_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_run_action.localdata[0]= ++i;
+		s_keys_run_action.name= bindnames[s_keys_run_action.localdata[0]][1];
+
+		s_keys_step_left_action.type= MTYPE_ACTION;
+		s_keys_step_left_action.flags= QMF_GRAYED;
+		s_keys_step_left_action.x= 0;
+		s_keys_step_left_action.y= y += 9;
+		s_keys_step_left_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+		s_keys_step_left_action.localdata[0]= ++i;
+		s_keys_step_left_action.name= bindnames[s_keys_step_left_action.localdata[0]][1];
+
+		s_keys_step_right_action.type= MTYPE_ACTION;
+		s_keys_step_right_action.flags= QMF_GRAYED;
+		s_keys_step_right_action.x= 0;
+		s_keys_step_right_action.y= y += 9;
+		s_keys_step_right_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_sidestep_action.localdata[0] = ++i;
-		s_keys_sidestep_action.name = bindnames[s_keys_sidestep_action.localdata[0]][1];
+		s_keys_step_right_action.localdata[0]= ++i;
+		s_keys_step_right_action.name= bindnames[s_keys_step_right_action.localdata[0]][1];
 
-		s_keys_look_up_action.type = MTYPE_ACTION;
-		s_keys_look_up_action.flags = QMF_GRAYED;
-		s_keys_look_up_action.x = 0;
-		s_keys_look_up_action.y = y += 9;
-		s_keys_look_up_action.ownerdraw = new mcallback() {
+		s_keys_sidestep_action.type= MTYPE_ACTION;
+		s_keys_sidestep_action.flags= QMF_GRAYED;
+		s_keys_sidestep_action.x= 0;
+		s_keys_sidestep_action.y= y += 9;
+		s_keys_sidestep_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_look_up_action.localdata[0] = ++i;
-		s_keys_look_up_action.name = bindnames[s_keys_look_up_action.localdata[0]][1];
+		s_keys_sidestep_action.localdata[0]= ++i;
+		s_keys_sidestep_action.name= bindnames[s_keys_sidestep_action.localdata[0]][1];
 
-		s_keys_look_down_action.type = MTYPE_ACTION;
-		s_keys_look_down_action.flags = QMF_GRAYED;
-		s_keys_look_down_action.x = 0;
-		s_keys_look_down_action.y = y += 9;
-		s_keys_look_down_action.ownerdraw = new mcallback() {
+		s_keys_look_up_action.type= MTYPE_ACTION;
+		s_keys_look_up_action.flags= QMF_GRAYED;
+		s_keys_look_up_action.x= 0;
+		s_keys_look_up_action.y= y += 9;
+		s_keys_look_up_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_look_down_action.localdata[0] = ++i;
-		s_keys_look_down_action.name = bindnames[s_keys_look_down_action.localdata[0]][1];
+		s_keys_look_up_action.localdata[0]= ++i;
+		s_keys_look_up_action.name= bindnames[s_keys_look_up_action.localdata[0]][1];
 
-		s_keys_center_view_action.type = MTYPE_ACTION;
-		s_keys_center_view_action.flags = QMF_GRAYED;
-		s_keys_center_view_action.x = 0;
-		s_keys_center_view_action.y = y += 9;
-		s_keys_center_view_action.ownerdraw = new mcallback() {
+		s_keys_look_down_action.type= MTYPE_ACTION;
+		s_keys_look_down_action.flags= QMF_GRAYED;
+		s_keys_look_down_action.x= 0;
+		s_keys_look_down_action.y= y += 9;
+		s_keys_look_down_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_center_view_action.localdata[0] = ++i;
-		s_keys_center_view_action.name = bindnames[s_keys_center_view_action.localdata[0]][1];
+		s_keys_look_down_action.localdata[0]= ++i;
+		s_keys_look_down_action.name= bindnames[s_keys_look_down_action.localdata[0]][1];
 
-		s_keys_mouse_look_action.type = MTYPE_ACTION;
-		s_keys_mouse_look_action.flags = QMF_GRAYED;
-		s_keys_mouse_look_action.x = 0;
-		s_keys_mouse_look_action.y = y += 9;
-		s_keys_mouse_look_action.ownerdraw = new mcallback() {
+		s_keys_center_view_action.type= MTYPE_ACTION;
+		s_keys_center_view_action.flags= QMF_GRAYED;
+		s_keys_center_view_action.x= 0;
+		s_keys_center_view_action.y= y += 9;
+		s_keys_center_view_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_mouse_look_action.localdata[0] = ++i;
-		s_keys_mouse_look_action.name = bindnames[s_keys_mouse_look_action.localdata[0]][1];
+		s_keys_center_view_action.localdata[0]= ++i;
+		s_keys_center_view_action.name= bindnames[s_keys_center_view_action.localdata[0]][1];
 
-		s_keys_keyboard_look_action.type = MTYPE_ACTION;
-		s_keys_keyboard_look_action.flags = QMF_GRAYED;
-		s_keys_keyboard_look_action.x = 0;
-		s_keys_keyboard_look_action.y = y += 9;
-		s_keys_keyboard_look_action.ownerdraw = new mcallback() {
+		s_keys_mouse_look_action.type= MTYPE_ACTION;
+		s_keys_mouse_look_action.flags= QMF_GRAYED;
+		s_keys_mouse_look_action.x= 0;
+		s_keys_mouse_look_action.y= y += 9;
+		s_keys_mouse_look_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_keyboard_look_action.localdata[0] = ++i;
-		s_keys_keyboard_look_action.name = bindnames[s_keys_keyboard_look_action.localdata[0]][1];
+		s_keys_mouse_look_action.localdata[0]= ++i;
+		s_keys_mouse_look_action.name= bindnames[s_keys_mouse_look_action.localdata[0]][1];
 
-		s_keys_move_up_action.type = MTYPE_ACTION;
-		s_keys_move_up_action.flags = QMF_GRAYED;
-		s_keys_move_up_action.x = 0;
-		s_keys_move_up_action.y = y += 9;
-		s_keys_move_up_action.ownerdraw = new mcallback() {
+		s_keys_keyboard_look_action.type= MTYPE_ACTION;
+		s_keys_keyboard_look_action.flags= QMF_GRAYED;
+		s_keys_keyboard_look_action.x= 0;
+		s_keys_keyboard_look_action.y= y += 9;
+		s_keys_keyboard_look_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_move_up_action.localdata[0] = ++i;
-		s_keys_move_up_action.name = bindnames[s_keys_move_up_action.localdata[0]][1];
+		s_keys_keyboard_look_action.localdata[0]= ++i;
+		s_keys_keyboard_look_action.name= bindnames[s_keys_keyboard_look_action.localdata[0]][1];
 
-		s_keys_move_down_action.type = MTYPE_ACTION;
-		s_keys_move_down_action.flags = QMF_GRAYED;
-		s_keys_move_down_action.x = 0;
-		s_keys_move_down_action.y = y += 9;
-		s_keys_move_down_action.ownerdraw = new mcallback() {
+		s_keys_move_up_action.type= MTYPE_ACTION;
+		s_keys_move_up_action.flags= QMF_GRAYED;
+		s_keys_move_up_action.x= 0;
+		s_keys_move_up_action.y= y += 9;
+		s_keys_move_up_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_move_down_action.localdata[0] = ++i;
-		s_keys_move_down_action.name = bindnames[s_keys_move_down_action.localdata[0]][1];
+		s_keys_move_up_action.localdata[0]= ++i;
+		s_keys_move_up_action.name= bindnames[s_keys_move_up_action.localdata[0]][1];
 
-		s_keys_inventory_action.type = MTYPE_ACTION;
-		s_keys_inventory_action.flags = QMF_GRAYED;
-		s_keys_inventory_action.x = 0;
-		s_keys_inventory_action.y = y += 9;
-		s_keys_inventory_action.ownerdraw = new mcallback() {
+		s_keys_move_down_action.type= MTYPE_ACTION;
+		s_keys_move_down_action.flags= QMF_GRAYED;
+		s_keys_move_down_action.x= 0;
+		s_keys_move_down_action.y= y += 9;
+		s_keys_move_down_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_inventory_action.localdata[0] = ++i;
-		s_keys_inventory_action.name = bindnames[s_keys_inventory_action.localdata[0]][1];
+		s_keys_move_down_action.localdata[0]= ++i;
+		s_keys_move_down_action.name= bindnames[s_keys_move_down_action.localdata[0]][1];
 
-		s_keys_inv_use_action.type = MTYPE_ACTION;
-		s_keys_inv_use_action.flags = QMF_GRAYED;
-		s_keys_inv_use_action.x = 0;
-		s_keys_inv_use_action.y = y += 9;
-		s_keys_inv_use_action.ownerdraw = new mcallback() {
+		s_keys_inventory_action.type= MTYPE_ACTION;
+		s_keys_inventory_action.flags= QMF_GRAYED;
+		s_keys_inventory_action.x= 0;
+		s_keys_inventory_action.y= y += 9;
+		s_keys_inventory_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_inv_use_action.localdata[0] = ++i;
-		s_keys_inv_use_action.name = bindnames[s_keys_inv_use_action.localdata[0]][1];
+		s_keys_inventory_action.localdata[0]= ++i;
+		s_keys_inventory_action.name= bindnames[s_keys_inventory_action.localdata[0]][1];
 
-		s_keys_inv_drop_action.type = MTYPE_ACTION;
-		s_keys_inv_drop_action.flags = QMF_GRAYED;
-		s_keys_inv_drop_action.x = 0;
-		s_keys_inv_drop_action.y = y += 9;
-		s_keys_inv_drop_action.ownerdraw = new mcallback() {
+		s_keys_inv_use_action.type= MTYPE_ACTION;
+		s_keys_inv_use_action.flags= QMF_GRAYED;
+		s_keys_inv_use_action.x= 0;
+		s_keys_inv_use_action.y= y += 9;
+		s_keys_inv_use_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_inv_drop_action.localdata[0] = ++i;
-		s_keys_inv_drop_action.name = bindnames[s_keys_inv_drop_action.localdata[0]][1];
+		s_keys_inv_use_action.localdata[0]= ++i;
+		s_keys_inv_use_action.name= bindnames[s_keys_inv_use_action.localdata[0]][1];
 
-		s_keys_inv_prev_action.type = MTYPE_ACTION;
-		s_keys_inv_prev_action.flags = QMF_GRAYED;
-		s_keys_inv_prev_action.x = 0;
-		s_keys_inv_prev_action.y = y += 9;
-		s_keys_inv_prev_action.ownerdraw = new mcallback() {
+		s_keys_inv_drop_action.type= MTYPE_ACTION;
+		s_keys_inv_drop_action.flags= QMF_GRAYED;
+		s_keys_inv_drop_action.x= 0;
+		s_keys_inv_drop_action.y= y += 9;
+		s_keys_inv_drop_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_inv_prev_action.localdata[0] = ++i;
-		s_keys_inv_prev_action.name = bindnames[s_keys_inv_prev_action.localdata[0]][1];
+		s_keys_inv_drop_action.localdata[0]= ++i;
+		s_keys_inv_drop_action.name= bindnames[s_keys_inv_drop_action.localdata[0]][1];
 
-		s_keys_inv_next_action.type = MTYPE_ACTION;
-		s_keys_inv_next_action.flags = QMF_GRAYED;
-		s_keys_inv_next_action.x = 0;
-		s_keys_inv_next_action.y = y += 9;
-		s_keys_inv_next_action.ownerdraw = new mcallback() {
+		s_keys_inv_prev_action.type= MTYPE_ACTION;
+		s_keys_inv_prev_action.flags= QMF_GRAYED;
+		s_keys_inv_prev_action.x= 0;
+		s_keys_inv_prev_action.y= y += 9;
+		s_keys_inv_prev_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_inv_next_action.localdata[0] = ++i;
-		s_keys_inv_next_action.name = bindnames[s_keys_inv_next_action.localdata[0]][1];
+		s_keys_inv_prev_action.localdata[0]= ++i;
+		s_keys_inv_prev_action.name= bindnames[s_keys_inv_prev_action.localdata[0]][1];
 
-		s_keys_help_computer_action.type = MTYPE_ACTION;
-		s_keys_help_computer_action.flags = QMF_GRAYED;
-		s_keys_help_computer_action.x = 0;
-		s_keys_help_computer_action.y = y += 9;
-		s_keys_help_computer_action.ownerdraw = new mcallback() {
+		s_keys_inv_next_action.type= MTYPE_ACTION;
+		s_keys_inv_next_action.flags= QMF_GRAYED;
+		s_keys_inv_next_action.x= 0;
+		s_keys_inv_next_action.y= y += 9;
+		s_keys_inv_next_action.ownerdraw= new mcallback() {
 			public void execute(Object o) {
 				DrawKeyBindingFunc(o);
 			}
 		};
 
-		s_keys_help_computer_action.localdata[0] = ++i;
-		s_keys_help_computer_action.name = bindnames[s_keys_help_computer_action.localdata[0]][1];
+		s_keys_inv_next_action.localdata[0]= ++i;
+		s_keys_inv_next_action.name= bindnames[s_keys_inv_next_action.localdata[0]][1];
+
+		s_keys_help_computer_action.type= MTYPE_ACTION;
+		s_keys_help_computer_action.flags= QMF_GRAYED;
+		s_keys_help_computer_action.x= 0;
+		s_keys_help_computer_action.y= y += 9;
+		s_keys_help_computer_action.ownerdraw= new mcallback() {
+			public void execute(Object o) {
+				DrawKeyBindingFunc(o);
+			}
+		};
+
+		s_keys_help_computer_action.localdata[0]= ++i;
+		s_keys_help_computer_action.name= bindnames[s_keys_help_computer_action.localdata[0]][1];
 
 		Menu_AddItem(s_keys_menu, s_keys_attack_action);
 		Menu_AddItem(s_keys_menu, s_keys_change_weapon_action);
@@ -1135,7 +1137,7 @@ public final class Menu extends Key {
 		Menu_Center(s_keys_menu);
 	}
 
-	static xcommand_t Keys_MenuDraw = new xcommand_t() {
+	static xcommand_t Keys_MenuDraw= new xcommand_t() {
 		public void execute() {
 			Keys_MenuDraw_f();
 		}
@@ -1146,13 +1148,13 @@ public final class Menu extends Key {
 		Menu_Draw(s_keys_menu);
 	}
 
-	static keyfunc_t Keys_MenuKey = new keyfunc_t() {
+	static keyfunc_t Keys_MenuKey= new keyfunc_t() {
 		public String execute(int key) {
 			return Keys_MenuKey_f(key);
 		}
 	};
 	static String Keys_MenuKey_f(int key) {
-		menuaction_s item = (menuaction_s) Menu_ItemAtCursor(s_keys_menu);
+		menuaction_s item= (menuaction_s) Menu_ItemAtCursor(s_keys_menu);
 
 		if (bind_grab) {
 			if (key != K_ESCAPE && key != '`') {
@@ -1160,12 +1162,12 @@ public final class Menu extends Key {
 				String cmd;
 
 				//Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n", Key_KeynumToString(key), bindnames[item.localdata[0]][0]);
-				cmd = "bind \"" + Key.KeynumToString(key) + "\" \"" + bindnames[item.localdata[0]][0] + "\"";
+				cmd= "bind \"" + Key.KeynumToString(key) + "\" \"" + bindnames[item.localdata[0]][0] + "\"";
 				Cbuf.InsertText(cmd);
 			}
 
 			Menu_SetStatusBar(s_keys_menu, "enter to change, backspace to clear");
-			bind_grab = false;
+			bind_grab= false;
 			return menu_out_sound;
 		}
 
@@ -1184,7 +1186,7 @@ public final class Menu extends Key {
 		}
 	}
 
-	static xcommand_t Menu_Keys = new xcommand_t() {
+	static xcommand_t Menu_Keys= new xcommand_t() {
 		public void execute() {
 			Menu_Keys_f();
 		}
@@ -1211,23 +1213,23 @@ public final class Menu extends Key {
 	*/
 	static cvar_t win_noalttab;
 
-	static menuframework_s s_options_menu = new menuframework_s();
-	static menuaction_s s_options_defaults_action = new menuaction_s();
-	static menuaction_s s_options_customize_options_action = new menuaction_s();
-	static menuslider_s s_options_sensitivity_slider = new menuslider_s();
-	static menulist_s s_options_freelook_box = new menulist_s();
-	static menulist_s s_options_noalttab_box = new menulist_s();
-	static menulist_s s_options_alwaysrun_box = new menulist_s();
-	static menulist_s s_options_invertmouse_box = new menulist_s();
-	static menulist_s s_options_lookspring_box = new menulist_s();
-	static menulist_s s_options_lookstrafe_box = new menulist_s();
-	static menulist_s s_options_crosshair_box = new menulist_s();
-	static menuslider_s s_options_sfxvolume_slider = new menuslider_s();
-	static menulist_s s_options_joystick_box = new menulist_s();
-	static menulist_s s_options_cdvolume_box = new menulist_s();
-	static menulist_s s_options_quality_list = new menulist_s();
+	static menuframework_s s_options_menu= new menuframework_s();
+	static menuaction_s s_options_defaults_action= new menuaction_s();
+	static menuaction_s s_options_customize_options_action= new menuaction_s();
+	static menuslider_s s_options_sensitivity_slider= new menuslider_s();
+	static menulist_s s_options_freelook_box= new menulist_s();
+	static menulist_s s_options_noalttab_box= new menulist_s();
+	static menulist_s s_options_alwaysrun_box= new menulist_s();
+	static menulist_s s_options_invertmouse_box= new menulist_s();
+	static menulist_s s_options_lookspring_box= new menulist_s();
+	static menulist_s s_options_lookstrafe_box= new menulist_s();
+	static menulist_s s_options_crosshair_box= new menulist_s();
+	static menuslider_s s_options_sfxvolume_slider= new menuslider_s();
+	static menulist_s s_options_joystick_box= new menulist_s();
+	static menulist_s s_options_cdvolume_box= new menulist_s();
+	static menulist_s s_options_quality_list= new menulist_s();
 	//static menulist_s s_options_compatibility_list = new menulist_s();
-	static menuaction_s s_options_console_action = new menuaction_s();
+	static menuaction_s s_options_console_action= new menuaction_s();
 
 	static void CrosshairFunc(Object unused) {
 		Cvar.SetValue("crosshair", s_options_crosshair_box.curvalue);
@@ -1266,38 +1268,39 @@ public final class Menu extends Key {
 	}
 
 	static void ControlsSetMenuItemValues() {
-		s_options_sfxvolume_slider.curvalue = Cvar.VariableValue("s_volume") * 10;
-		s_options_cdvolume_box.curvalue = 1 - ((int) Cvar.VariableValue("cd_nocd"));
+		s_options_sfxvolume_slider.curvalue= Cvar.VariableValue("s_volume") * 10;
+		s_options_cdvolume_box.curvalue= 1 - ((int) Cvar.VariableValue("cd_nocd"));
 		//s_options_quality_list.curvalue = 1 - ((int) Cvar.VariableValue("s_loadas8bit"));
 		if ("joal".equals(Cvar.VariableString("s_impl"))) {
-			s_options_quality_list.curvalue = 0;
-		} else {
-			s_options_quality_list.curvalue = 1;
+			s_options_quality_list.curvalue= 0;
 		}
-				
-		s_options_sensitivity_slider.curvalue = (sensitivity.value) * 2;
+		else {
+			s_options_quality_list.curvalue= 1;
+		}
+
+		s_options_sensitivity_slider.curvalue= (sensitivity.value) * 2;
 
 		Cvar.SetValue("cl_run", ClampCvar(0, 1, cl_run.value));
-		s_options_alwaysrun_box.curvalue = (int) cl_run.value;
+		s_options_alwaysrun_box.curvalue= (int) cl_run.value;
 
-		s_options_invertmouse_box.curvalue = m_pitch.value < 0 ? 1 : 0;
+		s_options_invertmouse_box.curvalue= m_pitch.value < 0 ? 1 : 0;
 
 		Cvar.SetValue("lookspring", ClampCvar(0, 1, lookspring.value));
-		s_options_lookspring_box.curvalue = (int) lookspring.value;
+		s_options_lookspring_box.curvalue= (int) lookspring.value;
 
 		Cvar.SetValue("lookstrafe", ClampCvar(0, 1, lookstrafe.value));
-		s_options_lookstrafe_box.curvalue = (int) lookstrafe.value;
+		s_options_lookstrafe_box.curvalue= (int) lookstrafe.value;
 
 		Cvar.SetValue("freelook", ClampCvar(0, 1, freelook.value));
-		s_options_freelook_box.curvalue = (int) freelook.value;
+		s_options_freelook_box.curvalue= (int) freelook.value;
 
 		Cvar.SetValue("crosshair", ClampCvar(0, 3, Globals.crosshair.value));
-		s_options_crosshair_box.curvalue = (int) Globals.crosshair.value;
+		s_options_crosshair_box.curvalue= (int) Globals.crosshair.value;
 
 		Cvar.SetValue("in_joystick", ClampCvar(0, 1, in_joystick.value));
-		s_options_joystick_box.curvalue = (int) in_joystick.value;
+		s_options_joystick_box.curvalue= (int) in_joystick.value;
 
-		s_options_noalttab_box.curvalue = (int) win_noalttab.value;
+		s_options_noalttab_box.curvalue= (int) win_noalttab.value;
 	}
 
 	static void ControlsResetDefaultsFunc(Object unused) {
@@ -1341,21 +1344,21 @@ public final class Menu extends Key {
 		Console.ClearNotify();
 
 		ForceMenuOff();
-		cls.key_dest = key_console;
+		cls.key_dest= key_console;
 	}
 
 	static void UpdateSoundQualityFunc(Object unused) {
-		boolean driverNotChanged = false;
+		boolean driverNotChanged= false;
 		if (s_options_quality_list.curvalue != 0) {
-//			Cvar.SetValue("s_khz", 22);
-//			Cvar.SetValue("s_loadas8bit", 0);
-			driverNotChanged = S.getDriverName().equals("dummy");
+			//			Cvar.SetValue("s_khz", 22);
+			//			Cvar.SetValue("s_loadas8bit", 0);
+			driverNotChanged= S.getDriverName().equals("dummy");
 			Cvar.Set("s_impl", "dummy");
 		}
 		else {
-//			Cvar.SetValue("s_khz", 11);
-//			Cvar.SetValue("s_loadas8bit", 1);
-			driverNotChanged = S.getDriverName().equals("joal");
+			//			Cvar.SetValue("s_khz", 11);
+			//			Cvar.SetValue("s_loadas8bit", 1);
+			driverNotChanged= S.getDriverName().equals("joal");
 			Cvar.Set("s_impl", "joal");
 		}
 
@@ -1363,8 +1366,9 @@ public final class Menu extends Key {
 
 		if (driverNotChanged) {
 			re.EndFrame();
-			return;			
-		} else {
+			return;
+		}
+		else {
 
 			DrawTextBox(8, 120 - 48, 36, 3);
 			Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
@@ -1373,159 +1377,158 @@ public final class Menu extends Key {
 
 			// the text box won't show up unless we do a buffer swap
 			re.EndFrame();
-		
+
 			CL.Snd_Restart_f.execute();
 		}
 	}
 
-	static String cd_music_items[] = { "disabled", "enabled", null };
-	static String soundstate_items[] = { "on", "off", null };
+	static String cd_music_items[]= { "disabled", "enabled", null };
+	static String soundstate_items[]= { "on", "off", null };
 
-	static String compatibility_items[] = { "max compatibility", "max performance", null };
+	static String compatibility_items[]= { "max compatibility", "max performance", null };
 
-	static String yesno_names[] = { "no", "yes", null };
+	static String yesno_names[]= { "no", "yes", null };
 
-	static String crosshair_names[] = { "none", "cross", "dot", "angle", null };
+	static String crosshair_names[]= { "none", "cross", "dot", "angle", null };
 
 	static void Options_MenuInit() {
 
-		win_noalttab = Cvar.Get("win_noalttab", "0", CVAR_ARCHIVE);
+		win_noalttab= Cvar.Get("win_noalttab", "0", CVAR_ARCHIVE);
 
 		/*
 		** configure controls menu and menu items
 		*/
-		s_options_menu.x = viddef.width / 2;
-		s_options_menu.y = viddef.height / 2 - 58;
-		s_options_menu.nitems = 0;
+		s_options_menu.x= viddef.width / 2;
+		s_options_menu.y= viddef.height / 2 - 58;
+		s_options_menu.nitems= 0;
 
-		s_options_sfxvolume_slider.type = MTYPE_SLIDER;
-		s_options_sfxvolume_slider.x = 0;
-		s_options_sfxvolume_slider.y = 0;
-		s_options_sfxvolume_slider.name = "effects volume";
-		s_options_sfxvolume_slider.callback = new mcallback() {
+		s_options_sfxvolume_slider.type= MTYPE_SLIDER;
+		s_options_sfxvolume_slider.x= 0;
+		s_options_sfxvolume_slider.y= 0;
+		s_options_sfxvolume_slider.name= "effects volume";
+		s_options_sfxvolume_slider.callback= new mcallback() {
 			public void execute(Object o) {
 				UpdateVolumeFunc(o);
 			}
 		};
-		s_options_sfxvolume_slider.minvalue = 0;
-		s_options_sfxvolume_slider.maxvalue = 10;
-		s_options_sfxvolume_slider.curvalue = Cvar.VariableValue("s_volume") * 10;
+		s_options_sfxvolume_slider.minvalue= 0;
+		s_options_sfxvolume_slider.maxvalue= 10;
+		s_options_sfxvolume_slider.curvalue= Cvar.VariableValue("s_volume") * 10;
 
-		s_options_cdvolume_box.type = MTYPE_SPINCONTROL;
-		s_options_cdvolume_box.x = 0;
-		s_options_cdvolume_box.y = 10;
-		s_options_cdvolume_box.name = "CD music";
-		s_options_cdvolume_box.callback = new mcallback() {
+		s_options_cdvolume_box.type= MTYPE_SPINCONTROL;
+		s_options_cdvolume_box.x= 0;
+		s_options_cdvolume_box.y= 10;
+		s_options_cdvolume_box.name= "CD music";
+		s_options_cdvolume_box.callback= new mcallback() {
 			public void execute(Object o) {
 				UpdateCDVolumeFunc(o);
 			}
 		};
-		s_options_cdvolume_box.itemnames = cd_music_items;
-		s_options_cdvolume_box.curvalue = 1 - (int) Cvar.VariableValue("cd_nocd");
+		s_options_cdvolume_box.itemnames= cd_music_items;
+		s_options_cdvolume_box.curvalue= 1 - (int) Cvar.VariableValue("cd_nocd");
 
-		s_options_quality_list.type = MTYPE_SPINCONTROL;
-		s_options_quality_list.x = 0;
-		s_options_quality_list.y = 20;
+		s_options_quality_list.type= MTYPE_SPINCONTROL;
+		s_options_quality_list.x= 0;
+		s_options_quality_list.y= 20;
 		;
-		s_options_quality_list.name = "sound";
-		s_options_quality_list.callback = new mcallback() {
+		s_options_quality_list.name= "sound";
+		s_options_quality_list.callback= new mcallback() {
 			public void execute(Object o) {
 				UpdateSoundQualityFunc(o);
 			}
 		};
-		s_options_quality_list.itemnames = soundstate_items;
+		s_options_quality_list.itemnames= soundstate_items;
 		//s_options_quality_list.curvalue = 1 - (int) Cvar.VariableValue("s_loadas8bit");
 
-		
-//		s_options_compatibility_list.type = MTYPE_SPINCONTROL;
-//		s_options_compatibility_list.x = 0;
-//		s_options_compatibility_list.y = 30;
-//		s_options_compatibility_list.name = "sound compatibility";
-//		s_options_compatibility_list.callback = new mcallback() {
-//			public void execute(Object o) {
-//				UpdateSoundQualityFunc(o);
-//			}
-//		};
-//		s_options_compatibility_list.itemnames = compatibility_items;
-//		s_options_compatibility_list.curvalue = (int) Cvar.VariableValue("s_primary");
+		//		s_options_compatibility_list.type = MTYPE_SPINCONTROL;
+		//		s_options_compatibility_list.x = 0;
+		//		s_options_compatibility_list.y = 30;
+		//		s_options_compatibility_list.name = "sound compatibility";
+		//		s_options_compatibility_list.callback = new mcallback() {
+		//			public void execute(Object o) {
+		//				UpdateSoundQualityFunc(o);
+		//			}
+		//		};
+		//		s_options_compatibility_list.itemnames = compatibility_items;
+		//		s_options_compatibility_list.curvalue = (int) Cvar.VariableValue("s_primary");
 
-		s_options_sensitivity_slider.type = MTYPE_SLIDER;
-		s_options_sensitivity_slider.x = 0;
-		s_options_sensitivity_slider.y = 50;
-		s_options_sensitivity_slider.name = "mouse speed";
-		s_options_sensitivity_slider.callback = new mcallback() {
+		s_options_sensitivity_slider.type= MTYPE_SLIDER;
+		s_options_sensitivity_slider.x= 0;
+		s_options_sensitivity_slider.y= 50;
+		s_options_sensitivity_slider.name= "mouse speed";
+		s_options_sensitivity_slider.callback= new mcallback() {
 			public void execute(Object o) {
 				MouseSpeedFunc(o);
 			}
 		};
-		s_options_sensitivity_slider.minvalue = 2;
-		s_options_sensitivity_slider.maxvalue = 22;
+		s_options_sensitivity_slider.minvalue= 2;
+		s_options_sensitivity_slider.maxvalue= 22;
 
-		s_options_alwaysrun_box.type = MTYPE_SPINCONTROL;
-		s_options_alwaysrun_box.x = 0;
-		s_options_alwaysrun_box.y = 60;
-		s_options_alwaysrun_box.name = "always run";
-		s_options_alwaysrun_box.callback = new mcallback() {
+		s_options_alwaysrun_box.type= MTYPE_SPINCONTROL;
+		s_options_alwaysrun_box.x= 0;
+		s_options_alwaysrun_box.y= 60;
+		s_options_alwaysrun_box.name= "always run";
+		s_options_alwaysrun_box.callback= new mcallback() {
 			public void execute(Object o) {
 				AlwaysRunFunc(o);
 			}
 		};
-		s_options_alwaysrun_box.itemnames = yesno_names;
+		s_options_alwaysrun_box.itemnames= yesno_names;
 
-		s_options_invertmouse_box.type = MTYPE_SPINCONTROL;
-		s_options_invertmouse_box.x = 0;
-		s_options_invertmouse_box.y = 70;
-		s_options_invertmouse_box.name = "invert mouse";
-		s_options_invertmouse_box.callback = new mcallback() {
+		s_options_invertmouse_box.type= MTYPE_SPINCONTROL;
+		s_options_invertmouse_box.x= 0;
+		s_options_invertmouse_box.y= 70;
+		s_options_invertmouse_box.name= "invert mouse";
+		s_options_invertmouse_box.callback= new mcallback() {
 			public void execute(Object o) {
 				InvertMouseFunc(o);
 			}
 		};
-		s_options_invertmouse_box.itemnames = yesno_names;
+		s_options_invertmouse_box.itemnames= yesno_names;
 
-		s_options_lookspring_box.type = MTYPE_SPINCONTROL;
-		s_options_lookspring_box.x = 0;
-		s_options_lookspring_box.y = 80;
-		s_options_lookspring_box.name = "lookspring";
-		s_options_lookspring_box.callback = new mcallback() {
+		s_options_lookspring_box.type= MTYPE_SPINCONTROL;
+		s_options_lookspring_box.x= 0;
+		s_options_lookspring_box.y= 80;
+		s_options_lookspring_box.name= "lookspring";
+		s_options_lookspring_box.callback= new mcallback() {
 			public void execute(Object o) {
 				LookspringFunc(o);
 			}
 		};
-		s_options_lookspring_box.itemnames = yesno_names;
+		s_options_lookspring_box.itemnames= yesno_names;
 
-		s_options_lookstrafe_box.type = MTYPE_SPINCONTROL;
-		s_options_lookstrafe_box.x = 0;
-		s_options_lookstrafe_box.y = 90;
-		s_options_lookstrafe_box.name = "lookstrafe";
-		s_options_lookstrafe_box.callback = new mcallback() {
+		s_options_lookstrafe_box.type= MTYPE_SPINCONTROL;
+		s_options_lookstrafe_box.x= 0;
+		s_options_lookstrafe_box.y= 90;
+		s_options_lookstrafe_box.name= "lookstrafe";
+		s_options_lookstrafe_box.callback= new mcallback() {
 			public void execute(Object o) {
 				LookstrafeFunc(o);
 			}
 		};
-		s_options_lookstrafe_box.itemnames = yesno_names;
+		s_options_lookstrafe_box.itemnames= yesno_names;
 
-		s_options_freelook_box.type = MTYPE_SPINCONTROL;
-		s_options_freelook_box.x = 0;
-		s_options_freelook_box.y = 100;
-		s_options_freelook_box.name = "free look";
-		s_options_freelook_box.callback = new mcallback() {
+		s_options_freelook_box.type= MTYPE_SPINCONTROL;
+		s_options_freelook_box.x= 0;
+		s_options_freelook_box.y= 100;
+		s_options_freelook_box.name= "free look";
+		s_options_freelook_box.callback= new mcallback() {
 			public void execute(Object o) {
 				FreeLookFunc(o);
 			}
 		};
-		s_options_freelook_box.itemnames = yesno_names;
+		s_options_freelook_box.itemnames= yesno_names;
 
-		s_options_crosshair_box.type = MTYPE_SPINCONTROL;
-		s_options_crosshair_box.x = 0;
-		s_options_crosshair_box.y = 110;
-		s_options_crosshair_box.name = "crosshair";
-		s_options_crosshair_box.callback = new mcallback() {
+		s_options_crosshair_box.type= MTYPE_SPINCONTROL;
+		s_options_crosshair_box.x= 0;
+		s_options_crosshair_box.y= 110;
+		s_options_crosshair_box.name= "crosshair";
+		s_options_crosshair_box.callback= new mcallback() {
 			public void execute(Object o) {
 				CrosshairFunc(o);
 			}
 		};
-		s_options_crosshair_box.itemnames = crosshair_names;
+		s_options_crosshair_box.itemnames= crosshair_names;
 		/*
 			s_options_noalttab_box.type = MTYPE_SPINCONTROL;
 			s_options_noalttab_box.x	= 0;
@@ -1534,42 +1537,42 @@ public final class Menu extends Key {
 			s_options_noalttab_box.callback = NoAltTabFunc;
 			s_options_noalttab_box.itemnames = yesno_names;
 		*/
-		s_options_joystick_box.type = MTYPE_SPINCONTROL;
-		s_options_joystick_box.x = 0;
-		s_options_joystick_box.y = 120;
-		s_options_joystick_box.name = "use joystick";
-		s_options_joystick_box.callback = new mcallback() {
+		s_options_joystick_box.type= MTYPE_SPINCONTROL;
+		s_options_joystick_box.x= 0;
+		s_options_joystick_box.y= 120;
+		s_options_joystick_box.name= "use joystick";
+		s_options_joystick_box.callback= new mcallback() {
 			public void execute(Object o) {
 				JoystickFunc(o);
 			}
 		};
-		s_options_joystick_box.itemnames = yesno_names;
+		s_options_joystick_box.itemnames= yesno_names;
 
-		s_options_customize_options_action.type = MTYPE_ACTION;
-		s_options_customize_options_action.x = 0;
-		s_options_customize_options_action.y = 140;
-		s_options_customize_options_action.name = "customize controls";
-		s_options_customize_options_action.callback = new mcallback() {
+		s_options_customize_options_action.type= MTYPE_ACTION;
+		s_options_customize_options_action.x= 0;
+		s_options_customize_options_action.y= 140;
+		s_options_customize_options_action.name= "customize controls";
+		s_options_customize_options_action.callback= new mcallback() {
 			public void execute(Object o) {
 				CustomizeControlsFunc(o);
 			}
 		};
 
-		s_options_defaults_action.type = MTYPE_ACTION;
-		s_options_defaults_action.x = 0;
-		s_options_defaults_action.y = 150;
-		s_options_defaults_action.name = "reset defaults";
-		s_options_defaults_action.callback = new mcallback() {
+		s_options_defaults_action.type= MTYPE_ACTION;
+		s_options_defaults_action.x= 0;
+		s_options_defaults_action.y= 150;
+		s_options_defaults_action.name= "reset defaults";
+		s_options_defaults_action.callback= new mcallback() {
 			public void execute(Object o) {
 				ControlsResetDefaultsFunc(o);
 			}
 		};
 
-		s_options_console_action.type = MTYPE_ACTION;
-		s_options_console_action.x = 0;
-		s_options_console_action.y = 160;
-		s_options_console_action.name = "go to console";
-		s_options_console_action.callback = new mcallback() {
+		s_options_console_action.type= MTYPE_ACTION;
+		s_options_console_action.x= 0;
+		s_options_console_action.y= 160;
+		s_options_console_action.name= "go to console";
+		s_options_console_action.callback= new mcallback() {
 			public void execute(Object o) {
 				ConsoleFunc(o);
 			}
@@ -1581,7 +1584,7 @@ public final class Menu extends Key {
 
 		Menu_AddItem(s_options_menu, s_options_cdvolume_box);
 		Menu_AddItem(s_options_menu, s_options_quality_list);
-//		Menu_AddItem(s_options_menu, s_options_compatibility_list);
+		//		Menu_AddItem(s_options_menu, s_options_compatibility_list);
 		Menu_AddItem(s_options_menu, s_options_sensitivity_slider);
 		Menu_AddItem(s_options_menu, s_options_alwaysrun_box);
 		Menu_AddItem(s_options_menu, s_options_invertmouse_box);
@@ -1589,7 +1592,7 @@ public final class Menu extends Key {
 		Menu_AddItem(s_options_menu, s_options_lookstrafe_box);
 		Menu_AddItem(s_options_menu, s_options_freelook_box);
 		Menu_AddItem(s_options_menu, s_options_crosshair_box);
-//		Menu_AddItem(s_options_menu, s_options_joystick_box);
+		//		Menu_AddItem(s_options_menu, s_options_joystick_box);
 		Menu_AddItem(s_options_menu, s_options_customize_options_action);
 		Menu_AddItem(s_options_menu, s_options_defaults_action);
 		Menu_AddItem(s_options_menu, s_options_console_action);
@@ -1605,7 +1608,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_options_menu, key);
 	}
 
-	static xcommand_t Menu_Options = new xcommand_t() {
+	static xcommand_t Menu_Options= new xcommand_t() {
 		public void execute() {
 			Menu_Options_f();
 		}
@@ -1632,7 +1635,7 @@ public final class Menu extends Key {
 	=======================================================================
 	*/
 
-	static xcommand_t Menu_Video = new xcommand_t() {
+	static xcommand_t Menu_Video= new xcommand_t() {
 		public void execute() {
 			Menu_Video_f();
 		}
@@ -1660,9 +1663,9 @@ public final class Menu extends Key {
 	*/
 	static int credits_start_time;
 
-	static String creditsIndex[] = new String[256];
+	static String creditsIndex[]= new String[256];
 	static String creditsBuffer;
-	static String idcredits[] =
+	static String idcredits[]=
 		{
 			"+QUAKE II BY ID SOFTWARE",
 			"",
@@ -1675,7 +1678,7 @@ public final class Menu extends Key {
 			"CWEI",
 			"HOZ",
 			"RST",
-			"",			
+			"",
 			"+ART",
 			"Adrian Carmack",
 			"Kevin Cloud",
@@ -1756,8 +1759,8 @@ public final class Menu extends Key {
 			"other trademarks and trade names are",
 			"properties of their respective owners.",
 			null };
-	static String credits[] = idcredits;
-	static String xatcredits[] =
+	static String credits[]= idcredits;
+	static String xatcredits[]=
 		{
 			"+QUAKE II MISSION PACK: THE RECKONING",
 			"+BY",
@@ -1897,7 +1900,7 @@ public final class Menu extends Key {
 			"respective owners.",
 			null };
 
-	static String roguecredits[] =
+	static String roguecredits[]=
 		{
 			"+QUAKE II MISSION PACK 2: GROUND ZERO",
 			"+BY",
@@ -2016,28 +2019,28 @@ public final class Menu extends Key {
 		/*
 		** draw the credits
 		*/
-		for (i = 0, y = (int) (viddef.height - ((cls.realtime - credits_start_time) / 40.0F));
+		for (i= 0, y= (int) (viddef.height - ((cls.realtime - credits_start_time) / 40.0F));
 			credits[i] != null && y < viddef.height;
 			y += 10, i++) {
-			int j, stringoffset = 0;
-			boolean bold = false;
+			int j, stringoffset= 0;
+			boolean bold= false;
 
 			if (y <= -8)
 				continue;
 
 			if (credits[i].length() > 0 && credits[i].charAt(0) == '+') {
-				bold = true;
-				stringoffset = 1;
+				bold= true;
+				stringoffset= 1;
 			}
 			else {
-				bold = false;
-				stringoffset = 0;
+				bold= false;
+				stringoffset= 0;
 			}
 
-			for (j = 0; j + stringoffset < credits[i].length(); j++) {
+			for (j= 0; j + stringoffset < credits[i].length(); j++) {
 				int x;
 
-				x = (viddef.width - credits[i].length() * 8 - stringoffset * 8) / 2 + (j + stringoffset) * 8;
+				x= (viddef.width - credits[i].length() * 8 - stringoffset * 8) / 2 + (j + stringoffset) * 8;
 
 				if (bold)
 					re.DrawChar(x, y, credits[i].charAt(j + stringoffset) + 128);
@@ -2047,7 +2050,7 @@ public final class Menu extends Key {
 		}
 
 		if (y < 0)
-			credits_start_time = cls.realtime;
+			credits_start_time= cls.realtime;
 	}
 
 	public static String Credits_Key(int key) {
@@ -2064,42 +2067,42 @@ public final class Menu extends Key {
 
 	}
 
-	static xcommand_t Menu_Credits = new xcommand_t() {
+	static xcommand_t Menu_Credits= new xcommand_t() {
 		public void execute() {
 			Menu_Credits_f();
 		}
 	};
 	static void Menu_Credits_f() {
 		int n;
-		int isdeveloper = 0;
+		int isdeveloper= 0;
 
-		byte b[] = FS.LoadFile("credits");
+		byte b[]= FS.LoadFile("credits");
 
 		if (b != null) {
-			creditsBuffer = new String(b);
-			String line[] = Lib.linesplit(creditsBuffer);
+			creditsBuffer= new String(b);
+			String line[]= Lib.linesplit(creditsBuffer);
 
-			for (n = 0; n < line.length; n++) {
-				creditsIndex[n] = line[n];
+			for (n= 0; n < line.length; n++) {
+				creditsIndex[n]= line[n];
 			}
 
-			creditsIndex[n] = null;
-			credits = creditsIndex;
+			creditsIndex[n]= null;
+			credits= creditsIndex;
 		}
 		else {
-			isdeveloper = FS.Developer_searchpath(1);
+			isdeveloper= FS.Developer_searchpath(1);
 
 			if (isdeveloper == 1) // xatrix
-				credits = xatcredits;
+				credits= xatcredits;
 			else if (isdeveloper == 2) // ROGUE
-				credits = roguecredits;
+				credits= roguecredits;
 			else {
-				credits = idcredits;
+				credits= idcredits;
 			}
 
 		}
 
-		credits_start_time = cls.realtime;
+		credits_start_time= cls.realtime;
 		PushMenu(new xcommand_t() {
 			public void execute() {
 				Credits_MenuDraw();
@@ -2121,18 +2124,18 @@ public final class Menu extends Key {
 
 	static int m_game_cursor;
 
-	static menuframework_s s_game_menu = new menuframework_s();
-	static menuaction_s s_easy_game_action = new menuaction_s();
-	static menuaction_s s_medium_game_action = new menuaction_s();
-	static menuaction_s s_hard_game_action = new menuaction_s();
-	static menuaction_s s_load_game_action = new menuaction_s();
-	static menuaction_s s_save_game_action = new menuaction_s();
-	static menuaction_s s_credits_action = new menuaction_s();
-	static menuseparator_s s_blankline = new menuseparator_s();
+	static menuframework_s s_game_menu= new menuframework_s();
+	static menuaction_s s_easy_game_action= new menuaction_s();
+	static menuaction_s s_medium_game_action= new menuaction_s();
+	static menuaction_s s_hard_game_action= new menuaction_s();
+	static menuaction_s s_load_game_action= new menuaction_s();
+	static menuaction_s s_save_game_action= new menuaction_s();
+	static menuaction_s s_credits_action= new menuaction_s();
+	static menuseparator_s s_blankline= new menuseparator_s();
 
 	static void StartGame() {
 		// disable updates and start the cinematic going
-		cl.servercount = -1;
+		cl.servercount= -1;
 		ForceMenuOff();
 		Cvar.SetValue("deathmatch", 0);
 		Cvar.SetValue("coop", 0);
@@ -2140,7 +2143,7 @@ public final class Menu extends Key {
 		Cvar.SetValue("gamerules", 0); //PGM
 
 		Cbuf.AddText("loading ; killserver ; wait ; newgame\n");
-		cls.key_dest = key_game;
+		cls.key_dest= key_game;
 	}
 
 	static void EasyGameFunc(Object data) {
@@ -2170,75 +2173,75 @@ public final class Menu extends Key {
 		Menu_Credits_f();
 	}
 
-	static String difficulty_names[] = { "easy", "medium", "fuckin shitty hard", null };
+	static String difficulty_names[]= { "easy", "medium", "fuckin shitty hard", null };
 	static void Game_MenuInit() {
 
-		s_game_menu.x = (int) (viddef.width * 0.50);
-		s_game_menu.nitems = 0;
+		s_game_menu.x= (int) (viddef.width * 0.50);
+		s_game_menu.nitems= 0;
 
-		s_easy_game_action.type = MTYPE_ACTION;
-		s_easy_game_action.flags = QMF_LEFT_JUSTIFY;
-		s_easy_game_action.x = 0;
-		s_easy_game_action.y = 0;
-		s_easy_game_action.name = "easy";
-		s_easy_game_action.callback = new mcallback() {
+		s_easy_game_action.type= MTYPE_ACTION;
+		s_easy_game_action.flags= QMF_LEFT_JUSTIFY;
+		s_easy_game_action.x= 0;
+		s_easy_game_action.y= 0;
+		s_easy_game_action.name= "easy";
+		s_easy_game_action.callback= new mcallback() {
 			public void execute(Object o) {
 				EasyGameFunc(o);
 			}
 		};
 
-		s_medium_game_action.type = MTYPE_ACTION;
-		s_medium_game_action.flags = QMF_LEFT_JUSTIFY;
-		s_medium_game_action.x = 0;
-		s_medium_game_action.y = 10;
-		s_medium_game_action.name = "medium";
-		s_medium_game_action.callback = new mcallback() {
+		s_medium_game_action.type= MTYPE_ACTION;
+		s_medium_game_action.flags= QMF_LEFT_JUSTIFY;
+		s_medium_game_action.x= 0;
+		s_medium_game_action.y= 10;
+		s_medium_game_action.name= "medium";
+		s_medium_game_action.callback= new mcallback() {
 			public void execute(Object o) {
 				MediumGameFunc(o);
 			}
 		};
 
-		s_hard_game_action.type = MTYPE_ACTION;
-		s_hard_game_action.flags = QMF_LEFT_JUSTIFY;
-		s_hard_game_action.x = 0;
-		s_hard_game_action.y = 20;
-		s_hard_game_action.name = "hard";
-		s_hard_game_action.callback = new mcallback() {
+		s_hard_game_action.type= MTYPE_ACTION;
+		s_hard_game_action.flags= QMF_LEFT_JUSTIFY;
+		s_hard_game_action.x= 0;
+		s_hard_game_action.y= 20;
+		s_hard_game_action.name= "hard";
+		s_hard_game_action.callback= new mcallback() {
 			public void execute(Object o) {
 				HardGameFunc(o);
 			}
 		};
 
-		s_blankline.type = MTYPE_SEPARATOR;
+		s_blankline.type= MTYPE_SEPARATOR;
 
-		s_load_game_action.type = MTYPE_ACTION;
-		s_load_game_action.flags = QMF_LEFT_JUSTIFY;
-		s_load_game_action.x = 0;
-		s_load_game_action.y = 40;
-		s_load_game_action.name = "load game";
-		s_load_game_action.callback = new mcallback() {
+		s_load_game_action.type= MTYPE_ACTION;
+		s_load_game_action.flags= QMF_LEFT_JUSTIFY;
+		s_load_game_action.x= 0;
+		s_load_game_action.y= 40;
+		s_load_game_action.name= "load game";
+		s_load_game_action.callback= new mcallback() {
 			public void execute(Object o) {
 				LoadGameFunc(o);
 			}
 		};
 
-		s_save_game_action.type = MTYPE_ACTION;
-		s_save_game_action.flags = QMF_LEFT_JUSTIFY;
-		s_save_game_action.x = 0;
-		s_save_game_action.y = 50;
-		s_save_game_action.name = "save game";
-		s_save_game_action.callback = new mcallback() {
+		s_save_game_action.type= MTYPE_ACTION;
+		s_save_game_action.flags= QMF_LEFT_JUSTIFY;
+		s_save_game_action.x= 0;
+		s_save_game_action.y= 50;
+		s_save_game_action.name= "save game";
+		s_save_game_action.callback= new mcallback() {
 			public void execute(Object o) {
 				SaveGameFunc(o);
 			}
 		};
 
-		s_credits_action.type = MTYPE_ACTION;
-		s_credits_action.flags = QMF_LEFT_JUSTIFY;
-		s_credits_action.x = 0;
-		s_credits_action.y = 60;
-		s_credits_action.name = "credits";
-		s_credits_action.callback = new mcallback() {
+		s_credits_action.type= MTYPE_ACTION;
+		s_credits_action.flags= QMF_LEFT_JUSTIFY;
+		s_credits_action.x= 0;
+		s_credits_action.y= 60;
+		s_credits_action.name= "credits";
+		s_credits_action.callback= new mcallback() {
 			public void execute(Object o) {
 				CreditsFunc(o);
 			}
@@ -2266,7 +2269,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_game_menu, key);
 	}
 
-	static xcommand_t Menu_Game = new xcommand_t() {
+	static xcommand_t Menu_Game= new xcommand_t() {
 		public void execute() {
 			Menu_Game_f();
 		}
@@ -2283,7 +2286,7 @@ public final class Menu extends Key {
 				return Game_MenuKey(key);
 			}
 		});
-		m_game_cursor = 1;
+		m_game_cursor= 1;
 	}
 
 	/*
@@ -2294,51 +2297,62 @@ public final class Menu extends Key {
 	=============================================================================
 	*/
 
-	public final static int MAX_SAVEGAMES = 15;
+	public final static int MAX_SAVEGAMES= 15;
 
-	static menuframework_s s_savegame_menu = new menuframework_s();
-	static menuframework_s s_loadgame_menu = new menuframework_s();
+	static menuframework_s s_savegame_menu= new menuframework_s();
+	static menuframework_s s_loadgame_menu= new menuframework_s();
 
-	static menuaction_s s_loadgame_actions[] = new menuaction_s[MAX_SAVEGAMES];
+	static menuaction_s s_loadgame_actions[]= new menuaction_s[MAX_SAVEGAMES];
 
 	static {
-		for (int n = 0; n < MAX_SAVEGAMES; n++)
-			s_loadgame_actions[n] = new menuaction_s();
+		for (int n= 0; n < MAX_SAVEGAMES; n++)
+			s_loadgame_actions[n]= new menuaction_s();
 	}
 
 	//String m_savestrings[] = new String [MAX_SAVEGAMES][32];
-	static String m_savestrings[] = new String[MAX_SAVEGAMES];
+	static String m_savestrings[]= new String[MAX_SAVEGAMES];
 
 	static {
-		for (int n = 0; n < MAX_SAVEGAMES; n++)
-			m_savestrings[n] = "";
+		for (int n= 0; n < MAX_SAVEGAMES; n++)
+			m_savestrings[n]= "";
 	}
 
-	static boolean m_savevalid[] = new boolean[MAX_SAVEGAMES];
+	static boolean m_savevalid[]= new boolean[MAX_SAVEGAMES];
 
+	/** Search the save dir for saved games and their names. */
 	static void Create_Savestrings() {
 		int i;
-		RandomAccessFile f;
-		//char name[MAX_OSPATH];
+		QuakeFile f;
 		String name;
 
-		for (i = 0; i < MAX_SAVEGAMES; i++) {
-			name = FS.Gamedir() + "/save/save" + i + "/server.ssv";
-			f = fopen(name, "r");
-			if (f == null) {
-				m_savestrings[i] = "<EMPTY>";
-				m_savevalid[i] = false;
+		for (i= 0; i < MAX_SAVEGAMES; i++) {
+
+			m_savestrings[i]= "<EMPTY>";
+			name= FS.Gamedir() + "/save/save" + i + "/server.ssv";
+
+			try {
+				f= new QuakeFile(name, "r");
+				if (f == null) {
+					m_savestrings[i]= "<EMPTY>";
+					m_savevalid[i]= false;
+				}
+				else {
+					String str= f.readString();
+					if (str != null)
+						m_savestrings[i]= str;
+					f.close();
+					m_savevalid[i]= true;
+				}
 			}
-			else {
-				m_savestrings[i] = freadString(f, 32);
-				fclose(f);
-				m_savevalid[i] = true;
-			}
+			catch (Exception e) {
+				m_savestrings[i]= "<EMPTY>";
+				m_savevalid[i]= false;
+			};
 		}
 	}
 
 	static void LoadGameCallback(Object self) {
-		menuaction_s a = (menuaction_s) self;
+		menuaction_s a= (menuaction_s) self;
 
 		if (m_savevalid[a.localdata[0]])
 			Cbuf.AddText("load save" + a.localdata[0] + "\n");
@@ -2348,28 +2362,28 @@ public final class Menu extends Key {
 	static void LoadGame_MenuInit() {
 		int i;
 
-		s_loadgame_menu.x = viddef.width / 2 - 120;
-		s_loadgame_menu.y = viddef.height / 2 - 58;
-		s_loadgame_menu.nitems = 0;
+		s_loadgame_menu.x= viddef.width / 2 - 120;
+		s_loadgame_menu.y= viddef.height / 2 - 58;
+		s_loadgame_menu.nitems= 0;
 
 		Create_Savestrings();
 
-		for (i = 0; i < MAX_SAVEGAMES; i++) {
-			s_loadgame_actions[i].name = m_savestrings[i];
-			s_loadgame_actions[i].flags = QMF_LEFT_JUSTIFY;
-			s_loadgame_actions[i].localdata[0] = i;
-			s_loadgame_actions[i].callback = new mcallback() {
+		for (i= 0; i < MAX_SAVEGAMES; i++) {
+			s_loadgame_actions[i].name= m_savestrings[i];
+			s_loadgame_actions[i].flags= QMF_LEFT_JUSTIFY;
+			s_loadgame_actions[i].localdata[0]= i;
+			s_loadgame_actions[i].callback= new mcallback() {
 				public void execute(Object o) {
 					LoadGameCallback(o);
 				}
 			};
 
-			s_loadgame_actions[i].x = 0;
-			s_loadgame_actions[i].y = (i) * 10;
+			s_loadgame_actions[i].x= 0;
+			s_loadgame_actions[i].y= (i) * 10;
 			if (i > 0) // separate from autosave
 				s_loadgame_actions[i].y += 10;
 
-			s_loadgame_actions[i].type = MTYPE_ACTION;
+			s_loadgame_actions[i].type= MTYPE_ACTION;
 
 			Menu_AddItem(s_loadgame_menu, s_loadgame_actions[i]);
 		}
@@ -2383,14 +2397,14 @@ public final class Menu extends Key {
 
 	static String LoadGame_MenuKey(int key) {
 		if (key == K_ESCAPE || key == K_ENTER) {
-			s_savegame_menu.cursor = s_loadgame_menu.cursor - 1;
+			s_savegame_menu.cursor= s_loadgame_menu.cursor - 1;
 			if (s_savegame_menu.cursor < 0)
-				s_savegame_menu.cursor = 0;
+				s_savegame_menu.cursor= 0;
 		}
 		return Default_MenuKey(s_loadgame_menu, key);
 	}
 
-	static xcommand_t Menu_LoadGame = new xcommand_t() {
+	static xcommand_t Menu_LoadGame= new xcommand_t() {
 		public void execute() {
 			Menu_LoadGame_f();
 		}
@@ -2416,10 +2430,16 @@ public final class Menu extends Key {
 	=============================================================================
 	*/
 	//static menuframework_s s_savegame_menu;
-	static menuaction_s s_savegame_actions[] = new menuaction_s[MAX_SAVEGAMES];
+	static menuaction_s s_savegame_actions[]= new menuaction_s[MAX_SAVEGAMES];
+
+	static {
+		for (int n= 0; n < MAX_SAVEGAMES; n++)
+			s_savegame_actions[n]= new menuaction_s();
+
+	}
 
 	static void SaveGameCallback(Object self) {
-		menuaction_s a = (menuaction_s) self;
+		menuaction_s a= (menuaction_s) self;
 
 		Cbuf.AddText("save save" + a.localdata[0] + "\n");
 		ForceMenuOff();
@@ -2434,27 +2454,27 @@ public final class Menu extends Key {
 	static void SaveGame_MenuInit() {
 		int i;
 
-		s_savegame_menu.x = viddef.width / 2 - 120;
-		s_savegame_menu.y = viddef.height / 2 - 58;
-		s_savegame_menu.nitems = 0;
+		s_savegame_menu.x= viddef.width / 2 - 120;
+		s_savegame_menu.y= viddef.height / 2 - 58;
+		s_savegame_menu.nitems= 0;
 
 		Create_Savestrings();
 
 		// don't include the autosave slot
-		for (i = 0; i < MAX_SAVEGAMES - 1; i++) {
-			s_savegame_actions[i].name = m_savestrings[i + 1];
-			s_savegame_actions[i].localdata[0] = i + 1;
-			s_savegame_actions[i].flags = QMF_LEFT_JUSTIFY;
-			s_savegame_actions[i].callback = new mcallback() {
+		for (i= 0; i < MAX_SAVEGAMES - 1; i++) {
+			s_savegame_actions[i].name= m_savestrings[i + 1];
+			s_savegame_actions[i].localdata[0]= i + 1;
+			s_savegame_actions[i].flags= QMF_LEFT_JUSTIFY;
+			s_savegame_actions[i].callback= new mcallback() {
 				public void execute(Object o) {
 					SaveGameCallback(o);
 				}
 			};
 
-			s_savegame_actions[i].x = 0;
-			s_savegame_actions[i].y = (i) * 10;
+			s_savegame_actions[i].x= 0;
+			s_savegame_actions[i].y= (i) * 10;
 
-			s_savegame_actions[i].type = MTYPE_ACTION;
+			s_savegame_actions[i].type= MTYPE_ACTION;
 
 			Menu_AddItem(s_savegame_menu, s_savegame_actions[i]);
 		}
@@ -2462,18 +2482,19 @@ public final class Menu extends Key {
 
 	static String SaveGame_MenuKey(int key) {
 		if (key == K_ENTER || key == K_ESCAPE) {
-			s_loadgame_menu.cursor = s_savegame_menu.cursor - 1;
+			s_loadgame_menu.cursor= s_savegame_menu.cursor - 1;
 			if (s_loadgame_menu.cursor < 0)
-				s_loadgame_menu.cursor = 0;
+				s_loadgame_menu.cursor= 0;
 		}
 		return Default_MenuKey(s_savegame_menu, key);
 	}
 
-	static xcommand_t Menu_SaveGame = new xcommand_t() {
+	static xcommand_t Menu_SaveGame= new xcommand_t() {
 		public void execute() {
 			Menu_SaveGame_f();
 		}
 	};
+
 	static void Menu_SaveGame_f() {
 		if (0 == Globals.server_state)
 			return; // not playing a game
@@ -2499,23 +2520,23 @@ public final class Menu extends Key {
 	=============================================================================
 	*/
 
-	static menuframework_s s_joinserver_menu = new menuframework_s();
-	static menuseparator_s s_joinserver_server_title = new menuseparator_s();
-	static menuaction_s s_joinserver_search_action = new menuaction_s();
-	static menuaction_s s_joinserver_address_book_action = new menuaction_s();
+	static menuframework_s s_joinserver_menu= new menuframework_s();
+	static menuseparator_s s_joinserver_server_title= new menuseparator_s();
+	static menuaction_s s_joinserver_search_action= new menuaction_s();
+	static menuaction_s s_joinserver_address_book_action= new menuaction_s();
 
-	static netadr_t local_server_netadr[] = new netadr_t[MAX_LOCAL_SERVERS];
-	static String local_server_names[] = new String[MAX_LOCAL_SERVERS]; //[80];
-	static menuaction_s s_joinserver_server_actions[] = new menuaction_s[MAX_LOCAL_SERVERS];
+	static netadr_t local_server_netadr[]= new netadr_t[MAX_LOCAL_SERVERS];
+	static String local_server_names[]= new String[MAX_LOCAL_SERVERS]; //[80];
+	static menuaction_s s_joinserver_server_actions[]= new menuaction_s[MAX_LOCAL_SERVERS];
 
 	//	   user readable information
 	//	   network address
 	static {
-		for (int n = 0; n < MAX_LOCAL_SERVERS; n++) {
-			local_server_netadr[n] = new netadr_t();
-			local_server_names[n] = "";
-			s_joinserver_server_actions[n] = new menuaction_s();
-			s_joinserver_server_actions[n].n = n;
+		for (int n= 0; n < MAX_LOCAL_SERVERS; n++) {
+			local_server_netadr[n]= new netadr_t();
+			local_server_names[n]= "";
+			s_joinserver_server_actions[n]= new menuaction_s();
+			s_joinserver_server_actions[n].n= n;
 		}
 	}
 
@@ -2527,15 +2548,16 @@ public final class Menu extends Key {
 		if (m_num_servers == MAX_LOCAL_SERVERS)
 			return;
 
-		String x = info.trim();
+		String x= info.trim();
 
 		// ignore if duplicated
-		for (i = 0; i < m_num_servers; i++)
+
+		for (i= 0; i < m_num_servers; i++)
 			if (x.equals(local_server_names[i]))
 				return;
 
-		local_server_netadr[m_num_servers] = adr;
-		local_server_names[m_num_servers] = x;
+		local_server_netadr[m_num_servers]= adr;
+		local_server_names[m_num_servers]= x;
 		m_num_servers++;
 	}
 
@@ -2543,7 +2565,7 @@ public final class Menu extends Key {
 		String buffer;
 		int index;
 
-		index = ((menucommon_s) self).n;
+		index= ((menucommon_s) self).n;
 
 		if (Q_stricmp(local_server_names[index], NO_SERVER_STRING) == 0)
 			return;
@@ -2551,7 +2573,7 @@ public final class Menu extends Key {
 		if (index >= m_num_servers)
 			return;
 
-		buffer = "connect " + NET.AdrToString(local_server_netadr[index]) + "\n";
+		buffer= "connect " + NET.AdrToString(local_server_netadr[index]) + "\n";
 		Cbuf.AddText(buffer);
 		ForceMenuOff();
 	}
@@ -2566,9 +2588,9 @@ public final class Menu extends Key {
 	static void SearchLocalGames() {
 		int i;
 
-		m_num_servers = 0;
-		for (i = 0; i < MAX_LOCAL_SERVERS; i++)
-			local_server_names[i] = NO_SERVER_STRING;
+		m_num_servers= 0;
+		for (i= 0; i < MAX_LOCAL_SERVERS; i++)
+			local_server_names[i]= NO_SERVER_STRING;
 
 		DrawTextBox(8, 120 - 48, 36, 3);
 		Print(16 + 16, 120 - 48 + 8, "Searching for local servers, this");
@@ -2589,57 +2611,57 @@ public final class Menu extends Key {
 	static void JoinServer_MenuInit() {
 		int i;
 
-		s_joinserver_menu.x = (int) (viddef.width * 0.50 - 120);
-		s_joinserver_menu.nitems = 0;
+		s_joinserver_menu.x= (int) (viddef.width * 0.50 - 120);
+		s_joinserver_menu.nitems= 0;
 
-		s_joinserver_address_book_action.type = MTYPE_ACTION;
-		s_joinserver_address_book_action.name = "address book";
-		s_joinserver_address_book_action.flags = QMF_LEFT_JUSTIFY;
-		s_joinserver_address_book_action.x = 0;
-		s_joinserver_address_book_action.y = 0;
-		s_joinserver_address_book_action.callback = new mcallback() {
+		s_joinserver_address_book_action.type= MTYPE_ACTION;
+		s_joinserver_address_book_action.name= "address book";
+		s_joinserver_address_book_action.flags= QMF_LEFT_JUSTIFY;
+		s_joinserver_address_book_action.x= 0;
+		s_joinserver_address_book_action.y= 0;
+		s_joinserver_address_book_action.callback= new mcallback() {
 			public void execute(Object o) {
 				AddressBookFunc(o);
 			}
 		};
 
-		s_joinserver_search_action.type = MTYPE_ACTION;
-		s_joinserver_search_action.name = "refresh server list";
-		s_joinserver_search_action.flags = QMF_LEFT_JUSTIFY;
-		s_joinserver_search_action.x = 0;
-		s_joinserver_search_action.y = 10;
-		s_joinserver_search_action.callback = new mcallback() {
+		s_joinserver_search_action.type= MTYPE_ACTION;
+		s_joinserver_search_action.name= "refresh server list";
+		s_joinserver_search_action.flags= QMF_LEFT_JUSTIFY;
+		s_joinserver_search_action.x= 0;
+		s_joinserver_search_action.y= 10;
+		s_joinserver_search_action.callback= new mcallback() {
 			public void execute(Object o) {
 				SearchLocalGamesFunc(o);
 			}
 		};
-		s_joinserver_search_action.statusbar = "search for servers";
+		s_joinserver_search_action.statusbar= "search for servers";
 
-		s_joinserver_server_title.type = MTYPE_SEPARATOR;
-		s_joinserver_server_title.name = "connect to...";
-		s_joinserver_server_title.x = 80;
-		s_joinserver_server_title.y = 30;
+		s_joinserver_server_title.type= MTYPE_SEPARATOR;
+		s_joinserver_server_title.name= "connect to...";
+		s_joinserver_server_title.x= 80;
+		s_joinserver_server_title.y= 30;
 
-		for (i = 0; i < MAX_LOCAL_SERVERS; i++) {
-			s_joinserver_server_actions[i].type = MTYPE_ACTION;
-			local_server_names[i] = NO_SERVER_STRING;
-			s_joinserver_server_actions[i].name = local_server_names[i];
-			s_joinserver_server_actions[i].flags = QMF_LEFT_JUSTIFY;
-			s_joinserver_server_actions[i].x = 0;
-			s_joinserver_server_actions[i].y = 40 + i * 10;
-			s_joinserver_server_actions[i].callback = new mcallback() {
+		for (i= 0; i < MAX_LOCAL_SERVERS; i++) {
+			s_joinserver_server_actions[i].type= MTYPE_ACTION;
+			local_server_names[i]= NO_SERVER_STRING;
+			s_joinserver_server_actions[i].name= local_server_names[i];
+			s_joinserver_server_actions[i].flags= QMF_LEFT_JUSTIFY;
+			s_joinserver_server_actions[i].x= 0;
+			s_joinserver_server_actions[i].y= 40 + i * 10;
+			s_joinserver_server_actions[i].callback= new mcallback() {
 				public void execute(Object o) {
 					JoinServerFunc(o);
 				}
 			};
-			s_joinserver_server_actions[i].statusbar = "press ENTER to connect";
+			s_joinserver_server_actions[i].statusbar= "press ENTER to connect";
 		}
 
 		Menu_AddItem(s_joinserver_menu, s_joinserver_address_book_action);
 		Menu_AddItem(s_joinserver_menu, s_joinserver_server_title);
 		Menu_AddItem(s_joinserver_menu, s_joinserver_search_action);
 
-		for (i = 0; i < 8; i++)
+		for (i= 0; i < 8; i++)
 			Menu_AddItem(s_joinserver_menu, s_joinserver_server_actions[i]);
 
 		Menu_Center(s_joinserver_menu);
@@ -2656,7 +2678,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_joinserver_menu, key);
 	}
 
-	static xcommand_t Menu_JoinServer = new xcommand_t() {
+	static xcommand_t Menu_JoinServer= new xcommand_t() {
 		public void execute() {
 			Menu_JoinServer_f();
 		}
@@ -2681,18 +2703,18 @@ public final class Menu extends Key {
 	
 	=============================================================================
 	*/
-	static menuframework_s s_startserver_menu = new menuframework_s();
+	static menuframework_s s_startserver_menu= new menuframework_s();
 	static String mapnames[];
 	static int nummaps;
 
-	static menuaction_s s_startserver_start_action = new menuaction_s();
-	static menuaction_s s_startserver_dmoptions_action = new menuaction_s();
-	static menufield_s s_timelimit_field = new menufield_s();
-	static menufield_s s_fraglimit_field = new menufield_s();
-	static menufield_s s_maxclients_field = new menufield_s();
-	static menufield_s s_hostname_field = new menufield_s();
-	static menulist_s s_startmap_list = new menulist_s();
-	static menulist_s s_rules_box = new menulist_s();
+	static menuaction_s s_startserver_start_action= new menuaction_s();
+	static menuaction_s s_startserver_dmoptions_action= new menuaction_s();
+	static menufield_s s_timelimit_field= new menufield_s();
+	static menufield_s s_fraglimit_field= new menufield_s();
+	static menufield_s s_maxclients_field= new menufield_s();
+	static menufield_s s_hostname_field= new menufield_s();
+	static menulist_s s_startmap_list= new menulist_s();
+	static menulist_s s_rules_box= new menulist_s();
 
 	static void DMOptionsFunc(Object self) {
 		if (s_rules_box.curvalue == 1)
@@ -2703,16 +2725,16 @@ public final class Menu extends Key {
 	static void RulesChangeFunc(Object self) {
 		// DM
 		if (s_rules_box.curvalue == 0) {
-			s_maxclients_field.statusbar = null;
-			s_startserver_dmoptions_action.statusbar = null;
+			s_maxclients_field.statusbar= null;
+			s_startserver_dmoptions_action.statusbar= null;
 		}
 		else if (s_rules_box.curvalue == 1)
 			// coop				// PGM
 			{
-			s_maxclients_field.statusbar = "4 maximum for cooperative";
+			s_maxclients_field.statusbar= "4 maximum for cooperative";
 			if (atoi(s_maxclients_field.buffer.toString()) > 4)
-				s_maxclients_field.buffer = new StringBuffer("4");
-			s_startserver_dmoptions_action.statusbar = "N/A for cooperative";
+				s_maxclients_field.buffer= new StringBuffer("4");
+			s_startserver_dmoptions_action.statusbar= "N/A for cooperative";
 		}
 		//	  =====
 		//	  PGM
@@ -2720,8 +2742,8 @@ public final class Menu extends Key {
 		else if (FS.Developer_searchpath(2) == 2) {
 			if (s_rules_box.curvalue == 2) // tag	
 				{
-				s_maxclients_field.statusbar = null;
-				s_startserver_dmoptions_action.statusbar = null;
+				s_maxclients_field.statusbar= null;
+				s_startserver_dmoptions_action.statusbar= null;
 			}
 			/*
 					else if(s_rules_box.curvalue == 3)		// deathball
@@ -2744,17 +2766,17 @@ public final class Menu extends Key {
 		String spot;
 
 		//strcpy(startmap, strchr(mapnames[s_startmap_list.curvalue], '\n') + 1);
-		String x = mapnames[s_startmap_list.curvalue];
+		String x= mapnames[s_startmap_list.curvalue];
 
-		int pos = x.indexOf('\n');
+		int pos= x.indexOf('\n');
 		if (pos == -1)
-			startmap = x;
+			startmap= x;
 		else
-			startmap = x.substring(pos + 1, x.length());
+			startmap= x.substring(pos + 1, x.length());
 
-		maxclients = atoi(s_maxclients_field.buffer.toString());
-		timelimit = atoi(s_timelimit_field.buffer.toString());
-		fraglimit = atoi(s_fraglimit_field.buffer.toString());
+		maxclients= atoi(s_maxclients_field.buffer.toString());
+		timelimit= atoi(s_timelimit_field.buffer.toString());
+		fraglimit= atoi(s_fraglimit_field.buffer.toString());
 
 		Cvar.SetValue("maxclients", ClampCvar(0, maxclients, maxclients));
 		Cvar.SetValue("timelimit", ClampCvar(0, timelimit, timelimit));
@@ -2778,25 +2800,25 @@ public final class Menu extends Key {
 		}
 		//	  PGM
 
-		spot = null;
+		spot= null;
 		if (s_rules_box.curvalue == 1) // PGM
 			{
 			if (Q_stricmp(startmap, "bunk1") == 0)
-				spot = "start";
+				spot= "start";
 			else if (Q_stricmp(startmap, "mintro") == 0)
-				spot = "start";
+				spot= "start";
 			else if (Q_stricmp(startmap, "fact1") == 0)
-				spot = "start";
+				spot= "start";
 			else if (Q_stricmp(startmap, "power1") == 0)
-				spot = "pstart";
+				spot= "pstart";
 			else if (Q_stricmp(startmap, "biggun") == 0)
-				spot = "bstart";
+				spot= "bstart";
 			else if (Q_stricmp(startmap, "hangar1") == 0)
-				spot = "unitstart";
+				spot= "unitstart";
 			else if (Q_stricmp(startmap, "city1") == 0)
-				spot = "unitstart";
+				spot= "unitstart";
 			else if (Q_stricmp(startmap, "boss1") == 0)
-				spot = "bosstart";
+				spot= "bosstart";
 		}
 
 		if (spot != null) {
@@ -2811,8 +2833,8 @@ public final class Menu extends Key {
 		ForceMenuOff();
 	}
 
-	static String dm_coop_names[] = { "deathmatch", "cooperative", null };
-	static String dm_coop_names_rogue[] = { "deathmatch", "cooperative", "tag",
+	static String dm_coop_names[]= { "deathmatch", "cooperative", null };
+	static String dm_coop_names_rogue[]= { "deathmatch", "cooperative", "tag",
 		//			"deathball",
 		null };
 
@@ -2821,8 +2843,8 @@ public final class Menu extends Key {
 		//	  =======
 		//	  PGM
 		//	  =======
-		
-		byte[] buffer = null;
+
+		byte[] buffer= null;
 		String mapsname;
 		String s;
 		int i;
@@ -2831,18 +2853,18 @@ public final class Menu extends Key {
 		/*
 		** load the list of map names
 		*/
-		mapsname = FS.Gamedir() + "/maps.lst";
+		mapsname= FS.Gamedir() + "/maps.lst";
 
-		if ((fp = fopen(mapsname, "r")) == null) {
-			buffer = FS.LoadFile("maps.lst");
+		if ((fp= fopen(mapsname, "r")) == null) {
+			buffer= FS.LoadFile("maps.lst");
 			if (buffer == null)
 				//if ((length = FS_LoadFile("maps.lst", (Object *) & buffer)) == -1)
 				Com.Error(ERR_DROP, "couldn't find maps.lst\n");
 		}
 		else {
 			try {
-				int len = (int) fp.length();
-				buffer = new byte[len];
+				int len= (int) fp.length();
+				buffer= new byte[len];
 				fp.readFully(buffer);
 			}
 			catch (Exception e) {
@@ -2850,31 +2872,31 @@ public final class Menu extends Key {
 			}
 		}
 
-		s = new String(buffer);
-		String lines[] = Lib.linesplit(s);
+		s= new String(buffer);
+		String lines[]= Lib.linesplit(s);
 
-		nummaps = lines.length;
+		nummaps= lines.length;
 
 		if (nummaps == 0)
 			Com.Error(ERR_DROP, "no maps in maps.lst\n");
 
-		mapnames = new String[nummaps + 1];
+		mapnames= new String[nummaps + 1];
 
-		for (i = 0; i < nummaps; i++) {
+		for (i= 0; i < nummaps; i++) {
 			String shortname, longname, scratch;
 
-			Com.ParseHelp ph = new Com.ParseHelp(lines[i]);
+			Com.ParseHelp ph= new Com.ParseHelp(lines[i]);
 
-			shortname = Com.Parse(ph).toUpperCase();
-			longname = Com.Parse(ph);
-			scratch = longname + "\n" + shortname;
-			mapnames[i] = scratch;
+			shortname= Com.Parse(ph).toUpperCase();
+			longname= Com.Parse(ph);
+			scratch= longname + "\n" + shortname;
+			mapnames[i]= scratch;
 		}
-		mapnames[nummaps] = null;
+		mapnames[nummaps]= null;
 
 		if (fp != null) {
 			fclose(fp);
-			fp = null;
+			fp= null;
 
 		}
 		else {
@@ -2884,56 +2906,56 @@ public final class Menu extends Key {
 		/*
 		** initialize the menu stuff
 		*/
-		s_startserver_menu.x = (int) (viddef.width * 0.50);
-		s_startserver_menu.nitems = 0;
+		s_startserver_menu.x= (int) (viddef.width * 0.50);
+		s_startserver_menu.nitems= 0;
 
-		s_startmap_list.type = MTYPE_SPINCONTROL;
-		s_startmap_list.x = 0;
-		s_startmap_list.y = 0;
-		s_startmap_list.name = "initial map";
-		s_startmap_list.itemnames = mapnames;
+		s_startmap_list.type= MTYPE_SPINCONTROL;
+		s_startmap_list.x= 0;
+		s_startmap_list.y= 0;
+		s_startmap_list.name= "initial map";
+		s_startmap_list.itemnames= mapnames;
 
-		s_rules_box.type = MTYPE_SPINCONTROL;
-		s_rules_box.x = 0;
-		s_rules_box.y = 20;
-		s_rules_box.name = "rules";
+		s_rules_box.type= MTYPE_SPINCONTROL;
+		s_rules_box.x= 0;
+		s_rules_box.y= 20;
+		s_rules_box.name= "rules";
 
 		//	  PGM - rogue games only available with rogue DLL.
 		if (FS.Developer_searchpath(2) == 2)
-			s_rules_box.itemnames = dm_coop_names_rogue;
+			s_rules_box.itemnames= dm_coop_names_rogue;
 		else
-			s_rules_box.itemnames = dm_coop_names;
+			s_rules_box.itemnames= dm_coop_names;
 		//	  PGM
 
 		if (Cvar.VariableValue("coop") != 0)
-			s_rules_box.curvalue = 1;
+			s_rules_box.curvalue= 1;
 		else
-			s_rules_box.curvalue = 0;
-		s_rules_box.callback = new mcallback() {
+			s_rules_box.curvalue= 0;
+		s_rules_box.callback= new mcallback() {
 			public void execute(Object o) {
 				RulesChangeFunc(o);
 			}
 		};
 
-		s_timelimit_field.type = MTYPE_FIELD;
-		s_timelimit_field.name = "time limit";
-		s_timelimit_field.flags = QMF_NUMBERSONLY;
-		s_timelimit_field.x = 0;
-		s_timelimit_field.y = 36;
-		s_timelimit_field.statusbar = "0 = no limit";
-		s_timelimit_field.length = 3;
-		s_timelimit_field.visible_length = 3;
-		s_timelimit_field.buffer = new StringBuffer(Cvar.VariableString("timelimit"));
+		s_timelimit_field.type= MTYPE_FIELD;
+		s_timelimit_field.name= "time limit";
+		s_timelimit_field.flags= QMF_NUMBERSONLY;
+		s_timelimit_field.x= 0;
+		s_timelimit_field.y= 36;
+		s_timelimit_field.statusbar= "0 = no limit";
+		s_timelimit_field.length= 3;
+		s_timelimit_field.visible_length= 3;
+		s_timelimit_field.buffer= new StringBuffer(Cvar.VariableString("timelimit"));
 
-		s_fraglimit_field.type = MTYPE_FIELD;
-		s_fraglimit_field.name = "frag limit";
-		s_fraglimit_field.flags = QMF_NUMBERSONLY;
-		s_fraglimit_field.x = 0;
-		s_fraglimit_field.y = 54;
-		s_fraglimit_field.statusbar = "0 = no limit";
-		s_fraglimit_field.length = 3;
-		s_fraglimit_field.visible_length = 3;
-		s_fraglimit_field.buffer = new StringBuffer(Cvar.VariableString("fraglimit"));
+		s_fraglimit_field.type= MTYPE_FIELD;
+		s_fraglimit_field.name= "frag limit";
+		s_fraglimit_field.flags= QMF_NUMBERSONLY;
+		s_fraglimit_field.x= 0;
+		s_fraglimit_field.y= 54;
+		s_fraglimit_field.statusbar= "0 = no limit";
+		s_fraglimit_field.length= 3;
+		s_fraglimit_field.visible_length= 3;
+		s_fraglimit_field.buffer= new StringBuffer(Cvar.VariableString("fraglimit"));
 
 		/*
 		** maxclients determines the maximum number of players that can join
@@ -2941,48 +2963,48 @@ public final class Menu extends Key {
 		** option to 8 players, otherwise use whatever its current value is. 
 		** Clamping will be done when the server is actually started.
 		*/
-		s_maxclients_field.type = MTYPE_FIELD;
-		s_maxclients_field.name = "max players";
-		s_maxclients_field.flags = QMF_NUMBERSONLY;
-		s_maxclients_field.x = 0;
-		s_maxclients_field.y = 72;
-		s_maxclients_field.statusbar = null;
-		s_maxclients_field.length = 3;
-		s_maxclients_field.visible_length = 3;
+		s_maxclients_field.type= MTYPE_FIELD;
+		s_maxclients_field.name= "max players";
+		s_maxclients_field.flags= QMF_NUMBERSONLY;
+		s_maxclients_field.x= 0;
+		s_maxclients_field.y= 72;
+		s_maxclients_field.statusbar= null;
+		s_maxclients_field.length= 3;
+		s_maxclients_field.visible_length= 3;
 		if (Cvar.VariableValue("maxclients") == 1)
-			s_maxclients_field.buffer = new StringBuffer("8");
+			s_maxclients_field.buffer= new StringBuffer("8");
 		else
-			s_maxclients_field.buffer = new StringBuffer(Cvar.VariableString("maxclients"));
+			s_maxclients_field.buffer= new StringBuffer(Cvar.VariableString("maxclients"));
 
-		s_hostname_field.type = MTYPE_FIELD;
-		s_hostname_field.name = "hostname";
-		s_hostname_field.flags = 0;
-		s_hostname_field.x = 0;
-		s_hostname_field.y = 90;
-		s_hostname_field.statusbar = null;
-		s_hostname_field.length = 12;
-		s_hostname_field.visible_length = 12;
-		s_hostname_field.buffer = new StringBuffer(Cvar.VariableString("hostname"));
-		s_hostname_field.cursor = s_hostname_field.buffer.length();
+		s_hostname_field.type= MTYPE_FIELD;
+		s_hostname_field.name= "hostname";
+		s_hostname_field.flags= 0;
+		s_hostname_field.x= 0;
+		s_hostname_field.y= 90;
+		s_hostname_field.statusbar= null;
+		s_hostname_field.length= 12;
+		s_hostname_field.visible_length= 12;
+		s_hostname_field.buffer= new StringBuffer(Cvar.VariableString("hostname"));
+		s_hostname_field.cursor= s_hostname_field.buffer.length();
 
-		s_startserver_dmoptions_action.type = MTYPE_ACTION;
-		s_startserver_dmoptions_action.name = " deathmatch flags";
-		s_startserver_dmoptions_action.flags = QMF_LEFT_JUSTIFY;
-		s_startserver_dmoptions_action.x = 24;
-		s_startserver_dmoptions_action.y = 108;
-		s_startserver_dmoptions_action.statusbar = null;
-		s_startserver_dmoptions_action.callback = new mcallback() {
+		s_startserver_dmoptions_action.type= MTYPE_ACTION;
+		s_startserver_dmoptions_action.name= " deathmatch flags";
+		s_startserver_dmoptions_action.flags= QMF_LEFT_JUSTIFY;
+		s_startserver_dmoptions_action.x= 24;
+		s_startserver_dmoptions_action.y= 108;
+		s_startserver_dmoptions_action.statusbar= null;
+		s_startserver_dmoptions_action.callback= new mcallback() {
 			public void execute(Object o) {
 				DMOptionsFunc(o);
 			}
 		};
 
-		s_startserver_start_action.type = MTYPE_ACTION;
-		s_startserver_start_action.name = " begin";
-		s_startserver_start_action.flags = QMF_LEFT_JUSTIFY;
-		s_startserver_start_action.x = 24;
-		s_startserver_start_action.y = 128;
-		s_startserver_start_action.callback = new mcallback() {
+		s_startserver_start_action.type= MTYPE_ACTION;
+		s_startserver_start_action.name= " begin";
+		s_startserver_start_action.flags= QMF_LEFT_JUSTIFY;
+		s_startserver_start_action.x= 24;
+		s_startserver_start_action.y= 128;
+		s_startserver_start_action.callback= new mcallback() {
 			public void execute(Object o) {
 				StartServerActionFunc(o);
 			}
@@ -3012,18 +3034,18 @@ public final class Menu extends Key {
 			if (mapnames != null) {
 				int i;
 
-				for (i = 0; i < nummaps; i++)
-					mapnames[i] = null;
+				for (i= 0; i < nummaps; i++)
+					mapnames[i]= null;
 
 			}
-			mapnames = null;
-			nummaps = 0;
+			mapnames= null;
+			nummaps= 0;
 		}
 
 		return Default_MenuKey(s_startserver_menu, key);
 	}
 
-	static xcommand_t Menu_StartServer = new xcommand_t() {
+	static xcommand_t Menu_StartServer= new xcommand_t() {
 		public void execute() {
 			Menu_StartServer_f();
 		}
@@ -3050,42 +3072,42 @@ public final class Menu extends Key {
 	*/
 	static String dmoptions_statusbar; //[128];
 
-	static menuframework_s s_dmoptions_menu = new menuframework_s();
+	static menuframework_s s_dmoptions_menu= new menuframework_s();
 
-	static menulist_s s_friendlyfire_box = new menulist_s();
-	static menulist_s s_falls_box = new menulist_s();
-	static menulist_s s_weapons_stay_box = new menulist_s();
-	static menulist_s s_instant_powerups_box = new menulist_s();
-	static menulist_s s_powerups_box = new menulist_s();
-	static menulist_s s_health_box = new menulist_s();
-	static menulist_s s_spawn_farthest_box = new menulist_s();
-	static menulist_s s_teamplay_box = new menulist_s();
-	static menulist_s s_samelevel_box = new menulist_s();
-	static menulist_s s_force_respawn_box = new menulist_s();
-	static menulist_s s_armor_box = new menulist_s();
-	static menulist_s s_allow_exit_box = new menulist_s();
-	static menulist_s s_infinite_ammo_box = new menulist_s();
-	static menulist_s s_fixed_fov_box = new menulist_s();
-	static menulist_s s_quad_drop_box = new menulist_s();
+	static menulist_s s_friendlyfire_box= new menulist_s();
+	static menulist_s s_falls_box= new menulist_s();
+	static menulist_s s_weapons_stay_box= new menulist_s();
+	static menulist_s s_instant_powerups_box= new menulist_s();
+	static menulist_s s_powerups_box= new menulist_s();
+	static menulist_s s_health_box= new menulist_s();
+	static menulist_s s_spawn_farthest_box= new menulist_s();
+	static menulist_s s_teamplay_box= new menulist_s();
+	static menulist_s s_samelevel_box= new menulist_s();
+	static menulist_s s_force_respawn_box= new menulist_s();
+	static menulist_s s_armor_box= new menulist_s();
+	static menulist_s s_allow_exit_box= new menulist_s();
+	static menulist_s s_infinite_ammo_box= new menulist_s();
+	static menulist_s s_fixed_fov_box= new menulist_s();
+	static menulist_s s_quad_drop_box= new menulist_s();
 
 	//	  ROGUE
-	static menulist_s s_no_mines_box = new menulist_s();
-	static menulist_s s_no_nukes_box = new menulist_s();
-	static menulist_s s_stack_double_box = new menulist_s();
-	static menulist_s s_no_spheres_box = new menulist_s();
+	static menulist_s s_no_mines_box= new menulist_s();
+	static menulist_s s_no_nukes_box= new menulist_s();
+	static menulist_s s_stack_double_box= new menulist_s();
+	static menulist_s s_no_spheres_box= new menulist_s();
 	//	  ROGUE
 
 	static void setvalue(int flags) {
 		Cvar.SetValue("dmflags", flags);
-		dmoptions_statusbar = "dmflags = " + flags;
+		dmoptions_statusbar= "dmflags = " + flags;
 	}
 
 	static void DMFlagCallback(Object self) {
-		menulist_s f = (menulist_s) self;
+		menulist_s f= (menulist_s) self;
 		int flags;
-		int bit = 0;
+		int bit= 0;
 
-		flags = (int) Cvar.VariableValue("dmflags");
+		flags= (int) Cvar.VariableValue("dmflags");
 
 		if (f == s_friendlyfire_box) {
 			if (f.curvalue != 0)
@@ -3104,13 +3126,13 @@ public final class Menu extends Key {
 			return;
 		}
 		else if (f == s_weapons_stay_box) {
-			bit = DF_WEAPONS_STAY;
+			bit= DF_WEAPONS_STAY;
 		}
 		else if (f == s_instant_powerups_box) {
-			bit = DF_INSTANT_ITEMS;
+			bit= DF_INSTANT_ITEMS;
 		}
 		else if (f == s_allow_exit_box) {
-			bit = DF_ALLOW_EXIT;
+			bit= DF_ALLOW_EXIT;
 		}
 		else if (f == s_powerups_box) {
 			if (f.curvalue != 0)
@@ -3129,7 +3151,7 @@ public final class Menu extends Key {
 			return;
 		}
 		else if (f == s_spawn_farthest_box) {
-			bit = DF_SPAWN_FARTHEST;
+			bit= DF_SPAWN_FARTHEST;
 		}
 		else if (f == s_teamplay_box) {
 			if (f.curvalue == 1) {
@@ -3148,10 +3170,10 @@ public final class Menu extends Key {
 			return;
 		}
 		else if (f == s_samelevel_box) {
-			bit = DF_SAME_LEVEL;
+			bit= DF_SAME_LEVEL;
 		}
 		else if (f == s_force_respawn_box) {
-			bit = DF_FORCE_RESPAWN;
+			bit= DF_FORCE_RESPAWN;
 		}
 		else if (f == s_armor_box) {
 			if (f.curvalue != 0)
@@ -3162,29 +3184,29 @@ public final class Menu extends Key {
 			return;
 		}
 		else if (f == s_infinite_ammo_box) {
-			bit = DF_INFINITE_AMMO;
+			bit= DF_INFINITE_AMMO;
 		}
 		else if (f == s_fixed_fov_box) {
-			bit = DF_FIXED_FOV;
+			bit= DF_FIXED_FOV;
 		}
 		else if (f == s_quad_drop_box) {
-			bit = DF_QUAD_DROP;
+			bit= DF_QUAD_DROP;
 		}
 
 		//	  =======
 		//	  ROGUE
 		else if (FS.Developer_searchpath(2) == 2) {
 			if (f == s_no_mines_box) {
-				bit = DF_NO_MINES;
+				bit= DF_NO_MINES;
 			}
 			else if (f == s_no_nukes_box) {
-				bit = DF_NO_NUKES;
+				bit= DF_NO_NUKES;
 			}
 			else if (f == s_stack_double_box) {
-				bit = DF_NO_STACK_DOUBLE;
+				bit= DF_NO_STACK_DOUBLE;
 			}
 			else if (f == s_no_spheres_box) {
-				bit = DF_NO_SPHERES;
+				bit= DF_NO_SPHERES;
 			}
 		}
 		//	  ROGUE
@@ -3199,250 +3221,250 @@ public final class Menu extends Key {
 
 		Cvar.SetValue("dmflags", flags);
 
-		dmoptions_statusbar = "dmflags = " + flags;
+		dmoptions_statusbar= "dmflags = " + flags;
 
 	}
 
 	//static String yes_no_names[] = { "no", "yes", 0 };
-	static String teamplay_names[] = { "disabled", "by skin", "by model", null };
+	static String teamplay_names[]= { "disabled", "by skin", "by model", null };
 
 	static void DMOptions_MenuInit() {
 
-		int dmflags = (int) Cvar.VariableValue("dmflags");
-		int y = 0;
+		int dmflags= (int) Cvar.VariableValue("dmflags");
+		int y= 0;
 
-		s_dmoptions_menu.x = (int) (viddef.width * 0.50);
-		s_dmoptions_menu.nitems = 0;
+		s_dmoptions_menu.x= (int) (viddef.width * 0.50);
+		s_dmoptions_menu.nitems= 0;
 
-		s_falls_box.type = MTYPE_SPINCONTROL;
-		s_falls_box.x = 0;
-		s_falls_box.y = y;
-		s_falls_box.name = "falling damage";
-		s_falls_box.callback = new mcallback() {
+		s_falls_box.type= MTYPE_SPINCONTROL;
+		s_falls_box.x= 0;
+		s_falls_box.y= y;
+		s_falls_box.name= "falling damage";
+		s_falls_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_falls_box.itemnames = yes_no_names;
-		s_falls_box.curvalue = (dmflags & DF_NO_FALLING) == 0 ? 1 : 0;
+		s_falls_box.itemnames= yes_no_names;
+		s_falls_box.curvalue= (dmflags & DF_NO_FALLING) == 0 ? 1 : 0;
 
-		s_weapons_stay_box.type = MTYPE_SPINCONTROL;
-		s_weapons_stay_box.x = 0;
-		s_weapons_stay_box.y = y += 10;
-		s_weapons_stay_box.name = "weapons stay";
-		s_weapons_stay_box.callback = new mcallback() {
+		s_weapons_stay_box.type= MTYPE_SPINCONTROL;
+		s_weapons_stay_box.x= 0;
+		s_weapons_stay_box.y= y += 10;
+		s_weapons_stay_box.name= "weapons stay";
+		s_weapons_stay_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_weapons_stay_box.itemnames = yes_no_names;
-		s_weapons_stay_box.curvalue = (dmflags & DF_WEAPONS_STAY) != 0 ? 1 : 0;
+		s_weapons_stay_box.itemnames= yes_no_names;
+		s_weapons_stay_box.curvalue= (dmflags & DF_WEAPONS_STAY) != 0 ? 1 : 0;
 
-		s_instant_powerups_box.type = MTYPE_SPINCONTROL;
-		s_instant_powerups_box.x = 0;
-		s_instant_powerups_box.y = y += 10;
-		s_instant_powerups_box.name = "instant powerups";
-		s_instant_powerups_box.callback = new mcallback() {
+		s_instant_powerups_box.type= MTYPE_SPINCONTROL;
+		s_instant_powerups_box.x= 0;
+		s_instant_powerups_box.y= y += 10;
+		s_instant_powerups_box.name= "instant powerups";
+		s_instant_powerups_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_instant_powerups_box.itemnames = yes_no_names;
-		s_instant_powerups_box.curvalue = (dmflags & DF_INSTANT_ITEMS) != 0 ? 1 : 0;
+		s_instant_powerups_box.itemnames= yes_no_names;
+		s_instant_powerups_box.curvalue= (dmflags & DF_INSTANT_ITEMS) != 0 ? 1 : 0;
 
-		s_powerups_box.type = MTYPE_SPINCONTROL;
-		s_powerups_box.x = 0;
-		s_powerups_box.y = y += 10;
-		s_powerups_box.name = "allow powerups";
-		s_powerups_box.callback = new mcallback() {
+		s_powerups_box.type= MTYPE_SPINCONTROL;
+		s_powerups_box.x= 0;
+		s_powerups_box.y= y += 10;
+		s_powerups_box.name= "allow powerups";
+		s_powerups_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_powerups_box.itemnames = yes_no_names;
-		s_powerups_box.curvalue = (dmflags & DF_NO_ITEMS) == 0 ? 1 : 0;
+		s_powerups_box.itemnames= yes_no_names;
+		s_powerups_box.curvalue= (dmflags & DF_NO_ITEMS) == 0 ? 1 : 0;
 
-		s_health_box.type = MTYPE_SPINCONTROL;
-		s_health_box.x = 0;
-		s_health_box.y = y += 10;
-		s_health_box.callback = new mcallback() {
+		s_health_box.type= MTYPE_SPINCONTROL;
+		s_health_box.x= 0;
+		s_health_box.y= y += 10;
+		s_health_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_health_box.name = "allow health";
-		s_health_box.itemnames = yes_no_names;
-		s_health_box.curvalue = (dmflags & DF_NO_HEALTH) == 0 ? 1 : 0;
+		s_health_box.name= "allow health";
+		s_health_box.itemnames= yes_no_names;
+		s_health_box.curvalue= (dmflags & DF_NO_HEALTH) == 0 ? 1 : 0;
 
-		s_armor_box.type = MTYPE_SPINCONTROL;
-		s_armor_box.x = 0;
-		s_armor_box.y = y += 10;
-		s_armor_box.name = "allow armor";
-		s_armor_box.callback = new mcallback() {
+		s_armor_box.type= MTYPE_SPINCONTROL;
+		s_armor_box.x= 0;
+		s_armor_box.y= y += 10;
+		s_armor_box.name= "allow armor";
+		s_armor_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_armor_box.itemnames = yes_no_names;
-		s_armor_box.curvalue = (dmflags & DF_NO_ARMOR) == 0 ? 1 : 0;
+		s_armor_box.itemnames= yes_no_names;
+		s_armor_box.curvalue= (dmflags & DF_NO_ARMOR) == 0 ? 1 : 0;
 
-		s_spawn_farthest_box.type = MTYPE_SPINCONTROL;
-		s_spawn_farthest_box.x = 0;
-		s_spawn_farthest_box.y = y += 10;
-		s_spawn_farthest_box.name = "spawn farthest";
-		s_spawn_farthest_box.callback = new mcallback() {
+		s_spawn_farthest_box.type= MTYPE_SPINCONTROL;
+		s_spawn_farthest_box.x= 0;
+		s_spawn_farthest_box.y= y += 10;
+		s_spawn_farthest_box.name= "spawn farthest";
+		s_spawn_farthest_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_spawn_farthest_box.itemnames = yes_no_names;
-		s_spawn_farthest_box.curvalue = (dmflags & DF_SPAWN_FARTHEST) != 0 ? 1 : 0;
+		s_spawn_farthest_box.itemnames= yes_no_names;
+		s_spawn_farthest_box.curvalue= (dmflags & DF_SPAWN_FARTHEST) != 0 ? 1 : 0;
 
-		s_samelevel_box.type = MTYPE_SPINCONTROL;
-		s_samelevel_box.x = 0;
-		s_samelevel_box.y = y += 10;
-		s_samelevel_box.name = "same map";
-		s_samelevel_box.callback = new mcallback() {
+		s_samelevel_box.type= MTYPE_SPINCONTROL;
+		s_samelevel_box.x= 0;
+		s_samelevel_box.y= y += 10;
+		s_samelevel_box.name= "same map";
+		s_samelevel_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_samelevel_box.itemnames = yes_no_names;
-		s_samelevel_box.curvalue = (dmflags & DF_SAME_LEVEL) != 0 ? 1 : 0;
+		s_samelevel_box.itemnames= yes_no_names;
+		s_samelevel_box.curvalue= (dmflags & DF_SAME_LEVEL) != 0 ? 1 : 0;
 
-		s_force_respawn_box.type = MTYPE_SPINCONTROL;
-		s_force_respawn_box.x = 0;
-		s_force_respawn_box.y = y += 10;
-		s_force_respawn_box.name = "force respawn";
-		s_force_respawn_box.callback = new mcallback() {
+		s_force_respawn_box.type= MTYPE_SPINCONTROL;
+		s_force_respawn_box.x= 0;
+		s_force_respawn_box.y= y += 10;
+		s_force_respawn_box.name= "force respawn";
+		s_force_respawn_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_force_respawn_box.itemnames = yes_no_names;
-		s_force_respawn_box.curvalue = (dmflags & DF_FORCE_RESPAWN) != 0 ? 1 : 0;
+		s_force_respawn_box.itemnames= yes_no_names;
+		s_force_respawn_box.curvalue= (dmflags & DF_FORCE_RESPAWN) != 0 ? 1 : 0;
 
-		s_teamplay_box.type = MTYPE_SPINCONTROL;
-		s_teamplay_box.x = 0;
-		s_teamplay_box.y = y += 10;
-		s_teamplay_box.name = "teamplay";
-		s_teamplay_box.callback = new mcallback() {
+		s_teamplay_box.type= MTYPE_SPINCONTROL;
+		s_teamplay_box.x= 0;
+		s_teamplay_box.y= y += 10;
+		s_teamplay_box.name= "teamplay";
+		s_teamplay_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_teamplay_box.itemnames = teamplay_names;
+		s_teamplay_box.itemnames= teamplay_names;
 
-		s_allow_exit_box.type = MTYPE_SPINCONTROL;
-		s_allow_exit_box.x = 0;
-		s_allow_exit_box.y = y += 10;
-		s_allow_exit_box.name = "allow exit";
-		s_allow_exit_box.callback = new mcallback() {
+		s_allow_exit_box.type= MTYPE_SPINCONTROL;
+		s_allow_exit_box.x= 0;
+		s_allow_exit_box.y= y += 10;
+		s_allow_exit_box.name= "allow exit";
+		s_allow_exit_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_allow_exit_box.itemnames = yes_no_names;
-		s_allow_exit_box.curvalue = (dmflags & DF_ALLOW_EXIT) != 0 ? 1 : 0;
+		s_allow_exit_box.itemnames= yes_no_names;
+		s_allow_exit_box.curvalue= (dmflags & DF_ALLOW_EXIT) != 0 ? 1 : 0;
 
-		s_infinite_ammo_box.type = MTYPE_SPINCONTROL;
-		s_infinite_ammo_box.x = 0;
-		s_infinite_ammo_box.y = y += 10;
-		s_infinite_ammo_box.name = "infinite ammo";
-		s_infinite_ammo_box.callback = new mcallback() {
+		s_infinite_ammo_box.type= MTYPE_SPINCONTROL;
+		s_infinite_ammo_box.x= 0;
+		s_infinite_ammo_box.y= y += 10;
+		s_infinite_ammo_box.name= "infinite ammo";
+		s_infinite_ammo_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_infinite_ammo_box.itemnames = yes_no_names;
-		s_infinite_ammo_box.curvalue = (dmflags & DF_INFINITE_AMMO) != 0 ? 1 : 0;
+		s_infinite_ammo_box.itemnames= yes_no_names;
+		s_infinite_ammo_box.curvalue= (dmflags & DF_INFINITE_AMMO) != 0 ? 1 : 0;
 
-		s_fixed_fov_box.type = MTYPE_SPINCONTROL;
-		s_fixed_fov_box.x = 0;
-		s_fixed_fov_box.y = y += 10;
-		s_fixed_fov_box.name = "fixed FOV";
-		s_fixed_fov_box.callback = new mcallback() {
+		s_fixed_fov_box.type= MTYPE_SPINCONTROL;
+		s_fixed_fov_box.x= 0;
+		s_fixed_fov_box.y= y += 10;
+		s_fixed_fov_box.name= "fixed FOV";
+		s_fixed_fov_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_fixed_fov_box.itemnames = yes_no_names;
-		s_fixed_fov_box.curvalue = (dmflags & DF_FIXED_FOV) != 0 ? 1 : 0;
+		s_fixed_fov_box.itemnames= yes_no_names;
+		s_fixed_fov_box.curvalue= (dmflags & DF_FIXED_FOV) != 0 ? 1 : 0;
 
-		s_quad_drop_box.type = MTYPE_SPINCONTROL;
-		s_quad_drop_box.x = 0;
-		s_quad_drop_box.y = y += 10;
-		s_quad_drop_box.name = "quad drop";
-		s_quad_drop_box.callback = new mcallback() {
+		s_quad_drop_box.type= MTYPE_SPINCONTROL;
+		s_quad_drop_box.x= 0;
+		s_quad_drop_box.y= y += 10;
+		s_quad_drop_box.name= "quad drop";
+		s_quad_drop_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_quad_drop_box.itemnames = yes_no_names;
-		s_quad_drop_box.curvalue = (dmflags & DF_QUAD_DROP) != 0 ? 1 : 0;
+		s_quad_drop_box.itemnames= yes_no_names;
+		s_quad_drop_box.curvalue= (dmflags & DF_QUAD_DROP) != 0 ? 1 : 0;
 
-		s_friendlyfire_box.type = MTYPE_SPINCONTROL;
-		s_friendlyfire_box.x = 0;
-		s_friendlyfire_box.y = y += 10;
-		s_friendlyfire_box.name = "friendly fire";
-		s_friendlyfire_box.callback = new mcallback() {
+		s_friendlyfire_box.type= MTYPE_SPINCONTROL;
+		s_friendlyfire_box.x= 0;
+		s_friendlyfire_box.y= y += 10;
+		s_friendlyfire_box.name= "friendly fire";
+		s_friendlyfire_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DMFlagCallback(o);
 			}
 		};
-		s_friendlyfire_box.itemnames = yes_no_names;
-		s_friendlyfire_box.curvalue = (dmflags & DF_NO_FRIENDLY_FIRE) == 0 ? 1 : 0;
+		s_friendlyfire_box.itemnames= yes_no_names;
+		s_friendlyfire_box.curvalue= (dmflags & DF_NO_FRIENDLY_FIRE) == 0 ? 1 : 0;
 
 		//	  ============
 		//	  ROGUE
 		if (FS.Developer_searchpath(2) == 2) {
-			s_no_mines_box.type = MTYPE_SPINCONTROL;
-			s_no_mines_box.x = 0;
-			s_no_mines_box.y = y += 10;
-			s_no_mines_box.name = "remove mines";
-			s_no_mines_box.callback = new mcallback() {
+			s_no_mines_box.type= MTYPE_SPINCONTROL;
+			s_no_mines_box.x= 0;
+			s_no_mines_box.y= y += 10;
+			s_no_mines_box.name= "remove mines";
+			s_no_mines_box.callback= new mcallback() {
 				public void execute(Object o) {
 					DMFlagCallback(o);
 				}
 			};
-			s_no_mines_box.itemnames = yes_no_names;
-			s_no_mines_box.curvalue = (dmflags & DF_NO_MINES) != 0 ? 1 : 0;
+			s_no_mines_box.itemnames= yes_no_names;
+			s_no_mines_box.curvalue= (dmflags & DF_NO_MINES) != 0 ? 1 : 0;
 
-			s_no_nukes_box.type = MTYPE_SPINCONTROL;
-			s_no_nukes_box.x = 0;
-			s_no_nukes_box.y = y += 10;
-			s_no_nukes_box.name = "remove nukes";
-			s_no_nukes_box.callback = new mcallback() {
+			s_no_nukes_box.type= MTYPE_SPINCONTROL;
+			s_no_nukes_box.x= 0;
+			s_no_nukes_box.y= y += 10;
+			s_no_nukes_box.name= "remove nukes";
+			s_no_nukes_box.callback= new mcallback() {
 				public void execute(Object o) {
 					DMFlagCallback(o);
 				}
 			};
-			s_no_nukes_box.itemnames = yes_no_names;
-			s_no_nukes_box.curvalue = (dmflags & DF_NO_NUKES) != 0 ? 1 : 0;
+			s_no_nukes_box.itemnames= yes_no_names;
+			s_no_nukes_box.curvalue= (dmflags & DF_NO_NUKES) != 0 ? 1 : 0;
 
-			s_stack_double_box.type = MTYPE_SPINCONTROL;
-			s_stack_double_box.x = 0;
-			s_stack_double_box.y = y += 10;
-			s_stack_double_box.name = "2x/4x stacking off";
-			s_stack_double_box.callback = new mcallback() {
+			s_stack_double_box.type= MTYPE_SPINCONTROL;
+			s_stack_double_box.x= 0;
+			s_stack_double_box.y= y += 10;
+			s_stack_double_box.name= "2x/4x stacking off";
+			s_stack_double_box.callback= new mcallback() {
 				public void execute(Object o) {
 					DMFlagCallback(o);
 				}
 			};
-			s_stack_double_box.itemnames = yes_no_names;
-			s_stack_double_box.curvalue = (dmflags & DF_NO_STACK_DOUBLE);
+			s_stack_double_box.itemnames= yes_no_names;
+			s_stack_double_box.curvalue= (dmflags & DF_NO_STACK_DOUBLE);
 
-			s_no_spheres_box.type = MTYPE_SPINCONTROL;
-			s_no_spheres_box.x = 0;
-			s_no_spheres_box.y = y += 10;
-			s_no_spheres_box.name = "remove spheres";
-			s_no_spheres_box.callback = new mcallback() {
+			s_no_spheres_box.type= MTYPE_SPINCONTROL;
+			s_no_spheres_box.x= 0;
+			s_no_spheres_box.y= y += 10;
+			s_no_spheres_box.name= "remove spheres";
+			s_no_spheres_box.callback= new mcallback() {
 				public void execute(Object o) {
 					DMFlagCallback(o);
 				}
 			};
-			s_no_spheres_box.itemnames = yes_no_names;
-			s_no_spheres_box.curvalue = (dmflags & DF_NO_SPHERES) != 0 ? 1 : 0;
+			s_no_spheres_box.itemnames= yes_no_names;
+			s_no_spheres_box.curvalue= (dmflags & DF_NO_SPHERES) != 0 ? 1 : 0;
 
 		}
 		//	  ROGUE
@@ -3490,7 +3512,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_dmoptions_menu, key);
 	}
 
-	static xcommand_t Menu_DMOptions = new xcommand_t() {
+	static xcommand_t Menu_DMOptions= new xcommand_t() {
 		public void execute() {
 			Menu_DMOptions_f();
 		}
@@ -3515,17 +3537,17 @@ public final class Menu extends Key {
 	
 	=============================================================================
 	*/
-	static menuframework_s s_downloadoptions_menu = new menuframework_s();
+	static menuframework_s s_downloadoptions_menu= new menuframework_s();
 
-	static menuseparator_s s_download_title = new menuseparator_s();
-	static menulist_s s_allow_download_box = new menulist_s();
-	static menulist_s s_allow_download_maps_box = new menulist_s();
-	static menulist_s s_allow_download_models_box = new menulist_s();
-	static menulist_s s_allow_download_players_box = new menulist_s();
-	static menulist_s s_allow_download_sounds_box = new menulist_s();
+	static menuseparator_s s_download_title= new menuseparator_s();
+	static menulist_s s_allow_download_box= new menulist_s();
+	static menulist_s s_allow_download_maps_box= new menulist_s();
+	static menulist_s s_allow_download_models_box= new menulist_s();
+	static menulist_s s_allow_download_players_box= new menulist_s();
+	static menulist_s s_allow_download_sounds_box= new menulist_s();
 
 	static void DownloadCallback(Object self) {
-		menulist_s f = (menulist_s) self;
+		menulist_s f= (menulist_s) self;
 
 		if (f == s_allow_download_box) {
 			Cvar.SetValue("allow_download", f.curvalue);
@@ -3548,78 +3570,78 @@ public final class Menu extends Key {
 		}
 	}
 
-	static String yes_no_names[] = { "no", "yes", null };
+	static String yes_no_names[]= { "no", "yes", null };
 	static void DownloadOptions_MenuInit() {
 
-		int y = 0;
+		int y= 0;
 
-		s_downloadoptions_menu.x = (int) (viddef.width * 0.50);
-		s_downloadoptions_menu.nitems = 0;
+		s_downloadoptions_menu.x= (int) (viddef.width * 0.50);
+		s_downloadoptions_menu.nitems= 0;
 
-		s_download_title.type = MTYPE_SEPARATOR;
-		s_download_title.name = "Download Options";
-		s_download_title.x = 48;
-		s_download_title.y = y;
+		s_download_title.type= MTYPE_SEPARATOR;
+		s_download_title.name= "Download Options";
+		s_download_title.x= 48;
+		s_download_title.y= y;
 
-		s_allow_download_box.type = MTYPE_SPINCONTROL;
-		s_allow_download_box.x = 0;
-		s_allow_download_box.y = y += 20;
-		s_allow_download_box.name = "allow downloading";
-		s_allow_download_box.callback = new mcallback() {
+		s_allow_download_box.type= MTYPE_SPINCONTROL;
+		s_allow_download_box.x= 0;
+		s_allow_download_box.y= y += 20;
+		s_allow_download_box.name= "allow downloading";
+		s_allow_download_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadCallback(o);
 			}
 		};
-		s_allow_download_box.itemnames = yes_no_names;
-		s_allow_download_box.curvalue = (Cvar.VariableValue("allow_download") != 0) ? 1 : 0;
+		s_allow_download_box.itemnames= yes_no_names;
+		s_allow_download_box.curvalue= (Cvar.VariableValue("allow_download") != 0) ? 1 : 0;
 
-		s_allow_download_maps_box.type = MTYPE_SPINCONTROL;
-		s_allow_download_maps_box.x = 0;
-		s_allow_download_maps_box.y = y += 20;
-		s_allow_download_maps_box.name = "maps";
-		s_allow_download_maps_box.callback = new mcallback() {
+		s_allow_download_maps_box.type= MTYPE_SPINCONTROL;
+		s_allow_download_maps_box.x= 0;
+		s_allow_download_maps_box.y= y += 20;
+		s_allow_download_maps_box.name= "maps";
+		s_allow_download_maps_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadCallback(o);
 			}
 		};
-		s_allow_download_maps_box.itemnames = yes_no_names;
-		s_allow_download_maps_box.curvalue = (Cvar.VariableValue("allow_download_maps") != 0) ? 1 : 0;
+		s_allow_download_maps_box.itemnames= yes_no_names;
+		s_allow_download_maps_box.curvalue= (Cvar.VariableValue("allow_download_maps") != 0) ? 1 : 0;
 
-		s_allow_download_players_box.type = MTYPE_SPINCONTROL;
-		s_allow_download_players_box.x = 0;
-		s_allow_download_players_box.y = y += 10;
-		s_allow_download_players_box.name = "player models/skins";
-		s_allow_download_players_box.callback = new mcallback() {
+		s_allow_download_players_box.type= MTYPE_SPINCONTROL;
+		s_allow_download_players_box.x= 0;
+		s_allow_download_players_box.y= y += 10;
+		s_allow_download_players_box.name= "player models/skins";
+		s_allow_download_players_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadCallback(o);
 			}
 		};
-		s_allow_download_players_box.itemnames = yes_no_names;
-		s_allow_download_players_box.curvalue = (Cvar.VariableValue("allow_download_players") != 0) ? 1 : 0;
+		s_allow_download_players_box.itemnames= yes_no_names;
+		s_allow_download_players_box.curvalue= (Cvar.VariableValue("allow_download_players") != 0) ? 1 : 0;
 
-		s_allow_download_models_box.type = MTYPE_SPINCONTROL;
-		s_allow_download_models_box.x = 0;
-		s_allow_download_models_box.y = y += 10;
-		s_allow_download_models_box.name = "models";
-		s_allow_download_models_box.callback = new mcallback() {
+		s_allow_download_models_box.type= MTYPE_SPINCONTROL;
+		s_allow_download_models_box.x= 0;
+		s_allow_download_models_box.y= y += 10;
+		s_allow_download_models_box.name= "models";
+		s_allow_download_models_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadCallback(o);
 			}
 		};
-		s_allow_download_models_box.itemnames = yes_no_names;
-		s_allow_download_models_box.curvalue = (Cvar.VariableValue("allow_download_models") != 0) ? 1 : 0;
+		s_allow_download_models_box.itemnames= yes_no_names;
+		s_allow_download_models_box.curvalue= (Cvar.VariableValue("allow_download_models") != 0) ? 1 : 0;
 
-		s_allow_download_sounds_box.type = MTYPE_SPINCONTROL;
-		s_allow_download_sounds_box.x = 0;
-		s_allow_download_sounds_box.y = y += 10;
-		s_allow_download_sounds_box.name = "sounds";
-		s_allow_download_sounds_box.callback = new mcallback() {
+		s_allow_download_sounds_box.type= MTYPE_SPINCONTROL;
+		s_allow_download_sounds_box.x= 0;
+		s_allow_download_sounds_box.y= y += 10;
+		s_allow_download_sounds_box.name= "sounds";
+		s_allow_download_sounds_box.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadCallback(o);
 			}
 		};
-		s_allow_download_sounds_box.itemnames = yes_no_names;
-		s_allow_download_sounds_box.curvalue = (Cvar.VariableValue("allow_download_sounds") != 0) ? 1 : 0;
+		s_allow_download_sounds_box.itemnames= yes_no_names;
+		s_allow_download_sounds_box.curvalue= (Cvar.VariableValue("allow_download_sounds") != 0) ? 1 : 0;
 
 		Menu_AddItem(s_downloadoptions_menu, s_download_title);
 		Menu_AddItem(s_downloadoptions_menu, s_allow_download_box);
@@ -3632,7 +3654,7 @@ public final class Menu extends Key {
 
 		// skip over title
 		if (s_downloadoptions_menu.cursor == 0)
-			s_downloadoptions_menu.cursor = 1;
+			s_downloadoptions_menu.cursor= 1;
 	}
 
 	static void DownloadOptions_MenuDraw() {
@@ -3643,7 +3665,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_downloadoptions_menu, key);
 	}
 
-	static xcommand_t Menu_DownloadOptions = new xcommand_t() {
+	static xcommand_t Menu_DownloadOptions= new xcommand_t() {
 		public void execute() {
 			Menu_DownloadOptions_f();
 		}
@@ -3668,47 +3690,47 @@ public final class Menu extends Key {
 	=============================================================================
 	*/
 
-	static menuframework_s s_addressbook_menu = new menuframework_s();
-	static menufield_s s_addressbook_fields[] = new menufield_s[NUM_ADDRESSBOOK_ENTRIES];
+	static menuframework_s s_addressbook_menu= new menuframework_s();
+	static menufield_s s_addressbook_fields[]= new menufield_s[NUM_ADDRESSBOOK_ENTRIES];
 	static {
-		for (int n = 0; n < NUM_ADDRESSBOOK_ENTRIES; n++)
-			s_addressbook_fields[n] = new menufield_s();
+		for (int n= 0; n < NUM_ADDRESSBOOK_ENTRIES; n++)
+			s_addressbook_fields[n]= new menufield_s();
 	}
 
 	static void AddressBook_MenuInit() {
 		int i;
 
-		s_addressbook_menu.x = viddef.width / 2 - 142;
-		s_addressbook_menu.y = viddef.height / 2 - 58;
-		s_addressbook_menu.nitems = 0;
+		s_addressbook_menu.x= viddef.width / 2 - 142;
+		s_addressbook_menu.y= viddef.height / 2 - 58;
+		s_addressbook_menu.nitems= 0;
 
-		for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
+		for (i= 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
 			cvar_t adr;
 			//char buffer[20];
 			String buffer;
 
 			//Com_sprintf(buffer, sizeof(buffer), "adr%d", i);
-			buffer = "adr" + i;
+			buffer= "adr" + i;
 
-			adr = Cvar.Get(buffer, "", CVAR_ARCHIVE);
+			adr= Cvar.Get(buffer, "", CVAR_ARCHIVE);
 
-			s_addressbook_fields[i].type = MTYPE_FIELD;
-			s_addressbook_fields[i].name = null;
-			s_addressbook_fields[i].callback = null;
-			s_addressbook_fields[i].x = 0;
-			s_addressbook_fields[i].y = i * 18 + 0;
-			s_addressbook_fields[i].localdata[0] = i;
-			s_addressbook_fields[i].cursor = 0;
-			s_addressbook_fields[i].length = 60;
-			s_addressbook_fields[i].visible_length = 30;
+			s_addressbook_fields[i].type= MTYPE_FIELD;
+			s_addressbook_fields[i].name= null;
+			s_addressbook_fields[i].callback= null;
+			s_addressbook_fields[i].x= 0;
+			s_addressbook_fields[i].y= i * 18 + 0;
+			s_addressbook_fields[i].localdata[0]= i;
+			s_addressbook_fields[i].cursor= 0;
+			s_addressbook_fields[i].length= 60;
+			s_addressbook_fields[i].visible_length= 30;
 
-			s_addressbook_fields[i].buffer = new StringBuffer(adr.string);
+			s_addressbook_fields[i].buffer= new StringBuffer(adr.string);
 
 			Menu_AddItem(s_addressbook_menu, s_addressbook_fields[i]);
 		}
 	}
 
-	static keyfunc_t AddressBook_MenuKey = new keyfunc_t() {
+	static keyfunc_t AddressBook_MenuKey= new keyfunc_t() {
 		public String execute(int key) {
 			return AddressBook_MenuKey_f(key);
 		}
@@ -3720,8 +3742,8 @@ public final class Menu extends Key {
 			//char buffer[20];
 			String buffer;
 
-			for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
-				buffer = "adr" + index;
+			for (index= 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
+				buffer= "adr" + index;
 				//Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
 				Cvar.Set(buffer, s_addressbook_fields[index].buffer.toString());
 			}
@@ -3729,7 +3751,7 @@ public final class Menu extends Key {
 		return Default_MenuKey(s_addressbook_menu, key);
 	}
 
-	static xcommand_t AddressBook_MenuDraw = new xcommand_t() {
+	static xcommand_t AddressBook_MenuDraw= new xcommand_t() {
 		public void execute() {
 			AddressBook_MenuDraw_f();
 		}
@@ -3739,7 +3761,7 @@ public final class Menu extends Key {
 		Menu_Draw(s_addressbook_menu);
 	}
 
-	static xcommand_t Menu_AddressBook = new xcommand_t() {
+	static xcommand_t Menu_AddressBook= new xcommand_t() {
 		public void execute() {
 			Menu_AddressBook_f();
 		}
@@ -3763,17 +3785,17 @@ public final class Menu extends Key {
 	
 	=============================================================================
 	*/
-	static menuframework_s s_player_config_menu = new menuframework_s();
-	static menufield_s s_player_name_field = new menufield_s();
-	static menulist_s s_player_model_box = new menulist_s();
-	static menulist_s s_player_skin_box = new menulist_s();
-	static menulist_s s_player_handedness_box = new menulist_s();
-	static menulist_s s_player_rate_box = new menulist_s();
-	static menuseparator_s s_player_skin_title = new menuseparator_s();
-	static menuseparator_s s_player_model_title = new menuseparator_s();
-	static menuseparator_s s_player_hand_title = new menuseparator_s();
-	static menuseparator_s s_player_rate_title = new menuseparator_s();
-	static menuaction_s s_player_download_action = new menuaction_s();
+	static menuframework_s s_player_config_menu= new menuframework_s();
+	static menufield_s s_player_name_field= new menufield_s();
+	static menulist_s s_player_model_box= new menulist_s();
+	static menulist_s s_player_skin_box= new menulist_s();
+	static menulist_s s_player_handedness_box= new menulist_s();
+	static menulist_s s_player_rate_box= new menulist_s();
+	static menuseparator_s s_player_skin_title= new menuseparator_s();
+	static menuseparator_s s_player_model_title= new menuseparator_s();
+	static menuseparator_s s_player_hand_title= new menuseparator_s();
+	static menuseparator_s s_player_rate_title= new menuseparator_s();
+	static menuaction_s s_player_download_action= new menuaction_s();
 
 	static class playermodelinfo_s {
 		int nskins;
@@ -3784,12 +3806,12 @@ public final class Menu extends Key {
 		String directory;
 	};
 
-	static playermodelinfo_s s_pmi[] = new playermodelinfo_s[MAX_PLAYERMODELS];
-	static String s_pmnames[] = new String[MAX_PLAYERMODELS];
+	static playermodelinfo_s s_pmi[]= new playermodelinfo_s[MAX_PLAYERMODELS];
+	static String s_pmnames[]= new String[MAX_PLAYERMODELS];
 	static int s_numplayermodels;
 
-	static int rate_tbl[] = { 2500, 3200, 5000, 10000, 25000, 0 };
-	static String rate_names[] = { "28.8 Modem", "33.6 Modem", "Single ISDN", "Dual ISDN/Cable", "T1/LAN", "User defined", null };
+	static int rate_tbl[]= { 2500, 3200, 5000, 10000, 25000, 0 };
+	static String rate_names[]= { "28.8 Modem", "33.6 Modem", "Single ISDN", "Dual ISDN/Cable", "T1/LAN", "User defined", null };
 
 	static void DownloadOptionsFunc(Object self) {
 		Menu_DownloadOptions_f();
@@ -3805,8 +3827,8 @@ public final class Menu extends Key {
 	}
 
 	static void ModelCallback(Object unused) {
-		s_player_skin_box.itemnames = s_pmi[s_player_model_box.curvalue].skindisplaynames;
-		s_player_skin_box.curvalue = 0;
+		s_player_skin_box.itemnames= s_pmi[s_player_model_box.curvalue].skindisplaynames;
+		s_player_skin_box.curvalue= 0;
 	}
 
 	static boolean IconOfSkinExists(String skin, String pcxfiles[], int npcxfiles) {
@@ -3815,15 +3837,15 @@ public final class Menu extends Key {
 		String scratch;
 
 		//strcpy(scratch, skin);
-		scratch = skin;
-		int pos = scratch.lastIndexOf('.');
+		scratch= skin;
+		int pos= scratch.lastIndexOf('.');
 		if (pos != -1)
-			scratch = scratch.substring(0, pos) + "_i.pcx";
+			scratch= scratch.substring(0, pos) + "_i.pcx";
 
 		else
 			scratch += "_i.pcx";
 
-		for (i = 0; i < npcxfiles; i++) {
+		for (i= 0; i < npcxfiles; i++) {
 			if (strcmp(pcxfiles[i], scratch) == 0)
 				return true;
 		}
@@ -3837,27 +3859,27 @@ public final class Menu extends Key {
 		//char scratch[1024];
 		String scratch;
 
-		int ndirs = 0, npms = 0;
+		int ndirs= 0, npms= 0;
 		int a, b, c;
 		String dirnames[];
 
-		String path = null;
+		String path= null;
 
 		int i;
 
 		//extern String  * FS_ListFiles(String , int *, unsigned, unsigned);
 
-		s_numplayermodels = 0;
+		s_numplayermodels= 0;
 
 		/*
 		** get a list of directories
 		*/
 		do {
-			path = FS.NextPath(path);
-			findname = path + "/players/*.*";
+			path= FS.NextPath(path);
+			findname= path + "/players/*.*";
 
-			if ((dirnames = FS.ListFiles(findname, 0, SFF_SUBDIR)) != null) {
-				ndirs = dirnames.length;
+			if ((dirnames= FS.ListFiles(findname, 0, SFF_SUBDIR)) != null) {
+				ndirs= dirnames.length;
 				break;
 			}
 		}
@@ -3869,45 +3891,45 @@ public final class Menu extends Key {
 		/*
 		** go through the subdirectories
 		*/
-		npms = ndirs;
+		npms= ndirs;
 		if (npms > MAX_PLAYERMODELS)
-			npms = MAX_PLAYERMODELS;
+			npms= MAX_PLAYERMODELS;
 
-		for (i = 0; i < npms; i++) {
+		for (i= 0; i < npms; i++) {
 			int k, s;
 			//String a, b, c;
 			String pcxnames[];
 			String skinnames[];
 			int npcxfiles;
-			int nskins = 0;
+			int nskins= 0;
 
 			if (dirnames[i] == null)
 				continue;
 
 			// verify the existence of tris.md2
-			scratch = dirnames[i];
+			scratch= dirnames[i];
 			scratch += "/tris.md2";
 			if (Sys.FindFirst(scratch, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM) == null) {
 				//free(dirnames[i]);
-				dirnames[i] = null;
+				dirnames[i]= null;
 				Sys.FindClose();
 				continue;
 			}
 			Sys.FindClose();
 
 			// verify the existence of at least one pcx skin
-			scratch = dirnames[i] + "/*.pcx";
-			pcxnames = FS.ListFiles(scratch, 0, 0);
-			npcxfiles = pcxnames.length;
+			scratch= dirnames[i] + "/*.pcx";
+			pcxnames= FS.ListFiles(scratch, 0, 0);
+			npcxfiles= pcxnames.length;
 
 			if (pcxnames == null) {
 
-				dirnames[i] = null;
+				dirnames[i]= null;
 				continue;
 			}
 
 			// count valid skins, which consist of a skin with a matching "_i" icon
-			for (k = 0; k < npcxfiles - 1; k++) {
+			for (k= 0; k < npcxfiles - 1; k++) {
 				if (!pcxnames[k].endsWith("_i.pcx")) {
 					//if (!strstr(pcxnames[k], "_i.pcx")) {
 					if (IconOfSkinExists(pcxnames[k], pcxnames, npcxfiles - 1)) {
@@ -3918,28 +3940,28 @@ public final class Menu extends Key {
 			if (nskins == 0)
 				continue;
 
-			skinnames = new String[nskins + 1]; //malloc(sizeof(String) * (nskins + 1));
+			skinnames= new String[nskins + 1]; //malloc(sizeof(String) * (nskins + 1));
 			//memset(skinnames, 0, sizeof(String) * (nskins + 1));
 
 			// copy the valid skins
-			for (s = 0, k = 0; k < npcxfiles - 1; k++) {
+			for (s= 0, k= 0; k < npcxfiles - 1; k++) {
 
 				if (pcxnames[k].indexOf("_i.pcx") < 0) {
 					if (IconOfSkinExists(pcxnames[k], pcxnames, npcxfiles - 1)) {
-						a = pcxnames[k].lastIndexOf('/');
-						b = pcxnames[k].lastIndexOf('\\');
+						a= pcxnames[k].lastIndexOf('/');
+						b= pcxnames[k].lastIndexOf('\\');
 
 						if (a > b)
-							c = a;
+							c= a;
 						else
-							c = b;
+							c= b;
 
-						scratch = pcxnames[k].substring(c + 1, pcxnames[k].length());
-						int pos = scratch.lastIndexOf('.');
+						scratch= pcxnames[k].substring(c + 1, pcxnames[k].length());
+						int pos= scratch.lastIndexOf('.');
 						if (pos != -1)
-							scratch = scratch.substring(0, pos);
+							scratch= scratch.substring(0, pos);
 
-						skinnames[s] = scratch;
+						skinnames[s]= scratch;
 						s++;
 					}
 				}
@@ -3947,22 +3969,22 @@ public final class Menu extends Key {
 
 			// at this point we have a valid player model
 			if (s_pmi[s_numplayermodels] == null)
-				s_pmi[s_numplayermodels] = new playermodelinfo_s();
+				s_pmi[s_numplayermodels]= new playermodelinfo_s();
 
-			s_pmi[s_numplayermodels].nskins = nskins;
-			s_pmi[s_numplayermodels].skindisplaynames = skinnames;
+			s_pmi[s_numplayermodels].nskins= nskins;
+			s_pmi[s_numplayermodels].skindisplaynames= skinnames;
 
 			// make short name for the model
-			a = dirnames[i].lastIndexOf('/');
-			b = dirnames[i].lastIndexOf('\\');
+			a= dirnames[i].lastIndexOf('/');
+			b= dirnames[i].lastIndexOf('\\');
 
 			if (a > b)
-				c = a;
+				c= a;
 			else
-				c = b;
+				c= b;
 
-			s_pmi[s_numplayermodels].displayname = dirnames[i].substring(c + 1);
-			s_pmi[s_numplayermodels].directory = dirnames[i].substring(c + 1);
+			s_pmi[s_numplayermodels].displayname= dirnames[i].substring(c + 1);
+			s_pmi[s_numplayermodels].directory= dirnames[i].substring(c + 1);
 
 			s_numplayermodels++;
 		}
@@ -3972,8 +3994,8 @@ public final class Menu extends Key {
 	}
 
 	static int pmicmpfnc(Object _a, Object _b) {
-		playermodelinfo_s a = (playermodelinfo_s) _a;
-		playermodelinfo_s b = (playermodelinfo_s) _b;
+		playermodelinfo_s a= (playermodelinfo_s) _a;
+		playermodelinfo_s b= (playermodelinfo_s) _b;
 
 		/*
 		** sort by male, female, then alphabetical
@@ -3991,7 +4013,7 @@ public final class Menu extends Key {
 		return strcmp(a.directory, b.directory);
 	}
 
-	static String handedness[] = { "right", "left", "center", null };
+	static String handedness[]= { "right", "left", "center", null };
 
 	static boolean PlayerConfig_MenuInit() {
 		/*
@@ -4004,12 +4026,12 @@ public final class Menu extends Key {
 		//char currentskin[1024];
 		String currentskin;
 
-		int i = 0;
+		int i= 0;
 
-		int currentdirectoryindex = 0;
-		int currentskinindex = 0;
+		int currentdirectoryindex= 0;
+		int currentskinindex= 0;
 
-		cvar_t hand = Cvar.Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+		cvar_t hand= Cvar.Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 
 		PlayerConfig_ScanDirectories();
 
@@ -4019,19 +4041,19 @@ public final class Menu extends Key {
 		if (hand.value < 0 || hand.value > 2)
 			Cvar.SetValue("hand", 0);
 
-		currentdirectory = skin.string;
+		currentdirectory= skin.string;
 
 		if (currentdirectory.lastIndexOf('/') != -1) {
-			currentskin = rightFrom(currentdirectory, '/');
-			currentdirectory = leftFrom(currentdirectory, '/');
+			currentskin= rightFrom(currentdirectory, '/');
+			currentdirectory= leftFrom(currentdirectory, '/');
 		}
 		else if (currentdirectory.lastIndexOf('\\') != -1) {
-			currentskin = rightFrom(currentdirectory, '\\');
-			currentdirectory = leftFrom(currentdirectory, '\\');
+			currentskin= rightFrom(currentdirectory, '\\');
+			currentdirectory= leftFrom(currentdirectory, '\\');
 		}
 		else {
-			currentdirectory = "male";
-			currentskin = "grunt";
+			currentdirectory= "male";
+			currentskin= "grunt";
 		}
 
 		//qsort(s_pmi, s_numplayermodels, sizeof(s_pmi[0]), pmicmpfnc);
@@ -4042,116 +4064,116 @@ public final class Menu extends Key {
 		});
 
 		//memset(s_pmnames, 0, sizeof(s_pmnames));
-		s_pmnames = new String[MAX_PLAYERMODELS];
+		s_pmnames= new String[MAX_PLAYERMODELS];
 
-		for (i = 0; i < s_numplayermodels; i++) {
-			s_pmnames[i] = s_pmi[i].displayname;
+		for (i= 0; i < s_numplayermodels; i++) {
+			s_pmnames[i]= s_pmi[i].displayname;
 			if (Q_stricmp(s_pmi[i].directory, currentdirectory) == 0) {
 				int j;
 
-				currentdirectoryindex = i;
+				currentdirectoryindex= i;
 
-				for (j = 0; j < s_pmi[i].nskins; j++) {
+				for (j= 0; j < s_pmi[i].nskins; j++) {
 					if (Q_stricmp(s_pmi[i].skindisplaynames[j], currentskin) == 0) {
-						currentskinindex = j;
+						currentskinindex= j;
 						break;
 					}
 				}
 			}
 		}
 
-		s_player_config_menu.x = viddef.width / 2 - 95;
-		s_player_config_menu.y = viddef.height / 2 - 97;
-		s_player_config_menu.nitems = 0;
+		s_player_config_menu.x= viddef.width / 2 - 95;
+		s_player_config_menu.y= viddef.height / 2 - 97;
+		s_player_config_menu.nitems= 0;
 
-		s_player_name_field.type = MTYPE_FIELD;
-		s_player_name_field.name = "name";
-		s_player_name_field.callback = null;
-		s_player_name_field.x = 0;
-		s_player_name_field.y = 0;
-		s_player_name_field.length = 20;
-		s_player_name_field.visible_length = 20;
-		s_player_name_field.buffer = new StringBuffer(name.string);
-		s_player_name_field.cursor = name.string.length();
+		s_player_name_field.type= MTYPE_FIELD;
+		s_player_name_field.name= "name";
+		s_player_name_field.callback= null;
+		s_player_name_field.x= 0;
+		s_player_name_field.y= 0;
+		s_player_name_field.length= 20;
+		s_player_name_field.visible_length= 20;
+		s_player_name_field.buffer= new StringBuffer(name.string);
+		s_player_name_field.cursor= name.string.length();
 
-		s_player_model_title.type = MTYPE_SEPARATOR;
-		s_player_model_title.name = "model";
-		s_player_model_title.x = -8;
-		s_player_model_title.y = 60;
+		s_player_model_title.type= MTYPE_SEPARATOR;
+		s_player_model_title.name= "model";
+		s_player_model_title.x= -8;
+		s_player_model_title.y= 60;
 
-		s_player_model_box.type = MTYPE_SPINCONTROL;
-		s_player_model_box.x = -56;
-		s_player_model_box.y = 70;
-		s_player_model_box.callback = new mcallback() {
+		s_player_model_box.type= MTYPE_SPINCONTROL;
+		s_player_model_box.x= -56;
+		s_player_model_box.y= 70;
+		s_player_model_box.callback= new mcallback() {
 			public void execute(Object o) {
 				ModelCallback(o);
 			}
 		};
-		s_player_model_box.cursor_offset = -48;
-		s_player_model_box.curvalue = currentdirectoryindex;
-		s_player_model_box.itemnames = s_pmnames;
+		s_player_model_box.cursor_offset= -48;
+		s_player_model_box.curvalue= currentdirectoryindex;
+		s_player_model_box.itemnames= s_pmnames;
 
-		s_player_skin_title.type = MTYPE_SEPARATOR;
-		s_player_skin_title.name = "skin";
-		s_player_skin_title.x = -16;
-		s_player_skin_title.y = 84;
+		s_player_skin_title.type= MTYPE_SEPARATOR;
+		s_player_skin_title.name= "skin";
+		s_player_skin_title.x= -16;
+		s_player_skin_title.y= 84;
 
-		s_player_skin_box.type = MTYPE_SPINCONTROL;
-		s_player_skin_box.x = -56;
-		s_player_skin_box.y = 94;
-		s_player_skin_box.name = null;
-		s_player_skin_box.callback = null;
-		s_player_skin_box.cursor_offset = -48;
-		s_player_skin_box.curvalue = currentskinindex;
-		s_player_skin_box.itemnames = s_pmi[currentdirectoryindex].skindisplaynames;
+		s_player_skin_box.type= MTYPE_SPINCONTROL;
+		s_player_skin_box.x= -56;
+		s_player_skin_box.y= 94;
+		s_player_skin_box.name= null;
+		s_player_skin_box.callback= null;
+		s_player_skin_box.cursor_offset= -48;
+		s_player_skin_box.curvalue= currentskinindex;
+		s_player_skin_box.itemnames= s_pmi[currentdirectoryindex].skindisplaynames;
 
-		s_player_hand_title.type = MTYPE_SEPARATOR;
-		s_player_hand_title.name = "handedness";
-		s_player_hand_title.x = 32;
-		s_player_hand_title.y = 108;
+		s_player_hand_title.type= MTYPE_SEPARATOR;
+		s_player_hand_title.name= "handedness";
+		s_player_hand_title.x= 32;
+		s_player_hand_title.y= 108;
 
-		s_player_handedness_box.type = MTYPE_SPINCONTROL;
-		s_player_handedness_box.x = -56;
-		s_player_handedness_box.y = 118;
-		s_player_handedness_box.name = null;
-		s_player_handedness_box.cursor_offset = -48;
-		s_player_handedness_box.callback = new mcallback() {
+		s_player_handedness_box.type= MTYPE_SPINCONTROL;
+		s_player_handedness_box.x= -56;
+		s_player_handedness_box.y= 118;
+		s_player_handedness_box.name= null;
+		s_player_handedness_box.cursor_offset= -48;
+		s_player_handedness_box.callback= new mcallback() {
 			public void execute(Object o) {
 				HandednessCallback(o);
 			}
 		};
-		s_player_handedness_box.curvalue = (int) Cvar.VariableValue("hand");
-		s_player_handedness_box.itemnames = handedness;
+		s_player_handedness_box.curvalue= (int) Cvar.VariableValue("hand");
+		s_player_handedness_box.itemnames= handedness;
 
-		for (i = 0; i < rate_tbl.length - 1; i++)
+		for (i= 0; i < rate_tbl.length - 1; i++)
 			if (Cvar.VariableValue("rate") == rate_tbl[i])
 				break;
 
-		s_player_rate_title.type = MTYPE_SEPARATOR;
-		s_player_rate_title.name = "connect speed";
-		s_player_rate_title.x = 56;
-		s_player_rate_title.y = 156;
+		s_player_rate_title.type= MTYPE_SEPARATOR;
+		s_player_rate_title.name= "connect speed";
+		s_player_rate_title.x= 56;
+		s_player_rate_title.y= 156;
 
-		s_player_rate_box.type = MTYPE_SPINCONTROL;
-		s_player_rate_box.x = -56;
-		s_player_rate_box.y = 166;
-		s_player_rate_box.name = null;
-		s_player_rate_box.cursor_offset = -48;
-		s_player_rate_box.callback = new mcallback() {
+		s_player_rate_box.type= MTYPE_SPINCONTROL;
+		s_player_rate_box.x= -56;
+		s_player_rate_box.y= 166;
+		s_player_rate_box.name= null;
+		s_player_rate_box.cursor_offset= -48;
+		s_player_rate_box.callback= new mcallback() {
 			public void execute(Object o) {
 				RateCallback(o);
 			}
 		};
-		s_player_rate_box.curvalue = i;
-		s_player_rate_box.itemnames = rate_names;
+		s_player_rate_box.curvalue= i;
+		s_player_rate_box.itemnames= rate_names;
 
-		s_player_download_action.type = MTYPE_ACTION;
-		s_player_download_action.name = "download options";
-		s_player_download_action.flags = QMF_LEFT_JUSTIFY;
-		s_player_download_action.x = -24;
-		s_player_download_action.y = 186;
-		s_player_download_action.statusbar = null;
-		s_player_download_action.callback = new mcallback() {
+		s_player_download_action.type= MTYPE_ACTION;
+		s_player_download_action.name= "download options";
+		s_player_download_action.flags= QMF_LEFT_JUSTIFY;
+		s_player_download_action.x= -24;
+		s_player_download_action.y= 186;
+		s_player_download_action.statusbar= null;
+		s_player_download_action.callback= new mcallback() {
 			public void execute(Object o) {
 				DownloadOptionsFunc(o);
 			}
@@ -4177,56 +4199,56 @@ public final class Menu extends Key {
 
 	static void PlayerConfig_MenuDraw() {
 
-		refdef_t refdef = new refdef_t();
+		refdef_t refdef= new refdef_t();
 		//char scratch[MAX_QPATH];
 		String scratch;
 
 		//memset(refdef, 0, sizeof(refdef));
 
-		refdef.x = viddef.width / 2;
-		refdef.y = viddef.height / 2 - 72;
-		refdef.width = 144;
-		refdef.height = 168;
-		refdef.fov_x = 40;
-		refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
-		refdef.time = cls.realtime * 0.001f;
+		refdef.x= viddef.width / 2;
+		refdef.y= viddef.height / 2 - 72;
+		refdef.width= 144;
+		refdef.height= 168;
+		refdef.fov_x= 40;
+		refdef.fov_y= Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.time= cls.realtime * 0.001f;
 
 		if (s_pmi[s_player_model_box.curvalue].skindisplaynames != null) {
 
-			int maxframe = 29;
-			entity_t entity = new entity_t();
+			int maxframe= 29;
+			entity_t entity= new entity_t();
 
 			//memset(entity, 0, sizeof(entity));
 
-			scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory + "/tris.md2";
+			scratch= "players/" + s_pmi[s_player_model_box.curvalue].directory + "/tris.md2";
 
-			entity.model = re.RegisterModel(scratch);
+			entity.model= re.RegisterModel(scratch);
 
-			scratch =
+			scratch=
 				"players/"
 					+ s_pmi[s_player_model_box.curvalue].directory
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
 					+ ".pcx";
 
-			entity.skin = re.RegisterSkin(scratch);
-			entity.flags = RF_FULLBRIGHT;
-			entity.origin[0] = 80;
-			entity.origin[1] = 0;
-			entity.origin[2] = 0;
+			entity.skin= re.RegisterSkin(scratch);
+			entity.flags= RF_FULLBRIGHT;
+			entity.origin[0]= 80;
+			entity.origin[1]= 0;
+			entity.origin[2]= 0;
 			VectorCopy(entity.origin, entity.oldorigin);
-			entity.frame = 0;
-			entity.oldframe = 0;
-			entity.backlerp = 0.0f;
-			entity.angles[1] = yaw++;
+			entity.frame= 0;
+			entity.oldframe= 0;
+			entity.backlerp= 0.0f;
+			entity.angles[1]= yaw++;
 			if (++yaw > 360)
 				yaw -= 360;
 
-			refdef.areabits = null;
-			refdef.num_entities = 1;
-			refdef.entities = new entity_t[] { entity };
-			refdef.lightstyles = null;
-			refdef.rdflags = RDF_NOWORLDMODEL;
+			refdef.areabits= null;
+			refdef.num_entities= 1;
+			refdef.entities= new entity_t[] { entity };
+			refdef.lightstyles= null;
+			refdef.rdflags= RDF_NOWORLDMODEL;
 
 			Menu_Draw(s_player_config_menu);
 
@@ -4239,7 +4261,7 @@ public final class Menu extends Key {
 
 			re.RenderFrame(refdef);
 
-			scratch =
+			scratch=
 				"/players/"
 					+ s_pmi[s_player_model_box.curvalue].directory
 					+ "/"
@@ -4259,28 +4281,28 @@ public final class Menu extends Key {
 
 			Cvar.Set("name", s_player_name_field.buffer.toString());
 
-			scratch =
+			scratch=
 				s_pmi[s_player_model_box.curvalue].directory
 					+ "/"
 					+ s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue];
 
 			Cvar.Set("skin", scratch);
 
-			for (i = 0; i < s_numplayermodels; i++) {
+			for (i= 0; i < s_numplayermodels; i++) {
 				int j;
 
-				for (j = 0; j < s_pmi[i].nskins; j++) {
+				for (j= 0; j < s_pmi[i].nskins; j++) {
 					if (s_pmi[i].skindisplaynames[j] != null)
-						s_pmi[i].skindisplaynames[j] = null;
+						s_pmi[i].skindisplaynames[j]= null;
 				}
-				s_pmi[i].skindisplaynames = null;
-				s_pmi[i].nskins = 0;
+				s_pmi[i].skindisplaynames= null;
+				s_pmi[i].nskins= 0;
 			}
 		}
 		return Default_MenuKey(s_player_config_menu, key);
 	}
 
-	static xcommand_t Menu_PlayerConfig = new xcommand_t() {
+	static xcommand_t Menu_PlayerConfig= new xcommand_t() {
 		public void execute() {
 			Menu_PlayerConfig_f();
 		}
@@ -4320,7 +4342,7 @@ public final class Menu extends Key {
 
 			case 'Y' :
 			case 'y' :
-				cls.key_dest = key_console;
+				cls.key_dest= key_console;
 				CL.Quit_f.execute();
 				break;
 
@@ -4334,14 +4356,14 @@ public final class Menu extends Key {
 
 	static void Quit_Draw() {
 		int w, h;
-		Dimension d = new Dimension();
+		Dimension d= new Dimension();
 		re.DrawGetPicSize(d, "quit");
-		w = d.width;
-		h = d.height;
+		w= d.width;
+		h= d.height;
 		re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
 	}
 
-	static xcommand_t Menu_Quit = new xcommand_t() {
+	static xcommand_t Menu_Quit= new xcommand_t() {
 		public void execute() {
 			Menu_Quit_f();
 		}
@@ -4383,8 +4405,8 @@ public final class Menu extends Key {
 		Cmd.AddCommand("menu_keys", Menu_Keys);
 		Cmd.AddCommand("menu_quit", Menu_Quit);
 
-		for (int i = 0; i < m_layers.length; i++) {
-			m_layers[i] = new menulayer_t();
+		for (int i= 0; i < m_layers.length; i++) {
+			m_layers[i]= new menulayer_t();
 		}
 	}
 
@@ -4413,7 +4435,7 @@ public final class Menu extends Key {
 		// caching images
 		if (m_entersound) {
 			S.StartLocalSound(menu_in_sound);
-			m_entersound = false;
+			m_entersound= false;
 		}
 	}
 
@@ -4426,7 +4448,7 @@ public final class Menu extends Key {
 		String s;
 
 		if (m_keyfunc != null)
-			if ((s = m_keyfunc.execute(key)) != null)
+			if ((s= m_keyfunc.execute(key)) != null)
 				S.StartLocalSound(s);
 	}
 
@@ -4469,28 +4491,28 @@ public final class Menu extends Key {
 			Menu_DrawStringR2LDark(f.x + f.parent.x + LCOLUMN_OFFSET, f.y + f.parent.y, f.name);
 
 		//strncpy(tempbuffer, f.buffer + f.visible_offset, f.visible_length);
-		String s = f.buffer.toString();
-		tempbuffer = s.substring(f.visible_offset, s.length());
+		String s= f.buffer.toString();
+		tempbuffer= s.substring(f.visible_offset, s.length());
 		re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y - 4, 18);
 		re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y + 4, 24);
 
 		re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y + f.parent.y - 4, 20);
 		re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y + f.parent.y + 4, 26);
 
-		for (i = 0; i < f.visible_length; i++) {
+		for (i= 0; i < f.visible_length; i++) {
 			re.DrawChar(f.x + f.parent.x + 24 + i * 8, f.y + f.parent.y - 4, 19);
 			re.DrawChar(f.x + f.parent.x + 24 + i * 8, f.y + f.parent.y + 4, 25);
 		}
 
 		Menu_DrawString(f.x + f.parent.x + 24, f.y + f.parent.y, tempbuffer);
-		
+
 		if (Menu_ItemAtCursor(f.parent) == f) {
 			int offset;
 
 			if (f.visible_offset != 0)
-				offset = f.visible_length;
+				offset= f.visible_length;
 			else
-				offset = f.cursor;
+				offset= f.cursor;
 
 			if ((((int) (Sys.Milliseconds() / 250)) & 1) != 0) {
 				re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y + f.parent.y, 11);
@@ -4502,50 +4524,50 @@ public final class Menu extends Key {
 	}
 
 	public static boolean Field_Key(menufield_s f, int k) {
-		char key = (char) k;
+		char key= (char) k;
 
 		switch (key) {
 			case K_KP_SLASH :
-				key = '/';
+				key= '/';
 				break;
 			case K_KP_MINUS :
-				key = '-';
+				key= '-';
 				break;
 			case K_KP_PLUS :
-				key = '+';
+				key= '+';
 				break;
 			case K_KP_HOME :
-				key = '7';
+				key= '7';
 				break;
 			case K_KP_UPARROW :
-				key = '8';
+				key= '8';
 				break;
 			case K_KP_PGUP :
-				key = '9';
+				key= '9';
 				break;
 			case K_KP_LEFTARROW :
-				key = '4';
+				key= '4';
 				break;
 			case K_KP_5 :
-				key = '5';
+				key= '5';
 				break;
 			case K_KP_RIGHTARROW :
-				key = '6';
+				key= '6';
 				break;
 			case K_KP_END :
-				key = '1';
+				key= '1';
 				break;
 			case K_KP_DOWNARROW :
-				key = '2';
+				key= '2';
 				break;
 			case K_KP_PGDN :
-				key = '3';
+				key= '3';
 				break;
 			case K_KP_INS :
-				key = '0';
+				key= '0';
 				break;
 			case K_KP_DEL :
-				key = '.';
+				key= '.';
 				break;
 		}
 
@@ -4563,18 +4585,18 @@ public final class Menu extends Key {
 		if ((Character.toUpperCase(key) == 'V' && keydown[K_CTRL]) || (((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT])) {
 			String cbd;
 
-			if ((cbd = Sys.GetClipboardData()) != null) {
+			if ((cbd= Sys.GetClipboardData()) != null) {
 				//strtok(cbd, "\n\r\b");
-				String lines[] = Lib.linesplit(cbd);
+				String lines[]= Lib.linesplit(cbd);
 				if (lines.length > 0 && lines[0].length() != 0) {
 					//strncpy(f.buffer, cbd, f.length - 1);
-					f.buffer = new StringBuffer(lines[0]);
-					f.cursor = f.buffer.length();
+					f.buffer= new StringBuffer(lines[0]);
+					f.cursor= f.buffer.length();
 
-					f.visible_offset = f.cursor - f.visible_length;
+					f.visible_offset= f.cursor - f.visible_length;
 
 					if (f.visible_offset < 0)
-						f.visible_offset = 0;
+						f.visible_offset= 0;
 				}
 			}
 			return true;
@@ -4627,15 +4649,15 @@ public final class Menu extends Key {
 
 	public static void Menu_AddItem(menuframework_s menu, menucommon_s item) {
 		if (menu.nitems == 0)
-			menu.nslots = 0;
+			menu.nslots= 0;
 
 		if (menu.nitems < MAXMENUITEMS) {
-			menu.items[menu.nitems] = item;
-			((menucommon_s) menu.items[menu.nitems]).parent = menu;
+			menu.items[menu.nitems]= item;
+			((menucommon_s) menu.items[menu.nitems]).parent= menu;
 			menu.nitems++;
 		}
 
-		menu.nslots = Menu_TallySlots(menu);
+		menu.nslots= Menu_TallySlots(menu);
 	}
 
 	/*
@@ -4652,7 +4674,7 @@ public final class Menu extends Key {
 		** see if it's in a valid spot
 		*/
 		if (m.cursor >= 0 && m.cursor < m.nitems) {
-			if ((citem = Menu_ItemAtCursor(m)) != null) {
+			if ((citem= Menu_ItemAtCursor(m)) != null) {
 				if (citem.type != MTYPE_SEPARATOR)
 					return;
 			}
@@ -4664,24 +4686,24 @@ public final class Menu extends Key {
 		*/
 		if (dir == 1) {
 			while (true) {
-				citem = Menu_ItemAtCursor(m);
+				citem= Menu_ItemAtCursor(m);
 				if (citem != null)
 					if (citem.type != MTYPE_SEPARATOR)
 						break;
 				m.cursor += dir;
 				if (m.cursor >= m.nitems)
-					m.cursor = 0;
+					m.cursor= 0;
 			}
 		}
 		else {
 			while (true) {
-				citem = Menu_ItemAtCursor(m);
+				citem= Menu_ItemAtCursor(m);
 				if (citem != null)
 					if (citem.type != MTYPE_SEPARATOR)
 						break;
 				m.cursor += dir;
 				if (m.cursor < 0)
-					m.cursor = m.nitems - 1;
+					m.cursor= m.nitems - 1;
 			}
 		}
 	}
@@ -4689,10 +4711,10 @@ public final class Menu extends Key {
 	public static void Menu_Center(menuframework_s menu) {
 		int height;
 
-		height = ((menucommon_s) menu.items[menu.nitems - 1]).y;
+		height= ((menucommon_s) menu.items[menu.nitems - 1]).y;
 		height += 10;
 
-		menu.y = (viddef.height - height) / 2;
+		menu.y= (viddef.height - height) / 2;
 	}
 
 	public static void Menu_Draw(menuframework_s menu) {
@@ -4702,7 +4724,7 @@ public final class Menu extends Key {
 		/*
 		** draw contents
 		*/
-		for (i = 0; i < menu.nitems; i++) {
+		for (i= 0; i < menu.nitems; i++) {
 			switch (((menucommon_s) menu.items[i]).type) {
 				case MTYPE_FIELD :
 					Field_Draw((menufield_s) menu.items[i]);
@@ -4725,7 +4747,7 @@ public final class Menu extends Key {
 			}
 		}
 
-		item = Menu_ItemAtCursor(menu);
+		item= Menu_ItemAtCursor(menu);
 
 		if (item != null && item.cursordraw != null) {
 			item.cursordraw.execute(item);
@@ -4758,10 +4780,10 @@ public final class Menu extends Key {
 
 	public static void Menu_DrawStatusBar(String string) {
 		if (string != null) {
-			int l = string.length();
-			int maxrow = viddef.height / 8;
-			int maxcol = viddef.width / 8;
-			int col = maxcol / 2 - l / 2;
+			int l= string.length();
+			int maxrow= viddef.height / 8;
+			int maxcol= viddef.width / 8;
+			int col= maxcol / 2 - l / 2;
 
 			re.DrawFill(0, viddef.height - 8, viddef.width, 8, 4);
 			Menu_DrawString(col * 8, viddef.height - 8, string);
@@ -4774,7 +4796,7 @@ public final class Menu extends Key {
 	public static void Menu_DrawString(int x, int y, String string) {
 		int i;
 
-		for (i = 0; i < string.length(); i++) {
+		for (i= 0; i < string.length(); i++) {
 			re.DrawChar((x + i * 8), y, string.charAt(i));
 		}
 	}
@@ -4782,7 +4804,7 @@ public final class Menu extends Key {
 	public static void Menu_DrawStringDark(int x, int y, String string) {
 		int i;
 
-		for (i = 0; i < string.length(); i++) {
+		for (i= 0; i < string.length(); i++) {
 			re.DrawChar((x + i * 8), y, string.charAt(i) + 128);
 		}
 	}
@@ -4790,8 +4812,8 @@ public final class Menu extends Key {
 	public static void Menu_DrawStringR2L(int x, int y, String string) {
 		int i;
 
-		int l = string.length();
-		for (i = 0; i < l; i++) {
+		int l= string.length();
+		for (i= 0; i < l; i++) {
 			re.DrawChar((x - i * 8), y, string.charAt(l - i - 1));
 		}
 	}
@@ -4799,8 +4821,8 @@ public final class Menu extends Key {
 	public static void Menu_DrawStringR2LDark(int x, int y, String string) {
 		int i;
 
-		int l = string.length();
-		for (i = 0; i < l; i++) {
+		int l= string.length();
+		for (i= 0; i < l; i++) {
 			re.DrawChar((x - i * 8), y, string.charAt(l - i - 1) + 128);
 		}
 	}
@@ -4813,7 +4835,7 @@ public final class Menu extends Key {
 	}
 
 	static boolean Menu_SelectItem(menuframework_s s) {
-		menucommon_s item = Menu_ItemAtCursor(s);
+		menucommon_s item= Menu_ItemAtCursor(s);
 
 		if (item != null) {
 			switch (item.type) {
@@ -4834,11 +4856,11 @@ public final class Menu extends Key {
 	}
 
 	public static void Menu_SetStatusBar(menuframework_s m, String string) {
-		m.statusbar = string;
+		m.statusbar= string;
 	}
 
 	public static void Menu_SlideItem(menuframework_s s, int dir) {
-		menucommon_s item = (menucommon_s) Menu_ItemAtCursor(s);
+		menucommon_s item= (menucommon_s) Menu_ItemAtCursor(s);
 
 		if (item != null) {
 			switch (item.type) {
@@ -4854,12 +4876,12 @@ public final class Menu extends Key {
 
 	public static int Menu_TallySlots(menuframework_s menu) {
 		int i;
-		int total = 0;
+		int total= 0;
 
-		for (i = 0; i < menu.nitems; i++) {
+		for (i= 0; i < menu.nitems; i++) {
 			if (((menucommon_s) menu.items[i]).type == MTYPE_LIST) {
-				int nitems = 0;
-				String n[] = ((menulist_s) menu.items[i]).itemnames;
+				int nitems= 0;
+				String n[]= ((menulist_s) menu.items[i]).itemnames;
 
 				while (n[nitems] != null)
 					nitems++;
@@ -4877,9 +4899,9 @@ public final class Menu extends Key {
 	public static void Menulist_DoEnter(menulist_s l) {
 		int start;
 
-		start = l.y / 10 + 1;
+		start= l.y / 10 + 1;
 
-		l.curvalue = l.parent.cursor - start;
+		l.curvalue= l.parent.cursor - start;
 
 		if (l.callback != null)
 			l.callback.execute(l);
@@ -4887,14 +4909,14 @@ public final class Menu extends Key {
 
 	public static void MenuList_Draw(menulist_s l) {
 		String n[];
-		int y = 0;
+		int y= 0;
 
 		Menu_DrawStringR2LDark(l.x + l.parent.x + LCOLUMN_OFFSET, l.y + l.parent.y, l.name);
 
-		n = l.itemnames;
+		n= l.itemnames;
 
 		re.DrawFill(l.x - 112 + l.parent.x, l.parent.y + l.y + l.curvalue * 10 + 10, 128, 10, 16);
-		int i = 0;
+		int i= 0;
 
 		while (n[i] != null) {
 			Menu_DrawStringR2LDark(l.x + l.parent.x + LCOLUMN_OFFSET, l.y + l.parent.y + y + 10, n[i]);
@@ -4913,29 +4935,29 @@ public final class Menu extends Key {
 		s.curvalue += dir;
 
 		if (s.curvalue > s.maxvalue)
-			s.curvalue = s.maxvalue;
+			s.curvalue= s.maxvalue;
 		else if (s.curvalue < s.minvalue)
-			s.curvalue = s.minvalue;
+			s.curvalue= s.minvalue;
 
 		if (s.callback != null)
 			s.callback.execute(s);
 	}
 
-	public static final int SLIDER_RANGE = 10;
+	public static final int SLIDER_RANGE= 10;
 
 	public static void Slider_Draw(menuslider_s s) {
 		int i;
 
 		Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y + s.parent.y, s.name);
 
-		s.range = (s.curvalue - s.minvalue) / (float) (s.maxvalue - s.minvalue);
+		s.range= (s.curvalue - s.minvalue) / (float) (s.maxvalue - s.minvalue);
 
 		if (s.range < 0)
-			s.range = 0;
+			s.range= 0;
 		if (s.range > 1)
-			s.range = 1;
+			s.range= 1;
 		re.DrawChar(s.x + s.parent.x + RCOLUMN_OFFSET, s.y + s.parent.y, 128);
-		for (i = 0; i < SLIDER_RANGE; i++)
+		for (i= 0; i < SLIDER_RANGE; i++)
 			re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y + s.parent.y, 129);
 		re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y + s.parent.y, 130);
 		re.DrawChar((int) (8 + RCOLUMN_OFFSET + s.parent.x + s.x + (SLIDER_RANGE - 1) * 8 * s.range), s.y + s.parent.y, 131);
@@ -4944,7 +4966,7 @@ public final class Menu extends Key {
 	public static void SpinControl_DoEnter(menulist_s s) {
 		s.curvalue++;
 		if (s.itemnames[s.curvalue] == null)
-			s.curvalue = 0;
+			s.curvalue= 0;
 
 		if (s.callback != null)
 			s.callback.execute(s);
@@ -4954,7 +4976,7 @@ public final class Menu extends Key {
 		s.curvalue += dir;
 
 		if (s.curvalue < 0)
-			s.curvalue = 0;
+			s.curvalue= 0;
 		else if (s.itemnames[s.curvalue] == null)
 			s.curvalue--;
 
@@ -4975,14 +4997,14 @@ public final class Menu extends Key {
 		}
 		else {
 			String line1, line2;
-			line1 = Lib.leftFrom(s.itemnames[s.curvalue], '\n');
+			line1= Lib.leftFrom(s.itemnames[s.curvalue], '\n');
 			Menu_DrawString(RCOLUMN_OFFSET + s.x + s.parent.x, s.y + s.parent.y, line1);
 
-			line2 = Lib.rightFrom(s.itemnames[s.curvalue], '\n');
+			line2= Lib.rightFrom(s.itemnames[s.curvalue], '\n');
 
-			int pos = line2.indexOf('\n');
+			int pos= line2.indexOf('\n');
 			if (pos != -1)
-				line2 = line2.substring(0, pos);
+				line2= line2.substring(0, pos);
 
 			Menu_DrawString(RCOLUMN_OFFSET + s.x + s.parent.x, s.y + s.parent.y + 10, line2);
 		}
