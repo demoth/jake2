@@ -23,5 +23,5 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client;
 
 public class viddef_t {
-	int width, height;
+	public int width, height;
 }
