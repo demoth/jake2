@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.2 2004-06-13 21:42:27 cwei Exp $
+ * $Id: Warp.java,v 1.3 2004-06-14 23:30:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.render.fastjogl;
+
+import java.nio.FloatBuffer;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -283,7 +285,7 @@ public abstract class Warp extends Model {
 	*/
 	void EmitWaterPolys(msurface_t fa)
 	{
-		glpoly_t	p, bp;
+		glpoly_t p, bp;
 		float[] v;
 		int i;
 		float s = 0;
@@ -296,11 +298,14 @@ public abstract class Warp extends Model {
 			scroll = -64 * ( (r_newrefdef.time*0.5f) - (int)(r_newrefdef.time*0.5f) );
 		else
 			scroll = 0;
+		
+		int index;
+		FloatBuffer texCoord = globalPolygonInterleavedBuf;
 		for (bp=fa.polys ; bp != null ; bp=bp.next)
 		{
 			p = bp;
 
-			gl.glBegin(GL.GL_TRIANGLE_FAN);
+			index = p.pos * POLYGON_STRIDE;
 			for (i=0; i<p.numverts ; i++)
 			{
 				v = p.verts[i];
@@ -314,10 +319,11 @@ public abstract class Warp extends Model {
 				t = ot + Warp.SIN[(int)((os * 0.125f + rdt) * TURBSCALE) & 255];
 				t *= (1.0f/64);
 
-				gl.glTexCoord2f (s, t);
-				gl.glVertex3f(v[0], v[1], v[2]);
+				texCoord.put(index, s);
+				texCoord.put(index + 1, t);
+				index += POLYGON_STRIDE;
 			}
-			gl.glEnd ();
+			gl.glDrawArrays(GL.GL_TRIANGLE_FAN, p.pos, p.numverts);
 		}
 	}
 
