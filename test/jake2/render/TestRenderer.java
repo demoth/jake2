@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.11 2004-01-05 14:01:27 cwei Exp $
+ * $Id: TestRenderer.java,v 1.12 2004-01-05 18:08:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -186,6 +186,9 @@ public class TestRenderer {
 			case 1 :
 				testModel();
 				break;
+			case 2 :
+				testBeam(); // not activ
+				break;
 		}
 		re.EndFrame();
 		framecount++;
@@ -277,8 +280,24 @@ public class TestRenderer {
 		"sprites/s_flash.sp2",
 		"sprites/s_bubble.sp2",
 	};
+	
+	private int spriteCount = 0;
+	private boolean loading = true;
 
 	private void testSprites() {
+		
+		if (loading) {
+			
+			re.DrawPic(viddef.width / 2 - 50, viddef.height / 2, "loading");
+			String name = sprites[spriteCount];
+			
+			drawString(viddef.width / 2 - 50, viddef.height / 2 + 50, name);
+			
+			re.RegisterModel(name);
+			loading = ++spriteCount < sprites.length;
+			return;
+		}
+		
 
 		refdef_t refdef = new refdef_t();
 
@@ -322,6 +341,56 @@ public class TestRenderer {
 
 		re.RenderFrame(refdef);
 		
+	}
+	
+	private void testBeam() {
+
+		refdef_t refdef = new refdef_t();
+
+		refdef.x = viddef.width/ 2;
+		refdef.y = viddef.height / 2 - 72;
+		refdef.width = 144 * 2;
+		refdef.height = 168 * 2;
+		refdef.fov_x = 40;
+		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
+		refdef.time = 1.0f * 0.001f;
+
+		int maxframe = 29;
+		entity_t entity = new entity_t();
+
+		drawString(refdef.x, refdef.y - 20, "Beam Test");
+
+		entity.flags = Defines.RF_BEAM;
+		entity.origin[0] = 80 - (framecount % 200) + 200;
+		entity.origin[1] = 0 + (float)(40 * Math.sin(Math.toRadians(framecount)));
+		entity.origin[2] = 0 + 20;
+		
+		entity.oldorigin[0] = 10;// - (framecount % 200) + 200;
+		entity.oldorigin[1] = 30; // + (float)(40 * Math.sin(Math.toRadians(framecount)));
+		entity.oldorigin[2] = 0; // + 20;
+		
+		entity.frame = 10;
+		entity.oldframe = 0;
+		entity.backlerp = 0.0f;
+		// the four beam colors are encoded in 32 bits of skinnum (hack)
+		entity.alpha = 1.0f;
+		entity.skinnum = 0x21410097; //framecount & 0xff;
+		entity.model = null;
+
+		refdef.areabits = null;
+		refdef.num_entities = 1;
+		refdef.entities = new entity_t[] { entity };
+		refdef.lightstyles = null;
+		refdef.rdflags = Defines.RDF_NOWORLDMODEL;
+
+		M_DrawTextBox(
+			(int) ((refdef.x) * (320.0F / viddef.width) - 8),
+			(int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+			refdef.width / 8,
+			refdef.height / 8);
+		refdef.height += 4;
+
+		re.RenderFrame(refdef);
 	}
 	
 	private float CalcFov(float fov_x, float width, float height) {
