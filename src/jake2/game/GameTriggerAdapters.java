@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameTriggerAdapters.java,v 1.1 2004-07-08 15:58:44 hzi Exp $
+// $Id: GameTriggerAdapters.java,v 1.2 2004-08-22 15:46:19 salomo Exp $
 
 package jake2.game;
 
@@ -114,7 +114,6 @@ public class GameTriggerAdapters {
 		public void use(edict_t self, edict_t other, edict_t activator) {
 			int index;
 	
-			Com.p("trigger_key_use!");
 			if (self.item == null)
 				return;
 			if (activator.client == null)
@@ -224,7 +223,6 @@ public class GameTriggerAdapters {
 	public static int windsound;
 	static EntTouchAdapter trigger_push_touch = new EntTouchAdapter() {
 		public void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf) {
-			Com.p("TRIGGER TOUCH!");
 			if (Lib.strcmp(other.classname, "grenade") == 0) {
 				Math3D.VectorScale(self.movedir, self.speed * 10, other.velocity);
 			}
