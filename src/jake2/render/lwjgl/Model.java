@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.3 2004-12-16 21:55:58 cawe Exp $
+ * $Id: Model.java,v 1.4 2005-01-09 22:35:31 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1172,8 +1172,8 @@ public abstract class Model extends Surf {
 	protected void R_BeginRegistration(String model)
 	{
 		resetModelArrays();
-		resetPolygonArrays();
-		
+		Polygon.reset();
+
 		cvar_t flushmap;
 
 		registration_sequence++;
@@ -1261,8 +1261,6 @@ public abstract class Model extends Surf {
 			}
 		}
 		GL_FreeUnusedImages();
-		resetPolygonArrays();
-		
 		//modelMemoryUsage();
 	}
 

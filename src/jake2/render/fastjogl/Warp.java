@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.4 2004-09-22 19:22:11 salomo Exp $
+ * $Id: Warp.java,v 1.5 2005-01-09 22:36:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -200,16 +200,17 @@ public abstract class Warp extends Model {
         // VERTEXSIZE*sizeof(float));
 
         // init polys
-        glpoly_t poly = new glpoly_t(numverts + 2);
+        glpoly_t poly = Polygon.create(numverts + 2);
 
         poly.next = warpface.polys;
         warpface.polys = poly;
-        poly.numverts = numverts + 2;
         Math3D.VectorClear(total);
         total_s = 0;
         total_t = 0;
         for (i = 0; i < numverts; i++) {
-            Math3D.VectorCopy(verts[i], poly.verts[i + 1]);
+            poly.x(i + 1, verts[i][0]);
+            poly.y(i + 1, verts[i][1]);
+            poly.z(i + 1, verts[i][2]);
             s = Math3D.DotProduct(verts[i], warpface.texinfo.vecs[0]);
             t = Math3D.DotProduct(verts[i], warpface.texinfo.vecs[1]);
 
@@ -217,19 +218,25 @@ public abstract class Warp extends Model {
             total_t += t;
             Math3D.VectorAdd(total, verts[i], total);
 
-            poly.verts[i + 1][3] = s;
-            poly.verts[i + 1][4] = t;
+            poly.s1(i + 1, s);
+            poly.t1(i + 1, t);
         }
-
-        Math3D.VectorScale(total, (1.0f / numverts), poly.verts[0]);
-        poly.verts[0][3] = total_s / numverts;
-        poly.verts[0][4] = total_t / numverts;
+        
+        float scale = 1.0f / numverts; 
+        poly.x(0, total[0] * scale);
+        poly.y(0, total[1] * scale);
+        poly.z(0, total[2] * scale);
+        poly.s1(0, total_s * scale);
+        poly.t1(0, total_t * scale);
 
         // memcpy (poly.verts[i+1], poly.verts[1], sizeof(poly.verts[0]));
-        System.arraycopy(poly.verts[1], 0, poly.verts[i + 1], 0,
-                poly.verts[1].length); // :-)
-
-        precompilePolygon(poly);
+        poly.x(i + 1, poly.x(1));
+        poly.y(i + 1, poly.y(1));
+        poly.z(i + 1, poly.z(1));
+        poly.s1(i + 1, poly.s1(1));
+        poly.t1(i + 1, poly.t1(1));
+        poly.s2(i + 1, poly.s2(1));
+        poly.t2(i + 1, poly.t2(1));
     }
 
     /*
@@ -282,7 +289,6 @@ public abstract class Warp extends Model {
      */
     void EmitWaterPolys(msurface_t fa) {
         glpoly_t p, bp;
-        float[] v;
         int i;
         float s = 0;
         float t = 0;
@@ -296,16 +302,13 @@ public abstract class Warp extends Model {
         else
             scroll = 0;
 
-        int index;
-        FloatBuffer texCoord = globalPolygonInterleavedBuf;
         for (bp = fa.polys; bp != null; bp = bp.next) {
             p = bp;
 
-            index = p.pos * POLYGON_STRIDE;
+            gl.glBegin(GL.GL_TRIANGLE_FAN);
             for (i = 0; i < p.numverts; i++) {
-                v = p.verts[i];
-                os = v[3];
-                ot = v[4];
+                os = p.s1(i);
+                ot = p.t1(i);
 
                 s = os
                         + Warp.SIN[(int) ((ot * 0.125f + r_newrefdef.time) * TURBSCALE) & 255];
@@ -316,11 +319,10 @@ public abstract class Warp extends Model {
                         + Warp.SIN[(int) ((os * 0.125f + rdt) * TURBSCALE) & 255];
                 t *= (1.0f / 64);
 
-                texCoord.put(index, s);
-                texCoord.put(index + 1, t);
-                index += POLYGON_STRIDE;
+                gl.glTexCoord2f(s, t);
+                gl.glVertex3f(p.x(i), p.y(i), p.z(i));
             }
-            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, p.pos, p.numverts);
+            gl.glEnd();
         }
     }
 
@@ -521,13 +523,12 @@ public abstract class Warp extends Model {
      * ================= R_AddSkySurface =================
      */
     void R_AddSkySurface(msurface_t fa) {
-        int i;
-        glpoly_t p;
-
         // calculate vertex values for sky box
-        for (p = fa.polys; p != null; p = p.next) {
-            for (i = 0; i < p.numverts; i++) {
-                Math3D.VectorSubtract(p.verts[i], r_origin, verts[i]);
+        for (glpoly_t p = fa.polys; p != null; p = p.next) {
+            for (int i = 0; i < p.numverts; i++) {
+                verts[i][0] = p.x(i) - r_origin[0];
+                verts[i][1] = p.y(i) - r_origin[1];
+                verts[i][2] = p.z(i) - r_origin[2];
             }
             ClipSkyPolygon(p.numverts, verts, 0);
         }

@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.4 2004-12-16 21:55:58 cawe Exp $
+ * $Id: Surf.java,v 1.5 2005-01-09 22:35:31 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,6 +46,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
+
+import net.java.games.jogl.GL;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -174,15 +176,9 @@ public abstract class Surf extends Draw {
 		scroll = -64 * ( (r_newrefdef.time / 40.0f) - (int)(r_newrefdef.time / 40.0f) );
 		if(scroll == 0.0f)
 			scroll = -64.0f;
-
-		FloatBuffer texCoord = globalPolygonInterleavedBuf;
-		float[][] v = p.verts;
-		int index = p.pos * POLYGON_STRIDE;
-		for (i=0 ; i<p.numverts ; i++) {
-			texCoord.put(index, v[i][3] + scroll);
-			index += POLYGON_STRIDE;
-		}
+		p.beginScrolling(scroll);
 		gl.glDrawArrays(GL11.GL_POLYGON, p.pos, p.numverts);
+		p.endScrolling();
 	}
 	//	  PGM
 	//	  ============
@@ -192,45 +188,30 @@ public abstract class Surf extends Draw {
 	*/
 	void R_DrawTriangleOutlines()
 	{
-		int i, j;
-		glpoly_t	p;
+        if (gl_showtris.value == 0)
+            return;
 
-		if (gl_showtris.value == 0)
-			return;
+        gl.glDisable(GL11.GL_TEXTURE_2D);
+        gl.glDisable(GL11.GL_DEPTH_TEST);
+        gl.glColor4f(1, 1, 1, 1);
 
-		gl.glDisable (GL11.GL_TEXTURE_2D);
-		gl.glDisable (GL11.GL_DEPTH_TEST);
-		gl.glColor4f (1,1,1,1);
+        for (int i = 0; i < MAX_LIGHTMAPS; i++) {
+             for (msurface_t surf = gl_lms.lightmap_surfaces[i]; surf != null; surf = surf.lightmapchain) {
+                for (glpoly_t p = surf.polys; p != null; p = p.chain) {
+                    for (int j = 2; j < p.numverts; j++) {
+                        gl.glBegin(GL11.GL_LINE_STRIP);
+						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
+						gl.glVertex3f(p.x(j-1), p.y(j-1), p.z(j-1));
+						gl.glVertex3f(p.x(j), p.y(j), p.z(j));
+						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
+                        gl.glEnd();
+                    }
+                }
+            }
+        }
 
-		for (i=0 ; i<MAX_LIGHTMAPS ; i++)
-		{
-			msurface_t surf;
-
-			for ( surf = gl_lms.lightmap_surfaces[i]; surf != null; surf = surf.lightmapchain )
-			{
-				p = surf.polys;
-				for ( ; p != null ; p=p.chain)
-				{
-					for (j=2 ; j<p.numverts ; j++ )
-					{
-						float[] pverts0=p.verts[0];
-						float[] pvertsjm1=p.verts[j-1];
-						float[] pvertsj=p.verts[j];
-						
-						
-						gl.glBegin (GL11.GL_LINE_STRIP);
-						gl.glVertex3f (pverts0[0],pverts0[1],pverts0[2]);
-						gl.glVertex3f (pvertsjm1[0],pvertsjm1[1],pvertsjm1[2]);
-						gl.glVertex3f (pvertsj[0],pvertsj[1],pvertsj[2]);
-						gl.glVertex3f (pverts0[0],pverts0[1],pverts0[2]);
-						gl.glEnd ();
-					}
-				}
-			}
-		}
-
-		gl.glEnable (GL11.GL_DEPTH_TEST);
-		gl.glEnable (GL11.GL_TEXTURE_2D);
+        gl.glEnable(GL11.GL_DEPTH_TEST);
+        gl.glEnable(GL11.GL_TEXTURE_2D);
 	}
 
 	private IntBuffer temp2 = Lib.newIntBuffer(34 * 34, ByteOrder.LITTLE_ENDIAN);
@@ -375,7 +356,7 @@ public abstract class Surf extends Draw {
 		// so scale it back down
 		intens = gl_state.inverse_intensity;
 
-		gl.glInterleavedArrays(GL11.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
+		gl.glInterleavedArrays(GL11.GL_T2F_V3F, Polygon.BYTE_STRIDE, globalPolygonInterleavedBuf);
 
 		for (s=r_alpha_surfaces ; s != null ; s=s.texturechain)
 		{
@@ -557,13 +538,9 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					v = p.verts;
-					index = p.pos * POLYGON_STRIDE;
-					for (i=0 ; i<p.numverts ; i++) {
-						texCoord.put(index, v[i][3] + scroll);
-						index += POLYGON_STRIDE;
-					}
+				    p.beginScrolling(scroll);
 					gl.glDrawArrays(GL11.GL_POLYGON, p.pos, p.numverts);
+				    p.endScrolling();
 				}
 			}
 			else
@@ -595,13 +572,9 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					v = p.verts;
-					index = p.pos * POLYGON_STRIDE;
-					for (i=0 ; i<p.numverts ; i++) {
-						texCoord.put(index, v[i][3] + scroll);
-						index += POLYGON_STRIDE;
-					}
+				    p.beginScrolling(scroll);
 					gl.glDrawArrays(GL11.GL_POLYGON, p.pos, p.numverts);
+				    p.endScrolling();
 				}
 			}
 			else
@@ -766,10 +739,10 @@ public abstract class Surf extends Draw {
 		GL_EnableMultitexture( true );
 		GL_SelectTexture(GL_TEXTURE0);
 		GL_TexEnv( GL11.GL_REPLACE );
-		gl.glInterleavedArrays(GL11.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
+		gl.glInterleavedArrays(GL11.GL_T2F_V3F, Polygon.BYTE_STRIDE, globalPolygonInterleavedBuf);
 		GL_SelectTexture(GL_TEXTURE1);
 		GL_TexEnv( GL11.GL_MODULATE );
-		gl.glTexCoordPointer(2, POLYGON_BYTE_STRIDE, globalPolygonTexCoord1Buf);
+		gl.glTexCoordPointer(2, Polygon.BYTE_STRIDE, globalPolygonTexCoord1Buf);
 		gl.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 
 		R_DrawInlineBModel();
@@ -956,9 +929,9 @@ public abstract class Surf extends Draw {
 
 		GL_SelectTexture( GL_TEXTURE0);
 		GL_TexEnv( GL11.GL_REPLACE );
-		gl.glInterleavedArrays(GL11.GL_T2F_V3F, POLYGON_BYTE_STRIDE, globalPolygonInterleavedBuf);
+		gl.glInterleavedArrays(GL11.GL_T2F_V3F, Polygon.BYTE_STRIDE, globalPolygonInterleavedBuf);
 		GL_SelectTexture( GL_TEXTURE1);
-		gl.glTexCoordPointer(2, POLYGON_BYTE_STRIDE, globalPolygonTexCoord1Buf);
+		gl.glTexCoordPointer(2, Polygon.BYTE_STRIDE, globalPolygonTexCoord1Buf);
 		gl.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 
 		if ( gl_lightmap.value != 0)
@@ -1182,7 +1155,6 @@ public abstract class Surf extends Draw {
 		int vertpage;
 		float[] vec;
 		float s, t;
-		glpoly_t	poly;
 		float[] total = {0, 0, 0};
 
 		// reconstruct the polygon
@@ -1195,12 +1167,11 @@ public abstract class Surf extends Draw {
 		// draw texture
 		//
 		// poly = Hunk_Alloc (sizeof(glpoly_t) + (lnumverts-4) * VERTEXSIZE*sizeof(float));
-		poly = new glpoly_t(lnumverts);
+		glpoly_t poly = Polygon.create(lnumverts);
 
 		poly.next = fa.polys;
 		poly.flags = fa.flags;
 		fa.polys = poly;
-		poly.numverts = lnumverts;
 
 		for (i=0 ; i<lnumverts ; i++)
 		{
@@ -1223,9 +1194,15 @@ public abstract class Surf extends Draw {
 			t /= fa.texinfo.image.height;
 
 			Math3D.VectorAdd (total, vec, total);
-			Math3D.VectorCopy (vec, poly.verts[i]);
-			poly.verts[i][3] = s;
-			poly.verts[i][4] = t;
+			//Math3D.VectorCopy (vec, poly.verts[i]);
+			poly.x(i, vec[0]);
+			poly.y(i, vec[1]);
+			poly.z(i, vec[2]);
+			
+			//poly.verts[i][3] = s;
+			//poly.verts[i][4] = t;
+			poly.s1(i, s);
+			poly.t1(i, t);
 
 			//
 			// lightmap texture coordinates
@@ -1242,14 +1219,11 @@ public abstract class Surf extends Draw {
 			t += 8;
 			t /= BLOCK_HEIGHT*16; //fa.texinfo.texture.height;
 
-			poly.verts[i][5] = s;
-			poly.verts[i][6] = t;
+//          poly.verts[i][5] = s;
+//          poly.verts[i][6] = t;
+			poly.s2(i, s);
+			poly.t2(i, t);
 		}
-
-		poly.numverts = lnumverts;
-		
-		precompilePolygon(poly);
-
 	}
 
 	/*
@@ -1413,49 +1387,16 @@ public abstract class Surf extends Draw {
 	}
 	
 	/*
-	 * new functions for vertex array handling
+	 * new buffers for vertex array handling
 	 */
-	static final int POLYGON_BUFFER_SIZE = 120000;
-	static final int POLYGON_STRIDE = 7;
-	static final int POLYGON_BYTE_STRIDE = POLYGON_STRIDE * Lib.SIZEOF_FLOAT;
-
-	static FloatBuffer globalPolygonInterleavedBuf = BufferUtils.createFloatBuffer(POLYGON_BUFFER_SIZE * 7);
+	static FloatBuffer globalPolygonInterleavedBuf = Polygon.getInterleavedBuffer();
 	static FloatBuffer globalPolygonTexCoord1Buf = null;
 
 	static {
-	 	globalPolygonInterleavedBuf.position(POLYGON_STRIDE - 2);
+	 	globalPolygonInterleavedBuf.position(Polygon.STRIDE - 2);
 	 	globalPolygonTexCoord1Buf = globalPolygonInterleavedBuf.slice();
 		globalPolygonInterleavedBuf.position(0);
 	 };
-
-	void precompilePolygon(glpoly_t p) {
-		
-		p.pos = globalPolygonInterleavedBuf.position() / POLYGON_STRIDE;
-		
-		float[] v;
-		FloatBuffer buffer = globalPolygonInterleavedBuf;
-		
-		for (int i = 0; i < p.verts.length; i++) {
-			v = p.verts[i];
-			// textureCoord0
-			buffer.put(v[3]);
-			buffer.put(v[4]);
-			
-			// vertex
-			buffer.put(v[0]);
-			buffer.put(v[1]);
-			buffer.put(v[2]);
-
-			// textureCoord1
-			buffer.put(v[5]);
-			buffer.put(v[6]);
-		}
-	}
-
-	public static void resetPolygonArrays() {
-		globalPolygonInterleavedBuf.rewind();
-		globalPolygonTexCoord1Buf.rewind();
-	}
 
 	//ImageFrame frame;
 	
