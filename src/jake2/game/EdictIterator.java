@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.11.2003 by RST.
-// $Id: EdictIterator.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
+// $Id: EdictIterator.java,v 1.3 2005-02-06 18:55:16 salomo Exp $
 
 package jake2.game;
 
@@ -31,6 +31,6 @@ public class EdictIterator
 	{
 		this.i = i;
 	}
-	edict_t o;
+	public edict_t o;
 	int i;
 }
