@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.3 2004-02-14 14:06:26 cwei Exp $
+// $Id: SV_ENTS.java,v 1.4 2004-02-15 21:59:50 cwei Exp $
 
 package jake2.server;
 
@@ -393,11 +393,12 @@ public class SV_ENTS extends SV_USER {
 
 			//for (j=0 ; j<longs ; j++)
 			//	((long *)fatpvs)[j] |= ((long *)src)[j];
+			int k=0;
 			for (j = 0; j < longs; j++) {
-				fatpvs[4 * j + 0] |= src[4 * j + 0];
-				fatpvs[4 * j + 1] |= src[4 * j + 1];
-				fatpvs[4 * j + 2] |= src[4 * j + 2];
-				fatpvs[4 * j + 3] |= src[4 * j + 3];
+				fatpvs[k] |= src[k++];
+				fatpvs[k] |= src[k++];
+				fatpvs[k] |= src[k++];
+				fatpvs[k] |= src[k++];
 			}
 		}
 	}
