@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.20 2004-02-25 13:20:29 hoz Exp $
+// $Id: Math3D.java,v 1.21 2004-03-15 15:10:17 hoz Exp $
 
 package jake2.util;
 
@@ -33,8 +33,9 @@ public class Math3D extends Lib {
 	static final float piratio = (float)(Math.PI / 360.0);
 	
 	public static void set(float v1[], float v2[]) {
-		for (int i = 0; i < v1.length; i++)
-			v1[i] = v2[i];
+		v1[0] = v2[0];
+		v1[1] = v2[1];
+		v1[2] = v2[2];
 	}
 		 
 
@@ -105,11 +106,10 @@ public class Math3D extends Lib {
 		to[2] = veca[2] + scale * vecb[2];
 	}
 	public static final float VectorNormalize(float[] v) {
-		float length, ilength;
 
-		length = VectorLength(v);
+		float length = VectorLength(v);
 		if (length != 0.0f) {
-			ilength = 1.0f / length;
+			float ilength = 1.0f / length;
 			v[0] *= ilength;
 			v[1] *= ilength;
 			v[2] *= ilength;
@@ -164,7 +164,7 @@ public class Math3D extends Lib {
 	}
 
 	public static void vectoangles(float[] value1, float[] angles) {
-		float forward;
+
 		float yaw, pitch;
 
 		if (value1[1] == 0 && value1[0] == 0) {
@@ -184,7 +184,7 @@ public class Math3D extends Lib {
 			if (yaw < 0)
 				yaw += 360;
 
-			forward = (float) Math.sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
+			float forward = (float) Math.sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
 			pitch = (int) (Math.atan2(value1[2], forward) * 180 / Math.PI);
 			if (pitch < 0)
 				pitch += 360;
@@ -195,13 +195,18 @@ public class Math3D extends Lib {
 		angles[Defines.ROLL] = 0;
 	}
 
-	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {		
-		float m[][] = new float[3][3];
-		float im[][] = new float[3][3];
-		float zrot[][] = new float[3][3];
-		float tmpmat[][] = new float[3][3];
-		float rot[][] = new float[3][3];
-		int i;
+	private static float m[][] = new float[3][3];
+	private static float im[][] = new float[3][3];
+	private static float tmpmat[][] = new float[3][3];
+	private static float zrot[][] = new float[3][3];
+	public static void RotatePointAroundVector(float[] dst, float[] dir, float[] point, float degrees) {
+					
+		//float m[][] = new float[3][3];
+		//float im[][] = new float[3][3];
+		//float zrot[][] = new float[3][3];
+		//float tmpmat[][] = new float[3][3];
+		//float rot[][] = new float[3][3];
+		
 		float[] vr = { 0.0f, 0.0f, 0.0f };
 		float[] vup = { 0.0f, 0.0f, 0.0f };
 		float[] vf = { 0.0f, 0.0f, 0.0f };
@@ -225,29 +230,33 @@ public class Math3D extends Lib {
 		m[1][2] = vf[1];
 		m[2][2] = vf[2];
 
-		Math3D.MatCopy(m, im); // achtung: src -> dst
+		//Math3D.MatCopy(m, im); // achtung: src -> dst
 
+		im[0][0] = m[0][0];
 		im[0][1] = m[1][0];
 		im[0][2] = m[2][0];
 		im[1][0] = m[0][1];
+		im[1][1] = m[1][1];
 		im[1][2] = m[2][1];
 		im[2][0] = m[0][2];
 		im[2][1] = m[1][2];
+		im[2][2] = m[2][2];
 
-		Math3D.MatClear(zrot);
+		zrot[0][2] = zrot[1][2] = zrot[2][0] = zrot[2][1] = 0.0f;
 
-		zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
+		zrot[2][2] = 1.0F;
 
-		zrot[0][0] = (float) Math.cos(Math3D.DEG2RAD(degrees));
+		zrot[0][0] = zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
 		zrot[0][1] = (float) Math.sin(Math3D.DEG2RAD(degrees));
-		zrot[1][0] = - (float) Math.sin(Math3D.DEG2RAD(degrees));
-		zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
+		zrot[1][0] = -zrot[0][1];
+		//zrot[1][0] = - (float) Math.sin(Math3D.DEG2RAD(degrees));
+		//zrot[1][1] = (float) Math.cos(Math3D.DEG2RAD(degrees));
 
 		Math3D.R_ConcatRotations(m, zrot, tmpmat);
-		Math3D.R_ConcatRotations(tmpmat, im, rot);
+		Math3D.R_ConcatRotations(tmpmat, im, zrot);
 
-		for (i = 0; i < 3; i++) {
-			dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
+		for (int i = 0; i < 3; i++) {
+			dst[i] = zrot[i][0] * point[0] + zrot[i][1] * point[1] + zrot[i][2] * point[2];
 		}
 	}
 	
@@ -328,7 +337,7 @@ public class Math3D extends Lib {
 		int pos;
 		int i;
 		float minelem = 1.0F;
-		float tempvec[] = { 0.0f, 0.0f, 0.0f };
+
 
 		// find the smallest magnitude axially aligned vector 
 		for (pos = 0, i = 0; i < 3; i++) {
@@ -337,7 +346,7 @@ public class Math3D extends Lib {
 				minelem = Math.abs(src[i]);
 			}
 		}
-		tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
+		float tempvec[] = { 0.0f, 0.0f, 0.0f };
 		tempvec[pos] = 1.0F;
 
 		// project the point onto the plane defined by src
@@ -421,13 +430,11 @@ public class Math3D extends Lib {
 	}
 
 	//	this is the slow, general version
+	private static float corners[][] = new float[2][3];
 	public static final int BoxOnPlaneSide2(float[] emins, float[] emaxs, cplane_t p) {
-		int i;
-		float dist1, dist2;
-		int sides;
-		float corners[][] = new float[2][3];
+		
 
-		for (i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; i++) {
 			if (p.normal[i] < 0) {
 				corners[0][i] = emins[i];
 				corners[1][i] = emaxs[i];
@@ -437,9 +444,9 @@ public class Math3D extends Lib {
 				corners[0][i] = emaxs[i];
 			}
 		}
-		dist1 = Math3D.DotProduct(p.normal, corners[0]) - p.dist;
-		dist2 = Math3D.DotProduct(p.normal, corners[1]) - p.dist;
-		sides = 0;
+		float dist1 = Math3D.DotProduct(p.normal, corners[0]) - p.dist;
+		float dist2 = Math3D.DotProduct(p.normal, corners[1]) - p.dist;
+		int sides = 0;
 		if (dist1 >= 0)
 			sides = 1;
 		if (dist2 < 0)
@@ -479,21 +486,21 @@ public class Math3D extends Lib {
 		}
 	}
 
-	public static void MatClear(float m[][]) {
-		m[0][0] = m[0][1] = m[0][2] = m[1][0] = m[1][1] = m[1][2] = m[2][0] = m[2][1] = m[2][2] = 0.0f;
-	}
+//	public static void MatClear(float m[][]) {
+//		m[0][0] = m[0][1] = m[0][2] = m[1][0] = m[1][1] = m[1][2] = m[2][0] = m[2][1] = m[2][2] = 0.0f;
+//	}
 
-	private static final void MatCopy(float src[][], float dst[][]) {
-		dst[0][0]=src[0][0];
-		dst[0][1]=src[0][1];
-		dst[0][2]=src[0][2];
-		dst[1][0]=src[1][0];
-		dst[1][1]=src[1][1];
-		dst[1][2]=src[1][2];
-		dst[2][0]=src[2][0];
-		dst[2][1]=src[2][1];
-		dst[2][2]=src[2][2];
-	}
+//	private static final void MatCopy(float src[][], float dst[][]) {
+//		dst[0][0]=src[0][0];
+//		dst[0][1]=src[0][1];
+//		dst[0][2]=src[0][2];
+//		dst[1][0]=src[1][0];
+//		dst[1][1]=src[1][1];
+//		dst[1][2]=src[1][2];
+//		dst[2][0]=src[2][0];
+//		dst[2][1]=src[2][1];
+//		dst[2][2]=src[2][2];
+//	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
 		result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
