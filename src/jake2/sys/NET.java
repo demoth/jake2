@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.8 2004-01-30 10:40:08 hoz Exp $
+ * $Id: NET.java,v 1.9 2004-01-30 13:35:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -227,7 +227,7 @@ public final class NET extends Defines {
 //	}
 //	
 	
-	public static boolean NET_StringToAdr( String s, netadr_t a)
+	public static boolean StringToAdr( String s, netadr_t a)
 	{
 		try
 		{
@@ -245,7 +245,7 @@ public final class NET extends Defines {
 	
 	
 	
-	public static boolean	NET_IsLocalAddress (netadr_t adr)
+	public static boolean	IsLocalAddress (netadr_t adr)
 	{
 		return CompareAdr (adr, net_local_adr);
 	}
