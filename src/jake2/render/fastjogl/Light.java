@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.1 2004-06-09 15:24:24 cwei Exp $
+ * $Id: Light.java,v 1.2 2004-06-13 15:01:23 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -551,6 +551,7 @@ public abstract class Light extends Warp {
 	
 			//surf.samples.reset();	
 			lightmap = surf.samples.slice();
+			int lightmapIndex = 0;
 	
 			// add all the lightmaps
 			if ( nummaps == 1 )
@@ -572,18 +573,18 @@ public abstract class Light extends Warp {
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] = lightmap.get() & 0xFF;
-							bl[blp++] = lightmap.get() & 0xFF;
-							bl[blp++] = lightmap.get() & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] = lightmap.get(lightmapIndex++) & 0xFF;
 						}
 					}
 					else
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] = (lightmap.get() & 0xFF) * scale[0];
-							bl[blp++] = (lightmap.get()  & 0xFF) * scale[1];
-							bl[blp++] = (lightmap.get() & 0xFF) * scale[2];
+							bl[blp++] = (lightmap.get(lightmapIndex++) & 0xFF) * scale[0];
+							bl[blp++] = (lightmap.get(lightmapIndex++)  & 0xFF) * scale[1];
+							bl[blp++] = (lightmap.get(lightmapIndex++) & 0xFF) * scale[2];
 						}
 					}
 					//lightmap += size*3;		// skip to next lightmap
@@ -612,18 +613,18 @@ public abstract class Light extends Warp {
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] += lightmap.get() & 0xFF;
-							bl[blp++] += lightmap.get() & 0xFF;
-							bl[blp++] += lightmap.get() & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
+							bl[blp++] += lightmap.get(lightmapIndex++) & 0xFF;
 						}
 					}
 					else
 					{
 						for (i=0 ; i<size ; i++)
 						{
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[0];
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[1];
-							bl[blp++] += (lightmap.get() & 0xFF) * scale[2];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[0];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[1];
+							bl[blp++] += (lightmap.get(lightmapIndex++) & 0xFF) * scale[2];
 						}
 					}
 					//lightmap += size*3;		// skip to next lightmap
@@ -650,7 +651,7 @@ public abstract class Light extends Warp {
 		{
 			for (i=0 ; i<tmax ; i++, destp += stride)
 			{
-				dest.position(destp);
+				//dest.position(destp);
 				
 				for (j=0 ; j<smax ; j++)
 				{
@@ -697,8 +698,11 @@ public abstract class Light extends Warp {
 						b = (int)(b*t);
 						a = (int)(a*t);
 					}
-					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
-					destp += 4;
+					dest.put(destp++, (byte)r);
+					dest.put(destp++, (byte)g);
+					dest.put(destp++, (byte)b);
+					dest.put(destp++, (byte)a);
+					//destp += 4;
 				}
 			}
 		}
@@ -706,7 +710,7 @@ public abstract class Light extends Warp {
 		{
 			for (i=0 ; i<tmax ; i++, destp += stride)
 			{
-				dest.position(destp);
+				//dest.position(destp);
 
 				for (j=0 ; j<smax ; j++)
 				{
@@ -779,8 +783,13 @@ public abstract class Light extends Warp {
 						break;
 					}
 
-					dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
-					destp += 4;
+					dest.put(destp++, (byte)r);
+					dest.put(destp++, (byte)g);
+					dest.put(destp++, (byte)b);
+					dest.put(destp++, (byte)a);
+					
+					//dest.put((byte)r).put((byte)g).put((byte)b).put((byte)a);
+					//destp += 4;
 				}
 			}
 		}
