@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.3 2004-04-15 14:37:37 cwei Exp $
+ * $Id: S.java,v 1.4 2004-04-16 07:27:04 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
+import jake2.sound.joal.JOALSoundImpl;
 import jake2.sound.jsound.JSoundImpl;
 import jake2.util.Vargs;
 
@@ -40,8 +41,7 @@ import jake2.util.Vargs;
  */
 public class S {
 	
-	// TODO ist nur voruebergehend: JSoundImpl()
-	static SoundImpl sound = new JSoundImpl();
+	static SoundImpl sound;
 	static boolean sound_started = false;
 	
 	static int s_registration_sequence;
@@ -54,6 +54,7 @@ public class S {
 	static cvar_t s_mixahead;
 	static cvar_t s_primary;
 	static cvar_t s_volume;
+	static cvar_t s_impl;
 
 	static final int MAX_SFX = (Defines.MAX_SOUNDS*2);
 	static sfx_t[] known_sfx = new sfx_t[MAX_SFX];
@@ -81,7 +82,8 @@ public class S {
 			s_show = Cvar.Get("s_show", "0", 0);
 			s_testsound = Cvar.Get("s_testsound", "0", 0);
 			s_primary = Cvar.Get("s_primary", "0", Defines.CVAR_ARCHIVE); // win32 specific
-
+			s_impl = Cvar.Get("s_impl", "jsound", Defines.CVAR_ARCHIVE);
+			
 			Cmd.AddCommand("play", new xcommand_t() {
 				public void execute() {
 					Play();
@@ -103,6 +105,15 @@ public class S {
 				}
 			});
 
+			if ("joal".equals(s_impl.string)) {
+				sound = new JOALSoundImpl();
+			}
+			// this should always work 
+			else {
+				sound = new JSoundImpl();
+				Cvar.Set("s_impl", "jsound");
+			}
+			
 			if (!sound.Init())
 				return;
 
@@ -166,42 +177,173 @@ public class S {
 	=====================
 	*/
 	public static void EndRegistration() {
-//		int i;
-//		sfx_t sfx;
-//		int size;
-//
-//		// free any sounds not from this registration sequence
-//		for (i = 0; i < num_sfx; i++) {
-//			sfx = known_sfx[i];
-//			if (sfx.name == null)
-//				continue;
-//			if (sfx.registration_sequence != s_registration_sequence) { // don't need this sound
-//				//memset (sfx, 0, sizeof(*sfx));
-//				sfx.clear();
-//			} else { 
-//				// make sure it is paged in
-//				//				if (sfx->cache)
-//				//				{
-//				//					size = sfx->cache->length*sfx->cache->width;
-//				//					Com_PageInMemory ((byte *)sfx->cache, size);
-//				//				}
-//			}
-//
-//		}
-//
-//		// load everything in
-//		for (i = 0; i < num_sfx; i++) {
-//			sfx = known_sfx[i];
-//			if (sfx.name == null)
-//				continue;
-//			LoadSound(sfx);
-//		}
-//
-//		s_registering = false;
+		int i;
+		sfx_t sfx;
+		int size;
+
+		// free any sounds not from this registration sequence
+		for (i = 0; i < num_sfx; i++) {
+			sfx = known_sfx[i];
+			if (sfx.name == null)
+				continue;
+			if (sfx.registration_sequence != s_registration_sequence) { // don't need this sound
+				//memset (sfx, 0, sizeof(*sfx));
+				sfx.clear();
+			} else { 
+				// make sure it is paged in
+				//				if (sfx->cache)
+				//				{
+				//					size = sfx->cache->length*sfx->cache->width;
+				//					Com_PageInMemory ((byte *)sfx->cache, size);
+				//				}
+			}
+
+		}
+
+		// load everything in
+		for (i = 0; i < num_sfx; i++) {
+			sfx = known_sfx[i];
+			if (sfx.name == null)
+				continue;
+			LoadSound(sfx);
+		}
+
+		s_registering = false;
 	}
-			
+
+	/*
+	==============
+	S_LoadSound
+	==============
+	*/
+	static sfxcache_t LoadSound(sfx_t s) {
+//		String namebuffer;
+//		byte[] data;
+//		wavinfo_t info;
+//		int len;
+//		float stepscale;
+		sfxcache_t sc = null;
+//		int size;
+//		String name;
+//
+//		if (s.name.charAt(0) == '*')
+//			return null;
+//
+//		// see if still in memory
+//		sc = s.cache;
+//		if (sc != null)
+//			return sc;
+//
+//		// load it in
+//		if (s.truename != null)
+//			name = s.truename;
+//		else
+//			name = s.name;
+//
+//		if (name.charAt(0) == '#')
+//			namebuffer = name.substring(1);
+//		//strcpy(namebuffer, &name[1]);
+//		else
+//			namebuffer = "sound/" + name;
+//		//Com_sprintf (namebuffer, sizeof(namebuffer), "sound/%s", name);
+//
+//		data = FS.LoadFile(namebuffer);
+//
+//		if (data == null) {
+//			Com.DPrintf("Couldn't load " + namebuffer + "\n");
+//			return null;
+//		}
+//		size = data.length;
+//
+//		info = GetWavinfo(s.name, data, size);
+//		if (info.channels != 1) {
+//			Com.Printf(s.name + " is a stereo sample\n");
+//			FS.FreeFile(data);
+//			return null;
+//		}
+//
+//		stepscale = ((float)info.rate) / dma.speed;
+//		len = (int) (info.samples / stepscale);
+//
+//		len = len * info.width * info.channels;
+//
+//		//sc = s.cache = Z_Malloc (len + sizeof(sfxcache_t));
+//		sc = s.cache = new sfxcache_t(len);
+//
+//		sc.length = info.samples;
+//		sc.loopstart = info.loopstart;
+//		sc.speed = info.rate;
+//		sc.width = info.width;
+//		sc.stereo = info.channels;
+//
+//		ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
+//
+//		FS.FreeFile(data);
+//
+		return sc;
+	}
+				
 	public static sfx_t RegisterSound(String name) {
-		return null;
+		sfx_t sfx = null;
+
+		if (!sound_started)
+			return null;
+
+		sfx = FindName(name, true);
+		sfx.registration_sequence = s_registration_sequence;
+
+		if (!s_registering)
+			LoadSound(sfx);
+
+		return sfx;		
+	}
+	
+	/*
+	==================
+	S_FindName
+
+	==================
+	*/
+	static sfx_t FindName(String name, boolean create) {
+		int i;
+		sfx_t sfx = null;
+
+		if (name == null)
+			Com.Error(Defines.ERR_FATAL, "S_FindName: NULL\n");
+		if (name.length() == 0)
+			Com.Error(Defines.ERR_FATAL, "S_FindName: empty name\n");
+
+		if (name.length() >= Defines.MAX_QPATH)
+			Com.Error(Defines.ERR_FATAL, "Sound name too long: " + name);
+
+		// see if already loaded
+		for (i = 0; i < num_sfx; i++)
+			if (name.equals(known_sfx[i].name)) {
+				return known_sfx[i];
+			}
+
+		if (!create)
+			return null;
+
+		// find a free sfx
+		for (i = 0; i < num_sfx; i++)
+			if (known_sfx[i].name == null)
+				// registration_sequence < s_registration_sequence)
+				break;
+
+		if (i == num_sfx) {
+			if (num_sfx == MAX_SFX)
+				Com.Error(Defines.ERR_FATAL, "S_FindName: out of sfx_t");
+			num_sfx++;
+		}
+
+		sfx = known_sfx[i];
+		//memset (sfx, 0, sizeof(*sfx));
+		sfx.clear();
+		sfx.name = name;
+		sfx.registration_sequence = s_registration_sequence;
+
+		return sfx;
 	}
 
 	/*
