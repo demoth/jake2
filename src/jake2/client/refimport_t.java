@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: refimport_t.java,v 1.4 2003-11-29 13:28:29 rst Exp $
+// $Id: refimport_t.java,v 1.5 2003-12-27 03:08:09 cwei Exp $
 
 
 package jake2.client;
@@ -34,6 +34,7 @@ public interface refimport_t {
 	// ref.h 
 	// these are the functions imported by the refresh module
 	//
+	void Sys_Error(int err_level, String str);
 	void Sys_Error(int err_level, String str, Vargs vargs);
 
 	void Cmd_AddCommand(String name, xcommand_t cmd);
@@ -44,12 +45,16 @@ public interface refimport_t {
 
 	void Con_Printf(int print_level, String str, Vargs vargs);
 
+	void Con_Printf(int print_level, String str);
+
 	// files will be memory mapped read only
 	// the returned buffer may be part of a larger pak file,
 	// or a discrete file from anywhere in the quake search path
 	// a -1 return means the file does not exist
 	// NULL can be passed for buf to just determine existance
-	int FS_LoadFile(String name, byte[] buf);
+	byte[] FS_LoadFile(String name);
+	int FS_FileLength(String name);
+	
 	void FS_FreeFile(byte[] buf);
 	// gamedir will be the current directory that generated
 	// files should be stored to, ie: "f:\quake\id1"
@@ -62,4 +67,10 @@ public interface refimport_t {
 	boolean Vid_GetModeInfo(Dimension dim /* int *w,  *h */, int mode);
 	void Vid_MenuInit();
 	void Vid_NewWindow(int width, int height);
+	
+	/**
+	 * This is the callback for Renderer.
+	 */
+	void updateScreenCallback();
+	
 }
