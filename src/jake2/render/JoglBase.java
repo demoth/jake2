@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.11 2004-10-31 19:55:07 hzi Exp $
+ * $Id: JoglBase.java,v 1.12 2004-11-03 08:53:27 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -231,6 +231,7 @@ public abstract class JoglBase implements GLEventListener {
 		canvas.addKeyListener(KBD.listener);
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
+		canvas.addMouseWheelListener(KBD.listener);
 				        
 		if (fullscreen) {
 			

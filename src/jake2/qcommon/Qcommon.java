@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.11 2004-10-28 21:31:31 cawe Exp $
+ * $Id: Qcommon.java,v 1.12 2004-11-03 08:53:27 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -77,13 +77,7 @@ public final class Qcommon extends Globals {
 			FS.InitFilesystem();
 
 			Jake2.Q2Dialog.setStatus("loading config...");
-			Cbuf.AddText("exec default.cfg\n");
-			Cbuf.Execute();
-			Cvar.Set("vid_fullscreen", "0");
-			Cbuf.AddText("exec config.cfg\n");
-
-			Cbuf.AddEarlyCommands(true);
-			Cbuf.Execute();
+			reconfigure();
 
 			FS.setCDDir(); // use cddir from config.cfg
 			FS.markBaseSearchPaths(); // mark the default search paths
@@ -241,6 +235,8 @@ public final class Qcommon extends Globals {
 
 	static void reconfigure() {
 		Cbuf.AddText("exec default.cfg\n");
+		Cbuf.AddText("bind MWHEELUP weapnext\n");
+		Cbuf.AddText("bind MWHEELDOWN weapprev\n");
 		Cbuf.Execute();
 		Cvar.Set("vid_fullscreen", "0");
 		Cbuf.AddText("exec config.cfg\n");

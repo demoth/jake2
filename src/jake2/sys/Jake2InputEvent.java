@@ -2,7 +2,7 @@
  * Jake2InputEvent.java
  * Copyright (C) 2004
  * 
- * $Id: Jake2InputEvent.java,v 1.1 2004-07-07 19:59:51 hzi Exp $
+ * $Id: Jake2InputEvent.java,v 1.2 2004-11-03 08:53:27 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,7 @@ class Jake2InputEvent {
 	static final int ButtonRelease = 4;
 	static final int CreateNotify = 5;
 	static final int ConfigureNotify = 6;
+	static final int WheelMoved = 7;
 	int type;
 	AWTEvent ev;
 	

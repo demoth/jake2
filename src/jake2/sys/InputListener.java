@@ -2,7 +2,7 @@
  * InputListener.java
  * Copyright (C) 2004
  * 
- * $Id: InputListener.java,v 1.2 2004-07-19 19:22:57 hzi Exp $
+ * $Id: InputListener.java,v 1.3 2004-11-03 08:53:27 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,7 +31,8 @@ import java.util.LinkedList;
 /**
  * InputListener
  */
-public final class InputListener implements KeyListener, MouseListener, MouseMotionListener, ComponentListener {
+public final class InputListener implements KeyListener, MouseListener, 
+		MouseMotionListener, ComponentListener, MouseWheelListener {
 
 	// modifications of eventQueue must be thread safe!
 	private static LinkedList eventQueue = new LinkedList();
@@ -101,7 +102,10 @@ public final class InputListener implements KeyListener, MouseListener, MouseMot
 		IN.c = e.getComponent();
 		addEvent(new Jake2InputEvent(Jake2InputEvent.CreateNotify, e));
 	}
-	
+
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        addEvent(new Jake2InputEvent(Jake2InputEvent.WheelMoved, e));
+    }	
 
 }
 

@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.3 2004-10-31 13:56:17 cawe Exp $
+ * $Id: KBD.java,v 1.4 2004-11-03 08:53:27 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -101,6 +101,17 @@ public final class KBD {
 					Do_Key_Event(Key.K_MOUSE1 + b, false);
 					break;
  
+				case Jake2InputEvent.WheelMoved:
+				    int dir = ((MouseWheelEvent)event.ev).getWheelRotation();
+					if (dir > 0) {
+					    Do_Key_Event(Key.K_MWHEELDOWN, true);
+						Do_Key_Event(Key.K_MWHEELDOWN, false);
+					} else {
+					    Do_Key_Event(Key.K_MWHEELUP, true);
+						Do_Key_Event(Key.K_MWHEELUP, false);					    
+					}
+				    break;
+				
 				case Jake2InputEvent.CreateNotify :
 				case Jake2InputEvent.ConfigureNotify :
 					Component c = ((ComponentEvent)event.ev).getComponent();
