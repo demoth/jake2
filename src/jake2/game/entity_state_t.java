@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.3 2004-08-20 21:29:58 salomo Exp $
+// $Id: entity_state_t.java,v 1.4 2005-01-23 19:06:10 cawe Exp $
 
 package jake2.game;
 
@@ -144,5 +144,23 @@ public class entity_state_t implements Cloneable
 		solid = from.solid;
 		sound = from.sound;
 		event = from.event;
+	}
+
+	public void clear()
+	{
+		number = -99999;
+		surrounding_ent = null;
+		Math3D.VectorClear(origin);
+		Math3D.VectorClear(angles);
+		Math3D.VectorClear(old_origin);
+		modelindex = 0;
+		modelindex2 = modelindex3 = modelindex4 = 0; 
+		frame = 0;
+		skinnum = 0;
+		effects = 0; 
+		renderfx = 0;
+		solid = 0;
+		sound = 0;
+		event = 0;
 	}
 }
