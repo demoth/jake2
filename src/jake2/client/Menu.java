@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.17 2005-01-20 23:15:23 cawe Exp $
+ * $Id: Menu.java,v 1.18 2005-02-09 20:47:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -3574,21 +3574,12 @@ public final class Menu extends Key {
     }
 
     static void AddressBook_MenuInit() {
-        int i;
-
         s_addressbook_menu.x = viddef.width / 2 - 142;
         s_addressbook_menu.y = viddef.height / 2 - 58;
         s_addressbook_menu.nitems = 0;
 
-        for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
-            cvar_t adr;
-            //char buffer[20];
-            String buffer;
-
-            //Com_sprintf(buffer, sizeof(buffer), "adr%d", i);
-            buffer = "adr" + i;
-
-            adr = Cvar.Get(buffer, "", CVAR_ARCHIVE);
+        for (int i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
+            cvar_t adr = Cvar.Get("adr" + i, "", CVAR_ARCHIVE);
 
             s_addressbook_fields[i].type = MTYPE_FIELD;
             s_addressbook_fields[i].name = null;
@@ -3596,7 +3587,8 @@ public final class Menu extends Key {
             s_addressbook_fields[i].x = 0;
             s_addressbook_fields[i].y = i * 18 + 0;
             s_addressbook_fields[i].localdata[0] = i;
-            s_addressbook_fields[i].cursor = 0;
+            // put the cursor to the end of text for editing
+            s_addressbook_fields[i].cursor = adr.string.length();
             s_addressbook_fields[i].length = 60;
             s_addressbook_fields[i].visible_length = 30;
 
@@ -3614,14 +3606,8 @@ public final class Menu extends Key {
 
     static String AddressBook_MenuKey_f(int key) {
         if (key == K_ESCAPE) {
-            int index;
-            //char buffer[20];
-            String buffer;
-
-            for (index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
-                buffer = "adr" + index;
-                //Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
-                Cvar.Set(buffer, s_addressbook_fields[index].buffer.toString());
+            for (int index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
+                Cvar.Set("adr" + index, s_addressbook_fields[index].buffer.toString());
             }
         }
         return Default_MenuKey(s_addressbook_menu, key);
