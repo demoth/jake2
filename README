@@ -31,8 +31,7 @@ from binary distribution:
 build from source:
 - unpack jake2src-version.tar.gz or jake2-version.zip
 - set JAVA_HOME environment variable to Your J2SDK1.4 installation
-- run "build.sh bindist" or "build.bat bindist" to build the binary
-  distribution
+- run "build.sh installer" or "build.bat installer" to build the installer
 
 installation of Quake2 data:
 - if Jake2 does not detect the Quake2 files on startup you have the choice

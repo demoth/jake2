@@ -35,7 +35,7 @@ ausgehend von der Binärdistribution:
 ausgehend von Sourcedistribution:
 - jake2src-version.tar.gz oder jake2src-version.zip entpacken
 - JAVA_HOME Umgebungsvariable auf J2SDK1.4 Installationsverzeichnis setzen
-- "build.sh bindist" oder "build.bat bindist" erzeugt die Binärdistribution
+- "build.sh installer" oder "build.bat installer" erzeugt den Installer
 
 Quake2 Leveldaten installieren:
 - Wenn die Quake2 Leveldaten beim Start von Jake2 nicht gefunden werden,
