@@ -19,20 +19,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.4 2004-07-09 06:50:49 hzi Exp $
+// $Id: SV_INIT.java,v 1.5 2004-07-30 06:07:23 hzi Exp $
 
 package jake2.server;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
-import jake2.*;
-import jake2.client.*;
+import jake2.Globals;
+import jake2.client.CL;
+import jake2.client.SCR;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
 import jake2.sys.NET;
-import jake2.util.Lib;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class SV_INIT extends Globals  {
 
@@ -211,7 +210,7 @@ public class SV_INIT extends Globals  {
 		// restarted
 		sv.state = ss_dead;
 		
-		Com.SetServerState(sv.state);
+		Globals.server_state= sv.state;
 
 		// wipe the entire per-level structure
 		//memset(sv, 0, sizeof(sv));
@@ -280,7 +279,7 @@ public class SV_INIT extends Globals  {
 		// precache and static commands can be issued during
 		// map initialization
 		sv.state = ss_loading;
-		Com.SetServerState(sv.state);
+		Globals.server_state= sv.state;
 
 		// load and spawn all other entities
 		SV_GAME.ge.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
@@ -291,7 +290,7 @@ public class SV_INIT extends Globals  {
 
 		// all precaches are complete
 		sv.state = serverstate;
-		Com.SetServerState(sv.state);
+		Globals.server_state= sv.state;
 
 		// create a baseline for more efficient communications
 		SV_CreateBaseline();

@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.4 2004-07-26 19:17:06 hzi Exp $
+ * $Id: SV.java,v 1.5 2004-07-30 06:07:23 hzi Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.server;
 
-import jake2.*;
+import jake2.Defines;
+import jake2.client.M;
 import jake2.game.*;
 import jake2.qcommon.Com;
-import jake2.util.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.game.trace_t;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
 /**
  * SV
@@ -90,7 +89,7 @@ public final class SV {
 		ent.nextthink = 0;
 	
 		if (ent.think == null)
-			GameBase.gi.error("NULL ent.think");
+			Com.Error(Defines.ERR_FATAL, "NULL ent.think");
 	
 		ent.think.think(ent);
 	
@@ -486,7 +485,7 @@ public final class SV {
 			}
 		}
 		if (GameBase.pushed_p > Defines.MAX_EDICTS)
-			GameBase.gi.error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
+			SV_GAME.PF_error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 	
 		if (part != null) {
 			// the move failed, bump all nextthink times and back out moves

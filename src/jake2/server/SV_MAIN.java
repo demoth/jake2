@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.4 2004-07-23 10:09:01 hzi Exp $
+// $Id: SV_MAIN.java,v 1.5 2004-07-30 06:07:23 hzi Exp $
 
 package jake2.server;
 
@@ -1006,9 +1006,8 @@ public class SV_MAIN extends SV_GAME {
 
 		//memset (&sv, 0, sizeof(sv));
 		sv = new server_t();
-
 		
-		Com.SetServerState (sv.state);
+		Globals.server_state= sv.state;
 
 		// free server static data
 		//if (svs.clients!=null)
