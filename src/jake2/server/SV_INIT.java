@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.7 2004-08-22 14:25:13 salomo Exp $
+// $Id: SV_INIT.java,v 1.8 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
@@ -99,9 +99,9 @@ public class SV_INIT extends Globals {
 		edict_t svent;
 		int entnum;
 
-		for (entnum= 1; entnum < SV_GAME.ge.num_edicts; entnum++) {
+		for (entnum= 1; entnum < GameBase.num_edicts; entnum++) {
 			//svent = EDICT_NUM(entnum);
-			svent= SV_GAME.ge.edicts[entnum];
+			svent= GameBase.g_edicts[entnum];
 
 			if (!svent.inuse)
 				continue;
@@ -168,7 +168,7 @@ public class SV_INIT extends Globals {
 			previousState= sv.state; // PGM
 			sv.state= ss_loading; // PGM
 			for (i= 0; i < 100; i++)
-				SV_GAME.ge.RunFrame();
+				Game.G_RunFrame();
 
 			sv.state= previousState; // PGM
 		}
@@ -278,11 +278,11 @@ public class SV_INIT extends Globals {
 		Globals.server_state= sv.state;
 
 		// load and spawn all other entities
-		SV_GAME.ge.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+		Game.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
 
 		// run two frames to allow everything to settle
-		SV_GAME.ge.RunFrame();
-		SV_GAME.ge.RunFrame();
+		Game.G_RunFrame();
+		Game.G_RunFrame();
 
 		// all precaches are complete
 		sv.state= serverstate;
@@ -382,7 +382,7 @@ public class SV_INIT extends Globals {
 		SV_GAME.SV_InitGameProgs(); // bis hier alles ok!
 
 		for (i= 0; i < SV_MAIN.maxclients.value; i++) {
-			ent= SV_GAME.ge.edicts[i + 1];
+			ent= GameBase.g_edicts[i + 1];
 
 			//ent.s.number = i + 1;	//dont need this, ent.s.number already set.
 			svs.clients[i].edict= ent;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.5 2004-07-30 06:07:23 hzi Exp $
+// $Id: SV_MAIN.java,v 1.6 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
@@ -89,7 +89,7 @@ public class SV_MAIN extends SV_GAME {
 		if (drop.state == Defines.cs_spawned) {
 			// call the prog function for removing a client
 			// this will remove the body, among other things
-			SV_GAME.ge.ClientDisconnect(drop.edict);
+			PlayerClient.ClientDisconnect(drop.edict);
 		}
 
 		if (drop.download != null) {
@@ -363,12 +363,12 @@ public class SV_MAIN extends SV_GAME {
 		sv_client = svs.clients[i];
 		//edictnum = (newcl-svs.clients)+1;
 		int edictnum = i + 1;
-		edict_t ent = ge.edicts[edictnum];
+		edict_t ent = GameBase.g_edicts[edictnum];
 		svs.clients[i].edict = ent;
 		svs.clients[i].challenge = challenge; // save challenge for checksumming
 
 		// get the game a chance to reject this connection or modify the userinfo
-		if (!(ge.ClientConnect(ent, userinfo))) {
+		if (!(PlayerClient.ClientConnect(ent, userinfo))) {
 			if (Info.Info_ValueForKey(userinfo, "rejmsg") != null)
 				Netchan.OutOfBandPrint(
 					NS_SERVER,
@@ -670,8 +670,8 @@ public class SV_MAIN extends SV_GAME {
 		edict_t ent;
 		int i;
 
-		for (i = 0; i < ge.num_edicts; i++) {
-			ent = SV_GAME.ge.edicts[i];
+		for (i = 0; i < GameBase.num_edicts; i++) {
+			ent = GameBase.g_edicts[i];
 			// events only last for a single message
 			ent.s.event = 0;
 		}
@@ -696,7 +696,7 @@ public class SV_MAIN extends SV_GAME {
 
 		// don't run if paused
 		if (0 == sv_paused.value || maxclients.value > 1) {
-			ge.RunFrame();
+			Game.G_RunFrame();
 
 			// never get more than one tic behind
 			if (sv.time < svs.realtime) {
@@ -862,7 +862,7 @@ public class SV_MAIN extends SV_GAME {
 		int i;
 
 		// call prog code to allow overrides
-		SV_GAME.ge.ClientUserinfoChanged(cl.edict, cl.userinfo);
+		PlayerClient.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
 		// name for C code
 		cl.name = Info.Info_ValueForKey(cl.userinfo, "name");

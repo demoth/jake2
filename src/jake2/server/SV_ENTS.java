@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.3 2004-07-12 20:47:02 hzi Exp $
+// $Id: SV_ENTS.java,v 1.4 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
@@ -456,8 +456,8 @@ public class SV_ENTS extends SV_USER {
 
 		c_fullsend = 0;
 
-		for (e = 1; e < SV_GAME.ge.num_edicts; e++) {
-			ent = SV_GAME.ge.edicts[e];
+		for (e = 1; e < GameBase.num_edicts; e++) {
+			ent = GameBase.g_edicts[e];
 
 			// ignore ents without visible models
 			if ((ent.svflags & SVF_NOCLIENT) != 0)
@@ -567,9 +567,9 @@ public class SV_ENTS extends SV_USER {
 		MSG.WriteByte(buf, svc_packetentities);
 
 		e = 1;
-		ent = SV_GAME.ge.edicts[e];
+		ent = GameBase.g_edicts[e];
 
-		while (e < SV_GAME.ge.num_edicts) {
+		while (e < GameBase.num_edicts) {
 			// ignore ents without visible models unless they have an effect
 			if (ent.inuse
 				&& ent.s.number != 0
@@ -578,7 +578,7 @@ public class SV_ENTS extends SV_USER {
 				MSG.WriteDeltaEntity(nostate, ent.s, buf, false, true);
 
 			e++;
-			ent = SV_GAME.ge.edicts[e];
+			ent = GameBase.g_edicts[e];
 		}
 
 		MSG.WriteShort(buf, 0); // end of packetentities

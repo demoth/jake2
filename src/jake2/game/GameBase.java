@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.5 2004-08-22 14:25:11 salomo Exp $
+// $Id: GameBase.java,v 1.6 2004-08-29 21:39:24 hzi Exp $
 
 /** Father of all GameObjects. */
 
@@ -38,12 +38,12 @@ public class GameBase extends Globals {
 	public static game_locals_t game= new game_locals_t();
 	public static level_locals_t level= new level_locals_t();
 	public static game_import_t gi= new game_import_t();
-	public static game_export_t globals= new game_export_t();
 	public static spawn_temp_t st= new spawn_temp_t();
 
 	public static int sm_meat_index;
 	public static int snd_fry;
 	public static int meansOfDeath;
+	public static int num_edicts;
 
 	public static edict_t g_edicts[]= new edict_t[MAX_EDICTS];
 	static {
@@ -156,7 +156,7 @@ public class GameBase extends Globals {
 		else
 			from.i++;
 
-		for (; from.i < globals.num_edicts; from.i++) {
+		for (; from.i < num_edicts; from.i++) {
 			from.o= g_edicts[from.i];
 			if (from.o.classname == null) {
 				Com.Printf("edict with classname = null" + from.o.index);
@@ -193,7 +193,7 @@ public class GameBase extends Globals {
 		else
 			from.i++;
 
-		for (; from.i < globals.num_edicts; from.i++) {
+		for (; from.i < num_edicts; from.i++) {
 			from.o= g_edicts[from.i];
 			if (!from.o.inuse)
 				continue;
@@ -375,21 +375,6 @@ public class GameBase extends Globals {
 	================
 	*/
 	public static int DI_NODIR= -1;
-	public static void assert1(boolean cond) {
-		if (!cond) {
-
-			try {
-
-				int a[]= null;
-				int b= a[0];
-			}
-			catch (Exception e) {
-				System.err.println("assertion failed!");
-				e.printStackTrace();
-			}
-
-		}
-	}
 
 	public static void ClearBounds(float[] mins, float[] maxs) {
 		mins[0]= mins[1]= mins[2]= 99999;
@@ -427,9 +412,6 @@ public class GameBase extends Globals {
 
 	public static void ShutdownGame() {
 		gi.dprintf("==== ShutdownGame ====\n");
-
-		//gi.FreeTags (TAG_LEVEL);
-		//gi.FreeTags (TAG_GAME);
 	}
 
 	//======================================================================
@@ -654,7 +636,7 @@ public class GameBase extends Globals {
 		// even the world gets a chance to think
 		//
 
-		for (i= 0; i < globals.num_edicts; i++) {
+		for (i= 0; i < num_edicts; i++) {
 			ent= g_edicts[i];
 			if (!ent.inuse)
 				continue;
@@ -698,7 +680,7 @@ public class GameBase extends Globals {
 	=================
 	*/
 
-	public static game_export_t GetGameApi(game_import_t imp) {
+	public static void GetGameApi(game_import_t imp) {
 		gi= imp;
 
 		gi.pointcontents= new pmove_t.PointContentsAdapter() {
@@ -707,7 +689,7 @@ public class GameBase extends Globals {
 			}
 		};
 
-		globals.apiversion= GAME_API_VERSION;
+		//globals.apiversion= GAME_API_VERSION;
 		/*
 		globals.Init = InitGame;
 		globals.Shutdown = ShutdownGame;
@@ -728,6 +710,6 @@ public class GameBase extends Globals {
 		globals.ServerCommand = ServerCommand;
 		*/
 
-		return globals;
+		//return globals;
 	}
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.7 2004-08-22 14:25:12 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.8 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
@@ -28,7 +28,6 @@ import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
-import jake2.util.Lib;
 import jake2.util.QuakeFile;
 import jake2.util.Vargs;
 
@@ -353,7 +352,7 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 
 		name= FS.Gamedir() + "/save/current/" + sv.name + ".sav";
-		ge.WriteLevel(name);
+		GameSave.WriteLevel(name);
 	}
 
 	/*
@@ -386,7 +385,7 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 
 		name= FS.Gamedir() + "/save/current/" + sv.name + ".sav";
-		ge.ReadLevel(name);
+		GameSave.ReadLevel(name);
 		System.out.println("all done!");
 	}
 
@@ -457,7 +456,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 		// write game state
 		filename= FS.Gamedir() + "/save/current/game.ssv";
-		ge.WriteGame(filename, autosave);
+		GameSave.WriteGame(filename, autosave);
 	}
 
 	/*
@@ -508,7 +507,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 			// read game state
 			filename= FS.Gamedir() + "/save/current/game.ssv";
-			ge.ReadGame(filename);
+			GameSave.ReadGame(filename);
 		}
 		catch (Exception e) {
 			Com.Printf("Couldn't read file " + name + "\n");
@@ -1055,12 +1054,8 @@ public class SV_CCMDS extends SV_ENTS {
 	===============
 	*/
 	public static void SV_ServerCommand_f() {
-		if (SV_GAME.ge == null) {
-			Com.Printf("No game loaded.\n");
-			return;
-		}
 
-		SV_GAME.ge.ServerCommand();
+		Game.ServerCommand();
 	}
 
 	//===========================================================

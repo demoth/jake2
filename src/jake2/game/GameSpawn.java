@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.5 2004-08-29 19:27:37 hzi Exp $
+// $Id: GameSpawn.java,v 1.6 2004-08-29 21:39:24 hzi Exp $
 
 package jake2.game;
 
@@ -284,7 +284,7 @@ public class GameSpawn extends GameSave {
 		int c, c2;
 		c = 0;
 		c2 = 0;
-		for (i = 1; i < globals.num_edicts; i++) {
+		for (i = 1; i < num_edicts; i++) {
 			e = g_edicts[i];
 
 			if (!e.inuse)
@@ -298,7 +298,7 @@ public class GameSpawn extends GameSave {
 			c++;
 			c2++;
 			//Com.Printf("Team:" + e.team+" entity: " + e.index + "\n");
-			for (j = i + 1; j < globals.num_edicts; j++) {
+			for (j = i + 1; j < num_edicts; j++) {
 				e2 = g_edicts[j];
 				if (!e2.inuse)
 					continue;
@@ -328,7 +328,7 @@ public class GameSpawn extends GameSave {
 			==============
 	*/
 
-		static void SpawnEntities(String mapname, String entities, String spawnpoint) {
+		public static void SpawnEntities(String mapname, String entities, String spawnpoint) {
 			edict_t ent;
 			int inhibit;
 			String com_token;

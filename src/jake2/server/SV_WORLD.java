@@ -19,19 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.5 2004-08-20 21:29:57 salomo Exp $
+// $Id: SV_WORLD.java,v 1.6 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
-import jake2.game.edict_t;
-import jake2.game.trace_t;
-
-import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.util.Vargs;
+import jake2.qcommon.CM;
+import jake2.qcommon.Com;
 
 public class SV_WORLD extends SV_CCMDS
 {
@@ -202,7 +196,7 @@ public class SV_WORLD extends SV_CCMDS
 		if (ent.area.prev != null)
 			SV_UnlinkEdict(ent); // unlink from old position
 
-		if (ent == ge.edicts[0])
+		if (ent == GameBase.g_edicts[0])
 			return; // don't add the world
 
 		if (!ent.inuse)
@@ -663,7 +657,7 @@ public class SV_WORLD extends SV_CCMDS
 
 		// clip to world
 		clip.trace= CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
-		clip.trace.ent= ge.edicts[0];
+		clip.trace.ent= GameBase.g_edicts[0];
 		if (clip.trace.fraction == 0)
 			return clip.trace; // blocked by the world
 

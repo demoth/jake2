@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.4 2004-07-09 06:50:49 hzi Exp $
+// $Id: SV_USER.java,v 1.5 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
@@ -124,7 +124,7 @@ public class SV_USER extends SV_SEND
 		if (sv.state == ss_game)
 		{
 			// set up the entity for the client
-			ent= SV_GAME.ge.edicts[playernum + 1];
+			ent= GameBase.g_edicts[playernum + 1];
 			ent.s.number= playernum + 1;
 			sv_client.edict= ent;
 			sv_client.lastcmd= new usercmd_t();
@@ -269,7 +269,7 @@ public class SV_USER extends SV_SEND
 		sv_client.state= cs_spawned;
 
 		// call the game begin function
-		SV_GAME.ge.ClientBegin(sv_player);
+		PlayerClient.ClientBegin(sv_player);
 
 		Cbuf.InsertFromDefer();
 	}
@@ -552,7 +552,7 @@ public class SV_USER extends SV_SEND
 		}
 
 		if (i == ucmds.length && sv.state == ss_game)
-			SV_GAME.ge.ClientCommand(sv_player);
+			PlayerClient.ClientCommand(sv_player);
 
 		//	SV_EndRedirect ();
 	}
@@ -575,7 +575,7 @@ public class SV_USER extends SV_SEND
 			return;
 		}
 
-		SV_GAME.ge.ClientThink(cl.edict, cmd);
+		PlayerClient.ClientThink(cl.edict, cmd);
 	}
 
 	public static final int MAX_STRINGCMDS= 8;

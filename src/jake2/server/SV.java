@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.8 2004-08-22 20:39:03 salomo Exp $
+ * $Id: SV.java,v 1.9 2004-08-29 21:39:25 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -378,7 +378,7 @@ public final class SV
 		//	   see if any solid entities are inside the final position
 
 		//check= g_edicts + 1;
-		for (e= 1; e < GameBase.globals.num_edicts; e++)
+		for (e= 1; e < GameBase.num_edicts; e++)
 		{
 			check= GameBase.g_edicts[e];
 			if (!check.inuse)

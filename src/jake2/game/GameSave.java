@@ -19,21 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.3 2004-08-22 14:25:12 salomo Exp $
+// $Id: GameSave.java,v 1.4 2004-08-29 21:39:24 hzi Exp $
 
 package jake2.game;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.*;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
-import jake2.util.*;
+import jake2.qcommon.Com;
+import jake2.util.QuakeFile;
 
 public class GameSave extends GameFunc {
 
@@ -57,7 +48,7 @@ public class GameSave extends GameFunc {
 		g_edicts= new edict_t[game.maxentities];
 		for (int i= 0; i < game.maxentities; i++)
 			g_edicts[i]= new edict_t(i);
-		SV_GAME.ge.edicts= g_edicts;
+		GameBase.g_edicts= g_edicts;
 	}
 
 	public static void CreateClients() {
@@ -139,15 +130,15 @@ public class GameSave extends GameFunc {
 		game.maxentities= (int) maxentities.value;
 		CreateEdicts();
 
-		globals.edicts= g_edicts;
-		globals.max_edicts= game.maxentities;
+//		globals.edicts= g_edicts;
+//		globals.max_edicts= game.maxentities;
 
 		// initialize all clients for this game
 		game.maxclients= (int) maxclients.value;
 
 		CreateClients();
 
-		globals.num_edicts= game.maxclients + 1;
+		num_edicts= game.maxclients + 1;
 	}
 
 	/*
@@ -221,7 +212,7 @@ public class GameSave extends GameFunc {
 	
 	=================
 	*/
-	static void WriteLevel(String filename) {
+	public static void WriteLevel(String filename) {
 		try {
 			int i;
 			edict_t ent;
@@ -235,7 +226,7 @@ public class GameSave extends GameFunc {
 			level.write(f);
 
 			// write out all the entities
-			for (i= 0; i < globals.num_edicts; i++) {
+			for (i= 0; i < num_edicts; i++) {
 				ent= g_edicts[i];
 				if (!ent.inuse)
 					continue;
@@ -270,7 +261,7 @@ public class GameSave extends GameFunc {
 	No clients are connected yet.
 	=================
 	*/
-	static void ReadLevel(String filename) {
+	public static void ReadLevel(String filename) {
 		try {
 			edict_t ent;
 
@@ -282,7 +273,7 @@ public class GameSave extends GameFunc {
 			// wipe all the entities
 			Game.CreateEdicts();
 
-			globals.num_edicts= (int) maxclients.value + 1;
+			num_edicts= (int) maxclients.value + 1;
 
 			// load the level locals
 			level.read(f);
@@ -293,8 +284,8 @@ public class GameSave extends GameFunc {
 				if (entnum == -1)
 					break;
 
-				if (entnum >= globals.num_edicts)
-					globals.num_edicts= entnum + 1;
+				if (entnum >= num_edicts)
+					num_edicts= entnum + 1;
 
 				ent= g_edicts[entnum];
 				System.out.println("readint ent" + entnum);
@@ -313,7 +304,7 @@ public class GameSave extends GameFunc {
 			}
 
 			// do any load time things at this point
-			for (int i= 0; i < globals.num_edicts; i++) {
+			for (int i= 0; i < num_edicts; i++) {
 				ent= g_edicts[i];
 
 				if (!ent.inuse)

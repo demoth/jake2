@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.6 2004-07-28 11:59:32 hzi Exp $
+ * $Id: Sys.java,v 1.7 2004-08-29 21:39:26 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,6 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
 import jake2.qcommon.Com;
-import jake2.util.Lib;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -225,14 +224,6 @@ public final class Sys extends Defines {
 		if (fdir != null)
 			fdir = null;
 
-	}
-
-
-	public static void UnloadGame()
-	{
-		//TODO:implement UnloadGame
-		//Com.Error(Defines.ERR_FATAL, "UnloadGame not implemented!");
-		
 	}
 	
 	public static void SendKeyEvents() {

@@ -19,20 +19,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.6 2004-08-22 14:25:12 salomo Exp $
+// $Id: SV_GAME.java,v 1.7 2004-08-29 21:39:25 hzi Exp $
 
 package jake2.server;
 
-import jake2.*;
-import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.sys.Sys;
 
 public class SV_GAME extends SV_INIT {
 
-	public static game_export_t ge;
 
 	/*
 	===============
@@ -297,11 +292,7 @@ public class SV_GAME extends SV_INIT {
 	===============
 	*/
 	public static void SV_ShutdownGameProgs() {
-		if (ge == null)
-			return;
-		ge.Shutdown();
-		Sys.UnloadGame();
-		ge = null;
+		Game.ShutdownGame();
 	}
 
 	/*
@@ -315,19 +306,13 @@ public class SV_GAME extends SV_INIT {
 	public static void SV_InitGameProgs() {
 
 		// unload anything we have now
-		if (ge != null)
-			SV_ShutdownGameProgs();
+		SV_ShutdownGameProgs();
 
 		game_import_t gimport = new game_import_t();
 
 		// all functions set in game_export_t (rst) 
-		ge = GameBase.GetGameApi(gimport);
+		GameBase.GetGameApi(gimport);
 
-		if (ge == null)
-			Com.Error(ERR_DROP, "failed to load game DLL");
-		if (ge.apiversion != GAME_API_VERSION)
-			Com.Error(ERR_DROP, "game is version " + ge.apiversion + " not " + GAME_API_VERSION);
-
-		ge.Init();
+		Game.InitGame();
 	}
 }
