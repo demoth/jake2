@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.35 2004-02-15 00:58:00 rst Exp $
+ * $Id: Com.java,v 1.36 2004-02-15 20:14:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -93,7 +93,13 @@ public final class Com {
 		}
 
 		public ParseHelp(String in) {
-			this(in.toCharArray(), 0);
+			if (in == null) {
+				data = null;
+			}
+			else {
+				data = in.toCharArray();
+			}
+			index = 0;
 		}
 
 		public ParseHelp(char in[]) {

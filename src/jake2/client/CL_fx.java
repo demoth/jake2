@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.10 2004-02-04 22:00:04 hoz Exp $
+ * $Id: CL_fx.java,v 1.11 2004-02-15 20:14:39 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -52,9 +52,6 @@ public class CL_fx extends CL_tent {
 	}
 
 	static float[][] avelocities = new float[NUMVERTEXNORMALS][3];
-//
-//	extern	struct model_s	*cl_mod_smoke;
-//	extern	struct model_s	*cl_mod_flash;
 
 	/*
 	==============================================================
@@ -1862,10 +1859,11 @@ public class CL_fx extends CL_tent {
 
 		if (avelocities[0][0] == 0.0f)
 		{
-			for (i=0 ; i<NUMVERTEXNORMALS ; i++)
+			for (i=0 ; i<NUMVERTEXNORMALS ; i++) {
 				avelocities[i][0] = (rand()&255) * 0.01f;
 				avelocities[i][1] = (rand()&255) * 0.01f;
 				avelocities[i][2] = (rand()&255) * 0.01f;
+			}
 		}
 
 
@@ -1954,10 +1952,11 @@ public class CL_fx extends CL_tent {
 		float ltime;
 
 		if (avelocities[0][0] == 0.0f) {
-			for (i = 0; i < NUMVERTEXNORMALS; i++)
+			for (i = 0; i < NUMVERTEXNORMALS; i++) {
 				avelocities[i][0] = (rand() & 255) * 0.01f;
-			avelocities[i][1] = (rand() & 255) * 0.01f;
-			avelocities[i][2] = (rand() & 255) * 0.01f;
+				avelocities[i][1] = (rand() & 255) * 0.01f;
+				avelocities[i][2] = (rand() & 255) * 0.01f;
+			}
 		}
 
 		ltime = cl.time / 1000.0f;
