@@ -1,0 +1,102 @@
+<!-- Buildfile -->
+<project name="jake2" default="jar" basedir=".">
+
+	<!-- properties -->
+	<property name="src" location="src"/>
+	<property name="build" location="build"/>
+	<property name="dist" location="dist"/>
+
+	<!-- different classpaths -->
+	<path id="build.class.path">
+		<pathelement location="lib/jogl/jogl.jar"/>
+	</path>
+	
+	<path id="test.class.path">
+		<pathelement path="${build}"/>
+	</path>
+	
+	<path id="source.path">
+		<pathelement location="src"/>
+	</path>
+	
+	<!-- initialize directories -->
+	<target name="init">
+		<mkdir dir="${build}"/>
+		<mkdir dir="${dist}"/>
+	</target>
+
+	<!-- compile -->
+	<target name="compile" depends="init">
+		<javac destdir="${build}" optimize="on" debug="off" source="1.4">
+			<src path="${src}"/>
+			<include name="jake2/Jake2.java"/>
+			<classpath refid="build.class.path"/>
+		</javac>
+	</target>
+		
+	<!-- copy libs -->
+	<target name="copylibs">
+		<copy todir="${dist}">
+			<fileset dir="lib">
+				<include name="/jogl/jogl.jar"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<!-- copy resources -->
+	<target name="copyres">
+		<copy todir="${build}">
+			<fileset dir="src">
+				<include name="jake2/*.properties"/>
+			</fileset>
+		</copy>
+	</target>
+		
+	<!-- jar -->
+	<target name="jar" depends="compile,copyres">
+		<jar destfile="${dist}/jake2.jar" basedir="${build}">
+			<include name="jake2/**"/>
+		</jar>
+	</target>
+			
+	<!-- everything -->
+	<target name="all" depends="bindist,srcdist">
+	</target>
+
+	<!-- dist -->
+	<target name="dist" depends="jar,copylibs">
+	</target>
+		
+	<!-- binary distribution -->
+	<target name="bindist" depends="dist">
+		<tar destfile="jake2.tar.gz" compression="gzip">
+			<tarfileset dir=".">
+				<include name="dist/**"/>
+			</tarfileset>
+		</tar>
+	</target>
+	
+	<!-- source distribution -->
+	<target name="srcdist" >
+		<tar destfile="jake2-src.tar.gz" compression="gzip">
+			<tarfileset dir="." prefix="jake2">
+				<include name="src/**"/>
+				<include name="lib/**"/>
+				<include name="build.xml"/>
+			</tarfileset>
+		</tar>
+	</target>
+	
+	<!-- clean -->
+	<target name="clean">
+		<delete dir="${build}"/>
+		<delete dir="${gensrc}"/>
+	</target>
+	
+	<!-- distclean -->
+	<target name="distclean" depends="clean">
+		<delete dir="${dist}"/>
+		<delete file="jake2.tar.gz"/>
+		<delete file="jake2-src.tar.gz"/>
+	</target>
+</project>
