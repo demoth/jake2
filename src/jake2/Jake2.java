@@ -2,9 +2,9 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.3 2003-11-19 17:49:44 cwei Exp $
+ * $Id: Jake2.java,v 1.4 2003-11-19 18:29:31 cwei Exp $
  */
- /*
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2;
 
+import java.io.IOException;
 import java.util.logging.*;
 
 import jake2.qcommon.*;
@@ -33,32 +34,53 @@ import jake2.qcommon.*;
  * Jake2 is the main class of Quake2 for Java.
  */
 public final class Jake2 {
-	
-	private static Logger logger = Logger.getLogger(Jake2.class.getName());
+
+	/**
+ 	 * for all other classes it should be:
+ 	 * <code>
+ 	 *   private static Logger logger = Logger.getLogger(<CLASSNAME>.class.getName());
+ 	 * </code>
+ 	 * 
+ 	 */
+	private static Logger logger;
 
 	/**
 	 * main is used to start the game. Quake2 for Java supports the 
-     * following command line arguments:
+	 * following command line arguments:
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
+		// init the global LogManager with the logging.properties file
+		try {
+			LogManager.getLogManager().readConfiguration(
+				Jake2.class.getResourceAsStream("/jake2/logging.properties"));
+		} catch (SecurityException secEx) {
+			secEx.printStackTrace();
+		} catch (IOException ioEx) {
+			System.err.println(
+				"FATAL Error: can't load /jake2/logging.properties (classpath)");
+			ioEx.printStackTrace();
+		}
 		
+		logger = Logger.getLogger(Jake2.class.getName());
+
 		logger.log(Level.INFO, "Start Jake2 :-)");
 
 		Qcommon.Init(args);
-		
-		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
-		
 
-		long oldtime = System.currentTimeMillis() ;
+		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
+
+		long oldtime = System.currentTimeMillis();
 		long newtime;
 		long time;
-		while(true) {
+		while (true) {
 			// find time spending rendering last frame
 			newtime = System.currentTimeMillis();
 			time = newtime - oldtime;
 
-			if (time > 0) Qcommon.Frame(time);
+			if (time > 0)
+				Qcommon.Frame(time);
 			oldtime = newtime;
 
 			// save cpu resources
