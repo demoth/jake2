@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.11 2004-01-31 16:56:10 rst Exp $
+ * $Id: CL_main.java,v 1.12 2004-01-31 21:54:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -96,7 +96,7 @@ public class CL_main extends CL_pred {
 			}
 		}
 	};
-	//
+
 	//	/*
 	//	====================
 	//	CL_Record_f
@@ -106,118 +106,7 @@ public class CL_main extends CL_pred {
 	//	Begins recording a demo from the current position
 	//	====================
 	//	*/
-	//	void CL_Record_f (void)
-	//	{
-	//		char	name[MAX_OSPATH];
-	//		char	buf_data[MAX_MSGLEN];
-	//		sizebuf_t	buf;
-	//		int		i;
-	//		int		len;
-	//		entity_state_t	*ent;
-	//		entity_state_t	nullstate;
-	//
-	//		if (Cmd_Argc() != 2)
-	//		{
-	//			Com_Printf ("record <demoname>\n");
-	//			return;
-	//		}
-	//
-	//		if (cls.demorecording)
-	//		{
-	//			Com_Printf ("Already recording.\n");
-	//			return;
-	//		}
-	//
-	//		if (cls.state != ca_active)
-	//		{
-	//			Com_Printf ("You must be in a level to record.\n");
-	//			return;
-	//		}
-	//
-	//		//
-	//		// open the demo file
-	//		//
-	//		Com_sprintf (name, sizeof(name), "%s/demos/%s.dm2", FS_Gamedir(), Cmd_Argv(1));
-	//
-	//		Com_Printf ("recording to %s.\n", name);
-	//		FS_CreatePath (name);
-	//		cls.demofile = fopen (name, "wb");
-	//		if (!cls.demofile)
-	//		{
-	//			Com_Printf ("ERROR: couldn't open.\n");
-	//			return;
-	//		}
-	//		cls.demorecording = true;
-	//
-	//		// don't start saving messages until a non-delta compressed message is received
-	//		cls.demowaiting = true;
-	//
-	//		//
-	//		// write out messages to hold the startup information
-	//		//
-	//		SZ_Init (&buf, buf_data, sizeof(buf_data));
-	//
-	//		// send the serverdata
-	//		MSG_WriteByte (&buf, svc_serverdata);
-	//		MSG_WriteLong (&buf, PROTOCOL_VERSION);
-	//		MSG_WriteLong (&buf, 0x10000 + cl.servercount);
-	//		MSG_WriteByte (&buf, 1);	// demos are always attract loops
-	//		MSG_WriteString (&buf, cl.gamedir);
-	//		MSG_WriteShort (&buf, cl.playernum);
-	//
-	//		MSG_WriteString (&buf, cl.configstrings[CS_NAME]);
-	//
-	//		// configstrings
-	//		for (i=0 ; i<MAX_CONFIGSTRINGS ; i++)
-	//		{
-	//			if (cl.configstrings[i][0])
-	//			{
-	//				if (buf.cursize + strlen (cl.configstrings[i]) + 32 > buf.maxsize)
-	//				{	// write it out
-	//					len = LittleLong (buf.cursize);
-	//					fwrite (&len, 4, 1, cls.demofile);
-	//					fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//					buf.cursize = 0;
-	//				}
-	//
-	//				MSG_WriteByte (&buf, svc_configstring);
-	//				MSG_WriteShort (&buf, i);
-	//				MSG_WriteString (&buf, cl.configstrings[i]);
-	//			}
-	//
-	//		}
-	//
-	//		// baselines
-	//		memset (&nullstate, 0, sizeof(nullstate));
-	//		for (i=0; i<MAX_EDICTS ; i++)
-	//		{
-	//			ent = &cl_entities[i].baseline;
-	//			if (!ent.modelindex)
-	//				continue;
-	//
-	//			if (buf.cursize + 64 > buf.maxsize)
-	//			{	// write it out
-	//				len = LittleLong (buf.cursize);
-	//				fwrite (&len, 4, 1, cls.demofile);
-	//				fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//				buf.cursize = 0;
-	//			}
-	//
-	//			MSG_WriteByte (&buf, svc_spawnbaseline);		
-	//			MSG_WriteDeltaEntity (&nullstate, &cl_entities[i].baseline, &buf, true, true);
-	//		}
-	//
-	//		MSG_WriteByte (&buf, svc_stufftext);
-	//		MSG_WriteString (&buf, "precache\n");
-	//
-	//		// write it to the demo file
-	//
-	//		len = LittleLong (buf.cursize);
-	//		fwrite (&len, 4, 1, cls.demofile);
-	//		fwrite (buf.data, buf.cursize, 1, cls.demofile);
-	//
-	//		// the rest of the demo file will be individual frames
-	//	}
+
 	static xcommand_t Record_f = new xcommand_t() {
 		public void execute() {
 			try {
@@ -770,7 +659,9 @@ public class CL_main extends CL_pred {
 	static xcommand_t Changing_f = new xcommand_t() {
 		public void execute() {
 				//ZOID
-		//if we are downloading, we don't change!  This so we don't suddenly stop downloading a map
+		//if we are downloading, we don't change!  
+		// This so we don't suddenly stop downloading a map
+
 	if (cls.download != null)
 				return;
 
@@ -1141,7 +1032,7 @@ public class CL_main extends CL_pred {
 	static String env_suf[] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 	public static void CL_RequestNextDownload() {
-		int map_checksum=0; // for detecting cheater maps
+		int map_checksum = 0; // for detecting cheater maps
 		//char fn[MAX_OSPATH];
 		String fn;
 
@@ -1150,19 +1041,19 @@ public class CL_main extends CL_pred {
 		if (cls.state != ca_connected)
 			return;
 
-		if (SV_MAIN.allow_download.value==0 && precache_check < ENV_CNT)
+		if (SV_MAIN.allow_download.value == 0 && precache_check < ENV_CNT)
 			precache_check = ENV_CNT;
 
 		//	  ZOID
 		if (precache_check == CS_MODELS) { // confirm map
 			precache_check = CS_MODELS + 2; // 0 isn't used
-			if (SV_MAIN.allow_download_maps.value!=0)
+			if (SV_MAIN.allow_download_maps.value != 0)
 				if (!CL_CheckOrDownloadFile(cl.configstrings[CS_MODELS + 1]))
 					return; // started a download
 		}
 		if (precache_check >= CS_MODELS && precache_check < CS_MODELS + MAX_MODELS) {
-			if (SV_MAIN.allow_download_models.value!=0) {
-				while (precache_check < CS_MODELS + MAX_MODELS && cl.configstrings[precache_check].length()>0) {
+			if (SV_MAIN.allow_download_models.value != 0) {
+				while (precache_check < CS_MODELS + MAX_MODELS && cl.configstrings[precache_check].length() > 0) {
 					if (cl.configstrings[precache_check].charAt(0) == '*' || cl.configstrings[precache_check].charAt(0) == '#') {
 						precache_check++;
 						continue;
@@ -1176,10 +1067,10 @@ public class CL_main extends CL_pred {
 					}
 
 					// checking for skins in the model
-					if (precache_model==null) {
+					if (precache_model == null) {
 
 						precache_model = FS.LoadFile(cl.configstrings[precache_check]);
-						if (precache_model==null) {
+						if (precache_model == null) {
 							precache_model_skin = 0;
 							precache_check++;
 							continue; // couldn't load it
@@ -1222,7 +1113,7 @@ public class CL_main extends CL_pred {
 						}
 						precache_model_skin++;
 					}
-					if (precache_model!=null) {
+					if (precache_model != null) {
 						FS.FreeFile(precache_model);
 						precache_model = null;
 					}
@@ -1233,10 +1124,10 @@ public class CL_main extends CL_pred {
 			precache_check = CS_SOUNDS;
 		}
 		if (precache_check >= CS_SOUNDS && precache_check < CS_SOUNDS + MAX_SOUNDS) {
-			if (SV_MAIN.allow_download_sounds.value!=0) {
+			if (SV_MAIN.allow_download_sounds.value != 0) {
 				if (precache_check == CS_SOUNDS)
 					precache_check++; // zero is blank
-				while (precache_check < CS_SOUNDS + MAX_SOUNDS && cl.configstrings[precache_check].length()>0) {
+				while (precache_check < CS_SOUNDS + MAX_SOUNDS && cl.configstrings[precache_check].length() > 0) {
 					if (cl.configstrings[precache_check].charAt(0) == '*') {
 						precache_check++;
 						continue;
@@ -1252,8 +1143,8 @@ public class CL_main extends CL_pred {
 			if (precache_check == CS_IMAGES)
 				precache_check++; // zero is blank
 
-			while (precache_check < CS_IMAGES + MAX_IMAGES && cl.configstrings[precache_check].length()>0) {
-				fn= "pics/" + cl.configstrings[precache_check++] + ".pcx";
+			while (precache_check < CS_IMAGES + MAX_IMAGES && cl.configstrings[precache_check].length() > 0) {
+				fn = "pics/" + cl.configstrings[precache_check++] + ".pcx";
 				if (!CL_CheckOrDownloadFile(fn))
 					return; // started a download
 			}
@@ -1263,7 +1154,7 @@ public class CL_main extends CL_pred {
 		// model, weapon model and skin
 		// so precache_check is now *3
 		if (precache_check >= CS_PLAYERSKINS && precache_check < CS_PLAYERSKINS + MAX_CLIENTS * PLAYER_MULT) {
-			if (SV_MAIN.allow_download_players.value!=0) {
+			if (SV_MAIN.allow_download_players.value != 0) {
 				while (precache_check < CS_PLAYERSKINS + MAX_CLIENTS * PLAYER_MULT) {
 
 					int i, n;
@@ -1366,14 +1257,14 @@ public class CL_main extends CL_pred {
 		}
 
 		if (precache_check > ENV_CNT && precache_check < TEXTURE_CNT) {
-			if (SV_MAIN.allow_download.value!=0 && SV_MAIN.allow_download_maps.value!=0) {
+			if (SV_MAIN.allow_download.value != 0 && SV_MAIN.allow_download_maps.value != 0) {
 				while (precache_check < TEXTURE_CNT) {
 					int n = precache_check++ -ENV_CNT - 1;
 
-					if ((n & 1)!=0)
-						fn= "env/" +cl.configstrings[CS_SKY] +  env_suf[n / 2] + ".pcx" ;
+					if ((n & 1) != 0)
+						fn = "env/" + cl.configstrings[CS_SKY] + env_suf[n / 2] + ".pcx";
 					else
-						 fn= "env/" +  cl.configstrings[CS_SKY] +  env_suf[n / 2] + ".tga";
+						fn = "env/" + cl.configstrings[CS_SKY] + env_suf[n / 2] + ".tga";
 					if (!CL_CheckOrDownloadFile(fn))
 						return; // started a download
 				}
@@ -1392,11 +1283,11 @@ public class CL_main extends CL_pred {
 			// extern int numtexinfo;
 			// extern mapsurface_t map_surfaces[];
 
-			if (SV_MAIN.allow_download.value!=0 && SV_MAIN.allow_download_maps.value!=0) {
+			if (SV_MAIN.allow_download.value != 0 && SV_MAIN.allow_download_maps.value != 0) {
 				while (precache_tex < CM.numtexinfo) {
 					//char fn[MAX_OSPATH];
-					
-					fn =  "textures/"  + CM.map_surfaces[precache_tex++].rname + ".wal";
+
+					fn = "textures/" + CM.map_surfaces[precache_tex++].rname + ".wal";
 					if (!CL_CheckOrDownloadFile(fn))
 						return; // started a download
 				}

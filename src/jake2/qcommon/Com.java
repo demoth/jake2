@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.28 2004-01-31 16:56:11 rst Exp $
+ * $Id: Com.java,v 1.29 2004-01-31 21:54:11 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -377,8 +377,6 @@ public final class Com {
 				; // do nothing
 				// fflush (logfile);		// force it to save every time
 		}
-		
-		
 	}
 
 	public static void Println(String fmt) {
@@ -453,7 +451,5 @@ public final class Com {
 
 	public static void StripExtension(String string, String string2) {
 		// TODO implement!
-		
 	}
-
 }
