@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.18 2005-02-06 19:24:31 salomo Exp $
+ * $Id: CL.java,v 1.19 2005-02-07 22:14:38 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1512,6 +1512,9 @@ public final class CL {
     //	private static int lasttimecalled;
 
     public static void Frame(int msec) {
+        
+        if (Globals.dedicated.value != 0)
+            return;
 
         extratime += msec;
 
