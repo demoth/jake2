@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.1 2004-01-25 23:10:26 hoz Exp $
+ * $Id: CL_fx.java,v 1.2 2004-01-26 14:29:02 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2304,11 +2304,10 @@ public class CL_fx extends Globals {
 //
 //	==============
 //	*/
-//	void CL_ClearEffects (void)
-//	{
+	static void ClearEffects() {
 //		CL_ClearParticles ();
 //		CL_ClearDlights ();
 //		CL_ClearLightStyles ();
-//	}
+	}
 //
 }

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.4 2003-12-29 22:31:15 rst Exp $
+// $Id: Info.java,v 1.5 2004-01-26 14:29:02 hoz Exp $
 
 package jake2.game;
 
@@ -187,7 +187,7 @@ public class Info extends PlayerView {
 	private static String fillspaces = "                     ";
 
 
-	public static void Info_Print(String s) {
+	public static void Print(String s) {
 
 		StringBuffer sb = new StringBuffer(512);
 		StringTokenizer tk = new StringTokenizer(s, "\\");

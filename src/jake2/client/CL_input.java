@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.1 2004-01-25 23:10:26 hoz Exp $
+ * $Id: CL_input.java,v 1.2 2004-01-26 14:29:02 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,7 @@ package jake2.client;
 /**
  * CL_input
  */
-public class CL_input extends CL_fx {
+public class CL_input extends CL_tent {
 
 ////	   cl.input.c  -- builds an intended movement command to send to the server
 //

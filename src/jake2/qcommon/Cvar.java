@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.21 2004-01-25 21:45:45 rst Exp $
+ * $Id: Cvar.java,v 1.22 2004-01-26 14:29:02 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -372,5 +372,12 @@ public class Cvar {
 	{
 		Com.Error(Defines.ERR_FATAL, "GetLatchedVars not implemented!");
 	}
+	
+	/**
+	 * returns an info string containing all the CVAR_USERINFO cvars.
+	 */
+	public static String Userinfo() {
+		return BitInfo(USERINFO);
+	}	
 
 }

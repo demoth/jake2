@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: TestINFO.java,v 1.2 2003-12-29 22:31:15 rst Exp $
+// $Id: TestINFO.java,v 1.3 2004-01-26 14:29:02 hoz Exp $
 
 package jake2.qcommon;
 
@@ -34,8 +34,8 @@ public class TestINFO {
 
 	public static void main(String args[]) {
 		String test = "\\key1\\value 1\\key 2 \\value2\\key3\\ v a l u e 3\\key4\\val ue 4";
-		Info.Info_Print(test);
+		Info.Print(test);
 		test = Info.Info_RemoveKey1(test, "key1");
-		Info.Info_Print(test);
+		Info.Print(test);
 	}
 }
