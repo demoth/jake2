@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.15 2004-02-01 12:42:11 hoz Exp $
+ * $Id: IN.java,v 1.16 2004-02-02 19:25:23 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -111,16 +111,13 @@ public final class IN extends Globals {
 	//	00493 }
 
 	public static void Frame() {
-		//	00497         if (RW_IN_Activate_fp) 
-		//	00498         {
-		//	00499                 if ( !cl.refresh_prepped || cls.key_dest == key_console || cls.key_dest == key_menu)
-		//	00500                         RW_IN_Activate_fp(false);
-		//	00501                 else
-		//	00502                         RW_IN_Activate_fp(true);
-		//	00503         }
-		//	00504 
-		//	00505         if (RW_IN_Frame_fp)
-		//	00506                 RW_IN_Frame_fp();
+
+		if ( !cl.refresh_prepped || cls.key_dest == key_console || cls.key_dest == key_menu)
+			RW.IN_Activate(false);
+		else
+			RW.IN_Activate(true);
+
+		RW.IN_Frame();
 	}
 
 	public static void Activate(boolean active) {

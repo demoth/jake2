@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.17 2004-02-02 17:52:36 rst Exp $
+ * $Id: Qcommon.java,v 1.18 2004-02-02 19:25:23 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,6 @@ import jake2.Globals;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.Swap;
-import jake2.server.SV;
 import jake2.server.SV_MAIN;
 import jake2.sys.NET;
 import jake2.sys.Sys;
@@ -200,7 +199,7 @@ public final class Qcommon {
 			// add + commands from command line
 			if (!Cbuf.AddLateCommands()) {
 				// if the user didn't give any commands, run default action
-				Cbuf.AddText("d1\n");
+//				Cbuf.AddText("d1\n");
 				Cbuf.Execute();
 			} else {
 				// the user asked for something explicit
@@ -220,7 +219,7 @@ public final class Qcommon {
 	 * mechanism of the original was replaced with exceptions.
 	 * @param msec the current game time
 	 */
-	public static void Frame(long msec) {
+	public static void Frame(int msec) {
 		try {
 
 			if (Globals.log_stats.modified) {
@@ -261,7 +260,7 @@ public final class Qcommon {
 			}
 
 			if (Globals.fixedtime.value != 0.0f) {
-				msec= (long) Globals.fixedtime.value;
+				msec= (int) Globals.fixedtime.value;
 			} else if (Globals.timescale.value != 0.0f) {
 				msec *= Globals.timescale.value;
 				if (msec < 1)

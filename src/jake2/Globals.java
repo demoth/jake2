@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.39 2004-02-02 19:13:26 rst Exp $
+ * $Id: Globals.java,v 1.40 2004-02-02 19:25:23 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.39  2004-02-02 19:13:26  rst
+ * Revision 1.40  2004-02-02 19:25:23  hoz
+ * *** empty log message ***
+ *
+ * Revision 1.39  2004/02/02 19:13:26  rst
  * cosmetic
  *
  * Revision 1.38  2004/01/30 18:44:32  cwei
@@ -101,7 +104,7 @@ public class Globals extends Defines {
 	 * global variables
 	 */
 
-	public static long curtime = 0;
+	public static int curtime = 0;
 	public static boolean bigendien = false;
 	public static boolean cmd_wait;
 

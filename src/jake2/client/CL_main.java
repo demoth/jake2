@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.16 2004-02-02 19:13:26 rst Exp $
+ * $Id: CL_main.java,v 1.17 2004-02-02 19:25:23 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1565,10 +1565,10 @@ public class CL_main extends CL_pred {
 	
 	==================
 	*/
-	private static long extratime;
+	private static int extratime;
 	private static int lasttimecalled;
 
-	public static void Frame(long msec) {
+	public static void Frame(int msec) {
 
 		extratime += msec;
 

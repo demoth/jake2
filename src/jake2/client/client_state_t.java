@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.13 2004-02-01 00:35:00 rst Exp $
+//$Id: client_state_t.java,v 1.14 2004-02-02 19:25:23 hoz Exp $
 
 package jake2.client;
 
@@ -42,7 +42,7 @@ public class client_state_t {
 	int timedemo_frames;
 	long timedemo_start;
 
-	boolean refresh_prepped; // false if on new level or new ref dll
+	public boolean refresh_prepped; // false if on new level or new ref dll
 	boolean sound_prepped; // ambient sounds can start
 	boolean force_refdef; // vid has changed, so we can't use a paused refdef
 

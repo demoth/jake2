@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.11 2004-01-30 18:46:48 cwei Exp $
+ * $Id: Jake2.java,v 1.12 2004-02-02 19:25:23 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -88,9 +88,9 @@ public final class Jake2 {
 
 		Globals.nostdout = Cvar.Get("nostdout", "0", 0);
 
-		long oldtime = Sys.Milliseconds();
-		long newtime;
-		long time;
+		int oldtime = Sys.Milliseconds();
+		int newtime;
+		int time;
 		while (true) {
 			// find time spending rendering last frame
 			newtime = Sys.Milliseconds();
