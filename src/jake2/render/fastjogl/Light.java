@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.2 2004-07-09 10:24:32 hzi Exp $
+ * $Id: Light.java,v 1.3 2004-07-09 16:44:01 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -222,7 +222,6 @@ public abstract class Light extends Warp {
 	float[] pointcolor = {0, 0, 0}; // vec3_t
 	cplane_t lightplane; // used as shadow plane
 	float[] lightspot = {0, 0, 0}; // vec3_t
-	float[] mid = {0, 0, 0};
 	
 //	TODO sync with jogl renderer. hoz
 	int RecursiveLightPoint (mnode_t node, float[] start, float[] end)
@@ -238,7 +237,8 @@ public abstract class Light extends Warp {
 		ByteBuffer lightmap;
 		int maps;
 		int r;
-
+		float[] mid = {0, 0, 0};
+		
 		if (node.contents != -1)
 			return -1;		// didn't hit anything
 	
