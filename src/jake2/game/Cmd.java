@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.20 2003-12-29 22:38:01 rst Exp $
+ * $Id: Cmd.java,v 1.21 2004-02-01 11:01:48 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.game;
 
-import java.util.Arrays;
-
-import jake2.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.qcommon.*;
-import jake2.util.*;
-import java.io.*;
+import jake2.util.Lib;
+
+import java.util.Arrays;
 
 /**
  * Cmd
@@ -436,32 +436,6 @@ public final class Cmd extends PlayerView {
 
 		// send it as a server command if we are connected
 		Cmd.ForwardToServer();
-	}
-
-	/*
-	===================
-	Cmd_ForwardToServer
-	
-	adds the current command line as a clc_stringcmd to the client message.
-	things like godmode, noclip, etc, are commands directed to the server,
-	so when they are typed in at the console, they will need to be forwarded.
-	===================
-	*/
-	public static void ForwardToServer() {
-		String cmd;
-
-		cmd = Cmd.Argv(0);
-		if (cls.state <= ca_connected || cmd.charAt(0) == '-' || cmd.startsWith("+")) {
-			Com.Printf("Unknown command \"" + cmd + "\"\n");
-			return;
-		}
-
-		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
-		SZ.Print(cls.netchan.message, cmd);
-		if (Cmd.Argc() > 1) {
-			SZ.Print(cls.netchan.message, " ");
-			SZ.Print(cls.netchan.message, Cmd.Args());
-		}
 	}
 
 	/*
@@ -1220,5 +1194,33 @@ public final class Cmd extends PlayerView {
 		}
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, text);
 	}
+
+	//	  ======================================================================
+	
+	/*
+	===================
+	Cmd_ForwardToServer
+	
+	adds the current command line as a clc_stringcmd to the client message.
+	things like godmode, noclip, etc, are commands directed to the server,
+	so when they are typed in at the console, they will need to be forwarded.
+	===================
+	*/
+	public static void ForwardToServer() {
+		String cmd;
+	
+		cmd = Cmd.Argv(0);
+		if (Globals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-' || cmd.charAt(0) == '+') {
+			Com.Printf("Unknown command \"" + cmd + "\"\n");
+			return;
+		}
+	
+		MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
+		SZ.Print(Globals.cls.netchan.message, cmd);
+		if (Cmd.Argc() > 1) {
+			SZ.Print(Globals.cls.netchan.message, " ");
+			SZ.Print(Globals.cls.netchan.message, Cmd.Args());
+		}
+	};
 
 }

@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.6 2004-02-01 00:35:00 rst Exp $
+ * $Id: CL_parse.java,v 1.7 2004-02-01 11:01:48 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -793,13 +793,6 @@ public class CL_parse extends CL_view {
 		// after we have parsed the frame
 		//
 		if (cls.demorecording && !cls.demowaiting)
-			try {
 				CL_main.WriteDemoMessage();
-			}
-			catch (IOException e) {
-				// TODO: do quake2 error handling!
-				e.printStackTrace();
-			}
-
 	}
 }

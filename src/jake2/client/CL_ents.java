@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.3 2004-02-01 00:35:00 rst Exp $
+ * $Id: CL_ents.java,v 1.4 2004-02-01 11:01:48 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.game.EntUseAdapter;
 import jake2.game.entity_state_t;
 import jake2.game.player_state_t;
-import jake2.qcommon.CM;
-import jake2.qcommon.Com;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
+import jake2.qcommon.*;
 import jake2.render.model_t;
 
 /**
@@ -1262,7 +1258,7 @@ public class CL_ents extends CL_fx {
 	Called to get the sound spatialization origin
 	===============
 	*/
-	void CL_GetEntitySoundOrigin(int ent, float[] org) {
+	void GetEntitySoundOrigin(int ent, float[] org) {
 		centity_t old;
 
 		if (ent < 0 || ent >= MAX_EDICTS)

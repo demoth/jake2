@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.13 2004-01-31 21:54:11 rst Exp $
+ * $Id: IN.java,v 1.14 2004-02-01 11:01:48 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,18 +27,15 @@ package jake2.sys;
 
 import jake2.Globals;
 import jake2.qcommon.Cvar;
-import jake2.server.SV_MAIN;
 
 import java.awt.*;
-import java.awt.Component;
-import java.awt.Cursor;
 
 import javax.swing.ImageIcon;
 
 /**
  * IN
  */
-public final class IN extends SV_MAIN {
+public final class IN extends Globals {
 
 	static Component c = null;
 	static Cursor emptyCursor = null;

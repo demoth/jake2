@@ -19,16 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.01.2004 by RST.
-// $Id: CL_newfx.java,v 1.2 2004-02-01 00:35:00 rst Exp $
+// $Id: CL_newfx.java,v 1.3 2004-02-01 11:01:48 hoz Exp $
 
 package jake2.client;
 
 
-import jake2.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
 
 
 public class CL_newfx {
