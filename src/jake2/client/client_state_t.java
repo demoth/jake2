@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.3 2004-07-09 06:50:50 hzi Exp $
+//$Id: client_state_t.java,v 1.4 2004-10-26 18:18:19 cawe Exp $
 
 package jake2.client;
 
@@ -86,7 +86,7 @@ public class client_state_t {
 	// and teleport direction changes
 	public float[] viewangles = { 0, 0, 0 };
 
-	int time; // this is the time value that the client
+	public int time; // this is the time value that the client
 	// is rendering at.  always <= cls.realtime
 	float lerpfrac; // between oldframe and frame
 
