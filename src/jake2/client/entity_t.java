@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: entity_t.java,v 1.1 2004-07-07 19:58:52 hzi Exp $
+// $Id: entity_t.java,v 1.2 2005-01-16 13:56:49 cawe Exp $
 
 package jake2.client;
 
@@ -71,6 +71,21 @@ public class entity_t implements Cloneable{
 		this.alpha = src.alpha;
 		this.skin = src.skin;
 		this.flags = src.flags;
+	}
+
+	public void clear() {
+		model = null;
+		Math3D.VectorClear(angles);
+		Math3D.VectorClear(origin);
+		frame = 0;
+		Math3D.VectorClear(oldorigin);
+		oldframe = 0;
+		backlerp = 0;
+		skinnum = 0;
+		lightstyle = 0;
+		alpha = 0;
+		skin = null;
+		flags = 0;
 	}
 	
 }
