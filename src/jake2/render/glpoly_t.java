@@ -19,9 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glpoly_t.java,v 1.4 2004-01-21 17:08:39 cwei Exp $
+// $Id: glpoly_t.java,v 1.5 2004-06-09 15:25:12 cwei Exp $
 
 package jake2.render;
+
+import java.nio.FloatBuffer;
+
+import net.java.games.jogl.util.BufferUtils;
 
 public class glpoly_t {
 	public final static int VERTEXSIZE = 7;
@@ -34,5 +38,32 @@ public class glpoly_t {
 	
 	public glpoly_t(int numverts) {
 		this.verts = new float[numverts][VERTEXSIZE];
+	}
+	
+	boolean precompile = false;
+	
+	static final int SIZE = 100000;
+	
+	public static FloatBuffer vertexArray = BufferUtils.newFloatBuffer(SIZE * 3);
+	public static FloatBuffer texCoord0Array = BufferUtils.newFloatBuffer(SIZE * 2);
+	public static FloatBuffer texCoord1Array = BufferUtils.newFloatBuffer(SIZE * 2);
+	
+	public int pos = 0;
+	
+	public void preCompile() {
+		
+		pos = vertexArray.position() / 3;
+		
+		for (int i = 0; i < verts.length; i++) {
+			vertexArray.put(verts[i], 0, 3);
+			texCoord0Array.put(verts[i], 3, 2);
+			texCoord1Array.put(verts[i], 5, 2);
+		}
+	}
+	
+	public static void resetArrays() {
+		vertexArray.rewind();
+		texCoord0Array.rewind();
+		texCoord1Array.rewind();
 	}
 }
