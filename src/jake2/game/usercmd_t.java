@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: usercmd_t.java,v 1.6 2004-02-13 21:04:38 rst Exp $
+// $Id: usercmd_t.java,v 1.7 2004-02-14 22:00:13 cwei Exp $
 
 package jake2.game;
+
+import java.util.Arrays;
 
 import jake2.util.Lib;
 
@@ -35,7 +37,7 @@ public class usercmd_t implements Cloneable {
 
 	public void reset() {
 		forwardmove = sidemove = upmove = msec = buttons = impulse = lightlevel = 0;
-		angles = new short[3];
+		Arrays.fill(angles, (short)0);
 	}
 	
 	public usercmd_t() {};
