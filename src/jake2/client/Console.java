@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.16 2004-01-30 13:34:31 hoz Exp $
+ * $Id: Console.java,v 1.17 2004-01-30 18:43:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -309,7 +309,7 @@ public final class Console extends Globals {
 	================
 	*/
 	private static int cr;
-	static void Print(String txt) {
+	public static void Print(String txt) {
 		int y;
 		int c, l;
 		int mask;
@@ -325,7 +325,7 @@ public final class Console extends Globals {
 		while ( txtpos < txt.length() ) {
 			c = txt.charAt(txtpos);
 			// count word length
-			for (l=0 ; l< con.linewidth ; l++)
+			for (l=0 ; l < con.linewidth && l < (txt.length() - txtpos) ; l++)
 				if ( txt.charAt(l + txtpos) <= ' ') break;
 
 			// word wrap
