@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.11 2004-02-15 19:27:29 hoz Exp $
+ * $Id: CL_pred.java,v 1.12 2004-02-16 20:26:38 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -324,7 +324,6 @@ public class CL_pred extends CL_parse
 		pm.s.set(cl.frame.playerstate.pmove);
 
 		// SCR_DebugGraph (current - ack - 1, 0);
-
 		frame = 0;
 
 		// run frames

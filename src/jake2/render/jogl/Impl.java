@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.13 2004-02-11 17:28:48 cwei Exp $
+ * $Id: Impl.java,v 1.14 2004-02-16 20:26:38 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -263,5 +263,4 @@ public class Impl extends Misc implements GLEventListener {
 		this.callback = callback;
 		canvas.display();
 	}
-
 }

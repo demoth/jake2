@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.21 2004-02-15 18:01:27 rst Exp $
+// $Id: SV_MAIN.java,v 1.22 2004-02-16 20:26:38 rst Exp $
 
 package jake2.server;
 
@@ -748,7 +748,6 @@ public class SV_MAIN extends SV_GAME {
 					Com.Printf("sv lowclamp\n");
 				svs.realtime = sv.time - 100;
 			}
-			//TODO: dont need yet
 			NET.NET_Sleep(sv.time - svs.realtime);
 			return;
 		}

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.4 2004-02-15 21:59:50 cwei Exp $
+// $Id: SV_ENTS.java,v 1.5 2004-02-16 20:26:38 rst Exp $
 
 package jake2.server;
 
@@ -30,6 +30,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.render.*;
+import jake2.util.Vargs;
 
 public class SV_ENTS extends SV_USER {
 
@@ -303,7 +304,7 @@ public class SV_ENTS extends SV_USER {
 		client_frame_t frame, oldframe;
 		int lastframe;
 
-		//Com_Printf ("%i . %i\n", client.lastframe, sv.framenum);
+		//Com.Printf ("%i . %i\n", new Vargs().add(client.lastframe).add(sv.framenum));
 		// this is the frame we are creating
 		frame = client.frames[sv.framenum & UPDATE_MASK];
 

@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.34 2004-02-15 00:58:00 rst Exp $
+ * $Id: SCR.java,v 1.35 2004-02-16 20:26:38 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1208,6 +1208,7 @@ public final class SCR extends Globals {
 	================
 	*/
 	static void DrawStats() {
+		//TODO:
 		SCR.ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
 	}
 

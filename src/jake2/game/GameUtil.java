@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.15 2004-02-14 13:24:02 rst Exp $
+// $Id: GameUtil.java,v 1.16 2004-02-16 20:26:38 rst Exp $
 
 package jake2.game;
 
@@ -995,36 +995,10 @@ public class GameUtil extends GameBase {
 
 		if ((targ.svflags & SVF_MONSTER) != 0 && (targ.deadflag != DEAD_DEAD)) {
 			targ.touch = null;
-			monster_death_use(targ);
+			Monster.monster_death_use(targ);
 		}
 
 		targ.die.die(targ, inflictor, attacker, damage, point);
-	}
-
-	/*
-	================
-	monster_death_use
-	
-	When a monster dies, it fires all of its targets with the current
-	enemy as activator.
-	================
-	*/
-	static void monster_death_use(edict_t self) {
-		self.flags &= ~(FL_FLY | FL_SWIM);
-		self.monsterinfo.aiflags &= AI_GOOD_GUY;
-
-		if (self.item != null) {
-			Drop_Item(self, self.item);
-			self.item = null;
-		}
-
-		if (self.deathtarget != null)
-			self.target = self.deathtarget;
-
-		if (self.target == null)
-			return;
-
-		G_UseTargets(self, self.enemy);
 	}
 
 	/*

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.4 2004-02-15 00:58:00 rst Exp $
+// $Id: Monster.java,v 1.5 2004-02-16 20:26:38 rst Exp $
 
 package jake2.game;
 
@@ -158,6 +158,7 @@ public class Monster extends GameAI{
 	}
 	// ============================================================================
 	public static boolean monster_start(edict_t self) {
+				
 		if (GameBase.deathmatch.value != 0) {
 			GameUtil.G_FreeEdict(self);
 			return false;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.23 2004-02-15 11:27:49 rst Exp $
+// $Id: GameBase.java,v 1.24 2004-02-16 20:26:38 rst Exp $
 
 /** Father of all Objects. */
 
@@ -46,14 +46,14 @@ public class GameBase extends Globals {
 
 	public static edict_t g_edicts[] = new edict_t[MAX_EDICTS];
 	static {
-		for (int n=0; n < MAX_EDICTS; n++)
-			g_edicts[n] = new edict_t(n); 
+		for (int n = 0; n < MAX_EDICTS; n++)
+			g_edicts[n] = new edict_t(n);
 	}
 
 	public static cvar_t deathmatch = new cvar_t();
 	public static cvar_t coop = new cvar_t();
 	public static cvar_t dmflags = new cvar_t();
-	public static cvar_t skill;// = new cvar_t();
+	public static cvar_t skill; // = new cvar_t();
 	public static cvar_t fraglimit = new cvar_t();
 	public static cvar_t timelimit = new cvar_t();
 	public static cvar_t password = new cvar_t();
@@ -233,14 +233,13 @@ public class GameBase extends Globals {
 	=============
 	*/
 
-
 	/** 
 	 * Finds an edict.
 	 * Call with null as from parameter to search from array beginning.
 	 */
 
 	public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff, String s) {
-		
+
 		if (from == null)
 			from = new EdictIterator(0);
 		else
@@ -248,11 +247,10 @@ public class GameBase extends Globals {
 
 		for (; from.i < globals.num_edicts; from.i++) {
 			from.o = g_edicts[from.i];
-			if (from.o.classname ==null)
-			{
+			if (from.o.classname == null) {
 				Com.Printf("edict with classname = null" + from.o.index);
 			}
-			
+
 			if (!from.o.inuse)
 				continue;
 
@@ -262,17 +260,16 @@ public class GameBase extends Globals {
 
 		return null;
 	}
-	
+
 	// comfort version (rst)
-	public static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff, String s) {	
+	public static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff, String s) {
 		EdictIterator ei = G_Find(from, eff, s);
 		if (ei == null)
 			return null;
 		else
 			return ei.o;
 	}
-	
-	
+
 	/** 
 	 * Returns entities that have origins within a spherical area.
 	*/
@@ -489,7 +486,8 @@ public class GameBase extends Globals {
 
 	public static EdictFindFilter findByTarget = new EdictFindFilter() {
 		public boolean matches(edict_t e, String s) {
-			if (e.targetname==null) return false;
+			if (e.targetname == null)
+				return false;
 			return e.targetname.equalsIgnoreCase(s);
 		}
 	};
@@ -600,7 +598,7 @@ public class GameBase extends Globals {
 			Game.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
 		else { // search for a changelevel
 			EdictIterator edit = null;
-			edit = G_Find(edit, findByClass , "target_changelevel");			
+			edit = G_Find(edit, findByClass, "target_changelevel");
 			if (edit == null) { // the map designer didn't include a changelevel,
 				// so create a fake ent that goes back to the same level
 				Game.BeginIntermission(CreateTargetChangeLevel(level.mapname));
@@ -626,9 +624,9 @@ public class GameBase extends Globals {
 
 			need = 0;
 
-			if ((password.string.length() > 0) && 0!=Q_stricmp(password.string, "none"))
+			if ((password.string.length() > 0) && 0 != Q_stricmp(password.string, "none"))
 				need |= 1;
-			if ((spectator_password.string.length() > 0) && 0!=Q_stricmp(spectator_password.string, "none"))
+			if ((spectator_password.string.length() > 0) && 0 != Q_stricmp(spectator_password.string, "none"))
 				need |= 2;
 
 			gi.cvar_set("needpass", "" + need);
@@ -752,18 +750,17 @@ public class GameBase extends Globals {
 				Game.ClientBeginServerFrame(ent);
 				continue;
 			}
-	
 
-			
 			//TODO: RST: disabled for debugging
-			if (ent.classname.startsWith("trigger") )//|| ent.classname.startsWith("monster"))
+			//if (ent.classname.startsWith("trigger") )//|| ent.classname.startsWith("monster"))
+			//G_RunEntity(ent);
+
+			if (ent == g_edicts[307])
 				G_RunEntity(ent);
-				
-			if (ent == g_edicts[1])
-				G_RunEntity(ent);
-				
-			if (ent.classname.startsWith("monster_inf") )//|| ent.classname.startsWith("monster"))
-				G_RunEntity(ent);
+			else if (true)
+				if (ent.classname.startsWith("monster_soldier")) //|| ent.classname.startsWith("monster"))
+					G_RunEntity(ent);
+
 		}
 
 		// see if it is time to end a deathmatch
@@ -788,14 +785,12 @@ public class GameBase extends Globals {
 	public static game_export_t GetGameApi(game_import_t imp) {
 		gi = imp;
 
-		gi.pointcontents = new pmove_t.PointContentsAdapter()
-		{
-			public int pointcontents(float []o)
-			{
+		gi.pointcontents = new pmove_t.PointContentsAdapter() {
+			public int pointcontents(float[] o) {
 				return SV_WORLD.SV_PointContents(o);
 			}
 		};
-		
+
 		globals.apiversion = GAME_API_VERSION;
 		/*
 		globals.Init = InitGame;
@@ -816,9 +811,6 @@ public class GameBase extends Globals {
 		globals.RunFrame = G_RunFrame;		
 		globals.ServerCommand = ServerCommand;
 		*/
-		
-		//TODO: why do we need this ?
-		//globals.edict_size = -1; //sizeof(edict_t);
 
 		return globals;
 	}

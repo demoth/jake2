@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.5 2003-12-17 10:07:20 rst Exp $
+// $Id: M_Soldier.java,v 1.6 2004-02-16 20:26:38 rst Exp $
 
 package jake2.game;
 
@@ -655,10 +655,12 @@ public class M_Soldier extends GamePWeapon {
 			new mframe_t(ai_stand, 0, null),
 			new mframe_t(ai_stand, 0, null),
 			new mframe_t(ai_stand, 0, null)};
+			
 	static mmove_t soldier_move_stand3 = new mmove_t(FRAME_stand301, FRAME_stand339, soldier_frames_stand3, soldier_stand);
 
 
 	static mframe_t soldier_frames_walk1[] =
+	
 		new mframe_t[] {
 			new mframe_t(ai_walk, 3, null),
 			new mframe_t(ai_walk, 6, null),
