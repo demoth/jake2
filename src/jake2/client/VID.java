@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.11 2004-02-03 14:51:32 cwei Exp $
+ * $Id: VID.java,v 1.12 2004-02-03 14:53:03 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -649,7 +649,7 @@ public class VID extends Globals {
 	/*
 	** VID_MenuInit
 	*/
-	static void MenuInit()
+	public static void MenuInit()
 	{
 		int i;
 
