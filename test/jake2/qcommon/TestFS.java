@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.8 2003-12-29 02:19:34 cwei Exp $
+ * $Id: TestFS.java,v 1.9 2004-05-04 09:22:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.game.Cmd;
-import jake2.imageio.ImageFrame;
+import com.bytonic.imageio.ImageFrame;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.logging.*;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.MemoryCacheImageInputStream;
@@ -117,16 +116,6 @@ public class TestFS {
 	}
 
 	static void init() {
-		// init the global LogManager with the logging.properties file
-		try {
-			LogManager.getLogManager().readConfiguration(
-				TestFS.class.getResourceAsStream("/jake2/logging.properties"));
-		} catch (SecurityException secEx) {
-			secEx.printStackTrace();
-		} catch (IOException ioEx) {
-			System.err.println(
-				"FATAL Error: can't load /jake2/logging.properties (classpath)");
-			ioEx.printStackTrace();
-		}
+
 	}
 }

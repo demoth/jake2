@@ -1,8 +1,8 @@
 /*
- * Created on Nov 17, 2003
+ * Created on Nov 18, 2003
  *
  */
-package jake2.imageio;
+package com.bytonic.imageio;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -27,12 +27,15 @@ import javax.imageio.stream.ImageInputStream;
  * @author cwei
  *
  */
-public class PCXImageReader extends ImageReader {
+public class WALImageReader extends ImageReader {
+
+//	private static Logger logger =
+//		Logger.getLogger(WALImageReader.class.getName());
 
 	ImageInputStream stream = null;
-	PCX.Header header = null;
+	WAL.Header header = null;
 
-	public PCXImageReader(ImageReaderSpi originatingProvider) {
+	public WALImageReader(ImageReaderSpi originatingProvider) {
 		super(originatingProvider);
 	}
 
@@ -99,7 +102,7 @@ public class PCXImageReader extends ImageReader {
 
 		checkIndex(imageIndex);
 		readHeader();
-
+		
 		int width = header.getWidth();
 		int height = header.getHeight();
 
@@ -179,29 +182,10 @@ public class PCXImageReader extends ImageReader {
 
 		}
 
-		int dataByte = 0;
-		int runLength = 0;
-
 		for (int srcY = 0; srcY < height; srcY++) {
 			// Read the row
 			try {
-				/*
-				 * run length decoding for PCX images
-				 */
-				int index = 0;
-
-				while (index < rowBuf.length) {
-					while (runLength-- > 0 && index < rowBuf.length) {
-						rowBuf[index++] = (byte) (dataByte & 0xff);
-					}
-					dataByte = stream.readUnsignedByte();
-					if ((dataByte & 0xc0) == 0xc0) {
-						runLength = dataByte & 0x3f;
-						dataByte = stream.readUnsignedByte();
-					} else {
-						runLength = 1;
-					}
-				}
+				stream.readFully(rowBuf);
 			} catch (IOException e) {
 				throw new IIOException("Error reading line " + srcY, e);
 			}
@@ -247,13 +231,6 @@ public class PCXImageReader extends ImageReader {
 				imRas.setPixel(dstX, dstY, pixel);
 			}
 		}
-		if ((stream.readUnsignedByte()) == 0x0c) {
-//			logger.log(
-//				Level.FINE,
-//				"PCX has a color palette with "
-//					+ (stream.length() - stream.getStreamPosition())
-//					+ " Bytes, but use the default palette (quake2)");
-		}
 		return dst;
 	}
 
@@ -263,34 +240,11 @@ public class PCXImageReader extends ImageReader {
 		}
 	}
 
-// buggy version 
-/*	private void decodeRow(byte[] buffer) throws IOException {
-		int dataByte = 0;
-		int runLength = 0;
-		int index = 0;
-
-		while (index < buffer.length) {
-			dataByte = stream.readUnsignedByte();
-			if ((dataByte & 0xc0) == 0xc0) {
-				runLength = dataByte & 0x3f;
-				dataByte = stream.readUnsignedByte();
-			} else {
-				runLength = 1;
-			}
-
-			while (runLength-- > 0 && index < buffer.length) {
-				buffer[index++] = (byte) (dataByte & 0xff);
-			}
-			assert(runLength == -1) : "runLength decoding bug: " + runLength;
-		}
-	}
-*/
 	private void readHeader() throws IIOException {
 
-		if (header != null)
-			return;
+		if (header != null) return;
 
-		//logger.log(Level.FINE, "PCX read header");
+		//logger.log(Level.FINE, "WAL read header");
 
 		if (stream == null) {
 			if (this.input == null) {
@@ -299,19 +253,19 @@ public class PCXImageReader extends ImageReader {
 			stream = (ImageInputStream) input;
 		}
 
-		byte[] buffer = new byte[PCX.HEADER_SIZE];
+		byte[] buffer = new byte[WAL.HEADER_SIZE];
 
 		try {
 			stream.readFully(buffer);
-			this.header = new PCX.Header(buffer);
+			this.header = new WAL.Header(buffer);
 //			logger.log(
 //				Level.FINE,
-//				"PCX horzRes: "
+//				"WAL width: "
 //					+ header.getWidth()
 //					+ " height: "
 //					+ header.getHeight());
 		} catch (IOException e) {
-			throw new IIOException("Error reading quake2 PCX header", e);
+			throw new IIOException("Error reading quake2 WAL header", e);
 		}
 	}
 }

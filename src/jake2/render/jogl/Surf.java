@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.20 2004-03-19 23:37:38 cwei Exp $
+ * $Id: Surf.java,v 1.21 2004-05-04 09:22:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -43,7 +43,6 @@ import jake2.client.dlight_t;
 import jake2.client.entity_t;
 import jake2.client.lightstyle_t;
 import jake2.game.cplane_t;
-import jake2.imageio.ImageFrame;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.render.medge_t;
@@ -1713,26 +1712,26 @@ public abstract class Surf extends Draw {
 	}
 	
 	
-	ImageFrame frame;
+	//ImageFrame frame;
 	
-	void debugLightmap(byte[] buf, int w, int h, float scale) {
-		IntBuffer pix = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
-		
-		int[] pixel = new int[w * h];
-		
-		pix.get(pixel);
-		
-		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-		image.setRGB(0,  0, w, h, pixel, 0, w);
-		AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(scale, scale), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-		BufferedImage tmp = op.filter(image, null);
-		
-		if (frame == null) {
-			frame = new ImageFrame(null);
-			frame.show();
-		} 
-		frame.showImage(tmp);
-		
-	}
+//	void debugLightmap(byte[] buf, int w, int h, float scale) {
+//		IntBuffer pix = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+//		
+//		int[] pixel = new int[w * h];
+//		
+//		pix.get(pixel);
+//		
+//		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+//		image.setRGB(0,  0, w, h, pixel, 0, w);
+//		AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(scale, scale), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+//		BufferedImage tmp = op.filter(image, null);
+//		
+//		if (frame == null) {
+//			frame = new ImageFrame(null);
+//			frame.show();
+//		} 
+//		frame.showImage(tmp);
+//		
+//	}
 
 }

@@ -2,7 +2,7 @@
  * TestTGA.java
  * Copyright (C) 2003
  *
- * $Id: TestTGA.java,v 1.1 2004-03-17 01:13:17 cwei Exp $
+ * $Id: TestTGA.java,v 1.2 2004-05-04 09:22:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.game.Cmd;
-import jake2.imageio.ImageFrame;
+import com.bytonic.imageio.ImageFrame;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
@@ -40,7 +40,6 @@ import java.nio.IntBuffer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.logging.*;
 
 import javax.imageio.stream.MemoryCacheImageInputStream;
 
@@ -137,16 +136,16 @@ public class TestTGA {
 
 	static void init() {
 		// init the global LogManager with the logging.properties file
-		try {
-			LogManager.getLogManager().readConfiguration(
-				TestFS.class.getResourceAsStream("/jake2/logging.properties"));
-		} catch (SecurityException secEx) {
-			secEx.printStackTrace();
-		} catch (IOException ioEx) {
-			System.err.println(
-				"FATAL Error: can't load /jake2/logging.properties (classpath)");
-			ioEx.printStackTrace();
-		}
+//		try {
+//			LogManager.getLogManager().readConfiguration(
+//				TestFS.class.getResourceAsStream("/jake2/logging.properties"));
+//		} catch (SecurityException secEx) {
+//			secEx.printStackTrace();
+//		} catch (IOException ioEx) {
+//			System.err.println(
+//				"FATAL Error: can't load /jake2/logging.properties (classpath)");
+//			ioEx.printStackTrace();
+//		}
 	}
 	
 	/*

@@ -2,7 +2,7 @@
  * Created on Nov 18, 2003
  *
  */
-package jake2.imageio;
+package com.bytonic.imageio;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

@@ -2,7 +2,7 @@
  * Created on Apr 26, 2003
  *
  */
-package jake2.imageio;
+package com.bytonic.imageio;
 
 import java.awt.Color;
 import java.awt.Component;
