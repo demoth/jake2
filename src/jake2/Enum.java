@@ -2,7 +2,7 @@
  * Enum.java
  * Copyright (C) 2003
  *
- * $Id: Enum.java,v 1.1 2003-12-27 21:53:45 cwei Exp $
+ * $Id: Enum.java,v 1.2 2003-12-29 01:52:21 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,12 @@ public interface Enum {
 	static final int it_wall = 2;
 	static final int it_pic = 3;
 	static final int it_sky = 4;
+	
+	// rserr_t
+	static final int rserr_ok = 0;
+	static final int rserr_invalid_fullscreen = 1;
+	static final int rserr_invalid_mode = 2;
+	static final int rserr_unknown = 3;
 
 	// and so on
 }
