@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.10 2004-01-13 15:00:05 cwei Exp $
+ * $Id: Image.java,v 1.11 2004-01-14 21:30:00 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -93,7 +93,7 @@ public abstract class Image extends Main {
 		int i;
 		byte[] temptable = new byte[768];
 
-		if ( qglColorTableEXT && gl_ext_palettedtexture.value > 0.0f )
+		if ( qglColorTableEXT && gl_ext_palettedtexture.value != 0.0f )
 		{
 			for ( i = 0; i < 256; i++ )
 			{
@@ -118,17 +118,17 @@ public abstract class Image extends Main {
 
 		if ( enable )
 		{
-			GL_SelectTexture( GL.GL_TEXTURE1 );
+			GL_SelectTexture( GL_TEXTURE1 );
 			gl.glEnable( GL.GL_TEXTURE_2D );
 			GL_TexEnv( GL.GL_REPLACE );
 		}
 		else
 		{
-			GL_SelectTexture( GL.GL_TEXTURE1 );
+			GL_SelectTexture( GL_TEXTURE1 );
 			gl.glDisable( GL.GL_TEXTURE_2D );
 			GL_TexEnv( GL.GL_REPLACE );
 		}
-		GL_SelectTexture( GL.GL_TEXTURE0 );
+		GL_SelectTexture( GL_TEXTURE0 );
 		GL_TexEnv( GL.GL_REPLACE );
 	}
 
@@ -139,7 +139,7 @@ public abstract class Image extends Main {
 		if (!qglSelectTextureSGIS && !qglActiveTextureARB)
 			return;
 
-		if (texture == GL.GL_TEXTURE0) {
+		if (texture == GL_TEXTURE0) {
 			tmu = 0;
 		} else {
 			tmu = 1;
@@ -187,7 +187,7 @@ public abstract class Image extends Main {
 	void GL_MBind( int target /* GLenum */, int texnum )
 	{
 		GL_SelectTexture( target );
-		if ( target == GL.GL_TEXTURE0 )
+		if ( target == GL_TEXTURE0 )
 		{
 			if ( gl_state.currenttextures[0] == texnum )
 				return;
@@ -1089,7 +1089,7 @@ public abstract class Image extends Main {
 			{
 				if (!mipmap)
 				{
-					if ( qglColorTableEXT && gl_ext_palettedtexture.value > 0.0f && samples == gl_solid_format )
+					if ( qglColorTableEXT && gl_ext_palettedtexture.value != 0.0f && samples == gl_solid_format )
 					{
 						uploaded_paletted = true;
 						GL_BuildPalettedTexture( paletted_texture, data, scaled_width, scaled_height );
@@ -1120,7 +1120,7 @@ public abstract class Image extends Main {
 	
 			GL_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap );
 	
-			if ( qglColorTableEXT && gl_ext_palettedtexture.value > 0.0f && ( samples == gl_solid_format ) )
+			if ( qglColorTableEXT && gl_ext_palettedtexture.value != 0.0f && ( samples == gl_solid_format ) )
 			{
 				uploaded_paletted = true;
 				GL_BuildPalettedTexture( paletted_texture, scaled, scaled_width, scaled_height );
@@ -1154,7 +1154,7 @@ public abstract class Image extends Main {
 						scaled_height = 1;
 		
 					miplevel++;
-					if ( qglColorTableEXT && gl_ext_palettedtexture.value > 0.0f && samples == gl_solid_format )
+					if ( qglColorTableEXT && gl_ext_palettedtexture.value != 0.0f && samples == gl_solid_format )
 					{
 						uploaded_paletted = true;
 						GL_BuildPalettedTexture( paletted_texture, scaled, scaled_width, scaled_height );
@@ -1211,7 +1211,7 @@ public abstract class Image extends Main {
 			ri.Sys_Error (Defines.ERR_DROP, "GL_Upload8: too large");
 
 		if ( qglColorTableEXT && 
-			 gl_ext_palettedtexture.value > 0.0f && 
+			 gl_ext_palettedtexture.value != 0.0f && 
 			 is_sky )
 		{
 			gl.glTexImage2D( GL.GL_TEXTURE_2D,
@@ -1228,7 +1228,7 @@ public abstract class Image extends Main {
 			gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			// TODO check this
-			return true;
+			return false;
 		}
 		else
 		{
@@ -1261,7 +1261,7 @@ public abstract class Image extends Main {
 //					((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
 //					((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
 
-					trans[i] = d_8to24table[p] & 0x00ffffff; // only rgb
+					trans[i] = d_8to24table[p] & 0x00FFFFFF; // only rgb
 				}
 			}
 

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.14 2004-01-13 15:00:05 cwei Exp $
+ * $Id: Main.java,v 1.15 2004-01-14 21:30:00 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,8 +68,10 @@ public abstract class Main extends Base {
 	// default disabled
 	boolean qglColorTableEXT = false;
 	boolean qglSelectTextureSGIS = false;
-	boolean qglActiveTextureARB = true;
-	boolean qglPointParameterfEXT = true;
+	boolean qglActiveTextureARB = false;
+	boolean qglPointParameterfEXT = false;
+	boolean qglLockArraysEXT = false;
+	boolean qglUnlockArraysEXT = false;
 	
 	//	=================
 	//  abstract methods
@@ -253,24 +255,29 @@ public abstract class Main extends Base {
 	Returns true if the box is completely outside the frustom
 	=================
 	*/
-	boolean R_CullBox(float[] mins, float[] maxs) {
-		assert (mins.length == 3 && maxs.length == 3) : "vec3_t bug";
+	boolean R_CullBox(float[] mins, float[] maxs)
+	{
+		assert(mins.length == 3 && maxs.length == 3) : "vec3_t bug";
 
-	 if (r_nocull.value > 0.0f) return false;
+		if (r_nocull.value > 0.0f)
+			return false;
 
-		for (int i=0 ; i<4 ; i++) {
-			if (Math3D.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2) return true;
+		for (int i = 0; i < 4; i++)
+		{
+			if (Math3D.BoxOnPlaneSide(mins, maxs, frustum[i]) == 2)
+				return true;
 		}
 		return false;
 	}
 
-	void R_RotateForEntity(entity_t e)	{
-		
-		gl.glTranslatef (e.origin[0],  e.origin[1],  e.origin[2]);
+	void R_RotateForEntity(entity_t e)
+	{
 
-		gl.glRotatef (e.angles[1],  0, 0, 1);
-		gl.glRotatef (-e.angles[0],  0, 1, 0);
-		gl.glRotatef (-e.angles[2],  1, 0, 0);
+		gl.glTranslatef(e.origin[0], e.origin[1], e.origin[2]);
+
+		gl.glRotatef(e.angles[1], 0, 0, 1);
+		gl.glRotatef(-e.angles[0], 0, 1, 0);
+		gl.glRotatef(-e.angles[2], 1, 0, 0);
 	}
 
 	/*
@@ -410,90 +417,86 @@ public abstract class Main extends Base {
 	*/
 	void R_DrawEntitiesOnList()
 	{
-	 int		i;
+		int i;
 
-	 if (r_drawentities.value == 0.0f) {
-	 	return;
-	 }
+		if (r_drawentities.value == 0.0f) return;
 
-	 // draw non-transparent first
-	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
-	 {
-		 currententity = r_newrefdef.entities[i];
-		 if ( (currententity.flags & Defines.RF_TRANSLUCENT) != 0)
-			 continue;	// solid
+		// draw non-transparent first
+		for (i = 0; i < r_newrefdef.num_entities; i++)
+		{
+			currententity = r_newrefdef.entities[i];
+			if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
+				continue; // solid
 
-		 if ( (currententity.flags & Defines.RF_BEAM) != 0 )
-		 {
-			 R_DrawBeam( currententity );
-		 }
-		 else
-		 {
-			 currentmodel = currententity.model;
-			 if (currentmodel == null)
-			 {
-				 R_DrawNullModel();
-				 continue;
-			 }
-			 switch (currentmodel.type)
-			 {
-			 case mod_alias:
-				 R_DrawAliasModel(currententity);
-				 break;
-			 case mod_brush:
-				 R_DrawBrushModel(currententity);
-				 break;
-			 case mod_sprite:
-				 R_DrawSpriteModel(currententity);
-				 break;
-			 default:
-				 ri.Sys_Error (Defines.ERR_DROP, "Bad modeltype");
-				 break;
-			 }
-		 }
-	 }
+			if ((currententity.flags & Defines.RF_BEAM) != 0)
+			{
+				R_DrawBeam(currententity);
+			}
+			else
+			{
+				currentmodel = currententity.model;
+				if (currentmodel == null)
+				{
+					R_DrawNullModel();
+					continue;
+				}
+				switch (currentmodel.type)
+				{
+					case mod_alias :
+						R_DrawAliasModel(currententity);
+						break;
+					case mod_brush :
+						R_DrawBrushModel(currententity);
+						break;
+					case mod_sprite :
+						R_DrawSpriteModel(currententity);
+						break;
+					default :
+						ri.Sys_Error(Defines.ERR_DROP, "Bad modeltype");
+						break;
+				}
+			}
+		}
+		// draw transparent entities
+		// we could sort these if it ever becomes a problem...
+		gl.glDepthMask(false); // no z writes
+		for (i = 0; i < r_newrefdef.num_entities; i++)
+		{
+			currententity = r_newrefdef.entities[i];
+			if ((currententity.flags & Defines.RF_TRANSLUCENT) == 0)
+				continue; // solid
 
-	 // draw transparent entities
-	 // we could sort these if it ever becomes a problem...
-	 gl.glDepthMask(false);		// no z writes
-	 for (i=0 ; i<r_newrefdef.num_entities ; i++)
-	 {
-		 currententity = r_newrefdef.entities[i];
-		 if ((currententity.flags & Defines.RF_TRANSLUCENT) == 0)
-			 continue;	// solid
+			if ((currententity.flags & Defines.RF_BEAM) != 0)
+			{
+				R_DrawBeam(currententity);
+			}
+			else
+			{
+				currentmodel = currententity.model;
 
-		 if ( (currententity.flags & Defines.RF_BEAM) != 0 )
-		 {
-			 R_DrawBeam( currententity );
-		 }
-		 else
-		 {
-			 currentmodel = currententity.model;
-
-			 if (currentmodel == null)
-			 {
-				 R_DrawNullModel();
-				 continue;
-			 }
-			 switch (currentmodel.type)
-			 {
-			 case mod_alias:
-				 R_DrawAliasModel (currententity);
-				 break;
-			 case mod_brush:
-				 R_DrawBrushModel(currententity);
-				 break;
-			 case mod_sprite:
-				 R_DrawSpriteModel (currententity);
-				 break;
-			 default:
-				 ri.Sys_Error (Defines.ERR_DROP, "Bad modeltype");
-				 break;
-			 }
-		 }
-	 }
-	 gl.glDepthMask(true);		// back to writing
-
+				if (currentmodel == null)
+				{
+					R_DrawNullModel();
+					continue;
+				}
+				switch (currentmodel.type)
+				{
+					case mod_alias :
+						R_DrawAliasModel(currententity);
+						break;
+					case mod_brush :
+						R_DrawBrushModel(currententity);
+						break;
+					case mod_sprite :
+						R_DrawSpriteModel(currententity);
+						break;
+					default :
+						ri.Sys_Error(Defines.ERR_DROP, "Bad modeltype");
+						break;
+				}
+			}
+		}
+		gl.glDepthMask(true); // back to writing
 	}
 
 	/*
@@ -566,9 +569,11 @@ public abstract class Main extends Base {
 	R_DrawParticles
 	===============
 	*/
-	void R_DrawParticles() {
+	void R_DrawParticles()
+	{
 
-		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
+		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT)
+		{
 			int color;
 			particle_t p;
 
@@ -579,10 +584,11 @@ public abstract class Main extends Base {
 			gl.glPointSize(gl_particle_size.value);
 
 			gl.glBegin(GL.GL_POINTS);
-			for (int i = 0; i < r_newrefdef.num_particles; i++) {
+			for (int i = 0; i < r_newrefdef.num_particles; i++)
+			{
 				p = r_newrefdef.particles[i];
 				color = d_8to24table[p.color];
-				
+
 				gl.glColor4ub(
 					(byte) ((color >> 0) & 0xff),
 					(byte) ((color >> 8) & 0xff),
@@ -601,7 +607,7 @@ public abstract class Main extends Base {
 		}
 		else
 		{
-			GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles);
+			GL_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles);
 		}
 	}
 
@@ -610,12 +616,11 @@ public abstract class Main extends Base {
 	R_PolyBlend
 	============
 	*/
-	void R_PolyBlend() {
-		
-		if (gl_polyblend.value == 0.0f)
-			return;
-		if (v_blend[3] == 0.0f)
-			return;
+	void R_PolyBlend()
+	{
+		if (gl_polyblend.value == 0.0f) return;
+
+		if (v_blend[3] == 0.0f) return;
 
 		gl.glDisable(GL.GL_ALPHA_TEST);
 		gl.glEnable(GL.GL_BLEND);
@@ -647,20 +652,20 @@ public abstract class Main extends Base {
 
 // =======================================================================
 
-	int SignbitsForPlane(cplane_t out) {
-
+	int SignbitsForPlane(cplane_t out)
+	{
 		// for fast box on planeside test
-
 		int bits = 0;
-		for (int j=0 ; j<3 ; j++) {
-			if (out.normal[j] < 0) bits |= 1 << j;
+		for (int j = 0; j < 3; j++)
+		{
+			if (out.normal[j] < 0)	bits |= 1 << j;
 		}
 		return bits;
 	}
 
 
-	void R_SetFrustum() {
-
+	void R_SetFrustum()
+	{
 		// rotate VPN right by FOV_X/2 degrees
 		Math3D.RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90-r_newrefdef.fov_x / 2 ) );
 		// rotate VPN left by FOV_X/2 degrees
@@ -670,7 +675,8 @@ public abstract class Main extends Base {
 		// rotate VPN down by FOV_X/2 degrees
 		Math3D.RotatePointAroundVector( frustum[3].normal, vright, vpn, -( 90 - r_newrefdef.fov_y / 2 ) );
 
-		for (int i=0 ; i<4 ; i++) {
+		for (int i=0 ; i<4 ; i++)
+		{
 			frustum[i].type = Defines.PLANE_ANYZ;
 			frustum[i].dist = Math3D.DotProduct(r_origin, frustum[i].normal);
 			frustum[i].signbits = (byte)SignbitsForPlane(frustum[i]);
@@ -747,12 +753,8 @@ public abstract class Main extends Base {
 	}
 
 
-	void MYgluPerspective(
-		double fovy,
-		double aspect,
-		double zNear,
-		double zFar) {
-			
+	void MYgluPerspective(double fovy, double aspect, double zNear, double zFar)
+	{
 		double xmin, xmax, ymin, ymax;
 
 		ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
@@ -761,8 +763,8 @@ public abstract class Main extends Base {
 		xmin = ymin * aspect;
 		xmax = ymax * aspect;
 
-		xmin += - (2 * gl_state.camera_separation) / zNear;
-		xmax += - (2 * gl_state.camera_separation) / zNear;
+		xmin += -(2 * gl_state.camera_separation) / zNear;
+		xmax += -(2 * gl_state.camera_separation) / zNear;
 
 		gl.glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 	}
@@ -773,7 +775,8 @@ public abstract class Main extends Base {
 	R_SetupGL
 	=============
 	*/
-	void R_SetupGL() {
+	void R_SetupGL()
+	{
 		float screenaspect;
 		int x, x2, y2, y, w, h;
 
@@ -835,37 +838,46 @@ public abstract class Main extends Base {
 	*/
 	int trickframe = 0;
 
-	void R_Clear() {
-		if (gl_ztrick.value > 0.0f) {
-			
-			if (gl_clear.value > 0.0f) {
+	void R_Clear()
+	{
+		if (gl_ztrick.value > 0.0f)
+		{
+
+			if (gl_clear.value > 0.0f)
+			{
 				gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 			}
 
 			trickframe++;
-			if ((trickframe & 1) != 0) {
+			if ((trickframe & 1) != 0)
+			{
 				gldepthmin = 0;
 				gldepthmax = 0.49999f;
 				gl.glDepthFunc(GL.GL_LEQUAL);
-			} else {
+			}
+			else
+			{
 				gldepthmin = 1;
 				gldepthmax = 0.5f;
 				gl.glDepthFunc(GL.GL_GEQUAL);
 			}
-		} else {
+		}
+		else
+		{
 			if (gl_clear.value > 0.0f)
 				gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 			else
 				gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+				
 			gldepthmin = 0;
 			gldepthmax = 1;
 			gl.glDepthFunc(GL.GL_LEQUAL);
 		}
-
 		gl.glDepthRange(gldepthmin, gldepthmax);
 	}
 
-	void R_Flash() {
+	void R_Flash()
+	{
 		R_PolyBlend();
 	}
 
@@ -928,7 +940,8 @@ public abstract class Main extends Base {
 		}
 	}
 
-	void R_SetGL2D() {
+	void R_SetGL2D()
+	{
 		// set 2D virtual screen size
 		gl.glViewport(0, 0, vid.width, vid.height);
 		gl.glMatrixMode(GL.GL_PROJECTION);
@@ -949,11 +962,11 @@ public abstract class Main extends Base {
 
 	====================
 	*/
-	void R_SetLightLevel() {
+	void R_SetLightLevel()
+	{
 		float[] shadelight = { 0, 0, 0 };
 
-		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0)
-			return;
+		if ((r_newrefdef.rdflags & Defines.RDF_NOWORLDMODEL) != 0) return;
 
 		// save off light value for server to look at (BIG HACK!)
 
@@ -961,18 +974,20 @@ public abstract class Main extends Base {
 
 		// pick the greatest component, which should be the same
 		// as the mono value returned by software
-		if (shadelight[0] > shadelight[1]) {
+		if (shadelight[0] > shadelight[1])
+		{
 			if (shadelight[0] > shadelight[2])
 				r_lightlevel.value = 150 * shadelight[0];
 			else
 				r_lightlevel.value = 150 * shadelight[2];
-		} else {
+		}
+		else
+		{
 			if (shadelight[1] > shadelight[2])
 				r_lightlevel.value = 150 * shadelight[1];
 			else
 				r_lightlevel.value = 150 * shadelight[2];
 		}
-
 	}
 
 
@@ -989,7 +1004,8 @@ public abstract class Main extends Base {
 	}
 
 
-	protected void R_Register() {
+	protected void R_Register()
+	{
 		r_lefthand = ri.Cvar_Get( "hand", "0", Cvar.USERINFO | Cvar.ARCHIVE );
 		r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 		r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
@@ -1057,24 +1073,32 @@ public abstract class Main extends Base {
 		vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", Cvar.ARCHIVE );
 		vid_ref = ri.Cvar_Get( "vid_ref", "jogl", Cvar.ARCHIVE );
 
-		ri.Cmd_AddCommand( "imagelist", new xcommand_t() {
-			public void execute() throws Exception {
+		ri.Cmd_AddCommand("imagelist", new xcommand_t()
+		{
+			public void execute() throws Exception
+			{
 				GL_ImageList_f();
 			}
 		});
-		
-		ri.Cmd_AddCommand( "screenshot", new xcommand_t() {
-			public void execute() throws Exception {
+
+		ri.Cmd_AddCommand("screenshot", new xcommand_t()
+		{
+			public void execute() throws Exception
+			{
 				GL_ScreenShot_f();
 			}
 		});
-		ri.Cmd_AddCommand( "modellist", new xcommand_t() {
-			public void execute() throws Exception {
+		ri.Cmd_AddCommand("modellist", new xcommand_t()
+		{
+			public void execute() throws Exception
+			{
 				Mod_Modellist_f();
 			}
 		});
-		ri.Cmd_AddCommand( "gl_strings", new xcommand_t() {
-			public void execute() throws Exception {
+		ri.Cmd_AddCommand("gl_strings", new xcommand_t()
+		{
+			public void execute() throws Exception
+			{
 				GL_Strings_f();
 			}
 		});
@@ -1199,214 +1223,218 @@ public abstract class Main extends Base {
 		
 		// TODO R_Init2() komplett fertig stellen
 		
-//	 if ( strstr( renderer_buffer, "voodoo" ) )
-//	 {
-//		 if ( !strstr( renderer_buffer, "rush" ) )
-//			 gl_config.renderer = GL_RENDERER_VOODOO;
-//		 else
-//			 gl_config.renderer = GL_RENDERER_VOODOO_RUSH;
-//	 }
-//	 else if ( strstr( vendor_buffer, "sgi" ) )
-//		 gl_config.renderer = GL_RENDERER_SGI;
-//	 else if ( strstr( renderer_buffer, "permedia" ) )
-//		 gl_config.renderer = GL_RENDERER_PERMEDIA2;
-//	 else if ( strstr( renderer_buffer, "glint" ) )
-//		 gl_config.renderer = GL_RENDERER_GLINT_MX;
-//	 else if ( strstr( renderer_buffer, "glzicd" ) )
-//		 gl_config.renderer = GL_RENDERER_REALIZM;
-//	 else if ( strstr( renderer_buffer, "gdi" ) )
-//		 gl_config.renderer = GL_RENDERER_MCD;
-//	 else if ( strstr( renderer_buffer, "pcx2" ) )
-//		 gl_config.renderer = GL_RENDERER_PCX2;
-//	 else if ( strstr( renderer_buffer, "verite" ) )
-//		 gl_config.renderer = GL_RENDERER_RENDITION;
-//	 else
-//		 gl_config.renderer = GL_RENDERER_OTHER;
-//
-//	 if ( toupper( gl_monolightmap->string[1] ) != 'F' )
-//	 {
-//		 if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 )
-//		 {
-//			 ri.Cvar_Set( "gl_monolightmap", "A" );
-//			 ri.Con_Printf( PRINT_ALL, "...using gl_monolightmap 'a'\n" );
-//		 }
-//		 else if ( gl_config.renderer & GL_RENDERER_POWERVR ) 
-//		 {
-//			 ri.Cvar_Set( "gl_monolightmap", "0" );
-//		 }
-//		 else
-//		 {
-//			 ri.Cvar_Set( "gl_monolightmap", "0" );
-//		 }
-//	 }
-//
-//	 // power vr can't have anything stay in the framebuffer, so
-//	 // the screen needs to redraw the tiled background every frame
-//	 if ( gl_config.renderer & GL_RENDERER_POWERVR ) 
-//	 {
-//		 ri.Cvar_Set( "scr_drawall", "1" );
-//	 }
-//	 else
-//	 {
-//		 ri.Cvar_Set( "scr_drawall", "0" );
-//	 }
-//
+	 if ( renderer_buffer.indexOf("voodoo") >= 0)
+	 {
+		 if ( renderer_buffer.indexOf("rush") < 0 )
+			 gl_config.renderer = GL_RENDERER_VOODOO;
+		 else
+			 gl_config.renderer = GL_RENDERER_VOODOO_RUSH;
+	 }
+	 else if ( vendor_buffer.indexOf("sgi") >=0 )
+		 gl_config.renderer = GL_RENDERER_SGI;
+	 else if ( renderer_buffer.indexOf("permedia") >= 0 )
+		 gl_config.renderer = GL_RENDERER_PERMEDIA2;
+	 else if ( renderer_buffer.indexOf("glint") >= 0 )
+		 gl_config.renderer = GL_RENDERER_GLINT_MX;
+	 else if ( renderer_buffer.indexOf("glzicd") >= 0 )
+		 gl_config.renderer = GL_RENDERER_REALIZM;
+	 else if ( renderer_buffer.indexOf("gdi") >= 0 )
+		 gl_config.renderer = GL_RENDERER_MCD;
+	 else if ( renderer_buffer.indexOf("pcx2") >= 0 )
+		 gl_config.renderer = GL_RENDERER_PCX2;
+	 else if ( renderer_buffer.indexOf("verite") >= 0 )
+		 gl_config.renderer = GL_RENDERER_RENDITION;
+	 else
+		 gl_config.renderer = GL_RENDERER_OTHER;
+
+	 if ( gl_monolightmap.string.toUpperCase().charAt(0) != 'F' )
+	 {
+		 if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 )
+		 {
+			 ri.Cvar_Set( "gl_monolightmap", "A" );
+			 ri.Con_Printf( Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n" );
+		 }
+		 else if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
+		 {
+			 ri.Cvar_Set( "gl_monolightmap", "0" );
+		 }
+		 else
+		 {
+			 ri.Cvar_Set( "gl_monolightmap", "0" );
+		 }
+	 }
+
+	 // power vr can't have anything stay in the framebuffer, so
+	 // the screen needs to redraw the tiled background every frame
+	 if ( (gl_config.renderer & GL_RENDERER_POWERVR) != 0 ) 
+	 {
+		 ri.Cvar_Set( "scr_drawall", "1" );
+	 }
+	 else
+	 {
+		 ri.Cvar_Set( "scr_drawall", "0" );
+	 }
+
 // #ifdef __linux__
-//	 ri.Cvar_SetValue( "gl_finish", 1 );
+	 ri.Cvar_SetValue( "gl_finish", 1 );
 // #endif
 //
-//	 // MCD has buffering issues
-//	 if ( gl_config.renderer == GL_RENDERER_MCD )
-//	 {
-//		 ri.Cvar_SetValue( "gl_finish", 1 );
-//	 }
-//
-//	 if ( gl_config.renderer & GL_RENDERER_3DLABS )
-//	 {
-//		 if ( gl_3dlabs_broken->value )
-//			 gl_config.allow_cds = false;
-//		 else
-//			 gl_config.allow_cds = true;
-//	 }
-//	 else
-//	 {
-//		 gl_config.allow_cds = true;
-//	 }
-//
-//	 if ( gl_config.allow_cds )
-//		 ri.Con_Printf( PRINT_ALL, "...allowing CDS\n" );
-//	 else
-//		 ri.Con_Printf( PRINT_ALL, "...disabling CDS\n" );
-//
-//	 /*
-//	 ** grab extensions
-//	 */
-//	 if ( strstr( gl_config.extensions_string, "GL_EXT_compiled_vertex_array" ) || 
-//		  strstr( gl_config.extensions_string, "GL_SGI_compiled_vertex_array" ) )
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n" );
+	 // MCD has buffering issues
+	 if ( gl_config.renderer == GL_RENDERER_MCD )
+	 {
+		 ri.Cvar_SetValue( "gl_finish", 1 );
+	 }
+
+	 if ( (gl_config.renderer & GL_RENDERER_3DLABS) != 0 )
+	 {
+		 if ( gl_3dlabs_broken.value != 0.0f )
+			 gl_config.allow_cds = false;
+		 else
+			 gl_config.allow_cds = true;
+	 }
+	 else
+	 {
+		 gl_config.allow_cds = true;
+	 }
+
+	 if ( gl_config.allow_cds )
+		 ri.Con_Printf( Defines.PRINT_ALL, "...allowing CDS\n" );
+	 else
+		 ri.Con_Printf( Defines.PRINT_ALL, "...disabling CDS\n" );
+
+	 /*
+	 ** grab extensions
+	 */
+	 if ( gl_config.extensions_string.indexOf("GL_EXT_compiled_vertex_array") >= 0 || 
+		  gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0 )
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n" );
 //		 qglLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
+		 qglLockArraysEXT = true;
 //		 qglUnlockArraysEXT = ( void * ) qwglGetProcAddress( "glUnlockArraysEXT" );
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
-//	 }
-//
+		 qglUnlockArraysEXT = true;
+	 }
+	 else
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
+	 }
+
 // #ifdef _WIN32
 //	 if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
 //	 {
 //		 qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
-//		 ri.Con_Printf( PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
+//		 ri.Con_Printf( Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
 //	 }
 //	 else
 //	 {
-//		 ri.Con_Printf( PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
+//		 ri.Con_Printf( Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
 //	 }
 // #endif
-//
-//	 if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
-//	 {
-//		 if ( gl_ext_pointparameters->value )
-//		 {
+
+	 if ( gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0 )
+	 {
+		 if ( gl_ext_pointparameters.value != 0.0f )
+		 {
 //			 qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
+			 qglPointParameterfEXT = true;
 //			 qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
-//			 ri.Con_Printf( PRINT_ALL, "...using GL_EXT_point_parameters\n" );
-//		 }
-//		 else
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
-//		 }
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
-//	 }
-//
+			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n" );
+		 }
+		 else
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+		 }
+	 }
+	 else
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
+	 }
+
 // #ifdef __linux__
 //	 if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" ))
 //	 {
 //		 if ( gl_ext_palettedtexture->value )
 //		 {
-//			 ri.Con_Printf( PRINT_ALL, "...using 3DFX_set_global_palette\n" );
+//			 ri.Con_Printf( Defines.PRINT_ALL, "...using 3DFX_set_global_palette\n" );
 //			 qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
 ////			 qglColorTableEXT = Fake_glColorTableEXT;
 //		 }
 //		 else
 //		 {
-//			 ri.Con_Printf( PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
+//			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
 //		 }
 //	 }
 //	 else
 //	 {
-//		 ri.Con_Printf( PRINT_ALL, "...3DFX_set_global_palette not found\n" );
+//		 ri.Con_Printf( Defines.PRINT_ALL, "...3DFX_set_global_palette not found\n" );
 //	 }
 // #endif
-//
-//	 if ( !qglColorTableEXT &&
-//		 strstr( gl_config.extensions_string, "GL_EXT_paletted_texture" ) && 
-//		 strstr( gl_config.extensions_string, "GL_EXT_shared_texture_palette" ) )
-//	 {
-//		 if ( gl_ext_palettedtexture->value )
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
-//			 qglColorTableEXT = ( void ( APIENTRY * ) ( int, int, int, int, int, const void * ) ) qwglGetProcAddress( "glColorTableEXT" );
-//		 }
-//		 else
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n" );
-//		 }
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
-//	 }
-//
-//	 if ( strstr( gl_config.extensions_string, "GL_ARB_multitexture" ) )
-//	 {
-//		 if ( gl_ext_multitexture->value )
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
+
+	 if ( !qglColorTableEXT &&
+		 gl_config.extensions_string.indexOf("GL_EXT_paletted_texture") >= 0 && 
+		 gl_config.extensions_string.indexOf("GL_EXT_shared_texture_palette") >= 0 )
+	 {
+		 if ( gl_ext_palettedtexture.value != 0.0f )
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
+			 qglColorTableEXT = false; // true; TODO jogl bug
+		 }
+		 else
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n" );
+		 }
+	 }
+	 else
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
+	 }
+
+	 if ( gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0 )
+	 {
+		 if ( gl_ext_multitexture.value != 0.0f )
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_ARB_multitexture\n" );
 //			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
 //			 qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
 //			 qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
 			 GL_TEXTURE0 = GL.GL_TEXTURE0_ARB;
 			 GL_TEXTURE1 = GL.GL_TEXTURE1_ARB;
-//		 }
-//		 else
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
-//		 }
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
-//	 }
-//
-//	 if ( strstr( gl_config.extensions_string, "GL_SGIS_multitexture" ) )
-//	 {
-//		 if ( qglActiveTextureARB )
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
-//		 }
-//		 else if ( gl_ext_multitexture->value )
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...using GL_SGIS_multitexture\n" );
+		 }
+		 else
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+		 }
+	 }
+	 else
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n" );
+	 }
+
+	 if ( gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0 )
+	 {
+		 if ( qglActiveTextureARB )
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
+		 }
+		 else if ( gl_ext_multitexture.value != 0.0f)
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...using GL_SGIS_multitexture\n" );
 //			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 //			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
+			 qglSelectTextureSGIS = true;
 //			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
 //			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
-//		 }
-//		 else
-//		 {
-//			 ri.Con_Printf( PRINT_ALL, "...ignoring GL_SGIS_multitexture\n" );
-//		 }
-//	 }
-//	 else
-//	 {
-//		 ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
-//	 }
-//
+		 }
+		 else
+		 {
+			 ri.Con_Printf( Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n" );
+		 }
+	 }
+	 else
+	 {
+		 ri.Con_Printf( Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
+	 }
+
 		GL_SetDefaultState();
 
 		GL_InitImages();
@@ -1416,7 +1444,7 @@ public abstract class Main extends Base {
 
 		int err = gl.glGetError();
 		if ( err != GL.GL_NO_ERROR )
-			ri.Con_Printf (Defines.PRINT_ALL, "glGetError() = 0x%x\n", new Vargs(1).add(err) );
+			ri.Con_Printf (Defines.PRINT_ALL, "glGetError() = 0x%x\n\t%s\n", new Vargs(2).add(err).add(gl.glGetString(err)) );
 
 		return true;
 	}

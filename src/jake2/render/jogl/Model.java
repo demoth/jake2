@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.7 2004-01-09 15:09:12 cwei Exp $
+ * $Id: Model.java,v 1.8 2004-01-14 21:30:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,6 +36,7 @@ import jake2.qcommon.qfiles;
 import jake2.render.mleaf_t;
 import jake2.render.mnode_t;
 import jake2.render.model_t;
+import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 /**
@@ -76,32 +77,30 @@ public abstract class Model extends Image {
 		mnode_t node;
 		float	d;
 		cplane_t plane;
-//	
-//		if (!model || !model->nodes)
-//			ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
-//
-//		node = model.nodes;
-//		while (1)
-//		{
-//			if (node->contents != -1)
-//				return (mleaf_t *)node;
-//			plane = node->plane;
-//			d = DotProduct (p,plane->normal) - plane->dist;
-//			if (d > 0)
-//				node = node->children[0];
-//			else
-//				node = node->children[1];
-//		}
-//	
-		return null;	// never reached
+	
+		if (model == null || model.nodes == null)
+			ri.Sys_Error (Defines.ERR_DROP, "Mod_PointInLeaf: bad model");
+
+		node = model.nodes[0];
+		while (true)
+		{
+			if (node.contents != -1)
+				return (mleaf_t)node;
+			plane = node.plane;
+			d = Math3D.DotProduct(p, plane.normal) - plane.dist;
+			if (d > 0)
+				node = node.children[0];
+			else
+				node = node.children[1];
+		}
+		// never reached
 	}
-//
-//
-//	/*
-//	===================
-//	Mod_DecompressVis
-//	===================
-//	*/
+
+	/*
+	===================
+	Mod_DecompressVis
+	===================
+	*/
 //	byte *Mod_DecompressVis (byte *in, model_t *model)
 //	{
 //		static byte	decompressed[MAX_MAP_LEAFS/8];

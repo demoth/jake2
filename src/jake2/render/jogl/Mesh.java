@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.5 2004-01-09 15:09:12 cwei Exp $
+ * $Id: Mesh.java,v 1.6 2004-01-14 21:30:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import java.nio.FloatBuffer;
+
+import net.java.games.gluegen.runtime.BufferFactory;
 import net.java.games.jogl.GL;
+import net.java.games.jogl.util.BufferUtils;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.entity_t;
@@ -106,6 +110,43 @@ public abstract class Mesh extends Warp {
 		}
 	}
 
+	void GL_LerpVerts( int nverts, qfiles.dtrivertx_t[] v, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, FloatBuffer lerp, float[] move, float[] frontv, float[] backv )
+	{
+		int i;
+		int lerpIndex = 0;
+		lerp.position(0);
+
+		//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
+		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
+		{
+			float[] normal;
+			for (i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
+			{
+				normal = r_avertexnormals[verts[i].lightnormalindex];
+
+				lerp.put(move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
+				lerp.put(move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
+				lerp.put(move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
+				lerp.get();
+			}
+		}
+		else
+		{
+			for (i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
+			{
+				lerp.put(move[0] + ov[i].v[0]*backv[0] + v[i].v[0]*frontv[0]);
+				lerp.put(move[1] + ov[i].v[1]*backv[1] + v[i].v[1]*frontv[1]);
+				lerp.put(move[2] + ov[i].v[2]*backv[2] + v[i].v[2]*frontv[2]);
+				lerp.get();
+			}
+		}
+	}
+
+	FloatBuffer colorArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 4);
+	FloatBuffer vertexArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 4);
+	boolean isFilled = false;
+	float[] tmpVec = {0, 0, 0};
+			
 	/*
 	=============
 	GL_DrawAliasFrameLerp
@@ -138,7 +179,7 @@ public abstract class Mesh extends Warp {
 
 		int		i;
 		int		index_xyz;
-		float[][]	lerp;
+		//float[][]	lerp;
 
 		frame = paliashdr.aliasFrames[currententity.frame];
 
@@ -182,98 +223,92 @@ public abstract class Mesh extends Warp {
 			backv[i] = backlerp*oldframe.scale[i];
 		}
 
-		lerp = s_lerped;
-
-		GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, lerp, move, frontv, backv );
-//
-		// TODO remove this false
-		if ( false && gl_vertex_arrays.value != 0.0f )
+		if ( gl_vertex_arrays.value != 0.0f )
 		{
-//			float colorArray[MAX_VERTS*4];
-//
-//			gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
-//			gl.glVertexPointer( 3, GL.GL_FLOAT, 16, s_lerped );	// padded for SIMD
-//
-//			// PMM - added double damage shell
-//			if ( currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM) )
-//			{
-//				gl.glColor4f( shadelight[0], shadelight[1], shadelight[2], alpha );
-//			}
-//			else
-//			{
-//				gl.glEnableClientState( GL.GL_COLOR_ARRAY );
-//				gl.glColorPointer( 3, GL.GL_FLOAT, 0, colorArray );
-//
-//				//
-//				// pre light everything
-//				//
-//				for ( i = 0; i < paliashdr.num_xyz; i++ )
-//				{
-//					float l = shadedots[verts[i].lightnormalindex];
-//
-//					colorArray[i*3+0] = l * shadelight[0];
-//					colorArray[i*3+1] = l * shadelight[1];
-//					colorArray[i*3+2] = l * shadelight[2];
-//				}
-//			}
-//
-//			if ( qglLockArraysEXT != 0 )
-//				gl.glLockArraysEXT( 0, paliashdr.num_xyz );
-//
-//			while (1)
-//			{
-//				// get the vertex count and primitive type
-//				count = *order++;
-//				if (!count)
-//					break;		// done
-//				if (count < 0)
-//				{
-//					count = -count;
-//					gl.glBegin (GL.GL_TRIANGLE_FAN);
-//				}
-//				else
-//				{
-//					gl.glBegin (GL.GL_TRIANGLE_STRIP);
-//				}
-//
-//				// PMM - added double damage shell
-//				if ( currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM) )
-//				{
-//					do
-//					{
-//						index_xyz = order[2];
-//						order += 3;
-//
-//						gl.glVertex3fv( s_lerped[index_xyz] );
-//
-//					} while (--count);
-//				}
-//				else
-//				{
-//					do
-//					{
-//						// texture coordinates come from the draw list
-//						gl.glTexCoord2f (((float *)order)[0], ((float *)order)[1]);
-//						index_xyz = order[2];
-//
-//						order += 3;
-//
-//						// normals and vertexes come from the frame list
-////						l = shadedots[verts[index_xyz].lightnormalindex];
-//					
-////						gl.glColor4f (l* shadelight[0], l*shadelight[1], l*shadelight[2], alpha);
-//						gl.glArrayElement( index_xyz );
-//
-//					} while (--count);
-//				}
-//				gl.glEnd ();
-//			}
-//
-//			if ( qglUnlockArraysEXT != 0 )
-//				gl.glUnlockArraysEXT();
+			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, vertexArrayBuf, move, frontv, backv );
+
+			gl.glEnableClientState( GL.GL_VERTEX_ARRAY );
+			gl.glVertexPointer( 3, GL.GL_FLOAT, 16, vertexArrayBuf );	// padded for SIMD
+
+			// PMM - added double damage shell
+			if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
+			{
+				gl.glColor4f( shadelight[0], shadelight[1], shadelight[2], alpha );
+			}
+			else
+			{
+				gl.glEnableClientState( GL.GL_COLOR_ARRAY );
+				gl.glColorPointer( 3, GL.GL_FLOAT, 0, colorArrayBuf );
+
+				//
+				// pre light everything
+				//
+				colorArrayBuf.position(0);
+				for ( i = 0; i < paliashdr.num_xyz; i++ )
+				{
+					l = shadedots[verts[i].lightnormalindex];
+					colorArrayBuf.put(l * shadelight[0]).put(l * shadelight[2]).put(l * shadelight[2]);
+				}
+			}
+
+			if ( qglLockArraysEXT )
+				gl.glLockArraysEXT( 0, paliashdr.num_xyz );
+
+			while (true)
+			{
+				// get the vertex count and primitive type
+				count = order[orderIndex++];
+				if (count == 0)
+					break;		// done
+				if (count < 0)
+				{
+					count = -count;
+					gl.glBegin (GL.GL_TRIANGLE_FAN);
+				}
+				else
+				{
+					gl.glBegin (GL.GL_TRIANGLE_STRIP);
+				}
+
+				// PMM - added double damage shell
+				if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
+				{
+					do
+					{
+						index_xyz = order[orderIndex + 2];
+						orderIndex += 3;
+
+						//gl.glVertex3fv( s_lerped[index_xyz] );
+						vertexArrayBuf.get(tmpVec, 4 * index_xyz, 3);
+						gl.glVertex3fv( tmpVec );
+
+					} while (--count != 0);
+				}
+				else
+				{
+					do
+					{
+						// texture coordinates come from the draw list
+						gl.glTexCoord2f (Float.intBitsToFloat(order[orderIndex + 0]), Float.intBitsToFloat(order[orderIndex + 1]));
+
+						index_xyz = order[orderIndex + 2];
+						orderIndex += 3;
+
+						// normals and vertexes come from the frame list
+						gl.glArrayElement( index_xyz );
+
+					} while (--count != 0);
+				}
+				gl.glEnd ();
+			}
+
+			if ( qglUnlockArraysEXT )
+				gl.glUnlockArraysEXT();
 		}
 		else
 		{
+			GL_LerpVerts( paliashdr.num_xyz, v, ov, verts, s_lerped, move, frontv, backv );
+
 			while (true)
 			{
 				// get the vertex count and primitive type
@@ -320,7 +355,6 @@ public abstract class Mesh extends Warp {
 						gl.glVertex3fv (s_lerped[index_xyz]);
 					} while (--count != 0);
 				}
-
 				gl.glEnd ();
 			}
 		}

@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.3 2004-01-10 15:45:49 cwei Exp $
+ * $Id: Surf.java,v 1.4 2004-01-14 21:30:00 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.jogl;
 
 import jake2.client.entity_t;
+import jake2.render.glpoly_t;
+import jake2.render.image_t;
+import jake2.render.mnode_t;
+import jake2.render.msurface_t;
+import jake2.render.mtexinfo_t;
 
 /**
  * Surf
@@ -82,120 +87,46 @@ public abstract class Surf extends Draw {
 //	extern void R_SetCacheState( msurface_t *surf );
 //	extern void R_BuildLightMap (msurface_t *surf, byte *dest, int stride);
 //
-//	/*
-//	=============================================================
-//
-//		BRUSH MODELS
-//
-//	=============================================================
-//	*/
-//
-//	/*
-//	===============
-//	R_TextureAnimation
-//
-//	Returns the proper texture for a given time and base texture
-//	===============
-//	*/
-//	image_t *R_TextureAnimation (mtexinfo_t *tex)
-//	{
-//		int		c;
-//
-//		if (!tex->next)
-//			return tex->image;
-//
-//		c = currententity->frame % tex->numframes;
-//		while (c)
-//		{
-//			tex = tex->next;
-//			c--;
-//		}
-//
-//		return tex->image;
-//	}
-//
-//	#if 0
-//	/*
-//	=================
-//	WaterWarpPolyVerts
-//
-//	Mangles the x and y coordinates in a copy of the poly
-//	so that any drawing routine can be water warped
-//	=================
-//	*/
-//	glpoly_t *WaterWarpPolyVerts (glpoly_t *p)
-//	{
-//		int		i;
-//		float	*v, *nv;
-//		static byte	buffer[1024];
-//		glpoly_t *out;
-//
-//		out = (glpoly_t *)buffer;
-//
-//		out->numverts = p->numverts;
-//		v = p->verts[0];
-//		nv = out->verts[0];
-//		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE, nv+=VERTEXSIZE)
-//		{
-//			nv[0] = v[0] + 4*sin(v[1]*0.05+r_newrefdef.time)*sin(v[2]*0.05+r_newrefdef.time);
-//			nv[1] = v[1] + 4*sin(v[0]*0.05+r_newrefdef.time)*sin(v[2]*0.05+r_newrefdef.time);
-//
-//			nv[2] = v[2];
-//			nv[3] = v[3];
-//			nv[4] = v[4];
-//			nv[5] = v[5];
-//			nv[6] = v[6];
-//		}
-//
-//		return out;
-//	}
-//
-//	/*
-//	================
-//	DrawGLWaterPoly
-//
-//	Warp the vertex coordinates
-//	================
-//	*/
-//	void DrawGLWaterPoly (glpoly_t *p)
-//	{
-//		int		i;
-//		float	*v;
-//
-//		p = WaterWarpPolyVerts (p);
-//		qglBegin (GL_TRIANGLE_FAN);
-//		v = p->verts[0];
-//		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-//		{
-//			qglTexCoord2f (v[3], v[4]);
-//			qglVertex3fv (v);
-//		}
-//		qglEnd ();
-//	}
-//	void DrawGLWaterPolyLightmap (glpoly_t *p)
-//	{
-//		int		i;
-//		float	*v;
-//
-//		p = WaterWarpPolyVerts (p);
-//		qglBegin (GL_TRIANGLE_FAN);
-//		v = p->verts[0];
-//		for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-//		{
-//			qglTexCoord2f (v[5], v[6]);
-//			qglVertex3fv (v);
-//		}
-//		qglEnd ();
-//	}
-//	#endif
-//
-//	/*
-//	================
-//	DrawGLPoly
-//	================
-//	*/
+	/*
+	=============================================================
+
+		BRUSH MODELS
+
+	=============================================================
+	*/
+
+	/*
+	===============
+	R_TextureAnimation
+
+	Returns the proper texture for a given time and base texture
+	===============
+	*/
+	image_t R_TextureAnimation(mtexinfo_t tex)
+	{
+		int		c;
+
+		if (tex.next == null)
+			return tex.image;
+
+		c = currententity.frame % tex.numframes;
+		while (c != 0)
+		{
+			tex = tex.next;
+			c--;
+		}
+
+		return tex.image;
+	}
+
+	/*
+	================
+	DrawGLPoly
+	================
+	*/
 //	void DrawGLPoly (glpoly_t *p)
-//	{
+	void DrawGLPoly(glpoly_t p)
+	{
 //		int		i;
 //		float	*v;
 //
@@ -207,17 +138,18 @@ public abstract class Surf extends Draw {
 //			qglVertex3fv (v);
 //		}
 //		qglEnd ();
-//	}
-//
-////	  ============
-////	  PGM
-//	/*
-//	================
-//	DrawGLFlowingPoly -- version of DrawGLPoly that handles scrolling texture
-//	================
-//	*/
+	}
+
+	//	  ============
+	//	  PGM
+	/*
+	================
+	DrawGLFlowingPoly -- version of DrawGLPoly that handles scrolling texture
+	================
+	*/
 //	void DrawGLFlowingPoly (msurface_t *fa)
-//	{
+	void DrawGLFlowingPoly (msurface_t fa)
+	{
 //		int		i;
 //		float	*v;
 //		glpoly_t *p;
@@ -237,15 +169,15 @@ public abstract class Surf extends Draw {
 //			qglVertex3fv (v);
 //		}
 //		qglEnd ();
-//	}
-////	  PGM
-////	  ============
-//
-//	/*
-//	** R_DrawTriangleOutlines
-//	*/
-//	void R_DrawTriangleOutlines (void)
-//	{
+	}
+	//	  PGM
+	//	  ============
+
+	/*
+	** R_DrawTriangleOutlines
+	*/
+	void R_DrawTriangleOutlines()
+	{
 //		int			i, j;
 //		glpoly_t	*p;
 //
@@ -280,13 +212,13 @@ public abstract class Surf extends Draw {
 //
 //		qglEnable (GL_DEPTH_TEST);
 //		qglEnable (GL_TEXTURE_2D);
-//	}
-//
-//	/*
-//	** DrawGLPolyChain
-//	*/
-//	void DrawGLPolyChain( glpoly_t *p, float soffset, float toffset )
-//	{
+	}
+
+	/*
+	** DrawGLPolyChain
+	*/
+	void DrawGLPolyChain( glpoly_t p, float soffset, float toffset )
+	{
 //		if ( soffset == 0 && toffset == 0 )
 //		{
 //			for ( ; p != 0; p = p->chain )
@@ -321,16 +253,16 @@ public abstract class Surf extends Draw {
 //				qglEnd ();
 //			}
 //		}
-//	}
-//
-//	/*
-//	** R_BlendLightMaps
-//	**
-//	** This routine takes all the given light mapped surfaces in the world and
-//	** blends them into the framebuffer.
-//	*/
-//	void R_BlendLightmaps (void)
-//	{
+	}
+
+	/*
+	** R_BlendLightMaps
+	**
+	** This routine takes all the given light mapped surfaces in the world and
+	** blends them into the framebuffer.
+	*/
+	void R_BlendLightmaps()
+	{
 //		int			i;
 //		msurface_t	*surf, *newdrawsurf = 0;
 //
@@ -484,15 +416,16 @@ public abstract class Surf extends Draw {
 //		qglDisable (GL_BLEND);
 //		qglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //		qglDepthMask( 1 );
-//	}
-//
-//	/*
-//	================
-//	R_RenderBrushPoly
-//	================
-//	*/
+	}
+
+	/*
+	================
+	R_RenderBrushPoly
+	================
+	*/
 //	void R_RenderBrushPoly (msurface_t *fa)
-//	{
+	void R_RenderBrushPoly(msurface_t fa)
+	{
 //		int			maps;
 //		image_t		*image;
 //		qboolean is_dynamic = false;
@@ -589,9 +522,9 @@ public abstract class Surf extends Draw {
 //			fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
 //			gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 //		}
-//	}
-//
-//
+	}
+
+
 	/*
 	================
 	R_DrawAlphaSurfaces
@@ -642,14 +575,14 @@ public abstract class Surf extends Draw {
 //
 //		r_alpha_surfaces = NULL;
 	}
-//
-//	/*
-//	================
-//	DrawTextureChains
-//	================
-//	*/
-//	void DrawTextureChains (void)
-//	{
+
+	/*
+	================
+	DrawTextureChains
+	================
+	*/
+	void DrawTextureChains()
+	{
 //		int		i;
 //		msurface_t	*s;
 //		image_t		*image;
@@ -713,9 +646,9 @@ public abstract class Surf extends Draw {
 //		}
 //
 //		GL_TexEnv( GL_REPLACE );
-//	}
-//
-//
+	}
+
+
 //	static void GL_RenderLightmappedPoly( msurface_t *surf )
 //	{
 //		int		i, nv = surf->polys->numverts;
@@ -887,14 +820,14 @@ public abstract class Surf extends Draw {
 ////	  ==========
 //		}
 //	}
-//
-//	/*
-//	=================
-//	R_DrawInlineBModel
-//	=================
-//	*/
-//	void R_DrawInlineBModel (void)
-//	{
+
+	/*
+	=================
+	R_DrawInlineBModel
+	=================
+	*/
+	void R_DrawInlineBModel()
+	{
 //		int			i, k;
 //		cplane_t	*pplane;
 //		float		dot;
@@ -963,8 +896,8 @@ public abstract class Surf extends Draw {
 //			qglColor4f (1,1,1,1);
 //			GL_TexEnv( GL_REPLACE );
 //		}
-//	}
-//
+	}
+
 	/*
 	=================
 	R_DrawBrushModel
@@ -1044,13 +977,14 @@ public abstract class Surf extends Draw {
 	=============================================================
 	*/
 
-//	/*
-//	================
-//	R_RecursiveWorldNode
-//	================
-//	*/
+	/*
+	================
+	R_RecursiveWorldNode
+	================
+	*/
 //	void R_RecursiveWorldNode (mnode_t *node)
-//	{
+	void R_RecursiveWorldNode (mnode_t node)
+	{
 //		int			c, side, sidebit;
 //		cplane_t	*plane;
 //		msurface_t	*surf, **mark;
@@ -1164,46 +1098,10 @@ public abstract class Surf extends Draw {
 //			}
 //		}
 //
-//		// recurse down the back side
+		// recurse down the back side
 //		R_RecursiveWorldNode (node->children[!side]);
-//	/*
-//		for ( ; c ; c--, surf++)
-//		{
-//			if (surf->visframe != r_framecount)
-//				continue;
-//
-//			if ( (surf->flags & SURF_PLANEBACK) != sidebit )
-//				continue;		// wrong side
-//
-//			if (surf->texinfo->flags & SURF_SKY)
-//			{	// just adds to visible sky bounds
-//				R_AddSkySurface (surf);
-//			}
-//			else if (surf->texinfo->flags & (SURF_TRANS33|SURF_TRANS66))
-//			{	// add to the translucent chain
-////				surf->texturechain = alpha_surfaces;
-////				alpha_surfaces = surf;
-//			}
-//			else
-//			{
-//				if ( qglMTexCoord2fSGIS && !( surf->flags & SURF_DRAWTURB ) )
-//				{
-//					GL_RenderLightmappedPoly( surf );
-//				}
-//				else
-//				{
-//					// the polygon is visible, so add it to the texture
-//					// sorted chain
-//					// FIXME: this is a hack for animation
-//					image = R_TextureAnimation (surf->texinfo);
-//					surf->texturechain = image->texturechain;
-//					image->texturechain = surf;
-//				}
-//			}
-//		}
-//	*/
-//	}
-//
+	}
+
 
 	/*
 	=============
@@ -1342,14 +1240,14 @@ public abstract class Surf extends Draw {
 
 
 
-//	/*
-//	=============================================================================
-//
-//	  LIGHTMAP ALLOCATION
-//
-//	=============================================================================
-//	*/
-//
+	/*
+	=============================================================================
+
+	  LIGHTMAP ALLOCATION
+
+	=============================================================================
+	*/
+
 //	static void LM_InitBlock( void )
 //	{
 //		memset( gl_lms.allocated, 0, sizeof( gl_lms.allocated ) );
@@ -1440,14 +1338,14 @@ public abstract class Surf extends Draw {
 //
 //		return true;
 //	}
-//
-//	/*
-//	================
-//	GL_BuildPolygonFromSurface
-//	================
-//	*/
-//	void GL_BuildPolygonFromSurface(msurface_t *fa)
-//	{
+
+	/*
+	================
+	GL_BuildPolygonFromSurface
+	================
+	*/
+	void GL_BuildPolygonFromSurface(msurface_t fa)
+	{
 //		int			i, lindex, lnumverts;
 //		medge_t		*pedges, *r_pedge;
 //		int			vertpage;
@@ -1517,13 +1415,13 @@ public abstract class Surf extends Draw {
 //
 //		poly->numverts = lnumverts;
 //
-//	}
-//
-//	/*
-//	========================
-//	GL_CreateSurfaceLightmap
-//	========================
-//	*/
+	}
+
+	/*
+	========================
+	GL_CreateSurfaceLightmap
+	========================
+	*/
 //	void GL_CreateSurfaceLightmap (msurface_t *surf)
 //	{
 //		int		smax, tmax;

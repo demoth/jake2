@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mleaf_t.java,v 1.3 2003-12-30 01:02:41 cwei Exp $
+// $Id: mleaf_t.java,v 1.4 2004-01-14 21:30:00 cwei Exp $
 
 package jake2.render;
 
-public class mleaf_t {
+public class mleaf_t extends mnode_t {
 
 	//	common with node
 	public int contents; // wil be a negative contents number
