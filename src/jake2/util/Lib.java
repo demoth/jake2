@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.9 2004-11-07 19:30:12 cawe Exp $
+// $Id: Lib.java,v 1.10 2004-12-06 13:47:02 hzi Exp $
 
 package jake2.util;
 
@@ -270,7 +270,7 @@ public class Lib {
 	
 	public static String CtoJava(byte[] old, int offset, int maxLenght) {
 		int i;
-	    for (i = offset; old[i] != 0 && i < maxLenght; i++);
+	    for (i = offset; old[i] != 0 && (i - offset) < maxLenght; i++);
 		return new String(old, offset, i - offset);
 	}
 	
