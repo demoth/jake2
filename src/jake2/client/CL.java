@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.13 2004-10-11 14:04:16 hzi Exp $
+ * $Id: CL.java,v 1.14 2004-10-20 20:39:10 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -813,8 +813,8 @@ public final class CL {
         Cmd.TokenizeString(s.toCharArray(), false);
 
         c = Cmd.Argv(0);
-
-        Com.Printf(NET.AdrToString(Globals.net_from) + ": " + c + "\n");
+        
+        Com.Println(Globals.net_from.toString() + ": " + c);
 
         // server connection
         if (c.equals("client_connect")) {
