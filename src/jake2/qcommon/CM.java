@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.25 2004-02-12 16:59:59 rst Exp $
+// $Id: CM.java,v 1.26 2004-02-13 11:09:51 rst Exp $
 
 package jake2.qcommon;
 
@@ -229,7 +229,6 @@ public class CM extends Game
 		}
 
 		// free old stuff
-		numplanes= 0;
 		numnodes= 0;
 		numleafs= 0;
 		numcmodels= 0;
@@ -382,7 +381,7 @@ public class CM extends Game
 
 		}
 	}
-	static boolean debugloadmap= true;
+	static boolean debugloadmap= false;
 	/*
 	=================
 	CMod_LoadSurfaces
@@ -869,7 +868,7 @@ public class CM extends Game
 
 		if (debugloadmap)
 		{
-			Com.DPrintf("areas(numportals, firstportal)");
+			Com.DPrintf("areas(numportals, firstportal)\n");
 		}
 
 		for (i= 0; i < count; i++)

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.18 2004-02-11 19:56:28 cwei Exp $
+// $Id: SV_MAIN.java,v 1.19 2004-02-13 11:09:51 rst Exp $
 
 package jake2.server;
 
@@ -738,7 +738,7 @@ public class SV_MAIN extends SV_GAME {
 		SV_ReadPackets();
 
 		// move autonomous things around if enough time has passed
-		//TODO:	dont need yet
+		//TODO: dont need yet
 //		if (0 == sv_timedemo.value && svs.realtime < sv.time) {
 //			// never let the time get too far off
 //			if (sv.time - svs.realtime > 100) {
@@ -751,11 +751,11 @@ public class SV_MAIN extends SV_GAME {
 //		}
 
 		// update ping based on the last known frame from all clients
-		//TODO:	dont need yet
+		//TODO: dont need yet
 		//SV_CalcPings();
 
 		// give the clients some timeslices
-		//TODO:	dont need yet
+		//TODO: dont need yet
 		//SV_GiveMsec();
 
 		// let everything in the world think and move
@@ -765,11 +765,11 @@ public class SV_MAIN extends SV_GAME {
 		SV_SEND.SV_SendClientMessages();
 
 		// save the entire world state if recording a serverdemo
-		//TODO:	dont need yet
+		//TODO: dont need yet
 		//SV_WORLD.SV_RecordDemoMessage();
 
 		// send a heartbeat to the master if needed
-		//TODO:	dont need yet
+		//TODO: dont need yet
 		//Master_Heartbeat();
 
 		// clear teleport flags, etc for next frame

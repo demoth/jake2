@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.12 2004-02-12 15:07:30 rst Exp $
+// $Id: GameUtil.java,v 1.13 2004-02-13 11:09:51 rst Exp $
 
 package jake2.game;
 
@@ -956,7 +956,7 @@ public class GameUtil extends GameBase {
 		if (targ.health < -999)
 			targ.health = -999;
 
-		Com.Println("Killed:" + targ.s.number);
+		Com.Println("Killed:" + targ.classname);
 		targ.enemy = attacker;
 
 		if ((targ.svflags & SVF_MONSTER) != 0 && (targ.deadflag != DEAD_DEAD)) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.9 2004-02-06 18:38:20 rst Exp $
+// $Id: client_persistant_t.java,v 1.10 2004-02-13 11:09:51 rst Exp $
 
 package jake2.game;
 
@@ -30,7 +30,17 @@ import jake2.*;
 import jake2.*;
 import jake2.util.Lib;
 
-public class client_persistant_t {
+public class client_persistant_t implements Cloneable {
+
+	public client_persistant_t getClone() {
+		try {
+			return (client_persistant_t) this.clone();
+		}
+		catch (CloneNotSupportedException e) {
+			return null;
+		}
+	}
+
 	//	client data that stays across multiple level loads
 	String userinfo = "";
 	String netname = "";
@@ -55,9 +65,9 @@ public class client_persistant_t {
 	int max_cells;
 	int max_slugs;
 
-	//reference
+	//pointer
 	gitem_t weapon;
-	//reference
+	//pointer
 	gitem_t lastweapon;
 
 	int power_cubes; // used for tracking the cubes in coop games
@@ -67,10 +77,6 @@ public class client_persistant_t {
 	int helpchanged;
 
 	boolean spectator; // client is a spectator
-
-	//TODO: implement clear when map can be loaded
-	public void clear() {
-	}
 
 	public void load(ByteBuffer bb) throws IOException {
 		// client persistant_t
@@ -96,7 +102,7 @@ public class client_persistant_t {
 		max_grenades = bb.getInt();
 		max_cells = bb.getInt();
 		max_slugs = bb.getInt();
-		
+
 		weapon = GameTarget.itemlist[bb.getInt()];
 		lastweapon = GameTarget.itemlist[bb.getInt()];
 		power_cubes = bb.getInt();

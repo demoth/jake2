@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.9 2004-02-12 14:25:38 cwei Exp $
+// $Id: PlayerClient.java,v 1.10 2004-02-13 11:09:51 rst Exp $
 
 package jake2.game;
 
@@ -395,7 +395,7 @@ public class PlayerClient extends PlayerHud {
 		gitem_t item;
 
 		//memset(& client.pers, 0, sizeof(client.pers));
-		client.pers.clear();
+		client.pers = new client_persistant_t();
 
 		item = FindItem("Blaster");
 		client.pers.selected_item = ITEM_INDEX(item);
@@ -418,9 +418,9 @@ public class PlayerClient extends PlayerHud {
 
 	public static void InitClientResp(gclient_t client) {
 		//memset(& client.resp, 0, sizeof(client.resp));
-		client.resp.clear();
+		client.resp.clear(); //  ok.
 		client.resp.enterframe = level.framenum;
-		client.resp.coop_respawn = client.pers;
+		client.resp.coop_respawn = client.pers.getClone();
 	}
 
 	/*

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.20 2004-02-12 15:07:30 rst Exp $
+// $Id: Lib.java,v 1.21 2004-02-13 11:09:51 rst Exp $
 
 package jake2.util;
 
@@ -437,5 +437,14 @@ public class Lib {
 
 	public static int getInt(byte b[]) {
 		return (b[0] & 0xff) | ((b[1] & 0xff) << 8) | ((b[2] & 0xff) << 16) | ((b[3] & 0xff) << 24);
+	}
+	
+	public static void sleep(int sec)
+	{
+		try {
+			Thread.sleep(sec*1000);
+		}
+		catch (InterruptedException e) {
+		}
 	}
 }

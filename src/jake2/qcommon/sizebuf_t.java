@@ -2,7 +2,7 @@
  * sizebuf_t.java
  * Copyright (C) 2003
  * 
- * $Id: sizebuf_t.java,v 1.7 2004-02-05 21:32:40 rst Exp $
+ * $Id: sizebuf_t.java,v 1.8 2004-02-13 11:09:51 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,8 +40,8 @@ public final class sizebuf_t {
 	
 	public void clear()
 	{
-		// TODO: for debugging.
-		Arrays.fill(data,(byte)0);
+		if (data!=null)		
+			Arrays.fill(data,(byte)0);
 		cursize = 0;
 		overflowed = false;
 	}
