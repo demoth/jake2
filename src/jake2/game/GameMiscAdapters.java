@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 26.02.2004 by RST.
-// $Id: GameMiscAdapters.java,v 1.3 2004-03-03 22:32:31 rst Exp $
+// $Id: GameMiscAdapters.java,v 1.4 2004-03-16 12:52:12 cwei Exp $
 
 package jake2.game;
 
@@ -817,7 +817,7 @@ public class GameMiscAdapters
 				if (e.count == 0)
 					continue;
 				n = e.count - 1;
-				if (n > l)
+				if (n >= l)
 				{
 					e.s.frame = 12;
 					continue;
