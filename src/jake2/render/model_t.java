@@ -19,17 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.3 2004-07-09 06:50:47 hzi Exp $
+// $Id: model_t.java,v 1.4 2005-01-22 22:32:10 cawe Exp $
 
 package jake2.render;
 
-import java.util.Vector;
-
-import jake2.qcommon.*;
+import jake2.Defines;
+import jake2.game.cplane_t;
+import jake2.qcommon.qfiles;
 import jake2.util.Lib;
 import jake2.util.Math3D;
-import jake2.*;
-import jake2.game.*;
+
+import java.util.Arrays;
 
 public class model_t implements Cloneable {
 	
@@ -171,13 +171,9 @@ public class model_t implements Cloneable {
 
 		// for alias models and skins
 		// was image_t *skins[]; (array of pointers)
-		for (int i = 0; i < skins.length; i++)
-		{
-			skins[i] = null;
-		}
+		Arrays.fill(skins, null);
 
 		extradatasize = 0;
-
 		// or whatever
 		extradata = null;
 	}
