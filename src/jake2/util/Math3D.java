@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.22 2004-03-18 12:14:32 hoz Exp $
+// $Id: Math3D.java,v 1.23 2004-04-23 08:11:06 hoz Exp $
 
 package jake2.util;
 
@@ -459,13 +459,14 @@ public class Math3D extends Lib {
 		float angle;
 		float sr, sp, sy, cr, cp, cy;
 
-		angle = (float) (angles[Defines.YAW] * (2.0f * piratio));
+		cr = 2.0f * piratio;
+		angle = (float) (angles[Defines.YAW] * (cr));
 		sy = (float) Math.sin(angle);
 		cy = (float) Math.cos(angle);
-		angle = (float) (angles[Defines.PITCH] * (2.0f * piratio));
+		angle = (float) (angles[Defines.PITCH] * (cr));
 		sp = (float) Math.sin(angle);
 		cp = (float) Math.cos(angle);
-		angle = (float) (angles[Defines.ROLL] * (2.0f * piratio));
+		angle = (float) (angles[Defines.ROLL] * (cr));
 		sr = (float) Math.sin(angle);
 		cr = (float) Math.cos(angle);
 
@@ -475,9 +476,9 @@ public class Math3D extends Lib {
 			forward[2] = -sp;
 		}
 		if (right != null) {
-			right[0] = (-1 * sr * sp * cy + -1 * cr * -sy);
-			right[1] = (-1 * sr * sp * sy + -1 * cr * cy);
-			right[2] = -1 * sr * cp;
+			right[0] = (-sr * sp * cy + cr * sy);
+			right[1] = (-sr * sp * sy + -cr * cy);
+			right[2] = -sr * cp;
 		}
 		if (up != null) {
 			up[0] = (cr * sp * cy + -sr * -sy);
