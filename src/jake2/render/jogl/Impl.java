@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.18 2004-03-11 13:28:27 cwei Exp $
+ * $Id: Impl.java,v 1.19 2004-03-14 12:03:26 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -137,10 +137,10 @@ public class Impl extends Misc implements GLEventListener {
 		canvas.addMouseListener(KBD.listener);
 		canvas.addMouseMotionListener(KBD.listener);
 		window.addComponentListener(KBD.listener);
-
+		canvas.requestFocus();
+		
 		window.pack();
 		window.show();
-		canvas.requestFocus();
 
 		this.canvas = canvas;
 
