@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.1 2004-07-07 19:59:51 hzi Exp $
+ * $Id: KBD.java,v 1.2 2004-10-28 18:25:53 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,6 +195,7 @@ public final class KBD {
 //	00700                 case XK_KP_Begin: key = K_KP_5; break;
 //	00701
 			case KeyEvent.VK_INSERT: key = Key.K_INS; break;
+			case KeyEvent.VK_CIRCUMFLEX: key = '~'; break;
  
 			default:
 				key = ev.getKeyChar();
