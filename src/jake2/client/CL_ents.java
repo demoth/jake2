@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.10 2004-02-14 20:53:19 rst Exp $
+ * $Id: CL_ents.java,v 1.11 2004-02-15 18:01:28 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -384,7 +384,9 @@ public class CL_ents extends CL_inv {
 		}
 
 		if ((flags & PS_M_TIME) != 0)
+		{
 			state.pmove.pm_time = (byte) MSG.ReadByte(net_message);
+		}
 
 		if ((flags & PS_M_FLAGS) != 0)
 			state.pmove.pm_flags = (byte) MSG.ReadByte(net_message);
@@ -551,6 +553,7 @@ public class CL_ents extends CL_inv {
 		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
 		if (cmd != svc_packetentities)
 			Com.Error(ERR_DROP, "CL_ParseFrame: not packetentities");
+			
 		ParsePacketEntities(old, cl.frame);
 
 		// save the frame off in the backup array for later delta comparisons
@@ -561,9 +564,11 @@ public class CL_ents extends CL_inv {
 			if (cls.state != ca_active) {
 				cls.state = ca_active;
 				cl.force_refdef = true;
+				
 				cl.predicted_origin[0] = cl.frame.playerstate.pmove.origin[0] * 0.125f;
 				cl.predicted_origin[1] = cl.frame.playerstate.pmove.origin[1] * 0.125f;
 				cl.predicted_origin[2] = cl.frame.playerstate.pmove.origin[2] * 0.125f;
+
 				VectorCopy(cl.frame.playerstate.viewangles, cl.predicted_angles);
 				if (cls.disable_servercount != cl.servercount && cl.refresh_prepped)
 					SCR.EndLoadingPlaque(); // get rid of loading plaque
@@ -1243,7 +1248,7 @@ public class CL_ents extends CL_inv {
 			cl.lerpfrac = 1.0f;
 
 		 
-		/*
+		/* is ok..
 				CL_AddPacketEntities (cl.frame);
 				CL_AddTEnts ();
 				CL_AddParticles ();

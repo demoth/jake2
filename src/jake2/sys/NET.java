@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.20 2004-02-15 11:27:49 rst Exp $
+ * $Id: NET.java,v 1.21 2004-02-15 18:01:28 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -699,6 +699,13 @@ public final class NET extends Defines {
 		if (ip_sockets[NS_SERVER]==null || (Globals.dedicated!=null && Globals.dedicated.value == 0))
 			return; // we're not a server, just run full speed
 		
+		try {
+			Thread.sleep(msec);
+		}
+		catch (InterruptedException e) {
+			// TODO: do quake2 error handling!
+			e.printStackTrace();
+		}
 		//ip_sockets[NS_SERVER].
 		
 		

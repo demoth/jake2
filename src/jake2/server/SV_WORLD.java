@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.10 2004-02-14 20:27:51 rst Exp $
+// $Id: SV_WORLD.java,v 1.11 2004-02-15 18:01:27 rst Exp $
 
 package jake2.server;
 
@@ -651,5 +651,4 @@ public class SV_WORLD extends SV_CCMDS {
 
 		return clip.trace;
 	}
-
 }

@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.9 2004-02-14 13:24:02 rst Exp $
+ * $Id: CL_pred.java,v 1.10 2004-02-15 18:01:27 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -320,9 +320,10 @@ public class CL_pred extends CL_parse
 
 		PMove.pm_airaccelerate = atof(cl.configstrings[CS_AIRACCEL]);
 
-		pm.s = cl.frame.playerstate.pmove;
+		// bugfix (rst) yeah !!!!!!!!  found the B E W E G U N G S P R O B L E M.  
+		pm.s.set(cl.frame.playerstate.pmove);
 
-		//		SCR_DebugGraph (current - ack - 1, 0);
+		// SCR_DebugGraph (current - ack - 1, 0);
 
 		frame = 0;
 

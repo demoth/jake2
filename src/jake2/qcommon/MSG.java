@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.26 2004-02-15 13:19:11 hoz Exp $
+// $Id: MSG.java,v 1.27 2004-02-15 18:01:28 rst Exp $
 
 package jake2.qcommon;
 
@@ -169,12 +169,12 @@ public class MSG extends GameBase {
 			WriteShort(buf, cmd.upmove);
 
 		if ((bits & CM_BUTTONS) != 0)
-			WriteByte(buf, cmd.buttons & 0xFF);
+			WriteByte(buf, cmd.buttons);
 		if ((bits & CM_IMPULSE) != 0)
-			WriteByte(buf, cmd.impulse & 0xFF);
+			WriteByte(buf, cmd.impulse);
 
-		WriteByte(buf, cmd.msec & 0xFF);
-		WriteByte(buf, cmd.lightlevel & 0xFF);
+		WriteByte(buf, cmd.msec);
+		WriteByte(buf, cmd.lightlevel);
 	}
 
 	//should be ok.

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.14 2004-02-15 11:27:49 rst Exp $
+// $Id: PlayerClient.java,v 1.15 2004-02-15 18:01:28 rst Exp $
 
 package jake2.game;
 
@@ -1379,7 +1379,7 @@ public class PlayerClient extends PlayerHud {
 				client.ps.pmove.pm_type = PM_NORMAL;
 
 			client.ps.pmove.gravity = (short) sv_gravity.value;
-			pm.s = client.ps.pmove;
+			pm.s.set(client.ps.pmove);
 
 			for (i = 0; i < 3; i++) {
 				pm.s.origin[i] = (short) (ent.s.origin[i] * 8);
@@ -1391,9 +1391,8 @@ public class PlayerClient extends PlayerHud {
 				//		gi.dprintf ("pmove changed!\n");
 			}
 
-			// TODO bugfix cwei
 			// this should be a copy
-			pm.cmd = new usercmd_t(ucmd);
+			pm.cmd.set(ucmd);
 
 			pm.trace = PM_trace; // adds default parms
 			pm.pointcontents = gi.pointcontents;
@@ -1402,8 +1401,8 @@ public class PlayerClient extends PlayerHud {
 			gi.Pmove(pm);
 
 			// save results of pmove
-			client.ps.pmove = pm.s;
-			client.old_pmove = pm.s;
+			client.ps.pmove.set(pm.s);
+			client.old_pmove.set(pm.s);
 
 			for (i = 0; i < 3; i++) {
 				ent.s.origin[i] = pm.s.origin[i] * 0.125f;

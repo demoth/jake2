@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.19 2004-02-15 11:33:43 hoz Exp $
+ * $Id: CL_input.java,v 1.20 2004-02-15 18:01:27 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -560,5 +560,4 @@ public class CL_input extends CL_ents {
 		//
 		Netchan.Transmit(cls.netchan, buf.cursize, buf.data);
 	}
-
 }

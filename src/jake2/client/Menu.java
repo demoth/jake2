@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.19 2004-02-08 17:38:25 cwei Exp $
+ * $Id: Menu.java,v 1.20 2004-02-15 18:01:27 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -695,7 +695,7 @@ public final class Menu extends Key {
 	int keys_cursor;
 	static boolean bind_grab;
 
-	static menuframework_s s_keys_menu;
+	static menuframework_s s_keys_menu = new menuframework_s();
 	static menuaction_s s_keys_attack_action;
 	static menuaction_s s_keys_change_weapon_action;
 	static menuaction_s s_keys_walk_forward_action;

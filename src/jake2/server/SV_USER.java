@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.8 2004-02-13 21:04:38 rst Exp $
+// $Id: SV_USER.java,v 1.9 2004-02-15 18:01:27 rst Exp $
 
 package jake2.server;
 
@@ -579,6 +579,7 @@ public class SV_USER extends SV_SEND {
 					checksumIndex = net_message.readcount;
 					checksum = MSG.ReadByte(net_message);
 					lastframe = MSG.ReadLong(net_message);
+		
 					if (lastframe != cl.lastframe) {
 						cl.lastframe = lastframe;
 						if (cl.lastframe > 0) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.20 2004-02-15 11:27:49 rst Exp $
+// $Id: SV_MAIN.java,v 1.21 2004-02-15 18:01:27 rst Exp $
 
 package jake2.server;
 
@@ -702,7 +702,7 @@ public class SV_MAIN extends SV_GAME {
 
 			// never get more than one tic behind
 			if (sv.time < svs.realtime) {
-				if (sv_showclamp.value != 0)
+				//if (sv_showclamp.value != 0)
 					Com.Printf("sv highclamp\n");
 				svs.realtime = sv.time;
 			}
@@ -736,17 +736,20 @@ public class SV_MAIN extends SV_GAME {
 
 		// get packets from clients
 		SV_ReadPackets();
+		
+		//if (Game.g_edicts[1] !=null)
+		//	Com.p("player at:" + Lib.vtofsbeaty(Game.g_edicts[1].s.origin  ));
 
 		// move autonomous things around if enough time has passed
-		if (0 == sv_timedemo.value && svs.realtime < sv.time) {
+		if (0== sv_timedemo.value && svs.realtime < sv.time) {
 			// never let the time get too far off
 			if (sv.time - svs.realtime > 100) {
-				if (sv_showclamp.value != 0)
+				//if (sv_showclamp.value != 0)
 					Com.Printf("sv lowclamp\n");
 				svs.realtime = sv.time - 100;
 			}
 			//TODO: dont need yet
-			//NET.NET_Sleep(sv.time - svs.realtime);
+			NET.NET_Sleep(sv.time - svs.realtime);
 			return;
 		}
 

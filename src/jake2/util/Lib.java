@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.24 2004-02-15 11:27:49 rst Exp $
+// $Id: Lib.java,v 1.25 2004-02-15 18:01:28 rst Exp $
 
 package jake2.util;
 
@@ -309,6 +309,8 @@ public class Lib {
 	static byte nullfiller[] = new byte[8192];
 
 	public static void fwriteString(String s, int len, RandomAccessFile f) throws IOException {
+		if (s ==  null) 
+			return;
 		int diff = len - s.length();
 		if (diff > 0) {
 			f.write(s.getBytes());
