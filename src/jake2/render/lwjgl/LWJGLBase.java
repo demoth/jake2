@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LWJGLBase.java,v 1.1 2004-12-16 19:53:41 cawe Exp $
+ * $Id: LWJGLBase.java,v 1.2 2004-12-20 21:51:18 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,42 +37,25 @@ import java.util.LinkedList;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.GLImpl;
 
+/**
+ * LWJGLBase
+ * 
+ * @author dsanders/cwei
+ */
 public abstract class LWJGLBase {
 	// IMPORTED FUNCTIONS
 	protected DisplayMode oldDisplayMode; 
 
-	protected GLImpl gl=new GLImpl();
+	protected GLImpl gl = new GLImpl();
 	
 	// window position on the screen
 	int window_xpos, window_ypos;
 	protected viddef_t vid = new viddef_t();
 
-	// handles the post initialization with JoglRenderer
-	protected boolean post_init = false;
-	protected boolean contextInUse = false;
+	// handles the post initialization with LWJGLRenderer
 	protected abstract boolean R_Init2();
-	
-	protected final xcommand_t INIT_CALLBACK = new xcommand_t() {
-		public void execute() {
-			// only used for the first run (initialization)
-			// clear the screen
-			gl.glClearColor(0, 0, 0, 0);
-			gl.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-
-			//
-			// check the post init process
-			//
-			if (!post_init) {
-				VID.Printf(Defines.PRINT_ALL, "Missing multi-texturing for FastJOGL renderer\n");
-			}
-
-			GLimp_EndFrame();
-		}
-	};
-	protected xcommand_t callback = INIT_CALLBACK;
 	
 	protected cvar_t vid_fullscreen;
 
@@ -282,28 +265,21 @@ public abstract class LWJGLBase {
 		
 		// let the sound and input subsystems know about the new window
 		VID.NewWindow(vid.width, vid.height);
-
-		post_init = R_Init2();
-
-		updateScreen();
-		
 		return rserr_ok;
 	}
 
 	protected void GLimp_Shutdown() {
 		if (oldDisplayMode != null && Display.isFullscreen()) {
 			try {
-				Display.setFullscreen(false);
 				Display.setDisplayMode(oldDisplayMode);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		
-		if (Display.isCreated()) Display.destroy();
-
-		post_init = false;
-		callback = INIT_CALLBACK;
+		while (Display.isCreated()) {
+			Display.destroy();
+		} 
 	}
 
 	/**
@@ -318,10 +294,10 @@ public abstract class LWJGLBase {
 
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
-		// swap buffer
-//		TODO this and a new JOGL-release solves the flickering bug (Loading)
-//		canvas.swapBuffers();
+		// swap buffers
+		Display.update();
 	}
+
 	protected void GLimp_BeginFrame(float camera_separation) {
 		// do nothing
 	}
@@ -331,35 +307,18 @@ public abstract class LWJGLBase {
 	}
 
 	protected void GLimp_EnableLogging(boolean enable) {
-		// doesn't need jogl logging
 		// do nothing
 	}
 
 	protected void GLimp_LogNewFrame() {
-		// doesn't need jogl logging
 		// do nothing
 	}
 
-	/* 
-	 * @see jake2.client.refexport_t#updateScreen()
+	/**
+	 * this is a hack for jogl renderers.
+	 * @param callback
 	 */
-	public void updateScreen() {
-		this.callback = INIT_CALLBACK;
-
-		contextInUse = true;
+	public final void updateScreen(xcommand_t callback) {
 		callback.execute();
-		contextInUse = false;
-		
-		Display.update();
-	}
-	
-	public void updateScreen(xcommand_t callback) {
-		this.callback = callback;
-
-		contextInUse = true;
-		callback.execute();
-		contextInUse = false;
-		
-		Display.update();
 	}	
 }
