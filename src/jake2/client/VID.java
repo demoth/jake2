@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.13 2005-01-12 00:40:14 cawe Exp $
+ * $Id: VID.java,v 1.14 2005-01-12 08:36:21 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -435,62 +435,11 @@ public class VID extends Globals {
 		Cvar.SetValue( "gl_mode", s_mode_list.curvalue );
 		Cvar.SetValue( "_windowed_mouse", s_windowed_mouse.curvalue);
 
-		switch ( s_ref_list.curvalue )
-		{
-//		case REF_SOFT:
-//			Cvar_Set( "vid_ref", "soft" );
-//			break;
-//		case REF_SOFTX11:
-//			Cvar_Set( "vid_ref", "softx" );
-//			break;
-//
-//		case REF_MESA3D :
-//			Cvar_Set( "vid_ref", "gl" );
-//			Cvar_Set( "gl_driver", "libMesaGL.so.2" );
-//			if (gl_driver->modified)
-//				vid_ref->modified = true;
-//			break;
-//
-//		case REF_OPENGLX :
-//			Cvar_Set( "vid_ref", "glx" );
-//			Cvar_Set( "gl_driver", "libGL.so" );
-//			if (gl_driver->modified)
-//				vid_ref->modified = true;
-//			break;
-//
-//		case REF_MESA3DGLX :
-//			Cvar_Set( "vid_ref", "glx" );
-//			Cvar_Set( "gl_driver", "libMesaGL.so.2" );
-//			if (gl_driver->modified)
-//				vid_ref->modified = true;
-//			break;
-//
-//		case REF_3DFXGL :
-//			Cvar_Set( "vid_ref", "gl" );
-//			Cvar_Set( "gl_driver", "lib3dfxgl.so" );
-//			if (gl_driver->modified)
-//				vid_ref->modified = true;
-//			break;
-		case REF_OPENGL_JOGL :
-			Cvar.Set( "vid_ref", "jogl" );
-			Cvar.Set( "gl_driver", "jogl" );
-			if (gl_driver.modified)
-				vid_ref.modified = true;
-			break;
-		case REF_OPENGL_FASTJOGL :
-				Cvar.Set( "vid_ref", "fastjogl" );
-				Cvar.Set( "gl_driver", "fastjogl" );
-				if (gl_driver.modified)
-					vid_ref.modified = true;
-				break;
-		case REF_OPENGL_LWJGL :
-				Cvar.Set( "vid_ref", "lwjgl" );
-				Cvar.Set( "gl_driver", "lwjgl" );
-				if (gl_driver.modified)
-					vid_ref.modified = true;
-				break;
-		}
-
+		Cvar.Set( "vid_ref", drivers[s_ref_list.curvalue] );
+		Cvar.Set( "gl_driver", drivers[s_ref_list.curvalue] );
+		if (gl_driver.modified)
+			vid_ref.modified = true;
+		
 		Menu.ForceMenuOff();
 	}
 
@@ -512,18 +461,9 @@ public class VID extends Globals {
 	static String[] fs_resolutions;
 	static int mode_x;
 	
-	static final String[] refs =
-	{
-		// "[software       ]",
-		// "[software X11   ]",
-		// "[Mesa 3-D 3DFX  ]",
-		// "[3DFXGL Miniport]",
-		// "[OpenGL glX     ]",
-		// "[Mesa 3-D glX   ]",
-		"[OpenGL jogl    ]",
-		"[OpenGL fastjogl]",
-		"[OpenGL lwjgl   ]",
-	};
+	static String[] refs;
+	static String[] drivers;
+	
 	static final String[] yesno_names =
 	{
 		"no",
@@ -555,10 +495,25 @@ public class VID extends Globals {
 		}
 	}
 	
+	private static void initRefs() {
+		drivers = Renderer.getDriverNames();
+		refs = new String[drivers.length];
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < drivers.length; i++) {
+			sb.setLength(0);
+			sb.append("[OpenGL ").append(drivers[i]);
+			while (sb.length() < 16) sb.append(" ");
+			sb.append("]");
+			refs[i] = sb.toString();
+		}
+	}
+
 	/*
 	** VID_MenuInit
 	*/
 	public static void MenuInit() {
+		
+		initRefs();
 		
 		if ( gl_driver == null )
 			gl_driver = Cvar.Get( "gl_driver", Renderer.getPreferedName(), 0 );
@@ -597,45 +552,12 @@ public class VID extends Globals {
 
 		s_screensize_slider.curvalue = (int)(SCR.scr_viewsize.value/10);
 
-//		if ( strcmp( vid_ref->string, "soft" ) == 0)
-//		{
-//			s_current_menu_index = SOFTWARE_MENU;
-//			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_SOFT;
-//		}
-		if ( vid_ref.string.equalsIgnoreCase("jogl"))
-		{
-			s_ref_list.curvalue = REF_OPENGL_JOGL;
+		for (int i = 0; i < drivers.length; i++) {
+			if (vid_ref.string.equals(drivers[i])) {
+				s_ref_list.curvalue = i;
+			}
 		}
-		else if ( vid_ref.string.equalsIgnoreCase("fastjogl"))
-		{
-			s_ref_list.curvalue = REF_OPENGL_FASTJOGL;
-		}
-		else if ( vid_ref.string.equalsIgnoreCase("lwjgl"))
-		{
-			s_ref_list.curvalue = REF_OPENGL_LWJGL;
-		}
-//		else if (strcmp( vid_ref->string, "softx" ) == 0 ) 
-//		{
-//			s_current_menu_index = SOFTWARE_MENU;
-//			s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_SOFTX11;
-//		}
-//		else if ( strcmp( vid_ref->string, "gl" ) == 0 )
-//		{
-//			s_current_menu_index = OPENGL_MENU;
-//			if ( strcmp( gl_driver->string, "lib3dfxgl.so" ) == 0 )
-//				s_ref_list[s_current_menu_index].curvalue = REF_3DFXGL;
-//			else
-//				s_ref_list[s_current_menu_index].curvalue = REF_MESA3D;
-//		}
-//		else if ( strcmp( vid_ref->string, "glx" ) == 0 )
-//		{
-//			s_current_menu_index = OPENGL_MENU;
-//			if ( strcmp( gl_driver->string, "libMesaGL.so.2" ) == 0 )
-//				s_ref_list[s_current_menu_index].curvalue = REF_MESA3DGLX;
-//			else
-//				s_ref_list[s_current_menu_index].curvalue = REF_OPENGLX;
-//		}
-//
+
 		s_opengl_menu.x = (int)(viddef.width * 0.50f);
 		s_opengl_menu.nitems = 0;
 		

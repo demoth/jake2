@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.14 2005-01-11 14:24:59 hzi Exp $
+ * $Id: Menu.java,v 1.15 2005-01-12 08:36:21 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1430,16 +1430,14 @@ public final class Menu extends Key {
         }
     }
 
-    static String cd_music_items[] = { "disabled", "enabled", null };
-
-    static String soundstate_items[] = { "on", "off", null };
+    static String cd_music_items[] = { "disabled", "enabled" };
 
     static String compatibility_items[] = { "max compatibility",
-            "max performance", null };
+            "max performance" };
 
-    static String yesno_names[] = { "no", "yes", null };
+    static String yesno_names[] = { "no", "yes" };
 
-    static String crosshair_names[] = { "none", "cross", "dot", "angle", null };
+    static String crosshair_names[] = { "none", "cross", "dot", "angle" };
 
     static void Options_MenuInit() {
 
@@ -2021,7 +2019,7 @@ public final class Menu extends Key {
     }
 
     static String difficulty_names[] = { "easy", "medium",
-            "fuckin shitty hard", null };
+            "fuckin shitty hard" };
 
     static void Game_MenuInit() {
 
@@ -2696,11 +2694,9 @@ public final class Menu extends Key {
         ForceMenuOff();
     }
 
-    static String dm_coop_names[] = { "deathmatch", "cooperative", null };
+    static String dm_coop_names[] = { "deathmatch", "cooperative" };
 
-    static String dm_coop_names_rogue[] = { "deathmatch", "cooperative", "tag",
-    //			"deathball",
-            null };
+    static String dm_coop_names_rogue[] = { "deathmatch", "cooperative", "tag" };
 
     static void StartServer_MenuInit() {
 
@@ -2743,7 +2739,7 @@ public final class Menu extends Key {
         if (nummaps == 0)
             Com.Error(ERR_DROP, "no maps in maps.lst\n");
 
-        mapnames = new String[nummaps + 1];
+        mapnames = new String[nummaps];
 
         for (i = 0; i < nummaps; i++) {
             String shortname, longname, scratch;
@@ -2755,7 +2751,6 @@ public final class Menu extends Key {
             scratch = longname + "\n" + shortname;
             mapnames[i] = scratch;
         }
-        mapnames[nummaps] = null;
 
         if (fp != null) {
             Lib.fclose(fp);
@@ -3094,7 +3089,7 @@ public final class Menu extends Key {
     }
 
     //static String yes_no_names[] = { "no", "yes", 0 };
-    static String teamplay_names[] = { "disabled", "by skin", "by model", null };
+    static String teamplay_names[] = { "disabled", "by skin", "by model" };
 
     static void DMOptions_MenuInit() {
 
@@ -3449,7 +3444,7 @@ public final class Menu extends Key {
         }
     }
 
-    static String yes_no_names[] = { "no", "yes", null };
+    static String yes_no_names[] = { "no", "yes" };
 
     static void DownloadOptions_MenuInit() {
 
@@ -3719,7 +3714,7 @@ public final class Menu extends Key {
     static int rate_tbl[] = { 2500, 3200, 5000, 10000, 25000, 0 };
 
     static String rate_names[] = { "28.8 Modem", "33.6 Modem", "Single ISDN",
-            "Dual ISDN/Cable", "T1/LAN", "User defined", null };
+            "Dual ISDN/Cable", "T1/LAN", "User defined" };
 
     static void DownloadOptionsFunc(Object self) {
         Menu_DownloadOptions_f();
@@ -3925,7 +3920,7 @@ public final class Menu extends Key {
         return a.directory.compareTo(b.directory);
     }
 
-    static String handedness[] = { "right", "left", "center", null };
+    static String handedness[] = { "right", "left", "center" };
 
     static boolean PlayerConfig_MenuInit() {
         /*
@@ -4899,8 +4894,8 @@ public final class Menu extends Key {
 
         if (s.curvalue < 0)
             s.curvalue = 0;
-        else if (s.curvalue >= s.itemnames.length)
-            s.curvalue = s.itemnames.length - 1;
+        else if (s.curvalue >= s.itemnames.length || s.itemnames[s.curvalue] == null)
+            s.curvalue--;
 
         if (s.callback != null)
             s.callback.execute(s);
