@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.6 2005-01-17 21:54:38 cawe Exp $
+ * $Id: Cbuf.java,v 1.7 2005-02-19 11:12:42 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -116,11 +116,9 @@ public final class Cbuf {
             if (text.charAt(i) == '+') {
                 i++;
 
-                for (j = i; (text.charAt(j) != '+') && (text.charAt(j) != '-')
-                        && j < text.length(); j++)
-                    ;
+                for (j = i; j < text.length() && (text.charAt(j) != '+') && (text.charAt(j) != '-'); j++);
 
-                build += text.substring(i, j - 1);
+                build += text.substring(i, j);
                 build += "\n";
 
                 i = j - 1;
