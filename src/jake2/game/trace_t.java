@@ -27,7 +27,7 @@ public class trace_t {
 	boolean allsolid; // if true, plane is not valid
 	boolean startsolid; // if true, the initial point was in a solid area
 	float fraction; // time completed, 1.0 = didn't hit anything
-	float[] endpos= new float[3]; // final position
+	float[] endpos= {0,0,0}; // final position
 	cplane_t plane; // surface normal at impact
 	csurface_t surface; // surface hit
 	int contents; // contents on other side of surface hit
