@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.3 2004-02-11 05:16:56 cwei Exp $
+// $Id: PMove.java,v 1.4 2004-02-12 14:27:07 cwei Exp $
 
 package jake2.qcommon;
 
@@ -1159,7 +1159,7 @@ public class PMove extends Game
 		// save old org in case we get stuck
 		VectorCopy(pm.s.origin, pml.previous_origin);
 
-		pml.frametime = pm.cmd.msec * 0.001f;
+		pml.frametime = (pm.cmd.msec & 0xFF) * 0.001f;
 
 		PM_ClampAngles();
 
@@ -1199,16 +1199,17 @@ public class PMove extends Game
 		{
 			int msec;
 
-			msec = pm.cmd.msec >> 3;
+			// TOD o bugfix cwei
+			msec = pm.cmd.msec >>> 3;
 			if (msec == 0)
 				msec = 1;
-			if (msec >= pm.s.pm_time)
+			if (msec >= (pm.s.pm_time & 0xFF))
 			{
 				pm.s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
 				pm.s.pm_time = 0;
 			}
 			else
-				pm.s.pm_time -= msec;
+				pm.s.pm_time = (byte)((pm.s.pm_time & 0xFF) - msec);
 		}
 
 		if ((pm.s.pm_flags & PMF_TIME_TELEPORT) != 0)
