@@ -19,20 +19,12 @@
  */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.4 2004-09-22 19:22:00 salomo Exp $
+// $Id: game_import_t.java,v 1.5 2004-10-07 14:13:07 hzi Exp $
 package jake2.game;
 
 import jake2.Defines;
-import jake2.client.SCR;
-import jake2.qcommon.CM;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.PMove;
-import jake2.server.SV_GAME;
-import jake2.server.SV_INIT;
-import jake2.server.SV_SEND;
-import jake2.server.SV_WORLD;
+import jake2.qcommon.*;
+import jake2.server.*;
 
 //
 //	collection of functions provided by the main engine
@@ -110,10 +102,6 @@ public class game_import_t {
 
     public pmove_t.PointContentsAdapter pointcontents;
 
-    public boolean inPVS(float[] p1, float[] p2) {
-        return SV_GAME.PF_inPVS(p1, p2);
-    }
-
     public boolean inPHS(float[] p1, float[] p2) {
         return SV_GAME.PF_inPHS(p1, p2);
     }
@@ -157,9 +145,6 @@ public class game_import_t {
         SV_GAME.PF_Unicast(ent, reliable);
     }
 
-    public void WriteChar(int c) {
-        SV_GAME.PF_WriteChar(c);
-    }
 
     public void WriteByte(int c) {
         SV_GAME.PF_WriteByte(c);
@@ -167,14 +152,6 @@ public class game_import_t {
 
     public void WriteShort(int c) {
         SV_GAME.PF_WriteShort(c);
-    }
-
-    public void WriteLong(int c) {
-        SV_GAME.PF_WriteLong(c);
-    }
-
-    public void WriteFloat(float f) {
-        SV_GAME.PF_WriteFloat(f);
     }
 
     public void WriteString(String s) {
@@ -188,24 +165,6 @@ public class game_import_t {
     // some fractional bits
     public void WriteDir(float[] pos) {
         SV_GAME.PF_WriteDir(pos);
-    }
-
-    // single byte encoded, very coarse
-    public void WriteAngle(float f) {
-        Com.Error(Defines.ERR_FATAL, "method is not implemented!");
-    }
-
-    // managed memory allocation
-    public void TagMalloc(int size, int tag) {
-        Com.Error(Defines.ERR_FATAL, "method is not implemented!");
-    }
-
-    public void TagFree(Object block) {
-        Com.Error(Defines.ERR_FATAL, "method is not implemented!");
-    }
-
-    public void FreeTags(int tag) {
-        Com.Error(Defines.ERR_FATAL, "method is not implemented!");
     }
 
     // console variable interaction
@@ -243,7 +202,4 @@ public class game_import_t {
         Cbuf.AddText(text);
     }
 
-    public void DebugGraph(float value, int color) {
-        SCR.DebugGraph(value, color);
-    }
 }

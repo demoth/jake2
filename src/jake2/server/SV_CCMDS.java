@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.12 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.13 2004-10-07 14:13:07 hzi Exp $
 
 package jake2.server;
 
@@ -655,7 +655,7 @@ public class SV_CCMDS {
 		Com.Printf("Loading game...\n");
 
 		dir = Cmd.Argv(1);
-		if (Lib.strstr(dir, "..") || Lib.strstr(dir, "/") || Lib.strstr(dir, "\\")) {
+		if ( (dir.indexOf("..") > -1) || (dir.indexOf("/") > -1) || (dir.indexOf("\\") > -1)) {
 			Com.Printf("Bad savedir.\n");
 		}
 
@@ -718,10 +718,10 @@ public class SV_CCMDS {
 		}
 
 		dir = Cmd.Argv(1);
-		if (Lib.strstr(dir, "..") || Lib.strstr(dir, "/") || Lib.strstr(dir, "\\")) {
+		if ( (dir.indexOf("..") > -1) || (dir.indexOf("/") > -1) || (dir.indexOf("\\") > -1)) {
 			Com.Printf("Bad savedir.\n");
 		}
-
+		
 		Com.Printf("Saving game...\n");
 
 		// archive current level, including all client edicts.

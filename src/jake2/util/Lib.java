@@ -19,11 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.7 2004-10-04 12:50:38 hzi Exp $
+// $Id: Lib.java,v 1.8 2004-10-07 14:12:59 hzi Exp $
 
 package jake2.util;
 
-import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
@@ -70,9 +69,7 @@ public class Lib {
 	public static int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
 	}
-	public static boolean strstr(String i1, String i2) {
-		return (i1.indexOf(i2) != -1);
-	}
+
 	public static float atof(String in) {
 		float res = 0;
 	
@@ -121,11 +118,7 @@ public class Lib {
 				return i;
 		return in.length;
 	}
-	static byte[] buffer = new byte[Defines.MAX_INFO_STRING];
-	public static String readString(ByteBuffer bb, int len) {
-		bb.get(buffer, 0, len);
-		return new String(buffer, 0, len);
-	}
+
 	public static String hexdumpfile(ByteBuffer bb, int len) throws IOException {
 	
 		ByteBuffer bb1 = bb.slice();

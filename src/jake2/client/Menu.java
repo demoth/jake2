@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.11 2004-10-04 12:50:37 hzi Exp $
+ * $Id: Menu.java,v 1.12 2004-10-07 14:13:00 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -3729,8 +3729,7 @@ public final class Menu extends Key {
 
     static boolean IconOfSkinExists(String skin, String pcxfiles[],
             int npcxfiles) {
-        int i;
-        //char scratch[1024];
+ 
         String scratch;
 
         //strcpy(scratch, skin);
@@ -3742,8 +3741,8 @@ public final class Menu extends Key {
         else
             scratch += "_i.pcx";
 
-        for (i = 0; i < npcxfiles; i++) {
-            if (Lib.strcmp(pcxfiles[i], scratch) == 0)
+        for (int i = 0; i < npcxfiles; i++) {
+            if (pcxfiles[i].equals(scratch))
                 return true;
         }
 
@@ -3899,17 +3898,17 @@ public final class Menu extends Key {
         /*
          * * sort by male, female, then alphabetical
          */
-        if (Lib.strcmp(a.directory, "male") == 0)
+        if (a.directory.equals("male"))
             return -1;
-        else if (Lib.strcmp(b.directory, "male") == 0)
+        else if (b.directory.equals("male"))
             return 1;
 
-        if (Lib.strcmp(a.directory, "female") == 0)
+        if (a.directory.equals("female"))
             return -1;
-        else if (Lib.strcmp(b.directory, "female") == 0)
+        else if (b.directory.equals("female"))
             return 1;
 
-        return Lib.strcmp(a.directory, b.directory);
+        return a.directory.compareTo(b.directory);
     }
 
     static String handedness[] = { "right", "left", "center", null };

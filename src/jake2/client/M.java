@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.5 2004-09-22 19:22:07 salomo Exp $
+ * $Id: M.java,v 1.6 2004-10-07 14:13:07 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -491,11 +491,11 @@ public final class M {
         // it's not a tank
         // (they spray too much), get mad at them
         if (((targ.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == (attacker.flags & (Defines.FL_FLY | Defines.FL_SWIM)))
-                && (Lib.strcmp(targ.classname, attacker.classname) != 0)
-                && (Lib.strcmp(attacker.classname, "monster_tank") != 0)
-                && (Lib.strcmp(attacker.classname, "monster_supertank") != 0)
-                && (Lib.strcmp(attacker.classname, "monster_makron") != 0)
-                && (Lib.strcmp(attacker.classname, "monster_jorg") != 0)) {
+                && (!(targ.classname.equals(attacker.classname)))
+                && (!(attacker.classname.equals("monster_tank")))
+                && (!(attacker.classname.equals("monster_supertank")))
+                && (!(attacker.classname.equals("monster_makron")))
+                && (!(attacker.classname.equals("monster_jorg")))) {
             if (targ.enemy != null && targ.enemy.client != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker;
