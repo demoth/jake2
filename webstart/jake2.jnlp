@@ -39,6 +39,13 @@
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/joal-native.jar"/>
 	</resources>
 
-	<application-desc main-class="jake2.Jake2"/> 
-
+	<application-desc main-class="jake2.Jake2">
+		<argument>+set</argument>
+		<argument>vid_ref</argument>
+		<argument>fastjogl</argument>
+		<argument>+set</argument>
+		<argument>s_impl</argument>
+		<argument>joal</argument>	
+	</application-desc> 
+	
 </jnlp>
