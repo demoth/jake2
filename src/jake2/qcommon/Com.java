@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.21 2003-12-29 00:01:03 rst Exp $
+ * $Id: Com.java,v 1.22 2003-12-29 16:56:24 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -153,9 +153,9 @@ public final class Com {
 
 		// skip // comments
 		if (hlp.getchar() == '/')
+		{
 			if (hlp.nextchar() == '/') {
 				if ((hlp.skiptoeol() == 0) || (hlp.skipwhites() == 0)) {
-					hlp.data = null;
 					return "";
 				}
 			}
@@ -163,7 +163,7 @@ public final class Com {
 				com_token[len] = '/';
 				len++;
 			}
-
+		}
 		// handle quoted strings specially
 		if (hlp.getchar() == '\"') {
 			while (true) {
@@ -196,8 +196,9 @@ public final class Com {
 			Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
 			len = 0;
 		}
+		
 		// trigger the eof
-		//hlp.skipwhites();
+		hlp.skipwhites();
 
 		com_token[len] = 0;
 		return new String(com_token, 0, len);
@@ -327,22 +328,5 @@ public final class Com {
 		Sys.Quit();
 	}
 
-	public static void main(String args[]) {
-		String test = "testrene = \"ein mal eins\"; a=3 ";
-		ParseHelp ph = new ParseHelp(test);
 
-		while (!ph.isEof())
-			System.out.println("[" + Parse(ph) + "]");
-
-		System.out.println("OK!");
-
-		test = " testrene = \"ein mal eins\"; a=3";
-
-		ph = new ParseHelp(test);
-
-		while (!ph.isEof())
-			System.out.println("[" + Parse(ph) + "]");
-
-		System.out.println("OK!");
-	}
 }

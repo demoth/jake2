@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.4 2003-12-29 06:00:49 cwei Exp $
+ * $Id: Main.java,v 1.5 2003-12-29 16:56:24 rst Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -56,7 +56,7 @@ public abstract class Main extends Base {
 	//	=================
 	//  abstract methods
 	//	=================
-	abstract void Draw_GetPalette();
+	protected abstract void Draw_GetPalette();
 
 	abstract boolean QGL_Init(String dll_name);
 	abstract void QGL_Shutdown();

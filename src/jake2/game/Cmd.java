@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.17 2003-12-29 00:01:03 rst Exp $
+ * $Id: Cmd.java,v 1.18 2003-12-29 16:56:23 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1215,23 +1215,5 @@ public final class Cmd extends PlayerView {
 		GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, text);
 	}
 
-	public static void main(String args[]) {
-		try {
-			Cmd.Init();
-			RemoveCommand("exec");
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("Give some commands:");
-
-			while (true) {
-				System.out.println("#");
-				String line = br.readLine();
-				Cmd.ExecuteString(line);
-			}
-		}
-		catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
-	}
 }
