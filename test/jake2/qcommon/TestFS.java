@@ -2,9 +2,9 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.1 2003-11-26 01:35:12 cwei Exp $
- */ 
- /*
+ * $Id: TestFS.java,v 1.2 2003-11-26 12:35:49 cwei Exp $
+ */
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import java.io.IOException;
+import java.util.logging.*;
+
 /**
  * TestFS
  * 
@@ -33,7 +36,28 @@ package jake2.qcommon;
 public class TestFS {
 
 	public static void main(String[] args) {
-		System.out.println("*** TestFS ***");
+		System.out.println("*** Start FS test ***\n");
+		
+		init();
+		
 		FS.InitFilesystem();
+		FS.Path_f();
+//		FS.Dir_f();
+		
+		System.out.println("\n*** FS test is succeeded :-) ***");
+	}
+
+	static void init() {
+		// init the global LogManager with the logging.properties file
+		try {
+			LogManager.getLogManager().readConfiguration(
+				TestFS.class.getResourceAsStream("/jake2/logging.properties"));
+		} catch (SecurityException secEx) {
+			secEx.printStackTrace();
+		} catch (IOException ioEx) {
+			System.err.println(
+				"FATAL Error: can't load /jake2/logging.properties (classpath)");
+			ioEx.printStackTrace();
+		}
 	}
 }

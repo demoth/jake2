@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.5 2003-11-26 01:33:42 cwei Exp $
+ * $Id: FS.java,v 1.6 2003-11-26 12:35:49 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +28,6 @@ package jake2.qcommon;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -439,21 +438,19 @@ public final class FS {
 		try {
 			packhandle = new FileImageInputStream(new RandomAccessFile(packfile, "r"));
 			packhandle.setByteOrder(ByteOrder.LITTLE_ENDIAN);
+			
 			if (packhandle.length() < 1) return null;
 		} catch (IOException e) {
 			logger.log(Level.FINEST, e.toString());
 			return null;
 		}
 //
-//      fread (&header, 1, sizeof(header), packhandle);
 		header = new dpackheader_t();
 		header.ident = packhandle.readInt();		
 		header.dirofs = packhandle.readInt();
 		header.dirlen = packhandle.readInt();
 		if (header.ident != IDPAKHEADER)
 			Com.Error (Globals.ERR_FATAL, packfile + " is not a packfile");
-//		header.dirofs = LittleLong (header.dirofs);
-//		header.dirlen = LittleLong (header.dirlen);
 //
 		numpackfiles = header.dirlen / packfile_t.SIZE;
 //
@@ -464,25 +461,19 @@ public final class FS {
 //
 		packhandle.seek(header.dirofs);
 
+		// buffer for C-Strings char[56] 
 		byte[] text = new byte[56];
-		for (int i=0; i < header.dirlen / 64; i++) {
+		// parse the directory
+		for (int i=0; i < numpackfiles; i++) {
 			packhandle.readFully(text);
 			newfiles[i] = new packfile_t(); 
 			newfiles[i].name = new String(text, "ISO-8859-1").trim();
 			newfiles[i].filepos = packhandle.readInt();
 			newfiles[i].filelen = packhandle.readInt();
-			System.out.println(newfiles[i]);
+			// TODO FS.LoadPackFile --> remove sysout 
+			logger.log(Level.FINEST, i + ".\t" + newfiles[i]);
 		}
 
-//
-////	   parse the directory
-//		for (i=0 ; i<numpackfiles ; i++)
-//		{
-//			strcpy (newfiles[i].name, info[i].name);
-//			newfiles[i].filepos = LittleLong(info[i].filepos);
-//			newfiles[i].filelen = LittleLong(info[i].filelen);
-//		}
-//
 		pack = new pack_t();
 		pack.filename = new String(packfile);
 		pack.handle = packhandle;
@@ -502,7 +493,7 @@ public final class FS {
 //	then loads and adds pak1.pak pak2.pak ... 
 //	================
 //	*/
-	static void AddGameDirectory (String dir) throws IOException
+	static void AddGameDirectory(String dir) throws IOException
 	{
 		int i;
 		searchpath_t	search;
@@ -528,8 +519,11 @@ public final class FS {
 		for (i=0; i<10; i++)
 		{
 			pakfile = dir + "/pak" + i +".pak";
+			if (!(new File(pakfile).canRead())) continue;
+			
 			pak = LoadPackFile(pakfile);
 			if (pak == null) continue;
+			
 			search = new searchpath_t();
 			search.pack = pak;
 			search.next = fs_searchpaths;
