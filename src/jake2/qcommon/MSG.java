@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.8 2003-12-19 11:13:58 cwei Exp $
+// $Id: MSG.java,v 1.9 2004-01-17 20:34:46 rst Exp $
 
 package jake2.qcommon;
 
@@ -32,7 +32,7 @@ public class MSG extends GameBase {
 	// writing functions
 	//
 
-	static void WriteChar(sizebuf_t sb, int c) {
+	public static void WriteChar(sizebuf_t sb, int c) {
 		if (c < -128 || c > 127)
 			Com.Error(ERR_FATAL, "WriteChar: range error");
 
@@ -48,6 +48,11 @@ public class MSG extends GameBase {
 		sb.data[SZ.GetSpace(sb, 1)] = (byte) c;
 	}
 
+	public static void WriteByte(sizebuf_t sb, float c) {
+		WriteByte(sb, (int) c);
+	}
+	
+	
 	public static void WriteShort(sizebuf_t sb, int c) {
 
 		if (c < ((short) 0x8000) || c > (short) 0x7fff)
@@ -55,16 +60,16 @@ public class MSG extends GameBase {
 
 		int i = SZ.GetSpace(sb, 2);
 		sb.data[i++] = (byte) (c & 0xff);
-		sb.data[i] = (byte) (c >> 8);
+		sb.data[i] = (byte) (c >>> 8);
 	}
 
 	public static void WriteInt(sizebuf_t sb, int c) {
 
 		int i = SZ.GetSpace(sb, 4);
 		sb.data[i++] = (byte) ((c & 0xff));
-		sb.data[i++] = (byte) ((c >> 8) & 0xff);
-		sb.data[i++] = (byte) ((c >> 16) & 0xff);
-		sb.data[i++] = (byte) (c >> 24);
+		sb.data[i++] = (byte) ((c >>> 8) & 0xff);
+		sb.data[i++] = (byte) ((c >>> 16) & 0xff);
+		sb.data[i++] = (byte) (c >>> 24);
 	}
 
 	public static void WriteFloat(sizebuf_t sb, float f) {
@@ -78,6 +83,11 @@ public class MSG extends GameBase {
 			x = "";
 
 		SZ.Write(sb, x.getBytes());
+	}
+	
+	public static void WriteString(sizebuf_t sb, byte s[]) {
+		if (s==null) s= new byte[0];		
+		SZ.Write(sb, s);
 	}
 
 	public static void WriteCoord(sizebuf_t sb, float f) {
@@ -288,14 +298,14 @@ public class MSG extends GameBase {
 		WriteByte(msg, bits & 255);
 
 		if ((bits & 0xff000000) != 0) {
-			WriteByte(msg, (bits >> 8) & 255);
-			WriteByte(msg, (bits >> 16) & 255);
-			WriteByte(msg, (bits >> 24) & 255);
+			WriteByte(msg, (bits >>> 8) & 255);
+			WriteByte(msg, (bits >>> 16) & 255);
+			WriteByte(msg, (bits >>> 24) & 255);
 		} else if ((bits & 0x00ff0000) != 0) {
-			WriteByte(msg, (bits >> 8) & 255);
-			WriteByte(msg, (bits >> 16) & 255);
+			WriteByte(msg, (bits >>> 8) & 255);
+			WriteByte(msg, (bits >>> 16) & 255);
 		} else if ((bits & 0x0000ff00) != 0) {
-			WriteByte(msg, (bits >> 8) & 255);
+			WriteByte(msg, (bits >>> 8) & 255);
 		}
 
 		//----------
@@ -374,7 +384,7 @@ public class MSG extends GameBase {
 	// reading functions
 	//
 
-	static void BeginReading(sizebuf_t msg) {
+	public static void BeginReading(sizebuf_t msg) {
 		msg.readcount = 0;
 	}
 

@@ -19,13 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.8 2004-01-13 01:48:16 cwei Exp $
+// $Id: Lib.java,v 1.9 2004-01-17 20:34:47 rst Exp $
 
 package jake2.util;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import jake2.*;
 import jake2.client.*;
@@ -87,7 +88,7 @@ public class Lib {
 	public static float frand() {
 		return (float) Math.random();
 	}
-	
+
 	//TODO: delete this and clean up quake.
 	public static int strcmp(String in1, String in2) {
 		return in1.compareTo(in2);
@@ -215,36 +216,31 @@ public class Lib {
 		return new String(buf, 0, strlen(buf));
 	}
 
-	public static String hexdumpfile( ByteBuffer bb, int len) throws IOException
-	{
-		
+	public static String hexdumpfile(ByteBuffer bb, int len) throws IOException {
+
 		ByteBuffer bb1 = bb.slice();
-		
+
 		byte buf[] = new byte[len];
 
 		bb1.get(buf);
-		
-		return hexDump(buf,len,false);
+
+		return hexDump(buf, len, false);
 	}
 
 	// dump data as hexstring
-	public static String hexDump(byte data1[], int len, boolean showAddress)
-	{
-		StringBuffer result= new StringBuffer();
-		StringBuffer charfield= new StringBuffer();
-		int i= 0;
-		while (i < len)
-		{
-			if ((i & 0xf) == 0)
-			{
-				if (showAddress)
-				{
-					String address= Integer.toHexString(i);
-					address= ("0000".substring(0, 4 - address.length()) + address).toUpperCase();
+	public static String hexDump(byte data1[], int len, boolean showAddress) {
+		StringBuffer result = new StringBuffer();
+		StringBuffer charfield = new StringBuffer();
+		int i = 0;
+		while (i < len) {
+			if ((i & 0xf) == 0) {
+				if (showAddress) {
+					String address = Integer.toHexString(i);
+					address = ("0000".substring(0, 4 - address.length()) + address).toUpperCase();
 					result.append(address + ": ");
 				}
 			}
-			int v= data1[i];
+			int v = data1[i];
 
 			result.append(hex2(v));
 			result.append(" ");
@@ -253,42 +249,45 @@ public class Lib {
 			i++;
 
 			// nach dem letzten, newline einfuegen
-			if ((i & 0xf) == 0)
-			{
+			if ((i & 0xf) == 0) {
 				result.append(charfield);
 				result.append("\n");
 				charfield.setLength(0);
 			}
 			//	in der Mitte ein Luecke einfuegen ?
-			else if ((i & 0xf) == 8)
-			{
+			else if ((i & 0xf) == 8) {
 				result.append(" ");
 			}
 		}
 		return result.toString();
 	}
-	
-	
+
 	//formats an hex byte
-	public static String hex2(int i)
-	{
-		String val= Integer.toHexString(i & 0xff);
+	public static String hex2(int i) {
+		String val = Integer.toHexString(i & 0xff);
 		return ("00".substring(0, 2 - val.length()) + val).toUpperCase();
 	}
-	
-		public static char readableChar(int i)
-	{
+
+	public static char readableChar(int i) {
 		if ((i < 0x20) || (i > 0x7f))
 			return '.';
 		else
-			return (char)i;
+			return (char) i;
 	}
 
-		public static void printv(String in, float arr[] )
-		{
-			for (int n=0; n < arr.length; n++)
-			{
-				Com.Println(in + "[" + n + "]: " + arr[n]);
-			}
+	public static void printv(String in, float arr[]) {
+		for (int n = 0; n < arr.length; n++) {
+			Com.Println(in + "[" + n + "]: " + arr[n]);
 		}
+	}
+	
+	public static void memset(byte[] dest, byte c, int len)
+	{
+		Arrays.fill(dest,0,len,c);
+	}
+	
+	public static void memset(byte[] dest, int c, int len)
+	{
+		Arrays.fill(dest,0,len,(byte)c);
+	}
 }

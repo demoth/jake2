@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.1 2004-01-14 21:23:57 rst Exp $
+// $Id: SV_INIT.java,v 1.2 2004-01-17 20:34:47 rst Exp $
 
 package jake2.server;
 
@@ -29,51 +29,54 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.render.*;
-import jake2.server.*;
+import jake2.util.Lib;
 
-public class SV_INIT {
+public class SV_INIT extends PlayerHud
+{
 
 
 
-server_static_t	svs= new server_static_t();				// persistant server info
-server_t		sv= new server_t();					// local server
-//
-///*
-//================
-//SV_FindIndex
-//
-//================
-//*/
-//int SV_FindIndex (char *name, int start, int max, qboolean create)
-//{
-//	int		i;
-//	
-//	if (!name || !name[0])
-//		return 0;
-//
-//	for (i=1 ; i<max && sv.configstrings[start+i][0] ; i++)
-//		if (!strcmp(sv.configstrings[start+i], name))
-//			return i;
-//
-//	if (!create)
-//		return 0;
-//
-//	if (i == max)
-//		Com_Error (ERR_DROP, "*Index: overflow");
-//
-//	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
-//
-//	if (sv.state != ss_loading)
-//	{	// send the update to everyone
-//		SZ_Clear (&sv.multicast);
-//		MSG_WriteChar (&sv.multicast, svc_configstring);
-//		MSG_WriteShort (&sv.multicast, start+i);
-//		MSG_WriteString (&sv.multicast, name);
-//		SV_Multicast (vec3_origin, MULTICAST_ALL_R);
-//	}
-//
-//	return i;
-//}
+public static server_static_t	svs= new server_static_t();				// persistant server info
+public static server_t		sv= new server_t();					// local server
+
+/*
+================
+SV_FindIndex
+
+================
+*/
+public static int SV_FindIndex (String name, int start, int max, boolean create)
+{
+	int		i;
+	
+	if (name==null || name.length()==0)
+		return 0;
+
+	for (i=1 ; i<max && sv.configstrings[start+i]!=null ; i++)
+		if (0==Lib.strcmp(sv.configstrings[start+i], name))
+			return i;
+
+	if (!create)
+		return 0;
+
+	if (i == max)
+		Com.Error (ERR_DROP, "*Index: overflow");
+
+	//strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
+	sv.configstrings[start+i]= name;
+	
+	if (sv.state != Defines.ss_loading)
+	{	// send the update to everyone
+		SZ.Clear (sv.multicast);
+		MSG.WriteChar (sv.multicast, svc_configstring);
+		MSG.WriteShort (sv.multicast, start+i);
+		MSG.WriteString (sv.multicast, name);
+		//TODO:  T H I S     I S   U R G E N T     !!!!!!!!! 
+		//SV.SV_Multicast (vec3_origin, MULTICAST_ALL_R);
+	}
+
+	return i;
+}
 //
 //
 //int SV_ModelIndex (char *name)

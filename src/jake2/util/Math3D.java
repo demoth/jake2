@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.6 2004-01-13 03:37:32 cwei Exp $
+// $Id: Math3D.java,v 1.7 2004-01-17 20:34:47 rst Exp $
 
 package jake2.util;
 
@@ -34,6 +34,13 @@ import jake2.render.*;
 import jake2.server.*;
 
 public class Math3D extends Lib {
+	
+	public static void set(float v1[], float v2[])
+	{
+		for (int i=0; i < v1.length; i++)
+			v1[i]=v2[i];
+	}
+		 
 
 	public static void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0] = a[0] - b[0];
@@ -463,25 +470,21 @@ public class Math3D extends Lib {
 		result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
 	}
 
-	//=====================================================================
-	//monster
-	//=====================================================================
-	//player
-	//=====================================================================
 
-	// math
-	//=====================================================================
-	// these methods should run without touching. 
 
 	public static float DotProduct(float[] x, float[] y) {
 		return x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
 	}
+
+
 
 	public static void CrossProduct(float[] v1, float[] v2, float[] cross) {
 		cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 		cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 		cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 	}
+
+
 
 	public static int Q_log2(int val) {
 		int answer = 0;
@@ -490,17 +493,25 @@ public class Math3D extends Lib {
 		return answer;
 	}
 
+
+
 	public static float DEG2RAD(float in) {
 		return (in * (float) Math.PI) / 180.0f;
 	}
+
+
 
 	public static float anglemod(float a) {
 		return (float) (360.0 / 65536) * ((int) (a * (65536 / 360.0)) & 65535);
 	}
 
+
+
 	public static int ANGLE2SHORT(float x) {
 		return ((int) ((x) * 65536 / 360) & 65535);
 	}
+
+
 
 	public static float LerpAngle(float a2, float a1, float frac) {
 		if (a1 - a2 > 180)

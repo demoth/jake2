@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.11 2004-01-13 21:07:01 rst Exp $
+ * $Id: Qcommon.java,v 1.12 2004-01-17 20:34:46 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -105,7 +105,7 @@ public final class Qcommon {
 
 			Cvar.Get("version", s, Cvar.SERVERINFO | Cvar.NOSET);
 
-			NET.Init();
+			NET.NET_Init();
 			Netchan.Init();
 
 			SV.Init();

@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 14.01.2004 by RST.
-// $Id: server_t.java,v 1.1 2004-01-14 21:23:57 rst Exp $
+// $Id: server_t.java,v 1.2 2004-01-17 20:34:47 rst Exp $
 
 package jake2.server;
 
 
 import java.io.File;
+import java.io.RandomAccessFile;
 
 import jake2.*;
 import jake2.client.*;
@@ -58,6 +59,6 @@ public class server_t {
 	byte		multicast_buf[] = new byte[Defines.MAX_MSGLEN];
 
 	// demo server information
-	File		demofile;
+	RandomAccessFile	demofile;
 	boolean	timedemo;		// don't time sync
 }

@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.7 2004-01-09 00:42:09 cwei Exp $
+ * $Id: qfiles.java,v 1.8 2004-01-17 20:34:46 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -289,6 +289,8 @@ public class qfiles {
 
 		public static int SIZE = 3 * 4 + 4 + 4;
 	}
+
+
 
 	public static class dvis_t {
 

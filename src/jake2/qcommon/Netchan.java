@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.6 2004-01-14 22:04:13 rst Exp $
+ * $Id: Netchan.java,v 1.7 2004-01-17 20:34:46 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,11 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 
+import sun.applet.resources.MsgAppletViewer;
 import jake2.*;
 import jake2.client.*;
 import jake2.game.*;
 import jake2.render.*;
 import jake2.server.*;
+import jake2.sys.NET;
 import jake2.util.Lib;
 
 /**
@@ -133,28 +135,28 @@ public static void Netchan_Init ()
 	qport = Cvar.Get ("qport",  ""+port, Defines.CVAR_NOSET);
 }
 
-//
-///*
-//===============
-//Netchan_OutOfBand
-//
-//Sends an out-of-band datagram
-//================
-//*/
-//void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte *data)
-//{
-//	sizebuf_t	send;
-//	byte		send_buf[MAX_MSGLEN];
-//
-//// write the packet header
-//	SZ_Init (&send, send_buf, sizeof(send_buf));
-//	
-//	MSG_WriteLong (&send, -1);	// -1 sequence means out of band
-//	SZ_Write (&send, data, length);
-//
-//// send the datagram
-//	NET_SendPacket (net_socket, send.cursize, send.data, adr);
-//}
+
+/*
+===============
+Netchan_OutOfBand
+
+Sends an out-of-band datagram
+================
+*/
+public static void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, byte data[])
+{
+	sizebuf_t	send= new sizebuf_t();
+	byte		send_buf[] = new byte[Defines.MAX_MSGLEN];
+
+// write the packet header
+	SZ.Init (send, send_buf, Defines.MAX_MSGLEN);
+	
+	MSG.WriteInt (send, -1);	// -1 sequence means out of band
+	SZ.Write (send, data, length);
+
+// send the datagram
+	NET.NET_SendPacket (net_socket, send.cursize, send.data, adr);
+}
 //
 ///*
 //===============

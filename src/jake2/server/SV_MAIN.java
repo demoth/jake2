@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.2 2004-01-14 21:23:57 rst Exp $
+// $Id: SV_MAIN.java,v 1.3 2004-01-17 20:34:46 rst Exp $
 
 package jake2.server;
 
@@ -38,35 +38,35 @@ public class SV_MAIN extends SV_INIT {
 //
 //netadr_t	master_adr[MAX_MASTERS];	// address of group servers
 //
-client_t	sv_client;			// current client
+public static client_t	sv_client;			// current client
 
-cvar_t	sv_paused;
-cvar_t	sv_timedemo;
+public static cvar_t	sv_paused;
+public static cvar_t	sv_timedemo;
 
-cvar_t	sv_enforcetime;
+public static cvar_t	sv_enforcetime;
 
-cvar_t	timeout;				// seconds without any message
-cvar_t	zombietime;			// seconds to sink messages after disconnect
+public static cvar_t	timeout;				// seconds without any message
+public static cvar_t	zombietime;			// seconds to sink messages after disconnect
 
-cvar_t	rcon_password;			// password for remote server commands
+public static cvar_t	rcon_password;			// password for remote server commands
 
-cvar_t	allow_download;
-cvar_t 	allow_download_players;
-cvar_t 	allow_download_models;
-cvar_t 	allow_download_sounds;
-cvar_t 	allow_download_maps;
+public static cvar_t	allow_download;
+public static cvar_t 	allow_download_players;
+public static cvar_t 	allow_download_models;
+public static cvar_t 	allow_download_sounds;
+public static cvar_t 	allow_download_maps;
 
-cvar_t 	sv_airaccelerate;
+public static cvar_t 	sv_airaccelerate;
 
-cvar_t	sv_noreload;			// don't reload level state when reentering
+public static cvar_t	sv_noreload;			// don't reload level state when reentering
 
-cvar_t	maxclients;			// FIXME: rename sv_maxclients
-cvar_t	sv_showclamp;
+public static cvar_t	maxclients;			// FIXME: rename sv_maxclients
+public static cvar_t	sv_showclamp;
 
-cvar_t	hostname;
-cvar_t	public_server;			// should heartbeats be sent
+public static cvar_t	hostname;
+public static cvar_t	public_server;			// should heartbeats be sent
 
-cvar_t	sv_reconnect_limit;	// minimum seconds between connect messages
+public static cvar_t	sv_reconnect_limit;	// minimum seconds between connect messages
 
 
 //============================================================================

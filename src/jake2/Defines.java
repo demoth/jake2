@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.14 2004-01-14 21:23:57 rst Exp $
+// $Id: Defines.java,v 1.15 2004-01-17 20:34:47 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -38,8 +38,8 @@ public class Defines extends Math3D {
 	public final static int GRENADE_MINSPEED = 400;
 	public final static int GRENADE_MAXSPEED = 800;
 
-	// ==================================================================
-	//	from q_shared.h
+	// -----------------
+	// client/q_shared.h
 
 	// can accelerate and turn
 	public final static int PM_NORMAL = 0;
@@ -722,8 +722,8 @@ public class Defines extends Math3D {
 	public final static int VIDREF_SOFT = 2;
 	public final static int VIDREF_OTHER = 3;
 
-	// ==================================================================
-	//	from: g_local.h
+	// --------------
+	// game/g_local.h
 
 	public final static int FFL_SPAWNTEMP = 1;
 	public final static int FFL_NOSPAWN = 2;
@@ -946,7 +946,6 @@ public class Defines extends Math3D {
 	public final static int WEAP_BFG = 11;
 
 	//	edict->movetype values
-
 	public final static int MOVETYPE_NONE = 0; // never moves 
 	public final static int MOVETYPE_NOCLIP = 1; // origin and angles change with no interaction 
 	public final static int MOVETYPE_PUSH = 2; // no clip to world, push on box contact 
@@ -966,8 +965,8 @@ public class Defines extends Math3D {
 	public final static int MULTICAST_PHS_R = 4;
 	public final static int MULTICAST_PVS_R = 5;
 
-	// ==================================================================
-	// from game.h
+	// -------------
+	// client/game.h
 
 	public final static int SOLID_NOT = 0; // no interaction with other objects
 	public final static int SOLID_TRIGGER = 1; // only touch when inside, after moving
@@ -1019,13 +1018,13 @@ public class Defines extends Math3D {
 	public static final int SHELL_RB_COLOR = 0x68; //0x86
 	public static final int SHELL_BG_COLOR = 0x78;
 
-	/* ROGUE */
+	// ROGUE
 	public static final int SHELL_DOUBLE_COLOR = 0xDF; // 223
 	public static final int SHELL_HALF_DAM_COLOR = 0x90;
 	public static final int SHELL_CYAN_COLOR = 0x72;
 
-	// Q C O M M O N 
-	////////////////////
+	// ---------
+	// qcommon.h
 
 	public final static int svc_bad = 0;
 
@@ -1057,6 +1056,10 @@ public class Defines extends Math3D {
 
 	public static final int NUMVERTEXNORMALS = 162;
 	public static final int PROTOCOL_VERSION = 34;
+	public final static int PORT_MASTER = 27900;
+	public final static int PORT_CLIENT = 27901;
+	public final static int PORT_SERVER = 27910;
+	public final static int PORT_ANY = -1;
 
 	public static final int CM_ANGLE1 = (1 << 0);
 	public static final int CM_ANGLE2 = (1 << 1);
@@ -1121,8 +1124,27 @@ public class Defines extends Math3D {
 	public static final int clc_userinfo = 3; // [[userinfo string]
 	public static final int clc_stringcmd = 4; // [string] message
 
-	// C L I E N T . H
-	//////////////////////
+	public static final int NS_CLIENT = 0;
+	public static final int NS_SERVER = 1;
+
+	public static final int NA_LOOPBACK = 0;
+	public static final int NA_BROADCAST = 1;
+	public static final int NA_IP = 2;
+	public static final int NA_IPX = 3;
+	public static final int NA_BROADCAST_IPX = 4;
+
+	public final static int SND_VOLUME= (1<<0);	// a byte 
+	public final static int SND_ATTENUATION= (1<<1);	// a byte 
+	public final static int SND_POS= (1<<2);	// three coordinates 
+	public final static int SND_ENT= (1<<3);	// a short 0-2: channel, 3-12: entity 
+	public final static int SND_OFFSET= (1<<4);	// a byte, msec offset from frame start 
+
+	public final static float DEFAULT_SOUND_PACKET_VOLUME= 1.0f;	
+	public final static float DEFAULT_SOUND_PACKET_ATTENUATION= 1.0f;	
+
+
+	// --------
+	// client.h
 	public static final int MAX_PARSE_ENTITIES = 1024;
 	public static final int MAX_CLIENTWEAPONMODELS = 20;
 
@@ -1139,13 +1161,15 @@ public class Defines extends Math3D {
 
 	public static final int MAX_MSGLEN = 1400;
 
-	// C O N S O L E . H
+	// ---------
+	// console.h
 	public static final int NUM_CON_TIMES = 4;
 	public static final int CON_TEXTSIZE = 32768;
 
 	public final static int BSPVERSION = 38;
 
-	// Q F I L E S . H 
+	// --------
+	// qfiles.h 
 
 	// upper design bounds
 	// leaffaces, leafbrushes, planes, and verts are still bounded by
@@ -1217,18 +1241,37 @@ public class Defines extends Math3D {
 	public static final String GAMEVERSION = "baseq2";
 	public static final int API_VERSION = 3; // ref_library (refexport_t)
 
-	// keydest_t
+	public final static int DVIS_PVS = 0;
+	public final static int DVIS_PHS = 1;
+
+	// ----------------
+	// client/keydest_t
 	public static final int key_game = 0;
 	public static final int key_console = 1;
 	public static final int key_message = 2;
 	public static final int key_menu = 3;
 
-	// server.h
+	// ---------------
+	// server/server.h
 	public static final int cs_free = 0; // can be reused for a new connection
 	public static final int cs_zombie = 1; // client has been disconnected, but don't reuse
 	// connection for a couple seconds
 	public static final int cs_connected = 2; // has been assigned to a client_t, but not in game yet
 	public static final int cs_spawned = 3;
 
-	public static final int MAX_CHALLENGES	=1024;
+	public static final int MAX_CHALLENGES = 1024;
+
+	public static final int ss_dead = 0; // no map loaded
+	public static final int ss_loading = 1; // spawning level edicts
+	public static final int ss_game = 2; // actively running
+	public static final int ss_cinematic = 3;
+	public static final int ss_demo = 4;
+	public static final int ss_pic = 5;
+
+	public final static int SV_OUTPUTBUF_LENGTH = (MAX_MSGLEN - 16);
+	public final static int RD_NONE = 0;
+	public final static int RD_CLIENT = 1;
+	public final static int RD_PACKET = 2;
+	
+	public final static int RATE_MESSAGES= 10;	
 }
