@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.11 2004-01-24 23:23:21 rst Exp $
+// $Id: Math3D.java,v 1.12 2004-01-24 23:30:12 cwei Exp $
 
 package jake2.util;
 
@@ -464,12 +464,10 @@ public class Math3D extends Lib {
 	}
 
 	public static final void MatCopy(float src[][], float dst[][]) {
-		for (int i=0; i < 3; i++)
-			for (int j=0; j< 3; j++)
-				dst[i][j] = src[i][j];
-		
-		//does not work ???
-		//System.arraycopy(src, 0, dst, 0, dst.length);
+		for (int i = 0; i < 3; i++)
+		{
+			VectorCopy(src[i], dst[i]);
+		}
 	}
 
 	public static void G_ProjectSource(float[] point, float[] distance, float[] forward, float[] right, float[] result) {
