@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.10 2004-01-10 16:01:19 cwei Exp $
+ * $Id: Draw.java,v 1.11 2004-01-12 11:00:46 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,19 +37,11 @@ import net.java.games.jogl.util.GLUT;
 
 /**
  * Draw
+ * (gl_draw.c)
  * 
  * @author cwei
  */
 public abstract class Draw extends Model {
-
-////	   draw.c
-//
-//	#include "gl_local.h"
-//
-//
-//	extern	qboolean	scrap_dirty;
-//	void Scrap_Upload (void);
-
 
 	/*
 	===============
@@ -318,100 +310,98 @@ public abstract class Draw extends Model {
 	*/
 	protected void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte[] data)
 	{
-		// TODO impl: Draw_StretchRaw(..)
-//		unsigned	image32[256*256];
-//		unsigned char image8[256*256];
-//		int			i, j, trows;
-//		byte		*source;
-//		int			frac, fracstep;
-//		float		hscale;
-//		int			row;
-//		float		t;
-//
-//		GL_Bind (0);
-//
-//		if (rows<=256)
-//		{
-//			hscale = 1;
-//			trows = rows;
-//		}
-//		else
-//		{
-//			hscale = rows/256.0;
-//			trows = 256;
-//		}
-//		t = rows*hscale / 256;
-//
-//		if ( !qglColorTableEXT )
-//		{
-//			unsigned *dest;
-//
-//			for (i=0 ; i<trows ; i++)
-//			{
-//				row = (int)(i*hscale);
-//				if (row > rows)
-//					break;
-//				source = data + cols*row;
-//				dest = &image32[i*256];
-//				fracstep = cols*0x10000/256;
-//				frac = fracstep >> 1;
-//				for (j=0 ; j<256 ; j++)
-//				{
-//					dest[j] = r_rawpalette[source[frac>>16]];
-//					frac += fracstep;
-//				}
-//			}
-//
-//			gl.glTexImage2D (GL_TEXTURE_2D, 0, gl_tex_solid_format, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, image32);
-//		}
-//		else
-//		{
-//			unsigned char *dest;
-//
-//			for (i=0 ; i<trows ; i++)
-//			{
-//				row = (int)(i*hscale);
-//				if (row > rows)
-//					break;
-//				source = data + cols*row;
-//				dest = &image8[i*256];
-//				fracstep = cols*0x10000/256;
-//				frac = fracstep >> 1;
-//				for (j=0 ; j<256 ; j++)
-//				{
-//					dest[j] = source[frac>>16];
-//					frac += fracstep;
-//				}
-//			}
-//
-//			gl.glTexImage2D( GL_TEXTURE_2D, 
-//						   0, 
-//						   GL_COLOR_INDEX8_EXT, 
-//						   256, 256, 
-//						   0, 
-//						   GL_COLOR_INDEX, 
-//						   GL_UNSIGNED_BYTE, 
-//						   image8 );
-//		}
-//		gl.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//		gl.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//		if ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( gl_config.renderer & GL_RENDERER_RENDITION ) ) 
-//			gl.glDisable (GL_ALPHA_TEST);
-//
-//		gl.glBegin (GL_QUADS);
-//		gl.glTexCoord2f (0, 0);
-//		gl.glVertex2f (x, y);
-//		gl.glTexCoord2f (1, 0);
-//		gl.glVertex2f (x+w, y);
-//		gl.glTexCoord2f (1, t);
-//		gl.glVertex2f (x+w, y+h);
-//		gl.glTexCoord2f (0, t);
-//		gl.glVertex2f (x, y+h);
-//		gl.glEnd ();
-//
-//		if ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( gl_config.renderer & GL_RENDERER_RENDITION ) ) 
-//			gl.glEnable (GL_ALPHA_TEST);
+		int i, j, trows;
+		int sourceIndex;
+		int frac, fracstep;
+		float hscale;
+		int row;
+		float t;
+
+		GL_Bind(0);
+
+		if (rows<=256)
+		{
+			hscale = 1;
+			trows = rows;
+		}
+		else
+		{
+			hscale = rows/256.0f;
+			trows = 256;
+		}
+		t = rows*hscale / 256;
+
+		if ( !qglColorTableEXT )
+		{
+			int[] image32 = new int[256*256];
+			int destIndex = 0;
+
+			for (i=0 ; i<trows ; i++)
+			{
+				row = (int)(i*hscale);
+				if (row > rows)
+					break;
+				sourceIndex = cols*row;
+				destIndex = i*256;
+				fracstep = cols*0x10000/256;
+				frac = fracstep >> 1;
+				for (j=0 ; j<256 ; j++)
+				{
+					image32[destIndex + j] = r_rawpalette[data[sourceIndex + (frac>>16)] & 0xff];
+					frac += fracstep;
+				}
+			}
+			gl.glTexImage2D (GL.GL_TEXTURE_2D, 0, gl_tex_solid_format, 256, 256, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image32);
+		}
+		else
+		{
+			byte[] image8 = new byte[256*256];
+			int destIndex = 0;;
+
+			for (i=0 ; i<trows ; i++)
+			{
+				row = (int)(i*hscale);
+				if (row > rows)
+					break;
+				sourceIndex = cols*row;
+				destIndex = i*256;
+				fracstep = cols*0x10000/256;
+				frac = fracstep >> 1;
+				for (j=0 ; j<256 ; j++)
+				{
+					image8[destIndex  + j] = data[sourceIndex + (frac>>16)];
+					frac += fracstep;
+				}
+			}
+
+			gl.glTexImage2D( GL.GL_TEXTURE_2D, 
+						   0, 
+						   GL_COLOR_INDEX8_EXT, 
+						   256, 256, 
+						   0, 
+						   GL.GL_COLOR_INDEX, 
+						   GL.GL_UNSIGNED_BYTE, 
+						   image8 );
+		}
+		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+
+		if ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( (gl_config.renderer & GL_RENDERER_RENDITION) != 0 ) ) 
+			gl.glDisable (GL.GL_ALPHA_TEST);
+
+		gl.glBegin (GL.GL_QUADS);
+		gl.glTexCoord2f (0, 0);
+		gl.glVertex2f (x, y);
+		gl.glTexCoord2f (1, 0);
+		gl.glVertex2f (x+w, y);
+		gl.glTexCoord2f (1, t);
+		gl.glVertex2f (x+w, y+h);
+		gl.glTexCoord2f (0, t);
+		gl.glVertex2f (x, y+h);
+		gl.glEnd ();
+
+		if ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( (gl_config.renderer & GL_RENDERER_RENDITION) != 0 ) ) 
+			gl.glEnable (GL.GL_ALPHA_TEST);
 	}
 
 }
