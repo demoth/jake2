@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.35 2004-02-15 11:27:49 rst Exp $
+ * $Id: CL_main.java,v 1.36 2004-02-15 13:19:11 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1119,6 +1119,8 @@ public class CL_main extends CL_pred {
 			precache_check = ENV_CNT + 1;
 
 			CM.intwrap iw = new CM.intwrap(map_checksum);
+
+			// TODO bugfix cwei
 
 			CM.CM_LoadMap(cl.configstrings[CS_MODELS + 1].toLowerCase(), true, iw);
 			map_checksum = iw.i;

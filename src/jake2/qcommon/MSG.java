@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.25 2004-02-15 10:57:57 hoz Exp $
+// $Id: MSG.java,v 1.26 2004-02-15 13:19:11 hoz Exp $
 
 package jake2.qcommon;
 
@@ -418,7 +418,7 @@ public class MSG extends GameBase {
 		if (msg_read.readcount + 1 > msg_read.cursize)
 			c = -1;
 		else
-			c = msg_read.data[msg_read.readcount] & 0xFF;
+			c = msg_read.data[msg_read.readcount];
 		msg_read.readcount++;
 		// kickangles bugfix (rst)
 		return c;
