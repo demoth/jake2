@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.12 2004-02-03 14:53:03 cwei Exp $
+ * $Id: VID.java,v 1.13 2004-02-03 16:13:24 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -501,8 +501,9 @@ public class VID extends Globals {
 
 		if ( s_ref_list[s_current_menu_index].curvalue < 2 )
 		{
-			s_current_menu = s_software_menu;
-			s_current_menu_index = 0;
+			// we only use opengl today
+			s_current_menu = s_opengl_menu; // s_software_menu;
+			s_current_menu_index = 1; // 0;
 		}
 		else
 		{
@@ -636,7 +637,7 @@ public class VID extends Globals {
 		// "[3DFXGL Miniport]",
 		// "[OpenGL glX     ]",
 		// "[Mesa 3-D glX   ]",
-		"[OpenGL jogl     ]",
+		"[OpenGL jogl    ]",
 		null
 	};
 	static final String[] yesno_names =
