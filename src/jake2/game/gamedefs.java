@@ -18,7 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-//Created on 31.10.2003 by RST.
+// Created on 31.10.2003 by RST.
+// $Id: gamedefs.java,v 1.2 2003-11-29 13:28:28 rst Exp $
 
 /** Contains the definitions for the game engine. */
 

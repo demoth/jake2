@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.1 2003-11-17 22:25:47 hoz Exp $
+ * $Id: Netchan.java,v 1.3 2003-11-30 21:50:08 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

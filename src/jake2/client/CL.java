@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2003
  * 
- * $Id: CL.java,v 1.8 2003-11-28 23:42:48 rst Exp $
+ *$Id: CL.java,v 1.9 2003-11-29 13:28:29 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,7 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.Enums;
+import java.io.IOException;
+
+
 import jake2.Globals;
 import jake2.qcommon.*;
 import jake2.sys.CDAudio;
@@ -34,7 +36,7 @@ import jake2.sys.IN;
 /**
  * CL
  */
-public final class CL {
+public final class CL extends Globals {
 
 	/**
 	 * @param msec
@@ -46,7 +48,7 @@ public final class CL {
 	 * initialize client subsystem
 	 */
 	public static void Init() {
-		if (Globals.dedicated.value != 0.0f)
+		if (dedicated.value != 0.0f)
 			return; // nothing running on the client
 			
 		// all archived variables will now be loaded
@@ -58,13 +60,13 @@ public final class CL {
 			
 		V.Init();
 			         
-		Globals.net_message.data = Globals.net_message_buffer;
-		Globals.net_message.maxsize = Globals.net_message_buffer.length;
+		net_message.data = net_message_buffer;
+		net_message.maxsize = net_message_buffer.length;
 
 		M.Init();      
 
 		SCR.Init();
-		Globals.cls.disable_screen = 1.0f;      // don't draw yet
+		cls.disable_screen = 1.0f;      // don't draw yet
 
 		CDAudio.Init();
 		InitLocal();
@@ -75,51 +77,51 @@ public final class CL {
 	}
 	
 	public static void InitLocal() {
-		Globals.cls.state = Enums.ca_disconnected;
-		Globals.cls.realtime = System.currentTimeMillis();
+		cls.state = clientdefs.ca_disconnected;
+		cls.realtime = System.currentTimeMillis();
 		
 		InitInput();
 
-		Globals.adr0 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr1 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr2 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr3 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr4 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr5 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr6 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr7 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
-		Globals.adr8 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr0 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr1 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr2 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr3 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr4 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr5 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr6 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr7 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
+		adr8 = Cvar.Get( "adr0", "", Cvar.ARCHIVE );
 
 		//
 		// register our variables
 		//
-		Globals.cl_stereo_separation = Cvar.Get( "cl_stereo_separation", "0.4", Cvar.ARCHIVE );
-		Globals.cl_stereo = Cvar.Get( "cl_stereo", "0", 0 );
+		cl_stereo_separation = Cvar.Get( "cl_stereo_separation", "0.4", Cvar.ARCHIVE );
+		cl_stereo = Cvar.Get( "cl_stereo", "0", 0 );
 
-		Globals.cl_add_blend = Cvar.Get ("cl_blend", "1", 0);
-		Globals.cl_add_lights = Cvar.Get ("cl_lights", "1", 0);
-		Globals.cl_add_particles = Cvar.Get ("cl_particles", "1", 0);
-		Globals.cl_add_entities = Cvar.Get ("cl_entities", "1", 0);
-		Globals.cl_gun = Cvar.Get ("cl_gun", "1", 0);
-		Globals.cl_footsteps = Cvar.Get ("cl_footsteps", "1", 0);
-		Globals.cl_noskins = Cvar.Get ("cl_noskins", "0", 0);
-		Globals.cl_autoskins = Cvar.Get ("cl_autoskins", "0", 0);
-		Globals.cl_predict = Cvar.Get ("cl_predict", "1", 0);
+		cl_add_blend = Cvar.Get ("cl_blend", "1", 0);
+		cl_add_lights = Cvar.Get ("cl_lights", "1", 0);
+		cl_add_particles = Cvar.Get ("cl_particles", "1", 0);
+		cl_add_entities = Cvar.Get ("cl_entities", "1", 0);
+		cl_gun = Cvar.Get ("cl_gun", "1", 0);
+		cl_footsteps = Cvar.Get ("cl_footsteps", "1", 0);
+		cl_noskins = Cvar.Get ("cl_noskins", "0", 0);
+		cl_autoskins = Cvar.Get ("cl_autoskins", "0", 0);
+		cl_predict = Cvar.Get ("cl_predict", "1", 0);
 
-		Globals.cl_maxfps = Cvar.Get ("cl_maxfps", "90", 0);
+		cl_maxfps = Cvar.Get ("cl_maxfps", "90", 0);
 
-		Globals.cl_upspeed = Cvar.Get ("cl_upspeed", "200", 0);
-		Globals.cl_forwardspeed = Cvar.Get ("cl_forwardspeed", "200", 0);
-		Globals.cl_sidespeed = Cvar.Get ("cl_sidespeed", "200", 0);
-		Globals.cl_yawspeed = Cvar.Get ("cl_yawspeed", "140", 0);
-		Globals.cl_pitchspeed = Cvar.Get ("cl_pitchspeed", "150", 0);
-		Globals.cl_anglespeedkey = Cvar.Get ("cl_anglespeedkey", "1.5", 0);
+		cl_upspeed = Cvar.Get ("cl_upspeed", "200", 0);
+		cl_forwardspeed = Cvar.Get ("cl_forwardspeed", "200", 0);
+		cl_sidespeed = Cvar.Get ("cl_sidespeed", "200", 0);
+		cl_yawspeed = Cvar.Get ("cl_yawspeed", "140", 0);
+		cl_pitchspeed = Cvar.Get ("cl_pitchspeed", "150", 0);
+		cl_anglespeedkey = Cvar.Get ("cl_anglespeedkey", "1.5", 0);
 
-		Globals.cl_run = Cvar.Get ("cl_run", "0", Cvar.ARCHIVE);
-		Globals.freelook = Cvar.Get( "freelook", "0", Cvar.ARCHIVE );
-		Globals.lookspring = Cvar.Get ("lookspring", "0", Cvar.ARCHIVE);
-		Globals.lookstrafe = Cvar.Get ("lookstrafe", "0", Cvar.ARCHIVE);
-		Globals.sensitivity = Cvar.Get ("sensitivity", "3", Cvar.ARCHIVE);
+		cl_run = Cvar.Get ("cl_run", "0", Cvar.ARCHIVE);
+		freelook = Cvar.Get( "freelook", "0", Cvar.ARCHIVE );
+		lookspring = Cvar.Get ("lookspring", "0", Cvar.ARCHIVE);
+		lookstrafe = Cvar.Get ("lookstrafe", "0", Cvar.ARCHIVE);
+		sensitivity = Cvar.Get ("sensitivity", "3", Cvar.ARCHIVE);
 
 //		01453         m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE);
 //		01454         m_yaw = Cvar_Get ("m_yaw", "0.022", 0);
@@ -214,23 +216,25 @@ public final class CL {
 //		01543         Cmd_AddCommand ("weapprev", NULL);		
 	}
 	
-//	/*
-//	====================
-//	WriteDemoMessage
-//
-//	Dumps the current net message, prefixed by the length
-//	====================
-//	*/
-//	static void WriteDemoMessage ()
-//	{
-//		int		len, swlen;
-//
-//		// the first eight bytes are just packet sequencing stuff
-//		len = Globals.net_message.cursize-8;
-//		swlen = LittleLong(len);
-//		fwrite (&swlen, 4, 1, Globals.cls.demofile);
-//		fwrite (net_message.data+8,	len, 1, cls.demofile);
-//	}
+	/*
+	====================
+	 WriteDemoMessage
+
+	Dumps the current net message, prefixed by the length
+	====================
+	*/
+	static void WriteDemoMessage () throws IOException
+	{
+		int		swlen;
+
+		// the first eight bytes are just packet sequencing stuff
+		swlen = net_message.cursize-8;
+		
+		cls.demofile.writeInt(swlen);
+		//fwrite (&swlen, 4, 1, cls.demofile);
+		cls.demofile.write(net_message.data,8,swlen);
+		//fwrite (net_message.data+8,	len, 1, cls.demofile);
+	}
 //	
 //	/*
 //	====================

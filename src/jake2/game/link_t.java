@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+// Created on 31.10.2003 by RST 
+// $Id: link_t.java,v 1.2 2003-11-29 13:28:28 rst Exp $
 // simple linked structure often used in quake.
 
 package jake2.game;

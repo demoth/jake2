@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
+// $Id: client_static_t.java,v 1.4 2003-11-29 13:28:29 rst Exp $
+
 
 package jake2.client;
 
@@ -66,5 +68,5 @@ public class client_static_t {
 	//	   demo recording info must be here, so it isn't cleared on level change
 	boolean demorecording;
 	boolean demowaiting; // don't record until a non-delta message is received
-	FileWriter demofile;
+	RandomAccessFile demofile;
 }

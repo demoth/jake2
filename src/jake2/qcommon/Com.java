@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.9 2003-11-26 01:33:42 cwei Exp $
+ * $Id: Com.java,v 1.10 2003-11-29 13:28:29 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

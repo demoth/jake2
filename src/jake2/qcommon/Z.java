@@ -2,7 +2,7 @@
  * Z.java
  * Copyright (C) 2003
  * 
- * $Id: Z.java,v 1.4 2003-11-26 17:22:38 cwei Exp $
+ * $Id: Z.java,v 1.5 2003-11-29 13:28:29 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.

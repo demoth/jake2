@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.7 2003-11-28 23:42:48 rst Exp $
+ * $Id: Globals.java,v 1.8 2003-11-29 13:28:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,8 +34,12 @@ import java.io.FileWriter;
 
 /**
  * Globals ist the collection of global variables and constants.
+ * It is more elegant to use these vars by inheritance to separate 
+ * it with eclipse refactoring later.
+ * 
+ * As consequence you dont have to touch that much code this time. 
  */
-public final class Globals {
+public class Globals {
 
 	/*
 	 * global constants

@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.1 2003-11-28 21:47:54 hoz Exp $
+ * $Id: IN.java,v 1.2 2003-11-29 13:28:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.

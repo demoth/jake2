@@ -28,4 +28,11 @@ public class clientdefs {
 	public static final int MAX_CLIENTWEAPONMODELS	= 20;
 
 	public static int CMD_BACKUP = 64; // allow a lot of command backups for very fast systems	
+	
+
+	public static final int ca_uninitialized = 0; 	
+	public static final int ca_disconnected = 1;
+	public static final int ca_connecting = 2;	
+	public static final int ca_connected = 3; 	
+	public static final int ca_active = 4; 
 }

@@ -2,9 +2,9 @@
  * Vargs.java
  * Copyright (C) 2003
  *
- * $Id: Vargs.java,v 1.2 2003-11-25 13:10:11 cwei Exp $
- */ 
- /*
+ * $Id: Vargs.java,v 1.3 2003-11-29 13:28:30 rst Exp $
+ */
+/*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -33,21 +33,22 @@ import java.util.Vector;
  * @author cwei
  */
 public class Vargs {
-	
+
 	// initial capacity
 	static final int SIZE = 5;
-	
+
 	Vector v;
-	
+
 	public Vargs() {
 		this(SIZE);
 	}
 
 	public Vargs(int initialSize) {
-		if (v != null) v.clear(); // clear previous list for GC
+		if (v != null)
+			v.clear(); // clear previous list for GC
 		v = new Vector(initialSize);
 	}
-	
+
 	public Vargs add(boolean value) {
 		v.add(new Boolean(value));
 		return this;
@@ -67,32 +68,32 @@ public class Vargs {
 		v.add(new Short(value));
 		return this;
 	}
-	
+
 	public Vargs add(int value) {
 		v.add(new Integer(value));
 		return this;
 	}
-	
+
 	public Vargs add(long value) {
 		v.add(new Long(value));
 		return this;
 	}
-	
+
 	public Vargs add(float value) {
 		v.add(new Float(value));
 		return this;
 	}
-	
+
 	public Vargs add(double value) {
 		v.add(new Double(value));
 		return this;
 	}
-	
+
 	public Vargs add(String value) {
 		v.add(value);
 		return this;
 	}
-	
+
 	public Vargs add(Object value) {
 		v.add(value);
 		return this;
@@ -102,18 +103,18 @@ public class Vargs {
 		v.clear();
 		return this;
 	}
-	
+
 	public Vector toVector() {
-//		Vector tmp = v;
-//		v = null;
-//		return tmp;
-		return (Vector)v.clone();
+		//		Vector tmp = v;
+		//		v = null;
+		//		return tmp;
+		return (Vector) v.clone();
 	}
-	
+
 	public Object[] toArray() {
 		return v.toArray();
 	}
-	
+
 	public int size() {
 		return v.size();
 	}

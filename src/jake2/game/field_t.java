@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+// Created on 20.11.2003 by RST
+// $Id: field_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
 
 package jake2.game;
 
