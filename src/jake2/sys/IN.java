@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.7 2004-01-09 10:13:55 hoz Exp $
+ * $Id: IN.java,v 1.8 2004-01-09 11:24:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,32 +25,56 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
+import java.awt.*;
+import java.awt.Component;
+import java.awt.Cursor;
+
+import javax.swing.ImageIcon;
+
 /**
  * IN
  */
 public final class IN {
 	
-	static boolean mouse_active = true;
+	static Component c = null;
+	static Cursor emptyCursor = null;
+	
+	
+	static boolean mouse_active = false;
+	static boolean ignorefirst = false;
 	
 	public static void ActivateMouse() {
-//	00488         if (!mouse_avail || !dpy || !win)
-//	00489                 return;
-//	00490 
+		if ( c == null ) return;
 		if (!mouse_active) {
-//	00492                 mx = my = 0; // don't spazz
-//	00493                 install_grabs();
+			KBD.mx = KBD.my = 0; // don't spazz
+			install_grabs();
 			mouse_active = true;
 		}
 	}
 	
 	public static void DeactivateMouse() {
-//	00477         if (!mouse_avail || !dpy || !win)
-//	00478                 return;
-//	00479 
+		if ( c == null ) return;
 		if (mouse_active) {
-//	00481                 uninstall_grabs();
+			uninstall_grabs();
 			mouse_active = false;
 		}
+	}
+
+	private static void install_grabs() {
+		if ( emptyCursor == null ) {
+			ImageIcon emptyIcon = new ImageIcon(new byte[0]);
+			emptyCursor = c.getToolkit().createCustomCursor(
+				emptyIcon.getImage(), new Point(0,0), "emptyCursor");
+		}
+		c.setCursor(emptyCursor);
+		KBD.robot.mouseMove(c.getX() + c.getWidth()/2, c.getY() + c.getHeight()/2);
+
+		ignorefirst = true;
+	}
+	
+	private static void uninstall_grabs() {
+		c.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		mouse_active = false;
 	}
 	
 	public static void toggleMouse() {

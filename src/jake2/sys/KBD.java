@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.4 2004-01-09 10:29:27 hoz Exp $
+ * $Id: KBD.java,v 1.5 2004-01-09 11:24:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,32 +71,24 @@ public final class KBD {
 	}
 	
 	static void HandleEvents() {
-//		00464         XEvent event;
 		int b;
 		boolean dowarp = false;
 		int mwx = win_w2;
 		int mwy = win_h2;
-//		00467         int mwx = vid.width/2;
-//		00468         int mwy = vid.height/2;
-//		00469    
-//		00470         if (!dpy)
-//		00471                 return;
-//		00472
+
 		Jake2InputEvent event;
 		while ( (event=InputListener.nextEvent()) != null ) {
-//		00473         while (XPending(dpy)) {
-//		00474 
-//		00475                 XNextEvent(dpy, &event);
-//		00476 
 			switch(event.type) {
 				case Jake2InputEvent.KeyPress:
 				case Jake2InputEvent.KeyRelease:
 					Do_Key_Event(XLateKey((KeyEvent)event.ev), event.type == Jake2InputEvent.KeyPress);
-//		00480                         if (in_state && in_state->Key_Event_fp)
-//		00481                                 in_state->Key_Event_fp (XLateKey(&event.xkey), event.type == KeyPress);
 					break;
 
 				case Jake2InputEvent.MotionNotify:
+					if (IN.ignorefirst) {
+						IN.ignorefirst = false;
+						break;
+					}
 					if (IN.mouse_active) {
 						int dx = (((MouseEvent)event.ev).getX() - mwx) * 2;
 						int dy = (((MouseEvent)event.ev).getY() - mwy) * 2;
@@ -107,22 +99,6 @@ public final class KBD {
 						
 						dowarp = (dx != 0 || dy != 0);
 					}
-//		00485                         if (mouse_active) {
-//		00486                                 if (dgamouse) {
-//		00487                                         mx += (event.xmotion.x + win_x) * 2;
-//		00488                                         my += (event.xmotion.y + win_y) * 2;
-//		00489                                 } 
-//		00490                                 else 
-//		00491                                 {
-//		00492                                         mx += ((int)event.xmotion.x - mwx) * 2;
-//		00493                                         my += ((int)event.xmotion.y - mwy) * 2;
-//		00494                                         mwx = event.xmotion.x;
-//		00495                                         mwy = event.xmotion.y;
-//		00496 
-//		00497                                         if (mx || my)
-//		00498                                                 dowarp = true;
-//		00499                                 }
-//		00500                         }
 					break;
 
 
@@ -145,17 +121,10 @@ public final class KBD {
 					win_y = c.getY();
 					win_w2 = c.getWidth() / 2;
 					win_h2 = c.getHeight() / 2; 
-//		00529                         win_x = event.xcreatewindow.x;
-//		00530                         win_y = event.xcreatewindow.y;
 					break;
-
-				
-//		00534                         win_x = event.xconfigure.x;
-//		00535                         win_y = event.xconfigure.y;
-					
 			}
 		}
-//		00539            
+            
 		if (dowarp) {
 			// move the mouse to the window center again
 			robot.mouseMove(win_x + win_w2, win_y + win_h2);

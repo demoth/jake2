@@ -2,7 +2,7 @@
  * InputListener.java
  * Copyright (C) 2004
  * 
- * $Id: InputListener.java,v 1.1 2004-01-09 09:48:59 hoz Exp $
+ * $Id: InputListener.java,v 1.2 2004-01-09 11:24:22 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -99,6 +99,7 @@ public final class InputListener implements KeyListener, MouseListener, MouseMot
 	}
 
 	public void componentShown(ComponentEvent e) {
+		IN.c = e.getComponent();
 		addEvent(new Jake2InputEvent(Jake2InputEvent.CreateNotify, e));
 	}
 	
