@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+" 
+	codebase="http://hoz.in-chemnitz.de/jake2"
+	href="jake2.jnlp">
+	
+	<information>
+		<title>Jake2</title>
+		<vendor>Bytonic Software</vendor>
+		<homepage href="http://www.bytonic.de/html/jake2.html"/>
+		<description>Java port of the Quake2 game engine</description>
+		<offline-allowed/>
+	</information>
+	
+	<security>
+		<all-permissions/>
+	</security>
+	
+	<resources>
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<jar href="lib/jake2.jar"/>
+		<jar href="lib/jogl.jar"/>
+		<property name="sun.java2d.noddraw" value="true"/>
+	</resources>
+	
+	<resources os="Linux">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<jar href="lib/linux/joal.jar"/>
+		<nativelib href="lib/linux/jogl-native.jar"/>
+		<nativelib href="lib/linux/joal-native.jar"/>
+	</resources>
+	
+	<resources os="Windows">
+		<j2se version="1.4+" max-heap-size="128M"/>
+		<jar href="lib/windows/joal.jar"/>
+		<nativelib href="lib/windows/jogl-native.jar"/>
+		<nativelib href="lib/windows/joal-native.jar"/>
+	</resources>
+
+	<application-desc main-class="jake2.Jake2"/> 
+
+</jnlp>
