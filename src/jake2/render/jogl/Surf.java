@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.11 2004-01-24 01:50:00 cwei Exp $
+ * $Id: Surf.java,v 1.12 2004-01-25 19:07:17 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -983,7 +983,7 @@ public abstract class Surf extends Draw {
 
 		gl.glColor3f (1,1,1);
 		
-		// TODO check this: memset (gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
+		// memset (gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
 		gl_lms.clearLightmapSurfaces();
 		
 		Math3D.VectorSubtract (r_newrefdef.vieworg, e.origin, modelorg);
@@ -1273,9 +1273,8 @@ public abstract class Surf extends Draw {
 			// memcpy (fatvis, vis, (r_worldmodel.numleafs+7)/8);
 			System.arraycopy(vis, 0, fatvis, 0, (r_worldmodel.numleafs+7) / 8);
 			vis = Mod_ClusterPVS(r_viewcluster2, r_worldmodel);
-			c = (r_worldmodel.numleafs + 31)/32;
+			c = (r_worldmodel.numleafs + 31) / 32;
 			for (i=0 ; i<c ; i++) {
-				// TODO check this: ((int *)fatvis)[i] |= ((int *)vis)[i];
 				fatvis[4 * i + 0] |= vis[4 * i + 0];
 				fatvis[4 * i + 1] |= vis[4 * i + 1];
 				fatvis[4 * i + 2] |= vis[4 * i + 2];

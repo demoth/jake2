@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.15 2004-01-25 01:40:39 cwei Exp $
+ * $Id: Model.java,v 1.16 2004-01-25 19:07:17 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -753,8 +753,6 @@ public abstract class Model extends Surf {
 			in = new qfiles.dnode_t(bb);
 			for (j=0 ; j<3 ; j++)
 			{
-////				out[i].minmaxs[j] = in.mins[j];
-////				out[i].minmaxs[3+j] = in.maxs[j];
 				out[i].mins[j] = in.mins[j];
 				out[i].maxs[j] = in.maxs[j];
 			}
@@ -800,9 +798,6 @@ public abstract class Model extends Surf {
 		loadmodel.leafs = out;
 		loadmodel.numleafs = count;
 		
-		// TODO test cwei
-		System.out.println("numleafs: " + count);
-
 		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -812,8 +807,6 @@ public abstract class Model extends Surf {
 			out[i] = new mleaf_t();
 			for (j=0 ; j<3 ; j++)
 			{
-//				out[i].minmaxs[j] = in.mins[j];
-//				out[i].minmaxs[3+j] = in.maxs[j];
 				out[i].mins[j] = in.mins[j];
 				out[i].maxs[j] = in.maxs[j];
 
@@ -823,8 +816,6 @@ public abstract class Model extends Surf {
 			out[i].cluster = in.cluster;
 			out[i].area = in.area;
 
-			// out[i].firstmarksurface = loadmodel.marksurfaces[in.firstleafface];
-			
 			out[i].setMarkSurface(in.firstleafface, loadmodel.marksurfaces);
 			out[i].nummarksurfaces = in.numleaffaces;
 		}	

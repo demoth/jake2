@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.10 2004-01-22 00:15:32 cwei Exp $
+// $Id: model_t.java,v 1.11 2004-01-25 19:07:44 cwei Exp $
 
 package jake2.render;
 
@@ -88,7 +88,6 @@ public class model_t implements Cloneable {
 	public int surfedges[];
 
 	public int nummarksurfaces;
-	// TODO was **marksurfaces;
 	public msurface_t marksurfaces[];
 
 	public qfiles.dvis_t vis;

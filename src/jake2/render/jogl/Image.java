@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.15 2004-01-22 15:44:40 cwei Exp $
+ * $Id: Image.java,v 1.16 2004-01-25 19:07:17 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1214,8 +1214,7 @@ public abstract class Image extends Main {
 					//goto done;
 					throw new longjmpException();
 				}
-				//memcpy (scaled, data, width*height*4);
-				// TODO check this: IntBuffer.wrap(data).get(scaled, 0, width*height*4);
+				//memcpy (scaled, data, width*height*4); were bytes
 				IntBuffer.wrap(data).get(scaled, 0, width*height);
 			
 			}
@@ -1359,11 +1358,9 @@ public abstract class Image extends Main {
 						p = 0;
 					// copy rgb components
 
-					// TODO check this
-
-//					((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
-//					((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
-//					((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
+					// ((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
+					// ((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
+					// ((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
 
 					trans[i] = d_8to24table[p] & 0x00FFFFFF; // only rgb
 				}
