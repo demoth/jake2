@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.11.2003 by RST.
-// $Id: PlayerTrail.java,v 1.5 2004-02-01 23:31:37 rst Exp $
+// $Id: PlayerTrail.java,v 1.6 2004-02-17 18:24:15 cwei Exp $
 
 package jake2.game;
 
@@ -46,6 +46,11 @@ public class PlayerTrail extends PlayerHud {
 	static int TRAIL_LENGTH= 8;
 
 	static edict_t trail[]= new edict_t[TRAIL_LENGTH];
+	static {
+		//TODO: potential error
+		for (int n=0; n < TRAIL_LENGTH; n++)
+			trail[n] = new edict_t(n);
+	}
 	static int trail_head;
 	static boolean trail_active= false;
 

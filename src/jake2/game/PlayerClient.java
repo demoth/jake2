@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.15 2004-02-15 18:01:28 rst Exp $
+// $Id: PlayerClient.java,v 1.16 2004-02-17 18:24:15 cwei Exp $
 
 package jake2.game;
 
@@ -520,7 +520,7 @@ public class PlayerClient extends PlayerHud {
 
 		EdictIterator es = null;
 
-		while ((es = G_Find(es, findByClass, "info_player_deathmatch")).o != null) {
+		while ((es = G_Find(es, findByClass, "info_player_deathmatch")) != null) {
 			spot = es.o;
 			count++;
 			range = PlayersRangeFromSpot(spot);
