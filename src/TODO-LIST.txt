@@ -1,0 +1,35 @@
+Dringende Aufgaben
+-------------------
+
+Holger
+--------
+- bewegungshack muss wieder weg.
+- es gibt noch paar Exceptions im Key-Handler abzufangen
+- GameScreen/Console umschalten muss gehen.
+- Mouselook im Spiel wäre gut
+- Schiessen im Spiel! 
+- Bewegung muss auch mit nem echten Server gehen
+- F1 für Hilfe
+- "_" in der Consolte Tippen
+- Menu-SOUND wav files würde erstmal reichen 
+
+Carsten
+-------
+- Culling Problem mit den Scheiben/Türen lösen 
+  (ich schreibs erstmal hier hin)
+- Sky muss beim bewegen stabil bleiben, darf nicht springen
+- Sky mit TGA wäre gut
+- J A V A  -  L O G O  hart reincodieren, damit man seinen 
+  Augen trauen darf.
+- dynamische Lichter zum Ballern mit dem Blaster
+
+
+René 
+-----
+- Tore aktivieren mit aktivem AreaFlooding
+- Fahrstühle, Schalter,
+- Monster aktivieren
+- Client-Think muss gehen 
+- Health / Schmerz-Funktionen aktivieren
+
+
