@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.22 2004-02-02 12:01:28 hoz Exp $
+ * $Id: SCR.java,v 1.23 2004-02-02 20:28:52 cwei Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,6 +33,8 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
+import jake2.qcommon.MSG;
+import jake2.qcommon.SZ;
 import jake2.qcommon.xcommand_t;
 import jake2.sys.Sys;
 import jake2.util.Vargs;
@@ -1416,5 +1418,8 @@ public final class SCR extends Globals {
 	}
 	
 	static void FinishCinematic() {
+		// tell the server to advance to the next map / cinematic
+		MSG.WriteByte(cls.netchan.message, clc_stringcmd);
+		SZ.Print(cls.netchan.message, "nextserver " + cl.servercount + '\n');
 	}
 }
