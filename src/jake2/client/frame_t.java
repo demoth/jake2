@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-// $Id: frame_t.java,v 1.5 2004-02-02 21:15:40 hoz Exp $
+// $Id: frame_t.java,v 1.6 2004-02-13 15:09:19 cwei Exp $
 
 package jake2.client;
 
@@ -41,9 +41,9 @@ public class frame_t {
 	public void reset()
 	{
 		valid = false;
-		serverframe = servertime = deltaframe =0;
+		serverframe = servertime = deltaframe = 0;
 		areabits = new byte [MAX_MAP_AREAS/8];
 		playerstate = new player_state_t();
-		num_entities  = parse_entities;
+		num_entities = parse_entities = 0;
 	}	
 }
