@@ -7,13 +7,14 @@
 package jake2.qcommon;
 
 import java.awt.*;
-import java.awt.DisplayMode;
-import java.awt.GraphicsEnvironment;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.swing.*;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
 
 /**
  *
@@ -151,8 +152,15 @@ public class Q2DataDialog extends javax.swing.JDialog {
         pack();
     }//GEN-END:initComponents
 
+	
     private void installButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_installButtonActionPerformed
-        // TODO add your handling code here:
+		dir = jTextField1.getText();
+		InstallDialog installer = new InstallDialog(this, dir);
+		dir += "/baseq2";
+		jTextField1.setText(dir);
+		
+        new Thread(installer).start();
+
     }//GEN-LAST:event_installButtonActionPerformed
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -162,6 +170,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
     	
+    	dir = jTextField1.getText();
     	Cvar.Set("cddir", dir);
     	FS.setCDDir();
     	
@@ -190,15 +199,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
     	System.exit(1);
     	dispose();
     }//GEN-LAST:event_formWindowClosing
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        new Q2DataDialog().setVisible(true);
-        System.out.println("Hi");
-    }
-    
+        
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton changeButton;
     private javax.swing.JButton exitButton;
@@ -265,4 +266,133 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		}
 
 	}
+	
+	static class InstallDialog extends JDialog implements Runnable {
+		
+		static final String[] locs = { 
+			"ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe", 
+			"ftp://ftp.fu-berlin.de/pc/msdos/games/idgames/idstuff/quake2/q2-314-demo-x86.exe",
+			"ftp://ftp.demon.co.uk/pub/mirrors/idsoftware/quake2/q2-314-demo-x86.exe",
+			"ftp://ftp.fragzone.se/pub/spel/quake2/q2-314-demo-x86.exe" };
+		static byte[] buf = new byte[8192];
+		String destDir;
+		
+		JProgressBar progress = new JProgressBar();
+		JLabel label = new JLabel("test");
+		Q2DataDialog parent;
+		
+		public InstallDialog(Q2DataDialog parent, String dir) {
+			super(parent);
+	
+			initComponents();
+			setResizable(false);
+	
+			this.parent = parent;		
+			destDir = dir;
+		}
+		
+		void initComponents() {
+			progress.setMinimum(0);
+			progress.setMaximum(100);
+			progress.setMinimumSize(new Dimension(200, 20));
+			progress.setMaximumSize(new Dimension(200, 20));
+			progress.setPreferredSize(new Dimension(200, 20));
+			getContentPane().add(progress, BorderLayout.CENTER);
+			getContentPane().add(label, BorderLayout.NORTH);
+			pack();
+		}
+						
+		public void run() {
+			
+			parent.setEnabled(false);
+			setVisible(true);
+			
+			InputStream in = null;
+			OutputStream out = null;
+			File outFile = null;
+			
+			label.setText("downloading...");
+			
+			try {
+				URL url = new URL(locs[1]);
+				URLConnection conn = url.openConnection();
+				int length = conn.getContentLength();
+				progress.setMaximum(length/1024);
+				
+				in = conn.getInputStream();
+				
+				outFile = File.createTempFile("Jake2Data", ".zip");
+				System.out.println(outFile.getCanonicalPath());
+				outFile.deleteOnExit();
+				out = new FileOutputStream(outFile);
+				
+				copyStream(in, out);
+				
+				installData(outFile.getCanonicalPath());
+				
+			} catch (Exception e) {}
+			
+			try {
+				if (outFile != null) outFile.delete();
+			} catch (Exception e) {}
+			
+			setVisible(false);
+			parent.setEnabled(true);
+			parent.okButtonActionPerformed(null);
+			dispose();
+		}
+		
+		
+		void installData(String filename) {
+			try {
+				ZipFile f = new ZipFile(filename);
+				Enumeration e = f.entries();
+				while (e.hasMoreElements()) {
+					ZipEntry entry = (ZipEntry)e.nextElement();
+					String name = entry.getName();
+					int i;
+					if ((i = name.indexOf("/baseq2")) > -1 && name.indexOf(".dll") == -1) {
+						name = destDir + name.substring(i);
+						File outFile = new File(name);
+						if (entry.isDirectory()) {
+							outFile.mkdirs();
+						} else {
+							label.setText(outFile.getName());
+							progress.setMaximum((int)entry.getSize()/1024);
+							progress.setValue(0); 
+							outFile.getParentFile().mkdirs();
+							OutputStream out = new FileOutputStream(outFile);
+							InputStream in = f.getInputStream(entry);
+							copyStream(in, out);
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		void copyStream(InputStream in, OutputStream out) {
+			try {
+				int c = 0;
+				int l;
+				while ((l = in.read(buf)) > 0) {
+					out.write(buf, 0, l);
+					c += l;
+					progress.setValue(c / 1024);
+					//progress.repaint();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				in.close();
+			} catch (Exception e) {}
+			try {
+				out.close();
+			} catch (Exception e) {}			
+		}
+	}
+	
 }
