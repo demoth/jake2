@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.7 2003-12-01 12:47:16 hoz Exp $
+ * $Id: Cvar.java,v 1.9 2003-12-01 13:20:25 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
