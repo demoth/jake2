@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Math3D.java,v 1.5 2004-01-05 21:45:16 cwei Exp $
+// $Id: Math3D.java,v 1.6 2004-01-13 03:37:32 cwei Exp $
 
 package jake2.util;
 
@@ -219,6 +219,21 @@ public class Math3D extends Lib {
 			dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 		}
 	}
+	
+	
+	public static void MakeNormalVectors(float[] forward, float[] right, float[] up) {
+		// this rotate and negat guarantees a vector
+		// not colinear with the original
+		right[1] = -forward[0];
+		right[2] = forward[1];
+		right[0] = forward[2];
+
+		float d = DotProduct(right, forward);
+		VectorMA(right, -d, forward, right);
+		VectorNormalize(right);
+		CrossProduct(right, forward, up);
+	}
+	
 
 	public static float SHORT2ANGLE(int x) {
 		return ((x) * (360.0f / 65536));

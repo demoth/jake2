@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.19 2004-01-12 16:57:34 cwei Exp $
+ * $Id: TestRenderer.java,v 1.20 2004-01-13 03:37:32 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,7 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sys.KBD;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
@@ -430,6 +431,8 @@ public class TestRenderer {
 	
 	private Vector particles = new Vector(1024); // = new particle_t[20];
 	private LinkedList active_particles = new LinkedList();
+	private boolean explode = false; 
+	private float[] target; 
 	
 	private boolean initParticles = true;
 	
@@ -438,15 +441,22 @@ public class TestRenderer {
 		particles.clear();
 		
 		if (active_particles.size() == 0) {
-			Explosion(new float[]{100, (float)Math.random() * 40.0f, (float)Math.random() * 40.0f});
+			if (explode)
+				Explosion(target);
+			else {
+				target = new float[] {150 + Lib.crand() * 80, Lib.crand() * 40, Lib.crand() * 40};
+				RailTrail(new float[]{30, -20, -20}, target);
+				//Heatbeam(new float[]{30, 20, -20}, target);
+			}
+			explode = !explode;
 		}
 		refdef_t refdef = new refdef_t();
 
 		refdef.x = viddef.width/ 2;
 		refdef.y = viddef.height / 2 - 72;
-		refdef.width = 144 * 2;
-		refdef.height = 168 * 2;
-		refdef.fov_x = 90;
+		refdef.width = 400;
+		refdef.height = 400;
+		refdef.fov_x = 50;
 		refdef.fov_y = CalcFov(refdef.fov_x, refdef.width, refdef.height);
 		refdef.time = 1.0f * 0.001f;
 		
@@ -564,17 +574,17 @@ public class TestRenderer {
 			p = new cparticle_t();
 
 			p.time = time() * 1.0f;
-			p.color = 0xe0 + ((int)(32767 *Math.random()) % 8);
+			p.color = /*0xe0*/ 223 -  (Lib.rand() & 7);
 			for (int j=0 ; j<3 ; j++)
 			{
-				p.org[j] = org[j] + (float)(((32767 * Math.random()) % 32)-16);
-				p.vel[j] = (float)((32767 * Math.random()) % 384) - 192;
+				p.org[j] = org[j] + (float)(Lib.rand() % 32) - 16;
+				p.vel[j] = (float)(Lib.rand() % 384) - 192;
 			}
 			
 			p.accel[0] = p.accel[1] = 0;
 			p.accel[2] = -PARTICLE_GRAVITY;
 			p.alpha = 1.0f;
-			p.alphavel = -0.8f / (0.5f + (float)Math.random()*0.3f);
+			p.alphavel = -0.8f / (0.5f + Lib.frand() * 0.3f);
 
 			active_particles.add(p);
 		}
@@ -643,6 +653,172 @@ public class TestRenderer {
 				p.alphavel = 0.0f;
 				p.alpha = 0.0f;
 			}
+		}
+	}
+	
+	private void Heatbeam (float[] start, float[] forward)
+	{
+		
+		float[] v_up = {0, 0, 10};
+		float[] v_right = {0, 10, 0};
+		
+		
+		float[] move = {0, 0, 0};
+		float[] vec = {0, 0, 0};
+		float	len;
+		int j;
+		cparticle_t	p;
+		float[] right = {0, 0, 0};
+		float[] up = {0, 0, 0};
+		int i;
+		float		c, s;
+		float[] dir = {0, 0, 0};
+		float	ltime;
+		float	step = 32.0f, rstep;
+		float	start_pt;
+		float	rot;
+		float	variance;
+		float[] end = {0, 0, 0};
+
+		Math3D.VectorMA (start, 4096, forward, end);
+
+		Math3D.VectorCopy (start, move);
+		Math3D.VectorSubtract (end, start, vec);
+		len = Math3D.VectorNormalize (vec);
+
+		Math3D.VectorCopy (v_right, right);
+		Math3D.VectorCopy (v_up, up);
+//		if (vidref_val == VIDREF_GL)
+//		{ // GL mode
+			Math3D.VectorMA (move, -0.5f, right, move);
+			Math3D.VectorMA (move, -0.5f, up, move);
+//		}
+//		// otherwise assume SOFT
+
+		ltime = (float)time()/1000.0f;
+		start_pt = (ltime*96.0f) % step;
+		Math3D.VectorMA (move, start_pt, vec, move);
+
+		Math3D.VectorScale (vec, step, vec);
+
+		rstep = (float)Math.PI / 10.0f;
+		for (i=(int)start_pt ; i<len ; i+=step)
+		{
+			if (i>step*5) // don't bother after the 5th ring
+				break;
+
+			for (rot = 0; rot < Math.PI * 2; rot += rstep)
+			{
+
+				p = new cparticle_t();
+							
+				p.time = time();
+				Math3D.VectorClear (p.accel);
+				variance = 0.5f;
+				c = (float)Math.cos(rot)*variance;
+				s = (float)Math.sin(rot)*variance;
+			
+				// trim it so it looks like it's starting at the origin
+				if (i < 10)
+				{
+					Math3D.VectorScale (right, c*(i/10.0f), dir);
+					Math3D.VectorMA (dir, s*(i/10.0f), up, dir);
+				}
+				else
+				{
+					Math3D.VectorScale (right, c, dir);
+					Math3D.VectorMA (dir, s, up, dir);
+				}
+		
+				p.alpha = 0.8f;
+				p.alphavel = -1000.0f;
+				p.color = /* 223 */0x74 - (Lib.rand()&7);
+				for (j=0 ; j<3 ; j++)
+				{
+					p.org[j] = move[j] + dir[j]*3;
+					p.vel[j] = 0;
+				}
+				
+				active_particles.add(p);
+			}
+			Math3D.VectorAdd (move, vec, move);
+		}
+	}
+	
+	private void RailTrail(float[] start, float[] end)
+	{
+		float[] move = {0, 0, 0};
+		float[] vec = {0, 0, 0};
+		float	len;
+		int j;
+		cparticle_t	p;
+		float	dec;
+		float[] right = {0, 0, 0};
+		float[] up = {0, 0, 0};
+		int i;
+		float	d, c, s;
+		float[] dir = {0, 0, 0};
+
+		Math3D.VectorCopy (start, move);
+		Math3D.VectorSubtract (end, start, vec);
+		len = Math3D.VectorNormalize(vec);
+
+		Math3D.MakeNormalVectors(vec, right, up);
+
+		for (i=0 ; i<len ; i++)
+		{
+
+			p = new cparticle_t();		
+			p.time = time();
+			Math3D.VectorClear (p.accel);
+
+			d = i * 0.1f;
+			c = (float)Math.cos(d);
+			s = (float)Math.sin(d);
+
+			Math3D.VectorScale (right, c, dir);
+			Math3D.VectorMA (dir, s, up, dir);
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (1 + Lib.frand() * 0.2f);
+			p.color = 0x74 + (Lib.rand() & 7);
+			for (j=0 ; j<3 ; j++)
+			{
+				p.org[j] = move[j] + dir[j]*3;
+				p.vel[j] = dir[j]*6;
+			}
+
+			Math3D.VectorAdd (move, vec, move);
+
+			active_particles.add(p);	
+		}
+
+		dec = 0.75f;
+		Math3D.VectorScale (vec, dec, vec);
+		Math3D.VectorCopy (start, move);
+
+		while (len > 0)
+		{
+			len -= dec;
+
+			p = new cparticle_t();
+
+			p.time = time();
+			Math3D.VectorClear (p.accel);
+
+			p.alpha = 1.0f;
+			p.alphavel = -1.0f / (0.6f + Lib.frand() * 0.2f);
+			p.color = 0x0 + Lib.rand()&15;
+
+			for (j=0 ; j<3 ; j++)
+			{
+				p.org[j] = move[j] + Lib.crand()*3;
+				p.vel[j] = Lib.crand()*3;
+				p.accel[j] = 0;
+			}
+
+			Math3D.VectorAdd (move, vec, move);
+			active_particles.add(p);	
 		}
 	}
 	
