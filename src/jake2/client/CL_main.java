@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.6 2004-01-29 22:44:58 hoz Exp $
+ * $Id: CL_main.java,v 1.7 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,8 @@ package jake2.client;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import jake2.Defines;
 import jake2.Globals;
@@ -37,7 +39,9 @@ import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.FS;
+import jake2.sys.*;
 import jake2.sys.IN;
+import jake2.sys.Sys;
 
 /**
  * CL_main
@@ -641,8 +645,7 @@ public class CL_main extends CL_pred {
 //	Resend a connect message if the last one has timed out
 //	=================
 //	*/
-//	void CL_CheckForResend (void)
-//	{
+	static void CheckForResend() {
 //		netadr_t	adr;
 //
 //		// if the local server is running and we aren't
@@ -678,7 +681,7 @@ public class CL_main extends CL_pred {
 //		Com_Printf ("Connecting to %s...\n", cls.servername);
 //
 //		Netchan_OutOfBandPrint (NS_CLIENT, adr, "getchallenge\n");
-//	}
+	}
 //
 //
 //	/*
@@ -1076,8 +1079,7 @@ public class CL_main extends CL_pred {
 //	Responses to broadcasts, etc
 //	=================
 //	*/
-//	void CL_ConnectionlessPacket (void)
-//	{
+	static void ConnectionlessPacket() {
 //		char	*s;
 //		char	*c;
 //	
@@ -1158,7 +1160,7 @@ public class CL_main extends CL_pred {
 //		}
 //
 //		Com_Printf ("Unknown command.\n");
-//	}
+	}
 //
 //
 //	/*
@@ -1183,62 +1185,57 @@ public class CL_main extends CL_pred {
 //	=================
 //	*/
 	static void ReadPackets() {
-//		while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
-//		{
-////		Com_Printf ("packet\n");
-//			//
-//			// remote command packet
-//			//
+		while (NET.GetPacket(NS_CLIENT, net_from, net_message)) {
+
+			//
+			// remote command packet
+			//
+			ByteBuffer buf = ByteBuffer.wrap(net_message.data);
+			buf.order(ByteOrder.nativeOrder());
+			if (buf.getInt(0) == -1) {
 //			if (*(int *)net_message.data == -1)
-//			{
-//				CL_ConnectionlessPacket ();
-//				continue;
-//			}
-//
-//			if (cls.state == ca_disconnected || cls.state == ca_connecting)
-//				continue;		// dump it if not connected
-//
-//			if (net_message.cursize < 8)
-//			{
-//				Com_Printf ("%s: Runt packet\n",NET_AdrToString(net_from));
-//				continue;
-//			}
-//
-//			//
-//			// packet from server
-//			//
-//			if (!NET_CompareAdr (net_from, cls.netchan.remote_address))
-//			{
-//				Com_DPrintf ("%s:sequenced packet without connection\n"
-//					,NET_AdrToString(net_from));
-//				continue;
-//			}
-//			if (!Netchan_Process(&cls.netchan, &net_message))
-//				continue;		// wasn't accepted for some reason
-//			CL_ParseServerMessage ();
+				CL.ConnectionlessPacket();
+				continue;
+			}
+
+			if (cls.state == ca_disconnected || cls.state == ca_connecting)
+				continue;		// dump it if not connected
+
+			if (net_message.cursize < 8) {
+				Com.Printf(NET.AdrToString(net_from) + ": Runt packet\n");
+				continue;
+			}
+
+			//
+			// packet from server
+			//
+			if (!NET.CompareAdr (net_from, cls.netchan.remote_address)) {
+				Com.DPrintf(NET.AdrToString(net_from) + 
+							":sequenced packet without connection\n");
+				continue;
+			}
+			if (!Netchan.Process(cls.netchan, net_message))
+				continue;		// wasn't accepted for some reason
+			CL.ParseServerMessage();
 		}
-//
-//		//
-//		// check timeout
-//		//
-//		if (cls.state >= ca_connected
-//		 && cls.realtime - cls.netchan.last_received > cl_timeout->value*1000)
-//		{
-//			if (++cl.timeoutcount > 5)	// timeoutcount saves debugger
-//			{
-//				Com_Printf ("\nServer connection timed out.\n");
-//				CL_Disconnect ();
-//				return;
-//			}
-//		}
-//		else
-//			cl.timeoutcount = 0;
-//	
-//	}
-//
-//
-////	  =============================================================================
-//
+
+		//
+		// check timeout
+		//
+		if (cls.state >= ca_connected
+			&& cls.realtime - cls.netchan.last_received > cl_timeout.value*1000) {
+			if (++cl.timeoutcount > 5)	// timeoutcount saves debugger
+			{
+				Com.Printf("\nServer connection timed out.\n");
+				CL.Disconnect();
+				return;
+			}
+		} else
+			cl.timeoutcount = 0;
+	}
+
+//	  =============================================================================
+
 //	/*
 //	==============
 //	CL_FixUpGender_f
@@ -1702,17 +1699,17 @@ public class CL_main extends CL_pred {
 		
 		Cmd.AddCommand("quit", Quit_f);
 		
-				Cmd.AddCommand("connect", Connect_f);
-				Cmd.AddCommand("reconnect", Reconnect_f);
+		Cmd.AddCommand("connect", Connect_f);
+		Cmd.AddCommand("reconnect", Reconnect_f);
 		
-				Cmd.AddCommand("rcon", Rcon_f);
+		Cmd.AddCommand("rcon", Rcon_f);
 		
 		
-				Cmd.AddCommand("setenv", Setenv_f);
+		Cmd.AddCommand("setenv", Setenv_f);
 		
-				Cmd.AddCommand("precache", Precache_f);
+		Cmd.AddCommand("precache", Precache_f);
 		
-				Cmd.AddCommand("download", Download_f);
+		Cmd.AddCommand("download", Download_f);
 		
 		//
 		// forward to server commands
@@ -1806,8 +1803,7 @@ public class CL_main extends CL_pred {
 //
 //	int		numcheatvars;
 //
-//	void CL_FixCvarCheats (void)
-//	{
+	static void FixCvarCheats() {
 //		int			i;
 //		cheatvar_t	*var;
 //
@@ -1834,37 +1830,36 @@ public class CL_main extends CL_pred {
 //				Cvar_Set (var->name, var->value);
 //			}
 //		}
-//	}
+	}
 //
 ////	  ============================================================================
 //
-//	/*
-//	==================
-//	CL_SendCommand
-//
-//	==================
-//	*/
+	/*
+	==================
+	CL_SendCommand
+	
+	==================
+	*/
 	static void SendCommand() {
-//		// get new key events
-//		Sys_SendKeyEvents ();
-//
-//		// allow mice or other external controllers to add commands
-//		IN_Commands ();
-//
-//		// process console commands
-//		Cbuf_Execute ();
-//
-//		// fix any cheating cvars
-//		CL_FixCvarCheats ();
-//
-//		// send intentions now
-//		CL_SendCmd ();
-//
-//		// resend a connection request if necessary
-//		CL_CheckForResend ();
+		// get new key events
+		Sys.SendKeyEvents();
+
+		// allow mice or other external controllers to add commands
+		IN.Commands();
+
+		// process console commands
+		Cbuf.Execute();
+	
+		// fix any cheating cvars
+		CL.FixCvarCheats();
+
+		// send intentions now
+		CL.SendCmd();
+	
+		// resend a connection request if necessary
+		CL.CheckForResend ();
 	}
-//
-//
+
 	/*
 	==================
 	CL_Frame

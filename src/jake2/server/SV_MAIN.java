@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.7 2004-01-25 21:45:45 rst Exp $
+// $Id: SV_MAIN.java,v 1.8 2004-01-30 09:24:20 hoz Exp $
 
 package jake2.server;
 
@@ -164,7 +164,7 @@ public class SV_MAIN extends SV_GAME {
 	================
 	*/
 	public static void SVC_Ack() {
-		Com.Printf("Ping acknowledge from " + NET.NET_AdrToString(Netchan.net_from) + "\n");
+		Com.Printf("Ping acknowledge from " + NET.AdrToString(Netchan.net_from) + "\n");
 	}
 
 	/*
@@ -288,7 +288,7 @@ public class SV_MAIN extends SV_GAME {
 		//userinfo[sizeof(userinfo) - 1] = 0;
 
 		// force the IP key/value pair so the game can filter based on ip
-		userinfo = Info.Info_SetValueForKey1(userinfo, "ip", NET.NET_AdrToString(Netchan.net_from));
+		userinfo = Info.Info_SetValueForKey1(userinfo, "ip", NET.AdrToString(Netchan.net_from));
 
 		// attractloop servers are ONLY for local clients
 		if (sv.attractloop) {
@@ -328,10 +328,10 @@ public class SV_MAIN extends SV_GAME {
 			if (NET.NET_CompareBaseAdr(adr, cl.netchan.remote_address)
 				&& (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
 				if (!NET.NET_IsLocalAddress(adr) && (svs.realtime - cl.lastconnect) < ((int) sv_reconnect_limit.value * 1000)) {
-					Com.DPrintf(NET.NET_AdrToString(adr) + ":reconnect rejected : too soon\n");
+					Com.DPrintf(NET.AdrToString(adr) + ":reconnect rejected : too soon\n");
 					return;
 				}
-				Com.Printf(NET.NET_AdrToString(adr) + ":reconnect\n");
+				Com.Printf(NET.AdrToString(adr) + ":reconnect\n");
 
 				gotnewcl(i, challenge, userinfo, adr, qport);
 				return;
@@ -428,9 +428,9 @@ public class SV_MAIN extends SV_GAME {
 		String msg = new String(net_message.data, 4, -1);
 
 		if (i == 0)
-			Com.Printf("Bad rcon from " + NET.NET_AdrToString(Netchan.net_from) + ":\n" + msg + "\n");
+			Com.Printf("Bad rcon from " + NET.AdrToString(Netchan.net_from) + ":\n" + msg + "\n");
 		else
-			Com.Printf("Rcon from " + NET.NET_AdrToString(Netchan.net_from) + ":\n" + msg + "\n");
+			Com.Printf("Rcon from " + NET.AdrToString(Netchan.net_from) + ":\n" + msg + "\n");
 
 		Com.BeginRedirect(RD_PACKET, SV_SEND.sv_outputbuf, SV_OUTPUTBUF_LENGTH, new Com.RD_Flusher() {
 			public void rd_flush(int target, byte[] buffer) {
@@ -477,7 +477,7 @@ public class SV_MAIN extends SV_GAME {
 		Cmd.TokenizeString(s.toCharArray(), false);
 
 		c = Cmd.Argv(0);
-		Com.DPrintf("Packet " + NET.NET_AdrToString(Netchan.net_from) + " : " + c + "\n");
+		Com.DPrintf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
 
 		if (0 == strcmp(c, "ping"))
 			SVC_Ping();
@@ -494,7 +494,7 @@ public class SV_MAIN extends SV_GAME {
 		else if (0 == strcmp(c, "rcon"))
 			SVC_RemoteCommand();
 		else
-			Com.Printf("bad connectionless packet from " + NET.NET_AdrToString(Netchan.net_from) + ":\n" + s + "\n");
+			Com.Printf("bad connectionless packet from " + NET.AdrToString(Netchan.net_from) + ":\n" + s + "\n");
 	}
 
 	//============================================================================
@@ -568,7 +568,7 @@ public class SV_MAIN extends SV_GAME {
 		client_t cl;
 		int qport;
 
-		while (NET.NET_GetPacket(NS_SERVER, Netchan.net_from, net_message)) {
+		while (NET.GetPacket(NS_SERVER, Netchan.net_from, net_message)) {
 
 			// check for connectionless packet (0xffffffff) first
 			if ((net_message.data[0] == -1)
@@ -600,7 +600,7 @@ public class SV_MAIN extends SV_GAME {
 					cl.netchan.remote_address.port = Netchan.net_from.port;
 				}
 
-				if (Netchan.Netchan_Process(cl.netchan, net_message)) { // this is a valid, sequenced packet, so process it
+				if (Netchan.Process(cl.netchan, net_message)) { // this is a valid, sequenced packet, so process it
 					if (cl.state != cs_zombie) {
 						cl.lastmessage = svs.realtime; // don't timeout
 						SV_USER.SV_ExecuteClientMessage(cl);
@@ -804,7 +804,7 @@ public class SV_MAIN extends SV_GAME {
 		// send to group master
 		for (i = 0; i < MAX_MASTERS; i++)
 			if (master_adr[i].port != 0) {
-				Com.Printf("Sending heartbeat to " + NET.NET_AdrToString(master_adr[i]) + "\n");
+				Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
 				Netchan.Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "heartbeat\n" + string);
 			}
 	}
@@ -831,7 +831,7 @@ public class SV_MAIN extends SV_GAME {
 		for (i = 0; i < MAX_MASTERS; i++)
 			if (master_adr[i].port != 0) {
 				if (i > 0)
-					Com.Printf("Sending heartbeat to " + NET.NET_AdrToString(master_adr[i]) + "\n");
+					Com.Printf("Sending heartbeat to " + NET.AdrToString(master_adr[i]) + "\n");
 				Netchan.Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "shutdown");
 			}
 	}

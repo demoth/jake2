@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.3 2004-01-27 20:10:29 rst Exp $
+// $Id: SV_CCMDS.java,v 1.4 2004-01-30 09:24:20 hoz Exp $
 
 package jake2.server;
 
@@ -86,7 +86,7 @@ public class SV_CCMDS extends SV_ENTS {
 					master_adr[slot].port = //BigShort (PORT_MASTER);
 	PORT_MASTER;
 
-			Com.Printf("Master server at " + NET.NET_AdrToString(master_adr[slot]) + "\n");
+			Com.Printf("Master server at " + NET.AdrToString(master_adr[slot]) + "\n");
 
 			Com.Printf("Sending a ping.\n");
 
@@ -852,7 +852,7 @@ public class SV_CCMDS extends SV_ENTS {
 
 			Com.Printf("%7i ", new Vargs().add(svs.realtime - cl.lastmessage));
 
-			s = NET.NET_AdrToString(cl.netchan.remote_address);
+			s = NET.AdrToString(cl.netchan.remote_address);
 			Com.Printf(s);
 			l = 22 - strlen(s);
 			for (j = 0; j < l; j++)

@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.9 2004-01-20 22:25:07 rst Exp $
+ * $Id: Netchan.java,v 1.10 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -228,7 +228,7 @@ public final class Netchan extends SV_MAIN {
 		// check for message overflow
 		if (chan.message.overflowed) {
 			chan.fatal_error = true;
-			Com.Printf(NET.NET_AdrToString(chan.remote_address) + ":Outgoing message overflow\n");
+			Com.Printf(NET.AdrToString(chan.remote_address) + ":Outgoing message overflow\n");
 			return;
 		}
 
@@ -308,7 +308,7 @@ public final class Netchan extends SV_MAIN {
 	modifies net_message so that it points to the packet payload
 	=================
 	*/
-	public static boolean Netchan_Process(netchan_t chan, sizebuf_t msg) {
+	public static boolean Process(netchan_t chan, sizebuf_t msg) {
 		int sequence, sequence_ack;
 		int reliable_ack, reliable_message;
 		int qport;
@@ -353,7 +353,7 @@ public final class Netchan extends SV_MAIN {
 		if (sequence <= chan.incoming_sequence) {
 			if (showdrop.value != 0)
 				Com.Printf(
-					NET.NET_AdrToString(chan.remote_address)
+					NET.AdrToString(chan.remote_address)
 						+ ":Out of order packet "
 						+ sequence
 						+ " at "
@@ -368,7 +368,7 @@ public final class Netchan extends SV_MAIN {
 		chan.dropped = sequence - (chan.incoming_sequence + 1);
 		if (chan.dropped > 0) {
 			if (showdrop.value != 0)
-				Com.Printf(NET.NET_AdrToString(chan.remote_address) + ":Dropped " + chan.dropped + " packets at " + sequence + "\n");
+				Com.Printf(NET.AdrToString(chan.remote_address) + ":Dropped " + chan.dropped + " packets at " + sequence + "\n");
 		}
 
 		//

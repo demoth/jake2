@@ -2,7 +2,7 @@
  * NET.java
  * Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.6 2004-01-20 22:25:07 rst Exp $
+ * $Id: NET.java,v 1.7 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,18 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.SocketAddress;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
+import jake2.Defines;
+import jake2.Globals;
+import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+
+import java.net.*;
 
 public final class NET extends Defines {
 
@@ -93,7 +87,7 @@ public final class NET extends Defines {
 //	}
 //	
 	
-	public static boolean NET_CompareAdr(netadr_t a, netadr_t b) {
+	public static boolean CompareAdr(netadr_t a, netadr_t b) {
 		if (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3] && a.port == b.port)
 			return true;
 		return false;
@@ -136,7 +130,7 @@ public final class NET extends Defines {
 	
 	
 	
-	public static String NET_AdrToString(netadr_t a) {
+	public static String AdrToString(netadr_t a) {
 		//was:
 		//static	char	s[64];
 		//Com_sprintf (s, sizeof(s), "%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs(a.port));
@@ -249,7 +243,7 @@ public final class NET extends Defines {
 	
 	public static boolean	NET_IsLocalAddress (netadr_t adr)
 	{
-		return NET_CompareAdr (adr, net_local_adr);
+		return CompareAdr (adr, net_local_adr);
 	}
 	
 	/*
@@ -311,7 +305,7 @@ public final class NET extends Defines {
 	private static DatagramPacket receivedatagrampacket = new DatagramPacket(new byte[65507], 65507);
 	
 	//=============================================================================	
-	public static boolean	NET_GetPacket (int sock, netadr_t net_from, sizebuf_t net_message)
+	public static boolean GetPacket (int sock, netadr_t net_from, sizebuf_t net_message)
 	{
 		DatagramSocket	net_socket;
 //		int 	ret;
@@ -340,7 +334,7 @@ public final class NET extends Defines {
 
 			if (receivedatagrampacket.getLength() > net_message.maxsize)
 			{
-				Com.Printf ("Oversize packet from " + NET_AdrToString(net_from) + "\n");
+				Com.Printf ("Oversize packet from " + AdrToString(net_from) + "\n");
 				return false;
 			}
 			System.arraycopy(receivedatagrampacket.getData(), 0, net_message.data, 0 , receivedatagrampacket.getLength());
@@ -350,7 +344,7 @@ public final class NET extends Defines {
 		}
 		catch(Exception e)
 		{
-			Com.Printf ("NET_GetPacket: " + e + " from " + 	NET_AdrToString(net_from) + "\n");
+			Com.Printf ("NET_GetPacket: " + e + " from " + 	AdrToString(net_from) + "\n");
 			return false;
 		}
 		
@@ -440,7 +434,7 @@ public final class NET extends Defines {
 		}
 		catch(Exception e)
 		{
-			Com.Printf ("NET_SendPacket ERROR: " + e + " to " + NET_AdrToString (to) + "\n");
+			Com.Printf ("NET_SendPacket ERROR: " + e + " to " + AdrToString (to) + "\n");
 		}
 	}
 	

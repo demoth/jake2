@@ -2,7 +2,7 @@
  * CL_parse.java
  * Copyright (C) 2004
  * 
- * $Id: CL_parse.java,v 1.3 2004-01-28 14:42:58 hoz Exp $
+ * $Id: CL_parse.java,v 1.4 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -667,8 +667,7 @@ public class CL_parse extends CL_view {
 //	CL_ParseServerMessage
 //	=====================
 //	*/
-//	void CL_ParseServerMessage (void)
-//	{
+	static void ParseServerMessage() {
 //		int			cmd;
 //		char		*s;
 //		int			i;
@@ -819,7 +818,6 @@ public class CL_parse extends CL_view {
 //		if (cls.demorecording && !cls.demowaiting)
 //			CL_WriteDemoMessage ();
 //
-//	}
-//
-//
+	}
+
 }

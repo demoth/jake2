@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.35 2004-01-28 21:04:10 hoz Exp $
+ * $Id: Globals.java,v 1.36 2004-01-30 09:24:20 hoz Exp $
  * $Log: Globals.java,v $
- * Revision 1.35  2004-01-28 21:04:10  hoz
+ * Revision 1.36  2004-01-30 09:24:20  hoz
+ * - client code
+ *
+ * Revision 1.35  2004/01/28 21:04:10  hoz
  * - client code
  *
  * Revision 1.34  2004/01/28 14:42:58  hoz
@@ -57,6 +60,7 @@ package jake2;
 
 import jake2.client.*;
 import jake2.game.*;
+import jake2.qcommon.netadr_t;
 import jake2.qcommon.sizebuf_t;
 import jake2.render.model_t;
 
@@ -411,4 +415,5 @@ public class Globals extends Defines {
 	public static int chat_bufferlen = 0;
 	public static int gun_frame;
 	public static model_t gun_model;
+	public static netadr_t net_from = new netadr_t();
 }

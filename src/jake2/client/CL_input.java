@@ -2,7 +2,7 @@
  * CL_input.java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.2 2004-01-26 14:29:02 hoz Exp $
+ * $Id: CL_input.java,v 1.3 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -468,8 +468,7 @@ public class CL_input extends CL_tent {
 //	CL_SendCmd
 //	=================
 //	*/
-//	void CL_SendCmd (void)
-//	{
+	static void SendCmd() {
 //		sizebuf_t	buf;
 //		byte		data[128];
 //		int			i;
@@ -555,7 +554,7 @@ public class CL_input extends CL_tent {
 //		// deliver the message
 //		//
 //		Netchan_Transmit (&cls.netchan, buf.cursize, buf.data);	
-//	}
+	}
 //
 //
 }

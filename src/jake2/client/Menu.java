@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.8 2004-01-29 22:44:58 hoz Exp $
+ * $Id: Menu.java,v 1.9 2004-01-30 09:24:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2514,7 +2514,7 @@ public final class Menu extends Key {
 		if (index >= m_num_servers)
 			return;
 
-		buffer = "connect " + NET.NET_AdrToString(local_server_netadr[index]) + "\n";
+		buffer = "connect " + NET.AdrToString(local_server_netadr[index]) + "\n";
 		Cbuf.AddText(buffer);
 		ForceMenuOff();
 	}
