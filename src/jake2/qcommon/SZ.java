@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.4 2005-01-17 23:05:57 cawe Exp $
+ * $Id: SZ.java,v 1.5 2005-02-06 19:26:50 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -88,6 +88,7 @@ public final class SZ {
 
 	// 
 	public static void Print(sizebuf_t buf, String data) {
+	    Com.dprintln("SZ.print():<" + data + ">" );
 		int length = data.length();
 		byte str[] = data.getBytes();
 	
