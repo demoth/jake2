@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.2 2004-06-13 00:54:42 cwei Exp $
+ * $Id: Impl.java,v 1.3 2004-06-13 01:05:17 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -304,10 +304,10 @@ public class Impl extends Misc implements GLEventListener {
 		// this is a hack to run R_init() in gl context
 		post_init = R_Init2();
 
-		if (gl instanceof WGL) {
-			// Win32 VSync is off
-			((WGL)gl).wglSwapIntervalEXT(0);
-		}
+//		if (gl instanceof WGL) {
+//			// Win32 VSync is off
+//			((WGL)gl).wglSwapIntervalEXT(0);
+//		}
 	}
 
 	/* 
