@@ -19,11 +19,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: medge_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: medge_t.java,v 1.3 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
 
+import jake2.Defines;
+
+import java.nio.ByteBuffer;
+
 public class medge_t {
-	short	v[]= new short[2];
-	int	cachededgeoffset;
+	
+	public static final int DISK_SIZE = 2 * Defines.SIZE_OF_SHORT;
+	public static final int MEM_SIZE = 3 * Defines.SIZE_OF_INT;
+	
+	// unsigned short
+	public int[] v = new int[2];
+	public int cachededgeoffset;
+	
+	public medge_t(ByteBuffer b) {
+		v[0] = b.getShort() & 0xFFFF;
+		v[1] = b.getShort() & 0xFFFF;
+	}
 }

@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.3 2004-01-19 12:59:06 cwei Exp $
+ * $Id: Light.java,v 1.4 2004-01-20 16:15:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import java.nio.ByteBuffer;
+
 import jake2.Defines;
 import jake2.client.dlight_t;
 import jake2.game.GameBase;
@@ -39,7 +41,7 @@ import jake2.util.Math3D;
  *  
  * @author cwei
  */
-public abstract class Light extends Surf {
+public abstract class Light extends Model {
 ////	   r_light.c
 //
 //	#include "gl_local.h"
@@ -215,7 +217,7 @@ public abstract class Light extends Surf {
 		int s, t, ds, dt;
 		int i;
 		mtexinfo_t tex;
-		byte[] lightmap;
+		ByteBuffer lightmap;
 		int maps;
 		int r;
 
@@ -294,9 +296,9 @@ public abstract class Light extends Surf {
 					for (i=0 ; i<3 ; i++)
 						scale[i] = gl_modulate.value * r_newrefdef.lightstyles[surf.styles[maps] & 0xFF].rgb[i];
 
-					pointcolor[0] += (lightmap[lightmapIndex + 0] & 0xFF) * scale[0] * (1.0/255);
-					pointcolor[1] += (lightmap[lightmapIndex + 1] & 0xFF) * scale[1] * (1.0/255);
-					pointcolor[2] += (lightmap[lightmapIndex + 2] & 0xFF) * scale[2] * (1.0/255);
+					pointcolor[0] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[0] * (1.0/255);
+					pointcolor[1] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[1] * (1.0/255);
+					pointcolor[2] += (lightmap.get(lightmapIndex + 0) & 0xFF) * scale[2] * (1.0/255);
 //					lightmap += 3*((surf.extents[0]>>4)+1) *
 //							((surf.extents[1]>>4)+1);
 					lightmapIndex += 3 * ((surf.extents[0] >> 4) + 1) * ((surf.extents[1] >> 4) + 1);

@@ -19,12 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mtexinfo_t.java,v 1.3 2004-01-05 13:59:44 cwei Exp $
+// $Id: mtexinfo_t.java,v 1.4 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
 
 public class mtexinfo_t {
-	public float vecs[][]= new float[2][4];
+	// [s/t][xyz offset]
+	public float vecs[][] = {
+		 { 0, 0, 0, 0 },
+		 { 0, 0, 0, 0 }
+	};
 	public int flags;
 	public int numframes;
 	public mtexinfo_t next; // animation chain

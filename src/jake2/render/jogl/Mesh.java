@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.8 2004-01-19 12:59:06 cwei Exp $
+ * $Id: Mesh.java,v 1.9 2004-01-20 16:15:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,7 +42,7 @@ import jake2.util.Math3D;
  *  
  * @author cwei
  */
-public abstract class Mesh extends Warp {
+public abstract class Mesh extends Light {
 
 	// g_mesh.c: triangle model functions
 

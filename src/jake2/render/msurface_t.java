@@ -19,9 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.5 2004-01-19 12:34:13 cwei Exp $
+// $Id: msurface_t.java,v 1.6 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
+
+import java.nio.ByteBuffer;
 
 import jake2.game.*;
 import jake2.*;
@@ -58,6 +60,7 @@ public class msurface_t
 	public byte styles[] = new byte[Defines.MAXLIGHTMAPS];
 	public float cached_light[] = new float[Defines.MAXLIGHTMAPS];
 	// values currently used in lightmap
-	public byte samples[]; // [numstyles*surfsize]
+	//public byte samples[]; // [numstyles*surfsize]
+	public ByteBuffer samples; // [numstyles*surfsize]
 
 }

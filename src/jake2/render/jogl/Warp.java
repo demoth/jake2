@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.1 2004-01-03 20:24:22 cwei Exp $
+ * $Id: Warp.java,v 1.2 2004-01-20 16:15:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,12 +25,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.render.msurface_t;
+
 /**
  * Warp
  *  
  * @author cwei
  */
-public abstract class Warp extends Light {
+public abstract class Warp extends Surf {
 	
 	
 	// warpsin.h
@@ -204,17 +206,17 @@ public abstract class Warp extends Light {
 //		memcpy (poly->verts[i+1], poly->verts[1], sizeof(poly->verts[0]));
 //	}
 //
-//	/*
-//	================
-//	GL_SubdivideSurface
-//
-//	Breaks a polygon up along axial 64 unit
-//	boundaries so that turbulent and sky warps
-//	can be done reasonably.
-//	================
-//	*/
-//	void GL_SubdivideSurface (msurface_t *fa)
-//	{
+	/*
+	================
+	GL_SubdivideSurface
+
+	Breaks a polygon up along axial 64 unit
+	boundaries so that turbulent and sky warps
+	can be done reasonably.
+	================
+	*/
+	void GL_SubdivideSurface (msurface_t fa)
+	{
 //		vec3_t		verts[64];
 //		int			numverts;
 //		int			i;
@@ -240,7 +242,7 @@ public abstract class Warp extends Light {
 //		}
 //
 //		SubdividePolygon (numverts, verts[0]);
-//	}
+	}
 //
 ////	  =========================================================
 //

@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.4 2004-01-14 21:30:00 cwei Exp $
+ * $Id: Surf.java,v 1.5 2004-01-20 16:15:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.client.entity_t;
 import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.render.mnode_t;
+import jake2.render.model_t;
 import jake2.render.msurface_t;
 import jake2.render.mtexinfo_t;
 
@@ -649,8 +650,8 @@ public abstract class Surf extends Draw {
 	}
 
 
-//	static void GL_RenderLightmappedPoly( msurface_t *surf )
-//	{
+	void GL_RenderLightmappedPoly( msurface_t surf )
+	{
 //		int		i, nv = surf->polys->numverts;
 //		int		map;
 //		float	*v;
@@ -819,7 +820,7 @@ public abstract class Surf extends Draw {
 ////	  PGM
 ////	  ==========
 //		}
-//	}
+	}
 
 	/*
 	=================
@@ -1422,8 +1423,8 @@ public abstract class Surf extends Draw {
 	GL_CreateSurfaceLightmap
 	========================
 	*/
-//	void GL_CreateSurfaceLightmap (msurface_t *surf)
-//	{
+	void GL_CreateSurfaceLightmap (msurface_t surf)
+	{
 //		int		smax, tmax;
 //		byte	*base;
 //
@@ -1450,17 +1451,17 @@ public abstract class Surf extends Draw {
 //
 //		R_SetCacheState( surf );
 //		R_BuildLightMap (surf, base, BLOCK_WIDTH*LIGHTMAP_BYTES);
-//	}
-//
-//
-//	/*
-//	==================
-//	GL_BeginBuildingLightmaps
-//
-//	==================
-//	*/
-//	void GL_BeginBuildingLightmaps (model_t *m)
-//	{
+	}
+
+
+	/*
+	==================
+	GL_BeginBuildingLightmaps
+
+	==================
+	*/
+	void GL_BeginBuildingLightmaps (model_t m)
+	{
 //		static lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
 //		int				i;
 //		unsigned		dummy[128*128];
@@ -1545,19 +1546,17 @@ public abstract class Surf extends Draw {
 //					   GL_LIGHTMAP_FORMAT, 
 //					   GL_UNSIGNED_BYTE, 
 //					   dummy );
-//	}
-//
-//	/*
-//	=======================
-//	GL_EndBuildingLightmaps
-//	=======================
-//	*/
-//	void GL_EndBuildingLightmaps (void)
-//	{
+	}
+
+	/*
+	=======================
+	GL_EndBuildingLightmaps
+	=======================
+	*/
+	void GL_EndBuildingLightmaps()
+	{
 //		LM_UploadBlock( false );
 //		GL_EnableMultitexture( false );
-//	}
-//
-
+	}
 
 }

@@ -19,15 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mmodel_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: mmodel_t.java,v 1.3 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
 
-public class mmodel_t {
-	float []		mins={0,0,0}, maxs={0,0,0};
-	float []		origin={0,0,0};		// for sounds or lights
-	float		radius;
-	int			headnode;
-	int			visleafs;		// not including the solid leaf 0
-	int			firstface, numfaces;
+public class mmodel_t
+{
+	public float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
+	public float[] origin = { 0, 0, 0 }; // for sounds or lights
+	public float radius;
+	public int headnode;
+	public int visleafs; // not including the solid leaf 0
+	public int firstface, numfaces;
 }

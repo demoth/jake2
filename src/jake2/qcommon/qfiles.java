@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.8 2004-01-17 20:34:46 rst Exp $
+ * $Id: qfiles.java,v 1.9 2004-01-20 16:15:41 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -118,46 +118,62 @@ public class qfiles {
 	}
 
 	public static class dface_t {
-		//unsigned short	planenum;
-		int planenum;
-		short side;
+		
+		public static final int SIZE =
+				4 * Defines.SIZE_OF_SHORT
+			+	2 * Defines.SIZE_OF_INT
+			+	Defines.MAXLIGHTMAPS;
 
-		int firstedge; // we must support > 64k edges
-		short numedges;
-		short texinfo;
+		//unsigned short	planenum;
+		public int planenum;
+		public short side;
+
+		public int firstedge; // we must support > 64k edges
+		public short numedges;
+		public short texinfo;
 
 		// lighting info
-		byte styles[] = new byte[Defines.MAXLIGHTMAPS];
-		int lightofs; // start of [numstyles*surfsize] samples
+		public byte styles[] = new byte[Defines.MAXLIGHTMAPS];
+		public int lightofs; // start of [numstyles*surfsize] samples
+		
+		public dface_t(ByteBuffer b) {
+			planenum = b.getShort() & 0xFFFF;
+			side = b.getShort();
+			firstedge = b.getInt();
+			numedges = b.getShort();
+			texinfo = b.getShort();
+			b.get(styles);
+			lightofs = b.getInt();
+		}
+		
 	}
 
 	public static class dheader_t {
 
 		public dheader_t(ByteBuffer bb) {
 
-			this.ident = EndianHandler.swapInt(bb.getInt());
-			this.version = EndianHandler.swapInt(bb.getInt());
+			this.ident = bb.getInt();
+			this.version = bb.getInt();
 
 			for (int n = 0; n < Defines.HEADER_LUMPS; n++)
-				lumps[n] =
-					new lump_t(
-						EndianHandler.swapInt(bb.getInt()),
-						EndianHandler.swapInt(bb.getInt()));
+				lumps[n] = new lump_t(bb.getInt(), bb.getInt());
 
 		}
 
-		int ident;
-		int version;
-		lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
+		public int ident;
+		public int version;
+		public lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
 	}
 
 	public static class dleaf_t {
+		
+		
 
 		public dleaf_t(byte[] cmod_base, int i, int j) {
-			ByteBuffer bb = ByteBuffer.wrap(cmod_base, i, j);
+			this(ByteBuffer.wrap(cmod_base, i, j).order(ByteOrder.LITTLE_ENDIAN));
+		}
 
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-
+		public dleaf_t(ByteBuffer bb) {
 			contents = bb.getInt();
 			cluster = bb.getShort();
 			area = bb.getShort();
@@ -177,15 +193,15 @@ public class qfiles {
 			numleafbrushes = bb.getShort() & 0xffff;
 		}
 
-		public static int SIZE = 4 + 8 * 2 + 4 * 2;
+		public static final int SIZE = 4 + 8 * 2 + 4 * 2;
 
-		int contents; // OR of all brushes (not needed?)
+		public int contents; // OR of all brushes (not needed?)
 
-		short cluster;
-		short area;
+		public short cluster;
+		public short area;
 
-		short mins[] = { 0, 0, 0 }; // for frustum culling
-		short maxs[] = { 0, 0, 0 };
+		public short mins[] = { 0, 0, 0 }; // for frustum culling
+		public short maxs[] = { 0, 0, 0 };
 
 		/*
 		unsigned short	firstleafface;
@@ -194,11 +210,11 @@ public class qfiles {
 		unsigned short	firstleafbrush;
 		unsigned short	numleafbrushes;
 		*/
-		int firstleafface;
-		int numleaffaces;
+		public int firstleafface;
+		public int numleaffaces;
 
-		int firstleafbrush;
-		int numleafbrushes;
+		public int firstleafbrush;
+		public int numleafbrushes;
 	}
 
 
@@ -220,11 +236,11 @@ public class qfiles {
 			firstface = bb.getInt();
 			numfaces = bb.getInt();
 		}
-		float mins[] = { 0, 0, 0 };
-		float maxs[] = { 0, 0, 0 };
-		float origin[] = { 0, 0, 0 }; // for sounds or lights
-		int headnode;
-		int firstface, numfaces; // submodels just draw faces
+		public float mins[] = { 0, 0, 0 };
+		public float maxs[] = { 0, 0, 0 };
+		public float origin[] = { 0, 0, 0 }; // for sounds or lights
+		public int headnode;
+		public int firstface, numfaces; // submodels just draw faces
 		// without walking the bsp tree
 
 		public static int SIZE = 3 * 4 + 3 * 4 + 3 * 4 + 4 + 8;
@@ -251,19 +267,19 @@ public class qfiles {
 
 		}
 
-		int planenum;
-		int children[] = { 0, 0 };
+		public int planenum;
+		public int children[] = { 0, 0 };
 		// negative numbers are -(leafs+1), not nodes
-		short mins[] = { 0, 0, 0 }; // for frustom culling
-		short maxs[] = { 0, 0, 0 };
+		public short mins[] = { 0, 0, 0 }; // for frustom culling
+		public short maxs[] = { 0, 0, 0 };
 
 		/*
 		unsigned short	firstface;
 		unsigned short	numfaces;	// counting both sides
 		*/
 
-		int firstface;
-		int numfaces;
+		public int firstface;
+		public int numfaces;
 
 		public static int SIZE = 4 + 8 + 6 + 6 + 2 + 2; // counting both sides
 	}
@@ -283,11 +299,11 @@ public class qfiles {
 			type = (bb.getInt());
 		}
 
-		float normal[] = { 0, 0, 0 };
-		float dist;
-		int type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+		public float normal[] = { 0, 0, 0 };
+		public float dist;
+		public int type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 
-		public static int SIZE = 3 * 4 + 4 + 4;
+		public static final int SIZE = 3 * 4 + 4 + 4;
 	}
 
 
@@ -304,8 +320,8 @@ public class qfiles {
 			}
 		}
 
-		int numclusters;
-		int bitofs[][] = new int[8][2]; // bitofs[numclusters][2]	
+		public int numclusters;
+		public int bitofs[][] = new int[8][2]; // bitofs[numclusters][2]	
 	}
 
 	////
@@ -720,7 +736,10 @@ public class qfiles {
 	//
 	
 	public static class dvertex_t {
-		public float point[] = { 0, 0, 0 };
+		
+		public static final int SIZE = 3 * 4; // 3 mal 32 bit float 
+		
+		public float[] point = { 0, 0, 0 };
 		
 		public dvertex_t(ByteBuffer b) {
 			point[0] = b.getFloat();
@@ -817,14 +836,18 @@ public class qfiles {
 	//	} dnode_t;
 	//
 	//
-	//	typedef struct texinfo_s
-	//	{
-	//		float		vecs[2][4];		// [s/t][xyz offset]
-	//		int			flags;			// miptex flags + overrides
-	//		int			value;			// light emission, etc
-	//		char		texture[32];	// texture name (textures/*.wal)
-	//		int			nexttexinfo;	// for animations, -1 = end of chain
-	//	} texinfo_t;
+	
+// gibts schon in qcommon
+//
+//		public static class texinfo_t
+//		{
+//			public float[][] vecs = new float[2][4]; // [s/t][xyz offset]
+//			public int flags; // miptex flags + overrides
+//			public int value; // light emission, etc
+//			public String texture;
+//			// char texture[32];	// texture name (textures/*.wal)
+//			public int nexttexinfo; // for animations, -1 = end of chain
+//		}
 	//
 	//
 	////	   note that edge 0 is never used, because negative edge nums are used for

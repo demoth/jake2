@@ -19,10 +19,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mvertex_t.java,v 1.2 2003-11-29 13:28:29 rst Exp $
+// $Id: mvertex_t.java,v 1.3 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
 
+import jake2.Defines;
+
+import java.nio.ByteBuffer;
+
 public class mvertex_t {
-	public float position[]={0,0,0};
+	public static final int DISK_SIZE = 3 * Defines.SIZE_OF_FLOAT; 
+	public static final int MEM_SIZE = 3 * Defines.SIZE_OF_FLOAT; 
+
+	public float[] position = {0, 0, 0};
+
+	public mvertex_t(ByteBuffer b) {
+		position[0] = b.getFloat();
+		position[1] = b.getFloat();
+		position[2] = b.getFloat();
+	}
 }

@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.13 2004-01-19 14:31:23 cwei Exp $
+ * $Id: Image.java,v 1.14 2004-01-20 16:15:41 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -574,11 +574,11 @@ public abstract class Image extends Main {
 //	} TargaHeader;
 //
 //
-//	/*
-//	=============
-//	LoadTGA
-//	=============
-//	*/
+	/*
+	=============
+	LoadTGA
+	=============
+	*/
 	byte[] LoadTGA(String name, Dimension dim)
 	{
 		// TODO LoadTGA()

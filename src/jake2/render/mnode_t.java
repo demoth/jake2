@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: mnode_t.java,v 1.3 2003-12-30 01:08:28 cwei Exp $
+// $Id: mnode_t.java,v 1.4 2004-01-20 16:15:41 cwei Exp $
 
 package jake2.render;
 
@@ -38,7 +38,8 @@ public class mnode_t {
 	public cplane_t plane;
 	public mnode_t children[] = new mnode_t[2];
 
-	public short firstsurface;
-	public short numsurfaces;
+	// unsigned short
+	public int firstsurface;
+	public int numsurfaces;
 
 }
