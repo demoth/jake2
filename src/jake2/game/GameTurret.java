@@ -19,11 +19,12 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.3 2004-09-22 19:22:05 salomo Exp $
+// $Id: GameTurret.java,v 1.4 2005-02-06 19:03:54 salomo Exp $
 package jake2.game;
 
 import jake2.*;
 import jake2.client.*;
+import jake2.game.monsters.M_Infantry;
 import jake2.qcommon.*;
 import jake2.render.*;
 import jake2.server.*;
