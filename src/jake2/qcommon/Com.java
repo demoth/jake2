@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.26 2004-01-27 16:43:13 cwei Exp $
+ * $Id: Com.java,v 1.27 2004-01-30 18:46:04 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +28,17 @@ package jake2.qcommon;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
+import jake2.client.Console;
 import jake2.game.Cmd;
 import jake2.server.SV;
 import jake2.sys.Sys;
+import jake2.util.Lib;
 import jake2.util.PrintfFormat;
 import jake2.util.Vargs;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.logging.Logger;
 
 /**
@@ -48,7 +53,7 @@ public final class Com {
 	}
 
 	static int rd_target;
-	static byte []rd_buffer;
+	static byte[] rd_buffer;
 	static int rd_buffersize;
 	static RD_Flusher rd_flusher;
 
@@ -309,10 +314,71 @@ public final class Com {
 
 	public static void Printf(String fmt, Vargs vargs) {
 		// TODO Com.Printf ist nur zum testen
-		// hier ist System.out mal erlaubt
-		System.out.print(sprintf(fmt, vargs));
+		String msg = sprintf(fmt, vargs);
 
-		//logger.log(Level.INFO, msg);
+		if (rd_target != 0)
+		{
+			if ((msg.length() + Lib.strlen(rd_buffer)) > (rd_buffersize - 1))
+			{
+				rd_flusher.rd_flush(rd_target, rd_buffer);
+				// *rd_buffer = 0;
+				rd_buffer[rd_buffersize] = '\0';
+			}
+			// TODO handle rd_buffer
+			// strcat(rd_buffer, msg);
+			return;
+		}
+
+		Console.Print(msg);
+		
+		// also echo to debugging console
+		Sys.ConsoleOutput(msg);
+
+		// logfile
+		if (Globals.logfile_active != null && Globals.logfile_active.value != 0)
+		{
+			String name;
+		
+			if (Globals.logfile == null)
+			{
+				name = FS.Gamedir() + "/qconsole.log";
+				if (Globals.logfile_active.value > 2)
+					try
+					{
+						Globals.logfile = new RandomAccessFile(name, "a");
+					}
+					catch (FileNotFoundException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				else
+					try
+					{
+						Globals.logfile = new RandomAccessFile(name, "w");
+					}
+					catch (FileNotFoundException e1)
+					{
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			}
+			if (Globals.logfile != null)
+				try
+				{
+					Globals.logfile.writeChars(msg);
+				}
+				catch (IOException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			if (Globals.logfile_active.value > 1)
+				; // do nothing
+				// fflush (logfile);		// force it to save every time
+		}
+		
+		
 	}
 
 	public static void Println(String fmt) {
@@ -355,10 +421,18 @@ public final class Com {
 		SV.Shutdown("Server quit\n", false);
 		CL.Shutdown();
 
-		//		if (logfile) {
-		//	00237                 fclose (logfile);
-		//	00238                 logfile = NULL;
-		//		}
+		if (Globals.logfile != null) {
+			try
+			{
+				Globals.logfile.close();
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Globals.logfile = null;
+		}
 
 		Sys.Quit();
 	}
