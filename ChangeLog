@@ -1,8 +1,10 @@
 0.9.4
 
+	- webstart version
 	- standalone installer
 	- online installation of Quake2 demo data files
 	- multiplayer client functionality (with original Quake2 server)
+	- mouse wheel support
 	- bugfixes
 	
 0.9.3 2004-09-09
