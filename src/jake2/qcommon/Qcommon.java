@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.14 2005-02-06 19:26:11 salomo Exp $
+ * $Id: Qcommon.java,v 1.15 2005-02-13 17:12:55 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -118,7 +118,11 @@ public final class Qcommon extends Globals {
 			// add + commands from command line
 			if (!Cbuf.AddLateCommands()) {
 				// if the user didn't give any commands, run default action
-				Cbuf.AddText("d1\n");
+			      if (Globals.dedicated.value == 0)
+			          Cbuf.AddText ("d1\n");
+			      else
+			          Cbuf.AddText ("dedicated_start\n");
+			          
 				Cbuf.Execute();
 			} else {
 				// the user asked for something explicit
