@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.7 2004-02-05 21:32:41 rst Exp $
+// $Id: PlayerClient.java,v 1.8 2004-02-11 20:40:11 cwei Exp $
 
 package jake2.game;
 
@@ -873,7 +873,7 @@ public class PlayerClient extends PlayerHud {
 		gclient_t client;
 		int i;
 		client_persistant_t saved;
-		client_respawn_t resp = null;
+		client_respawn_t resp = new client_respawn_t();
 
 		// find a spawn point
 		// do it before setting health back up, so farthest
