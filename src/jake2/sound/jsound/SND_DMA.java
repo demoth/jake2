@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.1 2004-04-15 08:08:27 hoz Exp $
+ * $Id: SND_DMA.java,v 1.2 2004-04-15 10:31:40 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -169,7 +169,7 @@ public class SND_DMA extends SND_MIX {
 			});
 			Cmd.AddCommand("stopsound", new xcommand_t() {
 				public void execute() {
-					S.StopAllSounds();
+					StopAllSounds();
 				}
 			});
 			Cmd.AddCommand("soundlist", new xcommand_t() {
@@ -196,7 +196,7 @@ public class SND_DMA extends SND_MIX {
 
 			Com.Printf("sound sampling rate: " + dma.speed + "\n");
 
-			S.StopAllSounds();
+			StopAllSounds();
 		}
 
 		Com.Printf("------------------------------------\n");
@@ -655,7 +655,7 @@ public class SND_DMA extends SND_MIX {
 				try {
 					FS.FCloseFile(f);
 				} catch (IOException e1) {}
-				sfx = S.RegisterSound(sexedFilename);
+				sfx = RegisterSound(sexedFilename);
 			} else {
 				// no, revert to the male sound in the pak0.pak
 				//Com_sprintf (maleFilename, sizeof(maleFilename), "player/%s/%s", "male", base+1);
@@ -755,12 +755,12 @@ public class SND_DMA extends SND_MIX {
 		if (!sound_started)
 			return;
 
-		sfx = S.RegisterSound(sound);
+		sfx = RegisterSound(sound);
 		if (sfx == null) {
 			Com.Printf("S_StartLocalSound: can't cache " + sound + "\n");
 			return;
 		}
-		S.StartSound(null, cl.playernum + 1, 0, sfx, 1, 1, 0);
+		StartSound(null, cl.playernum + 1, 0, sfx, 1, 1, 0);
 	}
 
 
@@ -1178,8 +1178,8 @@ public class SND_DMA extends SND_MIX {
 			if (name.indexOf('.') == -1)
 				name += ".wav";
 
-			sfx = S.RegisterSound(name);
-			S.StartSound(null, cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
+			sfx = RegisterSound(name);
+			StartSound(null, cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
 			i++;
 		}
 	}
