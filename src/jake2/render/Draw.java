@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.1 2003-12-19 13:31:50 cwei Exp $
+ * $Id: Draw.java,v 1.2 2003-12-24 01:19:22 cwei Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,8 +47,17 @@ public class Draw {
 	 * @return
 	 */
 	static image_t FindPic(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		image_t gl = null;
+		String fullname;
+
+		if (!name.startsWith("/") && !name.startsWith("\\"))
+		{
+			fullname = "pics/" + name + ".pcx";
+			// gl = GL_FindImage(fullname, it.pic);
+		} else {
+			//gl = GL_FindImage(name.substring(1), it.pic);
+		}
+		return gl;
 	}
 	
 	/**
