@@ -2,7 +2,7 @@
  * TestFS.java
  * Copyright (C) 2003
  *
- * $Id: TestFS.java,v 1.3 2003-12-23 13:15:47 cwei Exp $
+ * $Id: TestFS.java,v 1.4 2003-12-24 01:15:58 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
+import jake2.game.Cmd;
 import jake2.imageio.ImageFrame;
 
 import java.awt.image.BufferedImage;
@@ -47,8 +48,25 @@ public class TestFS {
 		init();
 
 		FS.InitFilesystem();
-		FS.Path_f();
 //		FS.Dir_f();
+
+		Cmd.cmd_argc = 3;
+		Cmd.cmd_argv = new String[] { "link", "unknown.pcx", "../../baseq2/space.pcx" };
+		FS.Link_f();
+
+		FS.Path_f();
+
+		Cmd.cmd_argv = new String[] { "link", "unknown1.pcx", "../../baseq2/config.cfg" };
+		FS.Link_f();
+
+		FS.Path_f();
+		
+		// loescht den link
+		Cmd.cmd_argv = new String[] { "link", "unknown1.pcx", "" };
+		FS.Link_f();
+
+		FS.Path_f();
+
 
 		String[] filenames =
 			{
@@ -56,7 +74,7 @@ public class TestFS {
 				"pics/colormap.pcx",
 				"pics/victory.pcx",
 				"pics/help.pcx",
-				"test/unknown" };
+				"unknown.pcx" };
 
 		ImageFrame frame = new ImageFrame(null);
 		frame.setVisible(true);
