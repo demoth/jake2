@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.8 2004-01-25 21:45:45 rst Exp $
+// $Id: CM.java,v 1.9 2004-01-28 09:51:16 cwei Exp $
 
 package jake2.qcommon;
 
@@ -1597,7 +1597,7 @@ public class CM extends PlayerHud {
 
 		if (in == null || numvisibility == 0) { // no vis info, so make all visible
 			while (row != 0) {
-				out[outp++] = (byte) 0xff;
+				out[outp++] = (byte) 0xFF;
 				row--;
 			}
 			return;
@@ -1609,16 +1609,16 @@ public class CM extends PlayerHud {
 				continue;
 			}
 
-			c = in[inp + 1];
+			c = in[inp + 1] & 0xFF;
 			inp += 2;
 			if (outp + c > row) {
 				c = row - (outp);
 				Com.DPrintf("warning: Vis decompression overrun\n");
 			}
-				while (c != 0) {
-					out[outp++] = 0;
-					c--;
-				}
+			while (c != 0) {
+				out[outp++] = 0;
+				c--;
+			}
 		}
 		while (outp < row);
 	}

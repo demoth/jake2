@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.17 2004-01-27 12:14:36 cwei Exp $
+ * $Id: Model.java,v 1.18 2004-01-28 09:51:54 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -139,7 +139,7 @@ public abstract class Model extends Surf {
 				continue;
 			}
 	
-			c = in[inp + 1];
+			c = in[inp + 1] & 0xFF;
 			inp += 2;
 			while (c != 0)
 			{
@@ -363,11 +363,11 @@ public abstract class Model extends Surf {
 		}
 		
 		System.arraycopy(mod_base, l.fileofs, model_visibility, 0, l.filelen);
-
+		
 		ByteBuffer bb = ByteBuffer.wrap(model_visibility, 0, l.filelen);
 		
 		loadmodel.vis = new qfiles.dvis_t(bb.order(ByteOrder.LITTLE_ENDIAN));
-
+		
 		/* done:
 		memcpy (loadmodel.vis, mod_base + l.fileofs, l.filelen);
 
