@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.10 2005-01-23 19:03:42 cawe Exp $
+ * $Id: SCR.java,v 1.11 2005-01-23 19:16:17 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1125,18 +1125,10 @@ public final class SCR extends Globals {
             if (token.equals("if")) { // draw a number
                 token = Com.Parse(ph);
                 value = cl.frame.playerstate.stats[Lib.atoi(token)];
-                if (value == 0) { // skip to endif
-                    //					while (s && strcmp(token, "endif") )
-                    //					{
-                    //						token = Com.Parse(ph);
-                    //					}
-
-                    while (!ph.isEof()
-                            && !(token = Com.Parse(ph)).equals("endif"))
-                        ;
-
+                if (value == 0) {
+                    // skip to endif
+                    while ((token = Com.Parse(ph)) != null && !token.equals("endif"));
                 }
-
                 continue;
             }
 
