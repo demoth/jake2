@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_fx.java,v 1.5 2004-02-01 00:35:00 rst Exp $
+ * $Id: CL_fx.java,v 1.6 2004-02-01 21:31:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,8 @@ import jake2.game.entity_state_t;
  * CL_fx
  */
 public class CL_fx extends Globals {
+	
+	static final float INSTANT_PARTICLE = -10000.0f;
 	
 	public static class cdlight_t
 	{
@@ -907,6 +909,7 @@ public class CL_fx extends Globals {
 //	*/
 //
 //	cparticle_t	*active_particles, *free_particles;
+	static cparticle_t active_particles, free_particles;
 //
 //	cparticle_t	particles[MAX_PARTICLES];
 //	int			cl_numparticles = MAX_PARTICLES;

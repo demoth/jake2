@@ -2,7 +2,7 @@
  * CL_ents.java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.4 2004-02-01 11:01:48 hoz Exp $
+ * $Id: CL_ents.java,v 1.5 2004-02-01 21:31:19 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +34,7 @@ import jake2.render.model_t;
  * CL_ents
  */
 //	   cl_ents.c -- entity parsing and management
-public class CL_ents extends CL_fx {
+public class CL_ents extends CL_inv {
 
 	//	  PGM
 	static int vidref_val;

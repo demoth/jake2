@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.21 2004-02-01 00:35:00 rst Exp $
+ * $Id: Key.java,v 1.22 2004-02-01 21:31:20 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import jake2.Defines;
@@ -801,7 +802,11 @@ public class Key extends Globals {
 	}
 
 	public static void WriteBindings(RandomAccessFile f) {
-		// TODO:implement! ist diese scheisse nicht schon irgendwo da ? 
+		for (int i = 0; i < 256; i++)
+			if (keybindings[i] != null && keybindings[i].length() > 0)
+				try {
+					f.writeChars("bind " + KeynumToString(i) + " \"" + keybindings[i] + "\"\n");
+				} catch (IOException e) {}
 	}
 
 }

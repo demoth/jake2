@@ -2,7 +2,7 @@
  * CL_tent.java
  * Copyright (C) 2004
  * 
- * $Id: CL_tent.java,v 1.5 2004-02-01 00:35:00 rst Exp $
+ * $Id: CL_tent.java,v 1.6 2004-02-01 21:31:20 hoz Exp $
  */
 package jake2.client;
 
@@ -1193,17 +1193,14 @@ public class CL_tent extends CL_ents {
 //			Com_Error (ERR_DROP, "CL_ParseTEnt: bad type");
 //		}
 	}
-	public static void AddTEnts() {
-		// TODO:implement!		
-	}
-//
-//	/*
-//	=================
-//	CL_AddBeams
-//	=================
-//	*/
-//	void CL_AddBeams (void)
-//	{
+
+
+	/*
+	=================
+	CL_AddBeams
+	=================
+	*/
+	static void AddBeams() {
 //		int			i,j;
 //		beam_t		*b;
 //		vec3_t		dist, org;
@@ -1318,7 +1315,7 @@ public class CL_tent extends CL_ents {
 //				d -= model_length;
 //			}
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1342,8 +1339,7 @@ public class CL_tent extends CL_ents {
 //	CL_AddPlayerBeams
 //	=================
 //	*/
-//	void CL_AddPlayerBeams (void)
-//	{
+	static void AddPlayerBeams() {
 //		int			i,j;
 //		beam_t		*b;
 //		vec3_t		dist, org;
@@ -1585,15 +1581,14 @@ public class CL_tent extends CL_ents {
 //				d -= model_length;
 //			}
 //		}
-//	}
+	}
 //
 //	/*
 //	=================
 //	CL_AddExplosions
 //	=================
 //	*/
-//	void CL_AddExplosions (void)
-//	{
+	static void AddExplosions() {
 //		entity_t	*ent;
 //		int			i;
 //		explosion_t	*ex;
@@ -1688,7 +1683,7 @@ public class CL_tent extends CL_ents {
 //
 //			V_AddEntity (ent);
 //		}
-//	}
+	}
 //
 //
 //	/*
@@ -1696,8 +1691,7 @@ public class CL_tent extends CL_ents {
 //	CL_AddLasers
 //	=================
 //	*/
-//	void CL_AddLasers (void)
-//	{
+	static void AddLasers() {
 //		laser_t		*l;
 //		int			i;
 //
@@ -1706,40 +1700,37 @@ public class CL_tent extends CL_ents {
 //			if (l->endtime >= cl.time)
 //				V_AddEntity (&l->ent);
 //		}
-//	}
-//
-//	/* PMM - CL_Sustains */
-//	void CL_ProcessSustain ()
-//	{
-//		cl_sustain_t	*s;
+	}
+
+	/* PMM - CL_Sustains */
+	static void ProcessSustain() {
+//		cl_sustain_t	s;
 //		int				i;
 //
 //		for (i=0, s=cl_sustains; i< MAX_SUSTAINS; i++, s++)
 //		{
-//			if (s->id)
-//				if ((s->endtime >= cl.time) && (cl.time >= s->nextthink))
+//			if (s.id)
+//				if ((s.endtime >= cl.time) && (cl.time >= s.nextthink))
 //				{
-////					Com_Printf ("think %d %d %d\n", cl.time, s->nextthink, s->thinkinterval);
-//					s->think (s);
+//					s.think (s);
 //				}
-//				else if (s->endtime < cl.time)
-//					s->id = 0;
+//				else if (s.endtime < cl.time)
+//					s.id = 0;
 //		}
-//	}
-//
-//	/*
-//	=================
-//	CL_AddTEnts
-//	=================
-//	*/
-//	void CL_AddTEnts (void)
-//	{
-//		CL_AddBeams ();
-//		// PMM - draw plasma beams
-//		CL_AddPlayerBeams ();
-//		CL_AddExplosions ();
-//		CL_AddLasers ();
-//		// PMM - set up sustain
-//		CL_ProcessSustain();
-//	}
+	}
+
+	/*
+	=================
+	CL_AddTEnts
+	=================
+	*/
+	static void AddTEnts() {
+		CL.AddBeams();
+		// PMM - draw plasma beams
+		CL.AddPlayerBeams();
+		CL.AddExplosions();
+		CL.AddLasers();
+		// PMM - set up sustain
+		CL.ProcessSustain();
+	}
 }
