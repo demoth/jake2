@@ -62,7 +62,7 @@
 		
 	<!-- jar -->
 	<target name="jar" depends="compile,copyres">
-		<jar destfile="${dist}/jake2.jar" basedir="${build}">
+		<jar destfile="${dist}/lib/jake2.jar" basedir="${build}">
 			<include name="jake2/**"/>
 		</jar>
 	</target>
