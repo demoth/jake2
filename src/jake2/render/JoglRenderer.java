@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.20 2004-02-17 13:29:14 cwei Exp $
+ * $Id: JoglRenderer.java,v 1.21 2004-03-11 13:28:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,6 +28,7 @@ package jake2.render;
 import java.awt.Dimension;
 
 import jake2.Defines;
+import jake2.qcommon.xcommand_t;
 import jake2.render.jogl.*;
 
 import jake2.client.refdef_t;
@@ -81,25 +82,65 @@ final class JoglRenderer extends Impl implements refexport_t, Ref {
 		R_BeginRegistration(map);
 	}
 
+	
+	private model_t model = null;
+	private String name = null;
+	
 	/** 
 	 * @see jake2.client.refexport_t#RegisterModel(java.lang.String)
 	 */
 	public model_t RegisterModel(String name) {
-		return R_RegisterModel(name);
+		
+		if (contextInUse)
+			return R_RegisterModel(name);
+		
+		model = null;
+		this.name = name;
+		
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				JoglRenderer.this.model = R_RegisterModel(JoglRenderer.this.name);
+			}
+		});
+		return model;
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#RegisterSkin(java.lang.String)
 	 */
 	public image_t RegisterSkin(String name) {
-		return R_RegisterSkin(name);
+		if (contextInUse)
+			return R_RegisterSkin(name);
+		
+		this.image = null;
+		this.name = name;
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				JoglRenderer.this.image = R_RegisterSkin(JoglRenderer.this.name);
+			}
+		});
+		return image;
 	}
+	
+	private image_t image = null;
 
 	/** 
 	 * @see jake2.client.refexport_t#RegisterPic(java.lang.String)
 	 */
 	public image_t RegisterPic(String name) {
-		return Draw_FindPic(name);
+		if (contextInUse)
+			return Draw_FindPic(name);
+		
+		this.image = null;
+		this.name = name;
+
+		updateScreen(new xcommand_t() {
+			public void execute() {
+				JoglRenderer.this.image = Draw_FindPic(JoglRenderer.this.name);
+			}
+		});
+		return image;
 	}
 
 	/** 

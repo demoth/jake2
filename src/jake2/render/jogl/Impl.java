@@ -2,7 +2,7 @@
  * Impl.java
  * Copyright (C) 2003
  *
- * $Id: Impl.java,v 1.17 2004-02-22 21:45:47 hoz Exp $
+ * $Id: Impl.java,v 1.18 2004-03-11 13:28:27 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -55,6 +55,7 @@ public class Impl extends Misc implements GLEventListener {
 	// switch to updateScreen callback
 	private boolean switchToCallback = false;
 	private xcommand_t callback = null;
+	protected boolean contextInUse = false;
 
 	GLCanvas canvas;
 	JFrame window;
@@ -217,6 +218,8 @@ public class Impl extends Misc implements GLEventListener {
 	public void display(GLDrawable drawable) {
 		this.gl = drawable.getGL();
 		this.glu = drawable.getGLU();
+		
+		this.contextInUse = true;
 
 		if (switchToCallback) {
 			if (callback == null)
@@ -242,6 +245,8 @@ public class Impl extends Misc implements GLEventListener {
 
 			GLimp_EndFrame();
 		}
+		
+		contextInUse = false;
 	}
 
 	/* 
