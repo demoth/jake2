@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.22 2004-06-09 14:32:37 hoz Exp $
+ * $Id: Jake2.java,v 1.23 2004-06-14 13:48:10 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -61,7 +61,13 @@ public final class Jake2 {
 			// find time spending rendering last frame
 			newtime = Sys.Milliseconds();
 			time = newtime - oldtime;
-
+			
+			// TODO this is a timer hack for Win2000
+			// System.currentTimeMillis() resolution bug 
+			if (time == 0 && Globals.cl_timedemo.value != 0) {
+				time++;
+			} 
+			
 			if (time > 0)
 				Qcommon.Frame(time);
 			oldtime = newtime;
