@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.4 2004-07-23 10:07:14 hzi Exp $
+// $Id: GameSpawn.java,v 1.5 2004-08-29 19:27:37 hzi Exp $
 
 package jake2.game;
 
@@ -127,20 +127,13 @@ public class GameSpawn extends GameSave {
 	*/
 	static String ED_NewString(String string) {
 
-		//String newb, new_p;
-		int i, l;
-
-		l = string.length() + 1;
-		//newb = gi.TagMalloc(l, TAG_LEVEL);
-
+		int l = string.length();
 		StringBuffer newb = new StringBuffer(l);
 
-		for (i = 0; i < l - 1; i++) {
-			char c;
-
-			c = string.charAt(i);
+		for (int i = 0; i < l; i++) {
+			char c = string.charAt(i);
 			if (c == '\\' && i < l - 1) {
-				c = string.charAt(i++);
+				c = string.charAt(++i);
 				if (c == 'n')
 					newb.append('\n');
 				else
