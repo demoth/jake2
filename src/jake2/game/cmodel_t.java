@@ -18,20 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 20.11.2003 by RST.
+// Created on 28.11.2003 by RST.
 
-package jake2.qcommon;
+package jake2.game;
 
-public class constants {
-	
-	
-	public static final int	MAX_TRIANGLES	=4096;
-	public static final int MAX_VERTS		=2048;
-	public static final int MAX_FRAMES		=512;
-	public static final int MAX_MD2SKINS	=32;
-	public static final int	MAX_SKINNAME	=64;
-	
-	public static final int MAXLIGHTMAPS	=4;
-	
-	public static final int  UPDATE_BACKUP = 16;
+public class cmodel_t {
+	float[] mins = { 0, 0, 0 };
+	float[] maxs = { 0, 0, 0 };
+	float[] origin = { 0, 0, 0 }; // for sounds or lights
+	int headnode;
 }

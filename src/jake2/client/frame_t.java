@@ -18,20 +18,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 20.11.2003 by RST.
+// Created on 27.11.2003 by RST.
 
-package jake2.qcommon;
+package jake2.client;
 
-public class constants {
-	
-	
-	public static final int	MAX_TRIANGLES	=4096;
-	public static final int MAX_VERTS		=2048;
-	public static final int MAX_FRAMES		=512;
-	public static final int MAX_MD2SKINS	=32;
-	public static final int	MAX_SKINNAME	=64;
-	
-	public static final int MAXLIGHTMAPS	=4;
-	
-	public static final int  UPDATE_BACKUP = 16;
+import jake2.game.*;
+
+public class frame_t {
+		
+	public static final int MAX_MAP_AREAS = 256; 
+		
+	boolean		valid;			// cleared if delta parsing was invalid
+	int				serverframe;
+	int				servertime;		// server time the message is valid for (in msec)
+	int				deltaframe;
+	byte			areabits[] = new byte [MAX_MAP_AREAS/8];		// portalarea visibility bits
+	player_state_t	playerstate;
+	int				num_entities;
+	int				parse_entities;	// non-masked index into cl_parse_entities array
 }

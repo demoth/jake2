@@ -18,20 +18,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 20.11.2003 by RST.
+// Created on 27.11.2003 by RST.
 
-package jake2.qcommon;
+package jake2.client;
 
-public class constants {
-	
-	
-	public static final int	MAX_TRIANGLES	=4096;
-	public static final int MAX_VERTS		=2048;
-	public static final int MAX_FRAMES		=512;
-	public static final int MAX_MD2SKINS	=32;
-	public static final int	MAX_SKINNAME	=64;
-	
-	public static final int MAXLIGHTMAPS	=4;
-	
-	public static final int  UPDATE_BACKUP = 16;
+import jake2.game.entity_state_t;
+
+public class centity_t {
+	entity_state_t baseline; // delta from this if not from a previous frame
+	entity_state_t current;
+	entity_state_t prev; // will always be valid, but might just be a copy of current
+
+	int serverframe; // if not current, this ent isn't in the frame
+
+	int trailcount; // for diminishing grenade trails
+	float[] origin = { 0, 0, 0 }; // for trails (variable hz)
+
+	int fly_stoptime;
 }

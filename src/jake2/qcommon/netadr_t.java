@@ -18,20 +18,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// Created on 20.11.2003 by RST.
+// Created on 27.11.2003 by RST.
 
 package jake2.qcommon;
 
-public class constants {
-	
-	
-	public static final int	MAX_TRIANGLES	=4096;
-	public static final int MAX_VERTS		=2048;
-	public static final int MAX_FRAMES		=512;
-	public static final int MAX_MD2SKINS	=32;
-	public static final int	MAX_SKINNAME	=64;
-	
-	public static final int MAXLIGHTMAPS	=4;
-	
-	public static final int  UPDATE_BACKUP = 16;
+public class netadr_t {
+
+	int type;
+
+	byte ip[] = new byte[4];
+	byte ipx[] = new byte[10];
+
+	int port;
 }
