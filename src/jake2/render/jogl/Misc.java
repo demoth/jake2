@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.6 2004-01-20 18:22:00 cwei Exp $
+ * $Id: Misc.java,v 1.7 2004-01-25 16:45:59 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -193,8 +193,8 @@ public abstract class Misc extends Mesh {
 	*/
 	void GL_SetDefaultState()
 	{
-		// TODO gl.glClearColor (1f,0f, 0.5f , 0.5f);
-		gl.glClearColor(0, 0, 0, 0); // replaced with black
+		gl.glClearColor(1f,0f, 0.5f , 0.5f); // original quake2
+		//gl.glClearColor(0, 0, 0, 0); // replaced with black
 		gl.glCullFace(GL.GL_FRONT);
 		gl.glEnable(GL.GL_TEXTURE_2D);
 
