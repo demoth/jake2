@@ -19,7 +19,7 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.9 2005-02-06 19:04:55 salomo Exp $
+// $Id: GameUtil.java,v 1.10 2005-02-19 21:19:23 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -605,6 +605,7 @@ public class GameUtil {
      */
     public static void Killed(edict_t targ, edict_t inflictor,
             edict_t attacker, int damage, float[] point) {
+        Com.DPrintf("Killing a " + targ.classname + "\n");
         if (targ.health < -999)
             targ.health = -999;
 
@@ -1502,7 +1503,8 @@ public class GameUtil {
 
             if (!taken)
                 return;
-            //Com.p("Picked up:" + ent.classname);
+            
+            Com.dprintln("Picked up:" + ent.classname);
 
             if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))) {
