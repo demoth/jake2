@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.7 2004-01-08 22:38:16 rst Exp $
+// $Id: GameSave.java,v 1.8 2004-01-08 23:56:43 rst Exp $
 
 package jake2.game;
 
@@ -736,7 +736,8 @@ public class GameSave extends PlayerView {
 		try {
 			f.close();
 		}
-		catch (IOException e) { //nothingh
+		catch (IOException e) {
+			Com.Error(Defines.ERR_DROP, "Unable to load savegame");
 		}
 	}
 
