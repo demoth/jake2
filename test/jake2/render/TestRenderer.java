@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
+ * $Id: TestRenderer.java,v 1.4 2004-07-15 14:38:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render;
 
-import java.awt.Dimension;
-import java.nio.FloatBuffer;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Vector;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.*;
@@ -39,10 +32,11 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sys.KBD;
-import jake2.sys.Sys;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
+
+import java.awt.Dimension;
+import java.nio.FloatBuffer;
+import java.util.*;
 
 /**
  * TestRenderer
@@ -76,11 +70,11 @@ public class TestRenderer {
 		// a simple refimport_t implementation
 		ri = new refimport_t() {
 			public void Sys_Error(int err_level, String str) {
-				VID.Error(err_level, str, null);
+				Com.Error(err_level, str, null);
 			}
 
 			public void Sys_Error(int err_level, String str, Vargs vargs) {
-				VID.Error(err_level, str, vargs);
+				Com.Error(err_level, str, vargs);
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd) {

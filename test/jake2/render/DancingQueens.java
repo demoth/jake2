@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.3 2004-07-09 06:50:51 hzi Exp $
+ * $Id: DancingQueens.java,v 1.4 2004-07-15 14:38:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,11 +71,11 @@ public class DancingQueens
 		// a simple refimport_t implementation
 		ri = new refimport_t() {
 			public void Sys_Error(int err_level, String str) {
-				VID.Error(err_level, str, null);
+				Com.Error(err_level, str, null);
 			}
 
 			public void Sys_Error(int err_level, String str, Vargs vargs) {
-				VID.Error(err_level, str, vargs);
+				Com.Error(err_level, str, vargs);
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd) {

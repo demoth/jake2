@@ -2,7 +2,7 @@
  * DebugCulling.java
  * Copyright (C) 2003
  *
- * $Id: DebugCulling.java,v 1.1 2004-07-07 19:59:58 hzi Exp $
+ * $Id: DebugCulling.java,v 1.2 2004-07-15 14:38:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,33 +27,14 @@ package jake2.render;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.VID;
-import jake2.client.cparticle_t;
-import jake2.client.entity_t;
-import jake2.client.lightstyle_t;
-import jake2.client.particle_t;
-import jake2.client.refdef_t;
-import jake2.client.refexport_t;
-import jake2.client.refimport_t;
-import jake2.client.viddef_t;
+import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.Qcommon;
-import jake2.qcommon.qfiles;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.sys.KBD;
-import jake2.util.Lib;
-import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * DebugCulling
@@ -95,12 +76,12 @@ public class DebugCulling
 		{
 			public void Sys_Error(int err_level, String str)
 			{
-				VID.Error(err_level, str, null);
+				Com.Error(err_level, str, null);
 			}
 
 			public void Sys_Error(int err_level, String str, Vargs vargs)
 			{
-				VID.Error(err_level, str, vargs);
+				Com.Error(err_level, str, vargs);
 			}
 
 			public void Cmd_AddCommand(String name, xcommand_t cmd)
@@ -194,7 +175,7 @@ public class DebugCulling
 			}
 		};
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.1 2004-07-07 19:59:58 hzi Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.2 2004-07-15 14:38:40 hzi Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
