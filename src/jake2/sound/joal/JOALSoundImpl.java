@@ -2,23 +2,20 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.8 2004-10-27 16:51:32 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.9 2004-10-31 19:47:52 hzi Exp $
  */
 package jake2.sound.joal;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.CL;
-import jake2.client.CL_ents;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.sound.*;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Vargs;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.IntBuffer;
-import java.util.*;
 
 import net.java.games.joal.*;
 import net.java.games.joal.eax.EAX;
@@ -46,6 +43,28 @@ public final class JOALSoundImpl implements Sound {
 	private JOALSoundImpl() {
 	}
 
+	/**
+	 * unpack OpenAL shared library on Linux
+	 */
+	private void unpack() {
+		String path = System.getProperty("user.home") + "/.jake2/libopenal.so";
+		File f = new File(path);
+		if (!f.exists()) {
+			try {
+				f.createNewFile();
+				InputStream in = getClass().getResourceAsStream("/libopenal.so");
+				OutputStream out = new FileOutputStream(f);
+				byte[] buf = new byte[8192];
+				int len;
+				while ((len = in.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+			} catch (Exception e) {
+				f.delete();
+			}
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Init()
 	 */
@@ -54,7 +73,7 @@ public final class JOALSoundImpl implements Sound {
 		// preload OpenAL native library
 		String os = System.getProperty("os.name");
 		if (os.startsWith("Linux")) {
-			System.loadLibrary("openal");	
+			unpack();	
 		} else if (os.startsWith("Windows")) {
 			System.loadLibrary("OpenAL32");
 		}
