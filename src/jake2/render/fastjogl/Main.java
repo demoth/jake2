@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.5 2004-06-15 17:21:56 cwei Exp $
+ * $Id: Main.java,v 1.6 2004-06-28 12:54:49 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1006,7 +1006,7 @@ public abstract class Main extends Base {
 		gl_ext_compiled_vertex_array = ri.Cvar_Get("gl_ext_compiled_vertex_array", "1", Globals.CVAR_ARCHIVE);
 
 		gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
-		gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", Globals.CVAR_ARCHIVE);
+		gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "0", Globals.CVAR_ARCHIVE);
 
 		gl_saturatelighting = ri.Cvar_Get("gl_saturatelighting", "0", 0);
 
