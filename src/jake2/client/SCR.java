@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.10 2004-01-26 20:40:17 hoz Exp $
+ * $Id: SCR.java,v 1.11 2004-01-27 20:10:29 rst Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -68,8 +68,15 @@ public final class SCR {
 
 	public static void DebugGraph(float value, int color)
 	{
-		//TODO:
+		//TODO: implent all den mist 
 		Com.Error(Defines.ERR_FATAL, "method not implemented.");
+	}
+
+
+
+	public static void DirtyScreen() {
+		// TODO: implement
+		
 	}
 	
 	/*
@@ -94,4 +101,5 @@ class dirty_t {
 	int x2;
 	int y1;
 	int y2;
+
 }

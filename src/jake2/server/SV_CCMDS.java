@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.2 2004-01-26 14:29:02 hoz Exp $
+// $Id: SV_CCMDS.java,v 1.3 2004-01-27 20:10:29 rst Exp $
 
 package jake2.server;
 
@@ -391,7 +391,7 @@ public class SV_CCMDS extends SV_ENTS {
 		}
 		//		FS.Read(sv.configstrings, sizeof(sv.configstrings), f);
 		for (int n = 0; n < MAX_CONFIGSTRINGS; n++)
-			sv.configstrings[n] = FS.ReadString(MAX_QPATH, f);
+			sv.configstrings[n] = Lib.freadString(f, MAX_QPATH);
 
 		CM.CM_ReadPortalState(f);
 
@@ -501,19 +501,19 @@ public class SV_CCMDS extends SV_ENTS {
 			return;
 		}
 		// read the comment field
-		comment = FS.ReadString(32, f);
+		comment = Lib.freadString(f, 32);
 
 		// read the mapcmd
-		mapcmd = FS.ReadString(MAX_TOKEN_CHARS, f);
+		mapcmd = Lib.freadString(f, MAX_TOKEN_CHARS);
 
 		// read all CVAR_LATCH cvars
 		// these will be things like coop, skill, deathmatch, etc
 		while (true) {
-			name = FS.ReadString(MAX_OSPATH, f);
+			name = Lib.freadString(f, MAX_OSPATH);
 			//if (!fread(name, 1, sizeof(name), f))
 			if (name == null)
 				break;
-			string = FS.ReadString(128, f);
+			string = Lib.freadString(f, 128);
 			Com.DPrintf("Set " + name + " = " + string + "\n");
 			Cvar.ForceSet(name, string);
 		}

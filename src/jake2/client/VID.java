@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.8 2004-01-25 12:32:14 hoz Exp $
+ * $Id: VID.java,v 1.9 2004-01-27 20:10:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -382,7 +382,7 @@ public class VID {
 
 		/* Add some console commands that we want to handle */
 		Cmd.AddCommand ("vid_restart", new xcommand_t() {
-			public void execute() throws Exception {
+			public void execute() {
 				Restart_f();
 			}
 		});

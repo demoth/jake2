@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.11 2004-01-25 21:45:45 rst Exp $
+ * $Id: Sys.java,v 1.12 2004-01-27 20:10:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -291,6 +291,11 @@ public final class Sys extends Defines {
 	{
 		//TODO:implement !
 		Com.Error(Defines.ERR_FATAL, "GetGameAPI not implemented!");
+		return null;
+	}
+
+	public static String GetClipboardData() {
+		// TODO: implement!
 		return null;
 	}
 

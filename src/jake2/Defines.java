@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.21 2004-01-25 12:32:14 hoz Exp $
+// $Id: Defines.java,v 1.22 2004-01-27 20:10:29 rst Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -28,13 +28,13 @@ package jake2;
 import jake2.util.*;
 
 public class Defines extends Math3D {
-	
+
 	// used by filefinders in Sys
 	public final static int FILEISREADABLE = 1;
 	public final static int FILEISWRITABLE = 2;
 	public final static int FILEISFILE = 4;
 	public final static int FILEISDIRECTORY = 8;
-	
+
 	// datentyp konstanten
 	// groesse in bytes
 	public final static int SIZE_OF_SHORT = 2;
@@ -170,7 +170,7 @@ public class Defines extends Math3D {
 	public final static int SURF_TRANS66 = 0x20;
 	public final static int SURF_FLOWING = 0x40; // scroll towards angle 
 	public final static int SURF_NODRAW = 0x80; // don't bother referencing the texture 
-	
+
 	// structure offset for asm code
 	public final static int CPLANE_NORMAL_X = 0;
 	public final static int CPLANE_NORMAL_Y = 4;
@@ -709,11 +709,9 @@ public class Defines extends Math3D {
 	//	content masks
 	public final static int MASK_ALL = (-1);
 	public final static int MASK_SOLID = (CONTENTS_SOLID | CONTENTS_WINDOW);
-	public final static int MASK_PLAYERSOLID =
-		(CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
+	public final static int MASK_PLAYERSOLID = (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
 	public final static int MASK_DEADSOLID = (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW);
-	public final static int MASK_MONSTERSOLID =
-		(CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
+	public final static int MASK_MONSTERSOLID = (CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER);
 	public final static int MASK_WATER = (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME);
 	public final static int MASK_OPAQUE = (CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA);
 	public final static int MASK_SHOT = (CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEADMONSTER);
@@ -1024,7 +1022,7 @@ public class Defines extends Math3D {
 	public static final int MAX_DLIGHTS = 32;
 	public static final int MAX_ENTITIES = 128;
 	public static final int MAX_PARTICLES = 4096;
-	
+
 	// gl_model.h
 	public static final int SURF_PLANEBACK = 2;
 	public static final int SURF_DRAWSKY = 4;
@@ -1328,9 +1326,46 @@ public class Defines extends Math3D {
 	//server/sv_world.h
 	public static final int AREA_DEPTH = 4;
 	public static final int AREA_NODES = 32;
-	
+
 	public static final int EXEC_NOW = 0;
 	public static final int EXEC_INSERT = 1;
 	public static final int EXEC_APPEND = 2;
-	
+
+	//client/qmenu.h
+	public final static int MAXMENUITEMS = 64;
+
+	public final static int MTYPE_SLIDER = 0;
+	public final static int MTYPE_LIST = 1;
+	public final static int MTYPE_ACTION = 2;
+	public final static int MTYPE_SPINCONTROL = 3;
+	public final static int MTYPE_SEPARATOR = 4;
+	public final static int MTYPE_FIELD = 5;
+
+	public final static int K_TAB = 9;
+	public final static int K_ENTER = 13;
+	public final static int K_ESCAPE = 27;
+	public final static int K_SPACE = 32;
+
+	// normal keys should be passed as lowercased ascii
+
+	public final static int K_BACKSPACE = 127;
+	public final static int K_UPARROW = 128;
+	public final static int K_DOWNARROW = 129;
+	public final static int K_LEFTARROW = 130;
+	public final static int K_RIGHTARROW = 131;
+
+	public final static int QMF_LEFT_JUSTIFY = 0x00000001;
+	public final static int QMF_GRAYED = 0x00000002;
+	public final static int QMF_NUMBERSONLY = 0x00000004;
+
+	public final static int RCOLUMN_OFFSET = 16;
+	public final static int LCOLUMN_OFFSET = -16;
+
+	public final static int MAX_DISPLAYNAME = 16;
+	public final static int MAX_PLAYERMODELS = 1024;
+
+	public final static int MAX_LOCAL_SERVERS = 8;
+	public final static String NO_SERVER_STRING = "<no server>";
+	public final static int NUM_ADDRESSBOOK_ENTRIES = 9;
+
 }

@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.18 2004-01-25 14:11:05 hoz Exp $
+ * $Id: Key.java,v 1.19 2004-01-27 20:10:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -33,11 +33,10 @@ import jake2.qcommon.Cbuf;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 
-
 /**
  * Key
  */
-public final class Key {
+public class Key extends Globals {
 	//
 	// these are the key numbers that should be passed to Key_Event
 	//
@@ -53,7 +52,7 @@ public final class Key {
 	public static final int K_DOWNARROW = 129;
 	public static final int K_LEFTARROW = 130;
 	public static final int K_RIGHTARROW = 131;
- 
+
 	public static final int K_ALT = 132;
 	public static final int K_CTRL = 133;
 	public static final int K_SHIFT = 134;
@@ -91,16 +90,16 @@ public final class Key {
 	public static final int K_KP_SLASH = 172;
 	public static final int K_KP_MINUS = 173;
 	public static final int K_KP_PLUS = 174;
- 
+
 	public static final int K_PAUSE = 255;
- 
+
 	//
 	// mouse buttons generate virtual keys
 	//
 	public static final int K_MOUSE1 = 200;
 	public static final int K_MOUSE2 = 201;
 	public static final int K_MOUSE3 = 202;
- 
+
 	//
 	// joystick buttons
 	//
@@ -111,7 +110,7 @@ public final class Key {
 
 	public static final int K_MWHEELDOWN = 239;
 	public static final int K_MWHEELUP = 240;
-	
+
 	static int key_waiting;
 	static int history_line = 0;
 	static boolean shift_down = false;
@@ -119,9 +118,9 @@ public final class Key {
 	static int[] keyshift = new int[256];
 	static boolean[] menubound = new boolean[256];
 	static boolean[] consolekeys = new boolean[256];
-	
+
 	static String[] keynames = new String[256];
-	
+
 	static {
 		keynames[K_TAB] = "TAB";
 		keynames[K_ENTER] = "ENTER";
@@ -160,10 +159,10 @@ public final class Key {
 		keynames[K_MOUSE2] = "MOUSE2";
 		keynames[K_MOUSE3] = "MOUSE3";
 
-//	00092         {"JOY1", K_JOY1},
-//	00093         {"JOY2", K_JOY2},
-//	00094         {"JOY3", K_JOY3},
-//	00095         {"JOY4", K_JOY4},
+		//	00092         {"JOY1", K_JOY1},
+		//	00093         {"JOY2", K_JOY2},
+		//	00094         {"JOY3", K_JOY3},
+		//	00095         {"JOY4", K_JOY4},
 
 		keynames[K_KP_HOME] = "KP_HOME";
 		keynames[K_KP_UPARROW] = "KP_UPARROW";
@@ -178,33 +177,33 @@ public final class Key {
 		keynames[K_KP_INS] = "KP_INS";
 		keynames[K_KP_DEL] = "KP_DEL";
 		keynames[K_KP_SLASH] = "KP_SLASH";
-		
+
 		keynames[K_KP_PLUS] = "KP_PLUS";
 		keynames[K_KP_MINUS] = "KP_MINUS";
-		
+
 		keynames[K_MWHEELUP] = "MWHEELUP";
 		keynames[K_MWHEELDOWN] = "MWHEELDOWN";
-		
+
 		keynames[K_PAUSE] = "PAUSE";
 		keynames[';'] = "SEMICOLON"; // because a raw semicolon seperates commands
 
 		keynames[0] = "NULL";
 	}
-	
+
 	/**
 	 * 
 	 */
 	public static void Init() {
-		for (int i=0 ; i<32 ; i++) {
+		for (int i = 0; i < 32; i++) {
 			Globals.key_lines[i][0] = ']';
 			Globals.key_lines[i][1] = 0;
 		}
 		Globals.key_linepos = 1;
-        
+
 		//
 		// init ascii characters in console mode
 		//
-		for (int i=32 ; i<128 ; i++)
+		for (int i = 32; i < 128; i++)
 			consolekeys[i] = true;
 		consolekeys[K_ENTER] = true;
 		consolekeys[K_KP_ENTER] = true;
@@ -234,13 +233,13 @@ public final class Key {
 		consolekeys[K_KP_PLUS] = true;
 		consolekeys[K_KP_MINUS] = true;
 		consolekeys[K_KP_5] = true;
- 
+
 		consolekeys['`'] = false;
 		consolekeys['~'] = false;
- 
-		for (int i=0 ; i<256 ; i++)
+
+		for (int i = 0; i < 256; i++)
 			keyshift[i] = i;
-		for (int i='a' ; i<='z' ; i++)
+		for (int i = 'a'; i <= 'z'; i++)
 			keyshift[i] = i - 'a' + 'A';
 		keyshift['1'] = '!';
 		keyshift['2'] = '@';
@@ -263,22 +262,22 @@ public final class Key {
 		keyshift[']'] = '}';
 		keyshift['`'] = '~';
 		keyshift['\\'] = '|';
- 
+
 		menubound[K_ESCAPE] = true;
-		for (int i=0 ; i<12 ; i++)
-			menubound[K_F1+i] = true;
- 
+		for (int i = 0; i < 12; i++)
+			menubound[K_F1 + i] = true;
+
 		//
 		// register our functions
 		//
-		Cmd.AddCommand("bind",Key.Bind_f);
-		Cmd.AddCommand("unbind",Key.Unbind_f);
-		Cmd.AddCommand("unbindall",Key.Unbindall_f);
-		Cmd.AddCommand("bindlist",Key.Bindlist_f);		
+		Cmd.AddCommand("bind", Key.Bind_f);
+		Cmd.AddCommand("unbind", Key.Unbind_f);
+		Cmd.AddCommand("unbindall", Key.Unbindall_f);
+		Cmd.AddCommand("bindlist", Key.Bindlist_f);
 	}
-	
+
 	public static void ClearTyping() {
-		Globals.key_lines[Globals.edit_line][1] = 0;    // clear any typing
+		Globals.key_lines[Globals.edit_line][1] = 0; // clear any typing
 		Globals.key_linepos = 1;
 	}
 
@@ -290,88 +289,91 @@ public final class Key {
 		//return;
 		String kb;
 		String cmd;
- 
+
 		// hack for modal presses
 		if (key_waiting == -1) {
 			if (down)
 				key_waiting = key;
 			return;
 		}
- 
+
 		// update auto-repeat status
 		if (down) {
 			key_repeats[key]++;
-			if (key != K_BACKSPACE 
-				&& key != K_PAUSE 
-				&& key != K_PGUP 
-				&& key != K_KP_PGUP 
+			if (key != K_BACKSPACE
+				&& key != K_PAUSE
+				&& key != K_PGUP
+				&& key != K_KP_PGUP
 				&& key != K_PGDN
 				&& key != K_KP_PGDN
 				&& key_repeats[key] > 1)
 				return; // ignore most autorepeats
-                        
+
 			if (key >= 200 && Globals.keybindings[key] == null)
-				Com.Printf( Key.KeynumToString(key) + " is unbound, hit F4 to set.\n");
-		} else {
+				Com.Printf(Key.KeynumToString(key) + " is unbound, hit F4 to set.\n");
+		}
+		else {
 			key_repeats[key] = 0;
 		}
- 
+
 		if (key == K_SHIFT)
 			shift_down = down;
- 
+
 		// console key is hardcoded, so the user can never unbind it
 		if (key == '`' || key == '~') {
 			if (!down)
 				return;
 			try {
 				Console.ToggleConsole_f.execute();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 			}
 			return;
 		}
- 
+
 		// any key during the attract mode will bring up the menu
-		if (Globals.cl.attractloop && Globals.cls.key_dest != Defines.key_menu &&
-			!(key >= K_F1 && key <= K_F12))
+		if (Globals.cl.attractloop && Globals.cls.key_dest != Defines.key_menu && !(key >= K_F1 && key <= K_F12))
 			key = K_ESCAPE;
 
 		// menu key is hardcoded, so the user can never unbind it
 		if (key == K_ESCAPE) {
-			if (!down) return;
- 
-			if (Globals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 
-				&& Globals.cls.key_dest == Defines.key_game) {
+			if (!down)
+				return;
+
+			if (Globals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 && Globals.cls.key_dest == Defines.key_game) {
 				// put away help computer / inventory
 				Cbuf.AddText("cmd putaway\n");
 				return;
 			}
 			switch (Globals.cls.key_dest) {
-				case Defines.key_message:
+				case Defines.key_message :
 					Key.Message(key);
 					break;
-				case Defines.key_menu:
+				case Defines.key_menu :
 					Menu.Keydown(key);
-				break;
-				case Defines.key_game:
-				case Defines.key_console:
+					break;
+				case Defines.key_game :
+				case Defines.key_console :
 					Menu.Menu_Main_f();
-				break;
-				default:
+					break;
+				default :
 					Com.Error(Defines.ERR_FATAL, "Bad cls.key_dest");
 			}
 			return;
 		}
- 
+
 		// track if any key is down for BUTTON_ANY
 		Globals.keydown[key] = down;
 		if (down) {
 			if (key_repeats[key] == 1)
-			Globals.anykeydown++;
-		} else {
-			Globals.anykeydown--;
-			if (Globals.anykeydown < 0) Globals.anykeydown = 0;
+				Globals.anykeydown++;
 		}
- 
+		else {
+			Globals.anykeydown--;
+			if (Globals.anykeydown < 0)
+				Globals.anykeydown = 0;
+		}
+
 		//
 		// key up events only generate commands if the game key binding is
 		// a button command (leading + sign).  These will occur even in console mode,
@@ -394,50 +396,50 @@ public final class Key {
 			}
 			return;
 		}
- 
+
 		//
 		// if not a consolekey, send to the interpreter no matter what mode is
 		//
-		if ( (Globals.cls.key_dest == Defines.key_menu && menubound[key])
+		if ((Globals.cls.key_dest == Defines.key_menu && menubound[key])
 			|| (Globals.cls.key_dest == Defines.key_console && !consolekeys[key])
-			|| (Globals.cls.key_dest == Defines.key_game && ( Globals.cls.state == Defines.ca_active || !consolekeys[key] ) ) )
-		{
+			|| (Globals.cls.key_dest == Defines.key_game && (Globals.cls.state == Defines.ca_active || !consolekeys[key]))) {
 			kb = Globals.keybindings[key];
 			if (kb != null) {
 				if (kb.charAt(0) == '+') {
 					// button commands add keynum and time as a parm
 					cmd = kb + " " + key + " " + time + "\n";
 					Cbuf.AddText(cmd);
-				} else {
+				}
+				else {
 					Cbuf.AddText(kb + "\n");
 				}
 			}
 			return;
 		}
- 
+
 		if (!down)
-			return;         // other systems only care about key down events
- 
+			return; // other systems only care about key down events
+
 		if (shift_down)
 			key = keyshift[key];
- 
+
 		switch (Globals.cls.key_dest) {
-			case Defines.key_message:
+			case Defines.key_message :
 				Key.Message(key);
 				break;
-			case Defines.key_menu:
+			case Defines.key_menu :
 				Menu.Keydown(key);
 				break;
- 
-			case Defines.key_game:
-			case Defines.key_console:
+
+			case Defines.key_game :
+			case Defines.key_console :
 				Key.Console(key);
 				break;
-			default:
-			Com.Error(Defines.ERR_FATAL, "Bad cls.key_dest");
+			default :
+				Com.Error(Defines.ERR_FATAL, "Bad cls.key_dest");
 		}
 	}
-	
+
 	/**
 	 * Returns a string (either a single ascii char, or a K_* name) for the 
 	 * given keynum.
@@ -446,44 +448,46 @@ public final class Key {
 		if (keynum < 0 || keynum > 255)
 			return "<KEY NOT FOUND>";
 		if (keynum > 32 && keynum < 127)
-			return Character.toString((char)keynum);
+			return Character.toString((char) keynum);
 
 		if (keynames[keynum] != null)
-			return keynames[keynum];       
+			return keynames[keynum];
 
 		return "<UNKNOWN KEYNUM>";
 	}
-	
+
 	/**
 	 * Returns a key number to be used to index keybindings[] by looking at
 	 * the given string. Single ascii characters return themselves, while
 	 * the K_* names are matched up.
 	 */
 	static int StringToKeynum(String str) {
-       
-		if (str == null) return -1;
-		
+
+		if (str == null)
+			return -1;
+
 		if (str.length() == 1)
 			return str.charAt(0);
 
 		for (int i = 0; i < keynames.length; i++) {
-			if (str.equalsIgnoreCase(keynames[i])) return i;
+			if (str.equalsIgnoreCase(keynames[i]))
+				return i;
 		}
 
 		return -1;
-	}	
-	
+	}
+
 	public static void Message(int key) {
- 
-		if ( key == K_ENTER || key == K_KP_ENTER ) {
+
+		if (key == K_ENTER || key == K_KP_ENTER) {
 			if (Globals.chat_team)
 				Cbuf.AddText("say_team \"");
 			else
 				Cbuf.AddText("say \"");
-				
+
 			Cbuf.AddText(Globals.chat_buffer);
 			Cbuf.AddText("\"\n");
- 
+
 			Globals.cls.key_dest = Defines.key_game;
 			Globals.chat_buffer = "";
 			return;
@@ -500,16 +504,17 @@ public final class Key {
 
 		if (key == K_BACKSPACE) {
 			if (Globals.chat_buffer.length() > 2) {
-				Globals.chat_buffer = Globals.chat_buffer.substring(0, Globals.chat_buffer.length()-2);
+				Globals.chat_buffer = Globals.chat_buffer.substring(0, Globals.chat_buffer.length() - 2);
 			}
-			else Globals.chat_buffer = "";
+			else
+				Globals.chat_buffer = "";
 			return;
 		}
 
 		if (Globals.chat_buffer.length() > Defines.MAXCMDLINE)
 			return; // all full
- 
-		Globals.chat_buffer += (char)key;
+
+		Globals.chat_buffer += (char) key;
 	}
 
 	/**
@@ -517,65 +522,67 @@ public final class Key {
 	 */
 	public static void Console(int key) {
 
-		switch ( key ) {
-			case K_KP_SLASH:
+		switch (key) {
+			case K_KP_SLASH :
 				key = '/';
 				break;
-			case K_KP_MINUS:
+			case K_KP_MINUS :
 				key = '-';
 				break;
-			case K_KP_PLUS:
+			case K_KP_PLUS :
 				key = '+';
 				break;
-			case K_KP_HOME:
+			case K_KP_HOME :
 				key = '7';
 				break;
-			case K_KP_UPARROW:
+			case K_KP_UPARROW :
 				key = '8';
 				break;
-			case K_KP_PGUP:
+			case K_KP_PGUP :
 				key = '9';
 				break;
-			case K_KP_LEFTARROW:
+			case K_KP_LEFTARROW :
 				key = '4';
 				break;
-			case K_KP_5:
+			case K_KP_5 :
 				key = '5';
 				break;
-			case K_KP_RIGHTARROW:
+			case K_KP_RIGHTARROW :
 				key = '6';
 				break;
-			case K_KP_END:
+			case K_KP_END :
 				key = '1';
 				break;
-			case K_KP_DOWNARROW:
+			case K_KP_DOWNARROW :
 				key = '2';
 				break;
-			case K_KP_PGDN:
+			case K_KP_PGDN :
 				key = '3';
 				break;
-			case K_KP_INS:
+			case K_KP_INS :
 				key = '0';
 				break;
-			case K_KP_DEL:
+			case K_KP_DEL :
 				key = '.';
 				break;
 		}
 
-		if ( key == 'l' ) {
-			if ( Globals.keydown[K_CTRL] ) {
+		if (key == 'l') {
+			if (Globals.keydown[K_CTRL]) {
 				Cbuf.AddText("clear\n");
 				return;
 			}
 		}
 
-		if ( key == K_ENTER || key == K_KP_ENTER ) {
+		if (key == K_ENTER || key == K_KP_ENTER) {
 			// backslash text are commands, else chat
 			if (Globals.key_lines[Globals.edit_line][1] == '\\' || Globals.key_lines[Globals.edit_line][1] == '/')
-				Cbuf.AddText(new String(Globals.key_lines[Globals.edit_line], 2, Lib.strlen(Globals.key_lines[Globals.edit_line])-2));
+				Cbuf.AddText(
+					new String(Globals.key_lines[Globals.edit_line], 2, Lib.strlen(Globals.key_lines[Globals.edit_line]) - 2));
 			else
-				Cbuf.AddText(new String(Globals.key_lines[Globals.edit_line], 1, Lib.strlen(Globals.key_lines[Globals.edit_line])-1));
- 
+				Cbuf.AddText(
+					new String(Globals.key_lines[Globals.edit_line], 1, Lib.strlen(Globals.key_lines[Globals.edit_line]) - 1));
+
 			Cbuf.AddText("\n");
 			Com.Printf(new String(Globals.key_lines[Globals.edit_line], 0, Lib.strlen(Globals.key_lines[Globals.edit_line])));
 			Globals.edit_line = (Globals.edit_line + 1) & 31;
@@ -583,124 +590,127 @@ public final class Key {
 			Globals.key_lines[Globals.edit_line][0] = ']';
 			Globals.key_linepos = 1;
 			if (Globals.cls.state == Defines.ca_disconnected)
-				SCR.UpdateScreen();		// force an update, because the command
-										// may take some time
+				SCR.UpdateScreen(); // force an update, because the command
+			// may take some time
 			return;
 		}
 
 		if (key == K_TAB) {
 			// command completion
-			CompleteCommand ();
+			CompleteCommand();
 			return;
 		}
-         
-		if ( ( key == K_BACKSPACE ) || ( key == K_LEFTARROW ) || ( key == K_KP_LEFTARROW ) || ( ( key == 'h' ) && ( Globals.keydown[K_CTRL] ) ) ) {
+
+		if ((key == K_BACKSPACE) || (key == K_LEFTARROW) || (key == K_KP_LEFTARROW) || ((key == 'h') && (Globals.keydown[K_CTRL]))) {
 			if (Globals.key_linepos > 1)
 				Globals.key_linepos--;
 			return;
 		}
- 
-		if ( ( key == K_UPARROW ) || ( key == K_KP_UPARROW ) ||
-				( ( key == 'p' ) && Globals.keydown[K_CTRL] ) ) {
+
+		if ((key == K_UPARROW) || (key == K_KP_UPARROW) || ((key == 'p') && Globals.keydown[K_CTRL])) {
 			do {
 				history_line = (history_line - 1) & 31;
-			} while (history_line != Globals.edit_line && Globals.key_lines[history_line][1]==0);
+			}
+			while (history_line != Globals.edit_line && Globals.key_lines[history_line][1] == 0);
 			if (history_line == Globals.edit_line)
-				history_line = (Globals.edit_line+1)&31;
+				history_line = (Globals.edit_line + 1) & 31;
 			Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
 			Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
 			return;
 		}
- 
-		if ( ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW ) ||
-				( ( key == 'n' ) && Globals.keydown[K_CTRL] ) ) {
-			if (history_line == Globals.edit_line) return;
+
+		if ((key == K_DOWNARROW) || (key == K_KP_DOWNARROW) || ((key == 'n') && Globals.keydown[K_CTRL])) {
+			if (history_line == Globals.edit_line)
+				return;
 			do {
 				history_line = (history_line + 1) & 31;
-			} while (history_line != Globals.edit_line && Globals.key_lines[history_line][1]==0);
+			}
+			while (history_line != Globals.edit_line && Globals.key_lines[history_line][1] == 0);
 			if (history_line == Globals.edit_line) {
 				Globals.key_lines[Globals.edit_line][0] = ']';
 				Globals.key_linepos = 1;
-			} else {
+			}
+			else {
 				Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
 				Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
 			}
 			return;
 		}
- 
-		if (key == K_PGUP || key == K_KP_PGUP ) {
+
+		if (key == K_PGUP || key == K_KP_PGUP) {
 			Globals.con.display -= 2;
 			return;
 		}
- 
-		if (key == K_PGDN || key == K_KP_PGDN ) {
+
+		if (key == K_PGDN || key == K_KP_PGDN) {
 			Globals.con.display += 2;
 			if (Globals.con.display > Globals.con.current)
 				Globals.con.display = Globals.con.current;
 			return;
 		}
- 
-		if (key == K_HOME || key == K_KP_HOME ) {
+
+		if (key == K_HOME || key == K_KP_HOME) {
 			Globals.con.display = Globals.con.current - Globals.con.totallines + 10;
 			return;
 		}
- 
-		if (key == K_END || key == K_KP_END ) {
+
+		if (key == K_END || key == K_KP_END) {
 			Globals.con.display = Globals.con.current;
 			return;
 		}
-        
+
 		if (key < 32 || key > 127)
 			return; // non printable
-                 
-		if (Globals.key_linepos < Defines.MAXCMDLINE-1) {
-			Globals.key_lines[Globals.edit_line][Globals.key_linepos] = (byte)key;
+
+		if (Globals.key_linepos < Defines.MAXCMDLINE - 1) {
+			Globals.key_lines[Globals.edit_line][Globals.key_linepos] = (byte) key;
 			Globals.key_linepos++;
 			Globals.key_lines[Globals.edit_line][Globals.key_linepos] = 0;
 		}
 
 	}
-	
+
 	static void CompleteCommand() {
-//	00166         char    *cmd, *s;
-//	00167 
-//	00168         s = key_lines[edit_line]+1;
-//	00169         if (*s == '\\' || *s == '/')
-//	00170                 s++;
-//	00171 
-//	00172         cmd = Cmd_CompleteCommand (s);
-//	00173         if (!cmd)
-//	00174                 cmd = Cvar_CompleteVariable (s);
-//	00175         if (cmd)
-//	00176         {
-//	00177                 key_lines[edit_line][1] = '/';
-//	00178                 strcpy (key_lines[edit_line]+2, cmd);
-//	00179                 key_linepos = strlen(cmd)+2;
-//	00180                 key_lines[edit_line][key_linepos] = ' ';
-//	00181                 key_linepos++;
-//	00182                 key_lines[edit_line][key_linepos] = 0;
-//	00183                 return;
-//	00184         }
+		//	00166         char    *cmd, *s;
+		//	00167 
+		//	00168         s = key_lines[edit_line]+1;
+		//	00169         if (*s == '\\' || *s == '/')
+		//	00170                 s++;
+		//	00171 
+		//	00172         cmd = Cmd_CompleteCommand (s);
+		//	00173         if (!cmd)
+		//	00174                 cmd = Cvar_CompleteVariable (s);
+		//	00175         if (cmd)
+		//	00176         {
+		//	00177                 key_lines[edit_line][1] = '/';
+		//	00178                 strcpy (key_lines[edit_line]+2, cmd);
+		//	00179                 key_linepos = strlen(cmd)+2;
+		//	00180                 key_lines[edit_line][key_linepos] = ' ';
+		//	00181                 key_linepos++;
+		//	00182                 key_lines[edit_line][key_linepos] = 0;
+		//	00183                 return;
+		//	00184         }
 	}
-	
+
 	public static xcommand_t Bind_f = new xcommand_t() {
 		public void execute() {
 			Key_Bind_f();
-		}	
+		}
 	};
-	static void Key_Bind_f() {   
+
+	static void Key_Bind_f() {
 		int c = Cmd.Argc();
- 
+
 		if (c < 2) {
 			Com.Printf("bind <key> [command] : attach a command to a key\n");
 			return;
 		}
 		int b = StringToKeynum(Cmd.Argv(1));
-		if (b==-1) {
-			Com.Printf("\""+ Cmd.Argv(1) + "\" isn't a valid key\n");
+		if (b == -1) {
+			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
 			return;
 		}
- 
+
 		if (c == 2) {
 			if (Globals.keybindings[b] != null)
 				Com.Printf("\"" + Cmd.Argv(1) + "\" = \"" + Globals.keybindings[b] + "\"\n");
@@ -708,31 +718,34 @@ public final class Key {
 				Com.Printf("\"" + Cmd.Argv(1) + "\" is not bound\n");
 			return;
 		}
-        
+
 		// copy the rest of the command line
-		String cmd = "";	// start out with a null string
-		for (int i=2 ; i< c ; i++) {
+		String cmd = ""; // start out with a null string
+		for (int i = 2; i < c; i++) {
 			cmd += Cmd.Argv(i);
-			if (i != (c-1)) cmd += " ";
+			if (i != (c - 1))
+				cmd += " ";
 		}
 
-		SetBinding (b, cmd);
+		SetBinding(b, cmd);
 	}
-	
+
 	static void SetBinding(int keynum, String binding) {
-		if (keynum == -1) return;
- 
+		if (keynum == -1)
+			return;
+
 		// free old bindings
 		Globals.keybindings[keynum] = null;
-		
-		Globals.keybindings[keynum] = binding; 
+
+		Globals.keybindings[keynum] = binding;
 	}
-	
+
 	static xcommand_t Unbind_f = new xcommand_t() {
 		public void execute() {
 			Key_Unbind_f();
 		}
 	};
+
 	static void Key_Unbind_f() {
 
 		if (Cmd.Argc() != 2) {
@@ -741,32 +754,48 @@ public final class Key {
 		}
 
 		int b = Key.StringToKeynum(Cmd.Argv(1));
-		if (b==-1) {
+		if (b == -1) {
 			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
 			return;
 		}
 
-		Key.SetBinding (b, null);
+		Key.SetBinding(b, null);
 	}
-	
+
 	static xcommand_t Unbindall_f = new xcommand_t() {
 		public void execute() {
 			Key_Unbindall_f();
 		}
-	};	
+	};
+
 	static void Key_Unbindall_f() {
-		for (int i=0 ; i<256 ; i++)
+		for (int i = 0; i < 256; i++)
 			Key.SetBinding(i, null);
 	}
-	
+
 	static xcommand_t Bindlist_f = new xcommand_t() {
 		public void execute() {
 			Key_Bindlist_f();
 		}
 	};
+
 	static void Key_Bindlist_f() {
-		for (int i=0 ; i<256 ; i++)
+		for (int i = 0; i < 256; i++)
 			if (Globals.keybindings[i] != null && Globals.keybindings[i].length() != 0)
 				Com.Printf(Key.KeynumToString(i) + " \"" + Globals.keybindings[i] + "\"\n");
-	}					
+	}
+
+	static void ClearStates() {
+		int i;
+
+		anykeydown = 0;
+
+		for (i = 0; i < 256; i++) {
+			if (keydown[i] || key_repeats[i]!=0)
+				Event(i, false, 0);
+			keydown[i] = false;
+			key_repeats[i] = 0;
+		}
+	}
+
 }

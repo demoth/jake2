@@ -2,9 +2,12 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.31 2004-01-18 12:36:02 hoz Exp $
+ * $Id: Globals.java,v 1.32 2004-01-27 20:10:29 rst Exp $
  * $Log: Globals.java,v $
- * Revision 1.31  2004-01-18 12:36:02  hoz
+ * Revision 1.32  2004-01-27 20:10:29  rst
+ * now has a quake menu
+ *
+ * Revision 1.31  2004/01/18 12:36:02  hoz
  * Key.*
  *
  * Revision 1.30  2004/01/18 10:39:34  rst
@@ -130,6 +133,9 @@ public class Globals extends Defines {
 	public static cvar_t sensitivity;
 	public static cvar_t showtrace;
 	public static cvar_t timescale;
+	public static cvar_t in_mouse;
+	public static cvar_t in_joystick;
+
 
 	public static sizebuf_t net_message = new sizebuf_t();
 

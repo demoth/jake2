@@ -1,10 +1,4 @@
 /*
- * xcommand_t.java
- * Copyright (C) 2003
- * 
- * $Id: xcommand_t.java,v 1.7 2004-01-27 20:10:29 rst Exp $
- */
- /*
 Copyright (C) 1997-2001 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -14,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 See the GNU General Public License for more details.
 
@@ -23,12 +17,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
 
-/**
- * xcommand_t
- */
-public abstract class xcommand_t {
+// Created on 26.01.2004 by RST.
+// $Id: Cl_View.java,v 1.1 2004-01-27 20:10:29 rst Exp $
 
-	abstract public void execute();
+package jake2.client;
+
+
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.qcommon.*;
+import jake2.render.*;
+import jake2.server.*;
+
+public class Cl_View {
+
+	public static cvar_t          crosshair;
+
 }

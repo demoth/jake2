@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.2 2004-01-26 14:29:01 hoz Exp $
+ * $Id: CL_main.java,v 1.3 2004-01-27 20:10:29 rst Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -2020,5 +2020,15 @@ public class CL_main extends CL_parse {
 		// drop loading plaque unless this is the initial game start
 		if (Globals.cls.disable_servercount != -1)
 			SCR.EndLoadingPlaque();	// get rid of loading plaque
+	}
+	 
+	public static void Snd_Restart_f() {
+		// TODO: implement
+		
+	}
+
+	public static void Quit_f() {
+		// TODO: implement
+		
 	}
 }
