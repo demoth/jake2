@@ -2,7 +2,7 @@
  * CL_main.java
  * Copyright (C) 2004
  * 
- * $Id: CL_main.java,v 1.33 2004-02-11 19:56:27 cwei Exp $
+ * $Id: CL_main.java,v 1.34 2004-02-15 01:56:17 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1526,8 +1526,12 @@ public class CL_main extends CL_pred {
 
 		// allow rendering DLL change
 		VID.CheckChanges();
-		if (!cl.refresh_prepped && cls.state == ca_active)
+		if (!cl.refresh_prepped && cls.state == ca_active) {
 			CL.PrepRefresh();
+			// TODO force GC after level loading
+			System.gc();
+			System.gc();
+		}
 
 		SCR.UpdateScreen();
 
