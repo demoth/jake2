@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Surf.java,v 1.3 2004-12-16 00:47:17 dsanders1234 Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -763,6 +763,9 @@ public abstract class Surf extends Draw {
 		e.angles[0] = -e.angles[0];	// stupid quake bug
 		e.angles[2] = -e.angles[2];	// stupid quake bug
 
+		globalPolygonInterleavedBuf.rewind();
+		globalPolygonTexCoord1Buf.rewind();
+		
 		GL_EnableMultitexture( true );
 		GL_SelectTexture(GL_TEXTURE0);
 		GL_TexEnv( GL11.GL_REPLACE );
