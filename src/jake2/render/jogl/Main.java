@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.39 2004-06-28 14:50:24 cwei Exp $
+ * $Id: Main.java,v 1.40 2004-06-28 15:11:42 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1328,8 +1328,8 @@ public abstract class Main extends Base {
 		if (gl_config.extensions_string.indexOf("GL_SGIS_multitexture") >= 0) {
 			if (qglActiveTextureARB) {
 				ri.Con_Printf(Defines.PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n");
-			}
-			else if (gl_ext_multitexture.value != 0.0f) {
+				Cvar.SetValue("r_fullbright", 1);
+			}	else if (gl_ext_multitexture.value != 0.0f) {
 				ri.Con_Printf(Defines.PRINT_ALL, "...using GL_SGIS_multitexture\n");
 				//			 qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 				//			 qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
@@ -1338,15 +1338,15 @@ public abstract class Main extends Base {
 				Cvar.SetValue("r_fullbright", 1);
 				//			 //GL_TEXTURE0 = GL.GL_TEXTURE0_SGIS;
 				//			 //GL_TEXTURE1 = GL.GL_TEXTURE1_SGIS;
-			}
-			else {
+			} else {
 				ri.Con_Printf(Defines.PRINT_ALL, "...ignoring GL_SGIS_multitexture\n");
 				Cvar.SetValue("r_fullbright", 0);
 			}
 		}
 		else {
 			ri.Con_Printf(Defines.PRINT_ALL, "...GL_SGIS_multitexture not found\n");
-			Cvar.SetValue("r_fullbright", 0);
+			if (!qglActiveTextureARB)
+				Cvar.SetValue("r_fullbright", 0);
 		}
 
 		GL_SetDefaultState();
