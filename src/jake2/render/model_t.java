@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: model_t.java,v 1.5 2003-12-30 01:13:10 cwei Exp $
+// $Id: model_t.java,v 1.6 2004-01-04 18:46:08 rst Exp $
 
 package jake2.render;
 
@@ -89,7 +89,7 @@ public class model_t {
 	// was **marksurfaces;
 	public msurface_t marksurfaces[];
 
-	public dvis_t vis;
+	public qfiles.dvis_t vis;
 
 	public byte lightdata[];
 

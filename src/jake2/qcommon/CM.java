@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 02.01.2004 by RST.
-// $Id: CM.java,v 1.3 2004-01-04 02:07:45 rst Exp $
+// $Id: CM.java,v 1.4 2004-01-04 18:46:08 rst Exp $
 
 package jake2.qcommon;
 
@@ -105,7 +105,7 @@ public class CM extends PlayerHud {
 
 	//static dvis_t		*map_vis = (dvis_t *)map_visibility;
 	// main visibility data. rst
-	static dvis_t map_vis;
+	static qfiles.dvis_t map_vis;
 
 	static int numentitychars;
 	//static char		map_entitystring[MAX_MAP_ENTSTRING];
@@ -115,7 +115,7 @@ public class CM extends PlayerHud {
 	static carea_t map_areas[] = new carea_t[MAX_MAP_AREAS];
 
 	static int numareaportals;
-	static dareaportal_t map_areaportals[] = new dareaportal_t[MAX_MAP_AREAPORTALS];
+	static qfiles.dareaportal_t map_areaportals[] = new qfiles.dareaportal_t[MAX_MAP_AREAPORTALS];
 
 	static int numclusters = 1;
 
@@ -153,7 +153,7 @@ public class CM extends PlayerHud {
 		Com.DPrintf("CM_LoadMap...\n");
 		byte buf[];
 		int i;
-		dheader_t header;
+		qfiles.dheader_t header;
 		int length;
 
 		map_noareas = Cvar.Get("map_noareas", "0", 0);
@@ -203,7 +203,7 @@ public class CM extends PlayerHud {
 		//last_checksum = LittleLong(Com.BlockChecksum(buf, length));
 		checksum = last_checksum;
 
-		header = new dheader_t(bbuf.slice());
+		header = new qfiles.dheader_t(bbuf.slice());
 
 		/* already done.
 		for (i = 0; i < sizeof(dheader_t) / 4; i++)
@@ -256,16 +256,16 @@ public class CM extends PlayerHud {
 	*/
 	static void CMod_LoadSubmodels(lump_t l) {
 		Com.DPrintf("CMod_LoadSubmodels...\n");
-		dmodel_t in;
+		qfiles.dmodel_t in;
 		cmodel_t out;
 		int i, j, count;
 
 		//in = (cmod_base + l.fileofs);
 
-		if ((l.filelen % dmodel_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dmodel_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-		count = l.filelen / dmodel_t.SIZE;
+		count = l.filelen / qfiles.dmodel_t.SIZE;
 
 		if (count < 1)
 			Com.Error(ERR_DROP, "Map with no models");
@@ -275,7 +275,7 @@ public class CM extends PlayerHud {
 		numcmodels = count;
 
 		for (i = 0; i < count; i++) {
-			in = new dmodel_t(ByteBuffer.wrap(cmod_base, i * dmodel_t.SIZE + l.fileofs, dmodel_t.SIZE));
+			in = new qfiles.dmodel_t(ByteBuffer.wrap(cmod_base, i * qfiles.dmodel_t.SIZE + l.fileofs, qfiles.dmodel_t.SIZE));
 			out = map_cmodels[i];
 			if (out == null)
 				out = map_cmodels[i] = new cmodel_t();
@@ -340,15 +340,15 @@ public class CM extends PlayerHud {
 	*/
 	static void CMod_LoadNodes(lump_t l) {
 		Com.DPrintf("CMod_LoadNodes...\n");
-		dnode_t in;
+		qfiles.dnode_t in;
 		int child;
 		cnode_t out;
 		int i, j, count;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % dnode_t.SIZE) != 0)
-			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size:" + l.fileofs + "," + dnode_t.SIZE);
-		count = l.filelen / dnode_t.SIZE;
+		if ((l.filelen % qfiles.dnode_t.SIZE) != 0)
+			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size:" + l.fileofs + "," + qfiles.dnode_t.SIZE);
+		count = l.filelen / qfiles.dnode_t.SIZE;
 
 		if (count < 1)
 			Com.Error(ERR_DROP, "Map has no nodes");
@@ -358,7 +358,7 @@ public class CM extends PlayerHud {
 		numnodes = count;
 
 		for (i = 0; i < count; i++) {
-			in = new dnode_t(ByteBuffer.wrap(cmod_base, dnode_t.SIZE * i + l.fileofs, dnode_t.SIZE));
+			in = new qfiles.dnode_t(ByteBuffer.wrap(cmod_base, qfiles.dnode_t.SIZE * i + l.fileofs, qfiles.dnode_t.SIZE));
 			out = map_nodes[i];
 			if (out == null)
 				out = map_nodes[i] = new cnode_t();
@@ -380,15 +380,15 @@ public class CM extends PlayerHud {
 	*/
 	static void CMod_LoadBrushes(lump_t l) {
 		Com.DPrintf("CMod_LoadBrushes...\n");
-		dbrush_t in;
+		qfiles.dbrush_t in;
 		cbrush_t out;
 		int i, count;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % dbrush_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dbrush_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-		count = l.filelen / dbrush_t.SIZE;
+		count = l.filelen / qfiles.dbrush_t.SIZE;
 
 		if (count > MAX_MAP_BRUSHES)
 			Com.Error(ERR_DROP, "Map has too many brushes");
@@ -396,7 +396,7 @@ public class CM extends PlayerHud {
 		numbrushes = count;
 
 		for (i = 0; i < count; i++) {
-			in = new dbrush_t(ByteBuffer.wrap(cmod_base, i * dbrush_t.SIZE + l.fileofs, dbrush_t.SIZE));
+			in = new qfiles.dbrush_t(ByteBuffer.wrap(cmod_base, i * qfiles.dbrush_t.SIZE + l.fileofs, qfiles.dbrush_t.SIZE));
 
 			out = map_brushes[i];
 			if (out == null)
@@ -418,14 +418,14 @@ public class CM extends PlayerHud {
 		Com.DPrintf("CMod_LoadLeafs...\n");
 		int i;
 		cleaf_t out;
-		dleaf_t in;
+		qfiles.dleaf_t in;
 		int count;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % dleaf_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dleaf_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-		count = l.filelen / dleaf_t.SIZE;
+		count = l.filelen / qfiles.dleaf_t.SIZE;
 
 		if (count < 1)
 			Com.Error(ERR_DROP, "Map with no leafs");
@@ -439,7 +439,7 @@ public class CM extends PlayerHud {
 
 		for (i = 0; i < count; i++) {
 
-			in = new dleaf_t(cmod_base, i * dleaf_t.SIZE + l.fileofs, dleaf_t.SIZE);
+			in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE + l.fileofs, qfiles.dleaf_t.SIZE);
 			out = map_leafs[i] = new cleaf_t();
 
 			out.contents = in.contents;
@@ -478,16 +478,16 @@ public class CM extends PlayerHud {
 		Com.DPrintf("CMod_LoadPlanes...\n");
 		int i, j;
 		cplane_t out;
-		dplane_t in;
+		qfiles.dplane_t in;
 		int count;
 		int bits;
 
 		//in = (void *) (cmod_base + l.fileofs);
 
-		if ((l.filelen % dplane_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dplane_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-		count = l.filelen / dplane_t.SIZE;
+		count = l.filelen / qfiles.dplane_t.SIZE;
 
 		if (count < 1)
 			Com.Error(ERR_DROP, "Map with no planes");
@@ -500,7 +500,7 @@ public class CM extends PlayerHud {
 		numplanes = count;
 
 		for (i = 0; i < count; i++) {
-			in = new dplane_t(ByteBuffer.wrap(cmod_base, i * dplane_t.SIZE + l.fileofs, dplane_t.SIZE));
+			in = new qfiles.dplane_t(ByteBuffer.wrap(cmod_base, i * qfiles.dplane_t.SIZE + l.fileofs, qfiles.dplane_t.SIZE));
 
 			out = map_planes[i];
 			if (out == null)
@@ -565,14 +565,14 @@ public class CM extends PlayerHud {
 		Com.DPrintf("CMod_LoadBrushSides...\n");
 		int i, j;
 		cbrushside_t out;
-		dbrushside_t in;
+		qfiles.dbrushside_t in;
 		int count;
 		int num;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % dbrushside_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dbrushside_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-		count = l.filelen / dbrushside_t.SIZE;
+		count = l.filelen / qfiles.dbrushside_t.SIZE;
 
 		// need to save space for box planes
 		if (count > MAX_MAP_BRUSHSIDES)
@@ -582,7 +582,7 @@ public class CM extends PlayerHud {
 
 		for (i = 0; i < count; i++) {
 
-			in = new dbrushside_t(ByteBuffer.wrap(cmod_base, i * dbrushside_t.SIZE + l.fileofs, dbrushside_t.SIZE));
+			in = new qfiles.dbrushside_t(ByteBuffer.wrap(cmod_base, i * qfiles.dbrushside_t.SIZE + l.fileofs, qfiles.dbrushside_t.SIZE));
 
 			out = map_brushsides[i];
 			if (out == null)
@@ -616,14 +616,14 @@ public class CM extends PlayerHud {
 		Com.DPrintf("CMod_LoadAreas...\n");
 		int i;
 		carea_t out;
-		darea_t in;
+		qfiles.darea_t in;
 		int count;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % darea_t.SIZE) != 0)
+		if ((l.filelen % qfiles.darea_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-		count = l.filelen / darea_t.SIZE;
+		count = l.filelen / qfiles.darea_t.SIZE;
 
 		if (count > MAX_MAP_AREAS)
 			Com.Error(ERR_DROP, "Map has too many areas");
@@ -632,7 +632,7 @@ public class CM extends PlayerHud {
 
 		for (i = 0; i < count; i++) {
 
-			in = new darea_t(ByteBuffer.wrap(cmod_base, i * darea_t.SIZE + l.fileofs, darea_t.SIZE));
+			in = new qfiles.darea_t(ByteBuffer.wrap(cmod_base, i * qfiles.darea_t.SIZE + l.fileofs, qfiles.darea_t.SIZE));
 			out = map_areas[i];
 			if (out == null)
 				out = map_areas[i] = new carea_t();
@@ -652,14 +652,14 @@ public class CM extends PlayerHud {
 	static void CMod_LoadAreaPortals(lump_t l) {
 		Com.DPrintf("CMod_LoadAreaPortals...\n");
 		int i;
-		dareaportal_t out;
-		dareaportal_t in;
+		qfiles.dareaportal_t out;
+		qfiles.dareaportal_t in;
 		int count;
 
 		//in = (void *) (cmod_base + l.fileofs);
-		if ((l.filelen % dareaportal_t.SIZE) != 0)
+		if ((l.filelen % qfiles.dareaportal_t.SIZE) != 0)
 			Com.Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
-		count = l.filelen / dareaportal_t.SIZE;
+		count = l.filelen / qfiles.dareaportal_t.SIZE;
 
 		if (count > MAX_MAP_AREAS)
 			Com.Error(ERR_DROP, "Map has too many areas");
@@ -667,11 +667,11 @@ public class CM extends PlayerHud {
 		numareaportals = count;
 
 		for (i = 0; i < count; i++) {
-			in = new dareaportal_t(ByteBuffer.wrap(cmod_base, i * dareaportal_t.SIZE + l.fileofs, dareaportal_t.SIZE));
+			in = new qfiles.dareaportal_t(ByteBuffer.wrap(cmod_base, i * qfiles.dareaportal_t.SIZE + l.fileofs, qfiles.dareaportal_t.SIZE));
 			// dont loose data. rst
 			out = map_areaportals[i];
 			if (out == null)
-				out = map_areaportals[i] = new dareaportal_t();
+				out = map_areaportals[i] = new qfiles.dareaportal_t();
 			
 	
 			out.portalnum = in.portalnum;
@@ -696,7 +696,7 @@ public class CM extends PlayerHud {
 		ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, l.filelen);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 
-		map_vis = new dvis_t(bb);
+		map_vis = new qfiles.dvis_t(bb);
 
 		/* done 
 		map_vis.numclusters = LittleLong(map_vis.numclusters);
@@ -1600,7 +1600,7 @@ public class CM extends PlayerHud {
 		static void FloodArea_r(carea_t area, int floodnum) {
 			Com.DPrintf("FloodArea_r("+ floodnum + ")...\n");
 			int i;
-			dareaportal_t p;
+			qfiles.dareaportal_t p;
 	
 			if (area.floodvalid == floodvalid) {
 				if (area.floodnum == floodnum)

@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.2 2004-01-04 01:34:41 cwei Exp $
+ * $Id: qfiles.java,v 1.3 2004-01-04 18:46:08 rst Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +28,371 @@ package jake2.qcommon;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+
+import jake2.*;
+import jake2.client.*;
+import jake2.game.*;
+import jake2.render.*;
+import jake2.server.*;
+
+
 /**
  * qfiles
  * 
  * @author cwei
  */
 public class qfiles {
+	
+public static class darea_t {
+	
+ 
+	public darea_t(ByteBuffer bb) {
+		
+		 bb.order(ByteOrder.LITTLE_ENDIAN);
+		 
+		 numareaportals = bb.getInt();
+		 firstareaportal = bb.getInt();
+		 
+	}
+	int		numareaportals;
+	int		firstareaportal;
+	
+	public static int SIZE = 8;
+}	
+	
+	
+// each area has a list of portals that lead into other areas
+// when portals are closed, other areas may not be visible or
+// hearable even if the vis info says that it should be
+
+public static class dareaportal_t {
+
+	public dareaportal_t() {
+	}
+
+	public dareaportal_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		portalnum = bb.getShort();
+		otherarea = bb.getShort();
+	}
+
+	int portalnum;
+	int otherarea;
+	
+	public static int SIZE = 8;
+}
+	
+	
+public static class dbrush_t {
+
+	public dbrush_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		firstside = bb.getInt();
+		numsides = bb.getInt();
+		contents = bb.getInt();
+	}
+
+	public static int SIZE = 3 * 4;
+
+	int firstside;
+	int numsides;
+	int contents;
+}
+
+public static class dbrushside_t {
+	 
+	public dbrushside_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		planenum = bb.getShort() & 0xffff;
+		texinfo = bb.getShort();
+	}
+	
+	//unsigned short planenum;
+	int	planenum;					// facing out of the leaf
+	
+	short	texinfo;
+	
+	public static int SIZE = 4;
+}
+
+
+public static class dedge_t {
+	// unsigned short v[2];
+	int v[] ={0,0};
+}
+
+
+
+public static class dface_t {
+	//unsigned short	planenum;
+	int		planenum;
+	short		side;
+
+	int		firstedge;		// we must support > 64k edges
+	short		numedges;	
+	short		texinfo;
+
+	// lighting info
+	byte		styles[] = new byte[Defines.MAXLIGHTMAPS];
+	int		lightofs;		// start of [numstyles*surfsize] samples
+}
+
+
+public static class dheader_t {
+	
+	public dheader_t(ByteBuffer bb)
+	{
+		
+		this.ident = EndianHandler.swapInt(bb.getInt());
+		this.version = EndianHandler.swapInt(bb.getInt());
+		
+				
+		for (int n=0; n < Defines.HEADER_LUMPS; n++)			
+			lumps [n] = new lump_t(EndianHandler.swapInt(bb.getInt()), 
+			EndianHandler.swapInt(bb.getInt()));
+			
+	}
+	
+	int			ident;
+	int			version;	
+	lump_t			lumps[]= new lump_t[Defines.HEADER_LUMPS];
+}
+
+
+
+public static class dleaf_t {
+
+	public dleaf_t(byte[] cmod_base, int i, int j) {
+		ByteBuffer bb = ByteBuffer.wrap(cmod_base, i, j);
+		
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		contents = bb.getInt();
+		cluster = bb.getShort();
+		area = bb.getShort();
+		
+		mins[0] = bb.getShort();
+		mins[1] = bb.getShort();
+		mins[2] = bb.getShort();
+
+		maxs[0] = bb.getShort();
+		maxs[1] = bb.getShort();
+		maxs[2] = bb.getShort();
+		
+		firstleafface = bb.getShort() &0xffff;
+		numleaffaces = bb.getShort() &0xffff;
+		
+		firstleafbrush = bb.getShort() &0xffff;
+		numleafbrushes = bb.getShort() &0xffff;
+	}
+
+	public static int SIZE = 4 +  8 * 2 + 4 * 2;
+
+	int contents; // OR of all brushes (not needed?)
+
+	short cluster;
+	short area;
+
+	short mins[] = { 0, 0, 0 }; // for frustum culling
+	short maxs[] = { 0, 0, 0 };
+
+	/*
+	unsigned short	firstleafface;
+	unsigned short	numleaffaces;
+	
+	unsigned short	firstleafbrush;
+	unsigned short	numleafbrushes;
+	*/
+	int firstleafface;
+	int numleaffaces;
+
+	int firstleafbrush;
+	int numleafbrushes;
+}
+
+
+
+
+public static class dmdl_t {
+	int			ident;
+	int			version;
+
+	int			skinwidth;
+	int			skinheight;
+	int			framesize;		// byte size of each frame
+
+	int			num_skins;
+	int			num_xyz;
+	int			num_st;			// greater than num_xyz for seams
+	int			num_tris;
+	int			num_glcmds;		// dwords in strip/fan command list
+	int			num_frames;
+
+	int			ofs_skins;		// each skin is a MAX_SKINNAME string
+	int			ofs_st;			// byte offset from start for stverts
+	int			ofs_tris;		// offset for dtriangles
+	int			ofs_frames;		// offset for first frame
+	int			ofs_glcmds;	
+	int			ofs_end;		// end of file
+}
+
+
+public static class dmodel_t {
+ 
+	public dmodel_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		
+		for (int j=0; j < 3; j++)
+			mins[j] = bb.getFloat();
+
+		for (int j=0; j < 3; j++)
+			maxs[j] = bb.getFloat();
+
+		for (int j=0; j < 3; j++)
+			origin[j] = bb.getFloat();
+
+		headnode = bb.getInt();
+		firstface = bb.getInt();
+		numfaces = bb.getInt();		 
+	}
+	float		mins[] ={0,0,0};
+	float		maxs[] ={0,0,0};
+	float		origin[] ={0,0,0};		// for sounds or lights
+	int		headnode;
+	int		firstface, numfaces;	// submodels just draw faces
+										// without walking the bsp tree
+																				
+	public static int SIZE = 3 * 4 + 3 * 4 + 3 * 4 + 4 + 8; 
+}
+
+
+
+public static class dnode_t {
+
+	public dnode_t(ByteBuffer bb) {
+		
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+		planenum = bb.getInt();
+		
+		children[0] = bb.getInt();
+		children[1] = bb.getInt();
+
+		for (int j = 0; j < 3; j++)
+			mins[0] = bb.getShort();
+
+		for (int j = 0; j < 3; j++)
+			maxs[0] = bb.getShort();
+
+		firstface = bb.getShort() & 0xffff;
+		numfaces = bb.getShort() & 0xffff;
+		
+	}
+	
+	int planenum;
+	int children[] = { 0, 0 }; // negative numbers are -(leafs+1), not nodes
+	short mins[] = { 0, 0, 0 }; // for frustom culling
+	short maxs[] = { 0, 0, 0 };
+
+	/*
+	unsigned short	firstface;
+	unsigned short	numfaces;	// counting both sides
+	*/
+
+	int firstface;
+	int numfaces;
+
+	public static int SIZE = 4 + 8 + 6 + 6 + 2 + 2; // counting both sides
+}
+
+
+
+public static class dplane_t {
+	
+	// planes (x&~1) and (x&~1)+1 are always opposites
+ 
+	public dplane_t(ByteBuffer bb) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+	
+		normal[0]= (bb.getFloat());
+		normal[1]= (bb.getFloat());
+		normal[2]= (bb.getFloat());
+		 
+		dist = (bb.getFloat());
+		type =  (bb.getInt());
+	}
+	
+	float	normal[] = {0,0,0};
+	float	dist;
+	int	type;		// PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+	
+	public static int SIZE = 3*4 + 4 + 4;
+}
+
+
+public static class dsprframe_t {
+	int		width, height;
+	int		origin_x, origin_y;		// raster coordinates inside pic
+	//char	name[MAX_SKINNAME];			// name of pcx file
+	String 		name;					// name of pcx file
+}
+
+
+public static class dsprite_t {
+	int			ident;
+	int			version;
+	int			numframes;
+	dsprframe_t		frames[];			// variable sized
+}
+
+
+
+public static class dstvert_t {
+	short	s;
+	short	t;
+}
+
+
+
+public static class dtriangle_t {
+	short	index_xyz[]={0,0,0};
+	short	index_st[]={0,0,0};
+}
+
+
+public static class dtrivertx_t {
+	byte	v[]=	{0,0,0};			// scaled byte to fit in frame mins/maxs
+	byte	lightnormalindex;
+}
+
+
+public static class dvertex_t {
+	float point [] = {0,0,0};
+}
+
+
+public static class dvis_t {
+	
+	 
+	public dvis_t(ByteBuffer bb) {
+		numclusters = bb.getInt();
+		bitofs = new int[numclusters][2];
+		
+		for (int i=0; i < numclusters; i++)
+		{
+			bitofs[i][0]= bb.getInt();
+			bitofs[i][1]= bb.getInt();	
+		}
+	}
+	
+	int			numclusters;
+	int			bitofs[][]= new int[8][2];	// bitofs[numclusters][2]	
+}
+
+
+	
 ////
 ////	   qfiles.h: quake file formats
 ////	   This file must be identical in the quake and utils directories
