@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.33 2004-03-03 22:32:31 rst Exp $
+ * $Id: Main.java,v 1.34 2004-05-19 16:23:15 cwei Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -323,22 +323,22 @@ public abstract class Main extends Base {
 		gl.glTexCoord2f(0, 1);
 		Math3D.VectorMA(e.origin, -frame.origin_y, vup, point);
 		Math3D.VectorMA(point, -frame.origin_x, vright, point);
-		gl.glVertex3fv(point);
+		gl.glVertex3f(point[0], point[1], point[2]);
 
 		gl.glTexCoord2f(0, 0);
 		Math3D.VectorMA(e.origin, frame.height - frame.origin_y, vup, point);
 		Math3D.VectorMA(point, -frame.origin_x, vright, point);
-		gl.glVertex3fv(point);
+		gl.glVertex3f(point[0], point[1], point[2]);
 
 		gl.glTexCoord2f(1, 0);
 		Math3D.VectorMA(e.origin, frame.height - frame.origin_y, vup, point);
 		Math3D.VectorMA(point, frame.width - frame.origin_x, vright, point);
-		gl.glVertex3fv(point);
+		gl.glVertex3f(point[0], point[1], point[2]);
 
 		gl.glTexCoord2f(1, 1);
 		Math3D.VectorMA(e.origin, -frame.origin_y, vup, point);
 		Math3D.VectorMA(point, frame.width - frame.origin_x, vright, point);
-		gl.glVertex3fv(point);
+		gl.glVertex3f(point[0], point[1], point[2]);
 
 		gl.glEnd();
 
@@ -375,7 +375,7 @@ public abstract class Main extends Base {
 		R_RotateForEntity(currententity);
 
 		gl.glDisable(GL.GL_TEXTURE_2D);
-		gl.glColor3fv(shadelight);
+		gl.glColor3f(shadelight[0], shadelight[1], shadelight[2]);
 
 		// this replaces the TRIANGLE_FAN
 		glut.glutWireCube(gl, 20);
@@ -491,6 +491,7 @@ public abstract class Main extends Base {
 		float[] right = { 0, 0, 0 };
 		float scale;
 		int color;
+		float[] origin;
 
 		GL_Bind(r_particletexture.texnum);
 		gl.glDepthMask(false); // no z buffering
@@ -503,11 +504,12 @@ public abstract class Main extends Base {
 
 		for (i = 0; i < num_particles; i++) {
 			p = particles[i];
+			origin = p.origin;
 			// hack a scale up to keep particles from disapearing
 			scale =
-				(p.origin[0] - r_origin[0]) * vpn[0]
-					+ (p.origin[1] - r_origin[1]) * vpn[1]
-					+ (p.origin[2] - r_origin[2]) * vpn[2];
+				(origin[0] - r_origin[0]) * vpn[0]
+					+ (origin[1] - r_origin[1]) * vpn[1]
+					+ (origin[2] - r_origin[2]) * vpn[2];
 
 			if (scale < 20)
 				scale = 1;
@@ -523,16 +525,16 @@ public abstract class Main extends Base {
 				(byte) (p.alpha * 255));
 
 			gl.glTexCoord2f(0.0625f, 0.0625f);
-			gl.glVertex3fv(p.origin);
+			gl.glVertex3f(origin[0], origin[1], origin[2]);
 
 			gl.glTexCoord2f(1.0625f, 0.0625f);
 			gl.glVertex3f(p.origin[0] + up[0] * scale, p.origin[1] + up[1] * scale, p.origin[2] + up[2] * scale);
 
 			gl.glTexCoord2f(0.0625f, 1.0625f);
 			gl.glVertex3f(
-				p.origin[0] + right[0] * scale,
-				p.origin[1] + right[1] * scale,
-				p.origin[2] + right[2] * scale);
+				origin[0] + right[0] * scale,
+				origin[1] + right[1] * scale,
+				origin[2] + right[2] * scale);
 		}
 
 		gl.glEnd();
@@ -552,6 +554,7 @@ public abstract class Main extends Base {
 		if (gl_ext_pointparameters.value != 0.0f && qglPointParameterfEXT) {
 			int color;
 			particle_t p;
+			float[] origin; 
 
 			gl.glDepthMask(false);
 			gl.glEnable(GL.GL_BLEND);
@@ -563,6 +566,7 @@ public abstract class Main extends Base {
 			for (int i = 0; i < r_newrefdef.num_particles; i++) {
 				p = r_newrefdef.particles[i];
 				color = d_8to24table[p.color];
+				origin = p.origin;
 
 				gl.glColor4ub(
 					(byte) ((color >> 0) & 0xff),
@@ -570,7 +574,7 @@ public abstract class Main extends Base {
 					(byte) ((color >> 16) & 0xff),
 					(byte) (p.alpha * 255));
 
-				gl.glVertex3fv(p.origin);
+				gl.glVertex3f(origin[0], origin[1], origin[2]);
 			}
 			gl.glEnd();
 
@@ -608,7 +612,7 @@ public abstract class Main extends Base {
 		gl.glRotatef(-90, 1, 0, 0); // put Z going up
 		gl.glRotatef(90, 0, 0, 1); // put Z going up
 
-		gl.glColor4fv(v_blend);
+		gl.glColor4f(v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
 
 		gl.glBegin(GL.GL_QUADS);
 
@@ -1607,11 +1611,18 @@ public abstract class Main extends Base {
 		gl.glColor4f(r, g, b, e.alpha);
 
 		gl.glBegin(GL.GL_TRIANGLE_STRIP);
+		
+		float[] v;
+		
 		for (i = 0; i < NUM_BEAM_SEGS; i++) {
-			gl.glVertex3fv(start_points[i]);
-			gl.glVertex3fv(end_points[i]);
-			gl.glVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
-			gl.glVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
+			v = start_points[i];
+			gl.glVertex3f(v[0], v[1], v[2]);
+			v = end_points[i];
+			gl.glVertex3f(v[0], v[1], v[2]);
+			v = start_points[(i + 1) % NUM_BEAM_SEGS];
+			gl.glVertex3f(v[0], v[1], v[2]);
+			v = end_points[(i + 1) % NUM_BEAM_SEGS];
+			gl.glVertex3f(v[0], v[1], v[2]);
 		}
 		gl.glEnd();
 
