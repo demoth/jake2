@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.7 2004-01-07 13:44:36 hoz Exp $
+ * $Id: Key.java,v 1.8 2004-01-09 09:48:59 hoz Exp $
  */
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.client;
+
+import jake2.Jake2;
 
 /**
  * Key
@@ -119,6 +121,7 @@ public final class Key {
 	 * Called by the system between frames for both key up and key down events.
 	 */
 	public static void Event(int key, boolean down, long time) {
+		System.out.println(key +  " " + down);
 //	00715         char    *kb;
 //	00716         char    cmd[1024];
 //	00717 

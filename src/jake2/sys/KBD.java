@@ -2,7 +2,7 @@
  * KBD.java
  * Copyright (C) 2004
  * 
- * $Id: KBD.java,v 1.2 2004-01-07 13:44:36 hoz Exp $
+ * $Id: KBD.java,v 1.3 2004-01-09 09:48:59 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,23 +25,41 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sys;
 
-import jake2.Defines;
 import jake2.client.Key;
 
-import java.awt.AWTEvent;
+import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Robot;
 import java.awt.event.*;
-import java.util.LinkedList;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
 /**
  * KBD
  */
-public final class KBD implements KeyListener, MouseListener {
+public final class KBD {
 	
-	// modifications of eventQueue must be thread safe!
-	private static LinkedList eventQueue = new LinkedList(); 
+	static int win_x = 0;
+	static int win_y = 0;
+	static int win_w2 = 0;
+	static int win_h2 = 0;
 	
+	// motion values
+	static int mx = 0;
+	static int my = 0;
+	
+	static Robot robot;
+	public static InputListener listener = new InputListener();
+		
+	static {
+		try {
+			robot = new Robot();
+		} catch (AWTException e) {
+			System.exit(1);
+		}
+	}
+		
 	public static void Init() {
-//	01260         Key_Event_fp = fp;
 	}
 
 	public static void Update() {
@@ -54,8 +72,10 @@ public final class KBD implements KeyListener, MouseListener {
 	
 	static void HandleEvents() {
 //		00464         XEvent event;
-//		00465         int b;
-//		00466         qboolean dowarp = false;
+		int b;
+		boolean dowarp = false;
+		int mwx = win_w2;
+		int mwy = win_h2;
 //		00467         int mwx = vid.width/2;
 //		00468         int mwy = vid.height/2;
 //		00469    
@@ -63,7 +83,7 @@ public final class KBD implements KeyListener, MouseListener {
 //		00471                 return;
 //		00472
 		Jake2InputEvent event;
-		while ( (event=nextEvent()) != null ) {
+		while ( (event=InputListener.nextEvent()) != null ) {
 //		00473         while (XPending(dpy)) {
 //		00474 
 //		00475                 XNextEvent(dpy, &event);
@@ -71,12 +91,22 @@ public final class KBD implements KeyListener, MouseListener {
 			switch(event.type) {
 				case Jake2InputEvent.KeyPress:
 				case Jake2InputEvent.KeyRelease:
-					Do_Key_Event(((KeyEvent)event.ev).getKeyCode(), event.type == Jake2InputEvent.KeyPress);
+					Do_Key_Event(XLateKey((KeyEvent)event.ev), event.type == Jake2InputEvent.KeyPress);
 //		00480                         if (in_state && in_state->Key_Event_fp)
 //		00481                                 in_state->Key_Event_fp (XLateKey(&event.xkey), event.type == KeyPress);
 					break;
 
 				case Jake2InputEvent.MotionNotify:
+					if (IN.mouse_active) {
+						int dx = (((MouseEvent)event.ev).getX() - mwx) * 2;
+						int dy = (((MouseEvent)event.ev).getY() - mwy) * 2;
+						mx += dx;
+						my += dy;
+						mwx = ((MouseEvent)event.ev).getX();
+						mwy = ((MouseEvent)event.ev).getY();
+						
+						dowarp = (dx != 0 || dy != 0);
+					}
 //		00485                         if (mouse_active) {
 //		00486                                 if (dgamouse) {
 //		00487                                         mx += (event.xmotion.x + win_x) * 2;
@@ -97,108 +127,137 @@ public final class KBD implements KeyListener, MouseListener {
 
 
 				case Jake2InputEvent.ButtonPress:
-//		00505                         b=-1;
-//		00506                         if (event.xbutton.button == 1)
-//		00507                                 b = 0;
-//		00508                         else if (event.xbutton.button == 2)
-//		00509                                 b = 2;
-//		00510                         else if (event.xbutton.button == 3)
-//		00511                                 b = 1;
-//		00512                         if (b>=0 && in_state && in_state->Key_Event_fp)
-//		00513                                 in_state->Key_Event_fp (K_MOUSE1 + b, true);
+					b=-1;
+					b=((MouseEvent)event.ev).getButton()-1;
+					Do_Key_Event(Key.K_MOUSE1 + b, true);
 					break;
  
 				case Jake2InputEvent.ButtonRelease:
-//		00517                         b=-1;
-//		00518                         if (event.xbutton.button == 1)
-//		00519                                 b = 0;
-//		00520                         else if (event.xbutton.button == 2)
-//		00521                                 b = 2;
-//		00522                         else if (event.xbutton.button == 3)
-//		00523                                 b = 1;
-//		00524                         if (b>=0 && in_state && in_state->Key_Event_fp)
-//		00525                                 in_state->Key_Event_fp (K_MOUSE1 + b, false);
+					b=-1;
+					b=((MouseEvent)event.ev).getButton()-1;
+					Do_Key_Event(Key.K_MOUSE1 + b, false);
 					break;
  
 				case Jake2InputEvent.CreateNotify :
+				case Jake2InputEvent.ConfigureNotify :
+					Component c = ((ComponentEvent)event.ev).getComponent();
+					win_x = c.getX();
+					win_y = c.getY();
+					win_w2 = c.getWidth() / 2;
+					win_h2 = c.getHeight() / 2; 
 //		00529                         win_x = event.xcreatewindow.x;
 //		00530                         win_y = event.xcreatewindow.y;
 					break;
 
-				case Jake2InputEvent.ConfigureNotify :
+				
 //		00534                         win_x = event.xconfigure.x;
 //		00535                         win_y = event.xconfigure.y;
-					break;
+					
 			}
 		}
 //		00539            
-//		00540         if (dowarp) {
-//		00541                 /* move the mouse to the window center again */
+		if (dowarp) {
+			// move the mouse to the window center again
+			robot.mouseMove(win_x + win_w2, win_y + win_h2);
 //		00542                 XWarpPointer(dpy,None,win,0,0,0,0, vid.width/2,vid.height/2);
-//		00543         }		
+		}		
 	}
-	
-	private static Jake2InputEvent nextEvent() {
-		Jake2InputEvent ev;
-		synchronized (eventQueue) {
-			ev = (Jake2InputEvent)eventQueue.removeFirst();
-		}
-		return ev;
-	}
-	
-	private static void addEvent(Jake2InputEvent ev) {
-		synchronized (eventQueue) {
-			eventQueue.addLast(ev);
-		}
-	}
-	
+
+	private static int XLateKey(KeyEvent ev) {
+ 
+		int key = 0;
+		int code = ev.getKeyCode();
+
+		switch(code) {
+//	00626                 case XK_KP_Page_Up:      key = K_KP_PGUP; break;
+			case KeyEvent.VK_PAGE_UP: key = Key.K_PGUP; break;
+ 
+//	00629                 case XK_KP_Page_Down: key = K_KP_PGDN; break;
+			case KeyEvent.VK_PAGE_DOWN: key = Key.K_PGDN; break;
+
+//	00632                 case XK_KP_Home: key = K_KP_HOME; break;
+			case KeyEvent.VK_HOME: key = Key.K_HOME; break;
+
+//	00635                 case XK_KP_End:  key = K_KP_END; break;
+			case KeyEvent.VK_END: key = Key.K_END; break;
+ 
+			case KeyEvent.VK_KP_LEFT: key = Key.K_KP_LEFTARROW; break;
+			case KeyEvent.VK_LEFT: key = Key.K_LEFTARROW; break;
+ 
+			case KeyEvent.VK_KP_RIGHT: key = Key.K_KP_RIGHTARROW; break;
+			case KeyEvent.VK_RIGHT: key = Key.K_RIGHTARROW; break;
+
+			case KeyEvent.VK_KP_DOWN: key = Key.K_KP_DOWNARROW; break;
+			case KeyEvent.VK_DOWN: key = Key.K_DOWNARROW; break;
+
+			case KeyEvent.VK_KP_UP: key = Key.K_KP_UPARROW; break;
+			case KeyEvent.VK_UP: key = Key.K_UPARROW; break; 
+
+			case KeyEvent.VK_ESCAPE: key = Key.K_ESCAPE; break; 
+
+			
+			case KeyEvent.VK_ENTER: key = Key.K_ENTER; break; 
+//	00652                 case XK_KP_Enter: key = K_KP_ENTER;     break;
+
+			case KeyEvent.VK_TAB: key = Key.K_TAB; break; 
+
+			case KeyEvent.VK_F1: key = Key.K_F1; break;
+			case KeyEvent.VK_F2: key = Key.K_F2; break;
+			case KeyEvent.VK_F3: key = Key.K_F3; break;
+			case KeyEvent.VK_F4: key = Key.K_F4; break;
+			case KeyEvent.VK_F5: key = Key.K_F5; break;
+			case KeyEvent.VK_F6: key = Key.K_F6; break;
+			case KeyEvent.VK_F7: key = Key.K_F7; break;
+			case KeyEvent.VK_F8: key = Key.K_F8; break;
+			case KeyEvent.VK_F9: key = Key.K_F9; break;
+			case KeyEvent.VK_F10: key = Key.K_F10; break;
+			case KeyEvent.VK_F11: key = Key.K_F11; break;
+			case KeyEvent.VK_F12: key = Key.K_F12; break; 
+
+			case KeyEvent.VK_BACK_SPACE: key = Key.K_BACKSPACE; break; 
+ 
+//	00683                 case XK_KP_Delete: key = K_KP_DEL; break;
+//	00684                 case XK_Delete: key = K_DEL; break;
+//	00685 
+//	00686                 case XK_Pause:  key = K_PAUSE;           break;
+//	00687 
+//	00688                 case XK_Shift_L:
+//	00689                 case XK_Shift_R:        key = K_SHIFT;          break;
+//	00690 
+//	00691                 case XK_Execute: 
+//	00692                 case XK_Control_L: 
+//	00693                 case XK_Control_R:      key = K_CTRL;            break;
+//	00694 
+//	00695                 case XK_Alt_L:  
+//	00696                 case XK_Meta_L: 
+//	00697                 case XK_Alt_R:  
+//	00698                 case XK_Meta_R: key = K_ALT;                    break;
+//	00699 
+//	00700                 case XK_KP_Begin: key = K_KP_5; break;
+//	00701 
+//	00702                 case XK_Insert:key = K_INS; break;
+//	00703                 case XK_KP_Insert: key = K_KP_INS; break;
+//	00704 
+//	00705                 case XK_KP_Multiply: key = '*'; break;
+//	00706                 case XK_KP_Add:  key = K_KP_PLUS; break;
+//	00707                 case XK_KP_Subtract: key = K_KP_MINUS; break;
+//	00708                 case XK_KP_Divide: key = K_KP_SLASH; break;
+//	00709 
+
+			default:
+				key = ev.getKeyChar();
+				if (key >= 'A' && key <= 'Z')
+					key = key - 'A' + 'a';
+			break;
+		} 
+		return key;
+	}	
+		
 	static void Do_Key_Event(int key, boolean down) {
+		// TODO remove hard wired mouse toggle
+		if (down && key == 't') IN.toggleMouse();
 		Key.Event(key, down, System.currentTimeMillis());
 	}
 	
-	public void keyPressed(KeyEvent e) {
-		addEvent(new Jake2InputEvent(Jake2InputEvent.KeyPress, e));
-	}
-
-	public void keyReleased(KeyEvent e) {
-		addEvent(new Jake2InputEvent(Jake2InputEvent.KeyRelease, e));
-	}
-
-	public void keyTyped(KeyEvent e) {
-	}
-
-	public void mouseClicked(MouseEvent e) {
-	}
-
-	public void mouseEntered(MouseEvent e) {		
-	}
-
-	public void mouseExited(MouseEvent e) {
-	}
-
-	public void mousePressed(MouseEvent e) {
-		addEvent(new Jake2InputEvent(Jake2InputEvent.ButtonPress, e));
-	}
-
-	public void mouseReleased(MouseEvent e) {
-		addEvent(new Jake2InputEvent(Jake2InputEvent.ButtonRelease, e));
-	}
-
 }
 
-class Jake2InputEvent {
-	static final int KeyPress = 0;
-	static final int KeyRelease = 1;
-	static final int MotionNotify = 2;
-	static final int ButtonPress = 3;
-	static final int ButtonRelease = 4;
-	static final int CreateNotify = 5;
-	static final int ConfigureNotify = 6;
-	int type;
-	AWTEvent ev;
-	
-	Jake2InputEvent(int type, AWTEvent ev) {
-		this.type = type;
-		this.ev = ev;
-	}
-}

@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.5 2003-12-01 22:00:22 hoz Exp $
+ * $Id: IN.java,v 1.6 2004-01-09 09:48:59 hoz Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,34 @@ package jake2.sys;
  */
 public final class IN {
 	
+	static boolean mouse_active = false;
+	
+	public static void ActivateMouse() {
+//	00488         if (!mouse_avail || !dpy || !win)
+//	00489                 return;
+//	00490 
+		if (!mouse_active) {
+//	00492                 mx = my = 0; // don't spazz
+//	00493                 install_grabs();
+			mouse_active = true;
+		}
+	}
+	
+	public static void DeactivateMouse() {
+//	00477         if (!mouse_avail || !dpy || !win)
+//	00478                 return;
+//	00479 
+		if (mouse_active) {
+//	00481                 uninstall_grabs();
+			mouse_active = false;
+		}
+	}
+	
+	public static void toggleMouse() {
+		if (mouse_active) DeactivateMouse();
+		else ActivateMouse();
+	}
+		
 	public static void Init() {
 	}
 	
