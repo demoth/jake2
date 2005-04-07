@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.6 2004-12-08 09:58:34 hzi Exp $
+ * $Id: Main.java,v 1.7 2005-04-07 15:25:49 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -953,7 +953,7 @@ public abstract class Main extends Base {
 		gl_particle_att_b = Cvar.Get("gl_particle_att_b", "0.0", Globals.CVAR_ARCHIVE);
 		gl_particle_att_c = Cvar.Get("gl_particle_att_c", "0.01", Globals.CVAR_ARCHIVE);
 
-		gl_modulate = Cvar.Get("gl_modulate", "1", Globals.CVAR_ARCHIVE);
+		gl_modulate = Cvar.Get("gl_modulate", "1.5", Globals.CVAR_ARCHIVE);
 		gl_log = Cvar.Get("gl_log", "0", 0);
 		gl_bitdepth = Cvar.Get("gl_bitdepth", "0", 0);
 		gl_mode = Cvar.Get("gl_mode", "1", Globals.CVAR_ARCHIVE);
