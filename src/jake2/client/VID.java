@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.14 2005-01-12 08:36:21 hzi Exp $
+ * $Id: VID.java,v 1.15 2005-04-07 15:29:21 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -425,9 +425,15 @@ public class VID extends Globals {
 		/*
 		** invert sense so greater = brighter, and scale to a range of 0.5 to 1.3
 		*/
-		float gamma = ( 0.8f - ( s_brightness_slider.curvalue/10.0f - 0.5f ) ) + 0.5f;
+		// the original was modified, because on CRTs it was too dark.
+		// the slider range is [5; 13]
+		// gamma: [1.1; 0.7]
+		float gamma = ( 0.4f - ( s_brightness_slider.curvalue/20.0f - 0.25f ) ) + 0.7f;
+		// modulate:  [1.0; 2.6]
+		float modulate = s_brightness_slider.curvalue * 0.2f;
 
 		Cvar.SetValue( "vid_gamma", gamma );
+		Cvar.SetValue( "gl_modulate", modulate);
 		Cvar.SetValue( "sw_stipplealpha", s_stipple_box.curvalue );
 		Cvar.SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
 		Cvar.SetValue( "vid_fullscreen", s_fs_box.curvalue );
