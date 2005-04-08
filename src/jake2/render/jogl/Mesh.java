@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.7 2004-09-22 19:22:16 salomo Exp $
+ * $Id: Mesh.java,v 1.8 2005-04-08 14:05:34 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -245,9 +245,9 @@ public abstract class Mesh extends Light {
             if ((currententity.flags & (Defines.RF_SHELL_RED
                     | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
                     | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0) {
-                gl
-                        .glColor4f(shadelight[0], shadelight[1], shadelight[2],
-                                alpha);
+            	
+                gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+                gl.glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
             } else {
                 gl.glEnableClientState(GL.GL_COLOR_ARRAY);
                 gl.glColorPointer(4, GL.GL_FLOAT, 0, colorArrayBuf);
