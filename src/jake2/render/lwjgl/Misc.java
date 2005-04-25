@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.3 2005-04-25 02:18:20 cawe Exp $
+ * $Id: Misc.java,v 1.4 2005-04-25 09:24:09 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,19 +28,12 @@ package jake2.render.lwjgl;
 import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.FS;
-import jake2.util.Lib;
 
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.io.File;
-import java.io.IOException;
-import java.nio.*;
-import java.nio.ByteBuffer;
+import java.io.RandomAccessFile;
 import java.nio.FloatBuffer;
-import java.nio.channels.Channel;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-
-import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTPointParameters;
