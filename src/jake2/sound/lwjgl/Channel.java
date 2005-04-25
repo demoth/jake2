@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.2 2004-12-23 00:52:12 cawe Exp $
+ * $Id: Channel.java,v 1.3 2005-04-25 22:50:25 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -221,7 +221,9 @@ public class Channel {
 				sourceId = ch.sourceId;
 				switch (ch.type) {
 					case Channel.LISTENER:
-					    sourceOrigin = listenerOrigin;
+					    sourceOrigin.put(0, listenerOrigin.get(0));
+						sourceOrigin.put(1, listenerOrigin.get(1));
+						sourceOrigin.put(2, listenerOrigin.get(2));
 						break;
 					case Channel.DYNAMIC:
 						CL_ents.GetEntitySoundOrigin(ch.entnum, entityOrigin);
