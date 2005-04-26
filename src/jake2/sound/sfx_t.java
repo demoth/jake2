@@ -2,7 +2,7 @@
  * sfx_t.java
  * Copyright (C) 2004
  * 
- * $Id: sfx_t.java,v 1.2 2004-07-13 11:20:27 cawe Exp $
+ * $Id: sfx_t.java,v 1.3 2005-04-26 20:11:03 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,11 +36,13 @@ public class sfx_t {
 	
 	// is used for AL buffers
 	public int bufferId = -1;
+	public boolean isCached = false;
 	
 	public void clear() {
 		name = truename = null;
 		cache = null;
 		registration_sequence = 0;
 		bufferId = -1; 
+		isCached = false;
 	}
 }
