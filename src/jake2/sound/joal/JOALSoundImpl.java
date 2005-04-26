@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.10 2004-11-03 12:17:17 hzi Exp $
+ * $Id: JOALSoundImpl.java,v 1.11 2005-04-26 20:17:54 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -509,8 +509,12 @@ public final class JOALSoundImpl implements Sound {
 	==============
 	*/
 	public sfxcache_t LoadSound(sfx_t s) {
+	    if (s.isCached) return s.cache;
 		sfxcache_t sc = WaveLoader.LoadSound(s);
-		initBuffer(s);
+		if (sc != null) {
+			initBuffer(s);
+		    s.isCached = true;
+		}
 		return sc;
 	}
 
@@ -518,9 +522,7 @@ public final class JOALSoundImpl implements Sound {
 	 * @see jake2.sound.Sound#StartLocalSound(java.lang.String)
 	 */
 	public void StartLocalSound(String sound) {
-		sfx_t sfx;
-
-		sfx = RegisterSound(sound);
+		sfx_t sfx = RegisterSound(sound);
 		if (sfx == null) {
 			Com.Printf("S_StartLocalSound: can't cache " + sound + "\n");
 			return;

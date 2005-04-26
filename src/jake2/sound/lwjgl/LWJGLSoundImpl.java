@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.4 2004-12-23 00:52:12 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.5 2005-04-26 20:17:54 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -481,8 +481,12 @@ public final class LWJGLSoundImpl implements Sound {
 	==============
 	*/
 	public sfxcache_t LoadSound(sfx_t s) {
+	    if (s.isCached) return s.cache;
 		sfxcache_t sc = WaveLoader.LoadSound(s);
-		initBuffer(s);
+		if (sc != null) {
+			initBuffer(s);
+		    s.isCached = true;
+		}
 		return sc;
 	}
 
