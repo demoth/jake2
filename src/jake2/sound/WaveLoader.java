@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.3 2004-11-03 20:15:02 hzi Exp $
+ * $Id: WaveLoader.java,v 1.4 2005-04-26 22:16:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -56,44 +56,36 @@ public class WaveLoader {
 	==============
 	*/
 	public static sfxcache_t LoadSound(sfx_t s) {
-		String namebuffer;
-		byte[] data;
-		wavinfo_t info;
-		int len;
-		float stepscale;
-		sfxcache_t sc = null;
-		int size;
-		String name;
-
 		if (s.name.charAt(0) == '*')
 			return null;
 
 		// see if still in memory
-		sc = s.cache;
+		sfxcache_t sc = s.cache;
 		if (sc != null)
 			return sc;
 
+		String name;
 		// load it in
 		if (s.truename != null)
 			name = s.truename;
 		else
 			name = s.name;
 
+		String namebuffer;
 		if (name.charAt(0) == '#')
 			namebuffer = name.substring(1);
-
 		else
 			namebuffer = "sound/" + name;
 
-		data = FS.LoadFile(namebuffer);
+		byte[] data = FS.LoadFile(namebuffer);
 
 		if (data == null) {
 			Com.DPrintf("Couldn't load " + namebuffer + "\n");
 			return null;
 		}
-		size = data.length;
+		int size = data.length;
 
-		info = GetWavinfo(s.name, data, size);
+		wavinfo_t info = GetWavinfo(s.name, data, size);
 		
 		AudioInputStream in = null;
 		AudioInputStream out = null;
