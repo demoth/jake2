@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.5 2005-04-26 20:17:54 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.6 2005-04-26 22:34:17 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -151,25 +151,16 @@ public final class LWJGLSoundImpl implements Sound {
 	
 	// TODO check the sfx direct buffer size
 	// 2MB sfx buffer
-	ByteBuffer sfxDataBuffer = Lib.newByteBuffer(2 * 1024 * 1024);
+	private ByteBuffer sfxDataBuffer = Lib.newByteBuffer(2 * 1024 * 1024);
 	
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
 	 */
-	private void initBuffer(sfx_t sfx) {
-		if (sfx.cache == null ) {
-			//System.out.println(sfx.name + " " + sfx.cache.length+ " " + sfx.cache.loopstart + " " + sfx.cache.speed + " " + sfx.cache.stereo + " " + sfx.cache.width);
-			return;
-		}
-		
-		int format = AL10.AL_FORMAT_MONO16;
+	private void initBuffer(byte[] samples, int bufferId, int freq) {
 		ByteBuffer data = sfxDataBuffer.slice();
-		data.put(sfx.cache.data, 0, sfx.cache.data.length);
-		data.rewind();
-		data.limit(sfx.cache.data.length);
-		int freq = sfx.cache.speed;
-		
-		AL10.alBufferData( buffers.get(sfx.bufferId), format, data, freq);
+		data.put(samples).flip();
+		AL10.alBufferData(buffers.get(bufferId), AL10.AL_FORMAT_MONO16,
+				data, freq);
 	}
 
 	private void checkError() {
@@ -484,8 +475,10 @@ public final class LWJGLSoundImpl implements Sound {
 	    if (s.isCached) return s.cache;
 		sfxcache_t sc = WaveLoader.LoadSound(s);
 		if (sc != null) {
-			initBuffer(s);
+			initBuffer(sc.data, s.bufferId, sc.speed);
 		    s.isCached = true;
+		    // free samples for GC
+		    s.cache.data = null;
 		}
 		return sc;
 	}
