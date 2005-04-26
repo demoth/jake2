@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.11 2005-04-26 20:17:54 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.12 2005-04-26 22:39:34 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -14,6 +14,7 @@ import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
+import java.awt.image.SampleModel;
 import java.io.*;
 import java.nio.IntBuffer;
 
@@ -176,18 +177,9 @@ public final class JOALSoundImpl implements Sound {
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
 	 */
-	private void initBuffer(sfx_t sfx) {
-		if (sfx.cache == null ) {
-			//System.out.println(sfx.name + " " + sfx.cache.length+ " " + sfx.cache.loopstart + " " + sfx.cache.speed + " " + sfx.cache.stereo + " " + sfx.cache.width);
-			return;
-		}
-		
-		int format = AL.AL_FORMAT_MONO16;
-		byte[] data = sfx.cache.data;
-		int freq = sfx.cache.speed;
-		int size = data.length;
-		
-		al.alBufferData( buffers[sfx.bufferId], format, data, size, freq);
+	private void initBuffer(byte[] samples, int bufferId, int freq) {
+		al.alBufferData(buffers[bufferId], AL.AL_FORMAT_MONO16, samples,
+				samples.length, freq);
 	}
 
 	private void checkError() {
@@ -512,8 +504,10 @@ public final class JOALSoundImpl implements Sound {
 	    if (s.isCached) return s.cache;
 		sfxcache_t sc = WaveLoader.LoadSound(s);
 		if (sc != null) {
-			initBuffer(s);
+			initBuffer(sc.data, s.bufferId, sc.speed);
 		    s.isCached = true;
+		    // free samples for GC
+		    s.cache.data = null;
 		}
 		return sc;
 	}
