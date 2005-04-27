@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.12 2005-04-26 22:39:34 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.13 2005-04-27 12:39:23 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -93,9 +93,11 @@ public final class JOALSoundImpl implements Sound {
 			Com.DPrintf(e.getMessage() + '\n');
 			return false;
 		}
-		al.alGenBuffers(MAX_SFX, buffers);
+		// set the master volume
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
-		int count = Channel.init(al, buffers, s_volume.value);
+
+		al.alGenBuffers(MAX_SFX, buffers);
+		int count = Channel.init(al, buffers);
 		Com.Printf("... using " + count + " channels\n");
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
 		Cmd.AddCommand("play", new xcommand_t() {
@@ -266,6 +268,9 @@ public final class JOALSoundImpl implements Sound {
 		Channel.convertOrientation(forward, up, listenerOrientation);		
 		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation);
 		
+		// set the listener (master) volume
+		al.alListenerf(AL.AL_GAIN, s_volume.value);
+		
 		if (eax != null) {
 			// workaround for environment initialisation
 			if (currentEnv == -1) {
@@ -289,13 +294,15 @@ public final class JOALSoundImpl implements Sound {
 
 	    Channel.addLoopSounds();
 	    Channel.addPlaySounds();
-		Channel.playAllSounds(listenerOrigin, s_volume.value);
+		Channel.playAllSounds(listenerOrigin);
 	}
 
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#StopAllSounds()
 	 */
 	public void StopAllSounds() {
+		// mute the listener (master)
+		al.alListenerf(AL.AL_GAIN, 0);
 	    PlaySound.reset();
 	    Channel.reset();
 	}

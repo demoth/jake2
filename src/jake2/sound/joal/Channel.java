@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.2 2004-10-27 16:51:32 cawe Exp $
+ * $Id: Channel.java,v 1.3 2005-04-27 12:39:23 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,17 +26,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sound.joal;
 
-import java.util.*;
-
-import net.java.games.joal.AL;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL_ents;
 import jake2.game.entity_state_t;
-import jake2.qcommon.Com;
 import jake2.sound.sfx_t;
 import jake2.sound.sfxcache_t;
 import jake2.util.Math3D;
+
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+
+import net.java.games.joal.AL;
 
 /**
  * Channel
@@ -92,7 +94,7 @@ public class Channel {
 		modified = false;
 	}
 	
-	static int init(AL al, int[] buffers, float masterVolume) {
+	static int init(AL al, int[] buffers) {
 	    Channel.al = al;
 		Channel.buffers = buffers;
 	    // create channels
@@ -112,12 +114,12 @@ public class Channel {
 			numChannels++;
 			
 			// set default values for AL sources
-			al.alSourcef (sourceId, AL.AL_GAIN, masterVolume);
+			al.alSourcef (sourceId, AL.AL_GAIN, 1.0f);
 			al.alSourcef (sourceId, AL.AL_PITCH, 1.0f);
 			al.alSourcei (sourceId, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
 			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR);
 			al.alSourcei (sourceId, AL.AL_LOOPING, AL.AL_FALSE);
-			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 300.0f);
+			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 200.0f);
 			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
 			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
 		}
@@ -204,9 +206,11 @@ public class Channel {
         return null;
     }
 
-	static void playAllSounds(float[] listenerOrigin, float masterVolume) {
-		float[] sourceOrigin = {0, 0, 0};
-		float[] entityOrigin = {0, 0, 0}; 
+	// stack variables
+	private static float[] entityOrigin = {0, 0, 0};
+	private static float[] sourceOrigin = {0, 0, 0};
+
+	static void playAllSounds(float[] listenerOrigin) {
 		Channel ch;
 		int sourceId;
 		int state;
@@ -232,8 +236,7 @@ public class Channel {
 					if (ch.bufferChanged) {
 						al.alSourcei(sourceId, AL.AL_BUFFER, ch.bufferId);
 					}
-//					al.alSourcef (sourceId, AL.AL_GAIN, masterVolume * ch.volume);
-					al.alSourcef (sourceId, AL.AL_GAIN, masterVolume);
+					// al.alSourcef (sourceId, AL.AL_GAIN, ch.volume);
 					al.alSourcef (sourceId, AL.AL_ROLLOFF_FACTOR, ch.rolloff);
 					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
 					al.alSourcePlay(sourceId);
