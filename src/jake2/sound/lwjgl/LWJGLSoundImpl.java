@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.6 2005-04-26 22:34:17 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.7 2005-04-27 12:21:24 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -14,11 +14,15 @@ import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.*;
-import org.lwjgl.openal.eax.*;
+import org.lwjgl.openal.eax.EAX;
+import org.lwjgl.openal.eax.EAX20;
+import org.lwjgl.openal.eax.EAXListenerProperties;
 
 /**
  * LWJGLSoundImpl
@@ -60,9 +64,10 @@ public final class LWJGLSoundImpl implements Sound {
 			return false;
 		}
 		
-		AL10.alGenBuffers(buffers);
+		// set the listerner (master) volume
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
-		int count = Channel.init(buffers, s_volume.value);
+		AL10.alGenBuffers(buffers);
+		int count = Channel.init(buffers);
 		Com.Printf("... using " + count + " channels\n");
 		AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
 		Cmd.AddCommand("play", new xcommand_t() {
@@ -239,6 +244,9 @@ public final class LWJGLSoundImpl implements Sound {
 		Channel.convertOrientation(forward, up, listenerOrientation);		
 		AL10.nalListenerfv(AL10.AL_ORIENTATION, listenerOrientation, 0);
 		
+		// set the master volume
+		AL10.alListenerf(AL10.AL_GAIN, s_volume.value);
+		
 		if (hasEAX){
 			if ((GameBase.gi.pointcontents.pointcontents(origin)& Defines.MASK_WATER)!= 0) {
 				changeEnvironment(EAX20.EAX_ENVIRONMENT_UNDERWATER);
@@ -249,7 +257,7 @@ public final class LWJGLSoundImpl implements Sound {
 		
 	    Channel.addLoopSounds();
 	    Channel.addPlaySounds();
-		Channel.playAllSounds(listenerOrigin, s_volume.value);
+		Channel.playAllSounds(listenerOrigin);
 	}
 	
 	private IntBuffer eaxEnv = Lib.newIntBuffer(1);
@@ -266,6 +274,8 @@ public final class LWJGLSoundImpl implements Sound {
 	 * @see jake2.sound.SoundImpl#StopAllSounds()
 	 */
 	public void StopAllSounds() {
+		// mute the listener (master)
+		AL10.alListenerf(AL10.AL_GAIN, 0);
 	    PlaySound.reset();
 	    Channel.reset();
 	}

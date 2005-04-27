@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.3 2005-04-25 22:50:25 cawe Exp $
+ * $Id: Channel.java,v 1.4 2005-04-27 12:21:24 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,9 @@ import jake2.util.Math3D;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.lwjgl.openal.AL10;
 
@@ -96,7 +98,7 @@ public class Channel {
 	
 	private static IntBuffer tmp = Lib.newIntBuffer(1);
 
-	static int init(IntBuffer buffers, float masterVolume) {
+	static int init(IntBuffer buffers) {
 		Channel.buffers = buffers;
 	    // create channels
 		int sourceId;
@@ -114,7 +116,7 @@ public class Channel {
 			numChannels++;
 			
 			// set default values for AL sources
-			AL10.alSourcef (sourceId, AL10.AL_GAIN, masterVolume);
+			AL10.alSourcef (sourceId, AL10.AL_GAIN, 1.0f);
 			AL10.alSourcef (sourceId, AL10.AL_PITCH, 1.0f);
 			AL10.alSourcei (sourceId, AL10.AL_SOURCE_ABSOLUTE,  AL10.AL_TRUE);
 			AL10.nalSourcefv(sourceId, AL10.AL_VELOCITY, NULLVECTOR, 0);
@@ -208,8 +210,10 @@ public class Channel {
 	
 	private static FloatBuffer sourceOriginBuffer = Lib.newFloatBuffer(3);
 
-	static void playAllSounds(FloatBuffer listenerOrigin, float masterVolume) {
-		float[] entityOrigin = {0, 0, 0};
+	//stack variable
+	private static float[] entityOrigin = {0, 0, 0};
+ 
+	static void playAllSounds(FloatBuffer listenerOrigin) {
 		FloatBuffer sourceOrigin = sourceOriginBuffer;
 		Channel ch;
 		int sourceId;
@@ -238,8 +242,7 @@ public class Channel {
 					if (ch.bufferChanged) {
 						AL10.alSourcei(sourceId, AL10.AL_BUFFER, ch.bufferId);
 					}
-//					AL10.alSourcef (sourceId, AL10.AL_GAIN, masterVolume * ch.volume);
-					AL10.alSourcef (sourceId, AL10.AL_GAIN, masterVolume);
+					// AL10.alSourcef (sourceId, AL10.AL_GAIN, ch.volume);
 					AL10.alSourcef (sourceId, AL10.AL_ROLLOFF_FACTOR, ch.rolloff);
 					AL10.nalSourcefv(sourceId, AL10.AL_POSITION, sourceOrigin, 0);
 					AL10.alSourcePlay(sourceId);
