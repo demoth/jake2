@@ -17,7 +17,7 @@
 	</security>
 	
 	<resources>
-		<j2se version="1.4+" max-heap-size="128M"/>
+		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
 		<property name="ATI_WORKAROUND" value="false"/>
@@ -25,7 +25,7 @@
 	</resources>
 	
 	<resources os="Linux">
-		<j2se version="1.4+" max-heap-size="128M"/>
+		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/patch.jar"/>
 		<jar href="http://jake2.sourceforge.net/lib/linux/joal.jar"/>
 		<jar href="http://jake2.sourceforge.net/lib/linux/openal.jar"/>
@@ -33,13 +33,13 @@
 	</resources>
 	
 	<resources os="Windows">
-		<j2se version="1.4+" max-heap-size="128M"/>
+		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/windows/joal.jar"/>
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/joal-native.jar"/>
 	</resources>
 
 	<resources os="Mac OS X">
-		<j2se version="1.4+" max-heap-size="128M"/>
+		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/osx/joal.jar"/>
 		<nativelib href="http://jake2.sourceforge.net/lib/osx/joal-native.jar"/>		
 	</resources>
