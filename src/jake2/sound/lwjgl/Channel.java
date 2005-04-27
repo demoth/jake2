@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.4 2005-04-27 12:21:24 cawe Exp $
+ * $Id: Channel.java,v 1.5 2005-04-27 12:41:47 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -121,7 +121,7 @@ public class Channel {
 			AL10.alSourcei (sourceId, AL10.AL_SOURCE_ABSOLUTE,  AL10.AL_TRUE);
 			AL10.nalSourcefv(sourceId, AL10.AL_VELOCITY, NULLVECTOR, 0);
 			AL10.alSourcei (sourceId, AL10.AL_LOOPING, AL10.AL_FALSE);
-			AL10.alSourcef (sourceId, AL10.AL_REFERENCE_DISTANCE, 300.0f);
+			AL10.alSourcef (sourceId, AL10.AL_REFERENCE_DISTANCE, 200.0f);
 			AL10.alSourcef (sourceId, AL10.AL_MIN_GAIN, 0.0005f);
 			AL10.alSourcef (sourceId, AL10.AL_MAX_GAIN, 1.0f);
 		}
