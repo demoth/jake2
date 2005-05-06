@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.5 2005-05-06 17:47:10 cawe Exp $
+ * $Id: Misc.java,v 1.6 2005-05-06 23:22:04 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,8 +34,6 @@ import java.io.RandomAccessFile;
 import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-
-import net.java.games.jogl.GL;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
