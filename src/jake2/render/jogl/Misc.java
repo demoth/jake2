@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.4 2005-04-25 09:23:13 cawe Exp $
+ * $Id: Misc.java,v 1.5 2005-05-06 17:47:09 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,18 +25,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render.jogl;
 
+import jake2.Defines;
+import jake2.client.VID;
+import jake2.qcommon.FS;
+import jake2.qcommon.xcommand_t;
+
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import org.lwjgl.opengl.GL11;
-
-import jake2.Defines;
-import jake2.client.VID;
-import jake2.qcommon.FS;
-import jake2.qcommon.xcommand_t;
 import net.java.games.jogl.GL;
 import net.java.games.jogl.WGL;
 
@@ -174,16 +173,23 @@ public abstract class Misc extends Mesh {
 	        image.position(TGA_HEADER_SIZE);
 	        // jogl needs a sliced buffer
 	        ByteBuffer rgb = image.slice();
-	        // read the RGB values into the image buffer
-	        gl.glReadPixels(0, 0, vid.width, vid.height, GL11.GL_RGB,
-	                GL11.GL_UNSIGNED_BYTE, rgb);
+
+	        // OpenGL 1.2+ supports the GL_BGR color format
+	        // check the GL_VERSION to use the TARGA BGR order if possible
+	        // e.g.: 1.5.2 NVIDIA 66.29
+	        int colorFormat = (gl_config.version_string.charAt(2) > '1') ? GL.GL_BGR : GL.GL_RGB;
+	        // read the BGR/RGB values into the image buffer
+	        gl.glReadPixels(0, 0, vid.width, vid.height, colorFormat,
+	                GL.GL_UNSIGNED_BYTE, rgb);
 	        
-	        // flip RGB to BGR
-	        byte tmp;
-	        for (i = TGA_HEADER_SIZE; i < fileLength; i += 3) {
-	            tmp = image.get(i);
-	            image.put(i, image.get(i + 2));
-	            image.put(i + 2, tmp);
+	        if (colorFormat == GL.GL_RGB) {
+		        // flip RGB to BGR
+		        byte tmp;
+		        for (i = TGA_HEADER_SIZE; i < fileLength; i += 3) {
+		            tmp = image.get(i);
+		            image.put(i, image.get(i + 2));
+		            image.put(i + 2, tmp);
+		        }
 	        }
 	        // close the file channel
 	        ch.close();
