@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.4 2004-07-09 06:50:50 hzi Exp $
+ * $Id: qfiles.java,v 1.5 2005-05-07 22:15:04 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -195,14 +195,33 @@ public class qfiles {
 	}
 
 	public static class dtrivertx_t {
-		public int v[] = { 0, 0, 0 }; //  byte 0..255 scaled byte to fit in frame mins/maxs
-		public int lightnormalindex; // byte 0 .. 255;
+		private byte v0; //  byte 0..255 scaled byte to fit in frame mins/maxs
+		private byte v1;
+		private byte v2;
+		
+		private byte lightnormalindex; // byte 0 .. 255;
 		
 		public dtrivertx_t(ByteBuffer b) {
-			v[0] = b.get() & 0xff; // unsigned byte
-			v[1] = b.get() & 0xff; // unsigned byte
-			v[2] = b.get() & 0xff; // unsigned byte
-			lightnormalindex = b.get() & 0xff; // unsigned byte
+			v0 = b.get(); // unsigned byte
+			v1 = b.get(); // unsigned byte
+			v2 = b.get(); // unsigned byte
+			lightnormalindex = b.get(); // unsigned byte
+		}
+		
+		public final int v0() {
+		    return v0 & 0xFF;
+		}
+		
+		public final int v1() {
+		    return v1 & 0xFF;
+		}
+		
+		public final int v2() {
+		    return v2 & 0xFF;
+		}
+		
+		public final int lightnormalindex() {
+		    return lightnormalindex & 0xFF;
 		}
 	}
 
