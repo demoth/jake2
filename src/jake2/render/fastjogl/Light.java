@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.11 2005-01-16 15:24:50 cawe Exp $
+ * $Id: Light.java,v 1.12 2005-05-07 17:17:48 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,7 +30,6 @@ import jake2.Globals;
 import jake2.client.dlight_t;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
-import jake2.qcommon.longjmpException;
 import jake2.render.*;
 import jake2.util.Math3D;
 import jake2.util.Vec3Cache;
@@ -448,6 +447,9 @@ public abstract class Light extends Warp {
         }
     }
 
+    // replaces the goto jump
+    private Throwable gotoStore = new Throwable();
+
     /*
      * =============== R_BuildLightMap
      * 
@@ -489,7 +491,7 @@ public abstract class Light extends Warp {
                 //				}
 
                 // goto store;
-                throw new longjmpException();
+                throw gotoStore;
             }
 
             // count the # of maps
@@ -590,7 +592,7 @@ public abstract class Light extends Warp {
                 R_AddDynamicLights(surf);
 
             // label store:
-        } catch (longjmpException store) {
+        } catch (Throwable store) {
         }
 
         // put into texture format
