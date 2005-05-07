@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.7 2005-02-08 17:52:20 cawe Exp $
+ * $Id: Model.java,v 1.8 2005-05-07 18:00:03 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -425,40 +425,44 @@ public abstract class Model extends Surf {
 	Mod_LoadSubmodels
 	=================
 	*/
-	void Mod_LoadSubmodels(lump_t l)
-	{
-		qfiles.dmodel_t	in;
-		mmodel_t[] out;
-		int i, j, count;
-
-		if ((l.filelen % qfiles.dmodel_t.SIZE) != 0)
-			Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size in " + loadmodel.name);
-
-		count = l.filelen / qfiles.dmodel_t.SIZE;
-		// out = Hunk_Alloc ( count*sizeof(*out));
-		out = new mmodel_t[count];
-
-		loadmodel.submodels = out;
-		loadmodel.numsubmodels = count;
-
-		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-
-		for ( i=0 ; i<count ; i++)
-		{
-			in = new qfiles.dmodel_t(bb);
-			out[i] = new mmodel_t();
-			for (j=0 ; j<3 ; j++)
-			{	// spread the mins / maxs by a pixel
-				out[i].mins[j] = in.mins[j] - 1;
-				out[i].maxs[j] = in.maxs[j] + 1;
-				out[i].origin[j] = in.origin[j];
-			}
-			out[i].radius = RadiusFromBounds(out[i].mins, out[i].maxs);
-			out[i].headnode = in.headnode;
-			out[i].firstface = in.firstface;
-			out[i].numfaces = in.numfaces;
-		}
+	void Mod_LoadSubmodels(lump_t l) {
+	    
+	    if ((l.filelen % qfiles.dmodel_t.SIZE) != 0)
+	        Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size in "
+	                + loadmodel.name);
+	    
+	    int i, j;
+	    
+	    int count = l.filelen / qfiles.dmodel_t.SIZE;
+	    // out = Hunk_Alloc ( count*sizeof(*out));
+	    mmodel_t out;
+	    mmodel_t[] outs = new mmodel_t[count];
+	    for (i = 0; i < count; i++) {
+	        outs[i] = new mmodel_t();
+	    }
+	    
+	    loadmodel.submodels = outs;
+	    loadmodel.numsubmodels = count;
+	    
+	    ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
+	    bb.order(ByteOrder.LITTLE_ENDIAN);
+	    
+	    qfiles.dmodel_t in;
+	    
+	    for (i = 0; i < count; i++) {
+	        in = new qfiles.dmodel_t(bb);
+	        out = outs[i];
+	        for (j = 0; j < 3; j++) { // spread the mins / maxs by a
+	            // pixel
+	            out.mins[j] = in.mins[j] - 1;
+	            out.maxs[j] = in.maxs[j] + 1;
+	            out.origin[j] = in.origin[j];
+	        }
+	        out.radius = RadiusFromBounds(out.mins, out.maxs);
+	        out.headnode = in.headnode;
+	        out.firstface = in.firstface;
+	        out.numfaces = in.numfaces;
+	    }
 	}
 
 	/*
@@ -608,93 +612,97 @@ public abstract class Model extends Surf {
 	Mod_LoadFaces
 	=================
 	*/
-	void Mod_LoadFaces (lump_t l)
-	{
-		qfiles.dface_t in;
-		msurface_t[] out;
-		int i, count, surfnum;
-		int planenum, side;
-		int ti;
-
-		if ((l.filelen % qfiles.dface_t.SIZE) != 0)
-			Com.Error (Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size in " + loadmodel.name);
-
-		count = l.filelen / qfiles.dface_t.SIZE;
-		// out = Hunk_Alloc ( count*sizeof(*out));
-		out = new msurface_t[count];
-			
-		loadmodel.surfaces = out;
-		loadmodel.numsurfaces = count;
-
-		ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-
-		currentmodel = loadmodel;
-
-		GL_BeginBuildingLightmaps(loadmodel);
-
-		for ( surfnum=0 ; surfnum<count ; surfnum++)
-		{
-			in = new qfiles.dface_t(bb);
-			out[surfnum] = new msurface_t();
-			out[surfnum].firstedge = in.firstedge;
-			out[surfnum].numedges = in.numedges;		
-			out[surfnum].flags = 0;
-			out[surfnum].polys = null;
-
-			planenum = in.planenum;
-			side = in.side;
-			if (side != 0)
-				out[surfnum].flags |= Defines.SURF_PLANEBACK;			
-
-			out[surfnum].plane = loadmodel.planes[planenum];
-
-			ti = in.texinfo;
-			if (ti < 0 || ti >= loadmodel.numtexinfo)
-				Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
-
-			out[surfnum].texinfo = loadmodel.texinfo[ti];
-
-			CalcSurfaceExtents(out[surfnum]);
-				
-			// lighting info
-
-			for (i=0 ; i<Defines.MAXLIGHTMAPS ; i++)
-				out[surfnum].styles[i] = in.styles[i];
-				
-			i = in.lightofs;
-			if (i == -1)
-				out[surfnum].samples = null;
-			else {
-				ByteBuffer pointer = ByteBuffer.wrap(loadmodel.lightdata);
-				pointer.position(i);
-				pointer = pointer.slice();
-				pointer.mark();	
-				out[surfnum].samples = pointer; // subarray
-			}
-		
-			// set the drawing flags
-		
-			if ((out[surfnum].texinfo.flags & Defines.SURF_WARP) != 0)
-			{
-				out[surfnum].flags |= Defines.SURF_DRAWTURB;
-				for (i=0 ; i<2 ; i++)
-				{
-					out[surfnum].extents[i] = 16384;
-					out[surfnum].texturemins[i] = -8192;
-				}
-				GL_SubdivideSurface(out[surfnum]);	// cut up polygon for warps
-			}
-
-			// create lightmaps and polygons
-			if ((out[surfnum].texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33 | Defines.SURF_TRANS66 | Defines.SURF_WARP)) == 0)
-				GL_CreateSurfaceLightmap(out[surfnum]);
-
-			if ((out[surfnum].texinfo.flags & Defines.SURF_WARP) == 0) 
-				GL_BuildPolygonFromSurface(out[surfnum]);
-
-		}
-		GL_EndBuildingLightmaps ();
+	void Mod_LoadFaces(lump_t l) {
+	    
+	    int i, surfnum;
+	    int planenum, side;
+	    int ti;
+	    
+	    if ((l.filelen % qfiles.dface_t.SIZE) != 0)
+	        Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size in "
+	                + loadmodel.name);
+	    
+	    int count = l.filelen / qfiles.dface_t.SIZE;
+	    // out = Hunk_Alloc ( count*sizeof(*out));
+	    msurface_t[] outs = new msurface_t[count];
+	    for (i = 0; i < count; i++) {
+	        outs[i] = new msurface_t();
+	    }
+	    
+	    loadmodel.surfaces = outs;
+	    loadmodel.numsurfaces = count;
+	    
+	    ByteBuffer bb = ByteBuffer.wrap(mod_base, l.fileofs, l.filelen);
+	    bb.order(ByteOrder.LITTLE_ENDIAN);
+	    
+	    currentmodel = loadmodel;
+	    
+	    GL_BeginBuildingLightmaps(loadmodel);
+	    
+	    qfiles.dface_t in;
+	    msurface_t out;
+	    
+	    for (surfnum = 0; surfnum < count; surfnum++) {
+	        in = new qfiles.dface_t(bb);
+	        out = outs[surfnum];
+	        out.firstedge = in.firstedge;
+	        out.numedges = in.numedges;
+	        out.flags = 0;
+	        out.polys = null;
+	        
+	        planenum = in.planenum;
+	        side = in.side;
+	        if (side != 0)
+	            out.flags |= Defines.SURF_PLANEBACK;
+	        
+	        out.plane = loadmodel.planes[planenum];
+	        
+	        ti = in.texinfo;
+	        if (ti < 0 || ti >= loadmodel.numtexinfo)
+	            Com.Error(Defines.ERR_DROP,
+	            "MOD_LoadBmodel: bad texinfo number");
+	        
+	        out.texinfo = loadmodel.texinfo[ti];
+	        
+	        CalcSurfaceExtents(out);
+	        
+	        // lighting info
+	        
+	        for (i = 0; i < Defines.MAXLIGHTMAPS; i++)
+	            out.styles[i] = in.styles[i];
+	        
+	        i = in.lightofs;
+	        if (i == -1)
+	            out.samples = null;
+	        else {
+	            ByteBuffer pointer = ByteBuffer.wrap(loadmodel.lightdata);
+	            pointer.position(i);
+	            pointer = pointer.slice();
+	            pointer.mark();
+	            out.samples = pointer; // subarray
+	        }
+	        
+	        // set the drawing flags
+	        
+	        if ((out.texinfo.flags & Defines.SURF_WARP) != 0) {
+	            out.flags |= Defines.SURF_DRAWTURB;
+	            for (i = 0; i < 2; i++) {
+	                out.extents[i] = 16384;
+	                out.texturemins[i] = -8192;
+	            }
+	            GL_SubdivideSurface(out); // cut up polygon for warps
+	        }
+	        
+	        // create lightmaps and polygons
+	        if ((out.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33
+	                | Defines.SURF_TRANS66 | Defines.SURF_WARP)) == 0)
+	            GL_CreateSurfaceLightmap(out);
+	        
+	        if ((out.texinfo.flags & Defines.SURF_WARP) == 0)
+	            GL_BuildPolygonFromSurface(out);
+	        
+	    }
+	    GL_EndBuildingLightmaps();
 	}
 
 
