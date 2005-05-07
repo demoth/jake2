@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Image.java,v 1.3 2005-05-07 17:31:37 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,11 +29,7 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.client.particle_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.longjmpException;
-import jake2.qcommon.qfiles;
+import jake2.qcommon.*;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Vargs;
@@ -42,9 +38,7 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Arrays;
 
 import org.lwjgl.BufferUtils;
@@ -525,6 +519,9 @@ public abstract class Image extends Main {
 		}
 		return pix;
 	}
+	
+	private Throwable gotoBreakOut = new Throwable();
+	private Throwable gotoDone = gotoBreakOut;
 
 	//	/*
 	//	=========================================================
@@ -657,7 +654,7 @@ public abstract class Image extends Main {
 										row--;
 									else
 										// goto label breakOut;
-										throw new longjmpException();
+										throw gotoBreakOut;
 			
 									pixbuf = row * columns * 4;
 								}
@@ -693,14 +690,14 @@ public abstract class Image extends Main {
 										row--;
 									else
 										// goto label breakOut;
-										throw new longjmpException();
+										throw gotoBreakOut;
 			
 									pixbuf = row * columns * 4;
 								}						
 							}
 						}
 					}
-				} catch (longjmpException e){
+				} catch (Throwable e){
 					// label breakOut:
 				}
 			}
@@ -1155,7 +1152,7 @@ public abstract class Image extends Main {
 							tex);
 					}
 					//goto done;
-					throw new longjmpException();
+					throw gotoDone;
 				}
 				//memcpy (scaled, data, width*height*4); were bytes
 				System.arraycopy(data, 0, scaled, 0, width * height);
@@ -1228,8 +1225,8 @@ public abstract class Image extends Main {
 			}
 			// label done:
 		}
-		catch (longjmpException e) {
-			; // replaces label done
+		catch (Throwable e) {
+			// replaces label done
 		}
 
 		if (mipmap) {
