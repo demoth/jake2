@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.10 2005-05-07 18:00:03 cawe Exp $
+ * $Id: Model.java,v 1.11 2005-05-07 23:44:38 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -994,9 +994,9 @@ public abstract class Model extends Surf {
         for (i = 0; i < pheader.num_frames; i++) {
             poutframe[i] = new qfiles.daliasframe_t(buffer);
             // verts are all 8 bit, so no swapping needed
-            poutframe[i].verts = new qfiles.dtrivertx_t[pheader.num_xyz];
+            poutframe[i].verts = new int[pheader.num_xyz];
             for (int k = 0; k < pheader.num_xyz; k++) {
-                poutframe[i].verts[k] = new qfiles.dtrivertx_t(buffer);
+                poutframe[i].verts[k] = buffer.getInt();
             }
         }
 

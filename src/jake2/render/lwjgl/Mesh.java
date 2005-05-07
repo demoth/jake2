@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.6 2005-05-07 22:15:05 cawe Exp $
+ * $Id: Mesh.java,v 1.7 2005-05-07 23:44:37 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -76,27 +76,25 @@ public abstract class Mesh extends Light {
 	 * @param frontv
 	 * @param backv
 	 */
-	void GL_LerpVerts(int nverts, qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move, float[] frontv, float[] backv )
+	void GL_LerpVerts(int nverts, int[] ov, int[] v, float[] move, float[] frontv, float[] backv )
 	{
 		FloatBuffer lerp = vertexArrayBuf;
 		lerp.limit((nverts << 2) - nverts); // nverts * 3
 
-		qfiles.dtrivertx_t ovv, vv;
-		
-		//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
+		int ovv, vv;
+			//PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
 		if ( (currententity.flags & ( Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0 )
 		{
 			float[] normal;
 			int j = -1;
 			for (int i=0 ; i < nverts; i++/* , v++, ov++, lerp+=4 */)
 			{
-				normal = r_avertexnormals[verts[i].lightnormalindex()];
+				vv = v[i];
+				normal = r_avertexnormals[(vv >>> 24 ) & 0xFF];
 				ovv = ov[i];
-				vv = verts[i];
-				
-				lerp.put(++j, move[0] + ovv.v0() * backv[0] + vv.v0() * frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
-				lerp.put(++j, move[1] + ovv.v1() * backv[1] + vv.v1() * frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
-				lerp.put(++j, move[2] + ovv.v2() * backv[2] + vv.v2() * frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
+				lerp.put(++j, move[0] + (ovv & 0xFF)* backv[0] + (vv & 0xFF) * frontv[0] + normal[0] * Defines.POWERSUIT_SCALE);
+				lerp.put(++j, move[1] + ((ovv >>> 8) & 0xFF) * backv[1] + ((vv >>> 8) & 0xFF) * frontv[1] + normal[1] * Defines.POWERSUIT_SCALE);
+				lerp.put(++j, move[2] + ((ovv >>> 16) & 0xFF) * backv[2] + ((vv >>> 16) & 0xFF) * frontv[2] + normal[2] * Defines.POWERSUIT_SCALE); 
 			}
 		}
 		else
@@ -105,11 +103,11 @@ public abstract class Mesh extends Light {
 			for (int i=0 ; i < nverts; i++ /* , v++, ov++, lerp+=4 */)
 			{
 				ovv = ov[i];
-				vv = verts[i];
+				vv = v[i];
 				
-				lerp.put(++j, move[0] + ovv.v0()* backv[0] + vv.v0()*frontv[0]);
-				lerp.put(++j, move[1] + ovv.v1()* backv[1] + vv.v1()*frontv[1]);
-				lerp.put(++j, move[2] + ovv.v2()* backv[2] + vv.v2()*frontv[2]);
+				lerp.put(++j, move[0] + (ovv & 0xFF)* backv[0] + (vv & 0xFF)*frontv[0]);
+				lerp.put(++j, move[1] + ((ovv >>> 8) & 0xFF)* backv[1] + ((vv >>> 8) & 0xFF)*frontv[1]);
+				lerp.put(++j, move[2] + ((ovv >>> 16) & 0xFF)* backv[2] + ((vv >>> 16) & 0xFF)*frontv[2]);
 			}
 		}
 	}
@@ -137,11 +135,11 @@ public abstract class Mesh extends Light {
 	{
 		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
 
-		qfiles.dtrivertx_t[] verts = frame.verts;
+		int[] verts = frame.verts;
 
 		qfiles.daliasframe_t oldframe = paliashdr.aliasFrames[currententity.oldframe];
 
-		qfiles.dtrivertx_t[] ov = oldframe.verts;
+		int[] ov = oldframe.verts;
 
 		float	alpha;
 		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
@@ -198,7 +196,7 @@ public abstract class Mesh extends Light {
 			int size = paliashdr.num_xyz;
 			for (int i = 0; i < size; i++ )
 			{
-				l = shadedots[verts[i].lightnormalindex()];
+				l = shadedots[(verts[i] >>> 24) & 0xFF];
 				color.put(++j,  l * shadelight[0]);
 				color.put(++j, l * shadelight[1]);
 				color.put(++j, l * shadelight[2]);
@@ -264,7 +262,6 @@ public abstract class Mesh extends Light {
 	{
 		float lheight = currententity.origin[2] - lightspot[2];
 		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
-		qfiles.dtrivertx_t[] verts = frame.verts;
 		int[] order = paliashdr.glCmds;
 		float height = -lheight + 1.0f;
 		
