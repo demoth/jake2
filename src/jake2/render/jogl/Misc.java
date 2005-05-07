@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.5 2005-05-06 17:47:09 cawe Exp $
+ * $Id: Misc.java,v 1.6 2005-05-07 19:49:37 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,8 +30,7 @@ import jake2.client.VID;
 import jake2.qcommon.FS;
 import jake2.qcommon.xcommand_t;
 
-import java.io.File;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -140,15 +139,18 @@ public abstract class Misc extends Mesh {
 	};
 	
 	private void screenshot_f() {
-	    FS.CreatePath(FS.Gamedir() + "/scrshot/jake00.tga");
-	    File file = new File(FS.Gamedir() + "/scrshot/jake00.tga");
+	    StringBuffer sb = new StringBuffer(FS.Gamedir() + "/scrshot/jake00.tga");
+	    FS.CreatePath(sb.toString());
+	    File file = new File(sb.toString());
 	    // find a valid file name
-	    int i = 0;
+	    int i = 0; int offset = sb.length() - 6;
 	    while (file.exists() && i++ < 100) {
-	        file = new File(FS.Gamedir() + "/scrshot/jake" + (i/10) + (i%10) + ".tga");
+	        sb.setCharAt(offset, (char) ((i/10) + '0'));
+	        sb.setCharAt(offset + 1, (char) ((i%10) + '0'));
+	        file = new File(sb.toString());
         }
 	    if (i == 100) {
-		    VID.Printf(Defines.PRINT_ALL, "Couldn't create a new screenshot file\n");
+		    VID.Printf(Defines.PRINT_ALL, "Clean up your screenshots\n");
 		    return;
 	    }
 	    
@@ -177,12 +179,12 @@ public abstract class Misc extends Mesh {
 	        // OpenGL 1.2+ supports the GL_BGR color format
 	        // check the GL_VERSION to use the TARGA BGR order if possible
 	        // e.g.: 1.5.2 NVIDIA 66.29
-	        int colorFormat = (gl_config.version_string.charAt(2) > '1') ? GL.GL_BGR : GL.GL_RGB;
-	        // read the BGR/RGB values into the image buffer
-	        gl.glReadPixels(0, 0, vid.width, vid.height, colorFormat,
-	                GL.GL_UNSIGNED_BYTE, rgb);
-	        
-	        if (colorFormat == GL.GL_RGB) {
+	        if (gl_config.getOpenGLVersion() >= 1.2f) {
+	            // read the BGR values into the image buffer
+	            gl.glReadPixels(0, 0, vid.width, vid.height, GL.GL_BGR, GL.GL_UNSIGNED_BYTE, rgb);
+	        } else {
+	            // read the RGB values into the image buffer
+	            gl.glReadPixels(0, 0, vid.width, vid.height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, rgb);
 		        // flip RGB to BGR
 		        byte tmp;
 		        for (i = TGA_HEADER_SIZE; i < fileLength; i += 3) {
@@ -193,9 +195,8 @@ public abstract class Misc extends Mesh {
 	        }
 	        // close the file channel
 	        ch.close();
-	    } catch (Exception e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
+	    } catch (IOException e) {
+		    VID.Printf(Defines.PRINT_ALL, e.getMessage() + '\n');
 	    }
 
 	    VID.Printf(Defines.PRINT_ALL, "Wrote " + file + '\n');
