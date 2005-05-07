@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.7 2005-04-07 15:25:49 cawe Exp $
+ * $Id: Main.java,v 1.8 2005-05-07 18:23:26 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1118,6 +1118,8 @@ public abstract class Main extends Base {
 		VID.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
 		gl_config.extensions_string = gl.glGetString(GL.GL_EXTENSIONS);
 		VID.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		
+		gl_config.parseOpenGLVersion();
 
 		String renderer_buffer = gl_config.renderer_string.toLowerCase();
 		String vendor_buffer = gl_config.vendor_string.toLowerCase();
