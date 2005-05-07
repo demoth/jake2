@@ -2,7 +2,7 @@
  * qfiles.java
  * Copyright (C) 2003
  *
- * $Id: qfiles.java,v 1.5 2005-05-07 22:15:04 cawe Exp $
+ * $Id: qfiles.java,v 1.6 2005-05-07 23:40:49 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -194,37 +194,6 @@ public class qfiles {
 		}
 	}
 
-	public static class dtrivertx_t {
-		private byte v0; //  byte 0..255 scaled byte to fit in frame mins/maxs
-		private byte v1;
-		private byte v2;
-		
-		private byte lightnormalindex; // byte 0 .. 255;
-		
-		public dtrivertx_t(ByteBuffer b) {
-			v0 = b.get(); // unsigned byte
-			v1 = b.get(); // unsigned byte
-			v2 = b.get(); // unsigned byte
-			lightnormalindex = b.get(); // unsigned byte
-		}
-		
-		public final int v0() {
-		    return v0 & 0xFF;
-		}
-		
-		public final int v1() {
-		    return v1 & 0xFF;
-		}
-		
-		public final int v2() {
-		    return v2 & 0xFF;
-		}
-		
-		public final int lightnormalindex() {
-		    return lightnormalindex & 0xFF;
-		}
-	}
-
 	public static final int DTRIVERTX_V0 =  0;
 	public static final int DTRIVERTX_V1 = 1;
 	public static final int DTRIVERTX_V2 = 2;
@@ -235,7 +204,7 @@ public class qfiles {
 		public float[] scale = {0, 0, 0}; // multiply byte verts by this
 		public float[] translate = {0, 0, 0};	// then add this
 		public String name; // frame name from grabbing (size 16)
-		public dtrivertx_t[] verts;	// variable sized
+		public int[] verts;	// variable sized
 		
 		public daliasframe_t(ByteBuffer b) {
 			scale[0] = b.getFloat();	scale[1] = b.getFloat();	scale[2] = b.getFloat();
