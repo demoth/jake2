@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.3 2005-04-27 12:39:23 cawe Exp $
+ * $Id: Channel.java,v 1.4 2005-05-08 13:37:28 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -69,25 +69,27 @@ public class Channel {
 	private int entchannel;
 	private int bufferId;
 	private int sourceId;
-	// private float volume;
+	private float volume;
 	private float rolloff;
 	private float[] origin = {0, 0, 0};
 
 	// update flags
-	private boolean autosound = false;
-	private boolean active = false;
-	private boolean modified = false;
-	private boolean bufferChanged = false;
+	private boolean autosound;
+	private boolean active;
+	private boolean modified;
+	private boolean bufferChanged;
+	private boolean volumeChanged;
 
 	private Channel(int sourceId) {
 		this.sourceId = sourceId;
 		clear();
+		this.volumeChanged = false;
+		this.volume = 1.0f;
 	}
 
 	private void clear() {
 		entnum = entchannel = bufferId = -1;
 		bufferChanged = false;
-		// volume = 1.0f;
 		rolloff = 0;
 		autosound = false;
 		active = false;
@@ -180,8 +182,9 @@ public class Channel {
 		ch.entchannel = ps.entchannel;
 		ch.bufferChanged = (ch.bufferId != ps.bufferId);			
 		ch.bufferId = ps.bufferId;
+		ch.volumeChanged = (ch.volume != ps.volume);			
+		ch.volume = ps.volume;
 		ch.rolloff = ps.attenuation * 2;
-		//ch.volume = ps.volume;
 		ch.active = true;
 		ch.modified = true;
 		return true;
@@ -197,6 +200,8 @@ public class Channel {
                 ch.entchannel = 0;
         		ch.bufferChanged = (ch.bufferId != bufferId);			
                 ch.bufferId = bufferId;
+           		ch.volumeChanged = (ch.volume < 1.0f);			
+                ch.volume = 1.0f;
                 ch.rolloff = attenuation * 2;
                 ch.active = true;
                 ch.modified = true;
@@ -236,7 +241,9 @@ public class Channel {
 					if (ch.bufferChanged) {
 						al.alSourcei(sourceId, AL.AL_BUFFER, ch.bufferId);
 					}
-					// al.alSourcef (sourceId, AL.AL_GAIN, ch.volume);
+					if (ch.volumeChanged) {
+						al.alSourcef (sourceId, AL.AL_GAIN, ch.volume);
+					}
 					al.alSourcef (sourceId, AL.AL_ROLLOFF_FACTOR, ch.rolloff);
 					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
 					al.alSourcePlay(sourceId);

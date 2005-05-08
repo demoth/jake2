@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2003
  *
- * $Id: PlaySound.java,v 1.2 2004-12-22 23:53:05 cawe Exp $
+ * $Id: PlaySound.java,v 1.3 2005-05-08 13:37:28 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -59,7 +59,7 @@ public class PlaySound {
 	int entnum;
 	int entchannel;
     int bufferId;
-    // float volume;
+    float volume;
     float attenuation;
     float[] origin = {0,0,0};
 
@@ -158,7 +158,7 @@ public class PlaySound {
             ps.entnum = entnum;
             ps.entchannel = entchannel;
             ps.bufferId = bufferId;
-            // ps.volume = volume;
+            ps.volume = volume;
             ps.attenuation = attenuation;
             ps.beginTime = Globals.cl.time + (long)(timeoffset * 1000);
             PlaySound.add(ps);
