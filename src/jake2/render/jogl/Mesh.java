@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.9 2005-05-07 22:15:04 cawe Exp $
+ * $Id: Mesh.java,v 1.10 2005-05-08 00:42:22 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,11 +71,12 @@ public abstract class Mesh extends Light {
 
     float[] shadedots = r_avertexnormal_dots[0];
 
-    void GL_LerpVerts(int nverts, qfiles.dtrivertx_t[] v,
-            qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts,
+    void GL_LerpVerts(int nverts, int[] ov, int[] v,
             float[][] lerp, float[] move, float[] frontv, float[] backv) {
         int i;
         int lerpIndex = 0;
+        
+        int ovv, vv;
 
         //PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
         if ((currententity.flags & (Defines.RF_SHELL_RED
@@ -84,34 +85,37 @@ public abstract class Mesh extends Light {
             float[] normal;
             for (i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
             ) {
-                normal = r_avertexnormals[verts[i].lightnormalindex()];
+                vv = v[i];
+                normal = r_avertexnormals[(vv >>> 24) & 0xFF];
+                ovv = ov[i];
 
-                lerp[i][0] = move[0] + ov[i].v0() * backv[0] + v[i].v0()
+                lerp[i][0] = move[0] + (ovv & 0xFF) * backv[0] + (vv & 0xFF)
                         * frontv[0] + normal[0] * Defines.POWERSUIT_SCALE;
-                lerp[i][1] = move[1] + ov[i].v1() * backv[1] + v[i].v1()
+                lerp[i][1] = move[1] + ((ovv >>> 8) & 0xFF) * backv[1] + ((vv >>> 8) & 0xFF)
                         * frontv[1] + normal[1] * Defines.POWERSUIT_SCALE;
-                lerp[i][2] = move[2] + ov[i].v2() * backv[2] + v[i].v2()
+                lerp[i][2] = move[2] + ((ovv >>> 16) & 0xFF) * backv[2] + ((vv >>> 16) & 0xFF)
                         * frontv[2] + normal[2] * Defines.POWERSUIT_SCALE;
             }
         } else {
             for (i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
             ) {
-                lerp[i][0] = move[0] + ov[i].v0() * backv[0] + v[i].v0()
+                vv = v[i];
+                ovv = ov[i];
+                lerp[i][0] = move[0] + (ovv & 0xFF) * backv[0] + (vv & 0xFF)
                         * frontv[0];
-                lerp[i][1] = move[1] + ov[i].v1() * backv[1] + v[i].v1()
+                lerp[i][1] = move[1] + ((ovv >>> 8) & 0xFF) * backv[1] + ((vv >>> 8) & 0xFF)
                         * frontv[1];
-                lerp[i][2] = move[2] + ov[i].v2() * backv[2] + v[i].v2()
+                lerp[i][2] = move[2] + ((ovv >>> 16) & 0xFF) * backv[2] + ((vv >>> 16) & 0xFF)
                         * frontv[2];
             }
         }
     }
 
-    void GL_LerpVerts(int nverts, qfiles.dtrivertx_t[] v,
-            qfiles.dtrivertx_t[] ov, qfiles.dtrivertx_t[] verts, float[] move,
+    void GL_LerpVerts(int nverts, int[] ov, int[] v, float[] move,
             float[] frontv, float[] backv) {
         int lerpIndex = 0;
 
-        qfiles.dtrivertx_t ovv, vv;
+        int ovv, vv;
         FloatBuffer lerp = vertexArrayBuf;
 
         //PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
@@ -122,15 +126,15 @@ public abstract class Mesh extends Light {
             int j = 0;
             for (int i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
             ) {
-                normal = r_avertexnormals[verts[i].lightnormalindex()];
-                ovv = ov[i];
                 vv = v[i];
+                normal = r_avertexnormals[(v[i] >>> 24) & 0xFF];
+                ovv = ov[i];
 
-                lerp.put(j, move[0] + ovv.v0() * backv[0] + vv.v0() * frontv[0]
+                lerp.put(j, move[0] + (ovv & 0xFF) * backv[0] + (vv & 0xFF) * frontv[0]
                         + normal[0] * Defines.POWERSUIT_SCALE);
-                lerp.put(j + 1, move[1] + ovv.v1() * backv[1] + vv.v1() * frontv[1]
+                lerp.put(j + 1, move[1] + ((ovv >>> 8) & 0xFF) * backv[1] + ((vv >>> 8) & 0xFF) * frontv[1]
                         + normal[1] * Defines.POWERSUIT_SCALE);
-                lerp.put(j + 2, move[2] + ovv.v2() * backv[2] + vv.v2() * frontv[2]
+                lerp.put(j + 2, move[2] + ((ovv >>> 16) & 0xFF) * backv[2] + ((vv >>> 16) & 0xFF) * frontv[2]
                         + normal[2] * Defines.POWERSUIT_SCALE);
                 j += 3;
             }
@@ -141,13 +145,9 @@ public abstract class Mesh extends Light {
                 ovv = ov[i];
                 vv = v[i];
 
-                lerp.put(j, move[0] + ovv.v0() * backv[0] + vv.v0() * frontv[0]);
-                lerp
-                        .put(j + 1, move[1] + ovv.v1() * backv[1] + vv.v1()
-                                * frontv[1]);
-                lerp
-                        .put(j + 2, move[2] + ovv.v2() * backv[2] + vv.v2()
-                                * frontv[2]);
+                lerp.put(j, move[0] + (ovv & 0xFF) * backv[0] + (vv & 0xFF) * frontv[0]);
+                lerp.put(j + 1, move[1] + ((ovv >>> 8) & 0xFF) * backv[1] + ((vv >>> 8) & 0xFF) * frontv[1]);
+                lerp.put(j + 2, move[2] + ((ovv >>> 16) & 0xFF) * backv[2] + ((vv >>> 16) & 0xFF) * frontv[2]);
                 j += 3;
             }
         }
@@ -172,7 +172,7 @@ public abstract class Mesh extends Light {
     void GL_DrawAliasFrameLerp(qfiles.dmdl_t paliashdr, float backlerp) {
         float l;
         qfiles.daliasframe_t frame, oldframe;
-        qfiles.dtrivertx_t[] v, ov, verts;
+        int[] v, ov;
 
         int[] order;
         int orderIndex = 0;
@@ -195,7 +195,7 @@ public abstract class Mesh extends Light {
 
         frame = paliashdr.aliasFrames[currententity.frame];
 
-        verts = v = frame.verts;
+        v = frame.verts;
 
         oldframe = paliashdr.aliasFrames[currententity.oldframe];
 
@@ -235,7 +235,7 @@ public abstract class Mesh extends Light {
         }
 
         if (gl_vertex_arrays.value != 0.0f) {
-            GL_LerpVerts(paliashdr.num_xyz, v, ov, verts, move, frontv, backv);
+            GL_LerpVerts(paliashdr.num_xyz, ov, v, move, frontv, backv);
 
             gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
             gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertexArrayBuf);
@@ -257,7 +257,8 @@ public abstract class Mesh extends Light {
                 FloatBuffer color = colorArrayBuf;
                 int j = 0;
                 for (i = 0; i < paliashdr.num_xyz; i++) {
-                    l = shadedots[verts[i].lightnormalindex()];
+                    // light normal index
+                    l = shadedots[(v[i] >>> 24) & 0xFF];
                     color.put(j++, l * shadelight[0]);
                     color.put(j++, l * shadelight[1]);
                     color.put(j++, l * shadelight[2]);
@@ -315,7 +316,7 @@ public abstract class Mesh extends Light {
             if (qglLockArraysEXT)
                 gl.glUnlockArraysEXT();
         } else {
-            GL_LerpVerts(paliashdr.num_xyz, v, ov, verts, s_lerped, move,
+            GL_LerpVerts(paliashdr.num_xyz, ov, v, s_lerped, move,
                     frontv, backv);
 
             float[] tmp;
@@ -357,7 +358,7 @@ public abstract class Mesh extends Light {
                         orderIndex += 3;
 
                         // normals and vertexes come from the frame list
-                        l = shadedots[verts[index_xyz].lightnormalindex()];
+                        l = shadedots[(v[index_xyz] >>> 24) & 0xFF];
 
                         gl.glColor4f(l * shadelight[0], l * shadelight[1], l
                                 * shadelight[2], alpha);
@@ -380,24 +381,17 @@ public abstract class Mesh extends Light {
      * ============= GL_DrawAliasShadow =============
      */
     void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum) {
-        qfiles.dtrivertx_t[] verts;
-        int[] order;
         float[] point = { 0, 0, 0 };
-        float height, lheight;
         int count;
         qfiles.daliasframe_t frame;
 
-        lheight = currententity.origin[2] - lightspot[2];
+        float lheight = currententity.origin[2] - lightspot[2];
 
         frame = paliashdr.aliasFrames[currententity.frame];
 
-        verts = frame.verts;
+        int[] order = paliashdr.glCmds;
 
-        height = 0;
-
-        order = paliashdr.glCmds;
-
-        height = -lheight + 1.0f;
+        float height = -lheight + 1.0f;
 
         int orderIndex = 0;
         int index = 0;
