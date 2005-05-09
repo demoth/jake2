@@ -267,7 +267,7 @@
 			<include name="lwjgl.dll"/>
 			<include name="lwjglaudio.dll"/>
 		</jar>
-		<signjar keystore="${user.home}/bytonic" alias="hoz" storepass="${bytonic.pass}">
+		<signjar keystore="${user.home}/bytonic" alias="bytonic" storepass="${bytonic.pass}">
 			<fileset dir="webstart/lib">
 				<include name="**/*.jar"/>
 			</fileset>
