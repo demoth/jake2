@@ -6,13 +6,13 @@ distributed under the terms of the GPL (see LICENSE).
 
 The port was done completely in Java. No native libraries are used for the
 game functionality. We use the jogl Java OpenGL bindings for graphics rendering
-and Java OpenAL (joal) for sound.
+and Java OpenAL (joal) for sound. The latest release comes with an lwjgl driver
+as an alternative for the jogl/joal combination.
 
 Jake2 is still under development. Send bug reports and feedback to
 jake2@bytonic.de.
 
-Currently Jake2 supports Linux and Windows2000/XP. We have feedback that it
-works on OS X too with the right native jogl libraries.
+Currently Jake2 supports Linux, Windows2000/XP and Mac OS X.
 
 requirements:
 400 MHz CPU
@@ -49,15 +49,16 @@ Jake2 sources from CVS.
 --------------------
 
 Jake2 uses:
-jogl     OpenGL bindings    https://jogl.dev.java.net
-joal     OpenAL bindings    https://joal.dev.java.net
-openal   Audio library      http://www.openal.org
-izpack	 Installer	        http://www.izforge.com/
+jogl     OpenGL bindings                https://jogl.dev.java.net
+joal     OpenAL bindings                https://joal.dev.java.net
+lwjgl    Light Weight Java Game Library http://www.lwjgl.org
+openal   Audio library                  http://www.openal.org
+izpack	 Installer	                    http://www.izforge.com/
 
 the source distribution comes with:
-ant      build tool         http://ant.apache.org
-xerces   XML library        http://xml.apache.org
-proguard obfuscator         http://proguard.sourceforge.net
+ant      build tool                     http://ant.apache.org
+xerces   XML library                    http://xml.apache.org
+proguard obfuscator                     http://proguard.sourceforge.net
 
 
 
