@@ -41,35 +41,76 @@
             <description>Jake2 files</description>
             <fileset dir="." targetdir="$INSTALL_PATH">
             	<include name="*"/>
-            	<include name="lib/*.jar"/>
+            	<include name="lib/jake2.jar"/>
             	<exclude name="*.bat"/>
             	<exclude name="*.sh"/>
-            	<exclude name="*.ico"/>
             </fileset>
-            <executable type="jar" 
-        		targetfile="$INSTALL_PATH/lib/jake2.jar"
-        		class="jake2.install.Q2DataInstaller"
-        		stage="postinstall"
-        		keep="true">
-        		<args>
-        			<arg value="$INSTALL_PATH"/>
-        		</args>
-        	</executable>
+            <fileset dir="." targetdir="$INSTALL_PATH">
+            	<os family="windows"/>
+            	<include name="*.bat"/>
+            </fileset>
+            <fileset dir="." targetdir="$INSTALL_PATH">
+            	<os name="Linux"/>
+            	<include name="*.sh"/>
+            </fileset>            
         </pack>
-        <pack name="Linux libraries and scripts" required="yes">
-        	<os name="Linux" arch="i386"/>
-        	<description>jogl and joal libraries for Linux</description>
-        	<file src="lib/linux" targetdir="$INSTALL_PATH/lib"/>
-        	<file src="Jake2.sh" targetdir="$INSTALL_PATH"/>
-        	<executable targetfile="$INSTALL_PATH/Jake2.sh" stage="never"/>
+        
+        <pack name="jogl OpenGL library" required="yes">
+        	<description>default OpenGL library</description>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os family="windows"/>
+        		<include name="windows/jogl*"/>
+        		<include name="jogl.jar"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Linux"/>
+        		<include name="linux/*jogl*"/>
+        		<include name="jogl.jar"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Mac OS X"/>
+        		<include name="osx/*jogl*"/>
+        		<include name="jogl.jar"/>
+        	</fileset>
         </pack>
-            <pack name="Windows libraries and scripts" required="yes">
-        	<os family="windows"/>
-        	<description>jogl and joal libraries for Windows</description>
-        	<file src="lib/windows" targetdir="$INSTALL_PATH/lib"/>
-        	<file src="Jake2.bat" targetdir="$INSTALL_PATH"/>
-        	<executable targetfile="$INSTALL_PATH/Jake2.bat" stage="never"/>
+        
+        <pack name="joal sound library" required="no">
+        	<description>default sound library</description>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os family="windows"/>
+        		<include name="windows/joal*"/>
+        		<include name="windows/OpenAL*"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Linux"/>
+        		<include name="linux/*joal*"/>
+        		<include name="linux/*openal*"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Mac OS X"/>
+        		<include name="osx/*joal*"/>
+        		<include name="osx/*openal*"/>
+        	</fileset>
         </pack>
+
+        <pack name="lwjgl library" required="no">
+        	<description>alternative OpenGL and sound driver</description>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os family="windows"/>
+        		<include name="windows/lwjgl*"/>
+        		<include name="lwjgl*.jar"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Linux"/>
+        		<include name="linux/lwjgl/*"/>
+        		<include name="lwjgl*.jar"/>
+        	</fileset>
+        	<fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+        		<os name="Mac OS X"/>
+        		<include name="osx/lwjgl/*"/>
+        		<include name="lwjgl*.jar"/>
+        	</fileset>
+        </pack>        
     </packs>
     
     <!-- native type="izpack" name="ShellLink.dll"/ -->

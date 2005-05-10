@@ -100,6 +100,9 @@
 			</fileset>			
 		</copy>
 		<copy todir="${dist}/lib/osx">
+			<fileset dir="lib/jogl/osx">
+				<include name="*"/>
+			</fileset>			
 			<fileset dir="lib/joal/osx">
 				<include name="*"/>
 			</fileset>
@@ -147,9 +150,6 @@
 			<libraryjar name="lib/joal/linux/joal.jar"/>
 			<libraryjar name="${java.home}/lib/rt.jar"/>
 			<keep access="public" name="jake2.Jake2">
-				<method name="main(java.lang.String[])"/>
-			</keep>
-			<keep access="public" name="jake2.install.Q2DataInstaller">
 				<method name="main(java.lang.String[])"/>
 			</keep>
 		</proguard>
