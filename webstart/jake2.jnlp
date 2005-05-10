@@ -24,7 +24,6 @@
 	</resources>
 	
 	<resources os="Linux">
-		<j2se version="1.4+" max-heap-size="80M"/>
 		<jar href="http://jake2.sourceforge.net/lib/patch.jar"/>
 		<jar href="http://jake2.sourceforge.net/lib/linux/joal.jar"/>
 		<jar href="http://jake2.sourceforge.net/lib/linux/openal.jar"/>
@@ -33,7 +32,6 @@
 	</resources>
 	
 	<resources os="Windows">
-		<j2se version="1.4+" max-heap-size="80M"/>
 		<jar href="http://jake2.sourceforge.net/lib/windows/joal.jar"/>
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/jogl-native.jar"/>
 		<nativelib href="http://jake2.sourceforge.net/lib/windows/joal-native.jar"/>
