@@ -231,15 +231,14 @@
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar"/>
 				<exclude name="jake2.jar"/>
+				<exclude name="jogl.jar"/>
 			</fileset>
 			<fileset dir=".">
 				<include name="patch.jar"/>
 				<include name="jake2.jar"/>
 			</fileset>
 		</copy>
-		<jar destfile="webstart/lib/linux/jogl-native.jar" basedir="${dist}/lib/linux">
-			<include name="libjogl*.so"/>
-		</jar>
+
 		<jar destfile="webstart/lib/linux/joal-native.jar" basedir="${dist}/lib/linux">
 			<include name="libjoal.so"/>
 		</jar>
@@ -255,9 +254,6 @@
 		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx">
 			<include name="liblwjgl.jnilib"/>
 			<include name="openal.dylib"/>
-		</jar>
-		<jar destfile="webstart/lib/windows/jogl-native.jar" basedir="${dist}/lib/windows">
-			<include name="jogl*.dll"/>
 		</jar>
 		<jar destfile="webstart/lib/windows/joal-native.jar" basedir="${dist}/lib/windows">
 			<include name="joal.dll"/>
