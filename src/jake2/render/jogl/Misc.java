@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.6 2005-05-07 19:49:37 cawe Exp $
+ * $Id: Misc.java,v 1.7 2005-05-11 21:44:49 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -176,6 +176,11 @@ public abstract class Misc extends Mesh {
 	        // jogl needs a sliced buffer
 	        ByteBuffer rgb = image.slice();
 
+	        // change pixel alignment for reading
+	        if (vid.width % 4 != 0) {
+	            gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1); 
+	        }
+
 	        // OpenGL 1.2+ supports the GL_BGR color format
 	        // check the GL_VERSION to use the TARGA BGR order if possible
 	        // e.g.: 1.5.2 NVIDIA 66.29
@@ -193,6 +198,8 @@ public abstract class Misc extends Mesh {
 		            image.put(i + 2, tmp);
 		        }
 	        }
+	        // reset to default alignment
+	        gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 4); 
 	        // close the file channel
 	        ch.close();
 	    } catch (IOException e) {
