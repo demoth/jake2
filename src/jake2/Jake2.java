@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.6 2004-09-25 15:17:44 hzi Exp $
+ * $Id: Jake2.java,v 1.7 2005-05-12 12:52:50 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,8 @@ import jake2.client.SCR;
 import jake2.qcommon.*;
 import jake2.sys.Sys;
 
+import java.util.Locale;
+
 /**
  * Jake2 is the main class of Quake2 for Java.
  */
@@ -45,6 +47,7 @@ public final class Jake2 {
      */
     public static void main(String[] args) {
 
+    	Locale.setDefault(Locale.US);
         Q2Dialog.setVisible(true);
 
         // in C the first arg is the filename

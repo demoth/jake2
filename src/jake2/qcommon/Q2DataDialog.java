@@ -2,7 +2,7 @@
  * Q2DataDialog.java
  * Copyright (C)  2003
  * 
- * $Id: Q2DataDialog.java,v 1.12 2004-09-26 21:12:40 hzi Exp $
+ * $Id: Q2DataDialog.java,v 1.13 2005-05-12 12:52:50 hzi Exp $
  */
 
 package jake2.qcommon;
@@ -14,8 +14,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -41,6 +40,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
     }
     
     private void initComponents() {//GEN-BEGIN:initComponents
+    	JComponent.setDefaultLocale(Locale.US);
+
         java.awt.GridBagConstraints gridBagConstraints;
 
         choosePanel = new javax.swing.JPanel();
