@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.20 2005-02-08 21:48:21 cawe Exp $
+ * $Id: CL.java,v 1.21 2005-05-14 10:10:44 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1426,12 +1426,12 @@ public final class CL {
      * 
      * Writes key bindings and archived cvars to config.cfg ===============
      */
-    static void WriteConfiguration() {
+    public static void WriteConfiguration() {
         RandomAccessFile f;
         String path;
 
-        if (Globals.cls.state == Defines.ca_uninitialized)
-            return;
+//        if (Globals.cls.state == Defines.ca_uninitialized)
+//            return;
 
         path = FS.Gamedir() + "/config.cfg";
         f = Lib.fopen(path, "rw");

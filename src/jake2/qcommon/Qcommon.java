@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.15 2005-02-13 17:12:55 cawe Exp $
+ * $Id: Qcommon.java,v 1.16 2005-05-14 10:10:45 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -84,6 +84,9 @@ public final class Qcommon extends Globals {
 			Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
 			reconfigure(true); // reload default.cfg and config.cfg
 			
+			// save config when we have a valid baseq2
+			CL.WriteConfiguration();
+
 			//
 			// init commands and vars
 			//
