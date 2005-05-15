@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.11 2005-05-07 23:44:38 cawe Exp $
+ * $Id: Model.java,v 1.12 2005-05-15 16:06:15 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -830,6 +830,9 @@ public abstract class Model extends Surf {
         count = l.filelen / qfiles.dplane_t.SIZE;
         // out = Hunk_Alloc ( count*2*sizeof(*out));
         out = new cplane_t[count * 2];
+        for (i = 0; i < count; i++) {
+            out[i] = new cplane_t();
+        }
 
         loadmodel.planes = out;
         loadmodel.numplanes = count;
@@ -840,7 +843,6 @@ public abstract class Model extends Surf {
         for (i = 0; i < count; i++) {
             bits = 0;
             in = new qfiles.dplane_t(bb);
-            out[i] = new cplane_t();
             for (j = 0; j < 3; j++) {
                 out[i].normal[j] = in.normal[j];
                 if (out[i].normal[j] < 0)
