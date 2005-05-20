@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.12 2004-11-10 20:41:40 cawe Exp $
+ * $Id: FS.java,v 1.13 2005-05-20 15:05:54 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,8 +35,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.*;
-
-import javax.imageio.stream.FileImageInputStream;
 
 /**
  * FS
@@ -527,24 +525,26 @@ public final class FS extends Globals {
 
         dpackheader_t header;
         Hashtable newfiles;
+        RandomAccessFile file;
         int numpackfiles = 0;
         pack_t pack = null;
-        RandomAccessFile file;
-        FileImageInputStream packhandle;
         //		unsigned checksum;
         //
         try {
-            packhandle = new FileImageInputStream(file = new RandomAccessFile(
-                    packfile, "r"));
-            packhandle.setByteOrder(ByteOrder.LITTLE_ENDIAN);
-
-            if (packhandle.length() < 1)
+        	file = new RandomAccessFile(packfile, "r");
+        	FileChannel fc = file.getChannel();
+            ByteBuffer packhandle = fc.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            packhandle.order(ByteOrder.LITTLE_ENDIAN);
+ 
+            fc.close();
+            
+            if (packhandle == null || packhandle.limit() < 1)
                 return null;
             //
             header = new dpackheader_t();
-            header.ident = packhandle.readInt();
-            header.dirofs = packhandle.readInt();
-            header.dirlen = packhandle.readInt();
+            header.ident = packhandle.getInt();
+            header.dirofs = packhandle.getInt();
+            header.dirlen = packhandle.getInt();
 
             if (header.ident != IDPAKHEADER)
                 Com.Error(Globals.ERR_FATAL, packfile + " is not a packfile");
@@ -557,18 +557,18 @@ public final class FS extends Globals {
 
             newfiles = new Hashtable(numpackfiles);
 
-            packhandle.seek(header.dirofs);
+            packhandle.position(header.dirofs);
 
             // parse the directory
             packfile_t entry = null;
 
             for (int i = 0; i < numpackfiles; i++) {
-                packhandle.readFully(tmpText);
+                packhandle.get(tmpText);
 
                 entry = new packfile_t();
                 entry.name = new String(tmpText).trim();
-                entry.filepos = packhandle.readInt();
-                entry.filelen = packhandle.readInt();
+                entry.filepos = packhandle.getInt();
+                entry.filelen = packhandle.getInt();
 
                 newfiles.put(entry.name.toLowerCase(), entry);
             }
