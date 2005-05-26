@@ -2,7 +2,7 @@
  * Q2DataDialog.java
  * Copyright (C)  2003
  * 
- * $Id: Q2DataDialog.java,v 1.13 2005-05-12 12:52:50 hzi Exp $
+ * $Id: Q2DataDialog.java,v 1.14 2005-05-26 16:56:32 hzi Exp $
  */
 
 package jake2.qcommon;
@@ -35,7 +35,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		int x = (mode.getWidth() - getWidth()) / 2;
 		int y = (mode.getHeight() - getHeight()) / 2;
 		setLocation(x, y);
-		dir = home + sep + "jake2" + sep + "baseq2";
+		dir = home + sep + "Jake2" + sep + "baseq2";
 		jTextField1.setText(dir);
     }
     
@@ -183,7 +183,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
     }
     
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
-    	
+    	dir = jTextField1.getText();
     	if (dir != null) {
     		Cvar.Set("cddir", dir);
     		FS.setCDDir();
@@ -227,7 +227,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private InstallPanel installPanel;
     private NotFoundPanel notFoundPanel;
     private JLabel status;
-    private javax.swing.JTextField jTextField1;
+    javax.swing.JTextField jTextField1;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables
     
@@ -441,7 +441,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		
 		public InstallPanel(Q2DataDialog d) {
 			initComponents();
-			String dir = Q2DataDialog.home + Q2DataDialog.sep + "jake2";
+			String dir = Q2DataDialog.home + Q2DataDialog.sep + "Jake2";
 			destDir.setText(dir);
 			initMirrors();
 			parent = d;
@@ -760,7 +760,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		
 		void endInstall(String message) {
 			parent.notFoundPanel.message.setText(message);
-			parent.dir = destDir + "/baseq2";
+			parent.jTextField1.setText(destDir + "/baseq2");
 			parent.showChooseDialog();
 			parent.okButtonActionPerformed(null);			
 		}

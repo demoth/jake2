@@ -8,8 +8,9 @@ lizensiert.
 
 Jake2 ist eine reine Java Anwendung. Als native Library kommen im Moment nur
 jogl für die OpenGL Anbindung und joal für OpenAudio Soundunterstützung zum
-Einsatz. Die komplette Funktionalität der Engine wurde ausschliesslich mit Java
-realisiert.
+Einsatz. Seit Version 0.9.4 ist auch ein lwjgl Treiber als Alternative zur
+jogl/joal Kombination enthalten. Die komplette Funktionalität der Engine wurde
+ausschliesslich mit Java realisiert.
 
 Jake2 befindet sich noch im Entwicklungsstadium. Die Kontaktaddresse für 
 Bugreports und Rückmeldungen ist jake2@bytonic.de.
@@ -27,10 +28,12 @@ Installation
 ------------
 
 ausgehend von der Binärdistribution:
-- Installationsprogramm mit "java -jar Jake2-Install.jar" starten
+- Installationsprogramm mit "java -jar Jake2-0.9.4-install.jar" starten
 - den Anweisungen folgen
 - ins Installationsverzeichnis wechseln
 - Jake2 mit "jake2.sh" oder "jake2.bat" aus dem Installationsverzeichnis starten
+- um den lwjgl OpenGL/OpenAL Treiber zu nutzen Jake2 mit "jake2_lwjgl.sh" oder
+  "jake2_lwjgl.bat" aus dem Installationsverzeichnis starten
 
 ausgehend von Sourcedistribution:
 - jake2src-version.tar.gz oder jake2src-version.zip entpacken
@@ -54,24 +57,27 @@ externe Komponenten
 -------------------
 
 Jake2 benutzt:
-jogl     OpenGL bindings    https://jogl.dev.java.net
-joal     OpenAL bindings    https://joal.dev.java.net
-openal   Audio library      http://www.openal.org
-izpack	 Installer          http://www.izforge.com/
+jogl     OpenGL bindings                https://jogl.dev.java.net
+joal     OpenAL bindings                https://joal.dev.java.net
+lwjgl    Light Weight Java Game Library http://www.lwjgl.org
+openal   Audio library                  http://www.openal.org
+izpack	 Installer                      http://www.izforge.com/
 
 the source distribution comes with:
-ant      build tool         http://ant.apache.org
-xerces   XML library        http://xml.apache.org
-proguard obfuscator         http://proguard.sourceforge.net
+ant      build tool                     http://ant.apache.org
+xerces   XML library                    http://xml.apache.org
+proguard obfuscator                     http://proguard.sourceforge.net
 
+<jake2@bytonic.de> für Bugreports und Rückmeldungen.
 
-
-viel Spass!
+have fun!
 
 bytonic Software
-
+----------------
 Holger Zickner <hoz@bytonic.de>
 Carsten Weisse <cwei@bytonic.de>
 Rene Stoeckel  <rst@bytonic.de>
 
-<jake2@bytonic.de> für Bugreports und Rückmeldungen.
+Contributors
+------------
+David Sanders       lwjgl Unterstützung

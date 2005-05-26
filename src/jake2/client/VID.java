@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.15 2005-04-07 15:29:21 cawe Exp $
+ * $Id: VID.java,v 1.16 2005-05-26 16:56:33 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -255,23 +255,31 @@ public class VID extends Globals {
 			Globals.cl.refresh_prepped = false;
 			Globals.cls.disable_screen = 1.0f; // true;
 
-			String defaultName = Renderer.getDefaultName();
 			
 			if ( !LoadRefresh( vid_ref.string ) )
 			{
-				if ( vid_ref.string.equals(defaultName) ) {
+				String renderer;
+				if (vid_ref.string.equals(Renderer.getPreferedName())) {
+				    // try the default renderer as fallback after prefered
+				    renderer = Renderer.getDefaultName();
+				} else {
+				    // try the prefered renderer as first fallback
+				    renderer = Renderer.getPreferedName();
+				}
+				if ( vid_ref.string.equals(Renderer.getDefaultName())) {
+				    renderer = vid_ref.string;
 					Com.Printf("Refresh failed\n");
 					gl_mode = Cvar.Get( "gl_mode", "0", 0 );
 					if (gl_mode.value != 0.0f) {
 						Com.Printf("Trying mode 0\n");
 						Cvar.SetValue("gl_mode", 0);
 						if ( !LoadRefresh( vid_ref.string ) )
-							Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + defaultName +" refresh!");
+							Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + renderer +" refresh!");
 					} else
-						Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + defaultName +" refresh!");
+						Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + renderer +" refresh!");
 				}
 
-				Cvar.Set("vid_ref", defaultName);
+				Cvar.Set("vid_ref", renderer);
 
 				/*
 				 * drop the console if we fail to load a refresh

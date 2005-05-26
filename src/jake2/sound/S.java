@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.10 2005-02-07 17:23:50 cawe Exp $
+ * $Id: S.java,v 1.11 2005-05-26 16:56:33 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -92,7 +92,7 @@ public class S {
 			}
 		}
 		// if driver not found use dummy
-		impl = (Sound)drivers.firstElement();
+		impl = (Sound)drivers.lastElement();
 	}
 	
 	public static void Init() {

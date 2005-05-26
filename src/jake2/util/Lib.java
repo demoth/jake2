@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.12 2005-01-09 23:41:53 cawe Exp $
+// $Id: Lib.java,v 1.13 2005-05-26 16:56:31 hzi Exp $
 
 package jake2.util;
 
@@ -89,7 +89,11 @@ public class Lib {
 			return Integer.parseInt(in);
 		}
 		catch (Exception e) {
-			return 0;
+			try {
+				return (int)Double.parseDouble(in);
+			} catch (Exception e1) {
+				return 0;
+			}
 		}
 	}
 	public static float[] atov(String v) {
