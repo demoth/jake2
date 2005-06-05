@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.4 2005-01-23 19:06:10 cawe Exp $
+// $Id: entity_state_t.java,v 1.5 2005-06-05 15:21:47 salomo Exp $
 
 package jake2.game;
 
@@ -37,10 +37,13 @@ public class entity_state_t implements Cloneable
 	public entity_state_t(edict_t ent)
 	{
 		this.surrounding_ent = ent;
+		if (ent != null)
+		    number = ent.index;
 	}
 
-	/** edict index. */
-	public int number = -99999; 
+	/** edict index. TODO: this is critical. The index has to be proper managed. */
+	public int number = 0; 
+	// TODO: why was this introduced?
 	public edict_t surrounding_ent = null;
 	public float[] origin = { 0, 0, 0 };
 	public float[] angles = { 0, 0, 0 };
@@ -148,7 +151,8 @@ public class entity_state_t implements Cloneable
 
 	public void clear()
 	{
-		number = -99999;
+	    //TODO: this is critical. The index has to be proper managed.
+		number = 0;
 		surrounding_ent = null;
 		Math3D.VectorClear(origin);
 		Math3D.VectorClear(angles);
