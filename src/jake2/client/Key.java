@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.7 2004-10-28 18:15:25 cawe Exp $
+ * $Id: Key.java,v 1.8 2005-06-06 13:30:40 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -424,14 +424,17 @@ public class Key extends Globals {
 		switch (Globals.cls.key_dest) {
 			case Defines.key_message :
 				Key.Message(key);
+				key_repeats[key] = 0;
 				break;
 			case Defines.key_menu :
 				Menu.Keydown(key);
+				key_repeats[key] = 0;
 				break;
 
 			case Defines.key_game :
 			case Defines.key_console :
 				Key.Console(key);
+				key_repeats[key] = 0;
 				break;
 			default :
 				Com.Error(Defines.ERR_FATAL, "Bad cls.key_dest");
