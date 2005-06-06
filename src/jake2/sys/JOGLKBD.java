@@ -197,11 +197,11 @@ final public class JOGLKBD extends KBD
 			case KeyEvent.VK_DEAD_CIRCUMFLEX: key = '`'; break;
 			 
 			default:
-				if ((ev.getModifiers() & (InputEvent.ALT_MASK | InputEvent.CTRL_MASK)) != 0) {
-					key = ev.getKeyCode();
-				} else {
+//				if ((ev.getModifiers() & (InputEvent.ALT_MASK | InputEvent.CTRL_MASK)) != 0) {
+//					key = ev.getKeyCode();
+//				} else {
 					key = ev.getKeyChar();
-				}
+//				}
 				if (key >= 'A' && key <= 'Z')
 					key = key - 'A' + 'a';
 			break;
