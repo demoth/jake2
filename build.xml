@@ -138,12 +138,12 @@
 		
 	<!-- jar -->
 	<target name="jar" depends="compile,copyres">
-		<jar destfile="jake2.jar" basedir="${build}">
+		<jar destfile="${dist}/lib/jake2.jar" basedir="${build}">
 			<include name="jake2/**"/>
 			<include name="*.png"/>
 			<include name="mirrors"/>
 		</jar>
-		<proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
+		<!-- proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
 			<injar name="jake2.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
@@ -152,7 +152,7 @@
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
 			</keep>
-		</proguard>
+		</proguard -->
 	</target>
 				
 	<!-- everything -->
@@ -236,12 +236,10 @@
 		<copy todir="webstart/lib">
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar"/>
-				<exclude name="jake2.jar"/>
 				<exclude name="jogl.jar"/>
 			</fileset>
 			<fileset dir=".">
 				<include name="patch.jar"/>
-				<include name="jake2.jar"/>
 			</fileset>
 		</copy>
 
