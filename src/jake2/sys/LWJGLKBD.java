@@ -1,6 +1,7 @@
 package jake2.sys;
 
 import jake2.Defines;
+import jake2.Globals;
 import jake2.client.Key;
 import jake2.qcommon.Cbuf;
 
@@ -14,6 +15,7 @@ import org.lwjgl.opengl.Display;
 public class LWJGLKBD extends KBD {
 	
 	private char[] lwjglKeycodeMap = null;
+	private int pressed[] = null;
 	
 	private boolean mouseHasTwoButtons = false;
 	
@@ -29,9 +31,11 @@ public class LWJGLKBD extends KBD {
 			if (!Mouse.isBuffered()) Mouse.enableBuffer();
 			
 			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
+			if (pressed == null) pressed = new int[256];
 			
 			mouseHasTwoButtons = (Mouse.getButtonCount() == 2);
 			
+			lastRepeat = Sys.Milliseconds();
 		} catch (Exception e) {;}	
 	}
 
@@ -45,6 +49,7 @@ public class LWJGLKBD extends KBD {
 		Mouse.destroy();
 		// free the memory for GC
 		lwjglKeycodeMap = null;
+		pressed = null;
 	}
 	
 	private void HandleEvents() 
@@ -65,10 +70,17 @@ public class LWJGLKBD extends KBD {
 			// fill the character translation table
 			// this is needed because the getEventCharacter() returns \0 if a key is released
 			// keycode is correct but the charachter value is not
-			if (down) lwjglKeycodeMap[key] = ch;
-
+			if (down) {
+				lwjglKeycodeMap[key] = ch;
+				pressed[key] = Globals.sys_frame_time;
+			} else {
+				pressed[key] = 0;
+			}
+			
 			Do_Key_Event(XLateKey(key,ch), down);
 		}	
+		
+		generateRepeats();
 		
 		if (IN.mouse_active)
 		{
@@ -98,6 +110,18 @@ public class LWJGLKBD extends KBD {
 		}	
 	}
 
+	private static int lastRepeat;
+	private void generateRepeats() {
+		int time = Globals.sys_frame_time;
+		if (time - lastRepeat > 50) {
+			for (int i = 0; i < pressed.length; i++) {
+				if (pressed[i] > 0 && time - pressed[i] > 500) 
+					Do_Key_Event(XLateKey(i, lwjglKeycodeMap[i]), true);
+			}
+			lastRepeat = time;
+		}
+	}
+	
 	private int XLateKey(int code, int ch) 
 	{
 		int key = 0;
