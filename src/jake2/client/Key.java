@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.10 2005-06-07 08:43:11 hzi Exp $
+ * $Id: Key.java,v 1.11 2005-06-07 12:57:21 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -287,7 +287,7 @@ public class Key extends Globals {
 	/**
 	 * Called by the system between frames for both key up and key down events.
 	 */
-	public static void Event(int key, boolean down, long time) {		
+	public static void Event(int key, boolean down, int time) {		
 		String kb;
 		String cmd;
 

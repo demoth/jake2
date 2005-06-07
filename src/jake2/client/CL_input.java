@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.5 2005-01-21 01:10:09 cawe Exp $
+ * $Id: CL_input.java,v 1.6 2005-06-07 12:57:21 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.game.cvar_t;
 import jake2.game.usercmd_t;
 import jake2.qcommon.*;
 import jake2.sys.IN;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
 /**
@@ -109,7 +110,7 @@ public class CL_input {
 
 		c = Cmd.Argv(1);
 		if (c.length() > 0)
-			k = Integer.parseInt(c);
+			k = Lib.atoi(c);
 		else
 			k = -1; // typed manually at the console for continuous down
 
@@ -130,7 +131,7 @@ public class CL_input {
 
 		// save timestamp
 		c = Cmd.Argv(2);
-		b.downtime = Long.parseLong(c);
+		b.downtime = Lib.atoi(c);
 		if (b.downtime == 0)
 			b.downtime = Globals.sys_frame_time - 100;
 
@@ -144,7 +145,7 @@ public class CL_input {
 
 		c = Cmd.Argv(1);
 		if (c.length() > 0)
-			k = Integer.parseInt(c);
+			k = Lib.atoi(c);
 		else {
 			// typed manually at the console, assume for unsticking, so clear
 			// all
@@ -298,7 +299,7 @@ public class CL_input {
 	}
 
 	static void IN_Impulse() {
-		in_impulse = Integer.parseInt(Cmd.Argv(1));
+		in_impulse = Lib.atoi(Cmd.Argv(1));
 	}
 
 	/*

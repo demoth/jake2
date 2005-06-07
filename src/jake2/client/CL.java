@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.21 2005-05-14 10:10:44 hzi Exp $
+ * $Id: CL.java,v 1.22 2005-06-07 12:57:21 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -851,7 +851,7 @@ public final class CL {
 
         // challenge from the server we are connecting to
         if (c.equals("challenge")) {
-            Globals.cls.challenge = Integer.parseInt(Cmd.Argv(1));
+            Globals.cls.challenge = Lib.atoi(Cmd.Argv(1));
             SendConnectPacket();
             return;
         }
