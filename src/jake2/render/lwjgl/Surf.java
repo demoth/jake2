@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.8 2005-02-01 16:55:28 cawe Exp $
+ * $Id: Surf.java,v 1.9 2005-06-08 21:27:10 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -940,12 +940,12 @@ public abstract class Surf extends Draw {
 			System.arraycopy(vis, 0, fatvis, 0, (r_worldmodel.numleafs+7) >> 3);
 			vis = Mod_ClusterPVS(r_viewcluster2, r_worldmodel);
 			c = (r_worldmodel.numleafs + 31) >> 5;
-			int k = -1;
-			for (i=0 ; i<c ; i++) {
-				fatvis[++k] |= vis[k];
-				fatvis[++k] |= vis[k];
-				fatvis[++k] |= vis[k];
-				fatvis[++k] |= vis[k];
+			c <<= 2;
+			for (int k=0 ; k<c ; k+=4) {
+				fatvis[k] |= vis[k];
+				fatvis[k + 1] |= vis[k + 1];
+				fatvis[k + 2] |= vis[k + 2];
+				fatvis[k + 3] |= vis[k + 3];
 			}
 
 			vis = fatvis;
