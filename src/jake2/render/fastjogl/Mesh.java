@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.11 2005-06-08 21:27:09 cawe Exp $
+ * $Id: Mesh.java,v 1.12 2005-06-09 07:59:58 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -206,7 +206,7 @@ public abstract class Mesh extends Light {
                 color.put(j, l * shadelight[0]);
                 color.put(j + 1, l * shadelight[1]);
                 color.put(j + 2, l * shadelight[2]);
-                color.put(j + 4, alpha);
+                color.put(j + 3, alpha);
                 j += 4;
             }
         }
