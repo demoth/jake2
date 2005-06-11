@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.11 2005-02-06 19:25:55 salomo Exp $
+ * $Id: Com.java,v 1.12 2005-06-11 17:21:21 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -400,9 +400,10 @@ public final class Com
 				if (Globals.logfile_active.value > 2)
 					try
 					{
-						Globals.logfile= new RandomAccessFile(name, "a");
+						Globals.logfile = new RandomAccessFile(name, "rw");
+						Globals.logfile.seek(Globals.logfile.length());
 					}
-					catch (FileNotFoundException e)
+					catch (Exception e)
 					{
 						// TODO: do quake2 error handling!
 						e.printStackTrace();
