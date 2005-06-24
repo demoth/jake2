@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.13 2004-12-14 00:11:09 hzi Exp $
+ * $Id: JoglBase.java,v 1.14 2005-06-24 06:24:34 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,12 +27,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import jake2.Defines;
-import jake2.client.*;
+import jake2.client.VID;
+import jake2.client.viddef_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.xcommand_t;
 import jake2.sys.JOGLKBD;
-import jake2.sys.KBD;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -95,9 +95,7 @@ public abstract class JoglBase implements GLEventListener {
 	protected static final int rserr_invalid_fullscreen = 1;
 	protected static final int rserr_invalid_mode = 2;
 	protected static final int rserr_unknown = 3;
-	
-	private boolean swap = false;
-	
+		
 	public DisplayMode[] getModeList() {
 		DisplayMode[] modes = device.getDisplayModes();
 		LinkedList l = new LinkedList();
@@ -209,11 +207,6 @@ public abstract class JoglBase implements GLEventListener {
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		canvas.setNoAutoRedrawMode(true);
-
-		if (net.java.games.jogl.Version.getVersion().startsWith("1.1")) {
-		    swap=true;
-		    canvas.setAutoSwapBufferMode(false);
-		}
 		
 		canvas.addGLEventListener(this);
 
@@ -314,9 +307,6 @@ public abstract class JoglBase implements GLEventListener {
 
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
-		
-		// swap buffer
-		if (swap) canvas.swapBuffers();		
 	}
 	protected void GLimp_BeginFrame(float camera_separation) {
 		// do nothing
