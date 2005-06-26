@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.14 2005-06-24 06:24:34 hzi Exp $
+ * $Id: JoglBase.java,v 1.15 2005-06-26 08:51:19 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -207,6 +207,7 @@ public abstract class JoglBase implements GLEventListener {
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		canvas.setNoAutoRedrawMode(true);
+		canvas.setAutoSwapBufferMode(false);
 		
 		canvas.addGLEventListener(this);
 
@@ -307,6 +308,7 @@ public abstract class JoglBase implements GLEventListener {
 
 	protected void GLimp_EndFrame() {
 		gl.glFlush();
+		canvas.swapBuffers();
 	}
 	protected void GLimp_BeginFrame(float camera_separation) {
 		// do nothing
