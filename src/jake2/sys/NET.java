@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.7 2005-02-20 18:33:16 cawe Exp $
+ * $Id: NET.java,v 1.8 2005-06-26 09:17:33 hzi Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,10 +27,17 @@ package jake2.sys;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.cvar_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.netadr_t;
+import jake2.qcommon.sizebuf_t;
+import jake2.util.Lib;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
@@ -140,7 +147,7 @@ public final class NET {
             a.ip = ia.getAddress();
             a.type = Defines.NA_IP;
             if (address.length == 2)
-                a.port = Integer.parseInt(address[1]);
+                a.port = Lib.atoi(address[1]);
             return true;
         } catch (Exception e) {
             Com.Println(e.getMessage());

@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_input.java,v 1.6 2005-06-07 12:57:21 hzi Exp $
+ * $Id: CL_input.java,v 1.7 2005-06-26 09:17:33 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -141,7 +141,7 @@ public class CL_input {
 	static void KeyUp(kbutton_t b) {
 		int k;
 		String c;
-		long uptime;
+		int uptime;
 
 		c = Cmd.Argv(1);
 		if (c.length() > 0)
@@ -168,7 +168,7 @@ public class CL_input {
 
 		// save timestamp
 		c = Cmd.Argv(2);
-		uptime = Long.parseLong(c);
+		uptime = Lib.atoi(c);
 		if (uptime != 0)
 			b.msec += uptime - b.downtime;
 		else
