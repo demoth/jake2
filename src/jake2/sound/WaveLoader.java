@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.4 2005-04-26 22:16:34 cawe Exp $
+ * $Id: WaveLoader.java,v 1.5 2005-06-27 08:46:15 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -259,12 +259,15 @@ public class WaveLoader {
 			// if the next chunk is a LIST chunk, look for a cue length marker
 			FindNextChunk("LIST");
 			if (data_p != 0) {
-				s = new String(data_b, data_p + 28, 4);
-				if (s.equals("MARK")) { // this is not a proper parse, but it works with cooledit...
-					data_p += 24;
-					i = GetLittleLong(); // samples in loop
-					info.samples = info.loopstart + i;
-					//					Com_Printf("looped length: %i\n", i);
+				if (data_b.length >= data_p + 32) {
+					s = new String(data_b, data_p + 28, 4);
+					if (s.equals("MARK")) { // this is not a proper parse, but
+											// it works with cooledit...
+						data_p += 24;
+						i = GetLittleLong(); // samples in loop
+						info.samples = info.loopstart + i;
+						//					Com_Printf("looped length: %i\n", i);
+					}
 				}
 			}
 		} else
@@ -283,9 +286,11 @@ public class WaveLoader {
 		if (info.samples != 0) {
 			if (samples < info.samples)
 				Com.Error(Defines.ERR_DROP, "Sound " + name + " has a bad loop length");
-		} else
+		} else {
 			info.samples = samples;
-
+			if (info.loopstart > 0) info.samples -= info.loopstart;
+		}
+		
 		info.dataofs = data_p;
 
 		return info;
