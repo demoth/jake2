@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.17 2005-05-26 16:56:32 hzi Exp $
+ * $Id: Qcommon.java,v 1.18 2005-06-28 08:41:19 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -243,6 +243,7 @@ public final class Qcommon extends Globals {
 	}
 
 	static void reconfigure(boolean clear) {
+		String dir = Cvar.Get("cddir", "", CVAR_ARCHIVE).string;
 		Cbuf.AddText("exec default.cfg\n");
 		Cbuf.AddText("bind MWHEELUP weapnext\n");
 		Cbuf.AddText("bind MWHEELDOWN weapprev\n");
@@ -255,6 +256,7 @@ public final class Qcommon extends Globals {
 		Cbuf.AddText("exec config.cfg\n");
 
 		Cbuf.AddEarlyCommands(clear);
-		Cbuf.Execute();		 
+		Cbuf.Execute();
+		if (!("".equals(dir))) Cvar.Set("cddir", dir);
 	}
 }
