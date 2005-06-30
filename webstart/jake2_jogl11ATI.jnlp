@@ -21,7 +21,7 @@
 		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
 		<property name="ATI_WORKAROUND" value="true"/>
-		<extension href="https://jogl.dev.java.net/webstart/jogl.jnlp" name="jogl"/>
+		<extension href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp" name="jogl"/>
 	</resources>
 	
 	<resources os="Linux">
