@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.6 2004-10-28 23:41:27 cawe Exp $
+ * $Id: Console.java,v 1.7 2005-06-30 08:36:22 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -173,6 +173,7 @@ public final class Console extends Globals {
     public static void CheckResize() {
 
         int width = (Globals.viddef.width >> 3) - 2;
+        if (width > Defines.MAXCMDLINE) width = Defines.MAXCMDLINE;
 
         if (width == Globals.con.linewidth)
             return;
