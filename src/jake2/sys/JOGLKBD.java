@@ -209,7 +209,7 @@ final public class JOGLKBD extends KBD
 	}	
 		
 	public void Do_Key_Event(int key, boolean down) {
-		Key.Event(key, down, Sys.Milliseconds());
+		Key.Event(key, down, Timer.Milliseconds());
 	}
 	
 	public void centerMouse() {

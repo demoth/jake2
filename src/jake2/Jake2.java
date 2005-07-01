@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.7 2005-05-12 12:52:50 hzi Exp $
+ * $Id: Jake2.java,v 1.8 2005-07-01 14:20:53 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,9 +25,8 @@
  */
 package jake2;
 
-import jake2.client.SCR;
 import jake2.qcommon.*;
-import jake2.sys.Sys;
+import jake2.sys.Timer;
 
 import java.util.Locale;
 
@@ -61,20 +60,13 @@ public final class Jake2 {
 
         Globals.nostdout = Cvar.Get("nostdout", "0", 0);
 
-        int oldtime = Sys.Milliseconds();
+        int oldtime = Timer.Milliseconds();
         int newtime;
         int time;
         while (true) {
             // find time spending rendering last frame
-            newtime = Sys.Milliseconds();
+            newtime = Timer.Milliseconds();
             time = newtime - oldtime;
-
-            // TODO this is a timer hack for Win2000
-            // System.currentTimeMillis() resolution bug
-            if (time == 0
-                    && (Globals.cl_timedemo.value != 0 || SCR.fps.value != 0)) {
-                time++;
-            }
 
             if (time > 0)
                 Qcommon.Frame(time);

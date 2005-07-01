@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.18 2005-06-28 08:41:19 hzi Exp $
+ * $Id: Qcommon.java,v 1.19 2005-07-01 14:20:56 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.server.SV_MAIN;
+import jake2.sys.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Vargs;
@@ -212,19 +213,19 @@ public final class Qcommon extends Globals {
 			int time_after= 0;
 
 			if (Globals.host_speeds.value != 0.0f)
-				time_before= Sys.Milliseconds();
+				time_before= Timer.Milliseconds();
 			
 			Com.debugContext = "SV:";
 			SV_MAIN.SV_Frame(msec);
 
 			if (Globals.host_speeds.value != 0.0f)
-				time_between= Sys.Milliseconds();
+				time_between= Timer.Milliseconds();
 			
 			Com.debugContext = "CL:";
 			CL.Frame(msec);
 
 			if (Globals.host_speeds.value != 0.0f) {
-				time_after= Sys.Milliseconds();
+				time_after= Timer.Milliseconds();
 
 				int all= time_after - time_before;
 				int sv= time_between - time_before;

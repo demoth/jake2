@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.10 2004-12-14 00:11:01 hzi Exp $
+ * $Id: Sys.java,v 1.11 2005-07-01 14:20:54 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -181,11 +181,6 @@ public final class Sys extends Defines {
 
     }
 
-    private static long secbase = System.currentTimeMillis();
-
-    public static int Milliseconds() {
-        return Globals.curtime = (int) (System.currentTimeMillis() - secbase);
-    }
 
     //============================================
 
@@ -230,7 +225,7 @@ public final class Sys extends Defines {
 		Globals.re.getKeyboardHandler().Update();
 
         // grab frame time
-        Globals.sys_frame_time = Sys.Milliseconds();
+        Globals.sys_frame_time = Timer.Milliseconds();
     }
 
     public static String GetClipboardData() {

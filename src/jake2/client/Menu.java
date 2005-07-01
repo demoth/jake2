@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.18 2005-02-09 20:47:30 cawe Exp $
+ * $Id: Menu.java,v 1.19 2005-07-01 14:20:50 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sound.S;
+import jake2.sys.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.*;
@@ -776,7 +777,7 @@ public final class Menu extends Key {
         if (bind_grab)
             re.DrawChar(menu.x, menu.y + menu.cursor * 9, '=');
         else
-            re.DrawChar(menu.x, menu.y + menu.cursor * 9, 12 + ((int) (Sys
+            re.DrawChar(menu.x, menu.y + menu.cursor * 9, 12 + ((int) (Timer
                     .Milliseconds() / 250) & 1));
     }
 
@@ -4405,7 +4406,7 @@ public final class Menu extends Key {
             else
                 offset = f.cursor;
 
-            if ((((int) (Sys.Milliseconds() / 250)) & 1) != 0) {
+            if ((((int) (Timer.Milliseconds() / 250)) & 1) != 0) {
                 re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y
                         + f.parent.y, 11);
             } else {
@@ -4648,10 +4649,10 @@ public final class Menu extends Key {
         } else if (item != null && item.type != MTYPE_FIELD) {
             if ((item.flags & QMF_LEFT_JUSTIFY) != 0) {
                 re.DrawChar(menu.x + item.x - 24 + item.cursor_offset, menu.y
-                        + item.y, 12 + ((int) (Sys.Milliseconds() / 250) & 1));
+                        + item.y, 12 + ((int) (Timer.Milliseconds() / 250) & 1));
             } else {
                 re.DrawChar(menu.x + item.cursor_offset, menu.y + item.y,
-                        12 + ((int) (Sys.Milliseconds() / 250) & 1));
+                        12 + ((int) (Timer.Milliseconds() / 250) & 1));
             }
         }
 

@@ -19,26 +19,15 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.10 2005-02-19 21:22:34 salomo Exp $
+// $Id: SV_MAIN.java,v 1.11 2005-07-01 14:20:55 hzi Exp $
 package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.Cmd;
-import jake2.game.GameBase;
-import jake2.game.Info;
-import jake2.game.PlayerClient;
-import jake2.game.cvar_t;
-import jake2.game.edict_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
-import jake2.qcommon.Netchan;
-import jake2.qcommon.SZ;
-import jake2.qcommon.netadr_t;
+import jake2.game.*;
+import jake2.qcommon.*;
 import jake2.sys.NET;
-import jake2.sys.Sys;
+import jake2.sys.Timer;
 import jake2.util.Lib;
 
 import java.io.IOException;
@@ -715,7 +704,7 @@ public class SV_MAIN {
      */
     public static void SV_RunGameFrame() {
         if (Globals.host_speeds.value != 0)
-            Globals.time_before_game = Sys.Milliseconds();
+            Globals.time_before_game = Timer.Milliseconds();
 
         // we always need to bump framenum, even if we
         // don't run the world, otherwise the delta
@@ -737,7 +726,7 @@ public class SV_MAIN {
         }
 
         if (Globals.host_speeds.value != 0)
-            Globals.time_after_game = Sys.Milliseconds();
+            Globals.time_after_game = Timer.Milliseconds();
 
     }
 

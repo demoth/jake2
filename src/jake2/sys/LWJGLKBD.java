@@ -35,7 +35,7 @@ public class LWJGLKBD extends KBD {
 			
 			mouseHasTwoButtons = (Mouse.getButtonCount() == 2);
 			
-			lastRepeat = Sys.Milliseconds();
+			lastRepeat = Timer.Milliseconds();
 		} catch (Exception e) {;}	
 	}
 
@@ -207,7 +207,7 @@ public class LWJGLKBD extends KBD {
 	}	
 		
 	public void Do_Key_Event(int key, boolean down) {
-		Key.Event(key, down, Sys.Milliseconds());
+		Key.Event(key, down, Timer.Milliseconds());
 	}
 	
 	public void installGrabs()

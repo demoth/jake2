@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.22 2005-06-07 12:57:21 hzi Exp $
+ * $Id: CL.java,v 1.23 2005-07-01 14:20:48 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -732,7 +732,7 @@ public final class CL {
         if (Globals.cl_timedemo != null && Globals.cl_timedemo.value != 0.0f) {
             int time;
 
-            time = (int) (Sys.Milliseconds() - Globals.cl.timedemo_start);
+            time = (int) (Timer.Milliseconds() - Globals.cl.timedemo_start);
             if (time > 0)
                 Com.Printf("%i frames, %3.1f seconds: %3.1f fps\n",
                         new Vargs(3).add(Globals.cl.timedemo_frames).add(
@@ -1276,7 +1276,7 @@ public final class CL {
      */
     public static void InitLocal() {
         Globals.cls.state = Defines.ca_disconnected;
-        Globals.cls.realtime = Sys.Milliseconds();
+        Globals.cls.realtime = Timer.Milliseconds();
 
         CL_input.InitInput();
 
@@ -1542,7 +1542,7 @@ public final class CL {
 
         // if in the debugger last frame, don't timeout
         if (msec > 5000)
-            Globals.cls.netchan.last_received = Sys.Milliseconds();
+            Globals.cls.netchan.last_received = Timer.Milliseconds();
 
         // fetch results from server
         ReadPackets();

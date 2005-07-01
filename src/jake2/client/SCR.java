@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.14 2005-02-08 20:33:33 cawe Exp $
+ * $Id: SCR.java,v 1.15 2005-07-01 14:20:52 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,8 +31,8 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
-import jake2.sound.*;
-import jake2.sys.Sys;
+import jake2.sound.S;
+import jake2.sys.Timer;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
@@ -588,7 +588,7 @@ public final class SCR extends Globals {
             scr_draw_loading = 1;
 
         UpdateScreen();
-        cls.disable_screen = Sys.Milliseconds();
+        cls.disable_screen = Timer.Milliseconds();
         cls.disable_servercount = cl.servercount;
     }
 
@@ -618,7 +618,7 @@ public final class SCR extends Globals {
         if (cls.state != ca_active)
             return;
 
-        start = Sys.Milliseconds();
+        start = Timer.Milliseconds();
 
         if (Cmd.Argc() == 2) { // run without page flipping
             re.BeginFrame(0);
@@ -637,7 +637,7 @@ public final class SCR extends Globals {
             }
         }
 
-        stop = Sys.Milliseconds();
+        stop = Timer.Milliseconds();
         time = (stop - start) / 1000.0f;
         Com.Printf("%f seconds (%f fps)\n", new Vargs(2).add(time).add(
                 128.0f / time));
@@ -1178,7 +1178,7 @@ public final class SCR extends Globals {
         // changing)
         // do nothing at all
         if (cls.disable_screen != 0) {
-            if (Sys.Milliseconds() - cls.disable_screen > 120000) {
+            if (Timer.Milliseconds() - cls.disable_screen > 120000) {
                 cls.disable_screen = 0;
                 Com.Printf("Loading plaque timed out.\n");
             }
