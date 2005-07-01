@@ -23,6 +23,7 @@ Mindestanforderungen:
 400 MHz CPU
 Geforce2 MX oder bessere Grafikkarte
 JRE 1.4.2
+JDK 1.5 zum Übersetzen der Jake2 Quellen
 
 Installation
 ------------
@@ -37,7 +38,7 @@ ausgehend von der Binärdistribution:
 
 ausgehend von Sourcedistribution:
 - jake2src-version.tar.gz oder jake2src-version.zip entpacken
-- JAVA_HOME Umgebungsvariable auf J2SDK1.4 Installationsverzeichnis setzen
+- JAVA_HOME Umgebungsvariable auf JDK1.5 Installationsverzeichnis setzen
 - "build.sh installer" oder "build.bat installer" erzeugt den Installer
 
 Quake2 Leveldaten installieren:

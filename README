@@ -17,7 +17,8 @@ Currently Jake2 supports Linux, Windows2000/XP and Mac OS X.
 requirements:
 400 MHz CPU
 Geforce2 MX or better graphics accelerator
-JRE 1.4 or higher
+at least JRE 1.4 to run Jake2
+at least JDK 1.5 to build Jake2 from source
 
 Installation
 ------------
@@ -32,7 +33,7 @@ from binary distribution:
 
 build from source:
 - unpack jake2src-version.tar.gz or jake2-version.zip
-- set JAVA_HOME environment variable to Your J2SDK1.4 installation
+- set JAVA_HOME environment variable to Your JDK1.5 installation
 - run "build.sh installer" or "build.bat installer" to build the installer
 
 installation of Quake2 data:
