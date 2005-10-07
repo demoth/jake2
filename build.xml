@@ -143,12 +143,15 @@
 			<include name="*.png"/>
 			<include name="mirrors"/>
 		</jar>
+        <condition property="classes" value="${java.home}/../Classes/classes.jar" else="${java.home}/lib/rt.jar">
+            <os name="Mac OS X"/>
+        </condition> 		
 		<!-- proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
 			<injar name="jake2.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
 			<libraryjar name="lib/joal/linux/joal.jar"/>
-			<libraryjar name="${java.home}/lib/rt.jar"/>
+			<libraryjar name="${classes}"/>
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
 			</keep>
