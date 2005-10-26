@@ -19,7 +19,7 @@
  */
 
 // Created on 27.11.2003 by RST.
-// $Id: netadr_t.java,v 1.5 2004-10-20 20:37:32 cawe Exp $
+// $Id: netadr_t.java,v 1.6 2005-10-26 12:37:58 cawe Exp $
 package jake2.qcommon;
 
 import jake2.Defines;
@@ -40,7 +40,8 @@ public class netadr_t {
         this.type = Defines.NA_LOOPBACK;
         this.port = 0; // any
         try {
-            this.ip = InetAddress.getByName("localhost").getAddress();
+        	// localhost / 127.0.0.1
+            this.ip = InetAddress.getByName(null).getAddress();
         } catch (UnknownHostException e) {
         }
     }
@@ -50,7 +51,8 @@ public class netadr_t {
         case Defines.NA_BROADCAST:
             return InetAddress.getByName("255.255.255.255");
         case Defines.NA_LOOPBACK:
-            return InetAddress.getByName("localhost");
+        	// localhost / 127.0.0.1
+            return InetAddress.getByName(null);
         case Defines.NA_IP:
             return InetAddress.getByAddress(ip);
         default:
