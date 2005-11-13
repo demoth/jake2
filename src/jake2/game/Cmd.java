@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.13 2005-03-13 20:52:05 salomo Exp $
+ * $Id: Cmd.java,v 1.14 2005-11-13 13:36:00 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -95,7 +95,7 @@ public final class Cmd {
             }
 
             String s = Cmd.Argv(1);
-            if (s.length() > Globals.MAX_ALIAS_NAME) {
+            if (s.length() > Defines.MAX_ALIAS_NAME) {
                 Com.Printf("Alias name is too long\n");
                 return;
             }
@@ -1107,7 +1107,7 @@ public final class Cmd {
                     && GameBase.level.time - cl.flood_when[i] < GameBase.flood_persecond.value) {
                 cl.flood_locktill = GameBase.level.time
                         + GameBase.flood_waitdelay.value;
-                SV_GAME.PF_cprintf(ent, Globals.PRINT_CHAT,
+                SV_GAME.PF_cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
                                 + (int) GameBase.flood_waitdelay.value
                                 + " seconds.\n");

@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.12 2005-06-11 17:21:21 hzi Exp $
+ * $Id: Com.java,v 1.13 2005-11-13 13:36:00 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -273,7 +273,7 @@ public final class Com
 	{
 		public void execute() throws longjmpException
 		{
-			Error(Globals.ERR_FATAL, Cmd.Argv(1));
+			Error(Defines.ERR_FATAL, Cmd.Argv(1));
 		}
 	};
 
@@ -325,15 +325,15 @@ public final class Com
 	static void InitArgv(String[] args) throws longjmpException
 	{
 
-		if (args.length > Globals.MAX_NUM_ARGVS)
+		if (args.length > Defines.MAX_NUM_ARGVS)
 		{
-			Com.Error(Globals.ERR_FATAL, "argc > MAX_NUM_ARGVS");
+			Com.Error(Defines.ERR_FATAL, "argc > MAX_NUM_ARGVS");
 		}
 
 		Com.com_argc= args.length;
 		for (int i= 0; i < Com.com_argc; i++)
 		{
-			if (args[i].length() >= Globals.MAX_TOKEN_CHARS)
+			if (args[i].length() >= Defines.MAX_TOKEN_CHARS)
 				Com.com_argv[i]= "";
 			else
 				Com.com_argv[i]= args[i];

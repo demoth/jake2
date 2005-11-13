@@ -2,7 +2,7 @@
  * FS.java
  * Copyright (C) 2003
  * 
- * $Id: FS.java,v 1.14 2005-05-26 16:56:32 hzi Exp $
+ * $Id: FS.java,v 1.15 2005-11-13 13:36:00 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@
  */
 package jake2.qcommon;
 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -203,7 +204,7 @@ public final class FS extends Globals {
                     // open a new file on the pakfile
                     File file = new File(pak.filename);
                     if (!file.canRead()) {
-                        Com.Error(Globals.ERR_FATAL, "Couldn't reopen "
+                        Com.Error(Defines.ERR_FATAL, "Couldn't reopen "
                                 + pak.filename);
                     }
                     return entry.filelen;
@@ -278,7 +279,7 @@ public final class FS extends Globals {
                     // filename + '\n');
                     file = new File(pak.filename);
                     if (!file.canRead())
-                        Com.Error(Globals.ERR_FATAL, "Couldn't reopen "
+                        Com.Error(Defines.ERR_FATAL, "Couldn't reopen "
                                 + pak.filename);
                     if (pak.handle == null || !pak.handle.getFD().valid()) {
                         // hold the pakfile handle open
@@ -331,13 +332,13 @@ public final class FS extends Globals {
             try {
                 read = f.read(buffer, offset, block);
             } catch (IOException e) {
-                Com.Error(Globals.ERR_FATAL, e.toString());
+                Com.Error(Defines.ERR_FATAL, e.toString());
             }
 
             if (read == 0) {
-                Com.Error(Globals.ERR_FATAL, "FS_Read: 0 bytes read");
+                Com.Error(Defines.ERR_FATAL, "FS_Read: 0 bytes read");
             } else if (read == -1) {
-                Com.Error(Globals.ERR_FATAL, "FS_Read: -1 bytes read");
+                Com.Error(Defines.ERR_FATAL, "FS_Read: -1 bytes read");
             }
             //
             // do some progress bar thing here...
@@ -377,7 +378,7 @@ public final class FS extends Globals {
             file.readFully(buf);
             file.close();
         } catch (IOException e) {
-            Com.Error(Globals.ERR_FATAL, e.toString());
+            Com.Error(Defines.ERR_FATAL, e.toString());
         }
         return buf;
     }
@@ -442,7 +443,7 @@ public final class FS extends Globals {
                         // filename + '\n');
                         file = new File(pak.filename);
                         if (!file.canRead())
-                            Com.Error(Globals.ERR_FATAL, "Couldn't reopen "
+                            Com.Error(Defines.ERR_FATAL, "Couldn't reopen "
                                     + pak.filename);
                         if (pak.handle == null || !pak.handle.getFD().valid()) {
                             // hold the pakfile handle open
@@ -547,12 +548,12 @@ public final class FS extends Globals {
             header.dirlen = packhandle.getInt();
 
             if (header.ident != IDPAKHEADER)
-                Com.Error(Globals.ERR_FATAL, packfile + " is not a packfile");
+                Com.Error(Defines.ERR_FATAL, packfile + " is not a packfile");
 
             numpackfiles = header.dirlen / packfile_t.SIZE;
 
             if (numpackfiles > MAX_FILES_IN_PACK)
-                Com.Error(Globals.ERR_FATAL, packfile + " has " + numpackfiles
+                Com.Error(Defines.ERR_FATAL, packfile + " has " + numpackfiles
                         + " files");
 
             newfiles = new Hashtable(numpackfiles);
@@ -669,8 +670,8 @@ public final class FS extends Globals {
                     + "/autoexec.cfg";
         }
 
-        int canthave = Globals.SFF_SUBDIR | Globals.SFF_HIDDEN
-                | Globals.SFF_SYSTEM;
+        int canthave = Defines.SFF_SUBDIR | Defines.SFF_HIDDEN
+                | Defines.SFF_SYSTEM;
 
         if (Sys.FindAll(name, 0, canthave) != null) {
             Cbuf.AddText("exec autoexec.cfg\n");

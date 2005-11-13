@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.16 2005-05-26 16:56:33 hzi Exp $
+ * $Id: VID.java,v 1.17 2005-11-13 13:36:00 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -284,7 +284,7 @@ public class VID extends Globals {
 				/*
 				 * drop the console if we fail to load a refresh
 				 */
-				if ( Globals.cls.key_dest != Globals.key_console )
+				if ( Globals.cls.key_dest != Defines.key_console )
 				{
 					try {
 						Console.ToggleConsole_f.execute();
