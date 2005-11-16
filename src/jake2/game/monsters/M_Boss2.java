@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss2.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
+// $Id: M_Boss2.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -1013,7 +1013,7 @@ public class M_Boss2 {
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
-            new mframe_t(GameAI.ai_move, 0, GameAI.BossExplode) };
+            new mframe_t(GameAI.ai_move, 0, M_Supertank.BossExplode) };
 
     /*
      * static EntThinkAdapter xxx = new EntThinkAdapter() { public boolean

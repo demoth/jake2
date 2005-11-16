@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.7 2005-02-06 19:13:01 salomo Exp $
+// $Id: PlayerHud.java,v 1.8 2005-11-16 22:24:52 salomo Exp $
 
 package jake2.game;
 
@@ -110,10 +110,10 @@ public class PlayerHud {
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (n = 1; n < GameAI.itemlist.length; n++) {
+                    for (n = 1; n < GameItems.itemlist.length; n++) {
                         // null pointer exception fixed. (RST) 
-                        if (GameAI.itemlist[n] != null)
-                            if ((GameAI.itemlist[n].flags & Defines.IT_KEY) != 0)
+                        if (GameItems.itemlist[n] != null)
+                            if ((GameItems.itemlist[n].flags & Defines.IT_KEY) != 0)
                                 client.client.pers.inventory[n] = 0;
                     }
                 }
@@ -165,8 +165,8 @@ public class PlayerHud {
     }
 
     /*
-     * ================== DeathmatchScoreboardMessage
-     * 
+     * ================== 
+     * DeathmatchScoreboardMessage
      * ==================
      */
     public static void DeathmatchScoreboardMessage(edict_t ent, edict_t killer) {
@@ -252,10 +252,12 @@ public class PlayerHud {
     }
 
     /*
-     * ================== DeathmatchScoreboard
+     * ================== 
+     * DeathmatchScoreboard
      * 
      * Draw instead of help message. Note that it isn't that hard to overflow
-     * the 1400 byte message limit! ==================
+     * the 1400 byte message limit! 
+     * ==================
      */
     public static void DeathmatchScoreboard(edict_t ent) {
         DeathmatchScoreboardMessage(ent, ent.enemy);
@@ -263,9 +265,11 @@ public class PlayerHud {
     }
 
     /*
-     * ================== Cmd_Score_f
+     * ================== 
+     * Cmd_Score_f
      * 
-     * Display the scoreboard ==================
+     * Display the scoreboard 
+     * ==================
      */
     public static void Cmd_Score_f(edict_t ent) {
         ent.client.showinventory = false;
@@ -286,7 +290,9 @@ public class PlayerHud {
     //=======================================================================
 
     /*
-     * =============== G_SetStats ===============
+     * =============== 
+     * G_SetStats 
+     * ===============
      */
     public static void G_SetStats(edict_t ent) {
         gitem_t item;
@@ -310,7 +316,7 @@ public class PlayerHud {
             ent.client.ps.stats[Defines.STAT_AMMO_ICON] = 0;
             ent.client.ps.stats[Defines.STAT_AMMO] = 0;
         } else {
-            item = GameAI.itemlist[ent.client.ammo_index];
+            item = GameItems.itemlist[ent.client.ammo_index];
             ent.client.ps.stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gi
                     .imageindex(item.icon);
             ent.client.ps.stats[Defines.STAT_AMMO] = (short) ent.client.pers.inventory[ent.client.ammo_index];
@@ -319,9 +325,9 @@ public class PlayerHud {
         //
         // armor
         //
-        power_armor_type = GameUtil.PowerArmorType(ent);
+        power_armor_type = GameItems.PowerArmorType(ent);
         if (power_armor_type != 0) {
-            cells = ent.client.pers.inventory[GameUtil.ITEM_INDEX(GameUtil
+            cells = ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                     .FindItem("cells"))];
             if (cells == 0) { // ran out of cells for power armor
                 ent.flags &= ~Defines.FL_POWER_ARMOR;
@@ -334,7 +340,7 @@ public class PlayerHud {
             }
         }
 
-        index = GameUtil.ArmorIndex(ent);
+        index = GameItems.ArmorIndex(ent);
         if (power_armor_type != 0
                 && (0 == index || 0 != (GameBase.level.framenum & 8))) { // flash
                                                                          // between
@@ -348,7 +354,7 @@ public class PlayerHud {
                     .imageindex("i_powershield");
             ent.client.ps.stats[Defines.STAT_ARMOR] = (short) cells;
         } else if (index != 0) {
-            item = GameAI.GetItemByIndex(index);
+            item = GameItems.GetItemByIndex(index);
             ent.client.ps.stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
                     .imageindex(item.icon);
             ent.client.ps.stats[Defines.STAT_ARMOR] = (short) ent.client.pers.inventory[index];
@@ -397,7 +403,7 @@ public class PlayerHud {
             ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = 0;
         else
             ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gi
-                    .imageindex(GameAI.itemlist[ent.client.pers.selected_item].icon);
+                    .imageindex(GameItems.itemlist[ent.client.pers.selected_item].icon);
 
         ent.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) ent.client.pers.selected_item;
 
@@ -443,7 +449,9 @@ public class PlayerHud {
     }
 
     /*
-     * =============== G_CheckChaseStats ===============
+     * =============== 
+     * G_CheckChaseStats 
+     * ===============
      */
     public static void G_CheckChaseStats(edict_t ent) {
         int i;
@@ -462,7 +470,9 @@ public class PlayerHud {
     }
 
     /*
-     * =============== G_SetSpectatorStats ===============
+     * =============== 
+     * G_SetSpectatorStats 
+     * ===============
      */
     public static void G_SetSpectatorStats(edict_t ent) {
         gclient_t cl = ent.client;
@@ -487,5 +497,45 @@ public class PlayerHud {
                     + cl.chase_target.index - 1);
         else
             cl.ps.stats[Defines.STAT_CHASE] = 0;
+    }
+
+    /** 
+     * HelpComputer. Draws the help computer.
+     */
+    public static void HelpComputer(edict_t ent) {
+        StringBuffer sb = new StringBuffer(256);
+        String sk;
+    
+        if (GameBase.skill.value == 0)
+            sk = "easy";
+        else if (GameBase.skill.value == 1)
+            sk = "medium";
+        else if (GameBase.skill.value == 2)
+            sk = "hard";
+        else
+            sk = "hard+";
+    
+        // send the layout
+        sb.append("xv 32 yv 8 picn help "); // background
+        sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
+        sb.append("xv 0 yv 24 cstring2 \"").append(GameBase.level.level_name)
+                .append("\" "); // level name
+        sb.append("xv 0 yv 54 cstring2 \"").append(GameBase.game.helpmessage1)
+                .append("\" "); // help 1
+        sb.append("xv 0 yv 110 cstring2 \"").append(GameBase.game.helpmessage2)
+                .append("\" "); // help 2
+        sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
+        sb.append("xv 50 yv 172 string2 \"");
+        sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
+                .add(GameBase.level.killed_monsters).add(
+                        GameBase.level.total_monsters).add(
+                        GameBase.level.found_goals).add(
+                        GameBase.level.total_goals).add(
+                        GameBase.level.found_secrets).add(
+                        GameBase.level.total_secrets)));
+    
+        GameBase.gi.WriteByte(Defines.svc_layout);
+        GameBase.gi.WriteString(sb.toString());
+        GameBase.gi.unicast(ent, true);
     }
 }

@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.14 2005-11-13 13:36:00 cawe Exp $
+ * $Id: Cmd.java,v 1.15 2005-11-16 22:24:52 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,7 @@ import jake2.qcommon.*;
 import jake2.server.SV_GAME;
 import jake2.util.Lib;
 
+import java.util.*;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -161,8 +162,26 @@ public final class Cmd {
 
     private static char temporary[] = new char[Defines.MAX_STRING_CHARS];
 
+    public static Comparator PlayerSort = new Comparator() {
+        public int compare(Object o1, Object o2) {
+            int anum = ((Integer) o1).intValue();
+            int bnum = ((Integer) o2).intValue();
+    
+            int anum1 = GameBase.game.clients[anum].ps.stats[Defines.STAT_FRAGS];
+            int bnum1 = GameBase.game.clients[bnum].ps.stats[Defines.STAT_FRAGS];
+    
+            if (anum1 < bnum1)
+                return -1;
+            if (anum1 > bnum1)
+                return 1;
+            return 0;
+        }
+    };
+
     /*
-     * ====================== Cmd_MacroExpandString ======================
+     * ====================== 
+     * Cmd_MacroExpandString 
+     * ======================
      */
     public static char[] MacroExpandString(char text[], int len) {
         int i, j, count;
@@ -241,10 +260,12 @@ public final class Cmd {
     }
 
     /*
-     * ============ Cmd_TokenizeString
+     * ============ 
+     * Cmd_TokenizeString
      * 
      * Parses the given string into command line tokens. $Cvars will be expanded
-     * unless they are in a quoted token ============
+     * unless they are in a quoted token 
+     * ============
      */
     public static void TokenizeString(char text[], boolean macroExpand) {
         String com_token;
@@ -325,7 +346,9 @@ public final class Cmd {
     }
 
     /*
-     * ============ Cmd_RemoveCommand ============
+     * ============ 
+     * Cmd_RemoveCommand 
+     * ============
      */
     public static void RemoveCommand(String cmd_name) {
         cmd_function_t cmd, back = null;
@@ -351,7 +374,9 @@ public final class Cmd {
     }
 
     /*
-     * ============ Cmd_Exists ============
+     * ============ 
+     * Cmd_Exists 
+     * ============
      */
     public static boolean Exists(String cmd_name) {
         cmd_function_t cmd;
@@ -379,10 +404,12 @@ public final class Cmd {
     }
 
     /*
-     * ============ Cmd_ExecuteString
+     * ============ 
+     * Cmd_ExecuteString
      * 
      * A complete command line has been parsed, so try to execute it 
      * FIXME: lookupnoadd the token to speed search? 
+     * ============
      */
     public static void ExecuteString(String text) {
 
@@ -437,9 +464,11 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Give_f
+     * ================== 
+     * Cmd_Give_f
      * 
-     * Give items to a client ==================
+     * Give items to a client 
+     * ==================
      */
     public static void Give_f(edict_t ent) {
         String name;
@@ -474,7 +503,7 @@ public final class Cmd {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameAI.itemlist[i];
+                it = GameItems.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & Defines.IT_WEAPON))
@@ -487,12 +516,12 @@ public final class Cmd {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameAI.itemlist[i];
+                it = GameItems.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & Defines.IT_AMMO))
                     continue;
-                GameAI.Add_Ammo(ent, it, 1000);
+                GameItems.Add_Ammo(ent, it, 1000);
             }
             if (!give_all)
                 return;
@@ -501,26 +530,26 @@ public final class Cmd {
         if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
             gitem_armor_t info;
 
-            it = GameUtil.FindItem("Jacket Armor");
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = 0;
+            it = GameItems.FindItem("Jacket Armor");
+            ent.client.pers.inventory[GameItems.ITEM_INDEX(it)] = 0;
 
-            it = GameUtil.FindItem("Combat Armor");
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = 0;
+            it = GameItems.FindItem("Combat Armor");
+            ent.client.pers.inventory[GameItems.ITEM_INDEX(it)] = 0;
 
-            it = GameUtil.FindItem("Body Armor");
+            it = GameItems.FindItem("Body Armor");
             info = (gitem_armor_t) it.info;
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(it)] = info.max_count;
+            ent.client.pers.inventory[GameItems.ITEM_INDEX(it)] = info.max_count;
 
             if (!give_all)
                 return;
         }
 
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameUtil.FindItem("Power Shield");
+            it = GameItems.FindItem("Power Shield");
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
-            GameAI.SpawnItem(it_ent, it);
-            GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.SpawnItem(it_ent, it);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
 
@@ -530,7 +559,7 @@ public final class Cmd {
 
         if (give_all) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameAI.itemlist[i];
+                it = GameItems.itemlist[i];
                 if (it.pickup != null)
                     continue;
                 if ((it.flags & (Defines.IT_ARMOR | Defines.IT_WEAPON | Defines.IT_AMMO)) != 0)
@@ -540,10 +569,10 @@ public final class Cmd {
             return;
         }
 
-        it = GameUtil.FindItem(name);
+        it = GameItems.FindItem(name);
         if (it == null) {
             name = Cmd.Argv(1);
-            it = GameUtil.FindItem(name);
+            it = GameItems.FindItem(name);
             if (it == null) {
                 SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -555,7 +584,7 @@ public final class Cmd {
             return;
         }
 
-        index = GameUtil.ITEM_INDEX(it);
+        index = GameItems.ITEM_INDEX(it);
 
         if ((it.flags & Defines.IT_AMMO) != 0) {
             if (Cmd.Argc() == 3)
@@ -565,19 +594,21 @@ public final class Cmd {
         } else {
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
-            GameAI.SpawnItem(it_ent, it);
-            GameAI.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.SpawnItem(it_ent, it);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
         }
     }
 
     /*
-     * ================== Cmd_God_f
+     * ================== 
+     * Cmd_God_f
      * 
      * Sets client to godmode
      * 
-     * argv(0) god ==================
+     * argv(0) god 
+     * ==================
      */
     public static void God_f(edict_t ent) {
         String msg;
@@ -599,11 +630,13 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Notarget_f
+     * ================== 
+     * Cmd_Notarget_f
      * 
      * Sets client to notarget
      * 
-     * argv(0) notarget ==================
+     * argv(0) notarget 
+     * ==================
      */
     public static void Notarget_f(edict_t ent) {
         String msg;
@@ -625,9 +658,11 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Noclip_f
+     * ================== 
+     * Cmd_Noclip_f
      * 
-     * argv(0) noclip ==================
+     * argv(0) noclip 
+     * ==================
      */
     public static void Noclip_f(edict_t ent) {
         String msg;
@@ -651,9 +686,11 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Use_f
+     * ================== 
+     * Cmd_Use_f
      * 
-     * Use an inventory item ==================
+     * Use an inventory item 
+     * ==================
      */
     public static void Use_f(edict_t ent) {
         int index;
@@ -662,7 +699,7 @@ public final class Cmd {
 
         s = Cmd.Args();
 
-        it = GameUtil.FindItem(s);
+        it = GameItems.FindItem(s);
         Com.dprintln("using:" + s);
         if (it == null) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s
@@ -674,7 +711,7 @@ public final class Cmd {
                             "Item is not usable.\n");
             return;
         }
-        index = GameUtil.ITEM_INDEX(it);
+        index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s
                     + "\n");
@@ -685,9 +722,11 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Drop_f
+     * ================== 
+     * Cmd_Drop_f
      * 
-     * Drop an inventory item ==================
+     * Drop an inventory item 
+     * ==================
      */
     public static void Drop_f(edict_t ent) {
         int index;
@@ -695,7 +734,7 @@ public final class Cmd {
         String s;
 
         s = Cmd.Args();
-        it = GameUtil.FindItem(s);
+        it = GameItems.FindItem(s);
         if (it == null) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s
                     + "\n");
@@ -706,7 +745,7 @@ public final class Cmd {
                     "Item is not dropable.\n");
             return;
         }
-        index = GameUtil.ITEM_INDEX(it);
+        index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s
                     + "\n");
@@ -743,19 +782,23 @@ public final class Cmd {
     }
 
     /*
-     * ================= Cmd_InvUse_f =================
+     * ================= 
+     * 
+     * Cmd_InvUse_f 
+     * 
+     * =================
      */
     public static void InvUse_f(edict_t ent) {
         gitem_t it;
 
-        GameAI.ValidateSelectedItem(ent);
+        Cmd.ValidateSelectedItem(ent);
 
         if (ent.client.pers.selected_item == -1) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
             return;
         }
 
-        it = GameAI.itemlist[ent.client.pers.selected_item];
+        it = GameItems.itemlist[ent.client.pers.selected_item];
         if (it.use == null) {
             SV_GAME
                     .PF_cprintf(ent, Defines.PRINT_HIGH,
@@ -766,7 +809,11 @@ public final class Cmd {
     }
 
     /*
-     * ================= Cmd_WeapPrev_f =================
+     * ================= 
+     * 
+     * Cmd_WeapPrev_f 
+     * 
+     * =================
      */
     public static void WeapPrev_f(edict_t ent) {
         gclient_t cl;
@@ -779,7 +826,7 @@ public final class Cmd {
         if (cl.pers.weapon == null)
             return;
 
-        selected_weapon = GameUtil.ITEM_INDEX(cl.pers.weapon);
+        selected_weapon = GameItems.ITEM_INDEX(cl.pers.weapon);
 
         // scan for the next valid one
         for (i = 1; i <= Defines.MAX_ITEMS; i++) {
@@ -787,7 +834,7 @@ public final class Cmd {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            it = GameAI.itemlist[index];
+            it = GameItems.itemlist[index];
             if (it.use == null)
                 continue;
 
@@ -800,7 +847,11 @@ public final class Cmd {
     }
 
     /*
-     * ================= Cmd_WeapNext_f =================
+     * ================= 
+     * 
+     * Cmd_WeapNext_f 
+     * 
+     * =================
      */
     public static void WeapNext_f(edict_t ent) {
         gclient_t cl;
@@ -813,7 +864,7 @@ public final class Cmd {
         if (null == cl.pers.weapon)
             return;
 
-        selected_weapon = GameUtil.ITEM_INDEX(cl.pers.weapon);
+        selected_weapon = GameItems.ITEM_INDEX(cl.pers.weapon);
 
         // scan for the next valid one
         for (i = 1; i <= Defines.MAX_ITEMS; i++) {
@@ -824,7 +875,7 @@ public final class Cmd {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameAI.itemlist[index];
+            it = GameItems.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & Defines.IT_WEAPON))
@@ -836,7 +887,11 @@ public final class Cmd {
     }
 
     /*
-     * ================= Cmd_WeapLast_f =================
+     * ================= 
+     * 
+     * Cmd_WeapLast_f 
+     * 
+     * =================
      */
     public static void WeapLast_f(edict_t ent) {
         gclient_t cl;
@@ -848,10 +903,10 @@ public final class Cmd {
         if (null == cl.pers.weapon || null == cl.pers.lastweapon)
             return;
 
-        index = GameUtil.ITEM_INDEX(cl.pers.lastweapon);
+        index = GameItems.ITEM_INDEX(cl.pers.lastweapon);
         if (0 == cl.pers.inventory[index])
             return;
-        it = GameAI.itemlist[index];
+        it = GameItems.itemlist[index];
         if (null == it.use)
             return;
         if (0 == (it.flags & Defines.IT_WEAPON))
@@ -860,19 +915,23 @@ public final class Cmd {
     }
 
     /*
-     * ================= Cmd_InvDrop_f =================
+     * ================= 
+     * 
+     * Cmd_InvDrop_f 
+     * 
+     * =================
      */
     public static void InvDrop_f(edict_t ent) {
         gitem_t it;
 
-        GameAI.ValidateSelectedItem(ent);
+        Cmd.ValidateSelectedItem(ent);
 
         if (ent.client.pers.selected_item == -1) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
             return;
         }
 
-        it = GameAI.itemlist[ent.client.pers.selected_item];
+        it = GameItems.itemlist[ent.client.pers.selected_item];
         if (it.drop == null) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH,
                     "Item is not dropable.\n");
@@ -882,9 +941,12 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Score_f
+     * ================== 
+     * Cmd_Score_f
      * 
-     * Display the scoreboard ==================
+     * Display the scoreboard 
+     * 
+     * ==================
      */
     public static void Score_f(edict_t ent) {
         ent.client.showinventory = false;
@@ -903,9 +965,11 @@ public final class Cmd {
     }
 
     /*
-     * ================== Cmd_Help_f
+     * ================== 
+     * Cmd_Help_f
      * 
-     * Display the current help message ==================
+     * Display the current help message 
+     * ==================
      */
     public static void Help_f(edict_t ent) {
         // this is for backwards compatability
@@ -925,7 +989,7 @@ public final class Cmd {
 
         ent.client.showhelp = true;
         ent.client.pers.helpchanged = 0;
-        GameAI.HelpComputer(ent);
+        PlayerHud.HelpComputer(ent);
     }
 
     //=======================================================================
@@ -939,7 +1003,7 @@ public final class Cmd {
         ent.flags &= ~Defines.FL_GODMODE;
         ent.health = 0;
         GameBase.meansOfDeath = Defines.MOD_SUICIDE;
-        GameAI.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
+        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
     }
 
     /*
@@ -973,7 +1037,7 @@ public final class Cmd {
         // sort by frags
         //qsort(index, count, sizeof(index[0]), PlayerSort);
         //replaced by:
-        Arrays.sort(index, 0, count - 1, GameAI.PlayerSort);
+        Arrays.sort(index, 0, count - 1, Cmd.PlayerSort);
 
         // print information
         large = "";
@@ -1216,5 +1280,102 @@ public final class Cmd {
                 cmds.add(a.name);
 
         return cmds;
+    }
+
+    /**
+     * Processes the commands the player enters in the quake console.
+     *  
+     */
+    public static void ClientCommand(edict_t ent) {
+        String cmd;
+    
+        if (ent.client == null)
+            return; // not fully in game yet
+    
+        cmd = GameBase.gi.argv(0);
+    
+        if (Lib.Q_stricmp(cmd, "players") == 0) {
+            Players_f(ent);
+            return;
+        }
+        if (Lib.Q_stricmp(cmd, "say") == 0) {
+            Say_f(ent, false, false);
+            return;
+        }
+        if (Lib.Q_stricmp(cmd, "say_team") == 0) {
+            Say_f(ent, true, false);
+            return;
+        }
+        if (Lib.Q_stricmp(cmd, "score") == 0) {
+            Score_f(ent);
+            return;
+        }
+        if (Lib.Q_stricmp(cmd, "help") == 0) {
+            Help_f(ent);
+            return;
+        }
+    
+        if (GameBase.level.intermissiontime != 0)
+            return;
+    
+        if (Lib.Q_stricmp(cmd, "use") == 0)
+            Use_f(ent);
+    
+        else if (Lib.Q_stricmp(cmd, "drop") == 0)
+            Drop_f(ent);
+        else if (Lib.Q_stricmp(cmd, "give") == 0)
+            Give_f(ent);
+        else if (Lib.Q_stricmp(cmd, "god") == 0)
+            God_f(ent);
+        else if (Lib.Q_stricmp(cmd, "notarget") == 0)
+            Notarget_f(ent);
+        else if (Lib.Q_stricmp(cmd, "noclip") == 0)
+            Noclip_f(ent);
+        else if (Lib.Q_stricmp(cmd, "inven") == 0)
+            Inven_f(ent);
+        else if (Lib.Q_stricmp(cmd, "invnext") == 0)
+            GameItems.SelectNextItem(ent, -1);
+        else if (Lib.Q_stricmp(cmd, "invprev") == 0)
+            GameItems.SelectPrevItem(ent, -1);
+        else if (Lib.Q_stricmp(cmd, "invnextw") == 0)
+            GameItems.SelectNextItem(ent, Defines.IT_WEAPON);
+        else if (Lib.Q_stricmp(cmd, "invprevw") == 0)
+            GameItems.SelectPrevItem(ent, Defines.IT_WEAPON);
+        else if (Lib.Q_stricmp(cmd, "invnextp") == 0)
+            GameItems.SelectNextItem(ent, Defines.IT_POWERUP);
+        else if (Lib.Q_stricmp(cmd, "invprevp") == 0)
+            GameItems.SelectPrevItem(ent, Defines.IT_POWERUP);
+        else if (Lib.Q_stricmp(cmd, "invuse") == 0)
+            InvUse_f(ent);
+        else if (Lib.Q_stricmp(cmd, "invdrop") == 0)
+            InvDrop_f(ent);
+        else if (Lib.Q_stricmp(cmd, "weapprev") == 0)
+            WeapPrev_f(ent);
+        else if (Lib.Q_stricmp(cmd, "weapnext") == 0)
+            WeapNext_f(ent);
+        else if (Lib.Q_stricmp(cmd, "weaplast") == 0)
+            WeapLast_f(ent);
+        else if (Lib.Q_stricmp(cmd, "kill") == 0)
+            Kill_f(ent);
+        else if (Lib.Q_stricmp(cmd, "putaway") == 0)
+            PutAway_f(ent);
+        else if (Lib.Q_stricmp(cmd, "wave") == 0)
+            Wave_f(ent);
+        else if (Lib.Q_stricmp(cmd, "playerlist") == 0)
+            PlayerList_f(ent);
+        else
+            // anything that doesn't match a command will be a chat
+            Say_f(ent, false, true);
+    }
+
+    public static void ValidateSelectedItem(edict_t ent) {
+        gclient_t cl;
+    
+        cl = ent.client;
+    
+        if (cl.pers.inventory[cl.pers.selected_item] != 0)
+            return; // valid
+    
+        GameItems.SelectNextItem(ent, -1);
     }
 }

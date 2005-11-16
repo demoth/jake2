@@ -19,7 +19,9 @@
  */
 
 // Created on 01.11.2003 by RST.
-// $Id: GameUtil.java,v 1.12 2005-02-20 16:38:36 salomo Exp $
+
+// $Id: GameUtil.java,v 1.13 2005-11-16 22:24:52 salomo Exp $
+
 package jake2.game;
 
 import jake2.Defines;
@@ -64,7 +66,7 @@ public class GameUtil {
             t = G_Spawn();
             t.classname = "DelayedUse";
             t.nextthink = GameBase.level.time + ent.delay;
-            t.think = GameUtil.Think_Delay;
+            t.think = Think_Delay;
             t.activator = activator;
             if (activator == null)
                 GameBase.gi.dprintf("Think_Delay with no activator\n");
@@ -242,7 +244,7 @@ public class GameUtil {
                 break;
 
             // nail it
-            T_Damage(tr.ent, ent, ent, Globals.vec3_origin, ent.s.origin,
+            GameCombat.T_Damage(tr.ent, ent, ent, Globals.vec3_origin, ent.s.origin,
                     Globals.vec3_origin, 100000, 0,
                     Defines.DAMAGE_NO_PROTECTION, Defines.MOD_TELEFRAG);
 
@@ -283,68 +285,6 @@ public class GameUtil {
         return value.substring(p + 1, value.length());
     }
 
-    static void SetRespawn(edict_t ent, float delay) {
-        ent.flags |= Defines.FL_RESPAWN;
-        ent.svflags |= Defines.SVF_NOCLIENT;
-        ent.solid = Defines.SOLID_NOT;
-        ent.nextthink = GameBase.level.time + delay;
-        ent.think = GameUtil.DoRespawn;
-        GameBase.gi.linkentity(ent);
-    }
-
-    static int ITEM_INDEX(gitem_t item) {
-        return item.index;
-    }
-
-    static edict_t Drop_Item(edict_t ent, gitem_t item) {
-        edict_t dropped;
-        float[] forward = { 0, 0, 0 };
-        float[] right = { 0, 0, 0 };
-        float[] offset = { 0, 0, 0 };
-
-        dropped = G_Spawn();
-
-        dropped.classname = item.classname;
-        dropped.item = item;
-        dropped.spawnflags = Defines.DROPPED_ITEM;
-        dropped.s.effects = item.world_model_flags;
-        dropped.s.renderfx = Defines.RF_GLOW;
-        Math3D.VectorSet(dropped.mins, -15, -15, -15);
-        Math3D.VectorSet(dropped.maxs, 15, 15, 15);
-        GameBase.gi.setmodel(dropped, dropped.item.world_model);
-        dropped.solid = Defines.SOLID_TRIGGER;
-        dropped.movetype = Defines.MOVETYPE_TOSS;
-
-        dropped.touch = GameUtil.drop_temp_touch;
-
-        dropped.owner = ent;
-
-        if (ent.client != null) {
-            trace_t trace;
-
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
-            Math3D.VectorSet(offset, 24, 0, -16);
-            Math3D.G_ProjectSource(ent.s.origin, offset, forward, right,
-                    dropped.s.origin);
-            trace = GameBase.gi.trace(ent.s.origin, dropped.mins, dropped.maxs,
-                    dropped.s.origin, ent, Defines.CONTENTS_SOLID);
-            Math3D.VectorCopy(trace.endpos, dropped.s.origin);
-        } else {
-            Math3D.AngleVectors(ent.s.angles, forward, right, null);
-            Math3D.VectorCopy(ent.s.origin, dropped.s.origin);
-        }
-
-        Math3D.VectorScale(forward, 100, dropped.velocity);
-        dropped.velocity[2] = 300;
-
-        dropped.think = GameUtil.drop_make_touchable;
-        dropped.nextthink = GameBase.level.time + 1;
-
-        GameBase.gi.linkentity(dropped);
-
-        return dropped;
-    }
-
     static void ValidateSelectedItem(edict_t ent) {
         gclient_t cl;
 
@@ -353,425 +293,7 @@ public class GameUtil {
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid
 
-        GameAI.SelectNextItem(ent, -1);
-    }
-
-    static void Use_Item(edict_t ent, edict_t other, edict_t activator) {
-        ent.svflags &= ~Defines.SVF_NOCLIENT;
-        ent.use = null;
-
-        if ((ent.spawnflags & Defines.ITEM_NO_TOUCH) != 0) {
-            ent.solid = Defines.SOLID_BBOX;
-            ent.touch = null;
-        } else {
-            ent.solid = Defines.SOLID_TRIGGER;
-            ent.touch = GameUtil.Touch_Item;
-        }
-
-        GameBase.gi.linkentity(ent);
-    }
-
-    /*
-     * ============ CanDamage
-     * 
-     * Returns true if the inflictor can directly damage the target. Used for
-     * explosions and melee attacks. ============
-     */
-    static boolean CanDamage(edict_t targ, edict_t inflictor) {
-        float[] dest = { 0, 0, 0 };
-        trace_t trace;
-
-        // bmodels need special checking because their origin is 0,0,0
-        if (targ.movetype == Defines.MOVETYPE_PUSH) {
-            Math3D.VectorAdd(targ.absmin, targ.absmax, dest);
-            Math3D.VectorScale(dest, 0.5f, dest);
-            trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                    Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
-            if (trace.fraction == 1.0f)
-                return true;
-            if (trace.ent == targ)
-                return true;
-            return false;
-        }
-
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                Globals.vec3_origin, targ.s.origin, inflictor,
-                Defines.MASK_SOLID);
-        if (trace.fraction == 1.0)
-            return true;
-
-        Math3D.VectorCopy(targ.s.origin, dest);
-        dest[0] += 15.0;
-        dest[1] += 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
-        if (trace.fraction == 1.0)
-            return true;
-
-        Math3D.VectorCopy(targ.s.origin, dest);
-        dest[0] += 15.0;
-        dest[1] -= 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
-        if (trace.fraction == 1.0)
-            return true;
-
-        Math3D.VectorCopy(targ.s.origin, dest);
-        dest[0] -= 15.0;
-        dest[1] += 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
-        if (trace.fraction == 1.0)
-            return true;
-
-        Math3D.VectorCopy(targ.s.origin, dest);
-        dest[0] -= 15.0;
-        dest[1] -= 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
-                Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
-        if (trace.fraction == 1.0)
-            return true;
-
-        return false;
-    }
-
-    public static void T_Damage(edict_t targ, edict_t inflictor,
-            edict_t attacker, float[] dir, float[] point, float[] normal,
-            int damage, int knockback, int dflags, int mod) {
-        gclient_t client;
-        int take;
-        int save;
-        int asave;
-        int psave;
-        int te_sparks;
-
-        if (targ.takedamage == 0)
-            return;
-
-        // friendly fire avoidance
-        // if enabled you can't hurt teammates (but you can hurt yourself)
-        // knockback still occurs
-        if ((targ != attacker)
-                && ((GameBase.deathmatch.value != 0 && 0 != ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || GameBase.coop.value != 0)) {
-            if (OnSameTeam(targ, attacker)) {
-                if (((int) (GameBase.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
-                    damage = 0;
-                else
-                    mod |= Defines.MOD_FRIENDLY_FIRE;
-            }
-        }
-        GameBase.meansOfDeath = mod;
-
-        // easy mode takes half damage
-        if (GameBase.skill.value == 0 && GameBase.deathmatch.value == 0
-                && targ.client != null) {
-            damage *= 0.5;
-            if (damage == 0)
-                damage = 1;
-        }
-
-        client = targ.client;
-
-        if ((dflags & Defines.DAMAGE_BULLET) != 0)
-            te_sparks = Defines.TE_BULLET_SPARKS;
-        else
-            te_sparks = Defines.TE_SPARKS;
-
-        Math3D.VectorNormalize(dir);
-
-        //	   bonus damage for suprising a monster
-        if (0 == (dflags & Defines.DAMAGE_RADIUS)
-                && (targ.svflags & Defines.SVF_MONSTER) != 0
-                && (attacker.client != null) && (targ.enemy == null)
-                && (targ.health > 0))
-            damage *= 2;
-
-        if ((targ.flags & Defines.FL_NO_KNOCKBACK) != 0)
-            knockback = 0;
-
-        //	   figure momentum add
-        if (0 == (dflags & Defines.DAMAGE_NO_KNOCKBACK)) {
-            if ((knockback != 0) && (targ.movetype != Defines.MOVETYPE_NONE)
-                    && (targ.movetype != Defines.MOVETYPE_BOUNCE)
-                    && (targ.movetype != Defines.MOVETYPE_PUSH)
-                    && (targ.movetype != Defines.MOVETYPE_STOP)) {
-                float[] kvel = { 0, 0, 0 };
-                float mass;
-
-                if (targ.mass < 50)
-                    mass = 50;
-                else
-                    mass = targ.mass;
-
-                if (targ.client != null && attacker == targ)
-                    Math3D.VectorScale(dir, 1600.0f * (float) knockback / mass,
-                            kvel);
-                // the rocket jump hack...
-                else
-                    Math3D.VectorScale(dir, 500.0f * (float) knockback / mass,
-                            kvel);
-
-                Math3D.VectorAdd(targ.velocity, kvel, targ.velocity);
-            }
-        }
-
-        take = damage;
-        save = 0;
-
-        // check for godmode
-        if ((targ.flags & Defines.FL_GODMODE) != 0
-                && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
-            take = 0;
-            save = damage;
-            SpawnDamage(te_sparks, point, normal, save);
-        }
-
-        // check for invincibility
-        if ((client != null && client.invincible_framenum > GameBase.level.framenum)
-                && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
-            if (targ.pain_debounce_time < GameBase.level.time) {
-                GameBase.gi.sound(targ, Defines.CHAN_ITEM, GameBase.gi
-                        .soundindex("items/protect4.wav"), 1,
-                        Defines.ATTN_NORM, 0);
-                targ.pain_debounce_time = GameBase.level.time + 2;
-            }
-            take = 0;
-            save = damage;
-        }
-
-        psave = CheckPowerArmor(targ, point, normal, take, dflags);
-        take -= psave;
-
-        asave = CheckArmor(targ, point, normal, take, te_sparks, dflags);
-        take -= asave;
-
-        // treat cheat/powerup savings the same as armor
-        asave += save;
-
-        // team damage avoidance
-        if (0 == (dflags & Defines.DAMAGE_NO_PROTECTION)
-                && CheckTeamDamage(targ, attacker))
-            return;
-
-        // do the damage
-        if (take != 0) {
-            if (0 != (targ.svflags & Defines.SVF_MONSTER) || (client != null))
-                SpawnDamage(Defines.TE_BLOOD, point, normal, take);
-            else
-                SpawnDamage(te_sparks, point, normal, take);
-
-            targ.health = targ.health - take;
-
-            if (targ.health <= 0) {
-                if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                        || (client != null))
-                    targ.flags |= Defines.FL_NO_KNOCKBACK;
-                Killed(targ, inflictor, attacker, take, point);
-                return;
-            }
-        }
-
-        if ((targ.svflags & Defines.SVF_MONSTER) != 0) {
-            M.M_ReactToDamage(targ, attacker);
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED)
-                    && (take != 0)) {
-                targ.pain.pain(targ, attacker, knockback, take);
-                // nightmare mode monsters don't go into pain frames often
-                if (GameBase.skill.value == 3)
-                    targ.pain_debounce_time = GameBase.level.time + 5;
-            }
-        } else if (client != null) {
-            if (((targ.flags & Defines.FL_GODMODE) == 0) && (take != 0))
-                targ.pain.pain(targ, attacker, knockback, take);
-        } else if (take != 0) {
-            if (targ.pain != null)
-                targ.pain.pain(targ, attacker, knockback, take);
-        }
-
-        // add to the damage inflicted on a player this frame
-        // the total will be turned into screen blends and view angle kicks
-        // at the end of the frame
-        if (client != null) {
-            client.damage_parmor += psave;
-            client.damage_armor += asave;
-            client.damage_blood += take;
-            client.damage_knockback += knockback;
-            Math3D.VectorCopy(point, client.damage_from);
-        }
-    }
-
-    /*
-     * ============ Killed ============
-     */
-    public static void Killed(edict_t targ, edict_t inflictor,
-            edict_t attacker, int damage, float[] point) {
-        Com.DPrintf("Killing a " + targ.classname + "\n");
-        if (targ.health < -999)
-            targ.health = -999;
-
-        //Com.Println("Killed:" + targ.classname);
-        targ.enemy = attacker;
-
-        if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                && (targ.deadflag != Defines.DEAD_DEAD)) {
-            //			targ.svflags |= SVF_DEADMONSTER; // now treat as a different
-            // content type
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
-                GameBase.level.killed_monsters++;
-                if (GameBase.coop.value != 0 && attacker.client != null)
-                    attacker.client.resp.score++;
-                // medics won't heal monsters that they kill themselves
-                if (attacker.classname.equals("monster_medic"))
-                    targ.owner = attacker;
-            }
-        }
-
-        if (targ.movetype == Defines.MOVETYPE_PUSH
-                || targ.movetype == Defines.MOVETYPE_STOP
-                || targ.movetype == Defines.MOVETYPE_NONE) { // doors, triggers,
-                                                             // etc
-            targ.die.die(targ, inflictor, attacker, damage, point);
-            return;
-        }
-
-        if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                && (targ.deadflag != Defines.DEAD_DEAD)) {
-            targ.touch = null;
-            Monster.monster_death_use(targ);
-        }
-
-        targ.die.die(targ, inflictor, attacker, damage, point);
-    }
-
-    /*
-     * ================ SpawnDamage ================
-     */
-    static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
-        if (damage > 255)
-            damage = 255;
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
-        GameBase.gi.WriteByte(type);
-        //		gi.WriteByte (damage);
-        GameBase.gi.WritePosition(origin);
-        GameBase.gi.WriteDir(normal);
-        GameBase.gi.multicast(origin, Defines.MULTICAST_PVS);
-    }
-
-    static int PowerArmorType(edict_t ent) {
-        if (ent.client == null)
-            return Defines.POWER_ARMOR_NONE;
-
-        if (0 == (ent.flags & Defines.FL_POWER_ARMOR))
-            return Defines.POWER_ARMOR_NONE;
-
-        if (ent.client.pers.inventory[GameUtil.power_shield_index] > 0)
-            return Defines.POWER_ARMOR_SHIELD;
-
-        if (ent.client.pers.inventory[GameUtil.power_screen_index] > 0)
-            return Defines.POWER_ARMOR_SCREEN;
-
-        return Defines.POWER_ARMOR_NONE;
-    }
-
-    static int CheckPowerArmor(edict_t ent, float[] point, float[] normal,
-            int damage, int dflags) {
-        gclient_t client;
-        int save;
-        int power_armor_type;
-        int index = 0;
-        int damagePerCell;
-        int pa_te_type;
-        int power = 0;
-        int power_used;
-
-        if (damage == 0)
-            return 0;
-
-        client = ent.client;
-
-        if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
-            return 0;
-
-        if (client != null) {
-            power_armor_type = PowerArmorType(ent);
-            if (power_armor_type != Defines.POWER_ARMOR_NONE) {
-                index = ITEM_INDEX(FindItem("Cells"));
-                power = client.pers.inventory[index];
-            }
-        } else if ((ent.svflags & Defines.SVF_MONSTER) != 0) {
-            power_armor_type = ent.monsterinfo.power_armor_type;
-            power = ent.monsterinfo.power_armor_power;
-        } else
-            return 0;
-
-        if (power_armor_type == Defines.POWER_ARMOR_NONE)
-            return 0;
-        if (power == 0)
-            return 0;
-
-        if (power_armor_type == Defines.POWER_ARMOR_SCREEN) {
-            float[] vec = { 0, 0, 0 };
-            float dot;
-            float[] forward = { 0, 0, 0 };
-
-            // only works if damage point is in front
-            Math3D.AngleVectors(ent.s.angles, forward, null, null);
-            Math3D.VectorSubtract(point, ent.s.origin, vec);
-            Math3D.VectorNormalize(vec);
-            dot = Math3D.DotProduct(vec, forward);
-            if (dot <= 0.3)
-                return 0;
-
-            damagePerCell = 1;
-            pa_te_type = Defines.TE_SCREEN_SPARKS;
-            damage = damage / 3;
-        } else {
-            damagePerCell = 2;
-            pa_te_type = Defines.TE_SHIELD_SPARKS;
-            damage = (2 * damage) / 3;
-        }
-
-        save = power * damagePerCell;
-
-        if (save == 0)
-            return 0;
-        if (save > damage)
-            save = damage;
-
-        SpawnDamage(pa_te_type, point, normal, save);
-        ent.powerarmor_time = GameBase.level.time + 0.2f;
-
-        power_used = save / damagePerCell;
-
-        if (client != null)
-            client.pers.inventory[index] -= power_used;
-        else
-            ent.monsterinfo.power_armor_power -= power_used;
-        return save;
-    }
-
-    /**
-     * The monster is walking it's beat.
-     *  
-     */
-    static void ai_walk(edict_t self, float dist) {
-        M.M_MoveToGoal(self, dist);
-
-        // check for noticing a player
-        if (FindTarget(self))
-            return;
-
-        if ((self.monsterinfo.search != null)
-                && (GameBase.level.time > self.monsterinfo.idle_time)) {
-            if (self.monsterinfo.idle_time != 0) {
-                self.monsterinfo.search.think(self);
-                self.monsterinfo.idle_time = GameBase.level.time + 15
-                        + Lib.random() * 15;
-            } else {
-                self.monsterinfo.idle_time = GameBase.level.time + Lib.random()
-                        * 15;
-            }
-        }
+        GameItems.SelectNextItem(ent, -1);
     }
 
     /*
@@ -795,101 +317,6 @@ public class GameUtil {
         if (len < 1000)
             return Defines.RANGE_MID;
         return Defines.RANGE_FAR;
-    }
-
-    /*
-     * =============== FindItemByClassname
-     * 
-     * ===============
-     */
-    static gitem_t FindItemByClassname(String classname) {
-
-        for (int i = 1; i < GameBase.game.num_items; i++) {
-            gitem_t it = GameAI.itemlist[i];
-
-            if (it.classname == null)
-                continue;
-            if (it.classname.equalsIgnoreCase(classname))
-                return it;
-        }
-
-        return null;
-    }
-
-    /*
-     * =============== FindItem ===============
-     */
-    //geht.
-    static gitem_t FindItem(String pickup_name) {
-        for (int i = 1; i < GameBase.game.num_items; i++) {
-            gitem_t it = GameAI.itemlist[i];
-
-            if (it.pickup_name == null)
-                continue;
-            if (it.pickup_name.equalsIgnoreCase(pickup_name))
-                return it;
-        }
-        Com.Println("Item not found:" + pickup_name);
-        return null;
-    }
-
-    static int ArmorIndex(edict_t ent) {
-        if (ent.client == null)
-            return 0;
-
-        if (ent.client.pers.inventory[GameUtil.jacket_armor_index] > 0)
-            return GameUtil.jacket_armor_index;
-
-        if (ent.client.pers.inventory[GameUtil.combat_armor_index] > 0)
-            return GameUtil.combat_armor_index;
-
-        if (ent.client.pers.inventory[GameUtil.body_armor_index] > 0)
-            return GameUtil.body_armor_index;
-
-        return 0;
-    }
-
-    static int CheckArmor(edict_t ent, float[] point, float[] normal,
-            int damage, int te_sparks, int dflags) {
-        gclient_t client;
-        int save;
-        int index;
-        gitem_t armor;
-
-        if (damage == 0)
-            return 0;
-
-        client = ent.client;
-
-        if (client != null)
-            return 0;
-
-        if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
-            return 0;
-
-        index = ArmorIndex(ent);
-
-        if (index == 0)
-            return 0;
-
-        armor = GameAI.GetItemByIndex(index);
-        gitem_armor_t garmor = (gitem_armor_t) armor.info;
-
-        if (0 != (dflags & Defines.DAMAGE_ENERGY))
-            save = (int) Math.ceil(garmor.energy_protection * damage);
-        else
-            save = (int) Math.ceil(garmor.normal_protection * damage);
-
-        if (save >= client.pers.inventory[index])
-            save = client.pers.inventory[index];
-
-        if (save == 0)
-            return 0;
-
-        client.pers.inventory[index] -= save;
-        SpawnDamage(te_sparks, point, normal, save);
-
-        return save;
     }
 
     static void AttackFinished(edict_t self, float time) {
@@ -940,56 +367,6 @@ public class GameUtil {
     }
 
     /*
-     * ================= AI_SetSightClient
-     * 
-     * Called once each frame to set level.sight_client to the player to be
-     * checked for in findtarget.
-     * 
-     * If all clients are either dead or in notarget, sight_client will be null.
-     * 
-     * In coop games, sight_client will cycle between the clients.
-     * =================
-     */
-    static void AI_SetSightClient() {
-        edict_t ent;
-        int start, check;
-
-        if (GameBase.level.sight_client == null)
-            start = 1;
-        else
-            start = GameBase.level.sight_client.index;
-
-        check = start;
-        while (true) {
-            check++;
-            if (check > GameBase.game.maxclients)
-                check = 1;
-            ent = GameBase.g_edicts[check];
-
-            if (ent.inuse && ent.health > 0
-                    && (ent.flags & Defines.FL_NOTARGET) == 0) {
-                GameBase.level.sight_client = ent;
-                return; // got one
-            }
-            if (check == start) {
-                GameBase.level.sight_client = null;
-                return; // nobody to see
-            }
-        }
-    }
-
-    /*
-     * ============= ai_move
-     * 
-     * Move the specified distance at current facing. This replaces the QC
-     * functions: ai_forward, ai_back, ai_pain, and ai_painforward
-     * ==============
-     */
-    static void ai_move(edict_t self, float dist) {
-        M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
-    }
-
-    /*
      * =========== FindTarget
      * 
      * Self is currently not attacking anything, so try to find a target
@@ -1026,14 +403,11 @@ public class GameUtil {
         if ((self.monsterinfo.aiflags & Defines.AI_COMBAT_POINT) != 0)
             return false;
 
-        //	   if the first spawnflag bit is set, the monster will only wake up on
-        //	   really seeing the player, not another monster getting angry or
-        // hearing
-        //	   something
-
-        //	   revised behavior so they will wake up if they "see" a player make a
-        // noise
-        //	   but not weapon impact/explosion noises
+        // if the first spawnflag bit is set, the monster will only wake up on
+        // really seeing the player, not another monster getting angry or
+        // hearing something
+        // revised behavior so they will wake up if they "see" a player make a
+        // noise but not weapon impact/explosion noises
 
         heardit = false;
         if ((GameBase.level.sight_entity_framenum >= (GameBase.level.framenum - 1))
@@ -1162,23 +536,6 @@ public class GameUtil {
         return true;
     }
 
-    //	============================================================================
-    //ok
-    static void HuntTarget(edict_t self) {
-        float[] vec = { 0, 0, 0 };
-
-        self.goalentity = self.enemy;
-        if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
-            self.monsterinfo.stand.think(self);
-        else
-            self.monsterinfo.run.think(self);
-        Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
-        self.ideal_yaw = Math3D.vectoyaw(vec);
-        // wait a while before first attack
-        if (0 == (self.monsterinfo.aiflags & Defines.AI_STAND_GROUND))
-            AttackFinished(self, 1);
-    }
-
     public static void FoundTarget(edict_t self) {
         // let other monsters see this monster for a while
         if (self.enemy.client != null) {
@@ -1194,7 +551,7 @@ public class GameUtil {
         self.monsterinfo.trail_time = GameBase.level.time;
 
         if (self.combattarget == null) {
-            HuntTarget(self);
+            GameAI.HuntTarget(self);
             return;
         }
 
@@ -1202,7 +559,7 @@ public class GameUtil {
                 .G_PickTarget(self.combattarget);
         if (self.movetarget == null) {
             self.goalentity = self.movetarget = self.enemy;
-            HuntTarget(self);
+            GameAI.HuntTarget(self);
             GameBase.gi.dprintf("" + self.classname + "at "
                     + Lib.vtos(self.s.origin) + ", combattarget "
                     + self.combattarget + " not found\n");
@@ -1221,62 +578,17 @@ public class GameUtil {
         self.monsterinfo.run.think(self);
     }
 
-    static boolean CheckTeamDamage(edict_t targ, edict_t attacker) {
-        //FIXME make the next line real and uncomment this block
-        // if ((ability to damage a teammate == OFF) && (targ's team ==
-        // attacker's team))
-        return false;
-    }
-
-    /*
-     * ============ T_RadiusDamage ============
-     */
-    static void T_RadiusDamage(edict_t inflictor, edict_t attacker,
-            float damage, edict_t ignore, float radius, int mod) {
-        float points;
-        EdictIterator edictit = null;
-
-        float[] v = { 0, 0, 0 };
-        float[] dir = { 0, 0, 0 };
-
-        while ((edictit = GameBase.findradius(edictit, inflictor.s.origin,
-                radius)) != null) {
-            edict_t ent = edictit.o;
-            if (ent == ignore)
-                continue;
-            if (ent.takedamage == 0)
-                continue;
-
-            Math3D.VectorAdd(ent.mins, ent.maxs, v);
-            Math3D.VectorMA(ent.s.origin, 0.5f, v, v);
-            Math3D.VectorSubtract(inflictor.s.origin, v, v);
-            points = damage - 0.5f * Math3D.VectorLength(v);
-            if (ent == attacker)
-                points = points * 0.5f;
-            if (points > 0) {
-                if (CanDamage(ent, inflictor)) {
-                    Math3D
-                            .VectorSubtract(ent.s.origin, inflictor.s.origin,
-                                    dir);
-                    T_Damage(ent, inflictor, attacker, dir, inflictor.s.origin,
-                            Globals.vec3_origin, (int) points, (int) points,
-                            Defines.DAMAGE_RADIUS, mod);
-                }
-            }
-        }
-    }
-
     public static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameUtil.G_UseTargets(ent, ent.activator);
-            GameUtil.G_FreeEdict(ent);
+            G_UseTargets(ent, ent.activator);
+            G_FreeEdict(ent);
             return true;
         }
     };
 
     public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameUtil.G_FreeEdict(ent);
+            G_FreeEdict(ent);
             return false;
         }
     };
@@ -1291,380 +603,17 @@ public class GameUtil {
 
             if (!((self.spawnflags & Defines.DROPPED_ITEM) != 0)
                     && (GameBase.deathmatch.value != 0))
-                GameUtil.SetRespawn(self, 20);
+                GameItems.SetRespawn(self, 20);
             else
-                GameUtil.G_FreeEdict(self);
+                G_FreeEdict(self);
 
             return false;
         }
-    };
-
-    static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
-        public boolean think(edict_t ent) {
-            if (ent.team != null) {
-                edict_t master;
-                int count;
-                int choice = 0;
-
-                master = ent.teammaster;
-
-                // count the depth
-                for (count = 0, ent = master; ent != null; ent = ent.chain, count++)
-                    ;
-
-                choice = Lib.rand() % count;
-
-                for (count = 0, ent = master; count < choice; ent = ent.chain, count++)
-                    ;
-            }
-
-            ent.svflags &= ~Defines.SVF_NOCLIENT;
-            ent.solid = Defines.SOLID_TRIGGER;
-            GameBase.gi.linkentity(ent);
-
-            // send an effect
-            ent.s.event = Defines.EV_ITEM_RESPAWN;
-
-            return false;
-        }
-    };
-
-    static EntInteractAdapter Pickup_Pack = new EntInteractAdapter() {
-        public boolean interact(edict_t ent, edict_t other) {
-
-            gitem_t item;
-            int index;
-
-            if (other.client.pers.max_bullets < 300)
-                other.client.pers.max_bullets = 300;
-            if (other.client.pers.max_shells < 200)
-                other.client.pers.max_shells = 200;
-            if (other.client.pers.max_rockets < 100)
-                other.client.pers.max_rockets = 100;
-            if (other.client.pers.max_grenades < 100)
-                other.client.pers.max_grenades = 100;
-            if (other.client.pers.max_cells < 300)
-                other.client.pers.max_cells = 300;
-            if (other.client.pers.max_slugs < 100)
-                other.client.pers.max_slugs = 100;
-
-            item = GameUtil.FindItem("Bullets");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
-                    other.client.pers.inventory[index] = other.client.pers.max_bullets;
-            }
-
-            item = GameUtil.FindItem("Shells");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_shells)
-                    other.client.pers.inventory[index] = other.client.pers.max_shells;
-            }
-
-            item = GameUtil.FindItem("Cells");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_cells)
-                    other.client.pers.inventory[index] = other.client.pers.max_cells;
-            }
-
-            item = GameUtil.FindItem("Grenades");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_grenades)
-                    other.client.pers.inventory[index] = other.client.pers.max_grenades;
-            }
-
-            item = GameUtil.FindItem("Rockets");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_rockets)
-                    other.client.pers.inventory[index] = other.client.pers.max_rockets;
-            }
-
-            item = GameUtil.FindItem("Slugs");
-            if (item != null) {
-                index = GameUtil.ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_slugs)
-                    other.client.pers.inventory[index] = other.client.pers.max_slugs;
-            }
-
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
-                GameUtil.SetRespawn(ent, ent.item.quantity);
-
-            return true;
-        }
-    };
-
-    final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
-        public boolean interact(edict_t ent, edict_t other) {
-
-            if (0 == (ent.style & Defines.HEALTH_IGNORE_MAX))
-                if (other.health >= other.max_health)
-                    return false;
-
-            other.health += ent.count;
-
-            if (0 == (ent.style & Defines.HEALTH_IGNORE_MAX)) {
-                if (other.health > other.max_health)
-                    other.health = other.max_health;
-            }
-
-            if (0 != (ent.style & Defines.HEALTH_TIMED)) {
-                ent.think = MegaHealth_think;
-                ent.nextthink = GameBase.level.time + 5f;
-                ent.owner = other;
-                ent.flags |= Defines.FL_RESPAWN;
-                ent.svflags |= Defines.SVF_NOCLIENT;
-                ent.solid = Defines.SOLID_NOT;
-            } else {
-                if (!((ent.spawnflags & Defines.DROPPED_ITEM) != 0)
-                        && (GameBase.deathmatch.value != 0))
-                    GameUtil.SetRespawn(ent, 30);
-            }
-
-            return true;
-        }
-
     };
 
     /*
-     * =============== Touch_Item ===============
-     */
-
-    static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
-        public void touch(edict_t ent, edict_t other, cplane_t plane,
-                csurface_t surf) {
-            boolean taken;
-
-            if (ent.classname.equals("item_breather"))
-                taken = false;
-
-            if (other.client == null)
-                return;
-            if (other.health < 1)
-                return; // dead people can't pickup
-            if (ent.item.pickup == null)
-                return; // not a grabbable item?
-
-            taken = ent.item.pickup.interact(ent, other);
-
-            if (taken) {
-                // flash the screen
-                other.client.bonus_alpha = 0.25f;
-
-                // show icon and name on status bar
-                other.client.ps.stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
-                        .imageindex(ent.item.icon);
-                other.client.ps.stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + GameUtil
-                        .ITEM_INDEX(ent.item));
-                other.client.pickup_msg_time = GameBase.level.time + 3.0f;
-
-                // change selected item
-                if (ent.item.use != null)
-                    other.client.pers.selected_item = other.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) GameUtil
-                            .ITEM_INDEX(ent.item);
-
-                if (ent.item.pickup == Pickup_Health) {
-                    if (ent.count == 2)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
-                                .soundindex("items/s_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else if (ent.count == 10)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
-                                .soundindex("items/n_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else if (ent.count == 25)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
-                                .soundindex("items/l_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                    else
-                        // (ent.count == 100)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
-                                .soundindex("items/m_health.wav"), 1,
-                                Defines.ATTN_NORM, 0);
-                } else if (ent.item.pickup_sound != null) {
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
-                            .soundindex(ent.item.pickup_sound), 1,
-                            Defines.ATTN_NORM, 0);
-                }
-            }
-
-            if (0 == (ent.spawnflags & Defines.ITEM_TARGETS_USED)) {
-                GameUtil.G_UseTargets(ent, other);
-                ent.spawnflags |= Defines.ITEM_TARGETS_USED;
-            }
-
-            if (!taken)
-                return;
-            
-            Com.dprintln("Picked up:" + ent.classname);
-
-            if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
-                    || 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))) {
-                if ((ent.flags & Defines.FL_RESPAWN) != 0)
-                    ent.flags &= ~Defines.FL_RESPAWN;
-                else
-                    GameUtil.G_FreeEdict(ent);
-            }
-        }
-    };
-
-    static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
-        public void touch(edict_t ent, edict_t other, cplane_t plane,
-                csurface_t surf) {
-            if (other == ent.owner)
-                return;
-
-            Touch_Item.touch(ent, other, plane, surf);
-        }
-    };
-
-    static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
-        public boolean think(edict_t ent) {
-            ent.touch = Touch_Item;
-            if (GameBase.deathmatch.value != 0) {
-                ent.nextthink = GameBase.level.time + 29;
-                ent.think = G_FreeEdictA;
-            }
-            return false;
-        }
-    };
-
-    static int quad_drop_timeout_hack = 0;
-
-    static ItemUseAdapter Use_Quad = new ItemUseAdapter() {
-
-        public void use(edict_t ent, gitem_t item) {
-            int timeout;
-
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
-            GameUtil.ValidateSelectedItem(ent);
-
-            if (quad_drop_timeout_hack != 0) {
-                timeout = quad_drop_timeout_hack;
-                quad_drop_timeout_hack = 0;
-            } else {
-                timeout = 300;
-            }
-
-            if (ent.client.quad_framenum > GameBase.level.framenum)
-                ent.client.quad_framenum += timeout;
-            else
-                ent.client.quad_framenum = GameBase.level.framenum + timeout;
-
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                    .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-    static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
-        public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
-            GameUtil.ValidateSelectedItem(ent);
-
-            if (ent.client.invincible_framenum > GameBase.level.framenum)
-                ent.client.invincible_framenum += 300;
-            else
-                ent.client.invincible_framenum = GameBase.level.framenum + 300;
-
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                    .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-    //	======================================================================
-
-    static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
-        public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
-
-            GameUtil.ValidateSelectedItem(ent);
-
-            if (ent.client.breather_framenum > GameBase.level.framenum)
-                ent.client.breather_framenum += 300;
-            else
-                ent.client.breather_framenum = GameBase.level.framenum + 300;
-
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                    .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-    //	======================================================================
-
-    static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
-        public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
-            GameUtil.ValidateSelectedItem(ent);
-
-            if (ent.client.enviro_framenum > GameBase.level.framenum)
-                ent.client.enviro_framenum += 300;
-            else
-                ent.client.enviro_framenum = GameBase.level.framenum + 300;
-
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                    .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-    //	======================================================================
-
-    static ItemUseAdapter Use_Silencer = new ItemUseAdapter() {
-        public void use(edict_t ent, gitem_t item) {
-
-            ent.client.pers.inventory[GameUtil.ITEM_INDEX(item)]--;
-            GameUtil.ValidateSelectedItem(ent);
-            ent.client.silencer_shots += 30;
-
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                    .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
-        }
-    };
-
-    //	======================================================================
-
-    static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
-        public boolean interact(edict_t ent, edict_t other) {
-            if (GameBase.coop.value != 0) {
-                if (Lib.strcmp(ent.classname, "key_power_cube") == 0) {
-                    if ((other.client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
-                        return false;
-                    other.client.pers.inventory[GameUtil.ITEM_INDEX(ent.item)]++;
-                    other.client.pers.power_cubes |= ((ent.spawnflags & 0x0000ff00) >> 8);
-                } else {
-                    if (other.client.pers.inventory[GameUtil
-                            .ITEM_INDEX(ent.item)] != 0)
-                        return false;
-                    other.client.pers.inventory[GameUtil.ITEM_INDEX(ent.item)] = 1;
-                }
-                return true;
-            }
-            other.client.pers.inventory[GameUtil.ITEM_INDEX(ent.item)]++;
-            return true;
-        }
-    };
-
-    static int jacket_armor_index;
-
-    static int combat_armor_index;
-
-    static int body_armor_index;
-
-    static int power_screen_index;
-
-    static int power_shield_index;
-
-    /*
-     * ============= range
+     * ============= 
+     * range
      * 
      * returns the range catagorization of an entity reletive to self. 0 melee
      * range, will become hostile even if back is turned 1 visibility and
@@ -1716,7 +665,7 @@ public class GameUtil {
             }
 
             // melee attack
-            if (enemy_range == Defines.RANGE_MELEE) {
+            if (GameAI.enemy_range == Defines.RANGE_MELEE) {
                 // don't always melee in easy mode
                 if (GameBase.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
@@ -1734,16 +683,16 @@ public class GameUtil {
             if (GameBase.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (enemy_range == Defines.RANGE_FAR)
+            if (GameAI.enemy_range == Defines.RANGE_FAR)
                 return false;
 
             if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
                 chance = 0.4f;
-            } else if (enemy_range == Defines.RANGE_MELEE) {
+            } else if (GameAI.enemy_range == Defines.RANGE_MELEE) {
                 chance = 0.2f;
-            } else if (enemy_range == Defines.RANGE_NEAR) {
+            } else if (GameAI.enemy_range == Defines.RANGE_NEAR) {
                 chance = 0.1f;
-            } else if (enemy_range == Defines.RANGE_MID) {
+            } else if (GameAI.enemy_range == Defines.RANGE_MID) {
                 chance = 0.02f;
             } else {
                 return false;
@@ -1788,15 +737,7 @@ public class GameUtil {
             // delay reaction so if the monster is teleported, its sound is
             // still heard
             self.enemy = activator;
-            GameUtil.FoundTarget(self);
+            FoundTarget(self);
         }
     };
-
-    static boolean enemy_vis;
-
-    static boolean enemy_infront;
-
-    static int enemy_range;
-
-    static float enemy_yaw;
 }

@@ -19,11 +19,12 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss32.java,v 1.2 2005-02-06 18:48:16 salomo Exp $
+// $Id: M_Boss32.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntInteractAdapter;
 import jake2.game.EntPainAdapter;
@@ -1695,14 +1696,14 @@ public class M_Boss32 {
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 1 /* 4 */; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_metal/tris.md2", damage,
                             Defines.GIB_METALLIC);
-                GameAI.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
+                GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
                         damage, Defines.GIB_METALLIC);
                 self.deadflag = Defines.DEAD_DEAD;
                 return;

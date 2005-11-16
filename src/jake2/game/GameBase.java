@@ -19,7 +19,9 @@
  */
 
 // Created on 30.11.2003 by RST.
-// $Id: GameBase.java,v 1.10 2005-02-20 21:50:36 salomo Exp $
+
+// $Id: GameBase.java,v 1.11 2005-11-16 22:24:52 salomo Exp $
+
 /** Father of all GameObjects. */
 
 package jake2.game;
@@ -336,7 +338,7 @@ public class GameBase {
             //if (ent.index == 1)
             //Com.Printf("trigger:" + hit.classname + "(" + hit.index + ")\n");
 
-            hit.touch.touch(hit, ent, GameBase.dummyplane, null);
+            hit.touch.touch(hit, ent, dummyplane, null);
         }
     }
 
@@ -642,7 +644,7 @@ public class GameBase {
         level.time = level.framenum * Defines.FRAMETIME;
 
         // choose a client for monsters to target this frame
-        GameUtil.AI_SetSightClient();
+        GameAI.AI_SetSightClient();
 
         // exit intermissions
 

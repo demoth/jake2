@@ -19,22 +19,13 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Brain.java,v 1.2 2005-02-06 18:48:14 salomo Exp $
+
+// $Id: M_Brain.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+
 package jake2.game.monsters;
 
 import jake2.Defines;
-import jake2.game.EntDieAdapter;
-import jake2.game.EntDodgeAdapter;
-import jake2.game.EntInteractAdapter;
-import jake2.game.EntPainAdapter;
-import jake2.game.EntThinkAdapter;
-import jake2.game.Fire;
-import jake2.game.GameAI;
-import jake2.game.GameBase;
-import jake2.game.GameUtil;
-import jake2.game.edict_t;
-import jake2.game.mframe_t;
-import jake2.game.mmove_t;
+import jake2.game.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
@@ -798,7 +789,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.maxs[0], 8);
-            if (Fire.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
             return true;
@@ -819,7 +810,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 8);
-            if (Fire.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
 
@@ -843,7 +834,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, 0, 8);
-            if (Fire.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600)
+            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600)
                     && GameBase.skill.value > 0)
                 self.spawnflags |= 65536;
             GameBase.gi.sound(self, Defines.CHAN_WEAPON,
@@ -1069,13 +1060,13 @@ public class M_Brain {
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
-                    GameAI.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
+                    GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
                             damage, Defines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
-                GameAI.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
+                GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
                         damage, Defines.GIB_ORGANIC);
                 self.deadflag = Defines.DEAD_DEAD;
                 return;

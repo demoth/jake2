@@ -19,10 +19,11 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Supertank.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
+// $Id: M_Supertank.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntPainAdapter;
 import jake2.game.EntThinkAdapter;
@@ -941,7 +942,7 @@ public class M_Supertank {
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null),
-            new mframe_t(GameAI.ai_move, 0, GameAI.BossExplode) };
+            new mframe_t(GameAI.ai_move, 0, M_Supertank.BossExplode) };
 
     static mmove_t supertank_move_death = new mmove_t(FRAME_death_1,
             FRAME_death_24, supertank_frames_death1, supertank_dead);
@@ -1196,68 +1197,74 @@ public class M_Supertank {
         }
     };
 
-    void BossExplode(edict_t self) {
-        float[] org = { 0, 0, 0 };
-        int n;
-
-        self.think = GameAI.BossExplode;
-        Math3D.VectorCopy(self.s.origin, org);
-        org[2] += 24 + (Lib.rand() & 15);
-        switch (self.count++) {
-        case 0:
-            org[0] -= 24;
-            org[1] -= 24;
-            break;
-        case 1:
-            org[0] += 24;
-            org[1] += 24;
-            break;
-        case 2:
-            org[0] += 24;
-            org[1] -= 24;
-            break;
-        case 3:
-            org[0] -= 24;
-            org[1] += 24;
-            break;
-        case 4:
-            org[0] -= 48;
-            org[1] -= 48;
-            break;
-        case 5:
-            org[0] += 48;
-            org[1] += 48;
-            break;
-        case 6:
-            org[0] -= 48;
-            org[1] += 48;
-            break;
-        case 7:
-            org[0] += 48;
-            org[1] -= 48;
-            break;
-        case 8:
-            self.s.sound = 0;
-            for (n = 0; n < 4; n++)
-                GameAI.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-                        500, Defines.GIB_ORGANIC);
-            for (n = 0; n < 8; n++)
-                GameAI.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
-                        500, Defines.GIB_METALLIC);
-            GameAI.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
-                    Defines.GIB_ORGANIC);
-            GameAI.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
-                    Defines.GIB_METALLIC);
-            self.deadflag = Defines.DEAD_DEAD;
-            return;
+    /** Common Boss explode animation. */
+    
+    public static EntThinkAdapter BossExplode = new EntThinkAdapter() {
+        public boolean think(edict_t self) {
+            float[] org = { 0, 0, 0 };
+    
+            int n;
+    
+            self.think = BossExplode;
+            Math3D.VectorCopy(self.s.origin, org);
+            org[2] += 24 + (Lib.rand() & 15);
+            switch (self.count++) {
+            case 0:
+                org[0] -= 24;
+                org[1] -= 24;
+                break;
+            case 1:
+                org[0] += 24;
+                org[1] += 24;
+                break;
+            case 2:
+                org[0] += 24;
+                org[1] -= 24;
+                break;
+            case 3:
+                org[0] -= 24;
+                org[1] += 24;
+                break;
+            case 4:
+                org[0] -= 48;
+                org[1] -= 48;
+                break;
+            case 5:
+                org[0] += 48;
+                org[1] += 48;
+                break;
+            case 6:
+                org[0] -= 48;
+                org[1] += 48;
+                break;
+            case 7:
+                org[0] += 48;
+                org[1] -= 48;
+                break;
+            case 8:
+                self.s.sound = 0;
+                for (n = 0; n < 4; n++)
+                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
+                            Defines.GIB_ORGANIC);
+                for (n = 0; n < 8; n++)
+                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
+                            500, Defines.GIB_METALLIC);
+                GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
+                        Defines.GIB_ORGANIC);
+                GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
+                        Defines.GIB_METALLIC);
+                self.deadflag = Defines.DEAD_DEAD;
+                return true;
+            }
+    
+            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
+            GameBase.gi.WritePosition(org);
+            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+    
+            self.nextthink = GameBase.level.time + 0.1f;
+            return true;
         }
-
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
-        GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
-        GameBase.gi.WritePosition(org);
-        GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
-
-        self.nextthink = GameBase.level.time + 0.1f;
-    }
+    };
 
 }

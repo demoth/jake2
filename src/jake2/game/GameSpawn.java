@@ -19,7 +19,9 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameSpawn.java,v 1.12 2005-02-19 21:17:44 salomo Exp $
+
+// $Id: GameSpawn.java,v 1.13 2005-11-16 22:24:53 salomo Exp $
+
 package jake2.game;
 
 import jake2.Defines;
@@ -32,28 +34,28 @@ public class GameSpawn {
 
     static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameAI.SP_item_health(ent);
+            GameItems.SP_item_health(ent);
             return true;
         }
     };
 
     static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameAI.SP_item_health_small(ent);
+            GameItems.SP_item_health_small(ent);
             return true;
         }
     };
 
     static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameAI.SP_item_health_large(ent);
+            GameItems.SP_item_health_large(ent);
             return true;
         }
     };
 
     static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {
         public boolean think(edict_t ent) {
-            GameAI.SP_item_health_mega(ent);
+            GameItems.SP_item_health_mega(ent);
             return true;
         }
     };
@@ -158,7 +160,7 @@ public class GameSpawn {
             // reserve some spots for dead player bodies for coop / deathmatch
             PlayerClient.InitBodyQue();
             // set configstrings for items
-            GameAI.SetItemNames();
+            GameItems.SetItemNames();
             if (GameBase.st.nextmap != null)
                 GameBase.level.nextmap = GameBase.st.nextmap;
             // make some data visible to the server
@@ -180,11 +182,9 @@ public class GameSpawn {
                     + (int) (GameBase.maxclients.value));
             // status bar program
             if (GameBase.deathmatch.value != 0)
-                GameBase.gi.configstring(Defines.CS_STATUSBAR, ""
-                        + GameSpawn.dm_statusbar);
+                GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
-                GameBase.gi.configstring(Defines.CS_STATUSBAR, ""
-                        + GameSpawn.single_statusbar);
+                GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
             //---------------
             // help icon for statusbar
             GameBase.gi.imageindex("i_help");
@@ -197,7 +197,7 @@ public class GameSpawn {
                 GameBase.gi.cvar_set("sv_gravity", GameBase.st.gravity);
             GameBase.snd_fry = GameBase.gi.soundindex("player/fry.wav");
             // standing in lava / slime
-            GameAI.PrecacheItem(GameUtil.FindItem("Blaster"));
+            GameItems.PrecacheItem(GameItems.FindItem("Blaster"));
             GameBase.gi.soundindex("player/lava1.wav");
             GameBase.gi.soundindex("player/lava2.wav");
             GameBase.gi.soundindex("misc/pc_up.wav");
@@ -317,7 +317,9 @@ public class GameSpawn {
     };
 
     /*
-     * ============= ED_NewString =============
+     * ============= 
+     * ED_NewString 
+     * =============
      */
     static String ED_NewString(String string) {
 
@@ -340,7 +342,8 @@ public class GameSpawn {
     }
 
     /*
-     * =============== ED_ParseField
+     * =============== 
+     * ED_ParseField
      * 
      * Takes a key/value pair and sets the binary values in an edict
      * ===============
@@ -360,10 +363,12 @@ public class GameSpawn {
     }
 
     /*
-     * ==================== ED_ParseEdict
+     * ==================== 
+     * ED_ParseEdict
      * 
      * Parses an edict out of the given string, returning the new position ed
-     * should be a properly initialized empty edict. ====================
+     * should be a properly initialized empty edict. 
+     * ====================
      */
 
     static void ED_ParseEdict(Com.ParseHelp ph, edict_t ent) {
@@ -413,12 +418,14 @@ public class GameSpawn {
     }
 
     /*
-     * ================ G_FindTeams
+     * ================ 
+     * G_FindTeams
      * 
      * Chain together all entities with a matching team field.
      * 
      * All but the first will have the FL_TEAMSLAVE flag set. All but the last
-     * will have the teamchain field set to the next one ================
+     * will have the teamchain field set to the next one 
+     * ================
      */
 
     static void G_FindTeams() {
@@ -463,10 +470,12 @@ public class GameSpawn {
     }
 
     /*
-     * ============== SpawnEntities
+     * ============== 
+     * SpawnEntities
      * 
      * Creates a server's entity / program execution context by parsing textual
-     * entity definitions out of an ent file. ==============
+     * entity definitions out of an ent file. 
+     * ==============
      */
 
     public static void SpawnEntities(String mapname, String entities,
@@ -503,7 +512,8 @@ public class GameSpawn {
             GameBase.g_edicts[i + 1].client = GameBase.game.clients[i];
 
         ent = null;
-        inhibit = 0; //	   parse ents
+        inhibit = 0; 
+        // parse ents
         //Com.Printf("========================\n");
         //Com.Printf("entities(" + entities.length() + ") = \n" + entities +
         // "\n");
@@ -1103,9 +1113,11 @@ public class GameSpawn {
             }), new spawn_t(null, null) };
 
     /*
-     * =============== ED_CallSpawn
+     * =============== 
+     * ED_CallSpawn
      * 
-     * Finds the spawn function for the entity and calls it ===============
+     * Finds the spawn function for the entity and calls it 
+     * ===============
      */
     public static void ED_CallSpawn(edict_t ent) {
 
@@ -1118,7 +1130,7 @@ public class GameSpawn {
         } // check item spawn functions
         for (i = 1; i < GameBase.game.num_items; i++) {
 
-            item = GameAI.itemlist[i];
+            item = GameItems.itemlist[i];
 
             if (item == null)
                 GameBase.gi.error("ED_CallSpawn: null item in pos " + i);
@@ -1126,7 +1138,7 @@ public class GameSpawn {
             if (item.classname == null)
                 continue;
             if (item.classname.equalsIgnoreCase(ent.classname)) { // found it
-                GameAI.SpawnItem(ent, item);
+                GameItems.SpawnItem(ent, item);
                 return;
             }
         } // check normal spawn functions

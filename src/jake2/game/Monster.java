@@ -19,7 +19,7 @@
  */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.5 2005-01-12 12:14:17 hzi Exp $
+// $Id: Monster.java,v 1.6 2005-11-16 22:24:53 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -39,7 +39,7 @@ public class Monster {
     public static void monster_fire_bullet(edict_t self, float[] start,
             float[] dir, int damage, int kick, int hspread, int vspread,
             int flashtype) {
-        Fire.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
+        GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
                 Defines.MOD_UNKNOWN);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -52,7 +52,7 @@ public class Monster {
     public static void monster_fire_shotgun(edict_t self, float[] start,
             float[] aimdir, int damage, int kick, int hspread, int vspread,
             int count, int flashtype) {
-        Fire.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
+        GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
                 count, Defines.MOD_UNKNOWN);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
@@ -64,7 +64,7 @@ public class Monster {
     /** The Moster fires the blaster. */
     public static void monster_fire_blaster(edict_t self, float[] start,
             float[] dir, int damage, int speed, int flashtype, int effect) {
-        Fire.fire_blaster(self, start, dir, damage, speed, effect, false);
+        GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -75,7 +75,7 @@ public class Monster {
     /** The Moster fires the grenade. */
     public static void monster_fire_grenade(edict_t self, float[] start,
             float[] aimdir, int damage, int speed, int flashtype) {
-        Fire
+        GameWeapon
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
                         damage + 40);
 
@@ -88,7 +88,7 @@ public class Monster {
     /** The Moster fires the rocket. */
     public static void monster_fire_rocket(edict_t self, float[] start,
             float[] dir, int damage, int speed, int flashtype) {
-        Fire.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
+        GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -99,7 +99,7 @@ public class Monster {
     /** The Moster fires the railgun. */
     public static void monster_fire_railgun(edict_t self, float[] start,
             float[] aimdir, int damage, int kick, int flashtype) {
-        Fire.fire_rail(self, start, aimdir, damage, kick);
+        GameWeapon.fire_rail(self, start, aimdir, damage, kick);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -111,7 +111,7 @@ public class Monster {
     public static void monster_fire_bfg(edict_t self, float[] start,
             float[] aimdir, int damage, int speed, int kick,
             float damage_radius, int flashtype) {
-        Fire.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
+        GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -130,7 +130,7 @@ public class Monster {
         self.monsterinfo.aiflags &= Defines.AI_GOOD_GUY;
 
         if (self.item != null) {
-            GameUtil.Drop_Item(self, self.item);
+            GameItems.Drop_Item(self, self.item);
             self.item = null;
         }
 
@@ -179,7 +179,7 @@ public class Monster {
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
         if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
-            self.item = GameUtil.FindItemByClassname(GameBase.st.item);
+            self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
                 GameBase.gi.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "

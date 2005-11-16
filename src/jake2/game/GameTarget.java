@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.5 2005-02-20 21:50:36 salomo Exp $
+// $Id: GameTarget.java,v 1.6 2005-11-16 22:24:52 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -30,7 +30,7 @@ import jake2.util.Math3D;
 public class GameTarget {
 
     public static void SP_target_temp_entity(edict_t ent) {
-        ent.use = GameTarget.Use_Target_Tent;
+        ent.use = Use_Target_Tent;
     }
 
     public static void SP_target_speaker(edict_t ent) {
@@ -63,7 +63,7 @@ public class GameTarget {
         if ((ent.spawnflags & 1) != 0)
             ent.s.sound = ent.noise_index;
 
-        ent.use = GameTarget.Use_Target_Speaker;
+        ent.use = Use_Target_Speaker;
 
         // must link the entity so we get areas and clusters so
         // the server can determine who to send updates to
@@ -87,7 +87,7 @@ public class GameTarget {
             GameUtil.G_FreeEdict(ent);
             return;
         }
-        ent.use = GameTarget.Use_Target_Help;
+        ent.use = Use_Target_Help;
     }
 
     public static void SP_target_secret(edict_t ent) {
@@ -96,7 +96,7 @@ public class GameTarget {
             return;
         }
 
-        ent.use = GameTarget.use_target_secret;
+        ent.use = use_target_secret;
         if (GameBase.st.noise == null)
             GameBase.st.noise = "misc/secret.wav";
         ent.noise_index = GameBase.gi.soundindex(GameBase.st.noise);
@@ -115,7 +115,7 @@ public class GameTarget {
             return;
         }
 
-        ent.use = GameTarget.use_target_goal;
+        ent.use = use_target_goal;
         if (GameBase.st.noise == null)
             GameBase.st.noise = "misc/secret.wav";
         ent.noise_index = GameBase.gi.soundindex(GameBase.st.noise);
@@ -124,7 +124,7 @@ public class GameTarget {
     }
 
     public static void SP_target_explosion(edict_t ent) {
-        ent.use = GameTarget.use_target_explosion;
+        ent.use = use_target_explosion;
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
@@ -141,12 +141,12 @@ public class GameTarget {
                 && (Lib.Q_stricmp(ent.map, "fact3") == 0))
             ent.map = "fact3$secret1";
 
-        ent.use = GameTarget.use_target_changelevel;
+        ent.use = use_target_changelevel;
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
     public static void SP_target_splash(edict_t self) {
-        self.use = GameTarget.use_target_splash;
+        self.use = use_target_splash;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
 
         if (0 == self.count)
@@ -156,7 +156,7 @@ public class GameTarget {
     }
 
     public static void SP_target_spawner(edict_t self) {
-        self.use = GameTarget.use_target_spawner;
+        self.use = use_target_spawner;
         self.svflags = Defines.SVF_NOCLIENT;
         if (self.speed != 0) {
             GameBase.G_SetMovedir(self.s.angles, self.movedir);
@@ -165,7 +165,7 @@ public class GameTarget {
     }
 
     public static void SP_target_blaster(edict_t self) {
-        self.use = GameTarget.use_target_blaster;
+        self.use = use_target_blaster;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
         self.noise_index = GameBase.gi.soundindex("weapons/laser2.wav");
 
@@ -179,7 +179,7 @@ public class GameTarget {
 
     public static void SP_target_crosslevel_trigger(edict_t self) {
         self.svflags = Defines.SVF_NOCLIENT;
-        self.use = GameTarget.trigger_crosslevel_trigger_use;
+        self.use = trigger_crosslevel_trigger_use;
     }
 
     public static void SP_target_crosslevel_target(edict_t self) {
@@ -187,7 +187,7 @@ public class GameTarget {
             self.delay = 1;
         self.svflags = Defines.SVF_NOCLIENT;
 
-        self.think = GameTarget.target_crosslevel_target_think;
+        self.think = target_crosslevel_target_think;
         self.nextthink = GameBase.level.time + self.delay;
     }
 
@@ -196,7 +196,7 @@ public class GameTarget {
             self.activator = self;
         self.spawnflags |= 0x80000001;
         self.svflags &= ~Defines.SVF_NOCLIENT;
-        GameTarget.target_laser_think.think(self);
+        target_laser_think.think(self);
     }
 
     public static void target_laser_off(edict_t self) {
@@ -207,7 +207,7 @@ public class GameTarget {
 
     public static void SP_target_laser(edict_t self) {
         // let everything else get spawned before we start firing
-        self.think = GameTarget.target_laser_start;
+        self.think = target_laser_start;
         self.nextthink = GameBase.level.time + 1;
     }
 
@@ -235,8 +235,8 @@ public class GameTarget {
         }
 
         self.svflags |= Defines.SVF_NOCLIENT;
-        self.use = GameTarget.target_lightramp_use;
-        self.think = GameTarget.target_lightramp_think;
+        self.use = target_lightramp_use;
+        self.think = target_lightramp_think;
 
         self.movedir[0] = self.message.charAt(0) - 'a';
         self.movedir[1] = self.message.charAt(1) - 'a';
@@ -256,8 +256,8 @@ public class GameTarget {
             self.speed = 200;
 
         self.svflags |= Defines.SVF_NOCLIENT;
-        self.think = GameTarget.target_earthquake_think;
-        self.use = GameTarget.target_earthquake_use;
+        self.think = target_earthquake_think;
+        self.use = target_earthquake_use;
 
         self.noise_index = GameBase.gi.soundindex("world/quake.wav");
     }
@@ -274,8 +274,6 @@ public class GameTarget {
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
         }
     };
-
-    //==========================================================
 
     //==========================================================
 
@@ -386,7 +384,7 @@ public class GameTarget {
             GameBase.gi.WritePosition(self.s.origin);
             GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PHS);
 
-            GameUtil.T_RadiusDamage(self, self.activator, self.dmg, null,
+            GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
                     self.dmg + 40, Defines.MOD_EXPLOSIVE);
 
             save = self.delay;
@@ -432,7 +430,7 @@ public class GameTarget {
                     && 0 == ((int) GameBase.dmflags.value & Defines.DF_ALLOW_EXIT)
                     && other != GameBase.g_edicts[0] /* world */
             ) {
-                GameUtil.T_Damage(other, self, self, Globals.vec3_origin,
+                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
                         10 * other.max_health, 1000, 0, Defines.MOD_EXIT);
                 return;
@@ -477,7 +475,7 @@ public class GameTarget {
             GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
 
             if (self.dmg != 0)
-                GameUtil.T_RadiusDamage(self, activator, self.dmg, null,
+                GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
                         self.dmg + 40, Defines.MOD_SPLASH);
         }
     };
@@ -531,7 +529,7 @@ public class GameTarget {
             else
                 effect = Defines.EF_BLASTER;
 
-            Fire.fire_blaster(self, self.s.origin, self.movedir, self.dmg,
+            GameWeapon.fire_blaster(self, self.s.origin, self.movedir, self.dmg,
                     (int) self.speed, Defines.EF_BLASTER,
                     Defines.MOD_TARGET_BLASTER != 0
             /* true */
@@ -626,7 +624,7 @@ public class GameTarget {
                 // hurt it if we can
                 if ((tr.ent.takedamage != 0)
                         && 0 == (tr.ent.flags & Defines.FL_IMMUNE_LASER))
-                    GameUtil.T_Damage(tr.ent, self, self.activator,
+                    GameCombat.T_Damage(tr.ent, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
                             Defines.MOD_TARGET_LASER);
@@ -664,9 +662,9 @@ public class GameTarget {
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.activator = activator;
             if ((self.spawnflags & 1) != 0)
-                GameTarget.target_laser_off(self);
+                target_laser_off(self);
             else
-                GameTarget.target_laser_on(self);
+                target_laser_on(self);
         }
     };
 
@@ -722,9 +720,9 @@ public class GameTarget {
             GameBase.gi.linkentity(self);
 
             if ((self.spawnflags & 1) != 0)
-                GameTarget.target_laser_on(self);
+                target_laser_on(self);
             else
-                GameTarget.target_laser_off(self);
+                target_laser_off(self);
             return true;
         }
     };

@@ -19,7 +19,9 @@
  */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameTrigger.java,v 1.4 2005-02-20 21:49:46 salomo Exp $
+
+// $Id: GameTrigger.java,v 1.5 2005-11-16 22:24:52 salomo Exp $
+
 package jake2.game;
 
 import jake2.*;
@@ -53,7 +55,7 @@ public class GameTrigger {
         GameUtil.G_UseTargets(ent, ent.activator);
 
         if (ent.wait > 0) {
-            ent.think = GameTrigger.multi_wait;
+            ent.think = multi_wait;
             ent.nextthink = GameBase.level.time + ent.wait;
         } else { // we can't just remove (self) here, because this is a touch
                  // function
@@ -75,16 +77,16 @@ public class GameTrigger {
         if (ent.wait == 0)
             ent.wait = 0.2f;
 
-        ent.touch = GameTrigger.Touch_Multi;
+        ent.touch = Touch_Multi;
         ent.movetype = Defines.MOVETYPE_NONE;
         ent.svflags |= Defines.SVF_NOCLIENT;
 
         if ((ent.spawnflags & 4) != 0) {
             ent.solid = Defines.SOLID_NOT;
-            ent.use = GameTrigger.trigger_enable;
+            ent.use = trigger_enable;
         } else {
             ent.solid = Defines.SOLID_TRIGGER;
-            ent.use = GameTrigger.Use_Multi;
+            ent.use = Use_Multi;
         }
 
         if (!Math3D.VectorEquals(ent.s.angles, Globals.vec3_origin))
@@ -124,7 +126,7 @@ public class GameTrigger {
     }
 
     public static void SP_trigger_relay(edict_t self) {
-        self.use = GameTrigger.trigger_relay_use;
+        self.use = trigger_relay_use;
     }
 
     public static void SP_trigger_key(edict_t self) {
@@ -133,7 +135,7 @@ public class GameTrigger {
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
-        self.item = GameUtil.FindItemByClassname(GameBase.st.item);
+        self.item = GameItems.FindItemByClassname(GameBase.st.item);
 
         if (null == self.item) {
             GameBase.gi.dprintf("item " + GameBase.st.item
@@ -151,7 +153,7 @@ public class GameTrigger {
         GameBase.gi.soundindex("misc/keytry.wav");
         GameBase.gi.soundindex("misc/keyuse.wav");
 
-        self.use = GameTrigger.trigger_key_use;
+        self.use = trigger_key_use;
     }
 
     public static void SP_trigger_counter(edict_t self) {
@@ -159,7 +161,7 @@ public class GameTrigger {
         if (0 == self.count)
             self.count = 2;
 
-        self.use = GameTrigger.trigger_counter_use;
+        self.use = trigger_counter_use;
     }
 
     /*
@@ -187,8 +189,8 @@ public class GameTrigger {
      */
     public static void SP_trigger_push(edict_t self) {
         InitTrigger(self);
-        GameTrigger.windsound = GameBase.gi.soundindex("misc/windfly.wav");
-        self.touch = GameTrigger.trigger_push_touch;
+        windsound = GameBase.gi.soundindex("misc/windfly.wav");
+        self.touch = trigger_push_touch;
         if (0 == self.speed)
             self.speed = 1000;
         GameBase.gi.linkentity(self);
@@ -198,7 +200,7 @@ public class GameTrigger {
         InitTrigger(self);
 
         self.noise_index = GameBase.gi.soundindex("world/electro.wav");
-        self.touch = GameTrigger.hurt_touch;
+        self.touch = hurt_touch;
 
         if (0 == self.dmg)
             self.dmg = 5;
@@ -209,7 +211,7 @@ public class GameTrigger {
             self.solid = Defines.SOLID_TRIGGER;
 
         if ((self.spawnflags & 2) != 0)
-            self.use = GameTrigger.hurt_use;
+            self.use = hurt_use;
 
         GameBase.gi.linkentity(self);
     }
@@ -224,7 +226,7 @@ public class GameTrigger {
 
         InitTrigger(self);
         self.gravity = Lib.atoi(GameBase.st.gravity);
-        self.touch = GameTrigger.trigger_gravity_touch;
+        self.touch = trigger_gravity_touch;
     }
 
     public static void SP_trigger_monsterjump(edict_t self) {
@@ -235,7 +237,7 @@ public class GameTrigger {
         if (self.s.angles[Defines.YAW] == 0)
             self.s.angles[Defines.YAW] = 360;
         InitTrigger(self);
-        self.touch = GameTrigger.trigger_monsterjump_touch;
+        self.touch = trigger_monsterjump_touch;
         self.movedir[2] = GameBase.st.height;
     }
 
@@ -251,7 +253,7 @@ public class GameTrigger {
     static EntUseAdapter Use_Multi = new EntUseAdapter() {
         public void use(edict_t ent, edict_t other, edict_t activator) {
             ent.activator = activator;
-            GameTrigger.multi_trigger(ent);
+            multi_trigger(ent);
         }
     };
 
@@ -276,7 +278,7 @@ public class GameTrigger {
             }
 
             self.activator = other;
-            GameTrigger.multi_trigger(self);
+            multi_trigger(self);
         }
     };
 
@@ -328,7 +330,7 @@ public class GameTrigger {
             if (activator.client == null)
                 return;
 
-            index = GameUtil.ITEM_INDEX(self.item);
+            index = GameItems.ITEM_INDEX(self.item);
             if (activator.client.pers.inventory[index] == 0) {
                 if (GameBase.level.time < self.touch_debounce_time)
                     return;
@@ -428,7 +430,7 @@ public class GameTrigger {
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
             }
             self.activator = activator;
-            GameTrigger.multi_trigger(self);
+            multi_trigger(self);
         }
     };
 
@@ -529,7 +531,7 @@ public class GameTrigger {
                 dflags = Defines.DAMAGE_NO_PROTECTION;
             else
                 dflags = 0;
-            GameUtil.T_Damage(other, self, self, Globals.vec3_origin,
+            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
                     dflags, Defines.MOD_TRIGGER_HURT);
         }

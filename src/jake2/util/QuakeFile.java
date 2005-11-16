@@ -19,19 +19,15 @@
  */
 
 // Created on 24.07.2004 by RST.
-// $Id: QuakeFile.java,v 1.4 2004-09-22 19:22:13 salomo Exp $
+
+// $Id: QuakeFile.java,v 1.5 2005-11-16 22:24:53 salomo Exp $
+
 package jake2.util;
 
-import jake2.game.GameAI;
-import jake2.game.GameBase;
-import jake2.game.SuperAdapter;
-import jake2.game.edict_t;
-import jake2.game.gitem_t;
+import jake2.game.*;
 import jake2.qcommon.Com;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 /**
  * RandomAccessFile, but handles readString/WriteString specially and offers
@@ -160,7 +156,7 @@ public class QuakeFile extends RandomAccessFile {
         if (ndx == -1)
             return null;
         else
-            return GameAI.itemlist[ndx];
+            return GameItems.itemlist[ndx];
     }
 
 }

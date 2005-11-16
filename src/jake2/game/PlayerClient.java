@@ -19,14 +19,231 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerClient.java,v 1.9 2005-02-19 21:20:10 salomo Exp $
+
+// $Id: PlayerClient.java,v 1.10 2005-11-16 22:24:52 salomo Exp $
+
 package jake2.game;
 
 import jake2.Defines;
+import jake2.game.monsters.M_Player;
+import jake2.game.pmove_t.TraceAdapter;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
 public class PlayerClient {
+
+    public static int player_die_i = 0;
+    /*
+     * ================== 
+     * player_die 
+     * ==================
+     */
+    static EntDieAdapter player_die = new EntDieAdapter() {
+        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+                int damage, float[] point) {
+            int n;
+    
+            Math3D.VectorClear(self.avelocity);
+    
+            self.takedamage = Defines.DAMAGE_YES;
+            self.movetype = Defines.MOVETYPE_TOSS;
+    
+            self.s.modelindex2 = 0; // remove linked weapon model
+    
+            self.s.angles[0] = 0;
+            self.s.angles[2] = 0;
+    
+            self.s.sound = 0;
+            self.client.weapon_sound = 0;
+    
+            self.maxs[2] = -8;
+    
+            //		self.solid = SOLID_NOT;
+            self.svflags |= Defines.SVF_DEADMONSTER;
+    
+            if (self.deadflag == 0) {
+                self.client.respawn_time = GameBase.level.time + 1.0f;
+                PlayerClient.LookAtKiller(self, inflictor, attacker);
+                self.client.ps.pmove.pm_type = Defines.PM_DEAD;
+                ClientObituary(self, inflictor, attacker);
+                PlayerClient.TossClientWeapon(self);
+                if (GameBase.deathmatch.value != 0)
+                    Cmd.Help_f(self); // show scores
+    
+                // clear inventory
+                // this is kind of ugly, but it's how we want to handle keys in
+                // coop
+                for (n = 0; n < GameBase.game.num_items; n++) {
+                    if (GameBase.coop.value != 0
+                            && (GameItems.itemlist[n].flags & Defines.IT_KEY) != 0)
+                        self.client.resp.coop_respawn.inventory[n] = self.client.pers.inventory[n];
+                    self.client.pers.inventory[n] = 0;
+                }
+            }
+    
+            // remove powerups
+            self.client.quad_framenum = 0;
+            self.client.invincible_framenum = 0;
+            self.client.breather_framenum = 0;
+            self.client.enviro_framenum = 0;
+            self.flags &= ~Defines.FL_POWER_ARMOR;
+    
+            if (self.health < -40) { // gib
+                GameBase.gi
+                        .sound(self, Defines.CHAN_BODY, GameBase.gi
+                                .soundindex("misc/udeath.wav"), 1,
+                                Defines.ATTN_NORM, 0);
+                for (n = 0; n < 4; n++)
+                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
+                            damage, Defines.GIB_ORGANIC);
+                GameMisc.ThrowClientHead(self, damage);
+    
+                self.takedamage = Defines.DAMAGE_NO;
+            } else { // normal death
+                if (self.deadflag == 0) {
+    
+                    player_die_i = (player_die_i + 1) % 3;
+                    // start a death animation
+                    self.client.anim_priority = Defines.ANIM_DEATH;
+                    if ((self.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                        self.s.frame = M_Player.FRAME_crdeath1 - 1;
+                        self.client.anim_end = M_Player.FRAME_crdeath5;
+                    } else
+                        switch (player_die_i) {
+                        case 0:
+                            self.s.frame = M_Player.FRAME_death101 - 1;
+                            self.client.anim_end = M_Player.FRAME_death106;
+                            break;
+                        case 1:
+                            self.s.frame = M_Player.FRAME_death201 - 1;
+                            self.client.anim_end = M_Player.FRAME_death206;
+                            break;
+                        case 2:
+                            self.s.frame = M_Player.FRAME_death301 - 1;
+                            self.client.anim_end = M_Player.FRAME_death308;
+                            break;
+                        }
+    
+                    GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
+                            .soundindex("*death" + ((Lib.rand() % 4) + 1)
+                                    + ".wav"), 1, Defines.ATTN_NORM, 0);
+                }
+            }
+    
+            self.deadflag = Defines.DEAD_DEAD;
+    
+            GameBase.gi.linkentity(self);
+        }
+    };
+    static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
+        public boolean think(edict_t self) {
+    
+            edict_t spot;
+            float[] d = { 0, 0, 0 };
+    
+            spot = null;
+            EdictIterator es = null;
+    
+            while (true) {
+                es = GameBase.G_Find(es, GameBase.findByClass,
+                        "info_player_start");
+    
+                if (es == null)
+                    return true;
+                
+                spot = es.o;
+                
+                if (spot.targetname == null)
+                    continue;
+                Math3D.VectorSubtract(self.s.origin, spot.s.origin, d);
+                if (Math3D.VectorLength(d) < 384) {
+                    if ((self.targetname == null)
+                            || Lib.Q_stricmp(self.targetname, spot.targetname) != 0) {
+                        //				gi.dprintf("FixCoopSpots changed %s at %s targetname
+                        // from %s to %s\n", self.classname,
+                        // vtos(self.s.origin), self.targetname,
+                        // spot.targetname);
+                        self.targetname = spot.targetname;
+                    }
+                    return true;
+                }
+            }
+        }
+    };
+    static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
+        public boolean think(edict_t self) {
+    
+            edict_t spot;
+    
+            if (Lib.Q_stricmp(GameBase.level.mapname, "security") == 0) {
+                spot = GameUtil.G_Spawn();
+                spot.classname = "info_player_coop";
+                spot.s.origin[0] = 188 - 64;
+                spot.s.origin[1] = -164;
+                spot.s.origin[2] = 80;
+                spot.targetname = "jail3";
+                spot.s.angles[1] = 90;
+    
+                spot = GameUtil.G_Spawn();
+                spot.classname = "info_player_coop";
+                spot.s.origin[0] = 188 + 64;
+                spot.s.origin[1] = -164;
+                spot.s.origin[2] = 80;
+                spot.targetname = "jail3";
+                spot.s.angles[1] = 90;
+    
+                spot = GameUtil.G_Spawn();
+                spot.classname = "info_player_coop";
+                spot.s.origin[0] = 188 + 128;
+                spot.s.origin[1] = -164;
+                spot.s.origin[2] = 80;
+                spot.targetname = "jail3";
+                spot.s.angles[1] = 90;
+            }
+            return true;
+        }
+    };
+    // player pain is handled at the end of the frame in P_DamageFeedback
+    static EntPainAdapter player_pain = new EntPainAdapter() {
+        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        }
+    };
+    static EntDieAdapter body_die = new EntDieAdapter() {
+        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+                int damage, float[] point) {
+    
+            int n;
+    
+            if (self.health < -40) {
+                GameBase.gi
+                        .sound(self, Defines.CHAN_BODY, GameBase.gi
+                                .soundindex("misc/udeath.wav"), 1,
+                                Defines.ATTN_NORM, 0);
+                for (n = 0; n < 4; n++)
+                    GameMisc.ThrowGib(self,
+                            "models/objects/gibs/sm_meat/tris.md2", damage,
+                            Defines.GIB_ORGANIC);
+                self.s.origin[2] -= 48;
+                GameMisc.ThrowClientHead(self, damage);
+                self.takedamage = Defines.DAMAGE_NO;
+            }
+        }
+    };
+    static edict_t pm_passent;
+    // pmove doesn't need to know about passent and contentmask
+    public static pmove_t.TraceAdapter PM_trace = new pmove_t.TraceAdapter() {
+    
+        public trace_t trace(float[] start, float[] mins, float[] maxs,
+                float[] end) {
+            if (pm_passent.health > 0)
+                return GameBase.gi.trace(start, mins, maxs, end, pm_passent,
+                        Defines.MASK_PLAYERSOLID);
+            else
+                return GameBase.gi.trace(start, mins, maxs, end, pm_passent,
+                        Defines.MASK_DEADSOLID);
+        }
+    
+    };
 
     /*
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
@@ -37,7 +254,7 @@ public class PlayerClient {
             return;
         if (Lib.Q_stricmp(GameBase.level.mapname, "security") == 0) {
             // invoke one of our gross, ugly, disgusting hacks
-            self.think = PlayerClientAdapters.SP_CreateCoopSpots;
+            self.think = PlayerClient.SP_CreateCoopSpots;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
         }
     }
@@ -80,7 +297,7 @@ public class PlayerClient {
                 || (Lib.Q_stricmp(GameBase.level.mapname, "power2") == 0)
                 || (Lib.Q_stricmp(GameBase.level.mapname, "strike") == 0)) {
             // invoke one of our gross, ugly, disgusting hacks
-            self.think = PlayerClientAdapters.SP_FixCoopSpots;
+            self.think = PlayerClient.SP_FixCoopSpots;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
         }
     }
@@ -155,17 +372,17 @@ public class PlayerClient {
                     break;
                 case Defines.MOD_HG_SPLASH:
                 case Defines.MOD_G_SPLASH:
-                    if (GameAI.IsNeutral(self))
+                    if (PlayerClient.IsNeutral(self))
                         message = "tripped on its own grenade";
-                    else if (GameAI.IsFemale(self))
+                    else if (PlayerClient.IsFemale(self))
                         message = "tripped on her own grenade";
                     else
                         message = "tripped on his own grenade";
                     break;
                 case Defines.MOD_R_SPLASH:
-                    if (GameAI.IsNeutral(self))
+                    if (PlayerClient.IsNeutral(self))
                         message = "blew itself up";
-                    else if (GameAI.IsFemale(self))
+                    else if (PlayerClient.IsFemale(self))
                         message = "blew herself up";
                     else
                         message = "blew himself up";
@@ -174,9 +391,9 @@ public class PlayerClient {
                     message = "should have used a smaller gun";
                     break;
                 default:
-                    if (GameAI.IsNeutral(self))
+                    if (PlayerClient.IsNeutral(self))
                         message = "killed itself";
-                    else if (GameAI.IsFemale(self))
+                    else if (PlayerClient.IsFemale(self))
                         message = "killed herself";
                     else
                         message = "killed himself";
@@ -286,24 +503,22 @@ public class PlayerClient {
             self.client.resp.score--;
     }
 
-    /*
-     * ================== player_die ==================
-     */
-
     //=======================================================================
     /*
-     * ============== InitClientPersistant
+     * ============== 
+     * InitClientPersistant
      * 
      * This is only called when the game first initializes in single player, but
-     * is called after each death and level change in deathmatch ==============
+     * is called after each death and level change in deathmatch 
+     * ==============
      */
     public static void InitClientPersistant(gclient_t client) {
         gitem_t item;
 
         client.pers = new client_persistant_t();
 
-        item = GameUtil.FindItem("Blaster");
-        client.pers.selected_item = GameUtil.ITEM_INDEX(item);
+        item = GameItems.FindItem("Blaster");
+        client.pers.selected_item = GameItems.ITEM_INDEX(item);
         client.pers.inventory[client.pers.selected_item] = 1;
 
         /*
@@ -335,11 +550,13 @@ public class PlayerClient {
     }
 
     /*
-     * ================== SaveClientData
+     * ================== 
+     * SaveClientData
      * 
      * Some information that should be persistant, like health, is still stored
      * in the edict structure, so it needs to be mirrored out to the client
-     * structure before all the edicts are wiped. ==================
+     * structure before all the edicts are wiped. 
+     * ==================
      */
     public static void SaveClientData() {
         int i;
@@ -369,7 +586,8 @@ public class PlayerClient {
     }
 
     /*
-     * ================ PlayersRangeFromSpot
+     * ================ 
+     * PlayersRangeFromSpot
      * 
      * Returns the distance to the nearest player from the given spot
      * ================
@@ -403,7 +621,8 @@ public class PlayerClient {
     }
 
     /*
-     * ================ SelectRandomDeathmatchSpawnPoint
+     * ================ 
+     * SelectRandomDeathmatchSpawnPoint
      * 
      * go to a random point, but NOT the two points closest to other players
      * ================
@@ -462,7 +681,8 @@ public class PlayerClient {
     }
 
     /*
-     * ================ SelectFarthestDeathmatchSpawnPoint
+     * ================ 
+     * SelectFarthestDeathmatchSpawnPoint
      * 
      * ================
      */
@@ -552,9 +772,11 @@ public class PlayerClient {
     }
 
     /*
-     * =========== SelectSpawnPoint
+     * =========== 
+     * SelectSpawnPoint
      * 
-     * Chooses a player start, deathmatch start, coop start, etc ============
+     * Chooses a player start, deathmatch start, coop start, etc 
+     * ============
      */
     public static void SelectSpawnPoint(edict_t ent, float[] origin,
             float[] angles) {
@@ -650,7 +872,7 @@ public class PlayerClient {
         body.owner = ent.owner;
         body.movetype = ent.movetype;
 
-        body.die = PlayerClientAdapters.body_die;
+        body.die = PlayerClient.body_die;
         body.takedamage = Defines.DAMAGE_YES;
 
         GameBase.gi.linkentity(body);
@@ -850,8 +1072,8 @@ public class PlayerClient {
         ent.air_finished = GameBase.level.time + 12;
         ent.clipmask = Defines.MASK_PLAYERSOLID;
         ent.model = "players/male/tris.md2";
-        ent.pain = PlayerClientAdapters.player_pain;
-        ent.die = GameAI.player_die;
+        ent.pain = PlayerClient.player_pain;
+        ent.die = PlayerClient.player_die;
         ent.waterlevel = 0;
         ent.watertype = 0;
         ent.flags &= ~Defines.FL_NO_KNOCKBACK;
@@ -930,14 +1152,16 @@ public class PlayerClient {
 
         // force the current weapon up
         client.newweapon = client.pers.weapon;
-        GamePWeapon.ChangeWeapon(ent);
+        PlayerWeapon.ChangeWeapon(ent);
     }
 
     /*
-     * ===================== ClientBeginDeathmatch
+     * ===================== 
+     * ClientBeginDeathmatch
      * 
      * A client has just connected to the server in deathmatch mode, so clear
-     * everything out before starting them. =====================
+     * everything out before starting them. 
+     * =====================
      */
     public static void ClientBeginDeathmatch(edict_t ent) {
         GameUtil.G_InitEdict(ent, ent.index);
@@ -966,10 +1190,12 @@ public class PlayerClient {
     }
 
     /*
-     * =========== ClientBegin
+     * =========== 
+     * ClientBegin
      * 
      * called when a client has finished connecting, and is ready to be placed
-     * into the game. This will happen every level load. ============
+     * into the game. This will happen every level load. 
+     * ============
      */
     public static void ClientBegin(edict_t ent) {
         int i;
@@ -1022,12 +1248,14 @@ public class PlayerClient {
     }
 
     /*
-     * =========== ClientUserInfoChanged
+     * =========== 
+     * ClientUserInfoChanged
      * 
      * called whenever the player updates a userinfo variable.
      * 
      * The game can override any of the settings in place (forcing skins or
-     * names, etc) before copying it off. ============
+     * names, etc) before copying it off. 
+     * ============
      */
     public static String ClientUserinfoChanged(edict_t ent, String userinfo) {
         String s;
@@ -1086,13 +1314,15 @@ public class PlayerClient {
     }
 
     /*
-     * =========== ClientConnect
+     * =========== 
+     * ClientConnect
      * 
      * Called when a player begins connecting to the server. The game can refuse
      * entrance to a client by returning false. If the client is allowed, the
      * connection process will continue and eventually get to ClientBegin()
      * Changing levels will NOT cause this to be called again, but loadgames
-     * will. ============
+     * will. 
+     * ============
      */
     public static boolean ClientConnect(edict_t ent, String userinfo) {
         String value;
@@ -1160,10 +1390,12 @@ public class PlayerClient {
     }
 
     /*
-     * =========== ClientDisconnect
+     * =========== 
+     * ClientDisconnect
      * 
      * Called when a player drops from the server. Will not be called between
-     * levels. ============
+     * levels. 
+     * ============
      */
     public static void ClientDisconnect(edict_t ent) {
         int playernum;
@@ -1202,10 +1434,12 @@ public class PlayerClient {
      */
 
     /*
-     * ============== ClientThink
+     * ============== 
+     * ClientThink
      * 
      * This will be called once for each client frame, which will usually be a
-     * couple times for each server frame. ==============
+     * couple times for each server frame. 
+     * ==============
      */
     public static void ClientThink(edict_t ent, usercmd_t ucmd) {
         gclient_t client;
@@ -1225,7 +1459,7 @@ public class PlayerClient {
             return;
         }
 
-        PlayerClientAdapters.pm_passent = ent;
+        PlayerClient.pm_passent = ent;
 
         if (ent.client.chase_target != null) {
 
@@ -1264,7 +1498,7 @@ public class PlayerClient {
             // this should be a copy
             pm.cmd.set(ucmd);
 
-            pm.trace = PlayerClientAdapters.PM_trace; // adds default parms
+            pm.trace = PlayerClient.PM_trace; // adds default parms
             pm.pointcontents = GameBase.gi.pointcontents;
 
             // perform a pmove
@@ -1290,7 +1524,7 @@ public class PlayerClient {
                     && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
                 GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
                         .soundindex("*jump1.wav"), 1, Defines.ATTN_NORM, 0);
-                GameWeapon.PlayerNoise(ent, ent.s.origin, Defines.PNOISE_SELF);
+                PlayerWeapon.PlayerNoise(ent, ent.s.origin, Defines.PNOISE_SELF);
             }
 
             ent.viewheight = (int) pm.viewheight;
@@ -1347,11 +1581,11 @@ public class PlayerClient {
                     client.chase_target = null;
                     client.ps.pmove.pm_flags &= ~pmove_t.PMF_NO_PREDICTION;
                 } else
-                    GameAI.GetChaseTarget(ent);
+                    GameChase.GetChaseTarget(ent);
 
             } else if (!client.weapon_thunk) {
                 client.weapon_thunk = true;
-                GamePWeapon.Think_Weapon(ent);
+                PlayerWeapon.Think_Weapon(ent);
             }
         }
 
@@ -1360,9 +1594,9 @@ public class PlayerClient {
                 if (0 == (client.ps.pmove.pm_flags & pmove_t.PMF_JUMP_HELD)) {
                     client.ps.pmove.pm_flags |= pmove_t.PMF_JUMP_HELD;
                     if (client.chase_target != null)
-                        GameAI.ChaseNext(ent);
+                        GameChase.ChaseNext(ent);
                     else
-                        GameAI.GetChaseTarget(ent);
+                        GameChase.GetChaseTarget(ent);
                 }
             } else
                 client.ps.pmove.pm_flags &= ~pmove_t.PMF_JUMP_HELD;
@@ -1372,15 +1606,17 @@ public class PlayerClient {
         for (i = 1; i <= GameBase.maxclients.value; i++) {
             other = GameBase.g_edicts[i];
             if (other.inuse && other.client.chase_target == ent)
-                GameAI.UpdateChaseCam(other);
+                GameChase.UpdateChaseCam(other);
         }
     }
 
     /*
-     * ============== ClientBeginServerFrame
+     * ============== 
+     * ClientBeginServerFrame
      * 
      * This will be called once for each server frame, before running any other
-     * entities in the world. ==============
+     * entities in the world. 
+     * ==============
      */
     public static void ClientBeginServerFrame(edict_t ent) {
         gclient_t client;
@@ -1400,7 +1636,7 @@ public class PlayerClient {
 
         // run weapon animations if it hasn't been done by a ucmd_t
         if (!client.weapon_thunk && !client.resp.spectator)
-            GamePWeapon.Think_Weapon(ent);
+            PlayerWeapon.Think_Weapon(ent);
         else
             client.weapon_thunk = false;
 
@@ -1428,5 +1664,119 @@ public class PlayerClient {
                 PlayerTrail.Add(ent.s.old_origin);
 
         client.latched_buttons = 0;
+    }
+
+    /** Returns true, if the players gender flag was set to female . */
+    public static boolean IsFemale(edict_t ent) {
+        char info;
+    
+        if (null == ent.client)
+            return false;
+    
+        info = Info.Info_ValueForKey(ent.client.pers.userinfo, "gender")
+                .charAt(0);
+        if (info == 'f' || info == 'F')
+            return true;
+        return false;
+    }
+
+    /**
+     * Returns true, if the players gender flag was neither set to female nor to
+     * male.
+     */
+    public static boolean IsNeutral(edict_t ent) {
+        char info;
+    
+        if (ent.client == null)
+            return false;
+    
+        info = Info.Info_ValueForKey(ent.client.pers.userinfo, "gender")
+                .charAt(0);
+    
+        if (info != 'f' && info != 'F' && info != 'm' && info != 'M')
+            return true;
+        return false;
+    }
+
+    /*
+     * ================== 
+     * LookAtKiller 
+     * ==================
+     */
+    public static void LookAtKiller(edict_t self, edict_t inflictor,
+            edict_t attacker) {
+        float dir[] = { 0, 0, 0 };
+    
+        edict_t world = GameBase.g_edicts[0];
+    
+        if (attacker != null && attacker != world && attacker != self) {
+            Math3D.VectorSubtract(attacker.s.origin, self.s.origin, dir);
+        } else if (inflictor != null && inflictor != world && inflictor != self) {
+            Math3D.VectorSubtract(inflictor.s.origin, self.s.origin, dir);
+        } else {
+            self.client.killer_yaw = self.s.angles[Defines.YAW];
+            return;
+        }
+    
+        if (dir[0] != 0)
+            self.client.killer_yaw = (float) (180 / Math.PI * Math.atan2(
+                    dir[1], dir[0]));
+        else {
+            self.client.killer_yaw = 0;
+            if (dir[1] > 0)
+                self.client.killer_yaw = 90;
+            else if (dir[1] < 0)
+                self.client.killer_yaw = -90;
+        }
+        if (self.client.killer_yaw < 0)
+            self.client.killer_yaw += 360;
+    
+    }
+
+    public static void TossClientWeapon(edict_t self) {
+        gitem_t item;
+        edict_t drop;
+        boolean quad;
+        float spread;
+    
+        if (GameBase.deathmatch.value == 0)
+            return;
+    
+        item = self.client.pers.weapon;
+        if (0 == self.client.pers.inventory[self.client.ammo_index])
+            item = null;
+        if (item != null && (Lib.strcmp(item.pickup_name, "Blaster") == 0))
+            item = null;
+    
+        if (0 == ((int) (GameBase.dmflags.value) & Defines.DF_QUAD_DROP))
+            quad = false;
+        else
+            quad = (self.client.quad_framenum > (GameBase.level.framenum + 10));
+    
+        if (item != null && quad)
+            spread = 22.5f;
+        else
+            spread = 0.0f;
+    
+        if (item != null) {
+            self.client.v_angle[Defines.YAW] -= spread;
+            drop = GameItems.Drop_Item(self, item);
+            self.client.v_angle[Defines.YAW] += spread;
+            drop.spawnflags = Defines.DROPPED_PLAYER_ITEM;
+        }
+    
+        if (quad) {
+            self.client.v_angle[Defines.YAW] += spread;
+            drop = GameItems.Drop_Item(self, GameItems
+                    .FindItemByClassname("item_quad"));
+            self.client.v_angle[Defines.YAW] -= spread;
+            drop.spawnflags |= Defines.DROPPED_PLAYER_ITEM;
+    
+            drop.touch = GameItems.Touch_Item;
+            drop.nextthink = GameBase.level.time
+                    + (self.client.quad_framenum - GameBase.level.framenum)
+                    * Defines.FRAMETIME;
+            drop.think = GameUtil.G_FreeEdictA;
+        }
     }
 }

@@ -19,7 +19,7 @@
  */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.8 2005-02-13 17:03:43 cawe Exp $
+// $Id: GameSave.java,v 1.9 2005-11-16 22:24:52 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -118,7 +118,7 @@ public class GameSave {
         GameBase.sv_maplist = GameBase.gi.cvar("sv_maplist", "", 0);
 
         // items
-        GameAI.InitItems();
+        GameItems.InitItems();
 
         GameBase.game.helpmessage1 = "";
         GameBase.game.helpmessage2 = "";

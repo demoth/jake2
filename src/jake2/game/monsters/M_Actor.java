@@ -19,10 +19,11 @@
  */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
+// $Id: M_Actor.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntPainAdapter;
 import jake2.game.EntThinkAdapter;
@@ -1297,13 +1298,13 @@ public class M_Actor {
                 //		 gi.sound (self, CHAN_VOICE, actor.sound_gib, 1, ATTN_NORM,
                 // 0);
                 for (n = 0; n < 2; n++)
-                    GameAI.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
+                    GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
                             damage, Defines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
-                GameAI.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
+                GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
                         damage, Defines.GIB_ORGANIC);
                 self.deadflag = Defines.DEAD_DEAD;
                 return;

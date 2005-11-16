@@ -19,15 +19,15 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Gladiator.java,v 1.2 2005-02-06 18:48:18 salomo Exp $
+// $Id: M_Gladiator.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntInteractAdapter;
 import jake2.game.EntPainAdapter;
 import jake2.game.EntThinkAdapter;
-import jake2.game.Fire;
 import jake2.game.GameAI;
 import jake2.game.GameBase;
 import jake2.game.GameUtil;
@@ -359,7 +359,7 @@ public class M_Gladiator {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], -4);
-            if (Fire.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
+            if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
                 GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
                         1, Defines.ATTN_NORM, 0);
             else
@@ -570,13 +570,13 @@ public class M_Gladiator {
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
-                    GameAI.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
+                    GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
                             damage, Defines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
-                GameAI.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
+                GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
                         damage, Defines.GIB_ORGANIC);
                 self.deadflag = Defines.DEAD_DEAD;
                 return;

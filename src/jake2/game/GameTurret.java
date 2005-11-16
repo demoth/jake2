@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.4 2005-02-06 19:03:54 salomo Exp $
+// $Id: GameTurret.java,v 1.5 2005-11-16 22:24:53 salomo Exp $
 package jake2.game;
 
 import jake2.*;
@@ -79,7 +79,7 @@ public class GameTurret {
 
         damage = (int) (100 + Lib.random() * 50);
         speed = (int) (550 + 50 * GameBase.skill.value);
-        Fire.fire_rocket(self.teammaster.owner, start, f, damage, speed, 150,
+        GameWeapon.fire_rocket(self.teammaster.owner, start, f, damage, speed, 150,
                 damage);
         GameBase.gi.positioned_sound(start, self, Defines.CHAN_WEAPON,
                 GameBase.gi.soundindex("weapons/rocklf1a.wav"), 1,
@@ -111,9 +111,9 @@ public class GameTurret {
         self.ideal_yaw = self.s.angles[Defines.YAW];
         self.move_angles[Defines.YAW] = self.ideal_yaw;
 
-        self.blocked = GameTurret.turret_blocked;
+        self.blocked = turret_blocked;
 
-        self.think = GameTurret.turret_breach_finish_init;
+        self.think = turret_breach_finish_init;
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
         GameBase.gi.linkentity(self);
     }
@@ -127,7 +127,7 @@ public class GameTurret {
         self.solid = Defines.SOLID_BSP;
         self.movetype = Defines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
-        self.blocked = GameTurret.turret_blocked;
+        self.blocked = turret_blocked;
         GameBase.gi.linkentity(self);
     }
 
@@ -149,7 +149,7 @@ public class GameTurret {
         self.mass = 200;
         self.viewheight = 24;
 
-        self.die = GameTurret.turret_driver_die;
+        self.die = turret_driver_die;
         self.monsterinfo.stand = M_Infantry.infantry_stand;
 
         self.flags |= Defines.FL_NO_KNOCKBACK;
@@ -165,14 +165,14 @@ public class GameTurret {
         self.monsterinfo.aiflags |= Defines.AI_STAND_GROUND | Defines.AI_DUCKED;
 
         if (GameBase.st.item != null) {
-            self.item = GameUtil.FindItemByClassname(GameBase.st.item);
+            self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
                 GameBase.gi.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + GameBase.st.item + "\n");
         }
 
-        self.think = GameTurret.turret_driver_link;
+        self.think = turret_driver_link;
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
 
         GameBase.gi.linkentity(self);
@@ -188,7 +188,7 @@ public class GameTurret {
                     attacker = self.teammaster.owner;
                 else
                     attacker = self.teammaster;
-                GameUtil.T_Damage(other, self, attacker, Globals.vec3_origin,
+                GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
                         self.teammaster.dmg, 10, 0, Defines.MOD_CRUSH);
             }
@@ -203,9 +203,9 @@ public class GameTurret {
             float[] delta = { 0, 0, 0 };
 
             Math3D.VectorCopy(self.s.angles, current_angles);
-            GameTurret.AnglesNormalize(current_angles);
+            AnglesNormalize(current_angles);
 
-            GameTurret.AnglesNormalize(self.move_angles);
+            AnglesNormalize(self.move_angles);
             if (self.move_angles[Defines.PITCH] > 180)
                 self.move_angles[Defines.PITCH] -= 360;
 
@@ -304,7 +304,7 @@ public class GameTurret {
                 self.owner.velocity[2] = diff * 1.0f / Defines.FRAMETIME;
 
                 if ((self.spawnflags & 65536) != 0) {
-                    GameTurret.turret_breach_fire(self);
+                    turret_breach_fire(self);
                     self.spawnflags &= ~65536;
                 }
             }
@@ -436,11 +436,10 @@ public class GameTurret {
 
             Math3D.VectorSubtract(self.s.origin, self.target_ent.s.origin, vec);
             Math3D.vectoangles(vec, vec);
-            GameTurret.AnglesNormalize(vec);
+            AnglesNormalize(vec);
+            
             self.move_origin[1] = vec[1];
-
-            self.move_origin[2] = self.s.origin[2]
-                    - self.target_ent.s.origin[2];
+            self.move_origin[2] = self.s.origin[2] - self.target_ent.s.origin[2];
 
             // add the driver to the end of them team chain
             for (ent = self.target_ent.teammaster; ent.teamchain != null; ent = ent.teamchain)

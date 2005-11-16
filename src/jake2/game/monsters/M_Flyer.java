@@ -19,15 +19,15 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flyer.java,v 1.2 2005-02-06 18:48:17 salomo Exp $
+// $Id: M_Flyer.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntInteractAdapter;
 import jake2.game.EntPainAdapter;
 import jake2.game.EntThinkAdapter;
-import jake2.game.Fire;
 import jake2.game.GameAI;
 import jake2.game.GameBase;
 import jake2.game.GameUtil;
@@ -756,7 +756,7 @@ public class M_Flyer {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 0);
-            Fire.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0);
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -768,7 +768,7 @@ public class M_Flyer {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.maxs[0], 0);
-            Fire.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0);
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -905,7 +905,7 @@ public class M_Flyer {
                 int damage, float[] point) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            GameAI.BecomeExplosion1(self);
+            GameMisc.BecomeExplosion1(self);
         }
     };
 

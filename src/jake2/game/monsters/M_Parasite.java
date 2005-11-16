@@ -19,11 +19,12 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Parasite.java,v 1.2 2005-02-06 18:48:16 salomo Exp $
+// $Id: M_Parasite.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.game.*;
 import jake2.game.EntDieAdapter;
 import jake2.game.EntInteractAdapter;
 import jake2.game.EntPainAdapter;
@@ -625,7 +626,7 @@ public class M_Parasite {
             GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
 
             Math3D.VectorSubtract(start, end, dir);
-            GameUtil.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
+            GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, damage, 0,
                     Defines.DAMAGE_NO_KNOCKBACK, Defines.MOD_UNKNOWN);
             return true;
@@ -748,13 +749,13 @@ public class M_Parasite {
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
-                    GameAI.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
+                    GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
                             damage, Defines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
-                    GameAI.ThrowGib(self,
+                    GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
-                GameAI.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
+                GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
                         damage, Defines.GIB_ORGANIC);
                 self.deadflag = Defines.DEAD_DEAD;
                 return;

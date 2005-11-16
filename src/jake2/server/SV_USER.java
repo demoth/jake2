@@ -19,7 +19,7 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.8 2005-02-06 19:28:16 salomo Exp $
+// $Id: SV_USER.java,v 1.9 2005-11-16 22:24:53 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -531,7 +531,7 @@ public class SV_USER {
         }
 
         if (i == SV_USER.ucmds.length && SV_INIT.sv.state == Defines.ss_game)
-            GameAI.ClientCommand(SV_USER.sv_player);
+            Cmd.ClientCommand(SV_USER.sv_player);
 
         //	SV_EndRedirect ();
     }

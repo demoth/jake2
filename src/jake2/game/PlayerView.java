@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerView.java,v 1.3 2005-02-06 19:13:56 salomo Exp $
+// $Id: PlayerView.java,v 1.4 2005-11-16 22:24:52 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -41,7 +41,8 @@ public class PlayerView {
     public static float[] up = { 0, 0, 0 };
 
     /*
-     * =============== SV_CalcRoll
+     * =============== 
+     * SV_CalcRoll
      * 
      * ===============
      */
@@ -65,9 +66,11 @@ public class PlayerView {
     }
 
     /*
-     * =============== P_DamageFeedback
+     * =============== 
+     * P_DamageFeedback
      * 
-     * Handles color blends and view kicks ===============
+     * Handles color blends and view kicks 
+     * ===============
      */
 
     public static void P_DamageFeedback(edict_t player) {
@@ -158,6 +161,8 @@ public class PlayerView {
 
         // the color of the blend will vary based on how much was absorbed
         // by different armors
+        //
+        
         Math3D.VectorClear(v);
         if (client.damage_parmor != 0)
             Math3D.VectorMA(v, (float) client.damage_parmor / realcount,
@@ -208,7 +213,8 @@ public class PlayerView {
     }
 
     /*
-     * =============== SV_CalcViewOffset
+     * =============== 
+     * SV_CalcViewOffset
      * 
      * Auto pitching on slopes?
      * 
@@ -335,7 +341,9 @@ public class PlayerView {
     }
 
     /*
-     * ============== SV_CalcGunOffset ==============
+     * ============== 
+     * SV_CalcGunOffset 
+     * ==============
      */
     public static void SV_CalcGunOffset(edict_t ent) {
         int i;
@@ -380,7 +388,9 @@ public class PlayerView {
     }
 
     /*
-     * ============= SV_AddBlend =============
+     * ============= 
+     * SV_AddBlend 
+     * =============
      */
     public static void SV_AddBlend(float r, float g, float b, float a,
             float v_blend[]) {
@@ -398,7 +408,9 @@ public class PlayerView {
     }
 
     /*
-     * ============= SV_CalcBlend =============
+     * ============= 
+     * SV_CalcBlend 
+     * =============
      */
     public static void SV_CalcBlend(edict_t ent) {
         int contents;
@@ -482,7 +494,9 @@ public class PlayerView {
     }
 
     /*
-     * ================= P_FallingDamage =================
+     * ================= 
+     * P_FallingDamage 
+     * =================
      */
     public static void P_FallingDamage(edict_t ent) {
         float delta;
@@ -543,7 +557,7 @@ public class PlayerView {
 
             if (GameBase.deathmatch.value == 0
                     || 0 == ((int) GameBase.dmflags.value & Defines.DF_NO_FALLING))
-                GameUtil.T_Damage(ent, GameBase.g_edicts[0],
+                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], dir, ent.s.origin,
                         Globals.vec3_origin, damage, 0, 0, Defines.MOD_FALLING);
         } else {
@@ -553,7 +567,9 @@ public class PlayerView {
     }
 
     /*
-     * ============= P_WorldEffects =============
+     * ============= 
+     * P_WorldEffects 
+     * =============
      */
     public static void P_WorldEffects() {
         boolean breather;
@@ -577,7 +593,7 @@ public class PlayerView {
         // if just entered a water volume, play a sound
         //
         if (old_waterlevel == 0 && waterlevel != 0) {
-            GameWeapon.PlayerNoise(current_player, current_player.s.origin,
+            PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                     Defines.PNOISE_SELF);
             if ((current_player.watertype & Defines.CONTENTS_LAVA) != 0)
                 GameBase.gi.sound(current_player, Defines.CHAN_BODY,
@@ -601,7 +617,7 @@ public class PlayerView {
         // if just completely exited a water volume, play a sound
         //
         if (old_waterlevel != 0 && waterlevel == 0) {
-            GameWeapon.PlayerNoise(current_player, current_player.s.origin,
+            PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                     Defines.PNOISE_SELF);
             GameBase.gi
                     .sound(current_player, Defines.CHAN_BODY, GameBase.gi
@@ -627,7 +643,7 @@ public class PlayerView {
                 GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
                         GameBase.gi.soundindex("player/gasp1.wav"), 1,
                         Defines.ATTN_NORM, 0);
-                GameWeapon.PlayerNoise(current_player, current_player.s.origin,
+                PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                         Defines.PNOISE_SELF);
             } else if (current_player.air_finished < GameBase.level.time + 11) { // just
                                                                                  // break
@@ -656,7 +672,7 @@ public class PlayerView {
                                 GameBase.gi.soundindex("player/u_breath2.wav"),
                                 1, Defines.ATTN_NORM, 0);
                     current_client.breather_sound ^= 1;
-                    GameWeapon.PlayerNoise(current_player,
+                    PlayerWeapon.PlayerNoise(current_player,
                             current_player.s.origin, Defines.PNOISE_SELF);
                     //FIXME: release a bubble?
                 }
@@ -689,7 +705,7 @@ public class PlayerView {
 
                     current_player.pain_debounce_time = GameBase.level.time;
 
-                    GameUtil.T_Damage(current_player, GameBase.g_edicts[0],
+                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             current_player.dmg, 0, Defines.DAMAGE_NO_ARMOR,
@@ -722,12 +738,12 @@ public class PlayerView {
                 }
 
                 if (envirosuit) // take 1/3 damage with envirosuit
-                    GameUtil.T_Damage(current_player, GameBase.g_edicts[0],
+                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             1 * waterlevel, 0, 0, Defines.MOD_LAVA);
                 else
-                    GameUtil.T_Damage(current_player, GameBase.g_edicts[0],
+                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             3 * waterlevel, 0, 0, Defines.MOD_LAVA);
@@ -735,7 +751,7 @@ public class PlayerView {
 
             if ((current_player.watertype & Defines.CONTENTS_SLIME) != 0) {
                 if (!envirosuit) { // no damage from slime with envirosuit
-                    GameUtil.T_Damage(current_player, GameBase.g_edicts[0],
+                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             1 * waterlevel, 0, 0, Defines.MOD_SLIME);
@@ -745,7 +761,9 @@ public class PlayerView {
     }
 
     /*
-     * =============== G_SetClientEffects ===============
+     * =============== 
+     * G_SetClientEffects 
+     * ===============
      */
     public static void G_SetClientEffects(edict_t ent) {
         int pa_type;
@@ -758,7 +776,7 @@ public class PlayerView {
             return;
 
         if (ent.powerarmor_time > GameBase.level.time) {
-            pa_type = GameUtil.PowerArmorType(ent);
+            pa_type = GameItems.PowerArmorType(ent);
             if (pa_type == Defines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
             } else if (pa_type == Defines.POWER_ARMOR_SHIELD) {
@@ -789,7 +807,9 @@ public class PlayerView {
     }
 
     /*
-     * =============== G_SetClientEvent ===============
+     * =============== 
+     * G_SetClientEvent 
+     * ===============
      */
     public static void G_SetClientEvent(edict_t ent) {
         if (ent.s.event != 0)
@@ -802,7 +822,9 @@ public class PlayerView {
     }
 
     /*
-     * =============== G_SetClientSound ===============
+     * =============== 
+     * G_SetClientSound 
+     * ===============
      */
     public static void G_SetClientSound(edict_t ent) {
         String weap;
@@ -840,7 +862,9 @@ public class PlayerView {
     }
 
     /*
-     * =============== G_SetClientFrame ===============
+     * =============== 
+     * G_SetClientFrame 
+     * ===============
      */
     public static void G_SetClientFrame(edict_t ent) {
         gclient_t client;
@@ -927,10 +951,12 @@ public class PlayerView {
     }
 
     /*
-     * ================= ClientEndServerFrame
+     * ================= 
+     * ClientEndServerFrame
      * 
      * Called for each player at the end of the server frame and right after
-     * spawning =================
+     * spawning 
+     * =================
      */
     public static void ClientEndServerFrame(edict_t ent) {
         float bobtime;

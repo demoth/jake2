@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.6 2004-10-07 14:13:07 hzi Exp $
+ * $Id: M.java,v 1.7 2005-11-16 22:24:53 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -49,7 +49,7 @@ public final class M {
             return;
         }
 
-        //	   if the hull point one-quarter unit down is solid the entity is on
+        // if the hull point one-quarter unit down is solid the entity is on
         // ground
         point[0] = ent.s.origin[0];
         point[1] = ent.s.origin[1];
@@ -64,10 +64,10 @@ public final class M {
             return;
         }
 
-        //		ent.groundentity = trace.ent;
-        //		ent.groundentity_linkcount = trace.ent.linkcount;
-        //		if (!trace.startsolid && !trace.allsolid)
-        //			VectorCopy (trace.endpos, ent.s.origin);
+        // ent.groundentity = trace.ent;
+        // ent.groundentity_linkcount = trace.ent.linkcount;
+        // if (!trace.startsolid && !trace.allsolid)
+        //   VectorCopy (trace.endpos, ent.s.origin);
         if (!trace.startsolid && !trace.allsolid) {
             Math3D.VectorCopy(trace.endpos, ent.s.origin);
             ent.groundentity = trace.ent;
@@ -144,8 +144,8 @@ public final class M {
     }
 
     /*
-     * =============== M_ChangeYaw
-     * 
+     * =============== 
+     * M_ChangeYaw
      * ===============
      *///ok
     public static void M_ChangeYaw(edict_t ent) {
@@ -181,8 +181,10 @@ public final class M {
     }
 
     /*
-     * ====================== M_MoveToGoal ======================
-     */// ok
+     * ====================== 
+     * M_MoveToGoal 
+     * ======================
+     */
     public static void M_MoveToGoal(edict_t ent, float dist) {
         edict_t goal = ent.goalentity;
 
@@ -203,7 +205,9 @@ public final class M {
     }
 
     /*
-     * =============== M_walkmove ===============
+     * =============== 
+     * M_walkmove 
+     * ===============
      */
     public static boolean M_walkmove(edict_t ent, float yaw, float dist) {
         float[] move = { 0, 0, 0 };
@@ -267,7 +271,7 @@ public final class M {
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameUtil.T_Damage(ent, GameBase.g_edicts[0],
+                        GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                                 GameBase.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, Defines.MOD_WATER);
@@ -284,7 +288,7 @@ public final class M {
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameUtil.T_Damage(ent, GameBase.g_edicts[0],
+                        GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                                 GameBase.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, Defines.MOD_WATER);
@@ -308,7 +312,7 @@ public final class M {
                 && 0 == (ent.flags & Defines.FL_IMMUNE_LAVA)) {
             if (ent.damage_debounce_time < GameBase.level.time) {
                 ent.damage_debounce_time = GameBase.level.time + 0.2f;
-                GameUtil.T_Damage(ent, GameBase.g_edicts[0],
+                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 10 * ent.waterlevel,
                         0, 0, Defines.MOD_LAVA);
@@ -318,7 +322,7 @@ public final class M {
                 && 0 == (ent.flags & Defines.FL_IMMUNE_SLIME)) {
             if (ent.damage_debounce_time < GameBase.level.time) {
                 ent.damage_debounce_time = GameBase.level.time + 1;
-                GameUtil.T_Damage(ent, GameBase.g_edicts[0],
+                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 4 * ent.waterlevel,
                         0, 0, Defines.MOD_SLIME);
@@ -446,79 +450,6 @@ public final class M {
 
         if (move.frame[index].think != null)
             move.frame[index].think.think(self);
-    }
-
-    public static void M_ReactToDamage(edict_t targ, edict_t attacker) {
-        if ((null != attacker.client)
-                && 0 != (attacker.svflags & Defines.SVF_MONSTER))
-            return;
-
-        if (attacker == targ || attacker == targ.enemy)
-            return;
-
-        // if we are a good guy monster and our attacker is a player
-        // or another good guy, do not get mad at them
-        if (0 != (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
-            if (attacker.client != null
-                    || (attacker.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0)
-                return;
-        }
-
-        // we now know that we are not both good guys
-
-        // if attacker is a client, get mad at them because he's good and we're
-        // not
-        if (attacker.client != null) {
-            targ.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
-
-            // this can only happen in coop (both new and old enemies are
-            // clients)
-            // only switch if can't see the current enemy
-            if (targ.enemy != null && targ.enemy.client != null) {
-                if (GameUtil.visible(targ, targ.enemy)) {
-                    targ.oldenemy = attacker;
-                    return;
-                }
-                targ.oldenemy = targ.enemy;
-            }
-            targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
-                GameUtil.FoundTarget(targ);
-            return;
-        }
-
-        // it's the same base (walk/swim/fly) type and a different classname and
-        // it's not a tank
-        // (they spray too much), get mad at them
-        if (((targ.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == (attacker.flags & (Defines.FL_FLY | Defines.FL_SWIM)))
-                && (!(targ.classname.equals(attacker.classname)))
-                && (!(attacker.classname.equals("monster_tank")))
-                && (!(attacker.classname.equals("monster_supertank")))
-                && (!(attacker.classname.equals("monster_makron")))
-                && (!(attacker.classname.equals("monster_jorg")))) {
-            if (targ.enemy != null && targ.enemy.client != null)
-                targ.oldenemy = targ.enemy;
-            targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
-                GameUtil.FoundTarget(targ);
-        }
-        // if they *meant* to shoot us, then shoot back
-        else if (attacker.enemy == targ) {
-            if (targ.enemy != null && targ.enemy.client != null)
-                targ.oldenemy = targ.enemy;
-            targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
-                GameUtil.FoundTarget(targ);
-        }
-        // otherwise get mad at whoever they are mad at (help our buddy) unless
-        // it is us!
-        else if (attacker.enemy != null && attacker.enemy != targ) {
-            if (targ.enemy != null && targ.enemy.client != null)
-                targ.oldenemy = targ.enemy;
-            targ.enemy = attacker.enemy;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
-                GameUtil.FoundTarget(targ);
-        }
     }
 
     /** Stops the Flies. */
