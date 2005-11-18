@@ -143,7 +143,8 @@
 			<include name="*.png"/>
 			<include name="mirrors"/>
 		</jar>
-        <condition property="classes" value="${java.home}/../Classes/classes.jar" else="${java.home}/lib/rt.jar">
+		<property name="classes" value="${java.home}/lib/rt.jar"/>
+        <condition property="classes" value="${java.home}/../Classes/classes.jar">
             <os name="Mac OS X"/>
         </condition> 		
 		<!-- proguard printseeds="on" printusage="off" outjar="${dist}/lib/jake2.jar"
