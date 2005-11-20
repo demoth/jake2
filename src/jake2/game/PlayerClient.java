@@ -20,7 +20,7 @@
 
 // Created on 28.12.2003 by RST.
 
-// $Id: PlayerClient.java,v 1.10 2005-11-16 22:24:52 salomo Exp $
+// $Id: PlayerClient.java,v 1.11 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -39,6 +39,7 @@ public class PlayerClient {
      * ==================
      */
     static EntDieAdapter player_die = new EntDieAdapter() {
+    	public String getID() { return "player_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
             int n;
@@ -75,7 +76,7 @@ public class PlayerClient {
                 // coop
                 for (n = 0; n < GameBase.game.num_items; n++) {
                     if (GameBase.coop.value != 0
-                            && (GameItems.itemlist[n].flags & Defines.IT_KEY) != 0)
+                            && (GameItemList.itemlist[n].flags & Defines.IT_KEY) != 0)
                         self.client.resp.coop_respawn.inventory[n] = self.client.pers.inventory[n];
                     self.client.pers.inventory[n] = 0;
                 }
@@ -136,6 +137,7 @@ public class PlayerClient {
         }
     };
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
+    	public String getID() { return "SP_FixCoopSpots"; }
         public boolean think(edict_t self) {
     
             edict_t spot;
@@ -171,6 +173,7 @@ public class PlayerClient {
         }
     };
     static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
+    	public String getID() { return "SP_CreateCoopSpots"; }
         public boolean think(edict_t self) {
     
             edict_t spot;
@@ -205,10 +208,12 @@ public class PlayerClient {
     };
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
+    	public String getID() { return "player_pain"; }
         public void pain(edict_t self, edict_t other, float kick, int damage) {
         }
     };
     static EntDieAdapter body_die = new EntDieAdapter() {
+    	public String getID() { return "body_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
     

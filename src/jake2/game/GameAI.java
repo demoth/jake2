@@ -20,7 +20,7 @@
 
 // Created on 02.11.2003 by RST.
 
-// $Id: GameAI.java,v 1.8 2005-11-16 22:24:53 salomo Exp $
+// $Id: GameAI.java,v 1.9 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -357,6 +357,7 @@ public class GameAI {
     }
 
     public static EntThinkAdapter walkmonster_start_go = new EntThinkAdapter() {
+        public String getID() { return "walkmonster_start_go"; }
         public boolean think(edict_t self) {
 
             if (0 == (self.spawnflags & 2) && GameBase.level.time < 1) {
@@ -381,6 +382,8 @@ public class GameAI {
     };
 
     public static EntThinkAdapter walkmonster_start = new EntThinkAdapter() {
+        public String getID() { return "walkmonster_start";} 
+        
         public boolean think(edict_t self) {
 
             self.think = walkmonster_start_go;
@@ -390,6 +393,7 @@ public class GameAI {
     };
 
     public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
+        public String getID() { return "flymonster_start_go";}
         public boolean think(edict_t self) {
             if (!M.M_walkmove(self, 0, 0))
                 GameBase.gi.dprintf(self.classname + " in solid at "
@@ -408,6 +412,7 @@ public class GameAI {
     };
 
     public static EntThinkAdapter flymonster_start = new EntThinkAdapter() {
+        public String getID() { return "flymonster_start";}        
         public boolean think(edict_t self) {
             self.flags |= Defines.FL_FLY;
             self.think = flymonster_start_go;
@@ -417,6 +422,7 @@ public class GameAI {
     };
 
     public static EntThinkAdapter swimmonster_start_go = new EntThinkAdapter() {
+        public String getID() { return "swimmonster_start_go";}
         public boolean think(edict_t self) {
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;
@@ -431,6 +437,7 @@ public class GameAI {
     };
 
     public static EntThinkAdapter swimmonster_start = new EntThinkAdapter() {
+        public String getID() { return "swimmonster_start";}
         public boolean think(edict_t self) {
             self.flags |= Defines.FL_SWIM;
             self.think = swimmonster_start_go;
@@ -443,9 +450,11 @@ public class GameAI {
      * ============= ai_turn
      * 
      * don't move, but turn towards ideal_yaw Distance is for slight position
-     * adjustments needed by the animations =============
+     * adjustments needed by the animations 
+     * =============
      */
     public static AIAdapter ai_turn = new AIAdapter() {
+        public String getID() { return "ai_turn";}
         public void ai(edict_t self, float dist) {
 
             if (dist != 0)
@@ -467,6 +476,7 @@ public class GameAI {
      * ==============
      */
     public static AIAdapter ai_move = new AIAdapter() {
+        public String getID() { return "ai_move";}
         public void ai(edict_t self, float dist) {
             M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
         }
@@ -480,6 +490,7 @@ public class GameAI {
      * =============
      */
     public static AIAdapter ai_walk = new AIAdapter() {
+        public String getID() { return "ai_walk";}
         public void ai(edict_t self, float dist) {
             if (self.index == 312)
                 self.index = 312;
@@ -514,6 +525,7 @@ public class GameAI {
      */
 
     public static AIAdapter ai_stand = new AIAdapter() {
+        public String getID() { return "ai_stand";}
         public void ai(edict_t self, float dist) {
             float[] v = { 0, 0, 0 };
 
@@ -569,7 +581,7 @@ public class GameAI {
      * ==============
      */
     public static AIAdapter ai_charge = new AIAdapter() {
-
+        public String getID() { return "ai_charge";}
         public void ai(edict_t self, float dist) {
             float[] v = { 0, 0, 0 };
 
@@ -590,6 +602,7 @@ public class GameAI {
      * =============
      */
     public static AIAdapter ai_run = new AIAdapter() {
+        public String getID() { return "ai_run";}
         public void ai(edict_t self, float dist) {
             float[] v = { 0, 0, 0 };
 

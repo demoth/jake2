@@ -19,11 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: ItemDropAdapter.java,v 1.1 2004-07-07 19:59:07 hzi Exp $
+// $Id: ItemDropAdapter.java,v 1.2 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
-public class ItemDropAdapter extends SuperAdapter {
-	void drop(edict_t ent, gitem_t item) {
+public abstract class ItemDropAdapter extends SuperAdapter {
+	public void drop(edict_t ent, gitem_t item) {
 	}
 }

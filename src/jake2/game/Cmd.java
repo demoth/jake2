@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.15 2005-11-16 22:24:52 salomo Exp $
+ * $Id: Cmd.java,v 1.16 2005-11-20 22:18:33 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -503,7 +503,7 @@ public final class Cmd {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItems.itemlist[i];
+                it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & Defines.IT_WEAPON))
@@ -516,7 +516,7 @@ public final class Cmd {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItems.itemlist[i];
+                it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & Defines.IT_AMMO))
@@ -559,7 +559,7 @@ public final class Cmd {
 
         if (give_all) {
             for (i = 1; i < GameBase.game.num_items; i++) {
-                it = GameItems.itemlist[i];
+                it = GameItemList.itemlist[i];
                 if (it.pickup != null)
                     continue;
                 if ((it.flags & (Defines.IT_ARMOR | Defines.IT_WEAPON | Defines.IT_AMMO)) != 0)
@@ -798,7 +798,7 @@ public final class Cmd {
             return;
         }
 
-        it = GameItems.itemlist[ent.client.pers.selected_item];
+        it = GameItemList.itemlist[ent.client.pers.selected_item];
         if (it.use == null) {
             SV_GAME
                     .PF_cprintf(ent, Defines.PRINT_HIGH,
@@ -834,7 +834,7 @@ public final class Cmd {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            it = GameItems.itemlist[index];
+            it = GameItemList.itemlist[index];
             if (it.use == null)
                 continue;
 
@@ -875,7 +875,7 @@ public final class Cmd {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameItems.itemlist[index];
+            it = GameItemList.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & Defines.IT_WEAPON))
@@ -906,7 +906,7 @@ public final class Cmd {
         index = GameItems.ITEM_INDEX(cl.pers.lastweapon);
         if (0 == cl.pers.inventory[index])
             return;
-        it = GameItems.itemlist[index];
+        it = GameItemList.itemlist[index];
         if (null == it.use)
             return;
         if (0 == (it.flags & Defines.IT_WEAPON))
@@ -931,7 +931,7 @@ public final class Cmd {
             return;
         }
 
-        it = GameItems.itemlist[ent.client.pers.selected_item];
+        it = GameItemList.itemlist[ent.client.pers.selected_item];
         if (it.drop == null) {
             SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH,
                     "Item is not dropable.\n");

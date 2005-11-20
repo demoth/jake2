@@ -20,7 +20,7 @@
 
 // Created on 01.11.2003 by RST.
 
-// $Id: GameUtil.java,v 1.13 2005-11-16 22:24:52 salomo Exp $
+// $Id: GameUtil.java,v 1.14 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -579,6 +579,7 @@ public class GameUtil {
     }
 
     public static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
+    	public String getID() { return "Think_Delay"; }
         public boolean think(edict_t ent) {
             G_UseTargets(ent, ent.activator);
             G_FreeEdict(ent);
@@ -587,6 +588,7 @@ public class GameUtil {
     };
 
     public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
+    	public String getID() { return "G_FreeEdictA"; }
         public boolean think(edict_t ent) {
             G_FreeEdict(ent);
             return false;
@@ -594,6 +596,7 @@ public class GameUtil {
     };
 
     static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
+    	public String getID() { return "MegaHealth_think"; }
         public boolean think(edict_t self) {
             if (self.owner.health > self.owner.max_health) {
                 self.nextthink = GameBase.level.time + 1;
@@ -638,6 +641,7 @@ public class GameUtil {
     //	}
     //	============================================================================
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
+    	public String getID() { return "M_CheckAttack"; }
 
         public boolean think(edict_t self) {
             float[] spot1 = { 0, 0, 0 };
@@ -723,6 +727,7 @@ public class GameUtil {
     };
 
     static EntUseAdapter monster_use = new EntUseAdapter() {
+    	public String getID() { return "monster_use"; }
         public void use(edict_t self, edict_t other, edict_t activator) {
             if (self.enemy != null)
                 return;

@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Gladiator.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+// $Id: M_Gladiator.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -245,6 +245,7 @@ public class M_Gladiator {
     static int sound_sight;
 
     static EntThinkAdapter gladiator_idle = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_idle"; }
         public boolean think(edict_t self) {
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
@@ -254,6 +255,7 @@ public class M_Gladiator {
     };
 
     static EntInteractAdapter gladiator_sight = new EntInteractAdapter() {
+    	public String getID() { return "gladiator_sight"; }
         public boolean interact(edict_t self, edict_t other) {
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
@@ -263,6 +265,7 @@ public class M_Gladiator {
     };
 
     static EntThinkAdapter gladiator_search = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_search"; }
         public boolean think(edict_t self) {
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
@@ -272,6 +275,7 @@ public class M_Gladiator {
     };
 
     static EntThinkAdapter gladiator_cleaver_swing = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_cleaver_swing"; }
         public boolean think(edict_t self) {
 
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
@@ -293,6 +297,7 @@ public class M_Gladiator {
             FRAME_stand7, gladiator_frames_stand, null);
 
     static EntThinkAdapter gladiator_stand = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_stand"; }
         public boolean think(edict_t self) {
 
             self.monsterinfo.currentmove = gladiator_move_stand;
@@ -322,6 +327,7 @@ public class M_Gladiator {
             gladiator_frames_walk, null);
 
     static EntThinkAdapter gladiator_walk = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_walk"; }
         public boolean think(edict_t self) {
 
             self.monsterinfo.currentmove = gladiator_move_walk;
@@ -342,6 +348,7 @@ public class M_Gladiator {
             gladiator_frames_run, null);
 
     static EntThinkAdapter gladiator_run = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_run"; }
         public boolean think(edict_t self) {
 
             if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
@@ -354,6 +361,7 @@ public class M_Gladiator {
     };
 
     static EntThinkAdapter GaldiatorMelee = new EntThinkAdapter() {
+    	public String getID() { return "GaldiatorMelee"; }
         public boolean think(edict_t self) {
 
             float[] aim = { 0, 0, 0 };
@@ -392,6 +400,7 @@ public class M_Gladiator {
             FRAME_melee17, gladiator_frames_attack_melee, gladiator_run);
 
     static EntThinkAdapter gladiator_melee = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_melee"; }
         public boolean think(edict_t self) {
 
             self.monsterinfo.currentmove = gladiator_move_attack_melee;
@@ -400,6 +409,7 @@ public class M_Gladiator {
     };
 
     static EntThinkAdapter GladiatorGun = new EntThinkAdapter() {
+    	public String getID() { return "GladiatorGun"; }
         public boolean think(edict_t self) {
 
             float[] start = { 0, 0, 0 };
@@ -440,6 +450,7 @@ public class M_Gladiator {
             FRAME_attack9, gladiator_frames_attack_gun, gladiator_run);
 
     static EntThinkAdapter gladiator_attack = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_attack"; }
         public boolean think(edict_t self) {
 
             float range;
@@ -486,6 +497,7 @@ public class M_Gladiator {
             FRAME_painup7, gladiator_frames_pain_air, gladiator_run);
 
     static EntPainAdapter gladiator_pain = new EntPainAdapter() {
+    	public String getID() { return "gladiator_pain"; }
         public void pain(edict_t self, edict_t other, float kick, int damage) {
 
             if (self.health < (self.max_health / 2))
@@ -519,6 +531,7 @@ public class M_Gladiator {
     };
 
     static EntThinkAdapter gladiator_dead = new EntThinkAdapter() {
+    	public String getID() { return "gladiator_dead"; }
         public boolean think(edict_t self) {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
@@ -559,6 +572,7 @@ public class M_Gladiator {
             FRAME_death22, gladiator_frames_death, gladiator_dead);
 
     static EntDieAdapter gladiator_die = new EntDieAdapter() {
+    	public String getID() { return "gladiator_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
             int n;

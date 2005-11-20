@@ -19,7 +19,7 @@
  */
 
 // Created on 11.11.2003 by RST.
-// $Id: M_Actor.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+// $Id: M_Actor.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -1014,6 +1014,7 @@ public class M_Actor {
             "Adrianator", "Rambear", "Titus", "Bitterman" };
 
     static EntThinkAdapter actor_stand = new EntThinkAdapter() {
+        public String getID() { return "actor_stand";}
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = actor_move_stand;
 
@@ -1088,6 +1089,7 @@ public class M_Actor {
             actor_frames_walk, null);
 
     static EntThinkAdapter actor_walk = new EntThinkAdapter() {
+        public String getID() { return "actor_walk";}
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = actor_move_walk;
             return true;
@@ -1112,6 +1114,7 @@ public class M_Actor {
             actor_frames_run, null);
 
     static EntThinkAdapter actor_run = new EntThinkAdapter() {
+        public String getID() { return "actor_run";}
         public boolean think(edict_t self) {
             if ((GameBase.level.time < self.pain_debounce_time)
                     && (self.enemy == null)) {
@@ -1202,6 +1205,7 @@ public class M_Actor {
             "Check your targets" };
 
     static EntPainAdapter actor_pain = new EntPainAdapter() {
+        public String getID() { return "actor_pain";}
         public void pain(edict_t self, edict_t other, float kick, int damage) {
 
             int n;
@@ -1247,6 +1251,7 @@ public class M_Actor {
     };
 
     static EntThinkAdapter actor_dead = new EntThinkAdapter() {
+        public String getID() { return "actor_dead";}
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -1289,6 +1294,7 @@ public class M_Actor {
             FRAME_death213, actor_frames_death2, actor_dead);
 
     static EntDieAdapter actor_die = new EntDieAdapter() {
+        public String getID() { return "actor_die";}
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
             int n;
@@ -1327,6 +1333,7 @@ public class M_Actor {
     };
 
     static EntThinkAdapter actor_fire = new EntThinkAdapter() {
+        public String getID() { return "actor_fire";}
         public boolean think(edict_t self) {
             actorMachineGun(self);
 
@@ -1349,6 +1356,7 @@ public class M_Actor {
             FRAME_attak04, actor_frames_attack, actor_run);
 
     static EntThinkAdapter actor_attack = new EntThinkAdapter() {
+        public String getID() { return "actor_attack";}
         public boolean think(edict_t self) {
             int n;
 
@@ -1362,6 +1370,7 @@ public class M_Actor {
     };
 
     static EntUseAdapter actor_use = new EntUseAdapter() {
+        public String getID() { return "actor_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             float v[] = { 0, 0, 0 };
 
@@ -1401,6 +1410,7 @@ public class M_Actor {
      */
 
     static EntTouchAdapter target_actor_touch = new EntTouchAdapter() {
+        public String getID() { return "target_actor_touch";}
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             float v[] = { 0, 0, 0 };

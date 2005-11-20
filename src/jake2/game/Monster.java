@@ -19,7 +19,7 @@
  */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.6 2005-11-16 22:24:53 salomo Exp $
+// $Id: Monster.java,v 1.7 2005-11-20 22:18:33 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -294,6 +294,7 @@ public class Monster {
     }
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
+        public String getID() { return "monster_think";}
         public boolean think(edict_t self) {
 
             M.M_MoveFrame(self);
@@ -309,6 +310,7 @@ public class Monster {
     };
 
     public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
+        public String getID() { return "monster_trigger_spawn";}
         public boolean think(edict_t self) {
 
             self.s.origin[2] += 1;
@@ -335,7 +337,7 @@ public class Monster {
     //	we have a one frame delay here so we don't telefrag the guy who activated
     // us
     public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
-
+        public String getID() { return "monster_trigger_spawn_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.think = monster_triggered_spawn;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
@@ -346,6 +348,7 @@ public class Monster {
     };
 
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
+        public String getID() { return "monster_triggered_start";}
         public boolean think(edict_t self) {
             if (self.index == 312)
                 Com.Printf("monster_triggered_start\n");

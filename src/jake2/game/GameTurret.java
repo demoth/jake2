@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.5 2005-11-16 22:24:53 salomo Exp $
+// $Id: GameTurret.java,v 1.6 2005-11-20 22:18:34 salomo Exp $
 package jake2.game;
 
 import jake2.*;
@@ -179,7 +179,7 @@ public class GameTurret {
     }
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
-
+    	public String getID() { return "turret_blocked"; }
         public void blocked(edict_t self, edict_t other) {
             edict_t attacker;
 
@@ -196,6 +196,7 @@ public class GameTurret {
     };
 
     static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {
+    	public String getID() { return "turret_breach_think"; }
         public boolean think(edict_t self) {
 
             edict_t ent;
@@ -313,6 +314,7 @@ public class GameTurret {
     };
 
     static EntThinkAdapter turret_breach_finish_init = new EntThinkAdapter() {
+    	public String getID() { return "turret_breach_finish_init"; }
         public boolean think(edict_t self) {
 
             // get and save info for muzzle location
@@ -339,6 +341,7 @@ public class GameTurret {
      * turret_breach.
      */
     static EntDieAdapter turret_driver_die = new EntDieAdapter() {
+    	public String getID() { return "turret_driver_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
 
@@ -364,6 +367,7 @@ public class GameTurret {
     };
 
     static EntThinkAdapter turret_driver_think = new EntThinkAdapter() {
+    	public String getID() { return "turret_driver_think"; }
         public boolean think(edict_t self) {
 
             float[] target = { 0, 0, 0 };
@@ -416,6 +420,7 @@ public class GameTurret {
     };
 
     public static EntThinkAdapter turret_driver_link = new EntThinkAdapter() {
+    	public String getID() { return "turret_driver_link"; }
         public boolean think(edict_t self) {
 
             float[] vec = { 0, 0, 0 };

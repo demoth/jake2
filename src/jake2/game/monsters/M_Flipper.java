@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Flipper.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+// $Id: M_Flipper.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -386,6 +386,7 @@ public class M_Flipper {
             FRAME_flphor01, flipper_frames_stand, null);
 
     static EntThinkAdapter flipper_stand = new EntThinkAdapter() {
+    	public String getID() { return "flipper_stand"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_stand;
             return true;
@@ -429,6 +430,7 @@ public class M_Flipper {
             FRAME_flpver29, flipper_frames_run, null);
 
     static EntThinkAdapter flipper_run_loop = new EntThinkAdapter() {
+    	public String getID() { return "flipper_run_loop"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_run_loop;
             return true;
@@ -447,6 +449,7 @@ public class M_Flipper {
             FRAME_flpver06, flipper_frames_run_start, flipper_run_loop);
 
     static EntThinkAdapter flipper_run = new EntThinkAdapter() {
+    	public String getID() { return "flipper_run"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_run_start;
             return true;
@@ -484,6 +487,7 @@ public class M_Flipper {
             FRAME_flphor24, flipper_frames_walk, null);
 
     static EntThinkAdapter flipper_walk = new EntThinkAdapter() {
+    	public String getID() { return "flipper_walk"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_walk;
             return true;
@@ -501,6 +505,7 @@ public class M_Flipper {
             FRAME_flphor05, flipper_frames_start_run, null);
 
     static EntThinkAdapter flipper_start_run = new EntThinkAdapter() {
+    	public String getID() { return "flipper_start_run"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_start_run;
             return true;
@@ -528,6 +533,7 @@ public class M_Flipper {
             FRAME_flppn205, flipper_frames_pain1, flipper_run);
 
     static EntThinkAdapter flipper_bite = new EntThinkAdapter() {
+    	public String getID() { return "flipper_bite"; }
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
@@ -538,6 +544,7 @@ public class M_Flipper {
     };
 
     static EntThinkAdapter flipper_preattack = new EntThinkAdapter() {
+    	public String getID() { return "flipper_preattack"; }
 
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_chomp, 1,
@@ -572,6 +579,7 @@ public class M_Flipper {
             FRAME_flpbit20, flipper_frames_attack, flipper_run);
 
     static EntThinkAdapter flipper_melee = new EntThinkAdapter() {
+    	public String getID() { return "flipper_melee"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = flipper_move_attack;
             return true;
@@ -579,6 +587,7 @@ public class M_Flipper {
     };
 
     static EntPainAdapter flipper_pain = new EntPainAdapter() {
+    	public String getID() { return "flipper_pain"; }
         public void pain(edict_t self, edict_t other, float kick, int damage) {
             int n;
 
@@ -608,6 +617,7 @@ public class M_Flipper {
     };
 
     static EntThinkAdapter flipper_dead = new EntThinkAdapter() {
+    	public String getID() { return "flipper_dead"; }
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -681,6 +691,7 @@ public class M_Flipper {
             FRAME_flpdth56, flipper_frames_death, flipper_dead);
 
     static EntInteractAdapter flipper_sight = new EntInteractAdapter() {
+    	public String getID() { return "flipper_sight"; }
         public boolean interact(edict_t self, edict_t other) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
@@ -689,6 +700,7 @@ public class M_Flipper {
     };
 
     static EntDieAdapter flipper_die = new EntDieAdapter() {
+    	public String getID() { return "flipper_die"; }
 
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on on 12.11.2003 by RST.
-// $Id: GameWeapon.java,v 1.5 2005-11-16 22:24:52 salomo Exp $
+// $Id: GameWeapon.java,v 1.6 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -37,6 +37,7 @@ import jake2.util.Math3D;
 public class GameWeapon {
 
     static EntTouchAdapter blaster_touch = new EntTouchAdapter() {
+    	public String getID() { return "blaster_touch"; }
     
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -87,6 +88,7 @@ public class GameWeapon {
     };
     
     static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
+    	public String getID() { return "Grenade_Explode"; }
         public boolean think(edict_t ent) {
             float[] origin = { 0, 0, 0 };
             int mod;
@@ -146,6 +148,7 @@ public class GameWeapon {
         }
     };
     static EntTouchAdapter Grenade_Touch = new EntTouchAdapter() {
+    	public String getID() { return "Grenade_Touch"; }
         public void touch(edict_t ent, edict_t other, cplane_t plane,
                 csurface_t surf) {
             if (other == ent.owner)
@@ -185,6 +188,7 @@ public class GameWeapon {
      * =================
      */
     static EntTouchAdapter rocket_touch = new EntTouchAdapter() {
+    	public String  getID() { return "rocket_touch"; }
         public void touch(edict_t ent, edict_t other, cplane_t plane,
                 csurface_t surf) {
             float[] origin = { 0, 0, 0 };
@@ -245,6 +249,7 @@ public class GameWeapon {
      * =================
      */
     static EntThinkAdapter bfg_explode = new EntThinkAdapter() {
+    	public String getID() { return "bfg_explode"; }
         public boolean think(edict_t self) {
             edict_t ent;
             float points;
@@ -297,6 +302,7 @@ public class GameWeapon {
     };
     
     static EntTouchAdapter bfg_touch = new EntTouchAdapter() {
+    	public String getID() { return "bfg_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             if (other == self.owner)
@@ -343,6 +349,7 @@ public class GameWeapon {
     };
     
     static EntThinkAdapter bfg_think = new EntThinkAdapter() {
+    	public String getID() { return "bfg_think"; }
         public boolean think(edict_t self) {
             edict_t ent;
             edict_t ignore;

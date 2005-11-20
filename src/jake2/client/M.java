@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.7 2005-11-16 22:24:53 salomo Exp $
+ * $Id: M.java,v 1.8 2005-11-20 22:18:34 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -356,6 +356,7 @@ public final class M {
     }
 
     public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
+        public String getID() { return "m_drop_to_floor";}
         public boolean think(edict_t ent) {
             float[] end = { 0, 0, 0 };
             trace_t trace;
@@ -454,6 +455,7 @@ public final class M {
 
     /** Stops the Flies. */
     public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
+        public String getID() { return "m_fliesoff";}
         public boolean think(edict_t self) {
             self.s.effects &= ~Defines.EF_FLIES;
             self.s.sound = 0;
@@ -463,6 +465,7 @@ public final class M {
 
     /** Starts the Flies as setting the animation flag in the entity. */
     public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
+        public String getID() { return "m_flies_on";}
         public boolean think(edict_t self) {
             if (self.waterlevel != 0)
                 return true;
@@ -477,6 +480,7 @@ public final class M {
 
     /** Adds some flies after a random time */
     public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
+        public String getID() { return "m_fly_check";}
         public boolean think(edict_t self) {
 
             if (self.waterlevel != 0)

@@ -20,7 +20,7 @@
 
 // Created on 27.12.2003 by RST.
 
-// $Id: GameTrigger.java,v 1.5 2005-11-16 22:24:52 salomo Exp $
+// $Id: GameTrigger.java,v 1.6 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -243,6 +243,7 @@ public class GameTrigger {
 
     // the wait time has passed, so set back up for another activation
     public static EntThinkAdapter multi_wait = new EntThinkAdapter() {
+    	public String getID(){ return "multi_wait"; }
         public boolean think(edict_t ent) {
 
             ent.nextthink = 0;
@@ -251,6 +252,7 @@ public class GameTrigger {
     };
 
     static EntUseAdapter Use_Multi = new EntUseAdapter() {
+    	public String getID(){ return "Use_Multi"; }
         public void use(edict_t ent, edict_t other, edict_t activator) {
             ent.activator = activator;
             multi_trigger(ent);
@@ -258,6 +260,7 @@ public class GameTrigger {
     };
 
     static EntTouchAdapter Touch_Multi = new EntTouchAdapter() {
+    	public String getID(){ return "Touch_Multi"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             if (other.client != null) {
@@ -290,6 +293,7 @@ public class GameTrigger {
      * 1) secret 2) beep beep 3) large switch 4) set "message" to text string
      */
     static EntUseAdapter trigger_enable = new EntUseAdapter() {
+    	public String getID(){ return "trigger_enable"; }
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.solid = Defines.SOLID_TRIGGER;
             self.use = Use_Multi;
@@ -302,6 +306,7 @@ public class GameTrigger {
      * trigger cannot be touched, it can only be fired by other events.
      */
     public static EntUseAdapter trigger_relay_use = new EntUseAdapter() {
+    	public String getID(){ return "trigger_relay_use"; }
         public void use(edict_t self, edict_t other, edict_t activator) {
             GameUtil.G_UseTargets(self, activator);
         }
@@ -322,6 +327,7 @@ public class GameTrigger {
      */
 
     static EntUseAdapter trigger_key_use = new EntUseAdapter() {
+    	public String getID(){ return "trigger_key_use"; }
         public void use(edict_t self, edict_t other, edict_t activator) {
             int index;
 
@@ -406,6 +412,7 @@ public class GameTrigger {
      * fire all of it's targets and remove itself.
      */
     static EntUseAdapter trigger_counter_use = new EntUseAdapter() {
+    	public String getID(){ return "trigger_counter_use"; }
 
         public void use(edict_t self, edict_t other, edict_t activator) {
             if (self.count == 0)
@@ -447,6 +454,7 @@ public class GameTrigger {
     public static int windsound;
 
     static EntTouchAdapter trigger_push_touch = new EntTouchAdapter() {
+    	public String getID(){ return "trigger_push_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             if (Lib.strcmp(other.classname, "grenade") == 0) {
@@ -492,6 +500,7 @@ public class GameTrigger {
      *  
      */
     static EntUseAdapter hurt_use = new EntUseAdapter() {
+    	public String getID(){ return "hurt_use"; }
 
         public void use(edict_t self, edict_t other, edict_t activator) {
             if (self.solid == Defines.SOLID_NOT)
@@ -506,6 +515,7 @@ public class GameTrigger {
     };
 
     static EntTouchAdapter hurt_touch = new EntTouchAdapter() {
+    	public String getID(){ return "hurt_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             int dflags;
@@ -551,6 +561,7 @@ public class GameTrigger {
      */
 
     static EntTouchAdapter trigger_gravity_touch = new EntTouchAdapter() {
+    	public String getID(){ return "trigger_gravity_touch"; }
 
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -574,6 +585,7 @@ public class GameTrigger {
      */
 
     static EntTouchAdapter trigger_monsterjump_touch = new EntTouchAdapter() {
+    	public String getID(){ return "trigger_monsterjump_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
             if ((other.flags & (Defines.FL_FLY | Defines.FL_SWIM)) != 0)

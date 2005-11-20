@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Infantry.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+// $Id: M_Infantry.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -510,6 +510,7 @@ public class M_Infantry {
             FRAME_stand71, infantry_frames_stand, null);
 
     public static EntThinkAdapter infantry_stand = new EntThinkAdapter() {
+    	public String getID() { return "infantry_stand"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = infantry_move_stand;
             return true;
@@ -571,6 +572,7 @@ public class M_Infantry {
             FRAME_stand49, infantry_frames_fidget, infantry_stand);
 
     static EntThinkAdapter infantry_fidget = new EntThinkAdapter() {
+    	public String getID() { return "infantry_fidget"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = infantry_move_fidget;
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
@@ -597,6 +599,7 @@ public class M_Infantry {
             infantry_frames_walk, null);
 
     static EntThinkAdapter infantry_walk = new EntThinkAdapter() {
+    	public String getID() { return "infantry_walk"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = infantry_move_walk;
             return true;
@@ -617,6 +620,7 @@ public class M_Infantry {
             infantry_frames_run, null);
 
     static EntThinkAdapter infantry_run = new EntThinkAdapter() {
+    	public String getID() { return "infantry_run"; }
         public boolean think(edict_t self) {
             if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = infantry_move_stand;
@@ -657,6 +661,7 @@ public class M_Infantry {
             FRAME_pain210, infantry_frames_pain2, infantry_run);
 
     static EntPainAdapter infantry_pain = new EntPainAdapter() {
+    	public String getID() { return "infantry_pain"; }
         public void pain(edict_t self, edict_t other, float kick, int damage) {
 
             int n;
@@ -694,6 +699,7 @@ public class M_Infantry {
             { 90.0f, 35.0f, 0.0f } };
 
     static EntThinkAdapter InfantryMachineGun = new EntThinkAdapter() {
+    	public String getID() { return "InfantryMachineGun"; }
         public boolean think(edict_t self) {
             float[] start = { 0, 0, 0 }, target = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -738,6 +744,7 @@ public class M_Infantry {
     };
 
     static EntInteractAdapter infantry_sight = new EntInteractAdapter() {
+    	public String getID() { return "infantry_sight"; }
         public boolean interact(edict_t self, edict_t other) {
             GameBase.gi.sound(self, Defines.CHAN_BODY, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
@@ -748,6 +755,7 @@ public class M_Infantry {
     ///
 
     static EntThinkAdapter infantry_dead = new EntThinkAdapter() {
+    	public String getID() { return "infantry_dead"; }
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -831,6 +839,7 @@ public class M_Infantry {
             FRAME_death309, infantry_frames_death3, infantry_dead);
 
     public static EntDieAdapter infantry_die = new EntDieAdapter() {
+    	public String getID() { return "infantry_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
 
@@ -880,6 +889,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_duck_down = new EntThinkAdapter() {
+    	public String getID() { return "infantry_duck_down"; }
         public boolean think(edict_t self) {
             if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
                 return true;
@@ -893,6 +903,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_duck_hold = new EntThinkAdapter() {
+    	public String getID() { return "infantry_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
@@ -903,6 +914,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_duck_up = new EntThinkAdapter() {
+    	public String getID() { return "infantry_duck_up"; }
         public boolean think(edict_t self) {
             self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
             self.maxs[2] += 32;
@@ -923,6 +935,7 @@ public class M_Infantry {
             infantry_frames_duck, infantry_run);
 
     static EntDodgeAdapter infantry_dodge = new EntDodgeAdapter() {
+    	public String getID() { return "infantry_dodge"; }
         public void dodge(edict_t self, edict_t attacker, float eta) {
             if (Lib.random() > 0.25)
                 return;
@@ -935,6 +948,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_cock_gun = new EntThinkAdapter() {
+    	public String getID() { return "infantry_cock_gun"; }
         public boolean think(edict_t self) {
             int n;
 
@@ -948,6 +962,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_fire = new EntThinkAdapter() {
+    	public String getID() { return "infantry_fire"; }
         public boolean think(edict_t self) {
             InfantryMachineGun.think(self);
 
@@ -980,6 +995,7 @@ public class M_Infantry {
             FRAME_attak115, infantry_frames_attack1, infantry_run);
 
     static EntThinkAdapter infantry_swing = new EntThinkAdapter() {
+    	public String getID() { return "infantry_swing"; }
 
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_punch_swing, 1,
@@ -989,6 +1005,7 @@ public class M_Infantry {
     };
 
     static EntThinkAdapter infantry_smack = new EntThinkAdapter() {
+    	public String getID() { return "infantry_smack"; }
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
@@ -1014,6 +1031,7 @@ public class M_Infantry {
             FRAME_attak208, infantry_frames_attack2, infantry_run);
 
     static EntThinkAdapter infantry_attack = new EntThinkAdapter() {
+    	public String getID() { return "infantry_attack"; }
         public boolean think(edict_t self) {
             if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE)
                 self.monsterinfo.currentmove = infantry_move_attack2;

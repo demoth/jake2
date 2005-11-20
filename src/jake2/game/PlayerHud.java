@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerHud.java,v 1.8 2005-11-16 22:24:52 salomo Exp $
+// $Id: PlayerHud.java,v 1.9 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -110,10 +110,10 @@ public class PlayerHud {
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (n = 1; n < GameItems.itemlist.length; n++) {
+                    for (n = 1; n < GameItemList.itemlist.length; n++) {
                         // null pointer exception fixed. (RST) 
-                        if (GameItems.itemlist[n] != null)
-                            if ((GameItems.itemlist[n].flags & Defines.IT_KEY) != 0)
+                        if (GameItemList.itemlist[n] != null)
+                            if ((GameItemList.itemlist[n].flags & Defines.IT_KEY) != 0)
                                 client.client.pers.inventory[n] = 0;
                     }
                 }
@@ -316,7 +316,7 @@ public class PlayerHud {
             ent.client.ps.stats[Defines.STAT_AMMO_ICON] = 0;
             ent.client.ps.stats[Defines.STAT_AMMO] = 0;
         } else {
-            item = GameItems.itemlist[ent.client.ammo_index];
+            item = GameItemList.itemlist[ent.client.ammo_index];
             ent.client.ps.stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gi
                     .imageindex(item.icon);
             ent.client.ps.stats[Defines.STAT_AMMO] = (short) ent.client.pers.inventory[ent.client.ammo_index];
@@ -403,7 +403,7 @@ public class PlayerHud {
             ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = 0;
         else
             ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gi
-                    .imageindex(GameItems.itemlist[ent.client.pers.selected_item].icon);
+                    .imageindex(GameItemList.itemlist[ent.client.pers.selected_item].icon);
 
         ent.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) ent.client.pers.selected_item;
 

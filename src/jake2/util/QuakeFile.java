@@ -20,7 +20,7 @@
 
 // Created on 24.07.2004 by RST.
 
-// $Id: QuakeFile.java,v 1.5 2005-11-16 22:24:53 salomo Exp $
+// $Id: QuakeFile.java,v 1.6 2005-11-20 22:18:34 salomo Exp $
 
 package jake2.util;
 
@@ -156,7 +156,7 @@ public class QuakeFile extends RandomAccessFile {
         if (ndx == -1)
             return null;
         else
-            return GameItems.itemlist[ndx];
+            return GameItemList.itemlist[ndx];
     }
 
 }

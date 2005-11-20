@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Insane.java,v 1.3 2005-11-16 22:24:52 salomo Exp $
+// $Id: M_Insane.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -614,6 +614,7 @@ public class M_Insane {
     static int sound_scream[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
     static EntThinkAdapter insane_fist = new EntThinkAdapter() {
+    	public String getID() { return "insane_fist"; }
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_fist, 1,
                     Defines.ATTN_IDLE, 0);
@@ -622,6 +623,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_shake = new EntThinkAdapter() {
+    	public String getID() { return "insane_shake"; }
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_shake, 1,
                     Defines.ATTN_IDLE, 0);
@@ -630,6 +632,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_moan = new EntThinkAdapter() {
+    	public String getID() { return "insane_moan"; }
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_moan, 1,
                     Defines.ATTN_IDLE, 0);
@@ -638,6 +641,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_scream = new EntThinkAdapter() {
+    	public String getID() { return "insane_scream"; }
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE,
                     sound_scream[Lib.rand() % 8], 1, Defines.ATTN_IDLE, 0);
@@ -646,6 +650,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_cross = new EntThinkAdapter() {
+    	public String getID() { return "insane_cross"; }
         public boolean think(edict_t self) {
             if (Lib.random() < 0.8)
                 self.monsterinfo.currentmove = insane_move_cross;
@@ -656,6 +661,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_walk = new EntThinkAdapter() {
+    	public String getID() { return "insane_walk"; }
         public boolean think(edict_t self) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
@@ -673,6 +679,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_run = new EntThinkAdapter() {
+    	public String getID() { return "insane_run"; }
         public boolean think(edict_t self) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
@@ -690,6 +697,7 @@ public class M_Insane {
     };
 
     static EntPainAdapter insane_pain = new EntPainAdapter() {
+    	public String getID() { return "insane_pain"; }
         public void pain(edict_t self, edict_t other, float kick, int damage) {
             int l, r;
 
@@ -732,6 +740,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_onground = new EntThinkAdapter() {
+    	public String getID() { return "insane_onground"; }
         public boolean think(edict_t self) {
             self.monsterinfo.currentmove = insane_move_down;
             return true;
@@ -739,6 +748,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_checkdown = new EntThinkAdapter() {
+    	public String getID() { return "insane_checkdown"; }
         public boolean think(edict_t self) {
             //			if ( (self.s.frame == FRAME_stand94) || (self.s.frame ==
             // FRAME_stand65) )
@@ -754,6 +764,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_checkup = new EntThinkAdapter() {
+    	public String getID() { return "insane_checkup"; }
         public boolean think(edict_t self) {
             //			If Hold_Ground and Crawl are set
             if ((self.spawnflags & 4) != 0 && (self.spawnflags & 16) != 0)
@@ -765,6 +776,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_stand = new EntThinkAdapter() {
+    	public String getID() { return "insane_stand"; }
         public boolean think(edict_t self) {
             if ((self.spawnflags & 8) != 0) // If crucified
             {
@@ -783,6 +795,7 @@ public class M_Insane {
     };
 
     static EntThinkAdapter insane_dead = new EntThinkAdapter() {
+    	public String getID() { return "insane_dead"; }
         public boolean think(edict_t self) {
             if ((self.spawnflags & 8) != 0) {
                 self.flags |= Defines.FL_FLY;
@@ -799,6 +812,7 @@ public class M_Insane {
     };
 
     static EntDieAdapter insane_die = new EntDieAdapter() {
+    	public String getID() { return "insane_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
             int n;

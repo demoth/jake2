@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.01.2004 by RST.
-// $Id: SuperAdapter.java,v 1.7 2005-02-08 17:58:46 cawe Exp $
+// $Id: SuperAdapter.java,v 1.8 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
@@ -28,10 +28,17 @@ import jake2.qcommon.Com;
 import java.util.Hashtable;
 import java.util.Vector;
 
-public class SuperAdapter {
+public abstract class SuperAdapter {
+
+	/** Constructor, does the adapter registration. */
+	public SuperAdapter() {
+		register(this, getID());
+	}
 
 	/** Adapter registration. */
 	private static void register(SuperAdapter sa, String id) {
+		if (id.length()==0)
+			Math.sin(0.1);
 		adapters.put(id, sa);
 	}
 
@@ -45,45 +52,11 @@ public class SuperAdapter {
 		// try to create the adapter
 		if (sa == null) {
 			Com.DPrintf("SuperAdapter.getFromID():adapter not found->" + key + "\n");
-			int pos= key.indexOf('$');
-			String classname= key;
-			if (pos != -1)
-				classname= key.substring(0, pos);
-
-			// load class and instantiate
-			try {
-				Com.DPrintf("SuperAdapter.getFromID():loading class->" + classname + "\n");
-				Class.forName(classname);
-			}
-			catch (Exception e) {
-				Com.DPrintf("SuperAdapter.getFromID():class not found->" + classname + "\n");
-			}
-
-			// try it again...			
-			sa= (SuperAdapter) adapters.get(key);
-
-			if (sa == null)
-				Com.DPrintf("jake2: could not load adapter:" + key + "\n");
 		}
 
 		return sa;
 	}
 
-	/** Constructor, does the adapter registration. */
-	public SuperAdapter() {
-		StackTraceElement tr[]= new Throwable().getStackTrace();
-		adapterid= tr[2].getClassName();
-		if (adapterid.length() == 0)
-			new Throwable("error in creating an adapter id!").printStackTrace();
-		else
-			register(this, adapterid);
-	}
-
 	/** Returns the Adapter-ID. */
-	public String getID() {
-		return adapterid;
-	}
-
-	/** Adapter id. */
-	private String adapterid;
+	public abstract String getID();
 }
