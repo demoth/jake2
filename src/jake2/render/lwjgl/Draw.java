@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.2 2004-12-14 12:56:59 cawe Exp $
+ * $Id: Draw.java,v 1.3 2005-11-21 21:16:58 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.Com;
 import jake2.render.image_t;
+import jake2.util.Lib;
 
 import java.awt.Dimension;
 import java.nio.ByteBuffer;
@@ -304,9 +305,10 @@ public abstract class Draw extends Image {
 
 // ====================================================================
 
-	IntBuffer image32=BufferUtils.createIntBuffer(256*256);
-	ByteBuffer image8=BufferUtils.createByteBuffer(256*256);
-	
+    // allocate a 256 * 256 texture buffer
+    private ByteBuffer image8 = Lib.newByteBuffer(256 * 256 * Defines.SIZE_OF_INT);
+    // share the buffer
+    private IntBuffer image32 = image8.asIntBuffer();
 
 	/*
 	=============

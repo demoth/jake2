@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.4 2004-08-22 14:25:14 salomo Exp $
+ * $Id: Draw.java,v 1.5 2005-11-21 21:16:36 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,8 +29,13 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.Com;
 import jake2.render.image_t;
+import jake2.util.Lib;
 
 import java.awt.Dimension;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import org.lwjgl.BufferUtils;
 
 import net.java.games.jogl.GL;
 
@@ -301,7 +306,11 @@ public abstract class Draw extends Image {
 
 // ====================================================================
 
-
+    // allocate a 256 * 256 texture buffer
+    private ByteBuffer image8 = Lib.newByteBuffer(256 * 256 * Defines.SIZE_OF_INT);
+    // share the buffer
+    private IntBuffer image32 = image8.asIntBuffer();
+    
 	/*
 	=============
 	Draw_StretchRaw
@@ -332,7 +341,6 @@ public abstract class Draw extends Image {
 
 		if ( !qglColorTableEXT )
 		{
-			int[] image32 = new int[256*256];
 			int destIndex = 0;
 
 			for (i=0 ; i<trows ; i++)
@@ -346,7 +354,7 @@ public abstract class Draw extends Image {
 				frac = fracstep >> 1;
 				for (j=0 ; j<256 ; j++)
 				{
-					image32[destIndex + j] = r_rawpalette[data[sourceIndex + (frac>>16)] & 0xff];
+					image32.put(destIndex + j, r_rawpalette[data[sourceIndex + (frac>>16)] & 0xff]);
 					frac += fracstep;
 				}
 			}
@@ -354,7 +362,6 @@ public abstract class Draw extends Image {
 		}
 		else
 		{
-			byte[] image8 = new byte[256*256];
 			int destIndex = 0;;
 
 			for (i=0 ; i<trows ; i++)
@@ -368,7 +375,7 @@ public abstract class Draw extends Image {
 				frac = fracstep >> 1;
 				for (j=0 ; j<256 ; j++)
 				{
-					image8[destIndex  + j] = data[sourceIndex + (frac>>16)];
+					image8.put(destIndex + j, data[sourceIndex + (frac>>16)]);
 					frac += fracstep;
 				}
 			}
