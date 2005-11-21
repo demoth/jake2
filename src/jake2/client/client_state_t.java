@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.4 2004-10-26 18:18:19 cawe Exp $
+//$Id: client_state_t.java,v 1.5 2005-11-21 19:38:38 cawe Exp $
 
 package jake2.client;
 
@@ -31,6 +31,7 @@ import jake2.render.model_t;
 import jake2.sound.*;
 
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 public class client_state_t {
 
@@ -106,7 +107,7 @@ public class client_state_t {
 	//
 	// non-gameserver infornamtion
 	// FIXME: move this cinematic stuff into the cin_t structure
-	RandomAccessFile cinematic_file;
+	ByteBuffer cinematic_file;
 	
 	int cinematictime; // cls.realtime for first cinematic frame
 	int cinematicframe;
