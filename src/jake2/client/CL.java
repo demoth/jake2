@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.23 2005-07-01 14:20:48 hzi Exp $
+ * $Id: CL.java,v 1.24 2005-11-21 19:39:43 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1572,7 +1572,7 @@ public final class CL {
         // advance local effects for next frame
         CL_fx.RunDLights();
         CL_fx.RunLightStyles();
-
+        SCR.RunCinematic();
         SCR.RunConsole();
 
         Globals.cls.framecount++;
