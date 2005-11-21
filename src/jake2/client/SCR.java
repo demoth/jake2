@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.15 2005-07-01 14:20:52 hzi Exp $
+ * $Id: SCR.java,v 1.16 2005-11-21 19:45:10 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,12 +32,17 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sound.S;
+import jake2.sys.Sys;
 import jake2.sys.Timer;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
  * SCR
@@ -1368,13 +1373,6 @@ public final class SCR extends Globals {
      * =================================================================
      */
 
-    //	typedef struct
-    //	{
-    //		byte *data;
-    //		int count;
-    //	} cblock_t;
-    //
-    
     private static class cinematics_t {
         boolean restart_sound;
         int s_rate;
@@ -1472,7 +1470,7 @@ public final class SCR extends Globals {
     }
 
     /**
-     * TODO StopCinematic
+     * StopCinematic
      */
     static void StopCinematic() {
         cl.cinematictime = 0; // done
@@ -1482,23 +1480,20 @@ public final class SCR extends Globals {
             re.CinematicSetPalette(null);
             cl.cinematicpalette_active = false;
         }
-        //		if (cl.cinematic_file)
-        //		{
-        //			fclose (cl.cinematic_file);
-        //			cl.cinematic_file = NULL;
-        //		}
-        //		if (cin.hnodes1)
-        //		{
-        //			Z_Free (cin.hnodes1);
-        //			cin.hnodes1 = NULL;
-        //		}
+        if (cl.cinematic_file != null) {
+            // free the mapped byte buffer
+            cl.cinematic_file = null;
+        }
+        if (cin.hnodes1 != null) {
+            cin.hnodes1 = null;
+        }
         //
-        //		// switch back down to 11 khz sound if necessary
-        //		if (cin.restart_sound)
-        //		{
-        //			cin.restart_sound = false;
-        //			CL_Snd_Restart_f ();
-        //		}
+        // // switch back down to 11 khz sound if necessary
+        // if (cin.restart_sound)
+        // {
+        // cin.restart_sound = false;
+        // CL_Snd_Restart_f ();
+        // }
         //
     }
 
@@ -1515,286 +1510,237 @@ public final class SCR extends Globals {
 
     // ==========================================================================
 
-    //	/*
-    //	==================
-    //	SmallestNode1
-    //	==================
-    //	*/
-    //	int SmallestNode1 (int numhnodes)
-    //	{
-    //		int i;
-    //		int best, bestnode;
-    //
-    //		best = 99999999;
-    //		bestnode = -1;
-    //		for (i=0 ; i<numhnodes ; i++)
-    //		{
-    //			if (cin.h_used[i])
-    //				continue;
-    //			if (!cin.h_count[i])
-    //				continue;
-    //			if (cin.h_count[i] < best)
-    //			{
-    //				best = cin.h_count[i];
-    //				bestnode = i;
-    //			}
-    //		}
-    //
-    //		if (bestnode == -1)
-    //			return -1;
-    //
-    //		cin.h_used[bestnode] = true;
-    //		return bestnode;
-    //	}
-    //
-    //
-    //	/*
-    //	==================
-    //	Huff1TableInit
-    //
-    //	Reads the 64k counts table and initializes the node trees
-    //	==================
-    //	*/
-    //	void Huff1TableInit (void)
-    //	{
-    //		int prev;
-    //		int j;
-    //		int *node, *nodebase;
-    //		byte counts[256];
-    //		int numhnodes;
-    //
-    //		cin.hnodes1 = Z_Malloc (256*256*2*4);
-    //		memset (cin.hnodes1, 0, 256*256*2*4);
-    //
-    //		for (prev=0 ; prev<256 ; prev++)
-    //		{
-    //			memset (cin.h_count,0,sizeof(cin.h_count));
-    //			memset (cin.h_used,0,sizeof(cin.h_used));
-    //
-    //			// read a row of counts
-    //			FS_Read (counts, sizeof(counts), cl.cinematic_file);
-    //			for (j=0 ; j<256 ; j++)
-    //				cin.h_count[j] = counts[j];
-    //
-    //			// build the nodes
-    //			numhnodes = 256;
-    //			nodebase = cin.hnodes1 + prev*256*2;
-    //
-    //			while (numhnodes != 511)
-    //			{
-    //				node = nodebase + (numhnodes-256)*2;
-    //
-    //				// pick two lowest counts
-    //				node[0] = SmallestNode1 (numhnodes);
-    //				if (node[0] == -1)
-    //					break; // no more
-    //
-    //				node[1] = SmallestNode1 (numhnodes);
-    //				if (node[1] == -1)
-    //					break;
-    //
-    //				cin.h_count[numhnodes] = cin.h_count[node[0]] + cin.h_count[node[1]];
-    //				numhnodes++;
-    //			}
-    //
-    //			cin.numhnodes1[prev] = numhnodes-1;
-    //		}
-    //	}
-    //
-    //	/*
-    //	==================
-    //	Huff1Decompress
-    //	==================
-    //	*/
-    //	cblock_t Huff1Decompress (cblock_t in)
-    //	{
-    //		byte *input;
-    //		byte *out_p;
-    //		int nodenum;
-    //		int count;
-    //		cblock_t out;
-    //		int inbyte;
-    //		int *hnodes, *hnodesbase;
-    //// int i;
-    //
-    //		// get decompressed count
-    //		count = in.data[0] + (in.data[1]<<8) + (in.data[2]<<16) +
-    // (in.data[3]<<24);
-    //		input = in.data + 4;
-    //		out_p = out.data = Z_Malloc (count);
-    //
-    //		// read bits
-    //
-    //		hnodesbase = cin.hnodes1 - 256*2; // nodes 0-255 aren't stored
-    //
-    //		hnodes = hnodesbase;
-    //		nodenum = cin.numhnodes1[0];
-    //		while (count)
-    //		{
-    //			inbyte = *input++;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //			//-----------
-    //			if (nodenum < 256)
-    //			{
-    //				hnodes = hnodesbase + (nodenum<<9);
-    //				*out_p++ = nodenum;
-    //				if (!--count)
-    //					break;
-    //				nodenum = cin.numhnodes1[nodenum];
-    //			}
-    //			nodenum = hnodes[nodenum*2 + (inbyte&1)];
-    //			inbyte >>=1;
-    //		}
-    //
-    //		if (input - in.data != in.count && input - in.data != in.count+1)
-    //		{
-    //			Com_Printf ("Decompression overread by %i", (input - in.data) -
-    // in.count);
-    //		}
-    //		out.count = out_p - out.data;
-    //
-    //		return out;
-    //	}
-    //
+    /**
+     * SmallestNode1
+     * 
+     */
+    private static int SmallestNode1(int numhnodes) {
+        
+        int best = 99999999;
+        int bestnode = -1;
+        for (int i = 0; i < numhnodes; i++) {
+            if (cin.h_used[i] != 0)
+                continue;
+            if (cin.h_count[i] == 0)
+                continue;
+            if (cin.h_count[i] < best) {
+                best = cin.h_count[i];
+                bestnode = i;
+            }
+        }
+        
+        if (bestnode == -1)
+            return -1;
+        
+        cin.h_used[bestnode] = 1; // true
+        return bestnode;
+    }
+    
+    
+    /**
+     * Huff1TableInit
+     * 
+     * Reads the 64k counts table and initializes the node trees.
+     * 
+     */
+    private static void Huff1TableInit() {
+        int[] node;
+        byte[] counts = new byte[256];
+        int numhnodes;
+        
+        cin.hnodes1 = new int[256 * 256 * 2];
+        Arrays.fill(cin.hnodes1, 0);
+        
+        for (int prev = 0; prev < 256; prev++) {
+            Arrays.fill(cin.h_count, 0);
+            Arrays.fill(cin.h_used, 0);
+            
+            // read a row of counts
+            cl.cinematic_file.get(counts);
+            for (int j = 0; j < 256; j++)
+                cin.h_count[j] = counts[j] & 0xFF;
+            
+            // build the nodes
+            numhnodes = 256;
+            int nodebase = 0 + prev * 256 * 2;
+            int index = 0;
+            node = cin.hnodes1;
+            while (numhnodes != 511) {
+                index = nodebase + (numhnodes - 256) * 2;
+                
+                // pick two lowest counts
+                node[index] = SmallestNode1(numhnodes);
+                if (node[index] == -1)
+                    break; // no more
+                
+                node[index + 1] = SmallestNode1(numhnodes);
+                if (node[index + 1] == -1)
+                    break;
+                
+                cin.h_count[numhnodes] = cin.h_count[node[index]] + cin.h_count[node[index + 1]];
+                numhnodes++;
+            }
+            
+            cin.numhnodes1[prev] = numhnodes - 1;
+        }
+    }
+    
+    /**
+     * Huff1Decompress
+     * 
+     */
+    private static byte[] Huff1Decompress(byte[] in, int size) {
+        // get decompressed count
+        int count = (in[0] & 0xFF) | ((in[1] & 0xFF)<< 8) | ((in[2] & 0xFF) << 16) | ((in[3] & 0xFF) << 24);
+        // used as index for in[];
+        int input = 4;
+        byte[] out = new byte[count];
+        // used as index for out[];
+        int out_p = 0;
+
+        // read bits
+
+        int hnodesbase = -256 * 2; // nodes 0-255 aren't stored
+        int index = hnodesbase;
+        int[] hnodes = cin.hnodes1;
+        int nodenum = cin.numhnodes1[0];
+        int inbyte;
+        while (count != 0) {
+            inbyte = in[input++] & 0xFF;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+
+            if (nodenum < 256) {
+                index = hnodesbase + (nodenum << 9);
+                out[out_p++] = (byte) nodenum;
+                if (--count == 0)
+                    break;
+                nodenum = cin.numhnodes1[nodenum];
+            }
+            nodenum = hnodes[index + nodenum * 2 + (inbyte & 1)];
+            inbyte >>= 1;
+        }
+
+        if (input != size && input != size + 1) {
+            Com.Printf("Decompression overread by " + (input - size));
+        }
+
+        return out;
+    }
+    
     
     /**
      * TODO ReadNextFrame
      */ 
    static byte[] ReadNextFrame() {
-       // TODO implement video frame loading
-       return null;
-    //		int r;
-    //		int command;
-    //		byte samples[22050/14*4];
-    //		byte compressed[0x20000];
-    //		int size;
-    //		byte *pic;
-    //		cblock_t in, huf1;
-    //		int start, end, count;
-    //
-    //		// read the next frame
-    //		r = fread (&command, 4, 1, cl.cinematic_file);
-    //		if (r == 0) // we'll give it one more chance
-    //			r = fread (&command, 4, 1, cl.cinematic_file);
-    //
-    //		if (r != 1)
-    //			return NULL;
-    //		command = LittleLong(command);
-    //		if (command == 2)
-    //			return NULL; // last frame marker
-    //
-    //		if (command == 1)
-    //		{ // read palette
-    //			FS_Read (cl.cinematicpalette, sizeof(cl.cinematicpalette),
-    // cl.cinematic_file);
-    //			cl.cinematicpalette_active=0; // dubious.... exposes an edge case
-    //		}
-    //
-    //		// decompress the next frame
-    //		FS_Read (&size, 4, cl.cinematic_file);
-    //		size = LittleLong(size);
-    //		if (size > sizeof(compressed) || size < 1)
-    //			Com_Error (ERR_DROP, "Bad compressed frame size");
-    //		FS_Read (compressed, size, cl.cinematic_file);
-    //
-    //		// read sound
-    //		start = cl.cinematicframe*cin.s_rate/14;
-    //		end = (cl.cinematicframe+1)*cin.s_rate/14;
-    //		count = end - start;
-    //
-    //		FS_Read (samples, count*cin.s_width*cin.s_channels, cl.cinematic_file);
-    //
-    //		S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels, samples);
-    //
-    //		in.data = compressed;
-    //		in.count = size;
-    //
-    //		huf1 = Huff1Decompress (in);
-    //
-    //		pic = huf1.data;
-    //
-    //		cl.cinematicframe++;
-    //
-    //		return pic;
+    
+        ByteBuffer file = cl.cinematic_file;
+
+        // read the next frame
+        int command = file.getInt();
+
+        if (command == 2)
+            return null; // last frame marker
+
+        if (command == 1) {
+            // read palette
+            file.get(cl.cinematicpalette);
+            // dubious.... exposes an edge case
+            cl.cinematicpalette_active = false;
+        }
+        // decompress the next frame
+        int size = file.getInt();
+        byte[] compressed = new byte[0x20000];
+        if (size > compressed.length || size < 1)
+            Com.Error(ERR_DROP, "Bad compressed frame size:" + size);
+
+        file.get(compressed, 0, size);
+
+        // read sound
+        int start = cl.cinematicframe * cin.s_rate / 14;
+        int end = (cl.cinematicframe + 1) * cin.s_rate / 14;
+        int count = end - start;
+
+        byte[] samples = new byte[22050 / 14 * 4];
+        file.get(samples, 0, count * cin.s_width * cin.s_channels);
+        // TODO cinematic sound
+        // S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels,
+        // samples);
+        //
+        byte[] pic = Huff1Decompress(compressed, size);
+        cl.cinematicframe++;
+
+        return pic;
     }
-    //
-    //
+
     /**
      * RunCinematic
      */
@@ -1824,6 +1770,7 @@ public final class SCR extends Globals {
         }
         cin.pic = cin.pic_pending;
         cin.pic_pending = ReadNextFrame();
+        
         if (cin.pic_pending == null)
         {
             StopCinematic();
@@ -1867,14 +1814,11 @@ public final class SCR extends Globals {
     }
 
     /**
-     * TODO PlayCinematic
+     * PlayCinematic
+     * TODO cinematic sound
      */
     static void PlayCinematic(String arg) {
-        //		int width, height;
-        //		byte *palette;
-        //		char name[MAX_OSPATH], *dot;
-        //		int old_khz;
-        //
+
         //		// make sure CD isn't playing music
         //CDAudio.Stop();
 
@@ -1893,34 +1837,29 @@ public final class SCR extends Globals {
             }
             return;
         }
-        //
-        //		Com_sprintf (name, sizeof(name), "video/%s", arg);
-        //		FS_FOpenFile (name, &cl.cinematic_file);
-        //		if (!cl.cinematic_file)
-        //		{
-        // Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
-        FinishCinematic();
-        cl.cinematictime = 0; // done
-        return;
-        //		}
-        //
-        //		SCR_EndLoadingPlaque ();
-        //
-        //		cls.state = ca_active;
-        //
-        //		FS_Read (&width, 4, cl.cinematic_file);
-        //		FS_Read (&height, 4, cl.cinematic_file);
-        //		cin.width = LittleLong(width);
-        //		cin.height = LittleLong(height);
-        //
-        //		FS_Read (&cin.s_rate, 4, cl.cinematic_file);
-        //		cin.s_rate = LittleLong(cin.s_rate);
-        //		FS_Read (&cin.s_width, 4, cl.cinematic_file);
-        //		cin.s_width = LittleLong(cin.s_width);
-        //		FS_Read (&cin.s_channels, 4, cl.cinematic_file);
-        //		cin.s_channels = LittleLong(cin.s_channels);
-        //
-        //		Huff1TableInit ();
+
+        String name = "video/" + arg;
+        cl.cinematic_file = FS.LoadMappedFile(name);
+        if (cl.cinematic_file == null) {
+            Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
+            FinishCinematic();
+            cl.cinematictime = 0; // done
+            return;
+        }
+
+        EndLoadingPlaque();
+
+        cls.state = ca_active;
+
+        cl.cinematic_file.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer file = cl.cinematic_file;
+        cin.width = file.getInt();
+        cin.height = file.getInt();
+        cin.s_rate = file.getInt();
+        cin.s_width = file.getInt();
+        cin.s_channels = file.getInt();
+
+        Huff1TableInit();
         //
         //		// switch up to 22 khz sound if necessary
         //		old_khz = Cvar_VariableValue ("s_khz");
@@ -1931,9 +1870,9 @@ public final class SCR extends Globals {
         //			CL_Snd_Restart_f ();
         //			Cvar_SetValue ("s_khz", old_khz);
         //		}
-        //
-        //		cl.cinematicframe = 0;
-        //		cin.pic = SCR_ReadNextFrame ();
-        //		cl.cinematictime = Sys_Milliseconds ();
+
+        cl.cinematicframe = 0;
+        cin.pic = ReadNextFrame();
+        cl.cinematictime = Timer.Milliseconds();
     }
 }
