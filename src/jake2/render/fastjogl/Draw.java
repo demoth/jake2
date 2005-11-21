@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.5 2005-11-21 21:16:36 cawe Exp $
+ * $Id: Draw.java,v 1.6 2005-11-21 21:20:59 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -342,6 +342,7 @@ public abstract class Draw extends Image {
 		if ( !qglColorTableEXT )
 		{
 			int destIndex = 0;
+            image32.clear();
 
 			for (i=0 ; i<trows ; i++)
 			{
@@ -362,7 +363,8 @@ public abstract class Draw extends Image {
 		}
 		else
 		{
-			int destIndex = 0;;
+			int destIndex = 0;
+            image8.clear();
 
 			for (i=0 ; i<trows ; i++)
 			{
