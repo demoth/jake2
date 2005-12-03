@@ -2,7 +2,7 @@
  * Jake2.java
  * Copyright (C)  2003
  * 
- * $Id: Jake2.java,v 1.8 2005-07-01 14:20:53 hzi Exp $
+ * $Id: Jake2.java,v 1.9 2005-12-03 19:43:15 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,8 +35,7 @@ import java.util.Locale;
  */
 public final class Jake2 {
 
-
-    public static Q2DataDialog Q2Dialog = new Q2DataDialog();
+    public static Q2DataDialog Q2Dialog;
 
     /**
      * main is used to start the game. Quake2 for Java supports the following
@@ -45,9 +44,46 @@ public final class Jake2 {
      * @param args
      */
     public static void main(String[] args) {
+    	
+    	boolean dedicated = false;
 
-    	Locale.setDefault(Locale.US);
-        Q2Dialog.setVisible(true);
+    	// check if we are in dedicated mode to hide the java dialog.
+    	for (int n = 0; n <  args.length; n++)
+    	{
+    		if (args[n].equals("+set"))
+    		{
+    			if (n++ >= args.length)
+    				break;
+    			
+    			if (!args[n].equals("dedicated"))
+    				continue;
+
+    			if (n++ >= args.length)
+    				break;
+
+    			if (args[n].equals("1") || args[n].equals("\"1\""))
+    			{
+    				Com.Printf("Starting in dedicated mode.\n");
+    				dedicated = true;
+    			}
+    		}    		
+    	}
+    	
+    	// TODO: check if dedicated is set in config file
+    	
+		Globals.dedicated= Cvar.Get("dedicated", "0", Qcommon.CVAR_NOSET);
+    
+    	if (dedicated)
+    		Globals.dedicated.value = 1.0f;
+    	    	
+    	
+    	// open the q2dialog, if we are not in dedicated mode.
+    	if (Globals.dedicated.value != 1.0f)
+    	{
+    		Q2Dialog = new Q2DataDialog();
+    		Locale.setDefault(Locale.US);
+    		Q2Dialog.setVisible(true);
+    	}
 
         // in C the first arg is the filename
         int argc = (args == null) ? 1 : args.length + 1;

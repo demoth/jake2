@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.19 2005-07-01 14:20:56 hzi Exp $
+ * $Id: Qcommon.java,v 1.20 2005-12-03 19:43:41 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -74,15 +74,22 @@ public final class Qcommon extends Globals {
 			Cbuf.AddEarlyCommands(false);
 			Cbuf.Execute();
 
-			Jake2.Q2Dialog.setStatus("initializing filesystem...");
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.setStatus("initializing filesystem...");
+			
 			FS.InitFilesystem();
 
-			Jake2.Q2Dialog.setStatus("loading config...");
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.setStatus("loading config...");
+			
 			reconfigure(false);
 
 			FS.setCDDir(); // use cddir from config.cfg
 			FS.markBaseSearchPaths(); // mark the default search paths
-			Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
+			
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
+			
 			reconfigure(true); // reload default.cfg and config.cfg
 			
 			// save config when we have a valid baseq2
@@ -110,13 +117,19 @@ public final class Qcommon extends Globals {
 
 			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
-			Jake2.Q2Dialog.setStatus("initializing network subsystem...");
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.setStatus("initializing network subsystem...");
+			
 			NET.Init();	//ok
 			Netchan.Netchan_Init();	//ok
 
-			Jake2.Q2Dialog.setStatus("initializing server subsystem...");
+			if (Globals.dedicated.value != 1.0f)			
+				Jake2.Q2Dialog.setStatus("initializing server subsystem...");
 			SV_MAIN.SV_Init();	//ok
-			Jake2.Q2Dialog.setStatus("initializing client subsystem...");
+			
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.setStatus("initializing client subsystem...");
+			
 			CL.Init();
 
 			// add + commands from command line
@@ -135,7 +148,9 @@ public final class Qcommon extends Globals {
 			}
 
 			Com.Printf("====== Quake2 Initialized ======\n\n");
-			Jake2.Q2Dialog.dispose();
+			
+			if (Globals.dedicated.value != 1.0f)
+				Jake2.Q2Dialog.dispose();
 
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");
@@ -240,6 +255,7 @@ public final class Qcommon extends Globals {
 			}
 
 		} catch (longjmpException e) {
+			Com.DPrintf("lonjmp exception:" + e);
 		}
 	}
 
