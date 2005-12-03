@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.13 2005-02-19 21:21:46 salomo Exp $
+// $Id: SV_INIT.java,v 1.14 2005-12-03 19:46:41 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -431,8 +431,7 @@ public class SV_INIT {
 
         int c = level.indexOf('+');
         if (c != -1) {
-            Cvar
-                    .Set("nextserver", "gamemap \"" + level.substring(c + 1)
+            Cvar.Set("nextserver", "gamemap \"" + level.substring(c + 1)
                             + "\"");
             level = level.substring(0, c);
         } else {
