@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.16 2005-11-21 19:45:10 cawe Exp $
+ * $Id: SCR.java,v 1.17 2005-12-03 19:42:42 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1841,7 +1841,7 @@ public final class SCR extends Globals {
         String name = "video/" + arg;
         cl.cinematic_file = FS.LoadMappedFile(name);
         if (cl.cinematic_file == null) {
-            Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
+            //Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
             FinishCinematic();
             cl.cinematictime = 0; // done
             return;
