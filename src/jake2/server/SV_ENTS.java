@@ -19,7 +19,7 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.5 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_ENTS.java,v 1.6 2005-12-03 19:46:17 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -359,12 +359,8 @@ public class SV_ENTS {
         SV_EmitPacketEntities(oldframe, frame, msg);
     }
 
-    /*
-     * ============ SV_FatPVS
-     * 
-     * The client will interpolate the view position, so we can't use a single
-     * PVS point ===========
-     */
+    /** The client will interpolate the view position, so we can't use a single
+     * PVS point. */
     public static void SV_FatPVS(float[] org) {
         int leafs[] = new int[64];
         int i, j, count;
@@ -412,11 +408,9 @@ public class SV_ENTS {
         }
     }
 
-    /*
-     * ============= SV_BuildClientFrame
-     * 
+    /**
      * Decides which entities are going to be visible to the client, and copies
-     * off the playerstat and areabits. =============
+     * off the playerstat and areabits.
      */
     public static void SV_BuildClientFrame(client_t client) {
         int e, i;
@@ -478,18 +472,11 @@ public class SV_ENTS {
                 continue;
 
             // ignore if not touching a PV leaf
-            if (ent != clent) {
                 // check area
-                if (!CM.CM_AreasConnected(clientarea, ent.areanum)) { // doors
-                                                                      // can
-                                                                      // legally
-                                                                      // straddle
-                                                                      // two
-                                                                      // areas,
-                                                                      // so
-                    // we may need to check another one
-                    if (0 == ent.areanum2
-                            || !CM.CM_AreasConnected(clientarea, ent.areanum2))
+            if (ent != clent) {
+                if (!CM.CM_AreasConnected(clientarea, ent.areanum)) {
+                	// doors can legally straddle two areas, so we may need to check another one
+                    if (0 == ent.areanum2 || !CM.CM_AreasConnected(clientarea, ent.areanum2))
                         continue; // blocked by a door
                 }
 

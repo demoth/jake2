@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.14 2005-02-19 21:21:19 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.15 2005-12-03 19:45:42 salomo Exp $
 
 package jake2.server;
 
@@ -173,13 +173,8 @@ public class SV_CCMDS {
 		catch (Exception e) {
 		}
 	}
-	/*
-	=====================
-	SV_WipeSavegame
 	
-	Delete save/<XXX>/
-	=====================
-	*/
+	/** Delete save files save/(number)/.  */
 	public static void SV_WipeSavegame(String savename) {
 
 		String name, s;
