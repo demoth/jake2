@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.19 2005-07-01 14:20:50 hzi Exp $
+ * $Id: Menu.java,v 1.20 2005-12-03 19:47:36 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -4103,8 +4103,6 @@ public final class Menu extends Key {
 
         if (s_pmi[s_player_model_box.curvalue].skindisplaynames != null) {
 
-            int maxframe = 29;
-            //memset(entity, 0, sizeof(entity));
             entity.clear();
 
             scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory
@@ -4161,7 +4159,6 @@ public final class Menu extends Key {
         int i;
 
         if (key == K_ESCAPE) {
-            //char scratch[1024];
             String scratch;
 
             Cvar.Set("name", s_player_name_field.buffer.toString());
