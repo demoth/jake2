@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.24 2005-11-21 19:39:43 cawe Exp $
+ * $Id: CL.java,v 1.25 2005-12-03 19:41:20 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -552,25 +552,20 @@ public final class CL {
 
     static String env_suf[] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
-    /*
-     * ================= CL_Precache_f
-     * 
+    /**
      * The server will send this command right before allowing the client into
-     * the server =================
+     * the server.
      */
     static xcommand_t Precache_f = new xcommand_t() {
         public void execute() {
-            /*
-             * Yet another hack to let old demos work the old precache sequence
-             */
-
+            // Yet another hack to let old demos work the old precache sequence.
             if (Cmd.Argc() < 2) {
 
                 int iw[] = { 0 }; // for detecting cheater maps
 
                 CM.CM_LoadMap(Globals.cl.configstrings[Defines.CS_MODELS + 1],
                         true, iw);
-                int mapchecksum = iw[0];
+
                 CL_parse.RegisterSounds();
                 CL_view.PrepRefresh();
                 return;
@@ -741,13 +736,16 @@ public final class CL {
         }
 
         Math3D.VectorClear(Globals.cl.refdef.blend);
+        
+        // TODO: Carsten, check re.CinematicSetPalette
         //re.CinematicSetPalette(null);
 
         Menu.ForceMenuOff();
 
         Globals.cls.connect_time = 0;
 
-        //		SCR.StopCinematic();
+        // TODO: Carsten, check SCR.StopCinematic();
+        // SCR.StopCinematic();
 
         if (Globals.cls.demorecording)
             Stop_f.execute();
