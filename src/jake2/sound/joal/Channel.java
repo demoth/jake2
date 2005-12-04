@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.5 2005-12-04 17:28:48 cawe Exp $
+ * $Id: Channel.java,v 1.6 2005-12-04 20:56:26 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -202,6 +202,8 @@ public class Channel {
             buffer[0] = buffers[Sound.MAX_SFX + streamQueue++];
             Com.DPrintf("queue " + (streamQueue - 1) + '\n');
         } else if (processed < 2) {
+            // check queue overrun
+            if (streamQueue >= Sound.STREAM_QUEUE) return;
             buffer[0] = buffers[Sound.MAX_SFX + streamQueue++];
             Com.DPrintf("queue " + (streamQueue - 1) + '\n');
         } else {
