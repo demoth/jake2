@@ -2,7 +2,7 @@
  * SCR.java
  * Copyright (C) 2003
  * 
- * $Id: SCR.java,v 1.17 2005-12-03 19:42:42 salomo Exp $
+ * $Id: SCR.java,v 1.18 2005-12-04 17:32:42 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1473,28 +1473,26 @@ public final class SCR extends Globals {
      * StopCinematic
      */
     static void StopCinematic() {
-        cl.cinematictime = 0; // done
-        cin.pic = null;
-        cin.pic_pending = null;
-        if (cl.cinematicpalette_active) {
-            re.CinematicSetPalette(null);
-            cl.cinematicpalette_active = false;
+        if (cin.restart_sound) {
+            // done
+            cl.cinematictime = 0;
+            cin.pic = null;
+            cin.pic_pending = null;
+            if (cl.cinematicpalette_active) {
+                re.CinematicSetPalette(null);
+                cl.cinematicpalette_active = false;
+            }
+            if (cl.cinematic_file != null) {
+                // free the mapped byte buffer
+                cl.cinematic_file = null;
+            }
+            if (cin.hnodes1 != null) {
+                cin.hnodes1 = null;
+            }
+            
+            S.disableStreaming();
+            cin.restart_sound = false;
         }
-        if (cl.cinematic_file != null) {
-            // free the mapped byte buffer
-            cl.cinematic_file = null;
-        }
-        if (cin.hnodes1 != null) {
-            cin.hnodes1 = null;
-        }
-        //
-        // // switch back down to 11 khz sound if necessary
-        // if (cin.restart_sound)
-        // {
-        // cin.restart_sound = false;
-        // CL_Snd_Restart_f ();
-        // }
-        //
     }
 
     /**
@@ -1696,9 +1694,10 @@ public final class SCR extends Globals {
         return out;
     }
     
-    
+    private static byte[] compressed = new byte[0x20000];
+  
     /**
-     * TODO ReadNextFrame
+     * ReadNextFrame
      */ 
    static byte[] ReadNextFrame() {
     
@@ -1707,8 +1706,10 @@ public final class SCR extends Globals {
         // read the next frame
         int command = file.getInt();
 
-        if (command == 2)
-            return null; // last frame marker
+        if (command == 2) {
+            // last frame marker
+            return null;
+        }
 
         if (command == 1) {
             // read palette
@@ -1718,7 +1719,6 @@ public final class SCR extends Globals {
         }
         // decompress the next frame
         int size = file.getInt();
-        byte[] compressed = new byte[0x20000];
         if (size > compressed.length || size < 1)
             Com.Error(ERR_DROP, "Bad compressed frame size:" + size);
 
@@ -1729,12 +1729,10 @@ public final class SCR extends Globals {
         int end = (cl.cinematicframe + 1) * cin.s_rate / 14;
         int count = end - start;
 
-        byte[] samples = new byte[22050 / 14 * 4];
-        file.get(samples, 0, count * cin.s_width * cin.s_channels);
-        // TODO cinematic sound
-        // S_RawSamples (count, cin.s_rate, cin.s_width, cin.s_channels,
-        // samples);
-        //
+        S.RawSamples(count, cin.s_rate, cin.s_width, cin.s_channels, file.slice());
+        // skip the sound samples
+        file.position(file.position() + count * cin.s_width * cin.s_channels);
+        
         byte[] pic = Huff1Decompress(compressed, size);
         cl.cinematicframe++;
 
@@ -1750,32 +1748,36 @@ public final class SCR extends Globals {
             return;
         }
 
-        if (cl.cinematicframe == -1)
-            return; // static image
-        
-        if (cls.key_dest != key_game)
-        { // pause if menu or console is up
-            cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+        if (cl.cinematicframe == -1) {
+            // static image
             return;
         }
+
+        if (cls.key_dest != key_game) {
+            // pause if menu or console is up
+            cl.cinematictime = cls.realtime - cl.cinematicframe * 1000 / 14;
+            return;
+        }
+
+        int frame = (int) ((cls.realtime - cl.cinematictime) * 14.0f / 1000);
         
-        int frame = (int)((cls.realtime - cl.cinematictime) * 14.0f/1000);
         if (frame <= cl.cinematicframe)
             return;
-        
-        if (frame > cl.cinematicframe+1)
-        {
-            Com.Println("Dropped frame: " + frame + " > " + (cl.cinematicframe+1));
-            cl.cinematictime = cls.realtime - cl.cinematicframe*1000/14;
+
+        if (frame > cl.cinematicframe + 1) {
+            Com.Println("Dropped frame: " + frame + " > "
+                    + (cl.cinematicframe + 1));
+            cl.cinematictime = cls.realtime - cl.cinematicframe * 1000 / 14;
         }
+        
         cin.pic = cin.pic_pending;
         cin.pic_pending = ReadNextFrame();
-        
-        if (cin.pic_pending == null)
-        {
+
+        if (cin.pic_pending == null) {
             StopCinematic();
             FinishCinematic();
-            cl.cinematictime = 1; // hack to get the black screen behind loading
+            // hack to get the black screen behind loading
+            cl.cinematictime = 1;
             BeginLoadingPlaque();
             cl.cinematictime = 0;
             return;
@@ -1815,11 +1817,10 @@ public final class SCR extends Globals {
 
     /**
      * PlayCinematic
-     * TODO cinematic sound
      */
     static void PlayCinematic(String arg) {
 
-        //		// make sure CD isn't playing music
+        // make sure CD isn't playing music
         //CDAudio.Stop();
 
         cl.cinematicframe = 0;
@@ -1843,7 +1844,8 @@ public final class SCR extends Globals {
         if (cl.cinematic_file == null) {
             //Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
             FinishCinematic();
-            cl.cinematictime = 0; // done
+            // done
+            cl.cinematictime = 0;
             return;
         }
 
@@ -1860,17 +1862,8 @@ public final class SCR extends Globals {
         cin.s_channels = file.getInt();
 
         Huff1TableInit();
-        //
-        //		// switch up to 22 khz sound if necessary
-        //		old_khz = Cvar_VariableValue ("s_khz");
-        //		if (old_khz != cin.s_rate/1000)
-        //		{
-        //			cin.restart_sound = true;
-        //			Cvar_SetValue ("s_khz", cin.s_rate/1000);
-        //			CL_Snd_Restart_f ();
-        //			Cvar_SetValue ("s_khz", old_khz);
-        //		}
 
+        cin.restart_sound = true;
         cl.cinematicframe = 0;
         cin.pic = ReadNextFrame();
         cl.cinematictime = Timer.Milliseconds();
