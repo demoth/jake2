@@ -20,7 +20,7 @@
 
 // Created on 02.01.2004 by RST.
 
-// $Id: CM.java,v 1.11 2005-12-03 19:44:40 salomo Exp $
+// $Id: CM.java,v 1.12 2005-12-04 21:00:17 cawe Exp $
 
 package jake2.qcommon;
 
@@ -1440,9 +1440,8 @@ public class CM {
         trace_trace.fraction = 1;
         trace_trace.surface = nullsurface.c;
 
-        if (numnodes == 0) // map not loaded
-        {
-            Com.DPrintf("dummy trace zurueck, da map not loaded!\n");
+        if (numnodes == 0) {
+            // map not loaded
             return trace_trace;
         }
 
