@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Sound.java,v 1.2 2005-12-04 17:26:14 cawe Exp $
+ * $Id: Sound.java,v 1.3 2005-12-04 20:48:28 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,7 +38,7 @@ import java.nio.ByteBuffer;
 public interface Sound {
     
     static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
-    static final int STREAM_QUEUE = 4;
+    static final int STREAM_QUEUE = 8;
 	
 	String getName();
 	
