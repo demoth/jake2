@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.14 2005-12-04 17:28:48 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.15 2005-12-04 19:21:04 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -94,7 +94,7 @@ public final class JOALSoundImpl implements Sound {
 		// set the master volume
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 
-		al.alGenBuffers(MAX_SFX, buffers);
+		al.alGenBuffers(buffers.length, buffers);
 		int count = Channel.init(al, buffers);
 		Com.Printf("... using " + count + " channels\n");
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
