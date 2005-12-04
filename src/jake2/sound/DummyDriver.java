@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: DummyDriver.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
+ * $Id: DummyDriver.java,v 1.2 2005-12-04 17:26:33 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 package jake2.sound;
+
+import java.nio.ByteBuffer;
 
 /**
  * DummyDriver
@@ -93,10 +95,13 @@ public final class DummyDriver implements Sound {
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
 	 */
-	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
+	public void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data) {
 	}
 
-	/* (non-Javadoc)
+    public void disableStreaming() {
+    }
+
+    /* (non-Javadoc)
 	 * @see jake2.sound.Sound#StopAllSounds()
 	 */
 	public void StopAllSounds() {

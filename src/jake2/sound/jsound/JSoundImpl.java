@@ -2,13 +2,13 @@
  * JSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JSoundImpl.java,v 1.1 2004-07-09 06:50:48 hzi Exp $
+ * $Id: JSoundImpl.java,v 1.2 2005-12-04 17:26:55 cawe Exp $
  */
 package jake2.sound.jsound;
 
+import java.nio.ByteBuffer;
+
 import jake2.sound.*;
-import jake2.sound.Sound;
-import jake2.sound.sfx_t;
 
 /**
  * JSoundImpl
@@ -91,8 +91,11 @@ public class JSoundImpl  implements Sound {
 	/* (non-Javadoc)
 	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
 	 */
-	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
+	public void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data) {
 		SND_DMA.RawSamples(samples, rate, width, channels, data);
 	}
+    
+    public void disableStreaming() {
+    }
 
 }

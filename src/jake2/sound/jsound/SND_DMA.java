@@ -2,7 +2,7 @@
  * S_DMA.java
  * Copyright (C) 2004
  * 
- * $Id: SND_DMA.java,v 1.2 2004-09-22 19:22:09 salomo Exp $
+ * $Id: SND_DMA.java,v 1.3 2005-12-04 17:26:55 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,6 +44,7 @@ import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 /**
  * SND_DMA TODO implement sound system
@@ -878,7 +879,7 @@ public class SND_DMA extends SND_MIX {
      * Cinematic streaming and voice over network ============
      */
     static void RawSamples(int samples, int rate, int width, int channels,
-            byte[] data) {
+            ByteBuffer data) {
         //TODO RawSamples
         int i;
         int src, dst;
