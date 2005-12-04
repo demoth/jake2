@@ -2,7 +2,7 @@
  * S.java
  * Copyright (C) 2003
  * 
- * $Id: S.java,v 1.11 2005-05-26 16:56:33 hzi Exp $
+ * $Id: S.java,v 1.12 2005-12-04 17:26:14 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.game.cvar_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
 
+import java.nio.ByteBuffer;
 import java.util.Vector;
 
 /**
@@ -198,9 +199,13 @@ public class S {
 	Cinematic streaming and voice over network
 	============
 	*/
-	public static void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
+	public static void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data) {
 		impl.RawSamples(samples, rate, width, channels, data);
 	}
+    
+    public static void disableStreaming() {
+        impl.disableStreaming();
+    }
 
 	/*
 	==================

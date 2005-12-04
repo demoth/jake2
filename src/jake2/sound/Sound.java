@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Sound.java,v 1.1 2004-07-08 20:56:49 hzi Exp $
+ * $Id: Sound.java,v 1.2 2005-12-04 17:26:14 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,13 +26,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.sound;
 
+import jake2.Defines;
+
+import java.nio.ByteBuffer;
+
 /**
  * Sound
  * 
  * @author cwei
  */
 public interface Sound {
-	
+    
+    static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
+    static final int STREAM_QUEUE = 4;
 	
 	String getName();
 	
@@ -93,8 +99,9 @@ public interface Sound {
 	Cinematic streaming and voice over network
 	============
 	*/
-	void RawSamples(int samples, int rate, int width, int channels, byte[] data);
+	void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data);
 
+    void disableStreaming();
 	/*
 	==================
 	S_StopAllSounds
