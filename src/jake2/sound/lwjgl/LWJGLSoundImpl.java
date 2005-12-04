@@ -2,7 +2,7 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.7 2005-04-27 12:21:24 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.8 2005-12-04 17:27:34 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
@@ -14,9 +14,8 @@ import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
+import java.util.Random;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.*;
@@ -39,9 +38,8 @@ public final class LWJGLSoundImpl implements Sound {
 	
 	private cvar_t s_volume;
 	
-	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
-	
-	private IntBuffer buffers = Lib.newIntBuffer(MAX_SFX);
+	// the last 4 buffers are used for cinematics streaming
+    private IntBuffer buffers = Lib.newIntBuffer(MAX_SFX + STREAM_QUEUE);
 
 	// singleton 
 	private LWJGLSoundImpl() {
@@ -507,13 +505,40 @@ public final class LWJGLSoundImpl implements Sound {
 		StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1, 1, 0);		
 	}
 
-	/* (non-Javadoc)
+    private ShortBuffer streamBuffer = sfxDataBuffer.slice().order(ByteOrder.BIG_ENDIAN).asShortBuffer();
+
+    /* (non-Javadoc)
 	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
 	 */
-	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
-		// TODO implement RawSamples
+	public void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data) {
+        int format;
+        if (channels == 2) {
+            format = (width == 2) ? AL10.AL_FORMAT_STEREO16
+                    : AL10.AL_FORMAT_STEREO8;
+        } else {
+            format = (width == 2) ? AL10.AL_FORMAT_MONO16
+                    : AL10.AL_FORMAT_MONO8;
+        }
+        
+        // convert to signed 16 bit samples
+        if (format == AL10.AL_FORMAT_MONO8) {
+            ShortBuffer sampleData = streamBuffer;
+            int value;
+            for (int i = 0; i < samples; i++) {
+                value = (data.get(i) & 0xFF) - 128;
+                sampleData.put(i, (short) value);
+            }
+            format = AL10.AL_FORMAT_MONO16;
+            width = 2;
+            data = sfxDataBuffer.slice();
+        }
+
+        Channel.updateStream(data, samples * channels * width, format, rate);
 	}
-	
+    
+    public void disableStreaming() {
+        Channel.disableStreaming();
+    }
 	/*
 	===============================================================================
 

@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.6 2005-05-08 13:37:46 cawe Exp $
+ * $Id: Channel.java,v 1.7 2005-12-04 17:27:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,13 +30,12 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL_ents;
 import jake2.game.entity_state_t;
-import jake2.sound.sfx_t;
-import jake2.sound.sfxcache_t;
+import jake2.qcommon.Com;
+import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -63,7 +62,11 @@ public class Channel {
 	private static Map looptable = new Hashtable(MAX_CHANNELS);
 
 	private static boolean isInitialized = false;
-	private static int numChannels; 
+	private static int numChannels;
+    
+    // stream handling
+    private static boolean streamingEnabled = false;
+    private static int streamQueue = 0;
 		
 	// sound attributes
 	private int type;
@@ -104,12 +107,12 @@ public class Channel {
 		Channel.buffers = buffers;
 	    // create channels
 		int sourceId;
-		int error;
 		for (int i = 0; i < MAX_CHANNELS; i++) {
 			
 			AL10.alGenSources(tmp);
 			sourceId = tmp.get(0);
 			
+            // can't generate more sources 
 			if (sourceId <= 0) break;
 			
 			sources.put(i, sourceId);
@@ -145,6 +148,80 @@ public class Channel {
 		isInitialized = false;
 	}
 	
+    static void enableStreaming() {
+        if (streamingEnabled) return;
+        
+        // use the last source
+        numChannels--;
+        streamingEnabled = true;
+        streamQueue = 0;
+
+        int source = channels[numChannels].sourceId;
+        AL10.alSourcei (source, AL10.AL_SOURCE_RELATIVE,  AL10.AL_TRUE);
+        AL10.alSourcef(source, AL10.AL_GAIN, 1.0f);
+        channels[numChannels].volumeChanged = true;
+
+        Com.DPrintf("streaming enabled\n");
+    }
+
+    static void disableStreaming() {
+        if (!streamingEnabled) return;
+        unqueueStreams();
+        int source = channels[numChannels].sourceId;
+        AL10.alSourcei (source, AL10.AL_SOURCE_ABSOLUTE,  AL10.AL_TRUE);
+
+        // free the last source
+        numChannels++;
+        streamingEnabled = false;
+        Com.DPrintf("streaming disabled\n");
+    }
+    
+    static void unqueueStreams() {
+        if (!streamingEnabled) return;
+        int source = channels[numChannels].sourceId;
+
+        // stop streaming
+        AL10.alSourceStop(source);
+        int count = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
+        Com.DPrintf("unqueue " + count + " buffers\n");
+        while (count-- > 0) {
+            AL10.alSourceUnqueueBuffers(source, tmp);
+        }
+        streamQueue = 0;
+    }
+
+    static void updateStream(ByteBuffer samples, int count, int format, int rate) {
+        enableStreaming();
+        int source = channels[numChannels].sourceId;
+        int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
+        
+        boolean playing = (AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING);
+        boolean interupted = !playing && streamQueue > 2;
+        
+        IntBuffer buffer = tmp;
+        if (interupted) {
+            unqueueStreams();
+            buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
+            Com.DPrintf("queue " + (streamQueue - 1) + '\n');
+        } else if (processed < 2) {
+            buffer.put(0, buffers.get(Sound.MAX_SFX + streamQueue++));
+            Com.DPrintf("queue " + (streamQueue - 1) + '\n');
+        } else {
+            // reuse the buffer
+            AL10.alSourceUnqueueBuffers(source, buffer);
+        }
+
+        samples.position(0);
+        samples.limit(count);
+        AL10.alBufferData(buffer.get(0), format, samples, rate);
+        AL10.alSourceQueueBuffers(source, buffer);
+        
+        if (streamQueue > 1 && !playing) {
+            Com.DPrintf("start sound\n");
+            AL10.alSourcePlay(source);
+        }
+    }
+    
 	static void addPlaySounds() {
 		while (Channel.assign(PlaySound.nextPlayableSound()));
 	}
