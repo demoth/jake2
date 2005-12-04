@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.14 2005-12-03 19:46:41 salomo Exp $
+// $Id: SV_INIT.java,v 1.15 2005-12-04 23:35:20 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -437,10 +437,20 @@ public class SV_INIT {
         } else {
             Cvar.Set("nextserver", "");
         }
+        
+        // rst: base1 works for full, damo1 works for demo, so we need to check the
+        // dedicated_start variable
+        String nextlevel = "base1";
+        String dedicated_start = Cvar.VariableString("dedicated_start");
+        
+        String tmp[] = dedicated_start.split(" ");
+        
+        if (tmp.length == 2)
+           	nextlevel = tmp[1];        
 
         //ZOID special hack for end game screen in coop mode
         if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.Set("nextserver", "gamemap \"*base1\"");
+            Cvar.Set("nextserver", "gamemap \"*" + nextlevel + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
