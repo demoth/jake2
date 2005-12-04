@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.13 2005-04-27 12:39:23 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.14 2005-12-04 17:28:48 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -14,9 +14,8 @@ import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
-import java.awt.image.SampleModel;
 import java.io.*;
-import java.nio.IntBuffer;
+import java.nio.*;
 
 import net.java.games.joal.*;
 import net.java.games.joal.eax.EAX;
@@ -37,8 +36,7 @@ public final class JOALSoundImpl implements Sound {
 	
 	cvar_t s_volume;
 	
-	private static final int MAX_SFX = Defines.MAX_SOUNDS * 2;
-	private int[] buffers = new int[MAX_SFX];
+	private int[] buffers = new int[MAX_SFX + STREAM_QUEUE];
 
 	// singleton 
 	private JOALSoundImpl() {
@@ -154,7 +152,7 @@ public final class JOALSoundImpl implements Sound {
 		}
 	}
 	
-	private void initOpenALExtensions() throws OpenALException {
+	private void initOpenALExtensions() {
 		if (al.alIsExtensionPresent("EAX2.0")) {
 			Com.Printf("... using EAX2.0\n");
 			eax = EAXFactory.getEAX();
@@ -176,13 +174,19 @@ public final class JOALSoundImpl implements Sound {
 		alc.alcCloseDevice(curDevice);
 	}
 	
-	/* (non-Javadoc)
-	 * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
-	 */
-	private void initBuffer(byte[] samples, int bufferId, int freq) {
-		al.alBufferData(buffers[bufferId], AL.AL_FORMAT_MONO16, samples,
-				samples.length, freq);
-	}
+    // TODO check the sfx direct buffer size
+    // 2MB sfx buffer
+    private ByteBuffer sfxDataBuffer = Lib.newByteBuffer(2 * 1024 * 1024);
+    
+    /* (non-Javadoc)
+     * @see jake2.sound.SoundImpl#RegisterSound(jake2.sound.sfx_t)
+     */
+    private void initBuffer(byte[] samples, int bufferId, int freq) {
+        ByteBuffer data = sfxDataBuffer.slice();
+        data.put(samples).flip();
+        al.alBufferData(buffers[bufferId], AL.AL_FORMAT_MONO16,
+                data, data.limit(), freq);
+    }
 
 	private void checkError() {
 		Com.DPrintf("AL Error: " + alErrorString() +'\n');
@@ -344,7 +348,6 @@ public final class JOALSoundImpl implements Sound {
 	public void EndRegistration() {
 		int i;
 		sfx_t sfx;
-		int size;
 
 		// free any sounds not from this registration sequence
 		for (i = 0; i < num_sfx; i++) {
@@ -531,12 +534,40 @@ public final class JOALSoundImpl implements Sound {
 		StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1, 1, 0.0f);		
 	}
 
-	/* (non-Javadoc)
-	 * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
-	 */
-	public void RawSamples(int samples, int rate, int width, int channels, byte[] data) {
-		// TODO implement RawSamples
-	}
+    private ShortBuffer streamBuffer = sfxDataBuffer.slice().order(ByteOrder.BIG_ENDIAN).asShortBuffer();
+
+    /* (non-Javadoc)
+     * @see jake2.sound.Sound#RawSamples(int, int, int, int, byte[])
+     */
+    public void RawSamples(int samples, int rate, int width, int channels, ByteBuffer data) {
+        int format;
+        if (channels == 2) {
+            format = (width == 2) ? AL.AL_FORMAT_STEREO16
+                    : AL.AL_FORMAT_STEREO8;
+        } else {
+            format = (width == 2) ? AL.AL_FORMAT_MONO16
+                    : AL.AL_FORMAT_MONO8;
+        }
+        
+        // convert to signed 16 bit samples
+        if (format == AL.AL_FORMAT_MONO8) {
+            ShortBuffer sampleData = streamBuffer;
+            int value;
+            for (int i = 0; i < samples; i++) {
+                value = (data.get(i) & 0xFF) - 128;
+                sampleData.put(i, (short) value);
+            }
+            format = AL.AL_FORMAT_MONO16;
+            width = 2;
+            data = sfxDataBuffer.slice();
+        }
+
+        Channel.updateStream(data, samples * channels * width, format, rate);
+    }
+    
+    public void disableStreaming() {
+        Channel.disableStreaming();
+    }
 	
 	/*
 	===============================================================================
@@ -547,17 +578,14 @@ public final class JOALSoundImpl implements Sound {
 	*/
 
 	void Play() {
-		int i;
-		String name;
-		sfx_t sfx;
-
-		i = 1;
+        int i = 1;
+        String name;
 		while (i < Cmd.Argc()) {
 			name = new String(Cmd.Argv(i));
 			if (name.indexOf('.') == -1)
 				name += ".wav";
 
-			sfx = RegisterSound(name);
+			RegisterSound(name);
 			StartLocalSound(name);
 			i++;
 		}
