@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.15 2005-12-04 23:35:20 salomo Exp $
+// $Id: SV_INIT.java,v 1.16 2005-12-05 00:11:47 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -391,6 +391,8 @@ public class SV_INIT {
         }
     }
 
+    private static String firstmap = "";
+    
     /*
      * ====================== SV_Map
      * 
@@ -431,26 +433,25 @@ public class SV_INIT {
 
         int c = level.indexOf('+');
         if (c != -1) {
-            Cvar.Set("nextserver", "gamemap \"" + level.substring(c + 1)
-                            + "\"");
+            Cvar.Set("nextserver", "gamemap \"" + level.substring(c + 1) + "\"");
             level = level.substring(0, c);
         } else {
             Cvar.Set("nextserver", "");
         }
         
-        // rst: base1 works for full, damo1 works for demo, so we need to check the
-        // dedicated_start variable
-        String nextlevel = "base1";
-        String dedicated_start = Cvar.VariableString("dedicated_start");
-        
-        String tmp[] = dedicated_start.split(" ");
-        
-        if (tmp.length == 2)
-           	nextlevel = tmp[1];        
+        // rst: base1 works for full, damo1 works for demo, so we need to store first map.
+        if (firstmap.length() == 0)
+        {        
+        	if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
+        	{
+        		int pos = levelstring.indexOf('+');
+        		firstmap = levelstring.substring(pos + 1);
+        	}
+        }
 
         //ZOID special hack for end game screen in coop mode
         if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.Set("nextserver", "gamemap \"*" + nextlevel + "\"");
+            Cvar.Set("nextserver", "gamemap \"*" + firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
