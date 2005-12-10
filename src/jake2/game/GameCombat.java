@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2005 by RST.
-// $Id: GameCombat.java,v 1.1 2005-11-16 22:24:53 salomo Exp $
+// $Id: GameCombat.java,v 1.2 2005-12-10 22:45:01 salomo Exp $
 
 package jake2.game;
 
@@ -240,7 +240,7 @@ public class GameCombat {
     
         client = ent.client;
     
-        if (client != null)
+        if (client == null)
             return 0;
     
         if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
