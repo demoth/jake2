@@ -20,7 +20,7 @@
 
 // Created on 18.11.2003 by RST.
 
-// $Id: GameSpawn.java,v 1.14 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameSpawn.java,v 1.15 2005-12-11 00:02:07 salomo Exp $
 
 package jake2.game;
 
@@ -204,7 +204,7 @@ public class GameSpawn {
             GameBase.level.pic_health = GameBase.gi.imageindex("i_health");
             GameBase.gi.imageindex("help");
             GameBase.gi.imageindex("field_3");
-            if (GameBase.st.gravity != null)
+            if (GameBase.st.gravity == "")
                 GameBase.gi.cvar_set("sv_gravity", "800");
             else
                 GameBase.gi.cvar_set("sv_gravity", GameBase.st.gravity);
