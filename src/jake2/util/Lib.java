@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.13 2005-05-26 16:56:31 hzi Exp $
+// $Id: Lib.java,v 1.14 2005-12-12 21:50:02 salomo Exp $
 
 package jake2.util;
 
@@ -96,24 +96,24 @@ public class Lib {
 			}
 		}
 	}
+	
 	public static float[] atov(String v) {
 		float[] res = { 0, 0, 0 };
-	
-		int i1 = v.indexOf(" ");
-		int i2 = v.indexOf(" ", i1 + 1);
-	
-		res[0] = atof(v.substring(0, i1));
-		res[1] = atof(v.substring(i1 + 1, i2));
-		res[2] = atof(v.substring(i2 + 1, v.length()));
-	
+		String strres[] = v.split(" ");
+		for (int n=0; n < 3 && n < strres.length; n++)
+		{
+			res[n] = atof(strres[n]);
+		}
 		return res;
 	}
+
 	public static int strlen(char in[]) {
 		for (int i = 0; i < in.length; i++)
 			if (in[i] == 0)
 				return i;
 		return in.length;
 	}
+	
 	public static int strlen(byte in[]) {
 		for (int i = 0; i < in.length; i++)
 			if (in[i] == 0)
@@ -131,6 +131,7 @@ public class Lib {
 	
 		return hexDump(buf, len, false);
 	}
+	
 	// dump data as hexstring
 	public static String hexDump(byte data1[], int len, boolean showAddress) {
 		StringBuffer result = new StringBuffer();
