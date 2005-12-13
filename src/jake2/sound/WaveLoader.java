@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.5 2005-06-27 08:46:15 hzi Exp $
+ * $Id: WaveLoader.java,v 1.6 2005-12-13 00:02:52 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,21 +40,22 @@ import javax.sound.sampled.*;
  */
 public class WaveLoader {
 
-	private static AudioFormat sampleFormat;
-	static {
-		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-			sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, false);
-		} else {
-			sampleFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 22050, 16, 1, 2, 22050, true);
-		}
-		
-	}
-
-	/*
-	==============
-	S_LoadSound
-	==============
-	*/
+	/** 
+	 * The ResampleSfx can squeeze and stretch samples to a default sample rate. 
+	 * Since Joal and lwjgl sound drivers support this, we don't need it and the samples
+	 * can keep their original sample rate. Use this switch for reactivating resampling.
+	 */
+	private static boolean DONT_DO_A_RESAMPLING_FOR_JOAL_AND_LWJGL = true;
+	
+	/**
+	 * This is the maximum sample length in bytes which has to be replaced by 
+	 * a configurable variable.
+	 */
+	private static int maxsamplebytes = 2048 * 1024;
+	
+	/** 
+	 * Loads a sound from a wav file. 
+	 */
 	public static sfxcache_t LoadSound(sfx_t s) {
 		if (s.name.charAt(0) == '*')
 			return null;
@@ -83,61 +84,114 @@ public class WaveLoader {
 			Com.DPrintf("Couldn't load " + namebuffer + "\n");
 			return null;
 		}
+		
 		int size = data.length;
 
 		wavinfo_t info = GetWavinfo(s.name, data, size);
-		
-		AudioInputStream in = null;
-		AudioInputStream out = null;
-		try {
-			in = AudioSystem.getAudioInputStream(new ByteArrayInputStream(data));
-			if (in.getFormat().getSampleSizeInBits() == 8) {
-				in = convertTo16bit(in);
-			}
-			out = AudioSystem.getAudioInputStream(sampleFormat, in);
-			int l = (int)out.getFrameLength();
-			sc = s.cache = new sfxcache_t(l*2);
-			sc.length = l;
-			int c = out.read(sc.data, 0, l * 2);
-			out.close();
-			in.close();
-		} catch (Exception e) {
-			Com.Printf("Couldn't load " + namebuffer + "\n");
+
+		if (info.channels != 1)
+		{
+			Com.Printf(s.name + " is a stereo sample - ignoring\n");
 			return null;
 		}
-		
-		sc.loopstart = info.loopstart * ((int)sampleFormat.getSampleRate() / info.rate);
-		sc.speed = (int)sampleFormat.getSampleRate();
-		sc.width = sampleFormat.getSampleSizeInBits() / 8;
-		sc.stereo = 0;
 
+		float stepscale;
+		if (DONT_DO_A_RESAMPLING_FOR_JOAL_AND_LWJGL)
+			stepscale = 1; 
+		else
+			stepscale = (float)info.rate / S.getDefaultSampleRate();
+		
+		int len = (int) (info.samples / stepscale);
+		len = len * info.width * info.channels;
+
+		// TODO: handle max sample bytes with a cvar
+		if (len >= maxsamplebytes)
+		{
+			Com.Printf(s.name + " is too long: " + len + " bytes?! ignoring.\n");
+			return null;
+		}
+
+		sc = s.cache = new sfxcache_t(len);
+		         
+        sc.length = info.samples;
+        sc.loopstart = info.loopstart;
+        sc.speed = info.rate;
+        sc.width = info.width;
+        sc.stereo = info.channels;
+
+		ResampleSfx(s, sc.speed, sc.width, data, info.dataofs);
 		data = null;
 
 		return sc;
 	}
 
-	static AudioInputStream convertTo16bit(AudioInputStream in) throws IOException {
-		AudioFormat format = in.getFormat();
-		int length = (int)in.getFrameLength();
-		byte[] samples = new byte[2*length];
-		
-		for (int i = 0; i < length; i++) {
-			in.read(samples, 2*i+1, 1);
-			samples[2*i+1] -= 128;
-		}
-		in.close();			
 
-		AudioFormat newformat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16, format.getChannels(), 2, format.getFrameRate(), false);
-		return new AudioInputStream(new ByteArrayInputStream(samples), newformat, length);
-	}
-	
-	/*
-	===============================================================================
+	/** 
+	 * Converts sample data with respect to the endianess and adjusts 
+	 * the sample rate of a loaded sample, see flag DONT_DO_A_RESAMPLING_FOR_JOAL_AND_LWJGL.
+	 */
+	public static void ResampleSfx (sfx_t sfx, int inrate, int inwidth, byte data[], int offset)
+	{
+        int             outcount;
+        int             srcsample;
+        int             i;
+        int             sample, samplefrac, fracstep;
+        sfxcache_t      sc;
+        
+        sc = sfx.cache;
+        
+        if (sc == null)
+        	return;
 
-	WAV loading
+        // again calculate the stretching factor.
+        // this is usually 0.5, 1, or 2
+        
+        float stepscale;
+        if (DONT_DO_A_RESAMPLING_FOR_JOAL_AND_LWJGL)
+        	stepscale = 1;
+        else
+        	stepscale = (float)inrate / S.getDefaultSampleRate();  
+        outcount = (int) (sc.length/stepscale);
+        sc.length = outcount;
+        
+        if (sc.loopstart != -1)
+                sc.loopstart = (int) (sc.loopstart / stepscale);
 
-	===============================================================================
-	*/
+        // if resampled, sample has now the default sample rate
+        if (DONT_DO_A_RESAMPLING_FOR_JOAL_AND_LWJGL == false)
+        	sc.speed = S.getDefaultSampleRate();
+
+        sc.width = inwidth;
+        sc.stereo = 0;
+        samplefrac = 0;
+        fracstep = (int) (stepscale * 256);
+        
+        for (i=0 ; i<outcount ; i++)
+        {
+        	srcsample = samplefrac >> 8;            
+        	samplefrac += fracstep;
+            
+        	if (inwidth == 2)
+        	{
+        		sample = (int) ((data[offset + srcsample * 2] & 0xff) + (data[offset + srcsample * 2 + 1] << 8));
+        	}
+        	else
+        	{		
+        		sample = ((data[offset + srcsample] &0xff) - 128) << 8;
+        	}
+           
+        	if (sc.width == 2)
+        	{
+        		sc.data[i*2] = (byte) (sample & 0xff);
+        		sc.data[i*2+1] = (byte) ((sample>>>8) & 0xff);
+        	}
+            else
+            {
+                sc.data[i] = (byte) (sample >> 8);
+            }
+        }
+    }
+
 
 	static byte[] data_b;
 	static int data_p;
