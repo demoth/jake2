@@ -20,7 +20,7 @@
 
 // Created on 27.12.2003 by RST.
 
-// $Id: GameTrigger.java,v 1.6 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameTrigger.java,v 1.7 2005-12-14 21:08:03 salomo Exp $
 
 package jake2.game;
 
@@ -393,15 +393,7 @@ public class GameTrigger {
         }
     };
 
-    /*
-     * ==============================================================================
-     * 
-     * trigger_counter
-     * 
-     * ==============================================================================
-     */
-
-    /*
+    /**
      * QUAKED trigger_counter (.5 .5 .5) ? nomessage Acts as an intermediary for
      * an action that takes multiple inputs.
      * 
@@ -420,7 +412,7 @@ public class GameTrigger {
 
             self.count--;
 
-            if (self.count == 0) {
+            if (self.count != 0) {
                 if (0 == (self.spawnflags & 1)) {
                     GameBase.gi.centerprintf(activator, self.count
                             + " more to go...");
@@ -479,15 +471,8 @@ public class GameTrigger {
         }
     };
 
-    /*
-     * ==============================================================================
-     * 
-     * trigger_hurt
-     * 
-     * ==============================================================================
-     */
 
-    /*
+    /**
      * QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION
      * SLOW Any entity that touches this will be hurt.
      * 
