@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.6 2004-10-04 12:50:38 hzi Exp $
+// $Id: Defines.java,v 1.7 2005-12-16 21:13:42 salomo Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -64,7 +64,7 @@ public class Defines {
 
 	public final static int MAX_STRING_CHARS = 1024; // max length of a string passed to Cmd_TokenizeString 
 	public final static int MAX_STRING_TOKENS = 80; // max tokens resulting from Cmd_TokenizeString 
-	public final static int MAX_TOKEN_CHARS = 128; // max length of an individual token 
+	public final static int MAX_TOKEN_CHARS = 1024; // max length of an individual token 
 
 	public final static int MAX_QPATH = 64; // max length of a quake game pathname 
 	public final static int MAX_OSPATH = 128; // max length of a filesystem pathname 
