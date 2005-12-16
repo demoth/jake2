@@ -2,7 +2,7 @@
  * Com.java
  * Copyright (C) 2003
  * 
- * $Id: Com.java,v 1.13 2005-11-13 13:36:00 cawe Exp $
+ * $Id: Com.java,v 1.14 2005-12-16 21:17:08 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -51,15 +51,15 @@ public final class Com
 
 	public abstract static class RD_Flusher
 	{
-		public abstract void rd_flush(int target, byte[] buffer);
+		public abstract void rd_flush(int target, StringBuffer buffer);
 	}
 
 	static int rd_target;
-	static byte[] rd_buffer;
+	static StringBuffer rd_buffer;
 	static int rd_buffersize;
 	static RD_Flusher rd_flusher;
 
-	public static void BeginRedirect(int target, byte[] buffer, int buffersize, RD_Flusher flush)
+	public static void BeginRedirect(int target, StringBuffer buffer, int buffersize, RD_Flusher flush)
 	{
 		if (0 == target || null == buffer || 0 == buffersize || null == flush)
 			return;
@@ -69,7 +69,7 @@ public final class Com
 		rd_buffersize= buffersize;
 		rd_flusher= flush;
 
-		rd_buffer= null;
+		rd_buffer.setLength(0);
 	}
 
 	public static void EndRedirect()
@@ -123,17 +123,6 @@ public final class Com
 		        return data[index];
 		    }
 		    return 0;			
-//			// faster than if
-//			try
-//			{
-//				return data[index];
-//			}
-//			catch (Exception e)
-//			{
-//				data= null;
-//				// last char
-//				return 0;
-//			}
 		}
 
 		public char nextchar()
@@ -144,19 +133,6 @@ public final class Com
 		        return data[index];
 		    }
 		    return 0;
-//			try
-//			{
-//				index++;
-//				return data[index];
-//			}
-//			catch (Exception e)
-//			{
-//				data= null;
-//				// avoid int wraps;
-//				index--;
-//				// last char
-//				return 0;
-//			}
 		}
 		
 		public char prevchar() {
@@ -366,21 +342,18 @@ public final class Com
 		_debugContext="";
 	}
 
+	/** Prints out messages, which can also be redirected to a remote client. */
 	public static void Printf(String fmt, Vargs vargs)
 	{
-		// Com.Printf is for testing only.
 		String msg= sprintf(_debugContext + fmt, vargs);
-
 		if (rd_target != 0)
 		{
-			if ((msg.length() + Lib.strlen(rd_buffer)) > (rd_buffersize - 1))
+			if ((msg.length() + rd_buffer.length()) > (rd_buffersize - 1))
 			{
 				rd_flusher.rd_flush(rd_target, rd_buffer);
-				// *rd_buffer = 0;
-				rd_buffer[rd_buffersize]= '\0';
+				rd_buffer.setLength(0);
 			}
-			// TODO handle rd_buffer
-			// strcat(rd_buffer, msg);
+			rd_buffer.append(msg);
 			return;
 		}
 

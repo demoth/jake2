@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.8 2005-01-17 23:09:41 cawe Exp $
+// $Id: SV_SEND.java,v 1.9 2005-12-16 21:18:23 salomo Exp $
 
 package jake2.server;
 
@@ -30,6 +30,7 @@ import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.render.*;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
 public class SV_SEND {
@@ -41,11 +42,11 @@ public class SV_SEND {
 	=============================================================================
 	*/
 
-	public static byte sv_outputbuf[] = new byte[Defines.SV_OUTPUTBUF_LENGTH];
+	public static StringBuffer sv_outputbuf = new StringBuffer();
 
 	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
 		if (sv_redirected == Defines.RD_PACKET) {
-			String s = ("print\n" + outputbuf);
+			String s = ("print\n" + Lib.CtoJava(outputbuf));
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), s.getBytes());
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
