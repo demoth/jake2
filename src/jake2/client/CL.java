@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.26 2005-12-06 14:37:43 cawe Exp $
+ * $Id: CL.java,v 1.27 2005-12-16 21:14:36 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -813,7 +813,8 @@ public final class CL {
         // print command from somewhere
         if (c.equals("print")) {
             s = MSG.ReadString(Globals.net_message);
-            Com.Printf(s);
+            if (s.length() > 0)
+            	Com.Printf(s);
             return;
         }
 
