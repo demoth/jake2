@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2005 by RST.
-// $Id: GameItems.java,v 1.2 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameItems.java,v 1.3 2005-12-17 20:32:29 salomo Exp $
 
 package jake2.game;
 
@@ -1290,8 +1290,9 @@ public class GameItems {
     public static void Touch_Item(edict_t ent, edict_t other, cplane_t plane,
             csurface_t surf) {
         boolean taken;
-    
-        if (other.client == null)
+
+        // freed edicts have not items.
+        if (other.client == null || ent.item == null)
             return;
         if (other.health < 1)
             return; // dead people can't pickup
