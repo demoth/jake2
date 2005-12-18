@@ -2,7 +2,7 @@
  * Key.java
  * Copyright (C) 2003
  * 
- * $Id: Key.java,v 1.11 2005-06-07 12:57:21 hzi Exp $
+ * $Id: Key.java,v 1.12 2005-12-18 22:10:12 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -704,7 +704,7 @@ public class Key extends Globals {
 		} else return;
 		
 		key_lines[edit_line][1] = '/';
-		byte[] bytes = s.getBytes();
+		byte[] bytes = Lib.stringToBytes(s);
 		System.arraycopy(bytes, 0, key_lines[edit_line], 2, bytes.length);
 		key_linepos = bytes.length + 2;
 		key_lines[edit_line][key_linepos++] = ' ';

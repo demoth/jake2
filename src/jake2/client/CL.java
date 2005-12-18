@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.28 2005-12-18 16:43:51 cawe Exp $
+ * $Id: CL.java,v 1.29 2005-12-18 22:10:10 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -720,9 +720,9 @@ public final class CL {
 
         // send a disconnect message to the server
         fin = (char) Defines.clc_stringcmd + "disconnect";
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), fin.getBytes());
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), fin.getBytes());
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), fin.getBytes());
+        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
 
         ClearState();
 

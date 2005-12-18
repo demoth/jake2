@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.9 2005-12-16 21:18:23 salomo Exp $
+// $Id: SV_SEND.java,v 1.10 2005-12-18 22:10:12 cawe Exp $
 
 package jake2.server;
 
@@ -47,7 +47,7 @@ public class SV_SEND {
 	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
 		if (sv_redirected == Defines.RD_PACKET) {
 			String s = ("print\n" + Lib.CtoJava(outputbuf));
-			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), s.getBytes());
+			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
 			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.svc_print);

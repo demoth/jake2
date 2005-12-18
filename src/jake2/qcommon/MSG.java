@@ -19,7 +19,7 @@
  */
 
 // Created on 29.11.2003 by RST.
-// $Id: MSG.java,v 1.7 2005-02-19 21:20:47 salomo Exp $
+// $Id: MSG.java,v 1.8 2005-12-18 22:10:02 cawe Exp $
 package jake2.qcommon;
 
 import jake2.Globals;
@@ -85,7 +85,7 @@ public class MSG extends Globals {
         if (s == null)
             x = "";
 
-        SZ.Write(sb, x.getBytes());
+        SZ.Write(sb, Lib.stringToBytes(x));
         WriteByte(sb, 0);
         //Com.dprintln("MSG.WriteString:" + s.replace('\0', '@'));
     }

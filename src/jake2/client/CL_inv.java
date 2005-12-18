@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_inv.java,v 1.2 2004-09-22 19:22:08 salomo Exp $
+ * $Id: CL_inv.java,v 1.3 2005-12-18 22:10:10 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
 import jake2.qcommon.MSG;
+import jake2.util.Lib;
 import jake2.util.Vargs;
 
 /**
@@ -58,12 +59,12 @@ public class CL_inv {
 		}
 	}
 
-	static void SetStringHighBit(String s) {
-		byte[] b = s.getBytes();
+	static String getHighBitString(String s) {
+		byte[] b = Lib.stringToBytes(s);
 		for (int i = 0; i < b.length; i++) {
 			b[i] = (byte) (b[i] | 128);
 		}
-		s = new String(b);
+		return Lib.bytesToString(b);
 	}
 
 	/*
@@ -131,7 +132,7 @@ public class CL_inv {
 			string = Com.sprintf("%6s %3i %s", new Vargs(3).add(bind).add(Globals.cl.inventory[item]).add(
 					Globals.cl.configstrings[Defines.CS_ITEMS + item]));
 			if (item != selected)
-				SetStringHighBit(string);
+				string = getHighBitString(string);
 			else // draw a blinky cursor by the selected item
 			{
 				if (((int) (Globals.cls.realtime * 10) & 1) != 0)

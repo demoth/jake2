@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.17 2005-12-18 16:34:13 cawe Exp $
+// $Id: Lib.java,v 1.18 2005-12-18 22:10:12 cawe Exp $
 
 package jake2.util;
 
@@ -208,12 +208,12 @@ public class Lib {
 			return;
 		int diff = len - s.length();
 		if (diff > 0) {
-			f.write(s.getBytes());
+			f.write(stringToBytes(s));
 	
 			f.write(nullfiller, 0, diff);
 		}
 		else
-			f.write(s.getBytes(), 0, len);
+			f.write(stringToBytes(s), 0, len);
 	}
 	
 	/** Like in libc */
@@ -310,6 +310,20 @@ public class Lib {
     public static byte[] stringToBytes(String value) {
         try {
            return value.getBytes("ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen: Latin 1 is a standard encoding
+            return null;
+        }
+    }
+    
+    /** 
+     * convert a byte[] with 8bit latin 1 to java string
+     * 
+     * avoid new String(bytes) because it is using system specific character encoding.
+     */
+    public static String bytesToString(byte[] value) {
+        try {
+           return new String(value, "ISO-8859-1");
         } catch (UnsupportedEncodingException e) {
             // can't happen: Latin 1 is a standard encoding
             return null;

@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.13 2005-12-18 17:25:09 cawe Exp $
+// $Id: SV_MAIN.java,v 1.14 2005-12-18 22:10:13 cawe Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -458,7 +458,7 @@ public class SV_MAIN {
         Com.BeginRedirect(Defines.RD_PACKET, SV_SEND.sv_outputbuf,
                 Defines.SV_OUTPUTBUF_LENGTH, new Com.RD_Flusher() {
                     public void rd_flush(int target, StringBuffer buffer) {
-                        SV_SEND.SV_FlushRedirect(target, buffer.toString().getBytes());
+                        SV_SEND.SV_FlushRedirect(target, Lib.stringToBytes(buffer.toString()));
                     }
                 });
 

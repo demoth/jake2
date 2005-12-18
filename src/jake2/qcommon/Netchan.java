@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.6 2005-07-01 14:20:56 hzi Exp $
+ * $Id: Netchan.java,v 1.7 2005-12-18 22:10:08 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -31,6 +31,7 @@ import jake2.game.cvar_t;
 import jake2.server.SV_MAIN;
 import jake2.sys.NET;
 import jake2.sys.Timer;
+import jake2.util.Lib;
 
 /**
  * Netchan
@@ -140,7 +141,7 @@ public final class Netchan extends SV_MAIN {
     }
 
     public static void OutOfBandPrint(int net_socket, netadr_t adr, String s) {
-        Netchan_OutOfBand(net_socket, adr, s.length(), s.getBytes());
+        Netchan_OutOfBand(net_socket, adr, s.length(), Lib.stringToBytes(s));
     }
 
     /*

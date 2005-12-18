@@ -2,7 +2,7 @@
  * SZ.java
  * Copyright (C) 2003
  * 
- * $Id: SZ.java,v 1.5 2005-02-06 19:26:50 salomo Exp $
+ * $Id: SZ.java,v 1.6 2005-12-18 22:10:07 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.Defines;
+import jake2.util.Lib;
 
 /**
  * SZ
@@ -90,7 +91,7 @@ public final class SZ {
 	public static void Print(sizebuf_t buf, String data) {
 	    Com.dprintln("SZ.print():<" + data + ">" );
 		int length = data.length();
-		byte str[] = data.getBytes();
+		byte str[] = Lib.stringToBytes(data);
 	
 		if (buf.cursize != 0) {
 	

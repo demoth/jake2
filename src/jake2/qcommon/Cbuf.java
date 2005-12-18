@@ -2,7 +2,7 @@
  * Cbuf.java
  * Copyright (C) 2003
  * 
- * $Id: Cbuf.java,v 1.7 2005-02-19 11:12:42 salomo Exp $
+ * $Id: Cbuf.java,v 1.8 2005-12-18 22:10:09 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -145,7 +145,7 @@ public final class Cbuf {
             Com.Printf("Cbuf_AddText: overflow\n");
             return;
         }
-        SZ.Write(Globals.cmd_text, text.getBytes(), l);
+        SZ.Write(Globals.cmd_text, Lib.stringToBytes(text), l);
     }
 
     /**
