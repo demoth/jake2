@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.16 2005-12-16 21:19:42 salomo Exp $
+// $Id: Lib.java,v 1.17 2005-12-18 16:34:13 cawe Exp $
 
 package jake2.util;
 
@@ -301,6 +301,20 @@ public class Lib {
 	
 		return out;
 	}
+    
+    /** 
+     * convert a java string to byte[] with 8bit latin 1
+     * 
+     * avoid String.getBytes() because it is using system specific character encoding.
+     */
+    public static byte[] stringToBytes(String value) {
+        try {
+           return value.getBytes("ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen: Latin 1 is a standard encoding
+            return null;
+        }
+    }
 	
 	/** Helper method that savely handles the null termination of old C String data. */
 	public static String CtoJava(String old) {
