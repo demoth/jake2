@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.27 2005-12-16 21:14:36 salomo Exp $
+ * $Id: CL.java,v 1.28 2005-12-18 16:43:51 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,9 +32,7 @@ import jake2.qcommon.*;
 import jake2.server.SV_MAIN;
 import jake2.sound.S;
 import jake2.sys.*;
-import jake2.util.Lib;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.util.*;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -316,55 +314,47 @@ public final class CL {
      */
     static xcommand_t Rcon_f = new xcommand_t() {
         public void execute() {
-            StringBuffer message = new StringBuffer(1024);
-            int i;
-            netadr_t to = new netadr_t();
 
-            if (Globals.rcon_client_password.string == null) {
-                Com
-                        .Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
+            if (Globals.rcon_client_password.string.length() == 0) {
+                Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
                 return;
             }
 
-            message.append((char) 255);
-            message.append((char) 255);
-            message.append((char) 255);
-            message.append((char) 255);
+            StringBuffer message = new StringBuffer(1024);
 
-            NET.Config(true); // allow remote
+            // connection less packet
+            message.append('\u00ff');
+            message.append('\u00ff');
+            message.append('\u00ff');
+            message.append('\u00ff');
 
-            //strcat (message, "rcon ");
+            // allow remote
+            NET.Config(true);
+
             message.append("rcon ");
-
-            //strcat (message, rcon_client_password.string);
             message.append(Globals.rcon_client_password.string);
-            //strcat (message, " ");
             message.append(" ");
 
-            for (i = 1; i < Cmd.Argc(); i++) {
-                //strcat (message, Cmd.Argv(i));
+            for (int i = 1; i < Cmd.Argc(); i++) {
                 message.append(Cmd.Argv(i));
-                //strcat (message, " ");
                 message.append(" ");
             }
+
+            netadr_t to = new netadr_t();
 
             if (Globals.cls.state >= Defines.ca_connected)
                 to = Globals.cls.netchan.remote_address;
             else {
                 if (Globals.rcon_address.string.length() == 0) {
-                    Com
-                            .Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
-
+                    Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
                     return;
                 }
                 NET.StringToAdr(Globals.rcon_address.string, to);
-                if (to.port == 0)
-                    //to.port = BigShort (PORT_SERVER);
-                    to.port = Defines.PORT_SERVER;
+                if (to.port == 0) to.port = Defines.PORT_SERVER;
             }
             message.append('\0');
             String b = message.toString();
-            NET.SendPacket(Defines.NS_CLIENT, b.length(), b.getBytes(), to);
+            NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
         }
     };
 
