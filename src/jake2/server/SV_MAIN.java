@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.12 2005-12-16 21:17:51 salomo Exp $
+// $Id: SV_MAIN.java,v 1.13 2005-12-18 17:25:09 cawe Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -915,8 +915,7 @@ public class SV_MAIN {
                 Defines.CVAR_SERVERINFO);
         Cvar.Get("fraglimit", "0", Defines.CVAR_SERVERINFO);
         Cvar.Get("timelimit", "0", Defines.CVAR_SERVERINFO);
-        //TODO: set cheats 0
-        Cvar.Get("cheats", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        Cvar.Get("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         Cvar.Get("protocol", "" + Defines.PROTOCOL_VERSION,
                 Defines.CVAR_SERVERINFO | Defines.CVAR_NOSET);
 
@@ -931,8 +930,7 @@ public class SV_MAIN {
         SV_MAIN.sv_timedemo = Cvar.Get("timedemo", "0", 0);
         SV_MAIN.sv_enforcetime = Cvar.Get("sv_enforcetime", "0", 0);
 
-        // TODO: carsten, re-allow downloads per default
-        SV_MAIN.allow_download = Cvar.Get("allow_download", "0",
+        SV_MAIN.allow_download = Cvar.Get("allow_download", "1",
                 Defines.CVAR_ARCHIVE);
         SV_MAIN.allow_download_players = Cvar.Get("allow_download_players",
                 "0", Defines.CVAR_ARCHIVE);
