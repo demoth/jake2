@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.16 2005-11-20 22:18:33 salomo Exp $
+ * $Id: Cmd.java,v 1.17 2005-12-18 17:08:27 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -478,7 +478,7 @@ public final class Cmd {
         boolean give_all;
         edict_t it_ent;
 
-        if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             SV_GAME
                     .PF_cprintf(ent, Defines.PRINT_HIGH,
                             "You must run the server with '+set cheats 1' to enable this command.\n");
@@ -613,7 +613,7 @@ public final class Cmd {
     public static void God_f(edict_t ent) {
         String msg;
 
-        if (GameBase.deathmatch.value == 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             SV_GAME
                     .PF_cprintf(ent, Defines.PRINT_HIGH,
                             "You must run the server with '+set cheats 1' to enable this command.\n");
