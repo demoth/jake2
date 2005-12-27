@@ -19,7 +19,9 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_ENTS.java,v 1.6 2005-12-03 19:46:17 salomo Exp $
+
+// $Id: SV_ENTS.java,v 1.7 2005-12-27 21:02:30 salomo Exp $
+
 package jake2.server;
 
 import jake2.Defines;
@@ -31,7 +33,7 @@ import java.io.IOException;
 
 public class SV_ENTS {
 
-    /*
+    /**
      * =============================================================================
      * 
      * Build a client frame structure
@@ -49,11 +51,8 @@ public class SV_ENTS {
      * =============================================================================
      */
 
-    /*
-     * ============= SV_EmitPacketEntities
-     * 
+    /**
      * Writes a delta update of an entity_state_t list to the message.
-     * =============
      */
     static void SV_EmitPacketEntities(client_frame_t from, client_frame_t to,
             sizebuf_t msg) {
@@ -89,11 +88,11 @@ public class SV_ENTS {
                 oldnum = oldent.number;
             }
 
-            if (newnum == oldnum) { // delta update from old position
+            if (newnum == oldnum) { 
+            	// delta update from old position
                 // because the force parm is false, this will not result
                 // in any bytes being emited if the entity has not changed at
-                // all
-                // note that players are always 'newentities', this updates
+                // all note that players are always 'newentities', this updates
                 // their oldorigin always
                 // and prevents warping
                 MSG.WriteDeltaEntity(oldent, newent, msg, false,
@@ -103,16 +102,16 @@ public class SV_ENTS {
                 continue;
             }
 
-            if (newnum < oldnum) { // this is a new entity, send it from the
-                                   // baseline
+            if (newnum < oldnum) { 
+            	// this is a new entity, send it from the baseline
                 MSG.WriteDeltaEntity(SV_INIT.sv.baselines[newnum], newent, msg,
                         true, true);
                 newindex++;
                 continue;
             }
 
-            if (newnum > oldnum) { // the old entity isn't present in the new
-                                   // message
+            if (newnum > oldnum) { 
+            	// the old entity isn't present in the new message
                 bits = Defines.U_REMOVE;
                 if (oldnum >= 256)
                     bits |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
@@ -135,10 +134,8 @@ public class SV_ENTS {
 
     }
 
-    /*
-     * ============= SV_WritePlayerstateToClient
-     * 
-     * =============
+    /** 
+     * Writes the status of a player to a client system.
      */
     static void SV_WritePlayerstateToClient(client_frame_t from,
             client_frame_t to, sizebuf_t msg) {
@@ -158,9 +155,7 @@ public class SV_ENTS {
         } else
             ops = from.ps;
 
-        //
         // determine what needs to be sent
-        //
         pflags = 0;
 
         if (ps.pmove.pm_type != ops.pmove.pm_type)
@@ -220,15 +215,11 @@ public class SV_ENTS {
 
         pflags |= Defines.PS_WEAPONINDEX;
 
-        //
         // write it
-        //
         MSG.WriteByte(msg, Defines.svc_playerinfo);
         MSG.WriteShort(msg, pflags);
 
-        //
         // write the pmove_state_t
-        //
         if ((pflags & Defines.PS_M_TYPE) != 0)
             MSG.WriteByte(msg, ps.pmove.pm_type);
 
@@ -259,9 +250,7 @@ public class SV_ENTS {
             MSG.WriteShort(msg, ps.pmove.delta_angles[2]);
         }
 
-        //
         // write the rest of the player_state_t
-        //
         if ((pflags & Defines.PS_VIEWOFFSET) != 0) {
             MSG.WriteChar(msg, ps.viewoffset[0] * 4);
             MSG.WriteChar(msg, ps.viewoffset[1] * 4);
@@ -316,8 +305,8 @@ public class SV_ENTS {
                 MSG.WriteShort(msg, ps.stats[i]);
     }
 
-    /*
-     * ================== SV_WriteFrameToClient ==================
+    /**
+     * Writes a frame to a client system.
      */
     public static void SV_WriteFrameToClient(client_t client, sizebuf_t msg) {
         //ptr
@@ -359,8 +348,10 @@ public class SV_ENTS {
         SV_EmitPacketEntities(oldframe, frame, msg);
     }
 
-    /** The client will interpolate the view position, so we can't use a single
-     * PVS point. */
+    /** 
+     * The client will interpolate the view position, so we can't use a single
+     * PVS point. 
+     */
     public static void SV_FatPVS(float[] org) {
         int leafs[] = new int[64];
         int i, j, count;
@@ -472,7 +463,7 @@ public class SV_ENTS {
                 continue;
 
             // ignore if not touching a PV leaf
-                // check area
+            // check area
             if (ent != clent) {
                 if (!CM.CM_AreasConnected(clientarea, ent.areanum)) {
                 	// doors can legally straddle two areas, so we may need to check another one
@@ -543,11 +534,9 @@ public class SV_ENTS {
         }
     }
 
-    /*
-     * ================== SV_RecordDemoMessage
-     * 
+    /**
      * Save everything in the world out without deltas. Used for recording
-     * footage for merged or assembled demos ==================
+     * footage for merged or assembled demos.
      */
     public static void SV_RecordDemoMessage() {
         int e;

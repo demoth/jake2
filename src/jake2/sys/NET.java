@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.8 2005-06-26 09:17:33 hzi Exp $
+ * $Id: NET.java,v 1.9 2005-12-27 21:02:31 salomo Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,7 +45,7 @@ public final class NET {
 
     private final static int MAX_LOOPBACK = 4;
 
-    // local loopback adress
+    /** Local loopback adress. */
     private static netadr_t net_local_adr = new netadr_t();
 
     public static class loopmsg_t {
@@ -77,20 +77,16 @@ public final class NET {
 
     private static DatagramSocket[] ip_sockets = { null, null };
 
-    /*
-     * CompareAdr
-     * 
-     * Compares with the port
+    /**
+     * Compares ip address and port.
      */
     public static boolean CompareAdr(netadr_t a, netadr_t b) {
         return (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2]
                 && a.ip[3] == b.ip[3] && a.port == b.port);
     }
 
-    /*
-     * CompareBaseAdr
-     * 
-     * Compares without the port
+    /**
+     * Compares ip address without the port.
      */
     public static boolean CompareBaseAdr(netadr_t a, netadr_t b) {
         if (a.type != b.type)
@@ -106,10 +102,8 @@ public final class NET {
         return false;
     }
 
-    /*
-     * AdrToString
-     * 
-     * IP address with the port
+    /**
+     * Returns a string holding ip address and port like "ip0.ip1.ip2.ip3:port".
      */
     public static String AdrToString(netadr_t a) {
         StringBuffer sb = new StringBuffer();
@@ -120,10 +114,8 @@ public final class NET {
         return sb.toString();
     }
 
-    /*
-     * BaseAdrToString
-     * 
-     * IP address without the port
+    /**
+     * Returns IP address without the port as string.
      */
     public static String BaseAdrToString(netadr_t a) {
         StringBuffer sb = new StringBuffer();
@@ -133,8 +125,8 @@ public final class NET {
         return sb.toString();
     }
 
-    /*
-     * StringToAdr
+    /**
+     * Creates an netadr_t from an string.
      */
     public static boolean StringToAdr(String s, netadr_t a) {
         if (s.equalsIgnoreCase("localhost") || s.equalsIgnoreCase("loopback")) {
@@ -155,8 +147,8 @@ public final class NET {
         }
     }
 
-    /*
-     * IsLocalAddress
+    /**
+     * Seems to return true, if the address is is on 127.0.0.1.
      */
     public static boolean IsLocalAddress(netadr_t adr) {
         return CompareAdr(adr, net_local_adr);
@@ -170,6 +162,9 @@ public final class NET {
      * ==================================================
      */
 
+    /**
+     * Gets a packet from internal loopback.
+     */
     public static boolean GetLoopPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
         loopback_t loop;
@@ -192,8 +187,8 @@ public final class NET {
         return true;
     }
 
-    /*
-     * SendLoopPacket
+    /**
+     * Sends a packet via internal loopback.
      */
     public static void SendLoopPacket(int sock, int length, byte[] data,
             netadr_t to) {
@@ -210,8 +205,8 @@ public final class NET {
         loop.msgs[i].datalen = length;
     }
 
-    /*
-     * GetPacket
+    /**
+     * Gets a packet from a network channel
      */
     public static boolean GetPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
@@ -255,8 +250,8 @@ public final class NET {
         }
     }
 
-    /*
-     * SendPacket
+    /**
+     * Sends a Packet.
      */
     public static void SendPacket(int sock, int length, byte[] data, netadr_t to) {
         if (to.type == Defines.NA_LOOPBACK) {
@@ -273,18 +268,15 @@ public final class NET {
         }
 
         try {
-            SocketAddress dstSocket = new InetSocketAddress(
-                    to.getInetAddress(), to.port);
+            SocketAddress dstSocket = new InetSocketAddress(to.getInetAddress(), to.port);
             ip_channels[sock].send(ByteBuffer.wrap(data, 0, length), dstSocket);
         } catch (Exception e) {
-            Com
-                    .Println("NET_SendPacket ERROR: " + e + " to "
-                            + AdrToString(to));
+            Com.Println("NET_SendPacket ERROR: " + e + " to " + AdrToString(to));
         }
     }
 
-    /*
-     * OpenIP
+    /**
+     * OpenIP, creates the network sockets. 
      */
     public static void OpenIP() {
         cvar_t port, ip;
@@ -301,10 +293,8 @@ public final class NET {
                     ip.string, Defines.PORT_ANY);
     }
 
-    /*
-     * Config
-     * 
-     * A single player game will only use the loopback code
+    /**
+     * Config multi or singlepalyer - A single player game will only use the loopback code.
      */
     public static void Config(boolean multiplayer) {
         if (!multiplayer) {
@@ -321,7 +311,7 @@ public final class NET {
         }
     }
 
-    /*
+    /**
      * Init
      */
     public static void Init() {
@@ -363,15 +353,15 @@ public final class NET {
         return newsocket;
     }
 
-    /*
-     * Shutdown
+    /**
+     * Shutdown - closes the sockets 
      */
     public static void Shutdown() {
         // close sockets
         Config(false);
     }
 
-    // sleeps msec or until net socket is ready
+    /** Sleeps msec or until net socket is ready. */
     public static void Sleep(int msec) {
         if (ip_sockets[Defines.NS_SERVER] == null
                 || (Globals.dedicated != null && Globals.dedicated.value == 0))
@@ -386,17 +376,25 @@ public final class NET {
 
         // this should wait up to 100ms until a packet
         /*
-         * struct timeval timeout; fd_set fdset; extern cvar_t *dedicated;
+         * struct timeval timeout; 
+         * fd_set fdset; 
+         * extern cvar_t *dedicated;
          * extern qboolean stdin_active;
          * 
          * if (!ip_sockets[NS_SERVER] || (dedicated && !dedicated.value))
-         * return; // we're not a server, just run full speed
+         * 		return; // we're not a server, just run full speed
          * 
-         * FD_ZERO(&fdset); if (stdin_active) FD_SET(0, &fdset); // stdin is
-         * processed too FD_SET(ip_sockets[NS_SERVER], &fdset); // network
-         * socket timeout.tv_sec = msec/1000; timeout.tv_usec =
-         * (msec%1000)*1000; select(ip_sockets[NS_SERVER]+1, &fdset, NULL, NULL,
-         * &timeout);
+         * FD_ZERO(&fdset);
+         *  
+         * if (stdin_active) 
+         * 		FD_SET(0, &fdset); // stdin is processed too 
+         * 
+         * FD_SET(ip_sockets[NS_SERVER], &fdset); // network socket 
+         * 
+         * timeout.tv_sec = msec/1000; 
+         * timeout.tv_usec = (msec%1000)*1000; 
+         * 
+         * select(ip_sockets[NS_SERVER]+1, &fdset, NULL, NULL, &timeout);
          */
     }
 }

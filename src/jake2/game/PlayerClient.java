@@ -20,7 +20,7 @@
 
 // Created on 28.12.2003 by RST.
 
-// $Id: PlayerClient.java,v 1.11 2005-11-20 22:18:33 salomo Exp $
+// $Id: PlayerClient.java,v 1.12 2005-12-27 21:02:30 salomo Exp $
 
 package jake2.game;
 
@@ -33,10 +33,9 @@ import jake2.util.Math3D;
 public class PlayerClient {
 
     public static int player_die_i = 0;
-    /*
-     * ================== 
-     * player_die 
-     * ==================
+    
+    /**
+     * player_die. 
      */
     static EntDieAdapter player_die = new EntDieAdapter() {
     	public String getID() { return "player_die"; }
@@ -59,7 +58,7 @@ public class PlayerClient {
     
             self.maxs[2] = -8;
     
-            //		self.solid = SOLID_NOT;
+            // self.solid = SOLID_NOT;
             self.svflags |= Defines.SVF_DEADMONSTER;
     
             if (self.deadflag == 0) {
@@ -161,7 +160,7 @@ public class PlayerClient {
                 if (Math3D.VectorLength(d) < 384) {
                     if ((self.targetname == null)
                             || Lib.Q_stricmp(self.targetname, spot.targetname) != 0) {
-                        //				gi.dprintf("FixCoopSpots changed %s at %s targetname
+                        // gi.dprintf("FixCoopSpots changed %s at %s targetname
                         // from %s to %s\n", self.classname,
                         // vtos(self.s.origin), self.targetname,
                         // spot.targetname);
@@ -220,13 +219,10 @@ public class PlayerClient {
             int n;
     
             if (self.health < -40) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_BODY, GameBase.gi
-                                .soundindex("misc/udeath.wav"), 1,
-                                Defines.ATTN_NORM, 0);
+                GameBase.gi.sound(self, Defines.CHAN_BODY, 
+                		GameBase.gi.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
-                    GameMisc.ThrowGib(self,
-                            "models/objects/gibs/sm_meat/tris.md2", damage,
+                    GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage,
                             Defines.GIB_ORGANIC);
                 self.s.origin[2] -= 48;
                 GameMisc.ThrowClientHead(self, damage);
@@ -250,7 +246,7 @@ public class PlayerClient {
     
     };
 
-    /*
+    /**
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
      * starting point for a level.
      */
@@ -264,9 +260,9 @@ public class PlayerClient {
         }
     }
 
-    /*
+    /**
      * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) potential
-     * spawning position for deathmatch games
+     * spawning position for deathmatch games.
      */
     public static void SP_info_player_deathmatch(edict_t self) {
         if (0 == GameBase.deathmatch.value) {
@@ -276,9 +272,9 @@ public class PlayerClient {
         GameMisc.SP_misc_teleporter_dest.think(self);
     }
 
-    /*
+    /**
      * QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32) potential
-     * spawning position for coop games
+     * spawning position for coop games.
      */
 
     public static void SP_info_player_coop(edict_t self) {
@@ -307,7 +303,7 @@ public class PlayerClient {
         }
     }
 
-    /*
+    /**
      * QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32) The
      * deathmatch intermission point will be at one of these Use 'angles'
      * instead of 'angle', so you can set pitch or roll as well as yaw. 'pitch
@@ -508,14 +504,9 @@ public class PlayerClient {
             self.client.resp.score--;
     }
 
-    //=======================================================================
-    /*
-     * ============== 
-     * InitClientPersistant
-     * 
+    /**
      * This is only called when the game first initializes in single player, but
-     * is called after each death and level change in deathmatch 
-     * ==============
+     * is called after each death and level change in deathmatch. 
      */
     public static void InitClientPersistant(gclient_t client) {
         gitem_t item;
@@ -554,14 +545,10 @@ public class PlayerClient {
         client.resp.coop_respawn.set(client.pers);
     }
 
-    /*
-     * ================== 
-     * SaveClientData
-     * 
+    /**
      * Some information that should be persistant, like health, is still stored
      * in the edict structure, so it needs to be mirrored out to the client
      * structure before all the edicts are wiped. 
-     * ==================
      */
     public static void SaveClientData() {
         int i;
@@ -590,12 +577,8 @@ public class PlayerClient {
             ent.client.resp.score = ent.client.pers.score;
     }
 
-    /*
-     * ================ 
-     * PlayersRangeFromSpot
-     * 
-     * Returns the distance to the nearest player from the given spot
-     * ================
+    /**
+     * Returns the distance to the nearest player from the given spot.
      */
     static float PlayersRangeFromSpot(edict_t spot) {
         edict_t player;
@@ -625,12 +608,8 @@ public class PlayerClient {
         return bestplayerdistance;
     }
 
-    /*
-     * ================ 
-     * SelectRandomDeathmatchSpawnPoint
-     * 
-     * go to a random point, but NOT the two points closest to other players
-     * ================
+    /**
+     * Go to a random point, but NOT the two points closest to other players.
      */
     public static edict_t SelectRandomDeathmatchSpawnPoint() {
         edict_t spot, spot1, spot2;
@@ -685,11 +664,8 @@ public class PlayerClient {
         return spot;
     }
 
-    /*
-     * ================ 
-     * SelectFarthestDeathmatchSpawnPoint
-     * 
-     * ================
+    /** 
+	 * If turned on in the dmflags, select a spawn point far away from other players.
      */
     static edict_t SelectFarthestDeathmatchSpawnPoint() {
         edict_t bestspot;
@@ -702,7 +678,7 @@ public class PlayerClient {
 
         EdictIterator es = null;
         while ((es = GameBase.G_Find(es, GameBase.findByClass,
-                "info_player_deathmatch")).o != null) {
+                "info_player_deathmatch")) != null) {
             spot = es.o;
             bestplayerdistance = PlayersRangeFromSpot(spot);
 
@@ -726,6 +702,7 @@ public class PlayerClient {
         return edit.o;
     }
 
+    
     public static edict_t SelectDeathmatchSpawnPoint() {
         if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
             return SelectFarthestDeathmatchSpawnPoint();
@@ -754,7 +731,6 @@ public class PlayerClient {
             es = GameBase.G_Find(es, GameBase.findByClass,
                     "info_player_coop");
                     
-            // nullpointer exi fixed (RST).
             if (es == null)
                 return null;
             
@@ -776,12 +752,8 @@ public class PlayerClient {
 
     }
 
-    /*
-     * =========== 
-     * SelectSpawnPoint
-     * 
-     * Chooses a player start, deathmatch start, coop start, etc 
-     * ============
+    /**
+     * Chooses a player start, deathmatch start, coop start, etc.
      */
     public static void SelectSpawnPoint(edict_t ent, float[] origin,
             float[] angles) {
@@ -835,7 +807,6 @@ public class PlayerClient {
         Math3D.VectorCopy(spot.s.angles, angles);
     }
 
-    //======================================================================
 
     public static void InitBodyQue() {
         int i;
@@ -913,8 +884,8 @@ public class PlayerClient {
         return true;
     }
 
-    /*
-     * only called when pers.spectator changes note that resp.spectator should
+    /**
+     * Only called when pers.spectator changes note that resp.spectator should
      * be the opposite of pers.spectator here
      */
     public static void spectator_respawn(edict_t ent) {
@@ -1000,13 +971,8 @@ public class PlayerClient {
                     + " joined the game\n");
     }
 
-    //==============================================================
-
-    /*
-     * =========== PutClientInServer
-     * 
+    /**
      * Called when a player connects to a server or respawns in a deathmatch.
-     * ============
      */
     public static void PutClientInServer(edict_t ent) {
         float[] mins = { -16, -16, -24 };
@@ -1160,13 +1126,9 @@ public class PlayerClient {
         PlayerWeapon.ChangeWeapon(ent);
     }
 
-    /*
-     * ===================== 
-     * ClientBeginDeathmatch
-     * 
+    /**
      * A client has just connected to the server in deathmatch mode, so clear
      * everything out before starting them. 
-     * =====================
      */
     public static void ClientBeginDeathmatch(edict_t ent) {
         GameUtil.G_InitEdict(ent, ent.index);
@@ -1194,13 +1156,9 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    /*
-     * =========== 
-     * ClientBegin
-     * 
-     * called when a client has finished connecting, and is ready to be placed
+    /**
+     * Called when a client has finished connecting, and is ready to be placed
      * into the game. This will happen every level load. 
-     * ============
      */
     public static void ClientBegin(edict_t ent) {
         int i;
@@ -1252,15 +1210,12 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    /*
-     * =========== 
-     * ClientUserInfoChanged
-     * 
-     * called whenever the player updates a userinfo variable.
+    /**
+     * Called whenever the player updates a userinfo variable.
      * 
      * The game can override any of the settings in place (forcing skins or
      * names, etc) before copying it off. 
-     * ============
+     *
      */
     public static String ClientUserinfoChanged(edict_t ent, String userinfo) {
         String s;
@@ -1318,16 +1273,12 @@ public class PlayerClient {
         return userinfo;
     }
 
-    /*
-     * =========== 
-     * ClientConnect
-     * 
+    /**
      * Called when a player begins connecting to the server. The game can refuse
      * entrance to a client by returning false. If the client is allowed, the
      * connection process will continue and eventually get to ClientBegin()
      * Changing levels will NOT cause this to be called again, but loadgames
      * will. 
-     * ============
      */
     public static boolean ClientConnect(edict_t ent, String userinfo) {
         String value;
@@ -1335,7 +1286,7 @@ public class PlayerClient {
         // check to see if they are on the banned IP list
         value = Info.Info_ValueForKey(userinfo, "ip");
         if (GameSVCmds.SV_FilterPacket(value)) {
-            userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg", "Banned.");
+            userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
             return false;
         }
 
@@ -1346,7 +1297,7 @@ public class PlayerClient {
             int i, numspec;
 
             if (!passwdOK(GameBase.spectator_password.string, value)) {
-                userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg",
+                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Spectator password required or incorrect.");
                 return false;
             }
@@ -1358,7 +1309,7 @@ public class PlayerClient {
                     numspec++;
 
             if (numspec >= GameBase.maxspectators.value) {
-                userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg",
+                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Server spectator limit is full.");
                 return false;
             }
@@ -1366,7 +1317,7 @@ public class PlayerClient {
             // check for a password
             value = Info.Info_ValueForKey(userinfo, "password");
             if (!passwdOK(GameBase.spectator_password.string, value)) {
-                userinfo = Info.Info_SetValueForKey1(userinfo, "rejmsg",
+                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Password required or incorrect.");
                 return false;
             }
@@ -1394,13 +1345,8 @@ public class PlayerClient {
         return true;
     }
 
-    /*
-     * =========== 
-     * ClientDisconnect
-     * 
-     * Called when a player drops from the server. Will not be called between
-     * levels. 
-     * ============
+    /**
+     * Called when a player drops from the server. Will not be called between levels. 
      */
     public static void ClientDisconnect(edict_t ent) {
         int playernum;
@@ -1429,22 +1375,28 @@ public class PlayerClient {
     }
 
     /*
-     * static int CheckBlock(, int c) { int v, i; v = 0; for (i = 0; i < c; i++)
-     * v += ((byte *) b)[i]; return v; }
+     * static int CheckBlock(int c) 
+     * { 
+     * 		int v, i; 
+     * 		v = 0; 
+     * 		for (i = 0; i < c; i++)
+     *			v += ((byte *) b)[i]; 
+     *		return v; 
+     * }
      * 
-     * public static void PrintPmove(pmove_t * pm) { unsigned c1, c2;
+     * public static void PrintPmove(pmove_t * pm) 
+     * { 
+     *		unsigned c1, c2;
      * 
-     * c1 = CheckBlock(& pm.s, sizeof(pm.s)); c2 = CheckBlock(& pm.cmd,
-     * sizeof(pm.cmd)); Com_Printf("sv %3i:%i %i\n", pm.cmd.impulse, c1, c2); }
+     * 		c1 = CheckBlock(&pm.s, sizeof(pm.s));
+     * 		c2 = CheckBlock(&pm.cmd, sizeof(pm.cmd)); 
+     *      Com_Printf("sv %3i:%i %i\n", pm.cmd.impulse, c1, c2); 
+     * }
      */
 
-    /*
-     * ============== 
-     * ClientThink
-     * 
+    /**
      * This will be called once for each client frame, which will usually be a
-     * couple times for each server frame. 
-     * ==============
+     * couple times for each server frame.
      */
     public static void ClientThink(edict_t ent, usercmd_t ucmd) {
         gclient_t client;
@@ -1475,7 +1427,6 @@ public class PlayerClient {
         } else {
 
             // set up for pmove
-            //memset(& pm, 0, sizeof(pm));
             pm = new pmove_t();
 
             if (ent.movetype == Defines.MOVETYPE_NOCLIP)
@@ -1497,7 +1448,7 @@ public class PlayerClient {
 
             if (client.old_pmove.equals(pm.s)) {
                 pm.snapinitial = true;
-                //		gi.dprintf ("pmove changed!\n");
+                // gi.dprintf ("pmove changed!\n");
             }
 
             // this should be a copy
@@ -1615,13 +1566,9 @@ public class PlayerClient {
         }
     }
 
-    /*
-     * ============== 
-     * ClientBeginServerFrame
-     * 
+    /**
      * This will be called once for each server frame, before running any other
      * entities in the world. 
-     * ==============
      */
     public static void ClientBeginServerFrame(edict_t ent) {
         gclient_t client;
@@ -1671,7 +1618,9 @@ public class PlayerClient {
         client.latched_buttons = 0;
     }
 
-    /** Returns true, if the players gender flag was set to female . */
+    /** 
+     * Returns true, if the players gender flag was set to female. 
+     */
     public static boolean IsFemale(edict_t ent) {
         char info;
     
@@ -1703,10 +1652,8 @@ public class PlayerClient {
         return false;
     }
 
-    /*
-     * ================== 
-     * LookAtKiller 
-     * ==================
+    /**
+     * Changes the camera view to look at the killer.
      */
     public static void LookAtKiller(edict_t self, edict_t inflictor,
             edict_t attacker) {
@@ -1737,7 +1684,11 @@ public class PlayerClient {
             self.client.killer_yaw += 360;
     
     }
-
+    
+    
+    /** 
+     * Drop items and weapons in deathmatch games. 
+     */ 
     public static void TossClientWeapon(edict_t self) {
         gitem_t item;
         edict_t drop;

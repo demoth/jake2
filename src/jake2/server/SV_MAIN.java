@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.14 2005-12-18 22:10:13 cawe Exp $
+// $Id: SV_MAIN.java,v 1.15 2005-12-27 21:02:30 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -34,10 +34,11 @@ import java.io.IOException;
 
 public class SV_MAIN {
 
-    public static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS]; // address
-                                                                             // of
-                                                                             // group
-                                                                             // servers
+	/** Addess of group servers.*/ 
+    public static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
+                                                                            
+                                                                            
+                                                                            
     static {
         for (int i = 0; i < Defines.MAX_MASTERS; i++) {
             master_adr[i] = new netadr_t();
@@ -85,24 +86,16 @@ public class SV_MAIN {
     public static cvar_t sv_reconnect_limit; // minimum seconds between connect
                                              // messages
 
-    //============================================================================
-
-    /*
-     * ================ Master_Heartbeat
-     * 
+    /**
      * Send a message to the master every few minutes to let it know we are
-     * alive, and log information ================
+     * alive, and log information.
      */
     public static final int HEARTBEAT_SECONDS = 300;
 
-    //============================================================================
-
-    /*
-     * ===================== SV_DropClient
-     * 
+    /**
      * Called when the player is totally leaving the server, either willingly or
      * unwillingly. This is NOT called if the entire server is quiting or
-     * crashing. =====================
+     * crashing.
      */
     public static void SV_DropClient(client_t drop) {
         // add the disconnect
@@ -123,19 +116,15 @@ public class SV_MAIN {
         drop.name = "";
     }
 
-    /*
-     * ==============================================================================
+    
+    /* ==============================================================================
      * 
      * CONNECTIONLESS COMMANDS
      * 
-     * ==============================================================================
-     */
-
-    /*
-     * =============== SV_StatusString
-     * 
-     * Builds the string that is sent as heartbeats and status replies
-     * ===============
+     * ==============================================================================*/
+     
+    /**
+     * Builds the string that is sent as heartbeats and status replies.
      */
     public static String SV_StatusString() {
         String player;
@@ -167,31 +156,25 @@ public class SV_MAIN {
         return status;
     }
 
-    /*
-     * ================ SVC_Status
-     * 
-     * Responds with all the info that qplug or qspy can see ================
+    /**
+     * Responds with all the info that qplug or qspy can see
      */
     public static void SVC_Status() {
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "print\n"
                 + SV_StatusString());
     }
 
-    /*
-     * ================ SVC_Ack
-     * 
-     * ================
+    /**
+     *  SVC_Ack
      */
     public static void SVC_Ack() {
         Com.Printf("Ping acknowledge from " + NET.AdrToString(Globals.net_from)
                 + "\n");
     }
 
-    /*
-     * ================ SVC_Info
-     * 
-     * Responds with short info for broadcast scans The second parameter should
-     * be the current protocol version number. ================
+    /**
+     * SVC_Info, responds with short info for broadcast scans The second parameter should
+     * be the current protocol version number.
      */
     public static void SVC_Info() {
         String string;
@@ -219,22 +202,18 @@ public class SV_MAIN {
                 + string);
     }
 
-    /*
-     * ================ SVC_Ping
-     * 
-     * Just responds with an acknowledgement ================
+    /**
+     * SVC_Ping, Just responds with an acknowledgement.
      */
     public static void SVC_Ping() {
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "ack");
     }
 
-    /*
-     * ================= SVC_GetChallenge
-     * 
+    /** 
      * Returns a challenge number that can be used in a subsequent
      * client_connect command. We do this to prevent denial of service attacks
      * that flood the server with invalid connection IPs. With a challenge, they
-     * must give a valid IP address. =================
+     * must give a valid IP address.
      */
     public static void SVC_GetChallenge() {
         int i;
@@ -268,10 +247,8 @@ public class SV_MAIN {
                 "challenge " + SV_INIT.svs.challenges[i].challenge);
     }
 
-    /*
-     * ================== SVC_DirectConnect
-     * 
-     * A connection request that did not come from the master ==================
+    /**
+     * A connection request that did not come from the master.
      */
     public static void SVC_DirectConnect() {
         String userinfo;
@@ -279,8 +256,6 @@ public class SV_MAIN {
         int i;
         client_t cl;
 
-        edict_t ent;
-        int edictnum;
         int version;
         int qport;
 
@@ -300,11 +275,8 @@ public class SV_MAIN {
         int challenge = Lib.atoi(Cmd.Argv(3));
         userinfo = Cmd.Argv(4);
 
-        //userinfo[sizeof(userinfo) - 1] = 0;
-
         // force the IP key/value pair so the game can filter based on ip
-        userinfo = Info.Info_SetValueForKey1(userinfo, "ip", NET
-                .AdrToString(Globals.net_from));
+        userinfo = Info.Info_SetValueForKey(userinfo, "ip", NET.AdrToString(Globals.net_from));
 
         // attractloop servers are ONLY for local clients
         if (SV_INIT.sv.attractloop) {
@@ -375,20 +347,26 @@ public class SV_MAIN {
         gotnewcl(index, challenge, userinfo, adr, qport);
     }
 
+    /**
+     * Initializes player structures after successfull connection.
+     */
     public static void gotnewcl(int i, int challenge, String userinfo,
             netadr_t adr, int qport) {
         // build a new connection
         // accept the new client
         // this is the only place a client_t is ever initialized
-        //*newcl = temp;
 
         SV_MAIN.sv_client = SV_INIT.svs.clients[i];
-        //edictnum = (newcl-svs.clients)+1;
+        
         int edictnum = i + 1;
+        
         edict_t ent = GameBase.g_edicts[edictnum];
         SV_INIT.svs.clients[i].edict = ent;
-        SV_INIT.svs.clients[i].challenge = challenge; // save challenge for
-                                                      // checksumming
+        
+        // save challenge for checksumming
+        SV_INIT.svs.clients[i].challenge = challenge;
+        
+        
 
         // get the game a chance to reject this connection or modify the
         // userinfo
@@ -411,21 +389,24 @@ public class SV_MAIN {
         // send the connect packet to the client
         Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "client_connect");
 
-        Netchan.Setup(Defines.NS_SERVER, SV_INIT.svs.clients[i].netchan, adr,
-                qport);
+        Netchan.Setup(Defines.NS_SERVER, SV_INIT.svs.clients[i].netchan, adr, qport);
 
         SV_INIT.svs.clients[i].state = Defines.cs_connected;
 
         SZ.Init(SV_INIT.svs.clients[i].datagram,
                 SV_INIT.svs.clients[i].datagram_buf,
                 SV_INIT.svs.clients[i].datagram_buf.length);
+        
         SV_INIT.svs.clients[i].datagram.allowoverflow = true;
-        SV_INIT.svs.clients[i].lastmessage = SV_INIT.svs.realtime; // don't
-                                                                   // timeout
+        SV_INIT.svs.clients[i].lastmessage = SV_INIT.svs.realtime; // don't timeout
         SV_INIT.svs.clients[i].lastconnect = SV_INIT.svs.realtime;
         Com.DPrintf("new client added.\n");
     }
 
+    
+    /** 
+     * Checks if the rcon password is corect.
+     */
     public static int Rcon_Validate() {
         if (0 == SV_MAIN.rcon_password.string.length())
             return 0;
@@ -478,12 +459,10 @@ public class SV_MAIN {
         Com.EndRedirect();
     }
 
-    /*
-     * ================= SV_ConnectionlessPacket
-     * 
+    /**
      * A connectionless packet has four leading 0xff characters to distinguish
      * it from a game channel. Clients that are in the game can still send
-     * connectionless packets. =================
+     * connectionless packets. It is used also by rcon commands.
      */
     public static void SV_ConnectionlessPacket() {
         String s;
@@ -497,8 +476,9 @@ public class SV_MAIN {
         Cmd.TokenizeString(s.toCharArray(), false);
 
         c = Cmd.Argv(0);
-        //Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c
-        // + "\n");
+        
+        //for debugging purposes 
+        //Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
         //Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
         if (0 == Lib.strcmp(c, "ping"))
@@ -523,12 +503,8 @@ public class SV_MAIN {
         }
     }
 
-    //============================================================================
-
-    /*
-     * =================== SV_CalcPings
-     * 
-     * Updates the cl.ping variables ===================
+    /**
+     * Updates the cl.ping variables.
      */
     public static void SV_CalcPings() {
         int i, j;
@@ -558,12 +534,9 @@ public class SV_MAIN {
         }
     }
 
-    /*
-     * =================== SV_GiveMsec
-     * 
+    /**
      * Every few frames, gives all clients an allotment of milliseconds for
      * their command moves. If they exceed it, assume cheating.
-     * ===================
      */
     public static void SV_GiveMsec() {
         int i;
@@ -581,8 +554,8 @@ public class SV_MAIN {
         }
     }
 
-    /*
-     * ================= SV_ReadPackets =================
+    /**
+     * Reads packets from the network or loopback.
      */
     public static void SV_ReadPackets() {
         int i;
@@ -638,16 +611,14 @@ public class SV_MAIN {
         }
     }
 
-    /*
-     * ================== SV_CheckTimeouts
-     * 
+    /**
      * If a packet has not been received from a client for timeout.value
      * seconds, drop the conneciton. Server frames are used instead of realtime
      * to avoid dropping the local client while debugging.
      * 
      * When a client is normally dropped, the client_t goes into a zombie state
      * for a few seconds to make sure any final reliable message gets resent if
-     * necessary ==================
+     * necessary.
      */
     public static void SV_CheckTimeouts() {
         int i;
@@ -678,11 +649,11 @@ public class SV_MAIN {
         }
     }
 
-    /*
-     * ================ SV_PrepWorldFrame
+    /**
+     * SV_PrepWorldFrame
      * 
      * This has to be done before the world logic, because player processing
-     * happens outside RunWorldFrame ================
+     * happens outside RunWorldFrame.
      */
     public static void SV_PrepWorldFrame() {
         edict_t ent;
@@ -696,8 +667,8 @@ public class SV_MAIN {
 
     }
 
-    /*
-     * ================= SV_RunGameFrame =================
+    /**
+     * SV_RunGameFrame.
      */
     public static void SV_RunGameFrame() {
         if (Globals.host_speeds.value != 0)
@@ -727,10 +698,8 @@ public class SV_MAIN {
 
     }
 
-    /*
-     * ================== SV_Frame
-     * 
-     * ==================
+    /**
+     * SV_Frame.
      */
     public static void SV_Frame(long msec) {
         Globals.time_before_game = Globals.time_after_game = 0;
@@ -767,11 +736,9 @@ public class SV_MAIN {
         }
 
         // update ping based on the last known frame from all clients
-        //TODO: dont need yet
         SV_CalcPings();
 
         // give the clients some timeslices
-        //TODO: dont need yet
         SV_GiveMsec();
 
         // let everything in the world think and move
@@ -781,11 +748,9 @@ public class SV_MAIN {
         SV_SEND.SV_SendClientMessages();
 
         // save the entire world state if recording a serverdemo
-        //TODO: dont need yet
-        //SV_WORLD.SV_RecordDemoMessage();
+        SV_ENTS.SV_RecordDemoMessage();
 
         // send a heartbeat to the master if needed
-        //TODO: dont need yet
         Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
@@ -826,11 +791,10 @@ public class SV_MAIN {
                         SV_MAIN.master_adr[i], "heartbeat\n" + string);
             }
     }
+    
 
-    /*
-     * ================= Master_Shutdown
-     * 
-     * Informs all masters that this server is going down =================
+    /**
+     * Master_Shutdown, Informs all masters that this server is going down.
      */
     public static void Master_Shutdown() {
         int i;
@@ -853,14 +817,11 @@ public class SV_MAIN {
                         SV_MAIN.master_adr[i], "shutdown");
             }
     }
+    
 
-    //============================================================================
-
-    /*
-     * ================= SV_UserinfoChanged
-     * 
+    /**
      * Pull specific info from a newly changed userinfo string into a more C
-     * freindly form. =================
+     * freindly form.
      */
     public static void SV_UserinfoChanged(client_t cl) {
         String val;
@@ -897,11 +858,7 @@ public class SV_MAIN {
 
     }
 
-    //============================================================================
-
-    /*
-     * =============== SV_Init
-     * 
+    /**
      * Only called at quake2.exe startup, not for each game ===============
      */
     public static void SV_Init() {
@@ -952,13 +909,11 @@ public class SV_MAIN {
                 Globals.net_message_buffer.length);
     }
 
-    /*
-     * ================== SV_FinalMessage
-     * 
+    /**
      * Used by SV_Shutdown to send a final message to all connected clients
      * before the server goes down. The messages are sent immediately, not just
      * stuck on the outgoing message list, because the server is going to
-     * totally exit after returning from this function. ==================
+     * totally exit after returning from this function.
      */
     public static void SV_FinalMessage(String message, boolean reconnect) {
         int i;
@@ -991,11 +946,8 @@ public class SV_MAIN {
         }
     }
 
-    /*
-     * ================ SV_Shutdown
-     * 
-     * Called when each game quits, before Sys_Quit or Sys_Error
-     * ================
+    /**
+     * Called when each game quits, before Sys_Quit or Sys_Error.
      */
     public static void SV_Shutdown(String finalmsg, boolean reconnect) {
         if (SV_INIT.svs.clients != null)

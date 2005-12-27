@@ -19,7 +19,9 @@
  */
 
 // Created on 27.12.2003 by RST.
-// $Id: Info.java,v 1.5 2004-10-21 03:32:53 cawe Exp $
+
+// $Id: Info.java,v 1.6 2005-12-27 21:02:31 salomo Exp $
+
 package jake2.game;
 
 import jake2.Defines;
@@ -29,6 +31,9 @@ import java.util.StringTokenizer;
 
 public class Info {
 
+	/**
+	 * Returns a value for a key from an info string. 
+	 */
     public static String Info_ValueForKey(String s, String key) {
 
         StringTokenizer tk = new StringTokenizer(s, "\\");
@@ -50,10 +55,9 @@ public class Info {
     }
 
     /**
-     * TODO RST: DANGEROUS port, returns the modified userinfo string, was
-     * pointer-pointer manipulation first
+     * Sets a value for a key in the user info string.
      */
-    public static String Info_SetValueForKey1(String s, String key, String value) {
+    public static String Info_SetValueForKey(String s, String key, String value) {
 
         if (value == null || value.length() == 0)
             return s;
@@ -79,7 +83,7 @@ public class Info {
             return s;
         }
 
-        StringBuffer sb = new StringBuffer(Info_RemoveKey1(s, key));
+        StringBuffer sb = new StringBuffer(Info_RemoveKey(s, key));
 
         if (sb.length() + 2 + key.length() + value.length() > Defines.MAX_INFO_STRING) {
 
@@ -92,8 +96,10 @@ public class Info {
         return sb.toString();
     }
 
-    /** TODO RST: DANGEROUS port, returns now the modified userinfo string. */
-    public static String Info_RemoveKey1(String s, String key) {
+    /** 
+     * Removes a key and value from an info string. 
+     */
+    public static String Info_RemoveKey(String s, String key) {
 
         StringBuffer sb = new StringBuffer(512);
 
@@ -119,35 +125,14 @@ public class Info {
 
         return sb.toString();
 
-        //some old code follows
-
-        /*
-         * char * start; char pkey[512]; char value[512]; char * o;
-         * 
-         * if (key.indexOf('\\')!=-1) { Com.Printf ("Can't use a key with a
-         * \\\n"); return s; }
-         * 
-         * while () { start = s; if (* s == '\\') s++; o = pkey; while (* s !=
-         * '\\') { if (!* s) return; o++ = * s++; } o = 0; s++;
-         * 
-         * o = value; while (* s != '\\' && * s) { if (!* s) return; o++ = *
-         * s++; } o = 0;
-         * 
-         * if (!strcmp(key, pkey)) { strcpy(start, s); // remove this part
-         * return; }
-         * 
-         * if (!* s) return; }
-         */
     }
 
-    /*
-     * ================== Info_Validate
-     * 
+    /**
      * Some characters are illegal in info strings because they can mess up the
-     * server's parsing ==================
+     * server's parsing.
      */
     public static boolean Info_Validate(String s) {
-        return !((s.indexOf('"') != -1) || (s.indexOf(';') != -1));
+        return !((s.indexOf('"') != -1) || (s.indexOf(';') != -1) || (s.indexOf('\\') != -1));
     }
 
     private static String fillspaces = "                     ";
@@ -175,33 +160,8 @@ public class Info {
             if (len < 20) {
                 sb.append(fillspaces.substring(len));
             }
-
             sb.append('=').append(value1).append('\n');
         }
-
         Com.Printf(sb.toString());
-
-        /*
-         * some old code follows
-         * 
-         * char * o; int l;
-         * 
-         * if (* s == '\\') s++; while (* s) { o = key; while (* s && * s !=
-         * '\\') o++ = * s++;
-         * 
-         * l = o - key; if (l < 20) { memset(o, ' ', 20 - l); key[20] = 0; }
-         * else o = 0; Com_Printf("%s", key);
-         * 
-         * if (!* s) { Com_Printf("MISSING VALUE\n"); return; }
-         * 
-         * o = value; s++; while (* s && * s != '\\') o++ = * s++; o = 0;
-         * 
-         * if (* s) s++; Com_Printf("%s\n", value); }
-         */
-    }
-
-    public static void testintern(StringBuffer in) {
-        in.setLength(0);
-        in.append("123!");
     }
 }

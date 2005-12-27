@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.8 2005-05-26 16:56:32 hzi Exp $
+ * $Id: Cvar.java,v 1.9 2005-12-27 21:02:30 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -114,8 +114,8 @@ public class Cvar extends Globals {
         return null;
     }
 
-    /*
-     * ============ Cvar_FullSet ============
+    /**
+     * Creates a variable if not found and sets their value, the parsed float value and their flags.
      */
     public static cvar_t FullSet(String var_name, String value, int flags) {
         cvar_t var;
@@ -142,20 +142,29 @@ public class Cvar extends Globals {
         return var;
     }
 
-    /*
-     * ============ Cvar_Set ============
+    /** 
+     * Sets the value of the variable without forcing. 
      */
     public static cvar_t Set(String var_name, String value) {
         return Set2(var_name, value, false);
     }
 
-    /*
-     * ============ Cvar_Set2 ============
+    /** 
+     * Sets the value of the variable with forcing. 
+     */
+    public static cvar_t ForceSet(String var_name, String value) {
+        return Cvar.Set2(var_name, value, true);
+    }
+    
+    /**
+     * Gereric set function, sets the value of the variable, with forcing its even possible to 
+     * override the variables write protection. 
      */
     static cvar_t Set2(String var_name, String value, boolean force) {
 
         cvar_t var = Cvar.FindVar(var_name);
-        if (var == null) { // create it
+        if (var == null) { 
+        	// create it
             return Cvar.Get(var_name, value, 0);
         }
 
@@ -176,7 +185,6 @@ public class Cvar extends Globals {
                 if (var.latched_string != null) {
                     if (value.equals(var.latched_string))
                         return var;
-                    //Z_Free (var.latched_string);
                     var.latched_string = null;
                 } else {
                     if (value.equals(var.string))
@@ -202,7 +210,6 @@ public class Cvar extends Globals {
             }
         } else {
             if (var.latched_string != null) {
-                //Z_Free(var.latched_string);
                 var.latched_string = null;
             }
         }
@@ -225,6 +232,10 @@ public class Cvar extends Globals {
         return var;
     }
 
+    /** 
+     * Set command, sets variables.
+     */
+    
     static xcommand_t Set_f = new xcommand_t() {
         public void execute() {
             int c;
@@ -253,6 +264,9 @@ public class Cvar extends Globals {
 
     };
 
+    /**
+     * List command, lists all available commands.
+     */
     static xcommand_t List_f = new xcommand_t() {
         public void execute() {
             cvar_t var;
@@ -284,19 +298,14 @@ public class Cvar extends Globals {
         }
     };
 
-    /*
-     * ============ Cvar_ForceSet ============
-     */
-    public static cvar_t ForceSet(String var_name, String value) {
-        return Cvar.Set2(var_name, value, true);
-    }
 
-    /*
-     * ============ Cvar_SetValue ============
+
+    /** 
+     * Sets a float value of a variable.
+     * 
+     * The overloading is very important, there was a problem with 
+     * networt "rate" string --> 10000 became "10000.0" and that wasn't right.
      */
-    // the overloading is very important
-    // there was a problem with networt "rate" string
-    // 10000 became "10000.0" and that wasn't right
     public static void SetValue(String var_name, int value) {
         Cvar.Set(var_name, "" + value);
     }
@@ -309,8 +318,8 @@ public class Cvar extends Globals {
         }
     }
 
-    /*
-     * ============ Cvar_VariableValue ============
+    /**
+     * Returns the float value of a variable.
      */
     public static float VariableValue(String var_name) {
         cvar_t var = Cvar.FindVar(var_name);
@@ -324,10 +333,8 @@ public class Cvar extends Globals {
         return val;
     }
 
-    /*
-     * ============ Cvar_Command
-     * 
-     * Handles variable inspection and changing from the console ============
+    /**
+     * Handles variable inspection and changing from the console.
      */
     public static boolean Command() {
         cvar_t v;
@@ -355,16 +362,22 @@ public class Cvar extends Globals {
 
         for (var = Globals.cvar_vars; var != null; var = var.next) {
             if ((var.flags & bit) != 0)
-                info = Info.Info_SetValueForKey1(info, var.name, var.string);
+                info = Info.Info_SetValueForKey(info, var.name, var.string);
         }
         return info;
     }
 
-    // returns an info string containing all the CVAR_SERVERINFO cvars
+    /**
+     * Returns an info string containing all the CVAR_SERVERINFO cvars. 
+     */
     public static String Serverinfo() {
         return BitInfo(Defines.CVAR_SERVERINFO);
     }
 
+    
+    /**
+     * Any variables with latched values will be updated.
+     */
     public static void GetLatchedVars() {
         cvar_t var;
 
@@ -386,11 +399,16 @@ public class Cvar extends Globals {
     }
 
     /**
-     * returns an info string containing all the CVAR_USERINFO cvars.
+     * Returns an info string containing all the CVAR_USERINFO cvars.
      */
     public static String Userinfo() {
         return BitInfo(CVAR_USERINFO);
     }
+    
+    /**
+     * Appends lines containing \"set vaqriable value\" for all variables
+     * with the archive flag set true. 
+     */
 
     public static void WriteVariables(String path) {
         cvar_t var;
@@ -419,8 +437,8 @@ public class Cvar extends Globals {
         Lib.fclose(f);
     }
 
-    /*
-     * ============ Cvar_CompleteVariable ============
+    /**
+     * Variable typing auto completition.
      */
     public static Vector CompleteVariable(String partial) {
 
@@ -434,8 +452,8 @@ public class Cvar extends Globals {
         return vars;
     }
 
-    /*
-     * ============ Cvar_InfoValidate ============
+    /**
+     * Some characters are invalid for info strings.
      */
     static boolean InfoValidate(String s) {
         if (s.indexOf("\\") != -1)

@@ -20,7 +20,7 @@
 
 // Created on 01.11.2003 by RST.
 
-// $Id: GameUtil.java,v 1.14 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameUtil.java,v 1.15 2005-12-27 21:02:31 salomo Exp $
 
 package jake2.game;
 
@@ -40,8 +40,10 @@ public class GameUtil {
         }
     }
 
-    /**
-     * the global "activator" should be set to the entity that initiated the
+    /** 
+     * Use the targets.
+     * 
+     * The global "activator" should be set to the entity that initiated the
      * firing.
      * 
      * If self.delay is set, a DelayedUse entity will be created that will
@@ -58,9 +60,7 @@ public class GameUtil {
 
         checkClassname(ent);
 
-        //
-        //	   check for a delay
-        //
+        // check for a delay
         if (ent.delay != 0) {
             // create a temp object to fire at a later time
             t = G_Spawn();
@@ -76,9 +76,8 @@ public class GameUtil {
             return;
         }
 
-        //
-        //	   print the message
-        //
+
+        // print the message
         if ((ent.message != null)
                 && (activator.svflags & Defines.SVF_MONSTER) == 0) {
             GameBase.gi.centerprintf(activator, "" + ent.message);
@@ -90,10 +89,7 @@ public class GameUtil {
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
 
-        //
         // kill killtargets
-        //
-
         EdictIterator edit = null;
 
         if (ent.killtarget != null) {
@@ -110,7 +106,6 @@ public class GameUtil {
         }
 
         // fire targets
-
         if (ent.target != null) {
             edit = null;
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
@@ -186,13 +181,11 @@ public class GameUtil {
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
         if (ed.index <= (GameBase.maxclients.value + Defines.BODY_QUEUE_SIZE)) {
-            //			gi.dprintf("tried to free special edict\n");
+            // gi.dprintf("tried to free special edict\n");
             return;
         }
 
-        //memset(ed, 0, sizeof(* ed));
         GameBase.g_edicts[ed.index] = new edict_t(ed.index);
-        //ed.clear();
         ed.classname = "freed";
         ed.freetime = GameBase.level.time;
         ed.inuse = false;
@@ -208,26 +201,6 @@ public class GameUtil {
         GameBase.g_edicts[i] = new edict_t(i);
     }
 
-    public static void G_TouchSolids(edict_t ent) {
-        int i, num;
-        edict_t touch[] = new edict_t[Defines.MAX_EDICTS], hit;
-
-        num = GameBase.gi.BoxEdicts(ent.absmin, ent.absmax, touch,
-                Defines.MAX_EDICTS, Defines.AREA_SOLID);
-
-        // be careful, it is possible to have an entity in this
-        // list removed before we get to it (killtriggered)
-        for (i = 0; i < num; i++) {
-            hit = touch[i];
-            if (!hit.inuse)
-                continue;
-            if (ent.touch != null) {
-                ent.touch.touch(hit, ent, GameBase.dummyplane, null);
-            }
-            if (!ent.inuse)
-                break;
-        }
-    }
 
     /**
      * Kills all entities that would touch the proposed new positioning of ent.
@@ -256,6 +229,9 @@ public class GameUtil {
         return true; // all clear
     }
 
+    /** 
+     * Returns true, if two edicts are on the same team. 
+     */
     public static boolean OnSameTeam(edict_t ent1, edict_t ent2) {
         if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
@@ -265,6 +241,10 @@ public class GameUtil {
         return false;
     }
 
+    /** 
+     * Returns the team string of an entity 
+     * with respect to rteam_by_model and team_by_skin. 
+     */
     static String ClientTeam(edict_t ent) {
         String value;
 
@@ -296,13 +276,11 @@ public class GameUtil {
         GameItems.SelectNextItem(ent, -1);
     }
 
-    /*
-     * ============= range
-     * 
-     * returns the range catagorization of an entity reletive to self 0 melee
+    /**
+     * Returns the range catagorization of an entity reletive to self 0 melee
      * range, will become hostile even if back is turned 1 visibility and
      * infront, or visibility and show hostile 2 infront and show hostile 3 only
-     * triggered by damage =============
+     * triggered by damage.
      */
     public static int range(edict_t self, edict_t other) {
         float[] v = { 0, 0, 0 };
@@ -323,10 +301,8 @@ public class GameUtil {
         self.monsterinfo.attack_finished = GameBase.level.time + time;
     }
 
-    /*
-     * ============= infront
-     * 
-     * returns true if the entity is in front (in sight) of self =============
+    /**
+     * Returns true if the entity is in front (in sight) of self
      */
     public static boolean infront(edict_t self, edict_t other) {
         float[] vec = { 0, 0, 0 };
@@ -343,11 +319,8 @@ public class GameUtil {
         return false;
     }
 
-    /*
-     * ============= visible
-     * 
-     * returns 1 if the entity is visible to self, even if not infront ()
-     * =============
+    /**
+     * Returns 1 if the entity is visible to self, even if not infront().
      */
     public static boolean visible(edict_t self, edict_t other) {
         float[] spot1 = { 0, 0, 0 };
@@ -366,8 +339,8 @@ public class GameUtil {
         return false;
     }
 
-    /*
-     * =========== FindTarget
+    /**
+     * Finds a target.
      * 
      * Self is currently not attacking anything, so try to find a target
      * 
@@ -379,18 +352,16 @@ public class GameUtil {
      * 
      * To avoid spending too much time, only a single client (or fakeclient) is
      * checked each frame. This means multi player games will have slightly
-     * slower noticing monsters. ============
+     * slower noticing monsters.
      */
     static boolean FindTarget(edict_t self) {
         edict_t client;
         boolean heardit;
         int r;
 
-        if ((self.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0) 
-        {
+        if ((self.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0) {
             if (self.goalentity != null && self.goalentity.inuse
-                    && self.goalentity.classname != null) 
-            {
+                    && self.goalentity.classname != null) {
                 if (self.goalentity.classname.equals("target_actor"))
                     return false;
             }
@@ -523,10 +494,8 @@ public class GameUtil {
              
             self.enemy = client;             
         }
-
-        //
-        //	   got one
-        //
+        
+        // got one
         FoundTarget(self);
 
         if (0 == (self.monsterinfo.aiflags & Defines.AI_SOUND_TARGET)
@@ -614,32 +583,7 @@ public class GameUtil {
         }
     };
 
-    /*
-     * ============= 
-     * range
-     * 
-     * returns the range catagorization of an entity reletive to self. 0 melee
-     * range, will become hostile even if back is turned 1 visibility and
-     * infront, or visibility and show hostile 2 infront and show hostile 3 only
-     * triggered by damage
-     *  
-     */
-    //	static int range(edict_t self, edict_t other)
-    //	{
-    //		float[] v= { 0, 0, 0 };
-    //		float len;
-    //
-    //		VectorSubtract(self.s.origin, other.s.origin, v);
-    //		len= VectorLength(v);
-    //		if (len < MELEE_DISTANCE)
-    //			return RANGE_MELEE;
-    //		if (len < 500)
-    //			return RANGE_NEAR;
-    //		if (len < 1000)
-    //			return RANGE_MID;
-    //		return RANGE_FAR;
-    //	}
-    //	============================================================================
+
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "M_CheckAttack"; }
 
@@ -680,7 +624,7 @@ public class GameUtil {
                 return true;
             }
 
-            //					 missile attack
+            // missile attack
             if (self.monsterinfo.attack == null)
                 return false;
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.7 2005-12-16 21:13:42 salomo Exp $
+// $Id: Defines.java,v 1.8 2005-12-27 21:02:30 salomo Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1336,18 +1336,7 @@ public class Defines {
 
 
 	public static final float MOVE_STOP_EPSILON = 0.1f;
-
-	/*
-	==================
-	PM_StepSlideMove
 	
-	Each intersection will try to step over the obstruction instead of
-	sliding along it.
-	
-	Returns a new origin, velocity, and contact entity
-	Does not modify any world state?
-	==================
-	*/
 	public final static float MIN_STEP_NORMAL = 0.7f; // can't step up onto very steep slopes
 
 

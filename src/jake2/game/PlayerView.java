@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: PlayerView.java,v 1.4 2005-11-16 22:24:52 salomo Exp $
+// $Id: PlayerView.java,v 1.5 2005-12-27 21:02:30 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -40,11 +40,8 @@ public class PlayerView {
 
     public static float[] up = { 0, 0, 0 };
 
-    /*
-     * =============== 
-     * SV_CalcRoll
-     * 
-     * ===============
+    /**
+     * SV_CalcRoll.
      */
     public static float SV_CalcRoll(float[] angles, float[] velocity) {
         float sign;
@@ -212,18 +209,14 @@ public class PlayerView {
         client.damage_knockback = 0;
     }
 
-    /*
-     * =============== 
-     * SV_CalcViewOffset
+    /**
      * 
-     * Auto pitching on slopes?
-     * 
-     * fall from 128: 400 = 160000 fall from 256: 580 = 336400 fall from 384:
-     * 720 = 518400 fall from 512: 800 = 640000 fall from 640: 960 =
-     * 
+     * fall from 128: 400 = 160000 
+     * fall from 256: 580 = 336400 
+     * fall from 384: 720 = 518400 
+     * fall from 512: 800 = 640000 
+     * fall from 640: 960 =  
      * damage = deltavelocity*deltavelocity * 0.0001
-     * 
-     * ===============
      */
     public static void SV_CalcViewOffset(edict_t ent) {
         float angles[] = { 0, 0, 0 };
@@ -231,8 +224,6 @@ public class PlayerView {
         float ratio;
         float delta;
         float[] v = { 0, 0, 0 };
-
-        //===================================
 
         // base angles
         angles = ent.client.ps.kick_angles;
@@ -245,12 +236,11 @@ public class PlayerView {
             ent.client.ps.viewangles[Defines.PITCH] = -15;
             ent.client.ps.viewangles[Defines.YAW] = ent.client.killer_yaw;
         } else {
+        	
             // add angles based on weapon kick
-
             Math3D.VectorCopy(ent.client.kick_angles, angles);
 
             // add angles based on damage kick
-
             ratio = (ent.client.v_dmg_time - GameBase.level.time)
                     / Defines.DAMAGE_TIME;
             if (ratio < 0) {
@@ -262,7 +252,6 @@ public class PlayerView {
             angles[Defines.ROLL] += ratio * ent.client.v_dmg_roll;
 
             // add pitch based on fall kick
-
             ratio = (ent.client.fall_time - GameBase.level.time)
                     / Defines.FALL_TIME;
             if (ratio < 0)
@@ -270,7 +259,6 @@ public class PlayerView {
             angles[Defines.PITCH] += ratio * ent.client.fall_value;
 
             // add angles based on velocity
-
             delta = Math3D.DotProduct(ent.velocity, forward);
             angles[Defines.PITCH] += delta * GameBase.run_pitch.value;
 
@@ -278,7 +266,6 @@ public class PlayerView {
             angles[Defines.ROLL] += delta * GameBase.run_roll.value;
 
             // add angles based on bob
-
             delta = bobfracsin * GameBase.bob_pitch.value * xyspeed;
             if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
@@ -291,18 +278,13 @@ public class PlayerView {
             angles[Defines.ROLL] += delta;
         }
 
-        //===================================
-
         // base origin
-
         Math3D.VectorClear(v);
 
         // add view height
-
         v[2] += ent.viewheight;
 
         // add fall height
-
         ratio = (ent.client.fall_time - GameBase.level.time)
                 / Defines.FALL_TIME;
         if (ratio < 0)
@@ -310,10 +292,10 @@ public class PlayerView {
         v[2] -= ratio * ent.client.fall_value * 0.4;
 
         // add bob height
-
         bob = bobfracsin * xyspeed * GameBase.bob_up.value;
         if (bob > 6)
             bob = 6;
+        
         //gi.DebugGraph (bob *2, 255);
         v[2] += bob;
 
@@ -340,10 +322,8 @@ public class PlayerView {
         Math3D.VectorCopy(v, ent.client.ps.viewoffset);
     }
 
-    /*
-     * ============== 
-     * SV_CalcGunOffset 
-     * ==============
+    /**
+     * Calculates where to draw the gun.
      */
     public static void SV_CalcGunOffset(edict_t ent) {
         int i;
@@ -387,10 +367,8 @@ public class PlayerView {
         }
     }
 
-    /*
-     * ============= 
-     * SV_AddBlend 
-     * =============
+    /**
+     * Adds a blending effect to the clients view.
      */
     public static void SV_AddBlend(float r, float g, float b, float a,
             float v_blend[]) {
@@ -407,10 +385,8 @@ public class PlayerView {
         v_blend[3] = a2;
     }
 
-    /*
-     * ============= 
-     * SV_CalcBlend 
-     * =============
+    /**
+     * Calculates the blending color according to the players environment.
      */
     public static void SV_CalcBlend(edict_t ent) {
         int contents;
@@ -438,27 +414,23 @@ public class PlayerView {
         if (ent.client.quad_framenum > GameBase.level.framenum) {
             remaining = (int) (ent.client.quad_framenum - GameBase.level.framenum);
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                        .soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM,
-                        0);
+                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
+                	GameBase.gi.soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 0, 1, 0.08f, ent.client.ps.blend);
         } else if (ent.client.invincible_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.invincible_framenum
-                    - GameBase.level.framenum;
+            remaining = (int) ent.client.invincible_framenum - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                        .soundindex("items/protect2.wav"), 1,
-                        Defines.ATTN_NORM, 0);
+                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
+                	GameBase.gi.soundindex("items/protect2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(1, 1, 0, 0.08f, ent.client.ps.blend);
         } else if (ent.client.enviro_framenum > GameBase.level.framenum) {
             remaining = (int) ent.client.enviro_framenum
                     - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
-                        .soundindex("items/airout.wav"), 1, Defines.ATTN_NORM,
-                        0);
+                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
+                		GameBase.gi.soundindex("items/airout.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 1, 0, 0.08f, ent.client.ps.blend);
         } else if (ent.client.breather_framenum > GameBase.level.framenum) {
@@ -493,10 +465,8 @@ public class PlayerView {
             ent.client.bonus_alpha = 0;
     }
 
-    /*
-     * ================= 
-     * P_FallingDamage 
-     * =================
+    /**
+     * Calculates damage and effect when a player falls down.
      */
     public static void P_FallingDamage(edict_t ent) {
         float delta;
@@ -566,10 +536,8 @@ public class PlayerView {
         }
     }
 
-    /*
-     * ============= 
-     * P_WorldEffects 
-     * =============
+    /**
+     * General effect handling for a player.
      */
     public static void P_WorldEffects() {
         boolean breather;
@@ -950,13 +918,10 @@ public class PlayerView {
         }
     }
 
-    /*
-     * ================= 
-     * ClientEndServerFrame
-     * 
+    
+    /**
      * Called for each player at the end of the server frame and right after
-     * spawning 
-     * =================
+     * spawning.
      */
     public static void ClientEndServerFrame(edict_t ent) {
         float bobtime;
