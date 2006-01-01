@@ -19,11 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.8 2005-12-27 21:02:30 salomo Exp $
+// $Id: Defines.java,v 1.9 2006-01-01 15:05:47 cawe Exp $
 
 /** Contains the definitions for the game engine. */
 
 package jake2;
+
+import java.nio.ByteOrder;
 
 
 public class Defines {
@@ -1351,6 +1353,8 @@ public class Defines {
 
 	// datentyp konstanten
 	// groesse in bytes
+    public final static boolean LITTLE_ENDIAN = (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN);
+
 	public final static int SIZE_OF_SHORT = 2;
 
 	public final static int SIZE_OF_INT = 4;
@@ -1359,4 +1363,6 @@ public class Defines {
 
 	public final static int SIZE_OF_FLOAT = 4;
 
-	public final static int SIZE_OF_DOUBLE = 8;}
+	public final static int SIZE_OF_DOUBLE = 8;
+
+}
