@@ -2,7 +2,7 @@
  * SND_MEM.java
  * Copyright (C) 2004
  * 
- * $Id: WaveLoader.java,v 1.6 2005-12-13 00:02:52 salomo Exp $
+ * $Id: WaveLoader.java,v 1.7 2006-01-01 15:07:30 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -166,27 +166,26 @@ public class WaveLoader {
         samplefrac = 0;
         fracstep = (int) (stepscale * 256);
         
-        for (i=0 ; i<outcount ; i++)
-        {
-        	srcsample = samplefrac >> 8;            
-        	samplefrac += fracstep;
-            
-        	if (inwidth == 2)
-        	{
-        		sample = (int) ((data[offset + srcsample * 2] & 0xff) + (data[offset + srcsample * 2 + 1] << 8));
-        	}
-        	else
-        	{		
-        		sample = ((data[offset + srcsample] &0xff) - 128) << 8;
-        	}
-           
-        	if (sc.width == 2)
-        	{
-        		sc.data[i*2] = (byte) (sample & 0xff);
-        		sc.data[i*2+1] = (byte) ((sample>>>8) & 0xff);
-        	}
-            else
-            {
+        for (i = 0; i < outcount; i++) {
+            srcsample = samplefrac >> 8;
+            samplefrac += fracstep;
+
+            if (inwidth == 2) {
+                sample = (data[offset + srcsample * 2] & 0xff)
+                        + (data[offset + srcsample * 2 + 1] << 8);
+            } else {
+                sample = ((data[offset + srcsample] & 0xff) - 128) << 8;
+            }
+
+            if (sc.width == 2) {
+                if (Defines.LITTLE_ENDIAN) {
+                    sc.data[i * 2] = (byte) (sample & 0xff);
+                    sc.data[i * 2 + 1] = (byte) ((sample >>> 8) & 0xff);
+                } else {
+                    sc.data[i * 2] = (byte) ((sample >>> 8) & 0xff);
+                    sc.data[i * 2 + 1] = (byte) (sample & 0xff);
+                }
+            } else {
                 sc.data[i] = (byte) (sample >> 8);
             }
         }
