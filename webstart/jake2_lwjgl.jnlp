@@ -43,6 +43,9 @@
 		<argument>+set</argument>
 		<argument>s_impl</argument>
 		<argument>lwjgl</argument>
+		<argument>+set</argument>
+		<argument>adr0</argument>
+		<argument>213.187.87.100</argument>		
 	</application-desc>
 
 </jnlp>
