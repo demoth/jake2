@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.8 2005-06-11 19:43:48 cawe Exp $
+ * $Id: DancingQueens.java,v 1.9 2006-01-10 14:34:00 hzi Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@
  */
 package jake2.render;
 
+import jake2.*;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.*;
@@ -35,6 +36,7 @@ import jake2.sys.KBD;
 import jake2.util.Math3D;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * DancingQueens
@@ -64,6 +66,10 @@ public class DancingQueens {
     KBD kbd;
     
     void init() {
+    	Globals.dedicated = Cvar.Get("dedicated", "0", Qcommon.CVAR_NOSET);
+		Jake2.Q2Dialog = new Q2DataDialog();
+		Locale.setDefault(Locale.US);
+		Jake2.Q2Dialog.setVisible(true);        
         
         Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "5",
                 "+set", "vid_fullscreen", "0" });
@@ -74,6 +80,7 @@ public class DancingQueens {
         System.out.println("Registered Drivers: " + Arrays.asList(names));
         
         this.re = Renderer.getDriver("fastjogl");
+        Globals.re = this.re;
         
         System.out.println("Use driver: " + re);
         System.out.println();
@@ -82,6 +89,8 @@ public class DancingQueens {
         kbd = re.getKeyboardHandler();
         kbd.Init();
         
+        Cbuf.AddText("unbind t");
+        Cbuf.Execute();        
         Cmd.AddCommand("togglemouse", togglemouse);
         Cbuf.AddText("bind t togglemouse");
         Cbuf.Execute();
