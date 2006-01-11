@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.9 2005-12-27 21:02:31 salomo Exp $
+ * $Id: NET.java,v 1.10 2006-01-11 22:04:42 hzi Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -279,15 +279,19 @@ public final class NET {
      * OpenIP, creates the network sockets. 
      */
     public static void OpenIP() {
-        cvar_t port, ip;
+        cvar_t port, ip, clientport;
 
         port = Cvar.Get("port", "" + Defines.PORT_SERVER, Defines.CVAR_NOSET);
         ip = Cvar.Get("ip", "localhost", Defines.CVAR_NOSET);
-
+        clientport = Cvar.Get("clientport", "" + Defines.PORT_CLIENT, Defines.CVAR_NOSET);
+        
         if (ip_sockets[Defines.NS_SERVER] == null)
             ip_sockets[Defines.NS_SERVER] = Socket(Defines.NS_SERVER,
                     ip.string, (int) port.value);
-
+        
+        if (ip_sockets[Defines.NS_CLIENT] == null)
+            ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT,
+                    ip.string, (int) clientport.value);
         if (ip_sockets[Defines.NS_CLIENT] == null)
             ip_sockets[Defines.NS_CLIENT] = Socket(Defines.NS_CLIENT,
                     ip.string, Defines.PORT_ANY);
