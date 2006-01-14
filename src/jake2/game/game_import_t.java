@@ -19,7 +19,7 @@
  */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.5 2004-10-07 14:13:07 hzi Exp $
+// $Id: game_import_t.java,v 1.6 2006-01-14 16:06:11 hzi Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -100,7 +100,11 @@ public class game_import_t {
         return SV_WORLD.SV_Trace(start, mins, maxs, end, passent, contentmask);
     }
 
-    public pmove_t.PointContentsAdapter pointcontents;
+    public pmove_t.PointContentsAdapter pointcontents = new pmove_t.PointContentsAdapter() {
+        public int pointcontents(float[] o) {
+            return 0;
+        }
+    };
 
     public boolean inPHS(float[] p1, float[] p2) {
         return SV_GAME.PF_inPHS(p1, p2);
