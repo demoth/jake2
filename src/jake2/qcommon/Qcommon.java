@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.20 2005-12-03 19:43:41 salomo Exp $
+ * $Id: Qcommon.java,v 1.21 2006-01-15 15:34:38 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -92,9 +92,6 @@ public final class Qcommon extends Globals {
 			
 			reconfigure(true); // reload default.cfg and config.cfg
 			
-			// save config when we have a valid baseq2
-			CL.WriteConfiguration();
-
 			//
 			// init commands and vars
 			//
@@ -148,6 +145,9 @@ public final class Qcommon extends Globals {
 			}
 
 			Com.Printf("====== Quake2 Initialized ======\n\n");
+
+			// save config when configuration is completed
+			CL.WriteConfiguration();
 			
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.dispose();
