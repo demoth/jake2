@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_INIT.java,v 1.16 2005-12-05 00:11:47 salomo Exp $
+// $Id: SV_INIT.java,v 1.17 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -37,10 +37,8 @@ import java.io.RandomAccessFile;
 
 public class SV_INIT {
 
-    /*
-     * ================ SV_FindIndex
-     * 
-     * ================
+    /**
+     * SV_FindIndex.
      */
     public static int SV_FindIndex(String name, int start, int max,
             boolean create) {
@@ -85,19 +83,17 @@ public class SV_INIT {
         return SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
     }
 
-    /*
-     * ================ SV_CreateBaseline
+    /**
+     * SV_CreateBaseline
      * 
      * Entity baselines are used to compress the update messages to the clients --
-     * only the fields that differ from the baseline will be transmitted
-     * ================
+     * only the fields that differ from the baseline will be transmitted.
      */
     public static void SV_CreateBaseline() {
         edict_t svent;
         int entnum;
 
         for (entnum = 1; entnum < GameBase.num_edicts; entnum++) {
-            //svent = EDICT_NUM(entnum);
             svent = GameBase.g_edicts[entnum];
 
             if (!svent.inuse)
@@ -105,17 +101,17 @@ public class SV_INIT {
             if (0 == svent.s.modelindex && 0 == svent.s.sound
                     && 0 == svent.s.effects)
                 continue;
+            
             svent.s.number = entnum;
 
             // take current state as baseline
             Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
-            // rst: bugfix
-            sv.baselines[entnum].set(svent.s); // = svent.s.getClone();
+            sv.baselines[entnum].set(svent.s);
         }
     }
 
-    /*
-     * ================= SV_CheckForSavegame =================
+    /** 
+     * SV_CheckForSavegame.
      */
     public static void SV_CheckForSavegame() {
 
@@ -168,13 +164,11 @@ public class SV_INIT {
         }
     }
 
-    /*
-     * ================ SV_SpawnServer
+    /**
+     * SV_SpawnServer.
      * 
      * Change the server to a new map, taking all connected clients along with
      * it.
-     * 
-     * ================
      */
     public static void SV_SpawnServer(String server, String spawnpoint,
             int serverstate, boolean attractloop, boolean loadgame) {
@@ -190,7 +184,8 @@ public class SV_INIT {
         if (sv.demofile != null)
             try {
                 sv.demofile.close();
-            } catch (Exception e) {
+            } 
+        	catch (Exception e) {
             }
 
         // any partially connected client will be restarted
@@ -248,21 +243,20 @@ public class SV_INIT {
         checksum = iw[0];
         sv.configstrings[Defines.CS_MAPCHECKSUM] = "" + checksum;
 
-        //
+
         // clear physics interaction links
-        //
+        
         SV_WORLD.SV_ClearWorld();
 
         for (i = 1; i < CM.CM_NumInlineModels(); i++) {
             sv.configstrings[Defines.CS_MODELS + 1 + i] = "*" + i;
+            
             // copy references
-            sv.models[i + 1] = CM
-                    .InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
+            sv.models[i + 1] = CM.InlineModel(sv.configstrings[Defines.CS_MODELS + 1 + i]);
         }
 
-        //
+     
         // spawn the rest of the entities on the map
-        //	
 
         // precache and static commands can be issued during
         // map initialization
@@ -290,14 +284,12 @@ public class SV_INIT {
         // set serverinfo variable
         Cvar.FullSet("mapname", sv.name, Defines.CVAR_SERVERINFO
                 | Defines.CVAR_NOSET);
-
-        //Com.Printf("-------------------------------------\n");
     }
 
-    /*
-     * ============== SV_InitGame
+    /**
+     * SV_InitGame.
      * 
-     * A brand new game has been started ==============
+     * A brand new game has been started.
      */
     public static void SV_InitGame() {
         int i;
@@ -356,21 +348,18 @@ public class SV_INIT {
         svs.spawncount = Lib.rand();        
         svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
         for (int n = 0; n < svs.clients.length; n++) {
-        	// fixed nasty multiplayer bug (rst).
             svs.clients[n] = new client_t();
             svs.clients[n].serverindex = n;
         }
         svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
                 * Defines.UPDATE_BACKUP * 64; //ok.
 
-        //svs.client_entities = Z_Malloc(sizeof(entity_state_t) *
-        // svs.num_client_entities);
         svs.client_entities = new entity_state_t[svs.num_client_entities];
         for (int n = 0; n < svs.client_entities.length; n++)
             svs.client_entities[n] = new entity_state_t(null);
 
         // init network stuff
-        NET.Config((SV_MAIN.maxclients.value > 1)); //ok!
+        NET.Config((SV_MAIN.maxclients.value > 1));
 
         // heartbeats will always be sent to the id master
         svs.last_heartbeat = -99999; // send immediately
@@ -378,33 +367,30 @@ public class SV_INIT {
         NET.StringToAdr(idmaster, SV_MAIN.master_adr[0]);
 
         // init game
-        SV_GAME.SV_InitGameProgs(); // bis hier alles ok!
+        SV_GAME.SV_InitGameProgs();
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             ent = GameBase.g_edicts[i + 1];
-
-            //ent.s.number = i + 1; //dont need this, ent.s.number already set.
             svs.clients[i].edict = ent;
-            //memset(& svs.clients[i].lastcmd, 0,
-            // sizeof(svs.clients[i].lastcmd));
             svs.clients[i].lastcmd = new usercmd_t();
         }
     }
 
     private static String firstmap = "";
     
-    /*
-     * ====================== SV_Map
+    /**
+     * SV_Map
      * 
      * the full syntax is:
      * 
      * map [*] <map>$ <startspot>+ <nextserver>
      * 
-     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2
-     * file Nextserver is used to allow a cinematic to play, then proceed to
+     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
+     * 
+     * Nextserver is used to allow a cinematic to play, then proceed to
      * another level:
      * 
-     * map tram.cin+jail_e3 ======================
+     * map tram.cin+jail_e3
      */
     public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
 
@@ -420,16 +406,6 @@ public class SV_INIT {
         level = levelstring; // bis hier her ok.
 
         // if there is a + in the map, set nextserver to the remainder
-
-        //was:
-        //	ch = strstr(level, "+");
-        //	if (ch)
-        //	{
-        //		*ch = 0;
-        //			Cvar_Set ("nextserver", va("gamemap \"%s\"", ch+1));
-        //	}
-        //	else
-        //		Cvar_Set ("nextserver", "");
 
         int c = level.indexOf('+');
         if (c != -1) {
@@ -449,22 +425,20 @@ public class SV_INIT {
         	}
         }
 
-        //ZOID special hack for end game screen in coop mode
+        // ZOID: special hack for end game screen in coop mode
         if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
             Cvar.Set("nextserver", "gamemap \"*" + firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
         if (pos != -1) {
-            //* ch = 0;
             spawnpoint = level.substring(pos + 1);
             level = level.substring(0, pos);
 
         } else
-            //spawnpoint[0] = 0;
             spawnpoint = "";
 
-        // skip the end-of-unit flag if necessary
+        // skip the end-of-unit flag * if necessary
         if (level.charAt(0) == '*')
             level = level.substring(1);
 

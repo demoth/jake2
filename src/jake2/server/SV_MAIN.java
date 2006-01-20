@@ -19,7 +19,7 @@
  */
 
 // Created on 13.01.2004 by RST.
-// $Id: SV_MAIN.java,v 1.15 2005-12-27 21:02:30 salomo Exp $
+// $Id: SV_MAIN.java,v 1.16 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -859,7 +859,7 @@ public class SV_MAIN {
     }
 
     /**
-     * Only called at quake2.exe startup, not for each game ===============
+     * Only called at quake2.exe startup, not for each game
      */
     public static void SV_Init() {
         SV_CCMDS.SV_InitOperatorCommands(); //ok.

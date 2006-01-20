@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.8 2004-09-22 19:22:12 salomo Exp $
+// $Id: SV_GAME.java,v 1.9 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -30,11 +30,10 @@ import jake2.util.Math3D;
 
 public class SV_GAME {
 
-    /*
-     * =============== PF_Unicast
+    /**
+     * PF_Unicast
      * 
-     * Sends the contents of the mutlicast buffer to a single client
-     * ===============
+     * Sends the contents of the mutlicast buffer to a single client.
      */
     public static void PF_Unicast(edict_t ent, boolean reliable) {
         int p;
@@ -59,19 +58,19 @@ public class SV_GAME {
         SZ.Clear(SV_INIT.sv.multicast);
     }
 
-    /*
-     * =============== PF_dprintf
+    /**
+     * PF_dprintf
      * 
-     * Debug print to server console ===============
+     * Debug print to server console.
      */
     public static void PF_dprintf(String fmt) {
         Com.Printf(fmt);
     }
 
-    /*
-     * =============== PF_cprintf
+    /**
+     * PF_cprintf
      * 
-     * Print to a single client ===============
+     * Print to a single client.
      */
     public static void PF_cprintf(edict_t ent, int level, String fmt) {
 
@@ -89,10 +88,10 @@ public class SV_GAME {
             Com.Printf(fmt);
     }
 
-    /*
-     * =============== PF_centerprintf
+    /**
+     * PF_centerprintf
      * 
-     * centerprint to a single client ===============
+     * centerprint to a single client.
      */
     public static void PF_centerprintf(edict_t ent, String fmt) {
         int n;
@@ -106,10 +105,10 @@ public class SV_GAME {
         PF_Unicast(ent, true);
     }
 
-    /*
-     * =============== PF_error
+    /**
+     *  PF_error
      * 
-     * Abort the server with a game error ===============
+     *  Abort the server with a game error. 
      */
     public static void PF_error(String fmt) {
         Com.Error(Defines.ERR_DROP, "Game Error: " + fmt);
@@ -119,10 +118,10 @@ public class SV_GAME {
         Com.Error(level, fmt);
     }
 
-    /*
-     * ================= PF_setmodel
+    /**
+     * PF_setmodel
      * 
-     * Also sets mins and maxs for inline bmodels =================
+     * Also sets mins and maxs for inline bmodels.
      */
     public static void PF_setmodel(edict_t ent, String name) {
         int i;
@@ -144,10 +143,8 @@ public class SV_GAME {
         }
     }
 
-    /*
-     * =============== PF_Configstring
-     * 
-     * ===============
+    /**
+     *  PF_Configstring
      */
     public static void PF_Configstring(int index, String val) {
         if (index < 0 || index >= Defines.MAX_CONFIGSTRINGS)
@@ -207,10 +204,10 @@ public class SV_GAME {
         MSG.WriteAngle(SV_INIT.sv.multicast, f);
     }
 
-    /*
-     * ================= PF_inPVS
+    /**
+     * PF_inPVS
      * 
-     * Also checks portalareas so that doors block sight =================
+     * Also checks portalareas so that doors block sight.
      */
     public static boolean PF_inPVS(float[] p1, float[] p2) {
         int leafnum;
@@ -239,10 +236,10 @@ public class SV_GAME {
         return true;
     }
 
-    /*
-     * ================= PF_inPHS
+    /**
+     * PF_inPHS.
      * 
-     * Also checks portalareas so that doors block sound =================
+     * Also checks portalareas so that doors block sound.
      */
     public static boolean PF_inPHS(float[] p1, float[] p2) {
         int leafnum;
@@ -280,22 +277,21 @@ public class SV_GAME {
 
     }
 
-    //==============================================
 
-    /*
-     * =============== SV_ShutdownGameProgs
+    /**
+     *  SV_ShutdownGameProgs
      * 
      * Called when either the entire server is being killed, or it is changing
-     * to a different game directory. ===============
+     * to a different game directory. 
      */
     public static void SV_ShutdownGameProgs() {
         GameBase.ShutdownGame();
     }
 
-    /*
-     * =============== SV_InitGameProgs
+    /**
+     * SV_InitGameProgs
      * 
-     * Init the game subsystem for a new map ===============
+     * Init the game subsystem for a new map. 
      */
 
     public static void SV_InitGameProgs() {
