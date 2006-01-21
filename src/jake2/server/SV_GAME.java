@@ -19,7 +19,7 @@
  */
 
 // Created on 14.01.2004 by RST.
-// $Id: SV_GAME.java,v 1.9 2006-01-20 22:44:07 salomo Exp $
+// $Id: SV_GAME.java,v 1.10 2006-01-21 21:53:32 salomo Exp $
 package jake2.server;
 
 import jake2.Defines;
@@ -67,6 +67,14 @@ public class SV_GAME {
         Com.Printf(fmt);
     }
 
+
+    /**
+     * Centerprintf for critical messages.
+     */
+    public static void PF_cprintfhigh(edict_t ent, String fmt) {
+    	PF_cprintf(ent, Defines.PRINT_HIGH, fmt);
+    }
+    
     /**
      * PF_cprintf
      * 

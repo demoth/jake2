@@ -20,7 +20,7 @@
 
 // Created on 18.11.2003 by RST.
 
-// $Id: GameSpawn.java,v 1.16 2005-12-12 21:47:30 salomo Exp $
+// $Id: GameSpawn.java,v 1.17 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
@@ -104,16 +104,7 @@ public class GameSpawn {
         }
     };
 
-    //	static EntThinkAdapter SP_func_rotating = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_button = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_door = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_door_secret = new EntThinkAdapter()
-    // {public boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_door_rotating = new EntThinkAdapter()
-    // {public boolean think(edict_t ent){ return true;}};
+
     static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
         public String getID(){ return "SP_func_water"; }
         public boolean think(edict_t ent) {
@@ -130,18 +121,6 @@ public class GameSpawn {
         }
     };
 
-    //	static EntThinkAdapter SP_func_conveyor = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_wall = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_object = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_explosive = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_timer = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
-    //	static EntThinkAdapter SP_func_areaportal = new EntThinkAdapter() {public
-    // boolean think(edict_t ent){ return true;}};
     static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
         public String getID(){ return "SP_func_clock"; }
         public boolean think(edict_t ent) {
@@ -150,7 +129,7 @@ public class GameSpawn {
         }
     };
 
-    /*
+    /**
      * QUAKED worldspawn (0 0 0) ?
      * 
      * Only used for the world. "sky" environment map name "skyaxis" vector axis
@@ -285,7 +264,7 @@ public class GameSpawn {
             GameBase.gi.modelindex("models/objects/gibs/skull/tris.md2");
             GameBase.gi.modelindex("models/objects/gibs/head2/tris.md2");
             //
-            //	   Setup light animation tables. 'a' is total darkness, 'z' is
+            // Setup light animation tables. 'a' is total darkness, 'z' is
             // doublebright.
             //
             // 0 normal
@@ -329,10 +308,8 @@ public class GameSpawn {
         }
     };
 
-    /*
-     * ============= 
-     * ED_NewString 
-     * =============
+    /** 
+     * ED_NewString.
      */
     static String ED_NewString(String string) {
 
@@ -354,17 +331,12 @@ public class GameSpawn {
         return newb.toString();
     }
 
-    /*
-     * =============== 
+    /**
      * ED_ParseField
      * 
-     * Takes a key/value pair and sets the binary values in an edict
-     * ===============
+     * Takes a key/value pair and sets the binary values in an edict.
      */
     static void ED_ParseField(String key, String value, edict_t ent) {
-        byte b;
-        float v;
-        float[] vec = { 0, 0, 0 };
 
         if (key.equals("nextmap"))
             Com.Println("nextmap: " + value);
@@ -375,13 +347,11 @@ public class GameSpawn {
 
     }
 
-    /*
-     * ==================== 
+    /**
      * ED_ParseEdict
      * 
      * Parses an edict out of the given string, returning the new position ed
-     * should be a properly initialized empty edict. 
-     * ====================
+     * should be a properly initialized empty edict.
      */
 
     static void ED_ParseEdict(Com.ParseHelp ph, edict_t ent) {
@@ -430,15 +400,13 @@ public class GameSpawn {
         return;
     }
 
-    /*
-     * ================ 
+    /**
      * G_FindTeams
      * 
      * Chain together all entities with a matching team field.
      * 
      * All but the first will have the FL_TEAMSLAVE flag set. All but the last
-     * will have the teamchain field set to the next one 
-     * ================
+     * will have the teamchain field set to the next one.
      */
 
     static void G_FindTeams() {
@@ -460,7 +428,7 @@ public class GameSpawn {
             e.teammaster = e;
             c++;
             c2++;
-            //Com.Printf("Team:" + e.team+" entity: " + e.index + "\n");
+            
             for (j = i + 1; j < GameBase.num_edicts; j++) {
                 e2 = GameBase.g_edicts[j];
                 if (!e2.inuse)
@@ -479,16 +447,13 @@ public class GameSpawn {
                 }
             }
         }
-        //gi.dprintf("" + c + " teams with " + c2 + " entities\n");
     }
 
-    /*
-     * ============== 
+    /**
      * SpawnEntities
      * 
      * Creates a server's entity / program execution context by parsing textual
-     * entity definitions out of an ent file. 
-     * ==============
+     * entity definitions out of an ent file.
      */
 
     public static void SpawnEntities(String mapname, String entities,
@@ -512,25 +477,20 @@ public class GameSpawn {
 
         PlayerClient.SaveClientData();
 
-        //level.clear();
         GameBase.level = new level_locals_t();
         for (int n = 0; n < GameBase.game.maxentities; n++) {
             GameBase.g_edicts[n] = new edict_t(n);
         }
-        //memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
+        
         GameBase.level.mapname = mapname;
         GameBase.game.spawnpoint = spawnpoint;
+
         // set client fields on player ents
         for (i = 0; i < GameBase.game.maxclients; i++)
             GameBase.g_edicts[i + 1].client = GameBase.game.clients[i];
 
         ent = null;
         inhibit = 0; 
-        // parse ents
-        //Com.Printf("========================\n");
-        //Com.Printf("entities(" + entities.length() + ") = \n" + entities +
-        // "\n");
-        //Com.Printf("========================\n");
 
         Com.ParseHelp ph = new Com.ParseHelp(entities);
 
@@ -1203,12 +1163,10 @@ public class GameSpawn {
                 }
             }), new spawn_t(null, null) };
 
-    /*
-     * =============== 
+    /**
      * ED_CallSpawn
      * 
-     * Finds the spawn function for the entity and calls it 
-     * ===============
+     * Finds the spawn function for the entity and calls it.
      */
     public static void ED_CallSpawn(edict_t ent) {
 
@@ -1245,5 +1203,4 @@ public class GameSpawn {
         }
         GameBase.gi.dprintf(ent.classname + " doesn't have a spawn function\n");
     }
-
 }

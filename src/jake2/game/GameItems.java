@@ -19,21 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2005 by RST.
-// $Id: GameItems.java,v 1.3 2005-12-17 20:32:29 salomo Exp $
+// $Id: GameItems.java,v 1.4 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
 
-import java.util.StringTokenizer;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+
+import java.util.StringTokenizer;
 
 
 public class GameItems {

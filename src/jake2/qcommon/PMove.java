@@ -19,12 +19,13 @@
  */
 
 // Created on 25.01.2004 by RST.
-// $Id: PMove.java,v 1.7 2005-12-27 21:02:30 salomo Exp $
+// $Id: PMove.java,v 1.8 2006-01-21 21:53:32 salomo Exp $
 package jake2.qcommon;
 
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
+import jake2.server.SV;
 import jake2.util.Math3D;
 
 public class PMove {
@@ -100,7 +101,7 @@ public class PMove {
         }
     }
 
-    static float[] planes[] = new float[GameBase.MAX_CLIP_PLANES][3];
+    static float[] planes[] = new float[SV.MAX_CLIP_PLANES][3];
     
     public static void PM_StepSlideMove_() {
         int bumpcount, numbumps;
@@ -151,7 +152,7 @@ public class PMove {
             time_left -= time_left * trace.fraction;
 
             // slide along this plane
-            if (numplanes >= GameBase.MAX_CLIP_PLANES) { 
+            if (numplanes >= SV.MAX_CLIP_PLANES) { 
             	// this shouldn't really happen
                 Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
                 break;

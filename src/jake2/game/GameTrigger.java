@@ -20,7 +20,7 @@
 
 // Created on 27.12.2003 by RST.
 
-// $Id: GameTrigger.java,v 1.7 2005-12-14 21:08:03 salomo Exp $
+// $Id: GameTrigger.java,v 1.8 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
@@ -46,8 +46,7 @@ public class GameTrigger {
 
     // the trigger was just activated
     // ent.activator should be set to the activator so it can be held through a
-    // delay
-    // so wait for the delay time before firing
+    // delay so wait for the delay time before firing
     public static void multi_trigger(edict_t ent) {
         if (ent.nextthink != 0)
             return; // already been triggered
@@ -96,7 +95,7 @@ public class GameTrigger {
         GameBase.gi.linkentity(ent);
     }
 
-    /*
+    /**
      * QUAKED trigger_once (.5 .5 .5) ? x x TRIGGERED Triggers once, then
      * removes itself. You must set the key "target" to the name of another
      * object in the level that has a matching "targetname".
@@ -285,7 +284,7 @@ public class GameTrigger {
         }
     };
 
-    /*
+    /**
      * QUAKED trigger_multiple (.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
      * Variable sized repeatable trigger. Must be targeted at one or more
      * entities. If "delay" is set, the trigger waits some time after activating
@@ -301,7 +300,7 @@ public class GameTrigger {
         }
     };
 
-    /*
+    /**
      * QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8) This fixed size
      * trigger cannot be touched, it can only be fired by other events.
      */
@@ -320,7 +319,7 @@ public class GameTrigger {
      * ==============================================================================
      */
 
-    /*
+    /**
      * QUAKED trigger_key (.5 .5 .5) (-8 -8 -8) (8 8 8) A relay trigger that
      * only fires it's targets if player has the proper key. Use "item" to
      * specify the required key, for example "key_data_cd"
@@ -343,9 +342,8 @@ public class GameTrigger {
                 self.touch_debounce_time = GameBase.level.time + 5.0f;
                 GameBase.gi.centerprintf(activator, "You need the "
                         + self.item.pickup_name);
-                GameBase.gi
-                        .sound(activator, Defines.CHAN_AUTO, GameBase.gi
-                                .soundindex("misc/keytry.wav"), 1,
+                GameBase.gi.sound(activator, Defines.CHAN_AUTO, 
+                		GameBase.gi.soundindex("misc/keytry.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 return;
             }
@@ -540,7 +538,7 @@ public class GameTrigger {
      * ==============================================================================
      */
 
-    /*
+    /**
      * QUAKED trigger_gravity (.5 .5 .5) ? Changes the touching entites gravity
      * to the value of "gravity". 1.0 is standard gravity for the level.
      */
@@ -562,7 +560,7 @@ public class GameTrigger {
      * ==============================================================================
      */
 
-    /*
+    /**
      * QUAKED trigger_monsterjump (.5 .5 .5) ? Walking monsters that touch this
      * will jump in the direction of the trigger's angle "speed" default to 200,
      * the speed thrown forward "height" default to 200, the speed thrown

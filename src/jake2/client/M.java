@@ -2,7 +2,7 @@
  * M.java
  * Copyright (C) 2003
  * 
- * $Id: M.java,v 1.8 2005-11-20 22:18:34 salomo Exp $
+ * $Id: M.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -75,6 +75,11 @@ public final class M {
             ent.velocity[2] = 0;
         }
     }
+    
+    /**
+     * Returns false if any part of the bottom of the entity is off an edge that
+     * is not a staircase.
+     */
 
     public static boolean M_CheckBottom(edict_t ent) {
         float[] mins = { 0, 0, 0 };
@@ -143,11 +148,9 @@ public final class M {
         return true; // we got out easy
     }
 
-    /*
-     * =============== 
-     * M_ChangeYaw
-     * ===============
-     *///ok
+    /** 
+     * M_ChangeYaw.
+     */
     public static void M_ChangeYaw(edict_t ent) {
         float ideal;
         float current;
@@ -180,10 +183,8 @@ public final class M {
         ent.s.angles[Defines.YAW] = Math3D.anglemod(current + move);
     }
 
-    /*
-     * ====================== 
-     * M_MoveToGoal 
-     * ======================
+    /**
+     * M_MoveToGoal.
      */
     public static void M_MoveToGoal(edict_t ent, float dist) {
         edict_t goal = ent.goalentity;
@@ -204,10 +205,8 @@ public final class M {
         }
     }
 
-    /*
-     * =============== 
-     * M_walkmove 
-     * ===============
+    /** 
+     * M_walkmove.
      */
     public static boolean M_walkmove(edict_t ent, float yaw, float dist) {
         float[] move = { 0, 0, 0 };

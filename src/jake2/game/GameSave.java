@@ -19,7 +19,7 @@
  */
 
 // Created on 29.12.2003 by RST.
-// $Id: GameSave.java,v 1.10 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameSave.java,v 1.11 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -112,13 +112,11 @@ public class GameSave {
 		"jake2.game.GameItemList"
     };
     
-    /*
-     * ============ 
+    /**
      * InitGame
      * 
      * This will be called when the dll is first loaded, which only happens when
      * a new game is started or a save game is loaded. 
-     * ============
      */
     public static void InitGame() {
         GameBase.gi.dprintf("==== InitGame ====\n");
@@ -220,8 +218,8 @@ public class GameSave {
         GameBase.num_edicts = GameBase.game.maxclients + 1;
     }
 
-    /*
-     * ============ WriteGame
+    /**
+     * WriteGame
      * 
      * This will be called whenever the game goes to a new level, and when the
      * user explicitly saves the game.
@@ -230,7 +228,7 @@ public class GameSave {
      * help computer info, and all client states.
      * 
      * A single player death will automatically restore from the last save
-     * position. ============
+     * position.
      */
     public static void WriteGame(String filename, boolean autosave) {
         try {
@@ -281,10 +279,8 @@ public class GameSave {
         }
     }
 
-    /*
-     * ================= WriteLevel
-     * 
-     * =================
+    /**
+     * WriteLevel
      */
     public static void WriteLevel(String filename) {
         try {
@@ -306,7 +302,6 @@ public class GameSave {
                     continue;
                 f.writeInt(i);
                 ent.write(f);
-
             }
 
             i = -1;
@@ -318,8 +313,8 @@ public class GameSave {
         }
     }
 
-    /*
-     * ================= ReadLevel
+    /**
+     * ReadLevel
      * 
      * SpawnEntities will allready have been called on the level the same way it
      * was when the level was saved.
@@ -329,8 +324,7 @@ public class GameSave {
      * The server will have cleared all of the world links before calling
      * ReadLevel.
      * 
-     * No clients are connected yet. 
-     * =================
+     * No clients are connected yet.
      */
     public static void ReadLevel(String filename) {
         try {

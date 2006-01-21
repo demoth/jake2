@@ -2,7 +2,7 @@
  * Cmd.java
  * Copyright (C) 2003
  * 
- * $Id: Cmd.java,v 1.17 2005-12-18 17:08:27 salomo Exp $
+ * $Id: Cmd.java,v 1.18 2006-01-21 21:53:32 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -147,7 +147,7 @@ public final class Cmd {
     public static final int ALIAS_LOOP_COUNT = 16;
 
     /**
-     * register our commands
+     * Register our commands.
      */
     public static void Init() {
 
@@ -178,10 +178,8 @@ public final class Cmd {
         }
     };
 
-    /*
-     * ====================== 
-     * Cmd_MacroExpandString 
-     * ======================
+    /** 
+     * Cmd_MacroExpandString.
      */
     public static char[] MacroExpandString(char text[], int len) {
         int i, j, count;
@@ -231,20 +229,13 @@ public final class Cmd {
                 return null;
             }
 
-            //strncpy(temporary, scan, i);
             System.arraycopy(scan, 0, temporary, 0, i);
-
-            //strcpy(temporary + i, token);
             System.arraycopy(token.toCharArray(), 0, temporary, i, token.length());
-
-            //strcpy(temporary + i + j, start);
             System.arraycopy(ph.data, ph.index, temporary, i + j, len - ph.index - j);
 
-            //strcpy(expanded, temporary);
             System.arraycopy(temporary, 0, expanded, 0, 0);
             scan = expanded;
             i--;
-
             if (++count == 100) {
                 Com.Printf("Macro expansion loop, discarded.\n");
                 return null;
@@ -259,13 +250,11 @@ public final class Cmd {
         return scan;
     }
 
-    /*
-     * ============ 
+    /**
      * Cmd_TokenizeString
      * 
      * Parses the given string into command line tokens. $Cvars will be expanded
-     * unless they are in a quoted token 
-     * ============
+     * unless they are in a quoted token.
      */
     public static void TokenizeString(char text[], boolean macroExpand) {
         String com_token;
@@ -345,10 +334,8 @@ public final class Cmd {
         cmd_functions = cmd;
     }
 
-    /*
-     * ============ 
+    /**
      * Cmd_RemoveCommand 
-     * ============
      */
     public static void RemoveCommand(String cmd_name) {
         cmd_function_t cmd, back = null;
@@ -373,10 +360,8 @@ public final class Cmd {
         }
     }
 
-    /*
-     * ============ 
+    /** 
      * Cmd_Exists 
-     * ============
      */
     public static boolean Exists(String cmd_name) {
         cmd_function_t cmd;
@@ -403,13 +388,11 @@ public final class Cmd {
         return new String(cmd_args);
     }
 
-    /*
-     * ============ 
+    /**
      * Cmd_ExecuteString
      * 
      * A complete command line has been parsed, so try to execute it 
      * FIXME: lookupnoadd the token to speed search? 
-     * ============
      */
     public static void ExecuteString(String text) {
 
@@ -418,13 +401,6 @@ public final class Cmd {
 
         TokenizeString(text.toCharArray(), true);
 
-        //		if (Argc() > 0) {
-        //			Com.DPrintf("tokenized:");
-        //			for (int xxx = 0; xxx < Argc(); xxx++)
-        //				Com.DPrintf("[" + Argv(xxx) + "]");
-        //
-        //			Com.DPrintf("\n");
-        //		}
         // execute the command line
         if (Argc() == 0)
             return; // no tokens
@@ -463,12 +439,10 @@ public final class Cmd {
         Cmd.ForwardToServer();
     }
 
-    /*
-     * ================== 
+    /**
      * Cmd_Give_f
      * 
-     * Give items to a client 
-     * ==================
+     * Give items to a client.
      */
     public static void Give_f(edict_t ent) {
         String name;
@@ -479,9 +453,8 @@ public final class Cmd {
         edict_t it_ent;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "You must run the server with '+set cheats 1' to enable this command.\n");
+            SV_GAME.PF_cprintfhigh(ent,
+            	"You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
@@ -601,22 +574,19 @@ public final class Cmd {
         }
     }
 
-    /*
-     * ================== 
+    /** 
      * Cmd_God_f
      * 
      * Sets client to godmode
      * 
-     * argv(0) god 
-     * ==================
+     * argv(0) god
      */
     public static void God_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "You must run the server with '+set cheats 1' to enable this command.\n");
+            SV_GAME.PF_cprintfhigh(ent,
+            		"You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
@@ -629,22 +599,19 @@ public final class Cmd {
         SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
     }
 
-    /*
-     * ================== 
+    /** 
      * Cmd_Notarget_f
      * 
      * Sets client to notarget
      * 
-     * argv(0) notarget 
-     * ==================
+     * argv(0) notarget.
      */
     public static void Notarget_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "You must run the server with '+set cheats 1' to enable this command.\n");
+            SV_GAME.PF_cprintfhigh(ent, 
+            	"You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
@@ -654,23 +621,20 @@ public final class Cmd {
         else
             msg = "notarget ON\n";
 
-        SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
+        SV_GAME.PF_cprintfhigh(ent, msg);
     }
 
-    /*
-     * ================== 
+    /**
      * Cmd_Noclip_f
      * 
-     * argv(0) noclip 
-     * ==================
+     * argv(0) noclip.
      */
     public static void Noclip_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "You must run the server with '+set cheats 1' to enable this command.\n");
+            SV_GAME.PF_cprintfhigh(ent, 
+            	"You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
@@ -682,15 +646,13 @@ public final class Cmd {
             msg = "noclip ON\n";
         }
 
-        SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, msg);
+        SV_GAME.PF_cprintfhigh(ent, msg);
     }
 
-    /*
-     * ================== 
+    /**
      * Cmd_Use_f
      * 
-     * Use an inventory item 
-     * ==================
+     * Use an inventory item.
      */
     public static void Use_f(edict_t ent) {
         int index;
@@ -702,31 +664,26 @@ public final class Cmd {
         it = GameItems.FindItem(s);
         Com.dprintln("using:" + s);
         if (it == null) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s
-                    + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + s + "\n");
             return;
         }
         if (it.use == null) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "Item is not usable.\n");
+            SV_GAME.PF_cprintfhigh(ent, "Item is not usable.\n");
             return;
         }
         index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s
-                    + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + s + "\n");
             return;
         }
 
         it.use.use(ent, it);
     }
 
-    /*
-     * ================== 
+    /**
      * Cmd_Drop_f
      * 
-     * Drop an inventory item 
-     * ==================
+     * Drop an inventory item.
      */
     public static void Drop_f(edict_t ent) {
         int index;
@@ -736,8 +693,7 @@ public final class Cmd {
         s = Cmd.Args();
         it = GameItems.FindItem(s);
         if (it == null) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + s
-                    + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + s + "\n");
             return;
         }
         if (it.drop == null) {
@@ -747,16 +703,15 @@ public final class Cmd {
         }
         index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + s
-                    + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + s + "\n");
             return;
         }
 
         it.drop.drop(ent, it);
     }
 
-    /*
-     * ================= Cmd_Inven_f =================
+    /**
+     * Cmd_Inven_f.
      */
     public static void Inven_f(edict_t ent) {
         int i;
@@ -781,12 +736,8 @@ public final class Cmd {
         GameBase.gi.unicast(ent, true);
     }
 
-    /*
-     * ================= 
-     * 
-     * Cmd_InvUse_f 
-     * 
-     * =================
+    /**
+     * Cmd_InvUse_f.
      */
     public static void InvUse_f(edict_t ent) {
         gitem_t it;
@@ -794,26 +745,20 @@ public final class Cmd {
         Cmd.ValidateSelectedItem(ent);
 
         if (ent.client.pers.selected_item == -1) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
+            SV_GAME.PF_cprintfhigh(ent, "No item to use.\n");
             return;
         }
 
         it = GameItemList.itemlist[ent.client.pers.selected_item];
         if (it.use == null) {
-            SV_GAME
-                    .PF_cprintf(ent, Defines.PRINT_HIGH,
-                            "Item is not usable.\n");
+            SV_GAME.PF_cprintfhigh(ent, "Item is not usable.\n");
             return;
         }
         it.use.use(ent, it);
     }
 
-    /*
-     * ================= 
-     * 
-     * Cmd_WeapPrev_f 
-     * 
-     * =================
+    /**
+     * Cmd_WeapPrev_f.
      */
     public static void WeapPrev_f(edict_t ent) {
         gclient_t cl;
@@ -846,12 +791,8 @@ public final class Cmd {
         }
     }
 
-    /*
-     * ================= 
-     * 
-     * Cmd_WeapNext_f 
-     * 
-     * =================
+    /**
+     * Cmd_WeapNext_f.
      */
     public static void WeapNext_f(edict_t ent) {
         gclient_t cl;
@@ -886,12 +827,8 @@ public final class Cmd {
         }
     }
 
-    /*
-     * ================= 
-     * 
-     * Cmd_WeapLast_f 
-     * 
-     * =================
+    /** 
+     * Cmd_WeapLast_f.
      */
     public static void WeapLast_f(edict_t ent) {
         gclient_t cl;
@@ -914,12 +851,8 @@ public final class Cmd {
         it.use.use(ent, it);
     }
 
-    /*
-     * ================= 
-     * 
+    /**
      * Cmd_InvDrop_f 
-     * 
-     * =================
      */
     public static void InvDrop_f(edict_t ent) {
         gitem_t it;
@@ -927,26 +860,23 @@ public final class Cmd {
         Cmd.ValidateSelectedItem(ent);
 
         if (ent.client.pers.selected_item == -1) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
+            SV_GAME.PF_cprintfhigh(ent, "No item to drop.\n");
             return;
         }
 
         it = GameItemList.itemlist[ent.client.pers.selected_item];
         if (it.drop == null) {
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH,
-                    "Item is not dropable.\n");
+            SV_GAME.PF_cprintfhigh(ent, "Item is not dropable.\n");
             return;
         }
         it.drop.drop(ent, it);
     }
 
-    /*
-     * ================== 
+    /** 
      * Cmd_Score_f
      * 
-     * Display the scoreboard 
+     * Display the scoreboard.
      * 
-     * ==================
      */
     public static void Score_f(edict_t ent) {
         ent.client.showinventory = false;
@@ -964,12 +894,11 @@ public final class Cmd {
         PlayerHud.DeathmatchScoreboard(ent);
     }
 
-    /*
-     * ================== 
+    /**
      * Cmd_Help_f
      * 
-     * Display the current help message 
-     * ==================
+     * Display the current help message. 
+     *
      */
     public static void Help_f(edict_t ent) {
         // this is for backwards compatability
@@ -992,10 +921,8 @@ public final class Cmd {
         PlayerHud.HelpComputer(ent);
     }
 
-    //=======================================================================
-
-    /*
-     * ================= Cmd_Kill_f =================
+    /**
+     * Cmd_Kill_f
      */
     public static void Kill_f(edict_t ent) {
         if ((GameBase.level.time - ent.client.respawn_time) < 5)
@@ -1006,8 +933,8 @@ public final class Cmd {
         PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
     }
 
-    /*
-     * ================= Cmd_PutAway_f =================
+    /**
+     * Cmd_PutAway_f
      */
     public static void PutAway_f(edict_t ent) {
         ent.client.showscores = false;
@@ -1015,8 +942,8 @@ public final class Cmd {
         ent.client.showinventory = false;
     }
 
-    /*
-     * ================= Cmd_Players_f =================
+    /**
+     * Cmd_Players_f
      */
     public static void Players_f(edict_t ent) {
         int i;
@@ -1035,8 +962,6 @@ public final class Cmd {
         }
 
         // sort by frags
-        //qsort(index, count, sizeof(index[0]), PlayerSort);
-        //replaced by:
         Arrays.sort(index, 0, count - 1, Cmd.PlayerSort);
 
         // print information
@@ -1056,12 +981,11 @@ public final class Cmd {
             large += small;
         }
 
-        SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "" + large + "\n" + count
-                + " players\n");
+        SV_GAME.PF_cprintfhigh(ent, large + "\n" + count + " players\n");
     }
 
-    /*
-     * ================= Cmd_Wave_f =================
+    /**
+     * Cmd_Wave_f
      */
     public static void Wave_f(edict_t ent) {
         int i;
@@ -1079,36 +1003,43 @@ public final class Cmd {
 
         switch (i) {
         case 0:
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "flipoff\n");
+            SV_GAME.PF_cprintfhigh(ent, "flipoff\n");
             ent.s.frame = M_Player.FRAME_flip01 - 1;
             ent.client.anim_end = M_Player.FRAME_flip12;
             break;
         case 1:
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "salute\n");
+            SV_GAME.PF_cprintfhigh(ent, "salute\n");
             ent.s.frame = M_Player.FRAME_salute01 - 1;
             ent.client.anim_end = M_Player.FRAME_salute11;
             break;
         case 2:
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "taunt\n");
+            SV_GAME.PF_cprintfhigh(ent, "taunt\n");
             ent.s.frame = M_Player.FRAME_taunt01 - 1;
             ent.client.anim_end = M_Player.FRAME_taunt17;
             break;
         case 3:
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "wave\n");
+            SV_GAME.PF_cprintfhigh(ent, "wave\n");
             ent.s.frame = M_Player.FRAME_wave01 - 1;
             ent.client.anim_end = M_Player.FRAME_wave11;
             break;
         case 4:
         default:
-            SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "point\n");
+            SV_GAME.PF_cprintfhigh(ent, "point\n");
             ent.s.frame = M_Player.FRAME_point01 - 1;
             ent.client.anim_end = M_Player.FRAME_point12;
             break;
         }
     }
 
-    /*
-     * ================== Cmd_Say_f ==================
+    /**
+     * Command to print the players own position.
+     */
+    public static void ShowPosition_f(edict_t ent) {
+        SV_GAME.PF_cprintfhigh(ent, "pos=" + Lib.vtofsbeaty(ent.s.origin) + "\n");
+    }
+
+    /**
+     * Cmd_Say_f
      */
     public static void Say_f(edict_t ent, boolean team, boolean arg0) {
 
@@ -1137,10 +1068,6 @@ public final class Cmd {
                 text += Cmd.Args().substring(1, Cmd.Args().length() - 1);
             else
                 text += Cmd.Args();
-            /*
-             * p = gi.args(); // *p == if (p == '"') { p++; p[strlen(p) - 1] =
-             * 0; } strcat(text, p);
-             */
         }
 
         // don't let text be too long for malicious reasons
@@ -1154,31 +1081,24 @@ public final class Cmd {
             cl = ent.client;
 
             if (GameBase.level.time < cl.flood_locktill) {
-                SV_GAME
-                        .PF_cprintf(
-                                ent,
-                                Defines.PRINT_HIGH,
-                                "You can't talk for "
+                SV_GAME.PF_cprintfhigh(ent, "You can't talk for "
                                         + (int) (cl.flood_locktill - GameBase.level.time)
                                         + " more seconds\n");
                 return;
             }
             i = (int) (cl.flood_whenhead - GameBase.flood_msgs.value + 1);
             if (i < 0)
-                //i = (sizeof(cl.flood_when) / sizeof(cl.flood_when[0])) + i;
                 i = (10) + i;
             if (cl.flood_when[i] != 0
                     && GameBase.level.time - cl.flood_when[i] < GameBase.flood_persecond.value) {
-                cl.flood_locktill = GameBase.level.time
-                        + GameBase.flood_waitdelay.value;
+                cl.flood_locktill = GameBase.level.time + GameBase.flood_waitdelay.value;
                 SV_GAME.PF_cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
                                 + (int) GameBase.flood_waitdelay.value
                                 + " seconds.\n");
                 return;
             }
-            //cl.flood_whenhead = (cl.flood_whenhead + 1) %
-            // (sizeof(cl.flood_when) / sizeof(cl.flood_when[0]));
+
             cl.flood_whenhead = (cl.flood_whenhead + 1) % 10;
             cl.flood_when[cl.flood_whenhead] = GameBase.level.time;
         }
@@ -1229,23 +1149,18 @@ public final class Cmd {
 
             if (text.length() + st.length() > 1024 - 50) {
                 text += "And more...\n";
-                SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "" + text + "");
+                SV_GAME.PF_cprintfhigh(ent, "" + text + "");
                 return;
             }
             text += st;
         }
-        SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, text);
+        SV_GAME.PF_cprintfhigh(ent, text);
     }
 
-    //	  ======================================================================
-
-    /*
-     * =================== Cmd_ForwardToServer
-     * 
-     * adds the current command line as a clc_stringcmd to the client message.
+    /**
+     * Adds the current command line as a clc_stringcmd to the client message.
      * things like godmode, noclip, etc, are commands directed to the server, so
      * when they are typed in at the console, they will need to be forwarded.
-     * ===================
      */
     public static void ForwardToServer() {
         String cmd;
@@ -1265,8 +1180,8 @@ public final class Cmd {
         }
     }
 
-    /*
-     * ============ Cmd_CompleteCommand ============
+    /**
+     * Cmd_CompleteCommand.
      */
     public static Vector CompleteCommand(String partial) {
         Vector cmds = new Vector();
@@ -1284,7 +1199,6 @@ public final class Cmd {
 
     /**
      * Processes the commands the player enters in the quake console.
-     *  
      */
     public static void ClientCommand(edict_t ent) {
         String cmd;
@@ -1292,25 +1206,25 @@ public final class Cmd {
         if (ent.client == null)
             return; // not fully in game yet
     
-        cmd = GameBase.gi.argv(0);
+        cmd = GameBase.gi.argv(0).toLowerCase();
     
-        if (Lib.Q_stricmp(cmd, "players") == 0) {
+        if (cmd.equals("players")) {
             Players_f(ent);
             return;
         }
-        if (Lib.Q_stricmp(cmd, "say") == 0) {
+        if (cmd.equals("say")) {
             Say_f(ent, false, false);
             return;
         }
-        if (Lib.Q_stricmp(cmd, "say_team") == 0) {
+        if (cmd.equals("say_team")) {
             Say_f(ent, true, false);
             return;
         }
-        if (Lib.Q_stricmp(cmd, "score") == 0) {
+        if (cmd.equals("score")) {
             Score_f(ent);
             return;
         }
-        if (Lib.Q_stricmp(cmd, "help") == 0) {
+        if (cmd.equals("help")) {
             Help_f(ent);
             return;
         }
@@ -1318,60 +1232,59 @@ public final class Cmd {
         if (GameBase.level.intermissiontime != 0)
             return;
     
-        if (Lib.Q_stricmp(cmd, "use") == 0)
+        if (cmd.equals("use"))
             Use_f(ent);
-    
-        else if (Lib.Q_stricmp(cmd, "drop") == 0)
+        else if (cmd.equals("drop"))
             Drop_f(ent);
-        else if (Lib.Q_stricmp(cmd, "give") == 0)
+        else if (cmd.equals("give"))
             Give_f(ent);
-        else if (Lib.Q_stricmp(cmd, "god") == 0)
+        else if (cmd.equals("god"))
             God_f(ent);
-        else if (Lib.Q_stricmp(cmd, "notarget") == 0)
+        else if (cmd.equals("notarget"))
             Notarget_f(ent);
-        else if (Lib.Q_stricmp(cmd, "noclip") == 0)
+        else if (cmd.equals("noclip"))
             Noclip_f(ent);
-        else if (Lib.Q_stricmp(cmd, "inven") == 0)
+        else if (cmd.equals("inven"))
             Inven_f(ent);
-        else if (Lib.Q_stricmp(cmd, "invnext") == 0)
+        else if (cmd.equals("invnext"))
             GameItems.SelectNextItem(ent, -1);
-        else if (Lib.Q_stricmp(cmd, "invprev") == 0)
+        else if (cmd.equals("invprev"))
             GameItems.SelectPrevItem(ent, -1);
-        else if (Lib.Q_stricmp(cmd, "invnextw") == 0)
+        else if (cmd.equals("invnextw"))
             GameItems.SelectNextItem(ent, Defines.IT_WEAPON);
-        else if (Lib.Q_stricmp(cmd, "invprevw") == 0)
+        else if (cmd.equals("invprevw"))
             GameItems.SelectPrevItem(ent, Defines.IT_WEAPON);
-        else if (Lib.Q_stricmp(cmd, "invnextp") == 0)
+        else if (cmd.equals("invnextp"))
             GameItems.SelectNextItem(ent, Defines.IT_POWERUP);
-        else if (Lib.Q_stricmp(cmd, "invprevp") == 0)
+        else if (cmd.equals("invprevp"))
             GameItems.SelectPrevItem(ent, Defines.IT_POWERUP);
-        else if (Lib.Q_stricmp(cmd, "invuse") == 0)
+        else if (cmd.equals("invuse"))
             InvUse_f(ent);
-        else if (Lib.Q_stricmp(cmd, "invdrop") == 0)
+        else if (cmd.equals("invdrop"))
             InvDrop_f(ent);
-        else if (Lib.Q_stricmp(cmd, "weapprev") == 0)
+        else if (cmd.equals("weapprev"))
             WeapPrev_f(ent);
-        else if (Lib.Q_stricmp(cmd, "weapnext") == 0)
+        else if (cmd.equals("weapnext"))
             WeapNext_f(ent);
-        else if (Lib.Q_stricmp(cmd, "weaplast") == 0)
+        else if (cmd.equals("weaplast"))
             WeapLast_f(ent);
-        else if (Lib.Q_stricmp(cmd, "kill") == 0)
+        else if (cmd.equals("kill"))
             Kill_f(ent);
-        else if (Lib.Q_stricmp(cmd, "putaway") == 0)
+        else if (cmd.equals("putaway"))
             PutAway_f(ent);
-        else if (Lib.Q_stricmp(cmd, "wave") == 0)
+        else if (cmd.equals("wave"))
             Wave_f(ent);
-        else if (Lib.Q_stricmp(cmd, "playerlist") == 0)
+        else if (cmd.equals("playerlist"))
             PlayerList_f(ent);
+        else if (cmd.equals("showposition"))
+            ShowPosition_f(ent);
         else
             // anything that doesn't match a command will be a chat
             Say_f(ent, false, true);
     }
 
-    public static void ValidateSelectedItem(edict_t ent) {
-        gclient_t cl;
-    
-        cl = ent.client;
+    public static void ValidateSelectedItem(edict_t ent) {    	
+        gclient_t cl = ent.client;
     
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid

@@ -20,7 +20,7 @@
 
 // Created on 30.11.2003 by RST.
 
-// $Id: GameBase.java,v 1.12 2005-12-16 21:15:50 salomo Exp $
+// $Id: GameBase.java,v 1.13 2006-01-21 21:53:31 salomo Exp $
 
 /** Father of all GameObjects. */
 
@@ -151,30 +151,14 @@ public class GameBase {
         return blocked;
     }
 
-    /**
-     * SV_FlyMove
-     * 
-     * The basic solid body movement clip that slides along multiple planes
-     * Returns the clipflags if the velocity was modified (hit something solid)
-     * 1 = floor 2 = wall / step 4 = dead stop
-     */
-    public final static int MAX_CLIP_PLANES = 5;
 
-    /*
-     * ============= G_Find
-     * 
+    /**
      * Searches all active entities for the next one that holds the matching
      * string at fieldofs (use the FOFS() macro) in the structure.
      * 
      * Searches beginning at the edict after from, or the beginning if null null
      * will be returned if the end of the list is reached.
      * 
-     * =============
-     */
-
-    /**
-     * Finds an edict. Call with null as from parameter to search from array
-     * beginning.
      */
 
     public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
@@ -303,10 +287,8 @@ public class GameBase {
         return new String(in);
     }
 
-    /*
-     * ============ G_TouchTriggers
-     * 
-     * ============
+    /**
+     * G_TouchTriggers
      */
 
     static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
@@ -334,10 +316,6 @@ public class GameBase {
             if (hit.touch == null)
                 continue;
 
-            //rst: just for debugging player triggers
-            //if (ent.index == 1)
-            //Com.Printf("trigger:" + hit.classname + "(" + hit.index + ")\n");
-
             hit.touch.touch(hit, ent, dummyplane, null);
         }
     }
@@ -352,23 +330,12 @@ public class GameBase {
 
     public static edict_t obstacle;
 
-    /*
-     * ============= M_CheckBottom
-     * 
-     * Returns false if any part of the bottom of the entity is off an edge that
-     * is not a staircase.
-     * 
-     * =============
-     */
     public static int c_yes, c_no;
 
     public static int STEPSIZE = 18;
 
-    //	  ============================================================================
-    /*
-     * ================ G_RunEntity
-     * 
-     * ================
+    /**
+     * G_RunEntity
      */
     public static void G_RunEntity(edict_t ent) {
 
@@ -399,13 +366,6 @@ public class GameBase {
             gi.error("SV_Physics: bad movetype " + (int) ent.movetype);
         }
     }
-
-    /*
-     * ================ SV_NewChaseDir
-     * 
-     * ================
-     */
-    public static int DI_NODIR = -1;
 
     public static void ClearBounds(float[] mins, float[] maxs) {
         mins[0] = mins[1] = mins[2] = 99999;
@@ -439,16 +399,12 @@ public class GameBase {
         }
     };
 
-    //===================================================================
-
     public static void ShutdownGame() {
         gi.dprintf("==== ShutdownGame ====\n");
     }
 
-    //======================================================================
-
-    /*
-     * ================= ClientEndServerFrames =================
+    /**
+     * ClientEndServerFrames.
      */
     public static void ClientEndServerFrames() {
         int i;
@@ -465,10 +421,8 @@ public class GameBase {
 
     }
 
-    /*
-     * ================= CreateTargetChangeLevel
-     * 
-     * Returns the created target changelevel =================
+    /**
+     * Returns the created target changelevel.
      */
     public static edict_t CreateTargetChangeLevel(String map) {
         edict_t ent;
@@ -480,10 +434,8 @@ public class GameBase {
         return ent;
     }
 
-    /*
-     * ================= EndDMLevel
-     * 
-     * The timelimit or fraglimit has been exceeded =================
+    /**
+     * The timelimit or fraglimit has been exceeded.
      */
     public static void EndDMLevel() {
         edict_t ent;
@@ -543,8 +495,8 @@ public class GameBase {
         }
     }
 
-    /*
-     * ================= CheckNeedPass =================
+    /**
+     * CheckNeedPass.
      */
     public static void CheckNeedPass() {
         int need;
@@ -567,8 +519,8 @@ public class GameBase {
         }
     }
 
-    /*
-     * ================= CheckDMRules =================
+    /**
+     * CheckDMRules.
      */
     public static void CheckDMRules() {
         int i;
@@ -603,16 +555,14 @@ public class GameBase {
         }
     }
 
-    /*
-     * ============= ExitLevel =============
+    /**
+     * Exits a level.
      */
     public static void ExitLevel() {
         int i;
         edict_t ent;
-        //char command[256];
-        String command;
 
-        command = "gamemap \"" + level.changemap + "\"\n";
+        String command = "gamemap \"" + level.changemap + "\"\n";
         gi.AddCommandString(command);
         level.changemap = null;
         level.exitintermission = false;
@@ -627,13 +577,12 @@ public class GameBase {
             if (ent.health > ent.client.pers.max_health)
                 ent.health = ent.client.pers.max_health;
         }
-
     }
 
-    /*
-     * ================ G_RunFrame
-     * 
-     * Advances the world by 0.1 seconds ================
+    /**
+     * G_RunFrame
+     *  
+     * Advances the world by Defines.FRAMETIME (0.1) seconds.
      */
     public static void G_RunFrame() {
         int i;
@@ -694,16 +643,13 @@ public class GameBase {
         ClientEndServerFrames();
     }
 
-    /*
-     * ================= GetGameAPI
-     * 
-     * Returns a pointer to the structure with all entry points and global
-     * variables =================
+    /**
+     * This return a pointer to the structure with all entry points and global
+     * variables. 
      */
 
     public static void GetGameApi(game_import_t imp) {
         gi = imp;
-
         gi.pointcontents = new pmove_t.PointContentsAdapter() {
             public int pointcontents(float[] o) {
                 return SV_WORLD.SV_PointContents(o);

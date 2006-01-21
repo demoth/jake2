@@ -19,7 +19,7 @@
  */
 
 // Created on 18.11.2003 by RST.
-// $Id: GameFunc.java,v 1.8 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameFunc.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -66,11 +66,11 @@ public class GameFunc {
         }
     }
 
-    /*
-     * ============== Think_AccelMove
+    /**
+     * Think_AccelMove
      * 
      * The team has completed a frame of movement, so change the speed for the
-     * next frame ==============
+     * next frame.
      */
     static float AccelerationDistance(float target, float rate) {
         return target * ((target / rate) + 1) / 2;
@@ -230,7 +230,7 @@ public class GameFunc {
         GameBase.gi.linkentity(trigger);
     }
 
-    /*
+    /**
      * QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER speed default 150
      * 
      * Plats are always drawn in the extended position, so they will light
@@ -313,18 +313,15 @@ public class GameFunc {
         ent.moveinfo.sound_end = GameBase.gi.soundindex("plats/pt1_end.wav");
     }
 
-    /*
-     * ======================================================================
-     * 
+    /**
      * DOORS
      * 
      * spawn a trigger surrounding the entire team unless it is already targeted
-     * by another
+     * by another.
      * 
-     * ======================================================================
      */
 
-    /*
+    /**
      * QUAKED func_door (0 .5 .8) ? START_OPEN x CRUSHER NOMONSTER ANIMATED
      * TOGGLE ANIMATED_FAST TOGGLE wait in both the start and end states for a
      * trigger event. START_OPEN the door to moves to its destination when
@@ -387,7 +384,7 @@ public class GameFunc {
         door_use_areaportals(self, true);
     }
 
-    /*
+    /**
      * QUAKED func_water (0 .5 .8) ? START_OPEN func_water is a moveable water
      * brush. It must be targeted to operate. Use a non-water texture at your
      * own risk.
@@ -548,9 +545,7 @@ public class GameFunc {
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
-    /*
-     * =========================================================
-     * 
+    /**
      * PLATS
      * 
      * movement options:
@@ -565,8 +560,6 @@ public class GameFunc {
      * movetype_stop action when touched action when blocked action when used
      * disabled? auto trigger spawning
      * 
-     * 
-     * =========================================================
      */
 
     public final static int PLAT_LOW_TRIGGER = 1;
@@ -857,9 +850,7 @@ public class GameFunc {
         }
     };
 
-    //	  ====================================================================
-
-    /*
+    /**
      * QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS
      * TOUCH_PAIN STOP ANIMATED ANIMATED_FAST You need to have an origin brush
      * as part of this entity. The center of that brush will be the point around
@@ -1359,9 +1350,9 @@ public class GameFunc {
             if ((self.spawnflags & DOOR_CRUSHER) != 0)
                 return;
 
-            //	   if a door has a negative wait, it would never come back if
+            // if a door has a negative wait, it would never come back if
             // blocked,
-            //	   so let it just squash the object to death real fast
+            // so let it just squash the object to death real fast
             if (self.moveinfo.wait >= 0) {
                 if (self.moveinfo.state == STATE_DOWN) {
                     for (ent = self.teammaster; ent != null; ent = ent.teamchain)
@@ -2076,7 +2067,6 @@ public class GameFunc {
     static EntThinkAdapter door_secret_move6 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move6";}
         public boolean think(edict_t self) {
-
             Move_Calc(self, Globals.vec3_origin, door_secret_done);
             return true;
         }
@@ -2197,7 +2187,7 @@ public class GameFunc {
         }
     };
 
-    /*
+    /**
      * QUAKED func_killbox (1 0 0) ? Kills everything inside when fired,
      * irrespective of protection.
      */

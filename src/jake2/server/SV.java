@@ -2,7 +2,7 @@
  * SV.java
  * Copyright (C) 2003
  * 
- * $Id: SV.java,v 1.11 2005-02-20 21:50:37 salomo Exp $
+ * $Id: SV.java,v 1.12 2006-01-21 21:53:32 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -111,6 +111,15 @@ public final class SV {
         if (e2.touch != null && e2.solid != Defines.SOLID_NOT)
             e2.touch.touch(e2, e1, GameBase.dummyplane, null);
     }
+    
+    /**
+     * SV_FlyMove
+     * 
+     * The basic solid body movement clip that slides along multiple planes
+     * Returns the clipflags if the velocity was modified (hit something solid)
+     * 1 = floor 2 = wall / step 4 = dead stop
+     */
+    public final static int MAX_CLIP_PLANES = 5;
 
     public static int SV_FlyMove(edict_t ent, float time, int mask) {
         edict_t hit;
@@ -118,7 +127,7 @@ public final class SV {
         float[] dir = { 0.0f, 0.0f, 0.0f };
         float d;
         int numplanes;
-        float[][] planes = new float[GameBase.MAX_CLIP_PLANES][3];
+        float[][] planes = new float[MAX_CLIP_PLANES][3];
         float[] primal_velocity = { 0.0f, 0.0f, 0.0f };
         float[] original_velocity = { 0.0f, 0.0f, 0.0f };
         float[] new_velocity = { 0.0f, 0.0f, 0.0f };
@@ -182,7 +191,7 @@ public final class SV {
             time_left -= time_left * trace.fraction;
 
             // cliped to another plane
-            if (numplanes >= GameBase.MAX_CLIP_PLANES) { // this shouldn't
+            if (numplanes >= MAX_CLIP_PLANES) { // this shouldn't
                                                          // really happen
                 Math3D.VectorCopy(Globals.vec3_origin, ent.velocity);
                 return 3;
@@ -235,10 +244,8 @@ public final class SV {
         return blocked;
     }
 
-    /*
-     * ============ SV_AddGravity
-     * 
-     * ============
+    /**
+     * SV_AddGravity.
      */
     public static void SV_AddGravity(edict_t ent) {
         ent.velocity[2] -= ent.gravity * GameBase.sv_gravity.value
@@ -294,11 +301,9 @@ public final class SV {
         return trace;
     }
 
-    /*
-     * ============ SV_Push
-     * 
+    /**
      * Objects need to be moved back on a failed push, otherwise riders would
-     * continue to slide. ============
+     * continue to slide.
      */
     public static boolean SV_Push(edict_t pusher, float[] move, float[] amove) {
         int i, e;
@@ -457,11 +462,9 @@ public final class SV {
         return true;
     }
 
-    /*
-     * ================ SV_Physics_Pusher
+    /**
      * 
-     * Bmodel objects don't interact with each other, but push all box objects
-     * ================
+     * Bmodel objects don't interact with each other, but push all box objects.
      */
     public static void SV_Physics_Pusher(edict_t ent) {
         float[] move = { 0, 0, 0 };
@@ -512,22 +515,17 @@ public final class SV {
         }
     }
 
-    //	  ==================================================================
 
-    /*
-     * ============= SV_Physics_None
-     * 
-     * Non moving objects can only think =============
+    /**
+     * Non moving objects can only think.
      */
     public static void SV_Physics_None(edict_t ent) {
-        //	   regular thinking
+        // regular thinking
         SV_RunThink(ent);
     }
 
-    /*
-     * ============= SV_Physics_Noclip
-     * 
-     * A moving object that doesn't obey physics =============
+    /**
+     * A moving object that doesn't obey physics.
      */
     public static void SV_Physics_Noclip(edict_t ent) {
         //	   regular thinking
@@ -542,18 +540,8 @@ public final class SV {
         GameBase.gi.linkentity(ent);
     }
 
-    /*
-     * ==============================================================================
-     * 
-     * TOSS / BOUNCE
-     * 
-     * ==============================================================================
-     */
-
-    /*
-     * ============= SV_Physics_Toss
-     * 
-     * Toss, bounce, and fly movement. When onground, do nothing. =============
+    /**
+     * Toss, bounce, and fly movement. When onground, do nothing.
      */
     public static void SV_Physics_Toss(edict_t ent) {
 
@@ -623,8 +611,8 @@ public final class SV {
                 }
             }
 
-            //			if (ent.touch)
-            //				ent.touch (ent, trace.ent, &trace.plane, trace.surface);
+            // if (ent.touch)
+            //	ent.touch (ent, trace.ent, &trace.plane, trace.surface);
         }
 
         //	   check for water transition
@@ -651,26 +639,8 @@ public final class SV {
         }
     }
 
-    /*
-     * ===============================================================================
-     * 
-     * STEPPING MOVEMENT
-     * 
-     * ===============================================================================
-     */
 
-    /*
-     * ============= SV_Physics_Step
-     * 
-     * Monsters freefall when they don't have a ground entity, otherwise all
-     * movement is done with discrete steps.
-     * 
-     * This is also used for objects that have become still on the ground, but
-     * will fall if the floor is pulled out from under them. FIXME: is this
-     * true? =============
-     */
-
-    //	  FIXME: hacked in for E3 demo
+    // FIXME: hacked in for E3 demo
     public static void SV_AddRotationalFriction(edict_t ent) {
         int n;
         float adjustment;
@@ -691,6 +661,15 @@ public final class SV {
             }
         }
     }
+    
+    /**
+     * Monsters freefall when they don't have a ground entity, otherwise all
+     * movement is done with discrete steps.
+     * 
+     * This is also used for objects that have become still on the ground, but
+     * will fall if the floor is pulled out from under them. FIXME: is this
+     * true?
+     */
 
     public static void SV_Physics_Step(edict_t ent) {
         boolean wasonground;
@@ -798,25 +777,23 @@ public final class SV {
             if (ent.groundentity != null)
                 if (!wasonground)
                     if (hitsound)
-                        GameBase.gi.sound(ent, 0, GameBase.gi
-                                .soundindex("world/land.wav"), 1, 1, 0);
+                        GameBase.gi.sound(ent, 0, 
+                        		GameBase.gi.soundindex("world/land.wav"), 1, 1, 0);
         }
 
         // regular thinking
         SV_RunThink(ent);
     }
 
-    /*
-     * ============= SV_movestep
-     * 
+    /**
      * Called by monster program code. The move will be adjusted for slopes and
      * stairs, but if the move isn't possible, no move is done, false is
      * returned, and pr_global_struct.trace_normal is set to the normal of the
-     * blocking wall =============
+     * blocking wall.
      */
-    //	  FIXME since we need to test end position contents here, can we avoid
-    // doing
-    //	  it again later in catagorize position?
+    
+    // FIXME: since we need to test end position contents here, can we avoid
+    // doing it again later in catagorize position?
     public static boolean SV_movestep(edict_t ent, float[] move, boolean relink) {
         float dz;
         float[] oldorg = { 0, 0, 0 };
@@ -868,8 +845,7 @@ public final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.pointcontents
-                                .pointcontents(test);
+                        contents = GameBase.gi.pointcontents.pointcontents(test);
                         if ((contents & Defines.MASK_WATER) != 0)
                             return false;
                     }
@@ -881,8 +857,7 @@ public final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.pointcontents
-                                .pointcontents(test);
+                        contents = GameBase.gi.pointcontents.pointcontents(test);
                         if ((contents & Defines.MASK_WATER) == 0)
                             return false;
                     }
@@ -985,13 +960,9 @@ public final class SV {
         return true;
     }
 
-    /*
-     * ====================== SV_StepDirection
-     * 
+    /** 
      * Turns to the movement direction, and walks the current distance if facing
      * it.
-     * 
-     * ======================
      */
     public static boolean SV_StepDirection(edict_t ent, float yaw, float dist) {
         float[] move = { 0, 0, 0 };
@@ -1022,10 +993,9 @@ public final class SV {
         return false;
     }
 
-    /*
-     * ====================== SV_FixCheckBottom
+    /**
+     * SV_FixCheckBottom
      * 
-     * ======================
      */
     public static void SV_FixCheckBottom(edict_t ent) {
         ent.flags |= Defines.FL_PARTIALGROUND;
@@ -1051,16 +1021,16 @@ public final class SV {
         else if (deltax < -10)
             d[1] = 180;
         else
-            d[1] = GameBase.DI_NODIR;
+            d[1] = DI_NODIR;
         if (deltay < -10)
             d[2] = 270;
         else if (deltay > 10)
             d[2] = 90;
         else
-            d[2] = GameBase.DI_NODIR;
+            d[2] = DI_NODIR;
 
         //	   try direct route
-        if (d[1] != GameBase.DI_NODIR && d[2] != GameBase.DI_NODIR) {
+        if (d[1] != DI_NODIR && d[2] != DI_NODIR) {
             if (d[1] == 0)
                 tdir = d[2] == 90 ? 45 : 315;
             else
@@ -1077,17 +1047,17 @@ public final class SV {
             d[2] = tdir;
         }
 
-        if (d[1] != GameBase.DI_NODIR && d[1] != turnaround
+        if (d[1] != DI_NODIR && d[1] != turnaround
                 && SV_StepDirection(actor, d[1], dist))
             return;
 
-        if (d[2] != GameBase.DI_NODIR && d[2] != turnaround
+        if (d[2] != DI_NODIR && d[2] != turnaround
                 && SV_StepDirection(actor, d[2], dist))
             return;
 
         /* there is no direct path to the player, so pick another direction */
 
-        if (olddir != GameBase.DI_NODIR
+        if (olddir != DI_NODIR
                 && SV_StepDirection(actor, olddir, dist))
             return;
 
@@ -1101,24 +1071,23 @@ public final class SV {
                     return;
         }
 
-        if (turnaround != GameBase.DI_NODIR
+        if (turnaround != DI_NODIR
                 && SV_StepDirection(actor, turnaround, dist))
             return;
 
         actor.ideal_yaw = olddir; // can't move
 
-        //	   if a bridge was pulled out from underneath a monster, it may not have
-        //	   a valid standing position at all
+        // if a bridge was pulled out from underneath a monster, it may not have
+        // a valid standing position at all
 
         if (!M.M_CheckBottom(actor))
             SV_FixCheckBottom(actor);
     }
 
-    /*
-     * ====================== SV_CloseEnough
-     * 
-     * ======================
-     *///ok
+    /**
+     * SV_CloseEnough - returns true if distance between 2 ents is smaller than
+     * given dist.  
+     */
     public static boolean SV_CloseEnough(edict_t ent, edict_t goal, float dist) {
         int i;
 
@@ -1130,4 +1099,6 @@ public final class SV {
         }
         return true;
     }
+
+	public static int DI_NODIR = -1;
 }

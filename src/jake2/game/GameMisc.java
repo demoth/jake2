@@ -19,7 +19,7 @@
  */
 
 // Created on 27.12.2003 by RST.
-// $Id: GameMisc.java,v 1.6 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameMisc.java,v 1.7 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
 import java.util.Calendar;
@@ -661,7 +661,7 @@ public class GameMisc {
             self.nextthink = GameBase.level.time + 1;
     }
 
-    /*
+    /**
      * QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) Stepping onto
      * this disc will teleport players to the targeted misc_teleporter_dest
      * object.
@@ -696,7 +696,7 @@ public class GameMisc {
         GameBase.gi.linkentity(trig);
     }
 
-    /*
+    /**
      * QUAKED func_group (0 0 0) ? Used to group brushes together just for
      * editor convenience.
      */
@@ -902,7 +902,6 @@ public class GameMisc {
             ent.velocity[2] = 500;
     }
 
-    //=====================================================
     public static EntUseAdapter Use_Areaportal = new EntUseAdapter() {
         public String getID() { return "use_areaportal";}
         public void use(edict_t ent, edict_t other, edict_t activator) {
@@ -912,7 +911,7 @@ public class GameMisc {
         }
     };
 
-    /*
+    /**
      * QUAKED func_areaportal (0 0 0) ?
      * 
      * This is a non-visible object that divides the world into areas that are
@@ -929,7 +928,7 @@ public class GameMisc {
         }
     };
 
-    /*
+    /**
      * QUAKED path_corner (.5 .3 0) (-8 -8 -8) (8 8 8) TELEPORT Target: next
      * path corner Pathtarget: gets used when an entity that has this
      * path_corner targeted touches it
@@ -1932,8 +1931,8 @@ public class GameMisc {
         }
     };
 
-    /*
-     * ================= debris =================
+    /**
+     * Debris
      */
     public static EntDieAdapter debris_die = new EntDieAdapter() {
         public String getID() { return "debris_die";}

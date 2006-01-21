@@ -19,7 +19,7 @@
  */
 
 // Created on 31.10.2003 by RST.
-// $Id: game_import_t.java,v 1.6 2006-01-14 16:06:11 hzi Exp $
+// $Id: game_import_t.java,v 1.7 2006-01-21 21:53:31 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -65,7 +65,6 @@ public class game_import_t {
     // All of the current configstrings are sent to clients when
     // they connect, and changes are sent to all connected clients.
     public void configstring(int num, String string) {
-        //Com.Error(Defines.ERR_FATAL,"method is not implemented!");
         SV_GAME.PF_Configstring(num, string);
     }
 
@@ -176,11 +175,12 @@ public class game_import_t {
         return Cvar.Get(var_name, value, flags);
     }
 
+    // console variable interaction
     public cvar_t cvar_set(String var_name, String value) {
         return Cvar.Set(var_name, value);
-        //return null;
     }
 
+    // console variable interaction
     public cvar_t cvar_forceset(String var_name, String value) {
         return Cvar.ForceSet(var_name, value);
     }
@@ -190,12 +190,12 @@ public class game_import_t {
         return Cmd.Argc();
     }
 
+
     public String argv(int n) {
         return Cmd.Argv(n);
     }
 
     // concatenation of all argv >= 1
-
     public String args() {
         return Cmd.Args();
     }

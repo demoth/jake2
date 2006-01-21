@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2005 by RST.
-// $Id: GameCombat.java,v 1.2 2005-12-10 22:45:01 salomo Exp $
+// $Id: GameCombat.java,v 1.3 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
@@ -30,11 +30,11 @@ import jake2.util.Math3D;
 
 public class GameCombat {
 
-    /*
-     * ============ CanDamage
+    /**
+     * CanDamage
      * 
      * Returns true if the inflictor can directly damage the target. Used for
-     * explosions and melee attacks. ============
+     * explosions and melee attacks.
      */
     static boolean CanDamage(edict_t targ, edict_t inflictor) {
         float[] dest = { 0, 0, 0 };
@@ -94,8 +94,8 @@ public class GameCombat {
         return false;
     }
 
-    /*
-     * ============ Killed ============
+    /**
+     * Killed.
      */
     public static void Killed(edict_t targ, edict_t inflictor,
             edict_t attacker, int damage, float[] point) {
@@ -103,7 +103,6 @@ public class GameCombat {
         if (targ.health < -999)
             targ.health = -999;
     
-        //Com.Println("Killed:" + targ.classname);
         targ.enemy = attacker;
     
         if ((targ.svflags & Defines.SVF_MONSTER) != 0
@@ -137,8 +136,8 @@ public class GameCombat {
         targ.die.die(targ, inflictor, attacker, damage, point);
     }
 
-    /*
-     * ================ SpawnDamage ================
+    /**
+     * SpawnDamage.
      */
     static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
         if (damage > 255)
@@ -351,8 +350,8 @@ public class GameCombat {
         return false;
     }
 
-    /*
-     * ============ T_RadiusDamage ============
+    /**
+     * T_RadiusDamage.
      */
     static void T_RadiusDamage(edict_t inflictor, edict_t attacker,
             float damage, edict_t ignore, float radius, int mod) {
@@ -431,7 +430,7 @@ public class GameCombat {
     
         Math3D.VectorNormalize(dir);
     
-        //	   bonus damage for suprising a monster
+        // bonus damage for suprising a monster
         if (0 == (dflags & Defines.DAMAGE_RADIUS)
                 && (targ.svflags & Defines.SVF_MONSTER) != 0
                 && (attacker.client != null) && (targ.enemy == null)
@@ -441,7 +440,7 @@ public class GameCombat {
         if ((targ.flags & Defines.FL_NO_KNOCKBACK) != 0)
             knockback = 0;
     
-        //	   figure momentum add
+        // figure momentum add
         if (0 == (dflags & Defines.DAMAGE_NO_KNOCKBACK)) {
             if ((knockback != 0) && (targ.movetype != Defines.MOVETYPE_NONE)
                     && (targ.movetype != Defines.MOVETYPE_BOUNCE)
@@ -551,5 +550,4 @@ public class GameCombat {
             Math3D.VectorCopy(point, client.damage_from);
         }
     }
-
 }

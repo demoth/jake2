@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2005 by RST.
-// $Id: GameItemList.java,v 1.1 2005-11-20 22:18:34 salomo Exp $
+// $Id: GameItemList.java,v 1.2 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
@@ -42,7 +42,8 @@ public class GameItemList {
 	// ARMOR
 	//
 	new gitem_t(
-	/*
+			
+	/**
 	 * QUAKED item_armor_body (.3 .3 1) (-16 -16 -16) (16 16 16)
 	 */
 	
@@ -756,7 +757,4 @@ public class GameItemList {
 	
 	// end of list marker
 	null };
-
-	public static void main(String[] args) {
-	}
 }

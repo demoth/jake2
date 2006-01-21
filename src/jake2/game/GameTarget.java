@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTarget.java,v 1.7 2005-11-20 22:18:33 salomo Exp $
+// $Id: GameTarget.java,v 1.8 2006-01-21 21:53:31 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -44,9 +44,7 @@ public class GameTarget {
         }
         if (GameBase.st.noise.indexOf(".wav") < 0)
             buffer = "" + GameBase.st.noise + ".wav";
-        //Com_sprintf(buffer, sizeof(buffer), "%s.wav", st.noise);
         else
-            //strncpy(buffer, st.noise, sizeof(buffer));
             buffer = GameBase.st.noise;
 
         ent.noise_index = GameBase.gi.soundindex(buffer);
@@ -70,7 +68,7 @@ public class GameTarget {
         GameBase.gi.linkentity(ent);
     }
 
-    /*
+    /**
      * QUAKED target_help (1 0 1) (-16 -16 -24) (16 16 24) help1 When fired, the
      * "message" key becomes the current personal computer string, and the
      * message light will be set on all clients status bars.
@@ -262,7 +260,7 @@ public class GameTarget {
         self.noise_index = GameBase.gi.soundindex("world/quake.wav");
     }
 
-    /*
+    /**
      * QUAKED target_temp_entity (1 0 0) (-8 -8 -8) (8 8 8) Fire an origin based
      * temp entity event to the clients. "style" type byte
      */
@@ -276,9 +274,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off
      * reliable "noise" wav file to play "attenuation" -1 = none, send to whole
      * level 1 = normal fighting sounds 2 = idle sound level 3 = ambient sound
@@ -315,7 +311,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
+
     public static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Help"; }
         public void use(edict_t ent, edict_t other, edict_t activator) {
@@ -329,9 +325,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_secret (1 0 1) (-8 -8 -8) (8 8 8) Counts a secret found.
      * These are single use targets.
      */
@@ -347,10 +341,8 @@ public class GameTarget {
             GameUtil.G_FreeEdict(ent);
         }
     };
-
-    //==========================================================
-
-    /*
+    
+    /**
      * QUAKED target_goal (1 0 1) (-8 -8 -8) (8 8 8) Counts a goal completed.
      * These are single use targets.
      */
@@ -370,9 +362,8 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
 
-    /*
+    /**
      * QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8) Spawns an explosion
      * temporary entity when used.
      * 
@@ -416,9 +407,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_changelevel (1 0 0) (-8 -8 -8) (8 8 8) Changes level to
      * "map" when fired
      */
@@ -460,9 +449,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8) Creates a particle splash
      * effect when used.
      * 
@@ -489,9 +476,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_spawner (1 0 0) (-8 -8 -8) (8 8 8) Set target to the type
      * of entity you want spawned. Useful for spawning monsters and gibs in the
      * factory levels.
@@ -520,9 +505,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_blaster (1 0 0) (-8 -8 -8) (8 8 8) NOTRAIL NOEFFECTS Fires
      * a blaster bolt in the set direction when triggered.
      * 
@@ -550,9 +533,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_crosslevel_trigger (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
      * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8 Once this
      * trigger is touched/used, any trigger_crosslevel_target with the same
@@ -568,7 +549,7 @@ public class GameTarget {
         }
     };
 
-    /*
+    /**
      * QUAKED target_crosslevel_target (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1
      * trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8 Triggered
      * by a trigger_crosslevel elsewhere within a unit. If multiple triggers are
@@ -589,9 +570,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_laser (0 .5 .8) (-8 -8 -8) (8 8 8) START_ON RED GREEN BLUE
      * YELLOW ORANGE FAT When triggered, fires a laser. You can either set a
      * target or a direction.
@@ -615,9 +594,7 @@ public class GameTarget {
 
             if (self.enemy != null) {
                 Math3D.VectorCopy(self.movedir, last_movedir);
-                Math3D
-                        .VectorMA(self.enemy.absmin, 0.5f, self.enemy.size,
-                                point);
+                Math3D.VectorMA(self.enemy.absmin, 0.5f, self.enemy.size, point);
                 Math3D.VectorSubtract(point, self.s.origin, self.movedir);
                 Math3D.VectorNormalize(self.movedir);
                 if (!Math3D.VectorEquals(self.movedir, last_movedir))
@@ -687,8 +664,6 @@ public class GameTarget {
     	public String getID() { return "target_laser_start"; }
         public boolean think(edict_t self) {
 
-            edict_t ent;
-
             self.movetype = Defines.MOVETYPE_NONE;
             self.solid = Defines.SOLID_NOT;
             self.s.renderfx |= Defines.RF_BEAM | Defines.RF_TRANSLUCENT;
@@ -743,9 +718,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_lightramp (0 .5 .8) (-8 -8 -8) (8 8 8) TOGGLE speed How
      * many seconds the ramping will take message two letters; starting
      * lightlevel and ending lightlevel
@@ -820,9 +793,7 @@ public class GameTarget {
         }
     };
 
-    //==========================================================
-
-    /*
+    /**
      * QUAKED target_earthquake (1 0 0) (-8 -8 -8) (8 8 8) When triggered, this
      * initiates a level-wide earthquake. All players and monsters are affected.
      * "speed" severity of the quake (default:200) "count" duration of the quake

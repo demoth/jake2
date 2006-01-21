@@ -19,7 +19,7 @@
  */
 
 // Created on 28.12.2003 by RST.
-// $Id: GameTurret.java,v 1.6 2005-11-20 22:18:34 salomo Exp $
+// $Id: GameTurret.java,v 1.7 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
 import jake2.*;
@@ -53,7 +53,7 @@ public class GameTurret {
         return 0.125f * (int) x;
     }
 
-    /*
+    /**
      * QUAKED turret_breach (0 0 0) ? This portion of the turret can change both
      * pitch and yaw. The model should be made with a flat pitch. It (and the
      * associated base) need to be oriented towards 0. Use "angle" to set the
@@ -118,7 +118,7 @@ public class GameTurret {
         GameBase.gi.linkentity(self);
     }
 
-    /*
+    /**
      * QUAKED turret_base (0 0 0) ? This portion of the turret changes yaw only.
      * MUST be teamed with a turret_breach.
      */
@@ -280,14 +280,10 @@ public class GameTurret {
                 // x & y
                 angle = self.s.angles[1] + self.owner.move_origin[1];
                 angle *= (Math.PI * 2 / 360);
-                target[0] = GameTurret
-                        .SnapToEights((float) (self.s.origin[0] + Math
-                                .cos(angle)
-                                * self.owner.move_origin[0]));
-                target[1] = GameTurret
-                        .SnapToEights((float) (self.s.origin[1] + Math
-                                .sin(angle)
-                                * self.owner.move_origin[0]));
+                target[0] = GameTurret.SnapToEights((float) (self.s.origin[0] + 
+                			Math.cos(angle) * self.owner.move_origin[0]));
+                target[1] = GameTurret.SnapToEights((float) (self.s.origin[1] + 
+                			Math.sin(angle) * self.owner.move_origin[0]));
                 target[2] = self.owner.s.origin[2];
 
                 Math3D.VectorSubtract(target, self.owner.s.origin, dir);
@@ -295,10 +291,8 @@ public class GameTurret {
                 self.owner.velocity[1] = dir[1] * 1.0f / Defines.FRAMETIME;
 
                 // z
-                angle = self.s.angles[Defines.PITCH]
-                        * (float) (Math.PI * 2f / 360f);
-                target_z = GameTurret
-                        .SnapToEights((float) (self.s.origin[2]
+                angle = self.s.angles[Defines.PITCH] * (float) (Math.PI * 2f / 360f);
+                target_z = GameTurret.SnapToEights((float) (self.s.origin[2]
                                 + self.owner.move_origin[0] * Math.tan(angle) + self.owner.move_origin[2]));
 
                 diff = target_z - self.owner.s.origin[2];
@@ -360,9 +354,7 @@ public class GameTurret {
             self.target_ent.owner = null;
             self.target_ent.teammaster.owner = null;
 
-            //TODO: null appended as last missing argument, was unclean. rst
-            M_Infantry.infantry_die
-                    .die(self, inflictor, attacker, damage, null);
+            M_Infantry.infantry_die.die(self, inflictor, attacker, damage, null);
         }
     };
 

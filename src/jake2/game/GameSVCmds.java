@@ -19,7 +19,7 @@
  */
 
 // Created on 01.02.2004 by RST.
-// $Id: GameSVCmds.java,v 1.3 2004-09-22 19:22:05 salomo Exp $
+// $Id: GameSVCmds.java,v 1.4 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
 import jake2.Defines;
@@ -33,8 +33,7 @@ import java.util.StringTokenizer;
 
 public class GameSVCmds {
 
-    /*
-     * ==============================================================================
+    /**
      * 
      * PACKET FILTERING
      * 
@@ -65,8 +64,6 @@ public class GameSVCmds {
      * you easily set up a private game, or a game that only allows players from
      * your local network.
      * 
-     * 
-     * ==============================================================================
      */
 
     public static class ipfilter_t {
@@ -89,14 +86,12 @@ public class GameSVCmds {
             GameSVCmds.ipfilters[n] = new ipfilter_t();
     }
 
-    /*
-     * ================= StringToFilter =================
+    /**
+     * StringToFilter.
      */
     static boolean StringToFilter(String s, GameSVCmds.ipfilter_t f) {
-        //char num[128];
-        String num;
-        int i, j;
-        byte b[] = { 0, 0, 0, 0 };
+
+    	byte b[] = { 0, 0, 0, 0 };
         byte m[] = { 0, 0, 0, 0 };
 
         try {
@@ -119,8 +114,8 @@ public class GameSVCmds {
         return true;
     }
 
-    /*
-     * ================= SV_FilterPacket =================
+    /**
+     * SV_FilterPacket.
      */
     static boolean SV_FilterPacket(String from) {
         int i;
@@ -157,8 +152,8 @@ public class GameSVCmds {
         return ((int) 1 - GameBase.filterban.value) != 0;
     }
 
-    /*
-     * ================= SV_AddIP_f =================
+    /**
+     * SV_AddIP_f.
      */
     static void SVCmd_AddIP_f() {
         int i;
@@ -185,8 +180,8 @@ public class GameSVCmds {
             ipfilters[i].compare = 0xffffffff;
     }
 
-    /*
-     * ================= SV_RemoveIP_f =================
+    /**
+     * SV_RemoveIP_f.
      */
     static void SVCmd_RemoveIP_f() {
         GameSVCmds.ipfilter_t f = new GameSVCmds.ipfilter_t();
@@ -214,8 +209,8 @@ public class GameSVCmds {
                 + GameBase.gi.argv(2) + ".\n");
     }
 
-    /*
-     * ================= SV_ListIP_f =================
+    /**
+     * SV_ListIP_f.
      */
     static void SVCmd_ListIP_f() {
         int i;
@@ -231,8 +226,8 @@ public class GameSVCmds {
         }
     }
 
-    /*
-     * ================= SV_WriteIP_f =================
+    /**
+     * SV_WriteIP_f.
      */
     static void SVCmd_WriteIP_f() {
         RandomAccessFile f;
@@ -250,8 +245,7 @@ public class GameSVCmds {
         else
             name = game.string + "/listip.cfg";
 
-        GameBase.gi
-                .cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
+        GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
 
         f = Lib.fopen(name, "rw");
         if (f == null) {
@@ -277,12 +271,11 @@ public class GameSVCmds {
         Lib.fclose(f);
     }
 
-    /*
-     * ================= ServerCommand
+    /**
+     * ServerCommand
      * 
      * ServerCommand will be called when an "sv" command is issued. The game can
      * issue gi.argc() / gi.argv() commands to get the rest of the parameters
-     * =================
      */
     public static void ServerCommand() {
         String cmd;
