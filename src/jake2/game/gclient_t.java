@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: gclient_t.java,v 1.5 2005-02-06 19:06:37 salomo Exp $
+// $Id: gclient_t.java,v 1.6 2006-01-21 14:00:53 salomo Exp $
 
 package jake2.game;
 
@@ -200,8 +200,8 @@ public class gclient_t
 
 		respawn_time = 0; // can respawn when time > this
 
-		edict_t chase_target = null; // player we are chasing
-		boolean update_chase = false; // need to update chase info?
+		chase_target = null; // player we are chasing
+		update_chase = false; // need to update chase info?
 	}
 
 	/** Reads a game client from the file. */
