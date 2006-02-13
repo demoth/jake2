@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.21 2006-01-15 15:34:38 hzi Exp $
+ * $Id: Qcommon.java,v 1.22 2006-02-13 10:05:55 hzi Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -44,8 +44,8 @@ import java.io.IOException;
  */
 public final class Qcommon extends Globals {
 
-	public static final String BUILDSTRING = "Java";
-	public static final String CPUSTRING = "jvm";
+	public static final String BUILDSTRING = "Java " + System.getProperty("java.version");;
+	public static final String CPUSTRING = System.getProperty("os.arch");
 
 	/**
 	 * This function initializes the different subsystems of

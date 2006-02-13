@@ -1,3 +1,11 @@
+0.9.5
+
+	- quake video (cinematics) support including sound streaming  
+	- save games are from now on build compatible  
+	- support for arbitrary sound sample rates  
+	- dedicated server mode
+	- lots of bugfixes
+
 0.9.4 2005-05-26
 
 	- multiplayer client and server functionality
