@@ -2,7 +2,7 @@
  * Vec3Cache.java
  * Copyright (C) 2003
  *
- * $Id: Vec3Cache.java,v 1.1 2005-01-16 15:16:44 cawe Exp $
+ * $Id: Vec3Cache.java,v 1.2 2006-08-20 21:46:40 salomo Exp $
  */
 package jake2.util;
 
@@ -14,7 +14,6 @@ package jake2.util;
  */
 public final class Vec3Cache {
     
-    //private static Stack cache = new Stack();
     private static final float[][] cache = new float[64][3];
     private static int index = 0;
     private static int max = 0;
