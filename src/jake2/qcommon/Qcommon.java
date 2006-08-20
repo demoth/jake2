@@ -2,7 +2,7 @@
  * Qcommon.java
  * Copyright 2003
  * 
- * $Id: Qcommon.java,v 1.22 2006-02-13 10:05:55 hzi Exp $
+ * $Id: Qcommon.java,v 1.23 2006-08-20 21:46:07 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -255,7 +255,7 @@ public final class Qcommon extends Globals {
 			}
 
 		} catch (longjmpException e) {
-			Com.DPrintf("lonjmp exception:" + e);
+			Com.DPrintf("longjmp exception:" + e);
 		}
 	}
 
