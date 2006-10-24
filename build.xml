@@ -204,6 +204,7 @@
 				<include name="README*"/>
 				<include name="install.xml"/>
 				<include name="readme.id"/>
+				<include name="Jake2_Eclipse_Setup.txt"/>
 			</tarfileset>
 		</tar>
 		<zip destfile="jake2src-${version}.zip">
@@ -220,7 +221,8 @@
 				<include name="LICENSE"/>
 				<include name="README*"/>
 				<include name="install.xml"/>
-				<include name="readme.id"/>				
+				<include name="readme.id"/>
+				<include name="Jake2_Eclipse_Setup.txt"/>
 			</zipfileset>
 		</zip>
 	</target>

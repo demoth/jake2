@@ -6,13 +6,14 @@ distributed under the terms of the GPL (see LICENSE).
 
 The port was done completely in Java. No native libraries are used for the
 game functionality. We use the jogl Java OpenGL bindings for graphics rendering
-and Java OpenAL (joal) for sound. The 0.9.4 release comes with an lwjgl driver
+and Java OpenAL (joal) for sound. Since 0.9.4 release, Jake2 comes with an lwjgl driver
 as an alternative for the jogl/joal combination.
 
 Jake2 is still under development. Send bug reports and feedback to
 jake2@bytonic.de.
 
-Currently Jake2 supports Linux, Windows2000/XP and Mac OS X.
+Currently Jake2 supports Linux, Windows2000/XP and Mac OS X. The Jake2 dedicated
+server runs on every Java supported plattform.
 
 requirements:
 400 MHz CPU
@@ -24,7 +25,7 @@ Installation
 ------------
 
 from binary distribution:
-- run the installer with "java -jar Jake2-0.9.4-install.jar"
+- run the installer with "java -jar Jake2-0.9.5-install.jar"
 - follow the instructions
 - change to the installation directory
 - run the game with Jake2.sh or Jake2.bat
@@ -61,7 +62,6 @@ izpack	 Installer	                    http://www.izforge.com/
 the source distribution comes with:
 ant      build tool                     http://ant.apache.org
 xerces   XML library                    http://xml.apache.org
-proguard obfuscator                     http://proguard.sourceforge.net
 
 Use <jake2@bytonic.de> for bug reports and feedback.
 

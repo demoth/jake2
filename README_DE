@@ -15,9 +15,8 @@ ausschliesslich mit Java realisiert.
 Jake2 befindet sich noch im Entwicklungsstadium. Die Kontaktaddresse für 
 Bugreports und Rückmeldungen ist jake2@bytonic.de.
 
-Jake2 wird von uns unter Linux und Windows2000/XP getestet. Wir haben Feedback,
-dass Jake2 mit den richtigen plattformspezifischen jogl Bibliotheken auch auf
-Mac OS X läuft.
+Jake2 läuft unter Linux, Windows2000/XP sowie Mac OS X. Als reiner Server ohne
+grafische Oberfläche läuft Jake2 auf jeder Plattform mit JRE1.4.
 
 Mindestanforderungen:
 400 MHz CPU
@@ -29,7 +28,7 @@ Installation
 ------------
 
 ausgehend von der Binärdistribution:
-- Installationsprogramm mit "java -jar Jake2-0.9.4-install.jar" starten
+- Installationsprogramm mit "java -jar Jake2-0.9.5-install.jar" starten
 - den Anweisungen folgen
 - ins Installationsverzeichnis wechseln
 - Jake2 mit "jake2.sh" oder "jake2.bat" aus dem Installationsverzeichnis starten
@@ -67,7 +66,6 @@ izpack	 Installer                      http://www.izforge.com/
 the source distribution comes with:
 ant      build tool                     http://ant.apache.org
 xerces   XML library                    http://xml.apache.org
-proguard obfuscator                     http://proguard.sourceforge.net
 
 <jake2@bytonic.de> für Bugreports und Rückmeldungen.
 

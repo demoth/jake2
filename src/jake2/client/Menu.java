@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.20 2005-12-03 19:47:36 salomo Exp $
+ * $Id: Menu.java,v 1.21 2006-10-24 22:15:53 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1713,7 +1713,7 @@ public final class Menu extends Key {
 
     static String idcredits[] = { "+QUAKE II BY ID SOFTWARE", "",
             "+PROGRAMMING", "John Carmack", "John Cash", "Brian Hook", "",
-            "+JAVA PORT BY BYTONIC", "CWEI", "HOZ", "RST", "", "+ART",
+            "+JAVA PORT BY BYTONIC", "Carsten Weisse", "Holger Zickner", "Rene Stoeckel", "", "+ART",
             "Adrian Carmack", "Kevin Cloud", "Paul Steed", "", "+LEVEL DESIGN",
             "Tim Willits", "American McGee", "Christian Antkow",
             "Paul Jaquays", "Brandon James", "", "+BIZ", "Todd Hollenshead",
