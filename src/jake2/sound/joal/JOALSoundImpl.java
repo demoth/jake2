@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.15 2005-12-04 19:21:04 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.16 2006-10-24 22:51:20 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -20,6 +20,7 @@ import java.nio.*;
 import net.java.games.joal.*;
 import net.java.games.joal.eax.EAX;
 import net.java.games.joal.eax.EAXFactory;
+import net.java.games.joal.util.ALut;
 
 /**
  * JOALSoundImpl
@@ -68,33 +69,24 @@ public final class JOALSoundImpl implements Sound {
 	 * @see jake2.sound.SoundImpl#Init()
 	 */
 	public boolean Init() {
-		
-		// preload OpenAL native library
-		String os = System.getProperty("os.name");
-		if (os.startsWith("Linux")) {
-			unpack();	
-		} else if (os.startsWith("Windows")) {
-		    try {
-		        System.loadLibrary("OpenAL32");
-		    } catch (Throwable e) {}
-		}
-		
+		        
 		try {
-			initOpenAL();
+            ALut.alutInit();
 			al = ALFactory.getAL();
+            alc = ALFactory.getALC();
 			checkError();
 			initOpenALExtensions();		
-		} catch (OpenALException e) {
+		} catch (ALException e) {
 			Com.Printf(e.getMessage() + '\n');
 			return false;
 		} catch (Throwable e) {
-			Com.DPrintf(e.getMessage() + '\n');
+			Com.Printf(e.toString() + '\n');
 			return false;
 		}
 		// set the master volume
 		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 
-		al.alGenBuffers(buffers.length, buffers);
+		al.alGenBuffers(buffers.length, buffers, 0);
 		int count = Channel.init(al, buffers);
 		Com.Printf("... using " + count + " channels\n");
 		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
@@ -127,31 +119,7 @@ public final class JOALSoundImpl implements Sound {
 		Com.Printf("------------------------------------\n");
 		return true;
 	}
-	
-	
-	private void initOpenAL() throws OpenALException {
-		ALFactory.initialize();
-		alc = ALFactory.getALC();
-		String deviceName = null;
-
-		String os = System.getProperty("os.name");
-		if (os.startsWith("Windows")) {
-			deviceName = "DirectSound3D";
-		}
-		ALC.Device device = alc.alcOpenDevice(deviceName);
-		String deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
-		String defaultSpecifier = alc.alcGetString(device, ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
-
-		Com.Printf(os + " using " + ((deviceName == null) ? defaultSpecifier : deviceName) + '\n');
-
-		ALC.Context context = alc.alcCreateContext(device, new int[] {0});
-		alc.alcMakeContextCurrent(context);
-		// Check for an error.
-		if (alc.alcGetError(device) != ALC.ALC_NO_ERROR) {
-			Com.DPrintf("Error with SoundDevice");
-		}
-	}
-	
+		
 	private void initOpenALExtensions() {
 		if (al.alIsExtensionPresent("EAX2.0")) {
 			Com.Printf("... using EAX2.0\n");
@@ -164,9 +132,9 @@ public final class JOALSoundImpl implements Sound {
 	
 	void exitOpenAL() {
 		// Get the current context.
-		ALC.Context curContext = alc.alcGetCurrentContext();
+		ALCcontext curContext = alc.alcGetCurrentContext();
 		// Get the device used by that context.
-		ALC.Device curDevice = alc.alcGetContextsDevice(curContext);
+		ALCdevice curDevice = alc.alcGetContextsDevice(curContext);
 		// Reset the current context to NULL.
 		alc.alcMakeContextCurrent(null);
 		// Release the context and the device.
@@ -213,7 +181,7 @@ public final class JOALSoundImpl implements Sound {
 	public void Shutdown() {
 		StopAllSounds();
 		Channel.shutdown();
-		al.alDeleteBuffers(buffers.length, buffers);
+		al.alDeleteBuffers(buffers.length, buffers, 0);
 		exitOpenAL();
 
 		Cmd.RemoveCommand("play");
@@ -267,10 +235,10 @@ public final class JOALSoundImpl implements Sound {
 	 */
 	public void Update(float[] origin, float[] forward, float[] right, float[] up) {
 		Channel.convertVector(origin, listenerOrigin);		
-		al.alListenerfv(AL.AL_POSITION, listenerOrigin);
+		al.alListenerfv(AL.AL_POSITION, listenerOrigin, 0);
 
 		Channel.convertOrientation(forward, up, listenerOrientation);		
-		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation);
+		al.alListenerfv(AL.AL_ORIENTATION, listenerOrientation, 0);
 		
 		// set the listener (master) volume
 		al.alListenerf(AL.AL_GAIN, s_volume.value);

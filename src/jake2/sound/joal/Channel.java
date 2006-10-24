@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.6 2005-12-04 20:56:26 cawe Exp $
+ * $Id: Channel.java,v 1.7 2006-10-24 22:51:20 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -108,7 +108,7 @@ public class Channel {
 		int sourceId;
 		for (int i = 0; i < MAX_CHANNELS; i++) {
 			
-			al.alGenSources(1, tmp);
+			al.alGenSources(1, tmp, 0);
 			sourceId = tmp[0];
 			
 			if (sourceId <= 0) break;
@@ -121,8 +121,8 @@ public class Channel {
 			// set default values for AL sources
 			al.alSourcef (sourceId, AL.AL_GAIN, 1.0f);
 			al.alSourcef (sourceId, AL.AL_PITCH, 1.0f);
-			al.alSourcei (sourceId, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
-			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR);
+			al.alSourcei (sourceId, AL.AL_SOURCE_RELATIVE,  AL.AL_FALSE);
+			al.alSourcefv(sourceId, AL.AL_VELOCITY, NULLVECTOR, 0);
 			al.alSourcei (sourceId, AL.AL_LOOPING, AL.AL_FALSE);
 			al.alSourcef (sourceId, AL.AL_REFERENCE_DISTANCE, 200.0f);
 			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
@@ -141,7 +141,7 @@ public class Channel {
 	}
 	
 	static void shutdown() {
-		al.alDeleteSources(numChannels, sources);
+		al.alDeleteSources(numChannels, sources, 0);
 		numChannels = 0;
 		isInitialized = false;
 	}
@@ -166,7 +166,7 @@ public class Channel {
         if (!streamingEnabled) return;
         unqueueStreams();
         int source = channels[numChannels].sourceId;
-        al.alSourcei (source, AL.AL_SOURCE_ABSOLUTE,  AL.AL_TRUE);
+        al.alSourcei (source, AL.AL_SOURCE_RELATIVE,  AL.AL_FALSE);
 
         // free the last source
         numChannels++;
@@ -180,10 +180,12 @@ public class Channel {
 
         // stop streaming
         al.alSourceStop(source);
-        int count = al.alGetSourcei(source, AL.AL_BUFFERS_QUEUED);
+        int[] tmpCount = new int[]{0};
+        al.alGetSourcei(source, AL.AL_BUFFERS_QUEUED, tmpCount, 0);
+        int count = tmpCount[0];
         Com.DPrintf("unqueue " + count + " buffers\n");
         while (count-- > 0) {
-            al.alSourceUnqueueBuffers(source, 1, tmp);
+            al.alSourceUnqueueBuffers(source, 1, tmp, 0);
         }
         streamQueue = 0;
     }
@@ -192,9 +194,13 @@ public class Channel {
         enableStreaming();
         int[] buffer = tmp;
         int source = channels[numChannels].sourceId;
-        int processed = al.alGetSourcei(source, AL.AL_BUFFERS_PROCESSED);
         
-        boolean playing = (al.alGetSourcei(source, AL.AL_SOURCE_STATE) == AL.AL_PLAYING);
+        int[] tmp = new int[]{0};
+        al.alGetSourcei(source, AL.AL_BUFFERS_PROCESSED, tmp, 0);
+        int processed = tmp[0];
+        al.alGetSourcei(source, AL.AL_SOURCE_STATE, tmp, 0);
+        int state = tmp[0];
+        boolean playing = ( state == AL.AL_PLAYING);
         boolean interupted = !playing && streamQueue > 2;
         
         if (interupted) {
@@ -208,13 +214,13 @@ public class Channel {
             Com.DPrintf("queue " + (streamQueue - 1) + '\n');
         } else {
             // reuse the buffer
-            al.alSourceUnqueueBuffers(source, 1, buffer);
+            al.alSourceUnqueueBuffers(source, 1, buffer, 0);
         }
 
         samples.position(0);
         samples.limit(count);
         al.alBufferData(buffer[0], format, samples, count, rate);
-        al.alSourceQueueBuffers(source, 1, buffer);
+        al.alSourceQueueBuffers(source, 1, buffer, 0);
         
         if (streamQueue > 1 && !playing) {
             Com.DPrintf("start sound\n");
@@ -298,6 +304,7 @@ public class Channel {
 		Channel ch;
 		int sourceId;
 		int state;
+        int[] tmp = new int[]{0};
 
 		for (int i = 0; i < numChannels; i++) {
 			ch = channels[i];
@@ -324,13 +331,14 @@ public class Channel {
 						al.alSourcef (sourceId, AL.AL_GAIN, ch.volume);
 					}
 					al.alSourcef (sourceId, AL.AL_ROLLOFF_FACTOR, ch.rolloff);
-					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
+					al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin, 0);
 					al.alSourcePlay(sourceId);
 					ch.modified = false;
 				} else {
-					state = al.alGetSourcei(sourceId, AL.AL_SOURCE_STATE);
-					if (state == AL.AL_PLAYING) {
-						al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin);
+					al.alGetSourcei(sourceId, AL.AL_SOURCE_STATE, tmp , 0);
+					state = tmp[0];
+                    if (state == AL.AL_PLAYING) {
+						al.alSourcefv(sourceId, AL.AL_POSITION, sourceOrigin, 0);
 					} else {
 						ch.clear();
 					}
