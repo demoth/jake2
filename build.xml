@@ -22,7 +22,7 @@
 	<!-- different classpaths -->
 	<path id="build.class.path">
 		<pathelement location="lib/jogl/jogl.jar"/>
-		<pathelement location="lib/joal/linux/joal.jar"/>
+		<pathelement location="lib/joal/joal.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
 	</path>
@@ -69,6 +69,9 @@
 	<target name="copy">
 		<copy todir="${dist}/lib">
 			<fileset dir="lib/jogl">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="lib/joal">
 				<include name="*.jar"/>
 			</fileset>
 			<fileset dir="lib/lwjgl">
@@ -151,7 +154,8 @@
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
 			<injar name="jake2.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
-			<libraryjar name="lib/joal/linux/joal.jar"/>
+			<libraryjar name="lib/joal/joal.jar"/>
+			<libraryjar name="lib/joal/gluegen-rt.jar"/>
 			<libraryjar name="${classes}"/>
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
@@ -194,7 +198,6 @@
 			</tarfileset>
 			<tarfileset dir="." prefix="Jake2">
 				<include name="src/jake2/**"/>
-				<include name="patch/**"/>
 				<include name="resources/**"/>
 				<include name="lib/**"/>
 				<include name="build.xml"/>
@@ -210,7 +213,6 @@
 		<zip destfile="jake2src-${version}.zip">
 			<zipfileset dir="." prefix="Jake2">
 				<include name="src/jake2/**"/>
-				<include name="patch/**"/>
 				<include name="resources/**"/>				
 				<include name="scripts/*.*"/>
 				<include name="lib/**"/>
@@ -237,38 +239,22 @@
 	</target>
 	
 	<!-- webstart -->
-	<target name="webstart" depends="dist,patch">
+	<target name="webstart" depends="dist">
 		<mkdir dir="webstart/lib"/>
 		<copy todir="webstart/lib">
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar"/>
 				<exclude name="jogl.jar"/>
-			</fileset>
-			<fileset dir=".">
-				<include name="patch.jar"/>
+				<exclude name="joal.jar"/>
+				<exclude name="gluegen-rt.jar"/>
 			</fileset>
 		</copy>
 
-		<jar destfile="webstart/lib/linux/joal-native.jar" basedir="${dist}/lib/linux">
-			<include name="libjoal.so"/>
-		</jar>
+		<mkdir dir="webstart/lib/linux"/>
 		<jar destfile="webstart/lib/linux/lwjgl-native.jar" basedir="${dist}/lib/linux/lwjgl">
 			<include name="*.so"/>
 		</jar>
-		<jar destfile="webstart/lib/linux/openal.jar" basedir="${dist}/lib/linux">
-			<include name="libopenal.so"/>
-		</jar>
-		<jar destfile="webstart/lib/osx/joal-native.jar" basedir="${dist}/lib/osx">
-			<include name="libjoal.jnilib"/>
-		</jar>
-		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx">
-			<include name="liblwjgl.jnilib"/>
-			<include name="openal.dylib"/>
-		</jar>
-		<jar destfile="webstart/lib/windows/joal-native.jar" basedir="${dist}/lib/windows">
-			<include name="joal.dll"/>
-			<include name="OpenAL32.dll"/>
-		</jar>
+		<mkdir dir="webstart/lib/windows"/>
 		<jar destfile="webstart/lib/windows/lwjgl-native.jar" basedir="${dist}/lib/windows">
 			<include name="lwjgl.dll"/>
 			<include name="lwjglaudio.dll"/>
@@ -297,17 +283,5 @@
 				<include name="*.jar"/>
 			</fileset>
 		</delete>
-	</target>
-	
-	<!-- patch -->
-	<target name="patch">
-		<javac destdir="${build}" optimize="on" debug="off" source="1.4">
-			<src path="${patch}"/>
-			<include name="**"/>
-			<classpath refid="build.class.path"/>
-		</javac>
-			<jar destfile="patch.jar" basedir="${build}">
-			<include name="net/**"/>
-		</jar>
 	</target>
 </project>
