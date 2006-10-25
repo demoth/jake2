@@ -20,27 +20,10 @@
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
-		<property name="ATI_WORKAROUND" value="false"/>
-		<extension href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp" name="jogl"/>
+		<extension name="jogl" href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp"/>
+		<extension name="joal" href="http://download.java.net/media/joal/webstart/joal.jnlp" />
 	</resources>
-	
-	<resources os="Linux">
-		<jar href="http://jake2.sourceforge.net/lib/patch.jar"/>
-		<jar href="http://jake2.sourceforge.net/lib/linux/joal.jar"/>
-		<jar href="http://jake2.sourceforge.net/lib/linux/openal.jar"/>
-		<nativelib href="http://jake2.sourceforge.net/lib/linux/joal-native.jar"/>
-	</resources>
-	
-	<resources os="Windows">
-		<jar href="http://jake2.sourceforge.net/lib/windows/joal.jar"/>
-		<nativelib href="http://jake2.sourceforge.net/lib/windows/joal-native.jar"/>
-	</resources>
-
-	<resources os="Mac OS X">
-		<jar href="http://jake2.sourceforge.net/lib/osx/joal.jar"/>
-		<nativelib href="http://jake2.sourceforge.net/lib/osx/joal-native.jar"/>		
-	</resources>
-	
+		
 	<application-desc main-class="jake2.Jake2">
 		<argument>+set</argument>
 		<argument>vid_ref</argument>
@@ -50,9 +33,9 @@
 		<argument>joal</argument>
 		<argument>+set</argument>
 		<argument>adr0</argument>
-		<argument>213.187.87.100</argument>
+		<argument>jake2.in-chemnitz.de</argument>
 		<argument>+connect</argument>
-		<argument>213.187.87.100</argument>					
+		<argument>jake2.in-chemnitz.de</argument>					
 	</application-desc> 
 	
 </jnlp>
