@@ -254,10 +254,15 @@
 		<jar destfile="webstart/lib/linux/lwjgl-native.jar" basedir="${dist}/lib/linux/lwjgl">
 			<include name="*.so"/>
 		</jar>
+		<mkdir dir="webstart/lib/osx"/>
+		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx">
+			<include name="liblwjgl.jnilib"/>
+			<include name="openal.dylib"/>
+		</jar>
 		<mkdir dir="webstart/lib/windows"/>
 		<jar destfile="webstart/lib/windows/lwjgl-native.jar" basedir="${dist}/lib/windows">
 			<include name="lwjgl.dll"/>
-			<include name="lwjglaudio.dll"/>
+			<include name="OpenAL32.dll"/>
 		</jar>
 		<signjar keystore="${user.home}/bytonic" alias="bytonic" storepass="${bytonic.pass}">
 			<fileset dir="webstart/lib">
