@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LWJGLBase.java,v 1.2 2004-12-20 21:51:18 cawe Exp $
+ * $Id: LWJGLBase.java,v 1.3 2006-10-26 22:02:56 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.client.viddef_t;
 import jake2.game.cvar_t;
+import jake2.qcommon.Com;
 import jake2.qcommon.xcommand_t;
 
 import java.awt.Dimension;
@@ -72,7 +73,13 @@ public abstract class LWJGLBase {
 
 	public java.awt.DisplayMode[] getModeList() 
 	{
-		DisplayMode[] modes = Display.getAvailableDisplayModes();
+		DisplayMode[] modes;
+		try {
+		    modes = Display.getAvailableDisplayModes();
+		} catch (LWJGLException e) {
+		    Com.Println(e.getMessage());
+		    return new java.awt.DisplayMode[0];
+		}
 		
 		LinkedList l = new LinkedList();
 		l.add(toAwtDisplayMode(oldDisplayMode));
@@ -106,7 +113,13 @@ public abstract class LWJGLBase {
 	}
 	
 	public DisplayMode[] getLWJGLModeList() {
-		DisplayMode[] modes = Display.getAvailableDisplayModes();
+		DisplayMode[] modes;
+		try {
+		    modes = Display.getAvailableDisplayModes();
+		} catch (LWJGLException e) {
+		    Com.Println(e.getMessage());
+		    return new DisplayMode[0];
+		}
 		
 		LinkedList l = new LinkedList();
 		l.add(oldDisplayMode);

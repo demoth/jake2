@@ -25,11 +25,7 @@ public class LWJGLKBD extends KBD {
 		{
 			if (!Keyboard.isCreated()) Keyboard.create();
 			if (!Mouse.isCreated()) Mouse.create();
-			
-			if (!Keyboard.isBuffered()) Keyboard.enableBuffer();
-			if (!Keyboard.isTranslationEnabled()) Keyboard.enableTranslation();
-			if (!Mouse.isBuffered()) Mouse.enableBuffer();
-			
+						
 			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
 			if (pressed == null) pressed = new int[256];
 			
