@@ -98,9 +98,11 @@
 			<fileset dir="lib/joal/windows">
 				<include name="*"/>
 			</fileset>
+		</copy>
+		<copy todir="${dist}/lib/windows/lwjgl">
 			<fileset dir="lib/lwjgl/windows">
 				<include name="*"/>
-			</fileset>			
+			</fileset>				
 		</copy>
 		<copy todir="${dist}/lib/osx">
 			<fileset dir="lib/jogl/osx">
@@ -109,9 +111,11 @@
 			<fileset dir="lib/joal/osx">
 				<include name="*"/>
 			</fileset>
+		</copy>
+		<copy todir="${dist}/lib/osx/lwjgl">
 			<fileset dir="lib/lwjgl/osx">
 				<include name="*"/>
-			</fileset>	
+			</fileset>				
 		</copy>
 		<copy todir="${dist}">
 			<fileset dir="scripts">
@@ -255,12 +259,12 @@
 			<include name="*.so"/>
 		</jar>
 		<mkdir dir="webstart/lib/osx"/>
-		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx">
+		<jar destfile="webstart/lib/osx/lwjgl-native.jar" basedir="${dist}/lib/osx/lwjgl">
 			<include name="liblwjgl.jnilib"/>
 			<include name="openal.dylib"/>
 		</jar>
 		<mkdir dir="webstart/lib/windows"/>
-		<jar destfile="webstart/lib/windows/lwjgl-native.jar" basedir="${dist}/lib/windows">
+		<jar destfile="webstart/lib/windows/lwjgl-native.jar" basedir="${dist}/lib/windows/lwjgl">
 			<include name="lwjgl.dll"/>
 			<include name="OpenAL32.dll"/>
 		</jar>
