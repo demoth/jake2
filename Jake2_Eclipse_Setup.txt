@@ -2,7 +2,7 @@
 
 	- switch to CVS perspective
 	- create a new CVS repository with the following parameters:
-		host: cvs.sourceforge.net
+		host: jake2.cvs.sourceforge.net
 		repository path: /cvsroot/jake2
 		user: anonymous
 		password:
@@ -58,7 +58,7 @@
 		- "Run" to build the Jake2 installer jake2-cvs-install.jar in
 		  project root dir
 
-6. Keep ud to date		  
+6. Keep up to date		  
 	
 	- right click project root folder jake2
 	- select Team -> Update to get latest chages from CVS

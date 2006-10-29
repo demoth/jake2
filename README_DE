@@ -48,9 +48,9 @@ Quake2 Leveldaten installieren:
 
 Zum Testen neuer und experimenteller Features kann der aktuelle Jake2 
 Sourcetree per anonymous CVS ausgecheckt werden.
-- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 login"
+- "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 login"
 - bei der Frage nach dem Passwort einfach Enter drücken
-- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 co jake2"
+- "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 co jake2"
 - dann gehts weiter wie oben für die Sourcedistribution beschrieben
 
 externe Komponenten

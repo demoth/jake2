@@ -44,9 +44,9 @@ installation of Quake2 data:
 
 If you want to have the latest experimental features you can grab the latest
 Jake2 sources from CVS.
-- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 login"
+- "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 login"
 - when askesd for password simply press the Enter key
-- "cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/jake2 co jake2"
+- "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 co jake2"
 - proceed with the build from source instructions
 
 3rd party components
