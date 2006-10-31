@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglBase.java,v 1.15 2005-06-26 08:51:19 hzi Exp $
+ * $Id: JoglBase.java,v 1.16 2006-10-31 13:06:32 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,6 +32,8 @@ import jake2.client.viddef_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.xcommand_t;
+import jake2.render.common.Model;
+import jake2.render.fastjogl.GLWrapJogl;
 import jake2.sys.JOGLKBD;
 
 import java.awt.*;
@@ -48,7 +50,8 @@ import net.java.games.jogl.util.GLUT;
 /**
  * JoglCommon
  */
-public abstract class JoglBase implements GLEventListener {
+public abstract class JoglBase extends jake2.render.common.Misc
+	implements GLEventListener {
 
 	// IMPORTED FUNCTIONS
 	protected GraphicsDevice device;
@@ -60,9 +63,7 @@ public abstract class JoglBase implements GLEventListener {
 	protected GLU glu;
 	protected GLUT glut = new GLUT();
 
-	// window position on the screen
-	int window_xpos, window_ypos;
-	protected viddef_t vid = new viddef_t();
+
 
 	// handles the post initialization with JoglRenderer
 	protected boolean post_init = false;
@@ -87,14 +88,6 @@ public abstract class JoglBase implements GLEventListener {
 		}
 	};
 	protected xcommand_t callback = INIT_CALLBACK;
-	
-	protected cvar_t vid_fullscreen;
-
-	// enum rserr_t
-	protected static final int rserr_ok = 0;
-	protected static final int rserr_invalid_fullscreen = 1;
-	protected static final int rserr_invalid_mode = 2;
-	protected static final int rserr_unknown = 3;
 		
 	public DisplayMode[] getModeList() {
 		DisplayMode[] modes = device.getDisplayModes();
@@ -328,6 +321,10 @@ public abstract class JoglBase implements GLEventListener {
 		// do nothing
 	}
 
+	protected void GLimp_Finish() {
+		gl.glFinish();
+	}
+	
 	/* 
 	 * @see jake2.client.refexport_t#updateScreen()
 	 */
@@ -349,8 +346,9 @@ public abstract class JoglBase implements GLEventListener {
 	*/
 	public void init(GLDrawable drawable) {
 		this.gl = drawable.getGL();
+		ggl = new GLWrapJogl (this.gl);
 		this.glu = drawable.getGLU();
-
+		
 		// this is a hack to run R_init() in gl context
 		post_init = R_Init2();
 	}

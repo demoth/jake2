@@ -2,33 +2,34 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.7 2005-05-11 21:44:55 cawe Exp $
+ * $Id: Misc.java,v 1.8 2006-10-31 13:06:32 salomo Exp $
  */
 /*
-Copyright (C) 1997-2001 Id Software, Inc.
+ Copyright (C) 1997-2001 Id Software, Inc.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-See the GNU General Public License for more details.
+ See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 package jake2.render.fastjogl;
 
 import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.FS;
 import jake2.qcommon.xcommand_t;
+import jake2.render.common.Base;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -40,56 +41,10 @@ import net.java.games.jogl.WGL;
 
 /**
  * Misc
- *  
+ * 
  * @author cwei
  */
-public abstract class Misc extends Mesh {
-
-	/*
-	==================
-	R_InitParticleTexture
-	==================
-	*/
-	byte[][] dottexture = { { 0, 0, 0, 0, 0, 0, 0, 0 }, {
-			0, 0, 1, 1, 0, 0, 0, 0 }, {
-			0, 1, 1, 1, 1, 0, 0, 0 },
-            { 0, 1, 1, 1, 1, 0, 0, 0 }, {
-			0, 0, 1, 1, 0, 0, 0, 0 }, {
-			0, 0, 0, 0, 0, 0, 0, 0 }, {
-			0, 0, 0, 0, 0, 0, 0, 0 }, {
-			0, 0, 0, 0, 0, 0, 0, 0 }, };
-
-	void R_InitParticleTexture() {
-		int x, y;
-		byte[] data = new byte[8 * 8 * 4];
-
-		//
-		// particle texture
-		//
-		for (x = 0; x < 8; x++) {
-			for (y = 0; y < 8; y++) {
-				data[y * 32 + x * 4 + 0] = (byte) 255;
-				data[y * 32 + x * 4 + 1] = (byte) 255;
-				data[y * 32 + x * 4 + 2] = (byte) 255;
-				data[y * 32 + x * 4 + 3] = (byte) (dottexture[x][y] * 255);
-
-			}
-		}
-		r_particletexture = GL_LoadPic("***particle***", data, 8, 8, it_sprite, 32);
-
-		//
-		// also use this for bad textures, but without alpha
-		//
-		for (x = 0; x < 8; x++) {
-			for (y = 0; y < 8; y++) {
-				data[y * 32 + x * 4 + 0] = (byte) (dottexture[x & 3][y & 3] * 255);
-				data[y * 32 + x * 4 + 1] = 0; // dottexture[x&3][y&3]*255;
-				data[y * 32 + x * 4 + 2] = 0; //dottexture[x&3][y&3]*255;
-				data[y * 32 + x * 4 + 3] = (byte) 255;
-			}
-		}
-		r_notexture = GL_LoadPic("***r_notexture***", data, 8, 8, it_wall, 32);
-	}
+public abstract class Misc extends Image {
 
 	//	/* 
 	//	============================================================================== 
@@ -112,7 +67,7 @@ public abstract class Misc extends Mesh {
 	/**
 	 * GL_ScreenShot_f
 	 */
-	void GL_ScreenShot_f() {
+	protected void GL_ScreenShot_f() {
 		if (contextInUse) {
 			screenshot_f();
 		} else {
@@ -196,21 +151,11 @@ public abstract class Misc extends Mesh {
 
 	    VID.Printf(Defines.PRINT_ALL, "Wrote " + file + '\n');
  	} 
-	
-	/*
-	** GL_Strings_f
-	*/
-	void GL_Strings_f() {
-		VID.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
-	}
 
 	/*
 	** GL_SetDefaultState
 	*/
-	void GL_SetDefaultState() {
+	protected void GL_SetDefaultState() {
 		gl.glClearColor(1f, 0f, 0.5f, 0.5f); // original quake2
 		//gl.glClearColor(0, 0, 0, 0); // replaced with black
 		gl.glCullFace(GL.GL_FRONT);
@@ -267,7 +212,7 @@ public abstract class Misc extends Mesh {
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
-	void GL_UpdateSwapInterval() {
+	protected void GL_UpdateSwapInterval() {
 		if (gl_swapinterval.modified) {
 			gl_swapinterval.modified = false;
 			if (!gl_state.stereo_enabled) {

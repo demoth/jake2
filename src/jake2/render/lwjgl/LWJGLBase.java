@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LWJGLBase.java,v 1.3 2006-10-26 22:02:56 cawe Exp $
+ * $Id: LWJGLBase.java,v 1.4 2006-10-31 13:06:33 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -36,8 +36,7 @@ import java.awt.Dimension;
 import java.util.LinkedList;
 
 import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.*;
 import org.lwjgl.util.GLImpl;
 
 /**
@@ -45,27 +44,17 @@ import org.lwjgl.util.GLImpl;
  * 
  * @author dsanders/cwei
  */
-public abstract class LWJGLBase {
+public abstract class LWJGLBase extends  jake2.render.common.Misc {
+	
 	// IMPORTED FUNCTIONS
 	protected DisplayMode oldDisplayMode; 
 
 	protected GLImpl gl = new GLImpl();
-	
-	// window position on the screen
-	int window_xpos, window_ypos;
-	protected viddef_t vid = new viddef_t();
 
 	// handles the post initialization with LWJGLRenderer
 	protected abstract boolean R_Init2();
-	
-	protected cvar_t vid_fullscreen;
 
-	// enum rserr_t
-	protected static final int rserr_ok = 0;
-	protected static final int rserr_invalid_fullscreen = 1;
-	protected static final int rserr_invalid_mode = 2;
-	protected static final int rserr_unknown = 3;
-	
+
 	private java.awt.DisplayMode toAwtDisplayMode(DisplayMode m)
 	{
 		return new java.awt.DisplayMode(m.getWidth(),m.getHeight(),m.getBitsPerPixel(),m.getFrequency());
@@ -327,6 +316,10 @@ public abstract class LWJGLBase {
 		// do nothing
 	}
 
+	protected void GLimp_Finish() {
+		gl.glFinish();
+	}
+	
 	/**
 	 * this is a hack for jogl renderers.
 	 * @param callback
