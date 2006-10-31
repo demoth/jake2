@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 19.08.2006 by RST.
 
-// $Id: Model.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+// $Id: Model.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
 
@@ -37,8 +37,6 @@ import jake2.util.Vargs;
 import java.nio.*;
 import java.util.Arrays;
 import java.util.Vector;
-
-import net.java.games.jogl.util.BufferUtils;
 
 /**
  * model loading and caching.
@@ -1181,10 +1179,10 @@ public abstract class Model extends Image {
 	protected static final int MODEL_BUFFER_SIZE = 50000;
 
 	protected static FloatBuffer globalModelTextureCoordBuf = 
-		BufferUtils.newFloatBuffer(MODEL_BUFFER_SIZE * 2);
+		newFloatBuffer(MODEL_BUFFER_SIZE * 2);
 
 	protected static IntBuffer globalModelVertexIndexBuf = 
-		BufferUtils.newIntBuffer(MODEL_BUFFER_SIZE);
+		newIntBuffer(MODEL_BUFFER_SIZE);
 
 	protected void precompileGLCmds(qfiles.dmdl_t model) {
 		model.textureCoordBuf = globalModelTextureCoordBuf.slice();

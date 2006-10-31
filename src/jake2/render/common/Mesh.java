@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.08.2006 by RST.
-// $Id: Mesh.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+
+// $Id: Mesh.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
 
@@ -34,9 +35,6 @@ import jake2.util.Vec3Cache;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-
-import net.java.games.joal.util.BufferUtils;
-
 
 public abstract class Mesh extends Light {
 
@@ -57,13 +55,17 @@ public abstract class Mesh extends Light {
 	protected float[] shadedots = r_avertexnormal_dots[0];
 	
 	// bounding box
-	protected float[][] bbox = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
-			{ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+	protected float[][] bbox = { 
+			{ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
+			{ 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }
+	};
 	
 	
 	/*
-	 * ================== R_InitParticleTexture ==================
-	 */
+	================== 
+	R_InitParticleTexture 
+	==================
+	*/
 	protected byte[][] dottexture = { { 0, 0, 0, 0, 0, 0, 0, 0 },
 			{ 0, 0, 1, 1, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1, 0, 0, 0 },
 			{ 0, 1, 1, 1, 1, 0, 0, 0 }, { 0, 0, 1, 1, 0, 0, 0, 0 },
@@ -140,9 +142,9 @@ public abstract class Mesh extends Light {
 		}
 	}
 	
-	protected FloatBuffer colorArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 4);
-	protected FloatBuffer vertexArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 3);
-	protected FloatBuffer textureArrayBuf = BufferUtils.newFloatBuffer(qfiles.MAX_VERTS * 2);
+	protected FloatBuffer colorArrayBuf = newFloatBuffer(qfiles.MAX_VERTS * 4);
+	protected FloatBuffer vertexArrayBuf = newFloatBuffer(qfiles.MAX_VERTS * 3);
+	protected FloatBuffer textureArrayBuf = newFloatBuffer(qfiles.MAX_VERTS * 2);
 
 	protected boolean isFilled = false;
 
@@ -460,9 +462,10 @@ public abstract class Mesh extends Light {
 	}
 	
 	/*
-	 * ================= R_DrawAliasModel
-	 * 
-	 * =================
+	================= 
+	R_DrawAliasModel
+	
+	=================
 	 */
 	//	TODO sync with jogl renderer. hoz
 	protected void R_DrawAliasModel(entity_t e) {

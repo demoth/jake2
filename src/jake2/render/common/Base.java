@@ -19,20 +19,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 19.08.2006 by RST.
-// $Id: Base.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+// $Id: Base.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
+
+import java.nio.*;
 
 public class Base {
 
 	public static GenericGL ggl;
 	
-	// to be initialized!
+	// to be initialized
 	protected int GL_TEXTURE0 = -1;
 	protected int GL_TEXTURE1 = -1;
 	protected int GL_COLOR_INDEX8_EXT = ggl.GL_COLOR_INDEX;
 	public static  final String REF_VERSION = "GL 0.01";
-	
 	
 	// up / down
 	public static  final int PITCH = 0;
@@ -94,4 +95,60 @@ public class Base {
 	public static  final int GL_RENDERER_MCD = 0x01000000;
 	public static  final int GL_RENDERER_OTHER = 0x80000000;
 
+	// to unify BufferUtils.
+	
+	public static final int SIZEOF_BYTE = 1;
+	public static final int SIZEOF_SHORT = 2;
+	public static final int SIZEOF_INT = 4;
+	public static final int SIZEOF_FLOAT = 4;
+	public static final int SIZEOF_LONG = 8;
+	public static final int SIZEOF_DOUBLE = 8;
+
+	// ----------------------------------------------------------------------
+	// Allocation routines
+	//
+
+	/**
+	 * Allocates a new direct ByteBuffer with the specified number of elements.
+	 * The returned buffer will have its byte order set to the host platform's
+	 * native byte order.
+	 */
+	public static ByteBuffer newByteBuffer(int numElements) {
+		ByteBuffer bb = ByteBuffer.allocateDirect(numElements);
+		bb.order(ByteOrder.nativeOrder());
+		return bb;
+	}
+
+	/** Allocates a new direct DoubleBuffer with the specified number of
+	 elements. The returned buffer will have its byte order set to
+	 the host platform's native byte order. */
+	public static DoubleBuffer newDoubleBuffer(int numElements) {
+		ByteBuffer bb = newByteBuffer(numElements * SIZEOF_DOUBLE);
+		return bb.asDoubleBuffer();
+	}
+
+	/** Allocates a new direct FloatBuffer with the specified number of
+	 elements. The returned buffer will have its byte order set to
+	 the host platform's native byte order. */
+	public static FloatBuffer newFloatBuffer(int numElements) {
+		ByteBuffer bb = newByteBuffer(numElements * SIZEOF_FLOAT);
+		return bb.asFloatBuffer();
+	}
+
+	/** Allocates a new direct IntBuffer with the specified number of
+	 elements. The returned buffer will have its byte order set to
+	 the host platform's native byte order. */
+	public static IntBuffer newIntBuffer(int numElements) {
+		ByteBuffer bb = newByteBuffer(numElements * SIZEOF_INT);
+		return bb.asIntBuffer();
+	}
+
+	/** Allocates a new direct LongBuffer with the specified number of
+	 elements. The returned buffer will have its byte order set to
+	 the host platform's native byte order. */
+	public static LongBuffer newLongBuffer(int numElements) {
+		ByteBuffer bb = newByteBuffer(numElements * SIZEOF_LONG);
+		return bb.asLongBuffer();
+	}
+	
 }

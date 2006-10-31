@@ -19,17 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 25.08.2006 by RST.
-// $Id: Misc.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+// $Id: Misc.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
 
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.client.VID;
 
 
 public abstract class Misc extends Mesh {

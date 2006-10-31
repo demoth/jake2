@@ -20,28 +20,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 20.08.2006 by RST.
 
-// $Id: Surf.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+// $Id: Surf.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
 
 
-import java.nio.*;
-import java.util.Arrays;
-
-import org.lwjgl.opengl.GL11;
-
-import net.java.games.jogl.GL;
-import net.java.games.jogl.util.BufferUtils;
-
-import jake2.*;
+import jake2.Defines;
 import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
+import jake2.game.cplane_t;
+import jake2.qcommon.Com;
 import jake2.render.*;
-import jake2.render.common.Image.pos_t;
-import jake2.server.*;
 import jake2.util.*;
 
+import java.nio.*;
+import java.util.Arrays;
 
 public abstract class Surf extends Draw {
 
@@ -462,7 +454,7 @@ public abstract class Surf extends Draw {
 		}
 	}
 
-	IntBuffer dummy = BufferUtils.newIntBuffer(128 * 128);
+	IntBuffer dummy = newIntBuffer(128 * 128);
 
 	/**
 	 *  GL_BeginBuildingLightmaps.
@@ -597,7 +589,7 @@ public abstract class Surf extends Draw {
 			image.texturechain = null;
 		}
 
-		GL_TexEnv(GL.GL_REPLACE);
+		GL_TexEnv(ggl.GL_REPLACE);
 	}
 	
 	protected void GL_RenderLightmappedPoly(msurface_t surf) {
@@ -651,9 +643,9 @@ public abstract class Surf extends Draw {
 
 				lmtex = surf.lightmaptexturenum;
 
-				ggl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, surf.light_s,
+				ggl.glTexSubImage2D(ggl.GL_TEXTURE_2D, 0, surf.light_s,
 						surf.light_t, smax, tmax, GL_LIGHTMAP_FORMAT,
-						GL.GL_UNSIGNED_BYTE, temp);
+						ggl.GL_UNSIGNED_BYTE, temp);
 
 			} else {
 				smax = (surf.extents[0] >> 4) + 1;
@@ -665,9 +657,9 @@ public abstract class Surf extends Draw {
 
 				lmtex = 0;
 
-				ggl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, surf.light_s,
+				ggl.glTexSubImage2D(ggl.GL_TEXTURE_2D, 0, surf.light_s,
 						surf.light_t, smax, tmax, GL_LIGHTMAP_FORMAT,
-						GL.GL_UNSIGNED_BYTE, temp);
+						ggl.GL_UNSIGNED_BYTE, temp);
 
 			}
 
@@ -688,12 +680,12 @@ public abstract class Surf extends Draw {
 
 				for (p = surf.polys; p != null; p = p.chain) {
 					p.beginScrolling(scroll);
-					ggl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
+					ggl.glDrawArrays(ggl.GL_POLYGON, p.pos, p.numverts);
 					p.endScrolling();
 				}
 			} else {
 				for (p = surf.polys; p != null; p = p.chain) {
-					ggl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
+					ggl.glDrawArrays(ggl.GL_POLYGON, p.pos, p.numverts);
 				}
 			}
 			// PGM
@@ -716,14 +708,14 @@ public abstract class Surf extends Draw {
 
 				for (p = surf.polys; p != null; p = p.chain) {
 					p.beginScrolling(scroll);
-					ggl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
+					ggl.glDrawArrays(ggl.GL_POLYGON, p.pos, p.numverts);
 					p.endScrolling();
 				}
 			} else {
 				// PGM
 				//  ==========
 				for (p = surf.polys; p != null; p = p.chain) {
-					ggl.glDrawArrays(GL.GL_POLYGON, p.pos, p.numverts);
+					ggl.glDrawArrays(ggl.GL_POLYGON, p.pos, p.numverts);
 				}
 
 				// ==========

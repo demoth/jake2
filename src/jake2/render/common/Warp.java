@@ -19,12 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.08.2006 by RST.
-// $Id: Warp.java,v 1.1 2006-10-31 13:06:32 salomo Exp $
+// $Id: Warp.java,v 1.2 2006-10-31 14:00:23 salomo Exp $
 
 package jake2.render.common;
 
-
-import net.java.games.jogl.GL;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.qcommon.Com;
@@ -664,7 +662,7 @@ public abstract class Warp extends Surf {
 
             GL_Bind(sky_images[skytexorder[i]].texnum);
 
-            ggl.glBegin(GL.GL_QUADS);
+            ggl.glBegin(ggl.GL_QUADS);
             MakeSkyVec(skymins[0][i], skymins[1][i], i);
             MakeSkyVec(skymins[0][i], skymaxs[1][i], i);
             MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i);
