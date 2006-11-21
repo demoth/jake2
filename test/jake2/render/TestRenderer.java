@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.7 2005-06-11 19:43:48 cawe Exp $
+ * $Id: TestRenderer.java,v 1.8 2006-11-21 01:59:41 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.render;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.qcommon.*;
@@ -66,29 +67,39 @@ public class TestRenderer {
         test.run();
     }
     
+    KBD kbd;
+    
     void init() {
-        
-        Qcommon.Init(new String[] { "TestRenderer", "+set", "gl_mode", "5",
-                "+set", "vid_fullscreen", "0" });
-        
-        // very important
-        VID.Shutdown();
-        
-        String[] names = Renderer.getDriverNames();
-        System.out.println("Registered Drivers: " + Arrays.asList(names));
-        
-        this.re = Renderer.getDriver("jogl");
-        
-        System.out.println("Use driver: " + re);
-        System.out.println();
-        
-        re.Init(0, 0);
-        
-        Cmd.AddCommand("nexttest", nexttest);
-        Cbuf.AddText("bind n nexttest");
-        Cbuf.Execute();
-        Globals.cls.key_dest = Defines.key_game;
-        Globals.cls.state = Defines.ca_active;
+	Globals.dedicated = Cvar.Get("dedicated", "0", Qcommon.CVAR_NOSET);
+	Jake2.Q2Dialog = new Q2DataDialog();
+	Locale.setDefault(Locale.US);
+	Jake2.Q2Dialog.setVisible(true);
+
+	String DRIVER = "jsr231";
+
+	Qcommon.Init(new String[] { "TestRenderer", "+set", "gl_mode", "6",
+		"+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
+	// sehr wichtig !!!
+	VID.Shutdown();
+
+	String[] names = Renderer.getDriverNames();
+	System.out.println("Registered Drivers: " + Arrays.asList(names));
+
+	this.re = Renderer.getDriver(DRIVER);
+	Globals.re = this.re;
+
+	System.out.println("Use driver: " + re);
+	System.out.flush();
+
+	re.Init(0, 0);
+	kbd = re.getKeyboardHandler();
+	kbd.Init();
+
+	Cmd.AddCommand("nexttest", nexttest);
+	Cbuf.AddText("bind n nexttest");
+	Cbuf.Execute();
+	Globals.cls.key_dest = Defines.key_game;
+	Globals.cls.state = Defines.ca_active;
     }
     
     float fps = 0.0f;
@@ -144,7 +155,7 @@ public class TestRenderer {
         };
         while (true) {
             re.updateScreen(callback);
-            re.getKeyboardHandler().Update();
+            kbd.Update();
             Cbuf.Execute();
             try {
                 Thread.sleep(5);
