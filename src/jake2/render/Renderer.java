@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.7 2006-11-21 00:51:22 cawe Exp $
+ * $Id: Renderer.java,v 1.8 2006-11-21 01:22:00 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -42,28 +42,28 @@ public class Renderer {
 	static Vector drivers = new Vector(3);
 
 	static {
+	    try {
 		try {
-            try {
-                Class.forName("net.java.games.jogl.GL");
-                Class.forName("jake2.render.JoglRenderer");
-            } catch (ClassNotFoundException e) {
-                // ignore the fastjogl drivers if runtime not in classpath
-            }
-            try {
-				Class.forName("org.lwjgl.opengl.GL11");
-				Class.forName("jake2.render.LwjglRenderer");
-			} catch (ClassNotFoundException e) {
-				// ignore the lwjgl driver if runtime not in classpath
-			}
-            try {
-                Class.forName("javax.media.opengl.GL");
-                Class.forName("jake2.render.Jsr231Renderer");
-            } catch (ClassNotFoundException e) {
-                // ignore the jogl drivers if runtime not in classpath
-            }
-		} catch (Throwable e) {
-			e.printStackTrace();
+		    Class.forName("net.java.games.jogl.GL");
+		    Class.forName("jake2.render.JoglRenderer");
+		} catch (ClassNotFoundException e) {
+		    // ignore the fastjogl drivers if runtime not in classpath
 		}
+		try {
+		    Class.forName("org.lwjgl.opengl.GL11");
+		    Class.forName("jake2.render.LwjglRenderer");
+		} catch (ClassNotFoundException e) {
+		    // ignore the lwjgl driver if runtime not in classpath
+		}
+		try {
+		    Class.forName("javax.media.opengl.GL");
+		    Class.forName("jake2.render.Jsr231Renderer");
+		} catch (ClassNotFoundException e) {
+		    // ignore the jogl drivers if runtime not in classpath
+		}
+	    } catch (Throwable e) {
+		e.printStackTrace();
+	    }
 	};
 
 	public static void register(Ref impl) {
