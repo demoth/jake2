@@ -2,7 +2,7 @@
  * Ref.java
  * Copyright (C) 2003
  *
- * $Id: Ref.java,v 1.2 2004-07-16 10:11:34 cawe Exp $
+ * $Id: Ref.java,v 1.3 2006-11-21 00:51:22 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,9 +34,6 @@ import jake2.client.refexport_t;
  */
 public interface Ref {
 	
-	// ============================================================================
-	// extensions (cwei) 
-	// ============================================================================
-	refexport_t GetRefAPI();
+	refexport_t GetRefAPI(RenderAPI renderer);
 	String getName();
 }

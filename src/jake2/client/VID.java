@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.17 2005-11-13 13:36:00 cawe Exp $
+ * $Id: VID.java,v 1.18 2006-11-21 00:51:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -167,7 +167,7 @@ public class VID extends Globals {
 	VID_LoadRefresh
 	==============
 	*/
-	static boolean LoadRefresh( String name )
+	static boolean LoadRefresh( String name, boolean fast )
 	{
 
 		if ( reflib_active )
@@ -197,7 +197,7 @@ public class VID extends Globals {
 		}
 
 		Com.Printf( "LoadLibrary(\"" + name +"\")\n" );
-		Globals.re = Renderer.getDriver(name);
+		Globals.re = Renderer.getDriver(name, fast);
 		
 		if (Globals.re == null)
 		{
@@ -256,7 +256,7 @@ public class VID extends Globals {
 			Globals.cls.disable_screen = 1.0f; // true;
 
 			
-			if ( !LoadRefresh( vid_ref.string ) )
+			if ( !LoadRefresh( vid_ref.string, true ) )
 			{
 				String renderer;
 				if (vid_ref.string.equals(Renderer.getPreferedName())) {
@@ -273,7 +273,7 @@ public class VID extends Globals {
 					if (gl_mode.value != 0.0f) {
 						Com.Printf("Trying mode 0\n");
 						Cvar.SetValue("gl_mode", 0);
-						if ( !LoadRefresh( vid_ref.string ) )
+						if ( !LoadRefresh( vid_ref.string, false ) )
 							Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + renderer +" refresh!");
 					} else
 						Com.Error(Defines.ERR_FATAL, "Couldn't fall back to " + renderer +" refresh!");

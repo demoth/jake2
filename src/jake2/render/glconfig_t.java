@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: glconfig_t.java,v 1.2 2005-05-07 18:23:26 cawe Exp $
+// $Id: glconfig_t.java,v 1.3 2006-11-21 00:51:22 cawe Exp $
 
 package jake2.render;
 
@@ -36,7 +36,11 @@ public class glconfig_t {
 	private float version = 1.1f;
 
 	public void parseOpenGLVersion() {
-	    version = Float.parseFloat(version_string.substring(0, 3));
+	    try {
+		version = Float.parseFloat(version_string.substring(0, 3));
+	    } catch (Exception e) {
+		version = 1.1f;
+	    }
 	}
 	
 	public float getOpenGLVersion() {

@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.6 2004-12-14 01:08:32 cawe Exp $
+ * $Id: TestMap.java,v 1.7 2006-11-21 00:48:14 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -27,6 +27,7 @@ package jake2.render;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -71,12 +72,20 @@ public class TestMap
 
 	void init()
 	{
-
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.6 2004-12-14 01:08:32 cawe Exp $" });
+        Globals.dedicated = Cvar.Get("dedicated", "0", Qcommon.CVAR_NOSET);
+        // open the q2dialog, if we are not in dedicated mode.
+        if (Globals.dedicated.value != 1.0f)
+        {
+            Jake2.Q2Dialog = new Q2DataDialog();
+            Locale.setDefault(Locale.US);
+            Jake2.Q2Dialog.setVisible(true);
+        }
+        
+		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.7 2006-11-21 00:48:14 cawe Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
-		this.re = Renderer.getDriver("jogl");
+		Globals.re = this.re = Renderer.getDriver("jsr231", false);
 
 		re.Init(0, 0);
 		

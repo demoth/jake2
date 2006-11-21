@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.6 2005-01-12 00:37:13 cawe Exp $
+ * $Id: Renderer.java,v 1.7 2006-11-21 00:51:22 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,9 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.render;
 
-import java.util.Vector;
-
 import jake2.client.refexport_t;
+
+import java.util.Vector;
 
 /**
  * Renderer
@@ -35,29 +35,32 @@ import jake2.client.refexport_t;
  * @author cwei
  */
 public class Renderer {
+    
+    static RenderAPI fastRenderer = new jake2.render.fast.Misc();
+    static RenderAPI basicRenderer = new jake2.render.basic.Misc();
 
 	static Vector drivers = new Vector(3);
 
 	static {
 		try {
-			try {
-				Class.forName("net.java.games.jogl.GL");
-				Class.forName("jake2.render.JoglRenderer");
-			} catch (ClassNotFoundException e) {
-				// ignore the jogl drivers if runtime not in classpath
-			}
-			try {
+            try {
+                Class.forName("net.java.games.jogl.GL");
+                Class.forName("jake2.render.JoglRenderer");
+            } catch (ClassNotFoundException e) {
+                // ignore the fastjogl drivers if runtime not in classpath
+            }
+            try {
 				Class.forName("org.lwjgl.opengl.GL11");
-				Class.forName("jake2.render.LWJGLRenderer");
+				Class.forName("jake2.render.LwjglRenderer");
 			} catch (ClassNotFoundException e) {
 				// ignore the lwjgl driver if runtime not in classpath
 			}
-			try {
-				Class.forName("net.java.games.jogl.GL");
-				Class.forName("jake2.render.FastJoglRenderer");
-			} catch (ClassNotFoundException e) {
-				// ignore the fastjogl drivers if runtime not in classpath
-			}
+            try {
+                Class.forName("javax.media.opengl.GL");
+                Class.forName("jake2.render.Jsr231Renderer");
+            } catch (ClassNotFoundException e) {
+                // ignore the jogl drivers if runtime not in classpath
+            }
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -72,18 +75,26 @@ public class Renderer {
 		}
 	}
 
-	/**
+    /**
+     * Factory method to get the Renderer implementation.
+     * @return refexport_t (Renderer singleton)
+     */
+    public static refexport_t getDriver(String driverName) {
+        return getDriver(driverName, true);
+    }
+
+    /**
 	 * Factory method to get the Renderer implementation.
 	 * @return refexport_t (Renderer singleton)
 	 */
-	public static refexport_t getDriver(String driverName) {
+	public static refexport_t getDriver(String driverName, boolean fast) {
 		// find a driver
 		Ref driver = null;
 		int count = drivers.size();
 		for (int i = 0; i < count; i++) {
 			driver = (Ref) drivers.get(i);
 			if (driver.getName().equals(driverName)) {
-				return driver.GetRefAPI();
+				return driver.GetRefAPI((fast) ? fastRenderer : basicRenderer);
 			}
 		}
 		// null if driver not found
@@ -107,4 +118,5 @@ public class Renderer {
 		}
 		return names;
 	}
+
 }
