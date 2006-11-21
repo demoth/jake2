@@ -2,7 +2,7 @@
  * Image.java
  * Copyright (C) 2003
  *
- * $Id: Image.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Image.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -534,7 +534,6 @@ public abstract class Image extends Main {
 		int row, column;
 		byte[] raw;
 		ByteBuffer buf_p;
-		int length;
 		qfiles.tga_t targa_header;
 		byte[] pic = null;
 
@@ -1264,7 +1263,6 @@ public abstract class Image extends Main {
 		}
 		else {
 			int p;
-			int rgb;
 			for (int i = 0; i < s; i++) {
 				p = data[i] & 0xff;
 				trans[i] = d_8to24table[p];

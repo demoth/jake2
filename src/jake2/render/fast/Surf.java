@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Surf.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -434,7 +434,6 @@ public abstract class Surf extends Draw {
 		}
 
 		glpoly_t p;
-		FloatBuffer texCoord = globalPolygonInterleavedBuf;
 		image_t image = R_TextureAnimation( surf.texinfo );
 		int lmtex = surf.lightmaptexturenum;
 
@@ -1045,8 +1044,6 @@ public abstract class Surf extends Draw {
 	{
 		int best = BLOCK_HEIGHT;
 		int x = pos.x; 
-		int y = pos.y;
-
 		int best2;
 		int i, j;
 		for (i=0 ; i<BLOCK_WIDTH-w ; i++)
@@ -1063,7 +1060,7 @@ public abstract class Surf extends Draw {
 			if (j == w)
 			{	// this is a valid spot
 				pos.x = x = i;
-				pos.y = y = best = best2;
+				pos.y = best = best2;
 			}
 		}
 
@@ -1084,7 +1081,6 @@ public abstract class Surf extends Draw {
 		// reconstruct the polygon
 		medge_t[] pedges = currentmodel.edges;
 		int lnumverts = fa.numedges;
-		int vertpage = 0;
 		//
 		// draw texture
 		//

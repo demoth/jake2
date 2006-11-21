@@ -2,7 +2,7 @@
  * LwjglRenderer.java
  * Copyright (C) 2004
  *
- * $Id: LwjglRenderer.java,v 1.2 2006-11-21 00:51:22 cawe Exp $
+ * $Id: LwjglRenderer.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,13 +26,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render;
 
 import jake2.Defines;
-import jake2.client.*;
-import jake2.qcommon.xcommand_t;
+import jake2.client.refdef_t;
+import jake2.client.refexport_t;
 import jake2.render.opengl.LwjglDriver;
-import jake2.sys.*;
+import jake2.sys.KBD;
+import jake2.sys.LWJGLKBD;
 
 import java.awt.Dimension;
-import java.awt.DisplayMode;
 
 /**
  * LwjglRenderer

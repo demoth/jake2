@@ -2,7 +2,7 @@
  * Light.java
  * Copyright (C) 2003
  *
- * $Id: Light.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Light.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -496,8 +496,6 @@ public abstract class Light extends Warp {
         try {
             // set to full bright if no light data
             if (surf.samples == null) {
-                int maps;
-
                 for (i = 0; i < size * 3; i++)
                     s_blocklights[i] = 255;
 

@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Mesh.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -262,7 +262,6 @@ public abstract class Mesh extends Light {
 	void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum)
 	{
 		float lheight = currententity.origin[2] - lightspot[2];
-		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
 		int[] order = paliashdr.glCmds;
 		float height = -lheight + 1.0f;
 		

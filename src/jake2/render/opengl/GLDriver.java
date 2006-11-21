@@ -1,7 +1,6 @@
 package jake2.render.opengl;
 
 import jake2.qcommon.xcommand_t;
-import jake2.sys.KBD;
 
 import java.awt.Dimension;
 

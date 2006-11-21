@@ -2,7 +2,7 @@
  * Model.java
  * Copyright (C) 2003
  *
- * $Id: Model.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Model.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -344,8 +344,6 @@ public abstract class Model extends Surf {
 	*/
 	void Mod_LoadVisibility(lump_t l)
 	{
-		int		i;
-
 		if (l.filelen == 0)
 		{
 			loadmodel.vis = null;
@@ -501,7 +499,7 @@ public abstract class Model extends Surf {
 		texinfo_t in;
 		mtexinfo_t[] out;
 		mtexinfo_t step;
-		int i, j, count;
+		int i, count;
 		int next;
 		String name;
 
@@ -782,7 +780,7 @@ public abstract class Model extends Surf {
 	{
 		qfiles.dleaf_t in;
 		mleaf_t[] out;
-		int i, j, count, p;
+		int i, j, count;
 
 		if ((l.filelen % qfiles.dleaf_t.SIZE) != 0)
 			Com.Error (Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size in " + loadmodel.name);
@@ -1008,7 +1006,7 @@ public abstract class Model extends Surf {
 	*/
 	void Mod_LoadAliasModel (model_t mod, ByteBuffer buffer)
 	{
-		int i, j;
+		int i;
 		qfiles.dmdl_t pheader;
 		qfiles.dstvert_t[] poutst;
 		qfiles.dtriangle_t[] pouttri;
