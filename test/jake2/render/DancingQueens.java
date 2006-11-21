@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.10 2006-11-21 00:48:14 cawe Exp $
+ * $Id: DancingQueens.java,v 1.11 2006-11-21 01:20:48 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,19 +71,21 @@ public class DancingQueens {
 		Locale.setDefault(Locale.US);
 		Jake2.Q2Dialog.setVisible(true);        
         
-        Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "5",
-                "+set", "vid_fullscreen", "0" });
+	String DRIVER = "jsr231";
+	
+        Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "4",
+                "+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
         // sehr wichtig !!!
         VID.Shutdown();
         
         String[] names = Renderer.getDriverNames();
         System.out.println("Registered Drivers: " + Arrays.asList(names));
         
-        this.re = Renderer.getDriver("jsr231");
+        this.re = Renderer.getDriver(DRIVER);
         Globals.re = this.re;
         
         System.out.println("Use driver: " + re);
-        System.out.println();
+        System.out.flush();
         
         re.Init(0, 0);
         kbd = re.getKeyboardHandler();
