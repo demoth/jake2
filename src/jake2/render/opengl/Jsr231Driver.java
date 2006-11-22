@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.4 2006-11-22 22:09:54 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -161,11 +161,11 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
 		window.setIconImage(icon.getImage());
 		
-        Display canvas = new Display();
+		Display canvas = new Display();
 		// we want keypressed events for TAB key
 		canvas.setFocusTraversalKeysEnabled(false);
 
-        window.getContentPane().add(canvas);	
+		window.getContentPane().add(canvas);	
 		canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
@@ -222,7 +222,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 
 		// let the sound and input subsystems know about the new window
 		VID.NewWindow(newDim.width, newDim.height);
-        setGL(display.getGL());
+		setGL(display.getGL());
         
 		return Base.rserr_ok;
 	}
@@ -238,8 +238,8 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 			}
 		}
 		if (window != null) {
-            display.destroy();
-			window.dispose();
+		    display.destroy();
+		    window.dispose();
 		}
 	}
 
