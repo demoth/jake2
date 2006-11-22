@@ -22,6 +22,7 @@
 	<!-- different classpaths -->
 	<path id="build.class.path">
 		<pathelement location="lib/jogl/jogl.jar"/>
+		<pathelement location="lib/jsr231/jogl.jar"/>
 		<pathelement location="lib/joal/joal.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
@@ -158,6 +159,7 @@
 			defaultpackage="" overloadaggressively="off" printmapping="jake2.map">
 			<injar name="jake2.jar"/>
 			<libraryjar name="lib/jogl/jogl.jar"/>
+			<libraryjar name="lib/jsr231/jogl.jar"/>
 			<libraryjar name="lib/joal/joal.jar"/>
 			<libraryjar name="lib/joal/gluegen-rt.jar"/>
 			<libraryjar name="${classes}"/>
