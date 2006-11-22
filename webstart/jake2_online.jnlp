@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0+" 
 	codebase="http://www.bytonic.de/downloads"
-	href="jake2_jogl11.jnlp">
+	href="jake2_online.jnlp">
 	
 	<information>
 		<title>Jake2</title>
@@ -20,14 +20,15 @@
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
-		<extension name="jogl" href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp"/>
+		<property name="ATI_WORKAROUND" value="false"/>
+		<extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-1.0.0/jogl.jnlp" />
 		<extension name="joal" href="http://download.java.net/media/joal/webstart/joal.jnlp" />
 	</resources>
 		
 	<application-desc main-class="jake2.Jake2">
 		<argument>+set</argument>
 		<argument>vid_ref</argument>
-		<argument>fastjogl</argument>
+		<argument>jsr231</argument>
 		<argument>+set</argument>
 		<argument>s_impl</argument>
 		<argument>joal</argument>
