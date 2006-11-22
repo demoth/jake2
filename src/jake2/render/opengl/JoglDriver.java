@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: JoglDriver.java,v 1.2 2006-11-21 00:49:54 cawe Exp $
+ * $Id: JoglDriver.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -46,7 +46,7 @@ import net.java.games.jogl.*;
 /**
  * JoglCommon
  */
-public class JoglDriver extends JoglGL implements GLDriver, GLEventListener {
+public abstract class JoglDriver extends JoglGL implements GLDriver, GLEventListener {
     
     protected JoglDriver() {
         // see JoglRenderer

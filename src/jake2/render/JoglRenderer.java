@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.8 2006-11-21 00:51:22 cawe Exp $
+ * $Id: JoglRenderer.java,v 1.9 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -314,14 +314,27 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 		appActivate(activate);
 	}
 
+    	public void screenshot() {
+		if (contextInUse) {
+			impl.GL_ScreenShot_f();
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					impl.GL_ScreenShot_f();
+				}
+			});
+		}
+
+    	}
+
 	public int apiVersion() {
 		return Defines.API_VERSION;
 	}
     
-    public KBD getKeyboardHandler() {
-        return kbd;
-    }
-
+	public KBD getKeyboardHandler() {
+		return kbd;
+	}
+    	
 	// ============================================================================
 	// Ref interface
 	// ============================================================================

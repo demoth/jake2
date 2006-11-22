@@ -2,7 +2,7 @@
  * LwjglRenderer.java
  * Copyright (C) 2004
  *
- * $Id: LwjglRenderer.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
+ * $Id: LwjglRenderer.java,v 1.4 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -216,14 +216,18 @@ final class LwjglRenderer extends LwjglDriver implements refexport_t, Ref {
 	public final void AppActivate(boolean activate) {
         appActivate(activate);
 	}
+	
+    	public void screenshot() {
+    	    impl.GL_ScreenShot_f();
+	}
 
 	public final int apiVersion() {
 		return Defines.API_VERSION;
 	}
     
-    public KBD getKeyboardHandler() {
-        return kbd;
-    }
+	public KBD getKeyboardHandler() {
+		return kbd;
+	}
 
 	// ============================================================================
 	// Ref interface

@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Misc.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -114,12 +114,10 @@ public final class Misc extends Mesh {
 
 	private final static int TGA_HEADER_SIZE = 18;
 	
-	/* 
-	================== 
-	GL_ScreenShot_f
-	================== 
-	*/  
-	void GL_ScreenShot_f() {
+	/**
+	 * GL_ScreenShot_f
+	 */
+	public void GL_ScreenShot_f() {
 	    StringBuffer sb = new StringBuffer(FS.Gamedir() + "/scrshot/jake00.tga");
 	    FS.CreatePath(sb.toString());
 	    File file = new File(sb.toString());

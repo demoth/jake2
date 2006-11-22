@@ -25,5 +25,7 @@ public interface GLDriver {
     java.awt.DisplayMode[] getModeList();
 
     void updateScreen(xcommand_t callback);
+
+    void screenshot();
     
 }

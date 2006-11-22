@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
+ * $Id: Main.java,v 1.4 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -64,7 +64,7 @@ public abstract class Main extends Base {
 	protected abstract void Draw_GetPalette();
 
 	abstract void GL_ImageList_f();
-	abstract void GL_ScreenShot_f();
+	public abstract void GL_ScreenShot_f();
 	abstract void GL_SetTexturePalette(int[] palette);
 	abstract void GL_Strings_f();
 
@@ -991,7 +991,7 @@ public abstract class Main extends Base {
 
 		Cmd.AddCommand("screenshot", new xcommand_t() {
 			public void execute() {
-				GL_ScreenShot_f();
+			        glImpl.screenshot();
 			}
 		});
 		Cmd.AddCommand("modellist", new xcommand_t() {

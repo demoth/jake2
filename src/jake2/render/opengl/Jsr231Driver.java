@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.2 2006-11-21 00:49:54 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,7 +45,7 @@ import javax.swing.JFrame;
 /**
  * JoglCommon
  */
-public class Jsr231Driver extends Jsr231GL implements GLDriver {
+public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 
     protected Jsr231Driver() {
         // singleton
@@ -274,13 +274,13 @@ public class Jsr231Driver extends Jsr231GL implements GLDriver {
         // do nothing
     }
     
-    /* 
-	 * @see jake2.client.refexport_t#updateScreen()
-	 */
-	
-	public void updateScreen(xcommand_t callback) {
-        callback.execute();
-	}
+    /*
+     * @see jake2.client.refexport_t#updateScreen()
+     */
+
+    public void updateScreen(xcommand_t callback) {
+	callback.execute();
+    }
 
     protected void activate() {
         display.activate();

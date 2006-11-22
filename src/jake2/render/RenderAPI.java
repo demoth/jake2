@@ -49,4 +49,6 @@ public interface RenderAPI {
     void R_SetPalette(byte[] palette);
 
     void R_BeginFrame(float camera_separation);
+    
+    void GL_ScreenShot_f();
 }

@@ -2,7 +2,7 @@
  * Jsr231Renderer.java
  * Copyright (C) 2004
  *
- * $Id: Jsr231Renderer.java,v 1.2 2006-11-21 00:51:22 cawe Exp $
+ * $Id: Jsr231Renderer.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -214,21 +214,26 @@ final class Jsr231Renderer extends Jsr231Driver implements refexport_t, Ref {
 	public final void EndFrame() {
 		endFrame();
 	}
-
+	
 	/** 
 	 * @see jake2.client.refexport_t#AppActivate(boolean)
 	 */
 	public final void AppActivate(boolean activate) {
         appActivate(activate);
 	}
+	
+    	public void screenshot() {
+    	    activate();
+    	    impl.GL_ScreenShot_f();
+	}
 
 	public final int apiVersion() {
 		return Defines.API_VERSION;
 	}
     
-    public KBD getKeyboardHandler() {
-        return kbd;
-    }
+	public KBD getKeyboardHandler() {
+	    return kbd;
+	}
 	// ============================================================================
 	// Ref interface
 	// ============================================================================
