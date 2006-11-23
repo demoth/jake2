@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.5 2006-11-23 18:10:32 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.6 2006-11-23 22:50:18 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -40,7 +40,6 @@ import java.util.LinkedList;
 
 import javax.media.opengl.*;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 
 /**
  * JoglCommon
@@ -54,7 +53,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	private GraphicsDevice device;
 	private DisplayMode oldDisplayMode; 
 	private Display display;
-	JFrame window;
+	Frame window;
 
 	// window position on the screen
 	int window_xpos, window_ypos;
@@ -157,7 +156,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		// destroy the existing window
 		shutdown();
 
-		window = new JFrame("Jake2 (jsr231)");
+		window = new Frame("Jake2 (jsr231)");
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
 		window.setIconImage(icon.getImage());
 		
@@ -165,7 +164,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		// we want keypressed events for TAB key
 		canvas.setFocusTraversalKeysEnabled(false);
 
-		window.getContentPane().add(canvas);	
+		window.add(canvas);	
 		canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
