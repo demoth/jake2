@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.9 2006-10-26 22:02:55 cawe Exp $
+ * $Id: Channel.java,v 1.10 2006-11-23 12:32:49 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -109,11 +109,15 @@ public class Channel {
 	int sourceId;
 	for (int i = 0; i < MAX_CHANNELS; i++) {
 
-	    AL10.alGenSources(tmp);
-	    sourceId = tmp.get(0);
-
-	    // can't generate more sources 
-	    if (sourceId <= 0) break;
+	    try {
+		AL10.alGenSources(tmp);
+		sourceId = tmp.get(0);
+		// can't generate more sources 
+		if (sourceId <= 0) break;
+	    } catch (OpenALException e) {
+		// can't generate more sources 
+		break;
+	    }
 
 	    sources.put(i, sourceId);
 

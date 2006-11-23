@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.7 2006-10-24 22:51:20 cawe Exp $
+ * $Id: Channel.java,v 1.8 2006-11-23 12:32:49 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -38,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import net.java.games.joal.AL;
+import net.java.games.joal.ALException;
 
 /**
  * Channel
@@ -108,10 +109,15 @@ public class Channel {
 		int sourceId;
 		for (int i = 0; i < MAX_CHANNELS; i++) {
 			
+		    try {
 			al.alGenSources(1, tmp, 0);
 			sourceId = tmp[0];
-			
+			// can't generate more sources 
 			if (sourceId <= 0) break;
+		    } catch (ALException e) {
+			// can't generate more sources 
+			break;
+		    }
 			
 			sources[i] = sourceId;
 
