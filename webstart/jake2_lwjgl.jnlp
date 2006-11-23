@@ -19,23 +19,9 @@
 	<resources>
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
-		<jar href="http://jake2.sourceforge.net/lib/lwjgl.jar"/>
-		<jar href="http://jake2.sourceforge.net/lib/lwjgl_util.jar"/>
-		<property name="sun.java2d.noddraw" value="true"/>
-	</resources>
-	
-	<resources os="Linux">
-		<nativelib href="http://jake2.sourceforge.net/lib/linux/lwjgl-native.jar"/>
-	</resources>
-	
-	<resources os="Windows">
-		<nativelib href="http://jake2.sourceforge.net/lib/windows/lwjgl-native.jar"/>
+		<extension name="lwjgl" href="http://lwjgl.org/jnlp/extension.php"/>
 	</resources>
 
-	<resources os="Mac OS X">
-		<nativelib href="http://jake2.sourceforge.net/lib/osx/lwjgl-native.jar"/>	
-	</resources>
-	
 	<application-desc main-class="jake2.Jake2">
 		<argument>+set</argument>
 		<argument>vid_ref</argument>
