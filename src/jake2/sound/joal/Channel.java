@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.9 2006-11-23 13:13:58 cawe Exp $
+ * $Id: Channel.java,v 1.10 2006-11-23 13:43:59 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -332,7 +332,13 @@ public class Channel {
 			
 				if (ch.modified) {
 					if (ch.bufferChanged) {
+					    try {
 						al.alSourcei(sourceId, AL.AL_BUFFER, ch.bufferId);
+					    } catch (ALException e) {
+						// fallback for buffer changing
+						al.alSourceStop(sourceId);
+						al.alSourcei(sourceId, AL.AL_BUFFER, ch.bufferId);
+					    }
 					}
 					if (ch.volumeChanged) {
 						al.alSourcef (sourceId, AL.AL_GAIN, ch.volume);
