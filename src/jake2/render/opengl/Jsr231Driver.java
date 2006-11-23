@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.4 2006-11-22 22:09:54 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.5 2006-11-23 18:10:32 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -161,7 +161,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
 		window.setIconImage(icon.getImage());
 		
-		Display canvas = new Display();
+		Display canvas = new Display(new GLCapabilities());
 		// we want keypressed events for TAB key
 		canvas.setFocusTraversalKeysEnabled(false);
 
@@ -288,14 +288,14 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
     
     // --------------------------------------------------------------------------
     
-    private class Display extends Canvas {
+    private static class Display extends Canvas {
         private GLDrawable drawable;
 
         private GLContext context;
 
-        public Display() {
-            drawable = GLDrawableFactory.getFactory().getGLDrawable(this,
-                    new GLCapabilities(), null);
+        public Display(GLCapabilities capabilities) {
+            super(unwrap((AWTGraphicsConfiguration)GLDrawableFactory.getFactory().chooseGraphicsConfiguration(capabilities, null, null)));
+            drawable = GLDrawableFactory.getFactory().getGLDrawable(this, capabilities, null);
             context = drawable.createContext(null);
         }
 
@@ -333,6 +333,13 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
             release();
             context.destroy();
             drawable.setRealized(false);
+        }
+
+        private static GraphicsConfiguration unwrap(AWTGraphicsConfiguration config) {
+            if (config == null) {
+              return null;
+            }
+            return config.getGraphicsConfiguration();
         }
     }
 }
