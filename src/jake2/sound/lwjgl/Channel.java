@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2003
  *
- * $Id: Channel.java,v 1.11 2006-11-23 13:13:57 cawe Exp $
+ * $Id: Channel.java,v 1.12 2006-11-23 13:31:58 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -109,7 +109,6 @@ public class Channel {
 	int sourceId;
 	numChannels = 0;
 	for (int i = 0; i < MAX_CHANNELS; i++) {
-
 	    try {
 		AL10.alGenSources(tmp);
 		sourceId = tmp.get(0);
@@ -135,6 +134,7 @@ public class Channel {
 	    AL10.alSourcef (sourceId, AL10.AL_MIN_GAIN, 0.0005f);
 	    AL10.alSourcef (sourceId, AL10.AL_MAX_GAIN, 1.0f);
 	}
+	sources.limit(numChannels);
 	return numChannels;
     }
 
