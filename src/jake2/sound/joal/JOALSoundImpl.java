@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.16 2006-10-24 22:51:20 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.17 2006-11-23 14:29:42 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -122,8 +122,13 @@ public final class JOALSoundImpl implements Sound {
 		
 	private void initOpenALExtensions() {
 		if (al.alIsExtensionPresent("EAX2.0")) {
-			Com.Printf("... using EAX2.0\n");
-			eax = EAXFactory.getEAX();
+			try {
+				eax = EAXFactory.getEAX();
+				Com.Printf("... using EAX2.0\n");
+			} catch (Throwable e) {
+				Com.Printf("... EAX2.0 not found\n");
+				eax = null;
+			}
 		} else {
 			Com.Printf("... EAX2.0 not found\n");
 			eax = null;
