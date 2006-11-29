@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.9 2006-11-29 14:06:50 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.10 2006-11-29 14:15:42 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -251,6 +251,12 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	    window_xpos = xpos;
 	    window_ypos = ypos;
 	    // clear the screen
+	    // first buffer
+	    beginFrame(0.0f);
+	    glClearColor(0, 0, 0, 0);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    endFrame();
+	    // second buffer
 	    beginFrame(0.0f);
 	    glClearColor(0, 0, 0, 0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
