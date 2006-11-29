@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.7 2006-11-29 12:56:20 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.8 2006-11-29 13:17:48 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -301,6 +301,13 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         GL getGL() {
             activate();
             return context.getGL();
+        }
+        /** <B>Overrides:</B>
+        <DL><DD><CODE>paint</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
+        // Overridden from Canvas to prevent the AWT's clearing of the
+        // canvas from interfering with the OpenGL rendering.
+        public void paint(Graphics g) {
+            // do nothing
         }
         
         /** <B>Overrides:</B>
