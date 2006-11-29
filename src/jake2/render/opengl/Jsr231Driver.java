@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.8 2006-11-29 13:17:48 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.9 2006-11-29 14:06:50 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -222,6 +222,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		// let the sound and input subsystems know about the new window
 		VID.NewWindow(newDim.width, newDim.height);
 		setGL(display.getGL());
+		init(0, 0);
         
 		return Base.rserr_ok;
 	}
@@ -246,10 +247,15 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	 * @return true
 	 */
 	public boolean init(int xpos, int ypos) {
-		// set window position
-		window_xpos = xpos;
-		window_ypos = ypos;
-		return true;
+	    // set window position
+	    window_xpos = xpos;
+	    window_ypos = ypos;
+	    // clear the screen
+	    beginFrame(0.0f);
+	    glClearColor(0, 0, 0, 0);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    endFrame();
+	    return true;
 	}
 
     public void beginFrame(float camera_separation) {
