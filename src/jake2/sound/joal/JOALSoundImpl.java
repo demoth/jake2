@@ -2,7 +2,7 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.18 2006-11-24 00:40:30 cawe Exp $
+ * $Id: JOALSoundImpl.java,v 1.19 2006-11-29 12:55:09 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -14,7 +14,6 @@ import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
-import java.io.*;
 import java.nio.*;
 
 import net.java.games.joal.*;
