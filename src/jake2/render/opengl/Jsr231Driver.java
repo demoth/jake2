@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.11 2006-11-30 17:21:39 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.12 2006-11-30 17:32:59 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -253,11 +253,13 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	    // clear the screen
 	    // first buffer
 	    beginFrame(0.0f);
+	    glViewport(0, 0, window.getWidth(), window.getHeight());
 	    glClearColor(0, 0, 0, 0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    endFrame();
 	    // second buffer
 	    beginFrame(0.0f);
+	    glViewport(0, 0, window.getWidth(), window.getHeight());
 	    glClearColor(0, 0, 0, 0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    endFrame();
@@ -334,7 +336,6 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         @Override
 	public void resize(int width, int height) {
 	    super.resize(width, height);
-	    getGL().glViewport(0, 0, width, width);
 	}
 
         public void addNotify() {
