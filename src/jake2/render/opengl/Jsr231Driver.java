@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.10 2006-11-29 14:15:42 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.11 2006-11-30 17:21:39 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -300,7 +300,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
     // --------------------------------------------------------------------------
     
     private static class Display extends Canvas {
-        private GLDrawable drawable;
+	private GLDrawable drawable;
 
         private GLContext context;
 
@@ -330,6 +330,12 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
             // do nothing
             //paint(g);
         }
+
+        @Override
+	public void resize(int width, int height) {
+	    super.resize(width, height);
+	    getGL().glViewport(0, 0, width, width);
+	}
 
         public void addNotify() {
             super.addNotify();
