@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.12 2006-11-30 17:32:59 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.13 2006-11-30 17:39:41 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -333,7 +333,6 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
             //paint(g);
         }
 
-        @Override
 	public void resize(int width, int height) {
 	    super.resize(width, height);
 	}
