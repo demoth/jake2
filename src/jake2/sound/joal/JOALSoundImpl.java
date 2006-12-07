@@ -2,7 +2,6 @@
  * JOALSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: JOALSoundImpl.java,v 1.20 2006-11-29 15:28:52 cawe Exp $
  */
 package jake2.sound.joal;
 
@@ -32,7 +31,6 @@ public final class JOALSoundImpl implements Sound {
 
 	static AL al;
 	static ALC alc;
-	static ALCcontext currentContext;
 	static EAX eax;
 	
 	cvar_t s_volume;
@@ -47,55 +45,55 @@ public final class JOALSoundImpl implements Sound {
 	 * @see jake2.sound.SoundImpl#Init()
 	 */
 	public boolean Init() {
-
-	    try {
-		initOpenAL();
-		al = ALFactory.getAL();
-		alc = ALFactory.getALC();
-		checkError();
-		initOpenALExtensions();		
-	    } catch (ALException e) {
-		Com.Printf(e.getMessage() + '\n');
-		return false;
-	    } catch (Throwable e) {
-		Com.Printf(e.toString() + '\n');
-		return false;
-	    }
-	    // set the master volume
-	    s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
-
-	    al.alGenBuffers(buffers.length, buffers, 0);
-	    int count = Channel.init(al, buffers);
-	    Com.Printf("... using " + count + " channels\n");
-	    al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
-	    Cmd.AddCommand("play", new xcommand_t() {
-		public void execute() {
-		    Play();
+		        
+		try {
+		    ALut.alutInit();
+		    al = ALFactory.getAL();
+		    alc = ALFactory.getALC();
+		    checkError();
+		    initOpenALExtensions();		
+		} catch (ALException e) {
+		    Com.Printf(e.getMessage() + '\n');
+		    return false;
+		} catch (Throwable e) {
+		    Com.Printf(e.toString() + '\n');
+		    return false;
 		}
-	    });
-	    Cmd.AddCommand("stopsound", new xcommand_t() {
-		public void execute() {
-		    StopAllSounds();
-		}
-	    });
-	    Cmd.AddCommand("soundlist", new xcommand_t() {
-		public void execute() {
-		    SoundList();
-		}
-	    });
-	    Cmd.AddCommand("soundinfo", new xcommand_t() {
-		public void execute() {
-		    SoundInfo_f();
-		}
-	    });
+		// set the master volume
+		s_volume = Cvar.Get("s_volume", "0.7", Defines.CVAR_ARCHIVE);
 
-	    num_sfx = 0;
+		al.alGenBuffers(buffers.length, buffers, 0);
+		int count = Channel.init(al, buffers);
+		Com.Printf("... using " + count + " channels\n");
+		al.alDistanceModel(AL.AL_INVERSE_DISTANCE_CLAMPED);
+		Cmd.AddCommand("play", new xcommand_t() {
+			public void execute() {
+				Play();
+			}
+		});
+		Cmd.AddCommand("stopsound", new xcommand_t() {
+			public void execute() {
+				StopAllSounds();
+			}
+		});
+		Cmd.AddCommand("soundlist", new xcommand_t() {
+			public void execute() {
+				SoundList();
+			}
+		});
+		Cmd.AddCommand("soundinfo", new xcommand_t() {
+			public void execute() {
+				SoundInfo_f();
+			}
+		});
 
-	    Com.Printf("sound sampling rate: 44100Hz\n");
+		num_sfx = 0;
 
-	    StopAllSounds();
-	    Com.Printf("------------------------------------\n");
-	    return true;
+		Com.Printf("sound sampling rate: 44100Hz\n");
+
+		StopAllSounds();
+		Com.Printf("------------------------------------\n");
+		return true;
 	}
 		
 	private void initOpenALExtensions() {
@@ -104,7 +102,7 @@ public final class JOALSoundImpl implements Sound {
 				eax = EAXFactory.getEAX();
 				Com.Printf("... using EAX2.0\n");
 			} catch (Throwable e) {
-				Com.Printf("... EAX2.0 not found\n");
+				Com.Printf("... EAX2.0 not initialized\n");
 				eax = null;
 			}
 		} else {
@@ -113,39 +111,6 @@ public final class JOALSoundImpl implements Sound {
 		}
 	}
 	
-	void initOpenAL() throws ALException {
-	    alc = ALFactory.getALC();
-	    String deviceName = null;
-	    ALCcontext context;
-	    ALCdevice device;
-	    device = alc.alcOpenDevice(deviceName);
-	    if (device == null) {
-	      throw new ALException("Error opening default OpenAL device");
-	    }
-	    context = alc.alcCreateContext(device, null);
-	    if (context == null) {
-	      throw new ALException("Error creating OpenAL context");
-	    }
-	    alc.alcMakeContextCurrent(context);
-	    if (alc.alcGetError(device) != 0) {
-	      throw new ALException("Error making OpenAL context current");
-	    }
-	    currentContext = context;
-	}
-	
-	void exitOpenAL() {
-		alc.alcMakeContextCurrent(null);
-		// Get the current context.
-		//ALCcontext curContext = alc.alcGetCurrentContext();
-		// Get the device used by that context.
-		ALCdevice curDevice = alc.alcGetContextsDevice(currentContext);
-		// Reset the current context to NULL.
-		// Release the context and the device.
-		alc.alcDestroyContext(currentContext);
-		if (!alc.alcCloseDevice(curDevice)) {
-		    System.err.println("DEBUG: Can't close AL device");
-		}
-	}
 	
     // TODO check the sfx direct buffer size
     // 2MB sfx buffer
@@ -187,7 +152,7 @@ public final class JOALSoundImpl implements Sound {
 		StopAllSounds();
 		Channel.shutdown();
 		al.alDeleteBuffers(buffers.length, buffers, 0);
-		exitOpenAL();
+		ALut.alutExit();
 
 		Cmd.RemoveCommand("play");
 		Cmd.RemoveCommand("stopsound");
