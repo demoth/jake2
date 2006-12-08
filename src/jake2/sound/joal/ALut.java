@@ -1,9 +1,5 @@
-package net.java.games.joal.util;
+package jake2.sound.joal;
 
-
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 import net.java.games.joal.*;
 
@@ -70,42 +66,4 @@ public final class ALut {
     initializingThread = null;
   }
 
-  public static void alutLoadWAVFile(String fileName,
-                                     int[] format,
-                                     ByteBuffer[] data,
-                                     int[] size,
-                                     int[] freq,
-                                     int[] loop) throws ALException {
-    try {
-      WAVData wd = WAVLoader.loadFromFile(fileName);
-      format[0] = wd.format;
-      data[0] = wd.data;
-      size[0] = wd.size;
-      freq[0] = wd.freq;
-      loop[0] = wd.loop ? AL.AL_TRUE : AL.AL_FALSE;
-    } catch (Exception e) {
-      throw new ALException(e);
-    }
-  }
-
-  public static void alutLoadWAVFile(InputStream stream,
-                                     int[] format,
-                                     ByteBuffer[] data,
-                                     int[] size,
-                                     int[] freq,
-                                     int[] loop) throws ALException {
-    try {
-      if (!(stream instanceof BufferedInputStream)) {
-        stream = new BufferedInputStream(stream);
-      }
-      WAVData wd = WAVLoader.loadFromStream(stream);
-      format[0] = wd.format;
-      data[0] = wd.data;
-      size[0] = wd.size;
-      freq[0] = wd.freq;
-      loop[0] = wd.loop ? AL.AL_TRUE : AL.AL_FALSE;
-    } catch (Exception e) {
-      throw new ALException(e);
-    }
-  }
 }

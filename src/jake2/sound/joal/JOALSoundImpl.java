@@ -18,7 +18,6 @@ import java.nio.*;
 import net.java.games.joal.*;
 import net.java.games.joal.eax.EAX;
 import net.java.games.joal.eax.EAXFactory;
-import net.java.games.joal.util.ALut;
 
 /**
  * JOALSoundImpl
