@@ -18,6 +18,7 @@ import java.nio.*;
 import net.java.games.joal.*;
 import net.java.games.joal.eax.EAX;
 import net.java.games.joal.eax.EAXFactory;
+import net.java.games.joal.util.ALut;
 
 /**
  * JOALSoundImpl
@@ -35,9 +36,12 @@ public final class JOALSoundImpl implements Sound {
 	cvar_t s_volume;
 	
 	private int[] buffers = new int[MAX_SFX + STREAM_QUEUE];
+	
+	private boolean initialized;
 
 	private JOALSoundImpl() {
 	    // singleton 
+	    this.initialized = false;
 	}
 
 	/* (non-Javadoc)
@@ -46,7 +50,11 @@ public final class JOALSoundImpl implements Sound {
 	public boolean Init() {
 		        
 		try {
-		    ALut.alutInit();
+		    // TODO this a linux hack
+		    if (!initialized) {
+			ALut.alutInit();
+			initialized = true;
+		    }
 		    al = ALFactory.getAL();
 		    alc = ALFactory.getALC();
 		    checkError();
@@ -151,7 +159,8 @@ public final class JOALSoundImpl implements Sound {
 		StopAllSounds();
 		Channel.shutdown();
 		al.alDeleteBuffers(buffers.length, buffers, 0);
-		ALut.alutExit();
+		// TODO this is a linux hack
+		// ALut.alutExit();
 
 		Cmd.RemoveCommand("play");
 		Cmd.RemoveCommand("stopsound");
