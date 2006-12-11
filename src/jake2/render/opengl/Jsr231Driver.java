@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.14 2006-12-07 22:31:10 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.15 2006-12-11 15:43:44 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -228,24 +228,33 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	}
 
 	public void shutdown() {
-		if (oldDisplayMode != null && device.getFullScreenWindow() != null) {
-			try {
+	    try {
+		EventQueue.invokeAndWait(new Runnable() {
+		    public void run() {
+			if (oldDisplayMode != null
+				&& device.getFullScreenWindow() != null) {
+			    try {
 				if (device.isFullScreenSupported())
-					device.setDisplayMode(oldDisplayMode);
+				    device.setDisplayMode(oldDisplayMode);
 				device.setFullScreenWindow(null);
-			} catch (Exception e) {
+			    } catch (Exception e) {
 				e.printStackTrace();
+			    }
 			}
-		}
-		if (window != null) {
-		    display.destroy();
-		    window.dispose();
-		}
+			if (window != null) {
+			    display.destroy();
+			    window.dispose();
+			}
+		    }
+		});
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
 	}
 
 	/**
-	 * @return true
-	 */
+         * @return true
+         */
 	public boolean init(int xpos, int ypos) {
 	    // set window position
 	    window_xpos = xpos;
