@@ -1,8 +1,7 @@
 /*
- * JoglCommon.java
+ * Jsr231Driver.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.17 2006-12-11 16:38:09 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -130,7 +129,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	 */
 	public int setMode(Dimension dim, int mode, boolean fullscreen) {
 
-		Dimension newDim = new Dimension();
+		final Dimension newDim = new Dimension();
 
 		VID.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
@@ -182,30 +181,43 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		canvas.addMouseWheelListener(JOGLKBD.listener);
 				        
 		if (fullscreen) {
-			
-			DisplayMode displayMode = findDisplayMode(newDim);
-			
-			newDim.width = displayMode.getWidth();
-			newDim.height = displayMode.getHeight();
-			window.setUndecorated(true);
-			window.setResizable(false);
-			
-			device.setFullScreenWindow(window);
-			
-			if (device.isFullScreenSupported())
-				device.setDisplayMode(displayMode);
-			
-			window.setLocation(0, 0);
-			window.setSize(displayMode.getWidth(), displayMode.getHeight());
-			canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
 
-			VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
+		    DisplayMode displayMode = findDisplayMode(newDim);
+
+		    newDim.width = displayMode.getWidth();
+		    newDim.height = displayMode.getHeight();
+		    window.setUndecorated(true);
+		    window.setResizable(false);
+
+		    device.setFullScreenWindow(window);
+
+		    if (device.isFullScreenSupported())
+			device.setDisplayMode(displayMode);
+
+		    window.setLocation(0, 0);
+		    window.setSize(displayMode.getWidth(), displayMode.getHeight());
+		    canvas.setSize(displayMode.getWidth(), displayMode.getHeight());
+
+		    VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
-			window.setLocation(window_xpos, window_ypos);
-			window.pack();
-			window.setResizable(false);
-			window.setVisible(true);
+		    // Not much point in having a full-screen window in this
+		    // case
+		    device.setFullScreenWindow(null);
+		    final Frame f2 = window;
+		    try {
+			EventQueue.invokeAndWait(new Runnable() {
+			    public void run() {
+				f2.setVisible(false);
+				f2.setLocation(window_xpos, window_ypos);
+				f2.pack();
+				f2.setResizable(false);
+				f2.setVisible(true);
+			    }
+			});
+		    } catch (Exception e) {
+			e.printStackTrace();
+		    }
 		}
 		
 		while (!canvas.isDisplayable()) {
@@ -247,6 +259,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		e.printStackTrace();
 	    }
 	    if (window != null) {
+		display.destroy();
 		window.dispose();
 	    }
 	}
@@ -348,9 +361,10 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         }
 
         public void removeNotify() {
-            release();
-            context.destroy();
-            drawable.setRealized(false);
+            if (drawable != null) {
+        	drawable.setRealized(false);
+                drawable = null;
+            }
             super.removeNotify();
         }
 
@@ -367,6 +381,14 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         void update() {
             release();
             drawable.swapBuffers();
+        }
+        
+        void destroy() {
+            if (context != null) {
+        	release();
+                context.destroy();
+                context = null;
+            }
         }
 
         private static GraphicsConfiguration unwrap(AWTGraphicsConfiguration config) {
