@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.15 2006-12-11 15:43:44 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.16 2006-12-11 15:54:41 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -241,14 +241,14 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 				e.printStackTrace();
 			    }
 			}
-			if (window != null) {
-			    display.destroy();
-			    window.dispose();
-			}
 		    }
 		});
 	    } catch (Exception e) {
 		e.printStackTrace();
+	    }
+	    if (window != null) {
+		display.destroy();
+		window.dispose();
 	    }
 	}
 
