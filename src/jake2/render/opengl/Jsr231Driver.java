@@ -261,9 +261,9 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		e.printStackTrace();
 	    }
 	    if (window != null) {
-		display.destroy();
+		if (display != null) display.destroy();
 		window.dispose();
-		while (window.isDisplayable() || display.isDisplayable()) {
+		while (window.isDisplayable()) {
 		    try {
 			Thread.sleep(50);
 		    } catch (InterruptedException e) {
