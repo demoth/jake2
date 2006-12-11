@@ -138,8 +138,10 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		/*
 		 * fullscreen handling
 		 */
-		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		device = env.getDefaultScreenDevice();
+		if (device == null) {
+			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			device = env.getDefaultScreenDevice();
+		}
        
 		if (oldDisplayMode == null) {
 			oldDisplayMode = device.getDisplayMode();
@@ -201,14 +203,10 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		    VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
-		    // Not much point in having a full-screen window in this
-		    // case
-		    device.setFullScreenWindow(null);
 		    final Frame f2 = window;
 		    try {
 			EventQueue.invokeAndWait(new Runnable() {
 			    public void run() {
-				f2.setVisible(false);
 				f2.setLocation(window_xpos, window_ypos);
 				f2.pack();
 				f2.setResizable(false);
@@ -249,8 +247,11 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 				if (oldDisplayMode != null
 					&& device.getFullScreenWindow() != null) {
 				    try {
-					if (device.isFullScreenSupported())
-					    device.setDisplayMode(oldDisplayMode);
+					if (device.isFullScreenSupported()) {
+					    if (!device.getDisplayMode().equals(oldDisplayMode))
+						device.setDisplayMode(oldDisplayMode);
+					    
+					}
 					device.setFullScreenWindow(null);
 				    } catch (Exception e) {
 					e.printStackTrace();
