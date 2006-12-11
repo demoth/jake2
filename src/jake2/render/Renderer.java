@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.9 2006-12-11 12:56:30 cawe Exp $
+ * $Id: Renderer.java,v 1.10 2006-12-11 13:10:28 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,7 +57,12 @@ public class Renderer {
 		}
 		try {
 		    Class.forName("javax.media.opengl.GL");
-		    Class.forName("jake2.render.Jsr231cbRenderer");
+		    // TODO this is a hack for Win32
+		    if (System.getProperty("os.name").startsWith("Windows")) {
+			    Class.forName("jake2.render.Jsr231cbRenderer");
+		    } else {
+			    Class.forName("jake2.render.Jsr231Renderer");
+		    }
 		} catch (ClassNotFoundException e) {
 		    // ignore the jogl drivers if runtime not in classpath
 		}
