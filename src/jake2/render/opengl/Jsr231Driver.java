@@ -51,7 +51,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
     
 	private GraphicsDevice device;
 	private DisplayMode oldDisplayMode; 
-	private Display display;
+	private volatile Display display;
 	private volatile Frame window;
 
 	// window position on the screen
@@ -153,7 +153,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		VID.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
 
 		// destroy the existing window
-		shutdown();
+		if (window != null) shutdown();
 
 		window = new Frame("Jake2 (jsr231)");
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
@@ -240,28 +240,40 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	}
 
 	public void shutdown() {
-	    try {
-		EventQueue.invokeAndWait(new Runnable() {
-		    public void run() {
-			if (oldDisplayMode != null
-				&& device.getFullScreenWindow() != null) {
-			    try {
-				if (device.isFullScreenSupported())
-				    device.setDisplayMode(oldDisplayMode);
-				device.setFullScreenWindow(null);
-			    } catch (Exception e) {
-				e.printStackTrace();
+	    Thread exit = new Thread(new Runnable() {
+		public void run() {
+
+		    try {
+			EventQueue.invokeAndWait(new Runnable() {
+			    public void run() {
+				if (oldDisplayMode != null
+					&& device.getFullScreenWindow() != null) {
+				    try {
+					if (device.isFullScreenSupported())
+					    device.setDisplayMode(oldDisplayMode);
+					device.setFullScreenWindow(null);
+				    } catch (Exception e) {
+					e.printStackTrace();
+				    }
+				}
 			    }
-			}
+			});
+		    } catch (Exception e) {
+			e.printStackTrace();
 		    }
-		});
-	    } catch (Exception e) {
-		e.printStackTrace();
+		    if (window != null) {
+			display.destroy();
+			window.dispose();
+		    }
+		}
+	    });
+	    exit.start();
+	    try {
+		exit.join();
+	    } catch (InterruptedException e) {
 	    }
-	    if (window != null) {
-		display.destroy();
-		window.dispose();
-	    }
+	    display = null;
+
 	}
 
 	/**
