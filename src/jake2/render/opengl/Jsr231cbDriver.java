@@ -181,7 +181,7 @@ public abstract class Jsr231cbDriver extends Jsr231GL implements GLDriver, GLEve
 		// destroy the existing window
 		shutdown();
 
-		window = new JFrame("Jake2 (jogl)");
+		window = new JFrame("Jake2 (jsr231cb)");
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
 		window.setIconImage(icon.getImage());
 		
