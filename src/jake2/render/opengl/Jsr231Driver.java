@@ -218,7 +218,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		    }
 		}
 		
-		while (!canvas.isDisplayable()) {
+		while (!canvas.isDisplayable() || !window.isDisplayable()) {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {}
@@ -265,6 +265,12 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		    if (window != null) {
 			display.destroy();
 			window.dispose();
+			while (window.isDisplayable() || display.isDisplayable()) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {}
+
+			}
 		    }
 		}
 	    });
