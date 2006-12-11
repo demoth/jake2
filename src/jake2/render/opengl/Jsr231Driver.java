@@ -2,7 +2,7 @@
  * JoglCommon.java
  * Copyright (C) 2004
  * 
- * $Id: Jsr231Driver.java,v 1.16 2006-12-11 15:54:41 cawe Exp $
+ * $Id: Jsr231Driver.java,v 1.17 2006-12-11 16:38:09 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -53,7 +53,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	private GraphicsDevice device;
 	private DisplayMode oldDisplayMode; 
 	private Display display;
-	Frame window;
+	private volatile Frame window;
 
 	// window position on the screen
 	int window_xpos, window_ypos;
@@ -247,7 +247,6 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		e.printStackTrace();
 	    }
 	    if (window != null) {
-		display.destroy();
 		window.dispose();
 	    }
 	}
@@ -349,6 +348,8 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         }
 
         public void removeNotify() {
+            release();
+            context.destroy();
             drawable.setRealized(false);
             super.removeNotify();
         }
@@ -366,12 +367,6 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
         void update() {
             release();
             drawable.swapBuffers();
-        }
-
-        void destroy() {
-            release();
-            context.destroy();
-            drawable.setRealized(false);
         }
 
         private static GraphicsConfiguration unwrap(AWTGraphicsConfiguration config) {
