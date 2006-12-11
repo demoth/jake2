@@ -238,49 +238,40 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	}
 
 	public void shutdown() {
-	    Thread exit = new Thread(new Runnable() {
-		public void run() {
+	    try {
+		EventQueue.invokeAndWait(new Runnable() {
+		    public void run() {
+			if (oldDisplayMode != null
+				&& device.getFullScreenWindow() != null) {
+			    try {
+				if (device.isFullScreenSupported()) {
+				    if (!device.getDisplayMode().equals(
+					    oldDisplayMode))
+					device.setDisplayMode(oldDisplayMode);
 
-		    try {
-			EventQueue.invokeAndWait(new Runnable() {
-			    public void run() {
-				if (oldDisplayMode != null
-					&& device.getFullScreenWindow() != null) {
-				    try {
-					if (device.isFullScreenSupported()) {
-					    if (!device.getDisplayMode().equals(oldDisplayMode))
-						device.setDisplayMode(oldDisplayMode);
-					    
-					}
-					device.setFullScreenWindow(null);
-				    } catch (Exception e) {
-					e.printStackTrace();
-				    }
 				}
+				device.setFullScreenWindow(null);
+			    } catch (Exception e) {
+				e.printStackTrace();
 			    }
-			});
-		    } catch (Exception e) {
-			e.printStackTrace();
-		    }
-		    if (window != null) {
-			display.destroy();
-			window.dispose();
-			while (window.isDisplayable() || display.isDisplayable()) {
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {}
-
 			}
 		    }
+		});
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
+	    if (window != null) {
+		display.destroy();
+		window.dispose();
+		while (window.isDisplayable() || display.isDisplayable()) {
+		    try {
+			Thread.sleep(50);
+		    } catch (InterruptedException e) {
+		    }
+
 		}
-	    });
-	    exit.start();
-	    try {
-		exit.join();
-	    } catch (InterruptedException e) {
 	    }
 	    display = null;
-
 	}
 
 	/**
