@@ -220,7 +220,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		
 		while (!canvas.isDisplayable() || !window.isDisplayable()) {
 			try {
-				Thread.sleep(50);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {}
 		}
 		canvas.requestFocus();
@@ -238,40 +238,40 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	}
 
 	public void shutdown() {
-	    try {
-		EventQueue.invokeAndWait(new Runnable() {
-		    public void run() {
-			if (oldDisplayMode != null
-				&& device.getFullScreenWindow() != null) {
-			    try {
-				if (device.isFullScreenSupported()) {
-				    if (!device.getDisplayMode().equals(
-					    oldDisplayMode))
-					device.setDisplayMode(oldDisplayMode);
+		try {
+			EventQueue.invokeAndWait(new Runnable() {
+				public void run() {
+					if (oldDisplayMode != null
+							&& device.getFullScreenWindow() != null) {
+						try {
+							if (device.isFullScreenSupported()) {
+								if (!device.getDisplayMode().equals(
+										oldDisplayMode))
+									device.setDisplayMode(oldDisplayMode);
 
+							}
+							device.setFullScreenWindow(null);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
 				}
-				device.setFullScreenWindow(null);
-			    } catch (Exception e) {
-				e.printStackTrace();
-			    }
-			}
-		    }
-		});
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
-	    if (window != null) {
-		if (display != null) display.destroy();
-		window.dispose();
-		while (window.isDisplayable()) {
-		    try {
-			Thread.sleep(50);
-		    } catch (InterruptedException e) {
-		    }
-
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-	    }
-	    display = null;
+		if (window != null) {
+			if (display != null) display.destroy();
+			window.dispose();
+			while (window.isDisplayable()) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+
+			}
+		}
+		display = null;
 	}
 
 	/**
@@ -372,7 +372,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 
         public void removeNotify() {
             if (drawable != null) {
-        	drawable.setRealized(false);
+            	drawable.setRealized(false);
                 drawable = null;
             }
             super.removeNotify();
@@ -392,15 +392,15 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
             release();
             drawable.swapBuffers();
         }
-        
-        void destroy() {
-            if (context != null) {
-        	release();
-                context.destroy();
-                context = null;
-            }
-        }
 
+        void destroy() {
+        	if (context != null) {
+        		release();
+        		context.destroy();
+        		context = null;
+        	}
+        }
+        
         private static GraphicsConfiguration unwrap(AWTGraphicsConfiguration config) {
             if (config == null) {
               return null;
