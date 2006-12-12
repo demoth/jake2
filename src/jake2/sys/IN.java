@@ -2,7 +2,7 @@
  * IN.java
  * Copyright (C) 2003
  * 
- * $Id: IN.java,v 1.7 2004-12-16 22:45:55 hzi Exp $
+ * $Id: IN.java,v 1.8 2006-12-12 15:20:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -158,8 +158,8 @@ public final class IN extends Globals {
 
     public static void Frame() {
 
-        if (!cl.refresh_prepped || cls.key_dest == key_console
-                || cls.key_dest == key_menu)
+        if (!cl.cinematicpalette_active && (!cl.refresh_prepped || cls.key_dest == key_console
+                || cls.key_dest == key_menu))
             DeactivateMouse();
         else
             ActivateMouse();

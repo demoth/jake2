@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 27.11.2003 by RST.
-//$Id: client_state_t.java,v 1.5 2005-11-21 19:38:38 cawe Exp $
+//$Id: client_state_t.java,v 1.6 2006-12-12 15:20:30 cawe Exp $
 
 package jake2.client;
 
@@ -112,7 +112,7 @@ public class client_state_t {
 	int cinematictime; // cls.realtime for first cinematic frame
 	int cinematicframe;
 	byte cinematicpalette[] = new byte[768];
-	boolean cinematicpalette_active;
+	public boolean cinematicpalette_active;
 
 	//
 	// server state information
