@@ -2,7 +2,7 @@
  * JoglRenderer.java
  * Copyright (C) 2003
  *
- * $Id: JoglRenderer.java,v 1.9 2006-11-22 15:05:39 cawe Exp $
+ * $Id: JoglRenderer.java,v 1.10 2006-12-12 13:02:25 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -65,7 +65,8 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 
 
     private boolean post_init = false;
-/** 
+    
+    /** 
 	 * @see jake2.client.refexport_t#Init()
 	 */
 	public boolean Init(int vid_xpos, int vid_ypos) {
@@ -93,103 +94,83 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 	/** 
 	 * @see jake2.client.refexport_t#BeginRegistration(java.lang.String)
 	 */
-	public void BeginRegistration(String map) {
+	public void BeginRegistration(final String map) {
 		if (contextInUse) {
 			impl.R_BeginRegistration(map);
-			return;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					impl.R_BeginRegistration(map);
+				}
+			});
 		}
-		
-		this.name = map;
-		
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				impl.R_BeginRegistration(JoglRenderer.this.name);
-			}
-		});
 	}
-
 	
 	private model_t model = null;
-	private String name = null;
 	
 	/** 
 	 * @see jake2.client.refexport_t#RegisterModel(java.lang.String)
 	 */
-	public model_t RegisterModel(String name) {
-		
-		if (contextInUse)
+	public model_t RegisterModel(final String name) {
+		if (contextInUse) {
 			return impl.R_RegisterModel(name);
-		
-		model = null;
-		this.name = name;
-		
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				JoglRenderer.this.model = impl.R_RegisterModel(JoglRenderer.this.name);
-			}
-		});
-		return model;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					JoglRenderer.this.model = impl.R_RegisterModel(name);
+				}
+			});
+			return model;
+		}
 	}
+
+	private image_t image = null;
 
 	/** 
 	 * @see jake2.client.refexport_t#RegisterSkin(java.lang.String)
 	 */
-	public image_t RegisterSkin(String name) {
-		if (contextInUse)
+	public image_t RegisterSkin(final String name) {
+		if (contextInUse) {
 			return impl.R_RegisterSkin(name);
-		
-		this.image = null;
-		this.name = name;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				JoglRenderer.this.image = impl.R_RegisterSkin(JoglRenderer.this.name);
-			}
-		});
-		return image;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					JoglRenderer.this.image = impl.R_RegisterSkin(name);
+				}
+			});
+			return image;
+		}
 	}
 	
-	private image_t image = null;
-
 	/** 
 	 * @see jake2.client.refexport_t#RegisterPic(java.lang.String)
 	 */
-	public image_t RegisterPic(String name) {
-		if (contextInUse)
+	public image_t RegisterPic(final String name) {
+		if (contextInUse) {
 			return impl.Draw_FindPic(name);
-		
-		this.image = null;
-		this.name = name;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				JoglRenderer.this.image = impl.Draw_FindPic(JoglRenderer.this.name);
-			}
-		});
-		return image;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					JoglRenderer.this.image = impl.Draw_FindPic(name);
+				}
+			});
+			return image;
+		}
 	}
-
-	private float[] axis;
-	private float rotate;
 
 	/** 
 	 * @see jake2.client.refexport_t#SetSky(java.lang.String, float, float[])
 	 */
-	public void SetSky(String name, float rotate, float[] axis) {
+	public void SetSky(final String name, final float rotate, final float[] axis) {
 		if (contextInUse) {
 			impl.R_SetSky(name, rotate, axis);
-			return;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					impl.R_SetSky(name, rotate, axis);
+				}
+			});
 		}
-
-		this.name = name;
-		this.rotate = rotate;
-		this.axis = axis;
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				impl.R_SetSky(JoglRenderer.this.name, JoglRenderer.this.rotate, JoglRenderer.this.axis);
-			}
-		});
 	}
 
 	/** 
@@ -198,14 +179,13 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 	public void EndRegistration() {
 		if (contextInUse) {
 			impl.R_EndRegistration();
-			return;
+		} else {
+			updateScreen(new xcommand_t() {
+				public void execute() {
+					impl.R_EndRegistration();
+				}
+			});
 		}
-
-		updateScreen(new xcommand_t() {
-			public void execute() {
-				impl.R_EndRegistration();
-			}
-		});
 	}
 
 	/** 
@@ -236,26 +216,19 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 		impl.Draw_StretchPic(x, y, w, h, name);
 	}
     
-    private int x, y, num;
-
 	/** 
 	 * @see jake2.client.refexport_t#DrawChar(int, int, int)
 	 */
-	public void DrawChar(int x, int y, int num) {
+	public void DrawChar(final int x, final int y, final int num) {
         if (contextInUse) {
             impl.Draw_Char(x, y, num);;
-            return;
+        } else {
+            updateScreen(new xcommand_t() {
+                public void execute() {
+                    impl.Draw_Char(x, y, num);
+                }
+            });
         }
-
-        this.x = x;
-        this.y = y;
-        this.num = num;
-
-        updateScreen(new xcommand_t() {
-            public void execute() {
-                impl.Draw_Char(JoglRenderer.this.x, JoglRenderer.this.y, JoglRenderer.this.num);
-            }
-        });
 	}
 
 	/** 
@@ -314,7 +287,7 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 		appActivate(activate);
 	}
 
-    	public void screenshot() {
+	public void screenshot() {
 		if (contextInUse) {
 			impl.GL_ScreenShot_f();
 		} else {
@@ -324,8 +297,7 @@ final class JoglRenderer extends JoglDriver implements refexport_t, Ref {
 				}
 			});
 		}
-
-    	}
+	}
 
 	public int apiVersion() {
 		return Defines.API_VERSION;
