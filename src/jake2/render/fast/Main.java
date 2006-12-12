@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.4 2006-11-22 15:05:39 cawe Exp $
+ * $Id: Main.java,v 1.5 2006-12-12 14:46:04 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -1249,12 +1249,20 @@ public abstract class Main extends Base {
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0) {
-			VID.Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
-			qglActiveTextureARB = true;
-			TEXTURE0 = GL_TEXTURE0_ARB;
-			TEXTURE1 = GL_TEXTURE1_ARB;
+			// check if the extension realy exists
+			try {
+				gl.glClientActiveTextureARB(GL_TEXTURE0_ARB);
+				// seems to work correctly
+				VID.Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
+				qglActiveTextureARB = true;
+				TEXTURE0 = GL_TEXTURE0_ARB;
+				TEXTURE1 = GL_TEXTURE1_ARB;
+			} catch (Exception e) {
+				qglActiveTextureARB = false;
+			}
 		}
 		else {
+			qglActiveTextureARB = false;
 			VID.Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
 		}
 
