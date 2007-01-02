@@ -2,7 +2,7 @@
  * TestMap.java
  * Copyright (C) 2003
  *
- * $Id: TestMap.java,v 1.7 2006-11-21 00:48:14 cawe Exp $
+ * $Id: TestMap.java,v 1.8 2007-01-02 13:42:47 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -81,11 +81,11 @@ public class TestMap
             Jake2.Q2Dialog.setVisible(true);
         }
         
-		Qcommon.Init(new String[] { "TestMap $Id: TestMap.java,v 1.7 2006-11-21 00:48:14 cawe Exp $" });
+		Qcommon.Init(new String[] { "TestMap" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
-		Globals.re = this.re = Renderer.getDriver("jsr231", false);
+		Globals.re = this.re = Renderer.getDriver("jsr231", true);
 
 		re.Init(0, 0);
 		
@@ -150,11 +150,9 @@ public class TestMap
 				break;
 			case 1 :
 				// register the map
-				re.BeginRegistration("base1");
+				re.BeginRegistration("demo1");
 				re.SetSky("space1", 0, new float[]{ 0, 0, 0 });
-				re.EndRegistration();
 				currentState = 2;
-				//break;
 			default :
 				if (framecount % 500 == 0)
 				{
@@ -283,8 +281,8 @@ public class TestMap
 			Math3D.VectorCopy(ent.origin, ent.oldorigin);
 			ent.angles = new float[] { 0, 300, 0 };
 
-			refdef.num_entities = 1;
 			refdef.entities = new entity_t[] {ent};
+			refdef.num_entities = refdef.entities.length;
 			
 			lightstyle_t light = new lightstyle_t();
 			light.rgb = new float[] {1.0f, 1.0f, 1.0f};
