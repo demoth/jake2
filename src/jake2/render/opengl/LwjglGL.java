@@ -136,6 +136,10 @@ public class LwjglGL implements QGL {
         return GL11.glGetString(name);
     }
 
+    public void glHint(int target, int mode) {
+	GL11.glHint(target, mode);
+    }
+
     public final void glInterleavedArrays(int format, int stride,
             FloatBuffer pointer) {
         GL11.glInterleavedArrays(format, stride, pointer);

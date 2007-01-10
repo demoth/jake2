@@ -143,6 +143,10 @@ public class JoglGL implements QGL {
         return jogl.glGetString(name);
     }
 
+    public void glHint(int target, int mode) {
+	jogl.glHint(target, mode);
+    }
+
     public void glInterleavedArrays(int format, int stride,
             FloatBuffer pointer) {
         jogl.glInterleavedArrays(format, stride, pointer);

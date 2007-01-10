@@ -142,6 +142,10 @@ public class Jsr231GL implements QGL {
     public String glGetString(int name) {
         return gl.glGetString(name);
     }
+    
+    public void glHint(int target, int mode) {
+	gl.glHint(target, mode);
+    }
 
     public void glInterleavedArrays(int format, int stride,
             FloatBuffer pointer) {

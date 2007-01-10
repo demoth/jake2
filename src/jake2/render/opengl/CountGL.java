@@ -18,108 +18,108 @@ public class CountGL implements QGL {
     }
     
     public void glAlphaFunc(int func, float ref) {
-        count++;
+        ++count;
     }
 
     public void glBegin(int mode) {
-        count++;
+        ++count;
     }
 
     public void glBindTexture(int target, int texture) {
-        count++;
+        ++count;
     }
 
     public void glBlendFunc(int sfactor, int dfactor) {
-        count++;
+        ++count;
     }
 
     public void glClear(int mask) {
-        count++;
+        ++count;
     }
 
     public void glClearColor(float red, float green, float blue, float alpha) {
-        count++;
+        ++count;
     }
 
     public void glColor3f(float red, float green, float blue) {
-        count++;
+        ++count;
     }
 
     public void glColor3ub(byte red, byte green, byte blue) {
-        count++;
+        ++count;
     }
 
     public void glColor4f(float red, float green, float blue, float alpha) {
-        count++;
+        ++count;
     }
 
     public void glColor4ub(byte red, byte green, byte blue, byte alpha) {
-        count++;
+        ++count;
     }
 
     public void glColorPointer(int size, boolean unsigned, int stride,
             ByteBuffer pointer) {
-        count++;
+        ++count;
     }
     
     public void glColorPointer(int size, int stride, FloatBuffer pointer) {
-        count++;
+        ++count;
     }
 
     public void glCullFace(int mode) {
-        count++;
+        ++count;
     }
 
     public void glDeleteTextures(IntBuffer textures) {
-        count++;
+        ++count;
     }
 
     public void glDepthFunc(int func) {
-        count++;
+        ++count;
     }
 
     public void glDepthMask(boolean flag) {
-        count++;
+        ++count;
     }
 
     public void glDepthRange(double zNear, double zFar) {
-        count++;
+        ++count;
     }
 
     public void glDisable(int cap) {
-        count++;
+        ++count;
     }
 
     public void glDisableClientState(int cap) {
-        count++;
+        ++count;
     }
 
     public void glDrawArrays(int mode, int first, int count) {
-        count++;
+        ++count;
     }
 
     public void glDrawBuffer(int mode) {
-        count++;
+        ++count;
     }
 
     public void glDrawElements(int mode, IntBuffer indices) {
-        count++;
+        ++count;
     }
 
     public void glEnable(int cap) {
-        count++;
+        ++count;
     }
 
     public void glEnableClientState(int cap) {
-        count++;
+        ++count;
     }
 
     public void glEnd() {
-        count++;
+        ++count;
     }
 
     public void glFinish() {
-        count++;
+        ++count;
     }
 
     public void glFlush() {
@@ -129,7 +129,7 @@ public class CountGL implements QGL {
 
     public void glFrustum(double left, double right, double bottom,
             double top, double zNear, double zFar) {
-        count++;
+        ++count;
     }
 
     public int glGetError() {
@@ -137,7 +137,7 @@ public class CountGL implements QGL {
     }
 
     public void glGetFloat(int pname, FloatBuffer params) {
-        count++;
+        ++count;
     }
 
     public String glGetString(int name) {
@@ -149,162 +149,166 @@ public class CountGL implements QGL {
         }
     }
 
+    public void glHint(int target, int mode) {
+	++count;
+    }
+
     public void glInterleavedArrays(int format, int stride,
             FloatBuffer pointer) {
-        count++;
+        ++count;
     }
 
     public void glLoadIdentity() {
-        count++;
+        ++count;
     }
 
     public void glLoadMatrix(FloatBuffer m) {
-        count++;
+        ++count;
     }
 
     public void glMatrixMode(int mode) {
-        count++;
+        ++count;
     }
 
     public void glOrtho(double left, double right, double bottom,
             double top, double zNear, double zFar) {
-        count++;
+        ++count;
     }
 
     public void glPixelStorei(int pname, int param) {
-        count++;
+        ++count;
     }
 
     public void glPointSize(float size) {
-        count++;
+        ++count;
     }
 
     public void glPolygonMode(int face, int mode) {
-        count++;
+        ++count;
     }
 
     public void glPopMatrix() {
-        count++;
+        ++count;
     }
 
     public void glPushMatrix() {
-        count++;
+        ++count;
     }
 
     public void glReadPixels(int x, int y, int width, int height,
             int format, int type, ByteBuffer pixels) {
-        count++;
+        ++count;
     }
 
     public void glRotatef(float angle, float x, float y, float z) {
-        count++;
+        ++count;
     }
 
     public void glScalef(float x, float y, float z) {
-        count++;
+        ++count;
     }
 
     public void glScissor(int x, int y, int width, int height) {
-        count++;
+        ++count;
     }
 
     public void glShadeModel(int mode) {
-        count++;
+        ++count;
     }
 
     public void glTexCoord2f(float s, float t) {
-        count++;
+        ++count;
     }
 
     public void glTexCoordPointer(int size, int stride, FloatBuffer pointer) {
-        count++;
+        ++count;
     }
 
     public void glTexEnvi(int target, int pname, int param) {
-        count++;
+        ++count;
     }
 
     public void glTexImage2D(int target, int level, int internalformat,
             int width, int height, int border, int format, int type,
             ByteBuffer pixels) {
-        count++;
+        ++count;
     }
 
     public void glTexImage2D(int target, int level, int internalformat,
             int width, int height, int border, int format, int type,
             IntBuffer pixels) {
-        count++;
+        ++count;
     }
 
     public void glTexParameterf(int target, int pname, float param) {
-        count++;
+        ++count;
     }
 
     public void glTexParameteri(int target, int pname, int param) {
-        count++;
+        ++count;
     }
 
     public void glTexSubImage2D(int target, int level, int xoffset,
             int yoffset, int width, int height, int format, int type,
             IntBuffer pixels) {
-        count++;
+        ++count;
     }
 
     public void glTranslatef(float x, float y, float z) {
-        count++;
+        ++count;
     }
 
     public void glVertex2f(float x, float y) {
-        count++;
+        ++count;
     }
 
     public void glVertex3f(float x, float y, float z) {
-        count++;
+        ++count;
     }
 
     public void glVertexPointer(int size, int stride, FloatBuffer pointer) {
-        count++;
+        ++count;
     }
 
     public void glViewport(int x, int y, int width, int height) {
-        count++;
+        ++count;
     }
 
     public void glColorTable(int target, int internalFormat, int width,
             int format, int type, ByteBuffer data) {
-        count++;
+        ++count;
     }
 
     public void glActiveTextureARB(int texture) {
-        count++;
+        ++count;
     }
 
     public void glClientActiveTextureARB(int texture) {
-        count++;
+        ++count;
     }
 
     public void glPointParameterEXT(int pname, FloatBuffer pfParams) {
-        count++;
+        ++count;
     }
 
     public void glPointParameterfEXT(int pname, float param) {
-        count++;
+        ++count;
     }
 
     public void glLockArraysEXT(int first, int count) {
-        count++;
+        ++count;
     }
 
     public void glArrayElement(int index) {
-        count++;
+        ++count;
     }
 
     public void glUnlockArraysEXT() {
-        count++;
+        ++count;
     }
 
     public void glMultiTexCoord2f(int target, float s, float t) {
-        count++;
+        ++count;
     }
 
 }

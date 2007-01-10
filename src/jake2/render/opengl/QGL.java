@@ -80,6 +80,8 @@ public interface QGL extends QGLConst {
     void glGetFloat(int pname, FloatBuffer params);
 
     String glGetString(int name);
+    
+    void glHint(int target, int mode);
 
     void glInterleavedArrays(int format, int stride, FloatBuffer pointer);
 

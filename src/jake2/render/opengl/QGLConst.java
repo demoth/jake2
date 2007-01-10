@@ -130,8 +130,10 @@ public interface QGLConst {
     public static final int GL_TEXTURE_2D = 0x0DE1;
 
     /*
-     * hint modes
+     * hints
      */
+    public static final int GL_PERSPECTIVE_CORRECTION_HINT = 0x0C50;
+
     public static final int GL_DONT_CARE = 0x1100;
 
     public static final int GL_FASTEST = 0x1101;

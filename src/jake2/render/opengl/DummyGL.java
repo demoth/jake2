@@ -145,6 +145,10 @@ public class DummyGL implements QGL {
             return "";
         }
     }
+    
+    public void glHint(int target, int mode) {
+        // do nothing
+    }
 
     public void glInterleavedArrays(int format, int stride,
             FloatBuffer pointer) {
