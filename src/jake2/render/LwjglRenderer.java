@@ -2,7 +2,7 @@
  * LwjglRenderer.java
  * Copyright (C) 2004
  *
- * $Id: LwjglRenderer.java,v 1.4 2006-11-22 15:05:39 cawe Exp $
+ * $Id: LwjglRenderer.java,v 1.5 2007-01-11 23:20:40 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -204,17 +204,13 @@ final class LwjglRenderer extends LwjglDriver implements refexport_t, Ref {
 	 */
 	public final void EndFrame() {
 		endFrame();
-/*        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-        }*/
 	}
 
 	/** 
 	 * @see jake2.client.refexport_t#AppActivate(boolean)
 	 */
 	public final void AppActivate(boolean activate) {
-        appActivate(activate);
+	    appActivate(activate);
 	}
 	
     	public void screenshot() {
@@ -228,7 +224,7 @@ final class LwjglRenderer extends LwjglDriver implements refexport_t, Ref {
 	public KBD getKeyboardHandler() {
 		return kbd;
 	}
-
+	
 	// ============================================================================
 	// Ref interface
 	// ============================================================================
