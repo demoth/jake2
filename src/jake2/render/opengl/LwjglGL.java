@@ -301,4 +301,11 @@ public class LwjglGL implements QGL {
 	GL13.glMultiTexCoord2f(target, s, t);
     }
 
+    /*
+     * util extensions
+     */
+    public void setSwapInterval(int interval) {
+	Display.setSwapInterval(interval);
+    }
+
 }

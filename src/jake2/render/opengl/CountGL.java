@@ -311,4 +311,11 @@ public class CountGL implements QGL {
         ++count;
     }
 
+    /*
+     * util extensions
+     */
+    public void setSwapInterval(int interval) {
+	++count;
+    }
+
 }

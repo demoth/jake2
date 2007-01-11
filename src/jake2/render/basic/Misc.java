@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.3 2006-11-22 15:05:38 cawe Exp $
+ * $Id: Misc.java,v 1.4 2007-01-11 23:36:15 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +28,13 @@ package jake2.render.basic;
 import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.FS;
-import jake2.qcommon.xcommand_t;
 import jake2.util.Lib;
 
-import java.io.*;
-import java.nio.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -271,9 +272,7 @@ public final class Misc extends Mesh {
 			gl_swapinterval.modified = false;
 			if ( !gl_state.stereo_enabled ) 
 			{
-				if (qwglSwapIntervalEXT) {
-// TODO					((WGL)gl).wglSwapIntervalEXT((int)gl_swapinterval.value);
-				}
+				gl.setSwapInterval((int) gl_swapinterval.value);
 			}
 		}
 	}

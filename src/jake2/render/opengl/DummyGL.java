@@ -308,4 +308,11 @@ public class DummyGL implements QGL {
         // do nothing
     }
 
+    /*
+     * util extensions
+     */
+    public void setSwapInterval(int interval) {
+        // do nothing
+    }
+
 }

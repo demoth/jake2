@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
+ * $Id: Misc.java,v 1.4 2007-01-11 23:36:21 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -262,6 +262,12 @@ public final class Misc extends Mesh {
 		gl.glEnableClientState(GL_VERTEX_ARRAY);
 		gl.glClientActiveTextureARB(TEXTURE0);
 		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		
+		/*
+		 * perspective correction
+		 */
+		//gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
 	}
 
 	void GL_UpdateSwapInterval()
@@ -271,9 +277,7 @@ public final class Misc extends Mesh {
 			gl_swapinterval.modified = false;
 			if ( !gl_state.stereo_enabled ) 
 			{
-				if (qwglSwapIntervalEXT) {
-					// ((WGL)gl).wgl.glSwapIntervalEXT((int)gl_swapinterval.value);
-				}
+			    gl.setSwapInterval((int) gl_swapinterval.value);
 			}
 		}
 	}

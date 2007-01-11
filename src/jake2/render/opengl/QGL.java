@@ -153,5 +153,10 @@ public interface QGL extends QGLConst {
     void glVertexPointer(int size, int stride, FloatBuffer pointer);
 
     void glViewport(int x, int y, int width, int height);
+    
+    /*
+     * util extensions
+     */
+    void setSwapInterval(int interval);
 
 }

@@ -306,6 +306,12 @@ public class Jsr231GL implements QGL {
     public void glMultiTexCoord2f(int target, float s, float t) {
         gl.glMultiTexCoord2f(target, s, t);
     }
-
+    
+    /*
+     * util extensions
+     */
+    public void setSwapInterval(int interval) {
+	gl.setSwapInterval(interval);
+    }
 
 }

@@ -307,5 +307,11 @@ public class JoglGL implements QGL {
         jogl.glMultiTexCoord2f(target, s, t);
     }
 
+    /*
+     * util extensions
+     */
+    public void setSwapInterval(int interval) {
+	jogl.setSwapInterval(interval);
+    }
 
 }
