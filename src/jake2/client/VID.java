@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.18 2006-11-21 00:51:39 cawe Exp $
+ * $Id: VID.java,v 1.19 2007-01-12 00:51:13 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -390,6 +390,7 @@ public class VID extends Globals {
 
 	static Menu.menulist_s s_stipple_box = new Menu.menulist_s();
 	static Menu.menulist_s s_paletted_texture_box = new Menu.menulist_s();
+	static Menu.menulist_s s_vsync_box = new Menu.menulist_s();
 	static Menu.menulist_s s_windowed_mouse = new Menu.menulist_s();
 	static Menu.menuaction_s s_apply_action = new Menu.menuaction_s();
 
@@ -638,10 +639,53 @@ public class VID extends Globals {
 			}
 		};
 
+
+		s_vsync_box.type = MTYPE_SPINCONTROL;
+		s_vsync_box.x	= 0;
+		s_vsync_box.y	= 54;
+		s_vsync_box.name	= "vertical sync";
+		s_vsync_box.itemnames = yesno_names;
+		s_vsync_box.curvalue = (int) Cvar.Get("gl_swapinterval", "0", Defines.CVAR_ARCHIVE).value;
+		s_vsync_box.callback = new Menu.mcallback() {
+			public void execute(Object o) {
+				int interval = ((Menu.menulist_s)o).curvalue;
+				Cvar.SetValue("gl_swapinterval", interval);
+			}
+		};
+
+//		s_stipple_box.type = MTYPE_SPINCONTROL;
+//		s_stipple_box.x	= 0;
+//		s_stipple_box.y	= 60;
+//		s_stipple_box.name	= "stipple alpha";
+//		s_stipple_box.curvalue = (int)sw_stipplealpha.value;
+//		s_stipple_box.itemnames = yesno_names;
+//
+//		s_windowed_mouse.type = MTYPE_SPINCONTROL;
+//		s_windowed_mouse.x  = 0;
+//		s_windowed_mouse.y  = 72;
+//		s_windowed_mouse.name   = "windowed mouse";
+//		s_windowed_mouse.curvalue = (int)_windowed_mouse.value;
+//		s_windowed_mouse.itemnames = yesno_names;
+
+		s_tq_slider.type	= MTYPE_SLIDER;
+		s_tq_slider.x		= 0;
+		s_tq_slider.y		= 70;
+		s_tq_slider.name	= "texture quality";
+		s_tq_slider.minvalue = 0;
+		s_tq_slider.maxvalue = 3;
+		s_tq_slider.curvalue = 3 - gl_picmip.value;
+
+		s_paletted_texture_box.type = MTYPE_SPINCONTROL;
+		s_paletted_texture_box.x	= 0;
+		s_paletted_texture_box.y	= 80;
+		s_paletted_texture_box.name	= "8-bit textures";
+		s_paletted_texture_box.itemnames = yesno_names;
+		s_paletted_texture_box.curvalue = (int)gl_ext_palettedtexture.value;
+
 		s_defaults_action.type = MTYPE_ACTION;
 		s_defaults_action.name = "reset to default";
 		s_defaults_action.x    = 0;
-		s_defaults_action.y    = 90;
+		s_defaults_action.y    = 100;
 		s_defaults_action.callback = new Menu.mcallback() {
 			public void execute(Object self) {
 				ResetDefaults(self);
@@ -651,48 +695,21 @@ public class VID extends Globals {
 		s_apply_action.type = MTYPE_ACTION;
 		s_apply_action.name = "apply";
 		s_apply_action.x    = 0;
-		s_apply_action.y    = 100;
+		s_apply_action.y    = 110;
 		s_apply_action.callback = new Menu.mcallback() {
 			public void execute(Object self) {
 				ApplyChanges(self);
 			}
 		};
-		
-
-		s_stipple_box.type = MTYPE_SPINCONTROL;
-		s_stipple_box.x	= 0;
-		s_stipple_box.y	= 60;
-		s_stipple_box.name	= "stipple alpha";
-		s_stipple_box.curvalue = (int)sw_stipplealpha.value;
-		s_stipple_box.itemnames = yesno_names;
-
-		s_windowed_mouse.type = MTYPE_SPINCONTROL;
-		s_windowed_mouse.x  = 0;
-		s_windowed_mouse.y  = 72;
-		s_windowed_mouse.name   = "windowed mouse";
-		s_windowed_mouse.curvalue = (int)_windowed_mouse.value;
-		s_windowed_mouse.itemnames = yesno_names;
-
-		s_tq_slider.type	= MTYPE_SLIDER;
-		s_tq_slider.x		= 0;
-		s_tq_slider.y		= 60;
-		s_tq_slider.name	= "texture quality";
-		s_tq_slider.minvalue = 0;
-		s_tq_slider.maxvalue = 3;
-		s_tq_slider.curvalue = 3 - gl_picmip.value;
-
-		s_paletted_texture_box.type = MTYPE_SPINCONTROL;
-		s_paletted_texture_box.x	= 0;
-		s_paletted_texture_box.y	= 70;
-		s_paletted_texture_box.name	= "8-bit textures";
-		s_paletted_texture_box.itemnames = yesno_names;
-		s_paletted_texture_box.curvalue = (int)gl_ext_palettedtexture.value;
 
 		Menu.Menu_AddItem( s_opengl_menu, s_ref_list );
 		Menu.Menu_AddItem( s_opengl_menu, s_mode_list );
 		Menu.Menu_AddItem( s_opengl_menu, s_screensize_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_brightness_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_fs_box );
+
+		Menu.Menu_AddItem( s_opengl_menu, s_vsync_box );
+
 		Menu.Menu_AddItem( s_opengl_menu, s_tq_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_paletted_texture_box );
 
