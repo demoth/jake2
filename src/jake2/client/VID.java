@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.19 2007-01-12 00:51:13 cawe Exp $
+ * $Id: VID.java,v 1.20 2007-01-13 18:36:23 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -360,11 +360,7 @@ public class VID extends Globals {
 	static cvar_t gl_driver;
 	static cvar_t gl_picmip;
 	static cvar_t gl_ext_palettedtexture;
-
-	static cvar_t sw_mode;
-	static cvar_t sw_stipplealpha;
-
-	static cvar_t _windowed_mouse;
+	static cvar_t gl_swapinterval;
 
 	/*
 	====================================================================
@@ -443,12 +439,13 @@ public class VID extends Globals {
 
 		Cvar.SetValue( "vid_gamma", gamma );
 		Cvar.SetValue( "gl_modulate", modulate);
-		Cvar.SetValue( "sw_stipplealpha", s_stipple_box.curvalue );
 		Cvar.SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
 		Cvar.SetValue( "vid_fullscreen", s_fs_box.curvalue );
+		Cvar.SetValue( "gl_swapinterval", (int) s_vsync_box.curvalue);
+		// set always true because of vid_ref or mode changes
+		gl_swapinterval.modified = true;
 		Cvar.SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
 		Cvar.SetValue( "gl_mode", s_mode_list.curvalue );
-		Cvar.SetValue( "_windowed_mouse", s_windowed_mouse.curvalue);
 
 		Cvar.Set( "vid_ref", drivers[s_ref_list.curvalue] );
 		Cvar.Set( "gl_driver", drivers[s_ref_list.curvalue] );
@@ -536,16 +533,11 @@ public class VID extends Globals {
 			gl_picmip = Cvar.Get( "gl_picmip", "0", 0 );
 		if ( gl_mode == null)
 			gl_mode = Cvar.Get( "gl_mode", "3", 0 );
-		if ( sw_mode == null )
-			sw_mode = Cvar.Get( "sw_mode", "0", 0 );
 		if ( gl_ext_palettedtexture == null )
 			gl_ext_palettedtexture = Cvar.Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 
-		if ( sw_stipplealpha == null )
-			sw_stipplealpha = Cvar.Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
-
-		if ( _windowed_mouse == null)
-			_windowed_mouse = Cvar.Get( "_windowed_mouse", "0", CVAR_ARCHIVE );
+		if ( gl_swapinterval == null)
+			gl_swapinterval = Cvar.Get( "gl_swapinterval", "0", CVAR_ARCHIVE );
 
 		s_mode_list.curvalue = (int)gl_mode.value;
 		if (vid_fullscreen.value != 0.0f) {
@@ -639,37 +631,9 @@ public class VID extends Globals {
 			}
 		};
 
-
-		s_vsync_box.type = MTYPE_SPINCONTROL;
-		s_vsync_box.x	= 0;
-		s_vsync_box.y	= 54;
-		s_vsync_box.name	= "vertical sync";
-		s_vsync_box.itemnames = yesno_names;
-		s_vsync_box.curvalue = (int) Cvar.Get("gl_swapinterval", "0", Defines.CVAR_ARCHIVE).value;
-		s_vsync_box.callback = new Menu.mcallback() {
-			public void execute(Object o) {
-				int interval = ((Menu.menulist_s)o).curvalue;
-				Cvar.SetValue("gl_swapinterval", interval);
-			}
-		};
-
-//		s_stipple_box.type = MTYPE_SPINCONTROL;
-//		s_stipple_box.x	= 0;
-//		s_stipple_box.y	= 60;
-//		s_stipple_box.name	= "stipple alpha";
-//		s_stipple_box.curvalue = (int)sw_stipplealpha.value;
-//		s_stipple_box.itemnames = yesno_names;
-//
-//		s_windowed_mouse.type = MTYPE_SPINCONTROL;
-//		s_windowed_mouse.x  = 0;
-//		s_windowed_mouse.y  = 72;
-//		s_windowed_mouse.name   = "windowed mouse";
-//		s_windowed_mouse.curvalue = (int)_windowed_mouse.value;
-//		s_windowed_mouse.itemnames = yesno_names;
-
 		s_tq_slider.type	= MTYPE_SLIDER;
 		s_tq_slider.x		= 0;
-		s_tq_slider.y		= 70;
+		s_tq_slider.y		= 60;
 		s_tq_slider.name	= "texture quality";
 		s_tq_slider.minvalue = 0;
 		s_tq_slider.maxvalue = 3;
@@ -677,10 +641,18 @@ public class VID extends Globals {
 
 		s_paletted_texture_box.type = MTYPE_SPINCONTROL;
 		s_paletted_texture_box.x	= 0;
-		s_paletted_texture_box.y	= 80;
+		s_paletted_texture_box.y	= 70;
 		s_paletted_texture_box.name	= "8-bit textures";
 		s_paletted_texture_box.itemnames = yesno_names;
 		s_paletted_texture_box.curvalue = (int)gl_ext_palettedtexture.value;
+
+
+		s_vsync_box.type = MTYPE_SPINCONTROL;
+		s_vsync_box.x	= 0;
+		s_vsync_box.y	= 80;
+		s_vsync_box.name	= "sync every frame";
+		s_vsync_box.itemnames = yesno_names;
+		s_vsync_box.curvalue = (int) gl_swapinterval.value;
 
 		s_defaults_action.type = MTYPE_ACTION;
 		s_defaults_action.name = "reset to default";
@@ -708,10 +680,9 @@ public class VID extends Globals {
 		Menu.Menu_AddItem( s_opengl_menu, s_brightness_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_fs_box );
 
-		Menu.Menu_AddItem( s_opengl_menu, s_vsync_box );
-
 		Menu.Menu_AddItem( s_opengl_menu, s_tq_slider );
 		Menu.Menu_AddItem( s_opengl_menu, s_paletted_texture_box );
+		Menu.Menu_AddItem( s_opengl_menu, s_vsync_box );
 
 		Menu.Menu_AddItem( s_opengl_menu, s_defaults_action );
 		Menu.Menu_AddItem( s_opengl_menu, s_apply_action );
