@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LwjglDriver.java,v 1.3 2006-11-22 15:05:39 cawe Exp $
+ * $Id: LwjglDriver.java,v 1.4 2007-02-14 19:50:48 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -122,9 +122,11 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
 
             if (m.getBitsPerPixel() != oldDisplayMode.getBitsPerPixel())
                 continue;
-            if (m.getFrequency() > oldDisplayMode.getFrequency())
+            if (m.getFrequency() > Math.max(60, oldDisplayMode.getFrequency()))
                 continue;
             if (m.getHeight() < 240 || m.getWidth() < 320)
+                continue;
+            if (m.getHeight() > oldDisplayMode.getHeight() || m.getWidth() > oldDisplayMode.getWidth())
                 continue;
 
             int j = 0;
