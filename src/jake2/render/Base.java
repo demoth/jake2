@@ -1,8 +1,6 @@
 /*
  * Base.java
  * Copyright (C) 2003
- *
- * $Id: Base.java,v 1.2 2006-11-21 00:51:22 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,13 +23,11 @@
  */
 package jake2.render;
 
-import jake2.client.refexport_t;
 import jake2.client.viddef_t;
 import jake2.game.cvar_t;
-import jake2.render.*;
-import jake2.render.opengl.*;
-
-import java.awt.Dimension;
+import jake2.render.opengl.GLDriver;
+import jake2.render.opengl.QGL;
+import jake2.render.opengl.QGLConst;
 
 /**
  * Base
