@@ -1,8 +1,6 @@
 /*
  * Image.java
  * Copyright (C) 2003
- *
- * $Id: Image.java,v 1.4 2007-01-10 03:01:31 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,11 +33,12 @@ import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.nio.*;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Image
@@ -119,18 +118,14 @@ public abstract class Image extends Main {
 	}
 
 	void GL_SelectTexture(int texture /* GLenum */) {
-		int tmu;
+		int tmu = (texture == TEXTURE0) ? 0 : 1;
 
-		tmu = (texture == TEXTURE0) ? 0 : 1;
-
-		if (tmu == gl_state.currenttmu) {
-			return;
+		if (tmu != gl_state.currenttmu) {
+			gl_state.currenttmu = tmu;
+			gl.glActiveTextureARB(texture);
+			gl.glClientActiveTextureARB(texture);
 		}
 
-		gl_state.currenttmu = tmu;
-
-		gl.glActiveTextureARB(texture);
-		gl.glClientActiveTextureARB(texture);
 	}
 
 	int[] lastmodes = { -1, -1 };
