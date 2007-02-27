@@ -18,16 +18,12 @@
  *  
  */
 // Created on 07.01.2000 by RST.
-// $Id: SV_WORLD.java,v 1.7 2004-09-22 19:22:12 salomo Exp $
+
 package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.GameBase;
-import jake2.game.cmodel_t;
-import jake2.game.edict_t;
-import jake2.game.link_t;
-import jake2.game.trace_t;
+import jake2.game.*;
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
 import jake2.util.Math3D;
@@ -105,8 +101,8 @@ public class SV_WORLD {
                 0, 0, 0 };
         anode = SV_WORLD.sv_areanodes[SV_WORLD.sv_numareanodes];
         // just for debugging (rst)
-        Math3D.VectorCopy(mins, anode.mins_rst);
-        Math3D.VectorCopy(maxs, anode.maxs_rst);
+//        Math3D.VectorCopy(mins, anode.mins_rst);
+//        Math3D.VectorCopy(maxs, anode.maxs_rst);
         SV_WORLD.sv_numareanodes++;
         ClearLink(anode.trigger_edicts);
         ClearLink(anode.solid_edicts);
@@ -317,8 +313,6 @@ public class SV_WORLD {
     public static void SV_AreaEdicts_r(areanode_t node) {
         link_t l, next, start;
         edict_t check;
-        int count;
-        count = 0;
         // touch linked edicts
         if (SV_WORLD.area_type == Defines.AREA_SOLID)
             start = node.solid_edicts;
@@ -375,7 +369,6 @@ public class SV_WORLD {
         int i, num;
         int contents, c2;
         int headnode;
-        float angles[];
         // get base contents from world
         contents = CM.PointContents(p, SV_INIT.sv.models[1].headnode);
         // or in contents from all the other entities
@@ -385,9 +378,8 @@ public class SV_WORLD {
             hit = SV_WORLD.touch[i];
             // might intersect, so do an exact clip
             headnode = SV_HullForEntity(hit);
-            angles = hit.s.angles;
-            if (hit.solid != Defines.SOLID_BSP)
-                angles = Globals.vec3_origin; // boxes don't rotate
+            if (hit.solid != Defines.SOLID_BSP) {
+	    }
             c2 = CM.TransformedPointContents(p, headnode, hit.s.origin,
                     hit.s.angles);
             contents |= c2;
