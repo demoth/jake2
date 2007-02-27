@@ -1,8 +1,6 @@
 /*
  * Mesh.java
  * Copyright (C) 2003
- *
- * $Id: Mesh.java,v 1.3 2007-02-27 13:32:34 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -72,17 +70,15 @@ public abstract class Mesh extends Light {
 
     void GL_LerpVerts(int nverts, int[] ov, int[] v,
             float[][] lerp, float[] move, float[] frontv, float[] backv) {
-        int i;
-        int lerpIndex = 0;
-        
-        int ovv, vv;
+
+	int ovv, vv;
 
         //PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
         if ((currententity.flags & (Defines.RF_SHELL_RED
                 | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
                 | Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0) {
             float[] normal;
-            for (i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
+            for (int i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
             ) {
                 vv = v[i];
                 normal = r_avertexnormals[(vv >>> 24) & 0xFF];
@@ -96,7 +92,7 @@ public abstract class Mesh extends Light {
                         * frontv[2] + normal[2] * Defines.POWERSUIT_SCALE;
             }
         } else {
-            for (i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
+            for (int i = 0; i < nverts; i++ /* , v++, ov++, lerp+=4 */
             ) {
                 vv = v[i];
                 ovv = ov[i];
@@ -112,9 +108,8 @@ public abstract class Mesh extends Light {
 
     void GL_LerpVerts(int nverts, int[] ov, int[] v, float[] move,
             float[] frontv, float[] backv) {
-        int lerpIndex = 0;
-
-        int ovv, vv;
+        
+	int ovv, vv;
         FloatBuffer lerp = vertexArrayBuf;
 
         //PMM -- added RF_SHELL_DOUBLE, RF_SHELL_HALF_DAM
@@ -380,11 +375,7 @@ public abstract class Mesh extends Light {
     void GL_DrawAliasShadow(qfiles.dmdl_t paliashdr, int posenum) {
         float[] point = { 0, 0, 0 };
         int count;
-        qfiles.daliasframe_t frame;
-
         float lheight = currententity.origin[2] - lightspot[2];
-
-        frame = paliashdr.aliasFrames[currententity.frame];
 
         int[] order = paliashdr.glCmds;
 

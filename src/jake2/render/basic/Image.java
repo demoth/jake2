@@ -1,8 +1,6 @@
 /*
  * Image.java
  * Copyright (C) 2003
- *
- * $Id: Image.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,11 +27,7 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.client.particle_t;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.longjmpException;
-import jake2.qcommon.qfiles;
+import jake2.qcommon.*;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Vargs;
@@ -42,7 +36,9 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 
@@ -548,7 +544,6 @@ public abstract class Image extends Main {
         int row, column;
         byte[] raw;
         ByteBuffer buf_p;
-        int length;
         qfiles.tga_t targa_header;
         byte[] pic = null;
 
@@ -1258,7 +1253,6 @@ public abstract class Image extends Main {
             return false;
         } else {
             int p;
-            int rgb;
             for (int i = 0; i < s; i++) {
                 p = data[i] & 0xff;
                 trans[i] = d_8to24table[p];
@@ -1564,13 +1558,11 @@ public abstract class Image extends Main {
      */
     protected void Draw_GetPalette() {
         int r, g, b;
-        Dimension dim;
-        byte[] pic;
         byte[][] palette = new byte[1][]; //new byte[768];
 
         // get the palette
 
-        pic = LoadPCX("pics/colormap.pcx", palette, dim = new Dimension());
+        LoadPCX("pics/colormap.pcx", palette, new Dimension());
 
         if (palette[0] == null || palette[0].length != 768)
             Com.Error(Defines.ERR_FATAL, "Couldn't load pics/colormap.pcx");

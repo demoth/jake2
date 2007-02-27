@@ -1,8 +1,6 @@
 /*
  * Light.java
  * Copyright (C) 2003
- *
- * $Id: Light.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,7 +26,6 @@ package jake2.render.basic;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.dlight_t;
-import jake2.client.lightstyle_t;
 import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.longjmpException;
@@ -463,7 +460,6 @@ public abstract class Light extends Warp {
         float[] scale = { 0, 0, 0, 0 };
         int nummaps;
         float[] bl;
-        lightstyle_t style;
         int monolightmap;
 
         if ((surf.texinfo.flags & (Defines.SURF_SKY | Defines.SURF_TRANS33
@@ -487,7 +483,6 @@ public abstract class Light extends Warp {
 
                 for (maps = 0; maps < Defines.MAXLIGHTMAPS
                         && surf.styles[maps] != (byte) 255; maps++) {
-                    style = r_newrefdef.lightstyles[surf.styles[maps] & 0xFF];
                 }
                 // goto store;
                 throw new longjmpException();

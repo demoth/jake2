@@ -1,8 +1,6 @@
 /*
  * FS.java
  * Copyright (C) 2003
- * 
- * $Id: FS.java,v 1.15 2005-11-13 13:36:00 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -166,7 +164,6 @@ public final class FS extends Globals {
         searchpath_t search;
         String netpath;
         pack_t pak;
-        int i;
         filelink_t link;
 
         file_from_pak = 0;
@@ -239,7 +236,6 @@ public final class FS extends Globals {
         searchpath_t search;
         String netpath;
         pack_t pak;
-        int i;
         filelink_t link;
         File file = null;
 
@@ -319,13 +315,11 @@ public final class FS extends Globals {
      */
     public static void Read(byte[] buffer, int len, RandomAccessFile f) {
 
-        int block, remaining;
         int offset = 0;
         int read = 0;
-        boolean tries = true;
-
         // read in chunks for progress bar
-        remaining = len;
+        int remaining = len;
+        int block;
 
         while (remaining != 0) {
             block = Math.min(remaining, MAX_READ);
@@ -393,7 +387,6 @@ public final class FS extends Globals {
         searchpath_t search;
         String netpath;
         pack_t pak;
-        int i;
         filelink_t link;
         File file = null;
 
@@ -955,15 +948,9 @@ public final class FS extends Globals {
      */
     public static int Developer_searchpath(int who) {
 
-        int ch;
         // PMM - warning removal
         //	 char *start;
         searchpath_t s;
-
-        if (who == 1) // xatrix
-            ch = 'x';
-        else if (who == 2)
-            ch = 'r';
 
         for (s = fs_searchpaths; s != null; s = s.next) {
             if (s.filename.indexOf("xatrix") != -1)
