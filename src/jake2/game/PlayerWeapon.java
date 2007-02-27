@@ -20,14 +20,11 @@
 
 // Created on 16.11.2003 by RST.
 
-// $Id: PlayerWeapon.java,v 1.2 2005-11-20 22:18:33 salomo Exp $
-
 package jake2.game;
 
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.monsters.M_Player;
-import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 

@@ -1,8 +1,6 @@
 /*
  * CL_parse.java
  * Copyright (C) 2004
- * 
- * $Id: CL_parse.java,v 1.21 2005-02-19 21:16:03 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,7 +32,6 @@ import jake2.render.model_t;
 import jake2.sound.S;
 import jake2.sys.Sys;
 import jake2.util.Lib;
-import jake2.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

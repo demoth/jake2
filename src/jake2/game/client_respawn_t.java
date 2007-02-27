@@ -18,18 +18,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Created on 31.10.2003 by RST.
-// $Id: client_respawn_t.java,v 1.6 2004-09-10 19:02:54 salomo Exp $
 
 package jake2.game;
 
-import jake2.qcommon.Com;
-import jake2.util.Lib;
 import jake2.util.Math3D;
 import jake2.util.QuakeFile;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 
 /** Client data that stays across deathmatch respawns.*/
 public class client_respawn_t

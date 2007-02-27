@@ -19,17 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: moveclip_t.java,v 1.2 2005-01-14 16:14:02 cawe Exp $
 
 package jake2.server;
 
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.game.edict_t;
+import jake2.game.trace_t;
 import jake2.util.Math3D;
 
 public class moveclip_t 

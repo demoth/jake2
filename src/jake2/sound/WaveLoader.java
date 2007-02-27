@@ -1,8 +1,6 @@
 /*
  * SND_MEM.java
  * Copyright (C) 2004
- * 
- * $Id: WaveLoader.java,v 1.7 2006-01-01 15:07:30 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,12 +26,6 @@ package jake2.sound;
 import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.qcommon.FS;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.ByteOrder;
-
-import javax.sound.sampled.*;
 
 /**
  * SND_MEM

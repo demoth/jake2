@@ -19,18 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: TestCMD.java,v 1.2 2004-07-09 06:50:51 hzi Exp $
 
 package jake2.qcommon;
 
-import java.io.*;
+import jake2.game.Cmd;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class TestCMD {
 

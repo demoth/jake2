@@ -19,16 +19,14 @@
  */
 
 // Created on 17.12.2003 by RST.
-// $Id: Monster.java,v 1.7 2005-11-20 22:18:33 salomo Exp $
+
 package jake2.game;
 
 import jake2.Defines;
 import jake2.client.M;
-import jake2.qcommon.CM;
 import jake2.qcommon.Com;
-import jake2.util.*;
-
-import java.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
 public class Monster {
 

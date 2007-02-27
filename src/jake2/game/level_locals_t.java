@@ -19,15 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST
-// $Id: level_locals_t.java,v 1.2 2004-08-20 21:29:57 salomo Exp $
 
 package jake2.game;
 
-import jake2.util.Lib;
 import jake2.util.QuakeFile;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 public class level_locals_t
 {

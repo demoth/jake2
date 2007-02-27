@@ -19,14 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.01.2004 by RST.
-// $Id: SuperAdapter.java,v 1.9 2005-11-20 22:25:28 salomo Exp $
 
 package jake2.game;
 
 import jake2.qcommon.Com;
 
 import java.util.Hashtable;
-import java.util.Vector;
 
 public abstract class SuperAdapter {
 

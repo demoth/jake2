@@ -19,16 +19,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 13.01.2004 by RST.
-// $Id: client_t.java,v 1.2 2004-08-22 14:25:13 salomo Exp $
 
 package jake2.server;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.game.edict_t;
+import jake2.game.usercmd_t;
+import jake2.qcommon.netchan_t;
+import jake2.qcommon.sizebuf_t;
 
 public class client_t {
 

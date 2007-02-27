@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: pmove_state_t.java,v 1.3 2005-01-21 01:08:48 cawe Exp $
+
 package jake2.game;
 
 import jake2.qcommon.Com;
@@ -27,7 +27,6 @@ import jake2.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 
 public class pmove_state_t {
 	//	this structure needs to be communicated bit-accurate

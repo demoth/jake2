@@ -19,23 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 07.01.2000 by RST.
-// $Id: CircleListener.java,v 1.1 2004-07-07 19:59:56 hzi Exp $
 
 package jake2.client;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import java.awt.Robot;
-
-
-
-// import jake2.*;
-// import jake2.client.*;
-// import jake2.game.*;
-// import jake2.qcommon.*;
-// import jake2.render.*;
-// import jake2.server.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 class CircleListener implements ActionListener {
     Robot robot;

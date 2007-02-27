@@ -19,16 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 20.11.2003 by RST.
-// $Id: msurface_t.java,v 1.4 2005-01-14 16:13:07 cawe Exp $
 
 package jake2.render;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import jake2.Defines;
+import jake2.game.cplane_t;
 
-import jake2.game.*;
-import jake2.qcommon.texinfo_t;
-import jake2.*;
+import java.nio.ByteBuffer;
 
 public class msurface_t
 {
