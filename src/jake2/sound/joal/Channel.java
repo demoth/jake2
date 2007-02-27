@@ -2,8 +2,6 @@
  * Created on Jun 19, 2004
  * 
  * Copyright (C) 2003
- *
- * $Id: Channel.java,v 1.10 2006-11-23 13:43:59 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -60,7 +58,6 @@ public class Channel {
 	private static int[] buffers;
 	private static Map looptable = new Hashtable(MAX_CHANNELS);
 
-	private static boolean isInitialized = false;
 	private static int numChannels; 
 
     // stream handling
@@ -135,7 +132,6 @@ public class Channel {
 			al.alSourcef (sourceId, AL.AL_MIN_GAIN, 0.0005f);
 			al.alSourcef (sourceId, AL.AL_MAX_GAIN, 1.0f);
 		}
-		isInitialized = true;
 		return numChannels;
 	}
 	
@@ -150,7 +146,6 @@ public class Channel {
 	static void shutdown() {
 		al.alDeleteSources(numChannels, sources, 0);
 		numChannels = 0;
-		isInitialized = false;
 	}
     
     static void enableStreaming() {
