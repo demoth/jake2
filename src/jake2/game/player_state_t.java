@@ -19,19 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: player_state_t.java,v 1.4 2004-08-20 21:29:58 salomo Exp $
 
 package jake2.game;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-
-import jake2.*;
-import jake2.*;
+import jake2.Defines;
 import jake2.qcommon.Com;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /** 
  	Player_state_t is the information needed in addition to pmove_state_t

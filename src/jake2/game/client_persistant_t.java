@@ -19,17 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: client_persistant_t.java,v 1.7 2005-02-06 18:52:55 salomo Exp $
 
 package jake2.game;
 
 import jake2.Defines;
-import jake2.util.Lib;
 import jake2.util.QuakeFile;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 
 public class client_persistant_t {
 

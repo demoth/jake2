@@ -19,11 +19,7 @@
  */
 
 // Created on 20.11.2003 by RST.
-// $Id: gitem_t.java,v 1.5 2005-02-06 19:08:00 salomo Exp $
 package jake2.game;
-
-import jake2.*;
-import jake2.*;
 
 public class gitem_t {
     private static int id = 0;

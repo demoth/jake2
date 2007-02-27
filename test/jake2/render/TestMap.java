@@ -1,8 +1,6 @@
 /*
  * TestMap.java
  * Copyright (C) 2003
- *
- * $Id: TestMap.java,v 1.8 2007-01-02 13:42:47 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,15 +28,16 @@ import jake2.Globals;
 import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sys.IN;
 import jake2.sys.KBD;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
 
-import java.awt.Dimension;
 import java.nio.FloatBuffer;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Locale;
 
 /**
  * TestMap

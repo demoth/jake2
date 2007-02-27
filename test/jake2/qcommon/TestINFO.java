@@ -19,15 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 29.12.2003 by RST.
-// $Id: TestINFO.java,v 1.3 2005-12-27 21:02:30 salomo Exp $
 
 package jake2.qcommon;
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.game.Info;
 
 public class TestINFO {
 

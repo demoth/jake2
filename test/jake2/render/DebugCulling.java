@@ -1,8 +1,6 @@
 /*
  * DebugCulling.java
  * Copyright (C) 2003
- *
- * $Id: DebugCulling.java,v 1.4 2004-12-14 01:08:32 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -28,13 +26,9 @@ package jake2.render;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.client.*;
-import jake2.game.Cmd;
-import jake2.game.cvar_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Qcommon;
 import jake2.sys.KBD;
-import jake2.util.Vargs;
-
-import java.awt.Dimension;
 
 /**
  * DebugCulling
@@ -69,7 +63,7 @@ public class DebugCulling
 	void init()
 	{
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.4 2004-12-14 01:08:32 cawe Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.5 2007-02-27 14:00:35 cawe Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 

@@ -19,19 +19,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_SEND.java,v 1.10 2005-12-18 22:10:12 cawe Exp $
 
 package jake2.server;
 
-import java.io.IOException;
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
+import jake2.Defines;
+import jake2.Globals;
+import jake2.game.EndianHandler;
+import jake2.game.edict_t;
 import jake2.qcommon.*;
-import jake2.render.*;
 import jake2.util.Lib;
 import jake2.util.Math3D;
+
+import java.io.IOException;
 
 public class SV_SEND {
 	/*

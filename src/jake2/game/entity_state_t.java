@@ -19,15 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 08.11.2003 by RST.
-// $Id: entity_state_t.java,v 1.5 2005-06-05 15:21:47 salomo Exp $
 
 package jake2.game;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
 import jake2.util.Math3D;
 import jake2.util.QuakeFile;
+
+import java.io.IOException;
 
 public class entity_state_t implements Cloneable
 {

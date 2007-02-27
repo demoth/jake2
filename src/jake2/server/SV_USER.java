@@ -19,25 +19,13 @@
  */
 
 // Created on 17.01.2004 by RST.
-// $Id: SV_USER.java,v 1.10 2005-12-17 20:32:01 salomo Exp $
+
 package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.Cmd;
-import jake2.game.GameAI;
-import jake2.game.GameBase;
-import jake2.game.Info;
-import jake2.game.PlayerClient;
-import jake2.game.edict_t;
-import jake2.game.entity_state_t;
-import jake2.game.usercmd_t;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
-import jake2.qcommon.SZ;
+import jake2.game.*;
+import jake2.qcommon.*;
 import jake2.util.Lib;
 
 import java.io.IOException;

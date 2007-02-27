@@ -1,8 +1,6 @@
 /*
  * SCR.java
  * Copyright (C) 2003
- * 
- * $Id: SCR.java,v 1.18 2005-12-04 17:32:42 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -32,14 +30,11 @@ import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sound.S;
-import jake2.sys.Sys;
 import jake2.sys.Timer;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;

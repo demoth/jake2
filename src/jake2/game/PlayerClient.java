@@ -20,13 +20,10 @@
 
 // Created on 28.12.2003 by RST.
 
-// $Id: PlayerClient.java,v 1.12 2005-12-27 21:02:30 salomo Exp $
-
 package jake2.game;
 
 import jake2.Defines;
 import jake2.game.monsters.M_Player;
-import jake2.game.pmove_t.TraceAdapter;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 

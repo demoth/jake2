@@ -19,17 +19,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on on 12.11.2003 by RST.
-// $Id: GameWeapon.java,v 1.6 2005-11-20 22:18:33 salomo Exp $
 
 package jake2.game;
 
-
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.Globals;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 

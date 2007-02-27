@@ -20,12 +20,9 @@
 
 // Created on 18.11.2003 by RST.
 
-// $Id: GameSpawn.java,v 1.17 2006-01-21 21:53:32 salomo Exp $
-
 package jake2.game;
 
 import jake2.Defines;
-import jake2.Globals;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.util.Lib;

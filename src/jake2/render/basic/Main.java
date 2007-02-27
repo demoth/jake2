@@ -1,8 +1,6 @@
 /*
  * Main.java
  * Copyright (C) 2003
- *
- * $Id: Main.java,v 1.3 2006-11-22 15:05:38 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -26,12 +24,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.basic;
 
 import jake2.Defines;
-import jake2.Globals;
 import jake2.client.*;
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.cplane_t;
+import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.render.*;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+import jake2.util.Vargs;
 
 import java.awt.Dimension;
 import java.nio.FloatBuffer;

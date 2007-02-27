@@ -19,15 +19,15 @@
  */
 
 // Created on 04.11.2003 by RST.
-// $Id: edict_t.java,v 1.7 2005-02-19 21:17:44 salomo Exp $
+
 package jake2.game;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
-import jake2.*;
+import jake2.Defines;
 import jake2.qcommon.Com;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.QuakeFile;
+
+import java.io.IOException;
 
 public class edict_t {
 

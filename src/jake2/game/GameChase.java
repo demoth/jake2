@@ -19,17 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 16.11.2005 by RST.
-// $Id: GameChase.java,v 1.2 2006-01-21 21:53:32 salomo Exp $
 
 package jake2.game;
 
 
-import jake2.*;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
-import jake2.render.*;
-import jake2.server.*;
+import jake2.Defines;
+import jake2.Globals;
+import jake2.server.SV_WORLD;
 import jake2.util.Math3D;
 
 
