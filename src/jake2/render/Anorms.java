@@ -1,8 +1,6 @@
 /*
  * Anorms.java
  * Copyright (C) 2003
- *
- * $Id: Anorms.java,v 1.1 2007-02-27 13:32:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
