@@ -202,12 +202,6 @@ public final class JOALSoundImpl implements Sound {
 	private int currentEnv = -1;
 	private boolean changeEnv = true;
 	
-	// TODO workaround for JOAL-bug
-	// should be EAX.LISTENER
-	private final static int EAX_LISTENER = 0;
-	// should be EAX.SOURCE
-	private final static int EAX_SOURCE = 1;
-
 	/* (non-Javadoc)
 	 * @see jake2.sound.SoundImpl#Update(float[], float[], float[], float[])
 	 */
@@ -225,7 +219,7 @@ public final class JOALSoundImpl implements Sound {
 			// workaround for environment initialisation
 			if (currentEnv == -1) {
 				eaxEnv.put(0, EAX.EAX_ENVIRONMENT_UNDERWATER);
-				eax.EAXSet(EAX_LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
+				eax.EAXSet(EAX.LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
 				changeEnv = true;
 			}
 
@@ -238,7 +232,7 @@ public final class JOALSoundImpl implements Sound {
 			}
 			if (changeEnv) {
 				eaxEnv.put(0, currentEnv);
-				eax.EAXSet(EAX_LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
+				eax.EAXSet(EAX.LISTENER, EAX.DSPROPERTY_EAXLISTENER_ENVIRONMENT | EAX.DSPROPERTY_EAXLISTENER_DEFERRED, 0, eaxEnv, 4);
 			}
 		}
 
