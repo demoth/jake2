@@ -2,7 +2,7 @@
  * Anorms.java
  * Copyright (C) 2003
  *
- * $Id: Anorms.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Anorms.java,v 1.1 2007-02-27 13:32:34 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.render.fast;
+package jake2.render;
 
 /**
  * Anorms

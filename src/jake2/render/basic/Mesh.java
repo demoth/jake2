@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Mesh.java,v 1.3 2007-02-27 13:32:34 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.client.VID;
 import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
+import jake2.render.Anorms;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
