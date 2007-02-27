@@ -1,8 +1,6 @@
 /*
  * Surf.java
  * Copyright (C) 2003
- *
- * $Id: Surf.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -681,9 +679,8 @@ public abstract class Surf extends Draw {
 
 	void GL_RenderLightmappedPoly( msurface_t surf )
 	{
-		int i, nv = surf.polys.numverts;
-		int map = 0;
-		float[] v;
+		int nv = surf.polys.numverts;
+		int map;
 		image_t image = R_TextureAnimation( surf.texinfo );
 		boolean is_dynamic = false;
 		int lmtex = surf.lightmaptexturenum;
@@ -777,7 +774,7 @@ public abstract class Surf extends Draw {
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
 					gl.glBegin (GL_POLYGON);
-					for (i=0 ; i< nv; i++)
+					for (int i=0 ; i< nv; i++)
 					{
 						gl.glMultiTexCoord2f(GL_TEXTURE0, p.s1(i) + scroll, p.t1(i));
 						gl.glMultiTexCoord2f(GL_TEXTURE1, p.s2(i), p.t2(i));
@@ -793,7 +790,7 @@ public abstract class Surf extends Draw {
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
 					gl.glBegin (GL_POLYGON);
-					for (i=0 ; i< nv; i++)
+					for (int i=0 ; i< nv; i++)
 					{
 						gl.glMultiTexCoord2f(GL_TEXTURE0, p.s1(i), p.t1(i));
 						gl.glMultiTexCoord2f(GL_TEXTURE1, p.s2(i), p.t2(i));
@@ -827,7 +824,7 @@ public abstract class Surf extends Draw {
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
 					gl.glBegin(GL_POLYGON);
-					for (i=0 ; i< nv; i++)
+					for (int i=0 ; i< nv; i++)
 					{
 						gl.glMultiTexCoord2f(GL_TEXTURE0, p.s1(i) + scroll, p.t1(i));
 						gl.glMultiTexCoord2f(GL_TEXTURE1, p.s2(i), p.t2(i));
@@ -845,7 +842,7 @@ public abstract class Surf extends Draw {
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
 					gl.glBegin (GL_POLYGON);
-					for (i=0 ; i< nv; i++)
+					for (int i=0 ; i< nv; i++)
 					{
 						gl.glMultiTexCoord2f(GL_TEXTURE0, p.s1(i), p.t1(i));
 						gl.glMultiTexCoord2f(GL_TEXTURE1, p.s2(i), p.t2(i));
@@ -1387,7 +1384,6 @@ public abstract class Surf extends Draw {
 	boolean LM_AllocBlock (int w, int h, pos_t pos)
 	{
 		int x = pos.x; 
-		int y = pos.y;
 		int i, j;
 		int best, best2;
 
@@ -1407,7 +1403,7 @@ public abstract class Surf extends Draw {
 			if (j == w)
 			{	// this is a valid spot
 				pos.x = x = i;
-				pos.y = y = best = best2;
+				pos.y = best = best2;
 			}
 		}
 
@@ -1427,10 +1423,9 @@ public abstract class Surf extends Draw {
 	*/
 	void GL_BuildPolygonFromSurface(msurface_t fa)
 	{
-		int i, lindex, lnumverts;
+		int lindex, lnumverts;
 		medge_t[] pedges;
 		medge_t r_pedge;
-		int vertpage;
 		float[] vec;
 		float s, t;
 		glpoly_t	poly;
@@ -1439,8 +1434,6 @@ public abstract class Surf extends Draw {
 		// reconstruct the polygon
 		pedges = currentmodel.edges;
 		lnumverts = fa.numedges;
-		vertpage = 0;
-
 		Math3D.VectorClear(total);
 		//
 		// draw texture
@@ -1452,7 +1445,7 @@ public abstract class Surf extends Draw {
 		poly.flags = fa.flags;
 		fa.polys = poly;
 
-		for (i=0 ; i<lnumverts ; i++)
+		for (int i=0 ; i<lnumverts ; i++)
 		{
 			lindex = currentmodel.surfedges[fa.firstedge + i];
 

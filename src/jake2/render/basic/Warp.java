@@ -2,7 +2,7 @@
  * Warp.java
  * Copyright (C) 2003
  *
- * $Id: Warp.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Warp.java,v 1.3 2007-02-27 14:37:25 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -350,8 +350,7 @@ public abstract class Warp extends Model {
         float[] av = { 0, 0, 0 };
         float s, t, dv;
         int axis;
-        float[] vp;
-
+        
         c_sky++;
         // decide which face it maps to
         Math3D.VectorCopy(Globals.vec3_origin, v);

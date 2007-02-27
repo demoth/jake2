@@ -1,8 +1,6 @@
 /*
  * Q2DataDialog.java
  * Copyright (C)  2003
- * 
- * $Id: Q2DataDialog.java,v 1.14 2005-05-26 16:56:32 hzi Exp $
  */
 
 package jake2.qcommon;
@@ -14,7 +12,9 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -220,7 +220,6 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private javax.swing.JButton changeButton;
     private javax.swing.JButton exitButton;
     private javax.swing.JButton cancelButton;
-    private Jake2Canvas canvas;
     private javax.swing.JPanel choosePanel;
     private JPanel statusPanel;
     private ProgressPanel progressPanel;
@@ -534,7 +533,6 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			InputStream in = getClass().getResourceAsStream("/mirrors");
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));
 			try {
-				int i = 0;
 				while (true) {
 					String name = r.readLine();
 					String value = r.readLine();

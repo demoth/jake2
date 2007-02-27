@@ -17,8 +17,6 @@ public class LWJGLKBD extends KBD {
 	private char[] lwjglKeycodeMap = null;
 	private int pressed[] = null;
 	
-	private boolean mouseHasTwoButtons = false;
-	
 	public void Init()
 	{
 		try
@@ -28,8 +26,6 @@ public class LWJGLKBD extends KBD {
 						
 			if (lwjglKeycodeMap == null) lwjglKeycodeMap = new char[256];
 			if (pressed == null) pressed = new int[256];
-			
-			mouseHasTwoButtons = (Mouse.getButtonCount() == 2);
 			
 			lastRepeat = Timer.Milliseconds();
 		} catch (Exception e) {;}	
