@@ -46,8 +46,8 @@ import org.lwjgl.BufferUtils;
  * Thrown by the debug build library of the LWJGL if any OpenGL operation causes an error.
  *
  * @author cix_foo <cix_foo@users.sourceforge.net>
- * @version $Revision: 1.1 $
- * $Id: GLChecks.java,v 1.1 2007-03-17 15:59:54 cawe Exp $
+ * @version $Revision: 1.2 $
+ * $Id: GLChecks.java,v 1.2 2007-03-17 16:02:53 cawe Exp $
  */
 class GLChecks {
 
@@ -80,57 +80,34 @@ class GLChecks {
 	
 	/** Helper method to ensure that array buffer objects are disabled. If they are enabled, we'll throw an OpenGLException */
 	static void ensureArrayVBOdisabled(ContextCapabilities caps) {
-		if ((caps.OpenGL15 && !checkBufferObject(caps, GL15.GL_ARRAY_BUFFER_BINDING, false) ||
-					(caps.GL_ARB_vertex_buffer_object && !checkBufferObject(caps, ARBVertexBufferObject.GL_ARRAY_BUFFER_BINDING_ARB, false))))
-			throw new OpenGLException("Cannot use Buffers when Array Buffer Object is enabled");
 	}
 
 	/** Helper method to ensure that array buffer objects are enabled. If they are disabled, we'll throw an OpenGLException */
 	static void ensureArrayVBOenabled(ContextCapabilities caps) {
-		if ((caps.OpenGL15 && !checkBufferObject(caps, GL15.GL_ARRAY_BUFFER_BINDING, true) ||
-					(caps.GL_ARB_vertex_buffer_object && !checkBufferObject(caps, ARBVertexBufferObject.GL_ARRAY_BUFFER_BINDING_ARB, true))))
-			throw new OpenGLException("Cannot use offsets when Array Buffer Object is disabled");
 	}
 
 	/** Helper method to ensure that element array buffer objects are disabled. If they are enabled, we'll throw an OpenGLException */
 	static void ensureElementVBOdisabled(ContextCapabilities caps) {
-		if ((caps.OpenGL15 && !checkBufferObject(caps, GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING, false) ||
-					(caps.GL_ARB_vertex_buffer_object && !checkBufferObject(caps, ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_BINDING_ARB, false))))
-			throw new OpenGLException("Cannot use Buffers when Element Array Buffer Object is enabled");
 	}
 
 	/** Helper method to ensure that element array buffer objects are enabled. If they are disabled, we'll throw an OpenGLException */
 	static void ensureElementVBOenabled(ContextCapabilities caps) {
-		if ((caps.OpenGL15 && !checkBufferObject(caps, GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING, true) ||
-					(caps.GL_ARB_vertex_buffer_object && !checkBufferObject(caps, ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_BINDING_ARB, true))))
-			throw new OpenGLException("Cannot use offsets when Element Array Buffer Object is disabled");
 	}
 
 	/** Helper method to ensure that pixel pack buffer objects are disabled. If they are enabled, we'll throw an OpenGLException */
 	static void ensurePackPBOdisabled(ContextCapabilities caps) {
-		if ((caps.GL_ARB_pixel_buffer_object && !checkBufferObject(caps, ARBPixelBufferObject.GL_PIXEL_PACK_BUFFER_BINDING_ARB, false) || (caps.GL_EXT_pixel_buffer_object && !checkBufferObject(caps, EXTPixelBufferObject.GL_PIXEL_PACK_BUFFER_BINDING_EXT, false))))
-			throw new OpenGLException("Cannot use Buffers when Pixel Pack Buffer Object is enabled");
 	}
 
 	/** Helper method to ensure that pixel pack buffer objects are enabled. If they are disabled, we'll throw an OpenGLException */
 	static void ensurePackPBOenabled(ContextCapabilities caps) {
-		if ((caps.GL_ARB_pixel_buffer_object && !checkBufferObject(caps, ARBPixelBufferObject.GL_PIXEL_PACK_BUFFER_BINDING_ARB, true) ||
-					(caps.GL_EXT_pixel_buffer_object && !checkBufferObject(caps, EXTPixelBufferObject.GL_PIXEL_PACK_BUFFER_BINDING_EXT, true))))
-			throw new OpenGLException("Cannot use offsets when Pixel Pack Buffer Object is disabled");
 	}
 
 	/** Helper method to ensure that pixel unpack buffer objects are disabled. If they are enabled, we'll throw an OpenGLException */
 	static void ensureUnpackPBOdisabled(ContextCapabilities caps) {
-		if ((caps.GL_ARB_pixel_buffer_object && !checkBufferObject(caps, ARBPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB, false) ||
-					(caps.GL_EXT_pixel_buffer_object && !checkBufferObject(caps, EXTPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_BINDING_EXT, false))))
-			throw new OpenGLException("Cannot use Buffers when Pixel Unpack Buffer Object is enabled");
 	}
 
 	/** Helper method to ensure that pixel unpack buffer objects are enabled. If they are disabled, we'll throw an OpenGLException */
 	static void ensureUnpackPBOenabled(ContextCapabilities caps) {
-		if ((caps.GL_ARB_pixel_buffer_object && !checkBufferObject(caps, ARBPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_BINDING_ARB, true) ||
-					(caps.GL_EXT_pixel_buffer_object && !checkBufferObject(caps, EXTPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_BINDING_EXT, true))))
-			throw new OpenGLException("Cannot use offsets when Pixel Unpack Buffer Object is disabled");
 	}
 
 	/**

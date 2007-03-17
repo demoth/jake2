@@ -46,8 +46,8 @@ import java.nio.LongBuffer;
  * </p>
  * @author cix_foo <cix_foo@users.sourceforge.net>
  * @author elias_naur <elias_naur@users.sourceforge.net>
- * @version $Revision: 1.1 $
- * $Id: BufferChecks.java,v 1.1 2007-03-17 15:59:54 cawe Exp $
+ * @version $Revision: 1.2 $
+ * $Id: BufferChecks.java,v 1.2 2007-03-17 16:02:17 cawe Exp $
  */
 public class BufferChecks {
 	/** Static methods only! */
@@ -63,118 +63,60 @@ public class BufferChecks {
 	 * Helper methods to ensure a function pointer is not-null (0)
 	 */
 	public static void checkFunctionAddress(long pointer) {
-		if (pointer == 0) {
-			throw new IllegalStateException("Function is not supported");
-		}
 	}
 
 	/**
 	 * Helper methods to ensure a ByteBuffer is null-terminated
 	 */
 	public static void checkNullTerminated(ByteBuffer buf) {
-		if (buf.get(buf.limit() - 1) != 0) {
-			throw new IllegalArgumentException("Missing null termination");
-		}
 	}
 
 	public static void checkNotNull(Object o) {
-		if (o == null)
-			throw new IllegalArgumentException("Null argument");
 	}
 
 	/**
 	 * Helper methods to ensure a buffer is direct or null.
 	 */
 	public static void checkDirectOrNull(ByteBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	public static void checkDirectOrNull(ShortBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	public static void checkDirectOrNull(IntBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	public static void checkDirectOrNull(LongBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	public static void checkDirectOrNull(FloatBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	public static void checkDirectOrNull(DoubleBuffer buf) {
-		if (buf != null) {
-			checkDirect(buf);
-		}
 	}
 
 	/**
 	 * Helper methods to ensure a buffer is direct (and, implicitly, non-null).
 	 */
 	public static void checkDirectBuffer(Buffer buf) {
-		if (buf instanceof FloatBuffer)
-			checkDirect((FloatBuffer)buf);
-		else if (buf instanceof ByteBuffer)
-			checkDirect((ByteBuffer)buf);
-		else if (buf instanceof ShortBuffer)
-			checkDirect((ShortBuffer)buf);
-		else if (buf instanceof IntBuffer)
-			checkDirect((IntBuffer)buf);
-		else if (buf instanceof LongBuffer)
-			checkDirect((LongBuffer)buf);
-		else if (buf instanceof DoubleBuffer)
-			checkDirect((DoubleBuffer)buf);
-		else
-			throw new IllegalStateException("Unsupported buffer type");
 	}
 
 	public static void checkDirect(ByteBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("ByteBuffer is not direct");
-		}
 	}
 
 	public static void checkDirect(ShortBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("ShortBuffer is not direct");
-		}
 	}
 
 	public static void checkDirect(IntBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("IntBuffer is not direct");
-		}
 	}
 
 	public static void checkDirect(LongBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("LongBuffer is not direct");
-		}
 	}
 
 	public static void checkDirect(FloatBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("FloatBuffer is not direct");
-		}
 	}
 
 	public static void checkDirect(DoubleBuffer buf) {
-		if (!buf.isDirect()) {
-			throw new IllegalArgumentException("DoubleBuffer is not direct");
-		}
 	}
 
 	/**
@@ -195,39 +137,24 @@ public class BufferChecks {
 	 * @throws IllegalArgumentException
 	 */
 	private static void checkBufferSize(Buffer buf, int size) {
-		if (buf.remaining() < size) {
-			throwBufferSizeException(buf, size);
-		}
 	}
 
 	public static void checkBuffer(ByteBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	public static void checkBuffer(ShortBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	public static void checkBuffer(IntBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	public static void checkBuffer(LongBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	public static void checkBuffer(FloatBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	public static void checkBuffer(DoubleBuffer buf, int size) {
-		checkBufferSize(buf, size);
-		checkDirect(buf);
 	}
 
 	/**
@@ -241,26 +168,20 @@ public class BufferChecks {
 	 * @throws IllegalArgumentException
 	 */
 	public static void checkBuffer(ByteBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 
 	public static void checkBuffer(ShortBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 
 	public static void checkBuffer(IntBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 
 	public static void checkBuffer(LongBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 
 	public static void checkBuffer(FloatBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 
 	public static void checkBuffer(DoubleBuffer buf) {
-		checkBuffer(buf, DEFAULT_BUFFER_SIZE);
 	}
 }
