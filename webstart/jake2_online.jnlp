@@ -34,11 +34,9 @@
 		<argument>+set</argument>
 		<argument>adr0</argument>
 		<argument>jake2.in-chemnitz.de</argument>
-<!--
-	<argument>+set</argument>
-	<argument>clientport</argument>
-	<argument>27910</argument>			
--->
+		<argument>+set</argument>
+		<argument>clientport</argument>
+		<argument>27910</argument>
 		<argument>+connect</argument>
 		<argument>88.198.147.212</argument>					
 	</application-desc> 
