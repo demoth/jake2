@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0+" 
-	codebase="http://www.bytonic.de/downloads"
+	codebase="http://jake2.in-chemnitz.de/downloads"
 	href="jake2_lwjgl.jnlp">
 	
 	<information>
@@ -8,7 +8,7 @@
 		<vendor>Bytonic Software</vendor>
 		<homepage href="http://www.bytonic.de/html/jake2.html"/>
 		<description>Java port of the Quake2 game engine</description>
-		<icon href="http://jake2.sourceforge.net/icon.gif"/>
+		<icon href="http://jake2.in-chemnitz.de/downloads/icon.gif"/>
 		<offline-allowed/>
 	</information>
 	
@@ -18,10 +18,23 @@
 	
 	<resources>
 		<j2se version="1.4+" max-heap-size="100M"/>
-		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
-		<extension name="lwjgl" href="http://lwjgl.org/jnlp/extension.php"/>
+		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
+		<jar href="http://jake2.in-chemnitz.de/downloads/lib/lwjgl.jar"/>
+		<jar href="http://jake2.in-chemnitz.de/downloads/lib/lwjgl_util.jar"/>
+	</resources>
+	
+	<resources os="Linux">
+		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/linux/lwjgl-native.jar"/>
+	</resources>
+	
+	<resources os="Windows">
+		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/windows/lwjgl-native.jar"/>
 	</resources>
 
+	<resources os="Mac OS X">
+		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/osx/lwjgl-native.jar"/>	
+	</resources>
+	
 	<application-desc main-class="jake2.Jake2">
 		<argument>+set</argument>
 		<argument>vid_ref</argument>

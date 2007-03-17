@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0+" 
-	codebase="http://www.bytonic.de/downloads"
+	codebase="http://jake2.in-chemnitz.de/downloads"
 	href="jake2_jsr231.jnlp">
 	
 	<information>
@@ -8,7 +8,7 @@
 		<vendor>Bytonic Software</vendor>
 		<homepage href="http://www.bytonic.de/html/jake2.html"/>
 		<description>Java port of the Quake2 game engine</description>
-		<icon href="http://jake2.sourceforge.net/icon.gif"/>
+		<icon href="http://jake2.in-chemnitz.de/downloads/icon.gif"/>
 		<offline-allowed/>
 	</information>
 	
@@ -18,10 +18,9 @@
 	
 	<resources>
 		<j2se version="1.4+" max-heap-size="100M"/>
-		<jar href="http://jake2.sourceforge.net/lib/jake2.jar"/>
+		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
-		<property name="ATI_WORKAROUND" value="false"/>
-		<extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-1.0.0/jogl.jnlp" />
+		<extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-webstart-current/jogl.jnlp" />
 		<extension name="joal" href="http://download.java.net/media/joal/webstart/joal.jnlp" />
 	</resources>
 		
