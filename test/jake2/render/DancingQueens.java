@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.11 2006-11-21 01:20:48 cawe Exp $
+ * $Id: DancingQueens.java,v 1.12 2007-03-20 18:57:16 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -71,7 +71,7 @@ public class DancingQueens {
 		Locale.setDefault(Locale.US);
 		Jake2.Q2Dialog.setVisible(true);        
         
-	String DRIVER = "jsr231";
+	String DRIVER = "lwjgl";
 	
         Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "4",
                 "+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
