@@ -2,7 +2,7 @@
  * NetChannel.java
  * Copyright (C) 2003
  * 
- * $Id: Netchan.java,v 1.7 2005-12-18 22:10:08 cawe Exp $
+ * $Id: Netchan.java,v 1.8 2007-04-15 20:12:33 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -102,12 +102,10 @@ public final class Netchan extends SV_MAIN {
 
     public static byte net_message_buffer[] = new byte[Defines.MAX_MSGLEN];
 
-    /*
-     * =============== Netchan_Init
+    /**
+     * Netchan_Init.
      * 
-     * ===============
      */
-    //ok.
     public static void Netchan_Init() {
         long port;
 
@@ -121,12 +119,10 @@ public final class Netchan extends SV_MAIN {
 
     private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
     private static final sizebuf_t send = new sizebuf_t();
-    /*
-     * =============== Netchan_OutOfBand
-     * 
-     * Sends an out-of-band datagram ================
+    
+    /**
+     * Netchan_OutOfBand. Sends an out-of-band datagram.
      */
-    //ok.
     public static void Netchan_OutOfBand(int net_socket, netadr_t adr,
             int length, byte data[]) {
 
@@ -144,14 +140,10 @@ public final class Netchan extends SV_MAIN {
         Netchan_OutOfBand(net_socket, adr, s.length(), Lib.stringToBytes(s));
     }
 
-    /*
-     * ============== Netchan_Setup
-     * 
-     * called to open a channel to a remote system ==============
+    /**
+     * Netchan_Setup is alled to open a channel to a remote system.
      */
     public static void Setup(int sock, netchan_t chan, netadr_t adr, int qport) {
-        //memset (chan, 0, sizeof(*chan));
-
         chan.clear();
         chan.sock = sock;
         chan.remote_address.set(adr);
@@ -164,10 +156,8 @@ public final class Netchan extends SV_MAIN {
         chan.message.allowoverflow = true;
     }
 
-    /*
-     * =============== Netchan_CanReliable
-     * 
-     * Returns true if the last reliable message has acked ================
+    /**
+     * Netchan_CanReliable. Returns true if the last reliable message has acked.
      */
     public static boolean Netchan_CanReliable(netchan_t chan) {
         if (chan.reliable_length != 0)
@@ -175,7 +165,7 @@ public final class Netchan extends SV_MAIN {
         return true;
     }
 
-    // das ist richtig !!!
+    
     public static boolean Netchan_NeedReliable(netchan_t chan) {
         boolean send_reliable;
 
@@ -195,16 +185,12 @@ public final class Netchan extends SV_MAIN {
         return send_reliable;
     }
 
-    // private static final byte send_buf[] = new byte[Defines.MAX_MSGLEN];
-    // private static final sizebuf_t send = new sizebuf_t();
-    /*
-     * =============== Netchan_Transmit
-     * 
-     * tries to send an unreliable message to a connection, and handles the
-     * transmition / retransmition of the reliable messages.
+    /**
+     * Netchan_Transmit tries to send an unreliable message to a connection, 
+     * and handles the transmition / retransmition of the reliable messages.
      * 
      * A 0 length will still generate a packet and deal with the reliable
-     * messages. ================
+     * messages.
      */
     public static void Transmit(netchan_t chan, int length, byte data[]) {
         int send_reliable;
@@ -263,7 +249,6 @@ public final class Netchan extends SV_MAIN {
         if (showpackets.value != 0) {
             if (send_reliable != 0)
                 Com.Printf(
-                //"send %4i : s=%i reliable=%i ack=%i rack=%i\n"
                         "send " + send.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " reliable="
                                 + chan.reliable_sequence + " ack="
@@ -271,7 +256,6 @@ public final class Netchan extends SV_MAIN {
                                 + chan.incoming_reliable_sequence + "\n");
             else
                 Com.Printf(
-                //"send %4i : s=%i ack=%i rack=%i\n"
                         "send " + send.cursize + " : s="
                                 + (chan.outgoing_sequence - 1) + " ack="
                                 + chan.incoming_sequence + " rack="
@@ -279,11 +263,9 @@ public final class Netchan extends SV_MAIN {
         }
     }
 
-    /*
-     * ================= Netchan_Process
-     * 
-     * called when the current net_message is from remote_address modifies
-     * net_message so that it points to the packet payload =================
+    /**
+     * Netchan_Process is called when the current net_message is from remote_address modifies
+     * net_message so that it points to the packet payload.
      */
     public static boolean Process(netchan_t chan, sizebuf_t msg) {
         int sequence, sequence_ack;
@@ -309,16 +291,13 @@ public final class Netchan extends SV_MAIN {
         if (showpackets.value != 0) {
             if (reliable_message != 0)
                 Com.Printf(
-                //"recv %4i : s=%i reliable=%i ack=%i rack=%i\n"
                         "recv " + msg.cursize + " : s=" + sequence
                                 + " reliable="
                                 + (chan.incoming_reliable_sequence ^ 1)
                                 + " ack=" + sequence_ack + " rack="
                                 + reliable_ack + "\n");
             else
-                Com
-                        .Printf(
-                        //"recv %4i : s=%i ack=%i rack=%i\n"
+                Com.Printf(
                         "recv " + msg.cursize + " : s=" + sequence + " ack="
                                 + sequence_ack + " rack=" + reliable_ack + "\n");
         }

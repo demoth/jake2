@@ -1,7 +1,7 @@
 /*
  * NET.java Copyright (C) 2003
  * 
- * $Id: NET.java,v 1.10 2006-01-11 22:04:42 hzi Exp $
+ * $Id: NET.java,v 1.11 2007-04-15 20:12:33 salomo Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -167,8 +167,8 @@ public final class NET {
      */
     public static boolean GetLoopPacket(int sock, netadr_t net_from,
             sizebuf_t net_message) {
-        loopback_t loop;
-        loop = loopbacks[sock];
+	
+        loopback_t loop = loopbacks[sock];
 
         if (loop.send - loop.get > MAX_LOOPBACK)
             loop.get = loop.send - MAX_LOOPBACK;

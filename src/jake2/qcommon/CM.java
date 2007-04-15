@@ -20,7 +20,7 @@
 
 // Created on 02.01.2004 by RST.
 
-// $Id: CM.java,v 1.12 2005-12-04 21:00:17 cawe Exp $
+// $Id: CM.java,v 1.13 2007-04-15 20:12:33 salomo Exp $
 
 package jake2.qcommon;
 
@@ -207,7 +207,6 @@ public class CM {
             int checksum[]) {
         Com.DPrintf("CM_LoadMap(" + name + ")...\n");
         byte buf[];
-        int i;
         qfiles.dheader_t header;
         int length;
 
@@ -330,15 +329,12 @@ public class CM {
             }
             out.headnode = in.headnode;
             if (debugloadmap) {
-                Com
-                        .DPrintf(
-                                "|%6i|%8.2f|%8.2f|%8.2f|  %8.2f|%8.2f|%8.2f|   %8.2f|%8.2f|%8.2f|\n",
-                                new Vargs().add(out.headnode)
-                                        .add(out.origin[0]).add(out.origin[1])
-                                        .add(out.origin[2]).add(out.mins[0])
-                                        .add(out.mins[1]).add(out.mins[2]).add(
-                                                out.maxs[0]).add(out.maxs[1])
-                                        .add(out.maxs[2]));
+                Com.DPrintf(
+                	"|%6i|%8.2f|%8.2f|%8.2f|  %8.2f|%8.2f|%8.2f|   %8.2f|%8.2f|%8.2f|\n",
+                        new Vargs().add(out.headnode)
+                        .add(out.origin[0]).add(out.origin[1]).add(out.origin[2])
+                        .add(out.mins[0]).add(out.mins[1]).add(out.mins[2])
+                        .add(out.maxs[0]).add(out.maxs[1]).add(out.maxs[2]));
             }
         }
     }
@@ -456,10 +452,9 @@ public class CM {
             out.contents = in.contents;
 
             if (debugloadmap) {
-                Com
-                        .DPrintf("| %6i| %6i| %8X|\n", new Vargs().add(
-                                out.firstbrushside).add(out.numsides).add(
-                                out.contents));
+                Com.DPrintf("| %6i| %6i| %8X|\n", new Vargs().add(
+                	out.firstbrushside).add(out.numsides).add(
+                        out.contents));
             }
         }
     }
@@ -1257,8 +1252,8 @@ public class CM {
         trace.contents = brush.contents;
     }
 
-    /*
-     * ================ CM_TraceToLeaf ================
+    /**
+     * CM_TraceToLeaf.
      */
     public static void CM_TraceToLeaf(int leafnum) {
         int k;
@@ -1512,11 +1507,9 @@ public class CM {
         return trace_trace;
     }
 
-    /*
-     * ================== CM_TransformedBoxTrace
-     * 
-     * Handles offseting and rotation of the end points for moving and rotating
-     * entities ==================
+    /**
+     * CM_TransformedBoxTrace handles offseting and rotation of the end points for moving and rotating
+     * entities.
      */
     public static trace_t TransformedBoxTrace(float[] start, float[] end,
             float[] mins, float[] maxs, int headnode, int brushmask,
@@ -1669,8 +1662,8 @@ public class CM {
         }
     }
 
-    /*
-     * ==================== FloodAreaConnections ====================
+    /**
+     * FloodAreaConnections.
      */
     public static void FloodAreaConnections() {
         Com.DPrintf("FloodAreaConnections...\n");
@@ -1695,8 +1688,8 @@ public class CM {
         }
     }
 
-    /*
-     * ================= CM_SetAreaPortalState =================
+    /**
+     * CM_SetAreaPortalState.
      */
     public static void CM_SetAreaPortalState(int portalnum, boolean open) {
         if (portalnum > numareaportals)
@@ -1706,8 +1699,8 @@ public class CM {
         FloodAreaConnections();
     }
 
-    /*
-     * ================= CM_AreasConnected =================
+    /**
+     * CM_AreasConnected returns true, if two areas are connected.
      */
 
     public static boolean CM_AreasConnected(int area1, int area2) {
@@ -1723,13 +1716,11 @@ public class CM {
         return false;
     }
 
-    /*
-     * ================= CM_WriteAreaBits
-     * 
-     * Writes a length byte followed by a bit vector of all the areas that area
+    /**
+     * CM_WriteAreaBits writes a length byte followed by a bit vector of all the areas that area
      * in the same flood as the area parameter
      * 
-     * This is used by the client refreshes to cull visibility =================
+     * This is used by the client refreshes to cull visibility.
      */
     public static int CM_WriteAreaBits(byte buffer[], int area) {
         int i;
@@ -1738,7 +1729,8 @@ public class CM {
 
         bytes = (numareas + 7) >> 3;
 
-        if (map_noareas.value != 0) { // for debugging, send everything
+        if (map_noareas.value != 0) { 
+            // for debugging, send everything
             Arrays.fill(buffer, 0, bytes, (byte) 255);
         } else {
             Arrays.fill(buffer, 0, bytes, (byte) 0);
@@ -1752,17 +1744,13 @@ public class CM {
         return bytes;
     }
 
-    /*
-     * =================== CM_WritePortalState
-     * 
-     * Writes the portal state to a savegame file ===================
+    /**
+     * CM_WritePortalState writes the portal state to a savegame file.
      */
 
     public static void CM_WritePortalState(RandomAccessFile os) {
 
-        //was: fwrite(portalopen, sizeof(portalopen), 1, f);
         try {
-
             for (int n = 0; n < portalopen.length; n++)
                 if (portalopen[n])
                     os.writeInt(1);
@@ -1774,11 +1762,9 @@ public class CM {
         }
     }
 
-    /*
-     * =================== CM_ReadPortalState
-     * 
-     * Reads the portal state from a savegame file and recalculates the area
-     * connections ===================
+    /**
+     * CM_ReadPortalState reads the portal state from a savegame file and recalculates the area
+     * connections.
      */
     public static void CM_ReadPortalState(RandomAccessFile f) {
 
@@ -1798,11 +1784,9 @@ public class CM {
         FloodAreaConnections();
     }
 
-    /*
-     * ============= CM_HeadnodeVisible
-     * 
-     * Returns true if any leaf under headnode has a cluster that is potentially
-     * visible =============
+    /**
+     * CM_HeadnodeVisible returns true if any leaf under headnode has a cluster that is potentially
+     * visible.
      */
     public static boolean CM_HeadnodeVisible(int nodenum, byte visbits[]) {
         int leafnum;

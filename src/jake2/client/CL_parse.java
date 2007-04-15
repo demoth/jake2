@@ -21,6 +21,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
+
+// $Id: CL_parse.java,v 1.23 2007-04-15 20:12:32 salomo Exp $
+
 package jake2.client;
 
 import jake2.Defines;
@@ -57,11 +60,10 @@ public class CL_parse {
         return FS.Gamedir() + "/" + fn;
     }
 
-    /*
-     * =============== CL_CheckOrDownloadFile
-     * 
-     * Returns true if the file exists, otherwise it attempts to start a
-     * download from the server. ===============
+    /**
+     * CL_CheckOrDownloadFile returns true if the file exists, 
+     * otherwise it attempts to start a
+     * download from the server.
      */
     public static boolean CheckOrDownloadFile(String filename) {
         RandomAccessFile fp;
@@ -231,12 +233,12 @@ public class CL_parse {
             }
         }
 
-        //fwrite(net_message.data[net_message.readcount], 1, size,
-        // cls.download);
+
         try {
             Globals.cls.download.write(Globals.net_message.data,
                     Globals.net_message.readcount, size);
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
         }
         Globals.net_message.readcount += size;
 
@@ -248,14 +250,11 @@ public class CL_parse {
             SZ.Print(Globals.cls.netchan.message, "nextdl");
         } else {
             String oldn, newn;
-            //char oldn[MAX_OSPATH];
-            //char newn[MAX_OSPATH];
-
-            //			Com.Printf ("100%%\n");
 
             try {
                 Globals.cls.download.close();
-            } catch (IOException e) {
+            } 
+            catch (IOException e) {
             }
 
             // rename the temp file to it's final name
