@@ -19,9 +19,6 @@
  */
 
 // Created on 02.01.2004 by RST.
-
-// $Id: CM.java,v 1.13 2007-04-15 20:12:33 salomo Exp $
-
 package jake2.qcommon;
 
 import jake2.Defines;
@@ -586,15 +583,11 @@ public class CM {
     /** Loads leaf brushes. */
     public static void CMod_LoadLeafBrushes(lump_t l) {
         Com.DPrintf("CMod_LoadLeafBrushes()\n");
-        int i;
-        int out[];
-        short in[];
-        int count;
 
         if ((l.filelen % 2) != 0)
             Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
-        count = l.filelen / 2;
+        int count = l.filelen / 2;
 
         Com.DPrintf(" numbrushes=" + count + "\n");
 
@@ -605,7 +598,7 @@ public class CM {
         if (count > Defines.MAX_MAP_LEAFBRUSHES)
             Com.Error(Defines.ERR_DROP, "Map has too many leafbrushes");
 
-        out = map_leafbrushes;
+        int[] out = map_leafbrushes;
         numleafbrushes = count;
 
         ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.fileofs, count * 2).order(
@@ -615,7 +608,7 @@ public class CM {
             Com.DPrintf("map_brushes:\n");
         }
 
-        for (i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             out[i] = bb.getShort();
             if (debugloadmap) {
                 Com.DPrintf("|%6i|%6i|\n", new Vargs().add(i).add(out[i]));
@@ -756,7 +749,6 @@ public class CM {
     /** Loads visibility data. */
     public static void CMod_LoadVisibility(lump_t l) {
         Com.DPrintf("CMod_LoadVisibility()\n");
-        int i;
 
         numvisibility = l.filelen;
 
@@ -794,12 +786,10 @@ public class CM {
 
     /** Returns the model with a given id "*" + <number> */
     public static cmodel_t InlineModel(String name) {
-        int num;
-
         if (name == null || name.charAt(0) != '*')
             Com.Error(Defines.ERR_DROP, "CM_InlineModel: bad name");
 
-        num = Lib.atoi(name.substring(1));
+        int num = Lib.atoi(name.substring(1));
 
         if (num < 1 || num >= numcmodels)
             Com.Error(Defines.ERR_DROP, "CM_InlineModel: bad number");
@@ -849,11 +839,6 @@ public class CM {
      * just be stored out and get a proper clipping hull structure.
      */
     public static void CM_InitBoxHull() {
-        int i;
-        int side;
-        cnode_t c;
-        cplane_t p;
-        cbrushside_t s;
 
         box_headnode = numnodes; //rst: still room for 6 brushes left?
 
@@ -884,7 +869,12 @@ public class CM {
 
         map_leafbrushes[numleafbrushes] = numbrushes;
 
-        for (i = 0; i < 6; i++) {
+        int side;
+        cnode_t c;
+        cplane_t p;
+        cbrushside_t s;
+
+        for (int i = 0; i < 6; i++) {
             side = i & 1;
 
             // brush sides
@@ -1789,23 +1779,19 @@ public class CM {
      * visible.
      */
     public static boolean CM_HeadnodeVisible(int nodenum, byte visbits[]) {
-        int leafnum;
-        int cluster;
-        cnode_t node;
-
         if (nodenum < 0) {
-            leafnum = -1 - nodenum;
-            cluster = map_leafs[leafnum].cluster;
-            if (cluster == -1)
-                return false;
-            if (0 != (visbits[cluster >>> 3] & (1 << (cluster & 7))))
-                return true;
+            int leafnum = -1 - nodenum;
+            int cluster = map_leafs[leafnum].cluster;
+            if (cluster == -1) return false;
+            
+            if (0 != (visbits[cluster >>> 3] & (1 << (cluster & 7)))) return true;
+            
             return false;
         }
 
-        node = map_nodes[nodenum];
-        if (CM_HeadnodeVisible(node.children[0], visbits))
-            return true;
+        cnode_t node = map_nodes[nodenum];
+        if (CM_HeadnodeVisible(node.children[0], visbits)) return true;
+        
         return CM_HeadnodeVisible(node.children[1], visbits);
     }
 }
