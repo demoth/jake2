@@ -1,7 +1,5 @@
 /*
  * NET.java Copyright (C) 2003
- * 
- * $Id: NET.java,v 1.11 2007-04-15 20:12:33 salomo Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.

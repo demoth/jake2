@@ -1,8 +1,6 @@
 /*
  * NetChannel.java
  * Copyright (C) 2003
- * 
- * $Id: Netchan.java,v 1.8 2007-04-15 20:12:33 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -268,22 +266,18 @@ public final class Netchan extends SV_MAIN {
      * net_message so that it points to the packet payload.
      */
     public static boolean Process(netchan_t chan, sizebuf_t msg) {
-        int sequence, sequence_ack;
-        int reliable_ack, reliable_message;
-        int qport;
-
         // get sequence numbers
         MSG.BeginReading(msg);
-        sequence = MSG.ReadLong(msg);
-        sequence_ack = MSG.ReadLong(msg);
+        int sequence = MSG.ReadLong(msg);
+        int sequence_ack = MSG.ReadLong(msg);
 
         // read the qport if we are a server
         if (chan.sock == Defines.NS_SERVER)
-            qport = MSG.ReadShort(msg);
+            MSG.ReadShort(msg);
 
         // achtung unsigned int
-        reliable_message = sequence >>> 31;
-        reliable_ack = sequence_ack >>> 31;
+        int reliable_message = sequence >>> 31;
+        int reliable_ack = sequence_ack >>> 31;
 
         sequence &= ~(1 << 31);
         sequence_ack &= ~(1 << 31);
