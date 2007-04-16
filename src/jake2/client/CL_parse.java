@@ -21,9 +21,6 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-
-// $Id: CL_parse.java,v 1.23 2007-04-15 20:12:32 salomo Exp $
-
 package jake2.client;
 
 import jake2.Defines;
@@ -66,15 +63,13 @@ public class CL_parse {
      * download from the server.
      */
     public static boolean CheckOrDownloadFile(String filename) {
-        RandomAccessFile fp;
-        String name;
-
         if (filename.indexOf("..") != -1) {
             Com.Printf("Refusing to download a path with ..\n");
             return true;
         }
 
-        if (FS.FileLength(filename) > 0) { // it exists, no need to download
+        if (FS.FileLength(filename) > 0) {
+            // it exists, no need to download
             return true;
         }
 
@@ -91,9 +86,9 @@ public class CL_parse {
         // check to see if we already have a tmp for this file, if so, try to
         // resume
         // open the file if not opened yet
-        name = DownloadFileName(Globals.cls.downloadtempname);
+        String name = DownloadFileName(Globals.cls.downloadtempname);
 
-        fp = Lib.fopen(name, "r+b");
+        RandomAccessFile fp = Lib.fopen(name, "r+b");
         
         if (fp != null) { 
             
@@ -249,8 +244,6 @@ public class CL_parse {
             MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
             SZ.Print(Globals.cls.netchan.message, "nextdl");
         } else {
-            String oldn, newn;
-
             try {
                 Globals.cls.download.close();
             } 
@@ -258,8 +251,8 @@ public class CL_parse {
             }
 
             // rename the temp file to it's final name
-            oldn = DownloadFileName(Globals.cls.downloadtempname);
-            newn = DownloadFileName(Globals.cls.downloadname);
+            String oldn = DownloadFileName(Globals.cls.downloadtempname);
+            String newn = DownloadFileName(Globals.cls.downloadname);
             int r = Lib.rename(oldn, newn);
             if (r != 0)
                 Com.Printf("failed to rename.\n");
@@ -286,10 +279,6 @@ public class CL_parse {
      */
     //checked once, was ok.
     public static void ParseServerData() {
-
-        String str;
-        int i;
-
         Com.DPrintf("ParseServerData():Serverdata packet received.\n");
         //
         //	   wipe the client_state_t struct
@@ -298,7 +287,7 @@ public class CL_parse {
         Globals.cls.state = Defines.ca_connected;
 
         //	   parse protocol version number
-        i = MSG.ReadLong(Globals.net_message);
+        int i = MSG.ReadLong(Globals.net_message);
         Globals.cls.serverProtocol = i;
 
         // BIG HACK to let demos from release work with the 3.0x patch!!!
@@ -311,7 +300,7 @@ public class CL_parse {
         Globals.cl.attractloop = MSG.ReadByte(Globals.net_message) != 0;
 
         // game directory
-        str = MSG.ReadString(Globals.net_message);
+        String str = MSG.ReadString(Globals.net_message);
         Globals.cl.gamedir = str;
         Com.dprintln("gamedir=" + str);
 
@@ -349,14 +338,11 @@ public class CL_parse {
      * ================== CL_ParseBaseline ==================
      */
     public static void ParseBaseline() {
-        entity_state_t es;
-        int newnum;
-
         entity_state_t nullstate = new entity_state_t(null);
         //memset(nullstate, 0, sizeof(nullstate));
         int bits[] = { 0 };
-        newnum = CL_ents.ParseEntityBits(bits);
-        es = Globals.cl_entities[newnum].baseline;
+        int newnum = CL_ents.ParseEntityBits(bits);
+        entity_state_t es = Globals.cl_entities[newnum].baseline;
         CL_ents.ParseDelta(nullstate, es, newnum, bits[0]);
     }
 
@@ -366,9 +352,6 @@ public class CL_parse {
      * ================
      */
     public static void LoadClientinfo(clientinfo_t ci, String s) {
-        int i;
-        int t;
-
         //char model_name[MAX_QPATH];
         //char skin_name[MAX_QPATH];
         //char model_filename[MAX_QPATH];
@@ -384,7 +367,7 @@ public class CL_parse {
         ci.name = s;
         //ci.name[sizeof(ci.name) - 1] = 0;
 
-        t = s.indexOf('\\');
+        int t = s.indexOf('\\');
         //t = strstr(s, "\\");
 
         if (t != -1) {
@@ -462,7 +445,7 @@ public class CL_parse {
             }
 
             // weapon file
-            for (i = 0; i < CL_view.num_cl_weaponmodels; i++) {
+            for (int i = 0; i < CL_view.num_cl_weaponmodels; i++) {
                 weapon_filename = "players/" + model_name + "/"
                         + CL_view.cl_weaponmodels[i];
                 ci.weaponmodel[i] = Globals.re.RegisterModel(weapon_filename);
@@ -499,12 +482,9 @@ public class CL_parse {
      * Load the skin, icon, and model for a client ================
      */
     public static void ParseClientinfo(int player) {
-        String s;
-        clientinfo_t ci;
+        String s = Globals.cl.configstrings[player + Defines.CS_PLAYERSKINS];
 
-        s = Globals.cl.configstrings[player + Defines.CS_PLAYERSKINS];
-
-        ci = Globals.cl.clientinfo[player];
+        clientinfo_t ci = Globals.cl.clientinfo[player];
 
         LoadClientinfo(ci, s);
     }
@@ -513,18 +493,14 @@ public class CL_parse {
      * ================ CL_ParseConfigString ================
      */
     public static void ParseConfigString() {
-        int i;
-        String s;
-        String olds;
-
-        i = MSG.ReadShort(Globals.net_message);
+        int i = MSG.ReadShort(Globals.net_message);
 
         if (i < 0 || i >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring > MAX_CONFIGSTRINGS");
 
-        s = MSG.ReadString(Globals.net_message);
+        String s = MSG.ReadString(Globals.net_message);
 
-        olds = Globals.cl.configstrings[i];
+        String olds = Globals.cl.configstrings[i];
         Globals.cl.configstrings[i] = s;
         
         //Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
@@ -576,32 +552,29 @@ public class CL_parse {
      * ================== CL_ParseStartSoundPacket ==================
      */
     public static void ParseStartSoundPacket() {
-        float pos[];
-        int channel, ent;
-        int sound_num;
+        int flags = MSG.ReadByte(Globals.net_message);
+        int sound_num = MSG.ReadByte(Globals.net_message);
+
         float volume;
-        float attenuation;
-        int flags;
-        float ofs;
-
-        flags = MSG.ReadByte(Globals.net_message);
-        sound_num = MSG.ReadByte(Globals.net_message);
-
         if ((flags & Defines.SND_VOLUME) != 0)
             volume = MSG.ReadByte(Globals.net_message) / 255.0f;
         else
             volume = Defines.DEFAULT_SOUND_PACKET_VOLUME;
 
+        float attenuation;
         if ((flags & Defines.SND_ATTENUATION) != 0)
             attenuation = MSG.ReadByte(Globals.net_message) / 64.0f;
         else
             attenuation = Defines.DEFAULT_SOUND_PACKET_ATTENUATION;
 
+        float ofs;
         if ((flags & Defines.SND_OFFSET) != 0)
             ofs = MSG.ReadByte(Globals.net_message) / 1000.0f;
         else
             ofs = 0;
 
+        int channel;
+        int ent;
         if ((flags & Defines.SND_ENT) != 0) { // entity reletive
             channel = MSG.ReadShort(Globals.net_message);
             ent = channel >> 3;
@@ -615,6 +588,7 @@ public class CL_parse {
             channel = 0;
         }
 
+        float pos[];
         if ((flags & Defines.SND_POS) != 0) { // positioned in space
             MSG.ReadPos(Globals.net_message, pos_v);
             // is ok. sound driver copies
@@ -639,10 +613,6 @@ public class CL_parse {
      * ===================== CL_ParseServerMessage =====================
      */
     public static void ParseServerMessage() {
-        int cmd;
-        String s;
-        int i;
-
         //
         //	   if recording demos, copy the message out
         //
@@ -661,7 +631,7 @@ public class CL_parse {
                 break;
             }
 
-            cmd = MSG.ReadByte(Globals.net_message);
+            int cmd = MSG.ReadByte(Globals.net_message);
 
             if (cmd == -1) {
                 SHOWNET("END OF MESSAGE");
@@ -707,7 +677,7 @@ public class CL_parse {
                 break;
 
             case Defines.svc_print:
-                i = MSG.ReadByte(Globals.net_message);
+                int i = MSG.ReadByte(Globals.net_message);
                 if (i == Defines.PRINT_CHAT) {
                     S.StartLocalSound("misc/talk.wav");
                     Globals.con.ormask = 128;
@@ -721,7 +691,7 @@ public class CL_parse {
                 break;
 
             case Defines.svc_stufftext:
-                s = MSG.ReadString(Globals.net_message);
+                String s = MSG.ReadString(Globals.net_message);
                 Com.DPrintf("stufftext: " + s + "\n");
                 Cbuf.AddText(s);
                 break;
@@ -768,8 +738,7 @@ public class CL_parse {
                 break;
 
             case Defines.svc_layout:
-                s = MSG.ReadString(Globals.net_message);
-                Globals.cl.layout = s;
+        	Globals.cl.layout = MSG.ReadString(Globals.net_message);
                 break;
 
             case Defines.svc_playerinfo:
