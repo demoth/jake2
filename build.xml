@@ -22,6 +22,7 @@
 	<path id="build.class.path">
 		<pathelement location="lib/jogl/jogl.jar"/>
 		<pathelement location="lib/jsr231/jogl.jar"/>
+		<pathelement location="lib/jsr231/gluegen-rt.jar"/>
 		<pathelement location="lib/joal/joal.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
