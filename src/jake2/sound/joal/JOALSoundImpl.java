@@ -104,13 +104,18 @@ public final class JOALSoundImpl implements Sound {
 	}
 		
 	private void initOpenALExtensions() {
-	    try {
-		eax = EAXFactory.getEAX();
-		Com.Printf("... using EAX2.0\n");
-	    } catch (Throwable e) {
-		Com.Printf("... EAX2.0 not found\n");
-		eax = null;
-	    }
+		if (al.alIsExtensionPresent("EAX2.0")) {
+			try {
+				eax = EAXFactory.getEAX();
+				Com.Printf("... using EAX2.0\n");
+			} catch (Throwable e) {
+				Com.Printf("... EAX2.0 not initialized\n");
+				eax = null;
+			}
+		} else {
+			Com.Printf("... EAX2.0 not found\n");
+			eax = null;
+		}
 	}
 	
 	
