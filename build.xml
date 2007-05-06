@@ -53,6 +53,7 @@
 		<javac destdir="${build}" optimize="off" debug="on" source="1.4">
 			<src path="${src}"/>
 			<include name="jake2/**"/>
+			<include name="net/java/games/joal/eax/EAX.java"/>
 			<classpath refid="build.class.path"/>
 		</javac>
 	</target>
