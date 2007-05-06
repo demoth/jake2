@@ -41,10 +41,6 @@ import java.nio.Buffer;
  *
  */
 public class EAX implements EAXConstants {
-    static {
-        System.loadLibrary("joal");
-    }
-
 	public static final int SOURCE 		= 0;
 	public static final int LISTENER 	= 1;
 
