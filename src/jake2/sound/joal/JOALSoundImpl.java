@@ -96,10 +96,10 @@ public final class JOALSoundImpl implements Sound {
 
 		num_sfx = 0;
 
-		Com.Printf("sound sampling rate: 44100Hz\n");
+		Com.Println("sound sampling rate: 44100Hz");
 
 		StopAllSounds();
-		Com.Printf("------------------------------------\n");
+		Com.Println("------------------------------------");
 		return true;
 	}
 		
@@ -107,14 +107,14 @@ public final class JOALSoundImpl implements Sound {
 		if (al.alIsExtensionPresent("EAX2.0")) {
 			try {
 				eax = EAXFactory.getEAX();
-				Com.Printf("... using EAX2.0\n");
+				Com.Println("... using EAX2.0");
 			} catch (Throwable e) {
-				Com.Printf(e.getMessage());
-				Com.Printf("... EAX2.0 not initialized\n");
+				Com.Println(e.getMessage());
+				Com.Println("... EAX2.0 not initialized");
 				eax = null;
 			}
 		} else {
-			Com.Printf("... EAX2.0 not found\n");
+			Com.Println("... EAX2.0 not found");
 			eax = null;
 		}
 	}
