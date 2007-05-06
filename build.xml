@@ -53,7 +53,6 @@
 		<javac destdir="${build}" optimize="off" debug="on" source="1.4">
 			<src path="${src}"/>
 			<include name="jake2/**"/>
-			<include name="net/java/games/joal/eax/*"/>
 			<classpath refid="build.class.path"/>
 		</javac>
 	</target>
@@ -149,7 +148,6 @@
 	<target name="jar" depends="compile,copyres">
 		<jar destfile="${dist}/lib/jake2.jar" basedir="${build}">
 			<include name="jake2/**"/>
-			<include name="net/java/games/joal/eax/*"/>
 			<include name="*.png"/>
 			<include name="mirrors"/>
 		</jar>
