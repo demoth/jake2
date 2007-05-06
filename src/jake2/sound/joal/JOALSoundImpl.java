@@ -109,6 +109,7 @@ public final class JOALSoundImpl implements Sound {
 				eax = EAXFactory.getEAX();
 				Com.Printf("... using EAX2.0\n");
 			} catch (Throwable e) {
+				Com.Printf(e.getMessage());
 				Com.Printf("... EAX2.0 not initialized\n");
 				eax = null;
 			}
