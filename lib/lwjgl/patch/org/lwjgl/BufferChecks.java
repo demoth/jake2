@@ -48,8 +48,8 @@ import java.nio.LongBuffer;
  * </p>
  * @author cix_foo <cix_foo@users.sourceforge.net>
  * @author elias_naur <elias_naur@users.sourceforge.net>
- * @version $Revision: 1.3 $
- * $Id: BufferChecks.java,v 1.3 2007-05-11 21:00:27 cawe Exp $
+ * @version $Revision: 1.4 $
+ * $Id: BufferChecks.java,v 1.4 2007-05-11 22:02:27 cawe Exp $
  */
 public class BufferChecks {
 	/** Static methods only! */
@@ -115,7 +115,7 @@ public class BufferChecks {
 	 * 			  The minimum buffer size
 	 * @throws IllegalArgumentException
 	 */
-	private static void checkBufferSize(Buffer buf, int size) {
+	public static void checkBufferSize(Buffer buf, int size) {
 	}
 
 	public static void checkBuffer(ByteBuffer buf, int size) {
