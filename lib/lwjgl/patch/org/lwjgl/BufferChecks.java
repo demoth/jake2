@@ -43,11 +43,13 @@ import java.nio.LongBuffer;
  * <p>A class to check buffer boundaries in general. If there is unsufficient space
  * in the buffer when the call is made then a buffer overflow would otherwise
  * occur and cause unexpected behaviour, a crash, or worse, a security risk.
+ *
+ * Internal class, don't use.
  * </p>
  * @author cix_foo <cix_foo@users.sourceforge.net>
  * @author elias_naur <elias_naur@users.sourceforge.net>
- * @version $Revision: 1.2 $
- * $Id: BufferChecks.java,v 1.2 2007-03-17 16:02:17 cawe Exp $
+ * @version $Revision: 1.3 $
+ * $Id: BufferChecks.java,v 1.3 2007-05-11 21:00:27 cawe Exp $
  */
 public class BufferChecks {
 	/** Static methods only! */
@@ -75,32 +77,9 @@ public class BufferChecks {
 	}
 
 	/**
-	 * Helper methods to ensure a buffer is direct or null.
-	 */
-	public static void checkDirectOrNull(ByteBuffer buf) {
-	}
 
-	public static void checkDirectOrNull(ShortBuffer buf) {
-	}
-
-	public static void checkDirectOrNull(IntBuffer buf) {
-	}
-
-	public static void checkDirectOrNull(LongBuffer buf) {
-	}
-
-	public static void checkDirectOrNull(FloatBuffer buf) {
-	}
-
-	public static void checkDirectOrNull(DoubleBuffer buf) {
-	}
-
-	/**
 	 * Helper methods to ensure a buffer is direct (and, implicitly, non-null).
 	 */
-	public static void checkDirectBuffer(Buffer buf) {
-	}
-
 	public static void checkDirect(ByteBuffer buf) {
 	}
 
@@ -155,33 +134,5 @@ public class BufferChecks {
 	}
 
 	public static void checkBuffer(DoubleBuffer buf, int size) {
-	}
-
-	/**
-	 * Helper methods to ensure a buffer is big enough to receive data from a
-	 * glGet* operation. To avoid unnecessarily complex buffer size checking
-	 * we've just set the bar artificially high and insist that any receiving
-	 * buffer has at least 4 remaining().
-	 *
-	 * @param buf
-	 *            The buffer to check
-	 * @throws IllegalArgumentException
-	 */
-	public static void checkBuffer(ByteBuffer buf) {
-	}
-
-	public static void checkBuffer(ShortBuffer buf) {
-	}
-
-	public static void checkBuffer(IntBuffer buf) {
-	}
-
-	public static void checkBuffer(LongBuffer buf) {
-	}
-
-	public static void checkBuffer(FloatBuffer buf) {
-	}
-
-	public static void checkBuffer(DoubleBuffer buf) {
 	}
 }
