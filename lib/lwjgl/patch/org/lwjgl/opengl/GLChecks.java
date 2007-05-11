@@ -46,8 +46,8 @@ import org.lwjgl.BufferUtils;
  * Thrown by the debug build library of the LWJGL if any OpenGL operation causes an error.
  *
  * @author cix_foo <cix_foo@users.sourceforge.net>
- * @version $Revision: 1.2 $
- * $Id: GLChecks.java,v 1.2 2007-03-17 16:02:53 cawe Exp $
+ * @version $Revision: 1.3 $
+ * $Id: GLChecks.java,v 1.3 2007-05-11 20:55:17 cawe Exp $
  */
 class GLChecks {
 
@@ -125,16 +125,16 @@ class GLChecks {
 		return calculateImageStorage(format, type, width, height, depth) >> BufferUtils.getElementSizeExponent(buffer);
 	}
 
-	static int calculateTexImage1DStorage(Buffer buffer, int format, int type, int width, int border) {
-		return calculateTexImage1DStorage(format, type, width, border) >> BufferUtils.getElementSizeExponent(buffer);
+	static int calculateTexImage1DStorage(Buffer buffer, int format, int type, int width) {
+		return calculateTexImage1DStorage(format, type, width) >> BufferUtils.getElementSizeExponent(buffer);
 	}
 
-	static int calculateTexImage2DStorage(Buffer buffer, int format, int type, int width, int height, int border) {
-		return calculateTexImage2DStorage(format, type, width, height, border) >> BufferUtils.getElementSizeExponent(buffer);
+	static int calculateTexImage2DStorage(Buffer buffer, int format, int type, int width, int height) {
+		return calculateTexImage2DStorage(format, type, width, height) >> BufferUtils.getElementSizeExponent(buffer);
 	}
 
-	static int calculateTexImage3DStorage(Buffer buffer, int format, int type, int width, int height, int depth, int border) {
-		return calculateTexImage3DStorage(format, type, width, height, depth, border) >> BufferUtils.getElementSizeExponent(buffer);
+	static int calculateTexImage3DStorage(Buffer buffer, int format, int type, int width, int height, int depth) {
+		return calculateTexImage3DStorage(format, type, width, height, depth) >> BufferUtils.getElementSizeExponent(buffer);
 	}
 
 	/**
@@ -152,16 +152,16 @@ class GLChecks {
 		return calculateBytesPerPixel(format, type) * width * height * depth;
 	}
 
-	private static int calculateTexImage1DStorage(int format, int type, int width, int border) {
-		return calculateBytesPerPixel(format, type) * (width + (border << 1));
+	private static int calculateTexImage1DStorage(int format, int type, int width) {
+		return calculateBytesPerPixel(format, type) * width;
 	}
 
-	private static int calculateTexImage2DStorage(int format, int type, int width, int height, int border) {
-		return calculateTexImage1DStorage(format, type, width, border) * (height + (border << 1));
+	private static int calculateTexImage2DStorage(int format, int type, int width, int height) {
+		return calculateTexImage1DStorage(format, type, width) * height;
 	}
 
-	private static int calculateTexImage3DStorage(int format, int type, int width, int height, int depth, int border) {
-		return calculateTexImage2DStorage(format, type, width, height, border) * (depth + (border << 1));
+	private static int calculateTexImage3DStorage(int format, int type, int width, int height, int depth) {
+		return calculateTexImage2DStorage(format, type, width, height) * depth;
 	}
 
 	private static int calculateBytesPerPixel(int format, int type) {
