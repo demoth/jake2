@@ -2,19 +2,22 @@
  * LWJGLSoundImpl.java
  * Copyright (C) 2004
  *
- * $Id: LWJGLSoundImpl.java,v 1.9 2006-10-26 22:02:55 cawe Exp $
+ * $Id: LWJGLSoundImpl.java,v 1.10 2007-05-11 20:33:53 cawe Exp $
  */
 package jake2.sound.lwjgl;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.cvar_t;
+import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.nio.*;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.*;
 
@@ -102,12 +105,12 @@ public final class LWJGLSoundImpl implements Sound {
 	    deviceName = "DirectSound3D";
 	}
 
-	String defaultSpecifier = ALC.alcGetString(ALC.ALC_DEFAULT_DEVICE_SPECIFIER);
+	String defaultSpecifier = ALC10.alcGetString(AL.getDevice(), ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
 
 	Com.Printf(os + " using " + ((deviceName == null) ? defaultSpecifier : deviceName) + '\n');
 
 	// Check for an error.
-	if (ALC.alcGetError() != ALC.ALC_NO_ERROR) 
+	if (ALC10.alcGetError(AL.getDevice()) != ALC10.ALC_NO_ERROR) 
 	{
 	    Com.DPrintf("Error with SoundDevice");
 	}
