@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Draw.java,v 1.3 2007-05-12 23:20:29 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -101,17 +101,12 @@ public abstract class Draw extends Image {
 	=============
 	*/
 	public image_t Draw_FindPic(String name) {
-		image_t image = null;
-		String fullname;
-
 		if (!name.startsWith("/") && !name.startsWith("\\"))
 		{
-			fullname = "pics/" + name + ".pcx";
-			image = GL_FindImage(fullname, it_pic);
+			return GL_FindImage(name, it_pic);
 		} else {
-			image = GL_FindImage(name.substring(1), it_pic);
+			return GL_FindImage(name.substring(1), it_pic);
 		}
-		return image;
 	}
 
 

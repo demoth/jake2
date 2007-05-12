@@ -1451,7 +1451,7 @@ public abstract class Image extends Main {
 	*/
 	image_t GL_FindImage(String name, int type) {
 
-		if (name == null || name.length() < 5)
+		if (name == null || name.length() < 1)
 			return null;
         
         // look for it
@@ -1490,9 +1490,16 @@ public abstract class Image extends Main {
 
 			image = GL_LoadPic(name, pic, dim.width, dim.height, type, 32);
 
+		} else {
+		
+			pic = LoadPCX("pics/" + name + ".pcx", null, dim);
+			if (pic == null)
+				return null;
+			image = GL_LoadPic(name, pic, dim.width, dim.height, type, 8);
+			
 		}
 		
-        imageCache.put(image.name, image);
+		imageCache.put(image.name, image);
 		return image;
 	}
 
