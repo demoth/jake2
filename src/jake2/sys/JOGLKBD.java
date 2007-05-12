@@ -93,8 +93,8 @@ final public class JOGLKBD extends KBD
 					while (c != null) {
 						if (c instanceof Container) {
 							Insets insets = ((Container)c).getInsets();
-							win_x += insets.left / 2;
-							win_y += insets.top / 2;
+							win_x += insets.left;
+							win_y += insets.top;
 						}
 						win_x += c.getX();
 						win_y += c.getY();
