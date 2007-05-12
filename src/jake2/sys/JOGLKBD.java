@@ -56,6 +56,8 @@ final public class JOGLKBD extends KBD
 					if (IN.mouse_active) {
 						mx = (((MouseEvent)event.ev).getX() - win_w2) * 2;
 						my = (((MouseEvent)event.ev).getY() - win_h2) * 2;
+						System.out
+							.println(mx + " " + my); 
 					} else {
 						mx = 0;
 						my = 0;
@@ -88,18 +90,21 @@ final public class JOGLKBD extends KBD
 					Component c = ((ComponentEvent)event.ev).getComponent();
 					win_x = 0;
 					win_y = 0;
-					win_w2 = c.getWidth() / 2;
-					win_h2 = c.getHeight() / 2;
+					win_w2 = (c.getWidth() + 1) / 2;
+					win_h2 = (c.getHeight() + 1) / 2;
+					int left = 0; int top = 0;
 					while (c != null) {
 						if (c instanceof Container) {
 							Insets insets = ((Container)c).getInsets();
-							win_x += insets.left;
-							win_y += insets.top;
+							left += insets.left;
+							top += insets.top;
 						}
 						win_x += c.getX();
 						win_y += c.getY();
 						c = c.getParent();
 					}
+					win_x += left; win_y += top;
+					win_w2 -= (left + 1) / 2; win_h2 -= (top + 1) / 2;
 					break;
 			}
 		}
