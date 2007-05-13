@@ -31,7 +31,6 @@ import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.sound.S;
 import jake2.sys.Timer;
-import jake2.util.Lib;
 import jake2.util.Vargs;
 
 import java.awt.Dimension;
@@ -826,7 +825,7 @@ public final class SCR extends Globals {
         AddDirtyPoint(x, y);
         AddDirtyPoint(x + width * CHAR_WIDTH + 2, y + 23);
 
-        num = "" + value;
+        num = String.valueOf(value);
         l = num.length();
         if (l > width)
             l = width;
@@ -872,69 +871,65 @@ public final class SCR extends Globals {
         }
     }
 
+    private static LayoutParser layoutParser = new LayoutParser();
     /*
      * ================ SCR_ExecuteLayoutString
      * 
      * ================
      */
     static void ExecuteLayoutString(String s) {
-        int x, y;
-        int value;
-        String token;
-        int width;
-        int index;
-        clientinfo_t ci;
 
         if (cls.state != ca_active || !cl.refresh_prepped)
             return;
 
-        //		if (!s[0])
         if (s == null || s.length() == 0)
             return;
 
-        x = 0;
-        y = 0;
-        width = 3;
+        int x = 0;
+        int y = 0;
+        int width = 3;
+        int value;
 
-        Com.ParseHelp ph = new Com.ParseHelp(s);
+        LayoutParser parser = layoutParser; 
+        parser.init(s);
 
-        while (!ph.isEof()) {
-            token = Com.Parse(ph);
-            if (token.equals("xl")) {
-                token = Com.Parse(ph);
-                x = Lib.atoi(token);
+        while (parser.hasNext()) {
+            parser.next();
+            if (parser.tokenEquals("xl")) {
+                parser.next();
+                x = parser.tokenAsInt();
                 continue;
             }
-            if (token.equals("xr")) {
-                token = Com.Parse(ph);
-                x = viddef.width + Lib.atoi(token);
+            if (parser.tokenEquals("xr")) {
+                parser.next();
+                x = viddef.width + parser.tokenAsInt();
                 continue;
             }
-            if (token.equals("xv")) {
-                token = Com.Parse(ph);
-                x = viddef.width / 2 - 160 + Lib.atoi(token);
-                continue;
-            }
-
-            if (token.equals("yt")) {
-                token = Com.Parse(ph);
-                y = Lib.atoi(token);
-                continue;
-            }
-            if (token.equals("yb")) {
-                token = Com.Parse(ph);
-                y = viddef.height + Lib.atoi(token);
-                continue;
-            }
-            if (token.equals("yv")) {
-                token = Com.Parse(ph);
-                y = viddef.height / 2 - 120 + Lib.atoi(token);
+            if (parser.tokenEquals("xv")) {
+                parser.next();
+                x = viddef.width / 2 - 160 + parser.tokenAsInt();
                 continue;
             }
 
-            if (token.equals("pic")) { // draw a pic from a stat number
-                token = Com.Parse(ph);
-                value = cl.frame.playerstate.stats[Lib.atoi(token)];
+            if (parser.tokenEquals("yt")) {
+                parser.next();
+                y = parser.tokenAsInt();
+                continue;
+            }
+            if (parser.tokenEquals("yb")) {
+                parser.next();
+                y = viddef.height + parser.tokenAsInt();
+                continue;
+            }
+            if (parser.tokenEquals("yv")) {
+                parser.next();
+                y = viddef.height / 2 - 120 + parser.tokenAsInt();
+                continue;
+            }
+
+            if (parser.tokenEquals("pic")) { // draw a pic from a stat number
+                parser.next();
+                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
                 if (value >= MAX_IMAGES)
                     Com.Error(ERR_DROP, "Pic >= MAX_IMAGES");
                 if (cl.configstrings[CS_IMAGES + value] != null) {
@@ -945,30 +940,30 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("client")) { // draw a deathmatch client block
+            if (parser.tokenEquals("client")) { // draw a deathmatch client block
                 int score, ping, time;
 
-                token = Com.Parse(ph);
-                x = viddef.width / 2 - 160 + Lib.atoi(token);
-                token = Com.Parse(ph);
-                y = viddef.height / 2 - 120 + Lib.atoi(token);
+                parser.next();
+                x = viddef.width / 2 - 160 + parser.tokenAsInt();
+                parser.next();
+                y = viddef.height / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
-                token = Com.Parse(ph);
-                value = Lib.atoi(token);
+                parser.next();
+                value = parser.tokenAsInt();
                 if (value >= MAX_CLIENTS || value < 0)
                     Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-                ci = cl.clientinfo[value];
+                clientinfo_t ci = cl.clientinfo[value];
 
-                token = Com.Parse(ph);
-                score = Lib.atoi(token);
+                parser.next();
+                score = parser.tokenAsInt();
 
-                token = Com.Parse(ph);
-                ping = Lib.atoi(token);
+                parser.next();
+                ping = parser.tokenAsInt();
 
-                token = Com.Parse(ph);
-                time = Lib.atoi(token);
+                parser.next();
+                time = parser.tokenAsInt();
 
                 Console.DrawAltString(x + 32, y, ci.name);
                 Console.DrawString(x + 32, y + 8, "Score: ");
@@ -982,27 +977,27 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("ctf")) { // draw a ctf client block
+            if (parser.tokenEquals("ctf")) { // draw a ctf client block
                 int score, ping;
 
-                token = Com.Parse(ph);
-                x = viddef.width / 2 - 160 + Lib.atoi(token);
-                token = Com.Parse(ph);
-                y = viddef.height / 2 - 120 + Lib.atoi(token);
+                parser.next();
+                x = viddef.width / 2 - 160 + parser.tokenAsInt();
+                parser.next();
+                y = viddef.height / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
-                token = Com.Parse(ph);
-                value = Lib.atoi(token);
+                parser.next();
+                value = parser.tokenAsInt();
                 if (value >= MAX_CLIENTS || value < 0)
                     Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-                ci = cl.clientinfo[value];
+                clientinfo_t ci = cl.clientinfo[value];
 
-                token = Com.Parse(ph);
-                score = Lib.atoi(token);
+                parser.next();
+                score = parser.tokenAsInt();
 
-                token = Com.Parse(ph);
-                ping = Lib.atoi(token);
+                parser.next();
+                ping = parser.tokenAsInt();
                 if (ping > 999)
                     ping = 999;
 
@@ -1017,24 +1012,24 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("picn")) { // draw a pic from a name
-                token = Com.Parse(ph);
+            if (parser.tokenEquals("picn")) { // draw a pic from a name
+                parser.next();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 23, y + 23);
-                re.DrawPic(x, y, token);
+                re.DrawPic(x, y, parser.token());
                 continue;
             }
 
-            if (token.equals("num")) { // draw a number
-                token = Com.Parse(ph);
-                width = Lib.atoi(token);
-                token = Com.Parse(ph);
-                value = cl.frame.playerstate.stats[Lib.atoi(token)];
+            if (parser.tokenEquals("num")) { // draw a number
+                parser.next();
+                width = parser.tokenAsInt();
+                parser.next();
+                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
                 DrawField(x, y, 0, width, value);
                 continue;
             }
 
-            if (token.equals("hnum")) { // health number
+            if (parser.tokenEquals("hnum")) { // health number
                 int color;
 
                 width = 3;
@@ -1053,7 +1048,7 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("anum")) { // ammo number
+            if (parser.tokenEquals("anum")) { // ammo number
                 int color;
 
                 width = 3;
@@ -1072,7 +1067,7 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("rnum")) { // armor number
+            if (parser.tokenEquals("rnum")) { // armor number
                 int color;
 
                 width = 3;
@@ -1089,9 +1084,9 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("stat_string")) {
-                token = Com.Parse(ph);
-                index = Lib.atoi(token);
+            if (parser.tokenEquals("stat_string")) {
+                parser.next();
+                int index = parser.tokenAsInt();
                 if (index < 0 || index >= MAX_CONFIGSTRINGS)
                     Com.Error(ERR_DROP, "Bad stat_string index");
                 index = cl.frame.playerstate.stats[index];
@@ -1101,36 +1096,39 @@ public final class SCR extends Globals {
                 continue;
             }
 
-            if (token.equals("cstring")) {
-                token = Com.Parse(ph);
-                DrawHUDString(token, x, y, 320, 0);
+            if (parser.tokenEquals("cstring")) {
+                parser.next();
+                DrawHUDString(parser.token(), x, y, 320, 0);
                 continue;
             }
 
-            if (token.equals("string")) {
-                token = Com.Parse(ph);
-                Console.DrawString(x, y, token);
+            if (parser.tokenEquals("string")) {
+                parser.next();
+                Console.DrawString(x, y, parser.token());
                 continue;
             }
 
-            if (token.equals("cstring2")) {
-                token = Com.Parse(ph);
-                DrawHUDString(token, x, y, 320, 0x80);
+            if (parser.tokenEquals("cstring2")) {
+                parser.next();
+                DrawHUDString(parser.token(), x, y, 320, 0x80);
                 continue;
             }
 
-            if (token.equals("string2")) {
-                token = Com.Parse(ph);
-                Console.DrawAltString(x, y, token);
+            if (parser.tokenEquals("string2")) {
+                parser.next();
+                Console.DrawAltString(x, y, parser.token());
                 continue;
             }
 
-            if (token.equals("if")) { // draw a number
-                token = Com.Parse(ph);
-                value = cl.frame.playerstate.stats[Lib.atoi(token)];
+            if (parser.tokenEquals("if")) { // draw a number
+                parser.next();
+                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
                 if (value == 0) {
+                    parser.next();
                     // skip to endif
-                    while (!ph.isEof() && !(token = Com.Parse(ph)).equals("endif"));
+                    while (parser.hasNext() && !(parser.tokenEquals("endif"))) {
+                	parser.next();
+                    }
                 }
                 continue;
             }
