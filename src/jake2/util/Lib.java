@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 09.12.2003 by RST.
-// $Id: Lib.java,v 1.18 2005-12-18 22:10:12 cawe Exp $
+// $Id: Lib.java,v 1.19 2007-05-14 22:18:29 cawe Exp $
 
 package jake2.util;
 
@@ -75,15 +75,13 @@ public class Lib {
 
 	/** Like in libc. */
 	public static float atof(String in) {
-		float res = 0;
-	
+		if (in == null || in.length() == 0)
+			return 0;
 		try {
-			res = Float.parseFloat(in);
+			return Float.parseFloat(in);
+		} catch (Exception e) {
+			return 0;
 		}
-		catch (Exception e) {
-		}
-	
-		return res;
 	}
 	
 	/** Like in quake2. */
