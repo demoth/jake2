@@ -20,7 +20,7 @@
 
 // Created on 17.01.2004 by RST.
 
-// $Id: SV_ENTS.java,v 1.7 2005-12-27 21:02:30 salomo Exp $
+// $Id: SV_ENTS.java,v 1.8 2007-05-14 23:37:00 cawe Exp $
 
 package jake2.server;
 
@@ -534,22 +534,21 @@ public class SV_ENTS {
         }
     }
 
+
+    // stack variable
+    private static byte buf_data[] = new byte[32768];
+    
     /**
      * Save everything in the world out without deltas. Used for recording
      * footage for merged or assembled demos.
      */
     public static void SV_RecordDemoMessage() {
-        int e;
-        edict_t ent;
-        entity_state_t nostate = new entity_state_t(null);
-        sizebuf_t buf = new sizebuf_t();
-        byte buf_data[] = new byte[32768];
-        int len;
-
         if (SV_INIT.svs.demofile == null)
             return;
 
         //memset (nostate, 0, sizeof(nostate));
+        entity_state_t nostate = new entity_state_t(null);
+        sizebuf_t buf = new sizebuf_t();
         SZ.Init(buf, buf_data, buf_data.length);
 
         // write a frame message that doesn't contain a player_state_t
@@ -558,8 +557,8 @@ public class SV_ENTS {
 
         MSG.WriteByte(buf, Defines.svc_packetentities);
 
-        e = 1;
-        ent = GameBase.g_edicts[e];
+        int e = 1;
+        edict_t ent = GameBase.g_edicts[e];
 
         while (e < GameBase.num_edicts) {
             // ignore ents without visible models unless they have an effect
@@ -582,7 +581,7 @@ public class SV_ENTS {
         SZ.Clear(SV_INIT.svs.demo_multicast);
 
         // now write the entire message to the file, prefixed by the length
-        len = EndianHandler.swapInt(buf.cursize);
+        int len = EndianHandler.swapInt(buf.cursize);
 
         try {
             //fwrite (len, 4, 1, svs.demofile);
