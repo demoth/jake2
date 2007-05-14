@@ -2,7 +2,7 @@
  * CL_pred.java
  * Copyright (C) 2004
  * 
- * $Id: CL_pred.java,v 1.6 2004-10-04 12:50:37 hzi Exp $
+ * $Id: CL_pred.java,v 1.7 2007-05-14 22:29:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.util.Lib;
 import jake2.util.Math3D;
 
 /**
@@ -251,12 +252,7 @@ public class CL_pred {
             }
         };
 
-        try {
-            PMove.pm_airaccelerate = Float
-                    .parseFloat(Globals.cl.configstrings[Defines.CS_AIRACCEL]);
-        } catch (Exception e) {
-            PMove.pm_airaccelerate = 0;
-        }
+        PMove.pm_airaccelerate = Lib.atof(Globals.cl.configstrings[Defines.CS_AIRACCEL]);
 
         // bugfix (rst) yeah !!!!!!!! found the solution to the B E W E G U N G
         // S P R O B L E M.

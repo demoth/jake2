@@ -2,7 +2,7 @@
  * Cvar.java
  * Copyright (C) 2003
  * 
- * $Id: Cvar.java,v 1.9 2005-12-27 21:02:30 salomo Exp $
+ * $Id: Cvar.java,v 1.10 2007-05-14 22:29:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -77,12 +77,7 @@ public class Cvar extends Globals {
         var.name = new String(var_name);
         var.string = new String(var_value);
         var.modified = true;
-        // handles atof(var.string)
-        try {
-            var.value = Float.parseFloat(var.string);
-        } catch (NumberFormatException e) {
-            var.value = 0.0f;
-        }
+        var.value = Lib.atof(var.string);
         // link the variable in
         var.next = Globals.cvar_vars;
         Globals.cvar_vars = var;
@@ -131,12 +126,7 @@ public class Cvar extends Globals {
             Globals.userinfo_modified = true; // transmit at next oportunity
 
         var.string = value;
-        try {
-            var.value = Float.parseFloat(var.string);
-        } catch (Exception e) {
-            var.value = 0.0f;
-        }
-
+        var.value = Lib.atof(var.string);
         var.flags = flags;
 
         return var;
@@ -196,11 +186,7 @@ public class Cvar extends Globals {
                     var.latched_string = value;
                 } else {
                     var.string = value;
-                    try {
-                        var.value = Float.parseFloat(var.string);
-                    } catch (Exception e) {
-                        var.value = 0.0f;
-                    }
+                    var.value = Lib.atof(var.string);
                     if (var.name.equals("game")) {
                         FS.SetGamedir(var.string);
                         FS.ExecAutoexec();
@@ -325,12 +311,8 @@ public class Cvar extends Globals {
         cvar_t var = Cvar.FindVar(var_name);
         if (var == null)
             return 0;
-        float val = 0.0f;
-        try {
-            val = Float.parseFloat(var.string);
-        } catch (Exception e) {
-        }
-        return val;
+        
+        return Lib.atof(var.string);
     }
 
     /**
@@ -386,11 +368,7 @@ public class Cvar extends Globals {
                 continue;
             var.string = var.latched_string;
             var.latched_string = null;
-            try {
-                var.value = Float.parseFloat(var.string);
-            } catch (NumberFormatException e) {
-                var.value = 0.0f;
-            }
+            var.value = Lib.atof(var.string);
             if (var.name.equals("game")) {
                 FS.SetGamedir(var.string);
                 FS.ExecAutoexec();
