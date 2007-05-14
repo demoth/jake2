@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.29 2005-12-18 22:10:10 cawe Exp $
+ * $Id: CL.java,v 1.30 2007-05-14 23:38:15 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -625,8 +625,6 @@ public final class CL {
      * Resend a connect message if the last one has timed out.
      */
     static void CheckForResend() {
-        netadr_t adr = new netadr_t();
-
         // if the local server is running and we aren't
         // then connect
         if (Globals.cls.state == Defines.ca_disconnected
@@ -645,6 +643,7 @@ public final class CL {
         if (Globals.cls.realtime - Globals.cls.connect_time < 3000)
             return;
 
+        netadr_t adr = new netadr_t();
         if (!NET.StringToAdr(Globals.cls.servername, adr)) {
             Com.Printf("Bad server address\n");
             Globals.cls.state = Defines.ca_disconnected;
