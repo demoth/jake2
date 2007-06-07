@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.15 2005-12-03 19:45:42 salomo Exp $
+// $Id: SV_CCMDS.java,v 1.16 2007-06-07 10:31:10 cawe Exp $
 
 package jake2.server;
 
@@ -177,11 +177,9 @@ public class SV_CCMDS {
 	/** Delete save files save/(number)/.  */
 	public static void SV_WipeSavegame(String savename) {
 
-		String name, s;
+	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
-		Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
-
-		name = FS.Gamedir() + "/save/" + savename + "/server.ssv";
+		String name = FS.Gamedir() + "/save/" + savename + "/server.ssv";
 		remove(name);
 
 		name = FS.Gamedir() + "/save/" + savename + "/game.ssv";
@@ -277,19 +275,14 @@ public class SV_CCMDS {
 	================
 	*/
 	public static void SV_CopySaveGame(String src, String dst) {
-		//char name[MAX_OSPATH], name2[MAX_OSPATH];
-		int l, len;
-		File found;
-
-		String name, name2;
 
 		Com.DPrintf("SV_CopySaveGame(" + src + "," + dst + ")\n");
 
 		SV_WipeSavegame(dst);
 
 		// copy the savegame over
-		name = FS.Gamedir() + "/save/" + src + "/server.ssv";
-		name2 = FS.Gamedir() + "/save/" + dst + "/server.ssv";
+		String name = FS.Gamedir() + "/save/" + src + "/server.ssv";
+		String name2 = FS.Gamedir() + "/save/" + dst + "/server.ssv";
 		FS.CreatePath(name2);
 		CopyFile(name, name2);
 
@@ -298,10 +291,9 @@ public class SV_CCMDS {
 		CopyFile(name, name2);
 
 		String name1 = FS.Gamedir() + "/save/" + src + "/";
-		len = name1.length();
 		name = FS.Gamedir() + "/save/" + src + "/*.sav";
 
-		found = Sys.FindFirst(name, 0, 0);
+		File found = Sys.FindFirst(name, 0, 0);
 
 		while (found != null) {
 			name = name1 + found.getName();
@@ -460,7 +452,7 @@ public class SV_CCMDS {
 	==============
 	*/
 	public static void SV_ReadServerFile() {
-		String filename="", name = "", string, comment, mapcmd;
+		String filename="", name = "", string, mapcmd;
 		try {
 			QuakeFile f;
 
@@ -472,8 +464,8 @@ public class SV_CCMDS {
 
 			f = new QuakeFile(filename, "r");
 
-			// read the comment field
-			comment = f.readString();
+			// read the comment field but ignore
+			f.readString();
 
 			// read the mapcmd
 			mapcmd = f.readString();
@@ -537,10 +529,6 @@ public class SV_CCMDS {
 	==================
 	*/
 	public static void SV_GameMap_f() {
-		String map;
-		int i;
-		client_t cl;
-		boolean savedInuse[];
 
 		if (Cmd.Argc() != 2) {
 			Com.Printf("USAGE: gamemap <map>\n");
@@ -552,7 +540,7 @@ public class SV_CCMDS {
 		FS.CreatePath(FS.Gamedir() + "/save/current/");
 
 		// check for clearing the current savegame
-		map = Cmd.Argv(1);
+		String map = Cmd.Argv(1);
 		if (map.charAt(0) == '*') {
 			// wipe all the *.sav files
 			SV_WipeSavegame("current");
@@ -562,8 +550,9 @@ public class SV_CCMDS {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
-				savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
-				for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+				client_t cl;
+				boolean[] savedInuse = new boolean[(int) SV_MAIN.maxclients.value];
+				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
 					cl = SV_INIT.svs.clients[i];
 					savedInuse[i] = cl.edict.inuse;
 					cl.edict.inuse = false;
@@ -572,7 +561,7 @@ public class SV_CCMDS {
 				SV_WriteLevelFile();
 
 				// we must restore these for clients to transfer over correctly
-				for (i = 0; i < SV_MAIN.maxclients.value; i++) {
+				for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
 					cl = SV_INIT.svs.clients[i];
 					cl.edict.inuse = savedInuse[i];
 
@@ -638,10 +627,6 @@ public class SV_CCMDS {
 	*/
 	public static void SV_Loadgame_f() {
 
-		String name;
-		RandomAccessFile f;
-		String dir;
-
 		if (Cmd.Argc() != 2) {
 			Com.Printf("USAGE: loadgame <directory>\n");
 			return;
@@ -649,13 +634,14 @@ public class SV_CCMDS {
 
 		Com.Printf("Loading game...\n");
 
-		dir = Cmd.Argv(1);
+		String dir = Cmd.Argv(1);
 		if ( (dir.indexOf("..") > -1) || (dir.indexOf("/") > -1) || (dir.indexOf("\\") > -1)) {
 			Com.Printf("Bad savedir.\n");
 		}
 
 		// make sure the server.ssv file exists
-		name = FS.Gamedir() + "/save/" + Cmd.Argv(1) + "/server.ssv";
+		String name = FS.Gamedir() + "/save/" + Cmd.Argv(1) + "/server.ssv";
+		RandomAccessFile f;
 		try {
 			f = new RandomAccessFile(name, "r");
 		}
