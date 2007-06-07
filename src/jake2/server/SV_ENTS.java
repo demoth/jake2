@@ -20,8 +20,6 @@
 
 // Created on 17.01.2004 by RST.
 
-// $Id: SV_ENTS.java,v 1.8 2007-05-14 23:37:00 cawe Exp $
-
 package jake2.server;
 
 import jake2.Defines;
@@ -139,24 +137,22 @@ public class SV_ENTS {
      */
     static void SV_WritePlayerstateToClient(client_frame_t from,
             client_frame_t to, sizebuf_t msg) {
-        int i;
-        int pflags;
         // ptr
         player_state_t ps, ops;
         // mem
         player_state_t dummy;
-        int statbits;
 
         ps = to.ps;
         if (from == null) {
             //memset (dummy, 0, sizeof(dummy));
             dummy = new player_state_t();
             ops = dummy;
-        } else
+        } else {
             ops = from.ps;
+        }
 
         // determine what needs to be sent
-        pflags = 0;
+        int pflags = 0;
 
         if (ps.pmove.pm_type != ops.pmove.pm_type)
             pflags |= Defines.PS_M_TYPE;
@@ -295,12 +291,12 @@ public class SV_ENTS {
             MSG.WriteByte(msg, ps.rdflags);
 
         // send stats
-        statbits = 0;
-        for (i = 0; i < Defines.MAX_STATS; i++)
+        int statbits = 0;
+        for (int i = 0; i < Defines.MAX_STATS; i++)
             if (ps.stats[i] != ops.stats[i])
                 statbits |= 1 << i;
         MSG.WriteLong(msg, statbits);
-        for (i = 0; i < Defines.MAX_STATS; i++)
+        for (int i = 0; i < Defines.MAX_STATS; i++)
             if ((statbits & (1 << i)) != 0)
                 MSG.WriteShort(msg, ps.stats[i]);
     }
@@ -536,7 +532,7 @@ public class SV_ENTS {
 
 
     // stack variable
-    private static byte buf_data[] = new byte[32768];
+    private static final byte buf_data[] = new byte[32768];
     
     /**
      * Save everything in the world out without deltas. Used for recording
