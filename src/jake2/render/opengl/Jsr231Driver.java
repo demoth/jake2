@@ -207,7 +207,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		    try {
 			EventQueue.invokeAndWait(new Runnable() {
 			    public void run() {
-				f2.setLocation(window_xpos, window_ypos);
+				//f2.setLocation(window_xpos, window_ypos);
 				f2.pack();
 				f2.setResizable(false);
 				f2.setVisible(true);

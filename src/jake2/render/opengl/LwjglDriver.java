@@ -2,7 +2,7 @@
  * LWJGLBase.java
  * Copyright (C) 2004
  * 
- * $Id: LwjglDriver.java,v 1.4 2007-02-14 19:50:48 cawe Exp $
+ * $Id: LwjglDriver.java,v 1.5 2007-11-03 13:04:23 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -219,7 +219,6 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
         shutdown();
 
         Display.setTitle("Jake2 (lwjgl)");
-        Display.setLocation(0, 0);
 
         DisplayMode displayMode = findDisplayMode(newDim);
         newDim.width = displayMode.getWidth();
@@ -255,7 +254,7 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
             } catch (LWJGLException e) {
                 return Base.rserr_invalid_fullscreen;
             }
-            Display.setLocation(window_xpos, window_ypos);
+            //Display.setLocation(window_xpos, window_ypos);
         }
 
         Base.setVid(newDim.width, newDim.height);

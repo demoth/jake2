@@ -194,7 +194,6 @@ public abstract class Jsr231cbDriver extends Jsr231GL implements GLDriver, GLEve
 		//canvas.setGL(new DebugGL(canvas.getGL()));
 
 		canvas.setAutoSwapBufferMode(false);
-		canvas.setAutoSwapBufferMode(false);
 		
 		canvas.addGLEventListener(this);
 
@@ -236,7 +235,7 @@ public abstract class Jsr231cbDriver extends Jsr231GL implements GLDriver, GLEve
 			VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
-			window.setLocation(window_xpos, window_ypos);
+			//window.setLocation(window_xpos, window_ypos);
 			window.pack();
 			window.setResizable(false);
 			window.setVisible(true);
