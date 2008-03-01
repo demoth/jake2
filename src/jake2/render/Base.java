@@ -166,7 +166,7 @@ public abstract class Base implements QGLConst, RenderAPI {
     /*
      * base members
      */
-    protected static viddef_t vid = new viddef_t();
+    protected final static viddef_t vid = new viddef_t();
 
     protected cvar_t vid_fullscreen;
     
