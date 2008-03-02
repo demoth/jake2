@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.21 2006-10-24 22:15:53 cawe Exp $
+ * $Id: Menu.java,v 1.22 2008-03-02 08:35:30 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -361,26 +361,17 @@ public final class Menu extends Key {
     static boolean cached;
 
     static void DrawCursor(int x, int y, int f) {
-        //char cursorname[80];
-        String cursorname;
-
         assert (f >= 0) : "negative time and cursor bug";
 
         f = Math.abs(f);
 
         if (!cached) {
-            int i;
-
-            for (i = 0; i < NUM_CURSOR_FRAMES; i++) {
-                cursorname = "m_cursor" + i;
-
-                re.RegisterPic(cursorname);
+            for (int i = 0; i < NUM_CURSOR_FRAMES; i++) {
+                re.RegisterPic("m_cursor" + i);
             }
             cached = true;
         }
-
-        cursorname = "m_cursor" + f;
-        re.DrawPic(x, y, cursorname);
+        re.DrawPic(x, y, "m_cursor" + f);
     }
 
     public static void DrawTextBox(int x, int y, int width, int lines) {
