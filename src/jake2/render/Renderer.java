@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.11 2006-12-11 15:44:29 cawe Exp $
+ * $Id: Renderer.java,v 1.12 2008-03-02 15:40:27 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -47,7 +47,7 @@ public class Renderer {
 		    Class.forName("net.java.games.jogl.GL");
 		    Class.forName("jake2.render.JoglRenderer");
 		} catch (ClassNotFoundException e) {
-		    // ignore the fastjogl drivers if runtime not in classpath
+		    // ignore the oldjogl drivers if runtime not in classpath
 		}
 		try {
 		    Class.forName("org.lwjgl.opengl.GL11");
@@ -57,14 +57,9 @@ public class Renderer {
 		}
 		try {
 		    Class.forName("javax.media.opengl.GL");
-		    // TODO this is a hack for Win32
-		    if (System.getProperty("os.name").startsWith("Windows")) {
-			    Class.forName("jake2.render.Jsr231Renderer");
-		    } else {
-			    Class.forName("jake2.render.Jsr231Renderer");
-		    }
+		    Class.forName("jake2.render.Jsr231Renderer");
 		} catch (ClassNotFoundException e) {
-		    // ignore the jogl drivers if runtime not in classpath
+		    // ignore the jnew ogl drivers if runtime not in classpath
 		}
 	    } catch (Throwable e) {
 		e.printStackTrace();
