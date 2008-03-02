@@ -28,7 +28,7 @@ public class viddef_t {
     private int newHeight;
 
     /**
-     * This method doesn't affect <code>width</code> and <code>height</code>
+     * This method hasn't an effect on <code>width</code> and <code>height</code>
      * directly. The new values will be active after an <code>update()</code>
      * call.
      * 
