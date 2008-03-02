@@ -136,7 +136,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		VID.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 		
 		/*
-		 * fullscreen handling
+		 * full screen handling
 		 */
 		if (device == null) {
 			GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -160,12 +160,18 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		window = new Frame("Jake2 (jsr231)");
 		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
 		window.setIconImage(icon.getImage());
+		window.setLayout(new GridBagLayout());
 		
 		Display canvas = new Display(new GLCapabilities());
 		// we want keypressed events for TAB key
 		canvas.setFocusTraversalKeysEnabled(false);
 
-		window.add(canvas);	
+		// the OpenGL canvas grows and shrinks with the window
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = gbc.weighty = 1;
+		window.add(canvas, gbc);
+		
 		canvas.setSize(newDim.width, newDim.height);
 
 		// register event listener
@@ -209,7 +215,7 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 			    public void run() {
 				//f2.setLocation(window_xpos, window_ypos);
 				f2.pack();
-				f2.setResizable(false);
+				f2.setResizable(true);
 				f2.setVisible(true);
 			    }
 			});
@@ -227,10 +233,6 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		
 		this.display = canvas;
 
-		Base.setVid(newDim.width, newDim.height);
-
-		// let the sound and input subsystems know about the new window
-		VID.NewWindow(newDim.width, newDim.height);
 		setGL(display.getGL());
 		init(0, 0);
         
@@ -284,13 +286,13 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	    // clear the screen
 	    // first buffer
 	    beginFrame(0.0f);
-	    glViewport(0, 0, window.getWidth(), window.getHeight());
+	    glViewport(0, 0, display.getWidth(), display.getHeight());
 	    glClearColor(0, 0, 0, 0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    endFrame();
 	    // second buffer
 	    beginFrame(0.0f);
-	    glViewport(0, 0, window.getWidth(), window.getHeight());
+	    glViewport(0, 0, display.getWidth(), display.getHeight());
 	    glClearColor(0, 0, 0, 0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    endFrame();
@@ -347,7 +349,26 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
             activate();
             return context.getGL();
         }
-        /** <B>Overrides:</B>
+        
+        
+    /**
+	 * @see java.awt.Component#setBounds(int, int, int, int)
+	 */
+	public void setBounds(int x, int y, int width, int height) {
+	    final int mask = ~0x03;
+	    if ((width & 0x03) != 0) {
+		width &= mask;
+		width += 4;
+	    }
+
+//	    System.out.println("display bounds: " + x + ", " + y + ", " +  width + ", " + height);
+	    super.setBounds(x, y, width, height);
+	    Base.setVid(width, height);
+	    // let the sound and input subsystems know about the new window
+	    VID.NewWindow(width, height);
+	}
+
+	/** <B>Overrides:</B>
         <DL><DD><CODE>paint</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
         // Overridden from Canvas to prevent the AWT's clearing of the
         // canvas from interfering with the OpenGL rendering.
