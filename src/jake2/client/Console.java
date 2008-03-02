@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.8 2008-03-02 14:56:22 cawe Exp $
+ * $Id: Console.java,v 1.9 2008-03-02 16:43:18 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -294,7 +294,7 @@ public final class Console extends Globals {
 		* Globals.con.linewidth;
 	int e = i + Globals.con.linewidth;
 	while (i++ < e)
-	    Globals.con.text[i] = ' ';
+	    Globals.con.text[i] = (byte) ' ';
     }
 
     /*
