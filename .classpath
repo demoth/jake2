@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/joal/joal.jar"/>
 	<classpathentry kind="lib" path="lib/jogl/jogl.jar"/>
 	<classpathentry kind="lib" path="lib/jsr231/jogl.jar"/>
@@ -10,5 +9,6 @@
 	<classpathentry kind="lib" path="lib/lwjgl/lwjgl_util.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl/lwjgl.jar"/>
 	<classpathentry kind="lib" path="resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
