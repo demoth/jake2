@@ -26,6 +26,7 @@
 		<pathelement location="lib/joal/joal.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
+		<pathelement location="${java.home}/lib/plugin.jar"/>
 	</path>
 	
 	<!-- usage -->
@@ -152,6 +153,7 @@
 			<include name="mirrors"/>
 		</jar>
 		<property name="classes" value="${java.home}/lib/rt.jar"/>
+		<property name="plugin" value="${java.home}/lib/plugin.jar"/>
         <condition property="classes" value="${java.home}/../Classes/classes.jar">
             <os name="Mac OS X"/>
         </condition> 		
@@ -163,6 +165,7 @@
 			<libraryjar name="lib/joal/joal.jar"/>
 			<libraryjar name="lib/joal/gluegen-rt.jar"/>
 			<libraryjar name="${classes}"/>
+			<libraryjar name="${plugin}"/>
 			<keep access="public" name="jake2.Jake2">
 				<method name="main(java.lang.String[])"/>
 			</keep>

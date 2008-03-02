@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.11 2005-07-01 14:20:54 hzi Exp $
+ * $Id: Sys.java,v 1.12 2008-03-02 20:21:15 kbrussel Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -45,13 +45,17 @@ public final class Sys extends Defines {
         CL.Shutdown();
         //StackTrace();
         new Exception(error).printStackTrace();
-        System.exit(1);
+        if (!Globals.appletMode) {
+            System.exit(1);
+        }
     }
 
     public static void Quit() {
         CL.Shutdown();
 
-        System.exit(0);
+        if (!Globals.appletMode) {
+            System.exit(0);
+        }
     }
 
     //ok!

@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.5 2005-02-07 17:49:26 cawe Exp $
+ * $Id: Globals.java,v 1.6 2008-03-02 20:21:12 kbrussel Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -385,4 +385,14 @@ public class Globals extends Defines {
 	public static int vidref_val = VIDREF_GL;
 	
 	public static Random rnd = new Random();
+
+	//=============================================================================
+
+        // Information used when we're running as an applet
+        // Whether we're running as an applet
+        public static boolean appletMode;
+        // The applet, represented as an Object to avoid an AWT dependency here
+        public static Object applet;
+        // A listener to receive video mode changes
+        public static SizeChangeListener sizeChangeListener;
 }

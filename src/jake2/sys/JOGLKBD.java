@@ -1,5 +1,6 @@
 package jake2.sys;
 
+import jake2.Globals;
 import jake2.client.Key;
 
 import java.awt.*;
@@ -21,12 +22,20 @@ final public class JOGLKBD extends KBD
 		try {
 			robot = new Robot();
 		} catch (AWTException e) {
+                    if (!Globals.appletMode) {
 			System.exit(1);
+                    }
 		}
 	}
 		
 	public void Init() {
 	}
+
+        // Used only for the applet case
+        public static void Init(Component component) {
+            c = component;
+            handleCreateAndConfigureNotify(component);
+        }
 
 	public void Update() {
 		// get events
@@ -85,24 +94,7 @@ final public class JOGLKBD extends KBD
 					 
 				case Jake2InputEvent.CreateNotify :
 				case Jake2InputEvent.ConfigureNotify :
-					Component c = ((ComponentEvent)event.ev).getComponent();
-					win_x = 0;
-					win_y = 0;
-					win_w2 = c.getWidth() / 2;
-					win_h2 = c.getHeight() / 2;
-					int left = 0; int top = 0;
-					while (c != null) {
-						if (c instanceof Container) {
-							Insets insets = ((Container)c).getInsets();
-							left += insets.left;
-							top += insets.top;
-						}
-						win_x += c.getX();
-						win_y += c.getY();
-						c = c.getParent();
-					}
-					win_x += left; win_y += top;
-					win_w2 -= left / 2; win_h2 -= top / 2;
+                                        handleCreateAndConfigureNotify(((ComponentEvent)event.ev).getComponent());
 					break;
 			}
 		}
@@ -112,6 +104,38 @@ final public class JOGLKBD extends KBD
 			robot.mouseMove(win_x + win_w2, win_y + win_h2);
 		}		
 	}
+
+        private static void handleCreateAndConfigureNotify(Component component) {
+            // Probably could unify this code better, but for now just
+            // leave the two code paths separate
+            if (!Globals.appletMode) {
+                win_x = 0;
+                win_y = 0;
+                win_w2 = component.getWidth() / 2;
+                win_h2 = component.getHeight() / 2;
+                int left = 0; int top = 0;
+                while (component != null) {
+                    if (component instanceof Container) {
+                        Insets insets = ((Container)component).getInsets();
+                        left += insets.left;
+                        top += insets.top;
+                    }
+                    win_x += component.getX();
+                    win_y += component.getY();
+                    component = component.getParent();
+                }
+                win_x += left; win_y += top;
+                win_w2 -= left / 2; win_h2 -= top / 2;
+            } else {
+                win_x = 0;
+                win_y = 0;
+                win_w2 = component.getWidth() / 2;
+                win_h2 = component.getHeight() / 2;
+                Point p = component.getLocationOnScreen();
+                win_x = p.x;
+                win_y = p.y;
+            }
+        }
 
 	// strange button numbering in java.awt.MouseEvent
 	// BUTTON1(left) BUTTON2(center) BUTTON3(right)

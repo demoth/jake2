@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.opengl;
 
 import jake2.Defines;
+import jake2.Globals;
+import jake2.SizeChangeListener;
 import jake2.client.VID;
 import jake2.qcommon.Cbuf;
 import jake2.qcommon.xcommand_t;
@@ -53,6 +55,10 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	private DisplayMode oldDisplayMode; 
 	private volatile Display display;
 	private volatile Frame window;
+
+        // This is either the above Window reference or the global
+        // applet if we're running in applet mode
+        private volatile Container container;
 
 	// window position on the screen
 	int window_xpos, window_ypos;
@@ -135,6 +141,10 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 
 		VID.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 		
+                if (Globals.appletMode && container == null) {
+                    container = (Container) Globals.applet;
+                }
+
 		/*
 		 * full screen handling
 		 */
@@ -143,52 +153,67 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 			device = env.getDefaultScreenDevice();
 		}
        
-		if (oldDisplayMode == null) {
-			oldDisplayMode = device.getDisplayMode();
-		}
+                if (oldDisplayMode == null) {
+                    oldDisplayMode = device.getDisplayMode();
+                }
 
-		if (!VID.GetModeInfo(newDim, mode)) {
-			VID.Printf(Defines.PRINT_ALL, " invalid mode\n");
-			return Base.rserr_invalid_mode;
-		}
+                if (!VID.GetModeInfo(newDim, mode)) {
+                    VID.Printf(Defines.PRINT_ALL, " invalid mode\n");
+                    return Base.rserr_invalid_mode;
+                }
 
-		VID.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
+                VID.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height + '\n');
 
-		// destroy the existing window
-		if (window != null) shutdown();
+                if (!Globals.appletMode) {
+                    // destroy the existing window
+                    if (window != null) shutdown();
 
-		window = new Frame("Jake2 (jsr231)");
-		ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
-		window.setIconImage(icon.getImage());
-		window.setLayout(new GridBagLayout());
+                    window = new Frame("Jake2 (jsr231)");
+                    container = window;
+                    ImageIcon icon = new ImageIcon(getClass().getResource("/icon-small.png"));
+                    window.setIconImage(icon.getImage());
+                    window.setLayout(new GridBagLayout());
+                    // register event listener
+                    window.addWindowListener(new WindowAdapter() {
+                            public void windowClosing(WindowEvent e) {
+                                Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
+                            }
+                        });
+                }
 		
-		Display canvas = new Display(new GLCapabilities());
-		// we want keypressed events for TAB key
-		canvas.setFocusTraversalKeysEnabled(false);
+                if (Globals.appletMode) {
+                    // Destroy the previous display if there is one
+                    shutdown();
 
-		// the OpenGL canvas grows and shrinks with the window
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.weightx = gbc.weighty = 1;
-		window.add(canvas, gbc);
-		
-		canvas.setSize(newDim.width, newDim.height);
+                    // We don't support full-screen mode
+                    fullscreen = false;
 
-		// register event listener
-		window.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-                Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
-			}
-		});
+                    // We need to feed the container to the JOGL
+                    // keyboard class manually because we'll never get
+                    // a component shown event for it
+                    JOGLKBD.Init(container);
+                }
+
+                Display canvas = new Display(new GLCapabilities());
+                // we want keypressed events for TAB key
+                canvas.setFocusTraversalKeysEnabled(false);
+                canvas.setSize(newDim.width, newDim.height);
+
+                // the OpenGL canvas grows and shrinks with the window
+                final GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.BOTH;
+                gbc.weightx = gbc.weighty = 1;
 		
-		// D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
-		window.addComponentListener(JOGLKBD.listener);
-		canvas.addKeyListener(JOGLKBD.listener);
-		canvas.addMouseListener(JOGLKBD.listener);
-		canvas.addMouseMotionListener(JOGLKBD.listener);
-		canvas.addMouseWheelListener(JOGLKBD.listener);
+                // D I F F E R E N T   J A K E 2   E V E N T   P R O C E S S I N G      		
+                container.addComponentListener(JOGLKBD.listener);
+                canvas.addKeyListener(JOGLKBD.listener);
+                canvas.addMouseListener(JOGLKBD.listener);
+                canvas.addMouseMotionListener(JOGLKBD.listener);
+                canvas.addMouseWheelListener(JOGLKBD.listener);
 				        
 		if (fullscreen) {
+
+                    container.add(canvas, gbc);
 
 		    DisplayMode displayMode = findDisplayMode(newDim);
 
@@ -209,26 +234,48 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 		    VID.Printf(Defines.PRINT_ALL, "...setting fullscreen " + getModeString(displayMode) + '\n');
 
 		} else {
-		    final Frame f2 = window;
-		    try {
-			EventQueue.invokeAndWait(new Runnable() {
-			    public void run() {
-				//f2.setLocation(window_xpos, window_ypos);
-				f2.pack();
-				f2.setResizable(true);
-				f2.setVisible(true);
-			    }
-			});
-		    } catch (Exception e) {
-			e.printStackTrace();
-		    }
+                    if (!Globals.appletMode) {
+                        container.add(canvas, gbc);
+                        final Frame f2 = window;
+                        try {
+                            EventQueue.invokeAndWait(new Runnable() {
+                                    public void run() {
+                                        //f2.setLocation(window_xpos, window_ypos);
+                                        f2.pack();
+                                        f2.setResizable(false);
+                                        f2.setVisible(true);
+                                    }
+                                });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        final Display fd = canvas;
+                        try {
+                            EventQueue.invokeAndWait(new Runnable() {
+                                    public void run() {
+                                        container.add(fd, BorderLayout.CENTER);
+                                        // Notify the size listener about the change
+                                        SizeChangeListener listener = Globals.sizeChangeListener;
+                                        if (listener != null) {
+                                            listener.sizeChanged(newDim.width, newDim.height);
+                                        }
+                                        fd.setSize(newDim.width, newDim.height);
+                                    }
+                                });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 		}
 		
-		while (!canvas.isDisplayable() || !window.isDisplayable()) {
+                if (!Globals.appletMode) {
+                    while (!canvas.isDisplayable() || !window.isDisplayable()) {
 			try {
-				Thread.sleep(100);
+                            Thread.sleep(100);
 			} catch (InterruptedException e) {}
-		}
+                    }
+                }
 		canvas.requestFocus();
 		
 		this.display = canvas;
@@ -240,39 +287,47 @@ public abstract class Jsr231Driver extends Jsr231GL implements GLDriver {
 	}
 
 	public void shutdown() {
-		try {
+                if (!Globals.appletMode) {
+                    try {
 			EventQueue.invokeAndWait(new Runnable() {
 				public void run() {
-					if (oldDisplayMode != null
-							&& device.getFullScreenWindow() != null) {
-						try {
-							if (device.isFullScreenSupported()) {
-								if (!device.getDisplayMode().equals(
-										oldDisplayMode))
-									device.setDisplayMode(oldDisplayMode);
+                                    if (oldDisplayMode != null
+                                        && device.getFullScreenWindow() != null) {
+                                        try {
+                                            if (device.isFullScreenSupported()) {
+                                                if (!device.getDisplayMode().equals(oldDisplayMode))
+                                                    device.setDisplayMode(oldDisplayMode);
 
-							}
-							device.setFullScreenWindow(null);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
+                                            }
+                                            device.setFullScreenWindow(null);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
 				}
-			});
-		} catch (Exception e) {
+                            });
+                    } catch (Exception e) {
 			e.printStackTrace();
-		}
-		if (window != null) {
+                    }
+
+                    if (window != null) {
 			if (display != null) display.destroy();
 			window.dispose();
 			while (window.isDisplayable()) {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-				}
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                            }
 
 			}
-		}
+                    }
+                } else {
+                    if (display != null) {
+                        display.destroy();
+                        // Remove the old display if there is one
+                        container.remove(display);
+                    }
+                }
 		display = null;
 	}
 

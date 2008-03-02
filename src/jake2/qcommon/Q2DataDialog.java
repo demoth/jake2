@@ -178,7 +178,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
     }
     
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {
-    	System.exit(1);
+        if (!Globals.appletMode) {
+            System.exit(1);
+        }
     	dispose();
     }
     
@@ -212,7 +214,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_changeButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-    	System.exit(1);
+        if (!Globals.appletMode) {
+            System.exit(1);
+        }
     	dispose();
     }//GEN-LAST:event_formWindowClosing
         
@@ -401,7 +405,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			exit = new JButton("Exit");
 			exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+                            if (!Globals.appletMode) {
 				System.exit(0);
+                            }
 			}});
 			add(exit, constraints);			
 			
@@ -572,7 +578,9 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		}
 		
 		private void exit() {
-			System.exit(0);
+                    if (!Globals.appletMode) {
+                        System.exit(0);
+                    }
 		}
 		
 		private void choose() {
