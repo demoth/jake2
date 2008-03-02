@@ -2,7 +2,7 @@
  * Jake2Applet.java
  * Copyright (C)  2008
  * 
- * $Id: Jake2Applet.java,v 1.1 2008-03-02 20:21:12 kbrussel Exp $
+ * $Id: Jake2Applet.java,v 1.2 2008-03-02 20:38:04 kbrussel Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,6 +30,7 @@ import jake2.qcommon.*;
 import jake2.sys.Timer;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.util.Locale;
 import javax.swing.JApplet;
 
@@ -44,6 +45,12 @@ public class Jake2Applet extends JApplet {
     private volatile boolean shouldShutDown;
     private boolean shutDown;
     private Object shutDownLock = new Object();
+
+    public void init() {
+        // Before Jake2 is fully initialized, make the applet black
+        // like the rest of the web page
+        setBackground(Color.BLACK);
+    }
 
     public void start() {
         setLayout(new BorderLayout());
