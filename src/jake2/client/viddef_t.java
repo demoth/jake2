@@ -16,13 +16,46 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 // Created on 20.11.2003 by RST.
-// $Id: viddef_t.java,v 1.1 2004-07-07 19:58:52 hzi Exp $
-
 package jake2.client;
 
 public class viddef_t {
-	public int width, height;
+    private int width;
+    private int height;
+    private int newWidth;
+    private int newHeight;
+
+    /**
+     * This method doesn't affect <code>width</code> and <code>height</code>
+     * directly. The new values will be active after an <code>update()</code>
+     * call.
+     * 
+     * @param width
+     *                the visible render screen width.
+     * @param height
+     *                the visible render screen height.
+     */
+    public synchronized void setSize(int width, int height) {
+	newWidth = width;
+	newHeight = height;
+    }
+
+    /**
+     * Updates the buffered <code>width</code> and <code>height</code>. The
+     * method should be called once at the beginning of a frame.
+     */
+    public synchronized void update() {
+	width = newWidth;
+	height = newHeight;
+    }
+
+    public int getWidth() {
+	return width;
+    }
+
+    public int getHeight() {
+	return height;
+    }
 }
