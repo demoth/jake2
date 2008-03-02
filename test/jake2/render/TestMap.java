@@ -143,8 +143,8 @@ public class TestMap
 		switch (currentState)
 		{
 			case 0 :
-				re.DrawStretchPic(0, 0, viddef.width, viddef.height, "conback");
-				re.DrawPic(viddef.width / 2 - 50, viddef.height / 2, "loading");
+				re.DrawStretchPic(0, 0, viddef.getWidth(), viddef.getHeight(), "conback");
+				re.DrawPic(viddef.getWidth() / 2 - 50, viddef.getHeight() / 2, "loading");
 				currentState = 1;
 				break;
 			case 1 :
@@ -163,7 +163,7 @@ public class TestMap
 
 				testMap();
 
-				drawString(10, viddef.height - 16, text);
+				drawString(10, viddef.getHeight() - 16, text);
 		}
 		
 		re.EndFrame();
@@ -234,8 +234,6 @@ public class TestMap
 		}
 	};
 
-	private float yaw = 0;
-
 	private float fov_x = 90;
 	
 	private refdef_t refdef;
@@ -254,8 +252,8 @@ public class TestMap
 
 			refdef.x = 0;
 			refdef.y = 0;
-			refdef.width = viddef.width;
-			refdef.height = viddef.height;
+			refdef.width = viddef.getWidth();
+			refdef.height = viddef.getHeight();
 			refdef.fov_x = (Globals.fov == null) ? this.fov_x : Globals.fov.value;
 			refdef.fov_x = this.fov_x;
 			refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
@@ -366,11 +364,6 @@ public class TestMap
 	}
 	
 	private LinkedList active_particles = new LinkedList();
-	private boolean explode = false; 
-	private float[] target; 
-	
-	private boolean initParticles = true;
-	
 	private void animateParticles()
 	{
 		cparticle_t p;

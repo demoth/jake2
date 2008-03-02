@@ -2,7 +2,7 @@
  * Draw.java
  * Copyright (C) 2003
  *
- * $Id: Draw.java,v 1.2 2006-11-21 00:50:46 cawe Exp $
+ * $Id: Draw.java,v 1.3 2008-03-02 14:56:23 cawe Exp $
  */ 
  /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -290,9 +290,9 @@ public abstract class Draw extends Image {
 		gl.glBegin(GL_QUADS);
 
 		gl.glVertex2f(0,0);
-		gl.glVertex2f(vid.width, 0);
-		gl.glVertex2f(vid.width, vid.height);
-		gl.glVertex2f(0, vid.height);
+		gl.glVertex2f(vid.getWidth(), 0);
+		gl.glVertex2f(vid.getWidth(), vid.getHeight());
+		gl.glVertex2f(0, vid.getHeight());
 
 		gl.glEnd();
 		gl.glColor4f(1,1,1,1);

@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.5 2006-12-12 14:46:04 cawe Exp $
+ * $Id: Main.java,v 1.6 2008-03-02 14:56:23 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -667,7 +667,7 @@ public abstract class Main extends Base {
 			gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 			gl.glScissor(
 				r_newrefdef.x,
-				vid.height - r_newrefdef.height - r_newrefdef.y,
+				vid.getHeight() - r_newrefdef.height - r_newrefdef.y,
 				r_newrefdef.width,
 				r_newrefdef.height);
 			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -705,14 +705,14 @@ public abstract class Main extends Base {
 		//
 		// set up viewport
 		//
-		//int x = (int) Math.floor(r_newrefdef.x * vid.width / vid.width);
+		//int x = (int) Math.floor(r_newrefdef.x * vid.getWidth() / vid.getWidth());
 		int x = r_newrefdef.x;
-		//int x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
+		//int x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.getWidth() / vid.getWidth());
 		int x2 = r_newrefdef.x + r_newrefdef.width;
-		//int y = (int) Math.floor(vid.height - r_newrefdef.y * vid.height / vid.height);
-		int y = vid.height - r_newrefdef.y;
-		//int y2 = (int) Math.ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
-		int y2 = vid.height - (r_newrefdef.y + r_newrefdef.height);
+		//int y = (int) Math.floor(vid.getHeight() - r_newrefdef.y * vid.getHeight() / vid.getHeight());
+		int y = vid.getHeight() - r_newrefdef.y;
+		//int y2 = (int) Math.ceil(vid.getHeight() - (r_newrefdef.y + r_newrefdef.height) * vid.getHeight() / vid.getHeight());
+		int y2 = vid.getHeight() - (r_newrefdef.y + r_newrefdef.height);
 
 		int w = x2 - x;
 		int h = y - y2;
@@ -861,10 +861,10 @@ public abstract class Main extends Base {
 	 */
 	void R_SetGL2D() {
 		// set 2D virtual screen size
-		gl.glViewport(0, 0, vid.width, vid.height);
+		gl.glViewport(0, 0, vid.getWidth(), vid.getHeight());
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glOrtho(0, vid.getWidth(), vid.getHeight(), 0, -99999, 99999);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
 		gl.glDisable(GL_DEPTH_TEST);
@@ -1015,7 +1015,7 @@ public abstract class Main extends Base {
 		vid_fullscreen.modified = false;
 		gl_mode.modified = false;
 
-		Dimension dim = new Dimension(vid.width, vid.height);
+		Dimension dim = new Dimension(vid.getWidth(), vid.getHeight());
 
 		int err; //  enum rserr_t
 		if ((err = glImpl.setMode(dim, (int) gl_mode.value, fullscreen)) == rserr_ok) {
@@ -1312,6 +1312,9 @@ public abstract class Main extends Base {
 	 * R_BeginFrame
 	 */
 	public void R_BeginFrame(float camera_separation) {
+	    
+	    vid.update();
+
 
 		gl_state.camera_separation = camera_separation;
 
@@ -1364,10 +1367,10 @@ public abstract class Main extends Base {
 		/*
 		** go into 2D mode
 		*/
-		gl.glViewport(0, 0, vid.width, vid.height);
+		gl.glViewport(0, 0, vid.getWidth(), vid.getHeight());
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glOrtho(0, vid.getWidth(), vid.getHeight(), 0, -99999, 99999);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
 		gl.glDisable(GL_DEPTH_TEST);

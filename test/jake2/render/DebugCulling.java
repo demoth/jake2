@@ -63,7 +63,7 @@ public class DebugCulling
 	void init()
 	{
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.5 2007-02-27 14:00:35 cawe Exp $" });
+		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.6 2008-03-02 14:56:21 cawe Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 
@@ -102,8 +102,8 @@ public class DebugCulling
 		switch (currentState)
 		{
 			case 0 :
-				re.DrawStretchPic(0, 0, viddef.width, viddef.height, "conback");
-				re.DrawPic(viddef.width / 2 - 50, viddef.height / 2, "loading");
+				re.DrawStretchPic(0, 0, viddef.getWidth(), viddef.getHeight(), "conback");
+				re.DrawPic(viddef.getWidth() / 2 - 50, viddef.getHeight() / 2, "loading");
 				currentState = 1;
 				break;
 			case 1 :
@@ -124,7 +124,7 @@ public class DebugCulling
 
 				testMap();
 
-				drawString(10, viddef.height - 16, text);
+				drawString(10, viddef.getHeight() - 16, text);
 		}
 		
 		re.EndFrame();
@@ -132,8 +132,6 @@ public class DebugCulling
 	}
 
 	//		===================================================================
-
-	private float yaw = 0;
 
 	private float fov_x = 90;
 	
@@ -147,8 +145,8 @@ public class DebugCulling
 
 			refdef.x = 0;
 			refdef.y = 0;
-			refdef.width = viddef.width;
-			refdef.height = viddef.height;
+			refdef.width = viddef.getWidth();
+			refdef.height = viddef.getHeight();
 			refdef.fov_x = fov_x;
 			refdef.fov_y = CalcFov(fov_x, refdef.width -10, refdef.height-10);
 			refdef.vieworg = new float[] {0, 0, 0};

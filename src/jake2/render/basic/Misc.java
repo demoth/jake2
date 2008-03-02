@@ -2,7 +2,7 @@
  * Misc.java
  * Copyright (C) 2003
  *
- * $Id: Misc.java,v 1.4 2007-01-11 23:36:15 cawe Exp $
+ * $Id: Misc.java,v 1.5 2008-03-02 14:56:23 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -143,7 +143,7 @@ public final class Misc extends Mesh {
 	    try {
 	        RandomAccessFile out = new RandomAccessFile(file, "rw");
 	        FileChannel ch = out.getChannel();
-	        int fileLength = TGA_HEADER_SIZE + vid.width * vid.height * 3;
+	        int fileLength = TGA_HEADER_SIZE + vid.getWidth() * vid.getHeight() * 3;
 	        out.setLength(fileLength);
 	        MappedByteBuffer image = ch.map(FileChannel.MapMode.READ_WRITE, 0,
 	                fileLength);
@@ -151,10 +151,10 @@ public final class Misc extends Mesh {
 	        // write the TGA header
 	        image.put(0, (byte) 0).put(1, (byte) 0);
 	        image.put(2, (byte) 2); // uncompressed type
-	        image.put(12, (byte) (vid.width & 0xFF)); // vid.width
-	        image.put(13, (byte) (vid.width >> 8)); // vid.width
-	        image.put(14, (byte) (vid.height & 0xFF)); // vid.height
-	        image.put(15, (byte) (vid.height >> 8)); // vid.height
+	        image.put(12, (byte) (vid.getWidth() & 0xFF)); // vid.getWidth()
+	        image.put(13, (byte) (vid.getWidth() >> 8)); // vid.getWidth()
+	        image.put(14, (byte) (vid.getHeight() & 0xFF)); // vid.getHeight()
+	        image.put(15, (byte) (vid.getHeight() >> 8)); // vid.getHeight()
 	        image.put(16, (byte) 24); // pixel size
 	        
 	        // go to image data position
@@ -163,7 +163,7 @@ public final class Misc extends Mesh {
 	        ByteBuffer rgb = image.slice();
 
 	        // change pixel alignment for reading
-	        if (vid.width % 4 != 0) {
+	        if (vid.getWidth() % 4 != 0) {
 	            gl.glPixelStorei(GL_PACK_ALIGNMENT, 1); 
 	        }
 
@@ -172,10 +172,10 @@ public final class Misc extends Mesh {
 	        // e.g.: 1.5.2 NVIDIA 66.29
 	        if (gl_config.getOpenGLVersion() >= 1.2f) {
 	            // read the BGR values into the image buffer
-	            gl.glReadPixels(0, 0, vid.width, vid.height, GL_BGR, GL_UNSIGNED_BYTE, rgb);
+	            gl.glReadPixels(0, 0, vid.getWidth(), vid.getHeight(), GL_BGR, GL_UNSIGNED_BYTE, rgb);
 	        } else {
 	            // read the RGB values into the image buffer
-	            gl.glReadPixels(0, 0, vid.width, vid.height, GL_RGB, GL_UNSIGNED_BYTE, rgb);
+	            gl.glReadPixels(0, 0, vid.getWidth(), vid.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, rgb);
 		        // flip RGB to BGR
 		        byte tmp;
 		        for (i = TGA_HEADER_SIZE; i < fileLength; i += 3) {

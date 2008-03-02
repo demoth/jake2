@@ -2,7 +2,7 @@
  * DancingQueens.java
  * Copyright (C) 2003
  *
- * $Id: DancingQueens.java,v 1.12 2007-03-20 18:57:16 cawe Exp $
+ * $Id: DancingQueens.java,v 1.13 2008-03-02 14:56:21 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -100,7 +100,7 @@ public class DancingQueens {
         Globals.cls.state = Defines.ca_active;
         
         viddef = Globals.viddef;
-        fov_y = Math3D.CalcFov(fov_x, viddef.width, viddef.height);
+        fov_y = Math3D.CalcFov(fov_x, viddef.getWidth(), viddef.getHeight());
     }
     
     float fps = 0.0f;
@@ -119,7 +119,7 @@ public class DancingQueens {
         
         testModel();
         
-        drawString(10, viddef.height - 16, text);
+        drawString(10, viddef.getHeight() - 16, text);
         
         re.EndFrame();
         framecount++;
@@ -162,8 +162,8 @@ public class DancingQueens {
         
         refdef.x = 0;
         refdef.y = 0;
-        refdef.width = viddef.width;
-        refdef.height = viddef.height;
+        refdef.width = viddef.getWidth();
+        refdef.height = viddef.getHeight();
         refdef.fov_x = fov_x;
         refdef.fov_y = fov_y;
         refdef.time = 1.0f * 0.001f;

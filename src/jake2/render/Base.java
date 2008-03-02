@@ -179,9 +179,8 @@ public abstract class Base implements QGLConst, RenderAPI {
         gl = (QGL)driver;
     }
 
-    public static void setVid(int width, int height) {
-        vid.width = width;
-        vid.height = height;
+    public static synchronized void setVid(int width, int height) {
+	vid.setSize(width, height);
     }
     
 }

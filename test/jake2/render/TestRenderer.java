@@ -2,7 +2,7 @@
  * TestRenderer.java
  * Copyright (C) 2003
  *
- * $Id: TestRenderer.java,v 1.8 2006-11-21 01:59:41 cawe Exp $
+ * $Id: TestRenderer.java,v 1.9 2008-03-02 14:56:21 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -109,7 +109,7 @@ public class TestRenderer {
     void updateScreen() {
         re.BeginFrame(0.0f);
         viddef = Globals.viddef;
-        re.DrawStretchPic(0, 0, viddef.width, viddef.height, "conback");
+        re.DrawStretchPic(0, 0, viddef.getWidth(), viddef.getHeight(), "conback");
         
         if (framecount % 500 == 0) {
             long time = System.currentTimeMillis();
@@ -119,13 +119,13 @@ public class TestRenderer {
         String text = ((int)(fps +0.5f)) + " fps";
         
         for (int i = 0; i < text.length(); i++) {
-            re.DrawChar(10 + 8 * i, viddef.height / 2, (int) text.charAt(i));
+            re.DrawChar(10 + 8 * i, viddef.getHeight() / 2, (int) text.charAt(i));
         }
         
         Dimension wal = new Dimension();
         re.DrawGetPicSize(wal, "/textures/e1u1/basemap.wal");
         
-        re.DrawPic(0, viddef.height - wal.height, "/textures/e1u1/basemap.wal");
+        re.DrawPic(0, viddef.getHeight() - wal.height, "/textures/e1u1/basemap.wal");
         
         switch (testnr) {
         case 0:
@@ -172,8 +172,8 @@ public class TestRenderer {
         
         refdef_t refdef = new refdef_t();
         
-        refdef.x = viddef.width / 2;
-        refdef.y = viddef.height / 2 - 72;
+        refdef.x = viddef.getWidth() / 2;
+        refdef.y = viddef.getHeight() / 2 - 72;
         refdef.width = 144 * 2;
         refdef.height = 168 * 2;
         refdef.fov_x = 40;
@@ -181,7 +181,6 @@ public class TestRenderer {
         .CalcFov(refdef.fov_x, refdef.width, refdef.height);
         refdef.time = 1.0f * 0.001f;
         
-        int maxframe = 29;
         entity_t entity = new entity_t();
         String modelName = "players/female/tris.md2";
         
@@ -223,8 +222,8 @@ public class TestRenderer {
         
         //			 Menu_Draw(& s_player_config_menu);
         
-        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.width) - 8),
-                (int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
+                (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
                 refdef.width / 8, refdef.height / 8);
         refdef.height += 4;
         
@@ -249,10 +248,10 @@ public class TestRenderer {
         
         if (loading) {
             
-            re.DrawPic(viddef.width / 2 - 50, viddef.height / 2, "loading");
+            re.DrawPic(viddef.getWidth() / 2 - 50, viddef.getHeight() / 2, "loading");
             String name = sprites[spriteCount];
             
-            drawString(viddef.width / 2 - 50, viddef.height / 2 + 50, name);
+            drawString(viddef.getWidth() / 2 - 50, viddef.getHeight() / 2 + 50, name);
             
             re.RegisterModel(name);
             loading = ++spriteCount < sprites.length;
@@ -261,8 +260,8 @@ public class TestRenderer {
         
         refdef_t refdef = new refdef_t();
         
-        refdef.x = viddef.width / 2;
-        refdef.y = viddef.height / 2 - 72;
+        refdef.x = viddef.getWidth() / 2;
+        refdef.y = viddef.getHeight() / 2 - 72;
         refdef.width = 144 * 2;
         refdef.height = 168 * 2;
         refdef.fov_x = 40;
@@ -270,7 +269,6 @@ public class TestRenderer {
         .CalcFov(refdef.fov_x, refdef.width, refdef.height);
         refdef.time = 1.0f * 0.001f;
         
-        int maxframe = 29;
         entity_t entity = new entity_t();
         
         String modelName = sprites[(framecount / 30) % sprites.length];
@@ -294,8 +292,8 @@ public class TestRenderer {
         refdef.lightstyles = null;
         refdef.rdflags = Defines.RDF_NOWORLDMODEL;
         
-        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.width) - 8),
-                (int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
+                (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
                 refdef.width / 8, refdef.height / 8);
         refdef.height += 4;
         
@@ -307,8 +305,8 @@ public class TestRenderer {
         
         refdef_t refdef = new refdef_t();
         
-        refdef.x = viddef.width / 2;
-        refdef.y = viddef.height / 2 - 72;
+        refdef.x = viddef.getWidth() / 2;
+        refdef.y = viddef.getHeight() / 2 - 72;
         refdef.width = 144 * 2;
         refdef.height = 168 * 2;
         refdef.fov_x = 40;
@@ -316,7 +314,6 @@ public class TestRenderer {
         .CalcFov(refdef.fov_x, refdef.width, refdef.height);
         refdef.time = 1.0f * 0.001f;
         
-        int maxframe = 29;
         entity_t entity = new entity_t();
         
         drawString(refdef.x, refdef.y - 20, "Beam Test");
@@ -350,8 +347,8 @@ public class TestRenderer {
         refdef.lightstyles = null;
         refdef.rdflags = Defines.RDF_NOWORLDMODEL;
         
-        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.width) - 8),
-                (int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
+                (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
                 refdef.width / 8, refdef.height / 8);
         refdef.height += 4;
         
@@ -363,8 +360,6 @@ public class TestRenderer {
     private boolean explode = false;
     
     private float[] target;
-    
-    private boolean initParticles = true;
     
     private void testParticles() {
         
@@ -383,8 +378,8 @@ public class TestRenderer {
         }
         refdef_t refdef = new refdef_t();
         
-        refdef.x = viddef.width / 2;
-        refdef.y = viddef.height / 2 - 72;
+        refdef.x = viddef.getWidth() / 2;
+        refdef.y = viddef.getHeight() / 2 - 72;
         refdef.width = 400;
         refdef.height = 400;
         refdef.fov_x = 50;
@@ -405,8 +400,8 @@ public class TestRenderer {
         refdef.lightstyles = null;
         refdef.rdflags = Defines.RDF_NOWORLDMODEL;
         
-        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.width) - 8),
-                (int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+        M_DrawTextBox((int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
+                (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
                 refdef.width / 8, refdef.height / 8);
         refdef.height += 4;
         
@@ -464,18 +459,16 @@ public class TestRenderer {
      * and will be centered on higher res screens. ================
      */
     private void M_DrawCharacter(int cx, int cy, int num) {
-        re.DrawChar(cx + ((viddef.width - 320) >> 1), cy
-                + ((viddef.height - 240) >> 1), num);
+        re.DrawChar(cx + ((viddef.getWidth() - 320) >> 1), cy
+                + ((viddef.getHeight() - 240) >> 1), num);
     }
     
     long endtime;
     
     private void Explosion(float[] org) {
-        float[] dir = { 0, 0, 0 };
-        int i;
         cparticle_t p;
         
-        for (i = 0; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             p = new cparticle_t();
             
             p.time = time() * 1.0f;

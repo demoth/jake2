@@ -297,7 +297,7 @@ public final class SCR extends Globals {
         start = 0;
 
         if (scr_center_lines <= 4)
-            y = (int) (viddef.height * 0.35);
+            y = (int) (viddef.getHeight() * 0.35);
         else
             y = 48;
 
@@ -307,7 +307,7 @@ public final class SCR extends Globals {
                 if (start + l == cs.length() - 1
                         || cs.charAt(start + l) == '\n')
                     break;
-            x = (viddef.width - l * 8) / 2;
+            x = (viddef.getWidth() - l * 8) / 2;
             SCR.AddDirtyPoint(x, y);
             for (j = 0; j < l; j++, x += 8) {
                 re.DrawChar(x, y, cs.charAt(start + j));
@@ -355,14 +355,14 @@ public final class SCR extends Globals {
 
         size = (int) scr_viewsize.value;
 
-        scr_vrect.width = viddef.width * size / 100;
+        scr_vrect.width = viddef.getWidth() * size / 100;
         scr_vrect.width &= ~7;
 
-        scr_vrect.height = viddef.height * size / 100;
+        scr_vrect.height = viddef.getHeight() * size / 100;
         scr_vrect.height &= ~1;
 
-        scr_vrect.x = (viddef.width - scr_vrect.width) / 2;
-        scr_vrect.y = (viddef.height - scr_vrect.height) / 2;
+        scr_vrect.x = (viddef.getWidth() - scr_vrect.width) / 2;
+        scr_vrect.y = (viddef.getHeight() - scr_vrect.height) / 2;
     }
 
     /*
@@ -489,7 +489,7 @@ public final class SCR extends Globals {
             return;
 
         re.DrawGetPicSize(dim, "pause");
-        re.DrawPic((viddef.width - dim.width) / 2, viddef.height / 2 + 8,
+        re.DrawPic((viddef.getWidth() - dim.width) / 2, viddef.getHeight() / 2 + 8,
                 "pause");
     }
 
@@ -504,8 +504,8 @@ public final class SCR extends Globals {
 
         scr_draw_loading = 0;
         re.DrawGetPicSize(dim, "loading");
-        re.DrawPic((viddef.width - dim.width) / 2,
-                (viddef.height - dim.height) / 2, "loading");
+        re.DrawPic((viddef.getWidth() - dim.width) / 2,
+                (viddef.getHeight() - dim.height) / 2, "loading");
     }
 
     // =============================================================================
@@ -551,7 +551,7 @@ public final class SCR extends Globals {
         if (cls.state != ca_active || !cl.refresh_prepped) { // connected, but
                                                              // can't render
             Console.DrawConsole(0.5f);
-            re.DrawFill(0, viddef.height / 2, viddef.width, viddef.height / 2,
+            re.DrawFill(0, viddef.getHeight() / 2, viddef.getWidth(), viddef.getHeight() / 2,
                     0);
             return;
         }
@@ -644,7 +644,7 @@ public final class SCR extends Globals {
 
     static void DirtyScreen() {
         AddDirtyPoint(0, 0);
-        AddDirtyPoint(viddef.width - 1, viddef.height - 1);
+        AddDirtyPoint(viddef.getWidth() - 1, viddef.getHeight() - 1);
     }
 
     /*
@@ -694,7 +694,7 @@ public final class SCR extends Globals {
         scr_dirty.y2 = -9999;
 
         // don't bother with anything convered by the console)
-        top = (int) (scr_con_current * viddef.height);
+        top = (int) (scr_con_current * viddef.getHeight());
         if (top >= clear.y1)
             clear.y1 = top;
 
@@ -902,12 +902,12 @@ public final class SCR extends Globals {
             }
             if (parser.tokenEquals("xr")) {
                 parser.next();
-                x = viddef.width + parser.tokenAsInt();
+                x = viddef.getWidth() + parser.tokenAsInt();
                 continue;
             }
             if (parser.tokenEquals("xv")) {
                 parser.next();
-                x = viddef.width / 2 - 160 + parser.tokenAsInt();
+                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 continue;
             }
 
@@ -918,12 +918,12 @@ public final class SCR extends Globals {
             }
             if (parser.tokenEquals("yb")) {
                 parser.next();
-                y = viddef.height + parser.tokenAsInt();
+                y = viddef.getHeight() + parser.tokenAsInt();
                 continue;
             }
             if (parser.tokenEquals("yv")) {
                 parser.next();
-                y = viddef.height / 2 - 120 + parser.tokenAsInt();
+                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 continue;
             }
 
@@ -944,9 +944,9 @@ public final class SCR extends Globals {
                 int score, ping, time;
 
                 parser.next();
-                x = viddef.width / 2 - 160 + parser.tokenAsInt();
+                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 parser.next();
-                y = viddef.height / 2 - 120 + parser.tokenAsInt();
+                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
@@ -981,9 +981,9 @@ public final class SCR extends Globals {
                 int score, ping;
 
                 parser.next();
-                x = viddef.width / 2 - 160 + parser.tokenAsInt();
+                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 parser.next();
-                y = viddef.height / 2 - 120 + parser.tokenAsInt();
+                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
@@ -1214,8 +1214,8 @@ public final class SCR extends Globals {
                 re.CinematicSetPalette(null);
                 scr_draw_loading = 0; // false
                 re.DrawGetPicSize(dim, "loading");
-                re.DrawPic((viddef.width - dim.width) / 2,
-                        (viddef.height - dim.height) / 2, "loading");
+                re.DrawPic((viddef.getWidth() - dim.width) / 2,
+                        (viddef.getHeight() - dim.height) / 2, "loading");
             }
             // if a cinematic is supposed to be running, handle menus
             // and console specially
@@ -1345,7 +1345,7 @@ public final class SCR extends Globals {
                 lastframes = cls.framecount;
                 lasttime = cls.realtime;
             }
-            int x = viddef.width - 8 * fpsvalue.length() - 2;
+            int x = viddef.getWidth() - 8 * fpsvalue.length() - 2;
             for (int i = 0; i < fpsvalue.length(); i++) {
                 re.DrawChar(x, 2, fpsvalue.charAt(i));
                 x += 8;
@@ -1803,7 +1803,7 @@ public final class SCR extends Globals {
         if (cin.pic == null)
             return true;
         
-        Globals.re.DrawStretchRaw(0, 0, viddef.width, viddef.height, cin.width, cin.height, cin.pic);
+        Globals.re.DrawStretchRaw(0, 0, viddef.getWidth(), viddef.getHeight(), cin.width, cin.height, cin.pic);
         
         return true;
     }

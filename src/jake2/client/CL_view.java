@@ -1,7 +1,7 @@
 /*
  * CL_view.java Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.4 2004-09-22 19:22:07 salomo Exp $
+ * $Id: CL_view.java,v 1.5 2008-03-02 14:56:22 cawe Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -57,7 +57,7 @@ public class CL_view {
             return; // no map loaded
 
         SCR.AddDirtyPoint(0, 0);
-        SCR.AddDirtyPoint(Globals.viddef.width - 1, Globals.viddef.height - 1);
+        SCR.AddDirtyPoint(Globals.viddef.getWidth() - 1, Globals.viddef.getHeight() - 1);
 
         // let the render dll load the map
         mapname = Globals.cl.configstrings[Defines.CS_MODELS + 1].substring(5,

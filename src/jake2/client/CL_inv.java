@@ -2,7 +2,7 @@
  * CL_fx.java
  * Copyright (C) 2004
  * 
- * $Id: CL_inv.java,v 1.3 2005-12-18 22:10:10 cawe Exp $
+ * $Id: CL_inv.java,v 1.4 2008-03-02 14:56:22 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -103,8 +103,8 @@ public class CL_inv {
 		if (top < 0)
 			top = 0;
 
-		x = (Globals.viddef.width - 256) / 2;
-		y = (Globals.viddef.height - 240) / 2;
+		x = (Globals.viddef.getWidth() - 256) / 2;
+		y = (Globals.viddef.getHeight() - 240) / 2;
 
 		// repaint everything next frame
 		SCR.DirtyScreen();

@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.22 2008-03-02 08:35:30 cawe Exp $
+ * $Id: Menu.java,v 1.23 2008-03-02 14:56:22 cawe Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -177,8 +177,8 @@ public final class Menu extends Key {
         Dimension dim = new Dimension();
         Globals.re.DrawGetPicSize(dim, name);
 
-        Globals.re.DrawPic(viddef.width / 2 - dim.width / 2,
-                viddef.height / 2 - 110, name);
+        Globals.re.DrawPic(viddef.getWidth() / 2 - dim.width / 2,
+                viddef.getHeight() / 2 - 110, name);
     }
 
     static void PushMenu(xcommand_t draw, keyfunc_t key) { //, String(*key)
@@ -326,8 +326,8 @@ public final class Menu extends Key {
      * and will be centered on higher res screens. ================
      */
     public static void DrawCharacter(int cx, int cy, int num) {
-        re.DrawChar(cx + ((viddef.width - 320) >> 1), cy
-                + ((viddef.height - 240) >> 1), num);
+        re.DrawChar(cx + ((viddef.getWidth() - 320) >> 1), cy
+                + ((viddef.getHeight() - 240) >> 1), num);
     }
 
     public static void Print(int cx, int cy, String str) {
@@ -348,8 +348,8 @@ public final class Menu extends Key {
     }
 
     public static void DrawPic(int x, int y, String pic) {
-        re.DrawPic(x + ((viddef.width - 320) >> 1), y
-                + ((viddef.height - 240) >> 1), pic);
+        re.DrawPic(x + ((viddef.getWidth() - 320) >> 1), y
+                + ((viddef.getHeight() - 240) >> 1), pic);
     }
 
     /*
@@ -454,8 +454,8 @@ public final class Menu extends Key {
             totalheight += (h + 12);
         }
 
-        ystart = (Globals.viddef.height / 2 - 110);
-        xoffset = (Globals.viddef.width - widest + 70) / 2;
+        ystart = (Globals.viddef.getHeight() / 2 - 110);
+        xoffset = (Globals.viddef.getWidth() - widest + 70) / 2;
 
         for (i = 0; i < names.length; i++) {
             if (i != m_main_cursor)
@@ -586,7 +586,7 @@ public final class Menu extends Key {
     }
 
     static void Multiplayer_MenuInit() {
-        s_multiplayer_menu.x = (int) (viddef.width * 0.50f - 64);
+        s_multiplayer_menu.x = (int) (viddef.getWidth() * 0.50f - 64);
         s_multiplayer_menu.nitems = 0;
 
         s_join_network_server_action.type = MTYPE_ACTION;
@@ -817,7 +817,7 @@ public final class Menu extends Key {
         int y = 0;
         int i = 0;
 
-        s_keys_menu.x = (int) (viddef.width * 0.50);
+        s_keys_menu.x = (int) (viddef.getWidth() * 0.50);
         s_keys_menu.nitems = 0;
         s_keys_menu.cursordraw = new mcallback() {
             public void execute(Object o) {
@@ -1446,8 +1446,8 @@ public final class Menu extends Key {
         /*
          * * configure controls menu and menu items
          */
-        s_options_menu.x = viddef.width / 2;
-        s_options_menu.y = viddef.height / 2 - 58;
+        s_options_menu.x = viddef.getWidth() / 2;
+        s_options_menu.y = viddef.getHeight() / 2 - 58;
         s_options_menu.nitems = 0;
 
         s_options_sfxvolume_slider.type = MTYPE_SLIDER;
@@ -1841,8 +1841,8 @@ public final class Menu extends Key {
         /*
          * * draw the credits
          */
-        for (i = 0, y = (int) (viddef.height - ((cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
-                && y < viddef.height; y += 10, i++) {
+        for (i = 0, y = (int) (viddef.getHeight() - ((cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
+                && y < viddef.getHeight(); y += 10, i++) {
             int j, stringoffset = 0;
             boolean bold = false;
 
@@ -1860,7 +1860,7 @@ public final class Menu extends Key {
             for (j = 0; j + stringoffset < credits[i].length(); j++) {
                 int x;
 
-                x = (viddef.width - credits[i].length() * 8 - stringoffset * 8)
+                x = (viddef.getWidth() - credits[i].length() * 8 - stringoffset * 8)
                         / 2 + (j + stringoffset) * 8;
 
                 if (bold)
@@ -2008,7 +2008,7 @@ public final class Menu extends Key {
 
     static void Game_MenuInit() {
 
-        s_game_menu.x = (int) (viddef.width * 0.50);
+        s_game_menu.x = (int) (viddef.getWidth() * 0.50);
         s_game_menu.nitems = 0;
 
         s_easy_game_action.type = MTYPE_ACTION;
@@ -2194,8 +2194,8 @@ public final class Menu extends Key {
     static void LoadGame_MenuInit() {
         int i;
 
-        s_loadgame_menu.x = viddef.width / 2 - 120;
-        s_loadgame_menu.y = viddef.height / 2 - 58;
+        s_loadgame_menu.x = viddef.getWidth() / 2 - 120;
+        s_loadgame_menu.y = viddef.getHeight() / 2 - 58;
         s_loadgame_menu.nitems = 0;
 
         Create_Savestrings();
@@ -2287,8 +2287,8 @@ public final class Menu extends Key {
     static void SaveGame_MenuInit() {
         int i;
 
-        s_savegame_menu.x = viddef.width / 2 - 120;
-        s_savegame_menu.y = viddef.height / 2 - 58;
+        s_savegame_menu.x = viddef.getWidth() / 2 - 120;
+        s_savegame_menu.y = viddef.getHeight() / 2 - 58;
         s_savegame_menu.nitems = 0;
 
         Create_Savestrings();
@@ -2451,7 +2451,7 @@ public final class Menu extends Key {
     static void JoinServer_MenuInit() {
         int i;
 
-        s_joinserver_menu.x = (int) (viddef.width * 0.50 - 120);
+        s_joinserver_menu.x = (int) (viddef.getWidth() * 0.50 - 120);
         s_joinserver_menu.nitems = 0;
 
         s_joinserver_address_book_action.type = MTYPE_ACTION;
@@ -2748,7 +2748,7 @@ public final class Menu extends Key {
         /*
          * * initialize the menu stuff
          */
-        s_startserver_menu.x = (int) (viddef.width * 0.50);
+        s_startserver_menu.x = (int) (viddef.getWidth() * 0.50);
         s_startserver_menu.nitems = 0;
 
         s_startmap_list.type = MTYPE_SPINCONTROL;
@@ -3081,7 +3081,7 @@ public final class Menu extends Key {
         int dmflags = (int) Cvar.VariableValue("dmflags");
         int y = 0;
 
-        s_dmoptions_menu.x = (int) (viddef.width * 0.50);
+        s_dmoptions_menu.x = (int) (viddef.getWidth() * 0.50);
         s_dmoptions_menu.nitems = 0;
 
         s_falls_box.type = MTYPE_SPINCONTROL;
@@ -3435,7 +3435,7 @@ public final class Menu extends Key {
 
         int y = 0;
 
-        s_downloadoptions_menu.x = (int) (viddef.width * 0.50);
+        s_downloadoptions_menu.x = (int) (viddef.getWidth() * 0.50);
         s_downloadoptions_menu.nitems = 0;
 
         s_download_title.type = MTYPE_SEPARATOR;
@@ -3566,8 +3566,8 @@ public final class Menu extends Key {
     }
 
     static void AddressBook_MenuInit() {
-        s_addressbook_menu.x = viddef.width / 2 - 142;
-        s_addressbook_menu.y = viddef.height / 2 - 58;
+        s_addressbook_menu.x = viddef.getWidth() / 2 - 142;
+        s_addressbook_menu.y = viddef.getHeight() / 2 - 58;
         s_addressbook_menu.nitems = 0;
 
         for (int i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
@@ -3958,8 +3958,8 @@ public final class Menu extends Key {
             }
         }
 
-        s_player_config_menu.x = viddef.width / 2 - 95;
-        s_player_config_menu.y = viddef.height / 2 - 97;
+        s_player_config_menu.x = viddef.getWidth() / 2 - 95;
+        s_player_config_menu.y = viddef.getHeight() / 2 - 97;
         s_player_config_menu.nitems = 0;
 
         s_player_name_field.type = MTYPE_FIELD;
@@ -4083,8 +4083,8 @@ public final class Menu extends Key {
 
         //memset(refdef, 0, sizeof(refdef));
 
-        refdef.x = viddef.width / 2;
-        refdef.y = viddef.height / 2 - 72;
+        refdef.x = viddef.getWidth() / 2;
+        refdef.y = viddef.getHeight() / 2 - 72;
         refdef.width = 144;
         refdef.height = 168;
         refdef.fov_x = 40;
@@ -4129,8 +4129,8 @@ public final class Menu extends Key {
             Menu_Draw(s_player_config_menu);
 
             DrawTextBox(
-                    (int) ((refdef.x) * (320.0F / viddef.width) - 8),
-                    (int) ((viddef.height / 2) * (240.0F / viddef.height) - 77),
+                    (int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
+                    (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
                     refdef.width / 8, refdef.height / 8);
             refdef.height += 4;
 
@@ -4234,7 +4234,7 @@ public final class Menu extends Key {
         re.DrawGetPicSize(d, "quit");
         w = d.width;
         h = d.height;
-        re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
+        re.DrawPic((viddef.getWidth() - w) / 2, (viddef.getHeight() - h) / 2, "quit");
     }
 
     static xcommand_t Menu_Quit = new xcommand_t() {
@@ -4296,7 +4296,7 @@ public final class Menu extends Key {
 
         // dim everything behind it down
         if (cl.cinematictime > 0)
-            re.DrawFill(0, 0, viddef.width, viddef.height, 0);
+            re.DrawFill(0, 0, viddef.getWidth(), viddef.getHeight(), 0);
         else
             re.DrawFadeScreen();
 
@@ -4595,7 +4595,7 @@ public final class Menu extends Key {
         height = ((menucommon_s) menu.items[menu.nitems - 1]).y;
         height += 10;
 
-        menu.y = (viddef.height - height) / 2;
+        menu.y = (viddef.getHeight() - height) / 2;
     }
 
     public static void Menu_Draw(menuframework_s menu) {
@@ -4660,14 +4660,14 @@ public final class Menu extends Key {
     public static void Menu_DrawStatusBar(String string) {
         if (string != null) {
             int l = string.length();
-            int maxrow = viddef.height / 8;
-            int maxcol = viddef.width / 8;
+            int maxrow = viddef.getHeight() / 8;
+            int maxcol = viddef.getWidth() / 8;
             int col = maxcol / 2 - l / 2;
 
-            re.DrawFill(0, viddef.height - 8, viddef.width, 8, 4);
-            Menu_DrawString(col * 8, viddef.height - 8, string);
+            re.DrawFill(0, viddef.getHeight() - 8, viddef.getWidth(), 8, 4);
+            Menu_DrawString(col * 8, viddef.getHeight() - 8, string);
         } else {
-            re.DrawFill(0, viddef.height - 8, viddef.width, 8, 0);
+            re.DrawFill(0, viddef.getHeight() - 8, viddef.getWidth(), 8, 0);
         }
     }
 

@@ -2,7 +2,7 @@
  * VID.java
  * Copyright (C) 2003
  *
- * $Id: VID.java,v 1.20 2007-01-13 18:36:23 cawe Exp $
+ * $Id: VID.java,v 1.21 2008-03-02 14:56:22 cawe Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -147,8 +147,7 @@ public class VID extends Globals {
 	** VID_NewWindow
 	*/
 	public static void NewWindow(int width, int height) {
-		Globals.viddef.width = width;
-		Globals.viddef.height = height;
+		Globals.viddef.setSize(width, height);
 	}
 
 	static void FreeReflib()
@@ -238,8 +237,8 @@ public class VID extends Globals {
 	*/
 	public static void CheckChanges()
 	{
-		cvar_t gl_mode;
-
+	    Globals.viddef.update();
+	    
 		if ( vid_ref.modified )
 		{
 			S.StopAllSounds();
@@ -565,7 +564,7 @@ public class VID extends Globals {
 			}
 		}
 
-		s_opengl_menu.x = (int)(viddef.width * 0.50f);
+		s_opengl_menu.x = (int)(viddef.getWidth() * 0.50f);
 		s_opengl_menu.nitems = 0;
 		
 		s_ref_list.type = MTYPE_SPINCONTROL;
@@ -705,7 +704,7 @@ public class VID extends Globals {
 		*/
 		Dimension dim = new Dimension();
 		re.DrawGetPicSize( dim, "m_banner_video" );
-		re.DrawPic( viddef.width / 2 - dim.width / 2, viddef.height /2 - 110, "m_banner_video" );
+		re.DrawPic( viddef.getWidth() / 2 - dim.width / 2, viddef.getHeight() /2 - 110, "m_banner_video" );
 
 		/*
 		** move cursor to a reasonable starting position

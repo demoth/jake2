@@ -679,7 +679,7 @@ public abstract class Main extends Base {
 			gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 			gl.glScissor(
 				r_newrefdef.x,
-				vid.height - r_newrefdef.height - r_newrefdef.y,
+				vid.getHeight() - r_newrefdef.height - r_newrefdef.y,
 				r_newrefdef.width,
 				r_newrefdef.height);
 			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -715,10 +715,10 @@ public abstract class Main extends Base {
 		//
 		// set up viewport
 		//
-		x = (int) Math.floor(r_newrefdef.x * vid.width / vid.width);
-		x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
-		y = (int) Math.floor(vid.height - r_newrefdef.y * vid.height / vid.height);
-		y2 = (int) Math.ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+		x = (int) Math.floor(r_newrefdef.x * vid.getWidth() / vid.getWidth());
+		x2 = (int) Math.ceil((r_newrefdef.x + r_newrefdef.width) * vid.getWidth() / vid.getWidth());
+		y = (int) Math.floor(vid.getHeight() - r_newrefdef.y * vid.getHeight() / vid.getHeight());
+		y2 = (int) Math.ceil(vid.getHeight() - (r_newrefdef.y + r_newrefdef.height) * vid.getHeight() / vid.getHeight());
 
 		w = x2 - x;
 		h = y - y2;
@@ -866,10 +866,10 @@ public abstract class Main extends Base {
 
 	void R_SetGL2D() {
 		// set 2D virtual screen size
-		gl.glViewport(0, 0, vid.width, vid.height);
+		gl.glViewport(0, 0, vid.getWidth(), vid.getHeight());
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glOrtho(0, vid.getWidth(), vid.getHeight(), 0, -99999, 99999);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
 		gl.glDisable(GL_DEPTH_TEST);
@@ -1035,7 +1035,7 @@ public abstract class Main extends Base {
 		vid_fullscreen.modified = false;
 		gl_mode.modified = false;
 
-		Dimension dim = new Dimension(vid.width, vid.height);
+		Dimension dim = new Dimension(vid.getWidth(), vid.getHeight());
 
 		if ((err = glImpl.setMode(dim, (int) gl_mode.value, fullscreen)) == rserr_ok) {
 			gl_state.prev_mode = (int) gl_mode.value;
@@ -1358,7 +1358,9 @@ public abstract class Main extends Base {
 	@@@@@@@@@@@@@@@@@@@@@
 	*/
 	public void R_BeginFrame(float camera_separation) {
-
+	    
+	    vid.update();
+	    
 		gl_state.camera_separation = camera_separation;
 
 		/*
@@ -1410,10 +1412,10 @@ public abstract class Main extends Base {
 		/*
 		** go into 2D mode
 		*/
-		gl.glViewport(0, 0, vid.width, vid.height);
+		gl.glViewport(0, 0, vid.getWidth(), vid.getHeight());
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+		gl.glOrtho(0, vid.getWidth(), vid.getHeight(), 0, -99999, 99999);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
 		gl.glDisable(GL_DEPTH_TEST);
