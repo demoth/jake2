@@ -1,9 +1,14 @@
-#Sat Mar 01 18:36:38 GMT+01:00 2008
+#Sun Mar 02 16:57:03 CET 2008
 eclipse.preferences.version=1
-formatter_profile=org.eclipse.jdt.ui.default.sun_profile
+formatter_profile=_Jake2 Conventions
 formatter_settings_version=11
+org.eclipse.jdt.ui.exception.name=e
+org.eclipse.jdt.ui.gettersetter.use.is=true
 org.eclipse.jdt.ui.ignorelowercasenames=true
 org.eclipse.jdt.ui.importorder=java;javax;org;com;
+org.eclipse.jdt.ui.javadoc=false
+org.eclipse.jdt.ui.keywordthis=false
 org.eclipse.jdt.ui.ondemandthreshold=4
+org.eclipse.jdt.ui.overrideannotation=true
 org.eclipse.jdt.ui.staticondemandthreshold=4
-org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8"?><templates/>
+org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>
