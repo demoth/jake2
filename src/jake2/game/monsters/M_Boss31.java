@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss31.java,v 1.5 2009-12-13 11:21:18 salomo Exp $
+// $Id: M_Boss31.java,v 1.6 2009-12-13 19:18:03 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -794,7 +794,6 @@ public class M_Boss31 {
                     return false;
             }
 
-            enemy_infront = GameUtil.infront(self, self.enemy);
             enemy_range = GameUtil.range(self, self.enemy);
             Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, temp);
             enemy_yaw = Math3D.vectoyaw(temp);
