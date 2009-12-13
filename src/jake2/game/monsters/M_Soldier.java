@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Soldier.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
+// $Id: M_Soldier.java,v 1.5 2009-12-13 11:21:18 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -1331,7 +1331,6 @@ public class M_Soldier {
                     || self.monsterinfo.currentmove == soldier_move_walk2
                     || self.monsterinfo.currentmove == soldier_move_start_run) {
                 self.monsterinfo.currentmove = soldier_move_run;
-                int a = 2;
             } else {
                 self.monsterinfo.currentmove = soldier_move_start_run;
             }

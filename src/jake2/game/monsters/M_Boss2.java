@@ -19,7 +19,7 @@
  */
 
 // Created on 13.11.2003 by RST.
-// $Id: M_Boss2.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
+// $Id: M_Boss2.java,v 1.5 2009-12-13 11:21:18 salomo Exp $
 package jake2.game.monsters;
 
 import jake2.Defines;
@@ -547,7 +547,7 @@ public class M_Boss2 {
             float[] temp = { 0, 0, 0 };
             float chance;
             trace_t tr;
-            boolean enemy_infront;
+
             int enemy_range;
             float enemy_yaw;
 

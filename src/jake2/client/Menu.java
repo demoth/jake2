@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.23 2008-03-02 14:56:22 cawe Exp $
+ * $Id: Menu.java,v 1.24 2009-12-13 11:20:46 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -4871,8 +4871,6 @@ public final class Menu extends Key {
     }
 
     public static void SpinControl_Draw(menulist_s s) {
-        //char buffer[100];
-        String buffer;
 
         if (s.name != null) {
             Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y
