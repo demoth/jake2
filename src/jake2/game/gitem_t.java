@@ -96,7 +96,7 @@ public class gitem_t {
 
     int weapmodel; // weapon model index (for weapons)
 
-    Object info;
+    gitem_armor_t info;
 
     int tag;
 
