@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 18.01.2004 by RST.
-// $Id: SV_CCMDS.java,v 1.16 2007-06-07 10:31:10 cawe Exp $
+// $Id: SV_CCMDS.java,v 1.17 2011-07-07 21:07:09 salomo Exp $
 
 package jake2.server;
 
@@ -582,6 +582,16 @@ public class SV_CCMDS {
 			SV_CopySaveGame("current", "save0");
 		}
 	}
+	
+
+	/** Print the memory used by the java vm. */
+	public static void VM_Mem_f()
+	{
+		Com.Printf("vm memory:" + 
+				(Runtime.getRuntime().totalMemory() - 
+						Runtime.getRuntime().freeMemory()) + "\n" );
+	}
+	
 	/*
 	==================
 	SV_Map_f
@@ -1108,5 +1118,17 @@ public class SV_CCMDS {
 				SV_ServerCommand_f();
 			}
 		});
+		
+		Cmd.AddCommand("jvm_memory", new xcommand_t() {
+			public void execute() {
+				VM_Mem_f();
+			}
+		});
+		
+//		Cmd.AddCommand("spawnbot", new xcommand_t() {
+//			public void execute() {
+//				AdvancedBot.SP_Oak();
+//			}
+//		});
 	}
 }
