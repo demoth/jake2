@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.6 2008-03-02 14:56:23 cawe Exp $
+ * $Id: Main.java,v 1.7 2011-07-07 21:19:14 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -107,7 +107,7 @@ public abstract class Main extends Base {
 	int TEXTURE0 = GL_TEXTURE0;
 	int TEXTURE1 = GL_TEXTURE1;
 
-	model_t r_worldmodel;
+	public static model_t r_worldmodel;
 
 	float gldepthmin, gldepthmax;
 
@@ -147,7 +147,9 @@ public abstract class Main extends Base {
 	//
 	refdef_t r_newrefdef = new refdef_t();
 
-	int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
+	// needed for debugging and displaying in CL.java 
+	public static int r_viewcluster;
+	int r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 	cvar_t r_norefresh;
 	cvar_t r_drawentities;
@@ -162,6 +164,9 @@ public abstract class Main extends Base {
 	cvar_t r_lightlevel;
 	// FIXME: This is a HACK to get the client's light level
 
+	cvar_t gl_showtrisnum;
+	cvar_t gl_modelbbox;
+	cvar_t gl_modeltris;
 	cvar_t gl_nosubimage;
 	cvar_t gl_allow_software;
 
@@ -928,6 +933,9 @@ public abstract class Main extends Base {
 
 		r_lightlevel = Cvar.Get("r_lightlevel", "1", 0);
 
+		gl_modeltris = Cvar.Get("gl_modeltris", "0", 0);
+		gl_modelbbox = Cvar.Get("gl_modelbbox", "0", 0);
+		gl_showtrisnum = Cvar.Get("gl_showtrisnum", "0", 0);
 		gl_nosubimage = Cvar.Get("gl_nosubimage", "0", 0);
 		gl_allow_software = Cvar.Get("gl_allow_software", "0", 0);
 

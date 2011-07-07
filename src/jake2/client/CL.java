@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.30 2007-05-14 23:38:15 cawe Exp $
+ * $Id: CL.java,v 1.31 2011-07-07 21:19:15 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.render.fast.Main;
 import jake2.server.SV_MAIN;
 import jake2.sound.S;
 import jake2.sys.*;
@@ -1531,6 +1532,49 @@ public final class CL {
             if (Globals.cl.cinematictime == 0) System.gc();
         }
 
+        boolean changed = false;
+        
+        if (Main.r_worldmodel != null)
+        {
+            if (numleafs != Main.r_worldmodel.numleafs)
+            {
+        	numleafs = Main.r_worldmodel.numleafs;
+        	changed = true;
+            }
+        }
+        if (x != Globals.cl.frame.playerstate.pmove.origin[0])
+        {
+            x = Globals.cl.frame.playerstate.pmove.origin[0];
+            changed = true;
+        }
+        
+        if (y != Globals.cl.frame.playerstate.pmove.origin[1])
+        {
+            y = Globals.cl.frame.playerstate.pmove.origin[1];
+            changed = true;
+        }
+        
+        if (z != Globals.cl.frame.playerstate.pmove.origin[2])
+        {
+            z = Globals.cl.frame.playerstate.pmove.origin[2];
+            changed = true;
+        }
+        
+        if (viewcluster != Main.r_viewcluster)
+        {
+            viewcluster = Main.r_viewcluster;
+            changed = true;
+        }
+        
+        if (changed)
+        {
+            String tmp = " x=" + x + ", y=" + y + 
+            	", z=" + z + ", leaf=" + viewcluster + "/" +
+            	numleafs +"\n";
+            
+            Com.DPrintf(tmp);
+        }
+        
         SCR.UpdateScreen();
 
         // update audio
@@ -1553,6 +1597,10 @@ public final class CL {
         }
     }
 
+    static int numleafs = 0;
+    static short x,y,z;
+    static int viewcluster;
+    
     /**
      * Shutdown
      */

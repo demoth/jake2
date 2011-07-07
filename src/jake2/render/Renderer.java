@@ -2,7 +2,7 @@
  * Renderer.java
  * Copyright (C) 2003
  *
- * $Id: Renderer.java,v 1.13 2008-03-02 16:01:27 cawe Exp $
+ * $Id: Renderer.java,v 1.14 2011-07-07 21:19:14 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -37,7 +37,8 @@ import java.util.Vector;
 public class Renderer {
 
     static RenderAPI fastRenderer = new jake2.render.fast.Misc();
-    static RenderAPI basicRenderer = new jake2.render.basic.Misc();
+    // rst: lets use the fast renderer from now on
+    //static RenderAPI basicRenderer = new jake2.render.basic.Misc();
 
     static Vector drivers = new Vector(3);
 
@@ -97,7 +98,8 @@ public class Renderer {
         for (int i = 0; i < count; i++) {
             driver = (Ref) drivers.get(i);
             if (driver.getName().equals(driverName)) {
-                return driver.GetRefAPI((fast) ? fastRenderer : basicRenderer);
+            	// lets use the fast renderer only
+                return driver.GetRefAPI((fast) ? fastRenderer : fastRenderer);
             }
         }
         // null if driver not found

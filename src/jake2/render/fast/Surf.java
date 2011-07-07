@@ -2,7 +2,7 @@
  * Surf.java
  * Copyright (C) 2003
  *
- * $Id: Surf.java,v 1.3 2006-11-21 02:22:19 cawe Exp $
+ * $Id: Surf.java,v 1.4 2011-07-07 21:19:14 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -35,6 +35,7 @@ import jake2.util.Math3D;
 
 import java.nio.*;
 import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * Surf
@@ -152,38 +153,48 @@ public abstract class Surf extends Draw {
 		p.endScrolling();
 	}
 
+	Vector polys = new Vector();
+
+
+	/**
+	 * Helper method for R_DrawTriangleOutlines().
+	 */
+	void drawPolyLines(glpoly_t p) {
+		for (int j = 2; j < p.numverts; j++) {
+			gl.glBegin(GL_LINE_STRIP);
+			gl.glVertex3f(p.x(0), p.y(0), p.z(0));
+			gl.glVertex3f(p.x(j - 1), p.y(j - 1), p.z(j - 1));
+			gl.glVertex3f(p.x(j), p.y(j), p.z(j));
+			gl.glVertex3f(p.x(0), p.y(0), p.z(0));
+			gl.glEnd();
+		}
+	}
+	
 	/**
 	 * R_DrawTriangleOutlines
-	*/
+	 */
 	void R_DrawTriangleOutlines()
 	{
-        if (gl_showtris.value == 0)
-            return;
+		if (gl_showtris.value == 0)
+			return;
 
-        gl.glDisable(GL_TEXTURE_2D);
-        gl.glDisable(GL_DEPTH_TEST);
-        gl.glColor4f(1, 1, 1, 1);
+		gl.glDisable(GL_TEXTURE_2D);
+		gl.glPushMatrix();
 
-        msurface_t surf;
-        glpoly_t p;
-        int j;	
-        for (int i = 0; i < MAX_LIGHTMAPS; i++) {
-             for (surf = gl_lms.lightmap_surfaces[i]; surf != null; surf = surf.lightmapchain) {
-                for (p = surf.polys; p != null; p = p.chain) {
-                    for (j = 2; j < p.numverts; j++) {
-                        gl.glBegin(GL_LINE_STRIP);
-						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
-						gl.glVertex3f(p.x(j-1), p.y(j-1), p.z(j-1));
-						gl.glVertex3f(p.x(j), p.y(j), p.z(j));
-						gl.glVertex3f(p.x(0), p.y(0), p.z(0));
-                        gl.glEnd();
-                    }
-                }
-            }
-        }
+		//gl.glDisable(GL_DEPTH_TEST);
+		gl.glColor4f(1, 1, 1, 1);
 
-        gl.glEnable(GL_DEPTH_TEST);
-        gl.glEnable(GL_TEXTURE_2D);
+		glpoly_t p;
+		
+		for (int n = polys.size() - 1; n >= 0; n--) {
+			p = (glpoly_t) polys.elementAt(n);
+			drawPolyLines(p);
+		}
+		
+		gl.glPopMatrix();
+		
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
 	}
 
 	private final IntBuffer temp2 = Lib.newIntBuffer(34 * 34, ByteOrder.LITTLE_ENDIAN);
@@ -497,8 +508,10 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
+				    if (gl_showtris.value != 0)
+				    	polys.add(p);
 				    p.beginScrolling(scroll);
-					gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
+				    gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
 				    p.endScrolling();
 				}
 			}
@@ -506,7 +519,9 @@ public abstract class Surf extends Draw {
 			{
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
+				    if (gl_showtris.value != 0)
+				    	polys.add(p);
+				    gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
 				}
 			}
 			// PGM
@@ -531,8 +546,10 @@ public abstract class Surf extends Draw {
 
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
+				    if (gl_showtris.value != 0)
+				    	polys.add(p);
 				    p.beginScrolling(scroll);
-					gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
+				    gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
 				    p.endScrolling();
 				}
 			}
@@ -542,7 +559,9 @@ public abstract class Surf extends Draw {
 			//  ==========
 				for ( p = surf.polys; p != null; p = p.chain )
 				{
-					gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
+				    if (gl_showtris.value != 0)
+				    	polys.add(p);
+				    gl.glDrawArrays(GL_POLYGON, p.pos, p.numverts);
 				}
 				
 			// ==========
@@ -893,6 +912,13 @@ public abstract class Surf extends Draw {
 		DrawTextureChains();
 		R_DrawSkyBox();
 		R_DrawTriangleOutlines();
+		
+		// delete triangles
+		if (gl_showtrisnum.value != 0 && gl_showtris.value != 0)
+		{
+			Com.DPrintf("num triangles: " + polys.size() + "\n");
+		}
+		polys = new Vector();
 	}
 
 	final byte[] fatvis = new byte[Defines.MAX_MAP_LEAFS / 8];

@@ -2,7 +2,7 @@
  * Mesh.java
  * Copyright (C) 2003
  *
- * $Id: Mesh.java,v 1.4 2007-02-27 13:32:34 cawe Exp $
+ * $Id: Mesh.java,v 1.5 2011-07-07 21:19:14 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -30,12 +30,14 @@ import jake2.client.VID;
 import jake2.client.entity_t;
 import jake2.qcommon.qfiles;
 import jake2.render.Anorms;
+import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Vector;
 
 /**
  * Mesh
@@ -141,6 +143,104 @@ public abstract class Mesh extends Light {
 
     private final float[] backv = { 0, 0, 0 }; // vec3_t
 
+    Vector modeltris = new Vector();
+    
+    
+    class drawinfo{
+    	float fb[];
+    	int mode;
+		public int count;
+    }
+    
+    
+	/**
+	 * Helper method.
+	 */
+	public void drawModelTris() {
+		
+		if (gl_modeltris.value == 0)
+			return;
+		
+		gl.glDisable(GL_TEXTURE_2D);
+		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//gl.glDisable(GL_DEPTH_TEST);
+		gl.glColor4f(0.5f, 0.7f, 1, 1);
+		
+		int x = 2;
+
+		for (int j = 0; j < modeltris.size(); j++)
+		{
+			drawinfo di = (drawinfo) modeltris.elementAt(j);
+			
+			if (di.mode == GL_TRIANGLE_STRIP)
+			{
+				if (x != 2)
+				{
+					gl.glBegin(GL_LINE_STRIP);
+				
+					for (int n=0; n < di.count * 3; n+=3)
+					{
+						gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);
+						
+						if (n >= 6)
+						{
+							gl.glVertex3f(di.fb[n-6], di.fb[n-5], di.fb[n-4]);
+							gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);
+						}
+					}
+					
+					gl.glEnd();
+				}
+				else
+				{
+					gl.glBegin(GL_TRIANGLE_STRIP);
+					
+					for (int n=0; n < di.count * 3; n+=3)
+					{
+						gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);
+					}
+					
+					gl.glEnd();
+				}
+			}
+			
+			if (di.mode == GL_TRIANGLE_FAN)
+			{
+
+				if (x != 2)
+				{
+					gl.glBegin(GL_LINE_STRIP);
+				
+					for (int n=3; n < di.count * 3; n+=3)
+					{
+						gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);
+						gl.glVertex3f(di.fb[0], di.fb[1], di.fb[2]);
+						gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);					
+					}
+					
+					gl.glEnd();
+				}
+				else
+				{
+					gl.glBegin(GL_TRIANGLE_FAN);
+					
+					for (int n=0; n < di.count * 3; n+=3)
+					{
+						gl.glVertex3f(di.fb[n], di.fb[n+1], di.fb[n+2]);
+					}
+					
+					gl.glEnd();
+				}
+
+			}
+			
+		}
+
+		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
+	}
+    
     /**
      * GL_DrawAliasFrameLerp
      * 
@@ -148,131 +248,159 @@ public abstract class Mesh extends Light {
      * vertexes
      */
     void GL_DrawAliasFrameLerp(qfiles.dmdl_t paliashdr, float backlerp) {
-	qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
+		qfiles.daliasframe_t frame = paliashdr.aliasFrames[currententity.frame];
+	
+		int[] verts = frame.verts;
+	
+		qfiles.daliasframe_t oldframe = paliashdr.aliasFrames[currententity.oldframe];
+	
+		int[] ov = oldframe.verts;
+	
+		float alpha;
+		if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
+		    alpha = currententity.alpha;
+		else
+		    alpha = 1.0f;
+	
+		alpha = 0.2f;
+		
+		// PMM - added double shell
+		if ((currententity.flags & (Defines.RF_SHELL_RED
+			| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
+			| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
+		    gl.glDisable(GL_TEXTURE_2D);
+	
+		float frontlerp = 1.0f - backlerp;
+	
+		// move should be the delta back to the previous frame * backlerp
+		Math3D.VectorSubtract(currententity.oldorigin, currententity.origin,
+			frontv);
+		Math3D.AngleVectors(currententity.angles, vectors[0], vectors[1],
+			vectors[2]);
+	
+		move[0] = Math3D.DotProduct(frontv, vectors[0]); // forward
+		move[1] = -Math3D.DotProduct(frontv, vectors[1]); // left
+		move[2] = Math3D.DotProduct(frontv, vectors[2]); // up
+	
+		Math3D.VectorAdd(move, oldframe.translate, move);
+	
+		for (int i = 0; i < 3; i++) {
+		    move[i] = backlerp * move[i] + frontlerp * frame.translate[i];
+		    frontv[i] = frontlerp * frame.scale[i];
+		    backv[i] = backlerp * oldframe.scale[i];
+		}
+	
+		// ab hier wird optimiert
+	
+		GL_LerpVerts(paliashdr.num_xyz, ov, verts, move, frontv, backv);
+	
+		// gl.gl.glEnableClientState( GL_VERTEX_ARRAY );
+		gl.glVertexPointer(3, 0, vertexArrayBuf);
+	
+		
+		// PMM - added double damage shell
+		if ((currententity.flags & (Defines.RF_SHELL_RED
+			| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
+			| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0) {
+		    gl.glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
+		} else {
+		    gl.glEnableClientState(GL_COLOR_ARRAY);
+		    gl.glColorPointer(4, 0, colorArrayBuf);
+	
+		    //
+		    // pre light everything
+		    //
+		    FloatBuffer color = colorArrayBuf;
+		    float l;
+		    int size = paliashdr.num_xyz;
+		    int j = 0;
+		    for (int i = 0; i < size; i++) {
+			l = shadedots[(verts[i] >>> 24) & 0xFF];
+			color.put(j, l * shadelight[0]);
+			color.put(j + 1, l * shadelight[1]);
+			color.put(j + 2, l * shadelight[2]);
+			color.put(j + 3, alpha);
+			j += 4;
+		    }
+		}
+	
+		gl.glClientActiveTextureARB(TEXTURE0);
+		gl.glTexCoordPointer(2, 0, textureArrayBuf);
+		// gl.gl.glEnableClientState( GL_TEXTURE_COORD_ARRAY);
+	
+		int pos = 0;
+		int[] counts = paliashdr.counts;
+	
+		IntBuffer srcIndexBuf = null;
+	
+		FloatBuffer dstTextureCoords = textureArrayBuf;
+		FloatBuffer srcTextureCoords = paliashdr.textureCoordBuf;
+	
+		int dstIndex = 0;
+		int srcIndex = 0;
+		int count;
+		int mode;
+		int size = counts.length;
+		
+		for (int j = 0; j < size; j++) {
+	
+		    // get the vertex count and primitive type
+		    count = counts[j];
+		    if (count == 0)
+			break; // done
+	
+		    srcIndexBuf = paliashdr.indexElements[j];
+	
+		    mode = GL_TRIANGLE_STRIP;
+		    if (count < 0) {
+				mode = GL_TRIANGLE_FAN;
+				count = -count;
+		    }
+		    srcIndex = pos << 1;
+		    srcIndex--;
+		    for (int k = 0; k < count; k++) {
+				dstIndex = srcIndexBuf.get(k) << 1;
+				dstTextureCoords.put(dstIndex, srcTextureCoords.get(++srcIndex));
+				dstTextureCoords.put(++dstIndex, srcTextureCoords.get(++srcIndex));
+		    }
+		    
 
-	int[] verts = frame.verts;
+		    gl.glDrawElements(mode, srcIndexBuf);
+		    
+			if (gl_modeltris.value != 0)
+			{
+				IntBuffer ib = srcIndexBuf;
+				
+				float buf[] = new float[count * 3];
+				FloatBuffer fb = vertexArrayBuf;
+				
+				for (int k = 0; k < count; k++)
+				{
+					int index = ib.get(k)*3;
+					
+					buf[k*3] = fb.get(index);
+					buf[k*3+1] = fb.get(index + 1);
+					buf[k*3+2] = fb.get(index + 2);
+				}
+				drawinfo di = new drawinfo();
+				di.mode = mode;
+				di.fb = buf;
+				di.count = count;
+				modeltris.add(di);
+			}
+			pos += count;
+		}
+	
+		// PMM - added double damage shell
+		if ((currententity.flags & (Defines.RF_SHELL_RED
+			| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
+			| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
+		    gl.glEnable(GL_TEXTURE_2D);
 
-	qfiles.daliasframe_t oldframe = paliashdr.aliasFrames[currententity.oldframe];
-
-	int[] ov = oldframe.verts;
-
-	float alpha;
-	if ((currententity.flags & Defines.RF_TRANSLUCENT) != 0)
-	    alpha = currententity.alpha;
-	else
-	    alpha = 1.0f;
-
-	// PMM - added double shell
-	if ((currententity.flags & (Defines.RF_SHELL_RED
-		| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
-		| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
-	    gl.glDisable(GL_TEXTURE_2D);
-
-	float frontlerp = 1.0f - backlerp;
-
-	// move should be the delta back to the previous frame * backlerp
-	Math3D.VectorSubtract(currententity.oldorigin, currententity.origin,
-		frontv);
-	Math3D.AngleVectors(currententity.angles, vectors[0], vectors[1],
-		vectors[2]);
-
-	move[0] = Math3D.DotProduct(frontv, vectors[0]); // forward
-	move[1] = -Math3D.DotProduct(frontv, vectors[1]); // left
-	move[2] = Math3D.DotProduct(frontv, vectors[2]); // up
-
-	Math3D.VectorAdd(move, oldframe.translate, move);
-
-	for (int i = 0; i < 3; i++) {
-	    move[i] = backlerp * move[i] + frontlerp * frame.translate[i];
-	    frontv[i] = frontlerp * frame.scale[i];
-	    backv[i] = backlerp * oldframe.scale[i];
-	}
-
-	// ab hier wird optimiert
-
-	GL_LerpVerts(paliashdr.num_xyz, ov, verts, move, frontv, backv);
-
-	// gl.gl.glEnableClientState( GL_VERTEX_ARRAY );
-	gl.glVertexPointer(3, 0, vertexArrayBuf);
-
-	// PMM - added double damage shell
-	if ((currententity.flags & (Defines.RF_SHELL_RED
-		| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
-		| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0) {
-	    gl.glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-	} else {
-	    gl.glEnableClientState(GL_COLOR_ARRAY);
-	    gl.glColorPointer(4, 0, colorArrayBuf);
-
-	    //
-	    // pre light everything
-	    //
-	    FloatBuffer color = colorArrayBuf;
-	    float l;
-	    int size = paliashdr.num_xyz;
-	    int j = 0;
-	    for (int i = 0; i < size; i++) {
-		l = shadedots[(verts[i] >>> 24) & 0xFF];
-		color.put(j, l * shadelight[0]);
-		color.put(j + 1, l * shadelight[1]);
-		color.put(j + 2, l * shadelight[2]);
-		color.put(j + 3, alpha);
-		j += 4;
-	    }
-	}
-
-	gl.glClientActiveTextureARB(TEXTURE0);
-	gl.glTexCoordPointer(2, 0, textureArrayBuf);
-	// gl.gl.glEnableClientState( GL_TEXTURE_COORD_ARRAY);
-
-	int pos = 0;
-	int[] counts = paliashdr.counts;
-
-	IntBuffer srcIndexBuf = null;
-
-	FloatBuffer dstTextureCoords = textureArrayBuf;
-	FloatBuffer srcTextureCoords = paliashdr.textureCoordBuf;
-
-	int dstIndex = 0;
-	int srcIndex = 0;
-	int count;
-	int mode;
-	int size = counts.length;
-	for (int j = 0; j < size; j++) {
-
-	    // get the vertex count and primitive type
-	    count = counts[j];
-	    if (count == 0)
-		break; // done
-
-	    srcIndexBuf = paliashdr.indexElements[j];
-
-	    mode = GL_TRIANGLE_STRIP;
-	    if (count < 0) {
-		mode = GL_TRIANGLE_FAN;
-		count = -count;
-	    }
-	    srcIndex = pos << 1;
-	    srcIndex--;
-	    for (int k = 0; k < count; k++) {
-		dstIndex = srcIndexBuf.get(k) << 1;
-		dstTextureCoords
-			.put(dstIndex, srcTextureCoords.get(++srcIndex));
-		dstTextureCoords.put(++dstIndex, srcTextureCoords
-			.get(++srcIndex));
-	    }
-
-	    gl.glDrawElements(mode, srcIndexBuf);
-	    pos += count;
-	}
-
-	// PMM - added double damage shell
-	if ((currententity.flags & (Defines.RF_SHELL_RED
-		| Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE
-		| Defines.RF_SHELL_DOUBLE | Defines.RF_SHELL_HALF_DAM)) != 0)
-	    gl.glEnable(GL_TEXTURE_2D);
-
-	gl.glDisableClientState(GL_COLOR_ARRAY);
+		gl.glDisableClientState(GL_COLOR_ARRAY);
+	
+		drawModelTris();
+		modeltris = new Vector();
     }
 
     private final float[] point = { 0, 0, 0 };
@@ -662,6 +790,49 @@ public abstract class Mesh extends Light {
 	gl.glShadeModel(GL_FLAT);
 
 	gl.glPopMatrix();
+	
+	if (gl_modelbbox.value != 0)
+	{
+
+		gl.glDisable( GL_CULL_FACE );
+		gl.glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		gl.glDisable( GL_TEXTURE_2D );
+		
+	
+		gl.glBegin(GL_LINE_STRIP);
+        gl.glVertex3f(bbox[0][0], bbox[0][1], bbox[0][2]);
+        gl.glVertex3f(bbox[1][0], bbox[1][1], bbox[1][2]);
+        gl.glVertex3f(bbox[3][0], bbox[3][1], bbox[3][2]);
+        gl.glVertex3f(bbox[2][0], bbox[2][1], bbox[2][2]);
+        gl.glVertex3f(bbox[0][0], bbox[0][1], bbox[0][2]);
+
+        gl.glVertex3f(bbox[4][0], bbox[4][1], bbox[4][2]);   
+        gl.glVertex3f(bbox[5][0], bbox[5][1], bbox[5][2]);
+        gl.glVertex3f(bbox[7][0], bbox[7][1], bbox[7][2]);
+        gl.glVertex3f(bbox[6][0], bbox[6][1], bbox[6][2]);
+        gl.glVertex3f(bbox[4][0], bbox[4][1], bbox[4][2]);    
+        gl.glEnd();
+
+        gl.glBegin(GL_LINE_STRIP);
+        gl.glVertex3f(bbox[1][0], bbox[1][1], bbox[1][2]);
+        gl.glVertex3f(bbox[5][0], bbox[5][1], bbox[5][2]);
+        gl.glEnd();
+        
+        gl.glBegin(GL_LINE_STRIP);
+        gl.glVertex3f(bbox[2][0], bbox[2][1], bbox[2][2]);
+        gl.glVertex3f(bbox[6][0], bbox[6][1], bbox[6][2]);
+        gl.glEnd();
+
+        gl.glBegin(GL_LINE_STRIP);
+        gl.glVertex3f(bbox[3][0], bbox[3][1], bbox[3][2]);
+        gl.glVertex3f(bbox[7][0], bbox[7][1], bbox[7][2]);
+        gl.glEnd();
+        
+        gl.glEnable( GL_TEXTURE_2D );
+        gl.glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        gl.glEnable( GL_CULL_FACE );
+
+	}
 
 	if ((currententity.flags & Defines.RF_WEAPONMODEL) != 0
 		&& (r_lefthand.value == 1.0F)) {
