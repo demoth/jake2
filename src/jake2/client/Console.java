@@ -2,7 +2,7 @@
  * Con.java
  * Copyright (C) 2003
  * 
- * $Id: Console.java,v 1.9 2008-03-02 16:43:18 cawe Exp $
+ * $Id: Console.java,v 1.10 2011-07-07 21:10:18 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -148,6 +148,7 @@ public final class Console extends Globals {
      */
     public static void Init() {
 	Globals.con.linewidth = -1;
+	Globals.con.backedit = 0;
 
 	CheckResize();
 
@@ -182,12 +183,14 @@ public final class Console extends Globals {
 	if (width < 1) { // video hasn't been initialized yet
 	    width = 38;
 	    Globals.con.linewidth = width;
+	    Globals.con.backedit = 0; // sfranzyshen
 	    Globals.con.totallines = Defines.CON_TEXTSIZE
 		    / Globals.con.linewidth;
 	    Arrays.fill(Globals.con.text, (byte) ' ');
 	} else {
 	    int oldwidth = Globals.con.linewidth;
 	    Globals.con.linewidth = width;
+	    Globals.con.backedit = 0; // sfranzyshen
 	    int oldtotallines = Globals.con.totallines;
 	    Globals.con.totallines = Defines.CON_TEXTSIZE
 		    / Globals.con.linewidth;
@@ -408,16 +411,17 @@ public final class Console extends Globals {
 
 	if (cls.key_dest == key_menu)
 	    return;
+	
 	if (cls.key_dest != key_console && cls.state == ca_active)
 	    return; // don't draw anything (always draw if not active)
 
 	text = key_lines[edit_line];
 
 	// add the cursor frame
-	text[key_linepos] = (byte) (10 + ((int) (cls.realtime >> 8) & 1));
+	//text[key_linepos] = (byte) (10 + ((int) (cls.realtime >> 8) & 1)); //sfranzyshen
 
 	// fill out remainder with spaces
-	for (i = key_linepos + 1; i < con.linewidth; i++)
+	for (i = key_linepos ; i < con.linewidth; i++) // sfranzyshen
 	    text[i] = ' ';
 
 	// prestep if horizontally scrolling
@@ -427,9 +431,17 @@ public final class Console extends Globals {
 	// draw it
 	// y = con.vislines-16;
 
-	for (i = 0; i < con.linewidth; i++)
-	    re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
-
+	// sfranzyshen --start
+	for (i = 0; i < con.linewidth; i++) {
+		//old:re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
+		if (con.backedit == key_linepos-i && (((int)(Globals.cls.realtime >> 8)&1) !=0))
+			re.DrawChar ((i + 1) << 3, con.vislines - 22, (char)11);
+		else
+			re.DrawChar ((i + 1) << 3, con.vislines - 22, text[i]);
+	}
+	// sfranzyshen - stop
+    
+		
 	// remove cursor
 	key_lines[edit_line][key_linepos] = 0;
     }
@@ -480,14 +492,24 @@ public final class Console extends Globals {
 
 	    s = chat_buffer;
 	    if (chat_bufferlen > (viddef.getWidth() >> 3) - (skip + 1))
-		s = s.substring(chat_bufferlen
-			- ((viddef.getWidth() >> 3) - (skip + 1)));
+		//s = s.substring(chat_bufferlen
+		//	- ((viddef.getWidth() >> 3) - (skip + 1)));
+	    
+	    // sfranzyshen -start
+	    s = s.substring(chat_bufferlen 	- ((viddef.getWidth() >> 3) - (skip + 1)));
 
 	    for (x = 0; x < s.length(); x++) {
-		re.DrawChar((x + skip) << 3, v, s.charAt(x));
+	    	if (chat_backedit > 0 && chat_backedit == chat_buffer.length() -x && ((int)(cls.realtime>>8)&1) !=0) {
+	    		re.DrawChar((x + skip) << 3, v, (char)11);
+	    	} else {
+	    		re.DrawChar((x + skip) << 3, v, s.charAt(x));
+	    	}
 	    }
-	    re.DrawChar((x + skip) << 3, v,
-		    (int) (10 + ((cls.realtime >> 8) & 1)));
+	    
+	    if (chat_backedit == 0)
+	    	re.DrawChar((x + skip) << 3, v, (int) (10 + ((cls.realtime >> 8) & 1)));
+	    // sfranzyshen -stop        
+
 	    v += 8;
 	}
 

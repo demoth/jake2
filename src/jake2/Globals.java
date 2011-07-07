@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.6 2008-03-02 20:21:12 kbrussel Exp $
+ * $Id: Globals.java,v 1.7 2011-07-07 21:09:56 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -372,6 +372,7 @@ public class Globals extends Defines {
 	public static vrect_t scr_vrect = new vrect_t();
 	public static int sys_frame_time;
 	public static int chat_bufferlen = 0;
+	public static int chat_backedit; // sfranzyshen
 	public static int gun_frame;
 	public static model_t gun_model;
 	public static netadr_t net_from = new netadr_t();

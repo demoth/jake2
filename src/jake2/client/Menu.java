@@ -2,7 +2,7 @@
  * Menu.java
  * Copyright (C) 2004
  * 
- * $Id: Menu.java,v 1.24 2009-12-13 11:20:46 salomo Exp $
+ * $Id: Menu.java,v 1.25 2011-07-07 21:10:18 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -4463,8 +4463,9 @@ public final class Menu extends Key {
         /*
          * * support pasting from the clipboard
          */
-        if ((Character.toUpperCase(key) == 'V' && keydown[K_CTRL])
-                || (((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT])) {
+      
+        if ( key == K_CTRLV && keydown[K_CTRL] || (((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT])) { // sfranzyshen
+
             String cbd;
 
             if ((cbd = Sys.GetClipboardData()) != null) {

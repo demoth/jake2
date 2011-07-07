@@ -2,7 +2,7 @@
  * Sys.java
  * Copyright (C) 2003
  * 
- * $Id: Sys.java,v 1.12 2008-03-02 20:21:15 kbrussel Exp $
+ * $Id: Sys.java,v 1.13 2011-07-07 21:09:05 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -34,6 +34,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.awt.datatransfer.*; // sfranzyshen
+import java.awt.Toolkit; // sfranzyshen
+import java.io.*; // sfranzyshen
 
 /**
  * Sys
@@ -232,10 +235,24 @@ public final class Sys extends Defines {
         Globals.sys_frame_time = Timer.Milliseconds();
     }
 
-    public static String GetClipboardData() {
-        // TODO: implement GetClipboardData
-        return null;
-    }
+	// sfranzyshen -start
+	// public static String GetClipboardData() {
+	public static String GetClipboardData() {
+		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard()
+		        .getContents(null);
+
+		try {
+			if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+				String text = (String) t
+				        .getTransferData(DataFlavor.stringFlavor);
+				return text;
+			}
+		} catch (UnsupportedFlavorException e) {
+		} catch (IOException e) {
+		}
+		return null;
+	}
+
 
     public static void ConsoleOutput(String msg) {
         if (Globals.nostdout != null && Globals.nostdout.value != 0)

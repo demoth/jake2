@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 // Created on 31.10.2003 by RST.
-// $Id: Defines.java,v 1.9 2006-01-01 15:05:47 cawe Exp $
+// $Id: Defines.java,v 1.10 2011-07-07 21:09:45 salomo Exp $
 
 /** Contains the definitions for the game engine. */
 
@@ -1319,6 +1319,17 @@ public class Defines {
 	public final static int K_DOWNARROW = 129;
 	public final static int K_LEFTARROW = 130;
 	public final static int K_RIGHTARROW = 131;
+
+	 
+	// sfranzyshen - start
+	// mouse buttons & wheel generate virtual keys
+	public static final int K_MOUSE1 = 200;
+	public static final int K_MOUSE2 = 201;
+	public static final int K_MOUSE3 = 202;
+	public static final int K_MWHEELDOWN = 239;
+	public static final int K_MWHEELUP = 240;
+	// sfranzyshen - stop
+	        
 
 	public final static int QMF_LEFT_JUSTIFY = 0x00000001;
 	public final static int QMF_GRAYED = 0x00000002;
