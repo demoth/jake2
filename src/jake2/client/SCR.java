@@ -573,6 +573,8 @@ public final class SCR extends Globals {
         S.StopAllSounds();
         cl.sound_prepped = false; // don't play ambients
 
+        CDAudio.Stop ();
+
         if (cls.disable_screen != 0)
             return;
         if (developer.value != 0)
@@ -1814,7 +1816,7 @@ public final class SCR extends Globals {
     static void PlayCinematic(String arg) {
 
         // make sure CD isn't playing music
-        //CDAudio.Stop();
+        CDAudio.Stop();
 
         cl.cinematicframe = 0;
         if (arg.endsWith(".pcx")) {

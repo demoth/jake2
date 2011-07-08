@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.31 2011-07-07 21:19:15 salomo Exp $
+ * $Id: CL.java,v 1.32 2011-07-08 09:29:42 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1580,7 +1580,9 @@ public final class CL {
         // update audio
         S.Update(Globals.cl.refdef.vieworg, Globals.cl.v_forward,
                 Globals.cl.v_right, Globals.cl.v_up);
-
+        
+        CDAudio.Update(); //sfranzyshen
+        
         // advance local effects for next frame
         CL_fx.RunDLights();
         CL_fx.RunLightStyles();
@@ -1613,7 +1615,8 @@ public final class CL {
         isdown = true;
 
         WriteConfiguration();
-
+        
+        CDAudio.Shutdown();
         S.Shutdown();
         IN.Shutdown();
         VID.Shutdown();
@@ -1643,6 +1646,7 @@ public final class CL {
         SCR.Init();
         //Globals.cls.disable_screen = 1.0f; // don't draw yet
 
+        CDAudio.Init();
         InitLocal();
         IN.Init();
 

@@ -1,7 +1,7 @@
 /*
  * CL_view.java Copyright (C) 2004
  * 
- * $Id: CL_view.java,v 1.5 2008-03-02 14:56:22 cawe Exp $
+ * $Id: CL_view.java,v 1.6 2011-07-08 09:29:42 salomo Exp $
  */
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
@@ -29,7 +29,8 @@ import jake2.Globals;
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
 import jake2.sys.Sys;
-
+import jake2.qcommon.CDAudio;
+import jake2.util.Lib;
 import java.util.StringTokenizer;
 
 public class CL_view {
@@ -160,6 +161,10 @@ public class CL_view {
         SCR.UpdateScreen();
         Globals.cl.refresh_prepped = true;
         Globals.cl.force_refdef = true; // make sure we have a valid refdef
+        
+        // start the cd track
+        CDAudio.Play(Lib.atoi(Globals.cl.configstrings[Defines.CS_CDTRACK]), true);
+
     }
 
     public static void AddNetgraph() {

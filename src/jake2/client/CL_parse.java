@@ -512,6 +512,10 @@ public class CL_parse {
             
             CL_fx.SetLightstyle(i - Defines.CS_LIGHTS);
             
+        } else if (i == Defines.CS_CDTRACK) {
+        	if (Globals.cl.refresh_prepped)
+        		CDAudio.Play(Lib.atoi(Globals.cl.configstrings[Defines.CS_CDTRACK]), true);
+        	
         } else if (i >= Defines.CS_MODELS && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
             if (Globals.cl.refresh_prepped) {
                 Globals.cl.model_draw[i - Defines.CS_MODELS] = Globals.re

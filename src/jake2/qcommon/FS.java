@@ -317,6 +317,7 @@ public final class FS extends Globals {
 
         int offset = 0;
         int read = 0;
+        int tries = 0;
         // read in chunks for progress bar
         int remaining = len;
         int block;
@@ -330,7 +331,16 @@ public final class FS extends Globals {
             }
 
             if (read == 0) {
-                Com.Error(Defines.ERR_FATAL, "FS_Read: 0 bytes read");
+            	
+            	// we might have been trying to read from a CD
+            	if (tries == 0)
+            	{
+            		tries = 1;
+            		CDAudio.Stop();
+            	} else {
+            		Com.Error(Defines.ERR_FATAL, "FS_Read: 0 bytes read");
+            	}
+
             } else if (read == -1) {
                 Com.Error(Defines.ERR_FATAL, "FS_Read: -1 bytes read");
             }
