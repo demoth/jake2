@@ -2,7 +2,7 @@
  * Main.java
  * Copyright (C) 2003
  *
- * $Id: Main.java,v 1.7 2011-07-07 21:19:14 salomo Exp $
+ * $Id: Main.java,v 1.8 2011-07-08 14:33:12 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -728,12 +728,22 @@ public abstract class Main extends Base {
 		// set up projection matrix
 		//
 		float screenaspect = (float) r_newrefdef.width / r_newrefdef.height;
-		gl.glMatrixMode(GL_PROJECTION);
-		gl.glLoadIdentity();
-		MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096);
-
-		gl.glCullFace(GL_FRONT);
-
+		
+		
+		gl.glMatrixMode(GL_PROJECTION); 
+		gl.glLoadIdentity(); 
+		//MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096); 
+		
+		// CDawg 
+		
+		if (r_newrefdef.map_view != 0) 
+			MYgluPerspective (r_newrefdef.fov_y, screenaspect, r_newrefdef.map_zoom-100, r_newrefdef.map_zoom+400); 
+		else 
+			MYgluPerspective (r_newrefdef.fov_y, screenaspect, 4, 4096*4); 
+		// CDawg 
+		
+		gl.glCullFace(GL_FRONT); 
+		
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glLoadIdentity();
 

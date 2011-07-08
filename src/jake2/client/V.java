@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.5 2005-07-01 14:20:50 hzi Exp $
+ * $Id: V.java,v 1.6 2011-07-08 14:33:12 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -25,6 +25,7 @@
  */
 package jake2.client;
 
+import jake2.Defines; // CDawg hud map 
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
@@ -338,6 +339,26 @@ public final class V extends Globals {
             cl.refdef.time = cl.time * 0.001f;
 
             cl.refdef.areabits = cl.frame.areabits;
+            
+            // CDawg hud map 
+            Math3D.VectorCopy (cl.refdef.viewangles, cl.mapdef.viewangles); 
+            Math3D.VectorCopy (cl.refdef.vieworg, cl.mapdef.vieworg); 
+            cl.mapdef.vieworg[0] += 1.0/16; 
+            cl.mapdef.vieworg[1] += 1.0/16; 
+            cl.mapdef.vieworg[2] += 1.0/16; 
+            cl.mapdef.x = (int) (scr_vrect.x + viddef.getWidth() - (((viddef.getWidth() - (viddef.getWidth() * .80))/2) + (viddef.getWidth() * .80))); // sfranzyshen 
+            cl.mapdef.y = (int) (scr_vrect.y + ((viddef.getHeight() - (viddef.getHeight() * .80))/2)); // sfranzyshen 
+            cl.mapdef.width = (int) (viddef.getWidth() * .80); // sfranzyshen 
+            cl.mapdef.height = (int) (viddef.getHeight() * .80); // sfranzyshen 
+            cl.mapdef.map_zoom = (int) Globals.cl_map_zoom.value; 
+            cl.mapdef.vieworg[2] += cl.mapdef.map_zoom; 
+            cl.mapdef.blend[3] = 0.5f; //alpha black background 
+            cl.mapdef.fov_y = Math3D.CalcFov (cl.refdef.fov_x, cl.refdef.width, cl.refdef.height); 
+            cl.mapdef.time = (float) (cl.time *0.001); 
+            cl.mapdef.viewangles[PITCH] = 90; //look down obviously ;) 
+            cl.mapdef.areabits = cl.frame.areabits; 
+            cl.mapdef.lightstyles = r_lightstyles; 
+            // CDawg hud map 
 
             if (cl_add_entities.value == 0.0f)
                 r_numentities = 0;
@@ -364,6 +385,15 @@ public final class V extends Globals {
         }
 
         re.RenderFrame(cl.refdef);
+        
+        // CDawg 
+        cl.mapdef.map_view = (int) Globals.cl_map.value; 
+        
+        if (Globals.cl.mapdef.map_view != 0) 
+        	re.RenderFrame (cl.mapdef); 
+        
+        // CDawg 
+        
         if (cl_stats.value != 0.0f)
             Com.Printf("ent:%i  lt:%i  part:%i\n", new Vargs(3).add(
                     r_numentities).add(r_numdlights).add(r_numparticles));

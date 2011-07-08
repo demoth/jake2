@@ -2,7 +2,7 @@
  * CL.java
  * Copyright (C) 2004
  * 
- * $Id: CL.java,v 1.32 2011-07-08 09:29:42 salomo Exp $
+ * $Id: CL.java,v 1.33 2011-07-08 14:33:12 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1280,6 +1280,9 @@ public final class CL {
         Globals.cl_yawspeed = Cvar.Get("cl_yawspeed", "140", 0);
         Globals.cl_pitchspeed = Cvar.Get("cl_pitchspeed", "150", 0);
         Globals.cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
+        
+        Globals.cl_map = Cvar.Get("cl_map", "0", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen 
+        Globals.cl_map_zoom = Cvar.Get("cl_map_zoom", "300", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
 
         Globals.cl_run = Cvar.Get("cl_run", "0", Defines.CVAR_ARCHIVE);
         Globals.lookspring = Cvar.Get("lookspring", "0", Defines.CVAR_ARCHIVE);

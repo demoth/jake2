@@ -90,6 +90,7 @@ public class client_state_t {
 	float lerpfrac; // between oldframe and frame
 
 	refdef_t refdef = new refdef_t();
+	refdef_t mapdef = new refdef_t(); // CDawg hud map sfranzyshen
 
 	float[] v_forward = { 0, 0, 0 };
 	float[] v_right = { 0, 0, 0 };

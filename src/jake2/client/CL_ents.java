@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.10 2005-02-06 19:17:03 salomo Exp $
+ * $Id: CL_ents.java,v 1.11 2011-07-08 14:33:12 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -1153,6 +1153,30 @@ public class CL_ents {
 
 		// add the weapon
 		AddViewWeapon(ps, ops);
+		
+		
+		// CDawg 
+		for (i=0 ; i<3 ; i++) 
+			Globals.cl.mapdef.vieworg[i] = (float) (ops.pmove.origin[i] * 0.125f + ops.viewoffset[i] + 
+					lerp * (ps.pmove.origin [i] *0.125 + ps.viewoffset[i] - 
+							(ops.pmove.origin [i] *0.125 + ops.viewoffset[i]) )); 
+		
+		
+		for (i=0 ; i<3 ; i++) 
+			Globals.cl.mapdef.viewangles[i] = Math3D.LerpAngle(ops.viewangles[i], ps.viewangles[i], lerp); 
+		
+		for (i=0 ; i<3 ; i++) 
+			Globals.cl.mapdef.viewangles[i] = Globals.cl.predicted_angles[i]; 
+		
+		Globals.cl.mapdef.fov_x = ops.fov + lerp * (ps.fov - ops.fov); 
+		
+		for (i=0 ; i<3 ; i++) 
+			Globals.cl.mapdef.viewangles[i] += Math3D.LerpAngle (ops.kick_angles[i], ps.kick_angles[i], lerp); 
+		
+		Math3D.AngleVectors (Globals.cl.mapdef.viewangles, Globals.cl.v_forward, Globals.cl.v_right, Globals.cl.v_up); 
+		Globals.cl.mapdef.blend[3] = 0.50f; 
+		// CDawg 
+		
 	}
 
 	/*

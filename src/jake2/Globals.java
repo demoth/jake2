@@ -2,7 +2,7 @@
  * Globals.java
  * Copyright (C) 2003
  * 
- * $Id: Globals.java,v 1.7 2011-07-07 21:09:56 salomo Exp $
+ * $Id: Globals.java,v 1.8 2011-07-08 14:33:13 salomo Exp $
  */
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
@@ -100,6 +100,8 @@ public class Globals extends Defines {
 	public static cvar_t in_mouse;
 	public static cvar_t in_joystick;
 
+	public static cvar_t cl_map; // CDawg hud map, sfranzyshen
+	public static cvar_t cl_map_zoom; // CDawg hud map, sfranzyshen
 
 	public static sizebuf_t net_message = new sizebuf_t();
 
