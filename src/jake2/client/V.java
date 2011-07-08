@@ -2,7 +2,7 @@
  * V.java
  * Copyright (C) 2003
  * 
- * $Id: V.java,v 1.6 2011-07-08 14:33:12 salomo Exp $
+ * $Id: V.java,v 1.7 2011-07-08 16:01:46 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -86,19 +86,28 @@ public final class V extends Globals {
     }
 
     /*
-     * ===================== V_AddEntity
-     * 
+     * ===================== 
+     * V_AddEntity
      * =====================
      */
     static void AddEntity(entity_t ent) {
+    	
+    	if ((ent.flags & Defines.RF_VIEWERMODEL) != 0) { //here is our client
+    		int i;
+    		for (i=0;i < 3;i++)
+    			ent.oldorigin[i] = ent.origin[i] = cl.predicted_origin[i];
+    		if (cl_3rd.value == 1)
+    			ent.flags &=~ Defines.RF_VIEWERMODEL;
+    	}
+    	        
         if (r_numentities >= MAX_ENTITIES)
             return;
         r_entities[r_numentities++].set(ent);
     }
 
     /*
-     * ===================== V_AddParticle
-     * 
+     * ===================== 
+     * V_AddParticle
      * =====================
      */
     static void AddParticle(float[] org, int color, float alpha) {
@@ -119,8 +128,8 @@ public final class V extends Globals {
     }
 
     /*
-     * ===================== V_AddLight
-     * 
+     * ===================== 
+     * V_AddLight
      * =====================
      */
     static void AddLight(float[] org, float intensity, float r, float g, float b) {
@@ -137,8 +146,8 @@ public final class V extends Globals {
     }
 
     /*
-     * ===================== V_AddLightStyle
-     * 
+     * ===================== 
+     * V_AddLightStyle
      * =====================
      */
     static void AddLightStyle(int style, float r, float g, float b) {
@@ -156,8 +165,10 @@ public final class V extends Globals {
 
     // stack variable
     private static final float[] origin = { 0, 0, 0 };
+    
     /*
-     * ================ V_TestParticles
+     * ================ 
+     * V_TestParticles
      * 
      * If cl_testparticles is set, create 4096 particles in the view
      * ================
@@ -181,9 +192,11 @@ public final class V extends Globals {
     }
 
     /*
-     * ================ V_TestEntities
+     * ================ 
+     * V_TestEntities
      * 
-     * If cl_testentities is set, create 32 player models ================
+     * If cl_testentities is set, create 32 player models
+     * ================
      */
     static void TestEntities() {
         int i, j;
@@ -211,9 +224,11 @@ public final class V extends Globals {
     }
 
     /*
-     * ================ V_TestLights
+     * ================ 
+     * V_TestLights
      * 
-     * If cl_testlights is set, create 32 lights models ================
+     * If cl_testlights is set, create 32 lights models 
+     * ================
      */
     static void TestLights() {
         int i, j;
@@ -269,7 +284,8 @@ public final class V extends Globals {
     };
 
     /*
-     * ================== V_RenderView
+     * ================== 
+     * V_RenderView
      * 
      * ==================
      */

@@ -2,7 +2,7 @@
  * java
  * Copyright (C) 2004
  * 
- * $Id: CL_ents.java,v 1.11 2011-07-08 14:33:12 salomo Exp $
+ * $Id: CL_ents.java,v 1.12 2011-07-08 16:01:46 salomo Exp $
  */
 /*
  Copyright (C) 1997-2001 Id Software, Inc.
@@ -618,6 +618,7 @@ public class CL_ents {
 		for (pnum = 0; pnum < frame.num_entities; pnum++) {
 			s1 = Globals.cl_parse_entities[(frame.parse_entities + pnum) & (Defines.MAX_PARSE_ENTITIES - 1)];
 
+			boolean isclientviewer = false;
 			cent = Globals.cl_entities[s1.number];
 
 			effects = s1.effects;
@@ -647,8 +648,8 @@ public class CL_ents {
 				effects |= Defines.EF_COLOR_SHELL;
 				renderfx |= Defines.RF_SHELL_BLUE;
 			}
-			//	  ======
-			//	   PMM
+			// ======
+			// PMM
 			if ((effects & Defines.EF_DOUBLE) != 0) {
 				effects &= ~Defines.EF_DOUBLE;
 				effects |= Defines.EF_COLOR_SHELL;
@@ -660,8 +661,8 @@ public class CL_ents {
 				effects |= Defines.EF_COLOR_SHELL;
 				renderfx |= Defines.RF_SHELL_HALF_DAM;
 			}
-			//	   pmm
-			//	  ======
+			// pmm
+			// ======
 			ent.oldframe = cent.prev.frame;
 			ent.backlerp = 1.0f - Globals.cl.lerpfrac;
 
@@ -672,17 +673,18 @@ public class CL_ents {
 				Math3D.VectorCopy(cent.current.old_origin, ent.oldorigin);
 			} else { // interpolate origin
 				for (i = 0; i < 3; i++) {
-					ent.origin[i] = ent.oldorigin[i] = cent.prev.origin[i] + Globals.cl.lerpfrac
-							* (cent.current.origin[i] - cent.prev.origin[i]);
+					ent.origin[i] = ent.oldorigin[i] = cent.prev.origin[i]
+					        + Globals.cl.lerpfrac
+					        * (cent.current.origin[i] - cent.prev.origin[i]);
 				}
 			}
 
 			// create a new entity
-
+			
 			// tweak the color of beams
 			if ((renderfx & Defines.RF_BEAM) != 0) { // the four beam colors are
-													 // encoded in 32 bits of
-													 // skinnum (hack)
+				// encoded in 32 bits of
+				// skinnum (hack)
 				ent.alpha = 0.30f;
 				ent.skinnum = (s1.skinnum >> ((Globals.rnd.nextInt(4)) * 8)) & 0xff;
 				Math.random();
@@ -698,20 +700,26 @@ public class CL_ents {
 						ent.skin = Globals.cl.baseclientinfo.skin;
 						ent.model = Globals.cl.baseclientinfo.model;
 					}
-
-					//	  ============
-					//	  PGM
+					// ============
+					// PGM
 					if ((renderfx & Defines.RF_USE_DISGUISE) != 0) {
 						if (ent.skin.name.startsWith("players/male")) {
-							ent.skin = Globals.re.RegisterSkin("players/male/disguise.pcx");
-							ent.model = Globals.re.RegisterModel("players/male/tris.md2");
+							ent.skin = Globals.re
+							        .RegisterSkin("players/male/disguise.pcx");
+							ent.model = Globals.re
+							        .RegisterModel("players/male/tris.md2");
 						} else if (ent.skin.name.startsWith("players/female")) {
-							ent.skin = Globals.re.RegisterSkin("players/female/disguise.pcx");
-							ent.model = Globals.re.RegisterModel("players/female/tris.md2");
+							ent.skin = Globals.re
+							        .RegisterSkin("players/female/disguise.pcx");
+							ent.model = Globals.re
+							        .RegisterModel("players/female/tris.md2");
 						} else if (ent.skin.name.startsWith("players/cyborg")) {
-							ent.skin = Globals.re.RegisterSkin("players/cyborg/disguise.pcx");
-							ent.model = Globals.re.RegisterModel("players/cyborg/tris.md2");
+							ent.skin = Globals.re
+							        .RegisterSkin("players/cyborg/disguise.pcx");
+							ent.model = Globals.re
+							        .RegisterModel("players/cyborg/tris.md2");
 						}
+
 					}
 					//	  PGM
 					//	  ============
@@ -764,6 +772,9 @@ public class CL_ents {
 
 			if (s1.number == Globals.cl.playernum + 1) {
 				ent.flags |= Defines.RF_VIEWERMODEL; // only draw from mirrors
+				// third person viewer
+				isclientviewer = true;
+
 				// FIXME: still pass to refresh
 
 				if ((effects & Defines.EF_FLAG1) != 0)
@@ -775,7 +786,9 @@ public class CL_ents {
 				else if ((effects & Defines.EF_TRACKERTRAIL) != 0) //PGM
 					V.AddLight(ent.origin, 225, -1.0f, -1.0f, -1.0f); //PGM
 
-				continue;
+				if (Globals.cl_3rd.value != 1)
+					continue;
+
 			}
 
 			// if set to invisible, skip
@@ -894,10 +907,17 @@ public class CL_ents {
 				//PGM
 			}
 			if (s1.modelindex3 != 0) {
+				if (isclientviewer == true)
+					ent.flags |= Defines.RF_VIEWERMODEL;    // only draw from mirrors
+				
 				ent.model = Globals.cl.model_draw[s1.modelindex3];
 				V.AddEntity(ent);
 			}
 			if (s1.modelindex4 != 0) {
+				
+				if (isclientviewer)
+					ent.flags |= Defines.RF_VIEWERMODEL;    // only draw from mirrors
+
 				ent.model = Globals.cl.model_draw[s1.modelindex4];
 				V.AddEntity(ent);
 			}
@@ -1032,6 +1052,10 @@ public class CL_ents {
 	static void AddViewWeapon(player_state_t ps, player_state_t ops) {
 		int i;
 
+		//don't draw if outside body...
+		if (Globals.cl_3rd.value == 1)
+			return;
+			
 		// allow the gun to be completely removed
 		if (0 == Globals.cl_gun.value)
 			return;
@@ -1107,20 +1131,26 @@ public class CL_ents {
 
 		// calculate the origin
 		if ((Globals.cl_predict.value != 0) && 0 == (Globals.cl.frame.playerstate.pmove.pm_flags & pmove_t.PMF_NO_PREDICTION)) { // use
-																																 // predicted
 																																 // values
 			int delta;
 
 			backlerp = 1.0f - lerp;
-			for (i = 0; i < 3; i++) {
+			for (i = 0; i < 3; i++) {				
 				Globals.cl.refdef.vieworg[i] = Globals.cl.predicted_origin[i] + ops.viewoffset[i] + Globals.cl.lerpfrac
-						* (ps.viewoffset[i] - ops.viewoffset[i]) - backlerp * Globals.cl.prediction_error[i];
+				* (ps.viewoffset[i] - ops.viewoffset[i]) - backlerp * Globals.cl.prediction_error[i];
+					
+				// this smooths out platform riding
+				Globals.cl.predicted_origin[i] -= backlerp * Globals.cl.prediction_error[i];
 			}
 
 			// smooth out stair climbing
 			delta = (int) (Globals.cls.realtime - Globals.cl.predicted_step_time);
-			if (delta < 100)
+
+			if (delta < 100) {
 				Globals.cl.refdef.vieworg[2] -= Globals.cl.predicted_step * (100 - delta) * 0.01;
+				Globals.cl.predicted_origin[2] -= Globals.cl.predicted_step * (100 - delta) * 0.01;
+			}
+
 		} else { // just use interpolated values
 			for (i = 0; i < 3; i++)
 				Globals.cl.refdef.vieworg[i] = ops.pmove.origin[i] * 0.125f + ops.viewoffset[i] + lerp
@@ -1154,6 +1184,54 @@ public class CL_ents {
 		// add the weapon
 		AddViewWeapon(ps, ops);
 		
+				
+		// set up the view angles
+		if (Globals.cl_3rd.value != 0) {
+			float[] end = { 0, 0, 0 };
+			float[] oldorg = { 0, 0, 0 };
+			float[] camPos = { 0, 0, 0 };
+				        
+			float dist_up;
+			float dist_back;
+			float angle;
+			
+			if (Globals.cl_3rd_angle.value < 0)
+				Cvar.SetValue( "cl_3rd_angle", 0);
+			if (Globals.cl_3rd_angle.value > 60)
+				Cvar.SetValue( "cl_3rd_angle", 60);
+			if (Globals.cl_3rd_dist.value < 0)
+				Cvar.SetValue( "cl_3rd_dist", 0);
+			
+			//this'll use polar coords for cam offset
+			angle = (float) (Math.PI * Globals.cl_3rd_angle.value / 180.0f);
+			dist_up = (float) (Globals.cl_3rd_dist.value * Math.sin( angle ));
+			dist_back =  (float) (Globals.cl_3rd_dist.value * Math.cos ( angle ));
+			
+			Math3D.VectorCopy(Globals.cl.refdef.vieworg, oldorg);
+			Math3D.VectorMA(Globals.cl.refdef.vieworg, -dist_back, Globals.cl.v_forward, end);
+			Math3D.VectorMA(end, dist_up, Globals.cl.v_up, end);
+			
+			ClipCam(Globals.cl.refdef.vieworg, end, camPos);
+			
+			//now we will adjust aim...
+			float[] newDir = { 0, 0, 0 };
+			float[] dir = { 0, 0, 0 };
+			
+			//find where 1st person view is aiming
+			Math3D.VectorMA(Globals.cl.refdef.vieworg, 8000, Globals.cl.v_forward, dir);
+			ClipCam (Globals.cl.refdef.vieworg, dir, newDir);
+			
+			Math3D.VectorSubtract(newDir, camPos, dir);
+			Math3D.VectorNormalize(dir);
+			
+			vectoangles2(dir, newDir);
+			//now look there from the camera
+			Math3D.AngleVectors(newDir, Globals.cl.v_forward, Globals.cl.v_right, Globals.cl.v_up);
+			Math3D.VectorCopy(newDir, Globals.cl.refdef.viewangles);
+			
+			Math3D.VectorCopy(camPos, Globals.cl.refdef.vieworg);
+		}
+
 		
 		// CDawg 
 		for (i=0 ; i<3 ; i++) 
@@ -1179,6 +1257,60 @@ public class CL_ents {
 		
 	}
 
+ 	/*
+		======
+		vectoangles2 - this is duplicated in the game DLL, but I need it here.
+		======
+ 	 */
+	static void vectoangles2 (float[] value1, float[] angles) {
+		float   forward;
+		float   yaw, pitch;
+		
+		if (value1[1] == 0 && value1[0] == 0) {
+			yaw = 0;
+			if (value1[2] > 0)
+				pitch = 90;
+			else
+				pitch = 270;
+		} else {
+			// PMM - fixed to correct for pitch of 0
+			if (value1[0] != 0)
+				yaw = (float) (Math.atan2(value1[1], value1[0]) * 180 / Math.PI);
+			else if (value1[1] > 0)
+				yaw = 90;
+			else
+				yaw = 270;
+			
+			if (yaw < 0)
+				yaw += 360;
+			
+			forward = (float) Math.sqrt (value1[0] * value1[0] + value1[1] * value1[1]);
+			pitch = (float) (Math.atan2(value1[2], forward) * 180 / Math.PI);
+			if (pitch < 0)
+				pitch += 360;
+		}
+		angles[0] = -pitch;
+		angles[1] = yaw;
+		angles[2] = 0;
+	}
+	
+	// add client side clipping
+	static trace_t CL_Trace (float[] start, float[] end, float size,  int contentmask) {
+		
+		float[] maxs = { 0, 0, 0 };
+		float[] mins = { 0, 0, 0 };
+		Math3D.VectorSet(maxs, size, size, size);
+		Math3D.VectorSet(mins, -size, -size, -size);
+		return CM.BoxTrace (start, end, mins, maxs, 0, contentmask);
+	}
+	
+	static void ClipCam (float[] start, float[] end, float[] newpos) {
+		trace_t tr = CL_Trace (start, end, 5, -1);
+		Math3D.VectorCopy(tr.endpos, newpos);
+	}
+	
+
+	
 	/*
 	 * =============== CL_AddEntities
 	 * 
