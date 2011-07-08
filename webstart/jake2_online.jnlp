@@ -19,6 +19,7 @@
 	<resources>
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
+		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jl1.0.1.jar"/>
 		<property name="sun.java2d.noddraw" value="true"/>
 		<extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-webstart-current/jogl.jnlp" />
 		<extension name="joal" href="http://download.java.net/media/joal/webstart/joal.jnlp" />
