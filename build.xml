@@ -27,6 +27,7 @@
 		<pathelement location="lib/lwjgl/lwjgl.jar"/>
 		<pathelement location="lib/lwjgl/lwjgl_util.jar"/>
 		<pathelement location="${java.home}/lib/plugin.jar"/>
+		<pathelement location="lib/jl1.0.1.jar"/>
 	</path>
 	
 	<!-- usage -->
