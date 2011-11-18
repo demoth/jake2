@@ -19,21 +19,8 @@
 	<resources>
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
-		<jar href="http://jake2.in-chemnitz.de/downloads/lib/lwjgl.jar"/>
-		<jar href="http://jake2.in-chemnitz.de/downloads/lib/lwjgl_util.jar"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jl1.0.1.jar"/>
-	</resources>
-	
-	<resources os="Linux">
-		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/linux/lwjgl-native.jar"/>
-	</resources>
-	
-	<resources os="Windows">
-		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/windows/lwjgl-native.jar"/>
-	</resources>
-
-	<resources os="Mac OS X">
-		<nativelib href="http://jake2.in-chemnitz.de/downloads/lib/osx/lwjgl-native.jar"/>	
+		<extension name="lwjgl" href="http://lwjgl.org/webstart/2.8.2/extension.jnlp" />
 	</resources>
 	
 	<application-desc main-class="jake2.Jake2">
