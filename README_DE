@@ -77,6 +77,8 @@ Holger Zickner <hoz@bytonic.de>
 Carsten Weisse <cwei@bytonic.de>
 Rene Stoeckel  <rst@bytonic.de>
 
-Contributors
-------------
-David Sanders       lwjgl Unterstützung
+Top-Contributors
+----------------
+David Sanders				       	lwjgl Unterstützung
+Kenneth Russell	(Sun Microsystems)	jogl Verbesserungen und Optimierungen
+Scott Franzyshen					3rd Person Camera, CD Player emulation (MP3), Console Patch

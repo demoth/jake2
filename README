@@ -75,4 +75,6 @@ Rene Stoeckel  <rst@bytonic.de>
 
 Contributors
 ------------
-David Sanders       lwjgl support
+David Sanders       				lwjgl support
+Kenneth Russell	(Sun Microsystems)	jogl improvements
+Scott Franzyshen					3rd Person Camera, CD Player emulation (MP3), Console Patch
