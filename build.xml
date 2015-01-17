@@ -190,12 +190,13 @@
 	</target>
 	
 	<!-- everything -->
-	<target name="all" depends="installer,bindist,srcdist">
-	</target>
+	<target name="all" depends="installer,bindist,srcdist" />
 
 	<!-- dist -->
-	<target name="dist" depends="jar,copy,patch">
-	</target>
+	<target name="dist" depends="jar,copy" />
+	<!-- patch doesn't work with lwjgl 2.9.x
+ 	<target name="dist" depends="jar,copy,patch" />
+	 -->
 		
 	<!-- binary distribution -->
 	<target name="bindist" depends="dist">

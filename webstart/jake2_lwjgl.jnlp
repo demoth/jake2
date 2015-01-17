@@ -20,7 +20,7 @@
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jl1.0.1.jar"/>
-		<extension name="lwjgl" href="http://legacy.lwjgl.org/webstart/2.9.2/extension.jnlp" />
+		<extension name="lwjgl" href="http://legacy.lwjgl.org/webstart/2.9.1/extension.jnlp" />
 	</resources>
 	
 	<application-desc main-class="jake2.Jake2">
