@@ -20,7 +20,7 @@
 		<j2se version="1.4+" max-heap-size="100M"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jake2.jar"/>
 		<jar href="http://jake2.in-chemnitz.de/downloads/lib/jl1.0.1.jar"/>
-            <extension name="lwjgl" href="http://legacy.lwjgl.org/webstart/2.9.1/extension.jnlp" />
+            <extension name="lwjgl" href="http://legacy.lwjgl.org/webstart/2.9.2/extension.jnlp" />
         <!--
 			<property name="sun.java2d.noddraw" value="true"/>
 			<extension name="jogl" href="https://jogl.dev.java.net/webstart/jogl-1-1.jnlp"/>

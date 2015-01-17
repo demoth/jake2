@@ -5,3 +5,4 @@ dist
 *.zip
 *.jar
 *.map
+.DS_Store
