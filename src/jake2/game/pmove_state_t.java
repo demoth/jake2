@@ -72,13 +72,13 @@ public class pmove_state_t {
 			&& origin[2] == p2.origin[2]
 			&& velocity[0] == p2.velocity[0]
 			&& velocity[1] == p2.velocity[1]
-			&& velocity[2] == p2.origin[2]
+			&& velocity[2] == p2.velocity[2]
 			&& pm_flags == p2.pm_flags
 			&& pm_time == p2.pm_time
-			&& gravity == gravity
+			&& gravity == p2.gravity
 			&& delta_angles[0] == p2.delta_angles[0]
 			&& delta_angles[1] == p2.delta_angles[1]
-			&& delta_angles[2] == p2.origin[2])
+			&& delta_angles[2] == p2.delta_angles[2])
 			return true;
 
 		return false;
