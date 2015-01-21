@@ -47,12 +47,16 @@ public class pmove_state_t {
 	/** add to command angles to get view direction. */
 	public short delta_angles[] = { 0, 0, 0 }; 
 	/** changed by spawns, rotating objects, and teleporters.*/
-	
-	private static pmove_state_t prototype = new pmove_state_t();
-	
+		
 	public void clear()
 	{
-		this.set(prototype);
+            pm_type = 0;
+            Math3D.VectorClear(origin);
+            Math3D.VectorClear(velocity);
+            pm_flags = 0;
+            pm_time = 0;
+            gravity = 0;
+            Math3D.VectorClear(delta_angles);
 	}
 	 
 	public void set(pmove_state_t from) {
@@ -66,8 +70,8 @@ public class pmove_state_t {
 	}
 	
 	public boolean equals(pmove_state_t p2) {
-		if (pm_type == p2.pm_type
-			&& origin[0] == p2.origin[0]
+		return (pm_type == p2.pm_type
+		        && origin[0] == p2.origin[0]
 			&& origin[1] == p2.origin[1]
 			&& origin[2] == p2.origin[2]
 			&& velocity[0] == p2.velocity[0]
@@ -78,10 +82,7 @@ public class pmove_state_t {
 			&& gravity == p2.gravity
 			&& delta_angles[0] == p2.delta_angles[0]
 			&& delta_angles[1] == p2.delta_angles[1]
-			&& delta_angles[2] == p2.delta_angles[2])
-			return true;
-
-		return false;
+			&& delta_angles[2] == p2.delta_angles[2]);
 	}
 
 	/** Reads the playermove from the file.*/
@@ -137,8 +138,8 @@ public class pmove_state_t {
 		Com.Println("pm_type: " + pm_type);
 
 		Com.Println("origin[0]: " + origin[0]);
-		Com.Println("origin[1]: " + origin[0]);
-		Com.Println("origin[2]: " + origin[0]);
+		Com.Println("origin[1]: " + origin[1]);
+		Com.Println("origin[2]: " + origin[2]);
 
 		Com.Println("velocity[0]: " + velocity[0]);
 		Com.Println("velocity[1]: " + velocity[1]);
@@ -149,7 +150,7 @@ public class pmove_state_t {
 		Com.Println("gravity: " + gravity);
 
 		Com.Println("delta-angle[0]: " + delta_angles[0]);
-		Com.Println("delta-angle[1]: " + delta_angles[0]);
-		Com.Println("delta-angle[2]: " + delta_angles[0]);
+		Com.Println("delta-angle[1]: " + delta_angles[1]);
+		Com.Println("delta-angle[2]: " + delta_angles[2]);
 	}
 }
