@@ -34,13 +34,13 @@ public class cplane_t
 	public byte signbits; // signx + (signy<<1) + (signz<<1)
 	public byte pad[] = { 0, 0 };
 	
-	public void set(cplane_t c) {
-		Math3D.set(normal, c.normal);
-		dist = c.dist;
-		type = c.type;
-		signbits = c.signbits;
-		pad[0] = c.pad[0];
-		pad[1] = c.pad[1];
+	public void set(cplane_t from) {
+		Math3D.VectorCopy(from.normal, normal);
+		dist = from.dist;
+		type = from.type;
+		signbits = from.signbits;
+		pad[0] = from.pad[0];
+		pad[1] = from.pad[1];
 	}
 
 	public void clear() {

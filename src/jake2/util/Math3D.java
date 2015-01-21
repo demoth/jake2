@@ -31,11 +31,6 @@ public class Math3D {
 
 	static final float shortratio = 360.0f / 65536.0f;
 	static final float piratio = (float) (Math.PI / 360.0);
-	public static void set(float v1[], float v2[]) {
-		v1[0] = v2[0];
-		v1[1] = v2[1];
-		v1[2] = v2[2];
-	}
 	public static void VectorSubtract(float[] a, float[] b, float[] c) {
 		c[0] = a[0] - b[0];
 		c[1] = a[1] - b[1];
@@ -71,14 +66,16 @@ public class Math3D {
 		to[1] = (short) from[1];
 		to[2] = (short) from[2];
 	}
+
 	public static void VectorClear(float[] a) {
 		a[0] = a[1] = a[2] = 0;
 	}
+	public static void VectorClear(short[] a) {
+	        a[0] = a[1] = a[2] = 0;
+	}
+	
 	public static boolean VectorEquals(float[] v1, float[] v2) {
-		if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
-			return false;
-
-		return true;
+		return (v1[0] == v2[0] && v1[1] == v2[1] && v1[2] == v2[2]);
 	}
 	public static void VectorNegate(float[] from, float[] to) {
 		to[0] = -from[0];
