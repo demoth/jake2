@@ -15,10 +15,10 @@ import jake2.util.Vargs;
 
 import java.nio.*;
 
-import net.java.games.joal.*;
-import net.java.games.joal.eax.EAX;
-import net.java.games.joal.eax.EAXFactory;
-import net.java.games.joal.util.ALut;
+import com.jogamp.openal.*;
+import com.jogamp.openal.eax.EAX;
+import com.jogamp.openal.eax.EAXFactory;
+import com.jogamp.openal.util.ALut;
 
 /**
  * JOALSoundImpl

@@ -44,24 +44,7 @@ public class Renderer {
 
     static {
         try {
-            try {
-                Class.forName("net.java.games.jogl.GL");
-                Class.forName("jake2.render.JoglRenderer");
-            } catch (ClassNotFoundException e) {
-                // ignore the old jogl driver if runtime not in classpath
-            }
-            try {
-                Class.forName("org.lwjgl.opengl.GL11");
-                Class.forName("jake2.render.LwjglRenderer");
-            } catch (ClassNotFoundException e) {
-                // ignore the lwjgl driver if runtime not in classpath
-            }
-            try {
-                Class.forName("javax.media.opengl.GL");
-                Class.forName("jake2.render.Jsr231Renderer");
-            } catch (ClassNotFoundException e) {
-                // ignore the new jogl driver if runtime not in classpath
-            }
+            Class.forName("jake2.render.LwjglRenderer");
         } catch (Throwable e) {
             e.printStackTrace();
         }

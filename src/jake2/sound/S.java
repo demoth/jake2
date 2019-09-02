@@ -67,7 +67,7 @@ public class S {
 			
 			// prefered driver
 			try {
-				Class.forName("net.java.games.joal.AL");
+				Class.forName("com.jogamp.openal.AL");
 				Class.forName("jake2.sound.joal.JOALSoundImpl");
 			} catch (Throwable e) {
 				// ignore the joal driver if runtime not in classpath

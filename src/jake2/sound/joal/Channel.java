@@ -35,8 +35,8 @@ import jake2.util.Math3D;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import net.java.games.joal.AL;
-import net.java.games.joal.ALException;
+import com.jogamp.openal.AL;
+import com.jogamp.openal.ALException;
 
 /**
  * Channel

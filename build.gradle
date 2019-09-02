@@ -1,0 +1,35 @@
+//plugins {
+//    id 'java'
+//}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+group 'org.bytonic'
+version '0.9.5'
+
+sourceCompatibility = 1.8
+
+run {
+    systemProperty "java.library.path", "/home/demoth/dev/games/jake2-git/build/native/"
+}
+
+mainClassName = 'jake2.Jake2'
+
+sourceSets {
+    main.java.srcDirs = ['src']
+    main.resources.srcDirs = ['resources']
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile files(
+            'lib/mylibs/joal.jar',
+            'lib/mylibs/lwjgl.jar',
+            'lib/mylibs/lwjgl_util.jar',
+            'lib/jl1.0.1.jar')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
