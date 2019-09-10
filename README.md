@@ -5,37 +5,31 @@ Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
 distributed under the terms of the GPL (see LICENSE).
 
 The port was done completely in Java. No native libraries are used for the
-game functionality. We use the jogl Java OpenGL bindings for graphics rendering
-and Java OpenAL (joal) for sound. Since 0.9.4 release, Jake2 comes with an lwjgl driver
-as an alternative for the jogl/joal combination.
+game functionality. We use the lwjgl2 for graphics rendering and for sound.
 
 Jake2 is still under development. Send bug reports and feedback to
 jake2@bytonic.de.
 
 Currently Jake2 supports Linux, Windows2000/XP and Mac OS X. The Jake2 dedicated
-server runs on every Java supported plattform.
+server runs on every Java supported platform.
 
-requirements:
-400 MHz CPU
-Geforce2 MX or better graphics accelerator
-at least JRE 1.4 to run Jake2
-at least JDK 1.5 to build Jake2 from source
+Requirements:
+
+ * at least JDK 1.8 to build and run Jake2
 
 Installation
 ------------
 
 from binary distribution:
-- run the installer with "java -jar Jake2-0.9.5-install.jar"
-- follow the instructions
-- change to the installation directory
-- run the game with Jake2.sh or Jake2.bat
-- to run Jake2 with the lwjgl OpenGL/OpenAL driver use Jake2_lwjgl.sh 
-  or Jake2_lwjgl.bat
+
+- unzip the distribution(jake2-some_version.zip)
+- go to bin folder
+- run jake2 (or jake2.bat on windows)
 
 build from source:
-- unpack jake2src-version.tar.gz or jake2-version.zip
-- set JAVA_HOME environment variable to Your JDK1.5 installation
-- run "build.sh installer" or "build.bat installer" to build the installer
+
+- run `gradle run` to build from source and run jake2
+- run `gradle distZip` to build the distribution
 
 installation of Quake2 data:
 - if Jake2 does not detect the Quake2 files on startup you have the choice
@@ -44,6 +38,7 @@ installation of Quake2 data:
 
 If you want to have the latest experimental features you can grab the latest
 Jake2 sources from CVS.
+
 - "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 login"
 - when askesd for password simply press the Enter key
 - "cvs -d:pserver:anonymous@jake2.cvs.sourceforge.net:/cvsroot/jake2 co jake2"
@@ -53,15 +48,9 @@ Jake2 sources from CVS.
 --------------------
 
 Jake2 uses:
-jogl     OpenGL bindings                https://jogl.dev.java.net
-joal     OpenAL bindings                https://joal.dev.java.net
 lwjgl    Light Weight Java Game Library http://www.lwjgl.org
 openal   Audio library                  http://www.openal.org
 izpack	 Installer	                    http://www.izforge.com/
-
-the source distribution comes with:
-ant      build tool                     http://ant.apache.org
-xerces   XML library                    http://xml.apache.org
 
 Use <jake2@bytonic.de> for bug reports and feedback.
 

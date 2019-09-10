@@ -296,7 +296,7 @@ public final class Console extends Globals {
 	int i = (Globals.con.current % Globals.con.totallines)
 		* Globals.con.linewidth;
 	int e = i + Globals.con.linewidth;
-	while (i++ < e)
+	while (i < Globals.con.text.length && i++ < e)
 	    Globals.con.text[i] = (byte) ' ';
     }
 

@@ -6,7 +6,7 @@
  */
 package jake2.sys;
 
-import jdk.internal.perf.Perf;
+import sun.misc.Perf;
 
 
 
