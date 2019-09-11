@@ -5,28 +5,26 @@
 package jake2.sys;
 
 import jake2.Globals;
-import jake2.qcommon.Com;
 
+public class Timer {
+    private long base;
 
-public abstract class Timer {
+    public Timer() {
+        base = System.currentTimeMillis();
+    }
 
-	abstract public long currentTimeMillis();
-	static Timer t;
-	
-	static {
-		try {
-			t = new NanoTimer();
-		} catch (Throwable e) {
-			try {
-				t = new HighPrecisionTimer();
-			} catch (Throwable e1) {
-				t = new StandardTimer();
-			}
-		}
-		Com.Println("using " + t.getClass().getName());
-	}
-	
-	public static int Milliseconds() {
-		return Globals.curtime = (int)(t.currentTimeMillis());
-	}
+    private long currentTimeMillis() {
+        long time = System.currentTimeMillis();
+        long delta = time - base;
+        if (delta < 0) {
+            delta += Long.MAX_VALUE + 1;
+        }
+        return delta;
+    }
+
+    private static final Timer t = new Timer();
+
+    public static int Milliseconds() {
+        return Globals.curtime = (int) (t.currentTimeMillis());
+    }
 }
