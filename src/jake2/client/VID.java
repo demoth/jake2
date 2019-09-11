@@ -72,28 +72,6 @@ public class VID extends Globals {
 	// const char so_file[] = "/etc/quake2.conf";
 
 	/*
-	==========================================================================
-
-	DLL GLUE
-
-	==========================================================================
-	*/
-
-	public static void Printf(int print_level, String fmt) {
-		Printf(print_level, fmt, null);	
-	}
-
-	public static void Printf(int print_level, String fmt, Vargs vargs) {
-		// static qboolean inupdate;
-		if (print_level == Defines.PRINT_ALL)
-			Com.Printf(fmt, vargs);
-		else
-			Com.DPrintf(fmt, vargs);
-	}
-
-	// ==========================================================================
-
-	/*
 	============
 	VID_Restart_f
 

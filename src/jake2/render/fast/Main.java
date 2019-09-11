@@ -864,7 +864,7 @@ public abstract class Main extends Base {
 		R_Flash();
 
 		if (r_speeds.value != 0.0f) {
-			VID.Printf(
+			Com.Printf(
 				Defines.PRINT_ALL,
 				"%4i wpoly %4i epoly %i tex %i lmaps\n",
 				new Vargs(4).add(c_brush_polys).add(c_alias_polys).add(c_visible_textures).add(c_visible_lightmaps));
@@ -1043,19 +1043,19 @@ public abstract class Main extends Base {
 			if (err == rserr_invalid_fullscreen) {
 				Cvar.SetValue("vid_fullscreen", 0);
 				vid_fullscreen.modified = false;
-				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+				Com.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 				if ((err = glImpl.setMode(dim, (int) gl_mode.value, false)) == rserr_ok)
 					return true;
 			}
 			else if (err == rserr_invalid_mode) {
 				Cvar.SetValue("gl_mode", gl_state.prev_mode);
 				gl_mode.modified = false;
-				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+				Com.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 			}
 
 			// try setting it back to something safe
 			if ((err = glImpl.setMode(dim, gl_state.prev_mode, false)) != rserr_ok) {
-				VID.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+				Com.Printf(Defines.PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 				return false;
 			}
 		}
@@ -1082,7 +1082,7 @@ public abstract class Main extends Base {
 			r_turbsin[j] = Warp.SIN[j] * 0.5f;
 		}
 
-		VID.Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
+		Com.Printf(Defines.PRINT_ALL, "ref_gl version: " + REF_VERSION + '\n');
 
 		Draw_GetPalette();
 
@@ -1093,7 +1093,7 @@ public abstract class Main extends Base {
 
 		// create the window and set up the context
 		if (!R_SetMode()) {
-			VID.Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
+			Com.Printf(Defines.PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
 			return false;
 		}
 		return true;
@@ -1109,13 +1109,13 @@ public abstract class Main extends Base {
 		** get our various GL strings
 		*/
 		gl_config.vendor_string = gl.glGetString(GL_VENDOR);
-		VID.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
 		gl_config.renderer_string = gl.glGetString(GL_RENDERER);
-		VID.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
 		gl_config.version_string = gl.glGetString(GL_VERSION);
-		VID.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
 		gl_config.extensions_string = gl.glGetString(GL_EXTENSIONS);
-		VID.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 		
 		gl_config.parseOpenGLVersion();
 
@@ -1149,7 +1149,7 @@ public abstract class Main extends Base {
 		if (monolightmap.length() < 2 || monolightmap.charAt(1) != 'F') {
 			if (gl_config.renderer == GL_RENDERER_PERMEDIA2) {
 				Cvar.Set("gl_monolightmap", "A");
-				VID.Printf(Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n");
+				Com.Printf(Defines.PRINT_ALL, "...using gl_monolightmap 'a'\n");
 			}
 			else if ((gl_config.renderer & GL_RENDERER_POWERVR) != 0) {
 				Cvar.Set("gl_monolightmap", "0");
@@ -1184,16 +1184,16 @@ public abstract class Main extends Base {
 		}
 
 		if (gl_config.allow_cds)
-			VID.Printf(Defines.PRINT_ALL, "...allowing CDS\n");
+			Com.Printf(Defines.PRINT_ALL, "...allowing CDS\n");
 		else
-			VID.Printf(Defines.PRINT_ALL, "...disabling CDS\n");
+			Com.Printf(Defines.PRINT_ALL, "...disabling CDS\n");
 
 		/*
 		** grab extensions
 		*/
 		if (gl_config.extensions_string.indexOf("GL_EXT_compiled_vertex_array") >= 0
 			|| gl_config.extensions_string.indexOf("GL_SGI_compiled_vertex_array") >= 0) {
-			VID.Printf(Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
+			Com.Printf(Defines.PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
 			//		 qgl.glLockArraysEXT = ( void * ) qwglGetProcAddress( "glLockArraysEXT" );
 			if (gl_ext_compiled_vertex_array.value != 0.0f)
 				qglLockArraysEXT = true;
@@ -1203,16 +1203,16 @@ public abstract class Main extends Base {
 			//qglUnlockArraysEXT = true;
 		}
 		else {
-			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
+			Com.Printf(Defines.PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
 			qglLockArraysEXT = false;
 		}
 
 		if (gl_config.extensions_string.indexOf("WGL_EXT_swap_control") >= 0) {
 			qwglSwapIntervalEXT = true;
-			VID.Printf(Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n");
+			Com.Printf(Defines.PRINT_ALL, "...enabling WGL_EXT_swap_control\n");
 		} else {
 			qwglSwapIntervalEXT = false;
-			VID.Printf(Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n");
+			Com.Printf(Defines.PRINT_ALL, "...WGL_EXT_swap_control not found\n");
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_EXT_point_parameters") >= 0) {
@@ -1220,14 +1220,14 @@ public abstract class Main extends Base {
 				//			 qgl.glPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
 				qglPointParameterfEXT = true;
 				//			 qgl.glPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
-				VID.Printf(Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n");
+				Com.Printf(Defines.PRINT_ALL, "...using GL_EXT_point_parameters\n");
 			}
 			else {
-				VID.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n");
+				Com.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_point_parameters\n");
 			}
 		}
 		else {
-			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n");
+			Com.Printf(Defines.PRINT_ALL, "...GL_EXT_point_parameters not found\n");
 		}
 
 		// #ifdef __linux__
@@ -1254,16 +1254,16 @@ public abstract class Main extends Base {
 			&& gl_config.extensions_string.indexOf("GL_EXT_paletted_texture") >= 0
 			&& gl_config.extensions_string.indexOf("GL_EXT_shared_texture_palette") >= 0) {
 			if (gl_ext_palettedtexture.value != 0.0f) {
-				VID.Printf(Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
+				Com.Printf(Defines.PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
 				qglColorTableEXT = false; // true; TODO jogl bug
 			}
 			else {
-				VID.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
+				Com.Printf(Defines.PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
 				qglColorTableEXT = false;
 			}
 		}
 		else {
-			VID.Printf(Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n");
+			Com.Printf(Defines.PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n");
 		}
 
 		if (gl_config.extensions_string.indexOf("GL_ARB_multitexture") >= 0) {
@@ -1271,7 +1271,7 @@ public abstract class Main extends Base {
 			try {
 				gl.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 				// seems to work correctly
-				VID.Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
+				Com.Printf(Defines.PRINT_ALL, "...using GL_ARB_multitexture\n");
 				qglActiveTextureARB = true;
 				TEXTURE0 = GL_TEXTURE0_ARB;
 				TEXTURE1 = GL_TEXTURE1_ARB;
@@ -1281,11 +1281,11 @@ public abstract class Main extends Base {
 		}
 		else {
 			qglActiveTextureARB = false;
-			VID.Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
+			Com.Printf(Defines.PRINT_ALL, "...GL_ARB_multitexture not found\n");
 		}
 
 		if (!(qglActiveTextureARB)) {
-            VID.Printf(Defines.PRINT_ALL, "Missing multi-texturing!\n");
+            Com.Printf(Defines.PRINT_ALL, "Missing multi-texturing!\n");
             return false;
         }
 
@@ -1298,7 +1298,7 @@ public abstract class Main extends Base {
 
 		int err = gl.glGetError();
 		if (err != GL_NO_ERROR)
-			VID.Printf(
+			Com.Printf(
 				Defines.PRINT_ALL,
 				"gl.glGetError() = 0x%x\n\t%s\n",
 				new Vargs(2).add(err).add("" + gl.glGetString(err)));
@@ -1376,7 +1376,7 @@ public abstract class Main extends Base {
 				Com_sprintf( envbuffer, sizeof(envbuffer), "SST_GAMMA=%f", g );
 				putenv( envbuffer );
 				*/
-				VID.Printf(Defines.PRINT_DEVELOPER, "gamma anpassung fuer VOODOO nicht gesetzt");
+				Com.Printf(Defines.PRINT_DEVELOPER, "gamma anpassung fuer VOODOO nicht gesetzt");
 			}
 		}
 

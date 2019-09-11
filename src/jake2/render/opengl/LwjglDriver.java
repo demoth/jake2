@@ -196,9 +196,9 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
 
         Dimension newDim = new Dimension();
 
-        VID.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
+        Com.Printf(Defines.PRINT_ALL, "Initializing OpenGL display\n");
 
-        VID.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
+        Com.Printf(Defines.PRINT_ALL, "...setting mode " + mode + ":");
 
         /*
          * fullscreen handling
@@ -208,11 +208,11 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
         }
 
         if (!VID.GetModeInfo(newDim, mode)) {
-            VID.Printf(Defines.PRINT_ALL, " invalid mode\n");
+            Com.Printf(Defines.PRINT_ALL, " invalid mode\n");
             return Base.rserr_invalid_mode;
         }
 
-        VID.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height
+        Com.Printf(Defines.PRINT_ALL, " " + newDim.width + " " + newDim.height
                 + '\n');
 
         // destroy the existing window
@@ -239,7 +239,7 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
                 return Base.rserr_invalid_fullscreen;
             }
 
-            VID.Printf(Defines.PRINT_ALL, "...setting fullscreen "
+            Com.Printf(Defines.PRINT_ALL, "...setting fullscreen "
                     + getModeString(displayMode) + '\n');
 
         } else {

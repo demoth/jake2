@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.fast;
 
 import jake2.Defines;
-import jake2.client.VID;
+import jake2.qcommon.Com;
 import jake2.qcommon.FS;
 import jake2.util.Lib;
 
@@ -129,7 +129,7 @@ public final class Misc extends Mesh {
 	        file = new File(sb.toString());
         }
 	    if (i == 100) {
-		    VID.Printf(Defines.PRINT_ALL, "Clean up your screenshots\n");
+		    Com.Printf(Defines.PRINT_ALL, "Clean up your screenshots\n");
 		    return;
 	    }
 	    
@@ -181,20 +181,20 @@ public final class Misc extends Mesh {
 	        // close the file channel
 	        ch.close();
 	    } catch (IOException e) {
-	        VID.Printf(Defines.PRINT_ALL, e.getMessage() + '\n');
+	        Com.Printf(Defines.PRINT_ALL, e.getMessage() + '\n');
 	    }
 
-	    VID.Printf(Defines.PRINT_ALL, "Wrote " + file + '\n');
+	    Com.Printf(Defines.PRINT_ALL, "Wrote " + file + '\n');
  	} 
 
 	/*
 	** GL_Strings_f
 	*/
 	void GL_Strings_f()	{
-		VID.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
-		VID.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_VENDOR: " + gl_config.vendor_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_RENDERER: " + gl_config.renderer_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_VERSION: " + gl_config.version_string + '\n');
+		Com.Printf(Defines.PRINT_ALL, "GL_EXTENSIONS: " + gl_config.extensions_string + '\n');
 	}
 
 	/*

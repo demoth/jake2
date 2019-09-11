@@ -49,6 +49,17 @@ public final class Com
 	static int com_argc;
 	static String[] com_argv= new String[Defines.MAX_NUM_ARGVS];
 
+	public static void Printf(int print_level, String fmt) {
+		Printf(print_level, fmt, null);
+	}
+
+	public static void Printf(int print_level, String fmt, Vargs vargs) {
+		if (print_level == Defines.PRINT_ALL)
+			Printf(fmt, vargs);
+		else
+			DPrintf(fmt, vargs);
+	}
+
 	public abstract static class RD_Flusher
 	{
 		public abstract void rd_flush(int target, StringBuffer buffer);

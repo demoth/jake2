@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.fast;
 
 import jake2.Defines;
-import jake2.client.VID;
 import jake2.client.particle_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
@@ -237,7 +236,7 @@ public abstract class Image extends Main {
 		}
 
 		if (i == NUM_GL_MODES) {
-			VID.Printf(Defines.PRINT_ALL, "bad filter name: [" + string + "]\n");
+			Com.Printf(Defines.PRINT_ALL, "bad filter name: [" + string + "]\n");
 			return;
 		}
 
@@ -271,7 +270,7 @@ public abstract class Image extends Main {
 		}
 
 		if (i == NUM_GL_ALPHA_MODES) {
-			VID.Printf(Defines.PRINT_ALL, "bad alpha texture mode name: [" + string + "]\n");
+			Com.Printf(Defines.PRINT_ALL, "bad alpha texture mode name: [" + string + "]\n");
 			return;
 		}
 
@@ -291,7 +290,7 @@ public abstract class Image extends Main {
 		}
 
 		if (i == NUM_GL_SOLID_MODES) {
-			VID.Printf(Defines.PRINT_ALL, "bad solid texture mode name: [" + string + "]\n");
+			Com.Printf(Defines.PRINT_ALL, "bad solid texture mode name: [" + string + "]\n");
 			return;
 		}
 
@@ -309,7 +308,7 @@ public abstract class Image extends Main {
 		int texels;
 		final String[] palstrings = { "RGB", "PAL" };
 
-		VID.Printf(Defines.PRINT_ALL, "------------------\n");
+		Com.Printf(Defines.PRINT_ALL, "------------------\n");
 		texels = 0;
 
 		for (int i = 0; i < numgltextures; i++) {
@@ -320,29 +319,29 @@ public abstract class Image extends Main {
 			texels += image.upload_width * image.upload_height;
 			switch (image.type) {
 				case it_skin :
-					VID.Printf(Defines.PRINT_ALL, "M");
+					Com.Printf(Defines.PRINT_ALL, "M");
 					break;
 				case it_sprite :
-					VID.Printf(Defines.PRINT_ALL, "S");
+					Com.Printf(Defines.PRINT_ALL, "S");
 					break;
 				case it_wall :
-					VID.Printf(Defines.PRINT_ALL, "W");
+					Com.Printf(Defines.PRINT_ALL, "W");
 					break;
 				case it_pic :
-					VID.Printf(Defines.PRINT_ALL, "P");
+					Com.Printf(Defines.PRINT_ALL, "P");
 					break;
 				default :
-					VID.Printf(Defines.PRINT_ALL, " ");
+					Com.Printf(Defines.PRINT_ALL, " ");
 					break;
 			}
 
-			VID.Printf(
+			Com.Printf(
 				Defines.PRINT_ALL,
 				" %3i %3i %s: %s\n",
 				new Vargs(4).add(image.upload_width).add(image.upload_height).add(palstrings[(image.paletted) ? 1 : 0]).add(
 					image.name));
 		}
-		VID.Printf(Defines.PRINT_ALL, "Total texel count (not counting mipmaps): " + texels + '\n');
+		Com.Printf(Defines.PRINT_ALL, "Total texel count (not counting mipmaps): " + texels + '\n');
 	}
 
 	/*
@@ -441,7 +440,7 @@ public abstract class Image extends Main {
 		byte[] raw = FS.LoadFile(filename);
 
 		if (raw == null) {
-			VID.Printf(Defines.PRINT_DEVELOPER, "Bad pcx file " + filename + '\n');
+			Com.Printf(Defines.PRINT_DEVELOPER, "Bad pcx file " + filename + '\n');
 			return null;
 		}
 
@@ -457,7 +456,7 @@ public abstract class Image extends Main {
 			|| pcx.xmax >= 640
 			|| pcx.ymax >= 480) {
 
-			VID.Printf(Defines.PRINT_ALL, "Bad pcx file " + filename + '\n');
+			Com.Printf(Defines.PRINT_ALL, "Bad pcx file " + filename + '\n');
 			return null;
 		}
 
@@ -539,7 +538,7 @@ public abstract class Image extends Main {
 		
 		if (raw == null)
 		{
-			VID.Printf(Defines.PRINT_DEVELOPER, "Bad tga file "+ name +'\n');
+			Com.Printf(Defines.PRINT_DEVELOPER, "Bad tga file "+ name +'\n');
 			return null;
 		}
 		
@@ -1093,7 +1092,7 @@ public abstract class Image extends Main {
 		else if (samples == gl_alpha_format)
 			comp = gl_tex_alpha_format;
 		else {
-			VID.Printf(Defines.PRINT_ALL, "Unknown number of texture components " + samples + '\n');
+			Com.Printf(Defines.PRINT_ALL, "Unknown number of texture components " + samples + '\n');
 			comp = samples;
 		}
 
@@ -1426,7 +1425,7 @@ public abstract class Image extends Main {
 
 		byte[] raw = FS.LoadFile(name);
 		if (raw == null) {
-			VID.Printf(Defines.PRINT_ALL, "GL_FindImage: can't load " + name + '\n');
+			Com.Printf(Defines.PRINT_ALL, "GL_FindImage: can't load " + name + '\n');
 			return r_notexture;
 		}
 

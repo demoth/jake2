@@ -26,7 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.fast;
 
 import jake2.Defines;
-import jake2.client.VID;
 import jake2.game.cplane_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
@@ -169,17 +168,17 @@ public abstract class Model extends Surf {
 		int total;
 
 		total = 0;
-		VID.Printf(Defines.PRINT_ALL,"Loaded models:\n");
+		Com.Printf(Defines.PRINT_ALL,"Loaded models:\n");
 		for (i=0; i < mod_numknown ; i++)
 		{
 			mod = mod_known[i];
 			if (mod.name.length() == 0)
 				continue;
 
-			VID.Printf (Defines.PRINT_ALL, "%8i : %s\n", new Vargs(2).add(mod.extradatasize).add(mod.name));
+			Com.Printf (Defines.PRINT_ALL, "%8i : %s\n", new Vargs(2).add(mod.extradatasize).add(mod.name));
 			total += mod.extradatasize;
 		}
-		VID.Printf (Defines.PRINT_ALL, "Total resident: " + total +'\n');
+		Com.Printf (Defines.PRINT_ALL, "Total resident: " + total +'\n');
 	}
 
 	/*
@@ -534,7 +533,7 @@ public abstract class Model extends Surf {
 
 			out[i].image = GL_FindImage(name, it_wall);
 			if (out[i].image == null) {
-				VID.Printf(Defines.PRINT_ALL, "Couldn't load " + name + '\n');
+				Com.Printf(Defines.PRINT_ALL, "Couldn't load " + name + '\n');
 				out[i].image = r_notexture;
 			}
 		}

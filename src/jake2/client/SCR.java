@@ -1398,7 +1398,7 @@ public final class SCR extends Globals {
         ByteBuffer raw = FS.LoadMappedFile(filename);
 
         if (raw == null) {
-            VID.Printf(Defines.PRINT_DEVELOPER, "Bad pcx file " + filename
+            Com.Printf(Defines.PRINT_DEVELOPER, "Bad pcx file " + filename
                     + '\n');
             return 0;
         }
@@ -1410,7 +1410,7 @@ public final class SCR extends Globals {
                 || pcx.bits_per_pixel != 8 || pcx.xmax >= 640
                 || pcx.ymax >= 480) {
 
-            VID.Printf(Defines.PRINT_ALL, "Bad pcx file " + filename + '\n');
+            Com.Printf(Defines.PRINT_ALL, "Bad pcx file " + filename + '\n');
             return 0;
         }
 

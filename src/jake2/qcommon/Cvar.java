@@ -42,17 +42,11 @@ import java.util.Vector;
  */
 public class Cvar extends Globals {
 
-    /**
-     * @param var_name
-     * @param var_value
-     * @param flags
-     * @return
-     */
-    public static cvar_t Get(String var_name, String var_value, int flags) {
+    public static cvar_t Get(String var_name, String defaultValue, int flags) {
         cvar_t var;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
-            if (!InfoValidate(var_name)) {
+            if (invalidInfoString(var_name)) {
                 Com.Printf("invalid info cvar name\n");
                 return null;
             }
@@ -64,25 +58,24 @@ public class Cvar extends Globals {
             return var;
         }
 
-        if (var_value == null)
+        if (defaultValue == null)
             return null;
 
         if ((flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
-            if (!InfoValidate(var_value)) {
+            if (invalidInfoString(defaultValue)) {
                 Com.Printf("invalid info cvar value\n");
                 return null;
             }
         }
         var = new cvar_t();
-        var.name = new String(var_name);
-        var.string = new String(var_value);
+        var.name = var_name;
+        var.string = defaultValue;
         var.modified = true;
         var.value = Lib.atof(var.string);
         // link the variable in
         var.next = Globals.cvar_vars;
-        Globals.cvar_vars = var;
-
         var.flags = flags;
+        Globals.cvar_vars = var;
 
         return var;
     }
@@ -99,9 +92,7 @@ public class Cvar extends Globals {
     }
 
     static cvar_t FindVar(String var_name) {
-        cvar_t var;
-
-        for (var = Globals.cvar_vars; var != null; var = var.next) {
+        for (cvar_t var = Globals.cvar_vars; var != null; var = var.next) {
             if (var_name.equals(var.name))
                 return var;
         }
@@ -159,7 +150,7 @@ public class Cvar extends Globals {
         }
 
         if ((var.flags & (CVAR_USERINFO | CVAR_SERVERINFO)) != 0) {
-            if (!InfoValidate(value)) {
+            if (invalidInfoString(value)) {
                 Com.Printf("invalid info cvar value\n");
                 return var;
             }
@@ -222,7 +213,7 @@ public class Cvar extends Globals {
      * Set command, sets variables.
      */
     
-    static xcommand_t Set_f = new xcommand_t() {
+    private static xcommand_t Set_f = new xcommand_t() {
         public void execute() {
             int c;
             int flags;
@@ -253,7 +244,7 @@ public class Cvar extends Globals {
     /**
      * List command, lists all available commands.
      */
-    static xcommand_t List_f = new xcommand_t() {
+    private static xcommand_t List_f = new xcommand_t() {
         public void execute() {
             cvar_t var;
             int i;
@@ -420,7 +411,7 @@ public class Cvar extends Globals {
      */
     public static Vector CompleteVariable(String partial) {
 
-        Vector vars = new Vector();
+        Vector<String> vars = new Vector<>();
 
         // check match
         for (cvar_t cvar = Globals.cvar_vars; cvar != null; cvar = cvar.next)
@@ -433,13 +424,7 @@ public class Cvar extends Globals {
     /**
      * Some characters are invalid for info strings.
      */
-    static boolean InfoValidate(String s) {
-        if (s.indexOf("\\") != -1)
-            return false;
-        if (s.indexOf("\"") != -1)
-            return false;
-        if (s.indexOf(";") != -1)
-            return false;
-        return true;
+    private static boolean invalidInfoString(String s) {
+        return s.contains("\\") || s.contains("\"") || s.contains(";");
     }
 }

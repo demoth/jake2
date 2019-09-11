@@ -26,11 +26,10 @@
 package jake2.render.fast;
 
 import jake2.Defines;
-import jake2.client.VID;
 import jake2.client.entity_t;
+import jake2.qcommon.Com;
 import jake2.qcommon.qfiles;
 import jake2.render.Anorms;
-import jake2.render.glpoly_t;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -462,12 +461,12 @@ public abstract class Mesh extends Light {
 	qfiles.dmdl_t paliashdr = (qfiles.dmdl_t) currentmodel.extradata;
 
 	if ((e.frame >= paliashdr.num_frames) || (e.frame < 0)) {
-	    VID.Printf(Defines.PRINT_ALL, "R_CullAliasModel "
+	    Com.Printf(Defines.PRINT_ALL, "R_CullAliasModel "
 		    + currentmodel.name + ": no such frame " + e.frame + '\n');
 	    e.frame = 0;
 	}
 	if ((e.oldframe >= paliashdr.num_frames) || (e.oldframe < 0)) {
-	    VID.Printf(Defines.PRINT_ALL, "R_CullAliasModel "
+	    Com.Printf(Defines.PRINT_ALL, "R_CullAliasModel "
 		    + currentmodel.name + ": no such oldframe " + e.oldframe
 		    + '\n');
 	    e.oldframe = 0;
@@ -765,7 +764,7 @@ public abstract class Mesh extends Light {
 
 	if ((currententity.frame >= paliashdr.num_frames)
 		|| (currententity.frame < 0)) {
-	    VID.Printf(Defines.PRINT_ALL, "R_DrawAliasModel "
+	    Com.Printf(Defines.PRINT_ALL, "R_DrawAliasModel "
 		    + currentmodel.name + ": no such frame "
 		    + currententity.frame + '\n');
 	    currententity.frame = 0;
@@ -774,7 +773,7 @@ public abstract class Mesh extends Light {
 
 	if ((currententity.oldframe >= paliashdr.num_frames)
 		|| (currententity.oldframe < 0)) {
-	    VID.Printf(Defines.PRINT_ALL, "R_DrawAliasModel "
+	    Com.Printf(Defines.PRINT_ALL, "R_DrawAliasModel "
 		    + currentmodel.name + ": no such oldframe "
 		    + currententity.oldframe + '\n');
 	    currententity.frame = 0;
