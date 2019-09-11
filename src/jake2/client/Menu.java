@@ -1955,6 +1955,8 @@ public final class Menu extends Key {
 
     static menuaction_s s_hard_game_action = new menuaction_s();
 
+    static menuaction_s s_nightmare_game_action = new menuaction_s();
+
     static menuaction_s s_load_game_action = new menuaction_s();
 
     static menuaction_s s_save_game_action = new menuaction_s();
@@ -1988,6 +1990,11 @@ public final class Menu extends Key {
 
     static void HardGameFunc(Object data) {
         Cvar.ForceSet("skill", "2");
+        StartGame();
+    }
+
+    static void NighmareFunc(Object data) {
+        Cvar.ForceSet("skill", "3");
         StartGame();
     }
 
@@ -2044,12 +2051,23 @@ public final class Menu extends Key {
             }
         };
 
+        s_nightmare_game_action.type = MTYPE_ACTION;
+        s_nightmare_game_action.flags = QMF_LEFT_JUSTIFY;
+        s_nightmare_game_action.x = 0;
+        s_nightmare_game_action.y = 30;
+        s_nightmare_game_action.name = "nightmare";
+        s_nightmare_game_action.callback = new mcallback() {
+            public void execute(Object o) {
+                NighmareFunc(o);
+            }
+        };
+
         s_blankline.type = MTYPE_SEPARATOR;
 
         s_load_game_action.type = MTYPE_ACTION;
         s_load_game_action.flags = QMF_LEFT_JUSTIFY;
         s_load_game_action.x = 0;
-        s_load_game_action.y = 40;
+        s_load_game_action.y = 50;
         s_load_game_action.name = "load game";
         s_load_game_action.callback = new mcallback() {
             public void execute(Object o) {
@@ -2060,7 +2078,7 @@ public final class Menu extends Key {
         s_save_game_action.type = MTYPE_ACTION;
         s_save_game_action.flags = QMF_LEFT_JUSTIFY;
         s_save_game_action.x = 0;
-        s_save_game_action.y = 50;
+        s_save_game_action.y = 60;
         s_save_game_action.name = "save game";
         s_save_game_action.callback = new mcallback() {
             public void execute(Object o) {
@@ -2071,7 +2089,7 @@ public final class Menu extends Key {
         s_credits_action.type = MTYPE_ACTION;
         s_credits_action.flags = QMF_LEFT_JUSTIFY;
         s_credits_action.x = 0;
-        s_credits_action.y = 60;
+        s_credits_action.y = 70;
         s_credits_action.name = "credits";
         s_credits_action.callback = new mcallback() {
             public void execute(Object o) {
@@ -2082,6 +2100,7 @@ public final class Menu extends Key {
         Menu_AddItem(s_game_menu, s_easy_game_action);
         Menu_AddItem(s_game_menu, s_medium_game_action);
         Menu_AddItem(s_game_menu, s_hard_game_action);
+        Menu_AddItem(s_game_menu, s_nightmare_game_action);
         Menu_AddItem(s_game_menu, s_blankline);
         Menu_AddItem(s_game_menu, s_load_game_action);
         Menu_AddItem(s_game_menu, s_save_game_action);
