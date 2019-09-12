@@ -48,7 +48,7 @@ public class SV_INIT {
             return 0;
 
         for (i = 1; i < max && sv.configstrings[start + i] != null; i++)
-            if (0 == Lib.strcmp(sv.configstrings[start + i], name))
+            if (name.equals(sv.configstrings[start + i]))
                 return i;
 
         if (!create)

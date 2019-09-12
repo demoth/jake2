@@ -348,7 +348,7 @@ public final class Cmd {
                 Com.Printf("Cmd_RemoveCommand: " + cmd_name + " not added\n");
                 return;
             }
-            if (0 == Lib.strcmp(cmd_name, cmd.name)) {
+            if (cmd_name.equals(cmd.name)) {
                 if (cmd == cmd_functions)
                     cmd_functions = cmd.next;
                 else

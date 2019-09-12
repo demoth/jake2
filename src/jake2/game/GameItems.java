@@ -368,7 +368,7 @@ public class GameItems {
         public String getID() { return "pickup_key";}
         public boolean interact(edict_t ent, edict_t other) {
             if (GameBase.coop.value != 0) {
-                if (Lib.strcmp(ent.classname, "key_power_cube") == 0) {
+                if ("key_power_cube".equals(ent.classname)) {
                     if ((other.client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
                         return false;
                     other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
@@ -1150,7 +1150,7 @@ public class GameItems {
         PrecacheItem(item);
     
         if (ent.spawnflags != 0) {
-            if (Lib.strcmp(ent.classname, "key_power_cube") != 0) {
+            if (!"key_power_cube".equals(ent.classname)) {
                 ent.spawnflags = 0;
                 GameBase.gi.dprintf("" + ent.classname + " at "
                         + Lib.vtos(ent.s.origin)
@@ -1183,7 +1183,7 @@ public class GameItems {
             }
             if (((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == Defines.IT_AMMO)
-                        || (Lib.strcmp(ent.classname, "weapon_bfg") == 0)) {
+                        || ("weapon_bfg".equals(ent.classname))) {
                     GameUtil.G_FreeEdict(ent);
                     return;
                 }
@@ -1191,7 +1191,7 @@ public class GameItems {
         }
     
         if (GameBase.coop.value != 0
-                && (Lib.strcmp(ent.classname, "key_power_cube") == 0)) {
+                && ("key_power_cube".equals(ent.classname))) {
             ent.spawnflags |= (1 << (8 + GameBase.level.power_cubes));
             GameBase.level.power_cubes++;
         }

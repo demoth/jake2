@@ -411,7 +411,7 @@ public class SV_MAIN {
         if (0 == SV_MAIN.rcon_password.string.length())
             return 0;
 
-        if (0 != Lib.strcmp(Cmd.Argv(1), SV_MAIN.rcon_password.string))
+        if (!Cmd.Argv(1).equals(SV_MAIN.rcon_password.string))
             return 0;
 
         return 1;
@@ -481,25 +481,34 @@ public class SV_MAIN {
         //Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
         //Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
-        if (0 == Lib.strcmp(c, "ping"))
-            SVC_Ping();
-        else if (0 == Lib.strcmp(c, "ack"))
-            SVC_Ack();
-        else if (0 == Lib.strcmp(c, "status"))
-            SVC_Status();
-        else if (0 == Lib.strcmp(c, "info"))
-            SVC_Info();
-        else if (0 == Lib.strcmp(c, "getchallenge"))
-            SVC_GetChallenge();
-        else if (0 == Lib.strcmp(c, "connect"))
-            SVC_DirectConnect();
-        else if (0 == Lib.strcmp(c, "rcon"))
-            SVC_RemoteCommand();
-        else {
-            Com.Printf("bad connectionless packet from "
-                    + NET.AdrToString(Globals.net_from) + "\n");
-            Com.Printf("[" + s + "]\n");
-            Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
+        switch (c) {
+            case "ping":
+                SVC_Ping();
+                break;
+            case "ack":
+                SVC_Ack();
+                break;
+            case "status":
+                SVC_Status();
+                break;
+            case "info":
+                SVC_Info();
+                break;
+            case "getchallenge":
+                SVC_GetChallenge();
+                break;
+            case "connect":
+                SVC_DirectConnect();
+                break;
+            case "rcon":
+                SVC_RemoteCommand();
+                break;
+            default:
+                Com.Printf("bad connectionless packet from "
+                        + NET.AdrToString(Globals.net_from) + "\n");
+                Com.Printf("[" + s + "]\n");
+                Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
+                break;
         }
     }
 

@@ -376,7 +376,7 @@ public class GameSave {
 
                 // fire any cross-level triggers
                 if (ent.classname != null)
-                    if (Lib.strcmp(ent.classname, "target_crosslevel_target") == 0)
+                    if ("target_crosslevel_target".equals(ent.classname))
                         ent.nextthink = GameBase.level.time + ent.delay;
             }
         } catch (Exception e) {

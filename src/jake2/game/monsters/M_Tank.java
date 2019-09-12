@@ -1506,7 +1506,7 @@ public class M_Tank {
             GameBase.gi.soundindex("tank/tnkatk2e.wav");
             GameBase.gi.soundindex("tank/tnkatck3.wav");
 
-            if (Lib.strcmp(self.classname, "monster_tank_commander") == 0) {
+            if ("monster_tank_commander".equals(self.classname)) {
                 self.health = 1000;
                 self.gib_health = -225;
             } else {
@@ -1534,7 +1534,7 @@ public class M_Tank {
 
             GameAI.walkmonster_start.think(self);
 
-            if (Lib.strcmp(self.classname, "monster_tank_commander") == 0)
+            if (self.classname.compareTo("monster_tank_commander") == 0)
                 self.s.skinnum = 2;
             return true;
         }

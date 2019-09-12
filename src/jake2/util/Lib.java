@@ -67,11 +67,6 @@ public class Lib {
 	public static float crand() {
 		return (Globals.rnd.nextFloat() - 0.5f) * 2.0f;
 	}
-	
-	/** Like in libc. */
-	public static int strcmp(String in1, String in2) {
-		return in1.compareTo(in2);
-	}
 
 	/** Like in libc. */
 	public static float atof(String in) {

@@ -374,7 +374,7 @@ public class GameWeapon {
     
                 if (0 == (ent.svflags & Defines.SVF_MONSTER)
                         && (null == ent.client)
-                        && (Lib.strcmp(ent.classname, "misc_explobox") != 0))
+                        && (!"misc_explobox".equals(ent.classname)))
                     continue;
     
                 Math3D.VectorMA(ent.absmin, 0.5f, ent.size, point);
@@ -584,7 +584,7 @@ public class GameWeapon {
     
                 if (!Math3D.VectorEquals(start, tr.endpos)) {
                     if ((tr.contents & Defines.CONTENTS_WATER) != 0) {
-                        if (Lib.strcmp(tr.surface.name, "*brwater") == 0)
+                        if ("*brwater".equals(tr.surface.name))
                             color = Defines.SPLASH_BROWN_WATER;
                         else
                             color = Defines.SPLASH_BLUE_WATER;

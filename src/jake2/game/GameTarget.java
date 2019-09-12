@@ -768,7 +768,7 @@ public class GameTarget {
                     
                     e = es.o;
 
-                    if (Lib.strcmp(e.classname, "light") != 0) {
+                    if (!"light".equals(e.classname)) {
                         GameBase.gi.dprintf(self.classname + " at "
                                 + Lib.vtos(self.s.origin));
                         GameBase.gi.dprintf("target " + self.target + " ("

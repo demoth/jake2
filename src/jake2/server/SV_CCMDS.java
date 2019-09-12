@@ -25,6 +25,7 @@ package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
+import jake2.client.Console;
 import jake2.game.Cmd;
 import jake2.game.EndianHandler;
 import jake2.game.GameSVCmds;
@@ -47,11 +48,11 @@ import jake2.util.Lib;
 import jake2.util.QuakeFile;
 import jake2.util.Vargs;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Calendar;
+
+import static jake2.Defines.ERR_DROP;
+import static jake2.Defines.PRINT_ALL;
 
 public class SV_CCMDS {
 
@@ -148,7 +149,7 @@ public class SV_CCMDS {
 			cl = SV_INIT.svs.clients[i];
 			if (0 == cl.state)
 				continue;
-			if (0 == Lib.strcmp(cl.name, s)) {
+            if (s.equals(cl.name)) {
 				SV_MAIN.sv_client = cl;
 				SV_USER.sv_player = SV_MAIN.sv_client.edict;
 				return true;
@@ -698,7 +699,7 @@ public class SV_CCMDS {
 			return;
 		}
 
-		if (0 == Lib.strcmp(Cmd.Argv(1), "current")) {
+        if ("current".equals(Cmd.Argv(1))) {
 			Com.Printf("Can't save to 'current'\n");
 			return;
 		}
@@ -1062,6 +1063,20 @@ public class SV_CCMDS {
 				SV_Map_f();
 			}
 		});
+		Cmd.AddCommand("maplist", new xcommand_t() {
+			@Override
+			public void execute() {
+				byte[] bytes = FS.LoadFile("maps.lst");
+				if (bytes == null) {
+					Com.Error(ERR_DROP, "Could not read maps.lst");
+					return;
+				}
+				for (String line : new String(bytes).split("\n")){
+					Com.Printf(PRINT_ALL, line.trim() + "\n");
+				}
+			}
+		});
+
 		Cmd.AddCommand("demomap", new xcommand_t() {
 			public void execute() {
 				SV_DemoMap_f();

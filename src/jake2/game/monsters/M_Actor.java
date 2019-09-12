@@ -1377,7 +1377,7 @@ public class M_Actor {
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target);
             if ((null == self.movetarget)
-                    || (Lib.strcmp(self.movetarget.classname, "target_actor") != 0)) {
+                    || (!"target_actor".equals(self.movetarget.classname))) {
                 GameBase.gi
                         .dprintf(self.classname + " has bad target "
                                 + self.target + " at "

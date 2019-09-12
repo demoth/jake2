@@ -434,7 +434,7 @@ public class GameSpawn {
                     continue;
                 if ((e2.flags & Defines.FL_TEAMSLAVE) != 0)
                     continue;
-                if (0 == Lib.strcmp(e.team, e2.team)) {
+                if (e.team.equals(e2.team)) {
                     c2++;
                     chain.teamchain = e2;
                     e2.teammaster = e;

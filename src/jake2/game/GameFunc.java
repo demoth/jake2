@@ -375,9 +375,9 @@ public class GameFunc {
             self.s.sound = self.moveinfo.sound_middle;
         }
         self.moveinfo.state = STATE_UP;
-        if (Lib.strcmp(self.classname, "func_door") == 0)
+        if ("func_door".equals(self.classname))
             Move_Calc(self, self.moveinfo.end_origin, door_hit_top);
-        else if (Lib.strcmp(self.classname, "func_door_rotating") == 0)
+        else if ("func_door_rotating".equals(self.classname))
             AngleMove_Calc(self, door_hit_top);
 
         GameUtil.G_UseTargets(self, activator);
@@ -1183,10 +1183,10 @@ public class GameFunc {
             }
 
             self.moveinfo.state = STATE_DOWN;
-            if (Lib.strcmp(self.classname, "func_door") == 0)
+            if ("func_door".equals(self.classname))
                 Move_Calc(self, self.moveinfo.start_origin,
                         door_hit_bottom);
-            else if (Lib.strcmp(self.classname, "func_door_rotating") == 0)
+            else if ("func_door_rotating".equals(self.classname))
                 AngleMove_Calc(self, door_hit_bottom);
             return true;
         }
@@ -1879,7 +1879,7 @@ public class GameFunc {
                         + self.target + "\n");
                 return true;
             }
-            if (Lib.strcmp(self.movetarget.classname, "func_train") != 0) {
+            if (!"func_train".equals(self.movetarget.classname)) {
                 GameBase.gi.dprintf("trigger_elevator target " + self.target
                         + " is not a train\n");
                 return true;

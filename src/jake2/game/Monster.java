@@ -225,7 +225,7 @@ public class Monster {
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
                     self.target)) != null) {
                 target = edit.o;
-                if (Lib.strcmp(target.classname, "point_combat") == 0) {
+                if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
                     fixup = true;
                 } else {
@@ -249,7 +249,7 @@ public class Monster {
                     self.combattarget)) != null) {
                 target = edit.o;
 
-                if (Lib.strcmp(target.classname, "point_combat") != 0) {
+                if (!"point_combat".equals(target.classname)) {
                     GameBase.gi.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
@@ -270,7 +270,7 @@ public class Monster {
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
                 self.monsterinfo.stand.think(self);
-            } else if (Lib.strcmp(self.movetarget.classname, "path_corner") == 0) {
+            } else if ("path_corner".equals(self.movetarget.classname)) {
                 Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin,
                         v);
                 self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D

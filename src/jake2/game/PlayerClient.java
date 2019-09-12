@@ -1289,8 +1289,7 @@ public class PlayerClient {
 
         // check for a spectator
         value = Info.Info_ValueForKey(userinfo, "spectator");
-        if (GameBase.deathmatch.value != 0 && value.length() != 0
-                && 0 != Lib.strcmp(value, "0")) {
+        if (GameBase.deathmatch.value != 0 && value.length() != 0 && !"0".equals(value)) {
             int i, numspec;
 
             if (!passwdOK(GameBase.spectator_password.string, value)) {
@@ -1698,7 +1697,7 @@ public class PlayerClient {
         item = self.client.pers.weapon;
         if (0 == self.client.pers.inventory[self.client.ammo_index])
             item = null;
-        if (item != null && (Lib.strcmp(item.pickup_name, "Blaster") == 0))
+        if (item != null && ("Blaster".equals(item.pickup_name)))
             item = null;
     
         if (0 == ((int) (GameBase.dmflags.value) & Defines.DF_QUAD_DROP))

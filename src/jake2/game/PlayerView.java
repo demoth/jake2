@@ -819,9 +819,9 @@ public class PlayerView {
         if (ent.waterlevel != 0
                 && 0 != (ent.watertype & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME)))
             ent.s.sound = GameBase.snd_fry;
-        else if (Lib.strcmp(weap, "weapon_railgun") == 0)
+        else if ("weapon_railgun".equals(weap))
             ent.s.sound = GameBase.gi.soundindex("weapons/rg_hum.wav");
-        else if (Lib.strcmp(weap, "weapon_bfg") == 0)
+        else if ("weapon_bfg".equals(weap))
             ent.s.sound = GameBase.gi.soundindex("weapons/bfg_hum.wav");
         else if (ent.client.weapon_sound != 0)
             ent.s.sound = ent.client.weapon_sound;

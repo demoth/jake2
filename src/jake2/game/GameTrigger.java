@@ -349,7 +349,7 @@ public class GameTrigger {
                 int player;
                 edict_t ent;
 
-                if (Lib.strcmp(self.item.classname, "key_power_cube") == 0) {
+                if ("key_power_cube".equals(self.item.classname)) {
                     int cube;
 
                     for (cube = 0; cube < 8; cube++)
@@ -442,7 +442,7 @@ public class GameTrigger {
     	public String getID(){ return "trigger_push_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
-            if (Lib.strcmp(other.classname, "grenade") == 0) {
+            if ("grenade".equals(other.classname)) {
                 Math3D.VectorScale(self.movedir, self.speed * 10,
                         other.velocity);
             } else if (other.health > 0) {
