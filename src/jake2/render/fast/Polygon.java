@@ -37,9 +37,9 @@ import java.nio.FloatBuffer;
  */
 public final class Polygon extends glpoly_t {
 
-    private final static int MAX_POLYS = 20000;
+    private final static int MAX_POLYS = 32767;
 
-    private final static int MAX_BUFFER_VERTICES = 120000;
+    private final static int MAX_BUFFER_VERTICES = 200000;
 
     // backup for s1 scrolling
     private static float[] s1_old = new float[MAX_VERTICES];

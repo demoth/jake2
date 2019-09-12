@@ -1337,7 +1337,7 @@ public final class SCR extends Globals {
         if (fps.value > 0.0f) {
             if (fps.modified) {
                 fps.modified = false;
-                Cvar.SetValue("cl_maxfps", 1000);
+                Cvar.SetValue("cl_maxfps", 90);
             }
 
             int diff = cls.realtime - lasttime;

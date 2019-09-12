@@ -1,3 +1,8 @@
+1.0.0
+    - gradle support
+    - project cleanup
+    - dropped unmaintained frameworks - jogl, joal, jsr231, applet
+
 0.9.5
 
 	- quake video (cinematics) support including sound streaming  

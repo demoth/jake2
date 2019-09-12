@@ -1,3 +1,5 @@
 build
 baseq2
 .DS_Store
+.idea
+.gradle
