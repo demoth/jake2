@@ -46,8 +46,8 @@ public class Key extends Globals {
 	public static final int K_TAB = 9;
 	public static final int K_ENTER = 13;
 	public static final int K_ESCAPE = 27;
-	public static final int K_SPACE = 32;
-	public static final int K_CTRLV = 22;
+	static final int K_SPACE = 32;
+	static final int K_CTRLV = 22;
 
 
 	// normal keys should be passed as lowercased ascii
@@ -80,21 +80,21 @@ public class Key extends Globals {
 	public static final int K_HOME = 151;
 	public static final int K_END = 152;
 
-	public static final int K_KP_HOME = 160;
-	public static final int K_KP_UPARROW = 161;
-	public static final int K_KP_PGUP = 162;
-	public static final int K_KP_LEFTARROW = 163;
-	public static final int K_KP_5 = 164;
-	public static final int K_KP_RIGHTARROW = 165;
-	public static final int K_KP_END = 166;
-	public static final int K_KP_DOWNARROW = 167;
-	public static final int K_KP_PGDN = 168;
-	public static final int K_KP_ENTER = 169;
-	public static final int K_KP_INS = 170;
-	public static final int K_KP_DEL = 171;
-	public static final int K_KP_SLASH = 172;
-	public static final int K_KP_MINUS = 173;
-	public static final int K_KP_PLUS = 174;
+	static final int K_KP_HOME = 160;
+	static final int K_KP_UPARROW = 161;
+	static final int K_KP_PGUP = 162;
+	static final int K_KP_LEFTARROW = 163;
+	static final int K_KP_5 = 164;
+	static final int K_KP_RIGHTARROW = 165;
+	static final int K_KP_END = 166;
+	static final int K_KP_DOWNARROW = 167;
+	static final int K_KP_PGDN = 168;
+	static final int K_KP_ENTER = 169;
+	static final int K_KP_INS = 170;
+	static final int K_KP_DEL = 171;
+	static final int K_KP_SLASH = 172;
+	static final int K_KP_MINUS = 173;
+	static final int K_KP_PLUS = 174;
 
 	public static final int K_PAUSE = 255;
 
@@ -102,30 +102,30 @@ public class Key extends Globals {
 	// mouse buttons generate virtual keys
 	//
 	public static final int K_MOUSE1 = 200;
-	public static final int K_MOUSE2 = 201;
-	public static final int K_MOUSE3 = 202;
+	static final int K_MOUSE2 = 201;
+	static final int K_MOUSE3 = 202;
 
 	//
 	// joystick buttons
 	//
-	public static final int K_JOY1 = 203;
-	public static final int K_JOY2 = 204;
-	public static final int K_JOY3 = 205;
-	public static final int K_JOY4 = 206;
+	static final int K_JOY1 = 203;
+	static final int K_JOY2 = 204;
+	static final int K_JOY3 = 205;
+	static final int K_JOY4 = 206;
 
 	public static final int K_MWHEELDOWN = 239;
 	public static final int K_MWHEELUP = 240;
 
 	static int anykeydown = 0;
-	static int key_waiting;
-	static int history_line = 0;
-	static boolean shift_down = false;
-	static int[] key_repeats = new int[256];
+	private static int key_waiting;
+	private static int history_line = 0;
+	private static boolean shift_down = false;
+	private static int[] key_repeats = new int[256];
 	//static int[] keyshift = new int[256];
-	static boolean[] menubound = new boolean[256];
-	static boolean[] consolekeys = new boolean[256];
+	private static boolean[] menubound = new boolean[256];
+	private static boolean[] consolekeys = new boolean[256];
 
-	static String[] keynames = new String[256];
+	private static String[] keynames = new String[256];
 
 	static {
 		keynames[K_TAB] = "TAB";
@@ -282,13 +282,13 @@ public class Key extends Globals {
 		//
 		// register our functions
 		//
-		Cmd.AddCommand("bind", Key.Bind_f);
-		Cmd.AddCommand("unbind", Key.Unbind_f);
-		Cmd.AddCommand("unbindall", Key.Unbindall_f);
-		Cmd.AddCommand("bindlist", Key.Bindlist_f);
+		Cmd.AddCommand("bind", Key::Key_Bind_f);
+		Cmd.AddCommand("unbind", Key::Key_Unbind_f);
+		Cmd.AddCommand("unbindall", Key::Key_Unbindall_f);
+		Cmd.AddCommand("bindlist", Key::Key_Bindlist_f);
 	}
 
-	public static void ClearTyping() {
+	static void ClearTyping() {
 		Globals.key_lines[Globals.edit_line][1] = 0; // clear any typing
 		Globals.key_linepos = 1;
 		Globals.con.backedit = 0; // sfranzyshen
@@ -448,7 +448,7 @@ public class Key extends Globals {
 	 * Returns a string (either a single ascii char, or a K_* name) for the 
 	 * given keynum.
 	 */
-	public static String KeynumToString(int keynum) {
+	static String KeynumToString(int keynum) {
 		if (keynum < 0 || keynum > 255)
 			return "<KEY NOT FOUND>";
 		if (keynum > 32 && keynum < 127)
@@ -465,7 +465,7 @@ public class Key extends Globals {
 	 * the given string. Single ascii characters return themselves, while
 	 * the K_* names are matched up.
 	 */
-	static int StringToKeynum(String str) {
+	private static int StringToKeynum(String str) {
 
 		if (str == null)
 			return -1;
@@ -481,7 +481,7 @@ public class Key extends Globals {
 		return -1;
 	}
 
-	public static void Message(int key) {
+	private static void Message(int key) {
 
 		// sfranzyshen -- start         
 		StringBuffer buffer = new StringBuffer();
@@ -585,7 +585,7 @@ public class Key extends Globals {
 	/**
 	 * Interactive line editing and console scrollback.
 	 */
-	public static void Console(int key) {
+	private static void Console(int key) {
 		int i;
 		
 		switch (key) {
@@ -856,7 +856,7 @@ public class Key extends Globals {
 		Com.Printf("\n");
 	}
 	
-	static void CompleteCommand() {
+	private static void CompleteCommand() {
 		
 		int start = 1;
 		if (key_lines[edit_line][start] == '\\' ||  key_lines[edit_line][start] == '/')
@@ -893,13 +893,7 @@ public class Key extends Globals {
 		return;
 	}
 
-	public static xcommand_t Bind_f = new xcommand_t() {
-		public void execute() {
-			Key_Bind_f();
-		}
-	};
-
-	static void Key_Bind_f() {
+	private static void Key_Bind_f() {
 		int c = Cmd.Argc();
 
 		if (c < 2) {
@@ -941,13 +935,7 @@ public class Key extends Globals {
 		Globals.keybindings[keynum] = binding;
 	}
 
-	static xcommand_t Unbind_f = new xcommand_t() {
-		public void execute() {
-			Key_Unbind_f();
-		}
-	};
-
-	static void Key_Unbind_f() {
+	private static void Key_Unbind_f() {
 
 		if (Cmd.Argc() != 2) {
 			Com.Printf("unbind <key> : remove commands from a key\n");
@@ -963,24 +951,12 @@ public class Key extends Globals {
 		Key.SetBinding(b, null);
 	}
 
-	static xcommand_t Unbindall_f = new xcommand_t() {
-		public void execute() {
-			Key_Unbindall_f();
-		}
-	};
-
-	static void Key_Unbindall_f() {
+	private static void Key_Unbindall_f() {
 		for (int i = 0; i < 256; i++)
 			Key.SetBinding(i, null);
 	}
 
-	static xcommand_t Bindlist_f = new xcommand_t() {
-		public void execute() {
-			Key_Bindlist_f();
-		}
-	};
-
-	static void Key_Bindlist_f() {
+	private static void Key_Bindlist_f() {
 		for (int i = 0; i < 256; i++)
 			if (Globals.keybindings[i] != null && Globals.keybindings[i].length() != 0)
 				Com.Printf(Key.KeynumToString(i) + " \"" + Globals.keybindings[i] + "\"\n");
@@ -999,7 +975,7 @@ public class Key extends Globals {
 		}
 	}
 
-	public static void WriteBindings(RandomAccessFile f) {
+	static void WriteBindings(RandomAccessFile f) {
 		for (int i = 0; i < 256; i++)
 			if (keybindings[i] != null && keybindings[i].length() > 0)
 				try {

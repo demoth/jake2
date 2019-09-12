@@ -889,21 +889,9 @@ public final class FS extends Globals {
      * InitFilesystem
      */
     public static void InitFilesystem() {
-        Cmd.AddCommand("path", new xcommand_t() {
-            public void execute() {
-                Path_f();
-            }
-        });
-        Cmd.AddCommand("link", new xcommand_t() {
-            public void execute() {
-                Link_f();
-            }
-        });
-        Cmd.AddCommand("dir", new xcommand_t() {
-            public void execute() {
-                Dir_f();
-            }
-        });
+        Cmd.AddCommand("path", FS::Path_f);
+        Cmd.AddCommand("link", FS::Link_f);
+        Cmd.AddCommand("dir", FS::Dir_f);
 
         fs_userdir = System.getProperty("user.home") + "/.jake2";
         FS.CreatePath(fs_userdir + "/");

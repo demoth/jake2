@@ -75,7 +75,7 @@ public class TestRenderer {
 	Locale.setDefault(Locale.US);
 	Jake2.Q2Dialog.setVisible(true);
 
-	String DRIVER = "jsr231";
+	String DRIVER = "lwjgl";
 
 	Qcommon.Init(new String[] { "TestRenderer", "+set", "gl_mode", "6",
 		"+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
@@ -95,7 +95,10 @@ public class TestRenderer {
 	kbd = re.getKeyboardHandler();
 	kbd.Init();
 
-	Cmd.AddCommand("nexttest", nexttest);
+	Cmd.AddCommand("nexttest", () -> {
+        testnr++;
+        testnr = testnr % 3;
+    });
 	Cbuf.AddText("bind n nexttest");
 	Cbuf.Execute();
 	Globals.cls.key_dest = Defines.key_game;
@@ -148,13 +151,8 @@ public class TestRenderer {
     
     void run() {
         startTime = System.currentTimeMillis();
-        xcommand_t callback = new xcommand_t() {
-            public void execute() {
-                updateScreen();
-            }
-        };
         while (true) {
-            re.updateScreen(callback);
+            re.updateScreen(this::updateScreen);
             kbd.Update();
             Cbuf.Execute();
             try {
@@ -694,14 +692,7 @@ public class TestRenderer {
     private int time() {
         return (int) (System.currentTimeMillis() - startTime);
     }
-    
-    static xcommand_t nexttest = new xcommand_t() {
-        public void execute() {
-            testnr++;
-            testnr = testnr % 3;
-        }
-    };
-    
+
     int r_numparticles = 0;
     
     /**

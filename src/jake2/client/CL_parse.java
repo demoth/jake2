@@ -122,51 +122,6 @@ public class CL_parse {
     }
 
     /*
-     * =============== CL_Download_f
-     * 
-     * Request a download from the server ===============
-     */
-    public static xcommand_t Download_f = new xcommand_t() {
-        public void execute() {
-            String filename;
-
-            if (Cmd.Argc() != 2) {
-                Com.Printf("Usage: download <filename>\n");
-                return;
-            }
-
-            filename = Cmd.Argv(1);
-
-            if (filename.indexOf("..") != -1) {
-                Com.Printf("Refusing to download a path with ..\n");
-                return;
-            }
-
-            if (FS.LoadFile(filename) != null) { // it exists, no need to
-                // download
-                Com.Printf("File already exists.\n");
-                return;
-            }
-
-            Globals.cls.downloadname = filename;
-            Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
-
-            // download to a temp name, and only rename
-            // to the real name when done, so if interrupted
-            // a runt file wont be left
-            Globals.cls.downloadtempname = Com
-                    .StripExtension(Globals.cls.downloadname);
-            Globals.cls.downloadtempname += ".tmp";
-
-            MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-            MSG.WriteString(Globals.cls.netchan.message, "download "
-                    + Globals.cls.downloadname);
-
-            Globals.cls.downloadnumber++;
-        }
-    };
-
-    /*
      * ====================== CL_RegisterSounds ======================
      */
     public static void RegisterSounds() {

@@ -52,31 +52,31 @@ abstract class keyfunc_t {
 
 public final class Menu extends Key {
 
-    static int m_main_cursor;
+    private static int m_main_cursor;
 
-    static final int NUM_CURSOR_FRAMES = 15;
+    private static final int NUM_CURSOR_FRAMES = 15;
 
-    static final String menu_in_sound = "misc/menu1.wav";
+    private static final String menu_in_sound = "misc/menu1.wav";
 
-    static final String menu_move_sound = "misc/menu2.wav";
+    private static final String menu_move_sound = "misc/menu2.wav";
 
-    static final String menu_out_sound = "misc/menu3.wav";
+    private static final String menu_out_sound = "misc/menu3.wav";
 
-    static boolean m_entersound; // play after drawing a frame, so caching
+    private static boolean m_entersound; // play after drawing a frame, so caching
 
     // won't disrupt the sound
 
-    static xcommand_t m_drawfunc;
+    private static Command m_drawfunc;
 
-    static keyfunc_t m_keyfunc;
+    private static keyfunc_t m_keyfunc;
 
     //	  =============================================================================
     /* Support Routines */
 
-    public final static int MAX_MENU_DEPTH = 8;
+    private final static int MAX_MENU_DEPTH = 8;
 
     public static class menulayer_t {
-        xcommand_t draw;
+        Command draw;
 
         keyfunc_t key;
     }
@@ -165,15 +165,15 @@ public final class Menu extends Key {
 
     }
 
-    static class menuseparator_s extends menucommon_s {
+    private static class menuseparator_s extends menucommon_s {
 
     }
 
-    public static menulayer_t m_layers[] = new menulayer_t[MAX_MENU_DEPTH];
+    private static menulayer_t m_layers[] = new menulayer_t[MAX_MENU_DEPTH];
 
-    public static int m_menudepth;
+    private static int m_menudepth;
 
-    static void Banner(String name) {
+    private static void Banner(String name) {
         Dimension dim = new Dimension();
         Globals.re.DrawGetPicSize(dim, name);
 
@@ -181,7 +181,7 @@ public final class Menu extends Key {
                 viddef.getHeight() / 2 - 110, name);
     }
 
-    static void PushMenu(xcommand_t draw, keyfunc_t key) { //, String(*key)
+    private static void PushMenu(Command draw, keyfunc_t key) { //, String(*key)
                                                            // (int k) ) {
         int i;
 
@@ -237,7 +237,7 @@ public final class Menu extends Key {
         
     }
 
-    static String Default_MenuKey(menuframework_s m, int key) {
+    private static String Default_MenuKey(menuframework_s m, int key) {
         String sound = null;
         menucommon_s item;
 
@@ -325,7 +325,7 @@ public final class Menu extends Key {
      * Draws one solid graphics character cx and cy are in 320*240 coordinates,
      * and will be centered on higher res screens. ================
      */
-    public static void DrawCharacter(int cx, int cy, int num) {
+    private static void DrawCharacter(int cx, int cy, int num) {
         re.DrawChar(cx + ((viddef.getWidth() - 320) >> 1), cy
                 + ((viddef.getHeight() - 240) >> 1), num);
     }
@@ -358,9 +358,9 @@ public final class Menu extends Key {
      * Draws an animating cursor with the point at x,y. The pic will extend to
      * the left of x, and both above and below y. =============
      */
-    static boolean cached;
+    private static boolean cached;
 
-    static void DrawCursor(int x, int y, int f) {
+    private static void DrawCursor(int x, int y, int f) {
         assert (f >= 0) : "negative time and cursor bug";
 
         f = Math.abs(f);
@@ -374,7 +374,7 @@ public final class Menu extends Key {
         re.DrawPic(x, y, "m_cursor" + f);
     }
 
-    public static void DrawTextBox(int x, int y, int width, int lines) {
+    private static void DrawTextBox(int x, int y, int width, int lines) {
         int cx, cy;
         int n;
 
@@ -424,15 +424,11 @@ public final class Menu extends Key {
      * 
      * =======================================================================
      */
-    static final int MAIN_ITEMS = 5;
+    private static final int MAIN_ITEMS = 5;
 
-    static xcommand_t Main_Draw = new xcommand_t() {
-        public void execute() {
-            Main_Draw();
-        }
-    };
+    static Command Main_Draw = Menu::Main_Draw;
 
-    static void Main_Draw() {
+    private static void Main_Draw() {
         int i;
         int w, h;
         int ystart;
@@ -483,7 +479,7 @@ public final class Menu extends Key {
         }
     };
 
-    static String Main_Key(int key) {
+    private static String Main_Key(int key) {
         String sound = menu_move_sound;
 
         switch (key) {
@@ -533,18 +529,8 @@ public final class Menu extends Key {
         return null;
     }
 
-    static xcommand_t Menu_Main = new xcommand_t() {
-        public void execute() {
-            Menu_Main_f();
-        }
-    };
-
     static void Menu_Main_f() {
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Main_Draw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Main_Draw, new keyfunc_t() {
             public String execute(int key) {
                 return Main_Key(key);
             }
@@ -558,34 +544,34 @@ public final class Menu extends Key {
      * 
      * =======================================================================
      */
-    static menuframework_s s_multiplayer_menu = new menuframework_s();
+    private static menuframework_s s_multiplayer_menu = new menuframework_s();
 
-    static menuaction_s s_join_network_server_action = new menuaction_s();
+    private static menuaction_s s_join_network_server_action = new menuaction_s();
 
-    static menuaction_s s_start_network_server_action = new menuaction_s();
+    private static menuaction_s s_start_network_server_action = new menuaction_s();
 
-    static menuaction_s s_player_setup_action = new menuaction_s();
+    private static menuaction_s s_player_setup_action = new menuaction_s();
 
-    static void Multiplayer_MenuDraw() {
+    private static void Multiplayer_MenuDraw() {
         Banner("m_banner_multiplayer");
 
         Menu_AdjustCursor(s_multiplayer_menu, 1);
         Menu_Draw(s_multiplayer_menu);
     }
 
-    static void PlayerSetupFunc(Object unused) {
+    private static void PlayerSetupFunc(Object unused) {
         Menu_PlayerConfig_f();
     }
 
-    static void JoinNetworkServerFunc(Object unused) {
+    private static void JoinNetworkServerFunc(Object unused) {
         Menu_JoinServer_f();
     }
 
-    static void StartNetworkServerFunc(Object unused) {
+    private static void StartNetworkServerFunc(Object unused) {
         Menu_StartServer_f();
     }
 
-    static void Multiplayer_MenuInit() {
+    private static void Multiplayer_MenuInit() {
         s_multiplayer_menu.x = (int) (viddef.getWidth() * 0.50f - 64);
         s_multiplayer_menu.nitems = 0;
 
@@ -631,23 +617,13 @@ public final class Menu extends Key {
         Menu_Center(s_multiplayer_menu);
     }
 
-    static String Multiplayer_MenuKey(int key) {
+    private static String Multiplayer_MenuKey(int key) {
         return Default_MenuKey(s_multiplayer_menu, key);
     }
 
-    static xcommand_t Menu_Multiplayer = new xcommand_t() {
-        public void execute() {
-            Menu_Multiplayer_f();
-        }
-    };
-
-    static void Menu_Multiplayer_f() {
+    private static void Menu_Multiplayer_f() {
         Multiplayer_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Multiplayer_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Multiplayer_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return Multiplayer_MenuKey(key);
             }
@@ -661,7 +637,7 @@ public final class Menu extends Key {
      * 
      * =======================================================================
      */
-    static String bindnames[][] = { { "+attack", "attack" },
+    private static String bindnames[][] = { { "+attack", "attack" },
             { "weapnext", "next weapon" }, { "+forward", "walk forward" },
             { "+back", "backpedal" }, { "+left", "turn left" },
             { "+right", "turn right" }, { "+speed", "run" },
@@ -679,57 +655,57 @@ public final class Menu extends Key {
 
     int keys_cursor;
 
-    static boolean bind_grab;
+    private static boolean bind_grab;
 
-    static menuframework_s s_keys_menu = new menuframework_s();
+    private static menuframework_s s_keys_menu = new menuframework_s();
 
-    static menuaction_s s_keys_attack_action = new menuaction_s();
+    private static menuaction_s s_keys_attack_action = new menuaction_s();
 
-    static menuaction_s s_keys_change_weapon_action = new menuaction_s();
+    private static menuaction_s s_keys_change_weapon_action = new menuaction_s();
 
-    static menuaction_s s_keys_walk_forward_action = new menuaction_s();
+    private static menuaction_s s_keys_walk_forward_action = new menuaction_s();
 
-    static menuaction_s s_keys_backpedal_action = new menuaction_s();
+    private static menuaction_s s_keys_backpedal_action = new menuaction_s();
 
-    static menuaction_s s_keys_turn_left_action = new menuaction_s();
+    private static menuaction_s s_keys_turn_left_action = new menuaction_s();
 
-    static menuaction_s s_keys_turn_right_action = new menuaction_s();
+    private static menuaction_s s_keys_turn_right_action = new menuaction_s();
 
-    static menuaction_s s_keys_run_action = new menuaction_s();
+    private static menuaction_s s_keys_run_action = new menuaction_s();
 
-    static menuaction_s s_keys_step_left_action = new menuaction_s();
+    private static menuaction_s s_keys_step_left_action = new menuaction_s();
 
-    static menuaction_s s_keys_step_right_action = new menuaction_s();
+    private static menuaction_s s_keys_step_right_action = new menuaction_s();
 
-    static menuaction_s s_keys_sidestep_action = new menuaction_s();
+    private static menuaction_s s_keys_sidestep_action = new menuaction_s();
 
-    static menuaction_s s_keys_look_up_action = new menuaction_s();
+    private static menuaction_s s_keys_look_up_action = new menuaction_s();
 
-    static menuaction_s s_keys_look_down_action = new menuaction_s();
+    private static menuaction_s s_keys_look_down_action = new menuaction_s();
 
-    static menuaction_s s_keys_center_view_action = new menuaction_s();
+    private static menuaction_s s_keys_center_view_action = new menuaction_s();
 
-    static menuaction_s s_keys_mouse_look_action = new menuaction_s();
+    private static menuaction_s s_keys_mouse_look_action = new menuaction_s();
 
-    static menuaction_s s_keys_keyboard_look_action = new menuaction_s();
+    private static menuaction_s s_keys_keyboard_look_action = new menuaction_s();
 
-    static menuaction_s s_keys_move_up_action = new menuaction_s();
+    private static menuaction_s s_keys_move_up_action = new menuaction_s();
 
-    static menuaction_s s_keys_move_down_action = new menuaction_s();
+    private static menuaction_s s_keys_move_down_action = new menuaction_s();
 
-    static menuaction_s s_keys_inventory_action = new menuaction_s();
+    private static menuaction_s s_keys_inventory_action = new menuaction_s();
 
-    static menuaction_s s_keys_inv_use_action = new menuaction_s();
+    private static menuaction_s s_keys_inv_use_action = new menuaction_s();
 
-    static menuaction_s s_keys_inv_drop_action = new menuaction_s();
+    private static menuaction_s s_keys_inv_drop_action = new menuaction_s();
 
-    static menuaction_s s_keys_inv_prev_action = new menuaction_s();
+    private static menuaction_s s_keys_inv_prev_action = new menuaction_s();
 
-    static menuaction_s s_keys_inv_next_action = new menuaction_s();
+    private static menuaction_s s_keys_inv_next_action = new menuaction_s();
 
-    static menuaction_s s_keys_help_computer_action = new menuaction_s();
+    private static menuaction_s s_keys_help_computer_action = new menuaction_s();
 
-    static void UnbindCommand(String command) {
+    private static void UnbindCommand(String command) {
         int j;
         String b;
 
@@ -742,7 +718,7 @@ public final class Menu extends Key {
         }
     }
 
-    static void FindKeysForCommand(String command, int twokeys[]) {
+    private static void FindKeysForCommand(String command, int twokeys[]) {
         int count;
         int j;
         String b;
@@ -764,7 +740,7 @@ public final class Menu extends Key {
         }
     }
 
-    static void KeyCursorDrawFunc(menuframework_s menu) {
+    private static void KeyCursorDrawFunc(menuframework_s menu) {
         if (bind_grab)
             re.DrawChar(menu.x, menu.y + menu.cursor * 9, '=');
         else
@@ -772,7 +748,7 @@ public final class Menu extends Key {
                     .Milliseconds() / 250) & 1));
     }
 
-    static void DrawKeyBindingFunc(Object self) {
+    private static void DrawKeyBindingFunc(Object self) {
         int keys[] = { 0, 0 };
         menuaction_s a = (menuaction_s) self;
 
@@ -799,7 +775,7 @@ public final class Menu extends Key {
         }
     }
 
-    static void KeyBindingFunc(Object self) {
+    private static void KeyBindingFunc(Object self) {
         menuaction_s a = (menuaction_s) self;
         int keys[] = { 0, 0 };
 
@@ -813,7 +789,7 @@ public final class Menu extends Key {
         Menu_SetStatusBar(s_keys_menu, "press a key or button for this action");
     }
 
-    static void Keys_MenuInit() {
+    private static void Keys_MenuInit() {
         int y = 0;
         int i = 0;
 
@@ -1147,13 +1123,9 @@ public final class Menu extends Key {
         Menu_Center(s_keys_menu);
     }
 
-    static xcommand_t Keys_MenuDraw = new xcommand_t() {
-        public void execute() {
-            Keys_MenuDraw_f();
-        }
-    };
+    static Command Keys_MenuDraw = Menu::Keys_MenuDraw_f;
 
-    static void Keys_MenuDraw_f() {
+    private static void Keys_MenuDraw_f() {
         Menu_AdjustCursor(s_keys_menu, 1);
         Menu_Draw(s_keys_menu);
     }
@@ -1164,7 +1136,7 @@ public final class Menu extends Key {
         }
     };
 
-    static String Keys_MenuKey_f(int key) {
+    private static String Keys_MenuKey_f(int key) {
         menuaction_s item = (menuaction_s) Menu_ItemAtCursor(s_keys_menu);
 
         if (bind_grab) {
@@ -1200,19 +1172,9 @@ public final class Menu extends Key {
         }
     }
 
-    static xcommand_t Menu_Keys = new xcommand_t() {
-        public void execute() {
-            Menu_Keys_f();
-        }
-    };
-
-    static void Menu_Keys_f() {
+    private static void Menu_Keys_f() {
         Keys_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Keys_MenuDraw_f();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Keys_MenuDraw_f, new keyfunc_t() {
             public String execute(int key) {
                 return Keys_MenuKey_f(key);
             }
@@ -1226,62 +1188,62 @@ public final class Menu extends Key {
      * 
      * =======================================================================
      */
-    static cvar_t win_noalttab;
+    private static cvar_t win_noalttab;
 
-    static menuframework_s s_options_menu = new menuframework_s();
+    private static menuframework_s s_options_menu = new menuframework_s();
 
-    static menuaction_s s_options_defaults_action = new menuaction_s();
+    private static menuaction_s s_options_defaults_action = new menuaction_s();
 
-    static menuaction_s s_options_customize_options_action = new menuaction_s();
+    private static menuaction_s s_options_customize_options_action = new menuaction_s();
 
-    static menuslider_s s_options_sensitivity_slider = new menuslider_s();
+    private static menuslider_s s_options_sensitivity_slider = new menuslider_s();
 
-    static menulist_s s_options_freelook_box = new menulist_s();
+    private static menulist_s s_options_freelook_box = new menulist_s();
 
-    static menulist_s s_options_noalttab_box = new menulist_s();
+    private static menulist_s s_options_noalttab_box = new menulist_s();
 
-    static menulist_s s_options_alwaysrun_box = new menulist_s();
+    private static menulist_s s_options_alwaysrun_box = new menulist_s();
 
-    static menulist_s s_options_invertmouse_box = new menulist_s();
+    private static menulist_s s_options_invertmouse_box = new menulist_s();
 
-    static menulist_s s_options_lookspring_box = new menulist_s();
+    private static menulist_s s_options_lookspring_box = new menulist_s();
 
-    static menulist_s s_options_lookstrafe_box = new menulist_s();
+    private static menulist_s s_options_lookstrafe_box = new menulist_s();
 
-    static menulist_s s_options_crosshair_box = new menulist_s();
+    private static menulist_s s_options_crosshair_box = new menulist_s();
 
-    static menuslider_s s_options_sfxvolume_slider = new menuslider_s();
+    private static menuslider_s s_options_sfxvolume_slider = new menuslider_s();
 
-    static menulist_s s_options_joystick_box = new menulist_s();
+    private static menulist_s s_options_joystick_box = new menulist_s();
 
-    static menulist_s s_options_cdvolume_box = new menulist_s();
+    private static menulist_s s_options_cdvolume_box = new menulist_s();
 
-    static menulist_s s_options_quality_list = new menulist_s();
+    private static menulist_s s_options_quality_list = new menulist_s();
 
     //static menulist_s s_options_compatibility_list = new menulist_s();
-    static menuaction_s s_options_console_action = new menuaction_s();
+    private static menuaction_s s_options_console_action = new menuaction_s();
 
-    static void CrosshairFunc(Object unused) {
+    private static void CrosshairFunc(Object unused) {
         Cvar.SetValue("crosshair", s_options_crosshair_box.curvalue);
     }
 
-    static void JoystickFunc(Object unused) {
+    private static void JoystickFunc(Object unused) {
         Cvar.SetValue("in_joystick", s_options_joystick_box.curvalue);
     }
 
-    static void CustomizeControlsFunc(Object unused) {
+    private static void CustomizeControlsFunc(Object unused) {
         Menu_Keys_f();
     }
 
-    static void AlwaysRunFunc(Object unused) {
+    private static void AlwaysRunFunc(Object unused) {
         Cvar.SetValue("cl_run", s_options_alwaysrun_box.curvalue);
     }
 
-    static void FreeLookFunc(Object unused) {
+    private static void FreeLookFunc(Object unused) {
         Cvar.SetValue("freelook", s_options_freelook_box.curvalue);
     }
 
-    static void MouseSpeedFunc(Object unused) {
+    private static void MouseSpeedFunc(Object unused) {
         Cvar.SetValue("sensitivity",
                 s_options_sensitivity_slider.curvalue / 2.0F);
     }
@@ -1290,7 +1252,7 @@ public final class Menu extends Key {
         Cvar.SetValue("win_noalttab", s_options_noalttab_box.curvalue);
     }
 
-    static float ClampCvar(float min, float max, float value) {
+    private static float ClampCvar(float min, float max, float value) {
         if (value < min)
             return min;
         if (value > max)
@@ -1298,7 +1260,7 @@ public final class Menu extends Key {
         return value;
     }
 
-    static void ControlsSetMenuItemValues() {
+    private static void ControlsSetMenuItemValues() {
         s_options_sfxvolume_slider.curvalue = Cvar.VariableValue("s_volume") * 10;
         s_options_cdvolume_box.curvalue = 1 - ((int) Cvar
                 .VariableValue("cd_nocd"));
@@ -1336,34 +1298,34 @@ public final class Menu extends Key {
         s_options_noalttab_box.curvalue = (int) win_noalttab.value;
     }
 
-    static void ControlsResetDefaultsFunc(Object unused) {
+    private static void ControlsResetDefaultsFunc(Object unused) {
         Cbuf.AddText("exec default.cfg\n");
         Cbuf.Execute();
 
         ControlsSetMenuItemValues();
     }
 
-    static void InvertMouseFunc(Object unused) {
+    private static void InvertMouseFunc(Object unused) {
         Cvar.SetValue("m_pitch", -m_pitch.value);
     }
 
-    static void LookspringFunc(Object unused) {
+    private static void LookspringFunc(Object unused) {
         Cvar.SetValue("lookspring", 1 - lookspring.value);
     }
 
-    static void LookstrafeFunc(Object unused) {
+    private static void LookstrafeFunc(Object unused) {
         Cvar.SetValue("lookstrafe", 1 - lookstrafe.value);
     }
 
-    static void UpdateVolumeFunc(Object unused) {
+    private static void UpdateVolumeFunc(Object unused) {
         Cvar.SetValue("s_volume", s_options_sfxvolume_slider.curvalue / 10);
     }
 
-    static void UpdateCDVolumeFunc(Object unused) {
+    private static void UpdateCDVolumeFunc(Object unused) {
         Cvar.SetValue("cd_nocd", 1 - s_options_cdvolume_box.curvalue);
     }
 
-    static void ConsoleFunc(Object unused) {
+    private static void ConsoleFunc(Object unused) {
         /*
          * * the proper way to do this is probably to have ToggleConsole_f
          * accept a parameter
@@ -1381,7 +1343,7 @@ public final class Menu extends Key {
         cls.key_dest = key_console;
     }
 
-    static void UpdateSoundQualityFunc(Object unused) {
+    private static void UpdateSoundQualityFunc(Object unused) {
         boolean driverNotChanged = false;
         String current = s_drivers[s_options_quality_list.curvalue];
         driverNotChanged = S.getDriverName().equals(current);
@@ -1417,19 +1379,19 @@ public final class Menu extends Key {
         }
     }
 
-    static String cd_music_items[] = { "disabled", "enabled" };
+    private static String cd_music_items[] = { "disabled", "enabled" };
 
     static String compatibility_items[] = { "max compatibility",
             "max performance" };
 
-    static String yesno_names[] = { "no", "yes" };
+    private static String yesno_names[] = { "no", "yes" };
 
-    static String crosshair_names[] = { "none", "cross", "dot", "angle" };
+    private static String crosshair_names[] = { "none", "cross", "dot", "angle" };
 
-    static String[] s_labels;
-    static String[] s_drivers;
+    private static String[] s_labels;
+    private static String[] s_drivers;
     
-    static void Options_MenuInit() {
+    private static void Options_MenuInit() {
 
     	s_drivers = S.getDriverNames();
     	s_labels = new String[s_drivers.length];
@@ -1633,29 +1595,19 @@ public final class Menu extends Key {
         Menu_AddItem(s_options_menu, s_options_console_action);
     }
 
-    static void Options_MenuDraw() {
+    private static void Options_MenuDraw() {
         Banner("m_banner_options");
         Menu_AdjustCursor(s_options_menu, 1);
         Menu_Draw(s_options_menu);
     }
 
-    static String Options_MenuKey(int key) {
+    private static String Options_MenuKey(int key) {
         return Default_MenuKey(s_options_menu, key);
     }
 
-    static xcommand_t Menu_Options = new xcommand_t() {
-        public void execute() {
-            Menu_Options_f();
-        }
-    };
-
-    static void Menu_Options_f() {
+    private static void Menu_Options_f() {
         Options_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Options_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Options_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return Options_MenuKey(key);
             }
@@ -1670,19 +1622,9 @@ public final class Menu extends Key {
      * =======================================================================
      */
 
-    static xcommand_t Menu_Video = new xcommand_t() {
-        public void execute() {
-            Menu_Video_f();
-        }
-    };
-
-    static void Menu_Video_f() {
+    private static void Menu_Video_f() {
         VID.MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                VID.MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(VID::MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return VID.MenuKey(key);
             }
@@ -1696,13 +1638,13 @@ public final class Menu extends Key {
      * 
      * =============================================================================
      */
-    static int credits_start_time;
+    private static int credits_start_time;
 
-    static String creditsIndex[] = new String[256];
+    private static String creditsIndex[] = new String[256];
 
-    static String creditsBuffer;
+    private static String creditsBuffer;
 
-    static String idcredits[] = { "+QUAKE II BY ID SOFTWARE", "",
+    private static String idcredits[] = { "+QUAKE II BY ID SOFTWARE", "",
             "+PROGRAMMING", "John Carmack", "John Cash", "Brian Hook", "",
             "+JAVA PORT BY BYTONIC", "Carsten Weisse", "Holger Zickner", "Rene Stoeckel", "", "+ART",
             "Adrian Carmack", "Kevin Cloud", "Paul Steed", "", "+LEVEL DESIGN",
@@ -1739,9 +1681,9 @@ public final class Menu extends Key {
             "other trademarks and trade names are",
             "properties of their respective owners.", null };
 
-    static String credits[] = idcredits;
+    private static String credits[] = idcredits;
 
-    static String xatcredits[] = { "+QUAKE II MISSION PACK: THE RECKONING",
+    private static String xatcredits[] = { "+QUAKE II MISSION PACK: THE RECKONING",
             "+BY", "+XATRIX ENTERTAINMENT, INC.", "", "+DESIGN AND DIRECTION",
             "Drew Markham", "", "+PRODUCED BY", "Greg Goodrich", "",
             "+PROGRAMMING", "Rafael Paiz", "",
@@ -1794,7 +1736,7 @@ public final class Menu extends Key {
             "Inc. All other trademarks and trade",
             "names are properties of their", "respective owners.", null };
 
-    static String roguecredits[] = { "+QUAKE II MISSION PACK 2: GROUND ZERO",
+    private static String roguecredits[] = { "+QUAKE II MISSION PACK 2: GROUND ZERO",
             "+BY", "+ROGUE ENTERTAINMENT, INC.", "", "+PRODUCED BY",
             "Jim Molinets", "", "+PROGRAMMING", "Peter Mack",
             "Patrick Magruder", "", "+LEVEL DESIGN", "Jim Molinets",
@@ -1835,7 +1777,7 @@ public final class Menu extends Key {
             "Inc. All other trademarks and trade",
             "names are properties of their", "respective owners.", null };
 
-    public static void Credits_MenuDraw() {
+    private static void Credits_MenuDraw() {
         int i, y;
 
         /*
@@ -1876,7 +1818,7 @@ public final class Menu extends Key {
             credits_start_time = cls.realtime;
     }
 
-    public static String Credits_Key(int key) {
+    private static String Credits_Key(int key) {
         switch (key) {
         case K_ESCAPE:
             if (creditsBuffer != null)
@@ -1890,13 +1832,7 @@ public final class Menu extends Key {
 
     }
 
-    static xcommand_t Menu_Credits = new xcommand_t() {
-        public void execute() {
-            Menu_Credits_f();
-        }
-    };
-
-    static void Menu_Credits_f() {
+    private static void Menu_Credits_f() {
         int n;
         int isdeveloper = 0;
 
@@ -1926,11 +1862,7 @@ public final class Menu extends Key {
         }
 
         credits_start_time = cls.realtime;
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Credits_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Credits_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return Credits_Key(key);
             }
@@ -1945,27 +1877,27 @@ public final class Menu extends Key {
      * =============================================================================
      */
 
-    static int m_game_cursor;
+    private static int m_game_cursor;
 
-    static menuframework_s s_game_menu = new menuframework_s();
+    private static menuframework_s s_game_menu = new menuframework_s();
 
-    static menuaction_s s_easy_game_action = new menuaction_s();
+    private static menuaction_s s_easy_game_action = new menuaction_s();
 
-    static menuaction_s s_medium_game_action = new menuaction_s();
+    private static menuaction_s s_medium_game_action = new menuaction_s();
 
-    static menuaction_s s_hard_game_action = new menuaction_s();
+    private static menuaction_s s_hard_game_action = new menuaction_s();
 
-    static menuaction_s s_nightmare_game_action = new menuaction_s();
+    private static menuaction_s s_nightmare_game_action = new menuaction_s();
 
-    static menuaction_s s_load_game_action = new menuaction_s();
+    private static menuaction_s s_load_game_action = new menuaction_s();
 
-    static menuaction_s s_save_game_action = new menuaction_s();
+    private static menuaction_s s_save_game_action = new menuaction_s();
 
-    static menuaction_s s_credits_action = new menuaction_s();
+    private static menuaction_s s_credits_action = new menuaction_s();
 
-    static menuseparator_s s_blankline = new menuseparator_s();
+    private static menuseparator_s s_blankline = new menuseparator_s();
 
-    static void StartGame() {
+    private static void StartGame() {
         // disable updates and start the cinematic going
         cl.servercount = -1;
         ForceMenuOff();
@@ -1978,42 +1910,42 @@ public final class Menu extends Key {
         cls.key_dest = key_game;
     }
 
-    static void EasyGameFunc(Object data) {
+    private static void EasyGameFunc(Object data) {
         Cvar.ForceSet("skill", "0");
         StartGame();
     }
 
-    static void MediumGameFunc(Object data) {
+    private static void MediumGameFunc(Object data) {
         Cvar.ForceSet("skill", "1");
         StartGame();
     }
 
-    static void HardGameFunc(Object data) {
+    private static void HardGameFunc(Object data) {
         Cvar.ForceSet("skill", "2");
         StartGame();
     }
 
-    static void NighmareFunc(Object data) {
+    private static void NighmareFunc(Object data) {
         Cvar.ForceSet("skill", "3");
         StartGame();
     }
 
-    static void LoadGameFunc(Object unused) {
+    private static void LoadGameFunc(Object unused) {
         Menu_LoadGame_f();
     }
 
-    static void SaveGameFunc(Object unused) {
+    private static void SaveGameFunc(Object unused) {
         Menu_SaveGame_f();
     }
 
-    static void CreditsFunc(Object unused) {
+    private static void CreditsFunc(Object unused) {
         Menu_Credits_f();
     }
 
     static String difficulty_names[] = { "easy", "medium",
             "fuckin shitty hard" };
 
-    static void Game_MenuInit() {
+    private static void Game_MenuInit() {
 
         s_game_menu.x = (int) (viddef.getWidth() * 0.50);
         s_game_menu.nitems = 0;
@@ -2110,29 +2042,19 @@ public final class Menu extends Key {
         Menu_Center(s_game_menu);
     }
 
-    static void Game_MenuDraw() {
+    private static void Game_MenuDraw() {
         Banner("m_banner_game");
         Menu_AdjustCursor(s_game_menu, 1);
         Menu_Draw(s_game_menu);
     }
 
-    static String Game_MenuKey(int key) {
+    private static String Game_MenuKey(int key) {
         return Default_MenuKey(s_game_menu, key);
     }
 
-    static xcommand_t Menu_Game = new xcommand_t() {
-        public void execute() {
-            Menu_Game_f();
-        }
-    };
-
-    static void Menu_Game_f() {
+    private static void Menu_Game_f() {
         Game_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Game_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::Game_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return Game_MenuKey(key);
             }
@@ -2148,13 +2070,13 @@ public final class Menu extends Key {
      * =============================================================================
      */
 
-    public final static int MAX_SAVEGAMES = 15;
+    private final static int MAX_SAVEGAMES = 15;
 
-    static menuframework_s s_savegame_menu = new menuframework_s();
+    private static menuframework_s s_savegame_menu = new menuframework_s();
 
-    static menuframework_s s_loadgame_menu = new menuframework_s();
+    private static menuframework_s s_loadgame_menu = new menuframework_s();
 
-    static menuaction_s s_loadgame_actions[] = new menuaction_s[MAX_SAVEGAMES];
+    private static menuaction_s s_loadgame_actions[] = new menuaction_s[MAX_SAVEGAMES];
 
     static {
         for (int n = 0; n < MAX_SAVEGAMES; n++)
@@ -2162,17 +2084,17 @@ public final class Menu extends Key {
     }
 
     //String m_savestrings[] = new String [MAX_SAVEGAMES][32];
-    static String m_savestrings[] = new String[MAX_SAVEGAMES];
+    private static String m_savestrings[] = new String[MAX_SAVEGAMES];
 
     static {
         for (int n = 0; n < MAX_SAVEGAMES; n++)
             m_savestrings[n] = "";
     }
 
-    static boolean m_savevalid[] = new boolean[MAX_SAVEGAMES];
+    private static boolean m_savevalid[] = new boolean[MAX_SAVEGAMES];
 
     /** Search the save dir for saved games and their names. */
-    static void Create_Savestrings() {
+    private static void Create_Savestrings() {
         int i;
         QuakeFile f;
         String name;
@@ -2202,7 +2124,7 @@ public final class Menu extends Key {
         }
     }
 
-    static void LoadGameCallback(Object self) {
+    private static void LoadGameCallback(Object self) {
         menuaction_s a = (menuaction_s) self;
 
         if (m_savevalid[a.localdata[0]])
@@ -2210,7 +2132,7 @@ public final class Menu extends Key {
         ForceMenuOff();
     }
 
-    static void LoadGame_MenuInit() {
+    private static void LoadGame_MenuInit() {
         int i;
 
         s_loadgame_menu.x = viddef.getWidth() / 2 - 120;
@@ -2240,13 +2162,13 @@ public final class Menu extends Key {
         }
     }
 
-    static void LoadGame_MenuDraw() {
+    private static void LoadGame_MenuDraw() {
         Banner("m_banner_load_game");
         //		Menu_AdjustCursor( &s_loadgame_menu, 1 );
         Menu_Draw(s_loadgame_menu);
     }
 
-    static String LoadGame_MenuKey(int key) {
+    private static String LoadGame_MenuKey(int key) {
         if (key == K_ESCAPE || key == K_ENTER) {
             s_savegame_menu.cursor = s_loadgame_menu.cursor - 1;
             if (s_savegame_menu.cursor < 0)
@@ -2255,19 +2177,9 @@ public final class Menu extends Key {
         return Default_MenuKey(s_loadgame_menu, key);
     }
 
-    static xcommand_t Menu_LoadGame = new xcommand_t() {
-        public void execute() {
-            Menu_LoadGame_f();
-        }
-    };
-
-    static void Menu_LoadGame_f() {
+    private static void Menu_LoadGame_f() {
         LoadGame_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                LoadGame_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::LoadGame_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return LoadGame_MenuKey(key);
             }
@@ -2282,7 +2194,7 @@ public final class Menu extends Key {
      * =============================================================================
      */
     //static menuframework_s s_savegame_menu;
-    static menuaction_s s_savegame_actions[] = new menuaction_s[MAX_SAVEGAMES];
+    private static menuaction_s s_savegame_actions[] = new menuaction_s[MAX_SAVEGAMES];
 
     static {
         for (int n = 0; n < MAX_SAVEGAMES; n++)
@@ -2290,20 +2202,20 @@ public final class Menu extends Key {
 
     }
 
-    static void SaveGameCallback(Object self) {
+    private static void SaveGameCallback(Object self) {
         menuaction_s a = (menuaction_s) self;
 
         Cbuf.AddText("save save" + a.localdata[0] + "\n");
         ForceMenuOff();
     }
 
-    static void SaveGame_MenuDraw() {
+    private static void SaveGame_MenuDraw() {
         Banner("m_banner_save_game");
         Menu_AdjustCursor(s_savegame_menu, 1);
         Menu_Draw(s_savegame_menu);
     }
 
-    static void SaveGame_MenuInit() {
+    private static void SaveGame_MenuInit() {
         int i;
 
         s_savegame_menu.x = viddef.getWidth() / 2 - 120;
@@ -2332,7 +2244,7 @@ public final class Menu extends Key {
         }
     }
 
-    static String SaveGame_MenuKey(int key) {
+    private static String SaveGame_MenuKey(int key) {
         if (key == K_ENTER || key == K_ESCAPE) {
             s_loadgame_menu.cursor = s_savegame_menu.cursor - 1;
             if (s_loadgame_menu.cursor < 0)
@@ -2341,22 +2253,12 @@ public final class Menu extends Key {
         return Default_MenuKey(s_savegame_menu, key);
     }
 
-    static xcommand_t Menu_SaveGame = new xcommand_t() {
-        public void execute() {
-            Menu_SaveGame_f();
-        }
-    };
-
-    static void Menu_SaveGame_f() {
+    private static void Menu_SaveGame_f() {
         if (0 == Globals.server_state)
             return; // not playing a game
 
         SaveGame_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                SaveGame_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::SaveGame_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return SaveGame_MenuKey(key);
             }
@@ -2372,19 +2274,19 @@ public final class Menu extends Key {
      * =============================================================================
      */
 
-    static menuframework_s s_joinserver_menu = new menuframework_s();
+    private static menuframework_s s_joinserver_menu = new menuframework_s();
 
-    static menuseparator_s s_joinserver_server_title = new menuseparator_s();
+    private static menuseparator_s s_joinserver_server_title = new menuseparator_s();
 
-    static menuaction_s s_joinserver_search_action = new menuaction_s();
+    private static menuaction_s s_joinserver_search_action = new menuaction_s();
 
-    static menuaction_s s_joinserver_address_book_action = new menuaction_s();
+    private static menuaction_s s_joinserver_address_book_action = new menuaction_s();
 
-    static netadr_t local_server_netadr[] = new netadr_t[MAX_LOCAL_SERVERS];
+    private static netadr_t local_server_netadr[] = new netadr_t[MAX_LOCAL_SERVERS];
 
-    static String local_server_names[] = new String[MAX_LOCAL_SERVERS]; //[80];
+    private static String local_server_names[] = new String[MAX_LOCAL_SERVERS]; //[80];
 
-    static menuaction_s s_joinserver_server_actions[] = new menuaction_s[MAX_LOCAL_SERVERS];
+    private static menuaction_s s_joinserver_server_actions[] = new menuaction_s[MAX_LOCAL_SERVERS];
 
     //	   user readable information
     //	   network address
@@ -2397,7 +2299,7 @@ public final class Menu extends Key {
         }
     }
 
-    static int m_num_servers;
+    private static int m_num_servers;
 
     static void AddToServerList(netadr_t adr, String info) {
         int i;
@@ -2419,7 +2321,7 @@ public final class Menu extends Key {
         m_num_servers++;
     }
 
-    static void JoinServerFunc(Object self) {
+    private static void JoinServerFunc(Object self) {
         String buffer;
         int index;
 
@@ -2437,14 +2339,14 @@ public final class Menu extends Key {
         ForceMenuOff();
     }
 
-    static void AddressBookFunc(Object self) {
+    private static void AddressBookFunc(Object self) {
         Menu_AddressBook_f();
     }
 
     static void NullCursorDraw(Object self) {
     }
 
-    static void SearchLocalGames() {
+    private static void SearchLocalGames() {
         int i;
 
         m_num_servers = 0;
@@ -2463,11 +2365,11 @@ public final class Menu extends Key {
         CL.PingServers_f.execute();
     }
 
-    static void SearchLocalGamesFunc(Object self) {
+    private static void SearchLocalGamesFunc(Object self) {
         SearchLocalGames();
     }
 
-    static void JoinServer_MenuInit() {
+    private static void JoinServer_MenuInit() {
         int i;
 
         s_joinserver_menu.x = (int) (viddef.getWidth() * 0.50 - 120);
@@ -2528,28 +2430,18 @@ public final class Menu extends Key {
         SearchLocalGames();
     }
 
-    static void JoinServer_MenuDraw() {
+    private static void JoinServer_MenuDraw() {
         Banner("m_banner_join_server");
         Menu_Draw(s_joinserver_menu);
     }
 
-    static String JoinServer_MenuKey(int key) {
+    private static String JoinServer_MenuKey(int key) {
         return Default_MenuKey(s_joinserver_menu, key);
     }
 
-    static xcommand_t Menu_JoinServer = new xcommand_t() {
-        public void execute() {
-            Menu_JoinServer_f();
-        }
-    };
-
-    static void Menu_JoinServer_f() {
+    private static void Menu_JoinServer_f() {
         JoinServer_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                JoinServer_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::JoinServer_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return JoinServer_MenuKey(key);
             }
@@ -2563,35 +2455,35 @@ public final class Menu extends Key {
      * 
      * =============================================================================
      */
-    static menuframework_s s_startserver_menu = new menuframework_s();
+    private static menuframework_s s_startserver_menu = new menuframework_s();
 
-    static String mapnames[];
+    private static String mapnames[];
 
-    static int nummaps;
+    private static int nummaps;
 
-    static menuaction_s s_startserver_start_action = new menuaction_s();
+    private static menuaction_s s_startserver_start_action = new menuaction_s();
 
-    static menuaction_s s_startserver_dmoptions_action = new menuaction_s();
+    private static menuaction_s s_startserver_dmoptions_action = new menuaction_s();
 
-    static menufield_s s_timelimit_field = new menufield_s();
+    private static menufield_s s_timelimit_field = new menufield_s();
 
-    static menufield_s s_fraglimit_field = new menufield_s();
+    private static menufield_s s_fraglimit_field = new menufield_s();
 
-    static menufield_s s_maxclients_field = new menufield_s();
+    private static menufield_s s_maxclients_field = new menufield_s();
 
-    static menufield_s s_hostname_field = new menufield_s();
+    private static menufield_s s_hostname_field = new menufield_s();
 
-    static menulist_s s_startmap_list = new menulist_s();
+    private static menulist_s s_startmap_list = new menulist_s();
 
-    static menulist_s s_rules_box = new menulist_s();
+    private static menulist_s s_rules_box = new menulist_s();
 
-    static void DMOptionsFunc(Object self) {
+    private static void DMOptionsFunc(Object self) {
         if (s_rules_box.curvalue == 1)
             return;
         Menu_DMOptions_f();
     }
 
-    static void RulesChangeFunc(Object self) {
+    private static void RulesChangeFunc(Object self) {
         // DM
         if (s_rules_box.curvalue == 0) {
             s_maxclients_field.statusbar = null;
@@ -2623,7 +2515,7 @@ public final class Menu extends Key {
         //	  =====
     }
 
-    static void StartServerActionFunc(Object self) {
+    private static void StartServerActionFunc(Object self) {
         //char startmap[1024];
         String startmap;
         int timelimit;
@@ -2698,11 +2590,11 @@ public final class Menu extends Key {
         ForceMenuOff();
     }
 
-    static String dm_coop_names[] = { "deathmatch", "cooperative" };
+    private static String dm_coop_names[] = { "deathmatch", "cooperative" };
 
-    static String dm_coop_names_rogue[] = { "deathmatch", "cooperative", "tag" };
+    private static String dm_coop_names_rogue[] = { "deathmatch", "cooperative", "tag" };
 
-    static void StartServer_MenuInit() {
+    private static void StartServer_MenuInit() {
 
         //	  =======
         //	  PGM
@@ -2890,11 +2782,11 @@ public final class Menu extends Key {
         RulesChangeFunc(null);
     }
 
-    static void StartServer_MenuDraw() {
+    private static void StartServer_MenuDraw() {
         Menu_Draw(s_startserver_menu);
     }
 
-    static String StartServer_MenuKey(int key) {
+    private static String StartServer_MenuKey(int key) {
         if (key == K_ESCAPE) {
             if (mapnames != null) {
                 int i;
@@ -2910,23 +2802,13 @@ public final class Menu extends Key {
         return Default_MenuKey(s_startserver_menu, key);
     }
 
-    static xcommand_t Menu_StartServer = new xcommand_t() {
-        public void execute() {
-            Menu_StartServer_f();
-        }
-    };
-
-    static xcommand_t startServer_MenuDraw = new xcommand_t() {
-        public void execute() {
-            StartServer_MenuDraw();
-        }
-    };
-    static keyfunc_t startServer_MenuKey = new keyfunc_t() {
+    private static Command startServer_MenuDraw = Menu::StartServer_MenuDraw;
+    private static keyfunc_t startServer_MenuKey = new keyfunc_t() {
         public String execute(int key) {
             return StartServer_MenuKey(key);
         }        
     };
-    static void Menu_StartServer_f() {
+    private static void Menu_StartServer_f() {
         StartServer_MenuInit();
         PushMenu(startServer_MenuDraw, startServer_MenuKey);
     }
@@ -2938,57 +2820,57 @@ public final class Menu extends Key {
      * 
      * =============================================================================
      */
-    static String dmoptions_statusbar; //[128];
+    private static String dmoptions_statusbar; //[128];
 
-    static menuframework_s s_dmoptions_menu = new menuframework_s();
+    private static menuframework_s s_dmoptions_menu = new menuframework_s();
 
-    static menulist_s s_friendlyfire_box = new menulist_s();
+    private static menulist_s s_friendlyfire_box = new menulist_s();
 
-    static menulist_s s_falls_box = new menulist_s();
+    private static menulist_s s_falls_box = new menulist_s();
 
-    static menulist_s s_weapons_stay_box = new menulist_s();
+    private static menulist_s s_weapons_stay_box = new menulist_s();
 
-    static menulist_s s_instant_powerups_box = new menulist_s();
+    private static menulist_s s_instant_powerups_box = new menulist_s();
 
-    static menulist_s s_powerups_box = new menulist_s();
+    private static menulist_s s_powerups_box = new menulist_s();
 
-    static menulist_s s_health_box = new menulist_s();
+    private static menulist_s s_health_box = new menulist_s();
 
-    static menulist_s s_spawn_farthest_box = new menulist_s();
+    private static menulist_s s_spawn_farthest_box = new menulist_s();
 
-    static menulist_s s_teamplay_box = new menulist_s();
+    private static menulist_s s_teamplay_box = new menulist_s();
 
-    static menulist_s s_samelevel_box = new menulist_s();
+    private static menulist_s s_samelevel_box = new menulist_s();
 
-    static menulist_s s_force_respawn_box = new menulist_s();
+    private static menulist_s s_force_respawn_box = new menulist_s();
 
-    static menulist_s s_armor_box = new menulist_s();
+    private static menulist_s s_armor_box = new menulist_s();
 
-    static menulist_s s_allow_exit_box = new menulist_s();
+    private static menulist_s s_allow_exit_box = new menulist_s();
 
-    static menulist_s s_infinite_ammo_box = new menulist_s();
+    private static menulist_s s_infinite_ammo_box = new menulist_s();
 
-    static menulist_s s_fixed_fov_box = new menulist_s();
+    private static menulist_s s_fixed_fov_box = new menulist_s();
 
-    static menulist_s s_quad_drop_box = new menulist_s();
-
-    //	  ROGUE
-    static menulist_s s_no_mines_box = new menulist_s();
-
-    static menulist_s s_no_nukes_box = new menulist_s();
-
-    static menulist_s s_stack_double_box = new menulist_s();
-
-    static menulist_s s_no_spheres_box = new menulist_s();
+    private static menulist_s s_quad_drop_box = new menulist_s();
 
     //	  ROGUE
+    private static menulist_s s_no_mines_box = new menulist_s();
 
-    static void setvalue(int flags) {
+    private static menulist_s s_no_nukes_box = new menulist_s();
+
+    private static menulist_s s_stack_double_box = new menulist_s();
+
+    private static menulist_s s_no_spheres_box = new menulist_s();
+
+    //	  ROGUE
+
+    private static void setvalue(int flags) {
         Cvar.SetValue("dmflags", flags);
         dmoptions_statusbar = "dmflags = " + flags;
     }
 
-    static void DMFlagCallback(Object self) {
+    private static void DMFlagCallback(Object self) {
         menulist_s f = (menulist_s) self;
         int flags;
         int bit = 0;
@@ -3093,9 +2975,9 @@ public final class Menu extends Key {
     }
 
     //static String yes_no_names[] = { "no", "yes", 0 };
-    static String teamplay_names[] = { "disabled", "by skin", "by model" };
+    private static String teamplay_names[] = { "disabled", "by skin", "by model" };
 
-    static void DMOptions_MenuInit() {
+    private static void DMOptions_MenuInit() {
 
         int dmflags = (int) Cvar.VariableValue("dmflags");
         int y = 0;
@@ -3376,27 +3258,17 @@ public final class Menu extends Key {
         Menu_SetStatusBar(s_dmoptions_menu, dmoptions_statusbar);
     }
 
-    static void DMOptions_MenuDraw() {
+    private static void DMOptions_MenuDraw() {
         Menu_Draw(s_dmoptions_menu);
     }
 
-    static String DMOptions_MenuKey(int key) {
+    private static String DMOptions_MenuKey(int key) {
         return Default_MenuKey(s_dmoptions_menu, key);
     }
 
-    static xcommand_t Menu_DMOptions = new xcommand_t() {
-        public void execute() {
-            Menu_DMOptions_f();
-        }
-    };
-
-    static void Menu_DMOptions_f() {
+    private static void Menu_DMOptions_f() {
         DMOptions_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                DMOptions_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::DMOptions_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return DMOptions_MenuKey(key);
             }
@@ -3410,21 +3282,21 @@ public final class Menu extends Key {
      * 
      * =============================================================================
      */
-    static menuframework_s s_downloadoptions_menu = new menuframework_s();
+    private static menuframework_s s_downloadoptions_menu = new menuframework_s();
 
-    static menuseparator_s s_download_title = new menuseparator_s();
+    private static menuseparator_s s_download_title = new menuseparator_s();
 
-    static menulist_s s_allow_download_box = new menulist_s();
+    private static menulist_s s_allow_download_box = new menulist_s();
 
-    static menulist_s s_allow_download_maps_box = new menulist_s();
+    private static menulist_s s_allow_download_maps_box = new menulist_s();
 
-    static menulist_s s_allow_download_models_box = new menulist_s();
+    private static menulist_s s_allow_download_models_box = new menulist_s();
 
-    static menulist_s s_allow_download_players_box = new menulist_s();
+    private static menulist_s s_allow_download_players_box = new menulist_s();
 
-    static menulist_s s_allow_download_sounds_box = new menulist_s();
+    private static menulist_s s_allow_download_sounds_box = new menulist_s();
 
-    static void DownloadCallback(Object self) {
+    private static void DownloadCallback(Object self) {
         menulist_s f = (menulist_s) self;
 
         if (f == s_allow_download_box) {
@@ -3448,9 +3320,9 @@ public final class Menu extends Key {
         }
     }
 
-    static String yes_no_names[] = { "no", "yes" };
+    private static String yes_no_names[] = { "no", "yes" };
 
-    static void DownloadOptions_MenuInit() {
+    private static void DownloadOptions_MenuInit() {
 
         int y = 0;
 
@@ -3541,27 +3413,17 @@ public final class Menu extends Key {
             s_downloadoptions_menu.cursor = 1;
     }
 
-    static void DownloadOptions_MenuDraw() {
+    private static void DownloadOptions_MenuDraw() {
         Menu_Draw(s_downloadoptions_menu);
     }
 
-    static String DownloadOptions_MenuKey(int key) {
+    private static String DownloadOptions_MenuKey(int key) {
         return Default_MenuKey(s_downloadoptions_menu, key);
     }
 
-    static xcommand_t Menu_DownloadOptions = new xcommand_t() {
-        public void execute() {
-            Menu_DownloadOptions_f();
-        }
-    };
-
-    static void Menu_DownloadOptions_f() {
+    private static void Menu_DownloadOptions_f() {
         DownloadOptions_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                DownloadOptions_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::DownloadOptions_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return DownloadOptions_MenuKey(key);
             }
@@ -3576,15 +3438,15 @@ public final class Menu extends Key {
      * =============================================================================
      */
 
-    static menuframework_s s_addressbook_menu = new menuframework_s();
+    private static menuframework_s s_addressbook_menu = new menuframework_s();
 
-    static menufield_s s_addressbook_fields[] = new menufield_s[NUM_ADDRESSBOOK_ENTRIES];
+    private static menufield_s s_addressbook_fields[] = new menufield_s[NUM_ADDRESSBOOK_ENTRIES];
     static {
         for (int n = 0; n < NUM_ADDRESSBOOK_ENTRIES; n++)
             s_addressbook_fields[n] = new menufield_s();
     }
 
-    static void AddressBook_MenuInit() {
+    private static void AddressBook_MenuInit() {
         s_addressbook_menu.x = viddef.getWidth() / 2 - 142;
         s_addressbook_menu.y = viddef.getHeight() / 2 - 58;
         s_addressbook_menu.nitems = 0;
@@ -3615,7 +3477,7 @@ public final class Menu extends Key {
         }
     };
 
-    static String AddressBook_MenuKey_f(int key) {
+    private static String AddressBook_MenuKey_f(int key) {
         if (key == K_ESCAPE) {
             for (int index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++) {
                 Cvar.Set("adr" + index, s_addressbook_fields[index].buffer.toString());
@@ -3624,30 +3486,16 @@ public final class Menu extends Key {
         return Default_MenuKey(s_addressbook_menu, key);
     }
 
-    static xcommand_t AddressBook_MenuDraw = new xcommand_t() {
-        public void execute() {
-            AddressBook_MenuDraw_f();
-        }
-    };
+    static Command AddressBook_MenuDraw = Menu::AddressBook_MenuDraw_f;
 
-    static void AddressBook_MenuDraw_f() {
+    private static void AddressBook_MenuDraw_f() {
         Banner("m_banner_addressbook");
         Menu_Draw(s_addressbook_menu);
     }
 
-    static xcommand_t Menu_AddressBook = new xcommand_t() {
-        public void execute() {
-            Menu_AddressBook_f();
-        }
-    };
-
-    static void Menu_AddressBook_f() {
+    private static void Menu_AddressBook_f() {
         AddressBook_MenuInit();
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                AddressBook_MenuDraw_f();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::AddressBook_MenuDraw_f, new keyfunc_t() {
             public String execute(int key) {
                 return AddressBook_MenuKey_f(key);
             }
@@ -3661,27 +3509,27 @@ public final class Menu extends Key {
      * 
      * =============================================================================
      */
-    static menuframework_s s_player_config_menu = new menuframework_s();
+    private static menuframework_s s_player_config_menu = new menuframework_s();
 
-    static menufield_s s_player_name_field = new menufield_s();
+    private static menufield_s s_player_name_field = new menufield_s();
 
-    static menulist_s s_player_model_box = new menulist_s();
+    private static menulist_s s_player_model_box = new menulist_s();
 
-    static menulist_s s_player_skin_box = new menulist_s();
+    private static menulist_s s_player_skin_box = new menulist_s();
 
-    static menulist_s s_player_handedness_box = new menulist_s();
+    private static menulist_s s_player_handedness_box = new menulist_s();
 
-    static menulist_s s_player_rate_box = new menulist_s();
+    private static menulist_s s_player_rate_box = new menulist_s();
 
-    static menuseparator_s s_player_skin_title = new menuseparator_s();
+    private static menuseparator_s s_player_skin_title = new menuseparator_s();
 
-    static menuseparator_s s_player_model_title = new menuseparator_s();
+    private static menuseparator_s s_player_model_title = new menuseparator_s();
 
-    static menuseparator_s s_player_hand_title = new menuseparator_s();
+    private static menuseparator_s s_player_hand_title = new menuseparator_s();
 
-    static menuseparator_s s_player_rate_title = new menuseparator_s();
+    private static menuseparator_s s_player_rate_title = new menuseparator_s();
 
-    static menuaction_s s_player_download_action = new menuaction_s();
+    private static menuaction_s s_player_download_action = new menuaction_s();
 
     static class playermodelinfo_s {
         int nskins;
@@ -3695,39 +3543,39 @@ public final class Menu extends Key {
         String directory;
     };
 
-    static playermodelinfo_s s_pmi[] = new playermodelinfo_s[MAX_PLAYERMODELS];
+    private static playermodelinfo_s s_pmi[] = new playermodelinfo_s[MAX_PLAYERMODELS];
 
-    static String s_pmnames[] = new String[MAX_PLAYERMODELS];
+    private static String s_pmnames[] = new String[MAX_PLAYERMODELS];
 
-    static int s_numplayermodels;
+    private static int s_numplayermodels;
 
-    static int rate_tbl[] = { 2500, 3200, 5000, 10000, 25000, 0 };
+    private static int rate_tbl[] = { 2500, 3200, 5000, 10000, 25000, 0 };
 
-    static String rate_names[] = { "28.8 Modem", "33.6 Modem", "Single ISDN",
+    private static String rate_names[] = { "28.8 Modem", "33.6 Modem", "Single ISDN",
             "Dual ISDN/Cable", "T1/LAN", "User defined" };
 
-    static void DownloadOptionsFunc(Object self) {
+    private static void DownloadOptionsFunc(Object self) {
         Menu_DownloadOptions_f();
     }
 
-    static void HandednessCallback(Object unused) {
+    private static void HandednessCallback(Object unused) {
         Cvar.SetValue("hand", s_player_handedness_box.curvalue);
     }
 
-    static void RateCallback(Object unused) {
+    private static void RateCallback(Object unused) {
         if (s_player_rate_box.curvalue != rate_tbl.length - 1) //sizeof(rate_tbl)
                                                                // / sizeof(*
                                                                // rate_tbl) - 1)
             Cvar.SetValue("rate", rate_tbl[s_player_rate_box.curvalue]);
     }
 
-    static void ModelCallback(Object unused) {
+    private static void ModelCallback(Object unused) {
         s_player_skin_box.itemnames = s_pmi[s_player_model_box.curvalue].skindisplaynames;
         s_player_skin_box.curvalue = 0;
     }
 
-    static boolean IconOfSkinExists(String skin, String pcxfiles[],
-            int npcxfiles) {
+    private static boolean IconOfSkinExists(String skin, String pcxfiles[],
+                                            int npcxfiles) {
  
         String scratch;
 
@@ -3748,7 +3596,7 @@ public final class Menu extends Key {
         return false;
     }
 
-    static boolean PlayerConfig_ScanDirectories() {
+    private static boolean PlayerConfig_ScanDirectories() {
         //char findname[1024];
         String findname;
         //char scratch[1024];
@@ -3890,7 +3738,7 @@ public final class Menu extends Key {
 
     }
 
-    static int pmicmpfnc(Object _a, Object _b) {
+    private static int pmicmpfnc(Object _a, Object _b) {
         playermodelinfo_s a = (playermodelinfo_s) _a;
         playermodelinfo_s b = (playermodelinfo_s) _b;
 
@@ -3910,9 +3758,9 @@ public final class Menu extends Key {
         return a.directory.compareTo(b.directory);
     }
 
-    static String handedness[] = { "right", "left", "center" };
+    private static String handedness[] = { "right", "left", "center" };
 
-    static boolean PlayerConfig_MenuInit() {
+    private static boolean PlayerConfig_MenuInit() {
         /*
          * extern cvar_t * name; extern cvar_t * team; extern cvar_t * skin;
          */
@@ -3950,11 +3798,7 @@ public final class Menu extends Key {
         }
 
         //qsort(s_pmi, s_numplayermodels, sizeof(s_pmi[0]), pmicmpfnc);
-        Arrays.sort(s_pmi, 0, s_numplayermodels, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                return pmicmpfnc(o1, o2);
-            }
-        });
+        Arrays.sort(s_pmi, 0, s_numplayermodels, (Comparator) Menu::pmicmpfnc);
 
         //memset(s_pmnames, 0, sizeof(s_pmnames));
         s_pmnames = new String[MAX_PLAYERMODELS];
@@ -4090,11 +3934,11 @@ public final class Menu extends Key {
         return true;
     }
 
-    static int yaw;
+    private static int yaw;
     
     private static final entity_t entity = new entity_t();
 
-    static void PlayerConfig_MenuDraw() {
+    private static void PlayerConfig_MenuDraw() {
 
         refdef_t refdef = new refdef_t();
         //char scratch[MAX_QPATH];
@@ -4165,7 +4009,7 @@ public final class Menu extends Key {
         }
     }
 
-    static String PlayerConfig_MenuKey(int key) {
+    private static String PlayerConfig_MenuKey(int key) {
         int i;
 
         if (key == K_ESCAPE) {
@@ -4193,24 +4037,14 @@ public final class Menu extends Key {
         return Default_MenuKey(s_player_config_menu, key);
     }
 
-    static xcommand_t Menu_PlayerConfig = new xcommand_t() {
-        public void execute() {
-            Menu_PlayerConfig_f();
-        }
-    };
-
-    static void Menu_PlayerConfig_f() {
+    private static void Menu_PlayerConfig_f() {
         if (!PlayerConfig_MenuInit()) {
             Menu_SetStatusBar(s_multiplayer_menu,
                     "No valid player models found");
             return;
         }
         Menu_SetStatusBar(s_multiplayer_menu, null);
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                PlayerConfig_MenuDraw();
-            }
-        }, new keyfunc_t() {
+        PushMenu(Menu::PlayerConfig_MenuDraw, new keyfunc_t() {
             public String execute(int key) {
                 return PlayerConfig_MenuKey(key);
             }
@@ -4225,7 +4059,7 @@ public final class Menu extends Key {
      * =======================================================================
      */
 
-    static String Quit_Key(int key) {
+    private static String Quit_Key(int key) {
         switch (key) {
         case K_ESCAPE:
         case 'n':
@@ -4247,7 +4081,7 @@ public final class Menu extends Key {
 
     }
 
-    static void Quit_Draw() {
+    private static void Quit_Draw() {
         int w, h;
         Dimension d = new Dimension();
         re.DrawGetPicSize(d, "quit");
@@ -4256,18 +4090,8 @@ public final class Menu extends Key {
         re.DrawPic((viddef.getWidth() - w) / 2, (viddef.getHeight() - h) / 2, "quit");
     }
 
-    static xcommand_t Menu_Quit = new xcommand_t() {
-        public void execute() {
-            Menu_Quit_f();
-        }
-    };
-
-    static void Menu_Quit_f() {
-        PushMenu(new xcommand_t() {
-            public void execute() {
-                Quit_Draw();
-            }
-        }, new keyfunc_t() {
+    private static void Menu_Quit_f() {
+        PushMenu(Menu::Quit_Draw, new keyfunc_t() {
             public String execute(int key) {
                 return Quit_Key(key);
             }
@@ -4281,22 +4105,22 @@ public final class Menu extends Key {
      * Init
      */
     public static void Init() {
-        Cmd.AddCommand("menu_main", Menu_Main);
-        Cmd.AddCommand("menu_game", Menu_Game);
-        Cmd.AddCommand("menu_loadgame", Menu_LoadGame);
-        Cmd.AddCommand("menu_savegame", Menu_SaveGame);
-        Cmd.AddCommand("menu_joinserver", Menu_JoinServer);
-        Cmd.AddCommand("menu_addressbook", Menu_AddressBook);
-        Cmd.AddCommand("menu_startserver", Menu_StartServer);
-        Cmd.AddCommand("menu_dmoptions", Menu_DMOptions);
-        Cmd.AddCommand("menu_playerconfig", Menu_PlayerConfig);
-        Cmd.AddCommand("menu_downloadoptions", Menu_DownloadOptions);
-        Cmd.AddCommand("menu_credits", Menu_Credits);
-        Cmd.AddCommand("menu_multiplayer", Menu_Multiplayer);
-        Cmd.AddCommand("menu_video", Menu_Video);
-        Cmd.AddCommand("menu_options", Menu_Options);
-        Cmd.AddCommand("menu_keys", Menu_Keys);
-        Cmd.AddCommand("menu_quit", Menu_Quit);
+        Cmd.AddCommand("menu_main", Menu::Menu_Main_f);
+        Cmd.AddCommand("menu_game", Menu::Menu_Game_f);
+        Cmd.AddCommand("menu_loadgame", Menu::Menu_LoadGame_f);
+        Cmd.AddCommand("menu_savegame", Menu::Menu_SaveGame_f);
+        Cmd.AddCommand("menu_joinserver", Menu::Menu_JoinServer_f);
+        Cmd.AddCommand("menu_addressbook", Menu::Menu_AddressBook_f);
+        Cmd.AddCommand("menu_startserver", Menu::Menu_StartServer_f);
+        Cmd.AddCommand("menu_dmoptions", Menu::Menu_DMOptions_f);
+        Cmd.AddCommand("menu_playerconfig", Menu::Menu_PlayerConfig_f);
+        Cmd.AddCommand("menu_downloadoptions", Menu::Menu_DownloadOptions_f);
+        Cmd.AddCommand("menu_credits", Menu::Menu_Credits_f);
+        Cmd.AddCommand("menu_multiplayer", Menu::Menu_Multiplayer_f);
+        Cmd.AddCommand("menu_video", Menu::Menu_Video_f);
+        Cmd.AddCommand("menu_options", Menu::Menu_Options_f);
+        Cmd.AddCommand("menu_keys", Menu::Menu_Keys_f);
+        Cmd.AddCommand("menu_quit", Menu::Menu_Quit_f);
 
         for (int i = 0; i < m_layers.length; i++) {
             m_layers[i] = new menulayer_t();
@@ -4341,12 +4165,12 @@ public final class Menu extends Key {
                 S.StartLocalSound(s);
     }
 
-    public static void Action_DoEnter(menuaction_s a) {
+    private static void Action_DoEnter(menuaction_s a) {
         if (a.callback != null)
             a.callback.execute(a);
     }
 
-    public static void Action_Draw(menuaction_s a) {
+    private static void Action_Draw(menuaction_s a) {
         if ((a.flags & QMF_LEFT_JUSTIFY) != 0) {
             if ((a.flags & QMF_GRAYED) != 0)
                 Menu_DrawStringDark(a.x + a.parent.x + LCOLUMN_OFFSET, a.y
@@ -4366,7 +4190,7 @@ public final class Menu extends Key {
             a.ownerdraw.execute(a);
     }
 
-    public static boolean Field_DoEnter(menufield_s f) {
+    private static boolean Field_DoEnter(menufield_s f) {
         if (f.callback != null) {
             f.callback.execute(f);
             return true;
@@ -4374,7 +4198,7 @@ public final class Menu extends Key {
         return false;
     }
 
-    public static void Field_Draw(menufield_s f) {
+    private static void Field_Draw(menufield_s f) {
         int i;
         String tempbuffer;
         //[128] = "";
@@ -4423,7 +4247,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static boolean Field_Key(menufield_s f, int k) {
+    private static boolean Field_Key(menufield_s f, int k) {
         char key = (char) k;
 
         switch (key) {
@@ -4551,7 +4375,7 @@ public final class Menu extends Key {
         return true;
     }
 
-    public static void Menu_AddItem(menuframework_s menu, menucommon_s item) {
+    static void Menu_AddItem(menuframework_s menu, menucommon_s item) {
         if (menu.nitems == 0)
             menu.nslots = 0;
 
@@ -4569,7 +4393,7 @@ public final class Menu extends Key {
      * direction, and attempts * to adjust the menu's cursor so that it's at the
      * next available * slot.
      */
-    public static void Menu_AdjustCursor(menuframework_s m, int dir) {
+    static void Menu_AdjustCursor(menuframework_s m, int dir) {
         menucommon_s citem;
 
         /*
@@ -4609,7 +4433,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_Center(menuframework_s menu) {
+    static void Menu_Center(menuframework_s menu) {
         int height;
 
         height = ((menucommon_s) menu.items[menu.nitems - 1]).y;
@@ -4618,7 +4442,7 @@ public final class Menu extends Key {
         menu.y = (viddef.getHeight() - height) / 2;
     }
 
-    public static void Menu_Draw(menuframework_s menu) {
+    static void Menu_Draw(menuframework_s menu) {
         int i;
         menucommon_s item;
 
@@ -4677,7 +4501,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_DrawStatusBar(String string) {
+    private static void Menu_DrawStatusBar(String string) {
         if (string != null) {
             int l = string.length();
             int maxrow = viddef.getHeight() / 8;
@@ -4691,7 +4515,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_DrawString(int x, int y, String string) {
+    private static void Menu_DrawString(int x, int y, String string) {
         int i;
 
         for (i = 0; i < string.length(); i++) {
@@ -4699,7 +4523,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_DrawStringDark(int x, int y, String string) {
+    private static void Menu_DrawStringDark(int x, int y, String string) {
         int i;
 
         for (i = 0; i < string.length(); i++) {
@@ -4707,7 +4531,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_DrawStringR2L(int x, int y, String string) {
+    private static void Menu_DrawStringR2L(int x, int y, String string) {
         int i;
 
         int l = string.length();
@@ -4716,7 +4540,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Menu_DrawStringR2LDark(int x, int y, String string) {
+    private static void Menu_DrawStringR2LDark(int x, int y, String string) {
         int i;
 
         int l = string.length();
@@ -4725,7 +4549,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static menucommon_s Menu_ItemAtCursor(menuframework_s m) {
+    private static menucommon_s Menu_ItemAtCursor(menuframework_s m) {
         if (m.cursor < 0 || m.cursor >= m.nitems)
             return null;
 
@@ -4753,11 +4577,11 @@ public final class Menu extends Key {
         return false;
     }
 
-    public static void Menu_SetStatusBar(menuframework_s m, String string) {
+    private static void Menu_SetStatusBar(menuframework_s m, String string) {
         m.statusbar = string;
     }
 
-    public static void Menu_SlideItem(menuframework_s s, int dir) {
+    static void Menu_SlideItem(menuframework_s s, int dir) {
         menucommon_s item = (menucommon_s) Menu_ItemAtCursor(s);
 
         if (item != null) {
@@ -4772,7 +4596,7 @@ public final class Menu extends Key {
         }
     }
 
-    public static int Menu_TallySlots(menuframework_s menu) {
+    private static int Menu_TallySlots(menuframework_s menu) {
         int i;
         int total = 0;
 
@@ -4804,7 +4628,7 @@ public final class Menu extends Key {
             l.callback.execute(l);
     }
 
-    public static void MenuList_Draw(menulist_s l) {
+    private static void MenuList_Draw(menulist_s l) {
         String n[];
         int y = 0;
 
@@ -4826,12 +4650,12 @@ public final class Menu extends Key {
         }
     }
 
-    public static void Separator_Draw(menuseparator_s s) {
+    private static void Separator_Draw(menuseparator_s s) {
         if (s.name != null)
             Menu_DrawStringR2LDark(s.x + s.parent.x, s.y + s.parent.y, s.name);
     }
 
-    public static void Slider_DoSlide(menuslider_s s, int dir) {
+    private static void Slider_DoSlide(menuslider_s s, int dir) {
         s.curvalue += dir;
 
         if (s.curvalue > s.maxvalue)
@@ -4843,9 +4667,9 @@ public final class Menu extends Key {
             s.callback.execute(s);
     }
 
-    public static final int SLIDER_RANGE = 10;
+    private static final int SLIDER_RANGE = 10;
 
-    public static void Slider_Draw(menuslider_s s) {
+    private static void Slider_Draw(menuslider_s s) {
         int i;
 
         Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y
@@ -4878,7 +4702,7 @@ public final class Menu extends Key {
             s.callback.execute(s);
     }
 
-    public static void SpinControl_DoSlide(menulist_s s, int dir) {
+    private static void SpinControl_DoSlide(menulist_s s, int dir) {
         s.curvalue += dir;
 
         if (s.curvalue < 0)
@@ -4890,7 +4714,7 @@ public final class Menu extends Key {
             s.callback.execute(s);
     }
 
-    public static void SpinControl_Draw(menulist_s s) {
+    private static void SpinControl_Draw(menulist_s s) {
 
         if (s.name != null) {
             Menu_DrawStringR2LDark(s.x + s.parent.x + LCOLUMN_OFFSET, s.y

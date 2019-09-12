@@ -40,111 +40,99 @@ import java.util.Vector;
  * Cmd
  */
 public final class Cmd {
-    static xcommand_t List_f = new xcommand_t() {
-        public void execute() {
-            cmd_function_t cmd = Cmd.cmd_functions;
-            int i = 0;
+    private static Command List_f = () -> {
+        cmd_function_t cmd = Cmd.cmd_functions;
+        int i = 0;
 
-            while (cmd != null) {
-                Com.Printf(cmd.name + '\n');
-                i++;
-                cmd = cmd.next;
-            }
-            Com.Printf(i + " commands\n");
+        while (cmd != null) {
+            Com.Printf(cmd.name + '\n');
+            i++;
+            cmd = cmd.next;
         }
+        Com.Printf(i + " commands\n");
     };
 
-    static xcommand_t Exec_f = new xcommand_t() {
-        public void execute() {
-            if (Cmd.Argc() != 2) {
-                Com.Printf("exec <filename> : execute a script file\n");
-                return;
-            }
-
-            byte[] f = null;
-            f = FS.LoadFile(Cmd.Argv(1));
-            if (f == null) {
-                Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
-                return;
-            }
-            Com.Printf("execing " + Cmd.Argv(1) + "\n");
-
-            Cbuf.InsertText(new String(f));
-
-            FS.FreeFile(f);
+    private static Command Exec_f = () -> {
+        if (Cmd.Argc() != 2) {
+            Com.Printf("exec <filename> : execute a script file\n");
+            return;
         }
+
+        byte[] f = null;
+        f = FS.LoadFile(Cmd.Argv(1));
+        if (f == null) {
+            Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
+            return;
+        }
+        Com.Printf("execing " + Cmd.Argv(1) + "\n");
+
+        Cbuf.InsertText(new String(f));
+
+        FS.FreeFile(f);
     };
 
-    static xcommand_t Echo_f = new xcommand_t() {
-        public void execute() {
-            for (int i = 1; i < Cmd.Argc(); i++) {
-                Com.Printf(Cmd.Argv(i) + " ");
-            }
-            Com.Printf("'\n");
+    private static Command Echo_f = () -> {
+        for (int i = 1; i < Cmd.Argc(); i++) {
+            Com.Printf(Cmd.Argv(i) + " ");
         }
+        Com.Printf("'\n");
     };
 
-    static xcommand_t Alias_f = new xcommand_t() {
-        public void execute() {
-            cmdalias_t a = null;
-            if (Cmd.Argc() == 1) {
-                Com.Printf("Current alias commands:\n");
-                for (a = Globals.cmd_alias; a != null; a = a.next) {
-                    Com.Printf(a.name + " : " + a.value);
-                }
-                return;
-            }
-
-            String s = Cmd.Argv(1);
-            if (s.length() > Defines.MAX_ALIAS_NAME) {
-                Com.Printf("Alias name is too long\n");
-                return;
-            }
-
-            // if the alias already exists, reuse it
+    private static Command Alias_f = () -> {
+        cmdalias_t a = null;
+        if (Cmd.Argc() == 1) {
+            Com.Printf("Current alias commands:\n");
             for (a = Globals.cmd_alias; a != null; a = a.next) {
-                if (s.equalsIgnoreCase(a.name)) {
-                    a.value = null;
-                    break;
-                }
+                Com.Printf(a.name + " : " + a.value);
             }
-
-            if (a == null) {
-                a = new cmdalias_t();
-                a.next = Globals.cmd_alias;
-                Globals.cmd_alias = a;
-            }
-            a.name = s;
-
-            // copy the rest of the command line
-            String cmd = "";
-            int c = Cmd.Argc();
-            for (int i = 2; i < c; i++) {
-                cmd = cmd + Cmd.Argv(i);
-                if (i != (c - 1))
-                    cmd = cmd + " ";
-            }
-            cmd = cmd + "\n";
-
-            a.value = cmd;
+            return;
         }
+
+        String s = Cmd.Argv(1);
+        if (s.length() > Defines.MAX_ALIAS_NAME) {
+            Com.Printf("Alias name is too long\n");
+            return;
+        }
+
+        // if the alias already exists, reuse it
+        for (a = Globals.cmd_alias; a != null; a = a.next) {
+            if (s.equalsIgnoreCase(a.name)) {
+                a.value = null;
+                break;
+            }
+        }
+
+        if (a == null) {
+            a = new cmdalias_t();
+            a.next = Globals.cmd_alias;
+            Globals.cmd_alias = a;
+        }
+        a.name = s;
+
+        // copy the rest of the command line
+        String cmd = "";
+        int c = Cmd.Argc();
+        for (int i = 2; i < c; i++) {
+            cmd = cmd + Cmd.Argv(i);
+            if (i != (c - 1))
+                cmd = cmd + " ";
+        }
+        cmd = cmd + "\n";
+
+        a.value = cmd;
     };
 
-    public static xcommand_t Wait_f = new xcommand_t() {
-        public void execute() {
-            Globals.cmd_wait = true;
-        }
-    };
+    private static Command Wait_f = () -> Globals.cmd_wait = true;
 
-    public static cmd_function_t cmd_functions = null;
+    private static cmd_function_t cmd_functions = null;
 
-    public static int cmd_argc;
+    private static int cmd_argc;
 
-    public static String[] cmd_argv = new String[Defines.MAX_STRING_TOKENS];
+    private static String[] cmd_argv = new String[Defines.MAX_STRING_TOKENS];
 
-    public static String cmd_args;
+    private static String cmd_args;
 
-    public static final int ALIAS_LOOP_COUNT = 16;
+    private static final int ALIAS_LOOP_COUNT = 16;
 
     /**
      * Register our commands.
@@ -162,26 +150,24 @@ public final class Cmd {
 
     private static char temporary[] = new char[Defines.MAX_STRING_CHARS];
 
-    public static Comparator PlayerSort = new Comparator() {
-        public int compare(Object o1, Object o2) {
-            int anum = ((Integer) o1).intValue();
-            int bnum = ((Integer) o2).intValue();
-    
-            int anum1 = GameBase.game.clients[anum].ps.stats[Defines.STAT_FRAGS];
-            int bnum1 = GameBase.game.clients[bnum].ps.stats[Defines.STAT_FRAGS];
-    
-            if (anum1 < bnum1)
-                return -1;
-            if (anum1 > bnum1)
-                return 1;
-            return 0;
-        }
+    private static Comparator PlayerSort = (o1, o2) -> {
+        int anum = ((Integer) o1).intValue();
+        int bnum = ((Integer) o2).intValue();
+
+        int anum1 = GameBase.game.clients[anum].ps.stats[Defines.STAT_FRAGS];
+        int bnum1 = GameBase.game.clients[bnum].ps.stats[Defines.STAT_FRAGS];
+
+        if (anum1 < bnum1)
+            return -1;
+        if (anum1 > bnum1)
+            return 1;
+        return 0;
     };
 
     /** 
      * Cmd_MacroExpandString.
      */
-    public static char[] MacroExpandString(char text[], int len) {
+    private static char[] MacroExpandString(char text[], int len) {
         int i, j, count;
         boolean inquote;
 
@@ -306,7 +292,7 @@ public final class Cmd {
         }
     }
 
-    public static void AddCommand(String cmd_name, xcommand_t function) {
+    public static void AddCommand(String cmd_name, Command function) {
         cmd_function_t cmd;
         //Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
         // fail if the command is a variable name
@@ -444,7 +430,7 @@ public final class Cmd {
      * 
      * Give items to a client.
      */
-    public static void Give_f(edict_t ent) {
+    private static void Give_f(edict_t ent) {
         String name;
         gitem_t it;
         int index;
@@ -581,7 +567,7 @@ public final class Cmd {
      * 
      * argv(0) god
      */
-    public static void God_f(edict_t ent) {
+    private static void God_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -606,7 +592,7 @@ public final class Cmd {
      * 
      * argv(0) notarget.
      */
-    public static void Notarget_f(edict_t ent) {
+    private static void Notarget_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -629,7 +615,7 @@ public final class Cmd {
      * 
      * argv(0) noclip.
      */
-    public static void Noclip_f(edict_t ent) {
+    private static void Noclip_f(edict_t ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -654,7 +640,7 @@ public final class Cmd {
      * 
      * Use an inventory item.
      */
-    public static void Use_f(edict_t ent) {
+    private static void Use_f(edict_t ent) {
         int index;
         gitem_t it;
         String s;
@@ -685,7 +671,7 @@ public final class Cmd {
      * 
      * Drop an inventory item.
      */
-    public static void Drop_f(edict_t ent) {
+    private static void Drop_f(edict_t ent) {
         int index;
         gitem_t it;
         String s;
@@ -713,7 +699,7 @@ public final class Cmd {
     /**
      * Cmd_Inven_f.
      */
-    public static void Inven_f(edict_t ent) {
+    private static void Inven_f(edict_t ent) {
         int i;
         gclient_t cl;
 
@@ -739,7 +725,7 @@ public final class Cmd {
     /**
      * Cmd_InvUse_f.
      */
-    public static void InvUse_f(edict_t ent) {
+    private static void InvUse_f(edict_t ent) {
         gitem_t it;
 
         Cmd.ValidateSelectedItem(ent);
@@ -760,7 +746,7 @@ public final class Cmd {
     /**
      * Cmd_WeapPrev_f.
      */
-    public static void WeapPrev_f(edict_t ent) {
+    private static void WeapPrev_f(edict_t ent) {
         gclient_t cl;
         int i, index;
         gitem_t it;
@@ -794,7 +780,7 @@ public final class Cmd {
     /**
      * Cmd_WeapNext_f.
      */
-    public static void WeapNext_f(edict_t ent) {
+    private static void WeapNext_f(edict_t ent) {
         gclient_t cl;
         int i, index;
         gitem_t it;
@@ -830,7 +816,7 @@ public final class Cmd {
     /** 
      * Cmd_WeapLast_f.
      */
-    public static void WeapLast_f(edict_t ent) {
+    private static void WeapLast_f(edict_t ent) {
         gclient_t cl;
         int index;
         gitem_t it;
@@ -854,7 +840,7 @@ public final class Cmd {
     /**
      * Cmd_InvDrop_f 
      */
-    public static void InvDrop_f(edict_t ent) {
+    private static void InvDrop_f(edict_t ent) {
         gitem_t it;
 
         Cmd.ValidateSelectedItem(ent);
@@ -878,7 +864,7 @@ public final class Cmd {
      * Display the scoreboard.
      * 
      */
-    public static void Score_f(edict_t ent) {
+    private static void Score_f(edict_t ent) {
         ent.client.showinventory = false;
         ent.client.showhelp = false;
 
@@ -900,7 +886,7 @@ public final class Cmd {
      * Display the current help message. 
      *
      */
-    public static void Help_f(edict_t ent) {
+    static void Help_f(edict_t ent) {
         // this is for backwards compatability
         if (GameBase.deathmatch.value != 0) {
             Score_f(ent);
@@ -924,7 +910,7 @@ public final class Cmd {
     /**
      * Cmd_Kill_f
      */
-    public static void Kill_f(edict_t ent) {
+    private static void Kill_f(edict_t ent) {
         if ((GameBase.level.time - ent.client.respawn_time) < 5)
             return;
         ent.flags &= ~Defines.FL_GODMODE;
@@ -936,7 +922,7 @@ public final class Cmd {
     /**
      * Cmd_PutAway_f
      */
-    public static void PutAway_f(edict_t ent) {
+    private static void PutAway_f(edict_t ent) {
         ent.client.showscores = false;
         ent.client.showhelp = false;
         ent.client.showinventory = false;
@@ -945,7 +931,7 @@ public final class Cmd {
     /**
      * Cmd_Players_f
      */
-    public static void Players_f(edict_t ent) {
+    private static void Players_f(edict_t ent) {
         int i;
         int count;
         String small;
@@ -987,7 +973,7 @@ public final class Cmd {
     /**
      * Cmd_Wave_f
      */
-    public static void Wave_f(edict_t ent) {
+    private static void Wave_f(edict_t ent) {
         int i;
 
         i = Lib.atoi(Cmd.Argv(1));
@@ -1034,14 +1020,14 @@ public final class Cmd {
     /**
      * Command to print the players own position.
      */
-    public static void ShowPosition_f(edict_t ent) {
+    private static void ShowPosition_f(edict_t ent) {
         SV_GAME.PF_cprintfhigh(ent, "pos=" + Lib.vtofsbeaty(ent.s.origin) + "\n");
     }
 
     /**
      * Cmd_Say_f
      */
-    public static void Say_f(edict_t ent, boolean team, boolean arg0) {
+    private static void Say_f(edict_t ent, boolean team, boolean arg0) {
 
         int i, j;
         edict_t other;
@@ -1124,7 +1110,7 @@ public final class Cmd {
     /**
      * Returns the playerlist. TODO: The list is badly formatted at the moment.
      */
-    public static void PlayerList_f(edict_t ent) {
+    private static void PlayerList_f(edict_t ent) {
         int i;
         String st;
         String text;
@@ -1162,7 +1148,7 @@ public final class Cmd {
      * things like godmode, noclip, etc, are commands directed to the server, so
      * when they are typed in at the console, they will need to be forwarded.
      */
-    public static void ForwardToServer() {
+    private static void ForwardToServer() {
         String cmd;
 
         cmd = Cmd.Argv(0);
@@ -1283,7 +1269,7 @@ public final class Cmd {
             Say_f(ent, false, true);
     }
 
-    public static void ValidateSelectedItem(edict_t ent) {    	
+    static void ValidateSelectedItem(edict_t ent) {
         gclient_t cl = ent.client;
     
         if (cl.pers.inventory[cl.pers.selected_item] != 0)

@@ -25,6 +25,8 @@ mainClassName = 'jake2.Jake2'
 sourceSets {
     main.java.srcDirs = ['src']
     main.resources.srcDirs = ['resources']
+
+    test.java.srcDirs = ['test']
 }
 
 repositories {

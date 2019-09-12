@@ -32,16 +32,7 @@ import jake2.game.GameSVCmds;
 import jake2.game.GameSave;
 import jake2.game.Info;
 import jake2.game.cvar_t;
-import jake2.qcommon.CM;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.FS;
-import jake2.qcommon.MSG;
-import jake2.qcommon.Netchan;
-import jake2.qcommon.SZ;
-import jake2.qcommon.netadr_t;
-import jake2.qcommon.sizebuf_t;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;
@@ -1032,115 +1023,39 @@ public class SV_CCMDS {
 	==================
 	*/
 	public static void SV_InitOperatorCommands() {
-		Cmd.AddCommand("heartbeat", new xcommand_t() {
-			public void execute() {
-				SV_Heartbeat_f();
+		Cmd.AddCommand("heartbeat", SV_CCMDS::SV_Heartbeat_f);
+		Cmd.AddCommand("kick", SV_CCMDS::SV_Kick_f);
+		Cmd.AddCommand("status", SV_CCMDS::SV_Status_f);
+		Cmd.AddCommand("serverinfo", SV_CCMDS::SV_Serverinfo_f);
+		Cmd.AddCommand("dumpuser", SV_CCMDS::SV_DumpUser_f);
+		Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
+		Cmd.AddCommand("maplist", () -> {
+			byte[] bytes = FS.LoadFile("maps.lst");
+			if (bytes == null) {
+				Com.Error(ERR_DROP, "Could not read maps.lst");
+				return;
 			}
-		});
-		Cmd.AddCommand("kick", new xcommand_t() {
-			public void execute() {
-				SV_Kick_f();
-			}
-		});
-		Cmd.AddCommand("status", new xcommand_t() {
-			public void execute() {
-				SV_Status_f();
-			}
-		});
-		Cmd.AddCommand("serverinfo", new xcommand_t() {
-			public void execute() {
-				SV_Serverinfo_f();
-			}
-		});
-		Cmd.AddCommand("dumpuser", new xcommand_t() {
-			public void execute() {
-				SV_DumpUser_f();
+			for (String line : new String(bytes).split("\n")){
+				Com.Printf(PRINT_ALL, line.trim() + "\n");
 			}
 		});
 
-		Cmd.AddCommand("map", new xcommand_t() {
-			public void execute() {
-				SV_Map_f();
-			}
-		});
-		Cmd.AddCommand("maplist", new xcommand_t() {
-			@Override
-			public void execute() {
-				byte[] bytes = FS.LoadFile("maps.lst");
-				if (bytes == null) {
-					Com.Error(ERR_DROP, "Could not read maps.lst");
-					return;
-				}
-				for (String line : new String(bytes).split("\n")){
-					Com.Printf(PRINT_ALL, line.trim() + "\n");
-				}
-			}
-		});
-
-		Cmd.AddCommand("demomap", new xcommand_t() {
-			public void execute() {
-				SV_DemoMap_f();
-			}
-		});
-		Cmd.AddCommand("gamemap", new xcommand_t() {
-			public void execute() {
-				SV_GameMap_f();
-			}
-		});
-		Cmd.AddCommand("setmaster", new xcommand_t() {
-			public void execute() {
-				SV_SetMaster_f();
-			}
-		});
+		Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
+		Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
+		Cmd.AddCommand("setmaster", SV_CCMDS::SV_SetMaster_f);
 
 		if (Globals.dedicated.value != 0)
-			Cmd.AddCommand("say", new xcommand_t() {
-			public void execute() {
-				SV_ConSay_f();
-			}
-		});
+			Cmd.AddCommand("say", SV_CCMDS::SV_ConSay_f);
 
-		Cmd.AddCommand("serverrecord", new xcommand_t() {
-			public void execute() {
-				SV_ServerRecord_f();
-			}
-		});
-		Cmd.AddCommand("serverstop", new xcommand_t() {
-			public void execute() {
-				SV_ServerStop_f();
-			}
-		});
-
-		Cmd.AddCommand("save", new xcommand_t() {
-			public void execute() {
-				SV_Savegame_f();
-			}
-		});
-		Cmd.AddCommand("load", new xcommand_t() {
-			public void execute() {
-				SV_Loadgame_f();
-			}
-		});
-
-		Cmd.AddCommand("killserver", new xcommand_t() {
-			public void execute() {
-				SV_KillServer_f();
-			}
-		});
-
-		Cmd.AddCommand("sv", new xcommand_t() {
-			public void execute() {
-				SV_ServerCommand_f();
-			}
-		});
+		Cmd.AddCommand("serverrecord", SV_CCMDS::SV_ServerRecord_f);
+		Cmd.AddCommand("serverstop", SV_CCMDS::SV_ServerStop_f);
+		Cmd.AddCommand("save", SV_CCMDS::SV_Savegame_f);
+		Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
+		Cmd.AddCommand("killserver", SV_CCMDS::SV_KillServer_f);
+		Cmd.AddCommand("sv", SV_CCMDS::SV_ServerCommand_f);
+				Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
 		
-		Cmd.AddCommand("jvm_memory", new xcommand_t() {
-			public void execute() {
-				VM_Mem_f();
-			}
-		});
-		
-//		Cmd.AddCommand("spawnbot", new xcommand_t() {
+//		Cmd.AddCommand("spawnbot", new Command() {
 //			public void execute() {
 //				AdvancedBot.SP_Oak();
 //			}

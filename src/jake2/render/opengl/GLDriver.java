@@ -1,6 +1,6 @@
 package jake2.render.opengl;
 
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.Command;
 
 import java.awt.Dimension;
 
@@ -24,7 +24,7 @@ public interface GLDriver {
     
     java.awt.DisplayMode[] getModeList();
 
-    void updateScreen(xcommand_t callback);
+    void updateScreen(Command callback);
 
     void screenshot();
     

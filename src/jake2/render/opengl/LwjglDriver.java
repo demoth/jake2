@@ -28,7 +28,7 @@ package jake2.render.opengl;
 import jake2.Defines;
 import jake2.client.VID;
 import jake2.qcommon.Com;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.Command;
 import jake2.render.Base;
 
 import java.awt.Dimension;
@@ -324,7 +324,7 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
      * 
      * @param callback
      */
-    public final void updateScreen(xcommand_t callback) {
+    public final void updateScreen(Command callback) {
         callback.execute();
     }
 

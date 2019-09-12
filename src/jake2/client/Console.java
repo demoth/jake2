@@ -41,111 +41,100 @@ import jake2.util.Vargs;
  */
 public final class Console extends Globals {
 
-    public static xcommand_t ToggleConsole_f = new xcommand_t() {
-	public void execute() {
-	    SCR.EndLoadingPlaque(); // get rid of loading plaque
+    static Command ToggleConsole_f = () -> {
+		SCR.EndLoadingPlaque(); // get rid of loading plaque
 
-	    if (Globals.cl.attractloop) {
+		if (Globals.cl.attractloop) {
 		Cbuf.AddText("killserver\n");
 		return;
-	    }
+		}
 
-	    if (Globals.cls.state == Defines.ca_disconnected) {
+		if (Globals.cls.state == Defines.ca_disconnected) {
 		// start the demo loop again
 		Cbuf.AddText("d1\n");
 		return;
-	    }
+		}
 
-	    Key.ClearTyping();
-	    Console.ClearNotify();
+		Key.ClearTyping();
+		Console.ClearNotify();
 
-	    if (Globals.cls.key_dest == Defines.key_console) {
+		if (Globals.cls.key_dest == Defines.key_console) {
 		Menu.ForceMenuOff();
 		Cvar.Set("paused", "0");
-	    } else {
+		} else {
 		Menu.ForceMenuOff();
 		Globals.cls.key_dest = Defines.key_console;
 
 		if (Cvar.VariableValue("maxclients") == 1
 			&& Globals.server_state != 0)
-		    Cvar.Set("paused", "1");
-	    }
-	}
-    };
-
-    public static xcommand_t Clear_f = new xcommand_t() {
-	public void execute() {
-	    Arrays.fill(Globals.con.text, (byte) ' ');
-	}
-    };
-
-    public static xcommand_t Dump_f = new xcommand_t() {
-	public void execute() {
-
-	    int l, x;
-	    int line;
-	    RandomAccessFile f;
-	    byte[] buffer = new byte[1024];
-	    String name;
-
-	    if (Cmd.Argc() != 2) {
-		Com.Printf("usage: condump <filename>\n");
-		return;
-	    }
-
-	    // Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(),
-	    // Cmd_Argv(1));
-	    name = FS.Gamedir() + "/" + Cmd.Argv(1) + ".txt";
-
-	    Com.Printf("Dumped console text to " + name + ".\n");
-	    FS.CreatePath(name);
-	    f = Lib.fopen(name, "rw");
-	    if (f == null) {
-		Com.Printf("ERROR: couldn't open.\n");
-		return;
-	    }
-
-	    // skip empty lines
-	    for (l = con.current - con.totallines + 1; l <= con.current; l++) {
-		line = (l % con.totallines) * con.linewidth;
-		for (x = 0; x < con.linewidth; x++)
-		    if (con.text[line + x] != ' ')
-			break;
-		if (x != con.linewidth)
-		    break;
-	    }
-
-	    // write the remaining lines
-	    buffer[con.linewidth] = 0;
-	    for (; l <= con.current; l++) {
-		line = (l % con.totallines) * con.linewidth;
-		// strncpy (buffer, line, con.linewidth);
-		System.arraycopy(con.text, line, buffer, 0, con.linewidth);
-		for (x = con.linewidth - 1; x >= 0; x--) {
-		    if (buffer[x] == ' ')
-			buffer[x] = 0;
-		    else
-			break;
+			Cvar.Set("paused", "1");
 		}
-		for (x = 0; buffer[x] != 0; x++)
-		    buffer[x] &= 0x7f;
+	};
 
-		buffer[x] = '\n';
-		// fprintf (f, "%s\n", buffer);
-		try {
-		    f.write(buffer, 0, x + 1);
-		} catch (IOException e) {
+    private static Command Clear_f = () -> Arrays.fill(Globals.con.text, (byte) ' ');
+
+    private static Command Dump_f = () -> {
+
+		int l, x;
+		int line;
+		RandomAccessFile f;
+		byte[] buffer = new byte[1024];
+		String name;
+
+		if (Cmd.Argc() != 2) {
+			Com.Printf("usage: condump <filename>\n");
+			return;
 		}
-	    }
 
-	    Lib.fclose(f);
+		// Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(),
+		// Cmd_Argv(1));
+		name = FS.Gamedir() + "/" + Cmd.Argv(1) + ".txt";
 
-	}
-    };
+		Com.Printf("Dumped console text to " + name + ".\n");
+		FS.CreatePath(name);
+		f = Lib.fopen(name, "rw");
+		if (f == null) {
+			Com.Printf("ERROR: couldn't open.\n");
+			return;
+		}
 
-    /**
-     * 
-     */
+		// skip empty lines
+		for (l = con.current - con.totallines + 1; l <= con.current; l++) {
+			line = (l % con.totallines) * con.linewidth;
+			for (x = 0; x < con.linewidth; x++)
+				if (con.text[line + x] != ' ')
+					break;
+			if (x != con.linewidth)
+				break;
+		}
+
+		// write the remaining lines
+		buffer[con.linewidth] = 0;
+		for (; l <= con.current; l++) {
+			line = (l % con.totallines) * con.linewidth;
+			// strncpy (buffer, line, con.linewidth);
+			System.arraycopy(con.text, line, buffer, 0, con.linewidth);
+			for (x = con.linewidth - 1; x >= 0; x--) {
+				if (buffer[x] == ' ')
+					buffer[x] = 0;
+				else
+					break;
+			}
+			for (x = 0; buffer[x] != 0; x++)
+				buffer[x] &= 0x7f;
+
+			buffer[x] = '\n';
+			// fprintf (f, "%s\n", buffer);
+			try {
+				f.write(buffer, 0, x + 1);
+			} catch (IOException e) {
+			}
+		}
+
+		Lib.fclose(f);
+
+	};
+
     public static void Init() {
 	Globals.con.linewidth = -1;
 	Globals.con.backedit = 0;
@@ -171,7 +160,7 @@ public final class Console extends Globals {
     /**
      * If the line width has changed, reformat the buffer.
      */
-    public static void CheckResize() {
+    static void CheckResize() {
 
 	int width = (Globals.viddef.getWidth() >> 3) - 2;
 	if (width > Defines.MAXCMDLINE)
@@ -226,7 +215,7 @@ public final class Console extends Globals {
 	Globals.con.display = Globals.con.current;
     }
 
-    public static void ClearNotify() {
+    static void ClearNotify() {
 	int i;
 	for (i = 0; i < Defines.NUM_CON_TIMES; i++)
 	    Globals.con.times[i] = 0;
@@ -249,46 +238,40 @@ public final class Console extends Globals {
     /*
      * ================ Con_ToggleChat_f ================
      */
-    static xcommand_t ToggleChat_f = new xcommand_t() {
-	public void execute() {
-	    Key.ClearTyping();
+    private static Command ToggleChat_f = () -> {
+		Key.ClearTyping();
 
-	    if (cls.key_dest == key_console) {
+		if (cls.key_dest == key_console) {
 		if (cls.state == ca_active) {
-		    Menu.ForceMenuOff();
-		    cls.key_dest = key_game;
+			Menu.ForceMenuOff();
+			cls.key_dest = key_game;
 		}
-	    } else
+		} else
 		cls.key_dest = key_console;
 
-	    ClearNotify();
-	}
-    };
+		ClearNotify();
+	};
 
     /*
      * ================ Con_MessageMode_f ================
      */
-    static xcommand_t MessageMode_f = new xcommand_t() {
-	public void execute() {
-	    chat_team = false;
-	    cls.key_dest = key_message;
-	}
-    };
+    private static Command MessageMode_f = () -> {
+		chat_team = false;
+		cls.key_dest = key_message;
+	};
 
     /*
      * ================ Con_MessageMode2_f ================
      */
-    static xcommand_t MessageMode2_f = new xcommand_t() {
-	public void execute() {
-	    chat_team = true;
-	    cls.key_dest = key_message;
-	}
-    };
+    private static Command MessageMode2_f = () -> {
+		chat_team = true;
+		cls.key_dest = key_message;
+	};
 
     /*
      * =============== Con_Linefeed ===============
      */
-    static void Linefeed() {
+    private static void Linefeed() {
 	Globals.con.x = 0;
 	if (Globals.con.display == Globals.con.current)
 	    Globals.con.display++;
@@ -404,7 +387,7 @@ public final class Console extends Globals {
      * The input line scrolls horizontally if typing goes beyond the right edge
      * ================
      */
-    static void DrawInput() {
+    private static void DrawInput() {
 	int i;
 	byte[] text;
 	int start = 0;

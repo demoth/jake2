@@ -42,29 +42,29 @@ import java.nio.FloatBuffer;
  */
 public final class V extends Globals {
 
-    static cvar_t cl_testblend;
+    private static cvar_t cl_testblend;
 
-    static cvar_t cl_testparticles;
+    private static cvar_t cl_testparticles;
 
-    static cvar_t cl_testentities;
+    private static cvar_t cl_testentities;
 
-    static cvar_t cl_testlights;
+    private static cvar_t cl_testlights;
 
-    static cvar_t cl_stats;
+    private static cvar_t cl_stats;
 
-    static int r_numdlights;
+    private static int r_numdlights;
 
-    static dlight_t[] r_dlights = new dlight_t[MAX_DLIGHTS];
+    private static dlight_t[] r_dlights = new dlight_t[MAX_DLIGHTS];
 
-    static int r_numentities;
+    private static int r_numentities;
 
-    static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
+    private static entity_t[] r_entities = new entity_t[MAX_ENTITIES];
 
-    static int r_numparticles;
+    private static int r_numparticles;
 
     //static particle_t[] r_particles = new particle_t[MAX_PARTICLES];
 
-    static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
+    private static lightstyle_t[] r_lightstyles = new lightstyle_t[MAX_LIGHTSTYLES];
     static {
         for (int i = 0; i < r_dlights.length; i++)
             r_dlights[i] = new dlight_t();
@@ -79,7 +79,7 @@ public final class V extends Globals {
      * 
      * Specifies the model that will be used as the world ====================
      */
-    static void ClearScene() {
+    private static void ClearScene() {
         r_numdlights = 0;
         r_numentities = 0;
         r_numparticles = 0;
@@ -173,7 +173,7 @@ public final class V extends Globals {
      * If cl_testparticles is set, create 4096 particles in the view
      * ================
      */
-    static void TestParticles() {
+    private static void TestParticles() {
         int i, j;
         float d, r, u;
 
@@ -198,7 +198,7 @@ public final class V extends Globals {
      * If cl_testentities is set, create 32 player models
      * ================
      */
-    static void TestEntities() {
+    private static void TestEntities() {
         int i, j;
         float f, r;
         entity_t ent;
@@ -230,7 +230,7 @@ public final class V extends Globals {
      * If cl_testlights is set, create 32 lights models 
      * ================
      */
-    static void TestLights() {
+    private static void TestLights() {
         int i, j;
         float f, r;
         dlight_t dl;
@@ -256,31 +256,25 @@ public final class V extends Globals {
         }
     }
 
-    static xcommand_t Gun_Next_f = new xcommand_t() {
-        public void execute() {
-            gun_frame++;
-            Com.Printf("frame " + gun_frame + "\n");
-        }
+    private static Command Gun_Next_f = () -> {
+        gun_frame++;
+        Com.Printf("frame " + gun_frame + "\n");
     };
 
-    static xcommand_t Gun_Prev_f = new xcommand_t() {
-        public void execute() {
-            gun_frame--;
-            if (gun_frame < 0)
-                gun_frame = 0;
-            Com.Printf("frame " + gun_frame + "\n");
-        }
+    private static Command Gun_Prev_f = () -> {
+        gun_frame--;
+        if (gun_frame < 0)
+            gun_frame = 0;
+        Com.Printf("frame " + gun_frame + "\n");
     };
 
-    static xcommand_t Gun_Model_f = new xcommand_t() {
-        public void execute() {
-            if (Cmd.Argc() != 2) {
-                gun_model = null;
-                return;
-            }
-            String name = "models/" + Cmd.Argv(1) + "/tris.md2";
-            gun_model = re.RegisterModel(name);
+    private static Command Gun_Model_f = () -> {
+        if (Cmd.Argc() != 2) {
+            gun_model = null;
+            return;
         }
+        String name = "models/" + Cmd.Argv(1) + "/tris.md2";
+        gun_model = re.RegisterModel(name);
     };
 
     /*
@@ -430,14 +424,10 @@ public final class V extends Globals {
     /*
      * ============= V_Viewpos_f =============
      */
-    static xcommand_t Viewpos_f = new xcommand_t() {
-        public void execute() {
-            Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
-                    (int) cl.refdef.vieworg[0]).add((int) cl.refdef.vieworg[1])
-                    .add((int) cl.refdef.vieworg[2]).add(
-                            (int) cl.refdef.viewangles[YAW]));
-        }
-    };
+    private static Command Viewpos_f = () -> Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
+            (int) cl.refdef.vieworg[0]).add((int) cl.refdef.vieworg[1])
+            .add((int) cl.refdef.vieworg[2]).add(
+                    (int) cl.refdef.viewangles[YAW]));
 
     public static void Init() {
         Cmd.AddCommand("gun_next", Gun_Next_f);

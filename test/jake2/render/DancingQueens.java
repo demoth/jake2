@@ -93,7 +93,7 @@ public class DancingQueens {
         
         Cbuf.AddText("unbind t");
         Cbuf.Execute();        
-        Cmd.AddCommand("togglemouse", togglemouse);
+        Cmd.AddCommand("togglemouse", IN::toggleMouse);
         Cbuf.AddText("bind t togglemouse");
         Cbuf.Execute();
         Globals.cls.key_dest = Defines.key_game;
@@ -129,13 +129,8 @@ public class DancingQueens {
     
     void run() {
         startTime = System.currentTimeMillis();
-        xcommand_t callback = new xcommand_t() {
-            public void execute() {
-                updateScreen();
-            }
-        };
         while (true) {
-            re.updateScreen(callback);
+            re.updateScreen(this::updateScreen);
             kbd.Update();
             Cbuf.Execute();
         }
@@ -230,10 +225,5 @@ public class DancingQueens {
     private final int time() {
         return (int) (System.currentTimeMillis() - startTime);
     }
-    
-    static xcommand_t togglemouse = new xcommand_t() {
-        public void execute() {
-            IN.toggleMouse();
-        }
-    };
+
 }

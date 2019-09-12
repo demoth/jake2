@@ -77,28 +77,27 @@ import jake2.util.Lib;
 
 public final class CDAudio {
     
-    public static boolean       cdValid = false;
+    private static boolean       cdValid = false;
     public static boolean       playing = false;
-    public static boolean       wasPlaying = false;
+    private static boolean       wasPlaying = false;
     public static boolean       initialized = false;
-    public static boolean       enabled = true;
-    public static boolean       playLooping = false;
-    public static float         cdvolume = 0.0f;
+    private static boolean       enabled = true;
+    private static boolean       playLooping = false;
+    private static float         cdvolume = 0.0f;
     //public static byte        remap[100];
-    public static byte          playTrack;
-    public static byte          maxTrack;
+    private static byte          playTrack;
+    private static byte          maxTrack;
 
-    static MP3                  mp3;
-    static int                  cdfile = -1;
-    static cvar_t               cd_volume;
-    static cvar_t               cd_nocd;
-    static cvar_t               cddir; 
+    private static MP3                  mp3;
+    private static int                  cdfile = -1;
+    private static cvar_t               cd_volume;
+    private static cvar_t               cd_nocd;
+    private static cvar_t               cddir;
 
     /**
      * CD_f
      */
-    static xcommand_t CD_f  = new xcommand_t() {
-        public void execute() {
+    private static void CD_f() {
 
             String  command;
  
@@ -206,7 +205,6 @@ public final class CDAudio {
                 return;
             }
         }
-    };
 
     public static void Play(int track, boolean looping) {
         if (cdfile == -1 || enabled == false)
@@ -262,21 +260,21 @@ public final class CDAudio {
         Com.DPrintf("CD Audio (MP3s) Stopping track\n");
     }
 
-    public static void Eject() {
+    private static void Eject() {
        if (cdfile == -1 || enabled == false)
             return;
        // do nothing
        Com.DPrintf("CD Audio (MP3s) Ejected\n"); 
     }
 
-    public static void CloseDoor() {
+    private static void CloseDoor() {
         if (cdfile == -1 || enabled == false)
             return;
         // do nothing
         Com.DPrintf("CD Audio (MP3s) CloseDoor\n");
     }
 
-    public static int GetAudioDiskInfo() {
+    private static int GetAudioDiskInfo() {
         cdValid = false;
         maxTrack = 0;
         
@@ -304,7 +302,7 @@ public final class CDAudio {
         return -1;
     }
 
-    static boolean checkMP3(File f) {
+    private static boolean checkMP3(File f) {
         String name = f.getName();
         if(name.contains(".mp3"))
             return true;
@@ -312,7 +310,7 @@ public final class CDAudio {
             return false;
     }
 
-    public static void Pause() {
+    private static void Pause() {
         if (cdfile == -1 || enabled == false || playing == false)
             return;
 
@@ -325,7 +323,7 @@ public final class CDAudio {
         }
     }
 
-    public static void Resume() {
+    private static void Resume() {
         if (cdfile == -1 || enabled == false || cdValid == false || wasPlaying == false)
             return; 
 
@@ -367,7 +365,7 @@ public final class CDAudio {
                 return -1;
         }
 
-        Cmd.AddCommand ("cd", CD_f);
+        Cmd.AddCommand ("cd", CDAudio::CD_f);
         
         //cdValid = true;
         cdfile = 0;

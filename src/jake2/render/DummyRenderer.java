@@ -12,7 +12,7 @@ import java.awt.DisplayMode;
 
 import jake2.client.refdef_t;
 import jake2.client.refexport_t;
-import jake2.qcommon.xcommand_t;
+import jake2.qcommon.Command;
 import jake2.sys.KBD;
 
 /**
@@ -155,7 +155,7 @@ public class DummyRenderer implements refexport_t {
 	/* (non-Javadoc)
 	 * @see jake2.client.refexport_t#updateScreen(jake2.qcommon.xcommand_t)
 	 */
-	public void updateScreen(xcommand_t callback) {
+	public void updateScreen(Command callback) {
 	    callback.execute();
 	}
 

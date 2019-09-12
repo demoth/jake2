@@ -293,11 +293,7 @@ public class VID extends Globals {
 		vid_modes[11].height = (int)vid_height.value;
 		
 		/* Add some console commands that we want to handle */
-		Cmd.AddCommand ("vid_restart", new xcommand_t() {
-			public void execute() {
-				Restart_f();
-			}
-		});
+		Cmd.AddCommand ("vid_restart", VID::Restart_f);
 
 		/* Disable the 3Dfx splash screen */
 		// putenv("FX_GLIDE_NO_SPLASH=0");

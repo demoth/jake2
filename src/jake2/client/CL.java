@@ -45,17 +45,17 @@ import java.nio.ByteOrder;
  */
 public final class CL {
     
-    static int precache_check; // for autodownload of precache items
+    private static int precache_check; // for autodownload of precache items
 
-    static int precache_spawncount;
+    private static int precache_spawncount;
 
-    static int precache_tex;
+    private static int precache_tex;
 
-    static int precache_model_skin;
+    private static int precache_model_skin;
 
-    static byte precache_model[]; // used for skin checking in alias models
+    private static byte precache_model[]; // used for skin checking in alias models
 
-    public static final int PLAYER_MULT = 5;
+    private static final int PLAYER_MULT = 5;
 
     public static class cheatvar_t {
         String name;
@@ -65,14 +65,14 @@ public final class CL {
         cvar_t var;
     }
 
-    public static String cheatvarsinfo[][] = { { "timescale", "1" },
+    private static String cheatvarsinfo[][] = { { "timescale", "1" },
             { "timedemo", "0" }, { "r_drawworld", "1" },
             { "cl_testlights", "0" }, { "r_fullbright", "0" },
             { "r_drawflat", "0" }, { "paused", "0" }, { "fixedtime", "0" },
             { "sw_draworder", "0" }, { "gl_lightmap", "0" },
             { "gl_saturatelighting", "0" }, { null, null } };
 
-    public static cheatvar_t cheatvars[];
+    private static cheatvar_t cheatvars[];
 
     static {
         cheatvars = new cheatvar_t[cheatvarsinfo.length];
@@ -83,37 +83,35 @@ public final class CL {
         }
     }
 
-    static int numcheatvars;
+    private static int numcheatvars;
 
     /**
      * Stop_f
      * 
      * Stop recording a demo.
      */
-    static xcommand_t Stop_f = new xcommand_t() {
-        public void execute() {
-            try {
+    private static Command Stop_f = () -> {
+        try {
 
-                int len;
+            int len;
 
-                if (!Globals.cls.demorecording) {
-                    Com.Printf("Not recording a demo.\n");
-                    return;
-                }
-
-                //	   finish up
-                len = -1;
-                Globals.cls.demofile.writeInt(EndianHandler.swapInt(len));
-                Globals.cls.demofile.close();
-                Globals.cls.demofile = null;
-                Globals.cls.demorecording = false;
-                Com.Printf("Stopped demo.\n");
-            } catch (IOException e) {
+            if (!Globals.cls.demorecording) {
+                Com.Printf("Not recording a demo.\n");
+                return;
             }
+
+            //	   finish up
+            len = -1;
+            Globals.cls.demofile.writeInt(EndianHandler.swapInt(len));
+            Globals.cls.demofile.close();
+            Globals.cls.demofile = null;
+            Globals.cls.demorecording = false;
+            Com.Printf("Stopped demo.\n");
+        } catch (IOException e) {
         }
     };
 
-    static entity_state_t nullstate = new entity_state_t(null);
+    private static entity_state_t nullstate = new entity_state_t(null);
 
     /**
      * Record_f
@@ -121,191 +119,181 @@ public final class CL {
      * record &lt;demoname&gt;
      * Begins recording a demo from the current position.
      */
-    static xcommand_t Record_f = new xcommand_t() {
-        public void execute() {
-            try {
-                String name;
-                byte buf_data[] = new byte[Defines.MAX_MSGLEN];
-                sizebuf_t buf = new sizebuf_t();
-                int i;
-                entity_state_t ent;
+    private static Command Record_f = () -> {
+        try {
+            String name;
+            byte buf_data[] = new byte[Defines.MAX_MSGLEN];
+            sizebuf_t buf = new sizebuf_t();
+            int i;
+            entity_state_t ent;
 
-                if (Cmd.Argc() != 2) {
-                    Com.Printf("record <demoname>\n");
-                    return;
-                }
+            if (Cmd.Argc() != 2) {
+                Com.Printf("record <demoname>\n");
+                return;
+            }
 
-                if (Globals.cls.demorecording) {
-                    Com.Printf("Already recording.\n");
-                    return;
-                }
+            if (Globals.cls.demorecording) {
+                Com.Printf("Already recording.\n");
+                return;
+            }
 
-                if (Globals.cls.state != Defines.ca_active) {
-                    Com.Printf("You must be in a level to record.\n");
-                    return;
-                }
+            if (Globals.cls.state != Defines.ca_active) {
+                Com.Printf("You must be in a level to record.\n");
+                return;
+            }
 
-                //
-                // open the demo file
-                //
-                name = FS.Gamedir() + "/demos/" + Cmd.Argv(1) + ".dm2";
+            //
+            // open the demo file
+            //
+            name = FS.Gamedir() + "/demos/" + Cmd.Argv(1) + ".dm2";
 
-                Com.Printf("recording to " + name + ".\n");
-                FS.CreatePath(name);
-                Globals.cls.demofile = new RandomAccessFile(name, "rw");
-                if (Globals.cls.demofile == null) {
-                    Com.Printf("ERROR: couldn't open.\n");
-                    return;
-                }
-                Globals.cls.demorecording = true;
+            Com.Printf("recording to " + name + ".\n");
+            FS.CreatePath(name);
+            Globals.cls.demofile = new RandomAccessFile(name, "rw");
+            if (Globals.cls.demofile == null) {
+                Com.Printf("ERROR: couldn't open.\n");
+                return;
+            }
+            Globals.cls.demorecording = true;
 
-                // don't start saving messages until a non-delta compressed
-                // message is received
-                Globals.cls.demowaiting = true;
+            // don't start saving messages until a non-delta compressed
+            // message is received
+            Globals.cls.demowaiting = true;
 
-                //
-                // write out messages to hold the startup information
-                //
-                SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
+            //
+            // write out messages to hold the startup information
+            //
+            SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 
-                // send the serverdata
-                MSG.WriteByte(buf, Defines.svc_serverdata);
-                MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
-                MSG.WriteInt(buf, 0x10000 + Globals.cl.servercount);
-                MSG.WriteByte(buf, 1); // demos are always attract loops
-                MSG.WriteString(buf, Globals.cl.gamedir);
-                MSG.WriteShort(buf, Globals.cl.playernum);
+            // send the serverdata
+            MSG.WriteByte(buf, Defines.svc_serverdata);
+            MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
+            MSG.WriteInt(buf, 0x10000 + Globals.cl.servercount);
+            MSG.WriteByte(buf, 1); // demos are always attract loops
+            MSG.WriteString(buf, Globals.cl.gamedir);
+            MSG.WriteShort(buf, Globals.cl.playernum);
 
-                MSG.WriteString(buf, Globals.cl.configstrings[Defines.CS_NAME]);
+            MSG.WriteString(buf, Globals.cl.configstrings[Defines.CS_NAME]);
 
-                // configstrings
-                for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
-                    if (Globals.cl.configstrings[i].length() > 0) {
-                        if (buf.cursize + Globals.cl.configstrings[i].length()
-                                + 32 > buf.maxsize) { 
-                            // write it out
-                            Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                            Globals.cls.demofile
-                                    .write(buf.data, 0, buf.cursize);
-                            buf.cursize = 0;
-                        }
-
-                        MSG.WriteByte(buf, Defines.svc_configstring);
-                        MSG.WriteShort(buf, i);
-                        MSG.WriteString(buf, Globals.cl.configstrings[i]);
-                    }
-
-                }
-
-                // baselines
-                nullstate.clear();
-                for (i = 0; i < Defines.MAX_EDICTS; i++) {
-                    ent = Globals.cl_entities[i].baseline;
-                    if (ent.modelindex == 0)
-                        continue;
-
-                    if (buf.cursize + 64 > buf.maxsize) { // write it out
+            // configstrings
+            for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
+                if (Globals.cl.configstrings[i].length() > 0) {
+                    if (buf.cursize + Globals.cl.configstrings[i].length()
+                            + 32 > buf.maxsize) {
+                        // write it out
                         Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                        Globals.cls.demofile.write(buf.data, 0, buf.cursize);
+                        Globals.cls.demofile
+                                .write(buf.data, 0, buf.cursize);
                         buf.cursize = 0;
                     }
 
-                    MSG.WriteByte(buf, Defines.svc_spawnbaseline);
-                    MSG.WriteDeltaEntity(nullstate,
-                            Globals.cl_entities[i].baseline, buf, true, true);
+                    MSG.WriteByte(buf, Defines.svc_configstring);
+                    MSG.WriteShort(buf, i);
+                    MSG.WriteString(buf, Globals.cl.configstrings[i]);
                 }
 
-                MSG.WriteByte(buf, Defines.svc_stufftext);
-                MSG.WriteString(buf, "precache\n");
-
-                // write it to the demo file
-                Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                Globals.cls.demofile.write(buf.data, 0, buf.cursize);
-                // the rest of the demo file will be individual frames
-
-            } catch (IOException e) {
             }
+
+            // baselines
+            nullstate.clear();
+            for (i = 0; i < Defines.MAX_EDICTS; i++) {
+                ent = Globals.cl_entities[i].baseline;
+                if (ent.modelindex == 0)
+                    continue;
+
+                if (buf.cursize + 64 > buf.maxsize) { // write it out
+                    Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+                    Globals.cls.demofile.write(buf.data, 0, buf.cursize);
+                    buf.cursize = 0;
+                }
+
+                MSG.WriteByte(buf, Defines.svc_spawnbaseline);
+                MSG.WriteDeltaEntity(nullstate,
+                        Globals.cl_entities[i].baseline, buf, true, true);
+            }
+
+            MSG.WriteByte(buf, Defines.svc_stufftext);
+            MSG.WriteString(buf, "precache\n");
+
+            // write it to the demo file
+            Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+            Globals.cls.demofile.write(buf.data, 0, buf.cursize);
+            // the rest of the demo file will be individual frames
+
+        } catch (IOException e) {
         }
     };
 
     /**
      * ForwardToServer_f
      */
-    static xcommand_t ForwardToServer_f = new xcommand_t() {
-        public void execute() {
-            if (Globals.cls.state != Defines.ca_connected
-                    && Globals.cls.state != Defines.ca_active) {
-                Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
-                return;
-            }
+    private static Command ForwardToServer_f = () -> {
+        if (Globals.cls.state != Defines.ca_connected
+                && Globals.cls.state != Defines.ca_active) {
+            Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
+            return;
+        }
 
-            // don't forward the first argument
-            if (Cmd.Argc() > 1) {
-                MSG.WriteByte(Globals.cls.netchan.message,
-                        Defines.clc_stringcmd);
-                SZ.Print(Globals.cls.netchan.message, Cmd.Args());
-            }
+        // don't forward the first argument
+        if (Cmd.Argc() > 1) {
+            MSG.WriteByte(Globals.cls.netchan.message,
+                    Defines.clc_stringcmd);
+            SZ.Print(Globals.cls.netchan.message, Cmd.Args());
         }
     };
 
     /**
      * Pause_f
      */
-    static xcommand_t Pause_f = new xcommand_t() {
-        public void execute() {
-            // never pause in multiplayer
+    private static Command Pause_f = () -> {
+        // never pause in multiplayer
 
-            if (Cvar.VariableValue("maxclients") > 1
-                    || Globals.server_state == 0) {
-                Cvar.SetValue("paused", 0);
-                return;
-            }
-
-            Cvar.SetValue("paused", Globals.cl_paused.value);
+        if (Cvar.VariableValue("maxclients") > 1
+                || Globals.server_state == 0) {
+            Cvar.SetValue("paused", 0);
+            return;
         }
+
+        Cvar.SetValue("paused", Globals.cl_paused.value);
     };
 
     /**
      * Quit_f
      */
-    static xcommand_t Quit_f = new xcommand_t() {
-        public void execute() {
-            Disconnect();
-            Com.Quit();
-        }
+    static Command Quit_f = () -> {
+        Disconnect();
+        Com.Quit();
     };
 
     /**
      * Connect_f
      */
-    static xcommand_t Connect_f = new xcommand_t() {
-        public void execute() {
-            String server;
+    private static Command Connect_f = () -> {
+        String server;
 
-            if (Cmd.Argc() != 2) {
-                Com.Printf("usage: connect <server>\n");
-                return;
-            }
-
-            if (Globals.server_state != 0) {
-                // if running a local server, kill it and reissue
-                SV_MAIN.SV_Shutdown("Server quit\n", false);
-            } else {
-                Disconnect();
-            }
-
-            server = Cmd.Argv(1);
-
-            NET.Config(true); // allow remote
-
-            Disconnect();
-
-            Globals.cls.state = Defines.ca_connecting;
-            //strncpy (cls.servername, server, sizeof(cls.servername)-1);
-            Globals.cls.servername = server;
-            Globals.cls.connect_time = -99999;
-            // CL_CheckForResend() will fire immediately
+        if (Cmd.Argc() != 2) {
+            Com.Printf("usage: connect <server>\n");
+            return;
         }
+
+        if (Globals.server_state != 0) {
+            // if running a local server, kill it and reissue
+            SV_MAIN.SV_Shutdown("Server quit\n", false);
+        } else {
+            Disconnect();
+        }
+
+        server = Cmd.Argv(1);
+
+        NET.Config(true); // allow remote
+
+        Disconnect();
+
+        Globals.cls.state = Defines.ca_connecting;
+        //strncpy (cls.servername, server, sizeof(cls.servername)-1);
+        Globals.cls.servername = server;
+        Globals.cls.connect_time = -99999;
+        // CL_CheckForResend() will fire immediately
     };
 
     /**
@@ -313,77 +301,69 @@ public final class CL {
      * 
      * Send the rest of the command line over as an unconnected command.
      */
-    static xcommand_t Rcon_f = new xcommand_t() {
-        public void execute() {
+    private static Command Rcon_f = () -> {
 
-            if (Globals.rcon_client_password.string.length() == 0) {
-                Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
+        if (Globals.rcon_client_password.string.length() == 0) {
+            Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
+            return;
+        }
+
+        StringBuffer message = new StringBuffer(1024);
+
+        // connection less packet
+        message.append('\u00ff');
+        message.append('\u00ff');
+        message.append('\u00ff');
+        message.append('\u00ff');
+
+        // allow remote
+        NET.Config(true);
+
+        message.append("rcon ");
+        message.append(Globals.rcon_client_password.string);
+        message.append(" ");
+
+        for (int i = 1; i < Cmd.Argc(); i++) {
+            message.append(Cmd.Argv(i));
+            message.append(" ");
+        }
+
+        netadr_t to = new netadr_t();
+
+        if (Globals.cls.state >= Defines.ca_connected)
+            to = Globals.cls.netchan.remote_address;
+        else {
+            if (Globals.rcon_address.string.length() == 0) {
+                Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
                 return;
             }
-
-            StringBuffer message = new StringBuffer(1024);
-
-            // connection less packet
-            message.append('\u00ff');
-            message.append('\u00ff');
-            message.append('\u00ff');
-            message.append('\u00ff');
-
-            // allow remote
-            NET.Config(true);
-
-            message.append("rcon ");
-            message.append(Globals.rcon_client_password.string);
-            message.append(" ");
-
-            for (int i = 1; i < Cmd.Argc(); i++) {
-                message.append(Cmd.Argv(i));
-                message.append(" ");
-            }
-
-            netadr_t to = new netadr_t();
-
-            if (Globals.cls.state >= Defines.ca_connected)
-                to = Globals.cls.netchan.remote_address;
-            else {
-                if (Globals.rcon_address.string.length() == 0) {
-                    Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
-                    return;
-                }
-                NET.StringToAdr(Globals.rcon_address.string, to);
-                if (to.port == 0) to.port = Defines.PORT_SERVER;
-            }
-            message.append('\0');
-            String b = message.toString();
-            NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
+            NET.StringToAdr(Globals.rcon_address.string, to);
+            if (to.port == 0) to.port = Defines.PORT_SERVER;
         }
+        message.append('\0');
+        String b = message.toString();
+        NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
     };
 
-    static xcommand_t Disconnect_f = new xcommand_t() {
-        public void execute() {
-            Com.Error(Defines.ERR_DROP, "Disconnected from server");
-        }
-    };
+    private static Command Disconnect_f = () -> Com.Error(Defines.ERR_DROP, "Disconnected from server");
 
     /**
      * Changing_f
      * 
      * Just sent as a hint to the client that they should drop to full console.
      */
-    static xcommand_t Changing_f = new xcommand_t() {
-        public void execute() {
-            //ZOID
-            //if we are downloading, we don't change!
-            // This so we don't suddenly stop downloading a map
+    private static Command Changing_f = () -> {
+        //ZOID
+        //if we are downloading, we don't change!
+        // This so we don't suddenly stop downloading a map
 
-            if (Globals.cls.download != null)
-                return;
+        if (Globals.cls.download != null)
+            return;
 
-            SCR.BeginLoadingPlaque();
-            Globals.cls.state = Defines.ca_connected; // not active anymore, but
-                                                      // not disconnected
-            Com.Printf("\nChanging map...\n");
-        }
+        SCR.BeginLoadingPlaque();
+        Globals.cls.state = Defines.ca_connected; // not active anymore, but
+                                                  // not disconnected
+        Com.Printf("\nChanging map...\n");
     };
 
     /**
@@ -391,93 +371,89 @@ public final class CL {
      * 
      * The server is changing levels.
      */
-    static xcommand_t Reconnect_f = new xcommand_t() {
-        public void execute() {
-            //ZOID
-            //if we are downloading, we don't change! This so we don't suddenly
-            // stop downloading a map
-            if (Globals.cls.download != null)
-                return;
+    private static Command Reconnect_f = () -> {
+        //ZOID
+        //if we are downloading, we don't change! This so we don't suddenly
+        // stop downloading a map
+        if (Globals.cls.download != null)
+            return;
 
-            S.StopAllSounds();
-            if (Globals.cls.state == Defines.ca_connected) {
-                Com.Printf("reconnecting...\n");
-                Globals.cls.state = Defines.ca_connected;
-                MSG.WriteChar(Globals.cls.netchan.message,
-                        Defines.clc_stringcmd);
-                MSG.WriteString(Globals.cls.netchan.message, "new");
-                return;
-            }
+        S.StopAllSounds();
+        if (Globals.cls.state == Defines.ca_connected) {
+            Com.Printf("reconnecting...\n");
+            Globals.cls.state = Defines.ca_connected;
+            MSG.WriteChar(Globals.cls.netchan.message,
+                    Defines.clc_stringcmd);
+            MSG.WriteString(Globals.cls.netchan.message, "new");
+            return;
+        }
 
-            if (Globals.cls.servername != null) {
-                if (Globals.cls.state >= Defines.ca_connected) {
-                    Disconnect();
-                    Globals.cls.connect_time = Globals.cls.realtime - 1500;
-                } else
-                    Globals.cls.connect_time = -99999; // fire immediately
+        if (Globals.cls.servername != null) {
+            if (Globals.cls.state >= Defines.ca_connected) {
+                Disconnect();
+                Globals.cls.connect_time = Globals.cls.realtime - 1500;
+            } else
+                Globals.cls.connect_time = -99999; // fire immediately
 
-                Globals.cls.state = Defines.ca_connecting;
-                Com.Printf("reconnecting...\n");
-            }
+            Globals.cls.state = Defines.ca_connecting;
+            Com.Printf("reconnecting...\n");
         }
     };
 
     /**
      * PingServers_f
      */
-    static xcommand_t PingServers_f = new xcommand_t() {
-        public void execute() {
-            int i;
-            netadr_t adr = new netadr_t();
-            //char name[32];
-            String name;
-            String adrstring;
-            cvar_t noudp;
-            cvar_t noipx;
+    static Command PingServers_f = () -> {
+        int i;
+        netadr_t adr = new netadr_t();
+        //char name[32];
+        String name;
+        String adrstring;
+        cvar_t noudp;
+        cvar_t noipx;
 
-            NET.Config(true); // allow remote
+        NET.Config(true); // allow remote
 
-            // send a broadcast packet
-            Com.Printf("pinging broadcast...\n");
+        // send a broadcast packet
+        Com.Printf("pinging broadcast...\n");
 
-            noudp = Cvar.Get("noudp", "0", Defines.CVAR_NOSET);
-            if (noudp.value == 0.0f) {
-                adr.type = Defines.NA_BROADCAST;
-                adr.port = Defines.PORT_SERVER;
+        noudp = Cvar.Get("noudp", "0", Defines.CVAR_NOSET);
+        if (noudp.value == 0.0f) {
+            adr.type = Defines.NA_BROADCAST;
+            adr.port = Defines.PORT_SERVER;
+            //adr.port = BigShort(PORT_SERVER);
+            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
+                    + Defines.PROTOCOL_VERSION);
+        }
+
+        // we use no IPX
+        noipx = Cvar.Get("noipx", "1", Defines.CVAR_NOSET);
+        if (noipx.value == 0.0f) {
+            adr.type = Defines.NA_BROADCAST_IPX;
+            //adr.port = BigShort(PORT_SERVER);
+            adr.port = Defines.PORT_SERVER;
+            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
+                    + Defines.PROTOCOL_VERSION);
+        }
+
+        // send a packet to each address book entry
+        for (i = 0; i < 16; i++) {
+            //Com_sprintf (name, sizeof(name), "adr%i", i);
+            name = "adr" + i;
+            adrstring = Cvar.VariableString(name);
+            if (adrstring == null || adrstring.length() == 0)
+                continue;
+
+            Com.Printf("pinging " + adrstring + "...\n");
+            if (!NET.StringToAdr(adrstring, adr)) {
+                Com.Printf("Bad address: " + adrstring + "\n");
+                continue;
+            }
+            if (adr.port == 0)
                 //adr.port = BigShort(PORT_SERVER);
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                        + Defines.PROTOCOL_VERSION);
-            }
-
-            // we use no IPX
-            noipx = Cvar.Get("noipx", "1", Defines.CVAR_NOSET);
-            if (noipx.value == 0.0f) {
-                adr.type = Defines.NA_BROADCAST_IPX;
-                //adr.port = BigShort(PORT_SERVER);
                 adr.port = Defines.PORT_SERVER;
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                        + Defines.PROTOCOL_VERSION);
-            }
-
-            // send a packet to each address book entry
-            for (i = 0; i < 16; i++) {
-                //Com_sprintf (name, sizeof(name), "adr%i", i);
-                name = "adr" + i;
-                adrstring = Cvar.VariableString(name);
-                if (adrstring == null || adrstring.length() == 0)
-                    continue;
-
-                Com.Printf("pinging " + adrstring + "...\n");
-                if (!NET.StringToAdr(adrstring, adr)) {
-                    Com.Printf("Bad address: " + adrstring + "\n");
-                    continue;
-                }
-                if (adr.port == 0)
-                    //adr.port = BigShort(PORT_SERVER);
-                    adr.port = Defines.PORT_SERVER;
-                Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
-                        + Defines.PROTOCOL_VERSION);
-            }
+            Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
+                    + Defines.PROTOCOL_VERSION);
         }
     };
 
@@ -486,31 +462,27 @@ public final class CL {
      * 
      * Load or download any custom player skins and models.
      */
-    static xcommand_t Skins_f = new xcommand_t() {
-        public void execute() {
-            int i;
+    private static Command Skins_f = () -> {
+        int i;
 
-            for (i = 0; i < Defines.MAX_CLIENTS; i++) {
-                if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i] == null)
-                    continue;
-                Com.Printf("client " + i + ": "
-                        + Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
-                        + "\n");
-                SCR.UpdateScreen();
-                Sys.SendKeyEvents(); // pump message loop
-                CL_parse.ParseClientinfo(i);
-            }
+        for (i = 0; i < Defines.MAX_CLIENTS; i++) {
+            if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i] == null)
+                continue;
+            Com.Printf("client " + i + ": "
+                    + Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
+                    + "\n");
+            SCR.UpdateScreen();
+            Sys.SendKeyEvents(); // pump message loop
+            CL_parse.ParseClientinfo(i);
         }
     };
 
     /**
      * Userinfo_f
      */
-    static xcommand_t Userinfo_f = new xcommand_t() {
-        public void execute() {
-            Com.Printf("User info settings:\n");
-            Info.Print(Cvar.Userinfo());
-        }
+    private static Command Userinfo_f = () -> {
+        Com.Printf("User info settings:\n");
+        Info.Print(Cvar.Userinfo());
     };
 
     /**
@@ -519,49 +491,89 @@ public final class CL {
      * Restart the sound subsystem so it can pick up new parameters and flush
      * all sounds.
      */
-    static xcommand_t Snd_Restart_f = new xcommand_t() {
-        public void execute() {
-            S.Shutdown();
-            S.Init();
-            CL_parse.RegisterSounds();
-        }
+    static Command Snd_Restart_f = () -> {
+        S.Shutdown();
+        S.Init();
+        CL_parse.RegisterSounds();
     };
 
     //	   ENV_CNT is map load, ENV_CNT+1 is first env map
-    public static final int ENV_CNT = (Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS
+    private static final int ENV_CNT = (Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS
             * CL.PLAYER_MULT);
 
-    public static final int TEXTURE_CNT = (ENV_CNT + 13);
+    private static final int TEXTURE_CNT = (ENV_CNT + 13);
 
-    static String env_suf[] = { "rt", "bk", "lf", "ft", "up", "dn" };
+    private static String env_suf[] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
     /**
      * The server will send this command right before allowing the client into
      * the server.
      */
-    static xcommand_t Precache_f = new xcommand_t() {
-        public void execute() {
-            // Yet another hack to let old demos work the old precache sequence.
-            if (Cmd.Argc() < 2) {
+    private static Command Precache_f = () -> {
+        // Yet another hack to let old demos work the old precache sequence.
+        if (Cmd.Argc() < 2) {
 
-                int iw[] = { 0 }; // for detecting cheater maps
+            int iw[] = { 0 }; // for detecting cheater maps
 
-                CM.CM_LoadMap(Globals.cl.configstrings[Defines.CS_MODELS + 1],
-                        true, iw);
+            CM.CM_LoadMap(Globals.cl.configstrings[Defines.CS_MODELS + 1],
+                    true, iw);
 
-                CL_parse.RegisterSounds();
-                CL_view.PrepRefresh();
-                return;
-            }
-
-            CL.precache_check = Defines.CS_MODELS;
-            CL.precache_spawncount = Lib.atoi(Cmd.Argv(1));
-            CL.precache_model = null;
-            CL.precache_model_skin = 0;
-
-            RequestNextDownload();
+            CL_parse.RegisterSounds();
+            CL_view.PrepRefresh();
+            return;
         }
+
+        CL.precache_check = Defines.CS_MODELS;
+        CL.precache_spawncount = Lib.atoi(Cmd.Argv(1));
+        CL.precache_model = null;
+        CL.precache_model_skin = 0;
+
+        RequestNextDownload();
     };
+
+    /*
+     * =============== CL_Download_f
+     *
+     * Request a download from the server ===============
+     */
+    private static Command Download_f = () -> {
+        String filename;
+
+        if (Cmd.Argc() != 2) {
+            Com.Printf("Usage: download <filename>\n");
+            return;
+        }
+
+        filename = Cmd.Argv(1);
+
+        if (filename.indexOf("..") != -1) {
+            Com.Printf("Refusing to download a path with ..\n");
+            return;
+        }
+
+        if (FS.LoadFile(filename) != null) { // it exists, no need to
+            // download
+            Com.Printf("File already exists.\n");
+            return;
+        }
+
+        Globals.cls.downloadname = filename;
+        Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
+
+        // download to a temp name, and only rename
+        // to the real name when done, so if interrupted
+        // a runt file wont be left
+        Globals.cls.downloadtempname = Com
+                .StripExtension(Globals.cls.downloadname);
+        Globals.cls.downloadtempname += ".tmp";
+
+        MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
+        MSG.WriteString(Globals.cls.netchan.message, "download "
+                + Globals.cls.downloadname);
+
+        Globals.cls.downloadnumber++;
+    };
+
 
     private static int extratime;
 
@@ -573,7 +585,7 @@ public final class CL {
      * FIXME: this is a callback from Sys_Quit and Com_Error. It would be better
      * to run quit through here before the final handoff to the sys code.
      */
-    static boolean isdown = false;
+    private static boolean isdown = false;
 
     /**
      * WriteDemoMessage
@@ -599,7 +611,7 @@ public final class CL {
      * 
      * We have gotten a challenge from the server, so try and connect.
      */
-    static void SendConnectPacket() {
+    private static void SendConnectPacket() {
         netadr_t adr = new netadr_t();
         int port;
 
@@ -625,7 +637,7 @@ public final class CL {
      * 
      * Resend a connect message if the last one has timed out.
      */
-    static void CheckForResend() {
+    private static void CheckForResend() {
         // if the local server is running and we aren't
         // then connect
         if (Globals.cls.state == Defines.ca_disconnected
@@ -687,7 +699,7 @@ public final class CL {
      * disconnect message to the server This is also called on Com_Error, so it
      * shouldn't cause any errors.
      */
-    static void Disconnect() {
+    private static void Disconnect() {
 
         String fin;
 
@@ -740,7 +752,7 @@ public final class CL {
      * 
      * Handle a reply from a ping.
      */
-    static void ParseStatusMessage() {
+    private static void ParseStatusMessage() {
         String s;
 
         s = MSG.ReadString(Globals.net_message);
@@ -754,7 +766,7 @@ public final class CL {
      * 
      * Responses to broadcasts, etc
      */
-    static void ConnectionlessPacket() {
+    private static void ConnectionlessPacket() {
         String s;
         String c;
 
@@ -835,7 +847,7 @@ public final class CL {
     /**
      * ReadPackets
      */
-    static void ReadPackets() {
+    private static void ReadPackets() {
         while (NET.GetPacket(Defines.NS_CLIENT, Globals.net_from,
                 Globals.net_message)) {
 
@@ -918,7 +930,7 @@ public final class CL {
         }
     }
 
-    public static void RequestNextDownload() {
+    static void RequestNextDownload() {
         int map_checksum = 0; // for detecting cheater maps
         //char fn[MAX_OSPATH];
         String fn;
@@ -1239,7 +1251,7 @@ public final class CL {
     /**
      * InitLocal
      */
-    public static void InitLocal() {
+    private static void InitLocal() {
         Globals.cls.state = Defines.ca_disconnected;
         Globals.cls.realtime = Timer.Milliseconds();
 
@@ -1365,7 +1377,7 @@ public final class CL {
 
         Cmd.AddCommand("precache", Precache_f);
 
-        Cmd.AddCommand("download", CL_parse.Download_f);
+        Cmd.AddCommand("download", Download_f);
 
         //
         // forward to server commands
@@ -1431,7 +1443,7 @@ public final class CL {
     /**
      * FixCvarCheats
      */
-    public static void FixCvarCheats() {
+    private static void FixCvarCheats() {
         int i;
         CL.cheatvar_t var;
 
@@ -1464,7 +1476,7 @@ public final class CL {
     /**
      * SendCommand
      */
-    public static void SendCommand() {
+    private static void SendCommand() {
         // get new key events
         Sys.SendKeyEvents();
 
@@ -1608,9 +1620,9 @@ public final class CL {
         }
     }
 
-    static int numleafs = 0;
-    static short x,y,z;
-    static int viewcluster;
+    private static int numleafs = 0;
+    private static short x,y,z;
+    private static int viewcluster;
     
     /**
      * Shutdown

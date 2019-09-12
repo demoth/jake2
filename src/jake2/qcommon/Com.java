@@ -256,14 +256,6 @@ public final class Com
 		return new String(com_token, 0, len);
 	}
 
-	public static xcommand_t Error_f= new xcommand_t()
-	{
-		public void execute() throws longjmpException
-		{
-			Error(Defines.ERR_FATAL, Cmd.Argv(1));
-		}
-	};
-
 	public static void Error(int code, String fmt) throws longjmpException
 	{
 		Error(code, fmt, null);

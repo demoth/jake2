@@ -40,11 +40,11 @@ import jake2.util.Math3D;
  */
 public class CL_input {
 
-	static long frame_msec;
+	private static long frame_msec;
 
-	static long old_sys_frame_time;
+	private static long old_sys_frame_time;
 
-	static cvar_t cl_nodelta;
+	private static cvar_t cl_nodelta;
 
 	/*
 	 * ===============================================================================
@@ -72,39 +72,39 @@ public class CL_input {
 	 * ===============================================================================
 	 */
 
-	static kbutton_t in_klook = new kbutton_t();
+	private static kbutton_t in_klook = new kbutton_t();
 
-	static kbutton_t in_left = new kbutton_t();
+	private static kbutton_t in_left = new kbutton_t();
 
-	static kbutton_t in_right = new kbutton_t();
+	private static kbutton_t in_right = new kbutton_t();
 
-	static kbutton_t in_forward = new kbutton_t();
+	private static kbutton_t in_forward = new kbutton_t();
 
-	static kbutton_t in_back = new kbutton_t();
+	private static kbutton_t in_back = new kbutton_t();
 
-	static kbutton_t in_lookup = new kbutton_t();
+	private static kbutton_t in_lookup = new kbutton_t();
 
-	static kbutton_t in_lookdown = new kbutton_t();
+	private static kbutton_t in_lookdown = new kbutton_t();
 
-	static kbutton_t in_moveleft = new kbutton_t();
+	private static kbutton_t in_moveleft = new kbutton_t();
 
-	static kbutton_t in_moveright = new kbutton_t();
+	private static kbutton_t in_moveright = new kbutton_t();
 
 	public static kbutton_t in_strafe = new kbutton_t();
 
-	static kbutton_t in_speed = new kbutton_t();
+	private static kbutton_t in_speed = new kbutton_t();
 
-	static kbutton_t in_use = new kbutton_t();
+	private static kbutton_t in_use = new kbutton_t();
 
-	static kbutton_t in_attack = new kbutton_t();
+	private static kbutton_t in_attack = new kbutton_t();
 
-	static kbutton_t in_up = new kbutton_t();
+	private static kbutton_t in_up = new kbutton_t();
 
-	static kbutton_t in_down = new kbutton_t();
+	private static kbutton_t in_down = new kbutton_t();
 
-	static int in_impulse;
+	private static int in_impulse;
 
-	static void KeyDown(kbutton_t b) {
+	private static void KeyDown(kbutton_t b) {
 		int k;
 		String c;
 
@@ -138,7 +138,7 @@ public class CL_input {
 		b.state |= 3; // down + impulse down
 	}
 
-	static void KeyUp(kbutton_t b) {
+	private static void KeyUp(kbutton_t b) {
 		int k;
 		String c;
 		int uptime;
@@ -178,136 +178,12 @@ public class CL_input {
 		b.state |= 4; // impulse up
 	}
 
-	static void IN_KLookDown() {
-		KeyDown(in_klook);
-	}
-
-	static void IN_KLookUp() {
-		KeyUp(in_klook);
-	}
-
-	static void IN_UpDown() {
-		KeyDown(in_up);
-	}
-
-	static void IN_UpUp() {
-		KeyUp(in_up);
-	}
-
-	static void IN_DownDown() {
-		KeyDown(in_down);
-	}
-
-	static void IN_DownUp() {
-		KeyUp(in_down);
-	}
-
-	static void IN_LeftDown() {
-		KeyDown(in_left);
-	}
-
-	static void IN_LeftUp() {
-		KeyUp(in_left);
-	}
-
-	static void IN_RightDown() {
-		KeyDown(in_right);
-	}
-
-	static void IN_RightUp() {
-		KeyUp(in_right);
-	}
-
-	static void IN_ForwardDown() {
-		KeyDown(in_forward);
-	}
-
-	static void IN_ForwardUp() {
-		KeyUp(in_forward);
-	}
-
-	static void IN_BackDown() {
-		KeyDown(in_back);
-	}
-
-	static void IN_BackUp() {
-		KeyUp(in_back);
-	}
-
-	static void IN_LookupDown() {
-		KeyDown(in_lookup);
-	}
-
-	static void IN_LookupUp() {
-		KeyUp(in_lookup);
-	}
-
-	static void IN_LookdownDown() {
-		KeyDown(in_lookdown);
-	}
-
-	static void IN_LookdownUp() {
-		KeyUp(in_lookdown);
-	}
-
-	static void IN_MoveleftDown() {
-		KeyDown(in_moveleft);
-	}
-
-	static void IN_MoveleftUp() {
-		KeyUp(in_moveleft);
-	}
-
-	static void IN_MoverightDown() {
-		KeyDown(in_moveright);
-	}
-
-	static void IN_MoverightUp() {
-		KeyUp(in_moveright);
-	}
-
-	static void IN_SpeedDown() {
-		KeyDown(in_speed);
-	}
-
-	static void IN_SpeedUp() {
-		KeyUp(in_speed);
-	}
-
-	static void IN_StrafeDown() {
-		KeyDown(in_strafe);
-	}
-
-	static void IN_StrafeUp() {
-		KeyUp(in_strafe);
-	}
-
-	static void IN_AttackDown() {
-		KeyDown(in_attack);
-	}
-
-	static void IN_AttackUp() {
-		KeyUp(in_attack);
-	}
-
-	static void IN_UseDown() {
-		KeyDown(in_use);
-	}
-
-	static void IN_UseUp() {
-		KeyUp(in_use);
-	}
-
-	static void IN_Impulse() {
-		in_impulse = Lib.atoi(Cmd.Argv(1));
-	}
-
 	/*
 	 * =============== CL_KeyState
 	 * 
 	 * Returns the fraction of the frame that the key was down ===============
 	 */
-	static float KeyState(kbutton_t key) {
+	private static float KeyState(kbutton_t key) {
 		float val;
 		long msec;
 
@@ -338,7 +214,7 @@ public class CL_input {
 	 * 
 	 * Moves the local angle positions ================
 	 */
-	static void AdjustAngles() {
+	private static void AdjustAngles() {
 		float speed;
 		float up, down;
 
@@ -368,7 +244,7 @@ public class CL_input {
 	 * 
 	 * Send the intended movement message to the server ================
 	 */
-	static void BaseMove(usercmd_t cmd) {
+	private static void BaseMove(usercmd_t cmd) {
 		AdjustAngles();
 
 		//memset (cmd, 0, sizeof(*cmd));
@@ -402,7 +278,7 @@ public class CL_input {
 
 	}
 
-	static void ClampPitch() {
+	private static void ClampPitch() {
 
 		float pitch;
 
@@ -424,7 +300,7 @@ public class CL_input {
 	/*
 	 * ============== CL_FinishMove ==============
 	 */
-	static void FinishMove(usercmd_t cmd) {
+	private static void FinishMove(usercmd_t cmd) {
 		int ms;
 		int i;
 
@@ -462,7 +338,7 @@ public class CL_input {
 	/*
 	 * ================= CL_CreateCmd =================
 	 */
-	static void CreateCmd(usercmd_t cmd) {
+	private static void CreateCmd(usercmd_t cmd) {
 		//usercmd_t cmd = new usercmd_t();
 
 		frame_msec = Globals.sys_frame_time - old_sys_frame_time;
@@ -488,167 +364,38 @@ public class CL_input {
 	 * ============ CL_InitInput ============
 	 */
 	static void InitInput() {
-		Cmd.AddCommand("centerview", new xcommand_t() {
-			public void execute() {
-				IN.CenterView();
-			}
-		});
-
-		Cmd.AddCommand("+moveup", new xcommand_t() {
-			public void execute() {
-				IN_UpDown();
-			}
-		});
-		Cmd.AddCommand("-moveup", new xcommand_t() {
-			public void execute() {
-				IN_UpUp();
-			}
-		});
-		Cmd.AddCommand("+movedown", new xcommand_t() {
-			public void execute() {
-				IN_DownDown();
-			}
-		});
-		Cmd.AddCommand("-movedown", new xcommand_t() {
-			public void execute() {
-				IN_DownUp();
-			}
-		});
-		Cmd.AddCommand("+left", new xcommand_t() {
-			public void execute() {
-				IN_LeftDown();
-			}
-		});
-		Cmd.AddCommand("-left", new xcommand_t() {
-			public void execute() {
-				IN_LeftUp();
-			}
-		});
-		Cmd.AddCommand("+right", new xcommand_t() {
-			public void execute() {
-				IN_RightDown();
-			}
-		});
-		Cmd.AddCommand("-right", new xcommand_t() {
-			public void execute() {
-				IN_RightUp();
-			}
-		});
-		Cmd.AddCommand("+forward", new xcommand_t() {
-			public void execute() {
-				IN_ForwardDown();
-			}
-		});
-		Cmd.AddCommand("-forward", new xcommand_t() {
-			public void execute() {
-				IN_ForwardUp();
-			}
-		});
-		Cmd.AddCommand("+back", new xcommand_t() {
-			public void execute() {
-				IN_BackDown();
-			}
-		});
-		Cmd.AddCommand("-back", new xcommand_t() {
-			public void execute() {
-				IN_BackUp();
-			}
-		});
-		Cmd.AddCommand("+lookup", new xcommand_t() {
-			public void execute() {
-				IN_LookupDown();
-			}
-		});
-		Cmd.AddCommand("-lookup", new xcommand_t() {
-			public void execute() {
-				IN_LookupUp();
-			}
-		});
-		Cmd.AddCommand("+lookdown", new xcommand_t() {
-			public void execute() {
-				IN_LookdownDown();
-			}
-		});
-		Cmd.AddCommand("-lookdown", new xcommand_t() {
-			public void execute() {
-				IN_LookdownUp();
-			}
-		});
-		Cmd.AddCommand("+strafe", new xcommand_t() {
-			public void execute() {
-				IN_StrafeDown();
-			}
-		});
-		Cmd.AddCommand("-strafe", new xcommand_t() {
-			public void execute() {
-				IN_StrafeUp();
-			}
-		});
-		Cmd.AddCommand("+moveleft", new xcommand_t() {
-			public void execute() {
-				IN_MoveleftDown();
-			}
-		});
-		Cmd.AddCommand("-moveleft", new xcommand_t() {
-			public void execute() {
-				IN_MoveleftUp();
-			}
-		});
-		Cmd.AddCommand("+moveright", new xcommand_t() {
-			public void execute() {
-				IN_MoverightDown();
-			}
-		});
-		Cmd.AddCommand("-moveright", new xcommand_t() {
-			public void execute() {
-				IN_MoverightUp();
-			}
-		});
-		Cmd.AddCommand("+speed", new xcommand_t() {
-			public void execute() {
-				IN_SpeedDown();
-			}
-		});
-		Cmd.AddCommand("-speed", new xcommand_t() {
-			public void execute() {
-				IN_SpeedUp();
-			}
-		});
-		Cmd.AddCommand("+attack", new xcommand_t() {
-			public void execute() {
-				IN_AttackDown();
-			}
-		});
-		Cmd.AddCommand("-attack", new xcommand_t() {
-			public void execute() {
-				IN_AttackUp();
-			}
-		});
-		Cmd.AddCommand("+use", new xcommand_t() {
-			public void execute() {
-				IN_UseDown();
-			}
-		});
-		Cmd.AddCommand("-use", new xcommand_t() {
-			public void execute() {
-				IN_UseUp();
-			}
-		});
-		Cmd.AddCommand("impulse", new xcommand_t() {
-			public void execute() {
-				IN_Impulse();
-			}
-		});
-		Cmd.AddCommand("+klook", new xcommand_t() {
-			public void execute() {
-				IN_KLookDown();
-			}
-		});
-		Cmd.AddCommand("-klook", new xcommand_t() {
-			public void execute() {
-				IN_KLookUp();
-			}
-		});
+		Cmd.AddCommand("centerview", IN::CenterView);
+		Cmd.AddCommand("+moveup", () -> KeyDown(in_up));
+		Cmd.AddCommand("-moveup", () -> KeyUp(in_up));
+		Cmd.AddCommand("+movedown", () -> KeyDown(in_down));
+		Cmd.AddCommand("-movedown", () -> KeyUp(in_down));
+		Cmd.AddCommand("+left", () -> KeyDown(in_left));
+		Cmd.AddCommand("-left", () -> KeyUp(in_left));
+		Cmd.AddCommand("+right", () -> KeyDown(in_right));
+		Cmd.AddCommand("-right", () -> KeyUp(in_right));
+		Cmd.AddCommand("+forward", () -> KeyDown(in_forward));
+		Cmd.AddCommand("-forward", () -> KeyUp(in_forward));
+		Cmd.AddCommand("+back", () -> KeyDown(in_back));
+		Cmd.AddCommand("-back", () -> KeyUp(in_back));
+		Cmd.AddCommand("+lookup", () -> KeyDown(in_lookup));
+		Cmd.AddCommand("-lookup", () -> KeyUp(in_lookup));
+		Cmd.AddCommand("+lookdown", () -> KeyDown(in_lookdown));
+		Cmd.AddCommand("-lookdown", () -> KeyUp(in_lookdown));
+		Cmd.AddCommand("+strafe", () -> KeyDown(in_strafe));
+		Cmd.AddCommand("-strafe", () -> KeyUp(in_strafe));
+		Cmd.AddCommand("+moveleft", () -> KeyDown(in_moveleft));
+		Cmd.AddCommand("-moveleft", () -> KeyUp(in_moveleft));
+		Cmd.AddCommand("+moveright", () -> KeyDown(in_moveright));
+		Cmd.AddCommand("-moveright", () -> KeyUp(in_moveright));
+		Cmd.AddCommand("+speed", () -> KeyDown(in_speed));
+		Cmd.AddCommand("-speed", () -> KeyUp(in_speed));
+		Cmd.AddCommand("+attack", () -> KeyDown(in_attack));
+		Cmd.AddCommand("-attack", () -> KeyUp(in_attack));
+		Cmd.AddCommand("+use", () -> KeyDown(in_use));
+		Cmd.AddCommand("-use", () -> KeyUp(in_use));
+		Cmd.AddCommand("impulse", () -> in_impulse = Lib.atoi(Cmd.Argv(1)));
+		Cmd.AddCommand("+klook", () -> KeyDown(in_klook));
+		Cmd.AddCommand("-klook", () -> KeyUp(in_klook));
 
 		cl_nodelta = Cvar.Get("cl_nodelta", "0", 0);
 	}

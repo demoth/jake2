@@ -45,7 +45,7 @@ public final class SCR extends Globals {
 
     //	cl_scrn.c -- master for refresh, status bar, console, chat, notify, etc
 
-    static String[][] sb_nums = {
+    private static String[][] sb_nums = {
             { "num_0", "num_1", "num_2", "num_3", "num_4", "num_5", "num_6",
                     "num_7", "num_8", "num_9", "num_minus" },
             { "anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5",
@@ -59,52 +59,52 @@ public final class SCR extends Globals {
      * end of unit intermissions
      */
 
-    static float scr_con_current; // aproaches scr_conlines at scr_conspeed
+    private static float scr_con_current; // aproaches scr_conlines at scr_conspeed
 
-    static float scr_conlines; // 0.0 to 1.0 lines of console to display
+    private static float scr_conlines; // 0.0 to 1.0 lines of console to display
 
-    static boolean scr_initialized; // ready to draw
+    private static boolean scr_initialized; // ready to draw
 
-    static int scr_draw_loading;
+    private static int scr_draw_loading;
 
     // scr_vrect ist in Globals definiert
     // position of render window on screen
 
     static cvar_t scr_viewsize;
 
-    static cvar_t scr_conspeed;
+    private static cvar_t scr_conspeed;
 
-    static cvar_t scr_centertime;
+    private static cvar_t scr_centertime;
 
-    static cvar_t scr_showturtle;
+    private static cvar_t scr_showturtle;
 
-    static cvar_t scr_showpause;
+    private static cvar_t scr_showpause;
 
-    static cvar_t scr_printspeed;
+    private static cvar_t scr_printspeed;
 
-    static cvar_t scr_netgraph;
+    private static cvar_t scr_netgraph;
 
     static cvar_t scr_timegraph;
 
     static cvar_t scr_debuggraph;
 
-    static cvar_t scr_graphheight;
+    private static cvar_t scr_graphheight;
 
-    static cvar_t scr_graphscale;
+    private static cvar_t scr_graphscale;
 
-    static cvar_t scr_graphshift;
+    private static cvar_t scr_graphshift;
 
-    static cvar_t scr_drawall;
+    private static cvar_t scr_drawall;
 
-    public static cvar_t fps = new cvar_t();
+    private static cvar_t fps = new cvar_t();
 
-    static dirty_t scr_dirty = new dirty_t();
+    private static dirty_t scr_dirty = new dirty_t();
 
-    static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t() };
+    private static dirty_t[] scr_old_dirty = { new dirty_t(), new dirty_t() };
 
-    static String crosshair_pic;
+    private static String crosshair_pic;
 
-    static int crosshair_width, crosshair_height;
+    private static int crosshair_width, crosshair_height;
 
     static class dirty_t {
         int x1;
@@ -146,9 +146,9 @@ public final class SCR extends Globals {
         int color;
     }
 
-    static int current;
+    private static int current;
 
-    static graphsamp_t[] values = new graphsamp_t[1024];
+    private static graphsamp_t[] values = new graphsamp_t[1024];
 
     static {
         for (int n = 0; n < 1024; n++)
@@ -158,7 +158,7 @@ public final class SCR extends Globals {
     /*
      * ============== SCR_DebugGraph ==============
      */
-    public static void DebugGraph(float value, int color) {
+    static void DebugGraph(float value, int color) {
         values[current & 1023].value = value;
         values[current & 1023].color = color;
         current++;
@@ -204,15 +204,15 @@ public final class SCR extends Globals {
      */
 
     // char scr_centerstring[1024];
-    static String scr_centerstring;
+    private static String scr_centerstring;
 
-    static float scr_centertime_start; // for slow victory printing
+    private static float scr_centertime_start; // for slow victory printing
 
-    static float scr_centertime_off;
+    private static float scr_centertime_off;
 
-    static int scr_center_lines;
+    private static int scr_center_lines;
 
-    static int scr_erase_center;
+    private static int scr_erase_center;
 
     /*
      * ============== SCR_CenterPrint
@@ -277,7 +277,7 @@ public final class SCR extends Globals {
         Console.ClearNotify();
     }
 
-    static void DrawCenterString() {
+    private static void DrawCenterString() {
         String cs = scr_centerstring + "\0";
         int start;
         int l;
@@ -328,7 +328,7 @@ public final class SCR extends Globals {
         } while (true);
     }
 
-    static void CheckDrawCenterString() {
+    private static void CheckDrawCenterString() {
         scr_centertime_off -= cls.frametime;
 
         if (scr_centertime_off <= 0)
@@ -344,7 +344,7 @@ public final class SCR extends Globals {
      * 
      * Sets scr_vrect, the coordinates of the rendered window =================
      */
-    static void CalcVrect() {
+    private static void CalcVrect() {
         int size;
 
         // bound viewsize
@@ -370,7 +370,7 @@ public final class SCR extends Globals {
      * 
      * Keybinding command =================
      */
-    static void SizeUp_f() {
+    private static void SizeUp_f() {
         Cvar.SetValue("viewsize", scr_viewsize.value + 10);
     }
 
@@ -379,7 +379,7 @@ public final class SCR extends Globals {
      * 
      * Keybinding command =================
      */
-    static void SizeDown_f() {
+    private static void SizeDown_f() {
         Cvar.SetValue("viewsize", scr_viewsize.value - 10);
     }
 
@@ -388,7 +388,7 @@ public final class SCR extends Globals {
      * 
      * Set a specific sky and rotation speed =================
      */
-    static void Sky_f() {
+    private static void Sky_f() {
         float rotate;
         float[] axis = { 0, 0, 0 };
 
@@ -437,31 +437,11 @@ public final class SCR extends Globals {
         //
         // register our commands
         //
-        Cmd.AddCommand("timerefresh", new xcommand_t() {
-            public void execute() {
-                TimeRefresh_f();
-            }
-        });
-        Cmd.AddCommand("loading", new xcommand_t() {
-            public void execute() {
-                Loading_f();
-            }
-        });
-        Cmd.AddCommand("sizeup", new xcommand_t() {
-            public void execute() {
-                SizeUp_f();
-            }
-        });
-        Cmd.AddCommand("sizedown", new xcommand_t() {
-            public void execute() {
-                SizeDown_f();
-            }
-        });
-        Cmd.AddCommand("sky", new xcommand_t() {
-            public void execute() {
-                Sky_f();
-            }
-        });
+        Cmd.AddCommand("timerefresh", SCR::TimeRefresh_f);
+        Cmd.AddCommand("loading", SCR::Loading_f);
+        Cmd.AddCommand("sizeup", SCR::SizeUp_f);
+        Cmd.AddCommand("sizedown", SCR::SizeDown_f);
+        Cmd.AddCommand("sky", SCR::Sky_f);
 
         scr_initialized = true;
     }
@@ -469,7 +449,7 @@ public final class SCR extends Globals {
     /*
      * ============== SCR_DrawNet ==============
      */
-    static void DrawNet() {
+    private static void DrawNet() {
         if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
             return;
 
@@ -479,7 +459,7 @@ public final class SCR extends Globals {
     /*
      * ============== SCR_DrawPause ==============
      */
-    static void DrawPause() {
+    private static void DrawPause() {
         Dimension dim = new Dimension();
 
         if (scr_showpause.value == 0) // turn off for screenshots
@@ -496,7 +476,7 @@ public final class SCR extends Globals {
     /*
      * ============== SCR_DrawLoading ==============
      */
-    static void DrawLoading() {
+    private static void DrawLoading() {
         Dimension dim = new Dimension();
 
         if (scr_draw_loading == 0)
@@ -537,7 +517,7 @@ public final class SCR extends Globals {
     /*
      * ================== SCR_DrawConsole ==================
      */
-    static void DrawConsole() {
+    private static void DrawConsole() {
         Console.CheckResize();
 
         if (cls.state == ca_disconnected || cls.state == ca_connecting) { // forced
@@ -604,14 +584,14 @@ public final class SCR extends Globals {
     /*
      * ================ SCR_Loading_f ================
      */
-    static void Loading_f() {
+    private static void Loading_f() {
         BeginLoadingPlaque();
     }
 
     /*
      * ================ SCR_TimeRefresh_f ================
      */
-    static void TimeRefresh_f() {
+    private static void TimeRefresh_f() {
         int i;
         int start, stop;
         float time;
@@ -656,9 +636,9 @@ public final class SCR extends Globals {
      * ==============
      */
 
-    static dirty_t clear = new dirty_t();
+    private static dirty_t clear = new dirty_t();
 
-    static void TileClear() {
+    private static void TileClear() {
         int i;
         int top, bottom, left, right;
         clear.clear();
@@ -737,13 +717,13 @@ public final class SCR extends Globals {
 
     // ===============================================================
 
-    static final int STAT_MINUS = 10; // num frame for '-' stats digit
+    private static final int STAT_MINUS = 10; // num frame for '-' stats digit
 
     static final int ICON_WIDTH = 24;
 
     static final int ICON_HEIGHT = 24;
 
-    static final int CHAR_WIDTH = 16;
+    private static final int CHAR_WIDTH = 16;
 
     static final int ICON_SPACE = 8;
 
@@ -775,8 +755,8 @@ public final class SCR extends Globals {
         dim.height = lines * 8;
     }
 
-    static void DrawHUDString(String string, int x, int y, int centerwidth,
-            int xor) {
+    private static void DrawHUDString(String string, int x, int y, int centerwidth,
+                                      int xor) {
         int margin;
         //char line[1024];
         StringBuffer line = new StringBuffer(1024);
@@ -811,7 +791,7 @@ public final class SCR extends Globals {
     /*
      * ============== SCR_DrawField ==============
      */
-    static void DrawField(int x, int y, int color, int width, int value) {
+    private static void DrawField(int x, int y, int color, int width, int value) {
         char ptr;
         String num;
         int l;
@@ -879,7 +859,7 @@ public final class SCR extends Globals {
      * 
      * ================
      */
-    static void ExecuteLayoutString(String s) {
+    private static void ExecuteLayoutString(String s) {
 
         if (cls.state != ca_active || !cl.refresh_prepped)
             return;
@@ -1144,7 +1124,7 @@ public final class SCR extends Globals {
      * The status bar is a small layout program that is based on the stats array
      * ================
      */
-    static void DrawStats() {
+    private static void DrawStats() {
         //TODO:
         SCR.ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
     }
@@ -1154,9 +1134,9 @@ public final class SCR extends Globals {
      * 
      * ================
      */
-    static final int STAT_LAYOUTS = 13;
+    private static final int STAT_LAYOUTS = 13;
 
-    static void DrawLayout() {
+    private static void DrawLayout() {
         if (cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
             SCR.ExecuteLayoutString(cl.layout);
     }
@@ -1171,7 +1151,7 @@ public final class SCR extends Globals {
      */
     private static final float[] separation = { 0, 0 };
     
-    static void UpdateScreen2() {
+    private static void UpdateScreen2() {
         int numframes;
         int i;
         // if the screen is disabled (loading plaque is up, or vid mode
@@ -1302,14 +1282,10 @@ public final class SCR extends Globals {
                 crosshair_pic);
     }
 
-    private static xcommand_t updateScreenCallback = new xcommand_t() {
-        public void execute() {
-            UpdateScreen2();
-        }
-    };
+    private static Command updateScreenCallback = SCR::UpdateScreen2;
 
     // wird anstelle von der richtigen UpdateScreen benoetigt
-    public static void UpdateScreen() {
+    static void UpdateScreen() {
         Globals.re.updateScreen(updateScreenCallback);
     }
 
@@ -1333,7 +1309,7 @@ public final class SCR extends Globals {
 
     private static String fpsvalue = "";
 
-    static void DrawFPS() {
+    private static void DrawFPS() {
         if (fps.value > 0.0f) {
             if (fps.modified) {
                 fps.modified = false;
@@ -1391,7 +1367,7 @@ public final class SCR extends Globals {
     /**
      * LoadPCX
      */
-    static int LoadPCX(String filename, byte[] palette, cinematics_t cin) {
+    private static int LoadPCX(String filename, byte[] palette, cinematics_t cin) {
         qfiles.pcx_t pcx;
 
         // load the file
@@ -1694,7 +1670,7 @@ public final class SCR extends Globals {
     /**
      * ReadNextFrame
      */ 
-   static byte[] ReadNextFrame() {
+   private static byte[] ReadNextFrame() {
     
         ByteBuffer file = cl.cinematic_file;
 
@@ -1785,7 +1761,7 @@ public final class SCR extends Globals {
      * Returns true if a cinematic is active, meaning the view rendering should
      * be skipped.
      */
-    static boolean DrawCinematic() {
+    private static boolean DrawCinematic() {
         if (cl.cinematictime <= 0) {
             return false;
         }

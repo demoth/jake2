@@ -89,23 +89,35 @@ public class TestMap
 		re.Init(0, 0);
 		
 		// init keyboard
-		Cmd.AddCommand("+tforward", forward_down);
-		Cmd.AddCommand("-tforward", forward_up);
+		Cmd.AddCommand("+tforward", () -> {
+			movePlayer |=  FORWARD;
+			movePlayer &= BACKWARD_MASK;
+		});
+		Cmd.AddCommand("-tforward", () -> movePlayer &=  FORWARD_MASK);
 		Cbuf.AddText("bind UPARROW +tforward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tbackward", backward_down);
-		Cmd.AddCommand("-tbackward", backward_up);
+		Cmd.AddCommand("+tbackward", () -> {
+			movePlayer |=  BACKWARD;
+			movePlayer &= FORWARD_MASK;
+		});
+		Cmd.AddCommand("-tbackward", () -> movePlayer &=  BACKWARD_MASK);
 		Cbuf.AddText("bind DOWNARROW +tbackward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tleft", left_down);
-		Cmd.AddCommand("-tleft", left_up);
+		Cmd.AddCommand("+tleft", () -> {
+			movePlayer |=  LEFT;
+			movePlayer &= RIGHT_MASK;
+		});
+		Cmd.AddCommand("-tleft", () -> movePlayer &=  LEFT_MASK);
 		Cbuf.AddText("bind LEFTARROW +tleft");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tright", right_down);
-		Cmd.AddCommand("-tright", right_up);
+		Cmd.AddCommand("+tright", () -> {
+			movePlayer |=  RIGHT;
+			movePlayer &=  LEFT_MASK;
+		});
+		Cmd.AddCommand("-tright", () -> movePlayer &=  RIGHT_MASK);
 		Cbuf.AddText("bind RIGHTARROW +tright");
 		Cbuf.Execute();
-		Cmd.AddCommand("togglemouse", togglemouse);
+		Cmd.AddCommand("togglemouse", IN::toggleMouse);
 		Cbuf.AddText("bind t togglemouse");
 		Cbuf.Execute();
 		Globals.cls.key_dest = Defines.key_game;
@@ -121,14 +133,9 @@ public class TestMap
 	void run()
 	{
 		startTime = System.currentTimeMillis();
-		xcommand_t callback = new xcommand_t() {
-			public void execute() {
-				updateScreen();
-			}
-		};
 		while (true)
 		{
-			re.updateScreen(callback);
+			re.updateScreen(this::updateScreen);
 			re.getKeyboardHandler().Update();
 			Cbuf.Execute();
 		}
@@ -184,55 +191,6 @@ public class TestMap
 	
 
 	int movePlayer = 0;
-
-	// forward
-	xcommand_t forward_down = new xcommand_t() {
-		public void execute() {
-			movePlayer |=  FORWARD;
-			movePlayer &= BACKWARD_MASK;
-		}
-	};
-	xcommand_t forward_up = new xcommand_t() {
-		public void execute() {
-			movePlayer &=  FORWARD_MASK;
-		}
-	};
-	// backward
-	xcommand_t backward_down = new xcommand_t() {
-		public void execute() {
-			movePlayer |=  BACKWARD; 
-			movePlayer &= FORWARD_MASK;
-		}
-	};
-	xcommand_t backward_up = new xcommand_t() {
-		public void execute() {
-			movePlayer &=  BACKWARD_MASK;
-		}
-	};
-	// left
-	xcommand_t left_down = new xcommand_t() {
-		public void execute() {
-			movePlayer |=  LEFT;
-			movePlayer &= RIGHT_MASK;
-		}
-	};
-	xcommand_t left_up = new xcommand_t() {
-		public void execute() {
-			movePlayer &=  LEFT_MASK;
-		}
-	};
-	// right
-	xcommand_t right_down = new xcommand_t() {
-		public void execute() {
-			movePlayer |=  RIGHT;
-			movePlayer &=  LEFT_MASK;
-		}
-	};
-	xcommand_t right_up = new xcommand_t() {
-		public void execute() {
-			movePlayer &=  RIGHT_MASK;
-		}
-	};
 
 	private float fov_x = 90;
 	
@@ -504,13 +462,7 @@ public class TestMap
 	{
 		return (int) (System.currentTimeMillis() - startTime);
 	}
-	
-	static xcommand_t togglemouse = new xcommand_t() {
-		public void execute() {
-			IN.toggleMouse();
-		}
-	};
-	
+
 	int r_numparticles = 0;
 	/*
 	=====================
