@@ -17,7 +17,7 @@ run.systemProperty "java.library.path", "${project.buildDir}/natives"
 
 startScripts {
     // this gets into the start scripts
-    defaultJvmOpts = [ "-Djava.library.path=../:./"]
+    defaultJvmOpts = [ "-Djava.library.path=.."]
 }
 
 mainClassName = 'jake2.Jake2'
@@ -49,4 +49,6 @@ distributions {
 }
 
 installDist.dependsOn('includeNatives')
+distZip.dependsOn('includeNatives')
+distTar.dependsOn('includeNatives')
 run.dependsOn('includeNatives')
