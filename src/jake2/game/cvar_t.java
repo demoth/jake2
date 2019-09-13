@@ -1,7 +1,7 @@
 /*
  * cvar_t.java
  * Copyright (C) 2003
- * 
+ *
  * $Id: cvar_t.java,v 1.2 2004-07-08 15:58:44 hzi Exp $
  */
 /*
@@ -28,13 +28,33 @@ package jake2.game;
 /**
  * cvar_t implements the struct cvar_t of the C version
  */
-public final class cvar_t
-{
-	public String name;
-	public String string;
-	public String latched_string;
-	public int flags = 0;
-	public boolean modified = false;
-	public float value = 0.0f;
-	public cvar_t next = null;
+public final class cvar_t {
+    public String name;
+    public String string;
+    public String latched_string;
+    public int flags = 0;
+    public boolean modified = false;
+    public float value = 0.0f;
+    public cvar_t next = null;
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("cvar_t{");
+        if (name != null)
+            sb.append("name='").append(name).append('\'');
+        if (string != null)
+            sb.append(", string='").append(string).append('\'');
+        if (latched_string != null)
+        	sb.append(", latched_string='").append(latched_string).append('\'');
+        if (flags != 0)
+        	sb.append(", flags=").append(flags);
+        if (modified)
+        	sb.append(", modified=").append(modified);
+        if (value != 0f)
+        	sb.append(", value=").append(value);
+        if (next != null)
+        	sb.append(", next is not null");
+        sb.append('}');
+        return sb.toString();
+    }
 }

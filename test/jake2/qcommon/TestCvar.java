@@ -24,18 +24,71 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 
-// import jake2.*;
-// import jake2.client.*;
-// import jake2.game.*;
-// import jake2.qcommon.*;
-// import jake2.render.*;
-// import jake2.server.*;
+import jake2.game.cvar_t;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestCvar {
 
-	public static void main(String[] args) {
+	@Test
+	public void testInit() {
+		Cvar.Init();
+	}
+
+	@Test
+	public void testGet() {
 		Cvar.Set("rene", "is cool.");
-		
-		Com.Printf("rene:" + Cvar.FindVar("rene").string);
+
+		Assert.assertEquals("is cool.", Cvar.Get("rene", "default", 0).string);
+	}
+
+	@Test
+	public void testGetDefault() {
+		Cvar.Set("rene1", "is cool.");
+
+		Assert.assertEquals("default", Cvar.Get("hello", "default", 0).string);
+	}
+
+	@Test
+	public void testGetDefaultNull() {
+		Cvar.Set("rene2", "is cool.");
+
+		Assert.assertNull(Cvar.Get("hello2", null, 0));
+	}
+
+	@Test
+	public void testFind() {
+		Cvar.Set("rene3", "is cool.");
+
+		Assert.assertEquals("is cool.", Cvar.FindVar("rene3").string);
+	}
+
+	@Test
+	public void testVariableString() {
+		Cvar.Set("rene4", "is cool.");
+		Assert.assertEquals("is cool.", Cvar.VariableString("rene4"));
+	}
+
+	@Test
+	public void testFullSetCreateNew() {
+		Cvar.FullSet("rene5", "0.56", 0);
+
+		cvar_t rene5 = Cvar.FindVar("rene5");
+		Assert.assertNotNull(rene5);
+		Assert.assertEquals("0.56", rene5.string);
+		Assert.assertTrue(rene5.value > 0.5f);
+	}
+
+	@Test
+	public void testFullSetOverwrite() {
+		Cvar.FullSet("rene6", "0.56", 0);
+		Cvar.FullSet("rene6", "10.6", 0);
+
+		cvar_t rene6 = Cvar.FindVar("rene6");
+		Assert.assertNotNull(rene6);
+		Assert.assertTrue(rene6.modified);
+		Assert.assertEquals("10.6", rene6.string);
+		Assert.assertTrue(rene6.value > 0.5f);
+
 	}
 }

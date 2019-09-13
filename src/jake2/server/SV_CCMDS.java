@@ -25,12 +25,7 @@ package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.game.Cmd;
-import jake2.game.EndianHandler;
-import jake2.game.GameSVCmds;
-import jake2.game.GameSave;
-import jake2.game.Info;
-import jake2.game.cvar_t;
+import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.sys.NET;
@@ -39,7 +34,10 @@ import jake2.util.Lib;
 import jake2.util.QuakeFile;
 import jake2.util.Vargs;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Calendar;
 
 import static jake2.Defines.ERR_DROP;
@@ -63,7 +61,7 @@ public class SV_CCMDS {
 	Specify a list of master servers
 	====================
 	*/
-	public static void SV_SetMaster_f() {
+	private static void SV_SetMaster_f() {
 		int i, slot;
 
 		// only dedicated servers send heartbeats
@@ -107,7 +105,7 @@ public class SV_CCMDS {
 	Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
 	==================
 	*/
-	public static boolean SV_SetPlayer() {
+	private static boolean SV_SetPlayer() {
 		client_t cl;
 		int i;
 		int idnum;
@@ -167,7 +165,7 @@ public class SV_CCMDS {
 	}
 	
 	/** Delete save files save/(number)/.  */
-	public static void SV_WipeSavegame(String savename) {
+	private static void SV_WipeSavegame(String savename) {
 
 	    Com.DPrintf("SV_WipeSaveGame(" + savename + ")\n");
 
@@ -201,7 +199,7 @@ public class SV_CCMDS {
 	CopyFile
 	================
 	*/
-	public static void CopyFile(String src, String dst) {
+	private static void CopyFile(String src, String dst) {
 		RandomAccessFile f1, f2;
 		int l = -1;
 		byte buffer[] = new byte[65536];
@@ -266,7 +264,7 @@ public class SV_CCMDS {
 	SV_CopySaveGame
 	================
 	*/
-	public static void SV_CopySaveGame(String src, String dst) {
+	private static void SV_CopySaveGame(String src, String dst) {
 
 		Com.DPrintf("SV_CopySaveGame(" + src + "," + dst + ")\n");
 
@@ -309,7 +307,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_WriteLevelFile() {
+	private static void SV_WriteLevelFile() {
 
 		String name;
 		QuakeFile f;
@@ -341,7 +339,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_ReadLevelFile() {
+	static void SV_ReadLevelFile() {
 		//char name[MAX_OSPATH];
 		String name;
 		QuakeFile f;
@@ -373,17 +371,14 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_WriteServerFile(boolean autosave) {
+	private static void SV_WriteServerFile(boolean autosave) {
 		QuakeFile f;
-		cvar_t var;
-
-		String filename, name, string, comment;
+		String comment;
 
 		Com.DPrintf("SV_WriteServerFile(" + (autosave ? "true" : "false") + ")\n");
 
-		filename = FS.Gamedir() + "/save/current/server.ssv";
 		try {
-			f = new QuakeFile(filename, "rw");
+			f = new QuakeFile(FS.Gamedir() + "/save/current/server.ssv", "rw");
 
 			if (!autosave) {
 				Calendar c = Calendar.getInstance();
@@ -407,35 +402,31 @@ public class SV_CCMDS {
 
 			// write all CVAR_LATCH cvars
 			// these will be things like coop, skill, deathmatch, etc
-			for (var = Globals.cvar_vars; var != null; var = var.next) {
-				if (0 == (var.flags & Defines.CVAR_LATCH))
-					continue;
+			Cvar.eachCvarByFlags(Defines.CVAR_LATCH, var -> {
 				if (var.name.length() >= Defines.MAX_OSPATH - 1 || var.string.length() >= 128 - 1) {
 					Com.Printf("Cvar too long: " + var.name + " = " + var.string + "\n");
-					continue;
-				}
 
-				name = var.name;
-				string = var.string;
-				try {
-					f.writeString(name);
-					f.writeString(string);
-				}
-				catch (IOException e2) {
-				}
+				} else
+					try {
+						f.writeString(var.name);
+						f.writeString(var.string);
+					} catch (IOException e2) {
+						Com.Printf("Could not write cvar(" + var + " to " + (FS.Gamedir() + "/save/current/server.ssv"));
+					}
 
-			}
+
+			});
+
 			// rst: for termination.
 			f.writeString(null);
 			f.close();
 		}
 		catch (Exception e) {
-			Com.Printf("Couldn't write " + filename + "\n");
+			Com.Printf("Couldn't write " + (FS.Gamedir() + "/save/current/server.ssv") + "\n");
 		}
 
 		// write game state
-		filename = FS.Gamedir() + "/save/current/game.ssv";
-		GameSave.WriteGame(filename, autosave);
+		GameSave.WriteGame(FS.Gamedir() + "/save/current/game.ssv", autosave);
 	}
 	/*
 	==============
@@ -443,7 +434,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_ReadServerFile() {
+	private static void SV_ReadServerFile() {
 		String filename="", name = "", string, mapcmd;
 		try {
 			QuakeFile f;
@@ -499,7 +490,7 @@ public class SV_CCMDS {
 	Puts the server in demo mode on a specific map/cinematic
 	==================
 	*/
-	public static void SV_DemoMap_f() {
+	private static void SV_DemoMap_f() {
 		SV_INIT.SV_Map(true, Cmd.Argv(1), false);
 	}
 	/*
@@ -520,7 +511,7 @@ public class SV_CCMDS {
 	goes to map jail.bsp.
 	==================
 	*/
-	public static void SV_GameMap_f() {
+	private static void SV_GameMap_f() {
 
 		if (Cmd.Argc() != 2) {
 			Com.Printf("USAGE: gamemap <map>\n");
@@ -577,7 +568,7 @@ public class SV_CCMDS {
 	
 
 	/** Print the memory used by the java vm. */
-	public static void VM_Mem_f()
+	private static void VM_Mem_f()
 	{
 		Com.Printf("vm memory:" + 
 				(Runtime.getRuntime().totalMemory() - 
@@ -592,7 +583,7 @@ public class SV_CCMDS {
 	For development work
 	==================
 	*/
-	public static void SV_Map_f() {
+	private static void SV_Map_f() {
 		String map;
 		//char expanded[MAX_QPATH];
 		String expanded;
@@ -627,7 +618,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_Loadgame_f() {
+	private static void SV_Loadgame_f() {
 
 		if (Cmd.Argc() != 2) {
 			Com.Printf("USAGE: loadgame <directory>\n");
@@ -672,7 +663,7 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	public static void SV_Savegame_f() {
+	private static void SV_Savegame_f() {
 		String dir;
 
 		if (SV_INIT.sv.state != Defines.ss_game) {
@@ -732,7 +723,7 @@ public class SV_CCMDS {
 	Kick a user off of the server
 	==================
 	*/
-	public static void SV_Kick_f() {
+	private static void SV_Kick_f() {
 		if (!SV_INIT.svs.initialized) {
 			Com.Printf("No server running.\n");
 			return;
@@ -758,7 +749,7 @@ public class SV_CCMDS {
 	SV_Status_f
 	================
 	*/
-	public static void SV_Status_f() {
+	private static void SV_Status_f() {
 		int i, j, l;
 		client_t cl;
 		String s;
@@ -812,7 +803,7 @@ public class SV_CCMDS {
 	SV_ConSay_f
 	==================
 	*/
-	public static void SV_ConSay_f() {
+	private static void SV_ConSay_f() {
 		client_t client;
 		int j;
 		String p;
@@ -842,7 +833,7 @@ public class SV_CCMDS {
 	SV_Heartbeat_f
 	==================
 	*/
-	public static void SV_Heartbeat_f() {
+	private static void SV_Heartbeat_f() {
 		SV_INIT.svs.last_heartbeat = -9999999;
 	}
 	/*
@@ -852,7 +843,7 @@ public class SV_CCMDS {
 	  Examine or change the serverinfo string
 	===========
 	*/
-	public static void SV_Serverinfo_f() {
+	private static void SV_Serverinfo_f() {
 		Com.Printf("Server info settings:\n");
 		Info.Print(Cvar.Serverinfo());
 	}
@@ -863,7 +854,7 @@ public class SV_CCMDS {
 	Examine all a users info strings
 	===========
 	*/
-	public static void SV_DumpUser_f() {
+	private static void SV_DumpUser_f() {
 		if (Cmd.Argc() != 2) {
 			Com.Printf("Usage: info <userid>\n");
 			return;
@@ -885,7 +876,7 @@ public class SV_CCMDS {
 	recorded, but no playerinfo will be stored.  Primarily for demo merging.
 	==============
 	*/
-	public static void SV_ServerRecord_f() {
+	private static void SV_ServerRecord_f() {
 		//char	name[MAX_OSPATH];
 		String name;
 		byte buf_data[] = new byte[32768];
@@ -976,7 +967,7 @@ public class SV_CCMDS {
 	Ends server demo recording
 	==============
 	*/
-	public static void SV_ServerStop_f() {
+	private static void SV_ServerStop_f() {
 		if (SV_INIT.svs.demofile == null) {
 			Com.Printf("Not doing a serverrecord.\n");
 			return;
@@ -998,7 +989,7 @@ public class SV_CCMDS {
 	
 	===============
 	*/
-	public static void SV_KillServer_f() {
+	private static void SV_KillServer_f() {
 		if (!SV_INIT.svs.initialized)
 			return;
 		SV_MAIN.SV_Shutdown("Server was killed.\n", false);
@@ -1011,7 +1002,7 @@ public class SV_CCMDS {
 	Let the game dll handle a command
 	===============
 	*/
-	public static void SV_ServerCommand_f() {
+	private static void SV_ServerCommand_f() {
 
 		GameSVCmds.ServerCommand();
 	}
@@ -1022,7 +1013,7 @@ public class SV_CCMDS {
 	SV_InitOperatorCommands
 	==================
 	*/
-	public static void SV_InitOperatorCommands() {
+	static void SV_InitOperatorCommands() {
 		Cmd.AddCommand("heartbeat", SV_CCMDS::SV_Heartbeat_f);
 		Cmd.AddCommand("kick", SV_CCMDS::SV_Kick_f);
 		Cmd.AddCommand("status", SV_CCMDS::SV_Status_f);

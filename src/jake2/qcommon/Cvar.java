@@ -37,6 +37,7 @@ import jake2.util.Lib;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 /**
  * Cvar implements console variables. The original code is located in cvar.c
@@ -331,6 +332,13 @@ public class Cvar extends Globals {
         return BitInfo(Defines.CVAR_SERVERINFO);
     }
 
+    public static void eachCvarByFlags(int flags, Consumer<cvar_t> consumer) {
+        for (cvar_t var = Globals.cvar_vars; var != null; var = var.next) {
+            if (0 != (var.flags & flags)) {
+                consumer.accept(var);
+            }
+        }
+    }
     
     /**
      * Any variables with latched values will be updated.
