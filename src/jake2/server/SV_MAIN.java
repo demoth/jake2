@@ -26,6 +26,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
 import jake2.sys.NET;
 import jake2.sys.Timer;
 import jake2.util.Lib;
@@ -928,7 +929,7 @@ public class SV_MAIN {
         int i;
         client_t cl;
 
-        SZ.Clear(Globals.net_message);
+        Globals.net_message.clear();
         MSG.WriteByte(Globals.net_message, Defines.svc_print);
         MSG.WriteByte(Globals.net_message, Defines.PRINT_HIGH);
         MSG.WriteString(Globals.net_message, message);

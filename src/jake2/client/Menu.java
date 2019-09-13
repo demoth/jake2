@@ -29,6 +29,7 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
 import jake2.sound.S;
 import jake2.sys.*;
 import jake2.sys.NET;

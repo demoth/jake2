@@ -33,12 +33,6 @@ import jake2.util.Lib;
  */
 public final class SZ {
 
-	public static void Clear(sizebuf_t buf) {
-		buf.clear();
-	}
-
-	//===========================================================================
-	
 	public static void Init(sizebuf_t buf, byte data[], int length) {
 	  // TODO check this. cwei
 	  buf.readcount = 0;
@@ -51,7 +45,7 @@ public final class SZ {
 
 
 	/** Ask for the pointer using sizebuf_t.cursize (RST) */
-	public static int GetSpace(sizebuf_t buf, int length) {
+	static int GetSpace(sizebuf_t buf, int length) {
 		int oldsize;
 	
 		if (buf.cursize + length > buf.maxsize) {
@@ -62,7 +56,7 @@ public final class SZ {
 				Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: " + length + " is > full buffer size");
 	
 			Com.Printf("SZ_GetSpace: overflow\n");
-			Clear(buf);
+			buf.clear();
 			buf.overflowed = true;
 		}
 	

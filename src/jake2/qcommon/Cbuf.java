@@ -54,7 +54,7 @@ public final class Cbuf {
         templen = Globals.cmd_text.cursize;
         if (templen != 0) {
             System.arraycopy(Globals.cmd_text.data, 0, tmp, 0, templen);
-            SZ.Clear(Globals.cmd_text);
+            Globals.cmd_text.clear();
         }
 
         // add the entire text of the file

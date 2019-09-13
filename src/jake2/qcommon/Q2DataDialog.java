@@ -6,6 +6,7 @@
 package jake2.qcommon;
 
 import jake2.Globals;
+import jake2.qcommon.filesystem.FS;
 
 import java.awt.*;
 import java.awt.event.*;

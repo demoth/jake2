@@ -21,12 +21,16 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.qcommon;
+package jake2.qcommon.filesystem;
 
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
+import jake2.qcommon.CDAudio;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 import jake2.sys.Sys;
 
 import java.io.*;
@@ -76,13 +80,13 @@ public final class FS extends Globals {
         Hashtable files; // with packfile_t entries
     }
 
-    public static String fs_gamedir;
+    private static String fs_gamedir;
 
     private static String fs_userdir;
 
-    public static cvar_t fs_basedir;
+    private static cvar_t fs_basedir;
 
-    public static cvar_t fs_cddir;
+    private static cvar_t fs_cddir;
 
     public static cvar_t fs_gamedirvar;
 
@@ -95,7 +99,7 @@ public final class FS extends Globals {
     }
 
     // with filelink_t entries
-    public static List fs_links = new LinkedList();
+    private static List fs_links = new LinkedList();
 
     public static class searchpath_t {
         String filename;
@@ -105,10 +109,10 @@ public final class FS extends Globals {
         searchpath_t next;
     }
 
-    public static searchpath_t fs_searchpaths;
+    private static searchpath_t fs_searchpaths;
 
     // without gamedirs
-    public static searchpath_t fs_base_searchpaths;
+    private static searchpath_t fs_base_searchpaths;
 
     /*
      * All of Quake's data access is through a hierchal file system, but the
@@ -306,7 +310,7 @@ public final class FS extends Globals {
     }
 
     // read in blocks of 64k
-    public static final int MAX_READ = 0x10000;
+    private static final int MAX_READ = 0x10000;
 
     /**
      * Read
@@ -502,7 +506,7 @@ public final class FS extends Globals {
         buffer = null;
     }
 
-    static final int IDPAKHEADER = (('K' << 24) + ('C' << 16) + ('A' << 8) + 'P');
+    private static final int IDPAKHEADER = (('K' << 24) + ('C' << 16) + ('A' << 8) + 'P');
 
     static class dpackheader_t {
         int ident; // IDPAKHEADER
@@ -512,10 +516,10 @@ public final class FS extends Globals {
         int dirlen;
     }
 
-    static final int MAX_FILES_IN_PACK = 4096;
+    private static final int MAX_FILES_IN_PACK = 4096;
 
     // buffer for C-Strings char[56]
-    static byte[] tmpText = new byte[packfile_t.NAME_SIZE];
+    private static byte[] tmpText = new byte[packfile_t.NAME_SIZE];
 
     /*
      * LoadPackFile
@@ -525,7 +529,7 @@ public final class FS extends Globals {
      * Loads the header and directory, adding the files at the beginning of the
      * list so they override previous pack files.
      */
-    static pack_t LoadPackFile(String packfile) {
+    private static pack_t LoadPackFile(String packfile) {
 
         dpackheader_t header;
         Hashtable newfiles;
@@ -600,7 +604,7 @@ public final class FS extends Globals {
      * Sets fs_gamedir, adds the directory to the head of the path, then loads
      * and adds pak1.pak pak2.pak ...
      */
-    static void AddGameDirectory(String dir) {
+    private static void AddGameDirectory(String dir) {
         int i;
         searchpath_t search;
         pack_t pak;
@@ -740,7 +744,7 @@ public final class FS extends Globals {
      * 
      * Creates a filelink_t
      */
-    public static void Link_f() {
+    private static void Link_f() {
         filelink_t entry = null;
 
         if (Cmd.Argc() != 3) {
@@ -794,7 +798,7 @@ public final class FS extends Globals {
     /*
      * Dir_f
      */
-    public static void Dir_f() {
+    private static void Dir_f() {
         String path = null;
         String findname = null;
         String wildcard = "*.*";
@@ -836,7 +840,7 @@ public final class FS extends Globals {
     /*
      * Path_f
      */
-    public static void Path_f() {
+    private static void Path_f() {
 
         searchpath_t s;
         filelink_t link;
@@ -929,13 +933,13 @@ public final class FS extends Globals {
     /**
      * set baseq2 directory
      */
-    static void setCDDir() {
+    public static void setCDDir() {
         fs_cddir = Cvar.Get("cddir", "", CVAR_ARCHIVE);
         if (fs_cddir.string.length() > 0)
             AddGameDirectory(fs_cddir.string);
     }
     
-    static void markBaseSearchPaths() {
+    public static void markBaseSearchPaths() {
         // any set gamedirs will be freed up to here
         fs_base_searchpaths = fs_searchpaths;
     }

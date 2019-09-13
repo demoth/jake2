@@ -166,12 +166,12 @@ public class CL_newfx {
                 p.alphavel = -1.0f / (3.0f + Globals.rnd.nextFloat() * 0.5f);
                 p.color = color;
                 for (j = 0; j < 3; j++) {
-                    p.org[j] = move[j] + Lib.crand() * 3;
+                    p.org[j] = move[j] + Lib.crandom() * 3;
                     p.accel[j] = 0;
                 }
                 p.vel[0] = 0;
                 p.vel[1] = 0;
-                p.vel[2] = -40 - (Lib.crand() * 10);
+                p.vel[2] = -40 - (Lib.crandom() * 10);
             }
 
             Math3D.VectorAdd(move, vec, move);
@@ -215,8 +215,8 @@ public class CL_newfx {
             p.alphavel = -1.0f / (1 + Globals.rnd.nextFloat() * 0.1f);
             p.color = 4 + (Lib.rand() & 7);
             for (j = 0; j < 3; j++) {
-                p.org[j] = move[j] + Lib.crand() * 2;
-                p.vel[j] = Lib.crand() * 10;
+                p.org[j] = move[j] + Lib.crandom() * 2;
+                p.vel[j] = Lib.crandom() * 10;
             }
             p.org[2] -= 4;
             //			p.vel[2] += 6;
@@ -348,13 +348,13 @@ public class CL_newfx {
             p.color = color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
-                p.org[j] = org[j] + magnitude * 0.1f * Lib.crand();
+                p.org[j] = org[j] + magnitude * 0.1f * Lib.crandom();
                 //				p.vel[j] = dir[j]*magnitude;
             }
             Math3D.VectorScale(dir, magnitude, p.vel);
-            d = Lib.crand() * magnitude / 3;
+            d = Lib.crandom() * magnitude / 3;
             Math3D.VectorMA(p.vel, d, r, p.vel);
-            d = Lib.crand() * magnitude / 3;
+            d = Lib.crandom() * magnitude / 3;
             Math3D.VectorMA(p.vel, d, u, p.vel);
 
             p.accel[0] = p.accel[1] = 0;
@@ -392,13 +392,13 @@ public class CL_newfx {
             p.color = self.color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
-                p.org[j] = self.org[j] + self.magnitude * 0.1f * Lib.crand();
+                p.org[j] = self.org[j] + self.magnitude * 0.1f * Lib.crandom();
                 //				p.vel[j] = dir[j]*magnitude;
             }
             Math3D.VectorScale(dir, self.magnitude, p.vel);
-            d = Lib.crand() * self.magnitude / 3;
+            d = Lib.crandom() * self.magnitude / 3;
             Math3D.VectorMA(p.vel, d, r, p.vel);
-            d = Lib.crand() * self.magnitude / 3;
+            d = Lib.crandom() * self.magnitude / 3;
             Math3D.VectorMA(p.vel, d, u, p.vel);
 
             p.accel[0] = p.accel[1] = 0;
@@ -483,9 +483,9 @@ public class CL_newfx {
             p.alphavel = CL_fx.INSTANT_PARTICLE;
             p.color = 0;
 
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
+            dir[0] = Lib.crandom();
+            dir[1] = Lib.crandom();
+            dir[2] = Lib.crandom();
             Math3D.VectorNormalize(dir);
 
             Math3D.VectorMA(origin, 40, dir, p.org);
@@ -512,9 +512,9 @@ public class CL_newfx {
             p.alphavel = CL_fx.INSTANT_PARTICLE;
             p.color = 0xe0;
 
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
+            dir[0] = Lib.crandom();
+            dir[1] = Lib.crandom();
+            dir[2] = Lib.crandom();
             Math3D.VectorNormalize(dir);
 
             Math3D.VectorMA(origin, 10, dir, p.org);
@@ -550,9 +550,9 @@ public class CL_newfx {
             p.alphavel = CL_fx.INSTANT_PARTICLE;
             p.color = wb_colortable[Lib.rand() & 3];
 
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
+            dir[0] = Lib.crandom();
+            dir[1] = Lib.crandom();
+            dir[2] = Lib.crandom();
             Math3D.VectorNormalize(dir);
 
             Math3D.VectorMA(self.org, (45.0f * ratio), dir, p.org);
@@ -588,9 +588,9 @@ public class CL_newfx {
             p.alphavel = CL_fx.INSTANT_PARTICLE;
             p.color = nb_colortable[Lib.rand() & 3];
 
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
+            dir[0] = Lib.crandom();
+            dir[1] = Lib.crandom();
+            dir[2] = Lib.crandom();
             Math3D.VectorNormalize(dir);
 
             Math3D.VectorMA(self.org, (200.0f * ratio), dir, p.org);
@@ -618,9 +618,9 @@ public class CL_newfx {
             p.time = Globals.cl.time;
             p.color = ws_colortable[Lib.rand() & 3];
 
-            dir[0] = Lib.crand();
-            dir[1] = Lib.crand();
-            dir[2] = Lib.crand();
+            dir[0] = Lib.crandom();
+            dir[1] = Lib.crandom();
+            dir[2] = Lib.crandom();
             Math3D.VectorNormalize(dir);
             Math3D.VectorMA(org, 45.0f, dir, p.org);
             Math3D.VectorMA(Globals.vec3_origin, 40.0f, dir, p.vel);
@@ -670,8 +670,8 @@ public class CL_newfx {
             p.alphavel = -1.0f / (0.8f + Globals.rnd.nextFloat() * 0.2f);
             p.color = color;
             for (j = 0; j < 3; j++) {
-                p.org[j] = move[j] + Lib.crand() * 16;
-                p.vel[j] = Lib.crand() * 5;
+                p.org[j] = move[j] + Lib.crandom() * 16;
+                p.vel[j] = Lib.crandom() * 5;
                 p.accel[j] = 0;
             }
 
@@ -736,13 +736,13 @@ public class CL_newfx {
             p.color = color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
-                p.org[j] = org[j] + magnitude * 0.1f * Lib.crand();
+                p.org[j] = org[j] + magnitude * 0.1f * Lib.crandom();
                 //				p.vel[j] = dir[j]*magnitude;
             }
             Math3D.VectorScale(dir, magnitude, p.vel);
-            d = Lib.crand() * magnitude / 3;
+            d = Lib.crandom() * magnitude / 3;
             Math3D.VectorMA(p.vel, d, r, p.vel);
-            d = Lib.crand() * magnitude / 3;
+            d = Lib.crandom() * magnitude / 3;
             Math3D.VectorMA(p.vel, d, u, p.vel);
 
             p.accel[0] = p.accel[1] = p.accel[2] = 0;
@@ -778,7 +778,7 @@ public class CL_newfx {
             d = Lib.rand() & 15;
             for (j = 0; j < 3; j++) {
                 p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-                p.vel[j] = dir[j] * 30 + Lib.crand() * 40;
+                p.vel[j] = dir[j] * 30 + Lib.crandom() * 40;
             }
 
             p.accel[0] = p.accel[1] = 0;
@@ -827,8 +827,8 @@ public class CL_newfx {
             p.alphavel = -1.0f / (0.3f + Globals.rnd.nextFloat() * 0.2f);
             p.color = 0xd0;
             for (j = 0; j < 3; j++) {
-                p.org[j] = move[j] + Lib.crand();
-                p.vel[j] = Lib.crand() * 5;
+                p.org[j] = move[j] + Lib.crandom();
+                p.vel[j] = Lib.crandom() * 5;
                 p.accel[j] = 0;
             }
 

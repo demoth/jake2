@@ -28,7 +28,7 @@ package jake2.render.fast;
 import jake2.Defines;
 import jake2.client.entity_t;
 import jake2.qcommon.Com;
-import jake2.qcommon.qfiles;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.render.Anorms;
 import jake2.render.image_t;
 import jake2.util.Lib;

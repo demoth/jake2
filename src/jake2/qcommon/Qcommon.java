@@ -29,6 +29,7 @@ import jake2.Globals;
 import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
+import jake2.qcommon.filesystem.FS;
 import jake2.server.SV_MAIN;
 import jake2.sys.*;
 import jake2.sys.NET;
@@ -44,8 +45,8 @@ import java.io.IOException;
  */
 public final class Qcommon extends Globals {
 
-	public static final String BUILDSTRING = "Java " + System.getProperty("java.version");;
-	public static final String CPUSTRING = System.getProperty("os.arch");
+	private static final String BUILDSTRING = "Java " + System.getProperty("java.version");
+	private static final String CPUSTRING = System.getProperty("os.arch");
 
 	/**
 	 * This function initializes the different subsystems of
@@ -105,14 +106,8 @@ public final class Qcommon extends Globals {
 			Globals.logfile_active= Cvar.Get("logfile", "0", 0);
 			Globals.showtrace= Cvar.Get("showtrace", "0", 0);
 			Globals.dedicated= Cvar.Get("dedicated", "0", CVAR_NOSET);
-			String s = Com.sprintf("%4.2f %s %s %s",
-					new Vargs(4)
-						.add(Globals.VERSION)
-						.add(CPUSTRING)
-						.add(Globals.__DATE__)
-						.add(BUILDSTRING));
-
-			Cvar.Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
+			String version = VERSION + " " + CPUSTRING + " " + BUILDSTRING;
+			Cvar.Get("version", version, CVAR_SERVERINFO | CVAR_NOSET);
 
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.setStatus("initializing network subsystem...");
@@ -259,7 +254,7 @@ public final class Qcommon extends Globals {
 		}
 	}
 
-	static void reconfigure(boolean clear) {
+	private static void reconfigure(boolean clear) {
 		String dir = Cvar.Get("cddir", "", CVAR_ARCHIVE).string;
 		Cbuf.AddText("exec default.cfg\n");
 		Cbuf.AddText("bind MWHEELUP weapnext\n");

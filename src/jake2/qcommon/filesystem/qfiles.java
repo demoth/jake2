@@ -23,9 +23,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
+package jake2.qcommon.filesystem;
 
 import jake2.Defines;
+import jake2.qcommon.lump_t;
 
 import java.nio.*;
 
@@ -66,13 +67,13 @@ public class qfiles {
 		public byte encoding;
 		public byte bits_per_pixel;
 		public int xmin, ymin, xmax, ymax; // unsigned short
-		public int hres, vres; // unsigned short
+		int hres, vres; // unsigned short
 		public byte[] palette; //unsigned byte; size 48
-		public byte reserved;
-		public byte color_planes;
-		public int bytes_per_line; // unsigned short
-		public int palette_type; // unsigned short
-		public byte[] filler; // size 58
+		byte reserved;
+		byte color_planes;
+		int bytes_per_line; // unsigned short
+		int palette_type; // unsigned short
+		byte[] filler; // size 58
 		public ByteBuffer data; //unbounded data
 
 		public pcx_t(byte[] dataBytes) {
@@ -117,10 +118,14 @@ public class qfiles {
 		
 		// targa header
 		public int id_length, colormap_type, image_type; // unsigned char
-		public int colormap_index, colormap_length; // unsigned short
-		public int colormap_size; // unsigned char
-		public int x_origin, y_origin, width, height; // unsigned short
-		public int pixel_size, attributes; // unsigned char
+		int colormap_index, colormap_length; // unsigned short
+		int colormap_size; // unsigned char
+		int x_origin;
+		int y_origin;
+		public int width;
+		public int height; // unsigned short
+		public int pixel_size;
+		int attributes; // unsigned char
 
 		public ByteBuffer data; // (un)compressed data
 
@@ -128,7 +133,7 @@ public class qfiles {
 			this(ByteBuffer.wrap(dataBytes));
 		}
 
-		public tga_t(ByteBuffer b) {
+		tga_t(ByteBuffer b) {
 			// is stored as little endian
 			b.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -180,8 +185,8 @@ public class qfiles {
 	}
 
 	public static class dtriangle_t {
-		public short index_xyz[] = { 0, 0, 0 };
-		public short index_st[] = { 0, 0, 0 };
+		short index_xyz[] = { 0, 0, 0 };
+		short index_st[] = { 0, 0, 0 };
 		
 		public dtriangle_t(ByteBuffer b) {
 			index_xyz[0] = b.getShort();
@@ -224,12 +229,12 @@ public class qfiles {
 	//	   and an integer vertex index.
 	
 	public static class dmdl_t {
-		public int ident;
+		int ident;
 		public int version;
 
-		public int skinwidth;
+		int skinwidth;
 		public int skinheight;
-		public int framesize; // byte size of each frame
+		int framesize; // byte size of each frame
 
 		public int num_skins;
 		public int num_xyz;
@@ -243,7 +248,7 @@ public class qfiles {
 		public int ofs_tris; // offset for dtriangles
 		public int ofs_frames; // offset for first frame
 		public int ofs_glcmds;
-		public int ofs_end; // end of file
+		int ofs_end; // end of file
 		
 		// wird extra gebraucht
 		public String[] skinNames;
@@ -301,7 +306,7 @@ public class qfiles {
 		public int origin_x, origin_y; // raster coordinates inside pic
 		public String name; // name of pcx file (MAX_SKINNAME)
 		
-		public dsprframe_t(ByteBuffer b) {
+		dsprframe_t(ByteBuffer b) {
 			width = b.getInt();
 			height = b.getInt();
 			origin_x = b.getInt();
@@ -314,7 +319,7 @@ public class qfiles {
 	}
 
 	public static class dsprite_t {
-		public int ident;
+		int ident;
 		public int version;
 		public int numframes;
 		public dsprframe_t frames[]; // variable sized
@@ -347,7 +352,7 @@ public class qfiles {
 		public int width, height;
 		public int[] offsets = new int[MIPLEVELS]; // 4 mip maps stored
 		// next frame in animation chain
-		public String animname; //	char	animname[32];
+		String animname; //	char	animname[32];
 		public int flags;
 		public int contents;
 		public int value;
@@ -356,7 +361,7 @@ public class qfiles {
 			this(ByteBuffer.wrap(dataBytes));
 		}
 
-		public miptex_t(ByteBuffer b) {
+		miptex_t(ByteBuffer b) {
 			// is stored as little endian
 			b.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -403,7 +408,7 @@ public class qfiles {
 
 		}
 
-		public int ident;
+		int ident;
 		public int version;
 		public lump_t lumps[] = new lump_t[Defines.HEADER_LUMPS];
 	}
@@ -603,9 +608,9 @@ public class qfiles {
 		}
 
 		//unsigned short planenum;
-		int planenum; // facing out of the leaf
+		public int planenum; // facing out of the leaf
 
-		short texinfo;
+		public short texinfo;
 
 		public static int SIZE = 4;
 	}
@@ -621,9 +626,9 @@ public class qfiles {
 
 		public static int SIZE = 3 * 4;
 
-		int firstside;
-		int numsides;
-		int contents;
+		public int firstside;
+		public int numsides;
+		public int contents;
 	}
 
 	//	#define	ANGLE_UP	-1
@@ -666,8 +671,8 @@ public class qfiles {
 			otherarea = bb.getInt();
 		}
 
-		int portalnum;
-		int otherarea;
+		public int portalnum;
+		public int otherarea;
 
 		public static int SIZE = 8;
 	}
@@ -682,8 +687,8 @@ public class qfiles {
 			firstareaportal = bb.getInt();
 
 		}
-		int numareaportals;
-		int firstareaportal;
+		public int numareaportals;
+		public int firstareaportal;
 
 		public static int SIZE = 8;
 	}

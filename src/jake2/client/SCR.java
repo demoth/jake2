@@ -29,6 +29,8 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.sound.S;
 import jake2.sys.Timer;
 import jake2.util.Vargs;

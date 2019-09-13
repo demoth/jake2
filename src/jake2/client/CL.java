@@ -29,6 +29,8 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.render.fast.Main;
 import jake2.server.SV_MAIN;
 import jake2.sound.S;
@@ -689,7 +691,7 @@ public final class CL {
             Globals.cl_entities[i] = new centity_t();
         }
 
-        SZ.Clear(Globals.cls.netchan.message);
+        Globals.cls.netchan.message.clear();
     }
 
     /**

@@ -26,6 +26,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
 import jake2.util.Lib;
 
 import java.io.IOException;

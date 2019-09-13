@@ -25,7 +25,7 @@ package jake2.sound;
 
 import jake2.Defines;
 import jake2.qcommon.Com;
-import jake2.qcommon.FS;
+import jake2.qcommon.filesystem.FS;
 
 /**
  * SND_MEM

@@ -440,8 +440,8 @@ public class TestMap
 
 			for (j=0 ; j<3 ; j++)
 			{
-				p.org[j] = move[j] + Lib.crand()*3;
-				p.vel[j] = Lib.crand()*3;
+                p.org[j] = move[j] + Lib.crandom() *3;
+                p.vel[j] = Lib.crandom() *3;
 				p.accel[j] = 0;
 			}
 

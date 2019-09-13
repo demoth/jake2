@@ -86,7 +86,7 @@ public final class Jake2 {
     	}
 
         // in C the first arg is the filename
-        int argc = (args == null) ? 1 : args.length + 1;
+        int argc = args.length + 1;
         String[] c_args = new String[argc];
         c_args[0] = "Jake2";
         if (argc > 1) {

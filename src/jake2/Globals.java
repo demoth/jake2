@@ -401,6 +401,4 @@ public class Globals extends Defines {
         public static boolean appletMode;
         // The applet, represented as an Object to avoid an AWT dependency here
         public static Object applet;
-        // A listener to receive video mode changes
-        public static SizeChangeListener sizeChangeListener;
 }

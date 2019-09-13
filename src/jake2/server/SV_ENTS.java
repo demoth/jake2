@@ -574,7 +574,7 @@ public class SV_ENTS {
         // now add the accumulated multicast information
         SZ.Write(buf, SV_INIT.svs.demo_multicast.data,
                 SV_INIT.svs.demo_multicast.cursize);
-        SZ.Clear(SV_INIT.svs.demo_multicast);
+        SV_INIT.svs.demo_multicast.clear();
 
         // now write the entire message to the file, prefixed by the length
         int len = EndianHandler.swapInt(buf.cursize);

@@ -55,7 +55,7 @@ public class SV_GAME {
             SZ.Write(client.datagram, SV_INIT.sv.multicast.data,
                     SV_INIT.sv.multicast.cursize);
 
-        SZ.Clear(SV_INIT.sv.multicast);
+        SV_INIT.sv.multicast.clear();
     }
 
     /**
@@ -167,7 +167,7 @@ public class SV_GAME {
 
         if (SV_INIT.sv.state != Defines.ss_loading) { // send the update to
                                                       // everyone
-            SZ.Clear(SV_INIT.sv.multicast);
+            SV_INIT.sv.multicast.clear();
             MSG.WriteChar(SV_INIT.sv.multicast, Defines.svc_configstring);
             MSG.WriteShort(SV_INIT.sv.multicast, index);
             MSG.WriteString(SV_INIT.sv.multicast, val);

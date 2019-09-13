@@ -27,6 +27,8 @@ import jake2.Defines;
 import jake2.client.particle_t;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.render.image_t;
 import jake2.util.Lib;
 import jake2.util.Vargs;

@@ -215,8 +215,8 @@ public class SV_SEND {
 				SZ.Write(client.datagram, SV_INIT.sv.multicast.data, SV_INIT.sv.multicast.cursize);
 		}
 
-		SZ.Clear(SV_INIT.sv.multicast);
-	}
+        SV_INIT.sv.multicast.clear();
+    }
 
 	private static final float[] origin_v = { 0, 0, 0 };
 	/*  
@@ -381,12 +381,12 @@ public class SV_SEND {
 			Com.Printf("WARNING: datagram overflowed for " + client.name + "\n");
 		else
 			SZ.Write(msg, client.datagram.data, client.datagram.cursize);
-		SZ.Clear(client.datagram);
+        client.datagram.clear();
 
-		if (msg.overflowed) { // must have room left for the packet header
+        if (msg.overflowed) { // must have room left for the packet header
 			Com.Printf("WARNING: msg overflowed for " + client.name + "\n");
-			SZ.Clear(msg);
-		}
+            msg.clear();
+        }
 
 		// send the datagram
 		Netchan.Transmit(client.netchan, msg.cursize, msg.data);
@@ -506,9 +506,9 @@ public class SV_SEND {
 			// if the reliable message overflowed,
 			// drop the client
 			if (c.netchan.message.overflowed) {
-				SZ.Clear(c.netchan.message);
-				SZ.Clear(c.datagram);
-				SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
+                c.netchan.message.clear();
+                c.datagram.clear();
+                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n");
 				SV_MAIN.SV_DropClient(c);
 			}
 

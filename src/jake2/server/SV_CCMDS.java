@@ -25,7 +25,6 @@ package jake2.server;
 
 import jake2.Defines;
 import jake2.Globals;
-import jake2.client.Console;
 import jake2.game.Cmd;
 import jake2.game.EndianHandler;
 import jake2.game.GameSVCmds;
@@ -33,6 +32,7 @@ import jake2.game.GameSave;
 import jake2.game.Info;
 import jake2.game.cvar_t;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
 import jake2.sys.NET;
 import jake2.sys.Sys;
 import jake2.util.Lib;

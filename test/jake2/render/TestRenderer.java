@@ -31,6 +31,7 @@ import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.sys.KBD;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -367,8 +368,8 @@ public class TestRenderer {
             if (explode)
                 Explosion(target);
             else {
-                target = new float[] { 150 + Lib.crand() * 80,
-                        Lib.crand() * 40, Lib.crand() * 40 };
+                target = new float[] { 150 + Lib.crandom() * 80,
+                        Lib.crandom() * 40, Lib.crandom() * 40 };
                 RailTrail(new float[] { 30, -20, -20 }, target);
                 //Heatbeam(new float[]{30, 20, -20}, target);
             }
@@ -679,8 +680,8 @@ public class TestRenderer {
             p.color = 0x0 + Lib.rand() & 15;
             
             for (j = 0; j < 3; j++) {
-                p.org[j] = move[j] + Lib.crand() * 3;
-                p.vel[j] = Lib.crand() * 3;
+                p.org[j] = move[j] + Lib.crandom() * 3;
+                p.vel[j] = Lib.crandom() * 3;
                 p.accel[j] = 0;
             }
             

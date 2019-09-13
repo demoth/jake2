@@ -1014,7 +1014,7 @@ public class CL_fx {
 			d = Lib.rand() & 31;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-				p.vel[j] = Lib.crand() * 20;
+                p.vel[j] = Lib.crandom() * 20;
 			}
 
 			p.accel[0] = p.accel[1] = 0;
@@ -1047,7 +1047,7 @@ public class CL_fx {
 			d = Lib.rand() & 7;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-				p.vel[j] = Lib.crand() * 20;
+                p.vel[j] = Lib.crandom() * 20;
 			}
 
 			p.accel[0] = p.accel[1] = 0;
@@ -1081,7 +1081,7 @@ public class CL_fx {
 			d = Lib.rand() & 7;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-				p.vel[j] = Lib.crand() * 20;
+                p.vel[j] = Lib.crandom() * 20;
 			}
 
 			p.accel[0] = p.accel[1] = 0;
@@ -1112,7 +1112,7 @@ public class CL_fx {
 
 			for (j = 0; j < 2; j++) {
 				p.org[j] = ent.origin[j] - 16 + (Lib.rand() & 31);
-				p.vel[j] = Lib.crand() * 14;
+                p.vel[j] = Lib.crandom() * 14;
 			}
 
 			p.org[2] = ent.origin[2] - 8 + (Lib.rand() & 7);
@@ -1157,7 +1157,7 @@ public class CL_fx {
 			p.org[2] = org[2] - 24 + Globals.rnd.nextFloat() * 56;
 
 			for (j = 0; j < 3; j++)
-				p.vel[j] = Lib.crand() * 20;
+                p.vel[j] = Lib.crandom() * 20;
 
 			p.accel[0] = p.accel[1] = 0;
 			p.accel[2] = -PARTICLE_GRAVITY;
@@ -1188,12 +1188,12 @@ public class CL_fx {
 
 			p.color = 0xd4 + (Lib.rand() & 3); // green
 
-			p.org[0] = org[0] + Lib.crand() * 8;
-			p.org[1] = org[1] + Lib.crand() * 8;
-			p.org[2] = org[2] + Lib.crand() * 8;
+            p.org[0] = org[0] + Lib.crandom() * 8;
+            p.org[1] = org[1] + Lib.crandom() * 8;
+            p.org[2] = org[2] + Lib.crandom() * 8;
 
 			for (j = 0; j < 3; j++)
-				p.vel[j] = Lib.crand() * 8;
+                p.vel[j] = Lib.crandom() * 8;
 
 			p.accel[0] = p.accel[1] = 0;
 			p.accel[2] = -PARTICLE_GRAVITY * 0.2f;
@@ -1294,7 +1294,7 @@ public class CL_fx {
 			d = Lib.rand() & 15;
 			for (j = 0; j < 3; j++) {
 				p.org[j] = org[j] + ((Lib.rand() & 7) - 4) + d * dir[j];
-				p.vel[j] = dir[j] * 30 + Lib.crand() * 40;
+                p.vel[j] = dir[j] * 30 + Lib.crandom() * 40;
 			}
 
 			p.accel[0] = p.accel[1] = 0;
@@ -1344,8 +1344,8 @@ public class CL_fx {
 			p.alphavel = -1.0f / (0.3f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 0xe0;
 			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand();
-				p.vel[j] = Lib.crand() * 5;
+                p.org[j] = move[j] + Lib.crandom();
+                p.vel[j] = Lib.crandom() * 5;
 				p.accel[j] = 0;
 			}
 
@@ -1390,8 +1390,8 @@ public class CL_fx {
 			p.alphavel = -1.0f / (0.8f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = color;
 			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand() * 16;
-				p.vel[j] = Lib.crand() * 5;
+                p.org[j] = move[j] + Lib.crandom() * 16;
+                p.vel[j] = Lib.crandom() * 5;
 				p.accel[j] = 0;
 			}
 
@@ -1450,8 +1450,8 @@ public class CL_fx {
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.4f);
 					p.color = 0xe8 + (Lib.rand() & 7);
 					for (int j = 0; j < 3; j++) {
-						p.org[j] = move[j] + Lib.crand() * orgscale;
-						p.vel[j] = Lib.crand() * velscale;
+                        p.org[j] = move[j] + Lib.crandom() * orgscale;
+                        p.vel[j] = Lib.crandom() * velscale;
 						p.accel[j] = 0;
 					}
 					p.vel[2] -= PARTICLE_GRAVITY;
@@ -1460,8 +1460,8 @@ public class CL_fx {
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.4f);
 					p.color = 0xdb + (Lib.rand() & 7);
 					for (int j = 0; j < 3; j++) {
-						p.org[j] = move[j] + Lib.crand() * orgscale;
-						p.vel[j] = Lib.crand() * velscale;
+                        p.org[j] = move[j] + Lib.crandom() * orgscale;
+                        p.vel[j] = Lib.crandom() * velscale;
 						p.accel[j] = 0;
 					}
 					p.vel[2] -= PARTICLE_GRAVITY;
@@ -1470,8 +1470,8 @@ public class CL_fx {
 					p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.2f);
 					p.color = 4 + (Lib.rand() & 7);
 					for (int j = 0; j < 3; j++) {
-						p.org[j] = move[j] + Lib.crand() * orgscale;
-						p.vel[j] = Lib.crand() * velscale;
+                        p.org[j] = move[j] + Lib.crandom() * orgscale;
+                        p.vel[j] = Lib.crandom() * velscale;
 					}
 					p.accel[2] = 20;
 				}
@@ -1527,8 +1527,8 @@ public class CL_fx {
 				p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.2f);
 				p.color = 0xdc + (Lib.rand() & 3);
 				for (j = 0; j < 3; j++) {
-					p.org[j] = move[j] + Lib.crand() * 5;
-					p.vel[j] = Lib.crand() * 20;
+                    p.org[j] = move[j] + Lib.crandom() * 5;
+                    p.vel[j] = Lib.crandom() * 20;
 				}
 				p.accel[2] = -PARTICLE_GRAVITY;
 			}
@@ -1613,8 +1613,8 @@ public class CL_fx {
 			p.color = 0x0 + Lib.rand() & 15;
 
 			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand() * 3;
-				p.vel[j] = Lib.crand() * 3;
+                p.org[j] = move[j] + Lib.crandom() * 3;
+                p.vel[j] = Lib.crandom() * 3;
 				p.accel[j] = 0;
 			}
 
@@ -1712,8 +1712,8 @@ public class CL_fx {
 			p.alphavel = -1.0f / (1.0f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 4 + (Lib.rand() & 7);
 			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand() * 2;
-				p.vel[j] = Lib.crand() * 5;
+                p.org[j] = move[j] + Lib.crandom() * 2;
+                p.vel[j] = Lib.crandom() * 5;
 			}
 			p.vel[2] += 6;
 
@@ -1918,8 +1918,8 @@ public class CL_fx {
 			p.alphavel = -1.0f / (0.3f + Globals.rnd.nextFloat() * 0.2f);
 			p.color = 0xe0;
 			for (j = 0; j < 3; j++) {
-				p.org[j] = move[j] + Lib.crand();
-				p.vel[j] = Lib.crand() * 15;
+                p.org[j] = move[j] + Lib.crandom();
+                p.vel[j] = Lib.crandom() * 15;
 				p.accel[j] = 0;
 			}
 			p.accel[2] = PARTICLE_GRAVITY;
@@ -1952,9 +1952,9 @@ public class CL_fx {
 					p.alpha = 1.0f;
 					p.alphavel = -1.0f / (0.3f + (Lib.rand() & 7) * 0.02f);
 
-					p.org[0] = org[0] + i + ((Lib.rand() & 23) * Lib.crand());
-					p.org[1] = org[1] + j + ((Lib.rand() & 23) * Lib.crand());
-					p.org[2] = org[2] + k + ((Lib.rand() & 23) * Lib.crand());
+                    p.org[0] = org[0] + i + ((Lib.rand() & 23) * Lib.crandom());
+                    p.org[1] = org[1] + j + ((Lib.rand() & 23) * Lib.crandom());
+                    p.org[2] = org[2] + k + ((Lib.rand() & 23) * Lib.crandom());
 
 					dir[0] = j * 8;
 					dir[1] = i * 8;

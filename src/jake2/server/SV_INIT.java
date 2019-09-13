@@ -28,6 +28,7 @@ import jake2.client.CL;
 import jake2.client.SCR;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.FS;
 import jake2.sys.NET;
 import jake2.util.Lib;
 import jake2.util.Math3D;
@@ -61,7 +62,7 @@ public class SV_INIT {
 
         if (sv.state != Defines.ss_loading) { 
             // send the update to everyone
-            SZ.Clear(sv.multicast);
+            sv.multicast.clear();
             MSG.WriteChar(sv.multicast, Defines.svc_configstring);
             MSG.WriteShort(sv.multicast, start + i);
             MSG.WriteString(sv.multicast, name);

@@ -29,6 +29,7 @@ import jake2.Defines;
 import jake2.client.*;
 import jake2.game.*;
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.qfiles;
 import jake2.render.*;
 import jake2.util.*;
 

@@ -25,7 +25,7 @@ package jake2.util;
 
 import jake2.Globals;
 import jake2.qcommon.Com;
-import jake2.qcommon.FS;
+import jake2.qcommon.filesystem.FS;
 
 import java.io.*;
 import java.nio.*;
@@ -62,13 +62,7 @@ public class Lib {
 	public static float random() {
 		return Globals.rnd.nextFloat();
 	}
-	
-	/** Like in libc. */
-	public static float crand() {
-		return (Globals.rnd.nextFloat() - 0.5f) * 2.0f;
-	}
 
-	/** Like in libc. */
 	public static float atof(String in) {
 		if (in == null || in.length() == 0)
 			return 0;

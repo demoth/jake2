@@ -29,7 +29,7 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.client.CL;
 import jake2.client.Console;
-import jake2.game.Cmd;
+import jake2.qcommon.filesystem.FS;
 import jake2.server.SV_MAIN;
 import jake2.sys.Sys;
 import jake2.util.*;
