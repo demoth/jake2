@@ -1439,7 +1439,7 @@ public final class CL {
 
         Key.WriteBindings(f);
         Lib.fclose(f);
-        Cvar.WriteVariables(path);
+        Cvar.writeArchiveVariables(path);
     }
 
     /**

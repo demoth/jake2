@@ -35,7 +35,6 @@ public final class cvar_t {
     public int flags = 0;
     public boolean modified = false;
     public float value = 0.0f;
-    public cvar_t next = null;
 
     @Override
     public String toString() {
@@ -52,8 +51,6 @@ public final class cvar_t {
         	sb.append(", modified=").append(modified);
         if (value != 0f)
         	sb.append(", value=").append(value);
-        if (next != null)
-        	sb.append(", next is not null");
         sb.append('}');
         return sb.toString();
     }

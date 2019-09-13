@@ -36,6 +36,8 @@ import jake2.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import java.util.function.Consumer;
 
@@ -43,6 +45,8 @@ import java.util.function.Consumer;
  * Cvar implements console variables. The original code is located in cvar.c
  */
 public class Cvar extends Globals {
+
+    private static Map<String, cvar_t> cvarMap = new HashMap<>();
 
     public static cvar_t Get(String var_name, String defaultValue, int flags) {
         cvar_t var;
@@ -74,10 +78,9 @@ public class Cvar extends Globals {
         var.string = defaultValue;
         var.modified = true;
         var.value = Lib.atof(var.string);
-        // link the variable in
-        var.next = Globals.cvar_vars;
         var.flags = flags;
-        Globals.cvar_vars = var;
+
+        cvarMap.put(var_name, var);
 
         return var;
     }
@@ -108,11 +111,7 @@ public class Cvar extends Globals {
 
         });
         Cmd.AddCommand("cvarlist", () -> {
-            cvar_t var;
-            int i;
-
-            i = 0;
-            for (var = Globals.cvar_vars; var != null; var = var.next, i++) {
+            for (cvar_t var : cvarMap.values()) {
                 if ((var.flags & CVAR_ARCHIVE) != 0)
                     Com.Printf("*");
                 else
@@ -133,7 +132,7 @@ public class Cvar extends Globals {
                     Com.Printf(" ");
                 Com.Printf(" " + var.name + " \"" + var.string + "\"\n");
             }
-            Com.Printf(i + " cvars\n");
+            Com.Printf(cvarMap.size() + " cvars\n");
         });
     }
 
@@ -144,12 +143,7 @@ public class Cvar extends Globals {
     }
 
     static cvar_t FindVar(String var_name) {
-        for (cvar_t var = Globals.cvar_vars; var != null; var = var.next) {
-            if (var_name.equals(var.name))
-                return var;
-        }
-
-        return null;
+        return cvarMap.get(var_name);
     }
 
     /**
@@ -312,14 +306,11 @@ public class Cvar extends Globals {
         return true;
     }
 
-    public static String BitInfo(int bit) {
-        String info;
-        cvar_t var;
+    private static String BitInfo(int flags) {
+        String info = "";
 
-        info = "";
-
-        for (var = Globals.cvar_vars; var != null; var = var.next) {
-            if ((var.flags & bit) != 0)
+        for (cvar_t var : cvarMap.values()) {
+            if ((var.flags & flags) != 0)
                 info = Info.Info_SetValueForKey(info, var.name, var.string);
         }
         return info;
@@ -333,7 +324,7 @@ public class Cvar extends Globals {
     }
 
     public static void eachCvarByFlags(int flags, Consumer<cvar_t> consumer) {
-        for (cvar_t var = Globals.cvar_vars; var != null; var = var.next) {
+        for (cvar_t var : cvarMap.values()) {
             if (0 != (var.flags & flags)) {
                 consumer.accept(var);
             }
@@ -344,9 +335,7 @@ public class Cvar extends Globals {
      * Any variables with latched values will be updated.
      */
     public static void GetLatchedVars() {
-        cvar_t var;
-
-        for (var = Globals.cvar_vars; var != null; var = var.next) {
+        for (cvar_t var : cvarMap.values()) {
             if (var.latched_string == null || var.latched_string.length() == 0)
                 continue;
             var.string = var.latched_string;
@@ -367,12 +356,11 @@ public class Cvar extends Globals {
     }
     
     /**
-     * Appends lines containing \"set vaqriable value\" for all variables
+     * Appends lines containing \"set variable value\" for all variables
      * with the archive flag set true. 
      */
 
-    public static void WriteVariables(String path) {
-        cvar_t var;
+    public static void writeArchiveVariables(String path) {
         RandomAccessFile f;
         String buffer;
 
@@ -386,12 +374,13 @@ public class Cvar extends Globals {
             Lib.fclose(f);
             return;
         }
-        for (var = cvar_vars; var != null; var = var.next) {
+        for (cvar_t var : cvarMap.values()) {
             if ((var.flags & CVAR_ARCHIVE) != 0) {
                 buffer = "set " + var.name + " \"" + var.string + "\"\n";
                 try {
                     f.writeBytes(buffer);
                 } catch (IOException e) {
+                    Com.Printf("Could not write cvar " + var + " to " + path);
                 }
             }
         }
@@ -401,14 +390,15 @@ public class Cvar extends Globals {
     /**
      * Variable typing auto completition.
      */
-    public static Vector CompleteVariable(String partial) {
+    public static Vector CompleteVariable(String prefix) {
 
         Vector<String> vars = new Vector<>();
 
         // check match
-        for (cvar_t cvar = Globals.cvar_vars; cvar != null; cvar = cvar.next)
-            if (cvar.name.startsWith(partial))
-                vars.add(cvar.name);
+        for (String cvarName : cvarMap.keySet()) {
+            if (cvarName.startsWith(prefix))
+                vars.add(cvarName);
+        }
 
         return vars;
     }

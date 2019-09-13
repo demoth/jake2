@@ -356,7 +356,6 @@ public class Globals extends Defines {
 
 	public static boolean userinfo_modified = false;
 
-	public static cvar_t cvar_vars;
 	public static final console_t con = new console_t();
 	public static cvar_t con_notifytime;
 	public static viddef_t viddef = new viddef_t();
