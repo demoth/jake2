@@ -29,7 +29,18 @@ package jake2.qcommon;
  * cmd_function_t
  */
 public final class cmd_function_t {
-	public cmd_function_t next = null;
-	public String name = null;
+	public String name;
 	public Command function;
+
+	public cmd_function_t(String name, Command function) {
+		this.name = name;
+		this.function = function;
+	}
+
+	@Override
+	public String toString() {
+		return "cmd_function_t{" +
+				"name='" + name + '\'' +
+				'}';
+	}
 }

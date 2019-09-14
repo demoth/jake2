@@ -34,23 +34,19 @@ import jake2.server.SV_GAME;
 import jake2.util.Lib;
 
 import java.util.*;
-import java.util.Arrays;
-import java.util.Vector;
 
 /**
  * Cmd
  */
 public final class Cmd {
-    private static Command List_f = () -> {
-        cmd_function_t cmd = Cmd.cmd_functions;
-        int i = 0;
 
-        while (cmd != null) {
+    private static Command List_f = () -> {
+
+        for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
             Com.Printf(cmd.name + '\n');
-            i++;
-            cmd = cmd.next;
         }
-        Com.Printf(i + " commands\n");
+
+        Com.Printf(Cmd.cmd_functions.size() + " commands\n");
     };
 
     private static Command Exec_f = () -> {
@@ -125,7 +121,7 @@ public final class Cmd {
 
     private static Command Wait_f = () -> Globals.cmd_wait = true;
 
-    private static cmd_function_t cmd_functions = null;
+    private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
 
     private static int cmd_argc;
 
@@ -242,6 +238,7 @@ public final class Cmd {
      * 
      * Parses the given string into command line tokens. $Cvars will be expanded
      * unless they are in a quoted token.
+     * TODO should return the tokens and not assign to static fields!
      */
     public static void TokenizeString(char text[], boolean macroExpand) {
         String com_token;
@@ -294,71 +291,31 @@ public final class Cmd {
     }
 
     public static void AddCommand(String cmd_name, Command function) {
-        cmd_function_t cmd;
-        //Com.DPrintf("Cmd_AddCommand: " + cmd_name + "\n");
         // fail if the command is a variable name
         if ((Cvar.VariableString(cmd_name)).length() > 0) {
-            Com.Printf("Cmd_AddCommand: " + cmd_name
-                    + " already defined as a var\n");
+            Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
             return;
         }
 
         // fail if the command already exists
-        for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
-            if (cmd_name.equals(cmd.name)) {
-                Com
-                        .Printf("Cmd_AddCommand: " + cmd_name
-                                + " already defined\n");
-                return;
-            }
+        if (cmd_functions.containsKey(cmd_name)) {
+            Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined\n");
+            return;
         }
 
-        cmd = new cmd_function_t();
-        cmd.name = cmd_name;
-
-        cmd.function = function;
-        cmd.next = cmd_functions;
-        cmd_functions = cmd;
+        cmd_functions.put(cmd_name, new cmd_function_t(cmd_name, function));
     }
 
     /**
      * Cmd_RemoveCommand 
      */
     public static void RemoveCommand(String cmd_name) {
-        cmd_function_t cmd, back = null;
-
-        back = cmd = cmd_functions;
-
-        while (true) {
-
-            if (cmd == null) {
-                Com.Printf("Cmd_RemoveCommand: " + cmd_name + " not added\n");
-                return;
-            }
-            if (cmd_name.equals(cmd.name)) {
-                if (cmd == cmd_functions)
-                    cmd_functions = cmd.next;
-                else
-                    back.next = cmd.next;
-                return;
-            }
-            back = cmd;
-            cmd = cmd.next;
+        if (!cmd_functions.containsKey(cmd_name)) {
+            Com.Printf("RemoveCommand: " + cmd_name + " does not exist\n");
+        } else {
+            Com.Printf("RemoveCommand: " + cmd_name + " removed\n");
+            cmd_functions.remove(cmd_name);
         }
-    }
-
-    /** 
-     * Cmd_Exists 
-     */
-    public static boolean Exists(String cmd_name) {
-        cmd_function_t cmd;
-
-        for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
-            if (cmd.name.equals(cmd_name))
-                return true;
-        }
-
-        return false;
     }
 
     public static int Argc() {
@@ -393,15 +350,15 @@ public final class Cmd {
             return; // no tokens
 
         // check functions
-        for (cmd = cmd_functions; cmd != null; cmd = cmd.next) {
-            if (cmd_argv[0].equalsIgnoreCase(cmd.name)) {
-                if (null == cmd.function) { // forward to server command
-                    Cmd.ExecuteString("cmd " + text);
-                } else {
-                    cmd.function.execute();
-                }
-                return;
+        cmd = cmd_functions.get(cmd_argv[0]);
+        if (cmd != null) {
+            if (cmd.function != null) {
+                // todo pass arguments to execute instead of using Cmd.Argc()
+                cmd.function.execute();
+            } else { // forward to server command
+                Cmd.ExecuteString("cmd " + text);
             }
+            return;
         }
 
         // check alias
@@ -1168,17 +1125,16 @@ public final class Cmd {
     }
 
     /**
-     * Cmd_CompleteCommand.
+     * Find commands or aliases by prefix
      */
-    public static Vector CompleteCommand(String partial) {
-        Vector cmds = new Vector();
+    public static List<String> CompleteCommand(String prefix) {
+        List<String> cmds = new ArrayList<>();
 
-        // check for match
-        for (cmd_function_t cmd = cmd_functions; cmd != null; cmd = cmd.next)
-            if (cmd.name.startsWith(partial))
+        for (cmd_function_t cmd : cmd_functions.values())
+            if (cmd.name.startsWith(prefix))
                 cmds.add(cmd.name);
         for (cmdalias_t a = Globals.cmd_alias; a != null; a = a.next)
-            if (a.name.startsWith(partial))
+            if (a.name.startsWith(prefix))
                 cmds.add(a.name);
 
         return cmds;

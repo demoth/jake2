@@ -23,28 +23,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.game.Cmd;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestCMD {
 
-	public static void main(String args[]) {
-		try {
-			Cmd.Init();
-			Cmd.RemoveCommand("exec");
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("Give some commands:");
-
-			while (true) {
-				System.out.println("#");
-				String line = br.readLine();
-				Cmd.ExecuteString(line);
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    @Test
+    public void testSampleCommand() {
+        List<String> result = new ArrayList<>();
+        Cmd.AddCommand("test", () -> {
+            result.add("success");
+        });
+        Cmd.ExecuteString("test");
+        Assert.assertEquals("success", result.get(0));
+    }
 }

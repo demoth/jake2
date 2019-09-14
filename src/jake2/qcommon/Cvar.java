@@ -36,9 +36,10 @@ import jake2.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.function.Consumer;
 
 /**
@@ -390,11 +391,10 @@ public class Cvar extends Globals {
     /**
      * Variable typing auto completition.
      */
-    public static Vector CompleteVariable(String prefix) {
+    public static List<String> CompleteVariable(String prefix) {
 
-        Vector<String> vars = new Vector<>();
+        List<String> vars = new ArrayList<>();
 
-        // check match
         for (String cvarName : cvarMap.keySet()) {
             if (cvarName.startsWith(prefix))
                 vars.add(cvarName);

@@ -28,13 +28,15 @@ package jake2.client;
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
-import jake2.qcommon.*;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 import jake2.sys.Sys;
 import jake2.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Vector;
+import java.util.List;
 
 /**
  * Key
@@ -848,10 +850,10 @@ public class Key extends Globals {
 
 	}
 
-	private static void printCompletions(String type, Vector compl) {
+	private static void printCompletions(String type, List<String> names) {
 		Com.Printf(type);
-		for (int i = 0; i < compl.size(); i++) {
-			Com.Printf((String)compl.get(i) + " ");
+		for (String name : names) {
+			Com.Printf(name + " ");
 		}
 		Com.Printf("\n");
 	}
@@ -867,20 +869,20 @@ public class Key extends Globals {
 			
 		String s = new String(key_lines[edit_line], start, end-start);
 		
-		Vector cmds = Cmd.CompleteCommand(s);
-		Vector vars = Cvar.CompleteVariable(s);
+		List<String> cmds = Cmd.CompleteCommand(s);
+		List<String> vars = Cvar.CompleteVariable(s);
 		
-		int c = cmds.size();
-		int v = vars.size();
+		int commandsSize = cmds.size();
+		int cvarsSize = vars.size();
 		
-		if ((c + v) > 1) {
-			if (c > 0) printCompletions("\nCommands:\n", cmds);
-			if (v > 0) printCompletions("\nVariables:\n", vars);
+		if ((commandsSize + cvarsSize) > 1) {
+			if (commandsSize > 0) printCompletions("\nCommands:\n", cmds);
+			if (cvarsSize > 0) printCompletions("\nVariables:\n", vars);
 			return;
-		} else if (c == 1) {
-			s = (String)cmds.get(0);
-		} else if (v == 1) {
-			s = (String)vars.get(0);
+		} else if (commandsSize == 1) {
+			s = cmds.get(0);
+		} else if (cvarsSize == 1) {
+			s = vars.get(0);
 		} else return;
 		
 		key_lines[edit_line][1] = '/';
@@ -889,8 +891,6 @@ public class Key extends Globals {
 		key_linepos = bytes.length + 2;
 		key_lines[edit_line][key_linepos++] = ' ';
 		key_lines[edit_line][key_linepos] = 0;
-		
-		return;
 	}
 
 	private static void Key_Bind_f() {
