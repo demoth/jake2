@@ -68,12 +68,13 @@ package jake2.qcommon;
 
  */
 
-import java.io.File;
-
 import jake2.Defines;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.util.Lib;
+
+import java.io.File;
+import java.util.List;
 
 public final class CDAudio {
     
@@ -365,7 +366,7 @@ public final class CDAudio {
                 return -1;
         }
 
-        Cmd.AddCommand ("cd", CDAudio::CD_f);
+        Cmd.AddCommand ("cd", (List<String> args) -> CD_f());
         
         //cdValid = true;
         cdfile = 0;

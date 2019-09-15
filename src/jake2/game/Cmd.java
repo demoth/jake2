@@ -40,7 +40,7 @@ import java.util.*;
  */
 public final class Cmd {
 
-    private static Command List_f = () -> {
+    private static Command List_f = (List<String> args) -> {
 
         for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
             Com.Printf(cmd.name + '\n');
@@ -49,7 +49,7 @@ public final class Cmd {
         Com.Printf(Cmd.cmd_functions.size() + " commands\n");
     };
 
-    private static Command Exec_f = () -> {
+    private static Command Exec_f = (List<String> args) -> {
         if (Cmd.Argc() != 2) {
             Com.Printf("exec <filename> : execute a script file\n");
             return;
@@ -68,18 +68,18 @@ public final class Cmd {
         FS.FreeFile(f);
     };
 
-    private static Command Echo_f = () -> {
+    private static Command Echo_f = (List<String> args) -> {
         for (int i = 1; i < Cmd.Argc(); i++) {
             Com.Printf(Cmd.Argv(i) + " ");
         }
         Com.Printf("'\n");
     };
 
-    private static Command Alias_f = () -> {
+    private static Command Alias_f = (List<String> args) -> {
         cmdalias_t a = null;
         if (Cmd.Argc() == 1) {
             Com.Printf("Current alias commands:\n");
-            for (a = Globals.cmd_alias; a != null; a = a.next) {
+            for (a = Cmd.cmd_alias; a != null; a = a.next) {
                 Com.Printf(a.name + " : " + a.value);
             }
             return;
@@ -92,7 +92,7 @@ public final class Cmd {
         }
 
         // if the alias already exists, reuse it
-        for (a = Globals.cmd_alias; a != null; a = a.next) {
+        for (a = Cmd.cmd_alias; a != null; a = a.next) {
             if (s.equalsIgnoreCase(a.name)) {
                 a.value = null;
                 break;
@@ -101,8 +101,8 @@ public final class Cmd {
 
         if (a == null) {
             a = new cmdalias_t();
-            a.next = Globals.cmd_alias;
-            Globals.cmd_alias = a;
+            a.next = Cmd.cmd_alias;
+            cmd_alias = a;
         }
         a.name = s;
 
@@ -119,9 +119,11 @@ public final class Cmd {
         a.value = cmd;
     };
 
-    private static Command Wait_f = () -> Globals.cmd_wait = true;
+    private static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
 
     private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
+
+    private static cmdalias_t cmd_alias;
 
     private static int cmd_argc;
 
@@ -142,10 +144,6 @@ public final class Cmd {
         Cmd.AddCommand("alias", Alias_f);
         Cmd.AddCommand("wait", Wait_f);
     }
-
-    private static char expanded[] = new char[Defines.MAX_STRING_CHARS];
-
-    private static char temporary[] = new char[Defines.MAX_STRING_CHARS];
 
     private static Comparator PlayerSort = (o1, o2) -> {
         int anum = ((Integer) o1).intValue();
@@ -224,8 +222,8 @@ public final class Cmd {
      * unless they are in a quoted token.
      * TODO should return the tokens and not assign to static fields!
      */
-    public static void TokenizeString(String text, boolean macroExpand) {
-        String com_token;
+    public static List<String> TokenizeString(String text, boolean macroExpand) {
+        List<String> result = new ArrayList<>();
 
         cmd_argc = 0;
         cmd_args = "";
@@ -234,39 +232,39 @@ public final class Cmd {
         if (macroExpand)
             text = MacroExpandString(text);
 
-        if (text == null)
-            return;
+        if (text == null || text.isEmpty())
+            return result;
 
         Com.ParseHelp ph = new Com.ParseHelp(text);
 
         while (true) {
 
-            // skip whitespace up to a /n
+            // skip whitespace up to a \n
             char c = ph.skipwhitestoeol();
 
-            if (c == '\n') { // a newline seperates commands in the buffer
+            if (c == '\n') { // a newline separates commands in the buffer
                 c = ph.nextchar();
                 break;
             }
 
             if (c == 0)
-                return;
+                return result;
 
             // set cmd_args to everything after the first arg
             if (cmd_argc == 1) {
                 cmd_args = new String(text.toCharArray(), ph.index, text.length() - ph.index);
             }
 
-            com_token = Com.Parse(ph);
+            String word = Com.Parse(ph);
 
-            if (ph.data == null)
-                return;
+            result.add(word);
 
             if (cmd_argc < Defines.MAX_STRING_TOKENS) {
-                cmd_argv[cmd_argc] = com_token;
+                cmd_argv[cmd_argc] = word;
                 cmd_argc++;
             }
         }
+        return result;
     }
 
     public static void AddCommand(String cmd_name, Command function) {
@@ -297,16 +295,19 @@ public final class Cmd {
         }
     }
 
+    @Deprecated
     public static int Argc() {
         return cmd_argc;
     }
 
+    @Deprecated
     public static String Argv(int i) {
         if (i < 0 || i >= cmd_argc)
             return "";
         return cmd_argv[i];
     }
 
+    @Deprecated
     public static String Args() {
         return cmd_args;
     }
@@ -318,22 +319,21 @@ public final class Cmd {
      * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
+        if (text.trim().startsWith("//"))
+            return;
 
-        cmd_function_t cmd;
-        cmdalias_t a;
-
-        TokenizeString(text, true);
+        List<String> args = TokenizeString(text, true);
 
         // execute the command line
         if (Argc() == 0)
             return; // no tokens
 
         // check functions
-        cmd = cmd_functions.get(cmd_argv[0]);
+        cmd_function_t cmd = cmd_functions.get(cmd_argv[0]);
         if (cmd != null) {
             if (cmd.function != null) {
                 // todo pass arguments to execute instead of using Cmd.Argc()
-                cmd.function.execute();
+                cmd.function.execute(args);
             } else { // forward to server command
                 Cmd.ExecuteString("cmd " + text);
             }
@@ -341,7 +341,7 @@ public final class Cmd {
         }
 
         // check alias
-        for (a = Globals.cmd_alias; a != null; a = a.next) {
+        for (cmdalias_t a = cmd_alias; a != null; a = a.next) {
 
             if (cmd_argv[0].equalsIgnoreCase(a.name)) {
 
@@ -355,7 +355,7 @@ public final class Cmd {
         }
 
         // check cvars
-        if (Cvar.Command())
+        if (Cvar.printOrSet(args))
             return;
 
         // send it as a server command if we are connected
@@ -1112,7 +1112,7 @@ public final class Cmd {
         for (cmd_function_t cmd : cmd_functions.values())
             if (cmd.name.startsWith(prefix))
                 cmds.add(cmd.name);
-        for (cmdalias_t a = Globals.cmd_alias; a != null; a = a.next)
+        for (cmdalias_t a = cmd_alias; a != null; a = a.next)
             if (a.name.startsWith(prefix))
                 cmds.add(a.name);
 

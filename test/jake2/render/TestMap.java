@@ -28,7 +28,10 @@ import jake2.Globals;
 import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.qcommon.*;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.Q2DataDialog;
+import jake2.qcommon.Qcommon;
 import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Lib;
@@ -37,6 +40,7 @@ import jake2.util.Math3D;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -89,35 +93,35 @@ public class TestMap
 		re.Init(0, 0);
 		
 		// init keyboard
-		Cmd.AddCommand("+tforward", () -> {
+		Cmd.AddCommand("+tforward", (List<String> args) -> {
 			movePlayer |=  FORWARD;
 			movePlayer &= BACKWARD_MASK;
 		});
-		Cmd.AddCommand("-tforward", () -> movePlayer &=  FORWARD_MASK);
+		Cmd.AddCommand("-tforward", (List<String> args) -> movePlayer &=  FORWARD_MASK);
 		Cbuf.AddText("bind UPARROW +tforward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tbackward", () -> {
+		Cmd.AddCommand("+tbackward", (List<String> args) -> {
 			movePlayer |=  BACKWARD;
 			movePlayer &= FORWARD_MASK;
 		});
-		Cmd.AddCommand("-tbackward", () -> movePlayer &=  BACKWARD_MASK);
+		Cmd.AddCommand("-tbackward", (List<String> args) -> movePlayer &=  BACKWARD_MASK);
 		Cbuf.AddText("bind DOWNARROW +tbackward");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tleft", () -> {
+		Cmd.AddCommand("+tleft", (List<String> args) -> {
 			movePlayer |=  LEFT;
 			movePlayer &= RIGHT_MASK;
 		});
-		Cmd.AddCommand("-tleft", () -> movePlayer &=  LEFT_MASK);
+		Cmd.AddCommand("-tleft", (List<String> args) -> movePlayer &=  LEFT_MASK);
 		Cbuf.AddText("bind LEFTARROW +tleft");
 		Cbuf.Execute();
-		Cmd.AddCommand("+tright", () -> {
+		Cmd.AddCommand("+tright", (List<String> args) -> {
 			movePlayer |=  RIGHT;
 			movePlayer &=  LEFT_MASK;
 		});
-		Cmd.AddCommand("-tright", () -> movePlayer &=  RIGHT_MASK);
+		Cmd.AddCommand("-tright", (List<String> args) -> movePlayer &=  RIGHT_MASK);
 		Cbuf.AddText("bind RIGHTARROW +tright");
 		Cbuf.Execute();
-		Cmd.AddCommand("togglemouse", IN::toggleMouse);
+		Cmd.AddCommand("togglemouse", (List<String> args) -> IN.toggleMouse());
 		Cbuf.AddText("bind t togglemouse");
 		Cbuf.Execute();
 		Globals.cls.key_dest = Defines.key_game;
@@ -135,7 +139,7 @@ public class TestMap
 		startTime = System.currentTimeMillis();
 		while (true)
 		{
-			re.updateScreen(this::updateScreen);
+			re.updateScreen((List<String> args) -> updateScreen());
 			re.getKeyboardHandler().Update();
 			Cbuf.Execute();
 		}

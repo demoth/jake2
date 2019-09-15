@@ -27,17 +27,20 @@ package jake2.qcommon;
 
 import jake2.Globals;
 import jake2.Jake2;
-import jake2.client.*;
+import jake2.client.CL;
+import jake2.client.Key;
+import jake2.client.SCR;
 import jake2.game.Cmd;
 import jake2.qcommon.filesystem.FS;
 import jake2.server.SV_MAIN;
-import jake2.sys.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
+import jake2.sys.Timer;
 import jake2.util.Vargs;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Qcommon contains some  basic routines for the game engine
@@ -96,7 +99,7 @@ public final class Qcommon extends Globals {
 			//
 			// init commands and vars
 			//
-			Cmd.AddCommand("error", () -> Com.Error(ERR_FATAL, Cmd.Argv(1)));
+			Cmd.AddCommand("error", (List<String> arguments) -> Com.Error(ERR_FATAL, Cmd.Argv(1)));
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);

@@ -36,6 +36,7 @@ import jake2.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -284,10 +285,10 @@ public class Key extends Globals {
 		//
 		// register our functions
 		//
-		Cmd.AddCommand("bind", Key::Key_Bind_f);
-		Cmd.AddCommand("unbind", Key::Key_Unbind_f);
-		Cmd.AddCommand("unbindall", Key::Key_Unbindall_f);
-		Cmd.AddCommand("bindlist", Key::Key_Bindlist_f);
+		Cmd.AddCommand("bind", (List<String> args) -> Key_Bind_f());
+		Cmd.AddCommand("unbind", (List<String> args) -> Key_Unbind_f());
+		Cmd.AddCommand("unbindall", (List<String> args) -> Key_Unbindall_f());
+		Cmd.AddCommand("bindlist", (List<String> args) -> Key_Bindlist_f());
 	}
 
 	static void ClearTyping() {
@@ -333,7 +334,7 @@ public class Key extends Globals {
 			if (!down)
 				return;
 
-			Console.ToggleConsole_f.execute();
+			Console.ToggleConsole_f.execute(Collections.emptyList());
 			return;
 		}
 

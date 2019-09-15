@@ -30,14 +30,18 @@ import jake2.Globals;
 import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.qcommon.*;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.Q2DataDialog;
+import jake2.qcommon.Qcommon;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.sys.KBD;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.nio.FloatBuffer;
+import java.util.List;
 import java.util.*;
 
 /**
@@ -96,7 +100,7 @@ public class TestRenderer {
 	kbd = re.getKeyboardHandler();
 	kbd.Init();
 
-	Cmd.AddCommand("nexttest", () -> {
+	Cmd.AddCommand("nexttest", (List<String> args) -> {
         testnr++;
         testnr = testnr % 3;
     });
@@ -153,7 +157,7 @@ public class TestRenderer {
     void run() {
         startTime = System.currentTimeMillis();
         while (true) {
-            re.updateScreen(this::updateScreen);
+            re.updateScreen((List<String> args) -> updateScreen());
             kbd.Update();
             Cbuf.Execute();
             try {

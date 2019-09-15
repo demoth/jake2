@@ -29,14 +29,15 @@ import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 import jake2.render.Renderer;
 import jake2.sound.S;
 import jake2.sys.IN;
-import jake2.util.Vargs;
 
-import java.awt.Dimension;
-import java.awt.DisplayMode;
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * VID is a video driver.
@@ -264,7 +265,7 @@ public class VID extends Globals {
 				if ( Globals.cls.key_dest != Defines.key_console )
 				{
 					try {
-						Console.ToggleConsole_f.execute();
+						Console.ToggleConsole_f.execute(Collections.emptyList());
 					} catch (Exception e) {
 					}
 				}
@@ -293,7 +294,7 @@ public class VID extends Globals {
 		vid_modes[11].height = (int)vid_height.value;
 		
 		/* Add some console commands that we want to handle */
-		Cmd.AddCommand ("vid_restart", VID::Restart_f);
+		Cmd.AddCommand ("vid_restart", (List<String> args) -> Restart_f());
 
 		/* Disable the 3Dfx splash screen */
 		// putenv("FX_GLIDE_NO_SPLASH=0");

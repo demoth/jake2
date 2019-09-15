@@ -35,6 +35,8 @@ import jake2.sys.IN;
 import jake2.util.Lib;
 import jake2.util.Math3D;
 
+import java.util.List;
+
 /**
  * CL_input
  */
@@ -364,38 +366,38 @@ public class CL_input {
 	 * ============ CL_InitInput ============
 	 */
 	static void InitInput() {
-		Cmd.AddCommand("centerview", IN::CenterView);
-		Cmd.AddCommand("+moveup", () -> KeyDown(in_up));
-		Cmd.AddCommand("-moveup", () -> KeyUp(in_up));
-		Cmd.AddCommand("+movedown", () -> KeyDown(in_down));
-		Cmd.AddCommand("-movedown", () -> KeyUp(in_down));
-		Cmd.AddCommand("+left", () -> KeyDown(in_left));
-		Cmd.AddCommand("-left", () -> KeyUp(in_left));
-		Cmd.AddCommand("+right", () -> KeyDown(in_right));
-		Cmd.AddCommand("-right", () -> KeyUp(in_right));
-		Cmd.AddCommand("+forward", () -> KeyDown(in_forward));
-		Cmd.AddCommand("-forward", () -> KeyUp(in_forward));
-		Cmd.AddCommand("+back", () -> KeyDown(in_back));
-		Cmd.AddCommand("-back", () -> KeyUp(in_back));
-		Cmd.AddCommand("+lookup", () -> KeyDown(in_lookup));
-		Cmd.AddCommand("-lookup", () -> KeyUp(in_lookup));
-		Cmd.AddCommand("+lookdown", () -> KeyDown(in_lookdown));
-		Cmd.AddCommand("-lookdown", () -> KeyUp(in_lookdown));
-		Cmd.AddCommand("+strafe", () -> KeyDown(in_strafe));
-		Cmd.AddCommand("-strafe", () -> KeyUp(in_strafe));
-		Cmd.AddCommand("+moveleft", () -> KeyDown(in_moveleft));
-		Cmd.AddCommand("-moveleft", () -> KeyUp(in_moveleft));
-		Cmd.AddCommand("+moveright", () -> KeyDown(in_moveright));
-		Cmd.AddCommand("-moveright", () -> KeyUp(in_moveright));
-		Cmd.AddCommand("+speed", () -> KeyDown(in_speed));
-		Cmd.AddCommand("-speed", () -> KeyUp(in_speed));
-		Cmd.AddCommand("+attack", () -> KeyDown(in_attack));
-		Cmd.AddCommand("-attack", () -> KeyUp(in_attack));
-		Cmd.AddCommand("+use", () -> KeyDown(in_use));
-		Cmd.AddCommand("-use", () -> KeyUp(in_use));
-		Cmd.AddCommand("impulse", () -> in_impulse = Lib.atoi(Cmd.Argv(1)));
-		Cmd.AddCommand("+klook", () -> KeyDown(in_klook));
-		Cmd.AddCommand("-klook", () -> KeyUp(in_klook));
+		Cmd.AddCommand("centerview", (List<String> args) -> IN.CenterView());
+		Cmd.AddCommand("+moveup", (List<String> args) -> KeyDown(in_up));
+		Cmd.AddCommand("-moveup", (List<String> args) -> KeyUp(in_up));
+		Cmd.AddCommand("+movedown", (List<String> args) -> KeyDown(in_down));
+		Cmd.AddCommand("-movedown", (List<String> args) -> KeyUp(in_down));
+		Cmd.AddCommand("+left", (List<String> args) -> KeyDown(in_left));
+		Cmd.AddCommand("-left", (List<String> args) -> KeyUp(in_left));
+		Cmd.AddCommand("+right", (List<String> args) -> KeyDown(in_right));
+		Cmd.AddCommand("-right", (List<String> args) -> KeyUp(in_right));
+		Cmd.AddCommand("+forward", (List<String> args) -> KeyDown(in_forward));
+		Cmd.AddCommand("-forward", (List<String> args) -> KeyUp(in_forward));
+		Cmd.AddCommand("+back", (List<String> args) -> KeyDown(in_back));
+		Cmd.AddCommand("-back", (List<String> args) -> KeyUp(in_back));
+		Cmd.AddCommand("+lookup", (List<String> args) -> KeyDown(in_lookup));
+		Cmd.AddCommand("-lookup", (List<String> args) -> KeyUp(in_lookup));
+		Cmd.AddCommand("+lookdown", (List<String> args) -> KeyDown(in_lookdown));
+		Cmd.AddCommand("-lookdown", (List<String> args) -> KeyUp(in_lookdown));
+		Cmd.AddCommand("+strafe", (List<String> args) -> KeyDown(in_strafe));
+		Cmd.AddCommand("-strafe", (List<String> args) -> KeyUp(in_strafe));
+		Cmd.AddCommand("+moveleft", (List<String> args) -> KeyDown(in_moveleft));
+		Cmd.AddCommand("-moveleft", (List<String> args) -> KeyUp(in_moveleft));
+		Cmd.AddCommand("+moveright", (List<String> args) -> KeyDown(in_moveright));
+		Cmd.AddCommand("-moveright", (List<String> args) -> KeyUp(in_moveright));
+		Cmd.AddCommand("+speed", (List<String> args) -> KeyDown(in_speed));
+		Cmd.AddCommand("-speed", (List<String> args) -> KeyUp(in_speed));
+		Cmd.AddCommand("+attack", (List<String> args) -> KeyDown(in_attack));
+		Cmd.AddCommand("-attack", (List<String> args) -> KeyUp(in_attack));
+		Cmd.AddCommand("+use", (List<String> args) -> KeyDown(in_use));
+		Cmd.AddCommand("-use", (List<String> args) -> KeyUp(in_use));
+		Cmd.AddCommand("impulse", (List<String> args) -> in_impulse = Lib.atoi(Cmd.Argv(1)));
+		Cmd.AddCommand("+klook", (List<String> args) -> KeyDown(in_klook));
+		Cmd.AddCommand("-klook", (List<String> args) -> KeyUp(in_klook));
 
 		cl_nodelta = Cvar.Get("cl_nodelta", "0", 0);
 	}

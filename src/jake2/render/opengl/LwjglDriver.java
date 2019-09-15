@@ -30,13 +30,13 @@ import jake2.client.VID;
 import jake2.qcommon.Com;
 import jake2.qcommon.Command;
 import jake2.render.Base;
-
-import java.awt.Dimension;
-import java.util.LinkedList;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+
+import java.awt.*;
+import java.util.Collections;
+import java.util.LinkedList;
 
 /**
  * LWJGLBase
@@ -325,7 +325,7 @@ public abstract class LwjglDriver extends LwjglGL implements GLDriver {
      * @param callback
      */
     public final void updateScreen(Command callback) {
-        callback.execute();
+        callback.execute(Collections.emptyList());
     }
 
 }

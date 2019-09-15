@@ -199,7 +199,7 @@ public final class Cbuf {
             int len = Lib.strlen(line);
 
             String cmd = new String(line, 0, len);
-            Cmd.ExecuteString(cmd);
+            Cmd.ExecuteString(cmd.trim());
 
             if (Globals.cmd_wait) {
                 // skip out while text still remains in buffer, leaving it

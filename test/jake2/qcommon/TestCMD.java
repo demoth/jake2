@@ -26,6 +26,7 @@ import jake2.game.Cmd;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -35,7 +36,7 @@ public class TestCMD {
     @Test
     public void testSampleCommand() {
         List<String> result = new ArrayList<>();
-        Cmd.AddCommand("test", () -> {
+        Cmd.AddCommand("test", (List<String> args) -> {
             result.add("success");
         });
         Cmd.ExecuteString("test");
@@ -44,10 +45,35 @@ public class TestCMD {
 
     @Test
     public void testTokenizeString() {
-        Cmd.TokenizeString("echo test", false);
-        assertEquals(2, Cmd.Argc());
-        assertEquals("echo", Cmd.Argv(0));
-        assertEquals("test", Cmd.Argv(1));
+        List<String> result = Cmd.TokenizeString("echo test", false);
+        assertEquals(Arrays.asList("echo", "test"), result);
+    }
+
+    @Test
+    public void testTokenizeWithExpansion() {
+        Cvar.Get("test1", "world", 0);
+        List<String> result = Cmd.TokenizeString("echo $test1 again", true);
+        assertEquals(Arrays.asList("echo", "world", "again"), result);
+    }
+
+    @Test
+    public void testTokenizeWithQuotes() {
+        List<String> result = Cmd.TokenizeString("echo \"hello world\"", true);
+        assertEquals(Arrays.asList("echo", "hello world"), result);
+    }
+
+    @Test
+    public void testTokenizeWithQuotesWithExpansion() {
+        Cvar.Get("test2", "world", 0);
+        List<String> result = Cmd.TokenizeString("echo \"$test2\"", true);
+        assertEquals(Arrays.asList("echo", "$test2"), result);
+    }
+
+    @Test
+    public void testTokenizeWithExpansionFalse() {
+        Cvar.Get("test1", "world", 0);
+        List<String> result = Cmd.TokenizeString("echo $test1 again", false);
+        assertEquals(Arrays.asList("echo", "$test1", "again"), result);
     }
 
     @Test
@@ -69,7 +95,7 @@ public class TestCMD {
     public void testCommandWithVariable() {
         StringBuilder result = new StringBuilder();
         Cvar.Get("test_var", "value", 0);
-        Cmd.AddCommand("test_cmd", () -> result.append("success ").append(Cmd.Args()));
+        Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(Cmd.Args()));
 
         Cmd.ExecuteString("test_cmd $test_var");
         assertEquals("success value", result.toString());

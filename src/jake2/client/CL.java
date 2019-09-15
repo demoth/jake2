@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * CL
@@ -97,7 +99,7 @@ public final class CL {
      * 
      * Stop recording a demo.
      */
-    private static Command Stop_f = () -> {
+    private static Command Stop_f = (List<String> args) -> {
         try {
 
             int len;
@@ -126,7 +128,7 @@ public final class CL {
      * record &lt;demoname&gt;
      * Begins recording a demo from the current position.
      */
-    private static Command Record_f = () -> {
+    private static Command Record_f = (List<String> args) -> {
         try {
             String name;
             byte buf_data[] = new byte[Defines.MAX_MSGLEN];
@@ -234,7 +236,7 @@ public final class CL {
     /**
      * ForwardToServer_f
      */
-    private static Command ForwardToServer_f = () -> {
+    private static Command ForwardToServer_f = (List<String> args) -> {
         if (Globals.cls.state != Defines.ca_connected
                 && Globals.cls.state != Defines.ca_active) {
             Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
@@ -252,7 +254,7 @@ public final class CL {
     /**
      * Pause_f
      */
-    private static Command Pause_f = () -> {
+    private static Command Pause_f = (List<String> args) -> {
         // never pause in multiplayer
 
         if (Cvar.VariableValue("maxclients") > 1
@@ -267,7 +269,7 @@ public final class CL {
     /**
      * Quit_f
      */
-    static Command Quit_f = () -> {
+    static Command Quit_f = (List<String> args) -> {
         Disconnect();
         Com.Quit();
     };
@@ -275,7 +277,7 @@ public final class CL {
     /**
      * Connect_f
      */
-    private static Command Connect_f = () -> {
+    private static Command Connect_f = (List<String> args) -> {
         String server;
 
         if (Cmd.Argc() != 2) {
@@ -308,7 +310,7 @@ public final class CL {
      * 
      * Send the rest of the command line over as an unconnected command.
      */
-    private static Command Rcon_f = () -> {
+    private static Command Rcon_f = (List<String> args) -> {
 
         if (Globals.rcon_client_password.string.length() == 0) {
             Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
@@ -352,14 +354,14 @@ public final class CL {
         NET.SendPacket(Defines.NS_CLIENT, b.length(), Lib.stringToBytes(b), to);
     };
 
-    private static Command Disconnect_f = () -> Com.Error(Defines.ERR_DROP, "Disconnected from server");
+    private static Command Disconnect_f = (List<String> args) -> Com.Error(Defines.ERR_DROP, "Disconnected from server");
 
     /**
      * Changing_f
      * 
      * Just sent as a hint to the client that they should drop to full console.
      */
-    private static Command Changing_f = () -> {
+    private static Command Changing_f = (List<String> args) -> {
         //ZOID
         //if we are downloading, we don't change!
         // This so we don't suddenly stop downloading a map
@@ -378,7 +380,7 @@ public final class CL {
      * 
      * The server is changing levels.
      */
-    private static Command Reconnect_f = () -> {
+    private static Command Reconnect_f = (List<String> args) -> {
         //ZOID
         //if we are downloading, we don't change! This so we don't suddenly
         // stop downloading a map
@@ -410,7 +412,7 @@ public final class CL {
     /**
      * PingServers_f
      */
-    static Command PingServers_f = () -> {
+    static Command PingServers_f = (List<String> args) -> {
         int i;
         netadr_t adr = new netadr_t();
         //char name[32];
@@ -469,7 +471,7 @@ public final class CL {
      * 
      * Load or download any custom player skins and models.
      */
-    private static Command Skins_f = () -> {
+    private static Command Skins_f = (List<String> args) -> {
         int i;
 
         for (i = 0; i < Defines.MAX_CLIENTS; i++) {
@@ -487,7 +489,7 @@ public final class CL {
     /**
      * Userinfo_f
      */
-    private static Command Userinfo_f = () -> {
+    private static Command Userinfo_f = (List<String> args) -> {
         Com.Printf("User info settings:\n");
         Info.Print(Cvar.Userinfo());
     };
@@ -498,7 +500,7 @@ public final class CL {
      * Restart the sound subsystem so it can pick up new parameters and flush
      * all sounds.
      */
-    static Command Snd_Restart_f = () -> {
+    static Command Snd_Restart_f = (List<String> args) -> {
         S.Shutdown();
         S.Init();
         CL_parse.RegisterSounds();
@@ -516,7 +518,7 @@ public final class CL {
      * The server will send this command right before allowing the client into
      * the server.
      */
-    private static Command Precache_f = () -> {
+    private static Command Precache_f = (List<String> args) -> {
         // Yet another hack to let old demos work the old precache sequence.
         if (Cmd.Argc() < 2) {
 
@@ -543,7 +545,7 @@ public final class CL {
      *
      * Request a download from the server ===============
      */
-    private static Command Download_f = () -> {
+    private static Command Download_f = (List<String> args) -> {
         String filename;
 
         if (Cmd.Argc() != 2) {
@@ -735,7 +737,7 @@ public final class CL {
         SCR.StopCinematic();
 
         if (Globals.cls.demorecording)
-            Stop_f.execute();
+            Stop_f.execute(Collections.emptyList());
 
         // send a disconnect message to the server
         fin = (char) Defines.clc_stringcmd + "disconnect";

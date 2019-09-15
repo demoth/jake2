@@ -33,6 +33,8 @@ import jake2.game.usercmd_t;
 import jake2.qcommon.Cvar;
 import jake2.util.Math3D;
 
+import java.util.List;
+
 /**
  * IN
  */
@@ -112,10 +114,10 @@ public final class IN extends Globals {
         Globals.m_forward = Cvar.Get("m_forward", "1", 0);
         Globals.m_side = Cvar.Get("m_side", "0.8", 0);
 
-        Cmd.AddCommand("+mlook", IN::MLookDown);
-        Cmd.AddCommand("-mlook", IN::MLookUp);
-        Cmd.AddCommand("force_centerview", IN::Force_CenterView_f);
-        Cmd.AddCommand("togglemouse", IN::toggleMouse);
+        Cmd.AddCommand("+mlook", (List<String> args) -> MLookDown());
+        Cmd.AddCommand("-mlook", (List<String> args) -> MLookUp());
+        Cmd.AddCommand("force_centerview", (List<String> args) -> Force_CenterView_f());
+        Cmd.AddCommand("togglemouse", (List<String> args) -> toggleMouse());
 
         IN.mouse_avail = true;
     }

@@ -11,16 +11,20 @@ import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.game.entity_state_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.sound.*;
 import jake2.util.Lib;
 import jake2.util.Vargs;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.ALC10;
+import org.lwjgl.openal.OpenALException;
 
 import java.nio.*;
-
-import org.lwjgl.LWJGLException;
-import org.lwjgl.openal.*;
+import java.util.List;
 
 
 /**
@@ -65,10 +69,10 @@ public final class LWJGLSoundImpl implements Sound {
 	int count = Channel.init(buffers);
 	Com.Printf("... using " + count + " channels\n");
 	AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
-	Cmd.AddCommand("play", this::Play);
-	Cmd.AddCommand("stopsound", this::StopAllSounds);
-	Cmd.AddCommand("soundlist", this::SoundList);
-	Cmd.AddCommand("soundinfo", this::SoundInfo_f);
+	Cmd.AddCommand("play", (List<String> args) -> Play());
+	Cmd.AddCommand("stopsound", (List<String> args) -> StopAllSounds());
+	Cmd.AddCommand("soundlist", (List<String> args) -> SoundList());
+	Cmd.AddCommand("soundinfo", (List<String> args) -> SoundInfo_f());
 
 	num_sfx = 0;
 

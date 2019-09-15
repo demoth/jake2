@@ -31,15 +31,19 @@ import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.sound.S;
-import jake2.sys.*;
 import jake2.sys.NET;
 import jake2.sys.Sys;
-import jake2.util.*;
+import jake2.sys.Timer;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+import jake2.util.QuakeFile;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Menu
@@ -427,7 +431,7 @@ public final class Menu extends Key {
      */
     private static final int MAIN_ITEMS = 5;
 
-    static Command Main_Draw = Menu::Main_Draw;
+    static Command Main_Draw = (List<String> args) -> Main_Draw();
 
     private static void Main_Draw() {
         int i;
@@ -531,7 +535,7 @@ public final class Menu extends Key {
     }
 
     static void Menu_Main_f() {
-        PushMenu(Menu::Main_Draw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Main_Draw(), new keyfunc_t() {
             public String execute(int key) {
                 return Main_Key(key);
             }
@@ -624,7 +628,7 @@ public final class Menu extends Key {
 
     private static void Menu_Multiplayer_f() {
         Multiplayer_MenuInit();
-        PushMenu(Menu::Multiplayer_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Multiplayer_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return Multiplayer_MenuKey(key);
             }
@@ -1124,7 +1128,7 @@ public final class Menu extends Key {
         Menu_Center(s_keys_menu);
     }
 
-    static Command Keys_MenuDraw = Menu::Keys_MenuDraw_f;
+    static Command Keys_MenuDraw = (List<String> args) -> Keys_MenuDraw_f();
 
     private static void Keys_MenuDraw_f() {
         Menu_AdjustCursor(s_keys_menu, 1);
@@ -1175,7 +1179,7 @@ public final class Menu extends Key {
 
     private static void Menu_Keys_f() {
         Keys_MenuInit();
-        PushMenu(Menu::Keys_MenuDraw_f, new keyfunc_t() {
+        PushMenu((List<String> args) -> Keys_MenuDraw_f(), new keyfunc_t() {
             public String execute(int key) {
                 return Keys_MenuKey_f(key);
             }
@@ -1376,7 +1380,7 @@ public final class Menu extends Key {
             // the text box won't show up unless we do a buffer swap
             re.EndFrame();
 
-            CL.Snd_Restart_f.execute();
+            CL.Snd_Restart_f.execute(Collections.emptyList());
         }
     }
 
@@ -1608,7 +1612,7 @@ public final class Menu extends Key {
 
     private static void Menu_Options_f() {
         Options_MenuInit();
-        PushMenu(Menu::Options_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Options_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return Options_MenuKey(key);
             }
@@ -1625,7 +1629,7 @@ public final class Menu extends Key {
 
     private static void Menu_Video_f() {
         VID.MenuInit();
-        PushMenu(VID::MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> VID.MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return VID.MenuKey(key);
             }
@@ -1863,7 +1867,7 @@ public final class Menu extends Key {
         }
 
         credits_start_time = cls.realtime;
-        PushMenu(Menu::Credits_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Credits_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return Credits_Key(key);
             }
@@ -2055,7 +2059,7 @@ public final class Menu extends Key {
 
     private static void Menu_Game_f() {
         Game_MenuInit();
-        PushMenu(Menu::Game_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Game_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return Game_MenuKey(key);
             }
@@ -2180,7 +2184,7 @@ public final class Menu extends Key {
 
     private static void Menu_LoadGame_f() {
         LoadGame_MenuInit();
-        PushMenu(Menu::LoadGame_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> LoadGame_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return LoadGame_MenuKey(key);
             }
@@ -2259,7 +2263,7 @@ public final class Menu extends Key {
             return; // not playing a game
 
         SaveGame_MenuInit();
-        PushMenu(Menu::SaveGame_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> SaveGame_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return SaveGame_MenuKey(key);
             }
@@ -2363,7 +2367,7 @@ public final class Menu extends Key {
         re.EndFrame();
 
         // send out info packets
-        CL.PingServers_f.execute();
+        CL.PingServers_f.execute(Collections.emptyList());
     }
 
     private static void SearchLocalGamesFunc(Object self) {
@@ -2442,7 +2446,7 @@ public final class Menu extends Key {
 
     private static void Menu_JoinServer_f() {
         JoinServer_MenuInit();
-        PushMenu(Menu::JoinServer_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> JoinServer_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return JoinServer_MenuKey(key);
             }
@@ -2803,7 +2807,7 @@ public final class Menu extends Key {
         return Default_MenuKey(s_startserver_menu, key);
     }
 
-    private static Command startServer_MenuDraw = Menu::StartServer_MenuDraw;
+    private static Command startServer_MenuDraw = (List<String> args) -> StartServer_MenuDraw();
     private static keyfunc_t startServer_MenuKey = new keyfunc_t() {
         public String execute(int key) {
             return StartServer_MenuKey(key);
@@ -3269,7 +3273,7 @@ public final class Menu extends Key {
 
     private static void Menu_DMOptions_f() {
         DMOptions_MenuInit();
-        PushMenu(Menu::DMOptions_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> DMOptions_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return DMOptions_MenuKey(key);
             }
@@ -3424,7 +3428,7 @@ public final class Menu extends Key {
 
     private static void Menu_DownloadOptions_f() {
         DownloadOptions_MenuInit();
-        PushMenu(Menu::DownloadOptions_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> DownloadOptions_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return DownloadOptions_MenuKey(key);
             }
@@ -3487,7 +3491,7 @@ public final class Menu extends Key {
         return Default_MenuKey(s_addressbook_menu, key);
     }
 
-    static Command AddressBook_MenuDraw = Menu::AddressBook_MenuDraw_f;
+    static Command AddressBook_MenuDraw = (List<String> args) -> AddressBook_MenuDraw_f();
 
     private static void AddressBook_MenuDraw_f() {
         Banner("m_banner_addressbook");
@@ -3496,7 +3500,7 @@ public final class Menu extends Key {
 
     private static void Menu_AddressBook_f() {
         AddressBook_MenuInit();
-        PushMenu(Menu::AddressBook_MenuDraw_f, new keyfunc_t() {
+        PushMenu((List<String> args) -> AddressBook_MenuDraw_f(), new keyfunc_t() {
             public String execute(int key) {
                 return AddressBook_MenuKey_f(key);
             }
@@ -4045,7 +4049,7 @@ public final class Menu extends Key {
             return;
         }
         Menu_SetStatusBar(s_multiplayer_menu, null);
-        PushMenu(Menu::PlayerConfig_MenuDraw, new keyfunc_t() {
+        PushMenu((List<String> args) -> PlayerConfig_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return PlayerConfig_MenuKey(key);
             }
@@ -4071,7 +4075,7 @@ public final class Menu extends Key {
         case 'Y':
         case 'y':
             cls.key_dest = key_console;
-            CL.Quit_f.execute();
+            CL.Quit_f.execute(Collections.emptyList());
             break;
 
         default:
@@ -4092,7 +4096,7 @@ public final class Menu extends Key {
     }
 
     private static void Menu_Quit_f() {
-        PushMenu(Menu::Quit_Draw, new keyfunc_t() {
+        PushMenu((List<String> args) -> Quit_Draw(), new keyfunc_t() {
             public String execute(int key) {
                 return Quit_Key(key);
             }
@@ -4106,22 +4110,22 @@ public final class Menu extends Key {
      * Init
      */
     public static void Init() {
-        Cmd.AddCommand("menu_main", Menu::Menu_Main_f);
-        Cmd.AddCommand("menu_game", Menu::Menu_Game_f);
-        Cmd.AddCommand("menu_loadgame", Menu::Menu_LoadGame_f);
-        Cmd.AddCommand("menu_savegame", Menu::Menu_SaveGame_f);
-        Cmd.AddCommand("menu_joinserver", Menu::Menu_JoinServer_f);
-        Cmd.AddCommand("menu_addressbook", Menu::Menu_AddressBook_f);
-        Cmd.AddCommand("menu_startserver", Menu::Menu_StartServer_f);
-        Cmd.AddCommand("menu_dmoptions", Menu::Menu_DMOptions_f);
-        Cmd.AddCommand("menu_playerconfig", Menu::Menu_PlayerConfig_f);
-        Cmd.AddCommand("menu_downloadoptions", Menu::Menu_DownloadOptions_f);
-        Cmd.AddCommand("menu_credits", Menu::Menu_Credits_f);
-        Cmd.AddCommand("menu_multiplayer", Menu::Menu_Multiplayer_f);
-        Cmd.AddCommand("menu_video", Menu::Menu_Video_f);
-        Cmd.AddCommand("menu_options", Menu::Menu_Options_f);
-        Cmd.AddCommand("menu_keys", Menu::Menu_Keys_f);
-        Cmd.AddCommand("menu_quit", Menu::Menu_Quit_f);
+        Cmd.AddCommand("menu_main", (List<String> args) -> Menu_Main_f());
+        Cmd.AddCommand("menu_game", (List<String> args) -> Menu_Game_f());
+        Cmd.AddCommand("menu_loadgame", (List<String> args) -> Menu_LoadGame_f());
+        Cmd.AddCommand("menu_savegame", (List<String> args) -> Menu_SaveGame_f());
+        Cmd.AddCommand("menu_joinserver", (List<String> args) -> Menu_JoinServer_f());
+        Cmd.AddCommand("menu_addressbook", (List<String> args) -> Menu_AddressBook_f());
+        Cmd.AddCommand("menu_startserver", (List<String> args) -> Menu_StartServer_f());
+        Cmd.AddCommand("menu_dmoptions", (List<String> args) -> Menu_DMOptions_f());
+        Cmd.AddCommand("menu_playerconfig", (List<String> args) -> Menu_PlayerConfig_f());
+        Cmd.AddCommand("menu_downloadoptions", (List<String> args) -> Menu_DownloadOptions_f());
+        Cmd.AddCommand("menu_credits", (List<String> args) -> Menu_Credits_f());
+        Cmd.AddCommand("menu_multiplayer", (List<String> args) -> Menu_Multiplayer_f());
+        Cmd.AddCommand("menu_video", (List<String> args) -> Menu_Video_f());
+        Cmd.AddCommand("menu_options", (List<String> args) -> Menu_Options_f());
+        Cmd.AddCommand("menu_keys", (List<String> args) -> Menu_Keys_f());
+        Cmd.AddCommand("menu_quit", (List<String> args) -> Menu_Quit_f());
 
         for (int i = 0; i < m_layers.length; i++) {
             m_layers[i] = new menulayer_t();
@@ -4144,7 +4148,7 @@ public final class Menu extends Key {
         else
             re.DrawFadeScreen();
 
-        m_drawfunc.execute();
+        m_drawfunc.execute(Collections.emptyList());
 
         // delay playing the enter sound until after the
         // menu has been drawn, to avoid delay while

@@ -39,6 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Calendar;
+import java.util.List;
 
 import static jake2.Defines.ERR_DROP;
 import static jake2.Defines.PRINT_ALL;
@@ -1014,13 +1015,13 @@ public class SV_CCMDS {
 	==================
 	*/
 	static void SV_InitOperatorCommands() {
-		Cmd.AddCommand("heartbeat", SV_CCMDS::SV_Heartbeat_f);
-		Cmd.AddCommand("kick", SV_CCMDS::SV_Kick_f);
-		Cmd.AddCommand("status", SV_CCMDS::SV_Status_f);
-		Cmd.AddCommand("serverinfo", SV_CCMDS::SV_Serverinfo_f);
-		Cmd.AddCommand("dumpuser", SV_CCMDS::SV_DumpUser_f);
-		Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
-		Cmd.AddCommand("maplist", () -> {
+		Cmd.AddCommand("heartbeat", (List<String> args) -> SV_Heartbeat_f());
+		Cmd.AddCommand("kick", (List<String> args) -> SV_Kick_f());
+		Cmd.AddCommand("status", (List<String> args) -> SV_Status_f());
+		Cmd.AddCommand("serverinfo", (List<String> args) -> SV_Serverinfo_f());
+		Cmd.AddCommand("dumpuser", (List<String> args) -> SV_DumpUser_f());
+		Cmd.AddCommand("map", (List<String> args) -> SV_Map_f());
+		Cmd.AddCommand("maplist", (List<String> args) -> {
 			byte[] bytes = FS.LoadFile("maps.lst");
 			if (bytes == null) {
 				Com.Error(ERR_DROP, "Could not read maps.lst");
@@ -1031,20 +1032,20 @@ public class SV_CCMDS {
 			}
 		});
 
-		Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
-		Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
-		Cmd.AddCommand("setmaster", SV_CCMDS::SV_SetMaster_f);
+		Cmd.AddCommand("demomap", (List<String> args) -> SV_DemoMap_f());
+		Cmd.AddCommand("gamemap", (List<String> args) -> SV_GameMap_f());
+		Cmd.AddCommand("setmaster", (List<String> args) -> SV_SetMaster_f());
 
 		if (Globals.dedicated.value != 0)
-			Cmd.AddCommand("say", SV_CCMDS::SV_ConSay_f);
+			Cmd.AddCommand("say", (List<String> args) -> SV_ConSay_f());
 
-		Cmd.AddCommand("serverrecord", SV_CCMDS::SV_ServerRecord_f);
-		Cmd.AddCommand("serverstop", SV_CCMDS::SV_ServerStop_f);
-		Cmd.AddCommand("save", SV_CCMDS::SV_Savegame_f);
-		Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
-		Cmd.AddCommand("killserver", SV_CCMDS::SV_KillServer_f);
-		Cmd.AddCommand("sv", SV_CCMDS::SV_ServerCommand_f);
-				Cmd.AddCommand("jvm_memory", SV_CCMDS::VM_Mem_f);
+		Cmd.AddCommand("serverrecord", (List<String> args) -> SV_ServerRecord_f());
+		Cmd.AddCommand("serverstop", (List<String> args) -> SV_ServerStop_f());
+		Cmd.AddCommand("save", (List<String> args) -> SV_Savegame_f());
+		Cmd.AddCommand("load", (List<String> args) -> SV_Loadgame_f());
+		Cmd.AddCommand("killserver", (List<String> args) -> SV_KillServer_f());
+		Cmd.AddCommand("sv", (List<String> args) -> SV_ServerCommand_f());
+				Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
 		
 //		Cmd.AddCommand("spawnbot", new Command() {
 //			public void execute() {

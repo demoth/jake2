@@ -25,24 +25,28 @@
  */
 package jake2.client;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Arrays;
-
 import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
-import jake2.qcommon.*;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Com;
+import jake2.qcommon.Command;
+import jake2.qcommon.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.util.Lib;
 import jake2.util.Vargs;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Console
  */
 public final class Console extends Globals {
 
-    static Command ToggleConsole_f = () -> {
+    static Command ToggleConsole_f = (List<String> args) -> {
 		SCR.EndLoadingPlaque(); // get rid of loading plaque
 
 		if (Globals.cl.attractloop) {
@@ -72,9 +76,9 @@ public final class Console extends Globals {
 		}
 	};
 
-    private static Command Clear_f = () -> Arrays.fill(Globals.con.text, (byte) ' ');
+    private static Command Clear_f = (List<String> args) -> Arrays.fill(Globals.con.text, (byte) ' ');
 
-    private static Command Dump_f = () -> {
+    private static Command Dump_f = (List<String> args) -> {
 
 		int l, x;
 		int line;
@@ -239,7 +243,7 @@ public final class Console extends Globals {
     /*
      * ================ Con_ToggleChat_f ================
      */
-    private static Command ToggleChat_f = () -> {
+    private static Command ToggleChat_f = (List<String> args) -> {
 		Key.ClearTyping();
 
 		if (cls.key_dest == key_console) {
@@ -256,7 +260,7 @@ public final class Console extends Globals {
     /*
      * ================ Con_MessageMode_f ================
      */
-    private static Command MessageMode_f = () -> {
+    private static Command MessageMode_f = (List<String> args) -> {
 		chat_team = false;
 		cls.key_dest = key_message;
 	};
@@ -264,7 +268,7 @@ public final class Console extends Globals {
     /*
      * ================ Con_MessageMode2_f ================
      */
-    private static Command MessageMode2_f = () -> {
+    private static Command MessageMode2_f = (List<String> args) -> {
 		chat_team = true;
 		cls.key_dest = key_message;
 	};

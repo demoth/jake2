@@ -25,17 +25,21 @@
  */
 package jake2.render;
 
-import jake2.*;
 import jake2.Defines;
 import jake2.Globals;
+import jake2.Jake2;
 import jake2.client.*;
 import jake2.game.Cmd;
-import jake2.qcommon.*;
+import jake2.qcommon.Cbuf;
+import jake2.qcommon.Cvar;
+import jake2.qcommon.Q2DataDialog;
+import jake2.qcommon.Qcommon;
 import jake2.sys.IN;
 import jake2.sys.KBD;
 import jake2.util.Math3D;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -93,7 +97,7 @@ public class DancingQueens {
         
         Cbuf.AddText("unbind t");
         Cbuf.Execute();        
-        Cmd.AddCommand("togglemouse", IN::toggleMouse);
+        Cmd.AddCommand("togglemouse", (List<String> args) -> IN.toggleMouse());
         Cbuf.AddText("bind t togglemouse");
         Cbuf.Execute();
         Globals.cls.key_dest = Defines.key_game;
@@ -130,7 +134,7 @@ public class DancingQueens {
     void run() {
         startTime = System.currentTimeMillis();
         while (true) {
-            re.updateScreen(this::updateScreen);
+            re.updateScreen((List<String> args) -> updateScreen());
             kbd.Update();
             Cbuf.Execute();
         }

@@ -35,10 +35,11 @@ import jake2.sound.S;
 import jake2.sys.Timer;
 import jake2.util.Vargs;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * SCR
@@ -439,11 +440,11 @@ public final class SCR extends Globals {
         //
         // register our commands
         //
-        Cmd.AddCommand("timerefresh", SCR::TimeRefresh_f);
-        Cmd.AddCommand("loading", SCR::Loading_f);
-        Cmd.AddCommand("sizeup", SCR::SizeUp_f);
-        Cmd.AddCommand("sizedown", SCR::SizeDown_f);
-        Cmd.AddCommand("sky", SCR::Sky_f);
+        Cmd.AddCommand("timerefresh", (List<String> args) -> TimeRefresh_f());
+        Cmd.AddCommand("loading", (List<String> args) -> Loading_f());
+        Cmd.AddCommand("sizeup", (List<String> args) -> SizeUp_f());
+        Cmd.AddCommand("sizedown", (List<String> args) -> SizeDown_f());
+        Cmd.AddCommand("sky", (List<String> args) -> Sky_f());
 
         scr_initialized = true;
     }
@@ -1284,7 +1285,7 @@ public final class SCR extends Globals {
                 crosshair_pic);
     }
 
-    private static Command updateScreenCallback = SCR::UpdateScreen2;
+    private static Command updateScreenCallback = (List<String> args) -> UpdateScreen2();
 
     // wird anstelle von der richtigen UpdateScreen benoetigt
     static void UpdateScreen() {

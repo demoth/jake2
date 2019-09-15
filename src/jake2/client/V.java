@@ -25,17 +25,20 @@
  */
 package jake2.client;
 
-import jake2.Defines; // CDawg hud map 
+import jake2.Defines;
 import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Com;
+import jake2.qcommon.Command;
+import jake2.qcommon.Cvar;
 import jake2.sys.Timer;
 import jake2.util.Math3D;
 import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.util.List;
 
 /**
  * V
@@ -256,19 +259,19 @@ public final class V extends Globals {
         }
     }
 
-    private static Command Gun_Next_f = () -> {
+    private static Command Gun_Next_f = (List<String> args) -> {
         gun_frame++;
         Com.Printf("frame " + gun_frame + "\n");
     };
 
-    private static Command Gun_Prev_f = () -> {
+    private static Command Gun_Prev_f = (List<String> args) -> {
         gun_frame--;
         if (gun_frame < 0)
             gun_frame = 0;
         Com.Printf("frame " + gun_frame + "\n");
     };
 
-    private static Command Gun_Model_f = () -> {
+    private static Command Gun_Model_f = (List<String> args) -> {
         if (Cmd.Argc() != 2) {
             gun_model = null;
             return;
@@ -424,7 +427,7 @@ public final class V extends Globals {
     /*
      * ============= V_Viewpos_f =============
      */
-    private static Command Viewpos_f = () -> Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
+    private static Command Viewpos_f = (List<String> args) -> Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
             (int) cl.refdef.vieworg[0]).add((int) cl.refdef.vieworg[1])
             .add((int) cl.refdef.vieworg[2]).add(
                     (int) cl.refdef.viewangles[YAW]));

@@ -37,7 +37,10 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * FS
@@ -893,9 +896,9 @@ public final class FS extends Globals {
      * InitFilesystem
      */
     public static void InitFilesystem() {
-        Cmd.AddCommand("path", FS::Path_f);
-        Cmd.AddCommand("link", FS::Link_f);
-        Cmd.AddCommand("dir", FS::Dir_f);
+        Cmd.AddCommand("path", (List<String> args) -> Path_f());
+        Cmd.AddCommand("link", (List<String> args) -> Link_f());
+        Cmd.AddCommand("dir", (List<String> args) -> Dir_f());
 
         fs_userdir = System.getProperty("user.home") + "/.jake2";
         FS.CreatePath(fs_userdir + "/");

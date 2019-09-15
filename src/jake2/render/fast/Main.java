@@ -26,16 +26,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.render.fast;
 
 import jake2.Defines;
-import jake2.client.*;
-import jake2.game.*;
-import jake2.qcommon.*;
+import jake2.client.VID;
+import jake2.client.entity_t;
+import jake2.client.particle_t;
+import jake2.client.refdef_t;
+import jake2.game.Cmd;
+import jake2.game.cplane_t;
+import jake2.game.cvar_t;
+import jake2.qcommon.Com;
+import jake2.qcommon.Cvar;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.render.*;
-import jake2.util.*;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+import jake2.util.Vargs;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 /**
  * Main
@@ -1002,10 +1011,10 @@ public abstract class Main extends Base {
 		vid_gamma = Cvar.Get("vid_gamma", "1.0", Defines.CVAR_ARCHIVE);
 		vid_ref = Cvar.Get("vid_ref", "lwjgl", Defines.CVAR_ARCHIVE);
 
-		Cmd.AddCommand("imagelist", this::GL_ImageList_f);
-		Cmd.AddCommand("screenshot", () -> glImpl.screenshot());
-		Cmd.AddCommand("modellist", this::Mod_Modellist_f);
-		Cmd.AddCommand("gl_strings", this::GL_Strings_f);
+		Cmd.AddCommand("imagelist", (List<String> args) -> GL_ImageList_f());
+		Cmd.AddCommand("screenshot", (List<String> args) -> glImpl.screenshot());
+		Cmd.AddCommand("modellist", (List<String> args) -> Mod_Modellist_f());
+		Cmd.AddCommand("gl_strings", (List<String> args) -> GL_Strings_f());
 	}
 
 	/**

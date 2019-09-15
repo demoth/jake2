@@ -87,31 +87,28 @@ public class Cvar extends Globals {
     }
 
     static void Init() {
-        Cmd.AddCommand("set", () -> {
-            int c;
+        Cmd.AddCommand("set", (List<String> args) -> {
             int flags;
-
-            c = Cmd.Argc();
-            if (c != 3 && c != 4) {
+            if (args.size() != 3 && args.size() != 4) {
                 Com.Printf("usage: set <variable> <value> [u / s]\n");
                 return;
             }
 
-            if (c == 4) {
-                if (Cmd.Argv(3).equals("u"))
+            if (args.size() == 4) {
+                if (args.get(3).equals("u"))
                     flags = CVAR_USERINFO;
-                else if (Cmd.Argv(3).equals("s"))
+                else if (args.get(3).equals("s"))
                     flags = CVAR_SERVERINFO;
                 else {
                     Com.Printf("flags can only be 'u' or 's'\n");
                     return;
                 }
-                Cvar.FullSet(Cmd.Argv(1), Cmd.Argv(2), flags);
+                Cvar.FullSet(args.get(1), args.get(2), flags);
             } else
-                Cvar.Set(Cmd.Argv(1), Cmd.Argv(2));
+                Cvar.Set(args.get(1), args.get(2));
 
         });
-        Cmd.AddCommand("cvarlist", () -> {
+        Cmd.AddCommand("cvarlist", (List<String> args) -> {
             for (cvar_t var : cvarMap.values()) {
                 if ((var.flags & CVAR_ARCHIVE) != 0)
                     Com.Printf("*");
@@ -288,22 +285,26 @@ public class Cvar extends Globals {
 
     /**
      * Handles variable inspection and changing from the console.
+     * @param args
      */
-    public static boolean Command() {
+    public static boolean printOrSet(List<String> args) {
         cvar_t v;
 
+        if (args.isEmpty())
+            return false;
+
         // check variables
-        v = Cvar.FindVar(Cmd.Argv(0));
+        v = Cvar.FindVar(args.get(0));
         if (v == null)
             return false;
 
         // perform a variable print or set
-        if (Cmd.Argc() == 1) {
+        if (args.size() == 1) {
             Com.Printf("\"" + v.name + "\" is \"" + v.string + "\"\n");
             return true;
         }
 
-        Cvar.Set(v.name, Cmd.Argv(1));
+        Cvar.Set(v.name, args.get(1));
         return true;
     }
 
