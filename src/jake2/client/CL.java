@@ -34,8 +34,13 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.render.fast.Main;
 import jake2.server.SV_MAIN;
 import jake2.sound.S;
-import jake2.sys.*;
-import jake2.util.*;
+import jake2.sys.IN;
+import jake2.sys.NET;
+import jake2.sys.Sys;
+import jake2.sys.Timer;
+import jake2.util.Lib;
+import jake2.util.Math3D;
+import jake2.util.Vargs;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -777,7 +782,7 @@ public final class CL {
 
         s = MSG.ReadStringLine(Globals.net_message);
 
-        Cmd.TokenizeString(s.toCharArray(), false);
+        Cmd.TokenizeString(s, false);
 
         c = Cmd.Argv(0);
         

@@ -34,7 +34,7 @@ public class TestCOM {
 
     @Test
     public void testParseHelpNull() {
-        Com.ParseHelp ph = new Com.ParseHelp((String) null);
+        Com.ParseHelp ph = new Com.ParseHelp(null);
 
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
@@ -44,8 +44,7 @@ public class TestCOM {
 
     @Test
     public void testParseHelpCharArray() {
-        char[] test = "testrene = \"ein mal eins\"; a=3 ".toCharArray();
-        Com.ParseHelp ph = new Com.ParseHelp(test);
+        Com.ParseHelp ph = new Com.ParseHelp("testrene = \"ein mal eins\"; a=3 ");
 
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())
@@ -55,8 +54,7 @@ public class TestCOM {
 
     @Test
     public void testParseHelpCharArrayWithOffset() {
-        char[] test = "testrene = 3 ".toCharArray();
-        Com.ParseHelp ph = new Com.ParseHelp(test, 4);
+        Com.ParseHelp ph = new Com.ParseHelp("testrene = 3 ", 4);
 
         Collection<String> result = new ArrayList<>();
         while (!ph.isEof())

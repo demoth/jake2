@@ -32,9 +32,12 @@ import jake2.client.Console;
 import jake2.qcommon.filesystem.FS;
 import jake2.server.SV_MAIN;
 import jake2.sys.Sys;
-import jake2.util.*;
+import jake2.util.PrintfFormat;
+import jake2.util.Vargs;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * Com
@@ -115,17 +118,11 @@ public final class Com
 			index= 0;
 		}
 
-		public ParseHelp(char in[])
+		public ParseHelp(String in, int offset)
 		{
-			this(in, 0);
-		}
-
-		public ParseHelp(char in[], int offset)
-		{
-			data= in;
-			index= offset;
-			if (data != null) length = data.length;
-			else length = 0;
+			data = in.toCharArray();
+			index = offset;
+			length = data.length;
 		}
 
 		public char getchar()

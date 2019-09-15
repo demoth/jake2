@@ -164,62 +164,46 @@ public final class Cmd {
     /** 
      * Cmd_MacroExpandString.
      */
-    private static char[] MacroExpandString(char text[], int len) {
-        int i, j, count;
-        boolean inquote;
+    public static String MacroExpandString(String text) {
 
-        char scan[];
+        boolean inquote = false;
 
-        String token;
-        inquote = false;
-
-        scan = text;
-
-        if (len >= Defines.MAX_STRING_CHARS) {
+        if (text.length() >= Defines.MAX_STRING_CHARS) {
             Com.Printf("Line exceeded " + Defines.MAX_STRING_CHARS
                     + " chars, discarded.\n");
             return null;
         }
 
-        count = 0;
-
-        for (i = 0; i < len; i++) {
-            if (scan[i] == '"')
+        int expanded = 0;
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '"')
                 inquote = !inquote;
 
-            if (inquote)
+            if (inquote) {
+                result.append(text.charAt(i));
                 continue; // don't expand inside quotes
+            }
 
-            if (scan[i] != '$')
+            if (text.charAt(i) != '$') {
+                result.append(text.charAt(i));
                 continue;
+            }
 
             // scan out the complete macro, without $
-            Com.ParseHelp ph = new Com.ParseHelp(text, i + 1);
-            token = Com.Parse(ph);
+            String token = Com.Parse(new Com.ParseHelp(text, i + 1));
 
-            if (ph.data == null)
-                continue;
-
+            i += token.length();
             token = Cvar.VariableString(token);
+            result.append(token);
 
-            j = token.length();
-
-            len += j;
-
-            if (len >= Defines.MAX_STRING_CHARS) {
+            if (result.length() >= Defines.MAX_STRING_CHARS) {
                 Com.Printf("Expanded line exceeded " + Defines.MAX_STRING_CHARS
                         + " chars, discarded.\n");
                 return null;
             }
 
-            System.arraycopy(scan, 0, temporary, 0, i);
-            System.arraycopy(token.toCharArray(), 0, temporary, i, token.length());
-            System.arraycopy(ph.data, ph.index, temporary, i + j, len - ph.index - j);
-
-            System.arraycopy(temporary, 0, expanded, 0, 0);
-            scan = expanded;
-            i--;
-            if (++count == 100) {
+            if (++expanded == 100) {
                 Com.Printf("Macro expansion loop, discarded.\n");
                 return null;
             }
@@ -230,7 +214,7 @@ public final class Cmd {
             return null;
         }
 
-        return scan;
+        return result.toString();
     }
 
     /**
@@ -240,22 +224,18 @@ public final class Cmd {
      * unless they are in a quoted token.
      * TODO should return the tokens and not assign to static fields!
      */
-    public static void TokenizeString(char text[], boolean macroExpand) {
+    public static void TokenizeString(String text, boolean macroExpand) {
         String com_token;
 
         cmd_argc = 0;
         cmd_args = "";
 
-        int len = Lib.strlen(text);
-
         // macro expand the text
         if (macroExpand)
-            text = MacroExpandString(text, len);
+            text = MacroExpandString(text);
 
         if (text == null)
             return;
-
-        len = Lib.strlen(text);
 
         Com.ParseHelp ph = new Com.ParseHelp(text);
 
@@ -274,8 +254,7 @@ public final class Cmd {
 
             // set cmd_args to everything after the first arg
             if (cmd_argc == 1) {
-                cmd_args = new String(text, ph.index, len - ph.index);
-                cmd_args.trim();
+                cmd_args = new String(text.toCharArray(), ph.index, text.length() - ph.index);
             }
 
             com_token = Com.Parse(ph);
@@ -343,7 +322,7 @@ public final class Cmd {
         cmd_function_t cmd;
         cmdalias_t a;
 
-        TokenizeString(text.toCharArray(), true);
+        TokenizeString(text, true);
 
         // execute the command line
         if (Argc() == 0)

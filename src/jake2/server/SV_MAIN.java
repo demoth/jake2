@@ -474,7 +474,7 @@ public class SV_MAIN {
 
         s = MSG.ReadStringLine(Globals.net_message);
 
-        Cmd.TokenizeString(s.toCharArray(), false);
+        Cmd.TokenizeString(s, false);
 
         c = Cmd.Argv(0);
         

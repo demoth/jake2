@@ -512,7 +512,7 @@ public class SV_USER {
         Com.dprintln("SV_ExecuteUserCommand:" + s );
         SV_USER.ucmd_t u = null;
 
-        Cmd.TokenizeString(s.toCharArray(), true);
+        Cmd.TokenizeString(s, true);
         SV_USER.sv_player = SV_MAIN.sv_client.edict;
 
         //	SV_BeginRedirect (RD_CLIENT);

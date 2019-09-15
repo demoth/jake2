@@ -23,11 +23,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.game.Cmd;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestCMD {
 
@@ -38,6 +39,39 @@ public class TestCMD {
             result.add("success");
         });
         Cmd.ExecuteString("test");
-        Assert.assertEquals("success", result.get(0));
+        assertEquals("success", result.get(0));
+    }
+
+    @Test
+    public void testTokenizeString() {
+        Cmd.TokenizeString("echo test", false);
+        assertEquals(2, Cmd.Argc());
+        assertEquals("echo", Cmd.Argv(0));
+        assertEquals("test", Cmd.Argv(1));
+    }
+
+    @Test
+    public void testExpandMacro() {
+        Cvar.Get("name", "world", 0);
+        String result = Cmd.MacroExpandString("hello $name");
+        assertEquals("hello world", result);
+    }
+
+    @Test
+    public void testExpandMacroMiddle() {
+        Cvar.Get("name1", "world", 0);
+        String result = Cmd.MacroExpandString("hello $name1 again");
+        assertEquals("hello world again", result);
+    }
+
+
+    @Test
+    public void testCommandWithVariable() {
+        StringBuilder result = new StringBuilder();
+        Cvar.Get("test_var", "value", 0);
+        Cmd.AddCommand("test_cmd", () -> result.append("success ").append(Cmd.Args()));
+
+        Cmd.ExecuteString("test_cmd $test_var");
+        assertEquals("success value", result.toString());
     }
 }
