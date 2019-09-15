@@ -22,9 +22,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-public final class cmdalias_t
-{
-	public cmdalias_t next;
-	public String name = "";
-	public String value;
+public final class cmdalias_t {
+    private String name;
+    private String value;
+
+	public cmdalias_t(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "cmdalias_t{" +
+				"name='" + name + '\'' +
+				", value='" + value + '\'' +
+				'}';
+	}
 }

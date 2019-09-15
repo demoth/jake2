@@ -76,54 +76,48 @@ public final class Cmd {
     };
 
     private static Command Alias_f = (List<String> args) -> {
-        cmdalias_t a = null;
-        if (Cmd.Argc() == 1) {
+        if (args.size() == 1) {
             Com.Printf("Current alias commands:\n");
-            for (a = Cmd.cmd_alias; a != null; a = a.next) {
-                Com.Printf(a.name + " : " + a.value);
+            for (cmdalias_t alias : Cmd.cmd_alias.values()) {
+                Com.Printf(alias.getName() + " : " + alias.getValue() + "\n");
             }
             return;
         }
 
-        String s = Cmd.Argv(1);
-        if (s.length() > Defines.MAX_ALIAS_NAME) {
+        // assume args.size >= 2
+        String aliasName = args.get(1).trim();
+
+        if (aliasName.length() > Defines.MAX_ALIAS_NAME) {
             Com.Printf("Alias name is too long\n");
             return;
         }
 
         // if the alias already exists, reuse it
-        for (a = Cmd.cmd_alias; a != null; a = a.next) {
-            if (s.equalsIgnoreCase(a.name)) {
-                a.value = null;
-                break;
+        cmdalias_t alias = Cmd.cmd_alias.get(aliasName);
+
+        if (alias == null) {
+            alias = new cmdalias_t(aliasName);
+            Cmd.cmd_alias.put(aliasName, alias);
+        }
+
+        if (args.size() >= 3) {
+            StringBuilder value = new StringBuilder();
+            for (int i = 2; i < args.size(); i++) {
+                if (i != 2)
+                    value.append(" ");
+                value.append(args.get(i));
             }
+            alias.setValue(value.toString());
+        } else {
+            alias.setValue("");
         }
-
-        if (a == null) {
-            a = new cmdalias_t();
-            a.next = Cmd.cmd_alias;
-            cmd_alias = a;
-        }
-        a.name = s;
-
-        // copy the rest of the command line
-        String cmd = "";
-        int c = Cmd.Argc();
-        for (int i = 2; i < c; i++) {
-            cmd = cmd + Cmd.Argv(i);
-            if (i != (c - 1))
-                cmd = cmd + " ";
-        }
-        cmd = cmd + "\n";
-
-        a.value = cmd;
     };
 
     private static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
 
     private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
 
-    private static cmdalias_t cmd_alias;
+    private static Map<String, cmdalias_t> cmd_alias = new HashMap<>();
 
     private static int cmd_argc;
 
@@ -341,15 +335,13 @@ public final class Cmd {
         }
 
         // check alias
-        for (cmdalias_t a = cmd_alias; a != null; a = a.next) {
-
-            if (cmd_argv[0].equalsIgnoreCase(a.name)) {
-
+        for (cmdalias_t alias : cmd_alias.values()) {
+            if (cmd_argv[0].equalsIgnoreCase(alias.getName())) {
                 if (++Globals.alias_count == ALIAS_LOOP_COUNT) {
                     Com.Printf("ALIAS_LOOP_COUNT\n");
                     return;
                 }
-                Cbuf.InsertText(a.value);
+                Cbuf.InsertText(alias.getValue());
                 return;
             }
         }
@@ -1112,9 +1104,10 @@ public final class Cmd {
         for (cmd_function_t cmd : cmd_functions.values())
             if (cmd.name.startsWith(prefix))
                 cmds.add(cmd.name);
-        for (cmdalias_t a = cmd_alias; a != null; a = a.next)
-            if (a.name.startsWith(prefix))
-                cmds.add(a.name);
+
+        for (cmdalias_t a : cmd_alias.values())
+            if (a.getName().startsWith(prefix))
+                cmds.add(a.getName());
 
         return cmds;
     }
