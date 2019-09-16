@@ -395,7 +395,7 @@ public class CL_input {
 		Cmd.AddCommand("-attack", (List<String> args) -> KeyUp(in_attack));
 		Cmd.AddCommand("+use", (List<String> args) -> KeyDown(in_use));
 		Cmd.AddCommand("-use", (List<String> args) -> KeyUp(in_use));
-		Cmd.AddCommand("impulse", (List<String> args) -> in_impulse = Lib.atoi(Cmd.Argv(1)));
+		Cmd.AddCommand("impulse", (List<String> args) -> in_impulse = Lib.atoi(args.get(1)));
 		Cmd.AddCommand("+klook", (List<String> args) -> KeyDown(in_klook));
 		Cmd.AddCommand("-klook", (List<String> args) -> KeyUp(in_klook));
 

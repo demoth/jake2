@@ -272,11 +272,11 @@ public final class V extends Globals {
     };
 
     private static Command Gun_Model_f = (List<String> args) -> {
-        if (Cmd.Argc() != 2) {
+        if (args.size() != 2) {
             gun_model = null;
             return;
         }
-        String name = "models/" + Cmd.Argv(1) + "/tris.md2";
+        String name = "models/" + args.get(1) + "/tris.md2";
         gun_model = re.RegisterModel(name);
     };
 

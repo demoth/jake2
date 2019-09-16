@@ -50,18 +50,17 @@ public final class Cmd {
     };
 
     private static Command Exec_f = (List<String> args) -> {
-        if (Cmd.Argc() != 2) {
+        if (args.size() != 2) {
             Com.Printf("exec <filename> : execute a script file\n");
             return;
         }
 
-        byte[] f = null;
-        f = FS.LoadFile(Cmd.Argv(1));
+        byte[] f = FS.LoadFile(args.get(1));
         if (f == null) {
-            Com.Printf("couldn't exec " + Cmd.Argv(1) + "\n");
+            Com.Printf("couldn't exec " + args.get(1) + "\n");
             return;
         }
-        Com.Printf("execing " + Cmd.Argv(1) + "\n");
+        Com.Printf("execing " + args.get(1) + "\n");
 
         Cbuf.InsertText(new String(f));
 
@@ -69,8 +68,12 @@ public final class Cmd {
     };
 
     private static Command Echo_f = (List<String> args) -> {
-        for (int i = 1; i < Cmd.Argc(); i++) {
-            Com.Printf(Cmd.Argv(i) + " ");
+        if (args.size() < 2) {
+            Com.Printf("usage: echo expression");
+            return;
+        }
+        for (int i = 1; i < args.size(); i++) {
+            Com.Printf(args.get(i) + " ");
         }
         Com.Printf("'\n");
     };
@@ -289,6 +292,22 @@ public final class Cmd {
         }
     }
 
+    public static String getArguments(List<String> args) {
+        if (args.isEmpty())
+            return "";
+
+        if (args.size() == 1)
+            return args.get(0);
+
+        StringBuilder value = new StringBuilder();
+        for (int i = 1; i < args.size(); i++) {
+            if (i != 1)
+                value.append(" ");
+            value.append(args.get(i));
+        }
+        return value.toString();
+    }
+
     @Deprecated
     public static int Argc() {
         return cmd_argc;
@@ -351,7 +370,7 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
-        Cmd.ForwardToServer();
+        Cmd.ForwardToServer(args);
     }
 
     /**
@@ -359,7 +378,7 @@ public final class Cmd {
      * 
      * Give items to a client.
      */
-    private static void Give_f(edict_t ent) {
+    private static void Give_f(edict_t ent, List<String> args) {
         String name;
         gitem_t it;
         int index;
@@ -373,16 +392,13 @@ public final class Cmd {
             return;
         }
 
-        name = Cmd.Args();
+        name = getArguments(args);
 
-        if (0 == Lib.Q_stricmp(name, "all"))
-            give_all = true;
-        else
-            give_all = false;
+        give_all = 0 == Lib.Q_stricmp(name, "all");
 
-        if (give_all || 0 == Lib.Q_stricmp(Cmd.Argv(1), "health")) {
-            if (Cmd.Argc() == 3)
-                ent.health = Lib.atoi(Cmd.Argv(2));
+        if (give_all || 0 == Lib.Q_stricmp(args.get(1), "health")) {
+            if (args.size() == 3)
+                ent.health = Lib.atoi(args.get(2));
             else
                 ent.health = ent.max_health;
             if (!give_all)
@@ -459,7 +475,7 @@ public final class Cmd {
 
         it = GameItems.FindItem(name);
         if (it == null) {
-            name = Cmd.Argv(1);
+            name = args.get(1);
             it = GameItems.FindItem(name);
             if (it == null) {
                 SV_GAME.PF_cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
@@ -475,8 +491,8 @@ public final class Cmd {
         index = GameItems.ITEM_INDEX(it);
 
         if ((it.flags & Defines.IT_AMMO) != 0) {
-            if (Cmd.Argc() == 3)
-                ent.client.pers.inventory[index] = Lib.atoi(Cmd.Argv(2));
+            if (args.size() == 3)
+                ent.client.pers.inventory[index] = Lib.atoi(args.get(2));
             else
                 ent.client.pers.inventory[index] += it.quantity;
         } else {
@@ -902,10 +918,8 @@ public final class Cmd {
     /**
      * Cmd_Wave_f
      */
-    private static void Wave_f(edict_t ent) {
-        int i;
+    private static void Wave_f(edict_t ent, List<String> args) {
 
-        i = Lib.atoi(Cmd.Argv(1));
 
         // can't wave when ducked
         if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
@@ -916,7 +930,9 @@ public final class Cmd {
 
         ent.client.anim_priority = Defines.ANIM_WAVE;
 
-        switch (i) {
+        int type = args.size() != 2 ? 0 : Lib.atoi(args.get(1));
+
+        switch (type) {
         case 0:
             SV_GAME.PF_cprintfhigh(ent, "flipoff\n");
             ent.s.frame = M_Player.FRAME_flip01 - 1;
@@ -956,14 +972,14 @@ public final class Cmd {
     /**
      * Cmd_Say_f
      */
-    private static void Say_f(edict_t ent, boolean team, boolean arg0) {
+    private static void Say_f(edict_t ent, boolean team, boolean sayAll, List<String> args) {
 
         int i, j;
         edict_t other;
         String text;
         gclient_t cl;
 
-        if (Cmd.Argc() < 2 && !arg0)
+        if (args.size() < 2 && !sayAll)
             return;
 
         if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
@@ -974,15 +990,18 @@ public final class Cmd {
         else
             text = "" + ent.client.pers.netname + ": ";
 
-        if (arg0) {
-            text += Cmd.Argv(0);
+        String arguments = getArguments(args);
+
+        if (sayAll) {
+            text += args.get(0);
             text += " ";
-            text += Cmd.Args();
+            text += arguments;
         } else {
-            if (Cmd.Args().startsWith("\""))
-                text += Cmd.Args().substring(1, Cmd.Args().length() - 1);
+            // FIXME: we assume that the matching quote is at the end
+            if (arguments.startsWith("\""))
+                text += arguments.substring(1, arguments.length() - 1);
             else
-                text += Cmd.Args();
+                text += arguments;
         }
 
         // don't let text be too long for malicious reasons
@@ -1077,10 +1096,10 @@ public final class Cmd {
      * things like godmode, noclip, etc, are commands directed to the server, so
      * when they are typed in at the console, they will need to be forwarded.
      */
-    private static void ForwardToServer() {
+    private static void ForwardToServer(List<String> args) {
         String cmd;
 
-        cmd = Cmd.Argv(0);
+        cmd = args.get(0);
         if (Globals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-'
                 || cmd.charAt(0) == '+') {
             Com.Printf("Unknown command \"" + cmd + "\"\n");
@@ -1089,9 +1108,9 @@ public final class Cmd {
 
         MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
         SZ.Print(Globals.cls.netchan.message, cmd);
-        if (Cmd.Argc() > 1) {
+        if (args.size() > 1) {
             SZ.Print(Globals.cls.netchan.message, " ");
-            SZ.Print(Globals.cls.netchan.message, Cmd.Args());
+            SZ.Print(Globals.cls.netchan.message, getArguments(args));
         }
     }
 
@@ -1115,7 +1134,7 @@ public final class Cmd {
     /**
      * Processes the commands the player enters in the quake console.
      */
-    public static void ClientCommand(edict_t ent) {
+    public static void ClientCommand(edict_t ent, List<String> args) {
         String cmd;
     
         if (ent.client == null)
@@ -1128,11 +1147,11 @@ public final class Cmd {
             return;
         }
         if (cmd.equals("say")) {
-            Say_f(ent, false, false);
+            Say_f(ent, false, false, args);
             return;
         }
         if (cmd.equals("say_team")) {
-            Say_f(ent, true, false);
+            Say_f(ent, true, false, args);
             return;
         }
         if (cmd.equals("score")) {
@@ -1146,56 +1165,82 @@ public final class Cmd {
     
         if (GameBase.level.intermissiontime != 0)
             return;
-    
-        if (cmd.equals("use"))
-            Use_f(ent);
-        else if (cmd.equals("drop"))
-            Drop_f(ent);
-        else if (cmd.equals("give"))
-            Give_f(ent);
-        else if (cmd.equals("god"))
-            God_f(ent);
-        else if (cmd.equals("notarget"))
-            Notarget_f(ent);
-        else if (cmd.equals("noclip"))
-            Noclip_f(ent);
-        else if (cmd.equals("inven"))
-            Inven_f(ent);
-        else if (cmd.equals("invnext"))
-            GameItems.SelectNextItem(ent, -1);
-        else if (cmd.equals("invprev"))
-            GameItems.SelectPrevItem(ent, -1);
-        else if (cmd.equals("invnextw"))
-            GameItems.SelectNextItem(ent, Defines.IT_WEAPON);
-        else if (cmd.equals("invprevw"))
-            GameItems.SelectPrevItem(ent, Defines.IT_WEAPON);
-        else if (cmd.equals("invnextp"))
-            GameItems.SelectNextItem(ent, Defines.IT_POWERUP);
-        else if (cmd.equals("invprevp"))
-            GameItems.SelectPrevItem(ent, Defines.IT_POWERUP);
-        else if (cmd.equals("invuse"))
-            InvUse_f(ent);
-        else if (cmd.equals("invdrop"))
-            InvDrop_f(ent);
-        else if (cmd.equals("weapprev"))
-            WeapPrev_f(ent);
-        else if (cmd.equals("weapnext"))
-            WeapNext_f(ent);
-        else if (cmd.equals("weaplast"))
-            WeapLast_f(ent);
-        else if (cmd.equals("kill"))
-            Kill_f(ent);
-        else if (cmd.equals("putaway"))
-            PutAway_f(ent);
-        else if (cmd.equals("wave"))
-            Wave_f(ent);
-        else if (cmd.equals("playerlist"))
-            PlayerList_f(ent);
-        else if (cmd.equals("showposition"))
-            ShowPosition_f(ent);
-        else
-            // anything that doesn't match a command will be a chat
-            Say_f(ent, false, true);
+
+        switch (cmd) {
+            case "use":
+                Use_f(ent);
+                break;
+            case "drop":
+                Drop_f(ent);
+                break;
+            case "give":
+                Give_f(ent, args);
+                break;
+            case "god":
+                God_f(ent);
+                break;
+            case "notarget":
+                Notarget_f(ent);
+                break;
+            case "noclip":
+                Noclip_f(ent);
+                break;
+            case "inven":
+                Inven_f(ent);
+                break;
+            case "invnext":
+                GameItems.SelectNextItem(ent, -1);
+                break;
+            case "invprev":
+                GameItems.SelectPrevItem(ent, -1);
+                break;
+            case "invnextw":
+                GameItems.SelectNextItem(ent, Defines.IT_WEAPON);
+                break;
+            case "invprevw":
+                GameItems.SelectPrevItem(ent, Defines.IT_WEAPON);
+                break;
+            case "invnextp":
+                GameItems.SelectNextItem(ent, Defines.IT_POWERUP);
+                break;
+            case "invprevp":
+                GameItems.SelectPrevItem(ent, Defines.IT_POWERUP);
+                break;
+            case "invuse":
+                InvUse_f(ent);
+                break;
+            case "invdrop":
+                InvDrop_f(ent);
+                break;
+            case "weapprev":
+                WeapPrev_f(ent);
+                break;
+            case "weapnext":
+                WeapNext_f(ent);
+                break;
+            case "weaplast":
+                WeapLast_f(ent);
+                break;
+            case "kill":
+                Kill_f(ent);
+                break;
+            case "putaway":
+                PutAway_f(ent);
+                break;
+            case "wave":
+                Wave_f(ent, args);
+                break;
+            case "playerlist":
+                PlayerList_f(ent);
+                break;
+            case "showposition":
+                ShowPosition_f(ent);
+                break;
+            default:
+                // anything that doesn't match a command will be a chat
+                Say_f(ent, false, true, args);
+                break;
+        }
     }
 
     static void ValidateSelectedItem(edict_t ent) {

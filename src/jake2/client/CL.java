@@ -130,13 +130,12 @@ public final class CL {
      */
     private static Command Record_f = (List<String> args) -> {
         try {
-            String name;
-            byte buf_data[] = new byte[Defines.MAX_MSGLEN];
+            byte[] buf_data = new byte[Defines.MAX_MSGLEN];
             sizebuf_t buf = new sizebuf_t();
             int i;
             entity_state_t ent;
 
-            if (Cmd.Argc() != 2) {
+            if (args.size() != 2) {
                 Com.Printf("record <demoname>\n");
                 return;
             }
@@ -154,7 +153,7 @@ public final class CL {
             //
             // open the demo file
             //
-            name = FS.Gamedir() + "/demos/" + Cmd.Argv(1) + ".dm2";
+            String name = FS.Gamedir() + "/demos/" + args.get(1) + ".dm2";
 
             Com.Printf("recording to " + name + ".\n");
             FS.CreatePath(name);
@@ -239,12 +238,12 @@ public final class CL {
     private static Command ForwardToServer_f = (List<String> args) -> {
         if (Globals.cls.state != Defines.ca_connected
                 && Globals.cls.state != Defines.ca_active) {
-            Com.Printf("Can't \"" + Cmd.Argv(0) + "\", not connected\n");
+            Com.Printf("Can't \"" + args.get(0) + "\", not connected\n");
             return;
         }
 
         // don't forward the first argument
-        if (Cmd.Argc() > 1) {
+        if (args.size() > 1) {
             MSG.WriteByte(Globals.cls.netchan.message,
                     Defines.clc_stringcmd);
             SZ.Print(Globals.cls.netchan.message, Cmd.Args());
@@ -280,7 +279,7 @@ public final class CL {
     private static Command Connect_f = (List<String> args) -> {
         String server;
 
-        if (Cmd.Argc() != 2) {
+        if (args.size() != 2) {
             Com.Printf("usage: connect <server>\n");
             return;
         }
@@ -292,7 +291,7 @@ public final class CL {
             Disconnect();
         }
 
-        server = Cmd.Argv(1);
+        server = args.get(1);
 
         NET.Config(true); // allow remote
 
@@ -317,7 +316,7 @@ public final class CL {
             return;
         }
 
-        StringBuffer message = new StringBuffer(1024);
+        StringBuilder message = new StringBuilder(1024);
 
         // connection less packet
         message.append('\u00ff');
@@ -332,8 +331,8 @@ public final class CL {
         message.append(Globals.rcon_client_password.string);
         message.append(" ");
 
-        for (int i = 1; i < Cmd.Argc(); i++) {
-            message.append(Cmd.Argv(i));
+        for (int i = 1; i < args.size(); i++) {
+            message.append(args.get(i));
             message.append(" ");
         }
 
@@ -520,7 +519,7 @@ public final class CL {
      */
     private static Command Precache_f = (List<String> args) -> {
         // Yet another hack to let old demos work the old precache sequence.
-        if (Cmd.Argc() < 2) {
+        if (args.size() < 2) {
 
             int iw[] = { 0 }; // for detecting cheater maps
 
@@ -533,7 +532,7 @@ public final class CL {
         }
 
         CL.precache_check = Defines.CS_MODELS;
-        CL.precache_spawncount = Lib.atoi(Cmd.Argv(1));
+        CL.precache_spawncount = Lib.atoi(args.get(1));
         CL.precache_model = null;
         CL.precache_model_skin = 0;
 
@@ -548,14 +547,14 @@ public final class CL {
     private static Command Download_f = (List<String> args) -> {
         String filename;
 
-        if (Cmd.Argc() != 2) {
+        if (args.size() != 2) {
             Com.Printf("Usage: download <filename>\n");
             return;
         }
 
-        filename = Cmd.Argv(1);
+        filename = args.get(1);
 
-        if (filename.indexOf("..") != -1) {
+        if (filename.contains("..")) {
             Com.Printf("Refusing to download a path with ..\n");
             return;
         }
@@ -784,9 +783,9 @@ public final class CL {
 
         s = MSG.ReadStringLine(Globals.net_message);
 
-        Cmd.TokenizeString(s, false);
+        List<String> args = Cmd.TokenizeString(s, false);
 
-        c = Cmd.Argv(0);
+        c = args.get(0);
         
         Com.Println(Globals.net_from.toString() + ": " + c);
 
@@ -837,15 +836,14 @@ public final class CL {
 
         // challenge from the server we are connecting to
         if (c.equals("challenge")) {
-            Globals.cls.challenge = Lib.atoi(Cmd.Argv(1));
+            Globals.cls.challenge = Lib.atoi(args.get(1));
             SendConnectPacket();
             return;
         }
 
         // echo request from server
         if (c.equals("echo")) {
-            Netchan.OutOfBandPrint(Defines.NS_CLIENT, Globals.net_from, Cmd
-                    .Argv(1));
+            Netchan.OutOfBandPrint(Defines.NS_CLIENT, Globals.net_from, args.get(1));
             return;
         }
 

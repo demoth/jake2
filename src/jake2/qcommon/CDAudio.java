@@ -98,14 +98,14 @@ public final class CDAudio {
     /**
      * CD_f
      */
-    private static void CD_f() {
+    private static void CD_f(List<String> args) {
 
             String  command;
  
-            if (Cmd.Argc() < 2)
+            if (args.size() < 2)
                 return;
 
-            command = Cmd.Argv(1);
+            command = args.get(1);
 
             if (command.equalsIgnoreCase("on")) {
                 enabled = true;
@@ -113,7 +113,7 @@ public final class CDAudio {
             }
 
             if (command.equalsIgnoreCase("off")) {
-                if (playing == true)
+                if (playing)
                     Stop();
                 enabled = false;
                 return;
@@ -121,7 +121,7 @@ public final class CDAudio {
 
             if (command.equalsIgnoreCase("reset")) {
                 enabled = true;
-                if (playing == true)
+                if (playing)
                     Stop();
                 
                 //for (n = 0; n < 100; n++)
@@ -149,21 +149,21 @@ public final class CDAudio {
                 return;
             }
 
-            if (cdValid != true) {
+            if (!cdValid) {
                 GetAudioDiskInfo();
-                if (cdValid != true) {
+                if (!cdValid) {
                    Com.Printf("Audio CD (MP3s) No CD in player.\n");
                    return;
                 }
             }
 
-            if (command.equalsIgnoreCase("play")) {
-                    Play(Lib.atoi(Cmd.Argv(2)), false);
+            if (command.equalsIgnoreCase("play") && args.size() == 3) {
+                    Play(Lib.atoi(args.get(2)), false);
                return;
             }
 
-            if (command.equalsIgnoreCase("loop")) {
-                    Play(Lib.atoi(Cmd.Argv(2)), true);
+            if (command.equalsIgnoreCase("loop") && args.size() == 3) {
+                    Play(Lib.atoi(args.get(2)), true);
                 return;
             }
 
@@ -183,7 +183,7 @@ public final class CDAudio {
             }
 
             if (command.equalsIgnoreCase("eject")) {
-                if (playing == true)
+                if (playing)
                     Stop();
                 Eject();
                 cdValid = false;
@@ -192,28 +192,27 @@ public final class CDAudio {
 
             if (command.equalsIgnoreCase("info")) {
                 Com.Printf(maxTrack + " tracks (MP3s) on the cd\n");
-                if (playing == true)
-                    if (playLooping == true)
+                if (playing)
+                    if (playLooping)
                         Com.Printf("Currently looping track " + playTrack +"\n");
                     else
                         Com.Printf("Currently playing track " + playTrack +"\n");
-                else if (wasPlaying == true)
-                    if (playLooping == true)
+                else if (wasPlaying)
+                    if (playLooping)
                         Com.Printf("Paused looping track " + playTrack +"\n");
                     else
                         Com.Printf("Paused playing track " + playTrack +"\n");
                 Com.Printf("Volume is " + cdvolume + "\n");
-                return;
             }
         }
 
     public static void Play(int track, boolean looping) {
-        if (cdfile == -1 || enabled == false)
+        if (cdfile == -1 || !enabled)
             return;
 
-        if (cdValid == false) {
+        if (!cdValid) {
             GetAudioDiskInfo();
-            if (cdValid == false)
+            if (!cdValid)
                 return;
         }
 
@@ -224,7 +223,7 @@ public final class CDAudio {
             return;
         }
 
-        if (playing == true)
+        if (playing)
         {
                 if (playTrack == track)
                         return;
@@ -366,7 +365,7 @@ public final class CDAudio {
                 return -1;
         }
 
-        Cmd.AddCommand ("cd", (List<String> args) -> CD_f());
+        Cmd.AddCommand ("cd", CDAudio::CD_f);
         
         //cdValid = true;
         cdfile = 0;

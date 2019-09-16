@@ -285,8 +285,8 @@ public class Key extends Globals {
 		//
 		// register our functions
 		//
-		Cmd.AddCommand("bind", (List<String> args) -> Key_Bind_f());
-		Cmd.AddCommand("unbind", (List<String> args) -> Key_Unbind_f());
+		Cmd.AddCommand("bind", Key::Key_Bind_f);
+		Cmd.AddCommand("unbind", Key::Key_Unbind_f);
 		Cmd.AddCommand("unbindall", (List<String> args) -> Key_Unbindall_f());
 		Cmd.AddCommand("bindlist", (List<String> args) -> Key_Bindlist_f());
 	}
@@ -894,36 +894,36 @@ public class Key extends Globals {
 		key_lines[edit_line][key_linepos] = 0;
 	}
 
-	private static void Key_Bind_f() {
-		int c = Cmd.Argc();
+	private static void Key_Bind_f(List<String> args) {
 
-		if (c < 2) {
+		if (args.size() < 2) {
 			Com.Printf("bind <key> [command] : attach a command to a key\n");
 			return;
 		}
-		int b = StringToKeynum(Cmd.Argv(1));
-		if (b == -1) {
-			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
+		int key = StringToKeynum(args.get(1));
+		if (key == -1) {
+			Com.Printf("\"" + args.get(1) + "\" isn't a valid key\n");
 			return;
 		}
 
-		if (c == 2) {
-			if (Globals.keybindings[b] != null)
-				Com.Printf("\"" + Cmd.Argv(1) + "\" = \"" + Globals.keybindings[b] + "\"\n");
+		// show current binding
+		if (args.size() == 2) {
+			if (Globals.keybindings[key] != null)
+				Com.Printf("\"" + args.get(1) + "\" = \"" + Globals.keybindings[key] + "\"\n");
 			else
-				Com.Printf("\"" + Cmd.Argv(1) + "\" is not bound\n");
+				Com.Printf("\"" + args.get(1) + "\" is not bound\n");
 			return;
 		}
 
 		// copy the rest of the command line
 		String cmd = ""; // start out with a null string
-		for (int i = 2; i < c; i++) {
-			cmd += Cmd.Argv(i);
-			if (i != (c - 1))
+		for (int i = 2; i < args.size(); i++) {
+			cmd += args.get(i);
+			if (i != (args.size() - 1))
 				cmd += " ";
 		}
 
-		SetBinding(b, cmd);
+		SetBinding(key, cmd);
 	}
 
 	static void SetBinding(int keynum, String binding) {
@@ -936,16 +936,16 @@ public class Key extends Globals {
 		Globals.keybindings[keynum] = binding;
 	}
 
-	private static void Key_Unbind_f() {
+	private static void Key_Unbind_f(List<String> args) {
 
-		if (Cmd.Argc() != 2) {
+		if (args.size() != 2) {
 			Com.Printf("unbind <key> : remove commands from a key\n");
 			return;
 		}
 
-		int b = Key.StringToKeynum(Cmd.Argv(1));
+		int b = Key.StringToKeynum(args.get(1));
 		if (b == -1) {
-			Com.Printf("\"" + Cmd.Argv(1) + "\" isn't a valid key\n");
+			Com.Printf("\"" + args.get(1) + "\" isn't a valid key\n");
 			return;
 		}
 

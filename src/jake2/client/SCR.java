@@ -391,29 +391,29 @@ public final class SCR extends Globals {
      * 
      * Set a specific sky and rotation speed =================
      */
-    private static void Sky_f() {
+    private static void Sky_f(List<String> args) {
         float rotate;
         float[] axis = { 0, 0, 0 };
 
-        if (Cmd.Argc() < 2) {
+        if (args.size() < 2) {
             Com.Printf("Usage: sky <basename> <rotate> <axis x y z>\n");
             return;
         }
-        if (Cmd.Argc() > 2)
-            rotate = Float.parseFloat(Cmd.Argv(2));
+        if (args.size() > 2)
+            rotate = Float.parseFloat(args.get(2));
         else
             rotate = 0;
-        if (Cmd.Argc() == 6) {
-            axis[0] = Float.parseFloat(Cmd.Argv(3));
-            axis[1] = Float.parseFloat(Cmd.Argv(4));
-            axis[2] = Float.parseFloat(Cmd.Argv(5));
+        if (args.size() == 6) {
+            axis[0] = Float.parseFloat(args.get(3));
+            axis[1] = Float.parseFloat(args.get(4));
+            axis[2] = Float.parseFloat(args.get(5));
         } else {
             axis[0] = 0;
             axis[1] = 0;
             axis[2] = 1;
         }
 
-        re.SetSky(Cmd.Argv(1), rotate, axis);
+        re.SetSky(args.get(1), rotate, axis);
     }
 
     // ============================================================================
@@ -444,7 +444,7 @@ public final class SCR extends Globals {
         Cmd.AddCommand("loading", (List<String> args) -> Loading_f());
         Cmd.AddCommand("sizeup", (List<String> args) -> SizeUp_f());
         Cmd.AddCommand("sizedown", (List<String> args) -> SizeDown_f());
-        Cmd.AddCommand("sky", (List<String> args) -> Sky_f());
+        Cmd.AddCommand("sky", SCR::Sky_f);
 
         scr_initialized = true;
     }

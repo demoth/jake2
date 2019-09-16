@@ -30,6 +30,7 @@ import jake2.qcommon.filesystem.FS;
 import jake2.util.Lib;
 
 import java.io.IOException;
+import java.util.List;
 
 public class SV_USER {
 
@@ -512,7 +513,7 @@ public class SV_USER {
         Com.dprintln("SV_ExecuteUserCommand:" + s );
         SV_USER.ucmd_t u = null;
 
-        Cmd.TokenizeString(s, true);
+        List<String> args = Cmd.TokenizeString(s, true);
         SV_USER.sv_player = SV_MAIN.sv_client.edict;
 
         //	SV_BeginRedirect (RD_CLIENT);
@@ -520,14 +521,14 @@ public class SV_USER {
         int i = 0;
         for (; i < SV_USER.ucmds.length; i++) {
             u = SV_USER.ucmds[i];
-            if (Cmd.Argv(0).equals(u.name)) {
+            if (args.get(0).equals(u.name)) {
                 u.r.run();
                 break;
             }
         }
 
         if (i == SV_USER.ucmds.length && SV_INIT.sv.state == Defines.ss_game)
-            Cmd.ClientCommand(SV_USER.sv_player);
+            Cmd.ClientCommand(SV_USER.sv_player, args);
 
         //	SV_EndRedirect ();
     }

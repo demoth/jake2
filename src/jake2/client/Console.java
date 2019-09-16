@@ -86,14 +86,14 @@ public final class Console extends Globals {
 		byte[] buffer = new byte[1024];
 		String name;
 
-		if (Cmd.Argc() != 2) {
+		if (args.size() != 2) {
 			Com.Printf("usage: condump <filename>\n");
 			return;
 		}
 
 		// Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(),
 		// Cmd_Argv(1));
-		name = FS.Gamedir() + "/" + Cmd.Argv(1) + ".txt";
+		name = FS.Gamedir() + "/" + args.get(1) + ".txt";
 
 		Com.Printf("Dumped console text to " + name + ".\n");
 		FS.CreatePath(name);
