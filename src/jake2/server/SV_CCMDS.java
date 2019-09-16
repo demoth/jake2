@@ -23,16 +23,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
-import jake2.sys.NET;
-import jake2.sys.Sys;
-import jake2.util.Lib;
-import jake2.util.QuakeFile;
-import jake2.util.Vargs;
+import jake2.qcommon.sys.Sys;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.util.Vargs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,9 +38,9 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.List;
 
-import static jake2.Defines.ERR_DROP;
-import static jake2.Defines.PRINT_ALL;
 import static jake2.game.Cmd.getArguments;
+import static jake2.qcommon.Defines.ERR_DROP;
+import static jake2.qcommon.Defines.PRINT_ALL;
 
 public class SV_CCMDS {
 

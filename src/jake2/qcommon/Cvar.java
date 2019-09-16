@@ -26,13 +26,11 @@
 
 package jake2.qcommon;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.Info;
 import jake2.game.cvar_t;
 import jake2.qcommon.filesystem.FS;
-import jake2.util.Lib;
+import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

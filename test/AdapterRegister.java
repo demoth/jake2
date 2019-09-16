@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // import jake2.client.*;
 // import jake2.game.*;
 // import jake2.qcommon.*;
-// import jake2.render.*;
+// import jake2.client.render.*;
 // import jake2.server.*;
 
 public class AdapterRegister {

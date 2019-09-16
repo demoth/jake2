@@ -25,18 +25,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import jake2.Globals;
 import jake2.Jake2;
 import jake2.client.CL;
 import jake2.client.Key;
 import jake2.client.SCR;
 import jake2.game.Cmd;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.sys.Sys;
+import jake2.qcommon.sys.Timer;
+import jake2.qcommon.util.Vargs;
 import jake2.server.SV_MAIN;
-import jake2.sys.NET;
-import jake2.sys.Sys;
-import jake2.sys.Timer;
-import jake2.util.Vargs;
 
 import java.io.FileWriter;
 import java.io.IOException;

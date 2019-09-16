@@ -28,7 +28,7 @@ package jake2.game;
 // import jake2.client.*;
 // import jake2.game.*;
 // import jake2.qcommon.*;
-// import jake2.render.*;
+// import jake2.client.render.*;
 // import jake2.server.*;
 
 public class mapsurface_t {

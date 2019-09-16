@@ -25,15 +25,15 @@
  */
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
+import jake2.client.sound.S;
 import jake2.game.entity_state_t;
 import jake2.game.monsters.M_Flash;
 import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.MSG;
-import jake2.sound.S;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 /**
  * Client Graphics Effects.

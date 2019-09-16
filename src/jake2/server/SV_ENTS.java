@@ -22,10 +22,9 @@
 
 package jake2.server;
 
-import jake2.Defines;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 

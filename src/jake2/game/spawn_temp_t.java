@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.util.*;
+import jake2.qcommon.util.Lib;
 
 public class spawn_temp_t {
 	// world vars

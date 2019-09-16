@@ -27,12 +27,12 @@
 // Created on 31.01.2004 by RST.
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.MSG;
-import jake2.util.Lib;
-import jake2.util.Vargs;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Vargs;
 
 /**
  * CL_inv

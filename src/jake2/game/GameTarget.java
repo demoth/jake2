@@ -22,10 +22,10 @@
 // $Id: GameTarget.java,v 1.8 2006-01-21 21:53:31 salomo Exp $
 package jake2.game;
 
-import jake2.Defines;
-import jake2.Globals;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 public class GameTarget {
 

@@ -22,10 +22,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.Defines;
 import jake2.qcommon.Com;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.Defines;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

@@ -21,12 +21,12 @@
 
 package jake2.server;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.CM;
 import jake2.qcommon.Com;
-import jake2.util.Math3D;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.util.Math3D;
 
 public class SV_WORLD {
     // world.c -- world query functions

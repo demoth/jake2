@@ -22,16 +22,13 @@
 // $Id: SV_INIT.java,v 1.17 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.client.CL;
 import jake2.client.SCR;
 import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
-import jake2.sys.NET;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

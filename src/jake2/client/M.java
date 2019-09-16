@@ -25,12 +25,12 @@
  */
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 import jake2.server.SV;
-import jake2.util.Lib;
-import jake2.util.Math3D;
 
 /**
  * M

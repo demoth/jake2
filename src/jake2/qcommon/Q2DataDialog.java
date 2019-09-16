@@ -5,11 +5,15 @@
 
 package jake2.qcommon;
 
-import jake2.Globals;
 import jake2.qcommon.filesystem.FS;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -18,9 +22,6 @@ import java.util.Locale;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 
 
 public class Q2DataDialog extends javax.swing.JDialog {

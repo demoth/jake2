@@ -25,15 +25,12 @@
  */
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
 import jake2.game.usercmd_t;
 import jake2.qcommon.*;
-import jake2.sys.IN;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 import java.util.List;
 

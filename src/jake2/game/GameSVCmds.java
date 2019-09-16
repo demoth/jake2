@@ -22,9 +22,9 @@
 // $Id: GameSVCmds.java,v 1.4 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.Defines;
 import jake2.qcommon.Com;
-import jake2.util.Lib;
+import jake2.qcommon.Defines;
+import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

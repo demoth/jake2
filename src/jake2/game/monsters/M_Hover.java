@@ -22,21 +22,10 @@
 // $Id: M_Hover.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
-import jake2.Defines;
 import jake2.game.*;
-import jake2.game.EntDieAdapter;
-import jake2.game.EntInteractAdapter;
-import jake2.game.EntPainAdapter;
-import jake2.game.EntThinkAdapter;
-import jake2.game.GameAI;
-import jake2.game.GameBase;
-import jake2.game.GameUtil;
-import jake2.game.Monster;
-import jake2.game.edict_t;
-import jake2.game.mframe_t;
-import jake2.game.mmove_t;
-import jake2.util.Lib;
-import jake2.util.Math3D;
+import jake2.qcommon.Defines;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 public class M_Hover {
 

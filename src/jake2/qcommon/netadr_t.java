@@ -22,9 +22,6 @@
 // $Id: netadr_t.java,v 1.6 2005-10-26 12:37:58 cawe Exp $
 package jake2.qcommon;
 
-import jake2.Defines;
-import jake2.sys.NET;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 

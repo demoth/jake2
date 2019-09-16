@@ -22,8 +22,8 @@
 // $Id: pmove_t.java,v 1.4 2005-01-21 01:08:48 cawe Exp $
 package jake2.game;
 
-import jake2.Defines;
-import jake2.util.Math3D;
+import jake2.qcommon.Defines;
+import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
 

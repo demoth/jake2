@@ -26,7 +26,7 @@
 package jake2;
 
 import jake2.qcommon.*;
-import jake2.sys.Timer;
+import jake2.qcommon.sys.Timer;
 
 import java.util.Locale;
 

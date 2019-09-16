@@ -23,15 +23,10 @@
  */
 package jake2.qcommon.filesystem;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.CDAudio;
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.sys.Sys;
+import jake2.qcommon.*;
+import jake2.qcommon.sys.Sys;
 
 import java.io.*;
 import java.nio.ByteBuffer;

@@ -24,7 +24,7 @@ package jake2.server;
 
 import jake2.game.edict_t;
 import jake2.game.trace_t;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Math3D;
 
 public class moveclip_t 
 {

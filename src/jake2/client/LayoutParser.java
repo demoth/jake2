@@ -23,8 +23,8 @@
  */
 package jake2.client;
 
-import jake2.Defines;
 import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
 
 final class LayoutParser {
     int tokenPos;

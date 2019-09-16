@@ -22,10 +22,10 @@
 
 package jake2.game;
 
-import jake2.Defines;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
-import jake2.util.Lib;
+import jake2.qcommon.Defines;
+import jake2.qcommon.util.Lib;
 
 public class GameSpawn {
 

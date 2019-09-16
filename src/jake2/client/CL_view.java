@@ -24,13 +24,10 @@
  */
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
-import jake2.qcommon.CM;
-import jake2.qcommon.Com;
-import jake2.sys.Sys;
-import jake2.qcommon.CDAudio;
-import jake2.util.Lib;
+import jake2.qcommon.*;
+import jake2.qcommon.sys.Sys;
+import jake2.qcommon.util.Lib;
+
 import java.util.StringTokenizer;
 
 public class CL_view {

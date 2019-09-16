@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.util.QuakeFile;
+import jake2.qcommon.util.QuakeFile;
 
 import java.io.IOException;
 

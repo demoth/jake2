@@ -21,15 +21,18 @@
 // Created on 02.01.2004 by RST.
 package jake2.qcommon;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
-import jake2.util.*;
+import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
+import jake2.qcommon.util.Vargs;
+import jake2.qcommon.util.Vec3Cache;
 
 import java.io.RandomAccessFile;
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 public class CM {

@@ -22,9 +22,11 @@
 // $Id: game_import_t.java,v 1.7 2006-01-21 21:53:31 salomo Exp $
 package jake2.game;
 
-import jake2.Defines;
 import jake2.qcommon.*;
-import jake2.server.*;
+import jake2.server.SV_GAME;
+import jake2.server.SV_INIT;
+import jake2.server.SV_SEND;
+import jake2.server.SV_WORLD;
 
 //
 //	collection of functions provided by the main engine

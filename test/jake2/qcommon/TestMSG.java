@@ -6,7 +6,6 @@
  */
 package jake2.qcommon;
 
-import jake2.Defines;
 /**
  * @author rst
  */

@@ -22,11 +22,9 @@
 // $Id: SV_GAME.java,v 1.10 2006-01-21 21:53:32 salomo Exp $
 package jake2.server;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.*;
 import jake2.qcommon.*;
-import jake2.util.Math3D;
+import jake2.qcommon.util.Math3D;
 
 public class SV_GAME {
 

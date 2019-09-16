@@ -25,16 +25,12 @@
  */
 package jake2.client;
 
-import jake2.Defines;
-import jake2.Globals;
 import jake2.game.Cmd;
 import jake2.game.cvar_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Command;
-import jake2.qcommon.Cvar;
-import jake2.sys.Timer;
-import jake2.util.Math3D;
-import jake2.util.Vargs;
+import jake2.qcommon.*;
+import jake2.qcommon.sys.Timer;
+import jake2.qcommon.util.Math3D;
+import jake2.qcommon.util.Vargs;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;

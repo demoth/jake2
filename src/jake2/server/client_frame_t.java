@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.Defines;
 import jake2.game.player_state_t;
+import jake2.qcommon.Defines;
 
 public class client_frame_t {
 
