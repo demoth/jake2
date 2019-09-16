@@ -102,7 +102,7 @@ public final class FS extends Globals {
     }
 
     // with filelink_t entries
-    private static List fs_links = new LinkedList();
+    private static List<filelink_t> fs_links = new LinkedList<>();
 
     public static class searchpath_t {
         String filename;
@@ -115,6 +115,7 @@ public final class FS extends Globals {
     private static searchpath_t fs_searchpaths;
 
     // without gamedirs
+    // todo: switch to hashmap
     private static searchpath_t fs_base_searchpaths;
 
     /*
@@ -747,35 +748,37 @@ public final class FS extends Globals {
      * 
      * Creates a filelink_t
      */
-    private static void Link_f() {
-        filelink_t entry = null;
+    private static void Link_f(List<String> args) {
+        filelink_t entry;
 
-        if (Cmd.Argc() != 3) {
+        if (args.size() != 3) {
             Com.Printf("USAGE: link <from> <to>\n");
             return;
         }
 
         // see if the link already exists
-        for (Iterator it = fs_links.iterator(); it.hasNext();) {
-            entry = (filelink_t) it.next();
+        String from = args.get(1);
+        String to = args.get(2);
+        for (Iterator<filelink_t> it = fs_links.iterator(); it.hasNext();) {
+            entry = it.next();
 
-            if (entry.from.equals(Cmd.Argv(1))) {
-                if (Cmd.Argv(2).length() < 1) {
+            if (entry.from.equals(from)) {
+                if (to.isEmpty()) {
                     // delete it
                     it.remove();
                     return;
                 }
-                entry.to = new String(Cmd.Argv(2));
+                entry.to = to;
                 return;
             }
         }
 
         // create a new link if the <to> is not empty
-        if (Cmd.Argv(2).length() > 0) {
+        if (!to.isEmpty()) {
             entry = new filelink_t();
-            entry.from = new String(Cmd.Argv(1));
+            entry.from = from;
             entry.fromlength = entry.from.length();
-            entry.to = new String(Cmd.Argv(2));
+            entry.to = to;
             fs_links.add(entry);
         }
     }
@@ -801,14 +804,14 @@ public final class FS extends Globals {
     /*
      * Dir_f
      */
-    private static void Dir_f() {
+    private static void Dir_f(List<String> args) {
         String path = null;
         String findname = null;
         String wildcard = "*.*";
         String[] dirnames;
 
-        if (Cmd.Argc() != 1) {
-            wildcard = Cmd.Argv(1);
+        if (args.size() >= 2) {
+            wildcard = args.get(1);
         }
 
         while ((path = NextPath(path)) != null) {
@@ -825,13 +828,12 @@ public final class FS extends Globals {
             dirnames = ListFiles(findname, 0, 0);
 
             if (dirnames != null) {
-                int index = 0;
-                for (int i = 0; i < dirnames.length; i++) {
-                    if ((index = dirnames[i].lastIndexOf('/')) > 0) {
-                        Com.Printf(dirnames[i].substring(index + 1, dirnames[i]
-                                .length()) + '\n');
+                int index;
+                for (String dirname : dirnames) {
+                    if ((index = dirname.lastIndexOf('/')) > 0) {
+                        Com.Printf(dirname.substring(index + 1) + '\n');
                     } else {
-                        Com.Printf(dirnames[i] + '\n');
+                        Com.Printf(dirname + '\n');
                     }
                 }
             }
@@ -897,8 +899,9 @@ public final class FS extends Globals {
      */
     public static void InitFilesystem() {
         Cmd.AddCommand("path", (List<String> args) -> Path_f());
-        Cmd.AddCommand("link", (List<String> args) -> Link_f());
-        Cmd.AddCommand("dir", (List<String> args) -> Dir_f());
+        Cmd.AddCommand("link", FS::Link_f);
+        Cmd.AddCommand("dir", FS::Dir_f);
+        Cmd.AddCommand("ls", FS::Dir_f);
 
         fs_userdir = System.getProperty("user.home") + "/.jake2";
         FS.CreatePath(fs_userdir + "/");

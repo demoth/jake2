@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static jake2.game.Cmd.getArguments;
 import static org.junit.Assert.assertEquals;
 
 public class TestCMD {
@@ -90,14 +91,25 @@ public class TestCMD {
         assertEquals("hello world again", result);
     }
 
-
     @Test
     public void testCommandWithVariable() {
         StringBuilder result = new StringBuilder();
         Cvar.Get("test_var", "value", 0);
-        Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(Cmd.Args()));
+        Cmd.AddCommand("test_cmd", (List<String> args) -> result.append("success ").append(getArguments(args)));
 
         Cmd.ExecuteString("test_cmd $test_var");
         assertEquals("success value", result.toString());
+    }
+
+    @Test
+    public void testGetArguments() {
+        List<String> args = Arrays.asList("echo", "hello", "world");
+        assertEquals("hello world", getArguments(args));
+    }
+
+    @Test
+    public void testGetArgumentsSecond() {
+        List<String> args = Arrays.asList("echo", "hello", "world");
+        assertEquals("world", getArguments(args, 2));
     }
 }

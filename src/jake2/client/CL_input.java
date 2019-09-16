@@ -106,13 +106,11 @@ public class CL_input {
 
 	private static int in_impulse;
 
-	private static void KeyDown(kbutton_t b) {
+	private static void KeyDown(kbutton_t b, List<String> args) {
 		int k;
-		String c;
 
-		c = Cmd.Argv(1);
-		if (c.length() > 0)
-			k = Lib.atoi(c);
+		if (args.size() >= 2)
+			k = Lib.atoi(args.get(1));
 		else
 			k = -1; // typed manually at the console for continuous down
 
@@ -132,22 +130,19 @@ public class CL_input {
 			return; // still down
 
 		// save timestamp
-		c = Cmd.Argv(2);
-		b.downtime = Lib.atoi(c);
-		if (b.downtime == 0)
+		if (args.size() >= 3)
+			b.downtime = Lib.atoi(args.get(2));
+		else
 			b.downtime = Globals.sys_frame_time - 100;
 
 		b.state |= 3; // down + impulse down
 	}
 
-	private static void KeyUp(kbutton_t b) {
+	private static void KeyUp(kbutton_t b, List<String> args) {
 		int k;
-		String c;
-		int uptime;
 
-		c = Cmd.Argv(1);
-		if (c.length() > 0)
-			k = Lib.atoi(c);
+		if (args.size() >= 2)
+			k = Lib.atoi(args.get(1));
 		else {
 			// typed manually at the console, assume for unsticking, so clear
 			// all
@@ -169,10 +164,8 @@ public class CL_input {
 			return; // still up (this should not happen)
 
 		// save timestamp
-		c = Cmd.Argv(2);
-		uptime = Lib.atoi(c);
-		if (uptime != 0)
-			b.msec += uptime - b.downtime;
+		if (args.size() >= 3)
+			b.msec += Lib.atoi(args.get(2)) - b.downtime;
 		else
 			b.msec += 10;
 
@@ -367,37 +360,37 @@ public class CL_input {
 	 */
 	static void InitInput() {
 		Cmd.AddCommand("centerview", (List<String> args) -> IN.CenterView());
-		Cmd.AddCommand("+moveup", (List<String> args) -> KeyDown(in_up));
-		Cmd.AddCommand("-moveup", (List<String> args) -> KeyUp(in_up));
-		Cmd.AddCommand("+movedown", (List<String> args) -> KeyDown(in_down));
-		Cmd.AddCommand("-movedown", (List<String> args) -> KeyUp(in_down));
-		Cmd.AddCommand("+left", (List<String> args) -> KeyDown(in_left));
-		Cmd.AddCommand("-left", (List<String> args) -> KeyUp(in_left));
-		Cmd.AddCommand("+right", (List<String> args) -> KeyDown(in_right));
-		Cmd.AddCommand("-right", (List<String> args) -> KeyUp(in_right));
-		Cmd.AddCommand("+forward", (List<String> args) -> KeyDown(in_forward));
-		Cmd.AddCommand("-forward", (List<String> args) -> KeyUp(in_forward));
-		Cmd.AddCommand("+back", (List<String> args) -> KeyDown(in_back));
-		Cmd.AddCommand("-back", (List<String> args) -> KeyUp(in_back));
-		Cmd.AddCommand("+lookup", (List<String> args) -> KeyDown(in_lookup));
-		Cmd.AddCommand("-lookup", (List<String> args) -> KeyUp(in_lookup));
-		Cmd.AddCommand("+lookdown", (List<String> args) -> KeyDown(in_lookdown));
-		Cmd.AddCommand("-lookdown", (List<String> args) -> KeyUp(in_lookdown));
-		Cmd.AddCommand("+strafe", (List<String> args) -> KeyDown(in_strafe));
-		Cmd.AddCommand("-strafe", (List<String> args) -> KeyUp(in_strafe));
-		Cmd.AddCommand("+moveleft", (List<String> args) -> KeyDown(in_moveleft));
-		Cmd.AddCommand("-moveleft", (List<String> args) -> KeyUp(in_moveleft));
-		Cmd.AddCommand("+moveright", (List<String> args) -> KeyDown(in_moveright));
-		Cmd.AddCommand("-moveright", (List<String> args) -> KeyUp(in_moveright));
-		Cmd.AddCommand("+speed", (List<String> args) -> KeyDown(in_speed));
-		Cmd.AddCommand("-speed", (List<String> args) -> KeyUp(in_speed));
-		Cmd.AddCommand("+attack", (List<String> args) -> KeyDown(in_attack));
-		Cmd.AddCommand("-attack", (List<String> args) -> KeyUp(in_attack));
-		Cmd.AddCommand("+use", (List<String> args) -> KeyDown(in_use));
-		Cmd.AddCommand("-use", (List<String> args) -> KeyUp(in_use));
+		Cmd.AddCommand("+moveup", (List<String> args) -> KeyDown(in_up, args));
+		Cmd.AddCommand("-moveup", (List<String> args) -> KeyUp(in_up, args));
+		Cmd.AddCommand("+movedown", (List<String> args) -> KeyDown(in_down, args));
+		Cmd.AddCommand("-movedown", (List<String> args) -> KeyUp(in_down, args));
+		Cmd.AddCommand("+left", (List<String> args) -> KeyDown(in_left, args));
+		Cmd.AddCommand("-left", (List<String> args) -> KeyUp(in_left, args));
+		Cmd.AddCommand("+right", (List<String> args) -> KeyDown(in_right, args));
+		Cmd.AddCommand("-right", (List<String> args) -> KeyUp(in_right, args));
+		Cmd.AddCommand("+forward", (List<String> args) -> KeyDown(in_forward, args));
+		Cmd.AddCommand("-forward", (List<String> args) -> KeyUp(in_forward, args));
+		Cmd.AddCommand("+back", (List<String> args) -> KeyDown(in_back, args));
+		Cmd.AddCommand("-back", (List<String> args) -> KeyUp(in_back, args));
+		Cmd.AddCommand("+lookup", (List<String> args) -> KeyDown(in_lookup, args));
+		Cmd.AddCommand("-lookup", (List<String> args) -> KeyUp(in_lookup, args));
+		Cmd.AddCommand("+lookdown", (List<String> args) -> KeyDown(in_lookdown, args));
+		Cmd.AddCommand("-lookdown", (List<String> args) -> KeyUp(in_lookdown, args));
+		Cmd.AddCommand("+strafe", (List<String> args) -> KeyDown(in_strafe, args));
+		Cmd.AddCommand("-strafe", (List<String> args) -> KeyUp(in_strafe, args));
+		Cmd.AddCommand("+moveleft", (List<String> args) -> KeyDown(in_moveleft, args));
+		Cmd.AddCommand("-moveleft", (List<String> args) -> KeyUp(in_moveleft, args));
+		Cmd.AddCommand("+moveright", (List<String> args) -> KeyDown(in_moveright, args));
+		Cmd.AddCommand("-moveright", (List<String> args) -> KeyUp(in_moveright, args));
+		Cmd.AddCommand("+speed", (List<String> args) -> KeyDown(in_speed, args));
+		Cmd.AddCommand("-speed", (List<String> args) -> KeyUp(in_speed, args));
+		Cmd.AddCommand("+attack", (List<String> args) -> KeyDown(in_attack, args));
+		Cmd.AddCommand("-attack", (List<String> args) -> KeyUp(in_attack, args));
+		Cmd.AddCommand("+use", (List<String> args) -> KeyDown(in_use, args));
+		Cmd.AddCommand("-use", (List<String> args) -> KeyUp(in_use, args));
 		Cmd.AddCommand("impulse", (List<String> args) -> in_impulse = Lib.atoi(args.get(1)));
-		Cmd.AddCommand("+klook", (List<String> args) -> KeyDown(in_klook));
-		Cmd.AddCommand("-klook", (List<String> args) -> KeyUp(in_klook));
+		Cmd.AddCommand("+klook", (List<String> args) -> KeyDown(in_klook, args));
+		Cmd.AddCommand("-klook", (List<String> args) -> KeyUp(in_klook, args));
 
 		cl_nodelta = Cvar.Get("cl_nodelta", "0", 0);
 	}

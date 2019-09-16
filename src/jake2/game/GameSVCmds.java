@@ -29,6 +29,7 @@ import jake2.util.Lib;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class GameSVCmds {
@@ -155,10 +156,10 @@ public class GameSVCmds {
     /**
      * SV_AddIP_f.
      */
-    static void SVCmd_AddIP_f() {
+    private static void SVCmd_AddIP_f(List<String> args) {
         int i;
 
-        if (GameBase.gi.argc() < 3) {
+        if (args.size() < 3) {
             GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
                     "Usage:  addip <ip-mask>\n");
             return;
@@ -176,37 +177,36 @@ public class GameSVCmds {
             numipfilters++;
         }
 
-        if (!StringToFilter(GameBase.gi.argv(2), ipfilters[i]))
+        if (!StringToFilter(args.get(2), ipfilters[i]))
             ipfilters[i].compare = 0xffffffff;
     }
 
     /**
      * SV_RemoveIP_f.
      */
-    static void SVCmd_RemoveIP_f() {
+    private static void SVCmd_RemoveIP_f(List<String> args) {
         GameSVCmds.ipfilter_t f = new GameSVCmds.ipfilter_t();
-        int i, j;
 
-        if (GameBase.gi.argc() < 3) {
+        if (args.size() < 3) {
             GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
-                    "Usage:  sv removeip <ip-mask>\n");
+                    "Usage: sv removeip <ip-mask>\n");
             return;
         }
 
-        if (!StringToFilter(GameBase.gi.argv(2), f))
+        if (!StringToFilter(args.get(2), f))
             return;
 
-        for (i = 0; i < numipfilters; i++)
+        for (int i = 0; i < numipfilters; i++)
             if (ipfilters[i].mask == f.mask
                     && ipfilters[i].compare == f.compare) {
-                for (j = i + 1; j < numipfilters; j++)
+                for (int j = i + 1; j < numipfilters; j++)
                     ipfilters[j - 1] = ipfilters[j];
                 numipfilters--;
                 GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Removed.\n");
                 return;
             }
         GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Didn't find "
-                + GameBase.gi.argv(2) + ".\n");
+                + args.get(2) + ".\n");
     }
 
     /**
@@ -274,19 +274,23 @@ public class GameSVCmds {
     /**
      * ServerCommand
      * 
-     * ServerCommand will be called when an "sv" command is issued. The game can
-     * issue gi.argc() / gi.argv() commands to get the rest of the parameters
+     * ServerCommand will be called when an "sv" command is issued.
      */
-    public static void ServerCommand() {
-        String cmd;
+    public static void ServerCommand(List<String> args) {
 
-        cmd = GameBase.gi.argv(1);
+        if (args.size() < 2) {
+            Com.Printf("usage: sv test|addip|removeip|listip|writeip <args>");
+            return;
+        }
+
+        String cmd = args.get(1);
+
         if (Lib.Q_stricmp(cmd, "test") == 0)
             Svcmd_Test_f();
         else if (Lib.Q_stricmp(cmd, "addip") == 0)
-            SVCmd_AddIP_f();
+            SVCmd_AddIP_f(args);
         else if (Lib.Q_stricmp(cmd, "removeip") == 0)
-            SVCmd_RemoveIP_f();
+            SVCmd_RemoveIP_f(args);
         else if (Lib.Q_stricmp(cmd, "listip") == 0)
             SVCmd_ListIP_f();
         else if (Lib.Q_stricmp(cmd, "writeip") == 0)

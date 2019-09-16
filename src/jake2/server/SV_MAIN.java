@@ -32,6 +32,7 @@ import jake2.sys.Timer;
 import jake2.util.Lib;
 
 import java.io.IOException;
+import java.util.List;
 
 public class SV_MAIN {
 
@@ -177,21 +178,19 @@ public class SV_MAIN {
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    public static void SVC_Info() {
-        String string;
-        int i, count;
-        int version;
+    public static void SVC_Info(List<String> args) {
 
         if (SV_MAIN.maxclients.value == 1)
             return; // ignore in single player
 
-        version = Lib.atoi(Cmd.Argv(1));
+        int version = args.size() < 2 ? 0 : Lib.atoi(args.get(1));
 
+        String string;
         if (version != Defines.PROTOCOL_VERSION)
             string = SV_MAIN.hostname.string + ": wrong version\n";
         else {
-            count = 0;
-            for (i = 0; i < SV_MAIN.maxclients.value; i++)
+            int count = 0;
+            for (int i = 0; i < SV_MAIN.maxclients.value; i++)
                 if (SV_INIT.svs.clients[i].state >= Defines.cs_connected)
                     count++;
 
@@ -251,20 +250,14 @@ public class SV_MAIN {
     /**
      * A connection request that did not come from the master.
      */
-    public static void SVC_DirectConnect() {
-        String userinfo;
-        netadr_t adr;
-        int i;
-        client_t cl;
+    public static void SVC_DirectConnect(List<String> args) {
 
-        int version;
-        int qport;
-
-        adr = Globals.net_from;
+        netadr_t adr = Globals.net_from;
 
         Com.DPrintf("SVC_DirectConnect ()\n");
 
-        version = Lib.atoi(Cmd.Argv(1));
+        int version = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+
         if (version != Defines.PROTOCOL_VERSION) {
             Netchan.OutOfBandPrint(Defines.NS_SERVER, adr,
                     "print\nServer is version " + Globals.VERSION + "\n");
@@ -272,9 +265,9 @@ public class SV_MAIN {
             return;
         }
 
-        qport = Lib.atoi(Cmd.Argv(2));
-        int challenge = Lib.atoi(Cmd.Argv(3));
-        userinfo = Cmd.Argv(4);
+        int qport = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
+        int challenge = args.size() >= 4 ? Lib.atoi(args.get(3)) : 0;
+        String userinfo = args.size() >= 5 ? args.get(4) : "";
 
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", NET.AdrToString(Globals.net_from));
@@ -290,6 +283,7 @@ public class SV_MAIN {
         }
 
         // see if the challenge is valid
+        int i;
         if (!NET.IsLocalAddress(adr)) {
             for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
                 if (NET.CompareBaseAdr(Globals.net_from,
@@ -309,6 +303,7 @@ public class SV_MAIN {
         }
 
         // if there is already a slot for this ip, reuse it
+        client_t cl;
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
 
@@ -408,29 +403,24 @@ public class SV_MAIN {
     /** 
      * Checks if the rcon password is corect.
      */
-    public static int Rcon_Validate() {
+    private static boolean Rcon_Validate(List<String> args) {
         if (0 == SV_MAIN.rcon_password.string.length())
-            return 0;
+            return false;
 
-        if (!Cmd.Argv(1).equals(SV_MAIN.rcon_password.string))
-            return 0;
-
-        return 1;
+        return args.size() >= 2 && args.get(1).equals(SV_MAIN.rcon_password.string);
     }
 
     /**
      * A client issued an rcon command. Shift down the remaining args Redirect
      * all printfs fromt hte server to the client.
      */
-    public static void SVC_RemoteCommand() {
-        int i;
-        String remaining;
+    private static void SVC_RemoteCommand(List<String> args) {
 
-        i = Rcon_Validate();
+        boolean rconIsValid = Rcon_Validate(args);
 
         String msg = Lib.CtoJava(Globals.net_message.data, 4, 1024);
 
-        if (i == 0)
+        if (!rconIsValid)
             Com.Printf("Bad rcon from " + NET.AdrToString(Globals.net_from)
                     + ":\n" + msg + "\n");
         else
@@ -444,17 +434,11 @@ public class SV_MAIN {
                     }
                 });
 
-        if (0 == Rcon_Validate()) {
+        // FIXME: Why validate again? Because of redirect?
+        if (!Rcon_Validate(args)) {
             Com.Printf("Bad rcon_password.\n");
         } else {
-            remaining = "";
-
-            for (i = 2; i < Cmd.Argc(); i++) {
-                remaining += Cmd.Argv(i);
-                remaining += " ";
-            }
-
-            Cmd.ExecuteString(remaining);
+            Cmd.ExecuteString(Cmd.getArguments(args, 2));
         }
 
         Com.EndRedirect();
@@ -466,23 +450,26 @@ public class SV_MAIN {
      * connectionless packets. It is used also by rcon commands.
      */
     public static void SV_ConnectionlessPacket() {
-        String s;
-        String c;
 
         MSG.BeginReading(Globals.net_message);
         MSG.ReadLong(Globals.net_message); // skip the -1 marker
 
-        s = MSG.ReadStringLine(Globals.net_message);
+        String messageLine = MSG.ReadStringLine(Globals.net_message);
 
-        Cmd.TokenizeString(s, false);
+        List<String> args = Cmd.TokenizeString(messageLine, false);
 
-        c = Cmd.Argv(0);
+        if (args.isEmpty()) {
+            Com.Printf("Received empty packet!: " + messageLine);
+            return;
+        }
+
+        String cmd = args.get(0);
         
         //for debugging purposes 
         //Com.Printf("Packet " + NET.AdrToString(Netchan.net_from) + " : " + c + "\n");
         //Com.Printf(Lib.hexDump(net_message.data, 64, false) + "\n");
 
-        switch (c) {
+        switch (cmd) {
             case "ping":
                 SVC_Ping();
                 break;
@@ -493,21 +480,21 @@ public class SV_MAIN {
                 SVC_Status();
                 break;
             case "info":
-                SVC_Info();
+                SVC_Info(args);
                 break;
             case "getchallenge":
                 SVC_GetChallenge();
                 break;
             case "connect":
-                SVC_DirectConnect();
+                SVC_DirectConnect(args);
                 break;
             case "rcon":
-                SVC_RemoteCommand();
+                SVC_RemoteCommand(args);
                 break;
             default:
                 Com.Printf("bad connectionless packet from "
                         + NET.AdrToString(Globals.net_from) + "\n");
-                Com.Printf("[" + s + "]\n");
+                Com.Printf("[" + messageLine + "]\n");
                 Com.Printf("" + Lib.hexDump(Globals.net_message.data, 128, false));
                 break;
         }

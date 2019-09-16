@@ -185,20 +185,6 @@ public class game_import_t {
         return Cvar.ForceSet(var_name, value);
     }
 
-    // ClientCommand and ServerCommand parameter access
-    public int argc() {
-        return Cmd.Argc();
-    }
-
-
-    public String argv(int n) {
-        return Cmd.Argv(n);
-    }
-
-    // concatenation of all argv >= 1
-    public String args() {
-        return Cmd.Args();
-    }
 
     // add commands to the server console as if they were typed in
     // for map changing, etc

@@ -43,6 +43,7 @@ import java.util.List;
 
 import static jake2.Defines.ERR_DROP;
 import static jake2.Defines.PRINT_ALL;
+import static jake2.game.Cmd.getArguments;
 
 public class SV_CCMDS {
 
@@ -62,7 +63,7 @@ public class SV_CCMDS {
 	Specify a list of master servers
 	====================
 	*/
-	private static void SV_SetMaster_f() {
+	private static void SV_SetMaster_f(List<String> args) {
 		int i, slot;
 
 		// only dedicated servers send heartbeats
@@ -78,12 +79,12 @@ public class SV_CCMDS {
 			SV_MAIN.master_adr[i] = new netadr_t();
 
 		slot = 1; // slot 0 will always contain the id master
-		for (i = 1; i < Cmd.Argc(); i++) {
+		for (i = 1; i < args.size(); i++) {
 			if (slot == Defines.MAX_MASTERS)
 				break;
 
-			if (!NET.StringToAdr(Cmd.Argv(i), SV_MAIN.master_adr[i])) {
-				Com.Printf("Bad address: " + Cmd.Argv(i) + "\n");
+			if (!NET.StringToAdr(args.get(i), SV_MAIN.master_adr[i])) {
+				Com.Printf("Bad address: " + args.get(i) + "\n");
 				continue;
 			}
 			if (SV_MAIN.master_adr[slot].port == 0)
@@ -106,47 +107,43 @@ public class SV_CCMDS {
 	Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
 	==================
 	*/
-	private static boolean SV_SetPlayer() {
-		client_t cl;
-		int i;
-		int idnum;
-		String s;
+	private static boolean SV_SetPlayer(List<String> args) {
 
-		if (Cmd.Argc() < 2)
+		if (args.size() < 2)
 			return false;
 
-		s = Cmd.Argv(1);
+		String idOrName = args.get(1);
 
 		// numeric values are just slot numbers
-		if (s.charAt(0) >= '0' && s.charAt(0) <= '9') {
-			idnum = Lib.atoi(Cmd.Argv(1));
-			if (idnum < 0 || idnum >= SV_MAIN.maxclients.value) {
-				Com.Printf("Bad client slot: " + idnum + "\n");
+		if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
+			int id = Lib.atoi(idOrName);
+			if (id < 0 || id >= SV_MAIN.maxclients.value) {
+				Com.Printf("Bad client slot: " + id + "\n");
 				return false;
 			}
 
-			SV_MAIN.sv_client = SV_INIT.svs.clients[idnum];
+			SV_MAIN.sv_client = SV_INIT.svs.clients[id];
 			SV_USER.sv_player = SV_MAIN.sv_client.edict;
 			if (0 == SV_MAIN.sv_client.state) {
-				Com.Printf("Client " + idnum + " is not active\n");
+				Com.Printf("Client " + id + " is not active\n");
 				return false;
 			}
 			return true;
 		}
 
 		// check for a name match
-		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-			cl = SV_INIT.svs.clients[i];
+		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+			client_t cl = SV_INIT.svs.clients[i];
 			if (0 == cl.state)
 				continue;
-            if (s.equals(cl.name)) {
+            if (idOrName.equals(cl.name)) {
 				SV_MAIN.sv_client = cl;
 				SV_USER.sv_player = SV_MAIN.sv_client.edict;
 				return true;
 			}
 		}
 
-		Com.Printf("Userid " + s + " is not on the server\n");
+		Com.Printf("Userid " + idOrName + " is not on the server\n");
 		return false;
 	}
 	/*
@@ -491,8 +488,8 @@ public class SV_CCMDS {
 	Puts the server in demo mode on a specific map/cinematic
 	==================
 	*/
-	private static void SV_DemoMap_f() {
-		SV_INIT.SV_Map(true, Cmd.Argv(1), false);
+	private static void SV_DemoMap_f(List<String> args) {
+		SV_INIT.SV_Map(true, args.size() >= 2 ? args.get(1) : "", false);
 	}
 	/*
 	==================
@@ -512,20 +509,20 @@ public class SV_CCMDS {
 	goes to map jail.bsp.
 	==================
 	*/
-	private static void SV_GameMap_f() {
+	private static void SV_GameMap_f(List<String> args) {
 
-		if (Cmd.Argc() != 2) {
+		if (args.size() != 2) {
 			Com.Printf("USAGE: gamemap <map>\n");
 			return;
 		}
 
-		Com.DPrintf("SV_GameMap(" + Cmd.Argv(1) + ")\n");
+		String mapName = args.get(1);
+		Com.DPrintf("SV_GameMap(" + mapName + ")\n");
 
 		FS.CreatePath(FS.Gamedir() + "/save/current/");
 
 		// check for clearing the current savegame
-		String map = Cmd.Argv(1);
-		if (map.charAt(0) == '*') {
+		if (mapName.charAt(0) == '*') {
 			// wipe all the *.sav files
 			SV_WipeSavegame("current");
 		}
@@ -550,15 +547,14 @@ public class SV_CCMDS {
 					cl.edict.inuse = savedInuse[i];
 
 				}
-				savedInuse = null;
 			}
 		}
 
 		// start up the next map
-		SV_INIT.SV_Map(false, Cmd.Argv(1), false);
+		SV_INIT.SV_Map(false, mapName, false);
 
 		// archive server state
-		SV_INIT.svs.mapcmd = Cmd.Argv(1);
+		SV_INIT.svs.mapcmd = mapName;
 
 		// copy off the level to the autosave slot
 		if (0 == Globals.dedicated.value) {
@@ -584,18 +580,16 @@ public class SV_CCMDS {
 	For development work
 	==================
 	*/
-	private static void SV_Map_f() {
-		String map;
+	private static void SV_Map_f(List<String> args) {
+		String mapName;
 		//char expanded[MAX_QPATH];
-		String expanded;
 
 		// if not a pcx, demo, or cinematic, check to make sure the level exists
-		map = Cmd.Argv(1);
-		if (map.indexOf(".") < 0) {
-			expanded = "maps/" + map + ".bsp";
-			if (FS.LoadFile(expanded) == null) {
-
-				Com.Printf("Can't find " + expanded + "\n");
+		mapName = args.get(1);
+		if (!mapName.contains(".")) {
+			String mapPath = "maps/" + mapName + ".bsp";
+			if (FS.LoadFile(mapPath) == null) {
+				Com.Printf("Can't find " + mapPath + "\n");
 				return;
 			}
 		}
@@ -603,7 +597,7 @@ public class SV_CCMDS {
 		SV_INIT.sv.state = Defines.ss_dead; // don't save current level when changing
 
 		SV_WipeSavegame("current");
-		SV_GameMap_f();
+		SV_GameMap_f(args);
 	}
 	/*
 	=====================================================================
@@ -619,22 +613,23 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	private static void SV_Loadgame_f() {
+	private static void SV_Loadgame_f(List<String> args) {
 
-		if (Cmd.Argc() != 2) {
-			Com.Printf("USAGE: loadgame <directory>\n");
+		if (args.size() != 2) {
+			Com.Printf("USAGE: load <directory>\n");
 			return;
 		}
 
 		Com.Printf("Loading game...\n");
 
-		String dir = Cmd.Argv(1);
-		if ( (dir.indexOf("..") > -1) || (dir.indexOf("/") > -1) || (dir.indexOf("\\") > -1)) {
-			Com.Printf("Bad savedir.\n");
+		String saveGame = args.get(1);
+		if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
+			Com.Printf("Bad save name.\n");
+			return;
 		}
 
 		// make sure the server.ssv file exists
-		String name = FS.Gamedir() + "/save/" + Cmd.Argv(1) + "/server.ssv";
+		String name = FS.Gamedir() + "/save/" + saveGame + "/server.ssv";
 		RandomAccessFile f;
 		try {
 			f = new RandomAccessFile(name, "r");
@@ -651,7 +646,7 @@ public class SV_CCMDS {
 			e1.printStackTrace();
 		}
 
-		SV_CopySaveGame(Cmd.Argv(1), "current");
+		SV_CopySaveGame(saveGame, "current");
 		SV_ReadServerFile();
 
 		// go to the map
@@ -664,16 +659,15 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	private static void SV_Savegame_f() {
-		String dir;
+	private static void SV_Savegame_f(List<String> args) {
 
 		if (SV_INIT.sv.state != Defines.ss_game) {
 			Com.Printf("You must be in a game to save.\n");
 			return;
 		}
 
-		if (Cmd.Argc() != 2) {
-			Com.Printf("USAGE: savegame <directory>\n");
+		if (args.size() != 2) {
+			Com.Printf("USAGE: save <directory>\n");
 			return;
 		}
 
@@ -682,7 +676,8 @@ public class SV_CCMDS {
 			return;
 		}
 
-        if ("current".equals(Cmd.Argv(1))) {
+		String saveGame = args.get(1);
+		if ("current".equals(saveGame)) {
 			Com.Printf("Can't save to 'current'\n");
 			return;
 		}
@@ -692,9 +687,8 @@ public class SV_CCMDS {
 			return;
 		}
 
-		dir = Cmd.Argv(1);
-		if ( (dir.indexOf("..") > -1) || (dir.indexOf("/") > -1) || (dir.indexOf("\\") > -1)) {
-			Com.Printf("Bad savedir.\n");
+		if (saveGame.contains("..") || saveGame.contains("/") || saveGame.contains("\\")) {
+			Com.Printf("Bad save name.\n");
 		}
 		
 		Com.Printf("Saving game...\n");
@@ -713,7 +707,7 @@ public class SV_CCMDS {
 		}
 
 		// copy it off
-		SV_CopySaveGame("current", dir);
+		SV_CopySaveGame("current", saveGame);
 		Com.Printf("Done.\n");
 	}
 	//===============================================================
@@ -724,18 +718,18 @@ public class SV_CCMDS {
 	Kick a user off of the server
 	==================
 	*/
-	private static void SV_Kick_f() {
+	private static void SV_Kick_f(List<String> args) {
 		if (!SV_INIT.svs.initialized) {
 			Com.Printf("No server running.\n");
 			return;
 		}
 
-		if (Cmd.Argc() != 2) {
+		if (args.size() != 2) {
 			Com.Printf("Usage: kick <userid>\n");
 			return;
 		}
 
-		if (!SV_SetPlayer())
+		if (!SV_SetPlayer(args))
 			return;
 
 		SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, SV_MAIN.sv_client.name + " was kicked\n");
@@ -804,17 +798,17 @@ public class SV_CCMDS {
 	SV_ConSay_f
 	==================
 	*/
-	private static void SV_ConSay_f() {
+	private static void SV_ConSay_f(List<String> args) {
 		client_t client;
 		int j;
 		String p;
 		String text; // char[1024];
 
-		if (Cmd.Argc() < 2)
+		if (args.size() < 2)
 			return;
 
 		text = "console: ";
-		p = Cmd.Args();
+		p = getArguments(args);
 
 		if (p.charAt(0) == '"') {
 			p = p.substring(1, p.length() - 1);
@@ -855,13 +849,13 @@ public class SV_CCMDS {
 	Examine all a users info strings
 	===========
 	*/
-	private static void SV_DumpUser_f() {
-		if (Cmd.Argc() != 2) {
+	private static void SV_DumpUser_f(List<String> args) {
+		if (args.size() != 2) {
 			Com.Printf("Usage: info <userid>\n");
 			return;
 		}
 
-		if (!SV_SetPlayer())
+		if (!SV_SetPlayer(args))
 			return;
 
 		Com.Printf("userinfo\n");
@@ -877,15 +871,14 @@ public class SV_CCMDS {
 	recorded, but no playerinfo will be stored.  Primarily for demo merging.
 	==============
 	*/
-	private static void SV_ServerRecord_f() {
+	private static void SV_ServerRecord_f(List<String> args) {
 		//char	name[MAX_OSPATH];
-		String name;
-		byte buf_data[] = new byte[32768];
+		byte[] buf_data = new byte[32768];
 		sizebuf_t buf = new sizebuf_t();
 		int len;
 		int i;
 
-		if (Cmd.Argc() != 2) {
+		if (args.size() != 2) {
 			Com.Printf("serverrecord <demoname>\n");
 			return;
 		}
@@ -903,7 +896,7 @@ public class SV_CCMDS {
 		//
 		// open the demo file
 		//
-		name = FS.Gamedir() + "/demos/" + Cmd.Argv(1) + ".dm2";
+		String name = FS.Gamedir() + "/demos/" + args.get(1) + ".dm2";
 
 		Com.Printf("recording to " + name + ".\n");
 		FS.CreatePath(name);
@@ -996,17 +989,6 @@ public class SV_CCMDS {
 		SV_MAIN.SV_Shutdown("Server was killed.\n", false);
 		NET.Config(false); // close network sockets
 	}
-	/*
-	===============
-	SV_ServerCommand_f
-	
-	Let the game dll handle a command
-	===============
-	*/
-	private static void SV_ServerCommand_f() {
-
-		GameSVCmds.ServerCommand();
-	}
 	//===========================================================
 
 	/*
@@ -1016,11 +998,11 @@ public class SV_CCMDS {
 	*/
 	static void SV_InitOperatorCommands() {
 		Cmd.AddCommand("heartbeat", (List<String> args) -> SV_Heartbeat_f());
-		Cmd.AddCommand("kick", (List<String> args) -> SV_Kick_f());
+		Cmd.AddCommand("kick", SV_CCMDS::SV_Kick_f);
 		Cmd.AddCommand("status", (List<String> args) -> SV_Status_f());
 		Cmd.AddCommand("serverinfo", (List<String> args) -> SV_Serverinfo_f());
-		Cmd.AddCommand("dumpuser", (List<String> args) -> SV_DumpUser_f());
-		Cmd.AddCommand("map", (List<String> args) -> SV_Map_f());
+		Cmd.AddCommand("dumpuser", SV_CCMDS::SV_DumpUser_f);
+		Cmd.AddCommand("map", SV_CCMDS::SV_Map_f);
 		Cmd.AddCommand("maplist", (List<String> args) -> {
 			byte[] bytes = FS.LoadFile("maps.lst");
 			if (bytes == null) {
@@ -1032,19 +1014,19 @@ public class SV_CCMDS {
 			}
 		});
 
-		Cmd.AddCommand("demomap", (List<String> args) -> SV_DemoMap_f());
-		Cmd.AddCommand("gamemap", (List<String> args) -> SV_GameMap_f());
-		Cmd.AddCommand("setmaster", (List<String> args) -> SV_SetMaster_f());
+		Cmd.AddCommand("demomap", SV_CCMDS::SV_DemoMap_f);
+		Cmd.AddCommand("gamemap", SV_CCMDS::SV_GameMap_f);
+		Cmd.AddCommand("setmaster", SV_CCMDS::SV_SetMaster_f);
 
 		if (Globals.dedicated.value != 0)
-			Cmd.AddCommand("say", (List<String> args) -> SV_ConSay_f());
+			Cmd.AddCommand("say", SV_CCMDS::SV_ConSay_f);
 
-		Cmd.AddCommand("serverrecord", (List<String> args) -> SV_ServerRecord_f());
+		Cmd.AddCommand("serverrecord", SV_CCMDS::SV_ServerRecord_f);
 		Cmd.AddCommand("serverstop", (List<String> args) -> SV_ServerStop_f());
-		Cmd.AddCommand("save", (List<String> args) -> SV_Savegame_f());
-		Cmd.AddCommand("load", (List<String> args) -> SV_Loadgame_f());
+		Cmd.AddCommand("save", SV_CCMDS::SV_Savegame_f);
+		Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
 		Cmd.AddCommand("killserver", (List<String> args) -> SV_KillServer_f());
-		Cmd.AddCommand("sv", (List<String> args) -> SV_ServerCommand_f());
+		Cmd.AddCommand("sv", GameSVCmds::ServerCommand);
 				Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
 		
 //		Cmd.AddCommand("spawnbot", new Command() {

@@ -99,7 +99,12 @@ public final class Qcommon extends Globals {
 			//
 			// init commands and vars
 			//
-			Cmd.AddCommand("error", (List<String> arguments) -> Com.Error(ERR_FATAL, Cmd.Argv(1)));
+			Cmd.AddCommand("error", (List<String> arguments) -> {
+				if (arguments.size() >= 2)
+					Com.Error(ERR_FATAL, arguments.get(1));
+				else
+					Com.Error(ERR_FATAL, "error occurred");
+			});
 
 			Globals.host_speeds= Cvar.Get("host_speeds", "0", 0);
 			Globals.log_stats= Cvar.Get("log_stats", "0", 0);

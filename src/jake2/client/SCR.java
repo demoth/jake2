@@ -440,7 +440,7 @@ public final class SCR extends Globals {
         //
         // register our commands
         //
-        Cmd.AddCommand("timerefresh", (List<String> args) -> TimeRefresh_f());
+        Cmd.AddCommand("timerefresh", SCR::TimeRefresh_f);
         Cmd.AddCommand("loading", (List<String> args) -> Loading_f());
         Cmd.AddCommand("sizeup", (List<String> args) -> SizeUp_f());
         Cmd.AddCommand("sizedown", (List<String> args) -> SizeDown_f());
@@ -594,7 +594,7 @@ public final class SCR extends Globals {
     /*
      * ================ SCR_TimeRefresh_f ================
      */
-    private static void TimeRefresh_f() {
+    private static void TimeRefresh_f(List<String> args) {
         int i;
         int start, stop;
         float time;
@@ -604,7 +604,7 @@ public final class SCR extends Globals {
 
         start = Timer.Milliseconds();
 
-        if (Cmd.Argc() == 2) { // run without page flipping
+        if (args.size() == 2) { // run without page flipping
             re.BeginFrame(0);
             for (i = 0; i < 128; i++) {
                 cl.refdef.viewangles[1] = i / 128.0f * 360.0f;

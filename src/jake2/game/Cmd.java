@@ -104,13 +104,7 @@ public final class Cmd {
         }
 
         if (args.size() >= 3) {
-            StringBuilder value = new StringBuilder();
-            for (int i = 2; i < args.size(); i++) {
-                if (i != 2)
-                    value.append(" ");
-                value.append(args.get(i));
-            }
-            alias.setValue(value.toString());
+            alias.setValue(getArguments(args, 2));
         } else {
             alias.setValue("");
         }
@@ -121,12 +115,6 @@ public final class Cmd {
     private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
 
     private static Map<String, cmdalias_t> cmd_alias = new HashMap<>();
-
-    private static int cmd_argc;
-
-    private static String[] cmd_argv = new String[Defines.MAX_STRING_TOKENS];
-
-    private static String cmd_args;
 
     private static final int ALIAS_LOOP_COUNT = 16;
 
@@ -222,9 +210,6 @@ public final class Cmd {
     public static List<String> TokenizeString(String text, boolean macroExpand) {
         List<String> result = new ArrayList<>();
 
-        cmd_argc = 0;
-        cmd_args = "";
-
         // macro expand the text
         if (macroExpand)
             text = MacroExpandString(text);
@@ -247,19 +232,10 @@ public final class Cmd {
             if (c == 0)
                 return result;
 
-            // set cmd_args to everything after the first arg
-            if (cmd_argc == 1) {
-                cmd_args = new String(text.toCharArray(), ph.index, text.length() - ph.index);
-            }
-
             String word = Com.Parse(ph);
 
             result.add(word);
 
-            if (cmd_argc < Defines.MAX_STRING_TOKENS) {
-                cmd_argv[cmd_argc] = word;
-                cmd_argc++;
-            }
         }
         return result;
     }
@@ -292,37 +268,21 @@ public final class Cmd {
         }
     }
 
-    public static String getArguments(List<String> args) {
-        if (args.isEmpty())
+    public static String getArguments(List<String> args, int startIndex) {
+        if (args.isEmpty() || startIndex >= args.size())
             return "";
 
-        if (args.size() == 1)
-            return args.get(0);
-
         StringBuilder value = new StringBuilder();
-        for (int i = 1; i < args.size(); i++) {
-            if (i != 1)
+        for (int i = startIndex; i < args.size(); i++) {
+            if (i != startIndex)
                 value.append(" ");
             value.append(args.get(i));
         }
         return value.toString();
     }
 
-    @Deprecated
-    public static int Argc() {
-        return cmd_argc;
-    }
-
-    @Deprecated
-    public static String Argv(int i) {
-        if (i < 0 || i >= cmd_argc)
-            return "";
-        return cmd_argv[i];
-    }
-
-    @Deprecated
-    public static String Args() {
-        return cmd_args;
+    public static String getArguments(List<String> args) {
+        return getArguments(args, 1);
     }
 
     /**
@@ -338,11 +298,11 @@ public final class Cmd {
         List<String> args = TokenizeString(text, true);
 
         // execute the command line
-        if (Argc() == 0)
+        if (args.size() == 0)
             return; // no tokens
 
         // check functions
-        cmd_function_t cmd = cmd_functions.get(cmd_argv[0]);
+        cmd_function_t cmd = cmd_functions.get(args.get(0));
         if (cmd != null) {
             if (cmd.function != null) {
                 // todo pass arguments to execute instead of using Cmd.Argc()
@@ -355,7 +315,7 @@ public final class Cmd {
 
         // check alias
         for (cmdalias_t alias : cmd_alias.values()) {
-            if (cmd_argv[0].equalsIgnoreCase(alias.getName())) {
+            if (args.get(0).equalsIgnoreCase(alias.getName())) {
                 if (++Globals.alias_count == ALIAS_LOOP_COUNT) {
                     Com.Printf("ALIAS_LOOP_COUNT\n");
                     return;
@@ -585,26 +545,23 @@ public final class Cmd {
      * 
      * Use an inventory item.
      */
-    private static void Use_f(edict_t ent) {
-        int index;
-        gitem_t it;
-        String s;
+    private static void Use_f(edict_t ent, List<String> args) {
 
-        s = Cmd.Args();
+        String itemName = getArguments(args);
 
-        it = GameItems.FindItem(s);
-        Com.dprintln("using:" + s);
+        gitem_t it = GameItems.FindItem(itemName);
+        Com.dprintln("using:" + itemName);
         if (it == null) {
-            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + s + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + itemName + "\n");
             return;
         }
         if (it.use == null) {
             SV_GAME.PF_cprintfhigh(ent, "Item is not usable.\n");
             return;
         }
-        index = GameItems.ITEM_INDEX(it);
+        int index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
-            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + s + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + itemName + "\n");
             return;
         }
 
@@ -616,15 +573,12 @@ public final class Cmd {
      * 
      * Drop an inventory item.
      */
-    private static void Drop_f(edict_t ent) {
-        int index;
-        gitem_t it;
-        String s;
+    private static void Drop_f(edict_t ent, List<String> args) {
 
-        s = Cmd.Args();
-        it = GameItems.FindItem(s);
+        String itemName = getArguments(args);
+        gitem_t it = GameItems.FindItem(itemName);
         if (it == null) {
-            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + s + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "unknown item: " + itemName + "\n");
             return;
         }
         if (it.drop == null) {
@@ -632,9 +586,9 @@ public final class Cmd {
                     "Item is not dropable.\n");
             return;
         }
-        index = GameItems.ITEM_INDEX(it);
+        int index = GameItems.ITEM_INDEX(it);
         if (0 == ent.client.pers.inventory[index]) {
-            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + s + "\n");
+            SV_GAME.PF_cprintfhigh(ent, "Out of item: " + itemName + "\n");
             return;
         }
 
@@ -1140,7 +1094,7 @@ public final class Cmd {
         if (ent.client == null)
             return; // not fully in game yet
     
-        cmd = GameBase.gi.argv(0).toLowerCase();
+        cmd = args.get(0).toLowerCase();
     
         if (cmd.equals("players")) {
             Players_f(ent);
@@ -1168,10 +1122,10 @@ public final class Cmd {
 
         switch (cmd) {
             case "use":
-                Use_f(ent);
+                Use_f(ent, args);
                 break;
             case "drop":
-                Drop_f(ent);
+                Drop_f(ent, args);
                 break;
             case "give":
                 Give_f(ent, args);

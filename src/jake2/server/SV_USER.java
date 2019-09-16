@@ -32,71 +32,36 @@ import jake2.util.Lib;
 import java.io.IOException;
 import java.util.List;
 
-public class SV_USER {
+class SV_USER {
 
     static edict_t sv_player;
 
     public static class ucmd_t {
-        public ucmd_t(String n, Runnable r) {
+        ucmd_t(String n, Command cmd) {
             name = n;
-            this.r = r;
+            this.cmd = cmd;
         }
 
         String name;
 
-        Runnable r;
+        Command cmd;
     }
 
-    static ucmd_t u1 = new ucmd_t("new", new Runnable() {
-        public void run() {
-            SV_USER.SV_New_f();
-        }
-    });
-
-    static ucmd_t ucmds[] = {
-    // auto issued
-            new ucmd_t("new", new Runnable() {
-                public void run() {
-                    SV_USER.SV_New_f();
-                }
-            }), new ucmd_t("configstrings", new Runnable() {
-                public void run() {
-                    SV_USER.SV_Configstrings_f();
-                }
-            }), new ucmd_t("baselines", new Runnable() {
-                public void run() {
-                    SV_USER.SV_Baselines_f();
-                }
-            }), new ucmd_t("begin", new Runnable() {
-                public void run() {
-                    SV_USER.SV_Begin_f();
-                }
-            }), new ucmd_t("nextserver", new Runnable() {
-                public void run() {
-                    SV_USER.SV_Nextserver_f();
-                }
-            }), new ucmd_t("disconnect", new Runnable() {
-                public void run() {
-                    SV_USER.SV_Disconnect_f();
-                }
-            }),
+    private static ucmd_t[] ucmds = {
+            // auto issued
+            new ucmd_t("new", SV_USER::SV_New_f),
+            new ucmd_t("configstrings", SV_USER::SV_Configstrings_f),
+            new ucmd_t("baselines", SV_USER::SV_Baselines_f),
+            new ucmd_t("begin", SV_USER::SV_Begin_f),
+            new ucmd_t("nextserver", SV_USER::SV_Nextserver_f),
+            new ucmd_t("disconnect", SV_USER::SV_Disconnect_f),
 
             // issued by hand at client consoles
-            new ucmd_t("info", new Runnable() {
-                public void run() {
-                    SV_USER.SV_ShowServerinfo_f();
-                }
-            }), new ucmd_t("download", new Runnable() {
-                public void run() {
-                    SV_USER.SV_BeginDownload_f();
-                }
-            }), new ucmd_t("nextdl", new Runnable() {
-                public void run() {
-                    SV_USER.SV_NextDownload_f();
-                }
-            }) };
+            new ucmd_t("info", SV_USER::SV_ShowServerinfo_f),
+            new ucmd_t("download", SV_USER::SV_BeginDownload_f),
+            new ucmd_t("nextdl", SV_USER::SV_NextDownload_f)};
 
-    public static final int MAX_STRINGCMDS = 8;
+    private static final int MAX_STRINGCMDS = 8;
 
     /*
      * ============================================================
@@ -110,7 +75,7 @@ public class SV_USER {
     /*
      * ================== SV_BeginDemoServer ==================
      */
-    public static void SV_BeginDemoserver() {
+    private static void SV_BeginDemoserver() {
         String name;
 
         name = "demos/" + SV_INIT.sv.name;
@@ -130,7 +95,7 @@ public class SV_USER {
      * be sent on the initial connection and upon each server load.
      * ================
      */
-    public static void SV_New_f() {
+    private static void SV_New_f(List<String> args) {
         String gamedir;
         int playernum;
         edict_t ent;
@@ -201,8 +166,7 @@ public class SV_USER {
     /*
      * ================== SV_Configstrings_f ==================
      */
-    public static void SV_Configstrings_f() {
-        int start;
+    private static void SV_Configstrings_f(List<String> args) {
 
         Com.DPrintf("Configstrings() from " + SV_MAIN.sv_client.name + "\n");
 
@@ -212,13 +176,14 @@ public class SV_USER {
         }
 
         // handle the case of a level changing while a client was connecting
-        if (Lib.atoi(Cmd.Argv(1)) != SV_INIT.svs.spawncount) {
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != SV_INIT.svs.spawncount) {
             Com.Printf("SV_Configstrings_f from different level\n");
-            SV_New_f();
+            SV_New_f(args);
             return;
         }
 
-        start = Lib.atoi(Cmd.Argv(2));
+        int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
         // write a packet full of data
 
@@ -254,10 +219,7 @@ public class SV_USER {
     /*
      * ================== SV_Baselines_f ==================
      */
-    public static void SV_Baselines_f() {
-        int start;
-        entity_state_t nullstate;
-        entity_state_t base;
+    private static void SV_Baselines_f(List<String> args) {
 
         Com.DPrintf("Baselines() from " + SV_MAIN.sv_client.name + "\n");
 
@@ -267,22 +229,23 @@ public class SV_USER {
         }
 
         // handle the case of a level changing while a client was connecting
-        if (Lib.atoi(Cmd.Argv(1)) != SV_INIT.svs.spawncount) {
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != SV_INIT.svs.spawncount) {
             Com.Printf("SV_Baselines_f from different level\n");
-            SV_New_f();
+            SV_New_f(args);
             return;
         }
 
-        start = Lib.atoi(Cmd.Argv(2));
+        int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
 
         //memset (&nullstate, 0, sizeof(nullstate));
-        nullstate = new entity_state_t(null);
+        entity_state_t nullstate = new entity_state_t(null);
 
         // write a packet full of data
 
         while (SV_MAIN.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2
                 && start < Defines.MAX_EDICTS) {
-            base = SV_INIT.sv.baselines[start];
+            entity_state_t base = SV_INIT.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                         Defines.svc_spawnbaseline);
@@ -310,13 +273,14 @@ public class SV_USER {
     /*
      * ================== SV_Begin_f ==================
      */
-    public static void SV_Begin_f() {
+    private static void SV_Begin_f(List<String> args) {
         Com.DPrintf("Begin() from " + SV_MAIN.sv_client.name + "\n");
 
         // handle the case of a level changing while a client was connecting
-        if (Lib.atoi(Cmd.Argv(1)) != SV_INIT.svs.spawncount) {
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != SV_INIT.svs.spawncount) {
             Com.Printf("SV_Begin_f from different level\n");
-            SV_New_f();
+            SV_New_f(args);
             return;
         }
 
@@ -333,7 +297,7 @@ public class SV_USER {
     /*
      * ================== SV_NextDownload_f ==================
      */
-    public static void SV_NextDownload_f() {
+    private static void SV_NextDownload_f(List<String> args) {
         int r;
         int percent;
         int size;
@@ -367,19 +331,21 @@ public class SV_USER {
     /*
      * ================== SV_BeginDownload_f ==================
      */
-    public static void SV_BeginDownload_f() {
-        String name;
+    private static void SV_BeginDownload_f(List<String> args) {
         int offset = 0;
 
-        name = Cmd.Argv(1);
+        if (args.size() < 2)
+            return;
 
-        if (Cmd.Argc() > 2)
-            offset = Lib.atoi(Cmd.Argv(2)); // downloaded offset
+        String name = args.get(1);
+
+        if (args.size() > 2)
+            offset = Lib.atoi(args.get(2)); // downloaded offset
 
         // hacked by zoid to allow more conrol over download
         // first off, no .. or global allow check
 
-        if (name.indexOf("..") != -1
+        if (name.contains("..")
                 || SV_MAIN.allow_download.value == 0 // leading dot is no good
                 || name.charAt(0) == '.' // leading slash bad as well, must be
                                          // in subdir
@@ -420,11 +386,11 @@ public class SV_USER {
         if (offset > SV_MAIN.sv_client.downloadsize)
             SV_MAIN.sv_client.downloadcount = SV_MAIN.sv_client.downloadsize;
 
-        if (SV_MAIN.sv_client.download == null // special check for maps, if it
-                                               // came from a pak file, don't
-                                               // allow
-                							   // download ZOID
-                || (name.startsWith("maps/") && FS.file_from_pak != 0)) {
+        // special check for maps, if it
+        // came from a pak file, don't
+        // allow
+        // download ZOID
+        if (name.startsWith("maps/") && FS.file_from_pak != 0) {
             Com.DPrintf("Couldn't download " + name + " to "
                     + SV_MAIN.sv_client.name + "\n");
             if (SV_MAIN.sv_client.download != null) {
@@ -439,7 +405,7 @@ public class SV_USER {
             return;
         }
 
-        SV_NextDownload_f();
+        SV_NextDownload_f(args);
         Com.DPrintf("Downloading " + name + " to " + SV_MAIN.sv_client.name
                 + "\n");
     }
@@ -452,7 +418,7 @@ public class SV_USER {
      * The client is going to disconnect, so remove the connection immediately
      * =================
      */
-    public static void SV_Disconnect_f() {
+    private static void SV_Disconnect_f(List<String> args) {
         //	SV_EndRedirect ();
         SV_MAIN.SV_DropClient(SV_MAIN.sv_client);
     }
@@ -462,11 +428,11 @@ public class SV_USER {
      * 
      * Dumps the serverinfo info string ==================
      */
-    public static void SV_ShowServerinfo_f() {
+    private static void SV_ShowServerinfo_f(List<String> args) {
         Info.Print(Cvar.Serverinfo());
     }
 
-    public static void SV_Nextserver() {
+    static void SV_Nextserver() {
         String v;
 
         //ZOID, ss_pic can be nextserver'd in coop mode
@@ -493,8 +459,9 @@ public class SV_USER {
      * A cinematic has completed or been aborted by a client, so move to the
      * next server, ==================
      */
-    public static void SV_Nextserver_f() {
-        if (Lib.atoi(Cmd.Argv(1)) != SV_INIT.svs.spawncount) {
+    private static void SV_Nextserver_f(List<String> args) {
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != SV_INIT.svs.spawncount) {
             Com.DPrintf("Nextserver() from wrong level, from "
                     + SV_MAIN.sv_client.name + "\n");
             return; // leftover from last server
@@ -508,7 +475,7 @@ public class SV_USER {
     /*
      * ================== SV_ExecuteUserCommand ==================
      */
-    public static void SV_ExecuteUserCommand(String s) {
+    private static void SV_ExecuteUserCommand(String s) {
         
         Com.dprintln("SV_ExecuteUserCommand:" + s );
         SV_USER.ucmd_t u = null;
@@ -522,7 +489,7 @@ public class SV_USER {
         for (; i < SV_USER.ucmds.length; i++) {
             u = SV_USER.ucmds[i];
             if (args.get(0).equals(u.name)) {
-                u.r.run();
+                u.cmd.execute(args);
                 break;
             }
         }
@@ -541,7 +508,7 @@ public class SV_USER {
      * ===========================================================================
      */
 
-    public static void SV_ClientThink(client_t cl, usercmd_t cmd) {
+    private static void SV_ClientThink(client_t cl, usercmd_t cmd) {
         cl.commandMsec -= cmd.msec & 0xFF;
 
         if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.value != 0) {
@@ -558,7 +525,7 @@ public class SV_USER {
      * The current net_message is parsed for the given client
      * ===================
      */
-    public static void SV_ExecuteClientMessage(client_t cl) {
+    static void SV_ExecuteClientMessage(client_t cl) {
         int c;
         String s;
 

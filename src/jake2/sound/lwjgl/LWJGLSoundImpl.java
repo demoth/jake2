@@ -69,7 +69,7 @@ public final class LWJGLSoundImpl implements Sound {
 	int count = Channel.init(buffers);
 	Com.Printf("... using " + count + " channels\n");
 	AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
-	Cmd.AddCommand("play", (List<String> args) -> Play());
+	Cmd.AddCommand("play", this::Play);
 	Cmd.AddCommand("stopsound", (List<String> args) -> StopAllSounds());
 	Cmd.AddCommand("soundlist", (List<String> args) -> SoundList());
 	Cmd.AddCommand("soundinfo", (List<String> args) -> SoundInfo_f());
@@ -485,22 +485,23 @@ public final class LWJGLSoundImpl implements Sound {
 	===============================================================================
      */
 
-    void Play() {
-	int i;
-	String name;
-	sfx_t sfx;
+	private void Play(List<String> args) {
+		if (args.size() < 2) {
+			Com.Printf("usage: play <file_name>");
+			return;
+		}
 
-	i = 1;
-	while (i < Cmd.Argc()) {
-	    name = new String(Cmd.Argv(i));
-	    if (name.indexOf('.') == -1)
-		name += ".wav";
+		int i = 1;
+		while (i < args.size()) {
+			String name = args.get(i);
+			if (!name.contains("."))
+				name += ".wav";
 
-	    sfx = RegisterSound(name);
-	    StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
-	    i++;
+			sfx_t sfx = RegisterSound(name);
+			StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
+			i++;
+		}
 	}
-    }
 
     void SoundList() {
 	int i;

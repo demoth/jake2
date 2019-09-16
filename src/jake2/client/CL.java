@@ -49,6 +49,8 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.List;
 
+import static jake2.game.Cmd.getArguments;
+
 /**
  * CL
  */
@@ -246,7 +248,7 @@ public final class CL {
         if (args.size() > 1) {
             MSG.WriteByte(Globals.cls.netchan.message,
                     Defines.clc_stringcmd);
-            SZ.Print(Globals.cls.netchan.message, Cmd.Args());
+            SZ.Print(Globals.cls.netchan.message, getArguments(args));
         }
     };
 
