@@ -25,7 +25,10 @@
  */
 package jake2.client;
 
-import jake2.game.*;
+import jake2.game.entity_state_t;
+import jake2.game.pmove_t;
+import jake2.game.trace_t;
+import jake2.game.usercmd_t;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -45,7 +48,7 @@ public class CL_pred {
         int len;
 
         if (Globals.cl_predict.value == 0.0f
-                || (Globals.cl.frame.playerstate.pmove.pm_flags & pmove_t.PMF_NO_PREDICTION) != 0)
+                || (Globals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0)
             return;
 
         // calculate the last usercmd_t we sent that the server has processed
@@ -214,7 +217,7 @@ public class CL_pred {
             return;
 
         if (Globals.cl_predict.value == 0.0f
-                || (Globals.cl.frame.playerstate.pmove.pm_flags & pmove_t.PMF_NO_PREDICTION) != 0) {
+                || (Globals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0) {
             // just set angles
             for (int i = 0; i < 3; i++) {
                 Globals.cl.predicted_angles[i] = Globals.cl.viewangles[i]
@@ -244,11 +247,7 @@ public class CL_pred {
                 return PMTrace(start, mins, maxs, end);
             }
         };
-        pm.pointcontents = new pmove_t.PointContentsAdapter() {
-            public int pointcontents(float[] point) {
-                return PMpointcontents(point);
-            }
-        };
+        pm.pointcontents = CL_pred::PMpointcontents;
 
         PMove.pm_airaccelerate = Lib.atof(Globals.cl.configstrings[Defines.CS_AIRACCEL]);
 
@@ -277,7 +276,7 @@ public class CL_pred {
         int oldz = Globals.cl.predicted_origins[oldframe][2];
         int step = pm.s.origin[2] - oldz;
         if (step > 63 && step < 160
-                && (pm.s.pm_flags & pmove_t.PMF_ON_GROUND) != 0) {
+                && (pm.s.pm_flags & Defines.PMF_ON_GROUND) != 0) {
             Globals.cl.predicted_step = step * 0.125f;
             Globals.cl.predicted_step_time = (int) (Globals.cls.realtime - Globals.cls.frametime * 500);
         }

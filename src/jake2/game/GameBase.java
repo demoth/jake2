@@ -26,13 +26,13 @@
 
 package jake2.game;
 
-import jake2.client.M;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.cvar_t;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.server.SV;
-import jake2.server.SV_WORLD;
 
 import java.util.StringTokenizer;
 
@@ -43,7 +43,7 @@ public class GameBase {
 
     public static level_locals_t level = new level_locals_t();
 
-    public static game_import_t gi = new game_import_t();
+    public static GameImports gi = new game_import_t();
 
     public static spawn_temp_t st = new spawn_temp_t();
 
@@ -586,6 +586,7 @@ public class GameBase {
      *  
      * Advances the world by Defines.FRAMETIME (0.1) seconds.
      */
+    // todo move to game exports
     public static void G_RunFrame() {
         int i;
         edict_t ent;
@@ -649,13 +650,8 @@ public class GameBase {
      * This return a pointer to the structure with all entry points and global
      * variables. 
      */
-
-    public static void GetGameApi(game_import_t imp) {
+    // todo move to game exports
+    public static void setGameImports(GameImports imp) {
         gi = imp;
-        gi.pointcontents = new pmove_t.PointContentsAdapter() {
-            public int pointcontents(float[] o) {
-                return SV_WORLD.SV_PointContents(o);
-            }
-        };
     }
 }

@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.qcommon.edict_t;
+
 public abstract class EntTouchAdapter extends SuperAdapter
 {
 	public abstract void touch(edict_t self, edict_t other, cplane_t plane, csurface_t surf);

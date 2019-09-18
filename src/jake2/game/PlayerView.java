@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -101,7 +102,7 @@ public class PlayerView {
         if ((client.anim_priority < Defines.ANIM_PAIN)
                 & (player.s.modelindex == 255)) {
             client.anim_priority = Defines.ANIM_PAIN;
-            if ((client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+            if ((client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 player.s.frame = M_Player.FRAME_crpain1 - 1;
                 client.anim_end = M_Player.FRAME_crpain4;
             } else {
@@ -267,11 +268,11 @@ public class PlayerView {
 
             // add angles based on bob
             delta = bobfracsin * GameBase.bob_pitch.value * xyspeed;
-            if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
+            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             angles[Defines.PITCH] += delta;
             delta = bobfracsin * GameBase.bob_roll.value * xyspeed;
-            if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
+            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             if ((bobcycle & 1) != 0)
                 delta = -delta;
@@ -397,7 +398,7 @@ public class PlayerView {
 
         // add for contents
         Math3D.VectorAdd(ent.s.origin, ent.client.ps.viewoffset, vieworg);
-        contents = GameBase.gi.pointcontents.pointcontents(vieworg);
+        contents = GameBase.gi.getPointContents(vieworg);
         if ((contents & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME | Defines.CONTENTS_WATER)) != 0)
             ent.client.ps.rdflags |= Defines.RDF_UNDERWATER;
         else
@@ -843,7 +844,7 @@ public class PlayerView {
 
         client = ent.client;
 
-        if ((client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
+        if ((client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             duck = true;
         else
             duck = false;
@@ -994,7 +995,7 @@ public class PlayerView {
 
         bobtime = (current_client.bobtime += bobmove);
 
-        if ((current_client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
+        if ((current_client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             bobtime *= 4;
 
         bobcycle = (int) bobtime;

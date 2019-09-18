@@ -22,9 +22,9 @@
 
 package jake2.game;
 
-import jake2.client.M;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -35,8 +35,8 @@ public class Monster {
     //	and we can tighten or loosen based on skill. We could muck with
     //	the damages too, but I'm not sure that's such a good idea.
     public static void monster_fire_bullet(edict_t self, float[] start,
-            float[] dir, int damage, int kick, int hspread, int vspread,
-            int flashtype) {
+                                           float[] dir, int damage, int kick, int hspread, int vspread,
+                                           int flashtype) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
                 Defines.MOD_UNKNOWN);
 

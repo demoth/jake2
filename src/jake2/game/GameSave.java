@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
 
@@ -34,7 +35,6 @@ public class GameSave {
         GameBase.g_edicts = new edict_t[GameBase.game.maxentities];
         for (int i = 0; i < GameBase.game.maxentities; i++)
             GameBase.g_edicts[i] = new edict_t(i);
-        GameBase.g_edicts = GameBase.g_edicts;
     }
 
     public static void CreateClients() {
@@ -118,6 +118,7 @@ public class GameSave {
      * This will be called when the dll is first loaded, which only happens when
      * a new game is started or a save game is loaded. 
      */
+    // todo move to game exports
     public static void InitGame() {
         GameBase.gi.dprintf("==== InitGame ====\n");
 
@@ -230,6 +231,7 @@ public class GameSave {
      * A single player death will automatically restore from the last save
      * position.
      */
+    // todo move to game exports
     public static void WriteGame(String filename, boolean autosave) {
         try {
             QuakeFile f;
@@ -255,6 +257,7 @@ public class GameSave {
         }
     }
 
+    // todo move to game exports
     public static void ReadGame(String filename) {
 
         QuakeFile f = null;
@@ -282,6 +285,7 @@ public class GameSave {
     /**
      * WriteLevel
      */
+    // todo move to game exports
     public static void WriteLevel(String filename) {
         try {
             int i;
@@ -326,6 +330,7 @@ public class GameSave {
      * 
      * No clients are connected yet.
      */
+    // todo move to game exports
     public static void ReadLevel(String filename) {
         try {
             edict_t ent;

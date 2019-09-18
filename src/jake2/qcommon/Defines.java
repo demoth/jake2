@@ -1156,6 +1156,15 @@ public class Defines {
 	public static final int MAX_PARSE_ENTITIES = 1024;
 	public static final int MAX_CLIENTWEAPONMODELS = 20;
 
+    // pmove->pm_flags
+    public final static int PMF_DUCKED = 1;
+    public final static int PMF_JUMP_HELD = 2;
+    public final static int PMF_ON_GROUND = 4;
+    public final static int PMF_TIME_WATERJUMP = 8; // pm_time is waterjump
+    public final static int PMF_TIME_LAND = 16; // pm_time is time before rejump
+    public final static int PMF_TIME_TELEPORT = 32; // pm_time is non-moving time
+	public final static int PMF_NO_PREDICTION = 64; // temporarily disables prediction (used for grappling hook)
+
 	public static int CMD_BACKUP = 64; // allow a lot of command backups for very fast systems	
 
 	public static final int ca_uninitialized = 0;
@@ -1254,6 +1263,7 @@ public class Defines {
 
 	// ----------------
 	// client/keydest_t
+	// Todo: make enum
 	public static final int key_game = 0;
 	public static final int key_console = 1;
 	public static final int key_message = 2;
@@ -1261,6 +1271,8 @@ public class Defines {
 
 	// ---------------
 	// server/server.h
+	// Client states
+	// Todo: make enum
 	public static final int cs_free = 0; // can be reused for a new connection
 	public static final int cs_zombie = 1; // client has been disconnected, but don't reuse
 	// connection for a couple seconds
@@ -1269,6 +1281,8 @@ public class Defines {
 
 	public static final int MAX_CHALLENGES = 1024;
 
+	// Server states
+	// Todo: make enum
 	public static final int ss_dead = 0; // no map loaded
 	public static final int ss_loading = 1; // spawning level edicts
 	public static final int ss_game = 2; // actively running

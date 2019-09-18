@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 
 public class GameSpawn {
@@ -305,29 +306,6 @@ public class GameSpawn {
         }
     };
 
-    /** 
-     * ED_NewString.
-     */
-    static String ED_NewString(String string) {
-
-        int l = string.length();
-        StringBuffer newb = new StringBuffer(l);
-
-        for (int i = 0; i < l; i++) {
-            char c = string.charAt(i);
-            if (c == '\\' && i < l - 1) {
-                c = string.charAt(++i);
-                if (c == 'n')
-                    newb.append('\n');
-                else
-                    newb.append('\\');
-            } else
-                newb.append(c);
-        }
-
-        return newb.toString();
-    }
-
     /**
      * ED_ParseField
      * 
@@ -452,7 +430,7 @@ public class GameSpawn {
      * Creates a server's entity / program execution context by parsing textual
      * entity definitions out of an ent file.
      */
-
+    // todo move to game exports
     public static void SpawnEntities(String mapname, String entities,
             String spawnpoint) {
         

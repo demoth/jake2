@@ -495,7 +495,7 @@ public class PMove {
 
         
         // clamp to server defined max speed
-        maxspeed = (pm.s.pm_flags & pmove_t.PMF_DUCKED) != 0 ? pm_duckspeed
+        maxspeed = (pm.s.pm_flags & Defines.PMF_DUCKED) != 0 ? pm_duckspeed
                 : pm_maxspeed;
 
         if (wishspeed > maxspeed) {
@@ -562,7 +562,7 @@ public class PMove {
         if (pml.velocity[2] > 180) //!!ZOID changed from 100 to 180 (ramp
                                          // accel)
         {
-            pm.s.pm_flags &= ~pmove_t.PMF_ON_GROUND;
+            pm.s.pm_flags &= ~Defines.PMF_ON_GROUND;
             pm.groundentity = null;
         } else {
             trace = pm.trace.trace(pml.origin, pm.mins,
@@ -573,23 +573,23 @@ public class PMove {
             if (null == trace.ent
                     || (trace.plane.normal[2] < 0.7 && !trace.startsolid)) {
                 pm.groundentity = null;
-                pm.s.pm_flags &= ~pmove_t.PMF_ON_GROUND;
+                pm.s.pm_flags &= ~Defines.PMF_ON_GROUND;
             } else {
                 pm.groundentity = trace.ent;
                 // hitting solid ground will end a waterjump
-                if ((pm.s.pm_flags & pmove_t.PMF_TIME_WATERJUMP) != 0) {
-                    pm.s.pm_flags &= ~(pmove_t.PMF_TIME_WATERJUMP
-                            | pmove_t.PMF_TIME_LAND | pmove_t.PMF_TIME_TELEPORT);
+                if ((pm.s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
+                    pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
+                            | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
                     pm.s.pm_time = 0;
                 }
 
-                if (0 == (pm.s.pm_flags & pmove_t.PMF_ON_GROUND)) {
+                if (0 == (pm.s.pm_flags & Defines.PMF_ON_GROUND)) {
                 	
                 	// just hit the ground
-                    pm.s.pm_flags |= pmove_t.PMF_ON_GROUND;                    
+                    pm.s.pm_flags |= Defines.PMF_ON_GROUND;
                     // don't do landing time if we were just going down a slope
                     if (pml.velocity[2] < -200) {
-                        pm.s.pm_flags |= pmove_t.PMF_TIME_LAND;
+                        pm.s.pm_flags |= Defines.PMF_TIME_LAND;
                         // don't allow another jump for a little while
                         if (pml.velocity[2] < -400)
                             pm.s.pm_time = 25;
@@ -637,18 +637,18 @@ public class PMove {
      * PM_CheckJump.
      */
     public static void PM_CheckJump() {
-        if ((pm.s.pm_flags & pmove_t.PMF_TIME_LAND) != 0) {
+        if ((pm.s.pm_flags & Defines.PMF_TIME_LAND) != 0) {
             // hasn't been long enough since landing to jump again
             return;
         }
 
         if (pm.cmd.upmove < 10) { // not holding jump
-            pm.s.pm_flags &= ~pmove_t.PMF_JUMP_HELD;
+            pm.s.pm_flags &= ~Defines.PMF_JUMP_HELD;
             return;
         }
 
         // must wait for jump to be released
-        if ((pm.s.pm_flags & pmove_t.PMF_JUMP_HELD) != 0)
+        if ((pm.s.pm_flags & Defines.PMF_JUMP_HELD) != 0)
             return;
 
         if (pm.s.pm_type == Defines.PM_DEAD)
@@ -672,7 +672,7 @@ public class PMove {
         if (pm.groundentity == null)
             return; // in air, so no effect
 
-        pm.s.pm_flags |= pmove_t.PMF_JUMP_HELD;
+        pm.s.pm_flags |= Defines.PMF_JUMP_HELD;
 
         pm.groundentity = null;
         pml.velocity[2] += 270;
@@ -725,7 +725,7 @@ public class PMove {
         Math3D.VectorScale(flatforward, 50, pml.velocity);
         pml.velocity[2] = 350;
 
-        pm.s.pm_flags |= pmove_t.PMF_TIME_WATERJUMP;
+        pm.s.pm_flags |= Defines.PMF_TIME_WATERJUMP;
         pm.s.pm_time = -1; // was 255
     }
 
@@ -833,20 +833,20 @@ public class PMove {
         pm.mins[2] = -24;
 
         if (pm.s.pm_type == Defines.PM_DEAD) {
-            pm.s.pm_flags |= pmove_t.PMF_DUCKED;
-        } else if (pm.cmd.upmove < 0 && (pm.s.pm_flags & pmove_t.PMF_ON_GROUND) != 0) { // duck
-            pm.s.pm_flags |= pmove_t.PMF_DUCKED;
+            pm.s.pm_flags |= Defines.PMF_DUCKED;
+        } else if (pm.cmd.upmove < 0 && (pm.s.pm_flags & Defines.PMF_ON_GROUND) != 0) { // duck
+            pm.s.pm_flags |= Defines.PMF_DUCKED;
         } else { // stand up if possible
-            if ((pm.s.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+            if ((pm.s.pm_flags & Defines.PMF_DUCKED) != 0) {
                 // try to stand up
                 pm.maxs[2] = 32;
                 trace = pm.trace.trace(pml.origin, pm.mins, pm.maxs, pml.origin);
                 if (!trace.allsolid)
-                    pm.s.pm_flags &= ~pmove_t.PMF_DUCKED;
+                    pm.s.pm_flags &= ~Defines.PMF_DUCKED;
             }
         }
 
-        if ((pm.s.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+        if ((pm.s.pm_flags & Defines.PMF_DUCKED) != 0) {
             pm.maxs[2] = 4;
             pm.viewheight = -2;
         } else {
@@ -969,7 +969,7 @@ public class PMove {
         short temp;
         int i;
 
-        if ((pm.s.pm_flags & pmove_t.PMF_TIME_TELEPORT) != 0) {
+        if ((pm.s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
             pm.viewangles[Defines.YAW] = Math3D
                     .SHORT2ANGLE(pm.cmd.angles[Defines.YAW]
                             + pm.s.delta_angles[Defines.YAW]);
@@ -1062,22 +1062,22 @@ public class PMove {
             if (msec == 0)
                 msec = 1;
             if (msec >= (pm.s.pm_time & 0xFF)) {
-                pm.s.pm_flags &= ~(pmove_t.PMF_TIME_WATERJUMP
-                        | pmove_t.PMF_TIME_LAND | pmove_t.PMF_TIME_TELEPORT);
+                pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
+                        | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
                 pm.s.pm_time = 0;
             } else
                 pm.s.pm_time = (byte) ((pm.s.pm_time & 0xFF) - msec);
         }
 
-        if ((pm.s.pm_flags & pmove_t.PMF_TIME_TELEPORT) != 0) {
+        if ((pm.s.pm_flags & Defines.PMF_TIME_TELEPORT) != 0) {
         	// teleport pause stays exaclty in place
-        } else if ((pm.s.pm_flags & pmove_t.PMF_TIME_WATERJUMP) != 0) {
+        } else if ((pm.s.pm_flags & Defines.PMF_TIME_WATERJUMP) != 0) {
         	// waterjump has no control, but falls 
             pml.velocity[2] -= pm.s.gravity * pml.frametime;
             if (pml.velocity[2] < 0) { 
             	// cancel as soon as we are falling down again
-                pm.s.pm_flags &= ~(pmove_t.PMF_TIME_WATERJUMP
-                        | pmove_t.PMF_TIME_LAND | pmove_t.PMF_TIME_TELEPORT);
+                pm.s.pm_flags &= ~(Defines.PMF_TIME_WATERJUMP
+                        | Defines.PMF_TIME_LAND | Defines.PMF_TIME_TELEPORT);
                 pm.s.pm_time = 0;
             }
 

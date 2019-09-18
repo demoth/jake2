@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -34,7 +35,7 @@ public class GameWeapon {
     	public String getID() { return "blaster_touch"; }
     
         public void touch(edict_t self, edict_t other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf) {
             int mod;
     
             if (other == self.owner)
@@ -567,7 +568,7 @@ public class GameWeapon {
             Math3D.VectorMA(end, r, right, end);
             Math3D.VectorMA(end, u, up, end);
     
-            if ((GameBase.gi.pointcontents.pointcontents(start) & Defines.MASK_WATER) != 0) {
+            if ((GameBase.gi.getPointContents(start) & Defines.MASK_WATER) != 0) {
                 water = true;
                 Math3D.VectorCopy(start, water_start);
                 content_mask &= ~Defines.MASK_WATER;
@@ -653,7 +654,7 @@ public class GameWeapon {
             Math3D.VectorSubtract(tr.endpos, water_start, dir);
             Math3D.VectorNormalize(dir);
             Math3D.VectorMA(tr.endpos, -2, dir, pos);
-            if ((GameBase.gi.pointcontents.pointcontents(pos) & Defines.MASK_WATER) != 0)
+            if ((GameBase.gi.getPointContents(pos) & Defines.MASK_WATER) != 0)
                 Math3D.VectorCopy(pos, tr.endpos);
             else
                 tr = GameBase.gi.trace(pos, null, null, water_start, tr.ent,

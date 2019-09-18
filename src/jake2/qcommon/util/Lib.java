@@ -375,4 +375,27 @@ public class Lib {
 	  bb.order(order);
 	  return bb;
 	}
+
+    /**
+     * ED_NewString.
+     */
+    public static String ED_NewString(String string) {
+
+        int l = string.length();
+        StringBuffer newb = new StringBuffer(l);
+
+        for (int i = 0; i < l; i++) {
+            char c = string.charAt(i);
+            if (c == '\\' && i < l - 1) {
+                c = string.charAt(++i);
+                if (c == 'n')
+                    newb.append('\n');
+                else
+                    newb.append('\\');
+            } else
+                newb.append(c);
+        }
+
+        return newb.toString();
+    }
 }

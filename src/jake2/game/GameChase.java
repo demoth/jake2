@@ -25,6 +25,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Math3D;
 import jake2.server.SV_WORLD;
 
@@ -47,7 +48,7 @@ public class GameChase {
             ChaseNext(ent);
             if (ent.client.chase_target == old) {
                 ent.client.chase_target = null;
-                ent.client.ps.pmove.pm_flags &= ~pmove_t.PMF_NO_PREDICTION;
+                ent.client.ps.pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
                 return;
             }
         }
@@ -120,7 +121,7 @@ public class GameChase {
         }
     
         ent.viewheight = 0;
-        ent.client.ps.pmove.pm_flags |= pmove_t.PMF_NO_PREDICTION;
+        ent.client.ps.pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
         SV_WORLD.SV_LinkEdict(ent);
     }
 

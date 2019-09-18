@@ -23,24 +23,23 @@
 package jake2.game;
 
 import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
 
 public class pmove_t {
 
+    public interface PointContentsAdapter {
+        // callbacks to test the world
+        int pointcontents(float[] point);
+    }
+
     public static class TraceAdapter {
         // callbacks to test the world
         public trace_t trace(float[] start, float[] mins, float[] maxs,
                 float[] end) {
             return null;
-        }
-    }
-
-    public static class PointContentsAdapter {
-        // callbacks to test the world
-        public int pointcontents(float[] point) {
-            return 0;
         }
     }
 
@@ -72,24 +71,6 @@ public class pmove_t {
     public TraceAdapter trace;
 
     public PointContentsAdapter pointcontents;
-
-    // pmove->pm_flags
-    public final static int PMF_DUCKED = 1;
-
-    public final static int PMF_JUMP_HELD = 2;
-
-    public final static int PMF_ON_GROUND = 4;
-
-    public final static int PMF_TIME_WATERJUMP = 8; // pm_time is waterjump
-
-    public final static int PMF_TIME_LAND = 16; // pm_time is time before rejump
-
-    public final static int PMF_TIME_TELEPORT = 32; // pm_time is non-moving
-                                                    // time
-
-    public final static int PMF_NO_PREDICTION = 64; // temporarily disables
-                                                    // prediction (used for
-                                                    // grappling hook)
 
     public void clear() {
         groundentity = null;

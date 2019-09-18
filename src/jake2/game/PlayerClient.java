@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -37,7 +38,7 @@ public class PlayerClient {
     static EntDieAdapter player_die = new EntDieAdapter() {
     	public String getID() { return "player_die"; }
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
-                int damage, float[] point) {
+                        int damage, float[] point) {
             int n;
     
             Math3D.VectorClear(self.avelocity);
@@ -102,7 +103,7 @@ public class PlayerClient {
                     player_die_i = (player_die_i + 1) % 3;
                     // start a death animation
                     self.client.anim_priority = Defines.ANIM_DEATH;
-                    if ((self.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                    if ((self.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         self.s.frame = M_Player.FRAME_crdeath1 - 1;
                         self.client.anim_end = M_Player.FRAME_crdeath5;
                     } else
@@ -863,7 +864,7 @@ public class PlayerClient {
             self.s.event = Defines.EV_PLAYER_TELEPORT;
 
             // hold in place briefly
-            self.client.ps.pmove.pm_flags = pmove_t.PMF_TIME_TELEPORT;
+            self.client.ps.pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
             self.client.ps.pmove.pm_time = 14;
 
             self.client.respawn_time = GameBase.level.time;
@@ -954,7 +955,7 @@ public class PlayerClient {
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
             // hold in place briefly
-            ent.client.ps.pmove.pm_flags = pmove_t.PMF_TIME_TELEPORT;
+            ent.client.ps.pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
             ent.client.ps.pmove.pm_time = 14;
         }
 
@@ -1157,6 +1158,7 @@ public class PlayerClient {
      * Called when a client has finished connecting, and is ready to be placed
      * into the game. This will happen every level load. 
      */
+    // todo move to game exports
     public static void ClientBegin(edict_t ent) {
         int i;
 
@@ -1214,6 +1216,7 @@ public class PlayerClient {
      * names, etc) before copying it off. 
      *
      */
+    // todo move to game exports
     public static String ClientUserinfoChanged(edict_t ent, String userinfo) {
         String s;
         int playernum;
@@ -1277,6 +1280,7 @@ public class PlayerClient {
      * Changing levels will NOT cause this to be called again, but loadgames
      * will. 
      */
+    // todo move to game exports
     public static boolean ClientConnect(edict_t ent, String userinfo) {
         String value;
 
@@ -1344,6 +1348,7 @@ public class PlayerClient {
     /**
      * Called when a player drops from the server. Will not be called between levels. 
      */
+    // todo move to game exports
     public static void ClientDisconnect(edict_t ent) {
         int playernum;
 
@@ -1394,6 +1399,7 @@ public class PlayerClient {
      * This will be called once for each client frame, which will usually be a
      * couple times for each server frame.
      */
+    // todo move to game exports
     public static void ClientThink(edict_t ent, usercmd_t ucmd) {
         gclient_t client;
         edict_t other;
@@ -1451,7 +1457,7 @@ public class PlayerClient {
             pm.cmd.set(ucmd);
 
             pm.trace = PlayerClient.PM_trace; // adds default parms
-            pm.pointcontents = GameBase.gi.pointcontents;
+            pm.pointcontents = (float[] p) -> GameBase.gi.getPointContents(p);
 
             // perform a pmove
             GameBase.gi.Pmove(pm);
@@ -1531,7 +1537,7 @@ public class PlayerClient {
 
                 if (client.chase_target != null) {
                     client.chase_target = null;
-                    client.ps.pmove.pm_flags &= ~pmove_t.PMF_NO_PREDICTION;
+                    client.ps.pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
                 } else
                     GameChase.GetChaseTarget(ent);
 
@@ -1543,15 +1549,15 @@ public class PlayerClient {
 
         if (client.resp.spectator) {
             if (ucmd.upmove >= 10) {
-                if (0 == (client.ps.pmove.pm_flags & pmove_t.PMF_JUMP_HELD)) {
-                    client.ps.pmove.pm_flags |= pmove_t.PMF_JUMP_HELD;
+                if (0 == (client.ps.pmove.pm_flags & Defines.PMF_JUMP_HELD)) {
+                    client.ps.pmove.pm_flags |= Defines.PMF_JUMP_HELD;
                     if (client.chase_target != null)
                         GameChase.ChaseNext(ent);
                     else
                         GameChase.GetChaseTarget(ent);
                 }
             } else
-                client.ps.pmove.pm_flags &= ~pmove_t.PMF_JUMP_HELD;
+                client.ps.pmove.pm_flags &= ~Defines.PMF_JUMP_HELD;
         }
 
         // update chase cam if being followed

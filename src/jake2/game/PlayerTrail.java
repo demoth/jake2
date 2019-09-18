@@ -22,6 +22,7 @@
 // $Id: PlayerTrail.java,v 1.2 2004-09-22 19:22:04 salomo Exp $
 package jake2.game;
 
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Math3D;
 
 public class PlayerTrail {

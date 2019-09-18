@@ -22,7 +22,10 @@
 // $Id: SV_MAIN.java,v 1.16 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.GameBase;
+import jake2.game.Info;
+import jake2.game.PlayerClient;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Timer;
@@ -34,7 +37,7 @@ import java.util.List;
 public class SV_MAIN {
 
 	/** Addess of group servers.*/ 
-    public static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
+    static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
                                                                             
                                                                             
                                                                             
@@ -44,59 +47,59 @@ public class SV_MAIN {
         }
     }
 
-    public static client_t sv_client; // current client
+    static client_t sv_client; // current client
 
-    public static cvar_t sv_paused;
+    static cvar_t sv_paused;
 
-    public static cvar_t sv_timedemo;
+    private static cvar_t sv_timedemo;
 
-    public static cvar_t sv_enforcetime;
+    static cvar_t sv_enforcetime;
 
-    public static cvar_t timeout; // seconds without any message
+    private static cvar_t timeout; // seconds without any message
 
-    public static cvar_t zombietime; // seconds to sink messages after
+    private static cvar_t zombietime; // seconds to sink messages after
                                      // disconnect
 
-    public static cvar_t rcon_password; // password for remote server commands
+    private static cvar_t rcon_password; // password for remote server commands
 
-    public static cvar_t allow_download;
+    static cvar_t allow_download;
 
-    public static cvar_t allow_download_players;
+    static cvar_t allow_download_players;
 
-    public static cvar_t allow_download_models;
+    static cvar_t allow_download_models;
 
-    public static cvar_t allow_download_sounds;
+    static cvar_t allow_download_sounds;
 
-    public static cvar_t allow_download_maps;
+    static cvar_t allow_download_maps;
 
-    public static cvar_t sv_airaccelerate;
+    static cvar_t sv_airaccelerate;
 
-    public static cvar_t sv_noreload; // don't reload level state when
+    static cvar_t sv_noreload; // don't reload level state when
                                       // reentering
 
-    public static cvar_t maxclients; // FIXME: rename sv_maxclients
+    static cvar_t maxclients; // FIXME: rename sv_maxclients
 
-    public static cvar_t sv_showclamp;
+    private static cvar_t sv_showclamp;
 
-    public static cvar_t hostname;
+    private static cvar_t hostname;
 
-    public static cvar_t public_server; // should heartbeats be sent
+    private static cvar_t public_server; // should heartbeats be sent
 
-    public static cvar_t sv_reconnect_limit; // minimum seconds between connect
+    private static cvar_t sv_reconnect_limit; // minimum seconds between connect
                                              // messages
 
     /**
      * Send a message to the master every few minutes to let it know we are
      * alive, and log information.
      */
-    public static final int HEARTBEAT_SECONDS = 300;
+    private static final int HEARTBEAT_SECONDS = 300;
 
     /**
      * Called when the player is totally leaving the server, either willingly or
      * unwillingly. This is NOT called if the entire server is quiting or
      * crashing.
      */
-    public static void SV_DropClient(client_t drop) {
+    static void SV_DropClient(client_t drop) {
         // add the disconnect
         MSG.WriteByte(drop.netchan.message, Defines.svc_disconnect);
 
@@ -125,7 +128,7 @@ public class SV_MAIN {
     /**
      * Builds the string that is sent as heartbeats and status replies.
      */
-    public static String SV_StatusString() {
+    private static String SV_StatusString() {
         String player;
         String status = "";
         int i;
@@ -158,7 +161,7 @@ public class SV_MAIN {
     /**
      * Responds with all the info that qplug or qspy can see
      */
-    public static void SVC_Status() {
+    private static void SVC_Status() {
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "print\n"
                 + SV_StatusString());
     }
@@ -166,7 +169,7 @@ public class SV_MAIN {
     /**
      *  SVC_Ack
      */
-    public static void SVC_Ack() {
+    private static void SVC_Ack() {
         Com.Printf("Ping acknowledge from " + NET.AdrToString(Globals.net_from)
                 + "\n");
     }
@@ -175,7 +178,7 @@ public class SV_MAIN {
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    public static void SVC_Info(List<String> args) {
+    private static void SVC_Info(List<String> args) {
 
         if (SV_MAIN.maxclients.value == 1)
             return; // ignore in single player
@@ -202,7 +205,7 @@ public class SV_MAIN {
     /**
      * SVC_Ping, Just responds with an acknowledgement.
      */
-    public static void SVC_Ping() {
+    private static void SVC_Ping() {
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from, "ack");
     }
 
@@ -212,7 +215,7 @@ public class SV_MAIN {
      * that flood the server with invalid connection IPs. With a challenge, they
      * must give a valid IP address.
      */
-    public static void SVC_GetChallenge() {
+    private static void SVC_GetChallenge() {
         int i;
         int oldest;
         int oldestTime;
@@ -247,7 +250,7 @@ public class SV_MAIN {
     /**
      * A connection request that did not come from the master.
      */
-    public static void SVC_DirectConnect(List<String> args) {
+    private static void SVC_DirectConnect(List<String> args) {
 
         netadr_t adr = Globals.net_from;
 
@@ -343,8 +346,8 @@ public class SV_MAIN {
     /**
      * Initializes player structures after successfull connection.
      */
-    public static void gotnewcl(int i, int challenge, String userinfo,
-            netadr_t adr, int qport) {
+    private static void gotnewcl(int i, int challenge, String userinfo,
+                                 netadr_t adr, int qport) {
         // build a new connection
         // accept the new client
         // this is the only place a client_t is ever initialized
@@ -446,7 +449,7 @@ public class SV_MAIN {
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    public static void SV_ConnectionlessPacket() {
+    private static void SV_ConnectionlessPacket() {
 
         MSG.BeginReading(Globals.net_message);
         MSG.ReadLong(Globals.net_message); // skip the -1 marker
@@ -500,7 +503,7 @@ public class SV_MAIN {
     /**
      * Updates the cl.ping variables.
      */
-    public static void SV_CalcPings() {
+    private static void SV_CalcPings() {
         int i, j;
         client_t cl;
         int total, count;
@@ -532,7 +535,7 @@ public class SV_MAIN {
      * Every few frames, gives all clients an allotment of milliseconds for
      * their command moves. If they exceed it, assume cheating.
      */
-    public static void SV_GiveMsec() {
+    private static void SV_GiveMsec() {
         int i;
         client_t cl;
 
@@ -551,7 +554,7 @@ public class SV_MAIN {
     /**
      * Reads packets from the network or loopback.
      */
-    public static void SV_ReadPackets() {
+    private static void SV_ReadPackets() {
         int i;
         client_t cl;
         int qport = 0;
@@ -614,7 +617,7 @@ public class SV_MAIN {
      * for a few seconds to make sure any final reliable message gets resent if
      * necessary.
      */
-    public static void SV_CheckTimeouts() {
+    private static void SV_CheckTimeouts() {
         int i;
         client_t cl;
         int droppoint;
@@ -649,7 +652,7 @@ public class SV_MAIN {
      * This has to be done before the world logic, because player processing
      * happens outside RunWorldFrame.
      */
-    public static void SV_PrepWorldFrame() {
+    private static void SV_PrepWorldFrame() {
         edict_t ent;
         int i;
 
@@ -664,7 +667,7 @@ public class SV_MAIN {
     /**
      * SV_RunGameFrame.
      */
-    public static void SV_RunGameFrame() {
+    private static void SV_RunGameFrame() {
         if (Globals.host_speeds.value != 0)
             Globals.time_before_game = Timer.Milliseconds();
 
@@ -699,6 +702,7 @@ public class SV_MAIN {
         Globals.time_before_game = Globals.time_after_game = 0;
 
         // if server is not active, do nothing
+        // like when connected to another server
         if (!SV_INIT.svs.initialized)
             return;
 
@@ -752,7 +756,7 @@ public class SV_MAIN {
 
     }
 
-    public static void Master_Heartbeat() {
+    private static void Master_Heartbeat() {
         String string;
         int i;
 
@@ -790,7 +794,7 @@ public class SV_MAIN {
     /**
      * Master_Shutdown, Informs all masters that this server is going down.
      */
-    public static void Master_Shutdown() {
+    private static void Master_Shutdown() {
         int i;
 
         // pgm post3.19 change, cvar pointer not validated before dereferencing
@@ -817,7 +821,7 @@ public class SV_MAIN {
      * Pull specific info from a newly changed userinfo string into a more C
      * freindly form.
      */
-    public static void SV_UserinfoChanged(client_t cl) {
+    static void SV_UserinfoChanged(client_t cl) {
         String val;
         int i;
 
@@ -909,7 +913,7 @@ public class SV_MAIN {
      * stuck on the outgoing message list, because the server is going to
      * totally exit after returning from this function.
      */
-    public static void SV_FinalMessage(String message, boolean reconnect) {
+    private static void SV_FinalMessage(String message, boolean reconnect) {
         int i;
         client_t cl;
 

@@ -8,12 +8,8 @@ package jake2.client.sound.lwjgl;
 
 import jake2.client.sound.*;
 import jake2.game.Cmd;
-import jake2.game.cvar_t;
 import jake2.game.entity_state_t;
-import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
+import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;

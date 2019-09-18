@@ -27,7 +27,6 @@ package jake2.client;
 
 import jake2.game.entity_state_t;
 import jake2.game.player_state_t;
-import jake2.game.pmove_t;
 import jake2.game.trace_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
@@ -1132,7 +1131,7 @@ public class CL_ents {
 		lerp = Globals.cl.lerpfrac;
 
 		// calculate the origin
-		if ((Globals.cl_predict.value != 0) && 0 == (Globals.cl.frame.playerstate.pmove.pm_flags & pmove_t.PMF_NO_PREDICTION)) { // use
+		if ((Globals.cl_predict.value != 0) && 0 == (Globals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION)) { // use
 																																 // values
 			int delta;
 

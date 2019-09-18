@@ -24,8 +24,12 @@
 
 package jake2.qcommon.util;
 
-import jake2.game.*;
+import jake2.game.GameBase;
+import jake2.game.GameItemList;
+import jake2.game.SuperAdapter;
+import jake2.game.gitem_t;
 import jake2.qcommon.Com;
+import jake2.qcommon.edict_t;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

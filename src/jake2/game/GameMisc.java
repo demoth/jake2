@@ -22,9 +22,9 @@
 // $Id: GameMisc.java,v 1.7 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.client.M;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1837,7 +1837,7 @@ public class GameMisc {
             // clear the velocity and hold them in place briefly
             Math3D.VectorClear(other.velocity);
             other.client.ps.pmove.pm_time = 160 >> 3; // hold time
-            other.client.ps.pmove.pm_flags |= pmove_t.PMF_TIME_TELEPORT;
+            other.client.ps.pmove.pm_flags |= Defines.PMF_TIME_TELEPORT;
 
             // draw the teleport splash at source and on the player
             self.owner.s.event = Defines.EV_PLAYER_TELEPORT;

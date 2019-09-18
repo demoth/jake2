@@ -25,10 +25,10 @@ package jake2.client.render.fast;
 
 import jake2.client.particle_t;
 import jake2.client.render.image_t;
-import jake2.game.cvar_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.Defines;
+import jake2.qcommon.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;

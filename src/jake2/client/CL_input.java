@@ -26,7 +26,6 @@
 package jake2.client;
 
 import jake2.game.Cmd;
-import jake2.game.cvar_t;
 import jake2.game.usercmd_t;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;

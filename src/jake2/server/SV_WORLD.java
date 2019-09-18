@@ -21,11 +21,10 @@
 
 package jake2.server;
 
-import jake2.game.*;
-import jake2.qcommon.CM;
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
+import jake2.game.GameBase;
+import jake2.game.link_t;
+import jake2.game.trace_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
 public class SV_WORLD {

@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -342,7 +343,7 @@ public class PlayerWeapon {
                         ent.client.pers.inventory[ent.client.ammo_index]--;
 
                     ent.client.anim_priority = Defines.ANIM_ATTACK;
-                    if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                    if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         ent.s.frame = M_Player.FRAME_crattak1 - 1;
                         ent.client.anim_end = M_Player.FRAME_crattak9;
                     } else {
@@ -873,7 +874,7 @@ public class PlayerWeapon {
                 ent.client.pers.inventory[ent.client.ammo_index]--;
 
             ent.client.anim_priority = Defines.ANIM_ATTACK;
-            if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 ent.s.frame = M_Player.FRAME_crattak1
                         - (int) (Lib.random() + 0.25);
                 ent.client.anim_end = M_Player.FRAME_crattak9;
@@ -934,7 +935,7 @@ public class PlayerWeapon {
             }
 
             ent.client.anim_priority = Defines.ANIM_ATTACK;
-            if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 ent.s.frame = M_Player.FRAME_crattak1
                         - (ent.client.ps.gunframe & 1);
                 ent.client.anim_end = M_Player.FRAME_crattak9;
@@ -1121,7 +1122,7 @@ public class PlayerWeapon {
                 .modelindex(ent.client.pers.weapon.view_model);
 
         ent.client.anim_priority = Defines.ANIM_PAIN;
-        if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+        if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
             ent.s.frame = M_Player.FRAME_crpain1;
             ent.client.anim_end = M_Player.FRAME_crpain4;
         } else {
@@ -1238,7 +1239,7 @@ public class PlayerWeapon {
                 return;
             } else if ((FRAME_DEACTIVATE_LAST - ent.client.ps.gunframe) == 4) {
                 ent.client.anim_priority = Defines.ANIM_REVERSE;
-                if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                     ent.s.frame = M_Player.FRAME_crpain4 + 1;
                     ent.client.anim_end = M_Player.FRAME_crpain1;
                 } else {
@@ -1269,7 +1270,7 @@ public class PlayerWeapon {
 
             if ((FRAME_DEACTIVATE_LAST - FRAME_DEACTIVATE_FIRST) < 4) {
                 ent.client.anim_priority = Defines.ANIM_REVERSE;
-                if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                     ent.s.frame = M_Player.FRAME_crpain4 + 1;
                     ent.client.anim_end = M_Player.FRAME_crpain1;
                 } else {
@@ -1291,7 +1292,7 @@ public class PlayerWeapon {
 
                     // start the animation
                     ent.client.anim_priority = Defines.ANIM_ATTACK;
-                    if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+                    if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         ent.s.frame = M_Player.FRAME_crattak1 - 1;
                         ent.client.anim_end = M_Player.FRAME_crattak9;
                     } else {
@@ -1393,7 +1394,7 @@ public class PlayerWeapon {
         if (ent.health <= 0)
             return;
 
-        if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0) {
+        if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
             ent.client.anim_priority = Defines.ANIM_ATTACK;
             ent.s.frame = M_Player.FRAME_crattak1 - 1;
             ent.client.anim_end = M_Player.FRAME_crattak3;

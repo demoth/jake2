@@ -65,7 +65,7 @@ public class spawn_temp_t {
 		} // F_INT, FFL_SPAWNTEMP),
 		
 		if (key.equals("noise")) {
-			noise = GameSpawn.ED_NewString(value);
+			noise = Lib.ED_NewString(value);
 			return true;
 		} // F_LSTRING, FFL_SPAWNTEMP),
 		
@@ -75,17 +75,17 @@ public class spawn_temp_t {
 		} // F_FLOAT, FFL_SPAWNTEMP),
 		
 		if (key.equals("item")) {
-			item = GameSpawn.ED_NewString(value);
+			item = Lib.ED_NewString(value);
 			return true;
 		} // F_LSTRING, FFL_SPAWNTEMP),
 		
 		if (key.equals("gravity")) {
-			 gravity = GameSpawn.ED_NewString(value);
+			 gravity = Lib.ED_NewString(value);
 			return true;
 		} // F_LSTRING, FFL_SPAWNTEMP),
 		
 		if (key.equals("sky")) {
-			sky = GameSpawn.ED_NewString(value);
+			sky = Lib.ED_NewString(value);
 			return true;
 		} // F_LSTRING, FFL_SPAWNTEMP),
 		
@@ -120,7 +120,7 @@ public class spawn_temp_t {
 		} // F_FLOAT, FFL_SPAWNTEMP),
 		
 		if (key.equals("nextmap")) {
-			nextmap  = GameSpawn.ED_NewString(value);
+			nextmap  = Lib.ED_NewString(value);
 			return true;
 		} // F_LSTRING, FFL_SPAWNTEMP),
 

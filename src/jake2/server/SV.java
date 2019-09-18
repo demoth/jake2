@@ -25,14 +25,14 @@
  */
 package jake2.server;
 
-import jake2.client.M;
 import jake2.game.GameBase;
-import jake2.game.edict_t;
+import jake2.game.M;
 import jake2.game.pushed_t;
 import jake2.game.trace_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -617,7 +617,7 @@ public final class SV {
 
         //	   check for water transition
         wasinwater = (ent.watertype & Defines.MASK_WATER) != 0;
-        ent.watertype = GameBase.gi.pointcontents.pointcontents(ent.s.origin);
+        ent.watertype = GameBase.gi.getPointContents(ent.s.origin);
         isinwater = (ent.watertype & Defines.MASK_WATER) != 0;
 
         if (isinwater)
@@ -845,7 +845,7 @@ public final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.pointcontents.pointcontents(test);
+                        contents = GameBase.gi.getPointContents(test);
                         if ((contents & Defines.MASK_WATER) != 0)
                             return false;
                     }
@@ -857,7 +857,7 @@ public final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.pointcontents.pointcontents(test);
+                        contents = GameBase.gi.getPointContents(test);
                         if ((contents & Defines.MASK_WATER) == 0)
                             return false;
                     }
@@ -908,7 +908,7 @@ public final class SV {
             test[0] = trace.endpos[0];
             test[1] = trace.endpos[1];
             test[2] = trace.endpos[2] + ent.mins[2] + 1;
-            contents = GameBase.gi.pointcontents.pointcontents(test);
+            contents = GameBase.gi.getPointContents(test);
 
             if ((contents & Defines.MASK_WATER) != 0)
                 return false;

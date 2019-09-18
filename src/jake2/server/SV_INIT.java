@@ -24,7 +24,10 @@ package jake2.server;
 
 import jake2.client.CL;
 import jake2.client.SCR;
-import jake2.game.*;
+import jake2.game.GameBase;
+import jake2.game.GameSpawn;
+import jake2.game.entity_state_t;
+import jake2.game.usercmd_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
@@ -38,8 +41,8 @@ public class SV_INIT {
     /**
      * SV_FindIndex.
      */
-    public static int SV_FindIndex(String name, int start, int max,
-            boolean create) {
+    private static int SV_FindIndex(String name, int start, int max,
+                                    boolean create) {
         int i;
 
         if (name == null || name.length() == 0)

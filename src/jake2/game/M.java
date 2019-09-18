@@ -23,11 +23,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.client;
+package jake2.game;
 
-import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.server.SV;
@@ -102,7 +102,7 @@ public final class M {
             for (y = 0; y <= 1; y++) {
                 start[0] = x != 0 ? maxs[0] : mins[0];
                 start[1] = y != 0 ? maxs[1] : mins[1];
-                if (GameBase.gi.pointcontents.pointcontents(start) != Defines.CONTENTS_SOLID) {
+                if (GameBase.gi.getPointContents(start) != Defines.CONTENTS_SOLID) {
                     GameBase.c_no++;
                     //
                     //	   check it for real...
@@ -234,7 +234,7 @@ public final class M {
         point[0] = ent.s.origin[0];
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-        cont = GameBase.gi.pointcontents.pointcontents(point);
+        cont = GameBase.gi.getPointContents(point);
 
         if (0 == (cont & Defines.MASK_WATER)) {
             ent.waterlevel = 0;
@@ -245,13 +245,13 @@ public final class M {
         ent.watertype = cont;
         ent.waterlevel = 1;
         point[2] += 26;
-        cont = GameBase.gi.pointcontents.pointcontents(point);
+        cont = GameBase.gi.getPointContents(point);
         if (0 == (cont & Defines.MASK_WATER))
             return;
 
         ent.waterlevel = 2;
         point[2] += 22;
-        cont = GameBase.gi.pointcontents.pointcontents(point);
+        cont = GameBase.gi.getPointContents(point);
         if (0 != (cont & Defines.MASK_WATER))
             ent.waterlevel = 3;
     }

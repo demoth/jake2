@@ -874,7 +874,7 @@ public final class Cmd {
 
 
         // can't wave when ducked
-        if ((ent.client.ps.pmove.pm_flags & pmove_t.PMF_DUCKED) != 0)
+        if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             return;
 
         if (ent.client.anim_priority > Defines.ANIM_WAVE)
@@ -1086,6 +1086,7 @@ public final class Cmd {
     /**
      * Processes the commands the player enters in the quake console.
      */
+    // todo move to game exports
     public static void ClientCommand(edict_t ent, List<String> args) {
         String cmd;
     
@@ -1202,5 +1203,54 @@ public final class Cmd {
             return; // valid
     
         GameItems.SelectNextItem(ent, -1);
+    }
+
+    static final class cmdalias_t {
+        private String name;
+        private String value;
+
+        cmdalias_t(String name) {
+            this.name = name;
+        }
+
+        String getName() {
+            return name;
+        }
+
+        String getValue() {
+            return value;
+        }
+
+        void setValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "cmdalias_t{" +
+                    "name='" + name + '\'' +
+                    ", value='" + value + '\'' +
+                    '}';
+        }
+    }
+
+    /**
+     * cmd_function_t
+     */
+    public static final class cmd_function_t {
+        public String name;
+        public Command function;
+
+        public cmd_function_t(String name, Command function) {
+            this.name = name;
+            this.function = function;
+        }
+
+        @Override
+        public String toString() {
+            return "cmd_function_t{" +
+                    "name='" + name + '\'' +
+                    '}';
+        }
     }
 }

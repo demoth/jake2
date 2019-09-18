@@ -23,7 +23,6 @@
  */
 package jake2.qcommon;
 
-import jake2.game.cvar_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.server.SV_MAIN;

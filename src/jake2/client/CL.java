@@ -27,7 +27,10 @@ package jake2.client;
 
 import jake2.client.render.fast.Main;
 import jake2.client.sound.S;
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.EndianHandler;
+import jake2.game.Info;
+import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
@@ -945,20 +948,26 @@ public final class CL {
         if (Globals.cls.state != Defines.ca_connected)
             return;
 
-        if (SV_MAIN.allow_download.value == 0 && CL.precache_check < ENV_CNT)
+        cvar_t allowDownload = Cvar.Get("allow_download", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadMaps = Cvar.Get("allow_download_maps", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadModels = Cvar.Get("allow_download_models", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadSounds = Cvar.Get("allow_download_sounds", "1", Defines.CVAR_ARCHIVE);
+        cvar_t allowDownloadPlayers = Cvar.Get( "allow_download_players","0", Defines.CVAR_ARCHIVE);
+
+        if (allowDownload.value == 0 && CL.precache_check < ENV_CNT)
             CL.precache_check = ENV_CNT;
 
         //	  ZOID
         if (CL.precache_check == Defines.CS_MODELS) { // confirm map
             CL.precache_check = Defines.CS_MODELS + 2; // 0 isn't used
-            if (SV_MAIN.allow_download_maps.value != 0)
+            if (allowDownloadMaps.value != 0)
                 if (!CL_parse
                         .CheckOrDownloadFile(Globals.cl.configstrings[Defines.CS_MODELS + 1]))
                     return; // started a download
         }
         if (CL.precache_check >= Defines.CS_MODELS
                 && CL.precache_check < Defines.CS_MODELS + Defines.MAX_MODELS) {
-            if (SV_MAIN.allow_download_models.value != 0) {
+            if (allowDownloadModels.value != 0) {
                 while (CL.precache_check < Defines.CS_MODELS
                         + Defines.MAX_MODELS
                         && Globals.cl.configstrings[CL.precache_check].length() > 0) {
@@ -1043,7 +1052,7 @@ public final class CL {
         }
         if (CL.precache_check >= Defines.CS_SOUNDS
                 && CL.precache_check < Defines.CS_SOUNDS + Defines.MAX_SOUNDS) {
-            if (SV_MAIN.allow_download_sounds.value != 0) {
+            if (allowDownloadSounds.value != 0) {
                 if (CL.precache_check == Defines.CS_SOUNDS)
                     CL.precache_check++; // zero is blank
                 while (CL.precache_check < Defines.CS_SOUNDS
@@ -1081,7 +1090,7 @@ public final class CL {
         if (CL.precache_check >= Defines.CS_PLAYERSKINS
                 && CL.precache_check < Defines.CS_PLAYERSKINS
                         + Defines.MAX_CLIENTS * CL.PLAYER_MULT) {
-            if (SV_MAIN.allow_download_players.value != 0) {
+            if (allowDownloadPlayers.value != 0) {
                 while (CL.precache_check < Defines.CS_PLAYERSKINS
                         + Defines.MAX_CLIENTS * CL.PLAYER_MULT) {
 
@@ -1201,8 +1210,8 @@ public final class CL {
         }
 
         if (CL.precache_check > ENV_CNT && CL.precache_check < TEXTURE_CNT) {
-            if (SV_MAIN.allow_download.value != 0
-                    && SV_MAIN.allow_download_maps.value != 0) {
+            if (allowDownload.value != 0
+                    && allowDownloadMaps.value != 0) {
                 while (CL.precache_check < TEXTURE_CNT) {
                     int n = CL.precache_check++ - ENV_CNT - 1;
 
@@ -1230,8 +1239,8 @@ public final class CL {
             // extern int numtexinfo;
             // extern mapsurface_t map_surfaces[];
 
-            if (SV_MAIN.allow_download.value != 0
-                    && SV_MAIN.allow_download_maps.value != 0) {
+            if (allowDownload.value != 0
+                    && allowDownloadMaps.value != 0) {
                 while (CL.precache_tex < CM.numtexinfo) {
                     //char fn[MAX_OSPATH];
 

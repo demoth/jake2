@@ -27,7 +27,6 @@ package jake2.client.render.fast;
 
 import jake2.client.render.*;
 import jake2.game.cplane_t;
-import jake2.game.cvar_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;

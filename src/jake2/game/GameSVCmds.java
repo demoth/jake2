@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.cvar_t;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -276,6 +277,7 @@ public class GameSVCmds {
      * 
      * ServerCommand will be called when an "sv" command is issued.
      */
+    // todo move to game exports
     public static void ServerCommand(List<String> args) {
 
         if (args.size() < 2) {

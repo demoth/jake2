@@ -27,7 +27,7 @@ import jake2.client.render.opengl.GLDriver;
 import jake2.client.render.opengl.QGL;
 import jake2.client.render.opengl.QGLConst;
 import jake2.client.viddef_t;
-import jake2.game.cvar_t;
+import jake2.qcommon.cvar_t;
 
 /**
  * Base

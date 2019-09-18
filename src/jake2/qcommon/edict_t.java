@@ -20,10 +20,9 @@
 
 // Created on 04.11.2003 by RST.
 
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
+import jake2.game.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
 
@@ -284,12 +283,12 @@ public class edict_t {
     public boolean setField(String key, String value) {
 
         if (key.equals("classname")) {
-            classname = GameSpawn.ED_NewString(value);
+            classname = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("model")) {
-            model = GameSpawn.ED_NewString(value);
+            model = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
@@ -314,41 +313,41 @@ public class edict_t {
         } // F_FLOAT),
 
         if (key.equals("target")) {
-            target = GameSpawn.ED_NewString(value);
+            target = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("targetname")) {
-            targetname = GameSpawn.ED_NewString(value);
+            targetname = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("pathtarget")) {
-            pathtarget = GameSpawn.ED_NewString(value);
+            pathtarget = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("deathtarget")) {
-            deathtarget = GameSpawn.ED_NewString(value);
+            deathtarget = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
         if (key.equals("killtarget")) {
-            killtarget = GameSpawn.ED_NewString(value);
+            killtarget = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("combattarget")) {
-            combattarget = GameSpawn.ED_NewString(value);
+            combattarget = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("message")) {
-            message = GameSpawn.ED_NewString(value);
+            message = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 
         if (key.equals("team")) {
-            team = GameSpawn.ED_NewString(value);
+            team = Lib.ED_NewString(value);
             Com.dprintln("Monster Team:" + team);
             return true;
         } // F_LSTRING),
@@ -423,7 +422,7 @@ public class edict_t {
         } // F_FLOAT),
 
         if (key.equals("map")) {
-            map = GameSpawn.ED_NewString(value);
+            map = Lib.ED_NewString(value);
             return true;
         } // F_LSTRING),
 

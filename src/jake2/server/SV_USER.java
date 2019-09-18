@@ -514,6 +514,7 @@ class SV_USER {
             return;
         }
 
+        // todo move to game exports
         PlayerClient.ClientThink(cl.edict, cmd);
     }
 
