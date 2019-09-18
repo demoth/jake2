@@ -1,7 +1,7 @@
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.cvar_t;
-import jake2.qcommon.edict_t;
+import jake2.game.pmove_t;
+import jake2.game.trace_t;
 
 public interface GameImports {
     // special messages

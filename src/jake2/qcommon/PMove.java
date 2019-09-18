@@ -22,11 +22,11 @@
 // $Id: PMove.java,v 1.8 2006-01-21 21:53:32 salomo Exp $
 package jake2.qcommon;
 
+import jake2.game.SV;
 import jake2.game.csurface_t;
 import jake2.game.pmove_t;
 import jake2.game.trace_t;
 import jake2.qcommon.util.Math3D;
-import jake2.server.SV;
 
 public class PMove {
 

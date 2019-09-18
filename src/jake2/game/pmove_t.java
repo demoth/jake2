@@ -24,6 +24,7 @@ package jake2.game;
 
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;

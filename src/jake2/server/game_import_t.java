@@ -20,13 +20,11 @@
 
 // Created on 31.10.2003 by RST.
 // $Id: game_import_t.java,v 1.7 2006-01-21 21:53:31 salomo Exp $
-package jake2.game;
+package jake2.server;
 
+import jake2.game.pmove_t;
+import jake2.game.trace_t;
 import jake2.qcommon.*;
-import jake2.server.SV_GAME;
-import jake2.server.SV_INIT;
-import jake2.server.SV_SEND;
-import jake2.server.SV_WORLD;
 
 //
 //	collection of functions provided by the main engine
@@ -40,7 +38,7 @@ public class game_import_t implements GameImports {
 
     @Override
     public void dprintf(String s) {
-        SV_GAME.PF_dprintf(s);
+        Com.Printf(s);
     }
 
     @Override
@@ -86,7 +84,7 @@ public class game_import_t implements GameImports {
 
     @Override
     public void error(int level, String err) {
-        SV_GAME.PF_error(level, err);
+        Com.Error(level, err);
     }
 
     /* the *index functions create configstrings and some internal server state */

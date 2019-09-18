@@ -23,8 +23,10 @@
 package jake2.game;
 
 import jake2.game.monsters.M_Player;
+import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -65,8 +67,10 @@ public class PlayerClient {
                 self.client.ps.pmove.pm_type = Defines.PM_DEAD;
                 ClientObituary(self, inflictor, attacker);
                 PlayerClient.TossClientWeapon(self);
-                if (GameBase.deathmatch.value != 0)
-                    Cmd.Help_f(self); // show scores
+                if (GameBase.deathmatch.value != 0) {
+                    Com.Printf("NOT IMPLEMENTED!");
+                    //Cmd.Help_f(self); // show scores
+                }
     
                 // clear inventory
                 // this is kind of ugly, but it's how we want to handle keys in
@@ -991,14 +995,14 @@ public class PlayerClient {
         client = ent.client;
 
         // deathmatch wipes most client data every spawn
-        if (GameBase.deathmatch.value != 0) {           
+        if (GameBase.deathmatch.value != 0) {
 
             resp.set(client.resp);
             String userinfo = client.pers.userinfo;
             InitClientPersistant(client);
-            
+
             userinfo = ClientUserinfoChanged(ent, userinfo);
-            
+
         } else if (GameBase.coop.value != 0) {
 
             resp.set(client.resp);
@@ -1053,7 +1057,7 @@ public class PlayerClient {
         Math3D.VectorClear(ent.velocity);
 
         // clear playerstate values
-        ent.client.ps.clear();     
+        ent.client.ps.clear();
 
         client.ps.pmove.origin[0] = (short) (spawn_origin[0] * 8);
         client.ps.pmove.origin[1] = (short) (spawn_origin[1] * 8);
@@ -1126,7 +1130,7 @@ public class PlayerClient {
 
     /**
      * A client has just connected to the server in deathmatch mode, so clear
-     * everything out before starting them. 
+     * everything out before starting them.
      */
     public static void ClientBeginDeathmatch(edict_t ent) {
         GameUtil.G_InitEdict(ent, ent.index);
@@ -1154,10 +1158,6 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    /**
-     * Called when a client has finished connecting, and is ready to be placed
-     * into the game. This will happen every level load. 
-     */
     // todo move to game exports
     public static void ClientBegin(edict_t ent) {
         int i;
@@ -1209,13 +1209,6 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    /**
-     * Called whenever the player updates a userinfo variable.
-     * 
-     * The game can override any of the settings in place (forcing skins or
-     * names, etc) before copying it off. 
-     *
-     */
     // todo move to game exports
     public static String ClientUserinfoChanged(edict_t ent, String userinfo) {
         String s;
@@ -1273,13 +1266,6 @@ public class PlayerClient {
         return userinfo;
     }
 
-    /**
-     * Called when a player begins connecting to the server. The game can refuse
-     * entrance to a client by returning false. If the client is allowed, the
-     * connection process will continue and eventually get to ClientBegin()
-     * Changing levels will NOT cause this to be called again, but loadgames
-     * will. 
-     */
     // todo move to game exports
     public static boolean ClientConnect(edict_t ent, String userinfo) {
         String value;
@@ -1345,9 +1331,6 @@ public class PlayerClient {
         return true;
     }
 
-    /**
-     * Called when a player drops from the server. Will not be called between levels. 
-     */
     // todo move to game exports
     public static void ClientDisconnect(edict_t ent) {
         int playernum;
@@ -1395,10 +1378,6 @@ public class PlayerClient {
      * }
      */
 
-    /**
-     * This will be called once for each client frame, which will usually be a
-     * couple times for each server frame.
-     */
     // todo move to game exports
     public static void ClientThink(edict_t ent, usercmd_t ucmd) {
         gclient_t client;

@@ -424,12 +424,6 @@ public class GameSpawn {
         }
     }
 
-    /**
-     * SpawnEntities
-     * 
-     * Creates a server's entity / program execution context by parsing textual
-     * entity definitions out of an ent file.
-     */
     // todo move to game exports
     public static void SpawnEntities(String mapname, String entities,
             String spawnpoint) {

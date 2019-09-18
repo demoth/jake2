@@ -27,7 +27,6 @@ import jake2.client.SCR;
 import jake2.game.GameBase;
 import jake2.game.GameSpawn;
 import jake2.game.entity_state_t;
-import jake2.game.usercmd_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;

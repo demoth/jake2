@@ -22,15 +22,13 @@
 // $Id: TestLoadGame.java,v 1.2 2004-09-22 19:22:10 salomo Exp $
 package jake2.qcommon;
 
-import jake2.game.GameSave;
-
 public class TestLoadGame {
     public static void main(String args[]) {
 
         Qcommon.Init(args);
 
         System.out.println("hello!");
-        GameSave.InitGame();
-        GameSave.ReadGame("test/data/savegames/game.ssv");
+        //GameSave.InitGame();
+        //GameSave.ReadGame("test/data/savegames/game.ssv");
     }
 }

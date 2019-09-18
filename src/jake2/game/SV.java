@@ -23,12 +23,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.server;
+package jake2.game;
 
-import jake2.game.GameBase;
-import jake2.game.M;
-import jake2.game.pushed_t;
-import jake2.game.trace_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
@@ -494,8 +490,7 @@ public final class SV {
             }
         }
         if (GameBase.pushed_p > Defines.MAX_EDICTS)
-            SV_GAME.PF_error(Defines.ERR_FATAL,
-                    "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
+            Com.Error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves

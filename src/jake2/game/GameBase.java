@@ -26,13 +26,10 @@
 
 package jake2.game;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.cvar_t;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.server.SV;
+import jake2.server.game_import_t;
 
 import java.util.StringTokenizer;
 
@@ -47,11 +44,11 @@ public class GameBase {
 
     public static spawn_temp_t st = new spawn_temp_t();
 
-    public static int sm_meat_index;
+    static int sm_meat_index;
 
-    public static int snd_fry;
+    static int snd_fry;
 
-    public static int meansOfDeath;
+    static int meansOfDeath;
 
     public static int num_edicts;
 
@@ -69,61 +66,61 @@ public class GameBase {
 
     public static cvar_t skill; // = new cvar_t();
 
-    public static cvar_t fraglimit = new cvar_t();
+    static cvar_t fraglimit = new cvar_t();
 
-    public static cvar_t timelimit = new cvar_t();
+    static cvar_t timelimit = new cvar_t();
 
-    public static cvar_t password = new cvar_t();
+    static cvar_t password = new cvar_t();
 
-    public static cvar_t spectator_password = new cvar_t();
+    static cvar_t spectator_password = new cvar_t();
 
-    public static cvar_t needpass = new cvar_t();
+    static cvar_t needpass = new cvar_t();
 
     public static cvar_t maxclients = new cvar_t();
 
-    public static cvar_t maxspectators = new cvar_t();
+    static cvar_t maxspectators = new cvar_t();
 
-    public static cvar_t maxentities = new cvar_t();
+    static cvar_t maxentities = new cvar_t();
 
-    public static cvar_t g_select_empty = new cvar_t();
+    static cvar_t g_select_empty = new cvar_t();
 
-    public static cvar_t filterban = new cvar_t();
+    static cvar_t filterban = new cvar_t();
 
     public static cvar_t sv_maxvelocity = new cvar_t();
 
     public static cvar_t sv_gravity = new cvar_t();
 
-    public static cvar_t sv_rollspeed = new cvar_t();
+    static cvar_t sv_rollspeed = new cvar_t();
 
-    public static cvar_t sv_rollangle = new cvar_t();
+    static cvar_t sv_rollangle = new cvar_t();
 
-    public static cvar_t gun_x = new cvar_t();
+    static cvar_t gun_x = new cvar_t();
 
-    public static cvar_t gun_y = new cvar_t();
+    static cvar_t gun_y = new cvar_t();
 
-    public static cvar_t gun_z = new cvar_t();
+    static cvar_t gun_z = new cvar_t();
 
-    public static cvar_t run_pitch = new cvar_t();
+    static cvar_t run_pitch = new cvar_t();
 
-    public static cvar_t run_roll = new cvar_t();
+    static cvar_t run_roll = new cvar_t();
 
-    public static cvar_t bob_up = new cvar_t();
+    static cvar_t bob_up = new cvar_t();
 
-    public static cvar_t bob_pitch = new cvar_t();
+    static cvar_t bob_pitch = new cvar_t();
 
-    public static cvar_t bob_roll = new cvar_t();
+    static cvar_t bob_roll = new cvar_t();
 
-    public static cvar_t sv_cheats = new cvar_t();
+    static cvar_t sv_cheats = new cvar_t();
 
-    public static cvar_t flood_msgs = new cvar_t();
+    static cvar_t flood_msgs = new cvar_t();
 
-    public static cvar_t flood_persecond = new cvar_t();
+    static cvar_t flood_persecond = new cvar_t();
 
-    public static cvar_t flood_waitdelay = new cvar_t();
+    static cvar_t flood_waitdelay = new cvar_t();
 
-    public static cvar_t sv_maplist = new cvar_t();
+    static cvar_t sv_maplist = new cvar_t();
 
-    public final static float STOP_EPSILON = 0.1f;
+    private final static float STOP_EPSILON = 0.1f;
 
     /**
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 =
@@ -163,8 +160,8 @@ public class GameBase {
      * 
      */
 
-    public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
-            String s) {
+    static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
+                                String s) {
 
         if (from == null)
             from = new EdictIterator(0);
@@ -188,8 +185,8 @@ public class GameBase {
     }
 
     // comfort version (rst)
-    public static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff,
-            String s) {
+    static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff,
+                               String s) {
         EdictIterator ei = G_Find(from, eff, s);
         if (ei == null)
             return null;
@@ -238,7 +235,7 @@ public class GameBase {
      * will be returned if the end of the list is reached.
      */
 
-    public static int MAXCHOICES = 8;
+    private static int MAXCHOICES = 8;
 
     public static edict_t G_PickTarget(String targetname) {
         int num_choices = 0;
@@ -265,13 +262,13 @@ public class GameBase {
         return choice[Lib.rand() % num_choices];
     }
 
-    public static float[] VEC_UP = { 0, -1, 0 };
+    private static float[] VEC_UP = { 0, -1, 0 };
 
-    public static float[] MOVEDIR_UP = { 0, 0, 1 };
+    private static float[] MOVEDIR_UP = { 0, 0, 1 };
 
-    public static float[] VEC_DOWN = { 0, -2, 0 };
+    private static float[] VEC_DOWN = { 0, -2, 0 };
 
-    public static float[] MOVEDIR_DOWN = { 0, 0, -1 };
+    private static float[] MOVEDIR_DOWN = { 0, 0, -1 };
 
     public static void G_SetMovedir(float[] angles, float[] movedir) {
         if (Math3D.VectorEquals(angles, VEC_UP)) {
@@ -293,7 +290,7 @@ public class GameBase {
      * G_TouchTriggers
      */
 
-    static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
+    private static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
 
     public static void G_TouchTriggers(edict_t ent) {
         int i, num;
@@ -332,14 +329,14 @@ public class GameBase {
 
     public static edict_t obstacle;
 
-    public static int c_yes, c_no;
+    static int c_yes, c_no;
 
     public static int STEPSIZE = 18;
 
     /**
      * G_RunEntity
      */
-    public static void G_RunEntity(edict_t ent) {
+    private static void G_RunEntity(edict_t ent) {
 
         if (ent.prethink != null)
             ent.prethink.think(ent);
@@ -374,7 +371,7 @@ public class GameBase {
         maxs[0] = maxs[1] = maxs[2] = -99999;
     }
 
-    public static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
+    static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
         int i;
         float val;
 
@@ -387,7 +384,7 @@ public class GameBase {
         }
     }
 
-    public static EdictFindFilter findByTarget = new EdictFindFilter() {
+    static EdictFindFilter findByTarget = new EdictFindFilter() {
         public boolean matches(edict_t e, String s) {
             if (e.targetname == null)
                 return false;
@@ -395,20 +392,16 @@ public class GameBase {
         }
     };
 
-    public static EdictFindFilter findByClass = new EdictFindFilter() {
+    static EdictFindFilter findByClass = new EdictFindFilter() {
         public boolean matches(edict_t e, String s) {
             return e.classname.equalsIgnoreCase(s);
         }
     };
 
-    public static void ShutdownGame() {
-        gi.dprintf("==== ShutdownGame ====\n");
-    }
-
     /**
      * ClientEndServerFrames.
      */
-    public static void ClientEndServerFrames() {
+    private static void ClientEndServerFrames() {
         int i;
         edict_t ent;
 
@@ -426,7 +419,7 @@ public class GameBase {
     /**
      * Returns the created target changelevel.
      */
-    public static edict_t CreateTargetChangeLevel(String map) {
+    private static edict_t CreateTargetChangeLevel(String map) {
         edict_t ent;
 
         ent = GameUtil.G_Spawn();
@@ -439,7 +432,7 @@ public class GameBase {
     /**
      * The timelimit or fraglimit has been exceeded.
      */
-    public static void EndDMLevel() {
+    private static void EndDMLevel() {
         edict_t ent;
         //char * s, * t, * f;
         //static const char * seps = " ,\n\r";
@@ -500,7 +493,7 @@ public class GameBase {
     /**
      * CheckNeedPass.
      */
-    public static void CheckNeedPass() {
+    private static void CheckNeedPass() {
         int need;
 
         // if password or spectator_password has changed, update needpass
@@ -524,7 +517,7 @@ public class GameBase {
     /**
      * CheckDMRules.
      */
-    public static void CheckDMRules() {
+    private static void CheckDMRules() {
         int i;
         gclient_t cl;
 
@@ -560,7 +553,7 @@ public class GameBase {
     /**
      * Exits a level.
      */
-    public static void ExitLevel() {
+    private static void ExitLevel() {
         int i;
         edict_t ent;
 
@@ -581,11 +574,6 @@ public class GameBase {
         }
     }
 
-    /**
-     * G_RunFrame
-     *  
-     * Advances the world by Defines.FRAMETIME (0.1) seconds.
-     */
     // todo move to game exports
     public static void G_RunFrame() {
         int i;
@@ -644,14 +632,5 @@ public class GameBase {
 
         // build the playerstate_t structures for all players
         ClientEndServerFrames();
-    }
-
-    /**
-     * This return a pointer to the structure with all entry points and global
-     * variables. 
-     */
-    // todo move to game exports
-    public static void setGameImports(GameImports imp) {
-        gi = imp;
     }
 }

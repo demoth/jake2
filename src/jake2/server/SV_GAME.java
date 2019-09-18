@@ -22,14 +22,14 @@
 // $Id: SV_GAME.java,v 1.10 2006-01-21 21:53:32 salomo Exp $
 package jake2.server;
 
-import jake2.game.GameBase;
-import jake2.game.GameImports;
-import jake2.game.GameSave;
-import jake2.game.game_import_t;
+import jake2.game.GameExportsImpl;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
 public class SV_GAME {
+
+    // todo implement singleton
+    public static GameExports gameExports;
 
     /**
      * PF_Unicast
@@ -58,16 +58,6 @@ public class SV_GAME {
 
         SV_INIT.sv.multicast.clear();
     }
-
-    /**
-     * PF_dprintf
-     * 
-     * Debug print to server console.
-     */
-    public static void PF_dprintf(String fmt) {
-        Com.Printf(fmt);
-    }
-
 
     /**
      * Centerprintf for critical messages.
@@ -121,10 +111,6 @@ public class SV_GAME {
      */
     public static void PF_error(String fmt) {
         Com.Error(Defines.ERR_DROP, "Game Error: " + fmt);
-    }
-
-    public static void PF_error(int level, String fmt) {
-        Com.Error(level, fmt);
     }
 
     /**
@@ -288,16 +274,6 @@ public class SV_GAME {
 
 
     /**
-     *  SV_ShutdownGameProgs
-     * 
-     * Called when either the entire server is being killed, or it is changing
-     * to a different game directory. 
-     */
-    public static void SV_ShutdownGameProgs() {
-        GameBase.ShutdownGame();
-    }
-
-    /**
      * SV_InitGameProgs
      * 
      * Init the game subsystem for a new map. 
@@ -305,14 +281,6 @@ public class SV_GAME {
 
     public static void SV_InitGameProgs() {
 
-        // unload anything we have now
-        SV_ShutdownGameProgs();
-
-        GameImports gimport = new game_import_t();
-
-        // all functions set in game_export_t (rst)
-        GameBase.setGameImports(gimport);
-
-        GameSave.InitGame();
+        gameExports = new GameExportsImpl(new game_import_t());
     }
 }

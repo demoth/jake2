@@ -953,7 +953,7 @@ public class SV_MAIN {
 
         Master_Shutdown();
 
-        SV_GAME.SV_ShutdownGameProgs();
+        GameBase.gi.dprintf("==== ShutdownGame ====\n");
 
         // free current level
         if (SV_INIT.sv.demofile != null)

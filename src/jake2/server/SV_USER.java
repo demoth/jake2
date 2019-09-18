@@ -285,7 +285,7 @@ class SV_USER {
         SV_MAIN.sv_client.state = Defines.cs_spawned;
 
         // call the game begin function
-        PlayerClient.ClientBegin(SV_USER.sv_player);
+        SV_GAME.gameExports.ClientBegin(SV_USER.sv_player);
 
         Cbuf.InsertFromDefer();
     }
@@ -493,7 +493,7 @@ class SV_USER {
         }
 
         if (i == SV_USER.ucmds.length && SV_INIT.sv.state == Defines.ss_game)
-            Cmd.ClientCommand(SV_USER.sv_player, args);
+            SV_GAME.gameExports.ClientCommand(SV_USER.sv_player, args);
 
         //	SV_EndRedirect ();
     }

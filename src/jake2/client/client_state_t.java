@@ -25,9 +25,9 @@ package jake2.client;
 import jake2.client.render.image_t;
 import jake2.client.render.model_t;
 import jake2.client.sound.sfx_t;
-import jake2.game.usercmd_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cmodel_t;
+import jake2.qcommon.usercmd_t;
 
 import java.nio.ByteBuffer;
 

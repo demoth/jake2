@@ -272,11 +272,6 @@ public class GameSVCmds {
         Lib.fclose(f);
     }
 
-    /**
-     * ServerCommand
-     * 
-     * ServerCommand will be called when an "sv" command is issued.
-     */
     // todo move to game exports
     public static void ServerCommand(List<String> args) {
 

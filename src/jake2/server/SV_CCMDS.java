@@ -23,7 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.game.*;
+import jake2.game.Cmd;
+import jake2.game.EndianHandler;
+import jake2.game.GameSVCmds;
+import jake2.game.Info;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
@@ -326,7 +329,7 @@ public class SV_CCMDS {
 		}
 
 		name = FS.Gamedir() + "/save/current/" + SV_INIT.sv.name + ".sav";
-		GameSave.WriteLevel(name);
+		SV_GAME.gameExports.WriteLevel(name);
 	}
 	/*
 	==============
@@ -358,7 +361,7 @@ public class SV_CCMDS {
 		}
 
 		name = FS.Gamedir() + "/save/current/" + SV_INIT.sv.name + ".sav";
-		GameSave.ReadLevel(name);
+		SV_GAME.gameExports.ReadLevel(name);
 	}
 	/*
 	==============
@@ -421,7 +424,7 @@ public class SV_CCMDS {
 		}
 
 		// write game state
-		GameSave.WriteGame(FS.Gamedir() + "/save/current/game.ssv", autosave);
+		SV_GAME.gameExports.WriteGame(FS.Gamedir() + "/save/current/game.ssv", autosave);
 	}
 	/*
 	==============
@@ -469,7 +472,7 @@ public class SV_CCMDS {
 
 			// read game state
 			filename = FS.Gamedir() + "/save/current/game.ssv";
-			GameSave.ReadGame(filename);
+			SV_GAME.gameExports.ReadGame(filename);
 		}
 		catch (Exception e) {
 			Com.Printf("Couldn't read file " + filename + "\n");
