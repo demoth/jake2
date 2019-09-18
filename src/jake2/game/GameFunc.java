@@ -22,15 +22,13 @@
 // $Id: GameFunc.java,v 1.9 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-public class GameFunc {
+class GameFunc {
 
-    static void Move_Calc(edict_t ent, float[] dest, EntThinkAdapter func) {
+    private static void Move_Calc(edict_t ent, float[] dest, EntThinkAdapter func) {
         Math3D.VectorClear(ent.velocity);
         Math3D.VectorSubtract(dest, ent.s.origin, ent.moveinfo.dir);
         ent.moveinfo.remaining_distance = Math3D
@@ -55,7 +53,7 @@ public class GameFunc {
         }
     }
 
-    static void AngleMove_Calc(edict_t ent, EntThinkAdapter func) {
+    private static void AngleMove_Calc(edict_t ent, EntThinkAdapter func) {
         Math3D.VectorClear(ent.avelocity);
         ent.moveinfo.endfunc = func;
         if (GameBase.level.current_entity == ((ent.flags & Defines.FL_TEAMSLAVE) != 0 ? ent.teammaster
@@ -73,11 +71,11 @@ public class GameFunc {
      * The team has completed a frame of movement, so change the speed for the
      * next frame.
      */
-    static float AccelerationDistance(float target, float rate) {
+    private static float AccelerationDistance(float target, float rate) {
         return target * ((target / rate) + 1) / 2;
     };
 
-    static void plat_CalcAcceleratedMove(moveinfo_t moveinfo) {
+    private static void plat_CalcAcceleratedMove(moveinfo_t moveinfo) {
         float accel_dist;
         float decel_dist;
 
@@ -105,7 +103,7 @@ public class GameFunc {
         moveinfo.decel_distance = decel_dist;
     };
 
-    static void plat_Accelerate(moveinfo_t moveinfo) {
+    private static void plat_Accelerate(moveinfo_t moveinfo) {
         // are we decelerating?
         if (moveinfo.remaining_distance <= moveinfo.decel_distance) {
             if (moveinfo.remaining_distance < moveinfo.decel_distance) {
@@ -178,7 +176,7 @@ public class GameFunc {
         return;
     };
 
-    static void plat_go_up(edict_t ent) {
+    private static void plat_go_up(edict_t ent) {
         if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
             if (ent.moveinfo.sound_start != 0)
                 GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
@@ -190,7 +188,7 @@ public class GameFunc {
         Move_Calc(ent, ent.moveinfo.start_origin, plat_hit_top);
     }
 
-    static void plat_spawn_inside_trigger(edict_t ent) {
+    private static void plat_spawn_inside_trigger(edict_t ent) {
         edict_t trigger;
         float[] tmin = { 0, 0, 0 }, tmax = { 0, 0, 0 };
 
@@ -340,7 +338,7 @@ public class GameFunc {
      * silent 2) light 3) medium 4) heavy
      */
 
-    static void door_use_areaportals(edict_t self, boolean open) {
+    private static void door_use_areaportals(edict_t self, boolean open) {
         edict_t t = null;
 
         if (self.target == null)
@@ -357,7 +355,7 @@ public class GameFunc {
         }
     }
 
-    static void door_go_up(edict_t self, edict_t activator) {
+    private static void door_go_up(edict_t self, edict_t activator) {
         if (self.moveinfo.state == STATE_UP)
             return; // already going up
 
@@ -469,7 +467,7 @@ public class GameFunc {
         GameBase.gi.linkentity(self);
     }
 
-    static void train_resume(edict_t self) {
+    private static void train_resume(edict_t self) {
         edict_t ent;
         float[] dest = { 0, 0, 0 };
 
@@ -563,35 +561,35 @@ public class GameFunc {
      * 
      */
 
-    public final static int PLAT_LOW_TRIGGER = 1;
+    private final static int PLAT_LOW_TRIGGER = 1;
 
-    public final static int STATE_TOP = 0;
+    private final static int STATE_TOP = 0;
 
-    public final static int STATE_BOTTOM = 1;
+    private final static int STATE_BOTTOM = 1;
 
-    public final static int STATE_UP = 2;
+    private final static int STATE_UP = 2;
 
-    public final static int STATE_DOWN = 3;
+    private final static int STATE_DOWN = 3;
 
-    public final static int DOOR_START_OPEN = 1;
+    private final static int DOOR_START_OPEN = 1;
 
-    public final static int DOOR_REVERSE = 2;
+    private final static int DOOR_REVERSE = 2;
 
-    public final static int DOOR_CRUSHER = 4;
+    private final static int DOOR_CRUSHER = 4;
 
-    public final static int DOOR_NOMONSTER = 8;
+    private final static int DOOR_NOMONSTER = 8;
 
-    public final static int DOOR_TOGGLE = 32;
+    private final static int DOOR_TOGGLE = 32;
 
-    public final static int DOOR_X_AXIS = 64;
+    private final static int DOOR_X_AXIS = 64;
 
-    public final static int DOOR_Y_AXIS = 128;
+    private final static int DOOR_Y_AXIS = 128;
 
     //
     //	   Support routines for movement (changes in origin using velocity)
     //
 
-    static EntThinkAdapter Move_Done = new EntThinkAdapter() {
+    private static EntThinkAdapter Move_Done = new EntThinkAdapter() {
         public String getID() { return "move_done";}
         public boolean think(edict_t ent) {
             Math3D.VectorClear(ent.velocity);
@@ -600,7 +598,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter Move_Final = new EntThinkAdapter() {
+    private static EntThinkAdapter Move_Final = new EntThinkAdapter() {
         public String getID() { return "move_final";}
         public boolean think(edict_t ent) {
 
@@ -619,7 +617,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter Move_Begin = new EntThinkAdapter() {
+    private static EntThinkAdapter Move_Begin = new EntThinkAdapter() {
         public String getID() { return "move_begin";}
         public boolean think(edict_t ent) {
 
@@ -646,7 +644,7 @@ public class GameFunc {
     //	   Support routines for angular movement (changes in angle using avelocity)
     //
 
-    static EntThinkAdapter AngleMove_Done = new EntThinkAdapter() {
+    private static EntThinkAdapter AngleMove_Done = new EntThinkAdapter() {
         public String getID() { return "agnle_move_done";}
         public boolean think(edict_t ent) {
             Math3D.VectorClear(ent.avelocity);
@@ -655,7 +653,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter AngleMove_Final = new EntThinkAdapter() {
+    private static EntThinkAdapter AngleMove_Final = new EntThinkAdapter() {
         public String getID() { return "angle_move_final";}
         public boolean think(edict_t ent) {
             float[] move = { 0, 0, 0 };
@@ -680,7 +678,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter AngleMove_Begin = new EntThinkAdapter() {
+    private static EntThinkAdapter AngleMove_Begin = new EntThinkAdapter() {
         public String getID() { return "angle_move_begin";}
         public boolean think(edict_t ent) {
             float[] destdelta = { 0, 0, 0 };
@@ -720,7 +718,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter Think_AccelMove = new EntThinkAdapter() {
+    private static EntThinkAdapter Think_AccelMove = new EntThinkAdapter() {
         public String getID() { return "thinc_accelmove";}
         public boolean think(edict_t ent) {
             ent.moveinfo.remaining_distance -= ent.moveinfo.current_speed;
@@ -744,7 +742,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter plat_hit_top = new EntThinkAdapter() {
+    private static EntThinkAdapter plat_hit_top = new EntThinkAdapter() {
         public String getID() { return "plat_hit_top";}
         public boolean think(edict_t ent) {
             if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
@@ -762,7 +760,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter plat_hit_bottom = new EntThinkAdapter() {
+    private static EntThinkAdapter plat_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "plat_hit_bottom";}
         public boolean think(edict_t ent) {
 
@@ -778,7 +776,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
+    private static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
         public String getID() { return "plat_go_down";}
         public boolean think(edict_t ent) {
             if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
@@ -794,7 +792,7 @@ public class GameFunc {
         }
     };
 
-    static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
+    private static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
         public String getID() { return "plat_blocked";}
         public void blocked(edict_t self, edict_t other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
@@ -821,7 +819,7 @@ public class GameFunc {
         }
     };
 
-    static EntUseAdapter Use_Plat = new EntUseAdapter() {
+    private static EntUseAdapter Use_Plat = new EntUseAdapter() {
         public String getID() { return "use_plat";}
         public void use(edict_t ent, edict_t other, edict_t activator) {
             if (ent.think != null)
@@ -830,7 +828,7 @@ public class GameFunc {
         }
     };
 
-    static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
+    private static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
         public String getID() { return "touch_plat_center";}
         public void touch(edict_t ent, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -865,7 +863,7 @@ public class GameFunc {
      * it will stop moving instead of pushing entities
      */
 
-    static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
+    private static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
         public String getID() { return "rotating_blocked";}
         public void blocked(edict_t self, edict_t other) {
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
@@ -874,7 +872,7 @@ public class GameFunc {
         }
     };
 
-    static EntTouchAdapter rotating_touch = new EntTouchAdapter() {
+    private static EntTouchAdapter rotating_touch = new EntTouchAdapter() {
         public String getID() { return "rotating_touch";}
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -886,7 +884,7 @@ public class GameFunc {
         }
     };
 
-    static EntUseAdapter rotating_use = new EntUseAdapter() {
+    private static EntUseAdapter rotating_use = new EntUseAdapter() {
         public String getID() { return "rotating_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
@@ -972,7 +970,7 @@ public class GameFunc {
      * steam metal 3) wooden clunk 4) metallic click 5) in-out
      */
 
-    static EntThinkAdapter button_done = new EntThinkAdapter() {
+    private static EntThinkAdapter button_done = new EntThinkAdapter() {
         public String getID() { return "button_done";}
         public boolean think(edict_t self) {
 
@@ -983,7 +981,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter button_return = new EntThinkAdapter() {
+    private static EntThinkAdapter button_return = new EntThinkAdapter() {
         public String getID() { return "button_return";}
         public boolean think(edict_t self) {
             self.moveinfo.state = STATE_DOWN;
@@ -998,7 +996,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter button_wait = new EntThinkAdapter() {
+    private static EntThinkAdapter button_wait = new EntThinkAdapter() {
         public String getID() { return "button_wait";}
         public boolean think(edict_t self) {
             self.moveinfo.state = STATE_TOP;
@@ -1015,7 +1013,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter button_fire = new EntThinkAdapter() {
+    private static EntThinkAdapter button_fire = new EntThinkAdapter() {
         public String getID() { return "button_fire";}
         public boolean think(edict_t self) {
             if (self.moveinfo.state == STATE_UP
@@ -1033,7 +1031,7 @@ public class GameFunc {
         }
     };
 
-    static EntUseAdapter button_use = new EntUseAdapter() {
+    private static EntUseAdapter button_use = new EntUseAdapter() {
         public String getID() { return "button_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.activator = activator;
@@ -1042,7 +1040,7 @@ public class GameFunc {
         }
     };
 
-    static EntTouchAdapter button_touch = new EntTouchAdapter() {
+    private static EntTouchAdapter button_touch = new EntTouchAdapter() {
         public String getID() { return "button_touch";}
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -1058,7 +1056,7 @@ public class GameFunc {
         }
     };
 
-    static EntDieAdapter button_killed = new EntDieAdapter() {
+    private static EntDieAdapter button_killed = new EntDieAdapter() {
         public String getID() { return "button_killed";}
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
@@ -1131,7 +1129,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_hit_top = new EntThinkAdapter() {
+    private static EntThinkAdapter door_hit_top = new EntThinkAdapter() {
         public String getID() { return "door_hit_top";}
         public boolean think(edict_t self) {
             if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
@@ -1152,7 +1150,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
+    private static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "door_hit_bottom";}
         public boolean think(edict_t self) {
             if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
@@ -1168,7 +1166,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_go_down = new EntThinkAdapter() {
+    private static EntThinkAdapter door_go_down = new EntThinkAdapter() {
         public String getID() { return "door_go_down";}
         public boolean think(edict_t self) {
             if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
@@ -1193,7 +1191,7 @@ public class GameFunc {
         }
     };
 
-    static EntUseAdapter door_use = new EntUseAdapter() {
+    private static EntUseAdapter door_use = new EntUseAdapter() {
         public String getID() { return "door_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             edict_t ent;
@@ -1223,7 +1221,7 @@ public class GameFunc {
         }
     };
 
-    static EntTouchAdapter Touch_DoorTrigger = new EntTouchAdapter() {
+    private static EntTouchAdapter Touch_DoorTrigger = new EntTouchAdapter() {
         public String getID() { return "touch_door_trigger";}
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -1246,7 +1244,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
+    private static EntThinkAdapter Think_CalcMoveSpeed = new EntThinkAdapter() {
         public String getID() { return "think_calc_movespeed";}
         public boolean think(edict_t self) {
             edict_t ent;
@@ -1287,7 +1285,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
+    private static EntThinkAdapter Think_SpawnDoorTrigger = new EntThinkAdapter() {
         public String getID() { return "think_spawn_door_trigger";}
         public boolean think(edict_t ent) {
             edict_t other;
@@ -1327,7 +1325,7 @@ public class GameFunc {
         }
     };
 
-    static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
+    private static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_blocked";}
         public void blocked(edict_t self, edict_t other) {
             edict_t ent;
@@ -1366,7 +1364,7 @@ public class GameFunc {
         }
     };
 
-    static EntDieAdapter door_killed = new EntDieAdapter() {
+    private static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
@@ -1380,7 +1378,7 @@ public class GameFunc {
         }
     };
 
-    static EntTouchAdapter door_touch = new EntTouchAdapter() {
+    private static EntTouchAdapter door_touch = new EntTouchAdapter() {
         public String getID() { return "door_touch";}
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -1631,11 +1629,11 @@ public class GameFunc {
         }
     };
 
-    public final static int TRAIN_START_ON = 1;
+    private final static int TRAIN_START_ON = 1;
 
-    public final static int TRAIN_TOGGLE = 2;
+    private final static int TRAIN_TOGGLE = 2;
 
-    public final static int TRAIN_BLOCK_STOPS = 4;
+    private final static int TRAIN_BLOCK_STOPS = 4;
 
     /*
      * QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS Trains are
@@ -1647,7 +1645,7 @@ public class GameFunc {
      *  
      */
 
-    static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
+    private static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
         public String getID() { return "train_blocked";}
         public void blocked(edict_t self, edict_t other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
@@ -1674,7 +1672,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter train_wait = new EntThinkAdapter() {
+    private static EntThinkAdapter train_wait = new EntThinkAdapter() {
         public String getID() { return "train_wait";}
         public boolean think(edict_t self) {
             if (self.target_ent.pathtarget != null) {
@@ -1718,7 +1716,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter train_next = new EntThinkAdapter() {
+    private static EntThinkAdapter train_next = new EntThinkAdapter() {
         public String getID() { return "train_next";}
         public boolean think(edict_t self) {
             edict_t ent = null;
@@ -1783,7 +1781,7 @@ public class GameFunc {
         }
     };
 
-    public static EntThinkAdapter func_train_find = new EntThinkAdapter() {
+    static EntThinkAdapter func_train_find = new EntThinkAdapter() {
         public String getID() { return "func_train_find";}
         public boolean think(edict_t self) {
             edict_t ent;
@@ -1816,7 +1814,7 @@ public class GameFunc {
         }
     };
 
-    public static EntUseAdapter train_use = new EntUseAdapter() {
+    static EntUseAdapter train_use = new EntUseAdapter() {
         public String getID() { return "train_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.activator = activator;
@@ -1839,7 +1837,7 @@ public class GameFunc {
     /*
      * QUAKED trigger_elevator (0.3 0.1 0.6) (-8 -8 -8) (8 8 8)
      */
-    static EntUseAdapter trigger_elevator_use = new EntUseAdapter() {
+    private static EntUseAdapter trigger_elevator_use = new EntUseAdapter() {
         public String getID() { return "trigger_elevator_use";}
 
         public void use(edict_t self, edict_t other, edict_t activator) {
@@ -1867,7 +1865,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter trigger_elevator_init = new EntThinkAdapter() {
+    private static EntThinkAdapter trigger_elevator_init = new EntThinkAdapter() {
         public String getID() { return "trigger_elevator_init";}
         public boolean think(edict_t self) {
             if (null == self.target) {
@@ -1917,7 +1915,7 @@ public class GameFunc {
      * These can used but not touched.
      */
 
-    static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
+    private static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
         public String getID() { return "func_timer_think";}
         public boolean think(edict_t self) {
             GameUtil.G_UseTargets(self, self.activator);
@@ -1927,7 +1925,7 @@ public class GameFunc {
         }
     };
 
-    static EntUseAdapter func_timer_use = new EntUseAdapter() {
+    private static EntUseAdapter func_timer_use = new EntUseAdapter() {
         public String getID() { return "func_timer_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             self.activator = activator;
@@ -1952,7 +1950,7 @@ public class GameFunc {
      * at least one current content enabled. speed default 100
      */
 
-    static EntUseAdapter func_conveyor_use = new EntUseAdapter() {
+    private static EntUseAdapter func_conveyor_use = new EntUseAdapter() {
         public String getID() { return "func_conveyor_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             if ((self.spawnflags & 1) != 0) {
@@ -2002,13 +2000,13 @@ public class GameFunc {
      * means hold)
      */
 
-    public final static int SECRET_ALWAYS_SHOOT = 1;
+    private final static int SECRET_ALWAYS_SHOOT = 1;
 
-    public final static int SECRET_1ST_LEFT = 2;
+    private final static int SECRET_1ST_LEFT = 2;
 
-    public final static int SECRET_1ST_DOWN = 4;
+    private final static int SECRET_1ST_DOWN = 4;
 
-    static EntUseAdapter door_secret_use = new EntUseAdapter() {
+    private static EntUseAdapter door_secret_use = new EntUseAdapter() {
         public String getID() { return "door_secret_use";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             // make sure we're not already moving
@@ -2020,7 +2018,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move1";}
         public boolean think(edict_t self) {
             self.nextthink = GameBase.level.time + 1.0f;
@@ -2029,7 +2027,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move2 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move2 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move2";}
         public boolean think(edict_t self) {
             Move_Calc(self, self.pos2, door_secret_move3);
@@ -2037,7 +2035,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move3 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move3 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move3";}
         public boolean think(edict_t self) {
             if (self.wait == -1)
@@ -2048,7 +2046,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move4 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move4 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move4";}
         public boolean think(edict_t self) {
             Move_Calc(self, self.pos1, door_secret_move5);
@@ -2056,7 +2054,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move5";}
         public boolean think(edict_t self) {
             self.nextthink = GameBase.level.time + 1.0f;
@@ -2065,7 +2063,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_move6 = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_move6 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move6";}
         public boolean think(edict_t self) {
             Move_Calc(self, Globals.vec3_origin, door_secret_done);
@@ -2073,7 +2071,7 @@ public class GameFunc {
         }
     };
 
-    static EntThinkAdapter door_secret_done = new EntThinkAdapter() {
+    private static EntThinkAdapter door_secret_done = new EntThinkAdapter() {
         public String getID() { return "door_secret_move7";}
         public boolean think(edict_t self) {
             if (null == (self.targetname)
@@ -2086,7 +2084,7 @@ public class GameFunc {
         }
     };
 
-    static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
+    private static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
         public void blocked(edict_t self, edict_t other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
@@ -2111,7 +2109,7 @@ public class GameFunc {
         }
     };
 
-    static EntDieAdapter door_secret_die = new EntDieAdapter() {
+    private static EntDieAdapter door_secret_die = new EntDieAdapter() {
         public String getID() { return "door_secret_die";}
         public void die(edict_t self, edict_t inflictor, edict_t attacker,
                 int damage, float[] point) {
@@ -2192,7 +2190,7 @@ public class GameFunc {
      * QUAKED func_killbox (1 0 0) ? Kills everything inside when fired,
      * irrespective of protection.
      */
-    static EntUseAdapter use_killbox = new EntUseAdapter() {
+    private static EntUseAdapter use_killbox = new EntUseAdapter() {
         public String getID() { return "use_killbox";}
         public void use(edict_t self, edict_t other, edict_t activator) {
             GameUtil.KillBox(self);

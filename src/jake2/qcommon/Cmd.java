@@ -23,9 +23,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 
 import java.util.ArrayList;
@@ -355,15 +354,6 @@ public final class Cmd {
                 cmds.add(a.getName());
 
         return cmds;
-    }
-
-    static void ValidateSelectedItem(edict_t ent) {
-        gclient_t cl = ent.client;
-    
-        if (cl.pers.inventory[cl.pers.selected_item] != 0)
-            return; // valid
-    
-        GameItems.SelectNextItem(ent, -1);
     }
 
     static final class cmdalias_t {

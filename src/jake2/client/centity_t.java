@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client;
 
-import jake2.game.entity_state_t;
+import jake2.qcommon.entity_state_t;
 
 public class centity_t {
 	entity_state_t baseline= new entity_state_t(null); // delta from this if not from a previous frame

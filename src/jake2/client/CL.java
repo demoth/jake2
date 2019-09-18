@@ -27,10 +27,6 @@ package jake2.client;
 
 import jake2.client.render.fast.Main;
 import jake2.client.sound.S;
-import jake2.game.Cmd;
-import jake2.game.EndianHandler;
-import jake2.game.Info;
-import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
@@ -48,7 +44,7 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.List;
 
-import static jake2.game.Cmd.getArguments;
+import static jake2.qcommon.Cmd.getArguments;
 
 /**
  * CL

@@ -34,12 +34,13 @@ import jake2.server.game_import_t;
 import java.util.StringTokenizer;
 
 public class GameBase {
-    public static cplane_t dummyplane = new cplane_t();
+    static cplane_t dummyplane = new cplane_t();
 
     public static game_locals_t game = new game_locals_t();
 
     public static level_locals_t level = new level_locals_t();
 
+    // todo inject the same way as for game exports
     public static GameImports gi = new game_import_t();
 
     public static spawn_temp_t st = new spawn_temp_t();
@@ -50,7 +51,7 @@ public class GameBase {
 
     static int meansOfDeath;
 
-    public static int num_edicts;
+    static int num_edicts;
 
     public static edict_t g_edicts[] = new edict_t[Defines.MAX_EDICTS];
     static {
@@ -86,9 +87,9 @@ public class GameBase {
 
     static cvar_t filterban = new cvar_t();
 
-    public static cvar_t sv_maxvelocity = new cvar_t();
+    static cvar_t sv_maxvelocity = new cvar_t();
 
-    public static cvar_t sv_gravity = new cvar_t();
+    static cvar_t sv_gravity = new cvar_t();
 
     static cvar_t sv_rollspeed = new cvar_t();
 
@@ -126,8 +127,8 @@ public class GameBase {
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 =
      * step / wall).
      */
-    public static int ClipVelocity(float[] in, float[] normal, float[] out,
-            float overbounce) {
+    static int ClipVelocity(float[] in, float[] normal, float[] out,
+                            float overbounce) {
         float backoff;
         float change;
         int i, blocked;
@@ -292,7 +293,7 @@ public class GameBase {
 
     private static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
 
-    public static void G_TouchTriggers(edict_t ent) {
+    static void G_TouchTriggers(edict_t ent) {
         int i, num;
         edict_t hit;
 
@@ -319,19 +320,19 @@ public class GameBase {
         }
     }
 
-    public static pushed_t pushed[] = new pushed_t[Defines.MAX_EDICTS];
+    static pushed_t pushed[] = new pushed_t[Defines.MAX_EDICTS];
     static {
         for (int n = 0; n < Defines.MAX_EDICTS; n++)
             pushed[n] = new pushed_t();
     }
 
-    public static int pushed_p;
+    static int pushed_p;
 
-    public static edict_t obstacle;
+    static edict_t obstacle;
 
     static int c_yes, c_no;
 
-    public static int STEPSIZE = 18;
+    static int STEPSIZE = 18;
 
     /**
      * G_RunEntity
@@ -569,13 +570,13 @@ public class GameBase {
             ent = g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
-            if (ent.health > ent.client.pers.max_health)
-                ent.health = ent.client.pers.max_health;
+            gclient_t client = (gclient_t) ent.client;
+            if (ent.health > client.pers.max_health)
+                ent.health = client.pers.max_health;
         }
     }
 
-    // todo move to game exports
-    public static void G_RunFrame() {
+    static void G_RunFrame() {
         int i;
         edict_t ent;
 

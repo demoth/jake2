@@ -23,10 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
 public class GameCombat {
@@ -98,8 +95,8 @@ public class GameCombat {
     /**
      * Killed.
      */
-    public static void Killed(edict_t targ, edict_t inflictor,
-            edict_t attacker, int damage, float[] point) {
+    private static void Killed(edict_t targ, edict_t inflictor,
+                               edict_t attacker, int damage, float[] point) {
         Com.DPrintf("Killing a " + targ.classname + "\n");
         if (targ.health < -999)
             targ.health = -999;
@@ -112,8 +109,9 @@ public class GameCombat {
             // content type
             if (0 == (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
                 GameBase.level.killed_monsters++;
-                if (GameBase.coop.value != 0 && attacker.client != null)
-                    attacker.client.resp.score++;
+                gclient_t attackerClient = (gclient_t) attacker.client;
+                if (GameBase.coop.value != 0 && attackerClient != null)
+                    attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
                 if (attacker.classname.equals("monster_medic"))
                     targ.owner = attacker;
@@ -140,7 +138,7 @@ public class GameCombat {
     /**
      * SpawnDamage.
      */
-    static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
+    private static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
         if (damage > 255)
             damage = 255;
         GameBase.gi.WriteByte(Defines.svc_temp_entity);
@@ -151,8 +149,8 @@ public class GameCombat {
         GameBase.gi.multicast(origin, Defines.MULTICAST_PVS);
     }
 
-    static int CheckPowerArmor(edict_t ent, float[] point, float[] normal,
-            int damage, int dflags) {
+    private static int CheckPowerArmor(edict_t ent, float[] point, float[] normal,
+                                       int damage, int dflags) {
         gclient_t client;
         int save;
         int power_armor_type;
@@ -161,11 +159,11 @@ public class GameCombat {
         int pa_te_type;
         int power = 0;
         int power_used;
-    
+
         if (damage == 0)
             return 0;
     
-        client = ent.client;
+        client = (gclient_t) ent.client;
     
         if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
             return 0;
@@ -218,7 +216,7 @@ public class GameCombat {
     
         SpawnDamage(pa_te_type, point, normal, save);
         ent.powerarmor_time = GameBase.level.time + 0.2f;
-    
+
         power_used = save / damagePerCell;
     
         if (client != null)
@@ -228,8 +226,8 @@ public class GameCombat {
         return save;
     }
 
-    static int CheckArmor(edict_t ent, float[] point, float[] normal,
-            int damage, int te_sparks, int dflags) {
+    private static int CheckArmor(edict_t ent, float[] point, float[] normal,
+                                  int damage, int te_sparks, int dflags) {
         gclient_t client;
         int save;
         int index;
@@ -238,7 +236,7 @@ public class GameCombat {
         if (damage == 0)
             return 0;
     
-        client = ent.client;
+        client = (gclient_t) ent.client;
     
         if (client == null)
             return 0;
@@ -271,7 +269,7 @@ public class GameCombat {
         return save;
     }
 
-    public static void M_ReactToDamage(edict_t targ, edict_t attacker) {
+    private static void M_ReactToDamage(edict_t targ, edict_t attacker) {
         if ((null != attacker.client)
                 && 0 != (attacker.svflags & Defines.SVF_MONSTER))
             return;
@@ -344,7 +342,7 @@ public class GameCombat {
         }
     }
 
-    static boolean CheckTeamDamage(edict_t targ, edict_t attacker) {
+    private static boolean CheckTeamDamage(edict_t targ, edict_t attacker) {
         //FIXME make the next line real and uncomment this block
         // if ((ability to damage a teammate == OFF) && (targ's team ==
         // attacker's team))
@@ -422,7 +420,7 @@ public class GameCombat {
                 damage = 1;
         }
     
-        client = targ.client;
+        client = (gclient_t) targ.client;
     
         if ((dflags & Defines.DAMAGE_BULLET) != 0)
             te_sparks = Defines.TE_BULLET_SPARKS;

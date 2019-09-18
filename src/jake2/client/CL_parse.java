@@ -25,7 +25,6 @@ package jake2.client;
 
 import jake2.client.render.model_t;
 import jake2.client.sound.S;
-import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;

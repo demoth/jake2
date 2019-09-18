@@ -22,10 +22,7 @@
 
 // $Id: Info.java,v 1.7 2006-01-10 13:09:18 hzi Exp $
 
-package jake2.game;
-
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
+package jake2.qcommon;
 
 import java.util.StringTokenizer;
 

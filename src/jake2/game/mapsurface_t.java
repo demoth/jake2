@@ -31,6 +31,8 @@ package jake2.game;
 // import jake2.client.render.*;
 // import jake2.server.*;
 
+import jake2.qcommon.csurface_t;
+
 public class mapsurface_t {
 	public csurface_t c = new csurface_t();
 	public String rname;

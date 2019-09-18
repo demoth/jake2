@@ -20,11 +20,8 @@
 
 // Created on 31.10.2003 by RST.
 // $Id: pmove_t.java,v 1.4 2005-01-21 01:08:48 cawe Exp $
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
-import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
@@ -39,7 +36,7 @@ public class pmove_t {
     public static class TraceAdapter {
         // callbacks to test the world
         public trace_t trace(float[] start, float[] mins, float[] maxs,
-                float[] end) {
+                             float[] end) {
             return null;
         }
     }

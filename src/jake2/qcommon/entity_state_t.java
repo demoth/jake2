@@ -20,9 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 08.11.2003 by RST.
 
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.QuakeFile;
 
@@ -93,9 +92,9 @@ public class entity_state_t implements Cloneable
 	}
 
 	/** Reads the entity state from the file. */
-	public void read(QuakeFile f) throws IOException
+	public void read(QuakeFile f, edict_t[] g_edicts) throws IOException
 	{
-		surrounding_ent = f.readEdictRef();
+		surrounding_ent = f.readEdictRef(g_edicts);
 		origin = f.readVector();
 		angles = f.readVector();
 		old_origin = f.readVector();

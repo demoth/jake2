@@ -40,26 +40,27 @@ public class PlayerHud {
      */
 
     public static void MoveClientToIntermission(edict_t ent) {
+        gclient_t client = (gclient_t) ent.client;
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0)
-            ent.client.showscores = true;
+            client.showscores = true;
         Math3D.VectorCopy(GameBase.level.intermission_origin, ent.s.origin);
-        ent.client.ps.pmove.origin[0] = (short) (GameBase.level.intermission_origin[0] * 8);
-        ent.client.ps.pmove.origin[1] = (short) (GameBase.level.intermission_origin[1] * 8);
-        ent.client.ps.pmove.origin[2] = (short) (GameBase.level.intermission_origin[2] * 8);
+        client.getPlayerState().pmove.origin[0] = (short) (GameBase.level.intermission_origin[0] * 8);
+        client.getPlayerState().pmove.origin[1] = (short) (GameBase.level.intermission_origin[1] * 8);
+        client.getPlayerState().pmove.origin[2] = (short) (GameBase.level.intermission_origin[2] * 8);
         Math3D.VectorCopy(GameBase.level.intermission_angle,
-                ent.client.ps.viewangles);
-        ent.client.ps.pmove.pm_type = Defines.PM_FREEZE;
-        ent.client.ps.gunindex = 0;
-        ent.client.ps.blend[3] = 0;
-        ent.client.ps.rdflags &= ~Defines.RDF_UNDERWATER;
+                client.getPlayerState().viewangles);
+        client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
+        client.getPlayerState().gunindex = 0;
+        client.getPlayerState().blend[3] = 0;
+        client.getPlayerState().rdflags &= ~Defines.RDF_UNDERWATER;
 
         // clean up powerup info
-        ent.client.quad_framenum = 0;
-        ent.client.invincible_framenum = 0;
-        ent.client.breather_framenum = 0;
-        ent.client.enviro_framenum = 0;
-        ent.client.grenade_blew_up = false;
-        ent.client.grenade_time = 0;
+        client.quad_framenum = 0;
+        client.invincible_framenum = 0;
+        client.breather_framenum = 0;
+        client.enviro_framenum = 0;
+        client.grenade_blew_up = false;
+        client.grenade_time = 0;
 
         ent.viewheight = 0;
         ent.s.modelindex = 0;
@@ -80,8 +81,6 @@ public class PlayerHud {
     }
 
     public static void BeginIntermission(edict_t targ) {
-        int i, n;
-        edict_t ent, client;
 
         if (GameBase.level.intermissiontime != 0)
             return; // already activated
@@ -89,6 +88,8 @@ public class PlayerHud {
         GameBase.game.autosaved = false;
 
         // respawn any dead clients
+        int i;
+        edict_t client;
         for (i = 0; i < GameBase.maxclients.value; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
@@ -107,11 +108,13 @@ public class PlayerHud {
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
-                    for (n = 1; n < GameItemList.itemlist.length; n++) {
+                    for (int n = 1; n < GameItemList.itemlist.length; n++) {
                         // null pointer exception fixed. (RST) 
                         if (GameItemList.itemlist[n] != null)
-                            if ((GameItemList.itemlist[n].flags & Defines.IT_KEY) != 0)
-                                client.client.pers.inventory[n] = 0;
+                            if ((GameItemList.itemlist[n].flags & Defines.IT_KEY) != 0) {
+                                gclient_t otherClient = (gclient_t) client.client;
+                                otherClient.pers.inventory[n] = 0;
+                            }
                     }
                 }
             }
@@ -126,7 +129,7 @@ public class PlayerHud {
         GameBase.level.exitintermission = false;
 
         // find an intermission spot
-        ent = GameBase.G_FindEdict(null, GameBase.findByClass,
+        edict_t ent = GameBase.G_FindEdict(null, GameBase.findByClass,
                 "info_player_intermission");
         if (ent == null) { // the map creator forgot to put in an intermission
                            // point...
@@ -238,7 +241,7 @@ public class PlayerHud {
                     .append(" ")
                     .append(cl.resp.score)
                     .append(" ")
-                    .append(cl.ping)
+                    .append(cl.getPing())
                     .append(" ")
                     .append(
                             (GameBase.level.framenum - cl.resp.enterframe) / 600);           
@@ -269,18 +272,19 @@ public class PlayerHud {
      * ==================
      */
     public static void Cmd_Score_f(edict_t ent) {
-        ent.client.showinventory = false;
-        ent.client.showhelp = false;
+        gclient_t client = (gclient_t) ent.client;
+        client.showinventory = false;
+        client.showhelp = false;
 
         if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value)
             return;
 
-        if (ent.client.showscores) {
-            ent.client.showscores = false;
+        if (client.showscores) {
+            client.showscores = false;
             return;
         }
 
-        ent.client.showscores = true;
+        client.showscores = true;
         DeathmatchScoreboard(ent);
     }
 
@@ -299,24 +303,25 @@ public class PlayerHud {
         //
         // health
         //
-        ent.client.ps.stats[Defines.STAT_HEALTH_ICON] = (short) GameBase.level.pic_health;
-        ent.client.ps.stats[Defines.STAT_HEALTH] = (short) ent.health;
+        gclient_t client = (gclient_t) ent.client;
+        client.getPlayerState().stats[Defines.STAT_HEALTH_ICON] = (short) GameBase.level.pic_health;
+        client.getPlayerState().stats[Defines.STAT_HEALTH] = (short) ent.health;
 
         //
         // ammo
         //
-        if (0 == ent.client.ammo_index /*
+        if (0 == client.ammo_index /*
                                         * ||
                                         * !ent.client.pers.inventory[ent.client.ammo_index]
                                         */
         ) {
-            ent.client.ps.stats[Defines.STAT_AMMO_ICON] = 0;
-            ent.client.ps.stats[Defines.STAT_AMMO] = 0;
+            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = 0;
+            client.getPlayerState().stats[Defines.STAT_AMMO] = 0;
         } else {
-            item = GameItemList.itemlist[ent.client.ammo_index];
-            ent.client.ps.stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gi
+            item = GameItemList.itemlist[client.ammo_index];
+            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gi
                     .imageindex(item.icon);
-            ent.client.ps.stats[Defines.STAT_AMMO] = (short) ent.client.pers.inventory[ent.client.ammo_index];
+            client.getPlayerState().stats[Defines.STAT_AMMO] = (short) client.pers.inventory[client.ammo_index];
         }
 
         //
@@ -324,7 +329,7 @@ public class PlayerHud {
         //
         power_armor_type = GameItems.PowerArmorType(ent);
         if (power_armor_type != 0) {
-            cells = ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+            cells = client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                     .FindItem("cells"))];
             if (cells == 0) { // ran out of cells for power armor
                 ent.flags &= ~Defines.FL_POWER_ARMOR;
@@ -347,102 +352,102 @@ public class PlayerHud {
                                                                          // other
                                                                          // armor
                                                                          // icon
-            ent.client.ps.stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
                     .imageindex("i_powershield");
-            ent.client.ps.stats[Defines.STAT_ARMOR] = (short) cells;
+            client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) cells;
         } else if (index != 0) {
             item = GameItems.GetItemByIndex(index);
-            ent.client.ps.stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
                     .imageindex(item.icon);
-            ent.client.ps.stats[Defines.STAT_ARMOR] = (short) ent.client.pers.inventory[index];
+            client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) client.pers.inventory[index];
         } else {
-            ent.client.ps.stats[Defines.STAT_ARMOR_ICON] = 0;
-            ent.client.ps.stats[Defines.STAT_ARMOR] = 0;
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = 0;
+            client.getPlayerState().stats[Defines.STAT_ARMOR] = 0;
         }
 
         //
         // pickup message
         //
-        if (GameBase.level.time > ent.client.pickup_msg_time) {
-            ent.client.ps.stats[Defines.STAT_PICKUP_ICON] = 0;
-            ent.client.ps.stats[Defines.STAT_PICKUP_STRING] = 0;
+        if (GameBase.level.time > client.pickup_msg_time) {
+            client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = 0;
+            client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = 0;
         }
 
         //
         // timers
         //
-        if (ent.client.quad_framenum > GameBase.level.framenum) {
-            ent.client.ps.stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+        if (client.quad_framenum > GameBase.level.framenum) {
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
                     .imageindex("p_quad");
-            ent.client.ps.stats[Defines.STAT_TIMER] = (short) ((ent.client.quad_framenum - GameBase.level.framenum) / 10);
-        } else if (ent.client.invincible_framenum > GameBase.level.framenum) {
-            ent.client.ps.stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.quad_framenum - GameBase.level.framenum) / 10);
+        } else if (client.invincible_framenum > GameBase.level.framenum) {
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
                     .imageindex("p_invulnerability");
-            ent.client.ps.stats[Defines.STAT_TIMER] = (short) ((ent.client.invincible_framenum - GameBase.level.framenum) / 10);
-        } else if (ent.client.enviro_framenum > GameBase.level.framenum) {
-            ent.client.ps.stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.invincible_framenum - GameBase.level.framenum) / 10);
+        } else if (client.enviro_framenum > GameBase.level.framenum) {
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
                     .imageindex("p_envirosuit");
-            ent.client.ps.stats[Defines.STAT_TIMER] = (short) ((ent.client.enviro_framenum - GameBase.level.framenum) / 10);
-        } else if (ent.client.breather_framenum > GameBase.level.framenum) {
-            ent.client.ps.stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.enviro_framenum - GameBase.level.framenum) / 10);
+        } else if (client.breather_framenum > GameBase.level.framenum) {
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
                     .imageindex("p_rebreather");
-            ent.client.ps.stats[Defines.STAT_TIMER] = (short) ((ent.client.breather_framenum - GameBase.level.framenum) / 10);
+            client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.breather_framenum - GameBase.level.framenum) / 10);
         } else {
-            ent.client.ps.stats[Defines.STAT_TIMER_ICON] = 0;
-            ent.client.ps.stats[Defines.STAT_TIMER] = 0;
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = 0;
+            client.getPlayerState().stats[Defines.STAT_TIMER] = 0;
         }
 
         //
         // selected item
         //
         // bugfix rst
-        if (ent.client.pers.selected_item <= 0)
-            ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = 0;
+        if (client.pers.selected_item <= 0)
+            client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = 0;
         else
-            ent.client.ps.stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gi
-                    .imageindex(GameItemList.itemlist[ent.client.pers.selected_item].icon);
+            client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gi
+                    .imageindex(GameItemList.itemlist[client.pers.selected_item].icon);
 
-        ent.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) ent.client.pers.selected_item;
+        client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) client.pers.selected_item;
 
         //
         // layouts
         //
-        ent.client.ps.stats[Defines.STAT_LAYOUTS] = 0;
+        client.getPlayerState().stats[Defines.STAT_LAYOUTS] = 0;
 
         if (GameBase.deathmatch.value != 0) {
-            if (ent.client.pers.health <= 0
+            if (client.pers.health <= 0
                     || GameBase.level.intermissiontime != 0
-                    || ent.client.showscores)
-                ent.client.ps.stats[Defines.STAT_LAYOUTS] |= 1;
-            if (ent.client.showinventory && ent.client.pers.health > 0)
-                ent.client.ps.stats[Defines.STAT_LAYOUTS] |= 2;
+                    || client.showscores)
+                client.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 1;
+            if (client.showinventory && client.pers.health > 0)
+                client.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 2;
         } else {
-            if (ent.client.showscores || ent.client.showhelp)
-                ent.client.ps.stats[Defines.STAT_LAYOUTS] |= 1;
-            if (ent.client.showinventory && ent.client.pers.health > 0)
-                ent.client.ps.stats[Defines.STAT_LAYOUTS] |= 2;
+            if (client.showscores || client.showhelp)
+                client.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 1;
+            if (client.showinventory && client.pers.health > 0)
+                client.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 2;
         }
 
         //
         // frags
         //
-        ent.client.ps.stats[Defines.STAT_FRAGS] = (short) ent.client.resp.score;
+        client.getPlayerState().stats[Defines.STAT_FRAGS] = (short) client.resp.score;
 
         //
         // help icon / current weapon if not shown
         //
-        if (ent.client.pers.helpchanged != 0
+        if (client.pers.helpchanged != 0
                 && (GameBase.level.framenum & 8) != 0)
-            ent.client.ps.stats[Defines.STAT_HELPICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gi
                     .imageindex("i_help");
-        else if ((ent.client.pers.hand == Defines.CENTER_HANDED || ent.client.ps.fov > 91)
-                && ent.client.pers.weapon != null)
-            ent.client.ps.stats[Defines.STAT_HELPICON] = (short) GameBase.gi
-                    .imageindex(ent.client.pers.weapon.icon);
+        else if ((client.pers.hand == Defines.CENTER_HANDED || client.getPlayerState().fov > 91)
+                && client.pers.weapon != null)
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gi
+                    .imageindex(client.pers.weapon.icon);
         else
-            ent.client.ps.stats[Defines.STAT_HELPICON] = 0;
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = 0;
 
-        ent.client.ps.stats[Defines.STAT_SPECTATOR] = 0;
+        client.getPlayerState().stats[Defines.STAT_SPECTATOR] = 0;
     }
 
     /*
@@ -451,15 +456,13 @@ public class PlayerHud {
      * ===============
      */
     public static void G_CheckChaseStats(edict_t ent) {
-        int i;
-        gclient_t cl;
 
-        for (i = 1; i <= GameBase.maxclients.value; i++) {
-            cl = GameBase.g_edicts[i].client;
+        for (int i = 1; i <= GameBase.maxclients.value; i++) {
+            gclient_t cl = (gclient_t) GameBase.g_edicts[i].client;
             if (!GameBase.g_edicts[i].inuse || cl.chase_target != ent)
                 continue;
             //memcpy(cl.ps.stats, ent.client.ps.stats, sizeof(cl.ps.stats));
-            System.arraycopy(ent.client.ps.stats, 0, cl.ps.stats, 0,
+            System.arraycopy(ent.client.getPlayerState().stats, 0, cl.getPlayerState().stats, 0,
                     Defines.MAX_STATS);
 
             G_SetSpectatorStats(GameBase.g_edicts[i]);
@@ -472,28 +475,28 @@ public class PlayerHud {
      * ===============
      */
     public static void G_SetSpectatorStats(edict_t ent) {
-        gclient_t cl = ent.client;
+        gclient_t cl = (gclient_t) ent.client;
 
         if (null == cl.chase_target)
             G_SetStats(ent);
 
-        cl.ps.stats[Defines.STAT_SPECTATOR] = 1;
+        cl.getPlayerState().stats[Defines.STAT_SPECTATOR] = 1;
 
         // layouts are independant in spectator
-        cl.ps.stats[Defines.STAT_LAYOUTS] = 0;
+        cl.getPlayerState().stats[Defines.STAT_LAYOUTS] = 0;
         if (cl.pers.health <= 0 || GameBase.level.intermissiontime != 0
                 || cl.showscores)
-            cl.ps.stats[Defines.STAT_LAYOUTS] |= 1;
+            cl.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 1;
         if (cl.showinventory && cl.pers.health > 0)
-            cl.ps.stats[Defines.STAT_LAYOUTS] |= 2;
+            cl.getPlayerState().stats[Defines.STAT_LAYOUTS] |= 2;
 
         if (cl.chase_target != null && cl.chase_target.inuse)
             //cl.ps.stats[STAT_CHASE] = (short) (CS_PLAYERSKINS +
             // (cl.chase_target - g_edicts) - 1);
-            cl.ps.stats[Defines.STAT_CHASE] = (short) (Defines.CS_PLAYERSKINS
+            cl.getPlayerState().stats[Defines.STAT_CHASE] = (short) (Defines.CS_PLAYERSKINS
                     + cl.chase_target.index - 1);
         else
-            cl.ps.stats[Defines.STAT_CHASE] = 0;
+            cl.getPlayerState().stats[Defines.STAT_CHASE] = 0;
     }
 
     /** 

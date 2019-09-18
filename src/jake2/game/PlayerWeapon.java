@@ -35,25 +35,26 @@ public class PlayerWeapon {
     	public String getID() { return "Weapon_Grenade"; }
 
         public boolean think(edict_t ent) {
-            if ((ent.client.newweapon != null)
-                    && (ent.client.weaponstate == Defines.WEAPON_READY)) {
+            gclient_t client = (gclient_t) ent.client;
+            if ((client.newweapon != null)
+                    && (client.weaponstate == Defines.WEAPON_READY)) {
                 ChangeWeapon(ent);
                 return true;
             }
 
-            if (ent.client.weaponstate == Defines.WEAPON_ACTIVATING) {
-                ent.client.weaponstate = Defines.WEAPON_READY;
-                ent.client.ps.gunframe = 16;
+            if (client.weaponstate == Defines.WEAPON_ACTIVATING) {
+                client.weaponstate = Defines.WEAPON_READY;
+                client.getPlayerState().gunframe = 16;
                 return true;
             }
 
-            if (ent.client.weaponstate == Defines.WEAPON_READY) {
-                if (((ent.client.latched_buttons | ent.client.buttons) & Defines.BUTTON_ATTACK) != 0) {
-                    ent.client.latched_buttons &= ~Defines.BUTTON_ATTACK;
-                    if (0 != ent.client.pers.inventory[ent.client.ammo_index]) {
-                        ent.client.ps.gunframe = 1;
-                        ent.client.weaponstate = Defines.WEAPON_FIRING;
-                        ent.client.grenade_time = 0;
+            if (client.weaponstate == Defines.WEAPON_READY) {
+                if (((client.latched_buttons | client.buttons) & Defines.BUTTON_ATTACK) != 0) {
+                    client.latched_buttons &= ~Defines.BUTTON_ATTACK;
+                    if (0 != client.pers.inventory[client.ammo_index]) {
+                        client.getPlayerState().gunframe = 1;
+                        client.weaponstate = Defines.WEAPON_FIRING;
+                        client.grenade_time = 0;
                     } else {
                         if (GameBase.level.time >= ent.pain_debounce_time) {
                             GameBase.gi.sound(ent, Defines.CHAN_VOICE,
@@ -67,68 +68,68 @@ public class PlayerWeapon {
                     return true;
                 }
 
-                if ((ent.client.ps.gunframe == 29)
-                        || (ent.client.ps.gunframe == 34)
-                        || (ent.client.ps.gunframe == 39)
-                        || (ent.client.ps.gunframe == 48)) {
+                if ((client.getPlayerState().gunframe == 29)
+                        || (client.getPlayerState().gunframe == 34)
+                        || (client.getPlayerState().gunframe == 39)
+                        || (client.getPlayerState().gunframe == 48)) {
                     if ((Lib.rand() & 15) != 0)
                         return true;
                 }
 
-                if (++ent.client.ps.gunframe > 48)
-                    ent.client.ps.gunframe = 16;
+                if (++client.getPlayerState().gunframe > 48)
+                    client.getPlayerState().gunframe = 16;
                 return true;
             }
 
-            if (ent.client.weaponstate == Defines.WEAPON_FIRING) {
-                if (ent.client.ps.gunframe == 5)
+            if (client.weaponstate == Defines.WEAPON_FIRING) {
+                if (client.getPlayerState().gunframe == 5)
                     GameBase.gi.sound(ent, Defines.CHAN_WEAPON, GameBase.gi
                             .soundindex("weapons/hgrena1b.wav"), 1,
                             Defines.ATTN_NORM, 0);
 
-                if (ent.client.ps.gunframe == 11) {
-                    if (0 == ent.client.grenade_time) {
-                        ent.client.grenade_time = GameBase.level.time
+                if (client.getPlayerState().gunframe == 11) {
+                    if (0 == client.grenade_time) {
+                        client.grenade_time = GameBase.level.time
                                 + Defines.GRENADE_TIMER + 0.2f;
-                        ent.client.weapon_sound = GameBase.gi
+                        client.weapon_sound = GameBase.gi
                                 .soundindex("weapons/hgrenc1b.wav");
                     }
 
                     // they waited too long, detonate it in their hand
-                    if (!ent.client.grenade_blew_up
-                            && GameBase.level.time >= ent.client.grenade_time) {
-                        ent.client.weapon_sound = 0;
+                    if (!client.grenade_blew_up
+                            && GameBase.level.time >= client.grenade_time) {
+                        client.weapon_sound = 0;
                         weapon_grenade_fire(ent, true);
-                        ent.client.grenade_blew_up = true;
+                        client.grenade_blew_up = true;
                     }
 
-                    if ((ent.client.buttons & Defines.BUTTON_ATTACK) != 0)
+                    if ((client.buttons & Defines.BUTTON_ATTACK) != 0)
                         return true;
 
-                    if (ent.client.grenade_blew_up) {
-                        if (GameBase.level.time >= ent.client.grenade_time) {
-                            ent.client.ps.gunframe = 15;
-                            ent.client.grenade_blew_up = false;
+                    if (client.grenade_blew_up) {
+                        if (GameBase.level.time >= client.grenade_time) {
+                            client.getPlayerState().gunframe = 15;
+                            client.grenade_blew_up = false;
                         } else {
                             return true;
                         }
                     }
                 }
 
-                if (ent.client.ps.gunframe == 12) {
-                    ent.client.weapon_sound = 0;
+                if (client.getPlayerState().gunframe == 12) {
+                    client.weapon_sound = 0;
                     weapon_grenade_fire(ent, false);
                 }
 
-                if ((ent.client.ps.gunframe == 15)
-                        && (GameBase.level.time < ent.client.grenade_time))
+                if ((client.getPlayerState().gunframe == 15)
+                        && (GameBase.level.time < client.grenade_time))
                     return true;
 
-                ent.client.ps.gunframe++;
+                client.getPlayerState().gunframe++;
 
-                if (ent.client.ps.gunframe == 16) {
-                    ent.client.grenade_time = 0;
-                    ent.client.weaponstate = Defines.WEAPON_READY;
+                if (client.getPlayerState().gunframe == 16) {
+                    client.grenade_time = 0;
+                    client.weaponstate = Defines.WEAPON_READY;
                 }
             }
             return true;
@@ -158,12 +159,13 @@ public class PlayerWeapon {
                 damage *= 4;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            gclient_t client = (gclient_t) ent.client;
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
 
-            Math3D.VectorScale(forward, -2, ent.client.kick_origin);
-            ent.client.kick_angles[0] = -1;
+            Math3D.VectorScale(forward, -2, client.kick_origin);
+            client.kick_angles[0] = -1;
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
@@ -172,12 +174,12 @@ public class PlayerWeapon {
             GameBase.gi.WriteByte(Defines.MZ_GRENADE | is_silenced);
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
 
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index]--;
+                client.pers.inventory[client.ammo_index]--;
 
             return true;
         }
@@ -224,13 +226,14 @@ public class PlayerWeapon {
                 radius_damage *= 4;
             }
 
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            gclient_t client = (gclient_t) ent.client;
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
 
-            Math3D.VectorScale(forward, -2, ent.client.kick_origin);
-            ent.client.kick_angles[0] = -1;
+            Math3D.VectorScale(forward, -2, client.kick_origin);
+            client.kick_angles[0] = -1;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
             GameWeapon.fire_rocket(ent, start, forward, damage, 650, damage_radius,
                     radius_damage);
@@ -242,12 +245,12 @@ public class PlayerWeapon {
             GameBase.gi.WriteByte(Defines.MZ_ROCKET | is_silenced);
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
 
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index]--;
+                client.pers.inventory[client.ammo_index]--;
 
             return true;
         }
@@ -280,7 +283,7 @@ public class PlayerWeapon {
                 damage = 10;
             Blaster_Fire(ent, Globals.vec3_origin, damage, false,
                     Defines.EF_BLASTER);
-            ent.client.ps.gunframe++;
+            ent.client.getPlayerState().gunframe++;
             return true;
         }
     };
@@ -308,13 +311,14 @@ public class PlayerWeapon {
             int effect;
             int damage;
 
-            ent.client.weapon_sound = GameBase.gi
+            gclient_t client = (gclient_t) ent.client;
+            client.weapon_sound = GameBase.gi
                     .soundindex("weapons/hyprbl1a.wav");
 
-            if (0 == (ent.client.buttons & Defines.BUTTON_ATTACK)) {
-                ent.client.ps.gunframe++;
+            if (0 == (client.buttons & Defines.BUTTON_ATTACK)) {
+                client.getPlayerState().gunframe++;
             } else {
-                if (0 == ent.client.pers.inventory[ent.client.ammo_index]) {
+                if (0 == client.pers.inventory[client.ammo_index]) {
                     if (GameBase.level.time >= ent.pain_debounce_time) {
                         GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
                                 .soundindex("weapons/noammo.wav"), 1,
@@ -323,14 +327,14 @@ public class PlayerWeapon {
                     }
                     NoAmmoWeaponChange(ent);
                 } else {
-                    rotation = (float) ((ent.client.ps.gunframe - 5) * 2
+                    rotation = (float) ((client.getPlayerState().gunframe - 5) * 2
                             * Math.PI / 6);
                     offset[0] = (float) (-4 * Math.sin(rotation));
                     offset[1] = 0f;
                     offset[2] = (float) (4 * Math.cos(rotation));
 
-                    if ((ent.client.ps.gunframe == 6)
-                            || (ent.client.ps.gunframe == 9))
+                    if ((client.getPlayerState().gunframe == 6)
+                            || (client.getPlayerState().gunframe == 9))
                         effect = Defines.EF_HYPERBLASTER;
                     else
                         effect = 0;
@@ -340,29 +344,29 @@ public class PlayerWeapon {
                         damage = 20;
                     Blaster_Fire(ent, offset, damage, true, effect);
                     if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                        ent.client.pers.inventory[ent.client.ammo_index]--;
+                        client.pers.inventory[client.ammo_index]--;
 
-                    ent.client.anim_priority = Defines.ANIM_ATTACK;
-                    if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+                    client.anim_priority = Defines.ANIM_ATTACK;
+                    if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         ent.s.frame = M_Player.FRAME_crattak1 - 1;
-                        ent.client.anim_end = M_Player.FRAME_crattak9;
+                        client.anim_end = M_Player.FRAME_crattak9;
                     } else {
                         ent.s.frame = M_Player.FRAME_attack1 - 1;
-                        ent.client.anim_end = M_Player.FRAME_attack8;
+                        client.anim_end = M_Player.FRAME_attack8;
                     }
                 }
 
-                ent.client.ps.gunframe++;
-                if (ent.client.ps.gunframe == 12
-                        && 0 != ent.client.pers.inventory[ent.client.ammo_index])
-                    ent.client.ps.gunframe = 6;
+                client.getPlayerState().gunframe++;
+                if (client.getPlayerState().gunframe == 12
+                        && 0 != client.pers.inventory[client.ammo_index])
+                    client.getPlayerState().gunframe = 6;
             }
 
-            if (ent.client.ps.gunframe == 12) {
+            if (client.getPlayerState().gunframe == 12) {
                 GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
                         .soundindex("weapons/hyprbd1a.wav"), 1,
                         Defines.ATTN_NORM, 0);
-                ent.client.weapon_sound = 0;
+                client.weapon_sound = 0;
             }
 
             return true;
@@ -429,18 +433,19 @@ public class PlayerWeapon {
             int damage = 4;
             int kick = 8;
 
-            if (ent.client.ps.gunframe == 9) {
-                ent.client.ps.gunframe++;
+            gclient_t client = (gclient_t) ent.client;
+            if (client.getPlayerState().gunframe == 9) {
+                client.getPlayerState().gunframe++;
                 return true;
             }
 
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
 
-            Math3D.VectorScale(forward, -2, ent.client.kick_origin);
-            ent.client.kick_angles[0] = -2;
+            Math3D.VectorScale(forward, -2, client.kick_origin);
+            client.kick_angles[0] = -2;
 
             Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
 
             if (is_quad) {
@@ -463,11 +468,11 @@ public class PlayerWeapon {
             GameBase.gi.WriteByte(Defines.MZ_SHOTGUN | is_silenced);
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index]--;
+                client.pers.inventory[client.ammo_index]--;
 
             return true;
         }
@@ -497,13 +502,14 @@ public class PlayerWeapon {
             int damage = 6;
             int kick = 12;
 
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            gclient_t client = (gclient_t) ent.client;
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
 
-            Math3D.VectorScale(forward, -2, ent.client.kick_origin);
-            ent.client.kick_angles[0] = -2;
+            Math3D.VectorScale(forward, -2, client.kick_origin);
+            client.kick_angles[0] = -2;
 
             Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
 
             if (is_quad) {
@@ -511,15 +517,15 @@ public class PlayerWeapon {
                 kick *= 4;
             }
 
-            v[Defines.PITCH] = ent.client.v_angle[Defines.PITCH];
-            v[Defines.YAW] = ent.client.v_angle[Defines.YAW] - 5;
-            v[Defines.ROLL] = ent.client.v_angle[Defines.ROLL];
+            v[Defines.PITCH] = client.v_angle[Defines.PITCH];
+            v[Defines.YAW] = client.v_angle[Defines.YAW] - 5;
+            v[Defines.ROLL] = client.v_angle[Defines.ROLL];
             Math3D.AngleVectors(v, forward, null, null);
             GameWeapon.fire_shotgun(ent, start, forward, damage, kick,
                     Defines.DEFAULT_SHOTGUN_HSPREAD,
                     Defines.DEFAULT_SHOTGUN_VSPREAD,
                     Defines.DEFAULT_SSHOTGUN_COUNT / 2, Defines.MOD_SSHOTGUN);
-            v[Defines.YAW] = ent.client.v_angle[Defines.YAW] + 5;
+            v[Defines.YAW] = client.v_angle[Defines.YAW] + 5;
             Math3D.AngleVectors(v, forward, null, null);
             GameWeapon.fire_shotgun(ent, start, forward, damage, kick,
                     Defines.DEFAULT_SHOTGUN_HSPREAD,
@@ -533,11 +539,11 @@ public class PlayerWeapon {
             GameBase.gi.WriteByte(Defines.MZ_SSHOTGUN | is_silenced);
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index] -= 2;
+                client.pers.inventory[client.ammo_index] -= 2;
 
             return true;
         }
@@ -588,13 +594,14 @@ public class PlayerWeapon {
                 kick *= 4;
             }
 
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            gclient_t client = (gclient_t) ent.client;
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
 
-            Math3D.VectorScale(forward, -3, ent.client.kick_origin);
-            ent.client.kick_angles[0] = -3;
+            Math3D.VectorScale(forward, -3, client.kick_origin);
+            client.kick_angles[0] = -3;
 
             Math3D.VectorSet(offset, 0, 7, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
             GameWeapon.fire_rail(ent, start, forward, damage, kick);
 
@@ -605,11 +612,11 @@ public class PlayerWeapon {
             GameBase.gi.WriteByte(Defines.MZ_RAILGUN | is_silenced);
             GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index]--;
+                client.pers.inventory[client.ammo_index]--;
 
             return true;
         }
@@ -651,7 +658,8 @@ public class PlayerWeapon {
             else
                 damage = 500;
 
-            if (ent.client.ps.gunframe == 9) {
+            gclient_t client = (gclient_t) ent.client;
+            if (client.getPlayerState().gunframe == 9) {
                 // send muzzle flash
                 GameBase.gi.WriteByte(Defines.svc_muzzleflash);
 
@@ -659,7 +667,7 @@ public class PlayerWeapon {
                 GameBase.gi.WriteByte(Defines.MZ_BFG | is_silenced);
                 GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
 
-                ent.client.ps.gunframe++;
+                client.getPlayerState().gunframe++;
 
                 PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
                 return true;
@@ -667,34 +675,34 @@ public class PlayerWeapon {
 
             // cells can go down during windup (from power armor hits), so
             // check again and abort firing if we don't have enough now
-            if (ent.client.pers.inventory[ent.client.ammo_index] < 50) {
-                ent.client.ps.gunframe++;
+            if (client.pers.inventory[client.ammo_index] < 50) {
+                client.getPlayerState().gunframe++;
                 return true;
             }
 
             if (is_quad)
                 damage *= 4;
 
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
 
-            Math3D.VectorScale(forward, -2, ent.client.kick_origin);
+            Math3D.VectorScale(forward, -2, client.kick_origin);
 
             // make a big pitch kick with an inverse fall
-            ent.client.v_dmg_pitch = -40;
-            ent.client.v_dmg_roll = Lib.crandom() * 8;
-            ent.client.v_dmg_time = GameBase.level.time + Defines.DAMAGE_TIME;
+            client.v_dmg_pitch = -40;
+            client.v_dmg_roll = Lib.crandom() * 8;
+            client.v_dmg_time = GameBase.level.time + Defines.DAMAGE_TIME;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
             GameWeapon.fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
 
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index] -= 50;
+                client.pers.inventory[client.ammo_index] -= 50;
 
             return true;
         }
@@ -730,7 +738,8 @@ public class PlayerWeapon {
             gitem_t ammo_item;
 
             // see if we're already using it
-            if (item == ent.client.pers.weapon)
+            gclient_t client = (gclient_t) ent.client;
+            if (item == client.pers.weapon)
                 return;
 
             if (item.ammo != null && 0 == GameBase.g_select_empty.value
@@ -739,14 +748,14 @@ public class PlayerWeapon {
                 ammo_item = GameItems.FindItem(item.ammo);
                 ammo_index = GameItems.ITEM_INDEX(ammo_item);
 
-                if (0 == ent.client.pers.inventory[ammo_index]) {
+                if (0 == client.pers.inventory[ammo_index]) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
                     return;
                 }
 
-                if (ent.client.pers.inventory[ammo_index] < item.quantity) {
+                if (client.pers.inventory[ammo_index] < item.quantity) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Not enough "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
@@ -755,7 +764,7 @@ public class PlayerWeapon {
             }
 
             // change to this weapon when down
-            ent.client.newweapon = item;
+            client.newweapon = item;
         }
     };
 
@@ -775,15 +784,16 @@ public class PlayerWeapon {
 
             index = GameItems.ITEM_INDEX(item);
             // see if we're already using it
-            if (((item == ent.client.pers.weapon) || (item == ent.client.newweapon))
-                    && (ent.client.pers.inventory[index] == 1)) {
+            gclient_t client = (gclient_t) ent.client;
+            if (((item == client.pers.weapon) || (item == client.newweapon))
+                    && (client.pers.inventory[index] == 1)) {
                 GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
                 return;
             }
 
             GameItems.Drop_Item(ent, item);
-            ent.client.pers.inventory[index]--;
+            client.pers.inventory[index]--;
         }
     };
 
@@ -808,19 +818,20 @@ public class PlayerWeapon {
             int kick = 2;
             float[] offset = { 0, 0, 0 };
 
-            if (0 == (ent.client.buttons & Defines.BUTTON_ATTACK)) {
-                ent.client.machinegun_shots = 0;
-                ent.client.ps.gunframe++;
+            gclient_t client = (gclient_t) ent.client;
+            if (0 == (client.buttons & Defines.BUTTON_ATTACK)) {
+                client.machinegun_shots = 0;
+                client.getPlayerState().gunframe++;
                 return true;
             }
 
-            if (ent.client.ps.gunframe == 5)
-                ent.client.ps.gunframe = 4;
+            if (client.getPlayerState().gunframe == 5)
+                client.getPlayerState().gunframe = 4;
             else
-                ent.client.ps.gunframe = 5;
+                client.getPlayerState().gunframe = 5;
 
-            if (ent.client.pers.inventory[ent.client.ammo_index] < 1) {
-                ent.client.ps.gunframe = 6;
+            if (client.pers.inventory[client.ammo_index] < 1) {
+                client.getPlayerState().gunframe = 6;
                 if (GameBase.level.time >= ent.pain_debounce_time) {
                     GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
                             .soundindex("weapons/noammo.wav"), 1,
@@ -837,26 +848,26 @@ public class PlayerWeapon {
             }
 
             for (i = 1; i < 3; i++) {
-                ent.client.kick_origin[i] = Lib.crandom() * 0.35f;
-                ent.client.kick_angles[i] = Lib.crandom() * 0.7f;
+                client.kick_origin[i] = Lib.crandom() * 0.35f;
+                client.kick_angles[i] = Lib.crandom() * 0.7f;
             }
-            ent.client.kick_origin[0] = Lib.crandom() * 0.35f;
-            ent.client.kick_angles[0] = ent.client.machinegun_shots * -1.5f;
+            client.kick_origin[0] = Lib.crandom() * 0.35f;
+            client.kick_angles[0] = client.machinegun_shots * -1.5f;
 
             // raise the gun as it is firing
             if (0 == GameBase.deathmatch.value) {
-                ent.client.machinegun_shots++;
-                if (ent.client.machinegun_shots > 9)
-                    ent.client.machinegun_shots = 9;
+                client.machinegun_shots++;
+                if (client.machinegun_shots > 9)
+                    client.machinegun_shots = 9;
             }
 
             // get start / end positions
             Math3D
-                    .VectorAdd(ent.client.v_angle, ent.client.kick_angles,
+                    .VectorAdd(client.v_angle, client.kick_angles,
                             angles);
             Math3D.AngleVectors(angles, forward, right, null);
             Math3D.VectorSet(offset, 0, 8, ent.viewheight - 8);
-            P_ProjectSource(ent.client, ent.s.origin, offset, forward, right,
+            P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
             GameWeapon.fire_bullet(ent, start, forward, damage, kick,
                     Defines.DEFAULT_BULLET_HSPREAD,
@@ -871,17 +882,17 @@ public class PlayerWeapon {
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index]--;
+                client.pers.inventory[client.ammo_index]--;
 
-            ent.client.anim_priority = Defines.ANIM_ATTACK;
-            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+            client.anim_priority = Defines.ANIM_ATTACK;
+            if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 ent.s.frame = M_Player.FRAME_crattak1
                         - (int) (Lib.random() + 0.25);
-                ent.client.anim_end = M_Player.FRAME_crattak9;
+                client.anim_end = M_Player.FRAME_crattak9;
             } else {
                 ent.s.frame = M_Player.FRAME_attack1
                         - (int) (Lib.random() + 0.25);
-                ent.client.anim_end = M_Player.FRAME_attack8;
+                client.anim_end = M_Player.FRAME_attack8;
             }
             return true;
         }
@@ -906,57 +917,58 @@ public class PlayerWeapon {
             else
                 damage = 8;
 
-            if (ent.client.ps.gunframe == 5)
+            gclient_t client = (gclient_t) ent.client;
+            if (client.getPlayerState().gunframe == 5)
                 GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
                         .soundindex("weapons/chngnu1a.wav"), 1,
                         Defines.ATTN_IDLE, 0);
 
-            if ((ent.client.ps.gunframe == 14)
-                    && 0 == (ent.client.buttons & Defines.BUTTON_ATTACK)) {
-                ent.client.ps.gunframe = 32;
-                ent.client.weapon_sound = 0;
+            if ((client.getPlayerState().gunframe == 14)
+                    && 0 == (client.buttons & Defines.BUTTON_ATTACK)) {
+                client.getPlayerState().gunframe = 32;
+                client.weapon_sound = 0;
                 return true;
-            } else if ((ent.client.ps.gunframe == 21)
-                    && (ent.client.buttons & Defines.BUTTON_ATTACK) != 0
-                    && 0 != ent.client.pers.inventory[ent.client.ammo_index]) {
-                ent.client.ps.gunframe = 15;
+            } else if ((client.getPlayerState().gunframe == 21)
+                    && (client.buttons & Defines.BUTTON_ATTACK) != 0
+                    && 0 != client.pers.inventory[client.ammo_index]) {
+                client.getPlayerState().gunframe = 15;
             } else {
-                ent.client.ps.gunframe++;
+                client.getPlayerState().gunframe++;
             }
 
-            if (ent.client.ps.gunframe == 22) {
-                ent.client.weapon_sound = 0;
+            if (client.getPlayerState().gunframe == 22) {
+                client.weapon_sound = 0;
                 GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
                         .soundindex("weapons/chngnd1a.wav"), 1,
                         Defines.ATTN_IDLE, 0);
             } else {
-                ent.client.weapon_sound = GameBase.gi
+                client.weapon_sound = GameBase.gi
                         .soundindex("weapons/chngnl1a.wav");
             }
 
-            ent.client.anim_priority = Defines.ANIM_ATTACK;
-            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+            client.anim_priority = Defines.ANIM_ATTACK;
+            if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 ent.s.frame = M_Player.FRAME_crattak1
-                        - (ent.client.ps.gunframe & 1);
-                ent.client.anim_end = M_Player.FRAME_crattak9;
+                        - (client.getPlayerState().gunframe & 1);
+                client.anim_end = M_Player.FRAME_crattak9;
             } else {
                 ent.s.frame = M_Player.FRAME_attack1
-                        - (ent.client.ps.gunframe & 1);
-                ent.client.anim_end = M_Player.FRAME_attack8;
+                        - (client.getPlayerState().gunframe & 1);
+                client.anim_end = M_Player.FRAME_attack8;
             }
 
-            if (ent.client.ps.gunframe <= 9)
+            if (client.getPlayerState().gunframe <= 9)
                 shots = 1;
-            else if (ent.client.ps.gunframe <= 14) {
-                if ((ent.client.buttons & Defines.BUTTON_ATTACK) != 0)
+            else if (client.getPlayerState().gunframe <= 14) {
+                if ((client.buttons & Defines.BUTTON_ATTACK) != 0)
                     shots = 2;
                 else
                     shots = 1;
             } else
                 shots = 3;
 
-            if (ent.client.pers.inventory[ent.client.ammo_index] < shots)
-                shots = ent.client.pers.inventory[ent.client.ammo_index];
+            if (client.pers.inventory[client.ammo_index] < shots)
+                shots = client.pers.inventory[client.ammo_index];
 
             if (0 == shots) {
                 if (GameBase.level.time >= ent.pain_debounce_time) {
@@ -975,17 +987,17 @@ public class PlayerWeapon {
             }
 
             for (i = 0; i < 3; i++) {
-                ent.client.kick_origin[i] = Lib.crandom() * 0.35f;
-                ent.client.kick_angles[i] = Lib.crandom() * 0.7f;
+                client.kick_origin[i] = Lib.crandom() * 0.35f;
+                client.kick_angles[i] = Lib.crandom() * 0.7f;
             }
 
             for (i = 0; i < shots; i++) {
                 // get start / end positions
-                Math3D.AngleVectors(ent.client.v_angle, forward, right, up);
+                Math3D.AngleVectors(client.v_angle, forward, right, up);
                 r = 7 + Lib.crandom() * 4;
                 u = Lib.crandom() * 4;
                 Math3D.VectorSet(offset, 0, r, u + ent.viewheight - 8);
-                P_ProjectSource(ent.client, ent.s.origin, offset, forward,
+                P_ProjectSource(client, ent.s.origin, offset, forward,
                         right, start);
 
                 GameWeapon.fire_bullet(ent, start, forward, damage, kick,
@@ -1004,7 +1016,7 @@ public class PlayerWeapon {
             PlayerWeapon.PlayerNoise(ent, start, Defines.PNOISE_WEAPON);
 
             if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-                ent.client.pers.inventory[ent.client.ammo_index] -= shots;
+                client.pers.inventory[client.ammo_index] -= shots;
 
             return true;
         }
@@ -1021,14 +1033,15 @@ public class PlayerWeapon {
             gitem_t ammo;
     
             index = GameItems.ITEM_INDEX(ent.item);
-    
+
+            gclient_t client = (gclient_t) other.client;
             if ((((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || GameBase.coop.value != 0)
-                    && 0 != other.client.pers.inventory[index]) {
+                    && 0 != client.pers.inventory[index]) {
                 if (0 == (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM)))
                     return false; // leave the weapon for others to pickup
             }
     
-            other.client.pers.inventory[index]++;
+            client.pers.inventory[index]++;
     
             if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)) {
                 // give them some ammo with it
@@ -1050,11 +1063,11 @@ public class PlayerWeapon {
                 }
             }
     
-            if (other.client.pers.weapon != ent.item
-                    && (other.client.pers.inventory[index] == 1)
-                    && (0 == GameBase.deathmatch.value || other.client.pers.weapon == GameItems
+            if (client.pers.weapon != ent.item
+                    && (client.pers.inventory[index] == 1)
+                    && (0 == GameBase.deathmatch.value || client.pers.weapon == GameItems
                             .FindItem("blaster")))
-                other.client.newweapon = ent.item;
+                client.newweapon = ent.item;
     
             return true;
         }
@@ -1082,52 +1095,53 @@ public class PlayerWeapon {
     public static void ChangeWeapon(edict_t ent) {
         int i;
 
-        if (ent.client.grenade_time != 0) {
-            ent.client.grenade_time = GameBase.level.time;
-            ent.client.weapon_sound = 0;
+        gclient_t client = (gclient_t) ent.client;
+        if (client.grenade_time != 0) {
+            client.grenade_time = GameBase.level.time;
+            client.weapon_sound = 0;
             weapon_grenade_fire(ent, false);
-            ent.client.grenade_time = 0;
+            client.grenade_time = 0;
         }
 
-        ent.client.pers.lastweapon = ent.client.pers.weapon;
-        ent.client.pers.weapon = ent.client.newweapon;
-        ent.client.newweapon = null;
-        ent.client.machinegun_shots = 0;
+        client.pers.lastweapon = client.pers.weapon;
+        client.pers.weapon = client.newweapon;
+        client.newweapon = null;
+        client.machinegun_shots = 0;
 
         // set visible model
         if (ent.s.modelindex == 255) {
-            if (ent.client.pers.weapon != null)
-                i = ((ent.client.pers.weapon.weapmodel & 0xff) << 8);
+            if (client.pers.weapon != null)
+                i = ((client.pers.weapon.weapmodel & 0xff) << 8);
             else
                 i = 0;
             ent.s.skinnum = (ent.index - 1) | i;
         }
 
-        if (ent.client.pers.weapon != null
-                && ent.client.pers.weapon.ammo != null)
+        if (client.pers.weapon != null
+                && client.pers.weapon.ammo != null)
             
-            ent.client.ammo_index = GameItems.ITEM_INDEX(GameItems
-                    .FindItem(ent.client.pers.weapon.ammo));
+            client.ammo_index = GameItems.ITEM_INDEX(GameItems
+                    .FindItem(client.pers.weapon.ammo));
         else
-            ent.client.ammo_index = 0;
+            client.ammo_index = 0;
 
-        if (ent.client.pers.weapon == null) { // dead
-            ent.client.ps.gunindex = 0;
+        if (client.pers.weapon == null) { // dead
+            client.getPlayerState().gunindex = 0;
             return;
         }
 
-        ent.client.weaponstate = Defines.WEAPON_ACTIVATING;
-        ent.client.ps.gunframe = 0;
-        ent.client.ps.gunindex = GameBase.gi
-                .modelindex(ent.client.pers.weapon.view_model);
+        client.weaponstate = Defines.WEAPON_ACTIVATING;
+        client.getPlayerState().gunframe = 0;
+        client.getPlayerState().gunindex = GameBase.gi
+                .modelindex(client.pers.weapon.view_model);
 
-        ent.client.anim_priority = Defines.ANIM_PAIN;
-        if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+        client.anim_priority = Defines.ANIM_PAIN;
+        if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
             ent.s.frame = M_Player.FRAME_crpain1;
-            ent.client.anim_end = M_Player.FRAME_crpain4;
+            client.anim_end = M_Player.FRAME_crpain4;
         } else {
             ent.s.frame = M_Player.FRAME_pain301;
-            ent.client.anim_end = M_Player.FRAME_pain304;
+            client.anim_end = M_Player.FRAME_pain304;
 
         }
     }
@@ -1138,49 +1152,50 @@ public class PlayerWeapon {
      * =================
      */
     public static void NoAmmoWeaponChange(edict_t ent) {
-        if (0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        gclient_t client = (gclient_t) ent.client;
+        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("slugs"))]
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("railgun"))]) {
-            ent.client.newweapon = GameItems.FindItem("railgun");
+            client.newweapon = GameItems.FindItem("railgun");
             return;
         }
-        if (0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("cells"))]
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("hyperblaster"))]) {
-            ent.client.newweapon = GameItems.FindItem("hyperblaster");
+            client.newweapon = GameItems.FindItem("hyperblaster");
             return;
         }
-        if (0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("bullets"))]
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("chaingun"))]) {
-            ent.client.newweapon = GameItems.FindItem("chaingun");
+            client.newweapon = GameItems.FindItem("chaingun");
             return;
         }
-        if (0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("bullets"))]
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("machinegun"))]) {
-            ent.client.newweapon = GameItems.FindItem("machinegun");
+            client.newweapon = GameItems.FindItem("machinegun");
             return;
         }
-        if (ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        if (client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("shells"))] > 1
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("super shotgun"))]) {
-            ent.client.newweapon = GameItems.FindItem("super shotgun");
+            client.newweapon = GameItems.FindItem("super shotgun");
             return;
         }
-        if (0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                 .FindItem("shells"))]
-                && 0 != ent.client.pers.inventory[GameItems.ITEM_INDEX(GameItems
+                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                         .FindItem("shotgun"))]) {
-            ent.client.newweapon = GameItems.FindItem("shotgun");
+            client.newweapon = GameItems.FindItem("shotgun");
             return;
         }
-        ent.client.newweapon = GameItems.FindItem("blaster");
+        client.newweapon = GameItems.FindItem("blaster");
     }
 
     /*
@@ -1192,20 +1207,21 @@ public class PlayerWeapon {
      */
     public static void Think_Weapon(edict_t ent) {
         // if just died, put the weapon away
+        gclient_t client = (gclient_t) ent.client;
         if (ent.health < 1) {
-            ent.client.newweapon = null;
+            client.newweapon = null;
             ChangeWeapon(ent);
         }
 
         // call active weapon think routine
-        if (null != ent.client.pers.weapon
-                && null != ent.client.pers.weapon.weaponthink) {
-            is_quad = (ent.client.quad_framenum > GameBase.level.framenum);
-            if (ent.client.silencer_shots != 0)
+        if (null != client.pers.weapon
+                && null != client.pers.weapon.weaponthink) {
+            is_quad = (client.quad_framenum > GameBase.level.framenum);
+            if (client.silencer_shots != 0)
                 is_silenced = (byte) Defines.MZ_SILENCED;
             else
                 is_silenced = 0;
-            ent.client.pers.weapon.weaponthink.think(ent);
+            client.pers.weapon.weaponthink.think(ent);
         }
     }
 
@@ -1233,71 +1249,72 @@ public class PlayerWeapon {
             return;
         }
 
-        if (ent.client.weaponstate == Defines.WEAPON_DROPPING) {
-            if (ent.client.ps.gunframe == FRAME_DEACTIVATE_LAST) {
+        gclient_t client = (gclient_t) ent.client;
+        if (client.weaponstate == Defines.WEAPON_DROPPING) {
+            if (client.getPlayerState().gunframe == FRAME_DEACTIVATE_LAST) {
                 ChangeWeapon(ent);
                 return;
-            } else if ((FRAME_DEACTIVATE_LAST - ent.client.ps.gunframe) == 4) {
-                ent.client.anim_priority = Defines.ANIM_REVERSE;
-                if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+            } else if ((FRAME_DEACTIVATE_LAST - client.getPlayerState().gunframe) == 4) {
+                client.anim_priority = Defines.ANIM_REVERSE;
+                if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                     ent.s.frame = M_Player.FRAME_crpain4 + 1;
-                    ent.client.anim_end = M_Player.FRAME_crpain1;
+                    client.anim_end = M_Player.FRAME_crpain1;
                 } else {
                     ent.s.frame = M_Player.FRAME_pain304 + 1;
-                    ent.client.anim_end = M_Player.FRAME_pain301;
+                    client.anim_end = M_Player.FRAME_pain301;
                 }
             }
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
             return;
         }
 
-        if (ent.client.weaponstate == Defines.WEAPON_ACTIVATING) {
-            if (ent.client.ps.gunframe == FRAME_ACTIVATE_LAST) {
-                ent.client.weaponstate = Defines.WEAPON_READY;
-                ent.client.ps.gunframe = FRAME_IDLE_FIRST;
+        if (client.weaponstate == Defines.WEAPON_ACTIVATING) {
+            if (client.getPlayerState().gunframe == FRAME_ACTIVATE_LAST) {
+                client.weaponstate = Defines.WEAPON_READY;
+                client.getPlayerState().gunframe = FRAME_IDLE_FIRST;
                 return;
             }
 
-            ent.client.ps.gunframe++;
+            client.getPlayerState().gunframe++;
             return;
         }
 
-        if ((ent.client.newweapon != null)
-                && (ent.client.weaponstate != Defines.WEAPON_FIRING)) {
-            ent.client.weaponstate = Defines.WEAPON_DROPPING;
-            ent.client.ps.gunframe = FRAME_DEACTIVATE_FIRST;
+        if ((client.newweapon != null)
+                && (client.weaponstate != Defines.WEAPON_FIRING)) {
+            client.weaponstate = Defines.WEAPON_DROPPING;
+            client.getPlayerState().gunframe = FRAME_DEACTIVATE_FIRST;
 
             if ((FRAME_DEACTIVATE_LAST - FRAME_DEACTIVATE_FIRST) < 4) {
-                ent.client.anim_priority = Defines.ANIM_REVERSE;
-                if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+                client.anim_priority = Defines.ANIM_REVERSE;
+                if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                     ent.s.frame = M_Player.FRAME_crpain4 + 1;
-                    ent.client.anim_end = M_Player.FRAME_crpain1;
+                    client.anim_end = M_Player.FRAME_crpain1;
                 } else {
                     ent.s.frame = M_Player.FRAME_pain304 + 1;
-                    ent.client.anim_end = M_Player.FRAME_pain301;
+                    client.anim_end = M_Player.FRAME_pain301;
 
                 }
             }
             return;
         }
 
-        if (ent.client.weaponstate == Defines.WEAPON_READY) {
-            if (((ent.client.latched_buttons | ent.client.buttons) & Defines.BUTTON_ATTACK) != 0) {
-                ent.client.latched_buttons &= ~Defines.BUTTON_ATTACK;
-                if ((0 == ent.client.ammo_index)
-                        || (ent.client.pers.inventory[ent.client.ammo_index] >= ent.client.pers.weapon.quantity)) {
-                    ent.client.ps.gunframe = FRAME_FIRE_FIRST;
-                    ent.client.weaponstate = Defines.WEAPON_FIRING;
+        if (client.weaponstate == Defines.WEAPON_READY) {
+            if (((client.latched_buttons | client.buttons) & Defines.BUTTON_ATTACK) != 0) {
+                client.latched_buttons &= ~Defines.BUTTON_ATTACK;
+                if ((0 == client.ammo_index)
+                        || (client.pers.inventory[client.ammo_index] >= client.pers.weapon.quantity)) {
+                    client.getPlayerState().gunframe = FRAME_FIRE_FIRST;
+                    client.weaponstate = Defines.WEAPON_FIRING;
 
                     // start the animation
-                    ent.client.anim_priority = Defines.ANIM_ATTACK;
-                    if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+                    client.anim_priority = Defines.ANIM_ATTACK;
+                    if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                         ent.s.frame = M_Player.FRAME_crattak1 - 1;
-                        ent.client.anim_end = M_Player.FRAME_crattak9;
+                        client.anim_end = M_Player.FRAME_crattak9;
                     } else {
                         ent.s.frame = M_Player.FRAME_attack1 - 1;
-                        ent.client.anim_end = M_Player.FRAME_attack8;
+                        client.anim_end = M_Player.FRAME_attack8;
                     }
                 } else {
                     if (GameBase.level.time >= ent.pain_debounce_time) {
@@ -1309,29 +1326,29 @@ public class PlayerWeapon {
                     NoAmmoWeaponChange(ent);
                 }
             } else {
-                if (ent.client.ps.gunframe == FRAME_IDLE_LAST) {
-                    ent.client.ps.gunframe = FRAME_IDLE_FIRST;
+                if (client.getPlayerState().gunframe == FRAME_IDLE_LAST) {
+                    client.getPlayerState().gunframe = FRAME_IDLE_FIRST;
                     return;
                 }
 
                 if (pause_frames != null) {
                     for (n = 0; pause_frames[n] != 0; n++) {
-                        if (ent.client.ps.gunframe == pause_frames[n]) {
+                        if (client.getPlayerState().gunframe == pause_frames[n]) {
                             if ((Lib.rand() & 15) != 0)
                                 return;
                         }
                     }
                 }
 
-                ent.client.ps.gunframe++;
+                client.getPlayerState().gunframe++;
                 return;
             }
         }
 
-        if (ent.client.weaponstate == Defines.WEAPON_FIRING) {
+        if (client.weaponstate == Defines.WEAPON_FIRING) {
             for (n = 0; fire_frames[n] != 0; n++) {
-                if (ent.client.ps.gunframe == fire_frames[n]) {
-                    if (ent.client.quad_framenum > GameBase.level.framenum)
+                if (client.getPlayerState().gunframe == fire_frames[n]) {
+                    if (client.quad_framenum > GameBase.level.framenum)
                         GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                                 .soundindex("items/damage3.wav"), 1,
                                 Defines.ATTN_NORM, 0);
@@ -1342,10 +1359,10 @@ public class PlayerWeapon {
             }
 
             if (0 == fire_frames[n])
-                ent.client.ps.gunframe++;
+                client.getPlayerState().gunframe++;
 
-            if (ent.client.ps.gunframe == FRAME_IDLE_FIRST + 1)
-                ent.client.weaponstate = Defines.WEAPON_READY;
+            if (client.getPlayerState().gunframe == FRAME_IDLE_FIRST + 1)
+                client.weaponstate = Defines.WEAPON_READY;
         }
     }
 
@@ -1371,19 +1388,20 @@ public class PlayerWeapon {
             damage *= 4;
 
         Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
-        Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
-        P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
+        gclient_t client = (gclient_t) ent.client;
+        Math3D.AngleVectors(client.v_angle, forward, right, null);
+        P_ProjectSource(client, ent.s.origin, offset, forward, right, start);
 
-        timer = ent.client.grenade_time - GameBase.level.time;
+        timer = client.grenade_time - GameBase.level.time;
         speed = (int) (Defines.GRENADE_MINSPEED + (Defines.GRENADE_TIMER - timer)
                 * ((Defines.GRENADE_MAXSPEED - Defines.GRENADE_MINSPEED) / Defines.GRENADE_TIMER));
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
                 held);
 
         if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
-            ent.client.pers.inventory[ent.client.ammo_index]--;
+            client.pers.inventory[client.ammo_index]--;
 
-        ent.client.grenade_time = GameBase.level.time + 1.0f;
+        client.grenade_time = GameBase.level.time + 1.0f;
 
         if (ent.deadflag != 0 || ent.s.modelindex != 255) // VWep animations
         // screw up corpses
@@ -1394,14 +1412,14 @@ public class PlayerWeapon {
         if (ent.health <= 0)
             return;
 
-        if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
-            ent.client.anim_priority = Defines.ANIM_ATTACK;
+        if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+            client.anim_priority = Defines.ANIM_ATTACK;
             ent.s.frame = M_Player.FRAME_crattak1 - 1;
-            ent.client.anim_end = M_Player.FRAME_crattak3;
+            client.anim_end = M_Player.FRAME_crattak3;
         } else {
-            ent.client.anim_priority = Defines.ANIM_REVERSE;
+            client.anim_priority = Defines.ANIM_REVERSE;
             ent.s.frame = M_Player.FRAME_wave08;
-            ent.client.anim_end = M_Player.FRAME_wave01;
+            client.anim_end = M_Player.FRAME_wave01;
         }
     }
 
@@ -1421,13 +1439,14 @@ public class PlayerWeapon {
 
         if (is_quad)
             damage *= 4;
-        Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+        gclient_t client = (gclient_t) ent.client;
+        Math3D.AngleVectors(client.v_angle, forward, right, null);
         Math3D.VectorSet(offset, 24, 8, ent.viewheight - 8);
         Math3D.VectorAdd(offset, g_offset, offset);
-        P_ProjectSource(ent.client, ent.s.origin, offset, forward, right, start);
+        P_ProjectSource(client, ent.s.origin, offset, forward, right, start);
 
-        Math3D.VectorScale(forward, -2, ent.client.kick_origin);
-        ent.client.kick_angles[0] = -1;
+        Math3D.VectorScale(forward, -2, client.kick_origin);
+        client.kick_angles[0] = -1;
 
         GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
@@ -1459,8 +1478,9 @@ public class PlayerWeapon {
         edict_t noise;
     
         if (type == Defines.PNOISE_WEAPON) {
-            if (who.client.silencer_shots > 0) {
-                who.client.silencer_shots--;
+            gclient_t client = (gclient_t) who.client;
+            if (client.silencer_shots > 0) {
+                client.silencer_shots--;
                 return;
             }
         }

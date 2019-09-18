@@ -22,7 +22,6 @@
 
 package jake2.server;
 
-import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
@@ -147,7 +146,7 @@ class SV_USER {
         // 
         if (SV_INIT.sv.state == Defines.ss_game) {
             // set up the entity for the client
-            ent = GameBase.g_edicts[playernum + 1];
+            ent = SV_GAME.gameExports.getEdict(playernum + 1);
             ent.s.number = playernum + 1;
             SV_MAIN.sv_client.edict = ent;
             SV_MAIN.sv_client.lastcmd = new usercmd_t();
@@ -514,8 +513,7 @@ class SV_USER {
             return;
         }
 
-        // todo move to game exports
-        PlayerClient.ClientThink(cl.edict, cmd);
+        SV_GAME.gameExports.ClientThink(cl.edict, cmd);
     }
 
     /*

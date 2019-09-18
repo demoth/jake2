@@ -29,7 +29,6 @@ import jake2.Jake2;
 import jake2.client.CL;
 import jake2.client.Key;
 import jake2.client.SCR;
-import jake2.game.Cmd;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;

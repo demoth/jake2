@@ -27,7 +27,6 @@ package jake2.client.render;
 
 import jake2.Jake2;
 import jake2.client.*;
-import jake2.game.Cmd;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 

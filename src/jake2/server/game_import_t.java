@@ -22,8 +22,6 @@
 // $Id: game_import_t.java,v 1.7 2006-01-21 21:53:31 salomo Exp $
 package jake2.server;
 
-import jake2.game.pmove_t;
-import jake2.game.trace_t;
 import jake2.qcommon.*;
 
 //

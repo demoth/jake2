@@ -29,10 +29,10 @@ import jake2.client.dlight_t;
 import jake2.client.render.mnode_t;
 import jake2.client.render.msurface_t;
 import jake2.client.render.mtexinfo_t;
-import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
+import jake2.qcommon.cplane_t;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vec3Cache;
 

@@ -81,16 +81,16 @@ public class PlayerView {
         float[] acolor = { 1.0f, 1.0f, 1.0f };
         float[] bcolor = { 1.0f, 0.0f, 0.0f };
 
-        client = player.client;
+        client = (gclient_t) player.client;
 
         // flash the backgrounds behind the status numbers
-        client.ps.stats[Defines.STAT_FLASHES] = 0;
+        client.getPlayerState().stats[Defines.STAT_FLASHES] = 0;
         if (client.damage_blood != 0)
-            client.ps.stats[Defines.STAT_FLASHES] |= 1;
+            client.getPlayerState().stats[Defines.STAT_FLASHES] |= 1;
         if (client.damage_armor != 0
                 && 0 == (player.flags & Defines.FL_GODMODE)
                 && (client.invincible_framenum <= GameBase.level.framenum))
-            client.ps.stats[Defines.STAT_FLASHES] |= 2;
+            client.getPlayerState().stats[Defines.STAT_FLASHES] |= 2;
 
         // total points of damage shot at the player this frame
         count = (client.damage_blood + client.damage_armor + client.damage_parmor);
@@ -102,7 +102,7 @@ public class PlayerView {
         if ((client.anim_priority < Defines.ANIM_PAIN)
                 & (player.s.modelindex == 255)) {
             client.anim_priority = Defines.ANIM_PAIN;
-            if ((client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
+            if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0) {
                 player.s.frame = M_Player.FRAME_crpain1 - 1;
                 client.anim_end = M_Player.FRAME_crpain4;
             } else {
@@ -227,37 +227,38 @@ public class PlayerView {
         float[] v = { 0, 0, 0 };
 
         // base angles
-        angles = ent.client.ps.kick_angles;
+        gclient_t client = (gclient_t) ent.client;
+        angles = client.getPlayerState().kick_angles;
 
         // if dead, fix the angle and don't add any kick
         if (ent.deadflag != 0) {
             Math3D.VectorClear(angles);
 
-            ent.client.ps.viewangles[Defines.ROLL] = 40;
-            ent.client.ps.viewangles[Defines.PITCH] = -15;
-            ent.client.ps.viewangles[Defines.YAW] = ent.client.killer_yaw;
+            client.getPlayerState().viewangles[Defines.ROLL] = 40;
+            client.getPlayerState().viewangles[Defines.PITCH] = -15;
+            client.getPlayerState().viewangles[Defines.YAW] = client.killer_yaw;
         } else {
         	
             // add angles based on weapon kick
-            Math3D.VectorCopy(ent.client.kick_angles, angles);
+            Math3D.VectorCopy(client.kick_angles, angles);
 
             // add angles based on damage kick
-            ratio = (ent.client.v_dmg_time - GameBase.level.time)
+            ratio = (client.v_dmg_time - GameBase.level.time)
                     / Defines.DAMAGE_TIME;
             if (ratio < 0) {
                 ratio = 0;
-                ent.client.v_dmg_pitch = 0;
-                ent.client.v_dmg_roll = 0;
+                client.v_dmg_pitch = 0;
+                client.v_dmg_roll = 0;
             }
-            angles[Defines.PITCH] += ratio * ent.client.v_dmg_pitch;
-            angles[Defines.ROLL] += ratio * ent.client.v_dmg_roll;
+            angles[Defines.PITCH] += ratio * client.v_dmg_pitch;
+            angles[Defines.ROLL] += ratio * client.v_dmg_roll;
 
             // add pitch based on fall kick
-            ratio = (ent.client.fall_time - GameBase.level.time)
+            ratio = (client.fall_time - GameBase.level.time)
                     / Defines.FALL_TIME;
             if (ratio < 0)
                 ratio = 0;
-            angles[Defines.PITCH] += ratio * ent.client.fall_value;
+            angles[Defines.PITCH] += ratio * client.fall_value;
 
             // add angles based on velocity
             delta = Math3D.DotProduct(ent.velocity, forward);
@@ -268,11 +269,11 @@ public class PlayerView {
 
             // add angles based on bob
             delta = bobfracsin * GameBase.bob_pitch.value * xyspeed;
-            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
+            if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             angles[Defines.PITCH] += delta;
             delta = bobfracsin * GameBase.bob_roll.value * xyspeed;
-            if ((ent.client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
+            if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             if ((bobcycle & 1) != 0)
                 delta = -delta;
@@ -286,11 +287,11 @@ public class PlayerView {
         v[2] += ent.viewheight;
 
         // add fall height
-        ratio = (ent.client.fall_time - GameBase.level.time)
+        ratio = (client.fall_time - GameBase.level.time)
                 / Defines.FALL_TIME;
         if (ratio < 0)
             ratio = 0;
-        v[2] -= ratio * ent.client.fall_value * 0.4;
+        v[2] -= ratio * client.fall_value * 0.4;
 
         // add bob height
         bob = bobfracsin * xyspeed * GameBase.bob_up.value;
@@ -302,7 +303,7 @@ public class PlayerView {
 
         // add kick offset
 
-        Math3D.VectorAdd(v, ent.client.kick_origin, v);
+        Math3D.VectorAdd(v, client.kick_origin, v);
 
         // absolutely bound offsets
         // so the view can never be outside the player box
@@ -320,7 +321,7 @@ public class PlayerView {
         else if (v[2] > 30)
             v[2] = 30;
 
-        Math3D.VectorCopy(v, ent.client.ps.viewoffset);
+        Math3D.VectorCopy(v, client.getPlayerState().viewoffset);
     }
 
     /**
@@ -331,18 +332,19 @@ public class PlayerView {
         float delta;
 
         // gun angles from bobbing
-        ent.client.ps.gunangles[Defines.ROLL] = xyspeed * bobfracsin * 0.005f;
-        ent.client.ps.gunangles[Defines.YAW] = xyspeed * bobfracsin * 0.01f;
+        gclient_t client = (gclient_t) ent.client;
+        client.getPlayerState().gunangles[Defines.ROLL] = xyspeed * bobfracsin * 0.005f;
+        client.getPlayerState().gunangles[Defines.YAW] = xyspeed * bobfracsin * 0.01f;
         if ((bobcycle & 1) != 0) {
-            ent.client.ps.gunangles[Defines.ROLL] = -ent.client.ps.gunangles[Defines.ROLL];
-            ent.client.ps.gunangles[Defines.YAW] = -ent.client.ps.gunangles[Defines.YAW];
+            client.getPlayerState().gunangles[Defines.ROLL] = -client.getPlayerState().gunangles[Defines.ROLL];
+            client.getPlayerState().gunangles[Defines.YAW] = -client.getPlayerState().gunangles[Defines.YAW];
         }
 
-        ent.client.ps.gunangles[Defines.PITCH] = xyspeed * bobfracsin * 0.005f;
+        client.getPlayerState().gunangles[Defines.PITCH] = xyspeed * bobfracsin * 0.005f;
 
         // gun angles from delta movement
         for (i = 0; i < 3; i++) {
-            delta = ent.client.oldviewangles[i] - ent.client.ps.viewangles[i];
+            delta = client.oldviewangles[i] - client.getPlayerState().viewangles[i];
             if (delta > 180)
                 delta -= 360;
             if (delta < -180)
@@ -352,19 +354,19 @@ public class PlayerView {
             if (delta < -45)
                 delta = -45;
             if (i == Defines.YAW)
-                ent.client.ps.gunangles[Defines.ROLL] += 0.1 * delta;
-            ent.client.ps.gunangles[i] += 0.2 * delta;
+                client.getPlayerState().gunangles[Defines.ROLL] += 0.1 * delta;
+            client.getPlayerState().gunangles[i] += 0.2 * delta;
         }
 
         // gun height
-        Math3D.VectorClear(ent.client.ps.gunoffset);
+        Math3D.VectorClear(client.getPlayerState().gunoffset);
         //	ent.ps.gunorigin[2] += bob;
 
         // gun_x / gun_y / gun_z are development tools
         for (i = 0; i < 3; i++) {
-            ent.client.ps.gunoffset[i] += forward[i] * (GameBase.gun_y.value);
-            ent.client.ps.gunoffset[i] += right[i] * GameBase.gun_x.value;
-            ent.client.ps.gunoffset[i] += up[i] * (-GameBase.gun_z.value);
+            client.getPlayerState().gunoffset[i] += forward[i] * (GameBase.gun_y.value);
+            client.getPlayerState().gunoffset[i] += right[i] * GameBase.gun_x.value;
+            client.getPlayerState().gunoffset[i] += up[i] * (-GameBase.gun_z.value);
         }
     }
 
@@ -394,76 +396,77 @@ public class PlayerView {
         float[] vieworg = { 0, 0, 0 };
         int remaining;
 
-        ent.client.ps.blend[0] = ent.client.ps.blend[1] = ent.client.ps.blend[2] = ent.client.ps.blend[3] = 0;
+        gclient_t client = (gclient_t) ent.client;
+        client.getPlayerState().blend[0] = client.getPlayerState().blend[1] = client.getPlayerState().blend[2] = client.getPlayerState().blend[3] = 0;
 
         // add for contents
-        Math3D.VectorAdd(ent.s.origin, ent.client.ps.viewoffset, vieworg);
+        Math3D.VectorAdd(ent.s.origin, client.getPlayerState().viewoffset, vieworg);
         contents = GameBase.gi.getPointContents(vieworg);
         if ((contents & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME | Defines.CONTENTS_WATER)) != 0)
-            ent.client.ps.rdflags |= Defines.RDF_UNDERWATER;
+            client.getPlayerState().rdflags |= Defines.RDF_UNDERWATER;
         else
-            ent.client.ps.rdflags &= ~Defines.RDF_UNDERWATER;
+            client.getPlayerState().rdflags &= ~Defines.RDF_UNDERWATER;
 
         if ((contents & (Defines.CONTENTS_SOLID | Defines.CONTENTS_LAVA)) != 0)
-            SV_AddBlend(1.0f, 0.3f, 0.0f, 0.6f, ent.client.ps.blend);
+            SV_AddBlend(1.0f, 0.3f, 0.0f, 0.6f, client.getPlayerState().blend);
         else if ((contents & Defines.CONTENTS_SLIME) != 0)
-            SV_AddBlend(0.0f, 0.1f, 0.05f, 0.6f, ent.client.ps.blend);
+            SV_AddBlend(0.0f, 0.1f, 0.05f, 0.6f, client.getPlayerState().blend);
         else if ((contents & Defines.CONTENTS_WATER) != 0)
-            SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, ent.client.ps.blend);
+            SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, client.getPlayerState().blend);
 
         // add for powerups
-        if (ent.client.quad_framenum > GameBase.level.framenum) {
-            remaining = (int) (ent.client.quad_framenum - GameBase.level.framenum);
+        if (client.quad_framenum > GameBase.level.framenum) {
+            remaining = (int) (client.quad_framenum - GameBase.level.framenum);
             if (remaining == 30) // beginning to fade
                 GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
                 	GameBase.gi.soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
-                SV_AddBlend(0, 0, 1, 0.08f, ent.client.ps.blend);
-        } else if (ent.client.invincible_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.invincible_framenum - GameBase.level.framenum;
+                SV_AddBlend(0, 0, 1, 0.08f, client.getPlayerState().blend);
+        } else if (client.invincible_framenum > GameBase.level.framenum) {
+            remaining = (int) client.invincible_framenum - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
                 	GameBase.gi.soundindex("items/protect2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
-                SV_AddBlend(1, 1, 0, 0.08f, ent.client.ps.blend);
-        } else if (ent.client.enviro_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.enviro_framenum
+                SV_AddBlend(1, 1, 0, 0.08f, client.getPlayerState().blend);
+        } else if (client.enviro_framenum > GameBase.level.framenum) {
+            remaining = (int) client.enviro_framenum
                     - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
                 		GameBase.gi.soundindex("items/airout.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
-                SV_AddBlend(0, 1, 0, 0.08f, ent.client.ps.blend);
-        } else if (ent.client.breather_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.breather_framenum
+                SV_AddBlend(0, 1, 0, 0.08f, client.getPlayerState().blend);
+        } else if (client.breather_framenum > GameBase.level.framenum) {
+            remaining = (int) client.breather_framenum
                     - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                         .soundindex("items/airout.wav"), 1, Defines.ATTN_NORM,
                         0);
             if (remaining > 30 || (remaining & 4) != 0)
-                SV_AddBlend(0.4f, 1, 0.4f, 0.04f, ent.client.ps.blend);
+                SV_AddBlend(0.4f, 1, 0.4f, 0.04f, client.getPlayerState().blend);
         }
 
         // add for damage
-        if (ent.client.damage_alpha > 0)
-            SV_AddBlend(ent.client.damage_blend[0], ent.client.damage_blend[1],
-                    ent.client.damage_blend[2], ent.client.damage_alpha,
-                    ent.client.ps.blend);
+        if (client.damage_alpha > 0)
+            SV_AddBlend(client.damage_blend[0], client.damage_blend[1],
+                    client.damage_blend[2], client.damage_alpha,
+                    client.getPlayerState().blend);
 
-        if (ent.client.bonus_alpha > 0)
-            SV_AddBlend(0.85f, 0.7f, 0.3f, ent.client.bonus_alpha,
-                    ent.client.ps.blend);
+        if (client.bonus_alpha > 0)
+            SV_AddBlend(0.85f, 0.7f, 0.3f, client.bonus_alpha,
+                    client.getPlayerState().blend);
 
         // drop the damage value
-        ent.client.damage_alpha -= 0.06;
-        if (ent.client.damage_alpha < 0)
-            ent.client.damage_alpha = 0;
+        client.damage_alpha -= 0.06;
+        if (client.damage_alpha < 0)
+            client.damage_alpha = 0;
 
         // drop the bonus value
-        ent.client.bonus_alpha -= 0.1;
-        if (ent.client.bonus_alpha < 0)
-            ent.client.bonus_alpha = 0;
+        client.bonus_alpha -= 0.1;
+        if (client.bonus_alpha < 0)
+            client.bonus_alpha = 0;
     }
 
     /**
@@ -480,14 +483,15 @@ public class PlayerView {
         if (ent.movetype == Defines.MOVETYPE_NOCLIP)
             return;
 
-        if ((ent.client.oldvelocity[2] < 0)
-                && (ent.velocity[2] > ent.client.oldvelocity[2])
+        gclient_t client = (gclient_t) ent.client;
+        if ((client.oldvelocity[2] < 0)
+                && (ent.velocity[2] > client.oldvelocity[2])
                 && (null == ent.groundentity)) {
-            delta = ent.client.oldvelocity[2];
+            delta = client.oldvelocity[2];
         } else {
             if (ent.groundentity == null)
                 return;
-            delta = ent.velocity[2] - ent.client.oldvelocity[2];
+            delta = ent.velocity[2] - client.oldvelocity[2];
         }
         delta = delta * delta * 0.0001f;
 
@@ -507,10 +511,10 @@ public class PlayerView {
             return;
         }
 
-        ent.client.fall_value = delta * 0.5f;
-        if (ent.client.fall_value > 40)
-            ent.client.fall_value = 40;
-        ent.client.fall_time = GameBase.level.time + Defines.FALL_TIME;
+        client.fall_value = delta * 0.5f;
+        if (client.fall_value > 40)
+            client.fall_value = 40;
+        client.fall_time = GameBase.level.time + Defines.FALL_TIME;
 
         if (delta > 30) {
             if (ent.health > 0) {
@@ -649,9 +653,10 @@ public class PlayerView {
 
             // if out of air, start drowning
             if (current_player.air_finished < GameBase.level.time) { // drown!
-                if (current_player.client.next_drown_time < GameBase.level.time
+                gclient_t client = (gclient_t) current_player.client;
+                if (client.next_drown_time < GameBase.level.time
                         && current_player.health > 0) {
-                    current_player.client.next_drown_time = GameBase.level.time + 1;
+                    client.next_drown_time = GameBase.level.time + 1;
 
                     // take more damage the longer underwater
                     current_player.dmg += 2;
@@ -754,15 +759,16 @@ public class PlayerView {
             }
         }
 
-        if (ent.client.quad_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.quad_framenum
+        gclient_t client = (gclient_t) ent.client;
+        if (client.quad_framenum > GameBase.level.framenum) {
+            remaining = (int) client.quad_framenum
                     - GameBase.level.framenum;
             if (remaining > 30 || 0 != (remaining & 4))
                 ent.s.effects |= Defines.EF_QUAD;
         }
 
-        if (ent.client.invincible_framenum > GameBase.level.framenum) {
-            remaining = (int) ent.client.invincible_framenum
+        if (client.invincible_framenum > GameBase.level.framenum) {
+            remaining = (int) client.invincible_framenum
                     - GameBase.level.framenum;
             if (remaining > 30 || 0 != (remaining & 4))
                 ent.s.effects |= Defines.EF_PENT;
@@ -798,22 +804,23 @@ public class PlayerView {
     public static void G_SetClientSound(edict_t ent) {
         String weap;
 
-        if (ent.client.pers.game_helpchanged != GameBase.game.helpchanged) {
-            ent.client.pers.game_helpchanged = GameBase.game.helpchanged;
-            ent.client.pers.helpchanged = 1;
+        gclient_t client = (gclient_t) ent.client;
+        if (client.pers.game_helpchanged != GameBase.game.helpchanged) {
+            client.pers.game_helpchanged = GameBase.game.helpchanged;
+            client.pers.helpchanged = 1;
         }
 
         // help beep (no more than three times)
-        if (ent.client.pers.helpchanged != 0
-                && ent.client.pers.helpchanged <= 3
+        if (client.pers.helpchanged != 0
+                && client.pers.helpchanged <= 3
                 && 0 == (GameBase.level.framenum & 63)) {
-            ent.client.pers.helpchanged++;
+            client.pers.helpchanged++;
             GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
                     .soundindex("misc/pc_up.wav"), 1, Defines.ATTN_STATIC, 0);
         }
 
-        if (ent.client.pers.weapon != null)
-            weap = ent.client.pers.weapon.classname;
+        if (client.pers.weapon != null)
+            weap = client.pers.weapon.classname;
         else
             weap = "";
 
@@ -824,8 +831,8 @@ public class PlayerView {
             ent.s.sound = GameBase.gi.soundindex("weapons/rg_hum.wav");
         else if ("weapon_bfg".equals(weap))
             ent.s.sound = GameBase.gi.soundindex("weapons/bfg_hum.wav");
-        else if (ent.client.weapon_sound != 0)
-            ent.s.sound = ent.client.weapon_sound;
+        else if (client.weapon_sound != 0)
+            ent.s.sound = client.weapon_sound;
         else
             ent.s.sound = 0;
     }
@@ -836,15 +843,14 @@ public class PlayerView {
      * ===============
      */
     public static void G_SetClientFrame(edict_t ent) {
-        gclient_t client;
         boolean duck, run;
 
         if (ent.s.modelindex != 255)
             return; // not in the player model
 
-        client = ent.client;
+        gclient_t client = (gclient_t) ent.client;
 
-        if ((client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
+        if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             duck = true;
         else
             duck = false;
@@ -883,9 +889,9 @@ public class PlayerView {
             if (client.anim_priority == Defines.ANIM_JUMP) {
                 if (null == ent.groundentity)
                     return; // stay there
-                ent.client.anim_priority = Defines.ANIM_WAVE;
+                client.anim_priority = Defines.ANIM_WAVE;
                 ent.s.frame = M_Player.FRAME_jump3;
-                ent.client.anim_end = M_Player.FRAME_jump6;
+                client.anim_end = M_Player.FRAME_jump6;
                 return;
             }
         }
@@ -929,7 +935,7 @@ public class PlayerView {
         int i;
 
         current_player = ent;
-        current_client = ent.client;
+        current_client = (gclient_t) ent.client;
 
         //
         // If the origin or velocity have changed since ClientThink(),
@@ -940,8 +946,8 @@ public class PlayerView {
         // behind the body position when pushed -- "sinking into plats"
         //
         for (i = 0; i < 3; i++) {
-            current_client.ps.pmove.origin[i] = (short) (ent.s.origin[i] * 8.0);
-            current_client.ps.pmove.velocity[i] = (short) (ent.velocity[i] * 8.0);
+            current_client.getPlayerState().pmove.origin[i] = (short) (ent.s.origin[i] * 8.0);
+            current_client.getPlayerState().pmove.velocity[i] = (short) (ent.velocity[i] * 8.0);
         }
 
         //
@@ -950,13 +956,13 @@ public class PlayerView {
         //
         if (GameBase.level.intermissiontime != 0) {
             // FIXME: add view drifting here?
-            current_client.ps.blend[3] = 0;
-            current_client.ps.fov = 90;
+            current_client.getPlayerState().blend[3] = 0;
+            current_client.getPlayerState().fov = 90;
             PlayerHud.G_SetStats(ent);
             return;
         }
 
-        Math3D.AngleVectors(ent.client.v_angle, forward, right, up);
+        Math3D.AngleVectors(current_client.v_angle, forward, right, up);
 
         // burn from lava, etc
         P_WorldEffects();
@@ -965,11 +971,11 @@ public class PlayerView {
         // set model angles from view angles so other things in
         // the world can tell which direction you are looking
         //
-        if (ent.client.v_angle[Defines.PITCH] > 180)
-            ent.s.angles[Defines.PITCH] = (-360 + ent.client.v_angle[Defines.PITCH]) / 3;
+        if (current_client.v_angle[Defines.PITCH] > 180)
+            ent.s.angles[Defines.PITCH] = (-360 + current_client.v_angle[Defines.PITCH]) / 3;
         else
-            ent.s.angles[Defines.PITCH] = ent.client.v_angle[Defines.PITCH] / 3;
-        ent.s.angles[Defines.YAW] = ent.client.v_angle[Defines.YAW];
+            ent.s.angles[Defines.PITCH] = current_client.v_angle[Defines.PITCH] / 3;
+        ent.s.angles[Defines.YAW] = current_client.v_angle[Defines.YAW];
         ent.s.angles[Defines.ROLL] = 0;
         ent.s.angles[Defines.ROLL] = SV_CalcRoll(ent.s.angles, ent.velocity) * 4;
 
@@ -995,7 +1001,7 @@ public class PlayerView {
 
         bobtime = (current_client.bobtime += bobmove);
 
-        if ((current_client.ps.pmove.pm_flags & Defines.PMF_DUCKED) != 0)
+        if ((current_client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             bobtime *= 4;
 
         bobcycle = (int) bobtime;
@@ -1021,7 +1027,7 @@ public class PlayerView {
         SV_CalcBlend(ent);
 
         // chase cam stuff
-        if (ent.client.resp.spectator)
+        if (current_client.resp.spectator)
             PlayerHud.G_SetSpectatorStats(ent);
         else
             PlayerHud.G_SetStats(ent);
@@ -1035,15 +1041,15 @@ public class PlayerView {
 
         G_SetClientFrame(ent);
 
-        Math3D.VectorCopy(ent.velocity, ent.client.oldvelocity);
-        Math3D.VectorCopy(ent.client.ps.viewangles, ent.client.oldviewangles);
+        Math3D.VectorCopy(ent.velocity, current_client.oldvelocity);
+        Math3D.VectorCopy(ent.client.getPlayerState().viewangles, current_client.oldviewangles);
 
         // clear weapon kicks
-        Math3D.VectorClear(ent.client.kick_origin);
-        Math3D.VectorClear(ent.client.kick_angles);
+        Math3D.VectorClear(current_client.kick_origin);
+        Math3D.VectorClear(current_client.kick_angles);
 
         // if the scoreboard is up, update it
-        if (ent.client.showscores && 0 == (GameBase.level.framenum & 31)) {
+        if (current_client.showscores && 0 == (GameBase.level.framenum & 31)) {
             PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy);
             GameBase.gi.unicast(ent, false);
         }

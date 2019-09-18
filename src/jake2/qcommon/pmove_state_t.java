@@ -20,9 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Created on 31.10.2003 by RST.
 
-package jake2.game;
+package jake2.qcommon;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;

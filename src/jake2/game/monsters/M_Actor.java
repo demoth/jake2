@@ -24,6 +24,8 @@ package jake2.game.monsters;
 
 import jake2.game.*;
 import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
+import jake2.qcommon.csurface_t;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;

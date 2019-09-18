@@ -21,9 +21,6 @@
 
 package jake2.server;
 
-import jake2.game.GameBase;
-import jake2.game.link_t;
-import jake2.game.trace_t;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
@@ -165,7 +162,7 @@ public class SV_WORLD {
         int topnode = 0;
         if (ent.area.prev != null)
             SV_UnlinkEdict(ent); // unlink from old position
-        if (ent == GameBase.g_edicts[0])
+        if (ent == SV_GAME.gameExports.getEdict(0))
             return; // don't add the world
         if (!ent.inuse)
             return;
@@ -498,7 +495,7 @@ public class SV_WORLD {
 
         // clip to world
         clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
-        clip.trace.ent = GameBase.g_edicts[0];
+        clip.trace.ent = SV_GAME.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world
         clip.contentmask = contentmask;

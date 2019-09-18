@@ -25,7 +25,7 @@
  */
 package jake2.client;
 
-import jake2.game.Cmd;
+import jake2.qcommon.Cmd;
 import jake2.qcommon.Cvar;
 import jake2.qcommon.Globals;
 import jake2.qcommon.usercmd_t;

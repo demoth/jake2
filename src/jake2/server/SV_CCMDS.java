@@ -23,10 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.game.Cmd;
-import jake2.game.EndianHandler;
-import jake2.game.GameSVCmds;
-import jake2.game.Info;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
@@ -41,7 +37,7 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.List;
 
-import static jake2.game.Cmd.getArguments;
+import static jake2.qcommon.Cmd.getArguments;
 import static jake2.qcommon.Defines.ERR_DROP;
 import static jake2.qcommon.Defines.PRINT_ALL;
 
@@ -682,7 +678,7 @@ public class SV_CCMDS {
 			return;
 		}
 
-		if (SV_MAIN.maxclients.value == 1 && SV_INIT.svs.clients[0].edict.client.ps.stats[Defines.STAT_HEALTH] <= 0) {
+		if (SV_MAIN.maxclients.value == 1 && SV_INIT.svs.clients[0].edict.client.getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
 			Com.Printf("\nCan't savegame while dead!\n");
 			return;
 		}
@@ -763,7 +759,7 @@ public class SV_CCMDS {
 				continue;
 
 			Com.Printf("%3i ", new Vargs().add(i));
-			Com.Printf("%5i ", new Vargs().add(cl.edict.client.ps.stats[Defines.STAT_FRAGS]));
+			Com.Printf("%5i ", new Vargs().add(cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]));
 
 			if (cl.state == Defines.cs_connected)
 				Com.Printf("CNCT ");
@@ -1026,9 +1022,12 @@ public class SV_CCMDS {
 		Cmd.AddCommand("save", SV_CCMDS::SV_Savegame_f);
 		Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
 		Cmd.AddCommand("killserver", (List<String> args) -> SV_KillServer_f());
-		Cmd.AddCommand("sv", GameSVCmds::ServerCommand);
-				Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
-		
+		Cmd.AddCommand("sv", args -> {
+			if (SV_GAME.gameExports != null)
+				SV_GAME.gameExports.ServerCommand(args);
+		});
+		Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
+
 //		Cmd.AddCommand("spawnbot", new Command() {
 //			public void execute() {
 //				AdvancedBot.SP_Oak();

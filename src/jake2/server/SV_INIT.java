@@ -24,9 +24,6 @@ package jake2.server;
 
 import jake2.client.CL;
 import jake2.client.SCR;
-import jake2.game.GameBase;
-import jake2.game.GameSpawn;
-import jake2.game.entity_state_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
@@ -93,8 +90,8 @@ public class SV_INIT {
         edict_t svent;
         int entnum;
 
-        for (entnum = 1; entnum < GameBase.num_edicts; entnum++) {
-            svent = GameBase.g_edicts[entnum];
+        for (entnum = 1; entnum < SV_GAME.gameExports.getNumEdicts(); entnum++) {
+            svent = SV_GAME.gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;
@@ -158,7 +155,7 @@ public class SV_INIT {
             previousState = sv.state; // PGM
             sv.state = Defines.ss_loading; // PGM
             for (i = 0; i < 100; i++)
-                GameBase.G_RunFrame();
+                SV_GAME.gameExports.G_RunFrame();
 
             sv.state = previousState; // PGM
         }
@@ -265,11 +262,11 @@ public class SV_INIT {
         Globals.server_state = sv.state;
 
         // load and spawn all other entities
-        GameSpawn.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+        SV_GAME.gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
 
         // run two frames to allow everything to settle
-        GameBase.G_RunFrame();
-        GameBase.G_RunFrame();
+        SV_GAME.gameExports.G_RunFrame();
+        SV_GAME.gameExports.G_RunFrame();
 
         // all precaches are complete
         sv.state = serverstate;
@@ -370,7 +367,7 @@ public class SV_INIT {
         SV_GAME.SV_InitGameProgs();
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            ent = GameBase.g_edicts[i + 1];
+            ent = SV_GAME.gameExports.getEdict(i + 1);
             svs.clients[i].edict = ent;
             svs.clients[i].lastcmd = new usercmd_t();
         }

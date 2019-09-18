@@ -88,7 +88,7 @@ public interface GameExports {
      */
     void ClientThink(edict_t ent, usercmd_t ucmd);
 
-    edict_t[] getEdicts();
+    edict_t getEdict(int index);
 
     int getNumEdicts();
 }

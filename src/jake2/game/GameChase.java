@@ -26,13 +26,14 @@ package jake2.game;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 import jake2.server.SV_WORLD;
 
 
-public class GameChase {
+class GameChase {
 
-    public static void UpdateChaseCam(edict_t ent) {
+    static void UpdateChaseCam(edict_t ent) {
         float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
         edict_t targ;
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -42,25 +43,27 @@ public class GameChase {
         float[] angles = { 0, 0, 0 };
     
         // is our chase target gone?
-        if (!ent.client.chase_target.inuse
-                || ent.client.chase_target.client.resp.spectator) {
-            edict_t old = ent.client.chase_target;
+        gclient_t client = (gclient_t) ent.client;
+        gclient_t chaseTargetClient = (gclient_t) client.chase_target.client;
+        if (!client.chase_target.inuse || chaseTargetClient.resp.spectator) {
+            edict_t old = client.chase_target;
             ChaseNext(ent);
-            if (ent.client.chase_target == old) {
-                ent.client.chase_target = null;
-                ent.client.ps.pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
+            if (client.chase_target == old) {
+                client.chase_target = null;
+                client.getPlayerState().pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
                 return;
             }
         }
     
-        targ = ent.client.chase_target;
+        targ = client.chase_target;
     
         Math3D.VectorCopy(targ.s.origin, ownerv);
         Math3D.VectorCopy(ent.s.origin, oldgoal);
     
         ownerv[2] += targ.viewheight;
-    
-        Math3D.VectorCopy(targ.client.v_angle, angles);
+
+        gclient_t targetClient = (gclient_t) targ.client;
+        Math3D.VectorCopy(targetClient.v_angle, angles);
         if (angles[Defines.PITCH] > 56)
             angles[Defines.PITCH] = 56;
         Math3D.AngleVectors(angles, forward, right, null);
@@ -101,38 +104,38 @@ public class GameChase {
         }
     
         if (targ.deadflag != 0)
-            ent.client.ps.pmove.pm_type = Defines.PM_DEAD;
+            client.getPlayerState().pmove.pm_type = Defines.PM_DEAD;
         else
-            ent.client.ps.pmove.pm_type = Defines.PM_FREEZE;
+            client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
     
         Math3D.VectorCopy(goal, ent.s.origin);
         for (i = 0; i < 3; i++)
-            ent.client.ps.pmove.delta_angles[i] = (short) Math3D
-                    .ANGLE2SHORT(targ.client.v_angle[i]
-                            - ent.client.resp.cmd_angles[i]);
+            client.getPlayerState().pmove.delta_angles[i] = (short) Math3D
+                    .ANGLE2SHORT(targetClient.v_angle[i]
+                            - client.resp.cmd_angles[i]);
     
         if (targ.deadflag != 0) {
-            ent.client.ps.viewangles[Defines.ROLL] = 40;
-            ent.client.ps.viewangles[Defines.PITCH] = -15;
-            ent.client.ps.viewangles[Defines.YAW] = targ.client.killer_yaw;
+            client.getPlayerState().viewangles[Defines.ROLL] = 40;
+            client.getPlayerState().viewangles[Defines.PITCH] = -15;
+            client.getPlayerState().viewangles[Defines.YAW] = targetClient.killer_yaw;
         } else {
-            Math3D.VectorCopy(targ.client.v_angle, ent.client.ps.viewangles);
-            Math3D.VectorCopy(targ.client.v_angle, ent.client.v_angle);
+            Math3D.VectorCopy(targetClient.v_angle, client.getPlayerState().viewangles);
+            Math3D.VectorCopy(targetClient.v_angle, client.v_angle);
         }
     
         ent.viewheight = 0;
-        ent.client.ps.pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
+        client.getPlayerState().pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
         SV_WORLD.SV_LinkEdict(ent);
     }
 
-    public static void ChaseNext(edict_t ent) {
-        int i;
-        edict_t e;
-    
-        if (null == ent.client.chase_target)
+    static void ChaseNext(edict_t ent) {
+
+        gclient_t client = (gclient_t) ent.client;
+        if (null == client.chase_target)
             return;
-    
-        i = ent.client.chase_target.index;
+
+        int i = client.chase_target.index;
+        edict_t e;
         do {
             i++;
             if (i > GameBase.maxclients.value)
@@ -141,22 +144,23 @@ public class GameChase {
     
             if (!e.inuse)
                 continue;
-            if (!e.client.resp.spectator)
+            gclient_t entityClient = (gclient_t) e.client;
+            if (!entityClient.resp.spectator)
                 break;
-        } while (e != ent.client.chase_target);
+        } while (e != client.chase_target);
     
-        ent.client.chase_target = e;
-        ent.client.update_chase = true;
+        client.chase_target = e;
+        client.update_chase = true;
     }
 
-    public static void ChasePrev(edict_t ent) {
-        int i;
-        edict_t e;
-    
-        if (ent.client.chase_target == null)
+    static void ChasePrev(edict_t ent) {
+
+        gclient_t client = (gclient_t) ent.client;
+        if (client.chase_target == null)
             return;
-    
-        i = ent.client.chase_target.index;
+
+        int i = client.chase_target.index;
+        edict_t e;
         do {
             i--;
             if (i < 1)
@@ -164,23 +168,24 @@ public class GameChase {
             e = GameBase.g_edicts[i];
             if (!e.inuse)
                 continue;
-            if (!e.client.resp.spectator)
+            gclient_t entityClient = (gclient_t) e.client;
+            if (!entityClient.resp.spectator)
                 break;
-        } while (e != ent.client.chase_target);
+        } while (e != client.chase_target);
     
-        ent.client.chase_target = e;
-        ent.client.update_chase = true;
+        client.chase_target = e;
+        client.update_chase = true;
     }
 
-    public static void GetChaseTarget(edict_t ent) {
-        int i;
-        edict_t other;
-    
-        for (i = 1; i <= GameBase.maxclients.value; i++) {
-            other = GameBase.g_edicts[i];
-            if (other.inuse && !other.client.resp.spectator) {
-                ent.client.chase_target = other;
-                ent.client.update_chase = true;
+    static void GetChaseTarget(edict_t ent) {
+
+        for (int i = 1; i <= GameBase.maxclients.value; i++) {
+            edict_t other = GameBase.g_edicts[i];
+            gclient_t otherClient = (gclient_t) other.client;
+            if (other.inuse && !otherClient.resp.spectator) {
+                gclient_t client = (gclient_t) ent.client;
+                client.chase_target = other;
+                client.update_chase = true;
                 UpdateChaseCam(ent);
                 return;
             }

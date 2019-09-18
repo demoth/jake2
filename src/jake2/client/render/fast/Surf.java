@@ -29,9 +29,9 @@ import jake2.client.dlight_t;
 import jake2.client.entity_t;
 import jake2.client.lightstyle_t;
 import jake2.client.render.*;
-import jake2.game.cplane_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.cplane_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

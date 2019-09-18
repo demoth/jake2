@@ -24,10 +24,7 @@
 
 package jake2.game;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -248,10 +245,11 @@ public class GameUtil {
     static String ClientTeam(edict_t ent) {
         String value;
 
-        if (ent.client == null)
+        gclient_t client = (gclient_t) ent.client;
+        if (client == null)
             return "";
 
-        value = Info.Info_ValueForKey(ent.client.pers.userinfo, "skin");
+        value = Info.Info_ValueForKey(client.pers.userinfo, "skin");
 
         int p = value.indexOf("/");
 
@@ -266,9 +264,8 @@ public class GameUtil {
     }
 
     static void ValidateSelectedItem(edict_t ent) {
-        gclient_t cl;
 
-        cl = ent.client;
+        gclient_t cl = (gclient_t) ent.client;
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid

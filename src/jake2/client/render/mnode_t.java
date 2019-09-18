@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.client.render;
 
-import jake2.game.cplane_t;
+import jake2.qcommon.cplane_t;
 
 public class mnode_t {
 	//	common with leaf

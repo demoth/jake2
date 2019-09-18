@@ -25,7 +25,6 @@
  */
 package jake2.client;
 
-import jake2.game.Cmd;
 import jake2.qcommon.*;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Math3D;

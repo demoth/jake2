@@ -22,7 +22,6 @@
 // $Id: MSG.java,v 1.8 2005-12-18 22:10:02 cawe Exp $
 package jake2.qcommon;
 
-import jake2.game.entity_state_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

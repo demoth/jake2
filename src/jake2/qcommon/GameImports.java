@@ -1,8 +1,5 @@
 package jake2.qcommon;
 
-import jake2.game.pmove_t;
-import jake2.game.trace_t;
-
 public interface GameImports {
     // special messages
     void bprintf(int printlevel, String s);

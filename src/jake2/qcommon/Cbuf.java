@@ -25,7 +25,6 @@
  */
 package jake2.qcommon;
 
-import jake2.game.Cmd;
 import jake2.qcommon.util.Lib;
 
 /**

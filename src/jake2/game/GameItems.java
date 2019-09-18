@@ -24,9 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -35,20 +33,20 @@ import java.util.StringTokenizer;
 
 public class GameItems {
 
-    public static gitem_armor_t jacketarmor_info = new gitem_armor_t(25, 50,
+    static gitem_armor_t jacketarmor_info = new gitem_armor_t(25, 50,
     .30f, .00f, Defines.ARMOR_JACKET);
-    public static gitem_armor_t combatarmor_info = new gitem_armor_t(50, 100,
+    static gitem_armor_t combatarmor_info = new gitem_armor_t(50, 100,
     .60f, .30f, Defines.ARMOR_COMBAT);
-    public static gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200,
+    static gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200,
     .80f, .60f, Defines.ARMOR_BODY);
-    static int quad_drop_timeout_hack = 0;
-    static int jacket_armor_index;
-    static int combat_armor_index;
-    static int body_armor_index;
-    static int power_screen_index;
-    static int power_shield_index;
+    private static int quad_drop_timeout_hack = 0;
+    private static int jacket_armor_index;
+    private static int combat_armor_index;
+    private static int body_armor_index;
+    private static int power_screen_index;
+    private static int power_shield_index;
     
-    static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
+    private static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
         public String getID() { return "do_respawn";}
         public boolean think(edict_t ent) {
             if (ent.team != null) {
@@ -84,66 +82,67 @@ public class GameItems {
     
             gitem_t item;
             int index;
-    
-            if (other.client.pers.max_bullets < 300)
-                other.client.pers.max_bullets = 300;
-            if (other.client.pers.max_shells < 200)
-                other.client.pers.max_shells = 200;
-            if (other.client.pers.max_rockets < 100)
-                other.client.pers.max_rockets = 100;
-            if (other.client.pers.max_grenades < 100)
-                other.client.pers.max_grenades = 100;
-            if (other.client.pers.max_cells < 300)
-                other.client.pers.max_cells = 300;
-            if (other.client.pers.max_slugs < 100)
-                other.client.pers.max_slugs = 100;
+
+            client_persistant_t clPers = ((gclient_t)other.client).pers;
+            if (clPers.max_bullets < 300)
+                clPers.max_bullets = 300;
+            if (clPers.max_shells < 200)
+                clPers.max_shells = 200;
+            if (clPers.max_rockets < 100)
+                clPers.max_rockets = 100;
+            if (clPers.max_grenades < 100)
+                clPers.max_grenades = 100;
+            if (clPers.max_cells < 300)
+                clPers.max_cells = 300;
+            if (clPers.max_slugs < 100)
+                clPers.max_slugs = 100;
     
             item = FindItem("Bullets");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
-                    other.client.pers.inventory[index] = other.client.pers.max_bullets;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_bullets)
+                    clPers.inventory[index] = clPers.max_bullets;
             }
     
             item = FindItem("Shells");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_shells)
-                    other.client.pers.inventory[index] = other.client.pers.max_shells;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_shells)
+                    clPers.inventory[index] = clPers.max_shells;
             }
     
             item = FindItem("Cells");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_cells)
-                    other.client.pers.inventory[index] = other.client.pers.max_cells;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_cells)
+                    clPers.inventory[index] = clPers.max_cells;
             }
     
             item = FindItem("Grenades");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_grenades)
-                    other.client.pers.inventory[index] = other.client.pers.max_grenades;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_grenades)
+                    clPers.inventory[index] = clPers.max_grenades;
             }
     
             item = FindItem("Rockets");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_rockets)
-                    other.client.pers.inventory[index] = other.client.pers.max_rockets;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_rockets)
+                    clPers.inventory[index] = clPers.max_rockets;
             }
     
             item = FindItem("Slugs");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_slugs)
-                    other.client.pers.inventory[index] = other.client.pers.max_slugs;
+                clPers.inventory[index] += item.quantity;
+                if (clPers.inventory[index] > clPers.max_slugs)
+                    clPers.inventory[index] = clPers.max_slugs;
             }
     
             if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
@@ -193,8 +192,9 @@ public class GameItems {
     
             if (ent.classname.equals("item_breather"))
                 taken = false;
-    
-            if (other.client == null)
+
+            gclient_t client = (gclient_t) other.client;
+            if (client == null)
                 return;
             if (other.health < 1)
                 return; // dead people can't pickup
@@ -205,17 +205,17 @@ public class GameItems {
     
             if (taken) {
                 // flash the screen
-                other.client.bonus_alpha = 0.25f;
+                client.bonus_alpha = 0.25f;
     
                 // show icon and name on status bar
-                other.client.ps.stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
+                client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
                         .imageindex(ent.item.icon);
-                other.client.ps.stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
-                other.client.pickup_msg_time = GameBase.level.time + 3.0f;
+                client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
+                client.pickup_msg_time = GameBase.level.time + 3.0f;
     
                 // change selected item
                 if (ent.item.use != null)
-                    other.client.pers.selected_item = other.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
+                    client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
     
                 if (ent.item.pickup == Pickup_Health) {
                     if (ent.count == 2)
@@ -261,7 +261,7 @@ public class GameItems {
             }
         }
     };
-    static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
+    private static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
         public String getID() { return "drop_temp_touch";}
         public void touch(edict_t ent, edict_t other, cplane_t plane,
                 csurface_t surf) {
@@ -271,7 +271,7 @@ public class GameItems {
             Touch_Item.touch(ent, other, plane, surf);
         }
     };
-    static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
+    private static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
         public String getID() { return "drop_make_touchable";}
         public boolean think(edict_t ent) {
             ent.touch = Touch_Item;
@@ -286,8 +286,9 @@ public class GameItems {
         public String getID() { return "use_quad";}    
         public void use(edict_t ent, gitem_t item) {
             int timeout;
-    
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
+
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
             if (quad_drop_timeout_hack != 0) {
@@ -297,10 +298,10 @@ public class GameItems {
                 timeout = 300;
             }
     
-            if (ent.client.quad_framenum > GameBase.level.framenum)
-                ent.client.quad_framenum += timeout;
+            if (client.quad_framenum > GameBase.level.framenum)
+                client.quad_framenum += timeout;
             else
-                ent.client.quad_framenum = GameBase.level.framenum + timeout;
+                client.quad_framenum = GameBase.level.framenum + timeout;
     
             GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -310,13 +311,14 @@ public class GameItems {
     static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
         public String getID() { return "use_invulnerability";}
         public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
-            if (ent.client.invincible_framenum > GameBase.level.framenum)
-                ent.client.invincible_framenum += 300;
+            if (client.invincible_framenum > GameBase.level.framenum)
+                client.invincible_framenum += 300;
             else
-                ent.client.invincible_framenum = GameBase.level.framenum + 300;
+                client.invincible_framenum = GameBase.level.framenum + 300;
     
             GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                     .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
@@ -325,14 +327,15 @@ public class GameItems {
     static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
         public String getID() { return "use_breather";}
         public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
     
             GameUtil.ValidateSelectedItem(ent);
     
-            if (ent.client.breather_framenum > GameBase.level.framenum)
-                ent.client.breather_framenum += 300;
+            if (client.breather_framenum > GameBase.level.framenum)
+                client.breather_framenum += 300;
             else
-                ent.client.breather_framenum = GameBase.level.framenum + 300;
+                client.breather_framenum = GameBase.level.framenum + 300;
     
             GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -341,13 +344,14 @@ public class GameItems {
     static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
         public String getID() { return "use_envirosuit";}
         public void use(edict_t ent, gitem_t item) {
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
-            if (ent.client.enviro_framenum > GameBase.level.framenum)
-                ent.client.enviro_framenum += 300;
+            if (client.enviro_framenum > GameBase.level.framenum)
+                client.enviro_framenum += 300;
             else
-                ent.client.enviro_framenum = GameBase.level.framenum + 300;
+                client.enviro_framenum = GameBase.level.framenum + 300;
     
             GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -356,10 +360,11 @@ public class GameItems {
     static ItemUseAdapter Use_Silencer = new ItemUseAdapter() {
         public String getID() { return "use_silencer";}
         public void use(edict_t ent, gitem_t item) {
-    
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
+
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
-            ent.client.silencer_shots += 30;
+            client.silencer_shots += 30;
     
             GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -368,24 +373,25 @@ public class GameItems {
     static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
         public String getID() { return "pickup_key";}
         public boolean interact(edict_t ent, edict_t other) {
+            gclient_t client = (gclient_t) other.client;
             if (GameBase.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
-                    if ((other.client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
+                    if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
                         return false;
-                    other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
-                    other.client.pers.power_cubes |= ((ent.spawnflags & 0x0000ff00) >> 8);
+                    client.pers.inventory[ITEM_INDEX(ent.item)]++;
+                    client.pers.power_cubes |= ((ent.spawnflags & 0x0000ff00) >> 8);
                 } else {
-                    if (other.client.pers.inventory[ITEM_INDEX(ent.item)] != 0)
+                    if (client.pers.inventory[ITEM_INDEX(ent.item)] != 0)
                         return false;
-                    other.client.pers.inventory[ITEM_INDEX(ent.item)] = 1;
+                    client.pers.inventory[ITEM_INDEX(ent.item)] = 1;
                 }
                 return true;
             }
-            other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+            client.pers.inventory[ITEM_INDEX(ent.item)]++;
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_Ammo = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_Ammo = new EntInteractAdapter() {
         public String getID() { return "pickup_ammo";}
         public boolean interact(edict_t ent, edict_t other) {
             int oldcount;
@@ -400,16 +406,17 @@ public class GameItems {
                 count = ent.count;
             else
                 count = ent.item.quantity;
-    
-            oldcount = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+
+            gclient_t client = (gclient_t) other.client;
+            oldcount = client.pers.inventory[ITEM_INDEX(ent.item)];
     
             if (!Add_Ammo(other, ent.item, count))
                 return false;
     
             if (weapon && 0 == oldcount) {
-                if (other.client.pers.weapon != ent.item
-                        && (0 == GameBase.deathmatch.value || other.client.pers.weapon == FindItem("blaster")))
-                    other.client.newweapon = ent.item;
+                if (client.pers.weapon != ent.item
+                        && (0 == GameBase.deathmatch.value || client.pers.weapon == FindItem("blaster")))
+                    client.newweapon = ent.item;
             }
     
             if (0 == (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))
@@ -418,7 +425,7 @@ public class GameItems {
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
         public String getID() { return "pickup_armor";}
         public boolean interact(edict_t ent, edict_t other) {
             int old_armor_index;
@@ -434,16 +441,17 @@ public class GameItems {
             old_armor_index = ArmorIndex(other);
     
             // handle armor shards specially
+            gclient_t client = (gclient_t) other.client;
             if (ent.item.tag == Defines.ARMOR_SHARD) {
                 if (0 == old_armor_index)
-                    other.client.pers.inventory[jacket_armor_index] = 2;
+                    client.pers.inventory[jacket_armor_index] = 2;
                 else
-                    other.client.pers.inventory[old_armor_index] += 2;
+                    client.pers.inventory[old_armor_index] += 2;
             }
     
             // if player has no armor, just use it
             else if (0 == old_armor_index) {
-                other.client.pers.inventory[ITEM_INDEX(ent.item)] = newinfo.base_count;
+                client.pers.inventory[ITEM_INDEX(ent.item)] = newinfo.base_count;
             }
     
             // use the better armor
@@ -464,33 +472,33 @@ public class GameItems {
                     salvage = oldinfo.normal_protection
                             / newinfo.normal_protection;
                     salvagecount = (int) salvage
-                            * other.client.pers.inventory[old_armor_index];
+                            * client.pers.inventory[old_armor_index];
                     newcount = newinfo.base_count + salvagecount;
                     if (newcount > newinfo.max_count)
                         newcount = newinfo.max_count;
     
                     // zero count of old armor so it goes away
-                    other.client.pers.inventory[old_armor_index] = 0;
+                    client.pers.inventory[old_armor_index] = 0;
     
                     // change armor to new item with computed value
-                    other.client.pers.inventory[ITEM_INDEX(ent.item)] = newcount;
+                    client.pers.inventory[ITEM_INDEX(ent.item)] = newcount;
                 } else {
                     // calc new armor values
                     salvage = newinfo.normal_protection
                             / oldinfo.normal_protection;
                     salvagecount = (int) salvage * newinfo.base_count;
-                    newcount = other.client.pers.inventory[old_armor_index]
+                    newcount = client.pers.inventory[old_armor_index]
                             + salvagecount;
                     if (newcount > oldinfo.max_count)
                         newcount = oldinfo.max_count;
     
                     // if we're already maxed out then we don't need the new
                     // armor
-                    if (other.client.pers.inventory[old_armor_index] >= newcount)
+                    if (client.pers.inventory[old_armor_index] >= newcount)
                         return false;
     
                     // update current armor value
-                    other.client.pers.inventory[old_armor_index] = newcount;
+                    client.pers.inventory[old_armor_index] = newcount;
                 }
             }
     
@@ -501,15 +509,16 @@ public class GameItems {
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_PowerArmor = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_PowerArmor = new EntInteractAdapter() {
         public String getID() { return "pickup_powerarmor";}
         public boolean interact(edict_t ent, edict_t other) {
     
             int quantity;
+
+            gclient_t client = (gclient_t) other.client;
+            quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
     
-            quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
-    
-            other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+            client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
             if (GameBase.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
@@ -521,12 +530,13 @@ public class GameItems {
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_Powerup = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_Powerup = new EntInteractAdapter() {
         public String getID() { return "pickup_powerup";}
         public boolean interact(edict_t ent, edict_t other) {
             int quantity;
-    
-            quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+
+            gclient_t client = (gclient_t) other.client;
+            quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
             if ((GameBase.skill.value == 1 && quantity >= 2)
                     || (GameBase.skill.value >= 2 && quantity >= 1))
                 return false;
@@ -536,7 +546,7 @@ public class GameItems {
                     && (quantity > 0))
                 return false;
     
-            other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+            client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
             if (GameBase.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
@@ -554,7 +564,7 @@ public class GameItems {
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
         public String getID() { return "pickup_adrenaline";}
         public boolean interact(edict_t ent, edict_t other) {
             if (GameBase.deathmatch.value == 0)
@@ -571,7 +581,7 @@ public class GameItems {
     
         }
     };
-    public static EntInteractAdapter Pickup_AncientHead = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_AncientHead = new EntInteractAdapter() {
         public String getID() { return "pickup_ancienthead";}
         public boolean interact(edict_t ent, edict_t other) {
             other.max_health += 2;
@@ -583,35 +593,36 @@ public class GameItems {
             return true;
         }
     };
-    public static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
+    static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
         public String getID() { return "pickup_bandolier";}
         public boolean interact(edict_t ent, edict_t other) {
             gitem_t item;
             int index;
-    
-            if (other.client.pers.max_bullets < 250)
-                other.client.pers.max_bullets = 250;
-            if (other.client.pers.max_shells < 150)
-                other.client.pers.max_shells = 150;
-            if (other.client.pers.max_cells < 250)
-                other.client.pers.max_cells = 250;
-            if (other.client.pers.max_slugs < 75)
-                other.client.pers.max_slugs = 75;
+
+            gclient_t client = (gclient_t) other.client;
+            if (client.pers.max_bullets < 250)
+                client.pers.max_bullets = 250;
+            if (client.pers.max_shells < 150)
+                client.pers.max_shells = 150;
+            if (client.pers.max_cells < 250)
+                client.pers.max_cells = 250;
+            if (client.pers.max_slugs < 75)
+                client.pers.max_slugs = 75;
     
             item = FindItem("Bullets");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
-                    other.client.pers.inventory[index] = other.client.pers.max_bullets;
+                client.pers.inventory[index] += item.quantity;
+                if (client.pers.inventory[index] > client.pers.max_bullets)
+                    client.pers.inventory[index] = client.pers.max_bullets;
             }
     
             item = FindItem("Shells");
             if (item != null) {
                 index = ITEM_INDEX(item);
-                other.client.pers.inventory[index] += item.quantity;
-                if (other.client.pers.inventory[index] > other.client.pers.max_shells)
-                    other.client.pers.inventory[index] = other.client.pers.max_shells;
+                client.pers.inventory[index] += item.quantity;
+                if (client.pers.inventory[index] > client.pers.max_shells)
+                    client.pers.inventory[index] = client.pers.max_shells;
             }
     
             if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
@@ -622,7 +633,7 @@ public class GameItems {
     
         }
     };
-    public static ItemDropAdapter Drop_Ammo = new ItemDropAdapter() {
+    static ItemDropAdapter Drop_Ammo = new ItemDropAdapter() {
         public String getID() { return "drop_ammo";}
         public void drop(edict_t ent, gitem_t item) {
             edict_t dropped;
@@ -630,45 +641,48 @@ public class GameItems {
     
             index = ITEM_INDEX(item);
             dropped = Drop_Item(ent, item);
-            if (ent.client.pers.inventory[index] >= item.quantity)
+            gclient_t client = (gclient_t) ent.client;
+            if (client.pers.inventory[index] >= item.quantity)
                 dropped.count = item.quantity;
             else
-                dropped.count = ent.client.pers.inventory[index];
+                dropped.count = client.pers.inventory[index];
     
-            if (ent.client.pers.weapon != null
-                    && ent.client.pers.weapon.tag == Defines.AMMO_GRENADES
+            if (client.pers.weapon != null
+                    && client.pers.weapon.tag == Defines.AMMO_GRENADES
                     && item.tag == Defines.AMMO_GRENADES
-                    && ent.client.pers.inventory[index] - dropped.count <= 0) {
+                    && client.pers.inventory[index] - dropped.count <= 0) {
                 GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
                 GameUtil.G_FreeEdict(dropped);
                 return;
             }
     
-            ent.client.pers.inventory[index] -= dropped.count;
-            Cmd.ValidateSelectedItem(ent);
+            client.pers.inventory[index] -= dropped.count;
+            ValidateSelectedItem(ent);
         }
     };
-    public static ItemDropAdapter Drop_General = new ItemDropAdapter() {
+    static ItemDropAdapter Drop_General = new ItemDropAdapter() {
         public String getID() { return "drop_general";}
         public void drop(edict_t ent, gitem_t item) {
             Drop_Item(ent, item);
-            ent.client.pers.inventory[ITEM_INDEX(item)]--;
-            Cmd.ValidateSelectedItem(ent);
+            gclient_t client = (gclient_t) ent.client;
+            client.pers.inventory[ITEM_INDEX(item)]--;
+            ValidateSelectedItem(ent);
         }
     };
     
-    public static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
+    static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
         public String getID() { return "drop_powerarmor";}
         public void drop(edict_t ent, gitem_t item) {
+            gclient_t client = (gclient_t) ent.client;
             if (0 != (ent.flags & Defines.FL_POWER_ARMOR)
-                    && (ent.client.pers.inventory[ITEM_INDEX(item)] == 1))
+                    && (client.pers.inventory[ITEM_INDEX(item)] == 1))
                 Use_PowerArmor.use(ent, item);
             Drop_General.drop(ent, item);
         }
     };
     
-    public static EntThinkAdapter droptofloor = new EntThinkAdapter() {
+    private static EntThinkAdapter droptofloor = new EntThinkAdapter() {
         public String getID() { return "drop_to_floor";}
         public boolean think(edict_t ent) {
             trace_t tr;
@@ -735,7 +749,7 @@ public class GameItems {
             return true;
         }
     };
-    public static ItemUseAdapter Use_PowerArmor = new ItemUseAdapter() {
+    static ItemUseAdapter Use_PowerArmor = new ItemUseAdapter() {
         public String getID() { return "use_powerarmor";}
         public void use(edict_t ent, gitem_t item) {
             int index;
@@ -748,7 +762,8 @@ public class GameItems {
                                 Defines.ATTN_NORM, 0);
             } else {
                 index = ITEM_INDEX(FindItem("cells"));
-                if (0 == ent.client.pers.inventory[index]) {
+                gclient_t client = (gclient_t) ent.client;
+                if (0 == client.pers.inventory[index]) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                             "No cells for power armor.\n");
                     return;
@@ -761,7 +776,7 @@ public class GameItems {
             }
         }
     };
-    public static EntUseAdapter Use_Item = new EntUseAdapter() {
+    private static EntUseAdapter Use_Item = new EntUseAdapter() {
         public String getID() { return "use_item";}
         public void use(edict_t ent, edict_t other, edict_t activator) {
             ent.svflags &= ~Defines.SVF_NOCLIENT;
@@ -782,7 +797,7 @@ public class GameItems {
     /*
      * =============== GetItemByIndex ===============
      */
-    public static gitem_t GetItemByIndex(int index) {
+    static gitem_t GetItemByIndex(int index) {
         if (index == 0 || index >= GameBase.game.num_items)
             return null;
     
@@ -860,11 +875,12 @@ public class GameItems {
         dropped.touch = drop_temp_touch;
     
         dropped.owner = ent;
-    
-        if (ent.client != null) {
+
+        gclient_t client = (gclient_t) ent.client;
+        if (client != null) {
             trace_t trace;
     
-            Math3D.AngleVectors(ent.client.v_angle, forward, right, null);
+            Math3D.AngleVectors(client.v_angle, forward, right, null);
             Math3D.VectorSet(offset, 24, 0, -16);
             Math3D.G_ProjectSource(ent.s.origin, offset, forward, right,
                     dropped.s.origin);
@@ -903,32 +919,34 @@ public class GameItems {
     }
 
     static int PowerArmorType(edict_t ent) {
-        if (ent.client == null)
+        gclient_t client = (gclient_t) ent.client;
+        if (client == null)
             return Defines.POWER_ARMOR_NONE;
     
         if (0 == (ent.flags & Defines.FL_POWER_ARMOR))
             return Defines.POWER_ARMOR_NONE;
     
-        if (ent.client.pers.inventory[power_shield_index] > 0)
+        if (client.pers.inventory[power_shield_index] > 0)
             return Defines.POWER_ARMOR_SHIELD;
     
-        if (ent.client.pers.inventory[power_screen_index] > 0)
+        if (client.pers.inventory[power_screen_index] > 0)
             return Defines.POWER_ARMOR_SCREEN;
     
         return Defines.POWER_ARMOR_NONE;
     }
 
     static int ArmorIndex(edict_t ent) {
-        if (ent.client == null)
+        gclient_t client = (gclient_t) ent.client;
+        if (client == null)
             return 0;
     
-        if (ent.client.pers.inventory[jacket_armor_index] > 0)
+        if (client.pers.inventory[jacket_armor_index] > 0)
             return jacket_armor_index;
     
-        if (ent.client.pers.inventory[combat_armor_index] > 0)
+        if (client.pers.inventory[combat_armor_index] > 0)
             return combat_armor_index;
     
-        if (ent.client.pers.inventory[body_armor_index] > 0)
+        if (client.pers.inventory[body_armor_index] > 0)
             return body_armor_index;
     
         return 0;
@@ -936,10 +954,11 @@ public class GameItems {
 
     public static boolean Pickup_PowerArmor(edict_t ent, edict_t other) {
         int quantity;
+
+        gclient_t client = (gclient_t) other.client;
+        quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
     
-        quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
-    
-        other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+        client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
         if (GameBase.deathmatch.value != 0) {
             if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
@@ -952,42 +971,43 @@ public class GameItems {
         return true;
     }
 
-    public static boolean Add_Ammo(edict_t ent, gitem_t item, int count) {
+    static boolean Add_Ammo(edict_t ent, gitem_t item, int count) {
         int index;
         int max;
-    
-        if (null == ent.client)
+
+        gclient_t client = (gclient_t) ent.client;
+        if (client == null)
             return false;
     
         if (item.tag == Defines.AMMO_BULLETS)
-            max = ent.client.pers.max_bullets;
+            max = client.pers.max_bullets;
         else if (item.tag == Defines.AMMO_SHELLS)
-            max = ent.client.pers.max_shells;
+            max = client.pers.max_shells;
         else if (item.tag == Defines.AMMO_ROCKETS)
-            max = ent.client.pers.max_rockets;
+            max = client.pers.max_rockets;
         else if (item.tag == Defines.AMMO_GRENADES)
-            max = ent.client.pers.max_grenades;
+            max = client.pers.max_grenades;
         else if (item.tag == Defines.AMMO_CELLS)
-            max = ent.client.pers.max_cells;
+            max = client.pers.max_cells;
         else if (item.tag == Defines.AMMO_SLUGS)
-            max = ent.client.pers.max_slugs;
+            max = client.pers.max_slugs;
         else
             return false;
     
         index = ITEM_INDEX(item);
     
-        if (ent.client.pers.inventory[index] == max)
+        if (client.pers.inventory[index] == max)
             return false;
     
-        ent.client.pers.inventory[index] += count;
+        client.pers.inventory[index] += count;
     
-        if (ent.client.pers.inventory[index] > max)
-            ent.client.pers.inventory[index] = max;
+        if (client.pers.inventory[index] > max)
+            client.pers.inventory[index] = max;
     
         return true;
     }
 
-    public static void InitItems() {
+    static void InitItems() {
         GameBase.game.num_items = GameItemList.itemlist.length - 1;
     }
 
@@ -996,7 +1016,7 @@ public class GameItems {
      * 
      * Called by worldspawn ===============
      */
-    public static void SetItemNames() {
+    static void SetItemNames() {
         int i;
         gitem_t it;
     
@@ -1012,12 +1032,11 @@ public class GameItems {
         power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
     }
 
-    public static void SelectNextItem(edict_t ent, int itflags) {
-        gclient_t cl;
+    static void SelectNextItem(edict_t ent, int itflags) {
         int i, index;
         gitem_t it;
-    
-        cl = ent.client;
+
+        gclient_t cl = (gclient_t) ent.client;
     
         if (cl.chase_target != null) {
             GameChase.ChaseNext(ent);
@@ -1042,12 +1061,11 @@ public class GameItems {
         cl.pers.selected_item = -1;
     }
 
-    public static void SelectPrevItem(edict_t ent, int itflags) {
-        gclient_t cl;
+    static void SelectPrevItem(edict_t ent, int itflags) {
         int i, index;
         gitem_t it;
-    
-        cl = ent.client;
+
+        gclient_t cl = (gclient_t) ent.client;
     
         if (cl.chase_target != null) {
             GameChase.ChasePrev(ent);
@@ -1080,7 +1098,7 @@ public class GameItems {
      * item spawned in a level, and for each item in each client's inventory.
      * ===============
      */
-    public static void PrecacheItem(gitem_t it) {
+    static void PrecacheItem(gitem_t it) {
         String s;
         String data;
         int len;
@@ -1147,7 +1165,7 @@ public class GameItems {
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet. ============
      */
-    public static void SpawnItem(edict_t ent, gitem_t item) {
+    static void SpawnItem(edict_t ent, gitem_t item) {
         PrecacheItem(item);
     
         if (ent.spawnflags != 0) {
@@ -1217,7 +1235,7 @@ public class GameItems {
     /*
      * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    public static void SP_item_health(edict_t self) {
+    static void SP_item_health(edict_t self) {
         if (GameBase.deathmatch.value != 0
                 && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
@@ -1284,12 +1302,13 @@ public class GameItems {
      * Touch_Item 
      * ===============
      */
-    public static void Touch_Item(edict_t ent, edict_t other, cplane_t plane,
-            csurface_t surf) {
+    static void Touch_Item(edict_t ent, edict_t other, cplane_t plane,
+                           csurface_t surf) {
         boolean taken;
 
         // freed edicts have not items.
-        if (other.client == null || ent.item == null)
+        gclient_t client = (gclient_t) other.client;
+        if (client == null || ent.item == null)
             return;
         if (other.health < 1)
             return; // dead people can't pickup
@@ -1300,17 +1319,17 @@ public class GameItems {
     
         if (taken) {
             // flash the screen
-            other.client.bonus_alpha = 0.25f;
+            client.bonus_alpha = 0.25f;
     
             // show icon and name on status bar
-            other.client.ps.stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
                     .imageindex(ent.item.icon);
-            other.client.ps.stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
-            other.client.pickup_msg_time = GameBase.level.time + 3.0f;
+            client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
+            client.pickup_msg_time = GameBase.level.time + 3.0f;
     
             // change selected item
             if (ent.item.use != null)
-                other.client.pers.selected_item = other.client.ps.stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
+                client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
     
             if (ent.item.pickup == Pickup_Health) {
                 if (ent.count == 2)
@@ -1354,4 +1373,12 @@ public class GameItems {
         }
     }
 
+    static void ValidateSelectedItem(edict_t ent) {
+        gclient_t cl = (gclient_t) ent.client;
+
+        if (cl.pers.inventory[cl.pers.selected_item] != 0)
+            return; // valid
+
+        SelectNextItem(ent, -1);
+    }
 }

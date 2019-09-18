@@ -22,7 +22,6 @@
 
 package jake2.server;
 
-import jake2.game.*;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
@@ -423,8 +422,8 @@ public class SV_ENTS {
 
         // find the client's PVS
         for (i = 0; i < 3; i++)
-            org[i] = clent.client.ps.pmove.origin[i] * 0.125f
-                    + clent.client.ps.viewoffset[i];
+            org[i] = clent.client.getPlayerState().pmove.origin[i] * 0.125f
+                    + clent.client.getPlayerState().viewoffset[i];
 
         leafnum = CM.CM_PointLeafnum(org);
         clientarea = CM.CM_LeafArea(leafnum);
@@ -434,7 +433,7 @@ public class SV_ENTS {
         frame.areabytes = CM.CM_WriteAreaBits(frame.areabits, clientarea);
 
         // grab the current player_state_t
-        frame.ps.set(clent.client.ps);
+        frame.ps.set(clent.client.getPlayerState());
 
         SV_FatPVS(org);
         clientphs = CM.CM_ClusterPHS(clientcluster);
@@ -445,8 +444,8 @@ public class SV_ENTS {
 
         c_fullsend = 0;
 
-        for (e = 1; e < GameBase.num_edicts; e++) {
-            ent = GameBase.g_edicts[e];
+        for (e = 1; e < SV_GAME.gameExports.getNumEdicts(); e++) {
+            ent = SV_GAME.gameExports.getEdict(e);
 
             // ignore ents without visible models
             if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)
@@ -553,9 +552,9 @@ public class SV_ENTS {
         MSG.WriteByte(buf, Defines.svc_packetentities);
 
         int e = 1;
-        edict_t ent = GameBase.g_edicts[e];
+        edict_t ent = SV_GAME.gameExports.getEdict(e);
 
-        while (e < GameBase.num_edicts) {
+        while (e < SV_GAME.gameExports.getNumEdicts()) {
             // ignore ents without visible models unless they have an effect
             if (ent.inuse
                     && ent.s.number != 0
@@ -565,7 +564,7 @@ public class SV_ENTS {
                 MSG.WriteDeltaEntity(nostate, ent.s, buf, false, true);
 
             e++;
-            ent = GameBase.g_edicts[e];
+            ent = SV_GAME.gameExports.getEdict(e);
         }
 
         MSG.WriteShort(buf, 0); // end of packetentities

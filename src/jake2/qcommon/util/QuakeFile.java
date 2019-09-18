@@ -24,11 +24,11 @@
 
 package jake2.qcommon.util;
 
-import jake2.game.GameBase;
 import jake2.game.GameItemList;
 import jake2.game.SuperAdapter;
 import jake2.game.gitem_t;
 import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 
 import java.io.FileNotFoundException;
@@ -103,20 +103,20 @@ public class QuakeFile extends RandomAccessFile {
      * Reads an edict index from a file and returns the edict.
      */
 
-    public edict_t readEdictRef() throws IOException {
+    public edict_t readEdictRef(edict_t[] g_edicts) throws IOException {
         int i = readInt();
 
         // handle -1
         if (i < 0)
             return null;
 
-        if (i > GameBase.g_edicts.length) {
+        if (i > Defines.MAX_EDICTS) {
             Com.DPrintf("jake2: illegal edict num:" + i + "\n");
             return null;
         }
 
         // valid edict.
-        return GameBase.g_edicts[i];
+        return g_edicts[i];
     }
 
     /** Writes the Adapter-ID to the file. */

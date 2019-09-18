@@ -25,9 +25,6 @@
  */
 package jake2.client;
 
-import jake2.game.entity_state_t;
-import jake2.game.player_state_t;
-import jake2.game.trace_t;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Math3D;

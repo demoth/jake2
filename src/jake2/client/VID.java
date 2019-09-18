@@ -27,7 +27,6 @@ package jake2.client;
 
 import jake2.client.render.Renderer;
 import jake2.client.sound.S;
-import jake2.game.Cmd;
 import jake2.qcommon.*;
 
 import java.awt.*;

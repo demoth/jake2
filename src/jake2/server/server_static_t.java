@@ -22,8 +22,8 @@
 // $Id: server_static_t.java,v 1.2 2004-09-22 19:22:12 salomo Exp $
 package jake2.server;
 
-import jake2.game.entity_state_t;
 import jake2.qcommon.Defines;
+import jake2.qcommon.entity_state_t;
 import jake2.qcommon.sizebuf_t;
 
 import java.io.RandomAccessFile;

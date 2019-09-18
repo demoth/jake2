@@ -25,7 +25,6 @@
 package jake2.client;
 
 import jake2.client.sound.S;
-import jake2.game.Cmd;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;

@@ -23,9 +23,6 @@
 package jake2.qcommon;
 
 import jake2.game.SV;
-import jake2.game.csurface_t;
-import jake2.game.pmove_t;
-import jake2.game.trace_t;
 import jake2.qcommon.util.Math3D;
 
 public class PMove {

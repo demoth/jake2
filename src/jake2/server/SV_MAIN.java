@@ -22,10 +22,6 @@
 // $Id: SV_MAIN.java,v 1.16 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
-import jake2.game.Cmd;
-import jake2.game.GameBase;
-import jake2.game.Info;
-import jake2.game.PlayerClient;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Timer;
@@ -106,7 +102,7 @@ public class SV_MAIN {
         if (drop.state == Defines.cs_spawned) {
             // call the prog function for removing a client
             // this will remove the body, among other things
-            PlayerClient.ClientDisconnect(drop.edict);
+            SV_GAME.gameExports.ClientDisconnect(drop.edict);
         }
 
         if (drop.download != null) {
@@ -142,7 +138,7 @@ public class SV_MAIN {
             cl = SV_INIT.svs.clients[i];
             if (cl.state == Defines.cs_connected
                     || cl.state == Defines.cs_spawned) {
-                player = "" + cl.edict.client.ps.stats[Defines.STAT_FRAGS]
+                player = "" + cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]
                         + " " + cl.ping + "\"" + cl.name + "\"\n";
 
                 playerLength = player.length();
@@ -356,7 +352,7 @@ public class SV_MAIN {
         
         int edictnum = i + 1;
         
-        edict_t ent = GameBase.g_edicts[edictnum];
+        edict_t ent = SV_GAME.gameExports.getEdict(edictnum);
         SV_INIT.svs.clients[i].edict = ent;
         
         // save challenge for checksumming
@@ -366,7 +362,7 @@ public class SV_MAIN {
 
         // get the game a chance to reject this connection or modify the
         // userinfo
-        if (!(PlayerClient.ClientConnect(ent, userinfo))) {
+        if (!(SV_GAME.gameExports.ClientConnect(ent, userinfo))) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null)
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "print\n"
                         + Info.Info_ValueForKey(userinfo, "rejmsg")
@@ -527,7 +523,7 @@ public class SV_MAIN {
                 cl.ping = total / count;
 
             // let the game dll know about the ping
-            cl.edict.client.ping = cl.ping;
+            cl.edict.client.setPing(cl.ping);
         }
     }
 
@@ -656,8 +652,8 @@ public class SV_MAIN {
         edict_t ent;
         int i;
 
-        for (i = 0; i < GameBase.num_edicts; i++) {
-            ent = GameBase.g_edicts[i];
+        for (i = 0; i < SV_GAME.gameExports.getNumEdicts(); i++) {
+            ent = SV_GAME.gameExports.getEdict(i);
             // events only last for a single message
             ent.s.event = 0;
         }
@@ -680,7 +676,7 @@ public class SV_MAIN {
 
         // don't run if paused
         if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
-            GameBase.G_RunFrame();
+            SV_GAME.gameExports.G_RunFrame();
 
             // never get more than one tic behind
             if (SV_INIT.sv.time < SV_INIT.svs.realtime) {
@@ -826,7 +822,7 @@ public class SV_MAIN {
         int i;
 
         // call prog code to allow overrides
-        PlayerClient.ClientUserinfoChanged(cl.edict, cl.userinfo);
+        SV_GAME.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
         // name for C code
         cl.name = Info.Info_ValueForKey(cl.userinfo, "name");
@@ -953,7 +949,7 @@ public class SV_MAIN {
 
         Master_Shutdown();
 
-        GameBase.gi.dprintf("==== ShutdownGame ====\n");
+        Com.Printf("==== ShutdownGame ====\n");
 
         // free current level
         if (SV_INIT.sv.demofile != null)

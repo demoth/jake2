@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.game.link_t;
+import jake2.qcommon.link_t;
 
 public class areanode_t {
 	int axis; // -1 = leaf node

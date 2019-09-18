@@ -25,10 +25,7 @@
  */
 package jake2.game;
 
-import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -344,7 +341,7 @@ public final class SV {
                 GameBase.pushed[GameBase.pushed_p].angles);
 
         if (pusher.client != null)
-            GameBase.pushed[GameBase.pushed_p].deltayaw = pusher.client.ps.pmove.delta_angles[Defines.YAW];
+            GameBase.pushed[GameBase.pushed_p].deltayaw = pusher.client.getPlayerState().pmove.delta_angles[Defines.YAW];
 
         GameBase.pushed_p++;
 
@@ -398,7 +395,7 @@ public final class SV {
                 // try moving the contacted entity
                 Math3D.VectorAdd(check.s.origin, move, check.s.origin);
                 if (check.client != null) { // FIXME: doesn't rotate monsters?
-                    check.client.ps.pmove.delta_angles[Defines.YAW] += amove[Defines.YAW];
+                    check.client.getPlayerState().pmove.delta_angles[Defines.YAW] += amove[Defines.YAW];
                 }
 
                 // figure movement due to the pusher's amove
@@ -443,7 +440,7 @@ public final class SV {
                 Math3D.VectorCopy(p.origin, p.ent.s.origin);
                 Math3D.VectorCopy(p.angles, p.ent.s.angles);
                 if (p.ent.client != null) {
-                    p.ent.client.ps.pmove.delta_angles[Defines.YAW] = (short) p.deltayaw;
+                    p.ent.client.getPlayerState().pmove.delta_angles[Defines.YAW] = (short) p.deltayaw;
                 }
                 GameBase.gi.linkentity(p.ent);
             }

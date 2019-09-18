@@ -271,7 +271,7 @@ public class edict_t {
 
     public monsterinfo_t monsterinfo = new monsterinfo_t();
 
-    public gclient_t client;
+    public GameClient client;
 
     public edict_t owner;
 
@@ -600,7 +600,7 @@ public class edict_t {
         if (client == null)
             f.writeInt(-1);
         else
-            f.writeInt(client.index);
+            f.writeInt(client.getIndex());
 
         f.writeEdictRef(owner);
 
@@ -609,8 +609,8 @@ public class edict_t {
     }
 
     /** Reads the entity from the file. */
-    public void read(QuakeFile f) throws IOException {
-        s.read(f);
+    public void read(QuakeFile f, edict_t[] g_edicts) throws IOException {
+        s.read(f, g_edicts);
         inuse = f.readBoolean();
         linkcount = f.readInt();
         num_clusters = f.readInt();
@@ -660,7 +660,7 @@ public class edict_t {
         deathtarget = f.readString();
         combattarget = f.readString();
 
-        target_ent = f.readEdictRef();
+        target_ent = f.readEdictRef(g_edicts);
 
         speed = f.readFloat();
         accel = f.readFloat();
@@ -679,8 +679,8 @@ public class edict_t {
 
         gravity = f.readFloat();
 
-        goalentity = f.readEdictRef();
-        movetarget = f.readEdictRef();
+        goalentity = f.readEdictRef(g_edicts);
+        movetarget = f.readEdictRef(g_edicts);
 
         yaw_speed = f.readFloat();
         ideal_yaw = f.readFloat();
@@ -723,19 +723,19 @@ public class edict_t {
         sounds = f.readInt();
         count = f.readInt();
 
-        chain = f.readEdictRef();
-        enemy = f.readEdictRef();
+        chain = f.readEdictRef(g_edicts);
+        enemy = f.readEdictRef(g_edicts);
 
-        oldenemy = f.readEdictRef();
-        activator = f.readEdictRef();
-        groundentity = f.readEdictRef();
+        oldenemy = f.readEdictRef(g_edicts);
+        activator = f.readEdictRef(g_edicts);
+        groundentity = f.readEdictRef(g_edicts);
 
         groundentity_linkcount = f.readInt();
-        teamchain = f.readEdictRef();
-        teammaster = f.readEdictRef();
+        teamchain = f.readEdictRef(g_edicts);
+        teammaster = f.readEdictRef(g_edicts);
 
-        mynoise = f.readEdictRef();
-        mynoise2 = f.readEdictRef();
+        mynoise = f.readEdictRef(g_edicts);
+        mynoise2 = f.readEdictRef(g_edicts);
 
         noise_index = f.readInt();
         noise_index2 = f.readInt();
@@ -767,7 +767,7 @@ public class edict_t {
         else
             client = GameBase.game.clients[ndx];
 
-        owner = f.readEdictRef();
+        owner = f.readEdictRef(g_edicts);
 
         // rst's checker :-)
         if (f.readInt() != 9876)

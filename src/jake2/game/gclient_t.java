@@ -23,107 +23,108 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.qcommon.edict_t;
+import jake2.qcommon.player_state_t;
+import jake2.qcommon.pmove_state_t;
 import jake2.qcommon.util.QuakeFile;
 
 import java.io.IOException;
 
-public class gclient_t
-{
+public class gclient_t implements jake2.qcommon.GameClient {
 
 	public gclient_t(int index)
 	{
-		this.index = index;
+		this.setIndex(index);
 	}
 	//	this structure is cleared on each PutClientInServer(),
 	//	except for 'client->pers'
 
 	// known to server
-	public player_state_t ps = new player_state_t(); // communicated by server to clients
-	public int ping;
+	private player_state_t ps = new player_state_t(); // communicated by server to clients
+	private int ping;
 
 	// private to game
 	public client_persistant_t pers = new client_persistant_t();
-	public client_respawn_t resp = new client_respawn_t();
-	public pmove_state_t old_pmove = new pmove_state_t(); // for detecting out-of-pmove changes
+	client_respawn_t resp = new client_respawn_t();
+	pmove_state_t old_pmove = new pmove_state_t(); // for detecting out-of-pmove changes
 
-	public boolean showscores; // set layout stat
-	public boolean showinventory; // set layout stat
-	public boolean showhelp;
-	public boolean showhelpicon;
+	boolean showscores; // set layout stat
+	boolean showinventory; // set layout stat
+	boolean showhelp;
+	private boolean showhelpicon;
 
-	public int ammo_index;
+	int ammo_index;
 
-	public int buttons;
-	public int oldbuttons;
-	public int latched_buttons;
+	int buttons;
+	int oldbuttons;
+	int latched_buttons;
 
-	public boolean weapon_thunk;
+	boolean weapon_thunk;
 
-	public gitem_t newweapon;
+	gitem_t newweapon;
 
 	// sum up damage over an entire frame, so
 	// shotgun blasts give a single big kick
-	public int damage_armor; // damage absorbed by armor
-	public int damage_parmor; // damage absorbed by power armor
-	public int damage_blood; // damage taken out of health
-	public int damage_knockback; // impact damage
-	public float[] damage_from = { 0, 0, 0 }; // origin for vector calculation
+	int damage_armor; // damage absorbed by armor
+	int damage_parmor; // damage absorbed by power armor
+	int damage_blood; // damage taken out of health
+	int damage_knockback; // impact damage
+	float[] damage_from = { 0, 0, 0 }; // origin for vector calculation
 
-	public float killer_yaw; // when dead, look at killer
+	float killer_yaw; // when dead, look at killer
 
-	public int weaponstate;
-	public float[] kick_angles = { 0, 0, 0 }; // weapon kicks
-	public float[] kick_origin = { 0, 0, 0 };
-	public float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
-	public float fall_time, fall_value; // for view drop on fall
-	public float damage_alpha;
-	public float bonus_alpha;
-	public float[] damage_blend = { 0, 0, 0 };
-	public float[] v_angle = { 0, 0, 0 }; // aiming direction
-	public float bobtime; // so off-ground doesn't change it
-	public float[] oldviewangles = { 0, 0, 0 };
-	public float[] oldvelocity = { 0, 0, 0 };
+	int weaponstate;
+	float[] kick_angles = { 0, 0, 0 }; // weapon kicks
+	float[] kick_origin = { 0, 0, 0 };
+	float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
+	float fall_time, fall_value; // for view drop on fall
+	float damage_alpha;
+	float bonus_alpha;
+	float[] damage_blend = { 0, 0, 0 };
+	float[] v_angle = { 0, 0, 0 }; // aiming direction
+	float bobtime; // so off-ground doesn't change it
+	float[] oldviewangles = { 0, 0, 0 };
+	float[] oldvelocity = { 0, 0, 0 };
 
-	public float next_drown_time;
-	public int old_waterlevel;
-	public int breather_sound;
+	float next_drown_time;
+	int old_waterlevel;
+	int breather_sound;
 
-	public int machinegun_shots; // for weapon raising
+	int machinegun_shots; // for weapon raising
 
 	// animation vars
-	public int anim_end;
-	public int anim_priority;
-	public boolean anim_duck;
-	public boolean anim_run;
+	int anim_end;
+	int anim_priority;
+	boolean anim_duck;
+	boolean anim_run;
 
 	// powerup timers
-	public float quad_framenum;
-	public float invincible_framenum;
-	public float breather_framenum;
-	public float enviro_framenum;
+	float quad_framenum;
+	float invincible_framenum;
+	float breather_framenum;
+	float enviro_framenum;
 
-	public boolean grenade_blew_up;
-	public float grenade_time;
-	public int silencer_shots;
-	public int weapon_sound;
+	boolean grenade_blew_up;
+	float grenade_time;
+	int silencer_shots;
+	int weapon_sound;
 
-	public float pickup_msg_time;
+	float pickup_msg_time;
 
-	public float flood_locktill; // locked from talking
-	public float flood_when[] = new float[10]; // when messages were said
-	public int flood_whenhead; // head pointer for when said
+	float flood_locktill; // locked from talking
+	float flood_when[] = new float[10]; // when messages were said
+	int flood_whenhead; // head pointer for when said
 
-	public float respawn_time; // can respawn when time > this
+	float respawn_time; // can respawn when time > this
 
-	public edict_t chase_target; // player we are chasing
-	public boolean update_chase; // need to update chase info?
+	edict_t chase_target; // player we are chasing
+	boolean update_chase; // need to update chase info?
 
-	public int index;
+	private int index;
 
 	/** Clears the game client structure. */
 	public void clear()
 	{
-		ping =0;
+		setPing(0);
 	
 		pers = new client_persistant_t();
 		resp = new client_respawn_t();
@@ -197,12 +198,12 @@ public class gclient_t
 	}
 
 	/** Reads a game client from the file. */
-	public void read(QuakeFile f) throws IOException
+	public void read(QuakeFile f, edict_t[] edicts) throws IOException
 	{
 
-		ps.load(f);
+		getPlayerState().load(f);
 
-		ping = f.readInt();
+		setPing(f.readInt());
 
 		pers.read(f);
 		resp.read(f);
@@ -304,19 +305,19 @@ public class gclient_t
 		flood_when[9] = f.readFloat();
 		flood_whenhead = f.readInt();
 		respawn_time = f.readFloat();
-		chase_target = f.readEdictRef();
+		chase_target = f.readEdictRef(edicts);
 		update_chase = f.readInt() != 0;
 		
 		if (f.readInt() != 8765)
-			System.err.println("game client load failed for num=" + index);
+			System.err.println("game client load failed for num=" + getIndex());
 	}
 	
 	/** Writes a game_client_t (a player) to a file. */ 
 	public void write(QuakeFile f) throws IOException
 	{
-		ps.write(f);
+		getPlayerState().write(f);
 
-		f.writeInt(ping);
+		f.writeInt(getPing());
 
 		pers.write(f);
 		resp.write(f);
@@ -421,5 +422,33 @@ public class gclient_t
 		f.writeInt(update_chase?1:0);
 		
 		f.writeInt(8765);
+	}
+
+	@Override
+	public player_state_t getPlayerState() {
+		return ps;
+	}
+
+	public void setPs(player_state_t ps) {
+		this.ps = ps;
+	}
+
+	@Override
+	public int getPing() {
+		return ping;
+	}
+
+	@Override
+	public void setPing(int ping) {
+		this.ping = ping;
+	}
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }

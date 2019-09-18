@@ -116,7 +116,7 @@ public class level_locals_t
 	}
 	
 	/** Reads the level locals from the file. */
-	public void read(QuakeFile f) throws IOException
+	public void read(QuakeFile f, edict_t[] g_edicts) throws IOException
 	{
 		framenum = f.readInt();
 		time = f.readFloat();
@@ -128,14 +128,14 @@ public class level_locals_t
 		exitintermission = f.readBoolean();
 		intermission_origin = f.readVector();
 		intermission_angle = f.readVector();
- 		sight_client = f.readEdictRef();
+ 		sight_client = f.readEdictRef(g_edicts);
  		
-		sight_entity = f.readEdictRef();
+		sight_entity = f.readEdictRef(g_edicts);
 		sight_entity_framenum = f.readInt();
 		
-		sound_entity = f.readEdictRef();
+		sound_entity = f.readEdictRef(g_edicts);
 		sound_entity_framenum = f.readInt();
-		sound2_entity = f.readEdictRef();
+		sound2_entity = f.readEdictRef(g_edicts);
 		sound2_entity_framenum = f.readInt();
 
 		pic_health = f.readInt();
@@ -148,7 +148,7 @@ public class level_locals_t
 		total_monsters = f.readInt();
 		killed_monsters = f.readInt();
 		
-		current_entity = f.readEdictRef(); 
+		current_entity = f.readEdictRef(g_edicts);
 		body_que = f.readInt(); // dead bodies
 		power_cubes = f.readInt(); // ugly necessity for coop		
 		
