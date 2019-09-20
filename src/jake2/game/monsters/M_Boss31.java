@@ -652,8 +652,8 @@ public class M_Boss31 {
             Math3D.VectorNormalize(forward);
 
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD,
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD,
                     Defines.MZ2_JORG_MACHINEGUN_R1);
             return true;
         }
@@ -680,8 +680,8 @@ public class M_Boss31 {
             Math3D.VectorNormalize(forward);
 
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD,
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD,
                     Defines.MZ2_JORG_MACHINEGUN_L1);
             return true;
         }
@@ -749,7 +749,7 @@ public class M_Boss31 {
                 int damage, float[] point) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
             self.s.sound = 0;
             self.count = 0;
@@ -793,11 +793,11 @@ public class M_Boss31 {
             self.ideal_yaw = enemy_yaw;
 
             // melee attack
-            if (enemy_range == Defines.RANGE_MELEE) {
+            if (enemy_range == GameDefines.RANGE_MELEE) {
                 if (self.monsterinfo.melee != null)
-                    self.monsterinfo.attack_state = Defines.AS_MELEE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MELEE;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 return true;
             }
 
@@ -808,23 +808,23 @@ public class M_Boss31 {
             if (GameBase.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (enemy_range == Defines.RANGE_FAR)
+            if (enemy_range == GameDefines.RANGE_FAR)
                 return false;
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 chance = 0.4f;
-            } else if (enemy_range == Defines.RANGE_MELEE) {
+            } else if (enemy_range == GameDefines.RANGE_MELEE) {
                 chance = 0.8f;
-            } else if (enemy_range == Defines.RANGE_NEAR) {
+            } else if (enemy_range == GameDefines.RANGE_NEAR) {
                 chance = 0.4f;
-            } else if (enemy_range == Defines.RANGE_MID) {
+            } else if (enemy_range == GameDefines.RANGE_MID) {
                 chance = 0.2f;
             } else {
                 return false;
             }
 
             if (Lib.random() < chance) {
-                self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 self.monsterinfo.attack_finished = GameBase.level.time + 2
                         * Lib.random();
                 return true;
@@ -832,9 +832,9 @@ public class M_Boss31 {
 
             if ((self.flags & Defines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3)
-                    self.monsterinfo.attack_state = Defines.AS_SLIDING;
+                    self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_STRAIGHT;
+                    self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
             }
 
             return false;
@@ -981,7 +981,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_run = new EntThinkAdapter() {
     	public String getID() { return "jorg_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = jorg_move_stand;
             else
                 self.monsterinfo.currentmove = jorg_move_run;
@@ -1173,7 +1173,7 @@ public class M_Boss31 {
 
         M_Boss32.MakronPrecache();
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/boss3/rider/tris.md2");

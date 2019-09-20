@@ -120,7 +120,7 @@ public class SV_CCMDS {
 
 			SV_MAIN.sv_client = SV_INIT.svs.clients[id];
 			SV_USER.sv_player = SV_MAIN.sv_client.edict;
-			if (0 == SV_MAIN.sv_client.state) {
+			if (ClientStates.CS_FREE == SV_MAIN.sv_client.state) {
 				Com.Printf("Client " + id + " is not active\n");
 				return false;
 			}
@@ -130,7 +130,7 @@ public class SV_CCMDS {
 		// check for a name match
 		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
 			client_t cl = SV_INIT.svs.clients[i];
-			if (0 == cl.state)
+			if (ClientStates.CS_FREE == cl.state)
 				continue;
             if (idOrName.equals(cl.name)) {
 				SV_MAIN.sv_client = cl;
@@ -755,15 +755,15 @@ public class SV_CCMDS {
 		Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
 		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			cl = SV_INIT.svs.clients[i];
-			if (0 == cl.state)
+			if (ClientStates.CS_FREE == cl.state)
 				continue;
 
 			Com.Printf("%3i ", new Vargs().add(i));
 			Com.Printf("%5i ", new Vargs().add(cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]));
 
-			if (cl.state == Defines.cs_connected)
+			if (cl.state == ClientStates.CS_CONNECTED)
 				Com.Printf("CNCT ");
-			else if (cl.state == Defines.cs_zombie)
+			else if (cl.state == ClientStates.CS_ZOMBIE)
 				Com.Printf("ZMBI ");
 			else {
 				ping = cl.ping < 9999 ? cl.ping : 9999;
@@ -814,7 +814,7 @@ public class SV_CCMDS {
 
 		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
 			client = SV_INIT.svs.clients[j];
-			if (client.state != Defines.cs_spawned)
+			if (client.state != ClientStates.CS_SPAWNED)
 				continue;
 			SV_SEND.SV_ClientPrintf(client, Defines.PRINT_CHAT, text + "\n");
 		}

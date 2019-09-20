@@ -288,7 +288,6 @@ public final class Cmd {
         cmd_function_t cmd = cmd_functions.get(args.get(0));
         if (cmd != null) {
             if (cmd.function != null) {
-                // todo pass arguments to execute instead of using Cmd.Argc()
                 cmd.function.execute(args);
             } else { // forward to server command
                 Cmd.ExecuteString("cmd " + text);

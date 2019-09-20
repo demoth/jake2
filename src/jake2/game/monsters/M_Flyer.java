@@ -541,7 +541,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_run = new EntThinkAdapter() {
     	public String getID() { return "flyer_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = flyer_move_stand;
             else
                 self.monsterinfo.currentmove = flyer_move_run;
@@ -757,7 +757,7 @@ public class M_Flyer {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 0);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
@@ -770,7 +770,7 @@ public class M_Flyer {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.maxs[0], 0);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
@@ -830,7 +830,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_check_melee = new EntThinkAdapter() {
     	public String getID() { return "flyer_check_melee"; }
         public boolean think(edict_t self) {
-            if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE)
+            if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 if (Lib.random() <= 0.8)
                     self.monsterinfo.currentmove = flyer_move_loop_melee;
                 else
@@ -977,7 +977,7 @@ public class M_Flyer {
                 .modelindex("models/monsters/flyer/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
 
         self.s.sound = GameBase.gi.soundindex("flyer/flyidle1.wav");

@@ -512,7 +512,7 @@ public class M_Hover {
     static EntThinkAdapter hover_run = new EntThinkAdapter() {
     	public String getID() { return "hover_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = hover_move_stand;
             else
                 self.monsterinfo.currentmove = hover_move_run;
@@ -594,7 +594,7 @@ public class M_Hover {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.think = hover_deadthink;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             self.timestamp = GameBase.level.time + 15;
@@ -617,18 +617,18 @@ public class M_Hover {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/sm_meat/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
@@ -638,7 +638,7 @@ public class M_Hover {
             else
                 GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
                         Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = hover_move_death1;
         }
@@ -1043,7 +1043,7 @@ public class M_Hover {
 
         self.s.sound = GameBase.gi.soundindex("hover/hovidle1.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/hover/tris.md2");

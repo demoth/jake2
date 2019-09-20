@@ -593,7 +593,7 @@ public class M_Mutant {
     static EntThinkAdapter mutant_run = new EntThinkAdapter() {
     	public String getID(){ return "mutant_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = mutant_move_stand;
             else
                 self.monsterinfo.currentmove = mutant_move_run;
@@ -611,7 +611,7 @@ public class M_Mutant {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 8);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
             if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_hit, 1,
                         Defines.ATTN_NORM, 0);
@@ -627,7 +627,7 @@ public class M_Mutant {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.maxs[0], 8);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
             if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_hit2, 1,
                         Defines.ATTN_NORM, 0);
@@ -646,7 +646,7 @@ public class M_Mutant {
                 return true;
 
             if (((GameBase.skill.value == 3) && (Lib.random() < 0.5))
-                    || (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE))
+                    || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attack09;
             return true;
         }
@@ -697,7 +697,7 @@ public class M_Mutant {
                     Math3D.VectorMA(self.s.origin, self.maxs[0], normal, point);
                     damage = (int) (40 + 10 * Lib.random());
                     GameCombat.T_Damage(other, self, self, self.velocity, point,
-                            normal, damage, damage, 0, Defines.MOD_UNKNOWN);
+                            normal, damage, damage, 0, GameDefines.MOD_UNKNOWN);
                 }
             }
 
@@ -726,7 +726,7 @@ public class M_Mutant {
             Math3D.VectorScale(forward, 600, self.velocity);
             self.velocity[2] = 250;
             self.groundentity = null;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.monsterinfo.attack_finished = GameBase.level.time + 3;
             self.touch = mutant_jump_touch;
             return true;
@@ -740,7 +740,7 @@ public class M_Mutant {
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_thud, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.attack_finished = 0;
-                self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
                 return true;
             }
 
@@ -780,7 +780,7 @@ public class M_Mutant {
     static EntThinkAdapter mutant_check_melee = new EntThinkAdapter() {
     	public String getID(){ return "mutant_check_melee"; }
         public boolean think(edict_t self) {
-            if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE)
+            if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 return true;
             return false;
 
@@ -824,12 +824,12 @@ public class M_Mutant {
                 return false;
 
             if (mutant_check_melee.think(self)) {
-                self.monsterinfo.attack_state = Defines.AS_MELEE;
+                self.monsterinfo.attack_state = GameDefines.AS_MELEE;
                 return true;
             }
 
             if (mutant_check_jump.think(self)) {
-                self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 // FIXME play a jump sound here
                 return true;
             }
@@ -920,7 +920,7 @@ public class M_Mutant {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             GameBase.gi.linkentity(self);
 
@@ -971,23 +971,23 @@ public class M_Mutant {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             self.s.skinnum = 1;
 
@@ -1028,7 +1028,7 @@ public class M_Mutant {
             sound_step3 = GameBase.gi.soundindex("mutant/step3.wav");
             sound_thud = GameBase.gi.soundindex("mutant/thud1.wav");
 
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
             self.s.modelindex = GameBase.gi
                     .modelindex("models/monsters/mutant/tris.md2");

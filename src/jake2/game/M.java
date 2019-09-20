@@ -273,7 +273,7 @@ public final class M {
                         GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                                 GameBase.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, Defines.MOD_WATER);
+                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
                         ent.pain_debounce_time = GameBase.level.time + 1;
                     }
                 }
@@ -290,7 +290,7 @@ public final class M {
                         GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                                 GameBase.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, Defines.MOD_WATER);
+                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
                         ent.pain_debounce_time = GameBase.level.time + 1;
                     }
                 }
@@ -314,7 +314,7 @@ public final class M {
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 10 * ent.waterlevel,
-                        0, 0, Defines.MOD_LAVA);
+                        0, 0, GameDefines.MOD_LAVA);
             }
         }
         if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
@@ -324,7 +324,7 @@ public final class M {
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 4 * ent.waterlevel,
-                        0, 0, Defines.MOD_SLIME);
+                        0, 0, GameDefines.MOD_SLIME);
             }
         }
 
@@ -383,7 +383,7 @@ public final class M {
         ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
         ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
 
-        if ((ent.monsterinfo.aiflags & Defines.AI_RESURRECTING) != 0) {
+        if ((ent.monsterinfo.aiflags & GameDefines.AI_RESURRECTING) != 0) {
             ent.s.effects |= Defines.EF_COLOR_SHELL;
             ent.s.renderfx |= Defines.RF_SHELL_RED;
         }
@@ -392,9 +392,9 @@ public final class M {
             return;
 
         if (ent.powerarmor_time > GameBase.level.time) {
-            if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SCREEN) {
+            if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
-            } else if (ent.monsterinfo.power_armor_type == Defines.POWER_ARMOR_SHIELD) {
+            } else if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SHIELD) {
                 ent.s.effects |= Defines.EF_COLOR_SHELL;
                 ent.s.renderfx |= Defines.RF_SHELL_GREEN;
             }
@@ -429,10 +429,10 @@ public final class M {
             }
 
             if (self.s.frame < move.firstframe || self.s.frame > move.lastframe) {
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
                 self.s.frame = move.firstframe;
             } else {
-                if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME)) {
+                if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME)) {
                     self.s.frame++;
                     if (self.s.frame > move.lastframe)
                         self.s.frame = move.firstframe;
@@ -442,7 +442,7 @@ public final class M {
 
         index = self.s.frame - move.firstframe;
         if (move.frame[index].ai != null)
-            if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME))
+            if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
                 move.frame[index].ai.ai(self, move.frame[index].dist
                         * self.monsterinfo.scale);
             else

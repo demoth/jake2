@@ -773,7 +773,7 @@ public class M_Insane {
             if ((self.spawnflags & 8) != 0) // If crucified
             {
                 self.monsterinfo.currentmove = insane_move_cross;
-                self.monsterinfo.aiflags |= Defines.AI_STAND_GROUND;
+                self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
             }
             // If Hold_Ground and Crawl are set
             else if ((self.spawnflags & 4) != 0 && (self.spawnflags & 16) != 0)
@@ -794,7 +794,7 @@ public class M_Insane {
             } else {
                 Math3D.VectorSet(self.mins, -16, -16, -24);
                 Math3D.VectorSet(self.maxs, 16, 16, -8);
-                self.movetype = Defines.MOVETYPE_TOSS;
+                self.movetype = GameDefines.MOVETYPE_TOSS;
             }
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
@@ -816,25 +816,25 @@ public class M_Insane {
                                 Defines.ATTN_IDLE, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
                     .soundindex("player/male/death" + ((Lib.rand() % 4) + 1)
                             + ".wav"), 1, Defines.ATTN_IDLE, 0);
 
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             if ((self.spawnflags & 8) != 0) {
@@ -1249,7 +1249,7 @@ public class M_Insane {
         sound_scream[6] = GameBase.gi.soundindex("insane/insane9.wav");
         sound_scream[7] = GameBase.gi.soundindex("insane/insane10.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/insane/tris.md2");
@@ -1271,7 +1271,7 @@ public class M_Insane {
         self.monsterinfo.attack = null;
         self.monsterinfo.melee = null;
         self.monsterinfo.sight = null;
-        self.monsterinfo.aiflags |= Defines.AI_GOOD_GUY;
+        self.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
         // @@
         //	 self.s.skinnum = skin;
@@ -1282,7 +1282,7 @@ public class M_Insane {
         GameBase.gi.linkentity(self);
 
         if ((self.spawnflags & 16) != 0) // Stand Ground
-            self.monsterinfo.aiflags |= Defines.AI_STAND_GROUND;
+            self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
 
         self.monsterinfo.currentmove = insane_move_stand_normal;
 

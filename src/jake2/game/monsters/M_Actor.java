@@ -1114,7 +1114,7 @@ public class M_Actor {
                 return true;
             }
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 actor_stand.think(self);
                 return true;
             }
@@ -1244,7 +1244,7 @@ public class M_Actor {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -1294,23 +1294,23 @@ public class M_Actor {
                 // 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
             //	 gi.sound (self, CHAN_VOICE, actor.sound_die, 1, ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             n = Lib.rand() % 2;
@@ -1327,9 +1327,9 @@ public class M_Actor {
             actorMachineGun(self);
 
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
 
             return true;
         }
@@ -1448,9 +1448,9 @@ public class M_Actor {
                 if (other.enemy != null) {
                     other.goalentity = other.enemy;
                     if ((self.spawnflags & 32) != 0)
-                        other.monsterinfo.aiflags |= Defines.AI_BRUTAL;
+                        other.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
                     if ((self.spawnflags & 16) != 0) {
-                        other.monsterinfo.aiflags |= Defines.AI_STAND_GROUND;
+                        other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
                         actor_stand.think(other);
                     } else {
                         actor_run.think(other);
@@ -1509,7 +1509,7 @@ public class M_Actor {
             Math3D.AngleVectors(self.s.angles, forward, null, null);
         }
         Monster.monster_fire_bullet(self, start, forward, 3, 4,
-                Defines.DEFAULT_BULLET_HSPREAD, Defines.DEFAULT_BULLET_VSPREAD,
+                GameDefines.DEFAULT_BULLET_HSPREAD, GameDefines.DEFAULT_BULLET_VSPREAD,
                 Defines.MZ2_ACTOR_MACHINEGUN_1);
     }
 
@@ -1537,7 +1537,7 @@ public class M_Actor {
             return;
         }
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi.modelindex("players/male/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
@@ -1557,7 +1557,7 @@ public class M_Actor {
         self.monsterinfo.melee = null;
         self.monsterinfo.sight = null;
 
-        self.monsterinfo.aiflags |= Defines.AI_GOOD_GUY;
+        self.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
         GameBase.gi.linkentity(self);
 

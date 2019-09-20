@@ -72,7 +72,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	float killer_yaw; // when dead, look at killer
 
-	int weaponstate;
+	WeaponStates weaponstate = WeaponStates.WEAPON_READY;
 	float[] kick_angles = { 0, 0, 0 }; // weapon kicks
 	float[] kick_origin = { 0, 0, 0 };
 	float v_dmg_roll, v_dmg_pitch, v_dmg_time; // damage kicks
@@ -147,7 +147,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 		
 		killer_yaw = 0;
 		damage_from = new float[3];
-		weaponstate = 0;
+		weaponstate = WeaponStates.WEAPON_READY;
 		kick_angles = new float[3];
 		kick_origin = new float[3];
 		v_dmg_roll = v_dmg_pitch = v_dmg_time = 0;
@@ -236,7 +236,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 		killer_yaw = f.readFloat();
 
-		weaponstate = f.readInt();
+		weaponstate = WeaponStates.fromInt(f.readInt());
 
 		kick_angles[0] = f.readFloat();
 		kick_angles[1] = f.readFloat();
@@ -349,7 +349,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 		f.writeFloat(killer_yaw);
 
-		f.writeInt(weaponstate);
+		f.writeInt(weaponstate.intValue);
 
 		f.writeFloat(kick_angles[0]);
 		f.writeFloat(kick_angles[1]);

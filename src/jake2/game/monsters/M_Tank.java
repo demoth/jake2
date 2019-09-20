@@ -742,11 +742,11 @@ public class M_Tank {
     	public String getID(){ return "tank_run"; }
         public boolean think(edict_t self) {
             if (self.enemy != null && self.enemy.client != null)
-                self.monsterinfo.aiflags |= Defines.AI_BRUTAL;
+                self.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
             else
-                self.monsterinfo.aiflags &= ~Defines.AI_BRUTAL;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_BRUTAL;
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 self.monsterinfo.currentmove = tank_move_stand;
                 return true;
             }
@@ -1056,8 +1056,8 @@ public class M_Tank {
             Math3D.AngleVectors(dir, forward, null, null);
 
             Monster.monster_fire_bullet(self, start, forward, 20, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
 
             return true;
         }
@@ -1321,7 +1321,7 @@ public class M_Tank {
 
             if (self.enemy.health < 0) {
                 self.monsterinfo.currentmove = tank_move_attack_strike;
-                self.monsterinfo.aiflags &= ~Defines.AI_BRUTAL;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_BRUTAL;
                 return true;
             }
 
@@ -1365,7 +1365,7 @@ public class M_Tank {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -16);
             Math3D.VectorSet(self.maxs, 16, 16, -0);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -1425,26 +1425,26 @@ public class M_Tank {
                 for (n = 0; n < 1 /* 4 */; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_metal/tris.md2", damage,
-                            Defines.GIB_METALLIC);
+                            GameDefines.GIB_METALLIC);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
-                        damage, Defines.GIB_METALLIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_METALLIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             // regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             self.monsterinfo.currentmove = tank_move_death;
@@ -1476,7 +1476,7 @@ public class M_Tank {
                     .modelindex("models/monsters/tank/tris.md2");
             Math3D.VectorSet(self.mins, -32, -32, -16);
             Math3D.VectorSet(self.maxs, 32, 32, 72);
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
 
             sound_pain = GameBase.gi.soundindex("tank/tnkpain2.wav");

@@ -411,7 +411,7 @@ public class M_Parasite {
     static EntThinkAdapter parasite_start_run = new EntThinkAdapter() {
     	public String getID(){ return "parasite_start_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
             else
                 self.monsterinfo.currentmove = parasite_move_start_run;
@@ -422,7 +422,7 @@ public class M_Parasite {
     static EntThinkAdapter parasite_run = new EntThinkAdapter() {
     	public String getID(){ return "parasite_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
             else
                 self.monsterinfo.currentmove = parasite_move_run;
@@ -636,7 +636,7 @@ public class M_Parasite {
             Math3D.VectorSubtract(start, end, dir);
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, damage, 0,
-                    Defines.DAMAGE_NO_KNOCKBACK, Defines.MOD_UNKNOWN);
+                    Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_UNKNOWN);
             return true;
         }
     };
@@ -727,7 +727,7 @@ public class M_Parasite {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -761,24 +761,24 @@ public class M_Parasite {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             // regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = parasite_move_death;
         }
@@ -817,7 +817,7 @@ public class M_Parasite {
                     .modelindex("models/monsters/parasite/tris.md2");
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, 24);
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
 
             self.health = 175;

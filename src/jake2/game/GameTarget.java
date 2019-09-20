@@ -384,7 +384,7 @@ class GameTarget {
             GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PHS);
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, Defines.MOD_EXPLOSIVE);
+                    self.dmg + 40, GameDefines.MOD_EXPLOSIVE);
 
             save = self.delay;
             self.delay = 0;
@@ -431,7 +431,7 @@ class GameTarget {
             ) {
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
-                        10 * other.max_health, 1000, 0, Defines.MOD_EXIT);
+                        10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT);
                 return;
             }
 
@@ -476,7 +476,7 @@ class GameTarget {
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
-                        self.dmg + 40, Defines.MOD_SPLASH);
+                        self.dmg + 40, GameDefines.MOD_SPLASH);
         }
     };
 
@@ -529,7 +529,7 @@ class GameTarget {
 
             GameWeapon.fire_blaster(self, self.s.origin, self.movedir, self.dmg,
                     (int) self.speed, Defines.EF_BLASTER,
-                    Defines.MOD_TARGET_BLASTER != 0
+                    GameDefines.MOD_TARGET_BLASTER != 0
             /* true */
             );
             GameBase.gi.sound(self, Defines.CHAN_VOICE, self.noise_index, 1,
@@ -622,7 +622,7 @@ class GameTarget {
                     GameCombat.T_Damage(tr.ent, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
-                            Defines.MOD_TARGET_LASER);
+                            GameDefines.MOD_TARGET_LASER);
 
                 // if we hit something that's not a monster or player or is
                 // immune to lasers, we're done
@@ -668,7 +668,7 @@ class GameTarget {
     	public String getID() { return "target_laser_start"; }
         public boolean think(edict_t self) {
 
-            self.movetype = Defines.MOVETYPE_NONE;
+            self.movetype = GameDefines.MOVETYPE_NONE;
             self.solid = Defines.SOLID_NOT;
             self.s.renderfx |= Defines.RF_BEAM | Defines.RF_TRANSLUCENT;
             self.s.modelindex = 1; // must be non-zero

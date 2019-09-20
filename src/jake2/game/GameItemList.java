@@ -55,8 +55,8 @@ public class GameItemList {
 	        /* pickup */
 	        "Body Armor",
 	        /* width */
-	        3, 0, null, Defines.IT_ARMOR, 0, GameItems.bodyarmor_info,
-	        Defines.ARMOR_BODY,
+	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.bodyarmor_info,
+	        GameDefines.ARMOR_BODY,
 	        /* precache */
 	        ""),
 	
@@ -71,8 +71,8 @@ public class GameItemList {
 	        /* pickup */
 	        "Combat Armor",
 	        /* width */
-	        3, 0, null, Defines.IT_ARMOR, 0, GameItems.combatarmor_info,
-	        Defines.ARMOR_COMBAT,
+	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.combatarmor_info,
+	        GameDefines.ARMOR_COMBAT,
 	        /* precache */
 	        ""),
 	
@@ -87,8 +87,8 @@ public class GameItemList {
 	        /* pickup */
 	        "Jacket Armor",
 	        /* width */
-	        3, 0, null, Defines.IT_ARMOR, 0, GameItems.jacketarmor_info,
-	        Defines.ARMOR_JACKET,
+	        3, 0, null, GameDefines.IT_ARMOR, 0, GameItems.jacketarmor_info,
+	        GameDefines.ARMOR_JACKET,
 	        /* precache */
 	        ""),
 	
@@ -103,7 +103,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Armor Shard",
 	        /* width */
-	        3, 0, null, Defines.IT_ARMOR, 0, null, Defines.ARMOR_SHARD,
+	        3, 0, null, GameDefines.IT_ARMOR, 0, null, GameDefines.ARMOR_SHARD,
 	        /* precache */
 	        ""),
 	
@@ -119,7 +119,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Power Screen",
 	        /* width */
-	        0, 60, null, Defines.IT_ARMOR, 0, null, 0,
+	        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -135,7 +135,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Power Shield",
 	        /* width */
-	        0, 60, null, Defines.IT_ARMOR, 0, null, 0,
+	        0, 60, null, GameDefines.IT_ARMOR, 0, null, 0,
 	        /* precache */
 	        "misc/power2.wav misc/power1.wav"),
 	
@@ -153,8 +153,8 @@ public class GameItemList {
 	        /* icon */
 	        "w_blaster",
 	        /* pickup */
-	        "Blaster", 0, 0, null, Defines.IT_WEAPON
-	                | Defines.IT_STAY_COOP, Defines.WEAP_BLASTER, null,
+	        "Blaster", 0, 0, null, GameDefines.IT_WEAPON
+	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_BLASTER, null,
 	        0,
 	        /* precache */
 	        "weapons/blastf1a.wav misc/lasfly.wav"),
@@ -170,8 +170,8 @@ public class GameItemList {
 	        /* icon */
 	        "w_shotgun",
 	        /* pickup */
-	        "Shotgun", 0, 1, "Shells", Defines.IT_WEAPON
-	                | Defines.IT_STAY_COOP, Defines.WEAP_SHOTGUN, null,
+	        "Shotgun", 0, 1, "Shells", GameDefines.IT_WEAPON
+	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SHOTGUN, null,
 	        0,
 	        /* precache */
 	        "weapons/shotgf1b.wav weapons/shotgr1b.wav"),
@@ -187,8 +187,8 @@ public class GameItemList {
 	        /* icon */
 	        "w_sshotgun",
 	        /* pickup */
-	        "Super Shotgun", 0, 2, "Shells", Defines.IT_WEAPON
-	                | Defines.IT_STAY_COOP, Defines.WEAP_SUPERSHOTGUN,
+	        "Super Shotgun", 0, 2, "Shells", GameDefines.IT_WEAPON
+	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_SUPERSHOTGUN,
 	        null, 0,
 	        /* precache */
 	        "weapons/sshotf1b.wav"),
@@ -213,8 +213,8 @@ public class GameItemList {
 	        0,
 	        1,
 	        "Bullets",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_MACHINEGUN,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_MACHINEGUN,
 	        null,
 	        0,
 	        /* precache */
@@ -240,8 +240,8 @@ public class GameItemList {
 	        0,
 	        1,
 	        "Bullets",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_CHAINGUN,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_CHAINGUN,
 	        null,
 	        0,
 	        /* precache */
@@ -268,10 +268,10 @@ public class GameItemList {
 	        3,
 	        5,
 	        "grenades",
-	        Defines.IT_AMMO | Defines.IT_WEAPON,
-	        Defines.WEAP_GRENADES,
+	        GameDefines.IT_AMMO | GameDefines.IT_WEAPON,
+	        GameDefines.WEAP_GRENADES,
 	        null,
-	        Defines.AMMO_GRENADES,
+	        GameDefines.AMMO_GRENADES,
 	        /* precache */
 	        "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav "),
 	
@@ -295,8 +295,8 @@ public class GameItemList {
 	        0,
 	        1,
 	        "Grenades",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_GRENADELAUNCHER,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_GRENADELAUNCHER,
 	        null,
 	        0,
 	        /* precache */
@@ -322,8 +322,8 @@ public class GameItemList {
 	        0,
 	        1,
 	        "Rockets",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_ROCKETLAUNCHER,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_ROCKETLAUNCHER,
 	        null,
 	        0,
 	        /* precache */
@@ -349,8 +349,8 @@ public class GameItemList {
 	        0,
 	        1,
 	        "Cells",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_HYPERBLASTER,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_HYPERBLASTER,
 	        null,
 	        0,
 	        /* precache */
@@ -367,8 +367,8 @@ public class GameItemList {
 	        /* icon */
 	        "w_railgun",
 	        /* pickup */
-	        "Railgun", 0, 1, "Slugs", Defines.IT_WEAPON
-	                | Defines.IT_STAY_COOP, Defines.WEAP_RAILGUN, null,
+	        "Railgun", 0, 1, "Slugs", GameDefines.IT_WEAPON
+	                | GameDefines.IT_STAY_COOP, GameDefines.WEAP_RAILGUN, null,
 	        0,
 	        /* precache */
 	        "weapons/rg_hum.wav"),
@@ -393,8 +393,8 @@ public class GameItemList {
 	        0,
 	        50,
 	        "Cells",
-	        Defines.IT_WEAPON | Defines.IT_STAY_COOP,
-	        Defines.WEAP_BFG,
+	        GameDefines.IT_WEAPON | GameDefines.IT_STAY_COOP,
+	        GameDefines.WEAP_BFG,
 	        null,
 	        0,
 	        /* precache */
@@ -415,7 +415,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Shells",
 	        /* width */
-	        3, 10, null, Defines.IT_AMMO, 0, null, Defines.AMMO_SHELLS,
+	        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SHELLS,
 	        /* precache */
 	        ""),
 	
@@ -430,8 +430,8 @@ public class GameItemList {
 	        /* pickup */
 	        "Bullets",
 	        /* width */
-	        3, 50, null, Defines.IT_AMMO, 0, null,
-	        Defines.AMMO_BULLETS,
+	        3, 50, null, GameDefines.IT_AMMO, 0, null,
+	        GameDefines.AMMO_BULLETS,
 	        /* precache */
 	        ""),
 	
@@ -446,7 +446,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Cells",
 	        /* width */
-	        3, 50, null, Defines.IT_AMMO, 0, null, Defines.AMMO_CELLS,
+	        3, 50, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_CELLS,
 	        /* precache */
 	        ""),
 	
@@ -461,7 +461,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Rockets",
 	        /* width */
-	        3, 5, null, Defines.IT_AMMO, 0, null, Defines.AMMO_ROCKETS,
+	        3, 5, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_ROCKETS,
 	        /* precache */
 	        ""),
 	
@@ -476,7 +476,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Slugs",
 	        /* width */
-	        3, 10, null, Defines.IT_AMMO, 0, null, Defines.AMMO_SLUGS,
+	        3, 10, null, GameDefines.IT_AMMO, 0, null, GameDefines.AMMO_SLUGS,
 	        /* precache */
 	        ""),
 	
@@ -494,7 +494,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Quad Damage",
 	        /* width */
-	        2, 60, null, Defines.IT_POWERUP, 0, null, 0,
+	        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
 	        "items/damage.wav items/damage2.wav items/damage3.wav"),
 	
@@ -510,7 +510,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Invulnerability",
 	        /* width */
-	        2, 300, null, Defines.IT_POWERUP, 0, null, 0,
+	        2, 300, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
 	        "items/protect.wav items/protect2.wav items/protect4.wav"),
 	
@@ -525,7 +525,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Silencer",
 	        /* width */
-	        2, 60, null, Defines.IT_POWERUP, 0, null, 0,
+	        2, 60, null, GameDefines.IT_POWERUP, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -540,7 +540,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Rebreather",
 	        /* width */
-	        2, 60, null, Defines.IT_STAY_COOP | Defines.IT_POWERUP, 0,
+	        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
 	        null, 0,
 	        /* precache */
 	        "items/airout.wav"),
@@ -556,7 +556,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Environment Suit",
 	        /* width */
-	        2, 60, null, Defines.IT_STAY_COOP | Defines.IT_POWERUP, 0,
+	        2, 60, null, GameDefines.IT_STAY_COOP | GameDefines.IT_POWERUP, 0,
 	        null, 0,
 	        /* precache */
 	        "items/airout.wav"),
@@ -634,7 +634,7 @@ public class GameItemList {
 	        null, "items/pkup.wav",
 	        "models/items/keys/data_cd/tris.md2", Defines.EF_ROTATE,
 	        null, "k_datacd", "Data CD", 2, 0, null,
-	        Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -646,7 +646,7 @@ public class GameItemList {
 	        GameItems.Drop_General, null, "items/pkup.wav",
 	        "models/items/keys/power/tris.md2", Defines.EF_ROTATE,
 	        null, "k_powercube", "Power Cube", 2, 0, null,
-	        Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -658,7 +658,7 @@ public class GameItemList {
 	        null, "items/pkup.wav",
 	        "models/items/keys/pyramid/tris.md2", Defines.EF_ROTATE,
 	        null, "k_pyramid", "Pyramid Key", 2, 0, null,
-	        Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -670,7 +670,7 @@ public class GameItemList {
 	        GameItems.Drop_General, null, "items/pkup.wav",
 	        "models/items/keys/spinner/tris.md2", Defines.EF_ROTATE,
 	        null, "k_dataspin", "Data Spinner", 2, 0, null,
-	        Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -681,7 +681,7 @@ public class GameItemList {
 	new gitem_t("key_pass", GameItems.Pickup_Key, null, GameItems.Drop_General,
 	        null, "items/pkup.wav", "models/items/keys/pass/tris.md2",
 	        Defines.EF_ROTATE, null, "k_security", "Security Pass", 2,
-	        0, null, Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -692,8 +692,8 @@ public class GameItemList {
 	new gitem_t("key_blue_key", GameItems.Pickup_Key, null,
 	        GameItems.Drop_General, null, "items/pkup.wav",
 	        "models/items/keys/key/tris.md2", Defines.EF_ROTATE, null,
-	        "k_bluekey", "Blue Key", 2, 0, null, Defines.IT_STAY_COOP
-	                | Defines.IT_KEY, 0, null, 0,
+	        "k_bluekey", "Blue Key", 2, 0, null, GameDefines.IT_STAY_COOP
+	                | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -705,7 +705,7 @@ public class GameItemList {
 	        null, "items/pkup.wav",
 	        "models/items/keys/red_key/tris.md2", Defines.EF_ROTATE,
 	        null, "k_redkey", "Red Key", 2, 0, null,
-	        Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null, 0,
+	        GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null, 0,
 	        /* precache */
 	        ""),
 	
@@ -722,7 +722,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Commander's Head",
 	        /* width */
-	        2, 0, null, Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null,
+	        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
 	        0,
 	        /* precache */
 	        ""),
@@ -740,7 +740,7 @@ public class GameItemList {
 	        /* pickup */
 	        "Airstrike Marker",
 	        /* width */
-	        2, 0, null, Defines.IT_STAY_COOP | Defines.IT_KEY, 0, null,
+	        2, 0, null, GameDefines.IT_STAY_COOP | GameDefines.IT_KEY, 0, null,
 	        0,
 	        /* precache */
 	        ""),

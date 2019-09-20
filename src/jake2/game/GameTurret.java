@@ -86,7 +86,7 @@ public class GameTurret {
 
     public static void SP_turret_breach(edict_t self) {
         self.solid = Defines.SOLID_BSP;
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
 
         if (self.speed == 0)
@@ -123,7 +123,7 @@ public class GameTurret {
 
     public static void SP_turret_base(edict_t self) {
         self.solid = Defines.SOLID_BSP;
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
         self.blocked = turret_blocked;
         GameBase.gi.linkentity(self);
@@ -135,7 +135,7 @@ public class GameTurret {
             return;
         }
 
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/infantry/tris.md2");
@@ -160,7 +160,7 @@ public class GameTurret {
         self.use = GameUtil.monster_use;
         self.clipmask = Defines.MASK_MONSTERSOLID;
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
-        self.monsterinfo.aiflags |= Defines.AI_STAND_GROUND | Defines.AI_DUCKED;
+        self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND | GameDefines.AI_DUCKED;
 
         if (GameBase.st.item != null) {
             self.item = GameItems.FindItemByClassname(GameBase.st.item);
@@ -188,7 +188,7 @@ public class GameTurret {
                     attacker = self.teammaster;
                 GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
-                        self.teammaster.dmg, 10, 0, Defines.MOD_CRUSH);
+                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH);
             }
         }
     };
@@ -374,15 +374,15 @@ public class GameTurret {
                 if (!GameUtil.FindTarget(self))
                     return true;
                 self.monsterinfo.trail_time = GameBase.level.time;
-                self.monsterinfo.aiflags &= ~Defines.AI_LOST_SIGHT;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
             } else {
                 if (GameUtil.visible(self, self.enemy)) {
-                    if ((self.monsterinfo.aiflags & Defines.AI_LOST_SIGHT) != 0) {
+                    if ((self.monsterinfo.aiflags & GameDefines.AI_LOST_SIGHT) != 0) {
                         self.monsterinfo.trail_time = GameBase.level.time;
-                        self.monsterinfo.aiflags &= ~Defines.AI_LOST_SIGHT;
+                        self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                     }
                 } else {
-                    self.monsterinfo.aiflags |= Defines.AI_LOST_SIGHT;
+                    self.monsterinfo.aiflags |= GameDefines.AI_LOST_SIGHT;
                     return true;
                 }
             }

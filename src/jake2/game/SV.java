@@ -357,10 +357,10 @@ public final class SV {
             check = GameBase.g_edicts[e];
             if (!check.inuse)
                 continue;
-            if (check.movetype == Defines.MOVETYPE_PUSH
-                    || check.movetype == Defines.MOVETYPE_STOP
-                    || check.movetype == Defines.MOVETYPE_NONE
-                    || check.movetype == Defines.MOVETYPE_NOCLIP)
+            if (check.movetype == GameDefines.MOVETYPE_PUSH
+                    || check.movetype == GameDefines.MOVETYPE_STOP
+                    || check.movetype == GameDefines.MOVETYPE_NONE
+                    || check.movetype == GameDefines.MOVETYPE_NOCLIP)
                 continue;
 
             if (check.area.prev == null)
@@ -382,7 +382,7 @@ public final class SV {
                     continue;
             }
 
-            if ((pusher.movetype == Defines.MOVETYPE_PUSH)
+            if ((pusher.movetype == GameDefines.MOVETYPE_PUSH)
                     || (check.groundentity == pusher)) {
                 // move this entity
                 GameBase.pushed[GameBase.pushed_p].ent = check;
@@ -569,8 +569,8 @@ public final class SV {
         SV_CheckVelocity(ent);
 
         //	   add gravity
-        if (ent.movetype != Defines.MOVETYPE_FLY
-                && ent.movetype != Defines.MOVETYPE_FLYMISSILE)
+        if (ent.movetype != GameDefines.MOVETYPE_FLY
+                && ent.movetype != GameDefines.MOVETYPE_FLYMISSILE)
             SV_AddGravity(ent);
 
         //	   move angles
@@ -584,7 +584,7 @@ public final class SV {
             return;
 
         if (trace.fraction < 1) {
-            if (ent.movetype == Defines.MOVETYPE_BOUNCE)
+            if (ent.movetype == GameDefines.MOVETYPE_BOUNCE)
                 backoff = 1.5f;
             else
                 backoff = 1;
@@ -595,7 +595,7 @@ public final class SV {
             // stop if on ground
             if (trace.plane.normal[2] > 0.7) {
                 if (ent.velocity[2] < 60
-                        || ent.movetype != Defines.MOVETYPE_BOUNCE) {
+                        || ent.movetype != GameDefines.MOVETYPE_BOUNCE) {
                     ent.groundentity = trace.ent;
                     ent.groundentity_linkcount = trace.ent.linkcount;
                     Math3D.VectorCopy(Globals.vec3_origin, ent.velocity);
@@ -872,7 +872,7 @@ public final class SV {
         }
 
         //	   push down from a step height above the wished position
-        if ((ent.monsterinfo.aiflags & Defines.AI_NOSTEP) == 0)
+        if ((ent.monsterinfo.aiflags & GameDefines.AI_NOSTEP) == 0)
             stepsize = GameBase.STEPSIZE;
         else
             stepsize = 1;

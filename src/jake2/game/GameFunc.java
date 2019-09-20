@@ -197,7 +197,7 @@ class GameFunc {
         //	
         trigger = GameUtil.G_Spawn();
         trigger.touch = Touch_Plat_Center;
-        trigger.movetype = Defines.MOVETYPE_NONE;
+        trigger.movetype = GameDefines.MOVETYPE_NONE;
         trigger.solid = Defines.SOLID_TRIGGER;
         trigger.enemy = ent;
 
@@ -251,7 +251,7 @@ class GameFunc {
     static void SP_func_plat(edict_t ent) {
         Math3D.VectorClear(ent.s.angles);
         ent.solid = Defines.SOLID_BSP;
-        ent.movetype = Defines.MOVETYPE_PUSH;
+        ent.movetype = GameDefines.MOVETYPE_PUSH;
 
         GameBase.gi.setmodel(ent, ent.model);
 
@@ -401,7 +401,7 @@ class GameFunc {
         float[] abs_movedir = { 0, 0, 0 };
 
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BSP;
         GameBase.gi.setmodel(self, self.model);
 
@@ -483,7 +483,7 @@ class GameFunc {
     }
 
     static void SP_func_train(edict_t self) {
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
 
         Math3D.VectorClear(self.s.angles);
         self.blocked = train_blocked;
@@ -800,7 +800,7 @@ class GameFunc {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        Defines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH);
                 // if it's still there, nuke it
                 if (other != null)
                     GameMisc.BecomeExplosion1(other);
@@ -809,7 +809,7 @@ class GameFunc {
 
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
 
             if (self.moveinfo.state == STATE_UP)
                 plat_go_down.think(self);
@@ -868,7 +868,7 @@ class GameFunc {
         public void blocked(edict_t self, edict_t other) {
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
         }
     };
 
@@ -880,7 +880,7 @@ class GameFunc {
                     || self.avelocity[2] != 0)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                        Defines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH);
         }
     };
 
@@ -905,9 +905,9 @@ class GameFunc {
         public boolean think(edict_t ent) {
             ent.solid = Defines.SOLID_BSP;
             if ((ent.spawnflags & 32) != 0)
-                ent.movetype = Defines.MOVETYPE_STOP;
+                ent.movetype = GameDefines.MOVETYPE_STOP;
             else
-                ent.movetype = Defines.MOVETYPE_PUSH;
+                ent.movetype = GameDefines.MOVETYPE_PUSH;
 
             // set the axis of rotation
             Math3D.VectorClear(ent.movedir);
@@ -1075,7 +1075,7 @@ class GameFunc {
             float dist;
 
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
-            ent.movetype = Defines.MOVETYPE_STOP;
+            ent.movetype = GameDefines.MOVETYPE_STOP;
             ent.solid = Defines.SOLID_BSP;
             GameBase.gi.setmodel(ent, ent.model);
 
@@ -1313,7 +1313,7 @@ class GameFunc {
             Math3D.VectorCopy(maxs, other.maxs);
             other.owner = ent;
             other.solid = Defines.SOLID_TRIGGER;
-            other.movetype = Defines.MOVETYPE_NONE;
+            other.movetype = GameDefines.MOVETYPE_NONE;
             other.touch = Touch_DoorTrigger;
             GameBase.gi.linkentity(other);
 
@@ -1335,7 +1335,7 @@ class GameFunc {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        Defines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH);
                 // if it's still there, nuke it
                 if (other != null)
                     GameMisc.BecomeExplosion1(other);
@@ -1344,7 +1344,7 @@ class GameFunc {
 
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
 
             if ((self.spawnflags & DOOR_CRUSHER) != 0)
                 return;
@@ -1410,7 +1410,7 @@ class GameFunc {
             }
 
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
-            ent.movetype = Defines.MOVETYPE_PUSH;
+            ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
             GameBase.gi.setmodel(ent, ent.model);
 
@@ -1553,7 +1553,7 @@ class GameFunc {
                     ent.pos2);
             ent.moveinfo.distance = GameBase.st.distance;
 
-            ent.movetype = Defines.MOVETYPE_PUSH;
+            ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
             GameBase.gi.setmodel(ent, ent.model);
 
@@ -1653,7 +1653,7 @@ class GameFunc {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        Defines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH);
                 // if it's still there, nuke it
                 if (other != null)
                     GameMisc.BecomeExplosion1(other);
@@ -1668,7 +1668,7 @@ class GameFunc {
             self.touch_debounce_time = GameBase.level.time + 0.5f;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
         }
     };
 
@@ -2092,7 +2092,7 @@ class GameFunc {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
-                        Defines.MOD_CRUSH);
+                        GameDefines.MOD_CRUSH);
                 // if it's still there, nuke it
                 if (other != null)
                     GameMisc.BecomeExplosion1(other);
@@ -2105,7 +2105,7 @@ class GameFunc {
 
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
         }
     };
 
@@ -2133,7 +2133,7 @@ class GameFunc {
             ent.moveinfo.sound_end = GameBase.gi
                     .soundindex("doors/dr1_end.wav");
 
-            ent.movetype = Defines.MOVETYPE_PUSH;
+            ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
             GameBase.gi.setmodel(ent, ent.model);
 

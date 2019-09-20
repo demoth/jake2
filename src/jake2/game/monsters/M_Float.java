@@ -757,7 +757,7 @@ public class M_Float {
     	public String getID() { return "floater_run"; }
         public boolean think(edict_t self) {
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = floater_move_stand1;
             else
                 self.monsterinfo.currentmove = floater_move_run;
@@ -788,7 +788,7 @@ public class M_Float {
     static mmove_t floater_move_attack1 = new mmove_t(FRAME_attak101,
             FRAME_attak114, floater_frames_attack1, floater_run);
 
-    static float[] aim = { Defines.MELEE_DISTANCE, 0, 0 };
+    static float[] aim = { GameDefines.MELEE_DISTANCE, 0, 0 };
 
     static EntThinkAdapter floater_wham = new EntThinkAdapter() {
     	public String getID() { return "floater_wham"; }
@@ -866,7 +866,7 @@ public class M_Float {
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,
-                    Defines.DAMAGE_ENERGY, Defines.MOD_UNKNOWN);
+                    Defines.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN);
             return true;
         }
     };
@@ -932,7 +932,7 @@ public class M_Float {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -1190,7 +1190,7 @@ public class M_Float {
 
         self.s.sound = GameBase.gi.soundindex("floater/fltsrch1.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/float/tris.md2");

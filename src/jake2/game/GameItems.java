@@ -34,11 +34,11 @@ import java.util.StringTokenizer;
 public class GameItems {
 
     static gitem_armor_t jacketarmor_info = new gitem_armor_t(25, 50,
-    .30f, .00f, Defines.ARMOR_JACKET);
+    .30f, .00f, GameDefines.ARMOR_JACKET);
     static gitem_armor_t combatarmor_info = new gitem_armor_t(50, 100,
-    .60f, .30f, Defines.ARMOR_COMBAT);
+    .60f, .30f, GameDefines.ARMOR_COMBAT);
     static gitem_armor_t bodyarmor_info = new gitem_armor_t(100, 200,
-    .80f, .60f, Defines.ARMOR_BODY);
+    .80f, .60f, GameDefines.ARMOR_BODY);
     private static int quad_drop_timeout_hack = 0;
     private static int jacket_armor_index;
     private static int combat_armor_index;
@@ -145,7 +145,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_slugs;
             }
     
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
@@ -156,18 +156,18 @@ public class GameItems {
         public String getID() { return "pickup_health";}
         public boolean interact(edict_t ent, edict_t other) {
     
-            if (0 == (ent.style & Defines.HEALTH_IGNORE_MAX))
+            if (0 == (ent.style & GameDefines.HEALTH_IGNORE_MAX))
                 if (other.health >= other.max_health)
                     return false;
     
             other.health += ent.count;
     
-            if (0 == (ent.style & Defines.HEALTH_IGNORE_MAX)) {
+            if (0 == (ent.style & GameDefines.HEALTH_IGNORE_MAX)) {
                 if (other.health > other.max_health)
                     other.health = other.max_health;
             }
     
-            if (0 != (ent.style & Defines.HEALTH_TIMED)) {
+            if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
                 ent.think = GameUtil.MegaHealth_think;
                 ent.nextthink = GameBase.level.time + 5f;
                 ent.owner = other;
@@ -175,7 +175,7 @@ public class GameItems {
                 ent.svflags |= Defines.SVF_NOCLIENT;
                 ent.solid = Defines.SOLID_NOT;
             } else {
-                if (!((ent.spawnflags & Defines.DROPPED_ITEM) != 0)
+                if (!((ent.spawnflags & GameDefines.DROPPED_ITEM) != 0)
                         && (GameBase.deathmatch.value != 0))
                     SetRespawn(ent, 30);
             }
@@ -242,9 +242,9 @@ public class GameItems {
                 }
             }
     
-            if (0 == (ent.spawnflags & Defines.ITEM_TARGETS_USED)) {
+            if (0 == (ent.spawnflags & GameDefines.ITEM_TARGETS_USED)) {
                 GameUtil.G_UseTargets(ent, other);
-                ent.spawnflags |= Defines.ITEM_TARGETS_USED;
+                ent.spawnflags |= GameDefines.ITEM_TARGETS_USED;
             }
     
             if (!taken)
@@ -252,8 +252,8 @@ public class GameItems {
             
             Com.dprintln("Picked up:" + ent.classname);
     
-            if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
-                    || 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))) {
+            if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+                    || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
                 if ((ent.flags & Defines.FL_RESPAWN) != 0)
                     ent.flags &= ~Defines.FL_RESPAWN;
                 else
@@ -398,7 +398,7 @@ public class GameItems {
             int count;
             boolean weapon;
     
-            weapon = (ent.item.flags & Defines.IT_WEAPON) != 0;
+            weapon = (ent.item.flags & GameDefines.IT_WEAPON) != 0;
             if ((weapon)
                     && ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
                 count = 1000;
@@ -419,7 +419,7 @@ public class GameItems {
                     client.newweapon = ent.item;
             }
     
-            if (0 == (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))
+            if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, 30);
             return true;
@@ -442,7 +442,7 @@ public class GameItems {
     
             // handle armor shards specially
             gclient_t client = (gclient_t) other.client;
-            if (ent.item.tag == Defines.ARMOR_SHARD) {
+            if (ent.item.tag == GameDefines.ARMOR_SHARD) {
                 if (0 == old_armor_index)
                     client.pers.inventory[jacket_armor_index] = 2;
                 else
@@ -502,7 +502,7 @@ public class GameItems {
                 }
             }
     
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, 20);
     
@@ -521,7 +521,7 @@ public class GameItems {
             client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
             if (GameBase.deathmatch.value != 0) {
-                if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
+                if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity);
                 // auto-use for DM only if we didn't already have one
                 if (0 == quantity)
@@ -542,19 +542,19 @@ public class GameItems {
                 return false;
     
             if ((GameBase.coop.value != 0)
-                    && (ent.item.flags & Defines.IT_STAY_COOP) != 0
+                    && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0
                     && (quantity > 0))
                 return false;
     
             client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
             if (GameBase.deathmatch.value != 0) {
-                if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
+                if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity);
                 if (((int) GameBase.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
-                        || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & Defines.DROPPED_PLAYER_ITEM))) {
+                        || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
-                            && 0 != (ent.spawnflags & Defines.DROPPED_PLAYER_ITEM))
+                            && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
                         quad_drop_timeout_hack = (int) ((ent.nextthink - GameBase.level.time) / Defines.FRAMETIME);
     
                     ent.item.use.use(other, ent.item);
@@ -573,7 +573,7 @@ public class GameItems {
             if (other.health < other.max_health)
                 other.health = other.max_health;
     
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
@@ -586,7 +586,7 @@ public class GameItems {
         public boolean interact(edict_t ent, edict_t other) {
             other.max_health += 2;
     
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
@@ -625,7 +625,7 @@ public class GameItems {
                     client.pers.inventory[index] = client.pers.max_shells;
             }
     
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM)
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (GameBase.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
@@ -648,8 +648,8 @@ public class GameItems {
                 dropped.count = client.pers.inventory[index];
     
             if (client.pers.weapon != null
-                    && client.pers.weapon.tag == Defines.AMMO_GRENADES
-                    && item.tag == Defines.AMMO_GRENADES
+                    && client.pers.weapon.tag == GameDefines.AMMO_GRENADES
+                    && item.tag == GameDefines.AMMO_GRENADES
                     && client.pers.inventory[index] - dropped.count <= 0) {
                 GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
@@ -702,7 +702,7 @@ public class GameItems {
             else
                 GameBase.gi.setmodel(ent, ent.item.world_model);
             ent.solid = Defines.SOLID_TRIGGER;
-            ent.movetype = Defines.MOVETYPE_TOSS;
+            ent.movetype = GameDefines.MOVETYPE_TOSS;
             ent.touch = Touch_Item;
     
             float v[] = { 0, 0, -128 };
@@ -732,14 +732,14 @@ public class GameItems {
                 }
             }
     
-            if ((ent.spawnflags & Defines.ITEM_NO_TOUCH) != 0) {
+            if ((ent.spawnflags & GameDefines.ITEM_NO_TOUCH) != 0) {
                 ent.solid = Defines.SOLID_BBOX;
                 ent.touch = null;
                 ent.s.effects &= ~Defines.EF_ROTATE;
                 ent.s.renderfx &= ~Defines.RF_GLOW;
             }
     
-            if ((ent.spawnflags & Defines.ITEM_TRIGGER_SPAWN) != 0) {
+            if ((ent.spawnflags & GameDefines.ITEM_TRIGGER_SPAWN) != 0) {
                 ent.svflags |= Defines.SVF_NOCLIENT;
                 ent.solid = Defines.SOLID_NOT;
                 ent.use = Use_Item;
@@ -782,7 +782,7 @@ public class GameItems {
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.use = null;
     
-            if ((ent.spawnflags & Defines.ITEM_NO_TOUCH) != 0) {
+            if ((ent.spawnflags & GameDefines.ITEM_NO_TOUCH) != 0) {
                 ent.solid = Defines.SOLID_BBOX;
                 ent.touch = null;
             } else {
@@ -863,14 +863,14 @@ public class GameItems {
     
         dropped.classname = item.classname;
         dropped.item = item;
-        dropped.spawnflags = Defines.DROPPED_ITEM;
+        dropped.spawnflags = GameDefines.DROPPED_ITEM;
         dropped.s.effects = item.world_model_flags;
         dropped.s.renderfx = Defines.RF_GLOW;
         Math3D.VectorSet(dropped.mins, -15, -15, -15);
         Math3D.VectorSet(dropped.maxs, 15, 15, 15);
         GameBase.gi.setmodel(dropped, dropped.item.world_model);
         dropped.solid = Defines.SOLID_TRIGGER;
-        dropped.movetype = Defines.MOVETYPE_TOSS;
+        dropped.movetype = GameDefines.MOVETYPE_TOSS;
     
         dropped.touch = drop_temp_touch;
     
@@ -907,7 +907,7 @@ public class GameItems {
         ent.svflags &= ~Defines.SVF_NOCLIENT;
         ent.use = null;
     
-        if ((ent.spawnflags & Defines.ITEM_NO_TOUCH) != 0) {
+        if ((ent.spawnflags & GameDefines.ITEM_NO_TOUCH) != 0) {
             ent.solid = Defines.SOLID_BBOX;
             ent.touch = null;
         } else {
@@ -921,18 +921,18 @@ public class GameItems {
     static int PowerArmorType(edict_t ent) {
         gclient_t client = (gclient_t) ent.client;
         if (client == null)
-            return Defines.POWER_ARMOR_NONE;
+            return GameDefines.POWER_ARMOR_NONE;
     
         if (0 == (ent.flags & Defines.FL_POWER_ARMOR))
-            return Defines.POWER_ARMOR_NONE;
+            return GameDefines.POWER_ARMOR_NONE;
     
         if (client.pers.inventory[power_shield_index] > 0)
-            return Defines.POWER_ARMOR_SHIELD;
+            return GameDefines.POWER_ARMOR_SHIELD;
     
         if (client.pers.inventory[power_screen_index] > 0)
-            return Defines.POWER_ARMOR_SCREEN;
+            return GameDefines.POWER_ARMOR_SCREEN;
     
-        return Defines.POWER_ARMOR_NONE;
+        return GameDefines.POWER_ARMOR_NONE;
     }
 
     static int ArmorIndex(edict_t ent) {
@@ -961,7 +961,7 @@ public class GameItems {
         client.pers.inventory[ITEM_INDEX(ent.item)]++;
     
         if (GameBase.deathmatch.value != 0) {
-            if (0 == (ent.spawnflags & Defines.DROPPED_ITEM))
+            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                 SetRespawn(ent, ent.item.quantity);
             // auto-use for DM only if we didn't already have one
             if (0 == quantity)
@@ -979,17 +979,17 @@ public class GameItems {
         if (client == null)
             return false;
     
-        if (item.tag == Defines.AMMO_BULLETS)
+        if (item.tag == GameDefines.AMMO_BULLETS)
             max = client.pers.max_bullets;
-        else if (item.tag == Defines.AMMO_SHELLS)
+        else if (item.tag == GameDefines.AMMO_SHELLS)
             max = client.pers.max_shells;
-        else if (item.tag == Defines.AMMO_ROCKETS)
+        else if (item.tag == GameDefines.AMMO_ROCKETS)
             max = client.pers.max_rockets;
-        else if (item.tag == Defines.AMMO_GRENADES)
+        else if (item.tag == GameDefines.AMMO_GRENADES)
             max = client.pers.max_grenades;
-        else if (item.tag == Defines.AMMO_CELLS)
+        else if (item.tag == GameDefines.AMMO_CELLS)
             max = client.pers.max_cells;
-        else if (item.tag == Defines.AMMO_SLUGS)
+        else if (item.tag == GameDefines.AMMO_SLUGS)
             max = client.pers.max_slugs;
         else
             return false;
@@ -1201,7 +1201,7 @@ public class GameItems {
                 }
             }
             if (((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
-                if ((item.flags == Defines.IT_AMMO)
+                if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
                     GameUtil.G_FreeEdict(ent);
                     return;
@@ -1217,7 +1217,7 @@ public class GameItems {
     
         // don't let them drop items that stay in a coop game
         if ((GameBase.coop.value != 0)
-                && (item.flags & Defines.IT_STAY_COOP) != 0) {
+                && (item.flags & GameDefines.IT_STAY_COOP) != 0) {
             item.drop = null;
         }
     
@@ -1260,7 +1260,7 @@ public class GameItems {
         self.model = "models/items/healing/stimpack/tris.md2";
         self.count = 2;
         SpawnItem(self, FindItem("Health"));
-        self.style = Defines.HEALTH_IGNORE_MAX;
+        self.style = GameDefines.HEALTH_IGNORE_MAX;
         GameBase.gi.soundindex("items/s_health.wav");
     }
 
@@ -1294,7 +1294,7 @@ public class GameItems {
         self.count = 100;
         SpawnItem(self, FindItem("Health"));
         GameBase.gi.soundindex("items/m_health.wav");
-        self.style = Defines.HEALTH_IGNORE_MAX | Defines.HEALTH_TIMED;
+        self.style = GameDefines.HEALTH_IGNORE_MAX | GameDefines.HEALTH_TIMED;
     }
 
     /*
@@ -1356,16 +1356,16 @@ public class GameItems {
             }
         }
     
-        if (0 == (ent.spawnflags & Defines.ITEM_TARGETS_USED)) {
+        if (0 == (ent.spawnflags & GameDefines.ITEM_TARGETS_USED)) {
             GameUtil.G_UseTargets(ent, other);
-            ent.spawnflags |= Defines.ITEM_TARGETS_USED;
+            ent.spawnflags |= GameDefines.ITEM_TARGETS_USED;
         }
     
         if (!taken)
             return;
     
-        if (!((GameBase.coop.value != 0) && (ent.item.flags & Defines.IT_STAY_COOP) != 0)
-                || 0 != (ent.spawnflags & (Defines.DROPPED_ITEM | Defines.DROPPED_PLAYER_ITEM))) {
+        if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+                || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
             if ((ent.flags & Defines.FL_RESPAWN) != 0)
                 ent.flags &= ~Defines.FL_RESPAWN;
             else

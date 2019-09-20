@@ -724,7 +724,7 @@ public class M_Supertank {
     static EntThinkAdapter supertank_run = new EntThinkAdapter() {
     	public String getID(){ return "supertank_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = supertank_move_stand;
             else
                 self.monsterinfo.currentmove = supertank_move_run;
@@ -740,7 +740,7 @@ public class M_Supertank {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -813,8 +813,8 @@ public class M_Supertank {
             }
 
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
             return true;
         }
     };
@@ -1137,7 +1137,7 @@ public class M_Supertank {
                 int damage, float[] point) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
             self.count = 0;
             self.monsterinfo.currentmove = supertank_move_death;
@@ -1170,7 +1170,7 @@ public class M_Supertank {
             //	self.s.sound = gi.soundindex ("bosstank/btkengn1.wav");
             tread_sound = GameBase.gi.soundindex("bosstank/btkengn1.wav");
 
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
             self.s.modelindex = GameBase.gi
                     .modelindex("models/monsters/boss1/tris.md2");
@@ -1251,15 +1251,15 @@ public class M_Supertank {
                 self.s.sound = 0;
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 8; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
-                            500, Defines.GIB_METALLIC);
+                            500, GameDefines.GIB_METALLIC);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
-                        Defines.GIB_ORGANIC);
+                        GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
-                        Defines.GIB_METALLIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        GameDefines.GIB_METALLIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return true;
             }
     

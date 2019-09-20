@@ -230,7 +230,7 @@ public class GameExportsImpl implements GameExports {
                 it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
-                if (0 == (it.flags & Defines.IT_WEAPON))
+                if (0 == (it.flags & GameDefines.IT_WEAPON))
                     continue;
                 client.pers.inventory[i] += 1;
             }
@@ -243,7 +243,7 @@ public class GameExportsImpl implements GameExports {
                 it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
-                if (0 == (it.flags & Defines.IT_AMMO))
+                if (0 == (it.flags & GameDefines.IT_AMMO))
                     continue;
                 GameItems.Add_Ammo(ent, it, 1000);
             }
@@ -286,7 +286,7 @@ public class GameExportsImpl implements GameExports {
                 it = GameItemList.itemlist[i];
                 if (it.pickup != null)
                     continue;
-                if ((it.flags & (Defines.IT_ARMOR | Defines.IT_WEAPON | Defines.IT_AMMO)) != 0)
+                if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
                     continue;
                 client.pers.inventory[i] = 1;
             }
@@ -310,7 +310,7 @@ public class GameExportsImpl implements GameExports {
 
         index = GameItems.ITEM_INDEX(it);
 
-        if ((it.flags & Defines.IT_AMMO) != 0) {
+        if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
                 client.pers.inventory[index] = Lib.atoi(args.get(2));
             else
@@ -389,11 +389,11 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        if (ent.movetype == Defines.MOVETYPE_NOCLIP) {
-            ent.movetype = Defines.MOVETYPE_WALK;
+        if (ent.movetype == GameDefines.MOVETYPE_NOCLIP) {
+            ent.movetype = GameDefines.MOVETYPE_WALK;
             msg = "noclip OFF\n";
         } else {
-            ent.movetype = Defines.MOVETYPE_NOCLIP;
+            ent.movetype = GameDefines.MOVETYPE_NOCLIP;
             msg = "noclip ON\n";
         }
 
@@ -525,7 +525,7 @@ public class GameExportsImpl implements GameExports {
             if (it.use == null)
                 continue;
 
-            if (0 == (it.flags & Defines.IT_WEAPON))
+            if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
             it.use.use(ent, it);
             if (cl.pers.weapon == it)
@@ -561,7 +561,7 @@ public class GameExportsImpl implements GameExports {
             it = GameItemList.itemlist[index];
             if (null == it.use)
                 continue;
-            if (0 == (it.flags & Defines.IT_WEAPON))
+            if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
             it.use.use(ent, it);
             if (cl.pers.weapon == it)
@@ -586,7 +586,7 @@ public class GameExportsImpl implements GameExports {
         gitem_t it = GameItemList.itemlist[index];
         if (null == it.use)
             return;
-        if (0 == (it.flags & Defines.IT_WEAPON))
+        if (0 == (it.flags & GameDefines.IT_WEAPON))
             return;
         it.use.use(ent, it);
     }
@@ -673,7 +673,7 @@ public class GameExportsImpl implements GameExports {
             return;
         ent.flags &= ~Defines.FL_GODMODE;
         ent.health = 0;
-        GameBase.meansOfDeath = Defines.MOD_SUICIDE;
+        GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
         PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
     }
 
@@ -986,16 +986,16 @@ public class GameExportsImpl implements GameExports {
                 GameItems.SelectPrevItem(ent, -1);
                 break;
             case "invnextw":
-                GameItems.SelectNextItem(ent, Defines.IT_WEAPON);
+                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON);
                 break;
             case "invprevw":
-                GameItems.SelectPrevItem(ent, Defines.IT_WEAPON);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON);
                 break;
             case "invnextp":
-                GameItems.SelectNextItem(ent, Defines.IT_POWERUP);
+                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP);
                 break;
             case "invprevp":
-                GameItems.SelectPrevItem(ent, Defines.IT_POWERUP);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP);
                 break;
             case "invuse":
                 InvUse_f(ent);

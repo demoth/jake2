@@ -22,10 +22,7 @@
 // $Id: M_Boss3.java,v 1.3 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
-import jake2.game.EntThinkAdapter;
-import jake2.game.EntUseAdapter;
-import jake2.game.GameBase;
-import jake2.game.GameUtil;
+import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Math3D;
@@ -67,7 +64,7 @@ public class M_Boss3 {
             return;
         }
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/boss3/rider/tris.md2";
         self.s.modelindex = GameBase.gi.modelindex(self.model);

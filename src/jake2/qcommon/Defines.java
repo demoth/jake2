@@ -30,15 +30,6 @@ import java.nio.ByteOrder;
 
 public class Defines {
 
-	public final static int WEAPON_READY = 0;
-	public final static int WEAPON_ACTIVATING = 1;
-	public final static int WEAPON_DROPPING = 2;
-	public final static int WEAPON_FIRING = 3;
-
-	public final static float GRENADE_TIMER = 3.0f;
-	public final static int GRENADE_MINSPEED = 400;
-	public final static int GRENADE_MAXSPEED = 800;
-
 	// -----------------
 	// client/q_shared.h
 
@@ -606,9 +597,6 @@ public class Defines {
 	public final static int CS_GENERAL = (CS_PLAYERSKINS + MAX_CLIENTS);
 	public final static int MAX_CONFIGSTRINGS = (CS_GENERAL + MAX_GENERAL);
 
-	public final static int HEALTH_IGNORE_MAX = 1;
-	public final static int HEALTH_TIMED = 2;
-
 	// gi.BoxEdicts() can return a list of either solid or trigger entities
 	// FIXME: eliminate AREA_ distinction?
 	public final static int AREA_SOLID = 1;
@@ -689,15 +677,6 @@ public class Defines {
 			| CONTENTS_CURRENT_UP
 			| CONTENTS_CURRENT_DOWN);
 
-	// item spawnflags
-	public final static int ITEM_TRIGGER_SPAWN = 0x00000001;
-	public final static int ITEM_NO_TOUCH = 0x00000002;
-	// 6 bits reserved for editor flags
-	// 8 bits used as power cube id bits for coop games
-	public final static int DROPPED_ITEM = 0x00010000;
-	public final static int DROPPED_PLAYER_ITEM = 0x00020000;
-	public final static int ITEM_TARGETS_USED = 0x00040000;
-
 	// (machen nur GL)
 	public final static int VIDREF_GL = 1;
 	public final static int VIDREF_SOFT = 2;
@@ -723,28 +702,13 @@ public class Defines {
 	public final static int F_MMOVE = 10;
 	public final static int F_IGNORE = 11;
 
-	public final static int DEFAULT_BULLET_HSPREAD = 300;
-	public final static int DEFAULT_BULLET_VSPREAD = 500;
-	public final static int DEFAULT_SHOTGUN_HSPREAD = 1000;
-	public final static int DEFAULT_SHOTGUN_VSPREAD = 500;
-	public final static int DEFAULT_DEATHMATCH_SHOTGUN_COUNT = 12;
-	public final static int DEFAULT_SHOTGUN_COUNT = 12;
-	public final static int DEFAULT_SSHOTGUN_COUNT = 20;
-
-	public final static int ANIM_BASIC = 0; // stand / run 
+	public final static int ANIM_BASIC = 0; // stand / run
 	public final static int ANIM_WAVE = 1;
 	public final static int ANIM_JUMP = 2;
 	public final static int ANIM_PAIN = 3;
 	public final static int ANIM_ATTACK = 4;
 	public final static int ANIM_DEATH = 5;
 	public final static int ANIM_REVERSE = 6;
-
-	public final static int AMMO_BULLETS = 0;
-	public final static int AMMO_SHELLS = 1;
-	public final static int AMMO_ROCKETS = 2;
-	public final static int AMMO_GRENADES = 3;
-	public final static int AMMO_CELLS = 4;
-	public final static int AMMO_SLUGS = 5;
 
 	//	view pitching times
 	public final static float DAMAGE_TIME = 0.5f;
@@ -762,51 +726,6 @@ public class Defines {
 	public final static int DAMAGE_NO = 0;
 	public final static int DAMAGE_YES = 1; // will take damage if hit 
 	public final static int DAMAGE_AIM = 2; // auto targeting recognizes this 
-
-	//	means of death
-	public final static int MOD_UNKNOWN = 0;
-	public final static int MOD_BLASTER = 1;
-	public final static int MOD_SHOTGUN = 2;
-	public final static int MOD_SSHOTGUN = 3;
-	public final static int MOD_MACHINEGUN = 4;
-	public final static int MOD_CHAINGUN = 5;
-	public final static int MOD_GRENADE = 6;
-	public final static int MOD_G_SPLASH = 7;
-	public final static int MOD_ROCKET = 8;
-	public final static int MOD_R_SPLASH = 9;
-	public final static int MOD_HYPERBLASTER = 10;
-	public final static int MOD_RAILGUN = 11;
-	public final static int MOD_BFG_LASER = 12;
-	public final static int MOD_BFG_BLAST = 13;
-	public final static int MOD_BFG_EFFECT = 14;
-	public final static int MOD_HANDGRENADE = 15;
-	public final static int MOD_HG_SPLASH = 16;
-	public final static int MOD_WATER = 17;
-	public final static int MOD_SLIME = 18;
-	public final static int MOD_LAVA = 19;
-	public final static int MOD_CRUSH = 20;
-	public final static int MOD_TELEFRAG = 21;
-	public final static int MOD_FALLING = 22;
-	public final static int MOD_SUICIDE = 23;
-	public final static int MOD_HELD_GRENADE = 24;
-	public final static int MOD_EXPLOSIVE = 25;
-	public final static int MOD_BARREL = 26;
-	public final static int MOD_BOMB = 27;
-	public final static int MOD_EXIT = 28;
-	public final static int MOD_SPLASH = 29;
-	public final static int MOD_TARGET_LASER = 30;
-	public final static int MOD_TRIGGER_HURT = 31;
-	public final static int MOD_HIT = 32;
-	public final static int MOD_TARGET_BLASTER = 33;
-	public final static int MOD_FRIENDLY_FIRE = 0x8000000;
-
-	//	edict->spawnflags
-	//	these are set with checkboxes on each entity in the map editor
-	public final static int SPAWNFLAG_NOT_EASY = 0x00000100;
-	public final static int SPAWNFLAG_NOT_MEDIUM = 0x00000200;
-	public final static int SPAWNFLAG_NOT_HARD = 0x00000400;
-	public final static int SPAWNFLAG_NOT_DEATHMATCH = 0x00000800;
-	public final static int SPAWNFLAG_NOT_COOP = 0x00001000;
 
 	//	edict->flags
 	public final static int FL_FLY = 0x00000001;
@@ -830,61 +749,6 @@ public class Defines {
 	public final static int TAG_GAME = 765; // clear when unloading the dll 
 	public final static int TAG_LEVEL = 766; // clear when loading a new level 
 
-	public final static int MELEE_DISTANCE = 80;
-
-	public final static int BODY_QUEUE_SIZE = 8;
-
-	//	deadflag
-	public final static int DEAD_NO = 0;
-	public final static int DEAD_DYING = 1;
-	public final static int DEAD_DEAD = 2;
-	public final static int DEAD_RESPAWNABLE = 3;
-
-	//	range
-	public final static int RANGE_MELEE = 0;
-	public final static int RANGE_NEAR = 1;
-	public final static int RANGE_MID = 2;
-	public final static int RANGE_FAR = 3;
-
-	//	gib types
-	public final static int GIB_ORGANIC = 0;
-	public final static int GIB_METALLIC = 1;
-
-	//	monster ai flags
-	public final static int AI_STAND_GROUND = 0x00000001;
-	public final static int AI_TEMP_STAND_GROUND = 0x00000002;
-	public final static int AI_SOUND_TARGET = 0x00000004;
-	public final static int AI_LOST_SIGHT = 0x00000008;
-	public final static int AI_PURSUIT_LAST_SEEN = 0x00000010;
-	public final static int AI_PURSUE_NEXT = 0x00000020;
-	public final static int AI_PURSUE_TEMP = 0x00000040;
-	public final static int AI_HOLD_FRAME = 0x00000080;
-	public final static int AI_GOOD_GUY = 0x00000100;
-	public final static int AI_BRUTAL = 0x00000200;
-	public final static int AI_NOSTEP = 0x00000400;
-	public final static int AI_DUCKED = 0x00000800;
-	public final static int AI_COMBAT_POINT = 0x00001000;
-	public final static int AI_MEDIC = 0x00002000;
-	public final static int AI_RESURRECTING = 0x00004000;
-
-	//	monster attack state
-	public final static int AS_STRAIGHT = 1;
-	public final static int AS_SLIDING = 2;
-	public final static int AS_MELEE = 3;
-	public final static int AS_MISSILE = 4;
-
-	//	 armor types
-	public final static int ARMOR_NONE = 0;
-	public final static int ARMOR_JACKET = 1;
-	public final static int ARMOR_COMBAT = 2;
-	public final static int ARMOR_BODY = 3;
-	public final static int ARMOR_SHARD = 4;
-
-	//	 power armor types
-	public final static int POWER_ARMOR_NONE = 0;
-	public final static int POWER_ARMOR_SCREEN = 1;
-	public final static int POWER_ARMOR_SHIELD = 2;
-
 	//	 handedness values
 	public final static int RIGHT_HANDED = 0;
 	public final static int LEFT_HANDED = 1;
@@ -900,45 +764,6 @@ public class Defines {
 	public final static int SFL_CROSS_TRIGGER_7 = 0x00000040;
 	public final static int SFL_CROSS_TRIGGER_8 = 0x00000080;
 	public final static int SFL_CROSS_TRIGGER_MASK = 0x000000ff;
-
-	//	 noise types for PlayerNoise
-	public final static int PNOISE_SELF = 0;
-	public final static int PNOISE_WEAPON = 1;
-	public final static int PNOISE_IMPACT = 2;
-
-	//	gitem_t->flags
-	public final static int IT_WEAPON = 1; // use makes active weapon 
-	public final static int IT_AMMO = 2;
-	public final static int IT_ARMOR = 4;
-	public final static int IT_STAY_COOP = 8;
-	public final static int IT_KEY = 16;
-	public final static int IT_POWERUP = 32;
-
-	//	gitem_t->weapmodel for weapons indicates model index
-	public final static int WEAP_BLASTER = 1;
-	public final static int WEAP_SHOTGUN = 2;
-	public final static int WEAP_SUPERSHOTGUN = 3;
-	public final static int WEAP_MACHINEGUN = 4;
-	public final static int WEAP_CHAINGUN = 5;
-	public final static int WEAP_GRENADES = 6;
-	public final static int WEAP_GRENADELAUNCHER = 7;
-	public final static int WEAP_ROCKETLAUNCHER = 8;
-	public final static int WEAP_HYPERBLASTER = 9;
-	public final static int WEAP_RAILGUN = 10;
-	public final static int WEAP_BFG = 11;
-
-	//	edict->movetype values
-	public final static int MOVETYPE_NONE = 0; // never moves 
-	public final static int MOVETYPE_NOCLIP = 1; // origin and angles change with no interaction 
-	public final static int MOVETYPE_PUSH = 2; // no clip to world, push on box contact 
-	public final static int MOVETYPE_STOP = 3; // no clip to world, stops on box contact 
-
-	public final static int MOVETYPE_WALK = 4; // gravity 
-	public final static int MOVETYPE_STEP = 5; // gravity, special edge handling 
-	public final static int MOVETYPE_FLY = 6;
-	public final static int MOVETYPE_TOSS = 7; // gravity 
-	public final static int MOVETYPE_FLYMISSILE = 8; // extra size to monsters 
-	public final static int MOVETYPE_BOUNCE = 9;
 
 	public final static int MULTICAST_ALL = 0;
 	public final static int MULTICAST_PHS = 1;
@@ -1268,16 +1093,6 @@ public class Defines {
 	public static final int key_console = 1;
 	public static final int key_message = 2;
 	public static final int key_menu = 3;
-
-	// ---------------
-	// server/server.h
-	// Client states
-	// Todo: make enum
-	public static final int cs_free = 0; // can be reused for a new connection
-	public static final int cs_zombie = 1; // client has been disconnected, but don't reuse
-	// connection for a couple seconds
-	public static final int cs_connected = 2; // has been assigned to a client_t, but not in game yet
-	public static final int cs_spawned = 3;
 
 	public static final int MAX_CHALLENGES = 1024;
 

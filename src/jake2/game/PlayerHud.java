@@ -111,7 +111,7 @@ public class PlayerHud {
                     for (int n = 1; n < GameItemList.itemlist.length; n++) {
                         // null pointer exception fixed. (RST) 
                         if (GameItemList.itemlist[n] != null)
-                            if ((GameItemList.itemlist[n].flags & Defines.IT_KEY) != 0) {
+                            if ((GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0) {
                                 gclient_t otherClient = (gclient_t) client.client;
                                 otherClient.pers.inventory[n] = 0;
                             }

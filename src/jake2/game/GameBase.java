@@ -343,23 +343,23 @@ public class GameBase {
             ent.prethink.think(ent);
 
         switch ((int) ent.movetype) {
-        case Defines.MOVETYPE_PUSH:
-        case Defines.MOVETYPE_STOP:
+        case GameDefines.MOVETYPE_PUSH:
+        case GameDefines.MOVETYPE_STOP:
             SV.SV_Physics_Pusher(ent);
             break;
-        case Defines.MOVETYPE_NONE:
+        case GameDefines.MOVETYPE_NONE:
             SV.SV_Physics_None(ent);
             break;
-        case Defines.MOVETYPE_NOCLIP:
+        case GameDefines.MOVETYPE_NOCLIP:
             SV.SV_Physics_Noclip(ent);
             break;
-        case Defines.MOVETYPE_STEP:
+        case GameDefines.MOVETYPE_STEP:
             SV.SV_Physics_Step(ent);
             break;
-        case Defines.MOVETYPE_TOSS:
-        case Defines.MOVETYPE_BOUNCE:
-        case Defines.MOVETYPE_FLY:
-        case Defines.MOVETYPE_FLYMISSILE:
+        case GameDefines.MOVETYPE_TOSS:
+        case GameDefines.MOVETYPE_BOUNCE:
+        case GameDefines.MOVETYPE_FLY:
+        case GameDefines.MOVETYPE_FLYMISSILE:
             SV.SV_Physics_Toss(ent);
             break;
         default:

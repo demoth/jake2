@@ -73,7 +73,7 @@ public class GameAI {
 
         if (FacingIdeal(self)) {
             self.monsterinfo.melee.think(self);
-            self.monsterinfo.attack_state = Defines.AS_STRAIGHT;
+            self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     }
 
@@ -86,7 +86,7 @@ public class GameAI {
 
         if (FacingIdeal(self)) {
             self.monsterinfo.attack.think(self);
-            self.monsterinfo.attack_state = Defines.AS_STRAIGHT;
+            self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     };
 
@@ -141,19 +141,19 @@ public class GameAI {
 
         // this causes monsters to run blindly to the combat point w/o firing
         if (self.goalentity != null) {
-            if ((self.monsterinfo.aiflags & Defines.AI_COMBAT_POINT) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_COMBAT_POINT) != 0)
                 return false;
 
-            if ((self.monsterinfo.aiflags & Defines.AI_SOUND_TARGET) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
                 if ((GameBase.level.time - self.enemy.teleport_time) > 5.0) {
                     if (self.goalentity == self.enemy)
                         if (self.movetarget != null)
                             self.goalentity = self.movetarget;
                         else
                             self.goalentity = null;
-                    self.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
-                    if ((self.monsterinfo.aiflags & Defines.AI_TEMP_STAND_GROUND) != 0)
-                        self.monsterinfo.aiflags &= ~(Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
+                    self.monsterinfo.aiflags &= ~GameDefines.AI_SOUND_TARGET;
+                    if ((self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND) != 0)
+                        self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
                 } else {
                     self.show_hostile = (int) GameBase.level.time + 1;
                     return false;
@@ -167,13 +167,13 @@ public class GameAI {
         hesDeadJim = false;
         if ((null == self.enemy) || (!self.enemy.inuse)) {
             hesDeadJim = true;
-        } else if ((self.monsterinfo.aiflags & Defines.AI_MEDIC) != 0) {
+        } else if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0) {
             if (self.enemy.health > 0) {
                 hesDeadJim = true;
-                self.monsterinfo.aiflags &= ~Defines.AI_MEDIC;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_MEDIC;
             }
         } else {
-            if ((self.monsterinfo.aiflags & Defines.AI_BRUTAL) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_BRUTAL) != 0) {
                 if (self.enemy.health <= -80)
                     hesDeadJim = true;
             } else {
@@ -222,11 +222,11 @@ public class GameAI {
 
         // JDC self.ideal_yaw = enemy_yaw;
 
-        if (self.monsterinfo.attack_state == Defines.AS_MISSILE) {
+        if (self.monsterinfo.attack_state == GameDefines.AS_MISSILE) {
             ai_run_missile(self);
             return true;
         }
-        if (self.monsterinfo.attack_state == Defines.AS_MELEE) {
+        if (self.monsterinfo.attack_state == GameDefines.AS_MELEE) {
             ai_run_melee(self);
             return true;
         }
@@ -313,7 +313,7 @@ public class GameAI {
         float[] vec = { 0, 0, 0 };
     
         self.goalentity = self.enemy;
-        if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+        if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
             self.monsterinfo.stand.think(self);
         else
             self.monsterinfo.run.think(self);
@@ -321,7 +321,7 @@ public class GameAI {
         self.ideal_yaw = Math3D.vectoyaw(vec);
         
         // wait a while before first attack
-        if (0 == (self.monsterinfo.aiflags & Defines.AI_STAND_GROUND))
+        if (0 == (self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND))
             GameUtil.AttackFinished(self, 1);
     }
 
@@ -486,13 +486,13 @@ public class GameAI {
             if (dist != 0)
                 M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 if (self.enemy != null) {
                     Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
                     self.ideal_yaw = Math3D.vectoyaw(v);
                     if (self.s.angles[Defines.YAW] != self.ideal_yaw
-                            && 0 != (self.monsterinfo.aiflags & Defines.AI_TEMP_STAND_GROUND)) {
-                        self.monsterinfo.aiflags &= ~(Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
+                            && 0 != (self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND)) {
+                        self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
                         self.monsterinfo.run.think(self);
                     }
                     M.M_ChangeYaw(self);
@@ -560,12 +560,12 @@ public class GameAI {
             float[] left_target = { 0, 0, 0 }, right_target = { 0, 0, 0 };
 
             // if we're going to a combat point, just proceed
-            if ((self.monsterinfo.aiflags & Defines.AI_COMBAT_POINT) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_COMBAT_POINT) != 0) {
                 M.M_MoveToGoal(self, dist);
                 return;
             }
 
-            if ((self.monsterinfo.aiflags & Defines.AI_SOUND_TARGET) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
                 Math3D.VectorSubtract(self.s.origin, self.enemy.s.origin, v);
                 // ...and reached it
                 if (Math3D.VectorLength(v) < 64) {
@@ -588,7 +588,7 @@ public class GameAI {
             if (ai_checkattack(self, dist))
                 return;
 
-            if (self.monsterinfo.attack_state == Defines.AS_SLIDING) {
+            if (self.monsterinfo.attack_state == GameDefines.AS_SLIDING) {
                 ai_run_slide(self, dist);
                 return;
             }
@@ -597,7 +597,7 @@ public class GameAI {
                 //if (self.aiflags & AI_LOST_SIGHT)
                 //   dprint("regained sight\n");
                 M.M_MoveToGoal(self, dist);
-                self.monsterinfo.aiflags &= ~Defines.AI_LOST_SIGHT;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                 Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
                 self.monsterinfo.trail_time = GameBase.level.time;
                 return;
@@ -625,18 +625,18 @@ public class GameAI {
 
             new1 = false;
 
-            if (0 == (self.monsterinfo.aiflags & Defines.AI_LOST_SIGHT)) {
+            if (0 == (self.monsterinfo.aiflags & GameDefines.AI_LOST_SIGHT)) {
                 // just lost sight of the player, decide where to go first
                 // dprint("lost sight of player, last seen at ");
                 // dprint(vtos(self.last_sighting)); 
             	// dprint("\n");
-                self.monsterinfo.aiflags |= (Defines.AI_LOST_SIGHT | Defines.AI_PURSUIT_LAST_SEEN);
-                self.monsterinfo.aiflags &= ~(Defines.AI_PURSUE_NEXT | Defines.AI_PURSUE_TEMP);
+                self.monsterinfo.aiflags |= (GameDefines.AI_LOST_SIGHT | GameDefines.AI_PURSUIT_LAST_SEEN);
+                self.monsterinfo.aiflags &= ~(GameDefines.AI_PURSUE_NEXT | GameDefines.AI_PURSUE_TEMP);
                 new1 = true;
             }
 
-            if ((self.monsterinfo.aiflags & Defines.AI_PURSUE_NEXT) != 0) {
-                self.monsterinfo.aiflags &= ~Defines.AI_PURSUE_NEXT;
+            if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_NEXT) != 0) {
+                self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUE_NEXT;
                 
                 // dprint("reached current goal: "); 
                 // dprint(vtos(self.origin));
@@ -649,14 +649,14 @@ public class GameAI {
                 // give ourself more time since we got this far
                 self.monsterinfo.search_time = GameBase.level.time + 5;
 
-                if ((self.monsterinfo.aiflags & Defines.AI_PURSUE_TEMP) != 0) {
+                if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_TEMP) != 0) {
                     // dprint("was temp goal; retrying original\n");
-                    self.monsterinfo.aiflags &= ~Defines.AI_PURSUE_TEMP;
+                    self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUE_TEMP;
                     marker = null;
                     Math3D.VectorCopy(self.monsterinfo.saved_goal, self.monsterinfo.last_sighting);
                     new1 = true;
-                } else if ((self.monsterinfo.aiflags & Defines.AI_PURSUIT_LAST_SEEN) != 0) {
-                    self.monsterinfo.aiflags &= ~Defines.AI_PURSUIT_LAST_SEEN;
+                } else if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUIT_LAST_SEEN) != 0) {
+                    self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUIT_LAST_SEEN;
                     marker = PlayerTrail.PickFirst(self);
                 } else {
                     marker = PlayerTrail.PickNext(self);
@@ -677,7 +677,7 @@ public class GameAI {
             Math3D.VectorSubtract(self.s.origin, self.monsterinfo.last_sighting, v);
             d1 = Math3D.VectorLength(v);
             if (d1 <= dist) {
-                self.monsterinfo.aiflags |= Defines.AI_PURSUE_NEXT;
+                self.monsterinfo.aiflags |= GameDefines.AI_PURSUE_NEXT;
                 dist = d1;
             }
 
@@ -719,7 +719,7 @@ public class GameAI {
                             // gi.dprintf("incomplete path, go part way and adjust again\n");
                         }
                         Math3D.VectorCopy(self.monsterinfo.last_sighting, self.monsterinfo.saved_goal);
-                        self.monsterinfo.aiflags |= Defines.AI_PURSUE_TEMP;
+                        self.monsterinfo.aiflags |= GameDefines.AI_PURSUE_TEMP;
                         Math3D.VectorCopy(left_target, self.goalentity.s.origin);
                         Math3D.VectorCopy(left_target, self.monsterinfo.last_sighting);
                         Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
@@ -734,7 +734,7 @@ public class GameAI {
                             // gi.dprintf("incomplete path, go part way and adjust again\n");
                         }
                         Math3D.VectorCopy(self.monsterinfo.last_sighting, self.monsterinfo.saved_goal);
-                        self.monsterinfo.aiflags |= Defines.AI_PURSUE_TEMP;
+                        self.monsterinfo.aiflags |= GameDefines.AI_PURSUE_TEMP;
                         Math3D.VectorCopy(right_target, self.goalentity.s.origin);
                         Math3D.VectorCopy(right_target, self.monsterinfo.last_sighting);
                         Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);

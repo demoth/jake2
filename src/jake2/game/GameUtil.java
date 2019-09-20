@@ -177,7 +177,7 @@ public class GameUtil {
         GameBase.gi.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
-        if (ed.index <= (GameBase.maxclients.value + Defines.BODY_QUEUE_SIZE)) {
+        if (ed.index <= (GameBase.maxclients.value + GameDefines.BODY_QUEUE_SIZE)) {
             // gi.dprintf("tried to free special edict\n");
             return;
         }
@@ -216,7 +216,7 @@ public class GameUtil {
             // nail it
             GameCombat.T_Damage(tr.ent, ent, ent, Globals.vec3_origin, ent.s.origin,
                     Globals.vec3_origin, 100000, 0,
-                    Defines.DAMAGE_NO_PROTECTION, Defines.MOD_TELEFRAG);
+                    Defines.DAMAGE_NO_PROTECTION, GameDefines.MOD_TELEFRAG);
 
             // if we didn't kill it, fail
             if (tr.ent.solid != 0)
@@ -285,13 +285,13 @@ public class GameUtil {
 
         Math3D.VectorSubtract(self.s.origin, other.s.origin, v);
         len = Math3D.VectorLength(v);
-        if (len < Defines.MELEE_DISTANCE)
-            return Defines.RANGE_MELEE;
+        if (len < GameDefines.MELEE_DISTANCE)
+            return GameDefines.RANGE_MELEE;
         if (len < 500)
-            return Defines.RANGE_NEAR;
+            return GameDefines.RANGE_NEAR;
         if (len < 1000)
-            return Defines.RANGE_MID;
-        return Defines.RANGE_FAR;
+            return GameDefines.RANGE_MID;
+        return GameDefines.RANGE_FAR;
     }
 
     static void AttackFinished(edict_t self, float time) {
@@ -356,7 +356,7 @@ public class GameUtil {
         boolean heardit;
         int r;
 
-        if ((self.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0) {
+        if ((self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0) {
             if (self.goalentity != null && self.goalentity.inuse
                     && self.goalentity.classname != null) {
                 if (self.goalentity.classname.equals("target_actor"))
@@ -368,7 +368,7 @@ public class GameUtil {
         }
 
         // if we're going to a combat point, just proceed
-        if ((self.monsterinfo.aiflags & Defines.AI_COMBAT_POINT) != 0)
+        if ((self.monsterinfo.aiflags & GameDefines.AI_COMBAT_POINT) != 0)
             return false;
 
         // if the first spawnflag bit is set, the monster will only wake up on
@@ -418,7 +418,7 @@ public class GameUtil {
         if (!heardit) {
             r = range(self, client);
 
-            if (r == Defines.RANGE_FAR)
+            if (r == GameDefines.RANGE_FAR)
                 return false;
 
             // this is where we would check invisibility
@@ -431,11 +431,11 @@ public class GameUtil {
                 return false;
            
 
-            if (r == Defines.RANGE_NEAR) {
+            if (r == GameDefines.RANGE_NEAR) {
                 if (client.show_hostile < GameBase.level.time
                         && !infront(self, client))               
                     return false;                
-            } else if (r == Defines.RANGE_MID) {
+            } else if (r == GameDefines.RANGE_MID) {
                 if (!infront(self, client)) 
                     return false;               
             }
@@ -446,7 +446,7 @@ public class GameUtil {
             self.enemy = client;
 
             if (!self.enemy.classname.equals("player_noise")) {
-                self.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_SOUND_TARGET;
 
                 if (self.enemy.client == null) {
                     self.enemy = self.enemy.enemy;
@@ -484,7 +484,7 @@ public class GameUtil {
             M.M_ChangeYaw(self);
 
             // hunt the sound for a bit; hopefully find the real player
-            self.monsterinfo.aiflags |= Defines.AI_SOUND_TARGET;
+            self.monsterinfo.aiflags |= GameDefines.AI_SOUND_TARGET;
             
             if (client == self.enemy)
                 return true; // JDC false;
@@ -495,7 +495,7 @@ public class GameUtil {
         // got one
         FoundTarget(self);
 
-        if (0 == (self.monsterinfo.aiflags & Defines.AI_SOUND_TARGET)
+        if (0 == (self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET)
                 && (self.monsterinfo.sight != null))
             self.monsterinfo.sight.interact(self, self.enemy);
 
@@ -534,7 +534,7 @@ public class GameUtil {
 
         // clear out our combattarget, these are a one shot deal
         self.combattarget = null;
-        self.monsterinfo.aiflags |= Defines.AI_COMBAT_POINT;
+        self.monsterinfo.aiflags |= GameDefines.AI_COMBAT_POINT;
 
         // clear the targetname, that point is ours!
         self.movetarget.targetname = null;
@@ -570,7 +570,7 @@ public class GameUtil {
                 return false;
             }
 
-            if (!((self.spawnflags & Defines.DROPPED_ITEM) != 0)
+            if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
                     && (GameBase.deathmatch.value != 0))
                 GameItems.SetRespawn(self, 20);
             else
@@ -610,14 +610,14 @@ public class GameUtil {
             }
 
             // melee attack
-            if (GameAI.enemy_range == Defines.RANGE_MELEE) {
+            if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
                 if (GameBase.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
                 if (self.monsterinfo.melee != null)
-                    self.monsterinfo.attack_state = Defines.AS_MELEE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MELEE;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 return true;
             }
 
@@ -628,16 +628,16 @@ public class GameUtil {
             if (GameBase.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (GameAI.enemy_range == Defines.RANGE_FAR)
+            if (GameAI.enemy_range == GameDefines.RANGE_FAR)
                 return false;
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 chance = 0.4f;
-            } else if (GameAI.enemy_range == Defines.RANGE_MELEE) {
+            } else if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
                 chance = 0.2f;
-            } else if (GameAI.enemy_range == Defines.RANGE_NEAR) {
+            } else if (GameAI.enemy_range == GameDefines.RANGE_NEAR) {
                 chance = 0.1f;
-            } else if (GameAI.enemy_range == Defines.RANGE_MID) {
+            } else if (GameAI.enemy_range == GameDefines.RANGE_MID) {
                 chance = 0.02f;
             } else {
                 return false;
@@ -649,7 +649,7 @@ public class GameUtil {
                 chance *= 2;
 
             if (Lib.random() < chance) {
-                self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 self.monsterinfo.attack_finished = GameBase.level.time + 2
                         * Lib.random();
                 return true;
@@ -657,9 +657,9 @@ public class GameUtil {
 
             if ((self.flags & Defines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3f)
-                    self.monsterinfo.attack_state = Defines.AS_SLIDING;
+                    self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_STRAIGHT;
+                    self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
             }
 
             return false;
@@ -677,7 +677,7 @@ public class GameUtil {
             if ((activator.flags & Defines.FL_NOTARGET) != 0)
                 return;
             if ((null == activator.client)
-                    && 0 == (activator.monsterinfo.aiflags & Defines.AI_GOOD_GUY))
+                    && 0 == (activator.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
                 return;
 
             // delay reaction so if the monster is teleported, its sound is

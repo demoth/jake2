@@ -218,8 +218,8 @@ public class SV_INIT {
         // leave slots at start for clients only
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             // needs to reconnect
-            if (svs.clients[i].state > Defines.cs_connected)
-                svs.clients[i].state = Defines.cs_connected;
+            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
+                svs.clients[i].state = ClientStates.CS_CONNECTED;
             svs.clients[i].lastframe = -1;
         }
 

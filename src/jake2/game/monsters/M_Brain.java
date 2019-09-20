@@ -690,9 +690,9 @@ public class M_Brain {
     	public String getID() { return "brain_duck_down"; }
         public boolean think(edict_t self) {
 
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             GameBase.gi.linkentity(self);
@@ -704,9 +704,9 @@ public class M_Brain {
     	public String getID() { return "brain_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -714,7 +714,7 @@ public class M_Brain {
     static EntThinkAdapter brain_duck_up = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -749,7 +749,7 @@ public class M_Brain {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -801,7 +801,7 @@ public class M_Brain {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.maxs[0], 8);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
             if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
@@ -824,7 +824,7 @@ public class M_Brain {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 8);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
             if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
@@ -837,7 +837,7 @@ public class M_Brain {
     	public String getID() { return "brain_chest_open"; }
         public boolean think(edict_t self) {
             self.spawnflags &= ~65536;
-            self.monsterinfo.power_armor_type = Defines.POWER_ARMOR_NONE;
+            self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_NONE;
             GameBase.gi.sound(self, Defines.CHAN_BODY, sound_chest_open, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -850,7 +850,7 @@ public class M_Brain {
 
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, 0, 8);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 8);
             if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600)
                     && GameBase.skill.value > 0)
                 self.spawnflags |= 65536;
@@ -884,7 +884,7 @@ public class M_Brain {
     	public String getID() { return "brain_chest_closed"; }
         public boolean think(edict_t self) {
 
-            self.monsterinfo.power_armor_type = Defines.POWER_ARMOR_SCREEN;
+            self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
             if ((self.spawnflags & 65536) != 0) {
                 self.spawnflags &= ~65536;
                 self.monsterinfo.currentmove = brain_move_attack1;
@@ -947,8 +947,8 @@ public class M_Brain {
     static EntThinkAdapter brain_run = new EntThinkAdapter() {
     	public String getID() { return "brain_run"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.power_armor_type = Defines.POWER_ARMOR_SCREEN;
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = brain_move_stand;
             else
                 self.monsterinfo.currentmove = brain_move_run;
@@ -1073,7 +1073,7 @@ public class M_Brain {
             int n;
 
             self.s.effects = 0;
-            self.monsterinfo.power_armor_type = Defines.POWER_ARMOR_NONE;
+            self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_NONE;
 
             //	   check for gib
             if (self.health <= self.gib_health) {
@@ -1083,24 +1083,24 @@ public class M_Brain {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	   regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             if (Lib.random() <= 0.5)
                 self.monsterinfo.currentmove = brain_move_death1;
@@ -1140,7 +1140,7 @@ public class M_Brain {
         sound_melee2 = GameBase.gi.soundindex("brain/melee2.wav");
         sound_melee3 = GameBase.gi.soundindex("brain/melee3.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/brain/tris.md2");
@@ -1164,7 +1164,7 @@ public class M_Brain {
         self.monsterinfo.search = brain_search;
         self.monsterinfo.idle = brain_idle;
 
-        self.monsterinfo.power_armor_type = Defines.POWER_ARMOR_SCREEN;
+        self.monsterinfo.power_armor_type = GameDefines.POWER_ARMOR_SCREEN;
         self.monsterinfo.power_armor_power = 100;
 
         GameBase.gi.linkentity(self);

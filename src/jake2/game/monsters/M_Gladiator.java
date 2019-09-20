@@ -341,7 +341,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_run"; }
         public boolean think(edict_t self) {
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = gladiator_move_stand;
             else
                 self.monsterinfo.currentmove = gladiator_move_run;
@@ -356,7 +356,7 @@ public class M_Gladiator {
 
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], -4);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
             if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
                 GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
                         1, Defines.ATTN_NORM, 0);
@@ -449,7 +449,7 @@ public class M_Gladiator {
             // a small safe zone
             Math3D.VectorSubtract(self.s.origin, self.enemy.s.origin, v);
             range = Math3D.VectorLength(v);
-            if (range <= (Defines.MELEE_DISTANCE + 32))
+            if (range <= (GameDefines.MELEE_DISTANCE + 32))
                 return true;
 
             // charge up the railgun
@@ -526,7 +526,7 @@ public class M_Gladiator {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -575,24 +575,24 @@ public class M_Gladiator {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             self.monsterinfo.currentmove = gladiator_move_death;
@@ -621,7 +621,7 @@ public class M_Gladiator {
         sound_search = GameBase.gi.soundindex("gladiator/gldsrch1.wav");
         sound_sight = GameBase.gi.soundindex("gladiator/sight.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/gladiatr/tris.md2");

@@ -539,7 +539,7 @@ public class M_Medic {
                 continue;
             if (0 == (ent.svflags & Defines.SVF_MONSTER))
                 continue;
-            if ((ent.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0)
+            if ((ent.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0)
                 continue;
             if (ent.owner == null)
                 continue;
@@ -573,7 +573,7 @@ public class M_Medic {
             if (ent != null) {
                 self.enemy = ent;
                 self.enemy.owner = self;
-                self.monsterinfo.aiflags |= Defines.AI_MEDIC;
+                self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
                 GameUtil.FoundTarget(self);
             }
             return true;
@@ -594,7 +594,7 @@ public class M_Medic {
                     self.oldenemy = self.enemy;
                     self.enemy = ent;
                     self.enemy.owner = self;
-                    self.monsterinfo.aiflags |= Defines.AI_MEDIC;
+                    self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
                     GameUtil.FoundTarget(self);
                 }
             }
@@ -753,7 +753,7 @@ public class M_Medic {
     static EntThinkAdapter medic_run = new EntThinkAdapter() {
     	public String getID(){ return "medic_run"; }
         public boolean think(edict_t self) {
-            if (0 == (self.monsterinfo.aiflags & Defines.AI_MEDIC)) {
+            if (0 == (self.monsterinfo.aiflags & GameDefines.AI_MEDIC)) {
                 edict_t ent;
 
                 ent = medic_FindDeadMonster(self);
@@ -761,13 +761,13 @@ public class M_Medic {
                     self.oldenemy = self.enemy;
                     self.enemy = ent;
                     self.enemy.owner = self;
-                    self.monsterinfo.aiflags |= Defines.AI_MEDIC;
+                    self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
                     GameUtil.FoundTarget(self);
                     return true;
                 }
             }
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = medic_move_stand;
             else
                 self.monsterinfo.currentmove = medic_move_run;
@@ -875,7 +875,7 @@ public class M_Medic {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -937,24 +937,24 @@ public class M_Medic {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             self.monsterinfo.currentmove = medic_move_death;
@@ -964,9 +964,9 @@ public class M_Medic {
     static EntThinkAdapter medic_duck_down = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_down"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
@@ -979,9 +979,9 @@ public class M_Medic {
     	public String getID(){ return "medic_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -989,7 +989,7 @@ public class M_Medic {
     static EntThinkAdapter medic_duck_up = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -1139,7 +1139,7 @@ public class M_Medic {
             if (self.s.frame == FRAME_attack43) {
                 GameBase.gi.sound(self.enemy, Defines.CHAN_AUTO,
                         sound_hook_hit, 1, Defines.ATTN_NORM, 0);
-                self.enemy.monsterinfo.aiflags |= Defines.AI_RESURRECTING;
+                self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
             } else if (self.s.frame == FRAME_attack50) {
                 self.enemy.spawnflags = 0;
                 self.enemy.monsterinfo.aiflags = 0;
@@ -1154,7 +1154,7 @@ public class M_Medic {
                     self.enemy.nextthink = GameBase.level.time;
                     self.enemy.think.think(self.enemy);
                 }
-                self.enemy.monsterinfo.aiflags |= Defines.AI_RESURRECTING;
+                self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
                 if (self.oldenemy != null && self.oldenemy.client != null) {
                     self.enemy.enemy = self.oldenemy;
                     GameUtil.FoundTarget(self.enemy);
@@ -1187,7 +1187,7 @@ public class M_Medic {
         public boolean think(edict_t self) {
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
                     Defines.ATTN_NORM, 0);
-            self.enemy.monsterinfo.aiflags &= ~Defines.AI_RESURRECTING;
+            self.enemy.monsterinfo.aiflags &= ~GameDefines.AI_RESURRECTING;
             return true;
         }
     };
@@ -1228,7 +1228,7 @@ public class M_Medic {
     static EntThinkAdapter medic_attack = new EntThinkAdapter() {
     	public String getID(){ return "medic_attack"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_MEDIC) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0)
                 self.monsterinfo.currentmove = medic_move_attackCable;
             else
                 self.monsterinfo.currentmove = medic_move_attackBlaster;
@@ -1239,7 +1239,7 @@ public class M_Medic {
     static EntThinkAdapter medic_checkattack = new EntThinkAdapter() {
     	public String getID(){ return "medic_checkattack"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_MEDIC) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0) {
                 medic_attack.think(self);
                 return true;
             }
@@ -1272,7 +1272,7 @@ public class M_Medic {
 
         GameBase.gi.soundindex("medic/medatck1.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/medic/tris.md2");

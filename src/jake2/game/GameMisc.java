@@ -61,7 +61,7 @@ public class GameMisc {
     static void SP_viewthing(edict_t ent) {
         GameBase.gi.dprintf("viewthing spawned\n");
 
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.renderfx = Defines.RF_FRAMELERP;
         Math3D.VectorSet(ent.mins, -16, -16, -24);
@@ -108,7 +108,7 @@ public class GameMisc {
     }
 
     static void SP_func_wall(edict_t self) {
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
 
         if ((self.spawnflags & 8) != 0)
@@ -162,12 +162,12 @@ public class GameMisc {
 
         if (self.spawnflags == 0) {
             self.solid = Defines.SOLID_BSP;
-            self.movetype = Defines.MOVETYPE_PUSH;
+            self.movetype = GameDefines.MOVETYPE_PUSH;
             self.think = func_object_release;
             self.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
         } else {
             self.solid = Defines.SOLID_NOT;
-            self.movetype = Defines.MOVETYPE_PUSH;
+            self.movetype = GameDefines.MOVETYPE_PUSH;
             self.use = func_object_use;
             self.svflags |= Defines.SVF_NOCLIENT;
         }
@@ -188,7 +188,7 @@ public class GameMisc {
             return;
         }
 
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
 
         GameBase.gi.modelindex("models/objects/debris1/tris.md2");
         GameBase.gi.modelindex("models/objects/debris2/tris.md2");
@@ -231,7 +231,7 @@ public class GameMisc {
         GameBase.gi.modelindex("models/objects/debris3/tris.md2");
 
         self.solid = Defines.SOLID_BBOX;
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
 
         self.model = "models/objects/barrels/tris.md2";
         self.s.modelindex = GameBase.gi.modelindex(self.model);
@@ -247,7 +247,7 @@ public class GameMisc {
 
         self.die = barrel_delay;
         self.takedamage = Defines.DAMAGE_YES;
-        self.monsterinfo.aiflags = Defines.AI_NOSTEP;
+        self.monsterinfo.aiflags = GameDefines.AI_NOSTEP;
 
         self.touch = barrel_touch;
 
@@ -258,7 +258,7 @@ public class GameMisc {
     }
 
     static void SP_misc_blackhole(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
         Math3D.VectorSet(ent.maxs, 64, 64, 8);
@@ -272,7 +272,7 @@ public class GameMisc {
     }
 
     static void SP_misc_eastertank(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, -16);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
@@ -285,7 +285,7 @@ public class GameMisc {
     }
 
     static void SP_misc_easterchick(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
@@ -298,7 +298,7 @@ public class GameMisc {
     }
 
     static void SP_misc_easterchick2(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
         Math3D.VectorSet(ent.maxs, 32, 32, 32);
@@ -311,7 +311,7 @@ public class GameMisc {
     }
 
     static void SP_monster_commander_body(edict_t self) {
-        self.movetype = Defines.MOVETYPE_NONE;
+        self.movetype = GameDefines.MOVETYPE_NONE;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/commandr/tris.md2";
         self.s.modelindex = GameBase.gi.modelindex(self.model);
@@ -331,7 +331,7 @@ public class GameMisc {
     }
 
     static void SP_misc_banner(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/objects/banner/tris.md2");
@@ -348,7 +348,7 @@ public class GameMisc {
             return;
         }
 
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/deadbods/dude/tris.md2");
@@ -369,11 +369,11 @@ public class GameMisc {
 
         Math3D.VectorSet(ent.mins, -16, -16, 0);
         Math3D.VectorSet(ent.maxs, 16, 16, 16);
-        ent.deadflag = Defines.DEAD_DEAD;
+        ent.deadflag = GameDefines.DEAD_DEAD;
         ent.takedamage = Defines.DAMAGE_YES;
         ent.svflags |= Defines.SVF_MONSTER | Defines.SVF_DEADMONSTER;
         ent.die = misc_deadsoldier_die;
-        ent.monsterinfo.aiflags |= Defines.AI_GOOD_GUY;
+        ent.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
         GameBase.gi.linkentity(ent);
     }
@@ -389,7 +389,7 @@ public class GameMisc {
         if (0 == ent.speed)
             ent.speed = 300;
 
-        ent.movetype = Defines.MOVETYPE_PUSH;
+        ent.movetype = GameDefines.MOVETYPE_PUSH;
         ent.solid = Defines.SOLID_NOT;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/ships/viper/tris.md2");
@@ -410,7 +410,7 @@ public class GameMisc {
      * large stationary viper as seen in Paul's intro
      */
     static void SP_misc_bigviper(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -176, -120, -24);
         Math3D.VectorSet(ent.maxs, 176, 120, 72);
@@ -420,7 +420,7 @@ public class GameMisc {
     }
 
     static void SP_misc_viper_bomb(edict_t self) {
-        self.movetype = Defines.MOVETYPE_NONE;
+        self.movetype = GameDefines.MOVETYPE_NONE;
         self.solid = Defines.SOLID_NOT;
         Math3D.VectorSet(self.mins, -8, -8, -8);
         Math3D.VectorSet(self.maxs, 8, 8, 8);
@@ -448,7 +448,7 @@ public class GameMisc {
         if (0 == ent.speed)
             ent.speed = 300;
 
-        ent.movetype = Defines.MOVETYPE_PUSH;
+        ent.movetype = GameDefines.MOVETYPE_PUSH;
         ent.solid = Defines.SOLID_NOT;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/ships/strogg1/tris.md2");
@@ -465,7 +465,7 @@ public class GameMisc {
     }
 
     static void SP_misc_satellite_dish(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
         Math3D.VectorSet(ent.maxs, 64, 64, 128);
@@ -479,7 +479,7 @@ public class GameMisc {
      * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
      */
     static void SP_light_mine1(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/objects/minelite/light1/tris.md2");
@@ -490,7 +490,7 @@ public class GameMisc {
      * QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
      */
     static void SP_light_mine2(edict_t ent) {
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.modelindex = GameBase.gi
                 .modelindex("models/objects/minelite/light2/tris.md2");
@@ -507,9 +507,9 @@ public class GameMisc {
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
         ent.die = gib_die;
-        ent.movetype = Defines.MOVETYPE_TOSS;
+        ent.movetype = GameDefines.MOVETYPE_TOSS;
         ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = Defines.DEAD_DEAD;
+        ent.deadflag = GameDefines.DEAD_DEAD;
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
@@ -528,9 +528,9 @@ public class GameMisc {
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
         ent.die = gib_die;
-        ent.movetype = Defines.MOVETYPE_TOSS;
+        ent.movetype = GameDefines.MOVETYPE_TOSS;
         ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = Defines.DEAD_DEAD;
+        ent.deadflag = GameDefines.DEAD_DEAD;
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
@@ -549,9 +549,9 @@ public class GameMisc {
         ent.s.effects |= Defines.EF_GIB;
         ent.takedamage = Defines.DAMAGE_YES;
         ent.die = gib_die;
-        ent.movetype = Defines.MOVETYPE_TOSS;
+        ent.movetype = GameDefines.MOVETYPE_TOSS;
         ent.svflags |= Defines.SVF_MONSTER;
-        ent.deadflag = Defines.DEAD_DEAD;
+        ent.deadflag = GameDefines.DEAD_DEAD;
         ent.avelocity[0] = Lib.random() * 200;
         ent.avelocity[1] = Lib.random() * 200;
         ent.avelocity[2] = Lib.random() * 200;
@@ -568,7 +568,7 @@ public class GameMisc {
      */
 
     static void SP_target_character(edict_t self) {
-        self.movetype = Defines.MOVETYPE_PUSH;
+        self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
         self.solid = Defines.SOLID_BSP;
         self.s.frame = 12;
@@ -752,12 +752,12 @@ public class GameMisc {
         gib.takedamage = Defines.DAMAGE_YES;
         gib.die = gib_die;
     
-        if (type == Defines.GIB_ORGANIC) {
-            gib.movetype = Defines.MOVETYPE_TOSS;
+        if (type == GameDefines.GIB_ORGANIC) {
+            gib.movetype = GameDefines.MOVETYPE_TOSS;
             gib.touch = gib_touch;
             vscale = 0.5f;
         } else {
-            gib.movetype = Defines.MOVETYPE_BOUNCE;
+            gib.movetype = GameDefines.MOVETYPE_BOUNCE;
             vscale = 1.0f;
         }
     
@@ -796,12 +796,12 @@ public class GameMisc {
         self.takedamage = Defines.DAMAGE_YES;
         self.die = gib_die;
     
-        if (type == Defines.GIB_ORGANIC) {
-            self.movetype = Defines.MOVETYPE_TOSS;
+        if (type == GameDefines.GIB_ORGANIC) {
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.touch = gib_touch;
             vscale = 0.5f;
         } else {
-            self.movetype = Defines.MOVETYPE_BOUNCE;
+            self.movetype = GameDefines.MOVETYPE_BOUNCE;
             vscale = 1.0f;
         }
     
@@ -841,7 +841,7 @@ public class GameMisc {
         self.s.sound = 0;
         self.flags |= Defines.FL_NO_KNOCKBACK;
     
-        self.movetype = Defines.MOVETYPE_BOUNCE;
+        self.movetype = GameDefines.MOVETYPE_BOUNCE;
         VelocityForDamage(damage, vd);
         Math3D.VectorAdd(self.velocity, vd, self.velocity);
 
@@ -871,7 +871,7 @@ public class GameMisc {
         v[1] = 100 * Lib.crandom();
         v[2] = 100 + 100 * Lib.crandom();
         Math3D.VectorMA(self.velocity, speed, v, chunk.velocity);
-        chunk.movetype = Defines.MOVETYPE_BOUNCE;
+        chunk.movetype = GameDefines.MOVETYPE_BOUNCE;
         chunk.solid = Defines.SOLID_NOT;
         chunk.avelocity[0] = Lib.random() * 600;
         chunk.avelocity[1] = Lib.random() * 600;
@@ -1015,7 +1015,7 @@ public class GameMisc {
             } else if ((self.spawnflags & 1) != 0
                     && 0 == (other.flags & (Defines.FL_SWIM | Defines.FL_FLY))) {
                 other.monsterinfo.pausetime = GameBase.level.time + 100000000;
-                other.monsterinfo.aiflags |= Defines.AI_STAND_GROUND;
+                other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
                 other.monsterinfo.stand.think(other);
             }
 
@@ -1023,7 +1023,7 @@ public class GameMisc {
                 other.target = null;
                 other.movetarget = null;
                 other.goalentity = other.enemy;
-                other.monsterinfo.aiflags &= ~Defines.AI_COMBAT_POINT;
+                other.monsterinfo.aiflags &= ~GameDefines.AI_COMBAT_POINT;
             }
 
             if (self.pathtarget != null) {
@@ -1131,14 +1131,14 @@ public class GameMisc {
                 return;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     self.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
-                    Defines.MOD_CRUSH);
+                    GameDefines.MOD_CRUSH);
         }
     };
 
     private static EntThinkAdapter func_object_release = new EntThinkAdapter() {
         public String getID() { return "func_object_release";}
         public boolean think(edict_t self) {
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.touch = func_object_touch;
             return true;
         }
@@ -1188,7 +1188,7 @@ public class GameMisc {
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, attacker, self.dmg, null,
-                        self.dmg + 40, Defines.MOD_EXPLOSIVE);
+                        self.dmg + 40, GameDefines.MOD_EXPLOSIVE);
 
             Math3D.VectorSubtract(self.s.origin, inflictor.s.origin,
                     self.velocity);
@@ -1287,7 +1287,7 @@ public class GameMisc {
             float[] save = { 0, 0, 0 };
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, Defines.MOD_BARREL);
+                    self.dmg + 40, GameDefines.MOD_BARREL);
 
             Math3D.VectorCopy(self.s.origin, save);
             Math3D.VectorMA(self.absmin, 0.5f, self.size, self.s.origin);
@@ -1507,7 +1507,7 @@ public class GameMisc {
     private static EntThinkAdapter commander_body_drop = new EntThinkAdapter() {
         public String getID() { return "commander_body_group";}
         public boolean think(edict_t self) {
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
         }
@@ -1544,9 +1544,9 @@ public class GameMisc {
                     .soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
             for (n = 0; n < 4; n++)
                 ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC);
             ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                    damage, Defines.GIB_ORGANIC);
+                    damage, GameDefines.GIB_ORGANIC);
         }
     };
 
@@ -1580,7 +1580,7 @@ public class GameMisc {
 
             self.s.origin[2] = self.absmin[2] + 1;
             GameCombat.T_RadiusDamage(self, self, self.dmg, null, self.dmg + 40,
-                    Defines.MOD_BOMB);
+                    GameDefines.MOD_BOMB);
             BecomeExplosion2(self);
         }
     };
@@ -1618,7 +1618,7 @@ public class GameMisc {
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.s.effects |= Defines.EF_ROCKET;
             self.use = null;
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.prethink = misc_viper_bomb_prethink;
             self.touch = misc_viper_bomb_touch;
             self.activator = activator;

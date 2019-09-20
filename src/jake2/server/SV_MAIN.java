@@ -99,7 +99,7 @@ public class SV_MAIN {
         // add the disconnect
         MSG.WriteByte(drop.netchan.message, Defines.svc_disconnect);
 
-        if (drop.state == Defines.cs_spawned) {
+        if (drop.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
             // this will remove the body, among other things
             SV_GAME.gameExports.ClientDisconnect(drop.edict);
@@ -110,7 +110,7 @@ public class SV_MAIN {
             drop.download = null;
         }
 
-        drop.state = Defines.cs_zombie; // become free in a few seconds
+        drop.state = ClientStates.CS_ZOMBIE; // become free in a few seconds
         drop.name = "";
     }
 
@@ -136,8 +136,8 @@ public class SV_MAIN {
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state == Defines.cs_connected
-                    || cl.state == Defines.cs_spawned) {
+            if (cl.state == ClientStates.CS_CONNECTED
+                    || cl.state == ClientStates.CS_SPAWNED) {
                 player = "" + cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]
                         + " " + cl.ping + "\"" + cl.name + "\"\n";
 
@@ -187,7 +187,8 @@ public class SV_MAIN {
         else {
             int count = 0;
             for (int i = 0; i < SV_MAIN.maxclients.value; i++)
-                if (SV_INIT.svs.clients[i].state >= Defines.cs_connected)
+                if (SV_INIT.svs.clients[i].state == ClientStates.CS_CONNECTED ||
+                        SV_INIT.svs.clients[i].state == ClientStates.CS_SPAWNED)
                     count++;
 
             string = SV_MAIN.hostname.string + " " + SV_INIT.sv.name + " "
@@ -303,7 +304,7 @@ public class SV_MAIN {
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
 
-            if (cl.state == Defines.cs_free)
+            if (cl.state == ClientStates.CS_FREE)
                 continue;
             if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
@@ -325,7 +326,7 @@ public class SV_MAIN {
         int index = -1;
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state == Defines.cs_free) {
+            if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
             }
@@ -383,7 +384,7 @@ public class SV_MAIN {
 
         Netchan.Setup(Defines.NS_SERVER, SV_INIT.svs.clients[i].netchan, adr, qport);
 
-        SV_INIT.svs.clients[i].state = Defines.cs_connected;
+        SV_INIT.svs.clients[i].state = ClientStates.CS_CONNECTED;
 
         SZ.Init(SV_INIT.svs.clients[i].datagram,
                 SV_INIT.svs.clients[i].datagram_buf,
@@ -506,7 +507,7 @@ public class SV_MAIN {
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state != Defines.cs_spawned)
+            if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
             total = 0;
@@ -540,7 +541,7 @@ public class SV_MAIN {
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state == Defines.cs_free)
+            if (cl.state == ClientStates.CS_FREE)
                 continue;
 
             cl.commandMsec = 1800; // 1600 + some slop
@@ -577,7 +578,7 @@ public class SV_MAIN {
             // check for packets from connected clients
             for (i = 0; i < SV_MAIN.maxclients.value; i++) {
                 cl = SV_INIT.svs.clients[i];
-                if (cl.state == Defines.cs_free)
+                if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!NET.CompareBaseAdr(Globals.net_from,
                         cl.netchan.remote_address))
@@ -591,7 +592,7 @@ public class SV_MAIN {
 
                 if (Netchan.Process(cl.netchan, Globals.net_message)) {
                     // this is a valid, sequenced packet, so process it
-                    if (cl.state != Defines.cs_zombie) {
+                    if (cl.state != ClientStates.CS_ZOMBIE) {
                         cl.lastmessage = SV_INIT.svs.realtime; // don't timeout
                         SV_USER.SV_ExecuteClientMessage(cl);
                     }
@@ -628,16 +629,16 @@ public class SV_MAIN {
             if (cl.lastmessage > SV_INIT.svs.realtime)
                 cl.lastmessage = SV_INIT.svs.realtime;
 
-            if (cl.state == Defines.cs_zombie && cl.lastmessage < zombiepoint) {
-                cl.state = Defines.cs_free; // can now be reused
+            if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
+                cl.state = ClientStates.CS_FREE; // can now be reused
                 continue;
             }
-            if ((cl.state == Defines.cs_connected || cl.state == Defines.cs_spawned)
+            if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     && cl.lastmessage < droppoint) {
                 SV_SEND.SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name
                         + " timed out\n");
                 SV_DropClient(cl);
-                cl.state = Defines.cs_free; // don't bother with zombie state
+                cl.state = ClientStates.CS_FREE; // don't bother with zombie state
             }
         }
     }
@@ -928,13 +929,13 @@ public class SV_MAIN {
 
         for (i = 0; i < SV_INIT.svs.clients.length; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state >= Defines.cs_connected)
+            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
                         Globals.net_message.data);
         }
         for (i = 0; i < SV_INIT.svs.clients.length; i++) {
             cl = SV_INIT.svs.clients[i];
-            if (cl.state >= Defines.cs_connected)
+            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
                         Globals.net_message.data);
         }

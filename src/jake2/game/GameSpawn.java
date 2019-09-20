@@ -140,7 +140,7 @@ public class GameSpawn {
         public String getID(){ return "SP_worldspawn"; }
 
         public boolean think(edict_t ent) {
-            ent.movetype = Defines.MOVETYPE_PUSH;
+            ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
             ent.inuse = true;
             // since the world doesn't use G_Spawn()
@@ -485,13 +485,13 @@ public class GameSpawn {
             if (0 == Lib.Q_stricmp(GameBase.level.mapname, "command")
                     && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
                     && 0 == Lib.Q_stricmp(ent.model, "*27"))
-                ent.spawnflags &= ~Defines.SPAWNFLAG_NOT_HARD;
+                ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
 
             // remove things (except the world) from different skill levels or
             // deathmatch
             if (ent != GameBase.g_edicts[0]) {
                 if (GameBase.deathmatch.value != 0) {
-                    if ((ent.spawnflags & Defines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
+                    if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
                         
                         Com.DPrintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent);
@@ -503,9 +503,9 @@ public class GameSpawn {
                          * ((coop.value) && (ent.spawnflags &
                          * SPAWNFLAG_NOT_COOP)) ||
                          */
-                    ((GameBase.skill.value == 0) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_EASY) != 0)
-                            || ((GameBase.skill.value == 1) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                            || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & Defines.SPAWNFLAG_NOT_HARD) != 0)) {
+                    ((GameBase.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
+                            || ((GameBase.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
+                            || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
                         
                         Com.DPrintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent);
@@ -515,10 +515,10 @@ public class GameSpawn {
                     }
                 }
 
-                ent.spawnflags &= ~(Defines.SPAWNFLAG_NOT_EASY
-                        | Defines.SPAWNFLAG_NOT_MEDIUM
-                        | Defines.SPAWNFLAG_NOT_HARD
-                        | Defines.SPAWNFLAG_NOT_COOP | Defines.SPAWNFLAG_NOT_DEATHMATCH);
+                ent.spawnflags &= ~(GameDefines.SPAWNFLAG_NOT_EASY
+                        | GameDefines.SPAWNFLAG_NOT_MEDIUM
+                        | GameDefines.SPAWNFLAG_NOT_HARD
+                        | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             ED_CallSpawn(ent);
             Com.DPrintf("\n");

@@ -99,7 +99,7 @@ class SV_USER {
 
         Com.DPrintf("New() from " + SV_MAIN.sv_client.name + "\n");
 
-        if (SV_MAIN.sv_client.state != Defines.cs_connected) {
+        if (SV_MAIN.sv_client.state != ClientStates.CS_CONNECTED) {
             Com.Printf("New not valid -- already spawned\n");
             return;
         }
@@ -167,7 +167,7 @@ class SV_USER {
 
         Com.DPrintf("Configstrings() from " + SV_MAIN.sv_client.name + "\n");
 
-        if (SV_MAIN.sv_client.state != Defines.cs_connected) {
+        if (SV_MAIN.sv_client.state != ClientStates.CS_CONNECTED) {
             Com.Printf("configstrings not valid -- already spawned\n");
             return;
         }
@@ -220,7 +220,7 @@ class SV_USER {
 
         Com.DPrintf("Baselines() from " + SV_MAIN.sv_client.name + "\n");
 
-        if (SV_MAIN.sv_client.state != Defines.cs_connected) {
+        if (SV_MAIN.sv_client.state != ClientStates.CS_CONNECTED) {
             Com.Printf("baselines not valid -- already spawned\n");
             return;
         }
@@ -281,7 +281,7 @@ class SV_USER {
             return;
         }
 
-        SV_MAIN.sv_client.state = Defines.cs_spawned;
+        SV_MAIN.sv_client.state = ClientStates.CS_SPAWNED;
 
         // call the game begin function
         SV_GAME.gameExports.ClientBegin(SV_USER.sv_player);
@@ -592,7 +592,7 @@ class SV_USER {
                 MSG.ReadDeltaUsercmd(Globals.net_message, oldest, oldcmd);
                 MSG.ReadDeltaUsercmd(Globals.net_message, oldcmd, newcmd);
 
-                if (cl.state != Defines.cs_spawned) {
+                if (cl.state != ClientStates.CS_SPAWNED) {
                     cl.lastframe = -1;
                     break;
                 }
@@ -644,7 +644,7 @@ class SV_USER {
                 if (++stringCmdCount < SV_USER.MAX_STRINGCMDS)
                     SV_ExecuteUserCommand(s);
 
-                if (cl.state == Defines.cs_zombie)
+                if (cl.state == ClientStates.CS_ZOMBIE)
                     return; // disconnect command
                 break;
             }

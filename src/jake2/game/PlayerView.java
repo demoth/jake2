@@ -480,7 +480,7 @@ public class PlayerView {
         if (ent.s.modelindex != 255)
             return; // not in the player model
 
-        if (ent.movetype == Defines.MOVETYPE_NOCLIP)
+        if (ent.movetype == GameDefines.MOVETYPE_NOCLIP)
             return;
 
         gclient_t client = (gclient_t) ent.client;
@@ -534,7 +534,7 @@ public class PlayerView {
                     || 0 == ((int) GameBase.dmflags.value & Defines.DF_NO_FALLING))
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], dir, ent.s.origin,
-                        Globals.vec3_origin, damage, 0, 0, Defines.MOD_FALLING);
+                        Globals.vec3_origin, damage, 0, 0, GameDefines.MOD_FALLING);
         } else {
             ent.s.event = Defines.EV_FALLSHORT;
             return;
@@ -549,7 +549,7 @@ public class PlayerView {
         boolean envirosuit;
         int waterlevel, old_waterlevel;
 
-        if (current_player.movetype == Defines.MOVETYPE_NOCLIP) {
+        if (current_player.movetype == GameDefines.MOVETYPE_NOCLIP) {
             current_player.air_finished = GameBase.level.time + 12; // don't
                                                                     // need air
             return;
@@ -567,7 +567,7 @@ public class PlayerView {
         //
         if (old_waterlevel == 0 && waterlevel != 0) {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                    Defines.PNOISE_SELF);
+                    GameDefines.PNOISE_SELF);
             if ((current_player.watertype & Defines.CONTENTS_LAVA) != 0)
                 GameBase.gi.sound(current_player, Defines.CHAN_BODY,
                         GameBase.gi.soundindex("player/lava_in.wav"), 1,
@@ -591,7 +591,7 @@ public class PlayerView {
         //
         if (old_waterlevel != 0 && waterlevel == 0) {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                    Defines.PNOISE_SELF);
+                    GameDefines.PNOISE_SELF);
             GameBase.gi
                     .sound(current_player, Defines.CHAN_BODY, GameBase.gi
                             .soundindex("player/watr_out.wav"), 1,
@@ -617,7 +617,7 @@ public class PlayerView {
                         GameBase.gi.soundindex("player/gasp1.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                        Defines.PNOISE_SELF);
+                        GameDefines.PNOISE_SELF);
             } else if (current_player.air_finished < GameBase.level.time + 11) { // just
                                                                                  // break
                                                                                  // surface
@@ -646,7 +646,7 @@ public class PlayerView {
                                 1, Defines.ATTN_NORM, 0);
                     current_client.breather_sound ^= 1;
                     PlayerWeapon.PlayerNoise(current_player,
-                            current_player.s.origin, Defines.PNOISE_SELF);
+                            current_player.s.origin, GameDefines.PNOISE_SELF);
                     //FIXME: release a bubble?
                 }
             }
@@ -683,7 +683,7 @@ public class PlayerView {
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             current_player.dmg, 0, Defines.DAMAGE_NO_ARMOR,
-                            Defines.MOD_WATER);
+                            GameDefines.MOD_WATER);
                 }
             }
         } else {
@@ -715,12 +715,12 @@ public class PlayerView {
                     GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
-                            1 * waterlevel, 0, 0, Defines.MOD_LAVA);
+                            1 * waterlevel, 0, 0, GameDefines.MOD_LAVA);
                 else
                     GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
-                            3 * waterlevel, 0, 0, Defines.MOD_LAVA);
+                            3 * waterlevel, 0, 0, GameDefines.MOD_LAVA);
             }
 
             if ((current_player.watertype & Defines.CONTENTS_SLIME) != 0) {
@@ -728,7 +728,7 @@ public class PlayerView {
                     GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
                             GameBase.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
-                            1 * waterlevel, 0, 0, Defines.MOD_SLIME);
+                            1 * waterlevel, 0, 0, GameDefines.MOD_SLIME);
                 }
             }
         }
@@ -751,9 +751,9 @@ public class PlayerView {
 
         if (ent.powerarmor_time > GameBase.level.time) {
             pa_type = GameItems.PowerArmorType(ent);
-            if (pa_type == Defines.POWER_ARMOR_SCREEN) {
+            if (pa_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
-            } else if (pa_type == Defines.POWER_ARMOR_SHIELD) {
+            } else if (pa_type == GameDefines.POWER_ARMOR_SHIELD) {
                 ent.s.effects |= Defines.EF_COLOR_SHELL;
                 ent.s.renderfx |= Defines.RF_SHELL_GREEN;
             }

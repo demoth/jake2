@@ -699,7 +699,7 @@ public class M_Chick {
     static EntThinkAdapter chick_fidget = new EntThinkAdapter() {
     	public String getID() { return "chick_fidget"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
             if (Lib.random() <= 0.3)
                 self.monsterinfo.currentmove = chick_move_fidget;
@@ -745,7 +745,7 @@ public class M_Chick {
     static EntThinkAdapter chick_run = new EntThinkAdapter() {
     	public String getID() { return "chick_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 self.monsterinfo.currentmove = chick_move_stand;
                 return true;
             }
@@ -901,7 +901,7 @@ public class M_Chick {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, 0);
             Math3D.VectorSet(self.maxs, 16, 16, 16);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -969,22 +969,22 @@ public class M_Chick {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //		   regular death
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             n = Lib.rand() % 2;
@@ -1004,9 +1004,9 @@ public class M_Chick {
     static EntThinkAdapter chick_duck_down = new EntThinkAdapter() {
     	public String getID() { return "chick_duck_down"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
@@ -1019,9 +1019,9 @@ public class M_Chick {
     	public String getID() { return "chick_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -1029,7 +1029,7 @@ public class M_Chick {
     static EntThinkAdapter chick_duck_up = new EntThinkAdapter() {
     	public String getID() { return "chick_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -1068,7 +1068,7 @@ public class M_Chick {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], 10);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 10);
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
                     Defines.ATTN_NORM, 0);
             GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100);
@@ -1130,7 +1130,7 @@ public class M_Chick {
     	public String getID() { return "chick_rerocket"; }
         public boolean think(edict_t self) {
             if (self.enemy.health > 0) {
-                if (GameUtil.range(self, self.enemy) > Defines.RANGE_MELEE)
+                if (GameUtil.range(self, self.enemy) > GameDefines.RANGE_MELEE)
                     if (GameUtil.visible(self, self.enemy))
                         if (Lib.random() <= 0.6) {
                             self.monsterinfo.currentmove = chick_move_attack1;
@@ -1193,7 +1193,7 @@ public class M_Chick {
     	public String getID() { return "chick_reslash"; }
         public boolean think(edict_t self) {
             if (self.enemy.health > 0) {
-                if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE)
+                if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                     if (Lib.random() <= 0.9) {
                         self.monsterinfo.currentmove = chick_move_slash;
                         return true;
@@ -1297,7 +1297,7 @@ public class M_Chick {
         sound_sight = GameBase.gi.soundindex("chick/chksght1.wav");
         sound_search = GameBase.gi.soundindex("chick/chksrch1.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/bitch/tris.md2");

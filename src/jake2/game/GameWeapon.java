@@ -46,13 +46,13 @@ public class GameWeapon {
     
             if (self.owner.client != null)
                 PlayerWeapon.PlayerNoise(self.owner, self.s.origin,
-                        Defines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT);
     
             if (other.takedamage != 0) {
                 if ((self.spawnflags & 1) != 0)
-                    mod = Defines.MOD_HYPERBLASTER;
+                    mod = GameDefines.MOD_HYPERBLASTER;
                 else
-                    mod = Defines.MOD_BLASTER;
+                    mod = GameDefines.MOD_BLASTER;
     
                 // bugfix null plane rst
                 float[] normal;
@@ -88,7 +88,7 @@ public class GameWeapon {
     
             if (ent.owner.client != null)
                 PlayerWeapon.PlayerNoise(ent.owner, ent.s.origin,
-                        Defines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT);
     
             //FIXME: if we are onground then raise our Z just a bit since we
             // are a point?
@@ -103,20 +103,20 @@ public class GameWeapon {
                 points = ent.dmg - 0.5f * Math3D.VectorLength(v);
                 Math3D.VectorSubtract(ent.enemy.s.origin, ent.s.origin, dir);
                 if ((ent.spawnflags & 1) != 0)
-                    mod = Defines.MOD_HANDGRENADE;
+                    mod = GameDefines.MOD_HANDGRENADE;
                 else
-                    mod = Defines.MOD_GRENADE;
+                    mod = GameDefines.MOD_GRENADE;
                 GameCombat.T_Damage(ent.enemy, ent, ent.owner, dir, ent.s.origin,
                         Globals.vec3_origin, (int) points, (int) points,
                         Defines.DAMAGE_RADIUS, mod);
             }
     
             if ((ent.spawnflags & 2) != 0)
-                mod = Defines.MOD_HELD_GRENADE;
+                mod = GameDefines.MOD_HELD_GRENADE;
             else if ((ent.spawnflags & 1) != 0)
-                mod = Defines.MOD_HG_SPLASH;
+                mod = GameDefines.MOD_HG_SPLASH;
             else
-                mod = Defines.MOD_G_SPLASH;
+                mod = GameDefines.MOD_G_SPLASH;
             GameCombat.T_RadiusDamage(ent, ent.owner, ent.dmg, ent.enemy,
                     ent.dmg_radius, mod);
     
@@ -197,7 +197,7 @@ public class GameWeapon {
     
             if (ent.owner.client != null)
                 PlayerWeapon.PlayerNoise(ent.owner, ent.s.origin,
-                        Defines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT);
     
             // calculate position for the explosion entity
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
@@ -205,7 +205,7 @@ public class GameWeapon {
             if (other.takedamage != 0) {
                 GameCombat.T_Damage(other, ent, ent.owner, ent.velocity,
                         ent.s.origin, plane.normal, ent.dmg, 0, 0,
-                        Defines.MOD_ROCKET);
+                        GameDefines.MOD_ROCKET);
             } else {
                 // don't throw any debris in net games
                 if (GameBase.deathmatch.value == 0 && 0 == GameBase.coop.value) {
@@ -223,7 +223,7 @@ public class GameWeapon {
             }
     
             GameCombat.T_RadiusDamage(ent, ent.owner, ent.radius_dmg, other,
-                    ent.dmg_radius, Defines.MOD_R_SPLASH);
+                    ent.dmg_radius, GameDefines.MOD_R_SPLASH);
     
             GameBase.gi.WriteByte(Defines.svc_temp_entity);
             if (ent.waterlevel != 0)
@@ -281,7 +281,7 @@ public class GameWeapon {
                     GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PHS);
                     GameCombat.T_Damage(ent, self, self.owner, self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
-                            Defines.DAMAGE_ENERGY, Defines.MOD_BFG_EFFECT);
+                            Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT);
                 }
             }
     
@@ -308,15 +308,15 @@ public class GameWeapon {
     
             if (self.owner.client != null)
                 PlayerWeapon.PlayerNoise(self.owner, self.s.origin,
-                        Defines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT);
     
             // core explosion - prevents firing it into the wall/floor
             if (other.takedamage != 0)
                 GameCombat.T_Damage(other, self, self.owner, self.velocity,
                         self.s.origin, plane.normal, 200, 0, 0,
-                        Defines.MOD_BFG_BLAST);
+                        GameDefines.MOD_BFG_BLAST);
             GameCombat.T_RadiusDamage(self, self.owner, 200, other, 100,
-                    Defines.MOD_BFG_BLAST);
+                    GameDefines.MOD_BFG_BLAST);
     
             GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
                     .soundindex("weapons/bfg__x1b.wav"), 1, Defines.ATTN_NORM,
@@ -398,7 +398,7 @@ public class GameWeapon {
                             && (tr.ent != self.owner))
                         GameCombat.T_Damage(tr.ent, self, self.owner, dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
-                                Defines.DAMAGE_ENERGY, Defines.MOD_BFG_LASER);
+                                Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER);
     
                     // if we hit something that's not a monster or player we're
                     // done
@@ -518,7 +518,7 @@ public class GameWeapon {
     
         // do the damage
         GameCombat.T_Damage(tr.ent, self, self, dir, point, Globals.vec3_origin,
-                damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, Defines.MOD_HIT);
+                damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
                 && (null == tr.ent.client))
@@ -638,7 +638,7 @@ public class GameWeapon {
     
                         if (self.client != null)
                             PlayerWeapon.PlayerNoise(self, tr.endpos,
-                                    Defines.PNOISE_IMPACT);
+                                    GameDefines.PNOISE_IMPACT);
                     }
                 }
             }
@@ -725,7 +725,7 @@ public class GameWeapon {
         Math3D.VectorCopy(start, bolt.s.old_origin);
         Math3D.vectoangles(dir, bolt.s.angles);
         Math3D.VectorScale(dir, speed, bolt.velocity);
-        bolt.movetype = Defines.MOVETYPE_FLYMISSILE;
+        bolt.movetype = GameDefines.MOVETYPE_FLYMISSILE;
         bolt.clipmask = Defines.MASK_SHOT;
         bolt.solid = Defines.SOLID_BBOX;
         bolt.s.effects |= effect;
@@ -773,7 +773,7 @@ public class GameWeapon {
         Math3D.VectorMA(grenade.velocity, Lib.crandom() * 10.0f, right,
                 grenade.velocity);
         Math3D.VectorSet(grenade.avelocity, 300, 300, 300);
-        grenade.movetype = Defines.MOVETYPE_BOUNCE;
+        grenade.movetype = GameDefines.MOVETYPE_BOUNCE;
         grenade.clipmask = Defines.MASK_SHOT;
         grenade.solid = Defines.SOLID_BBOX;
         grenade.s.effects |= Defines.EF_GRENADE;
@@ -810,7 +810,7 @@ public class GameWeapon {
         Math3D.VectorMA(grenade.velocity, Lib.crandom() * 10.0f, right,
                 grenade.velocity);
         Math3D.VectorSet(grenade.avelocity, 300f, 300f, 300f);
-        grenade.movetype = Defines.MOVETYPE_BOUNCE;
+        grenade.movetype = GameDefines.MOVETYPE_BOUNCE;
         grenade.clipmask = Defines.MASK_SHOT;
         grenade.solid = Defines.SOLID_BBOX;
         grenade.s.effects |= Defines.EF_GRENADE;
@@ -850,7 +850,7 @@ public class GameWeapon {
         Math3D.VectorCopy(dir, rocket.movedir);
         Math3D.vectoangles(dir, rocket.s.angles);
         Math3D.VectorScale(dir, speed, rocket.velocity);
-        rocket.movetype = Defines.MOVETYPE_FLYMISSILE;
+        rocket.movetype = GameDefines.MOVETYPE_FLYMISSILE;
         rocket.clipmask = Defines.MASK_SHOT;
         rocket.solid = Defines.SOLID_BBOX;
         rocket.s.effects |= Defines.EF_ROCKET;
@@ -913,7 +913,7 @@ public class GameWeapon {
                 if ((tr.ent != self) && (tr.ent.takedamage != 0))
                     GameCombat.T_Damage(tr.ent, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick, 0,
-                            Defines.MOD_RAILGUN);
+                            GameDefines.MOD_RAILGUN);
             }
     
             Math3D.VectorCopy(tr.endpos, from);
@@ -935,7 +935,7 @@ public class GameWeapon {
         }
     
         if (self.client != null)
-            PlayerWeapon.PlayerNoise(self, tr.endpos, Defines.PNOISE_IMPACT);
+            PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT);
     }
 
     public static void fire_bfg(edict_t self, float[] start, float[] dir,
@@ -947,7 +947,7 @@ public class GameWeapon {
         Math3D.VectorCopy(dir, bfg.movedir);
         Math3D.vectoangles(dir, bfg.s.angles);
         Math3D.VectorScale(dir, speed, bfg.velocity);
-        bfg.movetype = Defines.MOVETYPE_FLYMISSILE;
+        bfg.movetype = GameDefines.MOVETYPE_FLYMISSILE;
         bfg.clipmask = Defines.MASK_SHOT;
         bfg.solid = Defines.SOLID_BBOX;
         bfg.s.effects |= Defines.EF_BFG | Defines.EF_ANIM_ALLFAST;

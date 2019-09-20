@@ -38,7 +38,7 @@ public class Monster {
                                            float[] dir, int damage, int kick, int hspread, int vspread,
                                            int flashtype) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
-                Defines.MOD_UNKNOWN);
+                GameDefines.MOD_UNKNOWN);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -51,7 +51,7 @@ public class Monster {
             float[] aimdir, int damage, int kick, int hspread, int vspread,
             int count, int flashtype) {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
-                count, Defines.MOD_UNKNOWN);
+                count, GameDefines.MOD_UNKNOWN);
 
         GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
@@ -125,7 +125,7 @@ public class Monster {
      */
     public static void monster_death_use(edict_t self) {
         self.flags &= ~(Defines.FL_FLY | Defines.FL_SWIM);
-        self.monsterinfo.aiflags &= Defines.AI_GOOD_GUY;
+        self.monsterinfo.aiflags &= GameDefines.AI_GOOD_GUY;
 
         if (self.item != null) {
             GameItems.Drop_Item(self, self.item);
@@ -149,14 +149,14 @@ public class Monster {
         }
 
         if ((self.spawnflags & 4) != 0
-                && 0 == (self.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
+                && 0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
             self.spawnflags &= ~4;
             self.spawnflags |= 1;
             //		 gi.dprintf("fixed spawnflags on %s at %s\n", self.classname,
             // vtos(self.s.origin));
         }
 
-        if (0 == (self.monsterinfo.aiflags & Defines.AI_GOOD_GUY))
+        if (0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
             GameBase.level.total_monsters++;
 
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
@@ -169,7 +169,7 @@ public class Monster {
         self.clipmask = Defines.MASK_MONSTERSOLID;
 
         self.s.skinnum = 0;
-        self.deadflag = Defines.DEAD_NO;
+        self.deadflag = GameDefines.DEAD_NO;
         self.svflags &= ~Defines.SVF_DEADMONSTER;
 
         if (null == self.monsterinfo.checkattack)
@@ -315,7 +315,7 @@ public class Monster {
             GameUtil.KillBox(self);
 
             self.solid = Defines.SOLID_BBOX;
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.air_finished = GameBase.level.time + 12;
             GameBase.gi.linkentity(self);
@@ -351,7 +351,7 @@ public class Monster {
             if (self.index == 312)
                 Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;
-            self.movetype = Defines.MOVETYPE_NONE;
+            self.movetype = GameDefines.MOVETYPE_NONE;
             self.svflags |= Defines.SVF_NOCLIENT;
             self.nextthink = 0;
             self.use = monster_triggered_spawn_use;

@@ -39,7 +39,7 @@ public class GameCombat {
         trace_t trace;
     
         // bmodels need special checking because their origin is 0,0,0
-        if (targ.movetype == Defines.MOVETYPE_PUSH) {
+        if (targ.movetype == GameDefines.MOVETYPE_PUSH) {
             Math3D.VectorAdd(targ.absmin, targ.absmax, dest);
             Math3D.VectorScale(dest, 0.5f, dest);
             trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
@@ -104,10 +104,10 @@ public class GameCombat {
         targ.enemy = attacker;
     
         if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                && (targ.deadflag != Defines.DEAD_DEAD)) {
+                && (targ.deadflag != GameDefines.DEAD_DEAD)) {
             //			targ.svflags |= SVF_DEADMONSTER; // now treat as a different
             // content type
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 GameBase.level.killed_monsters++;
                 gclient_t attackerClient = (gclient_t) attacker.client;
                 if (GameBase.coop.value != 0 && attackerClient != null)
@@ -118,16 +118,16 @@ public class GameCombat {
             }
         }
     
-        if (targ.movetype == Defines.MOVETYPE_PUSH
-                || targ.movetype == Defines.MOVETYPE_STOP
-                || targ.movetype == Defines.MOVETYPE_NONE) { // doors, triggers,
+        if (targ.movetype == GameDefines.MOVETYPE_PUSH
+                || targ.movetype == GameDefines.MOVETYPE_STOP
+                || targ.movetype == GameDefines.MOVETYPE_NONE) { // doors, triggers,
                                                              // etc
             targ.die.die(targ, inflictor, attacker, damage, point);
             return;
         }
     
         if ((targ.svflags & Defines.SVF_MONSTER) != 0
-                && (targ.deadflag != Defines.DEAD_DEAD)) {
+                && (targ.deadflag != GameDefines.DEAD_DEAD)) {
             targ.touch = null;
             Monster.monster_death_use(targ);
         }
@@ -170,7 +170,7 @@ public class GameCombat {
     
         if (client != null) {
             power_armor_type = GameItems.PowerArmorType(ent);
-            if (power_armor_type != Defines.POWER_ARMOR_NONE) {
+            if (power_armor_type != GameDefines.POWER_ARMOR_NONE) {
                 index = GameItems.ITEM_INDEX(GameItems.FindItem("Cells"));
                 power = client.pers.inventory[index];
             }
@@ -180,12 +180,12 @@ public class GameCombat {
         } else
             return 0;
     
-        if (power_armor_type == Defines.POWER_ARMOR_NONE)
+        if (power_armor_type == GameDefines.POWER_ARMOR_NONE)
             return 0;
         if (power == 0)
             return 0;
     
-        if (power_armor_type == Defines.POWER_ARMOR_SCREEN) {
+        if (power_armor_type == GameDefines.POWER_ARMOR_SCREEN) {
             float[] vec = { 0, 0, 0 };
             float dot;
             float[] forward = { 0, 0, 0 };
@@ -279,9 +279,9 @@ public class GameCombat {
     
         // if we are a good guy monster and our attacker is a player
         // or another good guy, do not get mad at them
-        if (0 != (targ.monsterinfo.aiflags & Defines.AI_GOOD_GUY)) {
+        if (0 != (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
             if (attacker.client != null
-                    || (attacker.monsterinfo.aiflags & Defines.AI_GOOD_GUY) != 0)
+                    || (attacker.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0)
                 return;
         }
     
@@ -290,7 +290,7 @@ public class GameCombat {
         // if attacker is a client, get mad at them because he's good and we're
         // not
         if (attacker.client != null) {
-            targ.monsterinfo.aiflags &= ~Defines.AI_SOUND_TARGET;
+            targ.monsterinfo.aiflags &= ~GameDefines.AI_SOUND_TARGET;
     
             // this can only happen in coop (both new and old enemies are
             // clients)
@@ -303,7 +303,7 @@ public class GameCombat {
                 targ.oldenemy = targ.enemy;
             }
             targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
                 GameUtil.FoundTarget(targ);
             return;
         }
@@ -320,7 +320,7 @@ public class GameCombat {
             if (targ.enemy != null && targ.enemy.client != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
                 GameUtil.FoundTarget(targ);
         }
         // if they *meant* to shoot us, then shoot back
@@ -328,7 +328,7 @@ public class GameCombat {
             if (targ.enemy != null && targ.enemy.client != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
                 GameUtil.FoundTarget(targ);
         }
         // otherwise get mad at whoever they are mad at (help our buddy) unless
@@ -337,7 +337,7 @@ public class GameCombat {
             if (targ.enemy != null && targ.enemy.client != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker.enemy;
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED))
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
                 GameUtil.FoundTarget(targ);
         }
     }
@@ -407,7 +407,7 @@ public class GameCombat {
                 if (((int) (GameBase.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
                 else
-                    mod |= Defines.MOD_FRIENDLY_FIRE;
+                    mod |= GameDefines.MOD_FRIENDLY_FIRE;
             }
         }
         GameBase.meansOfDeath = mod;
@@ -441,10 +441,10 @@ public class GameCombat {
     
         // figure momentum add
         if (0 == (dflags & Defines.DAMAGE_NO_KNOCKBACK)) {
-            if ((knockback != 0) && (targ.movetype != Defines.MOVETYPE_NONE)
-                    && (targ.movetype != Defines.MOVETYPE_BOUNCE)
-                    && (targ.movetype != Defines.MOVETYPE_PUSH)
-                    && (targ.movetype != Defines.MOVETYPE_STOP)) {
+            if ((knockback != 0) && (targ.movetype != GameDefines.MOVETYPE_NONE)
+                    && (targ.movetype != GameDefines.MOVETYPE_BOUNCE)
+                    && (targ.movetype != GameDefines.MOVETYPE_PUSH)
+                    && (targ.movetype != GameDefines.MOVETYPE_STOP)) {
                 float[] kvel = { 0, 0, 0 };
                 float mass;
     
@@ -523,7 +523,7 @@ public class GameCombat {
     
         if ((targ.svflags & Defines.SVF_MONSTER) != 0) {
             M_ReactToDamage(targ, attacker);
-            if (0 == (targ.monsterinfo.aiflags & Defines.AI_DUCKED)
+            if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED)
                     && (take != 0)) {
                 targ.pain.pain(targ, attacker, knockback, take);
                 // nightmare mode monsters don't go into pain frames often

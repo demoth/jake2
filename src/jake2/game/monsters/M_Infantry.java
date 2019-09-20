@@ -610,7 +610,7 @@ public class M_Infantry {
     static EntThinkAdapter infantry_run = new EntThinkAdapter() {
     	public String getID() { return "infantry_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = infantry_move_stand;
             else
                 self.monsterinfo.currentmove = infantry_move_run;
@@ -725,8 +725,8 @@ public class M_Infantry {
             }
 
             Monster.monster_fire_bullet(self, start, forward, 3, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
             return true;
         }
     };
@@ -747,7 +747,7 @@ public class M_Infantry {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             GameBase.gi.linkentity(self);
 
@@ -841,22 +841,22 @@ public class M_Infantry {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             n = Lib.rand() % 3;
@@ -879,9 +879,9 @@ public class M_Infantry {
     static EntThinkAdapter infantry_duck_down = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_down"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
@@ -894,9 +894,9 @@ public class M_Infantry {
     	public String getID() { return "infantry_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -904,7 +904,7 @@ public class M_Infantry {
     static EntThinkAdapter infantry_duck_up = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -955,9 +955,9 @@ public class M_Infantry {
             InfantryMachineGun.think(self);
 
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -997,7 +997,7 @@ public class M_Infantry {
         public boolean think(edict_t self) {
             float[] aim = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, 0, 0);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
             if (GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50))
                 GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_punch_hit,
                         1, Defines.ATTN_NORM, 0);
@@ -1021,7 +1021,7 @@ public class M_Infantry {
     static EntThinkAdapter infantry_attack = new EntThinkAdapter() {
     	public String getID() { return "infantry_attack"; }
         public boolean think(edict_t self) {
-            if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE)
+            if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 self.monsterinfo.currentmove = infantry_move_attack2;
             else
                 self.monsterinfo.currentmove = infantry_move_attack1;
@@ -1053,7 +1053,7 @@ public class M_Infantry {
         sound_search = GameBase.gi.soundindex("infantry/infsrch1.wav");
         sound_idle = GameBase.gi.soundindex("infantry/infidle1.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/infantry/tris.md2");

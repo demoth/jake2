@@ -1011,7 +1011,7 @@ public class M_Soldier {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -1034,20 +1034,20 @@ public class M_Soldier {
                 for (n = 0; n < 3; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             // regular death
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             self.s.skinnum |= 1;
 
@@ -1092,7 +1092,7 @@ public class M_Soldier {
                 return true;
 
             if (((GameBase.skill.value == 3) && (Lib.random() < 0.5))
-                    || (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE))
+                    || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             else
                 self.monsterinfo.nextframe = FRAME_attak110;
@@ -1110,7 +1110,7 @@ public class M_Soldier {
                 return true;
 
             if (((GameBase.skill.value == 3) && (Lib.random() < 0.5))
-                    || (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE))
+                    || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             return true;
         }
@@ -1126,7 +1126,7 @@ public class M_Soldier {
                 return true;
 
             if (((GameBase.skill.value == 3) && (Lib.random() < 0.5))
-                    || (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE))
+                    || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             else
                 self.monsterinfo.nextframe = FRAME_attak216;
@@ -1144,7 +1144,7 @@ public class M_Soldier {
                 return true;
 
             if (((GameBase.skill.value == 3) && (Lib.random() < 0.5))
-                    || (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE))
+                    || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             return true;
         }
@@ -1165,7 +1165,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (GameUtil.range(self, self.enemy) < Defines.RANGE_MID)
+            if (GameUtil.range(self, self.enemy) < GameDefines.RANGE_MID)
                 return true;
 
             if (GameBase.skill.value == 3)
@@ -1206,9 +1206,9 @@ public class M_Soldier {
     static EntThinkAdapter soldier_duck_down = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_down"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
@@ -1311,7 +1311,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_run = new EntThinkAdapter() {
     	public String getID(){ return "soldier_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 self.monsterinfo.currentmove = soldier_move_stand1;
                 return true;
             }
@@ -1383,7 +1383,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_duck_up = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -1402,7 +1402,7 @@ public class M_Soldier {
                         Defines.ATTN_NORM, 0);
 
             if ((GameBase.skill.value > 0)
-                    && (GameUtil.range(self, self.enemy) >= Defines.RANGE_MID)) {
+                    && (GameUtil.range(self, self.enemy) >= GameDefines.RANGE_MID)) {
                 if (Lib.random() > 0.5)
                     self.monsterinfo.currentmove = soldier_move_attack6;
             }
@@ -1423,7 +1423,7 @@ public class M_Soldier {
             self.monsterinfo.scale = MODEL_SCALE;
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, 32);
-            self.movetype = Defines.MOVETYPE_STEP;
+            self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
 
             sound_idle = GameBase.gi.soundindex("soldier/solidle1.wav");
@@ -1581,22 +1581,22 @@ public class M_Soldier {
                     Defines.EF_BLASTER);
         } else if (self.s.skinnum <= 3) {
             Monster.monster_fire_shotgun(self, start, aim, 2, 1,
-                    Defines.DEFAULT_SHOTGUN_HSPREAD,
-                    Defines.DEFAULT_SHOTGUN_VSPREAD,
-                    Defines.DEFAULT_SHOTGUN_COUNT, flash_index);
+                    GameDefines.DEFAULT_SHOTGUN_HSPREAD,
+                    GameDefines.DEFAULT_SHOTGUN_VSPREAD,
+                    GameDefines.DEFAULT_SHOTGUN_COUNT, flash_index);
         } else {
-            if (0 == (self.monsterinfo.aiflags & Defines.AI_HOLD_FRAME))
+            if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
                 self.monsterinfo.pausetime = GameBase.level.time
                         + (3 + Lib.rand() % 8) * Defines.FRAMETIME;
 
             Monster.monster_fire_bullet(self, start, aim, 2, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD, flash_index);
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_index);
 
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
         }
     }
 
@@ -1776,9 +1776,9 @@ public class M_Soldier {
     	public String getID(){ return "soldier_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };

@@ -557,7 +557,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_fidget = new EntThinkAdapter() {
     	public String getID() { return "gunner_fidget"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
             if (Lib.random() <= 0.05)
                 self.monsterinfo.currentmove = gunner_move_fidget;
@@ -642,7 +642,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_run = new EntThinkAdapter() {
     	public String getID() { return "gunner_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = gunner_move_stand;
             else
                 self.monsterinfo.currentmove = gunner_move_run;
@@ -751,7 +751,7 @@ public class M_Gunner {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -789,24 +789,24 @@ public class M_Gunner {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = gunner_move_death;
         }
@@ -815,9 +815,9 @@ public class M_Gunner {
     static EntThinkAdapter gunner_duck_down = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_down"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_DUCKED) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
-            self.monsterinfo.aiflags |= Defines.AI_DUCKED;
+            self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             if (GameBase.skill.value >= 2) {
                 if (Lib.random() > 0.5)
                     GunnerGrenade.think(self);
@@ -835,9 +835,9 @@ public class M_Gunner {
     	public String getID() { return "gunner_duck_hold"; }
         public boolean think(edict_t self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
-                self.monsterinfo.aiflags &= ~Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
-                self.monsterinfo.aiflags |= Defines.AI_HOLD_FRAME;
+                self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
     };
@@ -845,7 +845,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_duck_up = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_up"; }
         public boolean think(edict_t self) {
-            self.monsterinfo.aiflags &= ~Defines.AI_DUCKED;
+            self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
             GameBase.gi.linkentity(self);
@@ -913,8 +913,8 @@ public class M_Gunner {
             Math3D.VectorSubtract(target, start, aim);
             Math3D.VectorNormalize(aim);
             Monster.monster_fire_bullet(self, start, aim, 3, 4,
-                    Defines.DEFAULT_BULLET_HSPREAD,
-                    Defines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_HSPREAD,
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
 
             return true;
         }
@@ -955,7 +955,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_attack = new EntThinkAdapter() {
     	public String getID() { return "gunner_attack"; }
         public boolean think(edict_t self) {
-            if (GameUtil.range(self, self.enemy) == Defines.RANGE_MELEE) {
+            if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE) {
                 self.monsterinfo.currentmove = gunner_move_attack_chain;
             } else {
                 if (Lib.random() <= 0.5)
@@ -1073,7 +1073,7 @@ public class M_Gunner {
         GameBase.gi.soundindex("gunner/gunatck2.wav");
         GameBase.gi.soundindex("gunner/gunatck3.wav");
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/gunner/tris.md2");

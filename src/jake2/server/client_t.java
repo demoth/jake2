@@ -35,7 +35,7 @@ public class client_t {
 	public static final int LATENCY_COUNTS = 16;
 	public static final int RATE_MESSAGES = 10;
 
-	int state;
+	ClientStates state = ClientStates.CS_FREE;
 
 	String userinfo = "";
 

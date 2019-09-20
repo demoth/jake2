@@ -95,7 +95,7 @@ public class SV_SEND {
 			cl = SV_INIT.svs.clients[i];
 			if (level < cl.messagelevel)
 				continue;
-			if (cl.state != Defines.cs_spawned)
+			if (cl.state != ClientStates.CS_SPAWNED)
 				continue;
 			MSG.WriteByte(cl.netchan.message, Defines.svc_print);
 			MSG.WriteByte(cl.netchan.message, level);
@@ -186,9 +186,9 @@ public class SV_SEND {
 		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
 			client = SV_INIT.svs.clients[j];
 
-			if (client.state == Defines.cs_free || client.state == Defines.cs_zombie)
+			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
 				continue;
-			if (client.state != Defines.cs_spawned && !reliable)
+			if (client.state != ClientStates.CS_SPAWNED && !reliable)
 				continue;
 
 			if (mask != null) {
@@ -497,7 +497,7 @@ public class SV_SEND {
 		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
 			c = SV_INIT.svs.clients[i];
 
-			if (c.state == 0)
+			if (c.state == ClientStates.CS_FREE)
 				continue;
 			// if the reliable message overflowed,
 			// drop the client
@@ -512,7 +512,7 @@ public class SV_SEND {
 				|| SV_INIT.sv.state == Defines.ss_demo
 				|| SV_INIT.sv.state == Defines.ss_pic)
 				Netchan.Transmit(c.netchan, msglen, msgbuf);
-			else if (c.state == Defines.cs_spawned) {
+			else if (c.state == ClientStates.CS_SPAWNED) {
 				// don't overrun bandwidth
 				if (SV_RateDrop(c))
 					continue;

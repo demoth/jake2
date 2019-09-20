@@ -555,7 +555,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_fidget = new EntThinkAdapter() {
         public String getID() { return "berserk_fidget";}
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
 
             if (Lib.random() > 0.15f)
@@ -672,7 +672,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_run = new EntThinkAdapter() {
         public String getID() { return "berserk_run";}
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = berserk_move_stand;
             else
                 self.monsterinfo.currentmove = berserk_move_run1;
@@ -683,7 +683,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_attack_spike = new EntThinkAdapter() {
         public String getID() { return "berserk_attack_spike";}
         public boolean think(edict_t self) {
-            float[] aim = { Defines.MELEE_DISTANCE, 0f, -24f };
+            float[] aim = { GameDefines.MELEE_DISTANCE, 0f, -24f };
 
             GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 6)), 400);
             //	Faster attack -- upwards and backwards
@@ -719,7 +719,7 @@ public class M_Berserk {
         public boolean think(edict_t self) {
             float aim[] = { 0, 0, 0 };
 
-            Math3D.VectorSet(aim, Defines.MELEE_DISTANCE, self.mins[0], -4);
+            Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
             GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 6)), 400); // Slower
                                                                    // attack
 
@@ -864,7 +864,7 @@ public class M_Berserk {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -916,23 +916,23 @@ public class M_Berserk {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, Defines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, Defines.GIB_ORGANIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_ORGANIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             if (damage >= 50)
@@ -964,7 +964,7 @@ public class M_Berserk {
                 .modelindex("models/monsters/berserk/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
 
         self.health = 240;

@@ -1243,7 +1243,7 @@ public class M_Boss32 {
         public boolean think(edict_t self) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
-            self.movetype = Defines.MOVETYPE_TOSS;
+            self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
             GameBase.gi.linkentity(self);
@@ -1262,7 +1262,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_run = new EntThinkAdapter() {
     	public String getID() { return "makron_run"; }
         public boolean think(edict_t self) {
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0)
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = makron_move_stand;
             else
                 self.monsterinfo.currentmove = makron_move_run;
@@ -1676,7 +1676,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_torso = new EntThinkAdapter() {
     	public String getID() { return "makron_torso"; }
         public boolean think(edict_t ent) {
-            ent.movetype = Defines.MOVETYPE_NONE;
+            ent.movetype = GameDefines.MOVETYPE_NONE;
             ent.solid = Defines.SOLID_NOT;
             Math3D.VectorSet(ent.mins, -8, -8, 0);
             Math3D.VectorSet(ent.maxs, 8, 8, 8);
@@ -1709,24 +1709,24 @@ public class M_Boss32 {
                 for (n = 0; n < 1 /* 4 */; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            Defines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_metal/tris.md2", damage,
-                            Defines.GIB_METALLIC);
+                            GameDefines.GIB_METALLIC);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
-                        damage, Defines.GIB_METALLIC);
-                self.deadflag = Defines.DEAD_DEAD;
+                        damage, GameDefines.GIB_METALLIC);
+                self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
 
-            if (self.deadflag == Defines.DEAD_DEAD)
+            if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
             //	   regular death
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NONE, 0);
-            self.deadflag = Defines.DEAD_DEAD;
+            self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
             tempent = GameUtil.G_Spawn();
@@ -1774,11 +1774,11 @@ public class M_Boss32 {
             self.ideal_yaw = enemy_yaw;
 
             // melee attack
-            if (enemy_range == Defines.RANGE_MELEE) {
+            if (enemy_range == GameDefines.RANGE_MELEE) {
                 if (self.monsterinfo.melee != null)
-                    self.monsterinfo.attack_state = Defines.AS_MELEE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MELEE;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                    self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 return true;
             }
 
@@ -1789,23 +1789,23 @@ public class M_Boss32 {
             if (GameBase.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (enemy_range == Defines.RANGE_FAR)
+            if (enemy_range == GameDefines.RANGE_FAR)
                 return false;
 
-            if ((self.monsterinfo.aiflags & Defines.AI_STAND_GROUND) != 0) {
+            if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 chance = 0.4f;
-            } else if (enemy_range == Defines.RANGE_MELEE) {
+            } else if (enemy_range == GameDefines.RANGE_MELEE) {
                 chance = 0.8f;
-            } else if (enemy_range == Defines.RANGE_NEAR) {
+            } else if (enemy_range == GameDefines.RANGE_NEAR) {
                 chance = 0.4f;
-            } else if (enemy_range == Defines.RANGE_MID) {
+            } else if (enemy_range == GameDefines.RANGE_MID) {
                 chance = 0.2f;
             } else {
                 return false;
             }
 
             if (Lib.random() < chance) {
-                self.monsterinfo.attack_state = Defines.AS_MISSILE;
+                self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 self.monsterinfo.attack_finished = GameBase.level.time + 2
                         * Lib.random();
                 return true;
@@ -1813,9 +1813,9 @@ public class M_Boss32 {
 
             if ((self.flags & Defines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3)
-                    self.monsterinfo.attack_state = Defines.AS_SLIDING;
+                    self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else
-                    self.monsterinfo.attack_state = Defines.AS_STRAIGHT;
+                    self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
             }
 
             return false;
@@ -1969,7 +1969,7 @@ public class M_Boss32 {
 
         MakronPrecache();
 
-        self.movetype = Defines.MOVETYPE_STEP;
+        self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.s.modelindex = GameBase.gi
                 .modelindex("models/monsters/boss3/rider/tris.md2");

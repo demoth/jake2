@@ -33,7 +33,7 @@ class GameTrigger {
             GameBase.G_SetMovedir(self.s.angles, self.movedir);
 
         self.solid = Defines.SOLID_TRIGGER;
-        self.movetype = Defines.MOVETYPE_NONE;
+        self.movetype = GameDefines.MOVETYPE_NONE;
         GameBase.gi.setmodel(self, self.model);
         self.svflags = Defines.SVF_NOCLIENT;
     }
@@ -71,7 +71,7 @@ class GameTrigger {
             ent.wait = 0.2f;
 
         ent.touch = Touch_Multi;
-        ent.movetype = Defines.MOVETYPE_NONE;
+        ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.svflags |= Defines.SVF_NOCLIENT;
 
         if ((ent.spawnflags & 4) != 0) {
@@ -524,7 +524,7 @@ class GameTrigger {
                 dflags = 0;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
-                    dflags, Defines.MOD_TRIGGER_HURT);
+                    dflags, GameDefines.MOD_TRIGGER_HURT);
         }
     };
 
