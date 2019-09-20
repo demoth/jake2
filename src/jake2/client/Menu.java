@@ -186,7 +186,7 @@ public final class Menu extends Key {
                                                            // (int k) ) {
         int i;
 
-        if (Cvar.VariableValue("maxclients") == 1 && Globals.server_state != 0)
+        if (Cvar.VariableValue("maxclients") == 1 && Globals.server_state != ServerStates.SS_DEAD)
             Cvar.Set("paused", "1");
 
         // if this menu is already present, drop back to that level
@@ -2255,7 +2255,7 @@ public final class Menu extends Key {
     }
 
     private static void Menu_SaveGame_f() {
-        if (0 == Globals.server_state)
+        if (Globals.server_state == ServerStates.SS_DEAD)
             return; // not playing a game
 
         SaveGame_MenuInit();
@@ -2581,7 +2581,7 @@ public final class Menu extends Key {
         }
 
         if (spot != null) {
-            if (Globals.server_state != 0)
+            if (Globals.server_state != ServerStates.SS_DEAD)
                 Cbuf.AddText("disconnect\n");
             Cbuf.AddText("gamemap \"*" + startmap + "$" + spot + "\"\n");
         } else {

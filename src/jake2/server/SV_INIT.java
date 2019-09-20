@@ -56,7 +56,7 @@ public class SV_INIT {
 
         sv.configstrings[start + i] = name;
 
-        if (sv.state != Defines.ss_loading) { 
+        if (sv.state != ServerStates.SS_LOADING) {
             // send the update to everyone
             sv.multicast.clear();
             MSG.WriteChar(sv.multicast, Defines.svc_configstring);
@@ -150,10 +150,10 @@ public class SV_INIT {
             // rlava2 was sending too many lightstyles, and overflowing the
             // reliable data. temporarily changing the server state to loading
             // prevents these from being passed down.
-            int previousState; // PGM
+            ServerStates previousState; // PGM
 
             previousState = sv.state; // PGM
-            sv.state = Defines.ss_loading; // PGM
+            sv.state = ServerStates.SS_LOADING; // PGM
             for (i = 0; i < 100; i++)
                 SV_GAME.gameExports.G_RunFrame();
 
@@ -168,7 +168,7 @@ public class SV_INIT {
      * it.
      */
     public static void SV_SpawnServer(String server, String spawnpoint,
-            int serverstate, boolean attractloop, boolean loadgame) {
+            ServerStates serverstate, boolean attractloop, boolean loadgame) {
         int i;
         int checksum = 0;
 
@@ -188,7 +188,7 @@ public class SV_INIT {
         // any partially connected client will be restarted
         svs.spawncount++;        
 
-        sv.state = Defines.ss_dead;
+        sv.state = ServerStates.SS_DEAD;
 
         Globals.server_state = sv.state;
 
@@ -230,7 +230,7 @@ public class SV_INIT {
 
         int iw[] = { checksum };
 
-        if (serverstate != Defines.ss_game) {
+        if (serverstate != ServerStates.SS_GAME) {
             sv.models[1] = CM.CM_LoadMap("", false, iw); // no real map
         } else {
             sv.configstrings[Defines.CS_MODELS + 1] = "maps/" + server + ".bsp";
@@ -258,7 +258,7 @@ public class SV_INIT {
         // precache and static commands can be issued during
         // map initialization
 
-        sv.state = Defines.ss_loading;
+        sv.state = ServerStates.SS_LOADING;
         Globals.server_state = sv.state;
 
         // load and spawn all other entities
@@ -397,7 +397,7 @@ public class SV_INIT {
         sv.loadgame = loadgame;
         sv.attractloop = attractloop;
 
-        if (sv.state == Defines.ss_dead && !sv.loadgame)
+        if (sv.state == ServerStates.SS_DEAD && !sv.loadgame)
             SV_InitGame(); // the game is just starting
 
         level = levelstring; // bis hier her ok.
@@ -443,23 +443,23 @@ public class SV_INIT {
         if (l > 4 && level.endsWith(".cin")) {
             SCR.BeginLoadingPlaque(); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, Defines.ss_cinematic,
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC,
                     attractloop, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
             SCR.BeginLoadingPlaque(); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, Defines.ss_demo, attractloop,
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, attractloop,
                     loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
             SCR.BeginLoadingPlaque(); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
-            SV_SpawnServer(level, spawnpoint, Defines.ss_pic, attractloop,
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, attractloop,
                     loadgame);
         } else {
             SCR.BeginLoadingPlaque(); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SEND.SV_SendClientMessages();
-            SV_SpawnServer(level, spawnpoint, Defines.ss_game, attractloop,
+            SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, attractloop,
                     loadgame);
             Cbuf.CopyToDefer();
         }

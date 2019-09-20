@@ -22,16 +22,13 @@
 // $Id: server_t.java,v 1.2 2004-09-22 19:22:12 salomo Exp $
 package jake2.server;
 
-import jake2.qcommon.Defines;
-import jake2.qcommon.cmodel_t;
-import jake2.qcommon.entity_state_t;
-import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.*;
 
 import java.io.RandomAccessFile;
 
-public class server_t {
+class server_t {
 
-    public server_t() {
+    server_t() {
         models = new cmodel_t[Defines.MAX_MODELS];
         for (int n = 0; n < Defines.MAX_MODELS; n++)
             models[n] = new cmodel_t();
@@ -40,7 +37,7 @@ public class server_t {
             baselines[n] = new entity_state_t(null);
     }
 
-    int state; // precache commands are only valid during load
+    ServerStates state = ServerStates.SS_DEAD; // precache commands are only valid during load
 
     boolean attractloop; // running cinematics and demos for the local system
                          // only

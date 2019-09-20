@@ -424,9 +424,7 @@ public class GameSpawn {
         }
     }
 
-    // todo move to game exports
-    public static void SpawnEntities(String mapname, String entities,
-            String spawnpoint) {
+    static void SpawnEntities(String mapname, String entities, String spawnpoint) {
         
         Com.dprintln("SpawnEntities(), mapname=" + mapname);
         edict_t ent;

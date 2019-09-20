@@ -523,7 +523,7 @@ public class SV_CCMDS {
 			SV_WipeSavegame("current");
 		}
 		else { // save the map just exited
-			if (SV_INIT.sv.state == Defines.ss_game) {
+			if (SV_INIT.sv.state == ServerStates.SS_GAME) {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
@@ -590,7 +590,7 @@ public class SV_CCMDS {
 			}
 		}
 
-		SV_INIT.sv.state = Defines.ss_dead; // don't save current level when changing
+		SV_INIT.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
 		SV_WipeSavegame("current");
 		SV_GameMap_f(args);
@@ -646,7 +646,7 @@ public class SV_CCMDS {
 		SV_ReadServerFile();
 
 		// go to the map
-		SV_INIT.sv.state = Defines.ss_dead; // don't save current level when changing
+		SV_INIT.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 		SV_INIT.SV_Map(false, SV_INIT.svs.mapcmd, true);
 	}
 	/*
@@ -657,7 +657,7 @@ public class SV_CCMDS {
 	*/
 	private static void SV_Savegame_f(List<String> args) {
 
-		if (SV_INIT.sv.state != Defines.ss_game) {
+		if (SV_INIT.sv.state != ServerStates.SS_GAME) {
 			Com.Printf("You must be in a game to save.\n");
 			return;
 		}
@@ -884,7 +884,7 @@ public class SV_CCMDS {
 			return;
 		}
 
-		if (SV_INIT.sv.state != Defines.ss_game) {
+		if (SV_INIT.sv.state != ServerStates.SS_GAME) {
 			Com.Printf("You must be in a level to record.\n");
 			return;
 		}

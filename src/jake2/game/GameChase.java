@@ -28,8 +28,6 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
-import jake2.server.SV_WORLD;
-
 
 class GameChase {
 
@@ -125,7 +123,7 @@ class GameChase {
     
         ent.viewheight = 0;
         client.getPlayerState().pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
-        SV_WORLD.SV_LinkEdict(ent);
+        GameBase.gi.linkentity(ent);
     }
 
     static void ChaseNext(edict_t ent) {

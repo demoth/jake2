@@ -243,7 +243,7 @@ public class CL_parse {
         Globals.cls.serverProtocol = i;
 
         // BIG HACK to let demos from release work with the 3.0x patch!!!
-        if (Globals.server_state != 0 && Defines.PROTOCOL_VERSION == 34) {
+        if (Globals.server_state != ServerStates.SS_DEAD && Defines.PROTOCOL_VERSION == 34) {
         } else if (i != Defines.PROTOCOL_VERSION)
             Com.Error(Defines.ERR_DROP, "Server returned version " + i
                     + ", not " + Defines.PROTOCOL_VERSION);

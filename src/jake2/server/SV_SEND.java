@@ -111,7 +111,7 @@ public class SV_SEND {
 	*/
 	public static void SV_BroadcastCommand(String s) {
 
-		if (SV_INIT.sv.state == 0)
+		if (SV_INIT.sv.state == ServerStates.SS_DEAD)
 			return;
 
 		MSG.WriteByte(SV_INIT.sv.multicast, Defines.svc_stufftext);
@@ -456,7 +456,7 @@ public class SV_SEND {
 		msglen = 0;
 
 		// read the next demo message if needed
-		if (SV_INIT.sv.state == Defines.ss_demo && SV_INIT.sv.demofile != null) {
+		if (SV_INIT.sv.state == ServerStates.SS_DEMO && SV_INIT.sv.demofile != null) {
 			if (SV_MAIN.sv_paused.value != 0)
 				msglen = 0;
 			else {
@@ -508,9 +508,9 @@ public class SV_SEND {
 				SV_MAIN.SV_DropClient(c);
 			}
 
-			if (SV_INIT.sv.state == Defines.ss_cinematic
-				|| SV_INIT.sv.state == Defines.ss_demo
-				|| SV_INIT.sv.state == Defines.ss_pic)
+			if (SV_INIT.sv.state == ServerStates.SS_CINEMATIC
+				|| SV_INIT.sv.state == ServerStates.SS_DEMO
+				|| SV_INIT.sv.state == ServerStates.SS_PIC)
 				Netchan.Transmit(c.netchan, msglen, msgbuf);
 			else if (c.state == ClientStates.CS_SPAWNED) {
 				// don't overrun bandwidth

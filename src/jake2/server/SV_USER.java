@@ -105,7 +105,7 @@ class SV_USER {
         }
 
         // demo servers just dump the file message
-        if (SV_INIT.sv.state == Defines.ss_demo) {
+        if (SV_INIT.sv.state == ServerStates.SS_DEMO) {
             SV_BeginDemoserver();
             return;
         }
@@ -128,8 +128,8 @@ class SV_USER {
                 SV_INIT.sv.attractloop ? 1 : 0);
         MSG.WriteString(SV_MAIN.sv_client.netchan.message, gamedir);
 
-        if (SV_INIT.sv.state == Defines.ss_cinematic
-                || SV_INIT.sv.state == Defines.ss_pic)
+        if (SV_INIT.sv.state == ServerStates.SS_CINEMATIC
+                || SV_INIT.sv.state == ServerStates.SS_PIC)
             playernum = -1;
         else
             //playernum = sv_client - svs.clients;
@@ -144,7 +144,7 @@ class SV_USER {
         //
         // game server
         // 
-        if (SV_INIT.sv.state == Defines.ss_game) {
+        if (SV_INIT.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
             ent = SV_GAME.gameExports.getEdict(playernum + 1);
             ent.s.number = playernum + 1;
@@ -433,8 +433,8 @@ class SV_USER {
         String v;
 
         //ZOID, ss_pic can be nextserver'd in coop mode
-        if (SV_INIT.sv.state == Defines.ss_game
-                || (SV_INIT.sv.state == Defines.ss_pic && 
+        if (SV_INIT.sv.state == ServerStates.SS_GAME
+                || (SV_INIT.sv.state == ServerStates.SS_PIC &&
                         0 == Cvar.VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
@@ -491,7 +491,7 @@ class SV_USER {
             }
         }
 
-        if (i == SV_USER.ucmds.length && SV_INIT.sv.state == Defines.ss_game)
+        if (i == SV_USER.ucmds.length && SV_INIT.sv.state == ServerStates.SS_GAME)
             SV_GAME.gameExports.ClientCommand(SV_USER.sv_player, args);
 
         //	SV_EndRedirect ();

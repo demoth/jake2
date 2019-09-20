@@ -463,11 +463,6 @@ public final class Com
 		Sys.Quit();
 	}
 
-	public static void SetServerState(int i)
-	{
-		Globals.server_state= i;
-	}
-
 	public static int BlockChecksum(byte[] buf, int length)
 	{
 		return MD4.Com_BlockChecksum(buf, length);

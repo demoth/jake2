@@ -1096,15 +1096,6 @@ public class Defines {
 
 	public static final int MAX_CHALLENGES = 1024;
 
-	// Server states
-	// Todo: make enum
-	public static final int ss_dead = 0; // no map loaded
-	public static final int ss_loading = 1; // spawning level edicts
-	public static final int ss_game = 2; // actively running
-	public static final int ss_cinematic = 3;
-	public static final int ss_demo = 4;
-	public static final int ss_pic = 5;
-
 	public final static int SV_OUTPUTBUF_LENGTH = (MAX_MSGLEN - 16);
 	public final static int RD_NONE = 0;
 	public final static int RD_CLIENT = 1;

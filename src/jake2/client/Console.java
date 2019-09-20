@@ -65,7 +65,7 @@ public final class Console extends Globals {
 		Globals.cls.key_dest = Defines.key_console;
 
 		if (Cvar.VariableValue("maxclients") == 1
-			&& Globals.server_state != 0)
+			&& Globals.server_state != ServerStates.SS_DEAD)
 			Cvar.Set("paused", "1");
 		}
 	};

@@ -254,7 +254,7 @@ public final class CL {
         // never pause in multiplayer
 
         if (Cvar.VariableValue("maxclients") > 1
-                || Globals.server_state == 0) {
+                || Globals.server_state == ServerStates.SS_DEAD) {
             Cvar.SetValue("paused", 0);
             return;
         }
@@ -281,7 +281,7 @@ public final class CL {
             return;
         }
 
-        if (Globals.server_state != 0) {
+        if (Globals.server_state != ServerStates.SS_DEAD) {
             // if running a local server, kill it and reissue
             SV_MAIN.SV_Shutdown("Server quit\n", false);
         } else {
@@ -646,7 +646,7 @@ public final class CL {
         // if the local server is running and we aren't
         // then connect
         if (Globals.cls.state == Defines.ca_disconnected
-                && Globals.server_state != 0) {
+                && Globals.server_state != ServerStates.SS_DEAD) {
             Globals.cls.state = Defines.ca_connecting;
             Globals.cls.servername = "localhost";
             // we don't need a challenge on the localhost

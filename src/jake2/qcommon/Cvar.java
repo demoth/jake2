@@ -211,7 +211,7 @@ public class Cvar extends Globals {
                         return var;
                 }
 
-                if (Globals.server_state != 0) {
+                if (Globals.server_state != ServerStates.SS_DEAD) {
                     Com.Printf(var_name + " will be changed for next game.\n");
                     var.latched_string = value;
                 } else {

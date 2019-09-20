@@ -58,7 +58,8 @@ public class Globals extends Defines {
 	public static int c_traces;
 	public static int c_brush_traces;
 	public static int c_pointcontents;
-	public static int server_state;
+	// todo move from static
+	public static ServerStates server_state;
 
 	public static cvar_t cl_add_blend;
 	public static cvar_t cl_add_entities;

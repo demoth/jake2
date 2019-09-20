@@ -24,7 +24,7 @@ package jake2.server;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
-public class SV_WORLD {
+class SV_WORLD {
     // world.c -- world query functions
     //
     //
@@ -34,49 +34,49 @@ public class SV_WORLD {
     //
     //FIXME: this use of "area" is different from the bsp file use
     //===============================================================================
-    public static areanode_t sv_areanodes[] = new areanode_t[Defines.AREA_NODES];
+    private static areanode_t sv_areanodes[] = new areanode_t[Defines.AREA_NODES];
     static {
         SV_WORLD.initNodes();
     }
 
-    public static int sv_numareanodes;
+    private static int sv_numareanodes;
 
-    public static float area_mins[], area_maxs[];
+    private static float area_mins[], area_maxs[];
 
-    public static edict_t area_list[];
+    private static edict_t area_list[];
 
-    public static int area_count, area_maxcount;
+    private static int area_count, area_maxcount;
 
-    public static int area_type;
+    private static int area_type;
 
-    public static final int MAX_TOTAL_ENT_LEAFS = 128;
+    private static final int MAX_TOTAL_ENT_LEAFS = 128;
 
-    static int leafs[] = new int[MAX_TOTAL_ENT_LEAFS];
+    private static int leafs[] = new int[MAX_TOTAL_ENT_LEAFS];
 
-    static int clusters[] = new int[MAX_TOTAL_ENT_LEAFS];
-
-    //===========================================================================
-    static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
+    private static int clusters[] = new int[MAX_TOTAL_ENT_LEAFS];
 
     //===========================================================================
-    static edict_t touchlist[] = new edict_t[Defines.MAX_EDICTS];
+    private static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
 
-    public static void initNodes() {
+    //===========================================================================
+    private static edict_t touchlist[] = new edict_t[Defines.MAX_EDICTS];
+
+    private static void initNodes() {
         for (int n = 0; n < Defines.AREA_NODES; n++)
             SV_WORLD.sv_areanodes[n] = new areanode_t();
     }
 
     // ClearLink is used for new headnodes
-    public static void ClearLink(link_t l) {
+    private static void ClearLink(link_t l) {
         l.prev = l.next = l;
     }
 
-    public static void RemoveLink(link_t l) {
+    private static void RemoveLink(link_t l) {
         l.next.prev = l.prev;
         l.prev.next = l.next;
     }
 
-    public static void InsertLinkBefore(link_t l, link_t before) {
+    private static void InsertLinkBefore(link_t l, link_t before) {
         l.next = before;
         l.prev = before.prev;
         l.prev.next = l;
@@ -89,8 +89,8 @@ public class SV_WORLD {
      * Builds a uniformly subdivided tree for the given world size
      * ===============
      */
-    public static areanode_t SV_CreateAreaNode(int depth, float[] mins,
-            float[] maxs) {
+    private static areanode_t SV_CreateAreaNode(int depth, float[] mins,
+                                                float[] maxs) {
         areanode_t anode;
         float[] size = { 0, 0, 0 };
         float[] mins1 = { 0, 0, 0 }, maxs1 = { 0, 0, 0 }, mins2 = { 0, 0, 0 }, maxs2 = {
@@ -128,7 +128,7 @@ public class SV_WORLD {
      * 
      * ===============
      */
-    public static void SV_ClearWorld() {
+    static void SV_ClearWorld() {
         initNodes();
         SV_WORLD.sv_numareanodes = 0;
         SV_CreateAreaNode(0, SV_INIT.sv.models[1].mins,
@@ -147,14 +147,14 @@ public class SV_WORLD {
     /*
      * =============== SV_UnlinkEdict ===============
      */
-    public static void SV_UnlinkEdict(edict_t ent) {
+    static void SV_UnlinkEdict(edict_t ent) {
         if (null == ent.area.prev)
             return; // not linked in anywhere
         RemoveLink(ent.area);
         ent.area.prev = ent.area.next = null;
     }
 
-    public static void SV_LinkEdict(edict_t ent) {
+    static void SV_LinkEdict(edict_t ent) {
         areanode_t node;
         int num_leafs;
         int j, k;
@@ -243,7 +243,7 @@ public class SV_WORLD {
                 // but nothing should evern need more than that
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
-                            && SV_INIT.sv.state == Defines.ss_loading)
+                            && SV_INIT.sv.state == ServerStates.SS_LOADING)
                         Com.DPrintf("Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
                                 + ent.absmin[2] + "\n");
@@ -306,7 +306,7 @@ public class SV_WORLD {
      * 
      * ====================
      */
-    public static void SV_AreaEdicts_r(areanode_t node) {
+    private static void SV_AreaEdicts_r(areanode_t node) {
         link_t l, next, start;
         edict_t check;
         // touch linked edicts
@@ -345,8 +345,8 @@ public class SV_WORLD {
     /*
      * ================ SV_AreaEdicts ================
      */
-    public static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[],
-            int maxcount, int areatype) {
+    static int SV_AreaEdicts(float[] mins, float[] maxs, edict_t list[],
+                             int maxcount, int areatype) {
         SV_WORLD.area_mins = mins;
         SV_WORLD.area_maxs = maxs;
         SV_WORLD.area_list = list;
@@ -360,7 +360,7 @@ public class SV_WORLD {
     /*
      * ============= SV_PointContents =============
      */
-    public static int SV_PointContents(float[] p) {
+    static int SV_PointContents(float[] p) {
         edict_t hit;
         int i, num;
         int contents, c2;
@@ -391,7 +391,7 @@ public class SV_WORLD {
      * be added to the testing object's origin to get a point to use with the
      * returned hull. ================
      */
-    public static int SV_HullForEntity(edict_t ent) {
+    private static int SV_HullForEntity(edict_t ent) {
         cmodel_t model;
         // decide which clipping hull to use, based on the size
         if (ent.solid == Defines.SOLID_BSP) {
@@ -406,7 +406,7 @@ public class SV_WORLD {
         return CM.HeadnodeForBox(ent.mins, ent.maxs);
     }
 
-    public static void SV_ClipMoveToEntities(moveclip_t clip) {
+    private static void SV_ClipMoveToEntities(moveclip_t clip) {
         int i, num;
         edict_t touch;
         trace_t trace;
@@ -462,8 +462,8 @@ public class SV_WORLD {
     /*
      * ================== SV_TraceBounds ==================
      */
-    public static void SV_TraceBounds(float[] start, float[] mins,
-            float[] maxs, float[] end, float[] boxmins, float[] boxmaxs) {
+    private static void SV_TraceBounds(float[] start, float[] mins,
+                                       float[] maxs, float[] end, float[] boxmins, float[] boxmaxs) {
         int i;
         for (i = 0; i < 3; i++) {
             if (end[i] > start[i]) {
@@ -485,8 +485,8 @@ public class SV_WORLD {
      * 
      * ==================
      */
-    public static trace_t SV_Trace(float[] start, float[] mins, float[] maxs,
-            float[] end, edict_t passedict, int contentmask) {
+    static trace_t SV_Trace(float[] start, float[] mins, float[] maxs,
+                            float[] end, edict_t passedict, int contentmask) {
         moveclip_t clip = new moveclip_t();
         if (mins == null)
             mins = Globals.vec3_origin;

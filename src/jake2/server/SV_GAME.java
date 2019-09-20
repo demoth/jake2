@@ -152,7 +152,7 @@ public class SV_GAME {
         // change the string in sv
         SV_INIT.sv.configstrings[index] = val;
 
-        if (SV_INIT.sv.state != Defines.ss_loading) { // send the update to
+        if (SV_INIT.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
             SV_INIT.sv.multicast.clear();
             MSG.WriteChar(SV_INIT.sv.multicast, Defines.svc_configstring);
