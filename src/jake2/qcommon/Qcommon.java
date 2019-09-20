@@ -30,6 +30,8 @@ import jake2.client.CL;
 import jake2.client.Key;
 import jake2.client.SCR;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.Netchan;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Vargs;
@@ -126,7 +128,7 @@ public final class Qcommon extends Globals {
 			
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.setStatus("initializing client subsystem...");
-			
+
 			CL.Init();
 
 			// add + commands from command line

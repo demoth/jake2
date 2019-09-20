@@ -27,7 +27,7 @@ import jake2.qcommon.*;
 //
 //	collection of functions provided by the main engine
 //
-public class game_import_t implements GameImports {
+public class GameImportsImpl implements GameImports {
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {

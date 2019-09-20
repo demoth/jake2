@@ -20,7 +20,10 @@
 
 // Created on 27.11.2003 by RST.
 // $Id: netchan_t.java,v 1.2 2004-09-22 19:22:09 salomo Exp $
-package jake2.qcommon;
+package jake2.qcommon.network;
+
+import jake2.qcommon.Defines;
+import jake2.qcommon.sizebuf_t;
 
 public class netchan_t {
 

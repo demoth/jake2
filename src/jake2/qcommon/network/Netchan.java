@@ -21,8 +21,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.qcommon;
+package jake2.qcommon.network;
 
+import jake2.qcommon.*;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.server.SV_MAIN;

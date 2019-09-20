@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.NetAddrType;
+import jake2.qcommon.network.Netchan;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -422,7 +424,7 @@ public class SV_SEND {
 		int i;
 
 		// never drop over the loopback
-		if (c.netchan.remote_address.type == Defines.NA_LOOPBACK)
+		if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK)
 			return false;
 
 		total = 0;

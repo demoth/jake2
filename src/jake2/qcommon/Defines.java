@@ -961,13 +961,7 @@ public class Defines {
 	public static final int NS_CLIENT = 0;
 	public static final int NS_SERVER = 1;
 
-	public static final int NA_LOOPBACK = 0;
-	public static final int NA_BROADCAST = 1;
-	public static final int NA_IP = 2;
-	public static final int NA_IPX = 3;
-	public static final int NA_BROADCAST_IPX = 4;
-
-	public final static int SND_VOLUME = (1 << 0); // a byte 
+	public final static int SND_VOLUME = (1 << 0); // a byte
 	public final static int SND_ATTENUATION = (1 << 1); // a byte 
 	public final static int SND_POS = (1 << 2); // three coordinates 
 	public final static int SND_ENT = (1 << 3); // a short 0-2: channel, 3-12: entity 

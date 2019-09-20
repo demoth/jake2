@@ -24,6 +24,9 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 

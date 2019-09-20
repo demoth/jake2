@@ -26,6 +26,7 @@ import jake2.client.CL;
 import jake2.client.SCR;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NET;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

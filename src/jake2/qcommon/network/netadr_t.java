@@ -20,21 +20,21 @@
 
 // Created on 27.11.2003 by RST.
 // $Id: netadr_t.java,v 1.6 2005-10-26 12:37:58 cawe Exp $
-package jake2.qcommon;
+package jake2.qcommon.network;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class netadr_t {
 
-    public int type;
+    public NetAddrType type;
 
     public int port;
 
     public byte ip[];
 
     public netadr_t() {
-        this.type = Defines.NA_LOOPBACK;
+        this.type = NetAddrType.NA_LOOPBACK;
         this.port = 0; // any
         try {
         	// localhost / 127.0.0.1
@@ -45,12 +45,12 @@ public class netadr_t {
 
     public InetAddress getInetAddress() throws UnknownHostException {
         switch (type) {
-        case Defines.NA_BROADCAST:
+        case NA_BROADCAST:
             return InetAddress.getByName("255.255.255.255");
-        case Defines.NA_LOOPBACK:
+        case NA_LOOPBACK:
         	// localhost / 127.0.0.1
             return InetAddress.getByName(null);
-        case Defines.NA_IP:
+        case NA_IP:
             return InetAddress.getByAddress(ip);
         default:
             return null;
@@ -67,7 +67,7 @@ public class netadr_t {
     }
 
     public String toString() {
-        return (type == Defines.NA_LOOPBACK) ? "loopback" : NET
+        return (type == NetAddrType.NA_LOOPBACK) ? "loopback" : NET
                 .AdrToString(this);
     }
 }

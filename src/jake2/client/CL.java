@@ -30,6 +30,10 @@ import jake2.client.sound.S;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
+import jake2.qcommon.network.NET;
+import jake2.qcommon.network.NetAddrType;
+import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -424,7 +428,7 @@ public final class CL {
 
         noudp = Cvar.Get("noudp", "0", Defines.CVAR_NOSET);
         if (noudp.value == 0.0f) {
-            adr.type = Defines.NA_BROADCAST;
+            adr.type = NetAddrType.NA_BROADCAST;
             adr.port = Defines.PORT_SERVER;
             //adr.port = BigShort(PORT_SERVER);
             Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "
@@ -434,7 +438,7 @@ public final class CL {
         // we use no IPX
         noipx = Cvar.Get("noipx", "1", Defines.CVAR_NOSET);
         if (noipx.value == 0.0f) {
-            adr.type = Defines.NA_BROADCAST_IPX;
+            adr.type = NetAddrType.NA_BROADCAST_IPX;
             //adr.port = BigShort(PORT_SERVER);
             adr.port = Defines.PORT_SERVER;
             Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "info "

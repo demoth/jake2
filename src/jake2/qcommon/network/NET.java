@@ -20,8 +20,9 @@
  * Place - Suite 330, Boston, MA 02111-1307, USA.
  *  
  */
-package jake2.qcommon;
+package jake2.qcommon.network;
 
+import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -83,10 +84,10 @@ public final class NET {
         if (a.type != b.type)
             return false;
 
-        if (a.type == Defines.NA_LOOPBACK)
+        if (a.type == NetAddrType.NA_LOOPBACK)
             return true;
 
-        if (a.type == Defines.NA_IP) {
+        if (a.type == NetAddrType.NA_IP) {
             return (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1]
                     && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3]);
         }
@@ -128,7 +129,7 @@ public final class NET {
             String[] address = s.split(":");
             InetAddress ia = InetAddress.getByName(address[0]);
             a.ip = ia.getAddress();
-            a.type = Defines.NA_IP;
+            a.type = NetAddrType.NA_IP;
             if (address.length == 2)
                 a.port = Lib.atoi(address[1]);
             return true;
@@ -219,7 +220,7 @@ public final class NET {
 
             net_from.ip = srcSocket.getAddress().getAddress();
             net_from.port = srcSocket.getPort();
-            net_from.type = Defines.NA_IP;
+            net_from.type = NetAddrType.NA_IP;
 
             int packetLength = receiveBuffer.position();
 
@@ -245,7 +246,7 @@ public final class NET {
      * Sends a Packet.
      */
     public static void SendPacket(int sock, int length, byte[] data, netadr_t to) {
-        if (to.type == Defines.NA_LOOPBACK) {
+        if (to.type == NetAddrType.NA_LOOPBACK) {
             SendLoopPacket(sock, length, data, to);
             return;
         }
@@ -253,7 +254,7 @@ public final class NET {
         if (ip_sockets[sock] == null)
             return;
 
-        if (to.type != Defines.NA_BROADCAST && to.type != Defines.NA_IP) {
+        if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
             Com.Error(Defines.ERR_FATAL, "NET_SendPacket: bad address type");
             return;
         }

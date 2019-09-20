@@ -281,6 +281,6 @@ public class SV_GAME {
 
     public static void SV_InitGameProgs() {
 
-        gameExports = new GameExportsImpl(new game_import_t());
+        gameExports = new GameExportsImpl(new GameImportsImpl());
     }
 }

@@ -29,7 +29,7 @@ package jake2.game;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.server.game_import_t;
+import jake2.server.GameImportsImpl;
 
 import java.util.StringTokenizer;
 
@@ -41,7 +41,7 @@ public class GameBase {
     public static level_locals_t level = new level_locals_t();
 
     // todo inject the same way as for game exports
-    public static GameImports gi = new game_import_t();
+    public static GameImports gi = new GameImportsImpl();
 
     public static spawn_temp_t st = new spawn_temp_t();
 

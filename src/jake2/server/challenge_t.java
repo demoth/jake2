@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.server;
 
-import jake2.qcommon.netadr_t;
+import jake2.qcommon.network.netadr_t;
 
 public class challenge_t {
 	//mem

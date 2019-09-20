@@ -28,6 +28,7 @@ package jake2.qcommon;
 import jake2.client.*;
 import jake2.client.render.DummyRenderer;
 import jake2.client.render.model_t;
+import jake2.qcommon.network.netadr_t;
 
 import java.io.FileWriter;
 import java.io.RandomAccessFile;
