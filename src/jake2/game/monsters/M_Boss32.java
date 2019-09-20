@@ -1811,7 +1811,7 @@ public class M_Boss32 {
                 return true;
             }
 
-            if ((self.flags & Defines.FL_FLY) != 0) {
+            if ((self.flags & GameDefines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3)
                     self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else

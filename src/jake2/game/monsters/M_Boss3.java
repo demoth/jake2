@@ -25,6 +25,8 @@ package jake2.game.monsters;
 import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 public class M_Boss3 {
@@ -32,10 +34,10 @@ public class M_Boss3 {
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
         public void use(edict_t ent, edict_t other, edict_t activator) {
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_BOSSTPORT);
             GameBase.gi.WritePosition(ent.s.origin);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
             GameUtil.G_FreeEdict(ent);
         }
     };

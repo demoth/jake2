@@ -38,7 +38,7 @@ class GameFunc {
 
         if (ent.moveinfo.speed == ent.moveinfo.accel
                 && ent.moveinfo.speed == ent.moveinfo.decel) {
-            if (GameBase.level.current_entity == ((ent.flags & Defines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+            if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                     : ent)) {
                 Move_Begin.think(ent);
             } else {
@@ -56,7 +56,7 @@ class GameFunc {
     private static void AngleMove_Calc(edict_t ent, EntThinkAdapter func) {
         Math3D.VectorClear(ent.avelocity);
         ent.moveinfo.endfunc = func;
-        if (GameBase.level.current_entity == ((ent.flags & Defines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+        if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                 : ent)) {
             AngleMove_Begin.think(ent);
         } else {
@@ -177,7 +177,7 @@ class GameFunc {
     };
 
     private static void plat_go_up(edict_t ent) {
-        if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
+        if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
             if (ent.moveinfo.sound_start != 0)
                 GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
@@ -366,7 +366,7 @@ class GameFunc {
             return;
         }
 
-        if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+        if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
             if (self.moveinfo.sound_start != 0)
                 GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
@@ -745,7 +745,7 @@ class GameFunc {
     private static EntThinkAdapter plat_hit_top = new EntThinkAdapter() {
         public String getID() { return "plat_hit_top";}
         public boolean think(edict_t ent) {
-            if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
                     GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
@@ -764,7 +764,7 @@ class GameFunc {
         public String getID() { return "plat_hit_bottom";}
         public boolean think(edict_t ent) {
 
-            if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
                     GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
@@ -779,7 +779,7 @@ class GameFunc {
     private static EntThinkAdapter plat_go_down = new EntThinkAdapter() {
         public String getID() { return "plat_go_down";}
         public boolean think(edict_t ent) {
-            if (0 == (ent.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_start != 0)
                     GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
@@ -1022,7 +1022,7 @@ class GameFunc {
 
             self.moveinfo.state = STATE_UP;
             if (self.moveinfo.sound_start != 0
-                    && 0 == (self.flags & Defines.FL_TEAMSLAVE))
+                    && 0 == (self.flags & GameDefines.FL_TEAMSLAVE))
                 GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
@@ -1132,7 +1132,7 @@ class GameFunc {
     private static EntThinkAdapter door_hit_top = new EntThinkAdapter() {
         public String getID() { return "door_hit_top";}
         public boolean think(edict_t self) {
-            if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
                     GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
@@ -1153,7 +1153,7 @@ class GameFunc {
     private static EntThinkAdapter door_hit_bottom = new EntThinkAdapter() {
         public String getID() { return "door_hit_bottom";}
         public boolean think(edict_t self) {
-            if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
                     GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
@@ -1169,7 +1169,7 @@ class GameFunc {
     private static EntThinkAdapter door_go_down = new EntThinkAdapter() {
         public String getID() { return "door_go_down";}
         public boolean think(edict_t self) {
-            if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
                     GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
@@ -1196,7 +1196,7 @@ class GameFunc {
         public void use(edict_t self, edict_t other, edict_t activator) {
             edict_t ent;
 
-            if ((self.flags & Defines.FL_TEAMSLAVE) != 0)
+            if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
                 return;
 
             if ((self.spawnflags & DOOR_TOGGLE) != 0) {
@@ -1254,7 +1254,7 @@ class GameFunc {
             float ratio;
             float dist;
 
-            if ((self.flags & Defines.FL_TEAMSLAVE) != 0)
+            if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
                 return true; // only the team master does this
 
             // find the smallest distance any member of the team will be moving
@@ -1291,7 +1291,7 @@ class GameFunc {
             edict_t other;
             float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
 
-            if ((ent.flags & Defines.FL_TEAMSLAVE) != 0)
+            if ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0)
                 return true; // only the team leader spawns a trigger
 
             Math3D.VectorCopy(ent.absmin, mins);
@@ -1702,7 +1702,7 @@ class GameFunc {
                     self.nextthink = 0;
                 }
 
-                if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+                if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                     if (self.moveinfo.sound_end != 0)
                         GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                                 + Defines.CHAN_VOICE, self.moveinfo.sound_end,
@@ -1763,7 +1763,7 @@ class GameFunc {
             self.moveinfo.wait = ent.wait;
             self.target_ent = ent;
 
-            if (0 == (self.flags & Defines.FL_TEAMSLAVE)) {
+            if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
                     GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,

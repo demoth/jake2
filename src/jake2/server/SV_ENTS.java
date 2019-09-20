@@ -23,6 +23,7 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class SV_ENTS {
         int from_num_entities;
         int bits;
 
-        MSG.WriteByte(msg, Defines.svc_packetentities);
+        MSG.WriteByte(msg, NetworkCommands.svc_packetentities);
 
         if (from == null)
             from_num_entities = 0;
@@ -210,7 +211,7 @@ public class SV_ENTS {
         pflags |= Defines.PS_WEAPONINDEX;
 
         // write it
-        MSG.WriteByte(msg, Defines.svc_playerinfo);
+        MSG.WriteByte(msg, NetworkCommands.svc_playerinfo);
         MSG.WriteShort(msg, pflags);
 
         // write the pmove_state_t
@@ -325,7 +326,7 @@ public class SV_ENTS {
             lastframe = client.lastframe;
         }
 
-        MSG.WriteByte(msg, Defines.svc_frame);
+        MSG.WriteByte(msg, NetworkCommands.svc_frame);
         MSG.WriteLong(msg, SV_INIT.sv.framenum);
         MSG.WriteLong(msg, lastframe); // what we are delta'ing from
         MSG.WriteByte(msg, client.surpressCount); // rate dropped packets
@@ -546,10 +547,10 @@ public class SV_ENTS {
         SZ.Init(buf, buf_data, buf_data.length);
 
         // write a frame message that doesn't contain a player_state_t
-        MSG.WriteByte(buf, Defines.svc_frame);
+        MSG.WriteByte(buf, NetworkCommands.svc_frame);
         MSG.WriteLong(buf, SV_INIT.sv.framenum);
 
-        MSG.WriteByte(buf, Defines.svc_packetentities);
+        MSG.WriteByte(buf, NetworkCommands.svc_packetentities);
 
         int e = 1;
         edict_t ent = SV_GAME.gameExports.getEdict(e);

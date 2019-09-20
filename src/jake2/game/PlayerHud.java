@@ -25,6 +25,7 @@ package jake2.game;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
@@ -247,7 +248,7 @@ public class PlayerHud {
                             (GameBase.level.framenum - cl.resp.enterframe) / 600);           
         }
 
-        GameBase.gi.WriteByte(Defines.svc_layout);
+        GameBase.gi.WriteByte(NetworkCommands.svc_layout);
         GameBase.gi.WriteString(string.toString());
     }
 
@@ -332,7 +333,7 @@ public class PlayerHud {
             cells = client.pers.inventory[GameItems.ITEM_INDEX(GameItems
                     .FindItem("cells"))];
             if (cells == 0) { // ran out of cells for power armor
-                ent.flags &= ~Defines.FL_POWER_ARMOR;
+                ent.flags &= ~GameDefines.FL_POWER_ARMOR;
                 GameBase.gi
                         .sound(ent, Defines.CHAN_ITEM, GameBase.gi
                                 .soundindex("misc/power2.wav"), 1,
@@ -534,7 +535,7 @@ public class PlayerHud {
                         GameBase.level.found_secrets).add(
                         GameBase.level.total_secrets)));
     
-        GameBase.gi.WriteByte(Defines.svc_layout);
+        GameBase.gi.WriteByte(NetworkCommands.svc_layout);
         GameBase.gi.WriteString(sb.toString());
         GameBase.gi.unicast(ent, true);
     }

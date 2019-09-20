@@ -2,6 +2,7 @@ package jake2.game;
 
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
 
@@ -341,8 +342,8 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        ent.flags ^= Defines.FL_GODMODE;
-        if (0 == (ent.flags & Defines.FL_GODMODE))
+        ent.flags ^= GameDefines.FL_GODMODE;
+        if (0 == (ent.flags & GameDefines.FL_GODMODE))
             msg = "godmode OFF\n";
         else
             msg = "godmode ON\n";
@@ -366,8 +367,8 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        ent.flags ^= Defines.FL_NOTARGET;
-        if (0 == (ent.flags & Defines.FL_NOTARGET))
+        ent.flags ^= GameDefines.FL_NOTARGET;
+        if (0 == (ent.flags & GameDefines.FL_NOTARGET))
             msg = "notarget OFF\n";
         else
             msg = "notarget ON\n";
@@ -474,7 +475,7 @@ public class GameExportsImpl implements GameExports {
 
         cl.showinventory = true;
 
-        GameBase.gi.WriteByte(Defines.svc_inventory);
+        GameBase.gi.WriteByte(NetworkCommands.svc_inventory);
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
             GameBase.gi.WriteShort(cl.pers.inventory[i]);
         }
@@ -671,7 +672,7 @@ public class GameExportsImpl implements GameExports {
         gclient_t client = (gclient_t) ent.client;
         if ((GameBase.level.time - client.respawn_time) < 5)
             return;
-        ent.flags &= ~Defines.FL_GODMODE;
+        ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
         GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
         PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);

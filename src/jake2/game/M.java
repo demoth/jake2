@@ -41,7 +41,7 @@ public final class M {
         float[] point = { 0, 0, 0 };
         trace_t trace;
 
-        if ((ent.flags & (Defines.FL_SWIM | Defines.FL_FLY)) != 0)
+        if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0)
             return;
 
         if (ent.velocity[2] > 100) {
@@ -190,7 +190,7 @@ public final class M {
         edict_t goal = ent.goalentity;
 
         if (ent.groundentity == null
-                && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
+                && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
             return;
 
         //	   if the next step hits the enemy, return immediately
@@ -212,7 +212,7 @@ public final class M {
         float[] move = { 0, 0, 0 };
 
         if ((ent.groundentity == null)
-                && (ent.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == 0)
+                && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
             return false;
 
         yaw = (float) (yaw * Math.PI * 2 / 360);
@@ -260,7 +260,7 @@ public final class M {
         int dmg;
 
         if (ent.health > 0) {
-            if (0 == (ent.flags & Defines.FL_SWIM)) {
+            if (0 == (ent.flags & GameDefines.FL_SWIM)) {
                 if (ent.waterlevel < 3) {
                     ent.air_finished = GameBase.level.time + 12;
                 } else if (ent.air_finished < GameBase.level.time) {
@@ -298,17 +298,17 @@ public final class M {
         }
 
         if (ent.waterlevel == 0) {
-            if ((ent.flags & Defines.FL_INWATER) != 0) {
+            if ((ent.flags & GameDefines.FL_INWATER) != 0) {
                 GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
                         .soundindex("player/watr_out.wav"), 1,
                         Defines.ATTN_NORM, 0);
-                ent.flags &= ~Defines.FL_INWATER;
+                ent.flags &= ~GameDefines.FL_INWATER;
             }
             return;
         }
 
         if ((ent.watertype & Defines.CONTENTS_LAVA) != 0
-                && 0 == (ent.flags & Defines.FL_IMMUNE_LAVA)) {
+                && 0 == (ent.flags & GameDefines.FL_IMMUNE_LAVA)) {
             if (ent.damage_debounce_time < GameBase.level.time) {
                 ent.damage_debounce_time = GameBase.level.time + 0.2f;
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
@@ -318,7 +318,7 @@ public final class M {
             }
         }
         if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
-                && 0 == (ent.flags & Defines.FL_IMMUNE_SLIME)) {
+                && 0 == (ent.flags & GameDefines.FL_IMMUNE_SLIME)) {
             if (ent.damage_debounce_time < GameBase.level.time) {
                 ent.damage_debounce_time = GameBase.level.time + 1;
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
@@ -328,7 +328,7 @@ public final class M {
             }
         }
 
-        if (0 == (ent.flags & Defines.FL_INWATER)) {
+        if (0 == (ent.flags & GameDefines.FL_INWATER)) {
             if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
                 if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
                     if (Globals.rnd.nextFloat() <= 0.5)
@@ -349,7 +349,7 @@ public final class M {
                             Defines.ATTN_NORM, 0);
             }
 
-            ent.flags |= Defines.FL_INWATER;
+            ent.flags |= GameDefines.FL_INWATER;
             ent.damage_debounce_time = 0;
         }
     }

@@ -286,7 +286,7 @@ public class GameAI {
             ent = GameBase.g_edicts[check];
     
             if (ent.inuse && ent.health > 0
-                    && (ent.flags & Defines.FL_NOTARGET) == 0) {
+                    && (ent.flags & GameDefines.FL_NOTARGET) == 0) {
                 GameBase.level.sight_client = ent;
                 return; // got one
             }
@@ -384,7 +384,7 @@ public class GameAI {
     public static EntThinkAdapter flymonster_start = new EntThinkAdapter() {
         public String getID() { return "flymonster_start";}        
         public boolean think(edict_t self) {
-            self.flags |= Defines.FL_FLY;
+            self.flags |= GameDefines.FL_FLY;
             self.think = flymonster_start_go;
             Monster.monster_start(self);
             return true;
@@ -409,7 +409,7 @@ public class GameAI {
     public static EntThinkAdapter swimmonster_start = new EntThinkAdapter() {
         public String getID() { return "swimmonster_start";}
         public boolean think(edict_t self) {
-            self.flags |= Defines.FL_SWIM;
+            self.flags |= GameDefines.FL_SWIM;
             self.think = swimmonster_start_go;
             Monster.monster_start(self);
             return true;

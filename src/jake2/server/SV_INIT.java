@@ -26,7 +26,9 @@ import jake2.client.CL;
 import jake2.client.SCR;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -60,10 +62,10 @@ public class SV_INIT {
         if (sv.state != ServerStates.SS_LOADING) {
             // send the update to everyone
             sv.multicast.clear();
-            MSG.WriteChar(sv.multicast, Defines.svc_configstring);
+            MSG.WriteChar(sv.multicast, NetworkCommands.svc_configstring);
             MSG.WriteShort(sv.multicast, start + i);
             MSG.WriteString(sv.multicast, name);
-            SV_SEND.SV_Multicast(Globals.vec3_origin, Defines.MULTICAST_ALL_R);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
 
         return i;

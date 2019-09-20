@@ -2,6 +2,9 @@ package jake2.qcommon;
 
 import java.util.List;
 
+/**
+ * Functions exported by the game system to the engine
+ */
 public interface GameExports {
     /**
      * Processes the commands the player enters in the quake console.

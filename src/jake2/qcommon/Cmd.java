@@ -188,7 +188,6 @@ public final class Cmd {
      * 
      * Parses the given string into command line tokens. $Cvars will be expanded
      * unless they are in a quoted token.
-     * TODO should return the tokens and not assign to static fields!
      */
     public static List<String> TokenizeString(String text, boolean macroExpand) {
         List<String> result = new ArrayList<>();

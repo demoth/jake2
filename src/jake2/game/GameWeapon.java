@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -66,14 +68,14 @@ public class GameWeapon {
                         Defines.DAMAGE_ENERGY, mod);
     
             } else {
-                GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                 GameBase.gi.WriteByte(Defines.TE_BLASTER);
                 GameBase.gi.WritePosition(self.s.origin);
                 if (plane == null)
                     GameBase.gi.WriteDir(Globals.vec3_origin);
                 else
                     GameBase.gi.WriteDir(plane.normal);
-                GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+                GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             }
     
             GameUtil.G_FreeEdict(self);
@@ -121,7 +123,7 @@ public class GameWeapon {
                     ent.dmg_radius, mod);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             if (ent.waterlevel != 0) {
                 if (ent.groundentity != null)
                     GameBase.gi.WriteByte(Defines.TE_GRENADE_EXPLOSION_WATER);
@@ -134,7 +136,7 @@ public class GameWeapon {
                     GameBase.gi.WriteByte(Defines.TE_ROCKET_EXPLOSION);
             }
             GameBase.gi.WritePosition(origin);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PHS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent);
             return true;
@@ -225,13 +227,13 @@ public class GameWeapon {
             GameCombat.T_RadiusDamage(ent, ent.owner, ent.radius_dmg, other,
                     ent.dmg_radius, GameDefines.MOD_R_SPLASH);
     
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             if (ent.waterlevel != 0)
                 GameBase.gi.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
             else
                 GameBase.gi.WriteByte(Defines.TE_ROCKET_EXPLOSION);
             GameBase.gi.WritePosition(origin);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PHS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent);
         }
@@ -275,10 +277,10 @@ public class GameWeapon {
                     if (ent == self.owner)
                         points = points * 0.5f;
     
-                    GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                    GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                     GameBase.gi.WriteByte(Defines.TE_BFG_EXPLOSION);
                     GameBase.gi.WritePosition(ent.s.origin);
-                    GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PHS);
+                    GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
                     GameCombat.T_Damage(ent, self, self.owner, self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
                             Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT);
@@ -334,10 +336,10 @@ public class GameWeapon {
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_BFG_BIGEXPLOSION);
             GameBase.gi.WritePosition(self.s.origin);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };
     
@@ -394,7 +396,7 @@ public class GameWeapon {
     
                     // hurt it if we can
                     if ((tr.ent.takedamage != 0)
-                            && 0 == (tr.ent.flags & Defines.FL_IMMUNE_LASER)
+                            && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER)
                             && (tr.ent != self.owner))
                         GameCombat.T_Damage(tr.ent, self, self.owner, dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
@@ -404,13 +406,13 @@ public class GameWeapon {
                     // done
                     if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
                             && (null == tr.ent.client)) {
-                        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(Defines.TE_LASER_SPARKS);
                         GameBase.gi.WriteByte(4);
                         GameBase.gi.WritePosition(tr.endpos);
                         GameBase.gi.WriteDir(tr.plane.normal);
                         GameBase.gi.WriteByte(self.s.skinnum);
-                        GameBase.gi.multicast(tr.endpos, Defines.MULTICAST_PVS);
+                        GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                         break;
                     }
     
@@ -418,11 +420,11 @@ public class GameWeapon {
                     Math3D.VectorCopy(tr.endpos, start);
                 }
     
-                GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                 GameBase.gi.WriteByte(Defines.TE_BFG_LASER);
                 GameBase.gi.WritePosition(self.s.origin);
                 GameBase.gi.WritePosition(tr.endpos);
-                GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PHS);
+                GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
             }
     
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
@@ -595,13 +597,13 @@ public class GameWeapon {
                         color = Defines.SPLASH_UNKNOWN;
     
                     if (color != Defines.SPLASH_UNKNOWN) {
-                        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(Defines.TE_SPLASH);
                         GameBase.gi.WriteByte(8);
                         GameBase.gi.WritePosition(tr.endpos);
                         GameBase.gi.WriteDir(tr.plane.normal);
                         GameBase.gi.WriteByte(color);
-                        GameBase.gi.multicast(tr.endpos, Defines.MULTICAST_PVS);
+                        GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                     }
     
                     // change bullet's course when it enters water
@@ -630,11 +632,11 @@ public class GameWeapon {
                             Defines.DAMAGE_BULLET, mod);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
-                        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(te_impact);
                         GameBase.gi.WritePosition(tr.endpos);
                         GameBase.gi.WriteDir(tr.plane.normal);
-                        GameBase.gi.multicast(tr.endpos, Defines.MULTICAST_PVS);
+                        GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
     
                         if (self.client != null)
                             PlayerWeapon.PlayerNoise(self, tr.endpos,
@@ -661,11 +663,11 @@ public class GameWeapon {
             Math3D.VectorAdd(water_start, tr.endpos, pos);
             Math3D.VectorScale(pos, 0.5f, pos);
     
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_BUBBLETRAIL);
             GameBase.gi.WritePosition(water_start);
             GameBase.gi.WritePosition(tr.endpos);
-            GameBase.gi.multicast(pos, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(pos, MulticastTypes.MULTICAST_PVS);
         }
     }
 
@@ -920,18 +922,18 @@ public class GameWeapon {
         }
     
         // send gun puff / flash
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
         GameBase.gi.WriteByte(Defines.TE_RAILTRAIL);
         GameBase.gi.WritePosition(start);
         GameBase.gi.WritePosition(tr.endpos);
-        GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PHS);
+        GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
         // gi.multicast (start, MULTICAST_PHS);
         if (water) {
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_RAILTRAIL);
             GameBase.gi.WritePosition(start);
             GameBase.gi.WritePosition(tr.endpos);
-            GameBase.gi.multicast(tr.endpos, Defines.MULTICAST_PHS);
+            GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PHS);
         }
     
         if (self.client != null)

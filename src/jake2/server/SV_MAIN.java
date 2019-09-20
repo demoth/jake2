@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -58,8 +59,6 @@ public class SV_MAIN {
 
     private static cvar_t zombietime; // seconds to sink messages after
                                      // disconnect
-
-    private static cvar_t rcon_password; // password for remote server commands
 
     static cvar_t allow_download;
 
@@ -100,7 +99,7 @@ public class SV_MAIN {
      */
     static void SV_DropClient(client_t drop) {
         // add the disconnect
-        MSG.WriteByte(drop.netchan.message, Defines.svc_disconnect);
+        MSG.WriteByte(drop.netchan.message, NetworkCommands.svc_disconnect);
 
         if (drop.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
@@ -404,10 +403,11 @@ public class SV_MAIN {
      * Checks if the rcon password is corect.
      */
     private static boolean Rcon_Validate(List<String> args) {
-        if (0 == SV_MAIN.rcon_password.string.length())
+        String rconPassword = Cvar.Get("rcon_password", "", 0).string;
+        if (rconPassword.isEmpty())
             return false;
 
-        return args.size() >= 2 && args.get(1).equals(SV_MAIN.rcon_password.string);
+        return args.size() >= 2 && args.get(1).equals(rconPassword);
     }
 
     /**
@@ -862,7 +862,7 @@ public class SV_MAIN {
     public static void SV_Init() {
         SV_CCMDS.SV_InitOperatorCommands(); //ok.
 
-        SV_MAIN.rcon_password = Cvar.Get("rcon_password", "", 0);
+        Cvar.Get("rcon_password", "", 0);
         Cvar.Get("skill", "1", 0);
         Cvar.Get("deathmatch", "0", Defines.CVAR_LATCH);
         Cvar.Get("coop", "0", Defines.CVAR_LATCH);
@@ -918,14 +918,14 @@ public class SV_MAIN {
         client_t cl;
 
         Globals.net_message.clear();
-        MSG.WriteByte(Globals.net_message, Defines.svc_print);
+        MSG.WriteByte(Globals.net_message, NetworkCommands.svc_print);
         MSG.WriteByte(Globals.net_message, Defines.PRINT_HIGH);
         MSG.WriteString(Globals.net_message, message);
 
         if (reconnect)
-            MSG.WriteByte(Globals.net_message, Defines.svc_reconnect);
+            MSG.WriteByte(Globals.net_message, NetworkCommands.svc_reconnect);
         else
-            MSG.WriteByte(Globals.net_message, Defines.svc_disconnect);
+            MSG.WriteByte(Globals.net_message, NetworkCommands.svc_disconnect);
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers

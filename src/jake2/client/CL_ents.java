@@ -27,6 +27,7 @@ package jake2.client;
 
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -542,14 +543,14 @@ public class CL_ents {
 		// read playerinfo
 		cmd = MSG.ReadByte(Globals.net_message);
 		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
-		if (cmd != Defines.svc_playerinfo)
+		if (cmd != NetworkCommands.svc_playerinfo)
 			Com.Error(Defines.ERR_DROP, "CL_ParseFrame: not playerinfo");
 		ParsePlayerstate(old, Globals.cl.frame);
 
 		// read packet entities
 		cmd = MSG.ReadByte(Globals.net_message);
 		CL_parse.SHOWNET(CL_parse.svc_strings[cmd]);
-		if (cmd != Defines.svc_packetentities)
+		if (cmd != NetworkCommands.svc_packetentities)
 			Com.Error(Defines.ERR_DROP, "CL_ParseFrame: not packetentities");
 
 		ParsePacketEntities(old, Globals.cl.frame);

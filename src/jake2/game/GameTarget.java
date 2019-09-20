@@ -25,6 +25,8 @@ package jake2.game;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -269,10 +271,10 @@ class GameTarget {
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
         public void use(edict_t ent, edict_t other, edict_t activator) {
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(ent.style);
             GameBase.gi.WritePosition(ent.s.origin);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };
 
@@ -378,10 +380,10 @@ class GameTarget {
 
             float save;
 
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
             GameBase.gi.WritePosition(self.s.origin);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PHS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
                     self.dmg + 40, GameDefines.MOD_EXPLOSIVE);
@@ -466,13 +468,13 @@ class GameTarget {
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
         public void use(edict_t self, edict_t other, edict_t activator) {
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_SPLASH);
             GameBase.gi.WriteByte(self.count);
             GameBase.gi.WritePosition(self.s.origin);
             GameBase.gi.WriteDir(self.movedir);
             GameBase.gi.WriteByte(self.sounds);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
@@ -618,7 +620,7 @@ class GameTarget {
 
                 // hurt it if we can
                 if ((tr.ent.takedamage != 0)
-                        && 0 == (tr.ent.flags & Defines.FL_IMMUNE_LASER))
+                        && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER))
                     GameCombat.T_Damage(tr.ent, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
@@ -630,13 +632,13 @@ class GameTarget {
                         && (null == tr.ent.client)) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
-                        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+                        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(Defines.TE_LASER_SPARKS);
                         GameBase.gi.WriteByte(count);
                         GameBase.gi.WritePosition(tr.endpos);
                         GameBase.gi.WriteDir(tr.plane.normal);
                         GameBase.gi.WriteByte(self.s.skinnum);
-                        GameBase.gi.multicast(tr.endpos, Defines.MULTICAST_PVS);
+                        GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                     }
                     break;
                 }

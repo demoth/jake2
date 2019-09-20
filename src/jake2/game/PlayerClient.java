@@ -24,6 +24,8 @@ package jake2.game;
 
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -86,7 +88,7 @@ public class PlayerClient {
             client.invincible_framenum = 0;
             client.breather_framenum = 0;
             client.enviro_framenum = 0;
-            self.flags &= ~Defines.FL_POWER_ARMOR;
+            self.flags &= ~GameDefines.FL_POWER_ARMOR;
     
             if (self.health < -40) { // gib
                 GameBase.gi
@@ -563,8 +565,8 @@ public class PlayerClient {
 
             GameBase.game.clients[i].pers.health = ent.health;
             GameBase.game.clients[i].pers.max_health = ent.max_health;
-            GameBase.game.clients[i].pers.savedFlags = (ent.flags & (Defines.FL_GODMODE
-                    | Defines.FL_NOTARGET | Defines.FL_POWER_ARMOR));
+            GameBase.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
+                    | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
             if (GameBase.coop.value != 0) {
                 gclient_t client = (gclient_t) ent.client;
@@ -909,7 +911,7 @@ public class PlayerClient {
                 GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                         "Spectator password incorrect.\n");
                 client.pers.spectator = false;
-                GameBase.gi.WriteByte(Defines.svc_stufftext);
+                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
                 GameBase.gi.WriteString("spectator 0\n");
                 GameBase.gi.unicast(ent, true);
                 return;
@@ -927,7 +929,7 @@ public class PlayerClient {
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
-                GameBase.gi.WriteByte(Defines.svc_stufftext);
+                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
                 GameBase.gi.WriteString("spectator 0\n");
                 GameBase.gi.unicast(ent, true);
                 return;
@@ -941,7 +943,7 @@ public class PlayerClient {
                 GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                         "Password incorrect.\n");
                 client.pers.spectator = true;
-                GameBase.gi.WriteByte(Defines.svc_stufftext);
+                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
                 GameBase.gi.WriteString("spectator 1\n");
                 GameBase.gi.unicast(ent, true);
                 return;
@@ -957,12 +959,12 @@ public class PlayerClient {
         // add a teleportation effect
         if (!client.pers.spectator) {
             // send effect
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
             //gi.WriteShort(ent - g_edicts);
             GameBase.gi.WriteShort(ent.index);
 
             GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             // hold in place briefly
             client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
@@ -1055,7 +1057,7 @@ public class PlayerClient {
         ent.die = PlayerClient.player_die;
         ent.waterlevel = 0;
         ent.watertype = 0;
-        ent.flags &= ~Defines.FL_NO_KNOCKBACK;
+        ent.flags &= ~GameDefines.FL_NO_KNOCKBACK;
         ent.svflags &= ~Defines.SVF_DEADMONSTER;
 
         Math3D.VectorCopy(mins, ent.mins);
@@ -1151,11 +1153,11 @@ public class PlayerClient {
             PlayerHud.MoveClientToIntermission(ent);
         } else {
             // send effect
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
             //gi.WriteShort(ent - g_edicts);
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
 
         GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
@@ -1202,10 +1204,10 @@ public class PlayerClient {
         } else {
             // send effect if in a multiplayer game
             if (GameBase.game.maxclients > 1) {
-                GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+                GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
                 GameBase.gi.WriteShort(ent.index);
                 GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-                GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+                GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
                         + " entered the game\n");
@@ -1350,10 +1352,10 @@ public class PlayerClient {
                 + " disconnected\n");
 
         // send effect
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
         GameBase.gi.WriteShort(ent.index);
         GameBase.gi.WriteByte(Defines.MZ_LOGOUT);
-        GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         GameBase.gi.unlinkentity(ent);
         ent.s.modelindex = 0;

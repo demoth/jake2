@@ -23,6 +23,7 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
 
 //
 //	collection of functions provided by the main engine
@@ -160,7 +161,7 @@ public class GameImportsImpl implements GameImports {
      network messaging
     */
     @Override
-    public void multicast(float[] origin, int to) {
+    public void multicast(float[] origin, MulticastTypes to) {
         SV_SEND.SV_Multicast(origin, to);
     }
 

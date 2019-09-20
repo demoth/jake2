@@ -23,8 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -47,7 +49,7 @@ public class SV_SEND {
 			Netchan.Netchan_OutOfBand(Defines.NS_SERVER, Globals.net_from, s.length(), Lib.stringToBytes(s));
 		}
 		else if (sv_redirected == Defines.RD_CLIENT) {
-			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.svc_print);
+			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, NetworkCommands.svc_print);
 			MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.PRINT_HIGH);
 			MSG.WriteString(SV_MAIN.sv_client.netchan.message, outputbuf);
         }
@@ -72,7 +74,7 @@ public class SV_SEND {
 		if (level < cl.messagelevel)
 			return;
 
-		MSG.WriteByte(cl.netchan.message, Defines.svc_print);
+		MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
 		MSG.WriteByte(cl.netchan.message, level);
 		MSG.WriteString(cl.netchan.message, s);
 	}
@@ -99,7 +101,7 @@ public class SV_SEND {
 				continue;
 			if (cl.state != ClientStates.CS_SPAWNED)
 				continue;
-			MSG.WriteByte(cl.netchan.message, Defines.svc_print);
+			MSG.WriteByte(cl.netchan.message, NetworkCommands.svc_print);
 			MSG.WriteByte(cl.netchan.message, level);
 			MSG.WriteString(cl.netchan.message, s);
 		}
@@ -116,9 +118,9 @@ public class SV_SEND {
 		if (SV_INIT.sv.state == ServerStates.SS_DEAD)
 			return;
 
-		MSG.WriteByte(SV_INIT.sv.multicast, Defines.svc_stufftext);
+		MSG.WriteByte(SV_INIT.sv.multicast, NetworkCommands.svc_stufftext);
 		MSG.WriteString(SV_INIT.sv.multicast, s);
-		SV_Multicast(null, Defines.MULTICAST_ALL_R);
+		SV_Multicast(null, MulticastTypes.MULTICAST_ALL_R);
 	}
 	/*
 	=================
@@ -132,7 +134,7 @@ public class SV_SEND {
 	MULTICAST_PHS	send to clients potentially hearable from org
 	=================
 	*/
-	public static void SV_Multicast(float[] origin, int to) {
+	public static void SV_Multicast(float[] origin, MulticastTypes to) {
 		client_t client;
 		byte mask[];
 		int leafnum, cluster;
@@ -142,7 +144,7 @@ public class SV_SEND {
 
 		reliable = false;
 
-		if (to != Defines.MULTICAST_ALL_R && to != Defines.MULTICAST_ALL) {
+		if (to != MulticastTypes.MULTICAST_ALL_R && to != MulticastTypes.MULTICAST_ALL) {
 			leafnum = CM.CM_PointLeafnum(origin);
 			area1 = CM.CM_LeafArea(leafnum);
 		}
@@ -156,24 +158,24 @@ public class SV_SEND {
 			SZ.Write(SV_INIT.svs.demo_multicast, SV_INIT.sv.multicast.data, SV_INIT.sv.multicast.cursize);
 
 		switch (to) {
-			case Defines.MULTICAST_ALL_R :
+			case MULTICAST_ALL_R :
 				reliable = true; // intentional fallthrough, no break here
-			case Defines.MULTICAST_ALL :
+			case MULTICAST_ALL :
 				leafnum = 0;
 				mask = null;
 				break;
 
-			case Defines.MULTICAST_PHS_R :
+			case MULTICAST_PHS_R :
 				reliable = true; // intentional fallthrough
-			case Defines.MULTICAST_PHS :
+			case MULTICAST_PHS :
 				leafnum = CM.CM_PointLeafnum(origin);
 				cluster = CM.CM_LeafCluster(leafnum);
 				mask = CM.CM_ClusterPHS(cluster);
 				break;
 
-			case Defines.MULTICAST_PVS_R :
+			case MULTICAST_PVS_R :
 				reliable = true; // intentional fallthrough
-			case Defines.MULTICAST_PVS :
+			case MULTICAST_PVS :
 				leafnum = CM.CM_PointLeafnum(origin);
 				cluster = CM.CM_LeafCluster(leafnum);
 				mask = CM.CM_ClusterPVS(cluster);
@@ -310,7 +312,7 @@ public class SV_SEND {
 			}
 		}
 
-		MSG.WriteByte(SV_INIT.sv.multicast, Defines.svc_sound);
+		MSG.WriteByte(SV_INIT.sv.multicast, NetworkCommands.svc_sound);
 		MSG.WriteByte(SV_INIT.sv.multicast, flags);
 		MSG.WriteByte(SV_INIT.sv.multicast, soundindex);
 
@@ -334,15 +336,15 @@ public class SV_SEND {
 
 		if ((channel & Defines.CHAN_RELIABLE) != 0) {
 			if (use_phs)
-				SV_Multicast(origin, Defines.MULTICAST_PHS_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS_R);
 			else
-				SV_Multicast(origin, Defines.MULTICAST_ALL_R);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL_R);
 		}
 		else {
 			if (use_phs)
-				SV_Multicast(origin, Defines.MULTICAST_PHS);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_PHS);
 			else
-				SV_Multicast(origin, Defines.MULTICAST_ALL);
+				SV_Multicast(origin, MulticastTypes.MULTICAST_ALL);
 		}
 	}
 	/*

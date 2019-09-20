@@ -27,6 +27,7 @@ import jake2.client.render.model_t;
 import jake2.client.sound.S;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
@@ -609,15 +610,15 @@ public class CL_parse {
                         "CL_ParseServerMessage: Illegible server message\n");
                 break;
 
-            case Defines.svc_nop:
+            case NetworkCommands.svc_nop:
                 //				Com.Printf ("svc_nop\n");
                 break;
 
-            case Defines.svc_disconnect:
+            case NetworkCommands.svc_disconnect:
                 Com.Error(Defines.ERR_DISCONNECT, "Server disconnected\n");
                 break;
 
-            case Defines.svc_reconnect:
+            case NetworkCommands.svc_reconnect:
                 Com.Printf("Server disconnected, reconnecting\n");
                 if (Globals.cls.download != null) {
                     //ZOID, close download
@@ -632,7 +633,7 @@ public class CL_parse {
                 // fire immediately
                 break;
 
-            case Defines.svc_print:
+            case NetworkCommands.svc_print:
                 int i = MSG.ReadByte(Globals.net_message);
                 if (i == Defines.PRINT_CHAT) {
                     S.StartLocalSound("misc/talk.wav");
@@ -642,64 +643,64 @@ public class CL_parse {
                 Globals.con.ormask = 0;
                 break;
 
-            case Defines.svc_centerprint:
+            case NetworkCommands.svc_centerprint:
                 SCR.CenterPrint(MSG.ReadString(Globals.net_message));
                 break;
 
-            case Defines.svc_stufftext:
+            case NetworkCommands.svc_stufftext:
                 String s = MSG.ReadString(Globals.net_message);
                 Com.DPrintf("stufftext: " + s + "\n");
                 Cbuf.AddText(s);
                 break;
 
-            case Defines.svc_serverdata:
+            case NetworkCommands.svc_serverdata:
                 Cbuf.Execute(); // make sure any stuffed commands are done
                 ParseServerData();
                 break;
 
-            case Defines.svc_configstring:
+            case NetworkCommands.svc_configstring:
                 ParseConfigString();
                 break;
 
-            case Defines.svc_sound:
+            case NetworkCommands.svc_sound:
                 ParseStartSoundPacket();
                 break;
 
-            case Defines.svc_spawnbaseline:
+            case NetworkCommands.svc_spawnbaseline:
                 ParseBaseline();
                 break;
 
-            case Defines.svc_temp_entity:
+            case NetworkCommands.svc_temp_entity:
                 CL_tent.ParseTEnt();
                 break;
 
-            case Defines.svc_muzzleflash:
+            case NetworkCommands.svc_muzzleflash:
                 CL_fx.ParseMuzzleFlash();
                 break;
 
-            case Defines.svc_muzzleflash2:
+            case NetworkCommands.svc_muzzleflash2:
                 CL_fx.ParseMuzzleFlash2();
                 break;
 
-            case Defines.svc_download:
+            case NetworkCommands.svc_download:
                 ParseDownload();
                 break;
 
-            case Defines.svc_frame:
+            case NetworkCommands.svc_frame:
                 CL_ents.ParseFrame();
                 break;
 
-            case Defines.svc_inventory:
+            case NetworkCommands.svc_inventory:
                 CL_inv.ParseInventory();
                 break;
 
-            case Defines.svc_layout:
+            case NetworkCommands.svc_layout:
         	Globals.cl.layout = MSG.ReadString(Globals.net_message);
                 break;
 
-            case Defines.svc_playerinfo:
-            case Defines.svc_packetentities:
-            case Defines.svc_deltapacketentities:
+            case NetworkCommands.svc_playerinfo:
+            case NetworkCommands.svc_packetentities:
+            case NetworkCommands.svc_deltapacketentities:
                 Com.Error(Defines.ERR_DROP, "Out of place frame data");
                 break;
             }

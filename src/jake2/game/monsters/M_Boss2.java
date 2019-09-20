@@ -604,7 +604,7 @@ public class M_Boss2 {
                 return true;
             }
 
-            if ((self.flags & Defines.FL_FLY) != 0) {
+            if ((self.flags & GameDefines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3)
                     self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else
@@ -1058,7 +1058,7 @@ public class M_Boss2 {
         self.gib_health = -200;
         self.mass = 1000;
 
-        self.flags |= Defines.FL_IMMUNE_LASER;
+        self.flags |= GameDefines.FL_IMMUNE_LASER;
 
         self.pain = boss2_pain;
         self.die = boss2_die;

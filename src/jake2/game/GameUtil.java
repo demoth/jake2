@@ -402,15 +402,15 @@ public class GameUtil {
             return false;
 
         if (client.client != null) {
-            if ((client.flags & Defines.FL_NOTARGET) != 0)
+            if ((client.flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else if ((client.svflags & Defines.SVF_MONSTER) != 0) {
             if (client.enemy == null)
                 return false;
-            if ((client.enemy.flags & Defines.FL_NOTARGET) != 0)
+            if ((client.enemy.flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else if (heardit) {
-            if ((client.owner.flags & Defines.FL_NOTARGET) != 0)
+            if ((client.owner.flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else
             return false;
@@ -655,7 +655,7 @@ public class GameUtil {
                 return true;
             }
 
-            if ((self.flags & Defines.FL_FLY) != 0) {
+            if ((self.flags & GameDefines.FL_FLY) != 0) {
                 if (Lib.random() < 0.3f)
                     self.monsterinfo.attack_state = GameDefines.AS_SLIDING;
                 else
@@ -674,7 +674,7 @@ public class GameUtil {
                 return;
             if (self.health <= 0)
                 return;
-            if ((activator.flags & Defines.FL_NOTARGET) != 0)
+            if ((activator.flags & GameDefines.FL_NOTARGET) != 0)
                 return;
             if ((null == activator.client)
                     && 0 == (activator.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))

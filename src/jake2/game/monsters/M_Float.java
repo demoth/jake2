@@ -26,6 +26,8 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -856,13 +858,13 @@ public class M_Float {
                     Defines.ATTN_NORM, 0);
 
             //FIXME use the flash, Luke
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_SPLASH);
             GameBase.gi.WriteByte(32);
             GameBase.gi.WritePosition(origin);
             GameBase.gi.WriteDir(dir);
             GameBase.gi.WriteByte(1); //sparks
-            GameBase.gi.multicast(origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(origin, MulticastTypes.MULTICAST_PVS);
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,

@@ -24,39 +24,36 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class SV_USER {
 
     static edict_t sv_player;
 
-    public static class ucmd_t {
-        ucmd_t(String n, Command cmd) {
-            name = n;
-            this.cmd = cmd;
-        }
+    private static Map<String, Command> userCommands;
 
-        String name;
+    static {
+        userCommands = new HashMap<>();
+        // auto issued
+        userCommands.put("new", SV_USER::SV_New_f);
+        userCommands.put("configstrings", SV_USER::SV_Configstrings_f);
+        userCommands.put("baselines", SV_USER::SV_Baselines_f);
+        userCommands.put("begin", SV_USER::SV_Begin_f);
+        userCommands.put("nextserver", SV_USER::SV_Nextserver_f);
+        userCommands.put("disconnect", SV_USER::SV_Disconnect_f);
 
-        Command cmd;
+        // issued by hand at client consoles
+        userCommands.put("info", SV_USER::SV_ShowServerinfo_f);
+        userCommands.put("download", SV_USER::SV_BeginDownload_f);
+        userCommands.put("nextdl", SV_USER::SV_NextDownload_f);
+
     }
-
-    private static ucmd_t[] ucmds = {
-            // auto issued
-            new ucmd_t("new", SV_USER::SV_New_f),
-            new ucmd_t("configstrings", SV_USER::SV_Configstrings_f),
-            new ucmd_t("baselines", SV_USER::SV_Baselines_f),
-            new ucmd_t("begin", SV_USER::SV_Begin_f),
-            new ucmd_t("nextserver", SV_USER::SV_Nextserver_f),
-            new ucmd_t("disconnect", SV_USER::SV_Disconnect_f),
-
-            // issued by hand at client consoles
-            new ucmd_t("info", SV_USER::SV_ShowServerinfo_f),
-            new ucmd_t("download", SV_USER::SV_BeginDownload_f),
-            new ucmd_t("nextdl", SV_USER::SV_NextDownload_f)};
 
     private static final int MAX_STRINGCMDS = 8;
 
@@ -118,7 +115,7 @@ class SV_USER {
 
         // send the serverdata
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                        Defines.svc_serverdata);
+                        NetworkCommands.svc_serverdata);
         MSG.WriteInt(SV_MAIN.sv_client.netchan.message,
                 Defines.PROTOCOL_VERSION);
         
@@ -153,7 +150,7 @@ class SV_USER {
 
             // begin fetching configstrings
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_stufftext);
+                    NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message,
                     "cmd configstrings " + SV_INIT.svs.spawncount + " 0\n");
         }
@@ -189,7 +186,7 @@ class SV_USER {
             if (SV_INIT.sv.configstrings[start] != null
                     && SV_INIT.sv.configstrings[start].length() != 0) {
                 MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                        Defines.svc_configstring);
+                        NetworkCommands.svc_configstring);
                 MSG.WriteShort(SV_MAIN.sv_client.netchan.message, start);
                 MSG.WriteString(SV_MAIN.sv_client.netchan.message,
                         SV_INIT.sv.configstrings[start]);
@@ -201,12 +198,12 @@ class SV_USER {
 
         if (start == Defines.MAX_CONFIGSTRINGS) {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_stufftext);
+                    NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "cmd baselines "
                     + SV_INIT.svs.spawncount + " 0\n");
         } else {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_stufftext);
+                    NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message,
                     "cmd configstrings " + SV_INIT.svs.spawncount + " " + start
                             + "\n");
@@ -245,7 +242,7 @@ class SV_USER {
             entity_state_t base = SV_INIT.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                        Defines.svc_spawnbaseline);
+                        NetworkCommands.svc_spawnbaseline);
                 MSG.WriteDeltaEntity(nullstate, base,
                         SV_MAIN.sv_client.netchan.message, true, true);
             }
@@ -256,12 +253,12 @@ class SV_USER {
 
         if (start == Defines.MAX_EDICTS) {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_stufftext);
+                    NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "precache "
                     + SV_INIT.svs.spawncount + "\n");
         } else {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_stufftext);
+                    NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "cmd baselines "
                     + SV_INIT.svs.spawncount + " " + start + "\n");
         }
@@ -306,7 +303,7 @@ class SV_USER {
         if (r > 1024)
             r = 1024;
 
-        MSG.WriteByte(SV_MAIN.sv_client.netchan.message, Defines.svc_download);
+        MSG.WriteByte(SV_MAIN.sv_client.netchan.message, NetworkCommands.svc_download);
         MSG.WriteShort(SV_MAIN.sv_client.netchan.message, r);
 
         SV_MAIN.sv_client.downloadcount += r;
@@ -360,7 +357,7 @@ class SV_USER {
                 || name.indexOf('/') == -1) { // don't allow anything with ..
                                               // path
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_download);
+                    NetworkCommands.svc_download);
             MSG.WriteShort(SV_MAIN.sv_client.netchan.message, -1);
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message, 0);
             return;
@@ -396,7 +393,7 @@ class SV_USER {
             }
 
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                    Defines.svc_download);
+                    NetworkCommands.svc_download);
             MSG.WriteShort(SV_MAIN.sv_client.netchan.message, -1);
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message, 0);
             return;
@@ -475,26 +472,20 @@ class SV_USER {
     private static void SV_ExecuteUserCommand(String s) {
         
         Com.dprintln("SV_ExecuteUserCommand:" + s );
-        SV_USER.ucmd_t u = null;
 
         List<String> args = Cmd.TokenizeString(s, true);
+        if (args.isEmpty())
+            return;
+
         SV_USER.sv_player = SV_MAIN.sv_client.edict;
 
-        //	SV_BeginRedirect (RD_CLIENT);
-
-        int i = 0;
-        for (; i < SV_USER.ucmds.length; i++) {
-            u = SV_USER.ucmds[i];
-            if (args.get(0).equals(u.name)) {
-                u.cmd.execute(args);
-                break;
-            }
+        if (userCommands.containsKey(args.get(0))) {
+            userCommands.get(args.get(0)).execute(args);
+            return;
         }
 
-        if (i == SV_USER.ucmds.length && SV_INIT.sv.state == ServerStates.SS_GAME)
+        if (SV_INIT.sv.state == ServerStates.SS_GAME)
             SV_GAME.gameExports.ClientCommand(SV_USER.sv_player, args);
-
-        //	SV_EndRedirect ();
     }
 
     /*

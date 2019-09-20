@@ -611,7 +611,7 @@ public class GameBase {
             if ((ent.groundentity != null)
                     && (ent.groundentity.linkcount != ent.groundentity_linkcount)) {
                 ent.groundentity = null;
-                if (0 == (ent.flags & (Defines.FL_SWIM | Defines.FL_FLY))
+                if (0 == (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY))
                         && (ent.svflags & Defines.SVF_MONSTER) != 0) {
                     M.M_CheckGround(ent);
                 }

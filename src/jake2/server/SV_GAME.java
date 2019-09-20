@@ -24,6 +24,8 @@ package jake2.server;
 
 import jake2.game.GameExportsImpl;
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 public class SV_GAME {
@@ -99,7 +101,7 @@ public class SV_GAME {
         if (n < 1 || n > SV_MAIN.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
-        MSG.WriteByte(SV_INIT.sv.multicast, Defines.svc_centerprint);
+        MSG.WriteByte(SV_INIT.sv.multicast, NetworkCommands.svc_centerprint);
         MSG.WriteString(SV_INIT.sv.multicast, fmt);
         PF_Unicast(ent, true);
     }
@@ -155,11 +157,11 @@ public class SV_GAME {
         if (SV_INIT.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
             SV_INIT.sv.multicast.clear();
-            MSG.WriteChar(SV_INIT.sv.multicast, Defines.svc_configstring);
+            MSG.WriteChar(SV_INIT.sv.multicast, NetworkCommands.svc_configstring);
             MSG.WriteShort(SV_INIT.sv.multicast, index);
             MSG.WriteString(SV_INIT.sv.multicast, val);
 
-            SV_SEND.SV_Multicast(Globals.vec3_origin, Defines.MULTICAST_ALL_R);
+            SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
     }
 

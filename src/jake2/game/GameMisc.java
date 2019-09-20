@@ -23,6 +23,8 @@
 package jake2.game;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -319,7 +321,7 @@ public class GameMisc {
         Math3D.VectorSet(self.maxs, 32, 32, 48);
         self.use = commander_body_use;
         self.takedamage = Defines.DAMAGE_YES;
-        self.flags = Defines.FL_GODMODE;
+        self.flags = GameDefines.FL_GODMODE;
         self.s.renderfx |= Defines.RF_FRAMELERP;
         GameBase.gi.linkentity(self);
 
@@ -711,19 +713,19 @@ public class GameMisc {
     }
 
     public static void BecomeExplosion1(edict_t self) {
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
         GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
         GameBase.gi.WritePosition(self.s.origin);
-        GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
         GameUtil.G_FreeEdict(self);
     }
 
     private static void BecomeExplosion2(edict_t self) {
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
         GameBase.gi.WriteByte(Defines.TE_EXPLOSION2);
         GameBase.gi.WritePosition(self.s.origin);
-        GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
         GameUtil.G_FreeEdict(self);
     }
@@ -748,7 +750,7 @@ public class GameMisc {
         GameBase.gi.setmodel(gib, gibname);
         gib.solid = Defines.SOLID_NOT;
         gib.s.effects |= Defines.EF_GIB;
-        gib.flags |= Defines.FL_NO_KNOCKBACK;
+        gib.flags |= GameDefines.FL_NO_KNOCKBACK;
         gib.takedamage = Defines.DAMAGE_YES;
         gib.die = gib_die;
     
@@ -791,7 +793,7 @@ public class GameMisc {
         self.s.effects |= Defines.EF_GIB;
         self.s.effects &= ~Defines.EF_FLIES;
         self.s.sound = 0;
-        self.flags |= Defines.FL_NO_KNOCKBACK;
+        self.flags |= GameDefines.FL_NO_KNOCKBACK;
         self.svflags &= ~Defines.SVF_MONSTER;
         self.takedamage = Defines.DAMAGE_YES;
         self.die = gib_die;
@@ -839,7 +841,7 @@ public class GameMisc {
         self.solid = Defines.SOLID_NOT;
         self.s.effects = Defines.EF_GIB;
         self.s.sound = 0;
-        self.flags |= Defines.FL_NO_KNOCKBACK;
+        self.flags |= GameDefines.FL_NO_KNOCKBACK;
     
         self.movetype = GameDefines.MOVETYPE_BOUNCE;
         VelocityForDamage(damage, vd);
@@ -1013,7 +1015,7 @@ public class GameMisc {
                 }
                 self.target = null;
             } else if ((self.spawnflags & 1) != 0
-                    && 0 == (other.flags & (Defines.FL_SWIM | Defines.FL_FLY))) {
+                    && 0 == (other.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY))) {
                 other.monsterinfo.pausetime = GameBase.level.time + 100000000;
                 other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
                 other.monsterinfo.stand.think(other);

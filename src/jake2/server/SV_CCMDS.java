@@ -27,6 +27,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
@@ -920,7 +921,7 @@ public class SV_CCMDS {
 		// to make sure the protocol is right, and to set the gamedir
 		//
 		// send the serverdata
-		MSG.WriteByte(buf, Defines.svc_serverdata);
+		MSG.WriteByte(buf, NetworkCommands.svc_serverdata);
 		MSG.WriteLong(buf, Defines.PROTOCOL_VERSION);
 		MSG.WriteLong(buf, SV_INIT.svs.spawncount);
 		// 2 means server demo
@@ -932,7 +933,7 @@ public class SV_CCMDS {
 
 		for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
 			if (SV_INIT.sv.configstrings[i].length() == 0) {
-				MSG.WriteByte(buf, Defines.svc_configstring);
+				MSG.WriteByte(buf, NetworkCommands.svc_configstring);
 				MSG.WriteShort(buf, i);
 				MSG.WriteString(buf, SV_INIT.sv.configstrings[i]);
 			}

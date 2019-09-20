@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 public class GameCombat {
@@ -141,12 +143,12 @@ public class GameCombat {
     private static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
         if (damage > 255)
             damage = 255;
-        GameBase.gi.WriteByte(Defines.svc_temp_entity);
+        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
         GameBase.gi.WriteByte(type);
         //		gi.WriteByte (damage);
         GameBase.gi.WritePosition(origin);
         GameBase.gi.WriteDir(normal);
-        GameBase.gi.multicast(origin, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(origin, MulticastTypes.MULTICAST_PVS);
     }
 
     private static int CheckPowerArmor(edict_t ent, float[] point, float[] normal,
@@ -311,7 +313,7 @@ public class GameCombat {
         // it's the same base (walk/swim/fly) type and a different classname and
         // it's not a tank
         // (they spray too much), get mad at them
-        if (((targ.flags & (Defines.FL_FLY | Defines.FL_SWIM)) == (attacker.flags & (Defines.FL_FLY | Defines.FL_SWIM)))
+        if (((targ.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == (attacker.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)))
                 && (!(targ.classname.equals(attacker.classname)))
                 && (!(attacker.classname.equals("monster_tank")))
                 && (!(attacker.classname.equals("monster_supertank")))
@@ -436,7 +438,7 @@ public class GameCombat {
                 && (targ.health > 0))
             damage *= 2;
     
-        if ((targ.flags & Defines.FL_NO_KNOCKBACK) != 0)
+        if ((targ.flags & GameDefines.FL_NO_KNOCKBACK) != 0)
             knockback = 0;
     
         // figure momentum add
@@ -469,7 +471,7 @@ public class GameCombat {
         save = 0;
     
         // check for godmode
-        if ((targ.flags & Defines.FL_GODMODE) != 0
+        if ((targ.flags & GameDefines.FL_GODMODE) != 0
                 && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
             take = 0;
             save = damage;
@@ -515,7 +517,7 @@ public class GameCombat {
             if (targ.health <= 0) {
                 if ((targ.svflags & Defines.SVF_MONSTER) != 0
                         || (client != null))
-                    targ.flags |= Defines.FL_NO_KNOCKBACK;
+                    targ.flags |= GameDefines.FL_NO_KNOCKBACK;
                 Killed(targ, inflictor, attacker, take, point);
                 return;
             }
@@ -531,7 +533,7 @@ public class GameCombat {
                     targ.pain_debounce_time = GameBase.level.time + 5;
             }
         } else if (client != null) {
-            if (((targ.flags & Defines.FL_GODMODE) == 0) && (take != 0))
+            if (((targ.flags & GameDefines.FL_GODMODE) == 0) && (take != 0))
                 targ.pain.pain(targ, attacker, knockback, take);
         } else if (take != 0) {
             if (targ.pain != null)

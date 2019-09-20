@@ -790,7 +790,7 @@ public class M_Insane {
     	public String getID() { return "insane_dead"; }
         public boolean think(edict_t self) {
             if ((self.spawnflags & 8) != 0) {
-                self.flags |= Defines.FL_FLY;
+                self.flags |= GameDefines.FL_FLY;
             } else {
                 Math3D.VectorSet(self.mins, -16, -16, -24);
                 Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -1291,7 +1291,7 @@ public class M_Insane {
         {
             Math3D.VectorSet(self.mins, -16, 0, 0);
             Math3D.VectorSet(self.maxs, 16, 8, 32);
-            self.flags |= Defines.FL_NO_KNOCKBACK;
+            self.flags |= GameDefines.FL_NO_KNOCKBACK;
             GameAI.flymonster_start.think(self);
         } else {
             GameAI.walkmonster_start.think(self);

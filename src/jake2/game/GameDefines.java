@@ -174,7 +174,24 @@ public interface GameDefines {
 
     //	monster attack state
     int AS_STRAIGHT = 1;
+    // strafing
     int AS_SLIDING = 2;
     int AS_MELEE = 3;
     int AS_MISSILE = 4;
+
+    //	edict->flags
+    int FL_FLY = 0x00000001;
+    int FL_SWIM = 0x00000002; // implied immunity to drowining
+    int FL_IMMUNE_LASER = 0x00000004;
+    int FL_INWATER = 0x00000008;
+    int FL_GODMODE = 0x00000010;
+    int FL_NOTARGET = 0x00000020;
+    int FL_IMMUNE_SLIME = 0x00000040;
+    int FL_IMMUNE_LAVA = 0x00000080;
+    int FL_PARTIALGROUND = 0x00000100; // not all corners are valid
+    int FL_WATERJUMP = 0x00000200; // player jumping out of water
+    int FL_TEAMSLAVE = 0x00000400; // not the first on the team
+    int FL_NO_KNOCKBACK = 0x00000800;
+    int FL_POWER_ARMOR = 0x00001000; // power armor (if any) is active
+    int FL_RESPAWN = 0x80000000; // used for item respawning
 }

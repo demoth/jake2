@@ -26,6 +26,8 @@ import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -625,13 +627,13 @@ public class M_Parasite {
                 damage = 2;
             }
 
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_PARASITE_ATTACK);
             //gi.WriteShort(self - g_edicts);
             GameBase.gi.WriteShort(self.index);
             GameBase.gi.WritePosition(start);
             GameBase.gi.WritePosition(end);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
 
             Math3D.VectorSubtract(start, end, dir);
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,

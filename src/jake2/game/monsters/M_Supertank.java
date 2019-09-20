@@ -25,6 +25,8 @@ package jake2.game.monsters;
 import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -1263,10 +1265,10 @@ public class M_Supertank {
                 return true;
             }
     
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_EXPLOSION1);
             GameBase.gi.WritePosition(org);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
             self.nextthink = GameBase.level.time + 0.1f;
             return true;

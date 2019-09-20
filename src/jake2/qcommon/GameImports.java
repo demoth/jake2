@@ -1,5 +1,10 @@
 package jake2.qcommon;
 
+import jake2.qcommon.network.MulticastTypes;
+
+/**
+ * Functions exported by the engine to the game system
+ */
 public interface GameImports {
     // special messages
     void bprintf(int printlevel, String s);
@@ -66,7 +71,7 @@ public interface GameImports {
              player movement code common with client prediction
              network messaging
             */
-    void multicast(float[] origin, int to);
+    void multicast(float[] origin, MulticastTypes to);
 
     void unicast(edict_t ent, boolean reliable);
 

@@ -569,7 +569,7 @@ class GameTrigger {
     	public String getID(){ return "trigger_monsterjump_touch"; }
         public void touch(edict_t self, edict_t other, cplane_t plane,
                 csurface_t surf) {
-            if ((other.flags & (Defines.FL_FLY | Defines.FL_SWIM)) != 0)
+            if ((other.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) != 0)
                 return;
             if ((other.svflags & Defines.SVF_DEADMONSTER) != 0)
                 return;

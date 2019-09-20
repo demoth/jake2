@@ -465,7 +465,7 @@ public final class SV {
         edict_t part, mv;
 
         // if not a team captain, so movement will be handled elsewhere
-        if ((ent.flags & Defines.FL_TEAMSLAVE) != 0)
+        if ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0)
             return;
 
         // make sure all team slaves can move before commiting
@@ -549,7 +549,7 @@ public final class SV {
         SV_RunThink(ent);
 
         // if not a team captain, so movement will be handled elsewhere
-        if ((ent.flags & Defines.FL_TEAMSLAVE) != 0)
+        if ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0)
             return;
 
         if (ent.velocity[2] > 0)
@@ -693,8 +693,8 @@ public final class SV {
         //   flying monsters
         //   swimming monsters who are in the water
         if (!wasonground)
-            if (0 == (ent.flags & Defines.FL_FLY))
-                if (!((ent.flags & Defines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
+            if (0 == (ent.flags & GameDefines.FL_FLY))
+                if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
                     if (ent.velocity[2] < GameBase.sv_gravity.value * -0.1)
                         hitsound = true;
                     if (ent.waterlevel == 0)
@@ -702,7 +702,7 @@ public final class SV {
                 }
 
         // friction for flying monsters that have been given vertical velocity
-        if ((ent.flags & Defines.FL_FLY) != 0 && (ent.velocity[2] != 0)) {
+        if ((ent.flags & GameDefines.FL_FLY) != 0 && (ent.velocity[2] != 0)) {
             speed = Math.abs(ent.velocity[2]);
             control = speed < Defines.sv_stopspeed ? Defines.sv_stopspeed
                     : speed;
@@ -715,7 +715,7 @@ public final class SV {
         }
 
         // friction for flying monsters that have been given vertical velocity
-        if ((ent.flags & Defines.FL_SWIM) != 0 && (ent.velocity[2] != 0)) {
+        if ((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.velocity[2] != 0)) {
             speed = Math.abs(ent.velocity[2]);
             control = speed < Defines.sv_stopspeed ? Defines.sv_stopspeed
                     : speed;
@@ -732,7 +732,7 @@ public final class SV {
             // apply friction
             // let dead monsters who aren't completely onground slide
             if ((wasonground)
-                    || 0 != (ent.flags & (Defines.FL_SWIM | Defines.FL_FLY)))
+                    || 0 != (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)))
                 if (!(ent.health <= 0.0 && !M.M_CheckBottom(ent))) {
                     vel = ent.velocity;
                     speed = (float) Math
@@ -803,7 +803,7 @@ public final class SV {
         Math3D.VectorAdd(ent.s.origin, move, neworg);
 
         //	   flying monsters don't step up
-        if ((ent.flags & (Defines.FL_SWIM | Defines.FL_FLY)) != 0) {
+        if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0) {
             // try one move with vertical motion, then one without
             for (i = 0; i < 2; i++) {
                 Math3D.VectorAdd(ent.s.origin, move, neworg);
@@ -814,7 +814,7 @@ public final class SV {
                     if (ent.goalentity.client != null) {
                         if (dz > 40)
                             neworg[2] -= 8;
-                        if (!((ent.flags & Defines.FL_SWIM) != 0 && (ent.waterlevel < 2)))
+                        if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel < 2)))
                             if (dz < 30)
                                 neworg[2] += 8;
                     } else {
@@ -832,7 +832,7 @@ public final class SV {
                         neworg, ent, Defines.MASK_MONSTERSOLID);
 
                 // fly monsters don't enter water voluntarily
-                if ((ent.flags & Defines.FL_FLY) != 0) {
+                if ((ent.flags & GameDefines.FL_FLY) != 0) {
                     if (ent.waterlevel == 0) {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
@@ -844,7 +844,7 @@ public final class SV {
                 }
 
                 // swim monsters don't exit water voluntarily
-                if ((ent.flags & Defines.FL_SWIM) != 0) {
+                if ((ent.flags & GameDefines.FL_SWIM) != 0) {
                     if (ent.waterlevel < 2) {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
@@ -908,7 +908,7 @@ public final class SV {
 
         if (trace.fraction == 1) {
             // if monster had the ground pulled out, go ahead and fall
-            if ((ent.flags & Defines.FL_PARTIALGROUND) != 0) {
+            if ((ent.flags & GameDefines.FL_PARTIALGROUND) != 0) {
                 Math3D.VectorAdd(ent.s.origin, move, ent.s.origin);
                 if (relink) {
                     GameBase.gi.linkentity(ent);
@@ -925,7 +925,7 @@ public final class SV {
         Math3D.VectorCopy(trace.endpos, ent.s.origin);
 
         if (!M.M_CheckBottom(ent)) {
-            if ((ent.flags & Defines.FL_PARTIALGROUND) != 0) {
+            if ((ent.flags & GameDefines.FL_PARTIALGROUND) != 0) {
                 // entity had floor mostly pulled out from underneath it
                 // and is trying to correct
                 if (relink) {
@@ -938,8 +938,8 @@ public final class SV {
             return false;
         }
 
-        if ((ent.flags & Defines.FL_PARTIALGROUND) != 0) {
-            ent.flags &= ~Defines.FL_PARTIALGROUND;
+        if ((ent.flags & GameDefines.FL_PARTIALGROUND) != 0) {
+            ent.flags &= ~GameDefines.FL_PARTIALGROUND;
         }
         ent.groundentity = trace.ent;
         ent.groundentity_linkcount = trace.ent.linkcount;
@@ -990,7 +990,7 @@ public final class SV {
      * 
      */
     public static void SV_FixCheckBottom(edict_t ent) {
-        ent.flags |= Defines.FL_PARTIALGROUND;
+        ent.flags |= GameDefines.FL_PARTIALGROUND;
     }
 
     public static void SV_NewChaseDir(edict_t actor, edict_t enemy, float dist) {

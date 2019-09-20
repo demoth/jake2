@@ -727,22 +727,6 @@ public class Defines {
 	public final static int DAMAGE_YES = 1; // will take damage if hit 
 	public final static int DAMAGE_AIM = 2; // auto targeting recognizes this 
 
-	//	edict->flags
-	public final static int FL_FLY = 0x00000001;
-	public final static int FL_SWIM = 0x00000002; // implied immunity to drowining 
-	public final static int FL_IMMUNE_LASER = 0x00000004;
-	public final static int FL_INWATER = 0x00000008;
-	public final static int FL_GODMODE = 0x00000010;
-	public final static int FL_NOTARGET = 0x00000020;
-	public final static int FL_IMMUNE_SLIME = 0x00000040;
-	public final static int FL_IMMUNE_LAVA = 0x00000080;
-	public final static int FL_PARTIALGROUND = 0x00000100; // not all corners are valid 
-	public final static int FL_WATERJUMP = 0x00000200; // player jumping out of water 
-	public final static int FL_TEAMSLAVE = 0x00000400; // not the first on the team 
-	public final static int FL_NO_KNOCKBACK = 0x00000800;
-	public final static int FL_POWER_ARMOR = 0x00001000; // power armor (if any) is active 
-	public final static int FL_RESPAWN = 0x80000000; // used for item respawning 
-
 	public final static float FRAMETIME = 0.1f;
 
 	//	memory tags to allow dynamic memory to be cleaned up
@@ -764,13 +748,6 @@ public class Defines {
 	public final static int SFL_CROSS_TRIGGER_7 = 0x00000040;
 	public final static int SFL_CROSS_TRIGGER_8 = 0x00000080;
 	public final static int SFL_CROSS_TRIGGER_MASK = 0x000000ff;
-
-	public final static int MULTICAST_ALL = 0;
-	public final static int MULTICAST_PHS = 1;
-	public final static int MULTICAST_PVS = 2;
-	public final static int MULTICAST_ALL_R = 3;
-	public final static int MULTICAST_PHS_R = 4;
-	public final static int MULTICAST_PVS_R = 5;
 
 	// -------------
 	// client/game.h
@@ -839,35 +816,6 @@ public class Defines {
 
 	// ---------
 	// qcommon.h
-
-	public final static int svc_bad = 0;
-
-	// these ops are known to the game dll
-	// protocol bytes that can be directly added to messages
-
-	public final static int svc_muzzleflash = 1;
-	public final static int svc_muzzleflash2 = 2;
-	public final static int svc_temp_entity = 3;
-	public final static int svc_layout = 4;
-	public final static int svc_inventory = 5;
-
-	// the rest are private to the client and server
-	public final static int svc_nop = 6;
-	public final static int svc_disconnect = 7;
-	public final static int svc_reconnect = 8;
-	public final static int svc_sound = 9; // <see code> 
-	public final static int svc_print = 10; // [byte] id [string] null terminated string 
-	public final static int svc_stufftext = 11;
-	// [string] stuffed into client's console buffer, should be \n terminated
-	public final static int svc_serverdata = 12; // [long] protocol ... 
-	public final static int svc_configstring = 13; // [short] [string] 
-	public final static int svc_spawnbaseline = 14;
-	public final static int svc_centerprint = 15; // [string] to put in center of the screen 
-	public final static int svc_download = 16; // [short] size [size bytes] 
-	public final static int svc_playerinfo = 17; // variable 
-	public final static int svc_packetentities = 18; // [...] 
-	public final static int svc_deltapacketentities = 19; // [...] 
-	public final static int svc_frame = 20;
 
 	public static final int NUMVERTEXNORMALS = 162;
 	public static final int PROTOCOL_VERSION = 34;

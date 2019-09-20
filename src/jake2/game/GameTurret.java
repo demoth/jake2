@@ -150,7 +150,7 @@ public class GameTurret {
         self.die = turret_driver_die;
         self.monsterinfo.stand = M_Infantry.infantry_stand;
 
-        self.flags |= Defines.FL_NO_KNOCKBACK;
+        self.flags |= GameDefines.FL_NO_KNOCKBACK;
 
         GameBase.level.total_monsters++;
 
@@ -347,7 +347,7 @@ public class GameTurret {
                 ;
             ent.teamchain = null;
             self.teammaster = null;
-            self.flags &= ~Defines.FL_TEAMSLAVE;
+            self.flags &= ~GameDefines.FL_TEAMSLAVE;
 
             self.target_ent.owner = null;
             self.target_ent.teammaster.owner = null;
@@ -441,7 +441,7 @@ public class GameTurret {
                 ;
             ent.teamchain = self;
             self.teammaster = self.target_ent.teammaster;
-            self.flags |= Defines.FL_TEAMSLAVE;
+            self.flags |= GameDefines.FL_TEAMSLAVE;
             return true;
         }
     };

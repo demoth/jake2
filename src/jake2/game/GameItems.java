@@ -171,7 +171,7 @@ public class GameItems {
                 ent.think = GameUtil.MegaHealth_think;
                 ent.nextthink = GameBase.level.time + 5f;
                 ent.owner = other;
-                ent.flags |= Defines.FL_RESPAWN;
+                ent.flags |= GameDefines.FL_RESPAWN;
                 ent.svflags |= Defines.SVF_NOCLIENT;
                 ent.solid = Defines.SOLID_NOT;
             } else {
@@ -254,8 +254,8 @@ public class GameItems {
     
             if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
-                if ((ent.flags & Defines.FL_RESPAWN) != 0)
-                    ent.flags &= ~Defines.FL_RESPAWN;
+                if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
+                    ent.flags &= ~GameDefines.FL_RESPAWN;
                 else
                     GameUtil.G_FreeEdict(ent);
             }
@@ -675,7 +675,7 @@ public class GameItems {
         public String getID() { return "drop_powerarmor";}
         public void drop(edict_t ent, gitem_t item) {
             gclient_t client = (gclient_t) ent.client;
-            if (0 != (ent.flags & Defines.FL_POWER_ARMOR)
+            if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[ITEM_INDEX(item)] == 1))
                 Use_PowerArmor.use(ent, item);
             Drop_General.drop(ent, item);
@@ -720,7 +720,7 @@ public class GameItems {
             Math3D.VectorCopy(tr.endpos, ent.s.origin);
     
             if (ent.team != null) {
-                ent.flags &= ~Defines.FL_TEAMSLAVE;
+                ent.flags &= ~GameDefines.FL_TEAMSLAVE;
                 ent.chain = ent.teamchain;
                 ent.teamchain = null;
     
@@ -754,8 +754,8 @@ public class GameItems {
         public void use(edict_t ent, gitem_t item) {
             int index;
     
-            if ((ent.flags & Defines.FL_POWER_ARMOR) != 0) {
-                ent.flags &= ~Defines.FL_POWER_ARMOR;
+            if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
+                ent.flags &= ~GameDefines.FL_POWER_ARMOR;
                 GameBase.gi
                         .sound(ent, Defines.CHAN_AUTO, GameBase.gi
                                 .soundindex("misc/power2.wav"), 1,
@@ -768,7 +768,7 @@ public class GameItems {
                             "No cells for power armor.\n");
                     return;
                 }
-                ent.flags |= Defines.FL_POWER_ARMOR;
+                ent.flags |= GameDefines.FL_POWER_ARMOR;
                 GameBase.gi
                         .sound(ent, Defines.CHAN_AUTO, GameBase.gi
                                 .soundindex("misc/power1.wav"), 1,
@@ -841,7 +841,7 @@ public class GameItems {
     }
 
     static void SetRespawn(edict_t ent, float delay) {
-        ent.flags |= Defines.FL_RESPAWN;
+        ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
         ent.nextthink = GameBase.level.time + delay;
@@ -923,7 +923,7 @@ public class GameItems {
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
     
-        if (0 == (ent.flags & Defines.FL_POWER_ARMOR))
+        if (0 == (ent.flags & GameDefines.FL_POWER_ARMOR))
             return GameDefines.POWER_ARMOR_NONE;
     
         if (client.pers.inventory[power_shield_index] > 0)
@@ -1366,8 +1366,8 @@ public class GameItems {
     
         if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                 || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
-            if ((ent.flags & Defines.FL_RESPAWN) != 0)
-                ent.flags &= ~Defines.FL_RESPAWN;
+            if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
+                ent.flags &= ~GameDefines.FL_RESPAWN;
             else
                 GameUtil.G_FreeEdict(ent);
         }

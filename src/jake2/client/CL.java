@@ -30,10 +30,7 @@ import jake2.client.sound.S;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
-import jake2.qcommon.network.NET;
-import jake2.qcommon.network.NetAddrType;
-import jake2.qcommon.network.Netchan;
-import jake2.qcommon.network.netadr_t;
+import jake2.qcommon.network.*;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
@@ -175,7 +172,7 @@ public final class CL {
             SZ.Init(buf, buf_data, Defines.MAX_MSGLEN);
 
             // send the serverdata
-            MSG.WriteByte(buf, Defines.svc_serverdata);
+            MSG.WriteByte(buf, NetworkCommands.svc_serverdata);
             MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
             MSG.WriteInt(buf, 0x10000 + Globals.cl.servercount);
             MSG.WriteByte(buf, 1); // demos are always attract loops
@@ -196,7 +193,7 @@ public final class CL {
                         buf.cursize = 0;
                     }
 
-                    MSG.WriteByte(buf, Defines.svc_configstring);
+                    MSG.WriteByte(buf, NetworkCommands.svc_configstring);
                     MSG.WriteShort(buf, i);
                     MSG.WriteString(buf, Globals.cl.configstrings[i]);
                 }
@@ -216,12 +213,12 @@ public final class CL {
                     buf.cursize = 0;
                 }
 
-                MSG.WriteByte(buf, Defines.svc_spawnbaseline);
+                MSG.WriteByte(buf, NetworkCommands.svc_spawnbaseline);
                 MSG.WriteDeltaEntity(nullstate,
                         Globals.cl_entities[i].baseline, buf, true, true);
             }
 
-            MSG.WriteByte(buf, Defines.svc_stufftext);
+            MSG.WriteByte(buf, NetworkCommands.svc_stufftext);
             MSG.WriteString(buf, "precache\n");
 
             // write it to the demo file

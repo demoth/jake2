@@ -397,7 +397,7 @@ public class GameSpawn {
                 continue;
             if (e.team == null)
                 continue;
-            if ((e.flags & Defines.FL_TEAMSLAVE) != 0)
+            if ((e.flags & GameDefines.FL_TEAMSLAVE) != 0)
                 continue;
             chain = e;
             e.teammaster = e;
@@ -410,14 +410,14 @@ public class GameSpawn {
                     continue;
                 if (null == e2.team)
                     continue;
-                if ((e2.flags & Defines.FL_TEAMSLAVE) != 0)
+                if ((e2.flags & GameDefines.FL_TEAMSLAVE) != 0)
                     continue;
                 if (e.team.equals(e2.team)) {
                     c2++;
                     chain.teamchain = e2;
                     e2.teammaster = e;
                     chain = e2;
-                    e2.flags |= Defines.FL_TEAMSLAVE;
+                    e2.flags |= GameDefines.FL_TEAMSLAVE;
 
                 }
             }

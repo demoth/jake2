@@ -26,6 +26,8 @@ import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -169,10 +171,10 @@ public class PlayerWeapon {
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_GRENADE | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
@@ -239,11 +241,11 @@ public class PlayerWeapon {
                     radius_damage);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_ROCKET | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
@@ -462,11 +464,11 @@ public class PlayerWeapon {
                         GameDefines.DEFAULT_SHOTGUN_COUNT, GameDefines.MOD_SHOTGUN);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_SHOTGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
@@ -533,11 +535,11 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_SSHOTGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
@@ -606,11 +608,11 @@ public class PlayerWeapon {
             GameWeapon.fire_rail(ent, start, forward, damage, kick);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_RAILGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
@@ -661,11 +663,11 @@ public class PlayerWeapon {
             gclient_t client = (gclient_t) ent.client;
             if (client.getPlayerState().gunframe == 9) {
                 // send muzzle flash
-                GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+                GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
                 GameBase.gi.WriteShort(ent.index);
                 GameBase.gi.WriteByte(Defines.MZ_BFG | is_silenced);
-                GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+                GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 client.getPlayerState().gunframe++;
 
@@ -873,11 +875,11 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN);
 
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
@@ -1006,12 +1008,12 @@ public class PlayerWeapon {
             }
 
             // send muzzle flash
-            GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
 
             GameBase.gi.WriteShort(ent.index);
             GameBase.gi.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1)
                     | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
@@ -1054,12 +1056,12 @@ public class PlayerWeapon {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM)) {
                     if (GameBase.deathmatch.value != 0) {
                         if (((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
-                            ent.flags |= Defines.FL_RESPAWN;
+                            ent.flags |= GameDefines.FL_RESPAWN;
                         else
                             GameItems.SetRespawn(ent, 30);
                     }
                     if (GameBase.coop.value != 0)
-                        ent.flags |= Defines.FL_RESPAWN;
+                        ent.flags |= GameDefines.FL_RESPAWN;
                 }
             }
     
@@ -1451,13 +1453,13 @@ public class PlayerWeapon {
         GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
         // send muzzle flash
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
         GameBase.gi.WriteShort(ent.index);
         if (hyper)
             GameBase.gi.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
         else
             GameBase.gi.WriteByte(Defines.MZ_BLASTER | is_silenced);
-        GameBase.gi.multicast(ent.s.origin, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
     }
@@ -1488,7 +1490,7 @@ public class PlayerWeapon {
         if (GameBase.deathmatch.value != 0)
             return;
     
-        if ((who.flags & Defines.FL_NOTARGET) != 0)
+        if ((who.flags & GameDefines.FL_NOTARGET) != 0)
             return;
     
         if (who.mynoise == null) {

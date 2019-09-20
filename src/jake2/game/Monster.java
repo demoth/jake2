@@ -25,6 +25,8 @@ package jake2.game;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -40,10 +42,10 @@ public class Monster {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
                 GameDefines.MOD_UNKNOWN);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the shotgun. */
@@ -53,10 +55,10 @@ public class Monster {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
                 count, GameDefines.MOD_UNKNOWN);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the blaster. */
@@ -64,10 +66,10 @@ public class Monster {
             float[] dir, int damage, int speed, int flashtype, int effect) {
         GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the grenade. */
@@ -77,10 +79,10 @@ public class Monster {
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
                         damage + 40);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the rocket. */
@@ -88,10 +90,10 @@ public class Monster {
             float[] dir, int damage, int speed, int flashtype) {
         GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the railgun. */
@@ -99,10 +101,10 @@ public class Monster {
             float[] aimdir, int damage, int kick, int flashtype) {
         GameWeapon.fire_rail(self, start, aimdir, damage, kick);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the bfg. */
@@ -111,10 +113,10 @@ public class Monster {
             float damage_radius, int flashtype) {
         GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
-        GameBase.gi.WriteByte(Defines.svc_muzzleflash2);
+        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
         GameBase.gi.WriteShort(self.index);
         GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, Defines.MULTICAST_PVS);
+        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /*
@@ -124,7 +126,7 @@ public class Monster {
      * as activator. ================
      */
     public static void monster_death_use(edict_t self) {
-        self.flags &= ~(Defines.FL_FLY | Defines.FL_SWIM);
+        self.flags &= ~(GameDefines.FL_FLY | GameDefines.FL_SWIM);
         self.monsterinfo.aiflags &= GameDefines.AI_GOOD_GUY;
 
         if (self.item != null) {
@@ -323,7 +325,7 @@ public class Monster {
             Monster.monster_start_go(self);
 
             if (self.enemy != null && 0 == (self.spawnflags & 1)
-                    && 0 == (self.enemy.flags & Defines.FL_NOTARGET)) {
+                    && 0 == (self.enemy.flags & GameDefines.FL_NOTARGET)) {
                 GameUtil.FoundTarget(self);
             } else {
                 self.enemy = null;

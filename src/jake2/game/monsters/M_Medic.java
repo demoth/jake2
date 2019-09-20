@@ -25,6 +25,8 @@ package jake2.game.monsters;
 import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
+import jake2.qcommon.network.MulticastTypes;
+import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -1172,12 +1174,12 @@ public class M_Medic {
             Math3D.VectorCopy(self.enemy.s.origin, end);
             end[2] = self.enemy.absmin[2] + self.enemy.size[2] / 2;
 
-            GameBase.gi.WriteByte(Defines.svc_temp_entity);
+            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
             GameBase.gi.WriteShort(self.index);
             GameBase.gi.WritePosition(start);
             GameBase.gi.WritePosition(end);
-            GameBase.gi.multicast(self.s.origin, Defines.MULTICAST_PVS);
+            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             return true;
         }
     };

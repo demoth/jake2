@@ -88,7 +88,7 @@ public class PlayerView {
         if (client.damage_blood != 0)
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 1;
         if (client.damage_armor != 0
-                && 0 == (player.flags & Defines.FL_GODMODE)
+                && 0 == (player.flags & GameDefines.FL_GODMODE)
                 && (client.invincible_framenum <= GameBase.level.framenum))
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 2;
 
@@ -131,7 +131,7 @@ public class PlayerView {
 
         // play an apropriate pain sound
         if ((GameBase.level.time > player.pain_debounce_time)
-                && 0 == (player.flags & Defines.FL_GODMODE)
+                && 0 == (player.flags & GameDefines.FL_GODMODE)
                 && (client.invincible_framenum <= GameBase.level.framenum)) {
             r = 1 + (Lib.rand() & 1);
             player.pain_debounce_time = GameBase.level.time + 0.7f;
@@ -580,7 +580,7 @@ public class PlayerView {
                 GameBase.gi.sound(current_player, Defines.CHAN_BODY,
                         GameBase.gi.soundindex("player/watr_in.wav"), 1,
                         Defines.ATTN_NORM, 0);
-            current_player.flags |= Defines.FL_INWATER;
+            current_player.flags |= GameDefines.FL_INWATER;
 
             // clear damage_debounce, so the pain sound will play immediately
             current_player.damage_debounce_time = GameBase.level.time - 1;
@@ -596,7 +596,7 @@ public class PlayerView {
                     .sound(current_player, Defines.CHAN_BODY, GameBase.gi
                             .soundindex("player/watr_out.wav"), 1,
                             Defines.ATTN_NORM, 0);
-            current_player.flags &= ~Defines.FL_INWATER;
+            current_player.flags &= ~GameDefines.FL_INWATER;
         }
 
         //
@@ -775,7 +775,7 @@ public class PlayerView {
         }
 
         // show cheaters!!!
-        if ((ent.flags & Defines.FL_GODMODE) != 0) {
+        if ((ent.flags & GameDefines.FL_GODMODE) != 0) {
             ent.s.effects |= Defines.EF_COLOR_SHELL;
             ent.s.renderfx |= (Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
         }
