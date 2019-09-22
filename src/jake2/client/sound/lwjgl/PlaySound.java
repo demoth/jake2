@@ -26,7 +26,7 @@
  */
 package jake2.client.sound.lwjgl;
 
-import jake2.qcommon.Globals;
+import jake2.client.ClientGlobals;
 import jake2.qcommon.util.Math3D;
 
 /**
@@ -102,7 +102,7 @@ public class PlaySound {
         PlaySound ps = null;
         while (true) {
             ps = playableList.next;
-            if (ps == playableList || ps.beginTime > Globals.cl.time)
+            if (ps == playableList || ps.beginTime > ClientGlobals.cl.time)
                 return null;
             PlaySound.release(ps);
             return ps;
@@ -148,7 +148,7 @@ public class PlaySound {
 
         if (ps != null) {
             // find the right sound type
-            if (entnum == Globals.cl.playernum + 1) {
+            if (entnum == ClientGlobals.cl.playernum + 1) {
                 ps.type = Channel.LISTENER;
             } else if (origin != null) {
                 ps.type = Channel.FIXED;
@@ -161,7 +161,7 @@ public class PlaySound {
             ps.bufferId = bufferId;
             ps.volume = volume;
             ps.attenuation = attenuation;
-            ps.beginTime = Globals.cl.time + (long) (timeoffset * 1000);
+            ps.beginTime = ClientGlobals.cl.time + (long) (timeoffset * 1000);
             PlaySound.add(ps);
         } else {
             System.err.println("PlaySounds out of Limit");

@@ -23,10 +23,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
  */
-package jake2.client.render;
+package jake2.client;
 
 import jake2.Jake2;
-import jake2.client.*;
+import jake2.client.render.Renderer;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Math3D;
 
@@ -95,7 +95,7 @@ public class DancingQueens {
         Globals.cls.key_dest = Defines.key_game;
         Globals.cls.state = Defines.ca_active;
         
-        viddef = Globals.viddef;
+        viddef = ClientGlobals.viddef;
         fov_y = Math3D.CalcFov(fov_x, viddef.getWidth(), viddef.getHeight());
     }
     

@@ -120,7 +120,7 @@ public class VID extends Globals {
 	** VID_NewWindow
 	*/
 	public static void NewWindow(int width, int height) {
-		Globals.viddef.setSize(width, height);
+		ClientGlobals.viddef.setSize(width, height);
 	}
 
 	static void FreeReflib()
@@ -210,7 +210,7 @@ public class VID extends Globals {
 	*/
 	public static void CheckChanges()
 	{
-	    Globals.viddef.update();
+	    ClientGlobals.viddef.update();
 	    
 		if ( vid_ref.modified )
 		{
@@ -224,7 +224,7 @@ public class VID extends Globals {
 			*/
 			vid_ref.modified = false;
 			vid_fullscreen.modified = true;
-			Globals.cl.refresh_prepped = false;
+			ClientGlobals.cl.refresh_prepped = false;
 			Globals.cls.disable_screen = 1.0f; // true;
 
 			
@@ -533,7 +533,7 @@ public class VID extends Globals {
 			}
 		}
 
-		s_opengl_menu.x = (int)(viddef.getWidth() * 0.50f);
+		s_opengl_menu.x = (int)(ClientGlobals.viddef.getWidth() * 0.50f);
 		s_opengl_menu.nitems = 0;
 		
 		s_ref_list.type = MTYPE_SPINCONTROL;
@@ -673,7 +673,7 @@ public class VID extends Globals {
 		*/
 		Dimension dim = new Dimension();
 		re.DrawGetPicSize( dim, "m_banner_video" );
-		re.DrawPic( viddef.getWidth() / 2 - dim.width / 2, viddef.getHeight() /2 - 110, "m_banner_video" );
+		re.DrawPic( ClientGlobals.viddef.getWidth() / 2 - dim.width / 2, ClientGlobals.viddef.getHeight() /2 - 110, "m_banner_video" );
 
 		/*
 		** move cursor to a reasonable starting position

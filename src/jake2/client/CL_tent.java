@@ -344,7 +344,7 @@ public class CL_tent {
             }
         }
         //	   find the oldest explosion
-        time = Globals.cl.time;
+        time = ClientGlobals.cl.time;
         index = 0;
 
         for (i = 0; i < MAX_EXPLOSIONS; i++)
@@ -368,7 +368,7 @@ public class CL_tent {
         ex.type = ex_misc;
         ex.frames = 4;
         ex.ent.flags = Defines.RF_TRANSLUCENT;
-        ex.start = Globals.cl.frame.servertime - 100;
+        ex.start = ClientGlobals.cl.frame.servertime - 100;
         ex.ent.model = cl_mod_smoke;
 
         ex = AllocExplosion();
@@ -376,7 +376,7 @@ public class CL_tent {
         ex.type = ex_flash;
         ex.ent.flags = Defines.RF_FULLBRIGHT;
         ex.frames = 2;
-        ex.start = Globals.cl.frame.servertime - 100;
+        ex.start = ClientGlobals.cl.frame.servertime - 100;
         ex.ent.model = cl_mod_flash;
     }
 
@@ -403,7 +403,7 @@ public class CL_tent {
             if (b[i].entity == ent) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorClear(b[i].offset);
@@ -413,10 +413,10 @@ public class CL_tent {
         //	   find a free beam
         b = cl_beams;
         for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].model == null || b[i].endtime < Globals.cl.time) {
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorClear(b[i].offset);
@@ -452,7 +452,7 @@ public class CL_tent {
             if (b[i].entity == ent) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorCopy(offset, b[i].offset);
@@ -462,10 +462,10 @@ public class CL_tent {
         //	   find a free beam
         b = cl_beams;
         for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].model == null || b[i].endtime < Globals.cl.time) {
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorCopy(offset, b[i].offset);
@@ -511,7 +511,7 @@ public class CL_tent {
             if (b[i].entity == ent) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorCopy(offset, b[i].offset);
@@ -522,10 +522,10 @@ public class CL_tent {
         //	   find a free beam
         b = cl_playerbeams;
         for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].model == null || b[i].endtime < Globals.cl.time) {
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
                 b[i].entity = ent;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 100; // PMM - this needs to be
+                b[i].endtime = ClientGlobals.cl.time + 100; // PMM - this needs to be
                                                       // 100 to prevent multiple
                                                       // heatbeams
                 Math3D.VectorCopy(start, b[i].start);
@@ -566,7 +566,7 @@ public class CL_tent {
                 b[i].entity = srcEnt;
                 b[i].dest_entity = destEnt;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorClear(b[i].offset);
@@ -576,12 +576,12 @@ public class CL_tent {
         //	   find a free beam
         b = cl_beams;
         for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].model == null || b[i].endtime < Globals.cl.time) {
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time) {
                 //				Com_Printf("%d: NORMAL %d . %d\n", cl.time, srcEnt, destEnt);
                 b[i].entity = srcEnt;
                 b[i].dest_entity = destEnt;
                 b[i].model = model;
-                b[i].endtime = Globals.cl.time + 200;
+                b[i].endtime = ClientGlobals.cl.time + 200;
                 Math3D.VectorCopy(start, b[i].start);
                 Math3D.VectorCopy(end, b[i].end);
                 Math3D.VectorClear(b[i].offset);
@@ -606,7 +606,7 @@ public class CL_tent {
 
         l = cl_lasers;
         for (i = 0; i < MAX_LASERS; i++) {
-            if (l[i].endtime < Globals.cl.time) {
+            if (l[i].endtime < ClientGlobals.cl.time) {
                 l[i].ent.flags = Defines.RF_TRANSLUCENT | Defines.RF_BEAM;
                 Math3D.VectorCopy(start, l[i].ent.origin);
                 Math3D.VectorCopy(end, l[i].ent.oldorigin);
@@ -614,7 +614,7 @@ public class CL_tent {
                 l[i].ent.skinnum = (colors >> ((Lib.rand() % 4) * 8)) & 0xff;
                 l[i].ent.model = null;
                 l[i].ent.frame = 4;
-                l[i].endtime = Globals.cl.time + 100;
+                l[i].endtime = ClientGlobals.cl.time + 100;
                 return;
             }
         }
@@ -655,7 +655,7 @@ public class CL_tent {
                 r = MSG.ReadByte(Globals.net_message);
                 s[i].color = r & 0xff;
                 s[i].magnitude = MSG.ReadShort(Globals.net_message);
-                s[i].endtime = Globals.cl.time
+                s[i].endtime = ClientGlobals.cl.time
                         + MSG.ReadLong(Globals.net_message);
                 s[i].think = new cl_sustain_t.ThinkAdapter() {
                     void think(cl_sustain_t self) {
@@ -663,7 +663,7 @@ public class CL_tent {
                     }
                 };
                 s[i].thinkinterval = 100;
-                s[i].nextthink = Globals.cl.time;
+                s[i].nextthink = ClientGlobals.cl.time;
             } else {
                 //					Com_Printf ("No free sustains!\n");
                 // FIXME - read the stuff anyway
@@ -708,14 +708,14 @@ public class CL_tent {
         if (free_sustain != null) {
             s[i].id = id;
             MSG.ReadPos(Globals.net_message, s[i].org);
-            s[i].endtime = Globals.cl.time + 2100;
+            s[i].endtime = ClientGlobals.cl.time + 2100;
             s[i].think = new cl_sustain_t.ThinkAdapter() {
                 void think(cl_sustain_t self) {
                     CL_newfx.Widowbeamout(self);
                 }
             };
             s[i].thinkinterval = 1;
-            s[i].nextthink = Globals.cl.time;
+            s[i].nextthink = ClientGlobals.cl.time;
         } else // no free sustains
         {
             // FIXME - read the stuff anyway
@@ -741,14 +741,14 @@ public class CL_tent {
         if (free_sustain != null) {
             s[i].id = 21000;
             MSG.ReadPos(Globals.net_message, s[i].org);
-            s[i].endtime = Globals.cl.time + 1000;
+            s[i].endtime = ClientGlobals.cl.time + 1000;
             s[i].think = new cl_sustain_t.ThinkAdapter() {
                 void think(cl_sustain_t self) {
                     CL_newfx.Nukeblast(self);
                 }
             };
             s[i].thinkinterval = 1;
-            s[i].nextthink = Globals.cl.time;
+            s[i].nextthink = ClientGlobals.cl.time;
         } else // no free sustains
         {
             // FIXME - read the stuff anyway
@@ -893,7 +893,7 @@ public class CL_tent {
 
             ex.type = ex_misc;
             ex.ent.flags = Defines.RF_FULLBRIGHT | Defines.RF_TRANSLUCENT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 150;
             ex.lightcolor[0] = 1;
             ex.lightcolor[1] = 1;
@@ -918,7 +918,7 @@ public class CL_tent {
             Math3D.VectorCopy(pos, ex.ent.origin);
             ex.type = ex_poly;
             ex.ent.flags = Defines.RF_FULLBRIGHT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 350;
             ex.lightcolor[0] = 1.0f;
             ex.lightcolor[1] = 0.5f;
@@ -945,7 +945,7 @@ public class CL_tent {
             Math3D.VectorCopy(pos, ex.ent.origin);
             ex.type = ex_poly;
             ex.ent.flags = Defines.RF_FULLBRIGHT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 350;
             ex.lightcolor[0] = 1.0f;
             ex.lightcolor[1] = 0.5f;
@@ -970,7 +970,7 @@ public class CL_tent {
             Math3D.VectorCopy(pos, ex.ent.origin);
             ex.type = ex_poly;
             ex.ent.flags = Defines.RF_FULLBRIGHT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 350;
             ex.lightcolor[0] = 1.0f;
             ex.lightcolor[1] = 0.5f;
@@ -1002,7 +1002,7 @@ public class CL_tent {
             Math3D.VectorCopy(pos, ex.ent.origin);
             ex.type = ex_poly;
             ex.ent.flags = Defines.RF_FULLBRIGHT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 350;
             ex.lightcolor[0] = 0.0f;
             ex.lightcolor[1] = 1.0f;
@@ -1058,7 +1058,7 @@ public class CL_tent {
             // note to self
             // we need a better no draw flag
             ex.ent.flags = Defines.RF_BEAM;
-            ex.start = Globals.cl.frame.servertime - 0.1f;
+            ex.start = ClientGlobals.cl.frame.servertime - 0.1f;
             ex.light = 100 + (Lib.rand() % 75);
             ex.lightcolor[0] = 1.0f;
             ex.lightcolor[1] = 1.0f;
@@ -1120,7 +1120,7 @@ public class CL_tent {
                 // flechette
                 ex.ent.skinnum = 2;
 
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 150;
             // PMM
             if (type == Defines.TE_BLASTER2)
@@ -1155,7 +1155,7 @@ public class CL_tent {
             Math3D.VectorCopy(pos, ex.ent.origin);
             ex.type = ex_poly;
             ex.ent.flags = Defines.RF_FULLBRIGHT;
-            ex.start = Globals.cl.frame.servertime - 100;
+            ex.start = ClientGlobals.cl.frame.servertime - 100;
             ex.light = 350;
             ex.lightcolor[0] = 1.0f;
             ex.lightcolor[1] = 0.5f;
@@ -1311,14 +1311,14 @@ public class CL_tent {
         //	   update beams
         b = cl_beams;
         for (i = 0; i < MAX_BEAMS; i++) {
-            if (b[i].model == null || b[i].endtime < Globals.cl.time)
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time)
                 continue;
 
             // if coming from the player, update the start position
-            if (b[i].entity == Globals.cl.playernum + 1) // entity 0 is the
+            if (b[i].entity == ClientGlobals.cl.playernum + 1) // entity 0 is the
                                                          // world
             {
-                Math3D.VectorCopy(Globals.cl.refdef.vieworg, b[i].start);
+                Math3D.VectorCopy(ClientGlobals.cl.refdef.vieworg, b[i].start);
                 b[i].start[2] -= 22; // adjust for view height
             }
             Math3D.VectorAdd(b[i].start, b[i].offset, org);
@@ -1435,10 +1435,10 @@ public class CL_tent {
         player_state_t ps, ops;
 
         //	  PMM
-        if (Globals.hand != null) {
-            if (Globals.hand.value == 2)
+        if (ClientGlobals.hand != null) {
+            if (ClientGlobals.hand.value == 2)
                 hand_multiplier = 0;
-            else if (Globals.hand.value == 1)
+            else if (ClientGlobals.hand.value == 1)
                 hand_multiplier = -1;
             else
                 hand_multiplier = 1;
@@ -1451,55 +1451,55 @@ public class CL_tent {
         beam_t[] b = cl_playerbeams;
         for (int i = 0; i < MAX_BEAMS; i++) {
 
-            if (b[i].model == null || b[i].endtime < Globals.cl.time)
+            if (b[i].model == null || b[i].endtime < ClientGlobals.cl.time)
                 continue;
 
             if (cl_mod_heatbeam != null && (b[i].model == cl_mod_heatbeam)) {
 
                 // if coming from the player, update the start position
-                if (b[i].entity == Globals.cl.playernum + 1) // entity 0 is the
+                if (b[i].entity == ClientGlobals.cl.playernum + 1) // entity 0 is the
                                                              // world
                 {
                     // set up gun position
                     // code straight out of CL_AddViewWeapon
-                    ps = Globals.cl.frame.playerstate;
-                    int j = (Globals.cl.frame.serverframe - 1)
+                    ps = ClientGlobals.cl.frame.playerstate;
+                    int j = (ClientGlobals.cl.frame.serverframe - 1)
                             & Defines.UPDATE_MASK;
-                    oldframe = Globals.cl.frames[j];
+                    oldframe = ClientGlobals.cl.frames[j];
 
-                    if (oldframe.serverframe != Globals.cl.frame.serverframe - 1
+                    if (oldframe.serverframe != ClientGlobals.cl.frame.serverframe - 1
                             || !oldframe.valid)
-                        oldframe = Globals.cl.frame; // previous frame was
+                        oldframe = ClientGlobals.cl.frame; // previous frame was
                                                      // dropped or involid
 
                     ops = oldframe.playerstate;
                     for (j = 0; j < 3; j++) {
-                        b[i].start[j] = Globals.cl.refdef.vieworg[j]
-                                + ops.gunoffset[j] + Globals.cl.lerpfrac
+                        b[i].start[j] = ClientGlobals.cl.refdef.vieworg[j]
+                                + ops.gunoffset[j] + ClientGlobals.cl.lerpfrac
                                 * (ps.gunoffset[j] - ops.gunoffset[j]);
                     }
                     Math3D.VectorMA(b[i].start,
                             (hand_multiplier * b[i].offset[0]),
-                            Globals.cl.v_right, org);
-                    Math3D.VectorMA(org, b[i].offset[1], Globals.cl.v_forward,
+                            ClientGlobals.cl.v_right, org);
+                    Math3D.VectorMA(org, b[i].offset[1], ClientGlobals.cl.v_forward,
                             org);
-                    Math3D.VectorMA(org, b[i].offset[2], Globals.cl.v_up, org);
-                    if ((Globals.hand != null) && (Globals.hand.value == 2)) {
-                        Math3D.VectorMA(org, -1, Globals.cl.v_up, org);
+                    Math3D.VectorMA(org, b[i].offset[2], ClientGlobals.cl.v_up, org);
+                    if ((ClientGlobals.hand != null) && (ClientGlobals.hand.value == 2)) {
+                        Math3D.VectorMA(org, -1, ClientGlobals.cl.v_up, org);
                     }
                     // FIXME - take these out when final
-                    Math3D.VectorCopy(Globals.cl.v_right, r);
-                    Math3D.VectorCopy(Globals.cl.v_forward, f);
-                    Math3D.VectorCopy(Globals.cl.v_up, u);
+                    Math3D.VectorCopy(ClientGlobals.cl.v_right, r);
+                    Math3D.VectorCopy(ClientGlobals.cl.v_forward, f);
+                    Math3D.VectorCopy(ClientGlobals.cl.v_up, u);
 
                 } else
                     Math3D.VectorCopy(b[i].start, org);
             } else {
                 // if coming from the player, update the start position
-                if (b[i].entity == Globals.cl.playernum + 1) // entity 0 is the
+                if (b[i].entity == ClientGlobals.cl.playernum + 1) // entity 0 is the
                                                              // world
                 {
-                    Math3D.VectorCopy(Globals.cl.refdef.vieworg, b[i].start);
+                    Math3D.VectorCopy(ClientGlobals.cl.refdef.vieworg, b[i].start);
                     b[i].start[2] -= 22; // adjust for view height
                 }
                 Math3D.VectorAdd(b[i].start, b[i].offset, org);
@@ -1510,7 +1510,7 @@ public class CL_tent {
 
             //	  PMM
             if (cl_mod_heatbeam != null && (b[i].model == cl_mod_heatbeam)
-                    && (b[i].entity == Globals.cl.playernum + 1)) {
+                    && (b[i].entity == ClientGlobals.cl.playernum + 1)) {
 
                 len = Math3D.VectorLength(dist);
                 Math3D.VectorScale(f, len, dist);
@@ -1518,8 +1518,8 @@ public class CL_tent {
                         dist);
                 Math3D.VectorMA(dist, b[i].offset[1], f, dist);
                 Math3D.VectorMA(dist, b[i].offset[2], u, dist);
-                if ((Globals.hand != null) && (Globals.hand.value == 2)) {
-                    Math3D.VectorMA(org, -1, Globals.cl.v_up, org);
+                if ((ClientGlobals.hand != null) && (ClientGlobals.hand.value == 2)) {
+                    Math3D.VectorMA(org, -1, ClientGlobals.cl.v_up, org);
                 }
             }
             //	  PMM
@@ -1549,7 +1549,7 @@ public class CL_tent {
             }
 
             if (cl_mod_heatbeam != null && (b[i].model == cl_mod_heatbeam)) {
-                if (b[i].entity != Globals.cl.playernum + 1) {
+                if (b[i].entity != ClientGlobals.cl.playernum + 1) {
                     framenum = 2;
                     //					Com_Printf ("Third person\n");
                     ent.angles[0] = -pitch;
@@ -1575,7 +1575,7 @@ public class CL_tent {
             }
 
             // if it's the heatbeam, draw the particle effect
-            if ((cl_mod_heatbeam != null && (b[i].model == cl_mod_heatbeam) && (b[i].entity == Globals.cl.playernum + 1))) {
+            if ((cl_mod_heatbeam != null && (b[i].model == cl_mod_heatbeam) && (b[i].entity == ClientGlobals.cl.playernum + 1))) {
                 CL_newfx.Heatbeam(org, dist);
             }
 
@@ -1626,7 +1626,7 @@ public class CL_tent {
                     ent.flags = Defines.RF_FULLBRIGHT;
                     ent.angles[0] = -pitch;
                     ent.angles[1] = yaw + 180.0f;
-                    ent.angles[2] = (Globals.cl.time) % 360;
+                    ent.angles[2] = (ClientGlobals.cl.time) % 360;
                     //					ent.angles[2] = rand()%360;
                     ent.frame = framenum;
                 } else if (b[i].model == cl_mod_lightning) {
@@ -1666,7 +1666,7 @@ public class CL_tent {
         for (i = 0; i < MAX_EXPLOSIONS; i++) {
             if (ex[i].type == ex_free)
                 continue;
-            frac = (Globals.cl.time - ex[i].start) / 100.0f;
+            frac = (ClientGlobals.cl.time - ex[i].start) / 100.0f;
             f = (int) Math.floor(frac);
 
             ent = ex[i].ent;
@@ -1736,7 +1736,7 @@ public class CL_tent {
                 f = 0;
             ent.frame = ex[i].baseframe + f + 1;
             ent.oldframe = ex[i].baseframe + f;
-            ent.backlerp = 1.0f - Globals.cl.lerpfrac;
+            ent.backlerp = 1.0f - ClientGlobals.cl.lerpfrac;
 
             V.AddEntity(ent);
         }
@@ -1751,7 +1751,7 @@ public class CL_tent {
 
         l = cl_lasers;
         for (i = 0; i < MAX_LASERS; i++) {
-            if (l[i].endtime >= Globals.cl.time)
+            if (l[i].endtime >= ClientGlobals.cl.time)
                 V.AddEntity(l[i].ent);
         }
     }
@@ -1764,10 +1764,10 @@ public class CL_tent {
         s = cl_sustains;
         for (i = 0; i < MAX_SUSTAINS; i++) {
             if (s[i].id != 0)
-                if ((s[i].endtime >= Globals.cl.time)
-                        && (Globals.cl.time >= s[i].nextthink)) {
+                if ((s[i].endtime >= ClientGlobals.cl.time)
+                        && (ClientGlobals.cl.time >= s[i].nextthink)) {
                     s[i].think.think(s[i]);
-                } else if (s[i].endtime < Globals.cl.time)
+                } else if (s[i].endtime < ClientGlobals.cl.time)
                     s[i].id = 0;
         }
     }

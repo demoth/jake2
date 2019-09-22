@@ -44,7 +44,7 @@ public class CL_newfx {
         Math3D.VectorCopy(pos, dl.origin);
         dl.radius = 400;
         dl.minlight = 250;
-        dl.die = Globals.cl.time + 100;
+        dl.die = ClientGlobals.cl.time + 100;
         dl.color[0] = 1;
         dl.color[1] = 1;
         dl.color[2] = 1;
@@ -57,7 +57,7 @@ public class CL_newfx {
             float g, float b) {
         CL_fx.cdlight_t dl;
 
-        if ((Globals.vidref_val == Defines.VIDREF_SOFT)
+        if ((ClientGlobals.vidref_val == Defines.VIDREF_SOFT)
                 && ((r < 0) || (g < 0) || (b < 0))) {
             intensity = -intensity;
             r = -r;
@@ -69,7 +69,7 @@ public class CL_newfx {
         Math3D.VectorCopy(pos, dl.origin);
         dl.radius = intensity;
         dl.minlight = 250;
-        dl.die = Globals.cl.time + 100;
+        dl.die = ClientGlobals.cl.time + 100;
         dl.color[0] = r;
         dl.color[1] = g;
         dl.color[2] = b;
@@ -116,7 +116,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             Math3D.VectorClear(p.accel);
             Math3D.VectorClear(p.vel);
             p.alpha = 1.0f;
@@ -160,7 +160,7 @@ public class CL_newfx {
                 CL_fx.active_particles = p;
                 Math3D.VectorClear(p.accel);
 
-                p.time = Globals.cl.time;
+                p.time = ClientGlobals.cl.time;
 
                 p.alpha = 1.0f;
                 p.alphavel = -1.0f / (3.0f + Globals.rnd.nextFloat() * 0.5f);
@@ -209,7 +209,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
 
             Math3D.VectorClear(p.accel);
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = -1.0f / (1 + Globals.rnd.nextFloat() * 0.1f);
@@ -251,15 +251,15 @@ public class CL_newfx {
 
         // FIXME - pmm - these might end up using old values?
         //		MakeNormalVectors (vec, right, up);
-        Math3D.VectorCopy(Globals.cl.v_right, right);
-        Math3D.VectorCopy(Globals.cl.v_up, up);
-        if (Globals.vidref_val == Defines.VIDREF_GL) { // GL mode
+        Math3D.VectorCopy(ClientGlobals.cl.v_right, right);
+        Math3D.VectorCopy(ClientGlobals.cl.v_up, up);
+        if (ClientGlobals.vidref_val == Defines.VIDREF_GL) { // GL mode
             Math3D.VectorMA(move, -0.5f, right, move);
             Math3D.VectorMA(move, -0.5f, up, move);
         }
         // otherwise assume SOFT
 
-        ltime = (float) Globals.cl.time / 1000.0f;
+        ltime = (float) ClientGlobals.cl.time / 1000.0f;
         start_pt = ltime * 96.0f % step;
         Math3D.VectorMA(move, start_pt, vec, move);
 
@@ -282,7 +282,7 @@ public class CL_newfx {
                 p.next = CL_fx.active_particles;
                 CL_fx.active_particles = p;
 
-                p.time = Globals.cl.time;
+                p.time = ClientGlobals.cl.time;
                 Math3D.VectorClear(p.accel);
                 //				rot+= fmod(ltime, 12.0)*M_PI;
                 //				c = cos(rot)/2.0;
@@ -344,7 +344,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
@@ -388,7 +388,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = self.color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
@@ -446,7 +446,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = -2.0f;
@@ -477,7 +477,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = CL_fx.INSTANT_PARTICLE;
@@ -506,7 +506,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = CL_fx.INSTANT_PARTICLE;
@@ -533,7 +533,7 @@ public class CL_newfx {
 
         float ratio;
 
-        ratio = 1.0f - (((float) self.endtime - (float) Globals.cl.time) / 2100.0f);
+        ratio = 1.0f - (((float) self.endtime - (float) ClientGlobals.cl.time) / 2100.0f);
 
         for (i = 0; i < 300; i++) {
             if (CL_fx.free_particles == null)
@@ -544,7 +544,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = CL_fx.INSTANT_PARTICLE;
@@ -571,7 +571,7 @@ public class CL_newfx {
 
         float ratio;
 
-        ratio = 1.0f - (((float) self.endtime - (float) Globals.cl.time) / 1000.0f);
+        ratio = 1.0f - (((float) self.endtime - (float) ClientGlobals.cl.time) / 1000.0f);
 
         for (i = 0; i < 700; i++) {
             if (CL_fx.free_particles == null)
@@ -582,7 +582,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = CL_fx.INSTANT_PARTICLE;
@@ -615,7 +615,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = ws_colortable[Lib.rand() & 3];
 
             dir[0] = Lib.crandom();
@@ -664,7 +664,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = -1.0f / (0.8f + Globals.rnd.nextFloat() * 0.2f);
@@ -694,7 +694,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = color + (Lib.rand() % run);
 
             for (j = 0; j < 3; j++) {
@@ -732,7 +732,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = color + (Lib.rand() & 7);
 
             for (j = 0; j < 3; j++) {
@@ -772,7 +772,7 @@ public class CL_newfx {
             p.next = CL_fx.active_particles;
             CL_fx.active_particles = p;
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
             p.color = color + (Lib.rand() & 7);
 
             d = Lib.rand() & 15;
@@ -821,7 +821,7 @@ public class CL_newfx {
             CL_fx.active_particles = p;
             Math3D.VectorClear(p.accel);
 
-            p.time = Globals.cl.time;
+            p.time = ClientGlobals.cl.time;
 
             p.alpha = 1.0f;
             p.alphavel = -1.0f / (0.3f + Globals.rnd.nextFloat() * 0.2f);

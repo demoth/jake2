@@ -126,14 +126,14 @@ public class CL_parse {
         S.BeginRegistration();
         CL_tent.RegisterTEntSounds();
         for (int i = 1; i < Defines.MAX_SOUNDS; i++) {
-            if (Globals.cl.configstrings[Defines.CS_SOUNDS + i] == null
-                    || Globals.cl.configstrings[Defines.CS_SOUNDS + i]
+            if (ClientGlobals.cl.configstrings[Defines.CS_SOUNDS + i] == null
+                    || ClientGlobals.cl.configstrings[Defines.CS_SOUNDS + i]
                             .equals("")
-                    || Globals.cl.configstrings[Defines.CS_SOUNDS + i]
+                    || ClientGlobals.cl.configstrings[Defines.CS_SOUNDS + i]
                             .equals("\0"))
                 break;
-            Globals.cl.sound_precache[i] = S
-                    .RegisterSound(Globals.cl.configstrings[Defines.CS_SOUNDS
+            ClientGlobals.cl.sound_precache[i] = S
+                    .RegisterSound(ClientGlobals.cl.configstrings[Defines.CS_SOUNDS
                             + i]);
             Sys.SendKeyEvents(); // pump message loop
         }
@@ -249,12 +249,12 @@ public class CL_parse {
             Com.Error(Defines.ERR_DROP, "Server returned version " + i
                     + ", not " + Defines.PROTOCOL_VERSION);
 
-        Globals.cl.servercount = MSG.ReadLong(Globals.net_message);
-        Globals.cl.attractloop = MSG.ReadByte(Globals.net_message) != 0;
+        ClientGlobals.cl.servercount = MSG.ReadLong(Globals.net_message);
+        ClientGlobals.cl.attractloop = MSG.ReadByte(Globals.net_message) != 0;
 
         // game directory
         String str = MSG.ReadString(Globals.net_message);
-        Globals.cl.gamedir = str;
+        ClientGlobals.cl.gamedir = str;
         Com.dprintln("gamedir=" + str);
 
         // set gamedir
@@ -267,13 +267,13 @@ public class CL_parse {
             Cvar.Set("game", str);
 
         // parse player entity number
-        Globals.cl.playernum = MSG.ReadShort(Globals.net_message);
-        Com.dprintln("numplayers=" + Globals.cl.playernum);
+        ClientGlobals.cl.playernum = MSG.ReadShort(Globals.net_message);
+        Com.dprintln("numplayers=" + ClientGlobals.cl.playernum);
         // get the full level name
         str = MSG.ReadString(Globals.net_message);
         Com.dprintln("levelname=" + str);
 
-        if (Globals.cl.playernum == -1) { // playing a cinematic or showing a
+        if (ClientGlobals.cl.playernum == -1) { // playing a cinematic or showing a
             // pic, not a level
             SCR.PlayCinematic(str);
         } else {
@@ -283,7 +283,7 @@ public class CL_parse {
             //			Com.Printf('\02' + str + "\n");
             Com.Printf("Levelname:" + str + "\n");
             // need to prep refresh at next oportunity
-            Globals.cl.refresh_prepped = false;
+            ClientGlobals.cl.refresh_prepped = false;
         }
     }
 
@@ -295,7 +295,7 @@ public class CL_parse {
         //memset(nullstate, 0, sizeof(nullstate));
         int bits[] = { 0 };
         int newnum = CL_ents.ParseEntityBits(bits);
-        entity_state_t es = Globals.cl_entities[newnum].baseline;
+        entity_state_t es = ClientGlobals.cl_entities[newnum].baseline;
         CL_ents.ParseDelta(nullstate, es, newnum, bits[0]);
     }
 
@@ -329,7 +329,7 @@ public class CL_parse {
             //s = t + 1;
         }
 
-        if (Globals.cl_noskins.value != 0 || s.length() == 0) {
+        if (ClientGlobals.cl_noskins.value != 0 || s.length() == 0) {
 
             model_filename = ("players/male/tris.md2");
             weapon_filename = ("players/male/weapon.md2");
@@ -409,7 +409,7 @@ public class CL_parse {
                     ci.weaponmodel[i] = Globals.re
                             .RegisterModel(weapon_filename);
                 }
-                if (0 == Globals.cl_vwep.value)
+                if (0 == ClientGlobals.cl_vwep.value)
                     break; // only one when vwep is off
             }
 
@@ -435,9 +435,9 @@ public class CL_parse {
      * Load the skin, icon, and model for a client ================
      */
     public static void ParseClientinfo(int player) {
-        String s = Globals.cl.configstrings[player + Defines.CS_PLAYERSKINS];
+        String s = ClientGlobals.cl.configstrings[player + Defines.CS_PLAYERSKINS];
 
-        clientinfo_t ci = Globals.cl.clientinfo[player];
+        clientinfo_t ci = ClientGlobals.cl.clientinfo[player];
 
         LoadClientinfo(ci, s);
     }
@@ -453,8 +453,8 @@ public class CL_parse {
 
         String s = MSG.ReadString(Globals.net_message);
 
-        String olds = Globals.cl.configstrings[i];
-        Globals.cl.configstrings[i] = s;
+        String olds = ClientGlobals.cl.configstrings[i];
+        ClientGlobals.cl.configstrings[i] = s;
         
         //Com.dprintln("ParseConfigString(): configstring[" + i + "]=<"+s+">");
 
@@ -466,32 +466,32 @@ public class CL_parse {
             CL_fx.SetLightstyle(i - Defines.CS_LIGHTS);
             
         } else if (i == Defines.CS_CDTRACK) {
-        	if (Globals.cl.refresh_prepped)
-        		CDAudio.Play(Lib.atoi(Globals.cl.configstrings[Defines.CS_CDTRACK]), true);
+        	if (ClientGlobals.cl.refresh_prepped)
+        		CDAudio.Play(Lib.atoi(ClientGlobals.cl.configstrings[Defines.CS_CDTRACK]), true);
         	
         } else if (i >= Defines.CS_MODELS && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
-            if (Globals.cl.refresh_prepped) {
-                Globals.cl.model_draw[i - Defines.CS_MODELS] = Globals.re
-                        .RegisterModel(Globals.cl.configstrings[i]);
-                if (Globals.cl.configstrings[i].startsWith("*"))
-                    Globals.cl.model_clip[i - Defines.CS_MODELS] = CM
-                            .InlineModel(Globals.cl.configstrings[i]);
+            if (ClientGlobals.cl.refresh_prepped) {
+                ClientGlobals.cl.model_draw[i - Defines.CS_MODELS] = Globals.re
+                        .RegisterModel(ClientGlobals.cl.configstrings[i]);
+                if (ClientGlobals.cl.configstrings[i].startsWith("*"))
+                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = CM
+                            .InlineModel(ClientGlobals.cl.configstrings[i]);
                 else
-                    Globals.cl.model_clip[i - Defines.CS_MODELS] = null;
+                    ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = null;
             }
         } else if (i >= Defines.CS_SOUNDS
                 && i < Defines.CS_SOUNDS + Defines.MAX_MODELS) {
-            if (Globals.cl.refresh_prepped)
-                Globals.cl.sound_precache[i - Defines.CS_SOUNDS] = S
-                        .RegisterSound(Globals.cl.configstrings[i]);
+            if (ClientGlobals.cl.refresh_prepped)
+                ClientGlobals.cl.sound_precache[i - Defines.CS_SOUNDS] = S
+                        .RegisterSound(ClientGlobals.cl.configstrings[i]);
         } else if (i >= Defines.CS_IMAGES
                 && i < Defines.CS_IMAGES + Defines.MAX_MODELS) {
-            if (Globals.cl.refresh_prepped)
-                Globals.cl.image_precache[i - Defines.CS_IMAGES] = Globals.re
-                        .RegisterPic(Globals.cl.configstrings[i]);
+            if (ClientGlobals.cl.refresh_prepped)
+                ClientGlobals.cl.image_precache[i - Defines.CS_IMAGES] = Globals.re
+                        .RegisterPic(ClientGlobals.cl.configstrings[i]);
         } else if (i >= Defines.CS_PLAYERSKINS
                 && i < Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS) {
-            if (Globals.cl.refresh_prepped && !olds.equals(s))
+            if (ClientGlobals.cl.refresh_prepped && !olds.equals(s))
                 ParseClientinfo(i - Defines.CS_PLAYERSKINS);
         }
     }
@@ -554,15 +554,15 @@ public class CL_parse {
             // use entity number
             pos = null;
 
-        if (null == Globals.cl.sound_precache[sound_num])
+        if (null == ClientGlobals.cl.sound_precache[sound_num])
             return;
 
-        S.StartSound(pos, ent, channel, Globals.cl.sound_precache[sound_num],
+        S.StartSound(pos, ent, channel, ClientGlobals.cl.sound_precache[sound_num],
                 volume, attenuation, ofs);
     }
 
     public static void SHOWNET(String s) {
-        if (Globals.cl_shownet.value >= 2)
+        if (ClientGlobals.cl_shownet.value >= 2)
             Com.Printf(Globals.net_message.readcount - 1 + ":" + s + "\n");
     }
 
@@ -595,7 +595,7 @@ public class CL_parse {
                 break;
             }
 
-            if (Globals.cl_shownet.value >= 2) {
+            if (ClientGlobals.cl_shownet.value >= 2) {
                 if (null == svc_strings[cmd])
                     Com.Printf(Globals.net_message.readcount - 1 + ":BAD CMD "
                             + cmd + "\n");
@@ -637,10 +637,10 @@ public class CL_parse {
                 int i = MSG.ReadByte(Globals.net_message);
                 if (i == Defines.PRINT_CHAT) {
                     S.StartLocalSound("misc/talk.wav");
-                    Globals.con.ormask = 128;
+                    ClientGlobals.con.ormask = 128;
                 }
                 Com.Printf(MSG.ReadString(Globals.net_message));
-                Globals.con.ormask = 0;
+                ClientGlobals.con.ormask = 0;
                 break;
 
             case NetworkCommands.svc_centerprint:
@@ -695,7 +695,7 @@ public class CL_parse {
                 break;
 
             case NetworkCommands.svc_layout:
-        	Globals.cl.layout = MSG.ReadString(Globals.net_message);
+        	ClientGlobals.cl.layout = MSG.ReadString(Globals.net_message);
                 break;
 
             case NetworkCommands.svc_playerinfo:

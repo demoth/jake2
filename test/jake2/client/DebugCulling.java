@@ -21,12 +21,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.client.render;
+package jake2.client;
 
-import jake2.client.*;
+import jake2.client.render.Renderer;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Globals;
 import jake2.qcommon.Qcommon;
 
 /**
@@ -70,7 +69,7 @@ public class DebugCulling
 
 		re.Init(0, 0);
 
-		viddef = Globals.viddef;
+		viddef = ClientGlobals.viddef;
 	}
 
 	float fps = 0.0f;

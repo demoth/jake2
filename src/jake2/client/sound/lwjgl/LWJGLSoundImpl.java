@@ -6,6 +6,7 @@
  */
 package jake2.client.sound.lwjgl;
 
+import jake2.client.ClientGlobals;
 import jake2.client.sound.*;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
@@ -169,7 +170,7 @@ public final class LWJGLSoundImpl implements Sound {
 	    return;
 
 	if (sfx.name.charAt(0) == '*')
-	    sfx = RegisterSexedSound(Globals.cl_entities[entnum].current, sfx.name);
+	    sfx = RegisterSexedSound(ClientGlobals.cl_entities[entnum].current, sfx.name);
 
 	if (LoadSound(sfx) == null)
 	    return; // can't load sound
@@ -278,11 +279,11 @@ public final class LWJGLSoundImpl implements Sound {
 	// determine what model the client is using
 	String model = null;
 	int n = Globals.CS_PLAYERSKINS + ent.number - 1;
-	if (Globals.cl.configstrings[n] != null) {
-	    int p = Globals.cl.configstrings[n].indexOf('\\');
+	if (ClientGlobals.cl.configstrings[n] != null) {
+	    int p = ClientGlobals.cl.configstrings[n].indexOf('\\');
 	    if (p >= 0) {
 		p++;
-		model = Globals.cl.configstrings[n].substring(p);
+		model = ClientGlobals.cl.configstrings[n].substring(p);
 		//strcpy(model, p);
 		p = model.indexOf('/');
 		if (p > 0)
@@ -434,7 +435,7 @@ public final class LWJGLSoundImpl implements Sound {
 	    Com.Printf("S_StartLocalSound: can't cache " + sound + "\n");
 	    return;
 	}
-	StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1, 1, 0);		
+	StartSound(null, ClientGlobals.cl.playernum + 1, 0, sfx, 1, 1, 0);
     }
 
     private ShortBuffer streamBuffer = sfxDataBuffer.slice().order(ByteOrder.BIG_ENDIAN).asShortBuffer();
@@ -492,7 +493,7 @@ public final class LWJGLSoundImpl implements Sound {
 				name += ".wav";
 
 			sfx_t sfx = RegisterSound(name);
-			StartSound(null, Globals.cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
+			StartSound(null, ClientGlobals.cl.playernum + 1, 0, sfx, 1.0f, 1.0f, 0.0f);
 			i++;
 		}
 	}

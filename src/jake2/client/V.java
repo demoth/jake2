@@ -92,8 +92,8 @@ public final class V extends Globals {
     	if ((ent.flags & Defines.RF_VIEWERMODEL) != 0) { //here is our client
     		int i;
     		for (i=0;i < 3;i++)
-    			ent.oldorigin[i] = ent.origin[i] = cl.predicted_origin[i];
-    		if (cl_3rd.value == 1)
+    			ent.oldorigin[i] = ent.origin[i] = ClientGlobals.cl.predicted_origin[i];
+    		if (ClientGlobals.cl_3rd.value == 1)
     			ent.flags &=~ Defines.RF_VIEWERMODEL;
     	}
     	        
@@ -181,8 +181,8 @@ public final class V extends Globals {
             u = 4 * (((i >> 3) & 7) - 3.5f);
 
             for (j = 0; j < 3; j++)
-                origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * d
-                        + cl.v_right[j] * r + cl.v_up[j] * u;
+                origin[j] = ClientGlobals.cl.refdef.vieworg[j] + ClientGlobals.cl.v_forward[j] * d
+                        + ClientGlobals.cl.v_right[j] * r + ClientGlobals.cl.v_up[j] * u;
 
             AddParticle(origin, 8, cl_testparticles.value);
         }
@@ -212,11 +212,11 @@ public final class V extends Globals {
             f = 64 * (i / 4) + 128;
 
             for (j = 0; j < 3; j++)
-                ent.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f
-                        + cl.v_right[j] * r;
+                ent.origin[j] = ClientGlobals.cl.refdef.vieworg[j] + ClientGlobals.cl.v_forward[j] * f
+                        + ClientGlobals.cl.v_right[j] * r;
 
-            ent.model = cl.baseclientinfo.model;
-            ent.skin = cl.baseclientinfo.skin;
+            ent.model = ClientGlobals.cl.baseclientinfo.model;
+            ent.skin = ClientGlobals.cl.baseclientinfo.skin;
         }
     }
 
@@ -244,8 +244,8 @@ public final class V extends Globals {
             f = 64 * (i / 4) + 128;
 
             for (j = 0; j < 3; j++)
-                dl.origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f
-                        + cl.v_right[j] * r;
+                dl.origin[j] = ClientGlobals.cl.refdef.vieworg[j] + ClientGlobals.cl.v_forward[j] * f
+                        + ClientGlobals.cl.v_right[j] * r;
             dl.color[0] = ((i % 6) + 1) & 1;
             dl.color[1] = (((i % 6) + 1) & 2) >> 1;
             dl.color[2] = (((i % 6) + 1) & 4) >> 2;
@@ -254,24 +254,24 @@ public final class V extends Globals {
     }
 
     private static Command Gun_Next_f = (List<String> args) -> {
-        gun_frame++;
-        Com.Printf("frame " + gun_frame + "\n");
+        ClientGlobals.gun_frame++;
+        Com.Printf("frame " + ClientGlobals.gun_frame + "\n");
     };
 
     private static Command Gun_Prev_f = (List<String> args) -> {
-        gun_frame--;
-        if (gun_frame < 0)
-            gun_frame = 0;
-        Com.Printf("frame " + gun_frame + "\n");
+        ClientGlobals.gun_frame--;
+        if (ClientGlobals.gun_frame < 0)
+            ClientGlobals.gun_frame = 0;
+        Com.Printf("frame " + ClientGlobals.gun_frame + "\n");
     };
 
     private static Command Gun_Model_f = (List<String> args) -> {
         if (args.size() != 2) {
-            gun_model = null;
+            ClientGlobals.gun_model = null;
             return;
         }
         String name = "models/" + args.get(1) + "/tris.md2";
-        gun_model = re.RegisterModel(name);
+        ClientGlobals.gun_model = re.RegisterModel(name);
     };
 
     /*
@@ -286,19 +286,19 @@ public final class V extends Globals {
         if (cls.state != ca_active)
             return;
 
-        if (!cl.refresh_prepped)
+        if (!ClientGlobals.cl.refresh_prepped)
             return; // still loading
 
-        if (cl_timedemo.value != 0.0f) {
-            if (cl.timedemo_start == 0)
-                cl.timedemo_start = Timer.Milliseconds();
-            cl.timedemo_frames++;
+        if (ClientGlobals.cl_timedemo.value != 0.0f) {
+            if (ClientGlobals.cl.timedemo_start == 0)
+                ClientGlobals.cl.timedemo_start = Timer.Milliseconds();
+            ClientGlobals.cl.timedemo_frames++;
         }
 
         // an invalid frame will just use the exact previous refdef
         // we can't use the old frame if the video mode has changed, though...
-        if (cl.frame.valid && (cl.force_refdef || cl_paused.value == 0.0f)) {
-            cl.force_refdef = false;
+        if (ClientGlobals.cl.frame.valid && (ClientGlobals.cl.force_refdef || ClientGlobals.cl_paused.value == 0.0f)) {
+            ClientGlobals.cl.force_refdef = false;
 
             V.ClearScene();
 
@@ -314,18 +314,18 @@ public final class V extends Globals {
             if (cl_testlights.value != 0.0f)
                 TestLights();
             if (cl_testblend.value != 0.0f) {
-                cl.refdef.blend[0] = 1.0f;
-                cl.refdef.blend[1] = 0.5f;
-                cl.refdef.blend[2] = 0.25f;
-                cl.refdef.blend[3] = 0.5f;
+                ClientGlobals.cl.refdef.blend[0] = 1.0f;
+                ClientGlobals.cl.refdef.blend[1] = 0.5f;
+                ClientGlobals.cl.refdef.blend[2] = 0.25f;
+                ClientGlobals.cl.refdef.blend[3] = 0.5f;
             }
 
             // offset vieworg appropriately if we're doing stereo separation
             if (stereo_separation != 0) {
                 float[] tmp = new float[3];
 
-                Math3D.VectorScale(cl.v_right, stereo_separation, tmp);
-                Math3D.VectorAdd(cl.refdef.vieworg, tmp, cl.refdef.vieworg);
+                Math3D.VectorScale(ClientGlobals.cl.v_right, stereo_separation, tmp);
+                Math3D.VectorAdd(ClientGlobals.cl.refdef.vieworg, tmp, ClientGlobals.cl.refdef.vieworg);
             }
 
             // never let it sit exactly on a node line, because a water plane
@@ -333,71 +333,71 @@ public final class V extends Globals {
             // dissapear when viewed with the eye exactly on it.
             // the server protocol only specifies to 1/8 pixel, so add 1/16 in
             // each axis
-            cl.refdef.vieworg[0] += 1.0 / 16;
-            cl.refdef.vieworg[1] += 1.0 / 16;
-            cl.refdef.vieworg[2] += 1.0 / 16;
+            ClientGlobals.cl.refdef.vieworg[0] += 1.0 / 16;
+            ClientGlobals.cl.refdef.vieworg[1] += 1.0 / 16;
+            ClientGlobals.cl.refdef.vieworg[2] += 1.0 / 16;
 
-            cl.refdef.x = scr_vrect.x;
-            cl.refdef.y = scr_vrect.y;
-            cl.refdef.width = scr_vrect.width;
-            cl.refdef.height = scr_vrect.height;
-            cl.refdef.fov_y = Math3D.CalcFov(cl.refdef.fov_x, cl.refdef.width,
-                    cl.refdef.height);
-            cl.refdef.time = cl.time * 0.001f;
+            ClientGlobals.cl.refdef.x = ClientGlobals.scr_vrect.x;
+            ClientGlobals.cl.refdef.y = ClientGlobals.scr_vrect.y;
+            ClientGlobals.cl.refdef.width = ClientGlobals.scr_vrect.width;
+            ClientGlobals.cl.refdef.height = ClientGlobals.scr_vrect.height;
+            ClientGlobals.cl.refdef.fov_y = Math3D.CalcFov(ClientGlobals.cl.refdef.fov_x, ClientGlobals.cl.refdef.width,
+                    ClientGlobals.cl.refdef.height);
+            ClientGlobals.cl.refdef.time = ClientGlobals.cl.time * 0.001f;
 
-            cl.refdef.areabits = cl.frame.areabits;
+            ClientGlobals.cl.refdef.areabits = ClientGlobals.cl.frame.areabits;
             
             // CDawg hud map 
-            Math3D.VectorCopy (cl.refdef.viewangles, cl.mapdef.viewangles); 
-            Math3D.VectorCopy (cl.refdef.vieworg, cl.mapdef.vieworg); 
-            cl.mapdef.vieworg[0] += 1.0/16; 
-            cl.mapdef.vieworg[1] += 1.0/16; 
-            cl.mapdef.vieworg[2] += 1.0/16; 
-            cl.mapdef.x = (int) (scr_vrect.x + viddef.getWidth() - (((viddef.getWidth() - (viddef.getWidth() * .80))/2) + (viddef.getWidth() * .80))); // sfranzyshen 
-            cl.mapdef.y = (int) (scr_vrect.y + ((viddef.getHeight() - (viddef.getHeight() * .80))/2)); // sfranzyshen 
-            cl.mapdef.width = (int) (viddef.getWidth() * .80); // sfranzyshen 
-            cl.mapdef.height = (int) (viddef.getHeight() * .80); // sfranzyshen 
-            cl.mapdef.map_zoom = (int) Globals.cl_map_zoom.value; 
-            cl.mapdef.vieworg[2] += cl.mapdef.map_zoom; 
-            cl.mapdef.blend[3] = 0.5f; //alpha black background 
-            cl.mapdef.fov_y = Math3D.CalcFov (cl.refdef.fov_x, cl.refdef.width, cl.refdef.height); 
-            cl.mapdef.time = (float) (cl.time *0.001); 
-            cl.mapdef.viewangles[PITCH] = 90; //look down obviously ;) 
-            cl.mapdef.areabits = cl.frame.areabits; 
-            cl.mapdef.lightstyles = r_lightstyles; 
+            Math3D.VectorCopy (ClientGlobals.cl.refdef.viewangles, ClientGlobals.cl.mapdef.viewangles);
+            Math3D.VectorCopy (ClientGlobals.cl.refdef.vieworg, ClientGlobals.cl.mapdef.vieworg);
+            ClientGlobals.cl.mapdef.vieworg[0] += 1.0/16;
+            ClientGlobals.cl.mapdef.vieworg[1] += 1.0/16;
+            ClientGlobals.cl.mapdef.vieworg[2] += 1.0/16;
+            ClientGlobals.cl.mapdef.x = (int) (ClientGlobals.scr_vrect.x + ClientGlobals.viddef.getWidth() - (((ClientGlobals.viddef.getWidth() - (ClientGlobals.viddef.getWidth() * .80))/2) + (ClientGlobals.viddef.getWidth() * .80))); // sfranzyshen
+            ClientGlobals.cl.mapdef.y = (int) (ClientGlobals.scr_vrect.y + ((ClientGlobals.viddef.getHeight() - (ClientGlobals.viddef.getHeight() * .80))/2)); // sfranzyshen
+            ClientGlobals.cl.mapdef.width = (int) (ClientGlobals.viddef.getWidth() * .80); // sfranzyshen
+            ClientGlobals.cl.mapdef.height = (int) (ClientGlobals.viddef.getHeight() * .80); // sfranzyshen
+            ClientGlobals.cl.mapdef.map_zoom = (int) ClientGlobals.cl_map_zoom.value;
+            ClientGlobals.cl.mapdef.vieworg[2] += ClientGlobals.cl.mapdef.map_zoom;
+            ClientGlobals.cl.mapdef.blend[3] = 0.5f; //alpha black background
+            ClientGlobals.cl.mapdef.fov_y = Math3D.CalcFov (ClientGlobals.cl.refdef.fov_x, ClientGlobals.cl.refdef.width, ClientGlobals.cl.refdef.height);
+            ClientGlobals.cl.mapdef.time = (float) (ClientGlobals.cl.time *0.001);
+            ClientGlobals.cl.mapdef.viewangles[PITCH] = 90; //look down obviously ;)
+            ClientGlobals.cl.mapdef.areabits = ClientGlobals.cl.frame.areabits;
+            ClientGlobals.cl.mapdef.lightstyles = r_lightstyles;
             // CDawg hud map 
 
-            if (cl_add_entities.value == 0.0f)
+            if (ClientGlobals.cl_add_entities.value == 0.0f)
                 r_numentities = 0;
-            if (cl_add_particles.value == 0.0f)
+            if (ClientGlobals.cl_add_particles.value == 0.0f)
                 r_numparticles = 0;
-            if (cl_add_lights.value == 0.0f)
+            if (ClientGlobals.cl_add_lights.value == 0.0f)
                 r_numdlights = 0;
-            if (cl_add_blend.value == 0) {
-                Math3D.VectorClear(cl.refdef.blend);
+            if (ClientGlobals.cl_add_blend.value == 0) {
+                Math3D.VectorClear(ClientGlobals.cl.refdef.blend);
             }
 
-            cl.refdef.num_entities = r_numentities;
-            cl.refdef.entities = r_entities;
-            cl.refdef.num_particles = r_numparticles;
-            cl.refdef.num_dlights = r_numdlights;
-            cl.refdef.dlights = r_dlights;
-            cl.refdef.lightstyles = r_lightstyles;
+            ClientGlobals.cl.refdef.num_entities = r_numentities;
+            ClientGlobals.cl.refdef.entities = r_entities;
+            ClientGlobals.cl.refdef.num_particles = r_numparticles;
+            ClientGlobals.cl.refdef.num_dlights = r_numdlights;
+            ClientGlobals.cl.refdef.dlights = r_dlights;
+            ClientGlobals.cl.refdef.lightstyles = r_lightstyles;
 
-            cl.refdef.rdflags = cl.frame.playerstate.rdflags;
+            ClientGlobals.cl.refdef.rdflags = ClientGlobals.cl.frame.playerstate.rdflags;
 
             // sort entities for better cache locality
             // !!! useless in Java !!!
             //Arrays.sort(cl.refdef.entities, entitycmpfnc);
         }
 
-        re.RenderFrame(cl.refdef);
+        re.RenderFrame(ClientGlobals.cl.refdef);
         
         // CDawg 
-        cl.mapdef.map_view = (int) Globals.cl_map.value; 
+        ClientGlobals.cl.mapdef.map_view = (int) ClientGlobals.cl_map.value;
         
-        if (Globals.cl.mapdef.map_view != 0) 
-        	re.RenderFrame (cl.mapdef); 
+        if (ClientGlobals.cl.mapdef.map_view != 0)
+        	re.RenderFrame (ClientGlobals.cl.mapdef);
         
         // CDawg 
         
@@ -411,9 +411,9 @@ public final class V extends Globals {
             } catch (IOException e) {
             }
 
-        SCR.AddDirtyPoint(scr_vrect.x, scr_vrect.y);
-        SCR.AddDirtyPoint(scr_vrect.x + scr_vrect.width - 1, scr_vrect.y
-                + scr_vrect.height - 1);
+        SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x, ClientGlobals.scr_vrect.y);
+        SCR.AddDirtyPoint(ClientGlobals.scr_vrect.x + ClientGlobals.scr_vrect.width - 1, ClientGlobals.scr_vrect.y
+                + ClientGlobals.scr_vrect.height - 1);
 
         SCR.DrawCrosshair();
     }
@@ -422,9 +422,9 @@ public final class V extends Globals {
      * ============= V_Viewpos_f =============
      */
     private static Command Viewpos_f = (List<String> args) -> Com.Printf("(%i %i %i) : %i\n", new Vargs(4).add(
-            (int) cl.refdef.vieworg[0]).add((int) cl.refdef.vieworg[1])
-            .add((int) cl.refdef.vieworg[2]).add(
-                    (int) cl.refdef.viewangles[YAW]));
+            (int) ClientGlobals.cl.refdef.vieworg[0]).add((int) ClientGlobals.cl.refdef.vieworg[1])
+            .add((int) ClientGlobals.cl.refdef.vieworg[2]).add(
+                    (int) ClientGlobals.cl.refdef.viewangles[YAW]));
 
     public static void Init() {
         Cmd.AddCommand("gun_next", Gun_Next_f);
@@ -433,7 +433,7 @@ public final class V extends Globals {
 
         Cmd.AddCommand("viewpos", Viewpos_f);
 
-        crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
+        ClientGlobals.crosshair = Cvar.Get("crosshair", "0", CVAR_ARCHIVE);
 
         cl_testblend = Cvar.Get("cl_testblend", "0", 0);
         cl_testparticles = Cvar.Get("cl_testparticles", "0", 0);

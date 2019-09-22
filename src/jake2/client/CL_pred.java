@@ -43,8 +43,8 @@ public class CL_pred {
         int i;
         int len;
 
-        if (Globals.cl_predict.value == 0.0f
-                || (Globals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0)
+        if (ClientGlobals.cl_predict.value == 0.0f
+                || (ClientGlobals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0)
             return;
 
         // calculate the last usercmd_t we sent that the server has processed
@@ -52,26 +52,26 @@ public class CL_pred {
         frame &= (Defines.CMD_BACKUP - 1);
 
         // compare what the server returned with what we had predicted it to be
-        Math3D.VectorSubtract(Globals.cl.frame.playerstate.pmove.origin,
-                Globals.cl.predicted_origins[frame], delta);
+        Math3D.VectorSubtract(ClientGlobals.cl.frame.playerstate.pmove.origin,
+                ClientGlobals.cl.predicted_origins[frame], delta);
 
         // save the prediction error for interpolation
         len = Math.abs(delta[0]) + Math.abs(delta[1]) + Math.abs(delta[2]);
         if (len > 640) // 80 world units
         { // a teleport or something
-            Math3D.VectorClear(Globals.cl.prediction_error);
+            Math3D.VectorClear(ClientGlobals.cl.prediction_error);
         } else {
-            if (Globals.cl_showmiss.value != 0.0f
+            if (ClientGlobals.cl_showmiss.value != 0.0f
                     && (delta[0] != 0 || delta[1] != 0 || delta[2] != 0))
-                Com.Printf("prediction miss on " + Globals.cl.frame.serverframe
+                Com.Printf("prediction miss on " + ClientGlobals.cl.frame.serverframe
                         + ": " + (delta[0] + delta[1] + delta[2]) + "\n");
 
-            Math3D.VectorCopy(Globals.cl.frame.playerstate.pmove.origin,
-                    Globals.cl.predicted_origins[frame]);
+            Math3D.VectorCopy(ClientGlobals.cl.frame.playerstate.pmove.origin,
+                    ClientGlobals.cl.predicted_origins[frame]);
 
             // save for error itnerpolation
             for (i = 0; i < 3; i++)
-                Globals.cl.prediction_error[i] = delta[i] * 0.125f;
+                ClientGlobals.cl.prediction_error[i] = delta[i] * 0.125f;
         }
     }
 
@@ -92,19 +92,19 @@ public class CL_pred {
         float[] bmins = new float[3];
         float[] bmaxs = new float[3];
 
-        for (i = 0; i < Globals.cl.frame.num_entities; i++) {
-            num = (Globals.cl.frame.parse_entities + i)
+        for (i = 0; i < ClientGlobals.cl.frame.num_entities; i++) {
+            num = (ClientGlobals.cl.frame.parse_entities + i)
                     & (Defines.MAX_PARSE_ENTITIES - 1);
-            ent = Globals.cl_parse_entities[num];
+            ent = ClientGlobals.cl_parse_entities[num];
 
             if (ent.solid == 0)
                 continue;
 
-            if (ent.number == Globals.cl.playernum + 1)
+            if (ent.number == ClientGlobals.cl.playernum + 1)
                 continue;
 
             if (ent.solid == 31) { // special value for bmodel
-                cmodel = Globals.cl.model_clip[ent.modelindex];
+                cmodel = ClientGlobals.cl.model_clip[ent.modelindex];
                 if (cmodel == null)
                     continue;
                 headnode = cmodel.headnode;
@@ -181,15 +181,15 @@ public class CL_pred {
 
         contents = CM.PointContents(point, 0);
 
-        for (i = 0; i < Globals.cl.frame.num_entities; i++) {
-            num = (Globals.cl.frame.parse_entities + i)
+        for (i = 0; i < ClientGlobals.cl.frame.num_entities; i++) {
+            num = (ClientGlobals.cl.frame.parse_entities + i)
                     & (Defines.MAX_PARSE_ENTITIES - 1);
-            ent = Globals.cl_parse_entities[num];
+            ent = ClientGlobals.cl_parse_entities[num];
 
             if (ent.solid != 31) // special value for bmodel
                 continue;
 
-            cmodel = Globals.cl.model_clip[ent.modelindex];
+            cmodel = ClientGlobals.cl.model_clip[ent.modelindex];
             if (cmodel == null)
                 continue;
 
@@ -209,16 +209,16 @@ public class CL_pred {
         if (Globals.cls.state != Defines.ca_active)
             return;
 
-        if (Globals.cl_paused.value != 0.0f)
+        if (ClientGlobals.cl_paused.value != 0.0f)
             return;
 
-        if (Globals.cl_predict.value == 0.0f
-                || (Globals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0) {
+        if (ClientGlobals.cl_predict.value == 0.0f
+                || (ClientGlobals.cl.frame.playerstate.pmove.pm_flags & Defines.PMF_NO_PREDICTION) != 0) {
             // just set angles
             for (int i = 0; i < 3; i++) {
-                Globals.cl.predicted_angles[i] = Globals.cl.viewangles[i]
+                ClientGlobals.cl.predicted_angles[i] = ClientGlobals.cl.viewangles[i]
                         + Math3D
-                                .SHORT2ANGLE(Globals.cl.frame.playerstate.pmove.delta_angles[i]);
+                                .SHORT2ANGLE(ClientGlobals.cl.frame.playerstate.pmove.delta_angles[i]);
             }
             return;
         }
@@ -228,7 +228,7 @@ public class CL_pred {
 
         // if we are too far out of date, just freeze
         if (current - ack >= Defines.CMD_BACKUP) {
-            if (Globals.cl_showmiss.value != 0.0f)
+            if (ClientGlobals.cl_showmiss.value != 0.0f)
                 Com.Printf("exceeded CMD_BACKUP\n");
             return;
         }
@@ -245,11 +245,11 @@ public class CL_pred {
         };
         pm.pointcontents = CL_pred::PMpointcontents;
 
-        PMove.pm_airaccelerate = Lib.atof(Globals.cl.configstrings[Defines.CS_AIRACCEL]);
+        PMove.pm_airaccelerate = Lib.atof(ClientGlobals.cl.configstrings[Defines.CS_AIRACCEL]);
 
         // bugfix (rst) yeah !!!!!!!! found the solution to the B E W E G U N G
         // S P R O B L E M.
-        pm.s.set(Globals.cl.frame.playerstate.pmove);
+        pm.s.set(ClientGlobals.cl.frame.playerstate.pmove);
 
         // SCR_DebugGraph (current - ack - 1, 0);
         int frame = 0;
@@ -258,30 +258,30 @@ public class CL_pred {
         usercmd_t cmd;
         while (++ack < current) {
             frame = ack & (Defines.CMD_BACKUP - 1);
-            cmd = Globals.cl.cmds[frame];
+            cmd = ClientGlobals.cl.cmds[frame];
 
             pm.cmd.set(cmd);
 
             PMove.Pmove(pm);
 
             // save for debug checking
-            Math3D.VectorCopy(pm.s.origin, Globals.cl.predicted_origins[frame]);
+            Math3D.VectorCopy(pm.s.origin, ClientGlobals.cl.predicted_origins[frame]);
         }
 
         int oldframe = (ack - 2) & (Defines.CMD_BACKUP - 1);
-        int oldz = Globals.cl.predicted_origins[oldframe][2];
+        int oldz = ClientGlobals.cl.predicted_origins[oldframe][2];
         int step = pm.s.origin[2] - oldz;
         if (step > 63 && step < 160
                 && (pm.s.pm_flags & Defines.PMF_ON_GROUND) != 0) {
-            Globals.cl.predicted_step = step * 0.125f;
-            Globals.cl.predicted_step_time = (int) (Globals.cls.realtime - Globals.cls.frametime * 500);
+            ClientGlobals.cl.predicted_step = step * 0.125f;
+            ClientGlobals.cl.predicted_step_time = (int) (Globals.cls.realtime - Globals.cls.frametime * 500);
         }
 
         // copy results out for rendering
-        Globals.cl.predicted_origin[0] = pm.s.origin[0] * 0.125f;
-        Globals.cl.predicted_origin[1] = pm.s.origin[1] * 0.125f;
-        Globals.cl.predicted_origin[2] = pm.s.origin[2] * 0.125f;
+        ClientGlobals.cl.predicted_origin[0] = pm.s.origin[0] * 0.125f;
+        ClientGlobals.cl.predicted_origin[1] = pm.s.origin[1] * 0.125f;
+        ClientGlobals.cl.predicted_origin[2] = pm.s.origin[2] * 0.125f;
 
-        Math3D.VectorCopy(pm.viewangles, Globals.cl.predicted_angles);
+        Math3D.VectorCopy(pm.viewangles, ClientGlobals.cl.predicted_angles);
     }
 }

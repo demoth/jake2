@@ -23,10 +23,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  
  */
-package jake2.client.render;
+package jake2.client;
 
 import jake2.Jake2;
-import jake2.client.*;
+import jake2.client.render.Renderer;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
@@ -109,7 +109,7 @@ public class TestRenderer {
     
     void updateScreen() {
         re.BeginFrame(0.0f);
-        viddef = Globals.viddef;
+        viddef = ClientGlobals.viddef;
         re.DrawStretchPic(0, 0, viddef.getWidth(), viddef.getHeight(), "conback");
         
         if (framecount % 500 == 0) {

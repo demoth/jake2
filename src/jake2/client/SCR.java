@@ -173,10 +173,10 @@ public final class SCR extends Globals {
 
         // draw the graph
 
-        w = scr_vrect.width;
+        w = ClientGlobals.scr_vrect.width;
 
-        x = scr_vrect.x;
-        y = scr_vrect.y + scr_vrect.height;
+        x = ClientGlobals.scr_vrect.x;
+        y = ClientGlobals.scr_vrect.y + ClientGlobals.scr_vrect.height;
         re.DrawFill(x, (int) (y - scr_graphheight.value), w,
                 (int) scr_graphheight.value, 8);
 
@@ -228,7 +228,7 @@ public final class SCR extends Globals {
         //strncpy (scr_centerstring, str, sizeof(scr_centerstring)-1);
         scr_centerstring = str;
         scr_centertime_off = scr_centertime.value;
-        scr_centertime_start = cl.time;
+        scr_centertime_start = ClientGlobals.cl.time;
 
         // count the number of lines for centering
         scr_center_lines = 1;
@@ -296,7 +296,7 @@ public final class SCR extends Globals {
         start = 0;
 
         if (scr_center_lines <= 4)
-            y = (int) (viddef.getHeight() * 0.35);
+            y = (int) (ClientGlobals.viddef.getHeight() * 0.35);
         else
             y = 48;
 
@@ -306,7 +306,7 @@ public final class SCR extends Globals {
                 if (start + l == cs.length() - 1
                         || cs.charAt(start + l) == '\n')
                     break;
-            x = (viddef.getWidth() - l * 8) / 2;
+            x = (ClientGlobals.viddef.getWidth() - l * 8) / 2;
             SCR.AddDirtyPoint(x, y);
             for (j = 0; j < l; j++, x += 8) {
                 re.DrawChar(x, y, cs.charAt(start + j));
@@ -354,14 +354,14 @@ public final class SCR extends Globals {
 
         size = (int) scr_viewsize.value;
 
-        scr_vrect.width = viddef.getWidth() * size / 100;
-        scr_vrect.width &= ~7;
+        ClientGlobals.scr_vrect.width = ClientGlobals.viddef.getWidth() * size / 100;
+        ClientGlobals.scr_vrect.width &= ~7;
 
-        scr_vrect.height = viddef.getHeight() * size / 100;
-        scr_vrect.height &= ~1;
+        ClientGlobals.scr_vrect.height = ClientGlobals.viddef.getHeight() * size / 100;
+        ClientGlobals.scr_vrect.height &= ~1;
 
-        scr_vrect.x = (viddef.getWidth() - scr_vrect.width) / 2;
-        scr_vrect.y = (viddef.getHeight() - scr_vrect.height) / 2;
+        ClientGlobals.scr_vrect.x = (ClientGlobals.viddef.getWidth() - ClientGlobals.scr_vrect.width) / 2;
+        ClientGlobals.scr_vrect.y = (ClientGlobals.viddef.getHeight() - ClientGlobals.scr_vrect.height) / 2;
     }
 
     /*
@@ -452,7 +452,7 @@ public final class SCR extends Globals {
         if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
             return;
 
-        re.DrawPic(scr_vrect.x + 64, scr_vrect.y, "net");
+        re.DrawPic(ClientGlobals.scr_vrect.x + 64, ClientGlobals.scr_vrect.y, "net");
     }
 
     /*
@@ -464,11 +464,11 @@ public final class SCR extends Globals {
         if (scr_showpause.value == 0) // turn off for screenshots
             return;
 
-        if (cl_paused.value == 0)
+        if (ClientGlobals.cl_paused.value == 0)
             return;
 
         re.DrawGetPicSize(dim, "pause");
-        re.DrawPic((viddef.getWidth() - dim.width) / 2, viddef.getHeight() / 2 + 8,
+        re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2, ClientGlobals.viddef.getHeight() / 2 + 8,
                 "pause");
     }
 
@@ -483,8 +483,8 @@ public final class SCR extends Globals {
 
         scr_draw_loading = 0;
         re.DrawGetPicSize(dim, "loading");
-        re.DrawPic((viddef.getWidth() - dim.width) / 2,
-                (viddef.getHeight() - dim.height) / 2, "loading");
+        re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
+                (ClientGlobals.viddef.getHeight() - dim.height) / 2, "loading");
     }
 
     // =============================================================================
@@ -527,10 +527,10 @@ public final class SCR extends Globals {
             return;
         }
 
-        if (cls.state != ca_active || !cl.refresh_prepped) { // connected, but
+        if (cls.state != ca_active || !ClientGlobals.cl.refresh_prepped) { // connected, but
                                                              // can't render
             Console.DrawConsole(0.5f);
-            re.DrawFill(0, viddef.getHeight() / 2, viddef.getWidth(), viddef.getHeight() / 2,
+            re.DrawFill(0, ClientGlobals.viddef.getHeight() / 2, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight() / 2,
                     0);
             return;
         }
@@ -550,7 +550,7 @@ public final class SCR extends Globals {
      */
     public static void BeginLoadingPlaque() {
         S.StopAllSounds();
-        cl.sound_prepped = false; // don't play ambients
+        ClientGlobals.cl.sound_prepped = false; // don't play ambients
 
         CDAudio.Stop ();
 
@@ -562,14 +562,14 @@ public final class SCR extends Globals {
             return; // if at console, don't bring up the plaque
         if (cls.key_dest == key_console)
             return;
-        if (cl.cinematictime > 0)
+        if (ClientGlobals.cl.cinematictime > 0)
             scr_draw_loading = 2; // clear to balack first
         else
             scr_draw_loading = 1;
 
         UpdateScreen();
         cls.disable_screen = Timer.Milliseconds();
-        cls.disable_servercount = cl.servercount;
+        cls.disable_servercount = ClientGlobals.cl.servercount;
     }
 
     /*
@@ -603,16 +603,16 @@ public final class SCR extends Globals {
         if (args.size() == 2) { // run without page flipping
             re.BeginFrame(0);
             for (i = 0; i < 128; i++) {
-                cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
-                re.RenderFrame(cl.refdef);
+                ClientGlobals.cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+                re.RenderFrame(ClientGlobals.cl.refdef);
             }
             re.EndFrame();
         } else {
             for (i = 0; i < 128; i++) {
-                cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
+                ClientGlobals.cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
 
                 re.BeginFrame(0);
-                re.RenderFrame(cl.refdef);
+                re.RenderFrame(ClientGlobals.cl.refdef);
                 re.EndFrame();
             }
         }
@@ -625,7 +625,7 @@ public final class SCR extends Globals {
 
     static void DirtyScreen() {
         AddDirtyPoint(0, 0);
-        AddDirtyPoint(viddef.getWidth() - 1, viddef.getHeight() - 1);
+        AddDirtyPoint(ClientGlobals.viddef.getWidth() - 1, ClientGlobals.viddef.getHeight() - 1);
     }
 
     /*
@@ -649,7 +649,7 @@ public final class SCR extends Globals {
             return; // full screen console
         if (scr_viewsize.value == 100)
             return; // full screen rendering
-        if (cl.cinematictime > 0)
+        if (ClientGlobals.cl.cinematictime > 0)
             return; // full screen cinematic
 
         // erase rect will be the union of the past three frames
@@ -675,17 +675,17 @@ public final class SCR extends Globals {
         scr_dirty.y2 = -9999;
 
         // don't bother with anything convered by the console)
-        top = (int) (scr_con_current * viddef.getHeight());
+        top = (int) (scr_con_current * ClientGlobals.viddef.getHeight());
         if (top >= clear.y1)
             clear.y1 = top;
 
         if (clear.y2 <= clear.y1)
             return; // nothing disturbed
 
-        top = scr_vrect.y;
-        bottom = top + scr_vrect.height - 1;
-        left = scr_vrect.x;
-        right = left + scr_vrect.width - 1;
+        top = ClientGlobals.scr_vrect.y;
+        bottom = top + ClientGlobals.scr_vrect.height - 1;
+        left = ClientGlobals.scr_vrect.x;
+        right = left + ClientGlobals.scr_vrect.width - 1;
 
         if (clear.y1 < top) { // clear above view screen
             i = clear.y2 < top - 1 ? clear.y2 : top - 1;
@@ -838,11 +838,11 @@ public final class SCR extends Globals {
             for (j = 0; j < 11; j++)
                 re.RegisterPic(sb_nums[i][j]);
 
-        if (crosshair.value != 0.0f) {
-            if (crosshair.value > 3.0f || crosshair.value < 0.0f)
-                crosshair.value = 3.0f;
+        if (ClientGlobals.crosshair.value != 0.0f) {
+            if (ClientGlobals.crosshair.value > 3.0f || ClientGlobals.crosshair.value < 0.0f)
+                ClientGlobals.crosshair.value = 3.0f;
 
-            crosshair_pic = "ch" + (int) crosshair.value;
+            crosshair_pic = "ch" + (int) ClientGlobals.crosshair.value;
             Dimension dim = new Dimension();
             re.DrawGetPicSize(dim, crosshair_pic);
             crosshair_width = dim.width;
@@ -860,7 +860,7 @@ public final class SCR extends Globals {
      */
     private static void ExecuteLayoutString(String s) {
 
-        if (cls.state != ca_active || !cl.refresh_prepped)
+        if (cls.state != ca_active || !ClientGlobals.cl.refresh_prepped)
             return;
 
         if (s == null || s.length() == 0)
@@ -883,12 +883,12 @@ public final class SCR extends Globals {
             }
             if (parser.tokenEquals("xr")) {
                 parser.next();
-                x = viddef.getWidth() + parser.tokenAsInt();
+                x = ClientGlobals.viddef.getWidth() + parser.tokenAsInt();
                 continue;
             }
             if (parser.tokenEquals("xv")) {
                 parser.next();
-                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
+                x = ClientGlobals.viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 continue;
             }
 
@@ -899,24 +899,24 @@ public final class SCR extends Globals {
             }
             if (parser.tokenEquals("yb")) {
                 parser.next();
-                y = viddef.getHeight() + parser.tokenAsInt();
+                y = ClientGlobals.viddef.getHeight() + parser.tokenAsInt();
                 continue;
             }
             if (parser.tokenEquals("yv")) {
                 parser.next();
-                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
+                y = ClientGlobals.viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 continue;
             }
 
             if (parser.tokenEquals("pic")) { // draw a pic from a stat number
                 parser.next();
-                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
+                value = ClientGlobals.cl.frame.playerstate.stats[parser.tokenAsInt()];
                 if (value >= MAX_IMAGES)
                     Com.Error(ERR_DROP, "Pic >= MAX_IMAGES");
-                if (cl.configstrings[CS_IMAGES + value] != null) {
+                if (ClientGlobals.cl.configstrings[CS_IMAGES + value] != null) {
                     AddDirtyPoint(x, y);
                     AddDirtyPoint(x + 23, y + 23);
-                    re.DrawPic(x, y, cl.configstrings[CS_IMAGES + value]);
+                    re.DrawPic(x, y, ClientGlobals.cl.configstrings[CS_IMAGES + value]);
                 }
                 continue;
             }
@@ -925,9 +925,9 @@ public final class SCR extends Globals {
                 int score, ping, time;
 
                 parser.next();
-                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
+                x = ClientGlobals.viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 parser.next();
-                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
+                y = ClientGlobals.viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
@@ -935,7 +935,7 @@ public final class SCR extends Globals {
                 value = parser.tokenAsInt();
                 if (value >= MAX_CLIENTS || value < 0)
                     Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-                clientinfo_t ci = cl.clientinfo[value];
+                clientinfo_t ci = ClientGlobals.cl.clientinfo[value];
 
                 parser.next();
                 score = parser.tokenAsInt();
@@ -953,7 +953,7 @@ public final class SCR extends Globals {
                 Console.DrawString(x + 32, y + 24, "Time:  " + time);
 
                 if (ci.icon == null)
-                    ci = cl.baseclientinfo;
+                    ci = ClientGlobals.cl.baseclientinfo;
                 re.DrawPic(x, y, ci.iconname);
                 continue;
             }
@@ -962,9 +962,9 @@ public final class SCR extends Globals {
                 int score, ping;
 
                 parser.next();
-                x = viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
+                x = ClientGlobals.viddef.getWidth() / 2 - 160 + parser.tokenAsInt();
                 parser.next();
-                y = viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
+                y = ClientGlobals.viddef.getHeight() / 2 - 120 + parser.tokenAsInt();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 159, y + 31);
 
@@ -972,7 +972,7 @@ public final class SCR extends Globals {
                 value = parser.tokenAsInt();
                 if (value >= MAX_CLIENTS || value < 0)
                     Com.Error(ERR_DROP, "client >= MAX_CLIENTS");
-                clientinfo_t ci = cl.clientinfo[value];
+                clientinfo_t ci = ClientGlobals.cl.clientinfo[value];
 
                 parser.next();
                 score = parser.tokenAsInt();
@@ -986,7 +986,7 @@ public final class SCR extends Globals {
                 String block = Com.sprintf("%3d %3d %-12.12s", new Vargs(3)
                         .add(score).add(ping).add(ci.name));
 
-                if (value == cl.playernum)
+                if (value == ClientGlobals.cl.playernum)
                     Console.DrawAltString(x, y, block);
                 else
                     Console.DrawString(x, y, block);
@@ -1005,7 +1005,7 @@ public final class SCR extends Globals {
                 parser.next();
                 width = parser.tokenAsInt();
                 parser.next();
-                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
+                value = ClientGlobals.cl.frame.playerstate.stats[parser.tokenAsInt()];
                 DrawField(x, y, 0, width, value);
                 continue;
             }
@@ -1014,15 +1014,15 @@ public final class SCR extends Globals {
                 int color;
 
                 width = 3;
-                value = cl.frame.playerstate.stats[STAT_HEALTH];
+                value = ClientGlobals.cl.frame.playerstate.stats[STAT_HEALTH];
                 if (value > 25)
                     color = 0; // green
                 else if (value > 0)
-                    color = (cl.frame.serverframe >> 2) & 1; // flash
+                    color = (ClientGlobals.cl.frame.serverframe >> 2) & 1; // flash
                 else
                     color = 1;
 
-                if ((cl.frame.playerstate.stats[STAT_FLASHES] & 1) != 0)
+                if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 1) != 0)
                     re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
@@ -1033,15 +1033,15 @@ public final class SCR extends Globals {
                 int color;
 
                 width = 3;
-                value = cl.frame.playerstate.stats[STAT_AMMO];
+                value = ClientGlobals.cl.frame.playerstate.stats[STAT_AMMO];
                 if (value > 5)
                     color = 0; // green
                 else if (value >= 0)
-                    color = (cl.frame.serverframe >> 2) & 1; // flash
+                    color = (ClientGlobals.cl.frame.serverframe >> 2) & 1; // flash
                 else
                     continue; // negative number = don't show
 
-                if ((cl.frame.playerstate.stats[STAT_FLASHES] & 4) != 0)
+                if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 4) != 0)
                     re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
@@ -1052,13 +1052,13 @@ public final class SCR extends Globals {
                 int color;
 
                 width = 3;
-                value = cl.frame.playerstate.stats[STAT_ARMOR];
+                value = ClientGlobals.cl.frame.playerstate.stats[STAT_ARMOR];
                 if (value < 1)
                     continue;
 
                 color = 0; // green
 
-                if ((cl.frame.playerstate.stats[STAT_FLASHES] & 2) != 0)
+                if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 2) != 0)
                     re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
@@ -1070,10 +1070,10 @@ public final class SCR extends Globals {
                 int index = parser.tokenAsInt();
                 if (index < 0 || index >= MAX_CONFIGSTRINGS)
                     Com.Error(ERR_DROP, "Bad stat_string index");
-                index = cl.frame.playerstate.stats[index];
+                index = ClientGlobals.cl.frame.playerstate.stats[index];
                 if (index < 0 || index >= MAX_CONFIGSTRINGS)
                     Com.Error(ERR_DROP, "Bad stat_string index");
-                Console.DrawString(x, y, cl.configstrings[index]);
+                Console.DrawString(x, y, ClientGlobals.cl.configstrings[index]);
                 continue;
             }
 
@@ -1103,7 +1103,7 @@ public final class SCR extends Globals {
 
             if (parser.tokenEquals("if")) { // draw a number
                 parser.next();
-                value = cl.frame.playerstate.stats[parser.tokenAsInt()];
+                value = ClientGlobals.cl.frame.playerstate.stats[parser.tokenAsInt()];
                 if (value == 0) {
                     parser.next();
                     // skip to endif
@@ -1125,7 +1125,7 @@ public final class SCR extends Globals {
      */
     private static void DrawStats() {
         //TODO:
-        SCR.ExecuteLayoutString(cl.configstrings[CS_STATUSBAR]);
+        SCR.ExecuteLayoutString(ClientGlobals.cl.configstrings[CS_STATUSBAR]);
     }
 
     /*
@@ -1136,8 +1136,8 @@ public final class SCR extends Globals {
     private static final int STAT_LAYOUTS = 13;
 
     private static void DrawLayout() {
-        if (cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
-            SCR.ExecuteLayoutString(cl.layout);
+        if (ClientGlobals.cl.frame.playerstate.stats[STAT_LAYOUTS] != 0)
+            SCR.ExecuteLayoutString(ClientGlobals.cl.layout);
     }
 
     // =======================================================
@@ -1164,22 +1164,22 @@ public final class SCR extends Globals {
             return;
         }
 
-        if (!scr_initialized || !con.initialized)
+        if (!scr_initialized || !ClientGlobals.con.initialized)
             return; // not initialized yet
 
         /*
          * * range check cl_camera_separation so we don't inadvertently fry
          * someone's * brain
          */
-        if (cl_stereo_separation.value > 1.0)
+        if (ClientGlobals.cl_stereo_separation.value > 1.0)
             Cvar.SetValue("cl_stereo_separation", 1.0f);
-        else if (cl_stereo_separation.value < 0)
+        else if (ClientGlobals.cl_stereo_separation.value < 0)
             Cvar.SetValue("cl_stereo_separation", 0.0f);
 
-        if (cl_stereo.value != 0) {
+        if (ClientGlobals.cl_stereo.value != 0) {
             numframes = 2;
-            separation[0] = -cl_stereo_separation.value / 2;
-            separation[1] = cl_stereo_separation.value / 2;
+            separation[0] = -ClientGlobals.cl_stereo_separation.value / 2;
+            separation[1] = ClientGlobals.cl_stereo_separation.value / 2;
         } else {
             separation[0] = 0;
             separation[1] = 0;
@@ -1195,22 +1195,22 @@ public final class SCR extends Globals {
                 re.CinematicSetPalette(null);
                 scr_draw_loading = 0; // false
                 re.DrawGetPicSize(dim, "loading");
-                re.DrawPic((viddef.getWidth() - dim.width) / 2,
-                        (viddef.getHeight() - dim.height) / 2, "loading");
+                re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
+                        (ClientGlobals.viddef.getHeight() - dim.height) / 2, "loading");
             }
             // if a cinematic is supposed to be running, handle menus
             // and console specially
-            else if (cl.cinematictime > 0) {
+            else if (ClientGlobals.cl.cinematictime > 0) {
                 if (cls.key_dest == key_menu) {
-                    if (cl.cinematicpalette_active) {
+                    if (ClientGlobals.cl.cinematicpalette_active) {
                         re.CinematicSetPalette(null);
-                        cl.cinematicpalette_active = false;
+                        ClientGlobals.cl.cinematicpalette_active = false;
                     }
                     Menu.Draw();
                 } else if (cls.key_dest == key_console) {
-                    if (cl.cinematicpalette_active) {
+                    if (ClientGlobals.cl.cinematicpalette_active) {
                         re.CinematicSetPalette(null);
-                        cl.cinematicpalette_active = false;
+                        ClientGlobals.cl.cinematicpalette_active = false;
                     }
                     DrawConsole();
                 } else {
@@ -1219,9 +1219,9 @@ public final class SCR extends Globals {
                 }
             } else {
                 // make sure the game palette is active
-                if (cl.cinematicpalette_active) {
+                if (ClientGlobals.cl.cinematicpalette_active) {
                     re.CinematicSetPalette(null);
-                    cl.cinematicpalette_active = false;
+                    ClientGlobals.cl.cinematicpalette_active = false;
                 }
 
                 // do 3D refresh drawing, and then update the screen
@@ -1234,9 +1234,9 @@ public final class SCR extends Globals {
 
                 DrawStats();
 
-                if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) != 0)
+                if ((ClientGlobals.cl.frame.playerstate.stats[STAT_LAYOUTS] & 1) != 0)
                     DrawLayout();
-                if ((cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) != 0)
+                if ((ClientGlobals.cl.frame.playerstate.stats[STAT_LAYOUTS] & 2) != 0)
                     CL_inv.DrawInventory();
 
                 DrawNet();
@@ -1265,19 +1265,19 @@ public final class SCR extends Globals {
      * ================= SCR_DrawCrosshair =================
      */
     static void DrawCrosshair() {
-        if (crosshair.value == 0.0f)
+        if (ClientGlobals.crosshair.value == 0.0f)
             return;
 
-        if (crosshair.modified) {
-            crosshair.modified = false;
+        if (ClientGlobals.crosshair.modified) {
+            ClientGlobals.crosshair.modified = false;
             SCR.TouchPics();
         }
 
         if (crosshair_pic.length() == 0)
             return;
 
-        re.DrawPic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
-                scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
+        re.DrawPic(ClientGlobals.scr_vrect.x + ((ClientGlobals.scr_vrect.width - crosshair_width) >> 1),
+                ClientGlobals.scr_vrect.y + ((ClientGlobals.scr_vrect.height - crosshair_height) >> 1),
                 crosshair_pic);
     }
 
@@ -1322,7 +1322,7 @@ public final class SCR extends Globals {
                 lastframes = cls.framecount;
                 lasttime = cls.realtime;
             }
-            int x = viddef.getWidth() - 8 * fpsvalue.length() - 2;
+            int x = ClientGlobals.viddef.getWidth() - 8 * fpsvalue.length() - 2;
             for (int i = 0; i < fpsvalue.length(); i++) {
                 re.DrawChar(x, 2, fpsvalue.charAt(i));
                 x += 8;
@@ -1445,16 +1445,16 @@ public final class SCR extends Globals {
     static void StopCinematic() {
         if (cin.restart_sound) {
             // done
-            cl.cinematictime = 0;
+            ClientGlobals.cl.cinematictime = 0;
             cin.pic = null;
             cin.pic_pending = null;
-            if (cl.cinematicpalette_active) {
+            if (ClientGlobals.cl.cinematicpalette_active) {
                 re.CinematicSetPalette(null);
-                cl.cinematicpalette_active = false;
+                ClientGlobals.cl.cinematicpalette_active = false;
             }
-            if (cl.cinematic_file != null) {
+            if (ClientGlobals.cl.cinematic_file != null) {
                 // free the mapped byte buffer
-                cl.cinematic_file = null;
+                ClientGlobals.cl.cinematic_file = null;
             }
             if (cin.hnodes1 != null) {
                 cin.hnodes1 = null;
@@ -1473,7 +1473,7 @@ public final class SCR extends Globals {
     static void FinishCinematic() {
         // tell the server to advance to the next map / cinematic
         MSG.WriteByte(cls.netchan.message, clc_stringcmd);
-        SZ.Print(cls.netchan.message, "nextserver " + cl.servercount + '\n');
+        SZ.Print(cls.netchan.message, "nextserver " + ClientGlobals.cl.servercount + '\n');
     }
 
     // ==========================================================================
@@ -1524,7 +1524,7 @@ public final class SCR extends Globals {
             Arrays.fill(cin.h_used, 0);
             
             // read a row of counts
-            cl.cinematic_file.get(counts);
+            ClientGlobals.cl.cinematic_file.get(counts);
             for (int j = 0; j < 256; j++)
                 cin.h_count[j] = counts[j] & 0xFF;
             
@@ -1671,7 +1671,7 @@ public final class SCR extends Globals {
      */ 
    private static byte[] ReadNextFrame() {
     
-        ByteBuffer file = cl.cinematic_file;
+        ByteBuffer file = ClientGlobals.cl.cinematic_file;
 
         // read the next frame
         int command = file.getInt();
@@ -1683,9 +1683,9 @@ public final class SCR extends Globals {
 
         if (command == 1) {
             // read palette
-            file.get(cl.cinematicpalette);
+            file.get(ClientGlobals.cl.cinematicpalette);
             // dubious.... exposes an edge case
-            cl.cinematicpalette_active = false;
+            ClientGlobals.cl.cinematicpalette_active = false;
         }
         // decompress the next frame
         int size = file.getInt();
@@ -1695,8 +1695,8 @@ public final class SCR extends Globals {
         file.get(compressed, 0, size);
 
         // read sound
-        int start = cl.cinematicframe * cin.s_rate / 14;
-        int end = (cl.cinematicframe + 1) * cin.s_rate / 14;
+        int start = ClientGlobals.cl.cinematicframe * cin.s_rate / 14;
+        int end = (ClientGlobals.cl.cinematicframe + 1) * cin.s_rate / 14;
         int count = end - start;
 
         S.RawSamples(count, cin.s_rate, cin.s_width, cin.s_channels, file.slice());
@@ -1704,7 +1704,7 @@ public final class SCR extends Globals {
         file.position(file.position() + count * cin.s_width * cin.s_channels);
         
         byte[] pic = Huff1Decompress(compressed, size);
-        cl.cinematicframe++;
+        ClientGlobals.cl.cinematicframe++;
 
         return pic;
     }
@@ -1713,31 +1713,31 @@ public final class SCR extends Globals {
      * RunCinematic
      */
     static void RunCinematic() {
-        if (cl.cinematictime <= 0) {
+        if (ClientGlobals.cl.cinematictime <= 0) {
             StopCinematic();
             return;
         }
 
-        if (cl.cinematicframe == -1) {
+        if (ClientGlobals.cl.cinematicframe == -1) {
             // static image
             return;
         }
 
         if (cls.key_dest != key_game) {
             // pause if menu or console is up
-            cl.cinematictime = cls.realtime - cl.cinematicframe * 1000 / 14;
+            ClientGlobals.cl.cinematictime = cls.realtime - ClientGlobals.cl.cinematicframe * 1000 / 14;
             return;
         }
 
-        int frame = (int) ((cls.realtime - cl.cinematictime) * 14.0f / 1000);
+        int frame = (int) ((cls.realtime - ClientGlobals.cl.cinematictime) * 14.0f / 1000);
         
-        if (frame <= cl.cinematicframe)
+        if (frame <= ClientGlobals.cl.cinematicframe)
             return;
 
-        if (frame > cl.cinematicframe + 1) {
+        if (frame > ClientGlobals.cl.cinematicframe + 1) {
             Com.Println("Dropped frame: " + frame + " > "
-                    + (cl.cinematicframe + 1));
-            cl.cinematictime = cls.realtime - cl.cinematicframe * 1000 / 14;
+                    + (ClientGlobals.cl.cinematicframe + 1));
+            ClientGlobals.cl.cinematictime = cls.realtime - ClientGlobals.cl.cinematicframe * 1000 / 14;
         }
         
         cin.pic = cin.pic_pending;
@@ -1747,9 +1747,9 @@ public final class SCR extends Globals {
             StopCinematic();
             FinishCinematic();
             // hack to get the black screen behind loading
-            cl.cinematictime = 1;
+            ClientGlobals.cl.cinematictime = 1;
             BeginLoadingPlaque();
-            cl.cinematictime = 0;
+            ClientGlobals.cl.cinematictime = 0;
             return;
         }
     }
@@ -1761,26 +1761,26 @@ public final class SCR extends Globals {
      * be skipped.
      */
     private static boolean DrawCinematic() {
-        if (cl.cinematictime <= 0) {
+        if (ClientGlobals.cl.cinematictime <= 0) {
             return false;
         }
         
         if (cls.key_dest == key_menu) {
             // blank screen and pause if menu is up
             Globals.re.CinematicSetPalette(null);
-            cl.cinematicpalette_active = false;
+            ClientGlobals.cl.cinematicpalette_active = false;
             return true;
         }
         
-        if (!cl.cinematicpalette_active) {
-            re.CinematicSetPalette(cl.cinematicpalette);
-        	cl.cinematicpalette_active = true;
+        if (!ClientGlobals.cl.cinematicpalette_active) {
+            re.CinematicSetPalette(ClientGlobals.cl.cinematicpalette);
+        	ClientGlobals.cl.cinematicpalette_active = true;
         }
         
         if (cin.pic == null)
             return true;
         
-        Globals.re.DrawStretchRaw(0, 0, viddef.getWidth(), viddef.getHeight(), cin.width, cin.height, cin.pic);
+        Globals.re.DrawStretchRaw(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), cin.width, cin.height, cin.pic);
         
         return true;
     }
@@ -1793,29 +1793,29 @@ public final class SCR extends Globals {
         // make sure CD isn't playing music
         CDAudio.Stop();
 
-        cl.cinematicframe = 0;
+        ClientGlobals.cl.cinematicframe = 0;
         if (arg.endsWith(".pcx")) {
             // static pcx image
             String name = "pics/" + arg;
-            int size = LoadPCX(name, cl.cinematicpalette, cin);
-            cl.cinematicframe = -1;
-            cl.cinematictime = 1;
+            int size = LoadPCX(name, ClientGlobals.cl.cinematicpalette, cin);
+            ClientGlobals.cl.cinematicframe = -1;
+            ClientGlobals.cl.cinematictime = 1;
             EndLoadingPlaque();
             cls.state = ca_active;
             if (size == 0 || cin.pic == null) {
                 Com.Println(name + " not found.");
-                cl.cinematictime = 0;
+                ClientGlobals.cl.cinematictime = 0;
             }
             return;
         }
 
         String name = "video/" + arg;
-        cl.cinematic_file = FS.LoadMappedFile(name);
-        if (cl.cinematic_file == null) {
+        ClientGlobals.cl.cinematic_file = FS.LoadMappedFile(name);
+        if (ClientGlobals.cl.cinematic_file == null) {
             //Com.Error(ERR_DROP, "Cinematic " + name + " not found.\n");
             FinishCinematic();
             // done
-            cl.cinematictime = 0;
+            ClientGlobals.cl.cinematictime = 0;
             return;
         }
 
@@ -1823,8 +1823,8 @@ public final class SCR extends Globals {
 
         cls.state = ca_active;
 
-        cl.cinematic_file.order(ByteOrder.LITTLE_ENDIAN);
-        ByteBuffer file = cl.cinematic_file;
+        ClientGlobals.cl.cinematic_file.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer file = ClientGlobals.cl.cinematic_file;
         cin.width = file.getInt();
         cin.height = file.getInt();
         cin.s_rate = file.getInt();
@@ -1834,8 +1834,8 @@ public final class SCR extends Globals {
         Huff1TableInit();
 
         cin.restart_sound = true;
-        cl.cinematicframe = 0;
+        ClientGlobals.cl.cinematicframe = 0;
         cin.pic = ReadNextFrame();
-        cl.cinematictime = Timer.Milliseconds();
+        ClientGlobals.cl.cinematictime = Timer.Milliseconds();
     }
 }

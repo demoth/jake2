@@ -50,17 +50,13 @@ public final class Sys extends Defines {
         CL.Shutdown();
         //StackTrace();
         new Exception(error).printStackTrace();
-        if (!Globals.appletMode) {
-            System.exit(1);
-        }
+        System.exit(1);
     }
 
     public static void Quit() {
         CL.Shutdown();
 
-        if (!Globals.appletMode) {
-            System.exit(0);
-        }
+        System.exit(0);
     }
 
     //ok!

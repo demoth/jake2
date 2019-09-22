@@ -174,17 +174,17 @@ public final class CL {
             // send the serverdata
             MSG.WriteByte(buf, NetworkCommands.svc_serverdata);
             MSG.WriteInt(buf, Defines.PROTOCOL_VERSION);
-            MSG.WriteInt(buf, 0x10000 + Globals.cl.servercount);
+            MSG.WriteInt(buf, 0x10000 + ClientGlobals.cl.servercount);
             MSG.WriteByte(buf, 1); // demos are always attract loops
-            MSG.WriteString(buf, Globals.cl.gamedir);
-            MSG.WriteShort(buf, Globals.cl.playernum);
+            MSG.WriteString(buf, ClientGlobals.cl.gamedir);
+            MSG.WriteShort(buf, ClientGlobals.cl.playernum);
 
-            MSG.WriteString(buf, Globals.cl.configstrings[Defines.CS_NAME]);
+            MSG.WriteString(buf, ClientGlobals.cl.configstrings[Defines.CS_NAME]);
 
             // configstrings
             for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++) {
-                if (Globals.cl.configstrings[i].length() > 0) {
-                    if (buf.cursize + Globals.cl.configstrings[i].length()
+                if (ClientGlobals.cl.configstrings[i].length() > 0) {
+                    if (buf.cursize + ClientGlobals.cl.configstrings[i].length()
                             + 32 > buf.maxsize) {
                         // write it out
                         Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
@@ -195,7 +195,7 @@ public final class CL {
 
                     MSG.WriteByte(buf, NetworkCommands.svc_configstring);
                     MSG.WriteShort(buf, i);
-                    MSG.WriteString(buf, Globals.cl.configstrings[i]);
+                    MSG.WriteString(buf, ClientGlobals.cl.configstrings[i]);
                 }
 
             }
@@ -203,7 +203,7 @@ public final class CL {
             // baselines
             nullstate.clear();
             for (i = 0; i < Defines.MAX_EDICTS; i++) {
-                ent = Globals.cl_entities[i].baseline;
+                ent = ClientGlobals.cl_entities[i].baseline;
                 if (ent.modelindex == 0)
                     continue;
 
@@ -215,7 +215,7 @@ public final class CL {
 
                 MSG.WriteByte(buf, NetworkCommands.svc_spawnbaseline);
                 MSG.WriteDeltaEntity(nullstate,
-                        Globals.cl_entities[i].baseline, buf, true, true);
+                        ClientGlobals.cl_entities[i].baseline, buf, true, true);
             }
 
             MSG.WriteByte(buf, NetworkCommands.svc_stufftext);
@@ -260,7 +260,7 @@ public final class CL {
             return;
         }
 
-        Cvar.SetValue("paused", Globals.cl_paused.value);
+        Cvar.SetValue("paused", ClientGlobals.cl_paused.value);
     };
 
     /**
@@ -309,7 +309,7 @@ public final class CL {
      */
     private static Command Rcon_f = (List<String> args) -> {
 
-        if (Globals.rcon_client_password.string.length() == 0) {
+        if (ClientGlobals.rcon_client_password.string.length() == 0) {
             Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n");
             return;
         }
@@ -326,7 +326,7 @@ public final class CL {
         NET.Config(true);
 
         message.append("rcon ");
-        message.append(Globals.rcon_client_password.string);
+        message.append(ClientGlobals.rcon_client_password.string);
         message.append(" ");
 
         for (int i = 1; i < args.size(); i++) {
@@ -339,11 +339,11 @@ public final class CL {
         if (Globals.cls.state >= Defines.ca_connected)
             to = Globals.cls.netchan.remote_address;
         else {
-            if (Globals.rcon_address.string.length() == 0) {
+            if (ClientGlobals.rcon_address.string.length() == 0) {
                 Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
                 return;
             }
-            NET.StringToAdr(Globals.rcon_address.string, to);
+            NET.StringToAdr(ClientGlobals.rcon_address.string, to);
             if (to.port == 0) to.port = Defines.PORT_SERVER;
         }
         message.append('\0');
@@ -472,10 +472,10 @@ public final class CL {
         int i;
 
         for (i = 0; i < Defines.MAX_CLIENTS; i++) {
-            if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i] == null)
+            if (ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i] == null)
                 continue;
             Com.Printf("client " + i + ": "
-                    + Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
+                    + ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
                     + "\n");
             SCR.UpdateScreen();
             Sys.SendKeyEvents(); // pump message loop
@@ -521,7 +521,7 @@ public final class CL {
 
             int iw[] = { 0 }; // for detecting cheater maps
 
-            CM.CM_LoadMap(Globals.cl.configstrings[Defines.CS_MODELS + 1],
+            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
 
             CL_parse.RegisterSounds();
@@ -690,9 +690,9 @@ public final class CL {
 
         // wipe the entire cl structure
 
-        Globals.cl = new client_state_t();
-        for (int i = 0; i < Globals.cl_entities.length; i++) {
-            Globals.cl_entities[i] = new centity_t();
+        ClientGlobals.cl = new client_state_t();
+        for (int i = 0; i < ClientGlobals.cl_entities.length; i++) {
+            ClientGlobals.cl_entities[i] = new centity_t();
         }
 
         Globals.cls.netchan.message.clear();
@@ -712,18 +712,18 @@ public final class CL {
         if (Globals.cls.state == Defines.ca_disconnected)
             return;
 
-        if (Globals.cl_timedemo != null && Globals.cl_timedemo.value != 0.0f) {
+        if (ClientGlobals.cl_timedemo != null && ClientGlobals.cl_timedemo.value != 0.0f) {
             int time;
 
-            time = (int) (Timer.Milliseconds() - Globals.cl.timedemo_start);
+            time = (int) (Timer.Milliseconds() - ClientGlobals.cl.timedemo_start);
             if (time > 0)
                 Com.Printf("%i frames, %3.1f seconds: %3.1f fps\n",
-                        new Vargs(3).add(Globals.cl.timedemo_frames).add(
+                        new Vargs(3).add(ClientGlobals.cl.timedemo_frames).add(
                                 time / 1000.0).add(
-                                Globals.cl.timedemo_frames * 1000.0 / time));
+                                ClientGlobals.cl.timedemo_frames * 1000.0 / time));
         }
 
-        Math3D.VectorClear(Globals.cl.refdef.blend);
+        Math3D.VectorClear(ClientGlobals.cl.refdef.blend);
         
         Globals.re.CinematicSetPalette(null);
 
@@ -896,15 +896,15 @@ public final class CL {
         // check timeout
         //
         if (Globals.cls.state >= Defines.ca_connected
-                && Globals.cls.realtime - Globals.cls.netchan.last_received > Globals.cl_timeout.value * 1000) {
-            if (++Globals.cl.timeoutcount > 5) // timeoutcount saves debugger
+                && Globals.cls.realtime - Globals.cls.netchan.last_received > ClientGlobals.cl_timeout.value * 1000) {
+            if (++ClientGlobals.cl.timeoutcount > 5) // timeoutcount saves debugger
             {
                 Com.Printf("\nServer connection timed out.\n");
                 Disconnect();
                 return;
             }
         } else
-            Globals.cl.timeoutcount = 0;
+            ClientGlobals.cl.timeoutcount = 0;
     }
 
     //	  =============================================================================
@@ -916,22 +916,22 @@ public final class CL {
 
         String sk;
 
-        if (Globals.gender_auto.value != 0.0f) {
+        if (ClientGlobals.gender_auto.value != 0.0f) {
 
-            if (Globals.gender.modified) {
+            if (ClientGlobals.gender.modified) {
                 // was set directly, don't override the user
-                Globals.gender.modified = false;
+                ClientGlobals.gender.modified = false;
                 return;
             }
 
-            sk = Globals.skin.string;
+            sk = ClientGlobals.skin.string;
             if (sk.startsWith("male") || sk.startsWith("cyborg"))
                 Cvar.Set("gender", "male");
             else if (sk.startsWith("female") || sk.startsWith("crackhor"))
                 Cvar.Set("gender", "female");
             else
                 Cvar.Set("gender", "none");
-            Globals.gender.modified = false;
+            ClientGlobals.gender.modified = false;
         }
     }
 
@@ -959,7 +959,7 @@ public final class CL {
             CL.precache_check = Defines.CS_MODELS + 2; // 0 isn't used
             if (allowDownloadMaps.value != 0)
                 if (!CL_parse
-                        .CheckOrDownloadFile(Globals.cl.configstrings[Defines.CS_MODELS + 1]))
+                        .CheckOrDownloadFile(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1]))
                     return; // started a download
         }
         if (CL.precache_check >= Defines.CS_MODELS
@@ -967,16 +967,16 @@ public final class CL {
             if (allowDownloadModels.value != 0) {
                 while (CL.precache_check < Defines.CS_MODELS
                         + Defines.MAX_MODELS
-                        && Globals.cl.configstrings[CL.precache_check].length() > 0) {
-                    if (Globals.cl.configstrings[CL.precache_check].charAt(0) == '*'
-                            || Globals.cl.configstrings[CL.precache_check]
+                        && ClientGlobals.cl.configstrings[CL.precache_check].length() > 0) {
+                    if (ClientGlobals.cl.configstrings[CL.precache_check].charAt(0) == '*'
+                            || ClientGlobals.cl.configstrings[CL.precache_check]
                                     .charAt(0) == '#') {
                         CL.precache_check++;
                         continue;
                     }
                     if (CL.precache_model_skin == 0) {
                         if (!CL_parse
-                                .CheckOrDownloadFile(Globals.cl.configstrings[CL.precache_check])) {
+                                .CheckOrDownloadFile(ClientGlobals.cl.configstrings[CL.precache_check])) {
                             CL.precache_model_skin = 1;
                             return; // started a download
                         }
@@ -987,7 +987,7 @@ public final class CL {
                     if (CL.precache_model == null) {
 
                         CL.precache_model = FS
-                                .LoadFile(Globals.cl.configstrings[CL.precache_check]);
+                                .LoadFile(ClientGlobals.cl.configstrings[CL.precache_check]);
                         if (CL.precache_model == null) {
                             CL.precache_model_skin = 0;
                             CL.precache_check++;
@@ -1054,13 +1054,13 @@ public final class CL {
                     CL.precache_check++; // zero is blank
                 while (CL.precache_check < Defines.CS_SOUNDS
                         + Defines.MAX_SOUNDS
-                        && Globals.cl.configstrings[CL.precache_check].length() > 0) {
-                    if (Globals.cl.configstrings[CL.precache_check].charAt(0) == '*') {
+                        && ClientGlobals.cl.configstrings[CL.precache_check].length() > 0) {
+                    if (ClientGlobals.cl.configstrings[CL.precache_check].charAt(0) == '*') {
                         CL.precache_check++;
                         continue;
                     }
                     fn = "sound/"
-                            + Globals.cl.configstrings[CL.precache_check++];
+                            + ClientGlobals.cl.configstrings[CL.precache_check++];
                     if (!CL_parse.CheckOrDownloadFile(fn))
                         return; // started a download
                 }
@@ -1073,8 +1073,8 @@ public final class CL {
                 CL.precache_check++; // zero is blank
 
             while (CL.precache_check < Defines.CS_IMAGES + Defines.MAX_IMAGES
-                    && Globals.cl.configstrings[CL.precache_check].length() > 0) {
-                fn = "pics/" + Globals.cl.configstrings[CL.precache_check++]
+                    && ClientGlobals.cl.configstrings[CL.precache_check].length() > 0) {
+                fn = "pics/" + ClientGlobals.cl.configstrings[CL.precache_check++]
                         + ".pcx";
                 if (!CL_parse.CheckOrDownloadFile(fn))
                     return; // started a download
@@ -1100,30 +1100,30 @@ public final class CL {
                     n = (CL.precache_check - Defines.CS_PLAYERSKINS)
                             % CL.PLAYER_MULT;
 
-                    if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
+                    if (ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
                             .length() == 0) {
                         CL.precache_check = Defines.CS_PLAYERSKINS + (i + 1)
                                 * CL.PLAYER_MULT;
                         continue;
                     }
 
-                    int pos = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\');
+                    int pos = ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\');
                     
                     if (pos != -1)
                         pos++;
                     else
                         pos = 0;
 
-                    int pos2 = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\', pos);
+                    int pos2 = ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('\\', pos);
                     
                     if (pos2 == -1)
-                        pos2 = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('/', pos);
+                        pos2 = ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i].indexOf('/', pos);
                     
                     
-                    model = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
+                    model = ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
                             .substring(pos, pos2);
                                         
-                    skin = Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].substring(pos2 + 1);
+                    skin = ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i].substring(pos2 + 1);
                     
                     switch (n) {
                     case 0: // model
@@ -1188,19 +1188,19 @@ public final class CL {
 
             int iw[] = { map_checksum };
 
-            CM.CM_LoadMap(Globals.cl.configstrings[Defines.CS_MODELS + 1],
+            CM.CM_LoadMap(ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1],
                     true, iw);
             map_checksum = iw[0];
 
             if ((map_checksum ^ Lib
-                    .atoi(Globals.cl.configstrings[Defines.CS_MAPCHECKSUM])) != 0) {
+                    .atoi(ClientGlobals.cl.configstrings[Defines.CS_MAPCHECKSUM])) != 0) {
                 Com
                         .Error(
                                 Defines.ERR_DROP,
                                 "Local map version differs from server: "
                                         + map_checksum
                                         + " != '"
-                                        + Globals.cl.configstrings[Defines.CS_MAPCHECKSUM]
+                                        + ClientGlobals.cl.configstrings[Defines.CS_MAPCHECKSUM]
                                         + "'\n");
                 return;
             }
@@ -1213,10 +1213,10 @@ public final class CL {
                     int n = CL.precache_check++ - ENV_CNT - 1;
 
                     if ((n & 1) != 0)
-                        fn = "env/" + Globals.cl.configstrings[Defines.CS_SKY]
+                        fn = "env/" + ClientGlobals.cl.configstrings[Defines.CS_SKY]
                                 + env_suf[n / 2] + ".pcx";
                     else
-                        fn = "env/" + Globals.cl.configstrings[Defines.CS_SKY]
+                        fn = "env/" + ClientGlobals.cl.configstrings[Defines.CS_SKY]
                                 + env_suf[n / 2] + ".tga";
                     if (!CL_parse.CheckOrDownloadFile(fn))
                         return; // started a download
@@ -1281,87 +1281,87 @@ public final class CL {
         //
         // register our variables
         //
-        Globals.cl_stereo_separation = Cvar.Get("cl_stereo_separation", "0.4",
+        ClientGlobals.cl_stereo_separation = Cvar.Get("cl_stereo_separation", "0.4",
                 Defines.CVAR_ARCHIVE);
-        Globals.cl_stereo = Cvar.Get("cl_stereo", "0", 0);
+        ClientGlobals.cl_stereo = Cvar.Get("cl_stereo", "0", 0);
 
-        Globals.cl_add_blend = Cvar.Get("cl_blend", "1", 0);
-        Globals.cl_add_lights = Cvar.Get("cl_lights", "1", 0);
-        Globals.cl_add_particles = Cvar.Get("cl_particles", "1", 0);
-        Globals.cl_add_entities = Cvar.Get("cl_entities", "1", 0);
-        Globals.cl_gun = Cvar.Get("cl_gun", "1", 0);
-        Globals.cl_footsteps = Cvar.Get("cl_footsteps", "1", 0);
-        Globals.cl_noskins = Cvar.Get("cl_noskins", "0", 0);
-        Globals.cl_autoskins = Cvar.Get("cl_autoskins", "0", 0);
-        Globals.cl_predict = Cvar.Get("cl_predict", "1", 0);
+        ClientGlobals.cl_add_blend = Cvar.Get("cl_blend", "1", 0);
+        ClientGlobals.cl_add_lights = Cvar.Get("cl_lights", "1", 0);
+        ClientGlobals.cl_add_particles = Cvar.Get("cl_particles", "1", 0);
+        ClientGlobals.cl_add_entities = Cvar.Get("cl_entities", "1", 0);
+        ClientGlobals.cl_gun = Cvar.Get("cl_gun", "1", 0);
+        ClientGlobals.cl_footsteps = Cvar.Get("cl_footsteps", "1", 0);
+        ClientGlobals.cl_noskins = Cvar.Get("cl_noskins", "0", 0);
+        ClientGlobals.cl_autoskins = Cvar.Get("cl_autoskins", "0", 0);
+        ClientGlobals.cl_predict = Cvar.Get("cl_predict", "1", 0);
 
-        Globals.cl_maxfps = Cvar.Get("cl_maxfps", "90", 0);
+        ClientGlobals.cl_maxfps = Cvar.Get("cl_maxfps", "90", 0);
 
-        Globals.cl_upspeed = Cvar.Get("cl_upspeed", "200", 0);
-        Globals.cl_forwardspeed = Cvar.Get("cl_forwardspeed", "200", 0);
-        Globals.cl_sidespeed = Cvar.Get("cl_sidespeed", "200", 0);
-        Globals.cl_yawspeed = Cvar.Get("cl_yawspeed", "140", 0);
-        Globals.cl_pitchspeed = Cvar.Get("cl_pitchspeed", "150", 0);
-        Globals.cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
+        ClientGlobals.cl_upspeed = Cvar.Get("cl_upspeed", "200", 0);
+        ClientGlobals.cl_forwardspeed = Cvar.Get("cl_forwardspeed", "200", 0);
+        ClientGlobals.cl_sidespeed = Cvar.Get("cl_sidespeed", "200", 0);
+        ClientGlobals.cl_yawspeed = Cvar.Get("cl_yawspeed", "140", 0);
+        ClientGlobals.cl_pitchspeed = Cvar.Get("cl_pitchspeed", "150", 0);
+        ClientGlobals.cl_anglespeedkey = Cvar.Get("cl_anglespeedkey", "1.5", 0);
         
         // third person view
-        Globals.cl_3rd = Cvar.Get("cl_3rd", "0", Defines.CVAR_ARCHIVE);
-        Globals.cl_3rd_angle = Cvar.Get("cl_3rd_angle", "30", Defines.CVAR_ARCHIVE);
-        Globals.cl_3rd_dist = Cvar.Get("cl_3rd_dist", "50", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd = Cvar.Get("cl_3rd", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd_angle = Cvar.Get("cl_3rd_angle", "30", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_3rd_dist = Cvar.Get("cl_3rd_dist", "50", Defines.CVAR_ARCHIVE);
 
         // CDawg hud map, sfranzyshen 
-        Globals.cl_map = Cvar.Get("cl_map", "0", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen 
-        Globals.cl_map_zoom = Cvar.Get("cl_map_zoom", "300", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
+        ClientGlobals.cl_map = Cvar.Get("cl_map", "0", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
+        ClientGlobals.cl_map_zoom = Cvar.Get("cl_map_zoom", "300", Defines.CVAR_ARCHIVE); // CDawg hud map, sfranzyshen
 
-        Globals.cl_run = Cvar.Get("cl_run", "0", Defines.CVAR_ARCHIVE);
-        Globals.lookspring = Cvar.Get("lookspring", "0", Defines.CVAR_ARCHIVE);
-        Globals.lookstrafe = Cvar.Get("lookstrafe", "0", Defines.CVAR_ARCHIVE);
-        Globals.sensitivity = Cvar
+        ClientGlobals.cl_run = Cvar.Get("cl_run", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.lookspring = Cvar.Get("lookspring", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.lookstrafe = Cvar.Get("lookstrafe", "0", Defines.CVAR_ARCHIVE);
+        ClientGlobals.sensitivity = Cvar
                 .Get("sensitivity", "3", Defines.CVAR_ARCHIVE);
 
-        Globals.m_pitch = Cvar.Get("m_pitch", "0.022", Defines.CVAR_ARCHIVE);
-        Globals.m_yaw = Cvar.Get("m_yaw", "0.022", 0);
-        Globals.m_forward = Cvar.Get("m_forward", "1", 0);
-        Globals.m_side = Cvar.Get("m_side", "1", 0);
+        ClientGlobals.m_pitch = Cvar.Get("m_pitch", "0.022", Defines.CVAR_ARCHIVE);
+        ClientGlobals.m_yaw = Cvar.Get("m_yaw", "0.022", 0);
+        ClientGlobals.m_forward = Cvar.Get("m_forward", "1", 0);
+        ClientGlobals.m_side = Cvar.Get("m_side", "1", 0);
 
-        Globals.cl_shownet = Cvar.Get("cl_shownet", "0", 0);
-        Globals.cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
-        Globals.cl_showclamp = Cvar.Get("showclamp", "0", 0);
-        Globals.cl_timeout = Cvar.Get("cl_timeout", "120", 0);
-        Globals.cl_paused = Cvar.Get("paused", "0", 0);
-        Globals.cl_timedemo = Cvar.Get("timedemo", "0", 0);
+        ClientGlobals.cl_shownet = Cvar.Get("cl_shownet", "0", 0);
+        ClientGlobals.cl_showmiss = Cvar.Get("cl_showmiss", "0", 0);
+        ClientGlobals.cl_showclamp = Cvar.Get("showclamp", "0", 0);
+        ClientGlobals.cl_timeout = Cvar.Get("cl_timeout", "120", 0);
+        ClientGlobals.cl_paused = Cvar.Get("paused", "0", 0);
+        ClientGlobals.cl_timedemo = Cvar.Get("timedemo", "0", 0);
 
-        Globals.rcon_client_password = Cvar.Get("rcon_password", "", 0);
-        Globals.rcon_address = Cvar.Get("rcon_address", "", 0);
+        ClientGlobals.rcon_client_password = Cvar.Get("rcon_password", "", 0);
+        ClientGlobals.rcon_address = Cvar.Get("rcon_address", "", 0);
 
-        Globals.cl_lightlevel = Cvar.Get("r_lightlevel", "0", 0);
+        ClientGlobals.cl_lightlevel = Cvar.Get("r_lightlevel", "0", 0);
 
         //
         // userinfo
         //
-        Globals.info_password = Cvar.Get("password", "", Defines.CVAR_USERINFO);
-        Globals.info_spectator = Cvar.Get("spectator", "0",
+        ClientGlobals.info_password = Cvar.Get("password", "", Defines.CVAR_USERINFO);
+        ClientGlobals.info_spectator = Cvar.Get("spectator", "0",
                 Defines.CVAR_USERINFO);
-        Globals.name = Cvar.Get("name", "unnamed", Defines.CVAR_USERINFO
+        ClientGlobals.name = Cvar.Get("name", "unnamed", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.skin = Cvar.Get("skin", "male/grunt", Defines.CVAR_USERINFO
+        ClientGlobals.skin = Cvar.Get("skin", "male/grunt", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.rate = Cvar.Get("rate", "25000", Defines.CVAR_USERINFO
+        ClientGlobals.rate = Cvar.Get("rate", "25000", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE); // FIXME
-        Globals.msg = Cvar.Get("msg", "1", Defines.CVAR_USERINFO
+        ClientGlobals.msg = Cvar.Get("msg", "1", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.hand = Cvar.Get("hand", "0", Defines.CVAR_USERINFO
+        ClientGlobals.hand = Cvar.Get("hand", "0", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.fov = Cvar.Get("fov", "90", Defines.CVAR_USERINFO
+        ClientGlobals.fov = Cvar.Get("fov", "90", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.gender = Cvar.Get("gender", "male", Defines.CVAR_USERINFO
+        ClientGlobals.gender = Cvar.Get("gender", "male", Defines.CVAR_USERINFO
                 | Defines.CVAR_ARCHIVE);
-        Globals.gender_auto = Cvar
+        ClientGlobals.gender_auto = Cvar
                 .Get("gender_auto", "1", Defines.CVAR_ARCHIVE);
-        Globals.gender.modified = false; // clear this so we know when user sets
+        ClientGlobals.gender.modified = false; // clear this so we know when user sets
                                          // it manually
 
-        Globals.cl_vwep = Cvar.Get("cl_vwep", "1", Defines.CVAR_ARCHIVE);
+        ClientGlobals.cl_vwep = Cvar.Get("cl_vwep", "1", Defines.CVAR_ARCHIVE);
 
         //
         // register our commands
@@ -1458,8 +1458,8 @@ public final class CL {
         int i;
         CL.cheatvar_t var;
 
-        if ("1".equals(Globals.cl.configstrings[Defines.CS_MAXCLIENTS])
-                || 0 == Globals.cl.configstrings[Defines.CS_MAXCLIENTS]
+        if ("1".equals(ClientGlobals.cl.configstrings[Defines.CS_MAXCLIENTS])
+                || 0 == ClientGlobals.cl.configstrings[Defines.CS_MAXCLIENTS]
                         .length())
             return; // single player can cheat
 
@@ -1519,11 +1519,11 @@ public final class CL {
 
         extratime += msec;
 
-        if (Globals.cl_timedemo.value == 0.0f) {
+        if (ClientGlobals.cl_timedemo.value == 0.0f) {
             if (Globals.cls.state == Defines.ca_connected && extratime < 100) {
                 return; // don't flood packets out while connecting
             }
-            if (extratime < 1000 / Globals.cl_maxfps.value) {
+            if (extratime < 1000 / ClientGlobals.cl_maxfps.value) {
                 return; // framerate is too high
             }
         }
@@ -1533,7 +1533,7 @@ public final class CL {
 
         // decide the simulation time
         Globals.cls.frametime = extratime / 1000.0f;
-        Globals.cl.time += extratime;
+        ClientGlobals.cl.time += extratime;
         Globals.cls.realtime = Globals.curtime;
 
         extratime = 0;
@@ -1556,12 +1556,12 @@ public final class CL {
 
         // allow rendering DLL change
         VID.CheckChanges();
-        if (!Globals.cl.refresh_prepped
+        if (!ClientGlobals.cl.refresh_prepped
                 && Globals.cls.state == Defines.ca_active) {
             CL_view.PrepRefresh();
             // force GC after level loading
             // but not on playing a cinematic
-            if (Globals.cl.cinematictime == 0) System.gc();
+            if (ClientGlobals.cl.cinematictime == 0) System.gc();
         }
 
         boolean changed = false;
@@ -1574,21 +1574,21 @@ public final class CL {
         	changed = true;
             }
         }
-        if (x != Globals.cl.frame.playerstate.pmove.origin[0])
+        if (x != ClientGlobals.cl.frame.playerstate.pmove.origin[0])
         {
-            x = Globals.cl.frame.playerstate.pmove.origin[0];
+            x = ClientGlobals.cl.frame.playerstate.pmove.origin[0];
             changed = true;
         }
         
-        if (y != Globals.cl.frame.playerstate.pmove.origin[1])
+        if (y != ClientGlobals.cl.frame.playerstate.pmove.origin[1])
         {
-            y = Globals.cl.frame.playerstate.pmove.origin[1];
+            y = ClientGlobals.cl.frame.playerstate.pmove.origin[1];
             changed = true;
         }
         
-        if (z != Globals.cl.frame.playerstate.pmove.origin[2])
+        if (z != ClientGlobals.cl.frame.playerstate.pmove.origin[2])
         {
-            z = Globals.cl.frame.playerstate.pmove.origin[2];
+            z = ClientGlobals.cl.frame.playerstate.pmove.origin[2];
             changed = true;
         }
         
@@ -1610,8 +1610,8 @@ public final class CL {
         SCR.UpdateScreen();
 
         // update audio
-        S.Update(Globals.cl.refdef.vieworg, Globals.cl.v_forward,
-                Globals.cl.v_right, Globals.cl.v_up);
+        S.Update(ClientGlobals.cl.refdef.vieworg, ClientGlobals.cl.v_forward,
+                ClientGlobals.cl.v_right, ClientGlobals.cl.v_up);
         
         CDAudio.Update(); //sfranzyshen
         

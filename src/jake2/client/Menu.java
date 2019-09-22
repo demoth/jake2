@@ -180,8 +180,8 @@ public final class Menu extends Key {
         Dimension dim = new Dimension();
         Globals.re.DrawGetPicSize(dim, name);
 
-        Globals.re.DrawPic(viddef.getWidth() / 2 - dim.width / 2,
-                viddef.getHeight() / 2 - 110, name);
+        Globals.re.DrawPic(ClientGlobals.viddef.getWidth() / 2 - dim.width / 2,
+                ClientGlobals.viddef.getHeight() / 2 - 110, name);
     }
 
     private static void PushMenu(Command draw, keyfunc_t key) { //, String(*key)
@@ -329,8 +329,8 @@ public final class Menu extends Key {
      * and will be centered on higher res screens. ================
      */
     private static void DrawCharacter(int cx, int cy, int num) {
-        re.DrawChar(cx + ((viddef.getWidth() - 320) >> 1), cy
-                + ((viddef.getHeight() - 240) >> 1), num);
+        re.DrawChar(cx + ((ClientGlobals.viddef.getWidth() - 320) >> 1), cy
+                + ((ClientGlobals.viddef.getHeight() - 240) >> 1), num);
     }
 
     public static void Print(int cx, int cy, String str) {
@@ -351,8 +351,8 @@ public final class Menu extends Key {
     }
 
     public static void DrawPic(int x, int y, String pic) {
-        re.DrawPic(x + ((viddef.getWidth() - 320) >> 1), y
-                + ((viddef.getHeight() - 240) >> 1), pic);
+        re.DrawPic(x + ((ClientGlobals.viddef.getWidth() - 320) >> 1), y
+                + ((ClientGlobals.viddef.getHeight() - 240) >> 1), pic);
     }
 
     /*
@@ -453,8 +453,8 @@ public final class Menu extends Key {
             totalheight += (h + 12);
         }
 
-        ystart = (Globals.viddef.getHeight() / 2 - 110);
-        xoffset = (Globals.viddef.getWidth() - widest + 70) / 2;
+        ystart = (ClientGlobals.viddef.getHeight() / 2 - 110);
+        xoffset = (ClientGlobals.viddef.getWidth() - widest + 70) / 2;
 
         for (i = 0; i < names.length; i++) {
             if (i != m_main_cursor)
@@ -575,7 +575,7 @@ public final class Menu extends Key {
     }
 
     private static void Multiplayer_MenuInit() {
-        s_multiplayer_menu.x = (int) (viddef.getWidth() * 0.50f - 64);
+        s_multiplayer_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50f - 64);
         s_multiplayer_menu.nitems = 0;
 
         s_join_network_server_action.type = MTYPE_ACTION;
@@ -713,7 +713,7 @@ public final class Menu extends Key {
         String b;
 
         for (j = 0; j < 256; j++) {
-            b = keybindings[j];
+            b = ClientGlobals.keybindings[j];
             if (b == null)
                 continue;
             if (b.equals(command))
@@ -730,7 +730,7 @@ public final class Menu extends Key {
         count = 0;
 
         for (j = 0; j < 256; j++) {
-            b = keybindings[j];
+            b = ClientGlobals.keybindings[j];
             if (b == null)
                 continue;
 
@@ -796,7 +796,7 @@ public final class Menu extends Key {
         int y = 0;
         int i = 0;
 
-        s_keys_menu.x = (int) (viddef.getWidth() * 0.50);
+        s_keys_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
         s_keys_menu.nitems = 0;
         s_keys_menu.cursordraw = new mcallback() {
             public void execute(Object o) {
@@ -1276,27 +1276,27 @@ public final class Menu extends Key {
         	}
         }
 
-        s_options_sensitivity_slider.curvalue = (sensitivity.value) * 2;
+        s_options_sensitivity_slider.curvalue = (ClientGlobals.sensitivity.value) * 2;
 
-        Cvar.SetValue("cl_run", ClampCvar(0, 1, cl_run.value));
-        s_options_alwaysrun_box.curvalue = (int) cl_run.value;
+        Cvar.SetValue("cl_run", ClampCvar(0, 1, ClientGlobals.cl_run.value));
+        s_options_alwaysrun_box.curvalue = (int) ClientGlobals.cl_run.value;
 
-        s_options_invertmouse_box.curvalue = m_pitch.value < 0 ? 1 : 0;
+        s_options_invertmouse_box.curvalue = ClientGlobals.m_pitch.value < 0 ? 1 : 0;
 
-        Cvar.SetValue("lookspring", ClampCvar(0, 1, lookspring.value));
-        s_options_lookspring_box.curvalue = (int) lookspring.value;
+        Cvar.SetValue("lookspring", ClampCvar(0, 1, ClientGlobals.lookspring.value));
+        s_options_lookspring_box.curvalue = (int) ClientGlobals.lookspring.value;
 
-        Cvar.SetValue("lookstrafe", ClampCvar(0, 1, lookstrafe.value));
-        s_options_lookstrafe_box.curvalue = (int) lookstrafe.value;
+        Cvar.SetValue("lookstrafe", ClampCvar(0, 1, ClientGlobals.lookstrafe.value));
+        s_options_lookstrafe_box.curvalue = (int) ClientGlobals.lookstrafe.value;
 
-        Cvar.SetValue("freelook", ClampCvar(0, 1, freelook.value));
-        s_options_freelook_box.curvalue = (int) freelook.value;
+        Cvar.SetValue("freelook", ClampCvar(0, 1, ClientGlobals.freelook.value));
+        s_options_freelook_box.curvalue = (int) ClientGlobals.freelook.value;
 
-        Cvar.SetValue("crosshair", ClampCvar(0, 3, Globals.crosshair.value));
-        s_options_crosshair_box.curvalue = (int) Globals.crosshair.value;
+        Cvar.SetValue("crosshair", ClampCvar(0, 3, ClientGlobals.crosshair.value));
+        s_options_crosshair_box.curvalue = (int) ClientGlobals.crosshair.value;
 
-        Cvar.SetValue("in_joystick", ClampCvar(0, 1, in_joystick.value));
-        s_options_joystick_box.curvalue = (int) in_joystick.value;
+        Cvar.SetValue("in_joystick", ClampCvar(0, 1, ClientGlobals.in_joystick.value));
+        s_options_joystick_box.curvalue = (int) ClientGlobals.in_joystick.value;
 
         s_options_noalttab_box.curvalue = (int) win_noalttab.value;
     }
@@ -1309,15 +1309,15 @@ public final class Menu extends Key {
     }
 
     private static void InvertMouseFunc(Object unused) {
-        Cvar.SetValue("m_pitch", -m_pitch.value);
+        Cvar.SetValue("m_pitch", -ClientGlobals.m_pitch.value);
     }
 
     private static void LookspringFunc(Object unused) {
-        Cvar.SetValue("lookspring", 1 - lookspring.value);
+        Cvar.SetValue("lookspring", 1 - ClientGlobals.lookspring.value);
     }
 
     private static void LookstrafeFunc(Object unused) {
-        Cvar.SetValue("lookstrafe", 1 - lookstrafe.value);
+        Cvar.SetValue("lookstrafe", 1 - ClientGlobals.lookstrafe.value);
     }
 
     private static void UpdateVolumeFunc(Object unused) {
@@ -1334,7 +1334,7 @@ public final class Menu extends Key {
          * accept a parameter
          */
 
-        if (cl.attractloop) {
+        if (ClientGlobals.cl.attractloop) {
             Cbuf.AddText("killserver\n");
             return;
         }
@@ -1411,8 +1411,8 @@ public final class Menu extends Key {
         /*
          * * configure controls menu and menu items
          */
-        s_options_menu.x = viddef.getWidth() / 2;
-        s_options_menu.y = viddef.getHeight() / 2 - 58;
+        s_options_menu.x = ClientGlobals.viddef.getWidth() / 2;
+        s_options_menu.y = ClientGlobals.viddef.getHeight() / 2 - 58;
         s_options_menu.nitems = 0;
 
         s_options_sfxvolume_slider.type = MTYPE_SLIDER;
@@ -1786,8 +1786,8 @@ public final class Menu extends Key {
         /*
          * * draw the credits
          */
-        for (i = 0, y = (int) (viddef.getHeight() - ((cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
-                && y < viddef.getHeight(); y += 10, i++) {
+        for (i = 0, y = (int) (ClientGlobals.viddef.getHeight() - ((cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
+                && y < ClientGlobals.viddef.getHeight(); y += 10, i++) {
             int j, stringoffset = 0;
             boolean bold = false;
 
@@ -1805,7 +1805,7 @@ public final class Menu extends Key {
             for (j = 0; j + stringoffset < credits[i].length(); j++) {
                 int x;
 
-                x = (viddef.getWidth() - credits[i].length() * 8 - stringoffset * 8)
+                x = (ClientGlobals.viddef.getWidth() - credits[i].length() * 8 - stringoffset * 8)
                         / 2 + (j + stringoffset) * 8;
 
                 if (bold)
@@ -1902,7 +1902,7 @@ public final class Menu extends Key {
 
     private static void StartGame() {
         // disable updates and start the cinematic going
-        cl.servercount = -1;
+        ClientGlobals.cl.servercount = -1;
         ForceMenuOff();
         Cvar.SetValue("deathmatch", 0);
         Cvar.SetValue("coop", 0);
@@ -1950,7 +1950,7 @@ public final class Menu extends Key {
 
     private static void Game_MenuInit() {
 
-        s_game_menu.x = (int) (viddef.getWidth() * 0.50);
+        s_game_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
         s_game_menu.nitems = 0;
 
         s_easy_game_action.type = MTYPE_ACTION;
@@ -2138,8 +2138,8 @@ public final class Menu extends Key {
     private static void LoadGame_MenuInit() {
         int i;
 
-        s_loadgame_menu.x = viddef.getWidth() / 2 - 120;
-        s_loadgame_menu.y = viddef.getHeight() / 2 - 58;
+        s_loadgame_menu.x = ClientGlobals.viddef.getWidth() / 2 - 120;
+        s_loadgame_menu.y = ClientGlobals.viddef.getHeight() / 2 - 58;
         s_loadgame_menu.nitems = 0;
 
         Create_Savestrings();
@@ -2221,8 +2221,8 @@ public final class Menu extends Key {
     private static void SaveGame_MenuInit() {
         int i;
 
-        s_savegame_menu.x = viddef.getWidth() / 2 - 120;
-        s_savegame_menu.y = viddef.getHeight() / 2 - 58;
+        s_savegame_menu.x = ClientGlobals.viddef.getWidth() / 2 - 120;
+        s_savegame_menu.y = ClientGlobals.viddef.getHeight() / 2 - 58;
         s_savegame_menu.nitems = 0;
 
         Create_Savestrings();
@@ -2375,7 +2375,7 @@ public final class Menu extends Key {
     private static void JoinServer_MenuInit() {
         int i;
 
-        s_joinserver_menu.x = (int) (viddef.getWidth() * 0.50 - 120);
+        s_joinserver_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50 - 120);
         s_joinserver_menu.nitems = 0;
 
         s_joinserver_address_book_action.type = MTYPE_ACTION;
@@ -2662,7 +2662,7 @@ public final class Menu extends Key {
         /*
          * * initialize the menu stuff
          */
-        s_startserver_menu.x = (int) (viddef.getWidth() * 0.50);
+        s_startserver_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
         s_startserver_menu.nitems = 0;
 
         s_startmap_list.type = MTYPE_SPINCONTROL;
@@ -2985,7 +2985,7 @@ public final class Menu extends Key {
         int dmflags = (int) Cvar.VariableValue("dmflags");
         int y = 0;
 
-        s_dmoptions_menu.x = (int) (viddef.getWidth() * 0.50);
+        s_dmoptions_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
         s_dmoptions_menu.nitems = 0;
 
         s_falls_box.type = MTYPE_SPINCONTROL;
@@ -3329,7 +3329,7 @@ public final class Menu extends Key {
 
         int y = 0;
 
-        s_downloadoptions_menu.x = (int) (viddef.getWidth() * 0.50);
+        s_downloadoptions_menu.x = (int) (ClientGlobals.viddef.getWidth() * 0.50);
         s_downloadoptions_menu.nitems = 0;
 
         s_download_title.type = MTYPE_SEPARATOR;
@@ -3450,8 +3450,8 @@ public final class Menu extends Key {
     }
 
     private static void AddressBook_MenuInit() {
-        s_addressbook_menu.x = viddef.getWidth() / 2 - 142;
-        s_addressbook_menu.y = viddef.getHeight() / 2 - 58;
+        s_addressbook_menu.x = ClientGlobals.viddef.getWidth() / 2 - 142;
+        s_addressbook_menu.y = ClientGlobals.viddef.getHeight() / 2 - 58;
         s_addressbook_menu.nitems = 0;
 
         for (int i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++) {
@@ -3787,7 +3787,7 @@ public final class Menu extends Key {
         if (hand.value < 0 || hand.value > 2)
             Cvar.SetValue("hand", 0);
 
-        currentdirectory = skin.string;
+        currentdirectory = ClientGlobals.skin.string;
 
         if (currentdirectory.lastIndexOf('/') != -1) {
             currentskin = Lib.rightFrom(currentdirectory, '/');
@@ -3824,8 +3824,8 @@ public final class Menu extends Key {
             }
         }
 
-        s_player_config_menu.x = viddef.getWidth() / 2 - 95;
-        s_player_config_menu.y = viddef.getHeight() / 2 - 97;
+        s_player_config_menu.x = ClientGlobals.viddef.getWidth() / 2 - 95;
+        s_player_config_menu.y = ClientGlobals.viddef.getHeight() / 2 - 97;
         s_player_config_menu.nitems = 0;
 
         s_player_name_field.type = MTYPE_FIELD;
@@ -3835,8 +3835,8 @@ public final class Menu extends Key {
         s_player_name_field.y = 0;
         s_player_name_field.length = 20;
         s_player_name_field.visible_length = 20;
-        s_player_name_field.buffer = new StringBuffer(name.string);
-        s_player_name_field.cursor = name.string.length();
+        s_player_name_field.buffer = new StringBuffer(ClientGlobals.name.string);
+        s_player_name_field.cursor = ClientGlobals.name.string.length();
 
         s_player_model_title.type = MTYPE_SEPARATOR;
         s_player_model_title.name = "model";
@@ -3949,8 +3949,8 @@ public final class Menu extends Key {
 
         //memset(refdef, 0, sizeof(refdef));
 
-        refdef.x = viddef.getWidth() / 2;
-        refdef.y = viddef.getHeight() / 2 - 72;
+        refdef.x = ClientGlobals.viddef.getWidth() / 2;
+        refdef.y = ClientGlobals.viddef.getHeight() / 2 - 72;
         refdef.width = 144;
         refdef.height = 168;
         refdef.fov_x = 40;
@@ -3995,8 +3995,8 @@ public final class Menu extends Key {
             Menu_Draw(s_player_config_menu);
 
             DrawTextBox(
-                    (int) ((refdef.x) * (320.0F / viddef.getWidth()) - 8),
-                    (int) ((viddef.getHeight() / 2) * (240.0F / viddef.getHeight()) - 77),
+                    (int) ((refdef.x) * (320.0F / ClientGlobals.viddef.getWidth()) - 8),
+                    (int) ((ClientGlobals.viddef.getHeight() / 2) * (240.0F / ClientGlobals.viddef.getHeight()) - 77),
                     refdef.width / 8, refdef.height / 8);
             refdef.height += 4;
 
@@ -4090,7 +4090,7 @@ public final class Menu extends Key {
         re.DrawGetPicSize(d, "quit");
         w = d.width;
         h = d.height;
-        re.DrawPic((viddef.getWidth() - w) / 2, (viddef.getHeight() - h) / 2, "quit");
+        re.DrawPic((ClientGlobals.viddef.getWidth() - w) / 2, (ClientGlobals.viddef.getHeight() - h) / 2, "quit");
     }
 
     private static void Menu_Quit_f() {
@@ -4141,8 +4141,8 @@ public final class Menu extends Key {
         SCR.DirtyScreen();
 
         // dim everything behind it down
-        if (cl.cinematictime > 0)
-            re.DrawFill(0, 0, viddef.getWidth(), viddef.getHeight(), 0);
+        if (ClientGlobals.cl.cinematictime > 0)
+            re.DrawFill(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), 0);
         else
             re.DrawFadeScreen();
 
@@ -4310,7 +4310,7 @@ public final class Menu extends Key {
          * * support pasting from the clipboard
          */
       
-        if ( key == K_CTRLV && keydown[K_CTRL] || (((key == K_INS) || (key == K_KP_INS)) && keydown[K_SHIFT])) { // sfranzyshen
+        if ( key == K_CTRLV && ClientGlobals.keydown[K_CTRL] || (((key == K_INS) || (key == K_KP_INS)) && ClientGlobals.keydown[K_SHIFT])) { // sfranzyshen
 
             String cbd;
 
@@ -4442,7 +4442,7 @@ public final class Menu extends Key {
         height = ((menucommon_s) menu.items[menu.nitems - 1]).y;
         height += 10;
 
-        menu.y = (viddef.getHeight() - height) / 2;
+        menu.y = (ClientGlobals.viddef.getHeight() - height) / 2;
     }
 
     static void Menu_Draw(menuframework_s menu) {
@@ -4507,14 +4507,14 @@ public final class Menu extends Key {
     private static void Menu_DrawStatusBar(String string) {
         if (string != null) {
             int l = string.length();
-            int maxrow = viddef.getHeight() / 8;
-            int maxcol = viddef.getWidth() / 8;
+            int maxrow = ClientGlobals.viddef.getHeight() / 8;
+            int maxcol = ClientGlobals.viddef.getWidth() / 8;
             int col = maxcol / 2 - l / 2;
 
-            re.DrawFill(0, viddef.getHeight() - 8, viddef.getWidth(), 8, 4);
-            Menu_DrawString(col * 8, viddef.getHeight() - 8, string);
+            re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 4);
+            Menu_DrawString(col * 8, ClientGlobals.viddef.getHeight() - 8, string);
         } else {
-            re.DrawFill(0, viddef.getHeight() - 8, viddef.getWidth(), 8, 0);
+            re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 0);
         }
     }
 

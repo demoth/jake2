@@ -46,7 +46,7 @@ public class CL_inv {
 		int i;
 
 		for (i = 0; i < Defines.MAX_ITEMS; i++)
-			Globals.cl.inventory[i] = MSG.ReadShort(Globals.net_message);
+			ClientGlobals.cl.inventory[i] = MSG.ReadShort(Globals.net_message);
 	}
 
 	/*
@@ -83,14 +83,14 @@ public class CL_inv {
 		int selected;
 		int top;
 
-		selected = Globals.cl.frame.playerstate.stats[Defines.STAT_SELECTED_ITEM];
+		selected = ClientGlobals.cl.frame.playerstate.stats[Defines.STAT_SELECTED_ITEM];
 
 		num = 0;
 		selected_num = 0;
 		for (i = 0; i < Defines.MAX_ITEMS; i++) {
 			if (i == selected)
 				selected_num = num;
-			if (Globals.cl.inventory[i] != 0) {
+			if (ClientGlobals.cl.inventory[i] != 0) {
 				index[num] = i;
 				num++;
 			}
@@ -103,8 +103,8 @@ public class CL_inv {
 		if (top < 0)
 			top = 0;
 
-		x = (Globals.viddef.getWidth() - 256) / 2;
-		y = (Globals.viddef.getHeight() - 240) / 2;
+		x = (ClientGlobals.viddef.getWidth() - 256) / 2;
+		y = (ClientGlobals.viddef.getHeight() - 240) / 2;
 
 		// repaint everything next frame
 		SCR.DirtyScreen();
@@ -121,16 +121,16 @@ public class CL_inv {
 			// search for a binding
 			//Com_sprintf (binding, sizeof(binding), "use %s",
 			// cl.configstrings[CS_ITEMS+item]);
-			binding = "use " + Globals.cl.configstrings[Defines.CS_ITEMS + item];
+			binding = "use " + ClientGlobals.cl.configstrings[Defines.CS_ITEMS + item];
 			bind = "";
 			for (j = 0; j < 256; j++)
-				if (Globals.keybindings[j] != null && Globals.keybindings[j].equals(binding)) {
+				if (ClientGlobals.keybindings[j] != null && ClientGlobals.keybindings[j].equals(binding)) {
 					bind = Key.KeynumToString(j);
 					break;
 				}
 
-			string = Com.sprintf("%6s %3i %s", new Vargs(3).add(bind).add(Globals.cl.inventory[item]).add(
-					Globals.cl.configstrings[Defines.CS_ITEMS + item]));
+			string = Com.sprintf("%6s %3i %s", new Vargs(3).add(bind).add(ClientGlobals.cl.inventory[item]).add(
+					ClientGlobals.cl.configstrings[Defines.CS_ITEMS + item]));
 			if (item != selected)
 				string = getHighBitString(string);
 			else // draw a blinky cursor by the selected item

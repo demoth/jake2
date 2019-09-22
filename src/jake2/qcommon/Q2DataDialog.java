@@ -61,8 +61,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
+				System.exit(1);
+			}
         });
 
         choosePanel.setLayout(new java.awt.GridBagLayout());
@@ -129,8 +129,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
         exitButton.setText("Exit");
         exitButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exitButtonActionPerformed(evt);
-            }
+				System.exit(1);
+			}
         });
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -178,15 +178,8 @@ public class Q2DataDialog extends javax.swing.JDialog {
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {
 		showNotFoundPanel();
     }
-    
-    private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if (!Globals.appletMode) {
-            System.exit(1);
-        }
-    	dispose();
-    }
-    
-    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
+
+	private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
     	dir = jTextField1.getText();
     	if (dir != null) {
     		Cvar.Set("cddir", dir);
@@ -215,14 +208,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
         
     }//GEN-LAST:event_changeButtonActionPerformed
 
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        if (!Globals.appletMode) {
-            System.exit(1);
-        }
-    	dispose();
-    }//GEN-LAST:event_formWindowClosing
-        
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+	// Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton changeButton;
     private javax.swing.JButton exitButton;
     private javax.swing.JButton cancelButton;
@@ -407,9 +393,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			exit = new JButton("Exit");
 			exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-                            if (!Globals.appletMode) {
 				System.exit(0);
-                            }
 			}});
 			add(exit, constraints);			
 			
@@ -510,7 +494,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			exit = new JButton("Exit");
 			exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				exit();
+				System.exit(0);
 			}});
 			add(exit, constraints);
 			
@@ -578,13 +562,7 @@ public class Q2DataDialog extends javax.swing.JDialog {
 			parent.showProgressPanel();
 			new Thread(parent.progressPanel).start();
 		}
-		
-		private void exit() {
-                    if (!Globals.appletMode) {
-                        System.exit(0);
-                    }
-		}
-		
+
 		private void choose() {
 			JFileChooser chooser = new JFileChooser();
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

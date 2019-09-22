@@ -51,14 +51,14 @@ public class CL_view {
         float rotate;
         float[] axis = new float[3];
 
-        if ((i = Globals.cl.configstrings[Defines.CS_MODELS + 1].length()) == 0)
+        if ((i = ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1].length()) == 0)
             return; // no map loaded
 
         SCR.AddDirtyPoint(0, 0);
-        SCR.AddDirtyPoint(Globals.viddef.getWidth() - 1, Globals.viddef.getHeight() - 1);
+        SCR.AddDirtyPoint(ClientGlobals.viddef.getWidth() - 1, ClientGlobals.viddef.getHeight() - 1);
 
         // let the render dll load the map
-        mapname = Globals.cl.configstrings[Defines.CS_MODELS + 1].substring(5,
+        mapname = ClientGlobals.cl.configstrings[Defines.CS_MODELS + 1].substring(5,
                 i - 4); // skip "maps/"
         // cut off ".bsp"
 
@@ -80,8 +80,8 @@ public class CL_view {
         cl_weaponmodels[0] = "weapon.md2";
 
         for (i = 1; i < Defines.MAX_MODELS
-                && Globals.cl.configstrings[Defines.CS_MODELS + i].length() != 0; i++) {
-            name = new String(Globals.cl.configstrings[Defines.CS_MODELS + i]);
+                && ClientGlobals.cl.configstrings[Defines.CS_MODELS + i].length() != 0; i++) {
+            name = new String(ClientGlobals.cl.configstrings[Defines.CS_MODELS + i]);
             if (name.length() > 37)
                 name = name.substring(0, 36);
 
@@ -93,20 +93,20 @@ public class CL_view {
             if (name.charAt(0) == '#') {
                 // special player weapon model
                 if (num_cl_weaponmodels < Defines.MAX_CLIENTWEAPONMODELS) {
-                    cl_weaponmodels[num_cl_weaponmodels] = Globals.cl.configstrings[Defines.CS_MODELS
+                    cl_weaponmodels[num_cl_weaponmodels] = ClientGlobals.cl.configstrings[Defines.CS_MODELS
                             + i].substring(1);
                     num_cl_weaponmodels++;
                 }
             } else {
-                Globals.cl.model_draw[i] = Globals.re
-                        .RegisterModel(Globals.cl.configstrings[Defines.CS_MODELS
+                ClientGlobals.cl.model_draw[i] = Globals.re
+                        .RegisterModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
                                 + i]);
                 if (name.charAt(0) == '*')
-                    Globals.cl.model_clip[i] = CM
-                            .InlineModel(Globals.cl.configstrings[Defines.CS_MODELS
+                    ClientGlobals.cl.model_clip[i] = CM
+                            .InlineModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
                                     + i]);
                 else
-                    Globals.cl.model_clip[i] = null;
+                    ClientGlobals.cl.model_clip[i] = null;
             }
             if (name.charAt(0) != '*')
                 Com.Printf("                                     \r");
@@ -115,15 +115,15 @@ public class CL_view {
         Com.Printf("images\r");
         SCR.UpdateScreen();
         for (i = 1; i < Defines.MAX_IMAGES
-                && Globals.cl.configstrings[Defines.CS_IMAGES + i].length() > 0; i++) {
-            Globals.cl.image_precache[i] = Globals.re
-                    .RegisterPic(Globals.cl.configstrings[Defines.CS_IMAGES + i]);
+                && ClientGlobals.cl.configstrings[Defines.CS_IMAGES + i].length() > 0; i++) {
+            ClientGlobals.cl.image_precache[i] = Globals.re
+                    .RegisterPic(ClientGlobals.cl.configstrings[Defines.CS_IMAGES + i]);
             Sys.SendKeyEvents(); // pump message loop
         }
 
         Com.Printf("                                     \r");
         for (i = 0; i < Defines.MAX_CLIENTS; i++) {
-            if (Globals.cl.configstrings[Defines.CS_PLAYERSKINS + i].length() == 0)
+            if (ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i].length() == 0)
                 continue;
             Com.Printf("client " + i + '\r');
             SCR.UpdateScreen();
@@ -132,20 +132,20 @@ public class CL_view {
             Com.Printf("                                     \r");
         }
 
-        CL_parse.LoadClientinfo(Globals.cl.baseclientinfo,
+        CL_parse.LoadClientinfo(ClientGlobals.cl.baseclientinfo,
                 "unnamed\\male/grunt");
 
         // set sky textures and speed
         Com.Printf("sky\r");
         SCR.UpdateScreen();
         rotate = Float
-                .parseFloat(Globals.cl.configstrings[Defines.CS_SKYROTATE]);
+                .parseFloat(ClientGlobals.cl.configstrings[Defines.CS_SKYROTATE]);
         StringTokenizer st = new StringTokenizer(
-                Globals.cl.configstrings[Defines.CS_SKYAXIS]);
+                ClientGlobals.cl.configstrings[Defines.CS_SKYAXIS]);
         axis[0] = Float.parseFloat(st.nextToken());
         axis[1] = Float.parseFloat(st.nextToken());
         axis[2] = Float.parseFloat(st.nextToken());
-        Globals.re.SetSky(Globals.cl.configstrings[Defines.CS_SKY], rotate,
+        Globals.re.SetSky(ClientGlobals.cl.configstrings[Defines.CS_SKY], rotate,
                 axis);
         Com.Printf("                                     \r");
 
@@ -156,11 +156,11 @@ public class CL_view {
         Console.ClearNotify();
 
         SCR.UpdateScreen();
-        Globals.cl.refresh_prepped = true;
-        Globals.cl.force_refdef = true; // make sure we have a valid refdef
+        ClientGlobals.cl.refresh_prepped = true;
+        ClientGlobals.cl.force_refdef = true; // make sure we have a valid refdef
         
         // start the cd track
-        CDAudio.Play(Lib.atoi(Globals.cl.configstrings[Defines.CS_CDTRACK]), true);
+        CDAudio.Play(Lib.atoi(ClientGlobals.cl.configstrings[Defines.CS_CDTRACK]), true);
 
     }
 
@@ -177,13 +177,13 @@ public class CL_view {
         for (i = 0; i < Globals.cls.netchan.dropped; i++)
             SCR.DebugGraph(30, 0x40);
 
-        for (i = 0; i < Globals.cl.surpressCount; i++)
+        for (i = 0; i < ClientGlobals.cl.surpressCount; i++)
             SCR.DebugGraph(30, 0xdf);
 
         // see what the latency was on this packet
         in = Globals.cls.netchan.incoming_acknowledged
                 & (Defines.CMD_BACKUP - 1);
-        ping = (int) (Globals.cls.realtime - Globals.cl.cmd_time[in]);
+        ping = (int) (Globals.cls.realtime - ClientGlobals.cl.cmd_time[in]);
         ping /= 30;
         if (ping > 30)
             ping = 30;

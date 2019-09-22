@@ -199,10 +199,10 @@ public class Key extends Globals {
 	 */
 	public static void Init() {
 		for (int i = 0; i < 32; i++) {
-			Globals.key_lines[i][0] = ']';
-			Globals.key_lines[i][1] = 0;
+			ClientGlobals.key_lines[i][0] = ']';
+			ClientGlobals.key_lines[i][1] = 0;
 		}
-		Globals.key_linepos = 1;
+		ClientGlobals.key_linepos = 1;
 
 		//
 		// init ascii characters in console mode
@@ -287,9 +287,9 @@ public class Key extends Globals {
 	}
 
 	static void ClearTyping() {
-		Globals.key_lines[Globals.edit_line][1] = 0; // clear any typing
-		Globals.key_linepos = 1;
-		Globals.con.backedit = 0; // sfranzyshen
+		ClientGlobals.key_lines[ClientGlobals.edit_line][1] = 0; // clear any typing
+		ClientGlobals.key_linepos = 1;
+		ClientGlobals.con.backedit = 0; // sfranzyshen
 	}
 
 	/**
@@ -314,7 +314,7 @@ public class Key extends Globals {
 				&& !(Globals.cls.state == Defines.ca_disconnected))
 				return; // ignore most autorepeats
 
-			if (key >= 200 && Globals.keybindings[key] == null)
+			if (key >= 200 && ClientGlobals.keybindings[key] == null)
 				Com.Printf(Key.KeynumToString(key) + " is unbound, hit F4 to set.\n");
 		}
 		else {
@@ -334,7 +334,7 @@ public class Key extends Globals {
 		}
 
 		// any key during the attract mode will bring up the menu
-		if (Globals.cl.attractloop && Globals.cls.key_dest != Defines.key_menu && !(key >= K_F1 && key <= K_F12))
+		if (ClientGlobals.cl.attractloop && Globals.cls.key_dest != Defines.key_menu && !(key >= K_F1 && key <= K_F12))
 			key = K_ESCAPE;
 
 		// menu key is hardcoded, so the user can never unbind it
@@ -342,7 +342,7 @@ public class Key extends Globals {
 			if (!down)
 				return;
 
-			if (Globals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 && Globals.cls.key_dest == Defines.key_game) {
+			if (ClientGlobals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 && Globals.cls.key_dest == Defines.key_game) {
 				// put away help computer / inventory
 				Cbuf.AddText("cmd putaway\n");
 				return;
@@ -365,7 +365,7 @@ public class Key extends Globals {
 		}
 
 		// track if any key is down for BUTTON_ANY
-		Globals.keydown[key] = down;
+		ClientGlobals.keydown[key] = down;
 		if (down) {
 			if (key_repeats[key] == 1)
 				Key.anykeydown++;
@@ -384,7 +384,7 @@ public class Key extends Globals {
 		// downs can be matched with ups
 		//
 		if (!down) {
-			kb = Globals.keybindings[key];
+			kb = ClientGlobals.keybindings[key];
 			if (kb != null && kb.length()>0 && kb.charAt(0) == '+') {
 				cmd = "-" + kb.substring(1) + " " + key + " " + time + "\n";
 				Cbuf.AddText(cmd);
@@ -405,7 +405,7 @@ public class Key extends Globals {
 		if ((Globals.cls.key_dest == Defines.key_menu && menubound[key])
 			|| (Globals.cls.key_dest == Defines.key_console && !consolekeys[key])
 			|| (Globals.cls.key_dest == Defines.key_game && (Globals.cls.state == Defines.ca_active || !consolekeys[key]))) {
-			kb = Globals.keybindings[key];
+			kb = ClientGlobals.keybindings[key];
 			if (kb != null) {
 				if (kb.length()>0 && kb.charAt(0) == '+') {
 					// button commands add keynum and time as a parm
@@ -483,42 +483,42 @@ public class Key extends Globals {
 
 		// sfranzyshen -- start         
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(Globals.chat_buffer);
-		int offset = buffer.length() - Globals.chat_backedit;
+		buffer.append(ClientGlobals.chat_buffer);
+		int offset = buffer.length() - ClientGlobals.chat_backedit;
 			
 		if (key == K_ENTER || key == K_KP_ENTER) {
-			if (Globals.chat_team)
+			if (ClientGlobals.chat_team)
 				Cbuf.AddText("say_team \"");
 			else
 				Cbuf.AddText("say \"");
 			
-			Cbuf.AddText(Globals.chat_buffer);
+			Cbuf.AddText(ClientGlobals.chat_buffer);
 			Cbuf.AddText("\"\n");
 			
 			Globals.cls.key_dest = Defines.key_game;
-			Globals.chat_buffer = "";
-			Globals.chat_backedit = 0; 
+			ClientGlobals.chat_buffer = "";
+			ClientGlobals.chat_backedit = 0;
 			return;
 		}
 		 
 		
 		if (key == K_ESCAPE) {
 			Globals.cls.key_dest = Defines.key_game;
-			Globals.chat_buffer = "";
-			Globals.chat_backedit = 0; 
+			ClientGlobals.chat_buffer = "";
+			ClientGlobals.chat_backedit = 0;
 			return;
 		}
 		if (key == K_END || key == K_KP_END) {
-			Globals.chat_backedit = 0; 
+			ClientGlobals.chat_backedit = 0;
 			return;
 		}
 		if (key == K_HOME || key == K_KP_HOME) {
-			Globals.chat_backedit = Globals.chat_buffer.length();
+			ClientGlobals.chat_backedit = ClientGlobals.chat_buffer.length();
 			return;
 		}
 		if (key == K_BACKSPACE) {
 			if (buffer.length() > 0) { // we have a buffer to edit
-				if (Globals.chat_backedit > 0) { // we are somewhere mid line
+				if (ClientGlobals.chat_backedit > 0) { // we are somewhere mid line
 					if (offset == 0) { // we are at the start of the line
 						return;
 					}
@@ -528,55 +528,55 @@ public class Key extends Globals {
 					buffer.deleteCharAt(buffer.length()-1);
 				}
 			}
-			Globals.chat_buffer = buffer.toString();
+			ClientGlobals.chat_buffer = buffer.toString();
 			return;
 		}
 			
 		if (key == K_DEL || key == K_KP_DEL) {
-			if (buffer.length() > 0 && Globals.chat_backedit > 0) { // we have a buffer & we are somewhere mid line
+			if (buffer.length() > 0 && ClientGlobals.chat_backedit > 0) { // we have a buffer & we are somewhere mid line
 				buffer.deleteCharAt(offset);
-				Globals.chat_backedit--;
-				if (Globals.chat_backedit < 0) {
-					Globals.chat_backedit = 0;
+				ClientGlobals.chat_backedit--;
+				if (ClientGlobals.chat_backedit < 0) {
+					ClientGlobals.chat_backedit = 0;
 				}
 			}
-			Globals.chat_buffer = buffer.toString();
+			ClientGlobals.chat_buffer = buffer.toString();
 			return;
 		}
 			
 		if (key == K_LEFTARROW) {
 			if (buffer.length() > 0 && offset > 0) { //we have a buffer & we are not at the start of line
-				Globals.chat_backedit++;
-				if (Globals.chat_backedit > buffer.length()) {
-					Globals.chat_backedit = buffer.length();
+				ClientGlobals.chat_backedit++;
+				if (ClientGlobals.chat_backedit > buffer.length()) {
+					ClientGlobals.chat_backedit = buffer.length();
 				}
 			}
-			Globals.chat_buffer = buffer.toString();
+			ClientGlobals.chat_buffer = buffer.toString();
 			return;
 		}
 			
 		if (key == K_RIGHTARROW) {
-			if (buffer.length() > 0 && Globals.chat_backedit > 0) { // we have a buffer & we are not at the end of line
-				Globals.chat_backedit--;
-				if (Globals.chat_backedit < 0) {
-					Globals.chat_backedit = 0;
+			if (buffer.length() > 0 && ClientGlobals.chat_backedit > 0) { // we have a buffer & we are not at the end of line
+				ClientGlobals.chat_backedit--;
+				if (ClientGlobals.chat_backedit < 0) {
+					ClientGlobals.chat_backedit = 0;
 				}
 			}
-			Globals.chat_buffer = buffer.toString();
+			ClientGlobals.chat_buffer = buffer.toString();
 			return;
 		}
 			
 		if (key < 32 || key > 127)
 			return; // non printable
 			
-		if (Globals.chat_backedit > 0) {
+		if (ClientGlobals.chat_backedit > 0) {
 			buffer.insert(offset, (char) key);
 			//Globals.chat_backedit++;
 		}
 		else {
 			buffer.append((char) key);
 		}
-		Globals.chat_buffer = buffer.toString();
+		ClientGlobals.chat_buffer = buffer.toString();
 		// sfranzyshen -- stop    
 	}	
 	
@@ -631,7 +631,7 @@ public class Key extends Globals {
 				break;
 		}
 		// sfranzyshen -start
-		if ((key == K_CTRLV && keydown[K_CTRL] ) || ((( key == K_INS ) || ( key == K_KP_INS )) && keydown[K_SHIFT] )) {
+		if ((key == K_CTRLV && ClientGlobals.keydown[K_CTRL] ) || ((( key == K_INS ) || ( key == K_KP_INS )) && ClientGlobals.keydown[K_SHIFT] )) {
 			String cbd;
 			
 			if (( cbd = Sys.GetClipboardData()) != null) {
@@ -639,23 +639,23 @@ public class Key extends Globals {
 				
 				x = cbd.length();
 				
-				if ( x + Globals.key_linepos >= MAXCMDLINE )
-					x = MAXCMDLINE - Globals.key_linepos;
+				if ( x + ClientGlobals.key_linepos >= MAXCMDLINE )
+					x = MAXCMDLINE - ClientGlobals.key_linepos;
 				
 				if ( x > 0 )
 				{
-					if (Globals.con.backedit > 0) {
-						for (i = Globals.key_linepos - Globals.con.backedit; i < Globals.key_linepos; i++)
-							Globals.key_lines[Globals.edit_line][i + x] = Globals.key_lines[Globals.edit_line][i];
+					if (ClientGlobals.con.backedit > 0) {
+						for (i = ClientGlobals.key_linepos - ClientGlobals.con.backedit; i < ClientGlobals.key_linepos; i++)
+							ClientGlobals.key_lines[ClientGlobals.edit_line][i + x] = ClientGlobals.key_lines[ClientGlobals.edit_line][i];
 						
-						for (i = Globals.key_linepos - Globals.con.backedit; i < Globals.key_linepos - Globals.con.backedit + x; i++)
-							Globals.key_lines[Globals.edit_line][i] = (byte) cbd.charAt(i - (Globals.key_linepos - Globals.con.backedit));
-						con.backedit += x;
+						for (i = ClientGlobals.key_linepos - ClientGlobals.con.backedit; i < ClientGlobals.key_linepos - ClientGlobals.con.backedit + x; i++)
+							ClientGlobals.key_lines[ClientGlobals.edit_line][i] = (byte) cbd.charAt(i - (ClientGlobals.key_linepos - ClientGlobals.con.backedit));
+						ClientGlobals.con.backedit += x;
 					} else {
-						for (i = Globals.key_linepos; i < Globals.key_linepos + x; i++)
-							Globals.key_lines[Globals.edit_line][i] = (byte) cbd.charAt(i - Globals.key_linepos);
+						for (i = ClientGlobals.key_linepos; i < ClientGlobals.key_linepos + x; i++)
+							ClientGlobals.key_lines[ClientGlobals.edit_line][i] = (byte) cbd.charAt(i - ClientGlobals.key_linepos);
 					}
-					Globals.key_linepos += x;
+					ClientGlobals.key_linepos += x;
 				}
 			}
 			return;
@@ -664,32 +664,32 @@ public class Key extends Globals {
 				
 
 		if (key == 'l') {
-			if (Globals.keydown[K_CTRL]) {
+			if (ClientGlobals.keydown[K_CTRL]) {
 				Cbuf.AddText("clear\n");
-				Globals.con.backedit = 0; // sfranzyshen
+				ClientGlobals.con.backedit = 0; // sfranzyshen
 				return;
 			}
 		}
 
 		if (key == K_ENTER || key == K_KP_ENTER) {
 			// backslash text are commands, else chat
-			if (Globals.key_lines[Globals.edit_line][1] == '\\' || Globals.key_lines[Globals.edit_line][1] == '/')
+			if (ClientGlobals.key_lines[ClientGlobals.edit_line][1] == '\\' || ClientGlobals.key_lines[ClientGlobals.edit_line][1] == '/')
 				Cbuf.AddText(
-					new String(Globals.key_lines[Globals.edit_line], 2, Lib.strlen(Globals.key_lines[Globals.edit_line]) - 2));
+					new String(ClientGlobals.key_lines[ClientGlobals.edit_line], 2, Lib.strlen(ClientGlobals.key_lines[ClientGlobals.edit_line]) - 2));
 			else
 				Cbuf.AddText(
-					new String(Globals.key_lines[Globals.edit_line], 1, Lib.strlen(Globals.key_lines[Globals.edit_line]) - 1));
+					new String(ClientGlobals.key_lines[ClientGlobals.edit_line], 1, Lib.strlen(ClientGlobals.key_lines[ClientGlobals.edit_line]) - 1));
 
 			
 			Cbuf.AddText("\n");
 		
-			Com.Printf(new String(Globals.key_lines[Globals.edit_line], 0, Lib.strlen(Globals.key_lines[Globals.edit_line])) + "\n");
-			Globals.edit_line = (Globals.edit_line + 1) & 31;
-			history_line = Globals.edit_line;
+			Com.Printf(new String(ClientGlobals.key_lines[ClientGlobals.edit_line], 0, Lib.strlen(ClientGlobals.key_lines[ClientGlobals.edit_line])) + "\n");
+			ClientGlobals.edit_line = (ClientGlobals.edit_line + 1) & 31;
+			history_line = ClientGlobals.edit_line;
 		
-			Globals.key_lines[Globals.edit_line][0] = ']';
-			Globals.key_linepos = 1;
-			Globals.con.backedit = 0; // sfranzyshen
+			ClientGlobals.key_lines[ClientGlobals.edit_line][0] = ']';
+			ClientGlobals.key_linepos = 1;
+			ClientGlobals.con.backedit = 0; // sfranzyshen
 
 			if (Globals.cls.state == Defines.ca_disconnected)
 				SCR.UpdateScreen(); // force an update, because the command may take some time
@@ -699,29 +699,29 @@ public class Key extends Globals {
 		if (key == K_TAB) {
 			// command completion
 			CompleteCommand();
-			Globals.con.backedit = 0; // sfranzyshen
+			ClientGlobals.con.backedit = 0; // sfranzyshen
 			return;
 		}
 
 		// sfranzyshen - start
 		if (key == K_BACKSPACE)
 		{
-			if (Globals.key_linepos > 1)
+			if (ClientGlobals.key_linepos > 1)
 			{
-				if (Globals.con.backedit > 0 && Globals.con.backedit < Globals.key_linepos)
+				if (ClientGlobals.con.backedit > 0 && ClientGlobals.con.backedit < ClientGlobals.key_linepos)
 				{
-					if (Globals.key_linepos - Globals.con.backedit <= 1)
+					if (ClientGlobals.key_linepos - ClientGlobals.con.backedit <= 1)
 						return;
 					
-					for (i = Globals.key_linepos - Globals.con.backedit - 1; i < Globals.key_linepos; i++)
-						Globals.key_lines[Globals.edit_line][i] = Globals.key_lines[Globals.edit_line][i+1];
+					for (i = ClientGlobals.key_linepos - ClientGlobals.con.backedit - 1; i < ClientGlobals.key_linepos; i++)
+						ClientGlobals.key_lines[ClientGlobals.edit_line][i] = ClientGlobals.key_lines[ClientGlobals.edit_line][i+1];
 					
-					if (Globals.key_linepos > 1)
-						Globals.key_linepos--;
+					if (ClientGlobals.key_linepos > 1)
+						ClientGlobals.key_linepos--;
 				}
 				else
 				{
-					Globals.key_linepos--;
+					ClientGlobals.key_linepos--;
 				}
 			}
 			return;
@@ -729,33 +729,33 @@ public class Key extends Globals {
 		
 		if (key == K_DEL || key == K_KP_DEL)
 		{
-			if (Globals.key_linepos > 1 && Globals.con.backedit > 0)
+			if (ClientGlobals.key_linepos > 1 && ClientGlobals.con.backedit > 0)
 			{
-				for (i = Globals.key_linepos - Globals.con.backedit; i < Globals.key_linepos; i++)
-					Globals.key_lines[Globals.edit_line][i] = Globals.key_lines[Globals.edit_line][i+1];
+				for (i = ClientGlobals.key_linepos - ClientGlobals.con.backedit; i < ClientGlobals.key_linepos; i++)
+					ClientGlobals.key_lines[ClientGlobals.edit_line][i] = ClientGlobals.key_lines[ClientGlobals.edit_line][i+1];
 				
-				Globals.con.backedit--;
-				Globals.key_linepos--;
+				ClientGlobals.con.backedit--;
+				ClientGlobals.key_linepos--;
 			}
 			return;
 		}
 		
 		if (key == K_LEFTARROW || key == K_KP_LEFTARROW)
 		{
-			if (Globals.key_linepos>1)
+			if (ClientGlobals.key_linepos>1)
 			{
-				Globals.con.backedit++;
-				if (Globals.con.backedit > Globals.key_linepos -1) Globals.con.backedit = Globals.key_linepos-1;
+				ClientGlobals.con.backedit++;
+				if (ClientGlobals.con.backedit > ClientGlobals.key_linepos -1) ClientGlobals.con.backedit = ClientGlobals.key_linepos-1;
 			}
 			return;
 		}
 		
 		if (key == K_RIGHTARROW || key == K_KP_RIGHTARROW)
 		{
-			if (Globals.key_linepos > 1)
+			if (ClientGlobals.key_linepos > 1)
 			{
-				Globals.con.backedit--;
-				if (Globals.con.backedit<0) Globals.con.backedit = 0;
+				ClientGlobals.con.backedit--;
+				if (ClientGlobals.con.backedit<0) ClientGlobals.con.backedit = 0;
 			}
 			return;
 		}
@@ -763,62 +763,62 @@ public class Key extends Globals {
 		
 
 
-		if ((key == K_UPARROW) || (key == K_KP_UPARROW) || ((key == 'p') && Globals.keydown[K_CTRL])) {
+		if ((key == K_UPARROW) || (key == K_KP_UPARROW) || ((key == 'p') && ClientGlobals.keydown[K_CTRL])) {
 			do {
 				history_line = (history_line - 1) & 31;
 			}
-			while (history_line != Globals.edit_line && Globals.key_lines[history_line][1] == 0);
-			if (history_line == Globals.edit_line)
-				history_line = (Globals.edit_line + 1) & 31;
+			while (history_line != ClientGlobals.edit_line && ClientGlobals.key_lines[history_line][1] == 0);
+			if (history_line == ClientGlobals.edit_line)
+				history_line = (ClientGlobals.edit_line + 1) & 31;
 			//Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
-			System.arraycopy(Globals.key_lines[history_line], 0, Globals.key_lines[Globals.edit_line], 0, Globals.key_lines[Globals.edit_line].length);
-			Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
-			Globals.con.backedit = 0; // sfranzyshen
+			System.arraycopy(ClientGlobals.key_lines[history_line], 0, ClientGlobals.key_lines[ClientGlobals.edit_line], 0, ClientGlobals.key_lines[ClientGlobals.edit_line].length);
+			ClientGlobals.key_linepos = Lib.strlen(ClientGlobals.key_lines[ClientGlobals.edit_line]);
+			ClientGlobals.con.backedit = 0; // sfranzyshen
 			return;
 		}
 
-		if ((key == K_DOWNARROW) || (key == K_KP_DOWNARROW) || ((key == 'n') && Globals.keydown[K_CTRL])) {
-			if (history_line == Globals.edit_line)
+		if ((key == K_DOWNARROW) || (key == K_KP_DOWNARROW) || ((key == 'n') && ClientGlobals.keydown[K_CTRL])) {
+			if (history_line == ClientGlobals.edit_line)
 				return;
 			do {
 				history_line = (history_line + 1) & 31;
 			}
-			while (history_line != Globals.edit_line && Globals.key_lines[history_line][1] == 0);
-			if (history_line == Globals.edit_line) {
-				Globals.key_lines[Globals.edit_line][0] = ']';
-				Globals.key_linepos = 1;
+			while (history_line != ClientGlobals.edit_line && ClientGlobals.key_lines[history_line][1] == 0);
+			if (history_line == ClientGlobals.edit_line) {
+				ClientGlobals.key_lines[ClientGlobals.edit_line][0] = ']';
+				ClientGlobals.key_linepos = 1;
 			}
 			else {
 				//Lib.strcpy(Globals.key_lines[Globals.edit_line], Globals.key_lines[history_line]);
-				System.arraycopy(Globals.key_lines[history_line], 0, Globals.key_lines[Globals.edit_line], 0, Globals.key_lines[Globals.edit_line].length);
-				Globals.key_linepos = Lib.strlen(Globals.key_lines[Globals.edit_line]);
-				Globals.con.backedit = 0; // sfranzyshen
+				System.arraycopy(ClientGlobals.key_lines[history_line], 0, ClientGlobals.key_lines[ClientGlobals.edit_line], 0, ClientGlobals.key_lines[ClientGlobals.edit_line].length);
+				ClientGlobals.key_linepos = Lib.strlen(ClientGlobals.key_lines[ClientGlobals.edit_line]);
+				ClientGlobals.con.backedit = 0; // sfranzyshen
 			}
 			return;
 		}
 
 		if (key == K_MWHEELUP || key == K_PGUP || key == K_KP_PGUP) {
-			Globals.con.display -= 2;
+			ClientGlobals.con.display -= 2;
 			return;
 		}
 
 		if (key == K_MWHEELDOWN || key == K_PGDN || key == K_KP_PGDN) {
-			Globals.con.display += 2;
-			if (Globals.con.display > Globals.con.current)
-				Globals.con.display = Globals.con.current;
+			ClientGlobals.con.display += 2;
+			if (ClientGlobals.con.display > ClientGlobals.con.current)
+				ClientGlobals.con.display = ClientGlobals.con.current;
 			return;
 		}
 
 		// sfranzyshen - start
 		if (key == K_HOME || key == K_KP_HOME) {
 			//Globals.con.display = Globals.con.current - Globals.con.totallines + 10;
-			Globals.con.backedit = Globals.key_linepos -1;
+			ClientGlobals.con.backedit = ClientGlobals.key_linepos -1;
 			return;
 		}
 
 		if (key == K_END || key == K_KP_END) {
 			//Globals.con.display = Globals.con.current;
-			Globals.con.backedit = 0;
+			ClientGlobals.con.backedit = 0;
 			return;
 		}
 
@@ -829,16 +829,16 @@ public class Key extends Globals {
 			return; // non printable
 
 		// sfranzyshen -start
-		if (Globals.key_linepos < Defines.MAXCMDLINE - 1) {
-			if (Globals.con.backedit > 0) { //insert character...
-				for (i = Globals.key_linepos; i > Globals.key_linepos - Globals.con.backedit; i--)
-					Globals.key_lines[Globals.edit_line][i] = Globals.key_lines[Globals.edit_line][i -1];
-				Globals.key_lines[Globals.edit_line][i] = (byte) key;
-				Globals.key_linepos++;
-				Globals.key_lines[Globals.edit_line][Globals.key_linepos] = 0;
+		if (ClientGlobals.key_linepos < Defines.MAXCMDLINE - 1) {
+			if (ClientGlobals.con.backedit > 0) { //insert character...
+				for (i = ClientGlobals.key_linepos; i > ClientGlobals.key_linepos - ClientGlobals.con.backedit; i--)
+					ClientGlobals.key_lines[ClientGlobals.edit_line][i] = ClientGlobals.key_lines[ClientGlobals.edit_line][i -1];
+				ClientGlobals.key_lines[ClientGlobals.edit_line][i] = (byte) key;
+				ClientGlobals.key_linepos++;
+				ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos] = 0;
 			} else {                       
-				Globals.key_lines[Globals.edit_line][Globals.key_linepos++] = (byte) key;
-				Globals.key_lines[Globals.edit_line][Globals.key_linepos] = 0;
+				ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos++] = (byte) key;
+				ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos] = 0;
 			}
 		}
 		// sfranzyshen -stop
@@ -857,13 +857,13 @@ public class Key extends Globals {
 	private static void CompleteCommand() {
 		
 		int start = 1;
-		if (key_lines[edit_line][start] == '\\' ||  key_lines[edit_line][start] == '/')
+		if (ClientGlobals.key_lines[ClientGlobals.edit_line][start] == '\\' ||  ClientGlobals.key_lines[ClientGlobals.edit_line][start] == '/')
 			start++;
 		
 		int end = start;
-		while (key_lines[edit_line][end] != 0) end++;
+		while (ClientGlobals.key_lines[ClientGlobals.edit_line][end] != 0) end++;
 			
-		String s = new String(key_lines[edit_line], start, end-start);
+		String s = new String(ClientGlobals.key_lines[ClientGlobals.edit_line], start, end-start);
 		
 		List<String> cmds = Cmd.CompleteCommand(s);
 		List<String> vars = Cvar.CompleteVariable(s);
@@ -881,12 +881,12 @@ public class Key extends Globals {
 			s = vars.get(0);
 		} else return;
 		
-		key_lines[edit_line][1] = '/';
+		ClientGlobals.key_lines[ClientGlobals.edit_line][1] = '/';
 		byte[] bytes = Lib.stringToBytes(s);
-		System.arraycopy(bytes, 0, key_lines[edit_line], 2, bytes.length);
-		key_linepos = bytes.length + 2;
-		key_lines[edit_line][key_linepos++] = ' ';
-		key_lines[edit_line][key_linepos] = 0;
+		System.arraycopy(bytes, 0, ClientGlobals.key_lines[ClientGlobals.edit_line], 2, bytes.length);
+		ClientGlobals.key_linepos = bytes.length + 2;
+		ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos++] = ' ';
+		ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos] = 0;
 	}
 
 	private static void Key_Bind_f(List<String> args) {
@@ -903,8 +903,8 @@ public class Key extends Globals {
 
 		// show current binding
 		if (args.size() == 2) {
-			if (Globals.keybindings[key] != null)
-				Com.Printf("\"" + args.get(1) + "\" = \"" + Globals.keybindings[key] + "\"\n");
+			if (ClientGlobals.keybindings[key] != null)
+				Com.Printf("\"" + args.get(1) + "\" = \"" + ClientGlobals.keybindings[key] + "\"\n");
 			else
 				Com.Printf("\"" + args.get(1) + "\" is not bound\n");
 			return;
@@ -926,9 +926,9 @@ public class Key extends Globals {
 			return;
 
 		// free old bindings
-		Globals.keybindings[keynum] = null;
+		ClientGlobals.keybindings[keynum] = null;
 
-		Globals.keybindings[keynum] = binding;
+		ClientGlobals.keybindings[keynum] = binding;
 	}
 
 	private static void Key_Unbind_f(List<String> args) {
@@ -954,8 +954,8 @@ public class Key extends Globals {
 
 	private static void Key_Bindlist_f() {
 		for (int i = 0; i < 256; i++)
-			if (Globals.keybindings[i] != null && Globals.keybindings[i].length() != 0)
-				Com.Printf(Key.KeynumToString(i) + " \"" + Globals.keybindings[i] + "\"\n");
+			if (ClientGlobals.keybindings[i] != null && ClientGlobals.keybindings[i].length() != 0)
+				Com.Printf(Key.KeynumToString(i) + " \"" + ClientGlobals.keybindings[i] + "\"\n");
 	}
 
 	static void ClearStates() {
@@ -964,18 +964,18 @@ public class Key extends Globals {
 		Key.anykeydown = 0;
 
 		for (i = 0; i < 256; i++) {
-			if (keydown[i] || key_repeats[i]!=0)
+			if (ClientGlobals.keydown[i] || key_repeats[i]!=0)
 				Event(i, false, 0);
-			keydown[i] = false;
+			ClientGlobals.keydown[i] = false;
 			key_repeats[i] = 0;
 		}
 	}
 
 	static void WriteBindings(RandomAccessFile f) {
 		for (int i = 0; i < 256; i++)
-			if (keybindings[i] != null && keybindings[i].length() > 0)
+			if (ClientGlobals.keybindings[i] != null && ClientGlobals.keybindings[i].length() > 0)
 				try {
-					f.writeBytes("bind " + KeynumToString(i) + " \"" + keybindings[i] + "\"\n");
+					f.writeBytes("bind " + KeynumToString(i) + " \"" + ClientGlobals.keybindings[i] + "\"\n");
 				} catch (IOException e) {}
 	}
 

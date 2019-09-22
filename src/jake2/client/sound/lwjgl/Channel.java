@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client.sound.lwjgl;
 
 import jake2.client.CL_ents;
+import jake2.client.ClientGlobals;
 import jake2.client.sound.Sound;
 import jake2.client.sound.sfx_t;
 import jake2.client.sound.sfxcache_t;
@@ -250,7 +251,7 @@ public class Channel {
 	    }
 
 	    // don't let monster sounds override player sounds
-	    if ((ch.entnum == Globals.cl.playernum+1) && (ps.entnum != Globals.cl.playernum+1) && ch.bufferId != -1)
+	    if ((ch.entnum == ClientGlobals.cl.playernum+1) && (ps.entnum != ClientGlobals.cl.playernum+1) && ch.bufferId != -1)
 		continue;
 
 	    // looking for a free AL source
@@ -366,7 +367,7 @@ public class Channel {
      */
     static void addLoopSounds() {
 
-	if ((Globals.cl_paused.value != 0.0f) || (Globals.cls.state != Globals.ca_active) || !Globals.cl.sound_prepped) {
+	if ((ClientGlobals.cl_paused.value != 0.0f) || (Globals.cls.state != Globals.ca_active) || !ClientGlobals.cl.sound_prepped) {
 	    removeUnusedLoopSounds();
 	    return;
 	}
@@ -379,9 +380,9 @@ public class Channel {
 	Object key;
 	int sound = 0;
 
-	for (int i=0 ; i<Globals.cl.frame.num_entities ; i++) {
-	    num = (Globals.cl.frame.parse_entities + i)&(Defines.MAX_PARSE_ENTITIES-1);
-	    ent = Globals.cl_parse_entities[num];
+	for (int i = 0; i< ClientGlobals.cl.frame.num_entities ; i++) {
+	    num = (ClientGlobals.cl.frame.parse_entities + i)&(Defines.MAX_PARSE_ENTITIES-1);
+	    ent = ClientGlobals.cl_parse_entities[num];
 	    sound = ent.sound;
 
 	    if (sound == 0) continue;
@@ -396,7 +397,7 @@ public class Channel {
 		continue;
 	    }
 
-	    sfx = Globals.cl.sound_precache[sound];
+	    sfx = ClientGlobals.cl.sound_precache[sound];
 	    if (sfx == null)
 		continue;		// bad sound effect
 

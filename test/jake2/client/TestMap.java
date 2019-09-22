@@ -21,10 +21,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.client.render;
+package jake2.client;
 
 import jake2.Jake2;
-import jake2.client.*;
+import jake2.client.render.Renderer;
+import jake2.client.render.image_t;
+import jake2.client.render.model_t;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -119,7 +121,7 @@ public class TestMap
 		Globals.cls.key_dest = Defines.key_game;
 		Globals.cls.state = Defines.ca_active;
 
-		viddef = Globals.viddef;
+		viddef = ClientGlobals.viddef;
 	}
 
 	float fps = 0.0f;
@@ -208,7 +210,7 @@ public class TestMap
 			refdef.y = 0;
 			refdef.width = viddef.getWidth();
 			refdef.height = viddef.getHeight();
-			refdef.fov_x = (Globals.fov == null) ? this.fov_x : Globals.fov.value;
+			refdef.fov_x = (ClientGlobals.fov == null) ? this.fov_x : ClientGlobals.fov.value;
 			refdef.fov_x = this.fov_x;
 			refdef.fov_y = Math3D.CalcFov(refdef.fov_x, refdef.width, refdef.height);
 			refdef.vieworg = new float[] {140, -140, 50};

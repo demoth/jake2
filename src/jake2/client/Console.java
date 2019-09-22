@@ -43,7 +43,7 @@ public final class Console extends Globals {
     static Command ToggleConsole_f = (List<String> args) -> {
 		SCR.EndLoadingPlaque(); // get rid of loading plaque
 
-		if (Globals.cl.attractloop) {
+		if (ClientGlobals.cl.attractloop) {
 		Cbuf.AddText("killserver\n");
 		return;
 		}
@@ -70,7 +70,7 @@ public final class Console extends Globals {
 		}
 	};
 
-    private static Command Clear_f = (List<String> args) -> Arrays.fill(Globals.con.text, (byte) ' ');
+    private static Command Clear_f = (List<String> args) -> Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 
     private static Command Dump_f = (List<String> args) -> {
 
@@ -98,22 +98,22 @@ public final class Console extends Globals {
 		}
 
 		// skip empty lines
-		for (l = con.current - con.totallines + 1; l <= con.current; l++) {
-			line = (l % con.totallines) * con.linewidth;
-			for (x = 0; x < con.linewidth; x++)
-				if (con.text[line + x] != ' ')
+		for (l = ClientGlobals.con.current - ClientGlobals.con.totallines + 1; l <= ClientGlobals.con.current; l++) {
+			line = (l % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
+			for (x = 0; x < ClientGlobals.con.linewidth; x++)
+				if (ClientGlobals.con.text[line + x] != ' ')
 					break;
-			if (x != con.linewidth)
+			if (x != ClientGlobals.con.linewidth)
 				break;
 		}
 
 		// write the remaining lines
-		buffer[con.linewidth] = 0;
-		for (; l <= con.current; l++) {
-			line = (l % con.totallines) * con.linewidth;
+		buffer[ClientGlobals.con.linewidth] = 0;
+		for (; l <= ClientGlobals.con.current; l++) {
+			line = (l % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 			// strncpy (buffer, line, con.linewidth);
-			System.arraycopy(con.text, line, buffer, 0, con.linewidth);
-			for (x = con.linewidth - 1; x >= 0; x--) {
+			System.arraycopy(ClientGlobals.con.text, line, buffer, 0, ClientGlobals.con.linewidth);
+			for (x = ClientGlobals.con.linewidth - 1; x >= 0; x--) {
 				if (buffer[x] == ' ')
 					buffer[x] = 0;
 				else
@@ -135,8 +135,8 @@ public final class Console extends Globals {
 	};
 
     public static void Init() {
-	Globals.con.linewidth = -1;
-	Globals.con.backedit = 0;
+	ClientGlobals.con.linewidth = -1;
+	ClientGlobals.con.backedit = 0;
 
 	CheckResize();
 
@@ -145,7 +145,7 @@ public final class Console extends Globals {
 	//
 	// register our commands
 	//
-	Globals.con_notifytime = Cvar.Get("con_notifytime", "3", 0);
+	ClientGlobals.con_notifytime = Cvar.Get("con_notifytime", "3", 0);
 
 	Cmd.AddCommand("toggleconsole", ToggleConsole_f);
 	Cmd.AddCommand("togglechat", ToggleChat_f);
@@ -153,7 +153,7 @@ public final class Console extends Globals {
 	Cmd.AddCommand("messagemode2", MessageMode2_f);
 	Cmd.AddCommand("clear", Clear_f);
 	Cmd.AddCommand("condump", Dump_f);
-	Globals.con.initialized = true;
+	ClientGlobals.con.initialized = true;
     }
 
     /**
@@ -161,47 +161,47 @@ public final class Console extends Globals {
      */
     static void CheckResize() {
 
-	int width = (Globals.viddef.getWidth() >> 3) - 2;
+	int width = (ClientGlobals.viddef.getWidth() >> 3) - 2;
 	if (width > Defines.MAXCMDLINE)
 	    width = Defines.MAXCMDLINE;
 
-	if (width == Globals.con.linewidth)
+	if (width == ClientGlobals.con.linewidth)
 	    return;
 
 	if (width < 1) { // video hasn't been initialized yet
 	    width = 38;
-	    Globals.con.linewidth = width;
-	    Globals.con.backedit = 0; // sfranzyshen
-	    Globals.con.totallines = Defines.CON_TEXTSIZE
-		    / Globals.con.linewidth;
-	    Arrays.fill(Globals.con.text, (byte) ' ');
+	    ClientGlobals.con.linewidth = width;
+	    ClientGlobals.con.backedit = 0; // sfranzyshen
+	    ClientGlobals.con.totallines = Defines.CON_TEXTSIZE
+		    / ClientGlobals.con.linewidth;
+	    Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 	} else {
-	    int oldwidth = Globals.con.linewidth;
-	    Globals.con.linewidth = width;
-	    Globals.con.backedit = 0; // sfranzyshen
-	    int oldtotallines = Globals.con.totallines;
-	    Globals.con.totallines = Defines.CON_TEXTSIZE
-		    / Globals.con.linewidth;
+	    int oldwidth = ClientGlobals.con.linewidth;
+	    ClientGlobals.con.linewidth = width;
+	    ClientGlobals.con.backedit = 0; // sfranzyshen
+	    int oldtotallines = ClientGlobals.con.totallines;
+	    ClientGlobals.con.totallines = Defines.CON_TEXTSIZE
+		    / ClientGlobals.con.linewidth;
 	    int numlines = oldtotallines;
 
-	    if (Globals.con.totallines < numlines)
-		numlines = Globals.con.totallines;
+	    if (ClientGlobals.con.totallines < numlines)
+		numlines = ClientGlobals.con.totallines;
 
 	    int numchars = oldwidth;
 
-	    if (Globals.con.linewidth < numchars)
-		numchars = Globals.con.linewidth;
+	    if (ClientGlobals.con.linewidth < numchars)
+		numchars = ClientGlobals.con.linewidth;
 
 	    byte[] tbuf = new byte[Defines.CON_TEXTSIZE];
 	    System
-		    .arraycopy(Globals.con.text, 0, tbuf, 0,
+		    .arraycopy(ClientGlobals.con.text, 0, tbuf, 0,
 			    Defines.CON_TEXTSIZE);
-	    Arrays.fill(Globals.con.text, (byte) ' ');
+	    Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 
 	    for (int i = 0; i < numlines; i++) {
 		for (int j = 0; j < numchars; j++) {
-		    Globals.con.text[(Globals.con.totallines - 1 - i)
-			    * Globals.con.linewidth + j] = tbuf[((Globals.con.current
+		    ClientGlobals.con.text[(ClientGlobals.con.totallines - 1 - i)
+			    * ClientGlobals.con.linewidth + j] = tbuf[((ClientGlobals.con.current
 			    - i + oldtotallines) % oldtotallines)
 			    * oldwidth + j];
 		}
@@ -210,14 +210,14 @@ public final class Console extends Globals {
 	    Console.ClearNotify();
 	}
 
-	Globals.con.current = Globals.con.totallines - 1;
-	Globals.con.display = Globals.con.current;
+	ClientGlobals.con.current = ClientGlobals.con.totallines - 1;
+	ClientGlobals.con.display = ClientGlobals.con.current;
     }
 
     static void ClearNotify() {
 	int i;
 	for (i = 0; i < Defines.NUM_CON_TIMES; i++)
-	    Globals.con.times[i] = 0;
+	    ClientGlobals.con.times[i] = 0;
     }
 
     static void DrawString(int x, int y, String s) {
@@ -255,7 +255,7 @@ public final class Console extends Globals {
      * ================ Con_MessageMode_f ================
      */
     private static Command MessageMode_f = (List<String> args) -> {
-		chat_team = false;
+		ClientGlobals.chat_team = false;
 		cls.key_dest = key_message;
 	};
 
@@ -263,7 +263,7 @@ public final class Console extends Globals {
      * ================ Con_MessageMode2_f ================
      */
     private static Command MessageMode2_f = (List<String> args) -> {
-		chat_team = true;
+		ClientGlobals.chat_team = true;
 		cls.key_dest = key_message;
 	};
 
@@ -271,15 +271,15 @@ public final class Console extends Globals {
      * =============== Con_Linefeed ===============
      */
     private static void Linefeed() {
-	Globals.con.x = 0;
-	if (Globals.con.display == Globals.con.current)
-	    Globals.con.display++;
-	Globals.con.current++;
-	int i = (Globals.con.current % Globals.con.totallines)
-		* Globals.con.linewidth;
-	int e = i + Globals.con.linewidth;
-	while (i < Globals.con.text.length && i++ < e)
-	    Globals.con.text[i] = (byte) ' ';
+	ClientGlobals.con.x = 0;
+	if (ClientGlobals.con.display == ClientGlobals.con.current)
+	    ClientGlobals.con.display++;
+	ClientGlobals.con.current++;
+	int i = (ClientGlobals.con.current % ClientGlobals.con.totallines)
+		* ClientGlobals.con.linewidth;
+	int e = i + ClientGlobals.con.linewidth;
+	while (i < ClientGlobals.con.text.length && i++ < e)
+	    ClientGlobals.con.text[i] = (byte) ' ';
     }
 
     /*
@@ -297,7 +297,7 @@ public final class Console extends Globals {
 	int mask;
 	int txtpos = 0;
 
-	if (!con.initialized)
+	if (!ClientGlobals.con.initialized)
 	    return;
 
 	if (txt.charAt(0) == 1 || txt.charAt(0) == 2) {
@@ -309,44 +309,44 @@ public final class Console extends Globals {
 	while (txtpos < txt.length()) {
 	    c = txt.charAt(txtpos);
 	    // count word length
-	    for (l = 0; l < con.linewidth && l < (txt.length() - txtpos); l++)
+	    for (l = 0; l < ClientGlobals.con.linewidth && l < (txt.length() - txtpos); l++)
 		if (txt.charAt(l + txtpos) <= ' ')
 		    break;
 
 	    // word wrap
-	    if (l != con.linewidth && (con.x + l > con.linewidth))
-		con.x = 0;
+	    if (l != ClientGlobals.con.linewidth && (ClientGlobals.con.x + l > ClientGlobals.con.linewidth))
+		ClientGlobals.con.x = 0;
 
 	    txtpos++;
 
 	    if (cr != 0) {
-		con.current--;
+		ClientGlobals.con.current--;
 		cr = 0;
 	    }
 
-	    if (con.x == 0) {
+	    if (ClientGlobals.con.x == 0) {
 		Console.Linefeed();
 		// mark time for transparent overlay
-		if (con.current >= 0)
-		    con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		if (ClientGlobals.con.current >= 0)
+		    ClientGlobals.con.times[ClientGlobals.con.current % NUM_CON_TIMES] = cls.realtime;
 	    }
 
 	    switch (c) {
 	    case '\n':
-		con.x = 0;
+		ClientGlobals.con.x = 0;
 		break;
 
 	    case '\r':
-		con.x = 0;
+		ClientGlobals.con.x = 0;
 		cr = 1;
 		break;
 
 	    default: // display character and advance
-		y = con.current % con.totallines;
-		con.text[y * con.linewidth + con.x] = (byte) (c | mask | con.ormask);
-		con.x++;
-		if (con.x >= con.linewidth)
-		    con.x = 0;
+		y = ClientGlobals.con.current % ClientGlobals.con.totallines;
+		ClientGlobals.con.text[y * ClientGlobals.con.linewidth + ClientGlobals.con.x] = (byte) (c | mask | ClientGlobals.con.ormask);
+		ClientGlobals.con.x++;
+		if (ClientGlobals.con.x >= ClientGlobals.con.linewidth)
+		    ClientGlobals.con.x = 0;
 		break;
 	    }
 	}
@@ -357,7 +357,7 @@ public final class Console extends Globals {
      */
     static void CenteredPrint(String text) {
 	int l = text.length();
-	l = (con.linewidth - l) / 2;
+	l = (ClientGlobals.con.linewidth - l) / 2;
 	if (l < 0)
 	    l = 0;
 
@@ -397,35 +397,35 @@ public final class Console extends Globals {
 	if (cls.key_dest != key_console && cls.state == ca_active)
 	    return; // don't draw anything (always draw if not active)
 
-	text = key_lines[edit_line];
+	text = ClientGlobals.key_lines[ClientGlobals.edit_line];
 
 	// add the cursor frame
 	//text[key_linepos] = (byte) (10 + ((int) (cls.realtime >> 8) & 1)); //sfranzyshen
 
 	// fill out remainder with spaces
-	for (i = key_linepos ; i < con.linewidth; i++) // sfranzyshen
+	for (i = ClientGlobals.key_linepos ; i < ClientGlobals.con.linewidth; i++) // sfranzyshen
 	    text[i] = ' ';
 
 	// prestep if horizontally scrolling
-	if (key_linepos >= con.linewidth)
-	    start += 1 + key_linepos - con.linewidth;
+	if (ClientGlobals.key_linepos >= ClientGlobals.con.linewidth)
+	    start += 1 + ClientGlobals.key_linepos - ClientGlobals.con.linewidth;
 
 	// draw it
 	// y = con.vislines-16;
 
 	// sfranzyshen --start
-	for (i = 0; i < con.linewidth; i++) {
+	for (i = 0; i < ClientGlobals.con.linewidth; i++) {
 		//old:re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
-		if (con.backedit == key_linepos-i && (((int)(Globals.cls.realtime >> 8)&1) !=0))
-			re.DrawChar ((i + 1) << 3, con.vislines - 22, (char)11);
+		if (ClientGlobals.con.backedit == ClientGlobals.key_linepos-i && (((int)(Globals.cls.realtime >> 8)&1) !=0))
+			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, (char)11);
 		else
-			re.DrawChar ((i + 1) << 3, con.vislines - 22, text[i]);
+			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, text[i]);
 	}
 	// sfranzyshen - stop
     
 		
 	// remove cursor
-	key_lines[edit_line][key_linepos] = 0;
+	ClientGlobals.key_lines[ClientGlobals.edit_line][ClientGlobals.key_linepos] = 0;
     }
 
     /*
@@ -443,28 +443,28 @@ public final class Console extends Globals {
 	int skip;
 
 	v = 0;
-	for (i = con.current - NUM_CON_TIMES + 1; i <= con.current; i++) {
+	for (i = ClientGlobals.con.current - NUM_CON_TIMES + 1; i <= ClientGlobals.con.current; i++) {
 	    if (i < 0)
 		continue;
 
-	    time = (int) con.times[i % NUM_CON_TIMES];
+	    time = (int) ClientGlobals.con.times[i % NUM_CON_TIMES];
 	    if (time == 0)
 		continue;
 
 	    time = (int) (cls.realtime - time);
-	    if (time > con_notifytime.value * 1000)
+	    if (time > ClientGlobals.con_notifytime.value * 1000)
 		continue;
 
-	    text = (i % con.totallines) * con.linewidth;
+	    text = (i % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
-	    for (x = 0; x < con.linewidth; x++)
-		re.DrawChar((x + 1) << 3, v, con.text[text + x]);
+	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
+		re.DrawChar((x + 1) << 3, v, ClientGlobals.con.text[text + x]);
 
 	    v += 8;
 	}
 
 	if (cls.key_dest == key_message) {
-	    if (chat_team) {
+	    if (ClientGlobals.chat_team) {
 		DrawString(8, v, "say_team:");
 		skip = 11;
 	    } else {
@@ -472,23 +472,23 @@ public final class Console extends Globals {
 		skip = 5;
 	    }
 
-	    s = chat_buffer;
-	    if (chat_bufferlen > (viddef.getWidth() >> 3) - (skip + 1))
+	    s = ClientGlobals.chat_buffer;
+	    if (ClientGlobals.chat_bufferlen > (ClientGlobals.viddef.getWidth() >> 3) - (skip + 1))
 		//s = s.substring(chat_bufferlen
 		//	- ((viddef.getWidth() >> 3) - (skip + 1)));
 	    
 	    // sfranzyshen -start
-	    s = s.substring(chat_bufferlen 	- ((viddef.getWidth() >> 3) - (skip + 1)));
+	    s = s.substring(ClientGlobals.chat_bufferlen 	- ((ClientGlobals.viddef.getWidth() >> 3) - (skip + 1)));
 
 	    for (x = 0; x < s.length(); x++) {
-	    	if (chat_backedit > 0 && chat_backedit == chat_buffer.length() -x && ((int)(cls.realtime>>8)&1) !=0) {
+	    	if (ClientGlobals.chat_backedit > 0 && ClientGlobals.chat_backedit == ClientGlobals.chat_buffer.length() -x && ((int)(cls.realtime>>8)&1) !=0) {
 	    		re.DrawChar((x + skip) << 3, v, (char)11);
 	    	} else {
 	    		re.DrawChar((x + skip) << 3, v, s.charAt(x));
 	    	}
 	    }
 	    
-	    if (chat_backedit == 0)
+	    if (ClientGlobals.chat_backedit == 0)
 	    	re.DrawChar((x + skip) << 3, v, (int) (10 + ((cls.realtime >> 8) & 1)));
 	    // sfranzyshen -stop        
 
@@ -497,7 +497,7 @@ public final class Console extends Globals {
 
 	if (v != 0) {
 	    SCR.AddDirtyPoint(0, 0);
-	    SCR.AddDirtyPoint(viddef.getWidth() - 1, v);
+	    SCR.AddDirtyPoint(ClientGlobals.viddef.getWidth() - 1, v);
 	}
     }
 
@@ -508,8 +508,8 @@ public final class Console extends Globals {
      */
     static void DrawConsole(float frac) {
 
-	int width = viddef.getWidth();
-	int height = viddef.getHeight();
+	int width = ClientGlobals.viddef.getWidth();
+	int height = ClientGlobals.viddef.getHeight();
 	int lines = (int) (height * frac);
 	if (lines <= 0)
 	    return;
@@ -529,16 +529,16 @@ public final class Console extends Globals {
 			    .charAt(x));
 
 	// draw the text
-	con.vislines = lines;
+	ClientGlobals.con.vislines = lines;
 
 	int rows = (lines - 22) >> 3; // rows of text to draw
 
 	int y = lines - 30;
 
 	// draw from the bottom up
-	if (con.display != con.current) {
+	if (ClientGlobals.con.display != ClientGlobals.con.current) {
 	    // draw arrows to show the buffer is backscrolled
-	    for (int x = 0; x < con.linewidth; x += 4)
+	    for (int x = 0; x < ClientGlobals.con.linewidth; x += 4)
 		re.DrawChar((x + 1) << 3, y, '^');
 
 	    y -= 8;
@@ -547,17 +547,17 @@ public final class Console extends Globals {
 
 	int i, j, x, n;
 
-	int row = con.display;
+	int row = ClientGlobals.con.display;
 	for (i = 0; i < rows; i++, y -= 8, row--) {
 	    if (row < 0)
 		break;
-	    if (con.current - row >= con.totallines)
+	    if (ClientGlobals.con.current - row >= ClientGlobals.con.totallines)
 		break; // past scrollback wrap point
 
-	    int first = (row % con.totallines) * con.linewidth;
+	    int first = (row % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
-	    for (x = 0; x < con.linewidth; x++)
-		re.DrawChar((x + 1) << 3, y, con.text[x + first]);
+	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
+		re.DrawChar((x + 1) << 3, y, ClientGlobals.con.text[x + first]);
 	}
 
 	// ZOID
@@ -570,9 +570,9 @@ public final class Console extends Globals {
 	    else
 		text = 0;
 
-	    x = con.linewidth - ((con.linewidth * 7) / 40);
+	    x = ClientGlobals.con.linewidth - ((ClientGlobals.con.linewidth * 7) / 40);
 	    y = x - (cls.downloadname.length() - text) - 8;
-	    i = con.linewidth / 3;
+	    i = ClientGlobals.con.linewidth / 3;
 	    StringBuffer dlbar = new StringBuffer(512);
 	    if (cls.downloadname.length() - text > i) {
 		y = x - i - 11;
@@ -602,7 +602,7 @@ public final class Console extends Globals {
 	    dlbar.append((cls.downloadpercent < 10) ? " 0" : " ");
 	    dlbar.append(cls.downloadpercent).append('%');
 	    // draw it
-	    y = con.vislines - 12;
+	    y = ClientGlobals.con.vislines - 12;
 	    for (i = 0; i < dlbar.length(); i++)
 		re.DrawChar((i + 1) << 3, y, dlbar.charAt(i));
 	}
