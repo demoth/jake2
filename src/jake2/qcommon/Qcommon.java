@@ -39,6 +39,7 @@ import jake2.server.SV_MAIN;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,14 +55,14 @@ public final class Qcommon extends Globals {
 	 * This function initializes the different subsystems of
 	 * the game engine. The setjmp/longjmp mechanism of the original
 	 * was replaced with exceptions.
-	 * @param args the original unmodified command line arguments
+	 * @param argsMain the original unmodified command line arguments
 	 */
-	public static void Init(String[] args) {
+	public static void Init(String[] argsMain) {
 		try {
 
 			// prepare enough of the subsystems to handle
 			// cvar and command buffer management
-			Com.InitArgv(args);
+			List<String> args = Arrays.asList(argsMain);
 
 			Cbuf.Init();
 			
@@ -74,7 +75,7 @@ public final class Qcommon extends Globals {
 			// a basedir or cddir needs to be set before execing
 			// config files, but we want other parms to override
 			// the settings of the config files
-			Cbuf.AddEarlyCommands(false);
+			Cbuf.AddEarlyCommands(args, false);
 			Cbuf.Execute();
 
 			if (Globals.dedicated.value != 1.0f)
@@ -85,7 +86,7 @@ public final class Qcommon extends Globals {
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.setStatus("loading config...");
 			
-			reconfigure(false);
+			reconfigure(args, false);
 
 			FS.setCDDir(); // use cddir from config.cfg
 			FS.markBaseSearchPaths(); // mark the default search paths
@@ -93,7 +94,7 @@ public final class Qcommon extends Globals {
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
 			
-			reconfigure(true); // reload default.cfg and config.cfg
+			reconfigure(args, true); // reload default.cfg and config.cfg
 			
 			//
 			// init commands and vars
@@ -132,7 +133,7 @@ public final class Qcommon extends Globals {
 			CL.Init();
 
 			// add + commands from command line
-			if (!Cbuf.AddLateCommands()) {
+			if (!Cbuf.AddLateCommands(args)) {
 				// if the user didn't give any commands, run default action
 			      if (Globals.dedicated.value == 0)
 			          Cbuf.AddText ("d1\n");
@@ -261,7 +262,7 @@ public final class Qcommon extends Globals {
 		}
 	}
 
-	private static void reconfigure(boolean clear) {
+	private static void reconfigure(List<String> args, boolean clear) {
 		String dir = Cvar.Get("cddir", "", CVAR_ARCHIVE).string;
 		Cbuf.AddText("exec default.cfg\n");
 		Cbuf.AddText("bind MWHEELUP weapnext\n");
@@ -274,7 +275,7 @@ public final class Qcommon extends Globals {
 		Cvar.Set("vid_fullscreen", "0");
 		Cbuf.AddText("exec config.cfg\n");
 
-		Cbuf.AddEarlyCommands(clear);
+		Cbuf.AddEarlyCommands(args, clear);
 		Cbuf.Execute();
 		if (!("".equals(dir))) Cvar.Set("cddir", dir);
 	}

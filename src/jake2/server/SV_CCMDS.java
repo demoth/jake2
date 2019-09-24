@@ -1031,6 +1031,16 @@ public class SV_CCMDS {
 				SV_GAME.gameExports.ServerCommand(args);
 		});
 		Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
+		Cmd.AddCommand("sv_shutdown", args -> {
+			String reason;
+			if (args.size() > 1) {
+				reason = args.get(1);
+			} else {
+				reason = "Server is shut down";
+			}
+
+			SV_MAIN.SV_Shutdown(reason + "\n", args.size() > 2 && Boolean.parseBoolean(args.get(2)));
+		});
 
 //		Cmd.AddCommand("spawnbot", new Command() {
 //			public void execute() {

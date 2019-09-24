@@ -70,15 +70,15 @@ public class SV_INIT {
         return i;
     }
 
-    public static int SV_ModelIndex(String name) {
+    static int SV_ModelIndex(String name) {
         return SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
     }
 
-    public static int SV_SoundIndex(String name) {
+    static int SV_SoundIndex(String name) {
         return SV_FindIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS, true);
     }
 
-    public static int SV_ImageIndex(String name) {
+    static int SV_ImageIndex(String name) {
         return SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
     }
 
@@ -88,7 +88,7 @@ public class SV_INIT {
      * Entity baselines are used to compress the update messages to the clients --
      * only the fields that differ from the baseline will be transmitted.
      */
-    public static void SV_CreateBaseline() {
+    private static void SV_CreateBaseline() {
         edict_t svent;
         int entnum;
 
@@ -112,7 +112,7 @@ public class SV_INIT {
     /** 
      * SV_CheckForSavegame.
      */
-    public static void SV_CheckForSavegame() {
+    private static void SV_CheckForSavegame() {
 
         String name;
         RandomAccessFile f;
@@ -169,8 +169,8 @@ public class SV_INIT {
      * Change the server to a new map, taking all connected clients along with
      * it.
      */
-    public static void SV_SpawnServer(String server, String spawnpoint,
-            ServerStates serverstate, boolean attractloop, boolean loadgame) {
+    private static void SV_SpawnServer(String server, String spawnpoint,
+                                       ServerStates serverstate, boolean attractloop, boolean loadgame) {
         int i;
         int checksum = 0;
 
@@ -290,7 +290,7 @@ public class SV_INIT {
      * 
      * A brand new game has been started.
      */
-    public static void SV_InitGame() {
+    static void SV_InitGame() {
         int i;
         edict_t ent;
         //char idmaster[32];
@@ -301,8 +301,8 @@ public class SV_INIT {
             SV_MAIN.SV_Shutdown("Server restarted\n", true);
         } else {
             // make sure the client is down
-            Cmd.ExecuteFunction("loading", Collections.emptyList());
-            Cmd.ExecuteFunction("cl_drop", Collections.emptyList());
+            Cmd.ExecuteFunction("loading");
+            Cmd.ExecuteFunction("cl_drop");
         }
 
         // get any latched variable changes (maxclients, etc)
@@ -394,7 +394,7 @@ public class SV_INIT {
      * 
      * map tram.cin+jail_e3
      */
-    public static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
+    static void SV_Map(boolean attractloop, String levelstring, boolean loadgame) {
 
         int l;
         String level, ch, spawnpoint;
@@ -446,22 +446,22 @@ public class SV_INIT {
 
         l = level.length();
         if (l > 4 && level.endsWith(".cin")) {
-            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
+            Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC,
                     attractloop, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
-            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
+            Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, attractloop,
                     loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
-            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
+            Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, attractloop,
                     loadgame);
         } else {
-            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
+            Cmd.ExecuteFunction("loading"); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SEND.SV_SendClientMessages();
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, attractloop,
@@ -472,7 +472,7 @@ public class SV_INIT {
         SV_SEND.SV_BroadcastCommand("reconnect\n");
     }
 
-    public static server_static_t svs = new server_static_t(); // persistant
+    static server_static_t svs = new server_static_t(); // persistant
                                                                // server info
 
     public static server_t sv = new server_t(); // local server

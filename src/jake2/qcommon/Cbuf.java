@@ -27,6 +27,8 @@ package jake2.qcommon;
 
 import jake2.qcommon.util.Lib;
 
+import java.util.List;
+
 /**
  * Cbuf
  */
@@ -63,71 +65,60 @@ public final class Cbuf {
         }
     }
 
-    /**
-     * @param clear
-     */
-    static void AddEarlyCommands(boolean clear) {
+    static void AddEarlyCommands(List<String> args, boolean clear) {
 
-        for (int i = 0; i < Com.Argc(); i++) {
-            String s = Com.Argv(i);
-            if (!s.equals("+set"))
+        for (int i = 0; i < args.size(); i++) {
+            String s = args.get(i);
+            if (!s.equals("+set") || args.size() < i + 2)
                 continue;
-            Cbuf.AddText("set " + Com.Argv(i + 1) + " " + Com.Argv(i + 2)
-                    + "\n");
+            Cbuf.AddText("set " + args.get(i + 1) + " " + args.get(i + 2) + "\n");
             if (clear) {
-                Com.ClearArgv(i);
-                Com.ClearArgv(i + 1);
-                Com.ClearArgv(i + 2);
+                args.set(i, "");
+                args.set(i + 1, "");
+                args.set(i + 2, "");
             }
-            i += 2;
         }
     }
 
-    /**
-     * @return
-     */
-    static boolean AddLateCommands() {
-        int i;
-        int j;
-        boolean ret = false;
+    static boolean AddLateCommands(List<String> args) {
 
         // build the combined string to parse from
         int s = 0;
-        int argc = Com.Argc();
-        for (i = 1; i < argc; i++) {
-            s += Com.Argv(i).length();
+        int argc = args.size();
+        for (int i = 1; i < argc; i++) {
+            s += args.get(i).length();
         }
         if (s == 0)
             return false;
 
-        String text = "";
-        for (i = 1; i < argc; i++) {
-            text += Com.Argv(i);
+        StringBuilder text = new StringBuilder();
+        for (int i = 1; i < argc; i++) {
+            text.append(args.get(i));
             if (i != argc - 1)
-                text += " ";
+                text.append(" ");
         }
 
         // pull out the commands
-        String build = "";
-        for (i = 0; i < text.length(); i++) {
+        StringBuilder build = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
             if (text.charAt(i) == '+') {
                 i++;
 
-                for (j = i; j < text.length() && (text.charAt(j) != '+') && (text.charAt(j) != '-'); j++);
+                int j;
+                for (j = i; j < text.length() && (text.charAt(j) != '+') && (text.charAt(j) != '-'); j++) {
+                    ;
+                }
 
-                build += text.substring(i, j);
-                build += "\n";
+                build.append(text.substring(i, j));
+                build.append("\n");
 
                 i = j - 1;
             }
         }
 
-        ret = (build.length() != 0);
+        boolean ret = (build.length() != 0);
         if (ret)
-            Cbuf.AddText(build);
-
-        text = null;
-        build = null;
+            Cbuf.AddText(build.toString());
 
         return ret;
     }

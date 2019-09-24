@@ -25,7 +25,7 @@
  */
 package jake2.qcommon.sys;
 
-import jake2.client.CL;
+import jake2.qcommon.Cmd;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
@@ -47,16 +47,9 @@ public final class Sys extends Defines {
 
     public static void Error(String error) {
 
-        CL.Shutdown();
-        //StackTrace();
+        Cmd.ExecuteFunction("cl_shutdown");
         new Exception(error).printStackTrace();
         System.exit(1);
-    }
-
-    public static void Quit() {
-        CL.Shutdown();
-
-        System.exit(0);
     }
 
     //ok!
@@ -252,7 +245,7 @@ public final class Sys extends Defines {
 	}
 
 
-    public static void ConsoleOutput(String msg) {
+    public static void SystemOutPrint(String msg) {
         if (Globals.nostdout != null && Globals.nostdout.value != 0)
             return;
 

@@ -28,10 +28,7 @@ package jake2.qcommon;
 import jake2.client.CL;
 import jake2.qcommon.filesystem.FS;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Cmd
@@ -332,9 +329,9 @@ public final class Cmd {
         return cmds;
     }
 
-    public static void ExecuteFunction(String name, List<String> args) {
+    public static void ExecuteFunction(String name, String... args) {
         if (cmd_functions.containsKey(name))
-            cmd_functions.get(name).function.execute(args);
+            cmd_functions.get(name).function.execute(Arrays.asList(args));
     }
 
     static final class cmdalias_t {

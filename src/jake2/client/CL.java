@@ -36,7 +36,6 @@ import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
-import jake2.server.SV_MAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -85,6 +84,26 @@ public final class CL {
             SZ.Print(ClientGlobals.cls.netchan.message, " ");
             SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
         }
+    }
+
+    private static void Quit()
+    {
+        Cmd.ExecuteFunction("sv_shutdown", "Server quit ", "false");
+        Cmd.ExecuteFunction("cl_shutdown");
+
+        if (Globals.logfile != null)
+        {
+            try
+            {
+                Globals.logfile.close();
+            }
+            catch (IOException e)
+            {
+            }
+            Globals.logfile= null;
+        }
+
+        System.exit(0);
     }
 
     public static class cheatvar_t {
@@ -291,7 +310,7 @@ public final class CL {
      */
     static Command Quit_f = (List<String> args) -> {
         Disconnect();
-        Com.Quit();
+        Quit();
     };
 
     /**
@@ -307,7 +326,7 @@ public final class CL {
 
         if (Globals.server_state != ServerStates.SS_DEAD) {
             // if running a local server, kill it and reissue
-            SV_MAIN.SV_Shutdown("Server quit\n", false);
+            Cmd.ExecuteFunction("sv_shutdown", "Server quit", "false");
         } else {
             Disconnect();
         }
@@ -1693,6 +1712,7 @@ public final class CL {
 
         V.Init();
         Cmd.AddCommand("cl_drop", args -> CL.Drop());
+        Cmd.AddCommand("cl_shutdown", args -> CL.Shutdown());
 
         Globals.net_message.data = Globals.net_message_buffer;
         Globals.net_message.maxsize = Globals.net_message_buffer.length;

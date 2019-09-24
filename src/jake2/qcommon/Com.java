@@ -25,13 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import jake2.client.CL;
 import jake2.client.Console;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.PrintfFormat;
 import jake2.qcommon.util.Vargs;
-import jake2.server.SV_MAIN;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,9 +45,6 @@ public final class Com
     static String debugContext = "";
     static String _debugContext = "";
     
-	static int com_argc;
-	static String[] com_argv= new String[Defines.MAX_NUM_ARGVS];
-
 	public static void Printf(int print_level, String fmt) {
 		Printf(print_level, fmt, null);
 	}
@@ -271,47 +266,25 @@ public final class Com
 
 		if (code == Defines.ERR_DISCONNECT)
 		{
-			CL.Drop();
+			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
 			throw new longjmpException();
 		}
 		else if (code == Defines.ERR_DROP)
 		{
 			Com.Printf("********************\nERROR: " + msg + "\n********************\n");
-			SV_MAIN.SV_Shutdown("Server crashed: " + msg + "\n", false);
-			CL.Drop();
+			Cmd.ExecuteFunction("sv_shutdown", "Server crashed: " + msg, "false");
+			Cmd.ExecuteFunction("cl_drop");
 			recursive= false;
 			throw new longjmpException();
 		}
 		else
 		{
-			SV_MAIN.SV_Shutdown("Server fatal crashed: %s" + msg + "\n", false);
-			CL.Shutdown();
+			Cmd.ExecuteFunction("sv_shutdown", "Server fatal crashed: " + msg, "false");
+			Cmd.ExecuteFunction("cl_shutdown");
 		}
 
 		Sys.Error(msg);
-	}
-
-	/**
-	 * Com_InitArgv checks the number of command line arguments
-	 * and copies all arguments with valid length into com_argv.
-	 */
-	static void InitArgv(String[] args) throws longjmpException
-	{
-
-		if (args.length > Defines.MAX_NUM_ARGVS)
-		{
-			Com.Error(Defines.ERR_FATAL, "argc > MAX_NUM_ARGVS");
-		}
-
-		Com.com_argc= args.length;
-		for (int i= 0; i < Com.com_argc; i++)
-		{
-			if (args[i].length() >= Defines.MAX_TOKEN_CHARS)
-				Com.com_argv[i]= "";
-			else
-				Com.com_argv[i]= args[i];
-		}
 	}
 
 	public static void DPrintf(String fmt)
@@ -358,7 +331,7 @@ public final class Com
 		Console.Print(msg);
 
 		// also echo to debugging console
-		Sys.ConsoleOutput(msg);
+		Sys.SystemOutPrint(msg);
 
 		// logfile
 		if (Globals.logfile_active != null && Globals.logfile_active.value != 0)
@@ -422,45 +395,6 @@ public final class Com
 			msg= new PrintfFormat(fmt).sprintf(vargs.toArray());
 		}
 		return msg;
-	}
-
-	public static int Argc()
-	{
-		return Com.com_argc;
-	}
-
-	public static String Argv(int arg)
-	{
-		if (arg < 0 || arg >= Com.com_argc || Com.com_argv[arg].length() < 1)
-			return "";
-		return Com.com_argv[arg];
-	}
-
-	public static void ClearArgv(int arg)
-	{
-		if (arg < 0 || arg >= Com.com_argc || Com.com_argv[arg].length() < 1)
-			return;
-		Com.com_argv[arg]= "";
-	}
-
-	public static void Quit()
-	{
-		SV_MAIN.SV_Shutdown("Server quit\n", false);
-		CL.Shutdown();
-
-		if (Globals.logfile != null)
-		{
-			try
-			{
-				Globals.logfile.close();
-			}
-			catch (IOException e)
-			{
-			}
-			Globals.logfile= null;
-		}
-
-		Sys.Quit();
 	}
 
 	public static int BlockChecksum(byte[] buf, int length)
