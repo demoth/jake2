@@ -31,6 +31,8 @@ package jake2.qcommon;
 public final class cvar_t {
     public String name;
     public String string;
+    // allow changes, but for the next game
+    // todo rename to deferred_value
     public String latched_string;
     public int flags = 0;
     public boolean modified = false;

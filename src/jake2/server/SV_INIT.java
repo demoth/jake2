@@ -22,8 +22,6 @@
 // $Id: SV_INIT.java,v 1.17 2006-01-20 22:44:07 salomo Exp $
 package jake2.server;
 
-import jake2.client.CL;
-import jake2.client.SCR;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
@@ -34,6 +32,7 @@ import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collections;
 
 public class SV_INIT {
 
@@ -302,8 +301,8 @@ public class SV_INIT {
             SV_MAIN.SV_Shutdown("Server restarted\n", true);
         } else {
             // make sure the client is down
-            CL.Drop();
-            SCR.BeginLoadingPlaque();
+            Cmd.ExecuteFunction("loading", Collections.emptyList());
+            Cmd.ExecuteFunction("cl_drop", Collections.emptyList());
         }
 
         // get any latched variable changes (maxclients, etc)
@@ -345,7 +344,9 @@ public class SV_INIT {
                     | Defines.CVAR_LATCH);
         }
 
-        svs.spawncount = Lib.rand();        
+        svs.spawncount = Lib.rand();
+
+        // Clear all clients
         svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
         for (int n = 0; n < svs.clients.length; n++) {
             svs.clients[n] = new client_t();
@@ -354,6 +355,7 @@ public class SV_INIT {
         svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
                 * Defines.UPDATE_BACKUP * 64; //ok.
 
+        // Clear all client entity states
         svs.client_entities = new entity_state_t[svs.num_client_entities];
         for (int n = 0; n < svs.client_entities.length; n++)
             svs.client_entities[n] = new entity_state_t(null);
@@ -444,22 +446,22 @@ public class SV_INIT {
 
         l = level.length();
         if (l > 4 && level.endsWith(".cin")) {
-            SCR.BeginLoadingPlaque(); // for local system
+            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_CINEMATIC,
                     attractloop, loadgame);
         } else if (l > 4 && level.endsWith(".dm2")) {
-            SCR.BeginLoadingPlaque(); // for local system
+            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_DEMO, attractloop,
                     loadgame);
         } else if (l > 4 && level.endsWith(".pcx")) {
-            SCR.BeginLoadingPlaque(); // for local system
+            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_PIC, attractloop,
                     loadgame);
         } else {
-            SCR.BeginLoadingPlaque(); // for local system
+            Cmd.ExecuteFunction("loading", Collections.emptyList()); // for local system
             SV_SEND.SV_BroadcastCommand("changing\n");
             SV_SEND.SV_SendClientMessages();
             SV_SpawnServer(level, spawnpoint, ServerStates.SS_GAME, attractloop,

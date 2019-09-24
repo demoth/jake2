@@ -100,8 +100,6 @@ public class Globals extends Defines {
 
 	public static FileWriter log_stats_file = null;
 
-	public static client_static_t cls = new client_static_t();
-
 
 	// client/anorms.h
 	public static final float bytedirs[][] = { /**

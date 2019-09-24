@@ -25,6 +25,7 @@
  */
 package jake2.qcommon;
 
+import jake2.client.CL;
 import jake2.qcommon.filesystem.FS;
 
 import java.util.ArrayList;
@@ -311,30 +312,7 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
-        Cmd.ForwardToServer(args);
-    }
-
-    /**
-     * Adds the current command line as a clc_stringcmd to the client message.
-     * things like godmode, noclip, etc, are commands directed to the server, so
-     * when they are typed in at the console, they will need to be forwarded.
-     */
-    private static void ForwardToServer(List<String> args) {
-        String cmd;
-
-        cmd = args.get(0);
-        if (Globals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-'
-                || cmd.charAt(0) == '+') {
-            Com.Printf("Unknown command \"" + cmd + "\"\n");
-            return;
-        }
-
-        MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-        SZ.Print(Globals.cls.netchan.message, cmd);
-        if (args.size() > 1) {
-            SZ.Print(Globals.cls.netchan.message, " ");
-            SZ.Print(Globals.cls.netchan.message, getArguments(args));
-        }
+        CL.ForwardToServer(args);
     }
 
     /**
@@ -352,6 +330,11 @@ public final class Cmd {
                 cmds.add(a.getName());
 
         return cmds;
+    }
+
+    public static void ExecuteFunction(String name, List<String> args) {
+        if (cmd_functions.containsKey(name))
+            cmd_functions.get(name).function.execute(args);
     }
 
     static final class cmdalias_t {

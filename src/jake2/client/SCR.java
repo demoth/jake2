@@ -37,6 +37,8 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
 
+import static jake2.client.ClientGlobals.cls;
+
 /**
  * SCR
  */
@@ -424,9 +426,9 @@ public final class SCR extends Globals {
         scr_showpause = Cvar.Get("scr_showpause", "1", 0);
         scr_centertime = Cvar.Get("scr_centertime", "2.5", 0);
         scr_printspeed = Cvar.Get("scr_printspeed", "8", 0);
-        scr_netgraph = Cvar.Get("netgraph", "1", 0);
-        scr_timegraph = Cvar.Get("timegraph", "1", 0);
-        scr_debuggraph = Cvar.Get("debuggraph", "1", 0);
+        scr_netgraph = Cvar.Get("netgraph", "0", 0);
+        scr_timegraph = Cvar.Get("timegraph", "0", 0);
+        scr_debuggraph = Cvar.Get("debuggraph", "0", 0);
         scr_graphheight = Cvar.Get("graphheight", "32", 0);
         scr_graphscale = Cvar.Get("graphscale", "1", 0);
         scr_graphshift = Cvar.Get("graphshift", "0", 0);
@@ -1243,14 +1245,13 @@ public final class SCR extends Globals {
                 CheckDrawCenterString();
                 DrawFPS();
 
-                //
-                //				if (scr_timegraph->value)
-                //					SCR_DebugGraph (cls.frametime*300, 0);
-                //
-                //				if (scr_debuggraph->value || scr_timegraph->value ||
-                // scr_netgraph->value)
-                //					SCR_DrawDebugGraph ();
-                //
+
+                if (scr_timegraph.value > 0f)
+                    DebugGraph(cls.frametime*300, 0);
+
+                if (scr_debuggraph.value > 0f || scr_timegraph.value > 0 || scr_netgraph.value > 0)
+                    DrawDebugGraph();
+
                 DrawPause();
                 DrawConsole();
                 Menu.Draw();

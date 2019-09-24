@@ -71,20 +71,20 @@ public class CL_parse {
             return true;
         }
 
-        Globals.cls.downloadname = filename;
+        ClientGlobals.cls.downloadname = filename;
 
         // download to a temp name, and only rename
         // to the real name when done, so if interrupted
         // a runt file wont be left
-        Globals.cls.downloadtempname = Com
-                .StripExtension(Globals.cls.downloadname);
-        Globals.cls.downloadtempname += ".tmp";
+        ClientGlobals.cls.downloadtempname = Com
+                .StripExtension(ClientGlobals.cls.downloadname);
+        ClientGlobals.cls.downloadtempname += ".tmp";
 
         //	  ZOID
         // check to see if we already have a tmp for this file, if so, try to
         // resume
         // open the file if not opened yet
-        String name = DownloadFileName(Globals.cls.downloadtempname);
+        String name = DownloadFileName(ClientGlobals.cls.downloadtempname);
 
         RandomAccessFile fp = Lib.fopen(name, "r+b");
         
@@ -100,21 +100,21 @@ public class CL_parse {
             }
             
 
-            Globals.cls.download = fp;
+            ClientGlobals.cls.download = fp;
 
             // give the server an offset to start the download
-            Com.Printf("Resuming " + Globals.cls.downloadname + "\n");
-            MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-            MSG.WriteString(Globals.cls.netchan.message, "download "
-                    + Globals.cls.downloadname + " " + len);
+            Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
+                    + ClientGlobals.cls.downloadname + " " + len);
         } else {
-            Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
-            MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-            MSG.WriteString(Globals.cls.netchan.message, "download "
-                    + Globals.cls.downloadname);
+            Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
+                    + ClientGlobals.cls.downloadname);
         }
 
-        Globals.cls.downloadnumber++;
+        ClientGlobals.cls.downloadnumber++;
 
         return false;
     }
@@ -153,28 +153,28 @@ public class CL_parse {
         int percent = MSG.ReadByte(Globals.net_message);
         if (size == -1) {
             Com.Printf("Server does not have this file.\n");
-            if (Globals.cls.download != null) {
+            if (ClientGlobals.cls.download != null) {
                 // if here, we tried to resume a file but the server said no
                 try {
-                    Globals.cls.download.close();
+                    ClientGlobals.cls.download.close();
                 } catch (IOException e) {
                 }
-                Globals.cls.download = null;
+                ClientGlobals.cls.download = null;
             }
             CL.RequestNextDownload();
             return;
         }
 
         // open the file if not opened yet
-        if (Globals.cls.download == null) {
-            String name = DownloadFileName(Globals.cls.downloadtempname).toLowerCase();
+        if (ClientGlobals.cls.download == null) {
+            String name = DownloadFileName(ClientGlobals.cls.downloadtempname).toLowerCase();
 
             FS.CreatePath(name);
 
-            Globals.cls.download = Lib.fopen(name, "rw");
-            if (Globals.cls.download == null) {
+            ClientGlobals.cls.download = Lib.fopen(name, "rw");
+            if (ClientGlobals.cls.download == null) {
                 Globals.net_message.readcount += size;
-                Com.Printf("Failed to open " + Globals.cls.downloadtempname
+                Com.Printf("Failed to open " + ClientGlobals.cls.downloadtempname
                         + "\n");
                 CL.RequestNextDownload();
                 return;
@@ -183,7 +183,7 @@ public class CL_parse {
 
 
         try {
-            Globals.cls.download.write(Globals.net_message.data,
+            ClientGlobals.cls.download.write(Globals.net_message.data,
                     Globals.net_message.readcount, size);
         } 
         catch (Exception e) {
@@ -193,25 +193,25 @@ public class CL_parse {
         if (percent != 100) {
             // request next block
             //	   change display routines by zoid
-            Globals.cls.downloadpercent = percent;
-            MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-            SZ.Print(Globals.cls.netchan.message, "nextdl");
+            ClientGlobals.cls.downloadpercent = percent;
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            SZ.Print(ClientGlobals.cls.netchan.message, "nextdl");
         } else {
             try {
-                Globals.cls.download.close();
+                ClientGlobals.cls.download.close();
             } 
             catch (IOException e) {
             }
 
             // rename the temp file to it's final name
-            String oldn = DownloadFileName(Globals.cls.downloadtempname);
-            String newn = DownloadFileName(Globals.cls.downloadname);
+            String oldn = DownloadFileName(ClientGlobals.cls.downloadtempname);
+            String newn = DownloadFileName(ClientGlobals.cls.downloadname);
             int r = Lib.rename(oldn, newn);
             if (r != 0)
                 Com.Printf("failed to rename.\n");
 
-            Globals.cls.download = null;
-            Globals.cls.downloadpercent = 0;
+            ClientGlobals.cls.download = null;
+            ClientGlobals.cls.downloadpercent = 0;
 
             // get another file if needed
 
@@ -237,11 +237,11 @@ public class CL_parse {
         //	   wipe the client_state_t struct
         //
         CL.ClearState();
-        Globals.cls.state = Defines.ca_connected;
+        ClientGlobals.cls.state = Defines.ca_connected;
 
         //	   parse protocol version number
         int i = MSG.ReadLong(Globals.net_message);
-        Globals.cls.serverProtocol = i;
+        ClientGlobals.cls.serverProtocol = i;
 
         // BIG HACK to let demos from release work with the 3.0x patch!!!
         if (Globals.server_state != ServerStates.SS_DEAD && Defines.PROTOCOL_VERSION == 34) {
@@ -620,16 +620,16 @@ public class CL_parse {
 
             case NetworkCommands.svc_reconnect:
                 Com.Printf("Server disconnected, reconnecting\n");
-                if (Globals.cls.download != null) {
+                if (ClientGlobals.cls.download != null) {
                     //ZOID, close download
                     try {
-                        Globals.cls.download.close();
+                        ClientGlobals.cls.download.close();
                     } catch (IOException e) {
                     }
-                    Globals.cls.download = null;
+                    ClientGlobals.cls.download = null;
                 }
-                Globals.cls.state = Defines.ca_connecting;
-                Globals.cls.connect_time = -99999; // CL_CheckForResend() will
+                ClientGlobals.cls.state = Defines.ca_connecting;
+                ClientGlobals.cls.connect_time = -99999; // CL_CheckForResend() will
                 // fire immediately
                 break;
 
@@ -712,7 +712,7 @@ public class CL_parse {
         // we don't know if it is ok to save a demo message until
         // after we have parsed the frame
         //
-        if (Globals.cls.demorecording && !Globals.cls.demowaiting)
+        if (ClientGlobals.cls.demorecording && !ClientGlobals.cls.demowaiting)
             CL.WriteDemoMessage();
     }
 }

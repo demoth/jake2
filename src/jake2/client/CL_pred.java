@@ -48,7 +48,7 @@ public class CL_pred {
             return;
 
         // calculate the last usercmd_t we sent that the server has processed
-        frame = Globals.cls.netchan.incoming_acknowledged;
+        frame = ClientGlobals.cls.netchan.incoming_acknowledged;
         frame &= (Defines.CMD_BACKUP - 1);
 
         // compare what the server returned with what we had predicted it to be
@@ -206,7 +206,7 @@ public class CL_pred {
      */
     static void PredictMovement() {
 
-        if (Globals.cls.state != Defines.ca_active)
+        if (ClientGlobals.cls.state != Defines.ca_active)
             return;
 
         if (ClientGlobals.cl_paused.value != 0.0f)
@@ -223,8 +223,8 @@ public class CL_pred {
             return;
         }
 
-        int ack = Globals.cls.netchan.incoming_acknowledged;
-        int current = Globals.cls.netchan.outgoing_sequence;
+        int ack = ClientGlobals.cls.netchan.incoming_acknowledged;
+        int current = ClientGlobals.cls.netchan.outgoing_sequence;
 
         // if we are too far out of date, just freeze
         if (current - ack >= Defines.CMD_BACKUP) {
@@ -274,7 +274,7 @@ public class CL_pred {
         if (step > 63 && step < 160
                 && (pm.s.pm_flags & Defines.PMF_ON_GROUND) != 0) {
             ClientGlobals.cl.predicted_step = step * 0.125f;
-            ClientGlobals.cl.predicted_step_time = (int) (Globals.cls.realtime - Globals.cls.frametime * 500);
+            ClientGlobals.cl.predicted_step_time = (int) (ClientGlobals.cls.realtime - ClientGlobals.cls.frametime * 500);
         }
 
         // copy results out for rendering

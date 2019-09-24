@@ -12,6 +12,7 @@ public class ClientGlobals {
 
     public static centity_t[] cl_entities;
     public static entity_state_t[] cl_parse_entities;
+    public static client_static_t cls = new client_static_t();
 
     static cvar_t m_filter;
     static int vidref_val = Defines.VIDREF_GL;

@@ -139,8 +139,8 @@ public final class IN extends Globals {
 
     public static void Frame() {
 
-        if (!ClientGlobals.cl.cinematicpalette_active && (!ClientGlobals.cl.refresh_prepped || cls.key_dest == key_console
-                || cls.key_dest == key_menu))
+        if (!ClientGlobals.cl.cinematicpalette_active && (!ClientGlobals.cl.refresh_prepped || ClientGlobals.cls.key_dest == key_console
+                || ClientGlobals.cls.key_dest == key_menu))
             DeactivateMouse();
         else
             ActivateMouse();

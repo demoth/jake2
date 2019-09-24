@@ -211,13 +211,13 @@ public final class Menu extends Key {
 
         m_entersound = true;
 
-        cls.key_dest = key_menu;
+        ClientGlobals.cls.key_dest = key_menu;
     }
 
     static void ForceMenuOff() {
         m_drawfunc = null;
         m_keyfunc = null;
-        cls.key_dest = key_game;
+        ClientGlobals.cls.key_dest = key_game;
         m_menudepth = 0;
         Key.ClearStates();
         Cvar.Set("paused", "0");
@@ -466,7 +466,7 @@ public final class Menu extends Key {
         Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
         DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
-                (int) ((Globals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
+                (int) ((ClientGlobals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
 
         Globals.re.DrawGetPicSize(dim, "m_main_plaque");
         w = dim.width;
@@ -1343,7 +1343,7 @@ public final class Menu extends Key {
         Console.ClearNotify();
 
         ForceMenuOff();
-        cls.key_dest = key_console;
+        ClientGlobals.cls.key_dest = key_console;
     }
 
     private static void UpdateSoundQualityFunc(Object unused) {
@@ -1786,7 +1786,7 @@ public final class Menu extends Key {
         /*
          * * draw the credits
          */
-        for (i = 0, y = (int) (ClientGlobals.viddef.getHeight() - ((cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
+        for (i = 0, y = (int) (ClientGlobals.viddef.getHeight() - ((ClientGlobals.cls.realtime - credits_start_time) / 40.0F)); credits[i] != null
                 && y < ClientGlobals.viddef.getHeight(); y += 10, i++) {
             int j, stringoffset = 0;
             boolean bold = false;
@@ -1818,7 +1818,7 @@ public final class Menu extends Key {
         }
 
         if (y < 0)
-            credits_start_time = cls.realtime;
+            credits_start_time = ClientGlobals.cls.realtime;
     }
 
     private static String Credits_Key(int key) {
@@ -1864,7 +1864,7 @@ public final class Menu extends Key {
 
         }
 
-        credits_start_time = cls.realtime;
+        credits_start_time = ClientGlobals.cls.realtime;
         PushMenu((List<String> args) -> Credits_MenuDraw(), new keyfunc_t() {
             public String execute(int key) {
                 return Credits_Key(key);
@@ -1910,7 +1910,7 @@ public final class Menu extends Key {
         Cvar.SetValue("gamerules", 0); //PGM
 
         Cbuf.AddText("loading ; killserver ; wait ; newgame\n");
-        cls.key_dest = key_game;
+        ClientGlobals.cls.key_dest = key_game;
     }
 
     private static void EasyGameFunc(Object data) {
@@ -3956,7 +3956,7 @@ public final class Menu extends Key {
         refdef.fov_x = 40;
         refdef.fov_y = Math3D
                 .CalcFov(refdef.fov_x, refdef.width, refdef.height);
-        refdef.time = cls.realtime * 0.001f;
+        refdef.time = ClientGlobals.cls.realtime * 0.001f;
 
         if (s_pmi[s_player_model_box.curvalue].skindisplaynames != null) {
 
@@ -4072,7 +4072,7 @@ public final class Menu extends Key {
 
         case 'Y':
         case 'y':
-            cls.key_dest = key_console;
+            ClientGlobals.cls.key_dest = key_console;
             CL.Quit_f.execute(Collections.emptyList());
             break;
 
@@ -4134,7 +4134,7 @@ public final class Menu extends Key {
      * ================= Draw =================
      */
     static void Draw() {
-        if (cls.key_dest != key_menu)
+        if (ClientGlobals.cls.key_dest != key_menu)
             return;
 
         // repaint everything next frame

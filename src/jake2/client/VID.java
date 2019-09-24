@@ -225,7 +225,7 @@ public class VID extends Globals {
 			vid_ref.modified = false;
 			vid_fullscreen.modified = true;
 			ClientGlobals.cl.refresh_prepped = false;
-			Globals.cls.disable_screen = 1.0f; // true;
+			ClientGlobals.cls.disable_screen = 1.0f; // true;
 
 			
 			if ( !LoadRefresh( vid_ref.string, true ) )
@@ -256,7 +256,7 @@ public class VID extends Globals {
 				/*
 				 * drop the console if we fail to load a refresh
 				 */
-				if ( Globals.cls.key_dest != Defines.key_console )
+				if ( ClientGlobals.cls.key_dest != Defines.key_console )
 				{
 					try {
 						Console.ToggleConsole_f.execute(Collections.emptyList());
@@ -264,7 +264,7 @@ public class VID extends Globals {
 					}
 				}
 			}
-			Globals.cls.disable_screen = 0.0f; //false;
+			ClientGlobals.cls.disable_screen = 0.0f; //false;
 		}
 	}
 

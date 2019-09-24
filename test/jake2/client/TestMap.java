@@ -118,8 +118,8 @@ public class TestMap
 		Cmd.AddCommand("togglemouse", (List<String> args) -> IN.toggleMouse());
 		Cbuf.AddText("bind t togglemouse");
 		Cbuf.Execute();
-		Globals.cls.key_dest = Defines.key_game;
-		Globals.cls.state = Defines.ca_active;
+		ClientGlobals.cls.key_dest = Defines.key_game;
+		ClientGlobals.cls.state = Defines.ca_active;
 
 		viddef = ClientGlobals.viddef;
 	}

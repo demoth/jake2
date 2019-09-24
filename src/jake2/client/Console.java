@@ -38,6 +38,7 @@ import java.util.List;
 /**
  * Console
  */
+// TODO move to client
 public final class Console extends Globals {
 
     static Command ToggleConsole_f = (List<String> args) -> {
@@ -48,7 +49,7 @@ public final class Console extends Globals {
 		return;
 		}
 
-		if (Globals.cls.state == Defines.ca_disconnected) {
+		if (ClientGlobals.cls.state == Defines.ca_disconnected) {
 		// start the demo loop again
 		Cbuf.AddText("d1\n");
 		return;
@@ -57,12 +58,12 @@ public final class Console extends Globals {
 		Key.ClearTyping();
 		Console.ClearNotify();
 
-		if (Globals.cls.key_dest == Defines.key_console) {
+		if (ClientGlobals.cls.key_dest == Defines.key_console) {
 		Menu.ForceMenuOff();
 		Cvar.Set("paused", "0");
 		} else {
 		Menu.ForceMenuOff();
-		Globals.cls.key_dest = Defines.key_console;
+		ClientGlobals.cls.key_dest = Defines.key_console;
 
 		if (Cvar.VariableValue("maxclients") == 1
 			&& Globals.server_state != ServerStates.SS_DEAD)
@@ -72,7 +73,10 @@ public final class Console extends Globals {
 
     private static Command Clear_f = (List<String> args) -> Arrays.fill(ClientGlobals.con.text, (byte) ' ');
 
-    private static Command Dump_f = (List<String> args) -> {
+	/**
+	 * Dump console contents to file (file name as a 1st argument)
+	 */
+	private static Command Dump_f = (List<String> args) -> {
 
 		int l, x;
 		int line;
@@ -134,7 +138,41 @@ public final class Console extends Globals {
 
 	};
 
-    public static void Init() {
+	/*
+	 * ================ Con_ToggleChat_f ================
+	 */
+	private static Command ToggleChat_f = (List<String> args) -> {
+		Key.ClearTyping();
+
+		if (ClientGlobals.cls.key_dest == key_console) {
+			if (ClientGlobals.cls.state == ca_active) {
+				Menu.ForceMenuOff();
+				ClientGlobals.cls.key_dest = key_game;
+			}
+		} else
+			ClientGlobals.cls.key_dest = key_console;
+
+		ClearNotify();
+	};
+
+	/*
+	 * ================ Con_MessageMode_f ================
+	 */
+	private static Command MessageMode_f = (List<String> args) -> {
+		ClientGlobals.chat_team = false;
+		ClientGlobals.cls.key_dest = key_message;
+	};
+
+	/*
+	 * ================ Con_MessageMode2_f ================
+	 */
+	private static Command MessageMode2_f = (List<String> args) -> {
+		ClientGlobals.chat_team = true;
+		ClientGlobals.cls.key_dest = key_message;
+	};
+
+
+	public static void Init() {
 	ClientGlobals.con.linewidth = -1;
 	ClientGlobals.con.backedit = 0;
 
@@ -235,39 +273,6 @@ public final class Console extends Globals {
     }
 
     /*
-     * ================ Con_ToggleChat_f ================
-     */
-    private static Command ToggleChat_f = (List<String> args) -> {
-		Key.ClearTyping();
-
-		if (cls.key_dest == key_console) {
-		if (cls.state == ca_active) {
-			Menu.ForceMenuOff();
-			cls.key_dest = key_game;
-		}
-		} else
-		cls.key_dest = key_console;
-
-		ClearNotify();
-	};
-
-    /*
-     * ================ Con_MessageMode_f ================
-     */
-    private static Command MessageMode_f = (List<String> args) -> {
-		ClientGlobals.chat_team = false;
-		cls.key_dest = key_message;
-	};
-
-    /*
-     * ================ Con_MessageMode2_f ================
-     */
-    private static Command MessageMode2_f = (List<String> args) -> {
-		ClientGlobals.chat_team = true;
-		cls.key_dest = key_message;
-	};
-
-    /*
      * =============== Con_Linefeed ===============
      */
     private static void Linefeed() {
@@ -328,7 +333,7 @@ public final class Console extends Globals {
 		Console.Linefeed();
 		// mark time for transparent overlay
 		if (ClientGlobals.con.current >= 0)
-		    ClientGlobals.con.times[ClientGlobals.con.current % NUM_CON_TIMES] = cls.realtime;
+		    ClientGlobals.con.times[ClientGlobals.con.current % NUM_CON_TIMES] = ClientGlobals.cls.realtime;
 	    }
 
 	    switch (c) {
@@ -353,34 +358,6 @@ public final class Console extends Globals {
     }
 
     /*
-     * ============== Con_CenteredPrint ==============
-     */
-    static void CenteredPrint(String text) {
-	int l = text.length();
-	l = (ClientGlobals.con.linewidth - l) / 2;
-	if (l < 0)
-	    l = 0;
-
-	StringBuffer sb = new StringBuffer(1024);
-	for (int i = 0; i < l; i++)
-	    sb.append(' ');
-	sb.append(text);
-	sb.append('\n');
-
-	sb.setLength(1024);
-
-	Console.Print(sb.toString());
-    }
-
-    /*
-     * ==============================================================================
-     * 
-     * DRAWING
-     * 
-     * ==============================================================================
-     */
-
-    /*
      * ================ Con_DrawInput
      * 
      * The input line scrolls horizontally if typing goes beyond the right edge
@@ -391,10 +368,10 @@ public final class Console extends Globals {
 	byte[] text;
 	int start = 0;
 
-	if (cls.key_dest == key_menu)
+	if (ClientGlobals.cls.key_dest == key_menu)
 	    return;
 	
-	if (cls.key_dest != key_console && cls.state == ca_active)
+	if (ClientGlobals.cls.key_dest != key_console && ClientGlobals.cls.state == ca_active)
 	    return; // don't draw anything (always draw if not active)
 
 	text = ClientGlobals.key_lines[ClientGlobals.edit_line];
@@ -416,7 +393,7 @@ public final class Console extends Globals {
 	// sfranzyshen --start
 	for (i = 0; i < ClientGlobals.con.linewidth; i++) {
 		//old:re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
-		if (ClientGlobals.con.backedit == ClientGlobals.key_linepos-i && (((int)(Globals.cls.realtime >> 8)&1) !=0))
+		if (ClientGlobals.con.backedit == ClientGlobals.key_linepos-i && (((int)(ClientGlobals.cls.realtime >> 8)&1) !=0))
 			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, (char)11);
 		else
 			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, text[i]);
@@ -451,7 +428,7 @@ public final class Console extends Globals {
 	    if (time == 0)
 		continue;
 
-	    time = (int) (cls.realtime - time);
+	    time = (int) (ClientGlobals.cls.realtime - time);
 	    if (time > ClientGlobals.con_notifytime.value * 1000)
 		continue;
 
@@ -463,7 +440,7 @@ public final class Console extends Globals {
 	    v += 8;
 	}
 
-	if (cls.key_dest == key_message) {
+	if (ClientGlobals.cls.key_dest == key_message) {
 	    if (ClientGlobals.chat_team) {
 		DrawString(8, v, "say_team:");
 		skip = 11;
@@ -481,7 +458,7 @@ public final class Console extends Globals {
 	    s = s.substring(ClientGlobals.chat_bufferlen 	- ((ClientGlobals.viddef.getWidth() >> 3) - (skip + 1)));
 
 	    for (x = 0; x < s.length(); x++) {
-	    	if (ClientGlobals.chat_backedit > 0 && ClientGlobals.chat_backedit == ClientGlobals.chat_buffer.length() -x && ((int)(cls.realtime>>8)&1) !=0) {
+	    	if (ClientGlobals.chat_backedit > 0 && ClientGlobals.chat_backedit == ClientGlobals.chat_buffer.length() -x && ((int)(ClientGlobals.cls.realtime>>8)&1) !=0) {
 	    		re.DrawChar((x + skip) << 3, v, (char)11);
 	    	} else {
 	    		re.DrawChar((x + skip) << 3, v, s.charAt(x));
@@ -489,7 +466,7 @@ public final class Console extends Globals {
 	    }
 	    
 	    if (ClientGlobals.chat_backedit == 0)
-	    	re.DrawChar((x + skip) << 3, v, (int) (10 + ((cls.realtime >> 8) & 1)));
+	    	re.DrawChar((x + skip) << 3, v, (int) (10 + ((ClientGlobals.cls.realtime >> 8) & 1)));
 	    // sfranzyshen -stop        
 
 	    v += 8;
@@ -501,10 +478,9 @@ public final class Console extends Globals {
 	}
     }
 
-    /*
-     * ================ Con_DrawConsole
-     * 
-     * Draws the console with the solid background ================
+    /**
+     * Draws the console with the solid background
+	 * @param frac - percentage of screen to occupy by console, (from 0 to 1)
      */
     static void DrawConsole(float frac) {
 
@@ -563,34 +539,34 @@ public final class Console extends Globals {
 	// ZOID
 	// draw the download bar
 	// figure out width
-	if (cls.download != null) {
+	if (ClientGlobals.cls.download != null) {
 	    int text;
-	    if ((text = cls.downloadname.lastIndexOf('/')) != 0)
+	    if ((text = ClientGlobals.cls.downloadname.lastIndexOf('/')) != 0)
 		text++;
 	    else
 		text = 0;
 
 	    x = ClientGlobals.con.linewidth - ((ClientGlobals.con.linewidth * 7) / 40);
-	    y = x - (cls.downloadname.length() - text) - 8;
+	    y = x - (ClientGlobals.cls.downloadname.length() - text) - 8;
 	    i = ClientGlobals.con.linewidth / 3;
 	    StringBuffer dlbar = new StringBuffer(512);
-	    if (cls.downloadname.length() - text > i) {
+	    if (ClientGlobals.cls.downloadname.length() - text > i) {
 		y = x - i - 11;
 		int end = text + i - 1;
 		;
-		dlbar.append(cls.downloadname.substring(text, end));
+		dlbar.append(ClientGlobals.cls.downloadname.substring(text, end));
 		dlbar.append("...");
 	    } else {
-		dlbar.append(cls.downloadname.substring(text));
+		dlbar.append(ClientGlobals.cls.downloadname.substring(text));
 	    }
 	    dlbar.append(": ");
 	    dlbar.append((char) 0x80);
 
 	    // where's the dot go?
-	    if (cls.downloadpercent == 0)
+	    if (ClientGlobals.cls.downloadpercent == 0)
 		n = 0;
 	    else
-		n = y * cls.downloadpercent / 100;
+		n = y * ClientGlobals.cls.downloadpercent / 100;
 
 	    for (j = 0; j < y; j++) {
 		if (j == n)
@@ -599,8 +575,8 @@ public final class Console extends Globals {
 		    dlbar.append((char) 0x81);
 	    }
 	    dlbar.append((char) 0x82);
-	    dlbar.append((cls.downloadpercent < 10) ? " 0" : " ");
-	    dlbar.append(cls.downloadpercent).append('%');
+	    dlbar.append((ClientGlobals.cls.downloadpercent < 10) ? " 0" : " ");
+	    dlbar.append(ClientGlobals.cls.downloadpercent).append('%');
 	    // draw it
 	    y = ClientGlobals.con.vislines - 12;
 	    for (i = 0; i < dlbar.length(); i++)

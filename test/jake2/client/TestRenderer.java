@@ -99,8 +99,8 @@ public class TestRenderer {
     });
 	Cbuf.AddText("bind n nexttest");
 	Cbuf.Execute();
-	Globals.cls.key_dest = Defines.key_game;
-	Globals.cls.state = Defines.ca_active;
+	ClientGlobals.cls.key_dest = Defines.key_game;
+	ClientGlobals.cls.state = Defines.ca_active;
     }
     
     float fps = 0.0f;

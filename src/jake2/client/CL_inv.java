@@ -135,7 +135,7 @@ public class CL_inv {
 				string = getHighBitString(string);
 			else // draw a blinky cursor by the selected item
 			{
-				if (((int) (Globals.cls.realtime * 10) & 1) != 0)
+				if (((int) (ClientGlobals.cls.realtime * 10) & 1) != 0)
 					Globals.re.DrawChar(x - 8, y, 15);
 			}
 			Inv_DrawString(x, y, string);

@@ -367,7 +367,7 @@ public class Channel {
      */
     static void addLoopSounds() {
 
-	if ((ClientGlobals.cl_paused.value != 0.0f) || (Globals.cls.state != Globals.ca_active) || !ClientGlobals.cl.sound_prepped) {
+	if ((ClientGlobals.cl_paused.value != 0.0f) || (ClientGlobals.cls.state != Globals.ca_active) || !ClientGlobals.cl.sound_prepped) {
 	    removeUnusedLoopSounds();
 	    return;
 	}

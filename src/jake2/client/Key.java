@@ -310,8 +310,8 @@ public class Key extends Globals {
 		if (down) {
 			key_repeats[key]++;
 			if (key_repeats[key] > 1
-				&& Globals.cls.key_dest == Defines.key_game
-				&& !(Globals.cls.state == Defines.ca_disconnected))
+				&& ClientGlobals.cls.key_dest == Defines.key_game
+				&& !(ClientGlobals.cls.state == Defines.ca_disconnected))
 				return; // ignore most autorepeats
 
 			if (key >= 200 && ClientGlobals.keybindings[key] == null)
@@ -334,7 +334,7 @@ public class Key extends Globals {
 		}
 
 		// any key during the attract mode will bring up the menu
-		if (ClientGlobals.cl.attractloop && Globals.cls.key_dest != Defines.key_menu && !(key >= K_F1 && key <= K_F12))
+		if (ClientGlobals.cl.attractloop && ClientGlobals.cls.key_dest != Defines.key_menu && !(key >= K_F1 && key <= K_F12))
 			key = K_ESCAPE;
 
 		// menu key is hardcoded, so the user can never unbind it
@@ -342,12 +342,12 @@ public class Key extends Globals {
 			if (!down)
 				return;
 
-			if (ClientGlobals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 && Globals.cls.key_dest == Defines.key_game) {
+			if (ClientGlobals.cl.frame.playerstate.stats[Defines.STAT_LAYOUTS] != 0 && ClientGlobals.cls.key_dest == Defines.key_game) {
 				// put away help computer / inventory
 				Cbuf.AddText("cmd putaway\n");
 				return;
 			}
-			switch (Globals.cls.key_dest) {
+			switch (ClientGlobals.cls.key_dest) {
 				case Defines.key_message :
 					Key.Message(key);
 					break;
@@ -402,9 +402,9 @@ public class Key extends Globals {
 		//
 		// if not a consolekey, send to the interpreter no matter what mode is
 		//
-		if ((Globals.cls.key_dest == Defines.key_menu && menubound[key])
-			|| (Globals.cls.key_dest == Defines.key_console && !consolekeys[key])
-			|| (Globals.cls.key_dest == Defines.key_game && (Globals.cls.state == Defines.ca_active || !consolekeys[key]))) {
+		if ((ClientGlobals.cls.key_dest == Defines.key_menu && menubound[key])
+			|| (ClientGlobals.cls.key_dest == Defines.key_console && !consolekeys[key])
+			|| (ClientGlobals.cls.key_dest == Defines.key_game && (ClientGlobals.cls.state == Defines.ca_active || !consolekeys[key]))) {
 			kb = ClientGlobals.keybindings[key];
 			if (kb != null) {
 				if (kb.length()>0 && kb.charAt(0) == '+') {
@@ -425,7 +425,7 @@ public class Key extends Globals {
 //		if (shift_down)
 //			key = keyshift[key];
 
-		switch (Globals.cls.key_dest) {
+		switch (ClientGlobals.cls.key_dest) {
 			case Defines.key_message :
 				Key.Message(key);
 				break;
@@ -495,7 +495,7 @@ public class Key extends Globals {
 			Cbuf.AddText(ClientGlobals.chat_buffer);
 			Cbuf.AddText("\"\n");
 			
-			Globals.cls.key_dest = Defines.key_game;
+			ClientGlobals.cls.key_dest = Defines.key_game;
 			ClientGlobals.chat_buffer = "";
 			ClientGlobals.chat_backedit = 0;
 			return;
@@ -503,7 +503,7 @@ public class Key extends Globals {
 		 
 		
 		if (key == K_ESCAPE) {
-			Globals.cls.key_dest = Defines.key_game;
+			ClientGlobals.cls.key_dest = Defines.key_game;
 			ClientGlobals.chat_buffer = "";
 			ClientGlobals.chat_backedit = 0;
 			return;
@@ -691,7 +691,7 @@ public class Key extends Globals {
 			ClientGlobals.key_linepos = 1;
 			ClientGlobals.con.backedit = 0; // sfranzyshen
 
-			if (Globals.cls.state == Defines.ca_disconnected)
+			if (ClientGlobals.cls.state == Defines.ca_disconnected)
 				SCR.UpdateScreen(); // force an update, because the command may take some time
 			return;
 		}

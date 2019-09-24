@@ -64,6 +64,29 @@ public final class CL {
 
     private static final int PLAYER_MULT = 5;
 
+    /**
+     * Adds the current command line as a clc_stringcmd to the client message.
+     * things like godmode, noclip, etc, are commands directed to the server, so
+     * when they are typed in at the console, they will need to be forwarded.
+     */
+    public static void ForwardToServer(List<String> args) {
+        String cmd;
+
+        cmd = args.get(0);
+        if (ClientGlobals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-'
+                || cmd.charAt(0) == '+') {
+            Com.Printf("Unknown command \"" + cmd + "\"\n");
+            return;
+        }
+
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+        SZ.Print(ClientGlobals.cls.netchan.message, cmd);
+        if (args.size() > 1) {
+            SZ.Print(ClientGlobals.cls.netchan.message, " ");
+            SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
+        }
+    }
+
     public static class cheatvar_t {
         String name;
 
@@ -102,17 +125,17 @@ public final class CL {
 
             int len;
 
-            if (!Globals.cls.demorecording) {
+            if (!ClientGlobals.cls.demorecording) {
                 Com.Printf("Not recording a demo.\n");
                 return;
             }
 
             //	   finish up
             len = -1;
-            Globals.cls.demofile.writeInt(EndianHandler.swapInt(len));
-            Globals.cls.demofile.close();
-            Globals.cls.demofile = null;
-            Globals.cls.demorecording = false;
+            ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(len));
+            ClientGlobals.cls.demofile.close();
+            ClientGlobals.cls.demofile = null;
+            ClientGlobals.cls.demorecording = false;
             Com.Printf("Stopped demo.\n");
         } catch (IOException e) {
         }
@@ -138,12 +161,12 @@ public final class CL {
                 return;
             }
 
-            if (Globals.cls.demorecording) {
+            if (ClientGlobals.cls.demorecording) {
                 Com.Printf("Already recording.\n");
                 return;
             }
 
-            if (Globals.cls.state != Defines.ca_active) {
+            if (ClientGlobals.cls.state != Defines.ca_active) {
                 Com.Printf("You must be in a level to record.\n");
                 return;
             }
@@ -155,16 +178,16 @@ public final class CL {
 
             Com.Printf("recording to " + name + ".\n");
             FS.CreatePath(name);
-            Globals.cls.demofile = new RandomAccessFile(name, "rw");
-            if (Globals.cls.demofile == null) {
+            ClientGlobals.cls.demofile = new RandomAccessFile(name, "rw");
+            if (ClientGlobals.cls.demofile == null) {
                 Com.Printf("ERROR: couldn't open.\n");
                 return;
             }
-            Globals.cls.demorecording = true;
+            ClientGlobals.cls.demorecording = true;
 
             // don't start saving messages until a non-delta compressed
             // message is received
-            Globals.cls.demowaiting = true;
+            ClientGlobals.cls.demowaiting = true;
 
             //
             // write out messages to hold the startup information
@@ -187,8 +210,8 @@ public final class CL {
                     if (buf.cursize + ClientGlobals.cl.configstrings[i].length()
                             + 32 > buf.maxsize) {
                         // write it out
-                        Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                        Globals.cls.demofile
+                        ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+                        ClientGlobals.cls.demofile
                                 .write(buf.data, 0, buf.cursize);
                         buf.cursize = 0;
                     }
@@ -208,8 +231,8 @@ public final class CL {
                     continue;
 
                 if (buf.cursize + 64 > buf.maxsize) { // write it out
-                    Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-                    Globals.cls.demofile.write(buf.data, 0, buf.cursize);
+                    ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+                    ClientGlobals.cls.demofile.write(buf.data, 0, buf.cursize);
                     buf.cursize = 0;
                 }
 
@@ -222,8 +245,8 @@ public final class CL {
             MSG.WriteString(buf, "precache\n");
 
             // write it to the demo file
-            Globals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
-            Globals.cls.demofile.write(buf.data, 0, buf.cursize);
+            ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(buf.cursize));
+            ClientGlobals.cls.demofile.write(buf.data, 0, buf.cursize);
             // the rest of the demo file will be individual frames
 
         } catch (IOException e) {
@@ -234,17 +257,17 @@ public final class CL {
      * ForwardToServer_f
      */
     private static Command ForwardToServer_f = (List<String> args) -> {
-        if (Globals.cls.state != Defines.ca_connected
-                && Globals.cls.state != Defines.ca_active) {
+        if (ClientGlobals.cls.state != Defines.ca_connected
+                && ClientGlobals.cls.state != Defines.ca_active) {
             Com.Printf("Can't \"" + args.get(0) + "\", not connected\n");
             return;
         }
 
         // don't forward the first argument
         if (args.size() > 1) {
-            MSG.WriteByte(Globals.cls.netchan.message,
+            MSG.WriteByte(ClientGlobals.cls.netchan.message,
                     Defines.clc_stringcmd);
-            SZ.Print(Globals.cls.netchan.message, getArguments(args));
+            SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
         }
     };
 
@@ -295,10 +318,10 @@ public final class CL {
 
         Disconnect();
 
-        Globals.cls.state = Defines.ca_connecting;
+        ClientGlobals.cls.state = Defines.ca_connecting;
         //strncpy (cls.servername, server, sizeof(cls.servername)-1);
-        Globals.cls.servername = server;
-        Globals.cls.connect_time = -99999;
+        ClientGlobals.cls.servername = server;
+        ClientGlobals.cls.connect_time = -99999;
         // CL_CheckForResend() will fire immediately
     };
 
@@ -336,8 +359,8 @@ public final class CL {
 
         netadr_t to = new netadr_t();
 
-        if (Globals.cls.state >= Defines.ca_connected)
-            to = Globals.cls.netchan.remote_address;
+        if (ClientGlobals.cls.state >= Defines.ca_connected)
+            to = ClientGlobals.cls.netchan.remote_address;
         else {
             if (ClientGlobals.rcon_address.string.length() == 0) {
                 Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n");
@@ -363,11 +386,11 @@ public final class CL {
         //if we are downloading, we don't change!
         // This so we don't suddenly stop downloading a map
 
-        if (Globals.cls.download != null)
+        if (ClientGlobals.cls.download != null)
             return;
 
         SCR.BeginLoadingPlaque();
-        Globals.cls.state = Defines.ca_connected; // not active anymore, but
+        ClientGlobals.cls.state = Defines.ca_connected; // not active anymore, but
                                                   // not disconnected
         Com.Printf("\nChanging map...\n");
     };
@@ -381,27 +404,27 @@ public final class CL {
         //ZOID
         //if we are downloading, we don't change! This so we don't suddenly
         // stop downloading a map
-        if (Globals.cls.download != null)
+        if (ClientGlobals.cls.download != null)
             return;
 
         S.StopAllSounds();
-        if (Globals.cls.state == Defines.ca_connected) {
+        if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
-            Globals.cls.state = Defines.ca_connected;
-            MSG.WriteChar(Globals.cls.netchan.message,
+            ClientGlobals.cls.state = Defines.ca_connected;
+            MSG.WriteChar(ClientGlobals.cls.netchan.message,
                     Defines.clc_stringcmd);
-            MSG.WriteString(Globals.cls.netchan.message, "new");
+            MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
             return;
         }
 
-        if (Globals.cls.servername != null) {
-            if (Globals.cls.state >= Defines.ca_connected) {
+        if (ClientGlobals.cls.servername != null) {
+            if (ClientGlobals.cls.state >= Defines.ca_connected) {
                 Disconnect();
-                Globals.cls.connect_time = Globals.cls.realtime - 1500;
+                ClientGlobals.cls.connect_time = ClientGlobals.cls.realtime - 1500;
             } else
-                Globals.cls.connect_time = -99999; // fire immediately
+                ClientGlobals.cls.connect_time = -99999; // fire immediately
 
-            Globals.cls.state = Defines.ca_connecting;
+            ClientGlobals.cls.state = Defines.ca_connecting;
             Com.Printf("reconnecting...\n");
         }
     };
@@ -563,21 +586,21 @@ public final class CL {
             return;
         }
 
-        Globals.cls.downloadname = filename;
-        Com.Printf("Downloading " + Globals.cls.downloadname + "\n");
+        ClientGlobals.cls.downloadname = filename;
+        Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
 
         // download to a temp name, and only rename
         // to the real name when done, so if interrupted
         // a runt file wont be left
-        Globals.cls.downloadtempname = Com
-                .StripExtension(Globals.cls.downloadname);
-        Globals.cls.downloadtempname += ".tmp";
+        ClientGlobals.cls.downloadtempname = Com
+                .StripExtension(ClientGlobals.cls.downloadname);
+        ClientGlobals.cls.downloadtempname += ".tmp";
 
-        MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-        MSG.WriteString(Globals.cls.netchan.message, "download "
-                + Globals.cls.downloadname);
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+        MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
+                + ClientGlobals.cls.downloadname);
 
-        Globals.cls.downloadnumber++;
+        ClientGlobals.cls.downloadnumber++;
     };
 
 
@@ -605,8 +628,8 @@ public final class CL {
         swlen = Globals.net_message.cursize - 8;
 
         try {
-            Globals.cls.demofile.writeInt(EndianHandler.swapInt(swlen));
-            Globals.cls.demofile.write(Globals.net_message.data, 8, swlen);
+            ClientGlobals.cls.demofile.writeInt(EndianHandler.swapInt(swlen));
+            ClientGlobals.cls.demofile.write(Globals.net_message.data, 8, swlen);
         } catch (IOException e) {
         }
 
@@ -621,9 +644,9 @@ public final class CL {
         netadr_t adr = new netadr_t();
         int port;
 
-        if (!NET.StringToAdr(Globals.cls.servername, adr)) {
+        if (!NET.StringToAdr(ClientGlobals.cls.servername, adr)) {
             Com.Printf("Bad server address\n");
-            Globals.cls.connect_time = 0;
+            ClientGlobals.cls.connect_time = 0;
             return;
         }
         if (adr.port == 0)
@@ -635,7 +658,7 @@ public final class CL {
 
         Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "connect "
                 + Defines.PROTOCOL_VERSION + " " + port + " "
-                + Globals.cls.challenge + " \"" + Cvar.Userinfo() + "\"\n");
+                + ClientGlobals.cls.challenge + " \"" + Cvar.Userinfo() + "\"\n");
     }
 
     /**
@@ -646,35 +669,35 @@ public final class CL {
     private static void CheckForResend() {
         // if the local server is running and we aren't
         // then connect
-        if (Globals.cls.state == Defines.ca_disconnected
+        if (ClientGlobals.cls.state == Defines.ca_disconnected
                 && Globals.server_state != ServerStates.SS_DEAD) {
-            Globals.cls.state = Defines.ca_connecting;
-            Globals.cls.servername = "localhost";
+            ClientGlobals.cls.state = Defines.ca_connecting;
+            ClientGlobals.cls.servername = "localhost";
             // we don't need a challenge on the localhost
             SendConnectPacket();
             return;
         }
 
         // resend if we haven't gotten a reply yet
-        if (Globals.cls.state != Defines.ca_connecting)
+        if (ClientGlobals.cls.state != Defines.ca_connecting)
             return;
 
-        if (Globals.cls.realtime - Globals.cls.connect_time < 3000)
+        if (ClientGlobals.cls.realtime - ClientGlobals.cls.connect_time < 3000)
             return;
 
         netadr_t adr = new netadr_t();
-        if (!NET.StringToAdr(Globals.cls.servername, adr)) {
+        if (!NET.StringToAdr(ClientGlobals.cls.servername, adr)) {
             Com.Printf("Bad server address\n");
-            Globals.cls.state = Defines.ca_disconnected;
+            ClientGlobals.cls.state = Defines.ca_disconnected;
             return;
         }
         if (adr.port == 0)
             adr.port = Defines.PORT_SERVER;
 
         // for retransmit requests
-        Globals.cls.connect_time = Globals.cls.realtime;
+        ClientGlobals.cls.connect_time = ClientGlobals.cls.realtime;
 
-        Com.Printf("Connecting to " + Globals.cls.servername + "...\n");
+        Com.Printf("Connecting to " + ClientGlobals.cls.servername + "...\n");
 
         Netchan.OutOfBandPrint(Defines.NS_CLIENT, adr, "getchallenge\n");
     }
@@ -695,7 +718,7 @@ public final class CL {
             ClientGlobals.cl_entities[i] = new centity_t();
         }
 
-        Globals.cls.netchan.message.clear();
+        ClientGlobals.cls.netchan.message.clear();
     }
 
     /**
@@ -709,7 +732,7 @@ public final class CL {
 
         String fin;
 
-        if (Globals.cls.state == Defines.ca_disconnected)
+        if (ClientGlobals.cls.state == Defines.ca_disconnected)
             return;
 
         if (ClientGlobals.cl_timedemo != null && ClientGlobals.cl_timedemo.value != 0.0f) {
@@ -729,28 +752,28 @@ public final class CL {
 
         Menu.ForceMenuOff();
 
-        Globals.cls.connect_time = 0;
+        ClientGlobals.cls.connect_time = 0;
 
         SCR.StopCinematic();
 
-        if (Globals.cls.demorecording)
+        if (ClientGlobals.cls.demorecording)
             Stop_f.execute(Collections.emptyList());
 
         // send a disconnect message to the server
         fin = (char) Defines.clc_stringcmd + "disconnect";
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
-        Netchan.Transmit(Globals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
+        Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
 
         ClearState();
 
         // stop download
-        if (Globals.cls.download != null) {
-            Lib.fclose(Globals.cls.download);
-            Globals.cls.download = null;
+        if (ClientGlobals.cls.download != null) {
+            Lib.fclose(ClientGlobals.cls.download);
+            ClientGlobals.cls.download = null;
         }
 
-        Globals.cls.state = Defines.ca_disconnected;
+        ClientGlobals.cls.state = Defines.ca_disconnected;
     }
 
     /**
@@ -789,15 +812,15 @@ public final class CL {
 
         // server connection
         if (c.equals("client_connect")) {
-            if (Globals.cls.state == Defines.ca_connected) {
+            if (ClientGlobals.cls.state == Defines.ca_connected) {
                 Com.Printf("Dup connect received.  Ignored.\n");
                 return;
             }
-            Netchan.Setup(Defines.NS_CLIENT, Globals.cls.netchan,
-                    Globals.net_from, Globals.cls.quakePort);
-            MSG.WriteChar(Globals.cls.netchan.message, Defines.clc_stringcmd);
-            MSG.WriteString(Globals.cls.netchan.message, "new");
-            Globals.cls.state = Defines.ca_connected;
+            Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
+                    Globals.net_from, ClientGlobals.cls.quakePort);
+            MSG.WriteChar(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
+            ClientGlobals.cls.state = Defines.ca_connected;
             return;
         }
 
@@ -834,7 +857,7 @@ public final class CL {
 
         // challenge from the server we are connecting to
         if (c.equals("challenge")) {
-            Globals.cls.challenge = Lib.atoi(args.get(1));
+            ClientGlobals.cls.challenge = Lib.atoi(args.get(1));
             SendConnectPacket();
             return;
         }
@@ -868,8 +891,8 @@ public final class CL {
                 continue;
             }
 
-            if (Globals.cls.state == Defines.ca_disconnected
-                    || Globals.cls.state == Defines.ca_connecting)
+            if (ClientGlobals.cls.state == Defines.ca_disconnected
+                    || ClientGlobals.cls.state == Defines.ca_connecting)
                 continue; // dump it if not connected
 
             if (Globals.net_message.cursize < 8) {
@@ -882,12 +905,12 @@ public final class CL {
             // packet from server
             //
             if (!NET.CompareAdr(Globals.net_from,
-                    Globals.cls.netchan.remote_address)) {
+                    ClientGlobals.cls.netchan.remote_address)) {
                 Com.DPrintf(NET.AdrToString(Globals.net_from)
                         + ":sequenced packet without connection\n");
                 continue;
             }
-            if (!Netchan.Process(Globals.cls.netchan, Globals.net_message))
+            if (!Netchan.Process(ClientGlobals.cls.netchan, Globals.net_message))
                 continue; // wasn't accepted for some reason
             CL_parse.ParseServerMessage();
         }
@@ -895,8 +918,8 @@ public final class CL {
         //
         // check timeout
         //
-        if (Globals.cls.state >= Defines.ca_connected
-                && Globals.cls.realtime - Globals.cls.netchan.last_received > ClientGlobals.cl_timeout.value * 1000) {
+        if (ClientGlobals.cls.state >= Defines.ca_connected
+                && ClientGlobals.cls.realtime - ClientGlobals.cls.netchan.last_received > ClientGlobals.cl_timeout.value * 1000) {
             if (++ClientGlobals.cl.timeoutcount > 5) // timeoutcount saves debugger
             {
                 Com.Printf("\nServer connection timed out.\n");
@@ -942,7 +965,7 @@ public final class CL {
 
         qfiles.dmdl_t pheader;
 
-        if (Globals.cls.state != Defines.ca_connected)
+        if (ClientGlobals.cls.state != Defines.ca_connected)
             return;
 
         cvar_t allowDownload = Cvar.Get("allow_download", "1", Defines.CVAR_ARCHIVE);
@@ -1254,8 +1277,8 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_stringcmd);
-        MSG.WriteString(Globals.cls.netchan.message, "begin "
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+        MSG.WriteString(ClientGlobals.cls.netchan.message, "begin "
                 + CL.precache_spawncount + "\n");
     }
 
@@ -1263,8 +1286,8 @@ public final class CL {
      * InitLocal
      */
     private static void InitLocal() {
-        Globals.cls.state = Defines.ca_disconnected;
-        Globals.cls.realtime = Timer.Milliseconds();
+        ClientGlobals.cls.state = Defines.ca_disconnected;
+        ClientGlobals.cls.realtime = Timer.Milliseconds();
 
         CL_input.InitInput();
 
@@ -1520,7 +1543,7 @@ public final class CL {
         extratime += msec;
 
         if (ClientGlobals.cl_timedemo.value == 0.0f) {
-            if (Globals.cls.state == Defines.ca_connected && extratime < 100) {
+            if (ClientGlobals.cls.state == Defines.ca_connected && extratime < 100) {
                 return; // don't flood packets out while connecting
             }
             if (extratime < 1000 / ClientGlobals.cl_maxfps.value) {
@@ -1532,18 +1555,18 @@ public final class CL {
         IN.Frame();
 
         // decide the simulation time
-        Globals.cls.frametime = extratime / 1000.0f;
+        ClientGlobals.cls.frametime = extratime / 1000.0f;
         ClientGlobals.cl.time += extratime;
-        Globals.cls.realtime = Globals.curtime;
+        ClientGlobals.cls.realtime = Globals.curtime;
 
         extratime = 0;
 
-        if (Globals.cls.frametime > (1.0f / 5))
-            Globals.cls.frametime = (1.0f / 5);
+        if (ClientGlobals.cls.frametime > (1.0f / 5))
+            ClientGlobals.cls.frametime = (1.0f / 5);
 
         // if in the debugger last frame, don't timeout
         if (msec > 5000)
-            Globals.cls.netchan.last_received = Timer.Milliseconds();
+            ClientGlobals.cls.netchan.last_received = Timer.Milliseconds();
 
         // fetch results from server
         ReadPackets();
@@ -1557,7 +1580,7 @@ public final class CL {
         // allow rendering DLL change
         VID.CheckChanges();
         if (!ClientGlobals.cl.refresh_prepped
-                && Globals.cls.state == Defines.ca_active) {
+                && ClientGlobals.cls.state == Defines.ca_active) {
             CL_view.PrepRefresh();
             // force GC after level loading
             // but not on playing a cinematic
@@ -1621,9 +1644,9 @@ public final class CL {
         SCR.RunCinematic();
         SCR.RunConsole();
 
-        Globals.cls.framecount++;
-        if (Globals.cls.state != Defines.ca_active
-                || Globals.cls.key_dest != Defines.key_game) {
+        ClientGlobals.cls.framecount++;
+        if (ClientGlobals.cls.state != Defines.ca_active
+                || ClientGlobals.cls.key_dest != Defines.key_game) {
             try {
                 Thread.sleep(20);
             } catch (InterruptedException e) {
@@ -1669,6 +1692,7 @@ public final class CL {
         VID.Init();
 
         V.Init();
+        Cmd.AddCommand("cl_drop", args -> CL.Drop());
 
         Globals.net_message.data = Globals.net_message_buffer;
         Globals.net_message.maxsize = Globals.net_message_buffer.length;
@@ -1690,15 +1714,15 @@ public final class CL {
      * Called after an ERR_DROP was thrown.
      */
     public static void Drop() {
-        if (Globals.cls.state == Defines.ca_uninitialized)
+        if (ClientGlobals.cls.state == Defines.ca_uninitialized)
             return;
-        if (Globals.cls.state == Defines.ca_disconnected)
+        if (ClientGlobals.cls.state == Defines.ca_disconnected)
             return;
 
         Disconnect();
 
         // drop loading plaque unless this is the initial game start
-        if (Globals.cls.disable_servercount != -1)
+        if (ClientGlobals.cls.disable_servercount != -1)
             SCR.EndLoadingPlaque(); // get rid of loading plaque
     }
 }

@@ -498,7 +498,7 @@ public class CL_ents {
 		ClientGlobals.cl.frame.servertime = ClientGlobals.cl.frame.serverframe * 100;
 
 		// BIG HACK to let old demos continue to work
-		if (Globals.cls.serverProtocol != 26)
+		if (ClientGlobals.cls.serverProtocol != 26)
 			ClientGlobals.cl.surpressCount = MSG.ReadByte(Globals.net_message);
 
 		if (ClientGlobals.cl_shownet.value == 3)
@@ -511,7 +511,7 @@ public class CL_ents {
 		if (ClientGlobals.cl.frame.deltaframe <= 0) {
 			ClientGlobals.cl.frame.valid = true; // uncompressed frame
 			old = null;
-			Globals.cls.demowaiting = false; // we can start recording now
+			ClientGlobals.cls.demowaiting = false; // we can start recording now
 		} else {
 			old = ClientGlobals.cl.frames[ClientGlobals.cl.frame.deltaframe & Defines.UPDATE_MASK];
 			if (!old.valid) { // should never happen
@@ -560,8 +560,8 @@ public class CL_ents {
 
 		if (ClientGlobals.cl.frame.valid) {
 			// getting a valid frame message ends the connection process
-			if (Globals.cls.state != Defines.ca_active) {
-				Globals.cls.state = Defines.ca_active;
+			if (ClientGlobals.cls.state != Defines.ca_active) {
+				ClientGlobals.cls.state = Defines.ca_active;
 				ClientGlobals.cl.force_refdef = true;
 
 				ClientGlobals.cl.predicted_origin[0] = ClientGlobals.cl.frame.playerstate.pmove.origin[0] * 0.125f;
@@ -569,7 +569,7 @@ public class CL_ents {
 				ClientGlobals.cl.predicted_origin[2] = ClientGlobals.cl.frame.playerstate.pmove.origin[2] * 0.125f;
 
 				Math3D.VectorCopy(ClientGlobals.cl.frame.playerstate.viewangles, ClientGlobals.cl.predicted_angles);
-				if (Globals.cls.disable_servercount != ClientGlobals.cl.servercount && ClientGlobals.cl.refresh_prepped)
+				if (ClientGlobals.cls.disable_servercount != ClientGlobals.cl.servercount && ClientGlobals.cl.refresh_prepped)
 					SCR.EndLoadingPlaque(); // get rid of loading plaque
 			}
 			ClientGlobals.cl.sound_prepped = true; // can start mixing ambient sounds
@@ -1143,7 +1143,7 @@ public class CL_ents {
 			}
 
 			// smooth out stair climbing
-			delta = (int) (Globals.cls.realtime - ClientGlobals.cl.predicted_step_time);
+			delta = (int) (ClientGlobals.cls.realtime - ClientGlobals.cl.predicted_step_time);
 
 			if (delta < 100) {
 				ClientGlobals.cl.refdef.vieworg[2] -= ClientGlobals.cl.predicted_step * (100 - delta) * 0.01;
@@ -1316,7 +1316,7 @@ public class CL_ents {
 	 * Emits all entities, particles, and lights to the refresh ===============
 	 */
 	static void AddEntities() {
-		if (Globals.cls.state != Defines.ca_active)
+		if (ClientGlobals.cls.state != Defines.ca_active)
 			return;
 
 		if (ClientGlobals.cl.time > ClientGlobals.cl.frame.servertime) {

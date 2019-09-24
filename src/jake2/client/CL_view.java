@@ -174,16 +174,16 @@ public class CL_view {
         if (SCR.scr_debuggraph.value == 0.0f || SCR.scr_timegraph.value == 0.0f)
             return;
 
-        for (i = 0; i < Globals.cls.netchan.dropped; i++)
+        for (i = 0; i < ClientGlobals.cls.netchan.dropped; i++)
             SCR.DebugGraph(30, 0x40);
 
         for (i = 0; i < ClientGlobals.cl.surpressCount; i++)
             SCR.DebugGraph(30, 0xdf);
 
         // see what the latency was on this packet
-        in = Globals.cls.netchan.incoming_acknowledged
+        in = ClientGlobals.cls.netchan.incoming_acknowledged
                 & (Defines.CMD_BACKUP - 1);
-        ping = (int) (Globals.cls.realtime - ClientGlobals.cl.cmd_time[in]);
+        ping = (int) (ClientGlobals.cls.realtime - ClientGlobals.cl.cmd_time[in]);
         ping /= 30;
         if (ping > 30)
             ping = 30;

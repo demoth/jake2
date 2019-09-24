@@ -209,9 +209,9 @@ public class CL_input {
 		float up, down;
 
 		if ((in_speed.state & 1) != 0)
-			speed = Globals.cls.frametime * ClientGlobals.cl_anglespeedkey.value;
+			speed = ClientGlobals.cls.frametime * ClientGlobals.cl_anglespeedkey.value;
 		else
-			speed = Globals.cls.frametime;
+			speed = ClientGlobals.cls.frametime;
 
 		if ((in_strafe.state & 1) == 0) {
 			ClientGlobals.cl.viewangles[Defines.YAW] -= speed * ClientGlobals.cl_yawspeed.value * KeyState(in_right);
@@ -305,11 +305,11 @@ public class CL_input {
 			cmd.buttons |= Defines.BUTTON_USE;
 		in_use.state &= ~2;
 
-		if (Key.anykeydown != 0 && Globals.cls.key_dest == Defines.key_game)
+		if (Key.anykeydown != 0 && ClientGlobals.cls.key_dest == Defines.key_game)
 			cmd.buttons |= Defines.BUTTON_ANY;
 
 		// send milliseconds of time to apply the move
-		ms = (int) (Globals.cls.frametime * 1000);
+		ms = (int) (ClientGlobals.cls.frametime * 1000);
 		if (ms > 250)
 			ms = 100; // time was unreasonable
 		cmd.msec = (byte) ms;
@@ -404,9 +404,9 @@ public class CL_input {
 		// build a command even if not connected
 
 		// save this command off for prediction
-		i = Globals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
+		i = ClientGlobals.cls.netchan.outgoing_sequence & (Defines.CMD_BACKUP - 1);
 		cmd = ClientGlobals.cl.cmds[i];
-		ClientGlobals.cl.cmd_time[i] = (int) Globals.cls.realtime; // for netgraph
+		ClientGlobals.cl.cmd_time[i] = (int) ClientGlobals.cls.realtime; // for netgraph
 															 // ping calculation
 
 		// fill the cmd
@@ -414,12 +414,12 @@ public class CL_input {
 
 		ClientGlobals.cl.cmd.set(cmd);
 
-		if (Globals.cls.state == Defines.ca_disconnected || Globals.cls.state == Defines.ca_connecting)
+		if (ClientGlobals.cls.state == Defines.ca_disconnected || ClientGlobals.cls.state == Defines.ca_connecting)
 			return;
 
-		if (Globals.cls.state == Defines.ca_connected) {
-			if (Globals.cls.netchan.message.cursize != 0 || Globals.curtime - Globals.cls.netchan.last_sent > 1000)
-				Netchan.Transmit(Globals.cls.netchan, 0, new byte[0]);
+		if (ClientGlobals.cls.state == Defines.ca_connected) {
+			if (ClientGlobals.cls.netchan.message.cursize != 0 || Globals.curtime - ClientGlobals.cls.netchan.last_sent > 1000)
+				Netchan.Transmit(ClientGlobals.cls.netchan, 0, new byte[0]);
 			return;
 		}
 
@@ -427,14 +427,14 @@ public class CL_input {
 		if (Globals.userinfo_modified) {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
-			MSG.WriteByte(Globals.cls.netchan.message, Defines.clc_userinfo);
-			MSG.WriteString(Globals.cls.netchan.message, Cvar.Userinfo());
+			MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_userinfo);
+			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.Userinfo());
 		}
 
 		SZ.Init(buf, data, data.length);
 
 		if (cmd.buttons != 0 && ClientGlobals.cl.cinematictime > 0 && !ClientGlobals.cl.attractloop
-				&& Globals.cls.realtime - ClientGlobals.cl.cinematictime > 1000) { // skip
+				&& ClientGlobals.cls.realtime - ClientGlobals.cl.cinematictime > 1000) { // skip
 																			 // the
 																			 // rest
 																			 // of
@@ -452,14 +452,14 @@ public class CL_input {
 
 		// let the server know what the last frame we
 		// got was, so the next message can be delta compressed
-		if (cl_nodelta.value != 0.0f || !ClientGlobals.cl.frame.valid || Globals.cls.demowaiting)
+		if (cl_nodelta.value != 0.0f || !ClientGlobals.cl.frame.valid || ClientGlobals.cls.demowaiting)
 			MSG.WriteLong(buf, -1); // no compression
 		else
 			MSG.WriteLong(buf, ClientGlobals.cl.frame.serverframe);
 
 		// send this and the previous cmds in the message, so
 		// if the last packet was dropped, it can be recovered
-		i = (Globals.cls.netchan.outgoing_sequence - 2) & (Defines.CMD_BACKUP - 1);
+		i = (ClientGlobals.cls.netchan.outgoing_sequence - 2) & (Defines.CMD_BACKUP - 1);
 		cmd = ClientGlobals.cl.cmds[i];
 		//memset (nullcmd, 0, sizeof(nullcmd));
 		nullcmd.clear();
@@ -467,24 +467,24 @@ public class CL_input {
 		MSG.WriteDeltaUsercmd(buf, nullcmd, cmd);
 		oldcmd = cmd;
 
-		i = (Globals.cls.netchan.outgoing_sequence - 1) & (Defines.CMD_BACKUP - 1);
+		i = (ClientGlobals.cls.netchan.outgoing_sequence - 1) & (Defines.CMD_BACKUP - 1);
 		cmd = ClientGlobals.cl.cmds[i];
 
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 		oldcmd = cmd;
 
-		i = (Globals.cls.netchan.outgoing_sequence) & (Defines.CMD_BACKUP - 1);
+		i = (ClientGlobals.cls.netchan.outgoing_sequence) & (Defines.CMD_BACKUP - 1);
 		cmd = ClientGlobals.cl.cmds[i];
 
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 
 		// calculate a checksum over the move commands
 		buf.data[checksumIndex] = Com.BlockSequenceCRCByte(buf.data, checksumIndex + 1, buf.cursize - checksumIndex - 1,
-				Globals.cls.netchan.outgoing_sequence);
+				ClientGlobals.cls.netchan.outgoing_sequence);
 
 		//
 		// deliver the message
 		//
-		Netchan.Transmit(Globals.cls.netchan, buf.cursize, buf.data);
+		Netchan.Transmit(ClientGlobals.cls.netchan, buf.cursize, buf.data);
 	}
 }
