@@ -73,12 +73,12 @@ public final class IN extends Globals {
     }
 
     private static void install_grabs() {
-		Globals.re.getKeyboardHandler().installGrabs();
+		ClientGlobals.re.getKeyboardHandler().installGrabs();
 		ignorefirst = true;
     }
 
     private static void uninstall_grabs() {
-		Globals.re.getKeyboardHandler().uninstallGrabs();
+		ClientGlobals.re.getKeyboardHandler().uninstallGrabs();
     }
 
     public static void toggleMouse() {
@@ -126,7 +126,7 @@ public final class IN extends Globals {
 		if (!IN.mouse_avail) 
 			return;
 	
-		KBD kbd=Globals.re.getKeyboardHandler();
+		KBD kbd= ClientGlobals.re.getKeyboardHandler();
 		for (i=0 ; i<3 ; i++) {
 			if ( (IN.mouse_buttonstate & (1<<i)) != 0 && (IN.mouse_oldbuttonstate & (1<<i)) == 0 )
 				kbd.Do_Key_Event(Key.K_MOUSE1 + i, true);

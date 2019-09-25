@@ -25,8 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import jake2.client.*;
-import jake2.client.render.DummyRenderer;
 import jake2.qcommon.network.netadr_t;
 
 import java.io.FileWriter;
@@ -268,9 +266,6 @@ public class Globals extends Defines {
 	};
 
 	public static boolean userinfo_modified = false;
-
-	// Renderer interface used by VID, SCR, ...
-	public static refexport_t re = new DummyRenderer();
 
 	public static int sys_frame_time;
 	public static netadr_t net_from = new netadr_t();

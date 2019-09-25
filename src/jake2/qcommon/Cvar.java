@@ -81,7 +81,7 @@ public class Cvar extends Globals {
         return var;
     }
 
-    static void Init() {
+    public static void Init() {
         Cmd.AddCommand("set", (List<String> args) -> {
             int flags;
             if (args.size() != 3 && args.size() != 4) {

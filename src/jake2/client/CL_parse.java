@@ -28,7 +28,6 @@ import jake2.client.sound.S;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommands;
-import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
@@ -135,7 +134,7 @@ public class CL_parse {
             ClientGlobals.cl.sound_precache[i] = S
                     .RegisterSound(ClientGlobals.cl.configstrings[Defines.CS_SOUNDS
                             + i]);
-            Sys.SendKeyEvents(); // pump message loop
+            CL.SendKeyEvents(); // pump message loop
         }
         S.EndRegistration();
     }
@@ -336,12 +335,12 @@ public class CL_parse {
             skin_filename = ("players/male/grunt.pcx");
             ci.iconname = ("/players/male/grunt_i.pcx");
 
-            ci.model = Globals.re.RegisterModel(model_filename);
+            ci.model = ClientGlobals.re.RegisterModel(model_filename);
 
             ci.weaponmodel = new model_t[Defines.MAX_CLIENTWEAPONMODELS];
-            ci.weaponmodel[0] = Globals.re.RegisterModel(weapon_filename);
-            ci.skin = Globals.re.RegisterSkin(skin_filename);
-            ci.icon = Globals.re.RegisterPic(ci.iconname);
+            ci.weaponmodel[0] = ClientGlobals.re.RegisterModel(weapon_filename);
+            ci.skin = ClientGlobals.re.RegisterSkin(skin_filename);
+            ci.icon = ClientGlobals.re.RegisterPic(ci.iconname);
             
         } else {
             // isolate the model name
@@ -362,17 +361,17 @@ public class CL_parse {
 
             // model file
             model_filename = "players/" + model_name + "/tris.md2";
-            ci.model = Globals.re.RegisterModel(model_filename);
+            ci.model = ClientGlobals.re.RegisterModel(model_filename);
 
             if (ci.model == null) {
                 model_name = "male";
                 model_filename = "players/male/tris.md2";
-                ci.model = Globals.re.RegisterModel(model_filename);
+                ci.model = ClientGlobals.re.RegisterModel(model_filename);
             }
 
             // skin file
             skin_filename = "players/" + model_name + "/" + skin_name + ".pcx";
-            ci.skin = Globals.re.RegisterSkin(skin_filename);
+            ci.skin = ClientGlobals.re.RegisterSkin(skin_filename);
 
             // if we don't have the skin and the model wasn't male,
             // see if the male has it (this is for CTF's skins)
@@ -380,12 +379,12 @@ public class CL_parse {
                 // change model to male
                 model_name = "male";
                 model_filename = "players/male/tris.md2";
-                ci.model = Globals.re.RegisterModel(model_filename);
+                ci.model = ClientGlobals.re.RegisterModel(model_filename);
 
                 // see if the skin exists for the male model
                 skin_filename = "players/" + model_name + "/" + skin_name
                         + ".pcx";
-                ci.skin = Globals.re.RegisterSkin(skin_filename);
+                ci.skin = ClientGlobals.re.RegisterSkin(skin_filename);
             }
 
             // if we still don't have a skin, it means that the male model
@@ -394,19 +393,19 @@ public class CL_parse {
             if (ci.skin == null) {
                 // see if the skin exists for the male model
                 skin_filename = "players/" + model_name + "/grunt.pcx";
-                ci.skin = Globals.re.RegisterSkin(skin_filename);
+                ci.skin = ClientGlobals.re.RegisterSkin(skin_filename);
             }
 
             // weapon file
             for (int i = 0; i < CL_view.num_cl_weaponmodels; i++) {
                 weapon_filename = "players/" + model_name + "/"
                         + CL_view.cl_weaponmodels[i];
-                ci.weaponmodel[i] = Globals.re.RegisterModel(weapon_filename);
+                ci.weaponmodel[i] = ClientGlobals.re.RegisterModel(weapon_filename);
                 if (null == ci.weaponmodel[i] && model_name.equals("cyborg")) {
                     // try male
                     weapon_filename = "players/male/"
                             + CL_view.cl_weaponmodels[i];
-                    ci.weaponmodel[i] = Globals.re
+                    ci.weaponmodel[i] = ClientGlobals.re
                             .RegisterModel(weapon_filename);
                 }
                 if (0 == ClientGlobals.cl_vwep.value)
@@ -415,7 +414,7 @@ public class CL_parse {
 
             // icon file
             ci.iconname = "/players/" + model_name + "/" + skin_name + "_i.pcx";
-            ci.icon = Globals.re.RegisterPic(ci.iconname);
+            ci.icon = ClientGlobals.re.RegisterPic(ci.iconname);
         }
 
         // must have loaded all data types to be valud
@@ -471,7 +470,7 @@ public class CL_parse {
         	
         } else if (i >= Defines.CS_MODELS && i < Defines.CS_MODELS + Defines.MAX_MODELS) {
             if (ClientGlobals.cl.refresh_prepped) {
-                ClientGlobals.cl.model_draw[i - Defines.CS_MODELS] = Globals.re
+                ClientGlobals.cl.model_draw[i - Defines.CS_MODELS] = ClientGlobals.re
                         .RegisterModel(ClientGlobals.cl.configstrings[i]);
                 if (ClientGlobals.cl.configstrings[i].startsWith("*"))
                     ClientGlobals.cl.model_clip[i - Defines.CS_MODELS] = CM
@@ -487,7 +486,7 @@ public class CL_parse {
         } else if (i >= Defines.CS_IMAGES
                 && i < Defines.CS_IMAGES + Defines.MAX_MODELS) {
             if (ClientGlobals.cl.refresh_prepped)
-                ClientGlobals.cl.image_precache[i - Defines.CS_IMAGES] = Globals.re
+                ClientGlobals.cl.image_precache[i - Defines.CS_IMAGES] = ClientGlobals.re
                         .RegisterPic(ClientGlobals.cl.configstrings[i]);
         } else if (i >= Defines.CS_PLAYERSKINS
                 && i < Defines.CS_PLAYERSKINS + Defines.MAX_CLIENTS) {

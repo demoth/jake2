@@ -3,8 +3,10 @@
  * Copyright (C)  2003
  */
 
-package jake2.qcommon;
+package jake2.fullgame;
 
+import jake2.qcommon.Cvar;
+import jake2.qcommon.Globals;
 import jake2.qcommon.filesystem.FS;
 
 import javax.imageio.ImageIO;
@@ -268,11 +270,11 @@ public class Q2DataDialog extends javax.swing.JDialog {
 		repaint();
 	}	
 	
-	void setStatus(String text) {
+	public void setStatus(String text) {
 		status.setText(text);
 	}
 	
-	void testQ2Data() {
+	public void testQ2Data() {
 		while (FS.LoadFile("pics/colormap.pcx") == null) {
 			showNotFoundPanel();
 			

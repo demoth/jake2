@@ -26,7 +26,7 @@ package jake2.client;
 import jake2.client.render.Renderer;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.Qcommon;
+import jake2.fullgame.Qcommon;
 
 /**
  * DebugCulling

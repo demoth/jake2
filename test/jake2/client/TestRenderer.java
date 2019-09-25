@@ -25,8 +25,10 @@
  */
 package jake2.client;
 
-import jake2.Jake2;
+import jake2.fullgame.Jake2;
 import jake2.client.render.Renderer;
+import jake2.fullgame.Q2DataDialog;
+import jake2.fullgame.Qcommon;
 import jake2.qcommon.*;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;
@@ -84,7 +86,7 @@ public class TestRenderer {
 	System.out.println("Registered Drivers: " + Arrays.asList(names));
 
 	this.re = Renderer.getDriver(DRIVER);
-	Globals.re = this.re;
+	ClientGlobals.re = this.re;
 
 	System.out.println("Use driver: " + re);
 	System.out.flush();

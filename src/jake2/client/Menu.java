@@ -178,9 +178,9 @@ public final class Menu extends Key {
 
     private static void Banner(String name) {
         Dimension dim = new Dimension();
-        Globals.re.DrawGetPicSize(dim, name);
+        ClientGlobals.re.DrawGetPicSize(dim, name);
 
-        Globals.re.DrawPic(ClientGlobals.viddef.getWidth() / 2 - dim.width / 2,
+        ClientGlobals.re.DrawPic(ClientGlobals.viddef.getWidth() / 2 - dim.width / 2,
                 ClientGlobals.viddef.getHeight() / 2 - 110, name);
     }
 
@@ -329,7 +329,7 @@ public final class Menu extends Key {
      * and will be centered on higher res screens. ================
      */
     private static void DrawCharacter(int cx, int cy, int num) {
-        re.DrawChar(cx + ((ClientGlobals.viddef.getWidth() - 320) >> 1), cy
+        ClientGlobals.re.DrawChar(cx + ((ClientGlobals.viddef.getWidth() - 320) >> 1), cy
                 + ((ClientGlobals.viddef.getHeight() - 240) >> 1), num);
     }
 
@@ -351,7 +351,7 @@ public final class Menu extends Key {
     }
 
     public static void DrawPic(int x, int y, String pic) {
-        re.DrawPic(x + ((ClientGlobals.viddef.getWidth() - 320) >> 1), y
+        ClientGlobals.re.DrawPic(x + ((ClientGlobals.viddef.getWidth() - 320) >> 1), y
                 + ((ClientGlobals.viddef.getHeight() - 240) >> 1), pic);
     }
 
@@ -370,11 +370,11 @@ public final class Menu extends Key {
 
         if (!cached) {
             for (int i = 0; i < NUM_CURSOR_FRAMES; i++) {
-                re.RegisterPic("m_cursor" + i);
+                ClientGlobals.re.RegisterPic("m_cursor" + i);
             }
             cached = true;
         }
-        re.DrawPic(x, y, "m_cursor" + f);
+        ClientGlobals.re.DrawPic(x, y, "m_cursor" + f);
     }
 
     private static void DrawTextBox(int x, int y, int width, int lines) {
@@ -444,7 +444,7 @@ public final class Menu extends Key {
         Dimension dim = new Dimension();
 
         for (i = 0; i < names.length; i++) {
-            Globals.re.DrawGetPicSize(dim, names[i]);
+            ClientGlobals.re.DrawGetPicSize(dim, names[i]);
             w = dim.width;
             h = dim.height;
 
@@ -458,22 +458,22 @@ public final class Menu extends Key {
 
         for (i = 0; i < names.length; i++) {
             if (i != m_main_cursor)
-                Globals.re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
+                ClientGlobals.re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
         }
 
         //strcat(litname, "_sel");
         litname = names[m_main_cursor] + "_sel";
-        Globals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
+        ClientGlobals.re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
         DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
                 (int) ((ClientGlobals.cls.realtime / 100)) % NUM_CURSOR_FRAMES);
 
-        Globals.re.DrawGetPicSize(dim, "m_main_plaque");
+        ClientGlobals.re.DrawGetPicSize(dim, "m_main_plaque");
         w = dim.width;
         h = dim.height;
-        Globals.re.DrawPic(xoffset - 30 - w, ystart, "m_main_plaque");
+        ClientGlobals.re.DrawPic(xoffset - 30 - w, ystart, "m_main_plaque");
 
-        Globals.re.DrawPic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
+        ClientGlobals.re.DrawPic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
     }
 
     static keyfunc_t Main_Key = new keyfunc_t() {
@@ -745,9 +745,9 @@ public final class Menu extends Key {
 
     private static void KeyCursorDrawFunc(menuframework_s menu) {
         if (bind_grab)
-            re.DrawChar(menu.x, menu.y + menu.cursor * 9, '=');
+            ClientGlobals.re.DrawChar(menu.x, menu.y + menu.cursor * 9, '=');
         else
-            re.DrawChar(menu.x, menu.y + menu.cursor * 9, 12 + ((int) (Timer
+            ClientGlobals.re.DrawChar(menu.x, menu.y + menu.cursor * 9, 12 + ((int) (Timer
                     .Milliseconds() / 250) & 1));
     }
 
@@ -1365,7 +1365,7 @@ public final class Menu extends Key {
         //Cvar.SetValue("s_primary", s_options_compatibility_list.curvalue);
 
         if (driverNotChanged) {
-            re.EndFrame();
+            ClientGlobals.re.EndFrame();
             return;
         } else {
         	Cvar.Set("s_impl", current);
@@ -1376,7 +1376,7 @@ public final class Menu extends Key {
             Print(16 + 16, 120 - 48 + 24, "please be patient.");
 
             // the text box won't show up unless we do a buffer swap
-            re.EndFrame();
+            ClientGlobals.re.EndFrame();
 
             CL.Snd_Restart_f.execute(Collections.emptyList());
         }
@@ -1809,11 +1809,11 @@ public final class Menu extends Key {
                         / 2 + (j + stringoffset) * 8;
 
                 if (bold)
-                    re
+                    ClientGlobals.re
                             .DrawChar(x, y,
                                     credits[i].charAt(j + stringoffset) + 128);
                 else
-                    re.DrawChar(x, y, credits[i].charAt(j + stringoffset));
+                    ClientGlobals.re.DrawChar(x, y, credits[i].charAt(j + stringoffset));
             }
         }
 
@@ -2362,7 +2362,7 @@ public final class Menu extends Key {
         Print(16 + 16, 120 - 48 + 24, "please be patient.");
 
         // the text box won't show up unless we do a buffer swap
-        re.EndFrame();
+        ClientGlobals.re.EndFrame();
 
         // send out info packets
         CL.PingServers_f.execute(Collections.emptyList());
@@ -3965,7 +3965,7 @@ public final class Menu extends Key {
             scratch = "players/" + s_pmi[s_player_model_box.curvalue].directory
                     + "/tris.md2";
 
-            entity.model = re.RegisterModel(scratch);
+            entity.model = ClientGlobals.re.RegisterModel(scratch);
 
             scratch = "players/"
                     + s_pmi[s_player_model_box.curvalue].directory
@@ -3973,7 +3973,7 @@ public final class Menu extends Key {
                     + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
                     + ".pcx";
 
-            entity.skin = re.RegisterSkin(scratch);
+            entity.skin = ClientGlobals.re.RegisterSkin(scratch);
             entity.flags = RF_FULLBRIGHT;
             entity.origin[0] = 80;
             entity.origin[1] = 0;
@@ -4000,7 +4000,7 @@ public final class Menu extends Key {
                     refdef.width / 8, refdef.height / 8);
             refdef.height += 4;
 
-            re.RenderFrame(refdef);
+            ClientGlobals.re.RenderFrame(refdef);
 
             scratch = "/players/"
                     + s_pmi[s_player_model_box.curvalue].directory
@@ -4008,7 +4008,7 @@ public final class Menu extends Key {
                     + s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue]
                     + "_i.pcx";
 
-            re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
+            ClientGlobals.re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
         }
     }
 
@@ -4087,10 +4087,10 @@ public final class Menu extends Key {
     private static void Quit_Draw() {
         int w, h;
         Dimension d = new Dimension();
-        re.DrawGetPicSize(d, "quit");
+        ClientGlobals.re.DrawGetPicSize(d, "quit");
         w = d.width;
         h = d.height;
-        re.DrawPic((ClientGlobals.viddef.getWidth() - w) / 2, (ClientGlobals.viddef.getHeight() - h) / 2, "quit");
+        ClientGlobals.re.DrawPic((ClientGlobals.viddef.getWidth() - w) / 2, (ClientGlobals.viddef.getHeight() - h) / 2, "quit");
     }
 
     private static void Menu_Quit_f() {
@@ -4142,9 +4142,9 @@ public final class Menu extends Key {
 
         // dim everything behind it down
         if (ClientGlobals.cl.cinematictime > 0)
-            re.DrawFill(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), 0);
+            ClientGlobals.re.DrawFill(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), 0);
         else
-            re.DrawFadeScreen();
+            ClientGlobals.re.DrawFadeScreen();
 
         m_drawfunc.execute(Collections.emptyList());
 
@@ -4213,19 +4213,19 @@ public final class Menu extends Key {
         //strncpy(tempbuffer, f.buffer + f.visible_offset, f.visible_length);
         String s = f.buffer.toString();
         tempbuffer = s.substring(f.visible_offset, s.length());
-        re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y - 4, 18);
-        re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y + 4, 24);
+        ClientGlobals.re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y - 4, 18);
+        ClientGlobals.re.DrawChar(f.x + f.parent.x + 16, f.y + f.parent.y + 4, 24);
 
-        re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y
+        ClientGlobals.re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y
                 + f.parent.y - 4, 20);
-        re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y
+        ClientGlobals.re.DrawChar(f.x + f.parent.x + 24 + f.visible_length * 8, f.y
                 + f.parent.y + 4, 26);
 
         for (i = 0; i < f.visible_length; i++) {
-            re
+            ClientGlobals.re
                     .DrawChar(f.x + f.parent.x + 24 + i * 8, f.y + f.parent.y
                             - 4, 19);
-            re
+            ClientGlobals.re
                     .DrawChar(f.x + f.parent.x + 24 + i * 8, f.y + f.parent.y
                             + 4, 25);
         }
@@ -4241,10 +4241,10 @@ public final class Menu extends Key {
                 offset = f.cursor;
 
             if ((((int) (Timer.Milliseconds() / 250)) & 1) != 0) {
-                re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y
+                ClientGlobals.re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y
                         + f.parent.y, 11);
             } else {
-                re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y
+                ClientGlobals.re.DrawChar(f.x + f.parent.x + (offset + 2) * 8 + 8, f.y
                         + f.parent.y, ' ');
             }
         }
@@ -4483,10 +4483,10 @@ public final class Menu extends Key {
             menu.cursordraw.execute(menu);
         } else if (item != null && item.type != MTYPE_FIELD) {
             if ((item.flags & QMF_LEFT_JUSTIFY) != 0) {
-                re.DrawChar(menu.x + item.x - 24 + item.cursor_offset, menu.y
+                ClientGlobals.re.DrawChar(menu.x + item.x - 24 + item.cursor_offset, menu.y
                         + item.y, 12 + ((int) (Timer.Milliseconds() / 250) & 1));
             } else {
-                re.DrawChar(menu.x + item.cursor_offset, menu.y + item.y,
+                ClientGlobals.re.DrawChar(menu.x + item.cursor_offset, menu.y + item.y,
                         12 + ((int) (Timer.Milliseconds() / 250) & 1));
             }
         }
@@ -4511,10 +4511,10 @@ public final class Menu extends Key {
             int maxcol = ClientGlobals.viddef.getWidth() / 8;
             int col = maxcol / 2 - l / 2;
 
-            re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 4);
+            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 4);
             Menu_DrawString(col * 8, ClientGlobals.viddef.getHeight() - 8, string);
         } else {
-            re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 0);
+            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() - 8, ClientGlobals.viddef.getWidth(), 8, 0);
         }
     }
 
@@ -4522,7 +4522,7 @@ public final class Menu extends Key {
         int i;
 
         for (i = 0; i < string.length(); i++) {
-            re.DrawChar((x + i * 8), y, string.charAt(i));
+            ClientGlobals.re.DrawChar((x + i * 8), y, string.charAt(i));
         }
     }
 
@@ -4530,7 +4530,7 @@ public final class Menu extends Key {
         int i;
 
         for (i = 0; i < string.length(); i++) {
-            re.DrawChar((x + i * 8), y, string.charAt(i) + 128);
+            ClientGlobals.re.DrawChar((x + i * 8), y, string.charAt(i) + 128);
         }
     }
 
@@ -4539,7 +4539,7 @@ public final class Menu extends Key {
 
         int l = string.length();
         for (i = 0; i < l; i++) {
-            re.DrawChar((x - i * 8), y, string.charAt(l - i - 1));
+            ClientGlobals.re.DrawChar((x - i * 8), y, string.charAt(l - i - 1));
         }
     }
 
@@ -4548,7 +4548,7 @@ public final class Menu extends Key {
 
         int l = string.length();
         for (i = 0; i < l; i++) {
-            re.DrawChar((x - i * 8), y, string.charAt(l - i - 1) + 128);
+            ClientGlobals.re.DrawChar((x - i * 8), y, string.charAt(l - i - 1) + 128);
         }
     }
 
@@ -4640,7 +4640,7 @@ public final class Menu extends Key {
 
         n = l.itemnames;
 
-        re.DrawFill(l.x - 112 + l.parent.x, l.parent.y + l.y + l.curvalue * 10
+        ClientGlobals.re.DrawFill(l.x - 112 + l.parent.x, l.parent.y + l.y + l.curvalue * 10
                 + 10, 128, 10, 16);
         int i = 0;
 
@@ -4684,13 +4684,13 @@ public final class Menu extends Key {
             s.range = 0;
         if (s.range > 1)
             s.range = 1;
-        re.DrawChar(s.x + s.parent.x + RCOLUMN_OFFSET, s.y + s.parent.y, 128);
+        ClientGlobals.re.DrawChar(s.x + s.parent.x + RCOLUMN_OFFSET, s.y + s.parent.y, 128);
         for (i = 0; i < SLIDER_RANGE; i++)
-            re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
+            ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
                     + s.parent.y, 129);
-        re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
+        ClientGlobals.re.DrawChar(RCOLUMN_OFFSET + s.x + i * 8 + s.parent.x + 8, s.y
                 + s.parent.y, 130);
-        re
+        ClientGlobals.re
                 .DrawChar(
                         (int) (8 + RCOLUMN_OFFSET + s.parent.x + s.x + (SLIDER_RANGE - 1)
                                 * 8 * s.range), s.y + s.parent.y, 131);

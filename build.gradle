@@ -20,7 +20,7 @@ startScripts {
     defaultJvmOpts = [ "-Djava.library.path=.."]
 }
 
-mainClassName = 'jake2.Jake2'
+mainClassName = 'jake2.fullgame.Jake2'
 
 sourceSets {
     main.java.srcDirs = ['src']

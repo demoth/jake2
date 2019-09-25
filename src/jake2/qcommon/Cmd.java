@@ -25,7 +25,6 @@
  */
 package jake2.qcommon;
 
-import jake2.client.CL;
 import jake2.qcommon.filesystem.FS;
 
 import java.util.*;
@@ -284,9 +283,11 @@ public final class Cmd {
         // check functions
         cmd_function_t cmd = cmd_functions.get(args.get(0));
         if (cmd != null) {
+            // fixme: make function not nullable, hence remove the null branch
             if (cmd.function != null) {
                 cmd.function.execute(args);
             } else { // forward to server command
+
                 Cmd.ExecuteString("cmd " + text);
             }
             return;
@@ -309,7 +310,7 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
-        CL.ForwardToServer(args);
+        Cmd.ExecuteString("cmd " + text);
     }
 
     /**
@@ -332,6 +333,11 @@ public final class Cmd {
     public static void ExecuteFunction(String name, String... args) {
         if (cmd_functions.containsKey(name))
             cmd_functions.get(name).function.execute(Arrays.asList(args));
+    }
+
+    public static void ExecuteFunction(String name, List<String> args) {
+        if (cmd_functions.containsKey(name))
+            cmd_functions.get(name).function.execute(args);
     }
 
     static final class cmdalias_t {

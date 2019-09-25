@@ -31,7 +31,6 @@ import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.*;
-import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -63,28 +62,6 @@ public final class CL {
 
     private static final int PLAYER_MULT = 5;
 
-    /**
-     * Adds the current command line as a clc_stringcmd to the client message.
-     * things like godmode, noclip, etc, are commands directed to the server, so
-     * when they are typed in at the console, they will need to be forwarded.
-     */
-    public static void ForwardToServer(List<String> args) {
-        String cmd;
-
-        cmd = args.get(0);
-        if (ClientGlobals.cls.state <= Defines.ca_connected || cmd.charAt(0) == '-'
-                || cmd.charAt(0) == '+') {
-            Com.Printf("Unknown command \"" + cmd + "\"\n");
-            return;
-        }
-
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
-        SZ.Print(ClientGlobals.cls.netchan.message, cmd);
-        if (args.size() > 1) {
-            SZ.Print(ClientGlobals.cls.netchan.message, " ");
-            SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
-        }
-    }
 
     private static void Quit()
     {
@@ -104,6 +81,13 @@ public final class CL {
         }
 
         System.exit(0);
+    }
+
+    static void SendKeyEvents() {
+		ClientGlobals.re.getKeyboardHandler().Update();
+
+        // grab frame time
+        Globals.sys_frame_time = Timer.Milliseconds();
     }
 
     public static class cheatvar_t {
@@ -273,7 +257,9 @@ public final class CL {
     };
 
     /**
-     * ForwardToServer_f
+     * Adds the current command line as a clc_stringcmd to the client message.
+     * things like godmode, noclip, etc, are commands directed to the server, so
+     * when they are typed in at the console, they will need to be forwarded.
      */
     private static Command ForwardToServer_f = (List<String> args) -> {
         if (ClientGlobals.cls.state != Defines.ca_connected
@@ -518,7 +504,7 @@ public final class CL {
                     + ClientGlobals.cl.configstrings[Defines.CS_PLAYERSKINS + i]
                     + "\n");
             SCR.UpdateScreen();
-            Sys.SendKeyEvents(); // pump message loop
+            SendKeyEvents(); // pump message loop
             CL_parse.ParseClientinfo(i);
         }
     };
@@ -763,7 +749,7 @@ public final class CL {
 
         Math3D.VectorClear(ClientGlobals.cl.refdef.blend);
         
-        Globals.re.CinematicSetPalette(null);
+        ClientGlobals.re.CinematicSetPalette(null);
 
         Menu.ForceMenuOff();
 
@@ -1433,25 +1419,25 @@ public final class CL {
         // the only thing this does is allow command completion
         // to work -- all unknown commands are automatically
         // forwarded to the server
-        Cmd.AddCommand("wave", null);
-        Cmd.AddCommand("inven", null);
-        Cmd.AddCommand("kill", null);
-        Cmd.AddCommand("use", null);
-        Cmd.AddCommand("drop", null);
-        Cmd.AddCommand("say", null);
-        Cmd.AddCommand("say_team", null);
-        Cmd.AddCommand("info", null);
-        Cmd.AddCommand("prog", null);
-        Cmd.AddCommand("give", null);
-        Cmd.AddCommand("god", null);
-        Cmd.AddCommand("notarget", null);
-        Cmd.AddCommand("noclip", null);
-        Cmd.AddCommand("invuse", null);
-        Cmd.AddCommand("invprev", null);
-        Cmd.AddCommand("invnext", null);
-        Cmd.AddCommand("invdrop", null);
-        Cmd.AddCommand("weapnext", null);
-        Cmd.AddCommand("weapprev", null);
+        // Cmd.AddCommand("wave", null);
+        // Cmd.AddCommand("inven", null);
+        // Cmd.AddCommand("kill", null);
+        // Cmd.AddCommand("use", null);
+        // Cmd.AddCommand("drop", null);
+        // Cmd.AddCommand("say", null);
+        // Cmd.AddCommand("say_team", null);
+        // Cmd.AddCommand("info", null);
+        // Cmd.AddCommand("prog", null);
+        // Cmd.AddCommand("give", null);
+        // Cmd.AddCommand("god", null);
+        // Cmd.AddCommand("notarget", null);
+        // Cmd.AddCommand("noclip", null);
+        // Cmd.AddCommand("invuse", null);
+        // Cmd.AddCommand("invprev", null);
+        // Cmd.AddCommand("invnext", null);
+        // Cmd.AddCommand("invdrop", null);
+        // Cmd.AddCommand("weapnext", null);
+        // Cmd.AddCommand("weapprev", null);
 
     }
 
@@ -1526,7 +1512,7 @@ public final class CL {
      */
     private static void SendCommand() {
         // get new key events
-        Sys.SendKeyEvents();
+        SendKeyEvents();
 
         // allow mice or other external controllers to add commands
         IN.Commands();

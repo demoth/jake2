@@ -271,7 +271,7 @@ public final class V extends Globals {
             return;
         }
         String name = "models/" + args.get(1) + "/tris.md2";
-        ClientGlobals.gun_model = re.RegisterModel(name);
+        ClientGlobals.gun_model = ClientGlobals.re.RegisterModel(name);
     };
 
     /*
@@ -391,13 +391,13 @@ public final class V extends Globals {
             //Arrays.sort(cl.refdef.entities, entitycmpfnc);
         }
 
-        re.RenderFrame(ClientGlobals.cl.refdef);
+        ClientGlobals.re.RenderFrame(ClientGlobals.cl.refdef);
         
         // CDawg 
         ClientGlobals.cl.mapdef.map_view = (int) ClientGlobals.cl_map.value;
         
         if (ClientGlobals.cl.mapdef.map_view != 0)
-        	re.RenderFrame (ClientGlobals.cl.mapdef);
+        	ClientGlobals.re.RenderFrame (ClientGlobals.cl.mapdef);
         
         // CDawg 
         

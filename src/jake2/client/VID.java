@@ -125,12 +125,12 @@ public class VID extends Globals {
 
 	static void FreeReflib()
 	{
-		if (Globals.re != null) {
-			Globals.re.getKeyboardHandler().Close();
+		if (ClientGlobals.re != null) {
+			ClientGlobals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 		}
 
-		Globals.re = null;
+		ClientGlobals.re = null;
 		reflib_active = false;
 	}
 
@@ -144,10 +144,10 @@ public class VID extends Globals {
 
 		if ( reflib_active )
 		{
-			Globals.re.getKeyboardHandler().Close();
+			ClientGlobals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 
-			Globals.re.Shutdown();
+			ClientGlobals.re.Shutdown();
 			FreeReflib();
 		}
 
@@ -169,14 +169,14 @@ public class VID extends Globals {
 		}
 
 		Com.Printf( "LoadLibrary(\"" + name +"\")\n" );
-		Globals.re = Renderer.getDriver(name, fast);
+		ClientGlobals.re = Renderer.getDriver(name, fast);
 		
-		if (Globals.re == null)
+		if (ClientGlobals.re == null)
 		{
 			Com.Error(Defines.ERR_FATAL, name + " can't load but registered");
 		}
 
-		if (Globals.re.apiVersion() != Defines.API_VERSION)
+		if (ClientGlobals.re.apiVersion() != Defines.API_VERSION)
 		{
 			FreeReflib();
 			Com.Error(Defines.ERR_FATAL, name + " has incompatible api_version");
@@ -184,15 +184,15 @@ public class VID extends Globals {
 
 		IN.Real_IN_Init();
 
-		if ( !Globals.re.Init((int)vid_xpos.value, (int)vid_ypos.value) )
+		if ( !ClientGlobals.re.Init((int)vid_xpos.value, (int)vid_ypos.value) )
 		{
-			Globals.re.Shutdown();
+			ClientGlobals.re.Shutdown();
 			FreeReflib();
 			return false;
 		}
 
 		/* Init KBD */
-		Globals.re.getKeyboardHandler().Init();
+		ClientGlobals.re.getKeyboardHandler().Init();
 
 		Com.Printf( "------------------------------------\n");
 		reflib_active = true;
@@ -306,10 +306,10 @@ public class VID extends Globals {
 	{
 		if ( reflib_active )
 		{
-			Globals.re.getKeyboardHandler().Close();
+			ClientGlobals.re.getKeyboardHandler().Close();
 			IN.Shutdown();
 
-			Globals.re.Shutdown();
+			ClientGlobals.re.Shutdown();
 			FreeReflib();
 		}
 	}
@@ -451,7 +451,7 @@ public class VID extends Globals {
 	};
 
 	static void initModeList() {
-		DisplayMode[] modes = re.getModeList();
+		DisplayMode[] modes = ClientGlobals.re.getModeList();
 		fs_resolutions = new String[modes.length];
 		fs_modes = new vidmode_t[modes.length];
 		for (int i = 0; i < modes.length; i++) {
@@ -672,8 +672,8 @@ public class VID extends Globals {
 		** draw the banner
 		*/
 		Dimension dim = new Dimension();
-		re.DrawGetPicSize( dim, "m_banner_video" );
-		re.DrawPic( ClientGlobals.viddef.getWidth() / 2 - dim.width / 2, ClientGlobals.viddef.getHeight() /2 - 110, "m_banner_video" );
+		ClientGlobals.re.DrawGetPicSize( dim, "m_banner_video" );
+		ClientGlobals.re.DrawPic( ClientGlobals.viddef.getWidth() / 2 - dim.width / 2, ClientGlobals.viddef.getHeight() /2 - 110, "m_banner_video" );
 
 		/*
 		** move cursor to a reasonable starting position

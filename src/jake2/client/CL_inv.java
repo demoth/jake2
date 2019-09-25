@@ -54,7 +54,7 @@ public class CL_inv {
 	 */
 	static void Inv_DrawString(int x, int y, String string) {
 		for (int i = 0; i < string.length(); i++) {
-			Globals.re.DrawChar(x, y, string.charAt(i));
+			ClientGlobals.re.DrawChar(x, y, string.charAt(i));
 			x += 8;
 		}
 	}
@@ -109,7 +109,7 @@ public class CL_inv {
 		// repaint everything next frame
 		SCR.DirtyScreen();
 
-		Globals.re.DrawPic(x, y + 8, "inventory");
+		ClientGlobals.re.DrawPic(x, y + 8, "inventory");
 
 		y += 24;
 		x += 24;
@@ -136,7 +136,7 @@ public class CL_inv {
 			else // draw a blinky cursor by the selected item
 			{
 				if (((int) (ClientGlobals.cls.realtime * 10) & 1) != 0)
-					Globals.re.DrawChar(x - 8, y, 15);
+					ClientGlobals.re.DrawChar(x - 8, y, 15);
 			}
 			Inv_DrawString(x, y, string);
 			y += 8;

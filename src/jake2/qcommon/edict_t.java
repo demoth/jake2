@@ -22,11 +22,22 @@
 
 package jake2.qcommon;
 
-import jake2.game.*;
+import jake2.game.EntBlockedAdapter;
+import jake2.game.EntDieAdapter;
+import jake2.game.EntPainAdapter;
+import jake2.game.EntThinkAdapter;
+import jake2.game.EntTouchAdapter;
+import jake2.game.EntUseAdapter;
+import jake2.game.GameBase;
+import jake2.game.gitem_t;
+import jake2.game.monsterinfo_t;
+import jake2.game.moveinfo_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
 
 import java.io.IOException;
+
+import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class edict_t {
 
@@ -442,7 +453,7 @@ public class edict_t {
         } // F_ANGLEHACK),
 
         if (key.equals("item")) {
-            GameBase.gi.error("ent.set(\"item\") called.");
+            Com.Error(ERR_FATAL, "ent.set(\"item\") called.");
             return true;
         } // F_ITEM)
 

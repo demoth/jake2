@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon;
 
-import jake2.client.Console;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.PrintfFormat;
@@ -42,7 +41,7 @@ import java.io.RandomAccessFile;
 public final class Com
 {
 
-    static String debugContext = "";
+    public static String debugContext = "";
     static String _debugContext = "";
     
 	public static void Printf(int print_level, String fmt) {
@@ -328,7 +327,7 @@ public final class Com
 			return;
 		}
 
-		Console.Print(msg);
+		Cmd.ExecuteFunction("console_print", msg);
 
 		// also echo to debugging console
 		Sys.SystemOutPrint(msg);

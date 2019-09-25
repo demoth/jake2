@@ -23,12 +23,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-package jake2.qcommon;
+package jake2.fullgame;
 
-import jake2.Jake2;
 import jake2.client.CL;
 import jake2.client.Key;
 import jake2.client.SCR;
+import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;

@@ -25,7 +25,6 @@
 package jake2.client;
 
 import jake2.qcommon.*;
-import jake2.qcommon.sys.Sys;
 import jake2.qcommon.util.Lib;
 
 import java.util.StringTokenizer;
@@ -65,7 +64,7 @@ public class CL_view {
         // register models, pics, and skins
         Com.Printf("Map: " + mapname + "\r");
         SCR.UpdateScreen();
-        Globals.re.BeginRegistration(mapname);
+        ClientGlobals.re.BeginRegistration(mapname);
         Com.Printf("                                     \r");
 
         // precache status bar pics
@@ -89,7 +88,7 @@ public class CL_view {
                 Com.Printf(name + "\r");
 
             SCR.UpdateScreen();
-            Sys.SendKeyEvents(); // pump message loop
+            CL.SendKeyEvents(); // pump message loop
             if (name.charAt(0) == '#') {
                 // special player weapon model
                 if (num_cl_weaponmodels < Defines.MAX_CLIENTWEAPONMODELS) {
@@ -98,7 +97,7 @@ public class CL_view {
                     num_cl_weaponmodels++;
                 }
             } else {
-                ClientGlobals.cl.model_draw[i] = Globals.re
+                ClientGlobals.cl.model_draw[i] = ClientGlobals.re
                         .RegisterModel(ClientGlobals.cl.configstrings[Defines.CS_MODELS
                                 + i]);
                 if (name.charAt(0) == '*')
@@ -116,9 +115,9 @@ public class CL_view {
         SCR.UpdateScreen();
         for (i = 1; i < Defines.MAX_IMAGES
                 && ClientGlobals.cl.configstrings[Defines.CS_IMAGES + i].length() > 0; i++) {
-            ClientGlobals.cl.image_precache[i] = Globals.re
+            ClientGlobals.cl.image_precache[i] = ClientGlobals.re
                     .RegisterPic(ClientGlobals.cl.configstrings[Defines.CS_IMAGES + i]);
-            Sys.SendKeyEvents(); // pump message loop
+            CL.SendKeyEvents(); // pump message loop
         }
 
         Com.Printf("                                     \r");
@@ -127,7 +126,7 @@ public class CL_view {
                 continue;
             Com.Printf("client " + i + '\r');
             SCR.UpdateScreen();
-            Sys.SendKeyEvents(); // pump message loop
+            CL.SendKeyEvents(); // pump message loop
             CL_parse.ParseClientinfo(i);
             Com.Printf("                                     \r");
         }
@@ -145,12 +144,12 @@ public class CL_view {
         axis[0] = Float.parseFloat(st.nextToken());
         axis[1] = Float.parseFloat(st.nextToken());
         axis[2] = Float.parseFloat(st.nextToken());
-        Globals.re.SetSky(ClientGlobals.cl.configstrings[Defines.CS_SKY], rotate,
+        ClientGlobals.re.SetSky(ClientGlobals.cl.configstrings[Defines.CS_SKY], rotate,
                 axis);
         Com.Printf("                                     \r");
 
         // the renderer can now free unneeded stuff
-        Globals.re.EndRegistration();
+        ClientGlobals.re.EndRegistration();
 
         // clear any lines of console text
         Console.ClearNotify();

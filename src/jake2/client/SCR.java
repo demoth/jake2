@@ -179,7 +179,7 @@ public final class SCR extends Globals {
 
         x = ClientGlobals.scr_vrect.x;
         y = ClientGlobals.scr_vrect.y + ClientGlobals.scr_vrect.height;
-        re.DrawFill(x, (int) (y - scr_graphheight.value), w,
+        ClientGlobals.re.DrawFill(x, (int) (y - scr_graphheight.value), w,
                 (int) scr_graphheight.value, 8);
 
         for (a = 0; a < w; a++) {
@@ -192,7 +192,7 @@ public final class SCR extends Globals {
                 v += scr_graphheight.value
                         * (1 + (int) (-v / scr_graphheight.value));
             h = (int) v % (int) scr_graphheight.value;
-            re.DrawFill(x + w - 1 - a, y - h, 1, h, color);
+            ClientGlobals.re.DrawFill(x + w - 1 - a, y - h, 1, h, color);
         }
     }
 
@@ -311,7 +311,7 @@ public final class SCR extends Globals {
             x = (ClientGlobals.viddef.getWidth() - l * 8) / 2;
             SCR.AddDirtyPoint(x, y);
             for (j = 0; j < l; j++, x += 8) {
-                re.DrawChar(x, y, cs.charAt(start + j));
+                ClientGlobals.re.DrawChar(x, y, cs.charAt(start + j));
                 if (remaining == 0)
                     return;
                 remaining--;
@@ -411,7 +411,7 @@ public final class SCR extends Globals {
             axis[2] = 1;
         }
 
-        re.SetSky(args.get(1), rotate, axis);
+        ClientGlobals.re.SetSky(args.get(1), rotate, axis);
     }
 
     // ============================================================================
@@ -454,7 +454,7 @@ public final class SCR extends Globals {
         if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
             return;
 
-        re.DrawPic(ClientGlobals.scr_vrect.x + 64, ClientGlobals.scr_vrect.y, "net");
+        ClientGlobals.re.DrawPic(ClientGlobals.scr_vrect.x + 64, ClientGlobals.scr_vrect.y, "net");
     }
 
     /*
@@ -469,8 +469,8 @@ public final class SCR extends Globals {
         if (ClientGlobals.cl_paused.value == 0)
             return;
 
-        re.DrawGetPicSize(dim, "pause");
-        re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2, ClientGlobals.viddef.getHeight() / 2 + 8,
+        ClientGlobals.re.DrawGetPicSize(dim, "pause");
+        ClientGlobals.re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2, ClientGlobals.viddef.getHeight() / 2 + 8,
                 "pause");
     }
 
@@ -484,8 +484,8 @@ public final class SCR extends Globals {
             return;
 
         scr_draw_loading = 0;
-        re.DrawGetPicSize(dim, "loading");
-        re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
+        ClientGlobals.re.DrawGetPicSize(dim, "loading");
+        ClientGlobals.re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
                 (ClientGlobals.viddef.getHeight() - dim.height) / 2, "loading");
     }
 
@@ -532,7 +532,7 @@ public final class SCR extends Globals {
         if (cls.state != ca_active || !ClientGlobals.cl.refresh_prepped) { // connected, but
                                                              // can't render
             Console.DrawConsole(0.5f);
-            re.DrawFill(0, ClientGlobals.viddef.getHeight() / 2, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight() / 2,
+            ClientGlobals.re.DrawFill(0, ClientGlobals.viddef.getHeight() / 2, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight() / 2,
                     0);
             return;
         }
@@ -603,19 +603,19 @@ public final class SCR extends Globals {
         start = Timer.Milliseconds();
 
         if (args.size() == 2) { // run without page flipping
-            re.BeginFrame(0);
+            ClientGlobals.re.BeginFrame(0);
             for (i = 0; i < 128; i++) {
                 ClientGlobals.cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
-                re.RenderFrame(ClientGlobals.cl.refdef);
+                ClientGlobals.re.RenderFrame(ClientGlobals.cl.refdef);
             }
-            re.EndFrame();
+            ClientGlobals.re.EndFrame();
         } else {
             for (i = 0; i < 128; i++) {
                 ClientGlobals.cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
 
-                re.BeginFrame(0);
-                re.RenderFrame(ClientGlobals.cl.refdef);
-                re.EndFrame();
+                ClientGlobals.re.BeginFrame(0);
+                ClientGlobals.re.RenderFrame(ClientGlobals.cl.refdef);
+                ClientGlobals.re.EndFrame();
             }
         }
 
@@ -691,25 +691,25 @@ public final class SCR extends Globals {
 
         if (clear.y1 < top) { // clear above view screen
             i = clear.y2 < top - 1 ? clear.y2 : top - 1;
-            re.DrawTileClear(clear.x1, clear.y1, clear.x2 - clear.x1 + 1, i
+            ClientGlobals.re.DrawTileClear(clear.x1, clear.y1, clear.x2 - clear.x1 + 1, i
                     - clear.y1 + 1, "backtile");
             clear.y1 = top;
         }
         if (clear.y2 > bottom) { // clear below view screen
             i = clear.y1 > bottom + 1 ? clear.y1 : bottom + 1;
-            re.DrawTileClear(clear.x1, i, clear.x2 - clear.x1 + 1, clear.y2 - i
+            ClientGlobals.re.DrawTileClear(clear.x1, i, clear.x2 - clear.x1 + 1, clear.y2 - i
                     + 1, "backtile");
             clear.y2 = bottom;
         }
         if (clear.x1 < left) { // clear left of view screen
             i = clear.x2 < left - 1 ? clear.x2 : left - 1;
-            re.DrawTileClear(clear.x1, clear.y1, i - clear.x1 + 1, clear.y2
+            ClientGlobals.re.DrawTileClear(clear.x1, clear.y1, i - clear.x1 + 1, clear.y2
                     - clear.y1 + 1, "backtile");
             clear.x1 = left;
         }
         if (clear.x2 > right) { // clear left of view screen
             i = clear.x1 > right + 1 ? clear.x1 : right + 1;
-            re.DrawTileClear(i, clear.y1, clear.x2 - i + 1, clear.y2 - clear.y1
+            ClientGlobals.re.DrawTileClear(i, clear.y1, clear.x2 - i + 1, clear.y2 - clear.y1
                     + 1, "backtile");
             clear.x2 = right;
         }
@@ -778,7 +778,7 @@ public final class SCR extends Globals {
             else
                 x = margin;
             for (i = 0; i < line.length(); i++) {
-                re.DrawChar(x, y, line.charAt(i) ^ xor);
+                ClientGlobals.re.DrawChar(x, y, line.charAt(i) ^ xor);
                 x += 8;
             }
             if (l < string.length()) {
@@ -823,7 +823,7 @@ public final class SCR extends Globals {
             else
                 frame = ptr - '0';
 
-            re.DrawPic(x, y, sb_nums[color][frame]);
+            ClientGlobals.re.DrawPic(x, y, sb_nums[color][frame]);
             x += CHAR_WIDTH;
         }
     }
@@ -838,7 +838,7 @@ public final class SCR extends Globals {
 
         for (i = 0; i < 2; i++)
             for (j = 0; j < 11; j++)
-                re.RegisterPic(sb_nums[i][j]);
+                ClientGlobals.re.RegisterPic(sb_nums[i][j]);
 
         if (ClientGlobals.crosshair.value != 0.0f) {
             if (ClientGlobals.crosshair.value > 3.0f || ClientGlobals.crosshair.value < 0.0f)
@@ -846,7 +846,7 @@ public final class SCR extends Globals {
 
             crosshair_pic = "ch" + (int) ClientGlobals.crosshair.value;
             Dimension dim = new Dimension();
-            re.DrawGetPicSize(dim, crosshair_pic);
+            ClientGlobals.re.DrawGetPicSize(dim, crosshair_pic);
             crosshair_width = dim.width;
             crosshair_height = dim.height;
             if (crosshair_width == 0)
@@ -918,7 +918,7 @@ public final class SCR extends Globals {
                 if (ClientGlobals.cl.configstrings[CS_IMAGES + value] != null) {
                     AddDirtyPoint(x, y);
                     AddDirtyPoint(x + 23, y + 23);
-                    re.DrawPic(x, y, ClientGlobals.cl.configstrings[CS_IMAGES + value]);
+                    ClientGlobals.re.DrawPic(x, y, ClientGlobals.cl.configstrings[CS_IMAGES + value]);
                 }
                 continue;
             }
@@ -956,7 +956,7 @@ public final class SCR extends Globals {
 
                 if (ci.icon == null)
                     ci = ClientGlobals.cl.baseclientinfo;
-                re.DrawPic(x, y, ci.iconname);
+                ClientGlobals.re.DrawPic(x, y, ci.iconname);
                 continue;
             }
 
@@ -999,7 +999,7 @@ public final class SCR extends Globals {
                 parser.next();
                 AddDirtyPoint(x, y);
                 AddDirtyPoint(x + 23, y + 23);
-                re.DrawPic(x, y, parser.token());
+                ClientGlobals.re.DrawPic(x, y, parser.token());
                 continue;
             }
 
@@ -1025,7 +1025,7 @@ public final class SCR extends Globals {
                     color = 1;
 
                 if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 1) != 0)
-                    re.DrawPic(x, y, "field_3");
+                    ClientGlobals.re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
                 continue;
@@ -1044,7 +1044,7 @@ public final class SCR extends Globals {
                     continue; // negative number = don't show
 
                 if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 4) != 0)
-                    re.DrawPic(x, y, "field_3");
+                    ClientGlobals.re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
                 continue;
@@ -1061,7 +1061,7 @@ public final class SCR extends Globals {
                 color = 0; // green
 
                 if ((ClientGlobals.cl.frame.playerstate.stats[STAT_FLASHES] & 2) != 0)
-                    re.DrawPic(x, y, "field_3");
+                    ClientGlobals.re.DrawPic(x, y, "field_3");
 
                 DrawField(x, y, color, width, value);
                 continue;
@@ -1189,15 +1189,15 @@ public final class SCR extends Globals {
         }
 
         for (i = 0; i < numframes; i++) {
-            re.BeginFrame(separation[i]);
+            ClientGlobals.re.BeginFrame(separation[i]);
 
             if (scr_draw_loading == 2) { //  loading plaque over black screen
                 Dimension dim = new Dimension();
 
-                re.CinematicSetPalette(null);
+                ClientGlobals.re.CinematicSetPalette(null);
                 scr_draw_loading = 0; // false
-                re.DrawGetPicSize(dim, "loading");
-                re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
+                ClientGlobals.re.DrawGetPicSize(dim, "loading");
+                ClientGlobals.re.DrawPic((ClientGlobals.viddef.getWidth() - dim.width) / 2,
                         (ClientGlobals.viddef.getHeight() - dim.height) / 2, "loading");
             }
             // if a cinematic is supposed to be running, handle menus
@@ -1205,13 +1205,13 @@ public final class SCR extends Globals {
             else if (ClientGlobals.cl.cinematictime > 0) {
                 if (cls.key_dest == key_menu) {
                     if (ClientGlobals.cl.cinematicpalette_active) {
-                        re.CinematicSetPalette(null);
+                        ClientGlobals.re.CinematicSetPalette(null);
                         ClientGlobals.cl.cinematicpalette_active = false;
                     }
                     Menu.Draw();
                 } else if (cls.key_dest == key_console) {
                     if (ClientGlobals.cl.cinematicpalette_active) {
-                        re.CinematicSetPalette(null);
+                        ClientGlobals.re.CinematicSetPalette(null);
                         ClientGlobals.cl.cinematicpalette_active = false;
                     }
                     DrawConsole();
@@ -1222,7 +1222,7 @@ public final class SCR extends Globals {
             } else {
                 // make sure the game palette is active
                 if (ClientGlobals.cl.cinematicpalette_active) {
-                    re.CinematicSetPalette(null);
+                    ClientGlobals.re.CinematicSetPalette(null);
                     ClientGlobals.cl.cinematicpalette_active = false;
                 }
 
@@ -1259,7 +1259,7 @@ public final class SCR extends Globals {
             }
         }
 
-        Globals.re.EndFrame();
+        ClientGlobals.re.EndFrame();
     }
 
     /*
@@ -1277,7 +1277,7 @@ public final class SCR extends Globals {
         if (crosshair_pic.length() == 0)
             return;
 
-        re.DrawPic(ClientGlobals.scr_vrect.x + ((ClientGlobals.scr_vrect.width - crosshair_width) >> 1),
+        ClientGlobals.re.DrawPic(ClientGlobals.scr_vrect.x + ((ClientGlobals.scr_vrect.width - crosshair_width) >> 1),
                 ClientGlobals.scr_vrect.y + ((ClientGlobals.scr_vrect.height - crosshair_height) >> 1),
                 crosshair_pic);
     }
@@ -1286,7 +1286,7 @@ public final class SCR extends Globals {
 
     // wird anstelle von der richtigen UpdateScreen benoetigt
     static void UpdateScreen() {
-        Globals.re.updateScreen(updateScreenCallback);
+        ClientGlobals.re.updateScreen(updateScreenCallback);
     }
 
     /*
@@ -1325,7 +1325,7 @@ public final class SCR extends Globals {
             }
             int x = ClientGlobals.viddef.getWidth() - 8 * fpsvalue.length() - 2;
             for (int i = 0; i < fpsvalue.length(); i++) {
-                re.DrawChar(x, 2, fpsvalue.charAt(i));
+                ClientGlobals.re.DrawChar(x, 2, fpsvalue.charAt(i));
                 x += 8;
             }
         } else if (fps.modified) {
@@ -1450,7 +1450,7 @@ public final class SCR extends Globals {
             cin.pic = null;
             cin.pic_pending = null;
             if (ClientGlobals.cl.cinematicpalette_active) {
-                re.CinematicSetPalette(null);
+                ClientGlobals.re.CinematicSetPalette(null);
                 ClientGlobals.cl.cinematicpalette_active = false;
             }
             if (ClientGlobals.cl.cinematic_file != null) {
@@ -1768,20 +1768,20 @@ public final class SCR extends Globals {
         
         if (cls.key_dest == key_menu) {
             // blank screen and pause if menu is up
-            Globals.re.CinematicSetPalette(null);
+            ClientGlobals.re.CinematicSetPalette(null);
             ClientGlobals.cl.cinematicpalette_active = false;
             return true;
         }
         
         if (!ClientGlobals.cl.cinematicpalette_active) {
-            re.CinematicSetPalette(ClientGlobals.cl.cinematicpalette);
+            ClientGlobals.re.CinematicSetPalette(ClientGlobals.cl.cinematicpalette);
         	ClientGlobals.cl.cinematicpalette_active = true;
         }
         
         if (cin.pic == null)
             return true;
         
-        Globals.re.DrawStretchRaw(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), cin.width, cin.height, cin.pic);
+        ClientGlobals.re.DrawStretchRaw(0, 0, ClientGlobals.viddef.getWidth(), ClientGlobals.viddef.getHeight(), cin.width, cin.height, cin.pic);
         
         return true;
     }

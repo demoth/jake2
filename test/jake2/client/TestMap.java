@@ -23,10 +23,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.client;
 
-import jake2.Jake2;
+import jake2.fullgame.Jake2;
 import jake2.client.render.Renderer;
 import jake2.client.render.image_t;
 import jake2.client.render.model_t;
+import jake2.fullgame.Q2DataDialog;
+import jake2.fullgame.Qcommon;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -82,7 +84,7 @@ public class TestMap
 		// sehr wichtig !!!
 		VID.Shutdown();
 
-		Globals.re = this.re = Renderer.getDriver("jsr231", true);
+		ClientGlobals.re = this.re = Renderer.getDriver("jsr231", true);
 
 		re.Init(0, 0);
 		

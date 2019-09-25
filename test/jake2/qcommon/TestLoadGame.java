@@ -22,6 +22,8 @@
 // $Id: TestLoadGame.java,v 1.2 2004-09-22 19:22:10 salomo Exp $
 package jake2.qcommon;
 
+import jake2.fullgame.Qcommon;
+
 public class TestLoadGame {
     public static void main(String args[]) {
 

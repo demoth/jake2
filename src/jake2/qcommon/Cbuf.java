@@ -65,7 +65,7 @@ public final class Cbuf {
         }
     }
 
-    static void AddEarlyCommands(List<String> args, boolean clear) {
+    public static void AddEarlyCommands(List<String> args, boolean clear) {
 
         for (int i = 0; i < args.size(); i++) {
             String s = args.get(i);
@@ -80,7 +80,7 @@ public final class Cbuf {
         }
     }
 
-    static boolean AddLateCommands(List<String> args) {
+    public static boolean AddLateCommands(List<String> args) {
 
         // build the combined string to parse from
         int s = 0;

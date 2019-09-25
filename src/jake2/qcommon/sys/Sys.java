@@ -219,14 +219,7 @@ public final class Sys extends Defines {
         fdir = null;
     }
 
-    public static void SendKeyEvents() {
-		Globals.re.getKeyboardHandler().Update();
-
-        // grab frame time
-        Globals.sys_frame_time = Timer.Milliseconds();
-    }
-
-	// sfranzyshen -start
+    // sfranzyshen -start
 	// public static String GetClipboardData() {
 	public static String GetClipboardData() {
 		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard()

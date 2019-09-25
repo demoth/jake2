@@ -259,47 +259,47 @@ public class CL_tent {
      * ================= CL_RegisterTEntModels =================
      */
     static void RegisterTEntModels() {
-        cl_mod_explode = Globals.re
+        cl_mod_explode = ClientGlobals.re
                 .RegisterModel("models/objects/explode/tris.md2");
-        cl_mod_smoke = Globals.re
+        cl_mod_smoke = ClientGlobals.re
                 .RegisterModel("models/objects/smoke/tris.md2");
-        cl_mod_flash = Globals.re
+        cl_mod_flash = ClientGlobals.re
                 .RegisterModel("models/objects/flash/tris.md2");
-        cl_mod_parasite_segment = Globals.re
+        cl_mod_parasite_segment = ClientGlobals.re
                 .RegisterModel("models/monsters/parasite/segment/tris.md2");
-        cl_mod_grapple_cable = Globals.re
+        cl_mod_grapple_cable = ClientGlobals.re
                 .RegisterModel("models/ctf/segment/tris.md2");
-        cl_mod_parasite_tip = Globals.re
+        cl_mod_parasite_tip = ClientGlobals.re
                 .RegisterModel("models/monsters/parasite/tip/tris.md2");
-        cl_mod_explo4 = Globals.re
+        cl_mod_explo4 = ClientGlobals.re
                 .RegisterModel("models/objects/r_explode/tris.md2");
-        cl_mod_bfg_explo = Globals.re.RegisterModel("sprites/s_bfg2.sp2");
-        cl_mod_powerscreen = Globals.re
+        cl_mod_bfg_explo = ClientGlobals.re.RegisterModel("sprites/s_bfg2.sp2");
+        cl_mod_powerscreen = ClientGlobals.re
                 .RegisterModel("models/items/armor/effect/tris.md2");
 
-        Globals.re.RegisterModel("models/objects/laser/tris.md2");
-        Globals.re.RegisterModel("models/objects/grenade2/tris.md2");
-        Globals.re.RegisterModel("models/weapons/v_machn/tris.md2");
-        Globals.re.RegisterModel("models/weapons/v_handgr/tris.md2");
-        Globals.re.RegisterModel("models/weapons/v_shotg2/tris.md2");
-        Globals.re.RegisterModel("models/objects/gibs/bone/tris.md2");
-        Globals.re.RegisterModel("models/objects/gibs/sm_meat/tris.md2");
-        Globals.re.RegisterModel("models/objects/gibs/bone2/tris.md2");
+        ClientGlobals.re.RegisterModel("models/objects/laser/tris.md2");
+        ClientGlobals.re.RegisterModel("models/objects/grenade2/tris.md2");
+        ClientGlobals.re.RegisterModel("models/weapons/v_machn/tris.md2");
+        ClientGlobals.re.RegisterModel("models/weapons/v_handgr/tris.md2");
+        ClientGlobals.re.RegisterModel("models/weapons/v_shotg2/tris.md2");
+        ClientGlobals.re.RegisterModel("models/objects/gibs/bone/tris.md2");
+        ClientGlobals.re.RegisterModel("models/objects/gibs/sm_meat/tris.md2");
+        ClientGlobals.re.RegisterModel("models/objects/gibs/bone2/tris.md2");
         //	   RAFAEL
         //	   re.RegisterModel ("models/objects/blaser/tris.md2");
 
-        Globals.re.RegisterPic("w_machinegun");
-        Globals.re.RegisterPic("a_bullets");
-        Globals.re.RegisterPic("i_health");
-        Globals.re.RegisterPic("a_grenades");
+        ClientGlobals.re.RegisterPic("w_machinegun");
+        ClientGlobals.re.RegisterPic("a_bullets");
+        ClientGlobals.re.RegisterPic("i_health");
+        ClientGlobals.re.RegisterPic("a_grenades");
 
         //	  ROGUE
-        cl_mod_explo4_big = Globals.re
+        cl_mod_explo4_big = ClientGlobals.re
                 .RegisterModel("models/objects/r_explode2/tris.md2");
-        cl_mod_lightning = Globals.re
+        cl_mod_lightning = ClientGlobals.re
                 .RegisterModel("models/proj/lightning/tris.md2");
-        cl_mod_heatbeam = Globals.re.RegisterModel("models/proj/beam/tris.md2");
-        cl_mod_monster_heatbeam = Globals.re
+        cl_mod_heatbeam = ClientGlobals.re.RegisterModel("models/proj/beam/tris.md2");
+        cl_mod_monster_heatbeam = ClientGlobals.re
                 .RegisterModel("models/proj/widowbeam/tris.md2");
         //	  ROGUE
     }

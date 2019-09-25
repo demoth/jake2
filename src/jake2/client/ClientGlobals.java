@@ -1,5 +1,6 @@
 package jake2.client;
 
+import jake2.client.render.DummyRenderer;
 import jake2.client.render.model_t;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cvar_t;
@@ -13,6 +14,8 @@ public class ClientGlobals {
     public static centity_t[] cl_entities;
     public static entity_state_t[] cl_parse_entities;
     public static client_static_t cls = new client_static_t();
+    // Renderer interface used by VID, SCR, ...
+    public static refexport_t re = new DummyRenderer();
 
     static cvar_t m_filter;
     static int vidref_val = Defines.VIDREF_GL;

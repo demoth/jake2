@@ -191,6 +191,7 @@ public final class Console extends Globals {
 	Cmd.AddCommand("messagemode2", MessageMode2_f);
 	Cmd.AddCommand("clear", Clear_f);
 	Cmd.AddCommand("condump", Dump_f);
+	Cmd.AddCommand("console_print", args -> Console.Print(args.get(0)));
 	ClientGlobals.con.initialized = true;
     }
 
@@ -260,14 +261,14 @@ public final class Console extends Globals {
 
     static void DrawString(int x, int y, String s) {
 	for (int i = 0; i < s.length(); i++) {
-	    Globals.re.DrawChar(x, y, s.charAt(i));
+	    ClientGlobals.re.DrawChar(x, y, s.charAt(i));
 	    x += 8;
 	}
     }
 
     static void DrawAltString(int x, int y, String s) {
 	for (int i = 0; i < s.length(); i++) {
-	    Globals.re.DrawChar(x, y, s.charAt(i) ^ 0x80);
+	    ClientGlobals.re.DrawChar(x, y, s.charAt(i) ^ 0x80);
 	    x += 8;
 	}
     }
@@ -394,9 +395,9 @@ public final class Console extends Globals {
 	for (i = 0; i < ClientGlobals.con.linewidth; i++) {
 		//old:re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
 		if (ClientGlobals.con.backedit == ClientGlobals.key_linepos-i && (((int)(ClientGlobals.cls.realtime >> 8)&1) !=0))
-			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, (char)11);
+			ClientGlobals.re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, (char)11);
 		else
-			re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, text[i]);
+			ClientGlobals.re.DrawChar ((i + 1) << 3, ClientGlobals.con.vislines - 22, text[i]);
 	}
 	// sfranzyshen - stop
     
@@ -435,7 +436,7 @@ public final class Console extends Globals {
 	    text = (i % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
 	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
-		re.DrawChar((x + 1) << 3, v, ClientGlobals.con.text[text + x]);
+		ClientGlobals.re.DrawChar((x + 1) << 3, v, ClientGlobals.con.text[text + x]);
 
 	    v += 8;
 	}
@@ -459,14 +460,14 @@ public final class Console extends Globals {
 
 	    for (x = 0; x < s.length(); x++) {
 	    	if (ClientGlobals.chat_backedit > 0 && ClientGlobals.chat_backedit == ClientGlobals.chat_buffer.length() -x && ((int)(ClientGlobals.cls.realtime>>8)&1) !=0) {
-	    		re.DrawChar((x + skip) << 3, v, (char)11);
+	    		ClientGlobals.re.DrawChar((x + skip) << 3, v, (char)11);
 	    	} else {
-	    		re.DrawChar((x + skip) << 3, v, s.charAt(x));
+	    		ClientGlobals.re.DrawChar((x + skip) << 3, v, s.charAt(x));
 	    	}
 	    }
 	    
 	    if (ClientGlobals.chat_backedit == 0)
-	    	re.DrawChar((x + skip) << 3, v, (int) (10 + ((ClientGlobals.cls.realtime >> 8) & 1)));
+	    	ClientGlobals.re.DrawChar((x + skip) << 3, v, (int) (10 + ((ClientGlobals.cls.realtime >> 8) & 1)));
 	    // sfranzyshen -stop        
 
 	    v += 8;
@@ -494,13 +495,13 @@ public final class Console extends Globals {
 	    lines = height;
 
 	// draw the background
-	re.DrawStretchPic(0, -height + lines, width, height, "conback");
+	ClientGlobals.re.DrawStretchPic(0, -height + lines, width, height, "conback");
 	SCR.AddDirtyPoint(0, 0);
 	SCR.AddDirtyPoint(width - 1, lines - 1);
 
 	String version = Com.sprintf("v%4.2f", new Vargs(1).add(VERSION));
 	for (int x = 0; x < 5; x++)
-	    re
+	    ClientGlobals.re
 		    .DrawChar(width - 44 + x * 8, lines - 12, 128 + version
 			    .charAt(x));
 
@@ -515,7 +516,7 @@ public final class Console extends Globals {
 	if (ClientGlobals.con.display != ClientGlobals.con.current) {
 	    // draw arrows to show the buffer is backscrolled
 	    for (int x = 0; x < ClientGlobals.con.linewidth; x += 4)
-		re.DrawChar((x + 1) << 3, y, '^');
+		ClientGlobals.re.DrawChar((x + 1) << 3, y, '^');
 
 	    y -= 8;
 	    rows--;
@@ -533,7 +534,7 @@ public final class Console extends Globals {
 	    int first = (row % ClientGlobals.con.totallines) * ClientGlobals.con.linewidth;
 
 	    for (x = 0; x < ClientGlobals.con.linewidth; x++)
-		re.DrawChar((x + 1) << 3, y, ClientGlobals.con.text[x + first]);
+		ClientGlobals.re.DrawChar((x + 1) << 3, y, ClientGlobals.con.text[x + first]);
 	}
 
 	// ZOID
@@ -580,7 +581,7 @@ public final class Console extends Globals {
 	    // draw it
 	    y = ClientGlobals.con.vislines - 12;
 	    for (i = 0; i < dlbar.length(); i++)
-		re.DrawChar((i + 1) << 3, y, dlbar.charAt(i));
+		ClientGlobals.re.DrawChar((i + 1) << 3, y, dlbar.charAt(i));
 	}
 	// ZOID
 
