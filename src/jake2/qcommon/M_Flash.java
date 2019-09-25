@@ -20,7 +20,7 @@
 
 // Created on 13.11.2003 by RST.
 // $Id: M_Flash.java,v 1.2 2005-02-06 18:48:32 salomo Exp $
-package jake2.game.monsters;
+package jake2.qcommon;
 
 public class M_Flash {
 

@@ -901,12 +901,6 @@ public class Defines {
 	public static final int MAXLIGHTMAPS = 4;
 	public static final int MIPLEVELS = 4;
 
-	public static final int clc_bad = 0;
-	public static final int clc_nop = 1;
-	public static final int clc_move = 2; // [[usercmd_t]
-	public static final int clc_userinfo = 3; // [[userinfo string]
-	public static final int clc_stringcmd = 4; // [string] message
-
 	public static final int NS_CLIENT = 0;
 	public static final int NS_SERVER = 1;
 

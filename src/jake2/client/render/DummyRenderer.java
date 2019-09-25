@@ -20,6 +20,7 @@ import java.util.Collections;
  * 
  * @author cwei
  */
+// todo: either remove or move to common
 public class DummyRenderer implements refexport_t {
 
 	/* (non-Javadoc)

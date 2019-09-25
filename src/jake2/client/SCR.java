@@ -1473,7 +1473,7 @@ public final class SCR extends Globals {
      */
     static void FinishCinematic() {
         // tell the server to advance to the next map / cinematic
-        MSG.WriteByte(cls.netchan.message, clc_stringcmd);
+        MSG.WriteByte(cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
         SZ.Print(cls.netchan.message, "nextserver " + ClientGlobals.cl.servercount + '\n');
     }
 

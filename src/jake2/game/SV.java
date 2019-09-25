@@ -104,15 +104,6 @@ public final class SV {
         if (e2.touch != null && e2.solid != Defines.SOLID_NOT)
             e2.touch.touch(e2, e1, GameBase.dummyplane, null);
     }
-    
-    /**
-     * SV_FlyMove
-     * 
-     * The basic solid body movement clip that slides along multiple planes
-     * Returns the clipflags if the velocity was modified (hit something solid)
-     * 1 = floor 2 = wall / step 4 = dead stop
-     */
-    public final static int MAX_CLIP_PLANES = 5;
 
     public static int SV_FlyMove(edict_t ent, float time, int mask) {
         edict_t hit;
@@ -120,7 +111,7 @@ public final class SV {
         float[] dir = { 0.0f, 0.0f, 0.0f };
         float d;
         int numplanes;
-        float[][] planes = new float[MAX_CLIP_PLANES][3];
+        float[][] planes = new float[PMove.MAX_CLIP_PLANES][3];
         float[] primal_velocity = { 0.0f, 0.0f, 0.0f };
         float[] original_velocity = { 0.0f, 0.0f, 0.0f };
         float[] new_velocity = { 0.0f, 0.0f, 0.0f };
@@ -184,7 +175,7 @@ public final class SV {
             time_left -= time_left * trace.fraction;
 
             // cliped to another plane
-            if (numplanes >= MAX_CLIP_PLANES) { // this shouldn't
+            if (numplanes >= PMove.MAX_CLIP_PLANES) { // this shouldn't
                                                          // really happen
                 Math3D.VectorCopy(Globals.vec3_origin, ent.velocity);
                 return 3;

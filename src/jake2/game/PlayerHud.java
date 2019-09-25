@@ -500,43 +500,4 @@ public class PlayerHud {
             cl.getPlayerState().stats[Defines.STAT_CHASE] = 0;
     }
 
-    /** 
-     * HelpComputer. Draws the help computer.
-     */
-    public static void HelpComputer(edict_t ent) {
-        StringBuffer sb = new StringBuffer(256);
-        String sk;
-    
-        if (GameBase.skill.value == 0)
-            sk = "easy";
-        else if (GameBase.skill.value == 1)
-            sk = "medium";
-        else if (GameBase.skill.value == 2)
-            sk = "hard";
-        else
-            sk = "hard+";
-    
-        // send the layout
-        sb.append("xv 32 yv 8 picn help "); // background
-        sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
-        sb.append("xv 0 yv 24 cstring2 \"").append(GameBase.level.level_name)
-                .append("\" "); // level name
-        sb.append("xv 0 yv 54 cstring2 \"").append(GameBase.game.helpmessage1)
-                .append("\" "); // help 1
-        sb.append("xv 0 yv 110 cstring2 \"").append(GameBase.game.helpmessage2)
-                .append("\" "); // help 2
-        sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
-        sb.append("xv 50 yv 172 string2 \"");
-        sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
-                .add(GameBase.level.killed_monsters).add(
-                        GameBase.level.total_monsters).add(
-                        GameBase.level.found_goals).add(
-                        GameBase.level.total_goals).add(
-                        GameBase.level.found_secrets).add(
-                        GameBase.level.total_secrets)));
-    
-        GameBase.gi.WriteByte(NetworkCommands.svc_layout);
-        GameBase.gi.WriteString(sb.toString());
-        GameBase.gi.unicast(ent, true);
-    }
 }

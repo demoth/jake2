@@ -5,6 +5,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -59,7 +60,7 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.monsters.M_Boss32",
                     "jake2.game.monsters.M_Brain",
                     "jake2.game.monsters.M_Chick",
-                    "jake2.game.monsters.M_Flash",
+                    "jake2.qcommon.M_Flash",
                     "jake2.game.monsters.M_Flipper",
                     "jake2.game.monsters.M_Float",
                     "jake2.game.monsters.M_Flyer",
@@ -98,70 +99,55 @@ public class GameExportsImpl implements GameExports {
         }
 
 
-        GameBase.gun_x = GameBase.gi.cvar("gun_x", "0", 0);
-        GameBase.gun_y = GameBase.gi.cvar("gun_y", "0", 0);
-        GameBase.gun_z = GameBase.gi.cvar("gun_z", "0", 0);
+        GameBase.gun_x = gameImports.cvar("gun_x", "0", 0);
+        GameBase.gun_y = gameImports.cvar("gun_y", "0", 0);
+        GameBase.gun_z = gameImports.cvar("gun_z", "0", 0);
 
         //FIXME: sv_ prefix are wrong names for these variables
-        GameBase.sv_rollspeed = GameBase.gi.cvar("sv_rollspeed", "200", 0);
-        GameBase.sv_rollangle = GameBase.gi.cvar("sv_rollangle", "2", 0);
-        GameBase.sv_maxvelocity = GameBase.gi.cvar("sv_maxvelocity", "2000", 0);
-        GameBase.sv_gravity = GameBase.gi.cvar("sv_gravity", "800", 0);
+        GameBase.sv_rollspeed = gameImports.cvar("sv_rollspeed", "200", 0);
+        GameBase.sv_rollangle = gameImports.cvar("sv_rollangle", "2", 0);
+        GameBase.sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
+        GameBase.sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
 
         // noset vars
-        Globals.dedicated = GameBase.gi.cvar("dedicated", "0",
-                Defines.CVAR_NOSET);
+        Globals.dedicated = gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET);
 
         // latched vars
-        GameBase.sv_cheats = GameBase.gi.cvar("cheats", "0",
-                Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        GameBase.gi.cvar("gamename", Defines.GAMEVERSION,
-                Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        GameBase.gi.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO
-                | Defines.CVAR_LATCH);
+        GameBase.sv_cheats = gameImports.cvar("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamename", Defines.GAMEVERSION,Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
-        GameBase.maxclients = GameBase.gi.cvar("maxclients", "4",
-                Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        GameBase.maxspectators = GameBase.gi.cvar("maxspectators", "4",
-                Defines.CVAR_SERVERINFO);
-        GameBase.deathmatch = GameBase.gi.cvar("deathmatch", "0",
-                Defines.CVAR_LATCH);
-        GameBase.coop = GameBase.gi.cvar("coop", "0", Defines.CVAR_LATCH);
-        GameBase.skill = GameBase.gi.cvar("skill", "0", Defines.CVAR_LATCH);
-        GameBase.maxentities = GameBase.gi.cvar("maxentities", "1024",
-                Defines.CVAR_LATCH);
+        GameBase.maxclients = gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        GameBase.maxspectators = gameImports.cvar("maxspectators", "4", Defines.CVAR_SERVERINFO);
+        GameBase.deathmatch = gameImports.cvar("deathmatch", "0", Defines.CVAR_LATCH);
+        GameBase.coop = gameImports.cvar("coop", "0", Defines.CVAR_LATCH);
+        GameBase.skill = gameImports.cvar("skill", "0", Defines.CVAR_LATCH);
+        GameBase.maxentities = gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH);
 
         // change anytime vars
-        GameBase.dmflags = GameBase.gi.cvar("dmflags", "0",
-                Defines.CVAR_SERVERINFO);
-        GameBase.fraglimit = GameBase.gi.cvar("fraglimit", "0",
-                Defines.CVAR_SERVERINFO);
-        GameBase.timelimit = GameBase.gi.cvar("timelimit", "0",
-                Defines.CVAR_SERVERINFO);
-        GameBase.password = GameBase.gi.cvar("password", "",
-                Defines.CVAR_USERINFO);
-        GameBase.spectator_password = GameBase.gi.cvar("spectator_password",
-                "", Defines.CVAR_USERINFO);
-        GameBase.needpass = GameBase.gi.cvar("needpass", "0",
-                Defines.CVAR_SERVERINFO);
-        GameBase.filterban = GameBase.gi.cvar("filterban", "1", 0);
+        GameBase.dmflags = gameImports.cvar("dmflags", "0", Defines.CVAR_SERVERINFO);
+        GameBase.fraglimit = gameImports.cvar("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        GameBase.timelimit = gameImports.cvar("timelimit", "0", Defines.CVAR_SERVERINFO);
+        GameBase.password = gameImports.cvar("password", "", Defines.CVAR_USERINFO);
+        GameBase.spectator_password = gameImports.cvar("spectator_password", "", Defines.CVAR_USERINFO);
+        GameBase.needpass = gameImports.cvar("needpass", "0", Defines.CVAR_SERVERINFO);
+        GameBase.filterban = gameImports.cvar("filterban", "1", 0);
 
-        GameBase.g_select_empty = GameBase.gi.cvar("g_select_empty", "0",
-                Defines.CVAR_ARCHIVE);
+        GameBase.g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
 
-        GameBase.run_pitch = GameBase.gi.cvar("run_pitch", "0.002", 0);
-        GameBase.run_roll = GameBase.gi.cvar("run_roll", "0.005", 0);
-        GameBase.bob_up = GameBase.gi.cvar("bob_up", "0.005", 0);
-        GameBase.bob_pitch = GameBase.gi.cvar("bob_pitch", "0.002", 0);
-        GameBase.bob_roll = GameBase.gi.cvar("bob_roll", "0.002", 0);
+        GameBase.run_pitch = gameImports.cvar("run_pitch", "0.002", 0);
+        GameBase.run_roll = gameImports.cvar("run_roll", "0.005", 0);
+        GameBase.bob_up = gameImports.cvar("bob_up", "0.005", 0);
+        GameBase.bob_pitch = gameImports.cvar("bob_pitch", "0.002", 0);
+        GameBase.bob_roll = gameImports.cvar("bob_roll", "0.002", 0);
 
         // flood control
-        GameBase.flood_msgs = GameBase.gi.cvar("flood_msgs", "4", 0);
-        GameBase.flood_persecond = GameBase.gi.cvar("flood_persecond", "4", 0);
-        GameBase.flood_waitdelay = GameBase.gi.cvar("flood_waitdelay", "10", 0);
+        GameBase.flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
+        GameBase.flood_persecond = gameImports.cvar("flood_persecond", "4", 0);
+        GameBase.flood_waitdelay = gameImports.cvar("flood_waitdelay", "10", 0);
 
         // dm map list
-        GameBase.sv_maplist = GameBase.gi.cvar("sv_maplist", "", 0);
+        GameBase.sv_maplist = gameImports.cvar("sv_maplist", "", 0);
 
         // items
         GameItems.InitItems();
@@ -192,6 +178,47 @@ public class GameExportsImpl implements GameExports {
         for (int i = 0; i < GameBase.game.maxclients; i++)
             GameBase.game.clients[i] = new gclient_t(i);
 
+    }
+
+    /**
+     * HelpComputer.
+     * Prepare text with values and send them to client
+     */
+    private void prepareHelpComputerText(edict_t ent) {
+        StringBuilder sb = new StringBuilder(256);
+        String sk;
+
+        if (GameBase.skill.value == 0)
+            sk = "easy";
+        else if (GameBase.skill.value == 1)
+            sk = "medium";
+        else if (GameBase.skill.value == 2)
+            sk = "hard";
+        else
+            sk = "hard+";
+
+        // send the layout
+        sb.append("xv 32 yv 8 picn help "); // background
+        sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
+        sb.append("xv 0 yv 24 cstring2 \"").append(GameBase.level.level_name)
+                .append("\" "); // level name
+        sb.append("xv 0 yv 54 cstring2 \"").append(GameBase.game.helpmessage1)
+                .append("\" "); // help 1
+        sb.append("xv 0 yv 110 cstring2 \"").append(GameBase.game.helpmessage2)
+                .append("\" "); // help 2
+        sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
+        sb.append("xv 50 yv 172 string2 \"");
+        sb.append(Com.sprintf("%3i/%3i     %i/%i       %i/%i\" ", new Vargs(6)
+                .add(GameBase.level.killed_monsters).add(
+                        GameBase.level.total_monsters).add(
+                        GameBase.level.found_goals).add(
+                        GameBase.level.total_goals).add(
+                        GameBase.level.found_secrets).add(
+                        GameBase.level.total_secrets)));
+
+        gameImports.WriteByte(NetworkCommands.svc_layout);
+        gameImports.WriteString(sb.toString());
+        gameImports.unicast(ent, true);
     }
 
     /**
@@ -461,7 +488,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Inven_f.
      */
-    private static void Inven_f(edict_t ent) {
+    private void Inven_f(edict_t ent) {
 
         gclient_t cl = (gclient_t) ent.client;
 
@@ -475,11 +502,11 @@ public class GameExportsImpl implements GameExports {
 
         cl.showinventory = true;
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_inventory);
+        gameImports.WriteByte(NetworkCommands.svc_inventory);
         for (int i = 0; i < Defines.MAX_ITEMS; i++) {
-            GameBase.gi.WriteShort(cl.pers.inventory[i]);
+            gameImports.WriteShort(cl.pers.inventory[i]);
         }
-        GameBase.gi.unicast(ent, true);
+        gameImports.unicast(ent, true);
     }
 
     /**
@@ -643,7 +670,7 @@ public class GameExportsImpl implements GameExports {
      * Display the current help message.
      *
      */
-    static void Help_f(edict_t ent) {
+    private void Help_f(edict_t ent) {
         // this is for backwards compatability
         if (GameBase.deathmatch.value != 0) {
             Score_f(ent);
@@ -662,7 +689,7 @@ public class GameExportsImpl implements GameExports {
 
         client.showhelp = true;
         client.pers.helpchanged = 0;
-        PlayerHud.HelpComputer(ent);
+        prepareHelpComputerText(ent);
     }
 
     /**
@@ -1051,7 +1078,7 @@ public class GameExportsImpl implements GameExports {
             f = new QuakeFile(filename, "rw");
 
             if (f == null)
-                GameBase.gi.error("Couldn't write to " + filename);
+                gameImports.error("Couldn't write to " + filename);
 
             GameBase.game.autosaved = autosave;
             GameBase.game.write(f);
@@ -1100,7 +1127,7 @@ public class GameExportsImpl implements GameExports {
 
             f = new QuakeFile(filename, "rw");
             if (f == null)
-                GameBase.gi.error("Couldn't open for writing: " + filename);
+                gameImports.error("Couldn't open for writing: " + filename);
 
             // write out level_locals_t
             GameBase.level.write(f);
@@ -1131,7 +1158,7 @@ public class GameExportsImpl implements GameExports {
             QuakeFile f = new QuakeFile(filename, "r");
 
             if (f == null)
-                GameBase.gi.error("Couldn't read level file " + filename);
+                gameImports.error("Couldn't read level file " + filename);
 
             // wipe all the entities
             CreateEdicts();
@@ -1153,7 +1180,7 @@ public class GameExportsImpl implements GameExports {
                 ent = GameBase.g_edicts[entnum];
                 ent.read(f, GameBase.g_edicts);
                 ent.cleararealinks();
-                GameBase.gi.linkentity(ent);
+                gameImports.linkentity(ent);
             }
 
             Lib.fclose(f);

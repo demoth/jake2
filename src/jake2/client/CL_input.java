@@ -427,7 +427,7 @@ public class CL_input {
 		if (Globals.userinfo_modified) {
 			CL.FixUpGender();
 			Globals.userinfo_modified = false;
-			MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_userinfo);
+			MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_USERINFO.value);
 			MSG.WriteString(ClientGlobals.cls.netchan.message, Cvar.Userinfo());
 		}
 
@@ -444,7 +444,7 @@ public class CL_input {
 		}
 
 		// begin a client move command
-		MSG.WriteByte(buf, Defines.clc_move);
+		MSG.WriteByte(buf, ClientCommands.CLC_MOVE.value);
 
 		// save the position for a checksum byte
 		checksumIndex = buf.cursize;

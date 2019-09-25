@@ -28,6 +28,7 @@ import jake2.qcommon.network.MulticastTypes;
 //
 //	collection of functions provided by the main engine
 //
+// todo make singleton (same as game exports)
 public class GameImportsImpl implements GameImports {
     // special messages
     @Override

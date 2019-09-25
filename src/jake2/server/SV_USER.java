@@ -514,7 +514,6 @@ class SV_USER {
      * ===================
      */
     static void SV_ExecuteClientMessage(client_t cl) {
-        int c;
         String s;
 
         usercmd_t nullcmd = new usercmd_t();
@@ -541,8 +540,8 @@ class SV_USER {
                 return;
             }
 
-            c = MSG.ReadByte(Globals.net_message);
-            if (c == -1)
+            ClientCommands c = ClientCommands.fromInt(MSG.ReadByte(Globals.net_message));
+            if (c == ClientCommands.CLC_BAD)
                 break;
 
             switch (c) {
@@ -551,15 +550,15 @@ class SV_USER {
                 SV_MAIN.SV_DropClient(cl);
                 return;
 
-            case Defines.clc_nop:
+            case CLC_NOP:
                 break;
 
-            case Defines.clc_userinfo:
+            case CLC_USERINFO:
                 cl.userinfo = MSG.ReadString(Globals.net_message);
                 SV_MAIN.SV_UserinfoChanged(cl);
                 break;
 
-            case Defines.clc_move:
+            case CLC_MOVE:
                 if (move_issued)
                     return; // someone is trying to cheat...
 
@@ -628,7 +627,7 @@ class SV_USER {
                 cl.lastcmd.set(newcmd);
                 break;
 
-            case Defines.clc_stringcmd:
+            case CLC_STRINGCMD:
                 s = MSG.ReadString(Globals.net_message);
 
                 // malicious users may try using too many string commands

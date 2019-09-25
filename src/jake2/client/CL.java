@@ -78,7 +78,7 @@ public final class CL {
             return;
         }
 
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
         SZ.Print(ClientGlobals.cls.netchan.message, cmd);
         if (args.size() > 1) {
             SZ.Print(ClientGlobals.cls.netchan.message, " ");
@@ -284,8 +284,7 @@ public final class CL {
 
         // don't forward the first argument
         if (args.size() > 1) {
-            MSG.WriteByte(ClientGlobals.cls.netchan.message,
-                    Defines.clc_stringcmd);
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             SZ.Print(ClientGlobals.cls.netchan.message, getArguments(args));
         }
     };
@@ -430,8 +429,7 @@ public final class CL {
         if (ClientGlobals.cls.state == Defines.ca_connected) {
             Com.Printf("reconnecting...\n");
             ClientGlobals.cls.state = Defines.ca_connected;
-            MSG.WriteChar(ClientGlobals.cls.netchan.message,
-                    Defines.clc_stringcmd);
+            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
             return;
         }
@@ -615,7 +613,7 @@ public final class CL {
                 .StripExtension(ClientGlobals.cls.downloadname);
         ClientGlobals.cls.downloadtempname += ".tmp";
 
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
         MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
                 + ClientGlobals.cls.downloadname);
 
@@ -749,8 +747,6 @@ public final class CL {
      */
     private static void Disconnect() {
 
-        String fin;
-
         if (ClientGlobals.cls.state == Defines.ca_disconnected)
             return;
 
@@ -779,7 +775,7 @@ public final class CL {
             Stop_f.execute(Collections.emptyList());
 
         // send a disconnect message to the server
-        fin = (char) Defines.clc_stringcmd + "disconnect";
+        String fin = ClientCommands.CLC_STRINGCMD.value + "disconnect";
         Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
         Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
         Netchan.Transmit(ClientGlobals.cls.netchan, fin.length(), Lib.stringToBytes(fin));
@@ -837,7 +833,7 @@ public final class CL {
             }
             Netchan.Setup(Defines.NS_CLIENT, ClientGlobals.cls.netchan,
                     Globals.net_from, ClientGlobals.cls.quakePort);
-            MSG.WriteChar(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteChar(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             MSG.WriteString(ClientGlobals.cls.netchan.message, "new");
             ClientGlobals.cls.state = Defines.ca_connected;
             return;
@@ -1296,9 +1292,8 @@ public final class CL {
         CL_parse.RegisterSounds();
         CL_view.PrepRefresh();
 
-        MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
-        MSG.WriteString(ClientGlobals.cls.netchan.message, "begin "
-                + CL.precache_spawncount + "\n");
+        MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
+        MSG.WriteString(ClientGlobals.cls.netchan.message, "begin " + CL.precache_spawncount + "\n");
     }
 
     /**

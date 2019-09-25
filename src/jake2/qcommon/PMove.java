@@ -22,7 +22,6 @@
 // $Id: PMove.java,v 1.8 2006-01-21 21:53:32 salomo Exp $
 package jake2.qcommon;
 
-import jake2.game.SV;
 import jake2.qcommon.util.Math3D;
 
 public class PMove {
@@ -98,7 +97,15 @@ public class PMove {
         }
     }
 
-    static float[] planes[] = new float[SV.MAX_CLIP_PLANES][3];
+    /**
+     * SV_FlyMove
+     *
+     * The basic solid body movement clip that slides along multiple planes
+     * Returns the clipflags if the velocity was modified (hit something solid)
+     * 1 = floor 2 = wall / step 4 = dead stop
+     */
+    public final static int MAX_CLIP_PLANES = 5;
+    static float[] planes[] = new float[MAX_CLIP_PLANES][3];
     
     public static void PM_StepSlideMove_() {
         int bumpcount, numbumps;
@@ -149,7 +156,7 @@ public class PMove {
             time_left -= time_left * trace.fraction;
 
             // slide along this plane
-            if (numplanes >= SV.MAX_CLIP_PLANES) { 
+            if (numplanes >= MAX_CLIP_PLANES) {
             	// this shouldn't really happen
                 Math3D.VectorCopy(Globals.vec3_origin, pml.velocity);
                 break;

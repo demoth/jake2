@@ -104,12 +104,12 @@ public class CL_parse {
 
             // give the server an offset to start the download
             Com.Printf("Resuming " + ClientGlobals.cls.downloadname + "\n");
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
                     + ClientGlobals.cls.downloadname + " " + len);
         } else {
             Com.Printf("Downloading " + ClientGlobals.cls.downloadname + "\n");
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             MSG.WriteString(ClientGlobals.cls.netchan.message, "download "
                     + ClientGlobals.cls.downloadname);
         }
@@ -194,7 +194,7 @@ public class CL_parse {
             // request next block
             //	   change display routines by zoid
             ClientGlobals.cls.downloadpercent = percent;
-            MSG.WriteByte(ClientGlobals.cls.netchan.message, Defines.clc_stringcmd);
+            MSG.WriteByte(ClientGlobals.cls.netchan.message, ClientCommands.CLC_STRINGCMD.value);
             SZ.Print(ClientGlobals.cls.netchan.message, "nextdl");
         } else {
             try {

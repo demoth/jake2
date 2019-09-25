@@ -26,7 +26,7 @@
 package jake2.client;
 
 import jake2.client.sound.S;
-import jake2.game.monsters.M_Flash;
+import jake2.qcommon.M_Flash;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
