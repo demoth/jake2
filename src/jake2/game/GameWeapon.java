@@ -46,7 +46,7 @@ public class GameWeapon {
                 return;
             }
     
-            if (self.getOwner().client != null)
+            if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
@@ -88,7 +88,7 @@ public class GameWeapon {
             float[] origin = { 0, 0, 0 };
             int mod;
     
-            if (ent.getOwner().client != null)
+            if (ent.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin, GameDefines.PNOISE_IMPACT);
     
             //FIXME: if we are onground then raise our Z just a bit since we
@@ -196,7 +196,7 @@ public class GameWeapon {
                 return;
             }
     
-            if (ent.getOwner().client != null)
+            if (ent.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
@@ -306,7 +306,7 @@ public class GameWeapon {
                 return;
             }
     
-            if (self.getOwner().client != null)
+            if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
@@ -370,7 +370,7 @@ public class GameWeapon {
                     continue;
     
                 if (0 == (ent.svflags & Defines.SVF_MONSTER)
-                        && (null == ent.client)
+                        && (null == ent.getClient())
                         && (!"misc_explobox".equals(ent.classname)))
                     continue;
     
@@ -402,7 +402,7 @@ public class GameWeapon {
                     // if we hit something that's not a monster or player we're
                     // done
                     if (0 == (target.svflags & Defines.SVF_MONSTER)
-                            && (null == target.client)) {
+                            && (null == target.getClient())) {
                         GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(Defines.TE_LASER_SPARKS);
                         GameBase.gi.WriteByte(4);
@@ -507,7 +507,7 @@ public class GameWeapon {
             // if it will hit any client/monster then hit the one we wanted to
             // hit
             if ((tr.ent.svflags & Defines.SVF_MONSTER) != 0
-                    || (tr.ent.client != null))
+                    || (tr.ent.getClient() != null))
                 tr.ent = self.enemy;
         }
     
@@ -522,7 +522,7 @@ public class GameWeapon {
                 damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
-                && (null == tr.ent.client))
+                && (null == tr.ent.getClient()))
             return false;
     
         // do our special form of knockback here
@@ -638,7 +638,7 @@ public class GameWeapon {
                         GameBase.gi.WriteDir(tr.plane.normal);
                         GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
     
-                        if (self.client != null)
+                        if (self.getClient() != null)
                             PlayerWeapon.PlayerNoise(self, tr.endpos,
                                     GameDefines.PNOISE_IMPACT);
                     }
@@ -744,7 +744,7 @@ public class GameWeapon {
             bolt.spawnflags = 1;
         GameBase.gi.linkentity(bolt);
     
-        if (self.client != null)
+        if (self.getClient() != null)
             check_dodge(self, bolt.s.origin, dir, speed);
 
         trace_t tr = GameBase.gi.trace(self.s.origin, null, null, bolt.s.origin, bolt,
@@ -865,7 +865,7 @@ public class GameWeapon {
         rocket.s.sound = GameBase.gi.soundindex("weapons/rockfly.wav");
         rocket.classname = "rocket";
     
-        if (self.client != null)
+        if (self.getClient() != null)
             check_dodge(self, rocket.s.origin, dir, speed);
     
         GameBase.gi.linkentity(rocket);
@@ -902,7 +902,7 @@ public class GameWeapon {
                 // etc)
                 SubgameEntity target = (SubgameEntity) tr.ent;
                 if ((target.svflags & Defines.SVF_MONSTER) != 0
-                        || (target.client != null)
+                        || (target.getClient() != null)
                         || (target.solid == Defines.SOLID_BBOX))
                     ignore = target;
                 else
@@ -932,7 +932,7 @@ public class GameWeapon {
             GameBase.gi.multicast(tr.endpos, MulticastTypes.MULTICAST_PHS);
         }
     
-        if (self.client != null)
+        if (self.getClient() != null)
             PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT);
     }
 
@@ -965,7 +965,7 @@ public class GameWeapon {
         bfg.teammaster = bfg;
         bfg.teamchain = null;
     
-        if (self.client != null)
+        if (self.getClient() != null)
             check_dodge(self, bfg.s.origin, dir, speed);
     
         GameBase.gi.linkentity(bfg);

@@ -843,7 +843,7 @@ public class GameMisc {
         VelocityForDamage(damage, vd);
         Math3D.VectorAdd(self.velocity, vd, self.velocity);
 
-        gclient_t client = (gclient_t) self.client;
+        gclient_t client = self.getClient();
         if (client != null)
         // bodies in the queue don't have a client anymore
         {
@@ -1028,13 +1028,13 @@ public class GameMisc {
 
                 savetarget = self.target;
                 self.target = self.pathtarget;
-                if (other.enemy != null && other.enemy.client != null)
+                if (other.enemy != null && other.enemy.getClient() != null)
                     activator = other.enemy;
                 else if (other.oldenemy != null
-                        && other.oldenemy.client != null)
+                        && other.oldenemy.getClient() != null)
                     activator = other.oldenemy;
                 else if (other.activator != null
-                        && other.activator.client != null)
+                        && other.activator.getClient() != null)
                     activator = other.activator;
                 else
                     activator = other;
@@ -1809,7 +1809,7 @@ public class GameMisc {
             edict_t dest;
             int i;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             if (client == null)
                 return;
 

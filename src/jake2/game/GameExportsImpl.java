@@ -246,7 +246,7 @@ public class GameExportsImpl implements GameExports {
                 return;
         }
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         int i;
         gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
@@ -445,7 +445,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
         int index = GameItems.ITEM_INDEX(it);
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
@@ -473,7 +473,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
         int index = GameItems.ITEM_INDEX(it);
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
@@ -485,9 +485,9 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Inven_f.
      */
-    private void Inven_f(edict_t ent) {
+    private void Inven_f(SubgameEntity ent) {
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         cl.showscores = false;
         cl.showhelp = false;
@@ -514,7 +514,7 @@ public class GameExportsImpl implements GameExports {
 
         GameItems.ValidateSelectedItem(ent);
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "No item to use.\n");
             return;
@@ -533,7 +533,7 @@ public class GameExportsImpl implements GameExports {
      */
     private static void WeapPrev_f(SubgameEntity ent) {
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         if (cl.pers.weapon == null)
             return;
@@ -567,7 +567,7 @@ public class GameExportsImpl implements GameExports {
         gitem_t it;
         int selected_weapon;
 
-        cl = (gclient_t) ent.client;
+        cl = ent.getClient();
 
         if (null == cl.pers.weapon)
             return;
@@ -600,7 +600,7 @@ public class GameExportsImpl implements GameExports {
     private static void WeapLast_f(SubgameEntity ent) {
         int index;
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         if (null == cl.pers.weapon || null == cl.pers.lastweapon)
             return;
@@ -624,7 +624,7 @@ public class GameExportsImpl implements GameExports {
 
         GameItems.ValidateSelectedItem(ent);
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "No item to drop.\n");
             return;
@@ -645,7 +645,7 @@ public class GameExportsImpl implements GameExports {
      *
      */
     private static void Score_f(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.showinventory = false;
         client.showhelp = false;
 
@@ -674,7 +674,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.showinventory = false;
         client.showscores = false;
 
@@ -693,7 +693,7 @@ public class GameExportsImpl implements GameExports {
      * Cmd_Kill_f
      */
     private static void Kill_f(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if ((GameBase.level.time - client.respawn_time) < 5)
             return;
         ent.flags &= ~GameDefines.FL_GODMODE;
@@ -705,8 +705,8 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_PutAway_f
      */
-    private static void PutAway_f(edict_t ent) {
-        gclient_t client = (gclient_t) ent.client;
+    private static void PutAway_f(SubgameEntity ent) {
+        gclient_t client = ent.getClient();
         client.showscores = false;
         client.showhelp = false;
         client.showinventory = false;
@@ -772,11 +772,11 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Wave_f
      */
-    private void Wave_f(edict_t ent, List<String> args) {
+    private void Wave_f(SubgameEntity ent, List<String> args) {
 
 
         // can't wave when ducked
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             return;
 
@@ -827,12 +827,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Say_f
      */
-    private void Say_f(edict_t ent, boolean team, boolean sayAll, List<String> args) {
-
-        int i, j;
-        edict_t other;
-        String text;
-        gclient_t cl;
+    private void Say_f(SubgameEntity ent, boolean team, boolean sayAll, List<String> args) {
 
         if (args.size() < 2 && !sayAll)
             return;
@@ -840,7 +835,8 @@ public class GameExportsImpl implements GameExports {
         if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             team = false;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
+        String text;
         if (team)
             text = "(" + client.pers.netname + "): ";
         else
@@ -868,7 +864,7 @@ public class GameExportsImpl implements GameExports {
         text += "\n";
 
         if (GameBase.flood_msgs.value != 0) {
-            cl = client;
+            gclient_t cl = client;
 
             if (GameBase.level.time < cl.flood_locktill) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "You can't talk for "
@@ -876,7 +872,7 @@ public class GameExportsImpl implements GameExports {
                         + " more seconds\n");
                 return;
             }
-            i = (int) (cl.flood_whenhead - GameBase.flood_msgs.value + 1);
+            int i = (int) (cl.flood_whenhead - GameBase.flood_msgs.value + 1);
             if (i < 0)
                 i = (10) + i;
             if (cl.flood_when[i] != 0
@@ -896,11 +892,11 @@ public class GameExportsImpl implements GameExports {
         if (Globals.dedicated.value != 0)
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
-        for (j = 1; j <= GameBase.game.maxclients; j++) {
-            other = GameBase.g_edicts[j];
+        for (int j = 1; j <= GameBase.game.maxclients; j++) {
+            SubgameEntity other = GameBase.g_edicts[j];
             if (!other.inuse)
                 continue;
-            if (other.client == null)
+            if (other.getClient() == null)
                 continue;
             if (team) {
                 if (!GameUtil.OnSameTeam(ent, other))
@@ -915,21 +911,17 @@ public class GameExportsImpl implements GameExports {
      * Returns the playerlist. TODO: The list is badly formatted at the moment.
      */
     private void PlayerList_f(edict_t ent) {
-        int i;
-        String st;
-        String text;
-        edict_t e2;
 
         // connect time, ping, score, name
-        text = "";
+        String text = "";
 
-        for (i = 0; i < GameBase.maxclients.value; i++) {
-            e2 = GameBase.g_edicts[1 + i];
+        for (int i = 0; i < GameBase.maxclients.value; i++) {
+            SubgameEntity e2 = GameBase.g_edicts[1 + i];
             if (!e2.inuse)
                 continue;
 
-            gclient_t client = (gclient_t) e2.client;
-            st = ""
+            gclient_t client = e2.getClient();
+            String st = ""
                     + (GameBase.level.framenum - client.resp.enterframe)
                     / 600
                     + ":"
@@ -953,7 +945,7 @@ public class GameExportsImpl implements GameExports {
     public void ClientCommand(edict_t player, List<String> args) {
         SubgameEntity ent = GameBase.g_edicts[player.index];
 
-        if (ent.client == null)
+        if (ent.getClient() == null)
             return; // not fully in game yet
 
         String cmd = args.get(0).toLowerCase();
@@ -1180,8 +1172,8 @@ public class GameExportsImpl implements GameExports {
             // mark all clients as unconnected
             for (int i = 0; i < GameBase.maxclients.value; i++) {
                 ent = GameBase.g_edicts[i + 1];
-                ent.client = GameBase.game.clients[i];
-                gclient_t client = (gclient_t) ent.client;
+                ent.setClient(GameBase.game.clients[i]);
+                gclient_t client = ent.getClient();
                 client.pers.connected = false;
             }
 
@@ -1220,12 +1212,12 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public String ClientUserinfoChanged(edict_t ent, String userinfo) {
-        return PlayerClient.ClientUserinfoChanged(ent, userinfo);
+        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo);
     }
 
     @Override
     public boolean ClientConnect(edict_t ent, String userinfo) {
-        return PlayerClient.ClientConnect(ent, userinfo);
+        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo);
     }
 
     @Override

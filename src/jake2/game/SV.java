@@ -327,8 +327,8 @@ public final class SV {
         Math3D.VectorCopy(pusher.s.angles,
                 GameBase.pushed[GameBase.pushed_p].angles);
 
-        if (pusher.client != null)
-            GameBase.pushed[GameBase.pushed_p].deltayaw = pusher.client.getPlayerState().pmove.delta_angles[Defines.YAW];
+        if (pusher.getClient() != null)
+            GameBase.pushed[GameBase.pushed_p].deltayaw = pusher.getClient().getPlayerState().pmove.delta_angles[Defines.YAW];
 
         GameBase.pushed_p++;
 
@@ -381,8 +381,8 @@ public final class SV {
 
                 // try moving the contacted entity
                 Math3D.VectorAdd(check.s.origin, move, check.s.origin);
-                if (check.client != null) { // FIXME: doesn't rotate monsters?
-                    check.client.getPlayerState().pmove.delta_angles[Defines.YAW] += amove[Defines.YAW];
+                if (check.getClient() != null) { // FIXME: doesn't rotate monsters?
+                    check.getClient().getPlayerState().pmove.delta_angles[Defines.YAW] += amove[Defines.YAW];
                 }
 
                 // figure movement due to the pusher's amove
@@ -426,8 +426,8 @@ public final class SV {
                 pushed_t p = GameBase.pushed[ip];
                 Math3D.VectorCopy(p.origin, p.ent.s.origin);
                 Math3D.VectorCopy(p.angles, p.ent.s.angles);
-                if (p.ent.client != null) {
-                    p.ent.client.getPlayerState().pmove.delta_angles[Defines.YAW] = (short) p.deltayaw;
+                if (p.ent.getClient() != null) {
+                    p.ent.getClient().getPlayerState().pmove.delta_angles[Defines.YAW] = (short) p.deltayaw;
                 }
                 GameBase.gi.linkentity(p.ent);
             }
@@ -794,7 +794,7 @@ public final class SV {
                     if (ent.goalentity == null)
                         ent.goalentity = ent.enemy;
                     dz = ent.s.origin[2] - ent.goalentity.s.origin[2];
-                    if (ent.goalentity.client != null) {
+                    if (ent.goalentity.getClient() != null) {
                         if (dz > 40)
                             neworg[2] -= 8;
                         if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel < 2)))

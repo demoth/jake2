@@ -24,7 +24,6 @@ package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
@@ -337,7 +336,7 @@ public class Monster {
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.think = monster_triggered_spawn;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-            if (activator.client != null)
+            if (activator.getClient() != null)
                 self.enemy = activator;
             self.use = GameUtil.monster_use;
         }

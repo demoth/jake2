@@ -53,7 +53,7 @@ public class PlayerClient {
             self.s.angles[2] = 0;
     
             self.s.sound = 0;
-            gclient_t client = (gclient_t) self.client;
+            gclient_t client = self.getClient();
             client.weapon_sound = 0;
     
             self.maxs[2] = -8;
@@ -319,11 +319,11 @@ public class PlayerClient {
         String message2;
         boolean ff;
 
-        gclient_t attackerClient = (gclient_t) attacker.client;
+        gclient_t attackerClient = attacker.getClient();
         if (GameBase.coop.value != 0 && attackerClient != null)
             GameBase.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
-        gclient_t client = (gclient_t) self.client;
+        gclient_t client = self.getClient();
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
             ff = (GameBase.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
             mod = GameBase.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
@@ -565,14 +565,14 @@ public class PlayerClient {
                     | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
             if (GameBase.coop.value != 0) {
-                gclient_t client = (gclient_t) ent.client;
+                gclient_t client = ent.getClient();
                 GameBase.game.clients[i].pers.score = client.resp.score;
             }
         }
     }
 
     public static void FetchClientEntData(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
         ent.flags |= client.pers.savedFlags;
@@ -713,7 +713,7 @@ public class PlayerClient {
     public static SubgameEntity SelectCoopSpawnPoint(edict_t ent) {
 
         //index = ent.client - game.clients;
-        int index = ent.client.getIndex();
+        int index = ent.getClient().getIndex();
 
         // player 0 starts in normal player spawn point
         if (index == 0)
@@ -860,7 +860,7 @@ public class PlayerClient {
             self.s.event = Defines.EV_PLAYER_TELEPORT;
 
             // hold in place briefly
-            gclient_t client = (gclient_t) self.client;
+            gclient_t client = self.getClient();
             client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
             client.getPlayerState().pmove.pm_time = 14;
 
@@ -889,7 +889,7 @@ public class PlayerClient {
         // if the user wants to become a spectator, make sure he doesn't
         // exceed max_spectators
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.pers.spectator) {
             String value = Info.Info_ValueForKey(client.pers.userinfo,
                     "spectator");
@@ -906,7 +906,7 @@ public class PlayerClient {
 
             // count spectators
             for (i = 1, numspec = 0; i <= GameBase.maxclients.value; i++) {
-                gclient_t other = (gclient_t) GameBase.g_edicts[i].client;
+                gclient_t other = GameBase.g_edicts[i].getClient();
                 if (GameBase.g_edicts[i].inuse && other.pers.spectator)
                     numspec++;
             }
@@ -987,7 +987,7 @@ public class PlayerClient {
         SelectSpawnPoint(ent, spawn_origin, spawn_angles);
 
         index = ent.index - 1;
-        client = (gclient_t) ent.client;
+        client = ent.getClient();
 
         // deathmatch wipes most client data every spawn
         if (GameBase.deathmatch.value != 0) {
@@ -1028,7 +1028,7 @@ public class PlayerClient {
 
         // clear entity values
         ent.groundentity = null;
-        ent.client = GameBase.game.clients[index];
+        ent.setClient(GameBase.game.clients[index]);
         ent.takedamage = Defines.DAMAGE_AIM;
         ent.movetype = GameDefines.MOVETYPE_WALK;
         ent.viewheight = 22;
@@ -1052,7 +1052,7 @@ public class PlayerClient {
         Math3D.VectorClear(ent.velocity);
 
         // clear playerstate values
-        ent.client.getPlayerState().clear();
+        ent.getClient().getPlayerState().clear();
 
         client.getPlayerState().pmove.origin[0] = (short) (spawn_origin[0] * 8);
         client.getPlayerState().pmove.origin[1] = (short) (spawn_origin[1] * 8);
@@ -1107,7 +1107,7 @@ public class PlayerClient {
             ent.movetype = GameDefines.MOVETYPE_NOCLIP;
             ent.solid = Defines.SOLID_NOT;
             ent.svflags |= Defines.SVF_NOCLIENT;
-            ent.client.getPlayerState().gunindex = 0;
+            ent.getClient().getPlayerState().gunindex = 0;
             GameBase.gi.linkentity(ent);
             return;
         } else
@@ -1130,7 +1130,7 @@ public class PlayerClient {
     public static void ClientBeginDeathmatch(SubgameEntity ent) {
         GameUtil.G_InitEdict(ent, ent.index);
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         InitClientResp(client);
 
         // locate ent at a spawn point
@@ -1158,7 +1158,7 @@ public class PlayerClient {
         int i;
 
         //ent.client = game.clients + (ent - g_edicts - 1);
-        ent.client = GameBase.game.clients[ent.index - 1];
+        ent.setClient(GameBase.game.clients[ent.index - 1]);
 
         if (GameBase.deathmatch.value != 0) {
             ClientBeginDeathmatch(ent);
@@ -1167,7 +1167,7 @@ public class PlayerClient {
 
         // if there is already a body waiting for us (a loadgame), just
         // take it, otherwise spawn one from scratch
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (ent.inuse == true) {
             // the client has cleared the client side viewangles upon
             // connecting to the server, which is different than the
@@ -1205,7 +1205,7 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    static String ClientUserinfoChanged(edict_t ent, String userinfo) {
+    static String ClientUserinfoChanged(SubgameEntity ent, String userinfo) {
         String s;
         int playernum;
 
@@ -1217,7 +1217,7 @@ public class PlayerClient {
         // set name
         s = Info.Info_ValueForKey(userinfo, "name");
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.pers.netname = s;
 
         // set spectator
@@ -1262,7 +1262,7 @@ public class PlayerClient {
         return userinfo;
     }
 
-    static boolean ClientConnect(edict_t ent, String userinfo) {
+    static boolean ClientConnect(SubgameEntity ent, String userinfo) {
         String value;
 
         // check to see if they are on the banned IP list
@@ -1285,7 +1285,7 @@ public class PlayerClient {
 
             // count spectators
             for (i = numspec = 0; i < GameBase.maxclients.value; i++) {
-                gclient_t other = (gclient_t) GameBase.g_edicts[i + 1].client;
+                gclient_t other = GameBase.g_edicts[i + 1].getClient();
                 if (GameBase.g_edicts[i + 1].inuse && other.pers.spectator)
                     numspec++;
             }
@@ -1306,11 +1306,11 @@ public class PlayerClient {
         }
 
         // they can connect
-        ent.client = GameBase.game.clients[ent.index - 1];
+        ent.setClient(GameBase.game.clients[ent.index - 1]);
 
         // if there is already a body waiting for us (a loadgame), just
         // take it, otherwise spawn one from scratch
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (ent.inuse == false) {
             // clear the respawning variables
             InitClientResp(client);
@@ -1330,7 +1330,7 @@ public class PlayerClient {
 
     static void ClientDisconnect(SubgameEntity ent) {
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return;
 
@@ -1377,7 +1377,7 @@ public class PlayerClient {
     static void ClientThink(SubgameEntity ent, usercmd_t ucmd) {
 
         GameBase.level.current_entity = ent;
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
 
         if (GameBase.level.intermissiontime != 0) {
             client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
@@ -1536,7 +1536,7 @@ public class PlayerClient {
         // update chase cam if being followed
         for (i = 1; i <= GameBase.maxclients.value; i++) {
             other = GameBase.g_edicts[i];
-            gclient_t otherClient = (gclient_t) other.client;
+            gclient_t otherClient = other.getClient();
             if (other.inuse && otherClient.chase_target == ent)
                 GameChase.UpdateChaseCam(other);
         }
@@ -1553,7 +1553,7 @@ public class PlayerClient {
         if (GameBase.level.intermissiontime != 0)
             return;
 
-        client = (gclient_t) ent.client;
+        client = ent.getClient();
 
         if (GameBase.deathmatch.value != 0
                 && client.pers.spectator != client.resp.spectator
@@ -1597,10 +1597,10 @@ public class PlayerClient {
     /** 
      * Returns true, if the players gender flag was set to female. 
      */
-    public static boolean IsFemale(edict_t ent) {
+    public static boolean IsFemale(SubgameEntity ent) {
         char info;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return false;
     
@@ -1615,10 +1615,10 @@ public class PlayerClient {
      * Returns true, if the players gender flag was neither set to female nor to
      * male.
      */
-    public static boolean IsNeutral(edict_t ent) {
+    public static boolean IsNeutral(SubgameEntity ent) {
         char info;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return false;
     
@@ -1639,7 +1639,7 @@ public class PlayerClient {
     
         edict_t world = GameBase.g_edicts[0];
 
-        gclient_t client = (gclient_t) self.client;
+        gclient_t client = self.getClient();
         if (attacker != null && attacker != world && attacker != self) {
             Math3D.VectorSubtract(attacker.s.origin, self.s.origin, dir);
         } else if (inflictor != null && inflictor != world && inflictor != self) {
@@ -1673,7 +1673,7 @@ public class PlayerClient {
         if (GameBase.deathmatch.value == 0)
             return;
 
-        gclient_t client = (gclient_t) self.client;
+        gclient_t client = self.getClient();
         gitem_t item = client.pers.weapon;
         if (0 == client.pers.inventory[client.ammo_index])
             item = null;

@@ -25,7 +25,6 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -81,7 +80,7 @@ public class PlayerView {
         float[] acolor = { 1.0f, 1.0f, 1.0f };
         float[] bcolor = { 1.0f, 0.0f, 0.0f };
 
-        client = (gclient_t) player.client;
+        client = player.getClient();
 
         // flash the backgrounds behind the status numbers
         client.getPlayerState().stats[Defines.STAT_FLASHES] = 0;
@@ -227,7 +226,7 @@ public class PlayerView {
         float[] v = { 0, 0, 0 };
 
         // base angles
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         angles = client.getPlayerState().kick_angles;
 
         // if dead, fix the angle and don't add any kick
@@ -332,7 +331,7 @@ public class PlayerView {
         float delta;
 
         // gun angles from bobbing
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.getPlayerState().gunangles[Defines.ROLL] = xyspeed * bobfracsin * 0.005f;
         client.getPlayerState().gunangles[Defines.YAW] = xyspeed * bobfracsin * 0.01f;
         if ((bobcycle & 1) != 0) {
@@ -396,7 +395,7 @@ public class PlayerView {
         float[] vieworg = { 0, 0, 0 };
         int remaining;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.getPlayerState().blend[0] = client.getPlayerState().blend[1] = client.getPlayerState().blend[2] = client.getPlayerState().blend[3] = 0;
 
         // add for contents
@@ -483,7 +482,7 @@ public class PlayerView {
         if (ent.movetype == GameDefines.MOVETYPE_NOCLIP)
             return;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if ((client.oldvelocity[2] < 0)
                 && (ent.velocity[2] > client.oldvelocity[2])
                 && (null == ent.groundentity)) {
@@ -653,7 +652,7 @@ public class PlayerView {
 
             // if out of air, start drowning
             if (current_player.air_finished < GameBase.level.time) { // drown!
-                gclient_t client = (gclient_t) current_player.client;
+                gclient_t client = current_player.getClient();
                 if (client.next_drown_time < GameBase.level.time
                         && current_player.health > 0) {
                     client.next_drown_time = GameBase.level.time + 1;
@@ -759,7 +758,7 @@ public class PlayerView {
             }
         }
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.quad_framenum > GameBase.level.framenum) {
             remaining = (int) client.quad_framenum
                     - GameBase.level.framenum;
@@ -804,7 +803,7 @@ public class PlayerView {
     public static void G_SetClientSound(SubgameEntity ent) {
         String weap;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.pers.game_helpchanged != GameBase.game.helpchanged) {
             client.pers.game_helpchanged = GameBase.game.helpchanged;
             client.pers.helpchanged = 1;
@@ -848,7 +847,7 @@ public class PlayerView {
         if (ent.s.modelindex != 255)
             return; // not in the player model
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
 
         if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
             duck = true;
@@ -935,7 +934,7 @@ public class PlayerView {
         int i;
 
         current_player = ent;
-        current_client = (gclient_t) ent.client;
+        current_client = ent.getClient();
 
         //
         // If the origin or velocity have changed since ClientThink(),
@@ -1042,7 +1041,7 @@ public class PlayerView {
         G_SetClientFrame(ent);
 
         Math3D.VectorCopy(ent.velocity, current_client.oldvelocity);
-        Math3D.VectorCopy(ent.client.getPlayerState().viewangles, current_client.oldviewangles);
+        Math3D.VectorCopy(ent.getClient().getPlayerState().viewangles, current_client.oldviewangles);
 
         // clear weapon kicks
         Math3D.VectorClear(current_client.kick_origin);

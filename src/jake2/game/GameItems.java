@@ -83,7 +83,7 @@ public class GameItems {
             gitem_t item;
             int index;
 
-            client_persistant_t clPers = ((gclient_t)other.client).pers;
+            client_persistant_t clPers = (other.getClient()).pers;
             if (clPers.max_bullets < 300)
                 clPers.max_bullets = 300;
             if (clPers.max_shells < 200)
@@ -193,7 +193,7 @@ public class GameItems {
             if (ent.classname.equals("item_breather"))
                 taken = false;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             if (client == null)
                 return;
             if (other.health < 1)
@@ -287,7 +287,7 @@ public class GameItems {
         public void use(SubgameEntity ent, gitem_t item) {
             int timeout;
 
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
@@ -311,7 +311,7 @@ public class GameItems {
     static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
         public String getID() { return "use_invulnerability";}
         public void use(SubgameEntity ent, gitem_t item) {
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
@@ -327,7 +327,7 @@ public class GameItems {
     static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
         public String getID() { return "use_breather";}
         public void use(SubgameEntity ent, gitem_t item) {
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
     
             GameUtil.ValidateSelectedItem(ent);
@@ -344,7 +344,7 @@ public class GameItems {
     static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
         public String getID() { return "use_envirosuit";}
         public void use(SubgameEntity ent, gitem_t item) {
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
     
@@ -361,7 +361,7 @@ public class GameItems {
         public String getID() { return "use_silencer";}
         public void use(SubgameEntity ent, gitem_t item) {
 
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
             GameUtil.ValidateSelectedItem(ent);
             client.silencer_shots += 30;
@@ -373,7 +373,7 @@ public class GameItems {
     static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
         public String getID() { return "pickup_key";}
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             if (GameBase.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
                     if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
@@ -407,7 +407,7 @@ public class GameItems {
             else
                 count = ent.item.quantity;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             oldcount = client.pers.inventory[ITEM_INDEX(ent.item)];
     
             if (!Add_Ammo(other, ent.item, count))
@@ -441,7 +441,7 @@ public class GameItems {
             old_armor_index = ArmorIndex(other);
     
             // handle armor shards specially
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             if (ent.item.tag == GameDefines.ARMOR_SHARD) {
                 if (0 == old_armor_index)
                     client.pers.inventory[jacket_armor_index] = 2;
@@ -515,7 +515,7 @@ public class GameItems {
     
             int quantity;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
     
             client.pers.inventory[ITEM_INDEX(ent.item)]++;
@@ -535,7 +535,7 @@ public class GameItems {
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
             int quantity;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
             if ((GameBase.skill.value == 1 && quantity >= 2)
                     || (GameBase.skill.value >= 2 && quantity >= 1))
@@ -599,7 +599,7 @@ public class GameItems {
             gitem_t item;
             int index;
 
-            gclient_t client = (gclient_t) other.client;
+            gclient_t client = other.getClient();
             if (client.pers.max_bullets < 250)
                 client.pers.max_bullets = 250;
             if (client.pers.max_shells < 150)
@@ -640,7 +640,7 @@ public class GameItems {
     
             index = ITEM_INDEX(item);
             SubgameEntity dropped = Drop_Item(ent, item);
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             if (client.pers.inventory[index] >= item.quantity)
                 dropped.count = item.quantity;
             else
@@ -664,7 +664,7 @@ public class GameItems {
         public String getID() { return "drop_general";}
         public void drop(SubgameEntity ent, gitem_t item) {
             Drop_Item(ent, item);
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             client.pers.inventory[ITEM_INDEX(item)]--;
             ValidateSelectedItem(ent);
         }
@@ -673,7 +673,7 @@ public class GameItems {
     static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
         public String getID() { return "drop_powerarmor";}
         public void drop(SubgameEntity ent, gitem_t item) {
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[ITEM_INDEX(item)] == 1))
                 Use_PowerArmor.use(ent, item);
@@ -761,7 +761,7 @@ public class GameItems {
                                 Defines.ATTN_NORM, 0);
             } else {
                 index = ITEM_INDEX(FindItem("cells"));
-                gclient_t client = (gclient_t) ent.client;
+                gclient_t client = ent.getClient();
                 if (0 == client.pers.inventory[index]) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
                             "No cells for power armor.\n");
@@ -874,7 +874,7 @@ public class GameItems {
     
         dropped.setOwner(ent);
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client != null) {
             trace_t trace;
     
@@ -917,7 +917,7 @@ public class GameItems {
     }
 
     static int PowerArmorType(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
     
@@ -933,8 +933,8 @@ public class GameItems {
         return GameDefines.POWER_ARMOR_NONE;
     }
 
-    static int ArmorIndex(edict_t ent) {
-        gclient_t client = (gclient_t) ent.client;
+    static int ArmorIndex(SubgameEntity ent) {
+        gclient_t client = ent.getClient();
         if (client == null)
             return 0;
     
@@ -953,7 +953,7 @@ public class GameItems {
     public static boolean Pickup_PowerArmor(SubgameEntity ent, SubgameEntity other) {
         int quantity;
 
-        gclient_t client = (gclient_t) other.client;
+        gclient_t client = other.getClient();
         quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
     
         client.pers.inventory[ITEM_INDEX(ent.item)]++;
@@ -969,11 +969,11 @@ public class GameItems {
         return true;
     }
 
-    static boolean Add_Ammo(edict_t ent, gitem_t item, int count) {
+    static boolean Add_Ammo(SubgameEntity ent, gitem_t item, int count) {
         int index;
         int max;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return false;
     
@@ -1034,7 +1034,7 @@ public class GameItems {
         int i, index;
         gitem_t it;
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
     
         if (cl.chase_target != null) {
             GameChase.ChaseNext(ent);
@@ -1063,7 +1063,7 @@ public class GameItems {
         int i, index;
         gitem_t it;
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
     
         if (cl.chase_target != null) {
             GameChase.ChasePrev(ent);
@@ -1305,7 +1305,7 @@ public class GameItems {
         boolean taken;
 
         // freed edicts have not items.
-        gclient_t client = (gclient_t) other.client;
+        gclient_t client = other.getClient();
         if (client == null || ent.item == null)
             return;
         if (other.health < 1)
@@ -1372,7 +1372,7 @@ public class GameItems {
     }
 
     static void ValidateSelectedItem(SubgameEntity ent) {
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid

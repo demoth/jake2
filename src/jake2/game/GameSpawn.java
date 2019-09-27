@@ -25,7 +25,6 @@ package jake2.game;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 
 public class GameSpawn {
@@ -446,7 +445,7 @@ public class GameSpawn {
 
         // set client fields on player ents
         for (i = 0; i < GameBase.game.maxclients; i++)
-            GameBase.g_edicts[i + 1].client = GameBase.game.clients[i];
+            GameBase.g_edicts[i + 1].setClient(GameBase.game.clients[i]);
 
         ent = null;
         inhibit = 0; 

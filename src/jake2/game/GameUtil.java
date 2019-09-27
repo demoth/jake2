@@ -224,7 +224,7 @@ public class GameUtil {
     /** 
      * Returns true, if two edicts are on the same team. 
      */
-    public static boolean OnSameTeam(edict_t ent1, edict_t ent2) {
+    public static boolean OnSameTeam(SubgameEntity ent1, SubgameEntity ent2) {
         if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
 
@@ -237,10 +237,10 @@ public class GameUtil {
      * Returns the team string of an entity 
      * with respect to rteam_by_model and team_by_skin. 
      */
-    static String ClientTeam(edict_t ent) {
+    static String ClientTeam(SubgameEntity ent) {
         String value;
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client == null)
             return "";
 
@@ -260,7 +260,7 @@ public class GameUtil {
 
     static void ValidateSelectedItem(SubgameEntity ent) {
 
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid
@@ -396,7 +396,7 @@ public class GameUtil {
         if (!client.inuse)
             return false;
 
-        if (client.client != null) {
+        if (client.getClient() != null) {
             if ((client.flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else if ((client.svflags & Defines.SVF_MONSTER) != 0) {
@@ -443,9 +443,9 @@ public class GameUtil {
             if (!self.enemy.classname.equals("player_noise")) {
                 self.monsterinfo.aiflags &= ~GameDefines.AI_SOUND_TARGET;
 
-                if (self.enemy.client == null) {
+                if (self.enemy.getClient() == null) {
                     self.enemy = self.enemy.enemy;
-                    if (self.enemy.client == null) {
+                    if (self.enemy.getClient() == null) {
                         self.enemy = null;
                         return false;
                     }
@@ -499,7 +499,7 @@ public class GameUtil {
 
     public static void FoundTarget(SubgameEntity self) {
         // let other monsters see this monster for a while
-        if (self.enemy.client != null) {
+        if (self.enemy.getClient() != null) {
             GameBase.level.sight_entity = self;
             GameBase.level.sight_entity_framenum = GameBase.level.framenum;
             GameBase.level.sight_entity.light_level = 128;
@@ -671,7 +671,7 @@ public class GameUtil {
                 return;
             if ((activator.flags & GameDefines.FL_NOTARGET) != 0)
                 return;
-            if ((null == activator.client)
+            if ((null == activator.getClient())
                     && 0 == (activator.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
                 return;
 

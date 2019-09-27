@@ -111,7 +111,7 @@ public class GameCombat {
             // content type
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 GameBase.level.killed_monsters++;
-                gclient_t attackerClient = (gclient_t) attacker.client;
+                gclient_t attackerClient = attacker.getClient();
                 if (GameBase.coop.value != 0 && attackerClient != null)
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
@@ -165,7 +165,7 @@ public class GameCombat {
         if (damage == 0)
             return 0;
     
-        client = (gclient_t) ent.client;
+        client = ent.getClient();
     
         if ((dflags & Defines.DAMAGE_NO_ARMOR) != 0)
             return 0;
@@ -228,7 +228,7 @@ public class GameCombat {
         return save;
     }
 
-    private static int CheckArmor(edict_t ent, float[] point, float[] normal,
+    private static int CheckArmor(SubgameEntity ent, float[] point, float[] normal,
                                   int damage, int te_sparks, int dflags) {
         gclient_t client;
         int save;
@@ -238,7 +238,7 @@ public class GameCombat {
         if (damage == 0)
             return 0;
     
-        client = (gclient_t) ent.client;
+        client = ent.getClient();
     
         if (client == null)
             return 0;
@@ -272,7 +272,7 @@ public class GameCombat {
     }
 
     private static void M_ReactToDamage(SubgameEntity targ, SubgameEntity attacker) {
-        if ((null != attacker.client)
+        if ((null != attacker.getClient())
                 && 0 != (attacker.svflags & Defines.SVF_MONSTER))
             return;
     
@@ -282,7 +282,7 @@ public class GameCombat {
         // if we are a good guy monster and our attacker is a player
         // or another good guy, do not get mad at them
         if (0 != (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
-            if (attacker.client != null
+            if (attacker.getClient() != null
                     || (attacker.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY) != 0)
                 return;
         }
@@ -291,13 +291,13 @@ public class GameCombat {
     
         // if attacker is a client, get mad at them because he's good and we're
         // not
-        if (attacker.client != null) {
+        if (attacker.getClient() != null) {
             targ.monsterinfo.aiflags &= ~GameDefines.AI_SOUND_TARGET;
     
             // this can only happen in coop (both new and old enemies are
             // clients)
             // only switch if can't see the current enemy
-            if (targ.enemy != null && targ.enemy.client != null) {
+            if (targ.enemy != null && targ.enemy.getClient() != null) {
                 if (GameUtil.visible(targ, targ.enemy)) {
                     targ.oldenemy = attacker;
                     return;
@@ -319,7 +319,7 @@ public class GameCombat {
                 && (!(attacker.classname.equals("monster_supertank")))
                 && (!(attacker.classname.equals("monster_makron")))
                 && (!(attacker.classname.equals("monster_jorg")))) {
-            if (targ.enemy != null && targ.enemy.client != null)
+            if (targ.enemy != null && targ.enemy.getClient() != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker;
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
@@ -327,7 +327,7 @@ public class GameCombat {
         }
         // if they *meant* to shoot us, then shoot back
         else if (attacker.enemy == targ) {
-            if (targ.enemy != null && targ.enemy.client != null)
+            if (targ.enemy != null && targ.enemy.getClient() != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker;
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
@@ -336,7 +336,7 @@ public class GameCombat {
         // otherwise get mad at whoever they are mad at (help our buddy) unless
         // it is us!
         else if (attacker.enemy != null && attacker.enemy != targ) {
-            if (targ.enemy != null && targ.enemy.client != null)
+            if (targ.enemy != null && targ.enemy.getClient() != null)
                 targ.oldenemy = targ.enemy;
             targ.enemy = attacker.enemy;
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED))
@@ -416,13 +416,13 @@ public class GameCombat {
     
         // easy mode takes half damage
         if (GameBase.skill.value == 0 && GameBase.deathmatch.value == 0
-                && targ.client != null) {
+                && targ.getClient() != null) {
             damage *= 0.5;
             if (damage == 0)
                 damage = 1;
         }
     
-        client = (gclient_t) targ.client;
+        client = targ.getClient();
     
         if ((dflags & Defines.DAMAGE_BULLET) != 0)
             te_sparks = Defines.TE_BULLET_SPARKS;
@@ -434,7 +434,7 @@ public class GameCombat {
         // bonus damage for suprising a monster
         if (0 == (dflags & Defines.DAMAGE_RADIUS)
                 && (targ.svflags & Defines.SVF_MONSTER) != 0
-                && (attacker.client != null) && (targ.enemy == null)
+                && (attacker.getClient() != null) && (targ.enemy == null)
                 && (targ.health > 0))
             damage *= 2;
     
@@ -455,7 +455,7 @@ public class GameCombat {
                 else
                     mass = targ.mass;
     
-                if (targ.client != null && attacker == targ)
+                if (targ.getClient() != null && attacker == targ)
                     Math3D.VectorScale(dir, 1600.0f * (float) knockback / mass,
                             kvel);
                 // the rocket jump hack...

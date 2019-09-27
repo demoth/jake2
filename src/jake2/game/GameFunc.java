@@ -793,7 +793,7 @@ class GameFunc {
         public String getID() { return "plat_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.client)) {
+                    && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
@@ -829,7 +829,7 @@ class GameFunc {
         public String getID() { return "touch_plat_center";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (other.client == null)
+            if (other.getClient() == null)
                 return;
 
             if (other.health <= 0)
@@ -1041,7 +1041,7 @@ class GameFunc {
         public String getID() { return "button_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (null == other.client)
+            if (null == other.getClient())
                 return;
 
             if (other.health <= 0)
@@ -1226,7 +1226,7 @@ class GameFunc {
                 return;
 
             if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.client))
+                    && (null == other.getClient()))
                 return;
 
             if (0 != (self.getOwner().spawnflags & DOOR_NOMONSTER)
@@ -1327,7 +1327,7 @@ class GameFunc {
         public void blocked(SubgameEntity self, SubgameEntity other) {
 
             if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.client)) {
+                    && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
@@ -1379,7 +1379,7 @@ class GameFunc {
         public String getID() { return "door_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (null == other.client)
+            if (null == other.getClient())
                 return;
 
             if (GameBase.level.time < self.touch_debounce_time)
@@ -1646,7 +1646,7 @@ class GameFunc {
         public String getID() { return "train_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.client)) {
+                    && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,
@@ -2084,7 +2084,7 @@ class GameFunc {
         public String getID() { return "door_secret_blocked";}
         public void blocked(SubgameEntity self, SubgameEntity other) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.client)) {
+                    && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin, 100000, 1, 0,

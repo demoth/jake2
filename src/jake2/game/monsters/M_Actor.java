@@ -1206,7 +1206,7 @@ public class M_Actor {
             //GameBase.gi.sound (self, CHAN_VOICE, actor.sound_pain, 1,
             // ATTN_NORM, 0);
 
-            if ((other.client != null) && (Lib.random() < 0.4)) {
+            if ((other.getClient() != null) && (Lib.random() < 0.4)) {
                 float v[] = { 0, 0, 0 };
 
                 String name;

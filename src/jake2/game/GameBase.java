@@ -53,6 +53,11 @@ public class GameBase {
 
     static int num_edicts;
 
+    /**
+     * entity with index = 0 is always the worldspawn.
+     * entities with indices 1..maxclients are the players
+     * then go other stuff
+     */
     public static SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
     static {
         for (int n = 0; n < Defines.MAX_EDICTS; n++)
@@ -298,7 +303,7 @@ public class GameBase {
         SubgameEntity hit;
 
         // dead things don't activate triggers!
-        if ((ent.client != null || (ent.svflags & Defines.SVF_MONSTER) != 0)
+        if ((ent.getClient() != null || (ent.svflags & Defines.SVF_MONSTER) != 0)
                 && (ent.health <= 0))
             return;
 
@@ -410,7 +415,7 @@ public class GameBase {
         // and damage has been added
         for (i = 0; i < maxclients.value; i++) {
             ent = g_edicts[1 + i];
-            if (!ent.inuse || null == ent.client)
+            if (!ent.inuse || null == ent.getClient())
                 continue;
             PlayerView.ClientEndServerFrame(ent);
         }
@@ -568,7 +573,7 @@ public class GameBase {
             ent = g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
-            gclient_t client = (gclient_t) ent.client;
+            gclient_t client = ent.getClient();
             if (ent.health > client.pers.max_health)
                 ent.health = client.pers.max_health;
         }

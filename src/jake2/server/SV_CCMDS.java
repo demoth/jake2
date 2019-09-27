@@ -682,7 +682,7 @@ public class SV_CCMDS {
 			return;
 		}
 
-		if (SV_MAIN.maxclients.value == 1 && SV_INIT.svs.clients[0].edict.client.getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
+		if (SV_MAIN.maxclients.value == 1 && SV_INIT.svs.clients[0].edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
 			Com.Printf("\nCan't savegame while dead!\n");
 			return;
 		}
@@ -763,7 +763,7 @@ public class SV_CCMDS {
 				continue;
 
 			Com.Printf("%3i ", new Vargs().add(i));
-			Com.Printf("%5i ", new Vargs().add(cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]));
+			Com.Printf("%5i ", new Vargs().add(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]));
 
 			if (cl.state == ClientStates.CS_CONNECTED)
 				Com.Printf("CNCT ");

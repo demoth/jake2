@@ -22,13 +22,11 @@
 
 package jake2.game;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 
 public class PlayerHud {
 
@@ -41,7 +39,7 @@ public class PlayerHud {
      */
 
     public static void MoveClientToIntermission(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0)
             client.showscores = true;
         Math3D.VectorCopy(GameBase.level.intermission_origin, ent.s.origin);
@@ -113,7 +111,7 @@ public class PlayerHud {
                         // null pointer exception fixed. (RST) 
                         if (GameItemList.itemlist[n] != null)
                             if ((GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0) {
-                                gclient_t otherClient = (gclient_t) client.client;
+                                gclient_t otherClient = client.getClient();
                                 otherClient.pers.inventory[n] = 0;
                             }
                     }
@@ -273,7 +271,7 @@ public class PlayerHud {
      * ==================
      */
     public static void Cmd_Score_f(SubgameEntity ent) {
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.showinventory = false;
         client.showhelp = false;
 
@@ -304,7 +302,7 @@ public class PlayerHud {
         //
         // health
         //
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         client.getPlayerState().stats[Defines.STAT_HEALTH_ICON] = (short) GameBase.level.pic_health;
         client.getPlayerState().stats[Defines.STAT_HEALTH] = (short) ent.health;
 
@@ -459,11 +457,11 @@ public class PlayerHud {
     public static void G_CheckChaseStats(edict_t ent) {
 
         for (int i = 1; i <= GameBase.maxclients.value; i++) {
-            gclient_t cl = (gclient_t) GameBase.g_edicts[i].client;
+            gclient_t cl = GameBase.g_edicts[i].getClient();
             if (!GameBase.g_edicts[i].inuse || cl.chase_target != ent)
                 continue;
             //memcpy(cl.ps.stats, ent.client.ps.stats, sizeof(cl.ps.stats));
-            System.arraycopy(ent.client.getPlayerState().stats, 0, cl.getPlayerState().stats, 0,
+            System.arraycopy(ent.getClient().getPlayerState().stats, 0, cl.getPlayerState().stats, 0,
                     Defines.MAX_STATS);
 
             G_SetSpectatorStats(GameBase.g_edicts[i]);
@@ -476,7 +474,7 @@ public class PlayerHud {
      * ===============
      */
     public static void G_SetSpectatorStats(SubgameEntity ent) {
-        gclient_t cl = (gclient_t) ent.client;
+        gclient_t cl = ent.getClient();
 
         if (null == cl.chase_target)
             G_SetStats(ent);

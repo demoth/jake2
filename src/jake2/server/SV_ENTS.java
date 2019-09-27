@@ -413,7 +413,7 @@ public class SV_ENTS {
         byte bitvector[];
 
         clent = client.edict;
-        if (clent.client == null)
+        if (clent.getClient() == null)
             return; // not in game yet
 
         // this is the frame we are creating
@@ -423,8 +423,8 @@ public class SV_ENTS {
 
         // find the client's PVS
         for (i = 0; i < 3; i++)
-            org[i] = clent.client.getPlayerState().pmove.origin[i] * 0.125f
-                    + clent.client.getPlayerState().viewoffset[i];
+            org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
+                    + clent.getClient().getPlayerState().viewoffset[i];
 
         leafnum = CM.CM_PointLeafnum(org);
         clientarea = CM.CM_LeafArea(leafnum);
@@ -434,7 +434,7 @@ public class SV_ENTS {
         frame.areabytes = CM.CM_WriteAreaBits(frame.areabits, clientarea);
 
         // grab the current player_state_t
-        frame.ps.set(clent.client.getPlayerState());
+        frame.ps.set(clent.getClient().getPlayerState());
 
         SV_FatPVS(org);
         clientphs = CM.CM_ClusterPHS(clientcluster);

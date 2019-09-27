@@ -440,7 +440,7 @@ class GameTarget {
             // if multiplayer, let everyone know who hit the exit
             if (GameBase.deathmatch.value != 0) {
                 if (activator != null) {
-                    gclient_t activatorClient = (gclient_t) activator.client;
+                    gclient_t activatorClient = activator.getClient();
                     if (activatorClient != null) GameBase.gi.bprintf(Defines.PRINT_HIGH,
                             activatorClient.pers.netname
                                     + " exited the level.\n");
@@ -630,7 +630,7 @@ class GameTarget {
                 // if we hit something that's not a monster or player or is
                 // immune to lasers, we're done
                 if (0 == (target.svflags & Defines.SVF_MONSTER)
-                        && (null == target.client)) {
+                        && (null == target.getClient())) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
                         GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
@@ -823,7 +823,7 @@ class GameTarget {
 
                 if (!e.inuse)
                     continue;
-                if (null == e.client)
+                if (null == e.getClient())
                     continue;
                 if (null == e.groundentity)
                     continue;

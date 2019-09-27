@@ -256,7 +256,7 @@ class GameTrigger {
     	public String getID(){ return "Touch_Multi"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (other.client != null) {
+            if (other.getClient() != null) {
                 if ((self.spawnflags & 2) != 0)
                     return;
             } else if ((other.svflags & Defines.SVF_MONSTER) != 0) {
@@ -326,7 +326,7 @@ class GameTrigger {
 
             if (self.item == null)
                 return;
-            gclient_t activatorClient = (gclient_t) activator.client;
+            gclient_t activatorClient = activator.getClient();
             if (activatorClient == null)
                 return;
 
@@ -347,7 +347,7 @@ class GameTrigger {
                     .soundindex("misc/keyuse.wav"), 1, Defines.ATTN_NORM, 0);
             if (GameBase.coop.value != 0) {
                 int player;
-                edict_t ent;
+                SubgameEntity ent;
 
                 if ("key_power_cube".equals(self.item.classname)) {
                     int cube;
@@ -359,7 +359,7 @@ class GameTrigger {
                         ent = GameBase.g_edicts[player];
                         if (!ent.inuse)
                             continue;
-                        gclient_t client = (gclient_t) ent.client;
+                        gclient_t client = ent.getClient();
                         if (client == null)
                             continue;
                         if ((client.pers.power_cubes & (1 << cube)) != 0) {
@@ -372,7 +372,7 @@ class GameTrigger {
                         ent = GameBase.g_edicts[player];
                         if (!ent.inuse)
                             continue;
-                        gclient_t client = (gclient_t) ent.client;
+                        gclient_t client = ent.getClient();
                         if (client == null)
                             continue;
                         client.pers.inventory[index] = 0;
@@ -451,7 +451,7 @@ class GameTrigger {
                 Math3D.VectorScale(self.movedir, self.speed * 10,
                         other.velocity);
 
-                gclient_t otherClient = (gclient_t) other.client;
+                gclient_t otherClient = other.getClient();
                 if (otherClient != null) {
                     // don't take falling damage immediately from this
                     Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);

@@ -38,8 +38,8 @@ class GameChase {
         float[] angles = { 0, 0, 0 };
     
         // is our chase target gone?
-        gclient_t client = (gclient_t) ent.client;
-        gclient_t chaseTargetClient = (gclient_t) client.chase_target.client;
+        gclient_t client = ent.getClient();
+        gclient_t chaseTargetClient = client.chase_target.getClient();
         if (!client.chase_target.inuse || chaseTargetClient.resp.spectator) {
             edict_t old = client.chase_target;
             ChaseNext(ent);
@@ -57,7 +57,7 @@ class GameChase {
     
         ownerv[2] += targ.viewheight;
 
-        gclient_t targetClient = (gclient_t) targ.client;
+        gclient_t targetClient = targ.getClient();
         Math3D.VectorCopy(targetClient.v_angle, angles);
         if (angles[Defines.PITCH] > 56)
             angles[Defines.PITCH] = 56;
@@ -125,7 +125,7 @@ class GameChase {
 
     static void ChaseNext(SubgameEntity ent) {
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (null == client.chase_target)
             return;
 
@@ -139,7 +139,7 @@ class GameChase {
     
             if (!e.inuse)
                 continue;
-            gclient_t entityClient = (gclient_t) e.client;
+            gclient_t entityClient = e.getClient();
             if (!entityClient.resp.spectator)
                 break;
         } while (e != client.chase_target);
@@ -150,7 +150,7 @@ class GameChase {
 
     static void ChasePrev(SubgameEntity ent) {
 
-        gclient_t client = (gclient_t) ent.client;
+        gclient_t client = ent.getClient();
         if (client.chase_target == null)
             return;
 
@@ -163,7 +163,7 @@ class GameChase {
             e = GameBase.g_edicts[i];
             if (!e.inuse)
                 continue;
-            gclient_t entityClient = (gclient_t) e.client;
+            gclient_t entityClient = e.getClient();
             if (!entityClient.resp.spectator)
                 break;
         } while (e != client.chase_target);
@@ -176,9 +176,9 @@ class GameChase {
 
         for (int i = 1; i <= GameBase.maxclients.value; i++) {
             SubgameEntity other = GameBase.g_edicts[i];
-            gclient_t otherClient = (gclient_t) other.client;
+            gclient_t otherClient = other.getClient();
             if (other.inuse && !otherClient.resp.spectator) {
-                gclient_t client = (gclient_t) ent.client;
+                gclient_t client = ent.getClient();
                 client.chase_target = other;
                 client.update_chase = true;
                 UpdateChaseCam(ent);

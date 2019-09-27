@@ -1154,7 +1154,7 @@ public class M_Medic {
                     self.enemy.think.think(self.enemy);
                 }
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
-                if (self.oldenemy != null && self.oldenemy.client != null) {
+                if (self.oldenemy != null && self.oldenemy.getClient() != null) {
                     self.enemy.enemy = self.oldenemy;
                     GameUtil.FoundTarget(self.enemy);
                 }

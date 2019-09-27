@@ -140,7 +140,7 @@ public class SV_MAIN {
             cl = SV_INIT.svs.clients[i];
             if (cl.state == ClientStates.CS_CONNECTED
                     || cl.state == ClientStates.CS_SPAWNED) {
-                player = "" + cl.edict.client.getPlayerState().stats[Defines.STAT_FRAGS]
+                player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]
                         + " " + cl.ping + "\"" + cl.name + "\"\n";
 
                 playerLength = player.length();
@@ -527,7 +527,7 @@ public class SV_MAIN {
                 cl.ping = total / count;
 
             // let the game dll know about the ping
-            cl.edict.client.setPing(cl.ping);
+            cl.edict.getClient().setPing(cl.ping);
         }
     }
 

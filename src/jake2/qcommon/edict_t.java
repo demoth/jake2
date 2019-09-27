@@ -77,7 +77,6 @@ public class edict_t {
 
     public int clipmask;
 
-    public GameClient client;
 
     /** Introduced by rst. */
     public int index;
@@ -86,6 +85,9 @@ public class edict_t {
         throw new IllegalStateException("edict_t.getOwner() should not be called");
     }
 
+    public GameClient getClient() {
+        throw new IllegalStateException("edict_t.getClient() should not be called");
+    }
 
     /////////////////////////////////////////////////
 

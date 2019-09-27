@@ -25,7 +25,6 @@ package jake2.game.monsters;
 import jake2.game.*;
 import jake2.qcommon.Defines;
 import jake2.qcommon.M_Flash;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -742,7 +741,7 @@ public class M_Tank {
     static EntThinkAdapter tank_run = new EntThinkAdapter() {
     	public String getID(){ return "tank_run"; }
         public boolean think(SubgameEntity self) {
-            if (self.enemy != null && self.enemy.client != null)
+            if (self.enemy != null && self.enemy.getClient() != null)
                 self.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
             else
                 self.monsterinfo.aiflags &= ~GameDefines.AI_BRUTAL;

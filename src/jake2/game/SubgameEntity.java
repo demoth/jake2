@@ -2,6 +2,7 @@ package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.GameClient;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
@@ -14,6 +15,8 @@ public class SubgameEntity extends edict_t {
     public SubgameEntity(int i) {
         super(i);
     }
+
+    private gclient_t client;
 
     public SubgameEntity enemy = null;
     public SubgameEntity oldenemy = null;
@@ -513,10 +516,10 @@ public class SubgameEntity extends edict_t {
 
         moveinfo.write(f);
         monsterinfo.write(f);
-        if (client == null)
+        if (getClient() == null)
             f.writeInt(-1);
         else
-            f.writeInt(client.getIndex());
+            f.writeInt(getClient().getIndex());
 
         f.writeEdictRef(getOwner());
 
@@ -679,9 +682,9 @@ public class SubgameEntity extends edict_t {
 
         int ndx = f.readInt();
         if (ndx == -1)
-            client = null;
+            setClient(null);
         else
-            client = GameBase.game.clients[ndx];
+            setClient(GameBase.game.clients[ndx]);
 
         setOwner((SubgameEntity) f.readEdictRef(g_edicts));
 
@@ -693,6 +696,15 @@ public class SubgameEntity extends edict_t {
     @Override
     public SubgameEntity getOwner() {
         return owner;
+    }
+
+    @Override
+    public gclient_t getClient() {
+        return client;
+    }
+
+    public void setClient(gclient_t client) {
+        this.client = client;
     }
 
     public void setOwner(SubgameEntity owner) {
