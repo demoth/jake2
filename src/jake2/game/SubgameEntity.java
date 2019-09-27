@@ -31,6 +31,168 @@ public class SubgameEntity extends edict_t {
     /** can go in client only. */
     public SubgameEntity mynoise = null;
     public SubgameEntity mynoise2 = null;
+    //================================
+    public int movetype;
+
+    public int flags;
+
+    public String model = null;
+
+    /** sv.time when the object was freed. */
+    public float freetime;
+
+    //
+    // only used locally in game, not by server
+    //
+    public String message = null;
+
+    public String classname = "";
+
+    public int spawnflags;
+
+    public float timestamp;
+
+    /** set in qe3, -1 = up, -2 = down */
+    public float angle;
+
+    public String target = null;
+
+    public String targetname = null;
+
+    public String killtarget = null;
+
+    public String team = null;
+
+    public String pathtarget = null;
+
+    public String deathtarget = null;
+
+    public String combattarget = null;
+
+
+    public float speed, accel, decel;
+
+    public float[] movedir = { 0, 0, 0 };
+
+    public float[] pos1 = { 0, 0, 0 };
+
+    public float[] pos2 = { 0, 0, 0 };
+
+    public float[] velocity = { 0, 0, 0 };
+
+    public float[] avelocity = { 0, 0, 0 };
+
+    public int mass;
+
+    public float air_finished;
+
+    /** per entity gravity multiplier (1.0 is normal). */
+    public float gravity;
+
+    /** use for lowgrav artifact, flares. */
+
+    public float yaw_speed;
+
+    public float ideal_yaw;
+
+    public float nextthink;
+
+    public EntThinkAdapter prethink = null;
+
+    public EntThinkAdapter think = null;
+
+    public EntBlockedAdapter blocked = null;
+
+    public EntTouchAdapter touch = null;
+
+    public EntUseAdapter use = null;
+
+    public EntPainAdapter pain = null;
+
+    public EntDieAdapter die = null;
+
+    /** Are all these legit? do we need more/less of them? */
+    public float touch_debounce_time;
+
+    public float pain_debounce_time;
+
+    public float damage_debounce_time;
+
+    /** Move to clientinfo. */
+    public float fly_sound_debounce_time;
+
+    public float last_move_time;
+
+    public int health;
+
+    public int max_health;
+
+    public int gib_health;
+
+    public int deadflag;
+
+    public int show_hostile;
+
+    public float powerarmor_time;
+
+    /** target_changelevel. */
+    public String map = null;
+
+    /** Height above origin where eyesight is determined. */
+    public int viewheight;
+
+    public int takedamage;
+
+    public int dmg;
+
+    public int radius_dmg;
+
+    public float dmg_radius;
+
+    /** make this a spawntemp var? */
+    public int sounds;
+
+    public int count;
+
+
+    public int noise_index;
+
+    public int noise_index2;
+
+    public float volume;
+
+    public float attenuation;
+
+    /** Timing variables. */
+    public float wait;
+
+    /** before firing targets... */
+    public float delay;
+
+    public float random;
+
+    public float teleport_time;
+
+    public int watertype;
+
+    public int waterlevel;
+
+    public float[] move_origin = { 0, 0, 0 };
+
+    public float[] move_angles = { 0, 0, 0 };
+
+    /** move this to clientinfo? . */
+    public int light_level;
+
+    /** also used as areaportal number. */
+    public int style;
+
+    public gitem_t item; // for bonus items
+
+    /** common integrated data blocks. */
+    public moveinfo_t moveinfo = new moveinfo_t();
+
+    public monsterinfo_t monsterinfo = new monsterinfo_t();
 
 
 

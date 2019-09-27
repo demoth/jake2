@@ -140,11 +140,10 @@ public class PlayerClient {
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_FixCoopSpots"; }
         public boolean think(SubgameEntity self) {
-    
-            edict_t spot;
+
             float[] d = { 0, 0, 0 };
-    
-            spot = null;
+
+            SubgameEntity spot;
             EdictIterator es = null;
     
             while (true) {
@@ -176,11 +175,9 @@ public class PlayerClient {
     static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_CreateCoopSpots"; }
         public boolean think(SubgameEntity self) {
-    
-            edict_t spot;
-    
+
             if (Lib.Q_stricmp(GameBase.level.mapname, "security") == 0) {
-                spot = GameUtil.G_Spawn();
+                SubgameEntity spot = GameUtil.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 - 64;
                 spot.s.origin[1] = -164;
@@ -232,7 +229,8 @@ public class PlayerClient {
             }
         }
     };
-    static edict_t pm_passent;
+
+    private static SubgameEntity pm_passent;
     // pmove doesn't need to know about passent and contentmask
     public static pmove_t.TraceAdapter PM_trace = new pmove_t.TraceAdapter() {
     
@@ -555,11 +553,9 @@ public class PlayerClient {
      * structure before all the edicts are wiped. 
      */
     public static void SaveClientData() {
-        int i;
-        edict_t ent;
 
-        for (i = 0; i < GameBase.game.maxclients; i++) {
-            ent = GameBase.g_edicts[1 + i];
+        for (int i = 0; i < GameBase.game.maxclients; i++) {
+            SubgameEntity ent = GameBase.g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
 
@@ -575,7 +571,7 @@ public class PlayerClient {
         }
     }
 
-    public static void FetchClientEntData(edict_t ent) {
+    public static void FetchClientEntData(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
@@ -587,8 +583,8 @@ public class PlayerClient {
     /**
      * Returns the distance to the nearest player from the given spot.
      */
-    static float PlayersRangeFromSpot(edict_t spot) {
-        edict_t player;
+    static float PlayersRangeFromSpot(SubgameEntity spot) {
+        SubgameEntity player;
         float bestplayerdistance;
         float[] v = { 0, 0, 0 };
         int n;
@@ -618,15 +614,15 @@ public class PlayerClient {
     /**
      * Go to a random point, but NOT the two points closest to other players.
      */
-    public static edict_t SelectRandomDeathmatchSpawnPoint() {
-        edict_t spot, spot1, spot2;
+    public static SubgameEntity SelectRandomDeathmatchSpawnPoint() {
         int count = 0;
-        int selection;
-        float range, range1, range2;
+        float range2;
 
-        spot = null;
-        range1 = range2 = 99999;
-        spot1 = spot2 = null;
+        SubgameEntity spot;
+
+        float range1 = range2 = 99999;
+        SubgameEntity spot2;
+        SubgameEntity spot1 = spot2 = null;
 
         EdictIterator es = null;
 
@@ -634,7 +630,7 @@ public class PlayerClient {
                 "info_player_deathmatch")) != null) {
             spot = es.o;
             count++;
-            range = PlayersRangeFromSpot(spot);
+            float range = PlayersRangeFromSpot(spot);
             if (range < range1) {
                 range1 = range;
                 spot1 = spot;
@@ -652,7 +648,7 @@ public class PlayerClient {
         } else
             count -= 2;
 
-        selection = Lib.rand() % count;
+        int selection = Lib.rand() % count;
 
         spot = null;
         es = null;
@@ -674,20 +670,17 @@ public class PlayerClient {
     /** 
 	 * If turned on in the dmflags, select a spawn point far away from other players.
      */
-    static edict_t SelectFarthestDeathmatchSpawnPoint() {
-        edict_t bestspot;
-        float bestdistance, bestplayerdistance;
-        edict_t spot;
+    static SubgameEntity SelectFarthestDeathmatchSpawnPoint() {
 
-        spot = null;
-        bestspot = null;
-        bestdistance = 0;
+        SubgameEntity spot;
+        SubgameEntity bestspot = null;
+        float bestdistance = 0;
 
         EdictIterator es = null;
         while ((es = GameBase.G_Find(es, GameBase.findByClass,
                 "info_player_deathmatch")) != null) {
             spot = es.o;
-            bestplayerdistance = PlayersRangeFromSpot(spot);
+            float bestplayerdistance = PlayersRangeFromSpot(spot);
 
             if (bestplayerdistance > bestdistance) {
                 bestspot = spot;
@@ -710,26 +703,23 @@ public class PlayerClient {
     }
 
     
-    public static edict_t SelectDeathmatchSpawnPoint() {
+    public static SubgameEntity SelectDeathmatchSpawnPoint() {
         if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
             return SelectFarthestDeathmatchSpawnPoint();
         else
             return SelectRandomDeathmatchSpawnPoint();
     }
 
-    public static edict_t SelectCoopSpawnPoint(edict_t ent) {
-        int index;
-        edict_t spot = null;
-        String target;
+    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent) {
 
         //index = ent.client - game.clients;
-        index = ent.client.getIndex();
+        int index = ent.client.getIndex();
 
         // player 0 starts in normal player spawn point
         if (index == 0)
             return null;
 
-        spot = null;
+        SubgameEntity spot;
         EdictIterator es = null;
 
         // assume there are four coop spots at each spawnpoint
@@ -746,7 +736,7 @@ public class PlayerClient {
             if (spot == null)
                 return null; // we didn't have enough...
 
-            target = spot.targetname;
+            String target = spot.targetname;
             if (target == null)
                 target = "";
             if (Lib.Q_stricmp(GameBase.game.spawnpoint, target) == 0) { 
@@ -764,7 +754,7 @@ public class PlayerClient {
      */
     public static void SelectSpawnPoint(edict_t ent, float[] origin,
             float[] angles) {
-        edict_t spot = null;
+        SubgameEntity spot = null;
 
         if (GameBase.deathmatch.value != 0)
             spot = SelectDeathmatchSpawnPoint();
@@ -816,12 +806,10 @@ public class PlayerClient {
 
 
     public static void InitBodyQue() {
-        int i;
-        edict_t ent;
 
         GameBase.level.body_que = 0;
-        for (i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
-            ent = GameUtil.G_Spawn();
+        for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
+            SubgameEntity ent = GameUtil.G_Spawn();
             ent.classname = "bodyque";
         }
     }
@@ -1340,8 +1328,7 @@ public class PlayerClient {
         return true;
     }
 
-    static void ClientDisconnect(edict_t ent) {
-        int playernum;
+    static void ClientDisconnect(SubgameEntity ent) {
 
         gclient_t client = (gclient_t) ent.client;
         if (client == null)
@@ -1363,7 +1350,7 @@ public class PlayerClient {
         ent.classname = "disconnected";
         client.pers.connected = false;
 
-        playernum = ent.index - 1;
+        int playernum = ent.index - 1;
         GameBase.gi.configstring(Defines.CS_PLAYERSKINS + playernum, "");
     }
 
@@ -1682,31 +1669,30 @@ public class PlayerClient {
      * Drop items and weapons in deathmatch games. 
      */ 
     public static void TossClientWeapon(SubgameEntity self) {
-        gitem_t item;
-        edict_t drop;
-        boolean quad;
-        float spread;
-    
+
         if (GameBase.deathmatch.value == 0)
             return;
 
         gclient_t client = (gclient_t) self.client;
-        item = client.pers.weapon;
+        gitem_t item = client.pers.weapon;
         if (0 == client.pers.inventory[client.ammo_index])
             item = null;
         if (item != null && ("Blaster".equals(item.pickup_name)))
             item = null;
-    
+
+        boolean quad;
         if (0 == ((int) (GameBase.dmflags.value) & Defines.DF_QUAD_DROP))
             quad = false;
         else
             quad = (client.quad_framenum > (GameBase.level.framenum + 10));
-    
+
+        float spread;
         if (item != null && quad)
             spread = 22.5f;
         else
             spread = 0.0f;
-    
+
+        SubgameEntity drop;
         if (item != null) {
             client.v_angle[Defines.YAW] -= spread;
             drop = GameItems.Drop_Item(self, item);

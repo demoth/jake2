@@ -386,7 +386,7 @@ public class GameBase {
     }
 
     static EdictFindFilter findByTarget = new EdictFindFilter() {
-        public boolean matches(edict_t e, String s) {
+        public boolean matches(SubgameEntity e, String s) {
             if (e.targetname == null)
                 return false;
             return e.targetname.equalsIgnoreCase(s);
@@ -394,7 +394,7 @@ public class GameBase {
     };
 
     static EdictFindFilter findByClass = new EdictFindFilter() {
-        public boolean matches(edict_t e, String s) {
+        public boolean matches(SubgameEntity e, String s) {
             return e.classname.equalsIgnoreCase(s);
         }
     };

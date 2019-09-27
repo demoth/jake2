@@ -40,7 +40,7 @@ public class PlayerHud {
      * ======================================================================
      */
 
-    public static void MoveClientToIntermission(edict_t ent) {
+    public static void MoveClientToIntermission(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0)
             client.showscores = true;
@@ -296,7 +296,7 @@ public class PlayerHud {
      * G_SetStats 
      * ===============
      */
-    public static void G_SetStats(edict_t ent) {
+    public static void G_SetStats(SubgameEntity ent) {
         gitem_t item;
         int index, cells = 0;
         int power_armor_type;
@@ -475,7 +475,7 @@ public class PlayerHud {
      * G_SetSpectatorStats 
      * ===============
      */
-    public static void G_SetSpectatorStats(edict_t ent) {
+    public static void G_SetSpectatorStats(SubgameEntity ent) {
         gclient_t cl = (gclient_t) ent.client;
 
         if (null == cl.chase_target)

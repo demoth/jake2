@@ -33,11 +33,11 @@ import jake2.qcommon.util.Math3D;
 
 class GameTarget {
 
-    static void SP_target_temp_entity(edict_t ent) {
+    static void SP_target_temp_entity(SubgameEntity ent) {
         ent.use = Use_Target_Tent;
     }
 
-    static void SP_target_speaker(edict_t ent) {
+    static void SP_target_speaker(SubgameEntity ent) {
         //char buffer[MAX_QPATH];
         String buffer;
 
@@ -77,7 +77,7 @@ class GameTarget {
      * "message" key becomes the current personal computer string, and the
      * message light will be set on all clients status bars.
      */
-    static void SP_target_help(edict_t ent) {
+    static void SP_target_help(SubgameEntity ent) {
         if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
@@ -92,7 +92,7 @@ class GameTarget {
         ent.use = Use_Target_Help;
     }
 
-    static void SP_target_secret(edict_t ent) {
+    static void SP_target_secret(SubgameEntity ent) {
         if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
@@ -111,7 +111,7 @@ class GameTarget {
             ent.message = "You have found a secret area.";
     }
 
-    static void SP_target_goal(edict_t ent) {
+    static void SP_target_goal(SubgameEntity ent) {
         if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
@@ -125,12 +125,12 @@ class GameTarget {
         GameBase.level.total_goals++;
     }
 
-    static void SP_target_explosion(edict_t ent) {
+    static void SP_target_explosion(SubgameEntity ent) {
         ent.use = use_target_explosion;
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_changelevel(edict_t ent) {
+    static void SP_target_changelevel(SubgameEntity ent) {
         if (ent.map == null) {
             GameBase.gi.dprintf("target_changelevel with no map at "
                     + Lib.vtos(ent.s.origin) + "\n");
@@ -615,21 +615,22 @@ class GameTarget {
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_DEADMONSTER);
 
-                if (tr.ent == null)
+                SubgameEntity target = (SubgameEntity) tr.ent;
+                if (target == null)
                     break;
 
                 // hurt it if we can
-                if ((tr.ent.takedamage != 0)
-                        && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER))
-                    GameCombat.T_Damage((SubgameEntity) tr.ent, self, self.activator,
+                if ((target.takedamage != 0)
+                        && 0 == (target.flags & GameDefines.FL_IMMUNE_LASER))
+                    GameCombat.T_Damage((SubgameEntity) target, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
                             GameDefines.MOD_TARGET_LASER);
 
                 // if we hit something that's not a monster or player or is
                 // immune to lasers, we're done
-                if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
-                        && (null == tr.ent.client)) {
+                if (0 == (target.svflags & Defines.SVF_MONSTER)
+                        && (null == target.client)) {
                     if ((self.spawnflags & 0x80000000) != 0) {
                         self.spawnflags &= ~0x80000000;
                         GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
@@ -643,7 +644,7 @@ class GameTarget {
                     break;
                 }
 
-                ignore = tr.ent;
+                ignore = target;
                 Math3D.VectorCopy(tr.endpos, start);
             }
 

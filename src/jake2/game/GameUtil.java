@@ -30,14 +30,7 @@ import jake2.qcommon.util.Math3D;
 
 public class GameUtil {
 
-    public static void checkClassname(edict_t ent) {
-
-        if (ent.classname == null) {
-            Com.Printf("edict with classname = null: " + ent.index);
-        }
-    }
-
-    /** 
+    /**
      * Use the targets.
      * 
      * The global "activator" should be set to the entity that initiated the
@@ -54,7 +47,9 @@ public class GameUtil {
 
     public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator) {
 
-        checkClassname(ent);
+        if (ent.classname == null) {
+            Com.Printf("edict with classname = null: " + ent.index);
+        }
 
         // check for a delay
         SubgameEntity t;
@@ -173,7 +168,7 @@ public class GameUtil {
     /**
      * Marks the edict as free
      */
-    public static void G_FreeEdict(edict_t ed) {
+    public static void G_FreeEdict(SubgameEntity ed) {
         GameBase.gi.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
@@ -319,7 +314,7 @@ public class GameUtil {
     /**
      * Returns 1 if the entity is visible to self, even if not infront().
      */
-    public static boolean visible(SubgameEntity self, edict_t other) {
+    public static boolean visible(SubgameEntity self, SubgameEntity other) {
         float[] spot1 = { 0, 0, 0 };
         float[] spot2 = { 0, 0, 0 };
         trace_t trace;

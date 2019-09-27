@@ -23,13 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
-
 /** Helps for filtering the iteration over the gedicts[] array, see GFind(). RST.*/
 
 public class EdictFindFilter
 {
-	boolean matches(edict_t e, String s)
+	boolean matches(SubgameEntity e, String s)
 	{
 		return false;
 	};

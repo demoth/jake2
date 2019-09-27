@@ -204,11 +204,8 @@ public class Monster {
 
         // check for target to combat_point and change to combattarget
         if (self.target != null) {
-            boolean notcombat;
-            boolean fixup;
-            edict_t target = null;
-            notcombat = false;
-            fixup = false;
+            boolean notcombat = false;
+            boolean fixup = false;
             /*
              * if (true) { Com.Printf("all entities:\n");
              * 
@@ -226,7 +223,7 @@ public class Monster {
 
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
                     self.target)) != null) {
-                target = edit.o;
+                SubgameEntity target = edit.o;
                 if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
                     fixup = true;
@@ -244,12 +241,11 @@ public class Monster {
 
         // validate combattarget
         if (self.combattarget != null) {
-            edict_t target = null;
 
             EdictIterator edit = null;
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
                     self.combattarget)) != null) {
-                target = edit.o;
+                SubgameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
                     GameBase.gi.dprintf(self.classname + " at "

@@ -839,7 +839,7 @@ public class GameItems {
         return null;
     }
 
-    static void SetRespawn(edict_t ent, float delay) {
+    static void SetRespawn(SubgameEntity ent, float delay) {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
@@ -916,7 +916,7 @@ public class GameItems {
         GameBase.gi.linkentity(ent);
     }
 
-    static int PowerArmorType(edict_t ent) {
+    static int PowerArmorType(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         if (client == null)
             return GameDefines.POWER_ARMOR_NONE;
@@ -1163,7 +1163,7 @@ public class GameItems {
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet. ============
      */
-    static void SpawnItem(edict_t ent, gitem_t item) {
+    static void SpawnItem(SubgameEntity ent, gitem_t item) {
         PrecacheItem(item);
     
         if (ent.spawnflags != 0) {

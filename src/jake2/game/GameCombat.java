@@ -36,7 +36,7 @@ public class GameCombat {
      * Returns true if the inflictor can directly damage the target. Used for
      * explosions and melee attacks.
      */
-    static boolean CanDamage(edict_t targ, edict_t inflictor) {
+    static boolean CanDamage(SubgameEntity targ, edict_t inflictor) {
         float[] dest = { 0, 0, 0 };
         trace_t trace;
     
@@ -151,7 +151,7 @@ public class GameCombat {
         GameBase.gi.multicast(origin, MulticastTypes.MULTICAST_PVS);
     }
 
-    private static int CheckPowerArmor(edict_t ent, float[] point, float[] normal,
+    private static int CheckPowerArmor(SubgameEntity ent, float[] point, float[] normal,
                                        int damage, int dflags) {
         gclient_t client;
         int save;

@@ -357,7 +357,7 @@ public class GameExportsImpl implements GameExports {
      *
      * argv(0) god
      */
-    private void God_f(edict_t ent) {
+    private void God_f(SubgameEntity ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -382,7 +382,7 @@ public class GameExportsImpl implements GameExports {
      *
      * argv(0) notarget.
      */
-    private void Notarget_f(edict_t ent) {
+    private void Notarget_f(SubgameEntity ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -405,7 +405,7 @@ public class GameExportsImpl implements GameExports {
      *
      * argv(0) noclip.
      */
-    private void Noclip_f(edict_t ent) {
+    private void Noclip_f(SubgameEntity ent) {
         String msg;
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
@@ -1230,7 +1230,7 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void ClientDisconnect(edict_t ent) {
-        PlayerClient.ClientDisconnect(ent);
+        PlayerClient.ClientDisconnect((SubgameEntity) ent);
     }
 
     @Override

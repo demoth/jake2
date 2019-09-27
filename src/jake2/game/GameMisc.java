@@ -60,7 +60,7 @@ public class GameMisc {
         GameBase.gi.linkentity(self);
     };
 
-    static void SP_viewthing(edict_t ent) {
+    static void SP_viewthing(SubgameEntity ent) {
         GameBase.gi.dprintf("viewthing spawned\n");
 
         ent.movetype = GameDefines.MOVETYPE_NONE;
@@ -73,7 +73,6 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
         ent.nextthink = GameBase.level.time + 0.5f;
         ent.think = TH_viewthing;
-        return;
     }
 
     /*
@@ -259,7 +258,7 @@ public class GameMisc {
         GameBase.gi.linkentity(self);
     }
 
-    static void SP_misc_blackhole(edict_t ent) {
+    static void SP_misc_blackhole(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
@@ -273,7 +272,7 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
     }
 
-    static void SP_misc_eastertank(edict_t ent) {
+    static void SP_misc_eastertank(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, -16);
@@ -286,7 +285,7 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
     }
 
-    static void SP_misc_easterchick(edict_t ent) {
+    static void SP_misc_easterchick(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
@@ -299,7 +298,7 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
     }
 
-    static void SP_misc_easterchick2(edict_t ent) {
+    static void SP_misc_easterchick2(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -32, -32, 0);
@@ -332,7 +331,7 @@ public class GameMisc {
         self.nextthink = GameBase.level.time + 5 * Defines.FRAMETIME;
     }
 
-    static void SP_misc_banner(edict_t ent) {
+    static void SP_misc_banner(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_NOT;
         ent.s.modelindex = GameBase.gi
@@ -344,7 +343,7 @@ public class GameMisc {
         ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
     }
 
-    static void SP_misc_deadsoldier(edict_t ent) {
+    static void SP_misc_deadsoldier(SubgameEntity ent) {
         if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
@@ -380,7 +379,7 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
     }
 
-    static void SP_misc_viper(edict_t ent) {
+    static void SP_misc_viper(SubgameEntity ent) {
         if (null == ent.target) {
             GameBase.gi.dprintf("misc_viper without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
@@ -411,7 +410,7 @@ public class GameMisc {
      * QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72) This is a
      * large stationary viper as seen in Paul's intro
      */
-    static void SP_misc_bigviper(edict_t ent) {
+    static void SP_misc_bigviper(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -176, -120, -24);
@@ -439,7 +438,7 @@ public class GameMisc {
         GameBase.gi.linkentity(self);
     }
 
-    static void SP_misc_strogg_ship(edict_t ent) {
+    static void SP_misc_strogg_ship(SubgameEntity ent) {
         if (null == ent.target) {
             GameBase.gi.dprintf(ent.classname + " without a target at "
                     + Lib.vtos(ent.absmin) + "\n");
@@ -466,7 +465,7 @@ public class GameMisc {
         GameBase.gi.linkentity(ent);
     }
 
-    static void SP_misc_satellite_dish(edict_t ent) {
+    static void SP_misc_satellite_dish(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         Math3D.VectorSet(ent.mins, -64, -64, 0);
@@ -480,7 +479,7 @@ public class GameMisc {
     /*
      * QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
      */
-    static void SP_light_mine1(edict_t ent) {
+    static void SP_light_mine1(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.modelindex = GameBase.gi
@@ -491,7 +490,7 @@ public class GameMisc {
     /*
      * QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
      */
-    static void SP_light_mine2(edict_t ent) {
+    static void SP_light_mine2(SubgameEntity ent) {
         ent.movetype = GameDefines.MOVETYPE_NONE;
         ent.solid = Defines.SOLID_BBOX;
         ent.s.modelindex = GameBase.gi
@@ -503,7 +502,7 @@ public class GameMisc {
      * QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_arm(edict_t ent) {
+    static void SP_misc_gib_arm(SubgameEntity ent) {
         GameBase.gi.setmodel(ent, "models/objects/gibs/arm/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
@@ -524,7 +523,7 @@ public class GameMisc {
      * QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_leg(edict_t ent) {
+    static void SP_misc_gib_leg(SubgameEntity ent) {
         GameBase.gi.setmodel(ent, "models/objects/gibs/leg/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
@@ -545,7 +544,7 @@ public class GameMisc {
      * QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8) Intended for use with the
      * target_spawner
      */
-    static void SP_misc_gib_head(edict_t ent) {
+    static void SP_misc_gib_head(SubgameEntity ent) {
         GameBase.gi.setmodel(ent, "models/objects/gibs/head/tris.md2");
         ent.solid = Defines.SOLID_NOT;
         ent.s.effects |= Defines.EF_GIB;
@@ -729,16 +728,13 @@ public class GameMisc {
         GameUtil.G_FreeEdict(self);
     }
 
-    public static void ThrowGib(SubgameEntity self, String gibname, int damage,
-            int type) {
-        edict_t gib;
-    
+    public static void ThrowGib(SubgameEntity self, String gibname, int damage, int type) {
+
         float[] vd = { 0, 0, 0 };
         float[] origin = { 0, 0, 0 };
         float[] size = { 0, 0, 0 };
-        float vscale;
-    
-        gib = GameUtil.G_Spawn();
+
+        SubgameEntity gib = GameUtil.G_Spawn();
     
         Math3D.VectorScale(self.size, 0.5f, size);
         Math3D.VectorAdd(self.absmin, size, origin);
@@ -752,7 +748,8 @@ public class GameMisc {
         gib.flags |= GameDefines.FL_NO_KNOCKBACK;
         gib.takedamage = Defines.DAMAGE_YES;
         gib.die = gib_die;
-    
+
+        float vscale;
         if (type == GameDefines.GIB_ORGANIC) {
             gib.movetype = GameDefines.MOVETYPE_TOSS;
             gib.touch = gib_touch;
@@ -862,10 +859,9 @@ public class GameMisc {
 
     static void ThrowDebris(SubgameEntity self, String modelname, float speed,
                             float[] origin) {
-        edict_t chunk;
         float[] v = { 0, 0, 0 };
-    
-        chunk = GameUtil.G_Spawn();
+
+        SubgameEntity chunk = GameUtil.G_Spawn();
         Math3D.VectorCopy(origin, chunk.s.origin);
         GameBase.gi.setmodel(chunk, modelname);
         v[0] = 100 * Lib.crandom();
@@ -887,7 +883,7 @@ public class GameMisc {
         GameBase.gi.linkentity(chunk);
     }
 
-    private static void ClipGibVelocity(edict_t ent) {
+    private static void ClipGibVelocity(SubgameEntity ent) {
         if (ent.velocity[0] < -300)
             ent.velocity[0] = -300;
         else if (ent.velocity[0] > 300)
@@ -1613,7 +1609,7 @@ public class GameMisc {
     private static EntUseAdapter misc_viper_bomb_use = new EntUseAdapter() {
         public String getID() { return "misc_viper_bomb_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            edict_t viper = null;
+            SubgameEntity viper = null;
 
             self.solid = Defines.SOLID_BBOX;
             self.svflags &= ~Defines.SVF_NOCLIENT;

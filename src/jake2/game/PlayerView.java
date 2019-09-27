@@ -71,7 +71,7 @@ public class PlayerView {
      * ===============
      */
 
-    public static void P_DamageFeedback(edict_t player) {
+    public static void P_DamageFeedback(SubgameEntity player) {
         gclient_t client;
         float side;
         float realcount, count, kick;
@@ -219,7 +219,7 @@ public class PlayerView {
      * fall from 640: 960 =  
      * damage = deltavelocity*deltavelocity * 0.0001
      */
-    public static void SV_CalcViewOffset(edict_t ent) {
+    public static void SV_CalcViewOffset(SubgameEntity ent) {
         float angles[] = { 0, 0, 0 };
         float bob;
         float ratio;
@@ -327,7 +327,7 @@ public class PlayerView {
     /**
      * Calculates where to draw the gun.
      */
-    public static void SV_CalcGunOffset(edict_t ent) {
+    public static void SV_CalcGunOffset(SubgameEntity ent) {
         int i;
         float delta;
 
@@ -391,7 +391,7 @@ public class PlayerView {
     /**
      * Calculates the blending color according to the players environment.
      */
-    public static void SV_CalcBlend(edict_t ent) {
+    public static void SV_CalcBlend(SubgameEntity ent) {
         int contents;
         float[] vieworg = { 0, 0, 0 };
         int remaining;
@@ -739,7 +739,7 @@ public class PlayerView {
      * G_SetClientEffects 
      * ===============
      */
-    public static void G_SetClientEffects(edict_t ent) {
+    public static void G_SetClientEffects(SubgameEntity ent) {
         int pa_type;
         int remaining;
 
@@ -801,7 +801,7 @@ public class PlayerView {
      * G_SetClientSound 
      * ===============
      */
-    public static void G_SetClientSound(edict_t ent) {
+    public static void G_SetClientSound(SubgameEntity ent) {
         String weap;
 
         gclient_t client = (gclient_t) ent.client;

@@ -59,7 +59,7 @@ class GameTrigger {
         }
     }
 
-    static void SP_trigger_multiple(edict_t ent) {
+    static void SP_trigger_multiple(SubgameEntity ent) {
         if (ent.sounds == 1)
             ent.noise_index = GameBase.gi.soundindex("misc/secret.wav");
         else if (ent.sounds == 2)
@@ -101,7 +101,7 @@ class GameTrigger {
      * "message" string to be displayed when triggered
      */
 
-    static void SP_trigger_once(edict_t ent) {
+    static void SP_trigger_once(SubgameEntity ent) {
         // make old maps work because I messed up on flag assignments here
         // triggered was on bit 1 when it should have been on bit 4
         if ((ent.spawnflags & 1) != 0) {

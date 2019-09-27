@@ -338,7 +338,6 @@ class GameFunc {
      */
 
     private static void door_use_areaportals(SubgameEntity self, boolean open) {
-        edict_t t = null;
 
         if (self.target == null)
             return;
@@ -347,7 +346,7 @@ class GameFunc {
 
         while ((edit = GameBase
                 .G_Find(edit, GameBase.findByTarget, self.target)) != null) {
-            t = edit.o;
+            SubgameEntity t = edit.o;
             if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
                 GameBase.gi.SetAreaPortalState(t.style, open);
             }

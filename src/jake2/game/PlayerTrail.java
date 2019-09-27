@@ -42,7 +42,7 @@ public class PlayerTrail {
 
     static int TRAIL_LENGTH = 8;
 
-    static edict_t trail[] = new edict_t[TRAIL_LENGTH];
+    static SubgameEntity trail[] = new SubgameEntity[TRAIL_LENGTH];
 
     static int trail_head;
 
@@ -50,7 +50,7 @@ public class PlayerTrail {
     static {
         //TODO: potential error
         for (int n = 0; n < TRAIL_LENGTH; n++)
-            trail[n] = new edict_t(n);
+            trail[n] = new SubgameEntity(n);
     }
 
     static int NEXT(int n) {
@@ -101,7 +101,7 @@ public class PlayerTrail {
         Add(spot);
     }
 
-    static edict_t PickFirst(SubgameEntity self) {
+    static SubgameEntity PickFirst(SubgameEntity self) {
 
         if (!trail_active)
             return null;
@@ -126,13 +126,13 @@ public class PlayerTrail {
         return PlayerTrail.trail[marker];
     }
 
-    static edict_t PickNext(SubgameEntity self) {
-        int marker;
-        int n;
+    static SubgameEntity PickNext(SubgameEntity self) {
 
         if (!trail_active)
             return null;
 
+        int marker;
+        int n;
         for (marker = trail_head, n = PlayerTrail.TRAIL_LENGTH; n > 0; n--) {
             if (PlayerTrail.trail[marker].timestamp <= self.monsterinfo.trail_time)
                 marker = NEXT(marker);
@@ -143,7 +143,7 @@ public class PlayerTrail {
         return PlayerTrail.trail[marker];
     }
 
-    static edict_t LastSpot() {
+    static SubgameEntity LastSpot() {
         return PlayerTrail.trail[PREV(trail_head)];
     }
 }

@@ -639,7 +639,7 @@ public class GameAI {
                 // give ourself more time since we got this far
                 self.monsterinfo.search_time = GameBase.level.time + 5;
 
-                edict_t marker;
+                SubgameEntity marker;
                 if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_TEMP) != 0) {
                     // dprint("was temp goal; retrying original\n");
                     self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUE_TEMP;

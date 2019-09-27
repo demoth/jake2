@@ -51,7 +51,8 @@ public final class Console extends Globals {
 
 		if (ClientGlobals.cls.state == Defines.ca_disconnected) {
 		// start the demo loop again
-		Cbuf.AddText("d1\n");
+			// todo: intro
+		//Cbuf.AddText("d1\n");
 		return;
 		}
 

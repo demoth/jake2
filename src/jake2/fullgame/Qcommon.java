@@ -135,8 +135,10 @@ public final class Qcommon extends Globals {
 			// add + commands from command line
 			if (!Cbuf.AddLateCommands(args)) {
 				// if the user didn't give any commands, run default action
-			      if (Globals.dedicated.value == 0)
-			          Cbuf.AddText ("d1\n");
+			      if (Globals.dedicated.value == 0) {
+			      	// todo: intro
+					  //Cbuf.AddText ("d1\n");
+				  }
 			      else
 			          Cbuf.AddText ("dedicated_start\n");
 			          

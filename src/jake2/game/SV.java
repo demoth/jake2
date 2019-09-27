@@ -53,7 +53,7 @@ public final class SV {
     }
 
     ///////////////////////////////////////
-    public static void SV_CheckVelocity(edict_t ent) {
+    public static void SV_CheckVelocity(SubgameEntity ent) {
         int i;
 
         //
@@ -229,7 +229,7 @@ public final class SV {
     /**
      * SV_AddGravity.
      */
-    public static void SV_AddGravity(edict_t ent) {
+    public static void SV_AddGravity(SubgameEntity ent) {
         ent.velocity[2] -= ent.gravity * GameBase.sv_gravity.value
                 * Defines.FRAMETIME;
     }
@@ -616,7 +616,7 @@ public final class SV {
 
 
     // FIXME: hacked in for E3 demo
-    public static void SV_AddRotationalFriction(edict_t ent) {
+    public static void SV_AddRotationalFriction(SubgameEntity ent) {
         int n;
         float adjustment;
 
@@ -972,7 +972,7 @@ public final class SV {
      * SV_FixCheckBottom
      * 
      */
-    public static void SV_FixCheckBottom(edict_t ent) {
+    public static void SV_FixCheckBottom(SubgameEntity ent) {
         ent.flags |= GameDefines.FL_PARTIALGROUND;
     }
 
@@ -1063,7 +1063,7 @@ public final class SV {
      * SV_CloseEnough - returns true if distance between 2 ents is smaller than
      * given dist.  
      */
-    public static boolean SV_CloseEnough(edict_t ent, edict_t goal, float dist) {
+    public static boolean SV_CloseEnough(SubgameEntity ent, edict_t goal, float dist) {
         int i;
 
         for (i = 0; i < 3; i++) {

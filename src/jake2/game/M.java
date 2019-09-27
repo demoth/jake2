@@ -150,7 +150,7 @@ public final class M {
     /** 
      * M_ChangeYaw.
      */
-    public static void M_ChangeYaw(edict_t ent) {
+    public static void M_ChangeYaw(SubgameEntity ent) {
         float ideal;
         float current;
         float move;
@@ -223,7 +223,7 @@ public final class M {
         return SV.SV_movestep(ent, move, true);
     }
 
-    public static void M_CatagorizePosition(edict_t ent) {
+    public static void M_CatagorizePosition(SubgameEntity ent) {
         float[] point = { 0, 0, 0 };
         int cont;
 
@@ -381,7 +381,7 @@ public final class M {
         }
     };
 
-    public static void M_SetEffects(edict_t ent) {
+    public static void M_SetEffects(SubgameEntity ent) {
         ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
         ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
 

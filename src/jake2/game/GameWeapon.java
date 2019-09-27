@@ -344,8 +344,6 @@ public class GameWeapon {
     static EntThinkAdapter bfg_think = new EntThinkAdapter() {
     	public String getID() { return "bfg_think"; }
         public boolean think(SubgameEntity self) {
-            edict_t ent;
-            edict_t ignore;
             float[] point = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -360,8 +358,8 @@ public class GameWeapon {
     
             EdictIterator edit = null;
             while ((edit = GameBase.findradius(edit, self.s.origin, 256)) != null) {
-                ent = edit.o;
-    
+                SubgameEntity ent = edit.o;
+
                 if (ent == self)
                     continue;
     
@@ -380,30 +378,31 @@ public class GameWeapon {
     
                 Math3D.VectorSubtract(point, self.s.origin, dir);
                 Math3D.VectorNormalize(dir);
-    
-                ignore = self;
+
+                edict_t ignore = self;
                 Math3D.VectorCopy(self.s.origin, start);
                 Math3D.VectorMA(start, 2048, dir, end);
                 while (true) {
                     tr = GameBase.gi.trace(start, null, null, end, ignore,
                             Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                     | Defines.CONTENTS_DEADMONSTER);
-    
-                    if (null == tr.ent)
+
+                    SubgameEntity target = (SubgameEntity) tr.ent;
+                    if (null == target)
                         break;
     
                     // hurt it if we can
-                    if ((tr.ent.takedamage != 0)
-                            && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER)
-                            && (tr.ent != self.getOwner()))
-                        GameCombat.T_Damage((SubgameEntity) tr.ent, self, self.getOwner(), dir,
+                    if ((target.takedamage != 0)
+                            && 0 == (target.flags & GameDefines.FL_IMMUNE_LASER)
+                            && (target != self.getOwner()))
+                        GameCombat.T_Damage((SubgameEntity) target, self, self.getOwner(), dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
                                 Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER);
     
                     // if we hit something that's not a monster or player we're
                     // done
-                    if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
-                            && (null == tr.ent.client)) {
+                    if (0 == (target.svflags & Defines.SVF_MONSTER)
+                            && (null == target.client)) {
                         GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                         GameBase.gi.WriteByte(Defines.TE_LASER_SPARKS);
                         GameBase.gi.WriteByte(4);
@@ -414,7 +413,7 @@ public class GameWeapon {
                         break;
                     }
     
-                    ignore = tr.ent;
+                    ignore = target;
                     Math3D.VectorCopy(tr.endpos, start);
                 }
     
@@ -502,7 +501,8 @@ public class GameWeapon {
         tr = GameBase.gi.trace(self.s.origin, null, null, point, self,
                 Defines.MASK_SHOT);
         if (tr.fraction < 1) {
-            if (0 == tr.ent.takedamage)
+            SubgameEntity target = (SubgameEntity) tr.ent;
+            if (0 == target.takedamage)
                 return false;
             // if it will hit any client/monster then hit the one we wanted to
             // hit
@@ -623,10 +623,11 @@ public class GameWeapon {
         }
     
         // send gun puff / flash
+        SubgameEntity target = (SubgameEntity) tr.ent;
         if (!((tr.surface != null) && 0 != (tr.surface.flags & Defines.SURF_SKY))) {
             if (tr.fraction < 1.0) {
-                if (tr.ent.takedamage != 0) {
-                    GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, aimdir, tr.endpos,
+                if (target.takedamage != 0) {
+                    GameCombat.T_Damage(target, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick,
                             Defines.DAMAGE_BULLET, mod);
                 } else {
@@ -656,7 +657,7 @@ public class GameWeapon {
             if ((GameBase.gi.getPointContents(pos) & Defines.MASK_WATER) != 0)
                 Math3D.VectorCopy(pos, tr.endpos);
             else
-                tr = GameBase.gi.trace(pos, null, null, water_start, tr.ent,
+                tr = GameBase.gi.trace(pos, null, null, water_start, target,
                         Defines.MASK_WATER);
     
             Math3D.VectorAdd(water_start, tr.endpos, pos);

@@ -1920,9 +1920,7 @@ public class M_Boss32 {
     static EntThinkAdapter MakronToss = new EntThinkAdapter() {
     	public String getID() { return "MakronToss"; }
         public boolean think(SubgameEntity self) {
-            edict_t ent;
-
-            ent = GameUtil.G_Spawn();
+            SubgameEntity ent = GameUtil.G_Spawn();
             ent.nextthink = GameBase.level.time + 0.8f;
             ent.think = MakronSpawn;
             ent.target = self.target;
