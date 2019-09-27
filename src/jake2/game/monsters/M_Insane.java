@@ -607,7 +607,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_fist = new EntThinkAdapter() {
     	public String getID() { return "insane_fist"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_fist, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -616,7 +616,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_shake = new EntThinkAdapter() {
     	public String getID() { return "insane_shake"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_shake, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -625,7 +625,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_moan = new EntThinkAdapter() {
     	public String getID() { return "insane_moan"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_moan, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -634,7 +634,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_scream = new EntThinkAdapter() {
     	public String getID() { return "insane_scream"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE,
                     sound_scream[Lib.rand() % 8], 1, Defines.ATTN_IDLE, 0);
             return true;
@@ -643,7 +643,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_cross = new EntThinkAdapter() {
     	public String getID() { return "insane_cross"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (Lib.random() < 0.8)
                 self.monsterinfo.currentmove = insane_move_cross;
             else
@@ -654,7 +654,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_walk = new EntThinkAdapter() {
     	public String getID() { return "insane_walk"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
                     self.monsterinfo.currentmove = insane_move_down;
@@ -672,7 +672,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_run = new EntThinkAdapter() {
     	public String getID() { return "insane_run"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
                     self.monsterinfo.currentmove = insane_move_down;
@@ -690,7 +690,7 @@ public class M_Insane {
 
     static EntPainAdapter insane_pain = new EntPainAdapter() {
     	public String getID() { return "insane_pain"; }
-        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
             int l, r;
 
             //	 if (self.health < (self.max_health / 2))
@@ -733,7 +733,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_onground = new EntThinkAdapter() {
     	public String getID() { return "insane_onground"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = insane_move_down;
             return true;
         }
@@ -741,7 +741,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_checkdown = new EntThinkAdapter() {
     	public String getID() { return "insane_checkdown"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             //			if ( (self.s.frame == FRAME_stand94) || (self.s.frame ==
             // FRAME_stand65) )
             if ((self.spawnflags & 32) != 0) // Always stand
@@ -757,7 +757,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_checkup = new EntThinkAdapter() {
     	public String getID() { return "insane_checkup"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             //			If Hold_Ground and Crawl are set
             if ((self.spawnflags & 4) != 0 && (self.spawnflags & 16) != 0)
                 return true;
@@ -769,7 +769,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_stand = new EntThinkAdapter() {
     	public String getID() { return "insane_stand"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.spawnflags & 8) != 0) // If crucified
             {
                 self.monsterinfo.currentmove = insane_move_cross;
@@ -788,7 +788,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_dead = new EntThinkAdapter() {
     	public String getID() { return "insane_dead"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.spawnflags & 8) != 0) {
                 self.flags |= GameDefines.FL_FLY;
             } else {
@@ -805,7 +805,7 @@ public class M_Insane {
 
     static EntDieAdapter insane_die = new EntDieAdapter() {
     	public String getID() { return "insane_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
             int n;
 
@@ -1229,7 +1229,7 @@ public class M_Insane {
      * QUAKED misc_insane (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn
      * CRAWL CRUCIFIED STAND_GROUND ALWAYS_STAND
      */
-    public static void SP_misc_insane(edict_t self) {
+    public static void SP_misc_insane(SubgameEntity self) {
         //	 static int skin = 0; //@@
 
         if (GameBase.deathmatch.value != 0) {

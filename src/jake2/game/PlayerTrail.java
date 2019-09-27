@@ -101,7 +101,7 @@ public class PlayerTrail {
         Add(spot);
     }
 
-    static edict_t PickFirst(edict_t self) {
+    static edict_t PickFirst(SubgameEntity self) {
 
         if (!trail_active)
             return null;
@@ -126,7 +126,7 @@ public class PlayerTrail {
         return PlayerTrail.trail[marker];
     }
 
-    static edict_t PickNext(edict_t self) {
+    static edict_t PickNext(SubgameEntity self) {
         int marker;
         int n;
 

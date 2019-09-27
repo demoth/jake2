@@ -32,7 +32,6 @@ import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Collections;
 
 public class SV_INIT {
 
@@ -89,11 +88,8 @@ public class SV_INIT {
      * only the fields that differ from the baseline will be transmitted.
      */
     private static void SV_CreateBaseline() {
-        edict_t svent;
-        int entnum;
-
-        for (entnum = 1; entnum < SV_GAME.gameExports.getNumEdicts(); entnum++) {
-            svent = SV_GAME.gameExports.getEdict(entnum);
+        for (int entnum = 1; entnum < SV_GAME.gameExports.getNumEdicts(); entnum++) {
+            edict_t svent = SV_GAME.gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;
@@ -292,7 +288,6 @@ public class SV_INIT {
      */
     static void SV_InitGame() {
         int i;
-        edict_t ent;
         //char idmaster[32];
         String idmaster;
 
@@ -372,8 +367,7 @@ public class SV_INIT {
         SV_GAME.SV_InitGameProgs();
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            ent = SV_GAME.gameExports.getEdict(i + 1);
-            svs.clients[i].edict = ent;
+            svs.clients[i].edict = SV_GAME.gameExports.getEdict(i + 1);
             svs.clients[i].lastcmd = new usercmd_t();
         }
     }

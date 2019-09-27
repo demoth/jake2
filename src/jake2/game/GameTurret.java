@@ -25,7 +25,6 @@ package jake2.game;
 import jake2.game.monsters.M_Infantry;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
-import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -64,7 +63,7 @@ public class GameTurret {
      * yaw angle : default 360
      */
 
-    public static void turret_breach_fire(edict_t self) {
+    public static void turret_breach_fire(SubgameEntity self) {
         float[] f = { 0, 0, 0 }, r = { 0, 0, 0 }, u = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
         int damage;
@@ -77,14 +76,14 @@ public class GameTurret {
 
         damage = (int) (100 + Lib.random() * 50);
         speed = (int) (550 + 50 * GameBase.skill.value);
-        GameWeapon.fire_rocket(self.teammaster.owner, start, f, damage, speed, 150,
+        GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
                 damage);
         GameBase.gi.positioned_sound(start, self, Defines.CHAN_WEAPON,
                 GameBase.gi.soundindex("weapons/rocklf1a.wav"), 1,
                 Defines.ATTN_NORM, 0);
     }
 
-    public static void SP_turret_breach(edict_t self) {
+    public static void SP_turret_breach(SubgameEntity self) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
@@ -121,7 +120,7 @@ public class GameTurret {
      * MUST be teamed with a turret_breach.
      */
 
-    public static void SP_turret_base(edict_t self) {
+    public static void SP_turret_base(SubgameEntity self) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
         GameBase.gi.setmodel(self, self.model);
@@ -129,7 +128,7 @@ public class GameTurret {
         GameBase.gi.linkentity(self);
     }
 
-    public static void SP_turret_driver(edict_t self) {
+    public static void SP_turret_driver(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -178,12 +177,12 @@ public class GameTurret {
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
     	public String getID() { return "turret_blocked"; }
-        public void blocked(edict_t self, edict_t other) {
-            edict_t attacker;
+        public void blocked(SubgameEntity self, SubgameEntity other) {
 
             if (other.takedamage != 0) {
-                if (self.teammaster.owner != null)
-                    attacker = self.teammaster.owner;
+                SubgameEntity attacker;
+                if (self.teammaster.getOwner() != null)
+                    attacker = self.teammaster.getOwner();
                 else
                     attacker = self.teammaster;
                 GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
@@ -195,9 +194,8 @@ public class GameTurret {
 
     static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
-            edict_t ent;
             float[] current_angles = { 0, 0, 0 };
             float[] delta = { 0, 0, 0 };
 
@@ -260,11 +258,11 @@ public class GameTurret {
 
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
 
-            for (ent = self.teammaster; ent != null; ent = ent.teamchain)
+            for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
                 ent.avelocity[1] = self.avelocity[1];
 
             // if we have adriver, adjust his velocities
-            if (self.owner != null) {
+            if (self.getOwner() != null) {
                 float angle;
                 float target_z;
                 float diff;
@@ -272,29 +270,29 @@ public class GameTurret {
                 float[] dir = { 0, 0, 0 };
 
                 // angular is easy, just copy ours
-                self.owner.avelocity[0] = self.avelocity[0];
-                self.owner.avelocity[1] = self.avelocity[1];
+                self.getOwner().avelocity[0] = self.avelocity[0];
+                self.getOwner().avelocity[1] = self.avelocity[1];
 
                 // x & y
-                angle = self.s.angles[1] + self.owner.move_origin[1];
+                angle = self.s.angles[1] + self.getOwner().move_origin[1];
                 angle *= (Math.PI * 2 / 360);
                 target[0] = GameTurret.SnapToEights((float) (self.s.origin[0] + 
-                			Math.cos(angle) * self.owner.move_origin[0]));
+                			Math.cos(angle) * self.getOwner().move_origin[0]));
                 target[1] = GameTurret.SnapToEights((float) (self.s.origin[1] + 
-                			Math.sin(angle) * self.owner.move_origin[0]));
-                target[2] = self.owner.s.origin[2];
+                			Math.sin(angle) * self.getOwner().move_origin[0]));
+                target[2] = self.getOwner().s.origin[2];
 
-                Math3D.VectorSubtract(target, self.owner.s.origin, dir);
-                self.owner.velocity[0] = dir[0] * 1.0f / Defines.FRAMETIME;
-                self.owner.velocity[1] = dir[1] * 1.0f / Defines.FRAMETIME;
+                Math3D.VectorSubtract(target, self.getOwner().s.origin, dir);
+                self.getOwner().velocity[0] = dir[0] * 1.0f / Defines.FRAMETIME;
+                self.getOwner().velocity[1] = dir[1] * 1.0f / Defines.FRAMETIME;
 
                 // z
                 angle = self.s.angles[Defines.PITCH] * (float) (Math.PI * 2f / 360f);
                 target_z = GameTurret.SnapToEights((float) (self.s.origin[2]
-                                + self.owner.move_origin[0] * Math.tan(angle) + self.owner.move_origin[2]));
+                                + self.getOwner().move_origin[0] * Math.tan(angle) + self.getOwner().move_origin[2]));
 
-                diff = target_z - self.owner.s.origin[2];
-                self.owner.velocity[2] = diff * 1.0f / Defines.FRAMETIME;
+                diff = target_z - self.getOwner().s.origin[2];
+                self.getOwner().velocity[2] = diff * 1.0f / Defines.FRAMETIME;
 
                 if ((self.spawnflags & 65536) != 0) {
                     turret_breach_fire(self);
@@ -307,7 +305,7 @@ public class GameTurret {
 
     static EntThinkAdapter turret_breach_finish_init = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_finish_init"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             // get and save info for muzzle location
             if (self.target == null) {
@@ -334,23 +332,22 @@ public class GameTurret {
      */
     static EntDieAdapter turret_driver_die = new EntDieAdapter() {
     	public String getID() { return "turret_driver_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
-
-            edict_t ent;
 
             // level the gun
             self.target_ent.move_angles[0] = 0;
 
             // remove the driver from the end of them team chain
+            SubgameEntity ent;
             for (ent = self.target_ent.teammaster; ent.teamchain != self; ent = ent.teamchain)
                 ;
             ent.teamchain = null;
             self.teammaster = null;
             self.flags &= ~GameDefines.FL_TEAMSLAVE;
 
-            self.target_ent.owner = null;
-            self.target_ent.teammaster.owner = null;
+            self.target_ent.setOwner(null);
+            self.target_ent.teammaster.setOwner(null);
 
             M_Infantry.infantry_die.die(self, inflictor, attacker, damage, null);
         }
@@ -358,7 +355,7 @@ public class GameTurret {
 
     static EntThinkAdapter turret_driver_think = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             float[] target = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -411,17 +408,16 @@ public class GameTurret {
 
     public static EntThinkAdapter turret_driver_link = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_link"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             float[] vec = { 0, 0, 0 };
-            edict_t ent;
 
             self.think = turret_driver_think;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
 
             self.target_ent = GameBase.G_PickTarget(self.target);
-            self.target_ent.owner = self;
-            self.target_ent.teammaster.owner = self;
+            self.target_ent.setOwner(self);
+            self.target_ent.teammaster.setOwner(self);
             Math3D.VectorCopy(self.target_ent.s.angles, self.s.angles);
 
             vec[0] = self.target_ent.s.origin[0] - self.s.origin[0];
@@ -437,6 +433,7 @@ public class GameTurret {
             self.move_origin[2] = self.s.origin[2] - self.target_ent.s.origin[2];
 
             // add the driver to the end of them team chain
+            SubgameEntity ent;
             for (ent = self.target_ent.teammaster; ent.teamchain != null; ent = ent.teamchain)
                 ;
             ent.teamchain = self;

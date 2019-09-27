@@ -468,7 +468,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_idlesound = new EntThinkAdapter() {
     	public String getID() { return "gunner_idlesound"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -477,7 +477,7 @@ public class M_Gunner {
 
     static EntInteractAdapter gunner_sight = new EntInteractAdapter() {
     	public String getID() { return "gunner_sight"; }
-        public boolean interact(edict_t self, edict_t other) {
+        public boolean interact(SubgameEntity self, SubgameEntity other) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -486,7 +486,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_search = new EntThinkAdapter() {
     	public String getID() { return "gunner_search"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -546,7 +546,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_stand = new EntThinkAdapter() {
     	public String getID() { return "gunner_stand"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = gunner_move_stand;
             return true;
         }
@@ -557,7 +557,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_fidget = new EntThinkAdapter() {
     	public String getID() { return "gunner_fidget"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
             if (Lib.random() <= 0.05)
@@ -621,7 +621,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_walk = new EntThinkAdapter() {
     	public String getID() { return "gunner_walk"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = gunner_move_walk;
             return true;
         }
@@ -642,7 +642,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_run = new EntThinkAdapter() {
     	public String getID() { return "gunner_run"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = gunner_move_stand;
             else
@@ -664,7 +664,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_runandshoot = new EntThinkAdapter() {
     	public String getID() { return "gunner_runandshoot"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = gunner_move_runandshoot;
             return true;
         }
@@ -718,7 +718,7 @@ public class M_Gunner {
 
     static EntPainAdapter gunner_pain = new EntPainAdapter() {
     	public String getID() { return "gunner_pain"; }
-        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
@@ -749,7 +749,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_dead = new EntThinkAdapter() {
     	public String getID() { return "gunner_dead"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -778,7 +778,7 @@ public class M_Gunner {
 
     static EntDieAdapter gunner_die = new EntDieAdapter() {
     	public String getID() { return "gunner_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
             int n;
 
@@ -815,7 +815,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_duck_down = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_down"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
@@ -834,7 +834,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_hold"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (GameBase.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
@@ -845,7 +845,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_duck_up = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_up"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
@@ -869,7 +869,7 @@ public class M_Gunner {
 
     static EntDodgeAdapter gunner_dodge = new EntDodgeAdapter() {
     	public String getID() { return "gunner_dodge"; }
-        public void dodge(edict_t self, edict_t attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -882,7 +882,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_opengun = new EntThinkAdapter() {
     	public String getID() { return "gunner_opengun"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_open, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -891,7 +891,7 @@ public class M_Gunner {
 
     static EntThinkAdapter GunnerFire = new EntThinkAdapter() {
     	public String getID() { return "GunnerFire"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] target = { 0, 0, 0 };
@@ -923,7 +923,7 @@ public class M_Gunner {
 
     static EntThinkAdapter GunnerGrenade = new EntThinkAdapter() {
     	public String getID() { return "GunnerGrenade"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] aim = { 0, 0, 0 };
@@ -955,7 +955,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_attack = new EntThinkAdapter() {
     	public String getID() { return "gunner_attack"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE) {
                 self.monsterinfo.currentmove = gunner_move_attack_chain;
             } else {
@@ -970,7 +970,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_fire_chain = new EntThinkAdapter() {
     	public String getID() { return "gunner_fire_chain"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = gunner_move_fire_chain;
             return true;
         }
@@ -1000,7 +1000,7 @@ public class M_Gunner {
 
     static EntThinkAdapter gunner_refire_chain = new EntThinkAdapter() {
     	public String getID() { return "gunner_refire_chain"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (self.enemy.health > 0)
                 if (GameUtil.visible(self, self.enemy))
                     if (Lib.random() <= 0.5) {
@@ -1057,7 +1057,7 @@ public class M_Gunner {
      * QUAKED monster_gunner (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_gunner(edict_t self) {
+    public static void SP_monster_gunner(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

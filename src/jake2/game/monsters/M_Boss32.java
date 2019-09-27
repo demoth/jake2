@@ -1043,7 +1043,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_taunt = new EntThinkAdapter() {
     	public String getID() { return "makron_taunt"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float r;
 
             r = Lib.random();
@@ -1065,7 +1065,7 @@ public class M_Boss32 {
     //
     static EntThinkAdapter makron_stand = new EntThinkAdapter() {
     	public String getID() { return "makron_stand"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = makron_move_stand;
             return true;
         }
@@ -1073,12 +1073,12 @@ public class M_Boss32 {
 
     /*
      * static EntThinkAdapter xxx = new EntThinkAdapter() { public boolean
-     * think(edict_t self) { return true; } };
+     * think(SubgameEntity self) { return true; } };
      */
 
     static EntThinkAdapter makron_hit = new EntThinkAdapter() {
     	public String getID() { return "makron_hit"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_hit, 1,
                     Defines.ATTN_NONE, 0);
             return true;
@@ -1087,7 +1087,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_popup = new EntThinkAdapter() {
     	public String getID() { return "makron_popup"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_BODY, sound_popup, 1,
                     Defines.ATTN_NONE, 0);
             return true;
@@ -1097,7 +1097,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_step_left = new EntThinkAdapter() {
     	public String getID() { return "makron_step_left"; }
 
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1106,7 +1106,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_step_right = new EntThinkAdapter() {
     	public String getID() { return "makron_step_right"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1115,7 +1115,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_brainsplorch = new EntThinkAdapter() {
     	public String getID() { return "makron_brainsplorch"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_brainsplorch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1124,7 +1124,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_prerailgun = new EntThinkAdapter() {
     	public String getID() { return "makron_prerailgun"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_prerailgun, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1237,7 +1237,7 @@ public class M_Boss32 {
     //
     static EntThinkAdapter makron_dead = new EntThinkAdapter() {
     	public String getID() { return "makron_dead"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -1250,7 +1250,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_walk = new EntThinkAdapter() {
     	public String getID() { return "makron_walk"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = makron_move_walk;
             return true;
         }
@@ -1258,7 +1258,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_run = new EntThinkAdapter() {
     	public String getID() { return "makron_run"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = makron_move_stand;
             else
@@ -1474,7 +1474,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makronBFG = new EntThinkAdapter() {
     	public String getID() { return "makronBFG"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
 
             float[] start = { 0, 0, 0 };
@@ -1500,7 +1500,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter MakronSaveloc = new EntThinkAdapter() {
     	public String getID() { return "MakronSaveloc"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             Math3D.VectorCopy(self.enemy.s.origin, self.pos1); //save for
                                                                // aiming the
                                                                // shot
@@ -1513,7 +1513,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter MakronRailgun = new EntThinkAdapter() {
     	public String getID() { return "MakronRailgun"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] start = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -1538,7 +1538,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter MakronHyperblaster = new EntThinkAdapter() {
     	public String getID() { return "MakronHyperblaster"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] dir = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -1581,7 +1581,7 @@ public class M_Boss32 {
 
     static EntPainAdapter makron_pain = new EntPainAdapter() {
     	public String getID() { return "makron_pain"; }
-        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -1624,7 +1624,7 @@ public class M_Boss32 {
 
     static EntInteractAdapter makron_sight = new EntInteractAdapter() {
     	public String getID() { return "makron_sight"; }
-        public boolean interact(edict_t self, edict_t other) {
+        public boolean interact(SubgameEntity self, SubgameEntity other) {
             self.monsterinfo.currentmove = makron_move_sight;
             return true;
         }
@@ -1632,7 +1632,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_attack = new EntThinkAdapter() {
     	public String getID() { return "makron_attack"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] vec = { 0, 0, 0 };
             float range;
             float r;
@@ -1659,7 +1659,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_torso_think = new EntThinkAdapter() {
     	public String getID() { return "makron_torso_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (++self.s.frame < 365)
                 self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             else {
@@ -1672,7 +1672,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter makron_torso = new EntThinkAdapter() {
     	public String getID() { return "makron_torso"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             ent.movetype = GameDefines.MOVETYPE_NONE;
             ent.solid = Defines.SOLID_NOT;
             Math3D.VectorSet(ent.mins, -8, -8, 0);
@@ -1690,9 +1690,9 @@ public class M_Boss32 {
 
     static EntDieAdapter makron_die = new EntDieAdapter() {
     	public String getID() { return "makron_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
-            edict_t tempent;
+            SubgameEntity tempent;
 
             int n;
 
@@ -1738,7 +1738,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter Makron_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "Makron_CheckAttack"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
             float chance;
@@ -1894,7 +1894,7 @@ public class M_Boss32 {
      */
     static EntThinkAdapter MakronSpawn = new EntThinkAdapter() {
     	public String getID() { return "MakronSpawn"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] vec = { 0, 0, 0 };
 
             edict_t player;
@@ -1919,7 +1919,7 @@ public class M_Boss32 {
 
     static EntThinkAdapter MakronToss = new EntThinkAdapter() {
     	public String getID() { return "MakronToss"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             edict_t ent;
 
             ent = GameUtil.G_Spawn();
@@ -1958,7 +1958,7 @@ public class M_Boss32 {
      * QUAKED monster_makron (1 .5 0) (-30 -30 0) (30 30 90) Ambush
      * Trigger_Spawn Sight
      */
-    static void SP_monster_makron(edict_t self) {
+    static void SP_monster_makron(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

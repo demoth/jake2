@@ -33,7 +33,7 @@ public class M_Boss3 {
 
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
             GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_BOSSTPORT);
             GameBase.gi.WritePosition(ent.s.origin);
@@ -44,7 +44,7 @@ public class M_Boss3 {
 
     static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
     	public String getID() { return "Think_Boss3Stand"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             if (ent.s.frame == M_Boss32.FRAME_stand260)
                 ent.s.frame = M_Boss32.FRAME_stand201;
             else
@@ -60,7 +60,7 @@ public class M_Boss3 {
      * 
      * Just stands and cycles in one place until targeted, then teleports away.
      */
-    public static void SP_monster_boss3_stand(edict_t self) {
+    public static void SP_monster_boss3_stand(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

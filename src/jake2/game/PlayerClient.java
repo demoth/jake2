@@ -38,7 +38,7 @@ public class PlayerClient {
      */
     static EntDieAdapter player_die = new EntDieAdapter() {
     	public String getID() { return "player_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                         int damage, float[] point) {
             int n;
     
@@ -139,7 +139,7 @@ public class PlayerClient {
     };
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_FixCoopSpots"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
     
             edict_t spot;
             float[] d = { 0, 0, 0 };
@@ -175,7 +175,7 @@ public class PlayerClient {
     };
     static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_CreateCoopSpots"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
     
             edict_t spot;
     
@@ -210,12 +210,12 @@ public class PlayerClient {
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
     	public String getID() { return "player_pain"; }
-        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
         }
     };
     static EntDieAdapter body_die = new EntDieAdapter() {
     	public String getID() { return "body_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
     
             int n;
@@ -252,7 +252,7 @@ public class PlayerClient {
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
      * starting point for a level.
      */
-    public static void SP_info_player_start(edict_t self) {
+    public static void SP_info_player_start(SubgameEntity self) {
         if (GameBase.coop.value == 0)
             return;
         if (Lib.Q_stricmp(GameBase.level.mapname, "security") == 0) {
@@ -266,7 +266,7 @@ public class PlayerClient {
      * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) potential
      * spawning position for deathmatch games.
      */
-    public static void SP_info_player_deathmatch(edict_t self) {
+    public static void SP_info_player_deathmatch(SubgameEntity self) {
         if (0 == GameBase.deathmatch.value) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -279,7 +279,7 @@ public class PlayerClient {
      * spawning position for coop games.
      */
 
-    public static void SP_info_player_coop(edict_t self) {
+    public static void SP_info_player_coop(SubgameEntity self) {
         if (0 == GameBase.coop.value) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -314,8 +314,8 @@ public class PlayerClient {
     public static void SP_info_player_intermission() {
     }
 
-    public static void ClientObituary(edict_t self, edict_t inflictor,
-            edict_t attacker) {
+    public static void ClientObituary(SubgameEntity self, edict_t inflictor,
+                                      SubgameEntity attacker) {
         int mod;
         String message;
         String message2;
@@ -826,12 +826,11 @@ public class PlayerClient {
         }
     }
 
-    public static void CopyToBodyQue(edict_t ent) {
-        edict_t body;
+    public static void CopyToBodyQue(SubgameEntity ent) {
 
         // grab a body que and cycle to the next one
         int i = (int) GameBase.maxclients.value + GameBase.level.body_que + 1;
-        body = GameBase.g_edicts[i];
+        SubgameEntity body = GameBase.g_edicts[i];
         GameBase.level.body_que = (GameBase.level.body_que + 1)
                 % GameDefines.BODY_QUEUE_SIZE;
 
@@ -852,7 +851,7 @@ public class PlayerClient {
         Math3D.VectorCopy(ent.size, body.size);
         body.solid = ent.solid;
         body.clipmask = ent.clipmask;
-        body.owner = ent.owner;
+        body.setOwner(ent.getOwner());
         body.movetype = ent.movetype;
 
         body.die = PlayerClient.body_die;
@@ -861,7 +860,7 @@ public class PlayerClient {
         GameBase.gi.linkentity(body);
     }
 
-    public static void respawn(edict_t self) {
+    public static void respawn(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
@@ -896,7 +895,7 @@ public class PlayerClient {
      * Only called when pers.spectator changes note that resp.spectator should
      * be the opposite of pers.spectator here
      */
-    public static void spectator_respawn(edict_t ent) {
+    public static void spectator_respawn(SubgameEntity ent) {
         int i, numspec;
 
         // if the user wants to become a spectator, make sure he doesn't
@@ -984,7 +983,7 @@ public class PlayerClient {
     /**
      * Called when a player connects to a server or respawns in a deathmatch.
      */
-    public static void PutClientInServer(edict_t ent) {
+    public static void PutClientInServer(SubgameEntity ent) {
         float[] mins = { -16, -16, -24 };
         float[] maxs = { 16, 16, 32 };
         int index;
@@ -1140,7 +1139,7 @@ public class PlayerClient {
      * A client has just connected to the server in deathmatch mode, so clear
      * everything out before starting them.
      */
-    public static void ClientBeginDeathmatch(edict_t ent) {
+    public static void ClientBeginDeathmatch(SubgameEntity ent) {
         GameUtil.G_InitEdict(ent, ent.index);
 
         gclient_t client = (gclient_t) ent.client;
@@ -1167,7 +1166,7 @@ public class PlayerClient {
         PlayerView.ClientEndServerFrame(ent);
     }
 
-    static void ClientBegin(edict_t ent) {
+    static void ClientBegin(SubgameEntity ent) {
         int i;
 
         //ent.client = game.clients + (ent - g_edicts - 1);
@@ -1388,14 +1387,10 @@ public class PlayerClient {
      * }
      */
 
-    static void ClientThink(edict_t ent, usercmd_t ucmd) {
-        gclient_t client;
-        edict_t other;
-        int i, j;
-        pmove_t pm = null;
+    static void ClientThink(SubgameEntity ent, usercmd_t ucmd) {
 
         GameBase.level.current_entity = ent;
-        client = (gclient_t) ent.client;
+        gclient_t client = (gclient_t) ent.client;
 
         if (GameBase.level.intermissiontime != 0) {
             client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
@@ -1408,6 +1403,8 @@ public class PlayerClient {
 
         PlayerClient.pm_passent = ent;
 
+        SubgameEntity other;
+        int i;
         if (client.chase_target != null) {
 
             client.resp.cmd_angles[0] = Math3D.SHORT2ANGLE(ucmd.angles[0]);
@@ -1417,7 +1414,7 @@ public class PlayerClient {
         } else {
 
             // set up for pmove
-            pm = new pmove_t();
+            pmove_t pm = new pmove_t();
 
             if (ent.movetype == GameDefines.MOVETYPE_NOCLIP)
                 client.getPlayerState().pmove.pm_type = Defines.PM_SPECTATOR;
@@ -1496,7 +1493,8 @@ public class PlayerClient {
 
             // touch other objects
             for (i = 0; i < pm.numtouch; i++) {
-                other = pm.touchents[i];
+                other = (SubgameEntity) pm.touchents[i];
+                int j;
                 for (j = 0; j < i; j++)
                     if (pm.touchents[j] == other)
                         break;
@@ -1561,7 +1559,7 @@ public class PlayerClient {
      * This will be called once for each server frame, before running any other
      * entities in the world. 
      */
-    public static void ClientBeginServerFrame(edict_t ent) {
+    public static void ClientBeginServerFrame(SubgameEntity ent) {
         gclient_t client;
         int buttonMask;
 
@@ -1648,7 +1646,7 @@ public class PlayerClient {
     /**
      * Changes the camera view to look at the killer.
      */
-    public static void LookAtKiller(edict_t self, edict_t inflictor,
+    public static void LookAtKiller(SubgameEntity self, edict_t inflictor,
             edict_t attacker) {
         float dir[] = { 0, 0, 0 };
     
@@ -1683,7 +1681,7 @@ public class PlayerClient {
     /** 
      * Drop items and weapons in deathmatch games. 
      */ 
-    public static void TossClientWeapon(edict_t self) {
+    public static void TossClientWeapon(SubgameEntity self) {
         gitem_t item;
         edict_t drop;
         boolean quad;

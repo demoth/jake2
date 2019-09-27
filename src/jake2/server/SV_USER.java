@@ -92,7 +92,6 @@ class SV_USER {
     private static void SV_New_f(List<String> args) {
         String gamedir;
         int playernum;
-        edict_t ent;
 
         Com.DPrintf("New() from " + SV_MAIN.sv_client.name + "\n");
 
@@ -143,7 +142,7 @@ class SV_USER {
         // 
         if (SV_INIT.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
-            ent = SV_GAME.gameExports.getEdict(playernum + 1);
+            edict_t ent = SV_GAME.gameExports.getEdict(playernum + 1);
             ent.s.number = playernum + 1;
             SV_MAIN.sv_client.edict = ent;
             SV_MAIN.sv_client.lastcmd = new usercmd_t();

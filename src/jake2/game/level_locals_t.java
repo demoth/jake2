@@ -47,15 +47,15 @@ public class level_locals_t
 	public float[] intermission_origin= { 0, 0, 0 };
 	public float[] intermission_angle= { 0, 0, 0 };
 
-	public edict_t sight_client; // changed once each frame for coop games
+	public SubgameEntity sight_client; // changed once each frame for coop games
 
-	public edict_t sight_entity;
+	public SubgameEntity sight_entity;
 	public int sight_entity_framenum;
 	
-	public edict_t sound_entity;
+	public SubgameEntity sound_entity;
 	public int sound_entity_framenum;
 	
-	public edict_t sound2_entity;
+	public SubgameEntity sound2_entity;
 	public int sound2_entity_framenum;
 
 	public int pic_health;
@@ -128,14 +128,14 @@ public class level_locals_t
 		exitintermission = f.readBoolean();
 		intermission_origin = f.readVector();
 		intermission_angle = f.readVector();
- 		sight_client = f.readEdictRef(g_edicts);
+ 		sight_client = (SubgameEntity) f.readEdictRef(g_edicts);
  		
-		sight_entity = f.readEdictRef(g_edicts);
+		sight_entity = (SubgameEntity) f.readEdictRef(g_edicts);
 		sight_entity_framenum = f.readInt();
 		
-		sound_entity = f.readEdictRef(g_edicts);
+		sound_entity = (SubgameEntity) f.readEdictRef(g_edicts);
 		sound_entity_framenum = f.readInt();
-		sound2_entity = f.readEdictRef(g_edicts);
+		sound2_entity = (SubgameEntity) f.readEdictRef(g_edicts);
 		sound2_entity_framenum = f.readInt();
 
 		pic_health = f.readInt();

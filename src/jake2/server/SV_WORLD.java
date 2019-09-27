@@ -425,9 +425,9 @@ class SV_WORLD {
             if (clip.trace.allsolid)
                 return;
             if (clip.passedict != null) {
-                if (touch.owner == clip.passedict)
+                if (touch.getOwner() == clip.passedict)
                     continue; // don't clip against own missiles
-                if (clip.passedict.owner == touch)
+                if (clip.passedict.getOwner() == touch)
                     continue; // don't clip against owner
             }
             if (0 == (clip.contentmask & Defines.CONTENTS_DEADMONSTER)

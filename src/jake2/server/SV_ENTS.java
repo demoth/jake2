@@ -521,7 +521,7 @@ public class SV_ENTS {
             SV_INIT.svs.client_entities[ix].set(ent.s);
 
             // don't mark players missiles as solid
-            if (ent.owner == client.edict)
+            if (ent.getOwner() == client.edict)
                 state.solid = 0;
 
             SV_INIT.svs.next_client_entities++;

@@ -53,10 +53,10 @@ public class GameBase {
 
     static int num_edicts;
 
-    public static edict_t g_edicts[] = new edict_t[Defines.MAX_EDICTS];
+    public static SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
     static {
         for (int n = 0; n < Defines.MAX_EDICTS; n++)
-            g_edicts[n] = new edict_t(n);
+            g_edicts[n] = new SubgameEntity(n);
     }
 
     public static cvar_t deathmatch = new cvar_t();
@@ -238,9 +238,9 @@ public class GameBase {
 
     private static int MAXCHOICES = 8;
 
-    public static edict_t G_PickTarget(String targetname) {
+    public static SubgameEntity G_PickTarget(String targetname) {
         int num_choices = 0;
-        edict_t choice[] = new edict_t[MAXCHOICES];
+        SubgameEntity[] choice = new SubgameEntity[MAXCHOICES];
 
         if (targetname == null) {
             gi.dprintf("G_PickTarget called with null targetname\n");
@@ -291,11 +291,11 @@ public class GameBase {
      * G_TouchTriggers
      */
 
-    private static edict_t touch[] = new edict_t[Defines.MAX_EDICTS];
+    private static SubgameEntity touch[] = new SubgameEntity[Defines.MAX_EDICTS];
 
-    static void G_TouchTriggers(edict_t ent) {
+    static void G_TouchTriggers(SubgameEntity ent) {
         int i, num;
-        edict_t hit;
+        SubgameEntity hit;
 
         // dead things don't activate triggers!
         if ((ent.client != null || (ent.svflags & Defines.SVF_MONSTER) != 0)
@@ -328,7 +328,7 @@ public class GameBase {
 
     static int pushed_p;
 
-    static edict_t obstacle;
+    static SubgameEntity obstacle;
 
     static int c_yes, c_no;
 
@@ -337,7 +337,7 @@ public class GameBase {
     /**
      * G_RunEntity
      */
-    private static void G_RunEntity(edict_t ent) {
+    private static void G_RunEntity(SubgameEntity ent) {
 
         if (ent.prethink != null)
             ent.prethink.think(ent);
@@ -404,7 +404,7 @@ public class GameBase {
      */
     private static void ClientEndServerFrames() {
         int i;
-        edict_t ent;
+        SubgameEntity ent;
 
         // calc the player views now that all pushing
         // and damage has been added
@@ -420,8 +420,8 @@ public class GameBase {
     /**
      * Returns the created target changelevel.
      */
-    private static edict_t CreateTargetChangeLevel(String map) {
-        edict_t ent;
+    private static SubgameEntity CreateTargetChangeLevel(String map) {
+        SubgameEntity ent;
 
         ent = GameUtil.G_Spawn();
         ent.classname = "target_changelevel";
@@ -434,10 +434,8 @@ public class GameBase {
      * The timelimit or fraglimit has been exceeded.
      */
     private static void EndDMLevel() {
-        edict_t ent;
         //char * s, * t, * f;
         //static const char * seps = " ,\n\r";
-        String s, t, f;
         String seps = " ,\n\r";
 
         // stay on same level flag
@@ -448,14 +446,14 @@ public class GameBase {
 
         // see if it's in the map list
         if (sv_maplist.string.length() > 0) {
-            s = sv_maplist.string;
-            f = null;
+            String s = sv_maplist.string;
+            String f = null;
             StringTokenizer tk = new StringTokenizer(s, seps);
             
             while (tk.hasMoreTokens()){
-            	t = tk.nextToken();
-     
-            	// store first map
+                String t = tk.nextToken();
+
+                // store first map
             	if (f == null)
             		f = t;
             	
@@ -486,7 +484,7 @@ public class GameBase {
                 PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
                 return;
             }
-            ent = edit.o;
+            SubgameEntity ent = edit.o;
             PlayerHud.BeginIntermission(ent);
         }
     }
@@ -556,7 +554,7 @@ public class GameBase {
      */
     private static void ExitLevel() {
         int i;
-        edict_t ent;
+        SubgameEntity ent;
 
         String command = "gamemap \"" + level.changemap + "\"\n";
         gi.AddCommandString(command);
@@ -578,7 +576,7 @@ public class GameBase {
 
     static void G_RunFrame() {
         int i;
-        edict_t ent;
+        SubgameEntity ent;
 
         level.framenum++;
         level.time = level.framenum * Defines.FRAMETIME;

@@ -31,12 +31,9 @@ import jake2.qcommon.util.Math3D;
 
 class GameChase {
 
-    static void UpdateChaseCam(edict_t ent) {
+    static void UpdateChaseCam(SubgameEntity ent) {
         float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
-        edict_t targ;
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
-        trace_t trace;
-        int i;
         float[] oldgoal = { 0, 0, 0 };
         float[] angles = { 0, 0, 0 };
     
@@ -52,8 +49,8 @@ class GameChase {
                 return;
             }
         }
-    
-        targ = client.chase_target;
+
+        SubgameEntity targ = client.chase_target;
     
         Math3D.VectorCopy(targ.s.origin, ownerv);
         Math3D.VectorCopy(ent.s.origin, oldgoal);
@@ -74,8 +71,8 @@ class GameChase {
         // jump animation lifts
         if (targ.groundentity == null)
             o[2] += 16;
-    
-        trace = GameBase.gi.trace(ownerv, Globals.vec3_origin,
+
+        trace_t trace = GameBase.gi.trace(ownerv, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
     
         Math3D.VectorCopy(trace.endpos, goal);
@@ -107,7 +104,7 @@ class GameChase {
             client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
     
         Math3D.VectorCopy(goal, ent.s.origin);
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             client.getPlayerState().pmove.delta_angles[i] = (short) Math3D
                     .ANGLE2SHORT(targetClient.v_angle[i]
                             - client.resp.cmd_angles[i]);
@@ -126,14 +123,14 @@ class GameChase {
         GameBase.gi.linkentity(ent);
     }
 
-    static void ChaseNext(edict_t ent) {
+    static void ChaseNext(SubgameEntity ent) {
 
         gclient_t client = (gclient_t) ent.client;
         if (null == client.chase_target)
             return;
 
         int i = client.chase_target.index;
-        edict_t e;
+        SubgameEntity e;
         do {
             i++;
             if (i > GameBase.maxclients.value)
@@ -151,14 +148,14 @@ class GameChase {
         client.update_chase = true;
     }
 
-    static void ChasePrev(edict_t ent) {
+    static void ChasePrev(SubgameEntity ent) {
 
         gclient_t client = (gclient_t) ent.client;
         if (client.chase_target == null)
             return;
 
         int i = client.chase_target.index;
-        edict_t e;
+        SubgameEntity e;
         do {
             i--;
             if (i < 1)
@@ -175,10 +172,10 @@ class GameChase {
         client.update_chase = true;
     }
 
-    static void GetChaseTarget(edict_t ent) {
+    static void GetChaseTarget(SubgameEntity ent) {
 
         for (int i = 1; i <= GameBase.maxclients.value; i++) {
-            edict_t other = GameBase.g_edicts[i];
+            SubgameEntity other = GameBase.g_edicts[i];
             gclient_t otherClient = (gclient_t) other.client;
             if (other.inuse && !otherClient.resp.spectator) {
                 gclient_t client = (gclient_t) ent.client;

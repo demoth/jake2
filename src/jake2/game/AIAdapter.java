@@ -23,9 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
-
 public abstract class AIAdapter extends SuperAdapter
 {
-	public abstract void ai(edict_t self, float dist);
+	public abstract void ai(SubgameEntity self, float dist);
 }

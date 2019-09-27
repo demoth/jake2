@@ -31,7 +31,7 @@ import jake2.qcommon.util.Math3D;
 
 public class PlayerView {
 
-    public static edict_t current_player;
+    public static SubgameEntity current_player;
 
     public static gclient_t current_client;
 
@@ -472,7 +472,7 @@ public class PlayerView {
     /**
      * Calculates damage and effect when a player falls down.
      */
-    public static void P_FallingDamage(edict_t ent) {
+    public static void P_FallingDamage(SubgameEntity ent) {
         float delta;
         int damage;
         float[] dir = { 0, 0, 0 };
@@ -786,7 +786,7 @@ public class PlayerView {
      * G_SetClientEvent 
      * ===============
      */
-    public static void G_SetClientEvent(edict_t ent) {
+    public static void G_SetClientEvent(SubgameEntity ent) {
         if (ent.s.event != 0)
             return;
 
@@ -842,7 +842,7 @@ public class PlayerView {
      * G_SetClientFrame 
      * ===============
      */
-    public static void G_SetClientFrame(edict_t ent) {
+    public static void G_SetClientFrame(SubgameEntity ent) {
         boolean duck, run;
 
         if (ent.s.modelindex != 255)
@@ -930,7 +930,7 @@ public class PlayerView {
      * Called for each player at the end of the server frame and right after
      * spawning.
      */
-    public static void ClientEndServerFrame(edict_t ent) {
+    public static void ClientEndServerFrame(SubgameEntity ent) {
         float bobtime;
         int i;
 

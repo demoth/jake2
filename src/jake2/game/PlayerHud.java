@@ -81,7 +81,7 @@ public class PlayerHud {
 
     }
 
-    public static void BeginIntermission(edict_t targ) {
+    public static void BeginIntermission(SubgameEntity targ) {
 
         if (GameBase.level.intermissiontime != 0)
             return; // already activated
@@ -90,7 +90,7 @@ public class PlayerHud {
 
         // respawn any dead clients
         int i;
-        edict_t client;
+        SubgameEntity client;
         for (i = 0; i < GameBase.maxclients.value; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
@@ -260,7 +260,7 @@ public class PlayerHud {
      * the 1400 byte message limit! 
      * ==================
      */
-    public static void DeathmatchScoreboard(edict_t ent) {
+    public static void DeathmatchScoreboard(SubgameEntity ent) {
         DeathmatchScoreboardMessage(ent, ent.enemy);
         GameBase.gi.unicast(ent, true);
     }
@@ -272,7 +272,7 @@ public class PlayerHud {
      * Display the scoreboard 
      * ==================
      */
-    public static void Cmd_Score_f(edict_t ent) {
+    public static void Cmd_Score_f(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         client.showinventory = false;
         client.showhelp = false;

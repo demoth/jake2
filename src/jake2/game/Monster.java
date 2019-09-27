@@ -36,7 +36,7 @@ public class Monster {
     //	and we can mess it up based on skill. Spread should be for normal
     //	and we can tighten or loosen based on skill. We could muck with
     //	the damages too, but I'm not sure that's such a good idea.
-    public static void monster_fire_bullet(edict_t self, float[] start,
+    public static void monster_fire_bullet(SubgameEntity self, float[] start,
                                            float[] dir, int damage, int kick, int hspread, int vspread,
                                            int flashtype) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
@@ -49,7 +49,7 @@ public class Monster {
     }
 
     /** The Moster fires the shotgun. */
-    public static void monster_fire_shotgun(edict_t self, float[] start,
+    public static void monster_fire_shotgun(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int kick, int hspread, int vspread,
             int count, int flashtype) {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
@@ -62,7 +62,7 @@ public class Monster {
     }
 
     /** The Moster fires the blaster. */
-    public static void monster_fire_blaster(edict_t self, float[] start,
+    public static void monster_fire_blaster(SubgameEntity self, float[] start,
             float[] dir, int damage, int speed, int flashtype, int effect) {
         GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
 
@@ -73,7 +73,7 @@ public class Monster {
     }
 
     /** The Moster fires the grenade. */
-    public static void monster_fire_grenade(edict_t self, float[] start,
+    public static void monster_fire_grenade(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int speed, int flashtype) {
         GameWeapon
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
@@ -86,7 +86,7 @@ public class Monster {
     }
 
     /** The Moster fires the rocket. */
-    public static void monster_fire_rocket(edict_t self, float[] start,
+    public static void monster_fire_rocket(SubgameEntity self, float[] start,
             float[] dir, int damage, int speed, int flashtype) {
         GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
@@ -97,7 +97,7 @@ public class Monster {
     }
 
     /** The Moster fires the railgun. */
-    public static void monster_fire_railgun(edict_t self, float[] start,
+    public static void monster_fire_railgun(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int kick, int flashtype) {
         GameWeapon.fire_rail(self, start, aimdir, damage, kick);
 
@@ -108,7 +108,7 @@ public class Monster {
     }
 
     /** The Moster fires the bfg. */
-    public static void monster_fire_bfg(edict_t self, float[] start,
+    public static void monster_fire_bfg(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int speed, int kick,
             float damage_radius, int flashtype) {
         GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
@@ -125,7 +125,7 @@ public class Monster {
      * When a monster dies, it fires all of its targets with the current enemy
      * as activator. ================
      */
-    public static void monster_death_use(edict_t self) {
+    public static void monster_death_use(SubgameEntity self) {
         self.flags &= ~(GameDefines.FL_FLY | GameDefines.FL_SWIM);
         self.monsterinfo.aiflags &= GameDefines.AI_GOOD_GUY;
 
@@ -144,7 +144,7 @@ public class Monster {
     }
 
     // ============================================================================
-    public static boolean monster_start(edict_t self) {
+    public static boolean monster_start(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return false;
@@ -195,7 +195,7 @@ public class Monster {
         return true;
     }
 
-    public static void monster_start_go(edict_t self) {
+    public static void monster_start_go(SubgameEntity self) {
 
         float[] v = { 0, 0, 0 };
 
@@ -295,7 +295,7 @@ public class Monster {
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
         public String getID() { return "monster_think";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             M.M_MoveFrame(self);
             if (self.linkcount != self.monsterinfo.linkcount) {
@@ -311,7 +311,7 @@ public class Monster {
 
     public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
         public String getID() { return "monster_trigger_spawn";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             self.s.origin[2] += 1;
             GameUtil.KillBox(self);
@@ -338,7 +338,7 @@ public class Monster {
     // us
     public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
         public String getID() { return "monster_trigger_spawn_use";}
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.think = monster_triggered_spawn;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             if (activator.client != null)
@@ -349,7 +349,7 @@ public class Monster {
 
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
         public String getID() { return "monster_triggered_start";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (self.index == 312)
                 Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;

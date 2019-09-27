@@ -36,7 +36,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_Grenade = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Grenade"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             gclient_t client = (gclient_t) ent.client;
             if ((client.newweapon != null)
                     && (client.weaponstate == WeaponStates.WEAPON_READY)) {
@@ -149,7 +149,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter weapon_grenadelauncher_fire = new EntThinkAdapter() {
     	public String getID() { return "weapon_grenadelauncher_fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             float[] offset = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -190,7 +190,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_GrenadeLauncher = new EntThinkAdapter() {
     	public String getID() { return "Weapon_GrenadeLauncher"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 34, 51, 59, 0 };
             int fire_frames[] = { 6, 0 };
@@ -212,7 +212,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_RocketLauncher_Fire = new EntThinkAdapter() {
     	public String getID() { return "Weapon_RocketLauncher_Fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -261,7 +261,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_RocketLauncher = new EntThinkAdapter() {
     	public String getID() { return "Weapon_RocketLauncher"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 25, 33, 42, 50, 0 };
             int fire_frames[] = { 5, 0 };
@@ -275,7 +275,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_Blaster_Fire = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Blaster_Fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int damage;
 
@@ -293,7 +293,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_Blaster = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Blaster"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 19, 32, 0 };
             int fire_frames[] = { 5, 0 };
@@ -307,7 +307,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_HyperBlaster_Fire = new EntThinkAdapter() {
     	public String getID() { return "Weapon_HyperBlaster_Fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             float rotation;
             float[] offset = { 0, 0, 0 };
             int effect;
@@ -378,7 +378,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_HyperBlaster = new EntThinkAdapter() {
     	public String getID() { return "Weapon_HyperBlaster"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 0 };
             int fire_frames[] = { 6, 7, 8, 9, 10, 11, 0 };
@@ -391,7 +391,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_Machinegun = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Machinegun"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 23, 45, 0 };
             int fire_frames[] = { 4, 5, 0 };
@@ -404,7 +404,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_Chaingun = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Chaingun"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 38, 43, 51, 61, 0 };
             int fire_frames[] = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -427,7 +427,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter weapon_shotgun_fire = new EntThinkAdapter() {
     	public String getID() { return "weapon_shotgun_fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -482,7 +482,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_Shotgun = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Shotgun"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             int pause_frames[] = { 22, 28, 34, 0 };
             int fire_frames[] = { 8, 9, 0 };
 
@@ -495,7 +495,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter weapon_supershotgun_fire = new EntThinkAdapter() {
     	public String getID() { return "weapon_supershotgun_fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -553,7 +553,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_SuperShotgun = new EntThinkAdapter() {
     	public String getID() { return "Weapon_SuperShotgun"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 29, 42, 57, 0 };
             int fire_frames[] = { 7, 0 };
@@ -574,7 +574,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter weapon_railgun_fire = new EntThinkAdapter() {
     	public String getID() { return "weapon_railgun_fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -627,7 +627,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Weapon_Railgun = new EntThinkAdapter() {
     	public String getID() { return "Weapon_Railgun"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int pause_frames[] = { 56, 0 };
             int fire_frames[] = { 4, 0 };
@@ -648,7 +648,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter weapon_bfg_fire = new EntThinkAdapter() {
     	public String getID() { return "weapon_bfg_fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -712,7 +712,7 @@ public class PlayerWeapon {
 
     public static EntThinkAdapter Weapon_BFG = new EntThinkAdapter() {
     	public String getID() { return "Weapon_BFG"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             Weapon_Generic(ent, 8, 32, 55, 58, pause_frames, fire_frames,
                     weapon_bfg_fire);
@@ -735,7 +735,7 @@ public class PlayerWeapon {
     public static ItemUseAdapter Use_Weapon = new ItemUseAdapter() {
     	public String getID() { return "Use_Weapon"; }
 
-        public void use(edict_t ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item) {
             int ammo_index;
             gitem_t ammo_item;
 
@@ -778,7 +778,7 @@ public class PlayerWeapon {
 
     public static ItemDropAdapter Drop_Weapon = new ItemDropAdapter() {
     	public String getID() { return "Drop_Weapon"; }
-        public void drop(edict_t ent, gitem_t item) {
+        public void drop(SubgameEntity ent, gitem_t item) {
             int index;
 
             if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY))
@@ -810,7 +810,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Machinegun_Fire = new EntThinkAdapter() {
     	public String getID() { return "Machinegun_Fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int i;
             float[] start = { 0, 0, 0 };
@@ -903,7 +903,7 @@ public class PlayerWeapon {
     public static EntThinkAdapter Chaingun_Fire = new EntThinkAdapter() {
     	public String getID() { return "Chaingun_Fire"; }
 
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
 
             int i;
             int shots;
@@ -1030,7 +1030,7 @@ public class PlayerWeapon {
 
     public static EntInteractAdapter Pickup_Weapon = new EntInteractAdapter() {
     	public String getID() { return "Pickup_Weapon"; }
-        public boolean interact(edict_t ent, edict_t other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other) {
             int index;
             gitem_t ammo;
     
@@ -1094,7 +1094,7 @@ public class PlayerWeapon {
      * The old weapon has been dropped all the way, so make the new one current
      * ===============
      */
-    public static void ChangeWeapon(edict_t ent) {
+    public static void ChangeWeapon(SubgameEntity ent) {
         int i;
 
         gclient_t client = (gclient_t) ent.client;
@@ -1207,7 +1207,7 @@ public class PlayerWeapon {
      * Called by ClientBeginServerFrame and ClientThink 
      * =================
      */
-    public static void Think_Weapon(edict_t ent) {
+    public static void Think_Weapon(SubgameEntity ent) {
         // if just died, put the weapon away
         gclient_t client = (gclient_t) ent.client;
         if (ent.health < 1) {
@@ -1235,7 +1235,7 @@ public class PlayerWeapon {
      * ================
      */
 
-    public static void Weapon_Generic(edict_t ent, int FRAME_ACTIVATE_LAST,
+    public static void Weapon_Generic(SubgameEntity ent, int FRAME_ACTIVATE_LAST,
             int FRAME_FIRE_LAST, int FRAME_IDLE_LAST,
             int FRAME_DEACTIVATE_LAST, int pause_frames[], int fire_frames[],
             EntThinkAdapter fire) {
@@ -1376,7 +1376,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static void weapon_grenade_fire(edict_t ent, boolean held) {
+    public static void weapon_grenade_fire(SubgameEntity ent, boolean held) {
         float[] offset = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
@@ -1433,7 +1433,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static void Blaster_Fire(edict_t ent, float[] g_offset, int damage,
+    public static void Blaster_Fire(SubgameEntity ent, float[] g_offset, int damage,
             boolean hyper, int effect) {
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
@@ -1476,9 +1476,8 @@ public class PlayerWeapon {
      * of seeing the player from there. 
      * ===============
      */
-    static void PlayerNoise(edict_t who, float[] where, int type) {
-        edict_t noise;
-    
+    static void PlayerNoise(SubgameEntity who, float[] where, int type) {
+
         if (type == GameDefines.PNOISE_WEAPON) {
             gclient_t client = (gclient_t) who.client;
             if (client.silencer_shots > 0) {
@@ -1492,13 +1491,14 @@ public class PlayerWeapon {
     
         if ((who.flags & GameDefines.FL_NOTARGET) != 0)
             return;
-    
+
+        SubgameEntity noise;
         if (who.mynoise == null) {
             noise = GameUtil.G_Spawn();
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);
-            noise.owner = who;
+            noise.setOwner(who);
             noise.svflags = Defines.SVF_NOCLIENT;
             who.mynoise = noise;
     
@@ -1506,7 +1506,7 @@ public class PlayerWeapon {
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);
-            noise.owner = who;
+            noise.setOwner(who);
             noise.svflags = Defines.SVF_NOCLIENT;
             who.mynoise2 = noise;
         }

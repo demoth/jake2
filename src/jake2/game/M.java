@@ -37,9 +37,8 @@ import jake2.qcommon.util.Math3D;
  */
 public final class M {
 
-    public static void M_CheckGround(edict_t ent) {
+    public static void M_CheckGround(SubgameEntity ent) {
         float[] point = { 0, 0, 0 };
-        trace_t trace;
 
         if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0)
             return;
@@ -55,7 +54,7 @@ public final class M {
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] - 0.25f;
 
-        trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
+        trace_t trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
                 Defines.MASK_MONSTERSOLID);
 
         // check steepness
@@ -186,8 +185,8 @@ public final class M {
     /**
      * M_MoveToGoal.
      */
-    public static void M_MoveToGoal(edict_t ent, float dist) {
-        edict_t goal = ent.goalentity;
+    public static void M_MoveToGoal(SubgameEntity ent, float dist) {
+        SubgameEntity goal = ent.goalentity;
 
         if (ent.groundentity == null
                 && (ent.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) == 0)
@@ -208,7 +207,7 @@ public final class M {
     /** 
      * M_walkmove.
      */
-    public static boolean M_walkmove(edict_t ent, float yaw, float dist) {
+    public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist) {
         float[] move = { 0, 0, 0 };
 
         if ((ent.groundentity == null)
@@ -256,10 +255,13 @@ public final class M {
             ent.waterlevel = 3;
     }
 
-    public static void M_WorldEffects(edict_t ent) {
-        int dmg;
+    /**
+     * Apply water drowning, lava or slime effects
+     */
+    static void M_WorldEffects(SubgameEntity ent) {
 
         if (ent.health > 0) {
+            int dmg;
             if (0 == (ent.flags & GameDefines.FL_SWIM)) {
                 if (ent.waterlevel < 3) {
                     ent.air_finished = GameBase.level.time + 12;
@@ -356,7 +358,7 @@ public final class M {
 
     public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
         public String getID() { return "m_drop_to_floor";}
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             float[] end = { 0, 0, 0 };
             trace_t trace;
 
@@ -402,7 +404,7 @@ public final class M {
     };
 
     //ok
-    public static void M_MoveFrame(edict_t self) {
+    public static void M_MoveFrame(SubgameEntity self) {
         mmove_t move; //ptr
         int index;
 
@@ -455,7 +457,7 @@ public final class M {
     /** Stops the Flies. */
     public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
         public String getID() { return "m_fliesoff";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.s.effects &= ~Defines.EF_FLIES;
             self.s.sound = 0;
             return true;
@@ -465,7 +467,7 @@ public final class M {
     /** Starts the Flies as setting the animation flag in the entity. */
     public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
         public String getID() { return "m_flies_on";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (self.waterlevel != 0)
                 return true;
 
@@ -480,7 +482,7 @@ public final class M {
     /** Adds some flies after a random time */
     public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
         public String getID() { return "m_fly_check";}
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             if (self.waterlevel != 0)
                 return true;

@@ -116,7 +116,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 	float respawn_time; // can respawn when time > this
 
-	edict_t chase_target; // player we are chasing
+	SubgameEntity chase_target; // player we are chasing
 	boolean update_chase; // need to update chase info?
 
 	private int index;
@@ -305,7 +305,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 		flood_when[9] = f.readFloat();
 		flood_whenhead = f.readInt();
 		respawn_time = f.readFloat();
-		chase_target = f.readEdictRef(edicts);
+		chase_target = (SubgameEntity) f.readEdictRef(edicts);
 		update_chase = f.readInt() != 0;
 		
 		if (f.readInt() != 8765)

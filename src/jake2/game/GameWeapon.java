@@ -34,11 +34,11 @@ public class GameWeapon {
     static EntTouchAdapter blaster_touch = new EntTouchAdapter() {
     	public String getID() { return "blaster_touch"; }
     
-        public void touch(edict_t self, edict_t other, cplane_t plane,
+        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf) {
             int mod;
     
-            if (other == self.owner)
+            if (other == self.getOwner())
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
@@ -46,8 +46,8 @@ public class GameWeapon {
                 return;
             }
     
-            if (self.owner.client != null)
-                PlayerWeapon.PlayerNoise(self.owner, self.s.origin,
+            if (self.getOwner().client != null)
+                PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
             if (other.takedamage != 0) {
@@ -63,7 +63,7 @@ public class GameWeapon {
                 else
                     normal = plane.normal;
     
-                GameCombat.T_Damage(other, self, self.owner, self.velocity,
+                GameCombat.T_Damage(other, self, self.getOwner(), self.velocity,
                         self.s.origin, normal, self.dmg, 1,
                         Defines.DAMAGE_ENERGY, mod);
     
@@ -84,13 +84,12 @@ public class GameWeapon {
     
     static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
     	public String getID() { return "Grenade_Explode"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             float[] origin = { 0, 0, 0 };
             int mod;
     
-            if (ent.owner.client != null)
-                PlayerWeapon.PlayerNoise(ent.owner, ent.s.origin,
-                        GameDefines.PNOISE_IMPACT);
+            if (ent.getOwner().client != null)
+                PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin, GameDefines.PNOISE_IMPACT);
     
             //FIXME: if we are onground then raise our Z just a bit since we
             // are a point?
@@ -108,7 +107,7 @@ public class GameWeapon {
                     mod = GameDefines.MOD_HANDGRENADE;
                 else
                     mod = GameDefines.MOD_GRENADE;
-                GameCombat.T_Damage(ent.enemy, ent, ent.owner, dir, ent.s.origin,
+                GameCombat.T_Damage(ent.enemy, ent, ent.getOwner(), dir, ent.s.origin,
                         Globals.vec3_origin, (int) points, (int) points,
                         Defines.DAMAGE_RADIUS, mod);
             }
@@ -119,7 +118,7 @@ public class GameWeapon {
                 mod = GameDefines.MOD_HG_SPLASH;
             else
                 mod = GameDefines.MOD_G_SPLASH;
-            GameCombat.T_RadiusDamage(ent, ent.owner, ent.dmg, ent.enemy,
+            GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.dmg, ent.enemy,
                     ent.dmg_radius, mod);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
@@ -144,9 +143,9 @@ public class GameWeapon {
     };
     static EntTouchAdapter Grenade_Touch = new EntTouchAdapter() {
     	public String getID() { return "Grenade_Touch"; }
-        public void touch(edict_t ent, edict_t other, cplane_t plane,
+        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (other == ent.owner)
+            if (other == ent.getOwner())
                 return;
     
             if (surf != null && 0 != (surf.flags & Defines.SURF_SKY)) {
@@ -184,12 +183,12 @@ public class GameWeapon {
      */
     static EntTouchAdapter rocket_touch = new EntTouchAdapter() {
     	public String  getID() { return "rocket_touch"; }
-        public void touch(edict_t ent, edict_t other, cplane_t plane,
+        public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
             float[] origin = { 0, 0, 0 };
             int n;
     
-            if (other == ent.owner)
+            if (other == ent.getOwner())
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
@@ -197,15 +196,15 @@ public class GameWeapon {
                 return;
             }
     
-            if (ent.owner.client != null)
-                PlayerWeapon.PlayerNoise(ent.owner, ent.s.origin,
+            if (ent.getOwner().client != null)
+                PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
             // calculate position for the explosion entity
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
     
             if (other.takedamage != 0) {
-                GameCombat.T_Damage(other, ent, ent.owner, ent.velocity,
+                GameCombat.T_Damage(other, ent, ent.getOwner(), ent.velocity,
                         ent.s.origin, plane.normal, ent.dmg, 0, 0,
                         GameDefines.MOD_ROCKET);
             } else {
@@ -224,7 +223,7 @@ public class GameWeapon {
                 }
             }
     
-            GameCombat.T_RadiusDamage(ent, ent.owner, ent.radius_dmg, other,
+            GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.radius_dmg, other,
                     ent.dmg_radius, GameDefines.MOD_R_SPLASH);
     
             GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
@@ -245,8 +244,7 @@ public class GameWeapon {
      */
     static EntThinkAdapter bfg_explode = new EntThinkAdapter() {
     	public String getID() { return "bfg_explode"; }
-        public boolean think(edict_t self) {
-            edict_t ent;
+        public boolean think(SubgameEntity self) {
             float points;
             float[] v = { 0, 0, 0 };
             float dist;
@@ -255,17 +253,17 @@ public class GameWeapon {
     
             if (self.s.frame == 0) {
                 // the BFG effect
-                ent = null;
+                SubgameEntity ent;
                 while ((edit = GameBase.findradius(edit, self.s.origin,
                         self.dmg_radius)) != null) {
                     ent = edit.o;
                     if (ent.takedamage == 0)
                         continue;
-                    if (ent == self.owner)
+                    if (ent == self.getOwner())
                         continue;
                     if (!GameCombat.CanDamage(ent, self))
                         continue;
-                    if (!GameCombat.CanDamage(ent, self.owner))
+                    if (!GameCombat.CanDamage(ent, self.getOwner()))
                         continue;
     
                     Math3D.VectorAdd(ent.mins, ent.maxs, v);
@@ -274,14 +272,14 @@ public class GameWeapon {
                     dist = Math3D.VectorLength(v);
                     points = (float) (self.radius_dmg * (1.0 - Math.sqrt(dist
                             / self.dmg_radius)));
-                    if (ent == self.owner)
+                    if (ent == self.getOwner())
                         points = points * 0.5f;
     
                     GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
                     GameBase.gi.WriteByte(Defines.TE_BFG_EXPLOSION);
                     GameBase.gi.WritePosition(ent.s.origin);
                     GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
-                    GameCombat.T_Damage(ent, self, self.owner, self.velocity,
+                    GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
                             Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT);
                 }
@@ -298,9 +296,9 @@ public class GameWeapon {
     
     static EntTouchAdapter bfg_touch = new EntTouchAdapter() {
     	public String getID() { return "bfg_touch"; }
-        public void touch(edict_t self, edict_t other, cplane_t plane,
+        public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                 csurface_t surf) {
-            if (other == self.owner)
+            if (other == self.getOwner())
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
@@ -308,16 +306,16 @@ public class GameWeapon {
                 return;
             }
     
-            if (self.owner.client != null)
-                PlayerWeapon.PlayerNoise(self.owner, self.s.origin,
+            if (self.getOwner().client != null)
+                PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
                         GameDefines.PNOISE_IMPACT);
     
             // core explosion - prevents firing it into the wall/floor
             if (other.takedamage != 0)
-                GameCombat.T_Damage(other, self, self.owner, self.velocity,
+                GameCombat.T_Damage(other, self, self.getOwner(), self.velocity,
                         self.s.origin, plane.normal, 200, 0, 0,
                         GameDefines.MOD_BFG_BLAST);
-            GameCombat.T_RadiusDamage(self, self.owner, 200, other, 100,
+            GameCombat.T_RadiusDamage(self, self.getOwner(), 200, other, 100,
                     GameDefines.MOD_BFG_BLAST);
     
             GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
@@ -345,7 +343,7 @@ public class GameWeapon {
     
     static EntThinkAdapter bfg_think = new EntThinkAdapter() {
     	public String getID() { return "bfg_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             edict_t ent;
             edict_t ignore;
             float[] point = { 0, 0, 0 };
@@ -367,7 +365,7 @@ public class GameWeapon {
                 if (ent == self)
                     continue;
     
-                if (ent == self.owner)
+                if (ent == self.getOwner())
                     continue;
     
                 if (ent.takedamage == 0)
@@ -397,8 +395,8 @@ public class GameWeapon {
                     // hurt it if we can
                     if ((tr.ent.takedamage != 0)
                             && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER)
-                            && (tr.ent != self.owner))
-                        GameCombat.T_Damage(tr.ent, self, self.owner, dir,
+                            && (tr.ent != self.getOwner()))
+                        GameCombat.T_Damage((SubgameEntity) tr.ent, self, self.getOwner(), dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
                                 Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER);
     
@@ -441,7 +439,7 @@ public class GameWeapon {
      * called. 
      * =================
      */
-    static void check_dodge(edict_t self, float[] start, float[] dir, int speed) {
+    static void check_dodge(SubgameEntity self, float[] start, float[] dir, int speed) {
         float[] end = { 0, 0, 0 };
         float[] v = { 0, 0, 0 };
         trace_t tr;
@@ -454,12 +452,13 @@ public class GameWeapon {
         }
         Math3D.VectorMA(start, 8192, dir, end);
         tr = GameBase.gi.trace(start, null, null, end, self, Defines.MASK_SHOT);
-        if ((tr.ent != null) && (tr.ent.svflags & Defines.SVF_MONSTER) != 0
-                && (tr.ent.health > 0) && (null != tr.ent.monsterinfo.dodge)
-                && GameUtil.infront(tr.ent, self)) {
+        SubgameEntity target = (SubgameEntity) tr.ent;
+        if ((target != null) && (target.svflags & Defines.SVF_MONSTER) != 0
+                && (target.health > 0) && (null != target.monsterinfo.dodge)
+                && GameUtil.infront(target, self)) {
             Math3D.VectorSubtract(tr.endpos, start, v);
-            eta = (Math3D.VectorLength(v) - tr.ent.maxs[0]) / speed;
-            tr.ent.monsterinfo.dodge.dodge(tr.ent, self, eta);
+            eta = (Math3D.VectorLength(v) - target.maxs[0]) / speed;
+            target.monsterinfo.dodge.dodge(target, self, eta);
         }
     }
 
@@ -470,7 +469,7 @@ public class GameWeapon {
      * Used for all impact (hit/punch/slash) attacks 
      * =================
      */
-    public static boolean fire_hit(edict_t self, float[] aim, int damage,
+    public static boolean fire_hit(SubgameEntity self, float[] aim, int damage,
             int kick) {
         trace_t tr;
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
@@ -519,7 +518,7 @@ public class GameWeapon {
         Math3D.VectorSubtract(point, self.enemy.s.origin, dir);
     
         // do the damage
-        GameCombat.T_Damage(tr.ent, self, self, dir, point, Globals.vec3_origin,
+        GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, dir, point, Globals.vec3_origin,
                 damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
@@ -543,7 +542,7 @@ public class GameWeapon {
      * This is an internal support routine used for bullet/pellet based weapons.
      * =================
      */
-    public static void fire_lead(edict_t self, float[] start, float[] aimdir,
+    public static void fire_lead(SubgameEntity self, float[] start, float[] aimdir,
             int damage, int kick, int te_impact, int hspread, int vspread,
             int mod) {
         trace_t tr;
@@ -627,7 +626,7 @@ public class GameWeapon {
         if (!((tr.surface != null) && 0 != (tr.surface.flags & Defines.SURF_SKY))) {
             if (tr.fraction < 1.0) {
                 if (tr.ent.takedamage != 0) {
-                    GameCombat.T_Damage(tr.ent, self, self, aimdir, tr.endpos,
+                    GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick,
                             Defines.DAMAGE_BULLET, mod);
                 } else {
@@ -677,7 +676,7 @@ public class GameWeapon {
      * Fires a single round. Used for machinegun and chaingun. Would be fine for
      * pistols, rifles, etc.... =================
      */
-    public static void fire_bullet(edict_t self, float[] start, float[] aimdir,
+    public static void fire_bullet(SubgameEntity self, float[] start, float[] aimdir,
             int damage, int kick, int hspread, int vspread, int mod) {
         fire_lead(self, start, aimdir, damage, kick, Defines.TE_GUNSHOT,
                 hspread, vspread, mod);
@@ -690,7 +689,7 @@ public class GameWeapon {
      * Shoots shotgun pellets. Used by shotgun and super shotgun.
      * =================
      */
-    public static void fire_shotgun(edict_t self, float[] start,
+    public static void fire_shotgun(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int kick, int hspread, int vspread,
             int count, int mod) {
         int i;
@@ -708,14 +707,12 @@ public class GameWeapon {
      * =================
      */
 
-    public static void fire_blaster(edict_t self, float[] start, float[] dir,
+    public static void fire_blaster(SubgameEntity self, float[] start, float[] dir,
             int damage, int speed, int effect, boolean hyper) {
-        edict_t bolt;
-        trace_t tr;
-    
+
         Math3D.VectorNormalize(dir);
-    
-        bolt = GameUtil.G_Spawn();
+
+        SubgameEntity bolt = GameUtil.G_Spawn();
         bolt.svflags = Defines.SVF_DEADMONSTER;
         // yes, I know it looks weird that projectiles are deadmonsters
         // what this means is that when prediction is used against the object
@@ -736,7 +733,7 @@ public class GameWeapon {
         bolt.s.modelindex = GameBase.gi
                 .modelindex("models/objects/laser/tris.md2");
         bolt.s.sound = GameBase.gi.soundindex("misc/lasfly.wav");
-        bolt.owner = self;
+        bolt.setOwner(self);
         bolt.touch = blaster_touch;
         bolt.nextthink = GameBase.level.time + 2;
         bolt.think = GameUtil.G_FreeEdictA;
@@ -748,26 +745,25 @@ public class GameWeapon {
     
         if (self.client != null)
             check_dodge(self, bolt.s.origin, dir, speed);
-    
-        tr = GameBase.gi.trace(self.s.origin, null, null, bolt.s.origin, bolt,
+
+        trace_t tr = GameBase.gi.trace(self.s.origin, null, null, bolt.s.origin, bolt,
                 Defines.MASK_SHOT);
         if (tr.fraction < 1.0) {
             Math3D.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
-            bolt.touch.touch(bolt, tr.ent, GameBase.dummyplane, null);
+            bolt.touch.touch(bolt, (SubgameEntity) tr.ent, GameBase.dummyplane, null);
         }
     }
 
-    public static void fire_grenade(edict_t self, float[] start,
+    public static void fire_grenade(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int speed, float timer,
             float damage_radius) {
-        edict_t grenade;
         float[] dir = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
     
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
-    
-        grenade = GameUtil.G_Spawn();
+
+        SubgameEntity grenade = GameUtil.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -783,7 +779,7 @@ public class GameWeapon {
         Math3D.VectorClear(grenade.maxs);
         grenade.s.modelindex = GameBase.gi
                 .modelindex("models/objects/grenade/tris.md2");
-        grenade.owner = self;
+        grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
         grenade.nextthink = GameBase.level.time + timer;
         grenade.think = Grenade_Explode;
@@ -794,17 +790,16 @@ public class GameWeapon {
         GameBase.gi.linkentity(grenade);
     }
 
-    public static void fire_grenade2(edict_t self, float[] start,
+    public static void fire_grenade2(SubgameEntity self, float[] start,
             float[] aimdir, int damage, int speed, float timer,
             float damage_radius, boolean held) {
-        edict_t grenade;
         float[] dir = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
     
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
-    
-        grenade = GameUtil.G_Spawn();
+
+        SubgameEntity grenade = GameUtil.G_Spawn();
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -820,7 +815,7 @@ public class GameWeapon {
         Math3D.VectorClear(grenade.maxs);
         grenade.s.modelindex = GameBase.gi
                 .modelindex("models/objects/grenade2/tris.md2");
-        grenade.owner = self;
+        grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
         grenade.nextthink = GameBase.level.time + timer;
         grenade.think = Grenade_Explode;
@@ -843,11 +838,10 @@ public class GameWeapon {
         }
     }
 
-    public static void fire_rocket(edict_t self, float[] start, float[] dir,
+    public static void fire_rocket(SubgameEntity self, float[] start, float[] dir,
             int damage, int speed, float damage_radius, int radius_damage) {
-        edict_t rocket;
-    
-        rocket = GameUtil.G_Spawn();
+
+        SubgameEntity rocket = GameUtil.G_Spawn();
         Math3D.VectorCopy(start, rocket.s.origin);
         Math3D.VectorCopy(dir, rocket.movedir);
         Math3D.vectoangles(dir, rocket.s.angles);
@@ -860,7 +854,7 @@ public class GameWeapon {
         Math3D.VectorClear(rocket.maxs);
         rocket.s.modelindex = GameBase.gi
                 .modelindex("models/objects/rocket/tris.md2");
-        rocket.owner = self;
+        rocket.setOwner(self);
         rocket.touch = rocket_touch;
         rocket.nextthink = GameBase.level.time + 8000 / speed;
         rocket.think = GameUtil.G_FreeEdictA;
@@ -881,7 +875,7 @@ public class GameWeapon {
      * fire_rail 
      * =================
      */
-    public static void fire_rail(edict_t self, float[] start, float[] aimdir,
+    public static void fire_rail(SubgameEntity self, float[] start, float[] aimdir,
             int damage, int kick) {
         float[] from = { 0, 0, 0 };
         float[] end = { 0, 0, 0 };
@@ -905,15 +899,16 @@ public class GameWeapon {
             } else {
                 //ZOID--added so rail goes through SOLID_BBOX entities (gibs,
                 // etc)
-                if ((tr.ent.svflags & Defines.SVF_MONSTER) != 0
-                        || (tr.ent.client != null)
-                        || (tr.ent.solid == Defines.SOLID_BBOX))
-                    ignore = tr.ent;
+                SubgameEntity target = (SubgameEntity) tr.ent;
+                if ((target.svflags & Defines.SVF_MONSTER) != 0
+                        || (target.client != null)
+                        || (target.solid == Defines.SOLID_BBOX))
+                    ignore = target;
                 else
                     ignore = null;
     
-                if ((tr.ent != self) && (tr.ent.takedamage != 0))
-                    GameCombat.T_Damage(tr.ent, self, self, aimdir, tr.endpos,
+                if ((target != self) && (target.takedamage != 0))
+                    GameCombat.T_Damage(target, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick, 0,
                             GameDefines.MOD_RAILGUN);
             }
@@ -940,11 +935,10 @@ public class GameWeapon {
             PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT);
     }
 
-    public static void fire_bfg(edict_t self, float[] start, float[] dir,
+    public static void fire_bfg(SubgameEntity self, float[] start, float[] dir,
             int damage, int speed, float damage_radius) {
-        edict_t bfg;
-    
-        bfg = GameUtil.G_Spawn();
+
+        SubgameEntity bfg = GameUtil.G_Spawn();
         Math3D.VectorCopy(start, bfg.s.origin);
         Math3D.VectorCopy(dir, bfg.movedir);
         Math3D.vectoangles(dir, bfg.s.angles);
@@ -956,7 +950,7 @@ public class GameWeapon {
         Math3D.VectorClear(bfg.mins);
         Math3D.VectorClear(bfg.maxs);
         bfg.s.modelindex = GameBase.gi.modelindex("sprites/s_bfg1.sp2");
-        bfg.owner = self;
+        bfg.setOwner(self);
         bfg.touch = bfg_touch;
         bfg.nextthink = GameBase.level.time + 8000 / speed;
         bfg.think = GameUtil.G_FreeEdictA;

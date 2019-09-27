@@ -147,7 +147,7 @@ class GameTarget {
         ent.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_splash(edict_t self) {
+    static void SP_target_splash(SubgameEntity self) {
         self.use = use_target_splash;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
 
@@ -157,7 +157,7 @@ class GameTarget {
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_spawner(edict_t self) {
+    static void SP_target_spawner(SubgameEntity self) {
         self.use = use_target_spawner;
         self.svflags = Defines.SVF_NOCLIENT;
         if (self.speed != 0) {
@@ -166,7 +166,7 @@ class GameTarget {
         }
     }
 
-    static void SP_target_blaster(edict_t self) {
+    static void SP_target_blaster(SubgameEntity self) {
         self.use = use_target_blaster;
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
         self.noise_index = GameBase.gi.soundindex("weapons/laser2.wav");
@@ -179,12 +179,12 @@ class GameTarget {
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
-    static void SP_target_crosslevel_trigger(edict_t self) {
+    static void SP_target_crosslevel_trigger(SubgameEntity self) {
         self.svflags = Defines.SVF_NOCLIENT;
         self.use = trigger_crosslevel_trigger_use;
     }
 
-    static void SP_target_crosslevel_target(edict_t self) {
+    static void SP_target_crosslevel_target(SubgameEntity self) {
         if (0 == self.delay)
             self.delay = 1;
         self.svflags = Defines.SVF_NOCLIENT;
@@ -193,7 +193,7 @@ class GameTarget {
         self.nextthink = GameBase.level.time + self.delay;
     }
 
-    private static void target_laser_on(edict_t self) {
+    private static void target_laser_on(SubgameEntity self) {
         if (null == self.activator)
             self.activator = self;
         self.spawnflags |= 0x80000001;
@@ -201,19 +201,19 @@ class GameTarget {
         target_laser_think.think(self);
     }
 
-    private static void target_laser_off(edict_t self) {
+    private static void target_laser_off(SubgameEntity self) {
         self.spawnflags &= ~1;
         self.svflags |= Defines.SVF_NOCLIENT;
         self.nextthink = 0;
     }
 
-    static void SP_target_laser(edict_t self) {
+    static void SP_target_laser(SubgameEntity self) {
         // let everything else get spawned before we start firing
         self.think = target_laser_start;
         self.nextthink = GameBase.level.time + 1;
     }
 
-    static void SP_target_lightramp(edict_t self) {
+    static void SP_target_lightramp(SubgameEntity self) {
         if (self.message == null || self.message.length() != 2
                 || self.message.charAt(0) < 'a' || self.message.charAt(0) > 'z'
                 || self.message.charAt(1) < 'a' || self.message.charAt(1) > 'z'
@@ -246,7 +246,7 @@ class GameTarget {
                 / (self.speed / Defines.FRAMETIME);
     }
 
-    static void SP_target_earthquake(edict_t self) {
+    static void SP_target_earthquake(SubgameEntity self) {
         if (null == self.targetname)
             GameBase.gi.dprintf("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
@@ -270,7 +270,7 @@ class GameTarget {
      */
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
             GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(ent.style);
             GameBase.gi.WritePosition(ent.s.origin);
@@ -293,7 +293,7 @@ class GameTarget {
      */
     private static EntUseAdapter Use_Target_Speaker = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Speaker"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
             int chan;
 
             if ((ent.spawnflags & 3) != 0) { // looping sound toggles
@@ -318,7 +318,7 @@ class GameTarget {
 
     private static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Help"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
 
             if ((ent.spawnflags & 1) != 0)
                 GameBase.game.helpmessage1 = ent.message;
@@ -335,7 +335,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_secret = new EntUseAdapter() {
     	public String getID() { return "use_target_secret"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
             GameBase.gi.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
@@ -352,7 +352,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_goal = new EntUseAdapter() {
     	public String getID() { return "use_target_goal"; }
-        public void use(edict_t ent, edict_t other, edict_t activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
             GameBase.gi.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
@@ -376,7 +376,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_explosion_explode = new EntThinkAdapter() {
     	public String getID() { return "target_explosion_explode"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             float save;
 
@@ -398,7 +398,7 @@ class GameTarget {
 
     private static EntUseAdapter use_target_explosion = new EntUseAdapter() {
     	public String getID() { return "use_target_explosion"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.activator = activator;
 
             if (0 == self.delay) {
@@ -417,7 +417,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_changelevel = new EntUseAdapter() {
     	public String getID() { return "use_target_changelevel"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             if (GameBase.level.intermissiontime != 0)
                 return; // already activated
 
@@ -467,7 +467,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
             GameBase.gi.WriteByte(Defines.TE_SPLASH);
             GameBase.gi.WriteByte(self.count);
@@ -495,8 +495,8 @@ class GameTarget {
 
     private static EntUseAdapter use_target_spawner = new EntUseAdapter() {
     	public String getID() { return "use_target_spawner"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
-            edict_t ent;
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+            SubgameEntity ent;
 
             ent = GameUtil.G_Spawn();
             ent.classname = self.target;
@@ -519,7 +519,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_blaster = new EntUseAdapter() {
     	public String getID() { return "use_target_blaster"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             int effect;
 
             if ((self.spawnflags & 2) != 0)
@@ -549,7 +549,7 @@ class GameTarget {
      */
     private static EntUseAdapter trigger_crosslevel_trigger_use = new EntUseAdapter() {
     	public String getID() { return "trigger_crosslevel_trigger_use"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             GameBase.game.serverflags |= self.spawnflags;
             GameUtil.G_FreeEdict(self);
         }
@@ -566,7 +566,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_crosslevel_target_think = new EntThinkAdapter() {
     	public String getID() { return "target_crosslevel_target_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (self.spawnflags == (GameBase.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
                 GameUtil.G_UseTargets(self, self);
@@ -583,7 +583,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_laser_think = new EntThinkAdapter() {
     	public String getID() { return "target_laser_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             edict_t ignore;
             float[] start = { 0, 0, 0 };
@@ -621,7 +621,7 @@ class GameTarget {
                 // hurt it if we can
                 if ((tr.ent.takedamage != 0)
                         && 0 == (tr.ent.flags & GameDefines.FL_IMMUNE_LASER))
-                    GameCombat.T_Damage(tr.ent, self, self.activator,
+                    GameCombat.T_Damage((SubgameEntity) tr.ent, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
                             GameDefines.MOD_TARGET_LASER);
@@ -657,7 +657,7 @@ class GameTarget {
     private static EntUseAdapter target_laser_use = new EntUseAdapter() {
     	public String getID() { return "target_laser_use"; }
 
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.activator = activator;
             if ((self.spawnflags & 1) != 0)
                 target_laser_off(self);
@@ -668,7 +668,7 @@ class GameTarget {
 
     private static EntThinkAdapter target_laser_start = new EntThinkAdapter() {
     	public String getID() { return "target_laser_start"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             self.movetype = GameDefines.MOVETYPE_NONE;
             self.solid = Defines.SOLID_NOT;
@@ -732,7 +732,7 @@ class GameTarget {
 
     private static EntThinkAdapter target_lightramp_think = new EntThinkAdapter() {
     	public String getID() { return "target_lightramp_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (GameBase.level.time - self.timestamp)
                     / Defines.FRAMETIME * self.movedir[2]))};
@@ -757,12 +757,10 @@ class GameTarget {
 
     private static EntUseAdapter target_lightramp_use = new EntUseAdapter() {
     	public String getID() { return "target_lightramp_use"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             if (self.enemy == null) {
-                edict_t e;
 
                 // check all the targets
-                e = null;
                 EdictIterator es = null;
 
                 while (true) {
@@ -771,8 +769,8 @@ class GameTarget {
                     
                     if (es == null)
                         break;
-                    
-                    e = es.o;
+
+                    SubgameEntity e = es.o;
 
                     if (!"light".equals(e.classname)) {
                         GameBase.gi.dprintf(self.classname + " at "
@@ -808,10 +806,9 @@ class GameTarget {
 
     private static EntThinkAdapter target_earthquake_think = new EntThinkAdapter() {
     	public String getID() { return "target_earthquake_think"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
 
             int i;
-            edict_t e;
 
             if (self.last_move_time < GameBase.level.time) {
                 GameBase.gi.positioned_sound(self.s.origin, self,
@@ -821,7 +818,7 @@ class GameTarget {
             }
 
             for (i = 1; i < GameBase.num_edicts; i++) {
-                e = GameBase.g_edicts[i];
+                SubgameEntity e = GameBase.g_edicts[i];
 
                 if (!e.inuse)
                     continue;
@@ -845,7 +842,7 @@ class GameTarget {
 
     private static EntUseAdapter target_earthquake_use = new EntUseAdapter() {
     	public String getID() { return "target_earthquake_use"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.timestamp = GameBase.level.time + self.count;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             self.activator = activator;

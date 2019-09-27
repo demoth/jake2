@@ -408,7 +408,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_stand = new EntThinkAdapter() {
     	public String getID() { return "boss2_stand"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = boss2_move_stand;
             return true;
         }
@@ -416,7 +416,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_run = new EntThinkAdapter() {
     	public String getID() { return "boss2_run"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = boss2_move_stand;
             else
@@ -427,7 +427,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_walk = new EntThinkAdapter() {
     	public String getID() { return "boss2_walk"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = boss2_move_stand;
 
             self.monsterinfo.currentmove = boss2_move_walk;
@@ -437,7 +437,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_attack = new EntThinkAdapter() {
     	public String getID() { return "boss2_attack"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] vec = { 0, 0, 0 };
 
             float range;
@@ -459,7 +459,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_attack_mg = new EntThinkAdapter() {
     	public String getID() { return "boss2_attack_mg"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             self.monsterinfo.currentmove = boss2_move_attack_mg;
             return true;
         }
@@ -467,7 +467,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_reattack_mg = new EntThinkAdapter() {
     	public String getID() { return "boss2_reattack_mg"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (GameUtil.infront(self, self.enemy))
                 if (Lib.random() <= 0.7)
                     self.monsterinfo.currentmove = boss2_move_attack_mg;
@@ -481,7 +481,7 @@ public class M_Boss2 {
 
     static EntPainAdapter boss2_pain = new EntPainAdapter() {
     	public String getID() { return "boss2_pain"; }
-        public void pain(edict_t self, edict_t other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
@@ -508,7 +508,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_dead = new EntThinkAdapter() {
     	public String getID() { return "boss2_dead"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             Math3D.VectorSet(self.mins, -56, -56, 0);
             Math3D.VectorSet(self.maxs, 56, 56, 80);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -521,7 +521,7 @@ public class M_Boss2 {
 
     static EntDieAdapter boss2_die = new EntDieAdapter() {
     	public String getID() { return "boss2_die"; }
-        public void die(edict_t self, edict_t inflictor, edict_t attacker,
+        public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
             GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NONE, 0);
@@ -535,7 +535,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter Boss2_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "Boss2_CheckAttack"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
             float chance;
@@ -618,7 +618,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_search = new EntThinkAdapter() {
     	public String getID() { return "boss2_search"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             if (Lib.random() < 0.5)
                 GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NONE, 0);
@@ -628,7 +628,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter Boss2Rocket = new EntThinkAdapter() {
     	public String getID() { return "Boss2Rocket"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -685,7 +685,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_firebullet_right = new EntThinkAdapter() {
     	public String getID() { return "boss2_firebullet_right"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -714,7 +714,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter boss2_firebullet_left = new EntThinkAdapter() {
     	public String getID() { return "boss2_firebullet_left"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -744,7 +744,7 @@ public class M_Boss2 {
 
     static EntThinkAdapter Boss2MachineGun = new EntThinkAdapter() {
     	public String getID() { return "Boss2MachineGun"; }
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             /*
              * RST: this was disabled ! float[] forward={0,0,0}, right={0,0,0};
              * float[] start={0,0,0}; float[] dir={0,0,0}; float[] vec={0,0,0};
@@ -1024,7 +1024,7 @@ public class M_Boss2 {
 
     /*
      * static EntThinkAdapter xxx = new EntThinkAdapter() { public boolean
-     * think(edict_t self) { return true; } };
+     * think(SubgameEntity self) { return true; } };
      */
 
     static mmove_t boss2_move_death = new mmove_t(FRAME_death2, FRAME_death50,
@@ -1034,7 +1034,7 @@ public class M_Boss2 {
      * QUAKED monster_boss2 (1 .5 0) (-56 -56 0) (56 56 80) Ambush Trigger_Spawn
      * Sight
      */
-    public static void SP_monster_boss2(edict_t self) {
+    public static void SP_monster_boss2(SubgameEntity self) {
         if (GameBase.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;

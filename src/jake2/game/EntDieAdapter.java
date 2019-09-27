@@ -23,9 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
-
 public abstract class EntDieAdapter extends SuperAdapter
 {
-	public abstract void die(edict_t self, edict_t inflictor, edict_t attacker, int damage, float[] point);
+	public abstract void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker, int damage, float[] point);
 }

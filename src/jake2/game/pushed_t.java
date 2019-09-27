@@ -23,10 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
-
 public class pushed_t {
-	public edict_t ent;
+	public SubgameEntity ent;
 	public float[] origin= { 0.0f, 0.0f, 0.0f };
 	public float[] angles= { 0.0f, 0.0f, 0.0f };
 	public float deltayaw;

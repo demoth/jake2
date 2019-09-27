@@ -23,10 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
-import jake2.qcommon.edict_t;
-
 public abstract class EntBlockedAdapter extends SuperAdapter
 {
 	// move to moveinfo?
-	public abstract void blocked(edict_t self, edict_t other);
+	public abstract void blocked(SubgameEntity self, SubgameEntity other);
 }

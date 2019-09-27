@@ -52,12 +52,12 @@ public class GameUtil {
      * (string)self.target and call their .use function
      */
 
-    public static void G_UseTargets(edict_t ent, edict_t activator) {
-        edict_t t;
+    public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator) {
 
         checkClassname(ent);
 
         // check for a delay
+        SubgameEntity t;
         if (ent.delay != 0) {
             // create a temp object to fire at a later time
             t = G_Spawn();
@@ -129,7 +129,7 @@ public class GameUtil {
         }
     }
 
-    public static void G_InitEdict(edict_t e, int i) {
+    public static void G_InitEdict(SubgameEntity e, int i) {
         e.inuse = true;
         e.classname = "noclass";
         e.gravity = 1.0f;
@@ -145,9 +145,9 @@ public class GameUtil {
      * think the entity morphed into something else instead of being removed and
      * recreated, which can cause interpolated angles and bad trails.
      */
-    public static edict_t G_Spawn() {
+    public static SubgameEntity G_Spawn() {
         int i;
-        edict_t e = null;
+        SubgameEntity e;
 
         for (i = (int) GameBase.maxclients.value + 1; i < GameBase.num_edicts; i++) {
             e = GameBase.g_edicts[i];
@@ -155,7 +155,7 @@ public class GameUtil {
             // freeing and allocating, so relax the replacement policy
             if (!e.inuse
                     && (e.freetime < 2 || GameBase.level.time - e.freetime > 0.5)) {
-                e = GameBase.g_edicts[i] = new edict_t(i);
+                e = GameBase.g_edicts[i] = new SubgameEntity(i);
                 G_InitEdict(e, i);
                 return e;
             }
@@ -164,7 +164,7 @@ public class GameUtil {
         if (i == GameBase.game.maxentities)
             GameBase.gi.error("ED_Alloc: no free edicts");
 
-        e = GameBase.g_edicts[i] = new edict_t(i);
+        e = GameBase.g_edicts[i] = new SubgameEntity(i);
         GameBase.num_edicts++;
         G_InitEdict(e, i);
         return e;
@@ -182,7 +182,7 @@ public class GameUtil {
             return;
         }
 
-        GameBase.g_edicts[ed.index] = new edict_t(ed.index);
+        GameBase.g_edicts[ed.index] = new SubgameEntity(ed.index);
         ed.classname = "freed";
         ed.freetime = GameBase.level.time;
         ed.inuse = false;
@@ -195,7 +195,7 @@ public class GameUtil {
 
     public static void G_ClearEdict(edict_t ent) {
         int i = ent.index;
-        GameBase.g_edicts[i] = new edict_t(i);
+        GameBase.g_edicts[i] = new SubgameEntity(i);
     }
 
 
@@ -204,22 +204,22 @@ public class GameUtil {
      * Ent should be unlinked before calling this!
      */
 
-    public static boolean KillBox(edict_t ent) {
-        trace_t tr;
+    public static boolean KillBox(SubgameEntity ent) {
 
         while (true) {
-            tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
+            trace_t tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
                     ent.s.origin, null, Defines.MASK_PLAYERSOLID);
-            if (tr.ent == null || tr.ent == GameBase.g_edicts[0])
+            SubgameEntity target = (SubgameEntity) tr.ent;
+            if (target == null || target == GameBase.g_edicts[0])
                 break;
 
             // nail it
-            GameCombat.T_Damage(tr.ent, ent, ent, Globals.vec3_origin, ent.s.origin,
+            GameCombat.T_Damage(target, ent, ent, Globals.vec3_origin, ent.s.origin,
                     Globals.vec3_origin, 100000, 0,
                     Defines.DAMAGE_NO_PROTECTION, GameDefines.MOD_TELEFRAG);
 
             // if we didn't kill it, fail
-            if (tr.ent.solid != 0)
+            if (target.solid != 0)
                 return false;
         }
 
@@ -263,7 +263,7 @@ public class GameUtil {
         return value.substring(p + 1, value.length());
     }
 
-    static void ValidateSelectedItem(edict_t ent) {
+    static void ValidateSelectedItem(SubgameEntity ent) {
 
         gclient_t cl = (gclient_t) ent.client;
 
@@ -279,7 +279,7 @@ public class GameUtil {
      * infront, or visibility and show hostile 2 infront and show hostile 3 only
      * triggered by damage.
      */
-    public static int range(edict_t self, edict_t other) {
+    public static int range(SubgameEntity self, edict_t other) {
         float[] v = { 0, 0, 0 };
         float len;
 
@@ -294,14 +294,14 @@ public class GameUtil {
         return GameDefines.RANGE_FAR;
     }
 
-    static void AttackFinished(edict_t self, float time) {
+    static void AttackFinished(SubgameEntity self, float time) {
         self.monsterinfo.attack_finished = GameBase.level.time + time;
     }
 
     /**
      * Returns true if the entity is in front (in sight) of self
      */
-    public static boolean infront(edict_t self, edict_t other) {
+    public static boolean infront(SubgameEntity self, edict_t other) {
         float[] vec = { 0, 0, 0 };
         float dot;
         float[] forward = { 0, 0, 0 };
@@ -319,7 +319,7 @@ public class GameUtil {
     /**
      * Returns 1 if the entity is visible to self, even if not infront().
      */
-    public static boolean visible(edict_t self, edict_t other) {
+    public static boolean visible(SubgameEntity self, edict_t other) {
         float[] spot1 = { 0, 0, 0 };
         float[] spot2 = { 0, 0, 0 };
         trace_t trace;
@@ -351,8 +351,7 @@ public class GameUtil {
      * checked each frame. This means multi player games will have slightly
      * slower noticing monsters.
      */
-    static boolean FindTarget(edict_t self) {
-        edict_t client;
+    static boolean FindTarget(SubgameEntity self) {
         boolean heardit;
         int r;
 
@@ -378,6 +377,7 @@ public class GameUtil {
         // noise but not weapon impact/explosion noises
 
         heardit = false;
+        SubgameEntity client;
         if ((GameBase.level.sight_entity_framenum >= (GameBase.level.framenum - 1))
                 && 0 == (self.spawnflags & 1)) {
             client = GameBase.level.sight_entity;           
@@ -410,7 +410,7 @@ public class GameUtil {
             if ((client.enemy.flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else if (heardit) {
-            if ((client.owner.flags & GameDefines.FL_NOTARGET) != 0)
+            if ((client.getOwner().flags & GameDefines.FL_NOTARGET) != 0)
                 return false;
         } else
             return false;
@@ -502,7 +502,7 @@ public class GameUtil {
         return true;
     }
 
-    public static void FoundTarget(edict_t self) {
+    public static void FoundTarget(SubgameEntity self) {
         // let other monsters see this monster for a while
         if (self.enemy.client != null) {
             GameBase.level.sight_entity = self;
@@ -546,7 +546,7 @@ public class GameUtil {
 
     public static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
     	public String getID() { return "Think_Delay"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             G_UseTargets(ent, ent.activator);
             G_FreeEdict(ent);
             return true;
@@ -555,7 +555,7 @@ public class GameUtil {
 
     public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
-        public boolean think(edict_t ent) {
+        public boolean think(SubgameEntity ent) {
             G_FreeEdict(ent);
             return false;
         }
@@ -563,10 +563,10 @@ public class GameUtil {
 
     static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
     	public String getID() { return "MegaHealth_think"; }
-        public boolean think(edict_t self) {
-            if (self.owner.health > self.owner.max_health) {
+        public boolean think(SubgameEntity self) {
+            if (self.getOwner().health > self.getOwner().max_health) {
                 self.nextthink = GameBase.level.time + 1;
-                self.owner.health -= 1;
+                self.getOwner().health -= 1;
                 return false;
             }
 
@@ -584,7 +584,7 @@ public class GameUtil {
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "M_CheckAttack"; }
 
-        public boolean think(edict_t self) {
+        public boolean think(SubgameEntity self) {
             float[] spot1 = { 0, 0, 0 };
 
             float[] spot2 = { 0, 0, 0 };
@@ -669,7 +669,7 @@ public class GameUtil {
 
     static EntUseAdapter monster_use = new EntUseAdapter() {
     	public String getID() { return "monster_use"; }
-        public void use(edict_t self, edict_t other, edict_t activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             if (self.enemy != null)
                 return;
             if (self.health <= 0)

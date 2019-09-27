@@ -168,9 +168,9 @@ public class GameExportsImpl implements GameExports {
     }
 
     private static void CreateEdicts() {
-        GameBase.g_edicts = new edict_t[GameBase.game.maxentities];
+        GameBase.g_edicts = new SubgameEntity[GameBase.game.maxentities];
         for (int i = 0; i < GameBase.game.maxentities; i++)
-            GameBase.g_edicts[i] = new edict_t(i);
+            GameBase.g_edicts[i] = new SubgameEntity(i);
     }
 
     private static void CreateClients() {
@@ -226,22 +226,16 @@ public class GameExportsImpl implements GameExports {
      *
      * Give items to a client.
      */
-    private void Give_f(edict_t ent, List<String> args) {
-        String name;
-        gitem_t it;
-        int index;
-        int i;
-        boolean give_all;
-        edict_t it_ent;
+    private void Give_f(SubgameEntity ent, List<String> args) {
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
-        name = Cmd.getArguments(args);
+        String name = Cmd.getArguments(args);
 
-        give_all = 0 == Lib.Q_stricmp(name, "all");
+        boolean give_all = 0 == Lib.Q_stricmp(name, "all");
 
         if (give_all || 0 == Lib.Q_stricmp(args.get(1), "health")) {
             if (args.size() == 3)
@@ -253,6 +247,8 @@ public class GameExportsImpl implements GameExports {
         }
 
         gclient_t client = (gclient_t) ent.client;
+        int i;
+        gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
             for (i = 1; i < GameBase.game.num_items; i++) {
                 it = GameItemList.itemlist[i];
@@ -296,6 +292,7 @@ public class GameExportsImpl implements GameExports {
                 return;
         }
 
+        SubgameEntity it_ent;
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
             it = GameItems.FindItem("Power Shield");
             it_ent = GameUtil.G_Spawn();
@@ -336,7 +333,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        index = GameItems.ITEM_INDEX(it);
+        int index = GameItems.ITEM_INDEX(it);
 
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
@@ -433,7 +430,7 @@ public class GameExportsImpl implements GameExports {
      *
      * Use an inventory item.
      */
-    private void Use_f(edict_t ent, List<String> args) {
+    private void Use_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
 
@@ -462,7 +459,7 @@ public class GameExportsImpl implements GameExports {
      *
      * Drop an inventory item.
      */
-    private void Drop_f(edict_t ent, List<String> args) {
+    private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
         gitem_t it = GameItems.FindItem(itemName);
@@ -512,7 +509,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_InvUse_f.
      */
-    private void InvUse_f(edict_t ent) {
+    private void InvUse_f(SubgameEntity ent) {
         gitem_t it;
 
         GameItems.ValidateSelectedItem(ent);
@@ -534,7 +531,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapPrev_f.
      */
-    private static void WeapPrev_f(edict_t ent) {
+    private static void WeapPrev_f(SubgameEntity ent) {
 
         gclient_t cl = (gclient_t) ent.client;
 
@@ -564,7 +561,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapNext_f.
      */
-    private static void WeapNext_f(edict_t ent) {
+    private static void WeapNext_f(SubgameEntity ent) {
         gclient_t cl;
         int i, index;
         gitem_t it;
@@ -600,7 +597,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapLast_f.
      */
-    private static void WeapLast_f(edict_t ent) {
+    private static void WeapLast_f(SubgameEntity ent) {
         int index;
 
         gclient_t cl = (gclient_t) ent.client;
@@ -622,7 +619,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_InvDrop_f
      */
-    private void InvDrop_f(edict_t ent) {
+    private void InvDrop_f(SubgameEntity ent) {
         gitem_t it;
 
         GameItems.ValidateSelectedItem(ent);
@@ -647,7 +644,7 @@ public class GameExportsImpl implements GameExports {
      * Display the scoreboard.
      *
      */
-    private static void Score_f(edict_t ent) {
+    private static void Score_f(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         client.showinventory = false;
         client.showhelp = false;
@@ -670,7 +667,7 @@ public class GameExportsImpl implements GameExports {
      * Display the current help message.
      *
      */
-    private void Help_f(edict_t ent) {
+    private void Help_f(SubgameEntity ent) {
         // this is for backwards compatability
         if (GameBase.deathmatch.value != 0) {
             Score_f(ent);
@@ -695,7 +692,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Kill_f
      */
-    private static void Kill_f(edict_t ent) {
+    private static void Kill_f(SubgameEntity ent) {
         gclient_t client = (gclient_t) ent.client;
         if ((GameBase.level.time - client.respawn_time) < 5)
             return;
@@ -953,13 +950,13 @@ public class GameExportsImpl implements GameExports {
 
 
     @Override
-    public void ClientCommand(edict_t ent, List<String> args) {
-        String cmd;
+    public void ClientCommand(edict_t player, List<String> args) {
+        SubgameEntity ent = GameBase.g_edicts[player.index];
 
         if (ent.client == null)
             return; // not fully in game yet
 
-        cmd = args.get(0).toLowerCase();
+        String cmd = args.get(0).toLowerCase();
 
         if (cmd.equals("players")) {
             Players_f(ent);
@@ -1121,11 +1118,8 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void WriteLevel(String filename) {
         try {
-            int i;
-            edict_t ent;
-            QuakeFile f;
 
-            f = new QuakeFile(filename, "rw");
+            QuakeFile f = new QuakeFile(filename, "rw");
             if (f == null)
                 gameImports.error("Couldn't open for writing: " + filename);
 
@@ -1133,15 +1127,13 @@ public class GameExportsImpl implements GameExports {
             GameBase.level.write(f);
 
             // write out all the entities
-            for (i = 0; i < GameBase.num_edicts; i++) {
-                ent = GameBase.g_edicts[i];
+            for (int i = 0; i < GameBase.num_edicts; i++) {
+                SubgameEntity ent = GameBase.g_edicts[i];
                 if (!ent.inuse)
                     continue;
                 f.writeInt(i);
                 ent.write(f);
             }
-
-            i = -1;
             f.writeInt(-1);
 
             f.close();
@@ -1153,7 +1145,6 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void ReadLevel(String filename) {
         try {
-            edict_t ent;
 
             QuakeFile f = new QuakeFile(filename, "r");
 
@@ -1169,6 +1160,7 @@ public class GameExportsImpl implements GameExports {
             GameBase.level.read(f, GameBase.g_edicts);
 
             // load all the entities
+            SubgameEntity ent;
             while (true) {
                 int entnum = f.readInt();
                 if (entnum == -1)
@@ -1221,7 +1213,8 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void ClientBegin(edict_t ent) {
+    public void ClientBegin(edict_t e) {
+        SubgameEntity ent = GameBase.g_edicts[e.index];
         PlayerClient.ClientBegin(ent);
     }
 
@@ -1242,7 +1235,8 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void ClientThink(edict_t ent, usercmd_t ucmd) {
-        PlayerClient.ClientThink(ent, ucmd);
+        SubgameEntity e = GameBase.g_edicts[ent.index];
+        PlayerClient.ClientThink(e, ucmd);
     }
 
     @Override

@@ -97,8 +97,8 @@ public class GameCombat {
     /**
      * Killed.
      */
-    private static void Killed(edict_t targ, edict_t inflictor,
-                               edict_t attacker, int damage, float[] point) {
+    private static void Killed(SubgameEntity targ, SubgameEntity inflictor,
+                               SubgameEntity attacker, int damage, float[] point) {
         Com.DPrintf("Killing a " + targ.classname + "\n");
         if (targ.health < -999)
             targ.health = -999;
@@ -116,7 +116,7 @@ public class GameCombat {
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
                 if (attacker.classname.equals("monster_medic"))
-                    targ.owner = attacker;
+                    targ.setOwner(attacker);
             }
         }
     
@@ -271,7 +271,7 @@ public class GameCombat {
         return save;
     }
 
-    private static void M_ReactToDamage(edict_t targ, edict_t attacker) {
+    private static void M_ReactToDamage(SubgameEntity targ, SubgameEntity attacker) {
         if ((null != attacker.client)
                 && 0 != (attacker.svflags & Defines.SVF_MONSTER))
             return;
@@ -354,7 +354,7 @@ public class GameCombat {
     /**
      * T_RadiusDamage.
      */
-    static void T_RadiusDamage(edict_t inflictor, edict_t attacker,
+    static void T_RadiusDamage(SubgameEntity inflictor, SubgameEntity attacker,
             float damage, edict_t ignore, float radius, int mod) {
         float points;
         EdictIterator edictit = null;
@@ -364,7 +364,7 @@ public class GameCombat {
     
         while ((edictit = GameBase.findradius(edictit, inflictor.s.origin,
                 radius)) != null) {
-            edict_t ent = edictit.o;
+            SubgameEntity ent = edictit.o;
             if (ent == ignore)
                 continue;
             if (ent.takedamage == 0)
@@ -387,8 +387,8 @@ public class GameCombat {
         }
     }
 
-    public static void T_Damage(edict_t targ, edict_t inflictor,
-            edict_t attacker, float[] dir, float[] point, float[] normal,
+    public static void T_Damage(SubgameEntity targ, SubgameEntity inflictor,
+                                SubgameEntity attacker, float[] dir, float[] point, float[] normal,
             int damage, int knockback, int dflags, int mod) {
         gclient_t client;
         int take;

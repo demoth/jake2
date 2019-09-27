@@ -26,6 +26,6 @@ package jake2.game;
 import jake2.qcommon.edict_t;
 
 public abstract class ItemDropAdapter extends SuperAdapter {
-	public void drop(edict_t ent, gitem_t item) {
+	public void drop(SubgameEntity ent, gitem_t item) {
 	}
 }
