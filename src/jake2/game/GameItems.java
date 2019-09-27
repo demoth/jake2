@@ -27,7 +27,9 @@ package jake2.game;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import jake2.qcommon.util.QuakeFile;
 
+import java.io.IOException;
 import java.util.StringTokenizer;
 
 
@@ -1376,5 +1378,22 @@ public class GameItems {
             return; // valid
 
         SelectNextItem(ent, -1);
+    }
+
+    /** Writes an item reference. */
+    public static void writeItem(QuakeFile f, gitem_t item) throws IOException {
+        if (item == null)
+            f.writeInt(-1);
+        else
+            f.writeInt(item.index);
+    }
+
+    /** Reads the item index and returns the game item. */
+    public static gitem_t readItem(QuakeFile f) throws IOException {
+        int ndx = f.readInt();
+        if (ndx == -1)
+            return null;
+        else
+            return GameItemList.itemlist[ndx];
     }
 }

@@ -72,20 +72,16 @@ public class monsterinfo_t {
 		f.writeInt(aiflags);
 		f.writeInt(nextframe);
 		f.writeFloat(scale);
-		f.writeAdapter(stand);
-		f.writeAdapter(idle);
-		f.writeAdapter(search);
-		f.writeAdapter(walk);
-		f.writeAdapter(run);
-		
-		f.writeAdapter(dodge);
-		
-		f.writeAdapter(attack);
-		f.writeAdapter(melee);
-		
-		f.writeAdapter(sight);
-		
-		f.writeAdapter(checkattack);
+		SuperAdapter.writeAdapter(f, stand);
+		SuperAdapter.writeAdapter(f, idle);
+		SuperAdapter.writeAdapter(f, search);
+		SuperAdapter.writeAdapter(f, walk);
+		SuperAdapter.writeAdapter(f, run);
+		SuperAdapter.writeAdapter(f, dodge);
+		SuperAdapter.writeAdapter(f, attack);
+		SuperAdapter.writeAdapter(f, melee);
+		SuperAdapter.writeAdapter(f, sight);
+		SuperAdapter.writeAdapter(f, checkattack);
 		
  		f.writeFloat(pausetime);
  		f.writeFloat(attack_finished);
@@ -120,20 +116,20 @@ public class monsterinfo_t {
 		aiflags = f.readInt();
 		nextframe = f.readInt();
 		scale = f.readFloat();
-		stand = (EntThinkAdapter) f.readAdapter();
-		idle = (EntThinkAdapter) f.readAdapter();
-		search = (EntThinkAdapter) f.readAdapter();
-		walk = (EntThinkAdapter) f.readAdapter();
-		run = (EntThinkAdapter) f.readAdapter();
+		stand = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		idle = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		search = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		walk = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		run = (EntThinkAdapter) SuperAdapter.readAdapter(f);
 		
-		dodge = (EntDodgeAdapter) f.readAdapter();
+		dodge = (EntDodgeAdapter) SuperAdapter.readAdapter(f);
 		
-		attack = (EntThinkAdapter) f.readAdapter();
-		melee = (EntThinkAdapter) f.readAdapter();
+		attack = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		melee = (EntThinkAdapter) SuperAdapter.readAdapter(f);
 		
-		sight = (EntInteractAdapter) f.readAdapter();
+		sight = (EntInteractAdapter) SuperAdapter.readAdapter(f);
 		
-		checkattack = (EntThinkAdapter) f.readAdapter();
+		checkattack = (EntThinkAdapter) SuperAdapter.readAdapter(f);
 		
  		pausetime = f.readFloat();
  		attack_finished = f.readFloat();

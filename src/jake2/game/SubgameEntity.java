@@ -2,7 +2,6 @@ package jake2.game;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
-import jake2.qcommon.GameClient;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
@@ -445,14 +444,13 @@ public class SubgameEntity extends edict_t {
 
         f.writeFloat(nextthink);
 
-        f.writeAdapter(prethink);
-        f.writeAdapter(think);
-        f.writeAdapter(blocked);
-
-        f.writeAdapter(touch);
-        f.writeAdapter(use);
-        f.writeAdapter(pain);
-        f.writeAdapter(die);
+        SuperAdapter.writeAdapter(f, prethink);
+        SuperAdapter.writeAdapter(f, think);
+        SuperAdapter.writeAdapter(f, blocked);
+        SuperAdapter.writeAdapter(f, touch);
+        SuperAdapter.writeAdapter(f, use);
+        SuperAdapter.writeAdapter(f, pain);
+        SuperAdapter.writeAdapter(f, die);
 
         f.writeFloat(touch_debounce_time);
         f.writeFloat(pain_debounce_time);
@@ -512,7 +510,7 @@ public class SubgameEntity extends edict_t {
         f.writeInt(light_level);
         f.writeInt(style);
 
-        f.writeItem(item);
+        GameItems.writeItem(f, item);
 
         moveinfo.write(f);
         monsterinfo.write(f);
@@ -606,14 +604,14 @@ public class SubgameEntity extends edict_t {
 
         nextthink = f.readFloat();
 
-        prethink = (EntThinkAdapter) f.readAdapter();
-        think = (EntThinkAdapter) f.readAdapter();
-        blocked = (EntBlockedAdapter) f.readAdapter();
+        prethink = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+        think = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+        blocked = (EntBlockedAdapter) SuperAdapter.readAdapter(f);
 
-        touch = (EntTouchAdapter) f.readAdapter();
-        use = (EntUseAdapter) f.readAdapter();
-        pain = (EntPainAdapter) f.readAdapter();
-        die = (EntDieAdapter) f.readAdapter();
+        touch = (EntTouchAdapter) SuperAdapter.readAdapter(f);
+        use = (EntUseAdapter) SuperAdapter.readAdapter(f);
+        pain = (EntPainAdapter) SuperAdapter.readAdapter(f);
+        die = (EntDieAdapter) SuperAdapter.readAdapter(f);
 
         touch_debounce_time = f.readFloat();
         pain_debounce_time = f.readFloat();
@@ -675,7 +673,7 @@ public class SubgameEntity extends edict_t {
         light_level = f.readInt();
         style = f.readInt();
 
-        item = f.readItem();
+        item = GameItems.readItem(f);
 
         moveinfo.read(f);
         monsterinfo.read(f);

@@ -57,7 +57,7 @@ public class mmove_t {
 			for (int n=0; n < frame.length; n++)
 				frame[n].write(f);
 		}
-		f.writeAdapter(endfunc);
+		SuperAdapter.writeAdapter(f, endfunc);
 	}
 	
 	/** Read the mmove_t from the RandomAccessFile. */
@@ -74,6 +74,6 @@ public class mmove_t {
 			frame[n] = new mframe_t();
 			frame[n].read(f);
 		}
-		endfunc = (EntThinkAdapter) f.readAdapter();
+		endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
 	}
 }

@@ -45,15 +45,15 @@ public class mframe_t
 
 	public void write(QuakeFile f) throws IOException
 	{
-		f.writeAdapter(ai);
+		SuperAdapter.writeAdapter(f, ai);
 		f.writeFloat(dist);
-		f.writeAdapter(think);
+		SuperAdapter.writeAdapter(f, think);
 	}
 
 	public void read(QuakeFile f) throws IOException
 	{
-		ai= (AIAdapter) f.readAdapter();
+		ai= (AIAdapter) SuperAdapter.readAdapter(f);
 		dist= f.readFloat();
-		think= (EntThinkAdapter) f.readAdapter();
+		think= (EntThinkAdapter) SuperAdapter.readAdapter(f);
 	}
 }

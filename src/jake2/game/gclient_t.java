@@ -222,7 +222,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 		weapon_thunk=f.readInt()!=0;
 		
-		newweapon=f.readItem();
+		newweapon= GameItems.readItem(f);
 		
 
 		damage_armor = f.readInt();
@@ -335,7 +335,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 		f.writeInt(latched_buttons);
 
 		f.writeInt(weapon_thunk?1:0);
-		f.writeItem(newweapon);
+		GameItems.writeItem(f, newweapon);
 		
 
 		f.writeInt(damage_armor);

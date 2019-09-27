@@ -82,7 +82,7 @@ public class moveinfo_t {
 		f.writeFloat(next_speed);
 		f.writeFloat(remaining_distance);
 		f.writeFloat(decel_distance);
-		f.writeAdapter(endfunc);
+		SuperAdapter.writeAdapter(f, endfunc);
 	}
 
 	/** Reads the moveinfo from a file. */
@@ -111,6 +111,6 @@ public class moveinfo_t {
 		next_speed= f.readFloat();
 		remaining_distance= f.readFloat();
 		decel_distance= f.readFloat();
-		endfunc= (EntThinkAdapter) f.readAdapter();
+		endfunc= (EntThinkAdapter) SuperAdapter.readAdapter(f);
 	}
 }

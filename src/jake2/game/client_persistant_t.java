@@ -113,8 +113,8 @@ public class client_persistant_t {
 		max_cells= f.readInt();
 		max_slugs= f.readInt();
 
-		weapon= f.readItem();
-		lastweapon= f.readItem();
+		weapon= GameItems.readItem(f);
+		lastweapon= GameItems.readItem(f);
 		power_cubes= f.readInt();
 		score= f.readInt();
 
@@ -148,8 +148,8 @@ public class client_persistant_t {
 		f.writeInt(max_cells);
 		f.writeInt(max_slugs);
 
-		f.writeItem(weapon);
-		f.writeItem(lastweapon);
+		GameItems.writeItem(f, weapon);
+		GameItems.writeItem(f, lastweapon);
 		f.writeInt(power_cubes);
 		f.writeInt(score);
 

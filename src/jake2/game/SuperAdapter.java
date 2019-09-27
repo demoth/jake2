@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game;
 
 import jake2.qcommon.Com;
+import jake2.qcommon.util.QuakeFile;
 
+import java.io.IOException;
 import java.util.Hashtable;
 
 public abstract class SuperAdapter {
@@ -51,6 +53,35 @@ public abstract class SuperAdapter {
 		}
 
 		return sa;
+	}
+
+    /** Writes the Adapter-ID to the file. */
+    public static void writeAdapter(QuakeFile f, SuperAdapter a) throws IOException {
+        f.writeInt(3988);
+        if (a == null)
+            f.writeString(null);
+        else {
+            String str = a.getID();
+            if (a == null) {
+                Com.DPrintf("writeAdapter: invalid Adapter id for " + a + "\n");
+            }
+            f.writeString(str);
+        }
+    }
+
+	/** Reads the adapter id and returns the adapter. */
+	public static SuperAdapter readAdapter(QuakeFile f) throws IOException {
+		if (f.readInt() != 3988)
+			Com.DPrintf("wrong read position: readadapter 3988 \n");
+
+		String id = f.readString();
+
+		if (id == null) {
+			// null adapter. :-)
+			return null;
+		}
+
+		return getFromID(id);
 	}
 
 	/** Returns the Adapter-ID. */

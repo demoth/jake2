@@ -24,9 +24,6 @@
 
 package jake2.qcommon.util;
 
-import jake2.game.GameItemList;
-import jake2.game.SuperAdapter;
-import jake2.game.gitem_t;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
@@ -117,52 +114,6 @@ public class QuakeFile extends RandomAccessFile {
 
         // valid edict.
         return g_edicts[i];
-    }
-
-    /** Writes the Adapter-ID to the file. */
-    public void writeAdapter(SuperAdapter a) throws IOException {
-        writeInt(3988);
-        if (a == null)
-            writeString(null);
-        else {
-            String str = a.getID();
-            if (a == null) {
-                Com.DPrintf("writeAdapter: invalid Adapter id for " + a + "\n");
-            }
-            writeString(str);
-        }
-    }
-
-    /** Reads the adapter id and returns the adapter. */
-    public SuperAdapter readAdapter() throws IOException {
-        if (readInt() != 3988)
-            Com.DPrintf("wrong read position: readadapter 3988 \n");
-
-        String id = readString();
-
-        if (id == null) {
-            // null adapter. :-)
-            return null;
-        }
-
-        return SuperAdapter.getFromID(id);
-    }
-
-    /** Writes an item reference. */
-    public void writeItem(gitem_t item) throws IOException {
-        if (item == null)
-            writeInt(-1);
-        else
-            writeInt(item.index);
-    }
-
-    /** Reads the item index and returns the game item. */
-    public gitem_t readItem() throws IOException {
-        int ndx = readInt();
-        if (ndx == -1)
-            return null;
-        else
-            return GameItemList.itemlist[ndx];
     }
 
 }
