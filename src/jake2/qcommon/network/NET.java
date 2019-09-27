@@ -343,7 +343,7 @@ public final class NET {
             // the socket have to be broadcastable
             newsocket.setBroadcast(true);
         } catch (Exception e) {
-            Com.Println("Error: " + e.toString());
+            Com.Println("jake2.qcommon.network.NET.Socket: " + e.toString());
             newsocket = null;
         }
         return newsocket;

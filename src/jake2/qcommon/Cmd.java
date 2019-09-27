@@ -271,6 +271,9 @@ public final class Cmd {
      * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
+
+        boolean dedicated = Cvar.VariableValue("dedicated") != 0;
+
         if (text.trim().startsWith("//"))
             return;
 
@@ -287,8 +290,8 @@ public final class Cmd {
             if (cmd.function != null) {
                 cmd.function.execute(args);
             } else { // forward to server command
-
-                Cmd.ExecuteString("cmd " + text);
+                if (!dedicated)
+                    Cmd.ExecuteString("cmd " + text);
             }
             return;
         }
@@ -310,7 +313,8 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
-        Cmd.ExecuteString("cmd " + text);
+        if (!dedicated)
+            Cmd.ExecuteString("cmd " + text);
     }
 
     /**

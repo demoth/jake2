@@ -264,7 +264,7 @@ public final class Qcommon extends Globals {
 		}
 	}
 
-	private static void reconfigure(List<String> args, boolean clear) {
+	public static void reconfigure(List<String> args, boolean clear) {
 		String dir = Cvar.Get("cddir", "", CVAR_ARCHIVE).string;
 		Cbuf.AddText("exec default.cfg\n");
 		Cbuf.AddText("bind MWHEELUP weapnext\n");

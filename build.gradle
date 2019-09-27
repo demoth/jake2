@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'org.bytonic'
-version '1.0.0'
+version '1.1.0'
 
 ext.lwjgl_version='2.9.3'
 sourceCompatibility = 1.8
