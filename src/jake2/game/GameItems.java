@@ -433,7 +433,7 @@ public class GameItems {
             gitem_armor_t newinfo;
             int newcount;
             float salvage;
-            int salvagecount;
+            float salvagecount;
     
             // get info on new armor
             newinfo = (gitem_armor_t) ent.item.info;
@@ -471,9 +471,8 @@ public class GameItems {
                     // calc new armor values
                     salvage = oldinfo.normal_protection
                             / newinfo.normal_protection;
-                    salvagecount = (int) salvage
-                            * client.pers.inventory[old_armor_index];
-                    newcount = newinfo.base_count + salvagecount;
+                    salvagecount = salvage * client.pers.inventory[old_armor_index];
+                    newcount = (int) (newinfo.base_count + salvagecount);
                     if (newcount > newinfo.max_count)
                         newcount = newinfo.max_count;
     
@@ -486,9 +485,8 @@ public class GameItems {
                     // calc new armor values
                     salvage = newinfo.normal_protection
                             / oldinfo.normal_protection;
-                    salvagecount = (int) salvage * newinfo.base_count;
-                    newcount = client.pers.inventory[old_armor_index]
-                            + salvagecount;
+                    salvagecount =  salvage * newinfo.base_count;
+                    newcount = (int) (client.pers.inventory[old_armor_index] + salvagecount);
                     if (newcount > oldinfo.max_count)
                         newcount = oldinfo.max_count;
     
