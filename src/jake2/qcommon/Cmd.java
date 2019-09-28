@@ -55,7 +55,6 @@ public final class Cmd {
             return;
         }
         Com.Printf("execing " + args.get(1) + "\n");
-
         Cbuf.InsertText(new String(f));
 
         FS.FreeFile(f);
@@ -271,7 +270,7 @@ public final class Cmd {
      * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
-
+        Com.DPrintf("Executing command: " + text + "\n");
         boolean dedicated = Cvar.VariableValue("dedicated") != 0;
 
         if (text.trim().startsWith("//"))
@@ -313,8 +312,11 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
-        if (!dedicated)
+        if (text.startsWith("cmd")) {
+            Com.Printf("did not execute " + text);
+        } else {
             Cmd.ExecuteString("cmd " + text);
+        }
     }
 
     /**

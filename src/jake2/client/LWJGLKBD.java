@@ -1,7 +1,6 @@
 package jake2.client;
 
-import jake2.qcommon.Cbuf;
-import jake2.qcommon.Defines;
+import jake2.qcommon.Cmd;
 import jake2.qcommon.Globals;
 import jake2.qcommon.sys.Timer;
 import org.lwjgl.input.Keyboard;
@@ -49,7 +48,7 @@ public class LWJGLKBD extends KBD {
 		
 		if (Display.isCloseRequested())
 		{
-			Cbuf.ExecuteText(Defines.EXEC_APPEND, "quit");
+			Cmd.ExecuteString("quit");
 		}
 
 		while (Keyboard.next())

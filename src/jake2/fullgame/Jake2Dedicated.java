@@ -32,8 +32,6 @@ public class Jake2Dedicated {
             // cvar and command buffer management
             List<String> args1 = Arrays.asList(c_args);
 
-            Cbuf.Init();
-
             Cmd.Init();
             Cvar.Init();
 
@@ -85,14 +83,12 @@ public class Jake2Dedicated {
             SV_MAIN.SV_Init();	//ok
 
             // add + commands from command line
-            if (!Cbuf.AddLateCommands(args1)) {
+            if (Cbuf.AddLateCommands(args1)) {
                 // if the user didn't give any commands, run default action
-                  if (Globals.dedicated.value == 0) {
-                      // todo: intro
-                      //Cbuf.AddText ("d1\n");
-                  }
+                  if (Globals.dedicated.value == 0)
+                      Cbuf.AddText("d1\n");
                   else
-                      Cbuf.AddText ("dedicated_start\n");
+                      Cbuf.AddText("dedicated_start\n");
 
                 Cbuf.Execute();
             }

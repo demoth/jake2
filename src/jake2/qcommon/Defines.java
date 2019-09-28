@@ -1050,10 +1050,6 @@ public class Defines {
 	public static final int AREA_DEPTH = 4;
 	public static final int AREA_NODES = 32;
 
-	public static final int EXEC_NOW = 0;
-	public static final int EXEC_INSERT = 1;
-	public static final int EXEC_APPEND = 2;
-
 	//client/qmenu.h
 	public final static int MAXMENUITEMS = 64;
 

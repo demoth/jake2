@@ -25,53 +25,70 @@
  */
 package jake2.qcommon;
 
-import jake2.qcommon.util.Lib;
-
-import java.util.List;
+import java.util.*;
 
 /**
- * Cbuf
+ * Command buffer.
+ * Used to accumulate commands before execution
  */
 public final class Cbuf {
 
-    private static final byte[] line = new byte[1024];
-    private static final byte[] tmp = new byte[8192];
+    private static final Deque<String> buffer = new ArrayDeque<>();
+
+    private static final Deque<String> deferredBuffer = new ArrayDeque<>();
 
     /**
-     *  
+     * Puts command(s) to the beginning of the command buffer
      */
-    public static void Init() {
-        SZ.Init(Globals.cmd_text, Globals.cmd_text_buf,
-                Globals.cmd_text_buf.length);
-    }
-
     public static void InsertText(String text) {
-
-        int templen = 0;
-
-        // copy off any commands still remaining in the exec buffer
-        templen = Globals.cmd_text.cursize;
-        if (templen != 0) {
-            System.arraycopy(Globals.cmd_text.data, 0, tmp, 0, templen);
-            Globals.cmd_text.clear();
-        }
-
-        // add the entire text of the file
-        Cbuf.AddText(text);
-
-        // add the copied off data
-        if (templen != 0) {
-            SZ.Write(Globals.cmd_text, tmp, templen);
-        }
+        List<String> commands = splitCommandLine(text);
+        for (int i = commands.size() - 1; i >= 0; i--)
+            buffer.push(commands.get(i));
     }
 
-    public static void AddEarlyCommands(List<String> args, boolean clear) {
+    /**
+     * Split string by new line or unquoted semicolon
+     */
+    static List<String> splitCommandLine(String text) {
+        List<String> result = new ArrayList<>();
+        String[] lines = text.split("[\\n\\r]");
+        for (String line : lines) {
+            if (line.contains(";")) {
+                // split by ; unless it is in quotes
+                StringBuilder sb = new StringBuilder();
+                boolean inQuotes = false;
+                for (int i = 0; i < line.length(); i++) {
+                    char c = line.charAt(i);
+                    if (c == ';' && !inQuotes) {
+                        result.add(sb.toString());
+                        sb = new StringBuilder();
+                    } else if (c == '"') {
+                        inQuotes = !inQuotes;
+                    } else {
+                        sb.append(c);
+                    }
+                }
+                if (sb.length() > 0)
+                    result.add(sb.toString());
+            } else {
+                result.add(line);
+            }
+        }
+        return result;
+    }
 
+    /**
+     * Applies +set cvar value commands,
+     * @param clear - if true - remove such commands from args
+     */
+    public static void AddEarlyCommands(List<String> args, boolean clear) {
         for (int i = 0; i < args.size(); i++) {
             String s = args.get(i);
             if (!s.equals("+set") || args.size() < i + 2)
                 continue;
-            Cbuf.AddText("set " + args.get(i + 1) + " " + args.get(i + 2) + "\n");
+
+            buffer.add("set " + args.get(i + 1) + " " + args.get(i + 2));
+
             if (clear) {
                 args.set(i, "");
                 args.set(i + 1, "");
@@ -80,16 +97,20 @@ public final class Cbuf {
         }
     }
 
+    /**
+     * Apply + commands (like +map)
+     * @return true if nothing was applied
+     */
     public static boolean AddLateCommands(List<String> args) {
 
         // build the combined string to parse from
-        int s = 0;
+        int length = 0;
         int argc = args.size();
         for (int i = 1; i < argc; i++) {
-            s += args.get(i).length();
+            length += args.get(i).length();
         }
-        if (s == 0)
-            return false;
+        if (length == 0)
+            return true;
 
         StringBuilder text = new StringBuilder();
         for (int i = 1; i < argc; i++) {
@@ -116,120 +137,48 @@ public final class Cbuf {
             }
         }
 
-        boolean ret = (build.length() != 0);
-        if (ret)
-            Cbuf.AddText(build.toString());
+        boolean isEmpty = (build.length() == 0);
+        if (!isEmpty)
+            AddText(build.toString());
 
-        return ret;
+        return isEmpty;
     }
 
     /**
-     * @param text
+     * Adds command(s) to the tail of the command buffer
      */
     public static void AddText(String text) {
-        int l = text.length();
-
-        if (Globals.cmd_text.cursize + l >= Globals.cmd_text.maxsize) {
-            Com.Printf("Cbuf_AddText: overflow\n");
-            return;
-        }
-        SZ.Write(Globals.cmd_text, Lib.stringToBytes(text), l);
+        buffer.addAll(splitCommandLine(text));
     }
 
     /**
-     *  
+     *  Execute all command is the buffer
      */
     public static void Execute() {
-
-        byte[] text = null;
-
         Globals.alias_count = 0; // don't allow infinite alias loops
-
-        while (Globals.cmd_text.cursize != 0) {
-            // find a \n or ; line break
-            text = Globals.cmd_text.data;
-
-            int quotes = 0;
-            int i;
-
-            for (i = 0; i < Globals.cmd_text.cursize; i++) {
-                if (text[i] == '"')
-                    quotes++;
-                if (!(quotes % 2 != 0) && text[i] == ';')
-                    break; // don't break if inside a quoted string
-                if (text[i] == '\n')
-                    break;
-            }
-
-            System.arraycopy(text, 0, line, 0, i);
-            line[i] = 0;
-
-            // delete the text from the command buffer and move remaining
-            // commands down
-            // this is necessary because commands (exec, alias) can insert data
-            // at the
-            // beginning of the text buffer
-
-            if (i == Globals.cmd_text.cursize)
-                Globals.cmd_text.cursize = 0;
-            else {
-                i++;
-                Globals.cmd_text.cursize -= i;
-                //byte[] tmp = new byte[Globals.cmd_text.cursize];
-
-                System.arraycopy(text, i, tmp, 0, Globals.cmd_text.cursize);
-                System.arraycopy(tmp, 0, text, 0, Globals.cmd_text.cursize);
-                text[Globals.cmd_text.cursize] = '\0';
-
-            }
-
-            // execute the command line
-            int len = Lib.strlen(line);
-
-            String cmd = new String(line, 0, len);
-            Cmd.ExecuteString(cmd.trim());
-
-            if (Globals.cmd_wait) {
-                // skip out while text still remains in buffer, leaving it
-                // for next frame
-                Globals.cmd_wait = false;
-                break;
-            }
+        while (!buffer.isEmpty()) {
+            String command = buffer.pop().trim();
+            if (!command.isEmpty())
+                Cmd.ExecuteString(command.trim());
         }
     }
 
-    public static void ExecuteText(int exec_when, String text) {
-        switch (exec_when) {
-        case Defines.EXEC_NOW:
-            Cmd.ExecuteString(text);
-            break;
-        case Defines.EXEC_INSERT:
-            Cbuf.InsertText(text);
-            break;
-        case Defines.EXEC_APPEND:
-            Cbuf.AddText(text);
-            break;
-        default:
-            Com.Error(Defines.ERR_FATAL, "Cbuf_ExecuteText: bad exec_when");
-        }
-    }
-
-    /*
-     * ============ Cbuf_CopyToDefer ============
+    /**
+     * Puts all remaining commands from main buffer to deferredBuffer.
+     * Used to delay command execution before loading map (like map q2dm1; give all)
      */
     public static void CopyToDefer() {
-        System.arraycopy(Globals.cmd_text_buf, 0, Globals.defer_text_buf, 0,
-                Globals.cmd_text.cursize);
-        Globals.defer_text_buf[Globals.cmd_text.cursize] = 0;
-        Globals.cmd_text.cursize = 0;
+        deferredBuffer.addAll(buffer);
+        buffer.clear();
     }
 
-    /*
-     * ============ Cbuf_InsertFromDefer ============
+    /**
+     * Puts all remaining commands from deferredBuffer to main Buffer.
+     * Used to delay command execution before loading map (like map q2dm1; give all)
      */
     public static void InsertFromDefer() {
-        InsertText(new String(Globals.defer_text_buf).trim());
-        Globals.defer_text_buf[0] = 0;
+        buffer.addAll(deferredBuffer);
+        deferredBuffer.clear();
     }
 
 }

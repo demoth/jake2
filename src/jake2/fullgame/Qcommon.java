@@ -64,8 +64,6 @@ public final class Qcommon extends Globals {
 			// cvar and command buffer management
 			List<String> args = Arrays.asList(argsMain);
 
-			Cbuf.Init();
-			
 			Cmd.Init();
 			Cvar.Init();
 
@@ -133,14 +131,12 @@ public final class Qcommon extends Globals {
 			CL.Init();
 
 			// add + commands from command line
-			if (!Cbuf.AddLateCommands(args)) {
+			if (Cbuf.AddLateCommands(args)) {
 				// if the user didn't give any commands, run default action
-			      if (Globals.dedicated.value == 0) {
-			      	// todo: intro
-					  //Cbuf.AddText ("d1\n");
-				  }
+			      if (Globals.dedicated.value == 0)
+			      	  Cbuf.AddText("d1\n");
 			      else
-			          Cbuf.AddText ("dedicated_start\n");
+			          Cbuf.AddText("dedicated_start\n");
 			          
 				Cbuf.Execute();
 			} else {
