@@ -21,6 +21,8 @@
 // Created on 02.01.2004 by RST.
 package jake2.qcommon;
 
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;

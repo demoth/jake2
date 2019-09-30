@@ -25,8 +25,8 @@
  */
 package jake2.client;
 
-import jake2.qcommon.Cmd;
-import jake2.qcommon.Cvar;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.Globals;
 import jake2.qcommon.usercmd_t;
 import jake2.qcommon.util.Math3D;

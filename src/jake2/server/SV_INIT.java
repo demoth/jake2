@@ -23,6 +23,9 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;

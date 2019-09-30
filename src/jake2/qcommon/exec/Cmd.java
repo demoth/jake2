@@ -23,8 +23,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.qcommon;
+package jake2.qcommon.exec;
 
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.filesystem.FS;
 
 import java.util.*;
@@ -271,7 +274,6 @@ public final class Cmd {
      */
     public static void ExecuteString(String text) {
         Com.DPrintf("Executing command: " + text + "\n");
-        boolean dedicated = Cvar.VariableValue("dedicated") != 0;
 
         if (text.trim().startsWith("//"))
             return;
@@ -285,13 +287,7 @@ public final class Cmd {
         // check functions
         cmd_function_t cmd = cmd_functions.get(args.get(0));
         if (cmd != null) {
-            // fixme: make function not nullable, hence remove the null branch
-            if (cmd.function != null) {
-                cmd.function.execute(args);
-            } else { // forward to server command
-                if (!dedicated)
-                    Cmd.ExecuteString("cmd " + text);
-            }
+            cmd.function.execute(args);
             return;
         }
 
@@ -312,6 +308,7 @@ public final class Cmd {
             return;
 
         // send it as a server command if we are connected
+        // fixme: do not send if we are the server
         if (text.startsWith("cmd")) {
             Com.Printf("did not execute " + text);
         } else {

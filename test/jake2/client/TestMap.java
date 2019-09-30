@@ -30,6 +30,9 @@ import jake2.client.render.model_t;
 import jake2.fullgame.Q2DataDialog;
 import jake2.fullgame.Qcommon;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 

@@ -28,6 +28,9 @@ package jake2.client;
 import jake2.client.render.Renderer;
 import jake2.client.sound.S;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 
 import java.awt.*;
 import java.util.Collections;

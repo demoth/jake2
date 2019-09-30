@@ -23,6 +23,9 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
@@ -412,7 +415,7 @@ public class SV_MAIN {
 
     /**
      * A client issued an rcon command. Shift down the remaining args Redirect
-     * all printfs fromt hte server to the client.
+     * all printfs from the server to the client.
      */
     private static void SVC_RemoteCommand(List<String> args) {
 
@@ -420,25 +423,22 @@ public class SV_MAIN {
 
         String msg = Lib.CtoJava(Globals.net_message.data, 4, 1024);
 
-        if (!rconIsValid)
-            Com.Printf("Bad rcon from " + NET.AdrToString(Globals.net_from)
-                    + ":\n" + msg + "\n");
-        else
+        if (rconIsValid) {
             Com.Printf("Rcon from " + NET.AdrToString(Globals.net_from) + ":\n"
                     + msg + "\n");
-
-        Com.BeginRedirect(Defines.RD_PACKET, SV_SEND.sv_outputbuf,
-                Defines.SV_OUTPUTBUF_LENGTH, new Com.RD_Flusher() {
-                    public void rd_flush(int target, StringBuffer buffer) {
-                        SV_SEND.SV_FlushRedirect(target, Lib.stringToBytes(buffer.toString()));
-                    }
-                });
-
-        // FIXME: Why validate again? Because of redirect?
-        if (!Rcon_Validate(args)) {
-            Com.Printf("Bad rcon_password.\n");
         } else {
+            Com.Printf("Bad rcon from " + NET.AdrToString(Globals.net_from)
+                    + ":\n" + msg + "\n");
+        }
+
+        Com.BeginRedirect(Defines.RD_PACKET, Defines.SV_OUTPUTBUF_LENGTH,
+                (target, buffer) -> SV_SEND.SV_FlushRedirect(target, Lib.stringToBytes(buffer.toString())));
+
+        if (rconIsValid) {
             Cmd.ExecuteString(Cmd.getArguments(args, 2));
+        } else {
+            // redirected to client
+            Com.Printf("Bad rcon_password.\n");
         }
 
         Com.EndRedirect();

@@ -2,6 +2,7 @@ package jake2.game;
 
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.QuakeFile;
@@ -17,7 +18,7 @@ public class GameExportsImpl implements GameExports {
             {
                     "jake2.game.PlayerWeapon",
                     "jake2.game.AIAdapter",
-                    "jake2.qcommon.Cmd",
+                    "jake2.qcommon.exec.Cmd",
                     "jake2.game.EdictFindFilter",
                     "jake2.game.EdictIterator",
                     "jake2.qcommon.EndianHandler",

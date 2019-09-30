@@ -68,6 +68,9 @@ package jake2.qcommon;
 
  */
 
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.util.Lib;
 
 import java.io.File;

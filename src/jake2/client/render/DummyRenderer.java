@@ -10,7 +10,7 @@ package jake2.client.render;
 import jake2.client.KBD;
 import jake2.client.refdef_t;
 import jake2.client.refexport_t;
-import jake2.qcommon.Command;
+import jake2.qcommon.exec.Command;
 
 import java.awt.*;
 import java.util.Collections;

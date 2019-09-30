@@ -26,9 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.client.sound;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.Cvar;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.Defines;
-import jake2.qcommon.cvar_t;
+import jake2.qcommon.exec.cvar_t;
 
 import java.nio.ByteBuffer;
 import java.util.Vector;

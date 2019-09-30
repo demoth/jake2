@@ -27,6 +27,7 @@ package jake2.client;
 
 import jake2.client.sound.S;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.netadr_t;

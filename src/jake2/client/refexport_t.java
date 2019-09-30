@@ -28,7 +28,7 @@ package jake2.client;
 
 import jake2.client.render.image_t;
 import jake2.client.render.model_t;
-import jake2.qcommon.Command;
+import jake2.qcommon.exec.Command;
 
 import java.awt.*;
 

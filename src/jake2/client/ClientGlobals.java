@@ -3,7 +3,7 @@ package jake2.client;
 import jake2.client.render.DummyRenderer;
 import jake2.client.render.model_t;
 import jake2.qcommon.Defines;
-import jake2.qcommon.cvar_t;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.entity_state_t;
 
 public class ClientGlobals {

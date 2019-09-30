@@ -23,7 +23,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  */
-package jake2.qcommon;
+package jake2.qcommon.exec;
+
+import jake2.qcommon.Globals;
 
 import java.util.*;
 
@@ -49,7 +51,7 @@ public final class Cbuf {
     /**
      * Split string by new line or unquoted semicolon
      */
-    static List<String> splitCommandLine(String text) {
+    public static List<String> splitCommandLine(String text) {
         List<String> result = new ArrayList<>();
         String[] lines = text.split("[\\n\\r]");
         for (String line : lines) {

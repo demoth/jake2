@@ -24,17 +24,15 @@
 
  */
 
-package jake2.qcommon;
+package jake2.qcommon.exec;
 
+import jake2.qcommon.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -332,7 +330,9 @@ public class Cvar extends Globals {
      * Any variables with latched values will be updated.
      */
     public static void GetLatchedVars() {
-        for (cvar_t var : cvarMap.values()) {
+        Iterator<cvar_t> iterator = cvarMap.values().iterator();
+        while (iterator.hasNext()) {
+            cvar_t var = iterator.next();
             if (var.latched_string == null || var.latched_string.length() == 0)
                 continue;
             var.string = var.latched_string;

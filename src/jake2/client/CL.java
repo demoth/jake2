@@ -28,6 +28,7 @@ package jake2.client;
 import jake2.client.render.fast.Main;
 import jake2.client.sound.S;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.*;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.network.*;
@@ -43,7 +44,7 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.List;
 
-import static jake2.qcommon.Cmd.getArguments;
+import static jake2.qcommon.exec.Cmd.getArguments;
 
 /**
  * CL

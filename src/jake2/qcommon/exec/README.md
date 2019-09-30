@@ -1,0 +1,1 @@
+This package is responsible for internal command execution (like when you type into the console), cvar and alias support.

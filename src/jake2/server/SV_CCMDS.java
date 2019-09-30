@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
@@ -41,7 +43,7 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.List;
 
-import static jake2.qcommon.Cmd.getArguments;
+import static jake2.qcommon.exec.Cmd.getArguments;
 import static jake2.qcommon.Defines.ERR_DROP;
 import static jake2.qcommon.Defines.PRINT_ALL;
 

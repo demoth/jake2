@@ -5,7 +5,7 @@
 
 package jake2.fullgame;
 
-import jake2.qcommon.Cvar;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.Globals;
 import jake2.qcommon.filesystem.FS;
 

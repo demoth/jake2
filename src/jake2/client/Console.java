@@ -26,6 +26,10 @@
 package jake2.client;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Command;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;

@@ -22,13 +22,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon;
 
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static jake2.qcommon.Cmd.getArguments;
+import static jake2.qcommon.exec.Cmd.getArguments;
 import static org.junit.Assert.assertEquals;
 
 public class TestCMD {

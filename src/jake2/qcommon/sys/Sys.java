@@ -25,7 +25,7 @@
  */
 package jake2.qcommon.sys;
 
-import jake2.qcommon.Cmd;
+import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;

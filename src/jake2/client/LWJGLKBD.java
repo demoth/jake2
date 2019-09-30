@@ -1,6 +1,6 @@
 package jake2.client;
 
-import jake2.qcommon.Cmd;
+import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.Globals;
 import jake2.qcommon.sys.Timer;
 import org.lwjgl.input.Keyboard;

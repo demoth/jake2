@@ -28,7 +28,7 @@ package jake2.client.render.opengl;
 import jake2.client.VID;
 import jake2.client.render.Base;
 import jake2.qcommon.Com;
-import jake2.qcommon.Command;
+import jake2.qcommon.exec.Command;
 import jake2.qcommon.Defines;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;

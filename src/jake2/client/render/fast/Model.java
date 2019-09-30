@@ -27,6 +27,8 @@ package jake2.client.render.fast;
 
 import jake2.client.render.*;
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.util.Lib;

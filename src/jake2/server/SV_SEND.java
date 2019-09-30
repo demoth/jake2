@@ -41,8 +41,6 @@ public class SV_SEND {
 	=============================================================================
 	*/
 
-	public static StringBuffer sv_outputbuf = new StringBuffer();
-
 	public static void SV_FlushRedirect(int sv_redirected, byte outputbuf[]) {
 		if (sv_redirected == Defines.RD_PACKET) {
 			String s = ("print\n" + Lib.CtoJava(outputbuf));

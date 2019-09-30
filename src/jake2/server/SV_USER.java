@@ -23,6 +23,10 @@
 package jake2.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Command;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
@@ -588,7 +592,7 @@ class SV_USER {
 
                 // if the checksum fails, ignore the rest of the packet
 
-                calculatedChecksum = Com.BlockSequenceCRCByte(
+                calculatedChecksum = CRC.BlockSequenceCRCByte(
                         Globals.net_message.data, checksumIndex + 1,
                         Globals.net_message.readcount - checksumIndex - 1,
                         cl.netchan.incoming_sequence);

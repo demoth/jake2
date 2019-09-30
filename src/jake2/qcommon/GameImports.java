@@ -1,5 +1,6 @@
 package jake2.qcommon;
 
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.MulticastTypes;
 
 /**

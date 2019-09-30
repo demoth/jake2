@@ -1,6 +1,6 @@
 package jake2.client.render.opengl;
 
-import jake2.qcommon.Command;
+import jake2.qcommon.exec.Command;
 
 import java.awt.*;
 

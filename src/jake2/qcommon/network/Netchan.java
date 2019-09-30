@@ -24,6 +24,8 @@
 package jake2.qcommon.network;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 

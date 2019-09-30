@@ -1,6 +1,9 @@
 package jake2.fullgame;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cbuf;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;

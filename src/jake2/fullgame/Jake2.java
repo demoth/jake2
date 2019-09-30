@@ -26,6 +26,7 @@
 package jake2.fullgame;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.sys.Timer;
 
 import java.util.Locale;

@@ -26,6 +26,9 @@
 package jake2.client;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -479,7 +482,7 @@ public class CL_input {
 		MSG.WriteDeltaUsercmd(buf, oldcmd, cmd);
 
 		// calculate a checksum over the move commands
-		buf.data[checksumIndex] = Com.BlockSequenceCRCByte(buf.data, checksumIndex + 1, buf.cursize - checksumIndex - 1,
+		buf.data[checksumIndex] = CRC.BlockSequenceCRCByte(buf.data, checksumIndex + 1, buf.cursize - checksumIndex - 1,
 				ClientGlobals.cls.netchan.outgoing_sequence);
 
 		//
