@@ -157,7 +157,7 @@ public final class FS extends Globals {
             return pack != null ? pack.toString() : filename;
         }
     }
-    private static final List<SearchPath> searchPaths = new ArrayList<>();
+    private static final Deque<SearchPath> searchPaths = new ArrayDeque<>();
 
 
     /*
@@ -325,8 +325,15 @@ public final class FS extends Globals {
 
         try {
             QuakeFile file = FOpenFile(path);
-            if (file == null)
-                return null;
+            if (file == null) {
+                file = FOpenFile(path.toLowerCase());
+                if (file != null) {
+                    // some mods mess up the case
+                    Com.Printf("Found file by lowercase: " + path + "\n");
+                } else {
+                    return null;
+                }
+            }
             return file.toBytes();
         } catch (IOException e) {
             Com.Error(Defines.ERR_FATAL, e.toString());
@@ -500,7 +507,10 @@ public final class FS extends Globals {
      * @param isGame true for mod directories, false for baseq2
      */
     private static void AddGameDirectory(String dir, boolean isGame) {
-        searchPaths.add(new SearchPath(dir, null, isGame));
+        if (isGame)
+            searchPaths.push(new SearchPath(dir, null, isGame));
+        else
+            searchPaths.add(new SearchPath(dir, null, isGame));
 
         fs_gamedir = dir;
         // add the directory to the search path
@@ -769,7 +779,7 @@ public final class FS extends Globals {
         // check for game override
         fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 
-        if (fs_gamedirvar.string.length() > 0)
+        if (!fs_gamedirvar.string.isEmpty())
             SetGamedir(fs_gamedirvar.string);
     }
 

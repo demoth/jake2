@@ -51,7 +51,7 @@ public final class Cbuf {
     /**
      * Split string by new line or unquoted semicolon
      */
-    public static List<String> splitCommandLine(String text) {
+    static List<String> splitCommandLine(String text) {
         List<String> result = new ArrayList<>();
         String[] lines = text.split("[\\n\\r]");
         for (String line : lines) {
@@ -81,7 +81,14 @@ public final class Cbuf {
 
     /**
      * Applies +set cvar value commands,
-     * @param clear - if true - remove such commands from args
+     * Adds command line parameters as script statements Commands lead with
+     * a +, and continue until another +
+     * <br/>
+     * 'set' commands are added early, so they are guaranteed to be set before
+     * the client and server initialize for the first time.
+     * <br/>
+     * Other commands are added late, after all initialization is complete.
+     * @param clear - if true - remove such commands from 'args'
      */
     public static void AddEarlyCommands(List<String> args, boolean clear) {
         for (int i = 0; i < args.size(); i++) {
@@ -100,6 +107,12 @@ public final class Cbuf {
     }
 
     /**
+     * Adds command line parameters as script statements
+     * Commands lead with a + and continue until another + or -
+     * quake +developer 1 +map amlev1
+     *
+     * Returns false if any late commands were added, which
+     * will keep the demoloop from immediately starting
      * Apply + commands (like +map)
      * @return true if nothing was applied
      */

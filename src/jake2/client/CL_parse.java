@@ -70,6 +70,10 @@ public class CL_parse {
         if (FS.FileExists(filename)) {
             // it exists, no need to download
             return true;
+        } else if (FS.FileExists(filename.toLowerCase())) {
+            // some mods mess up the case
+            Com.Printf("Found file by lowercase: " + filename + "\n");
+            return true;
         }
 
         ClientGlobals.cls.downloadname = filename;

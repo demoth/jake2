@@ -1,4 +1,4 @@
-package jake2.qcommon;
+package jake2.qcommon.exec;
 
 import org.junit.Test;
 
