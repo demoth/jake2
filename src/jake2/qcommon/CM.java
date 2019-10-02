@@ -283,8 +283,6 @@ public class CM {
         CMod_LoadAreaPortals(header.lumps[Defines.LUMP_AREAPORTALS]);       
         CMod_LoadVisibility(header.lumps[Defines.LUMP_VISIBILITY]);
         CMod_LoadEntityString(header.lumps[Defines.LUMP_ENTITIES]);
-        
-        FS.FreeFile(buf);
 
         CM_InitBoxHull();
 

@@ -4,7 +4,7 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 

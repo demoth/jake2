@@ -56,7 +56,6 @@ public class Jake2Dedicated {
             Qcommon.reconfigure(args1, false);
 
             FS.setCDDir(); // use cddir from config.cfg
-            FS.markBaseSearchPaths(); // mark the default search paths
 
             Qcommon.reconfigure(args1, true); // reload default.cfg and config.cfg
 

@@ -31,7 +31,6 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,14 +73,9 @@ class SV_USER {
      * ================== SV_BeginDemoServer ==================
      */
     private static void SV_BeginDemoserver() {
-        String name;
 
-        name = "demos/" + SV_INIT.sv.name;
-        try {
-            SV_INIT.sv.demofile = FS.FOpenFile(name);
-        } catch (IOException e) {
-            Com.Error(Defines.ERR_DROP, "Couldn't open " + name + "\n");
-        }
+        String name = "demos/" + SV_INIT.sv.name;
+        SV_INIT.sv.demofile = FS.FOpenFile(name);
         if (SV_INIT.sv.demofile == null)
             Com.Error(Defines.ERR_DROP, "Couldn't open " + name + "\n");
     }
@@ -321,7 +315,6 @@ class SV_USER {
         if (SV_MAIN.sv_client.downloadcount != SV_MAIN.sv_client.downloadsize)
             return;
 
-        FS.FreeFile(SV_MAIN.sv_client.download);
         SV_MAIN.sv_client.download = null;
     }
 
@@ -366,9 +359,6 @@ class SV_USER {
             return;
         }
 
-        if (SV_MAIN.sv_client.download != null)
-            FS.FreeFile(SV_MAIN.sv_client.download);
-
         SV_MAIN.sv_client.download = FS.LoadFile(name);
         
         // rst: this handles loading errors, no message yet visible 
@@ -387,11 +377,10 @@ class SV_USER {
         // came from a pak file, don't
         // allow
         // download ZOID
-        if (name.startsWith("maps/") && FS.file_from_pak != 0) {
+        if (name.startsWith("maps/") && FS.FOpenFile(name).fromPack) {
             Com.DPrintf("Couldn't download " + name + " to "
                     + SV_MAIN.sv_client.name + "\n");
             if (SV_MAIN.sv_client.download != null) {
-                FS.FreeFile(SV_MAIN.sv_client.download);
                 SV_MAIN.sv_client.download = null;
             }
 

@@ -178,7 +178,7 @@ public final class CL {
             //
             // open the demo file
             //
-            String name = FS.Gamedir() + "/demos/" + args.get(1) + ".dm2";
+            String name = FS.getWriteDir() + "/demos/" + args.get(1) + ".dm2";
 
             Com.Printf("recording to " + name + ".\n");
             FS.CreatePath(name);
@@ -1025,7 +1025,6 @@ public final class CL {
 
                         if (header != qfiles.IDALIASHEADER) {
                             // not an alias model
-                            FS.FreeFile(CL.precache_model);
                             CL.precache_model = null;
                             CL.precache_model_skin = 0;
                             CL.precache_check++;
@@ -1063,7 +1062,6 @@ public final class CL {
                         CL.precache_model_skin++;
                     }
                     if (CL.precache_model != null) {
-                        FS.FreeFile(CL.precache_model);
                         CL.precache_model = null;
                     }
                     CL.precache_model_skin = 0;
@@ -1454,7 +1452,7 @@ public final class CL {
 //        if (Globals.cls.state == Defines.ca_uninitialized)
 //            return;
 
-        path = FS.Gamedir() + "/config.cfg";
+        path = FS.getWriteDir() + "/config.cfg";
         f = Lib.fopen(path, "rw");
         if (f == null) {
             Com.Printf("Couldn't write config.cfg.\n");

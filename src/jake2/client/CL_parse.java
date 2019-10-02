@@ -53,7 +53,7 @@ public class CL_parse {
     //	  =============================================================================
 
     public static String DownloadFileName(String fn) {
-        return FS.Gamedir() + "/" + fn;
+        return FS.getWriteDir() + "/" + fn;
     }
 
     /**
@@ -67,7 +67,7 @@ public class CL_parse {
             return true;
         }
 
-        if (FS.FileLength(filename) > 0) {
+        if (FS.FileExists(filename)) {
             // it exists, no need to download
             return true;
         }

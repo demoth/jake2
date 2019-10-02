@@ -25,7 +25,7 @@ package jake2.game;
 import jake2.qcommon.edict_t;
 import jake2.qcommon.player_state_t;
 import jake2.qcommon.pmove_state_t;
-import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 

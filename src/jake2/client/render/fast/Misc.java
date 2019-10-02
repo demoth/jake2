@@ -120,7 +120,7 @@ public final class Misc extends Mesh {
 	 * GL_ScreenShot_f
 	 */
 	public void GL_ScreenShot_f() {
-	    StringBuffer sb = new StringBuffer(FS.Gamedir() + "/scrshot/jake00.tga");
+	    StringBuffer sb = new StringBuffer(FS.getWriteDir() + "/scrshot/jake00.tga");
 	    FS.CreatePath(sb.toString());
 	    File file = new File(sb.toString());
 	    // find a valid file name

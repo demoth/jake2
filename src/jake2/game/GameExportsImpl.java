@@ -5,7 +5,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
@@ -1060,15 +1060,11 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void WriteGame(String filename, boolean autosave) {
         try {
-            QuakeFile f;
 
             if (!autosave)
                 PlayerClient.SaveClientData();
 
-            f = new QuakeFile(filename, "rw");
-
-            if (f == null)
-                gameImports.error("Couldn't write to " + filename);
+            QuakeFile f = new QuakeFile(filename, "rw");
 
             GameBase.game.autosaved = autosave;
             GameBase.game.write(f);
@@ -1113,8 +1109,6 @@ public class GameExportsImpl implements GameExports {
         try {
 
             QuakeFile f = new QuakeFile(filename, "rw");
-            if (f == null)
-                gameImports.error("Couldn't open for writing: " + filename);
 
             // write out level_locals_t
             GameBase.level.write(f);

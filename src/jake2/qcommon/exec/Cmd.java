@@ -60,7 +60,6 @@ public final class Cmd {
         Com.Printf("execing " + args.get(1) + "\n");
         Cbuf.InsertText(new String(f));
 
-        FS.FreeFile(f);
     };
 
     private static Command Echo_f = (List<String> args) -> {

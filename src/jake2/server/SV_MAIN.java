@@ -26,7 +26,6 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetworkCommands;
@@ -111,7 +110,6 @@ public class SV_MAIN {
         }
 
         if (drop.download != null) {
-            FS.FreeFile(drop.download);
             drop.download = null;
         }
 

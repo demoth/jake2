@@ -35,7 +35,7 @@ import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.QuakeFile;
+import jake2.qcommon.filesystem.QuakeFile;
 
 import java.awt.*;
 import java.io.RandomAccessFile;
@@ -1853,7 +1853,7 @@ public final class Menu extends Key {
             creditsIndex[n] = null;
             credits = creditsIndex;
         } else {
-            isdeveloper = FS.Developer_searchpath(1);
+            isdeveloper = FS.Developer_searchpath();
 
             if (isdeveloper == 1) // xatrix
                 credits = xatcredits;
@@ -2106,20 +2106,15 @@ public final class Menu extends Key {
         for (i = 0; i < MAX_SAVEGAMES; i++) {
 
             m_savestrings[i] = "<EMPTY>";
-            name = FS.Gamedir() + "/save/save" + i + "/server.ssv";
+            name = FS.getWriteDir() + "/save/save" + i + "/server.ssv";
 
             try {
-                f = new QuakeFile(name, "r");
-                if (f == null) {
-                    m_savestrings[i] = "<EMPTY>";
-                    m_savevalid[i] = false;
-                } else {
-                    String str = f.readString();
-                    if (str != null)
-                        m_savestrings[i] = str;
-                    f.close();
-                    m_savevalid[i] = true;
-                }
+                f = new QuakeFile(name, "r", false, -1);
+                String str = f.readString();
+                if (str != null)
+                    m_savestrings[i] = str;
+                f.close();
+                m_savevalid[i] = true;
             } catch (Exception e) {
                 m_savestrings[i] = "<EMPTY>";
                 m_savevalid[i] = false;
@@ -2503,7 +2498,7 @@ public final class Menu extends Key {
         //	  =====
         //	  PGM
         // ROGUE GAMES
-        else if (FS.Developer_searchpath(2) == 2) {
+        else if (FS.Developer_searchpath() == 2) {
             if (s_rules_box.curvalue == 2) // tag
             {
                 s_maxclients_field.statusbar = null;
@@ -2549,7 +2544,7 @@ public final class Menu extends Key {
         //		Cvar.SetValue ("coop", s_rules_box.curvalue );
 
         //	  PGM
-        if ((s_rules_box.curvalue < 2) || (FS.Developer_searchpath(2) != 2)) {
+        if ((s_rules_box.curvalue < 2) || (FS.Developer_searchpath() != 2)) {
             Cvar.SetValue("deathmatch", 1 - (int) (s_rules_box.curvalue));
             Cvar.SetValue("coop", s_rules_box.curvalue);
             Cvar.SetValue("gamerules", 0);
@@ -2613,7 +2608,7 @@ public final class Menu extends Key {
         /*
          * * load the list of map names
          */
-        mapsname = FS.Gamedir() + "/maps.lst";
+        mapsname = FS.getWriteDir() + "/maps.lst";
 
         if ((fp = Lib.fopen(mapsname, "r")) == null) {
             buffer = FS.LoadFile("maps.lst");
@@ -2657,7 +2652,6 @@ public final class Menu extends Key {
             fp = null;
 
         } else {
-            FS.FreeFile(buffer);
         }
 
         /*
@@ -2678,7 +2672,7 @@ public final class Menu extends Key {
         s_rules_box.name = "rules";
 
         //	  PGM - rogue games only available with rogue DLL.
-        if (FS.Developer_searchpath(2) == 2)
+        if (FS.Developer_searchpath() == 2)
             s_rules_box.itemnames = dm_coop_names_rogue;
         else
             s_rules_box.itemnames = dm_coop_names;
@@ -2951,7 +2945,7 @@ public final class Menu extends Key {
 
         //	  =======
         //	  ROGUE
-        else if (FS.Developer_searchpath(2) == 2) {
+        else if (FS.Developer_searchpath() == 2) {
             if (f == s_no_mines_box) {
                 bit = DF_NO_MINES;
             } else if (f == s_no_nukes_box) {
@@ -3175,7 +3169,7 @@ public final class Menu extends Key {
 
         //	  ============
         //	  ROGUE
-        if (FS.Developer_searchpath(2) == 2) {
+        if (FS.Developer_searchpath() == 2) {
             s_no_mines_box.type = MTYPE_SPINCONTROL;
             s_no_mines_box.x = 0;
             s_no_mines_box.y = y += 10;
@@ -3246,7 +3240,7 @@ public final class Menu extends Key {
 
         //	  =======
         //	  ROGUE
-        if (FS.Developer_searchpath(2) == 2) {
+        if (FS.Developer_searchpath() == 2) {
             Menu_AddItem(s_dmoptions_menu, s_no_mines_box);
             Menu_AddItem(s_dmoptions_menu, s_no_nukes_box);
             Menu_AddItem(s_dmoptions_menu, s_stack_double_box);

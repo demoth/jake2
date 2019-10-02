@@ -90,8 +90,7 @@ public final class Qcommon extends Globals {
 			reconfigure(args, false);
 
 			FS.setCDDir(); // use cddir from config.cfg
-			FS.markBaseSearchPaths(); // mark the default search paths
-			
+
 			if (Globals.dedicated.value != 1.0f)
 				Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
 			

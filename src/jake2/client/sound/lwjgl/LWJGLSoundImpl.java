@@ -308,14 +308,14 @@ public final class LWJGLSoundImpl implements Sound {
 	// fall back strategies
 	//
 	// not found , so see if it exists
-	if (FS.FileLength(sexedFilename.substring(1)) > 0) {
+	if (FS.FileExists(sexedFilename.substring(1))) {
 	    // yes, register it
 	    return RegisterSound(sexedFilename);
 	}
 	// try it with the female sound in the pak0.pak
 	if (model.equalsIgnoreCase("female")) {
 	    String femaleFilename = "player/female/" + base.substring(1);
-	    if (FS.FileLength("sound/" + femaleFilename) > 0)
+	    if (FS.FileExists("sound/" + femaleFilename))
 		return AliasName(sexedFilename, femaleFilename);
 	}
 	// no chance, revert to the male sound in the pak0.pak

@@ -96,7 +96,7 @@ public final class Console extends Globals {
 
 		// Com_sprintf (name, sizeof(name), "%s/%s.txt", FS_Gamedir(),
 		// Cmd_Argv(1));
-		name = FS.Gamedir() + "/" + args.get(1) + ".txt";
+		name = FS.getWriteDir() + "/" + args.get(1) + ".txt";
 
 		Com.Printf("Dumped console text to " + name + ".\n");
 		FS.CreatePath(name);

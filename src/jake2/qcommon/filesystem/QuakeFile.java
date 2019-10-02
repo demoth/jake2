@@ -22,12 +22,13 @@
 
 // $Id: QuakeFile.java,v 1.6 2005-11-20 22:18:34 salomo Exp $
 
-package jake2.qcommon.util;
+package jake2.qcommon.filesystem;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.edict_t;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -38,9 +39,30 @@ import java.io.RandomAccessFile;
  */
 public class QuakeFile extends RandomAccessFile {
 
-    /** Standard Constructor. */
+    public final boolean fromPack;
+    public final long length;
+
     public QuakeFile(String filename, String mode) throws FileNotFoundException {
+        this(filename, mode, false, -1);
+    }
+
+    public QuakeFile(String filename, String mode, boolean fromPack, long length) throws FileNotFoundException {
         super(filename, mode);
+        this.fromPack = fromPack;
+        this.length = length;
+    }
+
+    public QuakeFile(File file, String mode, boolean fromPack, long length) throws FileNotFoundException {
+        super(file, mode);
+        this.fromPack = fromPack;
+        this.length = length;
+    }
+
+    public byte[] toBytes() throws IOException {
+        byte[] buf = new byte[(int) length];
+        readFully(buf);
+        close();
+        return buf;
     }
 
     /** Writes a Vector to a RandomAccessFile. */
