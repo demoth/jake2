@@ -502,15 +502,13 @@ public final class FS extends Globals {
     /**
      *
      * Sets fs_gamedir, adds the directory to the head of the path, then loads
-     * and adds pak1.pak pak2.pak ...
+     * and adds pak2.pak, pak1.pak, pak0.pak ...
      *
      * @param isGame true for mod directories, false for baseq2
      */
     private static void AddGameDirectory(String dir, boolean isGame) {
-        if (isGame)
-            searchPaths.push(new SearchPath(dir, null, isGame));
-        else
-            searchPaths.add(new SearchPath(dir, null, isGame));
+        if (!isGame)
+            searchPaths.add(new SearchPath(dir, null, false));
 
         fs_gamedir = dir;
         // add the directory to the search path
@@ -521,8 +519,10 @@ public final class FS extends Globals {
         //
         // add any pak files in the format pak0.pak pak1.pak, ...
         //
-        for (int i = 9; i >= 0; i--) {
-            String pakfile = dir + "/pak" + i + ".pak";
+        int maxPacks = 9;
+        for (int i = maxPacks; i >= 0; i--) {
+            int pakIndex = isGame ? maxPacks - i : i;
+            String pakfile = dir + "/pak" + pakIndex + ".pak";
             if (!(new File(pakfile).canRead()))
                 continue;
 
@@ -530,20 +530,30 @@ public final class FS extends Globals {
             if (pak == null)
                 continue;
 
-            searchPaths.add(new SearchPath(dir, pak, isGame));
+            if (isGame)
+                searchPaths.push(new SearchPath(dir, pak, true));
+            else
+                searchPaths.add(new SearchPath(dir, pak, false));
         }
+
+        if (isGame)
+            searchPaths.push(new SearchPath(dir, null, true));
     }
 
     /**
      * Called to find where to write a file (demos, savegames, etc)
-     * this is modified to <user.home>/.jake2
-     *
-     * todo: .jake2 should also support mods, i.e xatrix savegames should be located in .jake/xatrix/save
+     * this is modified to `user.home`/.jake2/`game_name`
      */
     public static String getWriteDir() {
-        return (fs_userdir != null) ? fs_userdir : Globals.BASEDIRNAME;
+        return (fs_userdir != null) ? fs_userdir : Globals.BASEQ2;
     }
 
+    private static void setWriteDir(String gameName, boolean isGame) {
+        fs_userdir = System.getProperty("user.home") + "/.jake2/" + gameName;
+        FS.CreatePath(fs_userdir + "/");
+        if (isGame)
+            AddGameDirectory(fs_userdir, true);
+    }
 
     /*
      * ExecAutoexec
@@ -555,8 +565,7 @@ public final class FS extends Globals {
         if (dir != null && dir.length() > 0) {
             name = dir + "/autoexec.cfg";
         } else {
-            name = fs_basedir.string + '/' + Globals.BASEDIRNAME
-                    + "/autoexec.cfg";
+            name = fs_basedir.string + '/' + Globals.BASEQ2 + "/autoexec.cfg";
         }
 
         int canthave = Defines.SFF_SUBDIR | Defines.SFF_HIDDEN
@@ -573,19 +582,21 @@ public final class FS extends Globals {
      *
      * used when game cvar is changed
      */
-    public static void SetGamedir(String dir) {
+    public static void SetGamedir(String gameName) {
 
-        if (dir.contains("..") || dir.contains("/") || dir.contains("\\") || dir.contains(":")) {
+        if (gameName.contains("..") || gameName.contains("/") || gameName.contains("\\") || gameName.contains(":")) {
             Com.Printf("Gamedir should be a single filename, not a path\n");
             return;
         }
+
 
         //
         // free up any current game dir info
         //
         searchPaths.removeIf(path -> {
             if (path.isGame) {
-                path.pack.closeQuietly();
+                if (path.pack != null)
+                    path.pack.closeQuietly();
                 return true;
             } else return false;
         });
@@ -598,18 +609,20 @@ public final class FS extends Globals {
             Cbuf.AddText("snd_restart");
         }
 
-        fs_gamedir = fs_basedir.string + '/' + dir;
+        fs_gamedir = fs_basedir.string + '/' + gameName;
 
-        if (dir.equals(Globals.BASEDIRNAME) || dir.isEmpty()) {
+        if (gameName.equals(Globals.BASEQ2) || gameName.isEmpty()) {
             Cvar.FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
             Cvar.FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
         } else {
-            Cvar.FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
+            Cvar.FullSet("gamedir", gameName, CVAR_SERVERINFO | CVAR_NOSET);
             if (fs_cddir.string != null && fs_cddir.string.length() > 0)
-                AddGameDirectory(fs_cddir.string + '/' + dir, true);
+                AddGameDirectory(fs_cddir.string + '/' + gameName, true);
 
-            AddGameDirectory(fs_basedir.string + '/' + dir, true);
+            AddGameDirectory(fs_basedir.string + '/' + gameName, true);
         }
+
+        setWriteDir(gameName, true);
     }
 
     /*
@@ -752,8 +765,10 @@ public final class FS extends Globals {
         Cmd.AddCommand("dir", FS::Dir_f);
         Cmd.AddCommand("ls", FS::Dir_f);
 
-        fs_userdir = System.getProperty("user.home") + "/.jake2";
-        FS.CreatePath(fs_userdir + "/");
+        // by default all saves, screenshots etc go to ~/.jake2/baseq2
+        // overridden by 'game' cvar, i.e xatrix saves to go ~/.jake2/xatrix
+        setWriteDir(Globals.BASEQ2, false);
+
         FS.AddGameDirectory(fs_userdir, false);
 
         //
@@ -768,13 +783,12 @@ public final class FS extends Globals {
         // allows the game to run from outside the data tree
         //
 
-        // todo: use basedir instead
         setCDDir();
 
         //
         // start up with baseq2 by default
         //
-        AddGameDirectory(fs_basedir.string + '/' + Globals.BASEDIRNAME, false);
+        AddGameDirectory(fs_basedir.string + '/' + Globals.BASEQ2, false);
 
         // check for game override
         fs_gamedirvar = Cvar.Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);

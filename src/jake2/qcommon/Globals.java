@@ -45,7 +45,7 @@ public class Globals extends Defines {
 
 	public static final float VERSION = 3.21f;
 
-	public static final String BASEDIRNAME = "baseq2";
+	public static final String BASEQ2 = "baseq2";
 
 	/*
 	 * global variables
