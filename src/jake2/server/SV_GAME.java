@@ -22,11 +22,14 @@
 // $Id: SV_GAME.java,v 1.10 2006-01-21 21:53:32 salomo Exp $
 package jake2.server;
 
-import jake2.game.GameExportsImpl;
 import jake2.qcommon.*;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
+
+import java.lang.reflect.Constructor;
+
+import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SV_GAME {
 
@@ -274,15 +277,18 @@ public class SV_GAME {
 
     }
 
-
     /**
-     * SV_InitGameProgs
-     * 
-     * Init the game subsystem for a new map. 
+     * Find and create an instance of the game subsystem
      */
+    static void SV_InitGameProgs() {
 
-    public static void SV_InitGameProgs() {
-
-        gameExports = new GameExportsImpl(new GameImportsImpl());
+        // todo: introduce proper Dependency Injection
+        try {
+            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
+            Constructor<?> constructor = game.getConstructor(GameImports.class);
+            gameExports = (GameExports) constructor.newInstance(new GameImportsImpl());
+        } catch (Exception e) {
+            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
+        }
     }
 }
