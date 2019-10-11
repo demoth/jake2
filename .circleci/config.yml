@@ -39,4 +39,4 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       # build the distribution
-      - run: gradle distZip
+      - run: gradle build
