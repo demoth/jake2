@@ -575,6 +575,10 @@ public class SV_CCMDS {
 	private static void SV_Map_f(List<String> args) {
 		String mapName;
 		//char expanded[MAX_QPATH];
+		if (args.size() < 2) {
+			Com.Printf("usage: map <map_name>\n");
+			return;
+		}
 
 		// if not a pcx, demo, or cinematic, check to make sure the level exists
 		mapName = args.get(1);

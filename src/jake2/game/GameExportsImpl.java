@@ -86,7 +86,7 @@ public class GameExportsImpl implements GameExports {
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
         this.gameImports = imports;
-
+        GameBase.gi = imports;
         gameImports.dprintf("==== InitGame ====\n");
 
         // preload all classes to register the adapters
