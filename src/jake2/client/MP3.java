@@ -1,4 +1,4 @@
-package jake2.qcommon;
+package jake2.client;
 
 /*
  JLayer MP3 Decoder & Player code
@@ -11,6 +11,7 @@ package jake2.qcommon;
 
 import java.io.*;
 
+import jake2.qcommon.Com;
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;

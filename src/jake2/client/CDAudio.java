@@ -41,7 +41,7 @@ soundtrack! (Did you know that Rob Zommbie did the music on the intro.cin file?)
 */
 
 
-package jake2.qcommon;
+package jake2.client;
 
 
 /*
@@ -68,6 +68,8 @@ package jake2.qcommon;
 
  */
 
+import jake2.qcommon.Com;
+import jake2.qcommon.Defines;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.cvar_t;

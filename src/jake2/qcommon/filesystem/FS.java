@@ -23,7 +23,6 @@
  */
 package jake2.qcommon.filesystem;
 
-import jake2.qcommon.CDAudio;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
@@ -295,7 +294,8 @@ public final class FS extends Globals {
             	if (tries == 0)
             	{
             		tries = 1;
-            		CDAudio.Stop();
+            		// todo: check if this hack is requried (does anyone has CD these days?)
+            		// CDAudio.Stop();
             	} else {
             		Com.Error(Defines.ERR_FATAL, "FS_Read: 0 bytes read");
             	}
