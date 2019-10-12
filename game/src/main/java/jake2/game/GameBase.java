@@ -92,29 +92,7 @@ public class GameBase {
 
     static cvar_t filterban = new cvar_t();
 
-    static cvar_t sv_maxvelocity = new cvar_t();
-
     static cvar_t sv_gravity = new cvar_t();
-
-    static cvar_t sv_rollspeed = new cvar_t();
-
-    static cvar_t sv_rollangle = new cvar_t();
-
-    static cvar_t gun_x = new cvar_t();
-
-    static cvar_t gun_y = new cvar_t();
-
-    static cvar_t gun_z = new cvar_t();
-
-    static cvar_t run_pitch = new cvar_t();
-
-    static cvar_t run_roll = new cvar_t();
-
-    static cvar_t bob_up = new cvar_t();
-
-    static cvar_t bob_pitch = new cvar_t();
-
-    static cvar_t bob_roll = new cvar_t();
 
     static cvar_t sv_cheats = new cvar_t();
 

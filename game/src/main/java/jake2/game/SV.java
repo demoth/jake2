@@ -26,6 +26,7 @@
 package jake2.game;
 
 import jake2.qcommon.*;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
@@ -33,6 +34,8 @@ import jake2.qcommon.util.Math3D;
  * SV
  */
 public final class SV {
+
+    static cvar_t sv_maxvelocity = new cvar_t();
 
     ///////////////////////////////////////
     public static edict_t[] SV_TestEntityPosition(edict_t ent) {
@@ -60,10 +63,10 @@ public final class SV {
         //	   bound velocity
         //
         for (i = 0; i < 3; i++) {
-            if (ent.velocity[i] > GameBase.sv_maxvelocity.value)
-                ent.velocity[i] = GameBase.sv_maxvelocity.value;
-            else if (ent.velocity[i] < -GameBase.sv_maxvelocity.value)
-                ent.velocity[i] = -GameBase.sv_maxvelocity.value;
+            if (ent.velocity[i] > sv_maxvelocity.value)
+                ent.velocity[i] = sv_maxvelocity.value;
+            else if (ent.velocity[i] < -sv_maxvelocity.value)
+                ent.velocity[i] = -sv_maxvelocity.value;
         }
     }
 
@@ -1076,4 +1079,8 @@ public final class SV {
     }
 
 	public static int DI_NODIR = -1;
+
+    static void Init(GameImports gameImports) {
+        sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
+    }
 }

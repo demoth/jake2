@@ -99,15 +99,12 @@ public class GameExportsImpl implements GameExports {
             }
         }
 
+        // todo replace with constructor
+        PlayerView.Init(gameImports);
 
-        GameBase.gun_x = gameImports.cvar("gun_x", "0", 0);
-        GameBase.gun_y = gameImports.cvar("gun_y", "0", 0);
-        GameBase.gun_z = gameImports.cvar("gun_z", "0", 0);
+        // todo replace with constructor
+        SV.Init(gameImports);
 
-        //FIXME: sv_ prefix are wrong names for these variables
-        GameBase.sv_rollspeed = gameImports.cvar("sv_rollspeed", "200", 0);
-        GameBase.sv_rollangle = gameImports.cvar("sv_rollangle", "2", 0);
-        GameBase.sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);
         GameBase.sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
 
         // noset vars
@@ -136,11 +133,6 @@ public class GameExportsImpl implements GameExports {
 
         GameBase.g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
 
-        GameBase.run_pitch = gameImports.cvar("run_pitch", "0.002", 0);
-        GameBase.run_roll = gameImports.cvar("run_roll", "0.005", 0);
-        GameBase.bob_up = gameImports.cvar("bob_up", "0.005", 0);
-        GameBase.bob_pitch = gameImports.cvar("bob_pitch", "0.002", 0);
-        GameBase.bob_roll = gameImports.cvar("bob_roll", "0.002", 0);
 
         // flood control
         GameBase.flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
@@ -162,22 +154,26 @@ public class GameExportsImpl implements GameExports {
 
         // initialize all clients for this game
         GameBase.game.maxclients = (int) GameBase.maxclients.value;
-
         CreateClients();
 
-        GameBase.num_edicts = GameBase.game.maxclients + 1;
     }
 
+    // create the entities array and fill it with empty entities
     private static void CreateEdicts() {
         GameBase.g_edicts = new SubgameEntity[GameBase.game.maxentities];
         for (int i = 0; i < GameBase.game.maxentities; i++)
             GameBase.g_edicts[i] = new SubgameEntity(i);
     }
 
+    // create the clients array and fill it with empty clients
     private static void CreateClients() {
         GameBase.game.clients = new gclient_t[GameBase.game.maxclients];
+
         for (int i = 0; i < GameBase.game.maxclients; i++)
             GameBase.game.clients[i] = new gclient_t(i);
+
+        // so far we have only clients, no other entities
+        GameBase.num_edicts = GameBase.game.maxclients + 1;
 
     }
 

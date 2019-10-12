@@ -24,15 +24,28 @@ package jake2.game;
 
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.Defines;
+import jake2.qcommon.GameImports;
 import jake2.qcommon.Globals;
+import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 public class PlayerView {
 
-    public static SubgameEntity current_player;
+    static cvar_t sv_rollspeed = new cvar_t();
+    static cvar_t sv_rollangle = new cvar_t();
+    static cvar_t gun_x = new cvar_t();
+    static cvar_t gun_y = new cvar_t();
+    static cvar_t gun_z = new cvar_t();
+    static cvar_t run_pitch = new cvar_t();
+    static cvar_t run_roll = new cvar_t();
+    static cvar_t bob_up = new cvar_t();
+    static cvar_t bob_pitch = new cvar_t();
+    static cvar_t bob_roll = new cvar_t();
 
-    public static gclient_t current_client;
+    private static SubgameEntity current_player;
+
+    private static gclient_t current_client;
 
     public static float[] forward = { 0, 0, 0 };
 
@@ -40,10 +53,27 @@ public class PlayerView {
 
     public static float[] up = { 0, 0, 0 };
 
+    static void Init(GameImports gameImports) {
+        gun_x = gameImports.cvar("gun_x", "0", 0);
+        gun_y = gameImports.cvar("gun_y", "0", 0);
+        gun_z = gameImports.cvar("gun_z", "0", 0);
+
+        //FIXME: sv_ prefix are wrong names for these variables
+        sv_rollspeed = gameImports.cvar("sv_rollspeed", "200", 0);
+        sv_rollangle = gameImports.cvar("sv_rollangle", "2", 0);
+
+        run_pitch = gameImports.cvar("run_pitch", "0.002", 0);
+        run_roll = gameImports.cvar("run_roll", "0.005", 0);
+        bob_up = gameImports.cvar("bob_up", "0.005", 0);
+        bob_pitch = gameImports.cvar("bob_pitch", "0.002", 0);
+        bob_roll = gameImports.cvar("bob_roll", "0.002", 0);
+
+    }
+
     /**
      * SV_CalcRoll.
      */
-    public static float SV_CalcRoll(float[] angles, float[] velocity) {
+    private static float SV_CalcRoll(float[] angles, float[] velocity) {
         float sign;
         float side;
         float value;
@@ -52,10 +82,10 @@ public class PlayerView {
         sign = side < 0 ? -1 : 1;
         side = Math.abs(side);
 
-        value = GameBase.sv_rollangle.value;
+        value = sv_rollangle.value;
 
-        if (side < GameBase.sv_rollspeed.value)
-            side = side * value / GameBase.sv_rollspeed.value;
+        if (side < sv_rollspeed.value)
+            side = side * value / sv_rollspeed.value;
         else
             side = value;
 
@@ -70,7 +100,7 @@ public class PlayerView {
      * ===============
      */
 
-    public static void P_DamageFeedback(SubgameEntity player) {
+    private static void P_DamageFeedback(SubgameEntity player) {
         gclient_t client;
         float side;
         float realcount, count, kick;
@@ -218,7 +248,7 @@ public class PlayerView {
      * fall from 640: 960 =  
      * damage = deltavelocity*deltavelocity * 0.0001
      */
-    public static void SV_CalcViewOffset(SubgameEntity ent) {
+    private static void SV_CalcViewOffset(SubgameEntity ent) {
         float angles[] = { 0, 0, 0 };
         float bob;
         float ratio;
@@ -261,17 +291,17 @@ public class PlayerView {
 
             // add angles based on velocity
             delta = Math3D.DotProduct(ent.velocity, forward);
-            angles[Defines.PITCH] += delta * GameBase.run_pitch.value;
+            angles[Defines.PITCH] += delta * run_pitch.value;
 
             delta = Math3D.DotProduct(ent.velocity, right);
-            angles[Defines.ROLL] += delta * GameBase.run_roll.value;
+            angles[Defines.ROLL] += delta * run_roll.value;
 
             // add angles based on bob
-            delta = bobfracsin * GameBase.bob_pitch.value * xyspeed;
+            delta = bobfracsin * bob_pitch.value * xyspeed;
             if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             angles[Defines.PITCH] += delta;
-            delta = bobfracsin * GameBase.bob_roll.value * xyspeed;
+            delta = bobfracsin * bob_roll.value * xyspeed;
             if ((client.getPlayerState().pmove.pm_flags & Defines.PMF_DUCKED) != 0)
                 delta *= 6; // crouching
             if ((bobcycle & 1) != 0)
@@ -293,7 +323,7 @@ public class PlayerView {
         v[2] -= ratio * client.fall_value * 0.4;
 
         // add bob height
-        bob = bobfracsin * xyspeed * GameBase.bob_up.value;
+        bob = bobfracsin * xyspeed * bob_up.value;
         if (bob > 6)
             bob = 6;
         
@@ -326,7 +356,7 @@ public class PlayerView {
     /**
      * Calculates where to draw the gun.
      */
-    public static void SV_CalcGunOffset(SubgameEntity ent) {
+    private static void SV_CalcGunOffset(SubgameEntity ent) {
         int i;
         float delta;
 
@@ -363,17 +393,17 @@ public class PlayerView {
 
         // gun_x / gun_y / gun_z are development tools
         for (i = 0; i < 3; i++) {
-            client.getPlayerState().gunoffset[i] += forward[i] * (GameBase.gun_y.value);
-            client.getPlayerState().gunoffset[i] += right[i] * GameBase.gun_x.value;
-            client.getPlayerState().gunoffset[i] += up[i] * (-GameBase.gun_z.value);
+            client.getPlayerState().gunoffset[i] += forward[i] * (gun_y.value);
+            client.getPlayerState().gunoffset[i] += right[i] * gun_x.value;
+            client.getPlayerState().gunoffset[i] += up[i] * (-gun_z.value);
         }
     }
 
     /**
      * Adds a blending effect to the clients view.
      */
-    public static void SV_AddBlend(float r, float g, float b, float a,
-            float v_blend[]) {
+    private static void SV_AddBlend(float r, float g, float b, float a,
+                                    float v_blend[]) {
         float a2, a3;
 
         if (a <= 0)
@@ -390,7 +420,7 @@ public class PlayerView {
     /**
      * Calculates the blending color according to the players environment.
      */
-    public static void SV_CalcBlend(SubgameEntity ent) {
+    private static void SV_CalcBlend(SubgameEntity ent) {
         int contents;
         float[] vieworg = { 0, 0, 0 };
         int remaining;
@@ -471,7 +501,7 @@ public class PlayerView {
     /**
      * Calculates damage and effect when a player falls down.
      */
-    public static void P_FallingDamage(SubgameEntity ent) {
+    private static void P_FallingDamage(SubgameEntity ent) {
         float delta;
         int damage;
         float[] dir = { 0, 0, 0 };
@@ -543,7 +573,7 @@ public class PlayerView {
     /**
      * General effect handling for a player.
      */
-    public static void P_WorldEffects() {
+    private static void P_WorldEffects() {
         boolean breather;
         boolean envirosuit;
         int waterlevel, old_waterlevel;
@@ -738,7 +768,7 @@ public class PlayerView {
      * G_SetClientEffects 
      * ===============
      */
-    public static void G_SetClientEffects(SubgameEntity ent) {
+    private static void G_SetClientEffects(SubgameEntity ent) {
         int pa_type;
         int remaining;
 
@@ -785,7 +815,7 @@ public class PlayerView {
      * G_SetClientEvent 
      * ===============
      */
-    public static void G_SetClientEvent(SubgameEntity ent) {
+    private static void G_SetClientEvent(SubgameEntity ent) {
         if (ent.s.event != 0)
             return;
 
@@ -800,7 +830,7 @@ public class PlayerView {
      * G_SetClientSound 
      * ===============
      */
-    public static void G_SetClientSound(SubgameEntity ent) {
+    private static void G_SetClientSound(SubgameEntity ent) {
         String weap;
 
         gclient_t client = ent.getClient();
@@ -841,7 +871,7 @@ public class PlayerView {
      * G_SetClientFrame 
      * ===============
      */
-    public static void G_SetClientFrame(SubgameEntity ent) {
+    private static void G_SetClientFrame(SubgameEntity ent) {
         boolean duck, run;
 
         if (ent.s.modelindex != 255)
@@ -929,7 +959,7 @@ public class PlayerView {
      * Called for each player at the end of the server frame and right after
      * spawning.
      */
-    public static void ClientEndServerFrame(SubgameEntity ent) {
+    static void ClientEndServerFrame(SubgameEntity ent) {
         float bobtime;
         int i;
 
@@ -1054,13 +1084,13 @@ public class PlayerView {
         }
     }
 
-    public static float xyspeed;
+    private static float xyspeed;
 
-    public static float bobmove;
+    private static float bobmove;
 
-    public static int bobcycle; // odd cycles are right foot going forward
+    private static int bobcycle; // odd cycles are right foot going forward
 
-    public static float bobfracsin; // sin(bobfrac*M_PI)}
+    private static float bobfracsin; // sin(bobfrac*M_PI)}
 
     private static int xxxi = 0;
 }
