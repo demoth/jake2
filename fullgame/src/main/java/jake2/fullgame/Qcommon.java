@@ -79,20 +79,12 @@ public final class Qcommon extends Globals {
 			Cbuf.AddEarlyCommands(args, false);
 			Cbuf.Execute();
 
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.setStatus("initializing filesystem...");
-			
+
 			FS.InitFilesystem();
 
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.setStatus("loading config...");
-			
 			Cbuf.reconfigure(args, false);
 
 			FS.setCDDir(); // use cddir from config.cfg
-
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.testQ2Data(); // test for valid baseq2
 
 			Cbuf.reconfigure(args, true); // reload default.cfg and config.cfg
 			
@@ -117,18 +109,12 @@ public final class Qcommon extends Globals {
 			String version = VERSION + " " + CPUSTRING + " " + BUILDSTRING;
 			Cvar.Get("version", version, CVAR_SERVERINFO | CVAR_NOSET);
 
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.setStatus("initializing network subsystem...");
-			
+
 			NET.Init();	//ok
 			Netchan.Netchan_Init();	//ok
 
-			if (Globals.dedicated.value != 1.0f)			
-				Jake2.Q2Dialog.setStatus("initializing server subsystem...");
 			SV_MAIN.SV_Init();	//ok
 			
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.setStatus("initializing client subsystem...");
 
 			CL.Init();
 
@@ -152,9 +138,6 @@ public final class Qcommon extends Globals {
 			// save config when configuration is completed
 			CL.WriteConfiguration();
 			
-			if (Globals.dedicated.value != 1.0f)
-				Jake2.Q2Dialog.dispose();
-
 		} catch (longjmpException e) {
 			Sys.Error("Error during initialization");
 		}

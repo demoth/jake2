@@ -747,7 +747,7 @@ public class PlayerWeapon {
                     && 0 == (item.flags & GameDefines.IT_AMMO)) {
                 
                 ammo_item = GameItems.FindItem(item.ammo);
-                ammo_index = GameItems.ITEM_INDEX(ammo_item);
+                ammo_index = ammo_item.index;
 
                 if (0 == client.pers.inventory[ammo_index]) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No "
@@ -783,7 +783,7 @@ public class PlayerWeapon {
             if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY))
                 return;
 
-            index = GameItems.ITEM_INDEX(item);
+            index = item.index;
             // see if we're already using it
             gclient_t client = ent.getClient();
             if (((item == client.pers.weapon) || (item == client.newweapon))
@@ -1032,8 +1032,8 @@ public class PlayerWeapon {
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
             int index;
             gitem_t ammo;
-    
-            index = GameItems.ITEM_INDEX(ent.item);
+
+            index = ent.item.index;
 
             gclient_t client = other.getClient();
             if ((((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || GameBase.coop.value != 0)
@@ -1120,9 +1120,9 @@ public class PlayerWeapon {
 
         if (client.pers.weapon != null
                 && client.pers.weapon.ammo != null)
-            
-            client.ammo_index = GameItems.ITEM_INDEX(GameItems
-                    .FindItem(client.pers.weapon.ammo));
+
+            client.ammo_index = GameItems
+                    .FindItem(client.pers.weapon.ammo).index;
         else
             client.ammo_index = 0;
 
@@ -1154,45 +1154,45 @@ public class PlayerWeapon {
      */
     public static void NoAmmoWeaponChange(SubgameEntity ent) {
         gclient_t client = ent.getClient();
-        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("slugs"))]
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("railgun"))]) {
+        if (0 != client.pers.inventory[GameItems
+                .FindItem("slugs").index]
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("railgun").index]) {
             client.newweapon = GameItems.FindItem("railgun");
             return;
         }
-        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("cells"))]
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("hyperblaster"))]) {
+        if (0 != client.pers.inventory[GameItems
+                .FindItem("cells").index]
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("hyperblaster").index]) {
             client.newweapon = GameItems.FindItem("hyperblaster");
             return;
         }
-        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("bullets"))]
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("chaingun"))]) {
+        if (0 != client.pers.inventory[GameItems
+                .FindItem("bullets").index]
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("chaingun").index]) {
             client.newweapon = GameItems.FindItem("chaingun");
             return;
         }
-        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("bullets"))]
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("machinegun"))]) {
+        if (0 != client.pers.inventory[GameItems
+                .FindItem("bullets").index]
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("machinegun").index]) {
             client.newweapon = GameItems.FindItem("machinegun");
             return;
         }
-        if (client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("shells"))] > 1
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("super shotgun"))]) {
+        if (client.pers.inventory[GameItems
+                .FindItem("shells").index] > 1
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("super shotgun").index]) {
             client.newweapon = GameItems.FindItem("super shotgun");
             return;
         }
-        if (0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                .FindItem("shells"))]
-                && 0 != client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                        .FindItem("shotgun"))]) {
+        if (0 != client.pers.inventory[GameItems
+                .FindItem("shells").index]
+                && 0 != client.pers.inventory[GameItems
+                .FindItem("shotgun").index]) {
             client.newweapon = GameItems.FindItem("shotgun");
             return;
         }

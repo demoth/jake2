@@ -30,28 +30,36 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-public class PlayerView {
+/**
+ *
+ */
+class PlayerView {
 
-    static cvar_t sv_rollspeed = new cvar_t();
-    static cvar_t sv_rollangle = new cvar_t();
-    static cvar_t gun_x = new cvar_t();
-    static cvar_t gun_y = new cvar_t();
-    static cvar_t gun_z = new cvar_t();
-    static cvar_t run_pitch = new cvar_t();
-    static cvar_t run_roll = new cvar_t();
-    static cvar_t bob_up = new cvar_t();
-    static cvar_t bob_pitch = new cvar_t();
-    static cvar_t bob_roll = new cvar_t();
+    private static cvar_t sv_rollspeed = new cvar_t();
+    private static cvar_t sv_rollangle = new cvar_t();
+    private static cvar_t gun_x = new cvar_t();
+    private static cvar_t gun_y = new cvar_t();
+    private static cvar_t gun_z = new cvar_t();
+    private static cvar_t run_pitch = new cvar_t();
+    private static cvar_t run_roll = new cvar_t();
+    private static cvar_t bob_up = new cvar_t();
+    private static cvar_t bob_pitch = new cvar_t();
+    private static cvar_t bob_roll = new cvar_t();
+
+
+    private static float xyspeed;
+    private static float bobmove;
+    private static int bobcycle; // odd cycles are right foot going forward
+    private static float bobfracsin; // sin(bobfrac*M_PI)}
+    private static int xxxi = 0;
 
     private static SubgameEntity current_player;
 
     private static gclient_t current_client;
 
-    public static float[] forward = { 0, 0, 0 };
-
-    public static float[] right = { 0, 0, 0 };
-
-    public static float[] up = { 0, 0, 0 };
+    private static float[] forward = { 0, 0, 0 };
+    private static float[] right = { 0, 0, 0 };
+    private static float[] up = { 0, 0, 0 };
 
     static void Init(GameImports gameImports) {
         gun_x = gameImports.cvar("gun_x", "0", 0);
@@ -92,14 +100,9 @@ public class PlayerView {
         return side * sign;
     }
 
-    /*
-     * =============== 
-     * P_DamageFeedback
-     * 
-     * Handles color blends and view kicks 
-     * ===============
+    /**
+     * Handles color blends and view kicks
      */
-
     private static void P_DamageFeedback(SubgameEntity player) {
         gclient_t client;
         float side;
@@ -1084,13 +1087,4 @@ public class PlayerView {
         }
     }
 
-    private static float xyspeed;
-
-    private static float bobmove;
-
-    private static int bobcycle; // odd cycles are right foot going forward
-
-    private static float bobfracsin; // sin(bobfrac*M_PI)}
-
-    private static int xxxi = 0;
 }

@@ -240,7 +240,7 @@ class SV_WORLD {
             area = CM.CM_LeafArea(SV_WORLD.leafs[i]);
             if (area != 0) {
                 // doors may legally straggle two areas,
-                // but nothing should evern need more than that
+                // but nothing should ever need more than that
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
                             && SV_INIT.sv.state == ServerStates.SS_LOADING)

@@ -144,9 +144,9 @@ public class SV_GAME {
     }
 
     /**
-     *  PF_Configstring
+     *  Change i-th configstring to 'val' and multicast it to everyone reliably
      */
-    public static void PF_Configstring(int index, String val) {
+    static void PF_Configstring(int index, String val) {
         if (index < 0 || index >= Defines.MAX_CONFIGSTRINGS)
             Com.Error(Defines.ERR_DROP, "configstring: bad index " + index
                     + "\n");

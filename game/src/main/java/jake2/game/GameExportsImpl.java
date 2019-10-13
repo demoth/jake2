@@ -276,14 +276,14 @@ public class GameExportsImpl implements GameExports {
             gitem_armor_t info;
 
             it = GameItems.FindItem("Jacket Armor");
-            client.pers.inventory[GameItems.ITEM_INDEX(it)] = 0;
+            client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Combat Armor");
-            client.pers.inventory[GameItems.ITEM_INDEX(it)] = 0;
+            client.pers.inventory[it.index] = 0;
 
             it = GameItems.FindItem("Body Armor");
             info = (gitem_armor_t) it.info;
-            client.pers.inventory[GameItems.ITEM_INDEX(it)] = info.max_count;
+            client.pers.inventory[it.index] = info.max_count;
 
             if (!give_all)
                 return;
@@ -330,7 +330,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        int index = GameItems.ITEM_INDEX(it);
+        int index = it.index;
 
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
@@ -441,7 +441,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
         }
-        int index = GameItems.ITEM_INDEX(it);
+        int index = it.index;
         gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
@@ -469,7 +469,7 @@ public class GameExportsImpl implements GameExports {
                     "Item is not dropable.\n");
             return;
         }
-        int index = GameItems.ITEM_INDEX(it);
+        int index = it.index;
         gclient_t client = ent.getClient();
         if (0 == client.pers.inventory[index]) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Out of item: " + itemName + "\n");
@@ -535,7 +535,7 @@ public class GameExportsImpl implements GameExports {
         if (cl.pers.weapon == null)
             return;
 
-        int selected_weapon = GameItems.ITEM_INDEX(cl.pers.weapon);
+        int selected_weapon = cl.pers.weapon.index;
 
         // scan for the next valid one
         for (int i = 1; i <= Defines.MAX_ITEMS; i++) {
@@ -569,7 +569,7 @@ public class GameExportsImpl implements GameExports {
         if (null == cl.pers.weapon)
             return;
 
-        selected_weapon = GameItems.ITEM_INDEX(cl.pers.weapon);
+        selected_weapon = cl.pers.weapon.index;
 
         // scan for the next valid one
         for (i = 1; i <= Defines.MAX_ITEMS; i++) {
@@ -602,7 +602,7 @@ public class GameExportsImpl implements GameExports {
         if (null == cl.pers.weapon || null == cl.pers.lastweapon)
             return;
 
-        index = GameItems.ITEM_INDEX(cl.pers.lastweapon);
+        index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
         gitem_t it = GameItemList.itemlist[index];

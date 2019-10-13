@@ -173,7 +173,7 @@ public class GameCombat {
         if (client != null) {
             power_armor_type = GameItems.PowerArmorType(ent);
             if (power_armor_type != GameDefines.POWER_ARMOR_NONE) {
-                index = GameItems.ITEM_INDEX(GameItems.FindItem("Cells"));
+                index = GameItems.FindItem("Cells").index;
                 power = client.pers.inventory[index];
             }
         } else if ((ent.svflags & Defines.SVF_MONSTER) != 0) {

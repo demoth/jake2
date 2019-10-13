@@ -516,7 +516,7 @@ public class PlayerClient {
         client.pers = new client_persistant_t();
 
         item = GameItems.FindItem("Blaster");
-        client.pers.selected_item = GameItems.ITEM_INDEX(item);
+        client.pers.selected_item = item.index;
         client.pers.inventory[client.pers.selected_item] = 1;
 
         /*

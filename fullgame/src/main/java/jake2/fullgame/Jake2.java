@@ -36,8 +36,6 @@ import java.util.Locale;
  */
 public final class Jake2 {
 
-    public static Q2DataDialog Q2Dialog;
-
     /**
      * main is used to start the game. Quake2 for Java supports the following
      * command line arguments:
@@ -78,14 +76,6 @@ public final class Jake2 {
     		Globals.dedicated.value = 1.0f;
     	    	
     	
-    	// open the q2dialog, if we are not in dedicated mode.
-    	if (Globals.dedicated.value != 1.0f)
-    	{
-    		Q2Dialog = new Q2DataDialog();
-    		Locale.setDefault(Locale.US);
-    		Q2Dialog.setVisible(true);
-    	}
-
         // in C the first arg is the filename
         int argc = args.length + 1;
         String[] c_args = new String[argc];

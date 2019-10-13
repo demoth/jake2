@@ -101,7 +101,7 @@ public class GameItems {
     
             item = FindItem("Bullets");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_bullets)
                     clPers.inventory[index] = clPers.max_bullets;
@@ -109,7 +109,7 @@ public class GameItems {
     
             item = FindItem("Shells");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_shells)
                     clPers.inventory[index] = clPers.max_shells;
@@ -117,7 +117,7 @@ public class GameItems {
     
             item = FindItem("Cells");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_cells)
                     clPers.inventory[index] = clPers.max_cells;
@@ -125,7 +125,7 @@ public class GameItems {
     
             item = FindItem("Grenades");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_grenades)
                     clPers.inventory[index] = clPers.max_grenades;
@@ -133,7 +133,7 @@ public class GameItems {
     
             item = FindItem("Rockets");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_rockets)
                     clPers.inventory[index] = clPers.max_rockets;
@@ -141,7 +141,7 @@ public class GameItems {
     
             item = FindItem("Slugs");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 clPers.inventory[index] += item.quantity;
                 if (clPers.inventory[index] > clPers.max_slugs)
                     clPers.inventory[index] = clPers.max_slugs;
@@ -212,12 +212,12 @@ public class GameItems {
                 // show icon and name on status bar
                 client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
                         .imageindex(ent.item.icon);
-                client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
+                client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
                 client.pickup_msg_time = GameBase.level.time + 3.0f;
     
                 // change selected item
                 if (ent.item.use != null)
-                    client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
+                    client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ent.item.index;
     
                 if (ent.item.pickup == Pickup_Health) {
                     if (ent.count == 2)
@@ -290,7 +290,7 @@ public class GameItems {
             int timeout;
 
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
     
             if (quad_drop_timeout_hack != 0) {
@@ -314,7 +314,7 @@ public class GameItems {
         public String getID() { return "use_invulnerability";}
         public void use(SubgameEntity ent, gitem_t item) {
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
     
             if (client.invincible_framenum > GameBase.level.framenum)
@@ -330,7 +330,7 @@ public class GameItems {
         public String getID() { return "use_breather";}
         public void use(SubgameEntity ent, gitem_t item) {
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
     
             GameUtil.ValidateSelectedItem(ent);
     
@@ -347,7 +347,7 @@ public class GameItems {
         public String getID() { return "use_envirosuit";}
         public void use(SubgameEntity ent, gitem_t item) {
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
     
             if (client.enviro_framenum > GameBase.level.framenum)
@@ -364,7 +364,7 @@ public class GameItems {
         public void use(SubgameEntity ent, gitem_t item) {
 
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
             client.silencer_shots += 30;
     
@@ -380,16 +380,16 @@ public class GameItems {
                 if ("key_power_cube".equals(ent.classname)) {
                     if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
                         return false;
-                    client.pers.inventory[ITEM_INDEX(ent.item)]++;
+                    client.pers.inventory[ent.item.index]++;
                     client.pers.power_cubes |= ((ent.spawnflags & 0x0000ff00) >> 8);
                 } else {
-                    if (client.pers.inventory[ITEM_INDEX(ent.item)] != 0)
+                    if (client.pers.inventory[ent.item.index] != 0)
                         return false;
-                    client.pers.inventory[ITEM_INDEX(ent.item)] = 1;
+                    client.pers.inventory[ent.item.index] = 1;
                 }
                 return true;
             }
-            client.pers.inventory[ITEM_INDEX(ent.item)]++;
+            client.pers.inventory[ent.item.index]++;
             return true;
         }
     };
@@ -410,7 +410,7 @@ public class GameItems {
                 count = ent.item.quantity;
 
             gclient_t client = other.getClient();
-            oldcount = client.pers.inventory[ITEM_INDEX(ent.item)];
+            oldcount = client.pers.inventory[ent.item.index];
     
             if (!Add_Ammo(other, ent.item, count))
                 return false;
@@ -453,7 +453,7 @@ public class GameItems {
     
             // if player has no armor, just use it
             else if (0 == old_armor_index) {
-                client.pers.inventory[ITEM_INDEX(ent.item)] = newinfo.base_count;
+                client.pers.inventory[ent.item.index] = newinfo.base_count;
             }
     
             // use the better armor
@@ -482,7 +482,7 @@ public class GameItems {
                     client.pers.inventory[old_armor_index] = 0;
     
                     // change armor to new item with computed value
-                    client.pers.inventory[ITEM_INDEX(ent.item)] = newcount;
+                    client.pers.inventory[ent.item.index] = newcount;
                 } else {
                     // calc new armor values
                     salvage = newinfo.normal_protection
@@ -516,9 +516,9 @@ public class GameItems {
             int quantity;
 
             gclient_t client = other.getClient();
-            quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
-    
-            client.pers.inventory[ITEM_INDEX(ent.item)]++;
+            quantity = client.pers.inventory[ent.item.index];
+
+            client.pers.inventory[ent.item.index]++;
     
             if (GameBase.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
@@ -536,7 +536,7 @@ public class GameItems {
             int quantity;
 
             gclient_t client = other.getClient();
-            quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
+            quantity = client.pers.inventory[ent.item.index];
             if ((GameBase.skill.value == 1 && quantity >= 2)
                     || (GameBase.skill.value >= 2 && quantity >= 1))
                 return false;
@@ -545,8 +545,8 @@ public class GameItems {
                     && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0
                     && (quantity > 0))
                 return false;
-    
-            client.pers.inventory[ITEM_INDEX(ent.item)]++;
+
+            client.pers.inventory[ent.item.index]++;
     
             if (GameBase.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
@@ -611,7 +611,7 @@ public class GameItems {
     
             item = FindItem("Bullets");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 client.pers.inventory[index] += item.quantity;
                 if (client.pers.inventory[index] > client.pers.max_bullets)
                     client.pers.inventory[index] = client.pers.max_bullets;
@@ -619,7 +619,7 @@ public class GameItems {
     
             item = FindItem("Shells");
             if (item != null) {
-                index = ITEM_INDEX(item);
+                index = item.index;
                 client.pers.inventory[index] += item.quantity;
                 if (client.pers.inventory[index] > client.pers.max_shells)
                     client.pers.inventory[index] = client.pers.max_shells;
@@ -637,8 +637,8 @@ public class GameItems {
         public String getID() { return "drop_ammo";}
         public void drop(SubgameEntity ent, gitem_t item) {
             int index;
-    
-            index = ITEM_INDEX(item);
+
+            index = item.index;
             SubgameEntity dropped = Drop_Item(ent, item);
             gclient_t client = ent.getClient();
             if (client.pers.inventory[index] >= item.quantity)
@@ -665,7 +665,7 @@ public class GameItems {
         public void drop(SubgameEntity ent, gitem_t item) {
             Drop_Item(ent, item);
             gclient_t client = ent.getClient();
-            client.pers.inventory[ITEM_INDEX(item)]--;
+            client.pers.inventory[item.index]--;
             ValidateSelectedItem(ent);
         }
     };
@@ -675,7 +675,7 @@ public class GameItems {
         public void drop(SubgameEntity ent, gitem_t item) {
             gclient_t client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
-                    && (client.pers.inventory[ITEM_INDEX(item)] == 1))
+                    && (client.pers.inventory[item.index] == 1))
                 Use_PowerArmor.use(ent, item);
             Drop_General.drop(ent, item);
         }
@@ -760,7 +760,7 @@ public class GameItems {
                                 .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             } else {
-                index = ITEM_INDEX(FindItem("cells"));
+                index = FindItem("cells").index;
                 gclient_t client = ent.getClient();
                 if (0 == client.pers.inventory[index]) {
                     GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
@@ -846,10 +846,6 @@ public class GameItems {
         ent.nextthink = GameBase.level.time + delay;
         ent.think = DoRespawn;
         GameBase.gi.linkentity(ent);
-    }
-
-    static int ITEM_INDEX(gitem_t item) {
-        return item.index;
     }
 
     static SubgameEntity Drop_Item(SubgameEntity ent, gitem_t item) {
@@ -954,9 +950,9 @@ public class GameItems {
         int quantity;
 
         gclient_t client = other.getClient();
-        quantity = client.pers.inventory[ITEM_INDEX(ent.item)];
-    
-        client.pers.inventory[ITEM_INDEX(ent.item)]++;
+        quantity = client.pers.inventory[ent.item.index];
+
+        client.pers.inventory[ent.item.index]++;
     
         if (GameBase.deathmatch.value != 0) {
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
@@ -991,8 +987,8 @@ public class GameItems {
             max = client.pers.max_slugs;
         else
             return false;
-    
-        index = ITEM_INDEX(item);
+
+        index = item.index;
     
         if (client.pers.inventory[index] == max)
             return false;
@@ -1022,12 +1018,12 @@ public class GameItems {
             it = GameItemList.itemlist[i];
             GameBase.gi.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
-    
-        jacket_armor_index = ITEM_INDEX(FindItem("Jacket Armor"));
-        combat_armor_index = ITEM_INDEX(FindItem("Combat Armor"));
-        body_armor_index = ITEM_INDEX(FindItem("Body Armor"));
-        power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
-        power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
+
+        jacket_armor_index = FindItem("Jacket Armor").index;
+        combat_armor_index = FindItem("Combat Armor").index;
+        body_armor_index = FindItem("Body Armor").index;
+        power_screen_index = FindItem("Power Screen").index;
+        power_shield_index = FindItem("Power Shield").index;
     }
 
     static void SelectNextItem(SubgameEntity ent, int itflags) {
@@ -1089,19 +1085,19 @@ public class GameItems {
         cl.pers.selected_item = -1;
     }
 
-    /*
-     * =============== PrecacheItem
-     * 
-     * Precaches all data needed for a given item. This will be called for each
-     * item spawned in a level, and for each item in each client's inventory.
-     * ===============
+    /**
+     * Precaches all data needed for a given item:
+     *  - pickup_sound,
+     *  - world_model,
+     *  - view_model,
+     *  - icon,
+     *  - ammo related resources
+     *  - other resources, specified by item.precaches
+     *
+     * This will be called for each item spawned in a level, and for each item in each client's inventory.
      */
     static void PrecacheItem(gitem_t it) {
-        String s;
-        String data;
-        int len;
-        gitem_t ammo;
-    
+
         if (it == null)
             return;
     
@@ -1119,49 +1115,45 @@ public class GameItems {
     
         // parse everything for its ammo
         if (it.ammo != null && it.ammo.length() != 0) {
-            ammo = FindItem(it.ammo);
+            gitem_t ammo = FindItem(it.ammo);
             if (ammo != it)
                 PrecacheItem(ammo);
         }
     
-        // parse the space seperated precache string for other items
-        s = it.precaches;
-        if (s == null || s.length() != 0)
+        // parse the space separated precache string for other items
+        String precacheString = it.precaches;
+        if (precacheString == null || precacheString.length() != 0)
             return;
     
-        StringTokenizer tk = new StringTokenizer(s);
+        StringTokenizer tk = new StringTokenizer(precacheString);
     
         while (tk.hasMoreTokens()) {
-            data = tk.nextToken();
-    
-            len = data.length();
-    
+            String file = tk.nextToken();
+
+            int len = file.length();
+
             if (len >= Defines.MAX_QPATH || len < 5)
-                GameBase.gi
-                        .error("PrecacheItem: it.classname has bad precache string: "
-                                + s);
+                GameBase.gi.error("PrecacheItem: it.classname has bad precache string: " + precacheString);
     
             // determine type based on extension
-            if (data.endsWith("md2"))
-                GameBase.gi.modelindex(data);
-            else if (data.endsWith("sp2"))
-                GameBase.gi.modelindex(data);
-            else if (data.endsWith("wav"))
-                GameBase.gi.soundindex(data);
-            else if (data.endsWith("pcx"))
-                GameBase.gi.imageindex(data);
+            if (file.endsWith("md2"))
+                GameBase.gi.modelindex(file);
+            else if (file.endsWith("sp2"))
+                GameBase.gi.modelindex(file);
+            else if (file.endsWith("wav"))
+                GameBase.gi.soundindex(file);
+            else if (file.endsWith("pcx"))
+                GameBase.gi.imageindex(file);
             else
-                GameBase.gi.error("PrecacheItem: bad precache string: " + data);
+                GameBase.gi.error("PrecacheItem: bad precache string: " + file);
         }
     }
 
-    /*
-     * ============ SpawnItem
-     * 
+    /**
      * Sets the clipping size and plants the object on the floor.
      * 
      * Items can't be immediately dropped to floor, because they might be on an
-     * entity that hasn't spawned yet. ============
+     * entity that hasn't spawned yet.
      */
     static void SpawnItem(SubgameEntity ent, gitem_t item) {
         PrecacheItem(item);
@@ -1322,12 +1314,12 @@ public class GameItems {
             // show icon and name on status bar
             client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
                     .imageindex(ent.item.icon);
-            client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ITEM_INDEX(ent.item));
+            client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
             client.pickup_msg_time = GameBase.level.time + 3.0f;
     
             // change selected item
             if (ent.item.use != null)
-                client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ITEM_INDEX(ent.item);
+                client.pers.selected_item = client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) ent.item.index;
     
             if (ent.item.pickup == Pickup_Health) {
                 if (ent.count == 2)

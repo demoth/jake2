@@ -27,9 +27,12 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class GameSpawn {
 
-    static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
         public String getID(){ return "SP_item_health"; }
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health(ent);
@@ -37,7 +40,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {
         public String getID(){ return "SP_item_health_small"; }
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_small(ent);
@@ -45,7 +48,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {
         public String getID(){ return "SP_item_health_large"; }
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_large(ent);
@@ -53,7 +56,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {
         public String getID(){ return "SP_item_health_mega"; }
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_mega(ent);
@@ -61,7 +64,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_info_player_start = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_info_player_start = new EntThinkAdapter() {
         public String getID(){ return "SP_info_player_start"; }
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_start(ent);
@@ -69,7 +72,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_info_player_deathmatch = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_info_player_deathmatch = new EntThinkAdapter() {
         public String getID(){ return "SP_info_player_deathmatch"; }
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_deathmatch(ent);
@@ -77,7 +80,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_info_player_coop = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_info_player_coop = new EntThinkAdapter() {
         public String getID(){ return "SP_info_player_coop"; }
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_coop(ent);
@@ -85,7 +88,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {
         public String getID(){ return "SP_info_player_intermission"; }
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_intermission();
@@ -93,7 +96,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_func_plat = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_func_plat = new EntThinkAdapter() {
         public String getID(){ return "SP_func_plat"; }
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_plat(ent);
@@ -102,7 +105,7 @@ public class GameSpawn {
     };
 
 
-    static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
         public String getID(){ return "SP_func_water"; }
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_water(ent);
@@ -110,7 +113,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_func_train = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_func_train = new EntThinkAdapter() {
         public String getID(){ return "SP_func_train"; }
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_train(ent);
@@ -118,7 +121,7 @@ public class GameSpawn {
         }
     };
 
-    static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
         public String getID(){ return "SP_func_clock"; }
         public boolean think(SubgameEntity ent) {
             GameMisc.SP_func_clock(ent);
@@ -135,7 +138,7 @@ public class GameSpawn {
      * print at user logon
      */
 
-    static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
+    private static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
         public String getID(){ return "SP_worldspawn"; }
 
         public boolean think(SubgameEntity ent) {
@@ -310,7 +313,7 @@ public class GameSpawn {
      * 
      * Takes a key/value pair and sets the binary values in an edict.
      */
-    static void ED_ParseField(String key, String value, SubgameEntity ent) {
+    private static void ED_ParseField(String key, String value, SubgameEntity ent) {
 
         if (key.equals("nextmap"))
             Com.Println("nextmap: " + value);
@@ -328,7 +331,7 @@ public class GameSpawn {
      * should be a properly initialized empty edict.
      */
 
-    static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent) {
+    private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent) {
 
         boolean init;
         String keyname;
@@ -518,7 +521,7 @@ public class GameSpawn {
         PlayerTrail.Init();
     }
 
-    static String single_statusbar = "yb	-24 " //	   health
+    private static String single_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
             + "endif " //	   armor
@@ -535,7 +538,7 @@ public class GameSpawn {
             //		help / weapon icon
             + "if 11 " + "	xv	148 " + "	pic	11 " + "endif ";
 
-    static String dm_statusbar = "yb	-24 " //	   health
+    private static String dm_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
             + "endif " //	   armor
@@ -557,586 +560,827 @@ public class GameSpawn {
             + "if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 "
             + "stat_string 16 " + "endif ";
 
-    static spawn_t spawns[] = {
-            new spawn_t("item_health", SP_item_health),
-            new spawn_t("item_health_small", SP_item_health_small),
-            new spawn_t("item_health_large", SP_item_health_large),
-            new spawn_t("item_health_mega", SP_item_health_mega),
-            new spawn_t("info_player_start", SP_info_player_start),
-            new spawn_t("info_player_deathmatch", SP_info_player_deathmatch),
-            new spawn_t("info_player_coop", SP_info_player_coop),
-            new spawn_t("info_player_intermission", SP_info_player_intermission),
-            new spawn_t("func_plat", SP_func_plat),
-            new spawn_t("func_button", GameFunc.SP_func_button),
-            new spawn_t("func_door", GameFunc.SP_func_door),
-            new spawn_t("func_door_secret", GameFunc.SP_func_door_secret),
-            new spawn_t("func_door_rotating", GameFunc.SP_func_door_rotating),
-            new spawn_t("func_rotating", GameFunc.SP_func_rotating),
-            new spawn_t("func_train", SP_func_train),
-            new spawn_t("func_water", SP_func_water),
-            new spawn_t("func_conveyor", GameFunc.SP_func_conveyor),
-            new spawn_t("func_areaportal", GameMisc.SP_func_areaportal),
-            new spawn_t("func_clock", SP_func_clock),
-            new spawn_t("func_wall", new EntThinkAdapter() {
-        public String getID(){ return "func_wall"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_func_wall(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("func_object", new EntThinkAdapter() {
-        public String getID(){ return "SP_func_object"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_func_object(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("func_timer", new EntThinkAdapter() {
-        public String getID(){ return "SP_func_timer"; }
-                public boolean think(SubgameEntity ent) {
-                    GameFunc.SP_func_timer(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("func_explosive", new EntThinkAdapter() {
-        public String getID(){ return "SP_func_explosive"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_func_explosive(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("func_killbox", GameFunc.SP_func_killbox),
-            new spawn_t("trigger_always", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_always"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_always(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_once", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_once"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_once(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_multiple", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_multiple"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_multiple(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_relay", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_relay"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_relay(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_push", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_push"; }
-                
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_push(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_hurt", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_hurt"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_hurt(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_key", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_key"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_key(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_counter", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_counter"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_counter(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_elevator", GameFunc.SP_trigger_elevator),
-            new spawn_t("trigger_gravity", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_gravity"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_gravity(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("trigger_monsterjump", new EntThinkAdapter() {
-        public String getID(){ return "SP_trigger_monsterjump"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTrigger.SP_trigger_monsterjump(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_temp_entity", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_temp_entity"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_temp_entity(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_speaker", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_speaker"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_speaker(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_explosion", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_explosion"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_explosion(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_changelevel", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_changelevel"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_changelevel(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_secret", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_secret"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_secret(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_goal", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_goal"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_goal(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_splash", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_splash"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_splash(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_spawner", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_spawner"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_spawner(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_blaster", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_blaster"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_blaster(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_crosslevel_trigger", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_crosslevel_trigger"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_crosslevel_trigger(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_crosslevel_target", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_crosslevel_target"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_crosslevel_target(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_laser", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_laser"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_laser(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_help", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_help"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_help(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_actor", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_actor"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Actor.SP_target_actor(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_lightramp", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_lightramp"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_lightramp(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_earthquake", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_earthquake"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTarget.SP_target_earthquake(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_character", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_character"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_target_character(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("target_string", new EntThinkAdapter() {
-        public String getID(){ return "SP_target_string"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_target_string(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("worldspawn", SP_worldspawn),
-            new spawn_t("viewthing", new EntThinkAdapter() {
-        public String getID(){ return "SP_viewthing"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_viewthing(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("light", new EntThinkAdapter() {
-        public String getID(){ return "SP_light"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_light(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("light_mine1", new EntThinkAdapter() {
-        public String getID(){ return "SP_light_mine1"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_light_mine1(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("light_mine2", new EntThinkAdapter() {
-        public String getID(){ return "SP_light_mine2"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_light_mine2(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("info_null", new EntThinkAdapter() {
-        public String getID(){ return "SP_info_null"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_info_null(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("func_group", new EntThinkAdapter() {
-        public String getID(){ return "SP_info_null"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_info_null(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("info_notnull", new EntThinkAdapter() {
-        public String getID(){ return "info_notnull"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_info_notnull(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("path_corner", new EntThinkAdapter() {
-        public String getID(){ return "SP_path_corner"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_path_corner(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("point_combat", new EntThinkAdapter() {
-        public String getID(){ return "SP_point_combat"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_point_combat(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_explobox", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_explobox"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_explobox(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_banner", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_banner"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_banner(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_satellite_dish", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_satellite_dish"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_satellite_dish(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_actor", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_actor"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Actor.SP_misc_actor(ent);
-                    return false;
-                }
-            }),
-            new spawn_t("misc_gib_arm", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_gib_arm"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_gib_arm(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_gib_leg", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_gib_leg"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_gib_leg(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_gib_head", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_gib_head"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_gib_head(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_insane", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_insane"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Insane.SP_misc_insane(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_deadsoldier", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_deadsoldier"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_deadsoldier(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_viper", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_viper"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_viper(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_viper_bomb", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_viper_bomb"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_viper_bomb(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_bigviper", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_bigviper"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_bigviper(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_strogg_ship", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_strogg_ship"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_strogg_ship(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_teleporter", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_teleporter"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_teleporter(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_teleporter_dest",
-                    GameMisc.SP_misc_teleporter_dest),
-            new spawn_t("misc_blackhole", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_blackhole"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_blackhole(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_eastertank", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_eastertank"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_eastertank(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_easterchick", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_easterchick"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_easterchick(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("misc_easterchick2", new EntThinkAdapter() {
-        public String getID(){ return "SP_misc_easterchick2"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_misc_easterchick2(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_berserk", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_berserk"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Berserk.SP_monster_berserk(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_gladiator", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_gladiator"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Gladiator.SP_monster_gladiator(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_gunner", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_gunner"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Gunner.SP_monster_gunner(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_infantry", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_infantry"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Infantry.SP_monster_infantry(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_soldier_light",
-                    M_Soldier.SP_monster_soldier_light),
-            new spawn_t("monster_soldier", M_Soldier.SP_monster_soldier),
-            new spawn_t("monster_soldier_ss", M_Soldier.SP_monster_soldier_ss),
-            new spawn_t("monster_tank", M_Tank.SP_monster_tank),
-            new spawn_t("monster_tank_commander", M_Tank.SP_monster_tank),
-            new spawn_t("monster_medic", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_medic"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Medic.SP_monster_medic(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_flipper", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_flipper"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Flipper.SP_monster_flipper(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_chick", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_chick"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Chick.SP_monster_chick(ent);
-                    return true;
-                }
-            }),
-            new spawn_t("monster_parasite", M_Parasite.SP_monster_parasite),
-            new spawn_t("monster_flyer", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_flyer"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Flyer.SP_monster_flyer(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_brain", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_brain"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Brain.SP_monster_brain(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_floater", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_floater"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Float.SP_monster_floater(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_hover", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_hover"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Hover.SP_monster_hover(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_mutant", M_Mutant.SP_monster_mutant),
-            new spawn_t("monster_supertank", M_Supertank.SP_monster_supertank),
-            new spawn_t("monster_boss2", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_boss2"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Boss2.SP_monster_boss2(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_boss3_stand", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_boss3_stand"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Boss3.SP_monster_boss3_stand(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_jorg", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_jorg"; }
-                public boolean think(SubgameEntity ent) {
-                    M_Boss31.SP_monster_jorg(ent);
-                    return true;
-                }
-            }), new spawn_t("monster_commander_body", new EntThinkAdapter() {
-        public String getID(){ return "SP_monster_commander_body"; }
-                public boolean think(SubgameEntity ent) {
-                    GameMisc.SP_monster_commander_body(ent);
-                    return true;
-                }
-            }), new spawn_t("turret_breach", new EntThinkAdapter() {
-        public String getID(){ return "SP_turret_breach"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTurret.SP_turret_breach(ent);
-                    return true;
-                }
-            }), new spawn_t("turret_base", new EntThinkAdapter() {
-        public String getID(){ return "SP_turret_base"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTurret.SP_turret_base(ent);
-                    return true;
-                }
-            }), new spawn_t("turret_driver", new EntThinkAdapter() {
-        public String getID(){ return "SP_turret_driver"; }
-                public boolean think(SubgameEntity ent) {
-                    GameTurret.SP_turret_driver(ent);
-                    return true;
-                }
-            }), new spawn_t(null, null) };
+    private static Map<String, EntThinkAdapter> spawns;
+
+    static {
+        spawns = new HashMap<>();
+
+        spawns.put("item_health", SP_item_health);
+        spawns.put("item_health_small", SP_item_health_small);
+        spawns.put("item_health_large", SP_item_health_large);
+        spawns.put("item_health_mega", SP_item_health_mega);
+        spawns.put("info_player_start", SP_info_player_start);
+        spawns.put("info_player_deathmatch", SP_info_player_deathmatch);
+        spawns.put("info_player_coop", SP_info_player_coop);
+        spawns.put("info_player_intermission", SP_info_player_intermission);
+        spawns.put("func_plat", SP_func_plat);
+        spawns.put("func_button", GameFunc.SP_func_button);
+        spawns.put("func_door", GameFunc.SP_func_door);
+        spawns.put("func_door_secret", GameFunc.SP_func_door_secret);
+        spawns.put("func_door_rotating", GameFunc.SP_func_door_rotating);
+        spawns.put("func_rotating", GameFunc.SP_func_rotating);
+        spawns.put("func_train", SP_func_train);
+        spawns.put("func_water", SP_func_water);
+        spawns.put("func_conveyor", GameFunc.SP_func_conveyor);
+        spawns.put("func_areaportal", GameMisc.SP_func_areaportal);
+        spawns.put("func_clock", SP_func_clock);
+        spawns.put("func_wall", new EntThinkAdapter() {
+            public String getID() {
+                return "func_wall";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_func_wall(ent);
+                return true;
+            }
+        });
+        spawns.put("func_object", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_func_object";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_func_object(ent);
+                return true;
+            }
+        });
+        spawns.put("func_timer", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_func_timer";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameFunc.SP_func_timer(ent);
+                return true;
+            }
+        });
+        spawns.put("func_explosive", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_func_explosive";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_func_explosive(ent);
+                return true;
+            }
+        });
+        spawns.put("func_killbox", GameFunc.SP_func_killbox);
+        spawns.put("trigger_always", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_always";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_always(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_once", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_once";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_once(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_multiple", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_multiple";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_multiple(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_relay", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_relay";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_relay(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_push", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_push";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_push(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_hurt", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_hurt";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_hurt(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_key", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_key";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_key(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_counter", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_counter";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_counter(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_elevator", GameFunc.SP_trigger_elevator);
+        spawns.put("trigger_gravity", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_gravity";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_gravity(ent);
+                return true;
+            }
+        });
+        spawns.put("trigger_monsterjump", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_trigger_monsterjump";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTrigger.SP_trigger_monsterjump(ent);
+                return true;
+            }
+        });
+        spawns.put("target_temp_entity", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_temp_entity";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_temp_entity(ent);
+                return true;
+            }
+        });
+        spawns.put("target_speaker", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_speaker";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_speaker(ent);
+                return true;
+            }
+        });
+        spawns.put("target_explosion", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_explosion";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_explosion(ent);
+                return true;
+            }
+        });
+        spawns.put("target_changelevel", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_changelevel";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_changelevel(ent);
+                return true;
+            }
+        });
+        spawns.put("target_secret", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_secret";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_secret(ent);
+                return true;
+            }
+        });
+        spawns.put("target_goal", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_goal";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_goal(ent);
+                return true;
+            }
+        });
+        spawns.put("target_splash", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_splash";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_splash(ent);
+                return true;
+            }
+        });
+        spawns.put("target_spawner", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_spawner";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_spawner(ent);
+                return true;
+            }
+        });
+        spawns.put("target_blaster", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_blaster";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_blaster(ent);
+                return true;
+            }
+        });
+        spawns.put("target_crosslevel_trigger", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_crosslevel_trigger";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_crosslevel_trigger(ent);
+                return true;
+            }
+        });
+        spawns.put("target_crosslevel_target", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_crosslevel_target";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_crosslevel_target(ent);
+                return true;
+            }
+        });
+        spawns.put("target_laser", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_laser";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_laser(ent);
+                return true;
+            }
+        });
+        spawns.put("target_help", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_help";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_help(ent);
+                return true;
+            }
+        });
+        spawns.put("target_actor", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_actor";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Actor.SP_target_actor(ent);
+                return true;
+            }
+        });
+        spawns.put("target_lightramp", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_lightramp";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_lightramp(ent);
+                return true;
+            }
+        });
+        spawns.put("target_earthquake", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_earthquake";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTarget.SP_target_earthquake(ent);
+                return true;
+            }
+        });
+        spawns.put("target_character", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_character";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_target_character(ent);
+                return true;
+            }
+        });
+        spawns.put("target_string", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_target_string";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_target_string(ent);
+                return true;
+            }
+        });
+        spawns.put("worldspawn", SP_worldspawn);
+        spawns.put("viewthing", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_viewthing";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_viewthing(ent);
+                return true;
+            }
+        });
+        spawns.put("light", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_light";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_light(ent);
+                return true;
+            }
+        });
+        spawns.put("light_mine1", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_light_mine1";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_light_mine1(ent);
+                return true;
+            }
+        });
+        spawns.put("light_mine2", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_light_mine2";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_light_mine2(ent);
+                return true;
+            }
+        });
+        spawns.put("info_null", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_info_null";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_info_null(ent);
+                return true;
+            }
+        });
+        spawns.put("func_group", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_info_null";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_info_null(ent);
+                return true;
+            }
+        });
+        spawns.put("info_notnull", new EntThinkAdapter() {
+            public String getID() {
+                return "info_notnull";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_info_notnull(ent);
+                return true;
+            }
+        });
+        spawns.put("path_corner", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_path_corner";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_path_corner(ent);
+                return true;
+            }
+        });
+        spawns.put("point_combat", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_point_combat";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_point_combat(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_explobox", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_explobox";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_explobox(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_banner", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_banner";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_banner(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_satellite_dish", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_satellite_dish";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_satellite_dish(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_actor", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_actor";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Actor.SP_misc_actor(ent);
+                return false;
+            }
+        });
+        spawns.put("misc_gib_arm", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_gib_arm";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_gib_arm(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_gib_leg", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_gib_leg";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_gib_leg(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_gib_head", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_gib_head";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_gib_head(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_insane", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_insane";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Insane.SP_misc_insane(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_deadsoldier", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_deadsoldier";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_deadsoldier(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_viper", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_viper";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_viper(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_viper_bomb", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_viper_bomb";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_viper_bomb(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_bigviper", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_bigviper";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_bigviper(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_strogg_ship", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_strogg_ship";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_strogg_ship(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_teleporter", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_teleporter";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_teleporter(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_teleporter_dest", GameMisc.SP_misc_teleporter_dest);
+        spawns.put("misc_blackhole", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_blackhole";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_blackhole(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_eastertank", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_eastertank";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_eastertank(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_easterchick", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_easterchick";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_easterchick(ent);
+                return true;
+            }
+        });
+        spawns.put("misc_easterchick2", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_misc_easterchick2";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_misc_easterchick2(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_berserk", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_berserk";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Berserk.SP_monster_berserk(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_gladiator", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_gladiator";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Gladiator.SP_monster_gladiator(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_gunner", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_gunner";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Gunner.SP_monster_gunner(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_infantry", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_infantry";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Infantry.SP_monster_infantry(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_soldier_light", M_Soldier.SP_monster_soldier_light);
+        spawns.put("monster_soldier", M_Soldier.SP_monster_soldier);
+        spawns.put("monster_soldier_ss", M_Soldier.SP_monster_soldier_ss);
+        spawns.put("monster_tank", M_Tank.SP_monster_tank);
+        spawns.put("monster_tank_commander", M_Tank.SP_monster_tank);
+        spawns.put("monster_medic", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_medic";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Medic.SP_monster_medic(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_flipper", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_flipper";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Flipper.SP_monster_flipper(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_chick", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_chick";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Chick.SP_monster_chick(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_parasite", M_Parasite.SP_monster_parasite);
+        spawns.put("monster_flyer", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_flyer";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Flyer.SP_monster_flyer(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_brain", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_brain";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Brain.SP_monster_brain(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_floater", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_floater";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Float.SP_monster_floater(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_hover", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_hover";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Hover.SP_monster_hover(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_mutant", M_Mutant.SP_monster_mutant);
+        spawns.put("monster_supertank", M_Supertank.SP_monster_supertank);
+        spawns.put("monster_boss2", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_boss2";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Boss2.SP_monster_boss2(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_boss3_stand", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_boss3_stand";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Boss3.SP_monster_boss3_stand(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_jorg", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_jorg";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                M_Boss31.SP_monster_jorg(ent);
+                return true;
+            }
+        });
+        spawns.put("monster_commander_body", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_monster_commander_body";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameMisc.SP_monster_commander_body(ent);
+                return true;
+            }
+        });
+        spawns.put("turret_breach", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_turret_breach";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTurret.SP_turret_breach(ent);
+                return true;
+            }
+        });
+        spawns.put("turret_base", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_turret_base";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTurret.SP_turret_base(ent);
+                return true;
+            }
+        });
+        spawns.put("turret_driver", new EntThinkAdapter() {
+            public String getID() {
+                return "SP_turret_driver";
+            }
+
+            public boolean think(SubgameEntity ent) {
+                GameTurret.SP_turret_driver(ent);
+                return true;
+            }
+        });
+    }
+
 
     /**
-     * ED_CallSpawn
-     * 
      * Finds the spawn function for the entity and calls it.
      */
     public static void ED_CallSpawn(SubgameEntity ent) {
 
-        spawn_t s;
-        gitem_t item;
-        int i;
         if (null == ent.classname) {
             GameBase.gi.dprintf("ED_CallSpawn: null classname\n");
             return;
         } // check item spawn functions
-        for (i = 1; i < GameBase.game.num_items; i++) {
+        for (int i = 1; i < GameBase.game.num_items; i++) {
 
-            item = GameItemList.itemlist[i];
+            gitem_t item = GameItemList.itemlist[i];
 
             if (item == null)
                 GameBase.gi.error("ED_CallSpawn: null item in pos " + i);
@@ -1149,15 +1393,11 @@ public class GameSpawn {
             }
         } // check normal spawn functions
 
-        for (i = 0; (s = spawns[i]) != null && s.name != null; i++) {
-            if (s.name.equalsIgnoreCase(ent.classname)) { // found it
-
-                if (s.spawn == null)
-                    GameBase.gi.error("ED_CallSpawn: null-spawn on index=" + i);
-                s.spawn.think(ent);
-                return;
-            }
+        EntThinkAdapter spawn = spawns.get(ent.classname.toLowerCase());
+        if (spawn != null) {
+            spawn.think(ent);
+        } else {
+            GameBase.gi.dprintf(ent.classname + " doesn't have a spawn function\n");
         }
-        GameBase.gi.dprintf(ent.classname + " doesn't have a spawn function\n");
     }
 }

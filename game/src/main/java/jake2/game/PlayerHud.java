@@ -328,8 +328,8 @@ public class PlayerHud {
         //
         power_armor_type = GameItems.PowerArmorType(ent);
         if (power_armor_type != 0) {
-            cells = client.pers.inventory[GameItems.ITEM_INDEX(GameItems
-                    .FindItem("cells"))];
+            cells = client.pers.inventory[GameItems
+                    .FindItem("cells").index];
             if (cells == 0) { // ran out of cells for power armor
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
                 GameBase.gi
