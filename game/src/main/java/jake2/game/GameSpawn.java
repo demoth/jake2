@@ -1,21 +1,21 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.
- * 
+ *
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  * Place - Suite 330, Boston, MA 02111-1307, USA.
- *  
+ *
  */
 
 // Created on 18.11.2003 by RST.
@@ -26,6 +26,7 @@ import jake2.game.monsters.*;
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,10 @@ import java.util.Map;
 public class GameSpawn {
 
     private static EntThinkAdapter SP_item_health = new EntThinkAdapter() {
-        public String getID(){ return "SP_item_health"; }
+        public String getID() {
+            return "SP_item_health";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health(ent);
             return true;
@@ -41,7 +45,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_item_health_small = new EntThinkAdapter() {
-        public String getID(){ return "SP_item_health_small"; }
+        public String getID() {
+            return "SP_item_health_small";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_small(ent);
             return true;
@@ -49,7 +56,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_item_health_large = new EntThinkAdapter() {
-        public String getID(){ return "SP_item_health_large"; }
+        public String getID() {
+            return "SP_item_health_large";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_large(ent);
             return true;
@@ -57,7 +67,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_item_health_mega = new EntThinkAdapter() {
-        public String getID(){ return "SP_item_health_mega"; }
+        public String getID() {
+            return "SP_item_health_mega";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameItems.SP_item_health_mega(ent);
             return true;
@@ -65,7 +78,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_info_player_start = new EntThinkAdapter() {
-        public String getID(){ return "SP_info_player_start"; }
+        public String getID() {
+            return "SP_info_player_start";
+        }
+
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_start(ent);
             return true;
@@ -73,7 +89,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_info_player_deathmatch = new EntThinkAdapter() {
-        public String getID(){ return "SP_info_player_deathmatch"; }
+        public String getID() {
+            return "SP_info_player_deathmatch";
+        }
+
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_deathmatch(ent);
             return true;
@@ -81,7 +100,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_info_player_coop = new EntThinkAdapter() {
-        public String getID(){ return "SP_info_player_coop"; }
+        public String getID() {
+            return "SP_info_player_coop";
+        }
+
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_coop(ent);
             return true;
@@ -89,7 +111,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_info_player_intermission = new EntThinkAdapter() {
-        public String getID(){ return "SP_info_player_intermission"; }
+        public String getID() {
+            return "SP_info_player_intermission";
+        }
+
         public boolean think(SubgameEntity ent) {
             PlayerClient.SP_info_player_intermission();
             return true;
@@ -97,7 +122,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_func_plat = new EntThinkAdapter() {
-        public String getID(){ return "SP_func_plat"; }
+        public String getID() {
+            return "SP_func_plat";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_plat(ent);
             return true;
@@ -106,7 +134,10 @@ public class GameSpawn {
 
 
     private static EntThinkAdapter SP_func_water = new EntThinkAdapter() {
-        public String getID(){ return "SP_func_water"; }
+        public String getID() {
+            return "SP_func_water";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_water(ent);
             return true;
@@ -114,7 +145,10 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_func_train = new EntThinkAdapter() {
-        public String getID(){ return "SP_func_train"; }
+        public String getID() {
+            return "SP_func_train";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameFunc.SP_func_train(ent);
             return true;
@@ -122,16 +156,55 @@ public class GameSpawn {
     };
 
     private static EntThinkAdapter SP_func_clock = new EntThinkAdapter() {
-        public String getID(){ return "SP_func_clock"; }
+        public String getID() {
+            return "SP_func_clock";
+        }
+
         public boolean think(SubgameEntity ent) {
             GameMisc.SP_func_clock(ent);
             return true;
         }
     };
-
+    private static String single_statusbar = "yb	-24 " //	   health
+            + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
+            + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
+            + "endif " //	   armor
+            + "if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 "
+            + "endif " //	   selected item
+            + "if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked
+            // up
+            // item
+            + "if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 "
+            + "	stat_string 8 " + "	yb	-50 " + "endif "
+            //	   timer
+            + "if 9 " + "	xv	262 " + "	num	2	10 " + "	xv	296 " + "	pic	9 "
+            + "endif "
+            //		help / weapon icon
+            + "if 11 " + "	xv	148 " + "	pic	11 " + "endif ";
+    private static String dm_statusbar = "yb	-24 " //	   health
+            + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
+            + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
+            + "endif " //	   armor
+            + "if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 "
+            + "endif " //	   selected item
+            + "if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked
+            // up
+            // item
+            + "if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 "
+            + "	stat_string 8 " + "	yb	-50 " + "endif "
+            //	   timer
+            + "if 9 " + "	xv	246 " + "	num	2	10 " + "	xv	296 " + "	pic	9 "
+            + "endif "
+            //		help / weapon icon
+            + "if 11 " + "	xv	148 " + "	pic	11 " + "endif " //		frags
+            + "xr	-50 " + "yt 2 " + "num 3 14 " //	   spectator
+            + "if 17 " + "xv 0 " + "yb -58 " + "string2 \"SPECTATOR MODE\" "
+            + "endif " //	   chase camera
+            + "if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 "
+            + "stat_string 16 " + "endif ";
     /**
      * QUAKED worldspawn (0 0 0) ?
-     * 
+     * <p>
      * Only used for the world. "sky" environment map name "skyaxis" vector axis
      * for rotating sky "skyrotate" speed of rotation in degrees/second "sounds"
      * music cd track number "gravity" 800 is default gravity "message" text to
@@ -139,7 +212,9 @@ public class GameSpawn {
      */
 
     private static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
-        public String getID(){ return "SP_worldspawn"; }
+        public String getID() {
+            return "SP_worldspawn";
+        }
 
         public boolean think(SubgameEntity ent) {
             ent.movetype = GameDefines.MOVETYPE_PUSH;
@@ -307,259 +382,6 @@ public class GameSpawn {
             return true;
         }
     };
-
-    /**
-     * ED_ParseField
-     * 
-     * Takes a key/value pair and sets the binary values in an edict.
-     */
-    private static void ED_ParseField(String key, String value, SubgameEntity ent) {
-
-        if (key.equals("nextmap"))
-            Com.Println("nextmap: " + value);
-        if (!GameBase.st.set(key, value))
-            if (!ent.setField(key, value))
-                GameBase.gi.dprintf("??? The key [" + key
-                        + "] is not a field\n");
-
-    }
-
-    /**
-     * ED_ParseEdict
-     * 
-     * Parses an edict out of the given string, returning the new position ed
-     * should be a properly initialized empty edict.
-     */
-
-    private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent) {
-
-        boolean init;
-        String keyname;
-        String com_token;
-        init = false;
-
-        GameBase.st = new spawn_temp_t();
-        while (true) {
-
-            // parse key
-            com_token = Com.Parse(ph);
-            if (com_token.equals("}"))
-                break;
-
-            if (ph.isEof())
-                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
-
-            keyname = com_token;
-
-            // parse value
-            com_token = Com.Parse(ph);
-
-            if (ph.isEof())
-                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
-
-            if (com_token.equals("}"))
-                GameBase.gi.error("ED_ParseEntity: closing brace without data");
-
-            init = true;
-            // keynames with a leading underscore are used for utility comments,
-            // and are immediately discarded by quake
-            if (keyname.charAt(0) == '_')
-                continue;
-
-            ED_ParseField(keyname.toLowerCase(), com_token, ent);
-
-        }
-
-        if (!init) {
-            GameUtil.G_ClearEdict(ent);
-        }
-
-        return;
-    }
-
-    /**
-     * G_FindTeams
-     * 
-     * Chain together all entities with a matching team field.
-     * 
-     * All but the first will have the FL_TEAMSLAVE flag set. All but the last
-     * will have the teamchain field set to the next one.
-     */
-
-    private static void G_FindTeams() {
-        for (int i = 1; i < GameBase.num_edicts; i++) {
-            SubgameEntity e = GameBase.g_edicts[i];
-
-            if (!e.inuse)
-                continue;
-            if (e.team == null)
-                continue;
-            if ((e.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                continue;
-            SubgameEntity chain = e;
-            e.teammaster = e;
-
-            for (int j = i + 1; j < GameBase.num_edicts; j++) {
-                SubgameEntity e2 = GameBase.g_edicts[j];
-                if (!e2.inuse)
-                    continue;
-                if (null == e2.team)
-                    continue;
-                if ((e2.flags & GameDefines.FL_TEAMSLAVE) != 0)
-                    continue;
-                if (e.team.equals(e2.team)) {
-                    chain.teamchain = e2;
-                    e2.teammaster = e;
-                    chain = e2;
-                    e2.flags |= GameDefines.FL_TEAMSLAVE;
-
-                }
-            }
-        }
-    }
-
-    static void SpawnEntities(String mapname, String entities, String spawnpoint) {
-        
-        Com.dprintln("SpawnEntities(), mapname=" + mapname);
-        SubgameEntity ent;
-        int inhibit;
-        String com_token;
-        int i;
-        float skill_level;
-        //skill.value =2.0f;
-        skill_level = (float) Math.floor(GameBase.skill.value);
-
-        if (skill_level < 0)
-            skill_level = 0;
-        if (skill_level > 3)
-            skill_level = 3;
-        if (GameBase.skill.value != skill_level)
-            GameBase.gi.cvar_forceset("skill", "" + skill_level);
-
-        PlayerClient.SaveClientData();
-
-        GameBase.level = new level_locals_t();
-        for (int n = 0; n < GameBase.game.maxentities; n++) {
-            GameBase.g_edicts[n] = new SubgameEntity(n);
-        }
-        
-        GameBase.level.mapname = mapname;
-        GameBase.game.spawnpoint = spawnpoint;
-
-        // set client fields on player ents
-        for (i = 0; i < GameBase.game.maxclients; i++)
-            GameBase.g_edicts[i + 1].setClient(GameBase.game.clients[i]);
-
-        ent = null;
-        inhibit = 0; 
-
-        Com.ParseHelp ph = new Com.ParseHelp(entities);
-
-        while (true) { // parse the opening brace
-
-            com_token = Com.Parse(ph);
-            if (ph.isEof())
-                break;
-            if (!com_token.startsWith("{"))
-                GameBase.gi.error("ED_LoadFromFile: found " + com_token
-                        + " when expecting {");
-
-            if (ent == null)
-                ent = GameBase.g_edicts[0];
-            else
-                ent = GameUtil.G_Spawn();
-
-            ED_ParseEdict(ph, ent);
-            Com.DPrintf("spawning ent[" + ent.index + "], classname=" + 
-                    ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
-            
-            // yet another map hack
-            if (0 == Lib.Q_stricmp(GameBase.level.mapname, "command")
-                    && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
-                    && 0 == Lib.Q_stricmp(ent.model, "*27"))
-                ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
-
-            // remove things (except the world) from different skill levels or
-            // deathmatch
-            if (ent != GameBase.g_edicts[0]) {
-                if (GameBase.deathmatch.value != 0) {
-                    if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
-                        
-                        Com.DPrintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent);
-                        inhibit++;
-                        continue;
-                    }
-                } else {
-                    if (/*
-                         * ((coop.value) && (ent.spawnflags &
-                         * SPAWNFLAG_NOT_COOP)) ||
-                         */
-                    ((GameBase.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
-                            || ((GameBase.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                            || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
-                        
-                        Com.DPrintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent);
-                        inhibit++;
-                        
-                        continue;
-                    }
-                }
-
-                ent.spawnflags &= ~(GameDefines.SPAWNFLAG_NOT_EASY
-                        | GameDefines.SPAWNFLAG_NOT_MEDIUM
-                        | GameDefines.SPAWNFLAG_NOT_HARD
-                        | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
-            }
-            ED_CallSpawn(ent);
-            Com.DPrintf("\n");
-        }
-        Com.DPrintf("player skill level:" + GameBase.skill.value + "\n");
-        Com.DPrintf(inhibit + " entities inhibited.\n");
-        G_FindTeams();
-        PlayerTrail.Init();
-    }
-
-    private static String single_statusbar = "yb	-24 " //	   health
-            + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
-            + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
-            + "endif " //	   armor
-            + "if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 "
-            + "endif " //	   selected item
-            + "if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked
-            // up
-            // item
-            + "if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 "
-            + "	stat_string 8 " + "	yb	-50 " + "endif "
-            //	   timer
-            + "if 9 " + "	xv	262 " + "	num	2	10 " + "	xv	296 " + "	pic	9 "
-            + "endif "
-            //		help / weapon icon
-            + "if 11 " + "	xv	148 " + "	pic	11 " + "endif ";
-
-    private static String dm_statusbar = "yb	-24 " //	   health
-            + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
-            + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
-            + "endif " //	   armor
-            + "if 4 " + "	xv	200 " + "	rnum " + "	xv	250 " + "	pic 4 "
-            + "endif " //	   selected item
-            + "if 6 " + "	xv	296 " + "	pic 6 " + "endif " + "yb	-50 " //	   picked
-            // up
-            // item
-            + "if 7 " + "	xv	0 " + "	pic 7 " + "	xv	26 " + "	yb	-42 "
-            + "	stat_string 8 " + "	yb	-50 " + "endif "
-            //	   timer
-            + "if 9 " + "	xv	246 " + "	num	2	10 " + "	xv	296 " + "	pic	9 "
-            + "endif "
-            //		help / weapon icon
-            + "if 11 " + "	xv	148 " + "	pic	11 " + "endif " //		frags
-            + "xr	-50 " + "yt 2 " + "num 3 14 " //	   spectator
-            + "if 17 " + "xv 0 " + "yb -58 " + "string2 \"SPECTATOR MODE\" "
-            + "endif " //	   chase camera
-            + "if 16 " + "xv 0 " + "yb -68 " + "string \"Chasing\" " + "xv 64 "
-            + "stat_string 16 " + "endif ";
-
     private static Map<String, EntThinkAdapter> spawns;
 
     static {
@@ -1368,6 +1190,218 @@ public class GameSpawn {
         });
     }
 
+    /**
+     * ED_ParseField
+     * <p>
+     * Takes a key/value pair and sets the binary values in an edict.
+     */
+    private static void ED_ParseField(String key, String value, SubgameEntity ent) {
+
+        if (key.equals("nextmap"))
+            Com.Println("nextmap: " + value);
+        if (!GameBase.st.set(key, value))
+            if (!ent.setField(key, value))
+                GameBase.gi.dprintf("??? The key [" + key
+                        + "] is not a field\n");
+
+    }
+
+    /**
+     * ED_ParseEdict
+     * <p>
+     * Parses an edict out of the given string, returning the new position ed
+     * should be a properly initialized empty edict.
+     */
+
+    private static void ED_ParseEdict(Com.ParseHelp ph, SubgameEntity ent) {
+
+        boolean init;
+        String keyname;
+        String com_token;
+        init = false;
+
+        GameBase.st = new spawn_temp_t();
+        while (true) {
+
+            // parse key
+            com_token = Com.Parse(ph);
+            if (com_token.equals("}"))
+                break;
+
+            if (ph.isEof())
+                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
+
+            keyname = com_token;
+
+            // parse value
+            com_token = Com.Parse(ph);
+
+            if (ph.isEof())
+                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
+
+            if (com_token.equals("}"))
+                GameBase.gi.error("ED_ParseEntity: closing brace without data");
+
+            init = true;
+            // keynames with a leading underscore are used for utility comments,
+            // and are immediately discarded by quake
+            if (keyname.charAt(0) == '_')
+                continue;
+
+            ED_ParseField(keyname.toLowerCase(), com_token, ent);
+
+        }
+
+        if (!init) {
+            GameUtil.G_ClearEdict(ent);
+        }
+
+        return;
+    }
+
+    /**
+     * G_FindTeams
+     * <p>
+     * Chain together all entities with a matching team field.
+     * <p>
+     * All but the first will have the FL_TEAMSLAVE flag set. All but the last
+     * will have the teamchain field set to the next one.
+     */
+
+    private static void G_FindTeams() {
+        for (int i = 1; i < GameBase.num_edicts; i++) {
+            SubgameEntity e = GameBase.g_edicts[i];
+
+            if (!e.inuse)
+                continue;
+            if (e.team == null)
+                continue;
+            if ((e.flags & GameDefines.FL_TEAMSLAVE) != 0)
+                continue;
+            SubgameEntity chain = e;
+            e.teammaster = e;
+
+            for (int j = i + 1; j < GameBase.num_edicts; j++) {
+                SubgameEntity e2 = GameBase.g_edicts[j];
+                if (!e2.inuse)
+                    continue;
+                if (null == e2.team)
+                    continue;
+                if ((e2.flags & GameDefines.FL_TEAMSLAVE) != 0)
+                    continue;
+                if (e.team.equals(e2.team)) {
+                    chain.teamchain = e2;
+                    e2.teammaster = e;
+                    chain = e2;
+                    e2.flags |= GameDefines.FL_TEAMSLAVE;
+
+                }
+            }
+        }
+    }
+
+    static void SpawnEntities(String mapname, String entities, String spawnpoint) {
+
+        Com.dprintln("SpawnEntities(), mapname=" + mapname);
+        SubgameEntity ent;
+        int inhibit;
+        String com_token;
+        int i;
+        float skill_level;
+        //skill.value =2.0f;
+        skill_level = (float) Math.floor(GameBase.skill.value);
+
+        if (skill_level < 0)
+            skill_level = 0;
+        if (skill_level > 3)
+            skill_level = 3;
+        if (GameBase.skill.value != skill_level)
+            GameBase.gi.cvar_forceset("skill", "" + skill_level);
+
+        PlayerClient.SaveClientData();
+
+        GameBase.level = new level_locals_t();
+        for (int n = 0; n < GameBase.game.maxentities; n++) {
+            GameBase.g_edicts[n] = new SubgameEntity(n);
+        }
+
+        GameBase.level.mapname = mapname;
+        GameBase.game.spawnpoint = spawnpoint;
+
+        // set client fields on player ents
+        for (i = 0; i < GameBase.game.maxclients; i++)
+            GameBase.g_edicts[i + 1].setClient(GameBase.game.clients[i]);
+
+        ent = null;
+        inhibit = 0;
+
+        Com.ParseHelp ph = new Com.ParseHelp(entities);
+
+        while (true) { // parse the opening brace
+
+            com_token = Com.Parse(ph);
+            if (ph.isEof())
+                break;
+            if (!com_token.startsWith("{"))
+                GameBase.gi.error("ED_LoadFromFile: found " + com_token
+                        + " when expecting {");
+
+            if (ent == null)
+                ent = GameBase.g_edicts[0];
+            else
+                ent = GameUtil.G_Spawn();
+
+            ED_ParseEdict(ph, ent);
+            Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
+                    ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
+
+            // yet another map hack
+            if (0 == Lib.Q_stricmp(GameBase.level.mapname, "command")
+                    && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
+                    && 0 == Lib.Q_stricmp(ent.model, "*27"))
+                ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
+
+            // remove things (except the world) from different skill levels or
+            // deathmatch
+            if (ent != GameBase.g_edicts[0]) {
+                if (GameBase.deathmatch.value != 0) {
+                    if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
+
+                        Com.DPrintf("->inhibited.\n");
+                        GameUtil.G_FreeEdict(ent);
+                        inhibit++;
+                        continue;
+                    }
+                } else {
+                    if (/*
+                     * ((coop.value) && (ent.spawnflags &
+                     * SPAWNFLAG_NOT_COOP)) ||
+                     */
+                            ((GameBase.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
+                                    || ((GameBase.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
+                                    || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
+
+                        Com.DPrintf("->inhibited.\n");
+                        GameUtil.G_FreeEdict(ent);
+                        inhibit++;
+
+                        continue;
+                    }
+                }
+
+                ent.spawnflags &= ~(GameDefines.SPAWNFLAG_NOT_EASY
+                        | GameDefines.SPAWNFLAG_NOT_MEDIUM
+                        | GameDefines.SPAWNFLAG_NOT_HARD
+                        | GameDefines.SPAWNFLAG_NOT_COOP | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
+            }
+            ED_CallSpawn(ent);
+            Com.DPrintf("\n");
+        }
+        Com.DPrintf("player skill level:" + GameBase.skill.value + "\n");
+        Com.DPrintf(inhibit + " entities inhibited.\n");
+        G_FindTeams();
+        PlayerTrail.Init();
+    }
 
     /**
      * Finds the spawn function for the entity and calls it.
@@ -1399,5 +1433,43 @@ public class GameSpawn {
         } else {
             GameBase.gi.dprintf(ent.classname + " doesn't have a spawn function\n");
         }
+    }
+
+    static void SpawnNewEntity(SubgameEntity creator, String className) {
+
+        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+            GameBase.gi.cprintf(creator, Defines.PRINT_HIGH,
+                    "You must run the server with '+set cheats 1' to enable this command.\n");
+            return;
+        }
+
+        GameBase.gi.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
+
+        EntThinkAdapter spawn = spawns.get(className);
+        if (spawn != null) {
+            float[] location = creator.s.origin;
+            SubgameEntity newThing = GameUtil.G_Spawn();
+
+            float[] offset = {0,0,0};
+            float[] forward = { 0, 0, 0 };
+
+            // only works if damage point is in front
+            Math3D.AngleVectors(creator.s.angles, forward, null, null);
+
+            Math3D.VectorNormalize(forward);
+            Math3D.VectorScale(forward, 128, offset);
+            Math3D.VectorAdd(location, offset, offset);
+
+            newThing.s.origin = offset;
+
+            Math3D.VectorCopy(creator.s.angles, newThing.s.angles);
+
+            newThing.classname = className;
+            GameBase.gi.linkentity(newThing);
+            spawn.think(newThing);
+
+            GameBase.gi.dprintf("Spawned!\n");
+        }
+
     }
 }

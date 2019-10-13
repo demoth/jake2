@@ -1041,6 +1041,9 @@ public class GameExportsImpl implements GameExports {
             case "showposition":
                 ShowPosition_f(ent);
                 break;
+            case "spawn":
+                GameSpawn.SpawnNewEntity(ent, args.get(1));
+                break;
             default:
                 // anything that doesn't match a command will be a chat
                 Say_f(ent, false, true, args);
