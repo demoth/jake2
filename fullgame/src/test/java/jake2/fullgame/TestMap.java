@@ -27,7 +27,8 @@ import jake2.client.*;
 import jake2.client.render.Renderer;
 import jake2.client.render.image_t;
 import jake2.client.render.model_t;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
@@ -38,7 +39,6 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * TestMap
@@ -73,14 +73,7 @@ public class TestMap
 	void init()
 	{
         Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
-        // open the q2dialog, if we are not in dedicated mode.
-        if (Globals.dedicated.value != 1.0f)
-        {
-            Jake2.Q2Dialog = new Q2DataDialog();
-            Locale.setDefault(Locale.US);
-            Jake2.Q2Dialog.setVisible(true);
-        }
-        
+
 		Qcommon.Init(new String[] { "TestMap" });
 		// sehr wichtig !!!
 		VID.Shutdown();

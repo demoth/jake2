@@ -27,7 +27,8 @@ package jake2.fullgame;
 
 import jake2.client.*;
 import jake2.client.render.Renderer;
-import jake2.qcommon.*;
+import jake2.qcommon.Defines;
+import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
@@ -37,8 +38,10 @@ import jake2.qcommon.util.Math3D;
 
 import java.awt.*;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.*;
 
 /**
  * TestRenderer
@@ -72,9 +75,6 @@ public class TestRenderer {
     
     void init() {
 	Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
-	Jake2.Q2Dialog = new Q2DataDialog();
-	Locale.setDefault(Locale.US);
-	Jake2.Q2Dialog.setVisible(true);
 
 	String DRIVER = "lwjgl";
 

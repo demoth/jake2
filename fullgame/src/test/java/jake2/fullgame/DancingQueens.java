@@ -36,7 +36,6 @@ import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * DancingQueens
@@ -67,10 +66,7 @@ public class DancingQueens {
     
     void init() {
     	Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
-		Jake2.Q2Dialog = new Q2DataDialog();
-		Locale.setDefault(Locale.US);
-		Jake2.Q2Dialog.setVisible(true);        
-        
+
 	String DRIVER = "lwjgl";
 	
         Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "4",
