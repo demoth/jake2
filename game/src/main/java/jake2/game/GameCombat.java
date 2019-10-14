@@ -28,6 +28,8 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
+import static jake2.game.GameDefines.FL_NOTARGET;
+
 public class GameCombat {
 
     /**
@@ -278,7 +280,12 @@ public class GameCombat {
     
         if (attacker == targ || attacker == targ.enemy)
             return;
-    
+
+        // do not react to notargets
+        if ((attacker.flags & FL_NOTARGET) != 0) {
+            return;
+        }
+
         // if we are a good guy monster and our attacker is a player
         // or another good guy, do not get mad at them
         if (0 != (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {

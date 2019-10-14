@@ -373,15 +373,11 @@ public class GameExportsImpl implements GameExports {
     }
 
     /**
-     * Cmd_Notarget_f
-     *
      * Sets client to notarget
-     *
-     * argv(0) notarget.
      */
     private void Notarget_f(SubgameEntity ent) {
-        String msg;
 
+        // why do you need notarget in deathmatch??
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
@@ -389,6 +385,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         ent.flags ^= GameDefines.FL_NOTARGET;
+        String msg;
         if (0 == (ent.flags & GameDefines.FL_NOTARGET))
             msg = "notarget OFF\n";
         else
