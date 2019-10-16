@@ -960,7 +960,7 @@ public class GameExportsImpl implements GameExports {
                 ShowPosition_f(ent);
                 break;
             case "spawn":
-                GameSpawn.SpawnNewEntity(ent, args.get(1));
+                GameSpawn.SpawnNewEntity(ent, args);
                 break;
             default:
                 // anything that doesn't match a command will be a chat

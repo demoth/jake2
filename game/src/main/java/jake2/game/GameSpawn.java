@@ -29,7 +29,10 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static jake2.game.GameUtil.G_Spawn;
 
 public class GameSpawn {
 
@@ -1349,7 +1352,7 @@ public class GameSpawn {
             if (ent == null)
                 ent = GameBase.g_edicts[0];
             else
-                ent = GameUtil.G_Spawn();
+                ent = G_Spawn();
 
             ED_ParseEdict(ph, ent);
             Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
@@ -1435,7 +1438,14 @@ public class GameSpawn {
         }
     }
 
-    static void SpawnNewEntity(SubgameEntity creator, String className) {
+    static void SpawnNewEntity(SubgameEntity creator, List<String> args) {
+        String className;
+        if (args.size() >= 2)
+            className = args.get(1);
+        else {
+            GameBase.gi.dprintf("usage: spawn <classname>\n");
+            return;
+        }
 
         if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             GameBase.gi.cprintf(creator, Defines.PRINT_HIGH,
@@ -1446,9 +1456,10 @@ public class GameSpawn {
         GameBase.gi.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
-        if (spawn != null) {
+        gitem_t gitem_t = GameItems.FindItemByName(className);
+        if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
-            SubgameEntity newThing = GameUtil.G_Spawn();
+            SubgameEntity newThing = G_Spawn();
 
             float[] offset = {0,0,0};
             float[] forward = { 0, 0, 0 };
@@ -1466,7 +1477,10 @@ public class GameSpawn {
 
             newThing.classname = className;
             GameBase.gi.linkentity(newThing);
-            spawn.think(newThing);
+            if (spawn != null)
+                spawn.think(newThing);
+            else
+                GameItems.SpawnItem(newThing, gitem_t);
 
             GameBase.gi.dprintf("Spawned!\n");
         }
