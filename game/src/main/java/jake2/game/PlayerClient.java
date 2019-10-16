@@ -1151,7 +1151,7 @@ public class PlayerClient {
                 + " entered the game\n");
 
         // make sure all view stuff is valid
-        PlayerView.ClientEndServerFrame(ent);
+        GameBase.playerView.ClientEndServerFrame(ent);
     }
 
     static void ClientBegin(SubgameEntity ent) {
@@ -1202,7 +1202,7 @@ public class PlayerClient {
         }
 
         // make sure all view stuff is valid
-        PlayerView.ClientEndServerFrame(ent);
+        GameBase.playerView.ClientEndServerFrame(ent);
     }
 
     static String ClientUserinfoChanged(SubgameEntity ent, String userinfo) {

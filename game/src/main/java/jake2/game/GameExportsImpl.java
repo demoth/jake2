@@ -103,8 +103,7 @@ public class GameExportsImpl implements GameExports {
             }
         }
 
-        // todo replace with constructor
-        PlayerView.Init(gameImports);
+        GameBase.playerView = new PlayerView(gameImports);
 
         // todo replace with constructor
         SV.Init(gameImports);

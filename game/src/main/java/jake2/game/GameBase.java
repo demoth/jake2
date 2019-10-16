@@ -34,6 +34,7 @@ import jake2.qcommon.util.Math3D;
 import java.util.StringTokenizer;
 
 public class GameBase {
+    static PlayerView playerView;
     static cplane_t dummyplane = new cplane_t();
 
     public static game_locals_t game = new game_locals_t();
@@ -460,7 +461,7 @@ public class GameBase {
             ent = g_edicts[1 + i];
             if (!ent.inuse || null == ent.getClient())
                 continue;
-            PlayerView.ClientEndServerFrame(ent);
+            playerView.ClientEndServerFrame(ent);
         }
 
     }

@@ -31,37 +31,36 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 /**
- *
+ * Handles bobcycles during walking, falling view kicks, blends, water sounds
  */
 class PlayerView {
 
-    private static cvar_t sv_rollspeed = new cvar_t();
-    private static cvar_t sv_rollangle = new cvar_t();
-    private static cvar_t gun_x = new cvar_t();
-    private static cvar_t gun_y = new cvar_t();
-    private static cvar_t gun_z = new cvar_t();
-    private static cvar_t run_pitch = new cvar_t();
-    private static cvar_t run_roll = new cvar_t();
-    private static cvar_t bob_up = new cvar_t();
-    private static cvar_t bob_pitch = new cvar_t();
-    private static cvar_t bob_roll = new cvar_t();
+    private final cvar_t sv_rollspeed;
+    private final cvar_t sv_rollangle;
+    private final cvar_t gun_x;
+    private final cvar_t gun_y;
+    private final cvar_t gun_z;
+    private final cvar_t run_pitch;
+    private final cvar_t run_roll;
+    private final cvar_t bob_up;
+    private final cvar_t bob_pitch;
+    private final cvar_t bob_roll;
 
+    private float xyspeed;
+    private float bobmove;
+    private int bobcycle; // odd cycles are right foot going forward
+    private float bobfracsin; // sin(bobfrac*M_PI)}
+    private int xxxi = 0;
 
-    private static float xyspeed;
-    private static float bobmove;
-    private static int bobcycle; // odd cycles are right foot going forward
-    private static float bobfracsin; // sin(bobfrac*M_PI)}
-    private static int xxxi = 0;
+    private SubgameEntity current_player;
 
-    private static SubgameEntity current_player;
+    private gclient_t current_client;
 
-    private static gclient_t current_client;
+    private float[] forward = { 0, 0, 0 };
+    private float[] right = { 0, 0, 0 };
+    private float[] up = { 0, 0, 0 };
 
-    private static float[] forward = { 0, 0, 0 };
-    private static float[] right = { 0, 0, 0 };
-    private static float[] up = { 0, 0, 0 };
-
-    static void Init(GameImports gameImports) {
+    PlayerView(GameImports gameImports) {
         gun_x = gameImports.cvar("gun_x", "0", 0);
         gun_y = gameImports.cvar("gun_y", "0", 0);
         gun_z = gameImports.cvar("gun_z", "0", 0);
@@ -81,7 +80,7 @@ class PlayerView {
     /**
      * SV_CalcRoll.
      */
-    private static float SV_CalcRoll(float[] angles, float[] velocity) {
+    private float SV_CalcRoll(float[] angles, float[] velocity) {
         float sign;
         float side;
         float value;
@@ -103,7 +102,7 @@ class PlayerView {
     /**
      * Handles color blends and view kicks
      */
-    private static void P_DamageFeedback(SubgameEntity player) {
+    private void P_DamageFeedback(SubgameEntity player) {
         gclient_t client;
         float side;
         float realcount, count, kick;
@@ -251,7 +250,7 @@ class PlayerView {
      * fall from 640: 960 =  
      * damage = deltavelocity*deltavelocity * 0.0001
      */
-    private static void SV_CalcViewOffset(SubgameEntity ent) {
+    private void SV_CalcViewOffset(SubgameEntity ent) {
         float angles[] = { 0, 0, 0 };
         float bob;
         float ratio;
@@ -359,7 +358,7 @@ class PlayerView {
     /**
      * Calculates where to draw the gun.
      */
-    private static void SV_CalcGunOffset(SubgameEntity ent) {
+    private void SV_CalcGunOffset(SubgameEntity ent) {
         int i;
         float delta;
 
@@ -576,7 +575,7 @@ class PlayerView {
     /**
      * General effect handling for a player.
      */
-    private static void P_WorldEffects() {
+    private void P_WorldEffects() {
         boolean breather;
         boolean envirosuit;
         int waterlevel, old_waterlevel;
@@ -818,7 +817,7 @@ class PlayerView {
      * G_SetClientEvent 
      * ===============
      */
-    private static void G_SetClientEvent(SubgameEntity ent) {
+    private void G_SetClientEvent(SubgameEntity ent) {
         if (ent.s.event != 0)
             return;
 
@@ -874,7 +873,7 @@ class PlayerView {
      * G_SetClientFrame 
      * ===============
      */
-    private static void G_SetClientFrame(SubgameEntity ent) {
+    private void G_SetClientFrame(SubgameEntity ent) {
         boolean duck, run;
 
         if (ent.s.modelindex != 255)
@@ -962,7 +961,7 @@ class PlayerView {
      * Called for each player at the end of the server frame and right after
      * spawning.
      */
-    static void ClientEndServerFrame(SubgameEntity ent) {
+    void ClientEndServerFrame(SubgameEntity ent) {
         float bobtime;
         int i;
 
