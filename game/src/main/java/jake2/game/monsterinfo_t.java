@@ -108,8 +108,7 @@ public class monsterinfo_t {
 	{
 		if (f.readBoolean())
 		{
-			currentmove= new mmove_t();
-			currentmove.read(f);
+			currentmove = mmove_t.read(f);
 		}
 		else
 			currentmove= null; 

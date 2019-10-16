@@ -74,7 +74,7 @@ public class TestMap
 	{
         Globals.dedicated = Cvar.Get("dedicated", "0", Defines.CVAR_NOSET );
 
-		Qcommon.Init(new String[] { "TestMap" });
+		Jake2.Init(new String[] { "TestMap" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 

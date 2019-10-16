@@ -61,7 +61,7 @@ public class DebugCulling
 	void init()
 	{
 
-		Qcommon.Init(new String[] { "$Id: DebugCulling.java,v 1.6 2008-03-02 14:56:21 cawe Exp $" });
+		Jake2.Init(new String[] { "$Id: DebugCulling.java,v 1.6 2008-03-02 14:56:21 cawe Exp $" });
 		// sehr wichtig !!!
 		VID.Shutdown();
 

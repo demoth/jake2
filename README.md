@@ -10,8 +10,7 @@ distributed under the terms of the GPL (see LICENSE).
 The port was done completely in Java. No native libraries are used for the
 game functionality. We use the lwjgl2 for graphics rendering and for sound.
 
-Jake2 is still under development. Send bug reports and feedback to
-jake2@bytonic.de.
+Jake2 is still under development. Feel free to send bug report if you find one.
 
 Currently Jake2 supports Linux, Windows2000/XP and Mac OS X. The Jake2 dedicated
 server runs on every Java supported platform.
@@ -59,16 +58,17 @@ Use <jake2@bytonic.de> for bug reports and feedback.
 
 have fun!
 
-bytonic Software
-----------------
+# Authors
+Daniil Bubnov <bubnov.d.e@gmail.com> - current maintainer (2019+)
 
+## bytonic Software
+Developed the project in 2003 - 2015
  * Holger Zickner <hoz@bytonic.de>
- * Carsten Weisse <cwei@bytonic.de>
+ * Carsten Weiße <cwei@bytonic.de>
  * Rene Stoeckel  <rst@bytonic.de>
 
-Contributors
+## Contributors
 ------------
  * David Sanders - lwjgl support
  * Kenneth Russell	(Sun Microsystems) - jogl improvements
  * Scott Franzyshen	- 3rd Person Camera, CD Player emulation (MP3), Console Patch
- * Daniil Bubnov - Gradle setup

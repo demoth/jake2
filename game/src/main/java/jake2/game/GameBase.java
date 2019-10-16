@@ -68,25 +68,21 @@ public class GameBase {
 
     public static cvar_t coop = new cvar_t();
 
-    public static cvar_t dmflags = new cvar_t();
+    static cvar_t dmflags = new cvar_t();
 
     public static cvar_t skill; // = new cvar_t();
 
-    static cvar_t fraglimit = new cvar_t();
+    private static cvar_t fraglimit = new cvar_t();
 
-    static cvar_t timelimit = new cvar_t();
+    private static cvar_t timelimit = new cvar_t();
 
-    static cvar_t password = new cvar_t();
+    private static cvar_t password = new cvar_t();
 
     static cvar_t spectator_password = new cvar_t();
 
-    static cvar_t needpass = new cvar_t();
-
-    public static cvar_t maxclients = new cvar_t();
+    private static cvar_t needpass = new cvar_t();
 
     static cvar_t maxspectators = new cvar_t();
-
-    static cvar_t maxentities = new cvar_t();
 
     static cvar_t g_select_empty = new cvar_t();
 
@@ -102,9 +98,78 @@ public class GameBase {
 
     static cvar_t flood_waitdelay = new cvar_t();
 
-    static cvar_t sv_maplist = new cvar_t();
+    private static cvar_t sv_maplist = new cvar_t();
 
     private final static float STOP_EPSILON = 0.1f;
+
+    static void Init(GameImports gameImports) {
+        gi = gameImports;
+        ///////////////////////////////////
+        // Initialize game related cvars
+        ///////////////////////////////////
+        sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
+        // latched vars
+        sv_cheats = gameImports.cvar("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamename", Defines.GAMEVERSION,Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
+        maxspectators = gameImports.cvar("maxspectators", "4", Defines.CVAR_SERVERINFO);
+        deathmatch = gameImports.cvar("deathmatch", "0", Defines.CVAR_LATCH);
+        coop = gameImports.cvar("coop", "0", Defines.CVAR_LATCH);
+        skill = gameImports.cvar("skill", "0", Defines.CVAR_LATCH);
+
+        // change anytime vars
+        dmflags = gameImports.cvar("dmflags", "0", Defines.CVAR_SERVERINFO);
+        fraglimit = gameImports.cvar("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        timelimit = gameImports.cvar("timelimit", "0", Defines.CVAR_SERVERINFO);
+        password = gameImports.cvar("password", "", Defines.CVAR_USERINFO);
+        spectator_password = gameImports.cvar("spectator_password", "", Defines.CVAR_USERINFO);
+        needpass = gameImports.cvar("needpass", "0", Defines.CVAR_SERVERINFO);
+        filterban = gameImports.cvar("filterban", "1", 0);
+
+        g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
+
+        // flood control
+        flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
+        flood_persecond = gameImports.cvar("flood_persecond", "4", 0);
+        flood_waitdelay = gameImports.cvar("flood_waitdelay", "10", 0);
+
+        // dm map list
+        sv_maplist = gameImports.cvar("sv_maplist", "", 0);
+
+        game.helpmessage1 = "";
+        game.helpmessage2 = "";
+
+        // items
+        game.num_items = GameItemList.itemlist.length - 1;
+
+        GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+        GameBase.CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
+    }
+
+    // create the entities array and fill it with empty entities
+    static void CreateEdicts(float max) {
+        // initialize all entities for this game
+        game.maxentities = (int) max;
+        g_edicts = new SubgameEntity[game.maxentities];
+        for (int i = 0; i < game.maxentities; i++)
+            g_edicts[i] = new SubgameEntity(i);
+    }
+
+    // create the clients array and fill it with empty clients
+    private static void CreateClients(float max) {
+        // initialize all clients for this game
+        game.maxclients = (int) max;
+
+        game.clients = new gclient_t[game.maxclients];
+
+        for (int i = 0; i < game.maxclients; i++)
+            game.clients[i] = new gclient_t(i);
+
+        // so far we have only clients, no other entities
+        num_edicts = game.maxclients + 1;
+
+    }
 
     /**
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 =
@@ -391,7 +456,7 @@ public class GameBase {
 
         // calc the player views now that all pushing
         // and damage has been added
-        for (i = 0; i < maxclients.value; i++) {
+        for (i = 0; i < game.maxclients; i++) {
             ent = g_edicts[1 + i];
             if (!ent.inuse || null == ent.getClient())
                 continue;
@@ -518,7 +583,7 @@ public class GameBase {
         }
 
         if (fraglimit.value != 0) {
-            for (i = 0; i < maxclients.value; i++) {
+            for (i = 0; i < game.maxclients; i++) {
                 cl = game.clients[i];
                 if (!g_edicts[i + 1].inuse)
                     continue;
@@ -547,7 +612,7 @@ public class GameBase {
         ClientEndServerFrames();
 
         // clear some things before going to next level
-        for (i = 0; i < maxclients.value; i++) {
+        for (i = 0; i < game.maxclients; i++) {
             ent = g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
@@ -598,7 +663,7 @@ public class GameBase {
                 }
             }
 
-            if (i > 0 && i <= maxclients.value) {
+            if (i > 0 && i <= game.maxclients) {
                 PlayerClient.ClientBeginServerFrame(ent);
                 continue;
             }

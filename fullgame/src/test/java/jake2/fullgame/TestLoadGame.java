@@ -25,7 +25,7 @@ package jake2.fullgame;
 public class TestLoadGame {
     public static void main(String args[]) {
 
-        Qcommon.Init(args);
+        Jake2.Init(args);
 
         System.out.println("hello!");
         //GameSave.InitGame();

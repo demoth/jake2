@@ -26,8 +26,16 @@ import jake2.qcommon.Com;
 import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * There are many fields in the edict class. Some of them represent state - like 'health', 'damage' etc,
+ * other represent behaviour - like 'think', 'touch', 'use' etc.
+ * In c version these were function pointers.
+ *
+ * The purpose of all Adapter registration is to store and restore such behavioural edict fields.
+ */
 public abstract class SuperAdapter {
 
 	/** Constructor, does the adapter registration. */
@@ -41,11 +49,11 @@ public abstract class SuperAdapter {
 	}
 
 	/** Adapter repository. */
-	private static Hashtable adapters= new Hashtable();
+	private static final Map<String, SuperAdapter> adapters = new HashMap<>();
 
 	/** Returns the adapter from the repository given by its ID. */
-	public static SuperAdapter getFromID(String key) {
-		SuperAdapter sa= (SuperAdapter) adapters.get(key);
+	private static SuperAdapter getFromID(String key) {
+		SuperAdapter sa = adapters.get(key);
 
 		// try to create the adapter
 		if (sa == null) {
@@ -56,13 +64,13 @@ public abstract class SuperAdapter {
 	}
 
     /** Writes the Adapter-ID to the file. */
-    public static void writeAdapter(QuakeFile f, SuperAdapter a) throws IOException {
+    static void writeAdapter(QuakeFile f, SuperAdapter a) throws IOException {
         f.writeInt(3988);
         if (a == null)
             f.writeString(null);
         else {
             String str = a.getID();
-            if (a == null) {
+            if (str == null) {
                 Com.DPrintf("writeAdapter: invalid Adapter id for " + a + "\n");
             }
             f.writeString(str);
@@ -70,7 +78,7 @@ public abstract class SuperAdapter {
     }
 
 	/** Reads the adapter id and returns the adapter. */
-	public static SuperAdapter readAdapter(QuakeFile f) throws IOException {
+	static SuperAdapter readAdapter(QuakeFile f) throws IOException {
 		if (f.readInt() != 3988)
 			Com.DPrintf("wrong read position: readadapter 3988 \n");
 
@@ -86,4 +94,9 @@ public abstract class SuperAdapter {
 
 	/** Returns the Adapter-ID. */
 	public abstract String getID();
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + " '" + getID() + "'";
+	}
 }

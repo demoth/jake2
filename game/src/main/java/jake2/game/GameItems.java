@@ -25,9 +25,9 @@ package jake2.game;
 
 
 import jake2.qcommon.*;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.filesystem.QuakeFile;
 
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -154,6 +154,26 @@ public class GameItems {
             return true;
         }
     };
+
+    private static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
+    	public String getID() { return "MegaHealth_think"; }
+        public boolean think(SubgameEntity self) {
+            if (self.getOwner().health > self.getOwner().max_health) {
+                self.nextthink = GameBase.level.time + 1;
+                self.getOwner().health -= 1;
+                return false;
+            }
+
+            if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
+                    && (GameBase.deathmatch.value != 0))
+                SetRespawn(self, 20);
+            else
+                GameUtil.G_FreeEdict(self);
+
+            return false;
+        }
+    };
+
     final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
         public String getID() { return "pickup_health";}
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
@@ -170,7 +190,7 @@ public class GameItems {
             }
     
             if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
-                ent.think = GameUtil.MegaHealth_think;
+                ent.think = MegaHealth_think;
                 ent.nextthink = GameBase.level.time + 5f;
                 ent.setOwner(other);
                 ent.flags |= GameDefines.FL_RESPAWN;
@@ -1001,10 +1021,6 @@ public class GameItems {
         return true;
     }
 
-    static void InitItems() {
-        GameBase.game.num_items = GameItemList.itemlist.length - 1;
-    }
-
     /*
      * =============== SetItemNames
      * 
@@ -1373,7 +1389,7 @@ public class GameItems {
     }
 
     /** Writes an item reference. */
-    public static void writeItem(QuakeFile f, gitem_t item) throws IOException {
+    static void writeItem(QuakeFile f, gitem_t item) throws IOException {
         if (item == null)
             f.writeInt(-1);
         else
@@ -1381,7 +1397,7 @@ public class GameItems {
     }
 
     /** Reads the item index and returns the game item. */
-    public static gitem_t readItem(QuakeFile f) throws IOException {
+    static gitem_t readItem(QuakeFile f) throws IOException {
         int ndx = f.readInt();
         if (ndx == -1)
             return null;

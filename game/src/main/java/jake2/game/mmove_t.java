@@ -27,6 +27,7 @@ import jake2.qcommon.filesystem.QuakeFile;
 import java.io.IOException;
 
 public class mmove_t {
+
 	public mmove_t(int firstframe, int lastframe, mframe_t frame[], EntThinkAdapter endfunc) {
 		
 		this.firstframe= firstframe;
@@ -35,13 +36,10 @@ public class mmove_t {
 		this.endfunc= endfunc;
 	}
 
-	public mmove_t()
-	{}
-
-	public int firstframe;
-	public int lastframe;
-	public mframe_t frame[]; //ptr
-	public EntThinkAdapter endfunc;
+	public final int firstframe;
+	public final int lastframe;
+	public final mframe_t[] frame; //ptr
+	final EntThinkAdapter endfunc;
 	
 
 	/** Writes the structure to a random acccess file. */
@@ -61,19 +59,22 @@ public class mmove_t {
 	}
 	
 	/** Read the mmove_t from the RandomAccessFile. */
-	public void read(QuakeFile f) throws IOException
+	public static mmove_t read(QuakeFile f) throws IOException
 	{
-		firstframe = f.readInt();
-		lastframe = f.readInt();
+
+		int firstframe = f.readInt();
+		int lastframe = f.readInt();
 		
 		int len = f.readInt();
 		
-		frame = new mframe_t[len];
+		mframe_t[] frame = new mframe_t[len];
 		for (int n=0; n < len ; n++)
 		{			
 			frame[n] = new mframe_t();
 			frame[n].read(f);
 		}
-		endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+		EntThinkAdapter endfunc = (EntThinkAdapter) SuperAdapter.readAdapter(f);
+
+		return new mmove_t(firstframe, lastframe, frame, endfunc);
 	}
 }

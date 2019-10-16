@@ -79,7 +79,6 @@ public final class M {
      * Returns false if any part of the bottom of the entity is off an edge that
      * is not a staircase.
      */
-
     public static boolean M_CheckBottom(edict_t ent) {
         float[] mins = { 0, 0, 0 };
         float[] maxs = { 0, 0, 0 };

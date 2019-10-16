@@ -3,15 +3,19 @@ package jake2.game;
 import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
+import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
-import jake2.qcommon.filesystem.QuakeFile;
 import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
+import static java.util.Comparator.comparingInt;
+
+/**
+ * See jake2.server.SV_GAME#SV_InitGameProgs()
+ */
 public class GameExportsImpl implements GameExports {
 
     private static final String[] preloadclasslist =
@@ -81,12 +85,12 @@ public class GameExportsImpl implements GameExports {
                     // DANGER! init as last, when all adatpers are != null
                     "jake2.game.GameItemList"
             };
+
     private final GameImports gameImports;
 
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
         this.gameImports = imports;
-        GameBase.gi = imports;
         gameImports.dprintf("==== InitGame ====\n");
 
         // preload all classes to register the adapters
@@ -105,76 +109,8 @@ public class GameExportsImpl implements GameExports {
         // todo replace with constructor
         SV.Init(gameImports);
 
-        GameBase.sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
-
-        // noset vars
-        Globals.dedicated = gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET);
-
-        // latched vars
-        GameBase.sv_cheats = gameImports.cvar("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        gameImports.cvar("gamename", Defines.GAMEVERSION,Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        gameImports.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-
-        GameBase.maxclients = gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        GameBase.maxspectators = gameImports.cvar("maxspectators", "4", Defines.CVAR_SERVERINFO);
-        GameBase.deathmatch = gameImports.cvar("deathmatch", "0", Defines.CVAR_LATCH);
-        GameBase.coop = gameImports.cvar("coop", "0", Defines.CVAR_LATCH);
-        GameBase.skill = gameImports.cvar("skill", "0", Defines.CVAR_LATCH);
-        GameBase.maxentities = gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH);
-
-        // change anytime vars
-        GameBase.dmflags = gameImports.cvar("dmflags", "0", Defines.CVAR_SERVERINFO);
-        GameBase.fraglimit = gameImports.cvar("fraglimit", "0", Defines.CVAR_SERVERINFO);
-        GameBase.timelimit = gameImports.cvar("timelimit", "0", Defines.CVAR_SERVERINFO);
-        GameBase.password = gameImports.cvar("password", "", Defines.CVAR_USERINFO);
-        GameBase.spectator_password = gameImports.cvar("spectator_password", "", Defines.CVAR_USERINFO);
-        GameBase.needpass = gameImports.cvar("needpass", "0", Defines.CVAR_SERVERINFO);
-        GameBase.filterban = gameImports.cvar("filterban", "1", 0);
-
-        GameBase.g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
-
-
-        // flood control
-        GameBase.flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
-        GameBase.flood_persecond = gameImports.cvar("flood_persecond", "4", 0);
-        GameBase.flood_waitdelay = gameImports.cvar("flood_waitdelay", "10", 0);
-
-        // dm map list
-        GameBase.sv_maplist = gameImports.cvar("sv_maplist", "", 0);
-
-        // items
-        GameItems.InitItems();
-
-        GameBase.game.helpmessage1 = "";
-        GameBase.game.helpmessage2 = "";
-
-        // initialize all entities for this game
-        GameBase.game.maxentities = (int) GameBase.maxentities.value;
-        CreateEdicts();
-
-        // initialize all clients for this game
-        GameBase.game.maxclients = (int) GameBase.maxclients.value;
-        CreateClients();
-
-    }
-
-    // create the entities array and fill it with empty entities
-    private static void CreateEdicts() {
-        GameBase.g_edicts = new SubgameEntity[GameBase.game.maxentities];
-        for (int i = 0; i < GameBase.game.maxentities; i++)
-            GameBase.g_edicts[i] = new SubgameEntity(i);
-    }
-
-    // create the clients array and fill it with empty clients
-    private static void CreateClients() {
-        GameBase.game.clients = new gclient_t[GameBase.game.maxclients];
-
-        for (int i = 0; i < GameBase.game.maxclients; i++)
-            GameBase.game.clients[i] = new gclient_t(i);
-
-        // so far we have only clients, no other entities
-        GameBase.num_edicts = GameBase.game.maxclients + 1;
-
+        // todo replace with constructor
+        GameBase.Init(gameImports);
     }
 
     /**
@@ -706,21 +642,6 @@ public class GameExportsImpl implements GameExports {
         client.showinventory = false;
     }
 
-    private static Comparator PlayerSort = (o1, o2) -> {
-        int anum = ((Integer) o1).intValue();
-        int bnum = ((Integer) o2).intValue();
-
-        int anum1 = GameBase.game.clients[anum].getPlayerState().stats[Defines.STAT_FRAGS];
-        int bnum1 = GameBase.game.clients[bnum].getPlayerState().stats[Defines.STAT_FRAGS];
-
-        if (anum1 < bnum1)
-            return -1;
-        if (anum1 > bnum1)
-            return 1;
-        return 0;
-    };
-
-
     /**
      * Cmd_Players_f
      */
@@ -733,7 +654,7 @@ public class GameExportsImpl implements GameExports {
         Integer index[] = new Integer[256];
 
         count = 0;
-        for (i = 0; i < GameBase.maxclients.value; i++) {
+        for (i = 0; i < GameBase.game.maxclients; i++) {
             if (GameBase.game.clients[i].pers.connected) {
                 index[count] = new Integer(i);
                 count++;
@@ -741,7 +662,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         // sort by frags
-        Arrays.sort(index, 0, count - 1, PlayerSort);
+        Arrays.sort(index, 0, count - 1, comparingInt(p -> GameBase.game.clients[p].getPlayerState().stats[Defines.STAT_FRAGS]));
 
         // print information
         large = "";
@@ -883,7 +804,7 @@ public class GameExportsImpl implements GameExports {
             cl.flood_when[cl.flood_whenhead] = GameBase.level.time;
         }
 
-        if (Globals.dedicated.value != 0)
+        if (gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET).value != 0)
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
         for (int j = 1; j <= GameBase.game.maxclients; j++) {
@@ -909,7 +830,7 @@ public class GameExportsImpl implements GameExports {
         // connect time, ping, score, name
         String text = "";
 
-        for (int i = 0; i < GameBase.maxclients.value; i++) {
+        for (int i = 0; i < GameBase.game.maxclients; i++) {
             SubgameEntity e2 = GameBase.g_edicts[1 + i];
             if (!e2.inuse)
                 continue;
@@ -1083,7 +1004,7 @@ public class GameExportsImpl implements GameExports {
         try {
 
             f = new QuakeFile(filename, "r");
-            CreateEdicts();
+            GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
             GameBase.game.load(f);
 
@@ -1135,9 +1056,9 @@ public class GameExportsImpl implements GameExports {
                 gameImports.error("Couldn't read level file " + filename);
 
             // wipe all the entities
-            CreateEdicts();
+            GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
-            GameBase.num_edicts = (int) GameBase.maxclients.value + 1;
+            GameBase.num_edicts = (int) GameBase.game.maxclients + 1;
 
             // load the level locals
             GameBase.level.read(f, GameBase.g_edicts);
@@ -1161,7 +1082,7 @@ public class GameExportsImpl implements GameExports {
             Lib.fclose(f);
 
             // mark all clients as unconnected
-            for (int i = 0; i < GameBase.maxclients.value; i++) {
+            for (int i = 0; i < GameBase.game.maxclients; i++) {
                 ent = GameBase.g_edicts[i + 1];
                 ent.setClient(GameBase.game.clients[i]);
                 gclient_t client = ent.getClient();

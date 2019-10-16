@@ -89,7 +89,7 @@ public class PlayerHud {
         // respawn any dead clients
         int i;
         SubgameEntity client;
-        for (i = 0; i < GameBase.maxclients.value; i++) {
+        for (i = 0; i < GameBase.game.maxclients; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
@@ -102,7 +102,7 @@ public class PlayerHud {
 
         if (GameBase.level.changemap.indexOf('*') > -1) {
             if (GameBase.coop.value != 0) {
-                for (i = 0; i < GameBase.maxclients.value; i++) {
+                for (i = 0; i < GameBase.game.maxclients; i++) {
                     client = GameBase.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
@@ -155,7 +155,7 @@ public class PlayerHud {
         Math3D.VectorCopy(ent.s.angles, GameBase.level.intermission_angle);
 
         // move all clients to the intermission point
-        for (i = 0; i < GameBase.maxclients.value; i++) {
+        for (i = 0; i < GameBase.game.maxclients; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
@@ -456,7 +456,7 @@ public class PlayerHud {
      */
     public static void G_CheckChaseStats(edict_t ent) {
 
-        for (int i = 1; i <= GameBase.maxclients.value; i++) {
+        for (int i = 1; i <= GameBase.game.maxclients; i++) {
             gclient_t cl = GameBase.g_edicts[i].getClient();
             if (!GameBase.g_edicts[i].inuse || cl.chase_target != ent)
                 continue;

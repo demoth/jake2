@@ -78,7 +78,7 @@ public class TestRenderer {
 
 	String DRIVER = "lwjgl";
 
-	Qcommon.Init(new String[] { "TestRenderer", "+set", "gl_mode", "6",
+	Jake2.Init(new String[] { "TestRenderer", "+set", "gl_mode", "6",
 		"+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
 	// sehr wichtig !!!
 	VID.Shutdown();

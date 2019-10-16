@@ -246,7 +246,7 @@ public class GameSpawn {
                     .vtos(GameBase.st.skyaxis));
             GameBase.gi.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
             GameBase.gi.configstring(Defines.CS_MAXCLIENTS, ""
-                    + (int) (GameBase.maxclients.value));
+                    + (int) (GameBase.game.maxclients));
             // status bar program
             if (GameBase.deathmatch.value != 0)
                 GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);

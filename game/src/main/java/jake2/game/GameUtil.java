@@ -48,7 +48,7 @@ public class GameUtil {
     public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator) {
 
         if (ent.classname == null) {
-            Com.Printf("edict with classname = null: " + ent.index);
+            GameBase.gi.dprintf("edict with classname = null: " + ent.index);
         }
 
         // check for a delay
@@ -124,7 +124,7 @@ public class GameUtil {
         }
     }
 
-    public static void G_InitEdict(SubgameEntity e, int i) {
+    static void G_InitEdict(SubgameEntity e, int i) {
         e.inuse = true;
         e.classname = "noclass";
         e.gravity = 1.0f;
@@ -144,7 +144,7 @@ public class GameUtil {
         int i;
         SubgameEntity e;
 
-        for (i = (int) GameBase.maxclients.value + 1; i < GameBase.num_edicts; i++) {
+        for (i = (int) GameBase.game.maxclients + 1; i < GameBase.num_edicts; i++) {
             e = GameBase.g_edicts[i];
             // the first couple seconds of server time can involve a lot of
             // freeing and allocating, so relax the replacement policy
@@ -172,7 +172,7 @@ public class GameUtil {
         GameBase.gi.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
-        if (ed.index <= (GameBase.maxclients.value + GameDefines.BODY_QUEUE_SIZE)) {
+        if (ed.index <= (GameBase.game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
             // gi.dprintf("tried to free special edict\n");
             return;
         }
@@ -188,7 +188,7 @@ public class GameUtil {
      * it covers to immediately touch it.
      */
 
-    public static void G_ClearEdict(edict_t ent) {
+    static void G_ClearEdict(edict_t ent) {
         int i = ent.index;
         GameBase.g_edicts[i] = new SubgameEntity(i);
     }
@@ -199,7 +199,7 @@ public class GameUtil {
      * Ent should be unlinked before calling this!
      */
 
-    public static boolean KillBox(SubgameEntity ent) {
+    static boolean KillBox(SubgameEntity ent) {
 
         while (true) {
             trace_t tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
@@ -224,7 +224,7 @@ public class GameUtil {
     /** 
      * Returns true, if two edicts are on the same team. 
      */
-    public static boolean OnSameTeam(SubgameEntity ent1, SubgameEntity ent2) {
+    static boolean OnSameTeam(SubgameEntity ent1, SubgameEntity ent2) {
         if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
 
@@ -237,7 +237,7 @@ public class GameUtil {
      * Returns the team string of an entity 
      * with respect to rteam_by_model and team_by_skin. 
      */
-    static String ClientTeam(SubgameEntity ent) {
+    private static String ClientTeam(SubgameEntity ent) {
         String value;
 
         gclient_t client = ent.getClient();
@@ -539,7 +539,7 @@ public class GameUtil {
         self.monsterinfo.run.think(self);
     }
 
-    public static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
+    private static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
     	public String getID() { return "Think_Delay"; }
         public boolean think(SubgameEntity ent) {
             G_UseTargets(ent, ent.activator);
@@ -548,33 +548,13 @@ public class GameUtil {
         }
     };
 
-    public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
+    static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
         public boolean think(SubgameEntity ent) {
             G_FreeEdict(ent);
             return false;
         }
     };
-
-    static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
-    	public String getID() { return "MegaHealth_think"; }
-        public boolean think(SubgameEntity self) {
-            if (self.getOwner().health > self.getOwner().max_health) {
-                self.nextthink = GameBase.level.time + 1;
-                self.getOwner().health -= 1;
-                return false;
-            }
-
-            if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
-                    && (GameBase.deathmatch.value != 0))
-                GameItems.SetRespawn(self, 20);
-            else
-                G_FreeEdict(self);
-
-            return false;
-        }
-    };
-
 
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "M_CheckAttack"; }

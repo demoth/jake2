@@ -592,7 +592,7 @@ public class PlayerClient {
 
         bestplayerdistance = 9999999;
 
-        for (n = 1; n <= GameBase.maxclients.value; n++) {
+        for (n = 1; n <= GameBase.game.maxclients; n++) {
             player = GameBase.g_edicts[n];
 
             if (!player.inuse)
@@ -817,7 +817,7 @@ public class PlayerClient {
     public static void CopyToBodyQue(SubgameEntity ent) {
 
         // grab a body que and cycle to the next one
-        int i = (int) GameBase.maxclients.value + GameBase.level.body_que + 1;
+        int i = (int) GameBase.game.maxclients + GameBase.level.body_que + 1;
         SubgameEntity body = GameBase.g_edicts[i];
         GameBase.level.body_que = (GameBase.level.body_que + 1)
                 % GameDefines.BODY_QUEUE_SIZE;
@@ -905,7 +905,7 @@ public class PlayerClient {
             }
 
             // count spectators
-            for (i = 1, numspec = 0; i <= GameBase.maxclients.value; i++) {
+            for (i = 1, numspec = 0; i <= GameBase.game.maxclients; i++) {
                 gclient_t other = GameBase.g_edicts[i].getClient();
                 if (GameBase.g_edicts[i].inuse && other.pers.spectator)
                     numspec++;
@@ -1284,7 +1284,7 @@ public class PlayerClient {
             }
 
             // count spectators
-            for (i = numspec = 0; i < GameBase.maxclients.value; i++) {
+            for (i = numspec = 0; i < GameBase.game.maxclients; i++) {
                 gclient_t other = GameBase.g_edicts[i + 1].getClient();
                 if (GameBase.g_edicts[i + 1].inuse && other.pers.spectator)
                     numspec++;
@@ -1534,7 +1534,7 @@ public class PlayerClient {
         }
 
         // update chase cam if being followed
-        for (i = 1; i <= GameBase.maxclients.value; i++) {
+        for (i = 1; i <= GameBase.game.maxclients; i++) {
             other = GameBase.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && otherClient.chase_target == ent)

@@ -69,7 +69,7 @@ public class DancingQueens {
 
 	String DRIVER = "lwjgl";
 	
-        Qcommon.Init(new String[] { "DancingQueens", "+set", "gl_mode", "4",
+        Jake2.Init(new String[] { "DancingQueens", "+set", "gl_mode", "4",
                 "+set", "vid_fullscreen", "0", "+set", "vid_ref", DRIVER });
         // sehr wichtig !!!
         VID.Shutdown();
