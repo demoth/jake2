@@ -215,7 +215,6 @@ public class GameBase {
      * will be returned if the end of the list is reached.
      * 
      */
-
     static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
                                 String s) {
 
@@ -227,7 +226,7 @@ public class GameBase {
         for (; from.i < num_edicts; from.i++) {
             from.o = g_edicts[from.i];
             if (from.o.classname == null) {
-                Com.Printf("edict with classname = null" + from.o.index);
+                gi.dprintf("edict with classname = null" + from.o.index);
             }
 
             if (!from.o.inuse)
@@ -283,18 +282,17 @@ public class GameBase {
         return null;
     }
 
-    /**
+    /*
      * Searches all active entities for the next one that holds the matching
      * string at fieldofs (use the FOFS() macro) in the structure.
-     * 
+     *
      * Searches beginning at the edict after from, or the beginning if null null
      * will be returned if the end of the list is reached.
      */
 
-    private static int MAXCHOICES = 8;
-
     public static SubgameEntity G_PickTarget(String targetname) {
         int num_choices = 0;
+        int MAXCHOICES = 8;
         SubgameEntity[] choice = new SubgameEntity[MAXCHOICES];
 
         if (targetname == null) {
@@ -338,14 +336,7 @@ public class GameBase {
         Math3D.VectorClear(angles);
     }
 
-    public static String G_CopyString(String in) {
-        return new String(in);
-    }
-
-    /**
-     * G_TouchTriggers
-     */
-
+    // todo: replace with returned collection from gi.BoxEdicts
     private static SubgameEntity touch[] = new SubgameEntity[Defines.MAX_EDICTS];
 
     static void G_TouchTriggers(SubgameEntity ent) {
@@ -397,7 +388,7 @@ public class GameBase {
         if (ent.prethink != null)
             ent.prethink.think(ent);
 
-        switch ((int) ent.movetype) {
+        switch (ent.movetype) {
         case GameDefines.MOVETYPE_PUSH:
         case GameDefines.MOVETYPE_STOP:
             SV.SV_Physics_Pusher(ent);
@@ -419,24 +410,6 @@ public class GameBase {
             break;
         default:
             gi.error("SV_Physics: bad movetype " + (int) ent.movetype);
-        }
-    }
-
-    public static void ClearBounds(float[] mins, float[] maxs) {
-        mins[0] = mins[1] = mins[2] = 99999;
-        maxs[0] = maxs[1] = maxs[2] = -99999;
-    }
-
-    static void AddPointToBounds(float[] v, float[] mins, float[] maxs) {
-        int i;
-        float val;
-
-        for (i = 0; i < 3; i++) {
-            val = v[i];
-            if (val < mins[i])
-                mins[i] = val;
-            if (val > maxs[i])
-                maxs[i] = val;
         }
     }
 
