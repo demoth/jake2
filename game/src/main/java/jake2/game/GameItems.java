@@ -859,19 +859,6 @@ public class GameItems {
         return null;
     }
 
-    static gitem_t FindItemByName(String name) {
-        for (int i = 1; i < GameBase.game.num_items; i++) {
-            gitem_t it = GameItemList.itemlist[i];
-
-            if (it.classname == null)
-                continue;
-            if (it.classname.equalsIgnoreCase(name))
-                return it;
-        }
-        Com.Println("Item not found:" + name);
-        return null;
-    }
-
     static void SetRespawn(SubgameEntity ent, float delay) {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;

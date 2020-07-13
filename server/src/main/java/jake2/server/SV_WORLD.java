@@ -162,7 +162,7 @@ class SV_WORLD {
         int topnode = 0;
         if (ent.area.prev != null)
             SV_UnlinkEdict(ent); // unlink from old position
-        if (ent == SV_GAME.gameExports.getEdict(0))
+        if (ent == SV_INIT.gameExports.getEdict(0))
             return; // don't add the world
         if (!ent.inuse)
             return;
@@ -496,7 +496,7 @@ class SV_WORLD {
 
         // clip to world
         clip.trace = CM.BoxTrace(start, end, mins, maxs, 0, contentmask);
-        clip.trace.ent = SV_GAME.gameExports.getEdict(0);
+        clip.trace.ent = SV_INIT.gameExports.getEdict(0);
         if (clip.trace.fraction == 0)
             return clip.trace; // blocked by the world
         clip.contentmask = contentmask;
