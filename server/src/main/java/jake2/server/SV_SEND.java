@@ -94,7 +94,7 @@ public class SV_SEND {
 		}
 
 		for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-			cl = SV_INIT.svs.clients[i];
+			cl = SV_INIT.gameImports.svs.clients[i];
 			if (level < cl.messagelevel)
 				continue;
 			if (cl.state != ClientStates.CS_SPAWNED)
@@ -152,8 +152,8 @@ public class SV_SEND {
 		}
 
 		// if doing a serverrecord, store everything
-		if (SV_INIT.svs.demofile != null)
-			SZ.Write(SV_INIT.svs.demo_multicast, SV_INIT.sv.multicast.data, SV_INIT.sv.multicast.cursize);
+		if (SV_INIT.gameImports.svs.demofile != null)
+			SZ.Write(SV_INIT.gameImports.svs.demo_multicast, SV_INIT.sv.multicast.data, SV_INIT.sv.multicast.cursize);
 
 		switch (to) {
 			case MULTICAST_ALL_R :
@@ -186,7 +186,7 @@ public class SV_SEND {
 
 		// send the data to all relevent clients
 		for (j = 0; j < SV_MAIN.maxclients.value; j++) {
-			client = SV_INIT.svs.clients[j];
+			client = SV_INIT.gameImports.svs.clients[j];
 
 			if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
 				continue;
@@ -497,7 +497,7 @@ public class SV_SEND {
 
 		// send a message to each connected client
 		for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-			c = SV_INIT.svs.clients[i];
+			c = SV_INIT.gameImports.svs.clients[i];
 
 			if (c.state == ClientStates.CS_FREE)
 				continue;
