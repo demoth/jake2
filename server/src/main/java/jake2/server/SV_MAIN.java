@@ -138,7 +138,7 @@ public class SV_MAIN {
         status = Cvar.Serverinfo() + "\n";
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_CONNECTED
                     || cl.state == ClientStates.CS_SPAWNED) {
                 player = "" + cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]
@@ -190,8 +190,8 @@ public class SV_MAIN {
         else {
             int count = 0;
             for (int i = 0; i < SV_MAIN.maxclients.value; i++)
-                if (SV_INIT.svs.clients[i].state == ClientStates.CS_CONNECTED ||
-                        SV_INIT.svs.clients[i].state == ClientStates.CS_SPAWNED)
+                if (SV_INIT.gameImports.svs.clients[i].state == ClientStates.CS_CONNECTED ||
+                        SV_INIT.gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
                     count++;
 
             string = SV_MAIN.hostname.string + " " + SV_INIT.sv.name + " "
@@ -226,25 +226,25 @@ public class SV_MAIN {
         // see if we already have a challenge for this ip
         for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
             if (NET.CompareBaseAdr(Globals.net_from,
-                    SV_INIT.svs.challenges[i].adr))
+                    SV_INIT.gameImports.svs.challenges[i].adr))
                 break;
-            if (SV_INIT.svs.challenges[i].time < oldestTime) {
-                oldestTime = SV_INIT.svs.challenges[i].time;
+            if (SV_INIT.gameImports.svs.challenges[i].time < oldestTime) {
+                oldestTime = SV_INIT.gameImports.svs.challenges[i].time;
                 oldest = i;
             }
         }
 
         if (i == Defines.MAX_CHALLENGES) {
             // overwrite the oldest
-            SV_INIT.svs.challenges[oldest].challenge = Lib.rand() & 0x7fff;
-            SV_INIT.svs.challenges[oldest].adr = Globals.net_from;
-            SV_INIT.svs.challenges[oldest].time = (int) Globals.curtime;
+            SV_INIT.gameImports.svs.challenges[oldest].challenge = Lib.rand() & 0x7fff;
+            SV_INIT.gameImports.svs.challenges[oldest].adr = Globals.net_from;
+            SV_INIT.gameImports.svs.challenges[oldest].time = (int) Globals.curtime;
             i = oldest;
         }
 
         // send it back
         Netchan.OutOfBandPrint(Defines.NS_SERVER, Globals.net_from,
-                "challenge " + SV_INIT.svs.challenges[i].challenge);
+                "challenge " + SV_INIT.gameImports.svs.challenges[i].challenge);
     }
 
     /**
@@ -287,8 +287,8 @@ public class SV_MAIN {
         if (!NET.IsLocalAddress(adr)) {
             for (i = 0; i < Defines.MAX_CHALLENGES; i++) {
                 if (NET.CompareBaseAdr(Globals.net_from,
-                        SV_INIT.svs.challenges[i].adr)) {
-                    if (challenge == SV_INIT.svs.challenges[i].challenge)
+                        SV_INIT.gameImports.svs.challenges[i].adr)) {
+                    if (challenge == SV_INIT.gameImports.svs.challenges[i].challenge)
                         break; // good
                     Netchan.OutOfBandPrint(Defines.NS_SERVER, adr,
                             "print\nBad challenge.\n");
@@ -305,14 +305,14 @@ public class SV_MAIN {
         // if there is already a slot for this ip, reuse it
         client_t cl;
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
 
             if (cl.state == ClientStates.CS_FREE)
                 continue;
             if (NET.CompareBaseAdr(adr, cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
                 if (!NET.IsLocalAddress(adr)
-                        && (SV_INIT.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
+                        && (SV_INIT.gameImports.svs.realtime - cl.lastconnect) < ((int) SV_MAIN.sv_reconnect_limit.value * 1000)) {
                     Com.DPrintf(NET.AdrToString(adr)
                             + ":reconnect rejected : too soon\n");
                     return;
@@ -328,7 +328,7 @@ public class SV_MAIN {
         //newcl = null;
         int index = -1;
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_FREE) {
                 index = i;
                 break;
@@ -352,15 +352,15 @@ public class SV_MAIN {
         // accept the new client
         // this is the only place a client_t is ever initialized
 
-        SV_MAIN.sv_client = SV_INIT.svs.clients[i];
+        SV_MAIN.sv_client = SV_INIT.gameImports.svs.clients[i];
         
         int edictnum = i + 1;
         
         edict_t ent = SV_INIT.gameExports.getEdict(edictnum);
-        SV_INIT.svs.clients[i].edict = ent;
+        SV_INIT.gameImports.svs.clients[i].edict = ent;
         
         // save challenge for checksumming
-        SV_INIT.svs.clients[i].challenge = challenge;
+        SV_INIT.gameImports.svs.clients[i].challenge = challenge;
         
         
 
@@ -379,23 +379,23 @@ public class SV_MAIN {
         }
 
         // parse some info from the info strings
-        SV_INIT.svs.clients[i].userinfo = userinfo;
-        SV_UserinfoChanged(SV_INIT.svs.clients[i]);
+        SV_INIT.gameImports.svs.clients[i].userinfo = userinfo;
+        SV_UserinfoChanged(SV_INIT.gameImports.svs.clients[i]);
 
         // send the connect packet to the client
         Netchan.OutOfBandPrint(Defines.NS_SERVER, adr, "client_connect");
 
-        Netchan.Setup(Defines.NS_SERVER, SV_INIT.svs.clients[i].netchan, adr, qport);
+        Netchan.Setup(Defines.NS_SERVER, SV_INIT.gameImports.svs.clients[i].netchan, adr, qport);
 
-        SV_INIT.svs.clients[i].state = ClientStates.CS_CONNECTED;
+        SV_INIT.gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
 
-        SZ.Init(SV_INIT.svs.clients[i].datagram,
-                SV_INIT.svs.clients[i].datagram_buf,
-                SV_INIT.svs.clients[i].datagram_buf.length);
+        SZ.Init(SV_INIT.gameImports.svs.clients[i].datagram,
+                SV_INIT.gameImports.svs.clients[i].datagram_buf,
+                SV_INIT.gameImports.svs.clients[i].datagram_buf.length);
         
-        SV_INIT.svs.clients[i].datagram.allowoverflow = true;
-        SV_INIT.svs.clients[i].lastmessage = SV_INIT.svs.realtime; // don't timeout
-        SV_INIT.svs.clients[i].lastconnect = SV_INIT.svs.realtime;
+        SV_INIT.gameImports.svs.clients[i].datagram.allowoverflow = true;
+        SV_INIT.gameImports.svs.clients[i].lastmessage = SV_INIT.gameImports.svs.realtime; // don't timeout
+        SV_INIT.gameImports.svs.clients[i].lastconnect = SV_INIT.gameImports.svs.realtime;
         Com.DPrintf("new client added.\n");
     }
 
@@ -507,7 +507,7 @@ public class SV_MAIN {
         int total, count;
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state != ClientStates.CS_SPAWNED)
                 continue;
 
@@ -541,7 +541,7 @@ public class SV_MAIN {
             return;
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
@@ -578,7 +578,7 @@ public class SV_MAIN {
 
             // check for packets from connected clients
             for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-                cl = SV_INIT.svs.clients[i];
+                cl = SV_INIT.gameImports.svs.clients[i];
                 if (cl.state == ClientStates.CS_FREE)
                     continue;
                 if (!NET.CompareBaseAdr(Globals.net_from,
@@ -594,7 +594,7 @@ public class SV_MAIN {
                 if (Netchan.Process(cl.netchan, Globals.net_message)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = SV_INIT.svs.realtime; // don't timeout
+                        cl.lastmessage = SV_INIT.gameImports.svs.realtime; // don't timeout
                         SV_USER.SV_ExecuteClientMessage(cl);
                     }
                 }
@@ -621,14 +621,14 @@ public class SV_MAIN {
         int droppoint;
         int zombiepoint;
 
-        droppoint = (int) (SV_INIT.svs.realtime - 1000 * SV_MAIN.timeout.value);
-        zombiepoint = (int) (SV_INIT.svs.realtime - 1000 * SV_MAIN.zombietime.value);
+        droppoint = (int) (SV_INIT.gameImports.svs.realtime - 1000 * SV_MAIN.timeout.value);
+        zombiepoint = (int) (SV_INIT.gameImports.svs.realtime - 1000 * SV_MAIN.zombietime.value);
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            cl = SV_INIT.svs.clients[i];
+            cl = SV_INIT.gameImports.svs.clients[i];
             // message times may be wrong across a changelevel
-            if (cl.lastmessage > SV_INIT.svs.realtime)
-                cl.lastmessage = SV_INIT.svs.realtime;
+            if (cl.lastmessage > SV_INIT.gameImports.svs.realtime)
+                cl.lastmessage = SV_INIT.gameImports.svs.realtime;
 
             if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
                 cl.state = ClientStates.CS_FREE; // can now be reused
@@ -681,10 +681,10 @@ public class SV_MAIN {
             SV_INIT.gameExports.G_RunFrame();
 
             // never get more than one tic behind
-            if (SV_INIT.sv.time < SV_INIT.svs.realtime) {
+            if (SV_INIT.sv.time < SV_INIT.gameImports.svs.realtime) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv highclamp\n");
-                SV_INIT.svs.realtime = SV_INIT.sv.time;
+                SV_INIT.gameImports.svs.realtime = SV_INIT.sv.time;
             }
         }
 
@@ -701,10 +701,10 @@ public class SV_MAIN {
 
         // if server is not active, do nothing
         // like when connected to another server
-        if (!SV_INIT.svs.initialized)
+        if (!SV_INIT.gameImports.svs.initialized)
             return;
 
-        SV_INIT.svs.realtime += msec;
+        SV_INIT.gameImports.svs.realtime += msec;
 
         // keep the random time dependent
         Lib.rand();
@@ -720,14 +720,14 @@ public class SV_MAIN {
 
         // move autonomous things around if enough time has passed
         if (0 == SV_MAIN.sv_timedemo.value
-                && SV_INIT.svs.realtime < SV_INIT.sv.time) {
+                && SV_INIT.gameImports.svs.realtime < SV_INIT.sv.time) {
             // never let the time get too far off
-            if (SV_INIT.sv.time - SV_INIT.svs.realtime > 100) {
+            if (SV_INIT.sv.time - SV_INIT.gameImports.svs.realtime > 100) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv lowclamp\n");
-                SV_INIT.svs.realtime = SV_INIT.sv.time - 100;
+                SV_INIT.gameImports.svs.realtime = SV_INIT.sv.time - 100;
             }
-            NET.Sleep(SV_INIT.sv.time - SV_INIT.svs.realtime);
+            NET.Sleep(SV_INIT.sv.time - SV_INIT.gameImports.svs.realtime);
             return;
         }
 
@@ -767,13 +767,13 @@ public class SV_MAIN {
             return; // a private dedicated game
 
         // check for time wraparound
-        if (SV_INIT.svs.last_heartbeat > SV_INIT.svs.realtime)
-            SV_INIT.svs.last_heartbeat = SV_INIT.svs.realtime;
+        if (SV_INIT.gameImports.svs.last_heartbeat > SV_INIT.gameImports.svs.realtime)
+            SV_INIT.gameImports.svs.last_heartbeat = SV_INIT.gameImports.svs.realtime;
 
-        if (SV_INIT.svs.realtime - SV_INIT.svs.last_heartbeat < SV_MAIN.HEARTBEAT_SECONDS * 1000)
+        if (SV_INIT.gameImports.svs.realtime - SV_INIT.gameImports.svs.last_heartbeat < SV_MAIN.HEARTBEAT_SECONDS * 1000)
             return; // not time to send yet
 
-        SV_INIT.svs.last_heartbeat = SV_INIT.svs.realtime;
+        SV_INIT.gameImports.svs.last_heartbeat = SV_INIT.gameImports.svs.realtime;
 
         // send the same string that we would give for a status OOB command
         string = SV_StatusString();
@@ -928,14 +928,14 @@ public class SV_MAIN {
         // send it twice
         // stagger the packets to crutch operating system limited buffers
 
-        for (i = 0; i < SV_INIT.svs.clients.length; i++) {
-            cl = SV_INIT.svs.clients[i];
+        for (i = 0; i < SV_INIT.gameImports.svs.clients.length; i++) {
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
                         Globals.net_message.data);
         }
-        for (i = 0; i < SV_INIT.svs.clients.length; i++) {
-            cl = SV_INIT.svs.clients[i];
+        for (i = 0; i < SV_INIT.gameImports.svs.clients.length; i++) {
+            cl = SV_INIT.gameImports.svs.clients[i];
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                 Netchan.Transmit(cl.netchan, Globals.net_message.cursize,
                         Globals.net_message.data);
@@ -946,7 +946,7 @@ public class SV_MAIN {
      * Called when each game quits, before Sys_Quit or Sys_Error.
      */
     public static void SV_Shutdown(String finalmsg, boolean reconnect) {
-        if (SV_INIT.svs.clients != null)
+        if (SV_INIT.gameImports.svs.clients != null)
             SV_FinalMessage(finalmsg, reconnect);
 
         Master_Shutdown();
@@ -965,13 +965,13 @@ public class SV_MAIN {
 
         Globals.server_state = SV_INIT.sv.state;
 
-        if (SV_INIT.svs.demofile != null)
+        if (SV_INIT.gameImports.svs.demofile != null)
             try {
-                SV_INIT.svs.demofile.close();
+                SV_INIT.gameImports.svs.demofile.close();
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
 
-        SV_INIT.svs = new server_static_t();
+        SV_INIT.gameImports.svs = new server_static_t();
     }
 }

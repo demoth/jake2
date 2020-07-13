@@ -49,7 +49,7 @@ public class SV_GAME {
         if (p < 1 || p > SV_MAIN.maxclients.value)
             return;
 
-        client = SV_INIT.svs.clients[p - 1];
+        client = SV_INIT.gameImports.svs.clients[p - 1];
 
         if (reliable)
             SZ.Write(client.netchan.message, SV_INIT.sv.multicast.data,
@@ -84,7 +84,7 @@ public class SV_GAME {
         }
 
         if (ent != null)
-            SV_SEND.SV_ClientPrintf(SV_INIT.svs.clients[n - 1], level, fmt);
+            SV_SEND.SV_ClientPrintf(SV_INIT.gameImports.svs.clients[n - 1], level, fmt);
         else
             Com.Printf(fmt);
     }
