@@ -35,8 +35,14 @@ import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Constructor;
+
+import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SV_INIT {
+
+    // todo implement singleton
+    public static GameExports gameExports;
 
     /**
      * SV_FindIndex.
@@ -91,8 +97,8 @@ public class SV_INIT {
      * only the fields that differ from the baseline will be transmitted.
      */
     private static void SV_CreateBaseline() {
-        for (int entnum = 1; entnum < SV_GAME.gameExports.getNumEdicts(); entnum++) {
-            edict_t svent = SV_GAME.gameExports.getEdict(entnum);
+        for (int entnum = 1; entnum < gameExports.getNumEdicts(); entnum++) {
+            edict_t svent = gameExports.getEdict(entnum);
 
             if (!svent.inuse)
                 continue;
@@ -156,7 +162,7 @@ public class SV_INIT {
             previousState = sv.state; // PGM
             sv.state = ServerStates.SS_LOADING; // PGM
             for (i = 0; i < 100; i++)
-                SV_GAME.gameExports.G_RunFrame();
+                gameExports.G_RunFrame();
 
             sv.state = previousState; // PGM
         }
@@ -263,11 +269,11 @@ public class SV_INIT {
         Globals.server_state = sv.state;
 
         // load and spawn all other entities
-        SV_GAME.gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
+        gameExports.SpawnEntities(sv.name, CM.CM_EntityString(), spawnpoint);
 
         // run two frames to allow everything to settle
-        SV_GAME.gameExports.G_RunFrame();
-        SV_GAME.gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
+        gameExports.G_RunFrame();
 
         // all precaches are complete
         sv.state = serverstate;
@@ -290,9 +296,7 @@ public class SV_INIT {
      * A brand new game has been started.
      */
     static void SV_InitGame() {
-        int i;
         //char idmaster[32];
-        String idmaster;
 
         if (svs.initialized) {
             // cause any connected clients to reconnect
@@ -363,15 +367,34 @@ public class SV_INIT {
 
         // heartbeats will always be sent to the id master
         svs.last_heartbeat = -99999; // send immediately
-        idmaster = "192.246.40.37:" + Defines.PORT_MASTER;
-        NET.StringToAdr(idmaster, SV_MAIN.master_adr[0]);
+        NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
+        // this is one of the most important points of game initialization:
+        // new instance of game mode is created and is ready to update.
+        // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
+        // todo: put server initialization code above into constructor of GameImportsImpl
         // init game
-        SV_GAME.SV_InitGameProgs();
+        gameExports = createGameModInstance(new GameImportsImpl());
 
-        for (i = 0; i < SV_MAIN.maxclients.value; i++) {
-            svs.clients[i].edict = SV_GAME.gameExports.getEdict(i + 1);
+        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
+            svs.clients[i].edict = gameExports.getEdict(i + 1);
             svs.clients[i].lastcmd = new usercmd_t();
+        }
+    }
+
+    /**
+     * Find and create an instance of the game subsystem
+     */
+    private static GameExports createGameModInstance(GameImportsImpl gameImports) {
+
+        // todo: introduce proper Dependency Injection
+        try {
+            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
+            Constructor<?> constructor = game.getConstructor(GameImports.class);
+            return (GameExports) constructor.newInstance(gameImports);
+        } catch (Exception e) {
+            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
+            return null;
         }
     }
 

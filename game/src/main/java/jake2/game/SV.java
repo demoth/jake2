@@ -35,7 +35,7 @@ import jake2.qcommon.util.Math3D;
  */
 final class SV {
 
-    private cvar_t sv_maxvelocity = new cvar_t();
+    private final cvar_t sv_maxvelocity;
 
     SV(GameImports gameImports) {
         sv_maxvelocity = gameImports.cvar("sv_maxvelocity", "2000", 0);

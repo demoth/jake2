@@ -94,11 +94,16 @@ public final class Cbuf {
      */
     public static void AddEarlyCommands(List<String> args, boolean clear) {
         for (int i = 0; i < args.size(); i++) {
-            String s = args.get(i);
-            if (!s.equals("+set") || args.size() < i + 2)
+            if (!args.get(i).equals("+set") || args.size() < i + 2)
                 continue;
 
-            buffer.add("set " + args.get(i + 1) + " " + args.get(i + 2));
+            // varName must not contain spaces
+            final String varName = args.get(i + 1);
+
+            // value can contain spaces
+            final String value = args.get(i + 2);
+
+            buffer.add("set " + varName + " \"" + value + '"');
 
             if (clear) {
                 args.set(i, "");

@@ -328,7 +328,7 @@ public class SV_CCMDS {
 		}
 
 		name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sav";
-		SV_GAME.gameExports.WriteLevel(name);
+		SV_INIT.gameExports.WriteLevel(name);
 	}
 	/*
 	==============
@@ -357,7 +357,7 @@ public class SV_CCMDS {
 		}
 
 		name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sav";
-		SV_GAME.gameExports.ReadLevel(name);
+		SV_INIT.gameExports.ReadLevel(name);
 	}
 	/*
 	==============
@@ -419,7 +419,7 @@ public class SV_CCMDS {
 		}
 
 		// write game state
-		SV_GAME.gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
+		SV_INIT.gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
 	}
 	/*
 	==============
@@ -464,7 +464,7 @@ public class SV_CCMDS {
 
 			// read game state
 			filename = FS.getWriteDir() + "/save/current/game.ssv";
-			SV_GAME.gameExports.ReadGame(filename);
+			SV_INIT.gameExports.ReadGame(filename);
 		}
 		catch (Exception e) {
 			Com.Printf("Couldn't read file " + filename + "\n");
@@ -1023,8 +1023,8 @@ public class SV_CCMDS {
 		Cmd.AddCommand("load", SV_CCMDS::SV_Loadgame_f);
 		Cmd.AddCommand("killserver", (List<String> args) -> SV_KillServer_f());
 		Cmd.AddCommand("sv", args -> {
-			if (SV_GAME.gameExports != null)
-				SV_GAME.gameExports.ServerCommand(args);
+			if (SV_INIT.gameExports != null)
+				SV_INIT.gameExports.ServerCommand(args);
 		});
 		Cmd.AddCommand("jvm_memory", (List<String> args) -> VM_Mem_f());
 		Cmd.AddCommand("sv_shutdown", args -> {

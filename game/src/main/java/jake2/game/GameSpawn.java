@@ -1456,7 +1456,7 @@ public class GameSpawn {
         GameBase.gi.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
-        gitem_t gitem_t = GameItems.FindItemByName(className);
+        gitem_t gitem_t = GameItems.FindItemByClassname(className);
         if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
             SubgameEntity newThing = G_Spawn();

@@ -33,9 +33,6 @@ import static jake2.qcommon.Defines.ERR_FATAL;
 
 public class SV_GAME {
 
-    // todo implement singleton
-    public static GameExports gameExports;
-
     /**
      * PF_Unicast
      * 
@@ -275,18 +272,4 @@ public class SV_GAME {
 
     }
 
-    /**
-     * Find and create an instance of the game subsystem
-     */
-    static void SV_InitGameProgs() {
-
-        // todo: introduce proper Dependency Injection
-        try {
-            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
-            Constructor<?> constructor = game.getConstructor(GameImports.class);
-            gameExports = (GameExports) constructor.newInstance(new GameImportsImpl());
-        } catch (Exception e) {
-            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
-        }
-    }
 }
