@@ -30,7 +30,6 @@ import jake2.qcommon.filesystem.FS;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetworkCommands;
-import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class SV_INIT {
 
     // todo implement singleton
     public static GameExports gameExports;
-
+    public static GameImportsImpl gameImports;
     /**
      * SV_FindIndex.
      */
@@ -193,7 +192,7 @@ public class SV_INIT {
             }
 
         // any partially connected client will be restarted
-        svs.spawncount++;        
+        gameImports.svs.spawncount++;
 
         sv.state = ServerStates.SS_DEAD;
 
@@ -202,7 +201,7 @@ public class SV_INIT {
         // wipe the entire per-level structure
         sv = new server_t();
 
-        svs.realtime = 0;
+        gameImports.svs.realtime = 0;
         sv.loadgame = loadgame;
         sv.attractloop = attractloop;
 
@@ -225,9 +224,9 @@ public class SV_INIT {
         // leave slots at start for clients only
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
             // needs to reconnect
-            if (svs.clients[i].state == ClientStates.CS_SPAWNED)
-                svs.clients[i].state = ClientStates.CS_CONNECTED;
-            svs.clients[i].lastframe = -1;
+            if (gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
+                gameImports.svs.clients[i].state = ClientStates.CS_CONNECTED;
+            gameImports.svs.clients[i].lastframe = -1;
         }
 
         sv.time = 1000;
@@ -296,9 +295,8 @@ public class SV_INIT {
      * A brand new game has been started.
      */
     static void SV_InitGame() {
-        //char idmaster[32];
 
-        if (svs.initialized) {
+        if (gameImports != null) {
             // cause any connected clients to reconnect
             SV_MAIN.SV_Shutdown("Server restarted\n", true);
         } else {
@@ -308,65 +306,38 @@ public class SV_INIT {
         }
 
         // get any latched variable changes (maxclients, etc)
-        Cvar.GetLatchedVars();
+        Cvar.updateLatchedVars();
+        gameImports = new GameImportsImpl();
 
-        svs.initialized = true;
-
-        if (Cvar.VariableValue("coop") != 0
-                && Cvar.VariableValue("deathmatch") != 0) {
+        if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
-            Cvar.FullSet("coop", "0", Defines.CVAR_SERVERINFO
-                    | Defines.CVAR_LATCH);
+            Cvar.FullSet("coop", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
         if (Globals.dedicated.value != 0) {
             if (0 == Cvar.VariableValue("coop"))
-                Cvar.FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("deathmatch", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
 
-        // init clients
+        // set max clients based on game mode
         if (Cvar.VariableValue("deathmatch") != 0) {
             if (SV_MAIN.maxclients.value <= 1)
-                Cvar.FullSet("maxclients", "8", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "8", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
             else if (SV_MAIN.maxclients.value > Defines.MAX_CLIENTS)
-                Cvar.FullSet("maxclients", "" + Defines.MAX_CLIENTS,
-                        Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "" + Defines.MAX_CLIENTS, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         } else if (Cvar.VariableValue("coop") != 0) {
             if (SV_MAIN.maxclients.value <= 1 || SV_MAIN.maxclients.value > 4)
-                Cvar.FullSet("maxclients", "4", Defines.CVAR_SERVERINFO
-                        | Defines.CVAR_LATCH);
+                Cvar.FullSet("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
 
-        } else // non-deathmatch, non-coop is one player
-        {
-            Cvar.FullSet("maxclients", "1", Defines.CVAR_SERVERINFO
-                    | Defines.CVAR_LATCH);
+        } else {
+            // non-deathmatch, non-coop is one player
+            Cvar.FullSet("maxclients", "1", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
         }
-
-        svs.spawncount = Lib.rand();
-
-        // Clear all clients
-        svs.clients = new client_t[(int) SV_MAIN.maxclients.value];
-        for (int n = 0; n < svs.clients.length; n++) {
-            svs.clients[n] = new client_t();
-            svs.clients[n].serverindex = n;
-        }
-        svs.num_client_entities = ((int) SV_MAIN.maxclients.value)
-                * Defines.UPDATE_BACKUP * 64; //ok.
-
-        // Clear all client entity states
-        svs.client_entities = new entity_state_t[svs.num_client_entities];
-        for (int n = 0; n < svs.client_entities.length; n++)
-            svs.client_entities[n] = new entity_state_t(null);
 
         // init network stuff
         NET.Config((SV_MAIN.maxclients.value > 1));
-
-        // heartbeats will always be sent to the id master
-        svs.last_heartbeat = -99999; // send immediately
         NET.StringToAdr("192.246.40.37:" + Defines.PORT_MASTER, SV_MAIN.master_adr[0]);
 
         // this is one of the most important points of game initialization:
@@ -374,12 +345,9 @@ public class SV_INIT {
         // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
         // todo: put server initialization code above into constructor of GameImportsImpl
         // init game
-        gameExports = createGameModInstance(new GameImportsImpl());
+        gameExports = createGameModInstance(gameImports);
 
-        for (int i = 0; i < SV_MAIN.maxclients.value; i++) {
-            svs.clients[i].edict = gameExports.getEdict(i + 1);
-            svs.clients[i].lastcmd = new usercmd_t();
-        }
+        gameImports.resetClients(gameExports);
     }
 
     /**
@@ -491,9 +459,6 @@ public class SV_INIT {
 
         SV_SEND.SV_BroadcastCommand("reconnect\n");
     }
-
-    static server_static_t svs = new server_static_t(); // persistant
-                                                               // server info
 
     public static server_t sv = new server_t(); // local server
 }

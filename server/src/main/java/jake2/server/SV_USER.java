@@ -117,7 +117,7 @@ class SV_USER {
                 Defines.PROTOCOL_VERSION);
         
         MSG.WriteLong(SV_MAIN.sv_client.netchan.message,
-                        SV_INIT.svs.spawncount);
+                        SV_INIT.gameImports.svs.spawncount);
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                 SV_INIT.sv.attractloop ? 1 : 0);
         MSG.WriteString(SV_MAIN.sv_client.netchan.message, gamedir);
@@ -149,7 +149,7 @@ class SV_USER {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                     NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message,
-                    "cmd configstrings " + SV_INIT.svs.spawncount + " 0\n");
+                    "cmd configstrings " + SV_INIT.gameImports.svs.spawncount + " 0\n");
         }
         
     }
@@ -168,7 +168,7 @@ class SV_USER {
 
         // handle the case of a level changing while a client was connecting
         int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
-        if (spawnCount != SV_INIT.svs.spawncount) {
+        if (spawnCount != SV_INIT.gameImports.svs.spawncount) {
             Com.Printf("SV_Configstrings_f from different level\n");
             SV_New_f(args);
             return;
@@ -197,12 +197,12 @@ class SV_USER {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                     NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "cmd baselines "
-                    + SV_INIT.svs.spawncount + " 0\n");
+                    + SV_INIT.gameImports.svs.spawncount + " 0\n");
         } else {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                     NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message,
-                    "cmd configstrings " + SV_INIT.svs.spawncount + " " + start
+                    "cmd configstrings " + SV_INIT.gameImports.svs.spawncount + " " + start
                             + "\n");
         }
     }
@@ -221,7 +221,7 @@ class SV_USER {
 
         // handle the case of a level changing while a client was connecting
         int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
-        if (spawnCount != SV_INIT.svs.spawncount) {
+        if (spawnCount != SV_INIT.gameImports.svs.spawncount) {
             Com.Printf("SV_Baselines_f from different level\n");
             SV_New_f(args);
             return;
@@ -252,12 +252,12 @@ class SV_USER {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                     NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "precache "
-                    + SV_INIT.svs.spawncount + "\n");
+                    + SV_INIT.gameImports.svs.spawncount + "\n");
         } else {
             MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                     NetworkCommands.svc_stufftext);
             MSG.WriteString(SV_MAIN.sv_client.netchan.message, "cmd baselines "
-                    + SV_INIT.svs.spawncount + " " + start + "\n");
+                    + SV_INIT.gameImports.svs.spawncount + " " + start + "\n");
         }
     }
 
@@ -269,7 +269,7 @@ class SV_USER {
 
         // handle the case of a level changing while a client was connecting
         int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
-        if (spawnCount != SV_INIT.svs.spawncount) {
+        if (spawnCount != SV_INIT.gameImports.svs.spawncount) {
             Com.Printf("SV_Begin_f from different level\n");
             SV_New_f(args);
             return;
@@ -427,7 +427,7 @@ class SV_USER {
                         0 == Cvar.VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
-        SV_INIT.svs.spawncount++; // make sure another doesn't sneak in
+        SV_INIT.gameImports.svs.spawncount++; // make sure another doesn't sneak in
         v = Cvar.VariableString("nextserver");
         //if (!v[0])
         if (v.length() == 0)
@@ -447,7 +447,7 @@ class SV_USER {
      */
     private static void SV_Nextserver_f(List<String> args) {
         int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
-        if (spawnCount != SV_INIT.svs.spawncount) {
+        if (spawnCount != SV_INIT.gameImports.svs.spawncount) {
             Com.DPrintf("Nextserver() from wrong level, from "
                     + SV_MAIN.sv_client.name + "\n");
             return; // leftover from last server
@@ -563,7 +563,7 @@ class SV_USER {
                     cl.lastframe = lastframe;
                     if (cl.lastframe > 0) {
                         cl.frame_latency[cl.lastframe
-                                & (Defines.LATENCY_COUNTS - 1)] = SV_INIT.svs.realtime
+                                & (Defines.LATENCY_COUNTS - 1)] = SV_INIT.gameImports.svs.realtime
                                 - cl.frames[cl.lastframe & Defines.UPDATE_MASK].senttime;
                     }
                 }

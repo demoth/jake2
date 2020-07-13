@@ -328,11 +328,10 @@ public class Cvar extends Globals {
     
     /**
      * Any variables with latched values will be updated.
+     * prev: Cvar.GetLatchedVars();
      */
-    public static void GetLatchedVars() {
-        Iterator<cvar_t> iterator = cvarMap.values().iterator();
-        while (iterator.hasNext()) {
-            cvar_t var = iterator.next();
+    public static void updateLatchedVars() {
+        for (cvar_t var : cvarMap.values()) {
             if (var.latched_string == null || var.latched_string.length() == 0)
                 continue;
             var.string = var.latched_string;

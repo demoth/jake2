@@ -72,16 +72,16 @@ public class SV_ENTS {
             if (newindex >= to.num_entities)
                 newnum = 9999;
             else {
-                newent = SV_INIT.svs.client_entities[(to.first_entity + newindex)
-                        % SV_INIT.svs.num_client_entities];
+                newent = SV_INIT.gameImports.svs.client_entities[(to.first_entity + newindex)
+                        % SV_INIT.gameImports.svs.num_client_entities];
                 newnum = newent.number;
             }
 
             if (oldindex >= from_num_entities)
                 oldnum = 9999;
             else {
-                oldent = SV_INIT.svs.client_entities[(from.first_entity + oldindex)
-                        % SV_INIT.svs.num_client_entities];
+                oldent = SV_INIT.gameImports.svs.client_entities[(from.first_entity + oldindex)
+                        % SV_INIT.gameImports.svs.num_client_entities];
                 oldnum = oldent.number;
             }
 
@@ -419,7 +419,7 @@ public class SV_ENTS {
         // this is the frame we are creating
         frame = client.frames[SV_INIT.sv.framenum & Defines.UPDATE_MASK];
 
-        frame.senttime = SV_INIT.svs.realtime; // save it for ping calc later
+        frame.senttime = SV_INIT.gameImports.svs.realtime; // save it for ping calc later
 
         // find the client's PVS
         for (i = 0; i < 3; i++)
@@ -441,7 +441,7 @@ public class SV_ENTS {
 
         // build up the list of visible entities
         frame.num_entities = 0;
-        frame.first_entity = SV_INIT.svs.next_client_entities;
+        frame.first_entity = SV_INIT.gameImports.svs.next_client_entities;
 
         c_fullsend = 0;
 
@@ -509,22 +509,22 @@ public class SV_ENTS {
             }
 
             // add it to the circular client_entities array
-            int ix = SV_INIT.svs.next_client_entities
-                    % SV_INIT.svs.num_client_entities;
-            state = SV_INIT.svs.client_entities[ix];
+            int ix = SV_INIT.gameImports.svs.next_client_entities
+                    % SV_INIT.gameImports.svs.num_client_entities;
+            state = SV_INIT.gameImports.svs.client_entities[ix];
             if (ent.s.number != e) {
                 Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
                 ent.s.number = e;
             }
 
             //*state = ent.s;
-            SV_INIT.svs.client_entities[ix].set(ent.s);
+            SV_INIT.gameImports.svs.client_entities[ix].set(ent.s);
 
             // don't mark players missiles as solid
             if (ent.getOwner() == client.edict)
                 state.solid = 0;
 
-            SV_INIT.svs.next_client_entities++;
+            SV_INIT.gameImports.svs.next_client_entities++;
             frame.num_entities++;
         }
     }
@@ -538,7 +538,7 @@ public class SV_ENTS {
      * footage for merged or assembled demos.
      */
     public static void SV_RecordDemoMessage() {
-        if (SV_INIT.svs.demofile == null)
+        if (SV_INIT.gameImports.svs.demofile == null)
             return;
 
         //memset (nostate, 0, sizeof(nostate));
@@ -571,18 +571,18 @@ public class SV_ENTS {
         MSG.WriteShort(buf, 0); // end of packetentities
 
         // now add the accumulated multicast information
-        SZ.Write(buf, SV_INIT.svs.demo_multicast.data,
-                SV_INIT.svs.demo_multicast.cursize);
-        SV_INIT.svs.demo_multicast.clear();
+        SZ.Write(buf, SV_INIT.gameImports.svs.demo_multicast.data,
+                SV_INIT.gameImports.svs.demo_multicast.cursize);
+        SV_INIT.gameImports.svs.demo_multicast.clear();
 
         // now write the entire message to the file, prefixed by the length
         int len = EndianHandler.swapInt(buf.cursize);
 
         try {
             //fwrite (len, 4, 1, svs.demofile);
-            SV_INIT.svs.demofile.writeInt(len);
+            SV_INIT.gameImports.svs.demofile.writeInt(len);
             //fwrite (buf.data, buf.cursize, 1, svs.demofile);
-            SV_INIT.svs.demofile.write(buf.data, 0, buf.cursize);
+            SV_INIT.gameImports.svs.demofile.write(buf.data, 0, buf.cursize);
         } catch (IOException e1) {
             Com.Printf("Error writing demo file:" + e);
         }
