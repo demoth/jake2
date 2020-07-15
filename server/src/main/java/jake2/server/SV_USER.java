@@ -39,7 +39,7 @@ class SV_USER {
 
     static edict_t sv_player;
 
-    private static Map<String, Command> userCommands;
+    private static final Map<String, Command> userCommands;
 
     static {
         userCommands = new HashMap<>();
@@ -74,9 +74,9 @@ class SV_USER {
      */
     private static void SV_BeginDemoserver() {
 
-        String name = "demos/" + SV_INIT.sv.name;
-        SV_INIT.sv.demofile = FS.FOpenFile(name);
-        if (SV_INIT.sv.demofile == null)
+        String name = "demos/" + SV_INIT.gameImports.sv.name;
+        SV_INIT.gameImports.sv.demofile = FS.FOpenFile(name);
+        if (SV_INIT.gameImports.sv.demofile == null)
             Com.Error(Defines.ERR_DROP, "Couldn't open " + name + "\n");
     }
 
@@ -99,7 +99,7 @@ class SV_USER {
         }
 
         // demo servers just dump the file message
-        if (SV_INIT.sv.state == ServerStates.SS_DEMO) {
+        if (SV_INIT.gameImports.sv.state == ServerStates.SS_DEMO) {
             SV_BeginDemoserver();
             return;
         }
@@ -119,11 +119,11 @@ class SV_USER {
         MSG.WriteLong(SV_MAIN.sv_client.netchan.message,
                         SV_INIT.gameImports.svs.spawncount);
         MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
-                SV_INIT.sv.attractloop ? 1 : 0);
+                SV_INIT.gameImports.sv.attractloop ? 1 : 0);
         MSG.WriteString(SV_MAIN.sv_client.netchan.message, gamedir);
 
-        if (SV_INIT.sv.state == ServerStates.SS_CINEMATIC
-                || SV_INIT.sv.state == ServerStates.SS_PIC)
+        if (SV_INIT.gameImports.sv.state == ServerStates.SS_CINEMATIC
+                || SV_INIT.gameImports.sv.state == ServerStates.SS_PIC)
             playernum = -1;
         else
             //playernum = sv_client - svs.clients;
@@ -133,12 +133,12 @@ class SV_USER {
 
         // send full levelname
         MSG.WriteString(SV_MAIN.sv_client.netchan.message,
-                SV_INIT.sv.configstrings[Defines.CS_NAME]);
+                SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME]);
 
         //
         // game server
         // 
-        if (SV_INIT.sv.state == ServerStates.SS_GAME) {
+        if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
             // set up the entity for the client
             edict_t ent = SV_INIT.gameExports.getEdict(playernum + 1);
             ent.s.number = playernum + 1;
@@ -180,13 +180,13 @@ class SV_USER {
 
         while (SV_MAIN.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2
                 && start < Defines.MAX_CONFIGSTRINGS) {
-            if (SV_INIT.sv.configstrings[start] != null
-                    && SV_INIT.sv.configstrings[start].length() != 0) {
+            if (SV_INIT.gameImports.sv.configstrings[start] != null
+                    && SV_INIT.gameImports.sv.configstrings[start].length() != 0) {
                 MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                         NetworkCommands.svc_configstring);
                 MSG.WriteShort(SV_MAIN.sv_client.netchan.message, start);
                 MSG.WriteString(SV_MAIN.sv_client.netchan.message,
-                        SV_INIT.sv.configstrings[start]);
+                        SV_INIT.gameImports.sv.configstrings[start]);
             }
             start++;
         }
@@ -236,7 +236,7 @@ class SV_USER {
 
         while (SV_MAIN.sv_client.netchan.message.cursize < Defines.MAX_MSGLEN / 2
                 && start < Defines.MAX_EDICTS) {
-            entity_state_t base = SV_INIT.sv.baselines[start];
+            entity_state_t base = SV_INIT.gameImports.sv.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 MSG.WriteByte(SV_MAIN.sv_client.netchan.message,
                         NetworkCommands.svc_spawnbaseline);
@@ -422,8 +422,8 @@ class SV_USER {
         String v;
 
         //ZOID, ss_pic can be nextserver'd in coop mode
-        if (SV_INIT.sv.state == ServerStates.SS_GAME
-                || (SV_INIT.sv.state == ServerStates.SS_PIC &&
+        if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME
+                || (SV_INIT.gameImports.sv.state == ServerStates.SS_PIC &&
                         0 == Cvar.VariableValue("coop")))
             return; // can't nextserver while playing a normal game
 
@@ -476,7 +476,7 @@ class SV_USER {
             return;
         }
 
-        if (SV_INIT.sv.state == ServerStates.SS_GAME)
+        if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME)
             SV_INIT.gameExports.ClientCommand(SV_USER.sv_player, args);
     }
 

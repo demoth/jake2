@@ -194,7 +194,7 @@ public class SV_MAIN {
                         SV_INIT.gameImports.svs.clients[i].state == ClientStates.CS_SPAWNED)
                     count++;
 
-            string = SV_MAIN.hostname.string + " " + SV_INIT.sv.name + " "
+            string = SV_MAIN.hostname.string + " " + SV_INIT.gameImports.sv.name + " "
                     + count + "/" + (int) SV_MAIN.maxclients.value + "\n";
         }
 
@@ -273,7 +273,7 @@ public class SV_MAIN {
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", NET.AdrToString(Globals.net_from));
 
         // attractloop servers are ONLY for local clients
-        if (SV_INIT.sv.attractloop) {
+        if (SV_INIT.gameImports.sv.attractloop) {
             if (!NET.IsLocalAddress(adr)) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
                 Netchan.OutOfBandPrint(Defines.NS_SERVER, adr,
@@ -537,7 +537,7 @@ public class SV_MAIN {
         int i;
         client_t cl;
 
-        if ((SV_INIT.sv.framenum & 15) != 0)
+        if ((SV_INIT.gameImports.sv.framenum & 15) != 0)
             return;
 
         for (i = 0; i < SV_MAIN.maxclients.value; i++) {
@@ -673,18 +673,18 @@ public class SV_MAIN {
         // don't run the world, otherwise the delta
         // compression can get confused when a client
         // has the "current" frame
-        SV_INIT.sv.framenum++;
-        SV_INIT.sv.time = SV_INIT.sv.framenum * 100;
+        SV_INIT.gameImports.sv.framenum++;
+        SV_INIT.gameImports.sv.time = SV_INIT.gameImports.sv.framenum * 100;
 
         // don't run if paused
         if (0 == SV_MAIN.sv_paused.value || SV_MAIN.maxclients.value > 1) {
             SV_INIT.gameExports.G_RunFrame();
 
             // never get more than one tic behind
-            if (SV_INIT.sv.time < SV_INIT.gameImports.svs.realtime) {
+            if (SV_INIT.gameImports.sv.time < SV_INIT.gameImports.svs.realtime) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv highclamp\n");
-                SV_INIT.gameImports.svs.realtime = SV_INIT.sv.time;
+                SV_INIT.gameImports.svs.realtime = SV_INIT.gameImports.sv.time;
             }
         }
 
@@ -720,14 +720,14 @@ public class SV_MAIN {
 
         // move autonomous things around if enough time has passed
         if (0 == SV_MAIN.sv_timedemo.value
-                && SV_INIT.gameImports.svs.realtime < SV_INIT.sv.time) {
+                && SV_INIT.gameImports.svs.realtime < SV_INIT.gameImports.sv.time) {
             // never let the time get too far off
-            if (SV_INIT.sv.time - SV_INIT.gameImports.svs.realtime > 100) {
+            if (SV_INIT.gameImports.sv.time - SV_INIT.gameImports.svs.realtime > 100) {
                 if (SV_MAIN.sv_showclamp.value != 0)
                     Com.Printf("sv lowclamp\n");
-                SV_INIT.gameImports.svs.realtime = SV_INIT.sv.time - 100;
+                SV_INIT.gameImports.svs.realtime = SV_INIT.gameImports.sv.time - 100;
             }
-            NET.Sleep(SV_INIT.sv.time - SV_INIT.gameImports.svs.realtime);
+            NET.Sleep(SV_INIT.gameImports.sv.time - SV_INIT.gameImports.svs.realtime);
             return;
         }
 
@@ -954,16 +954,16 @@ public class SV_MAIN {
         Com.Printf("==== ShutdownGame ====\n");
 
         // free current level
-        if (SV_INIT.sv.demofile != null)
+        if (SV_INIT.gameImports.sv != null && SV_INIT.gameImports.sv.demofile != null)
             try {
-                SV_INIT.sv.demofile.close();
+                SV_INIT.gameImports.sv.demofile.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        SV_INIT.sv = new server_t();
+        SV_INIT.gameImports.sv = new server_t();
 
-        Globals.server_state = SV_INIT.sv.state;
+        Globals.server_state = SV_INIT.gameImports.sv.state;
 
         if (SV_INIT.gameImports.svs.demofile != null)
             try {

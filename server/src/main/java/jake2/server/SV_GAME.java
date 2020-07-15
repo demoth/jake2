@@ -52,13 +52,13 @@ public class SV_GAME {
         client = SV_INIT.gameImports.svs.clients[p - 1];
 
         if (reliable)
-            SZ.Write(client.netchan.message, SV_INIT.sv.multicast.data,
-                    SV_INIT.sv.multicast.cursize);
+            SZ.Write(client.netchan.message, SV_INIT.gameImports.sv.multicast.data,
+                    SV_INIT.gameImports.sv.multicast.cursize);
         else
-            SZ.Write(client.datagram, SV_INIT.sv.multicast.data,
-                    SV_INIT.sv.multicast.cursize);
+            SZ.Write(client.datagram, SV_INIT.gameImports.sv.multicast.data,
+                    SV_INIT.gameImports.sv.multicast.cursize);
 
-        SV_INIT.sv.multicast.clear();
+        SV_INIT.gameImports.sv.multicast.clear();
     }
 
     /**
@@ -101,8 +101,8 @@ public class SV_GAME {
         if (n < 1 || n > SV_MAIN.maxclients.value)
             return; // Com_Error (ERR_DROP, "centerprintf to a non-client");
 
-        MSG.WriteByte(SV_INIT.sv.multicast, NetworkCommands.svc_centerprint);
-        MSG.WriteString(SV_INIT.sv.multicast, fmt);
+        MSG.WriteByte(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_centerprint);
+        MSG.WriteString(SV_INIT.gameImports.sv.multicast, fmt);
         PF_Unicast(ent, true);
     }
 
@@ -150,53 +150,53 @@ public class SV_GAME {
             val = "";
 
         // change the string in sv
-        SV_INIT.sv.configstrings[index] = val;
+        SV_INIT.gameImports.sv.configstrings[index] = val;
 
-        if (SV_INIT.sv.state != ServerStates.SS_LOADING) { // send the update to
+        if (SV_INIT.gameImports.sv.state != ServerStates.SS_LOADING) { // send the update to
                                                       // everyone
-            SV_INIT.sv.multicast.clear();
-            MSG.WriteChar(SV_INIT.sv.multicast, NetworkCommands.svc_configstring);
-            MSG.WriteShort(SV_INIT.sv.multicast, index);
-            MSG.WriteString(SV_INIT.sv.multicast, val);
+            SV_INIT.gameImports.sv.multicast.clear();
+            MSG.WriteChar(SV_INIT.gameImports.sv.multicast, NetworkCommands.svc_configstring);
+            MSG.WriteShort(SV_INIT.gameImports.sv.multicast, index);
+            MSG.WriteString(SV_INIT.gameImports.sv.multicast, val);
 
             SV_SEND.SV_Multicast(Globals.vec3_origin, MulticastTypes.MULTICAST_ALL_R);
         }
     }
 
     public static void PF_WriteChar(int c) {
-        MSG.WriteChar(SV_INIT.sv.multicast, c);
+        MSG.WriteChar(SV_INIT.gameImports.sv.multicast, c);
     }
 
     public static void PF_WriteByte(int c) {
-        MSG.WriteByte(SV_INIT.sv.multicast, c);
+        MSG.WriteByte(SV_INIT.gameImports.sv.multicast, c);
     }
 
     public static void PF_WriteShort(int c) {
-        MSG.WriteShort(SV_INIT.sv.multicast, c);
+        MSG.WriteShort(SV_INIT.gameImports.sv.multicast, c);
     }
 
     public static void PF_WriteLong(int c) {
-        MSG.WriteLong(SV_INIT.sv.multicast, c);
+        MSG.WriteLong(SV_INIT.gameImports.sv.multicast, c);
     }
 
     public static void PF_WriteFloat(float f) {
-        MSG.WriteFloat(SV_INIT.sv.multicast, f);
+        MSG.WriteFloat(SV_INIT.gameImports.sv.multicast, f);
     }
 
     public static void PF_WriteString(String s) {
-        MSG.WriteString(SV_INIT.sv.multicast, s);
+        MSG.WriteString(SV_INIT.gameImports.sv.multicast, s);
     }
 
     public static void PF_WritePos(float[] pos) {
-        MSG.WritePos(SV_INIT.sv.multicast, pos);
+        MSG.WritePos(SV_INIT.gameImports.sv.multicast, pos);
     }
 
     public static void PF_WriteDir(float[] dir) {
-        MSG.WriteDir(SV_INIT.sv.multicast, dir);
+        MSG.WriteDir(SV_INIT.gameImports.sv.multicast, dir);
     }
 
     public static void PF_WriteAngle(float f) {
-        MSG.WriteAngle(SV_INIT.sv.multicast, f);
+        MSG.WriteAngle(SV_INIT.gameImports.sv.multicast, f);
     }
 
     /**
