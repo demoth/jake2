@@ -232,8 +232,6 @@ public class GameSVCmds {
      */
     static void SVCmd_WriteIP_f() {
         RandomAccessFile f;
-        //char name[MAX_OSPATH];
-        String name;
         byte b[];
 
         int i;
@@ -241,6 +239,7 @@ public class GameSVCmds {
 
         game = GameBase.gi.cvar("game", "", 0);
 
+        String name;
         if (game.string == null)
             name = Defines.GAMEVERSION + "/listip.cfg";
         else

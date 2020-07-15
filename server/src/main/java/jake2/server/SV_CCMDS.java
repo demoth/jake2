@@ -40,7 +40,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static jake2.qcommon.exec.Cmd.getArguments;
@@ -360,63 +360,51 @@ public class SV_CCMDS {
 		name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sav";
 		SV_INIT.gameExports.ReadLevel(name);
 	}
+
 	/*
-	==============
-	SV_WriteServerFile
-	
-	==============
-	*/
+	 * SV_WriteServerFile.
+	 * Save contains 2 steps: server state information (server.ssv) and game state information (game.ssv).
+	 * Server state contains:
+	 * 		comment (date)
+	 * 		mapcommand
+	 * 		latched cvars
+	 *
+	 * Game state saving is delegated to the game module
+	 */
 	private static void SV_WriteServerFile(boolean autosave) {
 
-		Com.DPrintf("SV_WriteServerFile(" + autosave + ")\n");
+		Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
 
+		final String saveFile = FS.getWriteDir() + "/save/current/server.ssv";
 		try {
-			QuakeFile f = new QuakeFile(FS.getWriteDir() + "/save/current/server.ssv", "rw");
+			QuakeFile f = new QuakeFile(saveFile, "rw");
 
-			String comment;
-			if (!autosave) {
-				Calendar c = Calendar.getInstance();
-				comment =
-					Com.sprintf(
-						"%2i:%2i %2i/%2i  ",
-						new Vargs().add(c.get(Calendar.HOUR_OF_DAY)).add(c.get(Calendar.MINUTE)).add(
-							c.get(Calendar.MONTH) + 1).add(
-							c.get(Calendar.DAY_OF_MONTH)));
-				comment += SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
-			}
-			else {
-				// autosaved
-				comment = "ENTERING " + SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
+			final String comment;
+			if (autosave) {
+				comment = "Autosave in " + SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
+			} else {
+				comment = new Date().toString() + " " + SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
 			}
 
 			f.writeString(comment);
 			f.writeString(SV_INIT.gameImports.svs.mapcmd);
 
-			// write the mapcmd
-
 			// write all CVAR_LATCH cvars
 			// these will be things like coop, skill, deathmatch, etc
 			Cvar.eachCvarByFlags(Defines.CVAR_LATCH, var -> {
-				if (var.name.length() >= Defines.MAX_OSPATH - 1 || var.string.length() >= 128 - 1) {
-					Com.Printf("Cvar too long: " + var.name + " = " + var.string + "\n");
-
-				} else
 					try {
 						f.writeString(var.name);
 						f.writeString(var.string);
-					} catch (IOException e2) {
-						Com.Printf("Could not write cvar(" + var + " to " + (FS.getWriteDir() + "/save/current/server.ssv"));
+					} catch (IOException e) {
+						Com.Printf("Could not write cvar(" + var + " to " + saveFile + ", " + e.getMessage());
 					}
-
-
 			});
 
 			// rst: for termination.
 			f.writeString(null);
 			f.close();
-		}
-		catch (Exception e) {
-			Com.Printf("Couldn't write " + (FS.getWriteDir() + "/save/current/server.ssv") + "\n");
+		} catch (Exception e) {
+			Com.Printf("Couldn't write " + saveFile + ", " + e.getMessage() + "\n");
 		}
 
 		// write game state
@@ -439,7 +427,8 @@ public class SV_CCMDS {
 			QuakeFile f = new QuakeFile(filename, "r");
 
 			// read the comment field but ignore
-			f.readString();
+			Com.DPrintf("SV_ReadServerFile: Loading save: " + f.readString() + "\n");
+
 
 			// read the mapcmd
 			String mapcmd = f.readString();
@@ -868,7 +857,6 @@ public class SV_CCMDS {
 	==============
 	*/
 	private static void SV_ServerRecord_f(List<String> args) {
-		//char	name[MAX_OSPATH];
 		byte[] buf_data = new byte[32768];
 		sizebuf_t buf = new sizebuf_t();
 		int len;
