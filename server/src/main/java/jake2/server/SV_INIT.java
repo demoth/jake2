@@ -43,6 +43,7 @@ public class SV_INIT {
     // todo implement singleton
     public static GameExports gameExports;
     public static GameImportsImpl gameImports;
+
     /**
      * SV_FindIndex.
      */
@@ -189,6 +190,7 @@ public class SV_INIT {
                 gameImports.sv.demofile.close();
             } 
         	catch (Exception e) {
+                Com.DPrintf("Could not close demofile: " + e.getMessage() +  "\n");
             }
 
         // any partially connected client will be restarted
@@ -364,8 +366,7 @@ public class SV_INIT {
         }
     }
 
-    private static String firstmap = "";
-    
+
     /**
      * SV_Map
      * 
@@ -403,18 +404,18 @@ public class SV_INIT {
         }
         
         // rst: base1 works for full, damo1 works for demo, so we need to store first map.
-        if (firstmap.length() == 0)
+        if (gameImports.firstmap.length() == 0)
         {        
         	if (!levelstring.endsWith(".cin") && !levelstring.endsWith(".pcx") && !levelstring.endsWith(".dm2"))
         	{
         		int pos = levelstring.indexOf('+');
-        		firstmap = levelstring.substring(pos + 1);
+                gameImports.firstmap = levelstring.substring(pos + 1);
         	}
         }
 
         // ZOID: special hack for end game screen in coop mode
         if (Cvar.VariableValue("coop") != 0 && level.equals("victory.pcx"))
-            Cvar.Set("nextserver", "gamemap \"*" + firstmap + "\"");
+            Cvar.Set("nextserver", "gamemap \"*" + gameImports.firstmap + "\"");
 
         // if there is a $, use the remainder as a spawnpoint
         int pos = level.indexOf('$');
