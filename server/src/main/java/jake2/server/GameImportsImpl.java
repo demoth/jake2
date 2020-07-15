@@ -41,6 +41,10 @@ public class GameImportsImpl implements GameImports {
     // local (instance) server state
     public server_t sv;
 
+    // hack for finishing game in coop mode
+    public String firstmap = "";
+
+
     public GameImportsImpl() {
         // Initialize server static state
         svs = new server_static_t();

@@ -410,12 +410,10 @@ public class SV_CCMDS {
 		// write game state
 		SV_INIT.gameExports.WriteGame(FS.getWriteDir() + "/save/current/game.ssv", autosave);
 	}
+
 	/*
-	==============
-	SV_ReadServerFile
-	
-	==============
-	*/
+	 * 	SV_ReadServerFile
+	 */
 	private static void SV_ReadServerFile() {
 		String filename = "";
 		try {
@@ -426,7 +424,7 @@ public class SV_CCMDS {
 
 			QuakeFile f = new QuakeFile(filename, "r");
 
-			// read the comment field but ignore
+			// read the comment field
 			Com.DPrintf("SV_ReadServerFile: Loading save: " + f.readString() + "\n");
 
 
@@ -439,10 +437,10 @@ public class SV_CCMDS {
 				String name = f.readString();
 				if (name == null)
 					break;
-				String string = f.readString();
+				String value = f.readString();
 
-				Com.DPrintf("Set " + name + " = " + string + "\n");
-				Cvar.ForceSet(name, string);
+				Com.DPrintf("Set " + name + " = " + value + "\n");
+				Cvar.ForceSet(name, value);
 			}
 
 			f.close();
@@ -455,10 +453,8 @@ public class SV_CCMDS {
 			// read game state
 			filename = FS.getWriteDir() + "/save/current/game.ssv";
 			SV_INIT.gameExports.ReadGame(filename);
-		}
-		catch (Exception e) {
-			Com.Printf("Couldn't read file " + filename + "\n");
-			e.printStackTrace();
+		} catch (Exception e) {
+			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
 		}
 	}
 	//=========================================================
