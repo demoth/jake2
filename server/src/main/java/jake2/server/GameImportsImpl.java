@@ -38,6 +38,9 @@ public class GameImportsImpl implements GameImports {
     // persistent server state
     public server_static_t svs;
 
+    // local (instance) server state
+    public server_t sv;
+
     public GameImportsImpl() {
         // Initialize server static state
         svs = new server_static_t();
@@ -62,6 +65,9 @@ public class GameImportsImpl implements GameImports {
 
         // heartbeats will always be sent to the id master
         svs.last_heartbeat = -99999; // send immediately
+
+        // create local server state
+        sv = new server_t();
 
     }
 

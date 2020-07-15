@@ -277,8 +277,8 @@ public class SV_CCMDS {
 		FS.CreatePath(name2);
 		CopyFile(name, name2);
 
-		name = FS.getWriteDir() + "/save/" + src + "/jake2.game.ssv";
-		name2 = FS.getWriteDir() + "/save/" + dst + "/jake2.game.ssv";
+		name = FS.getWriteDir() + "/save/" + src + "/game.ssv";
+		name2 = FS.getWriteDir() + "/save/" + dst + "/game.ssv";
 		CopyFile(name, name2);
 
 		String name1 = FS.getWriteDir() + "/save/" + src + "/";
@@ -312,13 +312,13 @@ public class SV_CCMDS {
 
 		Com.DPrintf("SV_WriteLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sv2";
+		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sv2";
 
 		try {
 			QuakeFile f = new QuakeFile(name, "rw");
 
 			for (int i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
-				f.writeString(SV_INIT.sv.configstrings[i]);
+				f.writeString(SV_INIT.gameImports.sv.configstrings[i]);
 
 			CM.CM_WritePortalState(f);
 			f.close();
@@ -328,7 +328,7 @@ public class SV_CCMDS {
 			e.printStackTrace();
 		}
 
-		name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sav";
+		name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sav";
 		SV_INIT.gameExports.WriteLevel(name);
 	}
 	/*
@@ -341,12 +341,12 @@ public class SV_CCMDS {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sv2";
+		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sv2";
 		try {
 			QuakeFile f = new QuakeFile(name, "r");
 
 			for (int n = 0; n < Defines.MAX_CONFIGSTRINGS; n++)
-				SV_INIT.sv.configstrings[n] = f.readString();
+				SV_INIT.gameImports.sv.configstrings[n] = f.readString();
 
 			CM.CM_ReadPortalState(f);
 
@@ -357,7 +357,7 @@ public class SV_CCMDS {
 			e1.printStackTrace();
 		}
 
-		name = FS.getWriteDir() + "/save/current/" + SV_INIT.sv.name + ".sav";
+		name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sav";
 		SV_INIT.gameExports.ReadLevel(name);
 	}
 	/*
@@ -382,11 +382,11 @@ public class SV_CCMDS {
 						new Vargs().add(c.get(Calendar.HOUR_OF_DAY)).add(c.get(Calendar.MINUTE)).add(
 							c.get(Calendar.MONTH) + 1).add(
 							c.get(Calendar.DAY_OF_MONTH)));
-				comment += SV_INIT.sv.configstrings[Defines.CS_NAME];
+				comment += SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
 			}
 			else {
 				// autosaved
-				comment = "ENTERING " + SV_INIT.sv.configstrings[Defines.CS_NAME];
+				comment = "ENTERING " + SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME];
 			}
 
 			f.writeString(comment);
@@ -520,7 +520,7 @@ public class SV_CCMDS {
 			SV_WipeSavegame("current");
 		}
 		else { // save the map just exited
-			if (SV_INIT.sv.state == ServerStates.SS_GAME) {
+			if (SV_INIT.gameImports.sv.state == ServerStates.SS_GAME) {
 				// clear all the client inuse flags before saving so that
 				// when the level is re-entered, the clients will spawn
 				// at spawn points instead of occupying body shells
@@ -591,7 +591,7 @@ public class SV_CCMDS {
 			}
 		}
 
-		SV_INIT.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+		SV_INIT.gameImports.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
 		SV_WipeSavegame("current");
 		SV_GameMap_f(args);
@@ -647,7 +647,6 @@ public class SV_CCMDS {
 		SV_ReadServerFile();
 
 		// go to the map
-		SV_INIT.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 		SV_INIT.SV_Map(false, SV_INIT.gameImports.svs.mapcmd, true);
 	}
 	/*
@@ -658,7 +657,7 @@ public class SV_CCMDS {
 	*/
 	private static void SV_Savegame_f(List<String> args) {
 
-		if (SV_INIT.sv.state != ServerStates.SS_GAME) {
+		if (SV_INIT.gameImports.sv.state != ServerStates.SS_GAME) {
 			Com.Printf("You must be in a game to save.\n");
 			return;
 		}
@@ -750,7 +749,7 @@ public class SV_CCMDS {
 			Com.Printf("No server running.\n");
 			return;
 		}
-		Com.Printf("map              : " + SV_INIT.sv.name + "\n");
+		Com.Printf("map              : " + SV_INIT.gameImports.sv.name + "\n");
 
 		Com.Printf("num score ping name            lastmsg address               qport \n");
 		Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
@@ -885,7 +884,7 @@ public class SV_CCMDS {
 			return;
 		}
 
-		if (SV_INIT.sv.state != ServerStates.SS_GAME) {
+		if (SV_INIT.gameImports.sv.state != ServerStates.SS_GAME) {
 			Com.Printf("You must be in a level to record.\n");
 			return;
 		}
@@ -926,13 +925,13 @@ public class SV_CCMDS {
 		MSG.WriteString(buf, Cvar.VariableString("gamedir"));
 		MSG.WriteShort(buf, -1);
 		// send full levelname
-		MSG.WriteString(buf, SV_INIT.sv.configstrings[Defines.CS_NAME]);
+		MSG.WriteString(buf, SV_INIT.gameImports.sv.configstrings[Defines.CS_NAME]);
 
 		for (i = 0; i < Defines.MAX_CONFIGSTRINGS; i++)
-			if (SV_INIT.sv.configstrings[i] != null && SV_INIT.sv.configstrings[i].length() > 0) {
+			if (SV_INIT.gameImports.sv.configstrings[i] != null && SV_INIT.gameImports.sv.configstrings[i].length() > 0) {
 				MSG.WriteByte(buf, NetworkCommands.svc_configstring);
 				MSG.WriteShort(buf, i);
-				MSG.WriteString(buf, SV_INIT.sv.configstrings[i]);
+				MSG.WriteString(buf, SV_INIT.gameImports.sv.configstrings[i]);
 			}
 
 		// write it to the demo file
