@@ -32,6 +32,7 @@ public final class cvar_t {
     public String name;
     public String string;
     // allow changes, but for the next game
+    // see jake2.server.SV_INIT.SV_InitGame()
     // todo rename to deferred_value
     public String latched_string;
     public int flags = 0;

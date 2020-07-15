@@ -962,8 +962,6 @@ public final class CL {
 
     static void RequestNextDownload() {
         int map_checksum = 0; // for detecting cheater maps
-        //char fn[MAX_OSPATH];
-        String fn;
 
         qfiles.dmdl_t pheader;
 
@@ -1070,6 +1068,7 @@ public final class CL {
             }
             CL.precache_check = Defines.CS_SOUNDS;
         }
+        String fn;
         if (CL.precache_check >= Defines.CS_SOUNDS
                 && CL.precache_check < Defines.CS_SOUNDS + Defines.MAX_SOUNDS) {
             if (allowDownloadSounds.value != 0) {
@@ -1262,7 +1261,6 @@ public final class CL {
             if (allowDownload.value != 0
                     && allowDownloadMaps.value != 0) {
                 while (CL.precache_tex < CM.numtexinfo) {
-                    //char fn[MAX_OSPATH];
 
                     fn = "textures/" + CM.map_surfaces[CL.precache_tex++].rname
                             + ".wal";
