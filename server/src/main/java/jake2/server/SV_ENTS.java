@@ -101,7 +101,7 @@ public class SV_ENTS {
 
             if (newnum < oldnum) { 
             	// this is a new entity, send it from the baseline
-                MSG.WriteDeltaEntity(SV_INIT.sv.baselines[newnum], newent, msg,
+                MSG.WriteDeltaEntity(SV_INIT.gameImports.sv.baselines[newnum], newent, msg,
                         true, true);
                 newindex++;
                 continue;
@@ -311,11 +311,11 @@ public class SV_ENTS {
         //Com.Printf ("%i . %i\n", new
         // Vargs().add(client.lastframe).add(sv.framenum));
         // this is the frame we are creating
-        frame = client.frames[SV_INIT.sv.framenum & Defines.UPDATE_MASK];
+        frame = client.frames[SV_INIT.gameImports.sv.framenum & Defines.UPDATE_MASK];
         if (client.lastframe <= 0) { // client is asking for a retransmit
             oldframe = null;
             lastframe = -1;
-        } else if (SV_INIT.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
+        } else if (SV_INIT.gameImports.sv.framenum - client.lastframe >= (Defines.UPDATE_BACKUP - 3)) {
             // client hasn't gotten a good message through in a long time
             // Com_Printf ("%s: Delta request from out-of-date packet.\n",
             // client.name);
@@ -327,7 +327,7 @@ public class SV_ENTS {
         }
 
         MSG.WriteByte(msg, NetworkCommands.svc_frame);
-        MSG.WriteLong(msg, SV_INIT.sv.framenum);
+        MSG.WriteLong(msg, SV_INIT.gameImports.sv.framenum);
         MSG.WriteLong(msg, lastframe); // what we are delta'ing from
         MSG.WriteByte(msg, client.surpressCount); // rate dropped packets
         client.surpressCount = 0;
@@ -417,7 +417,7 @@ public class SV_ENTS {
             return; // not in game yet
 
         // this is the frame we are creating
-        frame = client.frames[SV_INIT.sv.framenum & Defines.UPDATE_MASK];
+        frame = client.frames[SV_INIT.gameImports.sv.framenum & Defines.UPDATE_MASK];
 
         frame.senttime = SV_INIT.gameImports.svs.realtime; // save it for ping calc later
 
@@ -548,7 +548,7 @@ public class SV_ENTS {
 
         // write a frame message that doesn't contain a player_state_t
         MSG.WriteByte(buf, NetworkCommands.svc_frame);
-        MSG.WriteLong(buf, SV_INIT.sv.framenum);
+        MSG.WriteLong(buf, SV_INIT.gameImports.sv.framenum);
 
         MSG.WriteByte(buf, NetworkCommands.svc_packetentities);
 
