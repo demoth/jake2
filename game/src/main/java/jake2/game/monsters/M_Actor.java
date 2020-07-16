@@ -1413,7 +1413,7 @@ public class M_Actor {
                 int n;
                 edict_t ent;
 
-                for (n = 1; n <= GameBase.game.maxclients; n++) {
+                for (n = 1; n <= GameBase.gameExports.game.maxclients; n++) {
                     ent = GameBase.g_edicts[n];
                     if (!ent.inuse)
                         continue;
@@ -1515,7 +1515,7 @@ public class M_Actor {
      */
 
     public static void SP_misc_actor(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }

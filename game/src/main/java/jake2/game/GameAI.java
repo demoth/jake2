@@ -278,7 +278,7 @@ public class GameAI {
         int check = start;
         while (true) {
             check++;
-            if (check > GameBase.game.maxclients)
+            if (check > GameBase.gameExports.game.maxclients)
                 check = 1;
             SubgameEntity ent = GameBase.g_edicts[check];
 

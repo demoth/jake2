@@ -1231,7 +1231,7 @@ public class M_Insane {
     public static void SP_misc_insane(SubgameEntity self) {
         //	 static int skin = 0; //@@
 
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }

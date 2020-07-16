@@ -561,7 +561,7 @@ class PlayerView {
                 damage = 1;
             Math3D.VectorSet(dir, 0, 0, 1);
 
-            if (GameBase.deathmatch.value == 0
+            if (GameBase.gameExports.cvarCache.deathmatch.value == 0
                     || 0 == ((int) GameBase.dmflags.value & Defines.DF_NO_FALLING))
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], dir, ent.s.origin,
@@ -836,8 +836,8 @@ class PlayerView {
         String weap;
 
         gclient_t client = ent.getClient();
-        if (client.pers.game_helpchanged != GameBase.game.helpchanged) {
-            client.pers.game_helpchanged = GameBase.game.helpchanged;
+        if (client.pers.game_helpchanged != GameBase.gameExports.game.helpchanged) {
+            client.pers.game_helpchanged = GameBase.gameExports.game.helpchanged;
             client.pers.helpchanged = 1;
         }
 

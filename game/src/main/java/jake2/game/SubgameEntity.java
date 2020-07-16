@@ -682,7 +682,7 @@ public class SubgameEntity extends edict_t {
         if (ndx == -1)
             setClient(null);
         else
-            setClient(GameBase.game.clients[ndx]);
+            setClient(GameBase.gameExports.game.clients[ndx]);
 
         setOwner((SubgameEntity) f.readEdictRef(g_edicts));
 

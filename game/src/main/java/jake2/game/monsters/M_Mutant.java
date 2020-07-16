@@ -1008,7 +1008,7 @@ public class M_Mutant {
     public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_mutant"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return false;
             }

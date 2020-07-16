@@ -797,7 +797,7 @@ public class M_Parasite {
     public static EntThinkAdapter SP_monster_parasite = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_parasite"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }

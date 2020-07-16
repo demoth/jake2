@@ -411,7 +411,7 @@ public class GameCombat {
         // if enabled you can't hurt teammates (but you can hurt yourself)
         // knockback still occurs
         if ((targ != attacker)
-                && ((GameBase.deathmatch.value != 0 && 0 != ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || GameBase.coop.value != 0)) {
+                && ((GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || GameBase.coop.value != 0)) {
             if (GameUtil.OnSameTeam(targ, attacker)) {
                 if (((int) (GameBase.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
@@ -422,7 +422,7 @@ public class GameCombat {
         GameBase.meansOfDeath = mod;
     
         // easy mode takes half damage
-        if (GameBase.skill.value == 0 && GameBase.deathmatch.value == 0
+        if (GameBase.skill.value == 0 && GameBase.gameExports.cvarCache.deathmatch.value == 0
                 && targ.getClient() != null) {
             damage *= 0.5;
             if (damage == 0)

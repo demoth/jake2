@@ -88,6 +88,12 @@ public class GameExportsImpl implements GameExports {
 
     private final GameImports gameImports;
 
+    public PlayerView playerView;
+    public SV sv;
+    public game_locals_t game;
+    public CvarCache cvarCache;
+
+
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
         this.gameImports = imports;
@@ -103,8 +109,64 @@ public class GameExportsImpl implements GameExports {
             }
         }
 
+        playerView = new PlayerView(gameImports);
+        sv = new SV(gameImports);
+
+        game = new game_locals_t();
+        game.helpmessage1 = "";
+        game.helpmessage2 = "";
+        game.num_items = GameItemList.itemlist.length - 1;
+
+        cvarCache = new CvarCache(imports);
+
+        // fixme: leaking constructor (bad practice)
+        GameBase.gameExports = this;
+
         // todo replace with constructor
-        GameBase.Init(gameImports);
+        Init(gameImports);
+
+        // todo: move fields from static GameBase fields to GameExportsImpl instance fields
+
+    }
+
+    static void Init(GameImports gameImports) {
+
+        GameBase.gi = gameImports;
+        ///////////////////////////////////
+        // Initialize game related cvars
+        ///////////////////////////////////
+        GameBase.sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
+        // latched vars
+        GameBase.sv_cheats = gameImports.cvar("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamename", Defines.GAMEVERSION,Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+        gameImports.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
+
+        GameBase.maxspectators = gameImports.cvar("maxspectators", "4", Defines.CVAR_SERVERINFO);
+        GameBase.gameExports.cvarCache.deathmatch = gameImports.cvar("deathmatch", "0", Defines.CVAR_LATCH);
+        GameBase.coop = gameImports.cvar("coop", "0", Defines.CVAR_LATCH);
+        GameBase.skill = gameImports.cvar("skill", "0", Defines.CVAR_LATCH);
+
+        // change anytime vars
+        GameBase.dmflags = gameImports.cvar("dmflags", "0", Defines.CVAR_SERVERINFO);
+        GameBase.fraglimit = gameImports.cvar("fraglimit", "0", Defines.CVAR_SERVERINFO);
+        GameBase.timelimit = gameImports.cvar("timelimit", "0", Defines.CVAR_SERVERINFO);
+        GameBase.password = gameImports.cvar("password", "", Defines.CVAR_USERINFO);
+        GameBase.spectator_password = gameImports.cvar("spectator_password", "", Defines.CVAR_USERINFO);
+        GameBase.needpass = gameImports.cvar("needpass", "0", Defines.CVAR_SERVERINFO);
+        GameBase.filterban = gameImports.cvar("filterban", "1", 0);
+
+        GameBase.g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
+
+        // flood control
+        GameBase.flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
+        GameBase.flood_persecond = gameImports.cvar("flood_persecond", "4", 0);
+        GameBase.flood_waitdelay = gameImports.cvar("flood_waitdelay", "10", 0);
+
+        // dm map list
+        GameBase.sv_maplist = gameImports.cvar("sv_maplist", "", 0);
+
+        GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
+        GameBase.CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
     }
 
     /**
@@ -129,9 +191,9 @@ public class GameExportsImpl implements GameExports {
         sb.append("xv 202 yv 12 string2 \"").append(sk).append("\" "); // skill
         sb.append("xv 0 yv 24 cstring2 \"").append(GameBase.level.level_name)
                 .append("\" "); // level name
-        sb.append("xv 0 yv 54 cstring2 \"").append(GameBase.game.helpmessage1)
+        sb.append("xv 0 yv 54 cstring2 \"").append(game.helpmessage1)
                 .append("\" "); // help 1
-        sb.append("xv 0 yv 110 cstring2 \"").append(GameBase.game.helpmessage2)
+        sb.append("xv 0 yv 110 cstring2 \"").append(game.helpmessage2)
                 .append("\" "); // help 2
         sb.append("xv 50 yv 164 string2 \" kills     goals    secrets\" ");
         sb.append("xv 50 yv 172 string2 \"");
@@ -155,7 +217,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Give_f(SubgameEntity ent, List<String> args) {
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -177,7 +239,7 @@ public class GameExportsImpl implements GameExports {
         int i;
         gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
+            for (i = 1; i < game.num_items; i++) {
                 it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
@@ -190,7 +252,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
+            for (i = 1; i < game.num_items; i++) {
                 it = GameItemList.itemlist[i];
                 if (null == it.pickup)
                     continue;
@@ -234,7 +296,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         if (give_all) {
-            for (i = 1; i < GameBase.game.num_items; i++) {
+            for (i = 1; i < game.num_items; i++) {
                 it = GameItemList.itemlist[i];
                 if (it.pickup != null)
                     continue;
@@ -287,7 +349,7 @@ public class GameExportsImpl implements GameExports {
     private void God_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -308,7 +370,7 @@ public class GameExportsImpl implements GameExports {
     private void Notarget_f(SubgameEntity ent) {
 
         // why do you need notarget in deathmatch??
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -332,7 +394,7 @@ public class GameExportsImpl implements GameExports {
     private void Noclip_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -573,7 +635,7 @@ public class GameExportsImpl implements GameExports {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value)
+        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.coop.value)
             return;
 
         if (client.showscores) {
@@ -593,7 +655,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Help_f(SubgameEntity ent) {
         // this is for backwards compatability
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             Score_f(ent);
             return;
         }
@@ -603,7 +665,7 @@ public class GameExportsImpl implements GameExports {
         client.showscores = false;
 
         if (client.showhelp
-                && (client.pers.game_helpchanged == GameBase.game.helpchanged)) {
+                && (client.pers.game_helpchanged == game.helpchanged)) {
             client.showhelp = false;
             return;
         }
@@ -648,23 +710,23 @@ public class GameExportsImpl implements GameExports {
         Integer index[] = new Integer[256];
 
         count = 0;
-        for (i = 0; i < GameBase.game.maxclients; i++) {
-            if (GameBase.game.clients[i].pers.connected) {
+        for (i = 0; i < game.maxclients; i++) {
+            if (game.clients[i].pers.connected) {
                 index[count] = new Integer(i);
                 count++;
             }
         }
 
         // sort by frags
-        Arrays.sort(index, 0, count - 1, comparingInt(p -> GameBase.game.clients[p].getPlayerState().stats[Defines.STAT_FRAGS]));
+        Arrays.sort(index, 0, count - 1, comparingInt(p -> game.clients[p].getPlayerState().stats[Defines.STAT_FRAGS]));
 
         // print information
         large = "";
 
         for (i = 0; i < count; i++) {
-            small = GameBase.game.clients[index[i].intValue()].getPlayerState().stats[Defines.STAT_FRAGS]
+            small = game.clients[index[i].intValue()].getPlayerState().stats[Defines.STAT_FRAGS]
                     + " "
-                    + GameBase.game.clients[index[i].intValue()].pers.netname
+                    + game.clients[index[i].intValue()].pers.netname
                     + "\n";
 
             if (small.length() + large.length() > 1024 - 100) {
@@ -801,7 +863,7 @@ public class GameExportsImpl implements GameExports {
         if (gameImports.cvar("dedicated", "0", Defines.CVAR_NOSET).value != 0)
             gameImports.cprintf(null, Defines.PRINT_CHAT, "" + text + "");
 
-        for (int j = 1; j <= GameBase.game.maxclients; j++) {
+        for (int j = 1; j <= game.maxclients; j++) {
             SubgameEntity other = GameBase.g_edicts[j];
             if (!other.inuse)
                 continue;
@@ -824,7 +886,7 @@ public class GameExportsImpl implements GameExports {
         // connect time, ping, score, name
         String text = "";
 
-        for (int i = 0; i < GameBase.game.maxclients; i++) {
+        for (int i = 0; i < game.maxclients; i++) {
             SubgameEntity e2 = GameBase.g_edicts[1 + i];
             if (!e2.inuse)
                 continue;
@@ -977,12 +1039,12 @@ public class GameExportsImpl implements GameExports {
 
             QuakeFile f = new QuakeFile(filename, "rw");
 
-            GameBase.game.autosaved = autosave;
-            GameBase.game.write(f);
-            GameBase.game.autosaved = false;
+            game.autosaved = autosave;
+            game.write(f);
+            game.autosaved = false;
 
-            for (int i = 0; i < GameBase.game.maxclients; i++)
-                GameBase.game.clients[i].write(f);
+            for (int i = 0; i < game.maxclients; i++)
+                game.clients[i].write(f);
 
             Lib.fclose(f);
         } catch (Exception e) {
@@ -1000,11 +1062,11 @@ public class GameExportsImpl implements GameExports {
             f = new QuakeFile(filename, "r");
             GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
-            GameBase.game.load(f);
+            game.load(f);
 
-            for (int i = 0; i < GameBase.game.maxclients; i++) {
-                GameBase.game.clients[i] = new gclient_t(i);
-                GameBase.game.clients[i].read(f, GameBase.g_edicts);
+            for (int i = 0; i < game.maxclients; i++) {
+                game.clients[i] = new gclient_t(i);
+                game.clients[i].read(f, GameBase.g_edicts);
             }
 
             f.close();
@@ -1052,7 +1114,7 @@ public class GameExportsImpl implements GameExports {
             // wipe all the entities
             GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
-            GameBase.num_edicts = (int) GameBase.game.maxclients + 1;
+            GameBase.num_edicts = game.maxclients + 1;
 
             // load the level locals
             GameBase.level.read(f, GameBase.g_edicts);
@@ -1076,9 +1138,9 @@ public class GameExportsImpl implements GameExports {
             Lib.fclose(f);
 
             // mark all clients as unconnected
-            for (int i = 0; i < GameBase.game.maxclients; i++) {
+            for (int i = 0; i < game.maxclients; i++) {
                 ent = GameBase.g_edicts[i + 1];
-                ent.setClient(GameBase.game.clients[i]);
+                ent.setClient(game.clients[i]);
                 gclient_t client = ent.getClient();
                 client.pers.connected = false;
             }

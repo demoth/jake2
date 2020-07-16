@@ -249,9 +249,9 @@ public class GameSpawn {
                     .vtos(GameBase.st.skyaxis));
             GameBase.gi.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
             GameBase.gi.configstring(Defines.CS_MAXCLIENTS, ""
-                    + (int) (GameBase.game.maxclients));
+                    + (int) (GameBase.gameExports.game.maxclients));
             // status bar program
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
                 GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
@@ -1324,16 +1324,16 @@ public class GameSpawn {
         PlayerClient.SaveClientData();
 
         GameBase.level = new level_locals_t();
-        for (int n = 0; n < GameBase.game.maxentities; n++) {
+        for (int n = 0; n < GameBase.gameExports.game.maxentities; n++) {
             GameBase.g_edicts[n] = new SubgameEntity(n);
         }
 
         GameBase.level.mapname = mapname;
-        GameBase.game.spawnpoint = spawnpoint;
+        GameBase.gameExports.game.spawnpoint = spawnpoint;
 
         // set client fields on player ents
-        for (i = 0; i < GameBase.game.maxclients; i++)
-            GameBase.g_edicts[i + 1].setClient(GameBase.game.clients[i]);
+        for (i = 0; i < GameBase.gameExports.game.maxclients; i++)
+            GameBase.g_edicts[i + 1].setClient(GameBase.gameExports.game.clients[i]);
 
         ent = null;
         inhibit = 0;
@@ -1367,7 +1367,7 @@ public class GameSpawn {
             // remove things (except the world) from different skill levels or
             // deathmatch
             if (ent != GameBase.g_edicts[0]) {
-                if (GameBase.deathmatch.value != 0) {
+                if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
                         Com.DPrintf("->inhibited.\n");
@@ -1415,7 +1415,7 @@ public class GameSpawn {
             GameBase.gi.dprintf("ED_CallSpawn: null classname\n");
             return;
         } // check item spawn functions
-        for (int i = 1; i < GameBase.game.num_items; i++) {
+        for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
 
             gitem_t item = GameItemList.itemlist[i];
 
@@ -1447,7 +1447,7 @@ public class GameSpawn {
             return;
         }
 
-        if (GameBase.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
             GameBase.gi.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
