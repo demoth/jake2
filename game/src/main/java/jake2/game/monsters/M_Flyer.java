@@ -364,7 +364,7 @@ public class M_Flyer {
     public static EntInteractAdapter flyer_sight = new EntInteractAdapter() {
     	public String getID() { return "flyer_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -373,7 +373,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_idle = new EntThinkAdapter() {
     	public String getID() { return "flyer_idle"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -382,7 +382,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_pop_blades = new EntThinkAdapter() {
     	public String getID() { return "flyer_pop_blades"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -759,7 +759,7 @@ public class M_Flyer {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -772,7 +772,7 @@ public class M_Flyer {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -888,20 +888,20 @@ public class M_Flyer {
                 return;
 
             self.pain_debounce_time = GameBase.level.time + 3;
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = Lib.rand() % 3;
             if (n == 0) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain1;
             } else if (n == 1) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain2;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain3;
             }
@@ -913,7 +913,7 @@ public class M_Flyer {
     	public String getID() { return "flyer_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             GameMisc.BecomeExplosion1(self);
         }
@@ -963,24 +963,24 @@ public class M_Flyer {
             self.target = null;
         }
 
-        sound_sight = GameBase.gi.soundindex("flyer/flysght1.wav");
-        sound_idle = GameBase.gi.soundindex("flyer/flysrch1.wav");
-        sound_pain1 = GameBase.gi.soundindex("flyer/flypain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("flyer/flypain2.wav");
-        sound_slash = GameBase.gi.soundindex("flyer/flyatck2.wav");
-        sound_sproing = GameBase.gi.soundindex("flyer/flyatck1.wav");
-        sound_die = GameBase.gi.soundindex("flyer/flydeth1.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("flyer/flysght1.wav");
+        sound_idle = GameBase.gameExports.gameImports.soundindex("flyer/flysrch1.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("flyer/flypain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("flyer/flypain2.wav");
+        sound_slash = GameBase.gameExports.gameImports.soundindex("flyer/flyatck2.wav");
+        sound_sproing = GameBase.gameExports.gameImports.soundindex("flyer/flyatck1.wav");
+        sound_die = GameBase.gameExports.gameImports.soundindex("flyer/flydeth1.wav");
 
-        GameBase.gi.soundindex("flyer/flyatck3.wav");
+        GameBase.gameExports.gameImports.soundindex("flyer/flyatck3.wav");
 
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/flyer/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
 
-        self.s.sound = GameBase.gi.soundindex("flyer/flyidle1.wav");
+        self.s.sound = GameBase.gameExports.gameImports.soundindex("flyer/flyidle1.wav");
 
         self.health = 50;
         self.mass = 50;
@@ -996,7 +996,7 @@ public class M_Flyer {
         self.monsterinfo.sight = flyer_sight;
         self.monsterinfo.idle = flyer_idle;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = flyer_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

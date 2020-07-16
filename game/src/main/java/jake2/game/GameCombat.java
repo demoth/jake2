@@ -46,7 +46,7 @@ public class GameCombat {
         if (targ.movetype == GameDefines.MOVETYPE_PUSH) {
             Math3D.VectorAdd(targ.absmin, targ.absmax, dest);
             Math3D.VectorScale(dest, 0.5f, dest);
-            trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+            trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                     Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
             if (trace.fraction == 1.0f)
                 return true;
@@ -55,7 +55,7 @@ public class GameCombat {
             return false;
         }
     
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                 Globals.vec3_origin, targ.s.origin, inflictor,
                 Defines.MASK_SOLID);
         if (trace.fraction == 1.0)
@@ -64,7 +64,7 @@ public class GameCombat {
         Math3D.VectorCopy(targ.s.origin, dest);
         dest[0] += 15.0;
         dest[1] += 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                 Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
         if (trace.fraction == 1.0)
             return true;
@@ -72,7 +72,7 @@ public class GameCombat {
         Math3D.VectorCopy(targ.s.origin, dest);
         dest[0] += 15.0;
         dest[1] -= 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                 Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
         if (trace.fraction == 1.0)
             return true;
@@ -80,7 +80,7 @@ public class GameCombat {
         Math3D.VectorCopy(targ.s.origin, dest);
         dest[0] -= 15.0;
         dest[1] += 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                 Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
         if (trace.fraction == 1.0)
             return true;
@@ -88,7 +88,7 @@ public class GameCombat {
         Math3D.VectorCopy(targ.s.origin, dest);
         dest[0] -= 15.0;
         dest[1] -= 15.0;
-        trace = GameBase.gi.trace(inflictor.s.origin, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(inflictor.s.origin, Globals.vec3_origin,
                 Globals.vec3_origin, dest, inflictor, Defines.MASK_SOLID);
         if (trace.fraction == 1.0)
             return true;
@@ -114,7 +114,7 @@ public class GameCombat {
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
                 GameBase.level.killed_monsters++;
                 gclient_t attackerClient = attacker.getClient();
-                if (GameBase.coop.value != 0 && attackerClient != null)
+                if (GameBase.gameExports.cvarCache.coop.value != 0 && attackerClient != null)
                     attackerClient.resp.score++;
                 // medics won't heal monsters that they kill themselves
                 if (attacker.classname.equals("monster_medic"))
@@ -145,12 +145,12 @@ public class GameCombat {
     private static void SpawnDamage(int type, float[] origin, float[] normal, int damage) {
         if (damage > 255)
             damage = 255;
-        GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-        GameBase.gi.WriteByte(type);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+        GameBase.gameExports.gameImports.WriteByte(type);
         //		gi.WriteByte (damage);
-        GameBase.gi.WritePosition(origin);
-        GameBase.gi.WriteDir(normal);
-        GameBase.gi.multicast(origin, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WritePosition(origin);
+        GameBase.gameExports.gameImports.WriteDir(normal);
+        GameBase.gameExports.gameImports.multicast(origin, MulticastTypes.MULTICAST_PVS);
     }
 
     private static int CheckPowerArmor(SubgameEntity ent, float[] point, float[] normal,
@@ -410,10 +410,11 @@ public class GameCombat {
         // friendly fire avoidance
         // if enabled you can't hurt teammates (but you can hurt yourself)
         // knockback still occurs
+        final CvarCache cvars = GameBase.gameExports.cvarCache;
         if ((targ != attacker)
-                && ((GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || GameBase.coop.value != 0)) {
+                && ((cvars.deathmatch.value != 0 && 0 != ((int) (cvars.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS))) || cvars.coop.value != 0)) {
             if (GameUtil.OnSameTeam(targ, attacker)) {
-                if (((int) (GameBase.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
+                if (((int) (cvars.dmflags.value) & Defines.DF_NO_FRIENDLY_FIRE) != 0)
                     damage = 0;
                 else
                     mod |= GameDefines.MOD_FRIENDLY_FIRE;
@@ -422,7 +423,7 @@ public class GameCombat {
         GameBase.meansOfDeath = mod;
     
         // easy mode takes half damage
-        if (GameBase.skill.value == 0 && GameBase.gameExports.cvarCache.deathmatch.value == 0
+        if (cvars.skill.value == 0 && cvars.deathmatch.value == 0
                 && targ.getClient() != null) {
             damage *= 0.5;
             if (damage == 0)
@@ -489,7 +490,7 @@ public class GameCombat {
         if ((client != null && client.invincible_framenum > GameBase.level.framenum)
                 && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
             if (targ.pain_debounce_time < GameBase.level.time) {
-                GameBase.gi.sound(targ, Defines.CHAN_ITEM, GameBase.gi
+                GameBase.gameExports.gameImports.sound(targ, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                         .soundindex("items/protect4.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 targ.pain_debounce_time = GameBase.level.time + 2;
@@ -536,7 +537,7 @@ public class GameCombat {
                     && (take != 0)) {
                 targ.pain.pain(targ, attacker, knockback, take);
                 // nightmare mode monsters don't go into pain frames often
-                if (GameBase.skill.value == 3)
+                if (cvars.skill.value == 3)
                     targ.pain_debounce_time = GameBase.level.time + 5;
             }
         } else if (client != null) {

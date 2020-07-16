@@ -1048,13 +1048,13 @@ public class M_Boss32 {
 
             r = Lib.random();
             if (r <= 0.3)
-                GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_taunt1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_taunt1, 1,
                         Defines.ATTN_NONE, 0);
             else if (r <= 0.6)
-                GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_taunt2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_taunt2, 1,
                         Defines.ATTN_NONE, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_taunt3, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_taunt3, 1,
                         Defines.ATTN_NONE, 0);
             return true;
         }
@@ -1079,7 +1079,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_hit = new EntThinkAdapter() {
     	public String getID() { return "makron_hit"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_hit, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_hit, 1,
                     Defines.ATTN_NONE, 0);
             return true;
         }
@@ -1088,7 +1088,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_popup = new EntThinkAdapter() {
     	public String getID() { return "makron_popup"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_popup, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_popup, 1,
                     Defines.ATTN_NONE, 0);
             return true;
         }
@@ -1098,7 +1098,7 @@ public class M_Boss32 {
     	public String getID() { return "makron_step_left"; }
 
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1107,7 +1107,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_step_right = new EntThinkAdapter() {
     	public String getID() { return "makron_step_right"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1116,7 +1116,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_brainsplorch = new EntThinkAdapter() {
     	public String getID() { return "makron_brainsplorch"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_brainsplorch, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_brainsplorch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1125,7 +1125,7 @@ public class M_Boss32 {
     static EntThinkAdapter makron_prerailgun = new EntThinkAdapter() {
     	public String getID() { return "makron_prerailgun"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_prerailgun, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_prerailgun, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1243,7 +1243,7 @@ public class M_Boss32 {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1490,7 +1490,7 @@ public class M_Boss32 {
             vec[2] += self.enemy.viewheight;
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_attack_bfg, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack_bfg, 1,
                     Defines.ATTN_NORM, 0);
             Monster.monster_fire_bfg(self, start, dir, 50, 300, 100, 300,
                     Defines.MZ2_MAKRON_BFG);
@@ -1595,25 +1595,25 @@ public class M_Boss32 {
                     return;
 
             self.pain_debounce_time = GameBase.level.time + 3;
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 40) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain4, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain4, 1,
                         Defines.ATTN_NONE, 0);
                 self.monsterinfo.currentmove = makron_move_pain4;
             } else if (damage <= 110) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain5, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain5, 1,
                         Defines.ATTN_NONE, 0);
                 self.monsterinfo.currentmove = makron_move_pain5;
             } else {
                 if (damage <= 150)
                     if (Lib.random() <= 0.45) {
-                        GameBase.gi.sound(self, Defines.CHAN_VOICE,
+                        GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                                 sound_pain6, 1, Defines.ATTN_NONE, 0);
                         self.monsterinfo.currentmove = makron_move_pain6;
                     } else if (Lib.random() <= 0.35) {
-                        GameBase.gi.sound(self, Defines.CHAN_VOICE,
+                        GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                                 sound_pain6, 1, Defines.ATTN_NONE, 0);
                         self.monsterinfo.currentmove = makron_move_pain6;
                     }
@@ -1678,12 +1678,12 @@ public class M_Boss32 {
             Math3D.VectorSet(ent.mins, -8, -8, 0);
             Math3D.VectorSet(ent.maxs, 8, 8, 8);
             ent.s.frame = 346;
-            ent.s.modelindex = GameBase.gi
+            ent.s.modelindex = GameBase.gameExports.gameImports
                     .modelindex("models/monsters/boss3/rider/tris.md2");
             ent.think = makron_torso_think;
             ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
-            ent.s.sound = GameBase.gi.soundindex("makron/spine.wav");
-            GameBase.gi.linkentity(ent);
+            ent.s.sound = GameBase.gameExports.gameImports.soundindex("makron/spine.wav");
+            GameBase.gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -1699,8 +1699,8 @@ public class M_Boss32 {
             self.s.sound = 0;
             // check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 1 /* 4 */; n++)
@@ -1721,7 +1721,7 @@ public class M_Boss32 {
                 return;
 
             //	   regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NONE, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -1754,7 +1754,7 @@ public class M_Boss32 {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gi.trace(spot1, null, null, spot2, self,
+                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA);
@@ -1934,22 +1934,22 @@ public class M_Boss32 {
     //
 
     static void MakronPrecache() {
-        sound_pain4 = GameBase.gi.soundindex("makron/pain3.wav");
-        sound_pain5 = GameBase.gi.soundindex("makron/pain2.wav");
-        sound_pain6 = GameBase.gi.soundindex("makron/pain1.wav");
-        sound_death = GameBase.gi.soundindex("makron/death.wav");
-        sound_step_left = GameBase.gi.soundindex("makron/step1.wav");
-        sound_step_right = GameBase.gi.soundindex("makron/step2.wav");
-        sound_attack_bfg = GameBase.gi.soundindex("makron/bfg_fire.wav");
-        sound_brainsplorch = GameBase.gi.soundindex("makron/brain1.wav");
-        sound_prerailgun = GameBase.gi.soundindex("makron/rail_up.wav");
-        sound_popup = GameBase.gi.soundindex("makron/popup.wav");
-        sound_taunt1 = GameBase.gi.soundindex("makron/voice4.wav");
-        sound_taunt2 = GameBase.gi.soundindex("makron/voice3.wav");
-        sound_taunt3 = GameBase.gi.soundindex("makron/voice.wav");
-        sound_hit = GameBase.gi.soundindex("makron/bhit.wav");
+        sound_pain4 = GameBase.gameExports.gameImports.soundindex("makron/pain3.wav");
+        sound_pain5 = GameBase.gameExports.gameImports.soundindex("makron/pain2.wav");
+        sound_pain6 = GameBase.gameExports.gameImports.soundindex("makron/pain1.wav");
+        sound_death = GameBase.gameExports.gameImports.soundindex("makron/death.wav");
+        sound_step_left = GameBase.gameExports.gameImports.soundindex("makron/step1.wav");
+        sound_step_right = GameBase.gameExports.gameImports.soundindex("makron/step2.wav");
+        sound_attack_bfg = GameBase.gameExports.gameImports.soundindex("makron/bfg_fire.wav");
+        sound_brainsplorch = GameBase.gameExports.gameImports.soundindex("makron/brain1.wav");
+        sound_prerailgun = GameBase.gameExports.gameImports.soundindex("makron/rail_up.wav");
+        sound_popup = GameBase.gameExports.gameImports.soundindex("makron/popup.wav");
+        sound_taunt1 = GameBase.gameExports.gameImports.soundindex("makron/voice4.wav");
+        sound_taunt2 = GameBase.gameExports.gameImports.soundindex("makron/voice3.wav");
+        sound_taunt3 = GameBase.gameExports.gameImports.soundindex("makron/voice.wav");
+        sound_hit = GameBase.gameExports.gameImports.soundindex("makron/bhit.wav");
 
-        GameBase.gi.modelindex("models/monsters/boss3/rider/tris.md2");
+        GameBase.gameExports.gameImports.modelindex("models/monsters/boss3/rider/tris.md2");
     }
 
     /*
@@ -1966,7 +1966,7 @@ public class M_Boss32 {
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/boss3/rider/tris.md2");
         Math3D.VectorSet(self.mins, -30, -30, 0);
         Math3D.VectorSet(self.maxs, 30, 30, 90);
@@ -1986,7 +1986,7 @@ public class M_Boss32 {
         self.monsterinfo.sight = makron_sight;
         self.monsterinfo.checkattack = Makron_CheckAttack;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         //		self.monsterinfo.currentmove = &makron_move_stand;
         self.monsterinfo.currentmove = makron_move_sight;

@@ -72,7 +72,7 @@ class GameChase {
         if (targ.groundentity == null)
             o[2] += 16;
 
-        trace_t trace = GameBase.gi.trace(ownerv, Globals.vec3_origin,
+        trace_t trace = GameBase.gameExports.gameImports.trace(ownerv, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
     
         Math3D.VectorCopy(trace.endpos, goal);
@@ -82,7 +82,7 @@ class GameChase {
         // pad for floors and ceilings
         Math3D.VectorCopy(goal, o);
         o[2] += 6;
-        trace = GameBase.gi.trace(goal, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(goal, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
         if (trace.fraction < 1) {
             Math3D.VectorCopy(trace.endpos, goal);
@@ -91,7 +91,7 @@ class GameChase {
     
         Math3D.VectorCopy(goal, o);
         o[2] -= 6;
-        trace = GameBase.gi.trace(goal, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(goal, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
         if (trace.fraction < 1) {
             Math3D.VectorCopy(trace.endpos, goal);
@@ -120,7 +120,7 @@ class GameChase {
     
         ent.viewheight = 0;
         client.getPlayerState().pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
     }
 
     static void ChaseNext(SubgameEntity ent) {
@@ -185,6 +185,6 @@ class GameChase {
                 return;
             }
         }
-        GameBase.gi.centerprintf(ent, "No other players to chase.");
+        GameBase.gameExports.gameImports.centerprintf(ent, "No other players to chase.");
     }
 }

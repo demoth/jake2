@@ -567,7 +567,7 @@ public class M_Medic {
     	public String getID(){ return "medic_idle"; }
         public boolean think(SubgameEntity self) {
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                     Defines.ATTN_IDLE, 0);
 
             SubgameEntity ent = medic_FindDeadMonster(self);
@@ -585,7 +585,7 @@ public class M_Medic {
     	public String getID(){ return "medic_search"; }
         public boolean think(SubgameEntity self) {
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_IDLE, 0);
 
             if (self.oldenemy == null) {
@@ -605,7 +605,7 @@ public class M_Medic {
     static EntInteractAdapter medic_sight = new EntInteractAdapter() {
     	public String getID(){ return "medic_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -819,16 +819,16 @@ public class M_Medic {
 
             self.pain_debounce_time = GameBase.level.time + 3;
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (Lib.random() < 0.5) {
                 self.monsterinfo.currentmove = medic_move_pain1;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = medic_move_pain2;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -877,7 +877,7 @@ public class M_Medic {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -930,8 +930,8 @@ public class M_Medic {
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -951,7 +951,7 @@ public class M_Medic {
                 return;
 
             //	regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -969,7 +969,7 @@ public class M_Medic {
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -991,7 +991,7 @@ public class M_Medic {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1087,7 +1087,7 @@ public class M_Medic {
     static EntThinkAdapter medic_hook_launch = new EntThinkAdapter() {
     	public String getID(){ return "medic_hook_launch"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1130,13 +1130,13 @@ public class M_Medic {
             if (Math.abs(angles[0]) > 45)
                 return true;
 
-            tr = GameBase.gi.trace(start, null, null, self.enemy.s.origin,
+            tr = GameBase.gameExports.gameImports.trace(start, null, null, self.enemy.s.origin,
                     self, Defines.MASK_SHOT);
             if (tr.fraction != 1.0 && tr.ent != self.enemy)
                 return true;
 
             if (self.s.frame == FRAME_attack43) {
-                GameBase.gi.sound(self.enemy, Defines.CHAN_AUTO,
+                GameBase.gameExports.gameImports.sound(self.enemy, Defines.CHAN_AUTO,
                         sound_hook_hit, 1, Defines.ATTN_NORM, 0);
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
             } else if (self.s.frame == FRAME_attack50) {
@@ -1160,7 +1160,7 @@ public class M_Medic {
                 }
             } else {
                 if (self.s.frame == FRAME_attack44)
-                    GameBase.gi.sound(self, Defines.CHAN_WEAPON,
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,
                             sound_hook_heal, 1, Defines.ATTN_NORM, 0);
             }
 
@@ -1171,12 +1171,12 @@ public class M_Medic {
             Math3D.VectorCopy(self.enemy.s.origin, end);
             end[2] = self.enemy.absmin[2] + self.enemy.size[2] / 2;
 
-            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gi.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
-            GameBase.gi.WriteShort(self.index);
-            GameBase.gi.WritePosition(start);
-            GameBase.gi.WritePosition(end);
-            GameBase.gi.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            GameBase.gameExports.gameImports.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
+            GameBase.gameExports.gameImports.WriteShort(self.index);
+            GameBase.gameExports.gameImports.WritePosition(start);
+            GameBase.gameExports.gameImports.WritePosition(end);
+            GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             return true;
         }
     };
@@ -1184,7 +1184,7 @@ public class M_Medic {
     static EntThinkAdapter medic_hook_retract = new EntThinkAdapter() {
     	public String getID(){ return "medic_hook_retract"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
                     Defines.ATTN_NORM, 0);
             self.enemy.monsterinfo.aiflags &= ~GameDefines.AI_RESURRECTING;
             return true;
@@ -1258,22 +1258,22 @@ public class M_Medic {
             return;
         }
 
-        sound_idle1 = GameBase.gi.soundindex("medic/idle.wav");
-        sound_pain1 = GameBase.gi.soundindex("medic/medpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("medic/medpain2.wav");
-        sound_die = GameBase.gi.soundindex("medic/meddeth1.wav");
-        sound_sight = GameBase.gi.soundindex("medic/medsght1.wav");
-        sound_search = GameBase.gi.soundindex("medic/medsrch1.wav");
-        sound_hook_launch = GameBase.gi.soundindex("medic/medatck2.wav");
-        sound_hook_hit = GameBase.gi.soundindex("medic/medatck3.wav");
-        sound_hook_heal = GameBase.gi.soundindex("medic/medatck4.wav");
-        sound_hook_retract = GameBase.gi.soundindex("medic/medatck5.wav");
+        sound_idle1 = GameBase.gameExports.gameImports.soundindex("medic/idle.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("medic/medpain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("medic/medpain2.wav");
+        sound_die = GameBase.gameExports.gameImports.soundindex("medic/meddeth1.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("medic/medsght1.wav");
+        sound_search = GameBase.gameExports.gameImports.soundindex("medic/medsrch1.wav");
+        sound_hook_launch = GameBase.gameExports.gameImports.soundindex("medic/medatck2.wav");
+        sound_hook_hit = GameBase.gameExports.gameImports.soundindex("medic/medatck3.wav");
+        sound_hook_heal = GameBase.gameExports.gameImports.soundindex("medic/medatck4.wav");
+        sound_hook_retract = GameBase.gameExports.gameImports.soundindex("medic/medatck5.wav");
 
-        GameBase.gi.soundindex("medic/medatck1.wav");
+        GameBase.gameExports.gameImports.soundindex("medic/medatck1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/medic/tris.md2");
         Math3D.VectorSet(self.mins, -24, -24, -24);
         Math3D.VectorSet(self.maxs, 24, 24, 32);
@@ -1296,7 +1296,7 @@ public class M_Medic {
         self.monsterinfo.search = medic_search;
         self.monsterinfo.checkattack = medic_checkattack;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = medic_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

@@ -468,7 +468,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_idlesound = new EntThinkAdapter() {
     	public String getID() { return "gunner_idlesound"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -477,7 +477,7 @@ public class M_Gunner {
     static EntInteractAdapter gunner_sight = new EntInteractAdapter() {
     	public String getID() { return "gunner_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -486,7 +486,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_search = new EntThinkAdapter() {
     	public String getID() { return "gunner_search"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -727,13 +727,13 @@ public class M_Gunner {
             self.pain_debounce_time = GameBase.level.time + 3;
 
             if ((Lib.rand() & 1) != 0)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -754,7 +754,7 @@ public class M_Gunner {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -783,8 +783,8 @@ public class M_Gunner {
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -804,7 +804,7 @@ public class M_Gunner {
                 return;
 
             //	regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -818,7 +818,7 @@ public class M_Gunner {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
-            if (GameBase.skill.value >= 2) {
+            if (GameBase.gameExports.cvarCache.skill.value >= 2) {
                 if (Lib.random() > 0.5)
                     GunnerGrenade.think(self);
             }
@@ -826,7 +826,7 @@ public class M_Gunner {
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -848,7 +848,7 @@ public class M_Gunner {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -882,7 +882,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_opengun = new EntThinkAdapter() {
     	public String getID() { return "gunner_opengun"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_open, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_open, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -1062,20 +1062,20 @@ public class M_Gunner {
             return;
         }
 
-        sound_death = GameBase.gi.soundindex("gunner/death1.wav");
-        sound_pain = GameBase.gi.soundindex("gunner/gunpain2.wav");
-        sound_pain2 = GameBase.gi.soundindex("gunner/gunpain1.wav");
-        sound_idle = GameBase.gi.soundindex("gunner/gunidle1.wav");
-        sound_open = GameBase.gi.soundindex("gunner/gunatck1.wav");
-        sound_search = GameBase.gi.soundindex("gunner/gunsrch1.wav");
-        sound_sight = GameBase.gi.soundindex("gunner/sight1.wav");
+        sound_death = GameBase.gameExports.gameImports.soundindex("gunner/death1.wav");
+        sound_pain = GameBase.gameExports.gameImports.soundindex("gunner/gunpain2.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("gunner/gunpain1.wav");
+        sound_idle = GameBase.gameExports.gameImports.soundindex("gunner/gunidle1.wav");
+        sound_open = GameBase.gameExports.gameImports.soundindex("gunner/gunatck1.wav");
+        sound_search = GameBase.gameExports.gameImports.soundindex("gunner/gunsrch1.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("gunner/sight1.wav");
 
-        GameBase.gi.soundindex("gunner/gunatck2.wav");
-        GameBase.gi.soundindex("gunner/gunatck3.wav");
+        GameBase.gameExports.gameImports.soundindex("gunner/gunatck2.wav");
+        GameBase.gameExports.gameImports.soundindex("gunner/gunatck3.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/gunner/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -1096,7 +1096,7 @@ public class M_Gunner {
         self.monsterinfo.sight = gunner_sight;
         self.monsterinfo.search = gunner_search;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = gunner_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

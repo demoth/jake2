@@ -33,10 +33,10 @@ public class M_Boss3 {
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gi.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gi.WriteByte(Defines.TE_BOSSTPORT);
-            GameBase.gi.WritePosition(ent.s.origin);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            GameBase.gameExports.gameImports.WriteByte(Defines.TE_BOSSTPORT);
+            GameBase.gameExports.gameImports.WritePosition(ent.s.origin);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
             GameUtil.G_FreeEdict(ent);
         }
     };
@@ -68,10 +68,10 @@ public class M_Boss3 {
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/boss3/rider/tris.md2";
-        self.s.modelindex = GameBase.gi.modelindex(self.model);
+        self.s.modelindex = GameBase.gameExports.gameImports.modelindex(self.model);
         self.s.frame = M_Boss32.FRAME_stand201;
 
-        GameBase.gi.soundindex("misc/bigtele.wav");
+        GameBase.gameExports.gameImports.soundindex("misc/bigtele.wav");
 
         Math3D.VectorSet(self.mins, -32, -32, 0);
         Math3D.VectorSet(self.maxs, 32, 32, 90);
@@ -79,6 +79,6 @@ public class M_Boss3 {
         self.use = Use_Boss3;
         self.think = Think_Boss3Stand;
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 }

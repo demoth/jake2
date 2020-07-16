@@ -50,7 +50,7 @@ final class SV {
         else
             mask = Defines.MASK_SOLID;
 
-        trace_t trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
+        trace_t trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,
                 ent.s.origin, ent, mask);
 
         if (trace.startsolid)
@@ -140,7 +140,7 @@ final class SV {
             for (i = 0; i < 3; i++)
                 end[i] = ent.s.origin[i] + time_left * ent.velocity[i];
 
-            trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, end,
+            trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, end,
                     ent, mask);
 
             if (trace.allsolid) { // entity is trapped in another solid
@@ -237,7 +237,7 @@ final class SV {
      * SV_AddGravity.
      */
     private static void SV_AddGravity(SubgameEntity ent) {
-        ent.velocity[2] -= ent.gravity * GameBase.sv_gravity.value
+        ent.velocity[2] -= ent.gravity * GameBase.gameExports.cvarCache.sv_gravity.value
                 * Defines.FRAMETIME;
     }
 
@@ -263,11 +263,11 @@ final class SV {
             else
                 mask = Defines.MASK_SOLID;
 
-            trace = GameBase.gi
+            trace = GameBase.gameExports.gameImports
                     .trace(start, ent.mins, ent.maxs, end, ent, mask);
 
             Math3D.VectorCopy(trace.endpos, ent.s.origin);
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
 
             retry = false;
             if (trace.fraction != 1.0) {
@@ -277,7 +277,7 @@ final class SV {
                 if (!trace.ent.inuse && ent.inuse) {
                     // move the pusher back and try again
                     Math3D.VectorCopy(start, ent.s.origin);
-                    GameBase.gi.linkentity(ent);
+                    GameBase.gameExports.gameImports.linkentity(ent);
                     //goto retry;
                     retry = true;
                 }
@@ -342,7 +342,7 @@ final class SV {
         //	   move the pusher to it's final position
         Math3D.VectorAdd(pusher.s.origin, move, pusher.s.origin);
         Math3D.VectorAdd(pusher.s.angles, amove, pusher.s.angles);
-        GameBase.gi.linkentity(pusher);
+        GameBase.gameExports.gameImports.linkentity(pusher);
 
         //	   see if any solid entities are inside the final position
 
@@ -406,7 +406,7 @@ final class SV {
 
                 edict_t[] block = SV_TestEntityPosition(check);
                 if (block == null) { // pushed ok
-                    GameBase.gi.linkentity(check);
+                    GameBase.gameExports.gameImports.linkentity(check);
                     // impact?
                     continue;
                 }
@@ -436,7 +436,7 @@ final class SV {
                 if (p.ent.getClient() != null) {
                     p.ent.getClient().getPlayerState().pmove.delta_angles[Defines.YAW] = (short) p.deltayaw;
                 }
-                GameBase.gi.linkentity(p.ent);
+                GameBase.gameExports.gameImports.linkentity(p.ent);
             }
             return false;
         }
@@ -523,7 +523,7 @@ final class SV {
         Math3D.VectorMA(ent.s.origin, Defines.FRAMETIME, ent.velocity,
                 ent.s.origin);
 
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
     }
 
     /**
@@ -599,7 +599,7 @@ final class SV {
 
         //	   check for water transition
         boolean wasinwater = (ent.watertype & Defines.MASK_WATER) != 0;
-        ent.watertype = GameBase.gi.getPointContents(ent.s.origin);
+        ent.watertype = GameBase.gameExports.gameImports.getPointContents(ent.s.origin);
         boolean isinwater = (ent.watertype & Defines.MASK_WATER) != 0;
 
         if (isinwater)
@@ -608,16 +608,16 @@ final class SV {
             ent.waterlevel = 0;
 
         if (!wasinwater && isinwater)
-            GameBase.gi.positioned_sound(old_origin, ent, Defines.CHAN_AUTO,
-                    GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+            GameBase.gameExports.gameImports.positioned_sound(old_origin, ent, Defines.CHAN_AUTO,
+                    GameBase.gameExports.gameImports.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
         else if (wasinwater && !isinwater)
-            GameBase.gi.positioned_sound(ent.s.origin, ent, Defines.CHAN_AUTO,
-                    GameBase.gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+            GameBase.gameExports.gameImports.positioned_sound(ent.s.origin, ent, Defines.CHAN_AUTO,
+                    GameBase.gameExports.gameImports.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
 
         //	   move teamslaves
         for (SubgameEntity slave = ent.teamchain; slave != null; slave = slave.teamchain) {
             Math3D.VectorCopy(ent.s.origin, slave.s.origin);
-            GameBase.gi.linkentity(slave);
+            GameBase.gameExports.gameImports.linkentity(slave);
         }
     }
 
@@ -685,7 +685,7 @@ final class SV {
         if (!wasonground)
             if (0 == (ent.flags & GameDefines.FL_FLY))
                 if (!((ent.flags & GameDefines.FL_SWIM) != 0 && (ent.waterlevel > 2))) {
-                    if (ent.velocity[2] < GameBase.sv_gravity.value * -0.1)
+                    if (ent.velocity[2] < GameBase.gameExports.cvarCache.sv_gravity.value * -0.1)
                         hitsound = true;
                     if (ent.waterlevel == 0)
                         SV_AddGravity(ent);
@@ -751,7 +751,7 @@ final class SV {
 
             SV_FlyMove(ent, Defines.FRAMETIME, mask);
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             GameBase.G_TouchTriggers(ent);
             if (!ent.inuse)
                 return;
@@ -759,8 +759,8 @@ final class SV {
             if (ent.groundentity != null)
                 if (!wasonground)
                     if (hitsound)
-                        GameBase.gi.sound(ent, 0, 
-                        		GameBase.gi.soundindex("world/land.wav"), 1, 1, 0);
+                        GameBase.gameExports.gameImports.sound(ent, 0, 
+                        		GameBase.gameExports.gameImports.soundindex("world/land.wav"), 1, 1, 0);
         }
 
         // regular thinking
@@ -818,7 +818,7 @@ final class SV {
                             neworg[2] += dz;
                     }
                 }
-                trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
+                trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,
                         neworg, ent, Defines.MASK_MONSTERSOLID);
 
                 // fly monsters don't enter water voluntarily
@@ -827,7 +827,7 @@ final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.getPointContents(test);
+                        contents = GameBase.gameExports.gameImports.getPointContents(test);
                         if ((contents & Defines.MASK_WATER) != 0)
                             return false;
                     }
@@ -839,7 +839,7 @@ final class SV {
                         test[0] = trace.endpos[0];
                         test[1] = trace.endpos[1];
                         test[2] = trace.endpos[2] + ent.mins[2] + 1;
-                        contents = GameBase.gi.getPointContents(test);
+                        contents = GameBase.gameExports.gameImports.getPointContents(test);
                         if ((contents & Defines.MASK_WATER) == 0)
                             return false;
                     }
@@ -848,7 +848,7 @@ final class SV {
                 if (trace.fraction == 1) {
                     Math3D.VectorCopy(trace.endpos, ent.s.origin);
                     if (relink) {
-                        GameBase.gi.linkentity(ent);
+                        GameBase.gameExports.gameImports.linkentity(ent);
                         GameBase.G_TouchTriggers(ent);
                     }
                     return true;
@@ -871,7 +871,7 @@ final class SV {
         Math3D.VectorCopy(neworg, end);
         end[2] -= stepsize * 2;
 
-        trace = GameBase.gi.trace(neworg, ent.mins, ent.maxs, end, ent,
+        trace = GameBase.gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent,
                 Defines.MASK_MONSTERSOLID);
 
         if (trace.allsolid)
@@ -879,7 +879,7 @@ final class SV {
 
         if (trace.startsolid) {
             neworg[2] -= stepsize;
-            trace = GameBase.gi.trace(neworg, ent.mins, ent.maxs, end, ent,
+            trace = GameBase.gameExports.gameImports.trace(neworg, ent.mins, ent.maxs, end, ent,
                     Defines.MASK_MONSTERSOLID);
             if (trace.allsolid || trace.startsolid)
                 return false;
@@ -890,7 +890,7 @@ final class SV {
             test[0] = trace.endpos[0];
             test[1] = trace.endpos[1];
             test[2] = trace.endpos[2] + ent.mins[2] + 1;
-            contents = GameBase.gi.getPointContents(test);
+            contents = GameBase.gameExports.gameImports.getPointContents(test);
 
             if ((contents & Defines.MASK_WATER) != 0)
                 return false;
@@ -901,7 +901,7 @@ final class SV {
             if ((ent.flags & GameDefines.FL_PARTIALGROUND) != 0) {
                 Math3D.VectorAdd(ent.s.origin, move, ent.s.origin);
                 if (relink) {
-                    GameBase.gi.linkentity(ent);
+                    GameBase.gameExports.gameImports.linkentity(ent);
                     GameBase.G_TouchTriggers(ent);
                 }
                 ent.groundentity = null;
@@ -919,7 +919,7 @@ final class SV {
                 // entity had floor mostly pulled out from underneath it
                 // and is trying to correct
                 if (relink) {
-                    GameBase.gi.linkentity(ent);
+                    GameBase.gameExports.gameImports.linkentity(ent);
                     GameBase.G_TouchTriggers(ent);
                 }
                 return true;
@@ -936,7 +936,7 @@ final class SV {
 
         //	   the move is ok
         if (relink) {
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             GameBase.G_TouchTriggers(ent);
         }
         return true;
@@ -966,11 +966,11 @@ final class SV {
                                              // take the step
                 Math3D.VectorCopy(oldorigin, ent.s.origin);
             }
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             GameBase.G_TouchTriggers(ent);
             return true;
         }
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
         GameBase.G_TouchTriggers(ent);
         return false;
     }

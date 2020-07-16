@@ -70,7 +70,7 @@ public class GameItems {
     
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.solid = Defines.SOLID_TRIGGER;
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
     
             // send an effect
             ent.s.event = Defines.EV_ITEM_RESPAWN;
@@ -230,7 +230,7 @@ public class GameItems {
                 client.bonus_alpha = 0.25f;
     
                 // show icon and name on status bar
-                client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
+                client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gameExports.gameImports
                         .imageindex(ent.item.icon);
                 client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
                 client.pickup_msg_time = GameBase.level.time + 3.0f;
@@ -241,24 +241,24 @@ public class GameItems {
     
                 if (ent.item.pickup == Pickup_Health) {
                     if (ent.count == 2)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/s_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else if (ent.count == 10)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/n_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else if (ent.count == 25)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/l_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
                         // (ent.count == 100)
-                        GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/m_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 } else if (ent.item.pickup_sound != null) {
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                             .soundindex(ent.item.pickup_sound), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -274,7 +274,7 @@ public class GameItems {
             
             Com.dprintln("Picked up:" + ent.classname);
     
-            if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+            if (!((GameBase.gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
                 if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                     ent.flags &= ~GameDefines.FL_RESPAWN;
@@ -325,7 +325,7 @@ public class GameItems {
             else
                 client.quad_framenum = GameBase.level.framenum + timeout;
     
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -342,7 +342,7 @@ public class GameItems {
             else
                 client.invincible_framenum = GameBase.level.framenum + 300;
     
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -359,7 +359,7 @@ public class GameItems {
             else
                 client.breather_framenum = GameBase.level.framenum + 300;
     
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -375,7 +375,7 @@ public class GameItems {
             else
                 client.enviro_framenum = GameBase.level.framenum + 300;
     
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -388,7 +388,7 @@ public class GameItems {
             GameUtil.ValidateSelectedItem(ent);
             client.silencer_shots += 30;
     
-            GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -396,7 +396,7 @@ public class GameItems {
         public String getID() { return "pickup_key";}
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
             gclient_t client = other.getClient();
-            if (GameBase.coop.value != 0) {
+            if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
                     if ((client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8)) != 0)
                         return false;
@@ -422,7 +422,7 @@ public class GameItems {
     
             weapon = (ent.item.flags & GameDefines.IT_WEAPON) != 0;
             if ((weapon)
-                    && ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
+                    && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
                 count = 1000;
             else if (ent.count != 0)
                 count = ent.count;
@@ -557,11 +557,11 @@ public class GameItems {
 
             gclient_t client = other.getClient();
             quantity = client.pers.inventory[ent.item.index];
-            if ((GameBase.skill.value == 1 && quantity >= 2)
-                    || (GameBase.skill.value >= 2 && quantity >= 1))
+            if ((GameBase.gameExports.cvarCache.skill.value == 1 && quantity >= 2)
+                    || (GameBase.gameExports.cvarCache.skill.value >= 2 && quantity >= 1))
                 return false;
     
-            if ((GameBase.coop.value != 0)
+            if ((GameBase.gameExports.cvarCache.coop.value != 0)
                     && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0
                     && (quantity > 0))
                 return false;
@@ -571,7 +571,7 @@ public class GameItems {
             if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity);
-                if (((int) GameBase.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
+                if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
@@ -670,7 +670,7 @@ public class GameItems {
                     && client.pers.weapon.tag == GameDefines.AMMO_GRENADES
                     && item.tag == GameDefines.AMMO_GRENADES
                     && client.pers.inventory[index] - dropped.count <= 0) {
-                GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
                 GameUtil.G_FreeEdict(dropped);
                 return;
@@ -717,9 +717,9 @@ public class GameItems {
             ent.maxs[0] = ent.maxs[1] = ent.maxs[2] = 15;
     
             if (ent.model != null)
-                GameBase.gi.setmodel(ent, ent.model);
+                GameBase.gameExports.gameImports.setmodel(ent, ent.model);
             else
-                GameBase.gi.setmodel(ent, ent.item.world_model);
+                GameBase.gameExports.gameImports.setmodel(ent, ent.item.world_model);
             ent.solid = Defines.SOLID_TRIGGER;
             ent.movetype = GameDefines.MOVETYPE_TOSS;
             ent.touch = Touch_Item;
@@ -727,10 +727,10 @@ public class GameItems {
             float v[] = { 0, 0, -128 };
             Math3D.VectorAdd(ent.s.origin, v, dest);
     
-            tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, dest, ent,
+            tr = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, dest, ent,
                     Defines.MASK_SOLID);
             if (tr.startsolid) {
-                GameBase.gi.dprintf("droptofloor: " + ent.classname
+                GameBase.gameExports.gameImports.dprintf("droptofloor: " + ent.classname
                         + " startsolid at " + Lib.vtos(ent.s.origin) + "\n");
                 GameUtil.G_FreeEdict(ent);
                 return true;
@@ -764,7 +764,7 @@ public class GameItems {
                 ent.use = Use_Item;
             }
     
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -775,21 +775,21 @@ public class GameItems {
     
             if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
-                GameBase.gi
-                        .sound(ent, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(ent, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                                 .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             } else {
                 index = FindItem("cells").index;
                 gclient_t client = ent.getClient();
                 if (0 == client.pers.inventory[index]) {
-                    GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                             "No cells for power armor.\n");
                     return;
                 }
                 ent.flags |= GameDefines.FL_POWER_ARMOR;
-                GameBase.gi
-                        .sound(ent, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(ent, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                                 .soundindex("misc/power1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             }
@@ -809,7 +809,7 @@ public class GameItems {
                 ent.touch = Touch_Item;
             }
     
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
         }
     };
 
@@ -865,7 +865,7 @@ public class GameItems {
         ent.solid = Defines.SOLID_NOT;
         ent.nextthink = GameBase.level.time + delay;
         ent.think = DoRespawn;
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
     }
 
     static SubgameEntity Drop_Item(SubgameEntity ent, gitem_t item) {
@@ -882,7 +882,7 @@ public class GameItems {
         dropped.s.renderfx = Defines.RF_GLOW;
         Math3D.VectorSet(dropped.mins, -15, -15, -15);
         Math3D.VectorSet(dropped.maxs, 15, 15, 15);
-        GameBase.gi.setmodel(dropped, dropped.item.world_model);
+        GameBase.gameExports.gameImports.setmodel(dropped, dropped.item.world_model);
         dropped.solid = Defines.SOLID_TRIGGER;
         dropped.movetype = GameDefines.MOVETYPE_TOSS;
     
@@ -898,7 +898,7 @@ public class GameItems {
             Math3D.VectorSet(offset, 24, 0, -16);
             Math3D.G_ProjectSource(ent.s.origin, offset, forward, right,
                     dropped.s.origin);
-            trace = GameBase.gi.trace(ent.s.origin, dropped.mins, dropped.maxs,
+            trace = GameBase.gameExports.gameImports.trace(ent.s.origin, dropped.mins, dropped.maxs,
                     dropped.s.origin, ent, Defines.CONTENTS_SOLID);
             Math3D.VectorCopy(trace.endpos, dropped.s.origin);
         } else {
@@ -912,7 +912,7 @@ public class GameItems {
         dropped.think = drop_make_touchable;
         dropped.nextthink = GameBase.level.time + 1;
     
-        GameBase.gi.linkentity(dropped);
+        GameBase.gameExports.gameImports.linkentity(dropped);
     
         return dropped;
     }
@@ -929,7 +929,7 @@ public class GameItems {
             ent.touch = Touch_Item;
         }
     
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
     }
 
     static int PowerArmorType(SubgameEntity ent) {
@@ -1032,7 +1032,7 @@ public class GameItems {
     
         for (i = 1; i < GameBase.gameExports.game.num_items; i++) {
             it = GameItemList.itemlist[i];
-            GameBase.gi.configstring(Defines.CS_ITEMS + i, it.pickup_name);
+            GameBase.gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
         jacket_armor_index = FindItem("Jacket Armor").index;
@@ -1118,16 +1118,16 @@ public class GameItems {
             return;
     
         if (it.pickup_sound != null)
-            GameBase.gi.soundindex(it.pickup_sound);
+            GameBase.gameExports.gameImports.soundindex(it.pickup_sound);
     
         if (it.world_model != null)
-            GameBase.gi.modelindex(it.world_model);
+            GameBase.gameExports.gameImports.modelindex(it.world_model);
     
         if (it.view_model != null)
-            GameBase.gi.modelindex(it.view_model);
+            GameBase.gameExports.gameImports.modelindex(it.view_model);
     
         if (it.icon != null)
-            GameBase.gi.imageindex(it.icon);
+            GameBase.gameExports.gameImports.imageindex(it.icon);
     
         // parse everything for its ammo
         if (it.ammo != null && it.ammo.length() != 0) {
@@ -1149,19 +1149,19 @@ public class GameItems {
             int len = file.length();
 
             if (len >= Defines.MAX_QPATH || len < 5)
-                GameBase.gi.error("PrecacheItem: it.classname has bad precache string: " + precacheString);
+                GameBase.gameExports.gameImports.error("PrecacheItem: it.classname has bad precache string: " + precacheString);
     
             // determine type based on extension
             if (file.endsWith("md2"))
-                GameBase.gi.modelindex(file);
+                GameBase.gameExports.gameImports.modelindex(file);
             else if (file.endsWith("sp2"))
-                GameBase.gi.modelindex(file);
+                GameBase.gameExports.gameImports.modelindex(file);
             else if (file.endsWith("wav"))
-                GameBase.gi.soundindex(file);
+                GameBase.gameExports.gameImports.soundindex(file);
             else if (file.endsWith("pcx"))
-                GameBase.gi.imageindex(file);
+                GameBase.gameExports.gameImports.imageindex(file);
             else
-                GameBase.gi.error("PrecacheItem: bad precache string: " + file);
+                GameBase.gameExports.gameImports.error("PrecacheItem: bad precache string: " + file);
         }
     }
 
@@ -1177,7 +1177,7 @@ public class GameItems {
         if (ent.spawnflags != 0) {
             if (!"key_power_cube".equals(ent.classname)) {
                 ent.spawnflags = 0;
-                GameBase.gi.dprintf("" + ent.classname + " at "
+                GameBase.gameExports.gameImports.dprintf("" + ent.classname + " at "
                         + Lib.vtos(ent.s.origin)
                         + " has invalid spawnflags set\n");
             }
@@ -1185,20 +1185,20 @@ public class GameItems {
     
         // some items will be prevented in deathmatch
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-            if (((int) GameBase.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
+            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
                     GameUtil.G_FreeEdict(ent);
                     return;
                 }
             }
-            if (((int) GameBase.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
+            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
                 if (item.pickup == Pickup_Powerup) {
                     GameUtil.G_FreeEdict(ent);
                     return;
                 }
             }
-            if (((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
                 if (item.pickup == Pickup_Health
                         || item.pickup == Pickup_Adrenaline
                         || item.pickup == Pickup_AncientHead) {
@@ -1206,7 +1206,7 @@ public class GameItems {
                     return;
                 }
             }
-            if (((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
+            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
                     GameUtil.G_FreeEdict(ent);
@@ -1215,14 +1215,14 @@ public class GameItems {
             }
         }
     
-        if (GameBase.coop.value != 0
+        if (GameBase.gameExports.cvarCache.coop.value != 0
                 && ("key_power_cube".equals(ent.classname))) {
             ent.spawnflags |= (1 << (8 + GameBase.level.power_cubes));
             GameBase.level.power_cubes++;
         }
     
         // don't let them drop items that stay in a coop game
-        if ((GameBase.coop.value != 0)
+        if ((GameBase.gameExports.cvarCache.coop.value != 0)
                 && (item.flags & GameDefines.IT_STAY_COOP) != 0) {
             item.drop = null;
         }
@@ -1235,7 +1235,7 @@ public class GameItems {
         ent.s.renderfx = Defines.RF_GLOW;
     
         if (ent.model != null)
-            GameBase.gi.modelindex(ent.model);
+            GameBase.gameExports.gameImports.modelindex(ent.model);
     }
 
     /*
@@ -1243,14 +1243,14 @@ public class GameItems {
      */
     static void SP_item_health(SubgameEntity self) {
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
         }
     
         self.model = "models/items/healing/medium/tris.md2";
         self.count = 10;
         SpawnItem(self, FindItem("Health"));
-        GameBase.gi.soundindex("items/n_health.wav");
+        GameBase.gameExports.gameImports.soundindex("items/n_health.wav");
     }
 
     /*
@@ -1258,7 +1258,7 @@ public class GameItems {
      */
     static void SP_item_health_small(SubgameEntity self) {
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -1267,7 +1267,7 @@ public class GameItems {
         self.count = 2;
         SpawnItem(self, FindItem("Health"));
         self.style = GameDefines.HEALTH_IGNORE_MAX;
-        GameBase.gi.soundindex("items/s_health.wav");
+        GameBase.gameExports.gameImports.soundindex("items/s_health.wav");
     }
 
     /*
@@ -1275,7 +1275,7 @@ public class GameItems {
      */
     static void SP_item_health_large(SubgameEntity self) {
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -1283,7 +1283,7 @@ public class GameItems {
         self.model = "models/items/healing/large/tris.md2";
         self.count = 25;
         SpawnItem(self, FindItem("Health"));
-        GameBase.gi.soundindex("items/l_health.wav");
+        GameBase.gameExports.gameImports.soundindex("items/l_health.wav");
     }
 
     /*
@@ -1291,7 +1291,7 @@ public class GameItems {
      */
     static void SP_item_health_mega(SubgameEntity self) {
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -1299,7 +1299,7 @@ public class GameItems {
         self.model = "models/items/mega_h/tris.md2";
         self.count = 100;
         SpawnItem(self, FindItem("Health"));
-        GameBase.gi.soundindex("items/m_health.wav");
+        GameBase.gameExports.gameImports.soundindex("items/m_health.wav");
         self.style = GameDefines.HEALTH_IGNORE_MAX | GameDefines.HEALTH_TIMED;
     }
 
@@ -1328,7 +1328,7 @@ public class GameItems {
             client.bonus_alpha = 0.25f;
     
             // show icon and name on status bar
-            client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(ent.item.icon);
             client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
             client.pickup_msg_time = GameBase.level.time + 3.0f;
@@ -1339,24 +1339,24 @@ public class GameItems {
     
             if (ent.item.pickup == Pickup_Health) {
                 if (ent.count == 2)
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                             .soundindex("items/s_health.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 else if (ent.count == 10)
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                             .soundindex("items/n_health.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 else if (ent.count == 25)
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                             .soundindex("items/l_health.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 else
                     // (ent.count == 100)
-                    GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                             .soundindex("items/m_health.wav"), 1,
                             Defines.ATTN_NORM, 0);
             } else if (ent.item.pickup_sound != null) {
-                GameBase.gi.sound(other, Defines.CHAN_ITEM, GameBase.gi
+                GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                         .soundindex(ent.item.pickup_sound), 1,
                         Defines.ATTN_NORM, 0);
             }
@@ -1370,7 +1370,7 @@ public class GameItems {
         if (!taken)
             return;
     
-        if (!((GameBase.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+        if (!((GameBase.gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                 || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
             if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                 ent.flags &= ~GameDefines.FL_RESPAWN;

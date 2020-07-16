@@ -1203,7 +1203,7 @@ public class M_Actor {
                 return;
 
             self.pain_debounce_time = GameBase.level.time + 3;
-            //GameBase.gi.sound (self, CHAN_VOICE, actor.sound_pain, 1,
+            //GameBase.gameExports.gameImports.sound (self, CHAN_VOICE, actor.sound_pain, 1,
             // ATTN_NORM, 0);
 
             if ((other.getClient() != null) && (Lib.random() < 0.4)) {
@@ -1221,7 +1221,7 @@ public class M_Actor {
                 // FIXME: does the ent-id work out ?
                 name = actor_names[(self.index) % MAX_ACTOR_NAMES];
 
-                GameBase.gi.cprintf(other, Defines.PRINT_CHAT, name + ": "
+                GameBase.gameExports.gameImports.cprintf(other, Defines.PRINT_CHAT, name + ": "
                         + messages[Lib.rand() % 3] + "!\n");
                 return;
             }
@@ -1244,7 +1244,7 @@ public class M_Actor {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1364,7 +1364,7 @@ public class M_Actor {
                     .G_PickTarget(self.target);
             if ((null == self.movetarget)
                     || (!"target_actor".equals(self.movetarget.classname))) {
-                GameBase.gi
+                GameBase.gameExports.gameImports
                         .dprintf(self.classname + " has bad target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
@@ -1417,7 +1417,7 @@ public class M_Actor {
                     ent = GameBase.g_edicts[n];
                     if (!ent.inuse)
                         continue;
-                    GameBase.gi.cprintf(ent, Defines.PRINT_CHAT,
+                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_CHAT,
                             actor_names[(other.index) % MAX_ACTOR_NAMES] + ": "
                                     + self.message + "\n");
                 }
@@ -1431,7 +1431,7 @@ public class M_Actor {
                 if (other.groundentity != null) {
                     other.groundentity = null;
                     other.velocity[2] = self.movedir[2];
-                    GameBase.gi.sound(other, Defines.CHAN_VOICE, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("player/male/jump1.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -1521,14 +1521,14 @@ public class M_Actor {
         }
 
         if (self.targetname != null) {
-            GameBase.gi.dprintf("untargeted " + self.classname + " at "
+            GameBase.gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
         }
 
         if (self.target != null) {
-            GameBase.gi.dprintf(self.classname + " with no target at "
+            GameBase.gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
@@ -1536,7 +1536,7 @@ public class M_Actor {
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi.modelindex("players/male/tris.md2");
+        self.s.modelindex = GameBase.gameExports.gameImports.modelindex("players/male/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
 
@@ -1556,7 +1556,7 @@ public class M_Actor {
 
         self.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = actor_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
@@ -1570,7 +1570,7 @@ public class M_Actor {
 
     public static void SP_target_actor(SubgameEntity self) {
         if (self.targetname != null)
-            GameBase.gi.dprintf(self.classname + " with no targetname at "
+            GameBase.gameExports.gameImports.dprintf(self.classname + " with no targetname at "
                     + Lib.vtos(self.s.origin) + " \n");
 
         self.solid = Defines.SOLID_TRIGGER;
@@ -1590,6 +1590,6 @@ public class M_Actor {
             self.movedir[2] = GameBase.st.height;
         }
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 }

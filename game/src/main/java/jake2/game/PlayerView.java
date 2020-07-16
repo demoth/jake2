@@ -174,7 +174,7 @@ class PlayerView {
                 l = 75;
             else
                 l = 100;
-            GameBase.gi.sound(player, Defines.CHAN_VOICE, GameBase.gi
+            GameBase.gameExports.gameImports.sound(player, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                     .soundindex("*pain" + l + "_" + r + ".wav"), 1,
                     Defines.ATTN_NORM, 0);
         }
@@ -432,7 +432,7 @@ class PlayerView {
 
         // add for contents
         Math3D.VectorAdd(ent.s.origin, client.getPlayerState().viewoffset, vieworg);
-        contents = GameBase.gi.getPointContents(vieworg);
+        contents = GameBase.gameExports.gameImports.getPointContents(vieworg);
         if ((contents & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME | Defines.CONTENTS_WATER)) != 0)
             client.getPlayerState().rdflags |= Defines.RDF_UNDERWATER;
         else
@@ -449,30 +449,30 @@ class PlayerView {
         if (client.quad_framenum > GameBase.level.framenum) {
             remaining = (int) (client.quad_framenum - GameBase.level.framenum);
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
-                	GameBase.gi.soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM, 0);
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
+                	GameBase.gameExports.gameImports.soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 0, 1, 0.08f, client.getPlayerState().blend);
         } else if (client.invincible_framenum > GameBase.level.framenum) {
             remaining = (int) client.invincible_framenum - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
-                	GameBase.gi.soundindex("items/protect2.wav"), 1, Defines.ATTN_NORM, 0);
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
+                	GameBase.gameExports.gameImports.soundindex("items/protect2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(1, 1, 0, 0.08f, client.getPlayerState().blend);
         } else if (client.enviro_framenum > GameBase.level.framenum) {
             remaining = (int) client.enviro_framenum
                     - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, 
-                		GameBase.gi.soundindex("items/airout.wav"), 1, Defines.ATTN_NORM, 0);
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
+                		GameBase.gameExports.gameImports.soundindex("items/airout.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 1, 0, 0.08f, client.getPlayerState().blend);
         } else if (client.breather_framenum > GameBase.level.framenum) {
             remaining = (int) client.breather_framenum
                     - GameBase.level.framenum;
             if (remaining == 30) // beginning to fade
-                GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                         .soundindex("items/airout.wav"), 1, Defines.ATTN_NORM,
                         0);
             if (remaining > 30 || (remaining & 4) != 0)
@@ -562,7 +562,7 @@ class PlayerView {
             Math3D.VectorSet(dir, 0, 0, 1);
 
             if (GameBase.gameExports.cvarCache.deathmatch.value == 0
-                    || 0 == ((int) GameBase.dmflags.value & Defines.DF_NO_FALLING))
+                    || 0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_FALLING))
                 GameCombat.T_Damage(ent, GameBase.g_edicts[0],
                         GameBase.g_edicts[0], dir, ent.s.origin,
                         Globals.vec3_origin, damage, 0, 0, GameDefines.MOD_FALLING);
@@ -600,16 +600,16 @@ class PlayerView {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                     GameDefines.PNOISE_SELF);
             if ((current_player.watertype & Defines.CONTENTS_LAVA) != 0)
-                GameBase.gi.sound(current_player, Defines.CHAN_BODY,
-                        GameBase.gi.soundindex("player/lava_in.wav"), 1,
+                GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_BODY,
+                        GameBase.gameExports.gameImports.soundindex("player/lava_in.wav"), 1,
                         Defines.ATTN_NORM, 0);
             else if ((current_player.watertype & Defines.CONTENTS_SLIME) != 0)
-                GameBase.gi.sound(current_player, Defines.CHAN_BODY,
-                        GameBase.gi.soundindex("player/watr_in.wav"), 1,
+                GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_BODY,
+                        GameBase.gameExports.gameImports.soundindex("player/watr_in.wav"), 1,
                         Defines.ATTN_NORM, 0);
             else if ((current_player.watertype & Defines.CONTENTS_WATER) != 0)
-                GameBase.gi.sound(current_player, Defines.CHAN_BODY,
-                        GameBase.gi.soundindex("player/watr_in.wav"), 1,
+                GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_BODY,
+                        GameBase.gameExports.gameImports.soundindex("player/watr_in.wav"), 1,
                         Defines.ATTN_NORM, 0);
             current_player.flags |= GameDefines.FL_INWATER;
 
@@ -623,8 +623,8 @@ class PlayerView {
         if (old_waterlevel != 0 && waterlevel == 0) {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                     GameDefines.PNOISE_SELF);
-            GameBase.gi
-                    .sound(current_player, Defines.CHAN_BODY, GameBase.gi
+            GameBase.gameExports.gameImports
+                    .sound(current_player, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                             .soundindex("player/watr_out.wav"), 1,
                             Defines.ATTN_NORM, 0);
             current_player.flags &= ~GameDefines.FL_INWATER;
@@ -634,7 +634,7 @@ class PlayerView {
         // check for head just going under water
         //
         if (old_waterlevel != 3 && waterlevel == 3) {
-            GameBase.gi.sound(current_player, Defines.CHAN_BODY, GameBase.gi
+            GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                     .soundindex("player/watr_un.wav"), 1, Defines.ATTN_NORM, 0);
         }
 
@@ -644,16 +644,16 @@ class PlayerView {
         if (old_waterlevel == 3 && waterlevel != 3) {
             if (current_player.air_finished < GameBase.level.time) { // gasp for
                                                                      // air
-                GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                        GameBase.gi.soundindex("player/gasp1.wav"), 1,
+                GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                        GameBase.gameExports.gameImports.soundindex("player/gasp1.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                         GameDefines.PNOISE_SELF);
             } else if (current_player.air_finished < GameBase.level.time + 11) { // just
                                                                                  // break
                                                                                  // surface
-                GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                        GameBase.gi.soundindex("player/gasp2.wav"), 1,
+                GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                        GameBase.gameExports.gameImports.soundindex("player/gasp2.wav"), 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -668,12 +668,12 @@ class PlayerView {
 
                 if (((int) (current_client.breather_framenum - GameBase.level.framenum) % 25) == 0) {
                     if (current_client.breather_sound == 0)
-                        GameBase.gi.sound(current_player, Defines.CHAN_AUTO,
-                                GameBase.gi.soundindex("player/u_breath1.wav"),
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_AUTO,
+                                GameBase.gameExports.gameImports.soundindex("player/u_breath1.wav"),
                                 1, Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gi.sound(current_player, Defines.CHAN_AUTO,
-                                GameBase.gi.soundindex("player/u_breath2.wav"),
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_AUTO,
+                                GameBase.gameExports.gameImports.soundindex("player/u_breath2.wav"),
                                 1, Defines.ATTN_NORM, 0);
                     current_client.breather_sound ^= 1;
                     PlayerWeapon.PlayerNoise(current_player,
@@ -696,16 +696,16 @@ class PlayerView {
 
                     // play a gurp sound instead of a normal pain sound
                     if (current_player.health <= current_player.dmg)
-                        GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                                GameBase.gi.soundindex("player/drown1.wav"), 1,
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                                GameBase.gameExports.gameImports.soundindex("player/drown1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else if ((Lib.rand() & 1) != 0)
-                        GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                                GameBase.gi.soundindex("*gurp1.wav"), 1,
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                                GameBase.gameExports.gameImports.soundindex("*gurp1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                                GameBase.gi.soundindex("*gurp2.wav"), 1,
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                                GameBase.gameExports.gameImports.soundindex("*gurp2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
 
                     current_player.pain_debounce_time = GameBase.level.time;
@@ -732,12 +732,12 @@ class PlayerView {
                         && current_player.pain_debounce_time <= GameBase.level.time
                         && current_client.invincible_framenum < GameBase.level.framenum) {
                     if ((Lib.rand() & 1) != 0)
-                        GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                                GameBase.gi.soundindex("player/burn1.wav"), 1,
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                                GameBase.gameExports.gameImports.soundindex("player/burn1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gi.sound(current_player, Defines.CHAN_VOICE,
-                                GameBase.gi.soundindex("player/burn2.wav"), 1,
+                        GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
+                                GameBase.gameExports.gameImports.soundindex("player/burn2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     current_player.pain_debounce_time = GameBase.level.time + 1;
                 }
@@ -846,7 +846,7 @@ class PlayerView {
                 && client.pers.helpchanged <= 3
                 && 0 == (GameBase.level.framenum & 63)) {
             client.pers.helpchanged++;
-            GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                     .soundindex("misc/pc_up.wav"), 1, Defines.ATTN_STATIC, 0);
         }
 
@@ -859,9 +859,9 @@ class PlayerView {
                 && 0 != (ent.watertype & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME)))
             ent.s.sound = GameBase.snd_fry;
         else if ("weapon_railgun".equals(weap))
-            ent.s.sound = GameBase.gi.soundindex("weapons/rg_hum.wav");
+            ent.s.sound = GameBase.gameExports.gameImports.soundindex("weapons/rg_hum.wav");
         else if ("weapon_bfg".equals(weap))
-            ent.s.sound = GameBase.gi.soundindex("weapons/bfg_hum.wav");
+            ent.s.sound = GameBase.gameExports.gameImports.soundindex("weapons/bfg_hum.wav");
         else if (client.weapon_sound != 0)
             ent.s.sound = client.weapon_sound;
         else
@@ -1082,7 +1082,7 @@ class PlayerView {
         // if the scoreboard is up, update it
         if (current_client.showscores && 0 == (GameBase.level.framenum & 31)) {
             PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy);
-            GameBase.gi.unicast(ent, false);
+            GameBase.gameExports.gameImports.unicast(ent, false);
         }
     }
 
