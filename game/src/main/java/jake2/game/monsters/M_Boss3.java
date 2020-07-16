@@ -60,7 +60,7 @@ public class M_Boss3 {
      * Just stands and cycles in one place until targeted, then teleports away.
      */
     public static void SP_monster_boss3_stand(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }

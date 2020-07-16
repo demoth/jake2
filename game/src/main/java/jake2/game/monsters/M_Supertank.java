@@ -1157,7 +1157,7 @@ public class M_Supertank {
     public static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_supertank"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }

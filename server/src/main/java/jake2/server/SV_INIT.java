@@ -361,6 +361,7 @@ public class SV_INIT {
             Constructor<?> constructor = game.getConstructor(GameImports.class);
             return (GameExports) constructor.newInstance(gameImports);
         } catch (Exception e) {
+            e.printStackTrace();
             Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
             return null;
         }

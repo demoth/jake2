@@ -355,7 +355,7 @@ class GameTrigger {
                     for (cube = 0; cube < 8; cube++)
                         if ((activatorClient.pers.power_cubes & (1 << cube)) != 0)
                             break;
-                    for (player = 1; player <= GameBase.game.maxclients; player++) {
+                    for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
                         ent = GameBase.g_edicts[player];
                         if (!ent.inuse)
                             continue;
@@ -368,7 +368,7 @@ class GameTrigger {
                         }
                     }
                 } else {
-                    for (player = 1; player <= GameBase.game.maxclients; player++) {
+                    for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
                         ent = GameBase.g_edicts[player];
                         if (!ent.inuse)
                             continue;

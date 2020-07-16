@@ -67,7 +67,7 @@ public class PlayerClient {
                 client.getPlayerState().pmove.pm_type = Defines.PM_DEAD;
                 ClientObituary(self, inflictor, attacker);
                 PlayerClient.TossClientWeapon(self);
-                if (GameBase.deathmatch.value != 0) {
+                if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                     Com.Printf("NOT IMPLEMENTED!");
                     //Cmd.Help_f(self); // show scores
                 }
@@ -75,7 +75,7 @@ public class PlayerClient {
                 // clear inventory
                 // this is kind of ugly, but it's how we want to handle keys in
                 // coop
-                for (n = 0; n < GameBase.game.num_items; n++) {
+                for (n = 0; n < GameBase.gameExports.game.num_items; n++) {
                     if (GameBase.coop.value != 0
                             && (GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0)
                         client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
@@ -265,7 +265,7 @@ public class PlayerClient {
      * spawning position for deathmatch games.
      */
     public static void SP_info_player_deathmatch(SubgameEntity self) {
-        if (0 == GameBase.deathmatch.value) {
+        if (0 == GameBase.gameExports.cvarCache.deathmatch.value) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -324,7 +324,7 @@ public class PlayerClient {
             GameBase.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         gclient_t client = self.getClient();
-        if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
             ff = (GameBase.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
             mod = GameBase.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
             message = null;
@@ -406,7 +406,7 @@ public class PlayerClient {
             if (message != null) {
                 GameBase.gi.bprintf(Defines.PRINT_MEDIUM,
                         client.pers.netname + " " + message + ".\n");
-                if (GameBase.deathmatch.value != 0)
+                if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                     client.resp.score--;
                 self.enemy = null;
                 return;
@@ -489,7 +489,7 @@ public class PlayerClient {
                             client.pers.netname + " " + message + " "
                                     + attackerClient.pers.netname + " "
                                     + message2 + "\n");
-                    if (GameBase.deathmatch.value != 0) {
+                    if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                         if (ff)
                             attackerClient.resp.score--;
                         else
@@ -502,7 +502,7 @@ public class PlayerClient {
 
         GameBase.gi.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
                 + " died.\n");
-        if (GameBase.deathmatch.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             client.resp.score--;
     }
 
@@ -554,19 +554,19 @@ public class PlayerClient {
      */
     public static void SaveClientData() {
 
-        for (int i = 0; i < GameBase.game.maxclients; i++) {
+        for (int i = 0; i < GameBase.gameExports.game.maxclients; i++) {
             SubgameEntity ent = GameBase.g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
 
-            GameBase.game.clients[i].pers.health = ent.health;
-            GameBase.game.clients[i].pers.max_health = ent.max_health;
-            GameBase.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
+            GameBase.gameExports.game.clients[i].pers.health = ent.health;
+            GameBase.gameExports.game.clients[i].pers.max_health = ent.max_health;
+            GameBase.gameExports.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
                     | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
             if (GameBase.coop.value != 0) {
                 gclient_t client = ent.getClient();
-                GameBase.game.clients[i].pers.score = client.resp.score;
+                GameBase.gameExports.game.clients[i].pers.score = client.resp.score;
             }
         }
     }
@@ -592,7 +592,7 @@ public class PlayerClient {
 
         bestplayerdistance = 9999999;
 
-        for (n = 1; n <= GameBase.game.maxclients; n++) {
+        for (n = 1; n <= GameBase.gameExports.game.maxclients; n++) {
             player = GameBase.g_edicts[n];
 
             if (!player.inuse)
@@ -739,7 +739,7 @@ public class PlayerClient {
             String target = spot.targetname;
             if (target == null)
                 target = "";
-            if (Lib.Q_stricmp(GameBase.game.spawnpoint, target) == 0) { 
+            if (Lib.Q_stricmp(GameBase.gameExports.game.spawnpoint, target) == 0) {
                 // this is a coop spawn point for one of the clients here
                 index--;
                 if (0 == index)
@@ -756,7 +756,7 @@ public class PlayerClient {
             float[] angles) {
         SubgameEntity spot = null;
 
-        if (GameBase.deathmatch.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             spot = SelectDeathmatchSpawnPoint();
         else if (GameBase.coop.value != 0)
             spot = SelectCoopSpawnPoint(ent);
@@ -768,20 +768,20 @@ public class PlayerClient {
                     "info_player_start")) != null) {
                 spot = es.o;
 
-                if (GameBase.game.spawnpoint.length() == 0
+                if (GameBase.gameExports.game.spawnpoint.length() == 0
                         && spot.targetname == null)
                     break;
 
-                if (GameBase.game.spawnpoint.length() == 0
+                if (GameBase.gameExports.game.spawnpoint.length() == 0
                         || spot.targetname == null)
                     continue;
 
-                if (Lib.Q_stricmp(GameBase.game.spawnpoint, spot.targetname) == 0)
+                if (Lib.Q_stricmp(GameBase.gameExports.game.spawnpoint, spot.targetname) == 0)
                     break;
             }
 
             if (null == spot) {
-                if (GameBase.game.spawnpoint.length() == 0) { 
+                if (GameBase.gameExports.game.spawnpoint.length() == 0) {
                     // there wasn't a spawnpoint without a
                     // target, so use any
                     es = GameBase.G_Find(es, GameBase.findByClass,
@@ -793,7 +793,7 @@ public class PlayerClient {
                 if (null == spot)
                 {
                     GameBase.gi.error("Couldn't find spawn point "
-                            + GameBase.game.spawnpoint + "\n");
+                            + GameBase.gameExports.game.spawnpoint + "\n");
                     return;
                 }
             }
@@ -817,7 +817,7 @@ public class PlayerClient {
     public static void CopyToBodyQue(SubgameEntity ent) {
 
         // grab a body que and cycle to the next one
-        int i = (int) GameBase.game.maxclients + GameBase.level.body_que + 1;
+        int i = (int) GameBase.gameExports.game.maxclients + GameBase.level.body_que + 1;
         SubgameEntity body = GameBase.g_edicts[i];
         GameBase.level.body_que = (GameBase.level.body_que + 1)
                 % GameDefines.BODY_QUEUE_SIZE;
@@ -849,7 +849,7 @@ public class PlayerClient {
     }
 
     public static void respawn(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
                 CopyToBodyQue(self);
@@ -905,7 +905,7 @@ public class PlayerClient {
             }
 
             // count spectators
-            for (i = 1, numspec = 0; i <= GameBase.game.maxclients; i++) {
+            for (i = 1, numspec = 0; i <= GameBase.gameExports.game.maxclients; i++) {
                 gclient_t other = GameBase.g_edicts[i].getClient();
                 if (GameBase.g_edicts[i].inuse && other.pers.spectator)
                     numspec++;
@@ -990,7 +990,7 @@ public class PlayerClient {
         client = ent.getClient();
 
         // deathmatch wipes most client data every spawn
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
 
             resp.set(client.resp);
             String userinfo = client.pers.userinfo;
@@ -1028,7 +1028,7 @@ public class PlayerClient {
 
         // clear entity values
         ent.groundentity = null;
-        ent.setClient(GameBase.game.clients[index]);
+        ent.setClient(GameBase.gameExports.game.clients[index]);
         ent.takedamage = Defines.DAMAGE_AIM;
         ent.movetype = GameDefines.MOVETYPE_WALK;
         ent.viewheight = 22;
@@ -1058,7 +1058,7 @@ public class PlayerClient {
         client.getPlayerState().pmove.origin[1] = (short) (spawn_origin[1] * 8);
         client.getPlayerState().pmove.origin[2] = (short) (spawn_origin[2] * 8);
 
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && 0 != ((int) GameBase.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
@@ -1151,16 +1151,15 @@ public class PlayerClient {
                 + " entered the game\n");
 
         // make sure all view stuff is valid
-        GameBase.playerView.ClientEndServerFrame(ent);
+        GameBase.gameExports.playerView.ClientEndServerFrame(ent);
     }
 
     static void ClientBegin(SubgameEntity ent) {
-        int i;
 
         //ent.client = game.clients + (ent - g_edicts - 1);
-        ent.setClient(GameBase.game.clients[ent.index - 1]);
+        ent.setClient(GameBase.gameExports.game.clients[ent.index - 1]);
 
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             ClientBeginDeathmatch(ent);
             return;
         }
@@ -1173,7 +1172,7 @@ public class PlayerClient {
             // connecting to the server, which is different than the
             // state when the game is saved, so we need to compensate
             // with deltaangles
-            for (i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
                 client.getPlayerState().pmove.delta_angles[i] = (short) Math3D
                         .ANGLE2SHORT(client.getPlayerState().viewangles[i]);
         } else {
@@ -1190,7 +1189,7 @@ public class PlayerClient {
             PlayerHud.MoveClientToIntermission(ent);
         } else {
             // send effect if in a multiplayer game
-            if (GameBase.game.maxclients > 1) {
+            if (GameBase.gameExports.game.maxclients > 1) {
                 GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
                 GameBase.gi.WriteShort(ent.index);
                 GameBase.gi.WriteByte(Defines.MZ_LOGIN);
@@ -1202,7 +1201,7 @@ public class PlayerClient {
         }
 
         // make sure all view stuff is valid
-        GameBase.playerView.ClientEndServerFrame(ent);
+        GameBase.gameExports.playerView.ClientEndServerFrame(ent);
     }
 
     static String ClientUserinfoChanged(SubgameEntity ent, String userinfo) {
@@ -1223,7 +1222,7 @@ public class PlayerClient {
         // set spectator
         s = Info.Info_ValueForKey(userinfo, "spectator");
         // spectators are only supported in deathmatch
-        if (GameBase.deathmatch.value != 0 && !s.equals("0"))
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && !s.equals("0"))
             client.pers.spectator = true;
         else
             client.pers.spectator = false;
@@ -1238,7 +1237,7 @@ public class PlayerClient {
                 client.pers.netname + "\\" + s);
 
         // fov
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && 0 != ((int) GameBase.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
@@ -1274,7 +1273,7 @@ public class PlayerClient {
 
         // check for a spectator
         value = Info.Info_ValueForKey(userinfo, "spectator");
-        if (GameBase.deathmatch.value != 0 && value.length() != 0 && !"0".equals(value)) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && value.length() != 0 && !"0".equals(value)) {
             int i, numspec;
 
             if (!passwdOK(GameBase.spectator_password.string, value)) {
@@ -1284,7 +1283,7 @@ public class PlayerClient {
             }
 
             // count spectators
-            for (i = numspec = 0; i < GameBase.game.maxclients; i++) {
+            for (i = numspec = 0; i < GameBase.gameExports.game.maxclients; i++) {
                 gclient_t other = GameBase.g_edicts[i + 1].getClient();
                 if (GameBase.g_edicts[i + 1].inuse && other.pers.spectator)
                     numspec++;
@@ -1306,7 +1305,7 @@ public class PlayerClient {
         }
 
         // they can connect
-        ent.setClient(GameBase.game.clients[ent.index - 1]);
+        ent.setClient(GameBase.gameExports.game.clients[ent.index - 1]);
 
         // if there is already a body waiting for us (a loadgame), just
         // take it, otherwise spawn one from scratch
@@ -1314,13 +1313,13 @@ public class PlayerClient {
         if (ent.inuse == false) {
             // clear the respawning variables
             InitClientResp(client);
-            if (!GameBase.game.autosaved || null == client.pers.weapon)
+            if (!GameBase.gameExports.game.autosaved || null == client.pers.weapon)
                 InitClientPersistant(client);
         }
 
         userinfo = ClientUserinfoChanged(ent, userinfo);
 
-        if (GameBase.game.maxclients > 1)
+        if (GameBase.gameExports.game.maxclients > 1)
             GameBase.gi.dprintf(client.pers.netname + " connected\n");
 
         ent.svflags = 0; // make sure we start with known default
@@ -1534,7 +1533,7 @@ public class PlayerClient {
         }
 
         // update chase cam if being followed
-        for (i = 1; i <= GameBase.game.maxclients; i++) {
+        for (i = 1; i <= GameBase.gameExports.game.maxclients; i++) {
             other = GameBase.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && otherClient.chase_target == ent)
@@ -1555,7 +1554,7 @@ public class PlayerClient {
 
         client = ent.getClient();
 
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && client.pers.spectator != client.resp.spectator
                 && (GameBase.level.time - client.respawn_time) >= 5) {
             spectator_respawn(ent);
@@ -1572,13 +1571,13 @@ public class PlayerClient {
             // wait for any button just going down
             if (GameBase.level.time > client.respawn_time) {
                 // in deathmatch, only wait for attack button
-                if (GameBase.deathmatch.value != 0)
+                if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                     buttonMask = Defines.BUTTON_ATTACK;
                 else
                     buttonMask = -1;
 
                 if ((client.latched_buttons & buttonMask) != 0
-                        || (GameBase.deathmatch.value != 0 && 0 != ((int) GameBase.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                        || (GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) GameBase.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
                     respawn(ent);
                     client.latched_buttons = 0;
                 }
@@ -1587,7 +1586,7 @@ public class PlayerClient {
         }
 
         // add player trail so monsters can follow
-        if (GameBase.deathmatch.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             if (!GameUtil.visible(ent, PlayerTrail.LastSpot()))
                 PlayerTrail.Add(ent.s.old_origin);
 
@@ -1670,7 +1669,7 @@ public class PlayerClient {
      */ 
     public static void TossClientWeapon(SubgameEntity self) {
 
-        if (GameBase.deathmatch.value == 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value == 0)
             return;
 
         gclient_t client = self.getClient();

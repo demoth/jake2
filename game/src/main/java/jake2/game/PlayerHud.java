@@ -40,7 +40,7 @@ public class PlayerHud {
 
     public static void MoveClientToIntermission(SubgameEntity ent) {
         gclient_t client = ent.getClient();
-        if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0)
             client.showscores = true;
         Math3D.VectorCopy(GameBase.level.intermission_origin, ent.s.origin);
         client.getPlayerState().pmove.origin[0] = (short) (GameBase.level.intermission_origin[0] * 8);
@@ -72,7 +72,7 @@ public class PlayerHud {
 
         // add the layout
 
-        if (GameBase.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
             DeathmatchScoreboardMessage(ent, null);
             GameBase.gi.unicast(ent, true);
         }
@@ -84,12 +84,12 @@ public class PlayerHud {
         if (GameBase.level.intermissiontime != 0)
             return; // already activated
 
-        GameBase.game.autosaved = false;
+        GameBase.gameExports.game.autosaved = false;
 
         // respawn any dead clients
         int i;
         SubgameEntity client;
-        for (i = 0; i < GameBase.game.maxclients; i++) {
+        for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
@@ -102,7 +102,7 @@ public class PlayerHud {
 
         if (GameBase.level.changemap.indexOf('*') > -1) {
             if (GameBase.coop.value != 0) {
-                for (i = 0; i < GameBase.game.maxclients; i++) {
+                for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
                     client = GameBase.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
@@ -118,7 +118,7 @@ public class PlayerHud {
                 }
             }
         } else {
-            if (0 == GameBase.deathmatch.value) {
+            if (0 == GameBase.gameExports.cvarCache.deathmatch.value) {
                 GameBase.level.exitintermission = true; // go immediately to the
                                                         // next level
                 return;
@@ -155,7 +155,7 @@ public class PlayerHud {
         Math3D.VectorCopy(ent.s.angles, GameBase.level.intermission_angle);
 
         // move all clients to the intermission point
-        for (i = 0; i < GameBase.game.maxclients; i++) {
+        for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
             client = GameBase.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
@@ -184,11 +184,11 @@ public class PlayerHud {
 
         // sort the clients by score
         total = 0;
-        for (i = 0; i < GameBase.game.maxclients; i++) {
+        for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
             cl_ent = GameBase.g_edicts[1 + i];
-            if (!cl_ent.inuse || GameBase.game.clients[i].resp.spectator)
+            if (!cl_ent.inuse || GameBase.gameExports.game.clients[i].resp.spectator)
                 continue;
-            score = GameBase.game.clients[i].resp.score;
+            score = GameBase.gameExports.game.clients[i].resp.score;
             for (j = 0; j < total; j++) {
                 if (score > sortedscores[j])
                     break;
@@ -209,7 +209,7 @@ public class PlayerHud {
             total = 12;
         
         for (i = 0; i < total; i++) {
-            cl = GameBase.game.clients[sorted[i]];
+            cl = GameBase.gameExports.game.clients[sorted[i]];
             cl_ent = GameBase.g_edicts[1 + sorted[i]];
 
             picnum = GameBase.gi.imageindex("i_fixme");
@@ -275,7 +275,7 @@ public class PlayerHud {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value)
+        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.coop.value)
             return;
 
         if (client.showscores) {
@@ -413,7 +413,7 @@ public class PlayerHud {
         //
         client.getPlayerState().stats[Defines.STAT_LAYOUTS] = 0;
 
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             if (client.pers.health <= 0
                     || GameBase.level.intermissiontime != 0
                     || client.showscores)
@@ -456,7 +456,7 @@ public class PlayerHud {
      */
     public static void G_CheckChaseStats(edict_t ent) {
 
-        for (int i = 1; i <= GameBase.game.maxclients; i++) {
+        for (int i = 1; i <= GameBase.gameExports.game.maxclients; i++) {
             gclient_t cl = GameBase.g_edicts[i].getClient();
             if (!GameBase.g_edicts[i].inuse || cl.chase_target != ent)
                 continue;

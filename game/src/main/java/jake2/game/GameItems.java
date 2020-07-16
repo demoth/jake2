@@ -148,7 +148,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
             return true;
@@ -165,7 +165,7 @@ public class GameItems {
             }
 
             if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(self, 20);
             else
                 GameUtil.G_FreeEdict(self);
@@ -198,7 +198,7 @@ public class GameItems {
                 ent.solid = Defines.SOLID_NOT;
             } else {
                 if (!((ent.spawnflags & GameDefines.DROPPED_ITEM) != 0)
-                        && (GameBase.deathmatch.value != 0))
+                        && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                     SetRespawn(ent, 30);
             }
     
@@ -297,7 +297,7 @@ public class GameItems {
         public String getID() { return "drop_make_touchable";}
         public boolean think(SubgameEntity ent) {
             ent.touch = Touch_Item;
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 ent.nextthink = GameBase.level.time + 29;
                 ent.think = GameUtil.G_FreeEdictA;
             }
@@ -437,12 +437,12 @@ public class GameItems {
     
             if (weapon && 0 == oldcount) {
                 if (client.pers.weapon != ent.item
-                        && (0 == GameBase.deathmatch.value || client.pers.weapon == FindItem("blaster")))
+                        && (0 == GameBase.gameExports.cvarCache.deathmatch.value || client.pers.weapon == FindItem("blaster")))
                     client.newweapon = ent.item;
             }
     
             if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, 30);
             return true;
         }
@@ -523,7 +523,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, 20);
     
             return true;
@@ -540,7 +540,7 @@ public class GameItems {
 
             client.pers.inventory[ent.item.index]++;
     
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity);
                 // auto-use for DM only if we didn't already have one
@@ -568,7 +568,7 @@ public class GameItems {
 
             client.pers.inventory[ent.item.index]++;
     
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                     SetRespawn(ent, ent.item.quantity);
                 if (((int) GameBase.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
@@ -587,14 +587,14 @@ public class GameItems {
     static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
         public String getID() { return "pickup_adrenaline";}
         public boolean interact(SubgameEntity ent, SubgameEntity other) {
-            if (GameBase.deathmatch.value == 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value == 0)
                 other.max_health += 1;
     
             if (other.health < other.max_health)
                 other.health = other.max_health;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
             return true;
@@ -607,7 +607,7 @@ public class GameItems {
             other.max_health += 2;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
             return true;
@@ -646,7 +646,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
-                    && (GameBase.deathmatch.value != 0))
+                    && (GameBase.gameExports.cvarCache.deathmatch.value != 0))
                 SetRespawn(ent, ent.item.quantity);
     
             return true;
@@ -817,7 +817,7 @@ public class GameItems {
      * =============== GetItemByIndex ===============
      */
     static gitem_t GetItemByIndex(int index) {
-        if (index == 0 || index >= GameBase.game.num_items)
+        if (index == 0 || index >= GameBase.gameExports.game.num_items)
             return null;
     
         return GameItemList.itemlist[index];
@@ -830,7 +830,7 @@ public class GameItems {
      */
     static gitem_t FindItemByClassname(String classname) {
     
-        for (int i = 1; i < GameBase.game.num_items; i++) {
+        for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
             gitem_t it = GameItemList.itemlist[i];
     
             if (it.classname == null)
@@ -847,7 +847,7 @@ public class GameItems {
      */
     //geht.
     static gitem_t FindItem(String pickup_name) {
-        for (int i = 1; i < GameBase.game.num_items; i++) {
+        for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
             gitem_t it = GameItemList.itemlist[i];
     
             if (it.pickup_name == null)
@@ -974,7 +974,7 @@ public class GameItems {
 
         client.pers.inventory[ent.item.index]++;
     
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
                 SetRespawn(ent, ent.item.quantity);
             // auto-use for DM only if we didn't already have one
@@ -1030,7 +1030,7 @@ public class GameItems {
         int i;
         gitem_t it;
     
-        for (i = 1; i < GameBase.game.num_items; i++) {
+        for (i = 1; i < GameBase.gameExports.game.num_items; i++) {
             it = GameItemList.itemlist[i];
             GameBase.gi.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
@@ -1184,7 +1184,7 @@ public class GameItems {
         }
     
         // some items will be prevented in deathmatch
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             if (((int) GameBase.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
@@ -1242,7 +1242,7 @@ public class GameItems {
      * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
     static void SP_item_health(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
         }
@@ -1257,7 +1257,7 @@ public class GameItems {
      * QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
     static void SP_item_health_small(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -1274,7 +1274,7 @@ public class GameItems {
      * QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
     static void SP_item_health_large(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
@@ -1290,7 +1290,7 @@ public class GameItems {
      * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
     static void SP_item_health_mega(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                 && ((int) GameBase.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
