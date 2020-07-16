@@ -40,7 +40,7 @@ public class PlayerHud {
 
     public static void MoveClientToIntermission(SubgameEntity ent) {
         gclient_t client = ent.getClient();
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0)
             client.showscores = true;
         Math3D.VectorCopy(GameBase.level.intermission_origin, ent.s.origin);
         client.getPlayerState().pmove.origin[0] = (short) (GameBase.level.intermission_origin[0] * 8);
@@ -72,9 +72,9 @@ public class PlayerHud {
 
         // add the layout
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
             DeathmatchScoreboardMessage(ent, null);
-            GameBase.gi.unicast(ent, true);
+            GameBase.gameExports.gameImports.unicast(ent, true);
         }
 
     }
@@ -101,7 +101,7 @@ public class PlayerHud {
         GameBase.level.changemap = targ.map;
 
         if (GameBase.level.changemap.indexOf('*') > -1) {
-            if (GameBase.coop.value != 0) {
+            if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
                     client = GameBase.g_edicts[1 + i];
                     if (!client.inuse)
@@ -212,7 +212,7 @@ public class PlayerHud {
             cl = GameBase.gameExports.game.clients[sorted[i]];
             cl_ent = GameBase.g_edicts[1 + sorted[i]];
 
-            picnum = GameBase.gi.imageindex("i_fixme");
+            picnum = GameBase.gameExports.gameImports.imageindex("i_fixme");
             x = (i >= 6) ? 160 : 0;
             y = 32 + 32 * (i % 6);
 
@@ -246,8 +246,8 @@ public class PlayerHud {
                             (GameBase.level.framenum - cl.resp.enterframe) / 600);           
         }
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_layout);
-        GameBase.gi.WriteString(string.toString());
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_layout);
+        GameBase.gameExports.gameImports.WriteString(string.toString());
     }
 
     /*
@@ -260,7 +260,7 @@ public class PlayerHud {
      */
     public static void DeathmatchScoreboard(SubgameEntity ent) {
         DeathmatchScoreboardMessage(ent, ent.enemy);
-        GameBase.gi.unicast(ent, true);
+        GameBase.gameExports.gameImports.unicast(ent, true);
     }
 
     /*
@@ -275,7 +275,7 @@ public class PlayerHud {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.coop.value)
+        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.gameExports.cvarCache.coop.value)
             return;
 
         if (client.showscores) {
@@ -318,7 +318,7 @@ public class PlayerHud {
             client.getPlayerState().stats[Defines.STAT_AMMO] = 0;
         } else {
             item = GameItemList.itemlist[client.ammo_index];
-            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_AMMO_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(item.icon);
             client.getPlayerState().stats[Defines.STAT_AMMO] = (short) client.pers.inventory[client.ammo_index];
         }
@@ -332,8 +332,8 @@ public class PlayerHud {
                     .FindItem("cells").index];
             if (cells == 0) { // ran out of cells for power armor
                 ent.flags &= ~GameDefines.FL_POWER_ARMOR;
-                GameBase.gi
-                        .sound(ent, Defines.CHAN_ITEM, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 power_armor_type = 0;
@@ -351,12 +351,12 @@ public class PlayerHud {
                                                                          // other
                                                                          // armor
                                                                          // icon
-            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("i_powershield");
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) cells;
         } else if (index != 0) {
             item = GameItems.GetItemByIndex(index);
-            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_ARMOR_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(item.icon);
             client.getPlayerState().stats[Defines.STAT_ARMOR] = (short) client.pers.inventory[index];
         } else {
@@ -376,19 +376,19 @@ public class PlayerHud {
         // timers
         //
         if (client.quad_framenum > GameBase.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("p_quad");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.quad_framenum - GameBase.level.framenum) / 10);
         } else if (client.invincible_framenum > GameBase.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("p_invulnerability");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.invincible_framenum - GameBase.level.framenum) / 10);
         } else if (client.enviro_framenum > GameBase.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("p_envirosuit");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.enviro_framenum - GameBase.level.framenum) / 10);
         } else if (client.breather_framenum > GameBase.level.framenum) {
-            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_TIMER_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("p_rebreather");
             client.getPlayerState().stats[Defines.STAT_TIMER] = (short) ((client.breather_framenum - GameBase.level.framenum) / 10);
         } else {
@@ -403,7 +403,7 @@ public class PlayerHud {
         if (client.pers.selected_item <= 0)
             client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = 0;
         else
-            client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_SELECTED_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(GameItemList.itemlist[client.pers.selected_item].icon);
 
         client.getPlayerState().stats[Defines.STAT_SELECTED_ITEM] = (short) client.pers.selected_item;
@@ -437,11 +437,11 @@ public class PlayerHud {
         //
         if (client.pers.helpchanged != 0
                 && (GameBase.level.framenum & 8) != 0)
-            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gameExports.gameImports
                     .imageindex("i_help");
         else if ((client.pers.hand == Defines.CENTER_HANDED || client.getPlayerState().fov > 91)
                 && client.pers.weapon != null)
-            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gi
+            client.getPlayerState().stats[Defines.STAT_HELPICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(client.pers.weapon.icon);
         else
             client.getPlayerState().stats[Defines.STAT_HELPICON] = 0;

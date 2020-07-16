@@ -34,7 +34,7 @@ class GameTrigger {
 
         self.solid = Defines.SOLID_TRIGGER;
         self.movetype = GameDefines.MOVETYPE_NONE;
-        GameBase.gi.setmodel(self, self.model);
+        GameBase.gameExports.gameImports.setmodel(self, self.model);
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
@@ -61,11 +61,11 @@ class GameTrigger {
 
     static void SP_trigger_multiple(SubgameEntity ent) {
         if (ent.sounds == 1)
-            ent.noise_index = GameBase.gi.soundindex("misc/secret.wav");
+            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/secret.wav");
         else if (ent.sounds == 2)
-            ent.noise_index = GameBase.gi.soundindex("misc/talk.wav");
+            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/talk.wav");
         else if (ent.sounds == 3)
-            ent.noise_index = GameBase.gi.soundindex("misc/trigger1.wav");
+            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/trigger1.wav");
 
         if (ent.wait == 0)
             ent.wait = 0.2f;
@@ -85,8 +85,8 @@ class GameTrigger {
         if (!Math3D.VectorEquals(ent.s.angles, Globals.vec3_origin))
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
 
-        GameBase.gi.setmodel(ent, ent.model);
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.setmodel(ent, ent.model);
+        GameBase.gameExports.gameImports.linkentity(ent);
     }
 
     /**
@@ -110,7 +110,7 @@ class GameTrigger {
             Math3D.VectorMA(ent.mins, 0.5f, ent.size, v);
             ent.spawnflags &= ~1;
             ent.spawnflags |= 4;
-            GameBase.gi.dprintf("fixed TRIGGERED flag on " + ent.classname
+            GameBase.gameExports.gameImports.dprintf("fixed TRIGGERED flag on " + ent.classname
                     + " at " + Lib.vtos(v) + "\n");
         }
 
@@ -124,27 +124,27 @@ class GameTrigger {
 
     static void SP_trigger_key(SubgameEntity self) {
         if (GameBase.st.item == null) {
-            GameBase.gi.dprintf("no key item for trigger_key at "
+            GameBase.gameExports.gameImports.dprintf("no key item for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
         self.item = GameItems.FindItemByClassname(GameBase.st.item);
 
         if (null == self.item) {
-            GameBase.gi.dprintf("item " + GameBase.st.item
+            GameBase.gameExports.gameImports.dprintf("item " + GameBase.st.item
                     + " not found for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
 
         if (self.target == null) {
-            GameBase.gi.dprintf(self.classname + " at "
+            GameBase.gameExports.gameImports.dprintf(self.classname + " at "
                     + Lib.vtos(self.s.origin) + " has no target\n");
             return;
         }
 
-        GameBase.gi.soundindex("misc/keytry.wav");
-        GameBase.gi.soundindex("misc/keyuse.wav");
+        GameBase.gameExports.gameImports.soundindex("misc/keytry.wav");
+        GameBase.gameExports.gameImports.soundindex("misc/keyuse.wav");
 
         self.use = trigger_key_use;
     }
@@ -182,17 +182,17 @@ class GameTrigger {
      */
     static void SP_trigger_push(SubgameEntity self) {
         InitTrigger(self);
-        windsound = GameBase.gi.soundindex("misc/windfly.wav");
+        windsound = GameBase.gameExports.gameImports.soundindex("misc/windfly.wav");
         self.touch = trigger_push_touch;
         if (0 == self.speed)
             self.speed = 1000;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     static void SP_trigger_hurt(SubgameEntity self) {
         InitTrigger(self);
 
-        self.noise_index = GameBase.gi.soundindex("world/electro.wav");
+        self.noise_index = GameBase.gameExports.gameImports.soundindex("world/electro.wav");
         self.touch = hurt_touch;
 
         if (0 == self.dmg)
@@ -206,12 +206,12 @@ class GameTrigger {
         if ((self.spawnflags & 2) != 0)
             self.use = hurt_use;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     static void SP_trigger_gravity(SubgameEntity self) {
         if (GameBase.st.gravity == null) {
-            GameBase.gi.dprintf("trigger_gravity without gravity set at "
+            GameBase.gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
@@ -290,7 +290,7 @@ class GameTrigger {
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.solid = Defines.SOLID_TRIGGER;
             self.use = Use_Multi;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
         }
     };
 
@@ -335,17 +335,17 @@ class GameTrigger {
                 if (GameBase.level.time < self.touch_debounce_time)
                     return;
                 self.touch_debounce_time = GameBase.level.time + 5.0f;
-                GameBase.gi.centerprintf(activator, "You need the "
+                GameBase.gameExports.gameImports.centerprintf(activator, "You need the "
                         + self.item.pickup_name);
-                GameBase.gi.sound(activator, Defines.CHAN_AUTO, 
-                		GameBase.gi.soundindex("misc/keytry.wav"), 1,
+                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, 
+                		GameBase.gameExports.gameImports.soundindex("misc/keytry.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 return;
             }
 
-            GameBase.gi.sound(activator, Defines.CHAN_AUTO, GameBase.gi
+            GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                     .soundindex("misc/keyuse.wav"), 1, Defines.ATTN_NORM, 0);
-            if (GameBase.coop.value != 0) {
+            if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 int player;
                 SubgameEntity ent;
 
@@ -409,9 +409,9 @@ class GameTrigger {
 
             if (self.count != 0) {
                 if (0 == (self.spawnflags & 1)) {
-                    GameBase.gi.centerprintf(activator, self.count
+                    GameBase.gameExports.gameImports.centerprintf(activator, self.count
                             + " more to go...");
-                    GameBase.gi.sound(activator, Defines.CHAN_AUTO, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                             .soundindex("misc/talk1.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -419,8 +419,8 @@ class GameTrigger {
             }
 
             if (0 == (self.spawnflags & 1)) {
-                GameBase.gi.centerprintf(activator, "Sequence completed!");
-                GameBase.gi.sound(activator, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports.centerprintf(activator, "Sequence completed!");
+                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
             }
             self.activator = activator;
@@ -457,7 +457,7 @@ class GameTrigger {
                     Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);
                     if (other.fly_sound_debounce_time < GameBase.level.time) {
                         other.fly_sound_debounce_time = GameBase.level.time + 1.5f;
-                        GameBase.gi.sound(other, Defines.CHAN_AUTO, windsound,
+                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, windsound,
                                 1, Defines.ATTN_NORM, 0);
                     }
                 }
@@ -488,7 +488,7 @@ class GameTrigger {
                 self.solid = Defines.SOLID_TRIGGER;
             else
                 self.solid = Defines.SOLID_NOT;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
 
             if (0 == (self.spawnflags & 2))
                 self.use = null;
@@ -514,7 +514,7 @@ class GameTrigger {
 
             if (0 == (self.spawnflags & 4)) {
                 if ((GameBase.level.framenum % 10) == 0)
-                    GameBase.gi.sound(other, Defines.CHAN_AUTO,
+                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO,
                             self.noise_index, 1, Defines.ATTN_NORM, 0);
             }
 

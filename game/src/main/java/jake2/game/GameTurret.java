@@ -75,18 +75,18 @@ public class GameTurret {
         Math3D.VectorMA(start, self.move_origin[2], u, start);
 
         damage = (int) (100 + Lib.random() * 50);
-        speed = (int) (550 + 50 * GameBase.skill.value);
+        speed = (int) (550 + 50 * GameBase.gameExports.cvarCache.skill.value);
         GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
                 damage);
-        GameBase.gi.positioned_sound(start, self, Defines.CHAN_WEAPON,
-                GameBase.gi.soundindex("weapons/rocklf1a.wav"), 1,
+        GameBase.gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
+                GameBase.gameExports.gameImports.soundindex("weapons/rocklf1a.wav"), 1,
                 Defines.ATTN_NORM, 0);
     }
 
     public static void SP_turret_breach(SubgameEntity self) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        GameBase.gameExports.gameImports.setmodel(self, self.model);
 
         if (self.speed == 0)
             self.speed = 50;
@@ -112,7 +112,7 @@ public class GameTurret {
 
         self.think = turret_breach_finish_init;
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     /**
@@ -123,9 +123,9 @@ public class GameTurret {
     public static void SP_turret_base(SubgameEntity self) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gi.setmodel(self, self.model);
+        GameBase.gameExports.gameImports.setmodel(self, self.model);
         self.blocked = turret_blocked;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     public static void SP_turret_driver(SubgameEntity self) {
@@ -136,7 +136,7 @@ public class GameTurret {
 
         self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/infantry/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -164,7 +164,7 @@ public class GameTurret {
         if (GameBase.st.item != null) {
             self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
-                GameBase.gi.dprintf(self.classname + " at "
+                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + GameBase.st.item + "\n");
         }
@@ -172,7 +172,7 @@ public class GameTurret {
         self.think = turret_driver_link;
         self.nextthink = GameBase.level.time + Defines.FRAMETIME;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
@@ -309,7 +309,7 @@ public class GameTurret {
 
             // get and save info for muzzle location
             if (self.target == null) {
-                GameBase.gi.dprintf(self.classname + " at "
+                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " needs a target\n");
             } else {
                 self.target_ent = GameBase.G_PickTarget(self.target);
@@ -394,7 +394,7 @@ public class GameTurret {
             if (GameBase.level.time < self.monsterinfo.attack_finished)
                 return true;
 
-            reaction_time = (3 - GameBase.skill.value) * 1.0f;
+            reaction_time = (3 - GameBase.gameExports.cvarCache.skill.value) * 1.0f;
             if ((GameBase.level.time - self.monsterinfo.trail_time) < reaction_time)
                 return true;
 

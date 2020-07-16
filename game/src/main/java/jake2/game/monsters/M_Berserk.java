@@ -536,7 +536,7 @@ public class M_Berserk {
     static EntInteractAdapter berserk_sight = new EntInteractAdapter() {
         public String getID() { return "berserk_sight";}
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -545,7 +545,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_search = new EntThinkAdapter() {
         public String getID() { return "berserk_search";}
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -561,7 +561,7 @@ public class M_Berserk {
                 return true;
 
             self.monsterinfo.currentmove = berserk_move_stand_fidget;
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_idle, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -694,7 +694,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_swing = new EntThinkAdapter() {
         public String getID() { return "berserk_swing";}
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_punch, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -845,10 +845,10 @@ public class M_Berserk {
                 return;
 
             self.pain_debounce_time = GameBase.level.time + 3;
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if ((damage < 20) || (Lib.random() < 0.5))
@@ -866,7 +866,7 @@ public class M_Berserk {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -909,8 +909,8 @@ public class M_Berserk {
             int n;
 
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -929,7 +929,7 @@ public class M_Berserk {
             if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -952,14 +952,14 @@ public class M_Berserk {
         }
 
         // pre-caches
-        sound_pain = GameBase.gi.soundindex("berserk/berpain2.wav");
-        sound_die = GameBase.gi.soundindex("berserk/berdeth2.wav");
-        sound_idle = GameBase.gi.soundindex("berserk/beridle1.wav");
-        sound_punch = GameBase.gi.soundindex("berserk/attack.wav");
-        sound_search = GameBase.gi.soundindex("berserk/bersrch1.wav");
-        sound_sight = GameBase.gi.soundindex("berserk/sight.wav");
+        sound_pain = GameBase.gameExports.gameImports.soundindex("berserk/berpain2.wav");
+        sound_die = GameBase.gameExports.gameImports.soundindex("berserk/berdeth2.wav");
+        sound_idle = GameBase.gameExports.gameImports.soundindex("berserk/beridle1.wav");
+        sound_punch = GameBase.gameExports.gameImports.soundindex("berserk/attack.wav");
+        sound_search = GameBase.gameExports.gameImports.soundindex("berserk/bersrch1.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("berserk/sight.wav");
 
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/berserk/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -985,7 +985,7 @@ public class M_Berserk {
         self.monsterinfo.currentmove = berserk_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         GameAI.walkmonster_start.think(self);
     }

@@ -235,153 +235,153 @@ public class GameSpawn {
                 GameBase.level.nextmap = GameBase.st.nextmap;
             // make some data visible to the server
             if (ent.message != null && ent.message.length() > 0) {
-                GameBase.gi.configstring(Defines.CS_NAME, ent.message);
+                GameBase.gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
                 GameBase.level.level_name = ent.message;
             } else
                 GameBase.level.level_name = GameBase.level.mapname;
             if (GameBase.st.sky != null && GameBase.st.sky.length() > 0)
-                GameBase.gi.configstring(Defines.CS_SKY, GameBase.st.sky);
+                GameBase.gameExports.gameImports.configstring(Defines.CS_SKY, GameBase.st.sky);
             else
-                GameBase.gi.configstring(Defines.CS_SKY, "unit1_");
-            GameBase.gi.configstring(Defines.CS_SKYROTATE, ""
+                GameBase.gameExports.gameImports.configstring(Defines.CS_SKY, "unit1_");
+            GameBase.gameExports.gameImports.configstring(Defines.CS_SKYROTATE, ""
                     + GameBase.st.skyrotate);
-            GameBase.gi.configstring(Defines.CS_SKYAXIS, Lib
+            GameBase.gameExports.gameImports.configstring(Defines.CS_SKYAXIS, Lib
                     .vtos(GameBase.st.skyaxis));
-            GameBase.gi.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
-            GameBase.gi.configstring(Defines.CS_MAXCLIENTS, ""
+            GameBase.gameExports.gameImports.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
+            GameBase.gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
                     + (int) (GameBase.gameExports.game.maxclients));
             // status bar program
             if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
-                GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
+                GameBase.gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
             else
-                GameBase.gi.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
+                GameBase.gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
             //---------------
             // help icon for statusbar
-            GameBase.gi.imageindex("i_help");
-            GameBase.level.pic_health = GameBase.gi.imageindex("i_health");
-            GameBase.gi.imageindex("help");
-            GameBase.gi.imageindex("field_3");
+            GameBase.gameExports.gameImports.imageindex("i_help");
+            GameBase.level.pic_health = GameBase.gameExports.gameImports.imageindex("i_health");
+            GameBase.gameExports.gameImports.imageindex("help");
+            GameBase.gameExports.gameImports.imageindex("field_3");
             if ("".equals(GameBase.st.gravity))
-                GameBase.gi.cvar_set("sv_gravity", "800");
+                GameBase.gameExports.gameImports.cvar_set("sv_gravity", "800");
             else
-                GameBase.gi.cvar_set("sv_gravity", GameBase.st.gravity);
-            GameBase.snd_fry = GameBase.gi.soundindex("player/fry.wav");
+                GameBase.gameExports.gameImports.cvar_set("sv_gravity", GameBase.st.gravity);
+            GameBase.snd_fry = GameBase.gameExports.gameImports.soundindex("player/fry.wav");
             // standing in lava / slime
             GameItems.PrecacheItem(GameItems.FindItem("Blaster"));
-            GameBase.gi.soundindex("player/lava1.wav");
-            GameBase.gi.soundindex("player/lava2.wav");
-            GameBase.gi.soundindex("misc/pc_up.wav");
-            GameBase.gi.soundindex("misc/talk1.wav");
-            GameBase.gi.soundindex("misc/udeath.wav");
+            GameBase.gameExports.gameImports.soundindex("player/lava1.wav");
+            GameBase.gameExports.gameImports.soundindex("player/lava2.wav");
+            GameBase.gameExports.gameImports.soundindex("misc/pc_up.wav");
+            GameBase.gameExports.gameImports.soundindex("misc/talk1.wav");
+            GameBase.gameExports.gameImports.soundindex("misc/udeath.wav");
             // gibs
-            GameBase.gi.soundindex("items/respawn1.wav");
+            GameBase.gameExports.gameImports.soundindex("items/respawn1.wav");
             // sexed sounds
-            GameBase.gi.soundindex("*death1.wav");
-            GameBase.gi.soundindex("*death2.wav");
-            GameBase.gi.soundindex("*death3.wav");
-            GameBase.gi.soundindex("*death4.wav");
-            GameBase.gi.soundindex("*fall1.wav");
-            GameBase.gi.soundindex("*fall2.wav");
-            GameBase.gi.soundindex("*gurp1.wav");
+            GameBase.gameExports.gameImports.soundindex("*death1.wav");
+            GameBase.gameExports.gameImports.soundindex("*death2.wav");
+            GameBase.gameExports.gameImports.soundindex("*death3.wav");
+            GameBase.gameExports.gameImports.soundindex("*death4.wav");
+            GameBase.gameExports.gameImports.soundindex("*fall1.wav");
+            GameBase.gameExports.gameImports.soundindex("*fall2.wav");
+            GameBase.gameExports.gameImports.soundindex("*gurp1.wav");
             // drowning damage
-            GameBase.gi.soundindex("*gurp2.wav");
-            GameBase.gi.soundindex("*jump1.wav");
+            GameBase.gameExports.gameImports.soundindex("*gurp2.wav");
+            GameBase.gameExports.gameImports.soundindex("*jump1.wav");
             // player jump
-            GameBase.gi.soundindex("*pain25_1.wav");
-            GameBase.gi.soundindex("*pain25_2.wav");
-            GameBase.gi.soundindex("*pain50_1.wav");
-            GameBase.gi.soundindex("*pain50_2.wav");
-            GameBase.gi.soundindex("*pain75_1.wav");
-            GameBase.gi.soundindex("*pain75_2.wav");
-            GameBase.gi.soundindex("*pain100_1.wav");
-            GameBase.gi.soundindex("*pain100_2.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain25_1.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain25_2.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain50_1.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain50_2.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain75_1.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain75_2.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain100_1.wav");
+            GameBase.gameExports.gameImports.soundindex("*pain100_2.wav");
             // sexed models
             // THIS ORDER MUST MATCH THE DEFINES IN g_local.h
             // you can add more, max 15
-            GameBase.gi.modelindex("#w_blaster.md2");
-            GameBase.gi.modelindex("#w_shotgun.md2");
-            GameBase.gi.modelindex("#w_sshotgun.md2");
-            GameBase.gi.modelindex("#w_machinegun.md2");
-            GameBase.gi.modelindex("#w_chaingun.md2");
-            GameBase.gi.modelindex("#a_grenades.md2");
-            GameBase.gi.modelindex("#w_glauncher.md2");
-            GameBase.gi.modelindex("#w_rlauncher.md2");
-            GameBase.gi.modelindex("#w_hyperblaster.md2");
-            GameBase.gi.modelindex("#w_railgun.md2");
-            GameBase.gi.modelindex("#w_bfg.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_blaster.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_shotgun.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_sshotgun.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_machinegun.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_chaingun.md2");
+            GameBase.gameExports.gameImports.modelindex("#a_grenades.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_glauncher.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_rlauncher.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_hyperblaster.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_railgun.md2");
+            GameBase.gameExports.gameImports.modelindex("#w_bfg.md2");
             //-------------------
-            GameBase.gi.soundindex("player/gasp1.wav");
+            GameBase.gameExports.gameImports.soundindex("player/gasp1.wav");
             // gasping for air
-            GameBase.gi.soundindex("player/gasp2.wav");
+            GameBase.gameExports.gameImports.soundindex("player/gasp2.wav");
             // head breaking surface, not gasping
-            GameBase.gi.soundindex("player/watr_in.wav");
+            GameBase.gameExports.gameImports.soundindex("player/watr_in.wav");
             // feet hitting water
-            GameBase.gi.soundindex("player/watr_out.wav");
+            GameBase.gameExports.gameImports.soundindex("player/watr_out.wav");
             // feet leaving water
-            GameBase.gi.soundindex("player/watr_un.wav");
+            GameBase.gameExports.gameImports.soundindex("player/watr_un.wav");
             // head going underwater
-            GameBase.gi.soundindex("player/u_breath1.wav");
-            GameBase.gi.soundindex("player/u_breath2.wav");
-            GameBase.gi.soundindex("items/pkup.wav");
+            GameBase.gameExports.gameImports.soundindex("player/u_breath1.wav");
+            GameBase.gameExports.gameImports.soundindex("player/u_breath2.wav");
+            GameBase.gameExports.gameImports.soundindex("items/pkup.wav");
             // bonus item pickup
-            GameBase.gi.soundindex("world/land.wav");
+            GameBase.gameExports.gameImports.soundindex("world/land.wav");
             // landing thud
-            GameBase.gi.soundindex("misc/h2ohit1.wav");
+            GameBase.gameExports.gameImports.soundindex("misc/h2ohit1.wav");
             // landing splash
-            GameBase.gi.soundindex("items/damage.wav");
-            GameBase.gi.soundindex("items/protect.wav");
-            GameBase.gi.soundindex("items/protect4.wav");
-            GameBase.gi.soundindex("weapons/noammo.wav");
-            GameBase.gi.soundindex("infantry/inflies1.wav");
-            GameBase.sm_meat_index = GameBase.gi
+            GameBase.gameExports.gameImports.soundindex("items/damage.wav");
+            GameBase.gameExports.gameImports.soundindex("items/protect.wav");
+            GameBase.gameExports.gameImports.soundindex("items/protect4.wav");
+            GameBase.gameExports.gameImports.soundindex("weapons/noammo.wav");
+            GameBase.gameExports.gameImports.soundindex("infantry/inflies1.wav");
+            GameBase.sm_meat_index = GameBase.gameExports.gameImports
                     .modelindex("models/objects/gibs/sm_meat/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/arm/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/bone/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/bone2/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/chest/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/skull/tris.md2");
-            GameBase.gi.modelindex("models/objects/gibs/head2/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/arm/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/bone/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/bone2/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/chest/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/skull/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/head2/tris.md2");
             //
             // Setup light animation tables. 'a' is total darkness, 'z' is
             // doublebright.
             //
             // 0 normal
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 0, "m");
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 0, "m");
             // 1 FLICKER (first variety)
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 1,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 1,
                     "mmnmmommommnonmmonqnmmo");
             // 2 SLOW STRONG PULSE
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 2,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 2,
                     "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
             // 3 CANDLE (first variety)
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 3,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 3,
                     "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
             // 4 FAST STROBE
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 4, "mamamamamama");
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 4, "mamamamamama");
             // 5 GENTLE PULSE 1
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 5,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 5,
                     "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
             // 6 FLICKER (second variety)
-            GameBase.gi
+            GameBase.gameExports.gameImports
                     .configstring(Defines.CS_LIGHTS + 6, "nmonqnmomnmomomno");
             // 7 CANDLE (second variety)
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 7,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 7,
                     "mmmaaaabcdefgmmmmaaaammmaamm");
             // 8 CANDLE (third variety)
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 8,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 8,
                     "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
             // 9 SLOW STROBE (fourth variety)
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
             // 10 FLUORESCENT FLICKER
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 10,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 10,
                     "mmamammmmammamamaaamammma");
             // 11 SLOW PULSE NOT FADE TO BLACK
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 11,
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 11,
                     "abcdefghijklmnopqrrqponmlkjihgfedcba");
             // styles 32-62 are assigned by the light program for switchable
             // lights
             // 63 testing
-            GameBase.gi.configstring(Defines.CS_LIGHTS + 63, "a");
+            GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + 63, "a");
             return true;
         }
     };
@@ -1204,7 +1204,7 @@ public class GameSpawn {
             Com.Println("nextmap: " + value);
         if (!GameBase.st.set(key, value))
             if (!ent.setField(key, value))
-                GameBase.gi.dprintf("??? The key [" + key
+                GameBase.gameExports.gameImports.dprintf("??? The key [" + key
                         + "] is not a field\n");
 
     }
@@ -1232,7 +1232,7 @@ public class GameSpawn {
                 break;
 
             if (ph.isEof())
-                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
+                GameBase.gameExports.gameImports.error("ED_ParseEntity: EOF without closing brace");
 
             keyname = com_token;
 
@@ -1240,10 +1240,10 @@ public class GameSpawn {
             com_token = Com.Parse(ph);
 
             if (ph.isEof())
-                GameBase.gi.error("ED_ParseEntity: EOF without closing brace");
+                GameBase.gameExports.gameImports.error("ED_ParseEntity: EOF without closing brace");
 
             if (com_token.equals("}"))
-                GameBase.gi.error("ED_ParseEntity: closing brace without data");
+                GameBase.gameExports.gameImports.error("ED_ParseEntity: closing brace without data");
 
             init = true;
             // keynames with a leading underscore are used for utility comments,
@@ -1312,14 +1312,14 @@ public class GameSpawn {
         int i;
         float skill_level;
         //skill.value =2.0f;
-        skill_level = (float) Math.floor(GameBase.skill.value);
+        skill_level = (float) Math.floor(GameBase.gameExports.cvarCache.skill.value);
 
         if (skill_level < 0)
             skill_level = 0;
         if (skill_level > 3)
             skill_level = 3;
-        if (GameBase.skill.value != skill_level)
-            GameBase.gi.cvar_forceset("skill", "" + skill_level);
+        if (GameBase.gameExports.cvarCache.skill.value != skill_level)
+            GameBase.gameExports.gameImports.cvar_forceset("skill", "" + skill_level);
 
         PlayerClient.SaveClientData();
 
@@ -1346,7 +1346,7 @@ public class GameSpawn {
             if (ph.isEof())
                 break;
             if (!com_token.startsWith("{"))
-                GameBase.gi.error("ED_LoadFromFile: found " + com_token
+                GameBase.gameExports.gameImports.error("ED_LoadFromFile: found " + com_token
                         + " when expecting {");
 
             if (ent == null)
@@ -1380,9 +1380,9 @@ public class GameSpawn {
                      * ((coop.value) && (ent.spawnflags &
                      * SPAWNFLAG_NOT_COOP)) ||
                      */
-                            ((GameBase.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
-                                    || ((GameBase.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
-                                    || (((GameBase.skill.value == 2) || (GameBase.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
+                            ((GameBase.gameExports.cvarCache.skill.value == 0) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_EASY) != 0)
+                                    || ((GameBase.gameExports.cvarCache.skill.value == 1) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_MEDIUM) != 0)
+                                    || (((GameBase.gameExports.cvarCache.skill.value == 2) || (GameBase.gameExports.cvarCache.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
                         Com.DPrintf("->inhibited.\n");
                         GameUtil.G_FreeEdict(ent);
@@ -1400,7 +1400,7 @@ public class GameSpawn {
             ED_CallSpawn(ent);
             Com.DPrintf("\n");
         }
-        Com.DPrintf("player skill level:" + GameBase.skill.value + "\n");
+        Com.DPrintf("player skill level:" + GameBase.gameExports.cvarCache.skill.value + "\n");
         Com.DPrintf(inhibit + " entities inhibited.\n");
         G_FindTeams();
         PlayerTrail.Init();
@@ -1412,7 +1412,7 @@ public class GameSpawn {
     public static void ED_CallSpawn(SubgameEntity ent) {
 
         if (null == ent.classname) {
-            GameBase.gi.dprintf("ED_CallSpawn: null classname\n");
+            GameBase.gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
             return;
         } // check item spawn functions
         for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
@@ -1420,7 +1420,7 @@ public class GameSpawn {
             gitem_t item = GameItemList.itemlist[i];
 
             if (item == null)
-                GameBase.gi.error("ED_CallSpawn: null item in pos " + i);
+                GameBase.gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);
 
             if (item.classname == null)
                 continue;
@@ -1434,7 +1434,7 @@ public class GameSpawn {
         if (spawn != null) {
             spawn.think(ent);
         } else {
-            GameBase.gi.dprintf(ent.classname + " doesn't have a spawn function\n");
+            GameBase.gameExports.gameImports.dprintf(ent.classname + " doesn't have a spawn function\n");
         }
     }
 
@@ -1443,17 +1443,17 @@ public class GameSpawn {
         if (args.size() >= 2)
             className = args.get(1);
         else {
-            GameBase.gi.dprintf("usage: spawn <classname>\n");
+            GameBase.gameExports.gameImports.dprintf("usage: spawn <classname>\n");
             return;
         }
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
-            GameBase.gi.cprintf(creator, Defines.PRINT_HIGH,
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
+            GameBase.gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
-        GameBase.gi.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
+        GameBase.gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
         gitem_t gitem_t = GameItems.FindItemByClassname(className);
@@ -1476,13 +1476,13 @@ public class GameSpawn {
             Math3D.VectorCopy(creator.s.angles, newThing.s.angles);
 
             newThing.classname = className;
-            GameBase.gi.linkentity(newThing);
+            GameBase.gameExports.gameImports.linkentity(newThing);
             if (spawn != null)
                 spawn.think(newThing);
             else
                 GameItems.SpawnItem(newThing, gitem_t);
 
-            GameBase.gi.dprintf("Spawned!\n");
+            GameBase.gameExports.gameImports.dprintf("Spawned!\n");
         }
 
     }

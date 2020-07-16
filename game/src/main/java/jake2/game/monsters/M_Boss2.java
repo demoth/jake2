@@ -490,15 +490,15 @@ public class M_Boss2 {
             self.pain_debounce_time = GameBase.level.time + 3;
             //	   American wanted these at no attenuation
             if (damage < 10) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NONE, 0);
                 self.monsterinfo.currentmove = boss2_move_pain_light;
             } else if (damage < 30) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NONE, 0);
                 self.monsterinfo.currentmove = boss2_move_pain_light;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NONE, 0);
                 self.monsterinfo.currentmove = boss2_move_pain_heavy;
             }
@@ -513,7 +513,7 @@ public class M_Boss2 {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -522,7 +522,7 @@ public class M_Boss2 {
     	public String getID() { return "boss2_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NONE, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
@@ -550,7 +550,7 @@ public class M_Boss2 {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gi.trace(spot1, null, null, spot2, self,
+                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA);
@@ -619,7 +619,7 @@ public class M_Boss2 {
     	public String getID() { return "boss2_search"; }
         public boolean think(SubgameEntity self) {
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NONE, 0);
             return true;
         }
@@ -1039,17 +1039,17 @@ public class M_Boss2 {
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("bosshovr/bhvpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("bosshovr/bhvpain2.wav");
-        sound_pain3 = GameBase.gi.soundindex("bosshovr/bhvpain3.wav");
-        sound_death = GameBase.gi.soundindex("bosshovr/bhvdeth1.wav");
-        sound_search1 = GameBase.gi.soundindex("bosshovr/bhvunqv1.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvpain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvpain2.wav");
+        sound_pain3 = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvpain3.wav");
+        sound_death = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvdeth1.wav");
+        sound_search1 = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvunqv1.wav");
 
-        self.s.sound = GameBase.gi.soundindex("bosshovr/bhvengn1.wav");
+        self.s.sound = GameBase.gameExports.gameImports.soundindex("bosshovr/bhvengn1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/boss2/tris.md2");
         Math3D.VectorSet(self.mins, -56, -56, 0);
         Math3D.VectorSet(self.maxs, 56, 56, 80);
@@ -1069,7 +1069,7 @@ public class M_Boss2 {
         self.monsterinfo.attack = boss2_attack;
         self.monsterinfo.search = boss2_search;
         self.monsterinfo.checkattack = Boss2_CheckAttack;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = boss2_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

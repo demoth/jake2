@@ -48,7 +48,7 @@ public class GameUtil {
     public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator) {
 
         if (ent.classname == null) {
-            GameBase.gi.dprintf("edict with classname = null: " + ent.index);
+            GameBase.gameExports.gameImports.dprintf("edict with classname = null: " + ent.index);
         }
 
         // check for a delay
@@ -61,7 +61,7 @@ public class GameUtil {
             t.think = Think_Delay;
             t.activator = activator;
             if (activator == null)
-                GameBase.gi.dprintf("Think_Delay with no activator\n");
+                GameBase.gameExports.gameImports.dprintf("Think_Delay with no activator\n");
             t.message = ent.message;
             t.target = ent.target;
             t.killtarget = ent.killtarget;
@@ -72,12 +72,12 @@ public class GameUtil {
         // print the message
         if ((ent.message != null)
                 && (activator.svflags & Defines.SVF_MONSTER) == 0) {
-            GameBase.gi.centerprintf(activator, "" + ent.message);
+            GameBase.gameExports.gameImports.centerprintf(activator, "" + ent.message);
             if (ent.noise_index != 0)
-                GameBase.gi.sound(activator, Defines.CHAN_AUTO,
+                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO,
                         ent.noise_index, 1, Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(activator, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
 
@@ -90,7 +90,7 @@ public class GameUtil {
                 t = edit.o;
                 G_FreeEdict(t);
                 if (!ent.inuse) {
-                    GameBase.gi
+                    GameBase.gameExports.gameImports
                             .dprintf("entity was removed while using killtargets\n");
                     return;
                 }
@@ -110,13 +110,13 @@ public class GameUtil {
                     continue;
 
                 if (t == ent) {
-                    GameBase.gi.dprintf("WARNING: Entity used itself.\n");
+                    GameBase.gameExports.gameImports.dprintf("WARNING: Entity used itself.\n");
                 } else {
                     if (t.use != null)
                         t.use.use(t, ent, activator);
                 }
                 if (!ent.inuse) {
-                    GameBase.gi
+                    GameBase.gameExports.gameImports
                             .dprintf("entity was removed while using targets\n");
                     return;
                 }
@@ -157,7 +157,7 @@ public class GameUtil {
         }
 
         if (i == GameBase.gameExports.game.maxentities)
-            GameBase.gi.error("ED_Alloc: no free edicts");
+            GameBase.gameExports.gameImports.error("ED_Alloc: no free edicts");
 
         e = GameBase.g_edicts[i] = new SubgameEntity(i);
         GameBase.num_edicts++;
@@ -169,7 +169,7 @@ public class GameUtil {
      * Marks the edict as free
      */
     public static void G_FreeEdict(SubgameEntity ed) {
-        GameBase.gi.unlinkentity(ed); // unlink from world
+        GameBase.gameExports.gameImports.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
         if (ed.index <= (GameBase.gameExports.game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
@@ -202,7 +202,7 @@ public class GameUtil {
     static boolean KillBox(SubgameEntity ent) {
 
         while (true) {
-            trace_t tr = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs,
+            trace_t tr = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,
                     ent.s.origin, null, Defines.MASK_PLAYERSOLID);
             SubgameEntity target = (SubgameEntity) tr.ent;
             if (target == null || target == GameBase.g_edicts[0])
@@ -225,7 +225,7 @@ public class GameUtil {
      * Returns true, if two edicts are on the same team. 
      */
     static boolean OnSameTeam(SubgameEntity ent1, SubgameEntity ent2) {
-        if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+        if (0 == ((int) (GameBase.gameExports.cvarCache.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             return false;
 
         if (ClientTeam(ent1).equals(ClientTeam(ent2)))
@@ -251,7 +251,7 @@ public class GameUtil {
         if (p == -1)
             return value;
 
-        if (((int) (GameBase.dmflags.value) & Defines.DF_MODELTEAMS) != 0) {
+        if (((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_MODELTEAMS) != 0) {
             return value.substring(0, p);
         }
 
@@ -323,7 +323,7 @@ public class GameUtil {
         spot1[2] += self.viewheight;
         Math3D.VectorCopy(other.s.origin, spot2);
         spot2[2] += other.viewheight;
-        trace = GameBase.gi.trace(spot1, Globals.vec3_origin,
+        trace = GameBase.gameExports.gameImports.trace(spot1, Globals.vec3_origin,
                 Globals.vec3_origin, spot2, self, Defines.MASK_OPAQUE);
 
         if (trace.fraction == 1.0)
@@ -459,7 +459,7 @@ public class GameUtil {
                 if (!visible(self, client))
                     return false;
             } else {
-                if (!GameBase.gi.inPHS(self.s.origin, client.s.origin))
+                if (!GameBase.gameExports.gameImports.inPHS(self.s.origin, client.s.origin))
                     return false;
             }
 
@@ -472,7 +472,7 @@ public class GameUtil {
             // check area portals - if they are different and not connected then
             // we can't hear it
             if (client.areanum != self.areanum)
-                if (!GameBase.gi.AreasConnected(self.areanum, client.areanum))
+                if (!GameBase.gameExports.gameImports.AreasConnected(self.areanum, client.areanum))
                     return false;
 
             self.ideal_yaw = Math3D.vectoyaw(temp);
@@ -521,7 +521,7 @@ public class GameUtil {
         if (self.movetarget == null) {
             self.goalentity = self.movetarget = self.enemy;
             GameAI.HuntTarget(self);
-            GameBase.gi.dprintf("" + self.classname + "at "
+            GameBase.gameExports.gameImports.dprintf("" + self.classname + "at "
                     + Lib.vtos(self.s.origin) + ", combattarget "
                     + self.combattarget + " not found\n");
             return;
@@ -573,7 +573,7 @@ public class GameUtil {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gi.trace(spot1, null, null, spot2, self,
+                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA
@@ -587,7 +587,7 @@ public class GameUtil {
             // melee attack
             if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
-                if (GameBase.skill.value == 0 && (Lib.rand() & 3) != 0)
+                if (GameBase.gameExports.cvarCache.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
                 if (self.monsterinfo.melee != null)
                     self.monsterinfo.attack_state = GameDefines.AS_MELEE;
@@ -618,9 +618,9 @@ public class GameUtil {
                 return false;
             }
 
-            if (GameBase.skill.value == 0)
+            if (GameBase.gameExports.cvarCache.skill.value == 0)
                 chance *= 0.5;
-            else if (GameBase.skill.value >= 2)
+            else if (GameBase.gameExports.cvarCache.skill.value >= 2)
                 chance *= 2;
 
             if (Lib.random() < chance) {

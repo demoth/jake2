@@ -238,7 +238,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_idle"; }
         public boolean think(SubgameEntity self) {
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -248,7 +248,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -258,7 +258,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_search"; }
         public boolean think(SubgameEntity self) {
 
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -268,7 +268,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_cleaver_swing"; }
         public boolean think(SubgameEntity self) {
 
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -358,10 +358,10 @@ public class M_Gladiator {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
             if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
-                GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
                         1, Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_AUTO, sound_cleaver_miss,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_miss,
                         1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -453,7 +453,7 @@ public class M_Gladiator {
                 return true;
 
             // charge up the railgun
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_gun, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_gun, 1,
                     Defines.ATTN_NORM, 0);
             Math3D.VectorCopy(self.enemy.s.origin, self.pos1);
             //save for aiming the shot
@@ -503,13 +503,13 @@ public class M_Gladiator {
             self.pain_debounce_time = GameBase.level.time + 3;
 
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (self.velocity[2] > 100)
@@ -529,7 +529,7 @@ public class M_Gladiator {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -569,8 +569,8 @@ public class M_Gladiator {
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -590,7 +590,7 @@ public class M_Gladiator {
                 return;
 
             //	regular death
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -610,20 +610,20 @@ public class M_Gladiator {
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("gladiator/pain.wav");
-        sound_pain2 = GameBase.gi.soundindex("gladiator/gldpain2.wav");
-        sound_die = GameBase.gi.soundindex("gladiator/glddeth2.wav");
-        sound_gun = GameBase.gi.soundindex("gladiator/railgun.wav");
-        sound_cleaver_swing = GameBase.gi.soundindex("gladiator/melee1.wav");
-        sound_cleaver_hit = GameBase.gi.soundindex("gladiator/melee2.wav");
-        sound_cleaver_miss = GameBase.gi.soundindex("gladiator/melee3.wav");
-        sound_idle = GameBase.gi.soundindex("gladiator/gldidle1.wav");
-        sound_search = GameBase.gi.soundindex("gladiator/gldsrch1.wav");
-        sound_sight = GameBase.gi.soundindex("gladiator/sight.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("gladiator/pain.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("gladiator/gldpain2.wav");
+        sound_die = GameBase.gameExports.gameImports.soundindex("gladiator/glddeth2.wav");
+        sound_gun = GameBase.gameExports.gameImports.soundindex("gladiator/railgun.wav");
+        sound_cleaver_swing = GameBase.gameExports.gameImports.soundindex("gladiator/melee1.wav");
+        sound_cleaver_hit = GameBase.gameExports.gameImports.soundindex("gladiator/melee2.wav");
+        sound_cleaver_miss = GameBase.gameExports.gameImports.soundindex("gladiator/melee3.wav");
+        sound_idle = GameBase.gameExports.gameImports.soundindex("gladiator/gldidle1.wav");
+        sound_search = GameBase.gameExports.gameImports.soundindex("gladiator/gldsrch1.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("gladiator/sight.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/gladiatr/tris.md2");
         Math3D.VectorSet(self.mins, -32, -32, -24);
         Math3D.VectorSet(self.maxs, 32, 32, 64);
@@ -645,7 +645,7 @@ public class M_Gladiator {
         self.monsterinfo.idle = gladiator_idle;
         self.monsterinfo.search = gladiator_search;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
         self.monsterinfo.currentmove = gladiator_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 

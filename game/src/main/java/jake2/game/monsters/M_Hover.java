@@ -555,21 +555,21 @@ public class M_Hover {
 
             self.pain_debounce_time = GameBase.level.time + 3;
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 25) {
                 if (Lib.random() < 0.5) {
-                    GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = hover_move_pain3;
                 } else {
-                    GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = hover_move_pain2;
                 }
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = hover_move_pain1;
             }
@@ -598,7 +598,7 @@ public class M_Hover {
             self.think = hover_deadthink;
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             self.timestamp = GameBase.level.time + 15;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -611,8 +611,8 @@ public class M_Hover {
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -633,10 +633,10 @@ public class M_Hover {
 
             //	regular death
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
                         Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -647,7 +647,7 @@ public class M_Hover {
     static EntInteractAdapter hover_sight = new EntInteractAdapter() {
     	public String getID() { return "hover_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -657,10 +657,10 @@ public class M_Hover {
     	public String getID() { return "hover_search"; }
         public boolean think(SubgameEntity self) {
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1031,21 +1031,21 @@ public class M_Hover {
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("hover/hovpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("hover/hovpain2.wav");
-        sound_death1 = GameBase.gi.soundindex("hover/hovdeth1.wav");
-        sound_death2 = GameBase.gi.soundindex("hover/hovdeth2.wav");
-        sound_sight = GameBase.gi.soundindex("hover/hovsght1.wav");
-        sound_search1 = GameBase.gi.soundindex("hover/hovsrch1.wav");
-        sound_search2 = GameBase.gi.soundindex("hover/hovsrch2.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("hover/hovpain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("hover/hovpain2.wav");
+        sound_death1 = GameBase.gameExports.gameImports.soundindex("hover/hovdeth1.wav");
+        sound_death2 = GameBase.gameExports.gameImports.soundindex("hover/hovdeth2.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("hover/hovsght1.wav");
+        sound_search1 = GameBase.gameExports.gameImports.soundindex("hover/hovsrch1.wav");
+        sound_search2 = GameBase.gameExports.gameImports.soundindex("hover/hovsrch2.wav");
 
-        GameBase.gi.soundindex("hover/hovatck1.wav");
+        GameBase.gameExports.gameImports.soundindex("hover/hovatck1.wav");
 
-        self.s.sound = GameBase.gi.soundindex("hover/hovidle1.wav");
+        self.s.sound = GameBase.gameExports.gameImports.soundindex("hover/hovidle1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/hover/tris.md2");
         Math3D.VectorSet(self.mins, -24, -24, -24);
         Math3D.VectorSet(self.maxs, 24, 24, 32);
@@ -1065,7 +1065,7 @@ public class M_Hover {
         self.monsterinfo.sight = hover_sight;
         self.monsterinfo.search = hover_search;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = hover_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

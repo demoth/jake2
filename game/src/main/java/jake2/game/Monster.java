@@ -41,10 +41,10 @@ public class Monster {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
                 GameDefines.MOD_UNKNOWN);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the shotgun. */
@@ -54,10 +54,10 @@ public class Monster {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
                 count, GameDefines.MOD_UNKNOWN);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the blaster. */
@@ -65,10 +65,10 @@ public class Monster {
             float[] dir, int damage, int speed, int flashtype, int effect) {
         GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the grenade. */
@@ -78,10 +78,10 @@ public class Monster {
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
                         damage + 40);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the rocket. */
@@ -89,10 +89,10 @@ public class Monster {
             float[] dir, int damage, int speed, int flashtype) {
         GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the railgun. */
@@ -100,10 +100,10 @@ public class Monster {
             float[] aimdir, int damage, int kick, int flashtype) {
         GameWeapon.fire_rail(self, start, aimdir, damage, kick);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the bfg. */
@@ -112,10 +112,10 @@ public class Monster {
             float damage_radius, int flashtype) {
         GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gi.WriteShort(self.index);
-        GameBase.gi.WriteByte(flashtype);
-        GameBase.gi.multicast(start, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        GameBase.gameExports.gameImports.WriteShort(self.index);
+        GameBase.gameExports.gameImports.WriteByte(flashtype);
+        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /*
@@ -180,7 +180,7 @@ public class Monster {
         if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
-                GameBase.gi.dprintf("monster_start:" + self.classname + " at "
+                GameBase.gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + GameBase.st.item + "\n");
         }
@@ -231,7 +231,7 @@ public class Monster {
                 }
             }
             if (notcombat && self.combattarget != null)
-                GameBase.gi.dprintf(self.classname + " at "
+                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin)
                         + " has target with mixed types\n");
             if (fixup)
@@ -247,7 +247,7 @@ public class Monster {
                 SubgameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
-                    GameBase.gi.dprintf(self.classname + " at "
+                    GameBase.gameExports.gameImports.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
                             + " : " + target.classname + " at "
@@ -260,7 +260,7 @@ public class Monster {
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target);
             if (null == self.movetarget) {
-                GameBase.gi
+                GameBase.gameExports.gameImports
                         .dprintf(self.classname + " can't find target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
@@ -315,7 +315,7 @@ public class Monster {
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.air_finished = GameBase.level.time + 12;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
 
             Monster.monster_start_go(self);
 
