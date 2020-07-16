@@ -1957,7 +1957,7 @@ public class M_Boss32 {
      * Trigger_Spawn Sight
      */
     static void SP_monster_makron(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }

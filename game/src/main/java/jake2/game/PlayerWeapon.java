@@ -278,7 +278,7 @@ public class PlayerWeapon {
 
             int damage;
 
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 damage = 15;
             else
                 damage = 10;
@@ -339,7 +339,7 @@ public class PlayerWeapon {
                         effect = Defines.EF_HYPERBLASTER;
                     else
                         effect = 0;
-                    if (GameBase.deathmatch.value != 0)
+                    if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                         damage = 15;
                     else
                         damage = 20;
@@ -454,7 +454,7 @@ public class PlayerWeapon {
                 kick *= 4;
             }
 
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 GameWeapon.fire_shotgun(ent, start, forward, damage, kick, 500, 500,
                         GameDefines.DEFAULT_DEATHMATCH_SHOTGUN_COUNT,
                         GameDefines.MOD_SHOTGUN);
@@ -581,7 +581,7 @@ public class PlayerWeapon {
             int damage;
             int kick;
 
-            if (GameBase.deathmatch.value != 0) { // normal damage is too
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) { // normal damage is too
                 // extreme in dm
                 damage = 100;
                 kick = 200;
@@ -654,7 +654,7 @@ public class PlayerWeapon {
             int damage;
             float damage_radius = 1000;
 
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 damage = 200;
             else
                 damage = 500;
@@ -856,7 +856,7 @@ public class PlayerWeapon {
             client.kick_angles[0] = client.machinegun_shots * -1.5f;
 
             // raise the gun as it is firing
-            if (0 == GameBase.deathmatch.value) {
+            if (0 == GameBase.gameExports.cvarCache.deathmatch.value) {
                 client.machinegun_shots++;
                 if (client.machinegun_shots > 9)
                     client.machinegun_shots = 9;
@@ -913,7 +913,7 @@ public class PlayerWeapon {
             int damage;
             int kick = 2;
 
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 damage = 6;
             else
                 damage = 8;
@@ -1053,7 +1053,7 @@ public class PlayerWeapon {
                     GameItems.Add_Ammo(other, ammo, ammo.quantity);
     
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM)) {
-                    if (GameBase.deathmatch.value != 0) {
+                    if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                         if (((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
                             ent.flags |= GameDefines.FL_RESPAWN;
                         else
@@ -1066,7 +1066,7 @@ public class PlayerWeapon {
     
             if (client.pers.weapon != ent.item
                     && (client.pers.inventory[index] == 1)
-                    && (0 == GameBase.deathmatch.value || client.pers.weapon == GameItems
+                    && (0 == GameBase.gameExports.cvarCache.deathmatch.value || client.pers.weapon == GameItems
                             .FindItem("blaster")))
                 client.newweapon = ent.item;
     
@@ -1485,7 +1485,7 @@ public class PlayerWeapon {
             }
         }
     
-        if (GameBase.deathmatch.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             return;
     
         if ((who.flags & GameDefines.FL_NOTARGET) != 0)

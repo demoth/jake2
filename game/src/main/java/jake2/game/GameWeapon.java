@@ -209,7 +209,7 @@ public class GameWeapon {
                         GameDefines.MOD_ROCKET);
             } else {
                 // don't throw any debris in net games
-                if (GameBase.deathmatch.value == 0 && 0 == GameBase.coop.value) {
+                if (GameBase.gameExports.cvarCache.deathmatch.value == 0 && 0 == GameBase.coop.value) {
                     if ((surf != null)
                             && 0 == (surf.flags & (Defines.SURF_WARP
                                     | Defines.SURF_TRANS33
@@ -351,7 +351,7 @@ public class GameWeapon {
             int dmg;
             trace_t tr;
     
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 dmg = 5;
             else
                 dmg = 10;

@@ -129,7 +129,7 @@ public class GameTurret {
     }
 
     public static void SP_turret_driver(SubgameEntity self) {
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }

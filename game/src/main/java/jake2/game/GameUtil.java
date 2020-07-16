@@ -144,7 +144,7 @@ public class GameUtil {
         int i;
         SubgameEntity e;
 
-        for (i = (int) GameBase.game.maxclients + 1; i < GameBase.num_edicts; i++) {
+        for (i = (int) GameBase.gameExports.game.maxclients + 1; i < GameBase.num_edicts; i++) {
             e = GameBase.g_edicts[i];
             // the first couple seconds of server time can involve a lot of
             // freeing and allocating, so relax the replacement policy
@@ -156,7 +156,7 @@ public class GameUtil {
             }
         }
 
-        if (i == GameBase.game.maxentities)
+        if (i == GameBase.gameExports.game.maxentities)
             GameBase.gi.error("ED_Alloc: no free edicts");
 
         e = GameBase.g_edicts[i] = new SubgameEntity(i);
@@ -172,7 +172,7 @@ public class GameUtil {
         GameBase.gi.unlinkentity(ed); // unlink from world
 
         //if ((ed - g_edicts) <= (maxclients.value + BODY_QUEUE_SIZE))
-        if (ed.index <= (GameBase.game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
+        if (ed.index <= (GameBase.gameExports.game.maxclients + GameDefines.BODY_QUEUE_SIZE)) {
             // gi.dprintf("tried to free special edict\n");
             return;
         }

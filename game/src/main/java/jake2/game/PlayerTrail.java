@@ -63,7 +63,7 @@ public class PlayerTrail {
     static void Init() {
 
         // FIXME || coop
-        if (GameBase.deathmatch.value != 0)
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             return;
 
         for (int n = 0; n < PlayerTrail.TRAIL_LENGTH; n++) {

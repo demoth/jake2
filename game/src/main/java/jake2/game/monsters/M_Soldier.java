@@ -1460,7 +1460,7 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_light"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }
@@ -1493,7 +1493,7 @@ public class M_Soldier {
                     self.s.origin[2] + " " +
                     "\n");
             
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }
@@ -1518,7 +1518,7 @@ public class M_Soldier {
     public static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_ss"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }

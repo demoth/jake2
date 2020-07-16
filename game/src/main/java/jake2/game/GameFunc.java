@@ -1416,7 +1416,7 @@ class GameFunc {
 
             if (0 == ent.speed)
                 ent.speed = 100;
-            if (GameBase.deathmatch.value != 0)
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                 ent.speed *= 2;
 
             if (0 == ent.accel)

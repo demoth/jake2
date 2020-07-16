@@ -78,7 +78,7 @@ class GameTarget {
      * message light will be set on all clients status bars.
      */
     static void SP_target_help(SubgameEntity ent) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
         }
@@ -93,7 +93,7 @@ class GameTarget {
     }
 
     static void SP_target_secret(SubgameEntity ent) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
         }
@@ -112,7 +112,7 @@ class GameTarget {
     }
 
     static void SP_target_goal(SubgameEntity ent) {
-        if (GameBase.deathmatch.value != 0) { // auto-remove for deathmatch
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
             GameUtil.G_FreeEdict(ent);
             return;
         }
@@ -224,7 +224,7 @@ class GameTarget {
             return;
         }
 
-        if (GameBase.deathmatch.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -321,11 +321,11 @@ class GameTarget {
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
 
             if ((ent.spawnflags & 1) != 0)
-                GameBase.game.helpmessage1 = ent.message;
+                GameBase.gameExports.game.helpmessage1 = ent.message;
             else
-                GameBase.game.helpmessage2 = ent.message;
+                GameBase.gameExports.game.helpmessage2 = ent.message;
 
-            GameBase.game.helpchanged++;
+            GameBase.gameExports.game.helpchanged++;
         }
     };
 
@@ -421,13 +421,13 @@ class GameTarget {
             if (GameBase.level.intermissiontime != 0)
                 return; // already activated
 
-            if (0 == GameBase.deathmatch.value && 0 == GameBase.coop.value) {
+            if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.coop.value) {
                 if (GameBase.g_edicts[1].health <= 0)
                     return;
             }
 
             // if noexit, do a ton of damage to other
-            if (GameBase.deathmatch.value != 0
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                     && 0 == ((int) GameBase.dmflags.value & Defines.DF_ALLOW_EXIT)
                     && other != GameBase.g_edicts[0] /* world */
             ) {
@@ -438,7 +438,7 @@ class GameTarget {
             }
 
             // if multiplayer, let everyone know who hit the exit
-            if (GameBase.deathmatch.value != 0) {
+            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 if (activator != null) {
                     gclient_t activatorClient = activator.getClient();
                     if (activatorClient != null) GameBase.gi.bprintf(Defines.PRINT_HIGH,
@@ -449,7 +449,7 @@ class GameTarget {
 
             // if going to a new unit, clear cross triggers
             if (self.map.indexOf('*') > -1)
-                GameBase.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
+                GameBase.gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
 
             PlayerHud.BeginIntermission(self);
         }
@@ -550,7 +550,7 @@ class GameTarget {
     private static EntUseAdapter trigger_crosslevel_trigger_use = new EntUseAdapter() {
     	public String getID() { return "trigger_crosslevel_trigger_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            GameBase.game.serverflags |= self.spawnflags;
+            GameBase.gameExports.game.serverflags |= self.spawnflags;
             GameUtil.G_FreeEdict(self);
         }
     };
@@ -567,7 +567,7 @@ class GameTarget {
     private static EntThinkAdapter target_crosslevel_target_think = new EntThinkAdapter() {
     	public String getID() { return "target_crosslevel_target_think"; }
         public boolean think(SubgameEntity self) {
-            if (self.spawnflags == (GameBase.game.serverflags
+            if (self.spawnflags == (GameBase.gameExports.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
                 GameUtil.G_UseTargets(self, self);
                 GameUtil.G_FreeEdict(self);
