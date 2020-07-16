@@ -54,7 +54,7 @@ public final class M {
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] - 0.25f;
 
-        trace_t trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
+        trace_t trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
                 Defines.MASK_MONSTERSOLID);
 
         // check steepness
@@ -100,7 +100,7 @@ public final class M {
             for (y = 0; y <= 1; y++) {
                 start[0] = x != 0 ? maxs[0] : mins[0];
                 start[1] = y != 0 ? maxs[1] : mins[1];
-                if (GameBase.gi.getPointContents(start) != Defines.CONTENTS_SOLID) {
+                if (GameBase.gameExports.gameImports.getPointContents(start) != Defines.CONTENTS_SOLID) {
                     GameBase.c_no++;
                     //
                     //	   check it for real...
@@ -111,7 +111,7 @@ public final class M {
                     start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5f;
                     start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5f;
                     stop[2] = start[2] - 2 * GameBase.STEPSIZE;
-                    trace = GameBase.gi.trace(start, Globals.vec3_origin,
+                    trace = GameBase.gameExports.gameImports.trace(start, Globals.vec3_origin,
                             Globals.vec3_origin, stop, ent,
                             Defines.MASK_MONSTERSOLID);
 
@@ -125,7 +125,7 @@ public final class M {
                             start[0] = stop[0] = x != 0 ? maxs[0] : mins[0];
                             start[1] = stop[1] = y != 0 ? maxs[1] : mins[1];
 
-                            trace = GameBase.gi.trace(start,
+                            trace = GameBase.gameExports.gameImports.trace(start,
                                     Globals.vec3_origin, Globals.vec3_origin,
                                     stop, ent, Defines.MASK_MONSTERSOLID);
 
@@ -232,7 +232,7 @@ public final class M {
         point[0] = ent.s.origin[0];
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-        cont = GameBase.gi.getPointContents(point);
+        cont = GameBase.gameExports.gameImports.getPointContents(point);
 
         if (0 == (cont & Defines.MASK_WATER)) {
             ent.waterlevel = 0;
@@ -243,13 +243,13 @@ public final class M {
         ent.watertype = cont;
         ent.waterlevel = 1;
         point[2] += 26;
-        cont = GameBase.gi.getPointContents(point);
+        cont = GameBase.gameExports.gameImports.getPointContents(point);
         if (0 == (cont & Defines.MASK_WATER))
             return;
 
         ent.waterlevel = 2;
         point[2] += 22;
-        cont = GameBase.gi.getPointContents(point);
+        cont = GameBase.gameExports.gameImports.getPointContents(point);
         if (0 != (cont & Defines.MASK_WATER))
             ent.waterlevel = 3;
     }
@@ -300,7 +300,7 @@ public final class M {
 
         if (ent.waterlevel == 0) {
             if ((ent.flags & GameDefines.FL_INWATER) != 0) {
-                GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                         .soundindex("player/watr_out.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 ent.flags &= ~GameDefines.FL_INWATER;
@@ -333,19 +333,19 @@ public final class M {
             if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
                 if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
                     if (Globals.rnd.nextFloat() <= 0.5)
-                        GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                                 .soundindex("player/lava1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                                 .soundindex("player/lava2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 else if ((ent.watertype & Defines.CONTENTS_SLIME) != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                             .soundindex("player/watr_in.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 else if ((ent.watertype & Defines.CONTENTS_WATER) != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_BODY, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                             .soundindex("player/watr_in.wav"), 1,
                             Defines.ATTN_NORM, 0);
             }
@@ -365,7 +365,7 @@ public final class M {
             Math3D.VectorCopy(ent.s.origin, end);
             end[2] -= 256;
 
-            trace = GameBase.gi.trace(ent.s.origin, ent.mins, ent.maxs, end,
+            trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, end,
                     ent, Defines.MASK_MONSTERSOLID);
 
             if (trace.fraction == 1 || trace.allsolid)
@@ -373,7 +373,7 @@ public final class M {
 
             Math3D.VectorCopy(trace.endpos, ent.s.origin);
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             M.M_CheckGround(ent);
             M_CatagorizePosition(ent);
             return true;
@@ -471,7 +471,7 @@ public final class M {
                 return true;
 
             self.s.effects |= Defines.EF_FLIES;
-            self.s.sound = GameBase.gi.soundindex("infantry/inflies1.wav");
+            self.s.sound = GameBase.gameExports.gameImports.soundindex("infantry/inflies1.wav");
             self.think = M_FliesOff;
             self.nextthink = GameBase.level.time + 60;
             return true;

@@ -458,13 +458,13 @@ public class M_Boss31 {
             r = Lib.random();
 
             if (r <= 0.3)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NORM, 0);
             else if (r <= 0.6)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_search3, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search3, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -473,7 +473,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_idle = new EntThinkAdapter() {
     	public String getID() { return "jorg_idle"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -482,7 +482,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_death_hit = new EntThinkAdapter() {
     	public String getID() { return "jorg_death_hit"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_death_hit, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_death_hit, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -491,7 +491,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_step_left = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_left"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -500,7 +500,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_step_right = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_right"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -578,20 +578,20 @@ public class M_Boss31 {
                     return;
 
             self.pain_debounce_time = GameBase.level.time + 3;
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 50) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = jorg_move_pain1;
             } else if (damage <= 100) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = jorg_move_pain2;
             } else {
                 if (Lib.random() <= 0.3) {
-                    GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = jorg_move_pain3;
                 }
@@ -618,7 +618,7 @@ public class M_Boss31 {
             vec[2] += self.enemy.viewheight;
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_attack2, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack2, 1,
                     Defines.ATTN_NORM, 0);
             /*
              * void monster_fire_bfg (SubgameEntity self, float [] start, float []
@@ -706,12 +706,12 @@ public class M_Boss31 {
             range = Math3D.VectorLength(vec);
 
             if (Lib.random() <= 0.75) {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_attack1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack1, 1,
                         Defines.ATTN_NORM, 0);
-                self.s.sound = GameBase.gi.soundindex("boss3/w_loop.wav");
+                self.s.sound = GameBase.gameExports.gameImports.soundindex("boss3/w_loop.wav");
                 self.monsterinfo.currentmove = jorg_move_start_attack1;
             } else {
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_attack2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = jorg_move_attack2;
             }
@@ -747,7 +747,7 @@ public class M_Boss31 {
     	public String getID() { return "jorg_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
@@ -776,7 +776,7 @@ public class M_Boss31 {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gi.trace(spot1, null, null, spot2, self,
+                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA);
@@ -1156,28 +1156,28 @@ public class M_Boss31 {
             return;
         }
 
-        sound_pain1 = GameBase.gi.soundindex("boss3/bs3pain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("boss3/bs3pain2.wav");
-        sound_pain3 = GameBase.gi.soundindex("boss3/bs3pain3.wav");
-        sound_death = GameBase.gi.soundindex("boss3/bs3deth1.wav");
-        sound_attack1 = GameBase.gi.soundindex("boss3/bs3atck1.wav");
-        sound_attack2 = GameBase.gi.soundindex("boss3/bs3atck2.wav");
-        sound_search1 = GameBase.gi.soundindex("boss3/bs3srch1.wav");
-        sound_search2 = GameBase.gi.soundindex("boss3/bs3srch2.wav");
-        sound_search3 = GameBase.gi.soundindex("boss3/bs3srch3.wav");
-        sound_idle = GameBase.gi.soundindex("boss3/bs3idle1.wav");
-        sound_step_left = GameBase.gi.soundindex("boss3/step1.wav");
-        sound_step_right = GameBase.gi.soundindex("boss3/step2.wav");
-        sound_firegun = GameBase.gi.soundindex("boss3/xfire.wav");
-        sound_death_hit = GameBase.gi.soundindex("boss3/d_hit.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain2.wav");
+        sound_pain3 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain3.wav");
+        sound_death = GameBase.gameExports.gameImports.soundindex("boss3/bs3deth1.wav");
+        sound_attack1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3atck1.wav");
+        sound_attack2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3atck2.wav");
+        sound_search1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch1.wav");
+        sound_search2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch2.wav");
+        sound_search3 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch3.wav");
+        sound_idle = GameBase.gameExports.gameImports.soundindex("boss3/bs3idle1.wav");
+        sound_step_left = GameBase.gameExports.gameImports.soundindex("boss3/step1.wav");
+        sound_step_right = GameBase.gameExports.gameImports.soundindex("boss3/step2.wav");
+        sound_firegun = GameBase.gameExports.gameImports.soundindex("boss3/xfire.wav");
+        sound_death_hit = GameBase.gameExports.gameImports.soundindex("boss3/d_hit.wav");
 
         M_Boss32.MakronPrecache();
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/boss3/rider/tris.md2");
-        self.s.modelindex2 = GameBase.gi
+        self.s.modelindex2 = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/boss3/jorg/tris.md2");
         Math3D.VectorSet(self.mins, -80, -80, 0);
         Math3D.VectorSet(self.maxs, 80, 80, 140);
@@ -1197,7 +1197,7 @@ public class M_Boss31 {
         self.monsterinfo.melee = null;
         self.monsterinfo.sight = null;
         self.monsterinfo.checkattack = Jorg_CheckAttack;
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = jorg_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

@@ -644,10 +644,10 @@ public class M_Chick {
     	public String getID() { return "ChickMoan"; }
         public boolean think(SubgameEntity self) {
             if (Lib.random() < 0.5)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                         Defines.ATTN_IDLE, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_idle2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle2, 1,
                         Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -874,16 +874,16 @@ public class M_Chick {
 
             r = Lib.random();
             if (r < 0.33)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             else if (r < 0.66)
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.skill.value == 3)
+            if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -904,7 +904,7 @@ public class M_Chick {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -963,8 +963,8 @@ public class M_Chick {
 
             //		   check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gi
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -990,11 +990,11 @@ public class M_Chick {
             n = Lib.rand() % 2;
             if (n == 0) {
                 self.monsterinfo.currentmove = chick_move_death1;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = chick_move_death2;
-                GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -1010,7 +1010,7 @@ public class M_Chick {
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.pausetime = GameBase.level.time + 1;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1032,7 +1032,7 @@ public class M_Chick {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1069,7 +1069,7 @@ public class M_Chick {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 10);
-            GameBase.gi.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
                     Defines.ATTN_NORM, 0);
             GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100);
             return true;
@@ -1103,7 +1103,7 @@ public class M_Chick {
     static EntThinkAdapter Chick_PreAttack1 = new EntThinkAdapter() {
     	public String getID() { return "Chick_PreAttack1"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                     sound_missile_prelaunch, 1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1112,7 +1112,7 @@ public class M_Chick {
     static EntThinkAdapter ChickReload = new EntThinkAdapter() {
     	public String getID() { return "ChickReload"; }
         public boolean think(SubgameEntity self) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_missile_reload,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_missile_reload,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1265,7 +1265,7 @@ public class M_Chick {
     static EntInteractAdapter chick_sight = new EntInteractAdapter() {
     	public String getID() { return "chick_sight"; }
         public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gi.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1281,25 +1281,25 @@ public class M_Chick {
             return;
         }
 
-        sound_missile_prelaunch = GameBase.gi.soundindex("chick/chkatck1.wav");
-        sound_missile_launch = GameBase.gi.soundindex("chick/chkatck2.wav");
-        sound_melee_swing = GameBase.gi.soundindex("chick/chkatck3.wav");
-        sound_melee_hit = GameBase.gi.soundindex("chick/chkatck4.wav");
-        sound_missile_reload = GameBase.gi.soundindex("chick/chkatck5.wav");
-        sound_death1 = GameBase.gi.soundindex("chick/chkdeth1.wav");
-        sound_death2 = GameBase.gi.soundindex("chick/chkdeth2.wav");
-        sound_fall_down = GameBase.gi.soundindex("chick/chkfall1.wav");
-        sound_idle1 = GameBase.gi.soundindex("chick/chkidle1.wav");
-        sound_idle2 = GameBase.gi.soundindex("chick/chkidle2.wav");
-        sound_pain1 = GameBase.gi.soundindex("chick/chkpain1.wav");
-        sound_pain2 = GameBase.gi.soundindex("chick/chkpain2.wav");
-        sound_pain3 = GameBase.gi.soundindex("chick/chkpain3.wav");
-        sound_sight = GameBase.gi.soundindex("chick/chksght1.wav");
-        sound_search = GameBase.gi.soundindex("chick/chksrch1.wav");
+        sound_missile_prelaunch = GameBase.gameExports.gameImports.soundindex("chick/chkatck1.wav");
+        sound_missile_launch = GameBase.gameExports.gameImports.soundindex("chick/chkatck2.wav");
+        sound_melee_swing = GameBase.gameExports.gameImports.soundindex("chick/chkatck3.wav");
+        sound_melee_hit = GameBase.gameExports.gameImports.soundindex("chick/chkatck4.wav");
+        sound_missile_reload = GameBase.gameExports.gameImports.soundindex("chick/chkatck5.wav");
+        sound_death1 = GameBase.gameExports.gameImports.soundindex("chick/chkdeth1.wav");
+        sound_death2 = GameBase.gameExports.gameImports.soundindex("chick/chkdeth2.wav");
+        sound_fall_down = GameBase.gameExports.gameImports.soundindex("chick/chkfall1.wav");
+        sound_idle1 = GameBase.gameExports.gameImports.soundindex("chick/chkidle1.wav");
+        sound_idle2 = GameBase.gameExports.gameImports.soundindex("chick/chkidle2.wav");
+        sound_pain1 = GameBase.gameExports.gameImports.soundindex("chick/chkpain1.wav");
+        sound_pain2 = GameBase.gameExports.gameImports.soundindex("chick/chkpain2.wav");
+        sound_pain3 = GameBase.gameExports.gameImports.soundindex("chick/chkpain3.wav");
+        sound_sight = GameBase.gameExports.gameImports.soundindex("chick/chksght1.wav");
+        sound_search = GameBase.gameExports.gameImports.soundindex("chick/chksrch1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gi
+        self.s.modelindex = GameBase.gameExports.gameImports
                 .modelindex("models/monsters/bitch/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, 0);
         Math3D.VectorSet(self.maxs, 16, 16, 56);
@@ -1319,7 +1319,7 @@ public class M_Chick {
         self.monsterinfo.melee = chick_melee;
         self.monsterinfo.sight = chick_sight;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = chick_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;

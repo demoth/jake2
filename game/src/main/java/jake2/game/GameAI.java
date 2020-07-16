@@ -332,7 +332,7 @@ public class GameAI {
 
                 if (self.groundentity != null)
                     if (!M.M_walkmove(self, 0, 0))
-                        GameBase.gi.dprintf(self.classname + " in solid at "
+                        GameBase.gameExports.gameImports.dprintf(self.classname + " in solid at "
                                 + Lib.vtos(self.s.origin) + "\n");
             }
 
@@ -363,7 +363,7 @@ public class GameAI {
         public String getID() { return "flymonster_start_go";}
         public boolean think(SubgameEntity self) {
             if (!M.M_walkmove(self, 0, 0))
-                GameBase.gi.dprintf(self.classname + " in solid at "
+                GameBase.gameExports.gameImports.dprintf(self.classname + " in solid at "
                         + Lib.vtos(self.s.origin) + "\n");
 
             if (0 == self.yaw_speed)
@@ -593,7 +593,7 @@ public class GameAI {
             }
 
             // coop will change to another enemy if visible           
-            if (GameBase.coop.value != 0) {
+            if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 // FIXME: insane guys get mad with this, which causes crashes!
                 if (GameUtil.FindTarget(self))
                     return;
@@ -677,7 +677,7 @@ public class GameAI {
                 // gi.dprintf("checking for course correction\n");
 
                 // mem
-                trace_t tr = GameBase.gi.trace(self.s.origin, self.mins, self.maxs,
+                trace_t tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                         self.monsterinfo.last_sighting, self,
                         Defines.MASK_PLAYERSOLID);
                 if (tr.fraction < 1) {
@@ -690,14 +690,14 @@ public class GameAI {
 
                     Math3D.VectorSet(v, d2, -16, 0);
                     Math3D.G_ProjectSource(self.s.origin, v, v_forward, v_right, left_target);
-                    tr = GameBase.gi.trace(self.s.origin, self.mins, self.maxs,
+                    tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                             left_target, self, Defines.MASK_PLAYERSOLID);
                     float left = tr.fraction;
 
                     Math3D.VectorSet(v, d2, 16, 0);
                     Math3D.G_ProjectSource(self.s.origin, v, v_forward,
                             v_right, right_target);
-                    tr = GameBase.gi.trace(self.s.origin, self.mins, self.maxs,
+                    tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                             right_target, self, Defines.MASK_PLAYERSOLID);
                     float right = tr.fraction;
 

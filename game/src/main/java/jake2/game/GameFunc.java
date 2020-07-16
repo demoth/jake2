@@ -179,7 +179,7 @@ class GameFunc {
     private static void plat_go_up(SubgameEntity ent) {
         if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
             if (ent.moveinfo.sound_start != 0)
-                GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
             ent.s.sound = ent.moveinfo.sound_middle;
@@ -225,7 +225,7 @@ class GameFunc {
         Math3D.VectorCopy(tmin, trigger.mins);
         Math3D.VectorCopy(tmax, trigger.maxs);
 
-        GameBase.gi.linkentity(trigger);
+        GameBase.gameExports.gameImports.linkentity(trigger);
     }
 
     /**
@@ -252,7 +252,7 @@ class GameFunc {
         ent.solid = Defines.SOLID_BSP;
         ent.movetype = GameDefines.MOVETYPE_PUSH;
 
-        GameBase.gi.setmodel(ent, ent.model);
+        GameBase.gameExports.gameImports.setmodel(ent, ent.model);
 
         ent.blocked = plat_blocked;
 
@@ -293,7 +293,7 @@ class GameFunc {
             ent.moveinfo.state = STATE_UP;
         } else {
             Math3D.VectorCopy(ent.pos2, ent.s.origin);
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             ent.moveinfo.state = STATE_BOTTOM;
         }
 
@@ -306,9 +306,9 @@ class GameFunc {
         Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
         Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
-        ent.moveinfo.sound_start = GameBase.gi.soundindex("plats/pt1_strt.wav");
-        ent.moveinfo.sound_middle = GameBase.gi.soundindex("plats/pt1_mid.wav");
-        ent.moveinfo.sound_end = GameBase.gi.soundindex("plats/pt1_end.wav");
+        ent.moveinfo.sound_start = GameBase.gameExports.gameImports.soundindex("plats/pt1_strt.wav");
+        ent.moveinfo.sound_middle = GameBase.gameExports.gameImports.soundindex("plats/pt1_mid.wav");
+        ent.moveinfo.sound_end = GameBase.gameExports.gameImports.soundindex("plats/pt1_end.wav");
     }
 
     /**
@@ -348,7 +348,7 @@ class GameFunc {
                 .G_Find(edit, GameBase.findByTarget, self.target)) != null) {
             SubgameEntity t = edit.o;
             if (Lib.Q_stricmp(t.classname, "func_areaportal") == 0) {
-                GameBase.gi.SetAreaPortalState(t.style, open);
+                GameBase.gameExports.gameImports.SetAreaPortalState(t.style, open);
             }
         }
     }
@@ -366,7 +366,7 @@ class GameFunc {
 
         if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
             if (self.moveinfo.sound_start != 0)
-                GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
             self.s.sound = self.moveinfo.sound_middle;
@@ -401,23 +401,23 @@ class GameFunc {
         GameBase.G_SetMovedir(self.s.angles, self.movedir);
         self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BSP;
-        GameBase.gi.setmodel(self, self.model);
+        GameBase.gameExports.gameImports.setmodel(self, self.model);
 
         switch (self.sounds) {
         default:
             break;
 
         case 1: // water
-            self.moveinfo.sound_start = GameBase.gi
+            self.moveinfo.sound_start = GameBase.gameExports.gameImports
                     .soundindex("world/mov_watr.wav");
-            self.moveinfo.sound_end = GameBase.gi
+            self.moveinfo.sound_end = GameBase.gameExports.gameImports
                     .soundindex("world/stp_watr.wav");
             break;
 
         case 2: // lava
-            self.moveinfo.sound_start = GameBase.gi
+            self.moveinfo.sound_start = GameBase.gameExports.gameImports
                     .soundindex("world/mov_watr.wav");
-            self.moveinfo.sound_end = GameBase.gi
+            self.moveinfo.sound_end = GameBase.gameExports.gameImports
                     .soundindex("world/stp_watr.wav");
             break;
         }
@@ -462,7 +462,7 @@ class GameFunc {
 
         self.classname = "func_door";
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
     }
 
     private static void train_resume(SubgameEntity self) {
@@ -491,10 +491,10 @@ class GameFunc {
                 self.dmg = 100;
         }
         self.solid = Defines.SOLID_BSP;
-        GameBase.gi.setmodel(self, self.model);
+        GameBase.gameExports.gameImports.setmodel(self, self.model);
 
         if (GameBase.st.noise != null)
-            self.moveinfo.sound_middle = GameBase.gi
+            self.moveinfo.sound_middle = GameBase.gameExports.gameImports
                     .soundindex(GameBase.st.noise);
 
         if (0 == self.speed)
@@ -505,7 +505,7 @@ class GameFunc {
 
         self.use = train_use;
 
-        GameBase.gi.linkentity(self);
+        GameBase.gameExports.gameImports.linkentity(self);
 
         if (self.target != null) {
             // start trains on the second frame, to make sure their targets have
@@ -514,7 +514,7 @@ class GameFunc {
             self.nextthink = GameBase.level.time + Defines.FRAMETIME;
             self.think = func_train_find;
         } else {
-            GameBase.gi.dprintf("func_train without a target at "
+            GameBase.gameExports.gameImports.dprintf("func_train without a target at "
                     + Lib.vtos(self.absmin) + "\n");
         }
     }
@@ -528,7 +528,7 @@ class GameFunc {
 
         if (self.random >= self.wait) {
             self.random = self.wait - Defines.FRAMETIME;
-            GameBase.gi.dprintf("func_timer at " + Lib.vtos(self.s.origin)
+            GameBase.gameExports.gameImports.dprintf("func_timer at " + Lib.vtos(self.s.origin)
                     + " has random >= wait\n");
         }
 
@@ -744,7 +744,7 @@ class GameFunc {
         public boolean think(SubgameEntity ent) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = 0;
@@ -763,7 +763,7 @@ class GameFunc {
 
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = 0;
@@ -778,7 +778,7 @@ class GameFunc {
         public boolean think(SubgameEntity ent) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = ent.moveinfo.sound_middle;
@@ -939,8 +939,8 @@ class GameFunc {
             if ((ent.spawnflags & 128) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALLFAST;
 
-            GameBase.gi.setmodel(ent, ent.model);
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -1020,7 +1020,7 @@ class GameFunc {
             self.moveinfo.state = STATE_UP;
             if (self.moveinfo.sound_start != 0
                     && 0 == (self.flags & GameDefines.FL_TEAMSLAVE))
-                GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                         + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                         Defines.ATTN_STATIC, 0);
             Move_Calc(self, self.moveinfo.end_origin, button_wait);
@@ -1074,10 +1074,10 @@ class GameFunc {
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
             ent.movetype = GameDefines.MOVETYPE_STOP;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
 
             if (ent.sounds != 1)
-                ent.moveinfo.sound_start = GameBase.gi
+                ent.moveinfo.sound_start = GameBase.gameExports.gameImports
                         .soundindex("switches/butn2.wav");
 
             if (0 == ent.speed)
@@ -1121,7 +1121,7 @@ class GameFunc {
             Math3D.VectorCopy(ent.pos2, ent.moveinfo.end_origin);
             Math3D.VectorCopy(ent.s.angles, ent.moveinfo.end_angles);
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -1131,7 +1131,7 @@ class GameFunc {
         public boolean think(SubgameEntity self) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = 0;
@@ -1152,7 +1152,7 @@ class GameFunc {
         public boolean think(SubgameEntity self) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_end != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = 0;
@@ -1168,7 +1168,7 @@ class GameFunc {
         public boolean think(SubgameEntity self) {
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = self.moveinfo.sound_middle;
@@ -1312,7 +1312,7 @@ class GameFunc {
             other.solid = Defines.SOLID_TRIGGER;
             other.movetype = GameDefines.MOVETYPE_NONE;
             other.touch = Touch_DoorTrigger;
-            GameBase.gi.linkentity(other);
+            GameBase.gameExports.gameImports.linkentity(other);
 
             if ((ent.spawnflags & DOOR_START_OPEN) != 0)
                 door_use_areaportals(ent, true);
@@ -1386,8 +1386,8 @@ class GameFunc {
                 return;
             self.touch_debounce_time = GameBase.level.time + 5.0f;
 
-            GameBase.gi.centerprintf(other, self.message);
-            GameBase.gi.sound(other, Defines.CHAN_AUTO, GameBase.gi
+            GameBase.gameExports.gameImports.centerprintf(other, self.message);
+            GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                     .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -1398,18 +1398,18 @@ class GameFunc {
             float[] abs_movedir = { 0, 0, 0 };
 
             if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = GameBase.gi
+                ent.moveinfo.sound_start = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = GameBase.gi
+                ent.moveinfo.sound_middle = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = GameBase.gi
+                ent.moveinfo.sound_end = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_end.wav");
             }
 
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_blocked;
             ent.use = door_use;
@@ -1457,7 +1457,7 @@ class GameFunc {
                 ent.die = door_killed;
                 ent.max_health = ent.health;
             } else if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                GameBase.gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
@@ -1480,7 +1480,7 @@ class GameFunc {
             if (null == ent.team)
                 ent.teammaster = ent;
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
 
             ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
@@ -1540,7 +1540,7 @@ class GameFunc {
                 Math3D.VectorNegate(ent.movedir, ent.movedir);
 
             if (0 == GameBase.st.distance) {
-                GameBase.gi.dprintf(ent.classname + " at "
+                GameBase.gameExports.gameImports.dprintf(ent.classname + " at "
                         + Lib.vtos(ent.s.origin) + " with no distance set\n");
                 GameBase.st.distance = 90;
             }
@@ -1552,7 +1552,7 @@ class GameFunc {
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_blocked;
             ent.use = door_use;
@@ -1570,11 +1570,11 @@ class GameFunc {
                 ent.dmg = 2;
 
             if (ent.sounds != 1) {
-                ent.moveinfo.sound_start = GameBase.gi
+                ent.moveinfo.sound_start = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_strt.wav");
-                ent.moveinfo.sound_middle = GameBase.gi
+                ent.moveinfo.sound_middle = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_mid.wav");
-                ent.moveinfo.sound_end = GameBase.gi
+                ent.moveinfo.sound_end = GameBase.gameExports.gameImports
                         .soundindex("doors/dr1_end.wav");
             }
 
@@ -1593,7 +1593,7 @@ class GameFunc {
             }
 
             if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                GameBase.gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
@@ -1615,7 +1615,7 @@ class GameFunc {
             if (ent.team == null)
                 ent.teammaster = ent;
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
 
             ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
@@ -1701,7 +1701,7 @@ class GameFunc {
 
                 if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                     if (self.moveinfo.sound_end != 0)
-                        GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                        GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                                 + Defines.CHAN_VOICE, self.moveinfo.sound_end,
                                 1, Defines.ATTN_STATIC, 0);
                     self.s.sound = 0;
@@ -1731,7 +1731,7 @@ class GameFunc {
 
                 ent = GameBase.G_PickTarget(self.target);
                 if (null == ent) {
-                    GameBase.gi.dprintf("train_next: bad target " + self.target
+                    GameBase.gameExports.gameImports.dprintf("train_next: bad target " + self.target
                             + "\n");
                     return true;
                 }
@@ -1741,7 +1741,7 @@ class GameFunc {
                 // check for a teleport path_corner
                 if ((ent.spawnflags & 1) != 0) {
                     if (!first) {
-                        GameBase.gi
+                        GameBase.gameExports.gameImports
                                 .dprintf("connected teleport path_corners, see "
                                         + ent.classname
                                         + " at "
@@ -1753,7 +1753,7 @@ class GameFunc {
                             self.s.origin);
                     Math3D.VectorCopy(self.s.origin, self.s.old_origin);
                     self.s.event = Defines.EV_OTHER_TELEPORT;
-                    GameBase.gi.linkentity(self);
+                    GameBase.gameExports.gameImports.linkentity(self);
                     dogoto = true;
                 }
             }
@@ -1762,7 +1762,7 @@ class GameFunc {
 
             if (0 == (self.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (self.moveinfo.sound_start != 0)
-                    GameBase.gi.sound(self, Defines.CHAN_NO_PHS_ADD
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, self.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 self.s.sound = self.moveinfo.sound_middle;
@@ -1784,19 +1784,19 @@ class GameFunc {
             SubgameEntity ent;
 
             if (null == self.target) {
-                GameBase.gi.dprintf("train_find: no target\n");
+                GameBase.gameExports.gameImports.dprintf("train_find: no target\n");
                 return true;
             }
             ent = GameBase.G_PickTarget(self.target);
             if (null == ent) {
-                GameBase.gi.dprintf("train_find: target " + self.target
+                GameBase.gameExports.gameImports.dprintf("train_find: target " + self.target
                         + " not found\n");
                 return true;
             }
             self.target = ent.target;
 
             Math3D.VectorSubtract(ent.s.origin, self.mins, self.s.origin);
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
 
             // if not triggered, start immediately
             if (null == self.targetname)
@@ -1845,13 +1845,13 @@ class GameFunc {
             }
 
             if (null == other.pathtarget) {
-                GameBase.gi.dprintf("elevator used with no pathtarget\n");
+                GameBase.gameExports.gameImports.dprintf("elevator used with no pathtarget\n");
                 return;
             }
 
             SubgameEntity target = GameBase.G_PickTarget(other.pathtarget);
             if (null == target) {
-                GameBase.gi.dprintf("elevator used with bad pathtarget: "
+                GameBase.gameExports.gameImports.dprintf("elevator used with bad pathtarget: "
                         + other.pathtarget + "\n");
                 return;
             }
@@ -1865,17 +1865,17 @@ class GameFunc {
         public String getID() { return "trigger_elevator_init";}
         public boolean think(SubgameEntity self) {
             if (null == self.target) {
-                GameBase.gi.dprintf("trigger_elevator has no target\n");
+                GameBase.gameExports.gameImports.dprintf("trigger_elevator has no target\n");
                 return true;
             }
             self.movetarget = GameBase.G_PickTarget(self.target);
             if (null == self.movetarget) {
-                GameBase.gi.dprintf("trigger_elevator unable to find target "
+                GameBase.gameExports.gameImports.dprintf("trigger_elevator unable to find target "
                         + self.target + "\n");
                 return true;
             }
             if (!"func_train".equals(self.movetarget.classname)) {
-                GameBase.gi.dprintf("trigger_elevator target " + self.target
+                GameBase.gameExports.gameImports.dprintf("trigger_elevator target " + self.target
                         + " is not a train\n");
                 return true;
             }
@@ -1976,9 +1976,9 @@ class GameFunc {
 
             self.use = func_conveyor_use;
 
-            GameBase.gi.setmodel(self, self.model);
+            GameBase.gameExports.gameImports.setmodel(self, self.model);
             self.solid = Defines.SOLID_BSP;
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -2122,16 +2122,16 @@ class GameFunc {
             float width;
             float length;
 
-            ent.moveinfo.sound_start = GameBase.gi
+            ent.moveinfo.sound_start = GameBase.gameExports.gameImports
                     .soundindex("doors/dr1_strt.wav");
-            ent.moveinfo.sound_middle = GameBase.gi
+            ent.moveinfo.sound_middle = GameBase.gameExports.gameImports
                     .soundindex("doors/dr1_mid.wav");
-            ent.moveinfo.sound_end = GameBase.gi
+            ent.moveinfo.sound_end = GameBase.gameExports.gameImports
                     .soundindex("doors/dr1_end.wav");
 
             ent.movetype = GameDefines.MOVETYPE_PUSH;
             ent.solid = Defines.SOLID_BSP;
-            GameBase.gi.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
 
             ent.blocked = door_secret_blocked;
             ent.use = door_secret_use;
@@ -2171,13 +2171,13 @@ class GameFunc {
                 ent.die = door_killed;
                 ent.max_health = ent.health;
             } else if (ent.targetname != null && ent.message != null) {
-                GameBase.gi.soundindex("misc/talk.wav");
+                GameBase.gameExports.gameImports.soundindex("misc/talk.wav");
                 ent.touch = door_touch;
             }
 
             ent.classname = "func_door";
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -2196,7 +2196,7 @@ class GameFunc {
     static EntThinkAdapter SP_func_killbox = new EntThinkAdapter() {
         public String getID() { return "sp_func_killbox";}
         public boolean think(SubgameEntity ent) {
-            GameBase.gi.setmodel(ent, ent.model);
+            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
             ent.use = use_killbox;
             ent.svflags = Defines.SVF_NOCLIENT;
             return true;

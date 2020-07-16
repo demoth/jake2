@@ -76,7 +76,7 @@ public class PlayerClient {
                 // this is kind of ugly, but it's how we want to handle keys in
                 // coop
                 for (n = 0; n < GameBase.gameExports.game.num_items; n++) {
-                    if (GameBase.coop.value != 0
+                    if (GameBase.gameExports.cvarCache.coop.value != 0
                             && (GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0)
                         client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
                     client.pers.inventory[n] = 0;
@@ -91,8 +91,8 @@ public class PlayerClient {
             self.flags &= ~GameDefines.FL_POWER_ARMOR;
     
             if (self.health < -40) { // gib
-                GameBase.gi
-                        .sound(self, Defines.CHAN_BODY, GameBase.gi
+                GameBase.gameExports.gameImports
+                        .sound(self, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
@@ -126,7 +126,7 @@ public class PlayerClient {
                             break;
                         }
     
-                    GameBase.gi.sound(self, Defines.CHAN_VOICE, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("*death" + ((Lib.rand() % 4) + 1)
                                     + ".wav"), 1, Defines.ATTN_NORM, 0);
                 }
@@ -134,7 +134,7 @@ public class PlayerClient {
     
             self.deadflag = GameDefines.DEAD_DEAD;
     
-            GameBase.gi.linkentity(self);
+            GameBase.gameExports.gameImports.linkentity(self);
         }
     };
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
@@ -218,8 +218,8 @@ public class PlayerClient {
             int n;
     
             if (self.health < -40) {
-                GameBase.gi.sound(self, Defines.CHAN_BODY, 
-                		GameBase.gi.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
+                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, 
+                		GameBase.gameExports.gameImports.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage,
                             GameDefines.GIB_ORGANIC);
@@ -237,10 +237,10 @@ public class PlayerClient {
         public trace_t trace(float[] start, float[] mins, float[] maxs,
                 float[] end) {
             if (pm_passent.health > 0)
-                return GameBase.gi.trace(start, mins, maxs, end, pm_passent,
+                return GameBase.gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
                         Defines.MASK_PLAYERSOLID);
             else
-                return GameBase.gi.trace(start, mins, maxs, end, pm_passent,
+                return GameBase.gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
                         Defines.MASK_DEADSOLID);
         }
     
@@ -251,7 +251,7 @@ public class PlayerClient {
      * starting point for a level.
      */
     public static void SP_info_player_start(SubgameEntity self) {
-        if (GameBase.coop.value == 0)
+        if (GameBase.gameExports.cvarCache.coop.value == 0)
             return;
         if (Lib.Q_stricmp(GameBase.level.mapname, "security") == 0) {
             // invoke one of our gross, ugly, disgusting hacks
@@ -278,7 +278,7 @@ public class PlayerClient {
      */
 
     public static void SP_info_player_coop(SubgameEntity self) {
-        if (0 == GameBase.coop.value) {
+        if (0 == GameBase.gameExports.cvarCache.coop.value) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -320,11 +320,11 @@ public class PlayerClient {
         boolean ff;
 
         gclient_t attackerClient = attacker.getClient();
-        if (GameBase.coop.value != 0 && attackerClient != null)
+        if (GameBase.gameExports.cvarCache.coop.value != 0 && attackerClient != null)
             GameBase.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         gclient_t client = self.getClient();
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
             ff = (GameBase.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
             mod = GameBase.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
             message = null;
@@ -404,7 +404,7 @@ public class PlayerClient {
                 }
             }
             if (message != null) {
-                GameBase.gi.bprintf(Defines.PRINT_MEDIUM,
+                GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
                         client.pers.netname + " " + message + ".\n");
                 if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
                     client.resp.score--;
@@ -485,7 +485,7 @@ public class PlayerClient {
                     break;
                 }
                 if (message != null) {
-                    GameBase.gi.bprintf(Defines.PRINT_MEDIUM,
+                    GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
                             client.pers.netname + " " + message + " "
                                     + attackerClient.pers.netname + " "
                                     + message2 + "\n");
@@ -500,7 +500,7 @@ public class PlayerClient {
             }
         }
 
-        GameBase.gi.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
+        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
                 + " died.\n");
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             client.resp.score--;
@@ -564,7 +564,7 @@ public class PlayerClient {
             GameBase.gameExports.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
                     | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
-            if (GameBase.coop.value != 0) {
+            if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 gclient_t client = ent.getClient();
                 GameBase.gameExports.game.clients[i].pers.score = client.resp.score;
             }
@@ -576,7 +576,7 @@ public class PlayerClient {
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
         ent.flags |= client.pers.savedFlags;
-        if (GameBase.coop.value != 0)
+        if (GameBase.gameExports.cvarCache.coop.value != 0)
             client.resp.score = client.pers.score;
     }
 
@@ -704,7 +704,7 @@ public class PlayerClient {
 
     
     public static SubgameEntity SelectDeathmatchSpawnPoint() {
-        if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
+        if (0 != ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
             return SelectFarthestDeathmatchSpawnPoint();
         else
             return SelectRandomDeathmatchSpawnPoint();
@@ -758,7 +758,7 @@ public class PlayerClient {
 
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
             spot = SelectDeathmatchSpawnPoint();
-        else if (GameBase.coop.value != 0)
+        else if (GameBase.gameExports.cvarCache.coop.value != 0)
             spot = SelectCoopSpawnPoint(ent);
 
         EdictIterator es = null;
@@ -792,7 +792,7 @@ public class PlayerClient {
                 }
                 if (null == spot)
                 {
-                    GameBase.gi.error("Couldn't find spawn point "
+                    GameBase.gameExports.gameImports.error("Couldn't find spawn point "
                             + GameBase.gameExports.game.spawnpoint + "\n");
                     return;
                 }
@@ -824,9 +824,9 @@ public class PlayerClient {
 
         // FIXME: send an effect on the removed body
 
-        GameBase.gi.unlinkentity(ent);
+        GameBase.gameExports.gameImports.unlinkentity(ent);
 
-        GameBase.gi.unlinkentity(body);
+        GameBase.gameExports.gameImports.unlinkentity(body);
         body.s = ent.s.getClone();
 
         body.s.number = body.index;
@@ -845,11 +845,11 @@ public class PlayerClient {
         body.die = PlayerClient.body_die;
         body.takedamage = Defines.DAMAGE_YES;
 
-        GameBase.gi.linkentity(body);
+        GameBase.gameExports.gameImports.linkentity(body);
     }
 
     public static void respawn(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.coop.value != 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
                 CopyToBodyQue(self);
@@ -870,7 +870,7 @@ public class PlayerClient {
         }
 
         // restart the entire server
-        GameBase.gi.AddCommandString("menu_loadgame\n");
+        GameBase.gameExports.gameImports.AddCommandString("menu_loadgame\n");
     }
 
     private static boolean passwdOK(String i1, String i2) {
@@ -894,13 +894,13 @@ public class PlayerClient {
             String value = Info.Info_ValueForKey(client.pers.userinfo,
                     "spectator");
 
-            if (!passwdOK(GameBase.spectator_password.string, value)) {
-                GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
+                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Spectator password incorrect.\n");
                 client.pers.spectator = false;
-                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gi.WriteString("spectator 0\n");
-                GameBase.gi.unicast(ent, true);
+                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                GameBase.gameExports.gameImports.WriteString("spectator 0\n");
+                GameBase.gameExports.gameImports.unicast(ent, true);
                 return;
             }
 
@@ -911,14 +911,14 @@ public class PlayerClient {
                     numspec++;
             }
 
-            if (numspec >= GameBase.maxspectators.value) {
-                GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+            if (numspec >= GameBase.gameExports.cvarCache.maxspectators.value) {
+                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
-                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gi.WriteString("spectator 0\n");
-                GameBase.gi.unicast(ent, true);
+                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                GameBase.gameExports.gameImports.WriteString("spectator 0\n");
+                GameBase.gameExports.gameImports.unicast(ent, true);
                 return;
             }
         } else {
@@ -926,13 +926,13 @@ public class PlayerClient {
             // he must have the right password
             String value = Info.Info_ValueForKey(client.pers.userinfo,
                     "password");
-            if (!passwdOK(GameBase.spectator_password.string, value)) {
-                GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
+                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Password incorrect.\n");
                 client.pers.spectator = true;
-                GameBase.gi.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gi.WriteString("spectator 1\n");
-                GameBase.gi.unicast(ent, true);
+                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                GameBase.gameExports.gameImports.WriteString("spectator 1\n");
+                GameBase.gameExports.gameImports.unicast(ent, true);
                 return;
             }
         }
@@ -946,12 +946,12 @@ public class PlayerClient {
         // add a teleportation effect
         if (!client.pers.spectator) {
             // send effect
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
             //gi.WriteShort(ent - g_edicts);
-            GameBase.gi.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
 
-            GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             // hold in place briefly
             client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
@@ -961,10 +961,10 @@ public class PlayerClient {
         client.respawn_time = GameBase.level.time;
 
         if (client.pers.spectator)
-            GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
+            GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                     + " has moved to the sidelines\n");
         else
-            GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
+            GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                     + " joined the game\n");
     }
 
@@ -998,7 +998,7 @@ public class PlayerClient {
 
             userinfo = ClientUserinfoChanged(ent, userinfo);
 
-        } else if (GameBase.coop.value != 0) {
+        } else if (GameBase.gameExports.cvarCache.coop.value != 0) {
 
             resp.set(client.resp);
 
@@ -1059,7 +1059,7 @@ public class PlayerClient {
         client.getPlayerState().pmove.origin[2] = (short) (spawn_origin[2] * 8);
 
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && 0 != ((int) GameBase.dmflags.value & Defines.DF_FIXED_FOV)) {
+                && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib.atoi(Info.Info_ValueForKey(
@@ -1070,7 +1070,7 @@ public class PlayerClient {
                 client.getPlayerState().fov = 160;
         }
 
-        client.getPlayerState().gunindex = GameBase.gi
+        client.getPlayerState().gunindex = GameBase.gameExports.gameImports
                 .modelindex(client.pers.weapon.view_model);
 
         // clear entity state values
@@ -1108,7 +1108,7 @@ public class PlayerClient {
             ent.solid = Defines.SOLID_NOT;
             ent.svflags |= Defines.SVF_NOCLIENT;
             ent.getClient().getPlayerState().gunindex = 0;
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
             return;
         } else
             client.resp.spectator = false;
@@ -1116,7 +1116,7 @@ public class PlayerClient {
         if (!GameUtil.KillBox(ent)) { // could't spawn in?
         }
 
-        GameBase.gi.linkentity(ent);
+        GameBase.gameExports.gameImports.linkentity(ent);
 
         // force the current weapon up
         client.newweapon = client.pers.weapon;
@@ -1140,14 +1140,14 @@ public class PlayerClient {
             PlayerHud.MoveClientToIntermission(ent);
         } else {
             // send effect
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
             //gi.WriteShort(ent - g_edicts);
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
 
-        GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
+        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                 + " entered the game\n");
 
         // make sure all view stuff is valid
@@ -1190,12 +1190,12 @@ public class PlayerClient {
         } else {
             // send effect if in a multiplayer game
             if (GameBase.gameExports.game.maxclients > 1) {
-                GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
-                GameBase.gi.WriteShort(ent.index);
-                GameBase.gi.WriteByte(Defines.MZ_LOGIN);
-                GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+                GameBase.gameExports.gameImports.WriteShort(ent.index);
+                GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+                GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-                GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
+                GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                         + " entered the game\n");
             }
         }
@@ -1233,12 +1233,12 @@ public class PlayerClient {
         playernum = ent.index - 1;
 
         // combine name and skin into a configstring
-        GameBase.gi.configstring(Defines.CS_PLAYERSKINS + playernum,
+        GameBase.gameExports.gameImports.configstring(Defines.CS_PLAYERSKINS + playernum,
                 client.pers.netname + "\\" + s);
 
         // fov
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && 0 != ((int) GameBase.dmflags.value & Defines.DF_FIXED_FOV)) {
+                && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib
@@ -1276,7 +1276,7 @@ public class PlayerClient {
         if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && value.length() != 0 && !"0".equals(value)) {
             int i, numspec;
 
-            if (!passwdOK(GameBase.spectator_password.string, value)) {
+            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
                 userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Spectator password required or incorrect.");
                 return false;
@@ -1289,7 +1289,7 @@ public class PlayerClient {
                     numspec++;
             }
 
-            if (numspec >= GameBase.maxspectators.value) {
+            if (numspec >= GameBase.gameExports.cvarCache.maxspectators.value) {
                 userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Server spectator limit is full.");
                 return false;
@@ -1297,7 +1297,7 @@ public class PlayerClient {
         } else {
             // check for a password
             value = Info.Info_ValueForKey(userinfo, "password");
-            if (!passwdOK(GameBase.spectator_password.string, value)) {
+            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
                 userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
                         "Password required or incorrect.");
                 return false;
@@ -1320,7 +1320,7 @@ public class PlayerClient {
         userinfo = ClientUserinfoChanged(ent, userinfo);
 
         if (GameBase.gameExports.game.maxclients > 1)
-            GameBase.gi.dprintf(client.pers.netname + " connected\n");
+            GameBase.gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
 
         ent.svflags = 0; // make sure we start with known default
         client.pers.connected = true;
@@ -1333,16 +1333,16 @@ public class PlayerClient {
         if (client == null)
             return;
 
-        GameBase.gi.bprintf(Defines.PRINT_HIGH, client.pers.netname
+        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                 + " disconnected\n");
 
         // send effect
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
-        GameBase.gi.WriteShort(ent.index);
-        GameBase.gi.WriteByte(Defines.MZ_LOGOUT);
-        GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+        GameBase.gameExports.gameImports.WriteShort(ent.index);
+        GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGOUT);
+        GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-        GameBase.gi.unlinkentity(ent);
+        GameBase.gameExports.gameImports.unlinkentity(ent);
         ent.s.modelindex = 0;
         ent.solid = Defines.SOLID_NOT;
         ent.inuse = false;
@@ -1350,7 +1350,7 @@ public class PlayerClient {
         client.pers.connected = false;
 
         int playernum = ent.index - 1;
-        GameBase.gi.configstring(Defines.CS_PLAYERSKINS + playernum, "");
+        GameBase.gameExports.gameImports.configstring(Defines.CS_PLAYERSKINS + playernum, "");
     }
 
     /*
@@ -1411,7 +1411,7 @@ public class PlayerClient {
             else
                 client.getPlayerState().pmove.pm_type = Defines.PM_NORMAL;
 
-            client.getPlayerState().pmove.gravity = (short) GameBase.sv_gravity.value;
+            client.getPlayerState().pmove.gravity = (short) GameBase.gameExports.cvarCache.sv_gravity.value;
             pm.s.set(client.getPlayerState().pmove);
 
             for (i = 0; i < 3; i++) {
@@ -1428,10 +1428,10 @@ public class PlayerClient {
             pm.cmd.set(ucmd);
 
             pm.trace = PlayerClient.PM_trace; // adds default parms
-            pm.pointcontents = (float[] p) -> GameBase.gi.getPointContents(p);
+            pm.pointcontents = (float[] p) -> GameBase.gameExports.gameImports.getPointContents(p);
 
             // perform a pmove
-            GameBase.gi.Pmove(pm);
+            GameBase.gameExports.gameImports.Pmove(pm);
 
             // save results of pmove
             client.getPlayerState().pmove.set(pm.s);
@@ -1451,7 +1451,7 @@ public class PlayerClient {
 
             if (ent.groundentity != null && null == pm.groundentity
                     && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
-                GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                         .soundindex("*jump1.wav"), 1, Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF);
             }
@@ -1472,7 +1472,7 @@ public class PlayerClient {
                 Math3D.VectorCopy(pm.viewangles, client.getPlayerState().viewangles);
             }
 
-            GameBase.gi.linkentity(ent);
+            GameBase.gameExports.gameImports.linkentity(ent);
 
             if (ent.movetype != GameDefines.MOVETYPE_NOCLIP)
                 GameBase.G_TouchTriggers(ent);
@@ -1577,7 +1577,7 @@ public class PlayerClient {
                     buttonMask = -1;
 
                 if ((client.latched_buttons & buttonMask) != 0
-                        || (GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) GameBase.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                        || (GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
                     respawn(ent);
                     client.latched_buttons = 0;
                 }
@@ -1680,7 +1680,7 @@ public class PlayerClient {
             item = null;
 
         boolean quad;
-        if (0 == ((int) (GameBase.dmflags.value) & Defines.DF_QUAD_DROP))
+        if (0 == ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_QUAD_DROP))
             quad = false;
         else
             quad = (client.quad_framenum > (GameBase.level.framenum + 10));

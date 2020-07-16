@@ -75,7 +75,7 @@ public class GameSVCmds {
     };
 
     public static void Svcmd_Test_f() {
-        GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
+        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
     }
 
     public static final int MAX_IPFILTERS = 1024;
@@ -108,7 +108,7 @@ public class GameSVCmds {
             f.mask = ByteBuffer.wrap(m).getInt();
             f.compare = ByteBuffer.wrap(b).getInt();
         } catch (Exception e) {
-            GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
+            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Bad filter address: " + s + "\n");
             return false;
         }
@@ -149,9 +149,9 @@ public class GameSVCmds {
 
         for (i = 0; i < numipfilters; i++)
             if ((in & ipfilters[i].mask) == ipfilters[i].compare)
-                return ((int) GameBase.filterban.value) != 0;
+                return ((int) GameBase.gameExports.cvarCache.filterban.value) != 0;
 
-        return ((int) 1 - GameBase.filterban.value) != 0;
+        return ((int) 1 - GameBase.gameExports.cvarCache.filterban.value) != 0;
     }
 
     /**
@@ -161,7 +161,7 @@ public class GameSVCmds {
         int i;
 
         if (args.size() < 3) {
-            GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
+            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Usage:  addip <ip-mask>\n");
             return;
         }
@@ -171,7 +171,7 @@ public class GameSVCmds {
                 break; // free spot
         if (i == numipfilters) {
             if (numipfilters == MAX_IPFILTERS) {
-                GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
+                GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                         "IP filter list is full\n");
                 return;
             }
@@ -189,7 +189,7 @@ public class GameSVCmds {
         GameSVCmds.ipfilter_t f = new GameSVCmds.ipfilter_t();
 
         if (args.size() < 3) {
-            GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
+            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Usage: sv removeip <ip-mask>\n");
             return;
         }
@@ -203,10 +203,10 @@ public class GameSVCmds {
                 for (int j = i + 1; j < numipfilters; j++)
                     ipfilters[j - 1] = ipfilters[j];
                 numipfilters--;
-                GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Removed.\n");
+                GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Removed.\n");
                 return;
             }
-        GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Didn't find "
+        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Didn't find "
                 + args.get(2) + ".\n");
     }
 
@@ -217,10 +217,10 @@ public class GameSVCmds {
         int i;
         byte b[];
 
-        GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Filter list:\n");
+        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Filter list:\n");
         for (i = 0; i < numipfilters; i++) {
             b = Lib.getIntBytes(ipfilters[i].compare);
-            GameBase.gi
+            GameBase.gameExports.gameImports
                     .cprintf(null, Defines.PRINT_HIGH, (b[0] & 0xff) + "."
                             + (b[1] & 0xff) + "." + (b[2] & 0xff) + "."
                             + (b[3] & 0xff));
@@ -237,7 +237,7 @@ public class GameSVCmds {
         int i;
         cvar_t game;
 
-        game = GameBase.gi.cvar("game", "", 0);
+        game = GameBase.gameExports.gameImports.cvar("game", "", 0);
 
         String name;
         if (game.string == null)
@@ -245,17 +245,17 @@ public class GameSVCmds {
         else
             name = game.string + "/listip.cfg";
 
-        GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
+        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
 
         f = Lib.fopen(name, "rw");
         if (f == null) {
-            GameBase.gi.cprintf(null, Defines.PRINT_HIGH, "Couldn't open "
+            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Couldn't open "
                     + name + "\n");
             return;
         }
 
         try {
-            f.writeChars("set filterban " + (int) GameBase.filterban.value
+            f.writeChars("set filterban " + (int) GameBase.gameExports.cvarCache.filterban.value
                     + "\n");
 
             for (i = 0; i < numipfilters; i++) {
@@ -292,7 +292,7 @@ public class GameSVCmds {
         else if (Lib.Q_stricmp(cmd, "writeip") == 0)
             SVCmd_WriteIP_f();
         else
-            GameBase.gi.cprintf(null, Defines.PRINT_HIGH,
+            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Unknown server command \"" + cmd + "\"\n");
     }
 }

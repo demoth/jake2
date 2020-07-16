@@ -58,8 +58,8 @@ public class PlayerWeapon {
                         client.grenade_time = 0;
                     } else {
                         if (GameBase.level.time >= ent.pain_debounce_time) {
-                            GameBase.gi.sound(ent, Defines.CHAN_VOICE,
-                                    GameBase.gi
+                            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE,
+                                    GameBase.gameExports.gameImports
                                             .soundindex("weapons/noammo.wav"),
                                     1, Defines.ATTN_NORM, 0);
                             ent.pain_debounce_time = GameBase.level.time + 1;
@@ -84,7 +84,7 @@ public class PlayerWeapon {
 
             if (client.weaponstate == WeaponStates.WEAPON_FIRING) {
                 if (client.getPlayerState().gunframe == 5)
-                    GameBase.gi.sound(ent, Defines.CHAN_WEAPON, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_WEAPON, GameBase.gameExports.gameImports
                             .soundindex("weapons/hgrena1b.wav"), 1,
                             Defines.ATTN_NORM, 0);
 
@@ -92,7 +92,7 @@ public class PlayerWeapon {
                     if (0 == client.grenade_time) {
                         client.grenade_time = GameBase.level.time
                                 + GameDefines.GRENADE_TIMER + 0.2f;
-                        client.weapon_sound = GameBase.gi
+                        client.weapon_sound = GameBase.gameExports.gameImports
                                 .soundindex("weapons/hgrenc1b.wav");
                     }
 
@@ -170,16 +170,16 @@ public class PlayerWeapon {
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_GRENADE | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -240,17 +240,17 @@ public class PlayerWeapon {
                     radius_damage);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_ROCKET | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_ROCKET | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -313,7 +313,7 @@ public class PlayerWeapon {
             int damage;
 
             gclient_t client = ent.getClient();
-            client.weapon_sound = GameBase.gi
+            client.weapon_sound = GameBase.gameExports.gameImports
                     .soundindex("weapons/hyprbl1a.wav");
 
             if (0 == (client.buttons & Defines.BUTTON_ATTACK)) {
@@ -321,7 +321,7 @@ public class PlayerWeapon {
             } else {
                 if (0 == client.pers.inventory[client.ammo_index]) {
                     if (GameBase.level.time >= ent.pain_debounce_time) {
-                        GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("weapons/noammo.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                         ent.pain_debounce_time = GameBase.level.time + 1;
@@ -344,7 +344,7 @@ public class PlayerWeapon {
                     else
                         damage = 20;
                     Blaster_Fire(ent, offset, damage, true, effect);
-                    if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+                    if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                         client.pers.inventory[client.ammo_index]--;
 
                     client.anim_priority = Defines.ANIM_ATTACK;
@@ -364,7 +364,7 @@ public class PlayerWeapon {
             }
 
             if (client.getPlayerState().gunframe == 12) {
-                GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                         .soundindex("weapons/hyprbd1a.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 client.weapon_sound = 0;
@@ -463,16 +463,16 @@ public class PlayerWeapon {
                         GameDefines.DEFAULT_SHOTGUN_COUNT, GameDefines.MOD_SHOTGUN);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_SHOTGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_SHOTGUN | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -534,16 +534,16 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_SSHOTGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_SSHOTGUN | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 2;
 
             return true;
@@ -607,16 +607,16 @@ public class PlayerWeapon {
             GameWeapon.fire_rail(ent, start, forward, damage, kick);
 
             // send muzzle flash
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_RAILGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_RAILGUN | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -662,11 +662,11 @@ public class PlayerWeapon {
             gclient_t client = ent.getClient();
             if (client.getPlayerState().gunframe == 9) {
                 // send muzzle flash
-                GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-                GameBase.gi.WriteShort(ent.index);
-                GameBase.gi.WriteByte(Defines.MZ_BFG | is_silenced);
-                GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+                GameBase.gameExports.gameImports.WriteShort(ent.index);
+                GameBase.gameExports.gameImports.WriteByte(Defines.MZ_BFG | is_silenced);
+                GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
                 client.getPlayerState().gunframe++;
 
@@ -702,7 +702,7 @@ public class PlayerWeapon {
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 50;
 
             return true;
@@ -743,21 +743,21 @@ public class PlayerWeapon {
             if (item == client.pers.weapon)
                 return;
 
-            if (item.ammo != null && 0 == GameBase.g_select_empty.value
+            if (item.ammo != null && 0 == GameBase.gameExports.cvarCache.g_select_empty.value
                     && 0 == (item.flags & GameDefines.IT_AMMO)) {
                 
                 ammo_item = GameItems.FindItem(item.ammo);
                 ammo_index = ammo_item.index;
 
                 if (0 == client.pers.inventory[ammo_index]) {
-                    GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "No "
+                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "No "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
                     return;
                 }
 
                 if (client.pers.inventory[ammo_index] < item.quantity) {
-                    GameBase.gi.cprintf(ent, Defines.PRINT_HIGH, "Not enough "
+                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "Not enough "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
                     return;
@@ -780,7 +780,7 @@ public class PlayerWeapon {
         public void drop(SubgameEntity ent, gitem_t item) {
             int index;
 
-            if (0 != ((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY))
+            if (0 != ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY))
                 return;
 
             index = item.index;
@@ -788,7 +788,7 @@ public class PlayerWeapon {
             gclient_t client = ent.getClient();
             if (((item == client.pers.weapon) || (item == client.newweapon))
                     && (client.pers.inventory[index] == 1)) {
-                GameBase.gi.cprintf(ent, Defines.PRINT_HIGH,
+                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
                 return;
             }
@@ -834,7 +834,7 @@ public class PlayerWeapon {
             if (client.pers.inventory[client.ammo_index] < 1) {
                 client.getPlayerState().gunframe = 6;
                 if (GameBase.level.time >= ent.pain_debounce_time) {
-                    GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("weapons/noammo.wav"), 1,
                             Defines.ATTN_NORM, 0);
                     ent.pain_debounce_time = GameBase.level.time + 1;
@@ -874,15 +874,15 @@ public class PlayerWeapon {
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN);
 
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             client.anim_priority = Defines.ANIM_ATTACK;
@@ -920,7 +920,7 @@ public class PlayerWeapon {
 
             gclient_t client = ent.getClient();
             if (client.getPlayerState().gunframe == 5)
-                GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                         .soundindex("weapons/chngnu1a.wav"), 1,
                         Defines.ATTN_IDLE, 0);
 
@@ -939,11 +939,11 @@ public class PlayerWeapon {
 
             if (client.getPlayerState().gunframe == 22) {
                 client.weapon_sound = 0;
-                GameBase.gi.sound(ent, Defines.CHAN_AUTO, GameBase.gi
+                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
                         .soundindex("weapons/chngnd1a.wav"), 1,
                         Defines.ATTN_IDLE, 0);
             } else {
-                client.weapon_sound = GameBase.gi
+                client.weapon_sound = GameBase.gameExports.gameImports
                         .soundindex("weapons/chngnl1a.wav");
             }
 
@@ -973,7 +973,7 @@ public class PlayerWeapon {
 
             if (0 == shots) {
                 if (GameBase.level.time >= ent.pain_debounce_time) {
-                    GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("weapons/noammo.wav"), 1,
                             Defines.ATTN_NORM, 0);
                     ent.pain_debounce_time = GameBase.level.time + 1;
@@ -1007,16 +1007,16 @@ public class PlayerWeapon {
             }
 
             // send muzzle flash
-            GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
+            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
-            GameBase.gi.WriteShort(ent.index);
-            GameBase.gi.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1)
+            GameBase.gameExports.gameImports.WriteShort(ent.index);
+            GameBase.gameExports.gameImports.WriteByte((Defines.MZ_CHAINGUN1 + shots - 1)
                     | is_silenced);
-            GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
 
-            if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= shots;
 
             return true;
@@ -1036,7 +1036,7 @@ public class PlayerWeapon {
             index = ent.item.index;
 
             gclient_t client = other.getClient();
-            if ((((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || GameBase.coop.value != 0)
+            if ((((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || GameBase.gameExports.cvarCache.coop.value != 0)
                     && 0 != client.pers.inventory[index]) {
                 if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM)))
                     return false; // leave the weapon for others to pickup
@@ -1047,19 +1047,19 @@ public class PlayerWeapon {
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)) {
                 // give them some ammo with it
                 ammo = GameItems.FindItem(ent.item.ammo);
-                if (((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
+                if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
                     GameItems.Add_Ammo(other, ammo, 1000);
                 else
                     GameItems.Add_Ammo(other, ammo, ammo.quantity);
     
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM)) {
                     if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-                        if (((int) (GameBase.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
+                        if (((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
                             ent.flags |= GameDefines.FL_RESPAWN;
                         else
                             GameItems.SetRespawn(ent, 30);
                     }
-                    if (GameBase.coop.value != 0)
+                    if (GameBase.gameExports.cvarCache.coop.value != 0)
                         ent.flags |= GameDefines.FL_RESPAWN;
                 }
             }
@@ -1133,7 +1133,7 @@ public class PlayerWeapon {
 
         client.weaponstate = WeaponStates.WEAPON_ACTIVATING;
         client.getPlayerState().gunframe = 0;
-        client.getPlayerState().gunindex = GameBase.gi
+        client.getPlayerState().gunindex = GameBase.gameExports.gameImports
                 .modelindex(client.pers.weapon.view_model);
 
         client.anim_priority = Defines.ANIM_PAIN;
@@ -1319,7 +1319,7 @@ public class PlayerWeapon {
                     }
                 } else {
                     if (GameBase.level.time >= ent.pain_debounce_time) {
-                        GameBase.gi.sound(ent, Defines.CHAN_VOICE, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("weapons/noammo.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                         ent.pain_debounce_time = GameBase.level.time + 1;
@@ -1350,7 +1350,7 @@ public class PlayerWeapon {
             for (n = 0; fire_frames[n] != 0; n++) {
                 if (client.getPlayerState().gunframe == fire_frames[n]) {
                     if (client.quad_framenum > GameBase.level.framenum)
-                        GameBase.gi.sound(ent, Defines.CHAN_ITEM, GameBase.gi
+                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/damage3.wav"), 1,
                                 Defines.ATTN_NORM, 0);
 
@@ -1399,7 +1399,7 @@ public class PlayerWeapon {
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
                 held);
 
-        if (0 == ((int) GameBase.dmflags.value & Defines.DF_INFINITE_AMMO))
+        if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
             client.pers.inventory[client.ammo_index]--;
 
         client.grenade_time = GameBase.level.time + 1.0f;
@@ -1452,13 +1452,13 @@ public class PlayerWeapon {
         GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
         // send muzzle flash
-        GameBase.gi.WriteByte(NetworkCommands.svc_muzzleflash);
-        GameBase.gi.WriteShort(ent.index);
+        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+        GameBase.gameExports.gameImports.WriteShort(ent.index);
         if (hyper)
-            GameBase.gi.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
         else
-            GameBase.gi.WriteByte(Defines.MZ_BLASTER | is_silenced);
-        GameBase.gi.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | is_silenced);
+        GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
         PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
     }
@@ -1526,6 +1526,6 @@ public class PlayerWeapon {
         Math3D.VectorSubtract(where, noise.maxs, noise.absmin);
         Math3D.VectorAdd(where, noise.maxs, noise.absmax);
         noise.teleport_time = GameBase.level.time;
-        GameBase.gi.linkentity(noise);
+        GameBase.gameExports.gameImports.linkentity(noise);
     }
 }

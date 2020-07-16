@@ -39,9 +39,6 @@ public class GameBase {
 
     public static level_locals_t level = new level_locals_t();
 
-    // todo inject the same way as for game exports
-    public static GameImports gi;
-
     public static spawn_temp_t st = new spawn_temp_t();
 
     static int sm_meat_index;
@@ -63,40 +60,6 @@ public class GameBase {
             g_edicts[n] = new SubgameEntity(n);
     }
 
-
-    public static cvar_t coop = new cvar_t();
-
-    static cvar_t dmflags = new cvar_t();
-
-    public static cvar_t skill; // = new cvar_t();
-
-    public static cvar_t fraglimit = new cvar_t();
-
-    public static cvar_t timelimit = new cvar_t();
-
-    public static cvar_t password = new cvar_t();
-
-    static cvar_t spectator_password = new cvar_t();
-
-    public static cvar_t needpass = new cvar_t();
-
-    static cvar_t maxspectators = new cvar_t();
-
-    static cvar_t g_select_empty = new cvar_t();
-
-    static cvar_t filterban = new cvar_t();
-
-    static cvar_t sv_gravity = new cvar_t();
-
-    static cvar_t sv_cheats = new cvar_t();
-
-    static cvar_t flood_msgs = new cvar_t();
-
-    static cvar_t flood_persecond = new cvar_t();
-
-    static cvar_t flood_waitdelay = new cvar_t();
-
-    public static cvar_t sv_maplist = new cvar_t();
 
     private final static float STOP_EPSILON = 0.1f;
 
@@ -172,7 +135,7 @@ public class GameBase {
         for (; from.i < num_edicts; from.i++) {
             from.o = g_edicts[from.i];
             if (from.o.classname == null) {
-                gi.dprintf("edict with classname = null" + from.o.index);
+                gameExports.gameImports.dprintf("edict with classname = null" + from.o.index);
             }
 
             if (!from.o.inuse)
@@ -242,7 +205,7 @@ public class GameBase {
         SubgameEntity[] choice = new SubgameEntity[MAXCHOICES];
 
         if (targetname == null) {
-            gi.dprintf("G_PickTarget called with null targetname\n");
+            gameExports.gameImports.dprintf("G_PickTarget called with null targetname\n");
             return null;
         }
 
@@ -255,7 +218,7 @@ public class GameBase {
         }
 
         if (num_choices == 0) {
-            gi.dprintf("G_PickTarget: target " + targetname + " not found\n");
+            gameExports.gameImports.dprintf("G_PickTarget: target " + targetname + " not found\n");
             return null;
         }
 
@@ -294,7 +257,7 @@ public class GameBase {
                 && (ent.health <= 0))
             return;
 
-        num = gi.BoxEdicts(ent.absmin, ent.absmax, touch, Defines.MAX_EDICTS,
+        num = gameExports.gameImports.BoxEdicts(ent.absmin, ent.absmax, touch, Defines.MAX_EDICTS,
                 Defines.AREA_TRIGGERS);
 
         // be careful, it is possible to have an entity in this
@@ -355,7 +318,7 @@ public class GameBase {
             gameExports.sv.SV_Physics_Toss(ent);
             break;
         default:
-            gi.error("SV_Physics: bad movetype " + (int) ent.movetype);
+            gameExports.gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
         }
     }
 
@@ -413,14 +376,14 @@ public class GameBase {
         String seps = " ,\n\r";
 
         // stay on same level flag
-        if (((int) dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
+        if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
             return;
         }
 
         // see if it's in the map list
-        if (sv_maplist.string.length() > 0) {
-            String s = sv_maplist.string;
+        if (gameExports.cvarCache.sv_maplist.string.length() > 0) {
+            String s = gameExports.cvarCache.sv_maplist.string;
             String f = null;
             StringTokenizer tk = new StringTokenizer(s, seps);
             
@@ -467,23 +430,24 @@ public class GameBase {
      * CheckNeedPass.
      */
     private static void CheckNeedPass() {
-        int need;
 
         // if password or spectator_password has changed, update needpass
         // as needed
-        if (password.modified || spectator_password.modified) {
-            password.modified = spectator_password.modified = false;
+        final CvarCache cvars = gameExports.cvarCache;
+        if (cvars.password.modified || cvars.spectator_password.modified) {
+            cvars.password.modified = false;
+            cvars.spectator_password.modified = false;
 
-            need = 0;
+            int need = 0;
 
-            if ((password.string.length() > 0)
-                    && 0 != Lib.Q_stricmp(password.string, "none"))
+            if ((cvars.password.string.length() > 0)
+                    && 0 != Lib.Q_stricmp(cvars.password.string, "none"))
                 need |= 1;
-            if ((spectator_password.string.length() > 0)
-                    && 0 != Lib.Q_stricmp(spectator_password.string, "none"))
+            if ((cvars.spectator_password.string.length() > 0)
+                    && 0 != Lib.Q_stricmp(cvars.spectator_password.string, "none"))
                 need |= 2;
 
-            gi.cvar_set("needpass", "" + need);
+            gameExports.gameImports.cvar_set("needpass", "" + need);
         }
     }
 
@@ -500,22 +464,22 @@ public class GameBase {
         if (0 == gameExports.cvarCache.deathmatch.value)
             return;
 
-        if (timelimit.value != 0) {
-            if (level.time >= timelimit.value * 60) {
-                gi.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
+        if (gameExports.cvarCache.timelimit.value != 0) {
+            if (level.time >= gameExports.cvarCache.timelimit.value * 60) {
+                gameExports.gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
                 EndDMLevel();
                 return;
             }
         }
 
-        if (fraglimit.value != 0) {
+        if (gameExports.cvarCache.fraglimit.value != 0) {
             for (i = 0; i < gameExports.game.maxclients; i++) {
                 cl = gameExports.game.clients[i];
                 if (!g_edicts[i + 1].inuse)
                     continue;
 
-                if (cl.resp.score >= fraglimit.value) {
-                    gi.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
+                if (cl.resp.score >= gameExports.cvarCache.fraglimit.value) {
+                    gameExports.gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
                     EndDMLevel();
                     return;
                 }
@@ -531,7 +495,7 @@ public class GameBase {
         SubgameEntity ent;
 
         String command = "gamemap \"" + level.changemap + "\"\n";
-        gi.AddCommandString(command);
+        gameExports.gameImports.AddCommandString(command);
         level.changemap = null;
         level.exitintermission = false;
         level.intermissiontime = 0;

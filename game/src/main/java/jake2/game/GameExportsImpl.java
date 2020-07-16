@@ -86,7 +86,7 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameItemList"
             };
 
-    private final GameImports gameImports;
+    public final GameImports gameImports;
 
     public PlayerView playerView;
     public SV sv;
@@ -117,6 +117,7 @@ public class GameExportsImpl implements GameExports {
         game.helpmessage2 = "";
         game.num_items = GameItemList.itemlist.length - 1;
 
+        // create necessary cvars
         cvarCache = new CvarCache(imports);
 
         // fixme: leaking constructor (bad practice)
@@ -131,39 +132,6 @@ public class GameExportsImpl implements GameExports {
 
     static void Init(GameImports gameImports) {
 
-        GameBase.gi = gameImports;
-        ///////////////////////////////////
-        // Initialize game related cvars
-        ///////////////////////////////////
-        GameBase.sv_gravity = gameImports.cvar("sv_gravity", "800", 0);
-        // latched vars
-        GameBase.sv_cheats = gameImports.cvar("cheats", "0", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        gameImports.cvar("gamename", Defines.GAMEVERSION,Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-        gameImports.cvar("gamedate", Globals.__DATE__, Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH);
-
-        GameBase.maxspectators = gameImports.cvar("maxspectators", "4", Defines.CVAR_SERVERINFO);
-        GameBase.gameExports.cvarCache.deathmatch = gameImports.cvar("deathmatch", "0", Defines.CVAR_LATCH);
-        GameBase.coop = gameImports.cvar("coop", "0", Defines.CVAR_LATCH);
-        GameBase.skill = gameImports.cvar("skill", "0", Defines.CVAR_LATCH);
-
-        // change anytime vars
-        GameBase.dmflags = gameImports.cvar("dmflags", "0", Defines.CVAR_SERVERINFO);
-        GameBase.fraglimit = gameImports.cvar("fraglimit", "0", Defines.CVAR_SERVERINFO);
-        GameBase.timelimit = gameImports.cvar("timelimit", "0", Defines.CVAR_SERVERINFO);
-        GameBase.password = gameImports.cvar("password", "", Defines.CVAR_USERINFO);
-        GameBase.spectator_password = gameImports.cvar("spectator_password", "", Defines.CVAR_USERINFO);
-        GameBase.needpass = gameImports.cvar("needpass", "0", Defines.CVAR_SERVERINFO);
-        GameBase.filterban = gameImports.cvar("filterban", "1", 0);
-
-        GameBase.g_select_empty = gameImports.cvar("g_select_empty", "0", Defines.CVAR_ARCHIVE);
-
-        // flood control
-        GameBase.flood_msgs = gameImports.cvar("flood_msgs", "4", 0);
-        GameBase.flood_persecond = gameImports.cvar("flood_persecond", "4", 0);
-        GameBase.flood_waitdelay = gameImports.cvar("flood_waitdelay", "10", 0);
-
-        // dm map list
-        GameBase.sv_maplist = gameImports.cvar("sv_maplist", "", 0);
 
         GameBase.CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
         GameBase.CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
@@ -177,11 +145,11 @@ public class GameExportsImpl implements GameExports {
         StringBuilder sb = new StringBuilder(256);
         String sk;
 
-        if (GameBase.skill.value == 0)
+        if (GameBase.gameExports.cvarCache.skill.value == 0)
             sk = "easy";
-        else if (GameBase.skill.value == 1)
+        else if (GameBase.gameExports.cvarCache.skill.value == 1)
             sk = "medium";
-        else if (GameBase.skill.value == 2)
+        else if (GameBase.gameExports.cvarCache.skill.value == 2)
             sk = "hard";
         else
             sk = "hard+";
@@ -217,7 +185,7 @@ public class GameExportsImpl implements GameExports {
      */
     private void Give_f(SubgameEntity ent, List<String> args) {
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
@@ -349,7 +317,7 @@ public class GameExportsImpl implements GameExports {
     private void God_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -370,7 +338,7 @@ public class GameExportsImpl implements GameExports {
     private void Notarget_f(SubgameEntity ent) {
 
         // why do you need notarget in deathmatch??
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -394,7 +362,7 @@ public class GameExportsImpl implements GameExports {
     private void Noclip_f(SubgameEntity ent) {
         String msg;
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.sv_cheats.value == 0) {
+        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
@@ -635,7 +603,7 @@ public class GameExportsImpl implements GameExports {
         client.showinventory = false;
         client.showhelp = false;
 
-        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.coop.value)
+        if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.gameExports.cvarCache.coop.value)
             return;
 
         if (client.showscores) {
@@ -803,7 +771,7 @@ public class GameExportsImpl implements GameExports {
         if (args.size() < 2 && !sayAll)
             return;
 
-        if (0 == ((int) (GameBase.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
+        if (0 == ((int) (GameBase.gameExports.cvarCache.dmflags.value) & (Defines.DF_MODELTEAMS | Defines.DF_SKINTEAMS)))
             team = false;
 
         gclient_t client = ent.getClient();
@@ -834,7 +802,7 @@ public class GameExportsImpl implements GameExports {
 
         text += "\n";
 
-        if (GameBase.flood_msgs.value != 0) {
+        if (GameBase.gameExports.cvarCache.flood_msgs.value != 0) {
             gclient_t cl = client;
 
             if (GameBase.level.time < cl.flood_locktill) {
@@ -843,15 +811,15 @@ public class GameExportsImpl implements GameExports {
                         + " more seconds\n");
                 return;
             }
-            int i = (int) (cl.flood_whenhead - GameBase.flood_msgs.value + 1);
+            int i = (int) (cl.flood_whenhead - GameBase.gameExports.cvarCache.flood_msgs.value + 1);
             if (i < 0)
                 i = (10) + i;
             if (cl.flood_when[i] != 0
-                    && GameBase.level.time - cl.flood_when[i] < GameBase.flood_persecond.value) {
-                cl.flood_locktill = GameBase.level.time + GameBase.flood_waitdelay.value;
+                    && GameBase.level.time - cl.flood_when[i] < GameBase.gameExports.cvarCache.flood_persecond.value) {
+                cl.flood_locktill = GameBase.level.time + GameBase.gameExports.cvarCache.flood_waitdelay.value;
                 gameImports.cprintf(ent, Defines.PRINT_CHAT,
                         "Flood protection:  You can't talk for "
-                                + (int) GameBase.flood_waitdelay.value
+                                + (int) GameBase.gameExports.cvarCache.flood_waitdelay.value
                                 + " seconds.\n");
                 return;
             }
