@@ -48,7 +48,7 @@ public class M_Boss3 {
                 ent.s.frame = M_Boss32.FRAME_stand201;
             else
                 ent.s.frame++;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
 
@@ -78,7 +78,7 @@ public class M_Boss3 {
 
         self.use = Use_Boss3;
         self.think = Think_Boss3Stand;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
         GameBase.gameExports.gameImports.linkentity(self);
     }
 }

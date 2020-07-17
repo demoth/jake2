@@ -135,7 +135,7 @@ class GameChase {
             i++;
             if (i > GameBase.gameExports.game.maxclients)
                 i = 1;
-            e = GameBase.g_edicts[i];
+            e = GameBase.gameExports.g_edicts[i];
     
             if (!e.inuse)
                 continue;
@@ -160,7 +160,7 @@ class GameChase {
             i--;
             if (i < 1)
                 i = (int) GameBase.gameExports.game.maxclients;
-            e = GameBase.g_edicts[i];
+            e = GameBase.gameExports.g_edicts[i];
             if (!e.inuse)
                 continue;
             gclient_t entityClient = e.getClient();
@@ -175,7 +175,7 @@ class GameChase {
     static void GetChaseTarget(SubgameEntity ent) {
 
         for (int i = 1; i <= GameBase.gameExports.game.maxclients; i++) {
-            SubgameEntity other = GameBase.g_edicts[i];
+            SubgameEntity other = GameBase.gameExports.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && !otherClient.resp.spectator) {
                 gclient_t client = ent.getClient();

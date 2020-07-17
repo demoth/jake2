@@ -721,10 +721,10 @@ public class M_Gunner {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if ((Lib.rand() & 1) != 0)
                 GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
@@ -825,7 +825,7 @@ public class M_Gunner {
 
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -834,7 +834,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "gunner_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;

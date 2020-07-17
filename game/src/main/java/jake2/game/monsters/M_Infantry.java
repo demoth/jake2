@@ -657,10 +657,10 @@ public class M_Infantry {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
@@ -884,7 +884,7 @@ public class M_Infantry {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -893,7 +893,7 @@ public class M_Infantry {
     static EntThinkAdapter infantry_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "infantry_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -943,7 +943,7 @@ public class M_Infantry {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_weapon_cock, 1,
                     Defines.ATTN_NORM, 0);
             n = (Lib.rand() & 15) + 3 + 7;
-            self.monsterinfo.pausetime = GameBase.level.time + n
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + n
                     * Defines.FRAMETIME;
             return true;
         }
@@ -954,7 +954,7 @@ public class M_Infantry {
         public boolean think(SubgameEntity self) {
             InfantryMachineGun.think(self);
 
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;

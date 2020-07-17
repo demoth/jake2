@@ -702,7 +702,7 @@ public class M_Brain {
     static EntThinkAdapter brain_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "brain_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -730,7 +730,7 @@ public class M_Brain {
             if (self.enemy == null)
                 self.enemy = attacker;
 
-            self.monsterinfo.pausetime = GameBase.level.time + eta + 0.5f;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + eta + 0.5f;
             self.monsterinfo.currentmove = brain_move_duck;
             return;
         }
@@ -1040,10 +1040,10 @@ public class M_Brain {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 

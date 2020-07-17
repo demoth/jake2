@@ -120,7 +120,7 @@ class PlayerView {
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 1;
         if (client.damage_armor != 0
                 && 0 == (player.flags & GameDefines.FL_GODMODE)
-                && (client.invincible_framenum <= GameBase.level.framenum))
+                && (client.invincible_framenum <= GameBase.gameExports.level.framenum))
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 2;
 
         // total points of damage shot at the player this frame
@@ -161,11 +161,11 @@ class PlayerView {
             count = 10; // always make a visible effect
 
         // play an apropriate pain sound
-        if ((GameBase.level.time > player.pain_debounce_time)
+        if ((GameBase.gameExports.level.time > player.pain_debounce_time)
                 && 0 == (player.flags & GameDefines.FL_GODMODE)
-                && (client.invincible_framenum <= GameBase.level.framenum)) {
+                && (client.invincible_framenum <= GameBase.gameExports.level.framenum)) {
             r = 1 + (Lib.rand() & 1);
-            player.pain_debounce_time = GameBase.level.time + 0.7f;
+            player.pain_debounce_time = GameBase.gameExports.level.time + 0.7f;
             if (player.health < 25)
                 l = 25;
             else if (player.health < 50)
@@ -229,7 +229,7 @@ class PlayerView {
             side = -Math3D.DotProduct(v, forward);
             client.v_dmg_pitch = kick * side * 0.3f;
 
-            client.v_dmg_time = GameBase.level.time + Defines.DAMAGE_TIME;
+            client.v_dmg_time = GameBase.gameExports.level.time + Defines.DAMAGE_TIME;
         }
 
         //
@@ -274,7 +274,7 @@ class PlayerView {
             Math3D.VectorCopy(client.kick_angles, angles);
 
             // add angles based on damage kick
-            ratio = (client.v_dmg_time - GameBase.level.time)
+            ratio = (client.v_dmg_time - GameBase.gameExports.level.time)
                     / Defines.DAMAGE_TIME;
             if (ratio < 0) {
                 ratio = 0;
@@ -285,7 +285,7 @@ class PlayerView {
             angles[Defines.ROLL] += ratio * client.v_dmg_roll;
 
             // add pitch based on fall kick
-            ratio = (client.fall_time - GameBase.level.time)
+            ratio = (client.fall_time - GameBase.gameExports.level.time)
                     / Defines.FALL_TIME;
             if (ratio < 0)
                 ratio = 0;
@@ -318,7 +318,7 @@ class PlayerView {
         v[2] += ent.viewheight;
 
         // add fall height
-        ratio = (client.fall_time - GameBase.level.time)
+        ratio = (client.fall_time - GameBase.gameExports.level.time)
                 / Defines.FALL_TIME;
         if (ratio < 0)
             ratio = 0;
@@ -446,31 +446,31 @@ class PlayerView {
             SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, client.getPlayerState().blend);
 
         // add for powerups
-        if (client.quad_framenum > GameBase.level.framenum) {
-            remaining = (int) (client.quad_framenum - GameBase.level.framenum);
+        if (client.quad_framenum > GameBase.gameExports.level.framenum) {
+            remaining = (int) (client.quad_framenum - GameBase.gameExports.level.framenum);
             if (remaining == 30) // beginning to fade
                 GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
                 	GameBase.gameExports.gameImports.soundindex("items/damage2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 0, 1, 0.08f, client.getPlayerState().blend);
-        } else if (client.invincible_framenum > GameBase.level.framenum) {
-            remaining = (int) client.invincible_framenum - GameBase.level.framenum;
+        } else if (client.invincible_framenum > GameBase.gameExports.level.framenum) {
+            remaining = (int) client.invincible_framenum - GameBase.gameExports.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
                 	GameBase.gameExports.gameImports.soundindex("items/protect2.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(1, 1, 0, 0.08f, client.getPlayerState().blend);
-        } else if (client.enviro_framenum > GameBase.level.framenum) {
+        } else if (client.enviro_framenum > GameBase.gameExports.level.framenum) {
             remaining = (int) client.enviro_framenum
-                    - GameBase.level.framenum;
+                    - GameBase.gameExports.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, 
                 		GameBase.gameExports.gameImports.soundindex("items/airout.wav"), 1, Defines.ATTN_NORM, 0);
             if (remaining > 30 || (remaining & 4) != 0)
                 SV_AddBlend(0, 1, 0, 0.08f, client.getPlayerState().blend);
-        } else if (client.breather_framenum > GameBase.level.framenum) {
+        } else if (client.breather_framenum > GameBase.gameExports.level.framenum) {
             remaining = (int) client.breather_framenum
-                    - GameBase.level.framenum;
+                    - GameBase.gameExports.level.framenum;
             if (remaining == 30) // beginning to fade
                 GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                         .soundindex("items/airout.wav"), 1, Defines.ATTN_NORM,
@@ -545,7 +545,7 @@ class PlayerView {
         client.fall_value = delta * 0.5f;
         if (client.fall_value > 40)
             client.fall_value = 40;
-        client.fall_time = GameBase.level.time + Defines.FALL_TIME;
+        client.fall_time = GameBase.gameExports.level.time + Defines.FALL_TIME;
 
         if (delta > 30) {
             if (ent.health > 0) {
@@ -554,7 +554,7 @@ class PlayerView {
                 else
                     ent.s.event = Defines.EV_FALL;
             }
-            ent.pain_debounce_time = GameBase.level.time; // no normal pain
+            ent.pain_debounce_time = GameBase.gameExports.level.time; // no normal pain
                                                           // sound
             damage = (int) ((delta - 30) / 2);
             if (damage < 1)
@@ -563,8 +563,8 @@ class PlayerView {
 
             if (GameBase.gameExports.cvarCache.deathmatch.value == 0
                     || 0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_FALLING))
-                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
-                        GameBase.g_edicts[0], dir, ent.s.origin,
+                GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
+                        GameBase.gameExports.g_edicts[0], dir, ent.s.origin,
                         Globals.vec3_origin, damage, 0, 0, GameDefines.MOD_FALLING);
         } else {
             ent.s.event = Defines.EV_FALLSHORT;
@@ -581,7 +581,7 @@ class PlayerView {
         int waterlevel, old_waterlevel;
 
         if (current_player.movetype == GameDefines.MOVETYPE_NOCLIP) {
-            current_player.air_finished = GameBase.level.time + 12; // don't
+            current_player.air_finished = GameBase.gameExports.level.time + 12; // don't
                                                                     // need air
             return;
         }
@@ -590,8 +590,8 @@ class PlayerView {
         old_waterlevel = current_client.old_waterlevel;
         current_client.old_waterlevel = waterlevel;
 
-        breather = current_client.breather_framenum > GameBase.level.framenum;
-        envirosuit = current_client.enviro_framenum > GameBase.level.framenum;
+        breather = current_client.breather_framenum > GameBase.gameExports.level.framenum;
+        envirosuit = current_client.enviro_framenum > GameBase.gameExports.level.framenum;
 
         //
         // if just entered a water volume, play a sound
@@ -614,7 +614,7 @@ class PlayerView {
             current_player.flags |= GameDefines.FL_INWATER;
 
             // clear damage_debounce, so the pain sound will play immediately
-            current_player.damage_debounce_time = GameBase.level.time - 1;
+            current_player.damage_debounce_time = GameBase.gameExports.level.time - 1;
         }
 
         //
@@ -642,14 +642,14 @@ class PlayerView {
         // check for head just coming out of water
         //
         if (old_waterlevel == 3 && waterlevel != 3) {
-            if (current_player.air_finished < GameBase.level.time) { // gasp for
+            if (current_player.air_finished < GameBase.gameExports.level.time) { // gasp for
                                                                      // air
                 GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
                         GameBase.gameExports.gameImports.soundindex("player/gasp1.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
                         GameDefines.PNOISE_SELF);
-            } else if (current_player.air_finished < GameBase.level.time + 11) { // just
+            } else if (current_player.air_finished < GameBase.gameExports.level.time + 11) { // just
                                                                                  // break
                                                                                  // surface
                 GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
@@ -664,9 +664,9 @@ class PlayerView {
         if (waterlevel == 3) {
             // breather or envirosuit give air
             if (breather || envirosuit) {
-                current_player.air_finished = GameBase.level.time + 10;
+                current_player.air_finished = GameBase.gameExports.level.time + 10;
 
-                if (((int) (current_client.breather_framenum - GameBase.level.framenum) % 25) == 0) {
+                if (((int) (current_client.breather_framenum - GameBase.gameExports.level.framenum) % 25) == 0) {
                     if (current_client.breather_sound == 0)
                         GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_AUTO,
                                 GameBase.gameExports.gameImports.soundindex("player/u_breath1.wav"),
@@ -683,11 +683,11 @@ class PlayerView {
             }
 
             // if out of air, start drowning
-            if (current_player.air_finished < GameBase.level.time) { // drown!
+            if (current_player.air_finished < GameBase.gameExports.level.time) { // drown!
                 gclient_t client = current_player.getClient();
-                if (client.next_drown_time < GameBase.level.time
+                if (client.next_drown_time < GameBase.gameExports.level.time
                         && current_player.health > 0) {
-                    client.next_drown_time = GameBase.level.time + 1;
+                    client.next_drown_time = GameBase.gameExports.level.time + 1;
 
                     // take more damage the longer underwater
                     current_player.dmg += 2;
@@ -708,17 +708,17 @@ class PlayerView {
                                 GameBase.gameExports.gameImports.soundindex("*gurp2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
 
-                    current_player.pain_debounce_time = GameBase.level.time;
+                    current_player.pain_debounce_time = GameBase.gameExports.level.time;
 
-                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
-                            GameBase.g_edicts[0], Globals.vec3_origin,
+                    GameCombat.T_Damage(current_player, GameBase.gameExports.g_edicts[0],
+                            GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             current_player.dmg, 0, Defines.DAMAGE_NO_ARMOR,
                             GameDefines.MOD_WATER);
                 }
             }
         } else {
-            current_player.air_finished = GameBase.level.time + 12;
+            current_player.air_finished = GameBase.gameExports.level.time + 12;
             current_player.dmg = 2;
         }
 
@@ -729,8 +729,8 @@ class PlayerView {
                 && 0 != (current_player.watertype & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME))) {
             if ((current_player.watertype & Defines.CONTENTS_LAVA) != 0) {
                 if (current_player.health > 0
-                        && current_player.pain_debounce_time <= GameBase.level.time
-                        && current_client.invincible_framenum < GameBase.level.framenum) {
+                        && current_player.pain_debounce_time <= GameBase.gameExports.level.time
+                        && current_client.invincible_framenum < GameBase.gameExports.level.framenum) {
                     if ((Lib.rand() & 1) != 0)
                         GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
                                 GameBase.gameExports.gameImports.soundindex("player/burn1.wav"), 1,
@@ -739,25 +739,25 @@ class PlayerView {
                         GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_VOICE,
                                 GameBase.gameExports.gameImports.soundindex("player/burn2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
-                    current_player.pain_debounce_time = GameBase.level.time + 1;
+                    current_player.pain_debounce_time = GameBase.gameExports.level.time + 1;
                 }
 
                 if (envirosuit) // take 1/3 damage with envirosuit
-                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
-                            GameBase.g_edicts[0], Globals.vec3_origin,
+                    GameCombat.T_Damage(current_player, GameBase.gameExports.g_edicts[0],
+                            GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             1 * waterlevel, 0, 0, GameDefines.MOD_LAVA);
                 else
-                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
-                            GameBase.g_edicts[0], Globals.vec3_origin,
+                    GameCombat.T_Damage(current_player, GameBase.gameExports.g_edicts[0],
+                            GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             3 * waterlevel, 0, 0, GameDefines.MOD_LAVA);
             }
 
             if ((current_player.watertype & Defines.CONTENTS_SLIME) != 0) {
                 if (!envirosuit) { // no damage from slime with envirosuit
-                    GameCombat.T_Damage(current_player, GameBase.g_edicts[0],
-                            GameBase.g_edicts[0], Globals.vec3_origin,
+                    GameCombat.T_Damage(current_player, GameBase.gameExports.g_edicts[0],
+                            GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                             current_player.s.origin, Globals.vec3_origin,
                             1 * waterlevel, 0, 0, GameDefines.MOD_SLIME);
                 }
@@ -777,10 +777,10 @@ class PlayerView {
         ent.s.effects = 0;
         ent.s.renderfx = 0;
 
-        if (ent.health <= 0 || GameBase.level.intermissiontime != 0)
+        if (ent.health <= 0 || GameBase.gameExports.level.intermissiontime != 0)
             return;
 
-        if (ent.powerarmor_time > GameBase.level.time) {
+        if (ent.powerarmor_time > GameBase.gameExports.level.time) {
             pa_type = GameItems.PowerArmorType(ent);
             if (pa_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
@@ -791,16 +791,16 @@ class PlayerView {
         }
 
         gclient_t client = ent.getClient();
-        if (client.quad_framenum > GameBase.level.framenum) {
+        if (client.quad_framenum > GameBase.gameExports.level.framenum) {
             remaining = (int) client.quad_framenum
-                    - GameBase.level.framenum;
+                    - GameBase.gameExports.level.framenum;
             if (remaining > 30 || 0 != (remaining & 4))
                 ent.s.effects |= Defines.EF_QUAD;
         }
 
-        if (client.invincible_framenum > GameBase.level.framenum) {
+        if (client.invincible_framenum > GameBase.gameExports.level.framenum) {
             remaining = (int) client.invincible_framenum
-                    - GameBase.level.framenum;
+                    - GameBase.gameExports.level.framenum;
             if (remaining > 30 || 0 != (remaining & 4))
                 ent.s.effects |= Defines.EF_PENT;
         }
@@ -844,7 +844,7 @@ class PlayerView {
         // help beep (no more than three times)
         if (client.pers.helpchanged != 0
                 && client.pers.helpchanged <= 3
-                && 0 == (GameBase.level.framenum & 63)) {
+                && 0 == (GameBase.gameExports.level.framenum & 63)) {
             client.pers.helpchanged++;
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                     .soundindex("misc/pc_up.wav"), 1, Defines.ATTN_STATIC, 0);
@@ -857,7 +857,7 @@ class PlayerView {
 
         if (ent.waterlevel != 0
                 && 0 != (ent.watertype & (Defines.CONTENTS_LAVA | Defines.CONTENTS_SLIME)))
-            ent.s.sound = GameBase.snd_fry;
+            ent.s.sound = GameBase.gameExports.gameImports.soundindex("player/fry.wav");
         else if ("weapon_railgun".equals(weap))
             ent.s.sound = GameBase.gameExports.gameImports.soundindex("weapons/rg_hum.wav");
         else if ("weapon_bfg".equals(weap))
@@ -985,7 +985,7 @@ class PlayerView {
         // If the end of unit layout is displayed, don't give
         // the player any normal movement attributes
         //
-        if (GameBase.level.intermissiontime != 0) {
+        if (GameBase.gameExports.level.intermissiontime != 0) {
             // FIXME: add view drifting here?
             current_client.getPlayerState().blend[3] = 0;
             current_client.getPlayerState().fov = 90;
@@ -1080,7 +1080,7 @@ class PlayerView {
         Math3D.VectorClear(current_client.kick_angles);
 
         // if the scoreboard is up, update it
-        if (current_client.showscores && 0 == (GameBase.level.framenum & 31)) {
+        if (current_client.showscores && 0 == (GameBase.gameExports.level.framenum & 31)) {
             PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy);
             GameBase.gameExports.gameImports.unicast(ent, false);
         }

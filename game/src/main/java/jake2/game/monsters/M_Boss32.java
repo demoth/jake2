@@ -1586,7 +1586,7 @@ public class M_Boss32 {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames
@@ -1594,7 +1594,7 @@ public class M_Boss32 {
                 if (Lib.random() < 0.2)
                     return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
@@ -1661,10 +1661,10 @@ public class M_Boss32 {
     	public String getID() { return "makron_torso_think"; }
         public boolean think(SubgameEntity self) {
             if (++self.s.frame < 365)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 346;
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1681,7 +1681,7 @@ public class M_Boss32 {
             ent.s.modelindex = GameBase.gameExports.gameImports
                     .modelindex("models/monsters/boss3/rider/tris.md2");
             ent.think = makron_torso_think;
-            ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + 2 * Defines.FRAMETIME;
             ent.s.sound = GameBase.gameExports.gameImports.soundindex("makron/spine.wav");
             GameBase.gameExports.gameImports.linkentity(ent);
             return true;
@@ -1783,7 +1783,7 @@ public class M_Boss32 {
             if (null != self.monsterinfo.attack)
                 return false;
 
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (enemy_range == GameDefines.RANGE_FAR)
@@ -1803,7 +1803,7 @@ public class M_Boss32 {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.level.time + 2
+                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }
@@ -1902,7 +1902,7 @@ public class M_Boss32 {
             SP_monster_makron(self);
 
             // jump at player
-            player = GameBase.level.sight_client;
+            player = GameBase.gameExports.level.sight_client;
             if (player == null)
                 return true;
 
@@ -1921,7 +1921,7 @@ public class M_Boss32 {
     	public String getID() { return "MakronToss"; }
         public boolean think(SubgameEntity self) {
             SubgameEntity ent = GameUtil.G_Spawn();
-            ent.nextthink = GameBase.level.time + 0.8f;
+            ent.nextthink = GameBase.gameExports.level.time + 0.8f;
             ent.think = MakronSpawn;
             ent.target = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);

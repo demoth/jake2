@@ -1153,7 +1153,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_attack3_refire = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack3_refire"; }
         public boolean think(SubgameEntity self) {
-            if ((GameBase.level.time + 0.4) < self.monsterinfo.pausetime)
+            if ((GameBase.gameExports.level.time + 0.4) < self.monsterinfo.pausetime)
                 self.monsterinfo.nextframe = FRAME_attak303;
             return true;
         }
@@ -1211,7 +1211,7 @@ public class M_Soldier {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -1336,7 +1336,7 @@ public class M_Soldier {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum |= 1;
 
-            if (GameBase.level.time < self.pain_debounce_time) {
+            if (GameBase.gameExports.level.time < self.pain_debounce_time) {
                 if ((self.velocity[2] > 100)
                         && ((self.monsterinfo.currentmove == soldier_move_pain1)
                                 || (self.monsterinfo.currentmove == soldier_move_pain2) || (self.monsterinfo.currentmove == soldier_move_pain3)))
@@ -1344,7 +1344,7 @@ public class M_Soldier {
                 return;
             }
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             n = self.s.skinnum | 1;
             if (n == 1)
@@ -1586,14 +1586,14 @@ public class M_Soldier {
                     GameDefines.DEFAULT_SHOTGUN_COUNT, flash_index);
         } else {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
-                self.monsterinfo.pausetime = GameBase.level.time
+                self.monsterinfo.pausetime = GameBase.gameExports.level.time
                         + (3 + Lib.rand() % 8) * Defines.FRAMETIME;
 
             Monster.monster_fire_bullet(self, start, aim, 2, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, flash_index);
 
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -1775,7 +1775,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_duck_hold = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -2237,7 +2237,7 @@ public class M_Soldier {
                 return;
             }
 
-            self.monsterinfo.pausetime = GameBase.level.time + eta + 0.3f;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + eta + 0.3f;
             r = Lib.random();
 
             if (GameBase.gameExports.cvarCache.skill.value == 1) {
