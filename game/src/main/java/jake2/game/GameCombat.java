@@ -112,7 +112,7 @@ public class GameCombat {
             //			targ.svflags |= SVF_DEADMONSTER; // now treat as a different
             // content type
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY)) {
-                GameBase.level.killed_monsters++;
+                GameBase.gameExports.level.killed_monsters++;
                 gclient_t attackerClient = attacker.getClient();
                 if (GameBase.gameExports.cvarCache.coop.value != 0 && attackerClient != null)
                     attackerClient.resp.score++;
@@ -219,7 +219,7 @@ public class GameCombat {
             save = damage;
     
         SpawnDamage(pa_te_type, point, normal, save);
-        ent.powerarmor_time = GameBase.level.time + 0.2f;
+        ent.powerarmor_time = GameBase.gameExports.level.time + 0.2f;
 
         power_used = save / damagePerCell;
     
@@ -487,13 +487,13 @@ public class GameCombat {
         }
     
         // check for invincibility
-        if ((client != null && client.invincible_framenum > GameBase.level.framenum)
+        if ((client != null && client.invincible_framenum > GameBase.gameExports.level.framenum)
                 && 0 == (dflags & Defines.DAMAGE_NO_PROTECTION)) {
-            if (targ.pain_debounce_time < GameBase.level.time) {
+            if (targ.pain_debounce_time < GameBase.gameExports.level.time) {
                 GameBase.gameExports.gameImports.sound(targ, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                         .soundindex("items/protect4.wav"), 1,
                         Defines.ATTN_NORM, 0);
-                targ.pain_debounce_time = GameBase.level.time + 2;
+                targ.pain_debounce_time = GameBase.gameExports.level.time + 2;
             }
             take = 0;
             save = damage;
@@ -538,7 +538,7 @@ public class GameCombat {
                 targ.pain.pain(targ, attacker, knockback, take);
                 // nightmare mode monsters don't go into pain frames often
                 if (cvars.skill.value == 3)
-                    targ.pain_debounce_time = GameBase.level.time + 5;
+                    targ.pain_debounce_time = GameBase.gameExports.level.time + 5;
             }
         } else if (client != null) {
             if (((targ.flags & GameDefines.FL_GODMODE) == 0) && (take != 0))

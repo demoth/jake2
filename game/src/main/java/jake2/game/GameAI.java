@@ -34,7 +34,7 @@ import jake2.qcommon.util.Math3D;
 public class GameAI {
 
     public static void AttackFinished(SubgameEntity self, float time) {
-        self.monsterinfo.attack_finished = GameBase.level.time + time;
+        self.monsterinfo.attack_finished = GameBase.gameExports.level.time + time;
     }
 
     /** Don't move, but turn towards ideal_yaw Distance is for slight position
@@ -144,7 +144,7 @@ public class GameAI {
                 return false;
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
-                if ((GameBase.level.time - self.enemy.teleport_time) > 5.0) {
+                if ((GameBase.gameExports.level.time - self.enemy.teleport_time) > 5.0) {
                     if (self.goalentity == self.enemy)
                         if (self.movetarget != null)
                             self.goalentity = self.movetarget;
@@ -154,7 +154,7 @@ public class GameAI {
                     if ((self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND) != 0)
                         self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
                 } else {
-                    self.show_hostile = (int) GameBase.level.time + 1;
+                    self.show_hostile = (int) GameBase.gameExports.level.time + 1;
                     return false;
                 }
             }
@@ -197,19 +197,19 @@ public class GameAI {
                     // will just revert to walking with no target and
                     // the monsters will wonder around aimlessly trying
                     // to hunt the world entity
-                    self.monsterinfo.pausetime = GameBase.level.time + 100000000;
+                    self.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
                     self.monsterinfo.stand.think(self);
                 }
                 return true;
             }
         }
 
-        self.show_hostile = (int) GameBase.level.time + 1; // wake up other
+        self.show_hostile = (int) GameBase.gameExports.level.time + 1; // wake up other
         
         // monsters check knowledge of enemy
         enemy_vis = GameUtil.visible(self, self.enemy);
         if (enemy_vis) {
-            self.monsterinfo.search_time = GameBase.level.time + 5;
+            self.monsterinfo.search_time = GameBase.gameExports.level.time + 5;
             Math3D.VectorCopy(self.enemy.s.origin,
                     self.monsterinfo.last_sighting);
         }
@@ -248,13 +248,13 @@ public class GameAI {
             return;
     
         if ((self.monsterinfo.search != null)
-                && (GameBase.level.time > self.monsterinfo.idle_time)) {
+                && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
             if (self.monsterinfo.idle_time != 0) {
                 self.monsterinfo.search.think(self);
-                self.monsterinfo.idle_time = GameBase.level.time + 15
+                self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15
                         + Lib.random() * 15;
             } else {
-                self.monsterinfo.idle_time = GameBase.level.time + Lib.random()
+                self.monsterinfo.idle_time = GameBase.gameExports.level.time + Lib.random()
                         * 15;
             }
         }
@@ -270,25 +270,25 @@ public class GameAI {
      */
     static void AI_SetSightClient() {
         int start;
-        if (GameBase.level.sight_client == null)
+        if (GameBase.gameExports.level.sight_client == null)
             start = 1;
         else
-            start = GameBase.level.sight_client.index;
+            start = GameBase.gameExports.level.sight_client.index;
 
         int check = start;
         while (true) {
             check++;
             if (check > GameBase.gameExports.game.maxclients)
                 check = 1;
-            SubgameEntity ent = GameBase.g_edicts[check];
+            SubgameEntity ent = GameBase.gameExports.g_edicts[check];
 
             if (ent.inuse && ent.health > 0
                     && (ent.flags & GameDefines.FL_NOTARGET) == 0) {
-                GameBase.level.sight_client = ent;
+                GameBase.gameExports.level.sight_client = ent;
                 return; // got one
             }
             if (check == start) {
-                GameBase.level.sight_client = null;
+                GameBase.gameExports.level.sight_client = null;
                 return; // nobody to see
             }
         }
@@ -327,7 +327,7 @@ public class GameAI {
         public String getID() { return "walkmonster_start_go"; }
         public boolean think(SubgameEntity self) {
 
-            if (0 == (self.spawnflags & 2) && GameBase.level.time < 1) {
+            if (0 == (self.spawnflags & 2) && GameBase.gameExports.level.time < 1) {
                 M.M_droptofloor.think(self);
 
                 if (self.groundentity != null)
@@ -458,12 +458,12 @@ public class GameAI {
                 return;
 
             if ((self.monsterinfo.search != null)
-                    && (GameBase.level.time > self.monsterinfo.idle_time)) {
+                    && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
                     self.monsterinfo.search.think(self);
-                    self.monsterinfo.idle_time = GameBase.level.time + 15 + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
-                    self.monsterinfo.idle_time = GameBase.level.time + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
                 }
             }
         }
@@ -502,18 +502,18 @@ public class GameAI {
             if (GameUtil.FindTarget(self))
                 return;
 
-            if (GameBase.level.time > self.monsterinfo.pausetime) {
+            if (GameBase.gameExports.level.time > self.monsterinfo.pausetime) {
                 self.monsterinfo.walk.think(self);
                 return;
             }
 
             if (0 == (self.spawnflags & 1) && (self.monsterinfo.idle != null)
-                    && (GameBase.level.time > self.monsterinfo.idle_time)) {
+                    && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
                     self.monsterinfo.idle.think(self);
-                    self.monsterinfo.idle_time = GameBase.level.time + 15 + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
-                    self.monsterinfo.idle_time = GameBase.level.time + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
                 }
             }
         }
@@ -588,7 +588,7 @@ public class GameAI {
                 M.M_MoveToGoal(self, dist);
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                 Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
-                self.monsterinfo.trail_time = GameBase.level.time;
+                self.monsterinfo.trail_time = GameBase.gameExports.level.time;
                 return;
             }
 
@@ -601,7 +601,7 @@ public class GameAI {
             
 
             if ((self.monsterinfo.search_time != 0)
-                    && (GameBase.level.time > (self.monsterinfo.search_time + 20))) {
+                    && (GameBase.gameExports.level.time > (self.monsterinfo.search_time + 20))) {
                 M.M_MoveToGoal(self, dist);
                 self.monsterinfo.search_time = 0;
                 //dprint("search timeout\n");
@@ -636,7 +636,7 @@ public class GameAI {
                 // dprint("\n");
 
                 // give ourself more time since we got this far
-                self.monsterinfo.search_time = GameBase.level.time + 5;
+                self.monsterinfo.search_time = GameBase.gameExports.level.time + 5;
 
                 SubgameEntity marker;
                 if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_TEMP) != 0) {

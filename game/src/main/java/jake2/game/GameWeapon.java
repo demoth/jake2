@@ -285,7 +285,7 @@ public class GameWeapon {
                 }
             }
     
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             self.s.frame++;
             if (self.s.frame == 5)
                 self.think = GameUtil.G_FreeEdictA;
@@ -331,7 +331,7 @@ public class GameWeapon {
             self.s.sound = 0;
             self.s.effects &= ~Defines.EF_ANIM_ALLFAST;
             self.think = bfg_explode;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
             GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
@@ -424,7 +424,7 @@ public class GameWeapon {
                 GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
             }
     
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -736,7 +736,7 @@ public class GameWeapon {
         bolt.s.sound = GameBase.gameExports.gameImports.soundindex("misc/lasfly.wav");
         bolt.setOwner(self);
         bolt.touch = blaster_touch;
-        bolt.nextthink = GameBase.level.time + 2;
+        bolt.nextthink = GameBase.gameExports.level.time + 2;
         bolt.think = GameUtil.G_FreeEdictA;
         bolt.dmg = damage;
         bolt.classname = "bolt";
@@ -782,7 +782,7 @@ public class GameWeapon {
                 .modelindex("models/objects/grenade/tris.md2");
         grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
-        grenade.nextthink = GameBase.level.time + timer;
+        grenade.nextthink = GameBase.gameExports.level.time + timer;
         grenade.think = Grenade_Explode;
         grenade.dmg = damage;
         grenade.dmg_radius = damage_radius;
@@ -818,7 +818,7 @@ public class GameWeapon {
                 .modelindex("models/objects/grenade2/tris.md2");
         grenade.setOwner(self);
         grenade.touch = Grenade_Touch;
-        grenade.nextthink = GameBase.level.time + timer;
+        grenade.nextthink = GameBase.gameExports.level.time + timer;
         grenade.think = Grenade_Explode;
         grenade.dmg = damage;
         grenade.dmg_radius = damage_radius;
@@ -857,7 +857,7 @@ public class GameWeapon {
                 .modelindex("models/objects/rocket/tris.md2");
         rocket.setOwner(self);
         rocket.touch = rocket_touch;
-        rocket.nextthink = GameBase.level.time + 8000 / speed;
+        rocket.nextthink = GameBase.gameExports.level.time + 8000 / speed;
         rocket.think = GameUtil.G_FreeEdictA;
         rocket.dmg = damage;
         rocket.radius_dmg = radius_damage;
@@ -953,7 +953,7 @@ public class GameWeapon {
         bfg.s.modelindex = GameBase.gameExports.gameImports.modelindex("sprites/s_bfg1.sp2");
         bfg.setOwner(self);
         bfg.touch = bfg_touch;
-        bfg.nextthink = GameBase.level.time + 8000 / speed;
+        bfg.nextthink = GameBase.gameExports.level.time + 8000 / speed;
         bfg.think = GameUtil.G_FreeEdictA;
         bfg.radius_dmg = damage;
         bfg.dmg_radius = damage_radius;
@@ -961,7 +961,7 @@ public class GameWeapon {
         bfg.s.sound = GameBase.gameExports.gameImports.soundindex("weapons/bfg__l1a.wav");
     
         bfg.think = bfg_think;
-        bfg.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        bfg.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
         bfg.teammaster = bfg;
         bfg.teamchain = null;
     

@@ -103,9 +103,9 @@ class GameTarget {
             GameBase.st.noise = "misc/secret.wav";
         ent.noise_index = GameBase.gameExports.gameImports.soundindex(GameBase.st.noise);
         ent.svflags = Defines.SVF_NOCLIENT;
-        GameBase.level.total_secrets++;
+        GameBase.gameExports.level.total_secrets++;
         // map bug hack
-        if (0 == Lib.Q_stricmp(GameBase.level.mapname, "mine3")
+        if (0 == Lib.Q_stricmp(GameBase.gameExports.level.mapname, "mine3")
                 && ent.s.origin[0] == 280 && ent.s.origin[1] == -2048
                 && ent.s.origin[2] == -624)
             ent.message = "You have found a secret area.";
@@ -122,7 +122,7 @@ class GameTarget {
             GameBase.st.noise = "misc/secret.wav";
         ent.noise_index = GameBase.gameExports.gameImports.soundindex(GameBase.st.noise);
         ent.svflags = Defines.SVF_NOCLIENT;
-        GameBase.level.total_goals++;
+        GameBase.gameExports.level.total_goals++;
     }
 
     static void SP_target_explosion(SubgameEntity ent) {
@@ -139,7 +139,7 @@ class GameTarget {
         }
 
         // ugly hack because *SOMEBODY* screwed up their map
-        if ((Lib.Q_stricmp(GameBase.level.mapname, "fact1") == 0)
+        if ((Lib.Q_stricmp(GameBase.gameExports.level.mapname, "fact1") == 0)
                 && (Lib.Q_stricmp(ent.map, "fact3") == 0))
             ent.map = "fact3$secret1";
 
@@ -190,7 +190,7 @@ class GameTarget {
         self.svflags = Defines.SVF_NOCLIENT;
 
         self.think = target_crosslevel_target_think;
-        self.nextthink = GameBase.level.time + self.delay;
+        self.nextthink = GameBase.gameExports.level.time + self.delay;
     }
 
     private static void target_laser_on(SubgameEntity self) {
@@ -210,7 +210,7 @@ class GameTarget {
     static void SP_target_laser(SubgameEntity self) {
         // let everything else get spawned before we start firing
         self.think = target_laser_start;
-        self.nextthink = GameBase.level.time + 1;
+        self.nextthink = GameBase.gameExports.level.time + 1;
     }
 
     static void SP_target_lightramp(SubgameEntity self) {
@@ -339,7 +339,7 @@ class GameTarget {
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
-            GameBase.level.found_secrets++;
+            GameBase.gameExports.level.found_secrets++;
 
             GameUtil.G_UseTargets(ent, activator);
             GameUtil.G_FreeEdict(ent);
@@ -356,9 +356,9 @@ class GameTarget {
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
-            GameBase.level.found_goals++;
+            GameBase.gameExports.level.found_goals++;
 
-            if (GameBase.level.found_goals == GameBase.level.total_goals)
+            if (GameBase.gameExports.level.found_goals == GameBase.gameExports.level.total_goals)
                 GameBase.gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
 
             GameUtil.G_UseTargets(ent, activator);
@@ -407,7 +407,7 @@ class GameTarget {
             }
 
             self.think = target_explosion_explode;
-            self.nextthink = GameBase.level.time + self.delay;
+            self.nextthink = GameBase.gameExports.level.time + self.delay;
         }
     };
 
@@ -418,18 +418,18 @@ class GameTarget {
     private static EntUseAdapter use_target_changelevel = new EntUseAdapter() {
     	public String getID() { return "use_target_changelevel"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            if (GameBase.level.intermissiontime != 0)
+            if (GameBase.gameExports.level.intermissiontime != 0)
                 return; // already activated
 
             if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.gameExports.cvarCache.coop.value) {
-                if (GameBase.g_edicts[1].health <= 0)
+                if (GameBase.gameExports.g_edicts[1].health <= 0)
                     return;
             }
 
             // if noexit, do a ton of damage to other
             if (GameBase.gameExports.cvarCache.deathmatch.value != 0
                     && 0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_ALLOW_EXIT)
-                    && other != GameBase.g_edicts[0] /* world */
+                    && other != GameBase.gameExports.g_edicts[0] /* world */
             ) {
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
@@ -650,7 +650,7 @@ class GameTarget {
 
             Math3D.VectorCopy(tr.endpos, self.s.old_origin);
 
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -734,14 +734,14 @@ class GameTarget {
     	public String getID() { return "target_lightramp_think"; }
         public boolean think(SubgameEntity self) {
 
-            char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (GameBase.level.time - self.timestamp)
+            char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (GameBase.gameExports.level.time - self.timestamp)
                     / Defines.FRAMETIME * self.movedir[2]))};
             
             GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.enemy.style,
                     new String(tmp));
 
-            if ((GameBase.level.time - self.timestamp) < self.speed) {
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            if ((GameBase.gameExports.level.time - self.timestamp) < self.speed) {
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             } else if ((self.spawnflags & 1) != 0) {
                 char temp;
 
@@ -792,7 +792,7 @@ class GameTarget {
                 }
             }
 
-            self.timestamp = GameBase.level.time;
+            self.timestamp = GameBase.gameExports.level.time;
             target_lightramp_think.think(self);
         }
     };
@@ -809,15 +809,15 @@ class GameTarget {
 
             int i;
 
-            if (self.last_move_time < GameBase.level.time) {
+            if (self.last_move_time < GameBase.gameExports.level.time) {
                 GameBase.gameExports.gameImports.positioned_sound(self.s.origin, self,
                         Defines.CHAN_AUTO, self.noise_index, 1.0f,
                         Defines.ATTN_NONE, 0);
-                self.last_move_time = GameBase.level.time + 0.5f;
+                self.last_move_time = GameBase.gameExports.level.time + 0.5f;
             }
 
-            for (i = 1; i < GameBase.num_edicts; i++) {
-                SubgameEntity e = GameBase.g_edicts[i];
+            for (i = 1; i < GameBase.gameExports.num_edicts; i++) {
+                SubgameEntity e = GameBase.gameExports.g_edicts[i];
 
                 if (!e.inuse)
                     continue;
@@ -832,8 +832,8 @@ class GameTarget {
                 e.velocity[2] = self.speed * (100.0f / e.mass);
             }
 
-            if (GameBase.level.time < self.timestamp)
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            if (GameBase.gameExports.level.time < self.timestamp)
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
             return true;
         }
@@ -842,8 +842,8 @@ class GameTarget {
     private static EntUseAdapter target_earthquake_use = new EntUseAdapter() {
     	public String getID() { return "target_earthquake_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            self.timestamp = GameBase.level.time + self.count;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.timestamp = GameBase.gameExports.level.time + self.count;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             self.activator = activator;
             self.last_move_time = 0;
         }

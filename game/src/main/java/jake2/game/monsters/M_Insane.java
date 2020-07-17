@@ -695,10 +695,10 @@ public class M_Insane {
             //	 if (self.health < (self.max_health / 2))
             //		 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             r = 1 + (Lib.rand() & 1);
             if (self.health < 25)

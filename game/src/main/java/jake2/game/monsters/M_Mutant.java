@@ -726,7 +726,7 @@ public class M_Mutant {
             self.velocity[2] = 250;
             self.groundentity = null;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
-            self.monsterinfo.attack_finished = GameBase.level.time + 3;
+            self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 3;
             self.touch = mutant_jump_touch;
             return true;
         }
@@ -743,7 +743,7 @@ public class M_Mutant {
                 return true;
             }
 
-            if (GameBase.level.time > self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time > self.monsterinfo.attack_finished)
                 self.monsterinfo.nextframe = FRAME_attack02;
             else
                 self.monsterinfo.nextframe = FRAME_attack05;
@@ -886,10 +886,10 @@ public class M_Mutant {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare

@@ -550,10 +550,10 @@ public class M_Hover {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
@@ -580,8 +580,8 @@ public class M_Hover {
     	public String getID() { return "hover_deadthink"; }
         public boolean think(SubgameEntity self) {
             if (null == self.groundentity
-                    && GameBase.level.time < self.timestamp) {
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                    && GameBase.gameExports.level.time < self.timestamp) {
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
                 return true;
             }
             GameMisc.BecomeExplosion1(self);
@@ -596,8 +596,8 @@ public class M_Hover {
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.think = hover_deadthink;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
-            self.timestamp = GameBase.level.time + 15;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.timestamp = GameBase.gameExports.level.time + 15;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }

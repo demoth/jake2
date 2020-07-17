@@ -49,12 +49,12 @@ class GameTrigger {
 
         if (ent.wait > 0) {
             ent.think = multi_wait;
-            ent.nextthink = GameBase.level.time + ent.wait;
+            ent.nextthink = GameBase.gameExports.level.time + ent.wait;
         } else { // we can't just remove (self) here, because this is a touch
                  // function
             // called while looping through area links...
             ent.touch = null;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             ent.think = GameUtil.G_FreeEdictA;
         }
     }
@@ -332,9 +332,9 @@ class GameTrigger {
 
             index = self.item.index;
             if (activatorClient.pers.inventory[index] == 0) {
-                if (GameBase.level.time < self.touch_debounce_time)
+                if (GameBase.gameExports.level.time < self.touch_debounce_time)
                     return;
-                self.touch_debounce_time = GameBase.level.time + 5.0f;
+                self.touch_debounce_time = GameBase.gameExports.level.time + 5.0f;
                 GameBase.gameExports.gameImports.centerprintf(activator, "You need the "
                         + self.item.pickup_name);
                 GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, 
@@ -356,7 +356,7 @@ class GameTrigger {
                         if ((activatorClient.pers.power_cubes & (1 << cube)) != 0)
                             break;
                     for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
-                        ent = GameBase.g_edicts[player];
+                        ent = GameBase.gameExports.g_edicts[player];
                         if (!ent.inuse)
                             continue;
                         gclient_t client = ent.getClient();
@@ -369,7 +369,7 @@ class GameTrigger {
                     }
                 } else {
                     for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
-                        ent = GameBase.g_edicts[player];
+                        ent = GameBase.gameExports.g_edicts[player];
                         if (!ent.inuse)
                             continue;
                         gclient_t client = ent.getClient();
@@ -455,8 +455,8 @@ class GameTrigger {
                 if (otherClient != null) {
                     // don't take falling damage immediately from this
                     Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);
-                    if (other.fly_sound_debounce_time < GameBase.level.time) {
-                        other.fly_sound_debounce_time = GameBase.level.time + 1.5f;
+                    if (other.fly_sound_debounce_time < GameBase.gameExports.level.time) {
+                        other.fly_sound_debounce_time = GameBase.gameExports.level.time + 1.5f;
                         GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, windsound,
                                 1, Defines.ATTN_NORM, 0);
                     }
@@ -504,16 +504,16 @@ class GameTrigger {
             if (other.takedamage == 0)
                 return;
 
-            if (self.timestamp > GameBase.level.time)
+            if (self.timestamp > GameBase.gameExports.level.time)
                 return;
 
             if ((self.spawnflags & 16) != 0)
-                self.timestamp = GameBase.level.time + 1;
+                self.timestamp = GameBase.gameExports.level.time + 1;
             else
-                self.timestamp = GameBase.level.time + Defines.FRAMETIME;
+                self.timestamp = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
             if (0 == (self.spawnflags & 4)) {
-                if ((GameBase.level.framenum % 10) == 0)
+                if ((GameBase.gameExports.level.framenum % 10) == 0)
                     GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO,
                             self.noise_index, 1, Defines.ATTN_NORM, 0);
             }

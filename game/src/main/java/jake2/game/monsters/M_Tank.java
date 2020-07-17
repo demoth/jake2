@@ -906,7 +906,7 @@ public class M_Tank {
             if (damage <= 10)
                 return;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
             if (damage <= 30)
@@ -923,7 +923,7 @@ public class M_Tank {
                     return;
             }
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 
@@ -1345,7 +1345,7 @@ public class M_Tank {
                     self.monsterinfo.currentmove = tank_move_attack_chain;
                 else if (r < 0.66) {
                     self.monsterinfo.currentmove = tank_move_attack_pre_rocket;
-                    self.pain_debounce_time = GameBase.level.time + 5.0f; // no
+                    self.pain_debounce_time = GameBase.gameExports.level.time + 5.0f; // no
                                                                           // pain
                                                                           // for
                                                                           // a

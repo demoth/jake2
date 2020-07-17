@@ -38,29 +38,29 @@ class GameFunc {
 
         if (ent.moveinfo.speed == ent.moveinfo.accel
                 && ent.moveinfo.speed == ent.moveinfo.decel) {
-            if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+            if (GameBase.gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                     : ent)) {
                 Move_Begin.think(ent);
             } else {
-                ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
                 ent.think = Move_Begin;
             }
         } else {
             // accelerative
             ent.moveinfo.current_speed = 0;
             ent.think = Think_AccelMove;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
     private static void AngleMove_Calc(SubgameEntity ent, EntThinkAdapter func) {
         Math3D.VectorClear(ent.avelocity);
         ent.moveinfo.endfunc = func;
-        if (GameBase.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
+        if (GameBase.gameExports.level.current_entity == ((ent.flags & GameDefines.FL_TEAMSLAVE) != 0 ? ent.teammaster
                 : ent)) {
             AngleMove_Begin.think(ent);
         } else {
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             ent.think = AngleMove_Begin;
         }
     }
@@ -360,7 +360,7 @@ class GameFunc {
         if (self.moveinfo.state == STATE_TOP) {
             // reset top wait time
             if (self.moveinfo.wait >= 0)
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = GameBase.gameExports.level.time + self.moveinfo.wait;
             return;
         }
 
@@ -511,7 +511,7 @@ class GameFunc {
             // start trains on the second frame, to make sure their targets have
             // had
             // a chance to spawn
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             self.think = func_train_find;
         } else {
             GameBase.gameExports.gameImports.dprintf("func_train without a target at "
@@ -533,7 +533,7 @@ class GameFunc {
         }
 
         if ((self.spawnflags & 1) != 0) {
-            self.nextthink = GameBase.level.time + 1.0f + GameBase.st.pausetime
+            self.nextthink = GameBase.gameExports.level.time + 1.0f + GameBase.st.pausetime
                     + self.delay + self.wait + Lib.crandom() * self.random;
             self.activator = self;
         }
@@ -609,7 +609,7 @@ class GameFunc {
                     ent.velocity);
 
             ent.think = Move_Done;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -631,7 +631,7 @@ class GameFunc {
                             / Defines.FRAMETIME);
             ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed
                     * Defines.FRAMETIME;
-            ent.nextthink = GameBase.level.time + (frames * Defines.FRAMETIME);
+            ent.nextthink = GameBase.gameExports.level.time + (frames * Defines.FRAMETIME);
             ent.think = Move_Final;
             return true;
         }
@@ -670,7 +670,7 @@ class GameFunc {
             Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, ent.avelocity);
 
             ent.think = AngleMove_Done;
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -709,7 +709,7 @@ class GameFunc {
             Math3D.VectorScale(destdelta, 1.0f / traveltime, ent.avelocity);
 
             // set nextthink to trigger a think when dest is reached
-            ent.nextthink = GameBase.level.time + frames * Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + frames * Defines.FRAMETIME;
             ent.think = AngleMove_Final;
             return true;
         }
@@ -733,7 +733,7 @@ class GameFunc {
 
             Math3D.VectorScale(ent.moveinfo.dir,
                     ent.moveinfo.current_speed * 10, ent.velocity);
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             ent.think = Think_AccelMove;
             return true;
         }
@@ -752,7 +752,7 @@ class GameFunc {
             ent.moveinfo.state = STATE_TOP;
 
             ent.think = plat_go_down;
-            ent.nextthink = GameBase.level.time + 3;
+            ent.nextthink = GameBase.gameExports.level.time + 3;
             return true;
         }
     };
@@ -839,7 +839,7 @@ class GameFunc {
             if (ent.moveinfo.state == STATE_BOTTOM)
                 plat_go_up(ent);
             else if (ent.moveinfo.state == STATE_TOP) {
-                ent.nextthink = GameBase.level.time + 1; // the player is still
+                ent.nextthink = GameBase.gameExports.level.time + 1; // the player is still
                                                          // on the plat, so
                                                          // delay going down
             }
@@ -1003,7 +1003,7 @@ class GameFunc {
             GameUtil.G_UseTargets(self, self.activator);
             self.s.frame = 1;
             if (self.moveinfo.wait >= 0) {
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = GameBase.gameExports.level.time + self.moveinfo.wait;
                 self.think = button_return;
             }
             return true;
@@ -1141,7 +1141,7 @@ class GameFunc {
                 return true;
             if (self.moveinfo.wait >= 0) {
                 self.think = door_go_down;
-                self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                self.nextthink = GameBase.gameExports.level.time + self.moveinfo.wait;
             }
             return true;
         }
@@ -1233,9 +1233,9 @@ class GameFunc {
                     && 0 != (other.svflags & Defines.SVF_MONSTER))
                 return;
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (GameBase.gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 1.0f;
+            self.touch_debounce_time = GameBase.gameExports.level.time + 1.0f;
 
             door_use.use(self.getOwner(), other, other);
         }
@@ -1382,9 +1382,9 @@ class GameFunc {
             if (null == other.getClient())
                 return;
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (GameBase.gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 5.0f;
+            self.touch_debounce_time = GameBase.gameExports.level.time + 5.0f;
 
             GameBase.gameExports.gameImports.centerprintf(other, self.message);
             GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
@@ -1482,7 +1482,7 @@ class GameFunc {
 
             GameBase.gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think = Think_CalcMoveSpeed;
             else
@@ -1617,7 +1617,7 @@ class GameFunc {
 
             GameBase.gameExports.gameImports.linkentity(ent);
 
-            ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             if (ent.health != 0 || ent.targetname != null)
                 ent.think = Think_CalcMoveSpeed;
             else
@@ -1657,12 +1657,12 @@ class GameFunc {
                 return;
             }
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (GameBase.gameExports.level.time < self.touch_debounce_time)
                 return;
 
             if (self.dmg == 0)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 0.5f;
+            self.touch_debounce_time = GameBase.gameExports.level.time + 0.5f;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH);
@@ -1689,7 +1689,7 @@ class GameFunc {
 
             if (self.moveinfo.wait != 0) {
                 if (self.moveinfo.wait > 0) {
-                    self.nextthink = GameBase.level.time + self.moveinfo.wait;
+                    self.nextthink = GameBase.gameExports.level.time + self.moveinfo.wait;
                     self.think = train_next;
                 } else if (0 != (self.spawnflags & TRAIN_TOGGLE)) // && wait < 0
                 {
@@ -1803,7 +1803,7 @@ class GameFunc {
                 self.spawnflags |= TRAIN_START_ON;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
-                self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
                 self.think = train_next;
                 self.activator = self;
             }
@@ -1890,7 +1890,7 @@ class GameFunc {
         public String getID() { return "sp_trigger_elevator";}
         public boolean think(SubgameEntity self) {
             self.think = trigger_elevator_init;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1915,7 +1915,7 @@ class GameFunc {
         public String getID() { return "func_timer_think";}
         public boolean think(SubgameEntity self) {
             GameUtil.G_UseTargets(self, self.activator);
-            self.nextthink = GameBase.level.time + self.wait + Lib.crandom()
+            self.nextthink = GameBase.gameExports.level.time + self.wait + Lib.crandom()
                     * self.random;
             return true;
         }
@@ -1934,7 +1934,7 @@ class GameFunc {
 
             // turn it on
             if (self.delay != 0)
-                self.nextthink = GameBase.level.time + self.delay;
+                self.nextthink = GameBase.gameExports.level.time + self.delay;
             else
                 func_timer_think.think(self);
         }
@@ -2017,7 +2017,7 @@ class GameFunc {
     private static EntThinkAdapter door_secret_move1 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move1";}
         public boolean think(SubgameEntity self) {
-            self.nextthink = GameBase.level.time + 1.0f;
+            self.nextthink = GameBase.gameExports.level.time + 1.0f;
             self.think = door_secret_move2;
             return true;
         }
@@ -2036,7 +2036,7 @@ class GameFunc {
         public boolean think(SubgameEntity self) {
             if (self.wait == -1)
                 return true;
-            self.nextthink = GameBase.level.time + self.wait;
+            self.nextthink = GameBase.gameExports.level.time + self.wait;
             self.think = door_secret_move4;
             return true;
         }
@@ -2053,7 +2053,7 @@ class GameFunc {
     private static EntThinkAdapter door_secret_move5 = new EntThinkAdapter() {
         public String getID() { return "door_secret_move5";}
         public boolean think(SubgameEntity self) {
-            self.nextthink = GameBase.level.time + 1.0f;
+            self.nextthink = GameBase.gameExports.level.time + 1.0f;
             self.think = door_secret_move6;
             return true;
         }
@@ -2095,9 +2095,9 @@ class GameFunc {
                 return;
             }
 
-            if (GameBase.level.time < self.touch_debounce_time)
+            if (GameBase.gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.level.time + 0.5f;
+            self.touch_debounce_time = GameBase.gameExports.level.time + 0.5f;
 
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,

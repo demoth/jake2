@@ -493,14 +493,14 @@ public class M_Gladiator {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time) {
+            if (GameBase.gameExports.level.time < self.pain_debounce_time) {
                 if ((self.velocity[2] > 100)
                         && (self.monsterinfo.currentmove == gladiator_move_pain))
                     self.monsterinfo.currentmove = gladiator_move_pain_air;
                 return;
             }
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (Lib.random() < 0.5)
                 GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,

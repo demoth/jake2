@@ -867,10 +867,10 @@ public class M_Chick {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             r = Lib.random();
             if (r < 0.33)
@@ -1009,7 +1009,7 @@ public class M_Chick {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -1018,7 +1018,7 @@ public class M_Chick {
     static EntThinkAdapter chick_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "chick_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;

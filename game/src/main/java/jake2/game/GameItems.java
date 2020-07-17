@@ -159,7 +159,7 @@ public class GameItems {
     	public String getID() { return "MegaHealth_think"; }
         public boolean think(SubgameEntity self) {
             if (self.getOwner().health > self.getOwner().max_health) {
-                self.nextthink = GameBase.level.time + 1;
+                self.nextthink = GameBase.gameExports.level.time + 1;
                 self.getOwner().health -= 1;
                 return false;
             }
@@ -191,7 +191,7 @@ public class GameItems {
     
             if (0 != (ent.style & GameDefines.HEALTH_TIMED)) {
                 ent.think = MegaHealth_think;
-                ent.nextthink = GameBase.level.time + 5f;
+                ent.nextthink = GameBase.gameExports.level.time + 5f;
                 ent.setOwner(other);
                 ent.flags |= GameDefines.FL_RESPAWN;
                 ent.svflags |= Defines.SVF_NOCLIENT;
@@ -233,7 +233,7 @@ public class GameItems {
                 client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gameExports.gameImports
                         .imageindex(ent.item.icon);
                 client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
-                client.pickup_msg_time = GameBase.level.time + 3.0f;
+                client.pickup_msg_time = GameBase.gameExports.level.time + 3.0f;
     
                 // change selected item
                 if (ent.item.use != null)
@@ -298,7 +298,7 @@ public class GameItems {
         public boolean think(SubgameEntity ent) {
             ent.touch = Touch_Item;
             if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-                ent.nextthink = GameBase.level.time + 29;
+                ent.nextthink = GameBase.gameExports.level.time + 29;
                 ent.think = GameUtil.G_FreeEdictA;
             }
             return false;
@@ -320,10 +320,10 @@ public class GameItems {
                 timeout = 300;
             }
     
-            if (client.quad_framenum > GameBase.level.framenum)
+            if (client.quad_framenum > GameBase.gameExports.level.framenum)
                 client.quad_framenum += timeout;
             else
-                client.quad_framenum = GameBase.level.framenum + timeout;
+                client.quad_framenum = GameBase.gameExports.level.framenum + timeout;
     
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -337,10 +337,10 @@ public class GameItems {
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
     
-            if (client.invincible_framenum > GameBase.level.framenum)
+            if (client.invincible_framenum > GameBase.gameExports.level.framenum)
                 client.invincible_framenum += 300;
             else
-                client.invincible_framenum = GameBase.level.framenum + 300;
+                client.invincible_framenum = GameBase.gameExports.level.framenum + 300;
     
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
@@ -354,10 +354,10 @@ public class GameItems {
     
             GameUtil.ValidateSelectedItem(ent);
     
-            if (client.breather_framenum > GameBase.level.framenum)
+            if (client.breather_framenum > GameBase.gameExports.level.framenum)
                 client.breather_framenum += 300;
             else
-                client.breather_framenum = GameBase.level.framenum + 300;
+                client.breather_framenum = GameBase.gameExports.level.framenum + 300;
     
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -370,10 +370,10 @@ public class GameItems {
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
     
-            if (client.enviro_framenum > GameBase.level.framenum)
+            if (client.enviro_framenum > GameBase.gameExports.level.framenum)
                 client.enviro_framenum += 300;
             else
-                client.enviro_framenum = GameBase.level.framenum + 300;
+                client.enviro_framenum = GameBase.gameExports.level.framenum + 300;
     
             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
@@ -575,7 +575,7 @@ public class GameItems {
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
-                        quad_drop_timeout_hack = (int) ((ent.nextthink - GameBase.level.time) / Defines.FRAMETIME);
+                        quad_drop_timeout_hack = (int) ((ent.nextthink - GameBase.gameExports.level.time) / Defines.FRAMETIME);
     
                     ent.item.use.use(other, ent.item);
                 }
@@ -746,7 +746,7 @@ public class GameItems {
                 ent.svflags |= Defines.SVF_NOCLIENT;
                 ent.solid = Defines.SOLID_NOT;
                 if (ent == ent.teammaster) {
-                    ent.nextthink = GameBase.level.time + Defines.FRAMETIME;
+                    ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
                     ent.think = DoRespawn;
                 }
             }
@@ -863,7 +863,7 @@ public class GameItems {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
-        ent.nextthink = GameBase.level.time + delay;
+        ent.nextthink = GameBase.gameExports.level.time + delay;
         ent.think = DoRespawn;
         GameBase.gameExports.gameImports.linkentity(ent);
     }
@@ -910,7 +910,7 @@ public class GameItems {
         dropped.velocity[2] = 300;
     
         dropped.think = drop_make_touchable;
-        dropped.nextthink = GameBase.level.time + 1;
+        dropped.nextthink = GameBase.gameExports.level.time + 1;
     
         GameBase.gameExports.gameImports.linkentity(dropped);
     
@@ -1217,8 +1217,8 @@ public class GameItems {
     
         if (GameBase.gameExports.cvarCache.coop.value != 0
                 && ("key_power_cube".equals(ent.classname))) {
-            ent.spawnflags |= (1 << (8 + GameBase.level.power_cubes));
-            GameBase.level.power_cubes++;
+            ent.spawnflags |= (1 << (8 + GameBase.gameExports.level.power_cubes));
+            GameBase.gameExports.level.power_cubes++;
         }
     
         // don't let them drop items that stay in a coop game
@@ -1228,7 +1228,7 @@ public class GameItems {
         }
     
         ent.item = item;
-        ent.nextthink = GameBase.level.time + 2 * Defines.FRAMETIME;
+        ent.nextthink = GameBase.gameExports.level.time + 2 * Defines.FRAMETIME;
         // items start after other solids
         ent.think = droptofloor;
         ent.s.effects = item.world_model_flags;
@@ -1331,7 +1331,7 @@ public class GameItems {
             client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gameExports.gameImports
                     .imageindex(ent.item.icon);
             client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
-            client.pickup_msg_time = GameBase.level.time + 3.0f;
+            client.pickup_msg_time = GameBase.gameExports.level.time + 3.0f;
     
             // change selected item
             if (ent.item.use != null)

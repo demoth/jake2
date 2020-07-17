@@ -484,10 +484,10 @@ public class M_Boss2 {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             //	   American wanted these at no attenuation
             if (damage < 10) {
                 GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
@@ -579,7 +579,7 @@ public class M_Boss2 {
             if (self.monsterinfo.attack == null)
                 return false;
 
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (enemy_range == GameDefines.RANGE_FAR)
@@ -599,7 +599,7 @@ public class M_Boss2 {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.level.time + 2
+                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }

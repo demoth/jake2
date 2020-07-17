@@ -263,36 +263,36 @@ public final class M {
             int dmg;
             if (0 == (ent.flags & GameDefines.FL_SWIM)) {
                 if (ent.waterlevel < 3) {
-                    ent.air_finished = GameBase.level.time + 12;
-                } else if (ent.air_finished < GameBase.level.time) {
+                    ent.air_finished = GameBase.gameExports.level.time + 12;
+                } else if (ent.air_finished < GameBase.gameExports.level.time) {
                     // drown!
-                    if (ent.pain_debounce_time < GameBase.level.time) {
-                        dmg = (int) (2f + 2f * Math.floor(GameBase.level.time
+                    if (ent.pain_debounce_time < GameBase.gameExports.level.time) {
+                        dmg = (int) (2f + 2f * Math.floor(GameBase.gameExports.level.time
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameCombat.T_Damage(ent, GameBase.g_edicts[0],
-                                GameBase.g_edicts[0], Globals.vec3_origin,
+                        GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
+                                GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
-                        ent.pain_debounce_time = GameBase.level.time + 1;
+                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                     }
                 }
             } else {
                 if (ent.waterlevel > 0) {
-                    ent.air_finished = GameBase.level.time + 9;
-                } else if (ent.air_finished < GameBase.level.time) {
+                    ent.air_finished = GameBase.gameExports.level.time + 9;
+                } else if (ent.air_finished < GameBase.gameExports.level.time) {
                     // suffocate!
-                    if (ent.pain_debounce_time < GameBase.level.time) {
-                        dmg = (int) (2 + 2 * Math.floor(GameBase.level.time
+                    if (ent.pain_debounce_time < GameBase.gameExports.level.time) {
+                        dmg = (int) (2 + 2 * Math.floor(GameBase.gameExports.level.time
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameCombat.T_Damage(ent, GameBase.g_edicts[0],
-                                GameBase.g_edicts[0], Globals.vec3_origin,
+                        GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
+                                GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
-                        ent.pain_debounce_time = GameBase.level.time + 1;
+                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                     }
                 }
             }
@@ -310,20 +310,20 @@ public final class M {
 
         if ((ent.watertype & Defines.CONTENTS_LAVA) != 0
                 && 0 == (ent.flags & GameDefines.FL_IMMUNE_LAVA)) {
-            if (ent.damage_debounce_time < GameBase.level.time) {
-                ent.damage_debounce_time = GameBase.level.time + 0.2f;
-                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
-                        GameBase.g_edicts[0], Globals.vec3_origin,
+            if (ent.damage_debounce_time < GameBase.gameExports.level.time) {
+                ent.damage_debounce_time = GameBase.gameExports.level.time + 0.2f;
+                GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
+                        GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 10 * ent.waterlevel,
                         0, 0, GameDefines.MOD_LAVA);
             }
         }
         if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
                 && 0 == (ent.flags & GameDefines.FL_IMMUNE_SLIME)) {
-            if (ent.damage_debounce_time < GameBase.level.time) {
-                ent.damage_debounce_time = GameBase.level.time + 1;
-                GameCombat.T_Damage(ent, GameBase.g_edicts[0],
-                        GameBase.g_edicts[0], Globals.vec3_origin,
+            if (ent.damage_debounce_time < GameBase.gameExports.level.time) {
+                ent.damage_debounce_time = GameBase.gameExports.level.time + 1;
+                GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
+                        GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 4 * ent.waterlevel,
                         0, 0, GameDefines.MOD_SLIME);
             }
@@ -392,7 +392,7 @@ public final class M {
         if (ent.health <= 0)
             return;
 
-        if (ent.powerarmor_time > GameBase.level.time) {
+        if (ent.powerarmor_time > GameBase.gameExports.level.time) {
             if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
             } else if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SHIELD) {
@@ -408,7 +408,7 @@ public final class M {
         int index;
 
         move = self.monsterinfo.currentmove;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
         if ((self.monsterinfo.nextframe != 0)
                 && (self.monsterinfo.nextframe >= move.firstframe)
@@ -473,7 +473,7 @@ public final class M {
             self.s.effects |= Defines.EF_FLIES;
             self.s.sound = GameBase.gameExports.gameImports.soundindex("infantry/inflies1.wav");
             self.think = M_FliesOff;
-            self.nextthink = GameBase.level.time + 60;
+            self.nextthink = GameBase.gameExports.level.time + 60;
             return true;
         }
     };
@@ -490,7 +490,7 @@ public final class M {
                 return true;
 
             self.think = M_FliesOn;
-            self.nextthink = GameBase.level.time + 5 + 10
+            self.nextthink = GameBase.gameExports.level.time + 5 + 10
                     * Globals.rnd.nextFloat();
             return true;
         }
