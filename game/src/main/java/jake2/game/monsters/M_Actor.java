@@ -1005,7 +1005,7 @@ public class M_Actor {
             self.monsterinfo.currentmove = actor_move_stand;
 
             // randomize on startup
-            if (GameBase.level.time < 1.0)
+            if (GameBase.gameExports.level.time < 1.0)
                 self.s.frame = self.monsterinfo.currentmove.firstframe
                         + (Lib.rand() % (self.monsterinfo.currentmove.lastframe
                                 - self.monsterinfo.currentmove.firstframe + 1));
@@ -1102,7 +1102,7 @@ public class M_Actor {
     static EntThinkAdapter actor_run = new EntThinkAdapter() {
         public String getID() { return "actor_run";}
         public boolean think(SubgameEntity self) {
-            if ((GameBase.level.time < self.pain_debounce_time)
+            if ((GameBase.gameExports.level.time < self.pain_debounce_time)
                     && (self.enemy == null)) {
                 if (self.movetarget != null)
                     actor_walk.think(self);
@@ -1199,10 +1199,10 @@ public class M_Actor {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             //GameBase.gameExports.gameImports.sound (self, CHAN_VOICE, actor.sound_pain, 1,
             // ATTN_NORM, 0);
 
@@ -1323,7 +1323,7 @@ public class M_Actor {
         public boolean think(SubgameEntity self) {
             actorMachineGun(self);
 
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -1348,7 +1348,7 @@ public class M_Actor {
 
             self.monsterinfo.currentmove = actor_move_attack;
             n = (Lib.rand() & 15) + 3 + 7;
-            self.monsterinfo.pausetime = GameBase.level.time + n
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + n
                     * Defines.FRAMETIME;
 
             return true;
@@ -1414,7 +1414,7 @@ public class M_Actor {
                 edict_t ent;
 
                 for (n = 1; n <= GameBase.gameExports.game.maxclients; n++) {
-                    ent = GameBase.g_edicts[n];
+                    ent = GameBase.gameExports.g_edicts[n];
                     if (!ent.inuse)
                         continue;
                     GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_CHAT,
@@ -1470,7 +1470,7 @@ public class M_Actor {
                 other.goalentity = other.movetarget;
 
             if (null == other.movetarget && null == other.enemy) {
-                other.monsterinfo.pausetime = GameBase.level.time + 100000000;
+                other.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
                 other.monsterinfo.stand.think(other);
             } else if (other.movetarget == other.goalentity) {
                 Math3D.VectorSubtract(other.movetarget.s.origin,

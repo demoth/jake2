@@ -1098,7 +1098,7 @@ public class M_Supertank {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames
@@ -1112,7 +1112,7 @@ public class M_Supertank {
                         && (self.s.frame <= FRAME_attak2_14))
                     return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
@@ -1270,7 +1270,7 @@ public class M_Supertank {
             GameBase.gameExports.gameImports.WritePosition(org);
             GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
     
-            self.nextthink = GameBase.level.time + 0.1f;
+            self.nextthink = GameBase.gameExports.level.time + 0.1f;
             return true;
         }
     };

@@ -37,55 +37,13 @@ public class GameBase {
     public static GameExportsImpl gameExports;
     static cplane_t dummyplane = new cplane_t();
 
-    public static level_locals_t level = new level_locals_t();
-
+    // this is used to store parsed entity fields during map loading
+    // todo: pass directly instead of via global static field
     public static spawn_temp_t st = new spawn_temp_t();
-
-    static int sm_meat_index;
-
-    static int snd_fry;
 
     static int meansOfDeath;
 
-    static int num_edicts;
-
-    /**
-     * entity with index = 0 is always the worldspawn.
-     * entities with indices 1..maxclients are the players
-     * then go other stuff
-     */
-    public static SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
-    static {
-        for (int n = 0; n < Defines.MAX_EDICTS; n++)
-            g_edicts[n] = new SubgameEntity(n);
-    }
-
-
     private final static float STOP_EPSILON = 0.1f;
-
-    // create the entities array and fill it with empty entities
-    static void CreateEdicts(float max) {
-        // initialize all entities for this game
-        gameExports.game.maxentities = (int) max;
-        g_edicts = new SubgameEntity[gameExports.game.maxentities];
-        for (int i = 0; i < gameExports.game.maxentities; i++)
-            g_edicts[i] = new SubgameEntity(i);
-    }
-
-    // create the clients array and fill it with empty clients
-    static void CreateClients(float max) {
-        // initialize all clients for this game
-        gameExports.game.maxclients = (int) max;
-
-        gameExports.game.clients = new gclient_t[gameExports.game.maxclients];
-
-        for (int i = 0; i < gameExports.game.maxclients; i++)
-            gameExports.game.clients[i] = new gclient_t(i);
-
-        // so far we have only clients, no other entities
-        num_edicts = gameExports.game.maxclients + 1;
-
-    }
 
     /**
      * Slide off of the impacting object returns the blocked flags (1 = floor, 2 =
@@ -132,8 +90,8 @@ public class GameBase {
         else
             from.i++;
 
-        for (; from.i < num_edicts; from.i++) {
-            from.o = g_edicts[from.i];
+        for (; from.i < gameExports.num_edicts; from.i++) {
+            from.o = gameExports.g_edicts[from.i];
             if (from.o.classname == null) {
                 gameExports.gameImports.dprintf("edict with classname = null" + from.o.index);
             }
@@ -171,8 +129,8 @@ public class GameBase {
         else
             from.i++;
 
-        for (; from.i < num_edicts; from.i++) {
-            from.o = g_edicts[from.i];
+        for (; from.i < gameExports.num_edicts; from.i++) {
+            from.o = gameExports.g_edicts[from.i];
             if (!from.o.inuse)
                 continue;
 
@@ -346,7 +304,7 @@ public class GameBase {
         // calc the player views now that all pushing
         // and damage has been added
         for (i = 0; i < gameExports.game.maxclients; i++) {
-            ent = g_edicts[1 + i];
+            ent = gameExports.g_edicts[1 + i];
             if (!ent.inuse || null == ent.getClient())
                 continue;
             gameExports.playerView.ClientEndServerFrame(ent);
@@ -362,8 +320,8 @@ public class GameBase {
 
         ent = GameUtil.G_Spawn();
         ent.classname = "target_changelevel";
-        level.nextmap = map;
-        ent.map = level.nextmap;
+        gameExports.level.nextmap = map;
+        ent.map = gameExports.level.nextmap;
         return ent;
     }
 
@@ -377,7 +335,7 @@ public class GameBase {
 
         // stay on same level flag
         if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
             return;
         }
 
@@ -394,12 +352,12 @@ public class GameBase {
             	if (f == null)
             		f = t;
             	
-                if (t.equalsIgnoreCase(level.mapname)) {
+                if (t.equalsIgnoreCase(gameExports.level.mapname)) {
                     // it's in the list, go to the next one
                 	if (!tk.hasMoreTokens()) {
                 		// end of list, go to first one
-                        if (f == null) // there isn't a first one, same level
-                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                        if (f == null) // there isn't a first one, same gameExports.level
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
                         else
                             PlayerHud.BeginIntermission(CreateTargetChangeLevel(f));
                     } else
@@ -410,15 +368,15 @@ public class GameBase {
         }
 
         //not in the map list
-        if (level.nextmap.length() > 0) // go to a specific map
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
+        if (gameExports.level.nextmap.length() > 0) // go to a specific map
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.nextmap));
         else { // search for a changelevel
             EdictIterator edit = null;
             edit = G_Find(edit, findByClass, "target_changelevel");
             if (edit == null) { // the map designer didn't include a
-                                // changelevel,
-                // so create a fake ent that goes back to the same level
-                PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                                // changegameExports.level,
+                // so create a fake ent that goes back to the same gameExports.level
+                PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
                 return;
             }
             SubgameEntity ent = edit.o;
@@ -458,14 +416,14 @@ public class GameBase {
         int i;
         gclient_t cl;
 
-        if (level.intermissiontime != 0)
+        if (gameExports.level.intermissiontime != 0)
             return;
 
         if (0 == gameExports.cvarCache.deathmatch.value)
             return;
 
         if (gameExports.cvarCache.timelimit.value != 0) {
-            if (level.time >= gameExports.cvarCache.timelimit.value * 60) {
+            if (gameExports.level.time >= gameExports.cvarCache.timelimit.value * 60) {
                 gameExports.gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
                 EndDMLevel();
                 return;
@@ -475,7 +433,7 @@ public class GameBase {
         if (gameExports.cvarCache.fraglimit.value != 0) {
             for (i = 0; i < gameExports.game.maxclients; i++) {
                 cl = gameExports.game.clients[i];
-                if (!g_edicts[i + 1].inuse)
+                if (!gameExports.g_edicts[i + 1].inuse)
                     continue;
 
                 if (cl.resp.score >= gameExports.cvarCache.fraglimit.value) {
@@ -494,16 +452,16 @@ public class GameBase {
         int i;
         SubgameEntity ent;
 
-        String command = "gamemap \"" + level.changemap + "\"\n";
+        String command = "gamemap \"" + gameExports.level.changemap + "\"\n";
         gameExports.gameImports.AddCommandString(command);
-        level.changemap = null;
-        level.exitintermission = false;
-        level.intermissiontime = 0;
+        gameExports.level.changemap = null;
+        gameExports.level.exitintermission = false;
+        gameExports.level.intermissiontime = 0;
         ClientEndServerFrames();
 
-        // clear some things before going to next level
+        // clear some things before going to next gameExports.level
         for (i = 0; i < gameExports.game.maxclients; i++) {
-            ent = g_edicts[1 + i];
+            ent = gameExports.g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
             gclient_t client = ent.getClient();
@@ -516,15 +474,15 @@ public class GameBase {
         int i;
         SubgameEntity ent;
 
-        level.framenum++;
-        level.time = level.framenum * Defines.FRAMETIME;
+        gameExports.level.framenum++;
+        gameExports.level.time = gameExports.level.framenum * Defines.FRAMETIME;
 
         // choose a client for monsters to target this frame
         GameAI.AI_SetSightClient();
 
         // exit intermissions
 
-        if (level.exitintermission) {
+        if (gameExports.level.exitintermission) {
             ExitLevel();
             return;
         }
@@ -534,12 +492,12 @@ public class GameBase {
         // even the world gets a chance to think
         //
 
-        for (i = 0; i < num_edicts; i++) {
-            ent = g_edicts[i];
+        for (i = 0; i < gameExports.num_edicts; i++) {
+            ent = gameExports.g_edicts[i];
             if (!ent.inuse)
                 continue;
 
-            level.current_entity = ent;
+            gameExports.level.current_entity = ent;
 
             Math3D.VectorCopy(ent.s.origin, ent.s.old_origin);
 

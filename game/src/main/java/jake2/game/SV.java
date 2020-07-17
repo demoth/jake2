@@ -54,7 +54,7 @@ final class SV {
                 ent.s.origin, ent, mask);
 
         if (trace.startsolid)
-            return GameBase.g_edicts;
+            return GameBase.gameExports.g_edicts;
 
         return null;
     }
@@ -83,7 +83,7 @@ final class SV {
         thinktime = ent.nextthink;
         if (thinktime <= 0)
             return true;
-        if (thinktime > GameBase.level.time + 0.001)
+        if (thinktime > GameBase.gameExports.level.time + 0.001)
             return true;
 
         ent.nextthink = 0;
@@ -347,8 +347,8 @@ final class SV {
         //	   see if any solid entities are inside the final position
 
         //check= g_edicts + 1;
-        for (int e = 1; e < GameBase.num_edicts; e++) {
-            SubgameEntity check = GameBase.g_edicts[e];
+        for (int e = 1; e < GameBase.gameExports.num_edicts; e++) {
+            SubgameEntity check = GameBase.gameExports.g_edicts[e];
             if (!check.inuse)
                 continue;
             if (check.movetype == GameDefines.MOVETYPE_PUSH

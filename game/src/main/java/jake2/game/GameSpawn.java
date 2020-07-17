@@ -232,13 +232,13 @@ public class GameSpawn {
             // set configstrings for items
             GameItems.SetItemNames();
             if (GameBase.st.nextmap != null)
-                GameBase.level.nextmap = GameBase.st.nextmap;
+                GameBase.gameExports.level.nextmap = GameBase.st.nextmap;
             // make some data visible to the server
             if (ent.message != null && ent.message.length() > 0) {
                 GameBase.gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
-                GameBase.level.level_name = ent.message;
+                GameBase.gameExports.level.level_name = ent.message;
             } else
-                GameBase.level.level_name = GameBase.level.mapname;
+                GameBase.gameExports.level.level_name = GameBase.gameExports.level.mapname;
             if (GameBase.st.sky != null && GameBase.st.sky.length() > 0)
                 GameBase.gameExports.gameImports.configstring(Defines.CS_SKY, GameBase.st.sky);
             else
@@ -258,14 +258,15 @@ public class GameSpawn {
             //---------------
             // help icon for statusbar
             GameBase.gameExports.gameImports.imageindex("i_help");
-            GameBase.level.pic_health = GameBase.gameExports.gameImports.imageindex("i_health");
+            GameBase.gameExports.level.pic_health = GameBase.gameExports.gameImports.imageindex("i_health");
             GameBase.gameExports.gameImports.imageindex("help");
             GameBase.gameExports.gameImports.imageindex("field_3");
             if ("".equals(GameBase.st.gravity))
                 GameBase.gameExports.gameImports.cvar_set("sv_gravity", "800");
             else
                 GameBase.gameExports.gameImports.cvar_set("sv_gravity", GameBase.st.gravity);
-            GameBase.snd_fry = GameBase.gameExports.gameImports.soundindex("player/fry.wav");
+
+            GameBase.gameExports.gameImports.soundindex("player/fry.wav");
             // standing in lava / slime
             GameItems.PrecacheItem(GameItems.FindItem("Blaster"));
             GameBase.gameExports.gameImports.soundindex("player/lava1.wav");
@@ -333,8 +334,7 @@ public class GameSpawn {
             GameBase.gameExports.gameImports.soundindex("items/protect4.wav");
             GameBase.gameExports.gameImports.soundindex("weapons/noammo.wav");
             GameBase.gameExports.gameImports.soundindex("infantry/inflies1.wav");
-            GameBase.sm_meat_index = GameBase.gameExports.gameImports
-                    .modelindex("models/objects/gibs/sm_meat/tris.md2");
+            GameBase.gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2");
             GameBase.gameExports.gameImports.modelindex("models/objects/gibs/arm/tris.md2");
             GameBase.gameExports.gameImports.modelindex("models/objects/gibs/bone/tris.md2");
             GameBase.gameExports.gameImports.modelindex("models/objects/gibs/bone2/tris.md2");
@@ -1272,8 +1272,8 @@ public class GameSpawn {
      */
 
     private static void G_FindTeams() {
-        for (int i = 1; i < GameBase.num_edicts; i++) {
-            SubgameEntity e = GameBase.g_edicts[i];
+        for (int i = 1; i < GameBase.gameExports.num_edicts; i++) {
+            SubgameEntity e = GameBase.gameExports.g_edicts[i];
 
             if (!e.inuse)
                 continue;
@@ -1284,8 +1284,8 @@ public class GameSpawn {
             SubgameEntity chain = e;
             e.teammaster = e;
 
-            for (int j = i + 1; j < GameBase.num_edicts; j++) {
-                SubgameEntity e2 = GameBase.g_edicts[j];
+            for (int j = i + 1; j < GameBase.gameExports.num_edicts; j++) {
+                SubgameEntity e2 = GameBase.gameExports.g_edicts[j];
                 if (!e2.inuse)
                     continue;
                 if (null == e2.team)
@@ -1323,17 +1323,17 @@ public class GameSpawn {
 
         PlayerClient.SaveClientData();
 
-        GameBase.level = new level_locals_t();
+        GameBase.gameExports.level = new level_locals_t();
         for (int n = 0; n < GameBase.gameExports.game.maxentities; n++) {
-            GameBase.g_edicts[n] = new SubgameEntity(n);
+            GameBase.gameExports.g_edicts[n] = new SubgameEntity(n);
         }
 
-        GameBase.level.mapname = mapname;
+        GameBase.gameExports.level.mapname = mapname;
         GameBase.gameExports.game.spawnpoint = spawnpoint;
 
         // set client fields on player ents
         for (i = 0; i < GameBase.gameExports.game.maxclients; i++)
-            GameBase.g_edicts[i + 1].setClient(GameBase.gameExports.game.clients[i]);
+            GameBase.gameExports.g_edicts[i + 1].setClient(GameBase.gameExports.game.clients[i]);
 
         ent = null;
         inhibit = 0;
@@ -1350,7 +1350,7 @@ public class GameSpawn {
                         + " when expecting {");
 
             if (ent == null)
-                ent = GameBase.g_edicts[0];
+                ent = GameBase.gameExports.g_edicts[0];
             else
                 ent = G_Spawn();
 
@@ -1359,14 +1359,14 @@ public class GameSpawn {
                     ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
 
             // yet another map hack
-            if (0 == Lib.Q_stricmp(GameBase.level.mapname, "command")
+            if (0 == Lib.Q_stricmp(GameBase.gameExports.level.mapname, "command")
                     && 0 == Lib.Q_stricmp(ent.classname, "trigger_once")
                     && 0 == Lib.Q_stricmp(ent.model, "*27"))
                 ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
 
             // remove things (except the world) from different skill levels or
             // deathmatch
-            if (ent != GameBase.g_edicts[0]) {
+            if (ent != GameBase.gameExports.g_edicts[0]) {
                 if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 

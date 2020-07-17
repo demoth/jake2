@@ -83,7 +83,7 @@ public class PlayerTrail {
 
         Math3D.VectorCopy(spot, PlayerTrail.trail[trail_head].s.origin);
 
-        PlayerTrail.trail[trail_head].timestamp = GameBase.level.time;
+        PlayerTrail.trail[trail_head].timestamp = GameBase.gameExports.level.time;
 
         Math3D.VectorSubtract(spot,
                 PlayerTrail.trail[PREV(trail_head)].s.origin, temp);

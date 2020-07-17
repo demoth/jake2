@@ -57,7 +57,7 @@ public class GameUtil {
             // create a temp object to fire at a later time
             t = G_Spawn();
             t.classname = "DelayedUse";
-            t.nextthink = GameBase.level.time + ent.delay;
+            t.nextthink = GameBase.gameExports.level.time + ent.delay;
             t.think = Think_Delay;
             t.activator = activator;
             if (activator == null)
@@ -144,13 +144,13 @@ public class GameUtil {
         int i;
         SubgameEntity e;
 
-        for (i = (int) GameBase.gameExports.game.maxclients + 1; i < GameBase.num_edicts; i++) {
-            e = GameBase.g_edicts[i];
+        for (i = (int) GameBase.gameExports.game.maxclients + 1; i < GameBase.gameExports.num_edicts; i++) {
+            e = GameBase.gameExports.g_edicts[i];
             // the first couple seconds of server time can involve a lot of
             // freeing and allocating, so relax the replacement policy
             if (!e.inuse
-                    && (e.freetime < 2 || GameBase.level.time - e.freetime > 0.5)) {
-                e = GameBase.g_edicts[i] = new SubgameEntity(i);
+                    && (e.freetime < 2 || GameBase.gameExports.level.time - e.freetime > 0.5)) {
+                e = GameBase.gameExports.g_edicts[i] = new SubgameEntity(i);
                 G_InitEdict(e, i);
                 return e;
             }
@@ -159,8 +159,8 @@ public class GameUtil {
         if (i == GameBase.gameExports.game.maxentities)
             GameBase.gameExports.gameImports.error("ED_Alloc: no free edicts");
 
-        e = GameBase.g_edicts[i] = new SubgameEntity(i);
-        GameBase.num_edicts++;
+        e = GameBase.gameExports.g_edicts[i] = new SubgameEntity(i);
+        GameBase.gameExports.num_edicts++;
         G_InitEdict(e, i);
         return e;
     }
@@ -177,9 +177,9 @@ public class GameUtil {
             return;
         }
 
-        GameBase.g_edicts[ed.index] = new SubgameEntity(ed.index);
+        GameBase.gameExports.g_edicts[ed.index] = new SubgameEntity(ed.index);
         ed.classname = "freed";
-        ed.freetime = GameBase.level.time;
+        ed.freetime = GameBase.gameExports.level.time;
         ed.inuse = false;
     }
 
@@ -190,7 +190,7 @@ public class GameUtil {
 
     static void G_ClearEdict(edict_t ent) {
         int i = ent.index;
-        GameBase.g_edicts[i] = new SubgameEntity(i);
+        GameBase.gameExports.g_edicts[i] = new SubgameEntity(i);
     }
 
 
@@ -205,7 +205,7 @@ public class GameUtil {
             trace_t tr = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs,
                     ent.s.origin, null, Defines.MASK_PLAYERSOLID);
             SubgameEntity target = (SubgameEntity) tr.ent;
-            if (target == null || target == GameBase.g_edicts[0])
+            if (target == null || target == GameBase.gameExports.g_edicts[0])
                 break;
 
             // nail it
@@ -290,7 +290,7 @@ public class GameUtil {
     }
 
     static void AttackFinished(SubgameEntity self, float time) {
-        self.monsterinfo.attack_finished = GameBase.level.time + time;
+        self.monsterinfo.attack_finished = GameBase.gameExports.level.time + time;
     }
 
     /**
@@ -373,21 +373,21 @@ public class GameUtil {
 
         heardit = false;
         SubgameEntity client;
-        if ((GameBase.level.sight_entity_framenum >= (GameBase.level.framenum - 1))
+        if ((GameBase.gameExports.level.sight_entity_framenum >= (GameBase.gameExports.level.framenum - 1))
                 && 0 == (self.spawnflags & 1)) {
-            client = GameBase.level.sight_entity;           
+            client = GameBase.gameExports.level.sight_entity;           
             if (client.enemy == self.enemy)             
                 return false;            
-        } else if (GameBase.level.sound_entity_framenum >= (GameBase.level.framenum - 1)) {
-            client = GameBase.level.sound_entity;
+        } else if (GameBase.gameExports.level.sound_entity_framenum >= (GameBase.gameExports.level.framenum - 1)) {
+            client = GameBase.gameExports.level.sound_entity;
             heardit = true;
         } else if (null != (self.enemy)
-                && (GameBase.level.sound2_entity_framenum >= (GameBase.level.framenum - 1))
+                && (GameBase.gameExports.level.sound2_entity_framenum >= (GameBase.gameExports.level.framenum - 1))
                 && 0 != (self.spawnflags & 1)) {
-            client = GameBase.level.sound2_entity;
+            client = GameBase.gameExports.level.sound2_entity;
             heardit = true;
         } else {
-            client = GameBase.level.sight_client;
+            client = GameBase.gameExports.level.sight_client;
             if (client == null)
                 return false; // no clients to get mad at
         }
@@ -427,7 +427,7 @@ public class GameUtil {
            
 
             if (r == GameDefines.RANGE_NEAR) {
-                if (client.show_hostile < GameBase.level.time
+                if (client.show_hostile < GameBase.gameExports.level.time
                         && !infront(self, client))               
                     return false;                
             } else if (r == GameDefines.RANGE_MID) {
@@ -500,16 +500,16 @@ public class GameUtil {
     public static void FoundTarget(SubgameEntity self) {
         // let other monsters see this monster for a while
         if (self.enemy.getClient() != null) {
-            GameBase.level.sight_entity = self;
-            GameBase.level.sight_entity_framenum = GameBase.level.framenum;
-            GameBase.level.sight_entity.light_level = 128;
+            GameBase.gameExports.level.sight_entity = self;
+            GameBase.gameExports.level.sight_entity_framenum = GameBase.gameExports.level.framenum;
+            GameBase.gameExports.level.sight_entity.light_level = 128;
         }
 
-        self.show_hostile = (int) GameBase.level.time + 1; // wake up other
+        self.show_hostile = (int) GameBase.gameExports.level.time + 1; // wake up other
                                                            // monsters
 
         Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
-        self.monsterinfo.trail_time = GameBase.level.time;
+        self.monsterinfo.trail_time = GameBase.gameExports.level.time;
 
         if (self.combattarget == null) {
             GameAI.HuntTarget(self);
@@ -600,7 +600,7 @@ public class GameUtil {
             if (self.monsterinfo.attack == null)
                 return false;
 
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (GameAI.enemy_range == GameDefines.RANGE_FAR)
@@ -625,7 +625,7 @@ public class GameUtil {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.level.time + 2
+                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }

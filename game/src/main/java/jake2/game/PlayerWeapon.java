@@ -57,12 +57,12 @@ public class PlayerWeapon {
                         client.weaponstate = WeaponStates.WEAPON_FIRING;
                         client.grenade_time = 0;
                     } else {
-                        if (GameBase.level.time >= ent.pain_debounce_time) {
+                        if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
                             GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE,
                                     GameBase.gameExports.gameImports
                                             .soundindex("weapons/noammo.wav"),
                                     1, Defines.ATTN_NORM, 0);
-                            ent.pain_debounce_time = GameBase.level.time + 1;
+                            ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                         }
                         NoAmmoWeaponChange(ent);
                     }
@@ -90,7 +90,7 @@ public class PlayerWeapon {
 
                 if (client.getPlayerState().gunframe == 11) {
                     if (0 == client.grenade_time) {
-                        client.grenade_time = GameBase.level.time
+                        client.grenade_time = GameBase.gameExports.level.time
                                 + GameDefines.GRENADE_TIMER + 0.2f;
                         client.weapon_sound = GameBase.gameExports.gameImports
                                 .soundindex("weapons/hgrenc1b.wav");
@@ -98,7 +98,7 @@ public class PlayerWeapon {
 
                     // they waited too long, detonate it in their hand
                     if (!client.grenade_blew_up
-                            && GameBase.level.time >= client.grenade_time) {
+                            && GameBase.gameExports.level.time >= client.grenade_time) {
                         client.weapon_sound = 0;
                         weapon_grenade_fire(ent, true);
                         client.grenade_blew_up = true;
@@ -108,7 +108,7 @@ public class PlayerWeapon {
                         return true;
 
                     if (client.grenade_blew_up) {
-                        if (GameBase.level.time >= client.grenade_time) {
+                        if (GameBase.gameExports.level.time >= client.grenade_time) {
                             client.getPlayerState().gunframe = 15;
                             client.grenade_blew_up = false;
                         } else {
@@ -123,7 +123,7 @@ public class PlayerWeapon {
                 }
 
                 if ((client.getPlayerState().gunframe == 15)
-                        && (GameBase.level.time < client.grenade_time))
+                        && (GameBase.gameExports.level.time < client.grenade_time))
                     return true;
 
                 client.getPlayerState().gunframe++;
@@ -320,11 +320,11 @@ public class PlayerWeapon {
                 client.getPlayerState().gunframe++;
             } else {
                 if (0 == client.pers.inventory[client.ammo_index]) {
-                    if (GameBase.level.time >= ent.pain_debounce_time) {
+                    if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
                         GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("weapons/noammo.wav"), 1,
                                 Defines.ATTN_NORM, 0);
-                        ent.pain_debounce_time = GameBase.level.time + 1;
+                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                     }
                     NoAmmoWeaponChange(ent);
                 } else {
@@ -691,7 +691,7 @@ public class PlayerWeapon {
             // make a big pitch kick with an inverse fall
             client.v_dmg_pitch = -40;
             client.v_dmg_roll = Lib.crandom() * 8;
-            client.v_dmg_time = GameBase.level.time + Defines.DAMAGE_TIME;
+            client.v_dmg_time = GameBase.gameExports.level.time + Defines.DAMAGE_TIME;
 
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
@@ -833,11 +833,11 @@ public class PlayerWeapon {
 
             if (client.pers.inventory[client.ammo_index] < 1) {
                 client.getPlayerState().gunframe = 6;
-                if (GameBase.level.time >= ent.pain_debounce_time) {
+                if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
                     GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("weapons/noammo.wav"), 1,
                             Defines.ATTN_NORM, 0);
-                    ent.pain_debounce_time = GameBase.level.time + 1;
+                    ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                 }
                 NoAmmoWeaponChange(ent);
                 return true;
@@ -972,11 +972,11 @@ public class PlayerWeapon {
                 shots = client.pers.inventory[client.ammo_index];
 
             if (0 == shots) {
-                if (GameBase.level.time >= ent.pain_debounce_time) {
+                if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
                     GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                             .soundindex("weapons/noammo.wav"), 1,
                             Defines.ATTN_NORM, 0);
-                    ent.pain_debounce_time = GameBase.level.time + 1;
+                    ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                 }
                 NoAmmoWeaponChange(ent);
                 return true;
@@ -1098,7 +1098,7 @@ public class PlayerWeapon {
 
         gclient_t client = ent.getClient();
         if (client.grenade_time != 0) {
-            client.grenade_time = GameBase.level.time;
+            client.grenade_time = GameBase.gameExports.level.time;
             client.weapon_sound = 0;
             weapon_grenade_fire(ent, false);
             client.grenade_time = 0;
@@ -1217,7 +1217,7 @@ public class PlayerWeapon {
         // call active weapon think routine
         if (null != client.pers.weapon
                 && null != client.pers.weapon.weaponthink) {
-            is_quad = (client.quad_framenum > GameBase.level.framenum);
+            is_quad = (client.quad_framenum > GameBase.gameExports.level.framenum);
             if (client.silencer_shots != 0)
                 is_silenced = (byte) Defines.MZ_SILENCED;
             else
@@ -1318,11 +1318,11 @@ public class PlayerWeapon {
                         client.anim_end = M_Player.FRAME_attack8;
                     }
                 } else {
-                    if (GameBase.level.time >= ent.pain_debounce_time) {
+                    if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
                         GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
                                 .soundindex("weapons/noammo.wav"), 1,
                                 Defines.ATTN_NORM, 0);
-                        ent.pain_debounce_time = GameBase.level.time + 1;
+                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
                     }
                     NoAmmoWeaponChange(ent);
                 }
@@ -1349,7 +1349,7 @@ public class PlayerWeapon {
         if (client.weaponstate == WeaponStates.WEAPON_FIRING) {
             for (n = 0; fire_frames[n] != 0; n++) {
                 if (client.getPlayerState().gunframe == fire_frames[n]) {
-                    if (client.quad_framenum > GameBase.level.framenum)
+                    if (client.quad_framenum > GameBase.gameExports.level.framenum)
                         GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
                                 .soundindex("items/damage3.wav"), 1,
                                 Defines.ATTN_NORM, 0);
@@ -1393,7 +1393,7 @@ public class PlayerWeapon {
         Math3D.AngleVectors(client.v_angle, forward, right, null);
         P_ProjectSource(client, ent.s.origin, offset, forward, right, start);
 
-        timer = client.grenade_time - GameBase.level.time;
+        timer = client.grenade_time - GameBase.gameExports.level.time;
         speed = (int) (GameDefines.GRENADE_MINSPEED + (GameDefines.GRENADE_TIMER - timer)
                 * ((GameDefines.GRENADE_MAXSPEED - GameDefines.GRENADE_MINSPEED) / GameDefines.GRENADE_TIMER));
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
@@ -1402,7 +1402,7 @@ public class PlayerWeapon {
         if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
             client.pers.inventory[client.ammo_index]--;
 
-        client.grenade_time = GameBase.level.time + 1.0f;
+        client.grenade_time = GameBase.gameExports.level.time + 1.0f;
 
         if (ent.deadflag != 0 || ent.s.modelindex != 255) // VWep animations
         // screw up corpses
@@ -1512,20 +1512,20 @@ public class PlayerWeapon {
     
         if (type == GameDefines.PNOISE_SELF || type == GameDefines.PNOISE_WEAPON) {
             noise = who.mynoise;
-            GameBase.level.sound_entity = noise;
-            GameBase.level.sound_entity_framenum = GameBase.level.framenum;
+            GameBase.gameExports.level.sound_entity = noise;
+            GameBase.gameExports.level.sound_entity_framenum = GameBase.gameExports.level.framenum;
         } 
         else // type == PNOISE_IMPACT
         {
             noise = who.mynoise2;
-            GameBase.level.sound2_entity = noise;
-            GameBase.level.sound2_entity_framenum = GameBase.level.framenum;
+            GameBase.gameExports.level.sound2_entity = noise;
+            GameBase.gameExports.level.sound2_entity_framenum = GameBase.gameExports.level.framenum;
         }
     
         Math3D.VectorCopy(where, noise.s.origin);
         Math3D.VectorSubtract(where, noise.maxs, noise.absmin);
         Math3D.VectorAdd(where, noise.maxs, noise.absmax);
-        noise.teleport_time = GameBase.level.time;
+        noise.teleport_time = GameBase.gameExports.level.time;
         GameBase.gameExports.gameImports.linkentity(noise);
     }
 }

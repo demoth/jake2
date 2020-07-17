@@ -814,10 +814,10 @@ public class M_Medic {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
 
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
@@ -968,7 +968,7 @@ public class M_Medic {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.level.time + 1;
+            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
             GameBase.gameExports.gameImports.linkentity(self);
             return true;
         }
@@ -977,7 +977,7 @@ public class M_Medic {
     static EntThinkAdapter medic_duck_hold = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_hold"; }
         public boolean think(SubgameEntity self) {
-            if (GameBase.level.time >= self.monsterinfo.pausetime)
+            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -1150,7 +1150,7 @@ public class M_Medic {
                 GameSpawn.ED_CallSpawn(self.enemy);
                 self.enemy.setOwner(null);
                 if (self.enemy.think != null) {
-                    self.enemy.nextthink = GameBase.level.time;
+                    self.enemy.nextthink = GameBase.gameExports.level.time;
                     self.enemy.think.think(self.enemy);
                 }
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;

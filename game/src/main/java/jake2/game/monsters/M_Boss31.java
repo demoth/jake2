@@ -548,7 +548,7 @@ public class M_Boss31 {
 
             self.s.sound = 0;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames if he takes
@@ -577,7 +577,7 @@ public class M_Boss31 {
                 if (Lib.random() <= 0.005)
                     return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             if (GameBase.gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
@@ -805,7 +805,7 @@ public class M_Boss31 {
             if (self.monsterinfo.attack == null)
                 return false;
 
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (enemy_range == GameDefines.RANGE_FAR)
@@ -825,7 +825,7 @@ public class M_Boss31 {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.level.time + 2
+                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }

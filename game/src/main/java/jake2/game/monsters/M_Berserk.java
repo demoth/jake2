@@ -841,10 +841,10 @@ public class M_Berserk {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.level.time < self.pain_debounce_time)
+            if (GameBase.gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.level.time + 3;
+            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 

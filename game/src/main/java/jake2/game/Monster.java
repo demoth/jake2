@@ -158,13 +158,13 @@ public class Monster {
         }
 
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
-            GameBase.level.total_monsters++;
+            GameBase.gameExports.level.total_monsters++;
 
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
         self.takedamage = Defines.DAMAGE_AIM;
-        self.air_finished = GameBase.level.time + 12;
+        self.air_finished = GameBase.gameExports.level.time + 12;
         self.use = GameUtil.monster_use;
         self.max_health = self.health;
         self.clipmask = Defines.MASK_MONSTERSOLID;
@@ -209,7 +209,7 @@ public class Monster {
              * if (true) { Com.Printf("all entities:\n");
              * 
              * for (int n = 0; n < Game.globals.num_edicts; n++) { edict_t ent =
-             * GameBase.g_edicts[n]; Com.Printf( "|%4i | %25s
+             * GameBase.gameExports.g_edicts[n]; Com.Printf( "|%4i | %25s
              * |%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f|\n", new
              * Vargs().add(n).add(ent.classname).
              * add(ent.s.origin[0]).add(ent.s.origin[1]).add(ent.s.origin[2])
@@ -285,7 +285,7 @@ public class Monster {
         }
 
         self.think = Monster.monster_think;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
     }
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
@@ -314,7 +314,7 @@ public class Monster {
             self.solid = Defines.SOLID_BBOX;
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.air_finished = GameBase.level.time + 12;
+            self.air_finished = GameBase.gameExports.level.time + 12;
             GameBase.gameExports.gameImports.linkentity(self);
 
             Monster.monster_start_go(self);
@@ -335,7 +335,7 @@ public class Monster {
         public String getID() { return "monster_trigger_spawn_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
             self.think = monster_triggered_spawn;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
             if (activator.getClient() != null)
                 self.enemy = activator;
             self.use = GameUtil.monster_use;

@@ -111,7 +111,7 @@ public class GameTurret {
         self.blocked = turret_blocked;
 
         self.think = turret_breach_finish_init;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
         GameBase.gameExports.gameImports.linkentity(self);
     }
 
@@ -151,7 +151,7 @@ public class GameTurret {
 
         self.flags |= GameDefines.FL_NO_KNOCKBACK;
 
-        GameBase.level.total_monsters++;
+        GameBase.gameExports.level.total_monsters++;
 
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
@@ -170,7 +170,7 @@ public class GameTurret {
         }
 
         self.think = turret_driver_link;
-        self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
         GameBase.gameExports.gameImports.linkentity(self);
     }
@@ -256,7 +256,7 @@ public class GameTurret {
 
             Math3D.VectorScale(delta, 1.0f / Defines.FRAMETIME, self.avelocity);
 
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
             for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
                 ent.avelocity[1] = self.avelocity[1];
@@ -361,7 +361,7 @@ public class GameTurret {
             float[] dir = { 0, 0, 0 };
             float reaction_time;
 
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
             if (self.enemy != null
                     && (!self.enemy.inuse || self.enemy.health <= 0))
@@ -370,12 +370,12 @@ public class GameTurret {
             if (null == self.enemy) {
                 if (!GameUtil.FindTarget(self))
                     return true;
-                self.monsterinfo.trail_time = GameBase.level.time;
+                self.monsterinfo.trail_time = GameBase.gameExports.level.time;
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
             } else {
                 if (GameUtil.visible(self, self.enemy)) {
                     if ((self.monsterinfo.aiflags & GameDefines.AI_LOST_SIGHT) != 0) {
-                        self.monsterinfo.trail_time = GameBase.level.time;
+                        self.monsterinfo.trail_time = GameBase.gameExports.level.time;
                         self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                     }
                 } else {
@@ -391,14 +391,14 @@ public class GameTurret {
             Math3D.vectoangles(dir, self.target_ent.move_angles);
 
             // decide if we should shoot
-            if (GameBase.level.time < self.monsterinfo.attack_finished)
+            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
                 return true;
 
             reaction_time = (3 - GameBase.gameExports.cvarCache.skill.value) * 1.0f;
-            if ((GameBase.level.time - self.monsterinfo.trail_time) < reaction_time)
+            if ((GameBase.gameExports.level.time - self.monsterinfo.trail_time) < reaction_time)
                 return true;
 
-            self.monsterinfo.attack_finished = GameBase.level.time
+            self.monsterinfo.attack_finished = GameBase.gameExports.level.time
                     + reaction_time + 1.0f;
             //FIXME how do we really want to pass this along?
             self.target_ent.spawnflags |= 65536;
@@ -413,7 +413,7 @@ public class GameTurret {
             float[] vec = { 0, 0, 0 };
 
             self.think = turret_driver_think;
-            self.nextthink = GameBase.level.time + Defines.FRAMETIME;
+            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
 
             self.target_ent = GameBase.G_PickTarget(self.target);
             self.target_ent.setOwner(self);
