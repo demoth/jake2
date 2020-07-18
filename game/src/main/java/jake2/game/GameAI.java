@@ -267,28 +267,31 @@ public class GameAI {
      * If all clients are either dead or in notarget, sight_client will be null.
      * 
      * In coop games, sight_client will cycle between the clients.
+     *
+     * todo: remove while(true), move to one loop over client entities only
      */
-    static void AI_SetSightClient() {
-        int start;
-        if (GameBase.gameExports.level.sight_client == null)
+    static void AI_SetSightClient(GameExportsImpl gameExports) {
+        final int start;
+        if (gameExports.level.sight_client != null) {
+            start = gameExports.level.sight_client.index;
+        } else {
             start = 1;
-        else
-            start = GameBase.gameExports.level.sight_client.index;
+        }
 
         int check = start;
         while (true) {
             check++;
-            if (check > GameBase.gameExports.game.maxclients)
+            if (check > gameExports.game.maxclients) {
                 check = 1;
-            SubgameEntity ent = GameBase.gameExports.g_edicts[check];
+            }
+            SubgameEntity ent = gameExports.g_edicts[check];
 
-            if (ent.inuse && ent.health > 0
-                    && (ent.flags & GameDefines.FL_NOTARGET) == 0) {
-                GameBase.gameExports.level.sight_client = ent;
+            if (ent.inuse && ent.health > 0 && (ent.flags & GameDefines.FL_NOTARGET) == 0) {
+                gameExports.level.sight_client = ent;
                 return; // got one
             }
             if (check == start) {
-                GameBase.gameExports.level.sight_client = null;
+                gameExports.level.sight_client = null;
                 return; // nobody to see
             }
         }

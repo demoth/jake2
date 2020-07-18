@@ -27,14 +27,15 @@
 package jake2.game;
 
 import jake2.qcommon.*;
-import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 import java.util.StringTokenizer;
 
 public class GameBase {
+    @Deprecated
     public static GameExportsImpl gameExports;
+
     static cplane_t dummyplane = new cplane_t();
 
     // this is used to store parsed entity fields during map loading
@@ -247,38 +248,6 @@ public class GameBase {
 
     static int STEPSIZE = 18;
 
-    /**
-     * G_RunEntity
-     */
-    private static void G_RunEntity(SubgameEntity ent) {
-
-        if (ent.prethink != null)
-            ent.prethink.think(ent);
-
-        switch (ent.movetype) {
-        case GameDefines.MOVETYPE_PUSH:
-        case GameDefines.MOVETYPE_STOP:
-            SV.SV_Physics_Pusher(ent);
-            break;
-        case GameDefines.MOVETYPE_NONE:
-            SV.SV_Physics_None(ent);
-            break;
-        case GameDefines.MOVETYPE_NOCLIP:
-            SV.SV_Physics_Noclip(ent);
-            break;
-        case GameDefines.MOVETYPE_STEP:
-            gameExports.sv.SV_Physics_Step(ent);
-            break;
-        case GameDefines.MOVETYPE_TOSS:
-        case GameDefines.MOVETYPE_BOUNCE:
-        case GameDefines.MOVETYPE_FLY:
-        case GameDefines.MOVETYPE_FLYMISSILE:
-            gameExports.sv.SV_Physics_Toss(ent);
-            break;
-        default:
-            gameExports.gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
-        }
-    }
 
     static EdictFindFilter findByTarget = new EdictFindFilter() {
         public boolean matches(SubgameEntity e, String s) {
@@ -294,23 +263,6 @@ public class GameBase {
         }
     };
 
-    /**
-     * ClientEndServerFrames.
-     */
-    private static void ClientEndServerFrames() {
-        int i;
-        SubgameEntity ent;
-
-        // calc the player views now that all pushing
-        // and damage has been added
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            ent = gameExports.g_edicts[1 + i];
-            if (!ent.inuse || null == ent.getClient())
-                continue;
-            gameExports.playerView.ClientEndServerFrame(ent);
-        }
-
-    }
 
     /**
      * Returns the created target changelevel.
@@ -387,7 +339,7 @@ public class GameBase {
     /**
      * CheckNeedPass.
      */
-    private static void CheckNeedPass() {
+    static void CheckNeedPass() {
 
         // if password or spectator_password has changed, update needpass
         // as needed
@@ -412,7 +364,7 @@ public class GameBase {
     /**
      * CheckDMRules.
      */
-    private static void CheckDMRules() {
+    static void CheckDMRules() {
         int i;
         gclient_t cl;
 
@@ -445,87 +397,4 @@ public class GameBase {
         }
     }
 
-    /**
-     * Exits a level.
-     */
-    private static void ExitLevel() {
-        int i;
-        SubgameEntity ent;
-
-        String command = "gamemap \"" + gameExports.level.changemap + "\"\n";
-        gameExports.gameImports.AddCommandString(command);
-        gameExports.level.changemap = null;
-        gameExports.level.exitintermission = false;
-        gameExports.level.intermissiontime = 0;
-        ClientEndServerFrames();
-
-        // clear some things before going to next gameExports.level
-        for (i = 0; i < gameExports.game.maxclients; i++) {
-            ent = gameExports.g_edicts[1 + i];
-            if (!ent.inuse)
-                continue;
-            gclient_t client = ent.getClient();
-            if (ent.health > client.pers.max_health)
-                ent.health = client.pers.max_health;
-        }
-    }
-
-    static void G_RunFrame() {
-        int i;
-        SubgameEntity ent;
-
-        gameExports.level.framenum++;
-        gameExports.level.time = gameExports.level.framenum * Defines.FRAMETIME;
-
-        // choose a client for monsters to target this frame
-        GameAI.AI_SetSightClient();
-
-        // exit intermissions
-
-        if (gameExports.level.exitintermission) {
-            ExitLevel();
-            return;
-        }
-
-        //
-        // treat each object in turn
-        // even the world gets a chance to think
-        //
-
-        for (i = 0; i < gameExports.num_edicts; i++) {
-            ent = gameExports.g_edicts[i];
-            if (!ent.inuse)
-                continue;
-
-            gameExports.level.current_entity = ent;
-
-            Math3D.VectorCopy(ent.s.origin, ent.s.old_origin);
-
-            // if the ground entity moved, make sure we are still on it
-            if ((ent.groundentity != null)
-                    && (ent.groundentity.linkcount != ent.groundentity_linkcount)) {
-                ent.groundentity = null;
-                if (0 == (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY))
-                        && (ent.svflags & Defines.SVF_MONSTER) != 0) {
-                    M.M_CheckGround(ent);
-                }
-            }
-
-            if (i > 0 && i <= gameExports.game.maxclients) {
-                PlayerClient.ClientBeginServerFrame(ent);
-                continue;
-            }
-
-            G_RunEntity(ent);
-        }
-
-        // see if it is time to end a deathmatch
-        CheckDMRules();
-
-        // see if needpass needs updated
-        CheckNeedPass();
-
-        // build the playerstate_t structures for all players
-        ClientEndServerFrames();
-    }
 }

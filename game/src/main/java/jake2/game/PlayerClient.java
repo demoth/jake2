@@ -873,100 +873,12 @@ public class PlayerClient {
         GameBase.gameExports.gameImports.AddCommandString("menu_loadgame\n");
     }
 
-    private static boolean passwdOK(String i1, String i2) {
+    static boolean passwdOK(String i1, String i2) {
         if (i1.length() != 0 && !i1.equals("none") && !i1.equals(i2))
             return false;
         return true;
     }
 
-    /**
-     * Only called when pers.spectator changes note that resp.spectator should
-     * be the opposite of pers.spectator here
-     */
-    public static void spectator_respawn(SubgameEntity ent) {
-        int i, numspec;
-
-        // if the user wants to become a spectator, make sure he doesn't
-        // exceed max_spectators
-
-        gclient_t client = ent.getClient();
-        if (client.pers.spectator) {
-            String value = Info.Info_ValueForKey(client.pers.userinfo,
-                    "spectator");
-
-            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
-                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
-                        "Spectator password incorrect.\n");
-                client.pers.spectator = false;
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gameExports.gameImports.WriteString("spectator 0\n");
-                GameBase.gameExports.gameImports.unicast(ent, true);
-                return;
-            }
-
-            // count spectators
-            for (i = 1, numspec = 0; i <= GameBase.gameExports.game.maxclients; i++) {
-                gclient_t other = GameBase.gameExports.g_edicts[i].getClient();
-                if (GameBase.gameExports.g_edicts[i].inuse && other.pers.spectator)
-                    numspec++;
-            }
-
-            if (numspec >= GameBase.gameExports.cvarCache.maxspectators.value) {
-                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
-                        "Server spectator limit is full.");
-                client.pers.spectator = false;
-                // reset his spectator var
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gameExports.gameImports.WriteString("spectator 0\n");
-                GameBase.gameExports.gameImports.unicast(ent, true);
-                return;
-            }
-        } else {
-            // he was a spectator and wants to join the game
-            // he must have the right password
-            String value = Info.Info_ValueForKey(client.pers.userinfo,
-                    "password");
-            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
-                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
-                        "Password incorrect.\n");
-                client.pers.spectator = true;
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_stufftext);
-                GameBase.gameExports.gameImports.WriteString("spectator 1\n");
-                GameBase.gameExports.gameImports.unicast(ent, true);
-                return;
-            }
-        }
-
-        // clear client on respawn
-        client.resp.score = client.pers.score = 0;
-
-        ent.svflags &= ~Defines.SVF_NOCLIENT;
-        PutClientInServer(ent);
-
-        // add a teleportation effect
-        if (!client.pers.spectator) {
-            // send effect
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
-            //gi.WriteShort(ent - g_edicts);
-            GameBase.gameExports.gameImports.WriteShort(ent.index);
-
-            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
-
-            // hold in place briefly
-            client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
-            client.getPlayerState().pmove.pm_time = 14;
-        }
-
-        client.respawn_time = GameBase.gameExports.level.time;
-
-        if (client.pers.spectator)
-            GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
-                    + " has moved to the sidelines\n");
-        else
-            GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
-                    + " joined the game\n");
-    }
 
     /**
      * Called when a player connects to a server or respawns in a deathmatch.
@@ -1542,58 +1454,6 @@ public class PlayerClient {
     }
 
     /**
-     * This will be called once for each server frame, before running any other
-     * entities in the world. 
-     */
-    public static void ClientBeginServerFrame(SubgameEntity ent) {
-        gclient_t client;
-        int buttonMask;
-
-        if (GameBase.gameExports.level.intermissiontime != 0)
-            return;
-
-        client = ent.getClient();
-
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && client.pers.spectator != client.resp.spectator
-                && (GameBase.gameExports.level.time - client.respawn_time) >= 5) {
-            spectator_respawn(ent);
-            return;
-        }
-
-        // run weapon animations if it hasn't been done by a ucmd_t
-        if (!client.weapon_thunk && !client.resp.spectator)
-            PlayerWeapon.Think_Weapon(ent);
-        else
-            client.weapon_thunk = false;
-
-        if (ent.deadflag != 0) {
-            // wait for any button just going down
-            if (GameBase.gameExports.level.time > client.respawn_time) {
-                // in deathmatch, only wait for attack button
-                if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
-                    buttonMask = Defines.BUTTON_ATTACK;
-                else
-                    buttonMask = -1;
-
-                if ((client.latched_buttons & buttonMask) != 0
-                        || (GameBase.gameExports.cvarCache.deathmatch.value != 0 && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
-                    respawn(ent);
-                    client.latched_buttons = 0;
-                }
-            }
-            return;
-        }
-
-        // add player trail so monsters can follow
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
-            if (!GameUtil.visible(ent, PlayerTrail.LastSpot()))
-                PlayerTrail.Add(ent.s.old_origin);
-
-        client.latched_buttons = 0;
-    }
-
-    /** 
      * Returns true, if the players gender flag was set to female. 
      */
     public static boolean IsFemale(SubgameEntity ent) {
