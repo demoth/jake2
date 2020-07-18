@@ -4,13 +4,17 @@ import jake2.game.monsters.M_Player;
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.filesystem.QuakeFile;
+import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static jake2.game.GameBase.*;
+import static jake2.game.PlayerClient.*;
 import static java.util.Comparator.comparingInt;
 
 /**
@@ -132,21 +136,15 @@ public class GameExportsImpl implements GameExports {
         // create necessary cvars
         cvarCache = new CvarCache(imports);
 
-        // fixme: leaking constructor (bad practice)
-        GameBase.gameExports = this;
-
-        // todo replace with constructor
-
-
         CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
         CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
 
-        // todo: move fields from static GameBase fields to GameExportsImpl instance fields
-
+        // fixme: leaking constructor (bad practice)
+        GameBase.gameExports = this;
     }
 
     // create the entities array and fill it with empty entities
-    void CreateEdicts(float max) {
+    private void CreateEdicts(float max) {
         // initialize all entities for this game
         game.maxentities = (int) max;
         g_edicts = new SubgameEntity[game.maxentities];
@@ -155,7 +153,7 @@ public class GameExportsImpl implements GameExports {
     }
 
     // create the clients array and fill it with empty clients
-    void CreateClients(float max) {
+    private void CreateClients(float max) {
         // initialize all clients for this game
         game.maxclients = (int) max;
 
@@ -911,6 +909,214 @@ public class GameExportsImpl implements GameExports {
         gameImports.cprintf(ent, Defines.PRINT_HIGH, text);
     }
 
+    /**
+     * Exits a level.
+     */
+    private void exitLevel() {
+        gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
+        level.changemap = null;
+        level.exitintermission = false;
+        level.intermissiontime = 0;
+
+        ClientEndServerFrames();
+
+        // clear some things before going to next gameExports.level
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity ent = g_edicts[1 + i];
+            if (!ent.inuse)
+                continue;
+            gclient_t client = ent.getClient();
+            if (ent.health > client.pers.max_health)
+                ent.health = client.pers.max_health;
+        }
+    }
+
+    /**
+     * ClientEndServerFrames.
+     * Call playerView.ClientEndServerFrame for all clients
+     */
+    private void ClientEndServerFrames() {
+
+        // calc the player views now that all pushing
+        // and damage has been added
+        for (int i = 0; i < game.maxclients; i++) {
+            SubgameEntity ent = g_edicts[1 + i];
+            if (!ent.inuse || null == ent.getClient()) {
+                continue;
+            }
+            playerView.ClientEndServerFrame(ent);
+        }
+
+    }
+
+    /**
+     * This will be called once for each server frame, before running any other
+     * entities in the world.
+     */
+    private void ClientBeginServerFrame(SubgameEntity ent) {
+
+        if (level.intermissiontime != 0)
+            return;
+
+        gclient_t client = ent.getClient();
+
+        if (cvarCache.deathmatch.value != 0
+                && client.pers.spectator != client.resp.spectator
+                && (level.time - client.respawn_time) >= 5) {
+            spectatorRespawn(ent);
+            return;
+        }
+
+        // run weapon animations if it hasn't been done by a ucmd_t
+        if (!client.weapon_thunk && !client.resp.spectator)
+            PlayerWeapon.Think_Weapon(ent);
+        else
+            client.weapon_thunk = false;
+
+        if (ent.deadflag != 0) {
+            // wait for any button just going down
+            if (level.time > client.respawn_time) {
+                // in deathmatch, only wait for attack button
+                int buttonMask;
+                if (cvarCache.deathmatch.value != 0)
+                    buttonMask = Defines.BUTTON_ATTACK;
+                else
+                    buttonMask = -1;
+
+                if ((client.latched_buttons & buttonMask) != 0
+                        || (cvarCache.deathmatch.value != 0 && 0 != ((int) cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
+                    respawn(ent);
+                    client.latched_buttons = 0;
+                }
+            }
+            return;
+        }
+
+        // add player trail so monsters can follow
+        if (cvarCache.deathmatch.value != 0)
+            if (!GameUtil.visible(ent, PlayerTrail.LastSpot()))
+                PlayerTrail.Add(ent.s.old_origin);
+
+        client.latched_buttons = 0;
+    }
+
+    /**
+     * Only called when pers.spectator changes note that resp.spectator should
+     * be the opposite of pers.spectator here
+     */
+    private void spectatorRespawn(SubgameEntity ent) {
+
+        // if the user wants to become a spectator, make sure he doesn't
+        // exceed max_spectators
+
+        gclient_t client = ent.getClient();
+        if (client.pers.spectator) {
+            String value = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
+
+            if (!passwdOK(cvarCache.spectator_password.string, value)) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
+                client.pers.spectator = false;
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 0\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+
+            // count spectators
+            int numspec;
+            int i;
+            for (i = 1, numspec = 0; i <= game.maxclients; i++) {
+                gclient_t other = g_edicts[i].getClient();
+                if (g_edicts[i].inuse && other.pers.spectator)
+                    numspec++;
+            }
+
+            if (numspec >= cvarCache.maxspectators.value) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH,
+                        "Server spectator limit is full.");
+                client.pers.spectator = false;
+                // reset his spectator var
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 0\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+        } else {
+            // he was a spectator and wants to join the game
+            // he must have the right password
+            String password = Info.Info_ValueForKey(client.pers.userinfo, "password");
+            if (!passwdOK(cvarCache.password.string, password)) {
+                gameImports.cprintf(ent, Defines.PRINT_HIGH, "Password incorrect.\n");
+                client.pers.spectator = true;
+                gameImports.WriteByte(NetworkCommands.svc_stufftext);
+                gameImports.WriteString("spectator 1\n");
+                gameImports.unicast(ent, true);
+                return;
+            }
+        }
+
+        // clear client on respawn
+        client.resp.score = client.pers.score = 0;
+
+        ent.svflags &= ~Defines.SVF_NOCLIENT;
+        PutClientInServer(ent);
+
+        // add a teleportation effect
+        if (!client.pers.spectator) {
+            // send effect
+            gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+            //gi.WriteShort(ent - g_edicts);
+            gameImports.WriteShort(ent.index);
+
+            gameImports.WriteByte(Defines.MZ_LOGIN);
+            gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+
+            // hold in place briefly
+            client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
+            client.getPlayerState().pmove.pm_time = 14;
+        }
+
+        client.respawn_time = level.time;
+
+        if (client.pers.spectator)
+            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " has moved to the sidelines\n");
+        else
+            gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname + " joined the game\n");
+    }
+
+    /**
+     * G_RunEntity
+     */
+    void runEntity(SubgameEntity ent) {
+
+        // call prethink handler
+        if (ent.prethink != null)
+            ent.prethink.think(ent);
+
+        switch (ent.movetype) {
+            case GameDefines.MOVETYPE_PUSH:
+            case GameDefines.MOVETYPE_STOP:
+                SV.SV_Physics_Pusher(ent);
+                break;
+            case GameDefines.MOVETYPE_NONE:
+                SV.SV_Physics_None(ent);
+                break;
+            case GameDefines.MOVETYPE_NOCLIP:
+                SV.SV_Physics_Noclip(ent);
+                break;
+            case GameDefines.MOVETYPE_STEP:
+                sv.SV_Physics_Step(ent);
+                break;
+            case GameDefines.MOVETYPE_TOSS:
+            case GameDefines.MOVETYPE_BOUNCE:
+            case GameDefines.MOVETYPE_FLY:
+            case GameDefines.MOVETYPE_FLYMISSILE:
+                sv.SV_Physics_Toss(ent);
+                break;
+            default:
+                gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
+        }
+    }
 
     @Override
     public void ClientCommand(edict_t player, List<String> args) {
@@ -1027,7 +1233,55 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void G_RunFrame() {
-        GameBase.G_RunFrame();
+        level.framenum++;
+        level.time = level.framenum * Defines.FRAMETIME;
+
+        // choose a client for monsters to target this frame
+        GameAI.AI_SetSightClient(this);
+
+        // exit intermissions
+
+        if (level.exitintermission) {
+            exitLevel();
+            return;
+        }
+
+        //
+        // treat each object in turn
+        // even the world gets a chance to think
+        for (int i = 0; i < num_edicts; i++) {
+            SubgameEntity ent = g_edicts[i];
+            if (!ent.inuse)
+                continue;
+
+            level.current_entity = ent;
+
+            Math3D.VectorCopy(ent.s.origin, ent.s.old_origin);
+
+            // if the ground entity moved, make sure we are still on it
+            if (ent.groundentity != null && ent.groundentity.linkcount != ent.groundentity_linkcount) {
+                ent.groundentity = null;
+                if (0 == (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) && (ent.svflags & Defines.SVF_MONSTER) != 0) {
+                    M.M_CheckGround(ent);
+                }
+            }
+
+            if (i > 0 && i <= game.maxclients) {
+                ClientBeginServerFrame(ent);
+                continue;
+            }
+
+            runEntity(ent);
+        }
+
+        // see if it is time to end a deathmatch
+        CheckDMRules();
+
+        // see if needpass needs updated
+        CheckNeedPass();
+
+        // build the playerstate_t structures for all players
+        ClientEndServerFrames();
     }
 
     @Override
