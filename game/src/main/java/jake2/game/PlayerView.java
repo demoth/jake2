@@ -961,7 +961,7 @@ class PlayerView {
      * Called for each player at the end of the server frame and right after
      * spawning.
      */
-    void ClientEndServerFrame(SubgameEntity ent) {
+    void ClientEndServerFrame(SubgameEntity ent, GameExportsImpl gameExports) {
         float bobtime;
         int i;
 
@@ -985,7 +985,7 @@ class PlayerView {
         // If the end of unit layout is displayed, don't give
         // the player any normal movement attributes
         //
-        if (GameBase.gameExports.level.intermissiontime != 0) {
+        if (gameExports.level.intermissiontime != 0) {
             // FIXME: add view drifting here?
             current_client.getPlayerState().blend[3] = 0;
             current_client.getPlayerState().fov = 90;
@@ -1080,9 +1080,9 @@ class PlayerView {
         Math3D.VectorClear(current_client.kick_angles);
 
         // if the scoreboard is up, update it
-        if (current_client.showscores && 0 == (GameBase.gameExports.level.framenum & 31)) {
+        if (current_client.showscores && 0 == (gameExports.level.framenum & 31)) {
             PlayerHud.DeathmatchScoreboardMessage(ent, ent.enemy);
-            GameBase.gameExports.gameImports.unicast(ent, false);
+            gameExports.gameImports.unicast(ent, false);
         }
     }
 

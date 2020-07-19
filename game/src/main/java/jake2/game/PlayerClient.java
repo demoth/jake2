@@ -540,10 +540,10 @@ public class PlayerClient {
         client.pers.connected = true;
     }
 
-    public static void InitClientResp(gclient_t client) {
+    public static void InitClientResp(gclient_t client, GameExportsImpl gameExports) {
         //memset(& client.resp, 0, sizeof(client.resp));
         client.resp.clear(); //  ok.
-        client.resp.enterframe = GameBase.gameExports.level.framenum;
+        client.resp.enterframe = gameExports.level.framenum;
         client.resp.coop_respawn.set(client.pers);
     }
 
@@ -848,13 +848,13 @@ public class PlayerClient {
         GameBase.gameExports.gameImports.linkentity(body);
     }
 
-    public static void respawn(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
+    public static void respawn(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
                 CopyToBodyQue(self);
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            PutClientInServer(self);
+            PutClientInServer(self, gameExports);
 
             // add a teleportation effect
             self.s.event = Defines.EV_PLAYER_TELEPORT;
@@ -864,13 +864,13 @@ public class PlayerClient {
             client.getPlayerState().pmove.pm_flags = Defines.PMF_TIME_TELEPORT;
             client.getPlayerState().pmove.pm_time = 14;
 
-            client.respawn_time = GameBase.gameExports.level.time;
+            client.respawn_time = gameExports.level.time;
 
             return;
         }
 
         // restart the entire server
-        GameBase.gameExports.gameImports.AddCommandString("menu_loadgame\n");
+        gameExports.gameImports.AddCommandString("menu_loadgame\n");
     }
 
     static boolean passwdOK(String i1, String i2) {
@@ -883,7 +883,7 @@ public class PlayerClient {
     /**
      * Called when a player connects to a server or respawns in a deathmatch.
      */
-    public static void PutClientInServer(SubgameEntity ent) {
+    public static void PutClientInServer(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] mins = { -16, -16, -24 };
         float[] maxs = { 16, 16, 32 };
         int index;
@@ -902,7 +902,7 @@ public class PlayerClient {
         client = ent.getClient();
 
         // deathmatch wipes most client data every spawn
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
 
             resp.set(client.resp);
             String userinfo = client.pers.userinfo;
@@ -910,7 +910,7 @@ public class PlayerClient {
 
             userinfo = ClientUserinfoChanged(ent, userinfo);
 
-        } else if (GameBase.gameExports.cvarCache.coop.value != 0) {
+        } else if (gameExports.cvarCache.coop.value != 0) {
 
             resp.set(client.resp);
 
@@ -940,7 +940,7 @@ public class PlayerClient {
 
         // clear entity values
         ent.groundentity = null;
-        ent.setClient(GameBase.gameExports.game.clients[index]);
+        ent.setClient(gameExports.game.clients[index]);
         ent.takedamage = Defines.DAMAGE_AIM;
         ent.movetype = GameDefines.MOVETYPE_WALK;
         ent.viewheight = 22;
@@ -949,7 +949,7 @@ public class PlayerClient {
         ent.mass = 200;
         ent.solid = Defines.SOLID_BBOX;
         ent.deadflag = GameDefines.DEAD_NO;
-        ent.air_finished = GameBase.gameExports.level.time + 12;
+        ent.air_finished = gameExports.level.time + 12;
         ent.clipmask = Defines.MASK_PLAYERSOLID;
         ent.model = "players/male/tris.md2";
         ent.pain = PlayerClient.player_pain;
@@ -970,8 +970,8 @@ public class PlayerClient {
         client.getPlayerState().pmove.origin[1] = (short) (spawn_origin[1] * 8);
         client.getPlayerState().pmove.origin[2] = (short) (spawn_origin[2] * 8);
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && 0 != ((int) gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib.atoi(Info.Info_ValueForKey(
@@ -982,7 +982,7 @@ public class PlayerClient {
                 client.getPlayerState().fov = 160;
         }
 
-        client.getPlayerState().gunindex = GameBase.gameExports.gameImports
+        client.getPlayerState().gunindex = gameExports.gameImports
                 .modelindex(client.pers.weapon.view_model);
 
         // clear entity state values
@@ -1020,7 +1020,7 @@ public class PlayerClient {
             ent.solid = Defines.SOLID_NOT;
             ent.svflags |= Defines.SVF_NOCLIENT;
             ent.getClient().getPlayerState().gunindex = 0;
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             return;
         } else
             client.resp.spectator = false;
@@ -1028,7 +1028,7 @@ public class PlayerClient {
         if (!GameUtil.KillBox(ent)) { // could't spawn in?
         }
 
-        GameBase.gameExports.gameImports.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
 
         // force the current weapon up
         client.newweapon = client.pers.weapon;
@@ -1039,40 +1039,40 @@ public class PlayerClient {
      * A client has just connected to the server in deathmatch mode, so clear
      * everything out before starting them.
      */
-    public static void ClientBeginDeathmatch(SubgameEntity ent) {
+    public static void ClientBeginDeathmatch(SubgameEntity ent, GameExportsImpl gameExports) {
         GameUtil.G_InitEdict(ent, ent.index);
 
         gclient_t client = ent.getClient();
-        InitClientResp(client);
+        InitClientResp(client, gameExports);
 
         // locate ent at a spawn point
-        PutClientInServer(ent);
+        PutClientInServer(ent, gameExports);
 
-        if (GameBase.gameExports.level.intermissiontime != 0) {
+        if (gameExports.level.intermissiontime != 0) {
             PlayerHud.MoveClientToIntermission(ent);
         } else {
             // send effect
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
             //gi.WriteShort(ent - g_edicts);
-            GameBase.gameExports.gameImports.WriteShort(ent.index);
-            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteShort(ent.index);
+            gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
 
-        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
+        gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                 + " entered the game\n");
 
         // make sure all view stuff is valid
-        GameBase.gameExports.playerView.ClientEndServerFrame(ent);
+        gameExports.playerView.ClientEndServerFrame(ent, gameExports);
     }
 
-    static void ClientBegin(SubgameEntity ent) {
+    static void ClientBegin(SubgameEntity ent, GameExportsImpl gameExports) {
 
         //ent.client = game.clients + (ent - g_edicts - 1);
-        ent.setClient(GameBase.gameExports.game.clients[ent.index - 1]);
+        ent.setClient(gameExports.game.clients[ent.index - 1]);
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-            ClientBeginDeathmatch(ent);
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            ClientBeginDeathmatch(ent, gameExports);
             return;
         }
 
@@ -1093,27 +1093,27 @@ public class PlayerClient {
             // ClientConnect() time
             GameUtil.G_InitEdict(ent, ent.index);
             ent.classname = "player";
-            InitClientResp(client);
-            PutClientInServer(ent);
+            InitClientResp(client, gameExports);
+            PutClientInServer(ent, gameExports);
         }
 
-        if (GameBase.gameExports.level.intermissiontime != 0) {
+        if (gameExports.level.intermissiontime != 0) {
             PlayerHud.MoveClientToIntermission(ent);
         } else {
             // send effect if in a multiplayer game
-            if (GameBase.gameExports.game.maxclients > 1) {
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
-                GameBase.gameExports.gameImports.WriteShort(ent.index);
-                GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
-                GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            if (gameExports.game.maxclients > 1) {
+                gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+                gameExports.gameImports.WriteShort(ent.index);
+                gameExports.gameImports.WriteByte(Defines.MZ_LOGIN);
+                gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-                GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
+                gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                         + " entered the game\n");
             }
         }
 
         // make sure all view stuff is valid
-        GameBase.gameExports.playerView.ClientEndServerFrame(ent);
+        gameExports.playerView.ClientEndServerFrame(ent, gameExports);
     }
 
     static String ClientUserinfoChanged(SubgameEntity ent, String userinfo) {
@@ -1173,88 +1173,88 @@ public class PlayerClient {
         return userinfo;
     }
 
-    static boolean ClientConnect(SubgameEntity ent, String userinfo) {
-        String value;
-
+    /**
+     * Run checks before the clients is allowed to connect and then connect the client
+     * @return if client successfully connected
+     */
+    static boolean ClientConnect(SubgameEntity ent, String userinfo, GameExportsImpl gameExports) {
         // check to see if they are on the banned IP list
-        value = Info.Info_ValueForKey(userinfo, "ip");
-        if (GameSVCmds.SV_FilterPacket(value)) {
-            userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
+        String ip = Info.Info_ValueForKey(userinfo, "ip");
+        if (GameSVCmds.SV_FilterPacket(ip)) {
+            Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
             return false;
         }
 
         // check for a spectator
-        value = Info.Info_ValueForKey(userinfo, "spectator");
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && value.length() != 0 && !"0".equals(value)) {
-            int i, numspec;
+        String spectator = Info.Info_ValueForKey(userinfo, "spectator");
+        if (gameExports.cvarCache.deathmatch.value != 0 && spectator.length() != 0 && !"0".equals(spectator)) {
 
-            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
-                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
-                        "Spectator password required or incorrect.");
+            // check for spectator password
+            if (!passwdOK(gameExports.cvarCache.spectator_password.string, spectator)) {
+                Info.Info_SetValueForKey(userinfo, "rejmsg", "Spectator password required or incorrect.");
                 return false;
             }
 
-            // count spectators
-            for (i = numspec = 0; i < GameBase.gameExports.game.maxclients; i++) {
-                gclient_t other = GameBase.gameExports.g_edicts[i + 1].getClient();
-                if (GameBase.gameExports.g_edicts[i + 1].inuse && other.pers.spectator)
+            // check spectators limit
+            int numspec;
+            for (int i = numspec = 0; i < gameExports.game.maxclients; i++) {
+                gclient_t other = gameExports.g_edicts[i + 1].getClient();
+                if (gameExports.g_edicts[i + 1].inuse && other.pers.spectator)
                     numspec++;
             }
 
-            if (numspec >= GameBase.gameExports.cvarCache.maxspectators.value) {
-                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
-                        "Server spectator limit is full.");
+            if (numspec >= gameExports.cvarCache.maxspectators.value) {
+                Info.Info_SetValueForKey(userinfo, "rejmsg", "Server spectator limit is full.");
                 return false;
             }
         } else {
             // check for a password
-            value = Info.Info_ValueForKey(userinfo, "password");
-            if (!passwdOK(GameBase.gameExports.cvarCache.spectator_password.string, value)) {
-                userinfo = Info.Info_SetValueForKey(userinfo, "rejmsg",
-                        "Password required or incorrect.");
+            String password = Info.Info_ValueForKey(userinfo, "password");
+            if (!passwdOK(gameExports.cvarCache.spectator_password.string, password)) {
+                Info.Info_SetValueForKey(userinfo, "rejmsg", "Password required or incorrect.");
                 return false;
             }
         }
 
         // they can connect
-        ent.setClient(GameBase.gameExports.game.clients[ent.index - 1]);
+        ent.setClient(gameExports.game.clients[ent.index - 1]);
 
         // if there is already a body waiting for us (a loadgame), just
         // take it, otherwise spawn one from scratch
         gclient_t client = ent.getClient();
-        if (ent.inuse == false) {
+        if (!ent.inuse) {
             // clear the respawning variables
-            InitClientResp(client);
-            if (!GameBase.gameExports.game.autosaved || null == client.pers.weapon)
+            InitClientResp(client, gameExports);
+            if (!gameExports.game.autosaved || null == client.pers.weapon)
                 InitClientPersistant(client);
         }
 
-        userinfo = ClientUserinfoChanged(ent, userinfo);
+        ClientUserinfoChanged(ent, userinfo);
 
-        if (GameBase.gameExports.game.maxclients > 1)
-            GameBase.gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
+        if (gameExports.game.maxclients > 1)
+            gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
 
         ent.svflags = 0; // make sure we start with known default
         client.pers.connected = true;
         return true;
     }
 
-    static void ClientDisconnect(SubgameEntity ent) {
+    static void ClientDisconnect(SubgameEntity ent, GameImports gameImports) {
 
         gclient_t client = ent.getClient();
         if (client == null)
             return;
 
-        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
+        gameImports.bprintf(Defines.PRINT_HIGH, client.pers.netname
                 + " disconnected\n");
 
         // send effect
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
-        GameBase.gameExports.gameImports.WriteShort(ent.index);
-        GameBase.gameExports.gameImports.WriteByte(Defines.MZ_LOGOUT);
-        GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+        gameImports.WriteShort(ent.index);
+        gameImports.WriteByte(Defines.MZ_LOGOUT);
+        gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-        GameBase.gameExports.gameImports.unlinkentity(ent);
+        gameImports.unlinkentity(ent);
         ent.s.modelindex = 0;
         ent.solid = Defines.SOLID_NOT;
         ent.inuse = false;
@@ -1262,7 +1262,7 @@ public class PlayerClient {
         client.pers.connected = false;
 
         int playernum = ent.index - 1;
-        GameBase.gameExports.gameImports.configstring(Defines.CS_PLAYERSKINS + playernum, "");
+        gameImports.configstring(Defines.CS_PLAYERSKINS + playernum, "");
     }
 
     /*
@@ -1285,17 +1285,17 @@ public class PlayerClient {
      * }
      */
 
-    static void ClientThink(SubgameEntity ent, usercmd_t ucmd) {
+    static void ClientThink(SubgameEntity ent, usercmd_t ucmd, GameExportsImpl gameExports) {
 
-        GameBase.gameExports.level.current_entity = ent;
+        gameExports.level.current_entity = ent;
         gclient_t client = ent.getClient();
 
-        if (GameBase.gameExports.level.intermissiontime != 0) {
+        if (gameExports.level.intermissiontime != 0) {
             client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
             // can exit intermission after five seconds
-            if (GameBase.gameExports.level.time > GameBase.gameExports.level.intermissiontime + 5.0f
+            if (gameExports.level.time > gameExports.level.intermissiontime + 5.0f
                     && 0 != (ucmd.buttons & Defines.BUTTON_ANY))
-                GameBase.gameExports.level.exitintermission = true;
+                gameExports.level.exitintermission = true;
             return;
         }
 
@@ -1323,7 +1323,7 @@ public class PlayerClient {
             else
                 client.getPlayerState().pmove.pm_type = Defines.PM_NORMAL;
 
-            client.getPlayerState().pmove.gravity = (short) GameBase.gameExports.cvarCache.sv_gravity.value;
+            client.getPlayerState().pmove.gravity = (short) gameExports.cvarCache.sv_gravity.value;
             pm.s.set(client.getPlayerState().pmove);
 
             for (i = 0; i < 3; i++) {
@@ -1340,10 +1340,10 @@ public class PlayerClient {
             pm.cmd.set(ucmd);
 
             pm.trace = PlayerClient.PM_trace; // adds default parms
-            pm.pointcontents = (float[] p) -> GameBase.gameExports.gameImports.getPointContents(p);
+            pm.pointcontents = gameExports.gameImports::getPointContents;
 
             // perform a pmove
-            GameBase.gameExports.gameImports.Pmove(pm);
+            gameExports.gameImports.Pmove(pm);
 
             // save results of pmove
             client.getPlayerState().pmove.set(pm.s);
@@ -1363,7 +1363,7 @@ public class PlayerClient {
 
             if (ent.groundentity != null && null == pm.groundentity
                     && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
-                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                         .soundindex("*jump1.wav"), 1, Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF);
             }
@@ -1384,7 +1384,7 @@ public class PlayerClient {
                 Math3D.VectorCopy(pm.viewangles, client.getPlayerState().viewangles);
             }
 
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
 
             if (ent.movetype != GameDefines.MOVETYPE_NOCLIP)
                 GameBase.G_TouchTriggers(ent);
@@ -1445,8 +1445,8 @@ public class PlayerClient {
         }
 
         // update chase cam if being followed
-        for (i = 1; i <= GameBase.gameExports.game.maxclients; i++) {
-            other = GameBase.gameExports.g_edicts[i];
+        for (i = 1; i <= gameExports.game.maxclients; i++) {
+            other = gameExports.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && otherClient.chase_target == ent)
                 GameChase.UpdateChaseCam(other);
