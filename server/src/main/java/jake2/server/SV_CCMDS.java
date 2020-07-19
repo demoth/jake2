@@ -337,11 +337,11 @@ public class SV_CCMDS {
 	
 	==============
 	*/
-	static void SV_ReadLevelFile() {
+	static void SV_ReadLevelFile(String saveName) {
 
 		Com.DPrintf("SV_ReadLevelFile()\n");
 
-		String name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sv2";
+		String name = FS.getWriteDir() + "/save/current/" + saveName + ".sv2";
 		try {
 			QuakeFile f = new QuakeFile(name, "r");
 
@@ -357,7 +357,7 @@ public class SV_CCMDS {
 			e1.printStackTrace();
 		}
 
-		name = FS.getWriteDir() + "/save/current/" + SV_INIT.gameImports.sv.name + ".sav";
+		name = FS.getWriteDir() + "/save/current/" + saveName + ".sav";
 		SV_INIT.gameExports.ReadLevel(name);
 	}
 
@@ -452,7 +452,7 @@ public class SV_CCMDS {
 
 			// read game state
 			filename = FS.getWriteDir() + "/save/current/game.ssv";
-			SV_INIT.gameExports.ReadGame(filename);
+			SV_INIT.gameExports.readGameLocals(filename);
 		} catch (Exception e) {
 			Com.Printf("Couldn't read file " + filename + ", " + e.getMessage() + "\n");
 		}

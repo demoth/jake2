@@ -74,9 +74,6 @@ public class SV_MAIN {
 
     static cvar_t sv_airaccelerate;
 
-    static cvar_t sv_noreload; // don't reload level state when
-                                      // reentering
-
     static cvar_t maxclients; // FIXME: rename sv_maxclients
 
     private static cvar_t sv_showclamp;
@@ -894,7 +891,7 @@ public class SV_MAIN {
         SV_MAIN.allow_download_maps = Cvar.Get("allow_download_maps", "1",
                 Defines.CVAR_ARCHIVE);
 
-        SV_MAIN.sv_noreload = Cvar.Get("sv_noreload", "0", 0);
+        Cvar.Get("sv_noreload", "0", 0);
         SV_MAIN.sv_airaccelerate = Cvar.Get("sv_airaccelerate", "0",
                 Defines.CVAR_LATCH);
         SV_MAIN.public_server = Cvar.Get("public", "0", 0);

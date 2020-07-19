@@ -263,79 +263,6 @@ public class GameBase {
         }
     };
 
-
-    /**
-     * Returns the created target changelevel.
-     */
-    private static SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent;
-
-        ent = GameUtil.G_Spawn();
-        ent.classname = "target_changelevel";
-        gameExports.level.nextmap = map;
-        ent.map = gameExports.level.nextmap;
-        return ent;
-    }
-
-    /**
-     * The timelimit or fraglimit has been exceeded.
-     */
-    private static void EndDMLevel() {
-        //char * s, * t, * f;
-        //static const char * seps = " ,\n\r";
-        String seps = " ,\n\r";
-
-        // stay on same level flag
-        if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
-            return;
-        }
-
-        // see if it's in the map list
-        if (gameExports.cvarCache.sv_maplist.string.length() > 0) {
-            String s = gameExports.cvarCache.sv_maplist.string;
-            String f = null;
-            StringTokenizer tk = new StringTokenizer(s, seps);
-            
-            while (tk.hasMoreTokens()){
-                String t = tk.nextToken();
-
-                // store first map
-            	if (f == null)
-            		f = t;
-            	
-                if (t.equalsIgnoreCase(gameExports.level.mapname)) {
-                    // it's in the list, go to the next one
-                	if (!tk.hasMoreTokens()) {
-                		// end of list, go to first one
-                        if (f == null) // there isn't a first one, same gameExports.level
-                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
-                        else
-                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(f));
-                    } else
-                        PlayerHud.BeginIntermission(CreateTargetChangeLevel(tk.nextToken()));
-                    return;
-                }
-            }
-        }
-
-        //not in the map list
-        if (gameExports.level.nextmap.length() > 0) // go to a specific map
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.nextmap));
-        else { // search for a changelevel
-            EdictIterator edit = null;
-            edit = G_Find(edit, findByClass, "target_changelevel");
-            if (edit == null) { // the map designer didn't include a
-                                // changegameExports.level,
-                // so create a fake ent that goes back to the same gameExports.level
-                PlayerHud.BeginIntermission(CreateTargetChangeLevel(gameExports.level.mapname));
-                return;
-            }
-            SubgameEntity ent = edit.o;
-            PlayerHud.BeginIntermission(ent);
-        }
-    }
-
     /**
      * CheckNeedPass.
      */
@@ -361,40 +288,5 @@ public class GameBase {
         }
     }
 
-    /**
-     * CheckDMRules.
-     */
-    static void CheckDMRules() {
-        int i;
-        gclient_t cl;
-
-        if (gameExports.level.intermissiontime != 0)
-            return;
-
-        if (0 == gameExports.cvarCache.deathmatch.value)
-            return;
-
-        if (gameExports.cvarCache.timelimit.value != 0) {
-            if (gameExports.level.time >= gameExports.cvarCache.timelimit.value * 60) {
-                gameExports.gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
-                EndDMLevel();
-                return;
-            }
-        }
-
-        if (gameExports.cvarCache.fraglimit.value != 0) {
-            for (i = 0; i < gameExports.game.maxclients; i++) {
-                cl = gameExports.game.clients[i];
-                if (!gameExports.g_edicts[i + 1].inuse)
-                    continue;
-
-                if (cl.resp.score >= gameExports.cvarCache.fraglimit.value) {
-                    gameExports.gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
-                    EndDMLevel();
-                    return;
-                }
-            }
-        }
-    }
 
 }

@@ -32,7 +32,7 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
-import java.io.IOException;
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 
@@ -116,41 +116,28 @@ public class SV_INIT {
 
     /** 
      * SV_CheckForSavegame.
+     * @param sv
      */
-    private static void SV_CheckForSavegame() {
+    private static void SV_CheckForSavegame(server_t sv) {
 
-        String name;
-        RandomAccessFile f;
-
-        int i;
-
-        if (SV_MAIN.sv_noreload.value != 0)
+        if (Cvar.Get("sv_noreload", "0", 0).value != 0)
             return;
 
         if (Cvar.VariableValue("deathmatch") != 0)
             return;
 
-        name = FS.getWriteDir() + "/save/current/" + gameImports.sv.name + ".sav";
-        try {
-            f = new RandomAccessFile(name, "r");
-        }
+        String name = FS.getWriteDir() + "/save/current/" + sv.name + ".sav";
 
-        catch (Exception e) {
+        if (!new File(name).exists())
             return;
-        }
-
-        try {
-            f.close();
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
 
         SV_WORLD.SV_ClearWorld();
 
         // get configstrings and areaportals
-        SV_CCMDS.SV_ReadLevelFile();
+        // then read game enitites
+        SV_CCMDS.SV_ReadLevelFile(sv.name);
 
-        if (!gameImports.sv.loadgame) { 
+        if (!sv.loadgame) {
             // coming back to a level after being in a different
             // level, so run it for ten seconds
 
@@ -159,12 +146,12 @@ public class SV_INIT {
             // prevents these from being passed down.
             ServerStates previousState; // PGM
 
-            previousState = gameImports.sv.state; // PGM
-            gameImports.sv.state = ServerStates.SS_LOADING; // PGM
-            for (i = 0; i < 100; i++)
+            previousState = sv.state; // PGM
+            sv.state = ServerStates.SS_LOADING; // PGM
+            for (int i = 0; i < 100; i++)
                 gameExports.G_RunFrame();
 
-            gameImports.sv.state = previousState; // PGM
+            sv.state = previousState; // PGM
         }
     }
 
@@ -282,7 +269,7 @@ public class SV_INIT {
         SV_CreateBaseline();
 
         // check for a savegame
-        SV_CheckForSavegame();
+        SV_CheckForSavegame(gameImports.sv);
 
         // set serverinfo variable
         Cvar.FullSet("mapname", gameImports.sv.name, Defines.CVAR_SERVERINFO
