@@ -957,7 +957,7 @@ public class GameExportsImpl implements GameExports {
             if (!ent.inuse || null == ent.getClient()) {
                 continue;
             }
-            playerView.ClientEndServerFrame(ent);
+            playerView.ClientEndServerFrame(ent, this);
         }
 
     }
@@ -998,7 +998,7 @@ public class GameExportsImpl implements GameExports {
 
                 if ((client.latched_buttons & buttonMask) != 0
                         || (cvarCache.deathmatch.value != 0 && 0 != ((int) cvarCache.dmflags.value & Defines.DF_FORCE_RESPAWN))) {
-                    respawn(ent);
+                    respawn(ent, this);
                     client.latched_buttons = 0;
                 }
             }
@@ -1024,9 +1024,9 @@ public class GameExportsImpl implements GameExports {
 
         gclient_t client = ent.getClient();
         if (client.pers.spectator) {
-            String value = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
+            String spectator = Info.Info_ValueForKey(client.pers.userinfo, "spectator");
 
-            if (!passwdOK(cvarCache.spectator_password.string, value)) {
+            if (!passwdOK(cvarCache.spectator_password.string, spectator)) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
                 gameImports.WriteByte(NetworkCommands.svc_stufftext);
@@ -1072,7 +1072,7 @@ public class GameExportsImpl implements GameExports {
         client.resp.score = client.pers.score = 0;
 
         ent.svflags &= ~Defines.SVF_NOCLIENT;
-        PutClientInServer(ent);
+        PutClientInServer(ent, this);
 
         // add a teleportation effect
         if (!client.pers.spectator) {
@@ -1226,6 +1226,29 @@ public class GameExportsImpl implements GameExports {
     }
 
     /**
+     * CheckNeedPass.
+     */
+    private void checkNeedPassCvar() {
+        // if password or spectator_password has changed, update needpass
+        // as needed
+        if (cvarCache.password.modified || cvarCache.spectator_password.modified) {
+
+            cvarCache.password.modified = false;
+            cvarCache.spectator_password.modified = false;
+
+            int need = 0;
+
+            if (!cvarCache.password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.password.string))
+                need |= 1;
+
+            if (!cvarCache.spectator_password.string.isEmpty() && !"none".equalsIgnoreCase(cvarCache.spectator_password.string))
+                need |= 2;
+
+            gameImports.cvar_set("needpass", "" + need);
+        }
+    }
+
+    /**
      * Returns the created target changelevel.
      */
     private SubgameEntity CreateTargetChangeLevel(String map) {
@@ -1358,7 +1381,6 @@ public class GameExportsImpl implements GameExports {
         GameAI.AI_SetSightClient(this);
 
         // exit intermissions
-
         if (level.exitintermission) {
             exitLevel();
             return;
@@ -1396,7 +1418,7 @@ public class GameExportsImpl implements GameExports {
         CheckDMRules();
 
         // see if needpass needs updated
-        CheckNeedPass();
+        checkNeedPassCvar();
 
         // build the playerstate_t structures for all players
         ClientEndServerFrames();
@@ -1544,7 +1566,7 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void ClientBegin(edict_t e) {
         SubgameEntity ent = g_edicts[e.index];
-        PlayerClient.ClientBegin(ent);
+        PlayerClient.ClientBegin(ent, this);
     }
 
     @Override
@@ -1554,18 +1576,18 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public boolean ClientConnect(edict_t ent, String userinfo) {
-        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo);
+        return PlayerClient.ClientConnect((SubgameEntity) ent, userinfo, this);
     }
 
     @Override
     public void ClientDisconnect(edict_t ent) {
-        PlayerClient.ClientDisconnect((SubgameEntity) ent);
+        PlayerClient.ClientDisconnect((SubgameEntity) ent, gameImports);
     }
 
     @Override
     public void ClientThink(edict_t ent, usercmd_t ucmd) {
         SubgameEntity e = g_edicts[ent.index];
-        PlayerClient.ClientThink(e, ucmd);
+        PlayerClient.ClientThink(e, ucmd, this);
     }
 
     @Override

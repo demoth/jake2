@@ -94,7 +94,7 @@ public class PlayerHud {
             if (!client.inuse)
                 continue;
             if (client.health <= 0)
-                PlayerClient.respawn(client);
+                PlayerClient.respawn(client, GameBase.gameExports);
         }
 
         GameBase.gameExports.level.intermissiontime = GameBase.gameExports.level.time;

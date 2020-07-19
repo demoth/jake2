@@ -263,30 +263,6 @@ public class GameBase {
         }
     };
 
-    /**
-     * CheckNeedPass.
-     */
-    static void CheckNeedPass() {
-
-        // if password or spectator_password has changed, update needpass
-        // as needed
-        final CvarCache cvars = gameExports.cvarCache;
-        if (cvars.password.modified || cvars.spectator_password.modified) {
-            cvars.password.modified = false;
-            cvars.spectator_password.modified = false;
-
-            int need = 0;
-
-            if ((cvars.password.string.length() > 0)
-                    && 0 != Lib.Q_stricmp(cvars.password.string, "none"))
-                need |= 1;
-            if ((cvars.spectator_password.string.length() > 0)
-                    && 0 != Lib.Q_stricmp(cvars.spectator_password.string, "none"))
-                need |= 2;
-
-            gameExports.gameImports.cvar_set("needpass", "" + need);
-        }
-    }
 
 
 }
