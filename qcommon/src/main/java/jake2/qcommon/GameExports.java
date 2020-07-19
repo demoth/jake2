@@ -28,7 +28,7 @@ public interface GameExports {
      */
     void WriteGame(String filename, boolean autosave);
 
-    void ReadGame(String filename);
+    void readGameLocals(String filename);
 
     void WriteLevel(String filename);
 

@@ -12,6 +12,7 @@ import jake2.qcommon.util.Vargs;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import static jake2.game.GameBase.*;
 import static jake2.game.PlayerClient.*;
@@ -90,8 +91,10 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameItemList"
             };
 
+    /////////////////////////////////////
+    /////////  STATE    /////////////////
+    /////////////////////////////////////
     public final GameImports gameImports;
-
     public PlayerView playerView;
     public SV sv;
     public game_locals_t game;
@@ -106,6 +109,9 @@ public class GameExportsImpl implements GameExports {
     public SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
     int num_edicts;
 
+    /////////////////////////////////////
+    /////////  INITIALIZATION   /////////
+    /////////////////////////////////////
 
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
@@ -166,6 +172,10 @@ public class GameExportsImpl implements GameExports {
         num_edicts = game.maxclients + 1;
 
     }
+
+    /////////////////////////////////////
+    /////////    COMMANDS       /////////
+    /////////////////////////////////////
 
     /**
      * HelpComputer.
@@ -909,6 +919,9 @@ public class GameExportsImpl implements GameExports {
         gameImports.cprintf(ent, Defines.PRINT_HIGH, text);
     }
 
+    /////////////////////////////////////
+    /////////    UPDATE         /////////
+    /////////////////////////////////////
     /**
      * Exits a level.
      */
@@ -1087,7 +1100,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * G_RunEntity
      */
-    void runEntity(SubgameEntity ent) {
+    private void runEntity(SubgameEntity ent) {
 
         // call prethink handler
         if (ent.prethink != null)
@@ -1116,6 +1129,111 @@ public class GameExportsImpl implements GameExports {
             default:
                 gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
         }
+    }
+
+    /**
+     * CheckDMRules.
+     */
+    private void CheckDMRules() {
+        int i;
+        gclient_t cl;
+
+        if (level.intermissiontime != 0)
+            return;
+
+        if (0 == cvarCache.deathmatch.value)
+            return;
+
+        if (cvarCache.timelimit.value != 0) {
+            if (level.time >= cvarCache.timelimit.value * 60) {
+                gameImports.bprintf(Defines.PRINT_HIGH, "Timelimit hit.\n");
+                EndDMLevel();
+                return;
+            }
+        }
+
+        if (cvarCache.fraglimit.value != 0) {
+            for (i = 0; i < game.maxclients; i++) {
+                cl = game.clients[i];
+                if (!g_edicts[i + 1].inuse)
+                    continue;
+
+                if (cl.resp.score >= cvarCache.fraglimit.value) {
+                    gameImports.bprintf(Defines.PRINT_HIGH, "Fraglimit hit.\n");
+                    EndDMLevel();
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * The timelimit or fraglimit has been exceeded.
+     */
+    private void EndDMLevel() {
+        //char * s, * t, * f;
+        //static const char * seps = " ,\n\r";
+        String seps = " ,\n\r";
+
+        // stay on same level flag
+        if (((int) cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+            return;
+        }
+
+        // see if it's in the map list
+        if (cvarCache.sv_maplist.string.length() > 0) {
+            String mapList = cvarCache.sv_maplist.string;
+            // todo: cleanup parsing of maplist
+            String f = null;
+            StringTokenizer tk = new StringTokenizer(mapList, seps);
+            while (tk.hasMoreTokens()){
+                String t = tk.nextToken();
+
+                // store first map
+                if (f == null)
+                    f = t;
+
+                if (t.equalsIgnoreCase(level.mapname)) {
+                    // it's in the list, go to the next one
+                    if (!tk.hasMoreTokens()) {
+                        // end of list, go to first one
+                        if (f == null) // there isn't a first one, same gameExports.level
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                        else
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(f));
+                    } else
+                        PlayerHud.BeginIntermission(CreateTargetChangeLevel(tk.nextToken()));
+                    return;
+                }
+            }
+        }
+
+        //not in the map list
+        if (level.nextmap.length() > 0) // go to a specific map
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
+        else { // search for a changelevel
+            EdictIterator edit = null;
+            edit = G_Find(edit, findByClass, "target_changelevel");
+            if (edit == null) { // the map designer didn't include a
+                // change level,
+                // so create a fake ent that goes back to the same level
+                PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                return;
+            }
+            PlayerHud.BeginIntermission(edit.o);
+        }
+    }
+
+    /**
+     * Returns the created target changelevel.
+     */
+    private SubgameEntity CreateTargetChangeLevel(String map) {
+        SubgameEntity ent = GameUtil.G_Spawn();
+        ent.classname = "target_changelevel";
+        level.nextmap = map;
+        ent.map = map;
+        return ent;
     }
 
     @Override
@@ -1307,13 +1425,11 @@ public class GameExportsImpl implements GameExports {
     }
 
     @Override
-    public void ReadGame(String filename) {
-
-        QuakeFile f = null;
+    public void readGameLocals(String filename) {
 
         try {
 
-            f = new QuakeFile(filename, "r");
+            QuakeFile f = new QuakeFile(filename, "r");
             CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
 
             game.load(f);
@@ -1407,9 +1523,8 @@ public class GameExportsImpl implements GameExports {
                     continue;
 
                 // fire any cross-level triggers
-                if (ent.classname != null)
-                    if ("target_crosslevel_target".equals(ent.classname))
-                        ent.nextthink = level.time + ent.delay;
+                if ("target_crosslevel_target".equals(ent.classname))
+                    ent.nextthink = level.time + ent.delay;
             }
         } catch (Exception e) {
             e.printStackTrace();
