@@ -550,40 +550,41 @@ public class PlayerClient {
     /**
      * Some information that should be persistant, like health, is still stored
      * in the edict structure, so it needs to be mirrored out to the client
-     * structure before all the edicts are wiped. 
+     * structure before all the edicts are wiped.
+     * @param gameExports
      */
-    public static void SaveClientData() {
+    public static void SaveClientData(GameExportsImpl gameExports) {
 
-        for (int i = 0; i < GameBase.gameExports.game.maxclients; i++) {
-            SubgameEntity ent = GameBase.gameExports.g_edicts[1 + i];
+        for (int i = 0; i < gameExports.game.maxclients; i++) {
+            SubgameEntity ent = gameExports.g_edicts[1 + i];
             if (!ent.inuse)
                 continue;
 
-            GameBase.gameExports.game.clients[i].pers.health = ent.health;
-            GameBase.gameExports.game.clients[i].pers.max_health = ent.max_health;
-            GameBase.gameExports.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
+            gameExports.game.clients[i].pers.health = ent.health;
+            gameExports.game.clients[i].pers.max_health = ent.max_health;
+            gameExports.game.clients[i].pers.savedFlags = (ent.flags & (GameDefines.FL_GODMODE
                     | GameDefines.FL_NOTARGET | GameDefines.FL_POWER_ARMOR));
 
-            if (GameBase.gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.cvarCache.coop.value != 0) {
                 gclient_t client = ent.getClient();
-                GameBase.gameExports.game.clients[i].pers.score = client.resp.score;
+                gameExports.game.clients[i].pers.score = client.resp.score;
             }
         }
     }
 
-    public static void FetchClientEntData(SubgameEntity ent) {
+    public static void FetchClientEntData(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         ent.health = client.pers.health;
         ent.max_health = client.pers.max_health;
         ent.flags |= client.pers.savedFlags;
-        if (GameBase.gameExports.cvarCache.coop.value != 0)
+        if (gameExports.cvarCache.coop.value != 0)
             client.resp.score = client.pers.score;
     }
 
     /**
      * Returns the distance to the nearest player from the given spot.
      */
-    static float PlayersRangeFromSpot(SubgameEntity spot) {
+    static float PlayersRangeFromSpot(SubgameEntity spot, GameExportsImpl gameExports) {
         SubgameEntity player;
         float bestplayerdistance;
         float[] v = { 0, 0, 0 };
@@ -592,8 +593,8 @@ public class PlayerClient {
 
         bestplayerdistance = 9999999;
 
-        for (n = 1; n <= GameBase.gameExports.game.maxclients; n++) {
-            player = GameBase.gameExports.g_edicts[n];
+        for (n = 1; n <= gameExports.game.maxclients; n++) {
+            player = gameExports.g_edicts[n];
 
             if (!player.inuse)
                 continue;
@@ -613,8 +614,9 @@ public class PlayerClient {
 
     /**
      * Go to a random point, but NOT the two points closest to other players.
+     * @param gameExports
      */
-    public static SubgameEntity SelectRandomDeathmatchSpawnPoint() {
+    public static SubgameEntity SelectRandomDeathmatchSpawnPoint(GameExportsImpl gameExports) {
         int count = 0;
         float range2;
 
@@ -630,7 +632,7 @@ public class PlayerClient {
                 "info_player_deathmatch")) != null) {
             spot = es.o;
             count++;
-            float range = PlayersRangeFromSpot(spot);
+            float range = PlayersRangeFromSpot(spot, gameExports);
             if (range < range1) {
                 range1 = range;
                 spot1 = spot;
@@ -669,18 +671,18 @@ public class PlayerClient {
 
     /** 
 	 * If turned on in the dmflags, select a spawn point far away from other players.
+     * @param gameExports
      */
-    static SubgameEntity SelectFarthestDeathmatchSpawnPoint() {
+    static SubgameEntity SelectFarthestDeathmatchSpawnPoint(GameExportsImpl gameExports) {
 
         SubgameEntity spot;
         SubgameEntity bestspot = null;
         float bestdistance = 0;
 
         EdictIterator es = null;
-        while ((es = GameBase.G_Find(es, GameBase.findByClass,
-                "info_player_deathmatch")) != null) {
+        while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_deathmatch")) != null) {
             spot = es.o;
-            float bestplayerdistance = PlayersRangeFromSpot(spot);
+            float bestplayerdistance = PlayersRangeFromSpot(spot, gameExports);
 
             if (bestplayerdistance > bestdistance) {
                 bestspot = spot;
@@ -694,8 +696,7 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass,
-                "info_player_deathmatch");
+        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass, "info_player_deathmatch");
         if (edit == null)
             return null;
         
@@ -703,14 +704,14 @@ public class PlayerClient {
     }
 
     
-    public static SubgameEntity SelectDeathmatchSpawnPoint() {
-        if (0 != ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
-            return SelectFarthestDeathmatchSpawnPoint();
+    public static SubgameEntity SelectDeathmatchSpawnPoint(GameExportsImpl gameExports) {
+        if (0 != ((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_SPAWN_FARTHEST))
+            return SelectFarthestDeathmatchSpawnPoint(gameExports);
         else
-            return SelectRandomDeathmatchSpawnPoint();
+            return SelectRandomDeathmatchSpawnPoint(gameExports);
     }
 
-    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent) {
+    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent, String spawnpoint) {
 
         //index = ent.client - game.clients;
         int index = ent.getClient().getIndex();
@@ -739,7 +740,7 @@ public class PlayerClient {
             String target = spot.targetname;
             if (target == null)
                 target = "";
-            if (Lib.Q_stricmp(GameBase.gameExports.game.spawnpoint, target) == 0) {
+            if (Lib.Q_stricmp(spawnpoint, target) == 0) {
                 // this is a coop spawn point for one of the clients here
                 index--;
                 if (0 == index)
@@ -752,48 +753,43 @@ public class PlayerClient {
     /**
      * Chooses a player start, deathmatch start, coop start, etc.
      */
-    public static void SelectSpawnPoint(edict_t ent, float[] origin,
-            float[] angles) {
+    public static void SelectSpawnPoint(edict_t ent, float[] origin, float[] angles, GameExportsImpl gameExports) {
         SubgameEntity spot = null;
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
-            spot = SelectDeathmatchSpawnPoint();
-        else if (GameBase.gameExports.cvarCache.coop.value != 0)
-            spot = SelectCoopSpawnPoint(ent);
+        if (gameExports.cvarCache.deathmatch.value != 0)
+            spot = SelectDeathmatchSpawnPoint(gameExports);
+        else if (gameExports.cvarCache.coop.value != 0)
+            spot = SelectCoopSpawnPoint(ent, gameExports.game.spawnpoint);
 
         EdictIterator es = null;
         // find a single player start spot
         if (null == spot) {
-            while ((es = GameBase.G_Find(es, GameBase.findByClass,
-                    "info_player_start")) != null) {
+            while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start")) != null) {
                 spot = es.o;
 
-                if (GameBase.gameExports.game.spawnpoint.length() == 0
+                if (gameExports.game.spawnpoint.length() == 0
                         && spot.targetname == null)
                     break;
 
-                if (GameBase.gameExports.game.spawnpoint.length() == 0
+                if (gameExports.game.spawnpoint.length() == 0
                         || spot.targetname == null)
                     continue;
 
-                if (Lib.Q_stricmp(GameBase.gameExports.game.spawnpoint, spot.targetname) == 0)
+                if (Lib.Q_stricmp(gameExports.game.spawnpoint, spot.targetname) == 0)
                     break;
             }
 
             if (null == spot) {
-                if (GameBase.gameExports.game.spawnpoint.length() == 0) {
+                if (gameExports.game.spawnpoint.length() == 0) {
                     // there wasn't a spawnpoint without a
                     // target, so use any
-                    es = GameBase.G_Find(es, GameBase.findByClass,
-                            "info_player_start");
+                    es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start");
                     
                     if (es != null)
                         spot = es.o;
                 }
-                if (null == spot)
-                {
-                    GameBase.gameExports.gameImports.error("Couldn't find spawn point "
-                            + GameBase.gameExports.game.spawnpoint + "\n");
+                if (null == spot) {
+                    gameExports.gameImports.error("Couldn't find spawn point " + gameExports.game.spawnpoint + "\n");
                     return;
                 }
             }
@@ -896,7 +892,7 @@ public class PlayerClient {
         // find a spawn point
         // do it before setting health back up, so farthest
         // ranging doesn't count this client
-        SelectSpawnPoint(ent, spawn_origin, spawn_angles);
+        SelectSpawnPoint(ent, spawn_origin, spawn_angles, gameExports);
 
         index = ent.index - 1;
         client = ent.getClient();
@@ -936,7 +932,7 @@ public class PlayerClient {
         client.resp.set(resp);
 
         // copy some data from the client to the entity
-        FetchClientEntData(ent);
+        FetchClientEntData(ent, gameExports);
 
         // clear entity values
         ent.groundentity = null;
@@ -1032,7 +1028,7 @@ public class PlayerClient {
 
         // force the current weapon up
         client.newweapon = client.pers.weapon;
-        PlayerWeapon.ChangeWeapon(ent);
+        PlayerWeapon.ChangeWeapon(ent, gameExports);
     }
 
     /**
@@ -1049,7 +1045,7 @@ public class PlayerClient {
         PutClientInServer(ent, gameExports);
 
         if (gameExports.level.intermissiontime != 0) {
-            PlayerHud.MoveClientToIntermission(ent);
+            PlayerHud.MoveClientToIntermission(ent, gameExports);
         } else {
             // send effect
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
@@ -1098,7 +1094,7 @@ public class PlayerClient {
         }
 
         if (gameExports.level.intermissiontime != 0) {
-            PlayerHud.MoveClientToIntermission(ent);
+            PlayerHud.MoveClientToIntermission(ent, gameExports);
         } else {
             // send effect if in a multiplayer game
             if (gameExports.game.maxclients > 1) {
@@ -1180,7 +1176,7 @@ public class PlayerClient {
     static boolean ClientConnect(SubgameEntity ent, String userinfo, GameExportsImpl gameExports) {
         // check to see if they are on the banned IP list
         String ip = Info.Info_ValueForKey(userinfo, "ip");
-        if (GameSVCmds.SV_FilterPacket(ip)) {
+        if (GameSVCmds.SV_FilterPacket(ip, gameExports.cvarCache.filterban.value)) {
             Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
             return false;
         }
@@ -1423,11 +1419,11 @@ public class PlayerClient {
                     client.chase_target = null;
                     client.getPlayerState().pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
                 } else
-                    GameChase.GetChaseTarget(ent);
+                    GameChase.GetChaseTarget(ent, gameExports);
 
             } else if (!client.weapon_thunk) {
                 client.weapon_thunk = true;
-                PlayerWeapon.Think_Weapon(ent);
+                PlayerWeapon.Think_Weapon(ent, gameExports);
             }
         }
 
@@ -1438,7 +1434,7 @@ public class PlayerClient {
                     if (client.chase_target != null)
                         GameChase.ChaseNext(ent);
                     else
-                        GameChase.GetChaseTarget(ent);
+                        GameChase.GetChaseTarget(ent, gameExports);
                 }
             } else
                 client.getPlayerState().pmove.pm_flags &= ~Defines.PMF_JUMP_HELD;

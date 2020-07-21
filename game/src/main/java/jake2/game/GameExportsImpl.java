@@ -982,7 +982,7 @@ public class GameExportsImpl implements GameExports {
 
         // run weapon animations if it hasn't been done by a ucmd_t
         if (!client.weapon_thunk && !client.resp.spectator)
-            PlayerWeapon.Think_Weapon(ent);
+            PlayerWeapon.Think_Weapon(ent, this);
         else
             client.weapon_thunk = false;
 
@@ -1177,7 +1177,7 @@ public class GameExportsImpl implements GameExports {
 
         // stay on same level flag
         if (((int) cvarCache.dmflags.value & Defines.DF_SAME_LEVEL) != 0) {
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
             return;
         }
 
@@ -1199,11 +1199,11 @@ public class GameExportsImpl implements GameExports {
                     if (!tk.hasMoreTokens()) {
                         // end of list, go to first one
                         if (f == null) // there isn't a first one, same gameExports.level
-                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
                         else
-                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(f));
+                            PlayerHud.BeginIntermission(CreateTargetChangeLevel(f), this);
                     } else
-                        PlayerHud.BeginIntermission(CreateTargetChangeLevel(tk.nextToken()));
+                        PlayerHud.BeginIntermission(CreateTargetChangeLevel(tk.nextToken()), this);
                     return;
                 }
             }
@@ -1211,17 +1211,17 @@ public class GameExportsImpl implements GameExports {
 
         //not in the map list
         if (level.nextmap.length() > 0) // go to a specific map
-            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap));
+            PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
         else { // search for a changelevel
             EdictIterator edit = null;
             edit = G_Find(edit, findByClass, "target_changelevel");
             if (edit == null) { // the map designer didn't include a
                 // change level,
                 // so create a fake ent that goes back to the same level
-                PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname));
+                PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
                 return;
             }
-            PlayerHud.BeginIntermission(edit.o);
+            PlayerHud.BeginIntermission(edit.o, this);
         }
     }
 
@@ -1429,7 +1429,7 @@ public class GameExportsImpl implements GameExports {
         try {
 
             if (!autosave)
-                PlayerClient.SaveClientData();
+                PlayerClient.SaveClientData(this);
 
             QuakeFile f = new QuakeFile(filename, "rw");
 
@@ -1555,12 +1555,12 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public void SpawnEntities(String mapname, String entities, String spawnpoint) {
-        GameSpawn.SpawnEntities(mapname, entities, spawnpoint);
+        GameSpawn.SpawnEntities(mapname, entities, spawnpoint, this);
     }
 
     @Override
     public void ServerCommand(List<String> args) {
-        GameSVCmds.ServerCommand(args);
+        GameSVCmds.ServerCommand(args, this);
     }
 
     @Override

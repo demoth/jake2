@@ -74,8 +74,8 @@ public class GameSVCmds {
         int compare;
     };
 
-    public static void Svcmd_Test_f() {
-        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
+    public static void Svcmd_Test_f(GameExportsImpl gameExports) {
+        gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
     }
 
     public static final int MAX_IPFILTERS = 1024;
@@ -91,7 +91,7 @@ public class GameSVCmds {
     /**
      * StringToFilter.
      */
-    static boolean StringToFilter(String s, GameSVCmds.ipfilter_t f) {
+    static boolean StringToFilter(String s, GameSVCmds.ipfilter_t f, GameExportsImpl gameExports) {
 
     	byte b[] = { 0, 0, 0, 0 };
         byte m[] = { 0, 0, 0, 0 };
@@ -108,8 +108,7 @@ public class GameSVCmds {
             f.mask = ByteBuffer.wrap(m).getInt();
             f.compare = ByteBuffer.wrap(b).getInt();
         } catch (Exception e) {
-            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
-                    "Bad filter address: " + s + "\n");
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Bad filter address: " + s + "\n");
             return false;
         }
 
@@ -119,7 +118,7 @@ public class GameSVCmds {
     /**
      * SV_FilterPacket.
      */
-    static boolean SV_FilterPacket(String from) {
+    static boolean SV_FilterPacket(String from, float filterBan) {
         int i;
         int in;
         int m[] = { 0, 0, 0, 0 };
@@ -149,19 +148,19 @@ public class GameSVCmds {
 
         for (i = 0; i < numipfilters; i++)
             if ((in & ipfilters[i].mask) == ipfilters[i].compare)
-                return ((int) GameBase.gameExports.cvarCache.filterban.value) != 0;
+                return ((int) filterBan) != 0;
 
-        return ((int) 1 - GameBase.gameExports.cvarCache.filterban.value) != 0;
+        return ((int) 1 - filterBan) != 0;
     }
 
     /**
      * SV_AddIP_f.
      */
-    private static void SVCmd_AddIP_f(List<String> args) {
+    private static void SVCmd_AddIP_f(List<String> args, GameExportsImpl gameExports) {
         int i;
 
         if (args.size() < 3) {
-            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Usage:  addip <ip-mask>\n");
             return;
         }
@@ -171,30 +170,30 @@ public class GameSVCmds {
                 break; // free spot
         if (i == numipfilters) {
             if (numipfilters == MAX_IPFILTERS) {
-                GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
+                gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                         "IP filter list is full\n");
                 return;
             }
             numipfilters++;
         }
 
-        if (!StringToFilter(args.get(2), ipfilters[i]))
+        if (!StringToFilter(args.get(2), ipfilters[i], gameExports))
             ipfilters[i].compare = 0xffffffff;
     }
 
     /**
      * SV_RemoveIP_f.
      */
-    private static void SVCmd_RemoveIP_f(List<String> args) {
+    private static void SVCmd_RemoveIP_f(List<String> args, GameExportsImpl gameExports) {
         GameSVCmds.ipfilter_t f = new GameSVCmds.ipfilter_t();
 
         if (args.size() < 3) {
-            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
                     "Usage: sv removeip <ip-mask>\n");
             return;
         }
 
-        if (!StringToFilter(args.get(2), f))
+        if (!StringToFilter(args.get(2), f, gameExports))
             return;
 
         for (int i = 0; i < numipfilters; i++)
@@ -203,24 +202,24 @@ public class GameSVCmds {
                 for (int j = i + 1; j < numipfilters; j++)
                     ipfilters[j - 1] = ipfilters[j];
                 numipfilters--;
-                GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Removed.\n");
+                gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Removed.\n");
                 return;
             }
-        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Didn't find "
-                + args.get(2) + ".\n");
+        gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Didn't find " + args.get(2) + ".\n");
     }
 
     /**
      * SV_ListIP_f.
+     * @param gameExports
      */
-    static void SVCmd_ListIP_f() {
+    static void SVCmd_ListIP_f(GameExportsImpl gameExports) {
         int i;
         byte b[];
 
-        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Filter list:\n");
+        gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Filter list:\n");
         for (i = 0; i < numipfilters; i++) {
             b = Lib.getIntBytes(ipfilters[i].compare);
-            GameBase.gameExports.gameImports
+            gameExports.gameImports
                     .cprintf(null, Defines.PRINT_HIGH, (b[0] & 0xff) + "."
                             + (b[1] & 0xff) + "." + (b[2] & 0xff) + "."
                             + (b[3] & 0xff));
@@ -229,15 +228,16 @@ public class GameSVCmds {
 
     /**
      * SV_WriteIP_f.
+     * @param gameExports
      */
-    static void SVCmd_WriteIP_f() {
+    static void SVCmd_WriteIP_f(GameExportsImpl gameExports) {
         RandomAccessFile f;
         byte b[];
 
         int i;
         cvar_t game;
 
-        game = GameBase.gameExports.gameImports.cvar("game", "", 0);
+        game = gameExports.gameImports.cvar("game", "", 0);
 
         String name;
         if (game.string == null)
@@ -245,17 +245,17 @@ public class GameSVCmds {
         else
             name = game.string + "/listip.cfg";
 
-        GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
+        gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Writing " + name + ".\n");
 
         f = Lib.fopen(name, "rw");
         if (f == null) {
-            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Couldn't open "
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Couldn't open "
                     + name + "\n");
             return;
         }
 
         try {
-            f.writeChars("set filterban " + (int) GameBase.gameExports.cvarCache.filterban.value
+            f.writeChars("set filterban " + (int) gameExports.cvarCache.filterban.value
                     + "\n");
 
             for (i = 0; i < numipfilters; i++) {
@@ -272,27 +272,26 @@ public class GameSVCmds {
     }
 
     // todo move to game exports
-    public static void ServerCommand(List<String> args) {
+    public static void ServerCommand(List<String> args, GameExportsImpl gameExports) {
 
         if (args.size() < 2) {
-            Com.Printf("usage: sv test|addip|removeip|listip|writeip <args>");
+            gameExports.gameImports.dprintf("usage: sv test|addip|removeip|listip|writeip <args>");
             return;
         }
 
         String cmd = args.get(1);
 
         if (Lib.Q_stricmp(cmd, "test") == 0)
-            Svcmd_Test_f();
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
         else if (Lib.Q_stricmp(cmd, "addip") == 0)
-            SVCmd_AddIP_f(args);
+            SVCmd_AddIP_f(args, gameExports);
         else if (Lib.Q_stricmp(cmd, "removeip") == 0)
-            SVCmd_RemoveIP_f(args);
+            SVCmd_RemoveIP_f(args, gameExports);
         else if (Lib.Q_stricmp(cmd, "listip") == 0)
-            SVCmd_ListIP_f();
+            SVCmd_ListIP_f(gameExports);
         else if (Lib.Q_stricmp(cmd, "writeip") == 0)
-            SVCmd_WriteIP_f();
+            SVCmd_WriteIP_f(gameExports);
         else
-            GameBase.gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH,
-                    "Unknown server command \"" + cmd + "\"\n");
+            gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Unknown server command \"" + cmd + "\"\n");
     }
 }

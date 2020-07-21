@@ -38,15 +38,15 @@ public class PlayerHud {
      * ======================================================================
      */
 
-    public static void MoveClientToIntermission(SubgameEntity ent) {
+    public static void MoveClientToIntermission(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0)
+        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0)
             client.showscores = true;
-        Math3D.VectorCopy(GameBase.gameExports.level.intermission_origin, ent.s.origin);
-        client.getPlayerState().pmove.origin[0] = (short) (GameBase.gameExports.level.intermission_origin[0] * 8);
-        client.getPlayerState().pmove.origin[1] = (short) (GameBase.gameExports.level.intermission_origin[1] * 8);
-        client.getPlayerState().pmove.origin[2] = (short) (GameBase.gameExports.level.intermission_origin[2] * 8);
-        Math3D.VectorCopy(GameBase.gameExports.level.intermission_angle,
+        Math3D.VectorCopy(gameExports.level.intermission_origin, ent.s.origin);
+        client.getPlayerState().pmove.origin[0] = (short) (gameExports.level.intermission_origin[0] * 8);
+        client.getPlayerState().pmove.origin[1] = (short) (gameExports.level.intermission_origin[1] * 8);
+        client.getPlayerState().pmove.origin[2] = (short) (gameExports.level.intermission_origin[2] * 8);
+        Math3D.VectorCopy(gameExports.level.intermission_angle,
                 client.getPlayerState().viewangles);
         client.getPlayerState().pmove.pm_type = Defines.PM_FREEZE;
         client.getPlayerState().gunindex = 0;
@@ -72,38 +72,38 @@ public class PlayerHud {
 
         // add the layout
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
             DeathmatchScoreboardMessage(ent, null);
-            GameBase.gameExports.gameImports.unicast(ent, true);
+            gameExports.gameImports.unicast(ent, true);
         }
 
     }
 
-    public static void BeginIntermission(SubgameEntity targ) {
+    public static void BeginIntermission(SubgameEntity targ, GameExportsImpl gameExports) {
 
-        if (GameBase.gameExports.level.intermissiontime != 0)
+        if (gameExports.level.intermissiontime != 0)
             return; // already activated
 
-        GameBase.gameExports.game.autosaved = false;
+        gameExports.game.autosaved = false;
 
         // respawn any dead clients
         int i;
         SubgameEntity client;
-        for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
-            client = GameBase.gameExports.g_edicts[1 + i];
+        for (i = 0; i < gameExports.game.maxclients; i++) {
+            client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
             if (client.health <= 0)
-                PlayerClient.respawn(client, GameBase.gameExports);
+                PlayerClient.respawn(client, gameExports);
         }
 
-        GameBase.gameExports.level.intermissiontime = GameBase.gameExports.level.time;
-        GameBase.gameExports.level.changemap = targ.map;
+        gameExports.level.intermissiontime = gameExports.level.time;
+        gameExports.level.changemap = targ.map;
 
-        if (GameBase.gameExports.level.changemap.indexOf('*') > -1) {
-            if (GameBase.gameExports.cvarCache.coop.value != 0) {
-                for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
-                    client = GameBase.gameExports.g_edicts[1 + i];
+        if (gameExports.level.changemap.indexOf('*') > -1) {
+            if (gameExports.cvarCache.coop.value != 0) {
+                for (i = 0; i < gameExports.game.maxclients; i++) {
+                    client = gameExports.g_edicts[1 + i];
                     if (!client.inuse)
                         continue;
                     // strip players of all keys between units
@@ -118,14 +118,14 @@ public class PlayerHud {
                 }
             }
         } else {
-            if (0 == GameBase.gameExports.cvarCache.deathmatch.value) {
-                GameBase.gameExports.level.exitintermission = true; // go immediately to the
+            if (0 == gameExports.cvarCache.deathmatch.value) {
+                gameExports.level.exitintermission = true; // go immediately to the
                                                         // next level
                 return;
             }
         }
 
-        GameBase.gameExports.level.exitintermission = false;
+        gameExports.level.exitintermission = false;
 
         // find an intermission spot
         edict_t ent = GameBase.G_FindEdict(null, GameBase.findByClass,
@@ -151,15 +151,15 @@ public class PlayerHud {
             }
         }
 
-        Math3D.VectorCopy(ent.s.origin, GameBase.gameExports.level.intermission_origin);
-        Math3D.VectorCopy(ent.s.angles, GameBase.gameExports.level.intermission_angle);
+        Math3D.VectorCopy(ent.s.origin, gameExports.level.intermission_origin);
+        Math3D.VectorCopy(ent.s.angles, gameExports.level.intermission_angle);
 
         // move all clients to the intermission point
-        for (i = 0; i < GameBase.gameExports.game.maxclients; i++) {
-            client = GameBase.gameExports.g_edicts[1 + i];
+        for (i = 0; i < gameExports.game.maxclients; i++) {
+            client = gameExports.g_edicts[1 + i];
             if (!client.inuse)
                 continue;
-            MoveClientToIntermission(client);
+            MoveClientToIntermission(client, gameExports);
         }
     }
 

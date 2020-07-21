@@ -102,7 +102,7 @@ class PlayerView {
     /**
      * Handles color blends and view kicks
      */
-    private void P_DamageFeedback(SubgameEntity player) {
+    private void P_DamageFeedback(SubgameEntity player, GameExportsImpl gameExports) {
         gclient_t client;
         float side;
         float realcount, count, kick;
@@ -120,7 +120,7 @@ class PlayerView {
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 1;
         if (client.damage_armor != 0
                 && 0 == (player.flags & GameDefines.FL_GODMODE)
-                && (client.invincible_framenum <= GameBase.gameExports.level.framenum))
+                && (client.invincible_framenum <= gameExports.level.framenum))
             client.getPlayerState().stats[Defines.STAT_FLASHES] |= 2;
 
         // total points of damage shot at the player this frame
@@ -161,11 +161,11 @@ class PlayerView {
             count = 10; // always make a visible effect
 
         // play an apropriate pain sound
-        if ((GameBase.gameExports.level.time > player.pain_debounce_time)
+        if ((gameExports.level.time > player.pain_debounce_time)
                 && 0 == (player.flags & GameDefines.FL_GODMODE)
-                && (client.invincible_framenum <= GameBase.gameExports.level.framenum)) {
+                && (client.invincible_framenum <= gameExports.level.framenum)) {
             r = 1 + (Lib.rand() & 1);
-            player.pain_debounce_time = GameBase.gameExports.level.time + 0.7f;
+            player.pain_debounce_time = gameExports.level.time + 0.7f;
             if (player.health < 25)
                 l = 25;
             else if (player.health < 50)
@@ -174,7 +174,7 @@ class PlayerView {
                 l = 75;
             else
                 l = 100;
-            GameBase.gameExports.gameImports.sound(player, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+            gameExports.gameImports.sound(player, Defines.CHAN_VOICE, gameExports.gameImports
                     .soundindex("*pain" + l + "_" + r + ".wav"), 1,
                     Defines.ATTN_NORM, 0);
         }
@@ -229,7 +229,7 @@ class PlayerView {
             side = -Math3D.DotProduct(v, forward);
             client.v_dmg_pitch = kick * side * 0.3f;
 
-            client.v_dmg_time = GameBase.gameExports.level.time + Defines.DAMAGE_TIME;
+            client.v_dmg_time = gameExports.level.time + Defines.DAMAGE_TIME;
         }
 
         //
@@ -1042,7 +1042,7 @@ class PlayerView {
         P_FallingDamage(ent);
 
         // apply all the damage taken this frame
-        P_DamageFeedback(ent);
+        P_DamageFeedback(ent, gameExports);
 
         // determine the view offsets
         SV_CalcViewOffset(ent);

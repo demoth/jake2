@@ -21,7 +21,7 @@ public class CvarCache {
     public final cvar_t password;
     public final cvar_t spectator_password;
     public final cvar_t needpass;
-    public final cvar_t filterban;
+    public final cvar_t filterban; // todo boolean
     public final cvar_t g_select_empty;
     public final cvar_t flood_msgs;
     public final cvar_t flood_persecond;
