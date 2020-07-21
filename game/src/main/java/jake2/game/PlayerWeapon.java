@@ -39,7 +39,7 @@ public class PlayerWeapon {
             gclient_t client = ent.getClient();
             if ((client.newweapon != null)
                     && (client.weaponstate == WeaponStates.WEAPON_READY)) {
-                ChangeWeapon(ent);
+                ChangeWeapon(ent, GameBase.gameExports);
                 return true;
             }
 
@@ -1093,12 +1093,12 @@ public class PlayerWeapon {
      * The old weapon has been dropped all the way, so make the new one current
      * ===============
      */
-    public static void ChangeWeapon(SubgameEntity ent) {
+    public static void ChangeWeapon(SubgameEntity ent, GameExportsImpl gameExports) {
         int i;
 
         gclient_t client = ent.getClient();
         if (client.grenade_time != 0) {
-            client.grenade_time = GameBase.gameExports.level.time;
+            client.grenade_time = gameExports.level.time;
             client.weapon_sound = 0;
             weapon_grenade_fire(ent, false);
             client.grenade_time = 0;
@@ -1206,18 +1206,18 @@ public class PlayerWeapon {
      * Called by ClientBeginServerFrame and ClientThink 
      * =================
      */
-    public static void Think_Weapon(SubgameEntity ent) {
+    public static void Think_Weapon(SubgameEntity ent, GameExportsImpl gameExports) {
         // if just died, put the weapon away
         gclient_t client = ent.getClient();
         if (ent.health < 1) {
             client.newweapon = null;
-            ChangeWeapon(ent);
+            ChangeWeapon(ent, gameExports);
         }
 
         // call active weapon think routine
         if (null != client.pers.weapon
                 && null != client.pers.weapon.weaponthink) {
-            is_quad = (client.quad_framenum > GameBase.gameExports.level.framenum);
+            is_quad = (client.quad_framenum > gameExports.level.framenum);
             if (client.silencer_shots != 0)
                 is_silenced = (byte) Defines.MZ_SILENCED;
             else
@@ -1253,7 +1253,7 @@ public class PlayerWeapon {
         gclient_t client = ent.getClient();
         if (client.weaponstate == WeaponStates.WEAPON_DROPPING) {
             if (client.getPlayerState().gunframe == FRAME_DEACTIVATE_LAST) {
-                ChangeWeapon(ent);
+                ChangeWeapon(ent, GameBase.gameExports);
                 return;
             } else if ((FRAME_DEACTIVATE_LAST - client.getPlayerState().gunframe) == 4) {
                 client.anim_priority = Defines.ANIM_REVERSE;

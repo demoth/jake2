@@ -172,10 +172,10 @@ class GameChase {
         client.update_chase = true;
     }
 
-    static void GetChaseTarget(SubgameEntity ent) {
+    static void GetChaseTarget(SubgameEntity ent, GameExportsImpl gameExports) {
 
-        for (int i = 1; i <= GameBase.gameExports.game.maxclients; i++) {
-            SubgameEntity other = GameBase.gameExports.g_edicts[i];
+        for (int i = 1; i <= gameExports.game.maxclients; i++) {
+            SubgameEntity other = gameExports.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && !otherClient.resp.spectator) {
                 gclient_t client = ent.getClient();
@@ -185,6 +185,6 @@ class GameChase {
                 return;
             }
         }
-        GameBase.gameExports.gameImports.centerprintf(ent, "No other players to chase.");
+        gameExports.gameImports.centerprintf(ent, "No other players to chase.");
     }
 }

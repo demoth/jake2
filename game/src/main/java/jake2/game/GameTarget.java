@@ -451,7 +451,7 @@ class GameTarget {
             if (self.map.indexOf('*') > -1)
                 GameBase.gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
 
-            PlayerHud.BeginIntermission(self);
+            PlayerHud.BeginIntermission(self, GameBase.gameExports);
         }
     };
 
