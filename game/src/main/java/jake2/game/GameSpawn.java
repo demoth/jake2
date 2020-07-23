@@ -467,7 +467,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_once(ent);
+                GameTrigger.SP_trigger_once(ent, gameExports);
                 return true;
             }
         });
@@ -477,7 +477,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_multiple(ent);
+                GameTrigger.SP_trigger_multiple(ent, gameExports);
                 return true;
             }
         });
@@ -497,7 +497,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_push(ent);
+                GameTrigger.SP_trigger_push(ent, gameExports);
                 return true;
             }
         });
@@ -507,7 +507,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_hurt(ent);
+                GameTrigger.SP_trigger_hurt(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -517,7 +517,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_key(ent);
+                GameTrigger.SP_trigger_key(ent, gameExports);
                 return true;
             }
         });
@@ -538,7 +538,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_gravity(ent);
+                GameTrigger.SP_trigger_gravity(ent, gameExports);
                 return true;
             }
         });
@@ -548,7 +548,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_monsterjump(ent);
+                GameTrigger.SP_trigger_monsterjump(ent, gameExports);
                 return true;
             }
         });
@@ -568,7 +568,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_speaker(ent);
+                GameTarget.SP_target_speaker(ent, gameExports);
                 return true;
             }
         });
@@ -588,7 +588,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_changelevel(ent);
+                GameTarget.SP_target_changelevel(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -598,7 +598,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_secret(ent);
+                GameTarget.SP_target_secret(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -608,7 +608,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_goal(ent);
+                GameTarget.SP_target_goal(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -638,7 +638,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_blaster(ent);
+                GameTarget.SP_target_blaster(ent, gameExports);
                 return true;
             }
         });
@@ -658,7 +658,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_crosslevel_target(ent);
+                GameTarget.SP_target_crosslevel_target(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -668,7 +668,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_laser(ent);
+                GameTarget.SP_target_laser(ent, GameBase.gameExports);
                 return true;
             }
         });
@@ -678,7 +678,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_help(ent);
+                GameTarget.SP_target_help(ent, GameBase.gameExports);
                 return true;
             }
         });

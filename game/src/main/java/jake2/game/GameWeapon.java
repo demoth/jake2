@@ -48,7 +48,7 @@ public class GameWeapon {
     
             if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
-                        GameDefines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT, GameBase.gameExports);
     
             if (other.takedamage != 0) {
                 if ((self.spawnflags & 1) != 0)
@@ -89,7 +89,7 @@ public class GameWeapon {
             int mod;
     
             if (ent.getOwner().getClient() != null)
-                PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin, GameDefines.PNOISE_IMPACT);
+                PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin, GameDefines.PNOISE_IMPACT, GameBase.gameExports);
     
             //FIXME: if we are onground then raise our Z just a bit since we
             // are a point?
@@ -198,7 +198,7 @@ public class GameWeapon {
     
             if (ent.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin,
-                        GameDefines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT, GameBase.gameExports);
     
             // calculate position for the explosion entity
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
@@ -308,7 +308,7 @@ public class GameWeapon {
     
             if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
-                        GameDefines.PNOISE_IMPACT);
+                        GameDefines.PNOISE_IMPACT, GameBase.gameExports);
     
             // core explosion - prevents firing it into the wall/floor
             if (other.takedamage != 0)
@@ -640,7 +640,7 @@ public class GameWeapon {
     
                         if (self.getClient() != null)
                             PlayerWeapon.PlayerNoise(self, tr.endpos,
-                                    GameDefines.PNOISE_IMPACT);
+                                    GameDefines.PNOISE_IMPACT, GameBase.gameExports);
                     }
                 }
             }
@@ -933,7 +933,7 @@ public class GameWeapon {
         }
     
         if (self.getClient() != null)
-            PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT);
+            PlayerWeapon.PlayerNoise(self, tr.endpos, GameDefines.PNOISE_IMPACT, GameBase.gameExports);
     }
 
     public static void fire_bfg(SubgameEntity self, float[] start, float[] dir,

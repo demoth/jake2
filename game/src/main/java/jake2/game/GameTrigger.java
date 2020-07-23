@@ -28,13 +28,13 @@ import jake2.qcommon.util.Math3D;
 
 class GameTrigger {
 
-    private static void InitTrigger(SubgameEntity self) {
+    private static void InitTrigger(SubgameEntity self, GameExportsImpl gameExports) {
         if (!Math3D.VectorEquals(self.s.angles, Globals.vec3_origin))
             GameBase.G_SetMovedir(self.s.angles, self.movedir);
 
         self.solid = Defines.SOLID_TRIGGER;
         self.movetype = GameDefines.MOVETYPE_NONE;
-        GameBase.gameExports.gameImports.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
         self.svflags = Defines.SVF_NOCLIENT;
     }
 
@@ -59,13 +59,13 @@ class GameTrigger {
         }
     }
 
-    static void SP_trigger_multiple(SubgameEntity ent) {
+    static void SP_trigger_multiple(SubgameEntity ent, GameExportsImpl gameExports) {
         if (ent.sounds == 1)
-            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/secret.wav");
+            ent.noise_index = gameExports.gameImports.soundindex("misc/secret.wav");
         else if (ent.sounds == 2)
-            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/talk.wav");
+            ent.noise_index = gameExports.gameImports.soundindex("misc/talk.wav");
         else if (ent.sounds == 3)
-            ent.noise_index = GameBase.gameExports.gameImports.soundindex("misc/trigger1.wav");
+            ent.noise_index = gameExports.gameImports.soundindex("misc/trigger1.wav");
 
         if (ent.wait == 0)
             ent.wait = 0.2f;
@@ -85,8 +85,8 @@ class GameTrigger {
         if (!Math3D.VectorEquals(ent.s.angles, Globals.vec3_origin))
             GameBase.G_SetMovedir(ent.s.angles, ent.movedir);
 
-        GameBase.gameExports.gameImports.setmodel(ent, ent.model);
-        GameBase.gameExports.gameImports.linkentity(ent);
+        gameExports.gameImports.setmodel(ent, ent.model);
+        gameExports.gameImports.linkentity(ent);
     }
 
     /**
@@ -101,7 +101,7 @@ class GameTrigger {
      * "message" string to be displayed when triggered
      */
 
-    static void SP_trigger_once(SubgameEntity ent) {
+    static void SP_trigger_once(SubgameEntity ent, GameExportsImpl gameExports) {
         // make old maps work because I messed up on flag assignments here
         // triggered was on bit 1 when it should have been on bit 4
         if ((ent.spawnflags & 1) != 0) {
@@ -110,41 +110,41 @@ class GameTrigger {
             Math3D.VectorMA(ent.mins, 0.5f, ent.size, v);
             ent.spawnflags &= ~1;
             ent.spawnflags |= 4;
-            GameBase.gameExports.gameImports.dprintf("fixed TRIGGERED flag on " + ent.classname
+            gameExports.gameImports.dprintf("fixed TRIGGERED flag on " + ent.classname
                     + " at " + Lib.vtos(v) + "\n");
         }
 
         ent.wait = -1;
-        SP_trigger_multiple(ent);
+        SP_trigger_multiple(ent, gameExports);
     }
 
     static void SP_trigger_relay(SubgameEntity self) {
         self.use = trigger_relay_use;
     }
 
-    static void SP_trigger_key(SubgameEntity self) {
+    static void SP_trigger_key(SubgameEntity self, GameExportsImpl gameExports) {
         if (GameBase.st.item == null) {
-            GameBase.gameExports.gameImports.dprintf("no key item for trigger_key at "
+            gameExports.gameImports.dprintf("no key item for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
         self.item = GameItems.FindItemByClassname(GameBase.st.item);
 
         if (null == self.item) {
-            GameBase.gameExports.gameImports.dprintf("item " + GameBase.st.item
+            gameExports.gameImports.dprintf("item " + GameBase.st.item
                     + " not found for trigger_key at "
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
 
         if (self.target == null) {
-            GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+            gameExports.gameImports.dprintf(self.classname + " at "
                     + Lib.vtos(self.s.origin) + " has no target\n");
             return;
         }
 
-        GameBase.gameExports.gameImports.soundindex("misc/keytry.wav");
-        GameBase.gameExports.gameImports.soundindex("misc/keyuse.wav");
+        gameExports.gameImports.soundindex("misc/keytry.wav");
+        gameExports.gameImports.soundindex("misc/keyuse.wav");
 
         self.use = trigger_key_use;
     }
@@ -180,19 +180,19 @@ class GameTrigger {
      * QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE Pushes the player "speed"
      * defaults to 1000
      */
-    static void SP_trigger_push(SubgameEntity self) {
-        InitTrigger(self);
-        windsound = GameBase.gameExports.gameImports.soundindex("misc/windfly.wav");
+    static void SP_trigger_push(SubgameEntity self, GameExportsImpl gameExports) {
+        InitTrigger(self, gameExports);
+        windsound = gameExports.gameImports.soundindex("misc/windfly.wav");
         self.touch = trigger_push_touch;
         if (0 == self.speed)
             self.speed = 1000;
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_trigger_hurt(SubgameEntity self) {
-        InitTrigger(self);
+    static void SP_trigger_hurt(SubgameEntity self, GameExportsImpl gameExports) {
+        InitTrigger(self, gameExports);
 
-        self.noise_index = GameBase.gameExports.gameImports.soundindex("world/electro.wav");
+        self.noise_index = gameExports.gameImports.soundindex("world/electro.wav");
         self.touch = hurt_touch;
 
         if (0 == self.dmg)
@@ -206,30 +206,30 @@ class GameTrigger {
         if ((self.spawnflags & 2) != 0)
             self.use = hurt_use;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    static void SP_trigger_gravity(SubgameEntity self) {
+    static void SP_trigger_gravity(SubgameEntity self, GameExportsImpl gameExports) {
         if (GameBase.st.gravity == null) {
-            GameBase.gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
+            gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        InitTrigger(self);
+        InitTrigger(self, gameExports);
         self.gravity = Lib.atoi(GameBase.st.gravity);
         self.touch = trigger_gravity_touch;
     }
 
-    static void SP_trigger_monsterjump(SubgameEntity self) {
+    static void SP_trigger_monsterjump(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == self.speed)
             self.speed = 200;
         if (0 == GameBase.st.height)
             GameBase.st.height = 200;
         if (self.s.angles[Defines.YAW] == 0)
             self.s.angles[Defines.YAW] = 360;
-        InitTrigger(self);
+        InitTrigger(self, gameExports);
         self.touch = trigger_monsterjump_touch;
         self.movedir[2] = GameBase.st.height;
     }

@@ -1361,7 +1361,7 @@ public class PlayerClient {
                     && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
                 gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                         .soundindex("*jump1.wav"), 1, Defines.ATTN_NORM, 0);
-                PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF);
+                PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF, GameBase.gameExports);
             }
 
             ent.viewheight = (int) pm.viewheight;
