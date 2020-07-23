@@ -177,7 +177,7 @@ public class GameTurret {
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
     	public String getID() { return "turret_blocked"; }
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
 
             if (other.takedamage != 0) {
                 SubgameEntity attacker;

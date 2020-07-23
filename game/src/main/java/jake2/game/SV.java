@@ -493,7 +493,7 @@ final class SV {
             // if the pusher has a "blocked" function, call it
             // otherwise, just stay in place until the obstacle is gone
             if (part.blocked != null)
-                part.blocked.blocked(part, GameBase.obstacle);
+                part.blocked.blocked(part, GameBase.obstacle, GameBase.gameExports);
         } else { // the move succeeded, so call all think functions
             for (part = ent; part != null; part = part.teamchain) {
                 SV_RunThink(part);

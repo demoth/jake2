@@ -791,7 +791,7 @@ class GameFunc {
 
     private static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
         public String getID() { return "plat_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
                     && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
@@ -809,7 +809,7 @@ class GameFunc {
                     GameDefines.MOD_CRUSH);
 
             if (self.moveinfo.state == STATE_UP)
-                plat_go_down.think(self, GameBase.gameExports);
+                plat_go_down.think(self, gameExports);
             else if (self.moveinfo.state == STATE_DOWN)
                 plat_go_up(self);
 
@@ -862,7 +862,7 @@ class GameFunc {
 
     private static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
         public String getID() { return "rotating_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH);
@@ -1323,7 +1323,7 @@ class GameFunc {
 
     private static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
 
             if (0 == (other.svflags & Defines.SVF_MONSTER)
                     && (null == other.getClient())) {
@@ -1354,7 +1354,7 @@ class GameFunc {
                         door_go_up(ent, ent.activator);
                 } else {
                     for (ent = self.teammaster; ent != null; ent = ent.teamchain)
-                        door_go_down.think(ent, GameBase.gameExports);
+                        door_go_down.think(ent, gameExports);
                 }
             }
         }
@@ -1643,7 +1643,7 @@ class GameFunc {
 
     private static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
         public String getID() { return "train_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
                     && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
@@ -1656,12 +1656,12 @@ class GameFunc {
                 return;
             }
 
-            if (GameBase.gameExports.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
 
             if (self.dmg == 0)
                 return;
-            self.touch_debounce_time = GameBase.gameExports.level.time + 0.5f;
+            self.touch_debounce_time = gameExports.level.time + 0.5f;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH);
@@ -2079,7 +2079,7 @@ class GameFunc {
 
     private static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other) {
+        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
             if (0 == (other.svflags & Defines.SVF_MONSTER)
                     && (null == other.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
@@ -2092,9 +2092,9 @@ class GameFunc {
                 return;
             }
 
-            if (GameBase.gameExports.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.gameExports.level.time + 0.5f;
+            self.touch_debounce_time = gameExports.level.time + 0.5f;
 
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
