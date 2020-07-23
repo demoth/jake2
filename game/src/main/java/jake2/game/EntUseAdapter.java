@@ -25,5 +25,5 @@ package jake2.game;
 
 public abstract class EntUseAdapter extends SuperAdapter
 {
-	public abstract void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator);
+	public abstract void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports);
 }

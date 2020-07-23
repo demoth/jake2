@@ -32,11 +32,11 @@ public class M_Boss3 {
 
     static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
     	public String getID() { return "Use_Boss3"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(Defines.TE_BOSSTPORT);
-            GameBase.gameExports.gameImports.WritePosition(ent.s.origin);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_BOSSTPORT);
+            gameExports.gameImports.WritePosition(ent.s.origin);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
             GameUtil.G_FreeEdict(ent);
         }
     };
@@ -48,7 +48,7 @@ public class M_Boss3 {
                 ent.s.frame = M_Boss32.FRAME_stand201;
             else
                 ent.s.frame++;
-            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
 
