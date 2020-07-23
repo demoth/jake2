@@ -126,7 +126,7 @@ public class GameCombat {
                 || targ.movetype == GameDefines.MOVETYPE_STOP
                 || targ.movetype == GameDefines.MOVETYPE_NONE) { // doors, triggers,
                                                              // etc
-            targ.die.die(targ, inflictor, attacker, damage, point);
+            targ.die.die(targ, inflictor, attacker, damage, point, GameBase.gameExports);
             return;
         }
     
@@ -136,7 +136,7 @@ public class GameCombat {
             Monster.monster_death_use(targ);
         }
     
-        targ.die.die(targ, inflictor, attacker, damage, point);
+        targ.die.die(targ, inflictor, attacker, damage, point, GameBase.gameExports);
     }
 
     /**
@@ -535,17 +535,17 @@ public class GameCombat {
             M_ReactToDamage(targ, attacker);
             if (0 == (targ.monsterinfo.aiflags & GameDefines.AI_DUCKED)
                     && (take != 0)) {
-                targ.pain.pain(targ, attacker, knockback, take);
+                targ.pain.pain(targ, attacker, knockback, take, GameBase.gameExports);
                 // nightmare mode monsters don't go into pain frames often
                 if (cvars.skill.value == 3)
                     targ.pain_debounce_time = GameBase.gameExports.level.time + 5;
             }
         } else if (client != null) {
             if (((targ.flags & GameDefines.FL_GODMODE) == 0) && (take != 0))
-                targ.pain.pain(targ, attacker, knockback, take);
+                targ.pain.pain(targ, attacker, knockback, take, GameBase.gameExports);
         } else if (take != 0) {
             if (targ.pain != null)
-                targ.pain.pain(targ, attacker, knockback, take);
+                targ.pain.pain(targ, attacker, knockback, take, GameBase.gameExports);
         }
     
         // add to the damage inflicted on a player this frame

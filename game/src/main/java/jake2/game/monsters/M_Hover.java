@@ -546,30 +546,30 @@ public class M_Hover {
 
     static EntPainAdapter hover_pain = new EntPainAdapter() {
     	public String getID() { return "hover_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 25) {
                 if (Lib.random() < 0.5) {
-                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                    gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = hover_move_pain3;
                 } else {
-                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                    gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = hover_move_pain2;
                 }
             } else {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = hover_move_pain1;
             }
@@ -580,8 +580,8 @@ public class M_Hover {
     	public String getID() { return "hover_deadthink"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == self.groundentity
-                    && GameBase.gameExports.level.time < self.timestamp) {
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                    && gameExports.level.time < self.timestamp) {
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 return true;
             }
             GameMisc.BecomeExplosion1(self);
@@ -596,9 +596,9 @@ public class M_Hover {
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.think = hover_deadthink;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
-            self.timestamp = GameBase.gameExports.level.time + 15;
-            GameBase.gameExports.gameImports.linkentity(self);
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            self.timestamp = gameExports.level.time + 15;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -606,13 +606,13 @@ public class M_Hover {
     static EntDieAdapter hover_die = new EntDieAdapter() {
     	public String getID() { return "hover_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -633,10 +633,10 @@ public class M_Hover {
 
             //	regular death
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
                         Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -646,8 +646,8 @@ public class M_Hover {
 
     static EntInteractAdapter hover_sight = new EntInteractAdapter() {
     	public String getID() { return "hover_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -657,10 +657,10 @@ public class M_Hover {
     	public String getID() { return "hover_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }

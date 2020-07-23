@@ -567,7 +567,7 @@ public class M_Medic {
     	public String getID(){ return "medic_idle"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                     Defines.ATTN_IDLE, 0);
 
             SubgameEntity ent = medic_FindDeadMonster(self);
@@ -585,7 +585,7 @@ public class M_Medic {
     	public String getID(){ return "medic_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_IDLE, 0);
 
             if (self.oldenemy == null) {
@@ -604,8 +604,8 @@ public class M_Medic {
 
     static EntInteractAdapter medic_sight = new EntInteractAdapter() {
     	public String getID(){ return "medic_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -809,26 +809,26 @@ public class M_Medic {
 
     static EntPainAdapter medic_pain = new EntPainAdapter() {
     	public String getID(){ return "medic_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (Lib.random() < 0.5) {
                 self.monsterinfo.currentmove = medic_move_pain1;
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = medic_move_pain2;
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -920,7 +920,7 @@ public class M_Medic {
     static EntDieAdapter medic_die = new EntDieAdapter() {
     	public String getID(){ return "medic_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
 
             int n;
 
@@ -930,8 +930,8 @@ public class M_Medic {
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -951,7 +951,7 @@ public class M_Medic {
                 return;
 
             //	regular death
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -1019,7 +1019,7 @@ public class M_Medic {
 
     static EntDodgeAdapter medic_dodge = new EntDodgeAdapter() {
     	public String getID(){ return "medic_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -1087,7 +1087,7 @@ public class M_Medic {
     static EntThinkAdapter medic_hook_launch = new EntThinkAdapter() {
     	public String getID(){ return "medic_hook_launch"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }

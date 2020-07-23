@@ -25,5 +25,5 @@ package jake2.game;
 
 public abstract class EntInteractAdapter extends SuperAdapter
 {
-	public abstract boolean interact(SubgameEntity self, SubgameEntity other);
+	public abstract boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports);
 }

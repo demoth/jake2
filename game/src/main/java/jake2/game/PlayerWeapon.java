@@ -1029,7 +1029,7 @@ public class PlayerWeapon {
 
     public static EntInteractAdapter Pickup_Weapon = new EntInteractAdapter() {
     	public String getID() { return "Pickup_Weapon"; }
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             int index;
             gitem_t ammo;
 

@@ -25,5 +25,5 @@ package jake2.game;
 
 public abstract class EntDieAdapter extends SuperAdapter
 {
-	public abstract void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker, int damage, float[] point);
+	public abstract void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker, int damage, float[] point, GameExportsImpl gameExports);
 }

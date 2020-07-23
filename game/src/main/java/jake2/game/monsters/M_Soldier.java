@@ -1014,7 +1014,7 @@ public class M_Soldier {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1022,13 +1022,13 @@ public class M_Soldier {
     static EntDieAdapter soldier_die = new EntDieAdapter() {
     	public String getID(){ return "soldier_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             // check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 3; n++)
@@ -1052,14 +1052,14 @@ public class M_Soldier {
             self.s.skinnum |= 1;
 
             if (self.s.skinnum == 1)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death_light,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death_light,
                         1, Defines.ATTN_NORM, 0);
             else if (self.s.skinnum == 3)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                         Defines.ATTN_NORM, 0);
             else
                 // (self.s.skinnum == 5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death_ss, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death_ss, 1,
                         Defines.ATTN_NORM, 0);
 
             if (Math.abs((self.s.origin[2] + self.viewheight) - point[2]) <= 4) {
@@ -1091,7 +1091,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((GameBase.gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             else
@@ -1109,7 +1109,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((GameBase.gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak102;
             return true;
@@ -1125,7 +1125,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((GameBase.gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             else
@@ -1143,7 +1143,7 @@ public class M_Soldier {
             if (self.enemy.health <= 0)
                 return true;
 
-            if (((GameBase.gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
+            if (((gameExports.cvarCache.skill.value == 3) && (Lib.random() < 0.5))
                     || (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE))
                 self.monsterinfo.nextframe = FRAME_attak204;
             return true;
@@ -1153,7 +1153,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_attack3_refire = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack3_refire"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if ((GameBase.gameExports.level.time + 0.4) < self.monsterinfo.pausetime)
+            if ((gameExports.level.time + 0.4) < self.monsterinfo.pausetime)
                 self.monsterinfo.nextframe = FRAME_attak303;
             return true;
         }
@@ -1168,7 +1168,7 @@ public class M_Soldier {
             if (GameUtil.range(self, self.enemy) < GameDefines.RANGE_MID)
                 return true;
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 self.monsterinfo.nextframe = FRAME_runs03;
             return true;
         }
@@ -1178,7 +1178,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire8 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire8"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 7);
+            soldier_fire(self, 7, gameExports);
             return true;
         }
     };
@@ -1188,7 +1188,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire1 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire1"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 0);
+            soldier_fire(self, 0, gameExports);
             return true;
         }
     };
@@ -1198,7 +1198,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire2 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire2"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 1);
+            soldier_fire(self, 1, gameExports);
             return true;
         }
     };
@@ -1211,8 +1211,8 @@ public class M_Soldier {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
-            GameBase.gameExports.gameImports.linkentity(self);
+            self.monsterinfo.pausetime = gameExports.level.time + 1;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1221,7 +1221,7 @@ public class M_Soldier {
     	public String getID(){ return "soldier_fire3"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_duck_down.think(self, gameExports);
-            soldier_fire(self, 2);
+            soldier_fire(self, 2, gameExports);
             return true;
         }
     };
@@ -1231,7 +1231,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire4 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire4"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 3);
+            soldier_fire(self, 3, gameExports);
             //
             //	if (self.enemy.health <= 0)
             //		return;
@@ -1250,7 +1250,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire6 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire6"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 5);
+            soldier_fire(self, 5, gameExports);
             return true;
         }
     };
@@ -1258,7 +1258,7 @@ public class M_Soldier {
     static EntThinkAdapter soldier_fire7 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire7"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            soldier_fire(self, 6);
+            soldier_fire(self, 6, gameExports);
             return true;
         }
     };
@@ -1267,7 +1267,7 @@ public class M_Soldier {
     	public String getID(){ return "soldier_idle"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() > 0.8)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                         Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -1329,14 +1329,14 @@ public class M_Soldier {
 
     static EntPainAdapter soldier_pain = new EntPainAdapter() {
     	public String getID(){ return "soldier_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum |= 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time) {
+            if (gameExports.level.time < self.pain_debounce_time) {
                 if ((self.velocity[2] > 100)
                         && ((self.monsterinfo.currentmove == soldier_move_pain1)
                                 || (self.monsterinfo.currentmove == soldier_move_pain2) || (self.monsterinfo.currentmove == soldier_move_pain3)))
@@ -1344,17 +1344,17 @@ public class M_Soldier {
                 return;
             }
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
             n = self.s.skinnum | 1;
             if (n == 1)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain_light,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain_light,
                         1, Defines.ATTN_NORM, 0);
             else if (n == 3)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain_ss, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain_ss, 1,
                         Defines.ATTN_NORM, 0);
 
             if (self.velocity[2] > 100) {
@@ -1362,7 +1362,7 @@ public class M_Soldier {
                 return;
             }
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             r = Lib.random();
@@ -1386,22 +1386,22 @@ public class M_Soldier {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntInteractAdapter soldier_sight = new EntInteractAdapter() {
     	public String getID(){ return "soldier_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if ((GameBase.gameExports.cvarCache.skill.value > 0)
+            if ((gameExports.cvarCache.skill.value > 0)
                     && (GameUtil.range(self, self.enemy) >= GameDefines.RANGE_MID)) {
                 if (Lib.random() > 0.5)
                     self.monsterinfo.currentmove = soldier_move_attack6;
@@ -1536,7 +1536,7 @@ public class M_Soldier {
         }
     };
 
-    static void soldier_fire(SubgameEntity self, int flash_number) {
+    static void soldier_fire(SubgameEntity self, int flash_number, GameExportsImpl gameExports) {
         float[] start = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, up = { 0, 0, 0 };
         float[] aim = { 0, 0, 0 };
@@ -1586,14 +1586,14 @@ public class M_Soldier {
                     GameDefines.DEFAULT_SHOTGUN_COUNT, flash_index);
         } else {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
-                self.monsterinfo.pausetime = GameBase.gameExports.level.time
+                self.monsterinfo.pausetime = gameExports.level.time
                         + (3 + Lib.rand() % 8) * Defines.FRAMETIME;
 
             Monster.monster_fire_bullet(self, start, aim, 2, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD, flash_index);
 
-            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -2222,7 +2222,7 @@ public class M_Soldier {
 
     static EntDodgeAdapter soldier_dodge = new EntDodgeAdapter() {
     	public String getID(){ return "soldier_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             float r;
 
             r = Lib.random();
@@ -2232,15 +2232,15 @@ public class M_Soldier {
             if (self.enemy == null)
                 self.enemy = attacker;
 
-            if (GameBase.gameExports.cvarCache.skill.value == 0) {
+            if (gameExports.cvarCache.skill.value == 0) {
                 self.monsterinfo.currentmove = soldier_move_duck;
                 return;
             }
 
-            self.monsterinfo.pausetime = GameBase.gameExports.level.time + eta + 0.3f;
+            self.monsterinfo.pausetime = gameExports.level.time + eta + 0.3f;
             r = Lib.random();
 
-            if (GameBase.gameExports.cvarCache.skill.value == 1) {
+            if (gameExports.cvarCache.skill.value == 1) {
                 if (r > 0.33)
                     self.monsterinfo.currentmove = soldier_move_duck;
                 else
@@ -2248,7 +2248,7 @@ public class M_Soldier {
                 return;
             }
 
-            if (GameBase.gameExports.cvarCache.skill.value >= 2) {
+            if (gameExports.cvarCache.skill.value >= 2) {
                 if (r > 0.66)
                     self.monsterinfo.currentmove = soldier_move_duck;
                 else

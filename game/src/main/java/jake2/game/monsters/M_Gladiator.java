@@ -238,7 +238,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_idle"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -246,9 +246,9 @@ public class M_Gladiator {
 
     static EntInteractAdapter gladiator_sight = new EntInteractAdapter() {
     	public String getID() { return "gladiator_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -258,7 +258,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -268,7 +268,7 @@ public class M_Gladiator {
     	public String getID() { return "gladiator_cleaver_swing"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -358,10 +358,10 @@ public class M_Gladiator {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
             if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
+                gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
                         1, Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_miss,
+                gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_miss,
                         1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -453,7 +453,7 @@ public class M_Gladiator {
                 return true;
 
             // charge up the railgun
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_gun, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_gun, 1,
                     Defines.ATTN_NORM, 0);
             Math3D.VectorCopy(self.enemy.s.origin, self.pos1);
             //save for aiming the shot
@@ -488,28 +488,28 @@ public class M_Gladiator {
 
     static EntPainAdapter gladiator_pain = new EntPainAdapter() {
     	public String getID() { return "gladiator_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time) {
+            if (gameExports.level.time < self.pain_debounce_time) {
                 if ((self.velocity[2] > 100)
                         && (self.monsterinfo.currentmove == gladiator_move_pain))
                     self.monsterinfo.currentmove = gladiator_move_pain_air;
                 return;
             }
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (self.velocity[2] > 100)
@@ -529,7 +529,7 @@ public class M_Gladiator {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -564,13 +564,13 @@ public class M_Gladiator {
     static EntDieAdapter gladiator_die = new EntDieAdapter() {
     	public String getID() { return "gladiator_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -590,7 +590,7 @@ public class M_Gladiator {
                 return;
 
             //	regular death
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;

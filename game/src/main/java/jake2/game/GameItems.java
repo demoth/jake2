@@ -80,7 +80,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Pack = new EntInteractAdapter() {
         public String getID() { return "pickup_pack";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
     
             gitem_t item;
             int index;
@@ -176,7 +176,7 @@ public class GameItems {
 
     final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
         public String getID() { return "pickup_health";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
     
             if (0 == (ent.style & GameDefines.HEALTH_IGNORE_MAX))
                 if (other.health >= other.max_health)
@@ -223,7 +223,7 @@ public class GameItems {
             if (ent.item.pickup == null)
                 return; // not a grabbable item?
     
-            taken = ent.item.pickup.interact(ent, other);
+            taken = ent.item.pickup.interact(ent, other, GameBase.gameExports);
     
             if (taken) {
                 // flash the screen
@@ -394,7 +394,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
         public String getID() { return "pickup_key";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             gclient_t client = other.getClient();
             if (GameBase.gameExports.cvarCache.coop.value != 0) {
                 if ("key_power_cube".equals(ent.classname)) {
@@ -415,7 +415,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Ammo = new EntInteractAdapter() {
         public String getID() { return "pickup_ammo";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             int oldcount;
             int count;
             boolean weapon;
@@ -449,7 +449,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
         public String getID() { return "pickup_armor";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             int old_armor_index;
             gitem_armor_t oldinfo;
             gitem_armor_t newinfo;
@@ -531,7 +531,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_PowerArmor = new EntInteractAdapter() {
         public String getID() { return "pickup_powerarmor";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
     
             int quantity;
 
@@ -552,7 +552,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Powerup = new EntInteractAdapter() {
         public String getID() { return "pickup_powerup";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             int quantity;
 
             gclient_t client = other.getClient();
@@ -586,7 +586,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
         public String getID() { return "pickup_adrenaline";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             if (GameBase.gameExports.cvarCache.deathmatch.value == 0)
                 other.max_health += 1;
     
@@ -603,7 +603,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_AncientHead = new EntInteractAdapter() {
         public String getID() { return "pickup_ancienthead";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             other.max_health += 2;
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
@@ -615,7 +615,7 @@ public class GameItems {
     };
     static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
         public String getID() { return "pickup_bandolier";}
-        public boolean interact(SubgameEntity ent, SubgameEntity other) {
+        public boolean interact(SubgameEntity ent, SubgameEntity other, GameExportsImpl gameExports) {
             gitem_t item;
             int index;
 
@@ -1026,13 +1026,13 @@ public class GameItems {
      * 
      * Called by worldspawn ===============
      */
-    static void SetItemNames() {
+    static void SetItemNames(GameExportsImpl gameExports) {
         int i;
         gitem_t it;
     
-        for (i = 1; i < GameBase.gameExports.game.num_items; i++) {
+        for (i = 1; i < gameExports.game.num_items; i++) {
             it = GameItemList.itemlist[i];
-            GameBase.gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
+            gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
         jacket_armor_index = FindItem("Jacket Armor").index;
@@ -1321,7 +1321,7 @@ public class GameItems {
         if (ent.item.pickup == null)
             return; // not a grabbable item?
     
-        taken = ent.item.pickup.interact(ent, other);
+        taken = ent.item.pickup.interact(ent, other, GameBase.gameExports);
     
         if (taken) {
             // flash the screen

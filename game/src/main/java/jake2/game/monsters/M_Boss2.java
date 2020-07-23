@@ -480,7 +480,7 @@ public class M_Boss2 {
 
     static EntPainAdapter boss2_pain = new EntPainAdapter() {
     	public String getID() { return "boss2_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
@@ -513,7 +513,7 @@ public class M_Boss2 {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -521,8 +521,8 @@ public class M_Boss2 {
     static EntDieAdapter boss2_die = new EntDieAdapter() {
     	public String getID() { return "boss2_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NONE, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;
@@ -550,7 +550,7 @@ public class M_Boss2 {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
+                tr = gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA);
@@ -579,7 +579,7 @@ public class M_Boss2 {
             if (self.monsterinfo.attack == null)
                 return false;
 
-            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
+            if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (enemy_range == GameDefines.RANGE_FAR)
@@ -599,7 +599,7 @@ public class M_Boss2 {
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
+                self.monsterinfo.attack_finished = gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }
@@ -619,7 +619,7 @@ public class M_Boss2 {
     	public String getID() { return "boss2_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NONE, 0);
             return true;
         }

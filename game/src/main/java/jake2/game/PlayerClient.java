@@ -39,7 +39,7 @@ public class PlayerClient {
     static EntDieAdapter player_die = new EntDieAdapter() {
     	public String getID() { return "player_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                        int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
     
             Math3D.VectorClear(self.avelocity);
@@ -62,12 +62,12 @@ public class PlayerClient {
             self.svflags |= Defines.SVF_DEADMONSTER;
     
             if (self.deadflag == 0) {
-                client.respawn_time = GameBase.gameExports.level.time + 1.0f;
+                client.respawn_time = gameExports.level.time + 1.0f;
                 PlayerClient.LookAtKiller(self, inflictor, attacker);
                 client.getPlayerState().pmove.pm_type = Defines.PM_DEAD;
                 ClientObituary(self, inflictor, attacker);
                 PlayerClient.TossClientWeapon(self);
-                if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+                if (gameExports.cvarCache.deathmatch.value != 0) {
                     Com.Printf("NOT IMPLEMENTED!");
                     //Cmd.Help_f(self); // show scores
                 }
@@ -75,8 +75,8 @@ public class PlayerClient {
                 // clear inventory
                 // this is kind of ugly, but it's how we want to handle keys in
                 // coop
-                for (n = 0; n < GameBase.gameExports.game.num_items; n++) {
-                    if (GameBase.gameExports.cvarCache.coop.value != 0
+                for (n = 0; n < gameExports.game.num_items; n++) {
+                    if (gameExports.cvarCache.coop.value != 0
                             && (GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0)
                         client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
                     client.pers.inventory[n] = 0;
@@ -91,8 +91,8 @@ public class PlayerClient {
             self.flags &= ~GameDefines.FL_POWER_ARMOR;
     
             if (self.health < -40) { // gib
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_BODY, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
@@ -126,7 +126,7 @@ public class PlayerClient {
                             break;
                         }
     
-                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                             .soundindex("*death" + ((Lib.rand() % 4) + 1)
                                     + ".wav"), 1, Defines.ATTN_NORM, 0);
                 }
@@ -134,7 +134,7 @@ public class PlayerClient {
     
             self.deadflag = GameDefines.DEAD_DEAD;
     
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
         }
     };
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
@@ -176,7 +176,7 @@ public class PlayerClient {
     	public String getID() { return "SP_CreateCoopSpots"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            if (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "security") == 0) {
+            if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
                 SubgameEntity spot = GameUtil.G_Spawn();
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 - 64;
@@ -207,19 +207,19 @@ public class PlayerClient {
     // player pain is handled at the end of the frame in P_DamageFeedback
     static EntPainAdapter player_pain = new EntPainAdapter() {
     	public String getID() { return "player_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
         }
     };
     static EntDieAdapter body_die = new EntDieAdapter() {
     	public String getID() { return "body_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
     
             int n;
     
             if (self.health < -40) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, 
-                		GameBase.gameExports.gameImports.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
+                gameExports.gameImports.sound(self, Defines.CHAN_BODY,
+                		gameExports.gameImports.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage,
                             GameDefines.GIB_ORGANIC);
@@ -250,13 +250,13 @@ public class PlayerClient {
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
      * starting point for a level.
      */
-    public static void SP_info_player_start(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.coop.value == 0)
+    public static void SP_info_player_start(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.coop.value == 0)
             return;
-        if (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "security") == 0) {
+        if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
             // invoke one of our gross, ugly, disgusting hacks
             self.think = PlayerClient.SP_CreateCoopSpots;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 
@@ -801,9 +801,9 @@ public class PlayerClient {
     }
 
 
-    public static void InitBodyQue() {
+    public static void InitBodyQue(GameExportsImpl gameExports) {
 
-        GameBase.gameExports.level.body_que = 0;
+        gameExports.level.body_que = 0;
         for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
             SubgameEntity ent = GameUtil.G_Spawn();
             ent.classname = "bodyque";

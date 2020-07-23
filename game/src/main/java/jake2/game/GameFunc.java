@@ -1056,11 +1056,11 @@ class GameFunc {
     private static EntDieAdapter button_killed = new EntDieAdapter() {
         public String getID() { return "button_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             self.activator = attacker;
             self.health = self.max_health;
             self.takedamage = Defines.DAMAGE_NO;
-            button_fire.think(self, GameBase.gameExports);
+            button_fire.think(self, gameExports);
 
         }
     };
@@ -1363,14 +1363,14 @@ class GameFunc {
     private static EntDieAdapter door_killed = new EntDieAdapter() {
         public String getID() { return "door_killed";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             for (ent = self.teammaster; ent != null; ent = ent.teamchain) {
                 ent.health = ent.max_health;
                 ent.takedamage = Defines.DAMAGE_NO;
             }
-            door_use.use(self.teammaster, attacker, attacker, GameBase.gameExports);
+            door_use.use(self.teammaster, attacker, attacker, gameExports);
         }
     };
 
@@ -2105,9 +2105,9 @@ class GameFunc {
     private static EntDieAdapter door_secret_die = new EntDieAdapter() {
         public String getID() { return "door_secret_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             self.takedamage = Defines.DAMAGE_NO;
-            door_secret_use.use(self, attacker, attacker, GameBase.gameExports);
+            door_secret_use.use(self, attacker, attacker, gameExports);
         }
     };
 

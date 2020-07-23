@@ -25,5 +25,5 @@ package jake2.game;
 
 public abstract class EntPainAdapter extends SuperAdapter
 {
-	public abstract void pain(SubgameEntity self, SubgameEntity other, float kick, int damage);
+	public abstract void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports);
 }
