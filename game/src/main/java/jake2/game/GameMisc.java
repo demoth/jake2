@@ -933,7 +933,7 @@ public class GameMisc {
     private static EntTouchAdapter path_corner_touch = new EntTouchAdapter() {
         public String getID() { return "path_corner_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             if (other.movetarget != self)
@@ -969,14 +969,14 @@ public class GameMisc {
             other.goalentity = other.movetarget = next;
 
             if (self.wait != 0) {
-                other.monsterinfo.pausetime = GameBase.gameExports.level.time + self.wait;
-                other.monsterinfo.stand.think(other, GameBase.gameExports);
+                other.monsterinfo.pausetime = gameExports.level.time + self.wait;
+                other.monsterinfo.stand.think(other, gameExports);
                 return;
             }
 
             if (other.movetarget == null) {
-                other.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
-                other.monsterinfo.stand.think(other, GameBase.gameExports);
+                other.monsterinfo.pausetime = gameExports.level.time + 100000000;
+                other.monsterinfo.stand.think(other, gameExports);
             } else {
                 Math3D.VectorSubtract(other.goalentity.s.origin,
                         other.s.origin, v);
@@ -993,7 +993,7 @@ public class GameMisc {
     private static EntTouchAdapter point_combat_touch = new EntTouchAdapter() {
         public String getID() { return "point_combat_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             SubgameEntity activator;
 
             if (other.movetarget != self)
@@ -1004,7 +1004,7 @@ public class GameMisc {
                 other.goalentity = other.movetarget = GameBase
                         .G_PickTarget(other.target);
                 if (null == other.goalentity) {
-                    GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                    gameExports.gameImports.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin) + " target "
                             + self.target + " does not exist\n");
                     other.movetarget = self;
@@ -1012,9 +1012,9 @@ public class GameMisc {
                 self.target = null;
             } else if ((self.spawnflags & 1) != 0
                     && 0 == (other.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY))) {
-                other.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
+                other.monsterinfo.pausetime = gameExports.level.time + 100000000;
                 other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
-                other.monsterinfo.stand.think(other, GameBase.gameExports);
+                other.monsterinfo.stand.think(other, gameExports);
             }
 
             if (other.movetarget == self) {
@@ -1053,7 +1053,7 @@ public class GameMisc {
         public String getID() { return "th_viewthing";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 7;
-            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1119,7 +1119,7 @@ public class GameMisc {
     private static EntTouchAdapter func_object_touch = new EntTouchAdapter() {
         public String getID() { return "func_object_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             // only squash thing we fall on top of
             if (plane == null)
                 return;
@@ -1262,7 +1262,7 @@ public class GameMisc {
     private static EntTouchAdapter barrel_touch = new EntTouchAdapter() {
         public String getID() { return "barrel_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float ratio;
             float[] v = { 0, 0, 0 };
 
@@ -1429,10 +1429,10 @@ public class GameMisc {
         public String getID() { return "misc_eastertank_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 293)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 254;
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1446,10 +1446,10 @@ public class GameMisc {
         public String getID() { return "misc_easterchick_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 247)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 208;
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1462,10 +1462,10 @@ public class GameMisc {
         public String getID() { return "misc_easterchick2_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 287)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 248;
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1481,12 +1481,12 @@ public class GameMisc {
         public String getID() { return "commander_body_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 24)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else
                 self.nextthink = 0;
 
             if (self.s.frame == 22)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                         .soundindex("tank/thud.wav"), 1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1519,7 +1519,7 @@ public class GameMisc {
         public String getID() { return "misc_banner_think";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.s.frame = (ent.s.frame + 1) % 16;
-            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1573,7 +1573,7 @@ public class GameMisc {
     private static EntTouchAdapter misc_viper_bomb_touch = new EntTouchAdapter() {
         public String getID() { return "misc_viper_bomb_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             GameUtil.G_UseTargets(self, self.activator);
 
             self.s.origin[2] = self.absmin[2] + 1;
@@ -1592,7 +1592,7 @@ public class GameMisc {
 
             self.groundentity = null;
 
-            diff = self.timestamp - GameBase.gameExports.level.time;
+            diff = self.timestamp - gameExports.level.time;
             if (diff < -1.0)
                 diff = -1.0f;
 
@@ -1661,7 +1661,7 @@ public class GameMisc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
             if (self.s.frame < 38)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -1757,7 +1757,7 @@ public class GameMisc {
             }
 
             self.enemy.message = self.message;
-            self.enemy.use.use(self.enemy, self, self, GameBase.gameExports);
+            self.enemy.use.use(self.enemy, self, self, gameExports);
 
             if (((self.spawnflags & 1) != 0 && (self.health > self.wait))
                     || ((self.spawnflags & 2) != 0 && (self.health < self.wait))) {
@@ -1783,7 +1783,7 @@ public class GameMisc {
                     return true;
             }
 
-            self.nextthink = GameBase.gameExports.level.time + 1;
+            self.nextthink = gameExports.level.time + 1;
             return true;
 
         }
@@ -1806,7 +1806,7 @@ public class GameMisc {
     private static EntTouchAdapter teleporter_touch = new EntTouchAdapter() {
         public String getID() { return "teleporter_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             edict_t dest;
             int i;
 
@@ -1818,12 +1818,12 @@ public class GameMisc {
             dest = GameBase.G_Find(null, GameBase.findByTarget, self.target).o;
 
             if (dest == null) {
-                GameBase.gameExports.gameImports.dprintf("Couldn't find destination\n");
+                gameExports.gameImports.dprintf("Couldn't find destination\n");
                 return;
             }
 
             // unlink to make sure it can't possibly interfere with KillBox
-            GameBase.gameExports.gameImports.unlinkentity(other);
+            gameExports.gameImports.unlinkentity(other);
 
             Math3D.VectorCopy(dest.s.origin, other.s.origin);
             Math3D.VectorCopy(dest.s.origin, other.s.old_origin);
@@ -1852,7 +1852,7 @@ public class GameMisc {
             // kill anything at the destination
             GameUtil.KillBox(other);
 
-            GameBase.gameExports.gameImports.linkentity(other);
+            gameExports.gameImports.linkentity(other);
         }
     };
 
@@ -1864,13 +1864,13 @@ public class GameMisc {
     static EntThinkAdapter SP_misc_teleporter_dest = new EntThinkAdapter() {
         public String getID() { return "SP_misc_teleporter_dest";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
+            gameExports.gameImports.setmodel(ent, "models/objects/dmspot/tris.md2");
             ent.s.skinnum = 0;
             ent.solid = Defines.SOLID_BBOX;
             //	ent.s.effects |= EF_FLIES;
             Math3D.VectorSet(ent.mins, -32, -32, -24);
             Math3D.VectorSet(ent.maxs, 32, 32, -16);
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -1879,11 +1879,11 @@ public class GameMisc {
         public String getID() { return "gib_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     
             if (self.s.frame == 10) {
                 self.think = GameUtil.G_FreeEdictA;
-                self.nextthink = GameBase.gameExports.level.time + 8
+                self.nextthink = gameExports.level.time + 8
                         + Globals.rnd.nextFloat() * 10;
             }
             return true;
@@ -1893,7 +1893,7 @@ public class GameMisc {
     private static EntTouchAdapter gib_touch = new EntTouchAdapter() {
         public String getID() { return "gib_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float[] normal_angles = { 0, 0, 0 }, right = { 0, 0, 0 };
     
             if (null == self.groundentity)
@@ -1902,17 +1902,17 @@ public class GameMisc {
             self.touch = null;
     
             if (plane != null) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                         .soundindex("misc/fhit3.wav"), 1, Defines.ATTN_NORM, 0);
     
                 Math3D.vectoangles(plane.normal, normal_angles);
                 Math3D.AngleVectors(normal_angles, null, right, null);
                 Math3D.vectoangles(right, self.s.angles);
     
-                if (self.s.modelindex == GameBase.gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2")) {
+                if (self.s.modelindex == gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2")) {
                     self.s.frame++;
                     self.think = gib_think;
-                    self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                    self.nextthink = gameExports.level.time + Defines.FRAMETIME;
                 }
             }
         }

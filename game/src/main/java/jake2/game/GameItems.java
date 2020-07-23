@@ -209,7 +209,7 @@ public class GameItems {
     static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
         public String getID() { return "touch_item";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             boolean taken;
     
             if (ent.classname.equals("item_breather"))
@@ -230,10 +230,10 @@ public class GameItems {
                 client.bonus_alpha = 0.25f;
     
                 // show icon and name on status bar
-                client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) GameBase.gameExports.gameImports
+                client.getPlayerState().stats[Defines.STAT_PICKUP_ICON] = (short) gameExports.gameImports
                         .imageindex(ent.item.icon);
                 client.getPlayerState().stats[Defines.STAT_PICKUP_STRING] = (short) (Defines.CS_ITEMS + ent.item.index);
-                client.pickup_msg_time = GameBase.gameExports.level.time + 3.0f;
+                client.pickup_msg_time = gameExports.level.time + 3.0f;
     
                 // change selected item
                 if (ent.item.use != null)
@@ -241,24 +241,24 @@ public class GameItems {
     
                 if (ent.item.pickup == Pickup_Health) {
                     if (ent.count == 2)
-                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                                 .soundindex("items/s_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else if (ent.count == 10)
-                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                                 .soundindex("items/n_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else if (ent.count == 25)
-                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                                 .soundindex("items/l_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
                         // (ent.count == 100)
-                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                                 .soundindex("items/m_health.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 } else if (ent.item.pickup_sound != null) {
-                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_ITEM, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(other, Defines.CHAN_ITEM, gameExports.gameImports
                             .soundindex(ent.item.pickup_sound), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -274,7 +274,7 @@ public class GameItems {
             
             Com.dprintln("Picked up:" + ent.classname);
     
-            if (!((GameBase.gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
+            if (!((gameExports.cvarCache.coop.value != 0) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
                 if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                     ent.flags &= ~GameDefines.FL_RESPAWN;
@@ -286,19 +286,19 @@ public class GameItems {
     private static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
         public String getID() { return "drop_temp_touch";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
                 return;
     
-            Touch_Item.touch(ent, other, plane, surf);
+            Touch_Item.touch(ent, other, plane, surf, gameExports);
         }
     };
     private static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
         public String getID() { return "drop_make_touchable";}
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-                ent.nextthink = GameBase.gameExports.level.time + 29;
+            if (gameExports.cvarCache.deathmatch.value != 0) {
+                ent.nextthink = gameExports.level.time + 29;
                 ent.think = GameUtil.G_FreeEdictA;
             }
             return false;

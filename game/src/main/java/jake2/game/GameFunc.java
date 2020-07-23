@@ -828,7 +828,7 @@ class GameFunc {
     private static EntTouchAdapter Touch_Plat_Center = new EntTouchAdapter() {
         public String getID() { return "touch_plat_center";}
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other.getClient() == null)
                 return;
 
@@ -839,7 +839,7 @@ class GameFunc {
             if (ent.moveinfo.state == STATE_BOTTOM)
                 plat_go_up(ent);
             else if (ent.moveinfo.state == STATE_TOP) {
-                ent.nextthink = GameBase.gameExports.level.time + 1; // the player is still
+                ent.nextthink = gameExports.level.time + 1; // the player is still
                                                          // on the plat, so
                                                          // delay going down
             }
@@ -872,7 +872,7 @@ class GameFunc {
     private static EntTouchAdapter rotating_touch = new EntTouchAdapter() {
         public String getID() { return "rotating_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (self.avelocity[0] != 0 || self.avelocity[1] != 0
                     || self.avelocity[2] != 0)
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
@@ -1040,7 +1040,7 @@ class GameFunc {
     private static EntTouchAdapter button_touch = new EntTouchAdapter() {
         public String getID() { return "button_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (null == other.getClient())
                 return;
 
@@ -1048,7 +1048,7 @@ class GameFunc {
                 return;
 
             self.activator = other;
-            button_fire.think(self, GameBase.gameExports);
+            button_fire.think(self, gameExports);
 
         }
     };
@@ -1220,7 +1220,7 @@ class GameFunc {
     private static EntTouchAdapter Touch_DoorTrigger = new EntTouchAdapter() {
         public String getID() { return "touch_door_trigger";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other.health <= 0)
                 return;
 
@@ -1232,11 +1232,11 @@ class GameFunc {
                     && 0 != (other.svflags & Defines.SVF_MONSTER))
                 return;
 
-            if (GameBase.gameExports.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.gameExports.level.time + 1.0f;
+            self.touch_debounce_time = gameExports.level.time + 1.0f;
 
-            door_use.use(self.getOwner(), other, other, GameBase.gameExports);
+            door_use.use(self.getOwner(), other, other, gameExports);
         }
     };
 
@@ -1377,16 +1377,16 @@ class GameFunc {
     private static EntTouchAdapter door_touch = new EntTouchAdapter() {
         public String getID() { return "door_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (null == other.getClient())
                 return;
 
-            if (GameBase.gameExports.level.time < self.touch_debounce_time)
+            if (gameExports.level.time < self.touch_debounce_time)
                 return;
-            self.touch_debounce_time = GameBase.gameExports.level.time + 5.0f;
+            self.touch_debounce_time = gameExports.level.time + 5.0f;
 
-            GameBase.gameExports.gameImports.centerprintf(other, self.message);
-            GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
+            gameExports.gameImports.centerprintf(other, self.message);
+            gameExports.gameImports.sound(other, Defines.CHAN_AUTO, gameExports.gameImports
                     .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };

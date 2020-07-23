@@ -679,7 +679,7 @@ public class M_Mutant {
     	public String getID(){ return "mutant_jump_touch"; }
 
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (self.health <= 0) {
                 self.touch = null;
                 return;
