@@ -295,7 +295,7 @@ public class GameExportsImpl implements GameExports {
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
-            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
 
@@ -313,7 +313,7 @@ public class GameExportsImpl implements GameExports {
                 it_ent = GameUtil.G_Spawn();
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
-                GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+                GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
                     GameUtil.G_FreeEdict(it_ent);
 
@@ -353,6 +353,7 @@ public class GameExportsImpl implements GameExports {
 
         int index = it.index;
 
+        // set particular amount of ammo: give cells 53
         if ((it.flags & GameDefines.IT_AMMO) != 0) {
             if (args.size() == 3)
                 client.pers.inventory[index] = Lib.atoi(args.get(2));
@@ -362,7 +363,7 @@ public class GameExportsImpl implements GameExports {
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
-            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+            GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
         }

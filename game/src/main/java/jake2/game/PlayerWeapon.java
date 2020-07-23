@@ -39,7 +39,7 @@ public class PlayerWeapon {
             gclient_t client = ent.getClient();
             if ((client.newweapon != null)
                     && (client.weaponstate == WeaponStates.WEAPON_READY)) {
-                ChangeWeapon(ent, GameBase.gameExports);
+                ChangeWeapon(ent, gameExports);
                 return true;
             }
 
@@ -57,12 +57,12 @@ public class PlayerWeapon {
                         client.weaponstate = WeaponStates.WEAPON_FIRING;
                         client.grenade_time = 0;
                     } else {
-                        if (GameBase.gameExports.level.time >= ent.pain_debounce_time) {
-                            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE,
-                                    GameBase.gameExports.gameImports
+                        if (gameExports.level.time >= ent.pain_debounce_time) {
+                            gameExports.gameImports.sound(ent, Defines.CHAN_VOICE,
+                                    gameExports.gameImports
                                             .soundindex("weapons/noammo.wav"),
                                     1, Defines.ATTN_NORM, 0);
-                            ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
+                            ent.pain_debounce_time = gameExports.level.time + 1;
                         }
                         NoAmmoWeaponChange(ent);
                     }
@@ -84,23 +84,23 @@ public class PlayerWeapon {
 
             if (client.weaponstate == WeaponStates.WEAPON_FIRING) {
                 if (client.getPlayerState().gunframe == 5)
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_WEAPON, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(ent, Defines.CHAN_WEAPON, gameExports.gameImports
                             .soundindex("weapons/hgrena1b.wav"), 1,
                             Defines.ATTN_NORM, 0);
 
                 if (client.getPlayerState().gunframe == 11) {
                     if (0 == client.grenade_time) {
-                        client.grenade_time = GameBase.gameExports.level.time
+                        client.grenade_time = gameExports.level.time
                                 + GameDefines.GRENADE_TIMER + 0.2f;
-                        client.weapon_sound = GameBase.gameExports.gameImports
+                        client.weapon_sound = gameExports.gameImports
                                 .soundindex("weapons/hgrenc1b.wav");
                     }
 
                     // they waited too long, detonate it in their hand
                     if (!client.grenade_blew_up
-                            && GameBase.gameExports.level.time >= client.grenade_time) {
+                            && gameExports.level.time >= client.grenade_time) {
                         client.weapon_sound = 0;
-                        weapon_grenade_fire(ent, true);
+                        weapon_grenade_fire(ent, true, gameExports);
                         client.grenade_blew_up = true;
                     }
 
@@ -108,7 +108,7 @@ public class PlayerWeapon {
                         return true;
 
                     if (client.grenade_blew_up) {
-                        if (GameBase.gameExports.level.time >= client.grenade_time) {
+                        if (gameExports.level.time >= client.grenade_time) {
                             client.getPlayerState().gunframe = 15;
                             client.grenade_blew_up = false;
                         } else {
@@ -119,11 +119,11 @@ public class PlayerWeapon {
 
                 if (client.getPlayerState().gunframe == 12) {
                     client.weapon_sound = 0;
-                    weapon_grenade_fire(ent, false);
+                    weapon_grenade_fire(ent, false, gameExports);
                 }
 
                 if ((client.getPlayerState().gunframe == 15)
-                        && (GameBase.gameExports.level.time < client.grenade_time))
+                        && (gameExports.level.time < client.grenade_time))
                     return true;
 
                 client.getPlayerState().gunframe++;
@@ -170,16 +170,16 @@ public class PlayerWeapon {
 
             GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
-            GameBase.gameExports.gameImports.WriteShort(ent.index);
-            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | is_silenced);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+            gameExports.gameImports.WriteShort(ent.index);
+            gameExports.gameImports.WriteByte(Defines.MZ_GRENADE | is_silenced);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
 
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
-            if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
+            if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
 
             return true;
@@ -248,7 +248,7 @@ public class PlayerWeapon {
 
             client.getPlayerState().gunframe++;
 
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
@@ -283,7 +283,7 @@ public class PlayerWeapon {
             else
                 damage = 10;
             Blaster_Fire(ent, Globals.vec3_origin, damage, false,
-                    Defines.EF_BLASTER);
+                    Defines.EF_BLASTER, gameExports);
             ent.getClient().getPlayerState().gunframe++;
             return true;
         }
@@ -343,7 +343,7 @@ public class PlayerWeapon {
                         damage = 15;
                     else
                         damage = 20;
-                    Blaster_Fire(ent, offset, damage, true, effect);
+                    Blaster_Fire(ent, offset, damage, true, effect, gameExports);
                     if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                         client.pers.inventory[client.ammo_index]--;
 
@@ -470,7 +470,7 @@ public class PlayerWeapon {
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
@@ -541,7 +541,7 @@ public class PlayerWeapon {
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 2;
@@ -614,7 +614,7 @@ public class PlayerWeapon {
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
             client.getPlayerState().gunframe++;
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
@@ -670,7 +670,7 @@ public class PlayerWeapon {
 
                 client.getPlayerState().gunframe++;
 
-                PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+                PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
                 return true;
             }
 
@@ -700,7 +700,7 @@ public class PlayerWeapon {
 
             client.getPlayerState().gunframe++;
 
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= 50;
@@ -743,21 +743,21 @@ public class PlayerWeapon {
             if (item == client.pers.weapon)
                 return;
 
-            if (item.ammo != null && 0 == GameBase.gameExports.cvarCache.g_select_empty.value
+            if (item.ammo != null && 0 == gameExports.cvarCache.g_select_empty.value
                     && 0 == (item.flags & GameDefines.IT_AMMO)) {
                 
                 ammo_item = GameItems.FindItem(item.ammo);
                 ammo_index = ammo_item.index;
 
                 if (0 == client.pers.inventory[ammo_index]) {
-                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "No "
+                    gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "No "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
                     return;
                 }
 
                 if (client.pers.inventory[ammo_index] < item.quantity) {
-                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "Not enough "
+                    gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH, "Not enough "
                             + ammo_item.pickup_name + " for "
                             + item.pickup_name + ".\n");
                     return;
@@ -780,7 +780,7 @@ public class PlayerWeapon {
         public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int index;
 
-            if (0 != ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY))
+            if (0 != ((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY))
                 return;
 
             index = item.index;
@@ -788,7 +788,7 @@ public class PlayerWeapon {
             gclient_t client = ent.getClient();
             if (((item == client.pers.weapon) || (item == client.newweapon))
                     && (client.pers.inventory[index] == 1)) {
-                GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
+                gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
                 return;
             }
@@ -880,7 +880,7 @@ public class PlayerWeapon {
             gameExports.gameImports.WriteByte(Defines.MZ_MACHINEGUN | is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index]--;
@@ -1014,7 +1014,7 @@ public class PlayerWeapon {
                     | is_silenced);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+            PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
 
             if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
                 client.pers.inventory[client.ammo_index] -= shots;
@@ -1036,7 +1036,7 @@ public class PlayerWeapon {
             index = ent.item.index;
 
             gclient_t client = other.getClient();
-            if ((((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || GameBase.gameExports.cvarCache.coop.value != 0)
+            if ((((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0 || gameExports.cvarCache.coop.value != 0)
                     && 0 != client.pers.inventory[index]) {
                 if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM)))
                     return false; // leave the weapon for others to pickup
@@ -1047,26 +1047,26 @@ public class PlayerWeapon {
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)) {
                 // give them some ammo with it
                 ammo = GameItems.FindItem(ent.item.ammo);
-                if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
+                if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
                     GameItems.Add_Ammo(other, ammo, 1000);
                 else
                     GameItems.Add_Ammo(other, ammo, ammo.quantity);
     
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM)) {
-                    if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-                        if (((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
+                    if (gameExports.cvarCache.deathmatch.value != 0) {
+                        if (((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
                             ent.flags |= GameDefines.FL_RESPAWN;
                         else
                             GameItems.SetRespawn(ent, 30);
                     }
-                    if (GameBase.gameExports.cvarCache.coop.value != 0)
+                    if (gameExports.cvarCache.coop.value != 0)
                         ent.flags |= GameDefines.FL_RESPAWN;
                 }
             }
     
             if (client.pers.weapon != ent.item
                     && (client.pers.inventory[index] == 1)
-                    && (0 == GameBase.gameExports.cvarCache.deathmatch.value || client.pers.weapon == GameItems
+                    && (0 == gameExports.cvarCache.deathmatch.value || client.pers.weapon == GameItems
                             .FindItem("blaster")))
                 client.newweapon = ent.item;
     
@@ -1100,7 +1100,7 @@ public class PlayerWeapon {
         if (client.grenade_time != 0) {
             client.grenade_time = gameExports.level.time;
             client.weapon_sound = 0;
-            weapon_grenade_fire(ent, false);
+            weapon_grenade_fire(ent, false, gameExports);
             client.grenade_time = 0;
         }
 
@@ -1375,7 +1375,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static void weapon_grenade_fire(SubgameEntity ent, boolean held) {
+    public static void weapon_grenade_fire(SubgameEntity ent, boolean held, GameExportsImpl gameExports) {
         float[] offset = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
@@ -1393,16 +1393,16 @@ public class PlayerWeapon {
         Math3D.AngleVectors(client.v_angle, forward, right, null);
         P_ProjectSource(client, ent.s.origin, offset, forward, right, start);
 
-        timer = client.grenade_time - GameBase.gameExports.level.time;
+        timer = client.grenade_time - gameExports.level.time;
         speed = (int) (GameDefines.GRENADE_MINSPEED + (GameDefines.GRENADE_TIMER - timer)
                 * ((GameDefines.GRENADE_MAXSPEED - GameDefines.GRENADE_MINSPEED) / GameDefines.GRENADE_TIMER));
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
                 held);
 
-        if (0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
+        if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
             client.pers.inventory[client.ammo_index]--;
 
-        client.grenade_time = GameBase.gameExports.level.time + 1.0f;
+        client.grenade_time = gameExports.level.time + 1.0f;
 
         if (ent.deadflag != 0 || ent.s.modelindex != 255) // VWep animations
         // screw up corpses
@@ -1433,7 +1433,7 @@ public class PlayerWeapon {
      */
 
     public static void Blaster_Fire(SubgameEntity ent, float[] g_offset, int damage,
-            boolean hyper, int effect) {
+                                    boolean hyper, int effect, GameExportsImpl gameExports) {
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
         float[] offset = { 0, 0, 0 };
@@ -1452,15 +1452,15 @@ public class PlayerWeapon {
         GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
         // send muzzle flash
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
-        GameBase.gameExports.gameImports.WriteShort(ent.index);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
+        gameExports.gameImports.WriteShort(ent.index);
         if (hyper)
-            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
+            gameExports.gameImports.WriteByte(Defines.MZ_HYPERBLASTER | is_silenced);
         else
-            GameBase.gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | is_silenced);
-        GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(Defines.MZ_BLASTER | is_silenced);
+        gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
 
-        PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON);
+        PlayerWeapon.PlayerNoise(ent, start, GameDefines.PNOISE_WEAPON, gameExports);
     }
 
     /*
@@ -1475,7 +1475,7 @@ public class PlayerWeapon {
      * of seeing the player from there. 
      * ===============
      */
-    static void PlayerNoise(SubgameEntity who, float[] where, int type) {
+    static void PlayerNoise(SubgameEntity who, float[] where, int type, GameExportsImpl gameExports) {
 
         if (type == GameDefines.PNOISE_WEAPON) {
             gclient_t client = who.getClient();
@@ -1485,7 +1485,7 @@ public class PlayerWeapon {
             }
         }
     
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
+        if (gameExports.cvarCache.deathmatch.value != 0)
             return;
     
         if ((who.flags & GameDefines.FL_NOTARGET) != 0)
@@ -1512,20 +1512,20 @@ public class PlayerWeapon {
     
         if (type == GameDefines.PNOISE_SELF || type == GameDefines.PNOISE_WEAPON) {
             noise = who.mynoise;
-            GameBase.gameExports.level.sound_entity = noise;
-            GameBase.gameExports.level.sound_entity_framenum = GameBase.gameExports.level.framenum;
+            gameExports.level.sound_entity = noise;
+            gameExports.level.sound_entity_framenum = gameExports.level.framenum;
         } 
         else // type == PNOISE_IMPACT
         {
             noise = who.mynoise2;
-            GameBase.gameExports.level.sound2_entity = noise;
-            GameBase.gameExports.level.sound2_entity_framenum = GameBase.gameExports.level.framenum;
+            gameExports.level.sound2_entity = noise;
+            gameExports.level.sound2_entity_framenum = gameExports.level.framenum;
         }
     
         Math3D.VectorCopy(where, noise.s.origin);
         Math3D.VectorSubtract(where, noise.maxs, noise.absmin);
         Math3D.VectorAdd(where, noise.maxs, noise.absmax);
-        noise.teleport_time = GameBase.gameExports.level.time;
-        GameBase.gameExports.gameImports.linkentity(noise);
+        noise.teleport_time = gameExports.level.time;
+        gameExports.gameImports.linkentity(noise);
     }
 }

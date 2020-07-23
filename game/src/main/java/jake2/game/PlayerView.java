@@ -598,7 +598,7 @@ class PlayerView {
         //
         if (old_waterlevel == 0 && waterlevel != 0) {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                    GameDefines.PNOISE_SELF);
+                    GameDefines.PNOISE_SELF, GameBase.gameExports);
             if ((current_player.watertype & Defines.CONTENTS_LAVA) != 0)
                 GameBase.gameExports.gameImports.sound(current_player, Defines.CHAN_BODY,
                         GameBase.gameExports.gameImports.soundindex("player/lava_in.wav"), 1,
@@ -622,7 +622,7 @@ class PlayerView {
         //
         if (old_waterlevel != 0 && waterlevel == 0) {
             PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                    GameDefines.PNOISE_SELF);
+                    GameDefines.PNOISE_SELF, GameBase.gameExports);
             GameBase.gameExports.gameImports
                     .sound(current_player, Defines.CHAN_BODY, GameBase.gameExports.gameImports
                             .soundindex("player/watr_out.wav"), 1,
@@ -648,7 +648,7 @@ class PlayerView {
                         GameBase.gameExports.gameImports.soundindex("player/gasp1.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 PlayerWeapon.PlayerNoise(current_player, current_player.s.origin,
-                        GameDefines.PNOISE_SELF);
+                        GameDefines.PNOISE_SELF, GameBase.gameExports);
             } else if (current_player.air_finished < GameBase.gameExports.level.time + 11) { // just
                                                                                  // break
                                                                                  // surface
@@ -677,7 +677,7 @@ class PlayerView {
                                 1, Defines.ATTN_NORM, 0);
                     current_client.breather_sound ^= 1;
                     PlayerWeapon.PlayerNoise(current_player,
-                            current_player.s.origin, GameDefines.PNOISE_SELF);
+                            current_player.s.origin, GameDefines.PNOISE_SELF, GameBase.gameExports);
                     //FIXME: release a bubble?
                 }
             }
