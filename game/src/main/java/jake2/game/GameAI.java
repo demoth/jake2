@@ -33,27 +33,9 @@ import jake2.qcommon.util.Math3D;
 
 public class GameAI {
 
-    public static void AttackFinished(SubgameEntity self, float time) {
-        self.monsterinfo.attack_finished = GameBase.gameExports.level.time + time;
-    }
-
-    /** Don't move, but turn towards ideal_yaw Distance is for slight position
-     * adjustments needed by the animations.
-     */
-    public static void ai_turn(SubgameEntity self, float dist) {
-        if (dist != 0)
-            M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
-
-        if (GameUtil.FindTarget(self))
-            return;
-
-        M.M_ChangeYaw(self);
-    }
-    
-    /** 
+    /**
      * Checks, if the monster should turn left/right.
      */
-
     private static boolean FacingIdeal(SubgameEntity self) {
         float delta = Math3D.anglemod(self.s.angles[Defines.YAW] - self.ideal_yaw);
         return !(delta > 45) || !(delta < 315);
@@ -62,12 +44,12 @@ public class GameAI {
     /**
      * Turn and close until within an angle to launch a melee attack.
      */
-    public static void ai_run_melee(SubgameEntity self) {
+    public static void ai_run_melee(SubgameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = enemy_yaw;
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
-            self.monsterinfo.melee.think(self, GameBase.gameExports);
+            self.monsterinfo.melee.think(self, gameExports);
             self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     }
@@ -75,12 +57,12 @@ public class GameAI {
     /**
      * Turn in place until within an angle to launch a missile attack.
      */
-    public static void ai_run_missile(SubgameEntity self) {
+    public static void ai_run_missile(SubgameEntity self, GameExportsImpl gameExports) {
         self.ideal_yaw = enemy_yaw;
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
-            self.monsterinfo.attack.think(self, GameBase.gameExports);
+            self.monsterinfo.attack.think(self, gameExports);
             self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     };
@@ -129,7 +111,7 @@ public class GameAI {
      * 
      * walkmove(angle, speed) primitive is all or nothing
      */
-    public static boolean ai_checkattack(SubgameEntity self, float dist) {
+    public static boolean ai_checkattack(SubgameEntity self, float dist, GameExportsImpl gameExports) {
         float temp[] = { 0, 0, 0 };
 
         boolean hesDeadJim;
@@ -140,7 +122,7 @@ public class GameAI {
                 return false;
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET) != 0) {
-                if ((GameBase.gameExports.level.time - self.enemy.teleport_time) > 5.0) {
+                if ((gameExports.level.time - self.enemy.teleport_time) > 5.0) {
                     if (self.goalentity == self.enemy)
                         if (self.movetarget != null)
                             self.goalentity = self.movetarget;
@@ -150,7 +132,7 @@ public class GameAI {
                     if ((self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND) != 0)
                         self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
                 } else {
-                    self.show_hostile = (int) GameBase.gameExports.level.time + 1;
+                    self.show_hostile = (int) gameExports.level.time + 1;
                     return false;
                 }
             }
@@ -187,25 +169,25 @@ public class GameAI {
             } else {
                 if (self.movetarget != null) {
                     self.goalentity = self.movetarget;
-                    self.monsterinfo.walk.think(self, GameBase.gameExports);
+                    self.monsterinfo.walk.think(self, gameExports);
                 } else {
                     // we need the pausetime otherwise the stand code
                     // will just revert to walking with no target and
                     // the monsters will wonder around aimlessly trying
                     // to hunt the world entity
-                    self.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
-                    self.monsterinfo.stand.think(self, GameBase.gameExports);
+                    self.monsterinfo.pausetime = gameExports.level.time + 100000000;
+                    self.monsterinfo.stand.think(self, gameExports);
                 }
                 return true;
             }
         }
 
-        self.show_hostile = (int) GameBase.gameExports.level.time + 1; // wake up other
+        self.show_hostile = (int) gameExports.level.time + 1; // wake up other
         
         // monsters check knowledge of enemy
         enemy_vis = GameUtil.visible(self, self.enemy);
         if (enemy_vis) {
-            self.monsterinfo.search_time = GameBase.gameExports.level.time + 5;
+            self.monsterinfo.search_time = gameExports.level.time + 5;
             Math3D.VectorCopy(self.enemy.s.origin,
                     self.monsterinfo.last_sighting);
         }
@@ -218,11 +200,11 @@ public class GameAI {
         // JDC self.ideal_yaw = enemy_yaw;
 
         if (self.monsterinfo.attack_state == GameDefines.AS_MISSILE) {
-            ai_run_missile(self);
+            ai_run_missile(self, gameExports);
             return true;
         }
         if (self.monsterinfo.attack_state == GameDefines.AS_MELEE) {
-            ai_run_melee(self);
+            ai_run_melee(self, gameExports);
             return true;
         }
 
@@ -230,30 +212,7 @@ public class GameAI {
         if (!enemy_vis)
             return false;
 
-        return self.monsterinfo.checkattack.think(self, GameBase.gameExports);
-    }
-
-    /**
-     * The monster is walking it's beat.
-     */
-    static void ai_walk(SubgameEntity self, float dist) {
-        M.M_MoveToGoal(self, dist);
-    
-        // check for noticing a player
-        if (GameUtil.FindTarget(self))
-            return;
-    
-        if ((self.monsterinfo.search != null)
-                && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
-            if (self.monsterinfo.idle_time != 0) {
-                self.monsterinfo.search.think(self, GameBase.gameExports);
-                self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15
-                        + Lib.random() * 15;
-            } else {
-                self.monsterinfo.idle_time = GameBase.gameExports.level.time + Lib.random()
-                        * 15;
-            }
-        }
+        return self.monsterinfo.checkattack.think(self, gameExports);
     }
 
     /**
@@ -293,15 +252,6 @@ public class GameAI {
         }
     }
 
-    /**
-     * Move the specified distance at current facing. This replaces the QC
-     * functions: ai_forward, ai_back, ai_pain, and ai_painforward
-     */
-    static void ai_move(SubgameEntity self, float dist) {
-        M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
-    }
-
- 
     /**
      * Decides running or standing according to flag AI_STAND_GROUND.
      */
@@ -353,7 +303,7 @@ public class GameAI {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.think = walkmonster_start_go;
-            Monster.monster_start(self);
+            Monster.monster_start(self, gameExports);
             return true;
         }
     };
@@ -382,7 +332,7 @@ public class GameAI {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_FLY;
             self.think = flymonster_start_go;
-            Monster.monster_start(self);
+            Monster.monster_start(self, gameExports);
             return true;
         }
     };
@@ -407,7 +357,7 @@ public class GameAI {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_SWIM;
             self.think = swimmonster_start_go;
-            Monster.monster_start(self);
+            Monster.monster_start(self, gameExports);
             return true;
         }
     };
@@ -419,7 +369,7 @@ public class GameAI {
      */
     public static AIAdapter ai_turn = new AIAdapter() {
         public String getID() { return "ai_turn";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
 
             if (dist != 0)
                 M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
@@ -438,7 +388,7 @@ public class GameAI {
      */
     public static AIAdapter ai_move = new AIAdapter() {
         public String getID() { return "ai_move";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
         }
     };
@@ -449,7 +399,7 @@ public class GameAI {
      */
     public static AIAdapter ai_walk = new AIAdapter() {
         public String getID() { return "ai_walk";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_MoveToGoal(self, dist);
 
             // check for noticing a player
@@ -457,12 +407,12 @@ public class GameAI {
                 return;
 
             if ((self.monsterinfo.search != null)
-                    && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
+                    && (gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
-                    self.monsterinfo.search.think(self, GameBase.gameExports);
-                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.search.think(self, gameExports);
+                    self.monsterinfo.idle_time = gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
-                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = gameExports.level.time + Globals.rnd.nextFloat() * 15;
                 }
             }
         }
@@ -476,7 +426,7 @@ public class GameAI {
 
     public static AIAdapter ai_stand = new AIAdapter() {
         public String getID() { return "ai_stand";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             if (dist != 0)
@@ -489,10 +439,10 @@ public class GameAI {
                     if (self.s.angles[Defines.YAW] != self.ideal_yaw
                             && 0 != (self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND)) {
                         self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
-                        self.monsterinfo.run.think(self, GameBase.gameExports);
+                        self.monsterinfo.run.think(self, gameExports);
                     }
                     M.M_ChangeYaw(self);
-                    ai_checkattack(self, 0);
+                    ai_checkattack(self, 0, gameExports);
                 } else
                     GameUtil.FindTarget(self);
                 return;
@@ -501,18 +451,18 @@ public class GameAI {
             if (GameUtil.FindTarget(self))
                 return;
 
-            if (GameBase.gameExports.level.time > self.monsterinfo.pausetime) {
-                self.monsterinfo.walk.think(self, GameBase.gameExports);
+            if (gameExports.level.time > self.monsterinfo.pausetime) {
+                self.monsterinfo.walk.think(self, gameExports);
                 return;
             }
 
             if (0 == (self.spawnflags & 1) && (self.monsterinfo.idle != null)
-                    && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
+                    && (gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
-                    self.monsterinfo.idle.think(self, GameBase.gameExports);
-                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle.think(self, gameExports);
+                    self.monsterinfo.idle_time = gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
-                    self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
+                    self.monsterinfo.idle_time = gameExports.level.time + Globals.rnd.nextFloat() * 15;
                 }
             }
         }
@@ -524,7 +474,7 @@ public class GameAI {
      */
     public static AIAdapter ai_charge = new AIAdapter() {
         public String getID() { return "ai_charge";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
             Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, v);
@@ -542,7 +492,7 @@ public class GameAI {
      */
     public static AIAdapter ai_run = new AIAdapter() {
         public String getID() { return "ai_run";}
-        public void ai(SubgameEntity self, float dist) {
+        public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
             float[] v_forward = { 0, 0, 0 }, v_right = { 0, 0, 0 };
             float[] left_target = { 0, 0, 0 }, right_target = { 0, 0, 0 };
@@ -559,7 +509,7 @@ public class GameAI {
                 if (Math3D.VectorLength(v) < 64) {
                     //don't move, just stand and listen.
                     //self.monsterinfo.aiflags |= (Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
-                    self.monsterinfo.stand.think(self, GameBase.gameExports);
+                    self.monsterinfo.stand.think(self, gameExports);
                     // since now it is aware and does not to be triggered again.
                     self.spawnflags &= ~1;
                     self.enemy = null;
@@ -573,7 +523,7 @@ public class GameAI {
                                 
             }
 
-            if (ai_checkattack(self, dist))
+            if (ai_checkattack(self, dist, gameExports))
                 return;
 
             if (self.monsterinfo.attack_state == GameDefines.AS_SLIDING) {
@@ -587,12 +537,12 @@ public class GameAI {
                 M.M_MoveToGoal(self, dist);
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                 Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
-                self.monsterinfo.trail_time = GameBase.gameExports.level.time;
+                self.monsterinfo.trail_time = gameExports.level.time;
                 return;
             }
 
             // coop will change to another enemy if visible           
-            if (GameBase.gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.cvarCache.coop.value != 0) {
                 // FIXME: insane guys get mad with this, which causes crashes!
                 if (GameUtil.FindTarget(self))
                     return;
@@ -600,7 +550,7 @@ public class GameAI {
             
 
             if ((self.monsterinfo.search_time != 0)
-                    && (GameBase.gameExports.level.time > (self.monsterinfo.search_time + 20))) {
+                    && (gameExports.level.time > (self.monsterinfo.search_time + 20))) {
                 M.M_MoveToGoal(self, dist);
                 self.monsterinfo.search_time = 0;
                 //dprint("search timeout\n");
@@ -635,7 +585,7 @@ public class GameAI {
                 // dprint("\n");
 
                 // give ourself more time since we got this far
-                self.monsterinfo.search_time = GameBase.gameExports.level.time + 5;
+                self.monsterinfo.search_time = gameExports.level.time + 5;
 
                 SubgameEntity marker;
                 if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUE_TEMP) != 0) {
@@ -676,7 +626,7 @@ public class GameAI {
                 // gi.dprintf("checking for course correction\n");
 
                 // mem
-                trace_t tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
+                trace_t tr = gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                         self.monsterinfo.last_sighting, self,
                         Defines.MASK_PLAYERSOLID);
                 if (tr.fraction < 1) {
@@ -689,14 +639,14 @@ public class GameAI {
 
                     Math3D.VectorSet(v, d2, -16, 0);
                     Math3D.G_ProjectSource(self.s.origin, v, v_forward, v_right, left_target);
-                    tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
+                    tr = gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                             left_target, self, Defines.MASK_PLAYERSOLID);
                     float left = tr.fraction;
 
                     Math3D.VectorSet(v, d2, 16, 0);
                     Math3D.G_ProjectSource(self.s.origin, v, v_forward,
                             v_right, right_target);
-                    tr = GameBase.gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
+                    tr = gameExports.gameImports.trace(self.s.origin, self.mins, self.maxs,
                             right_target, self, Defines.MASK_PLAYERSOLID);
                     float right = tr.fraction;
 

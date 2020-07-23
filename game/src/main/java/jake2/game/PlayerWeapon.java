@@ -734,7 +734,7 @@ public class PlayerWeapon {
     public static ItemUseAdapter Use_Weapon = new ItemUseAdapter() {
     	public String getID() { return "Use_Weapon"; }
 
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int ammo_index;
             gitem_t ammo_item;
 
@@ -777,7 +777,7 @@ public class PlayerWeapon {
 
     public static ItemDropAdapter Drop_Weapon = new ItemDropAdapter() {
     	public String getID() { return "Drop_Weapon"; }
-        public void drop(SubgameEntity ent, gitem_t item) {
+        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int index;
 
             if (0 != ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY))

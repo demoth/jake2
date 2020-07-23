@@ -306,7 +306,7 @@ public class GameItems {
     };
     static ItemUseAdapter Use_Quad = new ItemUseAdapter() {
         public String getID() { return "use_quad";}    
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int timeout;
 
             gclient_t client = ent.getClient();
@@ -332,7 +332,7 @@ public class GameItems {
     
     static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
         public String getID() { return "use_invulnerability";}
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
@@ -348,7 +348,7 @@ public class GameItems {
     };
     static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
         public String getID() { return "use_breather";}
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
     
@@ -365,7 +365,7 @@ public class GameItems {
     };
     static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
         public String getID() { return "use_envirosuit";}
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
             GameUtil.ValidateSelectedItem(ent);
@@ -381,7 +381,7 @@ public class GameItems {
     };
     static ItemUseAdapter Use_Silencer = new ItemUseAdapter() {
         public String getID() { return "use_silencer";}
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
@@ -545,7 +545,7 @@ public class GameItems {
                     SetRespawn(ent, ent.item.quantity);
                 // auto-use for DM only if we didn't already have one
                 if (0 == quantity)
-                    ent.item.use.use(other, ent.item);
+                    ent.item.use.use(other, ent.item, gameExports);
             }
             return true;
         }
@@ -577,7 +577,7 @@ public class GameItems {
                             && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))
                         quad_drop_timeout_hack = (int) ((ent.nextthink - GameBase.gameExports.level.time) / Defines.FRAMETIME);
     
-                    ent.item.use.use(other, ent.item);
+                    ent.item.use.use(other, ent.item, gameExports);
                 }
             }
     
@@ -655,7 +655,7 @@ public class GameItems {
     };
     static ItemDropAdapter Drop_Ammo = new ItemDropAdapter() {
         public String getID() { return "drop_ammo";}
-        public void drop(SubgameEntity ent, gitem_t item) {
+        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int index;
 
             index = item.index;
@@ -682,7 +682,7 @@ public class GameItems {
     };
     static ItemDropAdapter Drop_General = new ItemDropAdapter() {
         public String getID() { return "drop_general";}
-        public void drop(SubgameEntity ent, gitem_t item) {
+        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             Drop_Item(ent, item);
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
@@ -692,12 +692,12 @@ public class GameItems {
     
     static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
         public String getID() { return "drop_powerarmor";}
-        public void drop(SubgameEntity ent, gitem_t item) {
+        public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             if (0 != (ent.flags & GameDefines.FL_POWER_ARMOR)
                     && (client.pers.inventory[item.index] == 1))
-                Use_PowerArmor.use(ent, item);
-            Drop_General.drop(ent, item);
+                Use_PowerArmor.use(ent, item, gameExports);
+            Drop_General.drop(ent, item, gameExports);
         }
     };
     
@@ -770,7 +770,7 @@ public class GameItems {
     };
     static ItemUseAdapter Use_PowerArmor = new ItemUseAdapter() {
         public String getID() { return "use_powerarmor";}
-        public void use(SubgameEntity ent, gitem_t item) {
+        public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             int index;
     
             if ((ent.flags & GameDefines.FL_POWER_ARMOR) != 0) {
@@ -966,25 +966,6 @@ public class GameItems {
         return 0;
     }
 
-    public static boolean Pickup_PowerArmor(SubgameEntity ent, SubgameEntity other) {
-        int quantity;
-
-        gclient_t client = other.getClient();
-        quantity = client.pers.inventory[ent.item.index];
-
-        client.pers.inventory[ent.item.index]++;
-    
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-            if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
-                SetRespawn(ent, ent.item.quantity);
-            // auto-use for DM only if we didn't already have one
-            if (0 == quantity)
-                ent.item.use.use(other, ent.item);
-        }
-    
-        return true;
-    }
-
     static boolean Add_Ammo(SubgameEntity ent, gitem_t item, int count) {
         int index;
         int max;
@@ -1171,34 +1152,34 @@ public class GameItems {
      * Items can't be immediately dropped to floor, because they might be on an
      * entity that hasn't spawned yet.
      */
-    static void SpawnItem(SubgameEntity ent, gitem_t item) {
+    static void SpawnItem(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
         PrecacheItem(item);
     
         if (ent.spawnflags != 0) {
             if (!"key_power_cube".equals(ent.classname)) {
                 ent.spawnflags = 0;
-                GameBase.gameExports.gameImports.dprintf("" + ent.classname + " at "
+                gameExports.gameImports.dprintf("" + ent.classname + " at "
                         + Lib.vtos(ent.s.origin)
                         + " has invalid spawnflags set\n");
             }
         }
     
         // some items will be prevented in deathmatch
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
-            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
+            if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
                     GameUtil.G_FreeEdict(ent);
                     return;
                 }
             }
-            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
+            if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
                 if (item.pickup == Pickup_Powerup) {
                     GameUtil.G_FreeEdict(ent);
                     return;
                 }
             }
-            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+            if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
                 if (item.pickup == Pickup_Health
                         || item.pickup == Pickup_Adrenaline
                         || item.pickup == Pickup_AncientHead) {
@@ -1206,7 +1187,7 @@ public class GameItems {
                     return;
                 }
             }
-            if (((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
+            if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
                     GameUtil.G_FreeEdict(ent);
@@ -1215,91 +1196,91 @@ public class GameItems {
             }
         }
     
-        if (GameBase.gameExports.cvarCache.coop.value != 0
+        if (gameExports.cvarCache.coop.value != 0
                 && ("key_power_cube".equals(ent.classname))) {
-            ent.spawnflags |= (1 << (8 + GameBase.gameExports.level.power_cubes));
-            GameBase.gameExports.level.power_cubes++;
+            ent.spawnflags |= (1 << (8 + gameExports.level.power_cubes));
+            gameExports.level.power_cubes++;
         }
     
         // don't let them drop items that stay in a coop game
-        if ((GameBase.gameExports.cvarCache.coop.value != 0)
+        if ((gameExports.cvarCache.coop.value != 0)
                 && (item.flags & GameDefines.IT_STAY_COOP) != 0) {
             item.drop = null;
         }
     
         ent.item = item;
-        ent.nextthink = GameBase.gameExports.level.time + 2 * Defines.FRAMETIME;
+        ent.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
         // items start after other solids
         ent.think = droptofloor;
         ent.s.effects = item.world_model_flags;
         ent.s.renderfx = Defines.RF_GLOW;
     
         if (ent.model != null)
-            GameBase.gameExports.gameImports.modelindex(ent.model);
+            gameExports.gameImports.modelindex(ent.model);
     }
 
     /*
      * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+    static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
         }
     
         self.model = "models/items/healing/medium/tris.md2";
         self.count = 10;
-        SpawnItem(self, FindItem("Health"));
-        GameBase.gameExports.gameImports.soundindex("items/n_health.wav");
+        SpawnItem(self, FindItem("Health"), gameExports);
+        gameExports.gameImports.soundindex("items/n_health.wav");
     }
 
     /*
      * QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_small(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+    static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
     
         self.model = "models/items/healing/stimpack/tris.md2";
         self.count = 2;
-        SpawnItem(self, FindItem("Health"));
+        SpawnItem(self, FindItem("Health"), gameExports);
         self.style = GameDefines.HEALTH_IGNORE_MAX;
-        GameBase.gameExports.gameImports.soundindex("items/s_health.wav");
+        gameExports.gameImports.soundindex("items/s_health.wav");
     }
 
     /*
      * QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_large(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+    static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
     
         self.model = "models/items/healing/large/tris.md2";
         self.count = 25;
-        SpawnItem(self, FindItem("Health"));
-        GameBase.gameExports.gameImports.soundindex("items/l_health.wav");
+        SpawnItem(self, FindItem("Health"), gameExports);
+        gameExports.gameImports.soundindex("items/l_health.wav");
     }
 
     /*
      * QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
      */
-    static void SP_item_health_mega(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
+    static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
     
         self.model = "models/items/mega_h/tris.md2";
         self.count = 100;
-        SpawnItem(self, FindItem("Health"));
-        GameBase.gameExports.gameImports.soundindex("items/m_health.wav");
+        SpawnItem(self, FindItem("Health"), gameExports);
+        gameExports.gameImports.soundindex("items/m_health.wav");
         self.style = GameDefines.HEALTH_IGNORE_MAX | GameDefines.HEALTH_TIMED;
     }
 

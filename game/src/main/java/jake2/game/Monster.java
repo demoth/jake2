@@ -143,8 +143,8 @@ public class Monster {
     }
 
     // ============================================================================
-    public static boolean monster_start(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static boolean monster_start(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return false;
         }
@@ -158,13 +158,13 @@ public class Monster {
         }
 
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_GOOD_GUY))
-            GameBase.gameExports.level.total_monsters++;
+            gameExports.level.total_monsters++;
 
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
         self.takedamage = Defines.DAMAGE_AIM;
-        self.air_finished = GameBase.gameExports.level.time + 12;
+        self.air_finished = gameExports.level.time + 12;
         self.use = GameUtil.monster_use;
         self.max_health = self.health;
         self.clipmask = Defines.MASK_MONSTERSOLID;
@@ -180,7 +180,7 @@ public class Monster {
         if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
-                GameBase.gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
+                gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + GameBase.st.item + "\n");
         }

@@ -445,9 +445,9 @@ public final class M {
         if (move.frame[index].ai != null)
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
                 move.frame[index].ai.ai(self, move.frame[index].dist
-                        * self.monsterinfo.scale);
+                        * self.monsterinfo.scale, gameExports);
             else
-                move.frame[index].ai.ai(self, 0);
+                move.frame[index].ai.ai(self, 0, gameExports);
 
         if (move.frame[index].think != null)
             move.frame[index].think.think(self, gameExports);
@@ -471,9 +471,9 @@ public final class M {
                 return true;
 
             self.s.effects |= Defines.EF_FLIES;
-            self.s.sound = GameBase.gameExports.gameImports.soundindex("infantry/inflies1.wav");
+            self.s.sound = gameExports.gameImports.soundindex("infantry/inflies1.wav");
             self.think = M_FliesOff;
-            self.nextthink = GameBase.gameExports.level.time + 60;
+            self.nextthink = gameExports.level.time + 60;
             return true;
         }
     };
@@ -490,7 +490,7 @@ public final class M {
                 return true;
 
             self.think = M_FliesOn;
-            self.nextthink = GameBase.gameExports.level.time + 5 + 10
+            self.nextthink = gameExports.level.time + 5 + 10
                     * Globals.rnd.nextFloat();
             return true;
         }
