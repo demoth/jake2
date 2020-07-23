@@ -797,7 +797,7 @@ public class GameItems {
     };
     private static EntUseAdapter Use_Item = new EntUseAdapter() {
         public String getID() { return "use_item";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.use = null;
     
@@ -808,8 +808,8 @@ public class GameItems {
                 ent.solid = Defines.SOLID_TRIGGER;
                 ent.touch = Touch_Item;
             }
-    
-            GameBase.gameExports.gameImports.linkentity(ent);
+
+            gameExports.gameImports.linkentity(ent);
         }
     };
 

@@ -246,7 +246,7 @@ class GameTrigger {
 
     private static EntUseAdapter Use_Multi = new EntUseAdapter() {
     	public String getID(){ return "Use_Multi"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             ent.activator = activator;
             multi_trigger(ent);
         }
@@ -287,10 +287,10 @@ class GameTrigger {
      */
     private static EntUseAdapter trigger_enable = new EntUseAdapter() {
     	public String getID(){ return "trigger_enable"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_TRIGGER;
             self.use = Use_Multi;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
         }
     };
 
@@ -300,7 +300,7 @@ class GameTrigger {
      */
     private static EntUseAdapter trigger_relay_use = new EntUseAdapter() {
     	public String getID(){ return "trigger_relay_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             GameUtil.G_UseTargets(self, activator);
         }
     };
@@ -321,7 +321,7 @@ class GameTrigger {
 
     private static EntUseAdapter trigger_key_use = new EntUseAdapter() {
     	public String getID(){ return "trigger_key_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             int index;
 
             if (self.item == null)
@@ -332,20 +332,20 @@ class GameTrigger {
 
             index = self.item.index;
             if (activatorClient.pers.inventory[index] == 0) {
-                if (GameBase.gameExports.level.time < self.touch_debounce_time)
+                if (gameExports.level.time < self.touch_debounce_time)
                     return;
-                self.touch_debounce_time = GameBase.gameExports.level.time + 5.0f;
-                GameBase.gameExports.gameImports.centerprintf(activator, "You need the "
+                self.touch_debounce_time = gameExports.level.time + 5.0f;
+                gameExports.gameImports.centerprintf(activator, "You need the "
                         + self.item.pickup_name);
-                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, 
-                		GameBase.gameExports.gameImports.soundindex("misc/keytry.wav"), 1,
+                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO,
+                        gameExports.gameImports.soundindex("misc/keytry.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 return;
             }
 
-            GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
+            gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
                     .soundindex("misc/keyuse.wav"), 1, Defines.ATTN_NORM, 0);
-            if (GameBase.gameExports.cvarCache.coop.value != 0) {
+            if (gameExports.cvarCache.coop.value != 0) {
                 int player;
                 SubgameEntity ent;
 
@@ -355,8 +355,8 @@ class GameTrigger {
                     for (cube = 0; cube < 8; cube++)
                         if ((activatorClient.pers.power_cubes & (1 << cube)) != 0)
                             break;
-                    for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
-                        ent = GameBase.gameExports.g_edicts[player];
+                    for (player = 1; player <= gameExports.game.maxclients; player++) {
+                        ent = gameExports.g_edicts[player];
                         if (!ent.inuse)
                             continue;
                         gclient_t client = ent.getClient();
@@ -368,8 +368,8 @@ class GameTrigger {
                         }
                     }
                 } else {
-                    for (player = 1; player <= GameBase.gameExports.game.maxclients; player++) {
-                        ent = GameBase.gameExports.g_edicts[player];
+                    for (player = 1; player <= gameExports.game.maxclients; player++) {
+                        ent = gameExports.g_edicts[player];
                         if (!ent.inuse)
                             continue;
                         gclient_t client = ent.getClient();
@@ -401,7 +401,7 @@ class GameTrigger {
     private static EntUseAdapter trigger_counter_use = new EntUseAdapter() {
     	public String getID(){ return "trigger_counter_use"; }
 
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.count == 0)
                 return;
 
@@ -409,9 +409,9 @@ class GameTrigger {
 
             if (self.count != 0) {
                 if (0 == (self.spawnflags & 1)) {
-                    GameBase.gameExports.gameImports.centerprintf(activator, self.count
+                    gameExports.gameImports.centerprintf(activator, self.count
                             + " more to go...");
-                    GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
                             .soundindex("misc/talk1.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -419,8 +419,8 @@ class GameTrigger {
             }
 
             if (0 == (self.spawnflags & 1)) {
-                GameBase.gameExports.gameImports.centerprintf(activator, "Sequence completed!");
-                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
+                gameExports.gameImports.centerprintf(activator, "Sequence completed!");
+                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
             }
             self.activator = activator;
@@ -483,12 +483,12 @@ class GameTrigger {
     private static EntUseAdapter hurt_use = new EntUseAdapter() {
     	public String getID(){ return "hurt_use"; }
 
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.solid == Defines.SOLID_NOT)
                 self.solid = Defines.SOLID_TRIGGER;
             else
                 self.solid = Defines.SOLID_NOT;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             if (0 == (self.spawnflags & 2))
                 self.use = null;

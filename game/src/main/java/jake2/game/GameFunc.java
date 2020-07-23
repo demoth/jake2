@@ -818,10 +818,10 @@ class GameFunc {
 
     private static EntUseAdapter Use_Plat = new EntUseAdapter() {
         public String getID() { return "use_plat";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (ent.think != null)
                 return; // already down
-            plat_go_down.think(ent, GameBase.gameExports);
+            plat_go_down.think(ent, gameExports);
         }
     };
 
@@ -883,7 +883,7 @@ class GameFunc {
 
     private static EntUseAdapter rotating_use = new EntUseAdapter() {
         public String getID() { return "rotating_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (!Math3D.VectorEquals(self.avelocity, Globals.vec3_origin)) {
                 self.s.sound = 0;
                 Math3D.VectorClear(self.avelocity);
@@ -932,7 +932,7 @@ class GameFunc {
                 ent.blocked = rotating_blocked;
 
             if ((ent.spawnflags & 1) != 0)
-                ent.use.use(ent, null, null);
+                ent.use.use(ent, null, null, GameBase.gameExports);
 
             if ((ent.spawnflags & 64) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALL;
@@ -1030,9 +1030,9 @@ class GameFunc {
 
     private static EntUseAdapter button_use = new EntUseAdapter() {
         public String getID() { return "button_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
-            button_fire.think(self, GameBase.gameExports);
+            button_fire.think(self, gameExports);
             return;
         }
     };
@@ -1189,7 +1189,7 @@ class GameFunc {
 
     private static EntUseAdapter door_use = new EntUseAdapter() {
         public String getID() { return "door_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             if ((self.flags & GameDefines.FL_TEAMSLAVE) != 0)
@@ -1202,7 +1202,7 @@ class GameFunc {
                     for (ent = self; ent != null; ent = ent.teamchain) {
                         ent.message = null;
                         ent.touch = null;
-                        door_go_down.think(ent, GameBase.gameExports);
+                        door_go_down.think(ent, gameExports);
                     }
                     return;
                 }
@@ -1236,7 +1236,7 @@ class GameFunc {
                 return;
             self.touch_debounce_time = GameBase.gameExports.level.time + 1.0f;
 
-            door_use.use(self.getOwner(), other, other);
+            door_use.use(self.getOwner(), other, other, GameBase.gameExports);
         }
     };
 
@@ -1370,7 +1370,7 @@ class GameFunc {
                 ent.health = ent.max_health;
                 ent.takedamage = Defines.DAMAGE_NO;
             }
-            door_use.use(self.teammaster, attacker, attacker);
+            door_use.use(self.teammaster, attacker, attacker, GameBase.gameExports);
         }
     };
 
@@ -1810,7 +1810,7 @@ class GameFunc {
 
     static EntUseAdapter train_use = new EntUseAdapter() {
         public String getID() { return "train_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
 
             if ((self.spawnflags & TRAIN_START_ON) != 0) {
@@ -1823,7 +1823,7 @@ class GameFunc {
                 if (self.target_ent != null)
                     train_resume(self);
                 else
-                    train_next.think(self, GameBase.gameExports);
+                    train_next.think(self, gameExports);
             }
         }
     };
@@ -1834,7 +1834,7 @@ class GameFunc {
     private static EntUseAdapter trigger_elevator_use = new EntUseAdapter() {
         public String getID() { return "trigger_elevator_use";}
 
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
             if (0 != self.movetarget.nextthink) {
                 //			gi.dprintf("elevator busy\n");
@@ -1842,13 +1842,13 @@ class GameFunc {
             }
 
             if (null == other.pathtarget) {
-                GameBase.gameExports.gameImports.dprintf("elevator used with no pathtarget\n");
+                gameExports.gameImports.dprintf("elevator used with no pathtarget\n");
                 return;
             }
 
             SubgameEntity target = GameBase.G_PickTarget(other.pathtarget);
             if (null == target) {
-                GameBase.gameExports.gameImports.dprintf("elevator used with bad pathtarget: "
+                gameExports.gameImports.dprintf("elevator used with bad pathtarget: "
                         + other.pathtarget + "\n");
                 return;
             }
@@ -1920,7 +1920,7 @@ class GameFunc {
 
     private static EntUseAdapter func_timer_use = new EntUseAdapter() {
         public String getID() { return "func_timer_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
 
             // if on, turn it off
@@ -1931,9 +1931,9 @@ class GameFunc {
 
             // turn it on
             if (self.delay != 0)
-                self.nextthink = GameBase.gameExports.level.time + self.delay;
+                self.nextthink = gameExports.level.time + self.delay;
             else
-                func_timer_think.think(self, GameBase.gameExports);
+                func_timer_think.think(self, gameExports);
         }
     };
 
@@ -1945,7 +1945,7 @@ class GameFunc {
 
     private static EntUseAdapter func_conveyor_use = new EntUseAdapter() {
         public String getID() { return "func_conveyor_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if ((self.spawnflags & 1) != 0) {
                 self.speed = 0;
                 self.spawnflags &= ~1;
@@ -2001,7 +2001,7 @@ class GameFunc {
 
     private static EntUseAdapter door_secret_use = new EntUseAdapter() {
         public String getID() { return "door_secret_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             // make sure we're not already moving
             if (!Math3D.VectorEquals(self.s.origin, Globals.vec3_origin))
                 return;
@@ -2107,7 +2107,7 @@ class GameFunc {
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
                 int damage, float[] point) {
             self.takedamage = Defines.DAMAGE_NO;
-            door_secret_use.use(self, attacker, attacker);
+            door_secret_use.use(self, attacker, attacker, GameBase.gameExports);
         }
     };
 
@@ -2185,7 +2185,7 @@ class GameFunc {
      */
     private static EntUseAdapter use_killbox = new EntUseAdapter() {
         public String getID() { return "use_killbox";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             GameUtil.KillBox(self);
         }
     };

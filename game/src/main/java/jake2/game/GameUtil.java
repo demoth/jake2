@@ -113,7 +113,7 @@ public class GameUtil {
                     GameBase.gameExports.gameImports.dprintf("WARNING: Entity used itself.\n");
                 } else {
                     if (t.use != null)
-                        t.use.use(t, ent, activator);
+                        t.use.use(t, ent, activator, GameBase.gameExports);
                 }
                 if (!ent.inuse) {
                     GameBase.gameExports.gameImports
@@ -644,7 +644,7 @@ public class GameUtil {
 
     static EntUseAdapter monster_use = new EntUseAdapter() {
     	public String getID() { return "monster_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.enemy != null)
                 return;
             if (self.health <= 0)

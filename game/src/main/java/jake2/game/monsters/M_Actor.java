@@ -1356,26 +1356,26 @@ public class M_Actor {
 
     static EntUseAdapter actor_use = new EntUseAdapter() {
         public String getID() { return "actor_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
 
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target);
             if ((null == self.movetarget)
                     || (!"target_actor".equals(self.movetarget.classname))) {
-                GameBase.gameExports.gameImports
+                gameExports.gameImports
                         .dprintf(self.classname + " has bad target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self, GameBase.gameExports);
+                self.monsterinfo.stand.think(self, gameExports);
                 return;
             }
 
             Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
             self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D.vectoyaw(v);
-            self.monsterinfo.walk.think(self, GameBase.gameExports);
+            self.monsterinfo.walk.think(self, gameExports);
             self.target = null;
         }
     };

@@ -901,10 +901,10 @@ public class GameMisc {
 
     private static EntUseAdapter Use_Areaportal = new EntUseAdapter() {
         public String getID() { return "use_areaportal";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             ent.count ^= 1; // toggle state
             //	gi.dprintf ("portalstate: %i = %i\n", ent.style, ent.count);
-            GameBase.gameExports.gameImports.SetAreaPortalState(ent.style, ent.count != 0);
+            gameExports.gameImports.SetAreaPortalState(ent.style, ent.count != 0);
         }
     };
 
@@ -1069,12 +1069,12 @@ public class GameMisc {
 
     private static EntUseAdapter light_use = new EntUseAdapter() {
         public String getID() { return "light_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if ((self.spawnflags & START_OFF) != 0) {
-                GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "m");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "m");
                 self.spawnflags &= ~START_OFF;
             } else {
-                GameBase.gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
+                gameExports.gameImports.configstring(Defines.CS_LIGHTS + self.style, "a");
                 self.spawnflags |= START_OFF;
             }
         }
@@ -1096,7 +1096,7 @@ public class GameMisc {
 
     private static EntUseAdapter func_wall_use = new EntUseAdapter() {
         public String getID() { return "func_wall_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.solid == Defines.SOLID_NOT) {
                 self.solid = Defines.SOLID_BSP;
                 self.svflags &= ~Defines.SVF_NOCLIENT;
@@ -1105,7 +1105,7 @@ public class GameMisc {
                 self.solid = Defines.SOLID_NOT;
                 self.svflags |= Defines.SVF_NOCLIENT;
             }
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             if (0 == (self.spawnflags & 2))
                 self.use = null;
@@ -1144,12 +1144,12 @@ public class GameMisc {
 
     private static EntUseAdapter func_object_use = new EntUseAdapter() {
         public String getID() { return "func_object_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_BSP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = null;
             GameUtil.KillBox(self);
-            func_object_release.think(self, GameBase.gameExports);
+            func_object_release.think(self, gameExports);
         }
     };
 
@@ -1237,7 +1237,7 @@ public class GameMisc {
 
     private static EntUseAdapter func_explosive_use = new EntUseAdapter() {
         public String getID() { return "func_explosive_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             func_explosive_explode.die(self, self, other, self.health,
                     Globals.vec3_origin);
         }
@@ -1245,12 +1245,12 @@ public class GameMisc {
 
     private static EntUseAdapter func_explosive_spawn = new EntUseAdapter() {
         public String getID() { return "func_explosive_spawn";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_BSP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = null;
             GameUtil.KillBox(self);
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
         }
     };
 
@@ -1397,7 +1397,7 @@ public class GameMisc {
 
     private static EntUseAdapter misc_blackhole_use = new EntUseAdapter() {
         public String getID() { return "misc_blavkhole_use";}
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             /*
              * gi.WriteByte (svc_temp_entity); gi.WriteByte (TE_BOSSTPORT);
              * gi.WritePosition (ent.s.origin); gi.multicast (ent.s.origin,
@@ -1412,10 +1412,10 @@ public class GameMisc {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (++self.s.frame < 19)
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             else {
                 self.s.frame = 0;
-                self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             }
             return true;
         }
@@ -1494,10 +1494,10 @@ public class GameMisc {
 
     private static EntUseAdapter commander_body_use = new EntUseAdapter() {
         public String getID() { return "commander_body_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.think = commander_body_think;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("tank/pain.wav"), 1, Defines.ATTN_NORM, 0);
         }
     };
@@ -1559,10 +1559,10 @@ public class GameMisc {
 
     private static EntUseAdapter misc_viper_use = new EntUseAdapter() {
         public String getID() { return "misc_viper_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator);
+            GameFunc.train_use.use(self, other, activator, gameExports);
         }
     };
 
@@ -1609,7 +1609,7 @@ public class GameMisc {
 
     private static EntUseAdapter misc_viper_bomb_use = new EntUseAdapter() {
         public String getID() { return "misc_viper_bomb_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity viper = null;
 
             self.solid = Defines.SOLID_BBOX;
@@ -1630,7 +1630,7 @@ public class GameMisc {
             Math3D.VectorScale(viper.moveinfo.dir, viper.moveinfo.speed,
                     self.velocity);
 
-            self.timestamp = GameBase.gameExports.level.time;
+            self.timestamp = gameExports.level.time;
             Math3D.VectorCopy(viper.moveinfo.dir, self.moveinfo.dir);
         }
     };
@@ -1646,10 +1646,10 @@ public class GameMisc {
 
     private static EntUseAdapter misc_strogg_ship_use = new EntUseAdapter() {
         public String getID() { return "misc_strogg_ship_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.svflags &= ~Defines.SVF_NOCLIENT;
             self.use = GameFunc.train_use;
-            GameFunc.train_use.use(self, other, activator);
+            GameFunc.train_use.use(self, other, activator, gameExports);
         }
     };
 
@@ -1668,10 +1668,10 @@ public class GameMisc {
 
     private static EntUseAdapter misc_satellite_dish_use = new EntUseAdapter() {
         public String getID() { return "misc_satellite_dish_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.s.frame = 0;
             self.think = misc_satellite_dish_think;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     };
 
@@ -1681,7 +1681,7 @@ public class GameMisc {
 
     private static EntUseAdapter target_string_use = new EntUseAdapter() {
         public String getID() { return "target_string_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
             int l = self.message.length();
             for (SubgameEntity e = self.teammaster; e != null; e = e.teamchain) {
@@ -1757,7 +1757,7 @@ public class GameMisc {
             }
 
             self.enemy.message = self.message;
-            self.enemy.use.use(self.enemy, self, self);
+            self.enemy.use.use(self.enemy, self, self, GameBase.gameExports);
 
             if (((self.spawnflags & 1) != 0 && (self.health > self.wait))
                     || ((self.spawnflags & 2) != 0 && (self.health < self.wait))) {
@@ -1791,13 +1791,13 @@ public class GameMisc {
 
     private static EntUseAdapter func_clock_use = new EntUseAdapter() {
         public String getID() { return "func_clock_use";}
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (0 == (self.spawnflags & 8))
                 self.use = null;
             if (self.activator != null)
                 return;
             self.activator = activator;
-            self.think.think(self, GameBase.gameExports);
+            self.think.think(self, gameExports);
         }
     };
 

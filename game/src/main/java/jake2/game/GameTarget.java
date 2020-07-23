@@ -270,11 +270,11 @@ class GameTarget {
      */
     private static EntUseAdapter Use_Target_Tent = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Tent"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(ent.style);
-            GameBase.gameExports.gameImports.WritePosition(ent.s.origin);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(ent.style);
+            gameExports.gameImports.WritePosition(ent.s.origin);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };
 
@@ -293,7 +293,7 @@ class GameTarget {
      */
     private static EntUseAdapter Use_Target_Speaker = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Speaker"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             int chan;
 
             if ((ent.spawnflags & 3) != 0) { // looping sound toggles
@@ -308,7 +308,7 @@ class GameTarget {
                     chan = Defines.CHAN_VOICE;
                 // use a positioned_sound, because this entity won't normally be
                 // sent to any clients because it is invisible
-                GameBase.gameExports.gameImports.positioned_sound(ent.s.origin, ent, chan,
+                gameExports.gameImports.positioned_sound(ent.s.origin, ent, chan,
                         ent.noise_index, ent.volume, ent.attenuation, 0);
             }
 
@@ -318,14 +318,14 @@ class GameTarget {
 
     private static EntUseAdapter Use_Target_Help = new EntUseAdapter() {
     	public String getID() { return "Use_Target_Help"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
 
             if ((ent.spawnflags & 1) != 0)
-                GameBase.gameExports.game.helpmessage1 = ent.message;
+                gameExports.game.helpmessage1 = ent.message;
             else
-                GameBase.gameExports.game.helpmessage2 = ent.message;
+                gameExports.game.helpmessage2 = ent.message;
 
-            GameBase.gameExports.game.helpchanged++;
+            gameExports.game.helpchanged++;
         }
     };
 
@@ -335,11 +335,11 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_secret = new EntUseAdapter() {
     	public String getID() { return "use_target_secret"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
-            GameBase.gameExports.level.found_secrets++;
+            gameExports.level.found_secrets++;
 
             GameUtil.G_UseTargets(ent, activator);
             GameUtil.G_FreeEdict(ent);
@@ -352,14 +352,14 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_goal = new EntUseAdapter() {
     	public String getID() { return "use_target_goal"; }
-        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
+        public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, ent.noise_index, 1,
                     Defines.ATTN_NORM, 0);
 
-            GameBase.gameExports.level.found_goals++;
+            gameExports.level.found_goals++;
 
-            if (GameBase.gameExports.level.found_goals == GameBase.gameExports.level.total_goals)
-                GameBase.gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
+            if (gameExports.level.found_goals == gameExports.level.total_goals)
+                gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
 
             GameUtil.G_UseTargets(ent, activator);
             GameUtil.G_FreeEdict(ent);
@@ -398,16 +398,16 @@ class GameTarget {
 
     private static EntUseAdapter use_target_explosion = new EntUseAdapter() {
     	public String getID() { return "use_target_explosion"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
 
             if (0 == self.delay) {
-                target_explosion_explode.think(self, GameBase.gameExports);
+                target_explosion_explode.think(self, gameExports);
                 return;
             }
 
             self.think = target_explosion_explode;
-            self.nextthink = GameBase.gameExports.level.time + self.delay;
+            self.nextthink = gameExports.level.time + self.delay;
         }
     };
 
@@ -417,19 +417,19 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_changelevel = new EntUseAdapter() {
     	public String getID() { return "use_target_changelevel"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            if (GameBase.gameExports.level.intermissiontime != 0)
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            if (gameExports.level.intermissiontime != 0)
                 return; // already activated
 
-            if (0 == GameBase.gameExports.cvarCache.deathmatch.value && 0 == GameBase.gameExports.cvarCache.coop.value) {
-                if (GameBase.gameExports.g_edicts[1].health <= 0)
+            if (0 == gameExports.cvarCache.deathmatch.value && 0 == GameBase.gameExports.cvarCache.coop.value) {
+                if (gameExports.g_edicts[1].health <= 0)
                     return;
             }
 
             // if noexit, do a ton of damage to other
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                    && 0 == ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_ALLOW_EXIT)
-                    && other != GameBase.gameExports.g_edicts[0] /* world */
+            if (gameExports.cvarCache.deathmatch.value != 0
+                    && 0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_ALLOW_EXIT)
+                    && other != gameExports.g_edicts[0] /* world */
             ) {
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
@@ -438,10 +438,10 @@ class GameTarget {
             }
 
             // if multiplayer, let everyone know who hit the exit
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
                 if (activator != null) {
                     gclient_t activatorClient = activator.getClient();
-                    if (activatorClient != null) GameBase.gameExports.gameImports.bprintf(Defines.PRINT_HIGH,
+                    if (activatorClient != null) gameExports.gameImports.bprintf(Defines.PRINT_HIGH,
                             activatorClient.pers.netname
                                     + " exited the level.\n");
                 }
@@ -449,9 +449,9 @@ class GameTarget {
 
             // if going to a new unit, clear cross triggers
             if (self.map.indexOf('*') > -1)
-                GameBase.gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
+                gameExports.game.serverflags &= ~(Defines.SFL_CROSS_TRIGGER_MASK);
 
-            PlayerHud.BeginIntermission(self, GameBase.gameExports);
+            PlayerHud.BeginIntermission(self, gameExports);
         }
     };
 
@@ -467,14 +467,14 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_splash = new EntUseAdapter() {
     	public String getID() { return "use_target_splash"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
-            GameBase.gameExports.gameImports.WriteByte(self.count);
-            GameBase.gameExports.gameImports.WritePosition(self.s.origin);
-            GameBase.gameExports.gameImports.WriteDir(self.movedir);
-            GameBase.gameExports.gameImports.WriteByte(self.sounds);
-            GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
+            gameExports.gameImports.WriteByte(self.count);
+            gameExports.gameImports.WritePosition(self.s.origin);
+            gameExports.gameImports.WriteDir(self.movedir);
+            gameExports.gameImports.WriteByte(self.sounds);
+            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
@@ -495,7 +495,7 @@ class GameTarget {
 
     private static EntUseAdapter use_target_spawner = new EntUseAdapter() {
     	public String getID() { return "use_target_spawner"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
             ent = GameUtil.G_Spawn();
@@ -503,9 +503,9 @@ class GameTarget {
             Math3D.VectorCopy(self.s.origin, ent.s.origin);
             Math3D.VectorCopy(self.s.angles, ent.s.angles);
             GameSpawn.ED_CallSpawn(ent, GameBase.gameExports);
-            GameBase.gameExports.gameImports.unlinkentity(ent);
+            gameExports.gameImports.unlinkentity(ent);
             GameUtil.KillBox(ent);
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             if (self.speed != 0)
                 Math3D.VectorCopy(self.movedir, ent.velocity);
         }
@@ -519,7 +519,7 @@ class GameTarget {
      */
     private static EntUseAdapter use_target_blaster = new EntUseAdapter() {
     	public String getID() { return "use_target_blaster"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             int effect;
 
             if ((self.spawnflags & 2) != 0)
@@ -534,7 +534,7 @@ class GameTarget {
                     GameDefines.MOD_TARGET_BLASTER != 0
             /* true */
             );
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1,
                     Defines.ATTN_NORM, 0);
         }
     };
@@ -549,8 +549,8 @@ class GameTarget {
      */
     private static EntUseAdapter trigger_crosslevel_trigger_use = new EntUseAdapter() {
     	public String getID() { return "trigger_crosslevel_trigger_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            GameBase.gameExports.game.serverflags |= self.spawnflags;
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            gameExports.game.serverflags |= self.spawnflags;
             GameUtil.G_FreeEdict(self);
         }
     };
@@ -658,7 +658,7 @@ class GameTarget {
     private static EntUseAdapter target_laser_use = new EntUseAdapter() {
     	public String getID() { return "target_laser_use"; }
 
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             self.activator = activator;
             if ((self.spawnflags & 1) != 0)
                 target_laser_off(self);
@@ -757,7 +757,7 @@ class GameTarget {
 
     private static EntUseAdapter target_lightramp_use = new EntUseAdapter() {
     	public String getID() { return "target_lightramp_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             if (self.enemy == null) {
 
                 // check all the targets
@@ -773,9 +773,9 @@ class GameTarget {
                     SubgameEntity e = es.o;
 
                     if (!"light".equals(e.classname)) {
-                        GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                        gameExports.gameImports.dprintf(self.classname + " at "
                                 + Lib.vtos(self.s.origin));
-                        GameBase.gameExports.gameImports.dprintf("target " + self.target + " ("
+                        gameExports.gameImports.dprintf("target " + self.target + " ("
                                 + e.classname + " at " + Lib.vtos(e.s.origin)
                                 + ") is not a light\n");
                     } else {
@@ -784,7 +784,7 @@ class GameTarget {
                 }
 
                 if (null == self.enemy) {
-                    GameBase.gameExports.gameImports.dprintf(self.classname + " target "
+                    gameExports.gameImports.dprintf(self.classname + " target "
                             + self.target + " not found at "
                             + Lib.vtos(self.s.origin) + "\n");
                     GameUtil.G_FreeEdict(self);
@@ -792,8 +792,8 @@ class GameTarget {
                 }
             }
 
-            self.timestamp = GameBase.gameExports.level.time;
-            target_lightramp_think.think(self, GameBase.gameExports);
+            self.timestamp = gameExports.level.time;
+            target_lightramp_think.think(self, gameExports);
         }
     };
 
@@ -841,9 +841,9 @@ class GameTarget {
 
     private static EntUseAdapter target_earthquake_use = new EntUseAdapter() {
     	public String getID() { return "target_earthquake_use"; }
-        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator) {
-            self.timestamp = GameBase.gameExports.level.time + self.count;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+        public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
+            self.timestamp = gameExports.level.time + self.count;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.activator = activator;
             self.last_move_time = 0;
         }
