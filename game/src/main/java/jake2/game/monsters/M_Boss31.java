@@ -452,7 +452,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_search = new EntThinkAdapter() {
     	public String getID() { return "jorg_search"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float r;
 
             r = Lib.random();
@@ -472,7 +472,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_idle = new EntThinkAdapter() {
     	public String getID() { return "jorg_idle"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -481,7 +481,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_death_hit = new EntThinkAdapter() {
     	public String getID() { return "jorg_death_hit"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_death_hit, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -490,7 +490,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_step_left = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_left"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -499,7 +499,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_step_right = new EntThinkAdapter() {
     	public String getID() { return "jorg_step_right"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -508,7 +508,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_stand = new EntThinkAdapter() {
     	public String getID() { return "jorg_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_stand;
             return true;
         }
@@ -516,7 +516,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_reattack1 = new EntThinkAdapter() {
     	public String getID() { return "jorg_reattack1"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy))
                 if (Lib.random() < 0.9)
                     self.monsterinfo.currentmove = jorg_move_attack1;
@@ -534,7 +534,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_attack1 = new EntThinkAdapter() {
     	public String getID() { return "jorg_attack1"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_attack1;
             return true;
         }
@@ -602,7 +602,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorgBFG = new EntThinkAdapter() {
     	public String getID() { return "jorgBFG"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
 
             float[] start = { 0, 0, 0 };
@@ -633,7 +633,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_firebullet_right = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet_right"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -661,7 +661,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_firebullet_left = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet_left"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
             float[] start = { 0, 0, 0 };
@@ -689,16 +689,16 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_firebullet = new EntThinkAdapter() {
     	public String getID() { return "jorg_firebullet"; }
-        public boolean think(SubgameEntity self) {
-            jorg_firebullet_left.think(self);
-            jorg_firebullet_right.think(self);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            jorg_firebullet_left.think(self, gameExports);
+            jorg_firebullet_right.think(self, gameExports);
             return true;
         }
     };
 
     static EntThinkAdapter jorg_attack = new EntThinkAdapter() {
     	public String getID() { return "jorg_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range = 0;
 
@@ -722,7 +722,7 @@ public class M_Boss31 {
     /** Was disabled. RST. */
     static EntThinkAdapter jorg_dead = new EntThinkAdapter() {
     	public String getID() { return "jorg_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             /*
              * edict_t tempent;
              * 
@@ -760,7 +760,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter Jorg_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "Jorg_CheckAttack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
             float chance;
@@ -972,7 +972,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_walk = new EntThinkAdapter() {
     	public String getID() { return "jorg_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_walk;
             return true;
         }
@@ -980,7 +980,7 @@ public class M_Boss31 {
 
     static EntThinkAdapter jorg_run = new EntThinkAdapter() {
     	public String getID() { return "jorg_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = jorg_move_stand;
             else
@@ -1150,34 +1150,34 @@ public class M_Boss31 {
      * QUAKED monster_jorg (1 .5 0) (-80 -80 0) (90 90 140) Ambush Trigger_Spawn
      * Sight
      */
-    public static void SP_monster_jorg(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_monster_jorg(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        sound_pain1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain1.wav");
-        sound_pain2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain2.wav");
-        sound_pain3 = GameBase.gameExports.gameImports.soundindex("boss3/bs3pain3.wav");
-        sound_death = GameBase.gameExports.gameImports.soundindex("boss3/bs3deth1.wav");
-        sound_attack1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3atck1.wav");
-        sound_attack2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3atck2.wav");
-        sound_search1 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch1.wav");
-        sound_search2 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch2.wav");
-        sound_search3 = GameBase.gameExports.gameImports.soundindex("boss3/bs3srch3.wav");
-        sound_idle = GameBase.gameExports.gameImports.soundindex("boss3/bs3idle1.wav");
-        sound_step_left = GameBase.gameExports.gameImports.soundindex("boss3/step1.wav");
-        sound_step_right = GameBase.gameExports.gameImports.soundindex("boss3/step2.wav");
-        sound_firegun = GameBase.gameExports.gameImports.soundindex("boss3/xfire.wav");
-        sound_death_hit = GameBase.gameExports.gameImports.soundindex("boss3/d_hit.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("boss3/bs3pain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("boss3/bs3pain2.wav");
+        sound_pain3 = gameExports.gameImports.soundindex("boss3/bs3pain3.wav");
+        sound_death = gameExports.gameImports.soundindex("boss3/bs3deth1.wav");
+        sound_attack1 = gameExports.gameImports.soundindex("boss3/bs3atck1.wav");
+        sound_attack2 = gameExports.gameImports.soundindex("boss3/bs3atck2.wav");
+        sound_search1 = gameExports.gameImports.soundindex("boss3/bs3srch1.wav");
+        sound_search2 = gameExports.gameImports.soundindex("boss3/bs3srch2.wav");
+        sound_search3 = gameExports.gameImports.soundindex("boss3/bs3srch3.wav");
+        sound_idle = gameExports.gameImports.soundindex("boss3/bs3idle1.wav");
+        sound_step_left = gameExports.gameImports.soundindex("boss3/step1.wav");
+        sound_step_right = gameExports.gameImports.soundindex("boss3/step2.wav");
+        sound_firegun = gameExports.gameImports.soundindex("boss3/xfire.wav");
+        sound_death_hit = gameExports.gameImports.soundindex("boss3/d_hit.wav");
 
-        M_Boss32.MakronPrecache();
+        M_Boss32.MakronPrecache(gameExports);
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/boss3/rider/tris.md2");
-        self.s.modelindex2 = GameBase.gameExports.gameImports
+        self.s.modelindex2 = gameExports.gameImports
                 .modelindex("models/monsters/boss3/jorg/tris.md2");
         Math3D.VectorSet(self.mins, -80, -80, 0);
         Math3D.VectorSet(self.maxs, 80, 80, 140);
@@ -1197,11 +1197,11 @@ public class M_Boss31 {
         self.monsterinfo.melee = null;
         self.monsterinfo.sight = null;
         self.monsterinfo.checkattack = Jorg_CheckAttack;
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = jorg_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
     }
 }

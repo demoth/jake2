@@ -194,7 +194,7 @@ public class Monster {
         return true;
     }
 
-    public static void monster_start_go(SubgameEntity self) {
+    public static void monster_start_go(SubgameEntity self, GameExportsImpl gameExports) {
 
         float[] v = { 0, 0, 0 };
 
@@ -231,7 +231,7 @@ public class Monster {
                 }
             }
             if (notcombat && self.combattarget != null)
-                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin)
                         + " has target with mixed types\n");
             if (fixup)
@@ -247,7 +247,7 @@ public class Monster {
                 SubgameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
-                    GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                    gameExports.gameImports.dprintf(self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
                             + " : " + target.classname + " at "
@@ -260,53 +260,53 @@ public class Monster {
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target);
             if (null == self.movetarget) {
-                GameBase.gameExports.gameImports
+                gameExports.gameImports
                         .dprintf(self.classname + " can't find target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self);
+                self.monsterinfo.stand.think(self, gameExports);
             } else if ("path_corner".equals(self.movetarget.classname)) {
                 Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin,
                         v);
                 self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D
                         .vectoyaw(v);
-                self.monsterinfo.walk.think(self);
+                self.monsterinfo.walk.think(self, gameExports);
                 self.target = null;
             } else {
                 self.goalentity = self.movetarget = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self);
+                self.monsterinfo.stand.think(self, gameExports);
             }
         } else {
             self.monsterinfo.pausetime = 100000000;
-            self.monsterinfo.stand.think(self);
+            self.monsterinfo.stand.think(self, gameExports);
         }
 
         self.think = Monster.monster_think;
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
     }
 
     public static EntThinkAdapter monster_think = new EntThinkAdapter() {
         public String getID() { return "monster_think";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            M.M_MoveFrame(self);
+            M.M_MoveFrame(self, gameExports);
             if (self.linkcount != self.monsterinfo.linkcount) {
                 self.monsterinfo.linkcount = self.linkcount;
                 M.M_CheckGround(self);
             }
-            M.M_CatagorizePosition(self);
-            M.M_WorldEffects(self);
-            M.M_SetEffects(self);
+            M.M_CatagorizePosition(self, gameExports);
+            M.M_WorldEffects(self, gameExports);
+            M.M_SetEffects(self, gameExports.level.time);
             return true;
         }
     };
 
     public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
         public String getID() { return "monster_trigger_spawn";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.s.origin[2] += 1;
             GameUtil.KillBox(self);
@@ -314,10 +314,10 @@ public class Monster {
             self.solid = Defines.SOLID_BBOX;
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.svflags &= ~Defines.SVF_NOCLIENT;
-            self.air_finished = GameBase.gameExports.level.time + 12;
-            GameBase.gameExports.gameImports.linkentity(self);
+            self.air_finished = gameExports.level.time + 12;
+            gameExports.gameImports.linkentity(self);
 
-            Monster.monster_start_go(self);
+            Monster.monster_start_go(self, gameExports);
 
             if (self.enemy != null && 0 == (self.spawnflags & 1)
                     && 0 == (self.enemy.flags & GameDefines.FL_NOTARGET)) {
@@ -344,7 +344,7 @@ public class Monster {
 
     public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
         public String getID() { return "monster_triggered_start";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.index == 312)
                 Com.Printf("monster_triggered_start\n");
             self.solid = Defines.SOLID_NOT;

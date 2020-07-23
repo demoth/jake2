@@ -198,7 +198,7 @@ class GameTarget {
             self.activator = self;
         self.spawnflags |= 0x80000001;
         self.svflags &= ~Defines.SVF_NOCLIENT;
-        target_laser_think.think(self);
+        target_laser_think.think(self, GameBase.gameExports);
     }
 
     private static void target_laser_off(SubgameEntity self) {
@@ -213,24 +213,24 @@ class GameTarget {
         self.nextthink = GameBase.gameExports.level.time + 1;
     }
 
-    static void SP_target_lightramp(SubgameEntity self) {
+    static void SP_target_lightramp(SubgameEntity self, GameExportsImpl gameExports) {
         if (self.message == null || self.message.length() != 2
                 || self.message.charAt(0) < 'a' || self.message.charAt(0) > 'z'
                 || self.message.charAt(1) < 'a' || self.message.charAt(1) > 'z'
                 || self.message.charAt(0) == self.message.charAt(1)) {
-            GameBase.gameExports.gameImports.dprintf("target_lightramp has bad ramp ("
+            gameExports.gameImports.dprintf("target_lightramp has bad ramp ("
                     + self.message + ") at " + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
         if (self.target == null) {
-            GameBase.gameExports.gameImports.dprintf(self.classname + " with no target at "
+            gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
@@ -246,9 +246,9 @@ class GameTarget {
                 / (self.speed / Defines.FRAMETIME);
     }
 
-    static void SP_target_earthquake(SubgameEntity self) {
+    static void SP_target_earthquake(SubgameEntity self, GameExportsImpl gameExports) {
         if (null == self.targetname)
-            GameBase.gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
+            gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
 
         if (0 == self.count)
@@ -261,7 +261,7 @@ class GameTarget {
         self.think = target_earthquake_think;
         self.use = target_earthquake_use;
 
-        self.noise_index = GameBase.gameExports.gameImports.soundindex("world/quake.wav");
+        self.noise_index = gameExports.gameImports.soundindex("world/quake.wav");
     }
 
     /**
@@ -376,7 +376,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_explosion_explode = new EntThinkAdapter() {
     	public String getID() { return "target_explosion_explode"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float save;
 
@@ -402,7 +402,7 @@ class GameTarget {
             self.activator = activator;
 
             if (0 == self.delay) {
-                target_explosion_explode.think(self);
+                target_explosion_explode.think(self, GameBase.gameExports);
                 return;
             }
 
@@ -502,7 +502,7 @@ class GameTarget {
             ent.classname = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);
             Math3D.VectorCopy(self.s.angles, ent.s.angles);
-            GameSpawn.ED_CallSpawn(ent);
+            GameSpawn.ED_CallSpawn(ent, GameBase.gameExports);
             GameBase.gameExports.gameImports.unlinkentity(ent);
             GameUtil.KillBox(ent);
             GameBase.gameExports.gameImports.linkentity(ent);
@@ -566,7 +566,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_crosslevel_target_think = new EntThinkAdapter() {
     	public String getID() { return "target_crosslevel_target_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.spawnflags == (GameBase.gameExports.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
                 GameUtil.G_UseTargets(self, self);
@@ -583,7 +583,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_laser_think = new EntThinkAdapter() {
     	public String getID() { return "target_laser_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             edict_t ignore;
             float[] start = { 0, 0, 0 };
@@ -669,7 +669,7 @@ class GameTarget {
 
     private static EntThinkAdapter target_laser_start = new EntThinkAdapter() {
     	public String getID() { return "target_laser_start"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.movetype = GameDefines.MOVETYPE_NONE;
             self.solid = Defines.SOLID_NOT;
@@ -732,7 +732,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_lightramp_think = new EntThinkAdapter() {
     	public String getID() { return "target_lightramp_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             char tmp[] = {(char) ('a' + (int) (self.movedir[0] + (GameBase.gameExports.level.time - self.timestamp)
                     / Defines.FRAMETIME * self.movedir[2]))};
@@ -793,7 +793,7 @@ class GameTarget {
             }
 
             self.timestamp = GameBase.gameExports.level.time;
-            target_lightramp_think.think(self);
+            target_lightramp_think.think(self, GameBase.gameExports);
         }
     };
 
@@ -805,7 +805,7 @@ class GameTarget {
      */
     private static EntThinkAdapter target_earthquake_think = new EntThinkAdapter() {
     	public String getID() { return "target_earthquake_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             int i;
 

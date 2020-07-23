@@ -558,7 +558,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_idle = new EntThinkAdapter() {
     	public String getID() { return "floater_idle"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -567,7 +567,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_fire_blaster = new EntThinkAdapter() {
     	public String getID() { return "floater_fire_blaster"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] end = { 0, 0, 0 };
@@ -711,7 +711,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_stand = new EntThinkAdapter() {
     	public String getID() { return "floater_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.5)
                 self.monsterinfo.currentmove = floater_move_stand1;
             else
@@ -757,7 +757,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_run = new EntThinkAdapter() {
     	public String getID() { return "floater_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = floater_move_stand1;
@@ -794,7 +794,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_wham = new EntThinkAdapter() {
     	public String getID() { return "floater_wham"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack3, 1,
                     Defines.ATTN_NORM, 0);
@@ -837,7 +837,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_zap = new EntThinkAdapter() {
     	public String getID() { return "floater_zap"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] origin = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -931,7 +931,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_dead = new EntThinkAdapter() {
     	public String getID() { return "floater_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -1103,7 +1103,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_walk = new EntThinkAdapter() {
     	public String getID() { return "floater_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = floater_move_walk;
             return true;
         }
@@ -1111,7 +1111,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_attack = new EntThinkAdapter() {
     	public String getID() { return "floater_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = floater_move_attack1;
             return true;
         }
@@ -1119,7 +1119,7 @@ public class M_Float {
 
     static EntThinkAdapter floater_melee = new EntThinkAdapter() {
     	public String getID() { return "floater_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.random() < 0.5)
                 self.monsterinfo.currentmove = floater_move_attack3;
@@ -1174,27 +1174,27 @@ public class M_Float {
      * QUAKED monster_floater (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_floater(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_monster_floater(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        sound_attack2 = GameBase.gameExports.gameImports.soundindex("floater/fltatck2.wav");
-        sound_attack3 = GameBase.gameExports.gameImports.soundindex("floater/fltatck3.wav");
-        sound_death1 = GameBase.gameExports.gameImports.soundindex("floater/fltdeth1.wav");
-        sound_idle = GameBase.gameExports.gameImports.soundindex("floater/fltidle1.wav");
-        sound_pain1 = GameBase.gameExports.gameImports.soundindex("floater/fltpain1.wav");
-        sound_pain2 = GameBase.gameExports.gameImports.soundindex("floater/fltpain2.wav");
-        sound_sight = GameBase.gameExports.gameImports.soundindex("floater/fltsght1.wav");
+        sound_attack2 = gameExports.gameImports.soundindex("floater/fltatck2.wav");
+        sound_attack3 = gameExports.gameImports.soundindex("floater/fltatck3.wav");
+        sound_death1 = gameExports.gameImports.soundindex("floater/fltdeth1.wav");
+        sound_idle = gameExports.gameImports.soundindex("floater/fltidle1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("floater/fltpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("floater/fltpain2.wav");
+        sound_sight = gameExports.gameImports.soundindex("floater/fltsght1.wav");
 
-        GameBase.gameExports.gameImports.soundindex("floater/fltatck1.wav");
+        gameExports.gameImports.soundindex("floater/fltatck1.wav");
 
-        self.s.sound = GameBase.gameExports.gameImports.soundindex("floater/fltsrch1.wav");
+        self.s.sound = gameExports.gameImports.soundindex("floater/fltsrch1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/float/tris.md2");
         Math3D.VectorSet(self.mins, -24, -24, -24);
         Math3D.VectorSet(self.maxs, 24, 24, 32);
@@ -1215,7 +1215,7 @@ public class M_Float {
         self.monsterinfo.sight = floater_sight;
         self.monsterinfo.idle = floater_idle;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         if (Lib.random() <= 0.5)
             self.monsterinfo.currentmove = floater_move_stand1;
@@ -1224,6 +1224,6 @@ public class M_Float {
 
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.flymonster_start.think(self);
+        GameAI.flymonster_start.think(self, gameExports);
     }
 }

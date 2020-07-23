@@ -1104,7 +1104,7 @@ public class GameExportsImpl implements GameExports {
 
         // call prethink handler
         if (ent.prethink != null)
-            ent.prethink.think(ent);
+            ent.prethink.think(ent, this);
 
         switch (ent.movetype) {
             case GameDefines.MOVETYPE_PUSH:

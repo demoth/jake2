@@ -25,5 +25,5 @@ package jake2.game;
 
 public abstract class EntThinkAdapter extends SuperAdapter
 {
-	public abstract boolean think(SubgameEntity self);
+	public abstract boolean think(SubgameEntity self, GameExportsImpl gameExports);
 }

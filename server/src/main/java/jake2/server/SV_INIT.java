@@ -33,7 +33,6 @@ import jake2.qcommon.network.NetworkCommands;
 import jake2.qcommon.util.Math3D;
 
 import java.io.File;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 
 import static jake2.qcommon.Defines.ERR_FATAL;
@@ -294,7 +293,6 @@ public class SV_INIT {
 
         // get any latched variable changes (maxclients, etc)
         Cvar.updateLatchedVars();
-        gameImports = new GameImportsImpl();
 
         if (Cvar.VariableValue("coop") != 0 && Cvar.VariableValue("deathmatch") != 0) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n");
@@ -332,6 +330,8 @@ public class SV_INIT {
         // The journey to "un-static-ification" can start from here and grow in both directions to server and game modules
         // todo: put server initialization code above into constructor of GameImportsImpl
         // init game
+        gameImports = new GameImportsImpl();
+
         gameExports = createGameModInstance(gameImports);
 
         gameImports.resetClients(gameExports);

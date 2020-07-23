@@ -50,7 +50,7 @@ public class GameItems {
     
     private static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
         public String getID() { return "do_respawn";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (ent.team != null) {
                 SubgameEntity master;
                 int count;
@@ -70,7 +70,7 @@ public class GameItems {
     
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.solid = Defines.SOLID_TRIGGER;
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
     
             // send an effect
             ent.s.event = Defines.EV_ITEM_RESPAWN;
@@ -157,7 +157,7 @@ public class GameItems {
 
     private static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
     	public String getID() { return "MegaHealth_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.getOwner().health > self.getOwner().max_health) {
                 self.nextthink = GameBase.gameExports.level.time + 1;
                 self.getOwner().health -= 1;
@@ -295,7 +295,7 @@ public class GameItems {
     };
     private static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
         public String getID() { return "drop_make_touchable";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
             if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
                 ent.nextthink = GameBase.gameExports.level.time + 29;
@@ -703,7 +703,7 @@ public class GameItems {
     
     private static EntThinkAdapter droptofloor = new EntThinkAdapter() {
         public String getID() { return "drop_to_floor";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             trace_t tr;
             float[] dest = { 0, 0, 0 };
     

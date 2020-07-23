@@ -377,7 +377,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_stand = new EntThinkAdapter() {
     	public String getID() { return "flipper_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_stand;
             return true;
         }
@@ -421,7 +421,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_run_loop = new EntThinkAdapter() {
     	public String getID() { return "flipper_run_loop"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_loop;
             return true;
         }
@@ -440,7 +440,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_run = new EntThinkAdapter() {
     	public String getID() { return "flipper_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_start;
             return true;
         }
@@ -478,7 +478,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_walk = new EntThinkAdapter() {
     	public String getID() { return "flipper_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_walk;
             return true;
         }
@@ -496,7 +496,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_start_run = new EntThinkAdapter() {
     	public String getID() { return "flipper_start_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_start_run;
             return true;
         }
@@ -524,7 +524,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_bite = new EntThinkAdapter() {
     	public String getID() { return "flipper_bite"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
@@ -536,7 +536,7 @@ public class M_Flipper {
     static EntThinkAdapter flipper_preattack = new EntThinkAdapter() {
     	public String getID() { return "flipper_preattack"; }
 
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_chomp, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -570,7 +570,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_melee = new EntThinkAdapter() {
     	public String getID() { return "flipper_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_attack;
             return true;
         }
@@ -608,7 +608,7 @@ public class M_Flipper {
 
     static EntThinkAdapter flipper_dead = new EntThinkAdapter() {
     	public String getID() { return "flipper_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
@@ -731,24 +731,24 @@ public class M_Flipper {
      * QUAKED monster_flipper (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_flipper(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_monster_flipper(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        sound_pain1 = GameBase.gameExports.gameImports.soundindex("flipper/flppain1.wav");
-        sound_pain2 = GameBase.gameExports.gameImports.soundindex("flipper/flppain2.wav");
-        sound_death = GameBase.gameExports.gameImports.soundindex("flipper/flpdeth1.wav");
-        sound_chomp = GameBase.gameExports.gameImports.soundindex("flipper/flpatck1.wav");
-        sound_attack = GameBase.gameExports.gameImports.soundindex("flipper/flpatck2.wav");
-        sound_idle = GameBase.gameExports.gameImports.soundindex("flipper/flpidle1.wav");
-        sound_search = GameBase.gameExports.gameImports.soundindex("flipper/flpsrch1.wav");
-        sound_sight = GameBase.gameExports.gameImports.soundindex("flipper/flpsght1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("flipper/flppain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("flipper/flppain2.wav");
+        sound_death = gameExports.gameImports.soundindex("flipper/flpdeth1.wav");
+        sound_chomp = gameExports.gameImports.soundindex("flipper/flpatck1.wav");
+        sound_attack = gameExports.gameImports.soundindex("flipper/flpatck2.wav");
+        sound_idle = gameExports.gameImports.soundindex("flipper/flpidle1.wav");
+        sound_search = gameExports.gameImports.soundindex("flipper/flpsrch1.wav");
+        sound_sight = gameExports.gameImports.soundindex("flipper/flpsght1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/flipper/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, 0);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -766,11 +766,11 @@ public class M_Flipper {
         self.monsterinfo.melee = flipper_melee;
         self.monsterinfo.sight = flipper_sight;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = flipper_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.swimmonster_start.think(self);
+        GameAI.swimmonster_start.think(self, gameExports);
     }
 }

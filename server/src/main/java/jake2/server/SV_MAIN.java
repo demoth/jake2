@@ -74,6 +74,7 @@ public class SV_MAIN {
 
     static cvar_t sv_airaccelerate;
 
+    @Deprecated
     static cvar_t maxclients; // FIXME: rename sv_maxclients
 
     private static cvar_t sv_showclamp;

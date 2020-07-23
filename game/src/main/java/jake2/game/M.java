@@ -222,7 +222,7 @@ public final class M {
         return SV.SV_movestep(ent, move, true);
     }
 
-    public static void M_CatagorizePosition(SubgameEntity ent) {
+    public static void M_CatagorizePosition(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] point = { 0, 0, 0 };
         int cont;
 
@@ -232,7 +232,7 @@ public final class M {
         point[0] = ent.s.origin[0];
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] + ent.mins[2] + 1;
-        cont = GameBase.gameExports.gameImports.getPointContents(point);
+        cont = gameExports.gameImports.getPointContents(point);
 
         if (0 == (cont & Defines.MASK_WATER)) {
             ent.waterlevel = 0;
@@ -243,13 +243,13 @@ public final class M {
         ent.watertype = cont;
         ent.waterlevel = 1;
         point[2] += 26;
-        cont = GameBase.gameExports.gameImports.getPointContents(point);
+        cont = gameExports.gameImports.getPointContents(point);
         if (0 == (cont & Defines.MASK_WATER))
             return;
 
         ent.waterlevel = 2;
         point[2] += 22;
-        cont = GameBase.gameExports.gameImports.getPointContents(point);
+        cont = gameExports.gameImports.getPointContents(point);
         if (0 != (cont & Defines.MASK_WATER))
             ent.waterlevel = 3;
     }
@@ -257,42 +257,42 @@ public final class M {
     /**
      * Apply water drowning, lava or slime effects
      */
-    static void M_WorldEffects(SubgameEntity ent) {
+    static void M_WorldEffects(SubgameEntity ent, GameExportsImpl gameExports) {
 
         if (ent.health > 0) {
             int dmg;
             if (0 == (ent.flags & GameDefines.FL_SWIM)) {
                 if (ent.waterlevel < 3) {
-                    ent.air_finished = GameBase.gameExports.level.time + 12;
-                } else if (ent.air_finished < GameBase.gameExports.level.time) {
+                    ent.air_finished = gameExports.level.time + 12;
+                } else if (ent.air_finished < gameExports.level.time) {
                     // drown!
-                    if (ent.pain_debounce_time < GameBase.gameExports.level.time) {
-                        dmg = (int) (2f + 2f * Math.floor(GameBase.gameExports.level.time
+                    if (ent.pain_debounce_time < gameExports.level.time) {
+                        dmg = (int) (2f + 2f * Math.floor(gameExports.level.time
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
-                                GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
+                        GameCombat.T_Damage(ent, gameExports.g_edicts[0],
+                                gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
-                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
+                        ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }
             } else {
                 if (ent.waterlevel > 0) {
-                    ent.air_finished = GameBase.gameExports.level.time + 9;
-                } else if (ent.air_finished < GameBase.gameExports.level.time) {
+                    ent.air_finished = gameExports.level.time + 9;
+                } else if (ent.air_finished < gameExports.level.time) {
                     // suffocate!
-                    if (ent.pain_debounce_time < GameBase.gameExports.level.time) {
-                        dmg = (int) (2 + 2 * Math.floor(GameBase.gameExports.level.time
+                    if (ent.pain_debounce_time < gameExports.level.time) {
+                        dmg = (int) (2 + 2 * Math.floor(gameExports.level.time
                                 - ent.air_finished));
                         if (dmg > 15)
                             dmg = 15;
-                        GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
-                                GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
+                        GameCombat.T_Damage(ent, gameExports.g_edicts[0],
+                                gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
                                 Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
-                        ent.pain_debounce_time = GameBase.gameExports.level.time + 1;
+                        ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }
             }
@@ -300,7 +300,7 @@ public final class M {
 
         if (ent.waterlevel == 0) {
             if ((ent.flags & GameDefines.FL_INWATER) != 0) {
-                GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
                         .soundindex("player/watr_out.wav"), 1,
                         Defines.ATTN_NORM, 0);
                 ent.flags &= ~GameDefines.FL_INWATER;
@@ -310,20 +310,20 @@ public final class M {
 
         if ((ent.watertype & Defines.CONTENTS_LAVA) != 0
                 && 0 == (ent.flags & GameDefines.FL_IMMUNE_LAVA)) {
-            if (ent.damage_debounce_time < GameBase.gameExports.level.time) {
-                ent.damage_debounce_time = GameBase.gameExports.level.time + 0.2f;
-                GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
-                        GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
+            if (ent.damage_debounce_time < gameExports.level.time) {
+                ent.damage_debounce_time = gameExports.level.time + 0.2f;
+                GameCombat.T_Damage(ent, gameExports.g_edicts[0],
+                        gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 10 * ent.waterlevel,
                         0, 0, GameDefines.MOD_LAVA);
             }
         }
         if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
                 && 0 == (ent.flags & GameDefines.FL_IMMUNE_SLIME)) {
-            if (ent.damage_debounce_time < GameBase.gameExports.level.time) {
-                ent.damage_debounce_time = GameBase.gameExports.level.time + 1;
-                GameCombat.T_Damage(ent, GameBase.gameExports.g_edicts[0],
-                        GameBase.gameExports.g_edicts[0], Globals.vec3_origin,
+            if (ent.damage_debounce_time < gameExports.level.time) {
+                ent.damage_debounce_time = gameExports.level.time + 1;
+                GameCombat.T_Damage(ent, gameExports.g_edicts[0],
+                        gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 4 * ent.waterlevel,
                         0, 0, GameDefines.MOD_SLIME);
             }
@@ -333,19 +333,19 @@ public final class M {
             if (0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
                 if ((ent.watertype & Defines.CONTENTS_LAVA) != 0)
                     if (Globals.rnd.nextFloat() <= 0.5)
-                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
                                 .soundindex("player/lava1.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
                                 .soundindex("player/lava2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 else if ((ent.watertype & Defines.CONTENTS_SLIME) != 0)
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
                             .soundindex("player/watr_in.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 else if ((ent.watertype & Defines.CONTENTS_WATER) != 0)
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(ent, Defines.CHAN_BODY, gameExports.gameImports
                             .soundindex("player/watr_in.wav"), 1,
                             Defines.ATTN_NORM, 0);
             }
@@ -357,7 +357,7 @@ public final class M {
 
     public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
         public String getID() { return "m_drop_to_floor";}
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] end = { 0, 0, 0 };
             trace_t trace;
 
@@ -365,7 +365,7 @@ public final class M {
             Math3D.VectorCopy(ent.s.origin, end);
             end[2] -= 256;
 
-            trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, end,
+            trace = gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, end,
                     ent, Defines.MASK_MONSTERSOLID);
 
             if (trace.fraction == 1 || trace.allsolid)
@@ -373,14 +373,14 @@ public final class M {
 
             Math3D.VectorCopy(trace.endpos, ent.s.origin);
 
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.linkentity(ent);
             M.M_CheckGround(ent);
-            M_CatagorizePosition(ent);
+            M_CatagorizePosition(ent, gameExports);
             return true;
         }
     };
 
-    public static void M_SetEffects(SubgameEntity ent) {
+    public static void M_SetEffects(SubgameEntity ent, float time) {
         ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
         ent.s.renderfx &= ~(Defines.RF_SHELL_RED | Defines.RF_SHELL_GREEN | Defines.RF_SHELL_BLUE);
 
@@ -392,7 +392,7 @@ public final class M {
         if (ent.health <= 0)
             return;
 
-        if (ent.powerarmor_time > GameBase.gameExports.level.time) {
+        if (ent.powerarmor_time > time) {
             if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SCREEN) {
                 ent.s.effects |= Defines.EF_POWERSCREEN;
             } else if (ent.monsterinfo.power_armor_type == GameDefines.POWER_ARMOR_SHIELD) {
@@ -403,12 +403,12 @@ public final class M {
     };
 
     //ok
-    public static void M_MoveFrame(SubgameEntity self) {
+    public static void M_MoveFrame(SubgameEntity self, GameExportsImpl gameExports) {
         mmove_t move; //ptr
         int index;
 
         move = self.monsterinfo.currentmove;
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
         if ((self.monsterinfo.nextframe != 0)
                 && (self.monsterinfo.nextframe >= move.firstframe)
@@ -418,7 +418,7 @@ public final class M {
         } else {
             if (self.s.frame == move.lastframe) {
                 if (move.endfunc != null) {
-                    move.endfunc.think(self);
+                    move.endfunc.think(self, gameExports);
 
                     // regrab move, endfunc is very likely to change it
                     move = self.monsterinfo.currentmove;
@@ -450,13 +450,13 @@ public final class M {
                 move.frame[index].ai.ai(self, 0);
 
         if (move.frame[index].think != null)
-            move.frame[index].think.think(self);
+            move.frame[index].think.think(self, gameExports);
     }
 
     /** Stops the Flies. */
     public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
         public String getID() { return "m_fliesoff";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.s.effects &= ~Defines.EF_FLIES;
             self.s.sound = 0;
             return true;
@@ -466,7 +466,7 @@ public final class M {
     /** Starts the Flies as setting the animation flag in the entity. */
     public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
         public String getID() { return "m_flies_on";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.waterlevel != 0)
                 return true;
 
@@ -481,7 +481,7 @@ public final class M {
     /** Adds some flies after a random time */
     public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
         public String getID() { return "m_fly_check";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (self.waterlevel != 0)
                 return true;

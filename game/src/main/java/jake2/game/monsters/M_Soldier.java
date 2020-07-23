@@ -1007,7 +1007,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_dead = new EntThinkAdapter() {
     	public String getID(){ return "soldier_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -1084,7 +1084,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack1_refire1 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack1_refire1"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.skinnum > 1)
                 return true;
 
@@ -1102,7 +1102,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack1_refire2 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack1_refire2"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.skinnum < 2)
                 return true;
 
@@ -1118,7 +1118,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack2_refire1 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack2_refire1"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.skinnum > 1)
                 return true;
 
@@ -1136,7 +1136,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack2_refire2 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack2_refire2"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.skinnum < 2)
                 return true;
 
@@ -1152,7 +1152,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack3_refire = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack3_refire"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((GameBase.gameExports.level.time + 0.4) < self.monsterinfo.pausetime)
                 self.monsterinfo.nextframe = FRAME_attak303;
             return true;
@@ -1161,7 +1161,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack6_refire = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack6_refire"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health <= 0)
                 return true;
 
@@ -1177,7 +1177,7 @@ public class M_Soldier {
     // ATTACK6 (run & shoot)
     static EntThinkAdapter soldier_fire8 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire8"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 7);
             return true;
         }
@@ -1187,7 +1187,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire1 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire1"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 0);
             return true;
         }
@@ -1197,7 +1197,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire2 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire2"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 1);
             return true;
         }
@@ -1205,7 +1205,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_duck_down = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_down"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
@@ -1219,8 +1219,8 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire3 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire3"; }
-        public boolean think(SubgameEntity self) {
-            soldier_duck_down.think(self);
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            soldier_duck_down.think(self, gameExports);
             soldier_fire(self, 2);
             return true;
         }
@@ -1230,7 +1230,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire4 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire4"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 3);
             //
             //	if (self.enemy.health <= 0)
@@ -1249,7 +1249,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire6 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire6"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 5);
             return true;
         }
@@ -1257,7 +1257,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_fire7 = new EntThinkAdapter() {
     	public String getID(){ return "soldier_fire7"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             soldier_fire(self, 6);
             return true;
         }
@@ -1265,7 +1265,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_idle = new EntThinkAdapter() {
     	public String getID(){ return "soldier_idle"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() > 0.8)
                 GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                         Defines.ATTN_IDLE, 0);
@@ -1275,7 +1275,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_stand = new EntThinkAdapter() {
     	public String getID(){ return "soldier_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.currentmove == soldier_move_stand3)
                     || (Lib.random() < 0.8))
                 self.monsterinfo.currentmove = soldier_move_stand1;
@@ -1290,7 +1290,7 @@ public class M_Soldier {
     //
     static EntThinkAdapter soldier_walk1_random = new EntThinkAdapter() {
     	public String getID(){ return "soldier_walk1_random"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() > 0.1)
                 self.monsterinfo.nextframe = FRAME_walk101;
             return true;
@@ -1299,7 +1299,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_walk = new EntThinkAdapter() {
     	public String getID(){ return "soldier_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
                 self.monsterinfo.currentmove = soldier_move_walk1;
             else
@@ -1310,7 +1310,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_run = new EntThinkAdapter() {
     	public String getID(){ return "soldier_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 self.monsterinfo.currentmove = soldier_move_stand1;
                 return true;
@@ -1382,7 +1382,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_duck_up = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_up"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
@@ -1416,9 +1416,9 @@ public class M_Soldier {
 
     static EntThinkAdapter SP_monster_soldier_x = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_x"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            self.s.modelindex = GameBase.gameExports.gameImports
+            self.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/soldier/tris.md2");
             self.monsterinfo.scale = MODEL_SCALE;
             Math3D.VectorSet(self.mins, -16, -16, -24);
@@ -1426,10 +1426,10 @@ public class M_Soldier {
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
 
-            sound_idle = GameBase.gameExports.gameImports.soundindex("soldier/solidle1.wav");
-            sound_sight1 = GameBase.gameExports.gameImports.soundindex("soldier/solsght1.wav");
-            sound_sight2 = GameBase.gameExports.gameImports.soundindex("soldier/solsrch1.wav");
-            sound_cock = GameBase.gameExports.gameImports.soundindex("infantry/infatck3.wav");
+            sound_idle = gameExports.gameImports.soundindex("soldier/solidle1.wav");
+            sound_sight1 = gameExports.gameImports.soundindex("soldier/solsght1.wav");
+            sound_sight2 = gameExports.gameImports.soundindex("soldier/solsrch1.wav");
+            sound_cock = gameExports.gameImports.soundindex("infantry/infatck3.wav");
 
             self.mass = 100;
 
@@ -1444,11 +1444,11 @@ public class M_Soldier {
             self.monsterinfo.melee = null;
             self.monsterinfo.sight = soldier_sight;
 
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
-            self.monsterinfo.stand.think(self);
+            self.monsterinfo.stand.think(self, gameExports);
 
-            GameAI.walkmonster_start.think(self);
+            GameAI.walkmonster_start.think(self, gameExports);
             return true;
         }
     };
@@ -1459,19 +1459,19 @@ public class M_Soldier {
      */
     public static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_light"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }
 
-            SP_monster_soldier_x.think(self);
+            SP_monster_soldier_x.think(self, gameExports);
 
-            sound_pain_light = GameBase.gameExports.gameImports.soundindex("soldier/solpain2.wav");
-            sound_death_light = GameBase.gameExports.gameImports.soundindex("soldier/soldeth2.wav");
-            GameBase.gameExports.gameImports.modelindex("models/objects/laser/tris.md2");
-            GameBase.gameExports.gameImports.soundindex("misc/lasfly.wav");
-            GameBase.gameExports.gameImports.soundindex("soldier/solatck2.wav");
+            sound_pain_light = gameExports.gameImports.soundindex("soldier/solpain2.wav");
+            sound_death_light = gameExports.gameImports.soundindex("soldier/soldeth2.wav");
+            gameExports.gameImports.modelindex("models/objects/laser/tris.md2");
+            gameExports.gameImports.soundindex("misc/lasfly.wav");
+            gameExports.gameImports.soundindex("soldier/solatck2.wav");
 
             self.s.skinnum = 0;
             self.health = 20;
@@ -1487,22 +1487,22 @@ public class M_Soldier {
 
     public static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Com.DPrintf("Spawning a soldier at " + self.s.origin[0] + " " +
                     self.s.origin[1] + " " +
                     self.s.origin[2] + " " +
                     "\n");
             
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }
 
-            SP_monster_soldier_x.think(self);
+            SP_monster_soldier_x.think(self, gameExports);
 
-            sound_pain = GameBase.gameExports.gameImports.soundindex("soldier/solpain1.wav");
-            sound_death = GameBase.gameExports.gameImports.soundindex("soldier/soldeth1.wav");
-            GameBase.gameExports.gameImports.soundindex("soldier/solatck1.wav");
+            sound_pain = gameExports.gameImports.soundindex("soldier/solpain1.wav");
+            sound_death = gameExports.gameImports.soundindex("soldier/soldeth1.wav");
+            gameExports.gameImports.soundindex("soldier/solatck1.wav");
 
             self.s.skinnum = 2;
             self.health = 30;
@@ -1517,17 +1517,17 @@ public class M_Soldier {
      */
     public static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_soldier_ss"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return true;
             }
 
-            SP_monster_soldier_x.think(self);
+            SP_monster_soldier_x.think(self, gameExports);
 
-            sound_pain_ss = GameBase.gameExports.gameImports.soundindex("soldier/solpain3.wav");
-            sound_death_ss = GameBase.gameExports.gameImports.soundindex("soldier/soldeth3.wav");
-            GameBase.gameExports.gameImports.soundindex("soldier/solatck3.wav");
+            sound_pain_ss = gameExports.gameImports.soundindex("soldier/solpain3.wav");
+            sound_death_ss = gameExports.gameImports.soundindex("soldier/soldeth3.wav");
+            gameExports.gameImports.soundindex("soldier/solatck3.wav");
 
             self.s.skinnum = 4;
             self.health = 40;
@@ -1602,12 +1602,12 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_cock = new EntThinkAdapter() {
     	public String getID(){ return "soldier_cock"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.frame == FRAME_stand322)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cock, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cock, 1,
                         Defines.ATTN_IDLE, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cock, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cock, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1774,8 +1774,8 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_duck_hold = new EntThinkAdapter() {
     	public String getID(){ return "soldier_duck_hold"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -2207,7 +2207,7 @@ public class M_Soldier {
 
     static EntThinkAdapter soldier_attack = new EntThinkAdapter() {
     	public String getID(){ return "soldier_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.s.skinnum < 4) {
                 if (Lib.random() < 0.5)
                     self.monsterinfo.currentmove = soldier_move_attack1;

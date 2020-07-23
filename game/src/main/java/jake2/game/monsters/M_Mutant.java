@@ -364,7 +364,7 @@ public class M_Mutant {
     //
     static EntThinkAdapter mutant_step = new EntThinkAdapter() {
     	public String getID(){ return "mutant_step"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             int n;
             n = (Lib.rand() + 1) % 3;
             if (n == 0)
@@ -391,7 +391,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_search = new EntThinkAdapter() {
     	public String getID(){ return "mutant_search"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -400,7 +400,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_swing = new EntThinkAdapter() {
     	public String getID(){ return "mutant_swing"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_swing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -479,7 +479,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_stand = new EntThinkAdapter() {
     	public String getID(){ return "mutant_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_stand;
             return true;
         }
@@ -491,7 +491,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_idle_loop = new EntThinkAdapter() {
     	public String getID(){ return "mutant_idle_loop"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.75)
                 self.monsterinfo.nextframe = FRAME_stand155;
             return true;
@@ -520,7 +520,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_idle = new EntThinkAdapter() {
     	public String getID(){ return "mutant_idle"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_idle;
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
@@ -551,7 +551,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_walk_loop = new EntThinkAdapter() {
     	public String getID(){ return "mutant_walk_loop"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_walk;
             return true;
         }
@@ -568,7 +568,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_walk = new EntThinkAdapter() {
     	public String getID(){ return "mutant_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_start_walk;
             return true;
         }
@@ -591,7 +591,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_run = new EntThinkAdapter() {
     	public String getID(){ return "mutant_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = mutant_move_stand;
             else
@@ -607,15 +607,15 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_hit_left = new EntThinkAdapter() {
     	public String getID(){ return "mutant_hit_left"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
             if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hit, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hit, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_swing, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_swing, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -623,7 +623,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_hit_right = new EntThinkAdapter() {
     	public String getID(){ return "mutant_hit_right"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
@@ -639,7 +639,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_check_refire = new EntThinkAdapter() {
     	public String getID(){ return "mutant_check_refire"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (null == self.enemy || !self.enemy.inuse
                     || self.enemy.health <= 0)
                 return true;
@@ -665,7 +665,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_melee = new EntThinkAdapter() {
     	public String getID(){ return "mutant_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_attack;
             return true;
         }
@@ -714,7 +714,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_jump_takeoff = new EntThinkAdapter() {
     	public String getID(){ return "mutant_jump_takeoff"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] forward = { 0, 0, 0 };
 
@@ -734,7 +734,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_check_landing = new EntThinkAdapter() {
     	public String getID(){ return "mutant_check_landing"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.groundentity != null) {
                 GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_thud, 1,
                         Defines.ATTN_NORM, 0);
@@ -766,7 +766,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_jump = new EntThinkAdapter() {
     	public String getID(){ return "mutant_jump"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = mutant_move_jump;
             return true;
@@ -778,7 +778,7 @@ public class M_Mutant {
     //
     static EntThinkAdapter mutant_check_melee = new EntThinkAdapter() {
     	public String getID(){ return "mutant_check_melee"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 return true;
             return false;
@@ -788,7 +788,7 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_check_jump = new EntThinkAdapter() {
     	public String getID(){ return "mutant_check_jump"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] v = { 0, 0, 0 };
             float distance;
@@ -817,17 +817,17 @@ public class M_Mutant {
 
     static EntThinkAdapter mutant_checkattack = new EntThinkAdapter() {
     	public String getID(){ return "mutant_checkattack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (null == self.enemy || self.enemy.health <= 0)
                 return false;
 
-            if (mutant_check_melee.think(self)) {
+            if (mutant_check_melee.think(self, gameExports)) {
                 self.monsterinfo.attack_state = GameDefines.AS_MELEE;
                 return true;
             }
 
-            if (mutant_check_jump.think(self)) {
+            if (mutant_check_jump.think(self, gameExports)) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
                 // FIXME play a jump sound here
                 return true;
@@ -916,14 +916,14 @@ public class M_Mutant {
     //
     static EntThinkAdapter mutant_dead = new EntThinkAdapter() {
     	public String getID(){ return "mutant_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
-            M.M_FlyCheck.think(self);
+            M.M_FlyCheck.think(self, gameExports);
             return true;
         }
     };
@@ -1007,29 +1007,29 @@ public class M_Mutant {
      */
     public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
     	public String getID(){ return "SP_monster_mutant"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.cvarCache.deathmatch.value != 0) {
                 GameUtil.G_FreeEdict(self);
                 return false;
             }
 
-            sound_swing = GameBase.gameExports.gameImports.soundindex("mutant/mutatck1.wav");
-            sound_hit = GameBase.gameExports.gameImports.soundindex("mutant/mutatck2.wav");
-            sound_hit2 = GameBase.gameExports.gameImports.soundindex("mutant/mutatck3.wav");
-            sound_death = GameBase.gameExports.gameImports.soundindex("mutant/mutdeth1.wav");
-            sound_idle = GameBase.gameExports.gameImports.soundindex("mutant/mutidle1.wav");
-            sound_pain1 = GameBase.gameExports.gameImports.soundindex("mutant/mutpain1.wav");
-            sound_pain2 = GameBase.gameExports.gameImports.soundindex("mutant/mutpain2.wav");
-            sound_sight = GameBase.gameExports.gameImports.soundindex("mutant/mutsght1.wav");
-            sound_search = GameBase.gameExports.gameImports.soundindex("mutant/mutsrch1.wav");
-            sound_step1 = GameBase.gameExports.gameImports.soundindex("mutant/step1.wav");
-            sound_step2 = GameBase.gameExports.gameImports.soundindex("mutant/step2.wav");
-            sound_step3 = GameBase.gameExports.gameImports.soundindex("mutant/step3.wav");
-            sound_thud = GameBase.gameExports.gameImports.soundindex("mutant/thud1.wav");
+            sound_swing = gameExports.gameImports.soundindex("mutant/mutatck1.wav");
+            sound_hit = gameExports.gameImports.soundindex("mutant/mutatck2.wav");
+            sound_hit2 = gameExports.gameImports.soundindex("mutant/mutatck3.wav");
+            sound_death = gameExports.gameImports.soundindex("mutant/mutdeth1.wav");
+            sound_idle = gameExports.gameImports.soundindex("mutant/mutidle1.wav");
+            sound_pain1 = gameExports.gameImports.soundindex("mutant/mutpain1.wav");
+            sound_pain2 = gameExports.gameImports.soundindex("mutant/mutpain2.wav");
+            sound_sight = gameExports.gameImports.soundindex("mutant/mutsght1.wav");
+            sound_search = gameExports.gameImports.soundindex("mutant/mutsrch1.wav");
+            sound_step1 = gameExports.gameImports.soundindex("mutant/step1.wav");
+            sound_step2 = gameExports.gameImports.soundindex("mutant/step2.wav");
+            sound_step3 = gameExports.gameImports.soundindex("mutant/step3.wav");
+            sound_thud = gameExports.gameImports.soundindex("mutant/thud1.wav");
 
             self.movetype = GameDefines.MOVETYPE_STEP;
             self.solid = Defines.SOLID_BBOX;
-            self.s.modelindex = GameBase.gameExports.gameImports
+            self.s.modelindex = gameExports.gameImports
                     .modelindex("models/monsters/mutant/tris.md2");
             Math3D.VectorSet(self.mins, -32, -32, -24);
             Math3D.VectorSet(self.maxs, 32, 32, 48);
@@ -1052,12 +1052,12 @@ public class M_Mutant {
             self.monsterinfo.idle = mutant_idle;
             self.monsterinfo.checkattack = mutant_checkattack;
 
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
 
             self.monsterinfo.currentmove = mutant_move_stand;
 
             self.monsterinfo.scale = MODEL_SCALE;
-            GameAI.walkmonster_start.think(self);
+            GameAI.walkmonster_start.think(self, gameExports);
             return true;
         }
     };

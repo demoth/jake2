@@ -43,7 +43,7 @@ public class M_Boss3 {
 
     static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
     	public String getID() { return "Think_Boss3Stand"; }
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (ent.s.frame == M_Boss32.FRAME_stand260)
                 ent.s.frame = M_Boss32.FRAME_stand201;
             else
@@ -59,8 +59,8 @@ public class M_Boss3 {
      * 
      * Just stands and cycles in one place until targeted, then teleports away.
      */
-    public static void SP_monster_boss3_stand(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_monster_boss3_stand(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
@@ -68,17 +68,17 @@ public class M_Boss3 {
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
         self.model = "models/monsters/boss3/rider/tris.md2";
-        self.s.modelindex = GameBase.gameExports.gameImports.modelindex(self.model);
+        self.s.modelindex = gameExports.gameImports.modelindex(self.model);
         self.s.frame = M_Boss32.FRAME_stand201;
 
-        GameBase.gameExports.gameImports.soundindex("misc/bigtele.wav");
+        gameExports.gameImports.soundindex("misc/bigtele.wav");
 
         Math3D.VectorSet(self.mins, -32, -32, 0);
         Math3D.VectorSet(self.maxs, 32, 32, 90);
 
         self.use = Use_Boss3;
         self.think = Think_Boss3Stand;
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
-        GameBase.gameExports.gameImports.linkentity(self);
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(self);
     }
 }
