@@ -35,7 +35,7 @@ public class GameWeapon {
     	public String getID() { return "blaster_touch"; }
     
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                          csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             int mod;
     
             if (other == self.getOwner())
@@ -68,14 +68,14 @@ public class GameWeapon {
                         Defines.DAMAGE_ENERGY, mod);
     
             } else {
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-                GameBase.gameExports.gameImports.WriteByte(Defines.TE_BLASTER);
-                GameBase.gameExports.gameImports.WritePosition(self.s.origin);
+                gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                gameExports.gameImports.WriteByte(Defines.TE_BLASTER);
+                gameExports.gameImports.WritePosition(self.s.origin);
                 if (plane == null)
-                    GameBase.gameExports.gameImports.WriteDir(Globals.vec3_origin);
+                    gameExports.gameImports.WriteDir(Globals.vec3_origin);
                 else
-                    GameBase.gameExports.gameImports.WriteDir(plane.normal);
-                GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+                    gameExports.gameImports.WriteDir(plane.normal);
+                gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             }
     
             GameUtil.G_FreeEdict(self);
@@ -122,20 +122,20 @@ public class GameWeapon {
                     ent.dmg_radius, mod);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
             if (ent.waterlevel != 0) {
                 if (ent.groundentity != null)
-                    GameBase.gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION_WATER);
+                    gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION_WATER);
                 else
-                    GameBase.gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
+                    gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
             } else {
                 if (ent.groundentity != null)
-                    GameBase.gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION);
+                    gameExports.gameImports.WriteByte(Defines.TE_GRENADE_EXPLOSION);
                 else
-                    GameBase.gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
+                    gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
             }
-            GameBase.gameExports.gameImports.WritePosition(origin);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+            gameExports.gameImports.WritePosition(origin);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent);
             return true;
@@ -144,7 +144,7 @@ public class GameWeapon {
     static EntTouchAdapter Grenade_Touch = new EntTouchAdapter() {
     	public String getID() { return "Grenade_Touch"; }
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
                 return;
     
@@ -156,15 +156,15 @@ public class GameWeapon {
             if (other.takedamage == 0) {
                 if ((ent.spawnflags & 1) != 0) {
                     if (Lib.random() > 0.5f)
-                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("weapons/hgrenb1a.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                     else
-                        GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                        gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("weapons/hgrenb2a.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 } else {
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                             .soundindex("weapons/grenlb1b.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -172,7 +172,7 @@ public class GameWeapon {
             }
     
             ent.enemy = other;
-            Grenade_Explode.think(ent, GameBase.gameExports);
+            Grenade_Explode.think(ent, gameExports);
         }
     };
     
@@ -184,7 +184,7 @@ public class GameWeapon {
     static EntTouchAdapter rocket_touch = new EntTouchAdapter() {
     	public String  getID() { return "rocket_touch"; }
         public void touch(SubgameEntity ent, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             int n;
     
@@ -209,7 +209,7 @@ public class GameWeapon {
                         GameDefines.MOD_ROCKET);
             } else {
                 // don't throw any debris in net games
-                if (GameBase.gameExports.cvarCache.deathmatch.value == 0 && 0 == GameBase.gameExports.cvarCache.coop.value) {
+                if (gameExports.cvarCache.deathmatch.value == 0 && 0 == gameExports.cvarCache.coop.value) {
                     if ((surf != null)
                             && 0 == (surf.flags & (Defines.SURF_WARP
                                     | Defines.SURF_TRANS33
@@ -226,13 +226,13 @@ public class GameWeapon {
             GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.radius_dmg, other,
                     ent.dmg_radius, GameDefines.MOD_R_SPLASH);
     
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
             if (ent.waterlevel != 0)
-                GameBase.gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
+                gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION_WATER);
             else
-                GameBase.gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
-            GameBase.gameExports.gameImports.WritePosition(origin);
-            GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+                gameExports.gameImports.WriteByte(Defines.TE_ROCKET_EXPLOSION);
+            gameExports.gameImports.WritePosition(origin);
+            gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
             GameUtil.G_FreeEdict(ent);
         }
@@ -275,17 +275,17 @@ public class GameWeapon {
                     if (ent == self.getOwner())
                         points = points * 0.5f;
     
-                    GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-                    GameBase.gameExports.gameImports.WriteByte(Defines.TE_BFG_EXPLOSION);
-                    GameBase.gameExports.gameImports.WritePosition(ent.s.origin);
-                    GameBase.gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
+                    gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                    gameExports.gameImports.WriteByte(Defines.TE_BFG_EXPLOSION);
+                    gameExports.gameImports.WritePosition(ent.s.origin);
+                    gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
                     GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
                             Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT);
                 }
             }
     
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.s.frame++;
             if (self.s.frame == 5)
                 self.think = GameUtil.G_FreeEdictA;
@@ -297,7 +297,7 @@ public class GameWeapon {
     static EntTouchAdapter bfg_touch = new EntTouchAdapter() {
     	public String getID() { return "bfg_touch"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other == self.getOwner())
                 return;
     
@@ -318,7 +318,7 @@ public class GameWeapon {
             GameCombat.T_RadiusDamage(self, self.getOwner(), 200, other, 100,
                     GameDefines.MOD_BFG_BLAST);
     
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                     .soundindex("weapons/bfg__x1b.wav"), 1, Defines.ATTN_NORM,
                     0);
             self.solid = Defines.SOLID_NOT;
@@ -326,18 +326,18 @@ public class GameWeapon {
             Math3D.VectorMA(self.s.origin, -1 * Defines.FRAMETIME,
                     self.velocity, self.s.origin);
             Math3D.VectorClear(self.velocity);
-            self.s.modelindex = GameBase.gameExports.gameImports.modelindex("sprites/s_bfg3.sp2");
+            self.s.modelindex = gameExports.gameImports.modelindex("sprites/s_bfg3.sp2");
             self.s.frame = 0;
             self.s.sound = 0;
             self.s.effects &= ~Defines.EF_ANIM_ALLFAST;
             self.think = bfg_explode;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             self.enemy = other;
     
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(Defines.TE_BFG_BIGEXPLOSION);
-            GameBase.gameExports.gameImports.WritePosition(self.s.origin);
-            GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_BFG_BIGEXPLOSION);
+            gameExports.gameImports.WritePosition(self.s.origin);
+            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
         }
     };
     
@@ -351,7 +351,7 @@ public class GameWeapon {
             int dmg;
             trace_t tr;
     
-            if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
+            if (gameExports.cvarCache.deathmatch.value != 0)
                 dmg = 5;
             else
                 dmg = 10;
@@ -383,7 +383,7 @@ public class GameWeapon {
                 Math3D.VectorCopy(self.s.origin, start);
                 Math3D.VectorMA(start, 2048, dir, end);
                 while (true) {
-                    tr = GameBase.gameExports.gameImports.trace(start, null, null, end, ignore,
+                    tr = gameExports.gameImports.trace(start, null, null, end, ignore,
                             Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                     | Defines.CONTENTS_DEADMONSTER);
 
@@ -403,13 +403,13 @@ public class GameWeapon {
                     // done
                     if (0 == (target.svflags & Defines.SVF_MONSTER)
                             && (null == target.getClient())) {
-                        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-                        GameBase.gameExports.gameImports.WriteByte(Defines.TE_LASER_SPARKS);
-                        GameBase.gameExports.gameImports.WriteByte(4);
-                        GameBase.gameExports.gameImports.WritePosition(tr.endpos);
-                        GameBase.gameExports.gameImports.WriteDir(tr.plane.normal);
-                        GameBase.gameExports.gameImports.WriteByte(self.s.skinnum);
-                        GameBase.gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
+                        gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                        gameExports.gameImports.WriteByte(Defines.TE_LASER_SPARKS);
+                        gameExports.gameImports.WriteByte(4);
+                        gameExports.gameImports.WritePosition(tr.endpos);
+                        gameExports.gameImports.WriteDir(tr.plane.normal);
+                        gameExports.gameImports.WriteByte(self.s.skinnum);
+                        gameExports.gameImports.multicast(tr.endpos, MulticastTypes.MULTICAST_PVS);
                         break;
                     }
     
@@ -417,14 +417,14 @@ public class GameWeapon {
                     Math3D.VectorCopy(tr.endpos, start);
                 }
     
-                GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-                GameBase.gameExports.gameImports.WriteByte(Defines.TE_BFG_LASER);
-                GameBase.gameExports.gameImports.WritePosition(self.s.origin);
-                GameBase.gameExports.gameImports.WritePosition(tr.endpos);
-                GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
+                gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+                gameExports.gameImports.WriteByte(Defines.TE_BFG_LASER);
+                gameExports.gameImports.WritePosition(self.s.origin);
+                gameExports.gameImports.WritePosition(tr.endpos);
+                gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
             }
     
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -751,7 +751,7 @@ public class GameWeapon {
                 Defines.MASK_SHOT);
         if (tr.fraction < 1.0) {
             Math3D.VectorMA(bolt.s.origin, -10, dir, bolt.s.origin);
-            bolt.touch.touch(bolt, (SubgameEntity) tr.ent, GameBase.dummyplane, null);
+            bolt.touch.touch(bolt, (SubgameEntity) tr.ent, GameBase.dummyplane, null, GameBase.gameExports);
         }
     }
 

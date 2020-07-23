@@ -28,5 +28,5 @@ import jake2.qcommon.csurface_t;
 
 public abstract class EntTouchAdapter extends SuperAdapter
 {
-	public abstract void touch(SubgameEntity self, SubgameEntity other, cplane_t plane, csurface_t surf);
+	public abstract void touch(SubgameEntity self, SubgameEntity other, cplane_t plane, csurface_t surf, GameExportsImpl gameExports);
 }

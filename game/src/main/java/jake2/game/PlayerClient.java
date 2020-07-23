@@ -1396,7 +1396,7 @@ public class PlayerClient {
                     continue; // duplicated
                 if (other.touch == null)
                     continue;
-                other.touch.touch(other, ent, GameBase.dummyplane, null);
+                other.touch.touch(other, ent, GameBase.dummyplane, null, GameBase.gameExports);
             }
 
         }

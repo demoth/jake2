@@ -30,8 +30,6 @@ import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
-import java.util.StringTokenizer;
-
 public class GameBase {
     @Deprecated
     public static GameExportsImpl gameExports;
@@ -230,7 +228,7 @@ public class GameBase {
             if (hit.touch == null)
                 continue;
 
-            hit.touch.touch(hit, ent, dummyplane, null);
+            hit.touch.touch(hit, ent, dummyplane, null, gameExports);
         }
     }
 

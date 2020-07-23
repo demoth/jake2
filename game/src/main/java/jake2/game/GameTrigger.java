@@ -255,7 +255,7 @@ class GameTrigger {
     private static EntTouchAdapter Touch_Multi = new EntTouchAdapter() {
     	public String getID(){ return "Touch_Multi"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if (other.getClient() != null) {
                 if ((self.spawnflags & 2) != 0)
                     return;
@@ -443,7 +443,7 @@ class GameTrigger {
     private static EntTouchAdapter trigger_push_touch = new EntTouchAdapter() {
     	public String getID(){ return "trigger_push_touch"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if ("grenade".equals(other.classname)) {
                 Math3D.VectorScale(self.movedir, self.speed * 10,
                         other.velocity);
@@ -455,9 +455,9 @@ class GameTrigger {
                 if (otherClient != null) {
                     // don't take falling damage immediately from this
                     Math3D.VectorCopy(other.velocity, otherClient.oldvelocity);
-                    if (other.fly_sound_debounce_time < GameBase.gameExports.level.time) {
-                        other.fly_sound_debounce_time = GameBase.gameExports.level.time + 1.5f;
-                        GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO, windsound,
+                    if (other.fly_sound_debounce_time < gameExports.level.time) {
+                        other.fly_sound_debounce_time = gameExports.level.time + 1.5f;
+                        gameExports.gameImports.sound(other, Defines.CHAN_AUTO, windsound,
                                 1, Defines.ATTN_NORM, 0);
                     }
                 }
@@ -498,23 +498,23 @@ class GameTrigger {
     private static EntTouchAdapter hurt_touch = new EntTouchAdapter() {
     	public String getID(){ return "hurt_touch"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             int dflags;
 
             if (other.takedamage == 0)
                 return;
 
-            if (self.timestamp > GameBase.gameExports.level.time)
+            if (self.timestamp > gameExports.level.time)
                 return;
 
             if ((self.spawnflags & 16) != 0)
-                self.timestamp = GameBase.gameExports.level.time + 1;
+                self.timestamp = gameExports.level.time + 1;
             else
-                self.timestamp = GameBase.gameExports.level.time + Defines.FRAMETIME;
+                self.timestamp = gameExports.level.time + Defines.FRAMETIME;
 
             if (0 == (self.spawnflags & 4)) {
-                if ((GameBase.gameExports.level.framenum % 10) == 0)
-                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_AUTO,
+                if ((gameExports.level.framenum % 10) == 0)
+                    gameExports.gameImports.sound(other, Defines.CHAN_AUTO,
                             self.noise_index, 1, Defines.ATTN_NORM, 0);
             }
 
@@ -545,7 +545,7 @@ class GameTrigger {
     	public String getID(){ return "trigger_gravity_touch"; }
 
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             other.gravity = self.gravity;
         }
     };
@@ -568,7 +568,7 @@ class GameTrigger {
     private static EntTouchAdapter trigger_monsterjump_touch = new EntTouchAdapter() {
     	public String getID(){ return "trigger_monsterjump_touch"; }
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             if ((other.flags & (GameDefines.FL_FLY | GameDefines.FL_SWIM)) != 0)
                 return;
             if ((other.svflags & Defines.SVF_DEADMONSTER) != 0)

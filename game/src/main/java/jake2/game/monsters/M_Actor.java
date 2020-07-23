@@ -1397,7 +1397,7 @@ public class M_Actor {
     static EntTouchAdapter target_actor_touch = new EntTouchAdapter() {
         public String getID() { return "target_actor_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
-                csurface_t surf) {
+                          csurface_t surf, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
 
             if (other.movetarget != self)
@@ -1412,11 +1412,11 @@ public class M_Actor {
                 int n;
                 edict_t ent;
 
-                for (n = 1; n <= GameBase.gameExports.game.maxclients; n++) {
-                    ent = GameBase.gameExports.g_edicts[n];
+                for (n = 1; n <= gameExports.game.maxclients; n++) {
+                    ent = gameExports.g_edicts[n];
                     if (!ent.inuse)
                         continue;
-                    GameBase.gameExports.gameImports.cprintf(ent, Defines.PRINT_CHAT,
+                    gameExports.gameImports.cprintf(ent, Defines.PRINT_CHAT,
                             actor_names[(other.index) % MAX_ACTOR_NAMES] + ": "
                                     + self.message + "\n");
                 }
@@ -1430,7 +1430,7 @@ public class M_Actor {
                 if (other.groundentity != null) {
                     other.groundentity = null;
                     other.velocity[2] = self.movedir[2];
-                    GameBase.gameExports.gameImports.sound(other, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                    gameExports.gameImports.sound(other, Defines.CHAN_VOICE, gameExports.gameImports
                             .soundindex("player/male/jump1.wav"), 1,
                             Defines.ATTN_NORM, 0);
                 }
@@ -1447,9 +1447,9 @@ public class M_Actor {
                         other.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
                     if ((self.spawnflags & 16) != 0) {
                         other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
-                        actor_stand.think(other, GameBase.gameExports);
+                        actor_stand.think(other, gameExports);
                     } else {
-                        actor_run.think(other, GameBase.gameExports);
+                        actor_run.think(other, gameExports);
                     }
                 }
             }
@@ -1469,8 +1469,8 @@ public class M_Actor {
                 other.goalentity = other.movetarget;
 
             if (null == other.movetarget && null == other.enemy) {
-                other.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
-                other.monsterinfo.stand.think(other, GameBase.gameExports);
+                other.monsterinfo.pausetime = gameExports.level.time + 100000000;
+                other.monsterinfo.stand.think(other, gameExports);
             } else if (other.movetarget == other.goalentity) {
                 Math3D.VectorSubtract(other.movetarget.s.origin,
                         other.s.origin, v);

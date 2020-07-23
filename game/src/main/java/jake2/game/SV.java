@@ -104,10 +104,10 @@ final class SV {
         SubgameEntity e2 = (SubgameEntity) trace.ent;
 
         if (e1.touch != null && e1.solid != Defines.SOLID_NOT)
-            e1.touch.touch(e1, e2, trace.plane, trace.surface);
+            e1.touch.touch(e1, e2, trace.plane, trace.surface, GameBase.gameExports);
 
         if (e2.touch != null && e2.solid != Defines.SOLID_NOT)
-            e2.touch.touch(e2, e1, GameBase.dummyplane, null);
+            e2.touch.touch(e2, e1, GameBase.dummyplane, null, GameBase.gameExports);
     }
 
     private static int SV_FlyMove(SubgameEntity ent, float time, int mask) {
