@@ -42,7 +42,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health(ent);
+            GameItems.SP_item_health(ent, gameExports);
             return true;
         }
     };
@@ -53,7 +53,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_small(ent);
+            GameItems.SP_item_health_small(ent, gameExports);
             return true;
         }
     };
@@ -64,7 +64,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_large(ent);
+            GameItems.SP_item_health_large(ent, gameExports);
             return true;
         }
     };
@@ -75,7 +75,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameItems.SP_item_health_mega(ent);
+            GameItems.SP_item_health_mega(ent, gameExports);
             return true;
         }
     };
@@ -108,7 +108,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            PlayerClient.SP_info_player_coop(ent, GameBase.gameExports);
+            PlayerClient.SP_info_player_coop(ent, gameExports);
             return true;
         }
     };
@@ -130,7 +130,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            GameFunc.SP_func_plat(ent, GameBase.gameExports);
+            GameFunc.SP_func_plat(ent, gameExports);
             return true;
         }
     };
@@ -436,7 +436,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameFunc.SP_func_timer(ent, GameBase.gameExports);
+                GameFunc.SP_func_timer(ent, gameExports);
                 return true;
             }
         });
@@ -1010,7 +1010,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                M_Berserk.SP_monster_berserk(ent, GameBase.gameExports);
+                M_Berserk.SP_monster_berserk(ent, gameExports);
                 return true;
             }
         });
@@ -1354,7 +1354,7 @@ public class GameSpawn {
             else
                 ent = G_Spawn();
 
-            ED_ParseEdict(ph, ent, GameBase.gameExports);
+            ED_ParseEdict(ph, ent, gameExports);
             Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
                     ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
 
@@ -1425,7 +1425,7 @@ public class GameSpawn {
             if (item.classname == null)
                 continue;
             if (item.classname.equalsIgnoreCase(ent.classname)) { // found it
-                GameItems.SpawnItem(ent, item);
+                GameItems.SpawnItem(ent, item, gameExports);
                 return;
             }
         } // check normal spawn functions
@@ -1438,22 +1438,22 @@ public class GameSpawn {
         }
     }
 
-    static void SpawnNewEntity(SubgameEntity creator, List<String> args) {
+    static void SpawnNewEntity(SubgameEntity creator, List<String> args, GameExportsImpl gameExports) {
         String className;
         if (args.size() >= 2)
             className = args.get(1);
         else {
-            GameBase.gameExports.gameImports.dprintf("usage: spawn <classname>\n");
+            gameExports.gameImports.dprintf("usage: spawn <classname>\n");
             return;
         }
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && GameBase.gameExports.cvarCache.sv_cheats.value == 0) {
-            GameBase.gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
+        if (gameExports.cvarCache.deathmatch.value != 0 && gameExports.cvarCache.sv_cheats.value == 0) {
+            gameExports.gameImports.cprintf(creator, Defines.PRINT_HIGH,
                     "You must run the server with '+set cheats 1' to enable this command.\n");
             return;
         }
 
-        GameBase.gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
+        gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
         gitem_t gitem_t = GameItems.FindItemByClassname(className);
@@ -1476,13 +1476,13 @@ public class GameSpawn {
             Math3D.VectorCopy(creator.s.angles, newThing.s.angles);
 
             newThing.classname = className;
-            GameBase.gameExports.gameImports.linkentity(newThing);
+            gameExports.gameImports.linkentity(newThing);
             if (spawn != null)
-                spawn.think(newThing, GameBase.gameExports);
+                spawn.think(newThing, gameExports);
             else
-                GameItems.SpawnItem(newThing, gitem_t);
+                GameItems.SpawnItem(newThing, gitem_t, gameExports);
 
-            GameBase.gameExports.gameImports.dprintf("Spawned!\n");
+            gameExports.gameImports.dprintf("Spawned!\n");
         }
 
     }

@@ -294,7 +294,7 @@ public class GameExportsImpl implements GameExports {
             it = GameItems.FindItem("Power Shield");
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
-            GameItems.SpawnItem(it_ent, it);
+            GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
@@ -302,6 +302,27 @@ public class GameExportsImpl implements GameExports {
             if (!give_all)
                 return;
         }
+
+        if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
+
+            for (i = 1; i < game.num_items; i++) {
+                it = GameItemList.itemlist[i];
+                if (0 == (it.flags & GameDefines.IT_POWERUP))
+                    continue;
+
+                it_ent = GameUtil.G_Spawn();
+                it_ent.classname = it.classname;
+                GameItems.SpawnItem(it_ent, it, this);
+                GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
+                if (it_ent.inuse)
+                    GameUtil.G_FreeEdict(it_ent);
+
+            }
+
+            if (!give_all)
+                return;
+        }
+
 
         if (give_all) {
             for (i = 1; i < game.num_items; i++) {
@@ -340,7 +361,7 @@ public class GameExportsImpl implements GameExports {
         } else {
             it_ent = GameUtil.G_Spawn();
             it_ent.classname = it.classname;
-            GameItems.SpawnItem(it_ent, it);
+            GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null);
             if (it_ent.inuse)
                 GameUtil.G_FreeEdict(it_ent);
@@ -445,7 +466,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
@@ -473,7 +494,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it.drop.drop(ent, it);
+        it.drop.drop(ent, it, gameExports);
     }
 
     /**
@@ -519,13 +540,13 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
         }
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
      * Cmd_WeapPrev_f.
      */
-    private static void WeapPrev_f(SubgameEntity ent) {
+    private void WeapPrev_f(SubgameEntity ent) {
 
         gclient_t cl = ent.getClient();
 
@@ -546,7 +567,7 @@ public class GameExportsImpl implements GameExports {
 
             if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
-            it.use.use(ent, it);
+            it.use.use(ent, it, this);
             if (cl.pers.weapon == it)
                 return; // successful
         }
@@ -555,7 +576,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapNext_f.
      */
-    private static void WeapNext_f(SubgameEntity ent) {
+    private void WeapNext_f(SubgameEntity ent) {
         gclient_t cl;
         int i, index;
         gitem_t it;
@@ -582,7 +603,7 @@ public class GameExportsImpl implements GameExports {
                 continue;
             if (0 == (it.flags & GameDefines.IT_WEAPON))
                 continue;
-            it.use.use(ent, it);
+            it.use.use(ent, it, this);
             if (cl.pers.weapon == it)
                 return; // successful
         }
@@ -591,7 +612,7 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_WeapLast_f.
      */
-    private static void WeapLast_f(SubgameEntity ent) {
+    private void WeapLast_f(SubgameEntity ent) {
         int index;
 
         gclient_t cl = ent.getClient();
@@ -607,7 +628,7 @@ public class GameExportsImpl implements GameExports {
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
             return;
-        it.use.use(ent, it);
+        it.use.use(ent, it, this);
     }
 
     /**
@@ -629,7 +650,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;
         }
-        it.drop.drop(ent, it);
+        it.drop.drop(ent, it, gameExports);
     }
 
     /**
@@ -1363,7 +1384,7 @@ public class GameExportsImpl implements GameExports {
                 ShowPosition_f(ent);
                 break;
             case "spawn":
-                GameSpawn.SpawnNewEntity(ent, args);
+                GameSpawn.SpawnNewEntity(ent, args, this);
                 break;
             default:
                 // anything that doesn't match a command will be a chat

@@ -548,7 +548,7 @@ public class M_Boss31 {
 
             self.s.sound = 0;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames if he takes
@@ -577,21 +577,21 @@ public class M_Boss31 {
                 if (Lib.random() <= 0.005)
                     return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            self.pain_debounce_time = gameExports.level.time + 3;
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 50) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = jorg_move_pain1;
             } else if (damage <= 100) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = jorg_move_pain2;
             } else {
                 if (Lib.random() <= 0.3) {
-                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                    gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                             Defines.ATTN_NORM, 0);
                     self.monsterinfo.currentmove = jorg_move_pain3;
                 }
