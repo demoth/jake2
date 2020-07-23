@@ -26,5 +26,5 @@ package jake2.game;
 public abstract class EntBlockedAdapter extends SuperAdapter
 {
 	// move to moveinfo?
-	public abstract void blocked(SubgameEntity self, SubgameEntity other);
+	public abstract void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports);
 }
