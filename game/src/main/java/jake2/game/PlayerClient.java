@@ -139,7 +139,7 @@ public class PlayerClient {
     };
     static EntThinkAdapter SP_FixCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_FixCoopSpots"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] d = { 0, 0, 0 };
 
@@ -174,7 +174,7 @@ public class PlayerClient {
     };
     static EntThinkAdapter SP_CreateCoopSpots = new EntThinkAdapter() {
     	public String getID() { return "SP_CreateCoopSpots"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "security") == 0) {
                 SubgameEntity spot = GameUtil.G_Spawn();
@@ -264,12 +264,12 @@ public class PlayerClient {
      * QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) potential
      * spawning position for deathmatch games.
      */
-    public static void SP_info_player_deathmatch(SubgameEntity self) {
-        if (0 == GameBase.gameExports.cvarCache.deathmatch.value) {
+    public static void SP_info_player_deathmatch(SubgameEntity self, GameExportsImpl gameExports) {
+        if (0 == gameExports.cvarCache.deathmatch.value) {
             GameUtil.G_FreeEdict(self);
             return;
         }
-        GameMisc.SP_misc_teleporter_dest.think(self);
+        GameMisc.SP_misc_teleporter_dest.think(self, gameExports);
     }
 
     /**
@@ -277,29 +277,29 @@ public class PlayerClient {
      * spawning position for coop games.
      */
 
-    public static void SP_info_player_coop(SubgameEntity self) {
-        if (0 == GameBase.gameExports.cvarCache.coop.value) {
+    public static void SP_info_player_coop(SubgameEntity self, GameExportsImpl gameExports) {
+        if (0 == gameExports.cvarCache.coop.value) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        if ((Lib.Q_stricmp(GameBase.gameExports.level.mapname, "jail2") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "jail4") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "mine1") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "mine2") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "mine3") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "mine4") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "lab") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "boss1") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "fact3") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "biggun") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "space") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "command") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "power2") == 0)
-                || (Lib.Q_stricmp(GameBase.gameExports.level.mapname, "strike") == 0)) {
+        if ((Lib.Q_stricmp(gameExports.level.mapname, "jail2") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "jail4") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "mine1") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "mine2") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "mine3") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "mine4") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "lab") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "boss1") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "fact3") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "biggun") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "space") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "command") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "power2") == 0)
+                || (Lib.Q_stricmp(gameExports.level.mapname, "strike") == 0)) {
             // invoke one of our gross, ugly, disgusting hacks
             self.think = PlayerClient.SP_FixCoopSpots;
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
         }
     }
 

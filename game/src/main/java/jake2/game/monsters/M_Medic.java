@@ -565,7 +565,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_idle = new EntThinkAdapter() {
     	public String getID(){ return "medic_idle"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                     Defines.ATTN_IDLE, 0);
@@ -583,7 +583,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_search = new EntThinkAdapter() {
     	public String getID(){ return "medic_search"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_IDLE, 0);
@@ -708,7 +708,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_stand = new EntThinkAdapter() {
     	public String getID(){ return "medic_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = medic_move_stand;
             return true;
         }
@@ -733,7 +733,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_walk = new EntThinkAdapter() {
     	public String getID(){ return "medic_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = medic_move_walk;
             return true;
         }
@@ -752,7 +752,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_run = new EntThinkAdapter() {
     	public String getID(){ return "medic_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_MEDIC)) {
 
                 SubgameEntity ent = medic_FindDeadMonster(self);
@@ -836,7 +836,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_fire_blaster = new EntThinkAdapter() {
     	public String getID(){ return "medic_fire_blaster"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] end = { 0, 0, 0 };
@@ -871,13 +871,13 @@ public class M_Medic {
 
     static EntThinkAdapter medic_dead = new EntThinkAdapter() {
     	public String getID(){ return "medic_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -962,22 +962,22 @@ public class M_Medic {
 
     static EntThinkAdapter medic_duck_down = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_down"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
-            GameBase.gameExports.gameImports.linkentity(self);
+            self.monsterinfo.pausetime = gameExports.level.time + 1;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
 
     static EntThinkAdapter medic_duck_hold = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_hold"; }
-        public boolean think(SubgameEntity self) {
-            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -987,11 +987,11 @@ public class M_Medic {
 
     static EntThinkAdapter medic_duck_up = new EntThinkAdapter() {
     	public String getID(){ return "medic_duck_up"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1053,7 +1053,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_continue = new EntThinkAdapter() {
     	public String getID(){ return "medic_continue"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy))
                 if (Lib.random() <= 0.95)
                     self.monsterinfo.currentmove = medic_move_attackHyperBlaster;
@@ -1086,7 +1086,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_hook_launch = new EntThinkAdapter() {
     	public String getID(){ return "medic_hook_launch"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -1102,7 +1102,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_cable_attack = new EntThinkAdapter() {
     	public String getID(){ return "medic_cable_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 }, end = { 0, 0, 0 }, f = {
                     0, 0, 0 }, r = { 0, 0, 0 };
             trace_t tr;
@@ -1130,13 +1130,13 @@ public class M_Medic {
             if (Math.abs(angles[0]) > 45)
                 return true;
 
-            tr = GameBase.gameExports.gameImports.trace(start, null, null, self.enemy.s.origin,
+            tr = gameExports.gameImports.trace(start, null, null, self.enemy.s.origin,
                     self, Defines.MASK_SHOT);
             if (tr.fraction != 1.0 && tr.ent != self.enemy)
                 return true;
 
             if (self.s.frame == FRAME_attack43) {
-                GameBase.gameExports.gameImports.sound(self.enemy, Defines.CHAN_AUTO,
+                gameExports.gameImports.sound(self.enemy, Defines.CHAN_AUTO,
                         sound_hook_hit, 1, Defines.ATTN_NORM, 0);
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
             } else if (self.s.frame == FRAME_attack50) {
@@ -1147,11 +1147,11 @@ public class M_Medic {
                 self.enemy.combattarget = null;
                 self.enemy.deathtarget = null;
                 self.enemy.setOwner(self);
-                GameSpawn.ED_CallSpawn(self.enemy);
+                GameSpawn.ED_CallSpawn(self.enemy, gameExports);
                 self.enemy.setOwner(null);
                 if (self.enemy.think != null) {
-                    self.enemy.nextthink = GameBase.gameExports.level.time;
-                    self.enemy.think.think(self.enemy);
+                    self.enemy.nextthink = gameExports.level.time;
+                    self.enemy.think.think(self.enemy, gameExports);
                 }
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
                 if (self.oldenemy != null && self.oldenemy.getClient() != null) {
@@ -1160,7 +1160,7 @@ public class M_Medic {
                 }
             } else {
                 if (self.s.frame == FRAME_attack44)
-                    GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,
+                    gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,
                             sound_hook_heal, 1, Defines.ATTN_NORM, 0);
             }
 
@@ -1171,20 +1171,20 @@ public class M_Medic {
             Math3D.VectorCopy(self.enemy.s.origin, end);
             end[2] = self.enemy.absmin[2] + self.enemy.size[2] / 2;
 
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
-            GameBase.gameExports.gameImports.WriteShort(self.index);
-            GameBase.gameExports.gameImports.WritePosition(start);
-            GameBase.gameExports.gameImports.WritePosition(end);
-            GameBase.gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_MEDIC_CABLE_ATTACK);
+            gameExports.gameImports.WriteShort(self.index);
+            gameExports.gameImports.WritePosition(start);
+            gameExports.gameImports.WritePosition(end);
+            gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             return true;
         }
     };
 
     static EntThinkAdapter medic_hook_retract = new EntThinkAdapter() {
     	public String getID(){ return "medic_hook_retract"; }
-        public boolean think(SubgameEntity self) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
                     Defines.ATTN_NORM, 0);
             self.enemy.monsterinfo.aiflags &= ~GameDefines.AI_RESURRECTING;
             return true;
@@ -1226,7 +1226,7 @@ public class M_Medic {
 
     static EntThinkAdapter medic_attack = new EntThinkAdapter() {
     	public String getID(){ return "medic_attack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0)
                 self.monsterinfo.currentmove = medic_move_attackCable;
             else
@@ -1237,13 +1237,13 @@ public class M_Medic {
 
     static EntThinkAdapter medic_checkattack = new EntThinkAdapter() {
     	public String getID(){ return "medic_checkattack"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0) {
-                medic_attack.think(self);
+                medic_attack.think(self, gameExports);
                 return true;
             }
 
-            return GameUtil.M_CheckAttack.think(self);
+            return GameUtil.M_CheckAttack.think(self, gameExports);
 
         }
     };
@@ -1252,28 +1252,28 @@ public class M_Medic {
      * QUAKED monster_medic (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static void SP_monster_medic(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_monster_medic(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        sound_idle1 = GameBase.gameExports.gameImports.soundindex("medic/idle.wav");
-        sound_pain1 = GameBase.gameExports.gameImports.soundindex("medic/medpain1.wav");
-        sound_pain2 = GameBase.gameExports.gameImports.soundindex("medic/medpain2.wav");
-        sound_die = GameBase.gameExports.gameImports.soundindex("medic/meddeth1.wav");
-        sound_sight = GameBase.gameExports.gameImports.soundindex("medic/medsght1.wav");
-        sound_search = GameBase.gameExports.gameImports.soundindex("medic/medsrch1.wav");
-        sound_hook_launch = GameBase.gameExports.gameImports.soundindex("medic/medatck2.wav");
-        sound_hook_hit = GameBase.gameExports.gameImports.soundindex("medic/medatck3.wav");
-        sound_hook_heal = GameBase.gameExports.gameImports.soundindex("medic/medatck4.wav");
-        sound_hook_retract = GameBase.gameExports.gameImports.soundindex("medic/medatck5.wav");
+        sound_idle1 = gameExports.gameImports.soundindex("medic/idle.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("medic/medpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("medic/medpain2.wav");
+        sound_die = gameExports.gameImports.soundindex("medic/meddeth1.wav");
+        sound_sight = gameExports.gameImports.soundindex("medic/medsght1.wav");
+        sound_search = gameExports.gameImports.soundindex("medic/medsrch1.wav");
+        sound_hook_launch = gameExports.gameImports.soundindex("medic/medatck2.wav");
+        sound_hook_hit = gameExports.gameImports.soundindex("medic/medatck3.wav");
+        sound_hook_heal = gameExports.gameImports.soundindex("medic/medatck4.wav");
+        sound_hook_retract = gameExports.gameImports.soundindex("medic/medatck5.wav");
 
-        GameBase.gameExports.gameImports.soundindex("medic/medatck1.wav");
+        gameExports.gameImports.soundindex("medic/medatck1.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/medic/tris.md2");
         Math3D.VectorSet(self.mins, -24, -24, -24);
         Math3D.VectorSet(self.maxs, 24, 24, 32);
@@ -1296,11 +1296,11 @@ public class M_Medic {
         self.monsterinfo.search = medic_search;
         self.monsterinfo.checkattack = medic_checkattack;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = medic_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
     }
 }

@@ -237,7 +237,7 @@ class GameTrigger {
     // the wait time has passed, so set back up for another activation
     private static EntThinkAdapter multi_wait = new EntThinkAdapter() {
     	public String getID(){ return "multi_wait"; }
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
 
             ent.nextthink = 0;
             return true;

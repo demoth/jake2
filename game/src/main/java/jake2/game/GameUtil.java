@@ -536,12 +536,12 @@ public class GameUtil {
         self.monsterinfo.pausetime = 0;
 
         // run for it
-        self.monsterinfo.run.think(self);
+        self.monsterinfo.run.think(self, GameBase.gameExports);
     }
 
     private static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
     	public String getID() { return "Think_Delay"; }
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             G_UseTargets(ent, ent.activator);
             G_FreeEdict(ent);
             return true;
@@ -550,7 +550,7 @@ public class GameUtil {
 
     static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
     	public String getID() { return "G_FreeEdictA"; }
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             G_FreeEdict(ent);
             return false;
         }
@@ -559,7 +559,7 @@ public class GameUtil {
     public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
     	public String getID() { return "M_CheckAttack"; }
 
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 };
 
             float[] spot2 = { 0, 0, 0 };

@@ -83,10 +83,10 @@ public class GameTurret {
                 Defines.ATTN_NORM, 0);
     }
 
-    public static void SP_turret_breach(SubgameEntity self) {
+    public static void SP_turret_breach(SubgameEntity self, GameExportsImpl gameExports) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gameExports.gameImports.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
 
         if (self.speed == 0)
             self.speed = 50;
@@ -111,8 +111,8 @@ public class GameTurret {
         self.blocked = turret_blocked;
 
         self.think = turret_breach_finish_init;
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
-        GameBase.gameExports.gameImports.linkentity(self);
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
+        gameExports.gameImports.linkentity(self);
     }
 
     /**
@@ -120,23 +120,23 @@ public class GameTurret {
      * MUST be teamed with a turret_breach.
      */
 
-    public static void SP_turret_base(SubgameEntity self) {
+    public static void SP_turret_base(SubgameEntity self, GameExportsImpl gameExports) {
         self.solid = Defines.SOLID_BSP;
         self.movetype = GameDefines.MOVETYPE_PUSH;
-        GameBase.gameExports.gameImports.setmodel(self, self.model);
+        gameExports.gameImports.setmodel(self, self.model);
         self.blocked = turret_blocked;
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
-    public static void SP_turret_driver(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
         self.movetype = GameDefines.MOVETYPE_PUSH;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/infantry/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
@@ -151,7 +151,7 @@ public class GameTurret {
 
         self.flags |= GameDefines.FL_NO_KNOCKBACK;
 
-        GameBase.gameExports.level.total_monsters++;
+        gameExports.level.total_monsters++;
 
         self.svflags |= Defines.SVF_MONSTER;
         self.s.renderfx |= Defines.RF_FRAMELERP;
@@ -164,15 +164,15 @@ public class GameTurret {
         if (GameBase.st.item != null) {
             self.item = GameItems.FindItemByClassname(GameBase.st.item);
             if (self.item == null)
-                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + GameBase.st.item + "\n");
         }
 
         self.think = turret_driver_link;
-        self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+        self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
@@ -194,7 +194,7 @@ public class GameTurret {
 
     static EntThinkAdapter turret_breach_think = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] current_angles = { 0, 0, 0 };
             float[] delta = { 0, 0, 0 };
@@ -305,11 +305,11 @@ public class GameTurret {
 
     static EntThinkAdapter turret_breach_finish_init = new EntThinkAdapter() {
     	public String getID() { return "turret_breach_finish_init"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             // get and save info for muzzle location
             if (self.target == null) {
-                GameBase.gameExports.gameImports.dprintf(self.classname + " at "
+                gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " needs a target\n");
             } else {
                 self.target_ent = GameBase.G_PickTarget(self.target);
@@ -320,7 +320,7 @@ public class GameTurret {
 
             self.teammaster.dmg = self.dmg;
             self.think = turret_breach_think;
-            self.think.think(self);
+            self.think.think(self, gameExports);
             return true;
         }
     };
@@ -355,7 +355,7 @@ public class GameTurret {
 
     static EntThinkAdapter turret_driver_think = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] target = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -408,7 +408,7 @@ public class GameTurret {
 
     public static EntThinkAdapter turret_driver_link = new EntThinkAdapter() {
     	public String getID() { return "turret_driver_link"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             float[] vec = { 0, 0, 0 };
 

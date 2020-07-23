@@ -67,7 +67,7 @@ public class GameAI {
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
-            self.monsterinfo.melee.think(self);
+            self.monsterinfo.melee.think(self, GameBase.gameExports);
             self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     }
@@ -80,7 +80,7 @@ public class GameAI {
         M.M_ChangeYaw(self);
 
         if (FacingIdeal(self)) {
-            self.monsterinfo.attack.think(self);
+            self.monsterinfo.attack.think(self, GameBase.gameExports);
             self.monsterinfo.attack_state = GameDefines.AS_STRAIGHT;
         }
     };
@@ -187,14 +187,14 @@ public class GameAI {
             } else {
                 if (self.movetarget != null) {
                     self.goalentity = self.movetarget;
-                    self.monsterinfo.walk.think(self);
+                    self.monsterinfo.walk.think(self, GameBase.gameExports);
                 } else {
                     // we need the pausetime otherwise the stand code
                     // will just revert to walking with no target and
                     // the monsters will wonder around aimlessly trying
                     // to hunt the world entity
                     self.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
-                    self.monsterinfo.stand.think(self);
+                    self.monsterinfo.stand.think(self, GameBase.gameExports);
                 }
                 return true;
             }
@@ -230,7 +230,7 @@ public class GameAI {
         if (!enemy_vis)
             return false;
 
-        return self.monsterinfo.checkattack.think(self);
+        return self.monsterinfo.checkattack.think(self, GameBase.gameExports);
     }
 
     /**
@@ -246,7 +246,7 @@ public class GameAI {
         if ((self.monsterinfo.search != null)
                 && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
             if (self.monsterinfo.idle_time != 0) {
-                self.monsterinfo.search.think(self);
+                self.monsterinfo.search.think(self, GameBase.gameExports);
                 self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15
                         + Lib.random() * 15;
             } else {
@@ -310,9 +310,9 @@ public class GameAI {
     
         self.goalentity = self.enemy;
         if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
-            self.monsterinfo.stand.think(self);
+            self.monsterinfo.stand.think(self, GameBase.gameExports);
         else
-            self.monsterinfo.run.think(self);
+            self.monsterinfo.run.think(self, GameBase.gameExports);
         Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
         self.ideal_yaw = Math3D.vectoyaw(vec);
         
@@ -324,14 +324,14 @@ public class GameAI {
     
     public static EntThinkAdapter walkmonster_start_go = new EntThinkAdapter() {
         public String getID() { return "walkmonster_start_go"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            if (0 == (self.spawnflags & 2) && GameBase.gameExports.level.time < 1) {
-                M.M_droptofloor.think(self);
+            if (0 == (self.spawnflags & 2) && gameExports.level.time < 1) {
+                M.M_droptofloor.think(self, gameExports);
 
                 if (self.groundentity != null)
                     if (!M.M_walkmove(self, 0, 0))
-                        GameBase.gameExports.gameImports.dprintf(self.classname + " in solid at "
+                        gameExports.gameImports.dprintf(self.classname + " in solid at "
                                 + Lib.vtos(self.s.origin) + "\n");
             }
 
@@ -339,10 +339,10 @@ public class GameAI {
                 self.yaw_speed = 40;
             self.viewheight = 25;
 
-            Monster.monster_start_go(self);
+            Monster.monster_start_go(self, gameExports);
 
             if ((self.spawnflags & 2) != 0)
-                Monster.monster_triggered_start.think(self);
+                Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
     };
@@ -350,7 +350,7 @@ public class GameAI {
     public static EntThinkAdapter walkmonster_start = new EntThinkAdapter() {
         public String getID() { return "walkmonster_start";} 
         
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.think = walkmonster_start_go;
             Monster.monster_start(self);
@@ -360,26 +360,26 @@ public class GameAI {
 
     public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
         public String getID() { return "flymonster_start_go";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (!M.M_walkmove(self, 0, 0))
-                GameBase.gameExports.gameImports.dprintf(self.classname + " in solid at "
+                gameExports.gameImports.dprintf(self.classname + " in solid at "
                         + Lib.vtos(self.s.origin) + "\n");
 
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;
             self.viewheight = 25;
 
-            Monster.monster_start_go(self);
+            Monster.monster_start_go(self, gameExports);
 
             if ((self.spawnflags & 2) != 0)
-                Monster.monster_triggered_start.think(self);
+                Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
     };
 
     public static EntThinkAdapter flymonster_start = new EntThinkAdapter() {
         public String getID() { return "flymonster_start";}        
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_FLY;
             self.think = flymonster_start_go;
             Monster.monster_start(self);
@@ -389,22 +389,22 @@ public class GameAI {
 
     public static EntThinkAdapter swimmonster_start_go = new EntThinkAdapter() {
         public String getID() { return "swimmonster_start_go";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;
             self.viewheight = 10;
 
-            Monster.monster_start_go(self);
+            Monster.monster_start_go(self, gameExports);
 
             if ((self.spawnflags & 2) != 0)
-                Monster.monster_triggered_start.think(self);
+                Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
     };
 
     public static EntThinkAdapter swimmonster_start = new EntThinkAdapter() {
         public String getID() { return "swimmonster_start";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_SWIM;
             self.think = swimmonster_start_go;
             Monster.monster_start(self);
@@ -459,7 +459,7 @@ public class GameAI {
             if ((self.monsterinfo.search != null)
                     && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
-                    self.monsterinfo.search.think(self);
+                    self.monsterinfo.search.think(self, GameBase.gameExports);
                     self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
                     self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
@@ -489,7 +489,7 @@ public class GameAI {
                     if (self.s.angles[Defines.YAW] != self.ideal_yaw
                             && 0 != (self.monsterinfo.aiflags & GameDefines.AI_TEMP_STAND_GROUND)) {
                         self.monsterinfo.aiflags &= ~(GameDefines.AI_STAND_GROUND | GameDefines.AI_TEMP_STAND_GROUND);
-                        self.monsterinfo.run.think(self);
+                        self.monsterinfo.run.think(self, GameBase.gameExports);
                     }
                     M.M_ChangeYaw(self);
                     ai_checkattack(self, 0);
@@ -502,14 +502,14 @@ public class GameAI {
                 return;
 
             if (GameBase.gameExports.level.time > self.monsterinfo.pausetime) {
-                self.monsterinfo.walk.think(self);
+                self.monsterinfo.walk.think(self, GameBase.gameExports);
                 return;
             }
 
             if (0 == (self.spawnflags & 1) && (self.monsterinfo.idle != null)
                     && (GameBase.gameExports.level.time > self.monsterinfo.idle_time)) {
                 if (self.monsterinfo.idle_time != 0) {
-                    self.monsterinfo.idle.think(self);
+                    self.monsterinfo.idle.think(self, GameBase.gameExports);
                     self.monsterinfo.idle_time = GameBase.gameExports.level.time + 15 + Globals.rnd.nextFloat() * 15;
                 } else {
                     self.monsterinfo.idle_time = GameBase.gameExports.level.time + Globals.rnd.nextFloat() * 15;
@@ -559,7 +559,7 @@ public class GameAI {
                 if (Math3D.VectorLength(v) < 64) {
                     //don't move, just stand and listen.
                     //self.monsterinfo.aiflags |= (Defines.AI_STAND_GROUND | Defines.AI_TEMP_STAND_GROUND);
-                    self.monsterinfo.stand.think(self);
+                    self.monsterinfo.stand.think(self, GameBase.gameExports);
                     // since now it is aware and does not to be triggered again.
                     self.spawnflags &= ~1;
                     self.enemy = null;

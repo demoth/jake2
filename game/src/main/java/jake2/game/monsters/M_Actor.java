@@ -1001,11 +1001,11 @@ public class M_Actor {
 
     static EntThinkAdapter actor_stand = new EntThinkAdapter() {
         public String getID() { return "actor_stand";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_stand;
 
             // randomize on startup
-            if (GameBase.gameExports.level.time < 1.0)
+            if (gameExports.level.time < 1.0)
                 self.s.frame = self.monsterinfo.currentmove.firstframe
                         + (Lib.rand() % (self.monsterinfo.currentmove.lastframe
                                 - self.monsterinfo.currentmove.firstframe + 1));
@@ -1076,7 +1076,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_walk = new EntThinkAdapter() {
         public String getID() { return "actor_walk";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_walk;
             return true;
         }
@@ -1101,18 +1101,17 @@ public class M_Actor {
 
     static EntThinkAdapter actor_run = new EntThinkAdapter() {
         public String getID() { return "actor_run";}
-        public boolean think(SubgameEntity self) {
-            if ((GameBase.gameExports.level.time < self.pain_debounce_time)
-                    && (self.enemy == null)) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
+            if (gameExports.level.time < self.pain_debounce_time && (self.enemy == null)) {
                 if (self.movetarget != null)
-                    actor_walk.think(self);
+                    actor_walk.think(self, gameExports);
                 else
-                    actor_stand.think(self);
+                    actor_stand.think(self, gameExports);
                 return true;
             }
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
-                actor_stand.think(self);
+                actor_stand.think(self, gameExports);
                 return true;
             }
 
@@ -1238,13 +1237,13 @@ public class M_Actor {
 
     static EntThinkAdapter actor_dead = new EntThinkAdapter() {
         public String getID() { return "actor_dead";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1320,10 +1319,10 @@ public class M_Actor {
 
     static EntThinkAdapter actor_fire = new EntThinkAdapter() {
         public String getID() { return "actor_fire";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             actorMachineGun(self);
 
-            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -1343,7 +1342,7 @@ public class M_Actor {
 
     static EntThinkAdapter actor_attack = new EntThinkAdapter() {
         public String getID() { return "actor_attack";}
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             int n;
 
             self.monsterinfo.currentmove = actor_move_attack;
@@ -1370,13 +1369,13 @@ public class M_Actor {
                                 + Lib.vtos(self.s.origin) + "\n");
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
-                self.monsterinfo.stand.think(self);
+                self.monsterinfo.stand.think(self, GameBase.gameExports);
                 return;
             }
 
             Math3D.VectorSubtract(self.goalentity.s.origin, self.s.origin, v);
             self.ideal_yaw = self.s.angles[Defines.YAW] = Math3D.vectoyaw(v);
-            self.monsterinfo.walk.think(self);
+            self.monsterinfo.walk.think(self, GameBase.gameExports);
             self.target = null;
         }
     };
@@ -1448,9 +1447,9 @@ public class M_Actor {
                         other.monsterinfo.aiflags |= GameDefines.AI_BRUTAL;
                     if ((self.spawnflags & 16) != 0) {
                         other.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
-                        actor_stand.think(other);
+                        actor_stand.think(other, GameBase.gameExports);
                     } else {
-                        actor_run.think(other);
+                        actor_run.think(other, GameBase.gameExports);
                     }
                 }
             }
@@ -1471,7 +1470,7 @@ public class M_Actor {
 
             if (null == other.movetarget && null == other.enemy) {
                 other.monsterinfo.pausetime = GameBase.gameExports.level.time + 100000000;
-                other.monsterinfo.stand.think(other);
+                other.monsterinfo.stand.think(other, GameBase.gameExports);
             } else if (other.movetarget == other.goalentity) {
                 Math3D.VectorSubtract(other.movetarget.s.origin,
                         other.s.origin, v);
@@ -1514,21 +1513,21 @@ public class M_Actor {
      * QUAKED misc_actor (1 .5 0) (-16 -16 -24) (16 16 32)
      */
 
-    public static void SP_misc_actor(SubgameEntity self) {
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+    public static void SP_misc_actor(SubgameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
         if (self.targetname != null) {
-            GameBase.gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
+            gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
         }
 
         if (self.target != null) {
-            GameBase.gameExports.gameImports.dprintf(self.classname + " with no target at "
+            gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
             GameUtil.G_FreeEdict(self);
             return;
@@ -1536,7 +1535,7 @@ public class M_Actor {
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports.modelindex("players/male/tris.md2");
+        self.s.modelindex = gameExports.gameImports.modelindex("players/male/tris.md2");
         Math3D.VectorSet(self.mins, -16, -16, -24);
         Math3D.VectorSet(self.maxs, 16, 16, 32);
 
@@ -1556,21 +1555,21 @@ public class M_Actor {
 
         self.monsterinfo.aiflags |= GameDefines.AI_GOOD_GUY;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         self.monsterinfo.currentmove = actor_move_stand;
         self.monsterinfo.scale = MODEL_SCALE;
 
-        GameAI.walkmonster_start.think(self);
+        GameAI.walkmonster_start.think(self, gameExports);
 
         // actors always start in a dormant state, they *must* be used to get
         // going
         self.use = actor_use;
     }
 
-    public static void SP_target_actor(SubgameEntity self) {
+    public static void SP_target_actor(SubgameEntity self, GameExportsImpl gameExports) {
         if (self.targetname != null)
-            GameBase.gameExports.gameImports.dprintf(self.classname + " with no targetname at "
+            gameExports.gameImports.dprintf(self.classname + " with no targetname at "
                     + Lib.vtos(self.s.origin) + " \n");
 
         self.solid = Defines.SOLID_TRIGGER;
@@ -1590,6 +1589,6 @@ public class M_Actor {
             self.movedir[2] = GameBase.st.height;
         }
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
     }
 }

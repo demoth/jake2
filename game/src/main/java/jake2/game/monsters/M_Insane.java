@@ -606,7 +606,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_fist = new EntThinkAdapter() {
     	public String getID() { return "insane_fist"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_fist, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -615,7 +615,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_shake = new EntThinkAdapter() {
     	public String getID() { return "insane_shake"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_shake, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -624,7 +624,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_moan = new EntThinkAdapter() {
     	public String getID() { return "insane_moan"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_moan, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
@@ -633,7 +633,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_scream = new EntThinkAdapter() {
     	public String getID() { return "insane_scream"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                     sound_scream[Lib.rand() % 8], 1, Defines.ATTN_IDLE, 0);
             return true;
@@ -642,7 +642,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_cross = new EntThinkAdapter() {
     	public String getID() { return "insane_cross"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.8)
                 self.monsterinfo.currentmove = insane_move_cross;
             else
@@ -653,7 +653,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_walk = new EntThinkAdapter() {
     	public String getID() { return "insane_walk"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
                     self.monsterinfo.currentmove = insane_move_down;
@@ -671,7 +671,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_run = new EntThinkAdapter() {
     	public String getID() { return "insane_run"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
                     self.monsterinfo.currentmove = insane_move_down;
@@ -732,7 +732,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_onground = new EntThinkAdapter() {
     	public String getID() { return "insane_onground"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = insane_move_down;
             return true;
         }
@@ -740,7 +740,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_checkdown = new EntThinkAdapter() {
     	public String getID() { return "insane_checkdown"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             //			if ( (self.s.frame == FRAME_stand94) || (self.s.frame ==
             // FRAME_stand65) )
             if ((self.spawnflags & 32) != 0) // Always stand
@@ -756,7 +756,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_checkup = new EntThinkAdapter() {
     	public String getID() { return "insane_checkup"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             //			If Hold_Ground and Crawl are set
             if ((self.spawnflags & 4) != 0 && (self.spawnflags & 16) != 0)
                 return true;
@@ -768,7 +768,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_stand = new EntThinkAdapter() {
     	public String getID() { return "insane_stand"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 8) != 0) // If crucified
             {
                 self.monsterinfo.currentmove = insane_move_cross;
@@ -787,7 +787,7 @@ public class M_Insane {
 
     static EntThinkAdapter insane_dead = new EntThinkAdapter() {
     	public String getID() { return "insane_dead"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 8) != 0) {
                 self.flags |= GameDefines.FL_FLY;
             } else {
@@ -837,7 +837,7 @@ public class M_Insane {
             self.takedamage = Defines.DAMAGE_YES;
 
             if ((self.spawnflags & 8) != 0) {
-                insane_dead.think(self);
+                insane_dead.think(self, GameBase.gameExports);
             } else {
                 if (((self.s.frame >= FRAME_crawl1) && (self.s.frame <= FRAME_crawl9))
                         || ((self.s.frame >= FRAME_stand99) && (self.s.frame <= FRAME_stand160)))
@@ -1228,29 +1228,29 @@ public class M_Insane {
      * QUAKED misc_insane (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn
      * CRAWL CRUCIFIED STAND_GROUND ALWAYS_STAND
      */
-    public static void SP_misc_insane(SubgameEntity self) {
+    public static void SP_misc_insane(SubgameEntity self, GameExportsImpl gameExports) {
         //	 static int skin = 0; //@@
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0) {
             GameUtil.G_FreeEdict(self);
             return;
         }
 
-        sound_fist = GameBase.gameExports.gameImports.soundindex("insane/insane11.wav");
-        sound_shake = GameBase.gameExports.gameImports.soundindex("insane/insane5.wav");
-        sound_moan = GameBase.gameExports.gameImports.soundindex("insane/insane7.wav");
-        sound_scream[0] = GameBase.gameExports.gameImports.soundindex("insane/insane1.wav");
-        sound_scream[1] = GameBase.gameExports.gameImports.soundindex("insane/insane2.wav");
-        sound_scream[2] = GameBase.gameExports.gameImports.soundindex("insane/insane3.wav");
-        sound_scream[3] = GameBase.gameExports.gameImports.soundindex("insane/insane4.wav");
-        sound_scream[4] = GameBase.gameExports.gameImports.soundindex("insane/insane6.wav");
-        sound_scream[5] = GameBase.gameExports.gameImports.soundindex("insane/insane8.wav");
-        sound_scream[6] = GameBase.gameExports.gameImports.soundindex("insane/insane9.wav");
-        sound_scream[7] = GameBase.gameExports.gameImports.soundindex("insane/insane10.wav");
+        sound_fist = gameExports.gameImports.soundindex("insane/insane11.wav");
+        sound_shake = gameExports.gameImports.soundindex("insane/insane5.wav");
+        sound_moan = gameExports.gameImports.soundindex("insane/insane7.wav");
+        sound_scream[0] = gameExports.gameImports.soundindex("insane/insane1.wav");
+        sound_scream[1] = gameExports.gameImports.soundindex("insane/insane2.wav");
+        sound_scream[2] = gameExports.gameImports.soundindex("insane/insane3.wav");
+        sound_scream[3] = gameExports.gameImports.soundindex("insane/insane4.wav");
+        sound_scream[4] = gameExports.gameImports.soundindex("insane/insane6.wav");
+        sound_scream[5] = gameExports.gameImports.soundindex("insane/insane8.wav");
+        sound_scream[6] = gameExports.gameImports.soundindex("insane/insane9.wav");
+        sound_scream[7] = gameExports.gameImports.soundindex("insane/insane10.wav");
 
         self.movetype = GameDefines.MOVETYPE_STEP;
         self.solid = Defines.SOLID_BBOX;
-        self.s.modelindex = GameBase.gameExports.gameImports
+        self.s.modelindex = gameExports.gameImports
                 .modelindex("models/monsters/insane/tris.md2");
 
         Math3D.VectorSet(self.mins, -16, -16, -24);
@@ -1278,7 +1278,7 @@ public class M_Insane {
         //	 if (skin > 12)
         //		 skin = 0;
 
-        GameBase.gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
         if ((self.spawnflags & 16) != 0) // Stand Ground
             self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND;
@@ -1291,9 +1291,9 @@ public class M_Insane {
             Math3D.VectorSet(self.mins, -16, 0, 0);
             Math3D.VectorSet(self.maxs, 16, 8, 32);
             self.flags |= GameDefines.FL_NO_KNOCKBACK;
-            GameAI.flymonster_start.think(self);
+            GameAI.flymonster_start.think(self, gameExports);
         } else {
-            GameAI.walkmonster_start.think(self);
+            GameAI.walkmonster_start.think(self, gameExports);
             self.s.skinnum = Lib.rand() % 3;
         }
     }

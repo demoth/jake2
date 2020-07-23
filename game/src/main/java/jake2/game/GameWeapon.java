@@ -84,7 +84,7 @@ public class GameWeapon {
     
     static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
     	public String getID() { return "Grenade_Explode"; }
-        public boolean think(SubgameEntity ent) {
+        public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             int mod;
     
@@ -172,7 +172,7 @@ public class GameWeapon {
             }
     
             ent.enemy = other;
-            Grenade_Explode.think(ent);
+            Grenade_Explode.think(ent, GameBase.gameExports);
         }
     };
     
@@ -244,7 +244,7 @@ public class GameWeapon {
      */
     static EntThinkAdapter bfg_explode = new EntThinkAdapter() {
     	public String getID() { return "bfg_explode"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float points;
             float[] v = { 0, 0, 0 };
             float dist;
@@ -343,7 +343,7 @@ public class GameWeapon {
     
     static EntThinkAdapter bfg_think = new EntThinkAdapter() {
     	public String getID() { return "bfg_think"; }
-        public boolean think(SubgameEntity self) {
+        public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] point = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -830,7 +830,7 @@ public class GameWeapon {
         grenade.s.sound = GameBase.gameExports.gameImports.soundindex("weapons/hgrenc1b.wav");
     
         if (timer <= 0.0)
-            Grenade_Explode.think(grenade);
+            Grenade_Explode.think(grenade, GameBase.gameExports);
         else {
             GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, GameBase.gameExports.gameImports
                     .soundindex("weapons/hgrent1a.wav"), 1, Defines.ATTN_NORM,

@@ -91,7 +91,7 @@ final class SV {
         if (ent.think == null)
             Com.Error(Defines.ERR_FATAL, "NULL ent.think");
 
-        ent.think.think(ent);
+        ent.think.think(ent, GameBase.gameExports);
 
         return false;
     }
