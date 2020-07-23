@@ -1191,18 +1191,18 @@ public class M_Actor {
 
     static EntPainAdapter actor_pain = new EntPainAdapter() {
         public String getID() { return "actor_pain";}
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
-            //GameBase.gameExports.gameImports.sound (self, CHAN_VOICE, actor.sound_pain, 1,
+            self.pain_debounce_time = gameExports.level.time + 3;
+            //gameExports.gameImports.sound (self, CHAN_VOICE, actor.sound_pain, 1,
             // ATTN_NORM, 0);
 
             if ((other.getClient() != null) && (Lib.random() < 0.4)) {
@@ -1220,7 +1220,7 @@ public class M_Actor {
                 // FIXME: does the ent-id work out ?
                 name = actor_names[(self.index) % MAX_ACTOR_NAMES];
 
-                GameBase.gameExports.gameImports.cprintf(other, Defines.PRINT_CHAT, name + ": "
+                gameExports.gameImports.cprintf(other, Defines.PRINT_CHAT, name + ": "
                         + messages[Lib.rand() % 3] + "!\n");
                 return;
             }
@@ -1281,7 +1281,7 @@ public class M_Actor {
     static EntDieAdapter actor_die = new EntDieAdapter() {
         public String getID() { return "actor_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
@@ -1347,7 +1347,7 @@ public class M_Actor {
 
             self.monsterinfo.currentmove = actor_move_attack;
             n = (Lib.rand() & 15) + 3 + 7;
-            self.monsterinfo.pausetime = GameBase.gameExports.level.time + n
+            self.monsterinfo.pausetime = gameExports.level.time + n
                     * Defines.FRAMETIME;
 
             return true;

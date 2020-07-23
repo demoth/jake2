@@ -693,7 +693,7 @@ public class GameExportsImpl implements GameExports {
         ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
         GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
-        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin);
+        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, gameExports);
     }
 
     /**

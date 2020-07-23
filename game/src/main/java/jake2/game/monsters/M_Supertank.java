@@ -561,7 +561,7 @@ public class M_Supertank {
     static EntThinkAdapter TreadSound = new EntThinkAdapter() {
     	public String getID(){ return "TreadSound"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, tread_sound, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, tread_sound, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -571,10 +571,10 @@ public class M_Supertank {
     	public String getID(){ return "supertank_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search2, 1,
                         Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1094,11 +1094,11 @@ public class M_Supertank {
 
     static EntPainAdapter supertank_pain = new EntPainAdapter() {
     	public String getID(){ return "supertank_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
             // Lessen the chance of him going into his pain frames
@@ -1107,26 +1107,26 @@ public class M_Supertank {
                     return;
 
             // Don't go into pain if he's firing his rockets
-            if (GameBase.gameExports.cvarCache.skill.value >= 2)
+            if (gameExports.cvarCache.skill.value >= 2)
                 if ((self.s.frame >= FRAME_attak2_1)
                         && (self.s.frame <= FRAME_attak2_14))
                     return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain1;
             } else if (damage <= 25) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain2;
             } else {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = supertank_move_pain3;
             }
@@ -1136,8 +1136,8 @@ public class M_Supertank {
     static EntDieAdapter supertank_die = new EntDieAdapter() {
     	public String getID(){ return "supertank_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_NO;

@@ -363,8 +363,8 @@ public class M_Flyer {
 
     public static EntInteractAdapter flyer_sight = new EntInteractAdapter() {
     	public String getID() { return "flyer_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -373,7 +373,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_idle = new EntThinkAdapter() {
     	public String getID() { return "flyer_idle"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -382,7 +382,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_pop_blades = new EntThinkAdapter() {
     	public String getID() { return "flyer_pop_blades"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -759,7 +759,7 @@ public class M_Flyer {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -772,7 +772,7 @@ public class M_Flyer {
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 0);
             GameWeapon.fire_hit(self, aim, 5, 0);
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -878,30 +878,30 @@ public class M_Flyer {
 
     static EntPainAdapter flyer_pain = new EntPainAdapter() {
     	public String getID() { return "flyer_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            self.pain_debounce_time = gameExports.level.time + 3;
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = Lib.rand() % 3;
             if (n == 0) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain1;
             } else if (n == 1) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain2;
             } else {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = flyer_move_pain3;
             }
@@ -912,8 +912,8 @@ public class M_Flyer {
     static EntDieAdapter flyer_die = new EntDieAdapter() {
     	public String getID() { return "flyer_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             GameMisc.BecomeExplosion1(self);
         }

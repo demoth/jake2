@@ -535,8 +535,8 @@ public class M_Berserk {
 
     static EntInteractAdapter berserk_sight = new EntInteractAdapter() {
         public String getID() { return "berserk_sight";}
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -545,7 +545,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_search = new EntThinkAdapter() {
         public String getID() { return "berserk_search";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -561,7 +561,7 @@ public class M_Berserk {
                 return true;
 
             self.monsterinfo.currentmove = berserk_move_stand_fidget;
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -694,7 +694,7 @@ public class M_Berserk {
     static EntThinkAdapter berserk_swing = new EntThinkAdapter() {
         public String getID() { return "berserk_swing";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -837,18 +837,18 @@ public class M_Berserk {
 
     static EntPainAdapter berserk_pain = new EntPainAdapter() {
         public String getID() { return "berserk_pain";}
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+            self.pain_debounce_time = gameExports.level.time + 3;
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                     Defines.ATTN_NORM, 0);
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if ((damage < 20) || (Lib.random() < 0.5))
@@ -866,7 +866,7 @@ public class M_Berserk {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -905,12 +905,12 @@ public class M_Berserk {
     static EntDieAdapter berserk_die = new EntDieAdapter() {
         public String getID() { return "berserk_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float point[]) {
+                        int damage, float point[], GameExportsImpl gameExports) {
             int n;
 
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -929,7 +929,7 @@ public class M_Berserk {
             if (self.deadflag == GameDefines.DEAD_DEAD)
                 return;
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;

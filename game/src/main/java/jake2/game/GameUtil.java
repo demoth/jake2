@@ -492,7 +492,7 @@ public class GameUtil {
 
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_SOUND_TARGET)
                 && (self.monsterinfo.sight != null))
-            self.monsterinfo.sight.interact(self, self.enemy);
+            self.monsterinfo.sight.interact(self, self.enemy, GameBase.gameExports);
 
         return true;
     }

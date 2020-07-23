@@ -468,7 +468,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_idlesound = new EntThinkAdapter() {
     	public String getID() { return "gunner_idlesound"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -476,8 +476,8 @@ public class M_Gunner {
 
     static EntInteractAdapter gunner_sight = new EntInteractAdapter() {
     	public String getID() { return "gunner_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -486,7 +486,7 @@ public class M_Gunner {
     static EntThinkAdapter gunner_search = new EntThinkAdapter() {
     	public String getID() { return "gunner_search"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -717,23 +717,23 @@ public class M_Gunner {
 
     static EntPainAdapter gunner_pain = new EntPainAdapter() {
     	public String getID() { return "gunner_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
             if ((Lib.rand() & 1) != 0)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -754,7 +754,7 @@ public class M_Gunner {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -778,13 +778,13 @@ public class M_Gunner {
     static EntDieAdapter gunner_die = new EntDieAdapter() {
     	public String getID() { return "gunner_die"; }
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //	check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -804,7 +804,7 @@ public class M_Gunner {
                 return;
 
             //	regular death
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
                     Defines.ATTN_NORM, 0);
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
@@ -868,7 +868,7 @@ public class M_Gunner {
 
     static EntDodgeAdapter gunner_dodge = new EntDodgeAdapter() {
     	public String getID() { return "gunner_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 

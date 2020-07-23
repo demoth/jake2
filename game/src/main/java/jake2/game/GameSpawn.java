@@ -86,7 +86,7 @@ public class GameSpawn {
         }
 
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            PlayerClient.SP_info_player_start(ent);
+            PlayerClient.SP_info_player_start(ent, gameExports);
             return true;
         }
     };
@@ -228,9 +228,9 @@ public class GameSpawn {
             // world model is always index 1
             //---------------
             // reserve some spots for dead player bodies for coop / deathmatch
-            PlayerClient.InitBodyQue();
+            PlayerClient.InitBodyQue(gameExports);
             // set configstrings for items
-            GameItems.SetItemNames();
+            GameItems.SetItemNames(gameExports);
 
             if (GameBase.st.nextmap != null)
                 gameExports.level.nextmap = GameBase.st.nextmap;

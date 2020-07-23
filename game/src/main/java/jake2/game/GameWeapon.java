@@ -457,7 +457,7 @@ public class GameWeapon {
                 && GameUtil.infront(target, self)) {
             Math3D.VectorSubtract(tr.endpos, start, v);
             eta = (Math3D.VectorLength(v) - target.maxs[0]) / speed;
-            target.monsterinfo.dodge.dodge(target, self, eta);
+            target.monsterinfo.dodge.dodge(target, self, eta, GameBase.gameExports);
         }
     }
 

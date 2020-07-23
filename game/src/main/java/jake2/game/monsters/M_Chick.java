@@ -644,10 +644,10 @@ public class M_Chick {
     	public String getID() { return "ChickMoan"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                         Defines.ATTN_IDLE, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle2, 1,
                         Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -861,29 +861,29 @@ public class M_Chick {
 
     static EntPainAdapter chick_pain = new EntPainAdapter() {
     	public String getID() { return "chick_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
+            self.pain_debounce_time = gameExports.level.time + 3;
 
             r = Lib.random();
             if (r < 0.33)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
             else if (r < 0.66)
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain3, 1,
                         Defines.ATTN_NORM, 0);
 
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             if (damage <= 10)
@@ -904,7 +904,7 @@ public class M_Chick {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -958,13 +958,13 @@ public class M_Chick {
     	public String getID() { return "chick_die"; }
 
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             //		   check for gib
             if (self.health <= self.gib_health) {
-                GameBase.gameExports.gameImports
-                        .sound(self, Defines.CHAN_VOICE, GameBase.gameExports.gameImports
+                gameExports.gameImports
+                        .sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                                 .soundindex("misc/udeath.wav"), 1,
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
@@ -990,11 +990,11 @@ public class M_Chick {
             n = Lib.rand() % 2;
             if (n == 0) {
                 self.monsterinfo.currentmove = chick_move_death1;
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                         Defines.ATTN_NORM, 0);
             } else {
                 self.monsterinfo.currentmove = chick_move_death2;
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death2, 1,
                         Defines.ATTN_NORM, 0);
             }
         }
@@ -1009,8 +1009,8 @@ public class M_Chick {
             self.monsterinfo.aiflags |= GameDefines.AI_DUCKED;
             self.maxs[2] -= 32;
             self.takedamage = Defines.DAMAGE_YES;
-            self.monsterinfo.pausetime = GameBase.gameExports.level.time + 1;
-            GameBase.gameExports.gameImports.linkentity(self);
+            self.monsterinfo.pausetime = gameExports.level.time + 1;
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1018,7 +1018,7 @@ public class M_Chick {
     static EntThinkAdapter chick_duck_hold = new EntThinkAdapter() {
     	public String getID() { return "chick_duck_hold"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (GameBase.gameExports.level.time >= self.monsterinfo.pausetime)
+            if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
             else
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
@@ -1032,7 +1032,7 @@ public class M_Chick {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
             self.takedamage = Defines.DAMAGE_AIM;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1051,7 +1051,7 @@ public class M_Chick {
 
     static EntDodgeAdapter chick_dodge = new EntDodgeAdapter() {
     	public String getID() { return "chick_dodge"; }
-        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta) {
+        public void dodge(SubgameEntity self, SubgameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
 
@@ -1069,7 +1069,7 @@ public class M_Chick {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 10);
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
                     Defines.ATTN_NORM, 0);
             GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100);
             return true;
@@ -1103,7 +1103,7 @@ public class M_Chick {
     static EntThinkAdapter Chick_PreAttack1 = new EntThinkAdapter() {
     	public String getID() { return "Chick_PreAttack1"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                     sound_missile_prelaunch, 1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1112,7 +1112,7 @@ public class M_Chick {
     static EntThinkAdapter ChickReload = new EntThinkAdapter() {
     	public String getID() { return "ChickReload"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_missile_reload,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_missile_reload,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
@@ -1264,8 +1264,8 @@ public class M_Chick {
 
     static EntInteractAdapter chick_sight = new EntInteractAdapter() {
     	public String getID() { return "chick_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }

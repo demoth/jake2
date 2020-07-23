@@ -549,8 +549,8 @@ public class M_Float {
 
     static EntInteractAdapter floater_sight = new EntInteractAdapter() {
     	public String getID() { return "floater_sight"; }
-        public boolean interact(SubgameEntity self, SubgameEntity other) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
+        public boolean interact(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
@@ -559,7 +559,7 @@ public class M_Float {
     static EntThinkAdapter floater_idle = new EntThinkAdapter() {
     	public String getID() { return "floater_idle"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
@@ -796,7 +796,7 @@ public class M_Float {
     	public String getID() { return "floater_wham"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack3, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack3, 1,
                     Defines.ATTN_NORM, 0);
             GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 6, -50);
             return true;
@@ -854,17 +854,17 @@ public class M_Float {
             //		G_ProjectSource (self.s.origin,
             // monster_flash_offset[flash_number], forward, right, origin);
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack2, 1,
+            gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack2, 1,
                     Defines.ATTN_NORM, 0);
 
             //FIXME use the flash, Luke
-            GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
-            GameBase.gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
-            GameBase.gameExports.gameImports.WriteByte(32);
-            GameBase.gameExports.gameImports.WritePosition(origin);
-            GameBase.gameExports.gameImports.WriteDir(dir);
-            GameBase.gameExports.gameImports.WriteByte(1); //sparks
-            GameBase.gameExports.gameImports.multicast(origin, MulticastTypes.MULTICAST_PVS);
+            gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
+            gameExports.gameImports.WriteByte(Defines.TE_SPLASH);
+            gameExports.gameImports.WriteByte(32);
+            gameExports.gameImports.WritePosition(origin);
+            gameExports.gameImports.WriteDir(dir);
+            gameExports.gameImports.WriteByte(1); //sparks
+            gameExports.gameImports.multicast(origin, MulticastTypes.MULTICAST_PVS);
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,
@@ -937,7 +937,7 @@ public class M_Float {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.svflags |= Defines.SVF_DEADMONSTER;
             self.nextthink = 0;
-            GameBase.gameExports.gameImports.linkentity(self);
+            gameExports.gameImports.linkentity(self);
             return true;
         }
     };
@@ -1131,26 +1131,26 @@ public class M_Float {
 
     static EntPainAdapter floater_pain = new EntPainAdapter() {
     	public String getID() { return "floater_pain"; }
-        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage) {
+        public void pain(SubgameEntity self, SubgameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
 
-            if (GameBase.gameExports.level.time < self.pain_debounce_time)
+            if (gameExports.level.time < self.pain_debounce_time)
                 return;
 
-            self.pain_debounce_time = GameBase.gameExports.level.time + 3;
-            if (GameBase.gameExports.cvarCache.skill.value == 3)
+            self.pain_debounce_time = gameExports.level.time + 3;
+            if (gameExports.cvarCache.skill.value == 3)
                 return; // no pain anims in nightmare
 
             n = (Lib.rand() + 1) % 3;
             if (n == 0) {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain1, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = floater_move_pain1;
             } else {
-                GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
+                gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_pain2, 1,
                         Defines.ATTN_NORM, 0);
                 self.monsterinfo.currentmove = floater_move_pain2;
             }
@@ -1162,8 +1162,8 @@ public class M_Float {
     	public String getID() { return "floater_die"; }
 
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
+                        int damage, float[] point, GameExportsImpl gameExports) {
+            gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                     Defines.ATTN_NORM, 0);
             GameMisc.BecomeExplosion1(self);
 

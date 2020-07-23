@@ -1170,7 +1170,7 @@ public class GameMisc {
     private static EntDieAdapter func_explosive_explode = new EntDieAdapter() {
         public String getID() { return "func_explosive_explode";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             float[] chunkorigin = { 0, 0, 0 };
             float[] size = { 0, 0, 0 };
@@ -1239,7 +1239,7 @@ public class GameMisc {
         public String getID() { return "func_explosive_use";}
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             func_explosive_explode.die(self, self, other, self.health,
-                    Globals.vec3_origin);
+                    Globals.vec3_origin, gameExports);
         }
     };
 
@@ -1378,10 +1378,10 @@ public class GameMisc {
     private static EntDieAdapter barrel_delay = new EntDieAdapter() {
         public String getID() { return "barrel_delay";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
 
             self.takedamage = Defines.DAMAGE_NO;
-            self.nextthink = GameBase.gameExports.level.time + 2 * Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + 2 * Defines.FRAMETIME;
             self.think = barrel_explode;
             self.activator = attacker;
         }
@@ -1532,13 +1532,13 @@ public class GameMisc {
     private static EntDieAdapter misc_deadsoldier_die = new EntDieAdapter() {
         public String getID() { return "misc_deadsoldier_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             int n;
 
             if (self.health > -80)
                 return;
 
-            GameBase.gameExports.gameImports.sound(self, Defines.CHAN_BODY, GameBase.gameExports.gameImports
+            gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
             for (n = 0; n < 4; n++)
                 ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
@@ -1921,7 +1921,7 @@ public class GameMisc {
     private static EntDieAdapter gib_die = new EntDieAdapter() {
         public String getID() { return "gib_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             GameUtil.G_FreeEdict(self);
         }
     };
@@ -1932,7 +1932,7 @@ public class GameMisc {
     private static EntDieAdapter debris_die = new EntDieAdapter() {
         public String getID() { return "debris_die";}
         public void die(SubgameEntity self, SubgameEntity inflictor, SubgameEntity attacker,
-                int damage, float[] point) {
+                        int damage, float[] point, GameExportsImpl gameExports) {
             GameUtil.G_FreeEdict(self);
         }
     };
