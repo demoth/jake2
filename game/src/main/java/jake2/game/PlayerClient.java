@@ -231,20 +231,6 @@ public class PlayerClient {
     };
 
     private static SubgameEntity pm_passent;
-    // pmove doesn't need to know about passent and contentmask
-    public static pmove_t.TraceAdapter PM_trace = new pmove_t.TraceAdapter() {
-    
-        public trace_t trace(float[] start, float[] mins, float[] maxs,
-                float[] end) {
-            if (pm_passent.health > 0)
-                return GameBase.gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
-                        Defines.MASK_PLAYERSOLID);
-            else
-                return GameBase.gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
-                        Defines.MASK_DEADSOLID);
-        }
-    
-    };
 
     /**
      * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32) The normal
@@ -1334,7 +1320,21 @@ public class PlayerClient {
             // this should be a copy
             pm.cmd.set(ucmd);
 
-            pm.trace = PlayerClient.PM_trace; // adds default parms
+            // pmove doesn't need to know about passent and contentmask
+            // adds default parms
+            pm.trace = new pmove_t.TraceAdapter() {
+
+                public trace_t trace(float[] start, float[] mins, float[] maxs,
+                        float[] end) {
+                    if (pm_passent.health > 0)
+                        return gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
+                                Defines.MASK_PLAYERSOLID);
+                    else
+                        return gameExports.gameImports.trace(start, mins, maxs, end, pm_passent,
+                                Defines.MASK_DEADSOLID);
+                }
+
+            };
             pm.pointcontents = gameExports.gameImports::getPointContents;
 
             // perform a pmove
