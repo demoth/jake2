@@ -145,8 +145,6 @@ public class GameExportsImpl implements GameExports {
         CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
         CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
 
-        // fixme: leaking constructor (bad practice)
-        GameBase.gameExports = this;
     }
 
     // create the entities array and fill it with empty entities
@@ -275,13 +273,13 @@ public class GameExportsImpl implements GameExports {
         if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
             gitem_armor_t info;
 
-            it = GameItems.FindItem("Jacket Armor", gameExports);
+            it = GameItems.FindItem("Jacket Armor", this);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Combat Armor", gameExports);
+            it = GameItems.FindItem("Combat Armor", this);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Body Armor", gameExports);
+            it = GameItems.FindItem("Body Armor", this);
             info = (gitem_armor_t) it.info;
             client.pers.inventory[it.index] = info.max_count;
 
@@ -291,13 +289,13 @@ public class GameExportsImpl implements GameExports {
 
         SubgameEntity it_ent;
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameItems.FindItem("Power Shield", gameExports);
-            it_ent = GameUtil.G_Spawn(gameExports);
+            it = GameItems.FindItem("Power Shield", this);
+            it_ent = GameUtil.G_Spawn(this);
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent, gameExports);
+                GameUtil.G_FreeEdict(it_ent, this);
 
             if (!give_all)
                 return;
@@ -310,12 +308,12 @@ public class GameExportsImpl implements GameExports {
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
 
-                it_ent = GameUtil.G_Spawn(gameExports);
+                it_ent = GameUtil.G_Spawn(this);
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
-                    GameUtil.G_FreeEdict(it_ent, gameExports);
+                    GameUtil.G_FreeEdict(it_ent, this);
 
             }
 
@@ -336,10 +334,10 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItems.FindItem(name, gameExports);
+        it = GameItems.FindItem(name, this);
         if (it == null) {
             name = args.get(1);
-            it = GameItems.FindItem(name, gameExports);
+            it = GameItems.FindItem(name, this);
             if (it == null) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -360,12 +358,12 @@ public class GameExportsImpl implements GameExports {
             else
                 client.pers.inventory[index] += it.quantity;
         } else {
-            it_ent = GameUtil.G_Spawn(gameExports);
+            it_ent = GameUtil.G_Spawn(this);
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent, gameExports);
+                GameUtil.G_FreeEdict(it_ent, this);
         }
     }
 
@@ -450,7 +448,7 @@ public class GameExportsImpl implements GameExports {
 
         String itemName = Cmd.getArguments(args);
 
-        gitem_t it = GameItems.FindItem(itemName, gameExports);
+        gitem_t it = GameItems.FindItem(itemName, this);
         Com.dprintln("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
@@ -478,7 +476,7 @@ public class GameExportsImpl implements GameExports {
     private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName, gameExports);
+        gitem_t it = GameItems.FindItem(itemName, this);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -495,7 +493,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it.drop.drop(ent, it, gameExports);
+        it.drop.drop(ent, it, this);
     }
 
     /**
@@ -528,7 +526,7 @@ public class GameExportsImpl implements GameExports {
     private void InvUse_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent, gameExports);
+        GameItems.ValidateSelectedItem(ent, this);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -638,7 +636,7 @@ public class GameExportsImpl implements GameExports {
     private void InvDrop_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent, gameExports);
+        GameItems.ValidateSelectedItem(ent, this);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -651,7 +649,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;
         }
-        it.drop.drop(ent, it, gameExports);
+        it.drop.drop(ent, it, this);
     }
 
     /**
@@ -674,7 +672,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         client.showscores = true;
-        PlayerHud.DeathmatchScoreboard(ent, gameExports);
+        PlayerHud.DeathmatchScoreboard(ent, this);
     }
 
     /**
@@ -715,7 +713,7 @@ public class GameExportsImpl implements GameExports {
         ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
         GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
-        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, gameExports);
+        PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, this);
     }
 
     /**
@@ -955,7 +953,7 @@ public class GameExportsImpl implements GameExports {
 
         ClientEndServerFrames();
 
-        // clear some things before going to next gameExports.level
+        // clear some things before going to next level
         for (int i = 0; i < game.maxclients; i++) {
             SubgameEntity ent = g_edicts[1 + i];
             if (!ent.inuse)
@@ -1029,7 +1027,7 @@ public class GameExportsImpl implements GameExports {
 
         // add player trail so monsters can follow
         if (cvarCache.deathmatch.value != 0)
-            if (!GameUtil.visible(ent, PlayerTrail.LastSpot(), gameExports))
+            if (!GameUtil.visible(ent, PlayerTrail.LastSpot(), this))
                 PlayerTrail.Add(ent.s.old_origin, level.time);
 
         client.latched_buttons = 0;
@@ -1236,7 +1234,7 @@ public class GameExportsImpl implements GameExports {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
         else { // search for a changelevel
             EdictIterator edit = null;
-            edit = G_Find(edit, findByClass, "target_changelevel", gameExports);
+            edit = G_Find(edit, findByClass, "target_changelevel", this);
             if (edit == null) { // the map designer didn't include a
                 // change level,
                 // so create a fake ent that goes back to the same level
@@ -1274,7 +1272,7 @@ public class GameExportsImpl implements GameExports {
      * Returns the created target changelevel.
      */
     private SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent = GameUtil.G_Spawn(gameExports);
+        SubgameEntity ent = GameUtil.G_Spawn(this);
         ent.classname = "target_changelevel";
         level.nextmap = map;
         ent.map = map;
@@ -1337,19 +1335,19 @@ public class GameExportsImpl implements GameExports {
                 Inven_f(ent);
                 break;
             case "invnext":
-                GameItems.SelectNextItem(ent, -1, gameExports);
+                GameItems.SelectNextItem(ent, -1, this);
                 break;
             case "invprev":
                 GameItems.SelectPrevItem(ent, -1, this);
                 break;
             case "invnextw":
-                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON, gameExports);
+                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON, this);
                 break;
             case "invprevw":
                 GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON, this);
                 break;
             case "invnextp":
-                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP, gameExports);
+                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP, this);
                 break;
             case "invprevp":
                 GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP, this);
@@ -1593,7 +1591,7 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public String ClientUserinfoChanged(edict_t ent, String userinfo) {
-        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo, gameExports);
+        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo, this);
     }
 
     @Override

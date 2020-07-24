@@ -31,8 +31,6 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
 public class GameBase {
-    @Deprecated
-    public static GameExportsImpl gameExports;
 
     static cplane_t dummyplane = new cplane_t();
 
