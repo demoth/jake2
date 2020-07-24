@@ -68,8 +68,7 @@ public class PlayerClient {
                 ClientObituary(self, inflictor, attacker, gameExports);
                 PlayerClient.TossClientWeapon(self, gameExports);
                 if (gameExports.cvarCache.deathmatch.value != 0) {
-                    Com.Printf("NOT IMPLEMENTED!");
-                    //Cmd.Help_f(self); // show scores
+                    gameExports.Help_f(self); // show scores
                 }
     
                 // clear inventory
@@ -307,12 +306,12 @@ public class PlayerClient {
 
         gclient_t attackerClient = attacker.getClient();
         if (gameExports.cvarCache.coop.value != 0 && attackerClient != null)
-            GameBase.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
+            gameExports.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         gclient_t client = self.getClient();
         if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
-            ff = (GameBase.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
-            mod = GameBase.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
+            ff = (gameExports.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
+            mod = gameExports.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
             message = null;
             message2 = "";
 

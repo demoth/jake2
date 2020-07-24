@@ -100,6 +100,7 @@ public class GameExportsImpl implements GameExports {
     public game_locals_t game;
     public CvarCache cvarCache;
     public level_locals_t level;
+    public int meansOfDeath;
 
     /**
      * entity with index = 0 is always the worldspawn.
@@ -681,7 +682,7 @@ public class GameExportsImpl implements GameExports {
      * Display the current help message.
      *
      */
-    private void Help_f(SubgameEntity ent) {
+    void Help_f(SubgameEntity ent) {
         // this is for backwards compatability
         if (cvarCache.deathmatch.value != 0) {
             Score_f(ent);
@@ -706,13 +707,13 @@ public class GameExportsImpl implements GameExports {
     /**
      * Cmd_Kill_f
      */
-    private void Kill_f(SubgameEntity ent) {
+    private void Kill_f(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if ((level.time - client.respawn_time) < 5)
             return;
         ent.flags &= ~GameDefines.FL_GODMODE;
         ent.health = 0;
-        GameBase.meansOfDeath = GameDefines.MOD_SUICIDE;
+        gameExports.meansOfDeath = GameDefines.MOD_SUICIDE;
         PlayerClient.player_die.die(ent, ent, ent, 100000, Globals.vec3_origin, this);
     }
 
@@ -1368,7 +1369,7 @@ public class GameExportsImpl implements GameExports {
                 WeapLast_f(ent);
                 break;
             case "kill":
-                Kill_f(ent);
+                Kill_f(ent, this);
                 break;
             case "putaway":
                 PutAway_f(ent);
