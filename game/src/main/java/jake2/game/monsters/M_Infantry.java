@@ -726,7 +726,7 @@ public class M_Infantry {
 
             Monster.monster_fire_bullet(self, start, forward, 3, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
     };
@@ -998,7 +998,7 @@ public class M_Infantry {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
-            if (GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50))
+            if (GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 5)), 50, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch_hit,
                         1, Defines.ATTN_NORM, 0);
             return true;

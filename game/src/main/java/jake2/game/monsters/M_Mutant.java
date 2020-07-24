@@ -611,7 +611,7 @@ public class M_Mutant {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
+            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hit, 1,
                         Defines.ATTN_NORM, 0);
             else
@@ -627,7 +627,7 @@ public class M_Mutant {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100))
+            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), 100, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hit2, 1,
                         Defines.ATTN_NORM, 0);
             else

@@ -644,7 +644,7 @@ public class M_Boss2 {
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
             Monster.monster_fire_rocket(self, start, dir, 50, 500,
-                    Defines.MZ2_BOSS2_ROCKET_1);
+                    Defines.MZ2_BOSS2_ROCKET_1, gameExports);
 
             //	  2
             Math3D.G_ProjectSource(self.s.origin,
@@ -655,7 +655,7 @@ public class M_Boss2 {
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
             Monster.monster_fire_rocket(self, start, dir, 50, 500,
-                    Defines.MZ2_BOSS2_ROCKET_2);
+                    Defines.MZ2_BOSS2_ROCKET_2, gameExports);
 
             //	  3
             Math3D.G_ProjectSource(self.s.origin,
@@ -666,7 +666,7 @@ public class M_Boss2 {
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
             Monster.monster_fire_rocket(self, start, dir, 50, 500,
-                    Defines.MZ2_BOSS2_ROCKET_3);
+                    Defines.MZ2_BOSS2_ROCKET_3, gameExports);
 
             //	  4
             Math3D.G_ProjectSource(self.s.origin,
@@ -677,7 +677,7 @@ public class M_Boss2 {
             Math3D.VectorSubtract(vec, start, dir);
             Math3D.VectorNormalize(dir);
             Monster.monster_fire_rocket(self, start, dir, 50, 500,
-                    Defines.MZ2_BOSS2_ROCKET_4);
+                    Defines.MZ2_BOSS2_ROCKET_4, gameExports);
             return true;
         }
     };
@@ -705,7 +705,7 @@ public class M_Boss2 {
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD,
-                    Defines.MZ2_BOSS2_MACHINEGUN_R1);
+                    Defines.MZ2_BOSS2_MACHINEGUN_R1, gameExports);
 
             return true;
         }
@@ -735,7 +735,7 @@ public class M_Boss2 {
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD,
-                    Defines.MZ2_BOSS2_MACHINEGUN_L1);
+                    Defines.MZ2_BOSS2_MACHINEGUN_L1, gameExports);
 
             return true;
         }

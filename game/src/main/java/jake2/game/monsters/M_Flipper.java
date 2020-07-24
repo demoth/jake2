@@ -528,7 +528,7 @@ public class M_Flipper {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 0);
-            GameWeapon.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0, gameExports);
             return true;
         }
     };

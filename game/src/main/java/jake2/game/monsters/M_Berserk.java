@@ -684,7 +684,7 @@ public class M_Berserk {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             float[] aim = { GameDefines.MELEE_DISTANCE, 0f, -24f };
 
-            GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 6)), 400);
+            GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 6)), 400, gameExports);
             //	Faster attack -- upwards and backwards
 
             return true;
@@ -719,7 +719,7 @@ public class M_Berserk {
             float aim[] = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
-            GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 6)), 400); // Slower
+            GameWeapon.fire_hit(self, aim, (5 + (Lib.rand() % 6)), 400, gameExports); // Slower
                                                                    // attack
 
             return true;

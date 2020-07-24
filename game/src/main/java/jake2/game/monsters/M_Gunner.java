@@ -914,7 +914,7 @@ public class M_Gunner {
             Math3D.VectorNormalize(aim);
             Monster.monster_fire_bullet(self, start, aim, 3, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
 
             return true;
         }
@@ -947,7 +947,7 @@ public class M_Gunner {
             Math3D.VectorCopy(forward, aim);
 
             Monster.monster_fire_grenade(self, start, aim, 50, 600,
-                    flash_number);
+                    flash_number, gameExports);
             return true;
         }
     };

@@ -265,7 +265,7 @@ public class GameItems {
             }
     
             if (0 == (ent.spawnflags & GameDefines.ITEM_TARGETS_USED)) {
-                GameUtil.G_UseTargets(ent, other);
+                GameUtil.G_UseTargets(ent, other, gameExports);
                 ent.spawnflags |= GameDefines.ITEM_TARGETS_USED;
             }
     
@@ -1329,7 +1329,7 @@ public class GameItems {
         }
     
         if (0 == (ent.spawnflags & GameDefines.ITEM_TARGETS_USED)) {
-            GameUtil.G_UseTargets(ent, other);
+            GameUtil.G_UseTargets(ent, other, gameExports);
             ent.spawnflags |= GameDefines.ITEM_TARGETS_USED;
         }
     

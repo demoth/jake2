@@ -1493,7 +1493,7 @@ public class M_Boss32 {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_attack_bfg, 1,
                     Defines.ATTN_NORM, 0);
             Monster.monster_fire_bfg(self, start, dir, 50, 300, 100, 300,
-                    Defines.MZ2_MAKRON_BFG);
+                    Defines.MZ2_MAKRON_BFG, gameExports);
             return true;
         }
     };
@@ -1528,7 +1528,7 @@ public class M_Boss32 {
             Math3D.VectorNormalize(dir);
 
             Monster.monster_fire_railgun(self, start, dir, 50, 100,
-                    Defines.MZ2_MAKRON_RAILGUN_1);
+                    Defines.MZ2_MAKRON_RAILGUN_1, gameExports);
 
             return true;
         }
@@ -1573,7 +1573,7 @@ public class M_Boss32 {
             Math3D.AngleVectors(dir, forward, null, null);
 
             Monster.monster_fire_blaster(self, start, forward, 15, 1000,
-                    Defines.MZ2_MAKRON_BLASTER_1, Defines.EF_BLASTER);
+                    Defines.MZ2_MAKRON_BLASTER_1, Defines.EF_BLASTER, gameExports);
 
             return true;
         }

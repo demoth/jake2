@@ -496,7 +496,7 @@ public class M_Hover {
             Math3D.VectorSubtract(end, start, dir);
 
             Monster.monster_fire_blaster(self, start, dir, 1, 1000,
-                    Defines.MZ2_HOVER_BLASTER_1, effect);
+                    Defines.MZ2_HOVER_BLASTER_1, effect, gameExports);
             return true;
         }
     };

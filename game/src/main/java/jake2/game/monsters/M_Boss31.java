@@ -626,7 +626,7 @@ public class M_Boss31 {
              * flashtype)
              */
             Monster.monster_fire_bfg(self, start, dir, 50, 300, 100, 200,
-                    Defines.MZ2_JORG_BFG_1);
+                    Defines.MZ2_JORG_BFG_1, gameExports);
             return true;
         }
     };
@@ -654,7 +654,7 @@ public class M_Boss31 {
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD,
-                    Defines.MZ2_JORG_MACHINEGUN_R1);
+                    Defines.MZ2_JORG_MACHINEGUN_R1, gameExports);
             return true;
         }
     };
@@ -682,7 +682,7 @@ public class M_Boss31 {
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
                     GameDefines.DEFAULT_BULLET_VSPREAD,
-                    Defines.MZ2_JORG_MACHINEGUN_L1);
+                    Defines.MZ2_JORG_MACHINEGUN_L1, gameExports);
             return true;
         }
     };

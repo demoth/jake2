@@ -779,7 +779,7 @@ public class M_Supertank {
 
             Monster
                     .monster_fire_rocket(self, start, dir, 50, 500,
-                            flash_number);
+                            flash_number, gameExports);
             return true;
         }
     };
@@ -816,7 +816,7 @@ public class M_Supertank {
 
             Monster.monster_fire_bullet(self, start, forward, 6, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
     };

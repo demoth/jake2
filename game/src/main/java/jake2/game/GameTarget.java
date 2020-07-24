@@ -341,7 +341,7 @@ class GameTarget {
 
             gameExports.level.found_secrets++;
 
-            GameUtil.G_UseTargets(ent, activator);
+            GameUtil.G_UseTargets(ent, activator, GameBase.gameExports);
             GameUtil.G_FreeEdict(ent);
         }
     };
@@ -361,7 +361,7 @@ class GameTarget {
             if (gameExports.level.found_goals == gameExports.level.total_goals)
                 gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
 
-            GameUtil.G_UseTargets(ent, activator);
+            GameUtil.G_UseTargets(ent, activator, GameBase.gameExports);
             GameUtil.G_FreeEdict(ent);
         }
     };
@@ -390,7 +390,7 @@ class GameTarget {
 
             save = self.delay;
             self.delay = 0;
-            GameUtil.G_UseTargets(self, self.activator);
+            GameUtil.G_UseTargets(self, self.activator, GameBase.gameExports);
             self.delay = save;
             return true;
         }
@@ -531,8 +531,8 @@ class GameTarget {
 
             GameWeapon.fire_blaster(self, self.s.origin, self.movedir, self.dmg,
                     (int) self.speed, Defines.EF_BLASTER,
-                    GameDefines.MOD_TARGET_BLASTER != 0
-            /* true */
+                    GameDefines.MOD_TARGET_BLASTER != 0, gameExports
+                    /* true */
             );
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1,
                     Defines.ATTN_NORM, 0);
@@ -569,7 +569,7 @@ class GameTarget {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.spawnflags == (gameExports.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
-                GameUtil.G_UseTargets(self, self);
+                GameUtil.G_UseTargets(self, self, GameBase.gameExports);
                 GameUtil.G_FreeEdict(self);
             }
             return true;

@@ -589,7 +589,7 @@ public class M_Float {
             Math3D.VectorSubtract(end, start, dir);
 
             Monster.monster_fire_blaster(self, start, dir, 1, 1000,
-                    Defines.MZ2_FLOAT_BLASTER_1, effect);
+                    Defines.MZ2_FLOAT_BLASTER_1, effect, gameExports);
 
             return true;
         }
@@ -798,7 +798,7 @@ public class M_Float {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack3, 1,
                     Defines.ATTN_NORM, 0);
-            GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 6, -50);
+            GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 6, -50, gameExports);
             return true;
         }
     };

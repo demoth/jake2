@@ -507,7 +507,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_hurt(ent, GameBase.gameExports);
+                GameTrigger.SP_trigger_hurt(ent, gameExports);
                 return true;
             }
         });
@@ -588,7 +588,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_changelevel(ent, GameBase.gameExports);
+                GameTarget.SP_target_changelevel(ent, gameExports);
                 return true;
             }
         });
@@ -598,7 +598,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_secret(ent, GameBase.gameExports);
+                GameTarget.SP_target_secret(ent, gameExports);
                 return true;
             }
         });
@@ -608,7 +608,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_goal(ent, GameBase.gameExports);
+                GameTarget.SP_target_goal(ent, gameExports);
                 return true;
             }
         });
@@ -658,7 +658,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_crosslevel_target(ent, GameBase.gameExports);
+                GameTarget.SP_target_crosslevel_target(ent, gameExports);
                 return true;
             }
         });
@@ -668,7 +668,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_laser(ent, GameBase.gameExports);
+                GameTarget.SP_target_laser(ent, gameExports);
                 return true;
             }
         });
@@ -678,7 +678,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTarget.SP_target_help(ent, GameBase.gameExports);
+                GameTarget.SP_target_help(ent, gameExports);
                 return true;
             }
         });

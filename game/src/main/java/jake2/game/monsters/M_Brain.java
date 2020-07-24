@@ -801,7 +801,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
             return true;
@@ -824,7 +824,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 8);
-            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40))
+            if (GameWeapon.fire_hit(self, aim, (15 + (Lib.rand() % 5)), 40, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee3, 1,
                         Defines.ATTN_NORM, 0);
 
@@ -850,7 +850,7 @@ public class M_Brain {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, 0, 8);
-            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600)
+            if (GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 5)), -600, gameExports)
                     && gameExports.cvarCache.skill.value > 0)
                 self.spawnflags |= 65536;
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON,

@@ -63,7 +63,7 @@ public class GameTurret {
      * yaw angle : default 360
      */
 
-    public static void turret_breach_fire(SubgameEntity self) {
+    public static void turret_breach_fire(SubgameEntity self, GameExportsImpl gameExports) {
         float[] f = { 0, 0, 0 }, r = { 0, 0, 0 }, u = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
         int damage;
@@ -75,11 +75,11 @@ public class GameTurret {
         Math3D.VectorMA(start, self.move_origin[2], u, start);
 
         damage = (int) (100 + Lib.random() * 50);
-        speed = (int) (550 + 50 * GameBase.gameExports.cvarCache.skill.value);
+        speed = (int) (550 + 50 * gameExports.cvarCache.skill.value);
         GameWeapon.fire_rocket(self.teammaster.getOwner(), start, f, damage, speed, 150,
-                damage);
-        GameBase.gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
-                GameBase.gameExports.gameImports.soundindex("weapons/rocklf1a.wav"), 1,
+                damage, gameExports);
+        gameExports.gameImports.positioned_sound(start, self, Defines.CHAN_WEAPON,
+                gameExports.gameImports.soundindex("weapons/rocklf1a.wav"), 1,
                 Defines.ATTN_NORM, 0);
     }
 
@@ -256,7 +256,7 @@ public class GameTurret {
 
             Math3D.VectorScale(delta, 1.0f / Defines.FRAMETIME, self.avelocity);
 
-            self.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
             for (SubgameEntity ent = self.teammaster; ent != null; ent = ent.teamchain)
                 ent.avelocity[1] = self.avelocity[1];
@@ -295,7 +295,7 @@ public class GameTurret {
                 self.getOwner().velocity[2] = diff * 1.0f / Defines.FRAMETIME;
 
                 if ((self.spawnflags & 65536) != 0) {
-                    turret_breach_fire(self);
+                    turret_breach_fire(self, gameExports);
                     self.spawnflags &= ~65536;
                 }
             }

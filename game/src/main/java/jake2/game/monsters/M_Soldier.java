@@ -1578,12 +1578,12 @@ public class M_Soldier {
 
         if (self.s.skinnum <= 1) {
             Monster.monster_fire_blaster(self, start, aim, 5, 600, flash_index,
-                    Defines.EF_BLASTER);
+                    Defines.EF_BLASTER, gameExports);
         } else if (self.s.skinnum <= 3) {
             Monster.monster_fire_shotgun(self, start, aim, 2, 1,
                     GameDefines.DEFAULT_SHOTGUN_HSPREAD,
                     GameDefines.DEFAULT_SHOTGUN_VSPREAD,
-                    GameDefines.DEFAULT_SHOTGUN_COUNT, flash_index);
+                    GameDefines.DEFAULT_SHOTGUN_COUNT, flash_index, gameExports);
         } else {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_HOLD_FRAME))
                 self.monsterinfo.pausetime = gameExports.level.time
@@ -1591,7 +1591,7 @@ public class M_Soldier {
 
             Monster.monster_fire_bullet(self, start, aim, 2, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_index);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_index, gameExports);
 
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;

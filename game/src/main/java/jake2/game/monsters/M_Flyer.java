@@ -716,7 +716,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_fireleft = new EntThinkAdapter() {
     	public String getID() { return "flyer_fireleft"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            flyer_fire(self, Defines.MZ2_FLYER_BLASTER_1);
+            flyer_fire(self, Defines.MZ2_FLYER_BLASTER_1, gameExports);
             return true;
         }
     };
@@ -724,7 +724,7 @@ public class M_Flyer {
     static EntThinkAdapter flyer_fireright = new EntThinkAdapter() {
     	public String getID() { return "flyer_fireright"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            flyer_fire(self, Defines.MZ2_FLYER_BLASTER_2);
+            flyer_fire(self, Defines.MZ2_FLYER_BLASTER_2, gameExports);
             return true;
         }
     };
@@ -758,7 +758,7 @@ public class M_Flyer {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 0);
-            GameWeapon.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0, gameExports);
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -771,7 +771,7 @@ public class M_Flyer {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.maxs[0], 0);
-            GameWeapon.fire_hit(self, aim, 5, 0);
+            GameWeapon.fire_hit(self, aim, 5, 0, gameExports);
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_slash, 1,
                     Defines.ATTN_NORM, 0);
             return true;
@@ -919,7 +919,7 @@ public class M_Flyer {
         }
     };
 
-    static void flyer_fire(SubgameEntity self, int flash_number) {
+    static void flyer_fire(SubgameEntity self, int flash_number, GameExportsImpl gameExports) {
         float[] start = { 0, 0, 0 };
 
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -943,7 +943,7 @@ public class M_Flyer {
         Math3D.VectorSubtract(end, start, dir);
 
         Monster.monster_fire_blaster(self, start, dir, 1, 1000, flash_number,
-                effect);
+                effect, gameExports);
     }
 
     /*
