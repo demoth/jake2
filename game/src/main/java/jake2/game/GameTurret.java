@@ -130,7 +130,7 @@ public class GameTurret {
 
     public static void SP_turret_driver(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -162,7 +162,7 @@ public class GameTurret {
         self.monsterinfo.aiflags |= GameDefines.AI_STAND_GROUND | GameDefines.AI_DUCKED;
 
         if (GameBase.st.item != null) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item);
+            self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
             if (self.item == null)
                 gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
@@ -187,7 +187,7 @@ public class GameTurret {
                     attacker = self.teammaster;
                 GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
-                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH);
+                        self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH, gameExports);
             }
         }
     };
@@ -312,10 +312,10 @@ public class GameTurret {
                 gameExports.gameImports.dprintf(self.classname + " at "
                         + Lib.vtos(self.s.origin) + " needs a target\n");
             } else {
-                self.target_ent = GameBase.G_PickTarget(self.target);
+                self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
                 Math3D.VectorSubtract(self.target_ent.s.origin, self.s.origin,
                         self.move_origin);
-                GameUtil.G_FreeEdict(self.target_ent);
+                GameUtil.G_FreeEdict(self.target_ent, gameExports);
             }
 
             self.teammaster.dmg = self.dmg;
@@ -368,12 +368,12 @@ public class GameTurret {
                 self.enemy = null;
 
             if (null == self.enemy) {
-                if (!GameUtil.FindTarget(self))
+                if (!GameUtil.FindTarget(self, gameExports))
                     return true;
                 self.monsterinfo.trail_time = gameExports.level.time;
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
             } else {
-                if (GameUtil.visible(self, self.enemy)) {
+                if (GameUtil.visible(self, self.enemy, gameExports)) {
                     if ((self.monsterinfo.aiflags & GameDefines.AI_LOST_SIGHT) != 0) {
                         self.monsterinfo.trail_time = gameExports.level.time;
                         self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
@@ -415,7 +415,7 @@ public class GameTurret {
             self.think = turret_driver_think;
             self.nextthink = gameExports.level.time + Defines.FRAMETIME;
 
-            self.target_ent = GameBase.G_PickTarget(self.target);
+            self.target_ent = GameBase.G_PickTarget(self.target, gameExports);
             self.target_ent.setOwner(self);
             self.target_ent.teammaster.setOwner(self);
             Math3D.VectorCopy(self.target_ent.s.angles, self.s.angles);

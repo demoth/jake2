@@ -82,7 +82,7 @@ public class GameBase {
      * 
      */
     static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
-                                String s) {
+                                String s, GameExportsImpl gameExports) {
 
         if (from == null)
             from = new EdictIterator(0);
@@ -107,8 +107,8 @@ public class GameBase {
 
     // comfort version (rst)
     static edict_t G_FindEdict(EdictIterator from, EdictFindFilter eff,
-                               String s) {
-        EdictIterator ei = G_Find(from, eff, s);
+                               String s, GameExportsImpl gameExports) {
+        EdictIterator ei = G_Find(from, eff, s, gameExports);
         if (ei == null)
             return null;
         else
@@ -119,7 +119,7 @@ public class GameBase {
      * Returns entities that have origins within a spherical area.
      */
     public static EdictIterator findradius(EdictIterator from, float[] org,
-            float rad) {
+                                           float rad, GameExportsImpl gameExports) {
         float[] eorg = { 0, 0, 0 };
         int j;
 
@@ -156,7 +156,7 @@ public class GameBase {
      * will be returned if the end of the list is reached.
      */
 
-    public static SubgameEntity G_PickTarget(String targetname) {
+    public static SubgameEntity G_PickTarget(String targetname, GameExportsImpl gameExports) {
         int num_choices = 0;
         int MAXCHOICES = 8;
         SubgameEntity[] choice = new SubgameEntity[MAXCHOICES];
@@ -168,7 +168,7 @@ public class GameBase {
 
         EdictIterator es = null;
 
-        while ((es = G_Find(es, findByTarget, targetname)) != null) {
+        while ((es = G_Find(es, findByTarget, targetname, gameExports)) != null) {
             choice[num_choices++] = es.o;
             if (num_choices == MAXCHOICES)
                 break;
@@ -205,7 +205,7 @@ public class GameBase {
     // todo: replace with returned collection from gi.BoxEdicts
     private static SubgameEntity touch[] = new SubgameEntity[Defines.MAX_EDICTS];
 
-    static void G_TouchTriggers(SubgameEntity ent) {
+    static void G_TouchTriggers(SubgameEntity ent, GameExportsImpl gameExports) {
         int i, num;
         SubgameEntity hit;
 

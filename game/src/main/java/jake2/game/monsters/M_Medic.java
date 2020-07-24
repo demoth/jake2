@@ -530,12 +530,12 @@ public class M_Medic {
 
     static int sound_hook_retract;
 
-    static SubgameEntity medic_FindDeadMonster(SubgameEntity self) {
+    static SubgameEntity medic_FindDeadMonster(SubgameEntity self, GameExportsImpl gameExports) {
         SubgameEntity ent;
         SubgameEntity best = null;
         EdictIterator edit = null;
 
-        while ((edit = GameBase.findradius(edit, self.s.origin, 1024)) != null) {
+        while ((edit = GameBase.findradius(edit, self.s.origin, 1024, gameExports)) != null) {
             ent = edit.o;
             if (ent == self)
                 continue;
@@ -549,7 +549,7 @@ public class M_Medic {
                 continue;
             if (ent.nextthink == 0)
                 continue;
-            if (!GameUtil.visible(self, ent))
+            if (!GameUtil.visible(self, ent, gameExports))
                 continue;
             if (best == null) {
                 best = ent;
@@ -570,12 +570,12 @@ public class M_Medic {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
                     Defines.ATTN_IDLE, 0);
 
-            SubgameEntity ent = medic_FindDeadMonster(self);
+            SubgameEntity ent = medic_FindDeadMonster(self, gameExports);
             if (ent != null) {
                 self.enemy = ent;
                 self.enemy.setOwner(self);
                 self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
-                GameUtil.FoundTarget(self);
+                GameUtil.FoundTarget(self, gameExports);
             }
             return true;
         }
@@ -589,13 +589,13 @@ public class M_Medic {
                     Defines.ATTN_IDLE, 0);
 
             if (self.oldenemy == null) {
-                SubgameEntity ent = medic_FindDeadMonster(self);
+                SubgameEntity ent = medic_FindDeadMonster(self, gameExports);
                 if (ent != null) {
                     self.oldenemy = self.enemy;
                     self.enemy = ent;
                     self.enemy.setOwner(self);
                     self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
-                    GameUtil.FoundTarget(self);
+                    GameUtil.FoundTarget(self, gameExports);
                 }
             }
             return true;
@@ -755,13 +755,13 @@ public class M_Medic {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_MEDIC)) {
 
-                SubgameEntity ent = medic_FindDeadMonster(self);
+                SubgameEntity ent = medic_FindDeadMonster(self, gameExports);
                 if (ent != null) {
                     self.oldenemy = self.enemy;
                     self.enemy = ent;
                     self.enemy.setOwner(self);
                     self.monsterinfo.aiflags |= GameDefines.AI_MEDIC;
-                    GameUtil.FoundTarget(self);
+                    GameUtil.FoundTarget(self, gameExports);
                     return true;
                 }
             }
@@ -936,13 +936,13 @@ public class M_Medic {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1054,7 +1054,7 @@ public class M_Medic {
     static EntThinkAdapter medic_continue = new EntThinkAdapter() {
     	public String getID(){ return "medic_continue"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (GameUtil.visible(self, self.enemy))
+            if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() <= 0.95)
                     self.monsterinfo.currentmove = medic_move_attackHyperBlaster;
             return true;
@@ -1156,7 +1156,7 @@ public class M_Medic {
                 self.enemy.monsterinfo.aiflags |= GameDefines.AI_RESURRECTING;
                 if (self.oldenemy != null && self.oldenemy.getClient() != null) {
                     self.enemy.enemy = self.oldenemy;
-                    GameUtil.FoundTarget(self.enemy);
+                    GameUtil.FoundTarget(self.enemy, gameExports);
                 }
             } else {
                 if (self.s.frame == FRAME_attack44)
@@ -1254,7 +1254,7 @@ public class M_Medic {
      */
     public static void SP_monster_medic(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

@@ -42,13 +42,13 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return;
             }
     
             if (self.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(self.getOwner(), self.s.origin,
-                        GameDefines.PNOISE_IMPACT, GameBase.gameExports);
+                        GameDefines.PNOISE_IMPACT, gameExports);
     
             if (other.takedamage != 0) {
                 if ((self.spawnflags & 1) != 0)
@@ -65,7 +65,7 @@ public class GameWeapon {
     
                 GameCombat.T_Damage(other, self, self.getOwner(), self.velocity,
                         self.s.origin, normal, self.dmg, 1,
-                        Defines.DAMAGE_ENERGY, mod);
+                        Defines.DAMAGE_ENERGY, mod, gameExports);
     
             } else {
                 gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
@@ -78,7 +78,7 @@ public class GameWeapon {
                 gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PVS);
             }
     
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
         }
     };
     
@@ -109,7 +109,7 @@ public class GameWeapon {
                     mod = GameDefines.MOD_GRENADE;
                 GameCombat.T_Damage(ent.enemy, ent, ent.getOwner(), dir, ent.s.origin,
                         Globals.vec3_origin, (int) points, (int) points,
-                        Defines.DAMAGE_RADIUS, mod);
+                        Defines.DAMAGE_RADIUS, mod, gameExports);
             }
     
             if ((ent.spawnflags & 2) != 0)
@@ -119,7 +119,7 @@ public class GameWeapon {
             else
                 mod = GameDefines.MOD_G_SPLASH;
             GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.dmg, ent.enemy,
-                    ent.dmg_radius, mod);
+                    ent.dmg_radius, mod, gameExports);
     
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
             gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
@@ -137,7 +137,7 @@ public class GameWeapon {
             gameExports.gameImports.WritePosition(origin);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return true;
         }
     };
@@ -149,7 +149,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && 0 != (surf.flags & Defines.SURF_SKY)) {
-                GameUtil.G_FreeEdict(ent);
+                GameUtil.G_FreeEdict(ent, gameExports);
                 return;
             }
     
@@ -192,13 +192,13 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(ent);
+                GameUtil.G_FreeEdict(ent, gameExports);
                 return;
             }
     
             if (ent.getOwner().getClient() != null)
                 PlayerWeapon.PlayerNoise(ent.getOwner(), ent.s.origin,
-                        GameDefines.PNOISE_IMPACT, GameBase.gameExports);
+                        GameDefines.PNOISE_IMPACT, gameExports);
     
             // calculate position for the explosion entity
             Math3D.VectorMA(ent.s.origin, -0.02f, ent.velocity, origin);
@@ -206,7 +206,7 @@ public class GameWeapon {
             if (other.takedamage != 0) {
                 GameCombat.T_Damage(other, ent, ent.getOwner(), ent.velocity,
                         ent.s.origin, plane.normal, ent.dmg, 0, 0,
-                        GameDefines.MOD_ROCKET);
+                        GameDefines.MOD_ROCKET, gameExports);
             } else {
                 // don't throw any debris in net games
                 if (gameExports.cvarCache.deathmatch.value == 0 && 0 == gameExports.cvarCache.coop.value) {
@@ -218,13 +218,13 @@ public class GameWeapon {
                         while (n-- > 0)
                             GameMisc.ThrowDebris(ent,
                                     "models/objects/debris2/tris.md2", 2,
-                                    ent.s.origin);
+                                    ent.s.origin, gameExports);
                     }
                 }
             }
     
             GameCombat.T_RadiusDamage(ent, ent.getOwner(), ent.radius_dmg, other,
-                    ent.dmg_radius, GameDefines.MOD_R_SPLASH);
+                    ent.dmg_radius, GameDefines.MOD_R_SPLASH, gameExports);
     
             gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
             if (ent.waterlevel != 0)
@@ -234,7 +234,7 @@ public class GameWeapon {
             gameExports.gameImports.WritePosition(origin);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
     
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
         }
     };
     /*
@@ -255,15 +255,15 @@ public class GameWeapon {
                 // the BFG effect
                 SubgameEntity ent;
                 while ((edit = GameBase.findradius(edit, self.s.origin,
-                        self.dmg_radius)) != null) {
+                        self.dmg_radius, gameExports)) != null) {
                     ent = edit.o;
                     if (ent.takedamage == 0)
                         continue;
                     if (ent == self.getOwner())
                         continue;
-                    if (!GameCombat.CanDamage(ent, self))
+                    if (!GameCombat.CanDamage(ent, self, gameExports))
                         continue;
-                    if (!GameCombat.CanDamage(ent, self.getOwner()))
+                    if (!GameCombat.CanDamage(ent, self.getOwner(), gameExports))
                         continue;
     
                     Math3D.VectorAdd(ent.mins, ent.maxs, v);
@@ -281,7 +281,7 @@ public class GameWeapon {
                     gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PHS);
                     GameCombat.T_Damage(ent, self, self.getOwner(), self.velocity,
                             ent.s.origin, Globals.vec3_origin, (int) points, 0,
-                            Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT);
+                            Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_EFFECT, gameExports);
                 }
             }
     
@@ -302,7 +302,7 @@ public class GameWeapon {
                 return;
     
             if (surf != null && (surf.flags & Defines.SURF_SKY) != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return;
             }
     
@@ -314,9 +314,9 @@ public class GameWeapon {
             if (other.takedamage != 0)
                 GameCombat.T_Damage(other, self, self.getOwner(), self.velocity,
                         self.s.origin, plane.normal, 200, 0, 0,
-                        GameDefines.MOD_BFG_BLAST);
+                        GameDefines.MOD_BFG_BLAST, gameExports);
             GameCombat.T_RadiusDamage(self, self.getOwner(), 200, other, 100,
-                    GameDefines.MOD_BFG_BLAST);
+                    GameDefines.MOD_BFG_BLAST, gameExports);
     
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, gameExports.gameImports
                     .soundindex("weapons/bfg__x1b.wav"), 1, Defines.ATTN_NORM,
@@ -357,7 +357,7 @@ public class GameWeapon {
                 dmg = 10;
     
             EdictIterator edit = null;
-            while ((edit = GameBase.findradius(edit, self.s.origin, 256)) != null) {
+            while ((edit = GameBase.findradius(edit, self.s.origin, 256, gameExports)) != null) {
                 SubgameEntity ent = edit.o;
 
                 if (ent == self)
@@ -397,7 +397,7 @@ public class GameWeapon {
                             && (target != self.getOwner()))
                         GameCombat.T_Damage((SubgameEntity) target, self, self.getOwner(), dir,
                                 tr.endpos, Globals.vec3_origin, dmg, 1,
-                                Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER);
+                                Defines.DAMAGE_ENERGY, GameDefines.MOD_BFG_LASER, gameExports);
     
                     // if we hit something that's not a monster or player we're
                     // done
@@ -438,26 +438,26 @@ public class GameWeapon {
      * called. 
      * =================
      */
-    static void check_dodge(SubgameEntity self, float[] start, float[] dir, int speed) {
+    static void check_dodge(SubgameEntity self, float[] start, float[] dir, int speed, GameExportsImpl gameExports) {
         float[] end = { 0, 0, 0 };
         float[] v = { 0, 0, 0 };
         trace_t tr;
         float eta;
     
         // easy mode only ducks one quarter the time
-        if (GameBase.gameExports.cvarCache.skill.value == 0) {
+        if (gameExports.cvarCache.skill.value == 0) {
             if (Lib.random() > 0.25)
                 return;
         }
         Math3D.VectorMA(start, 8192, dir, end);
-        tr = GameBase.gameExports.gameImports.trace(start, null, null, end, self, Defines.MASK_SHOT);
+        tr = gameExports.gameImports.trace(start, null, null, end, self, Defines.MASK_SHOT);
         SubgameEntity target = (SubgameEntity) tr.ent;
         if ((target != null) && (target.svflags & Defines.SVF_MONSTER) != 0
                 && (target.health > 0) && (null != target.monsterinfo.dodge)
                 && GameUtil.infront(target, self)) {
             Math3D.VectorSubtract(tr.endpos, start, v);
             eta = (Math3D.VectorLength(v) - target.maxs[0]) / speed;
-            target.monsterinfo.dodge.dodge(target, self, eta, GameBase.gameExports);
+            target.monsterinfo.dodge.dodge(target, self, eta, gameExports);
         }
     }
 
@@ -519,7 +519,7 @@ public class GameWeapon {
     
         // do the damage
         GameCombat.T_Damage((SubgameEntity) tr.ent, self, self, dir, point, Globals.vec3_origin,
-                damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT);
+                damage, kick / 2, Defines.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_HIT, gameExports);
     
         if (0 == (tr.ent.svflags & Defines.SVF_MONSTER)
                 && (null == tr.ent.getClient()))
@@ -629,7 +629,7 @@ public class GameWeapon {
                 if (target.takedamage != 0) {
                     GameCombat.T_Damage(target, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick,
-                            Defines.DAMAGE_BULLET, mod);
+                            Defines.DAMAGE_BULLET, mod, gameExports);
                 } else {
                     if (!"sky".equals(tr.surface.name)) {
                         gameExports.gameImports.WriteByte(NetworkCommands.svc_temp_entity);
@@ -712,7 +712,7 @@ public class GameWeapon {
 
         Math3D.VectorNormalize(dir);
 
-        SubgameEntity bolt = GameUtil.G_Spawn();
+        SubgameEntity bolt = GameUtil.G_Spawn(gameExports);
         bolt.svflags = Defines.SVF_DEADMONSTER;
         // yes, I know it looks weird that projectiles are deadmonsters
         // what this means is that when prediction is used against the object
@@ -744,7 +744,7 @@ public class GameWeapon {
         gameExports.gameImports.linkentity(bolt);
     
         if (self.getClient() != null)
-            check_dodge(self, bolt.s.origin, dir, speed);
+            check_dodge(self, bolt.s.origin, dir, speed, gameExports);
 
         trace_t tr = gameExports.gameImports.trace(self.s.origin, null, null, bolt.s.origin, bolt,
                 Defines.MASK_SHOT);
@@ -763,7 +763,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = GameUtil.G_Spawn();
+        SubgameEntity grenade = GameUtil.G_Spawn(gameExports);
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -799,7 +799,7 @@ public class GameWeapon {
         Math3D.vectoangles(aimdir, dir);
         Math3D.AngleVectors(dir, forward, right, up);
 
-        SubgameEntity grenade = GameUtil.G_Spawn();
+        SubgameEntity grenade = GameUtil.G_Spawn(gameExports);
         Math3D.VectorCopy(start, grenade.s.origin);
         Math3D.VectorScale(aimdir, speed, grenade.velocity);
         Math3D.VectorMA(grenade.velocity, 200f + Lib.crandom() * 10.0f, up,
@@ -841,7 +841,7 @@ public class GameWeapon {
     public static void fire_rocket(SubgameEntity self, float[] start, float[] dir,
                                    int damage, int speed, float damage_radius, int radius_damage, GameExportsImpl gameExports) {
 
-        SubgameEntity rocket = GameUtil.G_Spawn();
+        SubgameEntity rocket = GameUtil.G_Spawn(gameExports);
         Math3D.VectorCopy(start, rocket.s.origin);
         Math3D.VectorCopy(dir, rocket.movedir);
         Math3D.vectoangles(dir, rocket.s.angles);
@@ -865,7 +865,7 @@ public class GameWeapon {
         rocket.classname = "rocket";
     
         if (self.getClient() != null)
-            check_dodge(self, rocket.s.origin, dir, speed);
+            check_dodge(self, rocket.s.origin, dir, speed, gameExports);
     
         gameExports.gameImports.linkentity(rocket);
     }
@@ -910,7 +910,7 @@ public class GameWeapon {
                 if ((target != self) && (target.takedamage != 0))
                     GameCombat.T_Damage(target, self, self, aimdir, tr.endpos,
                             tr.plane.normal, damage, kick, 0,
-                            GameDefines.MOD_RAILGUN);
+                            GameDefines.MOD_RAILGUN, gameExports);
             }
     
             Math3D.VectorCopy(tr.endpos, from);
@@ -938,7 +938,7 @@ public class GameWeapon {
     public static void fire_bfg(SubgameEntity self, float[] start, float[] dir,
                                 int damage, int speed, float damage_radius, GameExportsImpl gameExports) {
 
-        SubgameEntity bfg = GameUtil.G_Spawn();
+        SubgameEntity bfg = GameUtil.G_Spawn(gameExports);
         Math3D.VectorCopy(start, bfg.s.origin);
         Math3D.VectorCopy(dir, bfg.movedir);
         Math3D.vectoangles(dir, bfg.s.angles);
@@ -965,7 +965,7 @@ public class GameWeapon {
         bfg.teamchain = null;
     
         if (self.getClient() != null)
-            check_dodge(self, bfg.s.origin, dir, speed);
+            check_dodge(self, bfg.s.origin, dir, speed, gameExports);
     
         gameExports.gameImports.linkentity(bfg);
     }

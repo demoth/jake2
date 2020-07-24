@@ -267,9 +267,12 @@ public class GameSpawn {
             else
                 gameExports.gameImports.cvar_set("sv_gravity", GameBase.st.gravity);
 
-            gameExports.gameImports.soundindex("player/fry.wav");
             // standing in lava / slime
-            GameItems.PrecacheItem(GameItems.FindItem("Blaster"));
+            gameExports.gameImports.soundindex("player/fry.wav");
+
+            // starter weapon
+            GameItems.PrecacheItem(GameItems.FindItem("Blaster", gameExports), gameExports);
+
             gameExports.gameImports.soundindex("player/lava1.wav");
             gameExports.gameImports.soundindex("player/lava2.wav");
             gameExports.gameImports.soundindex("misc/pc_up.wav");
@@ -457,7 +460,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameTrigger.SP_trigger_always(ent);
+                GameTrigger.SP_trigger_always(ent, gameExports);
                 return true;
             }
         });
@@ -779,7 +782,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_info_null(ent);
+                GameMisc.SP_info_null(ent, gameExports);
                 return true;
             }
         });
@@ -789,7 +792,7 @@ public class GameSpawn {
             }
 
             public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_info_null(ent);
+                GameMisc.SP_info_null(ent, gameExports);
                 return true;
             }
         });
@@ -1257,7 +1260,7 @@ public class GameSpawn {
         }
 
         if (!init) {
-            GameUtil.G_ClearEdict(ent);
+            GameUtil.G_ClearEdict(ent, gameExports);
         }
     }
 
@@ -1352,7 +1355,7 @@ public class GameSpawn {
             if (ent == null)
                 ent = gameExports.g_edicts[0];
             else
-                ent = G_Spawn();
+                ent = G_Spawn(gameExports);
 
             ED_ParseEdict(ph, ent, gameExports);
             Com.DPrintf("spawning ent[" + ent.index + "], classname=" +
@@ -1371,7 +1374,7 @@ public class GameSpawn {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
 
                         Com.DPrintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent);
+                        GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
                         continue;
                     }
@@ -1385,7 +1388,7 @@ public class GameSpawn {
                                     || (((gameExports.cvarCache.skill.value == 2) || (gameExports.cvarCache.skill.value == 3)) && (ent.spawnflags & GameDefines.SPAWNFLAG_NOT_HARD) != 0)) {
 
                         Com.DPrintf("->inhibited.\n");
-                        GameUtil.G_FreeEdict(ent);
+                        GameUtil.G_FreeEdict(ent, gameExports);
                         inhibit++;
 
                         continue;
@@ -1403,7 +1406,7 @@ public class GameSpawn {
         Com.DPrintf("player skill level:" + gameExports.cvarCache.skill.value + "\n");
         Com.DPrintf(inhibit + " entities inhibited.\n");
         G_FindTeams(gameExports);
-        PlayerTrail.Init();
+        PlayerTrail.Init(gameExports);
     }
 
     /**
@@ -1456,10 +1459,10 @@ public class GameSpawn {
         gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
 
         EntThinkAdapter spawn = spawns.get(className);
-        gitem_t gitem_t = GameItems.FindItemByClassname(className);
+        gitem_t gitem_t = GameItems.FindItemByClassname(className, gameExports);
         if (spawn != null || gitem_t != null) {
             float[] location = creator.s.origin;
-            SubgameEntity newThing = G_Spawn();
+            SubgameEntity newThing = G_Spawn(gameExports);
 
             float[] offset = {0,0,0};
             float[] forward = { 0, 0, 0 };

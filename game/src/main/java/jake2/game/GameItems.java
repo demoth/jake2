@@ -99,7 +99,7 @@ public class GameItems {
             if (clPers.max_slugs < 100)
                 clPers.max_slugs = 100;
     
-            item = FindItem("Bullets");
+            item = FindItem("Bullets", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -107,7 +107,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_bullets;
             }
     
-            item = FindItem("Shells");
+            item = FindItem("Shells", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -115,7 +115,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_shells;
             }
     
-            item = FindItem("Cells");
+            item = FindItem("Cells", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -123,7 +123,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_cells;
             }
     
-            item = FindItem("Grenades");
+            item = FindItem("Grenades", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -131,7 +131,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_grenades;
             }
     
-            item = FindItem("Rockets");
+            item = FindItem("Rockets", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -139,7 +139,7 @@ public class GameItems {
                     clPers.inventory[index] = clPers.max_rockets;
             }
     
-            item = FindItem("Slugs");
+            item = FindItem("Slugs", gameExports);
             if (item != null) {
                 index = item.index;
                 clPers.inventory[index] += item.quantity;
@@ -149,7 +149,7 @@ public class GameItems {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, ent.item.quantity);
+                SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
         }
@@ -166,9 +166,9 @@ public class GameItems {
 
             if (!((self.spawnflags & GameDefines.DROPPED_ITEM) != 0)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(self, 20);
+                SetRespawn(self, 20, gameExports);
             else
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
 
             return false;
         }
@@ -199,7 +199,7 @@ public class GameItems {
             } else {
                 if (!((ent.spawnflags & GameDefines.DROPPED_ITEM) != 0)
                         && (gameExports.cvarCache.deathmatch.value != 0))
-                    SetRespawn(ent, 30);
+                    SetRespawn(ent, 30, gameExports);
             }
     
             return true;
@@ -279,7 +279,7 @@ public class GameItems {
                 if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                     ent.flags &= ~GameDefines.FL_RESPAWN;
                 else
-                    GameUtil.G_FreeEdict(ent);
+                    GameUtil.G_FreeEdict(ent, gameExports);
             }
         }
     };
@@ -311,7 +311,7 @@ public class GameItems {
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-            GameUtil.ValidateSelectedItem(ent);
+            GameUtil.ValidateSelectedItem(ent, gameExports);
     
             if (quad_drop_timeout_hack != 0) {
                 timeout = quad_drop_timeout_hack;
@@ -335,7 +335,7 @@ public class GameItems {
         public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-            GameUtil.ValidateSelectedItem(ent);
+            GameUtil.ValidateSelectedItem(ent, gameExports);
     
             if (client.invincible_framenum > gameExports.level.framenum)
                 client.invincible_framenum += 300;
@@ -352,7 +352,7 @@ public class GameItems {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
     
-            GameUtil.ValidateSelectedItem(ent);
+            GameUtil.ValidateSelectedItem(ent, gameExports);
     
             if (client.breather_framenum > gameExports.level.framenum)
                 client.breather_framenum += 300;
@@ -368,7 +368,7 @@ public class GameItems {
         public void use(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-            GameUtil.ValidateSelectedItem(ent);
+            GameUtil.ValidateSelectedItem(ent, gameExports);
     
             if (client.enviro_framenum > gameExports.level.framenum)
                 client.enviro_framenum += 300;
@@ -385,7 +385,7 @@ public class GameItems {
 
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-            GameUtil.ValidateSelectedItem(ent);
+            GameUtil.ValidateSelectedItem(ent, gameExports);
             client.silencer_shots += 30;
     
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
@@ -437,13 +437,13 @@ public class GameItems {
     
             if (weapon && 0 == oldcount) {
                 if (client.pers.weapon != ent.item
-                        && (0 == gameExports.cvarCache.deathmatch.value || client.pers.weapon == FindItem("blaster")))
+                        && (0 == gameExports.cvarCache.deathmatch.value || client.pers.weapon == FindItem("blaster", gameExports)))
                     client.newweapon = ent.item;
             }
     
             if (0 == (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, 30);
+                SetRespawn(ent, 30, gameExports);
             return true;
         }
     };
@@ -524,7 +524,7 @@ public class GameItems {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, 20);
+                SetRespawn(ent, 20, gameExports);
     
             return true;
         }
@@ -542,7 +542,7 @@ public class GameItems {
     
             if (gameExports.cvarCache.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
-                    SetRespawn(ent, ent.item.quantity);
+                    SetRespawn(ent, ent.item.quantity, gameExports);
                 // auto-use for DM only if we didn't already have one
                 if (0 == quantity)
                     ent.item.use.use(other, ent.item, gameExports);
@@ -570,7 +570,7 @@ public class GameItems {
     
             if (gameExports.cvarCache.deathmatch.value != 0) {
                 if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM))
-                    SetRespawn(ent, ent.item.quantity);
+                    SetRespawn(ent, ent.item.quantity, gameExports);
                 if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_INSTANT_ITEMS) != 0
                         || ((ent.item.use == Use_Quad) && 0 != (ent.spawnflags & GameDefines.DROPPED_PLAYER_ITEM))) {
                     if ((ent.item.use == Use_Quad)
@@ -595,7 +595,7 @@ public class GameItems {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, ent.item.quantity);
+                SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
     
@@ -608,7 +608,7 @@ public class GameItems {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, ent.item.quantity);
+                SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
         }
@@ -629,7 +629,7 @@ public class GameItems {
             if (client.pers.max_slugs < 75)
                 client.pers.max_slugs = 75;
     
-            item = FindItem("Bullets");
+            item = FindItem("Bullets", gameExports);
             if (item != null) {
                 index = item.index;
                 client.pers.inventory[index] += item.quantity;
@@ -637,7 +637,7 @@ public class GameItems {
                     client.pers.inventory[index] = client.pers.max_bullets;
             }
     
-            item = FindItem("Shells");
+            item = FindItem("Shells", gameExports);
             if (item != null) {
                 index = item.index;
                 client.pers.inventory[index] += item.quantity;
@@ -647,7 +647,7 @@ public class GameItems {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)
                     && (gameExports.cvarCache.deathmatch.value != 0))
-                SetRespawn(ent, ent.item.quantity);
+                SetRespawn(ent, ent.item.quantity, gameExports);
     
             return true;
     
@@ -659,7 +659,7 @@ public class GameItems {
             int index;
 
             index = item.index;
-            SubgameEntity dropped = Drop_Item(ent, item);
+            SubgameEntity dropped = Drop_Item(ent, item, gameExports);
             gclient_t client = ent.getClient();
             if (client.pers.inventory[index] >= item.quantity)
                 dropped.count = item.quantity;
@@ -672,21 +672,21 @@ public class GameItems {
                     && client.pers.inventory[index] - dropped.count <= 0) {
                 gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
                         "Can't drop current weapon\n");
-                GameUtil.G_FreeEdict(dropped);
+                GameUtil.G_FreeEdict(dropped, gameExports);
                 return;
             }
     
             client.pers.inventory[index] -= dropped.count;
-            ValidateSelectedItem(ent);
+            ValidateSelectedItem(ent, gameExports);
         }
     };
     static ItemDropAdapter Drop_General = new ItemDropAdapter() {
         public String getID() { return "drop_general";}
         public void drop(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
-            Drop_Item(ent, item);
+            Drop_Item(ent, item, gameExports);
             gclient_t client = ent.getClient();
             client.pers.inventory[item.index]--;
-            ValidateSelectedItem(ent);
+            ValidateSelectedItem(ent, gameExports);
         }
     };
     
@@ -732,7 +732,7 @@ public class GameItems {
             if (tr.startsolid) {
                 gameExports.gameImports.dprintf("droptofloor: " + ent.classname
                         + " startsolid at " + Lib.vtos(ent.s.origin) + "\n");
-                GameUtil.G_FreeEdict(ent);
+                GameUtil.G_FreeEdict(ent, gameExports);
                 return true;
             }
     
@@ -780,7 +780,7 @@ public class GameItems {
                                 .soundindex("misc/power2.wav"), 1,
                                 Defines.ATTN_NORM, 0);
             } else {
-                index = FindItem("cells").index;
+                index = FindItem("cells", gameExports).index;
                 gclient_t client = ent.getClient();
                 if (0 == client.pers.inventory[index]) {
                     gameExports.gameImports.cprintf(ent, Defines.PRINT_HIGH,
@@ -816,8 +816,8 @@ public class GameItems {
     /*
      * =============== GetItemByIndex ===============
      */
-    static gitem_t GetItemByIndex(int index) {
-        if (index == 0 || index >= GameBase.gameExports.game.num_items)
+    static gitem_t GetItemByIndex(int index, GameExportsImpl gameExports) {
+        if (index == 0 || index >= gameExports.game.num_items)
             return null;
     
         return GameItemList.itemlist[index];
@@ -828,9 +828,9 @@ public class GameItems {
      * 
      * ===============
      */
-    static gitem_t FindItemByClassname(String classname) {
+    static gitem_t FindItemByClassname(String classname, GameExportsImpl gameExports) {
     
-        for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
+        for (int i = 1; i < gameExports.game.num_items; i++) {
             gitem_t it = GameItemList.itemlist[i];
     
             if (it.classname == null)
@@ -846,8 +846,8 @@ public class GameItems {
      * =============== FindItem ===============
      */
     //geht.
-    static gitem_t FindItem(String pickup_name) {
-        for (int i = 1; i < GameBase.gameExports.game.num_items; i++) {
+    static gitem_t FindItem(String pickup_name, GameExportsImpl gameExports) {
+        for (int i = 1; i < gameExports.game.num_items; i++) {
             gitem_t it = GameItemList.itemlist[i];
     
             if (it.pickup_name == null)
@@ -859,21 +859,21 @@ public class GameItems {
         return null;
     }
 
-    static void SetRespawn(SubgameEntity ent, float delay) {
+    static void SetRespawn(SubgameEntity ent, float delay, GameExportsImpl gameExports) {
         ent.flags |= GameDefines.FL_RESPAWN;
         ent.svflags |= Defines.SVF_NOCLIENT;
         ent.solid = Defines.SOLID_NOT;
-        ent.nextthink = GameBase.gameExports.level.time + delay;
+        ent.nextthink = gameExports.level.time + delay;
         ent.think = DoRespawn;
-        GameBase.gameExports.gameImports.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static SubgameEntity Drop_Item(SubgameEntity ent, gitem_t item) {
+    static SubgameEntity Drop_Item(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
         float[] forward = { 0, 0, 0 };
         float[] right = { 0, 0, 0 };
         float[] offset = { 0, 0, 0 };
 
-        SubgameEntity dropped = GameUtil.G_Spawn();
+        SubgameEntity dropped = GameUtil.G_Spawn(gameExports);
     
         dropped.classname = item.classname;
         dropped.item = item;
@@ -882,7 +882,7 @@ public class GameItems {
         dropped.s.renderfx = Defines.RF_GLOW;
         Math3D.VectorSet(dropped.mins, -15, -15, -15);
         Math3D.VectorSet(dropped.maxs, 15, 15, 15);
-        GameBase.gameExports.gameImports.setmodel(dropped, dropped.item.world_model);
+        gameExports.gameImports.setmodel(dropped, dropped.item.world_model);
         dropped.solid = Defines.SOLID_TRIGGER;
         dropped.movetype = GameDefines.MOVETYPE_TOSS;
     
@@ -898,7 +898,7 @@ public class GameItems {
             Math3D.VectorSet(offset, 24, 0, -16);
             Math3D.G_ProjectSource(ent.s.origin, offset, forward, right,
                     dropped.s.origin);
-            trace = GameBase.gameExports.gameImports.trace(ent.s.origin, dropped.mins, dropped.maxs,
+            trace = gameExports.gameImports.trace(ent.s.origin, dropped.mins, dropped.maxs,
                     dropped.s.origin, ent, Defines.CONTENTS_SOLID);
             Math3D.VectorCopy(trace.endpos, dropped.s.origin);
         } else {
@@ -910,9 +910,9 @@ public class GameItems {
         dropped.velocity[2] = 300;
     
         dropped.think = drop_make_touchable;
-        dropped.nextthink = GameBase.gameExports.level.time + 1;
+        dropped.nextthink = gameExports.level.time + 1;
     
-        GameBase.gameExports.gameImports.linkentity(dropped);
+        gameExports.gameImports.linkentity(dropped);
     
         return dropped;
     }
@@ -1001,21 +1001,21 @@ public class GameItems {
             gameExports.gameImports.configstring(Defines.CS_ITEMS + i, it.pickup_name);
         }
 
-        jacket_armor_index = FindItem("Jacket Armor").index;
-        combat_armor_index = FindItem("Combat Armor").index;
-        body_armor_index = FindItem("Body Armor").index;
-        power_screen_index = FindItem("Power Screen").index;
-        power_shield_index = FindItem("Power Shield").index;
+        jacket_armor_index = FindItem("Jacket Armor", gameExports).index;
+        combat_armor_index = FindItem("Combat Armor", gameExports).index;
+        body_armor_index = FindItem("Body Armor", gameExports).index;
+        power_screen_index = FindItem("Power Screen", gameExports).index;
+        power_shield_index = FindItem("Power Shield", gameExports).index;
     }
 
-    static void SelectNextItem(SubgameEntity ent, int itflags) {
+    static void SelectNextItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
         int i, index;
         gitem_t it;
 
         gclient_t cl = ent.getClient();
     
         if (cl.chase_target != null) {
-            GameChase.ChaseNext(ent);
+            GameChase.ChaseNext(ent, gameExports);
             return;
         }
     
@@ -1037,14 +1037,14 @@ public class GameItems {
         cl.pers.selected_item = -1;
     }
 
-    static void SelectPrevItem(SubgameEntity ent, int itflags) {
+    static void SelectPrevItem(SubgameEntity ent, int itflags, GameExportsImpl gameExports) {
         int i, index;
         gitem_t it;
 
         gclient_t cl = ent.getClient();
     
         if (cl.chase_target != null) {
-            GameChase.ChasePrev(ent);
+            GameChase.ChasePrev(ent, gameExports);
             return;
         }
     
@@ -1078,28 +1078,28 @@ public class GameItems {
      *
      * This will be called for each item spawned in a level, and for each item in each client's inventory.
      */
-    static void PrecacheItem(gitem_t it) {
+    static void PrecacheItem(gitem_t it, GameExportsImpl gameExports) {
 
         if (it == null)
             return;
     
         if (it.pickup_sound != null)
-            GameBase.gameExports.gameImports.soundindex(it.pickup_sound);
+            gameExports.gameImports.soundindex(it.pickup_sound);
     
         if (it.world_model != null)
-            GameBase.gameExports.gameImports.modelindex(it.world_model);
+            gameExports.gameImports.modelindex(it.world_model);
     
         if (it.view_model != null)
-            GameBase.gameExports.gameImports.modelindex(it.view_model);
+            gameExports.gameImports.modelindex(it.view_model);
     
         if (it.icon != null)
-            GameBase.gameExports.gameImports.imageindex(it.icon);
+            gameExports.gameImports.imageindex(it.icon);
     
         // parse everything for its ammo
         if (it.ammo != null && it.ammo.length() != 0) {
-            gitem_t ammo = FindItem(it.ammo);
+            gitem_t ammo = FindItem(it.ammo, gameExports);
             if (ammo != it)
-                PrecacheItem(ammo);
+                PrecacheItem(ammo, gameExports);
         }
     
         // parse the space separated precache string for other items
@@ -1115,19 +1115,19 @@ public class GameItems {
             int len = file.length();
 
             if (len >= Defines.MAX_QPATH || len < 5)
-                GameBase.gameExports.gameImports.error("PrecacheItem: it.classname has bad precache string: " + precacheString);
+                gameExports.gameImports.error("PrecacheItem: it.classname has bad precache string: " + precacheString);
     
             // determine type based on extension
             if (file.endsWith("md2"))
-                GameBase.gameExports.gameImports.modelindex(file);
+                gameExports.gameImports.modelindex(file);
             else if (file.endsWith("sp2"))
-                GameBase.gameExports.gameImports.modelindex(file);
+                gameExports.gameImports.modelindex(file);
             else if (file.endsWith("wav"))
-                GameBase.gameExports.gameImports.soundindex(file);
+                gameExports.gameImports.soundindex(file);
             else if (file.endsWith("pcx"))
-                GameBase.gameExports.gameImports.imageindex(file);
+                gameExports.gameImports.imageindex(file);
             else
-                GameBase.gameExports.gameImports.error("PrecacheItem: bad precache string: " + file);
+                gameExports.gameImports.error("PrecacheItem: bad precache string: " + file);
         }
     }
 
@@ -1138,7 +1138,7 @@ public class GameItems {
      * entity that hasn't spawned yet.
      */
     static void SpawnItem(SubgameEntity ent, gitem_t item, GameExportsImpl gameExports) {
-        PrecacheItem(item);
+        PrecacheItem(item, gameExports);
     
         if (ent.spawnflags != 0) {
             if (!"key_power_cube".equals(ent.classname)) {
@@ -1154,13 +1154,13 @@ public class GameItems {
             if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_ARMOR) != 0) {
                 if (item.pickup == Pickup_Armor
                         || item.pickup == Pickup_PowerArmor) {
-                    GameUtil.G_FreeEdict(ent);
+                    GameUtil.G_FreeEdict(ent, gameExports);
                     return;
                 }
             }
             if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_ITEMS) != 0) {
                 if (item.pickup == Pickup_Powerup) {
-                    GameUtil.G_FreeEdict(ent);
+                    GameUtil.G_FreeEdict(ent, gameExports);
                     return;
                 }
             }
@@ -1168,14 +1168,14 @@ public class GameItems {
                 if (item.pickup == Pickup_Health
                         || item.pickup == Pickup_Adrenaline
                         || item.pickup == Pickup_AncientHead) {
-                    GameUtil.G_FreeEdict(ent);
+                    GameUtil.G_FreeEdict(ent, gameExports);
                     return;
                 }
             }
             if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0) {
                 if ((item.flags == GameDefines.IT_AMMO)
                         || ("weapon_bfg".equals(ent.classname))) {
-                    GameUtil.G_FreeEdict(ent);
+                    GameUtil.G_FreeEdict(ent, gameExports);
                     return;
                 }
             }
@@ -1210,12 +1210,12 @@ public class GameItems {
     static void SP_item_health(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0
                 && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
         }
     
         self.model = "models/items/healing/medium/tris.md2";
         self.count = 10;
-        SpawnItem(self, FindItem("Health"), gameExports);
+        SpawnItem(self, FindItem("Health", gameExports), gameExports);
         gameExports.gameImports.soundindex("items/n_health.wav");
     }
 
@@ -1225,13 +1225,13 @@ public class GameItems {
     static void SP_item_health_small(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0
                 && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
     
         self.model = "models/items/healing/stimpack/tris.md2";
         self.count = 2;
-        SpawnItem(self, FindItem("Health"), gameExports);
+        SpawnItem(self, FindItem("Health", gameExports), gameExports);
         self.style = GameDefines.HEALTH_IGNORE_MAX;
         gameExports.gameImports.soundindex("items/s_health.wav");
     }
@@ -1242,13 +1242,13 @@ public class GameItems {
     static void SP_item_health_large(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0
                 && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
     
         self.model = "models/items/healing/large/tris.md2";
         self.count = 25;
-        SpawnItem(self, FindItem("Health"), gameExports);
+        SpawnItem(self, FindItem("Health", gameExports), gameExports);
         gameExports.gameImports.soundindex("items/l_health.wav");
     }
 
@@ -1258,13 +1258,13 @@ public class GameItems {
     static void SP_item_health_mega(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0
                 && ((int) gameExports.cvarCache.dmflags.value & Defines.DF_NO_HEALTH) != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
     
         self.model = "models/items/mega_h/tris.md2";
         self.count = 100;
-        SpawnItem(self, FindItem("Health"), gameExports);
+        SpawnItem(self, FindItem("Health", gameExports), gameExports);
         gameExports.gameImports.soundindex("items/m_health.wav");
         self.style = GameDefines.HEALTH_IGNORE_MAX | GameDefines.HEALTH_TIMED;
     }
@@ -1341,17 +1341,17 @@ public class GameItems {
             if ((ent.flags & GameDefines.FL_RESPAWN) != 0)
                 ent.flags &= ~GameDefines.FL_RESPAWN;
             else
-                GameUtil.G_FreeEdict(ent);
+                GameUtil.G_FreeEdict(ent, gameExports);
         }
     }
 
-    static void ValidateSelectedItem(SubgameEntity ent) {
+    static void ValidateSelectedItem(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t cl = ent.getClient();
 
         if (cl.pers.inventory[cl.pers.selected_item] != 0)
             return; // valid
 
-        SelectNextItem(ent, -1);
+        SelectNextItem(ent, -1, gameExports);
     }
 
     /** Writes an item reference. */

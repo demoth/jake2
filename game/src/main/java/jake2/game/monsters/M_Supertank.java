@@ -1051,7 +1051,7 @@ public class M_Supertank {
     static EntThinkAdapter supertank_reattack1 = new EntThinkAdapter() {
     	public String getID(){ return "supertank_reattack1"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (GameUtil.visible(self, self.enemy))
+            if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
                     self.monsterinfo.currentmove = supertank_move_attack1;
                 else
@@ -1158,7 +1158,7 @@ public class M_Supertank {
     	public String getID(){ return "SP_monster_supertank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.cvarCache.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 
@@ -1253,14 +1253,14 @@ public class M_Supertank {
                 self.s.sound = 0;
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 8; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2",
-                            500, GameDefines.GIB_METALLIC);
+                            500, GameDefines.GIB_METALLIC, gameExports);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500,
-                        GameDefines.GIB_ORGANIC);
+                        GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500,
-                        GameDefines.GIB_METALLIC);
+                        GameDefines.GIB_METALLIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return true;
             }

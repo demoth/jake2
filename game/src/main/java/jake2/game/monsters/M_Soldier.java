@@ -1034,11 +1034,11 @@ public class M_Soldier {
                 for (n = 0; n < 3; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1461,7 +1461,7 @@ public class M_Soldier {
     	public String getID(){ return "SP_monster_soldier_light"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.cvarCache.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 
@@ -1494,7 +1494,7 @@ public class M_Soldier {
                     "\n");
             
             if (gameExports.cvarCache.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 
@@ -1519,7 +1519,7 @@ public class M_Soldier {
     	public String getID(){ return "SP_monster_soldier_ss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.cvarCache.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 

@@ -517,7 +517,7 @@ public class M_Boss31 {
     static EntThinkAdapter jorg_reattack1 = new EntThinkAdapter() {
     	public String getID() { return "jorg_reattack1"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (GameUtil.visible(self, self.enemy))
+            if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
                     self.monsterinfo.currentmove = jorg_move_attack1;
                 else {
@@ -1152,7 +1152,7 @@ public class M_Boss31 {
      */
     public static void SP_monster_jorg(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

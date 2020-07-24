@@ -915,7 +915,7 @@ public class M_Flyer {
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
-            GameMisc.BecomeExplosion1(self);
+            GameMisc.BecomeExplosion1(self, gameExports);
         }
     };
 
@@ -952,7 +952,7 @@ public class M_Flyer {
      */
     public static void SP_monster_flyer(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

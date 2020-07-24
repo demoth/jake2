@@ -70,7 +70,7 @@ public class GameAI {
     /**
      * Strafe sideways, but stay at aproximately the same range.
      */
-    public static void ai_run_slide(SubgameEntity self, float distance) {
+    public static void ai_run_slide(SubgameEntity self, float distance, GameExportsImpl gameExports) {
         float ofs;
 
         self.ideal_yaw = enemy_yaw;
@@ -81,11 +81,11 @@ public class GameAI {
         else
             ofs = -90;
 
-        if (M.M_walkmove(self, self.ideal_yaw + ofs, distance))
+        if (M.M_walkmove(self, self.ideal_yaw + ofs, distance, gameExports))
             return;
 
         self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
-        M.M_walkmove(self, self.ideal_yaw - ofs, distance);
+        M.M_walkmove(self, self.ideal_yaw - ofs, distance, gameExports);
     }
 
     /**
@@ -165,7 +165,7 @@ public class GameAI {
             if (self.oldenemy != null && self.oldenemy.health > 0) {
                 self.enemy = self.oldenemy;
                 self.oldenemy = null;
-                HuntTarget(self);
+                HuntTarget(self, gameExports);
             } else {
                 if (self.movetarget != null) {
                     self.goalentity = self.movetarget;
@@ -185,7 +185,7 @@ public class GameAI {
         self.show_hostile = (int) gameExports.level.time + 1; // wake up other
         
         // monsters check knowledge of enemy
-        enemy_vis = GameUtil.visible(self, self.enemy);
+        enemy_vis = GameUtil.visible(self, self.enemy, gameExports);
         if (enemy_vis) {
             self.monsterinfo.search_time = gameExports.level.time + 5;
             Math3D.VectorCopy(self.enemy.s.origin,
@@ -255,20 +255,20 @@ public class GameAI {
     /**
      * Decides running or standing according to flag AI_STAND_GROUND.
      */
-    static void HuntTarget(SubgameEntity self) {
+    static void HuntTarget(SubgameEntity self, GameExportsImpl gameExports) {
         float[] vec = { 0, 0, 0 };
     
         self.goalentity = self.enemy;
         if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
-            self.monsterinfo.stand.think(self, GameBase.gameExports);
+            self.monsterinfo.stand.think(self, gameExports);
         else
-            self.monsterinfo.run.think(self, GameBase.gameExports);
+            self.monsterinfo.run.think(self, gameExports);
         Math3D.VectorSubtract(self.enemy.s.origin, self.s.origin, vec);
         self.ideal_yaw = Math3D.vectoyaw(vec);
         
         // wait a while before first attack
         if (0 == (self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND))
-            GameUtil.AttackFinished(self, 1);
+            GameUtil.AttackFinished(self, gameExports.level.time + 1);
     }
 
     
@@ -280,7 +280,7 @@ public class GameAI {
                 M.M_droptofloor.think(self, gameExports);
 
                 if (self.groundentity != null)
-                    if (!M.M_walkmove(self, 0, 0))
+                    if (!M.M_walkmove(self, 0, 0, gameExports))
                         gameExports.gameImports.dprintf(self.classname + " in solid at "
                                 + Lib.vtos(self.s.origin) + "\n");
             }
@@ -311,7 +311,7 @@ public class GameAI {
     public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
         public String getID() { return "flymonster_start_go";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            if (!M.M_walkmove(self, 0, 0))
+            if (!M.M_walkmove(self, 0, 0, gameExports))
                 gameExports.gameImports.dprintf(self.classname + " in solid at "
                         + Lib.vtos(self.s.origin) + "\n");
 
@@ -372,9 +372,9 @@ public class GameAI {
         public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
 
             if (dist != 0)
-                M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
+                M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
 
-            if (GameUtil.FindTarget(self))
+            if (GameUtil.FindTarget(self, gameExports))
                 return;
 
             M.M_ChangeYaw(self);
@@ -389,7 +389,7 @@ public class GameAI {
     public static AIAdapter ai_move = new AIAdapter() {
         public String getID() { return "ai_move";}
         public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
-            M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
+            M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
         }
     };
 
@@ -400,10 +400,10 @@ public class GameAI {
     public static AIAdapter ai_walk = new AIAdapter() {
         public String getID() { return "ai_walk";}
         public void ai(SubgameEntity self, float dist, GameExportsImpl gameExports) {
-            M.M_MoveToGoal(self, dist);
+            M.M_MoveToGoal(self, dist, gameExports);
 
             // check for noticing a player
-            if (GameUtil.FindTarget(self))
+            if (GameUtil.FindTarget(self, gameExports))
                 return;
 
             if ((self.monsterinfo.search != null)
@@ -430,7 +430,7 @@ public class GameAI {
             float[] v = { 0, 0, 0 };
 
             if (dist != 0)
-                M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
+                M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 if (self.enemy != null) {
@@ -444,11 +444,11 @@ public class GameAI {
                     M.M_ChangeYaw(self);
                     ai_checkattack(self, 0, gameExports);
                 } else
-                    GameUtil.FindTarget(self);
+                    GameUtil.FindTarget(self, gameExports);
                 return;
             }
 
-            if (GameUtil.FindTarget(self))
+            if (GameUtil.FindTarget(self, gameExports))
                 return;
 
             if (gameExports.level.time > self.monsterinfo.pausetime) {
@@ -482,7 +482,7 @@ public class GameAI {
             M.M_ChangeYaw(self);
 
             if (dist != 0)
-                M.M_walkmove(self, self.s.angles[Defines.YAW], dist);
+                M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
         }
     };
 
@@ -499,7 +499,7 @@ public class GameAI {
 
             // if we're going to a combat point, just proceed
             if ((self.monsterinfo.aiflags & GameDefines.AI_COMBAT_POINT) != 0) {
-                M.M_MoveToGoal(self, dist);
+                M.M_MoveToGoal(self, dist, gameExports);
                 return;
             }
 
@@ -515,10 +515,10 @@ public class GameAI {
                     self.enemy = null;
                 }
                 else               
-                    M.M_MoveToGoal(self, dist);
+                    M.M_MoveToGoal(self, dist, gameExports);
                 
                 // look for new targets
-                if (!GameUtil.FindTarget(self))
+                if (!GameUtil.FindTarget(self, gameExports))
                     return;
                                 
             }
@@ -527,14 +527,14 @@ public class GameAI {
                 return;
 
             if (self.monsterinfo.attack_state == GameDefines.AS_SLIDING) {
-                ai_run_slide(self, dist);
+                ai_run_slide(self, dist, gameExports);
                 return;
             }
 
             if (enemy_vis) {
                 //if (self.aiflags & AI_LOST_SIGHT)
                 //   dprint("regained sight\n");
-                M.M_MoveToGoal(self, dist);
+                M.M_MoveToGoal(self, dist, gameExports);
                 self.monsterinfo.aiflags &= ~GameDefines.AI_LOST_SIGHT;
                 Math3D.VectorCopy(self.enemy.s.origin, self.monsterinfo.last_sighting);
                 self.monsterinfo.trail_time = gameExports.level.time;
@@ -544,21 +544,21 @@ public class GameAI {
             // coop will change to another enemy if visible           
             if (gameExports.cvarCache.coop.value != 0) {
                 // FIXME: insane guys get mad with this, which causes crashes!
-                if (GameUtil.FindTarget(self))
+                if (GameUtil.FindTarget(self, gameExports))
                     return;
             }
             
 
             if ((self.monsterinfo.search_time != 0)
                     && (gameExports.level.time > (self.monsterinfo.search_time + 20))) {
-                M.M_MoveToGoal(self, dist);
+                M.M_MoveToGoal(self, dist, gameExports);
                 self.monsterinfo.search_time = 0;
                 //dprint("search timeout\n");
                 return;
             }
 
             SubgameEntity save = self.goalentity;
-            SubgameEntity tempgoal = GameUtil.G_Spawn();
+            SubgameEntity tempgoal = GameUtil.G_Spawn(gameExports);
             self.goalentity = tempgoal;
 
             boolean new1 = false;
@@ -596,7 +596,7 @@ public class GameAI {
                     new1 = true;
                 } else if ((self.monsterinfo.aiflags & GameDefines.AI_PURSUIT_LAST_SEEN) != 0) {
                     self.monsterinfo.aiflags &= ~GameDefines.AI_PURSUIT_LAST_SEEN;
-                    marker = PlayerTrail.PickFirst(self);
+                    marker = PlayerTrail.PickFirst(self, gameExports);
                 } else {
                     marker = PlayerTrail.PickNext(self);
                 }
@@ -686,9 +686,9 @@ public class GameAI {
                 // else gi.dprintf("course was fine\n");
             }
 
-            M.M_MoveToGoal(self, dist);
+            M.M_MoveToGoal(self, dist, gameExports);
 
-            GameUtil.G_FreeEdict(tempgoal);
+            GameUtil.G_FreeEdict(tempgoal, gameExports);
 
             if (self != null)
                 self.goalentity = save;

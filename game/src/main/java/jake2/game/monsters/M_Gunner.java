@@ -789,13 +789,13 @@ public class M_Gunner {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1001,7 +1001,7 @@ public class M_Gunner {
     	public String getID() { return "gunner_refire_chain"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health > 0)
-                if (GameUtil.visible(self, self.enemy))
+                if (GameUtil.visible(self, self.enemy, gameExports))
                     if (Lib.random() <= 0.5) {
                         self.monsterinfo.currentmove = gunner_move_fire_chain;
                         return true;
@@ -1058,7 +1058,7 @@ public class M_Gunner {
      */
     public static void SP_monster_gunner(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

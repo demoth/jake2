@@ -37,7 +37,7 @@ import jake2.qcommon.util.Math3D;
  */
 public final class M {
 
-    public static void M_CheckGround(SubgameEntity ent) {
+    public static void M_CheckGround(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] point = { 0, 0, 0 };
 
         if ((ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) != 0)
@@ -54,7 +54,7 @@ public final class M {
         point[1] = ent.s.origin[1];
         point[2] = ent.s.origin[2] - 0.25f;
 
-        trace_t trace = GameBase.gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
+        trace_t trace = gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, point, ent,
                 Defines.MASK_MONSTERSOLID);
 
         // check steepness
@@ -79,7 +79,7 @@ public final class M {
      * Returns false if any part of the bottom of the entity is off an edge that
      * is not a staircase.
      */
-    public static boolean M_CheckBottom(edict_t ent) {
+    public static boolean M_CheckBottom(edict_t ent, GameExportsImpl gameExports) {
         float[] mins = { 0, 0, 0 };
         float[] maxs = { 0, 0, 0 };
         float[] start = { 0, 0, 0 };
@@ -100,7 +100,7 @@ public final class M {
             for (y = 0; y <= 1; y++) {
                 start[0] = x != 0 ? maxs[0] : mins[0];
                 start[1] = y != 0 ? maxs[1] : mins[1];
-                if (GameBase.gameExports.gameImports.getPointContents(start) != Defines.CONTENTS_SOLID) {
+                if (gameExports.gameImports.getPointContents(start) != Defines.CONTENTS_SOLID) {
                     GameBase.c_no++;
                     //
                     //	   check it for real...
@@ -111,7 +111,7 @@ public final class M {
                     start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5f;
                     start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5f;
                     stop[2] = start[2] - 2 * GameBase.STEPSIZE;
-                    trace = GameBase.gameExports.gameImports.trace(start, Globals.vec3_origin,
+                    trace = gameExports.gameImports.trace(start, Globals.vec3_origin,
                             Globals.vec3_origin, stop, ent,
                             Defines.MASK_MONSTERSOLID);
 
@@ -125,7 +125,7 @@ public final class M {
                             start[0] = stop[0] = x != 0 ? maxs[0] : mins[0];
                             start[1] = stop[1] = y != 0 ? maxs[1] : mins[1];
 
-                            trace = GameBase.gameExports.gameImports.trace(start,
+                            trace = gameExports.gameImports.trace(start,
                                     Globals.vec3_origin, Globals.vec3_origin,
                                     stop, ent, Defines.MASK_MONSTERSOLID);
 
@@ -184,7 +184,7 @@ public final class M {
     /**
      * M_MoveToGoal.
      */
-    public static void M_MoveToGoal(SubgameEntity ent, float dist) {
+    public static void M_MoveToGoal(SubgameEntity ent, float dist, GameExportsImpl gameExports) {
         SubgameEntity goal = ent.goalentity;
 
         if (ent.groundentity == null
@@ -197,16 +197,16 @@ public final class M {
 
         //	   bump around...
         if ((Lib.rand() & 3) == 1
-                || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist)) {
+                || !SV.SV_StepDirection(ent, ent.ideal_yaw, dist, gameExports)) {
             if (ent.inuse)
-                SV.SV_NewChaseDir(ent, goal, dist);
+                SV.SV_NewChaseDir(ent, goal, dist, gameExports);
         }
     }
 
     /** 
      * M_walkmove.
      */
-    public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist) {
+    public static boolean M_walkmove(SubgameEntity ent, float yaw, float dist, GameExportsImpl gameExports) {
         float[] move = { 0, 0, 0 };
 
         if ((ent.groundentity == null)
@@ -219,7 +219,7 @@ public final class M {
         move[1] = (float) Math.sin(yaw) * dist;
         move[2] = 0;
 
-        return SV.SV_movestep(ent, move, true);
+        return SV.SV_movestep(ent, move, true, gameExports);
     }
 
     public static void M_CatagorizePosition(SubgameEntity ent, GameExportsImpl gameExports) {
@@ -274,7 +274,7 @@ public final class M {
                         GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                                 gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
+                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }
@@ -291,7 +291,7 @@ public final class M {
                         GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                                 gameExports.g_edicts[0], Globals.vec3_origin,
                                 ent.s.origin, Globals.vec3_origin, dmg, 0,
-                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER);
+                                Defines.DAMAGE_NO_ARMOR, GameDefines.MOD_WATER, gameExports);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
                 }
@@ -315,7 +315,7 @@ public final class M {
                 GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                         gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 10 * ent.waterlevel,
-                        0, 0, GameDefines.MOD_LAVA);
+                        0, 0, GameDefines.MOD_LAVA, gameExports);
             }
         }
         if ((ent.watertype & Defines.CONTENTS_SLIME) != 0
@@ -325,7 +325,7 @@ public final class M {
                 GameCombat.T_Damage(ent, gameExports.g_edicts[0],
                         gameExports.g_edicts[0], Globals.vec3_origin,
                         ent.s.origin, Globals.vec3_origin, 4 * ent.waterlevel,
-                        0, 0, GameDefines.MOD_SLIME);
+                        0, 0, GameDefines.MOD_SLIME, gameExports);
             }
         }
 
@@ -374,7 +374,7 @@ public final class M {
             Math3D.VectorCopy(trace.endpos, ent.s.origin);
 
             gameExports.gameImports.linkentity(ent);
-            M.M_CheckGround(ent);
+            M.M_CheckGround(ent, gameExports);
             M_CatagorizePosition(ent, gameExports);
             return true;
         }
