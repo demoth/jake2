@@ -868,7 +868,7 @@ public class M_Float {
 
             GameCombat.T_Damage(self.enemy, self, self, dir, self.enemy.s.origin,
                     Globals.vec3_origin, 5 + Lib.rand() % 6, -10,
-                    Defines.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN);
+                    Defines.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN, gameExports);
             return true;
         }
     };
@@ -1165,7 +1165,7 @@ public class M_Float {
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death1, 1,
                     Defines.ATTN_NORM, 0);
-            GameMisc.BecomeExplosion1(self);
+            GameMisc.BecomeExplosion1(self, gameExports);
 
         }
     };
@@ -1176,7 +1176,7 @@ public class M_Float {
      */
     public static void SP_monster_floater(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

@@ -64,7 +64,7 @@ public class PlayerWeapon {
                                     1, Defines.ATTN_NORM, 0);
                             ent.pain_debounce_time = gameExports.level.time + 1;
                         }
-                        NoAmmoWeaponChange(ent);
+                        NoAmmoWeaponChange(ent, gameExports);
                     }
                     return true;
                 }
@@ -326,7 +326,7 @@ public class PlayerWeapon {
                                 Defines.ATTN_NORM, 0);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
-                    NoAmmoWeaponChange(ent);
+                    NoAmmoWeaponChange(ent, gameExports);
                 } else {
                     rotation = (float) ((client.getPlayerState().gunframe - 5) * 2
                             * Math.PI / 6);
@@ -746,7 +746,7 @@ public class PlayerWeapon {
             if (item.ammo != null && 0 == gameExports.cvarCache.g_select_empty.value
                     && 0 == (item.flags & GameDefines.IT_AMMO)) {
                 
-                ammo_item = GameItems.FindItem(item.ammo);
+                ammo_item = GameItems.FindItem(item.ammo, gameExports);
                 ammo_index = ammo_item.index;
 
                 if (0 == client.pers.inventory[ammo_index]) {
@@ -793,7 +793,7 @@ public class PlayerWeapon {
                 return;
             }
 
-            GameItems.Drop_Item(ent, item);
+            GameItems.Drop_Item(ent, item, gameExports);
             client.pers.inventory[index]--;
         }
     };
@@ -839,7 +839,7 @@ public class PlayerWeapon {
                             Defines.ATTN_NORM, 0);
                     ent.pain_debounce_time = gameExports.level.time + 1;
                 }
-                NoAmmoWeaponChange(ent);
+                NoAmmoWeaponChange(ent, gameExports);
                 return true;
             }
 
@@ -978,7 +978,7 @@ public class PlayerWeapon {
                             Defines.ATTN_NORM, 0);
                     ent.pain_debounce_time = gameExports.level.time + 1;
                 }
-                NoAmmoWeaponChange(ent);
+                NoAmmoWeaponChange(ent, gameExports);
                 return true;
             }
 
@@ -1046,7 +1046,7 @@ public class PlayerWeapon {
     
             if (0 == (ent.spawnflags & GameDefines.DROPPED_ITEM)) {
                 // give them some ammo with it
-                ammo = GameItems.FindItem(ent.item.ammo);
+                ammo = GameItems.FindItem(ent.item.ammo, gameExports);
                 if (((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO) != 0)
                     GameItems.Add_Ammo(other, ammo, 1000);
                 else
@@ -1057,7 +1057,7 @@ public class PlayerWeapon {
                         if (((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_WEAPONS_STAY) != 0)
                             ent.flags |= GameDefines.FL_RESPAWN;
                         else
-                            GameItems.SetRespawn(ent, 30);
+                            GameItems.SetRespawn(ent, 30, gameExports);
                     }
                     if (gameExports.cvarCache.coop.value != 0)
                         ent.flags |= GameDefines.FL_RESPAWN;
@@ -1067,7 +1067,7 @@ public class PlayerWeapon {
             if (client.pers.weapon != ent.item
                     && (client.pers.inventory[index] == 1)
                     && (0 == gameExports.cvarCache.deathmatch.value || client.pers.weapon == GameItems
-                            .FindItem("blaster")))
+                            .FindItem("blaster", gameExports)))
                 client.newweapon = ent.item;
     
             return true;
@@ -1122,7 +1122,7 @@ public class PlayerWeapon {
                 && client.pers.weapon.ammo != null)
 
             client.ammo_index = GameItems
-                    .FindItem(client.pers.weapon.ammo).index;
+                    .FindItem(client.pers.weapon.ammo, gameExports).index;
         else
             client.ammo_index = 0;
 
@@ -1152,51 +1152,51 @@ public class PlayerWeapon {
      * NoAmmoWeaponChange 
      * =================
      */
-    public static void NoAmmoWeaponChange(SubgameEntity ent) {
+    public static void NoAmmoWeaponChange(SubgameEntity ent, GameExportsImpl gameExports) {
         gclient_t client = ent.getClient();
         if (0 != client.pers.inventory[GameItems
-                .FindItem("slugs").index]
+                .FindItem("slugs", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("railgun").index]) {
-            client.newweapon = GameItems.FindItem("railgun");
+                .FindItem("railgun", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("railgun", gameExports);
             return;
         }
         if (0 != client.pers.inventory[GameItems
-                .FindItem("cells").index]
+                .FindItem("cells", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("hyperblaster").index]) {
-            client.newweapon = GameItems.FindItem("hyperblaster");
+                .FindItem("hyperblaster", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("hyperblaster", gameExports);
             return;
         }
         if (0 != client.pers.inventory[GameItems
-                .FindItem("bullets").index]
+                .FindItem("bullets", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("chaingun").index]) {
-            client.newweapon = GameItems.FindItem("chaingun");
+                .FindItem("chaingun", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("chaingun", gameExports);
             return;
         }
         if (0 != client.pers.inventory[GameItems
-                .FindItem("bullets").index]
+                .FindItem("bullets", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("machinegun").index]) {
-            client.newweapon = GameItems.FindItem("machinegun");
+                .FindItem("machinegun", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("machinegun", gameExports);
             return;
         }
         if (client.pers.inventory[GameItems
-                .FindItem("shells").index] > 1
+                .FindItem("shells", gameExports).index] > 1
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("super shotgun").index]) {
-            client.newweapon = GameItems.FindItem("super shotgun");
+                .FindItem("super shotgun", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("super shotgun", gameExports);
             return;
         }
         if (0 != client.pers.inventory[GameItems
-                .FindItem("shells").index]
+                .FindItem("shells", gameExports).index]
                 && 0 != client.pers.inventory[GameItems
-                .FindItem("shotgun").index]) {
-            client.newweapon = GameItems.FindItem("shotgun");
+                .FindItem("shotgun", gameExports).index]) {
+            client.newweapon = GameItems.FindItem("shotgun", gameExports);
             return;
         }
-        client.newweapon = GameItems.FindItem("blaster");
+        client.newweapon = GameItems.FindItem("blaster", gameExports);
     }
 
     /*
@@ -1324,7 +1324,7 @@ public class PlayerWeapon {
                                 Defines.ATTN_NORM, 0);
                         ent.pain_debounce_time = gameExports.level.time + 1;
                     }
-                    NoAmmoWeaponChange(ent);
+                    NoAmmoWeaponChange(ent, gameExports);
                 }
             } else {
                 if (client.getPlayerState().gunframe == FRAME_IDLE_LAST) {
@@ -1493,7 +1493,7 @@ public class PlayerWeapon {
 
         SubgameEntity noise;
         if (who.mynoise == null) {
-            noise = GameUtil.G_Spawn();
+            noise = GameUtil.G_Spawn(gameExports);
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);
@@ -1501,7 +1501,7 @@ public class PlayerWeapon {
             noise.svflags = Defines.SVF_NOCLIENT;
             who.mynoise = noise;
     
-            noise = GameUtil.G_Spawn();
+            noise = GameUtil.G_Spawn(gameExports);
             noise.classname = "player_noise";
             Math3D.VectorSet(noise.mins, -8, -8, -8);
             Math3D.VectorSet(noise.maxs, 8, 8, 8);

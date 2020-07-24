@@ -60,14 +60,14 @@ public class PlayerTrail {
         return (n + PlayerTrail.TRAIL_LENGTH - 1) % PlayerTrail.TRAIL_LENGTH;
     }
 
-    static void Init() {
+    static void Init(GameExportsImpl gameExports) {
 
         // FIXME || coop
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
+        if (gameExports.cvarCache.deathmatch.value != 0)
             return;
 
         for (int n = 0; n < PlayerTrail.TRAIL_LENGTH; n++) {
-            PlayerTrail.trail[n] = GameUtil.G_Spawn();
+            PlayerTrail.trail[n] = GameUtil.G_Spawn(gameExports);
             PlayerTrail.trail[n].classname = "player_trail";
         }
 
@@ -75,7 +75,7 @@ public class PlayerTrail {
         trail_active = true;
     }
 
-    static void Add(float[] spot) {
+    static void Add(float[] spot, float time) {
         float[] temp = { 0, 0, 0 };
 
         if (!trail_active)
@@ -83,7 +83,7 @@ public class PlayerTrail {
 
         Math3D.VectorCopy(spot, PlayerTrail.trail[trail_head].s.origin);
 
-        PlayerTrail.trail[trail_head].timestamp = GameBase.gameExports.level.time;
+        PlayerTrail.trail[trail_head].timestamp = time;
 
         Math3D.VectorSubtract(spot,
                 PlayerTrail.trail[PREV(trail_head)].s.origin, temp);
@@ -92,15 +92,7 @@ public class PlayerTrail {
         trail_head = NEXT(trail_head);
     }
 
-    static void New(float[] spot) {
-        if (!trail_active)
-            return;
-
-        Init();
-        Add(spot);
-    }
-
-    static SubgameEntity PickFirst(SubgameEntity self) {
+    static SubgameEntity PickFirst(SubgameEntity self, GameExportsImpl gameExports) {
 
         if (!trail_active)
             return null;
@@ -114,11 +106,11 @@ public class PlayerTrail {
                 break;
         }
 
-        if (GameUtil.visible(self, PlayerTrail.trail[marker])) {
+        if (GameUtil.visible(self, PlayerTrail.trail[marker], gameExports)) {
             return PlayerTrail.trail[marker];
         }
 
-        if (GameUtil.visible(self, PlayerTrail.trail[PREV(marker)])) {
+        if (GameUtil.visible(self, PlayerTrail.trail[PREV(marker)], gameExports)) {
             return PlayerTrail.trail[PREV(marker)];
         }
 

@@ -1290,13 +1290,13 @@ public class M_Actor {
                 // 0);
                 for (n = 0; n < 2; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/bone/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1360,7 +1360,7 @@ public class M_Actor {
             float v[] = { 0, 0, 0 };
 
             self.goalentity = self.movetarget = GameBase
-                    .G_PickTarget(self.target);
+                    .G_PickTarget(self.target, gameExports);
             if ((null == self.movetarget)
                     || (!"target_actor".equals(self.movetarget.classname))) {
                 gameExports.gameImports
@@ -1440,7 +1440,7 @@ public class M_Actor {
             {
             } else if ((self.spawnflags & 4) != 0) //attack
             {
-                other.enemy = GameBase.G_PickTarget(self.pathtarget);
+                other.enemy = GameBase.G_PickTarget(self.pathtarget, gameExports);
                 if (other.enemy != null) {
                     other.goalentity = other.enemy;
                     if ((self.spawnflags & 32) != 0)
@@ -1463,7 +1463,7 @@ public class M_Actor {
                 self.target = savetarget;
             }
 
-            other.movetarget = GameBase.G_PickTarget(self.target);
+            other.movetarget = GameBase.G_PickTarget(self.target, gameExports);
 
             if (other.goalentity == null)
                 other.goalentity = other.movetarget;
@@ -1515,21 +1515,21 @@ public class M_Actor {
 
     public static void SP_misc_actor(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if (self.targetname != null) {
             gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if (self.target != null) {
             gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

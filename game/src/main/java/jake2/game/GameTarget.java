@@ -79,14 +79,14 @@ class GameTarget {
      */
     static void SP_target_help(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
         if (ent.message == null) {
             gameExports.gameImports.dprintf(ent.classname + " with no message at "
                     + Lib.vtos(ent.s.origin) + "\n");
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
         ent.use = Use_Target_Help;
@@ -94,7 +94,7 @@ class GameTarget {
 
     static void SP_target_secret(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
@@ -113,7 +113,7 @@ class GameTarget {
 
     static void SP_target_goal(SubgameEntity ent, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) { // auto-remove for deathmatch
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
@@ -134,7 +134,7 @@ class GameTarget {
         if (ent.map == null) {
             gameExports.gameImports.dprintf("target_changelevel with no map at "
                     + Lib.vtos(ent.s.origin) + "\n");
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
             return;
         }
 
@@ -220,19 +220,19 @@ class GameTarget {
                 || self.message.charAt(0) == self.message.charAt(1)) {
             gameExports.gameImports.dprintf("target_lightramp has bad ramp ("
                     + self.message + ") at " + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
         if (self.target == null) {
             gameExports.gameImports.dprintf(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -341,8 +341,8 @@ class GameTarget {
 
             gameExports.level.found_secrets++;
 
-            GameUtil.G_UseTargets(ent, activator, GameBase.gameExports);
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_UseTargets(ent, activator, gameExports);
+            GameUtil.G_FreeEdict(ent, gameExports);
         }
     };
     
@@ -361,8 +361,8 @@ class GameTarget {
             if (gameExports.level.found_goals == gameExports.level.total_goals)
                 gameExports.gameImports.configstring(Defines.CS_CDTRACK, "0");
 
-            GameUtil.G_UseTargets(ent, activator, GameBase.gameExports);
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_UseTargets(ent, activator, gameExports);
+            GameUtil.G_FreeEdict(ent, gameExports);
         }
     };
 
@@ -386,11 +386,11 @@ class GameTarget {
             gameExports.gameImports.multicast(self.s.origin, MulticastTypes.MULTICAST_PHS);
 
             GameCombat.T_RadiusDamage(self, self.activator, self.dmg, null,
-                    self.dmg + 40, GameDefines.MOD_EXPLOSIVE);
+                    self.dmg + 40, GameDefines.MOD_EXPLOSIVE, gameExports);
 
             save = self.delay;
             self.delay = 0;
-            GameUtil.G_UseTargets(self, self.activator, GameBase.gameExports);
+            GameUtil.G_UseTargets(self, self.activator, gameExports);
             self.delay = save;
             return true;
         }
@@ -433,7 +433,7 @@ class GameTarget {
             ) {
                 GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                         other.s.origin, Globals.vec3_origin,
-                        10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT);
+                        10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT, gameExports);
                 return;
             }
 
@@ -478,7 +478,7 @@ class GameTarget {
 
             if (self.dmg != 0)
                 GameCombat.T_RadiusDamage(self, activator, self.dmg, null,
-                        self.dmg + 40, GameDefines.MOD_SPLASH);
+                        self.dmg + 40, GameDefines.MOD_SPLASH, gameExports);
         }
     };
 
@@ -498,13 +498,13 @@ class GameTarget {
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             SubgameEntity ent;
 
-            ent = GameUtil.G_Spawn();
+            ent = GameUtil.G_Spawn(gameExports);
             ent.classname = self.target;
             Math3D.VectorCopy(self.s.origin, ent.s.origin);
             Math3D.VectorCopy(self.s.angles, ent.s.angles);
             GameSpawn.ED_CallSpawn(ent, gameExports);
             gameExports.gameImports.unlinkentity(ent);
-            GameUtil.KillBox(ent);
+            GameUtil.KillBox(ent, gameExports);
             gameExports.gameImports.linkentity(ent);
             if (self.speed != 0)
                 Math3D.VectorCopy(self.movedir, ent.velocity);
@@ -551,7 +551,7 @@ class GameTarget {
     	public String getID() { return "trigger_crosslevel_trigger_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             gameExports.game.serverflags |= self.spawnflags;
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
         }
     };
 
@@ -569,8 +569,8 @@ class GameTarget {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (self.spawnflags == (gameExports.game.serverflags
                     & Defines.SFL_CROSS_TRIGGER_MASK & self.spawnflags)) {
-                GameUtil.G_UseTargets(self, self, GameBase.gameExports);
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_UseTargets(self, self, gameExports);
+                GameUtil.G_FreeEdict(self, gameExports);
             }
             return true;
         }
@@ -625,7 +625,7 @@ class GameTarget {
                     GameCombat.T_Damage((SubgameEntity) target, self, self.activator,
                             self.movedir, tr.endpos, Globals.vec3_origin,
                             self.dmg, 1, Defines.DAMAGE_ENERGY,
-                            GameDefines.MOD_TARGET_LASER);
+                            GameDefines.MOD_TARGET_LASER, gameExports);
 
                 // if we hit something that's not a monster or player or is
                 // immune to lasers, we're done
@@ -697,7 +697,7 @@ class GameTarget {
             if (null == self.enemy) {
                 if (self.target != null) {
                     EdictIterator edit = GameBase.G_Find(null, GameBase.findByTarget,
-                            self.target);
+                            self.target, gameExports);
                     if (edit == null)
                         gameExports.gameImports.dprintf(self.classname + " at "
                                 + Lib.vtos(self.s.origin) + ": " + self.target
@@ -765,7 +765,7 @@ class GameTarget {
 
                 while (true) {
                     es = GameBase
-                            .G_Find(es, GameBase.findByTarget, self.target);
+                            .G_Find(es, GameBase.findByTarget, self.target, gameExports);
                     
                     if (es == null)
                         break;
@@ -787,7 +787,7 @@ class GameTarget {
                     gameExports.gameImports.dprintf(self.classname + " target "
                             + self.target + " not found at "
                             + Lib.vtos(self.s.origin) + "\n");
-                    GameUtil.G_FreeEdict(self);
+                    GameUtil.G_FreeEdict(self, gameExports);
                     return;
                 }
             }

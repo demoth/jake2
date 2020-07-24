@@ -37,7 +37,7 @@ public class M_Boss3 {
             gameExports.gameImports.WriteByte(Defines.TE_BOSSTPORT);
             gameExports.gameImports.WritePosition(ent.s.origin);
             gameExports.gameImports.multicast(ent.s.origin, MulticastTypes.MULTICAST_PVS);
-            GameUtil.G_FreeEdict(ent);
+            GameUtil.G_FreeEdict(ent, gameExports);
         }
     };
 
@@ -61,7 +61,7 @@ public class M_Boss3 {
      */
     public static void SP_monster_boss3_stand(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

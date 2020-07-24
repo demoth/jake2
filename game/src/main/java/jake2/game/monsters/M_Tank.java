@@ -1067,7 +1067,7 @@ public class M_Tank {
     	public String getID(){ return "tank_reattack_blaster"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.cvarCache.skill.value >= 2)
-                if (GameUtil.visible(self, self.enemy))
+                if (GameUtil.visible(self, self.enemy, gameExports))
                     if (self.enemy.health > 0)
                         if (Lib.random() <= 0.6) {
                             self.monsterinfo.currentmove = tank_move_reattack_blast;
@@ -1148,7 +1148,7 @@ public class M_Tank {
             // Only on hard or nightmare
             if (gameExports.cvarCache.skill.value >= 2)
                 if (self.enemy.health > 0)
-                    if (GameUtil.visible(self, self.enemy))
+                    if (GameUtil.visible(self, self.enemy, gameExports))
                         if (Lib.random() <= 0.4) {
                             self.monsterinfo.currentmove = tank_move_attack_fire_rocket;
                             return true;
@@ -1425,15 +1425,15 @@ public class M_Tank {
                 for (n = 0; n < 1 /* 4 */; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_metal/tris.md2", damage,
-                            GameDefines.GIB_METALLIC);
+                            GameDefines.GIB_METALLIC, gameExports);
                 GameMisc.ThrowGib(self, "models/objects/gibs/chest/tris.md2",
-                        damage, GameDefines.GIB_ORGANIC);
+                        damage, GameDefines.GIB_ORGANIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
-                        damage, GameDefines.GIB_METALLIC);
+                        damage, GameDefines.GIB_METALLIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1468,7 +1468,7 @@ public class M_Tank {
     	public String getID(){ return "SP_monster_tank"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
             if (gameExports.cvarCache.deathmatch.value != 0) {
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
                 return true;
             }
 

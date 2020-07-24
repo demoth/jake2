@@ -63,10 +63,10 @@ public class PlayerClient {
     
             if (self.deadflag == 0) {
                 client.respawn_time = gameExports.level.time + 1.0f;
-                PlayerClient.LookAtKiller(self, inflictor, attacker);
+                PlayerClient.LookAtKiller(self, inflictor, attacker, gameExports.g_edicts[0]);
                 client.getPlayerState().pmove.pm_type = Defines.PM_DEAD;
-                ClientObituary(self, inflictor, attacker);
-                PlayerClient.TossClientWeapon(self);
+                ClientObituary(self, inflictor, attacker, gameExports);
+                PlayerClient.TossClientWeapon(self, gameExports);
                 if (gameExports.cvarCache.deathmatch.value != 0) {
                     Com.Printf("NOT IMPLEMENTED!");
                     //Cmd.Help_f(self); // show scores
@@ -97,8 +97,8 @@ public class PlayerClient {
                                 Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-                            damage, GameDefines.GIB_ORGANIC);
-                GameMisc.ThrowClientHead(self, damage);
+                            damage, GameDefines.GIB_ORGANIC, gameExports);
+                GameMisc.ThrowClientHead(self, damage, gameExports);
     
                 self.takedamage = Defines.DAMAGE_NO;
             } else { // normal death
@@ -148,7 +148,7 @@ public class PlayerClient {
     
             while (true) {
                 es = GameBase.G_Find(es, GameBase.findByClass,
-                        "info_player_start");
+                        "info_player_start", gameExports);
     
                 if (es == null)
                     return true;
@@ -177,7 +177,7 @@ public class PlayerClient {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.Q_stricmp(gameExports.level.mapname, "security") == 0) {
-                SubgameEntity spot = GameUtil.G_Spawn();
+                SubgameEntity spot = GameUtil.G_Spawn(gameExports);
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 - 64;
                 spot.s.origin[1] = -164;
@@ -185,7 +185,7 @@ public class PlayerClient {
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
     
-                spot = GameUtil.G_Spawn();
+                spot = GameUtil.G_Spawn(gameExports);
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 64;
                 spot.s.origin[1] = -164;
@@ -193,7 +193,7 @@ public class PlayerClient {
                 spot.targetname = "jail3";
                 spot.s.angles[1] = 90;
     
-                spot = GameUtil.G_Spawn();
+                spot = GameUtil.G_Spawn(gameExports);
                 spot.classname = "info_player_coop";
                 spot.s.origin[0] = 188 + 128;
                 spot.s.origin[1] = -164;
@@ -222,9 +222,9 @@ public class PlayerClient {
                 		gameExports.gameImports.soundindex("misc/udeath.wav"), 1, Defines.ATTN_NORM, 0);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 self.s.origin[2] -= 48;
-                GameMisc.ThrowClientHead(self, damage);
+                GameMisc.ThrowClientHead(self, damage, gameExports);
                 self.takedamage = Defines.DAMAGE_NO;
             }
         }
@@ -266,7 +266,7 @@ public class PlayerClient {
      */
     public static void SP_info_player_deathmatch(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == gameExports.cvarCache.deathmatch.value) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
         GameMisc.SP_misc_teleporter_dest.think(self, gameExports);
@@ -279,7 +279,7 @@ public class PlayerClient {
 
     public static void SP_info_player_coop(SubgameEntity self, GameExportsImpl gameExports) {
         if (0 == gameExports.cvarCache.coop.value) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -313,18 +313,18 @@ public class PlayerClient {
     }
 
     public static void ClientObituary(SubgameEntity self, edict_t inflictor,
-                                      SubgameEntity attacker) {
+                                      SubgameEntity attacker, GameExportsImpl gameExports) {
         int mod;
         String message;
         String message2;
         boolean ff;
 
         gclient_t attackerClient = attacker.getClient();
-        if (GameBase.gameExports.cvarCache.coop.value != 0 && attackerClient != null)
+        if (gameExports.cvarCache.coop.value != 0 && attackerClient != null)
             GameBase.meansOfDeath |= GameDefines.MOD_FRIENDLY_FIRE;
 
         gclient_t client = self.getClient();
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 || GameBase.gameExports.cvarCache.coop.value != 0) {
+        if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
             ff = (GameBase.meansOfDeath & GameDefines.MOD_FRIENDLY_FIRE) != 0;
             mod = GameBase.meansOfDeath & ~GameDefines.MOD_FRIENDLY_FIRE;
             message = null;
@@ -404,9 +404,9 @@ public class PlayerClient {
                 }
             }
             if (message != null) {
-                GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
+                gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
                         client.pers.netname + " " + message + ".\n");
-                if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
+                if (gameExports.cvarCache.deathmatch.value != 0)
                     client.resp.score--;
                 self.enemy = null;
                 return;
@@ -485,11 +485,11 @@ public class PlayerClient {
                     break;
                 }
                 if (message != null) {
-                    GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
+                    gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM,
                             client.pers.netname + " " + message + " "
                                     + attackerClient.pers.netname + " "
                                     + message2 + "\n");
-                    if (GameBase.gameExports.cvarCache.deathmatch.value != 0) {
+                    if (gameExports.cvarCache.deathmatch.value != 0) {
                         if (ff)
                             attackerClient.resp.score--;
                         else
@@ -500,9 +500,9 @@ public class PlayerClient {
             }
         }
 
-        GameBase.gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
+        gameExports.gameImports.bprintf(Defines.PRINT_MEDIUM, client.pers.netname
                 + " died.\n");
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0)
+        if (gameExports.cvarCache.deathmatch.value != 0)
             client.resp.score--;
     }
 
@@ -510,12 +510,12 @@ public class PlayerClient {
      * This is only called when the game first initializes in single player, but
      * is called after each death and level change in deathmatch. 
      */
-    public static void InitClientPersistant(gclient_t client) {
+    public static void InitClientPersistant(gclient_t client, GameExportsImpl gameExports) {
         gitem_t item;
 
         client.pers = new client_persistant_t();
 
-        item = GameItems.FindItem("Blaster");
+        item = GameItems.FindItem("Blaster", gameExports);
         client.pers.selected_item = item.index;
         client.pers.inventory[client.pers.selected_item] = 1;
 
@@ -629,7 +629,7 @@ public class PlayerClient {
         EdictIterator es = null;
 
         while ((es = GameBase.G_Find(es, GameBase.findByClass,
-                "info_player_deathmatch")) != null) {
+                "info_player_deathmatch", gameExports)) != null) {
             spot = es.o;
             count++;
             float range = PlayersRangeFromSpot(spot, gameExports);
@@ -656,7 +656,7 @@ public class PlayerClient {
         es = null;
         do {
             es = GameBase.G_Find(es, GameBase.findByClass,
-                    "info_player_deathmatch");
+                    "info_player_deathmatch", gameExports);
             
             if (es == null) 
                 break;
@@ -680,7 +680,7 @@ public class PlayerClient {
         float bestdistance = 0;
 
         EdictIterator es = null;
-        while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_deathmatch")) != null) {
+        while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_deathmatch", gameExports)) != null) {
             spot = es.o;
             float bestplayerdistance = PlayersRangeFromSpot(spot, gameExports);
 
@@ -696,7 +696,7 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass, "info_player_deathmatch");
+        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClass, "info_player_deathmatch", gameExports);
         if (edit == null)
             return null;
         
@@ -711,7 +711,7 @@ public class PlayerClient {
             return SelectRandomDeathmatchSpawnPoint(gameExports);
     }
 
-    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent, String spawnpoint) {
+    public static SubgameEntity SelectCoopSpawnPoint(edict_t ent, GameExportsImpl gameExports) {
 
         //index = ent.client - game.clients;
         int index = ent.getClient().getIndex();
@@ -726,8 +726,7 @@ public class PlayerClient {
         // assume there are four coop spots at each spawnpoint
         while (true) {
 
-            es = GameBase.G_Find(es, GameBase.findByClass,
-                    "info_player_coop");
+            es = GameBase.G_Find(es, GameBase.findByClass, "info_player_coop", gameExports);
                     
             if (es == null)
                 return null;
@@ -740,7 +739,7 @@ public class PlayerClient {
             String target = spot.targetname;
             if (target == null)
                 target = "";
-            if (Lib.Q_stricmp(spawnpoint, target) == 0) {
+            if (Lib.Q_stricmp(gameExports.game.spawnpoint, target) == 0) {
                 // this is a coop spawn point for one of the clients here
                 index--;
                 if (0 == index)
@@ -759,12 +758,12 @@ public class PlayerClient {
         if (gameExports.cvarCache.deathmatch.value != 0)
             spot = SelectDeathmatchSpawnPoint(gameExports);
         else if (gameExports.cvarCache.coop.value != 0)
-            spot = SelectCoopSpawnPoint(ent, gameExports.game.spawnpoint);
+            spot = SelectCoopSpawnPoint(ent, gameExports);
 
         EdictIterator es = null;
         // find a single player start spot
         if (null == spot) {
-            while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start")) != null) {
+            while ((es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start", gameExports)) != null) {
                 spot = es.o;
 
                 if (gameExports.game.spawnpoint.length() == 0
@@ -783,7 +782,7 @@ public class PlayerClient {
                 if (gameExports.game.spawnpoint.length() == 0) {
                     // there wasn't a spawnpoint without a
                     // target, so use any
-                    es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start");
+                    es = GameBase.G_Find(es, GameBase.findByClass, "info_player_start", gameExports);
                     
                     if (es != null)
                         spot = es.o;
@@ -805,24 +804,24 @@ public class PlayerClient {
 
         gameExports.level.body_que = 0;
         for (int i = 0; i < GameDefines.BODY_QUEUE_SIZE; i++) {
-            SubgameEntity ent = GameUtil.G_Spawn();
+            SubgameEntity ent = GameUtil.G_Spawn(gameExports);
             ent.classname = "bodyque";
         }
     }
 
-    public static void CopyToBodyQue(SubgameEntity ent) {
+    public static void CopyToBodyQue(SubgameEntity ent, GameExportsImpl gameExports) {
 
         // grab a body que and cycle to the next one
-        int i = (int) GameBase.gameExports.game.maxclients + GameBase.gameExports.level.body_que + 1;
-        SubgameEntity body = GameBase.gameExports.g_edicts[i];
-        GameBase.gameExports.level.body_que = (GameBase.gameExports.level.body_que + 1)
+        int i = (int) gameExports.game.maxclients + gameExports.level.body_que + 1;
+        SubgameEntity body = gameExports.g_edicts[i];
+        gameExports.level.body_que = (gameExports.level.body_que + 1)
                 % GameDefines.BODY_QUEUE_SIZE;
 
         // FIXME: send an effect on the removed body
 
-        GameBase.gameExports.gameImports.unlinkentity(ent);
+        gameExports.gameImports.unlinkentity(ent);
 
-        GameBase.gameExports.gameImports.unlinkentity(body);
+        gameExports.gameImports.unlinkentity(body);
         body.s = ent.s.getClone();
 
         body.s.number = body.index;
@@ -841,14 +840,14 @@ public class PlayerClient {
         body.die = PlayerClient.body_die;
         body.takedamage = Defines.DAMAGE_YES;
 
-        GameBase.gameExports.gameImports.linkentity(body);
+        gameExports.gameImports.linkentity(body);
     }
 
     public static void respawn(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0 || gameExports.cvarCache.coop.value != 0) {
             // spectator's don't leave bodies
             if (self.movetype != GameDefines.MOVETYPE_NOCLIP)
-                CopyToBodyQue(self);
+                CopyToBodyQue(self, gameExports);
             self.svflags &= ~Defines.SVF_NOCLIENT;
             PutClientInServer(self, gameExports);
 
@@ -902,9 +901,9 @@ public class PlayerClient {
 
             resp.set(client.resp);
             String userinfo = client.pers.userinfo;
-            InitClientPersistant(client);
+            InitClientPersistant(client, gameExports);
 
-            userinfo = ClientUserinfoChanged(ent, userinfo);
+            userinfo = ClientUserinfoChanged(ent, userinfo, gameExports);
 
         } else if (gameExports.cvarCache.coop.value != 0) {
 
@@ -915,7 +914,7 @@ public class PlayerClient {
             resp.coop_respawn.game_helpchanged = client.pers.game_helpchanged;
             resp.coop_respawn.helpchanged = client.pers.helpchanged;
             client.pers.set(resp.coop_respawn);
-            userinfo = ClientUserinfoChanged(ent, userinfo);
+            userinfo = ClientUserinfoChanged(ent, userinfo, gameExports);
             if (resp.score > client.pers.score)
                 client.pers.score = resp.score;
         } else {
@@ -927,7 +926,7 @@ public class PlayerClient {
         client.clear();
         client.pers.set(saved);
         if (client.pers.health <= 0)
-            InitClientPersistant(client);
+            InitClientPersistant(client, gameExports);
 
         client.resp.set(resp);
 
@@ -1021,7 +1020,7 @@ public class PlayerClient {
         } else
             client.resp.spectator = false;
 
-        if (!GameUtil.KillBox(ent)) { // could't spawn in?
+        if (!GameUtil.KillBox(ent, gameExports)) { // could't spawn in?
         }
 
         gameExports.gameImports.linkentity(ent);
@@ -1112,7 +1111,7 @@ public class PlayerClient {
         gameExports.playerView.ClientEndServerFrame(ent, gameExports);
     }
 
-    static String ClientUserinfoChanged(SubgameEntity ent, String userinfo) {
+    static String ClientUserinfoChanged(SubgameEntity ent, String userinfo, GameExportsImpl gameExports) {
         String s;
         int playernum;
 
@@ -1130,7 +1129,7 @@ public class PlayerClient {
         // set spectator
         s = Info.Info_ValueForKey(userinfo, "spectator");
         // spectators are only supported in deathmatch
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0 && !s.equals("0"))
+        if (gameExports.cvarCache.deathmatch.value != 0 && !s.equals("0"))
             client.pers.spectator = true;
         else
             client.pers.spectator = false;
@@ -1141,12 +1140,12 @@ public class PlayerClient {
         playernum = ent.index - 1;
 
         // combine name and skin into a configstring
-        GameBase.gameExports.gameImports.configstring(Defines.CS_PLAYERSKINS + playernum,
+        gameExports.gameImports.configstring(Defines.CS_PLAYERSKINS + playernum,
                 client.pers.netname + "\\" + s);
 
         // fov
-        if (GameBase.gameExports.cvarCache.deathmatch.value != 0
-                && 0 != ((int) GameBase.gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
+        if (gameExports.cvarCache.deathmatch.value != 0
+                && 0 != ((int) gameExports.cvarCache.dmflags.value & Defines.DF_FIXED_FOV)) {
             client.getPlayerState().fov = 90;
         } else {
             client.getPlayerState().fov = Lib
@@ -1222,10 +1221,10 @@ public class PlayerClient {
             // clear the respawning variables
             InitClientResp(client, gameExports);
             if (!gameExports.game.autosaved || null == client.pers.weapon)
-                InitClientPersistant(client);
+                InitClientPersistant(client, gameExports);
         }
 
-        ClientUserinfoChanged(ent, userinfo);
+        ClientUserinfoChanged(ent, userinfo, gameExports);
 
         if (gameExports.game.maxclients > 1)
             gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
@@ -1361,7 +1360,7 @@ public class PlayerClient {
                     && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
                 gameExports.gameImports.sound(ent, Defines.CHAN_VOICE, gameExports.gameImports
                         .soundindex("*jump1.wav"), 1, Defines.ATTN_NORM, 0);
-                PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF, GameBase.gameExports);
+                PlayerWeapon.PlayerNoise(ent, ent.s.origin, GameDefines.PNOISE_SELF, gameExports);
             }
 
             ent.viewheight = (int) pm.viewheight;
@@ -1383,7 +1382,7 @@ public class PlayerClient {
             gameExports.gameImports.linkentity(ent);
 
             if (ent.movetype != GameDefines.MOVETYPE_NOCLIP)
-                GameBase.G_TouchTriggers(ent);
+                GameBase.G_TouchTriggers(ent, gameExports);
 
             // touch other objects
             for (i = 0; i < pm.numtouch; i++) {
@@ -1396,7 +1395,7 @@ public class PlayerClient {
                     continue; // duplicated
                 if (other.touch == null)
                     continue;
-                other.touch.touch(other, ent, GameBase.dummyplane, null, GameBase.gameExports);
+                other.touch.touch(other, ent, GameBase.dummyplane, null, gameExports);
             }
 
         }
@@ -1432,7 +1431,7 @@ public class PlayerClient {
                 if (0 == (client.getPlayerState().pmove.pm_flags & Defines.PMF_JUMP_HELD)) {
                     client.getPlayerState().pmove.pm_flags |= Defines.PMF_JUMP_HELD;
                     if (client.chase_target != null)
-                        GameChase.ChaseNext(ent);
+                        GameChase.ChaseNext(ent, gameExports);
                     else
                         GameChase.GetChaseTarget(ent, gameExports);
                 }
@@ -1445,7 +1444,7 @@ public class PlayerClient {
             other = gameExports.g_edicts[i];
             gclient_t otherClient = other.getClient();
             if (other.inuse && otherClient.chase_target == ent)
-                GameChase.UpdateChaseCam(other);
+                GameChase.UpdateChaseCam(other, gameExports);
         }
     }
 
@@ -1489,11 +1488,9 @@ public class PlayerClient {
      * Changes the camera view to look at the killer.
      */
     public static void LookAtKiller(SubgameEntity self, edict_t inflictor,
-            edict_t attacker) {
+                                    edict_t attacker, SubgameEntity world) {
         float dir[] = { 0, 0, 0 };
     
-        edict_t world = GameBase.gameExports.g_edicts[0];
-
         gclient_t client = self.getClient();
         if (attacker != null && attacker != world && attacker != self) {
             Math3D.VectorSubtract(attacker.s.origin, self.s.origin, dir);
@@ -1523,9 +1520,9 @@ public class PlayerClient {
     /** 
      * Drop items and weapons in deathmatch games. 
      */ 
-    public static void TossClientWeapon(SubgameEntity self) {
+    public static void TossClientWeapon(SubgameEntity self, GameExportsImpl gameExports) {
 
-        if (GameBase.gameExports.cvarCache.deathmatch.value == 0)
+        if (gameExports.cvarCache.deathmatch.value == 0)
             return;
 
         gclient_t client = self.getClient();
@@ -1536,10 +1533,10 @@ public class PlayerClient {
             item = null;
 
         boolean quad;
-        if (0 == ((int) (GameBase.gameExports.cvarCache.dmflags.value) & Defines.DF_QUAD_DROP))
+        if (0 == ((int) (gameExports.cvarCache.dmflags.value) & Defines.DF_QUAD_DROP))
             quad = false;
         else
-            quad = (client.quad_framenum > (GameBase.gameExports.level.framenum + 10));
+            quad = (client.quad_framenum > (gameExports.level.framenum + 10));
 
         float spread;
         if (item != null && quad)
@@ -1550,7 +1547,7 @@ public class PlayerClient {
         SubgameEntity drop;
         if (item != null) {
             client.v_angle[Defines.YAW] -= spread;
-            drop = GameItems.Drop_Item(self, item);
+            drop = GameItems.Drop_Item(self, item, gameExports);
             client.v_angle[Defines.YAW] += spread;
             drop.spawnflags = GameDefines.DROPPED_PLAYER_ITEM;
         }
@@ -1558,13 +1555,13 @@ public class PlayerClient {
         if (quad) {
             client.v_angle[Defines.YAW] += spread;
             drop = GameItems.Drop_Item(self, GameItems
-                    .FindItemByClassname("item_quad"));
+                    .FindItemByClassname("item_quad", gameExports), gameExports);
             client.v_angle[Defines.YAW] -= spread;
             drop.spawnflags |= GameDefines.DROPPED_PLAYER_ITEM;
     
             drop.touch = GameItems.Touch_Item;
-            drop.nextthink = GameBase.gameExports.level.time
-                    + (client.quad_framenum - GameBase.gameExports.level.framenum)
+            drop.nextthink = gameExports.level.time
+                    + (client.quad_framenum - gameExports.level.framenum)
                     * Defines.FRAMETIME;
             drop.think = GameUtil.G_FreeEdictA;
         }

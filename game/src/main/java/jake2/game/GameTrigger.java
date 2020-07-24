@@ -41,20 +41,20 @@ class GameTrigger {
     // the trigger was just activated
     // ent.activator should be set to the activator so it can be held through a
     // delay so wait for the delay time before firing
-    private static void multi_trigger(SubgameEntity ent) {
+    private static void multi_trigger(SubgameEntity ent, GameExportsImpl gameExports) {
         if (ent.nextthink != 0)
             return; // already been triggered
 
-        GameUtil.G_UseTargets(ent, ent.activator, GameBase.gameExports);
+        GameUtil.G_UseTargets(ent, ent.activator, gameExports);
 
         if (ent.wait > 0) {
             ent.think = multi_wait;
-            ent.nextthink = GameBase.gameExports.level.time + ent.wait;
+            ent.nextthink = gameExports.level.time + ent.wait;
         } else { // we can't just remove (self) here, because this is a touch
                  // function
             // called while looping through area links...
             ent.touch = null;
-            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             ent.think = GameUtil.G_FreeEdictA;
         }
     }
@@ -128,7 +128,7 @@ class GameTrigger {
                     + Lib.vtos(self.s.origin) + "\n");
             return;
         }
-        self.item = GameItems.FindItemByClassname(GameBase.st.item);
+        self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
 
         if (null == self.item) {
             gameExports.gameImports.dprintf("item " + GameBase.st.item
@@ -169,11 +169,11 @@ class GameTrigger {
      * QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8) This trigger will
      * always fire. It is activated by the world.
      */
-    static void SP_trigger_always(SubgameEntity ent) {
+    static void SP_trigger_always(SubgameEntity ent, GameExportsImpl gameExports) {
         // we must have some delay to make sure our use targets are present
         if (ent.delay < 0.2f)
             ent.delay = 0.2f;
-        GameUtil.G_UseTargets(ent, ent, GameBase.gameExports);
+        GameUtil.G_UseTargets(ent, ent, gameExports);
     }
 
     /*
@@ -213,7 +213,7 @@ class GameTrigger {
         if (GameBase.st.gravity == null) {
             gameExports.gameImports.dprintf("trigger_gravity without gravity set at "
                     + Lib.vtos(self.s.origin) + "\n");
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 
@@ -248,7 +248,7 @@ class GameTrigger {
     	public String getID(){ return "Use_Multi"; }
         public void use(SubgameEntity ent, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
             ent.activator = activator;
-            multi_trigger(ent);
+            multi_trigger(ent, gameExports);
         }
     };
 
@@ -274,7 +274,7 @@ class GameTrigger {
             }
 
             self.activator = other;
-            multi_trigger(self);
+            multi_trigger(self, gameExports);
         }
     };
 
@@ -301,7 +301,7 @@ class GameTrigger {
     private static EntUseAdapter trigger_relay_use = new EntUseAdapter() {
     	public String getID(){ return "trigger_relay_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, activator, GameBase.gameExports);
+            GameUtil.G_UseTargets(self, activator, gameExports);
         }
     };
 
@@ -382,7 +382,7 @@ class GameTrigger {
                 activatorClient.pers.inventory[index]--;
             }
 
-            GameUtil.G_UseTargets(self, activator, GameBase.gameExports);
+            GameUtil.G_UseTargets(self, activator, gameExports);
 
             self.use = null;
         }
@@ -424,7 +424,7 @@ class GameTrigger {
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
             }
             self.activator = activator;
-            multi_trigger(self);
+            multi_trigger(self, gameExports);
         }
     };
 
@@ -463,7 +463,7 @@ class GameTrigger {
                 }
             }
             if ((self.spawnflags & PUSH_ONCE) != 0)
-                GameUtil.G_FreeEdict(self);
+                GameUtil.G_FreeEdict(self, gameExports);
         }
     };
 
@@ -524,7 +524,7 @@ class GameTrigger {
                 dflags = 0;
             GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
                     other.s.origin, Globals.vec3_origin, self.dmg, self.dmg,
-                    dflags, GameDefines.MOD_TRIGGER_HURT);
+                    dflags, GameDefines.MOD_TRIGGER_HURT, gameExports);
         }
     };
 

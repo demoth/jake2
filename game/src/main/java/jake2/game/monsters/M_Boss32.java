@@ -1706,13 +1706,13 @@ public class M_Boss32 {
                 for (n = 0; n < 1 /* 4 */; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_meat/tris.md2", damage,
-                            GameDefines.GIB_ORGANIC);
+                            GameDefines.GIB_ORGANIC, gameExports);
                 for (n = 0; n < 4; n++)
                     GameMisc.ThrowGib(self,
                             "models/objects/gibs/sm_metal/tris.md2", damage,
-                            GameDefines.GIB_METALLIC);
+                            GameDefines.GIB_METALLIC, gameExports);
                 GameMisc.ThrowHead(self, "models/objects/gibs/gear/tris.md2",
-                        damage, GameDefines.GIB_METALLIC);
+                        damage, GameDefines.GIB_METALLIC, gameExports);
                 self.deadflag = GameDefines.DEAD_DEAD;
                 return;
             }
@@ -1726,7 +1726,7 @@ public class M_Boss32 {
             self.deadflag = GameDefines.DEAD_DEAD;
             self.takedamage = Defines.DAMAGE_YES;
 
-            tempent = GameUtil.G_Spawn();
+            tempent = GameUtil.G_Spawn(gameExports);
             Math3D.VectorCopy(self.s.origin, tempent.s.origin);
             Math3D.VectorCopy(self.s.angles, tempent.s.angles);
             tempent.s.origin[1] -= 84;
@@ -1920,7 +1920,7 @@ public class M_Boss32 {
     static EntThinkAdapter MakronToss = new EntThinkAdapter() {
     	public String getID() { return "MakronToss"; }
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            SubgameEntity ent = GameUtil.G_Spawn();
+            SubgameEntity ent = GameUtil.G_Spawn(gameExports);
             ent.nextthink = gameExports.level.time + 0.8f;
             ent.think = MakronSpawn;
             ent.target = self.target;
@@ -1958,7 +1958,7 @@ public class M_Boss32 {
      */
     static void SP_monster_makron(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return;
         }
 

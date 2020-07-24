@@ -275,13 +275,13 @@ public class GameExportsImpl implements GameExports {
         if (give_all || Lib.Q_stricmp(name, "armor") == 0) {
             gitem_armor_t info;
 
-            it = GameItems.FindItem("Jacket Armor");
+            it = GameItems.FindItem("Jacket Armor", gameExports);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Combat Armor");
+            it = GameItems.FindItem("Combat Armor", gameExports);
             client.pers.inventory[it.index] = 0;
 
-            it = GameItems.FindItem("Body Armor");
+            it = GameItems.FindItem("Body Armor", gameExports);
             info = (gitem_armor_t) it.info;
             client.pers.inventory[it.index] = info.max_count;
 
@@ -291,13 +291,13 @@ public class GameExportsImpl implements GameExports {
 
         SubgameEntity it_ent;
         if (give_all || Lib.Q_stricmp(name, "Power Shield") == 0) {
-            it = GameItems.FindItem("Power Shield");
-            it_ent = GameUtil.G_Spawn();
+            it = GameItems.FindItem("Power Shield", gameExports);
+            it_ent = GameUtil.G_Spawn(gameExports);
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent);
+                GameUtil.G_FreeEdict(it_ent, gameExports);
 
             if (!give_all)
                 return;
@@ -310,12 +310,12 @@ public class GameExportsImpl implements GameExports {
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
 
-                it_ent = GameUtil.G_Spawn();
+                it_ent = GameUtil.G_Spawn(gameExports);
                 it_ent.classname = it.classname;
                 GameItems.SpawnItem(it_ent, it, this);
                 GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
                 if (it_ent.inuse)
-                    GameUtil.G_FreeEdict(it_ent);
+                    GameUtil.G_FreeEdict(it_ent, gameExports);
 
             }
 
@@ -336,10 +336,10 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItems.FindItem(name);
+        it = GameItems.FindItem(name, gameExports);
         if (it == null) {
             name = args.get(1);
-            it = GameItems.FindItem(name);
+            it = GameItems.FindItem(name, gameExports);
             if (it == null) {
                 gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item\n");
                 return;
@@ -360,12 +360,12 @@ public class GameExportsImpl implements GameExports {
             else
                 client.pers.inventory[index] += it.quantity;
         } else {
-            it_ent = GameUtil.G_Spawn();
+            it_ent = GameUtil.G_Spawn(gameExports);
             it_ent.classname = it.classname;
             GameItems.SpawnItem(it_ent, it, this);
             GameItems.Touch_Item(it_ent, ent, GameBase.dummyplane, null, this);
             if (it_ent.inuse)
-                GameUtil.G_FreeEdict(it_ent);
+                GameUtil.G_FreeEdict(it_ent, gameExports);
         }
     }
 
@@ -450,7 +450,7 @@ public class GameExportsImpl implements GameExports {
 
         String itemName = Cmd.getArguments(args);
 
-        gitem_t it = GameItems.FindItem(itemName);
+        gitem_t it = GameItems.FindItem(itemName, gameExports);
         Com.dprintln("using:" + itemName);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
@@ -478,7 +478,7 @@ public class GameExportsImpl implements GameExports {
     private void Drop_f(SubgameEntity ent, List<String> args) {
 
         String itemName = Cmd.getArguments(args);
-        gitem_t it = GameItems.FindItem(itemName);
+        gitem_t it = GameItems.FindItem(itemName, gameExports);
         if (it == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "unknown item: " + itemName + "\n");
             return;
@@ -528,7 +528,7 @@ public class GameExportsImpl implements GameExports {
     private void InvUse_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent);
+        GameItems.ValidateSelectedItem(ent, gameExports);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -638,7 +638,7 @@ public class GameExportsImpl implements GameExports {
     private void InvDrop_f(SubgameEntity ent) {
         gitem_t it;
 
-        GameItems.ValidateSelectedItem(ent);
+        GameItems.ValidateSelectedItem(ent, gameExports);
 
         gclient_t client = ent.getClient();
         if (client.pers.selected_item == -1) {
@@ -674,7 +674,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         client.showscores = true;
-        PlayerHud.DeathmatchScoreboard(ent);
+        PlayerHud.DeathmatchScoreboard(ent, gameExports);
     }
 
     /**
@@ -900,7 +900,7 @@ public class GameExportsImpl implements GameExports {
             if (other.getClient() == null)
                 continue;
             if (team) {
-                if (!GameUtil.OnSameTeam(ent, other))
+                if (!GameUtil.OnSameTeam(ent, other, cvarCache.dmflags.value))
                     continue;
             }
             gameImports.cprintf(other, Defines.PRINT_CHAT, "" + text + "");
@@ -1029,8 +1029,8 @@ public class GameExportsImpl implements GameExports {
 
         // add player trail so monsters can follow
         if (cvarCache.deathmatch.value != 0)
-            if (!GameUtil.visible(ent, PlayerTrail.LastSpot()))
-                PlayerTrail.Add(ent.s.old_origin);
+            if (!GameUtil.visible(ent, PlayerTrail.LastSpot(), gameExports))
+                PlayerTrail.Add(ent.s.old_origin, level.time);
 
         client.latched_buttons = 0;
     }
@@ -1131,22 +1131,22 @@ public class GameExportsImpl implements GameExports {
         switch (ent.movetype) {
             case GameDefines.MOVETYPE_PUSH:
             case GameDefines.MOVETYPE_STOP:
-                SV.SV_Physics_Pusher(ent);
+                SV.SV_Physics_Pusher(ent, this);
                 break;
             case GameDefines.MOVETYPE_NONE:
-                SV.SV_Physics_None(ent);
+                SV.SV_Physics_None(ent, this);
                 break;
             case GameDefines.MOVETYPE_NOCLIP:
-                SV.SV_Physics_Noclip(ent);
+                SV.SV_Physics_Noclip(ent, this);
                 break;
             case GameDefines.MOVETYPE_STEP:
-                sv.SV_Physics_Step(ent);
+                sv.SV_Physics_Step(ent, this);
                 break;
             case GameDefines.MOVETYPE_TOSS:
             case GameDefines.MOVETYPE_BOUNCE:
             case GameDefines.MOVETYPE_FLY:
             case GameDefines.MOVETYPE_FLYMISSILE:
-                sv.SV_Physics_Toss(ent);
+                sv.SV_Physics_Toss(ent, this);
                 break;
             default:
                 gameImports.error("SV_Physics: bad movetype " + (int) ent.movetype);
@@ -1236,7 +1236,7 @@ public class GameExportsImpl implements GameExports {
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
         else { // search for a changelevel
             EdictIterator edit = null;
-            edit = G_Find(edit, findByClass, "target_changelevel");
+            edit = G_Find(edit, findByClass, "target_changelevel", gameExports);
             if (edit == null) { // the map designer didn't include a
                 // change level,
                 // so create a fake ent that goes back to the same level
@@ -1274,7 +1274,7 @@ public class GameExportsImpl implements GameExports {
      * Returns the created target changelevel.
      */
     private SubgameEntity CreateTargetChangeLevel(String map) {
-        SubgameEntity ent = GameUtil.G_Spawn();
+        SubgameEntity ent = GameUtil.G_Spawn(gameExports);
         ent.classname = "target_changelevel";
         level.nextmap = map;
         ent.map = map;
@@ -1337,22 +1337,22 @@ public class GameExportsImpl implements GameExports {
                 Inven_f(ent);
                 break;
             case "invnext":
-                GameItems.SelectNextItem(ent, -1);
+                GameItems.SelectNextItem(ent, -1, gameExports);
                 break;
             case "invprev":
-                GameItems.SelectPrevItem(ent, -1);
+                GameItems.SelectPrevItem(ent, -1, this);
                 break;
             case "invnextw":
-                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON);
+                GameItems.SelectNextItem(ent, GameDefines.IT_WEAPON, gameExports);
                 break;
             case "invprevw":
-                GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_WEAPON, this);
                 break;
             case "invnextp":
-                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP);
+                GameItems.SelectNextItem(ent, GameDefines.IT_POWERUP, gameExports);
                 break;
             case "invprevp":
-                GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP);
+                GameItems.SelectPrevItem(ent, GameDefines.IT_POWERUP, this);
                 break;
             case "invuse":
                 InvUse_f(ent);
@@ -1424,7 +1424,7 @@ public class GameExportsImpl implements GameExports {
             if (ent.groundentity != null && ent.groundentity.linkcount != ent.groundentity_linkcount) {
                 ent.groundentity = null;
                 if (0 == (ent.flags & (GameDefines.FL_SWIM | GameDefines.FL_FLY)) && (ent.svflags & Defines.SVF_MONSTER) != 0) {
-                    M.M_CheckGround(ent);
+                    M.M_CheckGround(ent, this);
                 }
             }
 
@@ -1544,7 +1544,7 @@ public class GameExportsImpl implements GameExports {
                     num_edicts = entnum + 1;
 
                 ent = g_edicts[entnum];
-                ent.read(f, g_edicts);
+                ent.read(f, g_edicts, game.clients);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
             }
@@ -1593,7 +1593,7 @@ public class GameExportsImpl implements GameExports {
 
     @Override
     public String ClientUserinfoChanged(edict_t ent, String userinfo) {
-        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo);
+        return PlayerClient.ClientUserinfoChanged((SubgameEntity) ent, userinfo, gameExports);
     }
 
     @Override

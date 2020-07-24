@@ -39,7 +39,7 @@ public class Monster {
                                            float[] dir, int damage, int kick, int hspread, int vspread,
                                            int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
-                GameDefines.MOD_UNKNOWN, GameBase.gameExports);
+                GameDefines.MOD_UNKNOWN, gameExports);
 
         gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
         gameExports.gameImports.WriteShort(self.index);
@@ -124,12 +124,12 @@ public class Monster {
      * When a monster dies, it fires all of its targets with the current enemy
      * as activator. ================
      */
-    public static void monster_death_use(SubgameEntity self) {
+    public static void monster_death_use(SubgameEntity self, GameExportsImpl gameExports) {
         self.flags &= ~(GameDefines.FL_FLY | GameDefines.FL_SWIM);
         self.monsterinfo.aiflags &= GameDefines.AI_GOOD_GUY;
 
         if (self.item != null) {
-            GameItems.Drop_Item(self, self.item);
+            GameItems.Drop_Item(self, self.item, gameExports);
             self.item = null;
         }
 
@@ -139,13 +139,13 @@ public class Monster {
         if (self.target == null)
             return;
 
-        GameUtil.G_UseTargets(self, self.enemy, GameBase.gameExports);
+        GameUtil.G_UseTargets(self, self.enemy, gameExports);
     }
 
     // ============================================================================
     public static boolean monster_start(SubgameEntity self, GameExportsImpl gameExports) {
         if (gameExports.cvarCache.deathmatch.value != 0) {
-            GameUtil.G_FreeEdict(self);
+            GameUtil.G_FreeEdict(self, gameExports);
             return false;
         }
 
@@ -178,7 +178,7 @@ public class Monster {
         Math3D.VectorCopy(self.s.origin, self.s.old_origin);
 
         if (GameBase.st.item != null && GameBase.st.item.length() > 0) {
-            self.item = GameItems.FindItemByClassname(GameBase.st.item);
+            self.item = GameItems.FindItemByClassname(GameBase.st.item, gameExports);
             if (self.item == null)
                 gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
@@ -209,7 +209,7 @@ public class Monster {
              * if (true) { Com.Printf("all entities:\n");
              * 
              * for (int n = 0; n < Game.globals.num_edicts; n++) { edict_t ent =
-             * GameBase.gameExports.g_edicts[n]; Com.Printf( "|%4i | %25s
+             * gameExports.g_edicts[n]; Com.Printf( "|%4i | %25s
              * |%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f|\n", new
              * Vargs().add(n).add(ent.classname).
              * add(ent.s.origin[0]).add(ent.s.origin[1]).add(ent.s.origin[2])
@@ -221,7 +221,7 @@ public class Monster {
             EdictIterator edit = null;
 
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    self.target)) != null) {
+                    self.target, gameExports)) != null) {
                 SubgameEntity target = edit.o;
                 if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
@@ -243,7 +243,7 @@ public class Monster {
 
             EdictIterator edit = null;
             while ((edit = GameBase.G_Find(edit, GameBase.findByTarget,
-                    self.combattarget)) != null) {
+                    self.combattarget, gameExports)) != null) {
                 SubgameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
@@ -258,7 +258,7 @@ public class Monster {
 
         if (self.target != null) {
             self.goalentity = self.movetarget = GameBase
-                    .G_PickTarget(self.target);
+                    .G_PickTarget(self.target, gameExports);
             if (null == self.movetarget) {
                 gameExports.gameImports
                         .dprintf(self.classname + " can't find target "
@@ -295,7 +295,7 @@ public class Monster {
             M.M_MoveFrame(self, gameExports);
             if (self.linkcount != self.monsterinfo.linkcount) {
                 self.monsterinfo.linkcount = self.linkcount;
-                M.M_CheckGround(self);
+                M.M_CheckGround(self, gameExports);
             }
             M.M_CatagorizePosition(self, gameExports);
             M.M_WorldEffects(self, gameExports);
@@ -309,7 +309,7 @@ public class Monster {
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
 
             self.s.origin[2] += 1;
-            GameUtil.KillBox(self);
+            GameUtil.KillBox(self, gameExports);
 
             self.solid = Defines.SOLID_BBOX;
             self.movetype = GameDefines.MOVETYPE_STEP;
@@ -321,7 +321,7 @@ public class Monster {
 
             if (self.enemy != null && 0 == (self.spawnflags & 1)
                     && 0 == (self.enemy.flags & GameDefines.FL_NOTARGET)) {
-                GameUtil.FoundTarget(self);
+                GameUtil.FoundTarget(self, gameExports);
             } else {
                 self.enemy = null;
             }

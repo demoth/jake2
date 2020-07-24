@@ -31,7 +31,7 @@ import jake2.qcommon.util.Math3D;
 
 class GameChase {
 
-    static void UpdateChaseCam(SubgameEntity ent) {
+    static void UpdateChaseCam(SubgameEntity ent, GameExportsImpl gameExports) {
         float[] o = { 0, 0, 0 }, ownerv = { 0, 0, 0 }, goal = { 0, 0, 0 };
         float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
         float[] oldgoal = { 0, 0, 0 };
@@ -42,7 +42,7 @@ class GameChase {
         gclient_t chaseTargetClient = client.chase_target.getClient();
         if (!client.chase_target.inuse || chaseTargetClient.resp.spectator) {
             edict_t old = client.chase_target;
-            ChaseNext(ent);
+            ChaseNext(ent, gameExports);
             if (client.chase_target == old) {
                 client.chase_target = null;
                 client.getPlayerState().pmove.pm_flags &= ~Defines.PMF_NO_PREDICTION;
@@ -72,7 +72,7 @@ class GameChase {
         if (targ.groundentity == null)
             o[2] += 16;
 
-        trace_t trace = GameBase.gameExports.gameImports.trace(ownerv, Globals.vec3_origin,
+        trace_t trace = gameExports.gameImports.trace(ownerv, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
     
         Math3D.VectorCopy(trace.endpos, goal);
@@ -82,7 +82,7 @@ class GameChase {
         // pad for floors and ceilings
         Math3D.VectorCopy(goal, o);
         o[2] += 6;
-        trace = GameBase.gameExports.gameImports.trace(goal, Globals.vec3_origin,
+        trace = gameExports.gameImports.trace(goal, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
         if (trace.fraction < 1) {
             Math3D.VectorCopy(trace.endpos, goal);
@@ -91,7 +91,7 @@ class GameChase {
     
         Math3D.VectorCopy(goal, o);
         o[2] -= 6;
-        trace = GameBase.gameExports.gameImports.trace(goal, Globals.vec3_origin,
+        trace = gameExports.gameImports.trace(goal, Globals.vec3_origin,
                 Globals.vec3_origin, o, targ, Defines.MASK_SOLID);
         if (trace.fraction < 1) {
             Math3D.VectorCopy(trace.endpos, goal);
@@ -120,10 +120,10 @@ class GameChase {
     
         ent.viewheight = 0;
         client.getPlayerState().pmove.pm_flags |= Defines.PMF_NO_PREDICTION;
-        GameBase.gameExports.gameImports.linkentity(ent);
+        gameExports.gameImports.linkentity(ent);
     }
 
-    static void ChaseNext(SubgameEntity ent) {
+    static void ChaseNext(SubgameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (null == client.chase_target)
@@ -133,9 +133,9 @@ class GameChase {
         SubgameEntity e;
         do {
             i++;
-            if (i > GameBase.gameExports.game.maxclients)
+            if (i > gameExports.game.maxclients)
                 i = 1;
-            e = GameBase.gameExports.g_edicts[i];
+            e = gameExports.g_edicts[i];
     
             if (!e.inuse)
                 continue;
@@ -148,7 +148,7 @@ class GameChase {
         client.update_chase = true;
     }
 
-    static void ChasePrev(SubgameEntity ent) {
+    static void ChasePrev(SubgameEntity ent, GameExportsImpl gameExports) {
 
         gclient_t client = ent.getClient();
         if (client.chase_target == null)
@@ -159,8 +159,8 @@ class GameChase {
         do {
             i--;
             if (i < 1)
-                i = (int) GameBase.gameExports.game.maxclients;
-            e = GameBase.gameExports.g_edicts[i];
+                i = (int) gameExports.game.maxclients;
+            e = gameExports.g_edicts[i];
             if (!e.inuse)
                 continue;
             gclient_t entityClient = e.getClient();
@@ -181,7 +181,7 @@ class GameChase {
                 gclient_t client = ent.getClient();
                 client.chase_target = other;
                 client.update_chase = true;
-                UpdateChaseCam(ent);
+                UpdateChaseCam(ent, gameExports);
                 return;
             }
         }
