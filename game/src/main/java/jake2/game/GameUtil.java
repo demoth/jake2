@@ -45,10 +45,10 @@ public class GameUtil {
      * (string)self.target and call their .use function
      */
 
-    public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator) {
+    public static void G_UseTargets(SubgameEntity ent, SubgameEntity activator, GameExportsImpl gameExports) {
 
         if (ent.classname == null) {
-            GameBase.gameExports.gameImports.dprintf("edict with classname = null: " + ent.index);
+            gameExports.gameImports.dprintf("edict with classname = null: " + ent.index);
         }
 
         // check for a delay
@@ -57,11 +57,11 @@ public class GameUtil {
             // create a temp object to fire at a later time
             t = G_Spawn();
             t.classname = "DelayedUse";
-            t.nextthink = GameBase.gameExports.level.time + ent.delay;
+            t.nextthink = gameExports.level.time + ent.delay;
             t.think = Think_Delay;
             t.activator = activator;
             if (activator == null)
-                GameBase.gameExports.gameImports.dprintf("Think_Delay with no activator\n");
+                gameExports.gameImports.dprintf("Think_Delay with no activator\n");
             t.message = ent.message;
             t.target = ent.target;
             t.killtarget = ent.killtarget;
@@ -72,12 +72,12 @@ public class GameUtil {
         // print the message
         if ((ent.message != null)
                 && (activator.svflags & Defines.SVF_MONSTER) == 0) {
-            GameBase.gameExports.gameImports.centerprintf(activator, "" + ent.message);
+            gameExports.gameImports.centerprintf(activator, "" + ent.message);
             if (ent.noise_index != 0)
-                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO,
+                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO,
                         ent.noise_index, 1, Defines.ATTN_NORM, 0);
             else
-                GameBase.gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, GameBase.gameExports.gameImports
+                gameExports.gameImports.sound(activator, Defines.CHAN_AUTO, gameExports.gameImports
                         .soundindex("misc/talk1.wav"), 1, Defines.ATTN_NORM, 0);
         }
 
@@ -90,7 +90,7 @@ public class GameUtil {
                 t = edit.o;
                 G_FreeEdict(t);
                 if (!ent.inuse) {
-                    GameBase.gameExports.gameImports
+                    gameExports.gameImports
                             .dprintf("entity was removed while using killtargets\n");
                     return;
                 }
@@ -110,13 +110,13 @@ public class GameUtil {
                     continue;
 
                 if (t == ent) {
-                    GameBase.gameExports.gameImports.dprintf("WARNING: Entity used itself.\n");
+                    gameExports.gameImports.dprintf("WARNING: Entity used itself.\n");
                 } else {
                     if (t.use != null)
-                        t.use.use(t, ent, activator, GameBase.gameExports);
+                        t.use.use(t, ent, activator, gameExports);
                 }
                 if (!ent.inuse) {
-                    GameBase.gameExports.gameImports
+                    gameExports.gameImports
                             .dprintf("entity was removed while using targets\n");
                     return;
                 }
@@ -542,7 +542,7 @@ public class GameUtil {
     private static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
     	public String getID() { return "Think_Delay"; }
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
-            G_UseTargets(ent, ent.activator);
+            G_UseTargets(ent, ent.activator, GameBase.gameExports);
             G_FreeEdict(ent);
             return true;
         }
@@ -573,7 +573,7 @@ public class GameUtil {
                 Math3D.VectorCopy(self.enemy.s.origin, spot2);
                 spot2[2] += self.enemy.viewheight;
 
-                tr = GameBase.gameExports.gameImports.trace(spot1, null, null, spot2, self,
+                tr = gameExports.gameImports.trace(spot1, null, null, spot2, self,
                         Defines.CONTENTS_SOLID | Defines.CONTENTS_MONSTER
                                 | Defines.CONTENTS_SLIME
                                 | Defines.CONTENTS_LAVA
@@ -587,7 +587,7 @@ public class GameUtil {
             // melee attack
             if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
-                if (GameBase.gameExports.cvarCache.skill.value == 0 && (Lib.rand() & 3) != 0)
+                if (gameExports.cvarCache.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
                 if (self.monsterinfo.melee != null)
                     self.monsterinfo.attack_state = GameDefines.AS_MELEE;
@@ -600,7 +600,7 @@ public class GameUtil {
             if (self.monsterinfo.attack == null)
                 return false;
 
-            if (GameBase.gameExports.level.time < self.monsterinfo.attack_finished)
+            if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
             if (GameAI.enemy_range == GameDefines.RANGE_FAR)
@@ -618,14 +618,14 @@ public class GameUtil {
                 return false;
             }
 
-            if (GameBase.gameExports.cvarCache.skill.value == 0)
+            if (gameExports.cvarCache.skill.value == 0)
                 chance *= 0.5;
-            else if (GameBase.gameExports.cvarCache.skill.value >= 2)
+            else if (gameExports.cvarCache.skill.value >= 2)
                 chance *= 2;
 
             if (Lib.random() < chance) {
                 self.monsterinfo.attack_state = GameDefines.AS_MISSILE;
-                self.monsterinfo.attack_finished = GameBase.gameExports.level.time + 2
+                self.monsterinfo.attack_finished = gameExports.level.time + 2
                         * Lib.random();
                 return true;
             }

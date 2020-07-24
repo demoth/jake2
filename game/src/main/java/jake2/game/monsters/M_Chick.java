@@ -1071,7 +1071,7 @@ public class M_Chick {
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], 10);
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_melee_swing, 1,
                     Defines.ATTN_NORM, 0);
-            GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100);
+            GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100, gameExports);
             return true;
         }
     };
@@ -1095,7 +1095,7 @@ public class M_Chick {
             Math3D.VectorNormalize(dir);
 
             Monster.monster_fire_rocket(self, start, dir, 50, 500,
-                    Defines.MZ2_CHICK_ROCKET_1);
+                    Defines.MZ2_CHICK_ROCKET_1, gameExports);
             return true;
         }
     };

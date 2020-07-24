@@ -357,7 +357,7 @@ public class M_Gladiator {
             float[] aim = { 0, 0, 0 };
 
             Math3D.VectorSet(aim, GameDefines.MELEE_DISTANCE, self.mins[0], -4);
-            if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300))
+            if (GameWeapon.fire_hit(self, aim, (20 + (Lib.rand() % 5)), 300, gameExports))
                 gameExports.gameImports.sound(self, Defines.CHAN_AUTO, sound_cleaver_hit,
                         1, Defines.ATTN_NORM, 0);
             else
@@ -419,7 +419,7 @@ public class M_Gladiator {
             Math3D.VectorNormalize(dir);
 
             Monster.monster_fire_railgun(self, start, dir, 50, 100,
-                    Defines.MZ2_GLADIATOR_RAILGUN_1);
+                    Defines.MZ2_GLADIATOR_RAILGUN_1, gameExports);
 
             return true;
         }

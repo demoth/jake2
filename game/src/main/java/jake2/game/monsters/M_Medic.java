@@ -864,7 +864,7 @@ public class M_Medic {
             Math3D.VectorSubtract(end, start, dir);
 
             Monster.monster_fire_blaster(self, start, dir, 2, 1000,
-                    Defines.MZ2_MEDIC_BLASTER_1, effect);
+                    Defines.MZ2_MEDIC_BLASTER_1, effect, gameExports);
             return true;
         }
     };

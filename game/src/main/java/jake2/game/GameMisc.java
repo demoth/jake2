@@ -947,7 +947,7 @@ public class GameMisc {
 
                 savetarget = self.target;
                 self.target = self.pathtarget;
-                GameUtil.G_UseTargets(self, other);
+                GameUtil.G_UseTargets(self, other, gameExports);
                 self.target = savetarget;
             }
 
@@ -1039,7 +1039,7 @@ public class GameMisc {
                     activator = other.activator;
                 else
                     activator = other;
-                GameUtil.G_UseTargets(self, activator);
+                GameUtil.G_UseTargets(self, activator, gameExports);
                 self.target = savetarget;
             }
         }
@@ -1226,7 +1226,7 @@ public class GameMisc {
                         chunkorigin);
             }
 
-            GameUtil.G_UseTargets(self, attacker);
+            GameUtil.G_UseTargets(self, attacker, gameExports);
 
             if (self.dmg != 0)
                 BecomeExplosion1(self);
@@ -1574,7 +1574,7 @@ public class GameMisc {
         public String getID() { return "misc_viper_bomb_touch";}
         public void touch(SubgameEntity self, SubgameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, self.activator);
+            GameUtil.G_UseTargets(self, self.activator, gameExports);
 
             self.s.origin[2] = self.absmin[2] + 1;
             GameCombat.T_RadiusDamage(self, self, self.dmg, null, self.dmg + 40,
@@ -1769,7 +1769,7 @@ public class GameMisc {
                     savemessage = self.message;
                     self.target = self.pathtarget;
                     self.message = null;
-                    GameUtil.G_UseTargets(self, self.activator);
+                    GameUtil.G_UseTargets(self, self.activator, gameExports);
                     self.target = savetarget;
                     self.message = savemessage;
                 }

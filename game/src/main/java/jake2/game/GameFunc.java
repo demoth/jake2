@@ -377,7 +377,7 @@ class GameFunc {
         else if ("func_door_rotating".equals(self.classname))
             AngleMove_Calc(self, door_hit_top);
 
-        GameUtil.G_UseTargets(self, activator);
+        GameUtil.G_UseTargets(self, activator, GameBase.gameExports);
         door_use_areaportals(self, true);
     }
 
@@ -670,7 +670,7 @@ class GameFunc {
             Math3D.VectorScale(move, 1.0f / Defines.FRAMETIME, ent.avelocity);
 
             ent.think = AngleMove_Done;
-            ent.nextthink = GameBase.gameExports.level.time + Defines.FRAMETIME;
+            ent.nextthink = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
     };
@@ -763,7 +763,7 @@ class GameFunc {
 
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_end != 0)
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_end, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = 0;
@@ -778,7 +778,7 @@ class GameFunc {
         public boolean think(SubgameEntity ent, GameExportsImpl gameExports) {
             if (0 == (ent.flags & GameDefines.FL_TEAMSLAVE)) {
                 if (ent.moveinfo.sound_start != 0)
-                    GameBase.gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
+                    gameExports.gameImports.sound(ent, Defines.CHAN_NO_PHS_ADD
                             + Defines.CHAN_VOICE, ent.moveinfo.sound_start, 1,
                             Defines.ATTN_STATIC, 0);
                 ent.s.sound = ent.moveinfo.sound_middle;
@@ -932,15 +932,15 @@ class GameFunc {
                 ent.blocked = rotating_blocked;
 
             if ((ent.spawnflags & 1) != 0)
-                ent.use.use(ent, null, null, GameBase.gameExports);
+                ent.use.use(ent, null, null, gameExports);
 
             if ((ent.spawnflags & 64) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALL;
             if ((ent.spawnflags & 128) != 0)
                 ent.s.effects |= Defines.EF_ANIM_ALLFAST;
 
-            GameBase.gameExports.gameImports.setmodel(ent, ent.model);
-            GameBase.gameExports.gameImports.linkentity(ent);
+            gameExports.gameImports.setmodel(ent, ent.model);
+            gameExports.gameImports.linkentity(ent);
             return true;
         }
     };
@@ -1000,7 +1000,7 @@ class GameFunc {
             self.s.effects &= ~Defines.EF_ANIM01;
             self.s.effects |= Defines.EF_ANIM23;
 
-            GameUtil.G_UseTargets(self, self.activator);
+            GameUtil.G_UseTargets(self, self.activator, GameBase.gameExports);
             self.s.frame = 1;
             if (self.moveinfo.wait >= 0) {
                 self.nextthink = gameExports.level.time + self.moveinfo.wait;
@@ -1678,7 +1678,7 @@ class GameFunc {
                 ent = self.target_ent;
                 savetarget = ent.target;
                 ent.target = ent.pathtarget;
-                GameUtil.G_UseTargets(ent, self.activator);
+                GameUtil.G_UseTargets(ent, self.activator, GameBase.gameExports);
                 ent.target = savetarget;
 
                 // make sure we didn't get killed by a killtarget
@@ -1911,7 +1911,7 @@ class GameFunc {
     private static EntThinkAdapter func_timer_think = new EntThinkAdapter() {
         public String getID() { return "func_timer_think";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, self.activator);
+            GameUtil.G_UseTargets(self, self.activator, GameBase.gameExports);
             self.nextthink = gameExports.level.time + self.wait + Lib.crandom()
                     * self.random;
             return true;

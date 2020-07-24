@@ -1320,7 +1320,7 @@ public class M_Actor {
     static EntThinkAdapter actor_fire = new EntThinkAdapter() {
         public String getID() { return "actor_fire";}
         public boolean think(SubgameEntity self, GameExportsImpl gameExports) {
-            actorMachineGun(self);
+            actorMachineGun(self, gameExports);
 
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
@@ -1459,7 +1459,7 @@ public class M_Actor {
 
                 savetarget = self.target;
                 self.target = self.pathtarget;
-                GameUtil.G_UseTargets(self, other);
+                GameUtil.G_UseTargets(self, other, gameExports);
                 self.target = savetarget;
             }
 
@@ -1479,7 +1479,7 @@ public class M_Actor {
         }
     };
 
-    static void actorMachineGun(SubgameEntity self) {
+    static void actorMachineGun(SubgameEntity self, GameExportsImpl gameExports) {
         float start[] = { 0, 0, 0 }, target[] = { 0, 0, 0 };
 
         float forward[] = { 0, 0, 0 }, right[] = { 0, 0, 0 };
@@ -1506,7 +1506,7 @@ public class M_Actor {
         }
         Monster.monster_fire_bullet(self, start, forward, 3, 4,
                 GameDefines.DEFAULT_BULLET_HSPREAD, GameDefines.DEFAULT_BULLET_VSPREAD,
-                Defines.MZ2_ACTOR_MACHINEGUN_1);
+                Defines.MZ2_ACTOR_MACHINEGUN_1, gameExports);
     }
 
     /**

@@ -168,7 +168,7 @@ public class PlayerWeapon {
             Math3D.VectorScale(forward, -2, client.kick_origin);
             client.kick_angles[0] = -1;
 
-            GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
+            GameWeapon.fire_grenade(ent, start, forward, damage, 600, 2.5f, radius, gameExports);
 
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
             gameExports.gameImports.WriteShort(ent.index);
@@ -237,7 +237,7 @@ public class PlayerWeapon {
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
             GameWeapon.fire_rocket(ent, start, forward, damage, 650, damage_radius,
-                    radius_damage);
+                    radius_damage, gameExports);
 
             // send muzzle flash
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
@@ -457,10 +457,10 @@ public class PlayerWeapon {
             if (gameExports.cvarCache.deathmatch.value != 0)
                 GameWeapon.fire_shotgun(ent, start, forward, damage, kick, 500, 500,
                         GameDefines.DEFAULT_DEATHMATCH_SHOTGUN_COUNT,
-                        GameDefines.MOD_SHOTGUN);
+                        GameDefines.MOD_SHOTGUN, gameExports);
             else
                 GameWeapon.fire_shotgun(ent, start, forward, damage, kick, 500, 500,
-                        GameDefines.DEFAULT_SHOTGUN_COUNT, GameDefines.MOD_SHOTGUN);
+                        GameDefines.DEFAULT_SHOTGUN_COUNT, GameDefines.MOD_SHOTGUN, gameExports);
 
             // send muzzle flash
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
@@ -525,13 +525,13 @@ public class PlayerWeapon {
             GameWeapon.fire_shotgun(ent, start, forward, damage, kick,
                     GameDefines.DEFAULT_SHOTGUN_HSPREAD,
                     GameDefines.DEFAULT_SHOTGUN_VSPREAD,
-                    GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN);
+                    GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN, gameExports);
             v[Defines.YAW] = client.v_angle[Defines.YAW] + 5;
             Math3D.AngleVectors(v, forward, null, null);
             GameWeapon.fire_shotgun(ent, start, forward, damage, kick,
                     GameDefines.DEFAULT_SHOTGUN_HSPREAD,
                     GameDefines.DEFAULT_SHOTGUN_VSPREAD,
-                    GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN);
+                    GameDefines.DEFAULT_SSHOTGUN_COUNT / 2, GameDefines.MOD_SSHOTGUN, gameExports);
 
             // send muzzle flash
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
@@ -604,7 +604,7 @@ public class PlayerWeapon {
             Math3D.VectorSet(offset, 0, 7, ent.viewheight - 8);
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
-            GameWeapon.fire_rail(ent, start, forward, damage, kick);
+            GameWeapon.fire_rail(ent, start, forward, damage, kick, gameExports);
 
             // send muzzle flash
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
@@ -696,7 +696,7 @@ public class PlayerWeapon {
             Math3D.VectorSet(offset, 8, 8, ent.viewheight - 8);
             P_ProjectSource(client, ent.s.origin, offset, forward, right,
                     start);
-            GameWeapon.fire_bfg(ent, start, forward, damage, 400, damage_radius);
+            GameWeapon.fire_bfg(ent, start, forward, damage, 400, damage_radius, gameExports);
 
             client.getPlayerState().gunframe++;
 
@@ -872,7 +872,7 @@ public class PlayerWeapon {
                     start);
             GameWeapon.fire_bullet(ent, start, forward, damage, kick,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_MACHINEGUN, gameExports);
 
             gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);
 
@@ -1003,7 +1003,7 @@ public class PlayerWeapon {
 
                 GameWeapon.fire_bullet(ent, start, forward, damage, kick,
                         GameDefines.DEFAULT_BULLET_HSPREAD,
-                        GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_CHAINGUN);
+                        GameDefines.DEFAULT_BULLET_VSPREAD, GameDefines.MOD_CHAINGUN, gameExports);
             }
 
             // send muzzle flash
@@ -1397,7 +1397,7 @@ public class PlayerWeapon {
         speed = (int) (GameDefines.GRENADE_MINSPEED + (GameDefines.GRENADE_TIMER - timer)
                 * ((GameDefines.GRENADE_MAXSPEED - GameDefines.GRENADE_MINSPEED) / GameDefines.GRENADE_TIMER));
         GameWeapon.fire_grenade2(ent, start, forward, damage, speed, timer, radius,
-                held);
+                held, gameExports);
 
         if (0 == ((int) gameExports.cvarCache.dmflags.value & Defines.DF_INFINITE_AMMO))
             client.pers.inventory[client.ammo_index]--;
@@ -1449,7 +1449,7 @@ public class PlayerWeapon {
         Math3D.VectorScale(forward, -2, client.kick_origin);
         client.kick_angles[0] = -1;
 
-        GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+        GameWeapon.fire_blaster(ent, start, forward, damage, 1000, effect, hyper, gameExports);
 
         // send muzzle flash
         gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash);

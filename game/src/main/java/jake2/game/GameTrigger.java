@@ -45,7 +45,7 @@ class GameTrigger {
         if (ent.nextthink != 0)
             return; // already been triggered
 
-        GameUtil.G_UseTargets(ent, ent.activator);
+        GameUtil.G_UseTargets(ent, ent.activator, GameBase.gameExports);
 
         if (ent.wait > 0) {
             ent.think = multi_wait;
@@ -173,7 +173,7 @@ class GameTrigger {
         // we must have some delay to make sure our use targets are present
         if (ent.delay < 0.2f)
             ent.delay = 0.2f;
-        GameUtil.G_UseTargets(ent, ent);
+        GameUtil.G_UseTargets(ent, ent, GameBase.gameExports);
     }
 
     /*
@@ -301,7 +301,7 @@ class GameTrigger {
     private static EntUseAdapter trigger_relay_use = new EntUseAdapter() {
     	public String getID(){ return "trigger_relay_use"; }
         public void use(SubgameEntity self, SubgameEntity other, SubgameEntity activator, GameExportsImpl gameExports) {
-            GameUtil.G_UseTargets(self, activator);
+            GameUtil.G_UseTargets(self, activator, GameBase.gameExports);
         }
     };
 
@@ -382,7 +382,7 @@ class GameTrigger {
                 activatorClient.pers.inventory[index]--;
             }
 
-            GameUtil.G_UseTargets(self, activator);
+            GameUtil.G_UseTargets(self, activator, GameBase.gameExports);
 
             self.use = null;
         }

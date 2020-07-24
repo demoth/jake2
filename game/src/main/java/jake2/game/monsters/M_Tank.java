@@ -970,7 +970,7 @@ public class M_Tank {
             Math3D.VectorSubtract(end, start, dir);
 
             Monster.monster_fire_blaster(self, start, dir, 30, 800,
-                    flash_number, Defines.EF_BLASTER);
+                    flash_number, Defines.EF_BLASTER, gameExports);
 
             return true;
         }
@@ -1015,7 +1015,7 @@ public class M_Tank {
 
             Monster
                     .monster_fire_rocket(self, start, dir, 50, 550,
-                            flash_number);
+                            flash_number, gameExports);
             return true;
         }
     };
@@ -1057,7 +1057,7 @@ public class M_Tank {
 
             Monster.monster_fire_bullet(self, start, forward, 20, 4,
                     GameDefines.DEFAULT_BULLET_HSPREAD,
-                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number);
+                    GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
 
             return true;
         }

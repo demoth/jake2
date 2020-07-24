@@ -37,85 +37,85 @@ public class Monster {
     //	the damages too, but I'm not sure that's such a good idea.
     public static void monster_fire_bullet(SubgameEntity self, float[] start,
                                            float[] dir, int damage, int kick, int hspread, int vspread,
-                                           int flashtype) {
+                                           int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_bullet(self, start, dir, damage, kick, hspread, vspread,
-                GameDefines.MOD_UNKNOWN);
+                GameDefines.MOD_UNKNOWN, GameBase.gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the shotgun. */
     public static void monster_fire_shotgun(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int kick, int hspread, int vspread,
-            int count, int flashtype) {
+                                            float[] aimdir, int damage, int kick, int hspread, int vspread,
+                                            int count, int flashtype, GameExportsImpl gameExports) {
         GameWeapon.fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread,
-                count, GameDefines.MOD_UNKNOWN);
+                count, GameDefines.MOD_UNKNOWN, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the blaster. */
     public static void monster_fire_blaster(SubgameEntity self, float[] start,
-            float[] dir, int damage, int speed, int flashtype, int effect) {
-        GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false);
+                                            float[] dir, int damage, int speed, int flashtype, int effect, GameExportsImpl gameExports) {
+        GameWeapon.fire_blaster(self, start, dir, damage, speed, effect, false, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the grenade. */
     public static void monster_fire_grenade(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int speed, int flashtype) {
+                                            float[] aimdir, int damage, int speed, int flashtype, GameExportsImpl gameExports) {
         GameWeapon
                 .fire_grenade(self, start, aimdir, damage, speed, 2.5f,
-                        damage + 40);
+                        damage + 40, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the rocket. */
     public static void monster_fire_rocket(SubgameEntity self, float[] start,
-            float[] dir, int damage, int speed, int flashtype) {
-        GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
+                                           float[] dir, int damage, int speed, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_rocket(self, start, dir, damage, speed, damage + 20, damage, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the railgun. */
     public static void monster_fire_railgun(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int kick, int flashtype) {
-        GameWeapon.fire_rail(self, start, aimdir, damage, kick);
+                                            float[] aimdir, int damage, int kick, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_rail(self, start, aimdir, damage, kick, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /** The Moster fires the bfg. */
     public static void monster_fire_bfg(SubgameEntity self, float[] start,
-            float[] aimdir, int damage, int speed, int kick,
-            float damage_radius, int flashtype) {
-        GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius);
+                                        float[] aimdir, int damage, int speed, int kick,
+                                        float damage_radius, int flashtype, GameExportsImpl gameExports) {
+        GameWeapon.fire_bfg(self, start, aimdir, damage, speed, damage_radius, gameExports);
 
-        GameBase.gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
-        GameBase.gameExports.gameImports.WriteShort(self.index);
-        GameBase.gameExports.gameImports.WriteByte(flashtype);
-        GameBase.gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
+        gameExports.gameImports.WriteByte(NetworkCommands.svc_muzzleflash2);
+        gameExports.gameImports.WriteShort(self.index);
+        gameExports.gameImports.WriteByte(flashtype);
+        gameExports.gameImports.multicast(start, MulticastTypes.MULTICAST_PVS);
     }
 
     /*
@@ -139,7 +139,7 @@ public class Monster {
         if (self.target == null)
             return;
 
-        GameUtil.G_UseTargets(self, self.enemy);
+        GameUtil.G_UseTargets(self, self.enemy, GameBase.gameExports);
     }
 
     // ============================================================================
