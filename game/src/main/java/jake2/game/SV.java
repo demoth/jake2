@@ -327,16 +327,16 @@ final class SV {
         Math3D.AngleVectors(org, forward, right, up);
 
         //	   save the pusher's original position
-        GameBase.pushed[GameBase.pushed_p].ent = pusher;
+        gameExports.pushed[gameExports.pushed_p].ent = pusher;
         Math3D.VectorCopy(pusher.s.origin,
-                GameBase.pushed[GameBase.pushed_p].origin);
+                gameExports.pushed[gameExports.pushed_p].origin);
         Math3D.VectorCopy(pusher.s.angles,
-                GameBase.pushed[GameBase.pushed_p].angles);
+                gameExports.pushed[gameExports.pushed_p].angles);
 
         if (pusher.getClient() != null)
-            GameBase.pushed[GameBase.pushed_p].deltayaw = pusher.getClient().getPlayerState().pmove.delta_angles[Defines.YAW];
+            gameExports.pushed[gameExports.pushed_p].deltayaw = pusher.getClient().getPlayerState().pmove.delta_angles[Defines.YAW];
 
-        GameBase.pushed_p++;
+        gameExports.pushed_p++;
 
         //	   move the pusher to it's final position
         Math3D.VectorAdd(pusher.s.origin, move, pusher.s.origin);
@@ -378,12 +378,12 @@ final class SV {
             if ((pusher.movetype == GameDefines.MOVETYPE_PUSH)
                     || (check.groundentity == pusher)) {
                 // move this entity
-                GameBase.pushed[GameBase.pushed_p].ent = check;
+                gameExports.pushed[gameExports.pushed_p].ent = check;
                 Math3D.VectorCopy(check.s.origin,
-                        GameBase.pushed[GameBase.pushed_p].origin);
+                        gameExports.pushed[gameExports.pushed_p].origin);
                 Math3D.VectorCopy(check.s.angles,
-                        GameBase.pushed[GameBase.pushed_p].angles);
-                GameBase.pushed_p++;
+                        gameExports.pushed[gameExports.pushed_p].angles);
+                gameExports.pushed_p++;
 
                 // try moving the contacted entity
                 Math3D.VectorAdd(check.s.origin, move, check.s.origin);
@@ -417,19 +417,19 @@ final class SV {
                 block = SV_TestEntityPosition(check, gameExports);
 
                 if (block == null) {
-                    GameBase.pushed_p--;
+                    gameExports.pushed_p--;
                     continue;
                 }
             }
 
             // save off the obstacle so we can call the block function
-            GameBase.obstacle = check;
+            gameExports.obstacle = check;
 
             // move back any entities we already moved
             // go backwards, so if the same entity was pushed
             // twice, it goes back to the original position
-            for (int ip = GameBase.pushed_p - 1; ip >= 0; ip--) {
-                pushed_t p = GameBase.pushed[ip];
+            for (int ip = gameExports.pushed_p - 1; ip >= 0; ip--) {
+                pushed_t p = gameExports.pushed[ip];
                 Math3D.VectorCopy(p.origin, p.ent.s.origin);
                 Math3D.VectorCopy(p.angles, p.ent.s.angles);
                 if (p.ent.getClient() != null) {
@@ -442,8 +442,8 @@ final class SV {
 
         //	  FIXME: is there a better way to handle this?
         // see if anything we moved has touched a trigger
-        for (int ip = GameBase.pushed_p - 1; ip >= 0; ip--) {
-            GameBase.G_TouchTriggers(GameBase.pushed[ip].ent, gameExports);
+        for (int ip = gameExports.pushed_p - 1; ip >= 0; ip--) {
+            GameBase.G_TouchTriggers(gameExports.pushed[ip].ent, gameExports);
         }
         return true;
     }
@@ -464,7 +464,7 @@ final class SV {
         // any moves or calling any think functions
         // if the move is blocked, all moved objects will be backed out
         //	  retry:
-        GameBase.pushed_p = 0;
+        gameExports.pushed_p = 0;
         SubgameEntity part;
         for (part = ent; part != null; part = part.teamchain) {
             if (part.velocity[0] != 0 || part.velocity[1] != 0
@@ -479,7 +479,7 @@ final class SV {
                     break; // move was blocked
             }
         }
-        if (GameBase.pushed_p > Defines.MAX_EDICTS)
+        if (gameExports.pushed_p > Defines.MAX_EDICTS)
             Com.Error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
         if (part != null) {
@@ -492,7 +492,7 @@ final class SV {
             // if the pusher has a "blocked" function, call it
             // otherwise, just stay in place until the obstacle is gone
             if (part.blocked != null)
-                part.blocked.blocked(part, GameBase.obstacle, gameExports);
+                part.blocked.blocked(part, gameExports.obstacle, gameExports);
         } else { // the move succeeded, so call all think functions
             for (part = ent; part != null; part = part.teamchain) {
                 SV_RunThink(part, gameExports);

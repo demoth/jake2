@@ -774,21 +774,21 @@ class GameFunc {
 
     private static EntBlockedAdapter plat_blocked = new EntBlockedAdapter() {
         public String getID() { return "plat_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
                         GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other, gameExports);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
 
             if (self.moveinfo.state == STATE_UP)
@@ -845,9 +845,9 @@ class GameFunc {
 
     private static EntBlockedAdapter rotating_blocked = new EntBlockedAdapter() {
         public String getID() { return "rotating_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
         }
     };
@@ -1306,22 +1306,22 @@ class GameFunc {
 
     private static EntBlockedAdapter door_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
 
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
                         GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other, gameExports);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
 
             if ((self.spawnflags & DOOR_CRUSHER) != 0)
@@ -1643,16 +1643,16 @@ class GameFunc {
 
     private static EntBlockedAdapter train_blocked = new EntBlockedAdapter() {
         public String getID() { return "train_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
                         GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other, gameExports);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
@@ -1662,8 +1662,8 @@ class GameFunc {
             if (self.dmg == 0)
                 return;
             self.touch_debounce_time = gameExports.level.time + 0.5f;
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
         }
     };
@@ -2079,16 +2079,16 @@ class GameFunc {
 
     private static EntBlockedAdapter door_secret_blocked = new EntBlockedAdapter() {
         public String getID() { return "door_secret_blocked";}
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
-            if (0 == (other.svflags & Defines.SVF_MONSTER)
-                    && (null == other.getClient())) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
+            if (0 == (obstacle.svflags & Defines.SVF_MONSTER)
+                    && (null == obstacle.getClient())) {
                 // give it a chance to go away on it's own terms (like gibs)
-                GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin, 100000, 1, 0,
+                GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin, 100000, 1, 0,
                         GameDefines.MOD_CRUSH, gameExports);
                 // if it's still there, nuke it
-                if (other != null)
-                    GameMisc.BecomeExplosion1(other, gameExports);
+                if (obstacle != null)
+                    GameMisc.BecomeExplosion1(obstacle, gameExports);
                 return;
             }
 
@@ -2096,8 +2096,8 @@ class GameFunc {
                 return;
             self.touch_debounce_time = gameExports.level.time + 0.5f;
 
-            GameCombat.T_Damage(other, self, self, Globals.vec3_origin,
-                    other.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
+            GameCombat.T_Damage(obstacle, self, self, Globals.vec3_origin,
+                    obstacle.s.origin, Globals.vec3_origin, self.dmg, 1, 0,
                     GameDefines.MOD_CRUSH, gameExports);
         }
     };

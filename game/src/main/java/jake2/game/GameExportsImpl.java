@@ -106,11 +106,25 @@ public class GameExportsImpl implements GameExports {
     // todo: pass directly instead of via global static field
     public spawn_temp_t st = new spawn_temp_t();
 
+    // Collision
+    // holds the entity that is blocking something' movement
+    SubgameEntity obstacle;
+
+    // todo: make consistent with maxentities cvar
+    pushed_t[] pushed = new pushed_t[Defines.MAX_EDICTS];
+    int pushed_p;
+
+    // holds the result of gi.BoxEdicts
+    // todo: make consistent with maxentities cvar
+    // todo: remove and use result of gi.BoxEdicts
+    SubgameEntity[] touch = new SubgameEntity[Defines.MAX_EDICTS];
+
     /**
      * entity with index = 0 is always the worldspawn.
      * entities with indices 1..maxclients are the players
      * then go other stuff
      */
+    // todo: make consistent with maxentities cvar
     public SubgameEntity[] g_edicts = new SubgameEntity[Defines.MAX_EDICTS];
     int num_edicts;
 
@@ -149,6 +163,10 @@ public class GameExportsImpl implements GameExports {
 
         CreateEdicts(gameImports.cvar("maxentities", "1024", Defines.CVAR_LATCH).value);
         CreateClients(gameImports.cvar("maxclients", "4", Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH).value);
+
+        for (int n = 0; n < Defines.MAX_EDICTS; n++) {
+            pushed[n] = new pushed_t();
+        }
 
     }
 

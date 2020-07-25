@@ -101,7 +101,6 @@ public final class M {
                 start[0] = x != 0 ? maxs[0] : mins[0];
                 start[1] = y != 0 ? maxs[1] : mins[1];
                 if (gameExports.gameImports.getPointContents(start) != Defines.CONTENTS_SOLID) {
-                    GameBase.c_no++;
                     //
                     //	   check it for real...
                     //
@@ -137,12 +136,10 @@ public final class M {
                                 return false;
                         }
 
-                    GameBase.c_yes++;
                     return true;
                 }
             }
 
-        GameBase.c_yes++;
         return true; // we got out easy
     }
 
