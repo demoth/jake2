@@ -126,6 +126,9 @@ public class GameExportsImpl implements GameExports {
     int enemy_range;
     float enemy_yaw;
 
+    // Game Items
+    GameItemList items;
+
     /**
      * entity with index = 0 is always the worldspawn.
      * entities with indices 1..maxclients are the players
@@ -161,7 +164,8 @@ public class GameExportsImpl implements GameExports {
         game = new game_locals_t();
         game.helpmessage1 = "";
         game.helpmessage2 = "";
-        game.num_items = GameItemList.itemlist.length - 1;
+        items = new GameItemList();
+        game.num_items = items.itemlist.length - 1;
 
         level = new level_locals_t();
 
@@ -276,7 +280,7 @@ public class GameExportsImpl implements GameExports {
         gitem_t it;
         if (give_all || 0 == Lib.Q_stricmp(name, "weapons")) {
             for (i = 1; i < game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+                it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -289,7 +293,7 @@ public class GameExportsImpl implements GameExports {
 
         if (give_all || 0 == Lib.Q_stricmp(name, "ammo")) {
             for (i = 1; i < game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+                it = items.itemlist[i];
                 if (null == it.pickup)
                     continue;
                 if (0 == (it.flags & GameDefines.IT_AMMO))
@@ -334,7 +338,7 @@ public class GameExportsImpl implements GameExports {
         if (give_all || 0 == Lib.Q_stricmp(name, "items")) {
 
             for (i = 1; i < game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+                it = items.itemlist[i];
                 if (0 == (it.flags & GameDefines.IT_POWERUP))
                     continue;
 
@@ -354,7 +358,7 @@ public class GameExportsImpl implements GameExports {
 
         if (give_all) {
             for (i = 1; i < game.num_items; i++) {
-                it = GameItemList.itemlist[i];
+                it = items.itemlist[i];
                 if (it.pickup != null)
                     continue;
                 if ((it.flags & (GameDefines.IT_ARMOR | GameDefines.IT_WEAPON | GameDefines.IT_AMMO)) != 0)
@@ -564,7 +568,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItemList.itemlist[client.pers.selected_item];
+        it = items.itemlist[client.pers.selected_item];
         if (it.use == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not usable.\n");
             return;
@@ -590,7 +594,7 @@ public class GameExportsImpl implements GameExports {
             if (0 == cl.pers.inventory[index])
                 continue;
 
-            gitem_t it = GameItemList.itemlist[index];
+            gitem_t it = items.itemlist[index];
             if (it.use == null)
                 continue;
 
@@ -627,7 +631,7 @@ public class GameExportsImpl implements GameExports {
                 index++;
             if (0 == cl.pers.inventory[index])
                 continue;
-            it = GameItemList.itemlist[index];
+            it = items.itemlist[index];
             if (null == it.use)
                 continue;
             if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -652,7 +656,7 @@ public class GameExportsImpl implements GameExports {
         index = cl.pers.lastweapon.index;
         if (0 == cl.pers.inventory[index])
             return;
-        gitem_t it = GameItemList.itemlist[index];
+        gitem_t it = items.itemlist[index];
         if (null == it.use)
             return;
         if (0 == (it.flags & GameDefines.IT_WEAPON))
@@ -674,7 +678,7 @@ public class GameExportsImpl implements GameExports {
             return;
         }
 
-        it = GameItemList.itemlist[client.pers.selected_item];
+        it = items.itemlist[client.pers.selected_item];
         if (it.drop == null) {
             gameImports.cprintf(ent, Defines.PRINT_HIGH, "Item is not dropable.\n");
             return;
@@ -1508,7 +1512,7 @@ public class GameExportsImpl implements GameExports {
 
             for (int i = 0; i < game.maxclients; i++) {
                 game.clients[i] = new gclient_t(i);
-                game.clients[i].read(f, g_edicts);
+                game.clients[i].read(f, g_edicts, this);
             }
 
             f.close();
@@ -1572,7 +1576,7 @@ public class GameExportsImpl implements GameExports {
                     num_edicts = entnum + 1;
 
                 ent = g_edicts[entnum];
-                ent.read(f, g_edicts, game.clients);
+                ent.read(f, g_edicts, game.clients, this);
                 ent.cleararealinks();
                 gameImports.linkentity(ent);
             }

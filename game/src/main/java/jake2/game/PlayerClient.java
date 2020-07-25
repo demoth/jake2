@@ -76,7 +76,7 @@ public class PlayerClient {
                 // coop
                 for (n = 0; n < gameExports.game.num_items; n++) {
                     if (gameExports.cvarCache.coop.value != 0
-                            && (GameItemList.itemlist[n].flags & GameDefines.IT_KEY) != 0)
+                            && (gameExports.items.itemlist[n].flags & GameDefines.IT_KEY) != 0)
                         client.resp.coop_respawn.inventory[n] = client.pers.inventory[n];
                     client.pers.inventory[n] = 0;
                 }

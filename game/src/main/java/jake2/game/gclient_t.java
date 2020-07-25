@@ -198,15 +198,15 @@ public class gclient_t implements jake2.qcommon.GameClient {
 	}
 
 	/** Reads a game client from the file. */
-	public void read(QuakeFile f, edict_t[] edicts) throws IOException
+	public void read(QuakeFile f, edict_t[] edicts, GameExportsImpl gameExports) throws IOException
 	{
 
 		getPlayerState().load(f);
 
 		setPing(f.readInt());
 
-		pers.read(f);
-		resp.read(f);
+		pers.read(f, gameExports);
+		resp.read(f, gameExports);
 
 		old_pmove.load(f);
 
@@ -222,7 +222,7 @@ public class gclient_t implements jake2.qcommon.GameClient {
 
 		weapon_thunk=f.readInt()!=0;
 		
-		newweapon= GameItems.readItem(f);
+		newweapon= GameItems.readItem(f, gameExports);
 		
 
 		damage_armor = f.readInt();

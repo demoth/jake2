@@ -22,24 +22,14 @@
 package jake2.game;
 
 public class gitem_t {
-    private static int id = 0;
-
-    public gitem_t(int xxx) {
-        index = xxx;
-    }
 
     public gitem_t(String classname, EntInteractAdapter pickup,
-            ItemUseAdapter use, ItemDropAdapter drop,
-            EntThinkAdapter weaponthink) {
-    }
-
-    public gitem_t(String classname, EntInteractAdapter pickup,
-            ItemUseAdapter use, ItemDropAdapter drop,
-            EntThinkAdapter weaponthink, String pickup_sound,
-            String world_model, int world_model_flags, String view_model,
-            String icon, String pickup_name, int count_width, int quantity,
-            String ammo, int flags, int weapmodel, gitem_armor_t info, int tag,
-            String precaches) {
+                   ItemUseAdapter use, ItemDropAdapter drop,
+                   EntThinkAdapter weaponthink, String pickup_sound,
+                   String world_model, int world_model_flags, String view_model,
+                   String icon, String pickup_name, int count_width, int quantity,
+                   String ammo, int flags, int weapmodel, gitem_armor_t info, int tag,
+                   String precaches, int index) {
         this.classname = classname;
         this.pickup = pickup;
         this.use = use;
@@ -60,7 +50,7 @@ public class gitem_t {
         this.tag = tag;
         this.precaches = precaches;
 
-        this.index = id++;
+        this.index = index;
     }
 
     String classname; // spawning name

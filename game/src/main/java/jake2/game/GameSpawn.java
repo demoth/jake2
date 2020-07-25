@@ -168,7 +168,7 @@ public class GameSpawn {
             return true;
         }
     };
-    private static String single_statusbar = "yb	-24 " //	   health
+    private static final String single_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
             + "endif " //	   armor
@@ -184,7 +184,7 @@ public class GameSpawn {
             + "endif "
             //		help / weapon icon
             + "if 11 " + "	xv	148 " + "	pic	11 " + "endif ";
-    private static String dm_statusbar = "yb	-24 " //	   health
+    private static final String dm_statusbar = "yb	-24 " //	   health
             + "xv	0 " + "hnum " + "xv	50 " + "pic 0 " //	   ammo
             + "if 2 " + "	xv	100 " + "	anum " + "	xv	150 " + "	pic 2 "
             + "endif " //	   armor
@@ -389,7 +389,7 @@ public class GameSpawn {
             return true;
         }
     };
-    private static Map<String, EntThinkAdapter> spawns;
+    private static final Map<String, EntThinkAdapter> spawns;
 
     static {
         spawns = new HashMap<>();
@@ -1420,7 +1420,7 @@ public class GameSpawn {
         } // check item spawn functions
         for (int i = 1; i < gameExports.game.num_items; i++) {
 
-            gitem_t item = GameItemList.itemlist[i];
+            gitem_t item = gameExports.items.itemlist[i];
 
             if (item == null)
                 gameExports.gameImports.error("ED_CallSpawn: null item in pos " + i);

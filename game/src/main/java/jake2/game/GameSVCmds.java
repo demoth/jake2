@@ -33,6 +33,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.StringTokenizer;
 
+// todo refactor completely
+@Deprecated
 public class GameSVCmds {
 
     /**
@@ -73,10 +75,6 @@ public class GameSVCmds {
 
         int compare;
     };
-
-    public static void Svcmd_Test_f(GameExportsImpl gameExports) {
-        gameExports.gameImports.cprintf(null, Defines.PRINT_HIGH, "Svcmd_Test_f()\n");
-    }
 
     public static final int MAX_IPFILTERS = 1024;
 
