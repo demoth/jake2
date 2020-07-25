@@ -177,16 +177,16 @@ public class GameTurret {
 
     static EntBlockedAdapter turret_blocked = new EntBlockedAdapter() {
     	public String getID() { return "turret_blocked"; }
-        public void blocked(SubgameEntity self, SubgameEntity other, GameExportsImpl gameExports) {
+        public void blocked(SubgameEntity self, SubgameEntity obstacle, GameExportsImpl gameExports) {
 
-            if (other.takedamage != 0) {
+            if (obstacle.takedamage != 0) {
                 SubgameEntity attacker;
                 if (self.teammaster.getOwner() != null)
                     attacker = self.teammaster.getOwner();
                 else
                     attacker = self.teammaster;
-                GameCombat.T_Damage(other, self, attacker, Globals.vec3_origin,
-                        other.s.origin, Globals.vec3_origin,
+                GameCombat.T_Damage(obstacle, self, attacker, Globals.vec3_origin,
+                        obstacle.s.origin, Globals.vec3_origin,
                         self.teammaster.dmg, 10, 0, GameDefines.MOD_CRUSH, gameExports);
             }
         }

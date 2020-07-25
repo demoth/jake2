@@ -32,7 +32,7 @@ import jake2.qcommon.util.Math3D;
 
 public class GameBase {
 
-    static cplane_t dummyplane = new cplane_t();
+    static final cplane_t dummyplane = new cplane_t();
 
     private final static float STOP_EPSILON = 0.1f;
 
@@ -174,13 +174,13 @@ public class GameBase {
         return choice[Lib.rand() % num_choices];
     }
 
-    private static float[] VEC_UP = { 0, -1, 0 };
+    private static final float[] VEC_UP = { 0, -1, 0 };
 
-    private static float[] MOVEDIR_UP = { 0, 0, 1 };
+    private static final float[] MOVEDIR_UP = { 0, 0, 1 };
 
-    private static float[] VEC_DOWN = { 0, -2, 0 };
+    private static final float[] VEC_DOWN = { 0, -2, 0 };
 
-    private static float[] MOVEDIR_DOWN = { 0, 0, -1 };
+    private static final float[] MOVEDIR_DOWN = { 0, 0, -1 };
 
     public static void G_SetMovedir(float[] angles, float[] movedir) {
         if (Math3D.VectorEquals(angles, VEC_UP)) {
@@ -194,11 +194,8 @@ public class GameBase {
         Math3D.VectorClear(angles);
     }
 
-    // todo: replace with returned collection from gi.BoxEdicts
-    private static SubgameEntity touch[] = new SubgameEntity[Defines.MAX_EDICTS];
-
     static void G_TouchTriggers(SubgameEntity ent, GameExportsImpl gameExports) {
-        int i, num;
+        int i;
         SubgameEntity hit;
 
         // dead things don't activate triggers!
@@ -206,13 +203,13 @@ public class GameBase {
                 && (ent.health <= 0))
             return;
 
-        num = gameExports.gameImports.BoxEdicts(ent.absmin, ent.absmax, touch, Defines.MAX_EDICTS,
+        int boxEdicts = gameExports.gameImports.BoxEdicts(ent.absmin, ent.absmax, gameExports.touch, Defines.MAX_EDICTS,
                 Defines.AREA_TRIGGERS);
 
         // be careful, it is possible to have an entity in this
         // list removed before we get to it (killtriggered)
-        for (i = 0; i < num; i++) {
-            hit = touch[i];
+        for (i = 0; i < boxEdicts; i++) {
+            hit = gameExports.touch[i];
 
             if (!hit.inuse)
                 continue;
@@ -224,19 +221,7 @@ public class GameBase {
         }
     }
 
-    static pushed_t pushed[] = new pushed_t[Defines.MAX_EDICTS];
-    static {
-        for (int n = 0; n < Defines.MAX_EDICTS; n++)
-            pushed[n] = new pushed_t();
-    }
-
-    static int pushed_p;
-
-    static SubgameEntity obstacle;
-
-    static int c_yes, c_no;
-
-    static int STEPSIZE = 18;
+    static final int STEPSIZE = 18;
 
 
     static EdictFindFilter findByTarget = new EdictFindFilter() {
@@ -252,7 +237,4 @@ public class GameBase {
             return e.classname.equalsIgnoreCase(s);
         }
     };
-
-
-
 }
