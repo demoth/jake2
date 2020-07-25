@@ -586,7 +586,7 @@ public class GameUtil {
             }
 
             // melee attack
-            if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
+            if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
                 // don't always melee in easy mode
                 if (gameExports.cvarCache.skill.value == 0 && (Lib.rand() & 3) != 0)
                     return false;
@@ -604,18 +604,19 @@ public class GameUtil {
             if (gameExports.level.time < self.monsterinfo.attack_finished)
                 return false;
 
-            if (GameAI.enemy_range == GameDefines.RANGE_FAR)
+            if (gameExports.enemy_range == GameDefines.RANGE_FAR)
                 return false;
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 chance = 0.4f;
-            } else if (GameAI.enemy_range == GameDefines.RANGE_MELEE) {
+            } else if (gameExports.enemy_range == GameDefines.RANGE_MELEE) {
                 chance = 0.2f;
-            } else if (GameAI.enemy_range == GameDefines.RANGE_NEAR) {
+            } else if (gameExports.enemy_range == GameDefines.RANGE_NEAR) {
                 chance = 0.1f;
-            } else if (GameAI.enemy_range == GameDefines.RANGE_MID) {
+            } else if (gameExports.enemy_range == GameDefines.RANGE_MID) {
                 chance = 0.02f;
             } else {
+                // chance = 0f
                 return false;
             }
 
